@@ -16,6 +16,8 @@
 
 use core::arch::asm;
 
+use super::tlbi_operand;
+
 pub fn flush_tlb_all() {
     unsafe {
         asm!("dsb ishst", "tlbi vmalle1is", "dsb ish", "isb", options(nostack));
@@ -23,7 +25,7 @@ pub fn flush_tlb_all() {
 }
 
 pub fn flush_tlb_page(addr: u64) {
-    let page = addr >> 12;
+    let page = tlbi_operand::vaae1is(addr);
     unsafe {
         asm!("dsb ishst", "tlbi vaae1is, {0}", "dsb ish", "isb", in(reg) page, options(nostack));
     }

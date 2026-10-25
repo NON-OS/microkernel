@@ -19,7 +19,7 @@ use core::sync::atomic::Ordering;
 
 use crate::arch::x86_64::gdt;
 use crate::memory::paging::manager::api::switch_to_process_address_space;
-use crate::process::core::{ProcessControlBlock, ProcessState, CURRENT_PID};
+use crate::process::core::{ProcessControlBlock, CURRENT_PID};
 use crate::process::nonos_core::{has_saved_fpu_state, init_fpu, restore_fpu_state};
 use crate::process::scheduler::preemption::{set_time_slice, DEFAULT_TIME_SLICE};
 use crate::process::userspace::transitions::return_to_usermode;
@@ -33,14 +33,18 @@ pub(super) fn try_first_entry(pcb: &Arc<ProcessControlBlock>, pid: u32) -> bool 
 
     let kstack = pcb.kernel_stack_top.load(Ordering::Acquire);
     if kstack == 0 {
-        *pcb.state.lock() = ProcessState::Terminated(-1);
+        pcb.mark_failed();
+        return true;
+    }
+    // Asked with the store, before anything is loaded (L77c).
+    if !pcb.mark_running() {
         return true;
     }
 
     let cpu = percpu::current().cpu_id;
     unsafe {
         if gdt::set_kernel_stack(cpu, kstack).is_err() {
-            *pcb.state.lock() = ProcessState::Terminated(-1);
+            pcb.mark_failed();
             return true;
         }
     }
@@ -54,7 +58,6 @@ pub(super) fn try_first_entry(pcb: &Arc<ProcessControlBlock>, pid: u32) -> bool 
         crate::memory::paging::tlb::set_cr3(crate::memory::PhysAddr::new(cr3v));
     }
 
-    *pcb.state.lock() = ProcessState::Running;
     CURRENT_PID.store(pid, Ordering::SeqCst);
     set_time_slice(DEFAULT_TIME_SLICE);
 

@@ -27,7 +27,7 @@ const SENTINEL: u32 = 0x1234_5678;
 
 fn frame(w: u32, h: u32, n: u32, from: &[u32]) -> Vec<u32> {
     let mut buf = from.to_vec();
-    paint_status(&mut buf, w as usize, w, h, n);
+    paint_status(&mut buf, w as usize, w, h, status(w, h), n);
     buf
 }
 

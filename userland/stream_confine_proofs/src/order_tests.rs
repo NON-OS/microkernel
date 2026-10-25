@@ -24,8 +24,8 @@ fn a_described_device_is_confined_or_refused() {
         &[
             "let Some(address) = pci_address(device_id) else {",
             "if let Some(iommus) = crate::hardware::broker::described::iommus(device_id) {",
-            "return Ok(attach_streams(pid, device_id, iommus)?);",
-            "attach_one(pid, device_id, address, false,",
+            "return Ok(attach_streams(pid, device_id, iommus, port_only)?);",
+            "attach_one(pid, device_id, address, (false, port_only),",
         ],
     );
     order(
@@ -36,7 +36,7 @@ fn a_described_device_is_confined_or_refused() {
             "Err(Refused)",
             "for sid in iommus.sids() {",
             "let stream = DeviceAddress::stream(*sid);",
-            "if attach_one(pid, device_id, stream, true, (&[], &[])).is_err() {",
+            "if attach_one(pid, device_id, stream, (true, port_only), (&[], &[])).is_err() {",
             "detach(pid, device_id);",
             "return Err(Refused);",
         ],
@@ -59,13 +59,15 @@ fn a_described_device_is_confined_or_refused() {
 
 #[test]
 fn every_stream_comes_out_at_release() {
-    let detach = code("hardware/broker/confine/detach.rs");
+    // Each requester once, so a claim racing the release keeps its own.
     order(
-        &detach,
+        &code("hardware/broker/confine/detach.rs"),
         &[
             "fn detach_held(",
-            "while let Some(i) = all[pos].devices.iter().position(|(d, _)| *d == device_id) {",
-            "let (_, address) = all[pos].devices.remove(i);",
+            "while let Some(denied) = detach_one(&mut all[pos], device_id, &mut done) {",
+            "let i = c.devices.iter().position(|(d, a)| *d == device_id && !done.contains(a))?;",
+            "let (_, address) = c.devices.remove(i);",
+            "done.push(address);",
         ],
     );
 }

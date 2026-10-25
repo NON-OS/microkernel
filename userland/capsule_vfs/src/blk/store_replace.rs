@@ -28,7 +28,7 @@
 //! payload goes to a free extent first, where nothing points at it, and then
 //! the table entry is repointed and re-digested in one sector write. Before
 //! that write the old record is whole; after it the new one is. The extent the
-//! record left behind is free for the next replacement to reuse.
+//! record left behind is then zeroed, and free for the next replacement.
 //!
 //! A different length is still refused, because the table records length as
 //! part of the entry this path does not rewrite, and the rule about what may
@@ -67,5 +67,7 @@ pub fn replace(
     }
     write_payload(at, data)?;
     let region = patch_entry(toc, entry.slot, at, &digest16(data))?;
-    commit_entry(&region, entry.slot)
+    commit_entry(&region, entry.slot)?;
+    // Nothing points at the old extent now: zeroing it cannot leave the table lying.
+    write_payload(entry.offset, &alloc::vec![0u8; entry.len as usize])
 }

@@ -21,8 +21,8 @@
 //! this module rather than attempted and hoped for.
 
 use super::super::super::constants::{
-    CPUID_EBX_SMAP, CPUID_EBX_SMEP, CPUID_ECX_UMIP, CPUID_EDX_NX, CPUID_EXTENDED_LEAF,
-    CPUID_FEATURES_LEAF,
+    CPUID_BASIC_LEAF, CPUID_EBX_SMAP, CPUID_EBX_SMEP, CPUID_ECX_UMIP, CPUID_EDX_NX, CPUID_EDX_PGE,
+    CPUID_EXTENDED_LEAF, CPUID_FEATURES_LEAF,
 };
 
 #[derive(Clone, Copy)]
@@ -31,16 +31,19 @@ pub(super) struct Supported {
     pub smap: bool,
     pub umip: bool,
     pub nx: bool,
+    pub pge: bool,
 }
 
 pub(super) fn supported() -> Supported {
     let (_, ebx, ecx, _) = read(CPUID_FEATURES_LEAF, 0);
     let (_, _, _, edx) = read(CPUID_EXTENDED_LEAF, 0);
+    let (_, _, _, basic_edx) = read(CPUID_BASIC_LEAF, 0);
     Supported {
         smep: ebx & CPUID_EBX_SMEP != 0,
         smap: ebx & CPUID_EBX_SMAP != 0,
         umip: ecx & CPUID_ECX_UMIP != 0,
         nx: edx & CPUID_EDX_NX != 0,
+        pge: basic_edx & CPUID_EDX_PGE != 0,
     }
 }
 

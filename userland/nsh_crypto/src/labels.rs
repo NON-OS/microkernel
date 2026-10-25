@@ -19,7 +19,7 @@
 //! names its one purpose and ends in a zero byte, so no signature made for
 //! one purpose can be presented for another.
 
-use nonos_hash::{Sha256, Sha512};
+use nonos_hash::Sha512;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Label {
@@ -30,6 +30,8 @@ pub enum Label {
     Grant,
     Approve,
     Enrol,
+    Policy,
+    Revoke,
 }
 
 impl Label {
@@ -42,6 +44,8 @@ impl Label {
             Label::Grant => b"nsh/1 grant\0",
             Label::Approve => b"nsh/1 approve\0",
             Label::Enrol => b"nsh/1 enrol\0",
+            Label::Policy => b"nsh/1 policy\0",
+            Label::Revoke => b"nsh/1 revoke\0",
         }
     }
 }
@@ -50,24 +54,5 @@ pub fn labelled(label: Label, inner: &[u8]) -> [u8; 64] {
     let mut h = Sha512::new();
     h.update(label.bytes());
     h.update(inner);
-    h.finalize()
-}
-
-/// The 32 bytes `HOST_PROOF`'s attestation document must carry as its
-/// challenge: `SHA-256("nsh/1 attest\0" || TH(SERVER_HELLO) || H(host keys))`.
-pub fn attest_challenge(th_server_hello: &[u8; 64], host_ed: &[u8], host_ml: &[u8]) -> [u8; 32] {
-    let mut h = Sha256::new();
-    h.update(b"nsh/1 attest\0");
-    h.update(th_server_hello);
-    h.update(&key_digest(host_ed, host_ml));
-    h.finalize()
-}
-
-/// `H(host keys)` or a subject: SHA-512 of the Ed25519 key, then the
-/// ML-DSA-65 key.
-pub fn key_digest(ed: &[u8], ml: &[u8]) -> [u8; 64] {
-    let mut h = Sha512::new();
-    h.update(ed);
-    h.update(ml);
     h.finalize()
 }

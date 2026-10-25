@@ -1,0 +1,256 @@
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: failed to load Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x2,0x0): Not Found
+BdsDxe: loading Boot0002 "UEFI QEMU HARDDISK QM00001 " from PciRoot(0x0)/Pci(0x1F,0x2)/Sata(0x0,0xFFFF,0x0)
+BdsDxe: starting Boot0002 "UEFI QEMU HARDDISK QM00001 " from PciRoot(0x0)/Pci(0x1F,0x2)/Sata(0x0,0xFFFF,0x0)
+[2J[01;01H[=3h[2J[01;01H[BOOT] NONOS Bootloader v1.0
+[WARN] gop: [GOP] 1280x800 firmware current pitch=1280px fmt=BGRX fb=0x80000000 panel=0x0mm
+[WARN] gop: [GOP] handle 1 of 2, console out on: 1
+=== Loading Bootloader Configuration ===
+   [INFO] Using default security policy
+   [INFO] Using default network policy
+========================================
+[ERROR] security: Cannot read SecureBoot: NOT_FOUND
+[ERROR] security: Platform Key missing: NOT_FOUND
+[ERROR] security: Signature DB missing: NOT_FOUND
+[WARN] security: PCR extend failed: no TCG2 handle
+=== Security Status ===
+Production Keys: LOADED
+SecureBoot: DISABLED
+PlatformKey: MISSING
+SignatureDB: MISSING
+HW RNG: AVAILABLE
+Measured Boot: INACTIVE
+Ed25519: PASS
+BLAKE3: PASS
+=======================
+=== HW Summary ===
+ACPI: available
+Memory: reported
+CPUs: detected
+Storage: counted
+Network: counted
+Graphics: counted
+PCI: counted
+==================
+[WARN] enforce: SecureBoot not enabled
+[WARN] enforce: TPM not available
+[SECURITY] PASSED
+[WARN] enforce: SecureBoot disabled
+[WARN] enforce: TPM not available
+[WARN] enforce: PlatformKey not verified
+  [CRYPTO] Kernel bytes: 3627128
+  [CRYPTO] Computing BLAKE3 hash...
+  [CRYPTO] BLAKE3: a10ef5e926d6f432...
+  [CRYPTO] Extracting Ed25519 + ML-DSA-65 signatures...
+  [CRYPTO] Sig R: 691deb69de01eb8e...
+  [CRYPTO] Sig S: d1344119042a9b0f...
+  [CRYPTO] Verifying Ed25519 signature...
+  [CRYPTO] Ed25519 verify ....................... [PASS]
+  [CRYPTO] Signer key ID: f9355fd53b2b7771...
+  [CRYPTO] Verifying ML-DSA-65 signature...
+  [CRYPTO] ML-DSA-65 verify .................... [PASS]
+  [CRYPTO] Kernel signature state ............... [PASS]
+[WARN] proofs: TCG LOG ABSENT: no log from the firmware
+[WARN] proofs: SECURE BOOT OFF: UEFI Secure Boot disabled
+[WARN] proofs: TPM OFF: no TPM 2.0 measured boot
+[PT0]
+[PT1]
+[KTXT]
+[EBS0]
+[EBS1]
+[MMAP1]
+[CR3OK]
+V>
+NX64
+R
+[NONOS] Handoff OK
+[NONOS] Kernel entry - SSE enabled
+[TIMER] Initialized, TSC freq=2100 MHz
+[BENCH] 251 kernel_entry
+[NONOS] GDT configured
+[NONOS] SYSCALL configured
+[NONOS] Early IDT configured
+[NONOS] Global allocator initialized
+[NONOS] Full IDT loaded
+[BENCH] 254 kernel_idt_ready
+[NONOS] ACPI tables parsed
+[ACPI] power button: fixed feature, polled; a press goes to the desktop as the Power key
+[APIC] Initializing Local APIC...
+[APIC] Local APIC enabled, ID=0 Version=0x0x0000000000000014 mode=xAPIC
+[APIC] Initializing I/O APIC...
+[APIC] Disabling legacy PIC (8259A)...
+[APIC] Legacy PIC disabled
+[APIC] MADT ISOs=5
+[APIC] I/O APIC enabled, ID=0 base=0x0x00000000FEC00000 gsi_base=0 Max redirections=24
+[NONOS] APIC initialized
+[APIC] Setting up timer at 100 Hz
+[NONOS] Preemption timer armed
+[BENCH] 282 kernel_timer_ready
+[NONOS] Interrupts enabled
+[NONOS] memory encryption: none
+[PCI] Enumerating PCI devices...
+[PCI] Found 10 devices
+[PCI] 0:0.0 Host Bridge (0x0000000000008086:0x00000000000029C0)
+[PCI] 0:1.0 Ethernet (0x0000000000008086:0x00000000000010D3)
+[PCI] 0:3.0 VGA Controller (0x0000000000001AF4:0x0000000000001050)
+[PCI] 0:4.0 xHCI USB 3.0 (0x0000000000001B36:0x000000000000000D)
+[PCI] 0:31.0 ISA Bridge (0x0000000000008086:0x0000000000002918)
+[PCI] 0:31.2 SATA AHCI (0x0000000000008086:0x0000000000002922)
+[NONOS] PCI enumerated
+[BENCH] 307 kernel_pci_ready
+[NONOS] RNG seed: AVAILABLE - applying...
+[NONOS] RNG seed: APPLIED SUCCESSFULLY
+[VMD] no Intel VMD on segment 0; disks are on the root bus
+[ACPI] sci irq=9 device=0x000000000000000C
+[NONOS] hardware broker seeded
+[PLATFORM] hypervisor=qemu-tcg
+[NONOS] Entropy: CPU RNG
+[NONOS] boot session nonce latched
+[NONOS] token signing key latched
+[BENCH] 505 kernel_core_ready
+[NONOS] === Security Status ===
+[NONOS] Kernel signature: VERIFIED
+[NONOS] Secure Boot: DISABLED
+[NONOS] ========================
+[NONOS] Microkernel boot
+[BENCH] 507 microkernel_init_start
+[BOOT-ENTROPY] nonce drawn, hardware generator present
+[MEM] 7312 MiB free to allocate, in a span of 0x0000000000100000..0x0000000280000000
+[DMA] display pool pages=8192
+[DMA] low32 pool pages=2354 floor=1177
+[fbconsole] on-screen log disabled; serial only
+[NONOS] Microkernel init
+[RNG] seeded from: cpu-entropy-instruction cpu-random-instruction firmware-seed
+[SMP] madt aps=3 disabled=0 duplicate=0 invalid=0 unaddressable=0 over_limit=0
+[VM] adopted root 0x000000007E766000
+[VM-INIT] kernel half populated entries: 256
+[VM-INIT] LAPIC rebased to UC kernel mapping
+[VM-INIT] low half cleared
+[BENCH] 542 vm_ready
+[CPU-PROT] smep=1 smap=1 umip=1 nx=1 wp=1 pge=0
+[STACK-GUARD] bsp armed 8/8
+[KSEC] 4/4 sections mapped as declared
+[CPU-FPU] xsave=1 xcr0=0x0000000000000007 area=832
+[VT-D] units=0x0000000000000001 base=0x00000000FED90000 ver=0x0000000000000010 domains=0x0000000000010000 gaw=0x0000000000000030 levels=0x0000000000000004 cm
+[VT-D] IOMMU unit base=0x00000000FED90000 firmware interrupt remapping=off
+[VT-D] IOMMU unit base=0x00000000FED90000 invalidation=queue
+[VT-D] translation enabled, levels=0x0000000000000004 devices=0x000000000000000A
+[VT-D] enumerated devices blocked until claimed; with reserved memory=0; others denied
+[VT-D] units programmed=0x0000000000000001
+[VT-D] IOMMU interrupt remapping on, entries=256, compatibility format interrupts blocked
+[IOMMU] intel-vt-d present, enforcing=1, unconfined grants=0
+[IOMMU] capabilities aw=48 ir=1 snoop=0 pages=0x0000000000001000 domains=256
+[CRYPTO-POST] 4/4 known-answer tests passed
+[FB] handoff ptr=0x80000000 stride=0x1400 fmt=0x3
+[FB] mapped 1280x800 pitch=5120 BGRX write-combining scale=1
+[NONOS] device interrupt routing ready
+[BENCH] 672 process_runtime_ready
+[APIC] Setting up timer at 100 Hz
+[SMP] ap=1 apic=1 online
+[SMP-AP] cpu=1 svr=0x00000000000001FF lvt_timer=0x0000000000020020 init=600000 counting=1 ppr=0x0000000000000000 in_service=none
+[CPU-PROT] cpu=1 smep=1 smap=1 umip=1 nx=1 wp=1 pge=0
+[APIC] Setting up timer at 100 Hz
+[SMP] ap=2 apic=2 online
+[SMP-AP] cpu=2 svr=0x00000000000001FF lvt_timer=0x0000000000020020 init=600000 counting=1 ppr=0x0000000000000000 in_service=none
+[CPU-PROT] cpu=2 smep=1 smap=1 umip=1 nx=1 wp=1 pge=0
+[APIC] Setting up timer at 100 Hz
+[SMP] ap=3 apic=3 online
+[SMP-AP] cpu=3 svr=0x00000000000001FF lvt_timer=0x0000000000020020 init=600000 counting=1 ppr=0x0000000000000000 in_service=none
+[CPU-PROT] cpu=3 smep=1 smap=1 umip=1 nx=1 wp=1 pge=0
+[SMP] answered=3 online=4
+[SMP-PROOF] cpu_count=4 PASS
+[SMP] AP TSC rate 2100 MHz, the boot CPU's
+[NONOS] Core ready
+[BENCH] 722 microkernel_core_ready
+[BENCH] 722 microkernel_main_start
+[TPM] interface FIFO (TIS) at 0xFED40000, locality 0 (id 0x0, no ACPI start method)
+[BOOT-ATTEST] bootloader self-reported, not measured: enrolled, epoch 1
+[NONOS] boot log held; starting userspace
+[UKERNEL] Creating init
+[BENCH] 5004 init_process_created
+[UKERNEL] Entering userspace
+[BENCH] 5014 init_enter_userspace
+[INIT] Starting
+[INIT] boot profile: Standard
+[BENCH] 5014 capsule_spawn_start:ramfs
+[BENCH] 5015 capsule_verify_fail:ramfs
+[ERROR] RAMFS: NØNOS ID cert decode failed (UnexpectedEof)
+[BENCH] 5015 capsule_spawn_start:keyring
+[BENCH] 5015 capsule_verify_fail:keyring
+[ERROR] KEYRING: NØNOS ID cert decode failed (UnexpectedEof)
+[BENCH] 5016 capsule_spawn_start:entropy_pool
+[BENCH] 5016 capsule_verify_fail:entropy_pool
+[ERROR] ENTROPY: NØNOS ID cert decode failed (UnexpectedEof)
+[BENCH] 5016 capsule_spawn_start:crypto_pool
+[BENCH] 5016 capsule_verify_fail:crypto_pool
+[ERROR] CRYPTO: NØNOS ID cert decode failed (UnexpectedEof)
+[BENCH] 5016 capsule_spawn_start:acpi
+[ZK-ATTEST] development image: paths only, no STARK proofs, never a release
+[BENCH] 5093 capsule_attest_ok:acpi
+[ZK-ATTEST] ok acpi vendor
+[BENCH] 5093 capsule_preflight_ok:acpi
+[SPAWN] name=acpi pid=0x0000000000000002 caps=0x0000000000058318 entry=0x000000000ABF3050
+[BENCH] 5100 capsule_runqueue_ok:acpi
+[ACPI] capsule spawned
+[BENCH] 5101 capsule_spawn_start:vfs_pool
+[BENCH] 5101 capsule_verify_fail:vfs_pool
+[ERROR] VFS: NØNOS ID cert decode failed (UnexpectedEof)
+[INIT] Capsules spawned
+[SMP] cpu=2 runs user pid 2
+[BENCH] 5103 capsule_spawn_start:proof_io
+[BENCH] 5104 capsule_verify_fail:proof_io
+[USER-FIRST] pid=0x0000000000000002 rip=0x000000000ABF3050
+[SMBIOS] 2.8 QEMU Standard PC (Q35 + ICH9, 2009), BIOS edk2-stable202408-prebuilt.qemu.org (08/13/2024), Other, structures 10[ACPI] table FACP instance=0 len=244 handed
+[ACPI] table FACP instance=0 len=244 handed
+[ACPI] measured FACP instance=0 len=244 blake3=0x00000000CC0586CC
+[ACPI] measured DSDT instance=0 len=8741 blake3=0x00000000C34DD327
+[ACPI] measured APIC instance=0 len=144 blake3=0x000000004D075BD3
+[ACPI] measured MCFG instance=0 len=60 blake3=0x00000000DAD128F6
+[ACPI] measured DMAR instance=0 len=152 blake3=0x00000000940002D3
+[ACPI] measured WAET instance=0 len=40 blake3=0x0000000026610C10
+[ACPI] measured HPET instance=0 len=56 blake3=0x0000000045ED6B20
+[ACPI] measured BGRT instance=0 len=56 blake3=0x00000000834CB393
+[ACPI] table DSDT instance=0 len=8741 handed
+[ACPI] table DSDT instance=0 len=8741 handed
+[ACPI] tables: DSDT and 0 SSDTs[ACPI] region memory base=0x000000007FBDD000 len=0x0000000000000040 granted
+[ACPI] posture regions granted=1 refused=0 hw_errors fatal=0 recoverable=0 corrected=0 soft_off=scan
+[ACPI] namespace: 281 objects[ACPI] no embedded controller[ACPI] \_PIC(1): APIC mode[ACPI] _OSC segment=0x0000000000000000 buses=0x0000000000000000-0x00000000000000FF offered=0x000000000000001E granted=0x0000000000000000
+[ACPI] host bridge _OSC support 0x11 offered 0x1E control 0x0[ACPI] region pci seg.bus.dev.fn=0x0000000000001F00 len=0x0000000000000001 granted
+[ACPI] posture regions granted=2 refused=0 hw_errors fatal=0 recoverable=0 corrected=0 soft_off=scan
+[ACPI] region memory base=0x00000000FED00000 len=0x0000000000000400 refused: HPET
+[ACPI] posture regions granted=2 refused=1 hw_errors fatal=0 recoverable=0 corrected=0 soft_off=scan
+[ACPI] region memory base=0x00000000FED00000 len=0x0000000000001000 refused: HPET
+[ACPI] posture regions granted=2 refused=2 hw_errors fatal=0 recoverable=0 corrected=0 soft_off=scan
+[ACPI] region space 0x0 at 0xFED00000 refused: memory: a window granted under the kernel's region rule[ACPI] region io base=0x0000000000000CD8 len=0x000000000000000C granted
+[ACPI] posture regions granted=3 refused=2 hw_errors fatal=0 recoverable=0 corrected=0 soft_off=scan
+[ACPI] _INI ran 0, failed 0; absent 1; _STA failed 1[ACPI] posture regions granted=3 refused=3 hw_errors fatal=0 recoverable=0 corrected=0 soft_off=scan
+[ACPI] posture regions granted=3 refused=4 hw_errors fatal=0 recoverable=0 corrected=0 soft_off=scan
+[ACPI] dev \_SB_.PCI0 sta=0xF hid=PNP0A08 uid=0[ACPI] dev \_SB_.PCI0.PRES sta=0xF hid=PNP0A06[ACPI] dev \_SB_.PCI0.GPE0 sta=0xB hid=PNP0A06[ACPI] dev \_SB_.PCI0.PHPR sta=0xB hid=PNP0A06[ACPI] dev \_SB_.PCI0.FWCF sta=0xB hid=QEMU0002[ACPI] dev \_SB_.PCI0.S00_ sta=0xF adr=0x0[ACPI] dev \_SB_.PCI0.S08_ sta=0xF adr=0x10000[ACPI] dev \_SB_.PCI0.S10_ sta=0xF adr=0x20000[ACPI] dev \_SB_.PCI0.S18_ sta=0xF adr=0x30000[ACPI] dev \_SB_.PCI0.S20_ sta=0xF adr=0x40000[ACPI] dev \_SB_.PCI0.S28_ sta=0xF adr=0x50000[ACPI] dev \_SB_.PCI0.S30_ sta=0xF adr=0x60000[ACPI] dev \_SB_.PCI0.SF8_ sta=0xF adr=0x1F0000[ACPI] dev \_SB_.PCI0.SF8_.KBD_ sta=0xF hid=PNP0303[ACPI] dev \_SB_.PCI0.SF8_.MOU_ sta=0xF hid=PNP0F13[ACPI] dev \_SB_.PCI0.SF8_.LPT1 sta=0xF hid=PNP0400 uid=1[ACPI] dev \_SB_.PCI0.SF8_.COM1 sta=0xF hid=PNP0501 uid=1[ACPI] dev \_SB_.PCI0.SF8_.RTC_ sta=0xF hid=PNP0B00[ACPI] dev \_SB_.PCI0.SFA_ sta=0xF adr=0x1F0002[ACPI] dev \_SB_.PCI0.SFB_ sta=0xF adr=0x1F0003[ACPI] dev \_SB_.DRAC sta=0xF hid=PNP0C01[ACPI] dev \_SB_.LNKA sta=0xB hid=PNP0C0F uid=0[ACPI] dev \_SB_.LNKB sta=0xB hid=PNP0C0F uid=1[ACPI] dev \_SB_.LNKC sta=0xB hid=PNP0C0F uid=2[ACPI] dev \_SB_.LNKD sta=0xB hid=PNP0C0F uid=3[ACPI] dev \_SB_.LNKE sta=0xB hid=PNP0C0F uid=4[ACPI] dev \_SB_.LNKF sta=0xB hid=PNP0C0F uid=5[ACPI] dev \_SB_.LNKG sta=0xB hid=PNP0C0F uid=6[ACPI] dev \_SB_.LNKH sta=0xB hid=PNP0C0F uid=7[ACPI] dev \_SB_.GSIA sta=0xF hid=PNP0C0F uid=16[ACPI] dev \_SB_.GSIB sta=0xF hid=PNP0C0F uid=17[ACPI] dev \_SB_.GSIC sta=0xF hid=PNP0C0F uid=18[ACPI] dev \_SB_.GSID sta=0xF hid=PNP0C0F uid=19[ACPI] dev \_SB_.GSIE sta=0xF hid=PNP0C0F uid=20[ACPI] dev \_SB_.GSIF sta=0xF hid=PNP0C0F uid=21[ACPI] dev \_SB_.GSIG sta=0xF hid=PNP0C0F uid=22[ACPI] dev \_SB_.GSIH sta=0xF hid=PNP0C0F uid=23[ACPI] dev \_SB_.HPET sta=0x0 hid=PNP0103 uid=0[ACPI] dev \_SB_.CPUS sta=0xF hid=ACPI0010[ACPI] inventory: 39 devices, 1 objects failed[ACPI] prt \_SB_.PCI0 slot=0 pin=0 gsi=20[ACPI] prt \_SB_.PCI0 slot=0 pin=1 gsi=21[ACPI] prt \_SB_.PCI0 slot=0 pin=2 gsi=22[ACPI] prt \_SB_.PCI0 slot=0 pin=3 gsi=23[ACPI] prt \_SB_.PCI0 slot=1 pin=0 gsi=21[ACPI] prt \_SB_.PCI0 slot=1 pin=1 gsi=22[ACPI] prt \_SB_.PCI0 slot=1 pin=2 gsi=23[ACPI] prt \_SB_.PCI0 slot=1 pin=3 gsi=20[ACPI] prt \_SB_.PCI0 slot=2 pin=0 gsi=22[ACPI] prt \_SB_.PCI0 slot=2 pin=1 gsi=23[ACPI] prt \_SB_.PCI0 slot=2 pin=2 gsi=20[ACPI] prt \_SB_.PCI0 slot=2 pin=3 gsi=21[ACPI] prt \_SB_.PCI0 slot=3 pin=0 gsi=23[ACPI] prt \_SB_.PCI0 slot=3 pin=1 gsi=20[ACPI] prt \_SB_.PCI0 slot=3 pin=2 gsi=21[ACPI] prt \_SB_.PCI0 slot=3 pin=3 gsi=22[ACPI] prt \_SB_.PCI0 slot=4 pin=0 gsi=20[ACPI] prt \_SB_.PCI0 slot=4 pin=1 gsi=21[ACPI] prt \_SB_.PCI0 slot=4 pin=2 gsi=22[ACPI] prt \_SB_.PCI0 slot=4 pin=3 gsi=23[ACPI] prt \_SB_.PCI0 slot=5 pin=0 gsi=21[ACPI] prt \_SB_.PCI0 slot=5 pin=1 gsi=22[ACPI] prt \_SB_.PCI0 slot=5 pin=2 gsi=23[ACPI] prt \_SB_.PCI0 slot=5 pin=3 gsi=20[ACPI] prt \_SB_.PCI0 slot=6 pin=0 gsi=22[ACPI] prt \_SB_.PCI0 slot=6 pin=1 gsi=23[ACPI] prt \_SB_.PCI0 slot=6 pin=2 gsi=20[ACPI] prt \_SB_.PCI0 slot=6 pin=3 gsi=21[ACPI] prt \_SB_.PCI0 slot=7 pin=0 gsi=23[ACPI] prt \_SB_.PCI0 slot=7 pin=1 gsi=20[ACPI] prt \_SB_.PCI0 slot=7 pin=2 gsi=21[ACPI] prt \_SB_.PCI0 slot=7 pin=3 gsi=22[ACPI] prt \_SB_.PCI0 slot=8 pin=0 gsi=20[ACPI] prt \_SB_.PCI0 slot=8 pin=1 gsi=21[ACPI] prt \_SB_.PCI0 slot=8 pin=2 gsi=22[ACPI] prt \_SB_.PCI0 slot=8 pin=3 gsi=23[ACPI] prt \_SB_.PCI0 slot=9 pin=0 gsi=21[ACPI] prt \_SB_.PCI0 slot=9 pin=1 gsi=22[ACPI] prt \_SB_.PCI0 slot=9 pin=2 gsi=23[ACPI] prt \_SB_.PCI0 slot=9 pin=3 gsi=20[ACPI] prt \_SB_.PCI0 slot=10 pin=0 gsi=22[ACPI] prt \_SB_.PCI0 slot=10 pin=1 gsi=23[ACPI] prt \_SB_.PCI0 slot=10 pin=2 gsi=20[ACPI] prt \_SB_.PCI0 slot=10 pin=3 gsi=21[ACPI] prt \_SB_.PCI0 slot=11 pin=0 gsi=23[ACPI] prt \_SB_.PCI0 slot=11 pin=1 gsi=20[ACPI] prt \_SB_.PCI0 slot=11 pin=2 gsi=21[ACPI] prt \_SB_.PCI0 slot=11 pin=3 gsi=22[ACPI] prt \_SB_.PCI0 slot=12 pin=0 gsi=20[ACPI] prt \_SB_.PCI0 slot=12 pin=1 gsi=21[ACPI] prt \_SB_.PCI0 slot=12 pin=2 gsi=22[ACPI] prt \_SB_.PCI0 slot=12 pin=3 gsi=23[ACPI] prt \_SB_.PCI0 slot=13 pin=0 gsi=21[ACPI] prt \_SB_.PCI0 slot=13 pin=1 gsi=22[ACPI] prt \_SB_.PCI0 slot=13 pin=2 gsi=23[ACPI] prt \_SB_.PCI0 slot=13 pin=3 gsi=20[ACPI] prt \_SB_.PCI0 slot=14 pin=0 gsi=22[ACPI] prt \_SB_.PCI0 slot=14 pin=1 gsi=23[ACPI] prt \_SB_.PCI0 slot=14 pin=2 gsi=20[ACPI] prt \_SB_.PCI0 slot=14 pin=3 gsi=21[ACPI] prt \_SB_.PCI0 slot=15 pin=0 gsi=23[ACPI] prt \_SB_.PCI0 slot=15 pin=1 gsi=20[ACPI] prt \_SB_.PCI0 slot=15 pin=2 gsi=21[ACPI] prt \_SB_.PCI0 slot=15 pin=3 gsi=22[ACPI] prt \_SB_.PCI0 slot=16 pin=0 gsi=20[ACPI] prt \_SB_.PCI0 slot=16 pin=1 gsi=21[ACPI] prt \_SB_.PCI0 slot=16 pin=2 gsi=22[ACPI] prt \_SB_.PCI0 slot=16 pin=3 gsi=23[ACPI] prt \_SB_.PCI0 slot=17 pin=0 gsi=21[ACPI] prt \_SB_.PCI0 slot=17 pin=1 gsi=22[ACPI] prt \_SB_.PCI0 slot=17 pin=2 gsi=23[ACPI] prt \_SB_.PCI0 slot=17 pin=3 gsi=20[ACPI] prt \_SB_.PCI0 slot=18 pin=0 gsi=22[ACPI] prt \_SB_.PCI0 slot=18 pin=1 gsi=23[ACPI] prt \_SB_.PCI0 slot=18 pin=2 gsi=20[ACPI] prt \_SB_.PCI0 slot=18 pin=3 gsi=21[ACPI] prt \_SB_.PCI0 slot=19 pin=0 gsi=23[ACPI] prt \_SB_.PCI0 slot=19 pin=1 gsi=20[ACPI] prt \_SB_.PCI0 slot=19 pin=2 gsi=21[ACPI] prt \_SB_.PCI0 slot=19 pin=3 gsi=22[ACPI] prt \_SB_.PCI0 slot=20 pin=0 gsi=20[ACPI] prt \_SB_.PCI0 slot=20 pin=1 gsi=21[ACPI] prt \_SB_.PCI0 slot=20 pin=2 gsi=22[ACPI] prt \_SB_.PCI0 slot=20 pin=3 gsi=23[ACPI] prt \_SB_.PCI0 slot=21 pin=0 gsi=21[ACPI] prt \_SB_.PCI0 slot=21 pin=1 gsi=22[ACPI] prt \_SB_.PCI0 slot=21 pin=2 gsi=23[ACPI] prt \_SB_.PCI0 slot=21 pin=3 gsi=20[ACPI] prt \_SB_.PCI0 slot=22 pin=0 gsi=22[ACPI] prt \_SB_.PCI0 slot=22 pin=1 gsi=23[ACPI] prt \_SB_.PCI0 slot=22 pin=2 gsi=20[ACPI] prt \_SB_.PCI0 slot=22 pin=3 gsi=21[ACPI] prt \_SB_.PCI0 slot=23 pin=0 gsi=23[ACPI] prt \_SB_.PCI0 slot=23 pin=1 gsi=20[ACPI] prt \_SB_.PCI0 slot=23 pin=2 gsi=21[ACPI] prt \_SB_.PCI0 slot=23 pin=3 gsi=22[ACPI] prt \_SB_.PCI0 slot=24 pin=0 gsi=20[ACPI] prt \_SB_.PCI0 slot=24 pin=1 gsi=21[ACPI] prt \_SB_.PCI0 slot=24 pin=2 gsi=22[ACPI] prt \_SB_.PCI0 slot=24 pin=3 gsi=23[ACPI] prt \_SB_.PCI0 slot=25 pin=0 gsi=16[ACPI] prt \_SB_.PCI0 slot=25 pin=1 gsi=17[ACPI] prt \_SB_.PCI0 slot=25 pin=2 gsi=18[ACPI] prt \_SB_.PCI0 slot=25 pin=3 gsi=19[ACPI] prt \_SB_.PCI0 slot=26 pin=0 gsi=16[ACPI] prt \_SB_.PCI0 slot=26 pin=1 gsi=17[ACPI] prt \_SB_.PCI0 slot=26 pin=2 gsi=18[ACPI] prt \_SB_.PCI0 slot=26 pin=3 gsi=19[ACPI] prt \_SB_.PCI0 slot=27 pin=0 gsi=16[ACPI] prt \_SB_.PCI0 slot=27 pin=1 gsi=17[ACPI] prt \_SB_.PCI0 slot=27 pin=2 gsi=18[ACPI] prt \_SB_.PCI0 slot=27 pin=3 gsi=19[ACPI] prt \_SB_.PCI0 slot=28 pin=0 gsi=16[ACPI] prt \_SB_.PCI0 slot=28 pin=1 gsi=17[ACPI] prt \_SB_.PCI0 slot=28 pin=2 gsi=18[ACPI] prt \_SB_.PCI0 slot=28 pin=3 gsi=19[ACPI] prt \_SB_.PCI0 slot=29 pin=0 gsi=16[ACPI] prt \_SB_.PCI0 slot=29 pin=1 gsi=17[ACPI] prt \_SB_.PCI0 slot=29 pin=2 gsi=18[ACPI] prt \_SB_.PCI0 slot=29 pin=3 gsi=19[ACPI] prt \_SB_.PCI0 slot=30 pin=0 gsi=20[ACPI] prt \_SB_.PCI0 slot=30 pin=1 gsi=21[ACPI] prt \_SB_.PCI0 slot=30 pin=2 gsi=22[ACPI] prt \_SB_.PCI0 slot=30 pin=3 gsi=23[ACPI] prt \_SB_.PCI0 slot=31 pin=0 gsi=16[ACPI] prt \_SB_.PCI0 slot=31 pin=1 gsi=17[ACPI] prt \_SB_.PCI0 slot=31 pin=2 gsi=18[ACPI] prt \_SB_.PCI0 slot=31 pin=3 gsi=19[ACPI] posture regions granted=3 refused=4 hw_errors fatal=0 recoverable=0 corrected=0 soft_off=scan
+[ACPI] \_S5 SLP_TYP 0/0[ACPI] legacy keyboard \_SB_.PCI0.SF8_.KBD_ io 0x60+1 io 0x64+1 irq 1[ACPI] legacy mouse \_SB_.PCI0.SF8_.MOU_ irq 12[ACPI] legacy uart \_SB_.PCI0.SF8_.COM1 io 0x3F8+8 irq 4[ACPI] legacy rtc \_SB_.PCI0.SF8_.RTC_ io 0x70+8 irq 8[ACPI] 8042: declared in the namespace[ACPI] reserved: 0 io, 1 memory, broker keeps 1[ACPI] pci host \_SB_.PCI0: buses 0x0-0xFF; boot configuration unsaid[ACPI] region pci seg.bus.dev.fn=0x0000000000000000 len=0x0000000000000001 granted
+[ACPI] posture regions granted=4 refused=4 hw_errors fatal=0 recoverable=0 corrected=0 soft_off=scan
+[ACPI] region pci seg.bus.dev.fn=0x0000000000000100 len=0x0000000000000001 granted
+[ACPI] posture regions granted=5 refused=4 hw_errors fatal=0 recoverable=0 corrected=0 soft_off=scan
+[ACPI] region pci seg.bus.dev.fn=0x0000000000000200 len=0x0000000000000001 granted
+[ACPI] posture regions granted=6 refused=4 hw_errors fatal=0 recoverable=0 corrected=0 soft_off=scan
+[ACPI] region pci seg.bus.dev.fn=0x0000000000000300 len=0x0000000000000001 granted
+[ACPI] posture regions granted=7 refused=4 hw_errors fatal=0 recoverable=0 corrected=0 soft_off=scan
+[ACPI] region pci seg.bus.dev.fn=0x0000000000000400 len=0x0000000000000001 granted
+[ACPI] posture regions granted=8 refused=4 hw_errors fatal=0 recoverable=0 corrected=0 soft_off=scan
+[ACPI] region pci seg.bus.dev.fn=0x0000000000000500 len=0x0000000000000001 granted
+[ACPI] posture regions granted=9 refused=4 hw_errors fatal=0 recoverable=0 corrected=0 soft_off=scan
+[ACPI] region pci seg.bus.dev.fn=0x0000000000000600 len=0x0000000000000001 granted
+[ACPI] posture regions granted=10 refused=4 hw_errors fatal=0 recoverable=0 corrected=0 soft_off=scan
+[ACPI] region pci seg.bus.dev.fn=0x0000000000001F02 len=0x0000000000000001 granted
+[ACPI] posture regions granted=11 refused=4 hw_errors fatal=0 recoverable=0 corrected=0 soft_off=scan
+[ACPI] region pci seg.bus.dev.fn=0x0000000000001F03 len=0x0000000000000001 granted
+[ACPI] posture regions granted=12 refused=4 hw_errors fatal=0 recoverable=0 corrected=0 soft_off=scan
+[ACPI] first publish pass done
+[ACPI] first publish pass done[ACPI] region io base=0x0000000000000600 len=0x0000000000000004 granted
+[ACPI] posture regions granted=13 refused=4 hw_errors fatal=0 recoverable=0 corrected=0 soft_off=scan
+[ACPI] region io base=0x0000000000000604 len=0x0000000000000002 granted
+[ACPI] posture regions granted=14 refused=4 hw_errors fatal=0 recoverable=0 corrected=0 soft_off=scan
+[ACPI] region io base=0x0000000000000620 len=0x0000000000000010 granted
+[ACPI] posture regions granted=15 refused=4 hw_errors fatal=0 recoverable=0 corrected=0 soft_off=scan
+[ACPI] region io base=0x00000000000000B2 len=0x0000000000000001 granted
+[ACPI] posture regions granted=16 refused=4 hw_errors fatal=0 recoverable=0 corrected=0 soft_off=scan
+[ACPI] already in ACPI mode[ACPI] GPEs armed 2, wake 0, both _L and _E 0, _PRW failed 0[ACPI] power button: served by the ACPI capsule; the kernel's poll stands down
+[ACPI] power button: served here[ACPI] sleep: S3 yes, S0 idle offered no (FADT flag no, LPIT 0 states, no LPS0 device), entered never[ACPI] power battery=no charge=unknown ac=unknown[ACPI] buttons power=0 sleep=0 lid=0[ACPI] cpu _OSC asked 0x0: granted 0 (0x0), refused 0, none 4[ACPI] cpu 0-3: no _PSS; no _CST; no _CPC; no _LPI[ACPI] hotkeys wmi=0 intel_hid=0 intel_buttons=0[ACPI] HEST: GHES sources 0 (polled 0, SCI 0; others are listed and not served)[ACPI] thermal zones=0 fans=0

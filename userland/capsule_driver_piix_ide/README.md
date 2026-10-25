@@ -21,7 +21,7 @@ kernel block layer / installer --NBW1 (unit = slot)--> driver.piix_ide0
   channel its command block (BAR `2c`, 8 ports) and control register (BAR
   `2c + 1`). A channel in compatibility mode decodes the ISA addresses
   (0x1F0/0x3F6, 0x170/0x376); the kernel lists them in those BARs
-  (`src/hardware/broker/table/legacy_ide.rs`), never the floppy
+  (`src/hardware/broker/legacy/attach.rs`), never the floppy
   controller's ports beside 0x3F6.
 - `MkDeviceClaim`; `MkPciConfigWrite` sets Bus Master and Interrupt Disable.
 - `MkPioGrant` on BAR4 and on each listed channel's two windows: every
@@ -170,11 +170,13 @@ the 64 KiB cut, LBA48 above and across 2^28, the slave of the secondary,
 a slow transfer, a draining engine, a disk error mid-transfer and after it,
 a short transfer, a hung disk timed out and its channel reset, the medium
 rule, the units, every malformed request, and the kernel's listing of
+compatibility-mode channels. A boot is the owner's.
 
 ## Release checklist
 
 - Signed manifest and kernel mirror present (`driver_piix_ide` keys).
 - `piix_ide_proofs` passes.
+- The kernel's block layer row for `driver.piix_ide0` (the maintainers').
 - QEMU `pc` with `-hda`, VirtualBox IDE and Hyper-V Gen 1 install to and
   boot from the disk.
 

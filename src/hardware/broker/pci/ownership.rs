@@ -16,12 +16,16 @@
 
 //! Ownership + handle resolution for `MkPciConfigWrite`.
 
-use crate::hardware::broker::claim;
+use crate::hardware::broker::claim::{self, InUse};
 use crate::hardware::broker::pci_index::{self, PciHandle};
 
 use super::types::{PciReadError, PciReadRequest, PciWriteError, PciWriteRequest};
 
-pub(super) fn resolve(pid: u32, req: &PciWriteRequest) -> Result<PciHandle, PciWriteError> {
+/// The handle, and the claim held across the write (L66).
+pub(super) fn resolve(
+    pid: u32,
+    req: &PciWriteRequest,
+) -> Result<(PciHandle, InUse), PciWriteError> {
     let claim = claim::lookup(req.device_id).ok_or(PciWriteError::NotClaimed)?;
     if claim.pid != pid {
         return Err(PciWriteError::NotClaimed);
@@ -29,10 +33,13 @@ pub(super) fn resolve(pid: u32, req: &PciWriteRequest) -> Result<PciHandle, PciW
     if claim.epoch != req.claim_epoch {
         return Err(PciWriteError::StaleEpoch);
     }
-    pci_index::lookup(req.device_id).ok_or(PciWriteError::NoDeviceHandle)
+    Ok((pci_index::lookup(req.device_id).ok_or(PciWriteError::NoDeviceHandle)?, claim))
 }
 
-pub(super) fn resolve_read(pid: u32, req: &PciReadRequest) -> Result<PciHandle, PciReadError> {
+pub(super) fn resolve_read(
+    pid: u32,
+    req: &PciReadRequest,
+) -> Result<(PciHandle, InUse), PciReadError> {
     let claim = claim::lookup(req.device_id).ok_or(PciReadError::NotClaimed)?;
     if claim.pid != pid {
         return Err(PciReadError::NotClaimed);
@@ -40,5 +47,5 @@ pub(super) fn resolve_read(pid: u32, req: &PciReadRequest) -> Result<PciHandle, 
     if claim.epoch != req.claim_epoch {
         return Err(PciReadError::StaleEpoch);
     }
-    pci_index::lookup(req.device_id).ok_or(PciReadError::NoDeviceHandle)
+    Ok((pci_index::lookup(req.device_id).ok_or(PciReadError::NoDeviceHandle)?, claim))
 }
