@@ -63,5 +63,12 @@ pub fn verify_chain(body: &[u8], host: &[u8], now: u64) -> super::crypto_port::C
     let Some(top) = super::cert_at::cert_at(body, n - 1) else {
         return Ok(false);
     };
-    super::chain_anchor::anchor(top, leaf, host, n)
+    // A devnet build's throwaway root (P5) answers no before any signature
+    // for every name but the local RPC's, and is no real root, so asking it
+    // first changes no answer the real roots give.
+    #[cfg(feature = "devnet")]
+    if super::roots::dev_anchors(top, leaf, host, n)? {
+        return Ok(true);
+    }
+    super::chain_anchor::anchor(top)
 }

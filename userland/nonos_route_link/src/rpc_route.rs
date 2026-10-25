@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Each chain's table. The local test chain's is compiled in only by a
-//! `devnet` build (P5), which only a development image is.
+//! A chain RPC's route in a `devnet` build (P5): the wallet's, except for the
+//! local test chain's one name, which is dialled directly. A release build
+//! has no such exception, so it does not compile this at all.
 
-use super::{mainnet, sepolia, Deployment};
-use crate::chain::Chain;
+use crate::pick::Route;
 
-pub const fn deployment(chain: Chain) -> &'static Deployment {
-    match chain {
-        Chain::Mainnet => &mainnet::MAINNET,
-        Chain::Sepolia => &sepolia::SEPOLIA,
-        #[cfg(feature = "devnet")]
-        Chain::Devnet => &super::devnet::DEVNET,
+impl Route {
+    /// `self`, the wallet's route, for `host`; Direct for the local chain's RPC.
+    pub fn for_rpc(self, host: &str) -> Route {
+        if crate::devnet::is_devnet_rpc(host) {
+            Route::Direct
+        } else {
+            self
+        }
     }
 }
