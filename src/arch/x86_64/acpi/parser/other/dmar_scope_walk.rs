@@ -40,7 +40,7 @@ pub fn walk_scopes(bytes: &[u8], mut at: usize, out: &mut [Scope]) -> (u8, bool)
         }
         if kind == SCOPE_ENDPOINT || kind == SCOPE_BRIDGE {
             let hops = (len - SCOPE_HEADER_LEN) / 2;
-            if hops == 0 || hops > MAX_PATH || count >= out.len() {
+            if hops == 0 || hops > MAX_PATH || count >= out.len().min(u8::MAX as usize) {
                 truncated = true;
             } else {
                 let mut path = [(0u8, 0u8); MAX_PATH];
