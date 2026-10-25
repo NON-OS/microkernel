@@ -51,6 +51,18 @@ pub(super) const CHANNEL_VIDEO: u16 = 0x5644;
 const CHANNELS: [u16; 6] =
     [CHANNEL_NETWORK, CHANNEL_SCSI, CHANNEL_IDE, CHANNEL_KEYBOARD, CHANNEL_MOUSE, CHANNEL_VIDEO];
 
+/// A channel record's class, by its interface: the class sets the largest
+/// DMA grant its driver may take (dma/limits.rs), so a disk controller's
+/// channel is a block device's and a network adapter's a NIC's, as their PCI
+/// kin are. The others carry no buffer beyond their rings.
+pub(super) const fn channel_class(device: u16) -> u32 {
+    match device {
+        CHANNEL_SCSI | CHANNEL_IDE => ids::BLOCK,
+        CHANNEL_NETWORK => ids::NETWORK,
+        _ => ids::OTHER,
+    }
+}
+
 const NONE: u64 = u64::MAX;
 static VMBUS_ID: AtomicU64 = AtomicU64::new(NONE);
 
@@ -79,16 +91,19 @@ pub fn vmbus_held_by(pid: u32, device_id: u64) -> bool {
         && super::claim::lookup(device_id).is_some_and(|c| c.pid == pid)
 }
 
-/// Register a channel's record, of a device `CHANNELS` names.
-pub fn register_channel(device: u16) -> Option<u64> {
+/// Register a channel's record, of a device `CHANNELS` names. Its
+/// `irq_source` is the channel's relid: the event flag the host signals it
+/// on, and the relid its driver's messages must name.
+pub fn register_channel(device: u16, relid: u32) -> Option<u64> {
     if !CHANNELS.contains(&device) {
         return None;
     }
     let record = DeviceRecord {
         bus_kind: BusKind::Virt as u8,
-        class: ids::OTHER,
+        class: channel_class(device),
         vendor: VMBUS_VENDOR,
         device,
+        irq_source: relid,
         ..DeviceRecord::empty()
     };
     Some(table::register_platform_device(record))

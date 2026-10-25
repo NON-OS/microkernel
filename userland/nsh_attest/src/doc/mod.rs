@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `NONOSATT` version 4, read exactly. Big-endian, every length bounded,
-//! nothing left over. A version other than 4 is refused before any field
-//! after it is read, so a version 3 document never reaches a check.
+//! `NONOSATT` version 5, read exactly. Big-endian, every length bounded,
+//! nothing left over. A version other than 5 is refused before any field
+//! after it is read, so a version 3 or 4 document never reaches a check.
 
 mod parse;
 
 use crate::consts::{AK_LEN, PCR_COUNT, PCR_LEN};
 
-/// A version 4 document, borrowed from the bytes it was read from.
+/// A version 5 document, borrowed from the bytes it was read from.
 ///
 /// `challenge`, `registry_root` and the DMA posture are authenticated only
 /// through the quote's `extraData`; `capsule_count` and `registry_complete`
@@ -36,6 +36,8 @@ pub struct Doc<'a> {
     pub iommu_vendor: u8,
     pub iommu_enforcing: bool,
     pub unconfined_grants: u32,
+    /// Devices the IOMMU still lets reach all of memory.
+    pub identity_devices: u32,
     /// The PCR values, in `QUOTED_PCRS_V4` order.
     pub pcrs: [&'a [u8; PCR_LEN]; PCR_COUNT],
     /// The firmware's TCG event log, as the loader carried it.
