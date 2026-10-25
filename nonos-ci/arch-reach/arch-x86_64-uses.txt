@@ -28,39 +28,6 @@ src/drivers/pci/config/extended_write.rs 1
 src/hardware/broker/acpi/kernel/platform.rs 1
     ACPI parser alias for broker. Elsewhere: nothing: broker acpi x86-gated
 
-src/hardware/broker/acpi_gpio/p2sb.rs 1
-    Intel P2SB sideband BAR. Elsewhere: nothing: Intel PCH only
-
-src/hardware/broker/acpi_gpio/record.rs 1
-    AML GPIO controller record. Elsewhere: nothing: module x86-gated
-
-src/hardware/broker/acpi_gpio/register.rs 1
-    GAP: AML GPIO enumeration. Elsewhere: no DT GPIO registration
-
-src/hardware/broker/acpi_gpio/say.rs 1
-    GPIO log lines. Elsewhere: nothing: module x86-gated
-
-src/hardware/broker/acpi_i2c/hid_info.rs 2
-    AML I2C-HID info. Elsewhere: nothing: module x86-gated; fdt_i2c on DT
-
-src/hardware/broker/acpi_i2c/hid_record.rs 2
-    AML I2C-HID record. Elsewhere: nothing: module x86-gated
-
-src/hardware/broker/acpi_i2c/host_resolve.rs 2
-    PCI I2C host from ACPI. Elsewhere: nothing: module x86-gated
-
-src/hardware/broker/acpi_i2c/record.rs 1
-    LPSS controller record. Elsewhere: nothing: Intel LPSS only
-
-src/hardware/broker/acpi_i2c/register.rs 2
-    AML I2C enumeration. Elsewhere: fdt_i2c registers DT I2C instead
-
-src/hardware/broker/acpi_i2c/report.rs 1
-    I2C-HID report lines. Elsewhere: nothing: module x86-gated
-
-src/hardware/broker/acpi_i2c/slots.rs 1
-    GPIO slot for I2C-HID. Elsewhere: nothing: module x86-gated
-
 src/hardware/broker/irq/bind/message.rs 1
     APIC dest for MSI message. Elsewhere: aarch64 message/ (ITS/doorbell)
 
@@ -173,8 +140,12 @@ src/process/userspace/asm.rs 1
 src/process/userspace/types.rs 3
     XSAVE area size + use. Elsewhere: arch fpu on others
 
-src/smp/ap/bring_up.rs 5
+src/smp/ap/bring_up.rs 2
     GAP: AP LAPIC, CPU, XSAVE, GDT, timer. Elsewhere: riscv64 no APs; aarch64 multicore in arch
+
+src/smp/ap/bring_up_late.rs 3
+    x86 AP late bring-up: XSAVE mirror, GDT guard pages, the LAPIC timer. Elsewhere: nothing:
+    smp::ap is x86-gated; aarch64 starts its cores through PSCI in src/arch
 
 src/smp/ap/tsc_adjust.rs 1
     TSC_ADJUST MSR sync. Elsewhere: nothing: no TSC off x86
@@ -185,8 +156,12 @@ src/smp/ap/user_setup.rs 1
 src/smp/init/ap_identity.rs 1
     GAP: clear low half on AP. Elsewhere: low map kept
 
-src/smp/init/ap_unit.rs 2
+src/smp/init/ap_unit.rs 1
     INIT/SIPI start, park AP. Elsewhere: aarch64 PSCI/spin-table in arch
+
+src/smp/init/ap_unit/abandon.rs 1
+    parks a failed AP with an INIT through the LAPIC. Elsewhere: nothing: ap_unit is x86-gated;
+    aarch64 starts its cores through PSCI in src/arch
 
 src/smp/ipi_dispatch/x86_64/install.rs 1
     GAP: IPI IDT gates. Elsewhere: riscv64 no IPIs; aarch64 SGI handlers

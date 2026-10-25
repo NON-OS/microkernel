@@ -35,7 +35,7 @@ src/crypto/random_api/platform.rs 2
 src/crypto/util/constant_time/barriers.rs 1
     GAP: LFENCE serialize barrier. Elsewhere: riscv64 emits no barrier; aarch64 has own branch (ISB)
 
-src/drivers/pci/config/mod.rs 5
+src/drivers/pci/config/mod.rs 4
     extended config via ACPI MCFG (extended*.rs). Elsewhere: nothing: absent; callers (AER, ACS)
     also x86-gated
 
@@ -46,7 +46,7 @@ src/drivers/pci/mod.rs 1
     GAP: PCI MSI/MSI-X helper API (APIC-format). Elsewhere: riscv64 has no MSI; aarch64 broker
     programs MSI itself
 
-src/drivers/pci/types/device_msi.rs 4
+src/drivers/pci/types/device_msi.rs 1
     per-device MSI/MSI-X config with APIC dest. Elsewhere: nothing: methods absent; aarch64 broker
     has own MSI path
 
@@ -59,13 +59,10 @@ src/elf/types/constants/machine.rs 1
 src/entry/fallback.rs 1
     VGA text "no framebuffer" message. Elsewhere: nothing: just halts (no text-mode screen)
 
-src/entry/oom.rs 2
-    VGA text OOM banner. Elsewhere: nothing: just halts (no text-mode screen)
-
 src/fs/procfs/cpuinfo/mod.rs 3
     GAP: /proc/cpuinfo from CPUID. Elsewhere: riscv64 gets empty string; aarch64 has own branch
 
-src/hardware/broker/api.rs 4
+src/hardware/broker/api.rs 2
     GAP: ACPI GPIO/I2C register, port-I/O grants. Elsewhere: no GPIO broker; I2C via fdt_i2c, PIO
     stubs in pio_absent.rs
 
@@ -80,7 +77,7 @@ src/hardware/broker/confine/interrupts.rs 1
     refuse device lacking interrupt remap. Elsewhere: check skipped: x86 remap hole only; others
     pass
 
-src/hardware/broker/confine/mod.rs 10
+src/hardware/broker/confine/mod.rs 1
     GAP: ACS walk modules (acs_*). Elsewhere: absent; see gates.rs (no isolation-group check)
 
 src/hardware/broker/irq/bind/mod.rs 1
@@ -102,7 +99,7 @@ src/hardware/broker/irq/msix_ops/real.rs 1
 src/hardware/broker/irq/wait.rs 1
     IRQ wait syscall half + IOMMU fault block. Elsewhere: aarch64/riscv64 have own wait.rs
 
-src/hardware/broker/mmio/forbidden_iommu.rs 4
+src/hardware/broker/mmio/forbidden_iommu.rs 2
     GAP: VT-d/AMD-Vi register windows forbidden. Elsewhere: pushes nothing; SMMU window not
     forbidden (none found)
 
@@ -296,3 +293,7 @@ src/syscall/microkernel/mod.rs 2
 
 src/syscall/microkernel/pio/mod.rs 12
     port-I/O syscalls. Elsewhere: fallback refuses with ENOSYS (unsupported.rs)
+
+src/userspace/init/injected.rs 1
+    the nonos-fault-proof image's ud2 in the kernel, an x86 instruction. Elsewhere: the proof is
+    x86_64's; aarch64 has its own trap proofs (boot/trap_proof.rs)
