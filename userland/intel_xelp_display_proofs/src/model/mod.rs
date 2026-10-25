@@ -18,6 +18,8 @@
 pub mod clock;
 pub mod edge;
 mod follow;
+pub mod group;
+mod mmio;
 pub mod mode;
 pub mod regs;
 pub mod rng;
