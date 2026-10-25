@@ -33,7 +33,7 @@ The prompt reads `nonos@nonos ~/workspace/project main 1 job %`: who and where y
 - Closing a tab, or the window, sends SIGTERM to every program that tab started. Closing the last tab closes the window.
 - `Ctrl+B` shows or hides the side rail. `Ctrl+K` opens a palette that filters, as you type, twelve common commands, the last twelve lines run in this tab, the open tabs, and a few actions such as a new tab or the next theme. `Enter` picks, `Esc` closes it.
 - `Ctrl+=` and `Ctrl+-` change the font size, from scale 1 to 6.
-- `theme` switches the colours: `dark`, `dim`, `light` or `abyss`.
+- `theme` switches the colours: `dark`, `dim`, `light` or `abyss`. On every theme all text, the dimmed hints and times included, is at least 4.5 to 1 against what it is drawn on, the WCAG AA level.
 
 ## Editing a line
 
@@ -266,6 +266,8 @@ The source behind the facts above, at the commit in the footer.
   - The credentials message: `say_failure` in `userland/capsule_terminal/src/command/builtin/git/clone/fail.rs:40-51`.
 - The network a command uses
   - The refusal that ends `so nothing was sent`: `refusal_line` in `userland/capsule_terminal/src/command/builtin/direct_gate.rs:46-54`.
+- Tabs and windows contrast
+  - Every theme's text at 4.5 to 1 or more: `contrast_tests.rs` in `userland/terminal_line_proofs/src/paint/`.
 - What is kept
   - The kept preferences: `load` and `save` in `userland/capsule_terminal/src/term/prefs/store.rs:32-49`.
 

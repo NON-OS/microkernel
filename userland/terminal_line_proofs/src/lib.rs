@@ -39,6 +39,7 @@ mod network;
 mod paint;
 pub mod search;
 mod shell;
+pub mod theme;
 
 pub use filters::{input, tree_render};
 pub use handed::{handed_cadence, handed_parse, handed_pick};
@@ -48,7 +49,7 @@ pub use jobs::{agentproof_job, box_hold, box_log, box_missing, box_screen, insta
 pub use jobs::{linux_frames, pkg_handoff, tool_argv, tool_busy};
 pub use neighbours::{cadence, goto_line, quick_open};
 pub use network::{direct_gate, direct_only, exchange_wait, git_ask, offline_gate};
-pub use paint::{ansi, box_arms, fetch_arch};
+pub use paint::{ansi, box_arms, fetch_arch, shade};
 pub use shell::{parse, redirect, statements, suggest, tool_admit};
 
 #[cfg(test)]
