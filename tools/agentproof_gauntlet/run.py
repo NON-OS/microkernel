@@ -51,6 +51,7 @@ def main(argv=None) -> int:
     ap.add_argument("--no-build", action="store_true", help="boot the gauntlet image already built")
     a = ap.parse_args(argv)
     a.out.mkdir(parents=True, exist_ok=True)
+    source = commit(ROOT)  # as the image is copied from it, not as the run ends
     if not a.no_build:
         build = ["nix", "develop", "--command", "python3", "tools/nonos-dev-image",
                  "--profile", "gauntlet", "--agentproof-job", str(a.job.resolve())]
@@ -64,7 +65,7 @@ def main(argv=None) -> int:
     why = judge(result, a.max_refused)
     result.update(passed=not why, why=why, booted=booted, keys="test keys (development copy)",
                   job_sha256=job_hash(a.job), image_commit=commit(IMAGE.parents[3]),
-                  source_commit=commit(ROOT))
+                  source_commit=source)
     (a.out / "result.json").write_text(json.dumps(result, indent=1) + "\n")
     for line in result["out"]:
         print(f"  | {line}")
