@@ -871,12 +871,17 @@ KERNEL_SIGNING_KEY = $(if $(filter /%,$(SIGNING_KEY)),$(SIGNING_KEY),$(shell pwd
 # profile target is one call to this, so the build command lives in exactly one
 # place; only the feature string differs. $(1) is the human label for the log,
 # $(2) is the comma-separated feature list passed to cargo.
+# What the kernel ELF on disk was built as: its profile, then its features.
+# nonos-mk-esp names it, and warns when it is the bare default (B-02).
+KERNEL_PROFILE_RECORD := $(TARGET_DIR)/kernel.profile
+
 define nonos_kernel_build
 	@echo "Building kernel ($(1))..."
 	@NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features $(2)
+	@printf '%s\n' '$(1)' '$(2)' > $(KERNEL_PROFILE_RECORD)
 	@$(NONOS_PYTHON) scripts/check_unenforced.py --list
 endef
 
@@ -895,6 +900,7 @@ $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel: | $(SIGNING_KEY)
 	@NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS)
+	@printf '%s\n' 'microkernel-core (default)' 'microkernel-core' > $(KERNEL_PROFILE_RECORD)
 
 nonos-mk-check: nonos-mk-check-deps nonos-mk-ensure-signing-key
 	@echo "cargo check (microkernel-core)..."
@@ -1388,6 +1394,12 @@ nonos-mk-esp: \
 	@$(MAKE) --no-print-directory $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi
 	@$(MAKE) --no-print-directory nonos-mk-bootloader-attest
 	@$(MAKE) --no-print-directory $(TARGET_DIR)/kernel_attested.bin
+	@profile="$$(sed -n 1p $(KERNEL_PROFILE_RECORD) 2>/dev/null)"; \
+	features="$$(sed -n 2p $(KERNEL_PROFILE_RECORD) 2>/dev/null)"; \
+	echo "Packing the kernel built as: $${profile:-no record of its build}"; \
+	if [ "$$features" = "microkernel-core" ]; then \
+		echo "WARNING: this kernel starts no capsules; for a desktop: make nonos-mk-desktop-gui-prod nonos-mk-esp"; \
+	fi
 	@echo "Packaging EFI System Partition..."
 	@mkdir -p $(ESP_DIR)/EFI/Boot $(ESP_DIR)/EFI/nonos
 	@cp $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi $(ESP_DIR)/EFI/Boot/BOOTX64.EFI
