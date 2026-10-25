@@ -34,7 +34,7 @@ A box named wrongly is refused before anything runs, with the reason, such as `l
 
 ## The report
 
-When the program has ended, the Terminal shows its report. The report comes from `capsule_linux` on frames that carry a key the Terminal made for this run and the program is never told, so nothing the program prints is taken for the report. It is drawn only after the program's output has ended, at the foot of a screen put back to its defaults first (the main screen, the whole screen as the scroll region, normal video, plain characters, no insert mode), so nothing the program left behind can hide or bend it. A program can scroll the screen but cannot write, hide or change its own report.
+When the program has ended, the Terminal shows its report. The report comes from `capsule_linux` on frames that carry a key the Terminal made for this run and the program is never told, so nothing the program prints is taken for the report. It is drawn only after the program's output has ended, on a screen put back to its defaults first (the main screen, the whole screen as the scroll region, normal video, plain characters, no insert mode), on a fresh line just below what the program printed, with everything below that line cleared. So the program's own output stays in view above the report, and nothing the program left behind can hide or bend it. A program can scroll the screen but cannot write, hide or change its own report.
 
 ```
 BOX REPORT v1
