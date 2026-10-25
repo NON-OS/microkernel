@@ -26,6 +26,8 @@ use std::cell::RefCell;
 pub enum Call {
     /// A write of the PCI Command register, with the value written.
     PciCommand(u16),
+    /// A masked write tried elsewhere in config space: register, mask, value.
+    PciConfig(u32, u16, u16),
     IrqUnbind(u64),
     MmioUnmap(u64),
     DeviceRelease(u64),
