@@ -30,15 +30,14 @@ pub(super) const MARKET_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-market")]
 pub(super) const MARKET_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/market.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/market.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-market")]
-pub(super) const MARKET_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/market.manifest.bin");
+pub(super) const MARKET_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/market.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-market")]
 pub(super) const MARKET_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/market.zk_trailer.bin");
+    crate::baked_trust!("capsules/market.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-market"))]
 pub(super) const MARKET_ELF: &[u8] = &[];

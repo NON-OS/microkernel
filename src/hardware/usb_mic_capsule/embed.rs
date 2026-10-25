@@ -23,15 +23,15 @@ pub(super) const DRIVER_USB_MIC_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-usb-mic")]
 pub(super) const DRIVER_USB_MIC_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_usb_mic.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_usb_mic.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-usb-mic")]
 pub(super) const DRIVER_USB_MIC_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_usb_mic.manifest.bin");
+    crate::baked_trust!("capsules/driver_usb_mic.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-usb-mic")]
 pub(super) const DRIVER_USB_MIC_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_usb_mic.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_usb_mic.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-usb-mic"))]
 pub(super) const DRIVER_USB_MIC_ELF: &[u8] = &[];
