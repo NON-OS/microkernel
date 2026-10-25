@@ -13,9 +13,9 @@ The bytes hashed are the last copy of that name, which is the one that lands. A 
 
 The policy's listing and release ids are derived from the publisher key by `marketplace_abi`'s rule, so the market's policy gate answers Valid. A schema-3 Linux release without a policy answers Missing and can never be installed. Every catalogue listing is free (`settle_mode` 0): it needs no bond, binding or ReleaseAttest.
 
-init asks the market for the release's policy (`OP_GET_LINUX_POLICY`, I-C5) and hands it to the installer, which binds it to the app's program. A policy the market does not vouch for refuses the install, and no listed package from an index installs without one (`userland/capsule_linux/src/linux/install/market.rs`, `install_from`). Each release's note says so (`tools/nonos_market_catalogue/catalogue.py:30`, `NOTE`).
+init asks the market for the release's policy (`OP_GET_LINUX_POLICY`, I-C5) and hands it to the installer, which binds it to the app's program. A policy the market does not vouch for refuses the install, and no listed package from an index installs without one (`userland/capsule_linux/src/linux/install/market/run.rs`, `install_from`). Each release's note says so (`tools/nonos_market_catalogue/catalogue.py:30`, `NOTE`).
 
-A market release's policy names one program, the one its listing starts. Every other ELF of that package is held: the installer writes an unvouched policy beside each one before its bytes land, and the program gets its real policy only once that policy is bound. So no ELF of the listed package starts outside its box at its installed path. That holds if its install is cut off, and if an uninstall leaves some of it behind (`userland/capsule_linux/src/linux/install/minted.rs`). The package's other programs are refused at their installed paths until they have a policy of their own. In 0.9.3 those are git's HTTP and SSH helpers, age's `age-keygen` and flac's `metaflac`, and their listings say so.
+A market release's policy names one program, the one its listing starts. Every other ELF of that package is held: the installer writes an unvouched policy beside each one before its bytes land, and the program gets its real policy only once that policy is bound. So no ELF of the listed package starts outside its box at its installed path. That holds if its install is cut off, and if an uninstall leaves some of it behind (`userland/capsule_linux/src/linux/install/market/minted.rs`). The package's other programs are refused at their installed paths until they have a policy of their own. In 0.9.3 those are git's HTTP and SSH helpers, age's `age-keygen` and flac's `metaflac`, and their listings say so.
 
 
 - **Dependencies:** a listed package's dependencies install unheld (tig pulls git, bat pulls less, vim pulls xxd), and each runs in the default box.
@@ -91,7 +91,7 @@ Every run fetches the signed indexes fresh, then holds them to the lock. A run s
 
 ## Proofs
 
-`python3 -m unittest discover -s tools/nonos_market_catalogue -t tools` runs these:
+`python3 -m unittest discover -s tools/nonos_market_catalogue -t tools` runs these. It needs `b3sum` (BLAKE3) on the PATH, as the generator does, because the listings carry its digests. Without it the suite stops at once with one line saying so, and skips nothing (`tools/nonos_market_catalogue/__init__.py`, `load_tests`).
 
 - **A real package:** `vectors/` holds one real Alpine package (CC0-1.0) and its signed index record. RSA verification and the package chain are tested against Alpine's own signature, and a test key covers the padding and length rules.
 - **Hostile inputs:** tests for every refusal: gzip, tar, pax, the chain, the index, names, recipes, documents, fetches and the run.

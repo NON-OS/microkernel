@@ -16,7 +16,7 @@
 
 //! A package's files going, each with what the machine wrote beside it: the
 //! trailer it minted, and for a market program the policy it vouched and that
-//! policy's trailer, in the order minted.rs proves keeps a program that would
+//! policy's trailer, in the order market/take.rs proves keeps a program that would
 //! not go in its box.
 
 use alloc::vec::Vec;
@@ -31,7 +31,7 @@ pub(super) fn take_out(files: &[Vec<u8>]) -> Vec<Vec<u8>> {
     let mut found = |p: &[u8]| store_found(&key(p));
     files
         .iter()
-        .filter(|at| !super::super::minted::take_out(at, &mut unlink, &mut found))
+        .filter(|at| !super::super::market::take::take_out(at, &mut unlink, &mut found))
         .cloned()
         .collect()
 }

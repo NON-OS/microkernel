@@ -17,23 +17,23 @@
 //! The fourth word of an install request, and the four checks a market
 //! policy passes before the install role vouches for it.
 
-use crate::install::market_arg::{market_arg, NotMarket, MARKET_LEN};
-use crate::install::market_check::{admit, gate, names_program, without_box};
+use crate::install::market::arg::{market_arg, NotMarket, MARKET_LEN};
+use crate::install::market::check::{admit, names_program};
 use nonos_linux_policy::{unlisted, LinuxAppPolicy, SyscallSet};
 
 const PROGRAM: &[u8] = b"\x7fELF a market program";
 
-fn policy(listing: u8, release: u8, calls: SyscallSet) -> LinuxAppPolicy {
+pub(super) fn policy(listing: u8, release: u8, calls: SyscallSet) -> LinuxAppPolicy {
     let program = *blake3::hash(PROGRAM).as_bytes();
     let (listing_id, release_id) = ([listing; 32], [release; 32]);
     LinuxAppPolicy { listing_id, release_id, syscall_set: calls, ..unlisted(program) }
 }
 
-fn ready() -> SyscallSet {
+pub(super) fn ready() -> SyscallSet {
     SyscallSet::NONE.with(0).with(60).with(231)
 }
 
-fn market(p: &LinuxAppPolicy, listing: u8, release: u8) -> [u8; MARKET_LEN] {
+pub(super) fn market(p: &LinuxAppPolicy, listing: u8, release: u8) -> [u8; MARKET_LEN] {
     let mut m = [0u8; MARKET_LEN];
     m[..256].copy_from_slice(&p.encode());
     m[256..288].fill(listing);
@@ -71,27 +71,4 @@ fn every_other_policy_fails_the_install() {
     let mut bad = market(&p, 1, 2);
     bad[0] = b'X';
     assert_eq!(admit(&bad), Err("its policy is malformed"));
-}
-
-/* A release with no policy ("-") is a shipped tier's; any package from an
- * index without its release's box fails before anything is fetched. */
-#[test]
-fn only_a_shipped_tier_installs_without_a_box() {
-    let tier = crate::models::apps::all().next().expect("a shipped tier").name;
-    assert_eq!(without_box(tier), Ok(()));
-    for pkg in ["git", "qwen-no-such-tier", "vim"] {
-        assert_eq!(
-            without_box(pkg),
-            Err("a package from an index needs its release's box"),
-            "{pkg}"
-        );
-        assert!(gate(pkg, None).is_err(), "{pkg}: no box, never installed");
-    }
-    assert_eq!(gate(tier, None), Ok(None), "a tier: its own table's box");
-    let p = policy(1, 2, ready());
-    assert_eq!(gate("git", Some(&market(&p, 1, 2))), Ok(Some(p)), "a market box: admitted");
-    assert!(
-        gate(tier, Some(&market(&p, 3, 2))).is_err(),
-        "a box that fails admit fails even a tier"
-    );
 }
