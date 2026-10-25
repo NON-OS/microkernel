@@ -484,6 +484,12 @@
   "md": [],
   "signed": []
  },
+ "tools/nsh-enrol": {
+  "exclude": [],
+  "include": [],
+  "md": [],
+  "signed": []
+ },
  "userland/ac97_proofs": {
   "exclude": [],
   "include": [
@@ -8999,24 +9005,25 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "nonos-data/trust/capsules/linux.manifest.bin",
+   "nonos-data/trust/capsules/linux.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/linux.zk_trailer.bin",
    "src/capabilities/types",
    "src/kernel_core",
    "src/process/core/table/ambient.rs",
    "src/security/capsule_manifest/verify/caps_bits.rs",
    "src/syscall/microkernel/spawn_instance.rs",
    "src/syscall/microkernel/tool_run.rs",
-   "src/userspace/capsule_linux/role_spawn.rs",
-   "src/userspace/capsule_linux/roles.rs",
-   "src/userspace/capsule_linux/run_net.rs",
-   "src/userspace/capsule_linux/spawn.rs",
-   "src/userspace/capsule_linux/terminal/roles.rs",
+   "src/userspace/capsule_linux",
    "src/userspace/init/entry.rs",
    "src/userspace/tool_capsules/bound.rs",
    "src/userspace/tool_capsules/model_fetch/spawn.rs",
+   "src/userspace/tool_capsules/net_box.rs",
    "src/userspace/tool_capsules/registry.rs",
    "src/userspace/tool_capsules/run.rs",
    "userland/capsule_linux/Capsule.mk",
    "userland/capsule_model_fetch/Capsule.mk",
+   "userland/capsule_terminal/Capsule.mk",
    "userland/spawn_bound_proofs"
   ],
   "md": [],
@@ -9396,6 +9403,7 @@
    "userland/capsule_terminal/src/command/builtin/tool_box.rs",
    "userland/capsule_terminal/src/command/builtin/tool_busy.rs",
    "userland/capsule_terminal/src/command/builtin/tool_list.rs",
+   "userland/capsule_terminal/src/command/builtin/tool_service.rs",
    "userland/capsule_terminal/src/command/builtin/tool_spawn.rs",
    "userland/capsule_terminal/src/command/builtin/version.rs",
    "userland/capsule_terminal/src/command/builtin/whoami.rs",
