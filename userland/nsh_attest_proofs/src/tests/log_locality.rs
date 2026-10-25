@@ -46,7 +46,7 @@ fn started_at(l: u8) -> Log {
 #[test]
 fn a_tpm_started_from_locality_3_or_4_starts_pcr_0_there() {
     for l in [0, 3, 4] {
-        passes(Spec { log: started_at(l), ..Spec::default() });
+        passes(Spec { log: started_at(l).with_capsules(), ..Spec::default() });
     }
     let mut log = started_at(3);
     log.pcrs[0] = Log::empty().ext(0, 8, digest(b"crtm")).pcrs[0];

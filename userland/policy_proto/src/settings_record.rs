@@ -25,7 +25,8 @@
 //! a change made in Settings stays made.
 //!
 //! The record is `NSV1`, then one entry per kept field: its id (u16 LE), its
-//! kind, the value's length, the value. A record that does not frame whole is
+//! kind, the value's length, the value. The first entry is the wallpaper
+//! catalog's era (`era`), which no field has the id of. A record that does not frame whole is
 //! refused whole; an entry for a field this build does not keep is skipped,
 //! so a record from a later build still restores what this one knows.
 
@@ -36,6 +37,11 @@ use crate::field_decode::decode;
 use crate::field_kind::kind_of;
 use crate::kind::{KIND_BOOL, KIND_I8, KIND_STR, KIND_U64, KIND_U8};
 use crate::limits::STR_MAX;
+
+mod era;
+mod value;
+
+pub use value::Value;
 
 pub const SETTINGS_DIR: &[u8] = b"/nonos/settings";
 pub const VALUES_PATH: &[u8] = b"/nonos/settings/values";
@@ -65,34 +71,13 @@ pub const KEPT: &[Field] = &[
 ];
 
 /// The most a record can be, every kept field at its widest.
-pub const VALUES_MAX: usize = 4 + KEPT.len() * (4 + STR_MAX);
-
-/// One kept value.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Value<'a> {
-    Bool(bool),
-    U8(u8),
-    I8(i8),
-    U64(u64),
-    Str(&'a [u8]),
-}
-
-impl Value<'_> {
-    fn kind(&self) -> u8 {
-        match self {
-            Value::Bool(_) => KIND_BOOL,
-            Value::U8(_) => KIND_U8,
-            Value::I8(_) => KIND_I8,
-            Value::U64(_) => KIND_U64,
-            Value::Str(_) => KIND_STR,
-        }
-    }
-}
+pub const VALUES_MAX: usize = 4 + era::ENTRY_LEN + KEPT.len() * (4 + STR_MAX);
 
 /// The record for `values`. A value whose kind is not its field's, or a
 /// field not kept, is left out rather than written wrong.
 pub fn encode<'a>(values: impl IntoIterator<Item = (Field, Value<'a>)>) -> Vec<u8> {
     let mut out = Vec::from(MAGIC);
+    out.extend_from_slice(&era::ENTRY);
     for (field, value) in values {
         if !KEPT.contains(&field) || kind_of(field) != value.kind() {
             continue;
@@ -136,6 +121,7 @@ pub fn encode<'a>(values: impl IntoIterator<Item = (Field, Value<'a>)>) -> Vec<u
 /// Every kept value in `raw`, or `None` when the record does not frame whole.
 pub fn decode_values(raw: &[u8]) -> Option<Vec<(Field, Value<'_>)>> {
     let mut rest = raw.strip_prefix(&MAGIC)?;
+    let this_era = era::is_this(rest);
     let mut out = Vec::new();
     while !rest.is_empty() {
         let head = rest.get(..4)?;
@@ -143,7 +129,10 @@ pub fn decode_values(raw: &[u8]) -> Option<Vec<(Field, Value<'_>)>> {
         let (kind, len) = (head[2], head[3] as usize);
         let body = rest.get(4..4 + len)?;
         rest = &rest[4 + len..];
-        let Some(field) = decode(id).filter(|f| KEPT.contains(f) && kind_of(*f) == kind) else {
+        let keep = |f: &Field| {
+            KEPT.contains(f) && kind_of(*f) == kind && (this_era || !era::names_a_picture(*f))
+        };
+        let Some(field) = decode(id).filter(keep) else {
             continue;
         };
         let value = match (kind, body) {

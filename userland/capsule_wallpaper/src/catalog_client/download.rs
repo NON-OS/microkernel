@@ -17,7 +17,7 @@
 //! One wallpaper coming over from the catalog, a chunk per call, kept between
 //! tries. A try used to be all or nothing: one call past its budget threw
 //! away every chunk already fetched, and the next try, a poll later, began
-//! again at byte 0 with the size. A wallpaper is 20 to 120 calls, each of
+//! again at byte 0 with the size. A wallpaper is 84 to 191 calls, each of
 //! which must come back in time on one emulated processor the rest of the
 //! desktop is busy on, so a try could keep failing somewhere along the way
 //! and the desktop stay on its built in picture. Now what came over stays,
@@ -32,8 +32,8 @@ use super::fetch_chunk::fetch_chunk;
 use super::fetch_size::fetch_size;
 use super::proto::{CHUNK_MAX, HDR_LEN, IPC_PAYLOAD_MAX};
 
-/// The largest wallpaper taken: the biggest in the collection is a quarter
-/// of this.
+/// The largest wallpaper taken: the biggest in the collection, 779,288
+/// bytes, is under two fifths of this.
 pub const MAX_IMAGE_BYTES: u32 = 2_000_000;
 
 /// Calls one try makes at most: the whole of the largest wallpaper taken.
