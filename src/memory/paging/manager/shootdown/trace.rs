@@ -33,7 +33,7 @@ compile_error!(
      boot proof and never part of a production build."
 );
 
-use super::broadcast::Round;
+use super::summary::Round;
 
 static ROUNDS: AtomicU32 = AtomicU32::new(0);
 

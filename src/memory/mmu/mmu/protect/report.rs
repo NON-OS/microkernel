@@ -50,7 +50,7 @@ pub fn report(flags: ProtectionFlags) {
 /// cached, and a full shootdown done that way would not remove them. Logged on
 /// every CPU so a boot says which it is. This module is built for x86_64 only.
 pub(super) fn global_pages() -> bool {
-    crate::arch::x86_64::boot::cpu_ops::read_cr4() & (1 << 7) != 0
+    super::cr4::read() & (1 << 7) != 0
 }
 
 fn bit(on: bool) {

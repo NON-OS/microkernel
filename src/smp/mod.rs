@@ -18,7 +18,10 @@ extern crate alloc;
 
 #[cfg(target_arch = "x86_64")]
 mod ap;
+pub mod boot_budget;
 pub mod boot_claim;
+mod boot_park;
+mod boot_race;
 mod constants;
 mod cpu;
 mod cpu_id;

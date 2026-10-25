@@ -32,15 +32,21 @@
 //! back to be committed after `PAGING_MANAGER` is released, so no cpu waits
 //! for acknowledgements while holding the manager lock.
 
+mod abandoned;
 mod broadcast;
+mod clock;
+mod eligible;
 mod flush;
 mod handle;
 mod nudge;
 mod report;
+mod report_cpu;
 mod request;
+mod round;
 mod select;
 mod send;
 mod slow;
+mod summary;
 #[cfg(feature = "nonos-shootdown-trace")]
 mod trace;
 mod wait;
