@@ -33,6 +33,7 @@ mod rail_click;
 mod rail_wheel;
 #[cfg(feature = "nonos-autorun-selftest")]
 pub mod selftest;
+mod split_keys;
 mod tabs;
 mod take_handed;
 mod types;

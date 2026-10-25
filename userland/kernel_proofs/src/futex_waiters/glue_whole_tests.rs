@@ -21,19 +21,7 @@
 const QUEUE: &str = include_str!("../../../../src/syscall/microkernel/futex/queue.rs");
 const WAIT: &str = include_str!("../../../../src/syscall/microkernel/futex/wait.rs");
 
-/// The code alone: comments cut, whitespace dropped.
-fn code(text: &str) -> String {
-    let cut = |l: &str| l.split("//").next().unwrap_or("").split_whitespace().collect::<String>();
-    text.lines().map(cut).collect()
-}
-
-/// The code of `text` from `from` up to `to`.
-fn between(text: &str, from: &str, to: &str) -> String {
-    let (c, from, to) = (code(text), code(from), code(to));
-    let a = c.find(&from).unwrap_or_else(|| panic!("missing `{from}`"));
-    let b = c[a..].find(&to).unwrap_or_else(|| panic!("missing `{to}`"));
-    c[a..a + b].to_string()
-}
+use crate::proofs::proofs_8::transport_takeover::text::{between, code};
 
 #[test]
 fn the_sweep_and_the_end_asked_are_the_kernels_own() {
@@ -54,6 +42,12 @@ fn the_sweep_and_the_end_asked_are_the_kernels_own() {
 
 #[test]
 fn a_waiter_returning_early_passes_its_wake_to_the_living() {
-    let call = "let next = leave_early(&mut FUTEX_QUEUE.lock(), key, caller, super::queue::ended);";
-    assert!(code(WAIT).contains(&code(call)), "the pass-on asks no end, or another one");
+    // The whole pass-on, its wake included: waking anyone but `next` loses
+    // the wake the leaver was handed (L81c).
+    let pass = concat!(
+        "let next = leave_early(&mut FUTEX_QUEUE.lock(), key, caller, super::queue::ended);",
+        " if let Some(next) = next { crate::sched::wake_process(next); }",
+    );
+    let got = between(WAIT, "let next = leave_early(", "return if read.is_err()");
+    assert_eq!(got, code(pass), "the pass-on asks no end, or wakes another");
 }
