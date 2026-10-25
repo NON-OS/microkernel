@@ -33,7 +33,7 @@ fn the_run_path_checks_before_every_spawn() {
     let net = at("super::bound::check(LINUX_MANIFEST_BYTES,LINUX_CAPS|net,name)?;");
     assert!(at("ifname==LINUX_NET_TOOL{") < net);
     assert!(net < at("super::linux_terminal::run_net(argv)"));
-    assert!(code.contains("letnet=crate::capabilities::Capability::Network.bit();"));
+    assert!(code.contains("letnet=crate::userspace::capsule_linux::TERMINAL_NET_EXTRA;"));
     assert_eq!(code.matches("bound::check(").count(), 4);
 }
 
