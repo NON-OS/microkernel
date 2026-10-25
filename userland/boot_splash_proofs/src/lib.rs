@@ -41,6 +41,9 @@ pub mod logo {
 }
 
 #[cfg(test)]
+#[path = "../../capsule_boot_splash/src/follow.rs"]
+pub mod follow;
+#[cfg(test)]
 #[path = "../../capsule_boot_splash/src/layout.rs"]
 pub mod layout;
 #[cfg(test)]
@@ -53,28 +56,11 @@ pub mod status;
 #[allow(dead_code)] // `fill`, the whole-surface wash the proofs do not draw
 #[path = "../../capsule_boot_splash/src/vignette.rs"]
 pub mod vignette;
-
 #[cfg(test)]
-mod bmp_tests;
+#[path = "../../capsule_boot_splash/src/warning.rs"]
+pub mod warning;
+
 #[cfg(test)]
 mod build;
 #[cfg(test)]
-mod draw_tests;
-#[cfg(test)]
-mod logo_clear_tests;
-#[cfg(test)]
-mod logo_fit_tests;
-#[cfg(test)]
-mod mode_tests;
-#[cfg(test)]
-mod place_tests;
-#[cfg(test)]
-mod prepare_tests;
-#[cfg(test)]
-mod record_tests;
-#[cfg(test)]
-mod refuse_tests;
-#[cfg(test)]
-mod splash_layout_tests;
-#[cfg(test)]
-mod turn_tests;
+mod tests;

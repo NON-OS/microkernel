@@ -2299,6 +2299,7 @@ else
 fi
 unset mk_tool_drift
 
+# >>> operator-key block
 # Operator pubkey trust list must compile in. keys.rs pulls the
 # marketplace operator pubkey in from the committed .pub with
 # include_bytes!, and TRUSTED_OPERATORS wires it in. The key is
@@ -2309,16 +2310,32 @@ trust_keys='userland/capsule_market/src/bootstrap_trust/keys.rs'
 operator_pubkey_hex='bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2'
 trust_key_rel="$( { grep -A1 'const NOX_OPERATOR_V1: \[u8; 32\] =' "${trust_keys}" 2>/dev/null || true; } | { grep -oE 'include_bytes!\("[^"]+marketplace_operator_ed25519\.pub"\)' || true; } | head -n 1 | sed -E 's/^include_bytes!\("//; s/"\)$//')"
 trust_key_file="$(dirname "${trust_keys}")/${trust_key_rel}"
+# NONOS_STATIC_SKIP_KEYS=1 leaves .keys/ unread, as a session's run must:
+# the trust list's shape is still checked, the key bytes are not.
 if [ ! -f "${trust_keys}" ]; then
     fail_with "missing ${trust_keys} (operator trust list)"
-elif [ -z "${trust_key_rel}" ] || [ ! -f "${trust_key_file}" ] ||
-     [ "$(od -An -tx1 -v "${trust_key_file}" | tr -d ' \n')" != "${operator_pubkey_hex}" ] ||
+elif [ -z "${trust_key_rel}" ] ||
      ! grep -qE 'TRUSTED_OPERATORS: &\[\[u8; 32\]\] = &\[NOX_OPERATOR_V1\]' "${trust_keys}"; then
+    fail_with "marketplace operator pubkey missing from bootstrap_trust or not the committed key"
+elif [ "${NONOS_STATIC_SKIP_KEYS:-0}" = 1 ]; then
+    note skip "operator pubkey bytes not compared: NONOS_STATIC_SKIP_KEYS=1 leaves .keys/ unread"
+elif [ ! -f "${trust_key_file}" ] ||
+     [ "$(od -An -tx1 -v "${trust_key_file}" | tr -d ' \n')" != "${operator_pubkey_hex}" ]; then
     fail_with "marketplace operator pubkey missing from bootstrap_trust or not the committed key"
 else
     note ok "marketplace operator pubkey baked into capsule_market trust list"
 fi
 unset trust_keys operator_pubkey_hex trust_key_rel trust_key_file
+# <<< operator-key block
+# The block above, run traced on a fake tree: skipped, it opens nothing under
+# .keys/ and still checks the trust list's shape; --selftest shows each
+# mutant of it fails.
+if python3 -I nonos-ci/check-skip-keys.py --selftest >/dev/null; then
+    note ok "NONOS_STATIC_SKIP_KEYS=1 leaves .keys/ unread and the trust list checked"
+else
+    python3 -I nonos-ci/check-skip-keys.py --selftest >&2 || true
+    fail_with "the operator-key block reads .keys/ when skipped, or checks too little"
+fi
 
 boot_build='nonos-bootloader/build.rs'
 if [ ! -f "${boot_build}" ]; then
@@ -5237,6 +5254,29 @@ else
     fail_with "check_dark_features: a feature gates code that no lane builds"
 fi
 unset dark_out
+# The ipc.call diag lines name the endpoint and timing, never a pid: kernel
+# lines leave the machine in photos and bug reports (K10, K19, B-04).
+if ipcpid_out="$(python3 scripts/check_ipc_diag_no_pid.py --self-test 2>&1 \
+    && python3 scripts/check_ipc_diag_no_pid.py 2>&1)"; then
+    note ok "no ipc.call diag line can format a pid (check_ipc_diag_no_pid)"
+else
+    tail -n 5 <<< "${ipcpid_out}" >&2
+    fail_with "check_ipc_diag_no_pid: an ipc.call diag line can format a pid"
+fi
+unset ipcpid_out
+
+# Every way off the machine is listed: a capsule that gains Network, or an
+# address, host or build-time endpoint new to a networked capsule's source,
+# fails until docs/security/privacy.md names it with why and how to turn it
+# off; a row the code no longer has fails too. The audit's own tests run first.
+if egress_out="$( (cd tools && python3 -m unittest -q nonos_egress_audit.test_egress) 2>&1 \
+    && python3 tools/nonos-egress-audit 2>&1)"; then
+    note ok "every outbound path is listed in docs/security/privacy.md (nonos-egress-audit)"
+else
+    tail -n 8 <<< "${egress_out}" >&2
+    fail_with "nonos-egress-audit: a way off the machine is not listed, or a row is stale"
+fi
+unset egress_out
 
 if [ "${fail}" -ne 0 ]; then
     echo

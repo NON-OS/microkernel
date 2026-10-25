@@ -18,7 +18,7 @@ use core::arch::asm;
 
 use super::super::error::{PmpError, PmpResult};
 
-pub fn write_addr(index: usize, addr: u64) -> PmpResult<()> {
+pub(super) fn write_addr(index: usize, addr: u64) -> PmpResult<()> {
     match index {
         0 => unsafe { asm!("csrw pmpaddr0, {}", in(reg) addr) },
         1 => unsafe { asm!("csrw pmpaddr1, {}", in(reg) addr) },

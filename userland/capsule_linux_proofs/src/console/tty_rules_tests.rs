@@ -51,6 +51,8 @@ fn an_interrupt_is_found_anywhere_unread() {
 
 #[test]
 fn each_ctrl_c_says_its_group_and_how_many_took_it() {
-    assert_eq!(interrupt_line(7, 1), "[LINUX] Ctrl+C: SIGINT to group 7, 1 processes\n");
-    assert_eq!(interrupt_line(3, 0), "[LINUX] Ctrl+C: SIGINT to group 3, 0 processes\n");
+    let line = interrupt_line;
+    assert_eq!(line("SIGINT", 7, 1), "[LINUX] Ctrl+C: SIGINT to group 7, 1 processes\n");
+    assert_eq!(line("SIGINT", 3, 0), "[LINUX] Ctrl+C: SIGINT to group 3, 0 processes\n");
+    assert_eq!(line("SIGKILL", 4, 2), "[LINUX] Ctrl+C: SIGKILL to group 4, 2 processes\n");
 }

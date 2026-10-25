@@ -33,7 +33,7 @@ pub fn handle_timer_interrupt(from_user: bool) {
     {
         super::super::cpu::halt();
     }
-    crate::process::scheduler::preemption::tick::tick();
+    crate::process::scheduler::preemption::tick();
     // Queued teardowns finish here, as on the other two arches, under the
     // same rule: only a tick from U-mode or the idle halt holds no lock.
     crate::process::exit::reclaim_at_tick(from_user);

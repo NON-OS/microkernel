@@ -27,3 +27,8 @@ pub fn set_frequency(hz: u64) {
 pub(super) fn frequency() -> u64 {
     TIMER_FREQ.load(Ordering::Acquire)
 }
+
+/// The timebase in hertz, or None while nothing has set it.
+pub fn frequency_hz() -> Option<u64> {
+    Some(frequency()).filter(|&hz| hz > 0)
+}

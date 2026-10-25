@@ -19,11 +19,14 @@ use super::sv39::Sv39;
 use super::table::PageTable;
 use super::PAGE_SIZE;
 
-pub unsafe fn child(table: &mut PageTable, index: usize) -> Option<&'static mut PageTable> {
+pub(super) unsafe fn child(table: &mut PageTable, index: usize) -> Option<&'static mut PageTable> {
     table.next_table_ppn(index).map(|ppn| table_from_ppn(ppn))
 }
 
-pub unsafe fn ensure_child(table: &mut PageTable, index: usize) -> Option<&'static mut PageTable> {
+pub(super) unsafe fn ensure_child(
+    table: &mut PageTable,
+    index: usize,
+) -> Option<&'static mut PageTable> {
     if table.is_branch(index) {
         return child(table, index);
     }
@@ -35,7 +38,7 @@ pub unsafe fn ensure_child(table: &mut PageTable, index: usize) -> Option<&'stat
     Some(next)
 }
 
-pub unsafe fn split_leaf(
+pub(super) unsafe fn split_leaf(
     table: &mut PageTable,
     index: usize,
     level: usize,
