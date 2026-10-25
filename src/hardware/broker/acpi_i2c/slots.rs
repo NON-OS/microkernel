@@ -16,7 +16,7 @@
 
 //! The NameSeg encodings an I2C-HID record carries.
 
-use crate::arch::x86_64::acpi::aml::GpioController;
+use crate::arch::firmware_table::devices::GpioController;
 
 /// Resolve the GpioInt ResourceSource NameSeg against the enumerated GPIO
 /// community controllers and encode the match as `_UID`+1, zero when the
