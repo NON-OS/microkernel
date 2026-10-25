@@ -47,7 +47,9 @@ fn the_doc_must_be_signed_for_this_receipt_by_the_pinned_ak_and_release() {
 
 #[test]
 fn the_machine_must_have_had_its_iommu_enforcing_and_its_registry_whole() {
-    for dma in [(1, false, 0, 0), (1, true, 1, 0)] {
+    // Not enforcing; a grant around it; no IOMMU at all; a device whose
+    // domain reaches all of memory.
+    for dma in [(1, false, 0, 0), (1, true, 1, 0), (0, true, 0, 0), (1, true, 0, 1)] {
         let mut f = Fixture::new(b"strict");
         f.spec.dma = dma;
         assert_eq!(refused(&mut f), "dma");
