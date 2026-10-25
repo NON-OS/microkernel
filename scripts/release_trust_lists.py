@@ -46,3 +46,10 @@ def drift(baseline, listed):
         return ["release trust: the doc has no unsealed list between its markers"]
     return ([f"release trust: {s} is in the baseline but not in the doc's list" for s in sorted(baseline - listed)]
             + [f"release trust: {s} is in the doc's list but not in the baseline" for s in sorted(listed - baseline)])
+
+
+def unnamed(entries, slugs):
+    """A shipped slug capsules.json has no entry for: no trust files to check."""
+    known = {e["slug"] for e in entries}
+    return [f"release trust: {s} ships in a release profile but capsules.json names no trust files for it"
+            for s in sorted(set(slugs) - known)]
