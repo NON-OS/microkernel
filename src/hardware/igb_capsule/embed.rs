@@ -26,15 +26,15 @@ pub(super) const DRIVER_IGB_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-igb")]
 pub(super) const DRIVER_IGB_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_igb.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_igb.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-igb")]
 pub(super) const DRIVER_IGB_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_igb.manifest.bin");
+    crate::baked_trust!("capsules/driver_igb.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-igb")]
 pub(super) const DRIVER_IGB_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_igb.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_igb.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-igb"))]
 pub(super) const DRIVER_IGB_ELF: &[u8] = &[];

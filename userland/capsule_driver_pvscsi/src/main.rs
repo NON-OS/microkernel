@@ -23,6 +23,7 @@ mod adapter;
 mod constants;
 mod discover;
 mod hba;
+mod moved;
 mod regs;
 mod setup;
 mod wait;

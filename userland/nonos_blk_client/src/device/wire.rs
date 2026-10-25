@@ -32,10 +32,10 @@ const ENOMEDIUM: i32 = -123;
 /// The block size and per-request ceiling from GEOMETRY. An empty slot is
 /// the driver's ENOMEDIUM; a block size the client cannot address is
 /// refused by name, as an NVMe one is.
-pub fn geometry(port: u32) -> Result<Geometry, BlkError> {
+pub fn geometry(port: u32, unit: u16) -> Result<Geometry, BlkError> {
     let magic = Driver::Wire.magic();
     let mut rx = [0u8; HDR_LEN + STATUS_LEN + GEOMETRY_LEN];
-    let (n, id) = call(port, magic, OP_GEOMETRY, &[], &mut rx)?;
+    let (n, id) = call(port, magic, OP_GEOMETRY, unit, &[], &mut rx)?;
     let body = decode_reply(&rx, n, magic, OP_GEOMETRY, id)?;
     let b = body.get(..GEOMETRY_LEN).ok_or(BlkError::BadLength)?;
     let u32_at = |at: usize| u32::from_le_bytes([b[at], b[at + 1], b[at + 2], b[at + 3]]);
@@ -48,10 +48,10 @@ pub fn geometry(port: u32) -> Result<Geometry, BlkError> {
 
 /// The part's name, or `None` when the driver has none to give (ENODEV) or
 /// sent one the wire's rules refuse: the disk is listed by bus and size.
-pub fn identity(port: u32) -> Option<Identity> {
+pub fn identity(port: u32, unit: u16) -> Option<Identity> {
     let magic = Driver::Wire.magic();
     let mut rx = [0u8; HDR_LEN + STATUS_LEN + WIRE_IDENTIFY_LEN];
-    let (n, id) = call(port, magic, OP_WIRE_IDENTIFY, &[], &mut rx).ok()?;
+    let (n, id) = call(port, magic, OP_WIRE_IDENTIFY, unit, &[], &mut rx).ok()?;
     let body = decode_reply(&rx, n, magic, OP_WIRE_IDENTIFY, id).ok()?;
     parse_wire_identity(body)
 }

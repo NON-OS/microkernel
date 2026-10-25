@@ -29,11 +29,13 @@ impl Key {
     }
 
     /// Whether a write here is allowed, and a refused one counted against a
-    /// box: what a guest does, not what it asks about (`may_write`).
+    /// box (an allowed one recorded for a learn run): what a guest does, not
+    /// what it asks about (`may_write`).
     pub fn writable(&self) -> Result<(), &'static str> {
         let allowed = self.may_write();
-        if allowed.is_err() {
-            crate::linux::boxed::note(crate::linux::boxed::Kind::Write, self.visible());
+        match allowed {
+            Ok(()) => crate::linux::boxed::wrote(self.visible()),
+            Err(_) => crate::linux::boxed::note(crate::linux::boxed::Kind::Write, self.visible()),
         }
         allowed
     }

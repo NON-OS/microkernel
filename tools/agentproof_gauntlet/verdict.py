@@ -31,7 +31,8 @@ def fields(line: str) -> dict:
 
 
 def read(log: str) -> dict:
-    r = {"status": None, "box": None, "boxes": 0, "missing": None, "out": [], "iommu": None}
+    r = {"status": None, "box": None, "boxes": 0, "missing": None, "out": [], "iommu": None,
+         "net": None}
     for line in log.splitlines():
         if line.startswith("[AGENTPROOF-OUT] "):
             r["out"].append(line[len("[AGENTPROOF-OUT] "):])
@@ -39,6 +40,8 @@ def read(log: str) -> dict:
             r["status"] = fields(line)
         elif line.startswith("[BOX] v=1 "):
             r["box"], r["boxes"] = fields(line), r["boxes"] + 1
+        elif line.startswith("[BOX-NET] v=1 "):
+            r["net"] = fields(line)
         elif line.startswith("[BOX-MISSING] v=1 "):
             r["missing"] = fields(line)
         elif m := re.search(r"\[IOMMU\] .*enforcing=(\d), unconfined grants=(\d+)", line):
@@ -57,6 +60,8 @@ def judge(r: dict, max_refused: int = 0) -> list:
         why.append(f"not one whole box report: {r['missing'] or str(r['boxes']) + ' [BOX] lines'}")
         return why
     box = r["box"]
+    if box.get("preset") == "learn" or box.get("enforced") == "no":
+        why.append("a learn run is not enforced: run in the file it learned")
     if box.get("started") != "yes":
         why.append("the program never started")
     refused = int(box.get("refused", "0"))

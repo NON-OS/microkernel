@@ -9,7 +9,6 @@ have no detector. This file is one list by design, so it is longer than the
 | id | kind | what is trusted |
 |---|---|---|
 | `stated:cpu-isa` | stated | The CPU implements x86-64 paging, rings, SYSCALL/SYSRET, SWAPGS and the TSS as documented. |
-| `stated:firmware` | stated | UEFI firmware is honest until ExitBootServices, and the Secure Boot keys are the owner's. |
 | `stated:dma-no-iommu` | stated | With no IOMMU, every DMA-capable device and its driver capsule can reach all of physical memory. |
 | `stated:physical` | stated | No attacker with bus, JTAG or cold-boot access to the machine. |
 | `stated:hash-collision` | stated | BLAKE3, SHA-2, SHA-3 and the width-8 Poseidon are collision resistant. |
@@ -65,11 +64,14 @@ have no detector. This file is one list by design, so it is longer than the
 | `prim:crypto/hash/sha512` | prim | In-tree SHA-512, unproven. |
 | `prim:crypto/hash/unified` | prim | In-tree hash dispatch, unproven. |
 | `prim:crypto/pqc/kyber` | prim | In-tree ML-KEM, unproven. |
+| `prim:crypto/pqc/kyber_drawn` | prim | In-tree ML-KEM key generation and encapsulation over PQClean's C, built only with an `mlkem512`, `mlkem768` or `mlkem1024` feature, which no boot profile sets: each draws from the seeded RNG and is refused, its shared secret wiped, when any draw failed (`drew_cleanly`). pqclean_rng_proofs tests the refusal for ML-KEM-768 with the RNG stood in; unproven. |
 | `prim:crypto/pqc/mceliece` | prim | In-tree Classic McEliece, unproven. |
 | `prim:crypto/pqc/ml_dsa_65` | prim | In-tree ML-DSA-65, the post-quantum half of every signature check, unproven. |
 | `prim:crypto/pqc/ntru` | prim | In-tree NTRU, unproven. |
 | `prim:crypto/pqc/quantum` | prim | In-tree post-quantum dispatch, unproven. |
 | `prim:crypto/pqc/sphincs` | prim | In-tree SPHINCS+, unproven. |
+| `prim:crypto/pqc/unvetted` | prim | In-tree bytes-in, bytes-out wrappers over the kernel's SPHINCS+, NTRU and Classic McEliece, built only under `pqc-unvetted`, which no default, profile or build may turn on (nonos-ci/check-pqc-unvetted.sh); each of the three fails its first full run. Trusted in no shipped build; unproven. |
+| `prim:crypto/pqc/unvetted_off` | prim | In-tree stand-ins built whenever `pqc-unvetted` is off, as in every shipped build: SPHINCS+, NTRU and McEliece key generation, signing, encapsulation and decapsulation return an error by name and verification returns false, so security/quantum's pq_ops gets no key, signature or secret from them. No cryptography; no proof crate mounts it, unproven. |
 | `prim:crypto/symmetric/aes` | prim | In-tree AES, unproven. |
 | `prim:crypto/symmetric/aes_gcm` | prim | In-tree AES-GCM, unproven. |
 | `prim:crypto/symmetric/chacha20poly1305` | prim | In-tree ChaCha20-Poly1305, unproven. |

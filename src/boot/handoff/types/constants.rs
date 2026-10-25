@@ -52,14 +52,10 @@ pub mod flags {
     pub const PROFILE_SAFE: u64 = 1 << 13;
     pub const PROFILE_AIR_GAPPED: u64 = 1 << 14;
     pub const PROFILE_RECOVERY: u64 = 1 << 15;
+    /* No framebuffer, and fb.pixel_format says why (refusal.rs); never with FB. */
+    pub const FB_REFUSED: u64 = 1 << 16;
 
-    pub fn flag_names(flags: u64) -> &'static [&'static str] {
-        const NAMES: [&str; 16] = [
-            "W^X", "NXE", "SMEP", "SMAP", "UMIP", "IDMAP", "FB", "ACPI", "TPM", "SECBOOT", "ZK",
-            "INSTALL", "HARDENED", "SAFE", "AIRGAP", "RECOVERY",
-        ];
-        &NAMES[..(64 - flags.leading_zeros() as usize).min(16)]
-    }
+    pub use super::super::flag_names::flag_names;
 }
 
 pub mod pixel_format {
