@@ -20,7 +20,7 @@ Not tested in this release.
 
 | profile | kernel features it starts from | loader policy | takes out | for |
 |---|---|---|---|---|
-| `standard`, `tools/nix/config.nix:70-77` | `microkernel-full-gui` | `standard` | nothing | a person's own machine, every day |
+| `standard`, `tools/nix/config.nix` | `microkernel-full-gui` | `standard` | `capsule-serial-debug` | a person's own machine, every day |
 | `hardened`, `tools/nix/config.nix:78-85` | `microkernel-full-gui` | `production` | `capsule-serial-debug` | a machine that may be seized or tampered with |
 | `airgapped`, `tools/nix/config.nix:86-93` | `microkernel-full-gui` | `production` | `capsule-serial-debug` and every network feature | keys and documents that must never touch a network |
 | `qemu`, `tools/nix/config.nix:94-101` | `microkernel-desktop-gui`, `microkernel-setup-wizard` | `standard-qemu` | nothing | trying NONOS in a virtual machine, and CI's boot smoke test |
@@ -29,7 +29,7 @@ Not tested in this release.
 
 `microkernel-full-gui`, the set `make` builds by default, is the desktop with every production hardware driver [capsule](../overview/glossary-boot-root-record.md#capsule), the market and first-boot setup (`Cargo.toml:627-646`). `microkernel-capsules`, the set of the `core` profile, is the core kernel with three capsules embedded: proof I/O, the RAM file system and the keyring (`Cargo.toml:251-257`).
 
-`capsule-serial-debug` lets service capsules write to the [serial console](../overview/glossary-rollback-index.md#serial-console), which the hardened and airgapped images must not allow (`debugFeatures`, `tools/nix/config.nix:60-62`). The network features the airgapped profile removes are everything that reaches a network: the drivers, the stack, and the programs whose only job is to go online, such as the browser, the market and the model fetcher (`networkFeatures`, `tools/nix/config.nix:48-58`).
+`capsule-serial-debug` lets service capsules write to the [serial console](../overview/glossary-rollback-index.md#serial-console), which no release image allows: `standard`, `hardened` and `airgapped` take it out, and only `qemu`, `dev` and a profile's development twin keep it (`debugFeatures`, `tools/nix/config.nix:60-62`). The network features the airgapped profile removes are everything that reaches a network: the drivers, the stack, and the programs whose only job is to go online, such as the browser, the market and the model fetcher (`networkFeatures`, `tools/nix/config.nix:48-58`).
 
 The profile's own description says the `production` loader refuses to start without [Secure Boot](../overview/glossary-rollback-index.md#secure-boot) and a [TPM](../overview/glossary-stark-proof.md#tpm) to measure into (`privacy`, `tools/nix/config.nix:78-85`). The build only selects that policy, by building the loader with the cargo feature of the same name (`cargo`, `tools/nix/image.nix:161-162`); the refusal itself is in the loader's verification code and is not checked on this page.
 

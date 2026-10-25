@@ -35,5 +35,11 @@ pub const CC_MPS_SHIFT: u32 = 7;
 pub const CC_AMS_RR: u32 = 0 << 11;
 pub const CC_IOSQES_64: u32 = 6 << 16;
 pub const CC_IOCQES_16: u32 = 4 << 20;
+/// CC.SHN, bits 15:14, and its value 01b: a normal shutdown notification.
+pub const CC_SHN_MASK: u32 = 3 << 14;
+pub const CC_SHN_NORMAL: u32 = 1 << 14;
 pub const CSTS_RDY: u32 = 1 << 0;
 pub const CSTS_CFS: u32 = 1 << 1;
+/// CSTS.SHST, bits 3:2, and its value 10b: shutdown processing complete.
+pub const CSTS_SHST_MASK: u32 = 3 << 2;
+pub const CSTS_SHST_COMPLETE: u32 = 2 << 2;
