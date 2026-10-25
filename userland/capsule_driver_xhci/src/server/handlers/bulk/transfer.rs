@@ -38,7 +38,7 @@ pub fn transfer_out(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]
     }
     let moved = run(ctx, (body[0], second, stream), data, len as u32, None);
     recover_timeout(ctx, (body[0], second), false, moved);
-    finish(moved, req, tx);
+    finish(moved, false, req, tx);
 }
 pub fn transfer_in(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     let len =
@@ -49,11 +49,15 @@ pub fn transfer_in(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8])
     };
     let moved = run(ctx, (body[0], second, stream), &[], len as u32, Some(&mut tx[DATA_AT..]));
     recover_timeout(ctx, (body[0], second), true, moved);
-    finish(moved, req, tx);
+    finish(moved, true, req, tx);
 }
-fn finish(moved: XhciResult<u32>, req: &Request, tx: &mut [u8]) {
+/// Only an IN reply carries the bytes it moved: an OUT moved them the
+/// other way, and its reply is the count alone.
+fn finish(moved: XhciResult<u32>, dir_in: bool, req: &Request, tx: &mut [u8]) {
     match moved {
-        Ok(n) => send_with_data(tx, req, [n as u8, (n >> 8) as u8, 0, 0], n as usize),
+        Ok(n) => {
+            send_with_data(tx, req, [n as u8, (n >> 8) as u8, 0, 0], dir_in as usize * n as usize)
+        }
         Err(XhciError::TransferCompletionFailed(CC_STALL)) => reply_with_status(tx, req, E_PIPE),
         Err(XhciError::ControllerUnsupported) => reply_with_status(tx, req, E_INVAL),
         Err(_) => reply_with_status(tx, req, E_IO),
