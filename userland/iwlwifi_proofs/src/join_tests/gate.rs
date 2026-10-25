@@ -4,13 +4,13 @@
 
 use nonos_wifi_core::rsn::JoinPolicy;
 
-use crate::gen3::join::target::target;
+use super::drive::only_handshake_frames_left;
+use super::refusals::refused;
 use crate::gen3::join::exchange::limits::IDLE_TRIES;
 use crate::gen3::join::exchange::Progress;
 use crate::gen3::join::run::{join, JoinEnd};
+use crate::gen3::join::target::target;
 use crate::join_rig::*;
-use super::drive::only_handshake_frames_left;
-use super::refusals::refused;
 
 #[test]
 fn nothing_but_eapol_leaves_before_the_port_opens_whatever_arrives() {
@@ -39,18 +39,28 @@ fn nothing_but_eapol_leaves_before_the_port_opens_whatever_arrives() {
 fn only_the_access_points_own_handshake_is_answered() {
     // Message 1 from another BSS arrives right after the access point's: one
     // message 2 answers the real one, and its resends are all that follow.
-    let (r, e) = refused(Security::Wpa2, Switches { silent_after_m1: true, stray_m1: true, ..Switches::default() });
+    let (r, e) = refused(
+        Security::Wpa2,
+        Switches { silent_after_m1: true, stray_m1: true, ..Switches::default() },
+    );
     assert_eq!(e, JoinEnd::TimedOut);
     let m2s: Vec<_> = r.sent().into_iter().filter(|s| s.frame[0] == 0x08).collect();
     assert_eq!(m2s.len() as u32, 1 + IDLE_TRIES);
-    assert!(m2s.iter().all(|s| s.frame == m2s[0].frame), "every one answers the access point's message 1");
+    assert!(
+        m2s.iter().all(|s| s.frame == m2s[0].frame),
+        "every one answers the access point's message 1"
+    );
 }
 
 #[test]
 fn the_target_is_read_from_the_beacon_and_the_channel_it_was_heard_on() {
     let b = Ap::new(Security::Wpa2, Switches::default()).beacon();
     let t = target(&b, 11).unwrap();
-    assert_eq!((t.bssid, t.channel, t.beacon_int, t.dtim_period), (AP, 6, 100, 2), "the DS element wins");
+    assert_eq!(
+        (t.bssid, t.channel, t.beacon_int, t.dtim_period),
+        (AP, 6, 100, 2),
+        "the DS element wins"
+    );
     assert_eq!((t.rates.cck_ack, t.rates.ofdm_ack, t.rates.mgmt, t.rates.data), (0x0F, 0x15, 0, 3));
     assert_eq!(t.capability, 0x0431);
     // No DS element (a 5 GHz beacon may carry none): the channel it was
