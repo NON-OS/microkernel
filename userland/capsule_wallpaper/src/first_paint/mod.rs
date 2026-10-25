@@ -13,19 +13,10 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! The built-in picture, painted while the service already answers.
 
-//! The firmware's boot logo (MkBootLogo), drawn where the firmware left it so
-//! the screen goes from the firmware's logo to the splash without a flash.
-//! Everything here but `fetch` is plain computation, proven on the host.
+pub mod job;
+mod step;
+mod worker;
 
-pub mod bmp;
-pub mod fetch;
-pub mod place;
-pub mod prepare;
-pub mod record;
-pub mod resample;
-pub mod shown;
-pub mod turn;
-
-pub use prepare::prepare;
-pub use shown::Shown;
+pub use step::{start, step, wait};
