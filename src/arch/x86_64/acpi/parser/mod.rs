@@ -31,7 +31,7 @@ pub use getters_core::{
     nmi_configs, numa_regions, oem_id, pcie_segments, pm_profile, processors, revision,
     sci_interrupt,
 };
-pub use getters_table::{has_table, stats, table_address, with_data};
+pub use getters_table::{has_table, stats, table_address, try_with_data, with_data};
 pub use init::init;
 pub use root_rsdt::parse_rsdt;
 pub use root_xsdt::parse_xsdt;

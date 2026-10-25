@@ -22,6 +22,7 @@ mod irq;
 mod mmio;
 mod namespace;
 mod pci;
+mod power_off;
 mod say;
 mod sequence;
 
