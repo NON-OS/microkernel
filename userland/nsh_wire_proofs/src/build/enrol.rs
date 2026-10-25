@@ -28,6 +28,8 @@ pub struct EnrolB {
     pub ak: [u8; 64],
     pub host_keys: [u8; 64],
     pub pcrs: [[u8; 32]; 4],
+    pub boot_version: u8,
+    pub boot_apps: Vec<[u8; 32]>,
     pub not_after: u64,
     pub authority: [u8; 32],
 }
@@ -43,6 +45,8 @@ impl Default for EnrolB {
             ak: [0xAC; 64],
             host_keys: [0x4B; 64],
             pcrs: [[0], [1], [2], [7]].map(|p| [p[0]; 32]),
+            boot_version: 1,
+            boot_apps: vec![[0xB0; 32]],
             not_after: 9_000,
             authority: [0xAA; 32],
         }
@@ -59,6 +63,8 @@ impl EnrolB {
         out.extend_from_slice(&self.ak);
         out.extend_from_slice(&self.host_keys);
         self.pcrs.iter().for_each(|p| out.extend_from_slice(p));
+        out.extend_from_slice(&[self.boot_version, self.boot_apps.len() as u8]);
+        self.boot_apps.iter().for_each(|a| out.extend_from_slice(a));
         put_u64(&mut out, self.not_after);
         out.extend_from_slice(&self.authority);
         sig(&mut out, 0xE7);
