@@ -65,6 +65,6 @@ fn a_doc_carrying_its_unsigned_count_or_log_is_refused() {
     let bound = write::bound(&rec, &f.box_word, &f.policy, &f.launcher);
     f.spec.challenge = Some(challenge(&bound));
     let kernel_doc = f.spec.doc_bytes();
-    let whole = write::finish(bound, &kernel_doc);
+    let whole = write::finish(bound, &kernel_doc, &f.spec.entries.concat());
     assert!(matches!(verify(&whole, &trust), Err(Refusal::Unsigned)), "as the kernel wrote it");
 }
