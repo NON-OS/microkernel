@@ -34,6 +34,16 @@ pub(super) const NET_NYM_MANIFEST_BYTES: &[u8] =
 pub(super) const NET_NYM_ATTESTATION_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/net_nym.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-net-nym")]
+const _: () = assert!(
+    !NET_NYM_ELF.is_empty()
+        && !NET_NYM_NONOS_ID_CERT_BYTES.is_empty()
+        && !NET_NYM_MANIFEST_BYTES.is_empty()
+        && !NET_NYM_ATTESTATION_BYTES.is_empty(),
+    "capsule_net_nym built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-net-nym"))]
 pub(super) const NET_NYM_ELF: &[u8] = &[];
 

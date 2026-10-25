@@ -34,6 +34,16 @@ pub(crate) const ABOUT_MANIFEST_BYTES: &[u8] =
 pub(crate) const ABOUT_ATTESTATION_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/about.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-about")]
+const _: () = assert!(
+    !ABOUT_ELF.is_empty()
+        && !ABOUT_NONOS_ID_CERT_BYTES.is_empty()
+        && !ABOUT_MANIFEST_BYTES.is_empty()
+        && !ABOUT_ATTESTATION_BYTES.is_empty(),
+    "capsule_about built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-about"))]
 pub(crate) const ABOUT_ELF: &[u8] = &[];
 

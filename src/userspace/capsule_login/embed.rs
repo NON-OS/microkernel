@@ -34,6 +34,16 @@ pub(crate) const LOGIN_MANIFEST_BYTES: &[u8] =
 pub(crate) const LOGIN_ATTESTATION_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/login.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-login")]
+const _: () = assert!(
+    !LOGIN_ELF.is_empty()
+        && !LOGIN_NONOS_ID_CERT_BYTES.is_empty()
+        && !LOGIN_MANIFEST_BYTES.is_empty()
+        && !LOGIN_ATTESTATION_BYTES.is_empty(),
+    "capsule_login built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-login"))]
 pub(crate) const LOGIN_ELF: &[u8] = &[];
 
