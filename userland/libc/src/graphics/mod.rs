@@ -18,8 +18,6 @@
 // present, destroy, the cursor and the display list were retired in favour of
 // the surface registry, and their wrappers here called syscall numbers the
 // kernel no longer defines, so they could not succeed.
-mod boot_logo;
 mod display_dimensions;
 
-pub use boot_logo::{mk_boot_logo, BOOT_LOGO_FILE, BOOT_LOGO_RECORD, BOOT_LOGO_RECORD_LEN};
 pub use display_dimensions::{nonos_display_dimensions, nonos_display_physical_mm};
