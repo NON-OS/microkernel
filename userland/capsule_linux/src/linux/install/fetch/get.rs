@@ -18,27 +18,41 @@
 
 use nonos_libc::mk_debug;
 
+use nonos_inflate::Refused;
+
 use super::super::auth::{verified, Verified};
 use super::super::get::package::download;
 use super::super::index::Pkg;
+use super::super::Why;
 
 /// The package's files, if its bytes authenticate. `pin` is the market's hash
 /// of the package the user chose; what it depends on is held to the signed
 /// index alone, which names every one of them by checksum.
-pub(in crate::linux::install) fn fetch(pkg: &Pkg, pin: Option<&[u8; 32]>) -> Option<Verified> {
+pub(in crate::linux::install) fn fetch(pkg: &Pkg, pin: Option<&[u8; 32]>) -> Result<Verified, Why> {
     nonos_libc::heap_reset_peak();
     let apk = download(&pkg.name, &pkg.version);
     heap("fetched", &pkg.name);
     if pin.is_some_and(|want| blake3::hash(&apk).as_bytes() != want) {
         say(b"[LINUX] package is not the one the market listed\n");
-        return None;
+        return Err(Why::Package);
     }
-    let files = pkg.checksum.and_then(|sum| verified(&apk, &sum));
+    let files = pkg.checksum.ok_or(Refused::Bad).and_then(|sum| verified(&apk, &sum));
+    drop(apk);
     heap("unpacked", &pkg.name);
-    if files.is_none() {
-        say(b"[LINUX] package did not download, or does not match its index record\n");
-    }
-    files
+    files.map_err(|why| match why {
+        Refused::NoMemory(n) => {
+            let name = &pkg.name;
+            say(alloc::format!(
+                "[LINUX] install failed: not enough memory to unpack {name} ({n} bytes)\n"
+            )
+            .as_bytes());
+            Why::UnpackMemory
+        }
+        Refused::Bad => {
+            say(b"[LINUX] package did not download, or does not match its index record\n");
+            Why::Package
+        }
+    })
 }
 
 /// How much of the install heap one package took: what is held now, the
