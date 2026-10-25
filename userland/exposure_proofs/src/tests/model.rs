@@ -9,6 +9,8 @@ pub fn kernel_bits() -> BTreeMap<String, u64> {
     let mut out = BTreeMap::new();
     for l in defs.lines().map(str::trim) {
         let Some((name, rest)) = l.split_once(" = 1 << ") else { continue };
+        // An entry may carry its doc as `#[doc = ".."]` on the same line.
+        let name = name.rsplit(']').next().unwrap_or(name).trim();
         let shift: u32 = rest.trim_end_matches(',').parse().unwrap();
         out.insert(name.to_string(), 1u64 << shift);
     }

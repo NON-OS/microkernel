@@ -29,9 +29,10 @@ pub mod error;
 mod fifo;
 pub mod machine_key;
 mod mmio;
+pub mod pcr_extend;
 pub mod quote;
 mod resend;
 mod transport;
 
 pub use resend::transact_resending;
-pub use transport::{tpm2_start, tpm2_table, transact};
+pub use transport::{found, tpm2_start, tpm2_table, transact};

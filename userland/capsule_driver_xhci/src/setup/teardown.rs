@@ -52,6 +52,10 @@ pub fn quiesce(op_base: u64) -> Quiesced {
 impl Drop for Driver {
     fn drop(&mut self) {
         let _ = quiesce(self.layout.op_base);
+        // Halted, so nothing it runs follows the ports; the claim still held.
+        if let Some(ports) = self.ports.take() {
+            ports.restore();
+        }
         let _ = self.handles.bus_master_off();
         self.handles.release();
     }
