@@ -12,7 +12,7 @@
 use super::image::{check_image, FW};
 use super::map::map_regions;
 use super::say::{finish, say_download};
-use crate::fw::dma::DmaMem;
+use crate::fw::dma::{DmaMem, Grant};
 use crate::fw::regs::REG_TXBD_DESA_BCNQ;
 use crate::fw::{download, prep, rsvd, DownloadError};
 use crate::regs::{Mmio, Regs};
@@ -30,9 +30,10 @@ pub enum FwLoadError {
     NotReady,
 }
 
-/// Download the embedded firmware into the powered chip. `device_id` and
-/// `claim_epoch` are the same claim the register window was mapped under.
-pub fn load(regs: &Regs, device_id: u64, claim_epoch: u64) -> Result<(), FwLoadError> {
+/// Download the embedded firmware into the powered chip, handing back the
+/// staging buffer and beacon ring. `device_id` and `claim_epoch` are the same
+/// claim the register window was mapped under.
+pub fn load(regs: &Regs, device_id: u64, claim_epoch: u64) -> Result<(Grant, Grant), FwLoadError> {
     check_image()?;
     let (stage_buf, ring) = map_regions(device_id, claim_epoch)?;
 
@@ -49,5 +50,7 @@ pub fn load(regs: &Regs, device_id: u64, claim_epoch: u64) -> Result<(), FwLoadE
         say_download(e);
         return Err(FwLoadError::Download(e));
     }
-    finish(prep::finish(regs, backup))
+    // The staging buffer and the ring stay mapped for the reserved pages
+    // power save writes later.
+    finish(prep::finish(regs, backup)).map(|()| (stage_buf, ring))
 }

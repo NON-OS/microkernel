@@ -31,6 +31,8 @@ pub(super) fn report(outcome: Outcome) -> Report {
         state,
         failure: None,
         akm: None,
+        aid: 1,
+        dtim: 1,
     }
 }
 

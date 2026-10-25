@@ -30,4 +30,6 @@ pub struct Mapped {
     pub efuse: Option<crate::efuse::EfuseInfo>,
     /// The data path's rings, mapped and pointed at before the engines run.
     pub rings: Option<super::Rings>,
+    /// The firmware download's staging buffer and beacon ring.
+    pub beacon: Option<(crate::fw::dma::Grant, crate::fw::dma::Grant)>,
 }
