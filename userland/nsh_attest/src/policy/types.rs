@@ -22,7 +22,7 @@ use alloc::vec::Vec;
 
 use nsh_wire::keys::{ED_PUBLIC_LEN, KEY_ID_LEN, ML_PUBLIC_LEN};
 
-/// One accepted release; PCR 8 and 14 are pinned from its first boot. No
+/// One accepted release; PCR 8 is pinned from its first boot. No
 /// value may be zero. No rollback index: the document carries none, and
 /// the loader enforces it against the TPM before this kernel can run.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -30,7 +30,6 @@ pub struct Release {
     pub version: String,
     pub pcr8: [u8; 32],
     pub pcr9: [u8; 32],
-    pub pcr14: [u8; 32],
     /// The loader's Authenticode SHA-256, which PCR 4 must hold.
     pub loader: [u8; 32],
     /// The measurement of the one capsule holding Network: `nsh.front`.
@@ -63,7 +62,7 @@ pub enum PolicyError {
     Authorities,
     /// No release, or more than `MAX_RELEASES`.
     Releases,
-    /// A release with a zero PCR 8, 9 or 14, loader or front measurement.
+    /// A release with a zero PCR 8 or 9, loader or front measurement.
     ZeroValue,
     /// Two releases with the same PCR 9: a kernel would match both.
     SharedPcr9,
