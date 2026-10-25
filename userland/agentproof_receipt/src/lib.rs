@@ -22,14 +22,19 @@
 
 extern crate alloc;
 
+#[cfg(feature = "verify")]
 pub mod cli;
 pub mod napr;
+#[cfg(feature = "verify")]
 pub mod trust;
+#[cfg(feature = "verify")]
 pub mod trust_file;
+#[cfg(feature = "verify")]
 pub mod verify;
 
 /// capsule_linux's own rule for slot 0 of the seal, compiled from its file.
 #[path = "../../capsule_linux/src/linux/seal_slot.rs"]
 pub mod seal_slot;
 
+#[cfg(feature = "verify")]
 pub use verify::{verify, Refusal, Verdict};
