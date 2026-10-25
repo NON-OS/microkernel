@@ -58,6 +58,8 @@ mod design_token_tests;
 #[cfg(test)]
 mod nonos_scheme_tests;
 #[cfg(test)]
+mod roles_tests;
+#[cfg(test)]
 mod scheme_accent_tests;
 #[cfg(test)]
 mod scheme_contrast_tests;
