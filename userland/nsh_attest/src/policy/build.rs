@@ -58,7 +58,7 @@ impl Policy {
             return Err(PolicyError::Releases);
         }
         for (i, r) in releases.iter().enumerate() {
-            if [&r.pcr8, &r.pcr9, &r.pcr14, &r.loader, &r.front].into_iter().any(zero) {
+            if [&r.pcr8, &r.pcr9, &r.loader, &r.front].into_iter().any(zero) {
                 return Err(PolicyError::ZeroValue);
             }
             if releases[..i].iter().any(|o| o.pcr9 == r.pcr9) {
