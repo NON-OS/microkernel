@@ -27,7 +27,7 @@ const MODES: [(u32, u32); 7] =
 fn drawn_in_red_inside_its_row_only() {
     for (w, h) in MODES {
         let mut buf = vec![0u32; (w * h) as usize];
-        let r = layout(None, w, h).warn;
+        let r = layout(w, h).warn;
         draw(&mut buf, w as usize, w, h, r);
         let mut lit = 0;
         for (i, px) in buf.iter().enumerate() {
@@ -47,7 +47,7 @@ fn drawn_in_red_inside_its_row_only() {
 fn the_same_pixels_as_the_text_centred_at_the_rows_top() {
     let text = b"device DMA not confined by hardware";
     for (w, h) in MODES {
-        let r = layout(None, w, h).warn;
+        let r = layout(w, h).warn;
         let (mut got, mut want) = (vec![0u32; (w * h) as usize], vec![0u32; (w * h) as usize]);
         draw(&mut got, w as usize, w, h, r);
         let x = (w - FontAtlas::default().text_width(text)) / 2;
