@@ -20,9 +20,19 @@ mod chunk2;
 mod chunk3;
 #[cfg(feature = "devnet")]
 pub(crate) mod dev;
+#[cfg(feature = "devnet")]
+mod dev_anchor;
+#[cfg(feature = "devnet")]
+mod dev_eku;
+#[cfg(not(feature = "devnet"))]
+mod dev_off;
 mod extra;
 mod lookup;
 mod store;
 
+#[cfg(feature = "devnet")]
+pub use dev_anchor::anchors as dev_anchors;
+#[cfg(not(feature = "devnet"))]
+pub use dev_off::anchors as dev_anchors;
 pub use lookup::is_trusted_spki_hash;
-pub use lookup::find_spki_by_subject;
+pub use store::find_spki_by_subject;
