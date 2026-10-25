@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::x86_64::acpi::aml::{community_window, enumerate_gpio_controllers};
+use crate::arch::firmware_table::devices::{community_window, enumerate_gpio_controllers};
 
 use super::super::acpi::platform_paths::keep_unpathed;
 use super::super::table::register_platform_device;
