@@ -71,7 +71,7 @@ pub(super) fn offer(relid: u32, interface: [u8; 16], connection: u32) -> Vec<u8>
 /// A SCSI channel offered and given to `RECORD`.
 fn world() -> Channels {
     let mut c = Channels::new();
-    assert_eq!(c.from_host(&offer(RELID, SCSI, 0x2005)), Retire::None);
+    assert_eq!(c.take_host_message(&offer(RELID, SCSI, 0x2005)), Retire::None);
     assert!(c.bind(RELID, RECORD).is_ok());
     c
 }
@@ -118,7 +118,7 @@ fn open(relid: u32, gpadl: u32, vcpu: u32) -> Vec<u8> {
 /// Post `m` as the kernel does: checked, then noted once the host took it.
 fn post(c: &mut Channels, m: &[u8]) -> Result<(), Refusal> {
     check(1, 1, m, c, held)?;
-    c.from_guest(m);
+    c.take_guest_message(m);
     Ok(())
 }
 
@@ -216,11 +216,11 @@ fn a_gpadl_is_only_for_a_channel_given_to_a_driver() {
     // Never offered.
     assert_eq!(check(1, 1, &gpadl_header(9, 1, 1, &[p]), &c, held), Err(Refusal::Channel));
     // Offered, but given to no driver.
-    c.from_host(&offer(6, SCSI, 0x2006));
+    c.take_host_message(&offer(6, SCSI, 0x2006));
     assert_eq!(check(1, 1, &gpadl_header(6, 1, 1, &[p]), &c, held), Err(Refusal::Channel));
     // Withdrawn after it was given.
     let mut gone = world();
-    gone.from_host(&{
+    gone.take_host_message(&{
         let mut m = msg(2, 12);
         put32(&mut m, 8, RELID);
         m
@@ -255,7 +255,7 @@ fn a_live_gpadl_id_is_never_made_again() {
     assert_eq!(post(&mut c, &gpadl_header(RELID, 7, 1, &[p])), Err(Refusal::Channel));
     let mut torndown = msg(12, 12);
     put32(&mut torndown, 8, 7);
-    assert_eq!(c.from_host(&torndown), Retire::Settle(RECORD));
+    assert_eq!(c.take_host_message(&torndown), Retire::Settle(RECORD));
     assert_eq!(post(&mut c, &gpadl_header(RELID, 7, 1, &[p])), Ok(()));
 }
 
@@ -277,9 +277,9 @@ fn a_channel_opens_on_vp_zero_with_its_own_gpadl() {
     assert_eq!(check(1, 1, &open(RELID, 7, 1), &c, held), Err(Refusal::Target));
     assert_eq!(check(1, 1, &open(RELID, 8, 0), &c, held), Err(Refusal::Channel));
     // Another channel's GPADL, and a channel given to no driver.
-    c.from_host(&offer(6, SCSI, 0x2006));
+    c.take_host_message(&offer(6, SCSI, 0x2006));
     assert_eq!(check(1, 1, &open(6, 7, 0), &c, held), Err(Refusal::Channel));
     let mut never = world();
-    never.from_host(&offer(6, SCSI, 0x2006));
+    never.take_host_message(&offer(6, SCSI, 0x2006));
     assert_eq!(check(1, 1, &open(6, 7, 0), &never, held), Err(Refusal::Channel));
 }

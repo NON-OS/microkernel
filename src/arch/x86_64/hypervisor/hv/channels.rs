@@ -204,7 +204,7 @@ impl Channels {
     /// already off). An offer is kept, or replaces one with its relid; a
     /// withdrawal forgets the channel and its GPADLs; a torn-down GPADL is
     /// forgotten; an unload forgets everything.
-    pub(super) fn from_host(&mut self, p: &[u8]) -> Retire {
+    pub(super) fn take_host_message(&mut self, p: &[u8]) -> Retire {
         let Some(kind) = u32_at(p, 0) else { return Retire::None };
         match kind {
             OFFERCHANNEL if p.len() >= OFFER_BYTES => {
@@ -263,7 +263,7 @@ impl Channels {
     /// A channel message the core posted and the host took. A GPADL
     /// header ties its id to the channel it names. A teardown unties
     /// nothing: the GPADL is the host's until it says GPADL_TORNDOWN.
-    pub(super) fn from_guest(&mut self, p: &[u8]) {
+    pub(super) fn take_guest_message(&mut self, p: &[u8]) {
         let (Some(kind), Some(relid), Some(id)) = (u32_at(p, 0), u32_at(p, 8), u32_at(p, 12))
         else {
             return;
