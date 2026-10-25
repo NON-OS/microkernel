@@ -24,10 +24,10 @@ use alloc::vec::Vec;
 use nonos_openpgp::Key;
 
 use super::desc::{records, Record};
-use crate::linux::install::pgp::signed;
 use super::source::{repos, Source};
-use crate::linux::install::unpacked::unpacked;
+use crate::linux::install::pgp::signed;
 use crate::linux::install::tar::entries;
+use crate::linux::install::unpacked::unpacked;
 
 pub struct Db {
     /// Each record, with the repository it came from.
@@ -56,14 +56,6 @@ pub fn load(src: &Source, ring: &[Key]) -> Option<Db> {
         }
     }
     (!db.records.is_empty()).then_some(db)
-}
-
-impl Db {
-    /// A package by its own name first, then by a name it provides.
-    pub fn find(&self, want: &str) -> Option<&(Record, &'static str)> {
-        let named = self.records.iter().find(|(r, _)| r.name == want);
-        named.or_else(|| self.records.iter().find(|(r, _)| r.provides.iter().any(|p| p == want)))
-    }
 }
 
 fn say(line: &[u8]) {

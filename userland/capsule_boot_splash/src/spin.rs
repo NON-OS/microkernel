@@ -16,13 +16,14 @@
 
 //! One turn of the status line's spinner.
 
+use crate::layout::Area;
 use crate::{scene, status};
 
 /// The status line's next frame, and damage for that line alone: a whole
 /// screen's damage every spin had the compositor recompose it for one line.
-pub(crate) fn spin(comp: u32, base: u64, (w, h, spx): (u32, u32, usize), frame: u32) {
+pub(crate) fn spin(comp: u32, base: u64, (w, h, spx): (u32, u32, usize), band: Area, frame: u32) {
     // SAFETY: `base` maps the splash's surface, `spx * h` words.
     let buf = unsafe { core::slice::from_raw_parts_mut(base as *mut u32, spx * h as usize) };
-    status::status(buf, spx, w, h, frame);
-    let _ = scene::damage(comp, 21, crate::layout::status(w, h));
+    status::status(buf, spx, w, h, band, frame);
+    let _ = scene::damage(comp, 21, band);
 }

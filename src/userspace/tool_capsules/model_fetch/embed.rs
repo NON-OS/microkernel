@@ -32,7 +32,7 @@ pub(super) const CERT: &[u8] =
     include_bytes!("../../../../nonos-data/trust/capsules/model-fetch.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-model-fetch")]
-pub(super) const MANIFEST: &[u8] =
+pub(in super::super) const MANIFEST: &[u8] =
     include_bytes!("../../../../nonos-data/trust/capsules/model-fetch.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-model-fetch")]
@@ -56,7 +56,7 @@ pub(super) const ELF: &[u8] = &[];
 pub(super) const CERT: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-model-fetch"))]
-pub(super) const MANIFEST: &[u8] = &[];
+pub(in super::super) const MANIFEST: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-model-fetch"))]
 pub(super) const ATTESTATION: &[u8] = &[];

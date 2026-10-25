@@ -16,7 +16,8 @@
 
 //! The polled bulk IN the USB network drivers read with: it arms one TRB,
 //! answers at once while nothing has come, takes only the completion that
-//! names its TRB, and leaves every other event for its own taker.
+//! names its TRB, keeps another armed endpoint's for its own taker, and
+//! consumes a command completion nobody waits for.
 
 use super::events::{command, transfer, CC_STALL, CC_SUCCESS};
 use super::fixture::{Fixture, BULK_IN_DCI, INT_DCI, SLOT, TRB};
@@ -58,14 +59,13 @@ fn other_events_are_left_for_their_takers() {
     let mut fx = Fixture::new();
     let mut pipes = fx.bulk_pipes();
     let issued = pipes.in_ring.enqueue_phys();
-    // A command's completion stays on the ring for the command wait.
+    // No command is in flight inside a poll: a command completion here is
+    // nobody's, and left at the head it would hold the poll's own behind it.
     fx.hc.post(command(issued, CC_SUCCESS, 1));
     let got = poll_bulk_in(fx.db(), fx.intr(), &mut fx.ring, &mut pipes, SLOT, LEN);
     assert_eq!(got, Ok(BulkPoll::Pending));
-    assert!(fx.ring.has_event(), "the command completion was taken");
-    fx.ring.advance();
-    // Another endpoint's completion naming the same address is kept for
-    // the TRB armed there, which has a place (`expect`).
+    assert!(!fx.ring.has_event(), "the command completion was left at the head");
+    // Another armed endpoint's completion naming the same address is parked.
     let other = IssuedTransfer { phys: issued, slot: SLOT, dci: INT_DCI };
     assert!(fx.ring.expect(other));
     fx.hc.post(transfer(issued, CC_STALL, 0, SLOT, INT_DCI));

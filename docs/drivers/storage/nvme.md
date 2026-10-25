@@ -109,6 +109,12 @@ make boot-install
 make boot-installed
 ```
 
+To see what the emulated controller did with each command, set `NONOS_QEMU_EXTRA` to extra QEMU words; it is off when unset or empty (`tools/nonos_qemu/extra.py`, `words`). QEMU then writes each traced event, with its time, to its own log:
+
+```
+NONOS_QEMU_EXTRA="-msg timestamp=on -trace pci_nvme_rw -trace pci_nvme_rw_complete_cb" make boot-install
+```
+
 Not tested in this release.
 
 On real hardware, the installer writing to an internal NVMe disk and booting from it: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.

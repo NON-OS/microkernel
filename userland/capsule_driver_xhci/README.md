@@ -8,7 +8,7 @@ controller-owned slot lifecycle used by USB enumeration. USB class policy
 belongs to separate HID, storage, audio, network, and hub capsules above it.
 
 ```text
-driver.usb_hid0, driver.usb_msc0 (the only senders the kernel admits)
+driver.usb_hid0, usb_msc0, usb_audio0, USB NICs (the senders the kernel admits)
     |
     | controller service IPC
     v
@@ -38,9 +38,10 @@ The capsule interacts with hardware only through broker grants:
 The kernel does not enumerate USB devices, parse descriptors, or implement USB
 class behavior. It grants resources and revokes them.
 
-Only `driver.usb_hid0` and `driver.usb_msc0` may send to `driver.xhci0`: the
-kernel holds the endpoint to them (`src/services/registry/held.rs`), by name
-and by pid, because the controller carries raw transfers to every device
+Only the USB class drivers may send to `driver.xhci0` (`driver.usb_hid0`,
+`driver.usb_msc0`, `driver.usb_audio0` and the USB network drivers): the
+kernel holds the endpoint to them (`src/services/registry/held_table.rs`), by
+name and by pid, because the controller carries raw transfers to every device
 behind it.
 
 ## Interface contract
@@ -52,11 +53,11 @@ behind it.
 | `OP_PORT_STATUS` | port state list; byte 1 says 0 free, 1 addressed, 2 claimed; a failed controller's ports show nothing attached | count plus 8-byte entries |
 | `OP_ENABLE_SLOT` / `OP_DISABLE_SLOT` | issue xHCI Enable / Disable Slot | slot id / status word |
 | `OP_ADDRESS_DEVICE` | reset a free root port and issue Address Device; `E_BUSY` if held | slot, port, speed, EP0 MPS |
-| `OP_ADDRESS_ROUTED` (0x0020) | Address Device for a device below a hub: route string, root port, speed and TT, each held against the hubs set up | as `OP_ADDRESS_DEVICE` |
-| `OP_CONFIGURE_HUB` (0x0021) | tell the controller an addressed slot is a hub: ports, TT think time, MTT | status word |
+| `OP_ADDRESS_ROUTED` (0x0020) | Address Device for a device below a hub: route string, speed and TT in the Slot Context, root port not reset; `E_INVAL` unless a hub holds the root port, the route is well formed and a TT names a hub's port for a full or low speed device | as `OP_ADDRESS_DEVICE` |
+| `OP_CONFIGURE_HUB` (0x0021) | tell the controller an addressed slot is a hub: Configure Endpoint with only the Slot Context, its Hub flag, port count, TT think time and MTT | status word |
 | `OP_GET_DEVICE_DESCRIPTOR` / `OP_GET_CONFIG_DESCRIPTOR` | run EP0 GET_DESCRIPTOR | the bytes the device sent |
 | `OP_ALLOC_TRANSFER_RING` | give an interrupt endpoint of an addressed slot a transfer ring and a buffer for its whole payload per interval, its context typed IN or OUT by its address | status word |
-| `OP_CONTROL_TRANSFER` | one EP0 control transfer for a class driver (for example SET_CONFIGURATION, SET_PROTOCOL, a sampling rate); an OUT request carries its wLength data bytes after the ten setup bytes, an IN one none; up to 4096 bytes | status, the IN bytes the device sent |
+| `OP_CONTROL_TRANSFER` | one EP0 control transfer for a class driver (for example SET_CONFIGURATION, SET_PROTOCOL, a sampling rate); an OUT request carries its wLength data bytes after the ten setup bytes, and is refused without them; an IN one carries none; up to 4096 bytes | status, the bytes the data stage moved (for an IN, those the device sent) |
 | `OP_INTERRUPT_IN` | poll one interrupt-IN report, armed at the endpoint's payload (up to 3072 bytes) and handed up to the length asked; an OUT DCI is refused | report bytes, or pending |
 | `OP_INTERRUPT_OUT` (0x25) | `slot, dci, len_le16, data`: one report, 1 to the endpoint's payload, to an interrupt OUT endpoint (an even DCI) whose ring ALLOC_TRANSFER_RING made, waited for; a failure brings the endpoint back first | moved le16, 0, 0 |
 | `OP_CLAIM_INTERFACE` (0x26) | `slot, port, interface`: the caller drives that interface. A device whose driver claimed its interfaces may be shared: a second driver claims another. DISABLE_SLOT from a sharer gives back only its own claims; the slot is disabled with the last live holder, and refused (-16) to a caller holding none while another does | status word |
@@ -73,9 +74,7 @@ behind it.
 | `OP_BULK_IN_POLL` | one look at the slot's armed bulk IN, its own page; `E_AGAIN` at once while nothing came | bytes moved, IN data |
 | `OP_CONFIGURE_ISOCH` | add one isochronous endpoint, OUT or IN by its address, one of each per slot (interval, bursts and Mult by speed, CErr 0) | DCI |
 | `OP_ISOCH_OUT` | queue up to 31 packets, a TD each, Start Isoch ASAP; waits for the batch before, so two are on the ring | that batch's code: success or missed service |
-| `OP_ADDRESS_ROUTED` (0x20) | Address Device for a device below a hub: route string, speed and TT in the Slot Context, root port not reset; `E_INVAL` unless a hub holds the root port, the route is well formed and a TT names a hub's port for a full or low speed device | as `OP_ADDRESS_DEVICE` |
 | `OP_PARK` (0x22) | from driver.usb_hub0, admitted on both the child's slot and the hub's (as its holder or a claimant; others get -1): a child it addressed below a hub, listed in `OP_PORT_STATUS` as a virtual port from 0x80 (nonos_usb_virt); `ADDRESS_DEVICE` naming a virtual port claims it, first claim wins, and the claimant's slot stands for the parked one | status |
-| `OP_CONFIGURE_HUB` (0x21) | Configure Endpoint with only the Slot Context: Hub flag, port count, TT think time, MTT | status |
 | `OP_ISOCH_IN` | queue up to 31 service intervals, a TD each asking for its event; collects the batch before | that batch's code, its packet count, 31 u16 length slots, then the packets' bytes (at most 4034) |
 
 ## Authority
@@ -193,7 +192,9 @@ Device class requests remain outside this capsule.
 - Runs EP0 `GET_DESCRIPTOR(Configuration)` and returns bounded raw bytes for
   class-capsule discovery.
 - Runs class control transfers, interrupt-IN polls, and bulk IN and OUT
-  transfers for the HID and mass-storage drivers. A transfer event must name
+  transfers for the HID, mass-storage and network drivers, a polled bulk IN
+  that answers at once (`OP_BULK_IN_POLL`), and isochronous OUT streams for
+  the audio driver, two batches on a ring sized for both. A transfer event must name
   the slot and endpoint its TRB is on, and an interrupt-IN residual past the
   endpoint's payload hands up no bytes. A report that lands while another
   wait reads the ring is kept for its own poll, every one of them, and a
@@ -275,8 +276,7 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
 
 ## Not supported
 
-- Configuration descriptors and control data stages past 4096 bytes, and
-  host-to-device data stages (no client sends one yet).
+- Configuration descriptors and control data stages past 4096 bytes.
 - Bulk transfers past 4096 bytes in one request: the mass-storage client's
   wire contract is one page per request.
 - EP0 request filtering: a class driver may send any request to the slots

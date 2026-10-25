@@ -20,7 +20,8 @@
 //! Master Enable and Interrupt Disable bits, or into the device's MSI-X
 //! Message Control register's Function Mask and Enable bits. Every other offset and every
 //! other bit pattern is rejected; the constants below are the only
-//! values a capsule can usefully pass.
+//! values a capsule can usefully pass. A Command value of those bits alone
+//! is ORed on, so clearing one takes `mk_pci_config_update`.
 
 use crate::syscall::{call_raw, N_MK_PCI_CONFIG_READ, N_MK_PCI_CONFIG_WRITE};
 
