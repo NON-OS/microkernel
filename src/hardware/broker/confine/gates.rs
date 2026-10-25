@@ -35,16 +35,41 @@ pub(super) fn admit(device_id: u64) -> Result<(Vec<Member>, Vec<DeviceAddress>),
         return Err(Refused);
     }
     // What it reaches without the IOMMU is its group (K11).
+    reach(device_id).ok_or_else(|| {
+        say(b"refused: no isolation group, behind a VMD or a looped bus");
+        Refused
+    })
+}
+
+/// A device another capsule holds, as a claim beside it sees it (H-03): its
+/// place, its group (None when unreadable: refuses), its DMA's requester ids.
+pub(super) struct Peer {
+    pub at: (u8, u8, u8),
+    pub group: Option<Vec<Member>>,
+    pub aliases: Vec<DeviceAddress>,
+}
+
+/// None for a device off the PCI tree, which has no group and blocks none.
+pub(super) fn peer(device_id: u64) -> Option<Peer> {
+    let a = crate::hardware::broker::pci_index::lookup(device_id)?.address;
+    let at = (a.bus, a.device, a.function);
+    Some(match reach(device_id) {
+        Some((group, aliases)) => Peer { at, group: Some(group), aliases },
+        None => Peer { at, group: None, aliases: Vec::new() },
+    })
+}
+
+/// The device's group and its DMA's requester ids; None where the walk cannot
+/// place it. The walk is x86_64's (acs_walk.rs): elsewhere nothing is reached.
+fn reach(device_id: u64) -> Option<(Vec<Member>, Vec<DeviceAddress>)> {
     #[cfg(target_arch = "x86_64")]
-    return match super::acs_walk::acs::reach(device_id) {
-        Some(r) => {
-            Ok((r.group, r.aliases.iter().map(|&(b, d, f)| DeviceAddress::pci(b, d, f)).collect()))
-        }
-        None => {
-            say(b"refused: no isolation group, behind a VMD or a looped bus");
-            Err(Refused)
-        }
-    };
+    return super::acs_walk::acs::reach(device_id).map(|r| {
+        let aliases = r.aliases.iter().map(|&(b, d, f)| DeviceAddress::pci(b, d, f)).collect();
+        (r.group, aliases)
+    });
     #[cfg(not(target_arch = "x86_64"))]
-    Ok((Vec::new(), Vec::new()))
+    {
+        let _ = device_id;
+        Some((Vec::new(), Vec::new()))
+    }
 }
