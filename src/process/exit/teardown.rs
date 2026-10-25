@@ -36,26 +36,15 @@ pub fn teardown(pid: Pid, exit_code: i32, by_signal: bool) {
         crate::process::foreign::note_signal_death(pid, exit_code);
     }
 
-    // Only when its tables are freed with it: a thread whose group lives on
-    // hands them over, frames and all.
-    if crate::process::address_space::lifecycle::release::holder_after(&pcb).is_none() {
-        crate::kernel_core::surface_registry::pin::exit::keep_at_exit(pid);
-    }
-    crate::kernel_core::surface_registry::pin::orphans::abandon_owner(pid);
-    crate::kernel_core::surface_registry::release_owned_by_pid(pid);
-    crate::kernel_core::surface_registry::attach_map::forget_pid(pid);
+    // Surfaces are held by the thread group, on its tables (L36, L46).
+    super::surfaces::give_up_if_last(pid, &pcb);
     let current = CURRENT_PID.load(Ordering::Acquire) == pid;
-    // The ACPI capsule's events disarmed before its SCI grant goes.
-    crate::arch::acpi_capsule_exit(pid);
-    crate::hardware::broker::release_all_for_pid(pid, current);
-    crate::hardware::broker::irq_release_all_for_pid(pid);
-    crate::hardware::broker::dma_release_all_for_pid(pid, current);
-    crate::hardware::broker::pio_release_all_for_pid(pid);
     crate::syscall::microkernel::ipc::release_pending_replies_for_pid(pid);
 
     super::end_note::note(pid, exit_code, by_signal);
     pcb.exit_code.store(exit_code, Ordering::Release);
     *pcb.state.lock() = ProcessState::Zombie(exit_code);
+    super::devices::stop_then_release(pid, current);
     super::finalize::release_names(pid, &pcb);
     /*
      * Queued only once the process is a zombie. A CPU that claimed it just
@@ -78,8 +67,7 @@ pub fn teardown(pid: Pid, exit_code: i32, by_signal: bool) {
     crate::sched::remove_from_run_queue(pid);
     clear_current_if(pid);
     super::stop_elsewhere::stop_elsewhere(pid);
-    crate::process::scheduler::preemption::proc_ticks::clear(pid);
-    crate::process::accounting::clear(pid);
+    super::forget::forget(pid);
     crate::process::foreign::clear(pid);
     super::pending::enqueue(pid);
     /*

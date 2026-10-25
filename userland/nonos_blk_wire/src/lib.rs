@@ -43,6 +43,6 @@ pub use errno::{E_ACCES, E_INVAL, E_MSGSIZE, E_NODEV, E_NXIO, E_ROFS};
 pub use frame::body_fits;
 pub use geometry::{encode_geometry, MEDIA_PRESENT, READ_ONLY, REMOVABLE};
 pub use header::{Request, HDR_LEN, RESP_HDR_LEN};
-pub use identify::{encode_identify, MEDIUM_EMMC, MEDIUM_SD, MEDIUM_UFS};
+pub use identify::{encode_identify, MEDIUM_ATA, MEDIUM_EMMC, MEDIUM_SCSI, MEDIUM_SD, MEDIUM_UFS};
 pub use limits::{GEOMETRY_LEN, RW_HEADER_LEN, STATUS_LEN};
 pub use ops::{OP_FLUSH, OP_GEOMETRY, OP_HEALTHCHECK, OP_IDENTIFY, OP_READ, OP_WRITE};

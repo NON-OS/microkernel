@@ -18,8 +18,8 @@ use alloc::vec::Vec;
 
 use super::handlers;
 use crate::protocol::{
-    encode_response, Request, EACCES, EINVAL, OP_COUNT, OP_DELETE, OP_LIST_WALLET_RAILS, OP_LOCK,
-    OP_METADATA, OP_RETRIEVE, OP_SHIELD_MATERIAL, OP_SHIELD_OPEN, OP_SHIELD_SEAL,
+    encode_response, Request, EACCES, EINVAL, OP_COUNT, OP_DELETE, OP_LIST, OP_LIST_WALLET_RAILS,
+    OP_LOCK, OP_METADATA, OP_RETRIEVE, OP_SHIELD_MATERIAL, OP_SHIELD_OPEN, OP_SHIELD_SEAL,
     OP_SIGN_ETH_TRANSFER, OP_SIGN_NOX_STAKE, OP_SIGN_NOX_STAKE_APPROVE, OP_SIGN_NOX_STAKE_LOCKED,
     OP_SIGN_NOX_TRANSFER, OP_SIGN_NOX_UNSTAKE, OP_SIGN_TX, OP_SIGN_TYPED_DATA, OP_STORE, OP_UNLOCK,
     OP_VAULT_OPEN, OP_VAULT_SEAL, OP_WALLET_ADDRESS, OP_WALLET_DERIVE, OP_WALLET_EXPORT,
@@ -28,6 +28,8 @@ use crate::protocol::{
 use crate::store::Store;
 
 pub fn dispatch(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
+    // Records kept for a name go to whoever holds it now, before any check.
+    super::bond_gate::adopt(store, sender_pid);
     if let Some(refused) = crate::protocol::retired(&req) {
         return refused;
     }
@@ -42,6 +44,7 @@ pub fn dispatch(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8>
         OP_UNLOCK => handlers::unlock(store, req, sender_pid),
         OP_METADATA => handlers::metadata(store, req, sender_pid),
         OP_COUNT => handlers::count(store, req, sender_pid),
+        OP_LIST => handlers::list(store, req, sender_pid),
         OP_WALLET_IMPORT => handlers::wallet_import(store, req, sender_pid),
         OP_WALLET_GENERATE => handlers::wallet_generate(store, req, sender_pid),
         OP_WALLET_GENERATE_HD => handlers::wallet_generate_hd(store, req, sender_pid),

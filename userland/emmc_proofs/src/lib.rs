@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs for the SD host driver (`capsule_driver_sdhci/src/emmc`), its
-//! tree mounted by `#[path]` but for `platform` (the broker glue), against
+//! Host proofs for the SD host driver (`capsule_driver_sdhci/src/emmc`), its tree mounted by
+//! `#[path]`, the broker glue over a stand-in nonos_libc that logs every broker call, against
 //! `model`: a register level SDHCI host with an eMMC or an SD card behind it.
 
 extern crate alloc;
@@ -38,11 +38,6 @@ pub mod protocol;
 pub mod rw_parse;
 
 #[cfg(test)]
-mod model;
-
-#[cfg(test)]
-mod adma_bounds_tests;
-#[cfg(test)]
 mod adma_tests;
 #[cfg(test)]
 mod bring_up_tests;
@@ -60,6 +55,8 @@ mod deadline_tests;
 mod fault_tests;
 #[cfg(test)]
 mod io_tests;
+#[cfg(test)]
+mod model;
 #[cfg(test)]
 mod names_tests;
 #[cfg(test)]
