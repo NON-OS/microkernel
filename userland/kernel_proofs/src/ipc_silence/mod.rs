@@ -14,8 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The networks typed data may be signed for: mainnet and Sepolia, the two
-//! OP_SIGN_TX accepts. A signature for any other chain id would be valid on
-//! a chain nobody here reviewed.
+//! A server silent to a caller across late calls is reported unanswered,
+//! from a fixed table whose eviction can only make a report earlier.
 
-pub const CHAINS: [u64; 2] = [1, 11_155_111];
+#[path = "../../../../src/syscall/microkernel/ipc/call/silence.rs"]
+mod silence;
+
+#[cfg(test)]
+mod model;
+#[cfg(test)]
+mod tests;

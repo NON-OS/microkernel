@@ -24,6 +24,8 @@ nonos_secp256k1 = { path = "../nonos_secp256k1" }
 nonos_seal = { path = "../nonos_seal" }
 nonos_vault = { path = "../nonos_vault" }
 nonos_hd = { path = "../nonos_hd" }
+# The typed-data table's structs, domains and verifying contracts (D12).
+nonos_nox_config = { path = "../nonos_nox_config" }
 
 [profile.release]
 panic = "abort"

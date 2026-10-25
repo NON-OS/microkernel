@@ -14,12 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The firmware's boot logo (BGRT), as the x86 parser copied it at boot,
-//! through the broker's one platform shim so the syscall layer names no
-//! arch path.
+//! The headless AgentProof run (feature `agentproof-headless`): a job the
+//! image holds, run as a typed line, its screen copied to serial.
 
-use super::kernel::platform::fw;
-
-pub use fw::parser::other::bgrt_entry::Bgrt;
-pub use fw::parser::other::bmp_check::Bmp;
-pub use fw::parser::other::{boot_logo, boot_logo_file, firmware_mode};
+pub mod boot;
+mod dump;
+pub mod job;
