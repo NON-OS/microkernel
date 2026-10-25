@@ -27,7 +27,7 @@ impl World {
             let snap = self.clone();
             let next = self.rows.next;
             if self.rows.sweep(|q| snap.gone(q, k)) {
-                self.bad |= 0x01 * (0..4).any(|j| j != i && self.live_inside(j)) as u16;
+                self.bad |= u16::from((0..4).any(|j| j != i && self.live_inside(j)));
                 if k != Knob::NoPutRight {
                     self.held = None;
                 }
