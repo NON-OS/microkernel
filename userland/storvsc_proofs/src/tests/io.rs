@@ -44,9 +44,10 @@ fn the_scan_finds_each_lun_and_passes_an_empty_target() {
     assert_eq!(u.count(), 2);
     let at: Vec<Addr> = u.disks.iter().flatten().map(|d| d.at).collect();
     assert_eq!(at, [Addr { target: 1, lun: 0 }, Addr { target: 1, lun: 5 }]);
-    let targets: Vec<u8> = seen(&u.hba).iter().filter(|s| s.op == 3).map(|s| s.packet[18]).collect();
-    assert_eq!(targets[0], 0, "target 0 asked first, and answered absent");
-    assert!(!targets[1..].contains(&0), "then never again");
+    // storvsp:610-661 then 666-737: target 0's REPORT LUNS is an empty
+    // list, so LUN 0 alone is probed, and its INQUIRY says no device.
+    let t0: Vec<u8> = seen(&u.hba).iter().filter(|s| s.op == 3 && s.packet[18] == 0).map(|s| s.packet[28]).collect();
+    assert_eq!(t0, [0xA0, 0x12]);
 }
 
 #[test]
@@ -208,4 +209,23 @@ fn a_guest_ring_that_stays_full_times_out_and_the_driver_gives_up() {
     assert!(h.host.vmbus.now - t0 >= COMMAND_MS, "waited for room until the deadline");
     assert!(h.dead, "not even the reset found room");
     assert_eq!(seen(&h).len(), n);
+}
+
+#[test]
+fn a_medium_error_comes_back_with_its_sense_and_nothing_moved() {
+    // scsidisk:1012-1057: a CHECK CONDITION is SRB ERROR with sense and
+    // nothing transferred; storvsp:1316 sets autosense with it.
+    let mut u = up(vec![((0, 0), Unit::disk(2048, 512))]);
+    let d = u.disks[0].unwrap();
+    u.hba.host.server.units.get_mut(&(0, 0)).unwrap().fail_next = Some((0x3, 0x11, 0x00));
+    let o = u.hba.exec(d.at, &[0x28, 0, 0, 0, 0, 4, 0, 0, 1, 0], Dir::In, 512).unwrap();
+    assert_eq!((o.status, o.residual, o.sense[2] & 0x0F, o.sense[12]), (2, 512, 0x3, 0x11));
+}
+
+#[test]
+fn a_command_to_an_absent_lun_on_a_present_target_is_no_target() {
+    // storvsp:741-745: INVALID_LUN with CHECK and no sense.
+    let mut u = up(vec![((0, 0), Unit::disk(2048, 512))]);
+    let at = Addr { target: 0, lun: 3 };
+    assert_eq!(u.hba.exec(at, &TUR, Dir::None, 0), Err(Fault::NoTarget));
 }

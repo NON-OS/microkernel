@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! `NONOSATT` documents: version 5 as k1-attest-doc-v4.md lays it out,
-//! version 4 as the kernel encodes it today, and version 3 before it.
+//! and versions 4 and 3 as the kernel encoded them before it.
 
 mod bytes;
 

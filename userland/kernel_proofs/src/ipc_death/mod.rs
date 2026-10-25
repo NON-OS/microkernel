@@ -14,12 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The firmware's boot logo (BGRT), as the x86 parser copied it at boot,
-//! through the broker's one platform shim so the syscall layer names no
-//! arch path.
+//! A process's death and the calls around it: the queue rule and the table of
+//! abandoned calls, included by path, and the order the kernel calls them in.
 
-use super::kernel::platform::fw;
+extern crate alloc;
 
-pub use fw::parser::other::bgrt_entry::Bgrt;
-pub use fw::parser::other::bmp_check::Bmp;
-pub use fw::parser::other::{boot_logo, boot_logo_file, firmware_mode};
+#[path = "../../../../src/syscall/microkernel/ipc/pending_reply/abandoned.rs"]
+mod abandoned;
+#[path = "../../../../src/syscall/microkernel/ipc/pending_reply/death.rs"]
+mod death;
+
+#[cfg(test)]
+mod order;
+#[cfg(test)]
+mod tests;
