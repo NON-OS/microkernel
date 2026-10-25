@@ -37,6 +37,7 @@ from pathlib import Path
 import dev_catalogue_scan as scan
 from dev_catalogue_behaviour import behaviour
 from dev_catalogue_content import SOURCE, catalogue, load
+import dev_catalogue_chain as chain
 
 
 def failures(root):
@@ -47,6 +48,7 @@ def failures(root):
             out += scan.named(path, (root / path).read_text(errors="replace"))
     out += scan.pinned({p: (root / p).read_text() for p, _ in scan.PINS if (root / p).is_file()})
     out += catalogue(json.loads((root / SOURCE).read_text()))
+    out += chain.dev_chains(json.loads((root / SOURCE).read_text())) + chain.release_catalogues(root)
     return out + behaviour(*load(root))
 
 
