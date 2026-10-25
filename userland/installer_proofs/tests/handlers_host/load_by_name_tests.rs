@@ -52,7 +52,7 @@ fn on_behalf_of_is_the_sender_pid_and_never_the_payload() {
 fn empty_args_give_args_ptr_zero() {
     put_artifacts(NAME, None);
     syscall::reset(3);
-    by_name(&frame(OP_LOAD_BY_NAME, &payload(0, &[])), 77);
+    by_name(&frame(OP_LOAD_BY_NAME, &payload(0x18, &[])), 77);
     let r = syscall::take()[0].req;
     assert_eq!((r.args_ptr, r.args_len, r.on_behalf_of), (0, 0, 77));
 }

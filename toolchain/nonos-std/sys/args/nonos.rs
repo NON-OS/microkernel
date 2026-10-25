@@ -16,14 +16,7 @@ const N_MK_ARGS: i64 = tag4(b"MKAR");
 unsafe fn mk_args(buf: *mut u8, len: usize) -> i64 {
     let r: i64;
     unsafe {
-        core::arch::asm!(
-            "syscall",
-            inout("rax") N_MK_ARGS => r,
-            in("rdi") buf as u64,
-            in("rsi") len as u64,
-            out("rcx") _,
-            out("r11") _,
-        );
+        r = crate::sys::pal::trap::trap(N_MK_ARGS, buf as u64, len as u64, 0, 0, 0, 0);
     }
     r
 }
