@@ -152,7 +152,7 @@ pub fn service() {
             }
             let route = if ty == MESSAGE_TYPE_CHANNEL {
                 let (route, retire) =
-                    CHANNELS.lock().from_host(&m[HEADER_BYTES..HEADER_BYTES + len]);
+                    CHANNELS.lock().take_host_message(&m[HEADER_BYTES..HEADER_BYTES + len]);
                 note(retire);
                 route
             } else {
@@ -220,7 +220,7 @@ pub fn post_core(
 ) -> Result<(), PostError> {
     check(connection, ty, payload, held).map_err(PostError::Refused)?;
     sent(post(connection, ty, payload))?;
-    CHANNELS.lock().from_core(connection, payload);
+    CHANNELS.lock().take_core_message(connection, payload);
     Ok(())
 }
 
@@ -238,7 +238,7 @@ pub fn post_channel(
     check_channel(ty, payload, &channels, record, held).map_err(PostError::Refused)?;
     let Some(bus) = channels.bus() else { return Err(PostError::NoSynic) };
     sent(post(bus, ty, payload))?;
-    channels.from_driver(payload);
+    channels.take_driver_message(payload);
     Ok(())
 }
 

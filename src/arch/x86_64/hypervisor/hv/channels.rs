@@ -25,7 +25,7 @@
  *   (`target`): GPADLs over pages held on its record, the open, the close,
  *   the teardowns;
  * - the host's answers for it come to the driver's own queue
- *   (`from_host`'s route), not to the core;
+ *   (`take_host_message`'s route), not to the core;
  * - the core can no longer reach the channel at all.
  *
  * A GPADL is tied to its channel from its header until the host says it is
@@ -346,7 +346,7 @@ impl Channels {
     /// channel's answers (its open's result, its GPADLs made or gone) go
     /// to its queue; a GPADL the host reports gone, or failed to make, is
     /// untied.
-    pub(super) fn from_host(&mut self, p: &[u8]) -> (Route, Retire) {
+    pub(super) fn take_host_message(&mut self, p: &[u8]) -> (Route, Retire) {
         let Some(kind) = u32_at(p, 0) else { return (Route::Core, Retire::None) };
         let to = |relid: Option<u32>, me: &Self| relid.filter(|r| me.bound(*r));
         match kind {
@@ -422,7 +422,7 @@ impl Channels {
 
     /// A message the core posted and the host took: its request for offers
     /// names the bus's connection.
-    pub(super) fn from_core(&mut self, connection: u32, p: &[u8]) {
+    pub(super) fn take_core_message(&mut self, connection: u32, p: &[u8]) {
         if u32_at(p, 0) == Some(REQUESTOFFERS) {
             self.bus = Some(connection);
         }
@@ -477,7 +477,7 @@ impl Channels {
     /// A driver's message for its channel that the host took: a header ties
     /// its GPADL, an open opens and a close closes. A teardown unties
     /// nothing: the GPADL is the host's until it says GPADL_TORNDOWN.
-    pub(super) fn from_driver(&mut self, p: &[u8]) {
+    pub(super) fn take_driver_message(&mut self, p: &[u8]) {
         let (Some(kind), Some(relid)) = (u32_at(p, 0), u32_at(p, 8)) else { return };
         match kind {
             GPADL_HEADER => {

@@ -73,8 +73,8 @@ pub(super) fn offer(relid: u32, interface: [u8; 16], connection: u32) -> Vec<u8>
 /// `RECORD`.
 pub(super) fn world() -> Channels {
     let mut c = Channels::new();
-    c.from_core(4, &msg(3, 8));
-    assert_eq!(c.from_host(&offer(RELID, SCSI, 0x2005)).1, Retire::None);
+    c.take_core_message(4, &msg(3, 8));
+    assert_eq!(c.take_host_message(&offer(RELID, SCSI, 0x2005)).1, Retire::None);
     assert!(c.bind(RELID, RECORD).is_ok());
     c
 }
@@ -135,7 +135,7 @@ fn teardown(relid: u32, id: u32) -> Vec<u8> {
 /// host took it.
 pub(super) fn post(c: &mut Channels, m: &[u8]) -> Result<(), Refusal> {
     check_channel(1, m, c, RECORD, ring_held)?;
-    c.from_driver(m);
+    c.take_driver_message(m);
     Ok(())
 }
 
@@ -214,7 +214,7 @@ fn a_driver_posts_its_channel_s_messages_alone() {
         Err(Refusal::Channel(TargetError::Gone))
     );
     let mut down = Channels::new();
-    down.from_host(&offer(RELID, SCSI, 1));
+    down.take_host_message(&offer(RELID, SCSI, 1));
     down.bind(RELID, RECORD).unwrap();
     assert_eq!(refused(&down, &close(RELID)), Refusal::Channel(TargetError::NoBus));
 }
@@ -259,10 +259,10 @@ fn a_gpadl_body_is_held_to_the_channel_its_header_named() {
     assert_eq!(refused(&c, &gpadl_body(8, &[p])), Refusal::Channel(TargetError::Channel));
     // Another channel's GPADL is not this driver's to continue.
     let mut two = world();
-    two.from_host(&offer(6, SCSI, 0x2006));
+    two.take_host_message(&offer(6, SCSI, 0x2006));
     two.bind(6, RECORD + 1).unwrap();
     check_channel(1, &gpadl_header(6, 9, 1, &[p]), &two, RECORD + 1, ring_held).unwrap();
-    two.from_driver(&gpadl_header(6, 9, 1, &[p]));
+    two.take_driver_message(&gpadl_header(6, 9, 1, &[p]));
     assert_eq!(refused(&two, &gpadl_body(9, &[p])), Refusal::Channel(TargetError::Channel));
 }
 
@@ -283,7 +283,7 @@ fn a_live_gpadl_id_is_never_made_again() {
     );
     let mut gone = msg(12, 12);
     put32(&mut gone, 8, 7);
-    assert_eq!(c.from_host(&gone).1, Retire::Settle(RECORD));
+    assert_eq!(c.take_host_message(&gone).1, Retire::Settle(RECORD));
     assert_eq!(post(&mut c, &gpadl_header(RELID, 7, 1, &[p])), Ok(()));
 }
 
@@ -325,6 +325,6 @@ fn a_releasing_channel_takes_no_post_until_the_host_tears_down() {
     assert_eq!(refused(&c, &close(RELID)), Refusal::Channel(TargetError::Releasing));
     let mut gone = msg(12, 12);
     put32(&mut gone, 8, 7);
-    assert_eq!(c.from_host(&gone).1, Retire::Settle(RECORD));
+    assert_eq!(c.take_host_message(&gone).1, Retire::Settle(RECORD));
     assert_eq!(check_channel(1, &close(RELID), &c, RECORD, ring_held), Ok(()));
 }
