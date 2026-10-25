@@ -16,10 +16,6 @@
 
 //! The broker's names, as the rest of the kernel uses them.
 
-#[cfg(target_arch = "x86_64")]
-pub use super::acpi_gpio::register_acpi_gpio;
-#[cfg(target_arch = "x86_64")]
-pub use super::acpi_i2c::register_acpi_i2c;
 // pub use super::census::render_and_hold as device_census; // bring-up diagnostic, silenced
 pub use super::claim::{
     claim as claim_device, lookup as claim_lookup, quiesce_all as quiesce_all_devices,
@@ -52,13 +48,6 @@ pub use super::pci::{
     read as pci_config_read, write as pci_config_write, PciReadError, PciReadRequest,
     PciWriteError, PciWriteRequest,
 };
-#[cfg(target_arch = "x86_64")]
-pub use super::pio::{
-    grant_for_caller as pio_grant_for_caller, read as pio_read,
-    release_all_for_pid as pio_release_all_for_pid, release_for_device as pio_release_for_device,
-    release_grant as pio_release_grant, write as pio_write, PioError, PioGrantRequest,
-    PioGrantResult, PioWidth,
-};
 #[cfg(not(target_arch = "x86_64"))]
 pub use super::pio_absent::{pio_release_all_for_pid, pio_release_for_device};
 pub use super::platform::register_legacy as register_legacy_platform_devices;
@@ -67,3 +56,14 @@ pub use super::table::{
 };
 pub use super::vmbus::{register_vmbus, vmbus_held_by, VMBUS_DEVICE, VMBUS_VENDOR};
 pub use super::windows::touches_device_window;
+#[cfg(target_arch = "x86_64")]
+pub use super::{
+    acpi_gpio::register_acpi_gpio,
+    acpi_i2c::register_acpi_i2c,
+    pio::{
+        grant_for_caller as pio_grant_for_caller, read as pio_read,
+        release_all_for_pid as pio_release_all_for_pid,
+        release_for_device as pio_release_for_device, release_grant as pio_release_grant,
+        write as pio_write, PioError, PioGrantRequest, PioGrantResult, PioWidth,
+    },
+};

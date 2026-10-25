@@ -15,11 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod bring_up;
+mod bring_up_late;
 mod entry;
 mod go_live;
 mod idle;
 mod idle_steps;
 mod online;
+mod park;
+#[cfg(any(feature = "nonos-smp-park-proof", feature = "nonos-smp-stuck-proof"))]
+mod park_proof;
 mod tsc_adjust;
 mod tsc_adjust_report;
 mod user_setup;
