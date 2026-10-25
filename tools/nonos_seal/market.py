@@ -20,6 +20,7 @@ signed model catalogue, so both are signed before any capsule is built and
 committed under nonos-data/, where the flake reads them. Without the operator
 key both stay empty, as they always have."""
 
+import json
 import os
 import shutil
 import subprocess
@@ -28,19 +29,45 @@ from . import keys
 from .run import say
 
 INDEX = "nonos-data/market/index.bin"
+INDEX_JSON = "nonos-data/market/index.json"
+# The logo rasters a developer committed and the market capsule embeds
+# (tools/nonos_market_catalogue/logos.py); the index signs each one's BLAKE3.
+LOGOS = "nonos-data/market/logos"
 CATALOGUE = "nonos-data/models/catalogue.bin"
 USERLAND = "target/linux-userland"
 
 
 def committed(*paths):
-    """Whether every path is tracked and the same as at HEAD."""
+    """Whether every path, a file or a directory of them, is tracked and the
+    same as at HEAD, with nothing untracked beside it."""
     for path in paths:
         tracked = subprocess.run(["git", "ls-files", "--error-unmatch", "--", path],
                                  capture_output=True).returncode == 0
         same = subprocess.run(["git", "diff", "--quiet", "HEAD", "--", path]).returncode == 0
-        if not (os.path.isfile(path) and tracked and same):
+        loose = subprocess.run(["git", "ls-files", "--others", "--", path],
+                               capture_output=True, text=True).stdout.strip()
+        if not (os.path.exists(path) and tracked and same and not loose):
             return False
     return True
+
+
+def logos_agree():
+    """SystemExit unless every logo_hash the signed index names is the BLAKE3
+    of the raster committed for that listing: the market serves only bytes the
+    index signs, so a mismatch would show no logo. A raster the index does
+    not name yet (an index sealed before its logo) is served as none."""
+    if not os.path.isfile(INDEX_JSON):
+        return
+    with open(INDEX_JSON) as f:
+        named = {e["listing_id"]: e.get("logo_hash", "") for e in json.load(f).get("entries", [])}
+    wrong = []
+    for lid, want in named.items():
+        at = os.path.join(LOGOS, lid + ".rgba")
+        got = subprocess.run(["b3sum", "--no-names", at], capture_output=True, text=True).stdout.strip()
+        if want and got != want:
+            wrong.append(lid)
+    if wrong:
+        raise SystemExit(f"  the signed index and {LOGOS} disagree on: {' '.join(sorted(wrong))}")
 
 
 def place_userland(linux_out):
@@ -66,7 +93,8 @@ SOURCES = [
     "userland/capsule_market", "userland/capsule_linux/src/linux/file/models",
     "tools/nonos-market-index", "tools/nonos-market-catalogue", "tools/nonos_market_catalogue",
     "tools/nonos-market-sign-releases", "tools/nonos-qwen-tier.py", "tools/nonos_qwen_tier",
-    "tools/nix/userland.nix", "tools/nix/sources.txt", "nonos-mk",
+    "tools/nix/userland.nix", "tools/nix/sources.txt", "nonos-mk", LOGOS,
+    "notes/catalogue/logos-licences.md",
     # The catalogue's recipes, its policy encoder, the Alpine keys it checks
     # under and the release the device installs from.
     "tools/nonos_linux_pack", "userland/capsule_linux/keys/alpine",
@@ -94,7 +122,8 @@ def seal(step, tools, linux_out, serial, mirror, package_mirror="", packages="",
         # unchanged tree. A seal without the seed (a CI runner's) keeps those,
         # under the operator key in the tree: it signs nothing, so it can
         # forge nothing, and the image checks both signatures itself.
-        if committed(INDEX, CATALOGUE, keys.OPERATOR_PUB):
+        if committed(INDEX, CATALOGUE, keys.OPERATOR_PUB, LOGOS):
+            logos_agree()
             say("  no market operator key: kept the index and the model catalogue the operator signed")
             place_userland(linux_out)
             return
@@ -122,4 +151,5 @@ def seal(step, tools, linux_out, serial, mirror, package_mirror="", packages="",
     step.run("python3", "tools/nonos-qwen-tier.py", "catalogue", "--out", CATALOGUE,
              "--seed", keys.OPERATOR_SEED, "--pubkey", keys.OPERATOR_PUB, "--serial", serial,
              *(["--nonos-mirror", mirror] if mirror else []))
+    logos_agree()
     keys.stage(INDEX, CATALOGUE)
