@@ -45,6 +45,7 @@ pub(super) fn setup_text(e: &crate::firmware::gen3::join::bss::SetupError) -> &'
         SetupError::Command(c) if c.why == crate::firmware::gen3::dev::WaitError::FirmwareError => b"firmware error",
         SetupError::Command(_) => b"a command went unanswered",
         SetupError::BadQueueReply => b"a malformed queue reply",
+        SetupError::BadQueue(_) => b"a queue number the device cannot have",
         SetupError::NoSession(Some(Session::Refused)) => b"session protection refused",
         SetupError::NoSession(_) => b"never on channel",
         SetupError::Region => b"the transmit region",
