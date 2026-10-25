@@ -24,6 +24,14 @@ pub const PREFIXES: [&[u8]; 4] = [b"", b"app.", b"tool.", b"net."];
 /// The longest service name the registry holds.
 pub const NAME_MAX: usize = 48;
 
+#[path = "kill_target_refused.rs"]
+mod kill_target_refused;
+#[path = "kill_target_resolve.rs"]
+mod kill_target_resolve;
+
+pub use kill_target_refused::refused;
+pub use kill_target_resolve::resolve;
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum Target {
     Pid(u64),
@@ -45,37 +53,6 @@ pub fn target(arg: &[u8]) -> Target {
         Target::Name
     } else {
         Target::Unreadable
-    }
-}
-
-/// The first prefixed spelling of `name` that `lookup` finds a pid for: its
-/// length in `buf`, which holds it, and the pid.
-pub fn resolve(
-    name: &[u8],
-    buf: &mut [u8; NAME_MAX],
-    mut lookup: impl FnMut(&[u8]) -> Option<u64>,
-) -> Option<(usize, u64)> {
-    for prefix in PREFIXES {
-        let len = prefix.len() + name.len();
-        if len > NAME_MAX {
-            continue;
-        }
-        buf[..prefix.len()].copy_from_slice(prefix);
-        buf[prefix.len()..len].copy_from_slice(name);
-        if let Some(pid) = lookup(&buf[..len]) {
-            return Some((len, pid));
-        }
-    }
-    None
-}
-
-/// Why the kernel refused the kill, in words. The terminal holds no
-/// ProcessControl, so it ends only the processes it started; anything else
-/// is the Process Manager's to end.
-pub fn refused(rc: i64) -> &'static [u8] {
-    match rc {
-        -1 => b"kill: the terminal ends only what it started; Process Manager can end this one",
-        _ => b"kill: the signal must be 2, 9 or 15",
     }
 }
 

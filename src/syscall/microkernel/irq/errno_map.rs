@@ -34,6 +34,8 @@ pub(super) fn bind_errno(e: IrqBindError) -> i64 {
         // released. Reported apart from AlreadyBound so a driver is not told
         // to wait for a line that will not come free.
         IrqBindError::ReservedGsi => ERRNO_PERM,
+        // Refused by policy: retrying never helps.
+        IrqBindError::NotRemapped => ERRNO_PERM,
         IrqBindError::AlreadyBound => ERRNO_BUSY,
         IrqBindError::NoVector => ERRNO_NOMEM,
         IrqBindError::UnsupportedFlags => ERRNO_NOTSUP,

@@ -21,20 +21,19 @@ use crate::kernel_core::surface_registry::types::{decode_handle, RegistryError, 
 
 /*
  * Refuse `receiver_pid` unless `handle`'s owner shared it with the
- * receiver's thread group, or shared it the older way and the receiver
- * serves the compositor now. A refusal reads as a bad handle, the same as a
- * dead one, so a guesser cannot learn which slots are live. Groups are
- * resolved before the table lock: both take other locks.
+ * receiver's thread group. Every share names its receiver now: none
+ * stands for whoever serves the compositor. A refusal is the same whether or
+ * not the handle names a surface, the EPERM a right refused gives too, so a
+ * guesser cannot learn which slots are live. The group is resolved before the
+ * table lock: it takes other locks.
  */
 pub(super) fn permit(receiver_pid: u32, handle: SurfaceHandle) -> Result<(), RegistryError> {
     let receiver = crate::hardware::broker::holder_of(receiver_pid);
-    let compositor = crate::services::registry::lookup_service("compositor")
-        .map(|ep| crate::hardware::broker::holder_of(ep.pid));
     let (idx, epoch) = decode_handle(handle);
     let slots = SLOTS.lock();
-    let slot = slots.get(idx as usize).and_then(|s| s.as_ref()).ok_or(RegistryError::BadHandle)?;
-    if slot.epoch != epoch || !slot.shares.may_attach(receiver, compositor) {
-        return Err(RegistryError::BadHandle);
+    let slot = slots.get(idx as usize).and_then(|s| s.as_ref());
+    match slot {
+        Some(s) if s.epoch == epoch && s.shares.may_attach(receiver, None) => Ok(()),
+        _ => Err(RegistryError::NotOwner),
     }
-    Ok(())
 }

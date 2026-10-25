@@ -23,7 +23,7 @@ use crate::arch::x86_64::iommu::regs::offsets;
 use crate::arch::x86_64::iommu::tables::view::Frame;
 use crate::arch::x86_64::iommu::types::VtdError;
 use crate::arch::x86_64::iommu::unit::access::RemapUnit;
-use crate::sys::serial::Line;
+use crate::sys::serial::{self, Line};
 
 /// Clear a queue error and say what it was. On IQE the descriptor at the
 /// head is the one refused (VT-d 6.5.2.10); it is overwritten with this
@@ -37,7 +37,12 @@ pub(super) fn take_error(
 ) -> Option<VtdError> {
     let status = unit.read32(offsets::FSTS);
     if status & offsets::FSTS_IQE != 0 {
-        let head = offsets::queue_index(unit.read64(offsets::IQH)) as usize;
+        // A head past the ring is a failed unit, never an index.
+        let Some(head) = offsets::queue_slot(unit.read64(offsets::IQH)) else {
+            serial::println(b"[VT-D] IOMMU queue head past its ring; the unit has failed");
+            return Some(VtdError::QueueHeadOutOfRange);
+        };
+        let head = head as usize;
         let replacement = wait(status_phys, sequence);
         let refused = Frame::at(ring_phys).ok().and_then(|ring| {
             let low = ring.read(head * 2).ok()?;

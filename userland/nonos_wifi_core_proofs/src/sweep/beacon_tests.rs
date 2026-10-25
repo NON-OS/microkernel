@@ -27,7 +27,8 @@ use nonos_wifi_core::dot11::parse::parse_beacon;
 fn check(f: &[u8], b: &Built, honest: usize) {
     let first = |id| b.first(id, honest).map(|e| &e[2..]);
     let Some(info) = parse_beacon(f) else {
-        assert!(first(0).is_none(), "no SSID, no beacon");
+        // No SSID, or one longer than an SSID can be, is no beacon.
+        assert!(first(0).is_none_or(|s| s.len() > 32), "no beacon, yet an SSID");
         return;
     };
     assert_eq!(Some(info.ssid), first(0));

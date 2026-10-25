@@ -21,7 +21,7 @@ use super::*;
 impl SaeStation {
     /// Feed an SAE Authentication frame from the AP.
     pub fn on_frame(&mut self, seq: u16, status: u16, body: &[u8]) -> SaeStep {
-        if matches!(self.state, SaeState::Accepted | SaeState::Failed) {
+        if self.state == SaeState::Accepted {
             return SaeStep::Ignore;
         }
         match seq {
@@ -34,19 +34,19 @@ impl SaeStation {
     pub(super) fn on_commit(&mut self, status: u16, body: &[u8]) -> SaeStep {
         match status {
             STATUS_ANTI_CLOGGING_TOKEN_REQ if self.state == SaeState::Committed => {
-                self.tokens += 1;
-                if self.tokens > TOKENS_MAX {
-                    return self.fail(SaeFailure::Looping);
+                if self.tokens >= TOKENS_MAX {
+                    return self.discard(SaeFailure::Looping);
                 }
                 let Some(token) = parse_token_request(body, self.h2e) else {
-                    return self.fail(SaeFailure::BadCommit);
+                    return self.discard(SaeFailure::BadCommit);
                 };
+                self.tokens += 1;
                 self.token[..token.len()].copy_from_slice(token);
                 self.token_len = token.len();
                 let (seq, status, body) = self.commit_frame();
                 SaeStep::Send { seq, status, body }
             }
-            STATUS_GROUP_NOT_SUPPORTED => self.fail(SaeFailure::GroupNotSupported),
+            STATUS_GROUP_NOT_SUPPORTED => self.discard(SaeFailure::GroupNotSupported),
             STATUS_SUCCESS | STATUS_SAE_HASH_TO_ELEMENT => {
                 if self.state == SaeState::Confirmed {
                     return self.commit_again(body);
@@ -55,11 +55,11 @@ impl SaeStation {
                     return SaeStep::Ignore;
                 }
                 if (status == STATUS_SAE_HASH_TO_ELEMENT) != self.h2e {
-                    return self.fail(SaeFailure::BadCommit);
+                    return self.discard(SaeFailure::BadCommit);
                 }
                 self.accept_commit(body)
             }
-            other => self.fail(SaeFailure::Rejected(other)),
+            other => self.discard(SaeFailure::Rejected(other)),
         }
     }
 }

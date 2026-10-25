@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::security::dev_roots::Authority;
 use crate::security::nonos_trust_anchor::NonosTrustAnchorPolicy;
 
 use super::super::attested_parent::AttestedParent;
@@ -52,18 +51,10 @@ pub(crate) fn spawn_verified_as(
     };
     crate::sys::bench::mark_named(b"capsule_preflight_ok", spec.name.as_bytes());
     /*
-     * What goes in the registry is the measurement the gate checked, never
-     * one recomputed from the image. A capsule that ran on a publisher
-     * signature alone is recorded under that authority rather than left out:
-     * the registry claims to be complete, and a receipt that omits a running
-     * program is the one lie a verifier cannot catch. It is recorded before
-     * the pid can run, so its first call already finds it (L61).
+     * The gate's record, the capsule's namespace and its spawn tier are
+     * written inside install, before the pid can run, so its first call
+     * already finds them (L61).
      */
-    let (measurement, authority) = match preflighted.proved {
-        Some(proved) => (proved.measurement, proved.authority),
-        None => (preflighted.capsule_id, Authority::Publisher),
-    };
-    let caps = super::profile_gate::caps(preflighted.install_caps);
     install(&InstallParams {
         name: spec.name,
         service_port: spec.service_port,
@@ -73,7 +64,6 @@ pub(crate) fn spawn_verified_as(
         caps_bits: preflighted.install_caps,
         debug_tag: spec.debug_tag,
         on_behalf_of,
-        attest: (measurement, caps, authority),
-        system: preflighted.system,
+        gate: &preflighted,
     })
 }

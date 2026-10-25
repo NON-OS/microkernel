@@ -22,7 +22,10 @@ use spin::Mutex;
 
 use super::super::error::AmdViError;
 use super::super::flush::flush_domain;
+use super::super::pte::LEVELS;
+use super::super::pte_child::child_table;
 use crate::arch::x86_64::iommu::tables::frame::allocate_table;
+use crate::arch::x86_64::iommu::tables::free::all_readable;
 
 pub const MAX_DOMAINS: usize = 256;
 
@@ -40,12 +43,10 @@ pub fn create_domain() -> Result<u16, AmdViError> {
     Ok(id as u16)
 }
 
-/// Free the id. Devices must already be detached (a domain a failed attach
-/// may have left named is pinned and stays quarantined); the cached translations
-/// are dropped first so the next owner of the id inherits none of them, and
-/// only once that flush has completed do the tables go back, as on VT-d: no
-/// walk can be in them by then. If they cannot all go back, the id stays
-/// taken, quarantined, and the error reaches the caller.
+/// Free the id. Devices must be detached already (a domain a failed attach
+/// may still name is pinned, quarantined). The cached translations go first,
+/// so no walk is in the tables when they go back, as on VT-d. A table
+/// that cannot be read keeps them all; any failure quarantines the id.
 pub fn destroy_domain(id: u16) -> Result<(), AmdViError> {
     let mut roots = ROOTS.lock();
     let slot = roots.get_mut(id as usize).ok_or(AmdViError::DomainNotFound)?;
@@ -56,7 +57,7 @@ pub fn destroy_domain(id: u16) -> Result<(), AmdViError> {
     // Never walked again, whatever happens next: a release that fails part
     // way has already freed some of these frames.
     let root = core::mem::replace(slot, QUARANTINED);
-    if super::pinned::pinned(id) {
+    if super::pinned::pinned(id) || !all_readable(root, LEVELS, &child_table) {
         return Err(AmdViError::TableNotFreed);
     }
     super::teardown::release_tables(root)?;

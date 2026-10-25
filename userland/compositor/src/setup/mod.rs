@@ -31,6 +31,7 @@ mod poll;
 mod poll_heads;
 mod prime;
 mod prime_gop;
+mod prime_gop_handle;
 mod prime_once;
 mod prime_wire;
 mod resize;

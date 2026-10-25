@@ -64,3 +64,6 @@ pub struct Config<'a> {
     /// IGTK as well.
     pub pmf: bool,
 }
+
+/// KCK and KEK then the longest TK (GCMP-256's).
+pub(in crate::wpa::supplicant) const PTK_MAX: usize = 64;

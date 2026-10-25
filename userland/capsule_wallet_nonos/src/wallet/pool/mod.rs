@@ -13,32 +13,13 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-//! Backend seam. Every not-yet-wired call (privacy pool, ZK prover, association
-//! set, simulation, NOX revenue) sits behind a trait here. `Stub` returns a
-//! typed NotWired/Pending outcome so the UI is honest; live impls drop in with
-//! no UI change. The seam contract is documented in the capsule README.
+//! Where the swap screen's numbers come from. Only the quote has a caller,
+//! and no pool is wired to it yet: it answers None, and Swap stays hidden
+//! from home until one is (`screen::home_actions`).
 
 mod active;
-mod assoc_set_provider;
-mod decoded;
-mod pool_provider;
-mod proof_provider;
 mod quote_provider;
-mod revenue_provider;
-mod seam;
-mod sim_provider;
-mod stub;
-mod types;
+mod unwired;
 
-pub use active::{assoc, pool, prover, quote, revenue, sim};
-pub use assoc_set_provider::AssocSetProvider;
-pub use decoded::{BalanceDelta, DecodedTx, StateDiff};
-pub use pool_provider::PoolProvider;
-pub use proof_provider::ProofProvider;
+pub use active::quote;
 pub use quote_provider::QuoteProvider;
-pub use revenue_provider::RevenueProvider;
-pub use seam::{Inclusion, Seam};
-pub use sim_provider::SimProvider;
-pub use stub::Stub;
-pub use types::{Commitment, Fees, Note, Proof, Root, TxRef};

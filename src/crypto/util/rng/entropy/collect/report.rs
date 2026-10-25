@@ -16,15 +16,14 @@
 
 use super::super::hardware::{has_cpu_entropy, has_cpu_random};
 use super::super::state::BOOTLOADER_ENTROPY_PROVIDED;
-use crate::drivers::virtio_rng;
 use core::sync::atomic::Ordering;
 
 /// One boot line naming every source the RNG was seeded from, so a board
 /// whose only entropy is a firmware seed says so rather than leaving it to
-/// be guessed from what it lacks.
+/// be guessed from what it lacks. The entropy capsule's bytes come later
+/// and are never enough alone, so they are not one of these.
 pub fn report_entropy_sources() {
-    let sources: [(bool, &[u8]); 4] = [
-        (virtio_rng::is_available(), b" virtio-rng"),
+    let sources: [(bool, &[u8]); 3] = [
         (has_cpu_entropy(), b" cpu-entropy-instruction"),
         (has_cpu_random(), b" cpu-random-instruction"),
         (BOOTLOADER_ENTROPY_PROVIDED.load(Ordering::Acquire), b" firmware-seed"),

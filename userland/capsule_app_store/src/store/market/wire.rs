@@ -40,7 +40,7 @@ pub fn exchange(port: u32, op: u16, request_id: u32, body: &[u8]) -> Result<Vec<
     if port == 0 {
         return Err(Failure::NoReply);
     }
-    let tx = request(op, request_id, body);
+    let tx = request(op, request_id, body).ok_or(Failure::Malformed)?;
     let mut rx = vec![0u8; RX_CAP];
     let rc = mk_ipc_call_timeout(
         port as u64,

@@ -19,7 +19,7 @@ flowchart TB
         pqc["pqc: ML-DSA, ML-KEM/Kyber, SPHINCS+, NTRU, McEliece"]
     end
     pqc -.extern C.-> pqclean["PQClean archives (build.rs)"]
-    rng --> hw["drivers::virtio_rng entropy"]
+    rng --> hw["RDSEED, RDRAND and the entropy capsule's held bytes"]
     note["STARK / FRI: NOT here — see stark-attest, nonos-stark-enroll, nonos-shield-prove"]:::out
     classDef out fill:#fff,stroke:#c00,stroke-dasharray:4 3;
 ```

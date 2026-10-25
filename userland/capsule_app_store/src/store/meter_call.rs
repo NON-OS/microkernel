@@ -1,0 +1,58 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! One call to the meter (payment_proto), from the store: PURCHASE's two
+//! forms, ORDER_STATUS with its JOB, and FUNDED's one bit. The meter
+//! answers from memory, FUNDED after one market lookup.
+
+use alloc::vec;
+use alloc::vec::Vec;
+
+use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup, mk_time_millis};
+use nonos_payment_proto::{reply_body, request, EAGAIN, EINVAL, HDR_LEN, SERVICE, STATUS_LEN};
+use nonos_payment_proto::{FundedAsk, Names, OP_FUNDED};
+
+use super::channel_held::answer;
+
+const TIMEOUT_MS: u64 = 2_000;
+
+pub fn call(op: u16, body: &[u8], max: usize) -> Result<Vec<u8>, i32> {
+    let (mut port, mut pid) = (0u32, 0u32);
+    if mk_service_lookup(SERVICE.as_ptr(), SERVICE.len(), &mut port, &mut pid) != 0 || pid == 0 {
+        return Err(EAGAIN);
+    }
+    let id = mk_time_millis() as u32;
+    let tx = request(op, id, body).ok_or(EINVAL)?;
+    let mut rx = vec![0u8; HDR_LEN + STATUS_LEN + max];
+    let (out, cap) = (rx.as_mut_ptr(), rx.len());
+    let n = mk_ipc_call_timeout(port as u64, tx.as_ptr(), tx.len(), out, cap, TIMEOUT_MS);
+    if n <= 0 {
+        return Err(EAGAIN);
+    }
+    match reply_body(rx.get(..n as usize).unwrap_or(&[]), op, id) {
+        Ok(b) => Ok(b.to_vec()),
+        Err(nonos_payment_proto::ReplyError::Status(s)) => Err(s),
+        Err(_) => Err(EAGAIN),
+    }
+}
+
+/// Whether the listing `names` would post takes one more install on a
+/// channel the meter holds: its chain and listing, nothing else. None for
+/// an error, no answer, or a reply that does not read.
+pub fn funded(names: &Names) -> Option<bool> {
+    let ask = FundedAsk { chain_id: names.chain_id, listing: names.listing.clone() };
+    answer(call(OP_FUNDED, &ask.encode()?, 1))
+}

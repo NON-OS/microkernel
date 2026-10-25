@@ -24,3 +24,5 @@ pub mod file;
 pub mod guest;
 pub mod net;
 pub mod unix;
+#[path = "../../../capsule_linux/src/linux/whole.rs"]
+pub mod whole;

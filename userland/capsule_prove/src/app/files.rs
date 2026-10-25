@@ -47,10 +47,9 @@ pub fn read(name: &[u8], cap: usize) -> Result<Vec<u8>, i64> {
         if got < 0 {
             return Err(got);
         }
-        if got == 0 {
-            return Err(EIO);
-        }
-        at += got as usize;
+        // Nothing, or more than was asked for, is a read that went wrong.
+        let got = usize::try_from(got).ok().filter(|&g| g > 0 && g <= end - at).ok_or(EIO)?;
+        at += got;
     }
     Ok(out)
 }

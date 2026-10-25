@@ -19,9 +19,12 @@
 use alloc::vec::Vec;
 
 use super::fit::Fit;
+use super::held_keys::HeldKeys;
+use super::popup::stack::Popups;
 use super::reshape::Shape;
 use super::scene_pixels::Pixels;
 use super::state::{Buffer, Pool, Surface};
+use super::subsurface::state::Subs;
 use super::window_life::Shown;
 
 pub struct Scene {
@@ -47,48 +50,18 @@ pub struct Scene {
     pub pixels: Pixels,
     pub pointer: Option<u32>,
     pub keyboard: Option<u32>,
-    pub pointer_entered: bool,
-    pub keyboard_entered: bool,
+    /// The surface the pointer and the keyboard were last told they are on
+    /// (focus_step.rs).
+    pub pointer_on: Option<u32>,
+    pub keyboard_on: Option<u32>,
     /// Whether the input router has taken this personality's subscription.
     pub subscribed: bool,
-}
-
-impl Scene {
-    pub fn new() -> Scene {
-        Scene {
-            pools: Vec::new(),
-            buffers: Vec::new(),
-            surfaces: Vec::new(),
-            serial: 1,
-            out: None,
-            at: None,
-            shape: None,
-            window: None,
-            shown: None,
-            fit: Fit::default(),
-            pixels: Pixels::empty(),
-            pointer: None,
-            keyboard: None,
-            pointer_entered: false,
-            keyboard_entered: false,
-            subscribed: false,
-        }
-    }
-
-    pub fn next_serial(&mut self) -> u32 {
-        self.serial += 1;
-        self.serial
-    }
-
-    /// Where the window is on screen and how large, once it is shown.
-    pub fn rect(&self) -> Option<(u32, u32, u32, u32)> {
-        let ((x, y), (w, h, _)) = (self.at?, self.shape?);
-        Some((x, y, w, h))
-    }
-}
-
-impl Default for Scene {
-    fn default() -> Scene {
-        Scene::new()
-    }
+    /// The surface told it is on the output (output_enter.rs).
+    pub on_output: Option<u32>,
+    /// The keys down now, so a driver's repeat is not sent as a press.
+    pub held: HeldKeys,
+    /// Surfaces placed on the window's (subsurface/).
+    pub subs: Subs,
+    /// Menus and the like, composed on top of it (popup/).
+    pub popups: Popups,
 }

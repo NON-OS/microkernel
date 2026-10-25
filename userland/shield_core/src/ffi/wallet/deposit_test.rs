@@ -1,8 +1,3 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::unwrap_used, clippy::indexing_slicing)]
-
 use super::super::ticket::approve_calldata;
 use crate::ffi::chain_types::format_wide;
 use crate::ffi::evm::{parse_evm_address, to_hex};

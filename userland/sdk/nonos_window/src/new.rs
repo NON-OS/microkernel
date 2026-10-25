@@ -28,6 +28,8 @@ impl Window {
             byte_len: width as u64 * height as u64 * 4,
             base_va: 0,
             flags: 0,
+            owner_pid: 0,
+            writable: 0,
         };
         let handle = create(&req);
         if handle < 0 {

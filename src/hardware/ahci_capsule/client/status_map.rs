@@ -27,7 +27,9 @@ pub(super) fn lift(status: i32) -> DriverAhciError {
         E_INVAL => DriverAhciError::InvalidArgument,
         E_IO => DriverAhciError::DeviceFailure,
         E_NXIO => DriverAhciError::OutOfRange,
-        E_NODEV => DriverAhciError::Unsupported,
+        // No disk on the port: the disk is not there, as a stopped driver
+        // says, so the store calls read ENODEV.
+        E_NODEV => DriverAhciError::Dead,
         E_MSGSIZE => DriverAhciError::OversizedRequest,
         _ => DriverAhciError::DeviceFailure,
     }

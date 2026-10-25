@@ -30,7 +30,12 @@ pub fn run(state: &mut State, args: &[&[u8]]) -> bool {
     let pid = ensure_pid(state);
     let src = resolve(state.cwd.as_bytes(), args[0]);
     let dst = resolve(state.cwd.as_bytes(), args[1]);
-    let data = match read_file(pid, &src, MAX) {
+    /* One byte past the most, so a longer file is refused, never copied cut. */
+    let data = match read_file(pid, &src, MAX + 1) {
+        Ok(d) if d.len() > MAX as usize => {
+            state.scrollback.push_error(b"nox copy: larger than it copies (64 KiB)");
+            return false;
+        }
         Ok(d) => d,
         Err(e) => {
             state.scrollback.push_error(e.as_bytes());

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! How many devices the selected unit still lets reach all of memory: those
-//! left in the boot identity domain on VT-d, the passthrough entries on
-//! AMD-Vi. Before selection, or with no unit, there is no such domain.
+//! How many devices the selected unit still lets reach all of memory: none
+//! on VT-d, whose bring-up maps no identity domain, and the passthrough
+//! entries counted on AMD-Vi. Before selection, or with no unit, none.
 
 use crate::memory::iommu::IommuVendor;
 

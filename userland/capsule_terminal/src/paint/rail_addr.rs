@@ -48,7 +48,7 @@ pub fn ipv6_into(buf: &mut [u8], ip: [u8; 16]) -> usize {
 
 /// The address with its prefix length. A lease with an address but no prefix is
 /// still a real address, so the suffix is dropped rather than the whole row.
-pub fn ipv4_pfx<'a>(buf: &'a mut [u8], ip: Metric<[u8; 4]>, pfx: Metric<u8>) -> &'a str {
+pub fn ipv4_pfx(buf: &mut [u8], ip: Metric<[u8; 4]>, pfx: Metric<u8>) -> &str {
     let Some(addr) = ip.value() else {
         return DASH;
     };
@@ -60,6 +60,6 @@ pub fn ipv4_pfx<'a>(buf: &'a mut [u8], ip: Metric<[u8; 4]>, pfx: Metric<u8>) -> 
     core::str::from_utf8(&buf[..n]).unwrap_or(DASH)
 }
 
-pub fn ipv6_str<'a>(buf: &'a mut [u8], ip: Metric<[u8; 16]>) -> &'a str {
+pub fn ipv6_str(buf: &mut [u8], ip: Metric<[u8; 16]>) -> &str {
     one(buf, ip, ipv6_into)
 }

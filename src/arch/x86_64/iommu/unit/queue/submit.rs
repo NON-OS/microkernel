@@ -39,7 +39,9 @@ pub fn submit(unit: &RemapUnit, batch: &[Descriptor]) -> Result<(), VtdError> {
     }
     // A queue the unit stopped draining has no room; that is a unit that
     // stopped answering, and waiting longer would not change it.
-    let head = offsets::queue_index(unit.read64(offsets::IQH));
+    let Some(head) = offsets::queue_slot(unit.read64(offsets::IQH)) else {
+        return Err(VtdError::QueueHeadOutOfRange);
+    };
     if (offsets::queue_free(head, queue.tail) as usize) < batch.len() + 1 {
         return Err(VtdError::Timeout);
     }

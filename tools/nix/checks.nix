@@ -12,7 +12,7 @@ let
   root = src.everything;
   kernelSource = src.crate "." [ "x86_64-nonos.json" ];
   userlandDirs = builtins.attrNames (lib.filterAttrs (_: t: t == "directory") (builtins.readDir (src.root + "/userland")));
-  kernelFeatureSets = [ "mldsa3,mlkem768" "mldsa2,mlkem512" "mldsa5,mlkem1024" "dbg-ring,heap-track" "crypto-curve25519" "crypto-ed25519-dalek" "nonos-iommu-amdvi" "nonos-iommu-intremap" ];
+  kernelFeatureSets = [ "mldsa3,mlkem768" "mldsa2,mlkem512" "mldsa5,mlkem1024" "dbg-ring,heap-track" "crypto-curve25519" "crypto-ed25519-dalek" "nonos-dev-unconfined-dma,nonos-dev-unremapped-interrupts" ];
   hasLock = d: builtins.pathExists (src.root + "/${d}/Cargo.lock");
 
   # Every *_proofs crate, and every crate whose manifest asks for the lane
@@ -53,7 +53,7 @@ let
   #   lintNone  never linted before the flake, and not clean
   lintLib = [
     "attest_doc_proofs" "capsule_browser_proofs" "crypto_proofs" "fs_proofs" "http_proofs"
-    "nym_reply_proofs" "route_proof_proofs" "terminal_line_proofs"
+    "nym_reply_proofs" "route_proof_proofs"
   ];
   lintNone = [ "boot_slots_proofs" "editor_proofs" "input_proofs" ];
   clippy =

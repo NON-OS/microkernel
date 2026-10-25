@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The reserved memory regions firmware declared, said once at bring-up. A
-//! device that stays in the identity domain reaches its region there; one a
-//! capsule claims has it mapped one to one in the capsule's domain before it
-//! moves (L60). How unclaimed devices are held is the owner's (Decision 4).
+//! The reserved memory regions firmware declared, said once at bring-up. An
+//! unclaimed device reaches its regions in a domain holding them alone;
+//! one a capsule claims has them mapped one to one in the capsule's domain
+//! before it moves (L60).
 
 use crate::arch::x86_64::acpi::parser::other::{rmrr_dropped, rmrr_regions};
 use crate::sys::serial::Line;

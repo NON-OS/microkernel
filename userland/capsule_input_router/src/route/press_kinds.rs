@@ -21,6 +21,7 @@
 use nonos_libc::{InputEvent, INPUT_KIND_KEY_UP};
 
 use super::pad::{self, PAD_BUTTON_DOWN, PAD_BUTTON_UP};
+use crate::state::key_targets::{key_of, Key};
 
 /// A pad button: pressed and released like a key.
 pub(super) fn is_pad_button(kind: u16) -> bool {
@@ -44,12 +45,10 @@ pub(super) fn release_of(kind: u16) -> u16 {
     }
 }
 
-/// An event's entry in the press table: a key by its code, a pad button by
-/// its pad and button (`pad::slot`).
-pub(super) fn slot(event: &InputEvent) -> u32 {
-    if is_pad_button(event.kind) {
-        pad::slot(event)
-    } else {
-        event.code
-    }
+/// An event's entry in the press table: a key by its source and code, a
+/// pad button by its source, pad and button (`pad::slot`). A press on one
+/// device is never released, nor taken over, by another's.
+pub(super) fn slot(event: &InputEvent) -> Key {
+    let code = if is_pad_button(event.kind) { pad::slot(event) } else { event.code };
+    key_of(event.flags, code)
 }

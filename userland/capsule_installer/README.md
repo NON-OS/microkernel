@@ -6,7 +6,8 @@
 `installer`. It verifies signed NONOS packages with the kernel and writes their
 four files into the capsule store, removes them, lists what is installed, and
 loads a stored capsule through the kernel's verified spawn path for a caller.
-For paid listings it asks the `payment` service for a receipt. It owns no
+For an install a person pays for, it asks the meter (`payment`) for a
+signed voucher. It owns no
 storage device and writes nothing to a disk itself. The handbook page is
 [docs/handbook/apps/market-and-store.md](../../docs/handbook/apps/market-and-store.md).
 The disk installer is a different capsule, `capsule_install`.
@@ -18,7 +19,7 @@ desktop_shell / terminal (nox pkg, exec, install)
         v
 capsule_installer -- MkCapsuleVerify, MkCapsuleLoad --> kernel
         |-- store_install / store_uninstall --> vfs_pool
-        `-- PAYMENT_OP_PAY --> payment
+        `-- PAY v2 (payment_proto) --> payment, the meter
 ```
 
 ## Microkernel contract
@@ -43,7 +44,7 @@ same sequence word and a status.
 | Op | Name | What it does |
 |---|---|---|
 | 1 | `OP_HEALTHCHECK` | liveness |
-| 2 | `OP_INSTALL` | a free listing gets a zero hash at once; a priced one is sent to `payment` and answered with the receipt's struct hash, or `EAGAIN` when no payment service runs |
+| 2 | `OP_INSTALL` | the body is a payment_proto PAY v2 request for exactly one unit of "install"; the installer refuses anything else with `EINVAL`, relays it to the meter and answers with the meter's signed voucher (265 bytes), or the meter's status. A free listing needs no call |
 | 3 | `OP_LOAD_FROM_STORE` | load a capsule from the ELF, certificate, manifest and trailer bytes in the request, as the installer's own child |
 | 4 | `OP_LOAD_BY_NAME` | read `/capsules/<name>` (four files, up to 16 MiB each) and load it as the caller's child |
 | 5 | `OP_LIST_INSTALLED` | names under `/capsules/` that have all four files, at most 64 |
@@ -70,6 +71,14 @@ vfs store: in RAM on an amnesic boot, on the disk store otherwise.
 
 ## Limits
 
-No standard image carries `payment`, so a priced `OP_INSTALL` answers
-`EAGAIN` on every image. The installer does not check the receipt it relays;
-it trusts the payment service's answer.
+The installer checks only that a request pays for one install; the meter
+checks every other word against the release's signed commerce block, its
+budget and its channels. The installer believes the meter's reply only for its
+own call and only as one whole voucher. Until a channel is open (the meter's
+OPEN) a paid `OP_INSTALL` answers the meter's refusal.
+
+A paid install's voucher reaches the chain before the install goes on
+(v1.4.7): after the meter's PAY, the installer asks nox_settle for a drain
+round (SETTLE, op 10) and answers the voucher only when the settle() it
+broadcast carries it. ENOENT, an error, or a settle() without it fails the
+install. This costs the meter one settle()'s gas per install.

@@ -1,22 +1,22 @@
 # TLS and certificate trust
 
-How NONOS [capsules](../overview/glossary.md#capsule) talk to HTTPS servers through `nonos_tls`: the protocol it speaks, how a certificate chain is checked, where the trusted roots come from, which clock the dates are read against, and what is not checked.
+How NONOS [capsules](../overview/glossary-boot-root-record.md#capsule) talk to HTTPS servers through `nonos_tls`: the protocol it speaks, how a certificate chain is checked, where the trusted roots come from, which clock the dates are read against, and what is not checked.
 
 ## Who uses it
 
-`nonos_tls` is a `no_std` TLS 1.3 client written for NONOS. It was lifted out of the browser so that every capsule speaking TLS through it runs the same certificate check (`userland/nonos_tls/src/lib.rs:17-28`, `no_std`). It is a library, not a service, with three ways in: `exchange` runs one request and returns the reply, `stream::connect` returns a `Stream` that stays open, and `HandshakeState` lets a caller with its own event loop drive the steps (`userland/nonos_tls/src/lib.rs:59-63`, `HandshakeState`). It runs inside the capsule that links it, and that capsule needs the `Crypto` [capability](../overview/glossary.md#capability) for the random numbers and the X25519 calls the handshake makes (`src/syscall/contract/cap_table/crypto.rs:22-33`, `can_crypto`).
+`nonos_tls` is a `no_std` TLS 1.3 client written for NONOS. It was lifted out of the browser so that every capsule speaking TLS through it runs the same certificate check (`userland/nonos_tls/src/lib.rs:17-28`, `no_std`). It is a library, not a service, with three ways in: `exchange` runs one request and returns the reply, `stream::connect` returns a `Stream` that stays open, and `HandshakeState` lets a caller with its own event loop drive the steps (`userland/nonos_tls/src/lib.rs:59-63`, `HandshakeState`). It runs inside the capsule that links it, and that capsule needs the `Crypto` [capability](../overview/glossary-boot-root-record.md#capability) for the random numbers and the X25519 calls the handshake makes (`src/syscall/contract/cap_table/crypto.rs:22-33`, `can_crypto`).
 
 Nine capsules link it:
 
 | Capsule | What it reaches | Entry point |
 |---|---|---|
 | `app.browser` | web pages | `HandshakeState::answer`, `userland/capsule_browser/src/browser/fetch/tls/verify_and_send.rs:36` |
-| `app.nonos_wallet` | the chain's RPC host | `answer`, `userland/capsule_wallet_nonos/src/wallet/net/step/exchange.rs:303` |
+| `app.nonos_wallet` | the chain's RPC host | `answer`, `userland/capsule_wallet_nonos/src/wallet/net/step/exchange/check.rs:52` |
 | `app.terminal` | `http` with an `https://` URL, and `git clone` | `answer`, `userland/capsule_terminal/src/mixnet/exchange/tls.rs:70` |
 | `app.terminal` | `git push` | `exchange`, `userland/capsule_terminal/src/git/transport/round_trip.rs:60` |
 | `tool.model-fetch` | model files at a mirror | `connect`, `userland/capsule_model_fetch/src/http/open.rs:45` |
 | `app.audio_player` | an MP3 or WAV file at an `https://` address | `connect`, `userland/capsule_audio_player/src/fetch/job.rs:141` |
-| `net.nym` | the [Nym mixnet](../overview/glossary.md#nym-mixnet) directory at `validator.nymtech.net` | `exchange`, `userland/capsule_net_nym/src/directory_sync/fetch_at.rs:53` |
+| `net.nym` | the [Nym mixnet](../overview/glossary-linux-personality.md#nym-mixnet) directory at `validator.nymtech.net` | `exchange`, `userland/capsule_net_nym/src/directory_sync/fetch_at.rs:53` |
 | `net.anon` | relay links, chain not checked | `connect_unauthenticated`, `userland/capsule_net_anon/src/link/open.rs:52` |
 | `nonos.shield` | the shield wallet's RPC requests, through `shield_core` | `exchange`, `userland/shield_core/src/net/tor/tls.rs:51` |
 | `app.linux` | no TLS through this crate | `verify_rsa`, `userland/capsule_linux/src/linux/install/auth/rsa.rs:21` |
@@ -25,7 +25,7 @@ The Terminal's `http` command, also spelled `curl`, `get` or `fetch`, sends a pl
 
 Three paths that look similar do not use it:
 
-- Python in the [Linux personality](../overview/glossary.md#linux-personality) speaks TLS with its own OpenSSL and checks peers against `/etc/ssl/cert.pem`, a copy of the same `nonos-data/cacert.pem` bundle (`userland/linux_userland/Userland.mk:186-193`, `LINUX_USERLAND_STORE_ENTRIES`). The `openssl` program is built with the same `/etc/ssl` directory (`--openssldir` in `tools/linux-userland/openssl.sh:20`).
+- Python in the [Linux personality](../overview/glossary-linux-personality.md#linux-personality) speaks TLS with its own OpenSSL and checks peers against `/etc/ssl/cert.pem`, a copy of the same `nonos-data/cacert.pem` bundle (`userland/linux_userland/Userland.mk:186-193`, `LINUX_USERLAND_STORE_ENTRIES`). The `openssl` program is built with the same `/etc/ssl` directory (`--openssldir` in `tools/linux-userland/openssl.sh:20`).
 - Linux package installs fetch over plain HTTP, port 80 by default (`DEFAULT` in `userland/capsule_linux/src/linux/install/mirror.rs:25`). A package is trusted because a signed index names its checksum, not because of the connection; for Alpine that is `verified` (`userland/capsule_linux/src/linux/install/auth/package.rs:28-49`). The personality links `nonos_tls` only to send RSA signature checks to the crypto service through `verify_rsa`.
 - `net.anon` carries a TLS 1.2 client of its own for relays that refuse TLS 1.3. It is described under [The unauthenticated path](#the-unauthenticated-path).
 
@@ -36,7 +36,7 @@ The client speaks TLS 1.3 and nothing older. `supported_versions` names only `TL
 The ClientHello carries:
 
 - Two cipher suites, in this order: `TLS_CHACHA20_POLY1305_SHA256` (0x1303), then `TLS_AES_128_GCM_SHA256` (0x1301) (`userland/nonos_tls/src/client_hello.rs:35-37`, `SUITE_CHACHA20_SHA256`).
-- Two groups, X25519 then secp256r1, with a key share for each, so a server that takes either answers at once (`ext_keyshare` in `userland/nonos_tls/src/ext_keyshare.rs:21-35`). The source gives the reason for P-256: relays of the Tor lineage, those of the [Anyone network](../overview/glossary.md#anyone-network) among them, answer ECDHE over P-256 alone (`ext_groups` in `userland/nonos_tls/src/ext_groups.rs:21-30`).
+- Two groups, X25519 then secp256r1, with a key share for each, so a server that takes either answers at once (`ext_keyshare` in `userland/nonos_tls/src/ext_keyshare.rs:21-35`). The source gives the reason for P-256: relays of the Tor lineage, those of the [Anyone network](../overview/glossary-amnesic-boot.md#anyone-network) among them, answer ECDHE over P-256 alone (`ext_groups` in `userland/nonos_tls/src/ext_groups.rs:21-30`).
 - Five signature schemes, the ones the verifier handles: `rsa_pss_rsae_sha256` (0x0804), `rsa_pss_rsae_sha384` (0x0805), `ecdsa_secp256r1_sha256` (0x0403), `ecdsa_secp384r1_sha384` (0x0503) and `rsa_pkcs1_sha256` (0x0401) (`ext_sigalgs` in `userland/nonos_tls/src/ext_sigalgs.rs:21-33`).
 - SNI with the host name, in the clear (`ext_sni` in `userland/nonos_tls/src/ext_sni.rs:21-28`).
 
@@ -82,7 +82,7 @@ In the calling capsule: the SHA-256 transcript hash (`Transcript` in `userland/n
 
 Through the kernel: the X25519 key pair and agreement are the `CryptoX25519Public` and `CryptoX25519Shared` system calls (`agree` in `userland/nonos_tls/src/server_keys.rs:39-50`). The kernel checks the `Crypto` bit and forwards them to the crypto capsule as operations 14 and 15 (`handle_x25519_shared` in `src/syscall/dispatch/crypto/primitives/ecdh.rs:38-53`, `OP_X25519_SHARED` in `src/security/crypto_capsule/client/x25519_shared.rs:22`). The X25519 private key is drawn in the caller and passed in on both calls, so the kernel and the crypto capsule see it. Random bytes come from the `CryptoRandom` system call (`crypto_random` in `userland/nonos_tls/src/client_flight.rs:24-32`).
 
-In `crypto_pool`: every signature check. The caller looks the service up by name and keeps the port (`crypto_port` in `userland/nonos_tls/src/crypto_port.rs:28-43`) and calls it over IPC: operation 18 for ECDSA P-256, 19 for ECDSA P-384 and 21 for RSA (`OP_RSA_VERIFY` in `userland/capsule_crypto/src/protocol/primitives.rs:17-24`). `crypto_pool` is the service [endpoint](../overview/glossary.md#endpoint) of `capsule_crypto` on port 4102 (`CAPSULE_SERVICE_ENDPOINT` in `userland/capsule_crypto/Capsule.mk:13`).
+In `crypto_pool`: every signature check. The caller looks the service up by name and keeps the port (`crypto_port` in `userland/nonos_tls/src/crypto_port.rs:28-43`) and calls it over IPC: operation 18 for ECDSA P-256, 19 for ECDSA P-384 and 21 for RSA (`OP_RSA_VERIFY` in `userland/capsule_crypto/src/protocol/primitives.rs:17-24`). `crypto_pool` is the service [endpoint](../overview/glossary-dma-pool.md#endpoint) of `capsule_crypto` on port 4102 (`CAPSULE_SERVICE_ENDPOINT` in `userland/capsule_crypto/Capsule.mk:13`).
 
 ChaCha20-Poly1305 comes from the `chacha20poly1305` crate (`userland/nonos_tls/src/chacha_record.rs:17-22`, `ChaCha20Poly1305`). AES-128-GCM is written in the crate. Its block cipher indexes a 256-byte S-box with state bytes (`SBOX` in `userland/nonos_tls/src/aes_gcm/aes128.rs:20`), and its GHASH branches on each bit of its input (`gf_mul` in `userland/nonos_tls/src/aes_gcm/ghash.rs:20-26`). Lookups and branches that follow secret data can leak through cache timing; the crate makes no constant-time claim for this path. The server chooses the suite, and the client lists ChaCha20-Poly1305 first.
 
@@ -168,11 +168,11 @@ Not tested in this release.
 What callers do when the clock cannot be read:
 
 - The shield refuses before the handshake, with `no clock to check the certificate against` (`run` in `userland/shield_core/src/net/tor/tls.rs:45-50`).
-- The wallet refuses with a message that starts `this machine's clock could not be read` (`NO_CLOCK` in `userland/capsule_wallet_nonos/src/wallet/net/step/exchange.rs:58-59`).
+- The wallet refuses with a message that starts `this machine's clock could not be read` (`NO_CLOCK` in `userland/capsule_wallet_nonos/src/wallet/net/step/exchange/said.rs:34-35`).
 - The browser runs the walk with zero and shows the refusal with `the clock could not be read` in place of the clock reading (`clock` in `userland/capsule_browser/src/browser/fetch/tls_reason.rs:79-82`).
 - The Terminal, the model download, the audio player and `net.nym` pass zero to the walk, which refuses every chain.
 
-Python's dates come from the clock the personality answers for Linux programs, `mk_time_millis` (`now_ms` in `userland/capsule_linux/src/linux/call/clock.rs:37-46`). The kernel anchors that clock at boot to the time in the [boot handoff](../overview/glossary.md#boot-handoff), or to the hardware clock when the handoff carries none (`resolve_epoch_ms` in `src/sys/clock/core/init.rs:39-47`). The loader fills the handoff from the firmware's `GetTime`, read as UTC (`get_uefi_time_epoch` in `nonos-bootloader/src/handoff/timing.rs:25-49`). On the desktop image, with no network time, a wrong firmware clock breaks Python's certificate checks too.
+Python's dates come from the clock the personality answers for Linux programs, `mk_time_millis` (`now_ms` in `userland/capsule_linux/src/linux/call/clock.rs:37-46`). The kernel anchors that clock at boot to the time in the [boot handoff](../overview/glossary-amnesic-boot.md#boot-handoff), or to the hardware clock when the handoff carries none (`resolve_epoch_ms` in `src/sys/clock/core/init.rs:39-47`). The loader fills the handoff from the firmware's `GetTime`, read as UTC (`get_uefi_time_epoch` in `nonos-bootloader/src/handoff/timing.rs:25-49`). On the desktop image, with no network time, a wrong firmware clock breaks Python's certificate checks too.
 
 ## The unauthenticated path
 
@@ -197,7 +197,7 @@ Python's dates come from the clock the personality answers for Linux programs, `
 
 ## Tests
 
-`userland/tls_proofs` is the [proof crate](../overview/glossary.md#proof-crate) for this client. It compiles the crate's own source files by `#[path]` (`userland/tls_proofs/src/modules_cert.rs:19-23`, `cert_at`), and its stand-in libc answers crypto calls with the crypto capsule's own handlers (`userland/tls_proofs/shim/src/server.rs:19-23`, `dispatch`). Its inputs are the RFC 8448 handshake trace, a chain served by a re-signing gateway, a server played in `userland/tls_proofs/src/tests/fake_server.rs`, and a certificate and hello shape taken from a live Anyone relay.
+`userland/tls_proofs` is the [proof crate](../overview/glossary-peer-list.md#proof-crate) for this client. It compiles the crate's own source files by `#[path]` (`userland/tls_proofs/src/modules_cert.rs:19-23`, `cert_at`), and its stand-in libc answers crypto calls with the crypto capsule's own handlers (`userland/tls_proofs/shim/src/server.rs:19-23`, `dispatch`). Its inputs are the RFC 8448 handshake trace, a chain served by a re-signing gateway, a server played in `userland/tls_proofs/src/tests/fake_server.rs`, and a certificate and hello shape taken from a live Anyone relay.
 
 Among its tests:
 

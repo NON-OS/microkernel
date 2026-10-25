@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_libc::{
-    mk_mmap, mk_munmap, mk_surface_register, mk_surface_share_to, SurfaceDescriptor,
+    mk_mmap, mk_munmap, mk_surface_register, mk_surface_share, SurfaceDescriptor,
     SURFACE_FORMAT_ARGB8888,
 };
 use nonos_toolkit::types::ImageSize;
@@ -25,9 +25,9 @@ use crate::protocol::{E_INVAL, E_NOMEM};
 const PROT_READ_WRITE: i32 = 0x3;
 const MAP_PRIVATE_ANON: i32 = 0x22;
 
-/// The handle, stride and length of a new surface holding `pixels`, shared
-/// with `client` alone, and the mapping (base, length) to unmap when it is
-/// let go.
+/// The shared handle, stride and length of a new surface holding `pixels`,
+/// and the mapping (base, length) to unmap when it is let go. Only `client`,
+/// which asked for it, maps it, read-only.
 pub fn register_argb_surface(
     pixels: &[u32],
     size: ImageSize,
@@ -51,6 +51,8 @@ pub fn register_argb_surface(
         byte_len,
         base_va: base as u64,
         flags: 0,
+        owner_pid: 0,
+        writable: 0,
     };
     let sid = mk_surface_register(&desc);
     if sid < 0 {
@@ -59,7 +61,7 @@ pub fn register_argb_surface(
         }
         return Err(sid as i32);
     }
-    let handle = mk_surface_share_to(sid as u64, client);
+    let handle = mk_surface_share(sid as u64, client, 0);
     if handle <= 0 {
         // Nobody holds it yet, so unmapping gives the slot back too.
         let _ = mk_munmap(base, byte_len as usize);

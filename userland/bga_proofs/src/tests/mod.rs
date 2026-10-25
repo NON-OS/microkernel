@@ -25,6 +25,7 @@ mod mode_screen_tests;
 mod mode_tests;
 mod offset_tests;
 mod panel_tests;
+mod pool_share_tests;
 mod primaries;
 mod reason_tests;
 mod resource_tests;

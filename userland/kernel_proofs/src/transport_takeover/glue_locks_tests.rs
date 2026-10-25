@@ -17,8 +17,8 @@
 //! What a killed caller's failed asks may and may not decide (L81). Its
 //! transport failure reads as a refusal, never as an absent disk, and no disk
 //! is kept for it after the boot disk's wait; and the entropy generator's lock
-//! is let go across the reseed's round trip, so a caller killed in it leaves
-//! no lock behind for every later caller to spin on.
+//! is never held across an ask of the capsule, so a caller killed in one
+//! leaves no lock behind for every later caller to spin on.
 
 use super::text::{between, code};
 
@@ -27,6 +27,7 @@ const FOUND: &str = include_str!("../../../../src/hardware/block_device/found.rs
 const SELECT: &str = include_str!("../../../../src/hardware/block_device/kept.rs");
 const WAIT: &str = include_str!("../../../../src/hardware/block_device/wait.rs");
 const FAST: &str = include_str!("../../../../src/security/entropy_capsule/fast.rs");
+const ASK: &str = include_str!("../../../../src/security/entropy_capsule/client/ask.rs");
 
 #[test]
 fn a_killed_callers_failure_never_settles_the_disk() {
@@ -45,11 +46,14 @@ fn a_killed_callers_failure_never_settles_the_disk() {
 
 #[test]
 fn the_generator_lock_is_let_go_across_the_reseed() {
+    // The capsule is asked before STATE is taken and never waited on.
     let fill = between(FAST, "pub fn fill(", "let Some(state) = guard.as_mut() else");
-    let ask = fill.find(&code("let reseed_due = due(&STATE.lock());")).expect("asked bound");
-    let trip = fill.find(&code("super::client::get_random(&mut seed)")).expect("the round trip");
+    let ask = fill.find(&code("super::client::poll();")).expect("the capsule asked");
     let held = fill.find(&code("let mut guard = STATE.lock();")).expect("the lock taken");
-    assert!(ask < trip && trip < held, "STATE held across the reseed's round trip");
-    assert_eq!(fill.matches("STATE.lock()").count(), 3, "STATE taken somewhere else too");
-    assert!(fill.contains(&code("if n == seed.len() && due(&guard) {")), "reseeded twice");
+    assert!(ask < held, "the capsule asked under STATE");
+    assert_eq!(fill.matches("STATE.lock()").count(), 1, "STATE taken somewhere else too");
+    assert!(!fill.contains("client::get_random"), "a round trip back inside the fill");
+    let ask = code(ASK);
+    assert!(ask.contains(&code("transport_nowait::{landed, post}")), "the ask waits");
+    assert!(!ask.contains("round_trip") && !ask.contains("reply_wait"), "the ask waits");
 }

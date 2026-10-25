@@ -27,6 +27,10 @@ use super::mmio::Unit;
 use super::regs;
 use super::ring::attach_ring;
 
+/// Control.Coherent, bit 10: device table fetches snoop the CPU's caches
+///.
+const COHERENT: u64 = 1 << 10;
+
 /// Exclusion Base: a range firmware may have set that every device reaches
 /// untranslated. Cleared, so the kernel's tables are the whole story.
 const EXCLUSION_BASE: usize = 0x0020;
@@ -39,7 +43,7 @@ pub(super) unsafe fn enable_unit(index: usize, unit: &Unit, table: u64) -> Resul
     // Fail closed: never bring a unit up over a table that would let a device
     // write untranslated memory.
     super::devtab::deny_stray_writers(table)?;
-    let idle = idle(control);
+    let idle = idle(control) | COHERENT;
     // SAFETY: eK@nonos.systems - the unit is stopped before any base moves,
     // the pages it is pointed at are the kernel's for good, and the device
     // table denies every device not enumerated.

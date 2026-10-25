@@ -18,6 +18,7 @@
 //! where MkMmioUnmap and the capsule's exit find it like any other.
 
 use crate::hardware::broker::grant::{self, MmioGrant};
+use crate::hardware::broker::quota_log;
 
 /// The device id ACPI grants carry in the MMIO table: no device has it, so
 /// releasing a device never takes an ACPI window with it.
@@ -30,10 +31,12 @@ pub struct MemoryGrant {
 }
 
 /// Record the whole pages mapped at `user_va`, which is what unmapping
-/// gives back, and return the grant's id.
-pub(super) fn record(pid: u32, start: u64, end: u64, user_va: u64) -> u64 {
+/// gives back, and return the grant's id; None, logged, when the caller's
+/// grant quota is spent and nothing was recorded.
+pub(super) fn record(pid: u32, start: u64, end: u64, user_va: u64) -> Option<u64> {
     let grant_id = grant::allocate_id();
-    grant::insert_unclaimed(MmioGrant {
+    // No claim stands behind it, but it counts against the quota.
+    let entered = grant::insert_unclaimed(MmioGrant {
         grant_id,
         pid,
         device_id: ACPI_DEVICE,
@@ -44,5 +47,9 @@ pub(super) fn record(pid: u32, start: u64, end: u64, user_va: u64) -> u64 {
         length: end - start,
         flags: 0,
     });
-    grant_id
+    if let Err(spent) = entered {
+        quota_log::refused(pid, "ACPI", spent);
+        return None;
+    }
+    Some(grant_id)
 }

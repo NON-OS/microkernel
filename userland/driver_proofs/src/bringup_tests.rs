@@ -16,9 +16,10 @@
 
 //! The driver bring-up schedule: bounded, backing off, and never a spin.
 
-use crate::bringup_policy::{
+use crate::bringup_policy::{EXIT_ABSENT, EXIT_GAVE_UP};
+use crate::bringup_schedule::{
     delay_after, next, total_sleep_ms, Next, BRINGUP_ATTEMPTS, BRINGUP_FIRST_DELAY_MS,
-    BRINGUP_MAX_DELAY_MS, EXIT_ABSENT, EXIT_GAVE_UP,
+    BRINGUP_MAX_DELAY_MS,
 };
 
 #[test]

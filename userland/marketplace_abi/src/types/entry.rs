@@ -22,6 +22,7 @@ extern crate alloc;
 use alloc::string::String;
 use alloc::vec::Vec;
 
+use super::commerce::Commerce;
 use super::price::PriceModel;
 use super::release::CapsuleRelease;
 use super::token::TokenInfo;
@@ -43,9 +44,8 @@ pub struct MarketplaceEntry {
     /// Publisher's Ed25519 verifier key. Must match the signing
     /// key used on every release the listing exposes.
     pub publisher_pubkey: [u8; 32],
-    /// Publisher's Ethereum address (20 bytes). On-chain settlement
-    /// authority for paid installs; covered by the operator index
-    /// signature and cross-checked against CapsuleRegistry on chain.
+    /// Publisher's Ethereum address (20 bytes), carried from schema 2.
+    /// Who is paid is `commerce.payee`, never this.
     pub publisher_eth_address: [u8; 20],
     /// Free-form description; UTF-8, capped at `MAX_DESCRIPTION`.
     pub description: String,
@@ -53,6 +53,9 @@ pub struct MarketplaceEntry {
     pub price: PriceModel,
     /// Token the price is denominated in.
     pub token: TokenInfo,
+    /// Schema 3's commerce block; `None` only for an entry read from a
+    /// schema 2 index, which cannot be bought.
+    pub commerce: Option<Commerce>,
     /// One or more releases. The first entry is the default.
     pub releases: Vec<CapsuleRelease>,
 }

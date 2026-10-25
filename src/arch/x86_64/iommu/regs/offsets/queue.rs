@@ -53,6 +53,15 @@ pub const fn queue_index(register: u64) -> u16 {
     ((register >> 4) & 0x7FFF) as u16
 }
 
+/// The ring slot an IQH value names; None past the ring, from a unit that
+/// has failed, so the value is never an index.
+pub const fn queue_slot(register: u64) -> Option<u16> {
+    match queue_index(register) {
+        index if index < QUEUE_ENTRIES => Some(index),
+        _ => None,
+    }
+}
+
 /// The slot after `index` in a queue of `QUEUE_ENTRIES`.
 pub const fn queue_next(index: u16) -> u16 {
     (index + 1) % QUEUE_ENTRIES

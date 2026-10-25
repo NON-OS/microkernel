@@ -18,6 +18,7 @@
 //! one capsule that holds the capabilities its guests do not.
 
 mod abi;
+mod app;
 mod applets;
 mod attest;
 mod attest_local;
@@ -39,14 +40,18 @@ mod origin;
 mod recent;
 mod recent_say;
 mod request;
+mod request_install;
 mod run_mode;
+mod run_net;
 mod say;
 pub mod serve;
 mod settle;
 mod source;
 mod source_named;
+mod source_run;
 mod start;
 mod start_guest;
+mod start_install;
 mod start_say;
 mod store_why;
 mod terminal;
@@ -54,5 +59,6 @@ mod terminal_launch;
 mod terminal_path;
 mod unix;
 mod wayland;
+mod whole;
 
 pub use start::run;

@@ -22,9 +22,8 @@ pub struct Claim {
     pub(crate) stage: Stage,
     /// Grant paths inside the claim now, each holding it until its grant is recorded (L66).
     pub(crate) inflight: u32,
-    /// Releases under way, a `give_back`'s or an exit's. The entry goes only
-    /// when the last of them and the last path inside it are done, so while
-    /// any is still tearing the claim down no newer claim can be made (L75).
+    /// Releases under way, a `give_back`'s or an exit's: the entry goes with the last of them
+    /// and the last path inside it, so no newer claim is made while one tears it down (L75).
     pub(crate) leavers: u32,
 }
 
@@ -45,13 +44,11 @@ pub(crate) enum Stage {
     /// Being released: nothing more is granted, and the release waits out
     /// the grant paths already inside it before it drains (L66).
     Leaving,
-    /// Being made when its holder exited: it still keeps other claimants out,
-    /// until the call making it takes it back (L66).
+    /// Being made when its holder exited: it keeps other claimants out until
+    /// the call making it takes it back (L66).
     Orphaned,
-    /// Its holder exited: nothing more is granted or entered against it, and
-    /// a grant being recorded is undone by the path that made it. The exit
-    /// does not wait for those paths; the entry stays until they and every
-    /// release are done (L75).
+    /// Its holder exited: nothing more is granted against it, a grant being recorded is undone
+    /// by its own path, and the entry stays until those paths and every release are done (L75).
     Exiting,
 }
 
@@ -63,10 +60,13 @@ pub enum ClaimError {
     NotClaimed,
     /// A remapping unit is in service and would not take the device.
     Unconfined,
-    /// Held for the one capsule spawned to drive it.
-    Held,
-    /// Refused to every claimant: until the decision allows it, or
-    /// for a bridge, until a claim made for ports exists (L58).
+    OutOfScope, // the claimant's scope row does not name the device
+    /// the word for a device being worked on; the lifecycle says AlreadyClaimed or Resetting.
+    Busy,
+    /// Another capsule holds what this one reaches past the IOMMU, or its requester id.
+    GroupHeld,
+    Held, // held for the one capsule spawned to drive it
+    /// Refused to every claimant, until the owner allows it or, for a bridge, a port claim (L58).
     Refused,
     /// Its last claim's wipe is under way, or its entry is going: ask again.
     Resetting,

@@ -14,6 +14,9 @@ use crate::settings::state::{State, WifiConnect};
 
 use super::valbuf::ValBuf;
 
+#[path = "live_notice.rs"]
+mod live_notice;
+
 const PASS_STARS: usize = 32;
 
 /// The passphrase being typed, masked; else what the last action did.
@@ -46,7 +49,7 @@ pub fn join(b: &mut ValBuf, state: &State) -> Tone {
         None => {}
     }
     if let Some(notice) = state.wifi.notice {
-        b.push_str(notice);
+        live_notice::say(b, state, notice);
         return Tone::Idle;
     }
     match state.wifi_connect {

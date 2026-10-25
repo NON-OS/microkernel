@@ -122,8 +122,8 @@ compositor -> driver.bga0 (port 4240): NVGP v1 frame -> reply frame
 ## State ownership
 
 Each primary is anonymous memory of this capsule's, registered as an
-ARGB8888 surface; FLUSH copies its rectangles into video memory and fences
-the copy before the answer. Video memory itself is never shared: as a
+ARGB8888 surface and shared with the compositor alone, writable: the share
+into video memory and fences the copy before the answer. Video memory itself is never shared: as a
 surface, the kernel's registry would free its pages to the allocator when
 this capsule dies, and map them cacheable in the compositor beside this
 capsule's write-combining mapping. The capsule owns the claim and both MMIO

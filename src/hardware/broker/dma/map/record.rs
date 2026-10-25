@@ -13,12 +13,14 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-//! Entering a finished map in the grant table.
+//! Entering a finished map in the grant table, only while its claim stands
+//! (L69) and within its holder's quota; on a refusal the caller undoes
+//! the map.
 
 use super::super::records;
-use super::super::types::{DmaGrant, DmaMapRequest};
+use super::super::types::{DmaGrant, DmaMapError, DmaMapRequest};
 use super::placed::Placed;
+use crate::hardware::broker::quota_log;
 
 pub(super) fn record(
     pid: u32,
@@ -27,28 +29,31 @@ pub(super) fn record(
     placed: &Placed,
     device_addr: u64,
     confined: bool,
-) -> Option<u64> {
+) -> Result<u64, DmaMapError> {
     let grant_id = records::allocate_id();
     let live =
         |g: &DmaGrant| crate::hardware::broker::claim::live(g.pid, g.device_id, g.claim_epoch);
-    let entered = records::insert_if(
-        DmaGrant {
-            grant_id,
-            pid,
-            device_id: req.device_id,
-            claim_epoch,
-            physical_start: placed.phys_start,
-            user_va: placed.user_va,
-            length: req.length,
-            flags: req.flags,
-            device_addr,
-            confined,
-        },
-        live,
-    );
-    // Its claim gone meanwhile (L69): the caller takes the map back.
-    if !entered {
-        return None;
+    let grant = DmaGrant {
+        grant_id,
+        pid,
+        device_id: req.device_id,
+        claim_epoch,
+        physical_start: placed.phys_start,
+        user_va: placed.user_va,
+        length: req.length,
+        flags: req.flags,
+        device_addr,
+        confined,
+    };
+    match records::insert_if(grant, live) {
+        // Its claim gone meanwhile (L69): the caller takes the map back.
+        None => return Err(DmaMapError::NotClaimed),
+        // The quota spent answers as a spent window does, and is named.
+        Some(Err(spent)) => {
+            quota_log::refused(pid, "DMA", spent);
+            return Err(DmaMapError::NoVaSpace);
+        }
+        Some(Ok(())) => {}
     }
 
     /*
@@ -58,5 +63,5 @@ pub(super) fn record(
     if !confined {
         crate::memory::iommu::note_unconfined(1);
     }
-    Some(grant_id)
+    Ok(grant_id)
 }

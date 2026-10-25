@@ -41,3 +41,5 @@ pub mod capsule_net_tcp;
 pub mod capsule_net_udp;
 #[path = "capsule_socks5/mod.rs"]
 pub mod capsule_socks5;
+#[path = "capsule_prove_fetch/mod.rs"]
+pub mod capsule_prove_fetch;
