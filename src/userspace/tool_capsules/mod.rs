@@ -14,6 +14,7 @@ mod embed_macro;
 mod bound;
 mod linux_terminal;
 mod model_fetch;
+mod net_box;
 mod registry;
 mod run;
 mod spec;

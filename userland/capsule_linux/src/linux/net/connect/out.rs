@@ -27,6 +27,7 @@
 //! whatever it connects to. The rule is guest_route.rs; the one exception on
 //! the installer's own path is design/install-network.md.
 
+use alloc::string::String;
 use nonos_linux_policy::dests::Target;
 use nonos_linux_policy::mask::NET_ANON;
 
@@ -40,22 +41,17 @@ use super::super::Route;
 pub fn connect(guest: &Guest, id: u32, to: Addr) -> u64 {
     let host = super::super::dns::host_for(guest, to.ip);
     let target = host.as_deref().map_or(Target::V4(to.ip), Target::Name);
+    let [a, b, c, d] = to.ip;
+    let dest = match host.as_deref() {
+        Some(name) => alloc::format!("{}:{}", String::from_utf8_lossy(name), to.port),
+        None => alloc::format!("{a}.{b}.{c}.{d}:{}", to.port),
+    };
     if !crate::linux::app::may_dial(guest, target, to.port) {
         let needs = match crate::linux::app::granted(guest, NET_ANON) {
             true => "this destination",
             false => "NET_ANON",
         };
-        let [a, b, c, d] = to.ip;
-        let what = match host.as_deref() {
-            Some(name) => {
-                alloc::format!(
-                    "a stream to {}:{}",
-                    alloc::string::String::from_utf8_lossy(name),
-                    to.port
-                )
-            }
-            None => alloc::format!("a stream to {a}.{b}.{c}.{d}:{}", to.port),
-        };
+        let what = alloc::format!("a stream to {dest}");
         return crate::linux::app::refuse(&what, needs, errno::ENETUNREACH);
     }
     if sock::with(|t| t.get(id).is_some_and(|s| s.connected || s.listening || s.svc.is_some())) {
@@ -66,10 +62,14 @@ pub fn connect(guest: &Guest, id: u32, to: Addr) -> u64 {
      * or nowhere when net.anon is not running; Nym, an unreadable default and
      * Direct go to the mixnet below. One network or none, never a second.
      */
-    match path(Route::chosen()) {
-        Path::Mixnet => {}
-        Path::Anyone(port) => return super::anon::connect(guest, id, to, port),
+    let answer = match path(Route::chosen()) {
+        Path::Mixnet => super::mixnet::mixnet(guest, id, to),
+        Path::Anyone(port) => super::anon::connect(guest, id, to, port),
         Path::Unreachable(why) => return super::super::policy::unreachable(to, why),
+    };
+    /* A boxed run's report names each destination the network took a stream to. */
+    if answer == errno::ok(0) || answer == errno::fail(errno::EINPROGRESS) {
+        crate::linux::boxed::connected(dest.as_bytes());
     }
-    super::mixnet::mixnet(guest, id, to)
+    answer
 }
