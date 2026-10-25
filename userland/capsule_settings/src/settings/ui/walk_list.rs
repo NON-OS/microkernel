@@ -23,18 +23,22 @@ use nonos_policy_proto::wallpaper_labels::WALLPAPER_LABELS;
 use crate::settings::schema::rows::Row;
 use crate::settings::state::State;
 
+use super::metrics::ROW_H;
+use super::station_row::station_list;
 use super::walk::Item;
 use super::walk_metrics::{bt_rows, network_rows, saved_rows};
 
-/// How many entries a list has, and the item the walker gives each one.
-pub type List = (usize, fn(usize) -> Item);
+/// How many entries a list has, the item the walker gives each one, and
+/// each entry's height.
+pub type List = (usize, fn(usize) -> Item, u32);
 
 pub fn list_of(state: &State, r: &Row) -> Option<List> {
     match r {
-        Row::Networks => Some((network_rows(state), Item::Network)),
-        Row::Saved => Some((saved_rows(state), Item::Saved)),
-        Row::Wallpapers => Some((WALLPAPER_LABELS.len(), |i| Item::Wallpaper(i as u8))),
-        Row::BtDevices => Some((bt_rows(state), Item::BtDevice)),
+        Row::Networks => Some((network_rows(state), Item::Network, ROW_H)),
+        Row::Saved => Some((saved_rows(state), Item::Saved, ROW_H)),
+        Row::Wallpapers => Some((WALLPAPER_LABELS.len(), |i| Item::Wallpaper(i as u8), ROW_H)),
+        Row::BtDevices => Some((bt_rows(state), Item::BtDevice, ROW_H)),
+        Row::Station => Some(station_list(state)),
         Row::Field(_) | Row::Live(..) | Row::Access(_) => None,
     }
 }
