@@ -25,7 +25,7 @@ use crate::wire::{call, decode_reply, HDR_LEN, STATUS_LEN};
 pub(super) fn laid_out(driver: Driver, op: u16, port: u32) -> Option<Identity> {
     let magic = driver.magic();
     let mut rx = [0u8; HDR_LEN + STATUS_LEN + AHCI_IDENTIFY_LEN];
-    let (n, id) = call(port, magic, op, &[], &mut rx).ok()?;
+    let (n, id) = call(port, magic, op, 0, &[], &mut rx).ok()?;
     let body = decode_reply(&rx, n, magic, op, id).ok()?;
     parse_ahci_identity(body)
 }
