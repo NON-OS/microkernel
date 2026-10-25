@@ -28,6 +28,7 @@ fn doc() -> AttestationDoc {
         iommu_vendor: IOMMU_INTEL_VTD,
         iommu_enforcing: true,
         unconfined_grants: 13,
+        identity_devices: 5,
         attest: vec![1, 2, 3, 4],
         signature: vec![9; 72],
         ak_public: [0xCD; 64],
@@ -35,13 +36,13 @@ fn doc() -> AttestationDoc {
 }
 
 /// Where the DMA posture ends and the length-prefixed blobs begin.
-const ATTEST_LEN_AT: usize = 8 + 4 + 32 + 32 + 4 + 1 + 1 + 1 + 4;
+const ATTEST_LEN_AT: usize = 8 + 4 + 32 + 32 + 4 + 1 + 1 + 1 + 4 + 4;
 
 #[test]
-fn the_version_is_three_because_the_layout_grew() {
-    assert_eq!(DOC_VERSION, 3);
+fn the_version_is_four_because_the_layout_grew() {
+    assert_eq!(DOC_VERSION, 4);
     let b = doc().encode();
-    assert_eq!(&b[8..12], &3u32.to_be_bytes());
+    assert_eq!(&b[8..12], &4u32.to_be_bytes());
 }
 
 #[test]
@@ -50,6 +51,7 @@ fn the_dma_posture_follows_the_completeness_byte() {
     assert_eq!(b[81], IOMMU_INTEL_VTD);
     assert_eq!(b[82], 1);
     assert_eq!(&b[83..87], &13u32.to_be_bytes());
+    assert_eq!(&b[87..91], &5u32.to_be_bytes(), "identity devices after the grants");
     assert_eq!(&b[ATTEST_LEN_AT..ATTEST_LEN_AT + 4], &4u32.to_be_bytes());
 }
 

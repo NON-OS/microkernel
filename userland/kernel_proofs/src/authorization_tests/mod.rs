@@ -16,3 +16,6 @@
 mod bits_tests;
 mod gate_tests;
 mod token;
+
+/// The token other proofs build theirs with.
+pub(crate) use token::token;

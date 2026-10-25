@@ -92,7 +92,7 @@ nix build .#hardened
 
 Not tested in this release.
 
-Both build the `hardened` profile with the rest of `nonos.toml` unchanged (`ATTR`, `Makefile:43`). [profiles.md](profiles.md) lists the six profiles and what each takes out.
+Both build the `hardened` profile with the rest of `nonos.toml` unchanged (`ATTR`, `Makefile:43`). [profiles.md](profiles.md) lists the seven profiles and what each takes out.
 
 ## The build pages
 

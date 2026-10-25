@@ -70,15 +70,17 @@ and in its libc mirror (`userland/libc/src/broker/types/`).
 ```
 DeviceRecord {
     device_id:    u64       // broker-assigned
-    bus_kind:     u8        // BUS_PCI=1, BUS_ACPI=2, BUS_VIRT=3, BUS_FDT=4
+    bus_kind:     u8        // BUS_PCI=1, BUS_ACPI=2, BUS_VIRT=3, BUS_FDT=4, BUS_FIRMWARE=5
     pci_class:    u8        // PCI class code, as read
     pci_subclass: u8
     pci_progif:   u8
     class:        u32       // class id, see section 4
     vendor:       u16       // vendor id (PCI)
     device:       u16       // device id (PCI)
-    flags:        u32       // CLAIMED=1, DISABLED=2 (defined; never set),
-                            // DMA_NONCOHERENT=4: its DMA does not snoop
+    flags:        u32       // CLAIMED=1, DISABLED=2 (fenced: never claimed),
+                            // EXTERNAL=4 (behind an external-facing port),
+                            // DEPS_UNMET=8, IRQ_EDGE=16, IRQ_ACTIVE_LOW=32,
+                            // DMA_NONCOHERENT=64: its DMA does not snoop
     bar_count:    u8        // valid BAR slot span, not compacted count
     irq_line:     u8        // PCI interrupt line (0xFF none)
     irq_pin:      u8        // PCI interrupt pin (0 none)
@@ -96,7 +98,7 @@ Bar {
                      // NONE): bus rate in Hz; BUS_FDT SDHCI: its base
                      // clock in Hz as firmware states it; else 0
     kind:   u8       // BAR_NONE=0, BAR_MMIO=1, BAR_PIO=2
-    flags:  u8       // PREFETCH=1, MEM64=2
+    flags:  u8       // PREFETCH=1, MEM64=2, FIXED=4 (a fixed legacy window)
     _pad:   [u8; 2]
 }
 ```

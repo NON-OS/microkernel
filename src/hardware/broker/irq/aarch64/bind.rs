@@ -69,6 +69,6 @@ pub fn bind(pid: u32, req: IrqBindRequest) -> Result<IrqBindResult, IrqBindError
         return Err(IrqBindError::PlatformError);
     }
     gic::enable_irq(req.irq_source);
-
-    Ok(IrqBindResult { grant_id, vector: 0 })
+    super::line_live::keep(pid, req.device_id, claim.epoch, req.irq_source, grant_id)?;
+    Ok(IrqBindResult { grant_id, vector: 0, grants: 1 })
 }

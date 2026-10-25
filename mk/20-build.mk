@@ -523,6 +523,7 @@ include userland/capsule_snake/Capsule.mk
 include userland/capsule_wallet_nonos/Capsule.mk
 include userland/capsule_shield/Capsule.mk
 include userland/capsule_shield_vectors/Capsule.mk
+include userland/capsule_attack/Capsule.mk
 include userland/capsule_terminal/Capsule.mk
 include userland/capsule_file_manager/Capsule.mk
 include userland/capsule_text_editor/Capsule.mk
@@ -1164,9 +1165,10 @@ nonos-mk-audio-player-smoketest-test: $(proof-io_ARTIFACTS) \
 # absent. The runtime, debug, and benchmark boot targets use this so a QEMU boot
 # reaches the ready marker. The full hardware image is nonos-mk-zerostate, which
 # is what ships and what the ISO carries; do not fold this into it.
-# The capsules that link against the std platform layer. That layer issues
-# syscalls with raw x86_64 registers, so these do not cross-compile to aarch64
-# yet and are kept separate from the base set.
+# The capsules that link against the std platform layer, kept separate from
+# the base set. The layer reaches the kernel through its pal trap, with each
+# architecture's registers (toolchain/nonos-std/sys/pal/nonos/trap.rs), so they
+# build for every user target; the arm desktop does not carry them yet.
 # tokio-smoke is deliberately absent. It is the async runtime gate: a timer
 # raced against an idle accept, forever, to prove the mio waker self-wakes.
 # That is a test, and in the desktop image it held a steady share of a core for

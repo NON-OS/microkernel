@@ -50,7 +50,7 @@ cannot write to the serial console (`CAPSULE_REQUIRED_CAPS`,
 The kernel makes `driver.ps2_kbd0`, `driver.usb_hid0` and `driver.i2c_hid0`
 [held endpoints](../../overview/glossary-hardware-broker.md#held-endpoint) with an empty sender
 list, so no capsule can ask a keyboard driver for keys (`KERNEL_ONLY`,
-`src/services/registry/held_table.rs:27-29`).
+`src/services/registry/held_table.rs:32-34`).
 
 longer admits a post, so the AHCI, HD Audio, Intel Wi-Fi, NVMe, virtio-blk and
 xHCI drivers, whose manifests ask for it, cannot forge input; the I2C
@@ -58,8 +58,10 @@ controller driver no longer asks for it, as its engine polls
 (`CAPSULE_REQUIRED_CAPS`, `userland/capsule_driver_i2c_pci/Capsule.mk:18`).
 And the three input drivers, which hold `InputSource`, cannot drain the ring:
 that takes `InputConsumer`, which `input_router` alone holds, with no
-`InputSource` (`userland/capsule_input_router/Capsule.mk:14-17`;
-`can_input_consumer`, `src/capabilities/token/types/authority_broker.rs:63-66`).
+`InputSource`, and the static checks and the seal refuse it in any other
+capsule (`userland/capsule_input_router/Capsule.mk:14-17`; `can_input_consumer`,
+`src/capabilities/token/types/authority_broker.rs:63-66`;
+`scripts/check_input_drain_cap.py`).
 
 ## See also
 

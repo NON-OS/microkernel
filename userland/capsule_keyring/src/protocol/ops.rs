@@ -29,7 +29,7 @@
 use super::distinct::all_distinct;
 use super::types::*;
 
-pub const ALL: [u16; 30] = [
+pub const ALL: [u16; 31] = [
     OP_STORE,
     OP_RETRIEVE,
     OP_DELETE,
@@ -60,6 +60,7 @@ pub const ALL: [u16; 30] = [
     OP_SHIELD_OPEN,
     OP_WALLET_DERIVE,
     OP_SIGN_TYPED_DATA,
+    OP_LIST,
 ];
 
 const _: () = assert!(all_distinct(&ALL), "two operations share a code");
