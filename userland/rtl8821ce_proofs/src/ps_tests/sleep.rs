@@ -12,6 +12,7 @@ const QUIET: Seen = Seen { tx: 0, rx: 0, sends: 0 };
 
 fn asleep_on(card: &DbiCard, aspm: Aspm) -> Ps {
     let mut ps = Ps::new(aspm);
+    ps.assume_ready();
     ps.step(card, 0, QUIET, true);
     ps.step(card, PERIOD_MS, QUIET, true);
     assert!(ps.asleep(), "a quiet period puts it to sleep");
