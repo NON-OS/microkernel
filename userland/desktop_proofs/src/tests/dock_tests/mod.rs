@@ -18,6 +18,7 @@
 //! (state/taskbar/dock_rule.rs), and the shell's window tracking when a
 //! window's close never reaches it.
 
+mod focus;
 mod forget;
 mod full_screen;
 mod notices;
