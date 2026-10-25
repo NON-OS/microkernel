@@ -37,11 +37,15 @@ pub(super) struct Capsule {
     /// Its devices' reserved ranges, mapped while a device naming them is
     /// attached; their IOVAs are never handed to a grant.
     pub reserved: Vec<Held>,
+    /// It holds neither Dma nor Mmio (port_only.rs): its devices block no
+    /// group but across a shared conventional bus.
+    pub port_only: bool,
 }
 
 impl Capsule {
-    pub(super) fn new(pid: u32, domain: IommuDomain) -> Self {
-        Self { pid, domain, devices: Vec::new(), next_iova: IOVA_BASE, reserved: Vec::new() }
+    pub(super) fn new(pid: u32, domain: IommuDomain, port_only: bool) -> Self {
+        let (devices, reserved) = (Vec::new(), Vec::new());
+        Self { pid, domain, devices, next_iova: IOVA_BASE, reserved, port_only }
     }
 }
 
