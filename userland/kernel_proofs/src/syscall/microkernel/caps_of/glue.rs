@@ -22,7 +22,11 @@ const HANDLER: &str = include_str!("../../../../../../src/syscall/microkernel/ca
 const TABLE: &str = include_str!("../../../../../../src/syscall/contract/cap_table/mk_proc.rs");
 
 fn flat(s: &str) -> String {
-    s.lines().map(|l| l.split("//").next().unwrap()).collect::<String>().split_whitespace().collect()
+    s.lines()
+        .map(|l| l.split("//").next().unwrap())
+        .collect::<String>()
+        .split_whitespace()
+        .collect()
 }
 
 #[test]
@@ -42,5 +46,7 @@ fn the_handler_asks_the_rule_with_the_kernel_s_facts() {
 #[test]
 fn only_a_spawn_broker_holder_reaches_the_call() {
     let t = flat(TABLE);
-    assert!(t.contains("SyscallNumber::MkCapsOf=>caps.is_valid()&&caps.grants(Capability::SpawnBroker),"));
+    assert!(t.contains(
+        "SyscallNumber::MkCapsOf=>caps.is_valid()&&caps.grants(Capability::SpawnBroker),"
+    ));
 }

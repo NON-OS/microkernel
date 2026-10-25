@@ -17,10 +17,10 @@
 //! The kernel's one silence table (silence.rs), under a spin lock: a few
 //! word compares on a late call or an answer, nothing allocated.
 
+use super::late_drops::dropped;
 use super::silence::{Pair, Silence};
 use super::verdict::DEFAULT_MS;
 use crate::sys::diag::Site;
-use crate::syscall::microkernel::errnos::ERRNO_TIMEDOUT;
 use spin::Mutex;
 
 static TABLE: Mutex<Silence> = Mutex::new(Silence::new(DEFAULT_MS));
@@ -31,7 +31,7 @@ pub(super) fn report(site: &Site, pair: Pair, name: &str, waited_ms: u64) {
     let now = crate::time::timestamp_millis();
     let [this, evicted] = TABLE.lock().late(pair, now.saturating_sub(waited_ms), now);
     if this.is_some() {
-        site.starved(name, ERRNO_TIMEDOUT);
+        site.silent_for(name, dropped());
     }
     if let Some(other) = evicted {
         site.silent(other.port);
