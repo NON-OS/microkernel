@@ -18,6 +18,8 @@
 //! from proofs.rs, each at its own file.
 
 /// Late versus starved for an ipc.call with no answer (B-04).
+#[path = "ipc_death/mod.rs"]
+pub mod ipc_death;
 #[path = "ipc_call_verdict/mod.rs"]
 pub mod ipc_call_verdict;
 #[path = "legacy_ports/mod.rs"]

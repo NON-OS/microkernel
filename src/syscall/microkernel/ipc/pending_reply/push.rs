@@ -19,19 +19,30 @@ use alloc::string::String;
 use super::share::admits;
 use super::state::PENDING;
 
+/// Why a call could not be queued for its reply.
+pub(in crate::syscall::microkernel::ipc) enum Refused {
+    /// The caller already holds its share of the server's places.
+    Busy,
+    /// The server is dead: no reply will come.
+    Gone,
+}
+
 pub(in crate::syscall::microkernel::ipc) fn push(
     server_pid: u32,
     caller_pid: u32,
     caller_inbox: String,
     token: u64,
-) -> bool {
+) -> Result<(), Refused> {
     let mut map = PENDING.lock();
+    if super::abandoned::gone(server_pid) {
+        return Err(Refused::Gone);
+    }
     let queue = map.entry(server_pid).or_default();
     let mine = queue.iter().filter(|(pid, _, _)| *pid == caller_pid).count();
     if admits(queue.len(), mine) {
         queue.push_back((caller_pid, caller_inbox, token));
-        true
+        Ok(())
     } else {
-        false
+        Err(Refused::Busy)
     }
 }
