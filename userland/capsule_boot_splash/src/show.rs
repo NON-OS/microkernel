@@ -13,17 +13,18 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! One drawing of the splash at one canvas size: its surface, the logo
-//! placed for that size and the layout around it, painted and handed to
+//! One drawing of the splash at one canvas size: its surface and the
+//! layout for that size, painted and handed to
 //! the compositor. A later drawing is submitted at the same depth, so the
 //! compositor puts it in place of the earlier one; the earlier surface is
 //! given back only after that, and the screen never shows neither.
 
 use nonos_libc::{mk_munmap, mk_surface_release, mk_uptime_ms, AttestStatus};
 
+use crate::attest_lines::Chain;
 use crate::follow::Size;
 use crate::look::Look;
-use crate::{layout_fit, logo, paint, say, scene, surface};
+use crate::{layout_fit, paint, say, scene, surface};
 
 /// A splash surface the compositor holds.
 pub(crate) struct Up {
@@ -37,14 +38,13 @@ pub(crate) fn raise(
     comp: u32,
     size: Size,
     att: AttestStatus,
-    badge: Option<bool>,
+    chain: Option<Chain>,
 ) -> Result<(Up, Look), i32> {
     let (w, h, stride) = size;
     let (base, handle) = surface::setup(w, h, stride).ok_or(5)?;
     let up = Up { base, handle, size };
-    let logo = logo::fetch::fetch(w, h);
-    let fit = layout_fit::layout(logo.as_ref().map(|l| &l.spot), w, h);
-    let look = Look { att, badge, logo, fit, dma_unconfined: crate::dma::unconfined() };
+    let fit = layout_fit::layout(w, h);
+    let look = Look { att, chain, fit, dma_unconfined: crate::dma::unconfined() };
     paint::splash(base, w, h, stride, &look);
     if scene::submit(comp, 3, handle, w, h).is_err() {
         give_back(&up);

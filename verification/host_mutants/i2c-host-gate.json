@@ -1,0 +1,50 @@
+[
+ {
+  "name": "i2c-host-no-lpss-class",
+  "file": "src/hardware/inventory/i2c_host.rs",
+  "old": "matches!(pci, (SERIAL_BUS | SIGNAL_PROCESSING, OTHER))\n                || ",
+  "new": "",
+  "crate": "userland/i2c_pci_proofs",
+  "test": "host_gate"
+ },
+ {
+  "name": "i2c-host-no-id-list",
+  "file": "src/hardware/inventory/i2c_host.rs",
+  "old": "\n                || LPSS_I2C_IDS.iter().any(|&(lo, hi)| (lo..=hi).contains(&device))",
+  "new": "",
+  "crate": "userland/i2c_pci_proofs",
+  "test": "host_gate"
+ },
+ {
+  "name": "i2c-host-no-acpi",
+  "file": "src/hardware/inventory/i2c_host.rs",
+  "old": "BUS_ACPI => class == SERIAL && pci.0 == SERIAL_BUS,",
+  "new": "BUS_ACPI => false,",
+  "crate": "userland/i2c_pci_proofs",
+  "test": "host_gate"
+ },
+ {
+  "name": "i2c-host-any-intel",
+  "file": "src/hardware/inventory/i2c_host.rs",
+  "old": "BUS_PCI if vendor == INTEL => {",
+  "new": "BUS_PCI if vendor == INTEL => { return true;",
+  "crate": "userland/i2c_pci_proofs",
+  "test": "host_gate"
+ },
+ {
+  "name": "i2c-host-any-subclass",
+  "file": "src/hardware/inventory/i2c_host.rs",
+  "old": "(SERIAL_BUS | SIGNAL_PROCESSING, OTHER)",
+  "new": "(SERIAL_BUS | SIGNAL_PROCESSING, _)",
+  "crate": "userland/i2c_pci_proofs",
+  "test": "host_gate"
+ },
+ {
+  "name": "i2c-spawn-ungated",
+  "file": "src/userspace/init/spawn_plan/drivers_bus/i2c.rs",
+  "old": "    if !crate::hardware::inventory::i2c_host_present() {",
+  "new": "    if false {",
+  "crate": "userland/i2c_pci_proofs",
+  "test": "spawn_glue"
+ }
+]
