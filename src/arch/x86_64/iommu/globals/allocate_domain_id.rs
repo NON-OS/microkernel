@@ -14,15 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::types::MAX_VTD_DOMAINS;
+use super::domain_id_limit::domain_id_limit;
 use super::state::{FIRST_DYNAMIC_DOMAIN_ID, STATE};
 
-/// The lowest free slot, or `MAX_VTD_DOMAINS` when none is, which
-/// `create_domain` refuses. A counter that never went back ran out after 256
-/// claims in one boot however many domains were live, and a driver restarted
-/// that often would then find every claim refused.
+/// The lowest free id the units accept, or the limit itself when none is,
+/// which `create_domain` refuses. A counter that never went back ran out
+/// after 256 claims in one boot however many domains were live, and a driver
+/// restarted that often would then find every claim refused.
 pub fn allocate_domain_id() -> u64 {
+    let limit = domain_id_limit();
     let state = STATE.lock();
     let first = FIRST_DYNAMIC_DOMAIN_ID as usize;
-    (first..MAX_VTD_DOMAINS).find(|&i| !state.domains[i].used).unwrap_or(MAX_VTD_DOMAINS) as u64
+    (first..limit).find(|&i| !state.domains[i].used).unwrap_or(limit) as u64
 }

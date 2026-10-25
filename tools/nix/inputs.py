@@ -30,6 +30,7 @@ unless the Rust names one. `--check` fails when the committed file is not
 what this prints, which `nix flake check` runs (inputs drift check).
 """
 
+import fnmatch
 import glob
 import json
 import os
@@ -80,6 +81,11 @@ MARKERS = {
     "market/index.bin": ["nonos-data/market/index.bin"],
     "models/catalogue.bin": ["nonos-data/models/catalogue.bin"],
 }
+
+# A glob a source names as a string literal: every tracked file it matches,
+# one directory deep, is that crate's input (the system-name proof reads
+# every capsule's Capsule.mk, L61).
+GLOBS = ("userland/*/Capsule.mk",)
 
 # The trust set the seal rewrites as it signs and enrolls. A capsule that read
 # any of it would be rebuilt between its signing and the kernel's build, and
@@ -326,6 +332,12 @@ class Inputs:
             for marker, files in MARKERS.items():
                 if marker in body:
                     self.signed.update(files)
+            for g in GLOBS:
+                if f'"{g}"' in body:
+                    depth = g.count("/")
+                    for p in sorted(FILES):
+                        if p.count("/") == depth and fnmatch.fnmatch(p, g):
+                            self.add(p)
 
     def cargo_configs(self):
         for c in self.crates:

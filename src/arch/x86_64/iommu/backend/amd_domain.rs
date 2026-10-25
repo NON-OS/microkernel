@@ -40,6 +40,7 @@ pub(super) fn map(
 ) -> Result<(), IommuError> {
     let access = (protection.read, protection.write);
     domain::map_range(id.as_u16(), iova, phys.as_u64(), size, access).map_err(|e| match e {
+        AmdViError::Uncommitted => IommuError::Uncommitted,
         AmdViError::Stranded => IommuError::Stranded,
         _ => IommuError::BackendFault,
     })

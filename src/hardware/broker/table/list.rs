@@ -59,6 +59,10 @@ pub(in crate::hardware::broker) fn kind_of(device_id: u64) -> Option<(u8, u32)> 
     TABLE.read().iter().find(|r| r.device_id == device_id).map(|r| (r.bus_kind, r.class))
 }
 
+pub(in crate::hardware::broker) fn flags_of(device_id: u64) -> Option<u32> {
+    TABLE.read().iter().find(|r| r.device_id == device_id).map(|r| r.flags)
+}
+
 /// Whether the device's DMA snoops the CPU's caches; false for a device the
 /// table does not hold, which is then treated as the safer case.
 pub(in crate::hardware::broker) fn dma_coherent(device_id: u64) -> bool {

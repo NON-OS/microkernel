@@ -17,7 +17,7 @@
 use nonos_libc::{mk_device_list, DeviceRecord, BAR_KIND_MMIO, BUS_KIND_PCI};
 
 use crate::constants::{
-    CLASS_DISPLAY, DEVICE_BGA, FB_BAR, PCI_CLASS_DISPLAY, REG_BAR, VENDOR_QEMU_BOCHS,
+    CLASS_DISPLAY, DEVICE_BGA, FB_BAR, PCI_CLASS_DISPLAY, REG_BAR, REG_BAR_MIN, VENDOR_QEMU_BOCHS,
 };
 
 /// The device list holds ACPI and fabricated records beside PCI functions;
@@ -31,6 +31,8 @@ pub struct Found {
     pub reg_size: u64,
 }
 
+/// QEMU's stdvga with its register BAR (machine types since 1.3). An adapter
+/// reached only through I/O ports 0x1ce/0x1cf is not served: no Pio.
 pub fn find_bga() -> Option<Found> {
     let mut buf = [DeviceRecord::empty(); MAX_DEVICES];
     let n = mk_device_list(CLASS_DISPLAY, buf.as_mut_ptr(), MAX_DEVICES as u64);
@@ -48,7 +50,7 @@ pub fn find_bga() -> Option<Found> {
             && fb.kind == BAR_KIND_MMIO
             && reg.kind == BAR_KIND_MMIO
             && fb.size > 0
-            && reg.size > 0
+            && reg.size >= REG_BAR_MIN
         {
             return Some(Found { device_id: r.device_id, fb_size: fb.size, reg_size: reg.size });
         }

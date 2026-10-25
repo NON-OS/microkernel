@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::slot::LeafSlot;
-use crate::arch::x86_64::iommu::tables::frame::{allocate_table, entries_mut};
+use crate::arch::x86_64::iommu::tables::frame::allocate_table;
 use crate::arch::x86_64::iommu::tables::publish::publish;
 use crate::arch::x86_64::iommu::tables::sl_pte::{entry_address, index_for, is_present, table};
+use crate::arch::x86_64::iommu::tables::view::Frame;
 use crate::arch::x86_64::iommu::types::VtdError;
 
 pub fn walk_create(root: u64, iova: u64, levels: u8) -> Result<LeafSlot, VtdError> {
@@ -43,12 +44,13 @@ pub fn walk_create_to(
     let mut level = levels;
     while level > stop_level {
         let index = index_for(iova, level);
-        let entry = entries_mut(current)?[index];
+        let frame = Frame::at(current)?;
+        let entry = frame.read(index)?;
         current = if is_present(entry) {
             entry_address(entry)
         } else {
             let next = allocate_table()?;
-            entries_mut(current)?[index] = table(next);
+            frame.write(index, table(next))?;
             publish(current);
             next
         };

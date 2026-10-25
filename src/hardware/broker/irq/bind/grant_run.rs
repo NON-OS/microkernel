@@ -24,7 +24,7 @@ use alloc::vec::Vec;
 use super::super::grant::{IrqGrant, IrqGrantKind};
 use super::super::records;
 use super::super::slots;
-use super::super::types::{IrqBindRequest, IrqBindResult};
+use super::super::types::{IrqBindError, IrqBindRequest, IrqBindResult};
 use super::sentinels::NO_LINE;
 
 pub(super) fn record_run(
@@ -34,7 +34,7 @@ pub(super) fn record_run(
     base_slot: usize,
     base_vector: u8,
     irtes: &[u16],
-) -> IrqBindResult {
+) -> Result<IrqBindResult, IrqBindError> {
     let n = irtes.len();
     let base_grant = records::allocate_id_run(n as u64);
     let mut new_records: Vec<IrqGrant> = Vec::with_capacity(n);
@@ -52,11 +52,11 @@ pub(super) fn record_run(
             irte: irtes[i],
         });
     }
-    records::insert_many(&new_records);
-
+    // Active before the records are seen (L77), as for a line.
     for i in 0..n {
         slots::activate(base_slot + i, base_grant + i as u64, NO_LINE);
     }
+    super::enter::enter(&new_records)?;
 
-    IrqBindResult { grant_id: base_grant, vector: base_vector }
+    Ok(IrqBindResult { grant_id: base_grant, vector: base_vector, grants: n as u32 })
 }

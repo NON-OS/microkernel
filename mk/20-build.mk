@@ -731,12 +731,22 @@ nonos-mk-kernel-attest: $(KERNEL_ATTEST_STAMP)
 
 # Enroll the bootloader as built, then check it with the bootloader leaf kind.
 # Run after the loader's last rebuild, since the root is over its exact bytes.
+# Kept when the root and trailer on disk already prove these exact bytes: a
+# proof is not deterministic, so re-proving an unchanged loader gave a new
+# root on every nonos-mk-esp and the trust tree never settled.
 .PHONY: nonos-mk-bootloader-attest
 nonos-mk-bootloader-attest: $(NONOS_STARK_ENROLL)
-	@echo "Enrolling the bootloader..."
 	@mkdir -p $(dir $(BOOTLOADER_ATTEST_ROOT_BIN)) $(dir $(BOOTLOADER_ATTEST_TRAILER))
-	@$(NONOS_STARK_ENROLL) bootloader $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi \
-		$(BOOTLOADER_ATTEST_ROOT_BIN) $(BOOTLOADER_ATTEST_TRAILER)
+	@if [ -f $(BOOTLOADER_ATTEST_ROOT_BIN) ] && [ -f $(BOOTLOADER_ATTEST_TRAILER) ] && \
+		$(NONOS_STARK_ENROLL) verify-bootloader $(BOOTLOADER_ATTEST_ROOT_BIN) \
+		$(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi $(BOOTLOADER_ATTEST_TRAILER) \
+		>/dev/null 2>&1; then \
+		echo "Kept the bootloader's enrollment: its trailer proves these bytes"; \
+	else \
+		echo "Enrolling the bootloader..."; \
+		$(NONOS_STARK_ENROLL) bootloader $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi \
+			$(BOOTLOADER_ATTEST_ROOT_BIN) $(BOOTLOADER_ATTEST_TRAILER); \
+	fi
 	@$(NONOS_STARK_ENROLL) verify-bootloader $(BOOTLOADER_ATTEST_ROOT_BIN) \
 		$(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi $(BOOTLOADER_ATTEST_TRAILER)
 

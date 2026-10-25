@@ -44,6 +44,9 @@ pub mod logo {
 #[path = "../../capsule_boot_splash/src/layout.rs"]
 pub mod layout;
 #[cfg(test)]
+#[path = "../../capsule_boot_splash/src/layout_fit.rs"]
+pub mod layout_fit;
+#[cfg(test)]
 #[path = "../../capsule_boot_splash/src/status.rs"]
 pub mod status;
 #[cfg(test)]
@@ -59,6 +62,8 @@ mod build;
 mod draw_tests;
 #[cfg(test)]
 mod logo_clear_tests;
+#[cfg(test)]
+mod logo_fit_tests;
 #[cfg(test)]
 mod mode_tests;
 #[cfg(test)]

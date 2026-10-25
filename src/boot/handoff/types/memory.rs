@@ -56,3 +56,20 @@ pub struct MemoryMap {
     pub entry_count: u32,
     pub desc_version: u32,
 }
+
+impl MemoryMap {
+    // Every region that may hold RAM: anything not reserved, unusable, NVS,
+    // MMIO or PAL code, the loader's and firmware's own included (L63).
+    // SAFETY: as `entries` (memory_read.rs).
+    pub unsafe fn ram_regions(&self) -> impl Iterator<Item = (u64, u64)> + '_ {
+        use memory_type::{ACPI_NVS, MMIO, MMIO_PORT_SPACE, PAL_CODE, RESERVED, UNUSABLE};
+        let not_ram = [RESERVED, UNUSABLE, ACPI_NVS, MMIO, MMIO_PORT_SPACE, PAL_CODE];
+        let bytes = |e: &MemoryMapEntry| e.page_count.saturating_mul(4096);
+        unsafe {
+            self.entries()
+                .iter()
+                .filter(move |e| !not_ram.contains(&e.memory_type))
+                .map(move |e| (e.physical_start, e.physical_start.saturating_add(bytes(e))))
+        }
+    }
+}

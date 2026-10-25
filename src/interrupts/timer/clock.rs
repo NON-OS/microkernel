@@ -26,8 +26,8 @@ use super::hooks;
 use super::state;
 
 /*
- * The EWMA decay constants in the load-average module assume a five-second
- * sampling period; the LAPIC preemption timer runs at 100 Hz.
+ * The load average's weights are worked for a five-second sample
+ * (`fs/procfs/loadavg_math.rs`); the LAPIC preemption timer runs at 100 Hz.
  */
 const LOAD_SAMPLE_TICKS: u64 = 500;
 

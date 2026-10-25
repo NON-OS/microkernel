@@ -14,19 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::state::TransferRing;
-use crate::constants::{TRANSFER_RING_TRBS, TRB_BYTES};
+use crate::constants::TRB_BYTES;
 use crate::error::{XhciError, XhciResult};
 use crate::trb::builders::link::LinkTrbBuilder;
 use crate::trb::{write_volatile_at, Trb};
-/// TRBs that may wait on the ring for the controller at once: all but the
-/// Link and one, so the producer never writes over a TRB not yet run.
-const MAX_PENDING: usize = TRANSFER_RING_TRBS - 2;
 impl TransferRing {
-    /// Queue `trb`. Refused, the ring untouched, while `MAX_PENDING` TRBs
+    /// Queue `trb`. Refused, the ring untouched, while `max_pending` TRBs
     /// are queued that no completion or dequeue move has retired: after a
     /// recovery that failed, writing on would lap the controller.
     pub fn enqueue(&mut self, mut trb: Trb) -> XhciResult<u64> {
-        if self.pending.get() >= MAX_PENDING {
+        if self.pending.get() >= self.max_pending() {
             return Err(XhciError::TransferRingFull);
         }
         trb.set_cycle(self.cycle != 0);
@@ -43,7 +40,7 @@ impl TransferRing {
     /// Refuse, queuing nothing, a TD of `trbs` TRBs the ring has no room
     /// for: queued in part, its data stage named a buffer freed with it.
     pub fn room_for(&self, trbs: usize) -> XhciResult<()> {
-        if self.pending.get() + trbs > MAX_PENDING {
+        if self.pending.get() + trbs > self.max_pending() {
             return Err(XhciError::TransferRingFull);
         }
         Ok(())
@@ -57,7 +54,7 @@ impl TransferRing {
         drop(self.kept.take());
     }
     fn wrap_if_needed(&mut self) {
-        if self.enqueue_index != TRANSFER_RING_TRBS - 1 {
+        if self.enqueue_index != self.trbs - 1 {
             return;
         }
         let link = LinkTrbBuilder::new()
@@ -65,8 +62,7 @@ impl TransferRing {
             .toggle_cycle(true)
             .cycle(self.cycle != 0)
             .build();
-        let link_va =
-            self.region.user_va() + ((TRANSFER_RING_TRBS as u64) - 1) * (TRB_BYTES as u64);
+        let link_va = self.region.user_va() + ((self.trbs as u64) - 1) * (TRB_BYTES as u64);
         // SAFETY: the last TRB slot of the ring's own grant.
         unsafe { write_volatile_at(link_va, link) };
         self.cycle ^= 1;
