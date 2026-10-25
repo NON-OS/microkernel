@@ -22,5 +22,5 @@
  {"name": "bind-any-port", "file": "userland/capsule_linux/src/linux/net/bind_any.rs", "old": "ip == [0; 4] && port == 0 && reaches_out", "new": "ip == [0; 4] && reaches_out", "crate": "userland/capsule_linux_proofs", "test": "bind_any"},
  {"name": "bind-any-address", "file": "userland/capsule_linux/src/linux/net/bind_any.rs", "old": "ip == [0; 4] && port == 0 && reaches_out", "new": "port == 0 && reaches_out", "crate": "userland/capsule_linux_proofs", "test": "bind_any"},
  {"name": "bind-any-without-network", "file": "userland/capsule_linux/src/linux/net/bind_any.rs", "old": "ip == [0; 4] && port == 0 && reaches_out", "new": "ip == [0; 4] && port == 0", "crate": "userland/capsule_linux_proofs", "test": "bind_any"},
- {"name": "bind-any-by-listen", "file": "userland/capsule_linux/src/linux/net/bind.rs", "old": "mask::NET_ANON);\n    if super::bind_any", "new": "mask::NET_LISTEN_LO);\n    if super::bind_any", "crate": "userland/capsule_linux_proofs", "test": "bind_any"}
+ {"name": "bind-any-by-listen", "file": "userland/capsule_linux/src/linux/net/bind.rs", "old": "mask::NET_ANON)\n        || crate::linux::boxed::learning();\n    if super::bind_any", "new": "mask::NET_LISTEN_LO)\n        || crate::linux::boxed::learning();\n    if super::bind_any", "crate": "userland/capsule_linux_proofs", "test": "bind_any"}
 ]

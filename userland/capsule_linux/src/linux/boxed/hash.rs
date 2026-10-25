@@ -31,6 +31,7 @@ pub fn box_hash(policy: &BoxPolicy) -> [u8; 32] {
         Preset::Strict => 1,
         Preset::Offline => 2,
         Preset::Allow => 3,
+        Preset::Learn => 4,
     }]);
     h.update(&policy.mask.to_be_bytes());
     h.update(&(policy.folders.len() as u32).to_be_bytes());
@@ -44,4 +45,8 @@ pub fn box_hash(policy: &BoxPolicy) -> [u8; 32] {
     };
     h.update(&dests);
     *h.finalize().as_bytes()
+}
+
+pub fn hex(bytes: &[u8]) -> alloc::string::String {
+    bytes.iter().map(|b| alloc::format!("{b:02x}")).collect()
 }
