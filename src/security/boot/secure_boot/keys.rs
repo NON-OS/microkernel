@@ -21,7 +21,7 @@ use crate::crypto::constant_time::ct_eq_32;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-/// The keys `verify_code_signature` will accept a signature from.
+/// The trusted boot keys, loaded from those the kernel embeds.
 pub fn load_embedded_keys() -> SecureBootResult<()> {
     let mut keys = TRUSTED_BOOT_KEYS.write();
 
