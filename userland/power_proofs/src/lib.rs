@@ -21,7 +21,7 @@
 
 #[path = "../../capsule_power/src/off/rule.rs"]
 pub mod rule;
-#[path = "../../capsule_acpi/src/power/off/wire.rs"]
+#[path = "../../capsule_power/src/off/wire.rs"]
 pub mod wire;
 #[path = "../../capsule_desktop_shell/src/power_off_client/frame.rs"]
 pub mod frame;
@@ -30,5 +30,7 @@ pub mod frame;
 mod glue_tests;
 #[cfg(test)]
 mod kernel_glue_tests;
+#[cfg(test)]
+mod off_wire_tests;
 #[cfg(test)]
 mod rule_tests;
