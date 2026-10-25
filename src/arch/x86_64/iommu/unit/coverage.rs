@@ -26,7 +26,7 @@
 
 use crate::arch::x86_64::acpi::parser::other::dmar_rmrr::names;
 use crate::arch::x86_64::acpi::parser::other::{
-    remap_unit_scopes, reserved_regions, translated_by_some,
+    reserved_regions, translated_by_some, with_remap_unit_scopes,
 };
 
 /// PCI segment the config-space transport reaches. Only segment 0 is driven.
@@ -34,8 +34,9 @@ const SEGMENT: u16 = 0;
 
 /// Whether a programmed unit translates `bus:dev.func`.
 pub fn unit_covers(bus: u8, device: u8, function: u8) -> bool {
-    let units = remap_unit_scopes();
-    translated_by_some(&units, SEGMENT, (bus, device, function), &bridge_buses)
+    with_remap_unit_scopes(|units| {
+        translated_by_some(units, SEGMENT, (bus, device, function), &bridge_buses)
+    })
 }
 
 /// The reserved memory regions firmware listed for `bus:dev.func`, as

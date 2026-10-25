@@ -20,7 +20,7 @@
 //! nothing else. Pure and allocation free, so the host proofs
 //! include it unchanged; a structure that is not exactly sound is refused.
 
-use super::dmar_scope::{read_scopes, scope_covers, Cover, UnitScope};
+use super::dmar_scope::{read_scopes, scope_covers, Cover, UnitScope, RMRR_SCOPES};
 
 pub const RMRR_TYPE: u16 = 1;
 const HEADER_LEN: usize = 24;
@@ -34,7 +34,7 @@ pub struct Reserved {
     /// One past the last byte; page aligned.
     pub end: u64,
     /// The devices it is for; `include_all` is never set.
-    pub scope: UnitScope,
+    pub scope: UnitScope<RMRR_SCOPES>,
 }
 
 /// One RMRR structure (`bytes` exactly its `length` bytes). `None` for a
@@ -51,7 +51,7 @@ pub fn parse_rmrr(bytes: &[u8]) -> Option<Reserved> {
     if base % PAGE != 0 || end % PAGE != 0 || end <= base || end - base > RMRR_MAX {
         return None;
     }
-    let mut scope = UnitScope::EMPTY;
+    let mut scope = UnitScope::<RMRR_SCOPES>::EMPTY;
     scope.segment = u16::from_le_bytes([head[6], head[7]]);
     read_scopes(bytes, HEADER_LEN, &mut scope);
     Some(Reserved { base, end, scope })
