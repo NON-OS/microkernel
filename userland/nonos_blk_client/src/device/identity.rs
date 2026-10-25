@@ -53,9 +53,9 @@ impl BlockDevice {
                 Ok(Some(Identity { model, serial, emmc: false }))
             }
             Driver::Ahci => Ok(laid_out(Driver::Ahci, OP_AHCI_IDENTIFY, self.port)),
-            Driver::Wire | Driver::Ufs => Ok(super::wire::identity(self.port)),
             Driver::Rtsx => Ok(laid_out(Driver::Rtsx, OP_SD_IDENTIFY, self.port)),
             Driver::VirtioBlk => Ok(None),
+            _ => Ok(super::wire::identity(self.port)),
         }
     }
 }
