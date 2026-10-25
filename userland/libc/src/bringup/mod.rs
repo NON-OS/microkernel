@@ -26,7 +26,7 @@ pub mod schedule;
 mod start;
 
 pub use deadline::{retry_after, BRINGUP_BUDGET_MS};
-pub use policy::{decide, EXIT_ABSENT, EXIT_GAVE_UP};
+pub use policy::{decide, EXIT_ABSENT, EXIT_EMPTY, EXIT_GAVE_UP};
 pub use recv_turn::{recv_turn, RecvTurn, RECV_PARK_MS};
 pub use run::{bring_up, recv_ready};
 pub use say::say_absent;
