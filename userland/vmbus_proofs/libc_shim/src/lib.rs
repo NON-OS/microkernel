@@ -24,6 +24,9 @@ mod hv;
 mod ipc;
 mod script;
 #[allow(dead_code)]
+#[path = "../../../../src/arch/x86_64/hypervisor/hv/channels.rs"]
+mod channels;
+#[allow(dead_code)]
 #[path = "../../../../src/arch/x86_64/hypervisor/hv/regs.rs"]
 mod regs;
 #[allow(dead_code)]
