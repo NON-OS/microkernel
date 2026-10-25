@@ -20,7 +20,7 @@ mod compose;
 mod constants;
 mod draw_cursor;
 mod draw_input_line;
-mod fetch;
+pub mod fetch;
 pub mod fetch_arch;
 pub(crate) mod fetch_banner;
 pub(crate) mod fetch_boot;
