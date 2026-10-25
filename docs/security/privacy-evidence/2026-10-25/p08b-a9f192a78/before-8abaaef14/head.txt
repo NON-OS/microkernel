@@ -1,0 +1,5 @@
+8abaaef147 P-08b: rustfmt over the unit's files
+ mk/20-build.mk       | 1 +
+ tools/nix/config.nix | 8 ++++++++
+ 2 files changed, 9 insertions(+)
+e8b770f03da0f80452c0b5a8a51569f73996bb58a5a430104485ff7a5d9fd4db  /home/user/pk-build/target/dev/tree/target/release/p08acpi-dev/nonos.img

@@ -30,7 +30,7 @@ pub struct Launch {
     pub(super) next_probe_ms: i64,
     pub(super) probe_gap_ms: i64,
     pub(super) next_look_ms: i64,
-    pub(super) served: bool,
+    pub(super) served: Option<i32>,
 }
 
 impl Launch {
@@ -43,7 +43,7 @@ impl Launch {
             next_probe_ms: now_ms.saturating_add(FIRST_PROBE_MS),
             probe_gap_ms: FIRST_PROBE_MS,
             next_look_ms: now_ms,
-            served: false,
+            served: None,
         }
     }
 
