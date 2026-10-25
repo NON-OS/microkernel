@@ -19,7 +19,10 @@
 //! as Linux's n_tty does without NOFLSH. Watched by the serve loop, so a
 //! guest that never reads still hears it.
 
+use core::cell::RefCell;
+
 use super::input::pull;
+use super::intr_press::{Press, Presses};
 use super::state::{attached, on_tty, with};
 use super::tty_rules::{holds, interrupt_byte};
 
@@ -40,4 +43,21 @@ pub fn take_interrupt() -> bool {
         with(|c| c.queue.clear());
     }
     hit
+}
+
+struct Kept(RefCell<Presses>);
+
+/*
+ * SAFETY: only the serve loop takes interrupts; guest threads run in their
+ * own processes and only trap into it.
+ */
+unsafe impl Sync for Kept {}
+
+static PRESSED: Kept = Kept(RefCell::new(Presses::new()));
+
+/// What this Ctrl+C is, counted with the ones before it.
+pub fn press() -> Press {
+    /* A clock that cannot be read counts every press at once: three end it. */
+    let now = u64::try_from(nonos_libc::mk_uptime_ms()).unwrap_or(0);
+    PRESSED.0.borrow_mut().press(now)
 }

@@ -39,7 +39,7 @@ pub extern "C" fn riscv64_ap_entry(_hart_id: u64, _stack_top: u64) -> ! {
         cpu::halt();
     }
     HARTS_ONLINE.fetch_add(1, Ordering::AcqRel);
-    let hart = cpu::id::hart_id();
+    let _hart = cpu::id::hart_id();
     loop {
         idle_cpu();
     }
