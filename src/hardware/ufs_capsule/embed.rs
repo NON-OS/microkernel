@@ -23,15 +23,15 @@ pub(super) const DRIVER_UFS_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-ufs")]
 pub(super) const DRIVER_UFS_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_ufs.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_ufs.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-ufs")]
 pub(super) const DRIVER_UFS_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_ufs.manifest.bin");
+    crate::baked_trust!("capsules/driver_ufs.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-ufs")]
 pub(super) const DRIVER_UFS_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_ufs.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_ufs.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-ufs"))]
 pub(super) const DRIVER_UFS_ELF: &[u8] = &[];

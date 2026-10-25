@@ -48,6 +48,7 @@ pub(crate) const CORE: &[(&str, &str)] = &[
     ("nox_settle", "systems.nonos.nox_settle"),
     ("payment", "systems.nonos.payment"),
     ("policy", "systems.nonos.policy"),
+    ("power", "systems.nonos.power"),
     ("proof_io", "systems.nonos.proof_io"),
     ("ramfs", "systems.nonos.ramfs"),
     ("shield_vectors", "systems.nonos.shield_vectors"),

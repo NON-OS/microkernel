@@ -91,6 +91,7 @@ driver.intel_display0
 driver.iwlwifi0
 driver.ixgbe_0
 driver.mpt0
+driver.netvsc0
 driver.nvme0
 driver.ohci0
 driver.pcnet0
@@ -191,6 +192,7 @@ endpoint.4294967394
 endpoint.4294967395
 endpoint.4294967396
 endpoint.4294967397
+endpoint.4294967398
 endpoint.4294967399
 endpoint.4294967480
 endpoint.4294967481
