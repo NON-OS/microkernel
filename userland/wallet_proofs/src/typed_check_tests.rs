@@ -16,7 +16,8 @@
 
 //! What is refused before the key is touched, and what after.
 
-use crate::server::typed::chains::CHAINS;
+use nonos_nox_config::{MAINNET, SEPOLIA};
+
 use crate::server::typed::check::{admit, caller_allowed, signer_rule};
 use crate::server::typed::entry::Entry;
 use crate::server::typed::refusal::Refusal;
@@ -26,7 +27,7 @@ use crate::server::typed::table::ENTRIES;
 fn nothing_signs_while_no_contract_is_deployed() {
     for e in ENTRIES {
         let words = vec![0u8; e.fields.len() * 32];
-        for chain in CHAINS {
+        for chain in [MAINNET, SEPOLIA] {
             assert_eq!(admit(e, chain, &words), Err(Refusal::NotDeployed), "{}", e.id);
         }
     }
