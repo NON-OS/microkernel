@@ -28,6 +28,7 @@ pub mod power;
 pub mod power_button;
 mod power_query;
 pub mod power_reboot;
+mod power_prepared;
 mod power_sleep;
 mod power_types;
 pub mod tables;
