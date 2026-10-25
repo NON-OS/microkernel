@@ -20,16 +20,28 @@
 
 use nonos_libc::AttestStatus;
 
+use crate::attest_lines::Chain;
 use crate::layout_fit::Layout;
 use crate::logo::Shown;
 
 pub(crate) struct Look {
     pub att: AttestStatus,
-    pub badge: Option<bool>,
+    /// What the boot recorded, for the panel; None when the kernel gave none.
+    pub chain: Option<Chain>,
     pub logo: Option<Shown>,
     /// Where the panel and status line sit around that logo.
     pub fit: Layout,
     /// The kernel says device DMA is not confined by hardware (no IOMMU):
     /// the warning is drawn in its row.
     pub dma_unconfined: bool,
+}
+
+/// The panel's record from MkAttestStatus's `rc` and what it wrote in `att`.
+pub(crate) fn chain(att: &AttestStatus, rc: i64) -> Option<Chain> {
+    let c = Chain {
+        secure_boot: att.secure_boot,
+        kernel_sig_ok: att.kernel_sig_ok,
+        zk_verified: att.zk_verified,
+    };
+    (rc == 0).then_some(c)
 }

@@ -16,14 +16,10 @@
 
 use nonos_toolkit::font::render::draw_text;
 
+use crate::attest_lines::{lines, Chain};
 use crate::chrome::panel;
 use crate::layout::Area;
 use crate::look::Look;
-
-const DIM: u32 = 0xFF5B_6B78;
-const ACCENT: u32 = 0xFF00_D4AA;
-const OK: u32 = 0xFF00_CC66;
-const WARN: u32 = 0xFFFF_AA00;
 
 /// The firmware's logo, when it left one and the layout keeps it, stands
 /// where the title would.
@@ -35,23 +31,18 @@ pub(crate) fn splash(base: u64, w: u32, h: u32, stride: u32, look: &Look) {
         Some(l) => l.draw(buf, spx, w, h),
         None => crate::title::draw(buf, spx, w, h),
     }
-    attest_panel(buf, spx, (w, h), look.fit.panel, look.badge);
+    attest_panel(buf, spx, (w, h), look.fit.panel, look.chain);
     if look.dma_unconfined {
         crate::warning::draw(buf, spx, w, h, look.fit.warn);
     }
     crate::status::status(buf, spx, w, h, look.fit.status, 0);
 }
 
-fn attest_panel(buf: &mut [u32], spx: usize, (w, h): (u32, u32), at: Area, attested: Option<bool>) {
+/// Each line says what this boot recorded (attest_lines.rs), 20 px apart.
+fn attest_panel(buf: &mut [u32], spx: usize, (w, h): (u32, u32), at: Area, chain: Option<Chain>) {
     let (px, py, pw, ph) = at;
     panel(buf, spx, w, h, px, py, pw, ph, b"boot-chain attestation");
-    draw_text(buf, spx, w, h, px + 14, py + 32, b"[+] bootloader  ed25519 verified", OK);
-    draw_text(buf, spx, w, h, px + 14, py + 52, b"[+] kernel      blake3 verified", OK);
-    draw_text(buf, spx, w, h, px + 14, py + 72, b"[#] capsules    zk attested", ACCENT);
-    let (t, c): (&[u8], u32) = match attested {
-        Some(true) => (b"ATTESTED", OK),
-        Some(false) => (b"UNVERIFIED", WARN),
-        None => (b"verifying", DIM),
-    };
-    draw_text(buf, spx, w, h, px + 14, py + 92, t, c);
+    for (i, (text, colour)) in lines(chain).into_iter().enumerate() {
+        draw_text(buf, spx, w, h, px + 14, py + 32 + 20 * i as u32, text, colour);
+    }
 }
