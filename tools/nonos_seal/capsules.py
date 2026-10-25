@@ -78,6 +78,8 @@ def sign(step, tools, capsules_out, e):
     keys.require([e["seed_ed25519"], e["seed_mldsa65"], e["pub_ed25519"], e["pub_mldsa65"]], e["slug"])
     caps = [e["caps_ceiling"], e["required_caps"], e["optional_caps"]]
     step.run("python3", "scripts/check_device_secret_cap.py", "--slug", e["slug"], "--caps", *caps)
+    step.run("python3", "scripts/check_input_drain_cap.py", "--slug", e["slug"], "--caps", *caps)
+    step.run("python3", "scripts/check_capture_caps.py", "--slug", e["slug"], "--caps", *caps)
     nonos_id = step.run(tools.sign, "derive-id", "--handle", e["handle"], "--domain", e["domain"],
                         "--recovery", e["recovery"], capture=True)
     step.run(tools.sign, "sign-id-cert", "--serial", e["serial"], "--nonos-id", nonos_id,

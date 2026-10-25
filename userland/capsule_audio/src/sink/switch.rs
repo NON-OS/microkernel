@@ -17,8 +17,6 @@
 //! Moving the output between a USB device and the fixed sink as one comes
 //! ready or goes.
 
-use alloc::format;
-
 use super::choose::with_usb;
 use super::client::{ready_at, Sink};
 use crate::mark::mark;
@@ -40,7 +38,7 @@ impl Sink {
             return false;
         }
         self.stop_at(was, 0);
-        mark(&format!("[AUDIO] output {}\n", self.name()));
+        mark(self.output_line());
         true
     }
 }

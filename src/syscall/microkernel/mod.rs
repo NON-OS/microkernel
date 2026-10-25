@@ -24,6 +24,7 @@ pub mod log_tail;
 pub mod attest_policy;
 pub mod battery;
 mod boot_attest;
+pub mod boot_framebuffer;
 pub mod capability;
 pub mod capsule_load;
 pub mod capsule_verify;
@@ -34,7 +35,6 @@ pub mod debug_diag;
 pub mod device;
 mod device_list;
 mod device_proof;
-mod device_release;
 pub mod dispatch;
 #[cfg(feature = "nonos-user-entry-proof")]
 pub mod dispatch_trace;

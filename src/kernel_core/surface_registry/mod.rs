@@ -24,6 +24,7 @@ pub mod pin;
 pub mod release;
 mod ring_math;
 pub mod share;
+mod space;
 pub mod table;
 pub mod types;
 pub mod vsync;
@@ -36,6 +37,7 @@ pub use input_ring::{
 };
 pub use release::{release_owned_by_pid, release_surface};
 pub use share::{attach_surface, share_surface};
+pub(crate) use space::space_of;
 pub use table::{lookup_owned, register_surface};
 pub use types::{
     InputEvent, RegistryError, SurfaceDescriptor, SurfaceFormat, SurfaceHandle, SurfaceSid,

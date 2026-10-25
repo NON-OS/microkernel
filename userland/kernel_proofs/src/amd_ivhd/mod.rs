@@ -20,6 +20,9 @@
  * spec 48882, 5.2.2.2, and hostile bytes.
  */
 
+mod alias_tests;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/ivhd_alias.rs"]
+pub mod ivhd_alias;
 #[path = "../../../../src/arch/x86_64/acpi/parser/other/ivhd_entry.rs"]
 pub mod ivhd_entry;
 #[path = "../../../../src/arch/x86_64/acpi/parser/other/ivhd_kind.rs"]
@@ -35,5 +38,6 @@ pub mod ivmd_block;
 mod fixture;
 mod hostile_tests;
 mod ivmd_tests;
+mod special_entry_tests;
 mod special_tests;
 mod tests;

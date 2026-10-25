@@ -20,29 +20,27 @@ use core::mem;
 use core::ptr;
 
 use super::dmar_ats::{ATSR_TYPE, SATC_TYPE};
+use super::dmar_namespace_store::{record_andd, ANDD_TYPE};
 use super::dmar_rmrr::RMRR_TYPE;
+use super::dmar_rmrr_store::record_rmrr;
 use crate::arch::x86_64::acpi::tables::Drhd;
 
 const DRHD_TYPE: u16 = 0;
 
-/// Keep the structure at `cursor` (`bytes`, exactly its length). True when
-/// it was a segment 0 remapping unit.
-///
-/// # Safety
-/// `cursor` is the directmapped address of `bytes`.
-pub(super) unsafe fn entry(kind: u16, cursor: u64, bytes: &[u8]) -> bool {
-    let mut found_drhd = false;
-    let length = bytes.len();
+/// Keep the whole structure `bytes` of type `kind`. True when it was a
+/// segment 0 remapping unit the kernel kept.
+pub(super) fn entry(kind: u16, bytes: &[u8]) -> bool {
     match kind {
-        RMRR_TYPE => super::dmar_reserved::record(bytes),
-        DRHD_TYPE if length >= mem::size_of::<Drhd>() => {
-            // SAFETY: `cursor` maps `bytes`, at least a Drhd long.
-            let drhd = unsafe { ptr::read_volatile(cursor as *const Drhd) };
+        DRHD_TYPE if bytes.len() >= mem::size_of::<Drhd>() => {
+            // SAFETY: eK@nonos.systems - `bytes` holds a whole Drhd, packed.
+            let drhd = unsafe { ptr::read_unaligned(bytes.as_ptr() as *const Drhd) };
             let (segment, base) = (drhd.segment, drhd.register_base_address);
-            found_drhd |= super::dmar_units::record(bytes, segment, base);
+            return super::dmar_units::record_drhd(bytes, segment, base);
         }
-        ATSR_TYPE | SATC_TYPE if length >= 8 => super::dmar_ats::record(kind, bytes),
+        RMRR_TYPE => record_rmrr(bytes),
+        ANDD_TYPE => record_andd(bytes),
+        ATSR_TYPE | SATC_TYPE if bytes.len() >= 8 => super::dmar_ats::record(kind, bytes),
         _ => {}
     }
-    found_drhd
+    false
 }

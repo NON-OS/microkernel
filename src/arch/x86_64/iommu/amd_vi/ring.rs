@@ -38,8 +38,8 @@ const IDLE: Mutex<Ring> = Mutex::new(Ring { phys: 0, store_phys: 0, tail: 0, seq
 
 pub(super) static RINGS: [Mutex<Ring>; MAX_AMD_IOMMUS] = [IDLE; MAX_AMD_IOMMUS];
 
-/// Point the unit at a fresh command buffer with head and tail at zero, as
-/// Linux does in amd/init.c (iommu_enable_command_buffer) before CMD_BUF_EN.
+/// Point the unit at a fresh command buffer with head and tail at zero
+/// before CMD_BUF_EN, so the unit fetches nothing the kernel did not write.
 ///
 /// # Safety
 /// The unit must be stopped (IOMMU_EN and CMD_BUF_EN clear).

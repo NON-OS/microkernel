@@ -63,7 +63,7 @@ impl Call for Line {
             (1, _) => r.store(sender, p),
             (2 | 3, _) if p.len() != 8 => Err(EINVAL),
             (2 | 3, _) => r.by_id(op, sender, u32::from_le_bytes(p[4..8].try_into().unwrap())),
-            (30, _) if r.lists && p.len() == 5 => Ok(r.list(sender, p[4])),
+            (31, _) if r.lists && p.len() == 5 => Ok(r.list(sender, p[4])),
             _ => Err(EINVAL),
         };
         answer.and_then(|a| if a.len() <= room { Ok(a) } else { Err(NO_ANSWER) })

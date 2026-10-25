@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Handing a batch of descriptors to a unit and waiting until it is done, as
-//! Linux does in intel/dmar.c, qi_submit_sync: the batch, a wait descriptor
-//! behind it, the new tail, then the status dword polled.
+//! Handing a batch of descriptors to a unit and waiting until it is done:
+//! the batch, an invalidation wait descriptor behind it (VT-d 6.5.2.8), the
+//! new tail, then the status dword polled, since the queue runs in order.
 
 use core::sync::atomic::{compiler_fence, Ordering};
 
@@ -24,7 +24,7 @@ use super::descriptor::{wait, Descriptor};
 use super::finish::finish;
 use super::state::slot_of;
 use crate::arch::x86_64::iommu::regs::offsets;
-use crate::arch::x86_64::iommu::tables::frame::entries_mut;
+use crate::arch::x86_64::iommu::tables::view::Frame;
 use crate::arch::x86_64::iommu::types::VtdError;
 use crate::arch::x86_64::iommu::unit::access::RemapUnit;
 
@@ -48,13 +48,17 @@ pub fn submit(unit: &RemapUnit, batch: &[Descriptor]) -> Result<(), VtdError> {
     queue.sequence = queue.sequence.wrapping_add(1).max(1);
     let sequence = queue.sequence;
     let fence = wait(queue.status_phys, sequence);
-    let ring = entries_mut(queue.ring_phys)?;
+    let ring = Frame::at(queue.ring_phys)?;
+    // The tail moves only once the whole batch is written, so a refused write
+    // never leaves half a batch behind the next one.
+    let mut tail = queue.tail;
     for descriptor in batch.iter().chain(core::iter::once(&fence)) {
-        let at = queue.tail as usize * 2;
-        ring[at] = descriptor[0];
-        ring[at + 1] = descriptor[1];
-        queue.tail = offsets::queue_next(queue.tail);
+        let at = tail as usize * 2;
+        ring.write(at, descriptor[0])?;
+        ring.write(at + 1, descriptor[1])?;
+        tail = offsets::queue_next(tail);
     }
+    queue.tail = tail;
     // Descriptors in memory before the tail that lets the unit fetch them.
     compiler_fence(Ordering::SeqCst);
     // SAFETY: eK@nonos.systems - every slot below the new tail holds a
