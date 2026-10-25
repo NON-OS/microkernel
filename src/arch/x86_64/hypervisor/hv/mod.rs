@@ -19,6 +19,7 @@
 //! words, a message slot, and what the VMBus core may post) are proven in
 //! kernel_proofs; `synic` and `hypercall` touch the machine.
 
+mod channels;
 mod features;
 mod hypercall;
 mod hypercall_abi;
@@ -29,8 +30,12 @@ mod ring;
 mod synic;
 mod vmbus_out;
 
+pub use channels::{BindError, Channel, Interface, Retire, TargetError};
 pub use hypercall_abi::{STATUS_INSUFFICIENT_BUFFERS, STATUS_SUCCESS};
 pub use message::{MESSAGE_BYTES, PAYLOAD_MAX};
 pub use regs::VECTOR_HV_SYNIC;
-pub use synic::{events, init, post, ready, recv, service, signal, unmask, EVENT_WORDS};
-pub use vmbus_out::{check, Refusal};
+pub use synic::{
+    bind, channel_event, channel_interface, channel_of, events, init, post_channel, post_core,
+    ready, recv, recv_channel, released, retires, service, signal, unmask, PostError, EVENT_WORDS,
+};
+pub use vmbus_out::Refusal;

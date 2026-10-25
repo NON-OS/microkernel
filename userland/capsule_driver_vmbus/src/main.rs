@@ -17,7 +17,8 @@
 //! NONOS userland: the VMBus core, Hyper-V's device bus. It contacts the
 //! host through the kernel's SynIC calls, takes the host's channel offers,
 //! and keeps the bus: offers added later are kept, withdrawn ones released.
-//! It opens no channel; each waits for its driver.
+//! A storage or network channel is given a record of its own for its driver
+//! (`give`); the core opens no channel.
 
 #![no_std]
 #![no_main]
@@ -25,6 +26,7 @@
 mod connect;
 mod constants;
 mod discover;
+mod give;
 mod guid;
 mod hv;
 mod msg;
