@@ -16,11 +16,13 @@
 
 
 //! Where Alpine's packages come from: Alpine's CDN, by name. The name is
-//! resolved by the network the install leaves through (http_route.rs), never
-//! in the clear unless Direct is the person's choice. A build sets
-//! NONOS_ALPINE_MIRROR to name:port, or to a.b.c.d:port for a mirror on the
-//! local network, to use another; Alpine's own signatures authenticate the
-//! bytes whichever mirror serves them.
+//! resolved by the network the install leaves through (http/route.rs), never
+//! in the clear unless Direct is the person's choice. Only a development
+//! image's build sets NONOS_ALPINE_MIRROR, to a.b.c.d:port for a mirror on
+//! the local network, dialled directly; build.rs refuses it in any build
+//! without the dev-mirror feature (docs/build/dev-mirror.md). Alpine's own
+//! signatures and the market's pin authenticate the bytes whichever mirror
+//! serves them.
 
 const DEFAULT: &str = "dl-cdn.alpinelinux.org:80";
 
