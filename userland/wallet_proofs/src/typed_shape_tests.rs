@@ -31,10 +31,11 @@ fn kind_of(solidity: &str) -> Kind {
 #[test]
 fn fields_follow_the_type_string() {
     for e in ENTRIES {
-        let inner = e.type_string.split_once('(').unwrap().1.strip_suffix(')').unwrap();
+        let inner = e.typed.type_string.split_once('(').unwrap().1.strip_suffix(')').unwrap();
         let members: Vec<(&str, &str)> =
             inner.split(',').map(|m| m.split_once(' ').unwrap()).collect();
         assert_eq!(members.len(), e.fields.len(), "entry {}", e.id);
+        assert_eq!(e.typed.fields, e.fields.len(), "entry {}", e.id);
         for ((ty, name), f) in members.iter().zip(e.fields) {
             assert_eq!(kind_of(ty), f.kind, "entry {} {name}", e.id);
             assert_eq!(f.is_signer, e.id == 1 && *name == "payer", "entry {} {name}", e.id);
@@ -56,5 +57,5 @@ fn the_ids_are_the_plans() {
 /// would let op 30 sign a permit (plan/31).
 #[test]
 fn no_entry_signs_under_the_tokens_permit_domain() {
-    assert!(ENTRIES.iter().all(|e| e.domain.name != "NONOS"));
+    assert!(ENTRIES.iter().all(|e| e.typed.domain.name != "NONOS"));
 }
