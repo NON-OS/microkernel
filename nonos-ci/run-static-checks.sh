@@ -5218,6 +5218,19 @@ else
     fail_with "check_esp_profile: nonos-mk-esp lost its kernel record or its warning"
 fi
 unset esp_out
+# The documented desktop path packs the desktop: under -j the default kernel
+# rule waits for a profile build on the command line and keeps its ELF, and
+# the committed image ceiling admits every capsule's own ceiling (B-02).
+if kgoal_out="$(python3 scripts/check_kernel_goals.py --self-test 2>&1 \
+    && python3 scripts/check_kernel_goals.py 2>&1 \
+    && python3 scripts/check_image_ceiling.py --self-test 2>&1 \
+    && python3 scripts/check_image_ceiling.py 2>&1)"; then
+    note ok "a profile build beside nonos-mk-esp is what gets packed, and the ceiling admits it (check_kernel_goals, check_image_ceiling)"
+else
+    tail -n 6 <<< "${kgoal_out}" >&2
+    fail_with "check_kernel_goals/check_image_ceiling: the make path can pack the wrong kernel or refuse its capsules"
+fi
+unset kgoal_out
 
 # The GPU pages in docs/hardware say what each GPU gets today; the check holds
 # them to the code they describe. The self-test first, so a check that stopped
