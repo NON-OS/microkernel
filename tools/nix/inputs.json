@@ -5963,6 +5963,7 @@
    ".cargo",
    "abi/syscalls.toml",
    "nonos-bootloader/src/display/gop/refusal_word.rs",
+   "nonos-bootloader/src/display/gop/state.rs",
    "nonos-bootloader/src/display/gop/try_init.rs",
    "nonos-bootloader/src/handoff/config/framebuffer/get_info.rs",
    "nonos-bootloader/src/handoff/prepare/flags.rs",
