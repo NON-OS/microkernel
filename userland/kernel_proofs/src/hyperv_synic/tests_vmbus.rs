@@ -61,18 +61,18 @@ fn only_channel_messages_on_a_channel_connection() {
 
 #[test]
 fn the_guest_s_messages_and_no_other() {
-    for (kind, len) in [(3, 8), (16, 8), (7, 12), (12, 12), (10, 16), (5, 148)] {
+    for (kind, len) in [(3, 8), (16, 8), (7, 12), (13, 12), (11, 16), (5, 148)] {
         assert_eq!(check(1, 1, &msg(kind, len), held), Ok(()), "kind {kind}");
     }
     // Offers, the host's answers, hv_sock, modify-channel, anything unknown.
-    for kind in [0, 1, 2, 4, 6, 11, 13, 15, 17, 18, 21, 22, 99, u32::MAX] {
+    for kind in [0, 1, 2, 4, 6, 10, 12, 15, 17, 18, 21, 22, 99, u32::MAX] {
         assert_eq!(check(1, 1, &msg(kind, 148), held), Err(Refusal::Kind), "kind {kind}");
     }
 }
 
 #[test]
 fn each_is_long_enough_for_its_fields() {
-    for (kind, len) in [(3, 8), (7, 12), (10, 16), (5, 28), (14, 40), (8, 28), (9, 24)] {
+    for (kind, len) in [(3, 8), (7, 12), (11, 16), (5, 28), (14, 40), (8, 28), (9, 24)] {
         let short = msg(kind, len - 1);
         assert_eq!(check(1, 1, &short, held), Err(Refusal::Short), "kind {kind}");
     }
