@@ -51,6 +51,7 @@ fn body(mut r: Be<'_>) -> Result<Doc<'_>, FormatFault> {
     }
     let iommu_enforcing = r.flag()?;
     let unconfined_grants = r.u32()?;
+    let identity_devices = r.u32()?;
     if r.u8()? as usize != PCR_COUNT {
         return Err(FormatFault::Value);
     }
@@ -68,6 +69,7 @@ fn body(mut r: Be<'_>) -> Result<Doc<'_>, FormatFault> {
     r.finish()?;
     #[rustfmt::skip]
     let doc = Doc { challenge, registry_root, capsule_count, registry_complete, iommu_vendor,
-        iommu_enforcing, unconfined_grants, pcrs, log, attest, signature, ak_public };
+        iommu_enforcing, unconfined_grants, identity_devices, pcrs, log, attest, signature,
+        ak_public };
     Ok(doc)
 }

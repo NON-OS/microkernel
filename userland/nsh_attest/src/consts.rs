@@ -14,19 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The fixed shapes of a version 4 document and of what it carries.
+//! The fixed shapes of a version 5 document and of what it carries.
 
 /// The document's first eight bytes.
 pub const DOC_MAGIC: &[u8; 8] = b"NONOSATT";
-/// The only version this checker reads. Version 3 quotes PCRs 0, 1, 2 and 7
-/// alone, which names the firmware and not the NONOS chain.
-pub const DOC_VERSION: u32 = 4;
+/// The only version this checker reads: K1's. Versions 3 and 4 quote PCRs
+/// 0, 1, 2 and 7 alone, which names the firmware and not the NONOS chain;
+/// 4 added the count of devices still reaching all of memory.
+pub const DOC_VERSION: u32 = 5;
 /// The largest document `HOST_PROOF` may carry.
 pub const MAX_DOC: usize = 196_608;
-/// The PCRs a version 4 quote selects, in the order the document carries
+/// The PCRs a version 5 quote selects, in the order the document carries
 /// their values and the quote's digest covers them.
 pub const QUOTED_PCRS_V4: [u8; 8] = [0, 1, 2, 4, 7, 8, 9, 14];
-/// How many PCR values a version 4 document carries.
+/// How many PCR values a version 5 document carries.
 pub const PCR_COUNT: usize = QUOTED_PCRS_V4.len();
 /// The PCRs the TCG event log must reproduce: the ones firmware extends.
 /// PCRs 8, 9 and 14 are extended by NONOS code outside the firmware log and

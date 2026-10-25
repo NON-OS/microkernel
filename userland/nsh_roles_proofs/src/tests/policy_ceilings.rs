@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A role's ceilings name only capabilities the kernel has, never one of
-//! the six no role may hold, and the login ceiling is never empty.
+//! the nine no role may hold, and the login ceiling is never empty.
 
 use crate::build::table::{RoleB, TableB};
 use nsh_roles::caps::FORBIDDEN;

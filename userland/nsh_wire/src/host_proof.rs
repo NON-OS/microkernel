@@ -22,8 +22,10 @@
 use crate::keys::{before_sig, HybridPublic, HybridSig};
 use crate::{Enrol, Reader, WireError};
 
-/// The largest `nsh-enrol/1`: the fixed fields and a full host name.
-pub const MAX_ENROL: usize = 4 + 2 + 2 + 16 + 1 + 253 + 64 + 64 + 4 * 32 + 8 + 32 + 64 + 3309;
+/// The largest `nsh-enrol/1`: the fixed fields, a full host name and
+/// every boot application.
+pub const MAX_ENROL: usize =
+    4 + 2 + 2 + 16 + 1 + 253 + 64 + 64 + 4 * 32 + 2 + 8 * 32 + 8 + 32 + 64 + 3309;
 /// The largest attestation document `HOST_PROOF` may carry.
 pub const MAX_DOC: usize = 196_608;
 /// One registry entry (`src/security/attest_registry/format.rs`).

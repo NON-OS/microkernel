@@ -1,0 +1,2 @@
+b/dev-capsule-set dbdc1b6cb (13f8d1cec merged with main 87d670ef9)
+f7c4f6b8dbe9ab51e5f4f1167f9c1a6e09ed952ac9c26846abad3577e0d6c13e  qemu-dev/nonos.img

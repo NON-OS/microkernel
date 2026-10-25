@@ -30,6 +30,8 @@ use core::sync::atomic::{AtomicU32, Ordering};
 
 use super::serial;
 
+mod late;
+
 /// One instrumented gate. Declare as a `static` at the call site so each gate
 /// rate-limits independently.
 pub struct Site {
@@ -80,20 +82,20 @@ impl Site {
         trail(n);
     }
 
-    /// A call that was sent and never answered: `errno` from the receive, the
-    /// `server` that should have replied.
-    pub fn starved(&self, what: &str, pid: u32, errno: i64, server: u32) {
+    /// A call that was sent and never answered: `errno` from the receive.
+    /// Endpoint name and errno only: no pid, as for every kernel line that
+    /// can leave the machine in a photo or a bug report.
+    pub fn starved(&self, what: &str, errno: i64) {
         let Some(n) = self.admit() else { return };
         serial::print(b"[DIAG] ");
         serial::print(self.label);
         serial::print(b" unanswered ");
         serial::print_str(what);
-        serial::print(b" caller=");
-        serial::print_hex(pid as u64);
-        serial::print(b" server=");
-        serial::print_hex(server as u64);
         serial::print(b" err=");
-        serial::print_hex(errno as u64);
+        if errno < 0 {
+            serial::print(b"-");
+        }
+        serial::print_dec(errno.unsigned_abs());
         trail(n);
     }
 
