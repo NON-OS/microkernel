@@ -14,22 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::entry::PmpEntry;
-use super::super::error::PmpResult;
-use super::addr::write_addr;
-use super::cfg::write_cfg;
-use super::validate::check_index;
-
-pub(crate) fn write_entry(index: usize, entry: &PmpEntry) -> PmpResult<()> {
-    check_index(index)?;
-    write_addr(index, entry.addr)?;
-    write_cfg(index, entry.config.to_cfg_byte())?;
-    Ok(())
-}
-
-pub(crate) fn clear_entry(index: usize) -> PmpResult<()> {
-    check_index(index)?;
-    write_cfg(index, 0)?;
-    write_addr(index, 0)?;
-    Ok(())
+//! Whether the shared VM layer can run on this architecture. It needs a
+//! page-descriptor backend, a direct map at `DIRECTMAP_BASE` and the root and
+//! TLB facades. x86_64 and aarch64 have all of them. riscv64 has none yet: its
+//! boot tables are Sv39, which cannot address the direct map, and its
+//! descriptors are `descriptor/unsupported.rs`. So the boot stops here and
+//! says why, rather than fault on the first write through the direct map.
+pub fn require_vm_port() {
+    #[cfg(target_arch = "riscv64")]
+    {
+        crate::sys::serial::print(b"[VM] riscv64: the VM layer is not ported ");
+        crate::sys::serial::println(b"(no Sv48 direct map, no page descriptors); stopping");
+        crate::arch::halt_loop()
+    }
 }

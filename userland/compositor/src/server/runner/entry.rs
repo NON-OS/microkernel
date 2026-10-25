@@ -33,6 +33,7 @@ pub fn run(mut ctx: Context) -> ! {
     let mut upkeep = Upkeep::new(last_heal);
     ctx.first_frame_since = Some(last_heal);
     let mut notice = crate::server::trusted_notice::Notice::new(last_heal);
+    let mut shown = crate::server::display_notice::DisplayNotice::new(last_heal);
     let mut watch = TurnWatch::default();
     super::stall_watch::start();
     loop {
@@ -43,6 +44,7 @@ pub fn run(mut ctx: Context) -> ! {
         step(Step::Upkeep, now);
         upkeep.run(&mut ctx, now);
         notice.run(&ctx, now);
+        shown.run(&ctx, now);
         if now.saturating_sub(last_heal) >= HEAL_INTERVAL_MS {
             last_heal = now;
             heal_missed(&mut ctx);

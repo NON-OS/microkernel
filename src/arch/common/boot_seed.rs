@@ -20,7 +20,7 @@ use crate::arch::fdt::Fdt;
 /// blob, as an offset and length, for `erase` once the parser is done.
 pub(crate) fn keep(fdt: &Fdt, blob: u64) -> Option<(u64, usize)> {
     let seed = fdt.chosen_bytes(b"rng-seed").ok()??;
-    crate::arch::aarch64::boot_entropy::keep(seed);
+    crate::arch::common::boot_entropy::keep(seed);
     Some((seed.as_ptr() as u64 - blob, seed.len()))
 }
 

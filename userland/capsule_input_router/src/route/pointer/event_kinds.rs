@@ -14,14 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, Ordering};
+//! Which pointer events move the cursor, and which are hit-tested.
 
-static INITIALIZED: AtomicBool = AtomicBool::new(false);
+use nonos_libc::{
+    INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL,
+    INPUT_KIND_TOUCH, INPUT_KIND_WHEEL,
+};
 
-pub(super) fn set_initialized() {
-    INITIALIZED.store(true, Ordering::Release);
+pub(super) fn is_motion(kind: u16) -> bool {
+    kind == INPUT_KIND_POINTER_REL || kind == INPUT_KIND_POINTER_ABS
 }
 
-pub fn is_initialized() -> bool {
-    INITIALIZED.load(Ordering::Acquire)
+pub(super) fn needs_hit_test(kind: u16) -> bool {
+    matches!(
+        kind,
+        INPUT_KIND_BUTTON_DOWN | INPUT_KIND_BUTTON_UP | INPUT_KIND_TOUCH | INPUT_KIND_WHEEL
+    )
 }
