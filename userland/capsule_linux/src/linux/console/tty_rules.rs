@@ -53,7 +53,7 @@ pub fn holds(queue: &Queue, byte: u8) -> bool {
 }
 
 /// The log line for one Ctrl+C: the group, in the guests' numbering, and
-/// how many of its processes took the SIGINT. 0 says nobody did.
-pub fn interrupt_line(group: u32, took: usize) -> alloc::string::String {
-    alloc::format!("[LINUX] Ctrl+C: SIGINT to group {group}, {took} processes\n")
+/// how many of its processes took the signal. 0 says nobody did.
+pub fn interrupt_line(signal: &str, group: u32, took: usize) -> alloc::string::String {
+    alloc::format!("[LINUX] Ctrl+C: {signal} to group {group}, {took} processes\n")
 }
