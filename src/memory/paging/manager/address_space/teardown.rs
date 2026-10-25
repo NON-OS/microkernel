@@ -65,6 +65,11 @@ unsafe fn free_subtree(table_phys: u64, level: u8, keep: &[PhysAddr], base_va: u
             // the directmap, while other drivers' rings already lived there.
             let device = crate::hardware::broker::touches_device_window(va, span);
             if !kept && !device {
+                // What the process left in the frame goes before the frame
+                // does: freed unzeroed, it outlived the process and the
+                // power-off wipe, which reaches only live processes.
+                let frame = (DIRECTMAP_BASE + next_phys) as *mut u8;
+                crate::security::secure_zero(frame, span as usize);
                 let _ = frame_alloc::deallocate_frame(PhysAddr::new(next_phys));
             }
         } else {

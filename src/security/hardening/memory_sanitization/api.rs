@@ -83,6 +83,10 @@ pub fn zerostate_shutdown_wipe() {
     // drops what the caches hold outside the heap.
     crate::fs::clear_caches();
 
+    // The host and domain names the person typed live in statics, which the
+    // heap erase below never reaches.
+    crate::sys::policy::hostname_wipe();
+
     // The key vault walks a map that lives in the heap, so it has to run while
     // the heap is still readable.
     crate::crypto::vault::zeroize_all_keys();
