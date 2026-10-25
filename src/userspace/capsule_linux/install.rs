@@ -22,7 +22,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 use super::role_spawn::spawn_role;
-use super::roles::{Role, INSTALL, RUN, TERMINAL};
+use super::roles::{Role, INSTALL, RUN, TERMINAL, TERMINAL_NET};
 use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 /// Spawn the installer for `package`, which must hash to `pinned`. `market`
@@ -60,6 +60,11 @@ pub fn spawn_run(package: &str) -> Result<u32, SpawnError> {
 /// command as typed: `linux`, the program, then its arguments.
 pub fn spawn_terminal(argv: Vec<String>) -> Result<u32, SpawnError> {
     spawn(&TERMINAL, argv)
+}
+
+/// The same, in the terminal role that holds Network (roles::TERMINAL_NET).
+pub fn spawn_terminal_net(argv: Vec<String>) -> Result<u32, SpawnError> {
+    spawn(&TERMINAL_NET, argv)
 }
 
 fn spawn(role: &Role, argv: Vec<String>) -> Result<u32, SpawnError> {

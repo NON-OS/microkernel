@@ -19,6 +19,7 @@ mod asked;
 mod broker;
 mod check;
 mod instance;
+mod linux_net_tool;
 mod linux_roles;
 mod tool;
 mod verify_agree;
