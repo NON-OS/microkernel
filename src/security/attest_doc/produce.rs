@@ -14,18 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-
 use super::binding::qualifying_data;
 use super::document::AttestationDoc;
 use super::error::AttestDocError;
+use super::log::tcg_log;
 use super::posture::dma_posture;
-use super::quote_shape::{QUOTED_PCRS, RESPONSE_MAX};
+use super::produce_quote::quote_pcrs;
 use crate::security::attest_registry::{attested_count, registry_complete, registry_root};
 use crate::security::tpm::ak::ak_public;
 use crate::security::tpm::error::TpmError;
-use crate::security::tpm::quote::{build_quote, check_attest, parse_quote};
-use crate::security::tpm::transact_resending;
 
 /// Answer "what is this machine running", signed.
 ///
@@ -42,20 +39,11 @@ pub(super) fn produce(
     let root = registry_root();
     let dma = dma_posture();
     let qualifying = qualifying_data(challenge, &root, &dma);
-
-    let cmd = build_quote(ak_handle, &qualifying, &QUOTED_PCRS);
-    let mut buf = [0u8; RESPONSE_MAX];
-    // SAFETY: eK@nonos.systems - a quote reads PCR state and signs it. It
-    // creates no objects and changes no key material.
-    let len = unsafe { transact_resending(&cmd, &mut buf) }.map_err(AttestDocError::Tpm)?;
+    let log = tcg_log()?;
+    let quoted = quote_pcrs(ak_handle, &qualifying)?;
 
     // Kept when the key was loaded; a handle without it is a driver fault.
     let ak_public = ak_public().ok_or(AttestDocError::Tpm(TpmError::InvalidResponse))?;
-    let quote = parse_quote(&buf[..len]).map_err(AttestDocError::Quote)?;
-    // Checked here, not only by the verifier: a machine that would hand out a
-    // quote whose nonce it never confirmed has no idea what it just signed.
-    check_attest(quote.attest, &qualifying).map_err(AttestDocError::Quote)?;
-
     Ok(AttestationDoc {
         challenge: *challenge,
         registry_root: root,
@@ -65,8 +53,10 @@ pub(super) fn produce(
         iommu_enforcing: dma.enforcing,
         unconfined_grants: dma.unconfined_grants,
         identity_devices: dma.identity_devices,
-        attest: Vec::from(quote.attest),
-        signature: Vec::from(quote.signature),
+        pcrs: quoted.pcrs,
+        log,
+        attest: quoted.attest,
+        signature: quoted.signature,
         ak_public,
     })
 }

@@ -31,3 +31,11 @@ pub(crate) mod lp {
     #[cfg(test)]
     pub(crate) use super::{pair::parse_pair, take::read_lp_str, take::take_lp};
 }
+
+/* find_release, at the capsule's path to it, for the files that name it so. */
+#[cfg(test)]
+pub(crate) mod handlers {
+    pub(crate) mod install_ready {
+        pub(crate) use crate::find_release;
+    }
+}

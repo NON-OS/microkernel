@@ -16,22 +16,24 @@ The CPU itself overwrites `rcx` and `r11`. The entry code saves the caller's `rd
 
 ## How many there are
 
-NONOS 0.9.2 has 130 system calls. The count was taken three ways at this commit, and all three agree:
+The kernel registers and dispatches 176 system calls, and publishes 147 of them. The count was taken three ways at this commit:
 
-- `abi/syscalls.toml` lists 130 tags under `[numbers]`, starting at `APPS` (`abi/syscalls.toml:54-55`), and 130 `[desc.TAG]` blocks, one per call.
-- The kernel enum `SyscallNumber` has 130 variants (`src/syscall/numbers/defs.rs:17-150`). Sorted, its tags are the same set as the ones in the toml file.
-- The kernel's `REGISTRY` joins four tables: 114 microkernel, 12 crypto, 3 admin and 1 graphics entry (`src/syscall/abi/registry/mod.rs:24-28`).
+- `abi/syscalls.toml` lists 147 tags under `[numbers]`, starting at `APPS` (`abi/syscalls.toml:55-56`), and 147 `[desc.TAG]` blocks, one per call.
+- The kernel enum `SyscallNumber` has 176 variants (`src/syscall/numbers/defs.rs:19-196`). The 147 published tags are among them; the other 29 are dispatched but not published, all microkernel calls, and the check below names each one.
+- The kernel's `REGISTRY` joins four tables: 160 microkernel, 12 crypto, 3 admin and 1 graphics entry, 176 in all (`src/syscall/abi/registry/mod.rs:27-28`).
 
 `scripts/check_syscall_abi.py` goes further and checks that every published call reaches a handler:
 
 ```
 $ python3 scripts/check_syscall_abi.py
-syscall-abi: 130 published syscalls reach a handler
+syscall-abi: 29 dispatched syscalls are unpublished
+  ...
+syscall-abi: 147 published syscalls reach a handler
 ```
 
 | Family | Calls | Tags | Routed to |
 |---|---:|---|---|
-| Microkernel | 114 | four letters starting with `M` | `microkernel_ops`, `surface_ops`, `input_ops` |
+| Microkernel | 160, 131 published | four letters starting with `M` | `microkernel_ops`, `surface_ops`, `input_ops` |
 | Crypto | 12 | `CRND` to `CMKY` | the crypto router |
 | Admin | 3 | `ARBT`, `ASDN`, `APPS` | the admin router |
 | Graphics | 1 | `GDIM` | `graphics_backend` |
@@ -88,7 +90,7 @@ Then run `scripts/check_syscall_abi.py` and `scripts/check_syscall_caps.py`; [Co
 
 ## Other architectures
 
-The aarch64 `svc` handler and the riscv64 `syscall` handler decode the number the same way and call the same `dispatch` (`src/syscall/contract/mod.rs:17-24`). Both architectures need the `nonos-arch-preview` feature; without it `compile_error` stops the build (`src/lib.rs:28-35`). Even with it, only aarch64 builds into a kernel: the riscv64 entry calls a `kernel_main` that does not exist (`src/arch/riscv64/boot/entry.rs:26`). See [aarch64](../architectures/aarch64.md) and [riscv64](../architectures/riscv64.md).
+The aarch64 `svc` handler and the riscv64 `syscall` handler decode the number the same way and call the same `dispatch` (`src/syscall/contract/mod.rs:17-24`). Each first refuses a guest's native number with EPERM, as x86_64 does (`process::foreign::seal::native`). Both architectures need the `nonos-arch-preview` feature; without it `compile_error` stops the build (`src/lib.rs:28-35`). Even with it, only aarch64 boots to Core ready: riscv64 builds, and boots under QEMU only as far as its unported VM layer (`make nonos-mk-riscv-boot-check`). See [aarch64](../architectures/aarch64.md) and [riscv64](../architectures/riscv64.md).
 
 ## See also
 
