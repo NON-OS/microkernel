@@ -3064,6 +3064,7 @@
    "userland/libc",
    "userland/nonos_hash",
    "userland/nonos_hd",
+   "userland/nonos_nox_config",
    "userland/nonos_seal",
    "userland/nonos_secp256k1",
    "userland/nonos_vault"
@@ -5931,6 +5932,7 @@
   ],
   "include": [
    ".cargo",
+   "abi/syscalls.toml",
    "nonos-bootloader/src/paging/constants.rs",
    "nonos-bootloader/src/paging/fb_window.rs",
    "nonos-data/trust/capsules",
@@ -9442,6 +9444,7 @@
    "userland/capsule_terminal/src/term/history/expand_designator.rs",
    "userland/capsule_terminal/src/term/line",
    "userland/capsule_terminal/src/term/select.rs",
+   "userland/capsule_terminal/src/term/terminal/agentproof/job.rs",
    "userland/capsule_terminal/src/term/theme/ansi.rs",
    "userland/capsule_terminal/src/term/util/format_u64.rs",
    "userland/capsule_terminal/src/term/util/is_space.rs",
