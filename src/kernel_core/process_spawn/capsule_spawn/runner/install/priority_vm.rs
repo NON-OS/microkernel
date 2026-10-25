@@ -25,10 +25,11 @@ pub(super) const INTERACTIVE_VM: [&str; 4] =
 
 /// The disk controllers in a virtual machine: each polls a request out,
 /// yielding and then sleeping a millisecond between looks.
-pub(super) const STORAGE_PATH_VM: [&str; 5] = [
+pub(super) const STORAGE_PATH_VM: [&str; 6] = [
     "driver.piix_ide0",
     "driver.virtio_scsi0",
     "driver.pvscsi0",
     "driver.buslogic0",
     "driver.mpt0",
+    "driver.storvsc0",
 ];

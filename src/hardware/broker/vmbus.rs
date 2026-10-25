@@ -79,8 +79,10 @@ pub fn vmbus_held_by(pid: u32, device_id: u64) -> bool {
         && super::claim::lookup(device_id).is_some_and(|c| c.pid == pid)
 }
 
-/// Register a channel's record, of a device `CHANNELS` names.
-pub fn register_channel(device: u16) -> Option<u64> {
+/// Register a channel's record, of a device `CHANNELS` names. Its
+/// `irq_source` is the channel's relid: the event flag the host signals it
+/// on, and the relid its driver's messages must name.
+pub fn register_channel(device: u16, relid: u32) -> Option<u64> {
     if !CHANNELS.contains(&device) {
         return None;
     }
@@ -89,6 +91,7 @@ pub fn register_channel(device: u16) -> Option<u64> {
         class: ids::OTHER,
         vendor: VMBUS_VENDOR,
         device,
+        irq_source: relid,
         ..DeviceRecord::empty()
     };
     Some(table::register_platform_device(record))
