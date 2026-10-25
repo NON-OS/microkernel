@@ -49,6 +49,7 @@ mod verify_census;
 mod verify_doc;
 mod verify_doc_body;
 mod verify_doc_cover;
+mod verify_doc_dma;
 mod verify_doc_rows;
 mod verify_evidence;
 mod verify_glyph;
