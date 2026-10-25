@@ -26,7 +26,7 @@ use crate::security::nonos_trust_anchor::{
 
 const SERVICE_NAME: &str = "nox_settle";
 const SERVICE_PORT: u32 = 5200;
-const REPLY_INBOX: &str = "endpoint.4294967324";
+const REPLY_INBOX: &str = "endpoint.4294967332";
 const REPLY_PORT: u32 = 5201;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 // Network | IPC | Memory | Crypto; kept hand-synced with userland/capsule_nox_settle/Capsule.mk's
