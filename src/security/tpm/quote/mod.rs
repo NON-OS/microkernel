@@ -27,6 +27,7 @@
 mod attest;
 mod command;
 mod consts;
+mod digest;
 mod error;
 mod pcr;
 mod response;
@@ -34,5 +35,6 @@ mod response;
 pub use attest::check_attest;
 pub use command::build_quote;
 pub use consts::TPM_GENERATED_VALUE;
+pub use digest::{covered, Covered};
 pub use error::QuoteError;
 pub use response::{parse_quote, QuoteResult};
