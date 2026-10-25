@@ -34,6 +34,16 @@ pub(crate) const TERMINAL_MANIFEST_BYTES: &[u8] =
 pub(crate) const TERMINAL_ATTESTATION_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/terminal.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-terminal")]
+const _: () = assert!(
+    !TERMINAL_ELF.is_empty()
+        && !TERMINAL_NONOS_ID_CERT_BYTES.is_empty()
+        && !TERMINAL_MANIFEST_BYTES.is_empty()
+        && !TERMINAL_ATTESTATION_BYTES.is_empty(),
+    "capsule_terminal built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-terminal"))]
 pub(crate) const TERMINAL_ELF: &[u8] = &[];
 
