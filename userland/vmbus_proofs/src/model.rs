@@ -213,7 +213,7 @@ impl Host for Vmbus {
                     self.answer(&end);
                 }
             }
-            12 => {
+            13 => {
                 assert_eq!(Some(connection), self.connection);
                 self.released.push(u32_at(p, 8));
             }
