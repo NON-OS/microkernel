@@ -29,4 +29,7 @@ pub(crate) struct Look {
     pub logo: Option<Shown>,
     /// Where the panel and status line sit around that logo.
     pub fit: Layout,
+    /// The kernel says device DMA is not confined by hardware (no IOMMU):
+    /// the warning is drawn in its row.
+    pub dma_unconfined: bool,
 }
