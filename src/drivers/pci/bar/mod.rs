@@ -16,6 +16,7 @@
 
 mod decode;
 mod info;
+pub(crate) mod slots;
 mod validation;
 
 pub use decode::{decode_all_bars, decode_all_bars_unchecked, decode_bar, decode_bar_unchecked};

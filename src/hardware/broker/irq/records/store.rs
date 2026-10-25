@@ -41,13 +41,16 @@ pub(in super::super) fn allocate_id_run(count: u64) -> u64 {
     NEXT_GRANT_ID.fetch_add(count, Ordering::SeqCst)
 }
 
-pub(in super::super) fn insert(record: IrqGrant) {
-    RECORDS.lock().push(record);
-}
-
-pub(in super::super) fn insert_many(records_in: &[IrqGrant]) {
+/// A bind's grants, all of one claim, entered together only while it stands
+/// (L69); false, and none entered, when it is gone.
+pub(in super::super) fn insert_live(records_in: &[IrqGrant]) -> bool {
     let mut all = RECORDS.lock();
-    all.extend_from_slice(records_in);
+    let live = |g: &IrqGrant| super::super::super::claim::live(g.pid, g.device_id, g.claim_epoch);
+    let entered = records_in.iter().all(live);
+    if entered {
+        all.extend_from_slice(records_in);
+    }
+    entered
 }
 
 pub(in super::super) fn lookup(grant_id: u64) -> Option<IrqGrant> {

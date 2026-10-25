@@ -19,9 +19,11 @@
 //! write-combined page never also marked a device register.
 
 const MAP: &str = include_str!("../../../../src/hardware/broker/mmio/map.rs");
+const INSTALL: &str = include_str!("../../../../src/hardware/broker/mmio/map_install.rs");
 const PAGES: &str =
     include_str!("../../../../src/memory/paging/manager/api/mapping/map_user_mmio.rs");
-const BGA: &str = include_str!("../../../capsule_driver_bga/src/constants.rs");
+const BGA: &str = include_str!("../../../capsule_driver_bga/src/setup/sequence.rs");
+const LIBC: &str = include_str!("../../../libc/src/broker/mmio.rs");
 const BOOTFB: &str = include_str!("../../../capsule_driver_bootfb/src/libc_firmware.rs");
 
 fn at(text: &str, needle: &str) -> usize {
@@ -32,9 +34,12 @@ fn at(text: &str, needle: &str) -> usize {
 fn map_asks_the_rule_before_it_maps_and_carries_its_answer() {
     let asked =
         at(MAP, "cache::cache_for(req.flags, bar_held, (w.page_start, w.page_bytes), wc_ready)");
-    let mapped = at(MAP, "map_user_mmio(user_va, phys, bytes as usize, wc)");
+    let mapped = at(MAP, "let user_va = install(pid, &w, kind)?;");
     assert!(asked < mapped);
     assert!(MAP.contains("let wc = cache == Cache::WriteCombined;"));
+    assert!(MAP.contains("let kind = memory_type(if wc { MMIO_MAP_WC } else { 0 }, &bar, &w)?;"));
+    assert!(INSTALL.contains("let wc = kind == MemType::WriteCombining;"));
+    assert!(INSTALL.contains("map_user_mmio(user_va, phys, size, wc)"));
     assert!(MAP.contains("if !cache::known(req.flags) {"));
 }
 
@@ -50,6 +55,7 @@ fn a_write_combined_page_is_pwt_alone_and_only_once_the_pat_is_ready() {
 #[test]
 fn the_drivers_send_the_bit_the_kernel_knows() {
     assert_eq!(super::cache::MAP_WC, 1 << 0);
-    assert!(BGA.contains("pub const MK_MMIO_MAP_WC: u32 = 1 << 0;"));
+    assert!(LIBC.contains("pub const MK_MMIO_MAP_WC: u32 = 1 << 0;"));
+    assert!(BGA.contains("use nonos_libc::{mk_device_release, MK_MMIO_MAP_WC};"));
     assert!(BOOTFB.contains("const MK_MMIO_MAP_WC: u32 = 1 << 0;"));
 }

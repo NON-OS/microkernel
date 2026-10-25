@@ -28,6 +28,7 @@ mod debug;
 mod dma_sync;
 mod grants;
 mod pci;
+mod pci_update;
 mod records;
 mod serve;
 mod types;
@@ -43,6 +44,7 @@ pub use pci::{
     command, mk_pci_config_read, mk_pci_config_write, refuse_command, MK_PCI_CFG_COMMAND,
     MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_MEMORY_SPACE,
 };
+pub use pci_update::mk_pci_config_update;
 pub use records::{mk_device_list, offer_devices, Bar, DeviceRecord, BAR_KIND_MMIO, BUS_KIND_PCI};
 pub use serve::{mk_ipc_send, mk_irq_ack, mk_irq_wait, replies, MK_IRQ_WAIT_TIMED_OUT};
 pub use types::{DmaMapOut, IrqBindOut, MmioMapOut, MK_IRQ_BIND_MSI, MK_IRQ_BIND_MSIX};

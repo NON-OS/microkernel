@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Which requester ids the AMD IOMMUs in an IVRS table cover, from the IVHD
-//! device entries (AMD IOMMU spec 48882, 5.2.2.2), read as Linux reads them
-//! in amd/init.c, init_iommu_from_acpi. Pure, over the table's bytes.
+//! device entries (AMD IOMMU spec 48882, 5.2.2.2). Pure, over the table's
+//! bytes.
 
 use super::ivhd_entry::entries;
 
@@ -33,31 +33,36 @@ pub struct Span {
 }
 
 /// IVRS: a 36-byte SDT header, IVinfo, eight reserved bytes, then blocks.
-const FIRST_BLOCK: usize = 48;
+pub(super) const FIRST_BLOCK: usize = 48;
 
 /// Spans in table order, written to `out`; returns how many. Stops at the
 /// first malformed block or entry, or when `out` is full. IVHD 10h has a
 /// 24-byte header, 11h and 40h a 40-byte one; other blocks are skipped.
 pub fn spans(table: &[u8], out: &mut [Span]) -> usize {
-    let mut n = 0;
-    let mut at = FIRST_BLOCK;
-    while at + 4 <= table.len() {
-        let kind = table[at];
-        let length = u16::from_le_bytes([table[at + 2], table[at + 3]]) as usize;
-        if length < 4 || at + length > table.len() {
-            break;
-        }
-        let header = match kind {
-            0x10 => 24,
-            0x11 | 0x40 => 40,
-            _ => length,
-        };
-        if header < length {
-            n = entries(&table[at + header..at + length], out, n);
-        }
-        at += length;
+    let (mut n, mut at) = (0, FIRST_BLOCK);
+    while let Some((bytes, next)) = block_at(table, at) {
+        n = entries(bytes, out, n);
+        at = next;
     }
     n
+}
+
+/// The device entries of the IVHD block at `at`, and where the next block
+/// starts; `None` past the last whole block.
+pub(super) fn block_at(table: &[u8], at: usize) -> Option<(&[u8], usize)> {
+    if at + 4 > table.len() {
+        return None;
+    }
+    let length = u16::from_le_bytes([table[at + 2], table[at + 3]]) as usize;
+    if length < 4 || at + length > table.len() {
+        return None;
+    }
+    let header = match table[at] {
+        0x10 => 24,
+        0x11 | 0x40 => 40,
+        _ => length,
+    };
+    Some((table.get(at + header..at + length).unwrap_or(&[]), at + length))
 }
 
 /// Whether any span covers requester id `id`.

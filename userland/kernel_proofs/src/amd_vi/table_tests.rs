@@ -19,8 +19,9 @@ use super::pte::{
     address, directory, index, is_present, leaf, next_level, reach, writable, LEVELS,
 };
 
-/* Linux init_device_table_dma (V and TV only) and set_dte_entry (root, mode
-in bits 11:9, IR bit 61, IW bit 62, domain id in the second quadword). */
+/* 48882 2.2.2.1: a denied entry is V and TV only; a translated one adds the
+root, the mode in bits 11:9, IR bit 61, IW bit 62, the domain id in the
+second quadword. */
 #[test]
 fn device_table_entries_match_linux() {
     assert_eq!(blocked(), [0x3, 0, 0x1, 0], "V, TV; IV with IntCtl abort (K4)");
@@ -31,8 +32,8 @@ fn device_table_entries_match_linux() {
     assert_eq!(root_of(translated(0x1234_5FFF, 4, 7)), 0x1234_5000);
 }
 
-/* Linux PM_LEVEL_PDE: a directory names the level below it in bits 11:9 with
-PR, IR and IW; a 4 KiB leaf is PR | FC | address with IR and IW as asked. */
+/* 48882 2.2.3: a directory names the level below it in bits 11:9 with PR,
+IR and IW; a 4 KiB leaf is PR | FC | address with IR and IW as asked. */
 #[test]
 fn page_table_entries_match_linux() {
     let top = directory(0x5000, 4);
