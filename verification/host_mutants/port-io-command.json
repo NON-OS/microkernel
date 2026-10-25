@@ -1,0 +1,34 @@
+[
+ {
+  "name": "ide-mask-keeps-memory-space",
+  "file": "userland/capsule_driver_piix_ide/src/setup/command.rs",
+  "old": "pub const COMMAND_MASK: u16 = COMMAND_BITS | MK_PCI_CMD_MEMORY_SPACE;",
+  "new": "pub const COMMAND_MASK: u16 = COMMAND_BITS;",
+  "crate": "userland/piix_ide_proofs",
+  "test": "tests::"
+ },
+ {
+  "name": "ide-plain-write",
+  "file": "userland/capsule_driver_piix_ide/src/setup/command.rs",
+  "old": "mk_pci_config_update(device_id, epoch, MK_PCI_CFG_COMMAND, COMMAND_MASK, COMMAND_BITS)",
+  "new": "nonos_libc::mk_pci_config_write(device_id, epoch, MK_PCI_CFG_COMMAND, COMMAND_BITS)",
+  "crate": "userland/piix_ide_proofs",
+  "test": "tests::"
+ },
+ {
+  "name": "ac97-mask-keeps-memory-space",
+  "file": "userland/capsule_driver_ac97/src/setup/claim.rs",
+  "old": "pub const COMMAND_MASK: u16 = COMMAND_BITS | MK_PCI_CMD_MEMORY_SPACE;",
+  "new": "pub const COMMAND_MASK: u16 = COMMAND_BITS;",
+  "crate": "userland/ac97_proofs",
+  "test": "tests::"
+ },
+ {
+  "name": "buslogic-mask-keeps-memory-space",
+  "file": "userland/capsule_driver_buslogic/src/setup/command.rs",
+  "old": "pub const COMMAND_MASK: u16 = COMMAND_BITS | MK_PCI_CMD_MEMORY_SPACE;",
+  "new": "pub const COMMAND_MASK: u16 = COMMAND_BITS;",
+  "crate": "userland/buslogic_proofs",
+  "test": "tests::"
+ }
+]

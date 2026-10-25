@@ -15,15 +15,15 @@ pub(super) const DRIVER_I2C_PCI_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-i2c-pci")]
 pub(super) const DRIVER_I2C_PCI_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_i2c_pci.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_i2c_pci.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-i2c-pci")]
 pub(super) const DRIVER_I2C_PCI_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_i2c_pci.manifest.bin");
+    crate::baked_trust!("capsules/driver_i2c_pci.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-i2c-pci")]
 pub(super) const DRIVER_I2C_PCI_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_i2c_pci.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_i2c_pci.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-driver-i2c-pci")]

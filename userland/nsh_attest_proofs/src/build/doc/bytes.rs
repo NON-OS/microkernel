@@ -53,8 +53,8 @@ impl Parts {
         out
     }
 
-    /// Byte for byte what `AttestationDoc::encode` writes for version 4,
-    /// or wrote for version 3, which had no identity count.
+    /// Byte for byte what `AttestationDoc::encode` wrote for version 4,
+    /// or for version 3, which had no identity count.
     pub fn kernel(&self, version: u32) -> Vec<u8> {
         let mut out = self.head();
         if version == 3 {

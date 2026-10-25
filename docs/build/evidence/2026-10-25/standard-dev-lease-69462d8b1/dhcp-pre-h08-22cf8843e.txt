@@ -1,0 +1,6 @@
+sd.pcap: 1369 frames
+sd-in.pcap: 372 frames
+  +  38.727s  DISCOVER  yiaddr=0.0.0.0  (sd.pcap)
+  +  38.727s  OFFER     yiaddr=10.0.2.15  (sd-in.pcap)
+  +  38.793s  REQUEST   yiaddr=0.0.0.0  (sd.pcap)
+  +  38.793s  ACK       yiaddr=10.0.2.15  (sd-in.pcap)

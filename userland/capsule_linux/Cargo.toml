@@ -23,7 +23,7 @@ path = "src/main.rs"
 [features]
 # The self-test's deliberate panic (src/linux/selftest_panic.rs). Never on by
 # default: only the selftest development image turns it on, in its own copy
-# of the tree (tools/nonos-dev-image), and scripts/check_selftest_panic.py
+# of the tree (tools/nonos-dev-image), and scripts/check_copy_only_features.py
 # fails any committed build that names it.
 selftest-panic = []
 # A development image's Linux personality (docs/build/dev-mirror.md): a mirror

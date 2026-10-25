@@ -49,7 +49,7 @@ def problems(text: str) -> list:
     return out
 
 
-CASES = [("as built", lambda t: t, 0), ("macro write dropped", lambda t: t.replace("'$(2)' " + WRITE, "''"), 1),
+CASES = [("as built", lambda t: t, 0), ("macro write dropped", lambda t: t.replace("'$(2)$(NONOS_SMP_FEATURE)' " + WRITE, "''"), 1),
          ("warning dropped", lambda t: t.replace(WARN, "packed"), 1), ("default not recorded",
          lambda t: t.replace("'microkernel-core' " + WRITE, "''"), 1)]
 

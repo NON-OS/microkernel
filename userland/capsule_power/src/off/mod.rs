@@ -24,8 +24,7 @@
 //! never returns.
 
 pub mod rule;
-/// The frame, as capsule_acpi serves it too: one definition of G-53's wire.
-#[path = "../../../capsule_acpi/src/power/off/wire.rs"]
+/// G-53's frame, defined here, with the name's one owner.
 pub mod wire;
 
 use nonos_libc::mk_admin_shutdown;
