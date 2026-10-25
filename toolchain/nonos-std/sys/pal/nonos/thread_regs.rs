@@ -44,6 +44,16 @@ pub fn tls_table() -> *mut *mut u8 {
     tp
 }
 
+/// riscv64 only: point `tp` at `base`, and answer 0. There `tp` is a plain
+/// register the kernel's trap frame keeps, and MSTB refuses it, so it is ours.
+#[cfg(target_arch = "riscv64")]
+pub fn set_thread_pointer(base: u64) -> i64 {
+    // SAFETY: std reaches its thread-locals only through the table, never
+    // through compiler-placed TLS, so nothing else reads tp to be disturbed.
+    unsafe { core::arch::asm!("mv tp, {}", in(reg) base, options(nostack, nomem)) };
+    0
+}
+
 /// Where a spawned thread starts. The kernel enters it with the stack
 /// pointer at the value given to MTSP, 16-aligned; the spawner left two
 /// words there: at +0 the function to run, at +8 its one argument. The
