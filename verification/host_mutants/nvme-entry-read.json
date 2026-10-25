@@ -1,0 +1,50 @@
+[
+ {
+  "name": "entry-rest-first",
+  "file": "userland/capsule_driver_nvme/src/admin/entry_read.rs",
+  "old": "    let status = status();\n    barrier();\n    Completion { status, ..rest() }",
+  "new": "    let rest = rest();\n    barrier();\n    Completion { status: status(), ..rest }",
+  "crate": "userland/nvme_proofs",
+  "test": "torn"
+ },
+ {
+  "name": "entry-no-barrier",
+  "file": "userland/capsule_driver_nvme/src/admin/entry_read.rs",
+  "old": "    barrier();\n",
+  "new": "    let _ = barrier;\n",
+  "crate": "userland/nvme_proofs",
+  "test": "torn"
+ },
+ {
+  "name": "entry-status-from-rest",
+  "file": "userland/capsule_driver_nvme/src/admin/entry_read.rs",
+  "old": "Completion { status, ..rest() }",
+  "new": "Completion { ..rest() }",
+  "crate": "userland/nvme_proofs",
+  "test": "torn"
+ },
+ {
+  "name": "slot-status-offset",
+  "file": "userland/capsule_driver_nvme/src/admin/slot_read.rs",
+  "old": "offset_of!(Completion, status)",
+  "new": "offset_of!(Completion, cid)",
+  "crate": "userland/nvme_proofs",
+  "test": "torn"
+ },
+ {
+  "name": "io-ring-unordered-read",
+  "file": "userland/capsule_driver_nvme/src/nvm/ring_wait.rs",
+  "old": "unsafe { read_slot(slot) }",
+  "new": "unsafe { core::ptr::read_volatile(slot as *const Completion) }",
+  "crate": "userland/nvme_proofs",
+  "test": "torn"
+ },
+ {
+  "name": "admin-ring-unordered-read",
+  "file": "userland/capsule_driver_nvme/src/admin/queue/wait_ms.rs",
+  "old": "unsafe { read_slot(slot) }",
+  "new": "unsafe { core::ptr::read_volatile(slot as *const Completion) }",
+  "crate": "userland/nvme_proofs",
+  "test": "torn"
+ }
+]
