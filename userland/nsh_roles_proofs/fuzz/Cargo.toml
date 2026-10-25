@@ -1,0 +1,52 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# Fuzz targets for nsh_roles' parsers: the role table, `nsh-policy/1`, and
+# the revocation list, `nsh-revoke/1`. A host reads both from storage it
+# does not fully trust before their signatures are checked. Each target
+# checks what a parse that succeeds must mean, not only that it does not
+# panic. Seed the corpus with seed.py, then run one with:
+#   cargo +nightly-2026-01-16 fuzz run <target>
+
+[package]
+name = "nsh_roles_proofs-fuzz"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+nsh_roles = { path = "../../nsh_roles" }
+nsh_wire = { path = "../../nsh_wire" }
+
+[[bin]]
+name = "nsh_policy"
+path = "fuzz_targets/nsh_policy.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "nsh_revoke"
+path = "fuzz_targets/nsh_revoke.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]

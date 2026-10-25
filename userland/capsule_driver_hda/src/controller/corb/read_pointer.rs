@@ -23,7 +23,7 @@ use crate::regs::Regs;
 /// Linux waits 1000 polls of 1 us for each half of the CORBRP handshake.
 const CORBRP_MS: u64 = 2;
 
-pub(super) fn reset_read_pointer(regs: Regs) -> bool {
+pub(crate) fn reset_read_pointer(regs: Regs) -> bool {
     // SAFETY: CORBRP is a global register, inside the window (`crate::regs`).
     unsafe { regs.w16(CORBRP, CORBRP_RST) };
     // SAFETY: as above.

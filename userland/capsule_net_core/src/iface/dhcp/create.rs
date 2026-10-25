@@ -17,6 +17,10 @@
 use smoltcp::iface::{SocketHandle, SocketSet};
 use smoltcp::socket::dhcpv4;
 
+use super::request_list::PARAMETER_REQUEST_LIST;
+
 pub fn create(sockets: &mut SocketSet<'static>) -> SocketHandle {
-    sockets.add(dhcpv4::Socket::new())
+    let mut socket = dhcpv4::Socket::new();
+    socket.set_parameter_request_list(&PARAMETER_REQUEST_LIST);
+    sockets.add(socket)
 }

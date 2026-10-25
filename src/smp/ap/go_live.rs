@@ -27,6 +27,10 @@ pub(super) fn go_live(cpu_id: u32, user: super::user_setup::Prepared) -> ! {
     CPU_DESCRIPTORS[cpu_id as usize].set_stage(crate::smp::Stage::InterruptsOn);
 
     super::online::publish(cpu_id);
+    // A round that read this cpu as `Starting` marked it and sent no vector
+    // (`shootdown::send`); answer it now rather than at the next spin point
+    // or the waiter's 50 ms NMI.
+    crate::memory::paging::manager::handle_shootdown_ipi();
 
     /*
      * Read the part back rather than trust the write above. An AP parked in

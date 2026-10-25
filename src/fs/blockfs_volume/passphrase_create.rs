@@ -26,7 +26,7 @@ use super::passphrase_key::stretch;
 use super::plan_types::Plan;
 use super::ring_blank::ring_blank;
 use crate::crypto::constant_time::secure_zero;
-use crate::crypto::rng::fill_random_bytes;
+use crate::crypto::rng::fill_random_bytes_secure;
 use crate::crypto::util::argon2::RECOMMENDED;
 
 pub(super) fn create_keyed(passphrase: &[u8], plan: &Plan) -> Result<(), VolumeError> {
@@ -36,10 +36,10 @@ pub(super) fn create_keyed(passphrase: &[u8], plan: &Plan) -> Result<(), VolumeE
     }
     let mut sealed =
         Sealed { params: RECOMMENDED, salt: [0; 32], nonce: [0; 12], key_and_tag: [0; 48] };
-    fill_random_bytes(&mut sealed.salt);
-    fill_random_bytes(&mut sealed.nonce);
+    fill_random_bytes_secure(&mut sealed.salt).map_err(|_| VolumeError::NoRandomness)?;
+    fill_random_bytes_secure(&mut sealed.nonce).map_err(|_| VolumeError::NoRandomness)?;
     let mut key = [0u8; 32];
-    fill_random_bytes(&mut key);
+    fill_random_bytes_secure(&mut key).map_err(|_| VolumeError::NoRandomness)?;
     let mut kek = stretch(passphrase, &sealed)?;
     let done = seal_key(&kek, &mut sealed, &key);
     secure_zero(&mut kek);

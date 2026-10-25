@@ -24,6 +24,7 @@ use super::display::{Display, Shadow};
 use super::platform::Platform;
 use super::primary::Primary;
 use super::slot::{Slot, MAX_OUTPUTS};
+use super::watch_tell::Tell;
 
 pub struct Server<D: Display, P: Platform> {
     pub display: D,
@@ -35,12 +36,23 @@ pub struct Server<D: Display, P: Platform> {
     /// the outputs since (`watch.rs`).
     pub heard_ms: u64,
     pub quiet: bool,
+    /// Whether this silence's blank has been said (`watch_tell.rs`).
+    pub tell: Tell,
 }
 
 impl<D: Display, P: Platform> Server<D, P> {
     pub fn new(display: D, platform: P) -> Self {
         let slots = [Slot::default(); MAX_OUTPUTS];
-        Server { display, platform, slots, owner: None, counter: 0, heard_ms: 0, quiet: false }
+        Server {
+            display,
+            platform,
+            slots,
+            owner: None,
+            counter: 0,
+            heard_ms: 0,
+            quiet: false,
+            tell: Tell::Quiet,
+        }
     }
 
     /// Run `f` on the shadow of `p`.

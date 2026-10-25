@@ -20,5 +20,6 @@ mod state;
 
 pub use dispatch::dispatch;
 pub use register::{
-    register, register_for_capsule, unregister, unregister_for_capsule, GicIrqError,
+    holds_kernel_handler, register, register_for_capsule, unregister, unregister_for_capsule,
+    GicIrqError,
 };

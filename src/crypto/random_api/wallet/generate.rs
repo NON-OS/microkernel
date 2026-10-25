@@ -14,25 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn generate_wallet_entropy(buffer: &mut [u8]) {
+use crate::crypto::error::CryptoResult;
+
+/// Fills `buffer` with wallet entropy, or refuses when the seeded generator
+/// cannot answer; it never hands out a pool made of timing alone.
+pub fn generate_wallet_entropy(buffer: &mut [u8]) -> CryptoResult<()> {
     #[cfg(feature = "std")]
     {
-        crate::crypto::util::rng::fill_random_bytes(buffer);
-        return;
+        return crate::crypto::util::rng::fill_random_bytes_secure(buffer)
+            .map_err(|_| crate::crypto::error::CryptoError::InsufficientEntropy);
     }
 
     #[cfg(not(feature = "std"))]
-    generate_kernel_wallet_entropy(buffer);
+    generate_kernel_wallet_entropy(buffer)
 }
 
 #[cfg(not(feature = "std"))]
-fn generate_kernel_wallet_entropy(buffer: &mut [u8]) {
+fn generate_kernel_wallet_entropy(buffer: &mut [u8]) -> CryptoResult<()> {
     let mut pool = super::pool::EntropyPool::new();
     let timing = super::timing::collect(&mut pool);
 
     super::system::collect(&mut pool, timing);
-    super::csprng::collect(&mut pool);
-    super::super::hardware_mix::mix_hardware_entropy(pool.bytes_mut());
-    super::finalize::fill_output(buffer, pool.bytes());
+    let drawn = super::csprng::collect(&mut pool);
+    if drawn.is_ok() {
+        super::super::hardware_mix::mix_hardware_entropy(pool.bytes_mut());
+        super::finalize::fill_output(buffer, pool.bytes());
+    }
     pool.zeroize();
+    drawn
 }

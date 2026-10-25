@@ -57,6 +57,7 @@ pub fn find_ahci() -> Vec<Found> {
         })
         .map(|r| Found {
             device_id: r.device_id,
+            vendor: r.vendor,
             irq_line: r.irq_line,
             abar_size: r.bars[AHCI_ABAR_BAR as usize].size,
         })

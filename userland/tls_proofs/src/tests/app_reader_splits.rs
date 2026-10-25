@@ -22,16 +22,12 @@ use crate::app_reader::AppReader;
 use crate::traffic_keys::TrafficKeys;
 
 pub fn keys(suite: u16) -> TrafficKeys {
-    TrafficKeys {
-        suite,
-        handshake_secret: [0; 32],
-        client_secret: [1; 32],
-        server_secret: [2; 32],
-        client_key: [3; 32],
-        client_iv: [4; 12],
-        server_key: [5; 32],
-        server_iv: [6; 12],
-    }
+    TrafficKeys::build(suite, |k| {
+        (k.client_secret, k.server_secret) = ([1; 32], [2; 32]);
+        (k.client_key, k.client_iv, k.server_key, k.server_iv) = ([3; 32], [4; 12], [5; 32], [6; 12]);
+        true
+    })
+    .expect("filled")
 }
 
 /// `body` as server application records of `size` bytes, from `first`.

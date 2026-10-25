@@ -19,8 +19,11 @@ CAPSULE_NAMESPACE        := systems.nonos.payment
 # 0x1_0000_0010 was driver_hda's reply inbox.
 CAPSULE_SERVICE_ENDPOINT := service:4114:payment
 CAPSULE_REPLY_ENDPOINT   := reply:4115:endpoint.4294967323
-# CoreExec | IPC | Memory | Crypto | FileSystem = 0x01 | 0x08 | 0x10 | 0x20 | 0x40
-CAPSULE_REQUIRED_CAPS    := 0x79
+# CoreExec | IPC | Memory | Crypto | FileSystem | Keyring
+#   = 0x01 | 0x08 | 0x10 | 0x20 | 0x40 | 0x10000000. Keyring because its key is
+# generated and signs in the keyring, which the kernel admits a sender to only
+# with the bit (src/services/registry/policy.rs).
+CAPSULE_REQUIRED_CAPS    := 0x10000079
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_payment
 
 include nonos-mk/capsule.mk

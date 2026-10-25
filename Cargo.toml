@@ -65,6 +65,19 @@ nonos-bench-micro = []
 nonos-trap-proof-sp0 = []
 nonos-trap-proof-kernel-abort = []
 
+# x86_64 SMP boot proofs. No profile enables them. `nonos-shootdown-trace`
+# prints one line per TLB shootdown round (targets, starting targets,
+# acknowledgements paid for abandoned ones). `nonos-smp-park-proof` makes CPU 1
+# slow in bring-up, checkpointing as it goes, so the boot CPU parks and resets
+# it; `nonos-smp-stuck-proof` stalls it with no checkpoint, so it stays a
+# shootdown target and the next kernel shootdown fails closed.
+# `nonos-smp-pge-proof` sets CR4.PGE on the boot CPU alone before the kernel
+# sets it, as firmware may, so a boot shows every CPU ending with the same pge.
+nonos-shootdown-trace = []
+nonos-smp-park-proof = []
+nonos-smp-stuck-proof = []
+nonos-smp-pge-proof = []
+
 # Bootstrap. `kernel` switches malloc/free to Rust `alloc`; `standalone`
 # brings in the panic handler and global allocator.
 kernel     = []
@@ -107,7 +120,6 @@ nonos-capsule-desktop-shell     = []
 nonos-capsule-input-router      = []
 nonos-capsule-input-proof       = []
 nonos-capsule-input-probe       = []
-nonos-capsule-flacprobe         = []
 nonos-capsule-setup-wizard      = []
 nonos-capsule-wm                = []
 nonos-capsule-toolkit           = []
@@ -168,6 +180,7 @@ nonos-capsule-driver-e1000      = []
 nonos-capsule-driver-igb        = []
 nonos-capsule-driver-ixgbe      = []
 nonos-capsule-driver-e1000e     = []
+nonos-capsule-driver-igc        = []
 nonos-capsule-driver-i2c-pci    = []
 nonos-capsule-driver-gpio       = []
 nonos-capsule-driver-i2c-hid    = []
@@ -267,6 +280,14 @@ nonos-ntp-smoketest = ["microkernel-net-ntp", "nonos-user-entry-proof", "capsule
 # The booted spawn gate against four broken capsules and one honest one. Test
 # only: lib.rs refuses it beside nonos-production.
 nonos-attest-refusal-smoketest = ["microkernel-core", "nonos-capsule-proof-io"]
+# Init panics once the spawn plan has run, so a boot shows the panic path's
+# halt, wipe and power-off (src/userspace/init/injected.rs). Test only: it
+# refuses to compile beside nonos-production or nonos-release.
+nonos-panic-proof = []
+# Init raises a kernel #UD once the spawn plan has run, so a boot shows a CPU
+# exception's kernel branch wiping and powering off. Test only, refused
+# beside nonos-production or nonos-release (src/userspace/init/injected.rs).
+nonos-fault-proof = []
 # A development image: the gates admit a capsule, the kernel and the loader on
 # their Merkle path alone, with no STARK proof, so a test image is enrolled in
 # seconds. Only the dev profile turns it on, beside the loader's development
@@ -327,6 +348,8 @@ microkernel-proof-io = [
   "nonos-production",
   "nonos-user-entry-proof",
   "nonos-capsule-proof-io",
+  # Its proof is a serial line that needs Debug (src/userspace/init/entry.rs).
+  "capsule-serial-debug",
 ]
 
 microkernel-ramfs = [
@@ -477,6 +500,13 @@ microkernel-driver-e1000e = [
   "nonos-production",
   "nonos-capsule-proof-io",
   "nonos-capsule-driver-e1000e",
+]
+
+microkernel-driver-igc = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-igc",
 ]
 
 microkernel-driver-ixgbe = [
@@ -966,13 +996,30 @@ microkernel-desktop-gui-async-gate = [
   "nonos-capsule-tokio-smoke",
 ]
 
-# Full desktop image, what `make` and `make qemu` build. The desktop-gui set
-# plus every production hardware driver capsule, the market and input-proof
-# capsules, and first-boot setup, which runs before the desktop starts. Only
-# the input-probe injection harness, which fakes input for tests, is left
-# out. Every capsule here is already in the verified-capsule policy root.
+# Full desktop image, what `make` and the standard, hardened and airgapped
+# profiles build. The desktop-gui set plus every production hardware driver
+# capsule, the market, and first-boot setup, which runs before the desktop
+# starts. Test and demo capsules are left out: input-proof (it writes the
+# first key code it sees to the serial console), hello (the docs' example
+# window) and the input-probe injection harness. A capsule here is sealed by
+# the release seal like any other; one added since the last seal has no
+# trust set in nonos-data/trust yet, and the image is refused until it has
+# (tools/nix/image.nix, `unsealed`).
 microkernel-full-gui = [
   "microkernel-desktop-gui",
+  "nonos-capsule-nox-settle",
+  "nonos-capsule-prove-fetch",
+  "nonos-capsule-driver-igb",
+  "nonos-capsule-driver-e1000e",
+  "nonos-capsule-driver-ufs",
+  "nonos-capsule-driver-uhci",
+  "nonos-capsule-driver-ohci",
+  "nonos-capsule-driver-ehci",
+  "nonos-capsule-driver-usb-hub",
+  "nonos-capsule-driver-usb-audio",
+  "nonos-capsule-driver-uvc",
+  "nonos-capsule-driver-ccid",
+  "nonos-capsule-driver-fido",
   "nonos-capsule-driver-e1000",
   "nonos-capsule-driver-rtl8139",
   "nonos-capsule-driver-rtl8169",
@@ -998,8 +1045,6 @@ microkernel-full-gui = [
   "nonos-capsule-driver-i2c-hid",
   "nonos-capsule-market",
   "microkernel-setup-wizard",
-  "nonos-capsule-input-proof",
-  "nonos-capsule-hello",
 ]
 
 microkernel-toolkit = ["microkernel-desktop-gui"]
@@ -1256,12 +1301,15 @@ crypto-curve25519    = ["curve25519-dalek", "x25519-dalek"]
 mlkem512  = []
 mlkem768  = []
 mlkem1024 = []
+# SPHINCS+, NTRU and Classic McEliece: built only under this feature. Each
+# of the kernel's own implementations fails its first full run, so none is
+# shipped until it passes its published vectors. No default or release
+# profile may enable it (nonos-ci/check-pqc-unvetted.sh).
+pqc-unvetted = []
 mldsa2    = []
 mldsa3    = []
 mldsa5    = []
 
-# Legacy hash, retained for Git object hashes / TOTP only.
-sha1-legacy = []
 
 # Host-side build. Used by tests that compile against std on the host.
 std = []

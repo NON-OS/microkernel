@@ -28,7 +28,8 @@ sys.path.insert(0, os.path.dirname(HERE))
 
 from nonos_qemu import lanes, machine  # noqa: E402
 
-ALL = [n for n in lanes.NAMES if not n.startswith(("nic=", "iommu="))]
+# The whole-machine lanes make refuses (test_siblings.py) are left out.
+ALL = [n for n in lanes.NAMES if not n.startswith(("nic=", "iommu=", "gpu=", "hda-beside-nic")) and n != "bochs-display"]
 ALL += ["nic=igb"]
 
 
@@ -68,6 +69,12 @@ class LaneMachine(unittest.TestCase):
                              capture_output=True, text=True)
         self.assertIn("nix run .#qemu -- --lane iommu=intel", mmu.stderr)
 
+
+    def test_the_capture_is_the_guests_egress_and_its_ingress_apart(self):
+        args = machine.capture("/t/a,b.pcap")
+        self.assertEqual(args, ["-object", "filter-dump,id=egress0,netdev=net0,queue=rx,file=/t/a,,b.pcap",
+                                "-object", "filter-dump,id=ingress0,netdev=net0,queue=tx,file=/t/a,,b-in.pcap"])
+        self.assertEqual(machine.ingress_path("x/net"), "x/net-in.pcap")
 
 if __name__ == "__main__":
     unittest.main()

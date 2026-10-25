@@ -16,6 +16,8 @@
 
 /// The Finished verify_data for `secret`, given the transcript hash it covers.
 pub fn finished_value(secret: &[u8; 32], th: &[u8; 32]) -> Option<[u8; 32]> {
-    let key = super::finished_key::finished_key(secret)?;
-    super::hmac_sha256::tag(&key, &[th])
+    let mut key = super::finished_key::finished_key(secret)?;
+    let value = super::hmac_sha256::tag(&key, &[th]);
+    super::traffic_keys::wipe(&mut key);
+    value
 }

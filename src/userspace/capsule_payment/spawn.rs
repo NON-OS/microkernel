@@ -29,9 +29,10 @@ const SERVICE_PORT: u32 = 4114;
 const REPLY_INBOX: &str = "endpoint.4294967323";
 const REPLY_PORT: u32 = 4115;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
-// CoreExec | IPC | Memory | Crypto | FileSystem; kept hand-synced with userland/capsule_payment/Capsule.mk's
-// CAPSULE_REQUIRED_CAPS and the manifest signed from it.
-const REQUIRED_CAPS: u64 = 0x79;
+// CoreExec | IPC | Memory | Crypto | FileSystem | Keyring; kept hand-synced with
+// userland/capsule_payment/Capsule.mk's CAPSULE_REQUIRED_CAPS and the manifest
+// signed from it.
+const REQUIRED_CAPS: u64 = 0x1000_0079;
 
 pub fn spawn_payment_capsule() -> Result<(), SpawnError> {
     let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)

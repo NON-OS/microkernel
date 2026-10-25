@@ -22,6 +22,10 @@ pub mod xfer;
 
 /// A model controller and the devices on its ports.
 pub mod model;
+/// The broker's MMIO window rule, as the kernel builds it.
+#[cfg(test)]
+#[path = "../../../src/hardware/broker/mmio/window.rs"]
+mod window;
 
 #[cfg(test)]
 mod bulk2_tests;
@@ -31,6 +35,8 @@ mod bulk_tests;
 mod control_tests;
 #[cfg(test)]
 mod ep0_fault_tests;
+#[cfg(test)]
+mod grant_tests;
 #[cfg(test)]
 mod hostile_qtd_tests;
 #[cfg(test)]

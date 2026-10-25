@@ -64,6 +64,6 @@ pub fn drain_stream(wait_ms: i64) {
             control(tcp_port, gateway.stream, &chunk[..frame.len]);
             continue;
         }
-        accept(tcp_port, &chunk[..frame.len], &gateway.shared_key);
+        accept(tcp_port, &chunk[..frame.len]);
     }
 }
