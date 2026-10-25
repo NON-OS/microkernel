@@ -88,7 +88,7 @@ Then run `scripts/check_syscall_abi.py` and `scripts/check_syscall_caps.py`; [Co
 
 ## Other architectures
 
-The aarch64 `svc` handler and the riscv64 `syscall` handler decode the number the same way and call the same `dispatch` (`src/syscall/contract/mod.rs:17-24`). Each first refuses a guest's native number with EPERM, as x86_64 does (`process::foreign::seal::native`). Both architectures need the `nonos-arch-preview` feature; without it `compile_error` stops the build (`src/lib.rs:28-35`). Even with it, only aarch64 builds into a kernel: riscv64 type-checks, but nothing links or boots it (`make nonos-mk-riscv-check`). See [aarch64](../architectures/aarch64.md) and [riscv64](../architectures/riscv64.md).
+The aarch64 `svc` handler and the riscv64 `syscall` handler decode the number the same way and call the same `dispatch` (`src/syscall/contract/mod.rs:17-24`). Each first refuses a guest's native number with EPERM, as x86_64 does (`process::foreign::seal::native`). Both architectures need the `nonos-arch-preview` feature; without it `compile_error` stops the build (`src/lib.rs:28-35`). Even with it, only aarch64 boots to Core ready: riscv64 builds, and boots under QEMU only as far as its unported VM layer (`make nonos-mk-riscv-boot-check`). See [aarch64](../architectures/aarch64.md) and [riscv64](../architectures/riscv64.md).
 
 ## See also
 
