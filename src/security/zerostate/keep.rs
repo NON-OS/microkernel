@@ -29,11 +29,11 @@ pub(crate) fn disk() -> Disk {
     disk_of(crate::fs::blockfs_volume::plan_keeps_volume())
 }
 
-/// True when this write may reach the store. A refusal is said on serial
-/// with the disk's reading, so a boot test can find it.
-pub(crate) fn store_write_allowed(bytes: &[u8]) -> bool {
+/// True when a write may reach the store. A refusal is said on serial with
+/// the disk's reading, so a boot test can find it.
+pub(crate) fn store_write_allowed() -> bool {
     let disk = disk();
-    if may_write(disk, bytes) {
+    if may_write(disk) {
         return true;
     }
     crate::sys::serial::print(match disk {
