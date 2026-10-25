@@ -70,13 +70,16 @@ The terminal's `linux --box <box> <program> [args]` runs the program held to a n
 - `offline`: no network; the image is read-only, and the run's own folders (`/tmp`, `/home`,
   `/root`, `/run`, `/var/tmp`, `/dev/shm`) are written.
 - `allow:<folder>,...`: only the folders named, each inside those, are written. A destination
-  item (`net:<IPv4 or name>:<port>`) parses, but a terminal run, the only kind that takes a box,
-  refuses it: it has no network in this release (`boxed/terminal_run.rs`).
+  item (`net:<IPv4 or name>:<port>`) lets the run open TCP streams to it, over the anonymity
+  network, and to nothing else. Such a box runs only in the terminal role that holds Network
+  (`app.linux.term.net`), which runs no other box (`boxed/terminal_run.rs`); the report names
+  each destination reached (`boxed/connected.rs`, `boxed/net_report.rs`).
 
 Each box grants a terminal and execve; every program the run execs is held to it too. The box
-narrows the program's own policy (`app/identity_box.rs`) and never widens it: a program whose
-policy grants no network has none in any box. Each box has one hash, BLAKE3 under
-`NONOS.linux.box.v1` of its canonical form (`boxed/hash.rs`).
+narrows the program's own policy (`app/identity_box.rs`) and never widens it, but for one case:
+destinations, held to exactly that list, and so does each such program the run execs. A
+program whose published policy grants no network has none in any box. Each box has one hash,
+BLAKE3 under `NONOS.linux.box.v1` of its canonical form (`boxed/hash.rs`).
 
 At the end the run sends a `BOX REPORT v1` to the terminal that started it: the box and its hash,
 what the program actually had (the box narrowed by its own policy), each kind of refused action

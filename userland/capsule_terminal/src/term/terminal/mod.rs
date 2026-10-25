@@ -22,6 +22,8 @@ mod app_impl_on_event;
 mod app_impl_on_tick;
 mod app_impl_paint;
 mod close_tab;
+#[cfg(feature = "agentproof-headless")]
+pub mod agentproof;
 mod new;
 mod palette_act;
 mod palette_key;
@@ -31,6 +33,7 @@ mod rail_click;
 mod rail_wheel;
 #[cfg(feature = "nonos-autorun-selftest")]
 pub mod selftest;
+mod split_keys;
 mod tabs;
 mod take_handed;
 mod types;

@@ -24,15 +24,15 @@ pub(super) const AUDIO_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-audio")]
 pub(super) const AUDIO_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/audio_server.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/audio_server.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-audio")]
 pub(super) const AUDIO_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/audio_server.manifest.bin");
+    crate::baked_trust!("capsules/audio_server.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-audio")]
 pub(super) const AUDIO_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/audio_server.zk_trailer.bin");
+    crate::baked_trust!("capsules/audio_server.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-audio")]

@@ -125,7 +125,17 @@ let
       about = "the dev image with the attack suite's capsule, which tries what an attacker would at boot";
       for = "the self-test: tools/nonos-selftest boots it and judges every refusal";
       privacy = "none promised, as dev; the kernel's warnings also go to the serial line";
-      kernel = [ "microkernel-desktop-gui" "microkernel-setup-wizard" "nonos-dev-attest" "nonos-capsule-attack" ];
+      # No first-boot setup: the desktop comes up at once, so the shell the
+      # attack capsule's deputy-escape asks is serving when it runs.
+      kernel = [ "microkernel-desktop-gui" "nonos-dev-attest" "nonos-capsule-attack" ];
+      loader = "dev-qemu";
+      drop = [ ];
+    };
+    gauntlet = {
+      about = "the dev image without first-boot setup, so its apps start at boot: a Gauntlet job's headless Terminal runs one agent in a box, writes the report to serial and exits";
+      for = "tools/agentproof-gauntlet: an agent run in CI, its build failed on any refusal";
+      privacy = "none promised, as dev; the box's report and the program's output go to the serial line";
+      kernel = [ "microkernel-desktop-gui" "nonos-dev-attest" ];
       loader = "dev-qemu";
       drop = [ ];
     };
