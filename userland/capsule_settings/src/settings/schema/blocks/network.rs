@@ -34,6 +34,7 @@ pub const NETWORK: &[Block] = &[
             Row::Live("IP address", Live::IpAddress),
             Row::Live("Gateway", Live::Gateway),
             Row::Live("DNS", Live::Dns),
+            Row::Live("Network address", Live::Station),
         ],
     },
     Block {
