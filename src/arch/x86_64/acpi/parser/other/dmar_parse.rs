@@ -20,17 +20,18 @@
 use super::dmar_scope::{UnitScope, DRHD_HEADER_LEN, FLAG_INCLUDE_PCI_ALL};
 use super::dmar_scope_walk::walk_scopes;
 
-/// Parse one DRHD structure (`bytes` is exactly its `length` bytes, type 0).
-/// `None` for a structure too short to be a DRHD. Scope types other than
-/// endpoint and bridge (IOAPIC, HPET, ACPI namespace) name no PCI device and are
-/// skipped; a malformed scope ends the walk and marks the unit truncated.
-pub fn parse_drhd(bytes: &[u8]) -> Option<UnitScope> {
+/// Parse one DRHD structure (`bytes` is exactly its `length` bytes, type 0)
+/// into `unit`, an empty one, in place: at 255 scopes a unit is too large to
+/// pass by value. False for a structure too short to be a DRHD. Scope types
+/// other than endpoint and bridge (IOAPIC, HPET, ACPI namespace) name no PCI
+/// device and are skipped; a malformed scope ends the walk and marks the unit
+/// truncated.
+pub fn parse_drhd(bytes: &[u8], unit: &mut UnitScope) -> bool {
     if bytes.len() < DRHD_HEADER_LEN || u16::from_le_bytes([bytes[0], bytes[1]]) != 0 {
-        return None;
+        return false;
     }
-    let mut unit = UnitScope::EMPTY;
     unit.include_all = bytes[4] & FLAG_INCLUDE_PCI_ALL != 0;
     unit.segment = u16::from_le_bytes([bytes[6], bytes[7]]);
     (unit.count, unit.truncated) = walk_scopes(bytes, DRHD_HEADER_LEN, &mut unit.scopes);
-    Some(unit)
+    true
 }
