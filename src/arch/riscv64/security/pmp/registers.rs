@@ -19,4 +19,4 @@ mod cfg;
 mod validate;
 mod write;
 
-pub use write::{clear_entry, write_entry};
+pub(super) use write::{clear_entry, write_entry};
