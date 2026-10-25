@@ -31,4 +31,9 @@ pub enum ArchSpecificHandoff<'a> {
     Aarch64 {
         info: &'a crate::arch::aarch64::boot::BootInfo,
     },
+    /// What the device tree told the riscv64 boot path.
+    #[cfg(target_arch = "riscv64")]
+    Riscv64 {
+        info: &'a crate::arch::riscv64::boot::BootInfo,
+    },
 }

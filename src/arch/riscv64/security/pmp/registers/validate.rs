@@ -17,7 +17,7 @@
 use super::super::constants::PMP_ENTRY_COUNT;
 use super::super::error::{PmpError, PmpResult};
 
-pub fn check_index(index: usize) -> PmpResult<()> {
+pub(super) fn check_index(index: usize) -> PmpResult<()> {
     if index < PMP_ENTRY_COUNT {
         Ok(())
     } else {
