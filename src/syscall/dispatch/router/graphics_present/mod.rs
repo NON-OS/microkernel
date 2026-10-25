@@ -17,6 +17,7 @@
 //! Framebuffer present syscall: blit a userland surface to the display.
 
 mod blit;
+mod boot_fb;
 mod consts;
 mod handle;
 mod store;

@@ -39,10 +39,10 @@ pub fn validate(
     msix: Option<&MsixInfo>,
     ident: &Ident,
     current_register: u16,
-    may_master: bool,
+    may: (bool, bool),
 ) -> Result<WriteAction, PciWriteError> {
     if req.offset == CFG_COMMAND as u32 {
-        return validate_command(req.value, current_register, may_master);
+        return validate_command(req.value, current_register, may);
     }
     if let Some(m) = msix {
         let ctrl_offset = (m.offset as u32) + 2;

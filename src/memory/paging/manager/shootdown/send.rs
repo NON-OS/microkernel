@@ -45,6 +45,16 @@ pub(super) fn mark_and_send(selected: &[u64]) {
          * idling with interrupts on never looks again.
          */
         core::sync::atomic::fence(Ordering::SeqCst);
-        let _ = crate::arch::interrupt_controller::send_ipi(d.apic_id, Ipi::TlbShootdown);
+        /*
+         * A target still starting gets no vector: its interrupts are masked
+         * and its block's apic id is not its own until `init_ap` writes it,
+         * so the IPI would go to whatever cpu id 0 names. It serves the mark
+         * itself, at its spin points and once more right after it publishes
+         * `Online` (`go_live`). Read after the mark, so a target that came
+         * online in between either takes the vector or finds the mark there.
+         */
+        if crate::smp::cpu_is_online(cpu) {
+            let _ = crate::arch::interrupt_controller::send_ipi(d.apic_id, Ipi::TlbShootdown);
+        }
     }
 }
