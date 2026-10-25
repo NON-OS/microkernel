@@ -17,13 +17,16 @@
 mod get;
 mod get_domain;
 mod init;
+mod names_clear;
 mod set;
 mod set_domain;
 mod state;
 mod validate;
+mod wipe;
 
 pub use get::get;
 pub use get_domain::get_domain;
 pub use init::init;
 pub(super) use set::set;
 pub(super) use set_domain::set_domain;
+pub use wipe::wipe;
