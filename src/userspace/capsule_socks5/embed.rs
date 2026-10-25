@@ -34,6 +34,16 @@ pub(super) const SOCKS5_MANIFEST_BYTES: &[u8] =
 pub(super) const SOCKS5_ATTESTATION_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/socks5.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-socks5")]
+const _: () = assert!(
+    !SOCKS5_ELF.is_empty()
+        && !SOCKS5_NONOS_ID_CERT_BYTES.is_empty()
+        && !SOCKS5_MANIFEST_BYTES.is_empty()
+        && !SOCKS5_ATTESTATION_BYTES.is_empty(),
+    "capsule_socks5 built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-socks5"))]
 pub(super) const SOCKS5_ELF: &[u8] = &[];
 
