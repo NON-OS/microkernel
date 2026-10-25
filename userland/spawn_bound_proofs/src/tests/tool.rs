@@ -65,7 +65,7 @@ fn a_launcher_may_run_a_tool_beyond_itself() {
 fn no_manifest_is_left_to_the_spawn_and_no_caller_is_refused() {
     world(Some(4), &[(4, 0)]);
     assert_eq!(check(&[], u64::MAX, b"tool.linux"), Ok(()));
-    world(None, &[]);
+    world(None, &[(0, u64::MAX)]);
     assert_eq!(check(&manifest(APP, 0), 0, b"tool.x"), Err(-1));
     world(Some(4), &[(4, APP)]);
     assert_eq!(check(&[1, 2, 3], 0, b"tool.x"), Err(-1), "a manifest that does not decode");
