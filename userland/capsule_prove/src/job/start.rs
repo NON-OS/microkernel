@@ -22,7 +22,7 @@ use nonos_libc::{mk_exit, mk_ipc_reply};
 use nonos_proof_abi::wire::{reply, DeliverRequest, Header, ProveRequest, Stage};
 use nonos_proof_abi::wire::{DELIVER, PROVE, PROVE_MAGIC};
 
-use super::answer::drain;
+use super::drain::drain;
 use super::state::Job;
 
 const EINVAL: i32 = -22;

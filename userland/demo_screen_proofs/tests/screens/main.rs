@@ -22,6 +22,8 @@
 extern crate alloc;
 
 mod about_shots;
+mod app_census;
+mod app_windows;
 #[path = "../../../capsule_wm/src/server/handlers/window_open/cascade.rs"]
 mod cascade;
 mod compose;
@@ -30,10 +32,12 @@ mod compose;
 mod constants;
 mod desktop_shots;
 mod frame;
+mod game_2048_palette;
 #[path = "geometry_mount.rs"]
 mod geometry;
 mod modes;
 mod png;
 mod ring;
+mod terminal_geometry;
 mod terminal_shots;
 mod wallpaper_mount;

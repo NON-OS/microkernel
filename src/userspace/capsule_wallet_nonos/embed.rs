@@ -22,13 +22,13 @@ pub(crate) const WALLET_NONOS_ELF: &[u8] = include_bytes!(concat!(
 ));
 #[cfg(feature = "nonos-capsule-wallet-nonos")]
 pub(crate) const WALLET_NONOS_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/wallet_nonos.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/wallet_nonos.nonos_id_cert.bin");
 #[cfg(feature = "nonos-capsule-wallet-nonos")]
 pub(crate) const WALLET_NONOS_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/wallet_nonos.manifest.bin");
+    crate::baked_trust!("capsules/wallet_nonos.manifest.bin");
 #[cfg(feature = "nonos-capsule-wallet-nonos")]
 pub(crate) const WALLET_NONOS_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/wallet_nonos.zk_trailer.bin");
+    crate::baked_trust!("capsules/wallet_nonos.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-wallet-nonos")]

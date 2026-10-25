@@ -23,15 +23,15 @@ pub(super) const DRIVER_USB_AUDIO_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-usb-audio")]
 pub(super) const DRIVER_USB_AUDIO_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_usb_audio.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_usb_audio.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-usb-audio")]
 pub(super) const DRIVER_USB_AUDIO_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_usb_audio.manifest.bin");
+    crate::baked_trust!("capsules/driver_usb_audio.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-usb-audio")]
 pub(super) const DRIVER_USB_AUDIO_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_usb_audio.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_usb_audio.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-driver-usb-audio")]

@@ -24,15 +24,15 @@ pub(crate) const TERMINAL_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-terminal")]
 pub(crate) const TERMINAL_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/terminal.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/terminal.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-terminal")]
 pub(crate) const TERMINAL_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/terminal.manifest.bin");
+    crate::baked_trust!("capsules/terminal.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-terminal")]
 pub(crate) const TERMINAL_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/terminal.zk_trailer.bin");
+    crate::baked_trust!("capsules/terminal.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-terminal")]

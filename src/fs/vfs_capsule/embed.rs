@@ -24,15 +24,13 @@ pub(super) const VFS_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-vfs")]
 pub(super) const VFS_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/vfs.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/vfs.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-vfs")]
-pub(super) const VFS_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/vfs.manifest.bin");
+pub(super) const VFS_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/vfs.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-vfs")]
-pub(super) const VFS_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/vfs.zk_trailer.bin");
+pub(super) const VFS_ATTESTATION_BYTES: &[u8] = crate::baked_trust!("capsules/vfs.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-vfs")]

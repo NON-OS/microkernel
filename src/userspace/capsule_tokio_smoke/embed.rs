@@ -23,15 +23,15 @@ pub(crate) const TOKIO_SMOKE_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-tokio-smoke")]
 pub(crate) const TOKIO_SMOKE_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/tokio-smoke.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/tokio-smoke.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-tokio-smoke")]
 pub(crate) const TOKIO_SMOKE_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/tokio-smoke.manifest.bin");
+    crate::baked_trust!("capsules/tokio-smoke.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-tokio-smoke")]
 pub(crate) const TOKIO_SMOKE_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/tokio-smoke.zk_trailer.bin");
+    crate::baked_trust!("capsules/tokio-smoke.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-tokio-smoke")]

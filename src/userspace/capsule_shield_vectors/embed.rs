@@ -21,13 +21,13 @@ pub(crate) const SHIELD_VECTORS_ELF: &[u8] = include_bytes!(concat!(
 ));
 
 pub(crate) const SHIELD_VECTORS_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/shield_vectors.nonos_id_cert.bin");
 
 pub(crate) const SHIELD_VECTORS_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/shield_vectors.manifest.bin");
+    crate::baked_trust!("capsules/shield_vectors.manifest.bin");
 
 pub(crate) const SHIELD_VECTORS_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/shield_vectors.zk_trailer.bin");
+    crate::baked_trust!("capsules/shield_vectors.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 const _: () = assert!(

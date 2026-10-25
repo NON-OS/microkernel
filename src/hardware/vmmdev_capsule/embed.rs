@@ -23,15 +23,15 @@ pub(super) const DRIVER_VMMDEV_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-vmmdev")]
 pub(super) const DRIVER_VMMDEV_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_vmmdev.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_vmmdev.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-vmmdev")]
 pub(super) const DRIVER_VMMDEV_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_vmmdev.manifest.bin");
+    crate::baked_trust!("capsules/driver_vmmdev.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-vmmdev")]
 pub(super) const DRIVER_VMMDEV_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_vmmdev.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_vmmdev.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-driver-vmmdev")]

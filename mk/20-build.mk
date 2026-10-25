@@ -567,6 +567,7 @@ include userland/capsule_driver_vmmdev/Capsule.mk
 include userland/capsule_driver_vmmouse/Capsule.mk
 include userland/capsule_driver_vmbus/Capsule.mk
 include userland/capsule_driver_storvsc/Capsule.mk
+include userland/capsule_driver_netvsc/Capsule.mk
 include userland/capsule_driver_piix_ide/Capsule.mk
 include userland/capsule_driver_virtio_scsi/Capsule.mk
 include userland/capsule_driver_pvscsi/Capsule.mk
@@ -872,7 +873,7 @@ KERNEL_SIGNING_KEY = $(if $(filter /%,$(SIGNING_KEY)),$(SIGNING_KEY),$(shell pwd
 # nonos_kernel_build: compile the kernel with one cargo feature set. Every
 # profile target is one call to this, so the build command lives in exactly one
 # place; only the feature string differs. $(1) is the human label for the log,
-# $(2) is the comma-separated feature list passed to cargo.
+# $(2) is the comma-separated feature list; nonos-smp is added (05-smp.mk).
 # What the kernel ELF on disk was built as: its profile, then its features.
 # nonos-mk-esp names it, and warns when it is the bare default (B-02).
 KERNEL_PROFILE_RECORD := $(TARGET_DIR)/kernel.profile
@@ -882,8 +883,8 @@ define nonos_kernel_build
 	@NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
-		--no-default-features --features $(2)
-	@printf '%s\n' '$(1)' '$(2)' > $(KERNEL_PROFILE_RECORD)
+		--no-default-features --features $(2)$(NONOS_SMP_FEATURE)
+	@printf '%s\n' '$(1)' '$(2)$(NONOS_SMP_FEATURE)' > $(KERNEL_PROFILE_RECORD)
 	@$(NONOS_PYTHON) scripts/check_unenforced.py --list
 endef
 
@@ -1109,7 +1110,7 @@ nonos-mk-run-from-config: $(QEMU_BLK_IMG) $(QEMU_OVMF_VARS_RW)
 	@test -f $(ESP_DIR)/EFI/nonos/kernel.bin || { echo "no image; run 'make from-config' first"; exit 1; }
 	@mkdir -p $(dir $(QEMU_SERIAL_LOG))
 	@echo "Booting the from-config image in QEMU (serial log: $(QEMU_SERIAL_LOG))..."
-	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
+	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp $(QEMU_SMP) -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
 		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \

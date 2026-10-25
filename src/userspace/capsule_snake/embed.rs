@@ -24,15 +24,14 @@ pub(crate) const SNAKE_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-snake")]
 pub(crate) const SNAKE_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/snake.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/snake.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-snake")]
-pub(crate) const SNAKE_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/snake.manifest.bin");
+pub(crate) const SNAKE_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/snake.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-snake")]
 pub(crate) const SNAKE_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/snake.zk_trailer.bin");
+    crate::baked_trust!("capsules/snake.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-snake")]

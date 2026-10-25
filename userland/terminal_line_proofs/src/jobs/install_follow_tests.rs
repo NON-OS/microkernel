@@ -20,6 +20,7 @@
 //! it, and probes back off so the terminal holds fewer than the kernel's
 //! eight places in the installer's reply queue.
 
+mod glue;
 mod outcome;
 mod pacing;
 

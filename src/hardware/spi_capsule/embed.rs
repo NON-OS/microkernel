@@ -23,15 +23,15 @@ pub(super) const DRIVER_SPI_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-spi")]
 pub(super) const DRIVER_SPI_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_spi.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_spi.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-spi")]
 pub(super) const DRIVER_SPI_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_spi.manifest.bin");
+    crate::baked_trust!("capsules/driver_spi.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-spi")]
 pub(super) const DRIVER_SPI_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_spi.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_spi.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-driver-spi")]

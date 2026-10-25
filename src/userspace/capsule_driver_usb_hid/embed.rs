@@ -23,15 +23,15 @@ pub(super) const DRIVER_USB_HID_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-usb-hid")]
 pub(super) const DRIVER_USB_HID_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_usb_hid.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_usb_hid.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-usb-hid")]
 pub(super) const DRIVER_USB_HID_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_usb_hid.manifest.bin");
+    crate::baked_trust!("capsules/driver_usb_hid.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-usb-hid")]
 pub(super) const DRIVER_USB_HID_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_usb_hid.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_usb_hid.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-driver-usb-hid")]

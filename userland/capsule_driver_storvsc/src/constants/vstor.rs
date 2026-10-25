@@ -30,8 +30,10 @@
 //! ```
 
 pub const PACKET: usize = 64;
-/// sizeof(struct vmscsi_request) from WIN8 on.
-pub const SRB_LENGTH: u16 = 48;
+/// sizeof(struct vmscsi_request) from WIN8 on: 36 bytes, then the WIN8
+/// extension of 16 (Linux's struct, packed; OpenVMM's storvsp_protocol
+/// SCSI_REQUEST_LEN_V2 = 0x34).
+pub const SRB_LENGTH: u16 = 52;
 
 pub const OP_COMPLETE_IO: u32 = 1;
 pub const OP_REMOVE_DEVICE: u32 = 2;

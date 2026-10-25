@@ -1,6 +1,8 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! The parser's own module shape, so the shipping files compile unchanged.
 
+#[path = "../../../capsule_about/src/about/data/doc_parse/k1.rs"]
+pub mod k1;
 #[allow(dead_code)]
 #[path = "../../../capsule_about/src/about/data/doc_parse/layout.rs"]
 pub mod layout;

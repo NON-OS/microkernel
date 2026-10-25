@@ -42,7 +42,7 @@ pub(super) fn suffixed(name: &[u8], suffix: &[u8]) -> Result<([u8; NAME_MAX], us
 /// A name that holds another digest is taken, not overwritten.
 pub(super) fn recorded(name: &[u8], want: &[u8; 32]) -> Result<Option<u64>, VolumeError> {
     let (rec, len) = suffixed(name, SUFFIX)?;
-    let guard = VOLUME.read();
+    let guard = crate::smp::read_responsive(&VOLUME);
     let s = guard.as_ref().ok_or(VolumeError::NotMounted)?;
     let mut got = [0u8; 32];
     match blockfs::read_path(&s.key, &s.mount, &rec[..len], &mut got) {

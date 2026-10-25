@@ -46,7 +46,7 @@ impl BlockDevice {
         body.extend_from_slice(&rw_header(at, blocks as u32));
         body.extend_from_slice(chunk);
         let mut rx = [0u8; HDR_LEN + STATUS_LEN];
-        let (n, id) = call(self.port, self.driver.magic(), op, &body, &mut rx)?;
+        let (n, id) = call(self.port, self.driver.magic(), op, self.unit, &body, &mut rx)?;
         decode_reply(&rx, n, self.driver.magic(), op, id).map(|_| ())
     }
 }

@@ -17,6 +17,8 @@
 mod late_drops;
 mod marks;
 mod settle;
+mod silence;
+mod silence_table;
 mod sys_ipc_call;
 mod token;
 mod verdict;

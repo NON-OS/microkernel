@@ -2360,6 +2360,17 @@ else
     fail_with "bootloader build.rs writes outside OUT_DIR"
 fi
 unset boot_build
+# The kernel embeds its trust set only through baked_trust!, so a build pointed
+# at a test set (NONOS_BAKED_TRUST_DIR) replaces every file of it; a trust file
+# included by its literal path would keep the tree's copy in that build.
+literal_trust="$( { grep -rnE '"(\.\./)+nonos-data/trust/' src --include='*.rs' || true; } )"
+if [ -n "${literal_trust}" ]; then
+    fail_with "a kernel file includes the trust set by a literal path, not through baked_trust!"
+    printf '%s\n' "${literal_trust}" >&2
+else
+    note ok "the kernel embeds its trust set only through baked_trust!"
+fi
+unset literal_trust
 
 boot_features='nonos-bootloader/Cargo.toml'
 if ! grep -q '^hardened-production = \["production"\]' "${boot_features}"; then
@@ -5046,6 +5057,17 @@ else
 fi
 unset mirror_out
 
+# A publisher's capsule declaring a name outside its namespace is refused at
+# load (name_rule.rs), so it would install and never start.
+if pub_out="$(python3 scripts/check_publisher_names.py --self-test 2>&1 &&
+              python3 scripts/check_publisher_names.py 2>&1)"; then
+    note ok "every publisher capsule's names are under its namespace (check_publisher_names)"
+else
+    tail -n 5 <<< "${pub_out}" >&2
+    fail_with "check_publisher_names: a publisher capsule declares a name outside its namespace"
+fi
+unset pub_out
+
 # Draining the raw input ring reads every key typed. Its bit belongs to the
 # input router and to no driver; the seal refuses it elsewhere too.
 # capsule_linux dials a local-network mirror directly, past nonos_route_link,
@@ -5089,6 +5111,21 @@ else
     fail_with "check_kernel_mirrors: a capsule the kernel should spawn has no mirror"
 fi
 unset mirrors_out
+# The flake builds capsules from tools/nix's catalogues, so one left behind by
+# a new role makes the spawn refuse it on the next image. Only `nix flake
+# check` compared them; here the same comparison runs from make's own output.
+cat_dir="$(mktemp -d)"
+if (for which in capsule capsule-dev store; do
+        make -s --no-print-directory NONOS_IN_FLAKE=1 NONOS_QUIET=1 \
+            "nonos-mk-${which}-catalogue" > "${cat_dir}/${which}.json" || exit 1
+    done) && cat_out="$(TMPDIR="${cat_dir}" python3 -I tools/nix/catalogues.py --check 2>&1)"; then
+    note ok "tools/nix catalogues match what make says the capsules are (catalogues.py)"
+else
+    tail -n 5 <<< "${cat_out:-make failed}" >&2
+    fail_with "catalogues: tools/nix is stale; regenerate with python3 tools/nix/catalogues.py"
+fi
+rm -rf "${cat_dir}"
+unset cat_dir cat_out
 
 # SPHINCS+, NTRU and Classic McEliece do not ship: nothing turns on the
 # feature that builds them.
@@ -5098,6 +5135,27 @@ else
     bash nonos-ci/check-pqc-unvetted.sh >&2 || true
     fail_with "pqc-unvetted is turned on by a build: those schemes do not ship"
 fi
+
+# Every image starts every CPU: no profile, mk lane or QEMU lane drops back to
+# the boot CPU alone, as 0.9.2's did (cpu-2).
+if smp_out="$(python3 nonos-ci/check-smp-default.py 2>&1)"; then
+    note ok "every build and QEMU lane starts every CPU (check-smp-default)"
+else
+    printf '%s\n' "${smp_out}" >&2
+    fail_with "check-smp-default: a build or QEMU lane runs on one CPU"
+fi
+unset smp_out
+
+# No kernel lock is taken again by a path that already holds it, by name across
+# src/ (lock_retake/graph.py says what is read); its fixtures run first.
+retake_check='nonos-ci/check-lock-retake.py'
+if retake_out="$(python3 "${retake_check}" --self 2>&1 && python3 "${retake_check}" 2>&1)"; then
+    note ok "no kernel lock taken again on a path that holds it (check-lock-retake)"
+else
+    printf '%s\n' "${retake_out}" >&2
+    fail_with "check-lock-retake: a lock is taken again on a path that holds it"
+fi
+unset retake_out retake_check
 # Every crate's tests run in a lane or are listed with an owner, and
 # tools/nix/test-lanes.json is what the manifests' markers say.
 if lanes_out="$(python3 scripts/check_test_lanes.py 2>&1)"; then
@@ -5157,16 +5215,16 @@ else
     fail_with "check_display_profiles: a display driver is left out of microkernel-full-gui"
 fi
 unset display_out
-# capsule_linux's deliberate panic is for the selftest image's copy alone: no
-# committed build may carry it; the self-test first, so the scan is seen to bite.
-if selftest_panic_out="$(python3 scripts/check_selftest_panic.py --self-test 2>&1 \
-    && python3 scripts/check_selftest_panic.py 2>&1)"; then
-    note ok "no committed build carries capsule_linux's selftest-panic (check_selftest_panic)"
+# The copy-only features (selftest-panic, agentproof-headless) are for a dev
+# image's copy alone: no committed build may carry them; the self-test first.
+if copy_only_out="$(python3 scripts/check_copy_only_features.py --self-test 2>&1 \
+    && python3 scripts/check_copy_only_features.py 2>&1)"; then
+    note ok "no committed build carries a copy-only feature (check_copy_only_features)"
 else
-    tail -n 5 <<< "${selftest_panic_out}" >&2
-    fail_with "check_selftest_panic: a committed build carries selftest-panic"
+    tail -n 5 <<< "${copy_only_out}" >&2
+    fail_with "check_copy_only_features: a committed build carries a copy-only feature"
 fi
-unset selftest_panic_out
+unset copy_only_out
 # The surface registry's GATE is a spin lock: a holder that reaches a function
 # taking it again spins forever with interrupts off, and the surface path on
 # every CPU stops behind it (orphans::reclaim and reclaim_dma, the black

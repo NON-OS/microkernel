@@ -26,15 +26,15 @@ pub(super) const DRIVER_E1000E_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-e1000e")]
 pub(super) const DRIVER_E1000E_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_e1000e.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_e1000e.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-e1000e")]
 pub(super) const DRIVER_E1000E_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_e1000e.manifest.bin");
+    crate::baked_trust!("capsules/driver_e1000e.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-e1000e")]
 pub(super) const DRIVER_E1000E_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_e1000e.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_e1000e.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-driver-e1000e")]

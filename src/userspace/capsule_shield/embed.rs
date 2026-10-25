@@ -23,15 +23,14 @@ pub(crate) const SHIELD_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-shield")]
 pub(crate) const SHIELD_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/shield.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/shield.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-shield")]
-pub(crate) const SHIELD_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/shield.manifest.bin");
+pub(crate) const SHIELD_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/shield.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-shield")]
 pub(crate) const SHIELD_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/shield.zk_trailer.bin");
+    crate::baked_trust!("capsules/shield.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-shield")]

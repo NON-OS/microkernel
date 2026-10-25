@@ -23,15 +23,15 @@ pub(super) const DRIVER_CDC_NCM_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-cdc-ncm")]
 pub(super) const DRIVER_CDC_NCM_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_cdc_ncm.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_cdc_ncm.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-cdc-ncm")]
 pub(super) const DRIVER_CDC_NCM_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_cdc_ncm.manifest.bin");
+    crate::baked_trust!("capsules/driver_cdc_ncm.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-cdc-ncm")]
 pub(super) const DRIVER_CDC_NCM_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_cdc_ncm.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_cdc_ncm.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-driver-cdc-ncm")]

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::{
-    App, AppManifest, EventOutcome, InputEvent, InputKind, PaintBuffer, WindowKind, KEY_ESC,
+    App, AppManifest, EventOutcome, InputEvent, InputKind, PaintBuffer, KEY_ESC,
 };
 use nonos_std::collections::HashMap;
 use nonos_std::format;
@@ -35,16 +35,7 @@ impl GuiProof {
 
 impl App for GuiProof {
     fn manifest(&self) -> AppManifest {
-        AppManifest {
-            title: b"std GUI proof",
-            window_id: 0x5354_4447,
-            kind: WindowKind::Normal,
-            initial_x: 160,
-            initial_y: 140,
-            width: 360,
-            height: 200,
-            input_kind_mask: (1 << 0) | (1 << 5),
-        }
+        crate::manifest::manifest()
     }
 
     fn on_event(&mut self, event: InputEvent) -> EventOutcome {

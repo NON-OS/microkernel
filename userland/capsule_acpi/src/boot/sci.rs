@@ -18,7 +18,7 @@
 //! FADT's event ports granted, ACPI mode entered, the GPE methods armed.
 
 use super::eval::evaluator;
-use super::sci_claim::{arm_ec, claim_and_bind, enter_mode, grant_ports};
+use super::sci_claim::{arm_ec, claim_and_bind, grant_ports};
 use super::state::Sci;
 use crate::events_io::PortIo;
 use crate::host::CapsuleHost;
@@ -45,7 +45,7 @@ pub fn start(
         return (None, None);
     }
     host.pm1_cnt = f.pm1a_cnt.map(|a| Pm1Cnt { a, b: f.pm1b_cnt });
-    enter_mode(&f);
+    super::acpi_mode::enter_mode(&f);
     let (found, both) = handlers(&aml.ns);
     let (wake, bad) =
         wake_gpes(aml, &mut |aml, id| evaluator(host)(aml, id, alloc::vec::Vec::new()));

@@ -25,13 +25,12 @@ pub(super) const ACPI_ELF: &[u8] = include_bytes!(concat!(
 ));
 
 pub(super) const ACPI_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/acpi.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/acpi.nonos_id_cert.bin");
 
-pub(super) const ACPI_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/acpi.manifest.bin");
+pub(super) const ACPI_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/acpi.manifest.bin");
 
 pub(super) const ACPI_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/acpi.zk_trailer.bin");
+    crate::baked_trust!("capsules/acpi.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 const _: () = assert!(

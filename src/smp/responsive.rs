@@ -37,8 +37,8 @@
 use core::panic::Location;
 use spin::{Mutex, MutexGuard};
 
-use super::spin_holders::{note, stack_mark};
-use super::spin_wait::wait;
+use super::spin_holders::stack_mark;
+use super::spin_wait::take;
 
 /// Acquire `lock`, servicing TLB shootdowns while it is contended.
 ///
@@ -52,13 +52,6 @@ use super::spin_wait::wait;
 /// a holder taking its own lock again, is otherwise a CPU stopped in silence.
 #[track_caller]
 pub fn lock_responsive<T>(lock: &Mutex<T>) -> MutexGuard<'_, T> {
-    let site = Location::caller();
-    let sp = stack_mark();
     let addr = lock as *const Mutex<T> as usize;
-    let guard = match lock.try_lock() {
-        Some(guard) => guard,
-        None => wait(lock, addr, site, sp),
-    };
-    note(addr, site, sp);
-    guard
+    take(addr, Location::caller(), stack_mark(), false, || lock.try_lock())
 }

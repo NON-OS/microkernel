@@ -23,15 +23,15 @@ pub(crate) const SETUP_WIZARD_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-setup-wizard")]
 pub(crate) const SETUP_WIZARD_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/setup_wizard.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/setup_wizard.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-setup-wizard")]
 pub(crate) const SETUP_WIZARD_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/setup_wizard.manifest.bin");
+    crate::baked_trust!("capsules/setup_wizard.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-setup-wizard")]
 pub(crate) const SETUP_WIZARD_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/setup_wizard.zk_trailer.bin");
+    crate::baked_trust!("capsules/setup_wizard.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-setup-wizard")]

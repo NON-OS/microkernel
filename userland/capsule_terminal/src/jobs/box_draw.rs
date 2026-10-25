@@ -16,7 +16,8 @@
 
 //! A boxed run's report drawn once the run has ended, on a screen put back
 //! to its defaults first (box_screen::SCREEN_RESET), so no mode the guest left
-//! can hide or bend it; and its `[BOX]` line sent to the serial log.
+//! can hide or bend it; and its `[BOX]` line, after its `[BOX-NET]` line when
+//! it names destinations, sent to the serial log.
 
 use super::box_hold::BoxHold;
 use super::box_missing::{line as missing_line, said, Missing};
@@ -37,7 +38,7 @@ pub(super) fn draw(hold: &BoxHold, out: &mut Output<'_>) {
     }
     match line {
         Some(l) => {
-            if !to_log(l) {
+            if !hold.net_lines().into_iter().chain([l]).all(to_log) {
                 out.writeln_error(b"linux: the [BOX] line could not be written to the log");
             }
         }
@@ -56,7 +57,8 @@ pub(super) fn missing(m: Missing, exit: i32, out: &mut Output<'_>) {
 }
 
 /// The one way a line reaches the serial log from here: the report's own
-/// `[BOX]` line, from its keyed frames, or this module's `[BOX-MISSING]`.
+/// `[BOX-NET]` and `[BOX]` lines, from its keyed frames, or this module's
+/// `[BOX-MISSING]`.
 fn to_log(line: &[u8]) -> bool {
     super::box_log::log(line, |p| nonos_libc::mk_debug(p.as_ptr(), p.len()))
 }

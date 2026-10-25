@@ -26,16 +26,13 @@ pub(super) const ELF: &[u8] = include_bytes!(concat!(
 ));
 
 #[cfg(feature = "nonos-capsule-prove-fetch")]
-pub(super) const CERT: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/prove-fetch.nonos_id_cert.bin");
+pub(super) const CERT: &[u8] = crate::baked_trust!("capsules/prove-fetch.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-prove-fetch")]
-pub(super) const MANIFEST: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/prove-fetch.manifest.bin");
+pub(super) const MANIFEST: &[u8] = crate::baked_trust!("capsules/prove-fetch.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-prove-fetch")]
-pub(super) const ATTESTATION: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/prove-fetch.zk_trailer.bin");
+pub(super) const ATTESTATION: &[u8] = crate::baked_trust!("capsules/prove-fetch.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-prove-fetch")]

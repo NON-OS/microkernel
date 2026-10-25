@@ -23,15 +23,15 @@ pub(crate) const INPUT_PROOF_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-input-proof")]
 pub(crate) const INPUT_PROOF_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/input_proof.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/input_proof.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-input-proof")]
 pub(crate) const INPUT_PROOF_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/input_proof.manifest.bin");
+    crate::baked_trust!("capsules/input_proof.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-input-proof")]
 pub(crate) const INPUT_PROOF_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/input_proof.zk_trailer.bin");
+    crate::baked_trust!("capsules/input_proof.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-input-proof")]

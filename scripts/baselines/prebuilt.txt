@@ -17,5 +17,8 @@ upstream nonos-data/cacert.pem
 fixture */tests/*
 fixture */vectors/*
 fixture userland/tls_proofs/src/*
+# relocate_proofs' linker-built PIE; fixtures/regen.sh rebuilds it from pie.s
+# and pie.ld and compares it with pie.elf.sha256.
+fixture userland/relocate_proofs/fixtures/*
 generated nonos-data/market/index.bin
 generated nonos-data/models/catalogue.bin

@@ -13,7 +13,8 @@ From the terminal, as `src/lib.rs` and its topic groups (`src/input_line.rs`,
 (`term/line/`), history expansion, command suggestions, the flag parser, the
 pipeline text filters, the `tree` renderer, `grep` highlighting, the line
 editing a foreground program gets (`event/cooked.rs`, `cooked_kill.rs`),
-pointer selection, the line's tokenizer, statement split and redirect plan
+pointer selection, the history search (`term/search_step.rs`, and what the prompt shows of it,
+`paint/search_head.rs`), the line's tokenizer, statement split and redirect plan
 with what a tool may be given (`command/parse/`, `dispatch/statements.rs`,
 `redirect.rs`, `tool_admit.rs`), the `help` pages and their layout, the tool list, the ANSI
 palette, box-drawing strokes, and `direct_gate.rs` with `nonos_route_link`'s
@@ -25,9 +26,11 @@ Three files from other capsules share the crate: the text editor's
 
 ## What the tests check
 
-153 `#[test]` functions, among them:
+Among the `#[test]` functions:
 
 - line editing, word kill, long lines and history `!` expansion;
+- the history search: `Esc` leaves it with the line put back, `Enter` runs nothing
+  while the needle matches nothing, and the needle is shown whole (`src/search/`);
 - `<`, `>`, `>>` and `|` are operators against a word as well as apart,
   and text inside quotes; numbered streams are refused (`redirect_tests.rs`);
 - the filters (`grep`, `sort`, `uniq`, `cut`, `nl`, `wc`, `head`, `tail`,

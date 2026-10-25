@@ -24,15 +24,15 @@ pub(super) const NET_TCP_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-net-tcp")]
 pub(super) const NET_TCP_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_tcp.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/net_tcp.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-net-tcp")]
 pub(super) const NET_TCP_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_tcp.manifest.bin");
+    crate::baked_trust!("capsules/net_tcp.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-net-tcp")]
 pub(super) const NET_TCP_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_tcp.zk_trailer.bin");
+    crate::baked_trust!("capsules/net_tcp.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-net-tcp")]

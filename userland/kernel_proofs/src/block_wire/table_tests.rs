@@ -34,10 +34,15 @@ macro_rules! row {
     };
 }
 
-const ROWS: [(&str, &str, &str, &str, &str); 3] = [
+const ROWS: [(&str, &str, &str, &str, &str); 8] = [
     row!("sdhci_capsule", "capsule_driver_sdhci", "nonos-capsule-driver-sdhci"),
     row!("ufs_capsule", "capsule_driver_ufs", "nonos-capsule-driver-ufs"),
     row!("storvsc_capsule", "capsule_driver_storvsc", "nonos-capsule-driver-storvsc"),
+    row!("piix_ide_capsule", "capsule_driver_piix_ide", "nonos-capsule-driver-piix-ide"),
+    row!("virtio_scsi_capsule", "capsule_driver_virtio_scsi", "nonos-capsule-driver-virtio-scsi"),
+    row!("pvscsi_capsule", "capsule_driver_pvscsi", "nonos-capsule-driver-pvscsi"),
+    row!("buslogic_capsule", "capsule_driver_buslogic", "nonos-capsule-driver-buslogic"),
+    row!("mpt_capsule", "capsule_driver_mpt", "nonos-capsule-driver-mpt"),
 ];
 
 fn quoted<'a>(src: &'a str, after: &str) -> &'a str {

@@ -23,20 +23,20 @@ pub const DOC_MAGIC: &[u8; 8] = b"NONOSATT";
 /// 4 added the count of devices still reaching all of memory.
 pub const DOC_VERSION: u32 = 5;
 /// The largest document `HOST_PROOF` may carry.
-pub const MAX_DOC: usize = 196_608;
+pub const MAX_DOC: usize = 1024 * 1024 + 64 * 1024;
 /// The PCRs a version 5 quote selects, in the order the document carries
 /// their values and the quote's digest covers them.
 pub const QUOTED_PCRS_V4: [u8; 8] = [0, 1, 2, 4, 7, 8, 9, 14];
 /// How many PCR values a version 5 document carries.
 pub const PCR_COUNT: usize = QUOTED_PCRS_V4.len();
-/// The PCRs the TCG event log must reproduce: the ones firmware extends.
-/// PCRs 8, 9 and 14 are extended by NONOS code outside the firmware log and
-/// are held to the release's values instead.
-pub const REPLAYED_PCRS: [u8; 5] = [0, 1, 2, 4, 7];
+/// The PCRs the TCG event log must reproduce: the firmware's, and 14, whose
+/// capsule events the kernel appends. PCRs 8 and 9 are extended by the
+/// loader outside the log and are held to the release's values instead.
+pub const REPLAYED_PCRS: [u8; 6] = [0, 1, 2, 4, 7, 14];
 /// The firmware PCRs the enrolment certificate fixes, in its order.
 pub const ENROLLED_PCRS: [u8; 4] = [0, 1, 2, 7];
 /// The largest TCG event log a document carries.
-pub const MAX_LOG: usize = 131_072;
+pub const MAX_LOG: usize = 1024 * 1024;
 /// The largest `TPMS_ATTEST`. A quote over one bank is about 145 bytes.
 pub const MAX_ATTEST: usize = 1024;
 /// The largest ECDSA P-256 `TPMT_SIGNATURE`: two algorithms, then r and s

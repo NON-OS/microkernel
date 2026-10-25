@@ -30,15 +30,14 @@ pub(super) const NET_L2_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-net-l2")]
 pub(super) const NET_L2_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_l2.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/net_l2.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-net-l2")]
-pub(super) const NET_L2_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_l2.manifest.bin");
+pub(super) const NET_L2_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/net_l2.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-net-l2")]
 pub(super) const NET_L2_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_l2.zk_trailer.bin");
+    crate::baked_trust!("capsules/net_l2.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-net-l2")]

@@ -36,8 +36,6 @@ pub mod acpi_tables;
 pub mod arm_acpi;
 #[path = "arm_acpi_tests/mod.rs"]
 pub mod arm_acpi_tests;
-#[path = "bgrt/mod.rs"]
-pub mod bgrt;
 #[path = "boot_cpu_id/mod.rs"]
 pub mod boot_cpu_id;
 #[path = "device_shown/mod.rs"]

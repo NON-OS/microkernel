@@ -23,15 +23,15 @@ pub(crate) const NONOS_INSTALL_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-nonos-install")]
 pub(crate) const NONOS_INSTALL_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/nonos_install.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/nonos_install.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-nonos-install")]
 pub(crate) const NONOS_INSTALL_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/nonos_install.manifest.bin");
+    crate::baked_trust!("capsules/nonos_install.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-nonos-install")]
 pub(crate) const NONOS_INSTALL_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/nonos_install.zk_trailer.bin");
+    crate::baked_trust!("capsules/nonos_install.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-nonos-install")]
