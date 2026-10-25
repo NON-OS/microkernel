@@ -21,9 +21,10 @@ use alloc::vec::Vec;
 
 use super::super::rlp::{rlp_list, rlp_uint_be};
 use super::fields_unstake::{nox_stake_locked_fields, nox_unstake_fields};
+use super::parts::{LockedParts, StakeParts};
 
 pub fn signed_nox_stake_locked_tx(
-    parts: (&[u8; 32], &[u8; 32], &[u8; 32], &[u8; 32], &[u8; 32], &[u8; 32]),
+    parts: LockedParts<'_>,
     y_parity: u8,
     r: &[u8; 32],
     s: &[u8; 32],
@@ -38,7 +39,7 @@ pub fn signed_nox_stake_locked_tx(
 }
 
 pub fn signed_nox_unstake_tx(
-    parts: (&[u8; 32], &[u8; 32], &[u8; 32], &[u8; 32], &[u8; 32]),
+    parts: StakeParts<'_>,
     y_parity: u8,
     r: &[u8; 32],
     s: &[u8; 32],
