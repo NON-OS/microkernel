@@ -28,9 +28,9 @@ fn a_boxed_run_is_read_to_its_report_and_drawn_when_the_screen_is_the_shells() {
     assert!(io.contains("let all = capture.is_some() || boxed.is_some();"));
     assert!(io.contains("hold.take(&buf[..(n as usize).min(buf.len())]);"));
     let draw = include_str!("../../../capsule_terminal/src/jobs/box_draw.rs");
-    let cut = "None if !hold.lines().0.is_empty() => {\n            out.writeln_error(b\"linux: the box's report arrived incomplete\");";
+    let cut = "None if !hold.lines().0.is_empty() => missing(Missing::Incomplete, exit, out),";
     assert!(draw.contains(cut), "a report cut short is said to be");
-    let none = "if shown.is_empty() {\n        out.writeln_error(b\"linux: the box sent no report;";
+    let none = "if shown.is_empty() {\n        missing(Missing::None, exit, out);";
     assert!(draw.contains(none), "a report that never came is said not to have");
     let wait = include_str!("../../../capsule_terminal/src/jobs/box_wait.rs");
     let kept = wait.find("if held {\n        return Some(JobProgress::Running);").unwrap();
