@@ -27,7 +27,8 @@ use crate::syscall::{
 /// The VMBus root's record: Microsoft's vendor id and "VB".
 pub const MK_VMBUS_VENDOR: u16 = 0x1414;
 pub const MK_VMBUS_DEVICE: u16 = 0x5642;
-/// A channel's record (vendor `MK_VMBUS_VENDOR`), by interface.
+/// A channel's record (vendor `MK_VMBUS_VENDOR`), by interface. Its
+/// `irq_source` is the channel's relid.
 pub const MK_VMBUS_CHANNEL_NETWORK: u16 = 0x4E45;
 pub const MK_VMBUS_CHANNEL_SCSI: u16 = 0x5343;
 pub const MK_VMBUS_CHANNEL_IDE: u16 = 0x4944;
