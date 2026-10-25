@@ -23,9 +23,9 @@
 use nonos_hash::sha256;
 use nonos_wallpapers::PINS;
 
-use crate::collection::files;
 use super::wallpaper_embedded::EMBEDDED;
 use super::wallpaper_labels::{CATALOG_ERA, WALLPAPER_DEFAULT, WALLPAPER_LABELS};
+use crate::collection::files;
 
 #[test]
 fn every_label_names_one_pinned_picture() {
@@ -46,5 +46,8 @@ fn the_first_frame_is_the_default_picture() {
 fn the_catalog_names_the_era_its_indices_belong_to() {
     let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../nonos-data/wallpapers/catalog.txt");
     let catalog = std::fs::read_to_string(path).unwrap();
-    assert!(catalog.contains(&format!("# Catalog era {CATALOG_ERA}.")), "catalog.txt and CATALOG_ERA agree");
+    assert!(
+        catalog.contains(&format!("# Catalog era {CATALOG_ERA}.")),
+        "catalog.txt and CATALOG_ERA agree"
+    );
 }

@@ -13,8 +13,8 @@
 //! included. Records from an earlier catalog era: setup_record_era.rs.
 
 use nonos_policy_proto::route::NYM;
-use nonos_policy_proto::setup_record::{check_record, Answers, Host, Name, Record, Refused, Tier};
 use nonos_policy_proto::setup_record::ANSWERS_LEN;
+use nonos_policy_proto::setup_record::{check_record, Answers, Host, Name, Record, Refused, Tier};
 use nonos_policy_proto::wallpaper_labels::{WALLPAPER_DEFAULT, WALLPAPER_LABELS};
 use nonos_policy_proto::wallpapers_kept::{kept, next, prev, valid, ALL};
 
