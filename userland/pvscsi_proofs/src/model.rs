@@ -178,9 +178,9 @@ impl State {
                 seen.context
             };
             wr(c, context);
-            wr(c + 8, moved);
+            wr(c + 8, 0u64); // the emulated device never writes the data length
             wr(c + 16, answer.sense.len() as u32);
-            wr(c + 20, host);
+            wr(c + 20, if moved < seen.data_len && host == 0 { 0x12u16 } else { host });
             wr(c + 22, answer.status as u16);
             for (i, &b) in answer.sense.iter().take(seen.sense_len as usize).enumerate() {
                 wr(seen.sense_addr + i as u64, b);
