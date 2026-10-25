@@ -1,6 +1,7 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 
 mod enter;
+mod regs;
 mod state;
 pub mod switch;
 mod watch;
