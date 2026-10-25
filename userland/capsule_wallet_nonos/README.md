@@ -16,8 +16,8 @@ and what 0.9.2 does flow by flow is in
   `reply:4735:endpoint.app.nonos_wallet.reply`. Two more windows can open on
   the instance endpoints `app.nonos_wallet.1` and `app.nonos_wallet.2`
   (ports 4854 to 4857).
-- `CAPSULE_REQUIRED_CAPS = 0x187d`: CoreExec, Network, IPC, Memory, Crypto,
-  FileSystem, GraphicsDisplayQuery and GraphicsSurfaceCreate. Network is what
+- `CAPSULE_REQUIRED_CAPS = 0x1000187d`: CoreExec, Network, IPC, Memory, Crypto,
+  FileSystem, GraphicsDisplayQuery, GraphicsSurfaceCreate and Keyring. Network is what
   the network services check; FileSystem is what vfs requires before it saves
   or reads the vault blob (`src/wallet/vault/vfs.rs`). It has no raw device
   authority.
@@ -103,6 +103,7 @@ disarms it until a fresh second has passed.
 
 These blunt focus stealing and a fake window drawn to look like the
 wallet. A click falling through an overlay that another capsule draws above
+the wallet is closed by the maintainers' unit T1b: the input router checks the
 compositor's layer under the pointer (`OP_LAYER_AT`) against the window
 manager's hit before it delivers the click. T1b also takes a client's own
 raise or focus only within a second of input the router gave it, so the

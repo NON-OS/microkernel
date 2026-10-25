@@ -20,6 +20,7 @@ Ports 4310 to 4505 of the [well-known service ports](ipc-ports.md#well-known-ser
 | 4430 | `net.tcp` | 4431 | `capsule_net_tcp` |
 | 4440 | `net.dhcp.client` | 4441 | `capsule_net_dhcp` |
 | 4444 | `attest` | 4445 | `capsule_attest` |
+| 4446 | `power.off` | 4449 | `capsule_power`, its second name: the shell's wiped power-off |
 | 4448 | `power` | 4449 | `capsule_power` |
 | 4450 | `net.dns` | 4451 | `capsule_net_dns` |
 | 4460 | `net.sockets` | 4461 | `capsule_net_sockets` |

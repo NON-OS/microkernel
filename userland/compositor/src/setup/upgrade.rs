@@ -36,8 +36,12 @@ pub fn upgrade_from_gop(ctx: &mut Context, backoff: &mut Backoff, now_ms: i64) -
     let Some(ep) = backoff.due(now_ms, DISPLAYS.len()).and_then(lookup_at) else {
         return false;
     };
-    let Ok(next) = super::prime_wire::prime(ep) else {
-        return false;
+    let next = match super::prime_wire::prime_with(ep) {
+        Ok(next) => next,
+        Err(why) => {
+            super::unprimed::say_once(ep.name, &why);
+            return false;
+        }
     };
     super::adopt::adopt(ctx, next);
     true
