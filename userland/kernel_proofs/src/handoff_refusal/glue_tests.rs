@@ -23,6 +23,7 @@ const FLAGS: &str = include_str!("../../../../nonos-bootloader/src/handoff/prepa
 const GET_INFO: &str =
     include_str!("../../../../nonos-bootloader/src/handoff/config/framebuffer/get_info.rs");
 const TRY_INIT: &str = include_str!("../../../../nonos-bootloader/src/display/gop/try_init.rs");
+const STATE: &str = include_str!("../../../../nonos-bootloader/src/display/gop/state.rs");
 
 #[test]
 fn a_handoff_claiming_both_is_refused_before_anything_reads_the_framebuffer() {
@@ -63,5 +64,12 @@ fn the_loader_sets_the_flag_with_no_framebuffer_and_hands_over_its_word() {
     let failure = TRY_INIT.find("FB_FAILURE.store(modes.failure(), Ordering::SeqCst);").unwrap();
     assert!(
         TRY_INIT[failure..].contains("FB_BITMASK_BPP.store(modes.bitmask_bpp, Ordering::SeqCst);")
+    );
+    let at = STATE.find("pub fn refusal() -> u32 {").expect("no refusal()");
+    let body = &STATE[at..at + STATE[at..].find("\n}").unwrap()];
+    assert!(body.contains("let code = FB_FAILURE.load(Ordering::Acquire);"));
+    assert!(
+        body.contains("refusal_word(code, FB_BITMASK_BPP.load(Ordering::Acquire))"),
+        "depth dropped"
     );
 }
