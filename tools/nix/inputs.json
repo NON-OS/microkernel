@@ -1538,6 +1538,7 @@
  },
  "userland/capsule_app_store": {
   "exclude": [
+   "userland/market_proto/fuzz",
    "userland/toolkit/image_tests"
   ],
   "include": [
@@ -3152,6 +3153,7 @@
  },
  "userland/capsule_market": {
   "exclude": [
+   "userland/market_proto/fuzz",
    "userland/toolkit/image_tests"
   ],
   "include": [
@@ -3458,7 +3460,9 @@
   "signed": []
  },
  "userland/capsule_payment": {
-  "exclude": [],
+  "exclude": [
+   "userland/market_proto/fuzz"
+  ],
   "include": [
    ".cargo",
    "src/hardware/broker/acpi/dgon_wire.rs",
@@ -3853,6 +3857,7 @@
  },
  "userland/capsule_terminal": {
   "exclude": [
+   "userland/market_proto/fuzz",
    "userland/toolkit/image_tests"
   ],
   "include": [
@@ -3967,6 +3972,7 @@
  },
  "userland/capsule_wallet_nonos": {
   "exclude": [
+   "userland/market_proto/fuzz",
    "userland/toolkit/image_tests"
   ],
   "include": [
@@ -4370,6 +4376,7 @@
  },
  "userland/demo_screen_proofs": {
   "exclude": [
+   "userland/market_proto/fuzz",
    "userland/toolkit/image_tests"
   ],
   "include": [
@@ -6371,10 +6378,13 @@
   "signed": []
  },
  "userland/market_proofs": {
-  "exclude": [],
+  "exclude": [
+   "userland/market_proto/fuzz"
+  ],
   "include": [
    ".cargo",
    "nonos-data/market/index.bin",
+   "src/security/market_capsule/client/linux_policy_wire.rs",
    "userland/capsule_app_store/src/store/asked.rs",
    "userland/capsule_app_store/src/store/asked_label.rs",
    "userland/capsule_app_store/src/store/channel_held.rs",
@@ -6412,9 +6422,12 @@
    "userland/capsule_market/src/install_ready/checks.rs",
    "userland/capsule_market/src/install_ready/market.rs",
    "userland/capsule_market/src/install_ready/pin.rs",
+   "userland/capsule_market/src/install_ready/ready.rs",
    "userland/capsule_market/src/protocol/decode.rs",
    "userland/capsule_market/src/protocol/header.rs",
    "userland/capsule_market/src/server/handlers/get_commerce/encode.rs",
+   "userland/capsule_market/src/server/handlers/get_linux_policy/answer.rs",
+   "userland/capsule_market/src/server/handlers/get_linux_policy/encode.rs",
    "userland/capsule_market/src/server/handlers/get_release/encode_release.rs",
    "userland/capsule_market/src/server/handlers/install_ready/find_release.rs",
    "userland/capsule_market/src/server/lp/pair.rs",
@@ -6451,7 +6464,9 @@
   ]
  },
  "userland/market_proto": {
-  "exclude": [],
+  "exclude": [
+   "userland/market_proto/fuzz"
+  ],
   "include": [
    ".cargo",
    "userland/market_proto"
@@ -6518,7 +6533,9 @@
   "signed": []
  },
  "userland/model_fetch_proofs": {
-  "exclude": [],
+  "exclude": [
+   "userland/market_proto/fuzz"
+  ],
   "include": [
    ".cargo",
    ".keys/marketplace_operator_ed25519.pub",
@@ -10325,7 +10342,9 @@
   "signed": []
  },
  "userland/wallet_proofs": {
-  "exclude": [],
+  "exclude": [
+   "userland/market_proto/fuzz"
+  ],
   "include": [
    ".cargo",
    "src/userspace/capsule_wallet_nonos/spawn.rs",
