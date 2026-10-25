@@ -198,39 +198,21 @@ fn resolve_signing_key_path() -> String {
     }
 }
 
+// A development build may use the seed left at keys/signing_key_v1.bin, but
+// the build never writes one: a key in the source tree is one commit away
+// from being published. Without a seed it stops and says what to set.
 fn resolve_development_signing_key() -> String {
     let default = "keys/signing_key_v1.bin";
     if Path::new(default).exists() {
         return String::from(default);
     }
-    eprintln!("NOTE: No signing key found. Generating development key...");
-    eprintln!("      For production, set NONOS_SIGNING_KEY to an external release key");
-    let key_dir = Path::new("keys");
-    if !key_dir.exists() {
-        fs::create_dir_all(key_dir).expect("Cannot create keys directory");
-    }
-    let key = generate_development_signing_key();
-    fs::write(default, &key).expect("Cannot write development key");
-    eprintln!("      Development key written to {}", default);
-    String::from(default)
-}
-
-fn generate_development_signing_key() -> [u8; 32] {
-    let mut key = [0u8; 32];
-    if let Ok(mut f) = fs::File::open("/dev/urandom") {
-        use std::io::Read;
-        if f.read_exact(&mut key).is_ok() {
-            return key;
-        }
-    }
-    // Deterministic fallback only if /dev/urandom is unavailable.
-    // Production environments expose /dev/urandom; this path keeps
-    // dev builds reproducible against SOURCE_DATE_EPOCH.
-    let seed = build_timestamp_secs() as u128;
-    for (i, byte) in key.iter_mut().enumerate() {
-        *byte = ((seed >> (i % 16 * 8)) & 0xFF) as u8 ^ (i as u8).wrapping_mul(17);
-    }
-    key
+    panic!(
+        "no kernel signing key: set NONOS_SIGNING_KEY to a 32-byte Ed25519 seed, or \
+         NONOS_TRUST_ANCHOR_PUBKEY to its 32-byte public key, with NONOS_MLDSA65_PUBKEY and \
+         NONOS_KERNEL_ATTEST_ROOT as well. The build writes no key into the source tree; make \
+         a throwaway seed outside it, as `head -c 32 /dev/urandom > /tmp/nonos-dev.seed`, or \
+         build through make, which passes its own."
+    );
 }
 
 fn derive_ed25519_public_key(seed: &[u8; 32]) -> [u8; 32] {

@@ -50,8 +50,8 @@ harness = false
 [features]
 default = ["microkernel-core"]
 
-# Bring up a non-x86_64 arch tree (aarch64/riscv64) in QEMU. Compiles + boots
-# the arch but is not a release-signed target. See the arch guard in lib.rs.
+# Bring up a non-x86_64 arch tree: aarch64 compiles and boots under QEMU,
+# riscv64 only type-checks. Neither is a release target; see lib.rs's guard.
 nonos-arch-preview = []
 
 # Run the in-kernel microbenchmarks at boot and print them on the serial
@@ -104,6 +104,10 @@ nonos-capsule-shield            = []
 # Test 5, the pinned wallet vectors proved on the machine: development images
 # only (tools/nix/config.nix refuses it beside any other loader policy).
 nonos-capsule-shield-vectors    = []
+# The attack suite's capsule: development images only, as above. The
+# selftest profile turns it on; it also echoes the kernel's warnings to the
+# serial line, so the report shows each refusal from the kernel's side.
+nonos-capsule-attack            = []
 nonos-capsule-ripgrep           = []
 nonos-capsule-sd                = []
 nonos-capsule-tokio-smoke       = []
@@ -303,6 +307,15 @@ nonos-dev-unconfined-dma = []
 # remaps. Never in a release (src/memory/iommu/dev_unremapped.rs refuses it
 # beside nonos-production or nonos-release); the posture line says it is on.
 nonos-dev-unremapped-interrupts = []
+# The no-IOMMU posture (src/memory/iommu/no_iommu_rule.rs): on a machine
+# whose firmware left VT-d or AMD-Vi off, so no remapping unit is in service,
+# bus-master claims go ahead unconfined instead of the boot stopping at the
+# splash. Taken only then, never in a Hardened or Air-Gapped boot, and always
+# said: its own [IOMMU] posture line, the attestation, the splash and About.
+# It rides microkernel-desktop-gui, not microkernel-core, so the hardened and
+# airgapped profiles can take it out (tools/nix/config.nix) without opening
+# microkernel-core into members that are not kernel features.
+nonos-dma-unconfined-posture = []
 # Every image the seal may seal for release: tools/nix/config.nix turns it on
 # for each profile whose loader is not the development one. A kernel built
 # with it refuses to compile nonos-dev-attest (src/lib.rs).
@@ -983,6 +996,7 @@ microkernel-desktop-base = [
 # first-party app capsules in one kernel image.
 microkernel-desktop-gui = [
   "microkernel-desktop-base",
+  "nonos-dma-unconfined-posture",
   "nonos-tool-capsules",
 ]
 
