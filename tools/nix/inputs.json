@@ -4043,7 +4043,7 @@
   ],
   "include": [
    ".cargo",
-   "nonos-data/wallpapers/special-variant-9.jpg",
+   "nonos-data/wallpapers/nonos-canyon-neon.jpg",
    "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/assets/icons",
@@ -10681,6 +10681,7 @@
    "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/assets/icons",
    "userland/capsule_wallpaper/src/catalog_client",
+   "userland/capsule_wallpaper/src/first_paint/embedded.rs",
    "userland/capsule_wallpaper/src/first_paint/job.rs",
    "userland/capsule_wallpaper/src/paint/blit_argb.rs",
    "userland/capsule_wallpaper/src/paint/decode_jpeg.rs",
@@ -10698,6 +10699,7 @@
    "userland/nonos_hash",
    "userland/nonos_wallpapers",
    "userland/policy_proofs/libc_shim",
+   "userland/policy_proto/src/wallpaper_labels.rs",
    "userland/toolkit",
    "userland/wallpaper_catalog_proofs"
   ],

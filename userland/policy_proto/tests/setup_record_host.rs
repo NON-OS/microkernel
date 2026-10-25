@@ -27,7 +27,7 @@ fn record(host: &[u8]) -> Record {
 fn the_computer_name_round_trips() {
     let r = record(b"ada-laptop2");
     let raw = r.encode();
-    assert_eq!((raw.len(), &raw[..4]), (ANSWERS_LEN, &b"NSA6"[..]));
+    assert_eq!((raw.len(), &raw[..4]), (ANSWERS_LEN, &b"NSA7"[..]));
     assert_eq!(Record::decode(&raw), Some(r));
     assert_eq!(check_record(&raw).unwrap().hostname.as_bytes(), b"ada-laptop2");
 }

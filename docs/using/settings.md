@@ -103,6 +103,10 @@ The panel also notes that SMEP, SMAP, UMIP, NX and WP are set at boot when the C
 | `Wallpapers kept` and the list under it | Which wallpapers are read from the disk at all. The desktop's own wallpaper is always kept. |
 | `Pointer speed` | How far the pointer moves. It scales mouse movement only. |
 
+Four wallpapers ship, by the NØNOS team: `Canyon neon`, the default, then `Canyon real`, `Canyon real soft` and `Neon sign` (`nonos-data/wallpapers/catalog.txt`, `userland/policy_proto/src/wallpaper_labels.rs`). Each is served only if its bytes match its SHA-256 pin (`userland/nonos_wallpapers/src/pins.rs`). The 62 wallpapers of 0.9.2 and earlier stay in the source tree and are not in the build.
+
+A wallpaper picked in 0.9.2 or earlier was kept by its place in the old list of 63, and that place now names another picture or none. So after an update, a kept choice reads as `Canyon neon` with all four kept, and everything else kept with it, such as the name, keyboard and network, is restored as it was. Pick again in `Wallpaper` to change it. The setup record says this with its version, 7 (`userland/policy_proto/src/setup_record/era.rs`); the settings record says it with an entry naming the list's era (`userland/policy_proto/src/settings_record/era.rs`).
+
 ### Privacy
 
 | Row | What it shows |

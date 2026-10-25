@@ -23,7 +23,7 @@
 
 use alloc::format;
 
-use nonos_policy_proto::wallpaper_labels::WALLPAPER_LABELS;
+use nonos_policy_proto::wallpaper_labels::{WALLPAPER_DEFAULT, WALLPAPER_LABELS};
 use nonos_policy_proto::wallpapers_kept::{kept, ALL};
 
 use crate::render::layout::WALL_AFTER_LINES;
@@ -34,10 +34,9 @@ use crate::state::Context;
 
 use super::appearance_rows;
 
-/// The desktop's wallpaper until another is chosen: Special Variant 09, the
-/// one the wallpaper capsule carries for the first frame and the policy
-/// store's own default.
-pub const DESKTOP_DEFAULT: u8 = 55;
+/// The desktop's wallpaper until another is chosen: the one the wallpaper
+/// capsule carries for the first frame and the policy store's own default.
+pub const DESKTOP_DEFAULT: u8 = WALLPAPER_DEFAULT;
 
 const K_SPACE: u32 = 0x20;
 const K_A: u32 = 0x61;
