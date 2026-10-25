@@ -17,23 +17,31 @@
 """What the first boot left behind: on the disk it booted from, and in what
 the second boot printed."""
 
-import importlib.machinery
-import importlib.util
 from pathlib import Path
 
 from .memscan import count
 
-ROOT = Path(__file__).resolve().parents[2]
-_loader = importlib.machinery.SourceFileLoader(
-    "nonos_amnesic_check", str(ROOT / "tools/nonos-amnesic-check"))
-_amnesic = importlib.util.module_from_spec(importlib.util.spec_from_loader(_loader.name, _loader))
-_loader.exec_module(_amnesic)
+SECTOR = 512
+SLICE = 64 << 20
 
 
-def store_rows_added(before_image, after_image):
-    """The store rows the boot added or changed: an amnesic boot adds none."""
-    before = set(_amnesic.rows(str(before_image)))
-    return [r.split(" ", 1)[0] for r in _amnesic.rows(str(after_image)) if r not in before]
+def changed_sectors(before_image, after_image):
+    """Each run of sectors the boot changed on its disk, as (first, count).
+    A boot that keeps nothing changes none; the whole disk is compared, not
+    only the store's table."""
+    runs, sector = [], 0
+    with open(before_image, "rb") as x, open(after_image, "rb") as y:
+        while True:
+            a, b = x.read(SLICE), y.read(SLICE)
+            if not a and not b:
+                return runs
+            for i in range(0, max(len(a), len(b)), SECTOR):
+                if a[i:i + SECTOR] != b[i:i + SECTOR]:
+                    if runs and runs[-1][0] + runs[-1][1] == sector:
+                        runs[-1] = (runs[-1][0], runs[-1][1] + 1)
+                    else:
+                        runs.append((sector, 1))
+                sector += 1
 
 
 def disk_holds(image, secret):
