@@ -26,6 +26,10 @@ nonos-boot-measure = { path = "../../nonos-boot-measure" }
 # What the market half of capsule_prove imports. STARKs at the
 # lock's commit.
 nonos_proof_abi = { path = "../nonos_proof_abi" }
+# The receipt job's pure halves: which record, and what each frame does.
+agentproof_receipt = { path = "../agentproof_receipt", default-features = false }
+agentproof_policy = { path = "../agentproof_policy" }
+nonos_linux_policy = { path = "../nonos_linux_policy" }
 isolation_stark = { path = "../isolation_stark" }
 nonos-stark = { git = "https://github.com/NON-OS/STARKs.git", branch = "main", features = ["fri8"] }
 
