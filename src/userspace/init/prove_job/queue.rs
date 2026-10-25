@@ -43,6 +43,7 @@ pub(crate) fn service() {
     let spawned = match next {
         Some(Next::Prove(pid)) => spawn_prove_job(JobKind::Prove, pid),
         Some(Next::Deliver(pid)) => spawn_prove_job(JobKind::Deliver, pid),
+        Some(Next::Receipt(pid)) => spawn_prove_job(JobKind::Receipt, pid),
         None => return,
     };
     // No focus frame: the job has no window and starts serving at once.

@@ -15,12 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The op and pid a job serves, from its argv as init writes it:
-//! "--nonos-prove-job", then "prove" or "deliver", then the pid in decimal.
+//! "--nonos-prove-job", then "prove", "deliver" or "receipt", then the pid in
+//! decimal.
 //! `None` when argv does not say both, and then the job serves no one.
 
 use alloc::vec::Vec;
 
-use nonos_proof_abi::wire::{DELIVER, PROVE};
+use nonos_proof_abi::wire::{DELIVER, PROVE, RECEIPT};
 
 const JOB_ARG: &[u8] = b"--nonos-prove-job";
 
@@ -29,6 +30,7 @@ pub fn parse(a: &[Vec<u8>]) -> Option<(u16, u32)> {
     let op = match a.get(at + 1)?.as_slice() {
         b"prove" => PROVE,
         b"deliver" => DELIVER,
+        b"receipt" => RECEIPT,
         _ => return None,
     };
     let pid = core::str::from_utf8(a.get(at + 2)?).ok()?.parse::<u32>().ok()?;
