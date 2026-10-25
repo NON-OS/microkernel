@@ -1,0 +1,60 @@
+{
+  "schema_version": 3,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.flac",
+      "capsule_id": "70e65d29623cbb0227455c51f8a6765784768198fca424a883d2338ff5cd6bfa",
+      "name": "FLAC",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Encode and decode lossless FLAC audio files. The metaflac in its package has no box of its own and is refused at its installed path.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "flac@1.4.3-r1",
+          "manifest_hash": "70e65d29623cbb0227455c51f8a6765784768198fca424a883d2338ff5cd6bfa",
+          "package_hash": "70e65d29623cbb0227455c51f8a6765784768198fca424a883d2338ff5cd6bfa",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/flac-1.4.3-r1.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c3031010000000000000069a3458082a41a07352ee6e69d6884a8d56fdf951f7f48650e21be76c61d79ff080100000000000089bae494d9310dfbd82cc686a6812a889631b5e1a6bef3ac3b42097fabe846b276b71ebea42f4c6be8db4a9d5c44216f4a56ed47ec0896461771414c412ed02e0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 147831 bytes; licence BSD-3-Clause AND GPL-2.0-or-later; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}
