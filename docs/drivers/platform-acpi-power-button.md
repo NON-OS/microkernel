@@ -47,7 +47,7 @@ PM1_EN=…` (`power_button/arm.rs`, the rule in `hw/power_button_arm.rs`, called
 from `src/arch/init_broker_irq_routing.rs`). It refuses, with a line saying
 why, when routing failed or is not up, when the line cannot be masked, or when a
 capsule holds the SCI. Booted on q35 under QEMU 11.1: a QMP `system_powerdown`
-reached the desktop (P-05). On hardware the enable is not needed by the spec,
+reached the desktop ([P-05](../security/privacy-evidence/2026-10-25/p05-c39b8edd9/README.md)). On hardware the enable is not needed by the spec,
 and is harmless with the line masked; not hardware-verified.
 
 From QEMU's monitor, read and write the PM1 registers 16 bits wide: `i/h 0x602`,
@@ -56,7 +56,7 @@ and a 32-bit access is dropped: writes do not stick and reads return 0.
 
 A `ControlMethod` button (PNP0C0C), a hardware-reduced platform or a status
 register outside port I/O gets one log line and stays with the firmware
-(`power_button/init.rs:58-60`), pointing to the desktop menu's Power Off.
+(`power_button/init.rs:58-60`), pointing to Power Off in the desktop's menu.
 
 The shell answers the Power key, and that menu item, with "Power off and wipe
 memory?" (`userland/capsule_desktop_shell/src/server/handlers/system_keys.rs:40`).
