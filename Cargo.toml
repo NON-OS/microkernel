@@ -71,9 +71,12 @@ nonos-trap-proof-kernel-abort = []
 # slow in bring-up, checkpointing as it goes, so the boot CPU parks and resets
 # it; `nonos-smp-stuck-proof` stalls it with no checkpoint, so it stays a
 # shootdown target and the next kernel shootdown fails closed.
+# `nonos-smp-pge-proof` sets CR4.PGE on the boot CPU alone before the kernel
+# sets it, as firmware may, so a boot shows every CPU ending with the same pge.
 nonos-shootdown-trace = []
 nonos-smp-park-proof = []
 nonos-smp-stuck-proof = []
+nonos-smp-pge-proof = []
 
 # Bootstrap. `kernel` switches malloc/free to Rust `alloc`; `standalone`
 # brings in the panic handler and global allocator.

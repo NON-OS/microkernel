@@ -42,11 +42,23 @@ fn mutant_ack_before_flush() {
 
 #[test]
 fn global_pages_survive_a_cr3_reload_on_a_pge_cpu() {
-    // With CR4.PGE set and GLOBAL kernel PTEs, a full flush by CR3 reload
-    // keeps the stale entry; `invlpg` removes a global entry and is safe.
+    // A full flush by CR3 write alone keeps the GLOBAL kernel entry on any CPU
+    // with PGE set: the boot CPU alone, as firmware may leave it, or every CPU,
+    // as the kernel now sets it. `invlpg` removes a global entry either way.
     for n in CPUS {
-        let full = Config { initiator_pge: true, ..round(n, 0, Flush::Full) };
-        assert_eq!(broken(&full), STALE);
-        holds(&Config { initiator_pge: true, ..round(n, 0, Flush::Page) });
+        for pge in [Pge::BootOnly, Pge::Every] {
+            let bare = Config { pge, full_toggles_pge: false, ..round(n, 0, Flush::Full) };
+            assert_eq!(broken(&bare), STALE);
+            holds(&Config { pge, full_toggles_pge: false, ..round(n, 0, Flush::Page) });
+        }
+    }
+}
+
+#[test]
+fn a_full_flush_that_toggles_pge_holds_however_pge_is_set() {
+    for n in CPUS {
+        for pge in [Pge::Off, Pge::BootOnly, Pge::Every] {
+            holds(&Config { pge, ..round(n, 0, Flush::Full) });
+        }
     }
 }
