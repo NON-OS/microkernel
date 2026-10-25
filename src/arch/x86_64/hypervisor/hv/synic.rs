@@ -138,7 +138,7 @@ pub fn recv(out: &mut [u8; MESSAGE_BYTES]) -> Option<(usize, Retire)> {
     let m = RING.lock().pop()?;
     let Slot::Full { ty, len, .. } = read(&m) else { return None };
     let retire = if ty == MESSAGE_TYPE_CHANNEL {
-        CHANNELS.lock().from_host(&m[HEADER_BYTES..HEADER_BYTES + len])
+        CHANNELS.lock().take_host_message(&m[HEADER_BYTES..HEADER_BYTES + len])
     } else {
         Retire::None
     };
@@ -169,7 +169,7 @@ pub fn post_checked(
     match post(connection, ty, payload) {
         None => Err(PostError::NoSynic),
         Some(super::hypercall_abi::STATUS_SUCCESS) => {
-            channels.from_guest(payload);
+            channels.take_guest_message(payload);
             Ok(())
         }
         Some(status) => Err(PostError::Status(status)),
