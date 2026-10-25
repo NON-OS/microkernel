@@ -20,7 +20,7 @@ refused: <name>`), and 2 when a file cannot be used. It checks, in order:
 6. `ak`: the AK is the one the trust file pinned.
 7. `release`: PCR 9 names a trusted release, and PCR 8 and 14 are that release's.
 8. `dma`: an IOMMU was present and enforcing, with no grant around it and no device left in a domain that reaches all of memory (nsh_attest's `steps::dma`). Then `registry`: the capsule
-   registry was complete.
+   registry was complete, and the receipt's entries fold to the root the quote signed.
 9. `record`, `unfinished`, `supervisor`: the record is one NFSR v1 record, finished, with no
    count saturated and no overflow, sealed under the vendor authority by a trusted
    supervisor with its trusted capability mask.
@@ -28,8 +28,9 @@ refused: <name>`), and 2 when a file cannot be used. It checks, in order:
     NLXPOL01 policy, and slot 0 is that app in that box.
 
 It then prints the release, the program and its app_id, the box and its hash, the family
-it was sealed as, and `mode LEARN, not enforced` for a learn run. A v0 receipt carries no
-counts.
+it was sealed as, and `mode LEARN, not enforced` for a learn run. Then `ran`, how many
+capsules the machine was running, and a `network` line for each that held Network: pid,
+measurement and authority, or `no capsule held Network`. A v0 receipt carries no counts.
 
 ## The trust file
 
