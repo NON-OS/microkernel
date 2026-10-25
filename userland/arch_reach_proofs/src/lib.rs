@@ -6,12 +6,15 @@
 
 pub mod check;
 pub mod ledger;
+pub mod rules;
 pub mod scan;
 
 #[cfg(test)]
 mod capsule_tests;
 #[cfg(test)]
 mod check_tests;
+#[cfg(test)]
+mod form_tests;
 #[cfg(test)]
 mod ledger_tests;
 #[cfg(test)]

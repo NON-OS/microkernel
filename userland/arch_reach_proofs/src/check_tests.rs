@@ -3,14 +3,14 @@
 
 use crate::check::{compare, Finding};
 use crate::ledger::parse;
-use crate::scan::{count, names_x86_cfg, names_x86_path};
+use crate::scan::{count, names_x86_cfg, names_x86_path, Rule};
 use crate::scratch::Scratch;
 
 const GATE: &str = "#[cfg(target_arch = \"x86_64\")]\nmod port;\n";
 const LEDGER: &str = "src/a.rs 1\n    port I/O. Elsewhere: refused.\n";
 
 fn run(tree: &Scratch, ledger: &str) -> Vec<Finding> {
-    compare(&parse(ledger).unwrap(), &count(tree.root(), names_x86_cfg).unwrap())
+    compare(&parse(ledger).unwrap(), &count(tree.root(), Rule::Cfg).unwrap())
 }
 
 #[test]
