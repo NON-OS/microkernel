@@ -28,6 +28,11 @@ nonos-device-attest = { path = "../../nonos-device-attest", default-features = f
 # The market path: the record, container and pins, and the
 # isolation statement's prover, both no_std. STARKs at the lock's commit.
 nonos_proof_abi = { path = "../nonos_proof_abi" }
+# The receipt (letter agent-02): its writer without the verifier, the box
+# rule capsule_linux holds, and the policy an app_id is made from.
+agentproof_receipt = { path = "../agentproof_receipt", default-features = false }
+agentproof_policy = { path = "../agentproof_policy" }
+nonos_linux_policy = { path = "../nonos_linux_policy" }
 isolation_stark = { path = "../isolation_stark" }
 nonos-stark = { git = "https://github.com/NON-OS/STARKs.git", branch = "main", features = ["fri8"] }
 

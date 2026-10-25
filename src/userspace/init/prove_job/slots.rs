@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The queue's state, apart from spawning: one PROVE and one
-//! DELIVER may wait; PROVE is taken first; a DELIVER is held to the rate.
+//! DELIVER and one RECEIPT may wait; PROVE is taken first, then DELIVER,
+//! then RECEIPT; a DELIVER is held to the rate.
 
 use super::ask::ProveAsk;
 use super::rate::Rate;
@@ -25,17 +26,19 @@ use super::rate::Rate;
 pub(crate) enum Next {
     Prove(u32),
     Deliver(u32),
+    Receipt(u32),
 }
 
 pub(crate) struct Slots {
     prove: Option<u32>,
     deliver: Option<u32>,
+    receipt: Option<u32>,
     rate: Rate,
 }
 
 impl Slots {
     pub(crate) const fn new() -> Slots {
-        Slots { prove: None, deliver: None, rate: Rate::new() }
+        Slots { prove: None, deliver: None, receipt: None, rate: Rate::new() }
     }
 
     /// False when one of its kind waits, or the measurement's rate holds.
@@ -45,18 +48,20 @@ impl Slots {
             ProveAsk::Deliver(pid, m) if self.deliver.is_none() && self.rate.take(&m, now) => {
                 self.deliver = Some(pid)
             }
+            ProveAsk::Receipt(pid) if self.receipt.is_none() => self.receipt = Some(pid),
             _ => return false,
         }
         true
     }
 
     pub(crate) fn waiting(&self) -> bool {
-        self.prove.is_some() || self.deliver.is_some()
+        self.prove.is_some() || self.deliver.is_some() || self.receipt.is_some()
     }
 
-    /// PROVE first, then DELIVER.
+    /// PROVE first, then DELIVER, then RECEIPT.
     pub(crate) fn next(&mut self) -> Option<Next> {
         let prove = self.prove.take().map(Next::Prove);
-        prove.or_else(|| self.deliver.take().map(Next::Deliver))
+        let deliver = || self.deliver.take().map(Next::Deliver);
+        prove.or_else(deliver).or_else(|| self.receipt.take().map(Next::Receipt))
     }
 }
