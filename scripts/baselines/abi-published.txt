@@ -1,6 +1,7 @@
 caps.bits ADMIN 512
 caps.bits APP_INSTALL 1073741824
 caps.bits ATTEST_READ 2147483648
+caps.bits CAMERA_CAPTURE 137438953472
 caps.bits CORE_EXEC 1
 caps.bits CRYPTO 32
 caps.bits DEBUG 256
@@ -25,11 +26,13 @@ caps.bits IRQ 262144
 caps.bits KEYRING 268435456
 caps.bits LOCAL_SIGN 8589934592
 caps.bits MEMORY 16
+caps.bits MICROPHONE_CAPTURE 274877906944
 caps.bits MMIO 131072
 caps.bits NETWORK 4
 caps.bits PIO 1048576
 caps.bits PROCESS_CONTROL 33554432
 caps.bits REGISTER_SERVICE 1024
+caps.bits SCREEN_CAPTURE 549755813888
 caps.bits SPAWN_BROKER 8388608
 caps.bits SPAWN_WINDOW 16777216
 caps.bits STORE_WRITE 67108864
@@ -86,6 +89,7 @@ syscalls.numbers MAPY 1498431821
 syscalls.numbers MAST 1414742349
 syscalls.numbers MAUN 1314210125
 syscalls.numbers MBAT 1413562957
+syscalls.numbers MBFB 1111900749
 syscalls.numbers MBGL 1279738445
 syscalls.numbers MBSL 1280524877
 syscalls.numbers MBTA 1096041037

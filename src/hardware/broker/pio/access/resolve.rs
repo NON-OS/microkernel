@@ -29,7 +29,7 @@ pub(super) fn resolve(
     grant_id: u64,
     port_offset: u16,
     width: PioWidth,
-) -> Result<PioGrant, PioError> {
+) -> Result<(PioGrant, claim::InUse), PioError> {
     let g = grant::lookup_for_holder(pid, grant_id)?;
     let cur = claim::lookup(g.device_id).ok_or(PioError::NotClaimed)?;
     if cur.epoch != g.claim_epoch || cur.pid != pid {
@@ -40,5 +40,6 @@ pub(super) fn resolve(
         return Err(PioError::BadOffset);
     }
     let _ = g.port_base.checked_add(port_offset).ok_or(PioError::BadOffset)?;
-    Ok(g)
+    // The claim is held across the access itself (L66).
+    Ok((g, cur))
 }

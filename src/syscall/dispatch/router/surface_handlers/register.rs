@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::kernel_core::surface_registry::{attach_map, register_surface, SurfaceDescriptor};
+use crate::kernel_core::surface_registry::pin::register_check::register_owned;
+use crate::kernel_core::surface_registry::SurfaceDescriptor;
 use crate::process::current_pid;
 use crate::syscall::dispatch::util::errno;
 use crate::syscall::SyscallResult;
@@ -28,9 +29,9 @@ use super::frames::user_frames;
 static FIRST_SURFACE_REGISTER: AtomicBool = AtomicBool::new(false);
 
 pub(in super::super) fn do_register(desc_ptr: u64) -> SyscallResult {
-    let pid = match current_pid() {
-        Some(p) => p,
-        None => return errno(ESRCH),
+    // Surfaces are held by the process, not the thread that asked (L36).
+    let Some(pid) = current_pid().map(crate::hardware::broker::holder_of) else {
+        return errno(ESRCH);
     };
     let desc: SurfaceDescriptor = match read_user_value(desc_ptr) {
         Ok(v) => v,
@@ -40,9 +41,10 @@ pub(in super::super) fn do_register(desc_ptr: u64) -> SyscallResult {
         Ok(frames) => frames,
         Err(refused) => return refused,
     };
-    match register_surface(pid, &desc, frames) {
-        Ok((sid, h)) => {
-            attach_map::record(pid, h, desc.base_va, desc.byte_len);
+    // Only frames that are the caller's own to give, the owner's attach
+    // record made with the slot (L18a).
+    match register_owned(pid, &desc, frames) {
+        Ok((sid, _)) => {
             crate::sys::bench::mark_once(&FIRST_SURFACE_REGISTER, b"surface_register_first");
             log_display_mode(&desc);
             SyscallResult::success_audited(sid as i64)

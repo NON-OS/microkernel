@@ -22,7 +22,7 @@
 const ACCESS: &str = include_str!("../../../../src/hardware/broker/acpi/port_access.rs");
 const REGS: &str = include_str!("../../../../src/hardware/broker/acpi/kernel/power_regs.rs");
 const MACHINE: &str = include_str!("../../../../src/hardware/broker/acpi/kernel/machine.rs");
-const PIO: &str = include_str!("../../../../src/hardware/broker/pio/map.rs");
+const PIO: &str = include_str!("../../../../src/hardware/broker/pio/bar_window.rs");
 const POWER_PORTS: &str = include_str!("../../../../src/hardware/broker/pio/power_ports.rs");
 
 fn at(text: &str, needle: &str) -> usize {
