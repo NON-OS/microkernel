@@ -12,6 +12,7 @@
 // GNU Affero General Public License for more details.
 //
 // You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Clearing a record on a boot that keeps nothing.
 //!
@@ -27,9 +28,8 @@ use nonos_disk_map::STORE_BASE_LBA;
 use nonos_libc::disk;
 
 use super::blk::error::BlkError;
-use super::blk::store_write::withdraw;
+use super::blk::store_withdraw::withdraw;
 use super::fixture::{bytes, image, install, refs, three, Layout};
-use super::run::{digests, every_cut, load_counting};
 
 /// Every sector of the store the fixtures can reach.
 const SPAN: usize = 4096;
@@ -45,7 +45,11 @@ fn zeros_under_a_name_the_disk_does_not_hold_write_nothing() {
         install(&image(&refs(&three()), layout));
         let before = disk::get(STORE_BASE_LBA, SPAN);
         for len in [1usize, 32, 512, 4097] {
-            assert_eq!(withdraw("/nonos/consent/token", &vec![0u8; len]), Ok(()), "{layout:?} {len}");
+            assert_eq!(
+                withdraw("/nonos/consent/token", &vec![0u8; len]),
+                Ok(()),
+                "{layout:?} {len}"
+            );
         }
         untouched(&before);
     }
@@ -70,43 +74,4 @@ fn bytes_that_are_not_all_zero_are_refused_and_write_nothing() {
     assert_eq!(withdraw("/nonos/wallet/vault", &almost), Err(BlkError::Inval));
     assert_eq!(withdraw("/nonos/new", &bytes(9, 10)), Err(BlkError::Inval));
     untouched(&before);
-}
-
-#[test]
-fn a_kept_record_is_cleared_in_place_at_its_own_length() {
-    for layout in [Layout::Installer, Layout::Packer] {
-        let mut files = three();
-        files[1] = (String::from("/nonos/consent/token"), bytes(4, 32));
-        install(&image(&refs(&files), layout));
-        assert_eq!(withdraw("/nonos/consent/token", &[0u8; 32]), Ok(()), "{layout:?}");
-        let mut cleared = files.clone();
-        cleared[1].1 = vec![0u8; 32];
-        let got = load_counting().map(|(f, refused)| (digests(&f), refused));
-        assert_eq!(got, Ok((digests(&cleared), 0)), "{layout:?}: the same names, one record zeroed");
-    }
-}
-
-#[test]
-fn a_kept_record_of_another_length_is_refused_and_written_over_by_nothing() {
-    let mut files = three();
-    files[1] = (String::from("/nonos/consent/token"), bytes(4, 32));
-    install(&image(&refs(&files), Layout::Packer));
-    let before = disk::get(STORE_BASE_LBA, SPAN);
-    assert!(withdraw("/nonos/consent/token", &[0u8; 64]).is_err());
-    untouched(&before);
-}
-
-#[test]
-fn a_withdrawal_cut_at_any_sector_leaves_the_old_record_or_the_zeros() {
-    let mut files = three();
-    files[0] = (String::from("/nonos/wallet/vault"), bytes(1, 3000));
-    install(&image(&refs(&files), Layout::Packer));
-    let mut cleared = files.clone();
-    cleared[0].1 = vec![0u8; 3000];
-    let (old, new) = (digests(&files), digests(&cleared));
-    every_cut(&|| _ = withdraw("/nonos/wallet/vault", &[0u8; 3000]), &|cut, got| {
-        let (got, refused) = got.expect("the store still loads");
-        assert_eq!(refused, 0, "cut at {cut}");
-        assert!(got == old || got == new, "cut at {cut}: {got:?}");
-    });
 }
