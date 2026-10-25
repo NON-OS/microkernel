@@ -38,4 +38,15 @@ fn the_soft_off_read_tries_the_tables_lock_and_never_takes_it() {
 fn the_panic_proof_refuses_a_production_or_release_build() {
     let guard = "#[cfg(all(\n    feature = \"nonos-panic-proof\",\n    any(feature = \"nonos-production\", feature = \"nonos-release\")\n))]\ncompile_error!(";
     assert!(INJECTED.contains(guard), "the guard is gone or weakened");
+    let fault = guard.replace("nonos-panic-proof", "nonos-fault-proof");
+    assert!(INJECTED.contains(&fault), "the fault proof's guard is gone or weakened");
+    assert!(INJECTED.contains("#[cfg(all(feature = \"nonos-fault-proof\", target_arch = \"x86_64\"))]"));
+    assert!(INJECTED.contains("unsafe { core::arch::asm!(\"ud2\") }"));
+}
+
+#[test]
+fn the_wipe_keeps_the_window_the_stack_proofs_place() {
+    let wipe = include_str!("../../../../src/security/zerostate/panic_wipe.rs");
+    assert!(wipe.contains("let stack = stack_keep(sp, KSTACK_SIZE as u64);"));
+    assert!(wipe.contains("keep[0] = stack;"));
 }

@@ -39,6 +39,7 @@ pub fn run_init() -> ! {
     run_tokio_smoke();
     boot_log::ok("INIT", "Capsules spawned");
     super::injected::panic();
+    super::injected::fault();
     run_tool_selftest();
     lower_init_priority();
     yield_after_spawns();
