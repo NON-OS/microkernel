@@ -13,23 +13,20 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! TRANS_CONF's state bit catching up with its enable bit, `lag` reads
-//! after the enable bit changed, or never.
+//! A listed HDMI divider as the P, Q and K that make it, by the rules Vol 12
+//! gives (p. 181, 182): 2 alone, 3, 5 and 7 as P, 9, 15 and 21 as P with K
+//! 3, and every other even divider as Q times 4, 6, 10 or 14 with K 2, the
+//! first of those that divides it.
 
-use super::regs::Regs;
-
-pub(super) fn settle(r: &mut Regs, reg: u32) {
-    let v = r.get(reg);
-    let want = (v >> 31) & 1;
-    if (v >> 30) & 1 == want {
-        return;
-    }
-    let Some(lag) = r.lag else { return };
-    let left = r.pending.entry(reg).or_insert(lag);
-    if *left == 0 {
-        r.pending.remove(&reg);
-        r.set(reg, (v & !(1 << 30)) | (want << 30));
-    } else {
-        *left -= 1;
+/// P, Q and K for a listed divider (p. 181, 182).
+pub fn split(div: u32) -> (u32, u32, u32) {
+    match div {
+        2 => (2, 1, 1),
+        3 | 5 | 7 => (div, 1, 1),
+        9 | 15 | 21 => (div / 3, 1, 3),
+        d if d % 4 == 0 => (2, d / 4, 2),
+        d if d % 6 == 0 => (3, d / 6, 2),
+        d if d % 10 == 0 => (5, d / 10, 2),
+        d => (7, d / 14, 2),
     }
 }
