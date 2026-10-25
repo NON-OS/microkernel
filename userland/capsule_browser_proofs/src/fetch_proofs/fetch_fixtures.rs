@@ -40,7 +40,8 @@ pub fn url_of(s: &str) -> Url {
 pub fn rfc_client() -> ClientFlight {
     let mut private = [0u8; 32];
     private.copy_from_slice(RFC_CLIENT_PRIVATE);
-    ClientFlight { record: Vec::new(), handshake: RFC_CLIENT_HELLO.to_vec(), private, p256_private: [0; 32] }
+    let (private, p256_private) = (Box::new(private), Box::new([0; 32]));
+    ClientFlight { record: Vec::new(), handshake: RFC_CLIENT_HELLO.to_vec(), private, p256_private }
 }
 
 /// A fetch whose ClientHello `cf` has gone out, waiting for the flight.
