@@ -41,6 +41,8 @@ class Cell:
     # its driver and the stack must write once they serve it (devices.py).
     devices: tuple = ()
     expect: tuple = ()
+    # Lines that fail the cell wherever they appear (devices.py).
+    forbid: tuple = ()
 
     def wants_smp_proof(self):
         return self.cpus > 1
