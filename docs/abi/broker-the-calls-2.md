@@ -28,8 +28,9 @@ Part of [Broker](broker.md).
   (`src/process/exit/teardown.rs:48-51`).
 - `MkMmioMap` needs seven inputs and has six registers, so `mmio_map` takes the
   third as the BAR index in the high 32 bits and flags in the low 32 bits
-  (`src/syscall/microkernel/dispatch/unpack.rs:19-40`). No flag is accepted yet:
-  `FLAGS_KNOWN` is 0 (`src/hardware/broker/mmio/map.rs:47-52`).
+  (`src/syscall/microkernel/dispatch/unpack.rs:19-40`). One flag is known,
+  `MK_MMIO_MAP_WC` (bit 0): write-combining on a prefetchable BAR, `EINVAL` on
+  any other; any other bit is `ENOTSUP` (`src/hardware/broker/mmio/cache.rs`).
 - `MkIrqBind` takes `flags` 0 for INTx, `BIND_MSIX` or `BIND_MSI`, never two
   (`src/hardware/broker/irq/types.rs:17-29`). For INTx `vector_count` is 0, and
   for MSI-X `irq_source` is 0 and `vector_count` is 1 or more, with vector i on
