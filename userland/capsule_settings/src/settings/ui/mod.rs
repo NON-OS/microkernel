@@ -62,6 +62,7 @@ pub mod scroll;
 pub mod search_field;
 pub mod sidebar;
 pub mod slider;
+pub mod station_row;
 pub mod status_bar;
 pub mod switch;
 pub mod text;

@@ -62,7 +62,7 @@ pub fn paint(
             );
         }
         Row::Access(k) => super::access_row::paint(fb, state, *k, card_x, card_w, screen_y, row_h),
-        Row::Networks | Row::Saved | Row::Wallpapers | Row::BtDevices => {}
+        Row::Networks | Row::Saved | Row::Wallpapers | Row::BtDevices | Row::Station => {}
     }
 }
 

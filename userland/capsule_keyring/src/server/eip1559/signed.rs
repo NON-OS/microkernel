@@ -19,9 +19,10 @@ use alloc::vec::Vec;
 
 use super::super::rlp::{rlp_list, rlp_uint_be};
 use super::fields::{eth_transfer_fields, nox_transfer_fields};
+use super::parts::TransferParts;
 
 pub fn signed_nox_transfer_tx(
-    parts: (&[u8; 32], &[u8; 32], &[u8; 32], &[u8; 32], &[u8; 20], &[u8; 32]),
+    parts: TransferParts<'_>,
     y_parity: u8,
     r: &[u8; 32],
     s: &[u8; 32],
@@ -36,7 +37,7 @@ pub fn signed_nox_transfer_tx(
 }
 
 pub fn signed_eth_transfer_tx(
-    parts: (&[u8; 32], &[u8; 32], &[u8; 32], &[u8; 32], &[u8; 20], &[u8; 32]),
+    parts: TransferParts<'_>,
     y_parity: u8,
     r: &[u8; 32],
     s: &[u8; 32],
