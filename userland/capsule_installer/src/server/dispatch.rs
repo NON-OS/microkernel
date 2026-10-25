@@ -18,15 +18,17 @@ use alloc::vec::Vec;
 
 use super::handlers;
 use crate::protocol::{
-    encode_response, Request, EINVAL, OP_HEALTHCHECK, OP_INSTALL, OP_LIST_INSTALLED,
-    OP_LOAD_BY_NAME, OP_LOAD_FROM_STORE, OP_PKG_COMMIT, OP_PKG_QUERY, OP_PKG_REMOVE,
+    encode_response, retired, Request, EINVAL, OP_HEALTHCHECK, OP_INSTALL, OP_LIST_INSTALLED,
+    OP_LOAD_BY_NAME, OP_PKG_COMMIT, OP_PKG_QUERY, OP_PKG_REMOVE,
 };
 
 pub fn dispatch(req: Request<'_>, sender_pid: u32) -> Vec<u8> {
+    if let Some(refused) = retired(&req) {
+        return refused;
+    }
     match req.op {
         OP_HEALTHCHECK => handlers::health(req),
         OP_INSTALL => handlers::install(req),
-        OP_LOAD_FROM_STORE => handlers::load_store(req),
         OP_LOAD_BY_NAME => handlers::load_by_name(req, sender_pid),
         OP_LIST_INSTALLED => handlers::list_installed(req),
         OP_PKG_QUERY => handlers::pkg_query(req),

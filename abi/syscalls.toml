@@ -189,6 +189,7 @@ MHVP = 0x5056484D
 MHVR = 0x5256484D
 MHVE = 0x4556484D
 MHVS = 0x5356484D
+MHVC = 0x4356484D
 MDBG = 0x4742444D
 MSRG = 0x4752534D
 MSSH = 0x4853534D
@@ -464,6 +465,12 @@ ret  = {type="i64"}
 nr   = 0x5356484D
 caps = ["Driver"]
 args = [{name="device_id",type="u64",dir="in"},{name="connection",type="u32",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MHVC]
+nr   = 0x4356484D
+caps = ["Driver"]
+args = [{name="root_device_id",type="u64",dir="in"},{name="relid",type="u32",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MDBG]

@@ -11,12 +11,15 @@ keyboard, mouse) and the integration services. It also runs on QEMU's
 - takes the host's channel offers;
 - keeps the bus: offers added later are kept, withdrawn ones released.
 
-It opens no channel. Each channel waits for its driver, so no host service
-is on until a driver for it is.
+It opens no channel. A storage or network channel is given a record of its
+own (`MkHvChannel`) for its driver to claim and drive; from then on the
+kernel keeps the core from that channel. No host service is ever given, so
+none is on.
 
 ```text
 host --SynIC SINT 2 (MkHvRecv)--> driver.vmbus0 --MkHvPost--> host
-       contact, version, offers, withdrawals; channels listed, none opened
+       contact, version, offers, withdrawals
+driver.vmbus0 --MkHvChannel(relid)--> kernel: a channel record for its driver
 ```
 
 ## Microkernel contract
@@ -27,10 +30,16 @@ host --SynIC SINT 2 (MkHvRecv)--> driver.vmbus0 --MkHvPost--> host
 - `MkDeviceClaim` on it; `MkDmaMap` of one coherent 12 KiB grant for the
   contact's pages. The record has no PCI address, so the grant's device
   address is the guest-physical one the host is told.
-- `MkHvPost`, `MkHvRecv` on the root. The kernel posts only the channel
-  messages a guest sends, aimed at VP 0 and SINT 2, naming only pages in
-  the caller's grants on the root
-  (`src/arch/x86_64/hypervisor/hv/vmbus_out.rs`).
+- `MkHvPost`, `MkHvRecv` on the root. The kernel posts only the bus's
+  messages (the contact, the request for offers, a released relid, the
+  unload), aimed at VP 0 and SINT 2, naming only pages in the caller's
+  grants on the root (`src/arch/x86_64/hypervisor/hv/vmbus_out.rs`). A
+  channel's open, close and GPADLs are its driver's alone, and its answers
+  never reach the core.
+- `MkHvChannel` for each network, SCSI or IDE offer: a record, vendor
+  0x1414, device "NE", "SC" or "ID", held for `driver.netvsc0` or
+  `driver.storvsc0`. The kernel learns each channel from the host's offer
+  itself, and refuses any other interface.
 - No `MkIrqBind` yet: the SynIC's vector, 0xC1, has no gate until
   integration. The core polls; the kernel takes a message off the SynIC on
   VP 0, where its end-of-message counts.
@@ -40,9 +49,12 @@ host --SynIC SINT 2 (MkHvRecv)--> driver.vmbus0 --MkHvPost--> host
 ## Interface contract
 
 No IPC is served yet. The console lists the bus:
-- `driver.vmbus0: VMBus 5.3 on connection 4, 9 channels offered, none opened`;
-- then one line per channel, for example `driver.vmbus0: channel 2: scsi`,
-  or `..., sub-channel 1` for a sub-channel.
+- `driver.vmbus0: VMBus 5.3 on connection 4, 9 channels offered, 3 given to drivers`;
+- then one line per channel, for example
+  `driver.vmbus0: channel 2: scsi, given to its driver`, or
+  `..., sub-channel 1` for a sub-channel;
+- a channel the kernel would not give names why (`already given`,
+  `not known to the kernel`, `refused`).
 
 Channels are named by interface alone: network, scsi, ide, video,
 keyboard, mouse, heartbeat, shutdown, time sync, key-value exchange,
@@ -57,17 +69,19 @@ are never printed, because they identify the virtual machine.
 `FileSystem`.
 
 ```text
-allowed:   the VMBus root; the contact, offer requests, relid releases, unload
-forbidden: opening a channel, GPADLs, any host service; messages the kernel's
-           check refuses
+allowed:   the VMBus root; the contact, offer requests, relid releases, unload;
+           giving a storage or network channel its record
+forbidden: opening a channel, GPADLs, any host service, any channel's answers;
+           messages the kernel's check refuses
 ```
 
 ## Privacy and persistence
 
 The host learns that the guest speaks VMBus, the version it agreed, and
-where the guest's three pages are. Nothing else is sent: no channel is
-opened, so heartbeat, shutdown, time sync, key-value exchange, VSS and
-dynamic memory all stay closed. Ballooning stays off.
+where the guest's three pages are. Nothing else is sent by the core. Only
+storage and network drivers open channels, each its own. Heartbeat,
+shutdown, time sync, key-value exchange, VSS and dynamic memory stay closed:
+the kernel never gives them a record. Ballooning stays off.
 
 Every host message is held to its length before a field is read. At most
 64 channels are kept and 16 messages handled a look. Nothing is stored.
@@ -84,8 +98,10 @@ Every host message is held to its length before a field is read. At most
    would refuse the posts.
 4. REQUESTOFFERS, then the offers gathered until ALLOFFERS_DELIVERED. A
    withdrawal among them is answered with RELID_RELEASED.
-5. The serve loop: a new offer is kept and named, and a withdrawn one is
-   forgotten and its relid released.
+5. Each network, SCSI or IDE offer given a record (`MkHvChannel`).
+6. The serve loop: a new offer is kept, named and given, and a withdrawn
+   one is forgotten and its relid released. The kernel retires its record,
+   revoking what its driver held.
 
 ## Failure model
 
@@ -102,7 +118,8 @@ polls from VP 0. That is always the case on a one-CPU guest.
 
 - VMBus 2.4 to 5.3, the contact in both forms, offers and withdrawals.
 - The channel table, by relid, with interface, instance, sub-channel,
-  connection and monitor.
+  connection, monitor and the record given.
+- Storage and network channels given records for their drivers.
 
 ## Wire format
 
@@ -124,7 +141,8 @@ contact's pages for its life.
 
 ## Operating rules
 
-- Open no channel and start no service from here.
+- Open no channel and start no service from here; give only storage and
+  network channels, each once.
 - Print interface names, never instance GUIDs.
 - Release a withdrawn relid at once.
 
@@ -149,8 +167,13 @@ the shim and the caller's grants as the pages it holds. It covers:
 - withdrawals during and after the offers, and offers added and replaced;
 - the per-look bound and the table bound;
 - the console, with no instance GUID;
-- messages short, cut, or of another type.
+- messages short, cut, or of another type;
+- storage and network channels given records, others not, a channel
+  offered later given and a withdrawn one given afresh, a refusal said;
+- a given channel's answers never reaching the core;
+- every message number the core uses pinned to QEMU's vmbus-proto.h.
 
+A boot is the owner's.
 
 ## Release checklist
 
@@ -160,9 +183,9 @@ the shim and the caller's grants as the pages it holds. It covers:
 
 ## Explicit non-goals today
 
-Opening channels (GPADLs, ring buffers, per-channel signals), the
-integration services, and the drivers on channels. Those follow the
-channel registration in the broker; see D-17.
+Opening channels, which is each channel's driver's (storvsc, netvsc); the
+integration services; keyboard, mouse and video channels, until their
+drivers exist.
 
 ## Verification
 

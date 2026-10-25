@@ -29,8 +29,9 @@ pub const FLAG_INCLUDE_PCI_ALL: u8 = 1 << 0;
 pub const SCOPE_ENDPOINT: u8 = 1;
 /// Device scope type 2: a PCI bridge and every device below it.
 pub const SCOPE_BRIDGE: u8 = 2;
-/// Scopes kept per unit; a unit naming more is marked truncated.
-pub const MAX_SCOPES: usize = 16;
+/// Scopes kept per DRHD: all a u8 count holds (one root bus has 256 functions).
+/// A unit naming more is marked truncated.
+pub const MAX_SCOPES: usize = 255;
 /// Path hops kept per scope; a longer path is marked unresolvable.
 pub const MAX_PATH: usize = 4;
 
@@ -50,23 +51,23 @@ impl Scope {
     pub const EMPTY: Scope = Scope { kind: 0, start_bus: 0, path: [(0, 0); MAX_PATH], path_len: 0 };
 }
 
-/// What a DRHD says it covers.
+/// What a DRHD (or, with N its scope count, an RMRR) says it covers.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct UnitScope {
+pub struct UnitScope<const N: usize = MAX_SCOPES> {
     pub include_all: bool,
     pub segment: u16,
-    pub scopes: [Scope; MAX_SCOPES],
+    pub scopes: [Scope; N],
     pub count: u8,
     /// A PCI scope was dropped (too many, or a path too long to keep), so a
     /// device not matched may still be this unit's.
     pub truncated: bool,
 }
 
-impl UnitScope {
-    pub const EMPTY: UnitScope = UnitScope {
+impl<const N: usize> UnitScope<N> {
+    pub const EMPTY: Self = UnitScope {
         include_all: false,
         segment: 0,
-        scopes: [Scope::EMPTY; MAX_SCOPES],
+        scopes: [Scope::EMPTY; N],
         count: 0,
         truncated: false,
     };
