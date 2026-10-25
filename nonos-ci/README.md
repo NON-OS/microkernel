@@ -41,7 +41,8 @@ checking each ELF with `elf-machine.py`. A capsule that cannot build for a
 target is named, with why, in `arch-reach/capsules.txt`; `--recheck` builds
 only those and fails on any that builds. `check-proofs-every-arch.sh
 <triple>` type-checks every proof crate, tests included, for aarch64 or
-riscv64 Linux. ci-every-arch runs both for aarch64 and riscv64.
+riscv64 Linux. ci-every-arch-capsules and ci-every-arch-proofs run them for
+aarch64 and riscv64.
 
 ## Every architecture
 

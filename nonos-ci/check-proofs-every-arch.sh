@@ -20,7 +20,7 @@ export CARGO_TARGET_DIR="${CARGO_TARGET_DIR:-${PWD}/target/proofs-${triple}}"
 
 failed=() passed=0
 for dir in userland/*_proofs; do
-    if (cd "${dir}" && cargo check --quiet --tests --target "${triple}" < /dev/null); then
+    if (cd "${dir}" && cargo check --quiet --locked --tests --target "${triple}" < /dev/null); then
         passed=$((passed + 1))
     else
         failed+=("${dir}")
