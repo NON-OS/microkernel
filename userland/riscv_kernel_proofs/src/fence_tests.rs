@@ -48,7 +48,7 @@ fn a_dma_sync_is_a_full_fence_either_way() {
 
 #[test]
 fn every_arch_has_a_backend() {
-    for f in ["arch/mmio_order.rs", "arch/dma_sync.rs"] {
+    for f in ["arch/common/mmio_order.rs", "arch/common/dma_sync.rs"] {
         let b = code(f);
         for arch in ["x86_64", "aarch64", "riscv64"] {
             assert!(b.contains(&format!("#[cfg(target_arch = \"{arch}\")]")), "{f}: {arch}");

@@ -16,8 +16,6 @@
 
 pub mod cfi;
 mod init;
-pub mod pmp;
 
 pub use cfi::{init_cfi, CfiError, CfiMode};
 pub use init::init_all;
-pub use pmp::{init_pmp, PmpConfig, PmpEntry, PmpError, PmpResult};

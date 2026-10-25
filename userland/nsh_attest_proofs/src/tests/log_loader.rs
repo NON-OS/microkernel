@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Step 5, the applications in PCR 4: each is the release's loader or a
-//! boot application the policy lists, and the loader is among them.
+//! boot application this machine's enrolment lists, and the loader is
+//! among them.
 
 use nsh_attest::Refusal;
 
@@ -47,7 +48,7 @@ fn an_unlisted_application_before_the_loader_is_refused() {
 }
 
 #[test]
-fn a_boot_manager_the_policy_does_not_list_is_refused() {
+fn a_boot_manager_the_enrolment_does_not_list_is_refused() {
     let s = Spec { boot_apps: vec![], ..Spec::default() };
     assert_eq!(refused(s), Refusal::BootApplication);
 }

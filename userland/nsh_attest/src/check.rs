@@ -40,7 +40,7 @@ pub fn check<'p>(
     quote(&doc)?;
     let cert = enrol(ev, &doc, s, policy)?;
     let rel = release(&doc, policy)?;
-    log(&doc, rel, policy)?;
+    log(&doc, rel, &cert)?;
     firmware(&doc, &cert)?;
     dma(&doc)?;
     registry(&doc, ev.entries, rel)?;

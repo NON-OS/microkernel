@@ -38,6 +38,7 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_BOOT_ATTEST => sys_boot_attest(a.a0, a.a1),
         SYS_BOOT_SLOTS => sys_boot_slots(a.a0, a.a1),
         SYS_ENROLL => sys_enroll(a.a0, a.a1, a.a2, a.a3, a.a4, a.a5),
+        SYS_KEEPING => crate::security::zerostate::keeping() as i64,
         _ => return None,
     })
 }
