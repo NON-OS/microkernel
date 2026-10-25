@@ -87,6 +87,7 @@ import Nonos.Nonce
 import Nonos.PageDescriptor
 import Nonos.PageTable
 import Nonos.Paging
+import Nonos.PagingGlobal
 import Nonos.Path
 import Nonos.PciCmdWrite
 import Nonos.PerCpuAsid

@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
+use core::sync::atomic::AtomicU64;
+use core::sync::atomic::Ordering::{self, Acquire};
 
 use crate::arch::riscv64::plic;
 use crate::arch::riscv64::plic::irq_handlers;
@@ -22,18 +23,20 @@ use crate::hardware::broker::irq::types::IrqError;
 
 use super::pending::{Entry, SLOTS};
 
-// Disable line, drop capsule ownership at the PLIC registry, then
-// free the broker slot. `unregister_for_capsule` is owner-checked so
-// a kernel-claimed source can never be released through this path.
-fn tear_down(e: &'static Entry) {
+// Disable line, drop capsule ownership at the PLIC registry (owner-checked),
+// then free the slot; taken first by its grant id, as on aarch64 (L77).
+fn tear_down(e: &'static Entry, id: u64) -> bool {
+    if id == 0 || e.grant_id.compare_exchange(id, 0, Ordering::AcqRel, Ordering::Acquire).is_err() {
+        return false;
+    }
     let source = e.source.load(Ordering::Acquire);
     if source != 0 {
         let _ = plic::disable_irq(source);
         let _ = irq_handlers::unregister_for_capsule(source);
     }
-    e.source.store(0, Ordering::Release);
     e.pid.store(0, Ordering::Release);
-    e.grant_id.store(0, Ordering::Release);
+    e.source.store(0, Ordering::Release);
+    true
 }
 
 pub fn unmap_grant(pid: u32, grant_id: u64) -> Result<(), IrqError> {
@@ -41,35 +44,25 @@ pub fn unmap_grant(pid: u32, grant_id: u64) -> Result<(), IrqError> {
     if e.pid.load(Ordering::Acquire) != pid {
         return Err(IrqError::NotHolder);
     }
-    tear_down(e);
-    Ok(())
+    tear_down(e, grant_id).then_some(()).ok_or(IrqError::UnknownGrant)
 }
 
-pub fn release_for_device(pid: u32, device_id: u64) -> usize {
-    let mut n = 0;
-    for e in SLOTS.iter() {
-        if e.source.load(Ordering::Acquire) == 0 {
-            continue;
-        }
-        if e.pid.load(Ordering::Acquire) == pid && e.device_id.load(Ordering::Acquire) == device_id
-        {
-            tear_down(e);
-            n += 1;
-        }
-    }
-    n
+pub fn release_for_device(pid: u32, device_id: u64, epoch: u64) -> usize {
+    let at = |a: &AtomicU64| a.load(Acquire);
+    let ours = |e: &Entry| e.pid.load(Acquire) == pid && at(&e.device_id) == device_id;
+    release_lines(|e| ours(e) && at(&e.claim_epoch) == epoch)
 }
 
 pub fn release_all_for_pid(pid: u32) -> usize {
-    let mut n = 0;
-    for e in SLOTS.iter() {
-        if e.source.load(Ordering::Acquire) == 0 {
-            continue;
-        }
-        if e.pid.load(Ordering::Acquire) == pid {
-            tear_down(e);
-            n += 1;
-        }
-    }
-    n
+    release_lines(|e| e.pid.load(Acquire) == pid)
+}
+
+/// Tear down the grants `which` picks, each id read before the match, so a
+/// slot reused after fails it.
+fn release_lines(which: impl Fn(&Entry) -> bool) -> usize {
+    let take = |e: &&'static Entry| {
+        let id = e.grant_id.load(Acquire);
+        e.source.load(Acquire) != 0 && which(e) && tear_down(e, id)
+    };
+    SLOTS.iter().filter(take).count()
 }

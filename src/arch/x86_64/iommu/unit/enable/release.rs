@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Taking a unit back from firmware, whose protected memory regions or
-//! translation may still be on past ExitBootServices. Both are protection:
-//! let go only as iommu::handover says.
+//! translation, still on past ExitBootServices, block the DMA the kernel's
+//! drivers issue. Both are protection: let go only as iommu::handover says.
 
 use crate::arch::x86_64::iommu::regs::{cap, offsets};
 use crate::arch::x86_64::iommu::types::VtdError;
