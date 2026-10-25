@@ -28,6 +28,7 @@ The guide for a person who uses NONOS every day: what each part of the desktop d
 | [Linux programs](linux-programs.md) | run `sh`, `python3`, `sqlite3` and the other Linux tools |
 | [Run a program in a box](linux-box.md) | run a program you do not trust in a sealed box, and read what it tried |
 | [Local model](local-ai.md) | chat with the Qwen model on this machine, offline, and pick its tier |
+| [Privacy apps](privacy-apps.md) | install the privacy apps from the App Store, and learn what each protects and what it does not |
 | [Marketplace](marketplace.md) | install Qwen tiers and Linux packages, or a signed `.nonos` package file |
 | [Wallet](wallet.md) | hold keys and make payments |
 
