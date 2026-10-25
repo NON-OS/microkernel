@@ -18,7 +18,7 @@
 
 use super::say::say;
 
-const USAGE: &[u8] = b"usage: linux [--box strict|offline|allow:<folder|net:host:port>,...] \
+const USAGE: &[u8] = b"usage: linux [--box strict|offline|learn|allow:<folder|net:host:port>,...] \
     <program> [arguments]\n";
 
 /// The program the words name, after a box if one is named first; None when

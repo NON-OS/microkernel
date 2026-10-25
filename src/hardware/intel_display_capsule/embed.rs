@@ -23,15 +23,15 @@ pub(super) const DRIVER_INTEL_DISPLAY_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-intel-display")]
 pub(super) const DRIVER_INTEL_DISPLAY_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_intel_display.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_intel_display.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-intel-display")]
 pub(super) const DRIVER_INTEL_DISPLAY_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_intel_display.manifest.bin");
+    crate::baked_trust!("capsules/driver_intel_display.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-intel-display")]
 pub(super) const DRIVER_INTEL_DISPLAY_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_intel_display.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_intel_display.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-intel-display"))]
 pub(super) const DRIVER_INTEL_DISPLAY_ELF: &[u8] = &[];

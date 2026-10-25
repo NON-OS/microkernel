@@ -27,9 +27,9 @@ Read this before you scope. The assessment claims only what the code does today.
   BusyBox tools, `perl`, `lua`, `tclsh`, `qjs`, `jq` and others) and packages from the store. An
   agent written for one of these runs as it is; an agent that needs a binary or a library NONOS
   does not carry needs us to package and sign it first, which is a pilot item, not this one.
-- **Network only to destinations you list, by IPv4 address.** A box may name destinations;
+- **Network only to destinations you list, by address or name.** A box may name destinations;
   the agent reaches those over the anonymity network and nothing else, and the report names
-  each one it reached. A name lookup from inside a box does not yet return in this release.
+  each one it reached. A name is answered inside NONOS and never looked up outside.
   Our lab boots without a route to the mixnet, so an agent that calls a hosted model is run
   against that model's recorded replies; we see what it does with them, and which
   destinations it tried.

@@ -40,14 +40,21 @@ BASELINE = Path("scripts/baselines/unreachable.txt")
 def self_test():
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
-        (root / "src").mkdir()
-        (root / "src/decoy.rs").write_text("pub fn never_called() {}\npub fn called() {}\n")
+        (root / "src/arch/aarch64").mkdir(parents=True)
+        (root / "src/decoy.rs").write_text(
+            "pub fn never_called() {}\npub fn called() {}\npub fn called_on_aarch64() {}\n"
+        )
         (root / "src/user.rs").write_text("use crate::decoy::never_called;\nfn f() { called(); }\n")
+        # Its only caller is aarch64's, which counts; its own export does not.
+        (root / "src/arch/aarch64/sync.rs").write_text(
+            "fn g() { called_on_aarch64(); }\npub fn aarch64_only() {}\n"
+        )
         found = unreachable(root)
         if found != ["src/decoy.rs:1 never_called"]:
             print(f"unreachable: self-test failed, found {found}")
             return 1
-    print("unreachable: self-test passed, the decoy was reported and the import did not save it")
+    print("unreachable: self-test passed, the decoy was reported, the import did not save it, "
+          "and an aarch64 call did")
     return 0
 
 
