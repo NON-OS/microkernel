@@ -22,10 +22,9 @@ mod dgon;
 mod dma;
 mod dma_lines;
 mod dma_order;
-#[cfg(target_arch = "x86_64")]
-mod dma_sync;
-#[cfg(target_arch = "aarch64")]
-#[path = "dma_sync_aarch64.rs"]
+// dma_sync.rs is x86_64's; each other architecture has its own file.
+#[cfg_attr(target_arch = "aarch64", path = "dma_sync_aarch64.rs")]
+#[cfg_attr(target_arch = "riscv64", path = "dma_sync_riscv64.rs")]
 mod dma_sync;
 // The hypervisor calls, one file per host interface (`hv`).
 mod hv;
@@ -47,7 +46,6 @@ pub use dma::{
 };
 pub use dma_lines::{ctr_dminline_bytes, dma_sync_lines, dma_sync_lines_of, DMA_SYNC_LINE};
 pub use dma_order::{dma_mb, dma_rmb, dma_wmb};
-#[cfg(any(target_arch = "x86_64", target_arch = "aarch64"))]
 pub use dma_sync::{mk_dma_sync_for_cpu, mk_dma_sync_for_device};
 pub use hv::*;
 pub use irq::{

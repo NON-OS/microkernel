@@ -19,8 +19,8 @@
 //! so a claimant's domain maps exactly the regions firmware said that device
 //! keeps doing DMA to. Pure, so the host proofs hold it.
 
-use super::dmar_rmrr::Rmrr;
-use super::dmar_scope::{scope_covers, Cover, Scope, UnitScope, MAX_SCOPES, SCOPE_ENDPOINT};
+use super::dmar_rmrr::{Rmrr, MAX_RMRR_SCOPES};
+use super::dmar_scope::{scope_covers, Cover, UnitScope, SCOPE_ENDPOINT};
 
 /// Yes when one of `r`'s scopes names `bdf` in `segment`, No when none does,
 /// Unknown when a scope could not be resolved or some were dropped.
@@ -28,12 +28,16 @@ pub fn rmrr_names<F>(r: &Rmrr, segment: u16, bdf: (u8, u8, u8), bridge_buses: &F
 where
     F: Fn(u8, u8, u8) -> Option<(u8, u8)>,
 {
-    let mut scopes = [Scope::EMPTY; MAX_SCOPES];
-    let n = (r.count as usize).min(MAX_SCOPES).min(r.scopes.len());
-    scopes[..n].copy_from_slice(&r.scopes[..n]);
-    let (segment_of, truncated) = (r.segment, r.truncated);
-    let unit =
-        UnitScope { include_all: false, segment: segment_of, scopes, count: n as u8, truncated };
+    // Its own size, not a remapping unit's 255 scopes, on the claim's stack.
+    let count = r.count.min(MAX_RMRR_SCOPES as u8);
+    let (scopes, truncated) = (r.scopes, r.truncated);
+    let unit = UnitScope::<MAX_RMRR_SCOPES> {
+        include_all: false,
+        segment: r.segment,
+        scopes,
+        count,
+        truncated,
+    };
     scope_covers(&unit, segment, bdf, bridge_buses)
 }
 

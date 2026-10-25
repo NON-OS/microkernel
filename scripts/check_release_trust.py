@@ -41,12 +41,13 @@ def unsealed(entries, slugs, exists):
                   and not all(exists(e[k]) for k in ("cert", "manifest", "trailer")))
 
 
-def verdict(missing, baseline):
+def verdict(missing, baseline, shipped=None):
     """What is wrong, one line each; empty when the tree matches the baseline."""
     new = [f"release trust: {s} ships in a release profile with no sealed trust set; "
            "seal it, or it stays out of the release profiles" for s in missing if s not in baseline]
-    done = [f"release trust: {s} is sealed now; take it out of the baseline" for s in sorted(baseline)
-            if s not in missing]
+    gone = lambda s: shipped is not None and s not in shipped
+    done = [f"release trust: {s} is " + ("no longer shipped by any release profile" if gone(s) else "sealed now")
+            + "; take it out of the baseline" for s in sorted(baseline) if s not in missing]
     return new + done
 
 
@@ -63,7 +64,7 @@ def main(argv=None):
     entries = json.loads(CAPSULES.read_text())
     missing = unsealed(entries, a.slugs, lambda p: Path(p).is_file())
     baseline = read_baseline(a.baseline) if a.baseline else set()
-    found = (unnamed(entries, a.slugs) + verdict(missing, baseline)
+    found = (unnamed(entries, a.slugs) + verdict(missing, baseline, set(a.slugs))
              + (drift(baseline, read_doc(a.doc)) if a.doc else []))
     for line in found:
         print(line, file=sys.stderr)

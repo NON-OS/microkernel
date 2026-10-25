@@ -19,8 +19,10 @@
 //! its capsule's own domain; any other PCI device would reach all memory once
 //! its driver set Bus Master: refused. A device with no PCI requester id, or
 //! claimed port-only (port_only.rs), is no bus master: the claim goes ahead,
-//! no DMA grant is made for it. The one way past is the development
-//! opt-in, never in a release; the posture line states it.
+//! no DMA grant is made for it. Two ways past: the development
+//! opt-in, never in a release, and the no-IOMMU posture, taken only when no
+//! unit is in service at all (memory/iommu/no_iommu_rule.rs). The posture
+//! line states either.
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub(crate) enum Verdict {
@@ -28,7 +30,7 @@ pub(crate) enum Verdict {
     Confine,
     /// The claim goes ahead; no DMA grant is ever made for it.
     NoDma,
-    /// The claim goes ahead unconfined, under the opt-in only.
+    /// The claim goes ahead unconfined, under the opt-in or the posture.
     Unconfined,
     Refuse,
 }
@@ -42,12 +44,14 @@ pub(crate) const fn opted_in(opt_in: bool, production: bool) -> bool {
 /// `covered`: a unit in service translates it. `domain`: a domain was had
 /// for it, Ok, or Err(no_unit) where no_unit says no unit is in service.
 /// `port_only`: the claiming capsule holds neither Dma nor Mmio.
+/// `posture`: the no-IOMMU posture holds on this boot.
 pub(crate) const fn verdict(
     requester: bool,
     covered: bool,
     domain: Result<(), bool>,
     port_only: bool,
     (opt_in, production): (bool, bool),
+    posture: bool,
 ) -> Verdict {
     let open = opted_in(opt_in, production);
     match (requester, covered, domain) {
@@ -59,17 +63,8 @@ pub(crate) const fn verdict(
         // A unit in service that could not give the device a domain.
         (true, true, Err(false)) => Verdict::Refuse,
         _ if open => Verdict::Unconfined,
+        // No unit in service anywhere: the device reaches all memory anyway.
+        (true, _, Err(true)) if posture => Verdict::Unconfined,
         _ => Verdict::Refuse,
     }
-}
-
-/// A confined device can still write 0xFEEx_xxxx: claimed only if remapped, or opt-in.
-pub(crate) const fn interrupts_confined(remapping: bool, opt_in: bool, production: bool) -> bool {
-    remapping || opted_in(opt_in, production)
-}
-
-/// Whether a DMA grant may hand a device its physical address: never, but
-/// under the opt-in.
-pub(crate) const fn physical_dma() -> bool {
-    crate::memory::iommu::dev_unconfined::holds()
 }

@@ -24,6 +24,9 @@ mod hv;
 mod ipc;
 mod script;
 #[allow(dead_code)]
+#[path = "../../../../src/arch/x86_64/hypervisor/hv/channels.rs"]
+mod channels;
+#[allow(dead_code)]
 #[path = "../../../../src/arch/x86_64/hypervisor/hv/regs.rs"]
 mod regs;
 #[allow(dead_code)]
@@ -34,7 +37,8 @@ pub use broker::{mk_device_claim, mk_device_release};
 pub use devices::{mk_device_list, set_devices, DeviceRecord, BUS_KIND_PCI, BUS_KIND_VIRT};
 pub use dma::{mk_dma_map, mk_dma_unmap, script_dma, DmaMapOut, MK_DMA_MAP_COHERENT};
 pub use hv::{
-    mk_hv_post, mk_hv_recv, set_host, Host, MK_HV_MESSAGE_BYTES, MK_VMBUS_DEVICE, MK_VMBUS_VENDOR,
+    given, mk_hv_channel, mk_hv_post, mk_hv_recv, reset_channels, set_host, Host,
+    MK_HV_MESSAGE_BYTES, MK_VMBUS_DEVICE, MK_VMBUS_VENDOR,
 };
 pub use ipc::{logged, mk_debug, mk_idle_ms, mk_yield, now_ms, Deadline};
 pub use script::{calls, script, Script};
