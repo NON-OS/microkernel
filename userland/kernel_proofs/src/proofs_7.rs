@@ -17,6 +17,9 @@
 //! Host proofs, group 7 of 8: test modules mounted by path
 //! from proofs.rs, each at its own file.
 
+/// L55: init waits for the ACPI capsule's first publish pass, bounded.
+#[path = "acpi_first_pass_wait/mod.rs"]
+pub mod acpi_first_pass_wait;
 #[path = "acs_groups/mod.rs"]
 pub mod acs_groups;
 #[path = "boot_bus_master/mod.rs"]
