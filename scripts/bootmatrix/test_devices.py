@@ -19,7 +19,7 @@ python3 -m unittest discover -s scripts -p 'test_*.py'."""
 import unittest
 
 from bootmatrix import devices
-from bootmatrix.device_table import DEVICE_CELLS
+from bootmatrix.device_table import DEVICE_CELLS, nic
 from bootmatrix.cell import Cell
 from bootmatrix.qemu import command
 from bootmatrix.run import Paths
@@ -50,7 +50,7 @@ class DeviceCells(unittest.TestCase):
                 self.assertEqual(bad, [f"device cell: no line {line!r}"], cell.name)
 
     def test_the_virtio_nic_bound_instead_fails(self):
-        cell = DEVICE_CELLS[0]
+        cell = nic("e1000")
         log = served(cell) + "[NET-CORE] bind: interface up on driver.virtio_net0\n"
         self.assertIn("device cell: net.core bound the virtio NIC, not the card under test",
                       devices.verdict(cell, log))
@@ -58,11 +58,13 @@ class DeviceCells(unittest.TestCase):
     def test_a_plain_cell_asks_nothing(self):
         self.assertEqual(devices.verdict(Cell("q35-up", "up", "q35", 1), ""), [])
 
-    def test_a_cell_adds_its_devices_on_user_networking(self):
+    def test_a_nic_cell_adds_its_card_on_user_networking(self):
         paths = Paths("qemu", {"eth": "esp"}, "code.fd", "vars.fd", "blk.img")
-        argv = command(DEVICE_CELLS[0], paths, "tcg", "s.log", "blk", "vars")
+        argv = command(nic("rtl8139"), paths, "tcg", "s.log", "blk", "vars")
+        self.assertIn("rtl8139,netdev=cellnet", argv)
         self.assertIn("user,id=cellnet", argv)
-        self.assertIn("e1000,netdev=cellnet,bus=cellsib,addr=0.1", argv)
+        self.assertEqual([c.name for c in DEVICE_CELLS if c.name.startswith("q35-nic-")],
+                         ["q35-nic-e1000", "q35-nic-rtl8139"])
 
 
 if __name__ == "__main__":
