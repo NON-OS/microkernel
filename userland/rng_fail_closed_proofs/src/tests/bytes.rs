@@ -18,7 +18,7 @@
 //! hardware answers: they never fall back.
 
 use crate::crypto::error::CryptoError;
-use crate::crypto::random_api::get_bytes_secure;
+use crate::crypto::random_api::{get_bytes_secure, get_vec_secure};
 use crate::crypto::util::misc::{secure_random_u32, secure_random_u64};
 use crate::crypto::util::rng::RngError;
 use crate::stand_in::{sources, SEEDED_TAG};
@@ -29,6 +29,7 @@ fn get_bytes_secure_refuses_before_seeding() {
     let mut buf = [0xaau8; 24];
     assert_eq!(get_bytes_secure(&mut buf), Err(CryptoError::InsufficientEntropy));
     assert_eq!(buf, [0xaa; 24], "no fallback bytes were written");
+    assert_eq!(get_vec_secure(40), Err(CryptoError::InsufficientEntropy));
 }
 
 #[test]
@@ -39,6 +40,8 @@ fn get_bytes_secure_draws_from_the_seeded_rng() {
     for word in buf.chunks(8) {
         assert_eq!(u64::from_le_bytes(word.try_into().unwrap()) >> 56, SEEDED_TAG);
     }
+    let v = get_vec_secure(40).expect("drawn");
+    assert!(v.len() == 40 && v.chunks(8).all(|w| w[7] == SEEDED_TAG as u8));
 }
 
 #[test]

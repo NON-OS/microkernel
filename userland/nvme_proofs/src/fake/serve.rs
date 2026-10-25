@@ -55,7 +55,7 @@ impl Fake {
         let followed = self.ticks - self.en.1 >= self.slow;
         let (rdy, cfs) = ((en == followed) || self.wedged, self.fatal || self.wedged);
         self.armed_step(en, rdy);
-        let csts = if self.gone { u32::MAX } else { u32::from(rdy) | u32::from(cfs) << 1 };
+        let csts = self.csts(regs, en, rdy, cfs);
         set_register(regs, CSTS, csts);
         if en && rdy && !self.gone && !cfs {
             self.serve(regs);

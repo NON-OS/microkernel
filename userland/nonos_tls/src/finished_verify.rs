@@ -23,6 +23,8 @@ pub fn verify(secret: &[u8; 32], th: &[u8; 32], verify_data: &[u8]) -> bool {
     if verify_data.len() != 32 {
         return false;
     }
-    let Some(key) = super::finished_key::finished_key(secret) else { return false };
-    super::hmac_sha256::verify(&key, &[th], verify_data)
+    let Some(mut key) = super::finished_key::finished_key(secret) else { return false };
+    let good = super::hmac_sha256::verify(&key, &[th], verify_data);
+    super::traffic_keys::wipe(&mut key);
+    good
 }
