@@ -39,12 +39,18 @@ pub mod restore;
 #[path = "../../capsule_policy/src/progress.rs"]
 pub mod progress;
 
+// The vfs client's per-process deadline, which bounds policy's every call.
+#[path = "../../app_skeleton/src/clients/vfs/deadline.rs"]
+pub mod deadline;
+
 // The settings record's write, driven against a vfs that can be late.
 #[path = "../../capsule_policy/src/keep/write_steps.rs"]
 pub mod write_steps;
 
 #[cfg(test)]
 mod serve_tests;
+#[cfg(test)]
+mod deadline_tests;
 #[cfg(test)]
 mod not_ready_tests;
 #[cfg(test)]
