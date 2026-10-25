@@ -25,7 +25,7 @@
 use spin::Mutex;
 
 /// Fewer bytes than a seed's 256 bits are not counted as a seed.
-pub const MIN_SEED: usize = 32;
+pub(crate) const MIN_SEED: usize = 32;
 const MAX_SEED: usize = 64;
 const CONTEXT: &str = "NONOS 2026-10 device tree rng-seed v1";
 
@@ -37,7 +37,7 @@ struct Seed {
 static SEED: Mutex<Option<Seed>> = Mutex::new(None);
 
 /// Keep `seed` if it is long enough to count; boot calls this once.
-pub fn keep(seed: &[u8]) {
+pub(crate) fn keep(seed: &[u8]) {
     if seed.len() < MIN_SEED {
         return;
     }
@@ -48,7 +48,7 @@ pub fn keep(seed: &[u8]) {
 }
 
 /// The seed condensed to 32 bytes, once; the kept copy is wiped.
-pub fn take() -> Option<[u8; 32]> {
+pub(crate) fn take() -> Option<[u8; 32]> {
     let mut slot = SEED.lock();
     let seed = slot.as_mut()?;
     let mut out = [0u8; 32];
@@ -63,8 +63,10 @@ pub fn take() -> Option<[u8; 32]> {
 
 /// A key for `context` from the kept seed, without using the seed up: the
 /// RNG still takes it. BLAKE3's derive mode keeps each context's output
-/// independent of every other's and of the seed itself.
-pub fn derive(context: &str) -> Option<[u8; 32]> {
+/// independent of every other's and of the seed itself. aarch64's PAC keys
+/// are its one user.
+#[cfg(target_arch = "aarch64")]
+pub(crate) fn derive(context: &str) -> Option<[u8; 32]> {
     let slot = SEED.lock();
     let seed = slot.as_ref()?;
     let mut out = [0u8; 32];

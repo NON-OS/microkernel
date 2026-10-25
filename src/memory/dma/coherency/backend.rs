@@ -15,4 +15,4 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // The per-architecture sync windows (arch::dma_sync).
-pub(super) use crate::arch::dma_sync::{sync_for_cpu, sync_for_device};
+pub(super) use crate::arch::common::dma_sync::{sync_for_cpu, sync_for_device};

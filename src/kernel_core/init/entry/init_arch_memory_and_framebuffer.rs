@@ -30,12 +30,10 @@ pub(super) fn init_arch_memory_and_framebuffer(handoff: &KernelHandoff) {
         ArchSpecificHandoff::Aarch64 { info } => {
             crate::arch::aarch64::boot::init_boot_memory(info);
         }
-        // No boot memory path is written for riscv64 yet. The kernel stops
-        // here and says so, rather than run on with no frame allocator.
+        // The device tree's regions and reservations, as on aarch64.
         #[cfg(target_arch = "riscv64")]
-        ArchSpecificHandoff::Riscv64 { .. } => {
-            crate::sys::serial::println(b"[MEM] riscv64: no boot memory path yet; stopping");
-            crate::arch::halt_loop()
+        ArchSpecificHandoff::Riscv64 { info } => {
+            crate::arch::riscv64::boot::init_boot_memory(info);
         }
     }
 }
