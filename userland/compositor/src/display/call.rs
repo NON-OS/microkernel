@@ -28,6 +28,11 @@ use nonos_libc::mk_ipc_call_timeout;
 pub const PRESENT_MS: u64 = 100;
 /// Setup and polls: a driver answering from its own loop, never the device.
 pub const SETUP_MS: u64 = 250;
+/// The first CAPS at start-up, before the compositor serves anyone: a driver
+/// announced at spawn answers only once its device is up, and waiting for it
+/// here costs nothing, where giving up at SETUP_MS left a call unanswered
+/// and the screen on GOP until a later move.
+pub const START_MS: u64 = 3000;
 
 static NEXT_ID: AtomicU32 = AtomicU32::new(1);
 
