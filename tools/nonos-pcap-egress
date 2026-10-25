@@ -15,14 +15,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """What a guest put on the wire, and whether any of it leaks outside the
-anonymity networks: tools/nonos_pcap_egress.py says what is judged."""
+anonymity networks: tools/nonos_egress/ says what is judged."""
 
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from nonos_pcap_egress import main  # noqa: E402
+from nonos_egress.__main__ import main  # noqa: E402
 
 if __name__ == "__main__":
     sys.exit(main())
