@@ -119,6 +119,9 @@ def devices(net, tpm_sock, qmp, swaps=None):
     args = ["-device", gpu, "-device", "qemu-xhci,id=xhci", "-device", "virtio-rng-pci"]
     if net == "nat":
         args += ["-device", f"{swap.get('nic', 'virtio-net-pci')},netdev=net0", "-netdev", "user,id=net0"]
+    else:
+        # No NIC at all: without this, q35 adds its default e1000e.
+        args += ["-nic", "none"]
     if tpm_sock:
         args += ["-chardev", f"socket,id=chrtpm,path={tpm_sock}", "-tpmdev", "emulator,id=tpm0,chardev=chrtpm",
                  "-device", f"{swap.get('tpm', 'tpm-crb')},tpmdev=tpm0"]
