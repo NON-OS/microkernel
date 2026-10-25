@@ -43,7 +43,7 @@ impl Refusal {
             Refusal::Legacy(Legacy::Reset) => "system control port A (reset)",
             Refusal::Legacy(Legacy::Console) => "kernel console CRT ports",
             Refusal::Legacy(Legacy::Debug) => "kernel debug ports",
-            Refusal::Legacy(Legacy::PowerControl) => "FADT power control ports",
+            Refusal::Legacy(Legacy::ResetRegister) => "FADT reset register",
             Refusal::Bridge => "bridge bus number, window or bus master",
         }
     }

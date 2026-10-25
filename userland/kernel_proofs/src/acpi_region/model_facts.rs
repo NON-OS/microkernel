@@ -42,8 +42,8 @@ impl Facts for Machine {
     fn protected(&self, base: u64, end: u64) -> Option<Hardware> {
         self.hardware.iter().find(|(lo, hi, _)| overlaps(base, end, *lo, *hi)).map(|h| h.2)
     }
-    fn power_port(&self, base: u64, end: u64) -> bool {
-        self.power.iter().any(|(lo, hi)| overlaps(base, end, *lo, *hi))
+    fn reset_port(&self, base: u64, end: u64) -> bool {
+        self.reset.iter().any(|(lo, hi)| overlaps(base, end, *lo, *hi))
     }
     fn ports_claimed(&self, base: u16, count: u32) -> bool {
         let end = base as u64 + count as u64;

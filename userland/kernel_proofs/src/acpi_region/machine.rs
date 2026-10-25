@@ -26,8 +26,8 @@ pub struct Machine {
     pub ports: Vec<(u16, u16)>,
     pub hardware: Vec<(u64, u64, Hardware)>,
     pub pci: Vec<(u16, u8, u8, u8)>,
-    /// [base, end) of the FADT's power control registers in port space.
-    pub power: Vec<(u64, u64)>,
+    /// [base, end) of the FADT's reset register in port space.
+    pub reset: Vec<(u64, u64)>,
 }
 
 /// A small PC: RAM below 640 KiB and from 1 MiB, firmware's reserved and
@@ -53,7 +53,7 @@ pub fn pc() -> Machine {
             (0xE000_0000, 0xF000_0000, Hardware::Ecam),
         ],
         pci: vec![(0, 0, 3, 0)],
-        // PM1a control where QEMU's q35 puts it: PMBASE 0x600, offset 4.
-        power: vec![(0x604, 0x606)],
+        // A reset register clear of the PCI pair (q35's 0xCF9 is inside it).
+        reset: vec![(0x630, 0x631)],
     }
 }

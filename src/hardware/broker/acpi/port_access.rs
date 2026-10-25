@@ -20,6 +20,9 @@
 use super::error::RegionError;
 use super::io_grant::port;
 use crate::arch::port_io::{inb, inl, inw, outb, outl, outw};
+use core::sync::atomic::{AtomicBool, Ordering};
+
+static TOLD_SLEEP_ENABLE: AtomicBool = AtomicBool::new(false);
 
 pub fn port_read(pid: u32, at: u64, width: u8) -> Result<u32, RegionError> {
     let p = port(pid, at, width)?;
@@ -36,6 +39,13 @@ pub fn port_read(pid: u32, at: u64, width: u8) -> Result<u32, RegionError> {
 
 pub fn port_write(pid: u32, at: u64, width: u8, value: u32) -> Result<(), RegionError> {
     let p = port(pid, at, width)?;
+    if super::kernel::power_regs::sets_sleep_enable(at, width, value) {
+        // Once: AML retrying the write cannot fill the log.
+        if !TOLD_SLEEP_ENABLE.swap(true, Ordering::Relaxed) {
+            crate::sys::serial::println(b"[ACPI] refused: a port write setting SLP_EN");
+        }
+        return Err(RegionError::SleepEnable);
+    }
     // SAFETY: as for `port_read`; the value is cut to the width asked for.
     unsafe {
         match width {

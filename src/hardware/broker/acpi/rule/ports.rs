@@ -31,8 +31,8 @@ pub fn io(base: u64, len: u64, f: &impl Facts) -> Result<(), Refusal> {
     if let Some((_, _, which)) = LEGACY_PORTS.iter().find(|(lo, hi, _)| base < *hi && *lo < end) {
         return Err(Refusal::Legacy(*which));
     }
-    if f.power_port(base, end) {
-        return Err(Refusal::Legacy(Legacy::PowerControl));
+    if f.reset_port(base, end) {
+        return Err(Refusal::Legacy(Legacy::ResetRegister));
     }
     if f.ports_claimed(base as u16, (end - base) as u32) {
         return Err(Refusal::Claimed);
