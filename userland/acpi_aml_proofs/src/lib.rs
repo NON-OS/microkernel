@@ -22,6 +22,8 @@ mod entry_count_tests;
 #[cfg(test)]
 mod i2c_hid_enum_tests;
 #[cfg(test)]
+mod i2c_firmware_ids_tests;
+#[cfg(test)]
 mod pci_host_enum_tests;
 #[cfg(test)]
 mod scan_tests;

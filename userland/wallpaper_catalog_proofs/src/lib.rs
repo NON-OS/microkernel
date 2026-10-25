@@ -14,26 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs for the wallpaper catalog service's request path. The desktop
-//! and settings read wallpapers through it, and any process holding the
-//! endpoint can send it any bytes. The `#[path]` includes pull in the real
-//! frame decode, handlers, replies and the catalog itself under the `crate::`
-//! paths their files name each other by.
+//! Host proofs for the wallpaper catalog's request path, which any holder of
+//! the endpoint can send any bytes, and the wallpaper service's side of it.
+//! The `#[path]` includes pull in the real code under its own `crate::` paths.
 
 extern crate alloc;
 
 // The header, ops, limits and errnos.
 #[path = "../../capsule_wallpaper_catalog/src/protocol/mod.rs"]
 pub mod protocol;
-
-// The wallpapers the service hands out: their pins, and the one it holds,
-// read out of the store's collection.
+// The wallpapers it hands out: their pins, read out of the store's collection.
 #[path = "../../capsule_wallpaper_catalog/src/catalog/mod.rs"]
 pub mod catalog;
 
-// The vfs stream the catalog reads the collection through, answered here from
-// the real wallpaper files, packed as tools/nonos-wallpaper-pack packs them.
-// It answers to the app skeleton's name, as the catalog calls it by that.
+// The vfs stream the catalog reads, answered from the real wallpaper files
+// packed as tools/nonos-wallpaper-pack packs them, under the skeleton's name.
 extern crate self as nonos_app_skeleton;
 pub mod clients;
 pub mod collection;
@@ -41,28 +36,33 @@ pub mod collection;
 // The frame decode, the handlers and the replies; not the receive loop.
 pub mod server;
 
-// The wallpaper service's side of it: its catalog client, which fetches a
-// wallpaper a chunk per call and keeps what came over between tries, and the
-// decoder it paints from. Its calls reach `serve` through the stand-in
-// kernel's `mk_ipc_call_timeout`.
+// The wallpaper service's side: its catalog client (a chunk per call, what
+// came over kept between tries) and its decoder; the calls reach `serve`
+// through the stand-in kernel's `mk_ipc_call_timeout`.
 #[path = "../../capsule_wallpaper/src/catalog_client/mod.rs"]
 pub mod wallpaper_client;
 #[path = "../../capsule_wallpaper/src/paint/decode_jpeg.rs"]
 pub mod wallpaper_decode;
-// What it says on the serial line about the wallpaper chosen.
 #[path = "../../capsule_wallpaper/src/subscriber/say.rs"]
 pub mod wallpaper_say;
 
-// The job its worker thread runs (fetch, then decode) and the plan its
-// service thread keeps about it: which wallpaper to start, what a stopped
-// job kept, and whether a finished one is still wanted. The job names the
-// client and the decoder by the service's own paths.
+// Its worker's job (fetch, then decode) and the plan its service thread
+// keeps (which to start, what a stopped job kept, whether a finished one is
+// still wanted), and the built-in picture a worker paints while the service
+// answers (ink, then the picture). They name each other by the service's paths.
 pub use wallpaper_client as catalog_client;
 pub mod paint {
+    pub use crate::wallpaper_blit as blit_argb;
     pub use crate::wallpaper_decode::{decode_jpeg, DecodedImage};
+    pub use crate::wallpaper_fill::fill_argb;
 }
-// When it asks the compositor again: a scene submit or a damage commit that
-// did not go through is retried at a growing interval, never given up on.
+#[path = "../../capsule_wallpaper/src/paint/blit_argb.rs"]
+pub mod wallpaper_blit;
+#[path = "../../capsule_wallpaper/src/paint/fill.rs"]
+pub mod wallpaper_fill;
+#[path = "../../capsule_wallpaper/src/first_paint/job.rs"]
+pub mod wallpaper_first_paint;
+// A scene submit or damage commit not answered is asked again, ever later.
 #[path = "../../capsule_wallpaper/src/state/backoff.rs"]
 pub mod wallpaper_backoff;
 #[path = "../../capsule_wallpaper/src/subscriber/job"]
@@ -72,16 +72,4 @@ pub mod wallpaper_job {
 }
 
 #[cfg(test)]
-mod serve_tests;
-#[cfg(test)]
-mod pin_tests;
-#[cfg(test)]
-mod said_tests;
-#[cfg(test)]
-mod download_tests;
-#[cfg(test)]
-mod wallpaper_said_tests;
-#[cfg(test)]
-mod wallpaper_job_tests;
-#[cfg(test)]
-mod wallpaper_backoff_tests;
+mod tests;

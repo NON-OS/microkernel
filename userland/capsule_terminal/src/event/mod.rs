@@ -46,7 +46,6 @@ mod readline;
 mod run_line;
 pub(crate) mod search;
 pub(crate) mod search_edit;
-mod search_place;
 mod word_candidates;
 
 pub use fg_input::send as send_to_program;

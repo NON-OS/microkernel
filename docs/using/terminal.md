@@ -23,6 +23,8 @@ flowchart LR
 
 ## Tabs and windows
 
+- The window opens at 1240 by 720 pixels, centred between the menu bar and the dock on a 1920 by 1080 screen: about 130 columns and 30 rows. On a smaller screen it opens as large as fits, centred. The prompt sits on the line under the last output and moves down with it until the window is full.
+- `Ctrl+Alt+T` brings the Terminal forward from anywhere on the desktop, or opens it.
 - A window holds up to nine tabs. `Ctrl+Shift+T` opens one, `Ctrl+Shift+W` closes one, `Ctrl+PgUp` and `Ctrl+PgDn` switch, and `Ctrl+1` to `Ctrl+9` jump to a tab.
 - Closing a tab, or the window, sends SIGTERM to every program that tab started. Closing the last tab closes the window.
 - `Ctrl+B` shows or hides the side rail. `Ctrl+K` opens a palette that filters, as you type, twelve common commands, the last twelve lines run in this tab, the open tabs, and a few actions such as a new tab or the next theme. `Enter` picks, `Esc` closes it.
@@ -31,7 +33,7 @@ flowchart LR
 
 ## Editing a line
 
-`help keys` prints a short form of this list. It still names `Ctrl-K` for cutting to the end of the line; in this release `Ctrl+K` opens the palette and `Ctrl+Shift+K` cuts.
+`help keys` prints a short form of this list. The bar under the prompt names the keys that matter for what you are doing: at the prompt, `Tab`, `Ctrl+R`, `Ctrl+K` and the find and tab keys; in a history search, how to run, step and leave; in the find bar, how to move and close; and while a program runs, `Ctrl+C` to stop it and the copy and paste keys. `Ctrl+K` opens the palette and `Ctrl+Shift+K` cuts to the end of the line.
 
 | Keys | What they do |
 |---|---|
@@ -42,7 +44,7 @@ flowchart LR
 | `Ctrl+D`, `Ctrl+H` | Delete the character under the cursor, or the one before it. |
 | `Tab` | Complete a command or a path. |
 | `Up`, `Down`, `Ctrl+P`, `Ctrl+N` | Walk the history. |
-| `Ctrl+R` | Search the history. Press it again for the next match. |
+| `Ctrl+R` | Search the history. Press it again for the next match. The prompt says `history` and what you typed, or `no match` when nothing holds it; then `Enter` runs nothing. `Esc` or `Ctrl+C` leaves the search and puts back the line you had. |
 | `Ctrl+L` | Empty the scrollback. |
 | `Ctrl+V`, `Ctrl+Shift+V`, `Shift+Insert` | Paste. |
 | `Ctrl+Shift+C` | Copy the selection, or the line when nothing is selected. |
@@ -79,7 +81,7 @@ The built-ins that wait on the network or on an install run as jobs even in the 
 | While | `Ctrl+C` |
 |---|---|
 | typing a line | Drops the line and prints `^C`. |
-| searching the history | Leaves the search and puts the line back as it was. |
+| searching the history | Leaves the search and puts the line back as it was. `Esc` does the same. |
 | a Linux program runs in the foreground | Sends the byte 0x03 to the program's terminal, which turns it into SIGINT for the foreground group. The shell stays. |
 | an installed tool runs in the foreground | Sends SIGINT (2) to it and ends the job. |
 | a built-in job runs | Cancels the job. A `git clone` closes its connection and writes nothing. |
@@ -230,12 +232,17 @@ The source behind the facts above, at the commit in the footer.
   - The eight installed tools: `TOOLS` in `userland/capsule_terminal/src/command/builtin/tool.rs:25-34`.
   - The three store tools: `STORE_TOOLS` in `userland/capsule_terminal/src/jobs/classify.rs:173`.
 - Tabs and windows
+  - The size and place it opens at: `manifest` in `userland/capsule_terminal/src/term/manifest.rs`.
+  - The prompt under the last output: `follow` in `userland/capsule_terminal/src/layout/follow.rs`.
   - Nine tabs at most: `MAX_TABS` in `userland/capsule_terminal/src/term/terminal/tabs.rs:25`.
   - SIGTERM to the programs of a closed tab: `hang_up` in `userland/capsule_terminal/src/jobs/hang_up.rs:27-38`.
   - What the palette lists: `build` in `userland/capsule_terminal/src/palette/index.rs:33-39`.
   - Font scale 1 to 6: `MAX_FONT_SCALE` in `userland/capsule_terminal/src/term/dimensions.rs:26`.
 - Editing a line
-  - The keys list that still names `Ctrl-K`: `KEYS` in `userland/capsule_terminal/src/command/builtin/help_pages.rs:19-21`.
+  - `Esc` leaving a search, and `Enter` running nothing on `no match`: `escape` and `runs` in `userland/capsule_terminal/src/term/search_step.rs`.
+  - What the prompt shows while searching: `head` in `userland/capsule_terminal/src/paint/search_head.rs`.
+  - The keys list: `KEYS` in `userland/capsule_terminal/src/command/builtin/help_pages.rs`.
+  - The keys the bar names in each state: `hints` in `userland/capsule_terminal/src/paint/hint_sets.rs`.
   - `Ctrl+K` opens the palette, `Ctrl+Shift+K` cuts: `opens` in `userland/capsule_terminal/src/term/terminal/palette_key.rs:67-70`.
 - Pipes, redirects and chains
   - The ten built-ins that read a pipe, `grep` and the rest: `userland/capsule_terminal/README.md:52-57`.

@@ -62,6 +62,6 @@ order (`src/syscall/contract/resolver/resolve.rs:31-43`):
 The cap table, `is_allowed`, answers false for any number no table names
 (`src/syscall/contract/cap_table/mod.rs:29-35`). Most calls need a specific bit.
 A few need only a token that `caps.is_valid` accepts, such as `MkExit`,
-`MkYield` and the clock reads (`src/syscall/contract/cap_table/mk.rs:25-38`).
+`MkYield` and the clock reads (`src/syscall/contract/cap_table/mk.rs:25-39`).
 `is_valid` is false for a token with no bits at all
 (`src/capabilities/token/types/query.rs:44-47`).

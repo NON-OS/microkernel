@@ -20,6 +20,7 @@ pub mod get_i8;
 pub mod get_str;
 pub mod get_u64;
 pub mod get_u8;
+mod keep_once;
 pub mod set_bool;
 pub mod set_i8;
 pub mod set_str;

@@ -25,7 +25,7 @@ desktop offers from the store.
 - `0x0800` GraphicsDisplayQuery and `0x1000` GraphicsSurfaceCreate: create and size its window
   surface.
 
-Endpoints: service `service:4916:app.gui_demo`, reply `reply:4917:endpoint.app.gui_demo.reply`.
+Endpoints: service `service:4916:com.example.gui_demo`, reply `reply:4917:endpoint.com.example.gui_demo.reply`.
 The domain is `com.example` and the namespace `com.example.gui_demo`.
 
 ## Interface

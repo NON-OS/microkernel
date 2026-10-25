@@ -1,0 +1,4 @@
+sd.pcap frames 1369 dhcp {'DISCOVER': 1, 'REQUEST': 1} other {'tcp:9230': 915, 'tcp:9000': 224, 'tcp:443': 211, 'arp': 14}
+sd-in.pcap frames 372 dhcp {'OFFER': 1, 'ACK': 1} other {'tcp:443': 231, 'tcp:9230': 93, 'tcp:9000': 29, 'arp': 14}
+main.pcap frames 1165 dhcp {'DISCOVER': 1, 'REQUEST': 1} other {'tcp:9230': 704, 'tcp:9000': 224, 'tcp:443': 218, 'arp': 14}
+main-in.pcap frames 351 dhcp {'OFFER': 1, 'ACK': 1} other {'tcp:443': 231, 'tcp:9230': 73, 'tcp:9000': 29, 'arp': 14}

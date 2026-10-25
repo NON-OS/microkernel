@@ -1,0 +1,18 @@
+[
+ {
+  "name": "msft-prefix-back",
+  "file": "src/arch/x86_64/acpi/devices/i2c/configs.rs",
+  "old": "b\"FTE\", b\"CYAP\"];",
+  "new": "b\"FTE\", b\"CYAP\", b\"MSFT\"];",
+  "crate": "userland/acpi_aml_proofs",
+  "test": "i2c_firmware_ids"
+ },
+ {
+  "name": "msft0001-dropped",
+  "file": "src/arch/x86_64/acpi/devices/i2c/configs.rs",
+  "old": "hid == b\"MSFT0001\" || PREFIXES",
+  "new": "PREFIXES",
+  "crate": "userland/acpi_aml_proofs",
+  "test": "i2c_firmware_ids"
+ }
+]

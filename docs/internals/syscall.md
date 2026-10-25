@@ -26,7 +26,7 @@ An architecture shim (outside this module) calls `handle_syscall` with the numbe
 ```
 src/syscall/
   entry.rs          handle_syscall: the shim entry, validates and accounts
-  numbers/          defs.rs (SyscallNumber, 130 of them), convert.rs (from_u64)
+  numbers/          defs.rs (SyscallNumber, 176 of them), convert.rs (from_u64)
   contract/         dispatch.rs (the single dispatch), capability.rs (resolve), args.rs
   dispatch/         router/ (fan-out), crypto/, audit/, helpers
   microkernel/      ~65 handler files: app_install, attest, dma, pci, store_*, tty, ipc/, ...
@@ -40,7 +40,7 @@ src/syscall/
 | `struct Capability` | `src/syscall/contract/capability.rs:30` | The per-call resolved capability. |
 | `Capability::resolve` | `src/syscall/contract/capability.rs:35` | Resolve the caller's token against the syscall. |
 | `struct SyscallArgs` | `src/syscall/contract/args.rs:21` | The raw six-register argument block. |
-| `enum SyscallNumber` | `src/syscall/numbers/defs.rs:19` | The 130 syscall numbers (FourCC tags, `:20-149`). |
+| `enum SyscallNumber` | `src/syscall/numbers/defs.rs:19` | The 176 syscall numbers (FourCC tags, `:20-195`). |
 | `from_u64` | `src/syscall/numbers/convert.rs:22` | Map a raw id to a `SyscallNumber` or none. |
 | `struct SyscallResult` | `src/syscall/types/result.rs:17` | The result: value, capability consumed, audit required. |
 | `handle_syscall_dispatch` | `src/syscall/dispatch/router/entry.rs:29` | Fan out a resolved call to its handler. |

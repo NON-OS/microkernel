@@ -57,10 +57,12 @@ class Egress(Case):
     def test_other_spellings_of_a_place_are_caught(self):
         main = self.root / "userland/capsule_dial/src/main.rs"
         main.write_text(main.read_text() + 'const A: Ipv4Addr = Ipv4Addr::new(198, 51, 100, 9);\n'
+                        'const B: &str = "198.51.100.10:8080";\n'
                         "/* const C: &str = \"https://hidden.example.org\";\n*/\n")
         (main.parent / "fetch.py").write_text("URL = 'https://Upper.Example.NET/x'\n")
         found = audit(self.root, "")[1]
         self.assertIn("198.51.100.9", found)
+        self.assertIn("198.51.100.10", found, "an address written as a dotted string, port and all")
         self.assertIn("upper.example.net", found)
         self.assertNotIn("hidden.example.org", found)
 
