@@ -21,6 +21,8 @@ pub enum FbGeometryReason {
     ZeroStride,
     StrideTooSmall,
     AreaOverflow,
+    /// FB_AVAILABLE and FB_REFUSED both: a framebuffer and a reason for none.
+    RefusedAndAvailable,
 }
 
 impl FbGeometryReason {
@@ -31,6 +33,7 @@ impl FbGeometryReason {
             Self::ZeroStride => "stride is zero",
             Self::StrideTooSmall => "stride is smaller than width * bytes_per_pixel",
             Self::AreaOverflow => "stride * height overflows or exceeds size",
+            Self::RefusedAndAvailable => "the handoff claims a framebuffer and a refusal both",
         }
     }
 }

@@ -24,15 +24,15 @@ pub(super) const ENTROPY_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-entropy")]
 pub(super) const ENTROPY_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/entropy.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/entropy.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-entropy")]
 pub(super) const ENTROPY_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/entropy.manifest.bin");
+    crate::baked_trust!("capsules/entropy.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-entropy")]
 pub(super) const ENTROPY_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/entropy.zk_trailer.bin");
+    crate::baked_trust!("capsules/entropy.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-entropy"))]
 pub(super) const ENTROPY_ELF: &[u8] = &[];
