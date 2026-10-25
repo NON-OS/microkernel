@@ -32,6 +32,10 @@ pub mod job;
 #[path = "../../capsule_prove/src/job/bound.rs"]
 pub mod job_bound;
 /// The headless job's failure status from a kernel return, the file that ships.
+#[path = "../../capsule_prove/src/job/receipt_slot.rs"]
+pub mod job_receipt_slot;
+#[path = "../../capsule_prove/src/job/receipt_step.rs"]
+pub mod job_receipt_step;
 #[path = "../../capsule_prove/src/job/status.rs"]
 pub mod job_status;
 /// The kernel's `MkBootSlots` slot and record encoders, unchanged.

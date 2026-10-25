@@ -23,6 +23,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "agentproof_policy"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "nonos_linux_policy",
+]
+
+[[package]]
+name = "agentproof_receipt"
+version = "0.1.0"
+dependencies = [
+ "agentproof_policy",
+ "blake3",
+ "nonos_linux_policy",
+ "nonos_proof_abi",
+]
+
+[[package]]
 name = "arrayvec"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -160,6 +178,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos_linux_policy"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+]
+
+[[package]]
 name = "nonos_proof_abi"
 version = "0.1.0"
 dependencies = [
@@ -173,10 +198,13 @@ dependencies = [
 name = "nonos_prove"
 version = "0.1.0"
 dependencies = [
+ "agentproof_policy",
+ "agentproof_receipt",
  "isolation_stark",
  "nonos-device-attest",
  "nonos-stark",
  "nonos_app_skeleton",
+ "nonos_linux_policy",
  "nonos_proof_abi",
  "nonos_userland_libc",
 ]
