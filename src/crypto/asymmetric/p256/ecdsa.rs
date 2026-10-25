@@ -14,23 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::keygen::generate_keypair;
 use super::{AffinePoint, PublicKey, Scalar, SecretKey, Signature};
-
-pub fn generate_keypair() -> (SecretKey, PublicKey) {
-    let mut sk = [0u8; 32];
-    crate::crypto::rng::fill_random_bytes(&mut sk);
-
-    loop {
-        if let Some(scalar) = Scalar::from_bytes(&sk) {
-            if !scalar.is_zero() {
-                if let Some(pk) = public_key_from_secret(&sk) {
-                    return (sk, pk);
-                }
-            }
-        }
-        crate::crypto::rng::fill_random_bytes(&mut sk);
-    }
-}
+use crate::crypto::error::CryptoResult;
 
 pub fn public_key_from_secret(sk: &SecretKey) -> Option<PublicKey> {
     let scalar = Scalar::from_bytes(sk)?;
@@ -207,9 +193,9 @@ impl Drop for P256KeyPair {
 }
 
 impl P256KeyPair {
-    pub fn generate() -> Self {
-        let (secret_key, public_key) = generate_keypair();
-        Self { secret_key, public_key }
+    pub fn generate() -> CryptoResult<Self> {
+        let (secret_key, public_key) = generate_keypair()?;
+        Ok(Self { secret_key, public_key })
     }
 
     pub fn sign(&self, message: &[u8]) -> Option<Signature> {
