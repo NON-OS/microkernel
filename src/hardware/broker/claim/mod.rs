@@ -35,6 +35,7 @@ mod pending;
 mod port_only;
 mod quiesce;
 mod quiesce_all;
+mod quiesce_other;
 mod refusal;
 mod release;
 mod reset;
@@ -55,12 +56,12 @@ mod types;
 mod wipe;
 
 pub use claim::claim;
+pub use exit::{exit_begin, exit_end};
 pub(in crate::hardware::broker) use hold_rule::FIRMWARE_BOOT_FRAMEBUFFER;
 pub(crate) use leave::retire;
 pub(crate) use live::{live, while_live};
 pub(crate) use lookup::{inside, lookup, InUse};
 pub use quiesce_all::quiesce_all;
-pub use exit::{exit_begin, exit_end};
 pub use release::{quiesce_held, release};
 pub use types::{Claim, ClaimError};
 // Stepped at the tick that holds no lock, on every arch (L78, C-44).
