@@ -29,7 +29,10 @@ const POWER_MK: &str = include_str!("../../capsule_power/Capsule.mk");
 fn capsule_acpi_holds_no_power_off_name() {
     assert!(!MK.contains("power.off"), "Capsule.mk declares no power.off");
     assert!(!MK.contains("CAPSULE_INSTANCE_ENDPOINTS"), "nor any second name");
-    assert!(!MIRROR.contains("power_off") && !SPAWN.contains("power_off"), "the kernel registers none");
+    assert!(
+        !MIRROR.contains("power_off") && !SPAWN.contains("power_off"),
+        "the kernel registers none"
+    );
     assert!(POWER_MK.contains("service:4446:power.off"), "capsule_power still owns it");
 }
 

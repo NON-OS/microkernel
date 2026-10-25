@@ -19,12 +19,12 @@
 //! the capsule reads, and, from the source, the path from the shell's
 //! confirmation to zerostate's terminate.
 
+#[path = "../../capsule_desktop_shell/src/power_off_client/frame.rs"]
+pub mod frame;
 #[path = "../../capsule_power/src/off/rule.rs"]
 pub mod rule;
 #[path = "../../capsule_power/src/off/wire.rs"]
 pub mod wire;
-#[path = "../../capsule_desktop_shell/src/power_off_client/frame.rs"]
-pub mod frame;
 
 #[cfg(test)]
 mod glue_tests;
