@@ -56,7 +56,8 @@ fn a_policy_nobody_signed_or_that_fails_the_gate_is_refused() {
         let (e, rel) = linux(p, "https://pkg");
         assert_eq!(read(encode(&e, &rel, true, true)), LinuxPolicy::Refused);
     }
-    let (e, rel) = linux(policy(listing, release), "store:/bin/qwenchat");
+    let (mut e, rel) = linux(policy(listing, release), "store:/bin/qwenchat");
+    e.listing_id = "linux.qwen-small".into();
     assert_eq!(
         read(encode(&e, &rel, true, true)),
         LinuxPolicy::Refused,
