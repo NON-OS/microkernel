@@ -21,7 +21,7 @@ default: amnesic, no network, the Nym route, Qwen3 0.6B, every app on.
   vendor`, `[SPAWN] name=nox_settle caps=0x3C`, `[NOX-SETTLE] capsule
   spawned`, and each one's first run (`[USER-FIRST]`).
 - Neither process logged an exit, fault or reap in the six minutes the
-  desktop was up (`serial.log`, 1726 lines, to the end of the run).
+  desktop was up (`serial.log`, 1766 lines, to the end of the run).
 - `20-desktop.png`: the desktop, menu bar and the full dock, with the live
   session dialog (3347 colours). `21-installer.png`: Install NONOS opened the
   installer.
