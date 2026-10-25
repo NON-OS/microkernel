@@ -3,7 +3,7 @@
 //! breaks it: a rule that no test can tell apart from its removal is not
 //! being checked.
 
-use crate::model::{Config, Flush};
+use crate::model::{Config, Flush, Pge};
 use crate::search::explore;
 
 /// Up to the initiator plus three APs, every configuration and mutant of the
