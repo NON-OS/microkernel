@@ -39,6 +39,7 @@ use super::late_drops::dropped;
 use super::marks::display_marks;
 use super::verdict::{no_answer, NoAnswer, DEFAULT_MS};
 use crate::process::accounting;
+use crate::syscall::microkernel::errnos::ERRNO_TIMEDOUT;
 use crate::services::registry::ServiceEndpoint;
 
 static STARVED: crate::sys::diag::Site = crate::sys::diag::Site::new(b"ipc.call");
@@ -58,7 +59,7 @@ pub(super) fn settle(
     }
     let Some(endpoint) = to else { return };
     if rc < 0 {
-        match no_answer(waited.0, DEFAULT_MS, waited.1) {
+        match no_answer(rc == ERRNO_TIMEDOUT, waited.0, DEFAULT_MS, waited.1) {
             NoAnswer::Late => LATE.late(&endpoint.name, waited.1, dropped()),
             NoAnswer::Starved => STARVED.starved(&endpoint.name, rc),
         }
