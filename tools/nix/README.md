@@ -51,6 +51,7 @@ unchanged.
 | `airgapped` | hardened, with no network driver, network stack or online program compiled in; installs from offline media only | production |
 | `qemu` | the desktop for virtual machines, without the drivers only real hardware has | standard-qemu |
 | `dev` | qemu with the loader's development policy; never sealed for release | dev-qemu |
+| `selftest` | dev with the attack suite's capsule, run at boot and judged by `tools/nonos-selftest`; never sealed for release | dev-qemu |
 | `core` | the microkernel and its base capsules, no desktop | standard-qemu |
 
 A profile sets floors. Asking it for less (a weaker loader, a feature it takes

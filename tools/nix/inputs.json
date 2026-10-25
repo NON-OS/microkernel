@@ -30,6 +30,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
@@ -584,6 +587,22 @@
   "md": [],
   "signed": []
  },
+ "userland/agentproof_proofs": {
+  "exclude": [
+   "userland/agentproof_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "userland/agentproof_policy",
+   "userland/agentproof_proofs",
+   "userland/capsule_linux/policies.txt",
+   "userland/capsule_linux/src/linux/boxed",
+   "userland/capsule_linux/src/linux/install/chat_pick.rs",
+   "userland/nonos_linux_policy"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/ahci_link_proofs": {
   "exclude": [],
   "include": [
@@ -960,6 +979,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
@@ -1267,6 +1289,9 @@
   "include": [
    ".cargo",
    "src/arch/aarch64/boot/memory/dma_place.rs",
+   "src/arch/aarch64/boot/memory/image.rs",
+   "src/arch/aarch64/boot/memory/span.rs",
+   "src/arch/aarch64/mmu/image_bounds.rs",
    "userland/boot_memory_proofs"
   ],
   "md": [],
@@ -1545,6 +1570,19 @@
   "signed": [
    "nonos-data/trust/COMMIT"
   ]
+ },
+ "userland/capsule_attack": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
+   "src/services/registry/displays.rs",
+   "src/services/registry/nics.rs",
+   "userland/capsule_attack",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
  },
  "userland/capsule_attest": {
   "exclude": [],
@@ -4504,6 +4542,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/nox_settle.manifest.bin",
    "nonos-data/trust/capsules/nox_settle.nonos_id_cert.bin",
    "nonos-data/trust/capsules/nox_settle.zk_trailer.bin",
@@ -4519,6 +4560,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "userland/capsule_net_dhcp/src/dora",
    "userland/capsule_net_dhcp/src/protocol",
    "userland/capsule_net_dhcp/src/server/parse_req.rs",
    "userland/capsule_net_dhcp/src/server/respond.rs",
@@ -4726,6 +4768,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
@@ -6024,6 +6069,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
@@ -6179,6 +6227,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
@@ -7761,6 +7812,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
@@ -7987,6 +8041,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
@@ -8534,6 +8591,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
@@ -8788,6 +8848,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
@@ -9169,6 +9232,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
