@@ -34,6 +34,16 @@ pub(super) const ENTROPY_MANIFEST_BYTES: &[u8] =
 pub(super) const ENTROPY_ATTESTATION_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/entropy.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-entropy")]
+const _: () = assert!(
+    !ENTROPY_ELF.is_empty()
+        && !ENTROPY_NONOS_ID_CERT_BYTES.is_empty()
+        && !ENTROPY_MANIFEST_BYTES.is_empty()
+        && !ENTROPY_ATTESTATION_BYTES.is_empty(),
+    "entropy_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-entropy"))]
 pub(super) const ENTROPY_ELF: &[u8] = &[];
 

@@ -34,6 +34,16 @@ pub(crate) const COMPOSITOR_MANIFEST_BYTES: &[u8] =
 pub(crate) const COMPOSITOR_ATTESTATION_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/compositor.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-compositor")]
+const _: () = assert!(
+    !COMPOSITOR_ELF.is_empty()
+        && !COMPOSITOR_NONOS_ID_CERT_BYTES.is_empty()
+        && !COMPOSITOR_MANIFEST_BYTES.is_empty()
+        && !COMPOSITOR_ATTESTATION_BYTES.is_empty(),
+    "capsule_compositor built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-compositor"))]
 pub(crate) const COMPOSITOR_ELF: &[u8] = &[];
 

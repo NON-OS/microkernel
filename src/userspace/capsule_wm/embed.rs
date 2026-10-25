@@ -34,6 +34,16 @@ pub(crate) const WM_MANIFEST_BYTES: &[u8] =
 pub(crate) const WM_ATTESTATION_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/wm.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-wm")]
+const _: () = assert!(
+    !WM_ELF.is_empty()
+        && !WM_NONOS_ID_CERT_BYTES.is_empty()
+        && !WM_MANIFEST_BYTES.is_empty()
+        && !WM_ATTESTATION_BYTES.is_empty(),
+    "capsule_wm built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-wm"))]
 pub(crate) const WM_ELF: &[u8] = &[];
 

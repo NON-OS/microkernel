@@ -34,6 +34,16 @@ pub(crate) const POLICY_MANIFEST_BYTES: &[u8] =
 pub(crate) const POLICY_ATTESTATION_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/policy.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-policy")]
+const _: () = assert!(
+    !POLICY_ELF.is_empty()
+        && !POLICY_NONOS_ID_CERT_BYTES.is_empty()
+        && !POLICY_MANIFEST_BYTES.is_empty()
+        && !POLICY_ATTESTATION_BYTES.is_empty(),
+    "capsule_policy built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-policy"))]
 pub(crate) const POLICY_ELF: &[u8] = &[];
 

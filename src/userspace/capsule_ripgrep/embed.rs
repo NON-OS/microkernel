@@ -34,6 +34,16 @@ pub(crate) const RIPGREP_MANIFEST_BYTES: &[u8] =
 pub(crate) const RIPGREP_ATTESTATION_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/rg.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-ripgrep")]
+const _: () = assert!(
+    !RIPGREP_ELF.is_empty()
+        && !RIPGREP_NONOS_ID_CERT_BYTES.is_empty()
+        && !RIPGREP_MANIFEST_BYTES.is_empty()
+        && !RIPGREP_ATTESTATION_BYTES.is_empty(),
+    "capsule_ripgrep built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-ripgrep"))]
 pub(crate) const RIPGREP_ELF: &[u8] = &[];
 

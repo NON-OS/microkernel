@@ -40,6 +40,16 @@ pub(super) const MARKET_MANIFEST_BYTES: &[u8] =
 pub(super) const MARKET_ATTESTATION_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/market.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-market")]
+const _: () = assert!(
+    !MARKET_ELF.is_empty()
+        && !MARKET_NONOS_ID_CERT_BYTES.is_empty()
+        && !MARKET_MANIFEST_BYTES.is_empty()
+        && !MARKET_ATTESTATION_BYTES.is_empty(),
+    "market_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-market"))]
 pub(super) const MARKET_ELF: &[u8] = &[];
 

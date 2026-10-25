@@ -34,6 +34,16 @@ pub(crate) const CLOCK_MANIFEST_BYTES: &[u8] =
 pub(crate) const CLOCK_ATTESTATION_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/clock.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-clock")]
+const _: () = assert!(
+    !CLOCK_ELF.is_empty()
+        && !CLOCK_NONOS_ID_CERT_BYTES.is_empty()
+        && !CLOCK_MANIFEST_BYTES.is_empty()
+        && !CLOCK_ATTESTATION_BYTES.is_empty(),
+    "capsule_clock built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-clock"))]
 pub(crate) const CLOCK_ELF: &[u8] = &[];
 
