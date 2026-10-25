@@ -5,11 +5,11 @@
 use nonos_wifi_core::mlme::MlmeFailure;
 use nonos_wifi_core::rsn::{JoinPolicy, SelectError};
 
+use crate::gen3::join::exchange::Progress;
 use crate::gen3::join::inbox::{Inbox, Queues, INBOX_FRAMES};
+use crate::gen3::join::run::{join, JoinEnd};
 use crate::gen3::packet::Packet;
 use crate::gen3::txq::{TxQueue, TXQ_STRIDE};
-use crate::gen3::join::exchange::Progress;
-use crate::gen3::join::run::{join, JoinEnd};
 use crate::join_rig::*;
 
 #[test]
@@ -20,7 +20,10 @@ fn the_inbox_is_bounded_and_routes_transmit_responses_to_their_queue() {
     let f = from_ap(&[0xAA, 0xAA, 3, 0, 0, 0, 8, 0], 1);
     let pkt = rx(&f, 0);
     for _ in 0..INBOX_FRAMES + 1 {
-        inbox.route(&Packet { cmd: pkt.cmd, group: 0, sequence: 0x8000, payload: &pkt.payload }, &mut q);
+        inbox.route(
+            &Packet { cmd: pkt.cmd, group: 0, sequence: 0x8000, payload: &pkt.payload },
+            &mut q,
+        );
     }
     assert_eq!((inbox.frames.len(), inbox.dropped), (INBOX_FRAMES, 1));
     // A response for a queue the access point has not got is stray.
@@ -47,7 +50,8 @@ fn networks_the_station_does_not_join_send_nothing_and_touch_no_context() {
         assert_eq!(out.err(), Some(JoinEnd::Refused(MlmeFailure::OpenNetwork)));
         // Saved as WPA3, now offering WPA2 only.
         let wpa2 = beacon(&[&RSNE_PSK]);
-        let out = join(fw, &request(JoinPolicy::WPA3_ONLY), &wpa2, 6, 3, 3, &mut Progress::default());
+        let out =
+            join(fw, &request(JoinPolicy::WPA3_ONLY), &wpa2, 6, 3, 3, &mut Progress::default());
         assert_eq!(out.err(), Some(JoinEnd::Refused(MlmeFailure::Select(SelectError::Downgrade))));
         // Another network's beacon.
         let mut theirs = wpa2.clone();

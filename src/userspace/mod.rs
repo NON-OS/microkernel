@@ -61,6 +61,8 @@ pub mod capsule_sd;
 pub mod capsule_shield;
 #[cfg(feature = "nonos-capsule-shield-vectors")]
 pub mod capsule_shield_vectors;
+#[cfg(feature = "nonos-capsule-attack")]
+pub mod capsule_attack;
 pub mod capsule_settings;
 #[cfg(feature = "nonos-capsule-setup-wizard")]
 pub mod capsule_setup_wizard;
