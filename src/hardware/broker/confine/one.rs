@@ -24,9 +24,9 @@ use crate::memory::iommu::DeviceAddress;
 
 /// Attach `address`, for broker device `device_id`, to `pid`'s domain, with
 /// `reach`, its isolation group and requester-id aliases (gates.rs). With no
-/// unit in service a PCI function is refused but under the development
-/// opt-in; with `must`, a device the description puts behind a unit, always;
-/// `port_only` as port_only.rs says.
+/// unit in service a PCI function is refused but claimed port-only
+/// or under the development opt-in; with `must`, a device the description
+/// puts behind a unit, always; `port_only` as port_only.rs says.
 pub(super) fn attach_one(
     pid: u32,
     device_id: u64,
