@@ -16,10 +16,11 @@
 
 /*
  * The model fetcher, `tool.model-fetch`: `qwen get` and `qwen tiers` from the
- * Terminal. First-party, so it is not in `userland/apps.list`; it is spawned
- * on demand, parented to the Terminal that asked, and holds the network and
- * StreamImport, the right to feed a pinned file into the data volume. The
- * only other holder is `nonos.prove`, which leaves its proof on the volume.
+ * Terminal, and `linux install` of a pinned model. First-party, so it is not
+ * in `userland/apps.list`; it is spawned on demand, parented to whoever asked,
+ * and holds the network and StreamImport, the right to feed a pinned file into
+ * the data volume. The other holders are `nonos.prove`, which leaves its proof
+ * on the volume, and capsule_linux's install role, so it may start this.
  */
 
 mod embed;
