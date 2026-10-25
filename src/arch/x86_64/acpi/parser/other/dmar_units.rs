@@ -19,9 +19,14 @@
 
 use spin::Mutex;
 
-use super::dmar_keep::{keep, Unit, MAX_REMAP_UNITS};
-use super::dmar_scope::{parse_drhd, UnitScope};
-use super::unit_base::DRHD_WINDOW;
+use super::dmar_keep::MAX_REMAP_UNITS;
+use super::dmar_scope::UnitScope;
+
+#[path = "dmar_record.rs"]
+mod record;
+#[path = "dmar_truncated.rs"]
+mod truncated;
+pub(super) use record::record;
 
 static REMAP_UNIT_BASES: Mutex<heapless::Vec<u64, MAX_REMAP_UNITS>> =
     Mutex::new(heapless::Vec::new());
@@ -49,25 +54,9 @@ pub(super) fn left_off() {
     *LEFT_OFF.lock() += 1;
 }
 
-/// What each segment 0 remapping unit covers, in DMAR order (index-matched to
-/// `remap_unit_bases`).
-pub fn remap_unit_scopes() -> heapless::Vec<UnitScope, MAX_REMAP_UNITS> {
-    REMAP_UNIT_SCOPES.lock().clone()
-}
-
-/// Keep one DRHD (`bytes` exactly its length). True when a segment 0 unit
-/// was kept. A unit whose structure does not parse is kept with an empty,
-/// truncated scope, so it is never taken to cover a device.
-pub(super) fn record(bytes: &[u8], segment: u16, base: u64) -> bool {
-    let mut bases = REMAP_UNIT_BASES.lock();
-    let mut scopes = REMAP_UNIT_SCOPES.lock();
-    let fits = keep(segment, bases.len().max(scopes.len())) == Unit::Kept;
-    if !fits || super::unit_base_env::admit(base, DRHD_WINDOW, &bases).is_err() {
-        drop((bases, scopes));
-        left_off();
-        return false;
-    }
-    super::dmar_ioapic_table::record(bytes);
-    let scope = parse_drhd(bytes).unwrap_or(UnitScope { truncated: true, ..UnitScope::EMPTY });
-    bases.push(base).is_ok() && scopes.push(scope).is_ok()
+/// `f` over what each segment 0 remapping unit covers, in DMAR order
+/// (index-matched to `remap_unit_bases`), under the lock: at 255 scopes a
+/// unit is about 2.8 KiB, too large to copy onto a claim's stack.
+pub fn with_remap_unit_scopes<R>(f: impl FnOnce(&[UnitScope]) -> R) -> R {
+    f(&REMAP_UNIT_SCOPES.lock())
 }
