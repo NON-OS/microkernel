@@ -1,5 +1,6 @@
 /* qwenchat: forgetting, a turn's text, the conversation, or everything. */
 #include "qwenchat.h"
+#include "qwenvision.h"
 #include "qwenpool.h"
 
 #include <cstring>
@@ -18,6 +19,8 @@ void chat_reset(Chat &c) {
 
 void chat_close(Chat &c) {
     if (c.ctx && c.smpl) chat_reset(c);
+    /* The projector holds the model, so it goes first. */
+    vision_close(c);
     if (c.smpl) llama_sampler_free(c.smpl);
     if (c.ctx) llama_free(c.ctx);
     /* The workers go after the context, the last thing that could wake them. */
