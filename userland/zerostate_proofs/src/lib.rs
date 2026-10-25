@@ -22,11 +22,23 @@
 #[path = "../../../src/security/zerostate/keep_rule.rs"]
 pub mod keep_rule;
 
+// A dying address space's leaf frames, and the names the wipe clears.
+#[allow(dead_code)]
+#[path = "../../../src/memory/paging/manager/address_space/leaf_release.rs"]
+pub mod leaf_release;
+#[allow(dead_code)]
+#[path = "../../../src/sys/policy/hostname/names_clear.rs"]
+pub mod names_clear;
+
 pub mod sweep;
 
 #[cfg(test)]
 mod arm_tests;
 #[cfg(test)]
 mod keep_tests;
+#[cfg(test)]
+mod leaf_tests;
+#[cfg(test)]
+mod names_tests;
 #[cfg(test)]
 mod rule_tests;
