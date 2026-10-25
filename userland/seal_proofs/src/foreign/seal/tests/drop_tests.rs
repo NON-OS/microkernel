@@ -48,3 +48,18 @@ fn neither_answers_without_the_device_secret_gate() {
     SECRET.with(|s| s.set(true));
     assert_eq!(held(&app), 1);
 }
+
+/// A dropped record cannot be looked at after it is gone, so the path is held
+/// by its text: the witness is cleared before the record leaves, and nothing
+/// skips Sealed's Drop.
+#[test]
+fn a_drop_clears_the_witness_it_takes() {
+    let keep = include_str!("../../../../../../src/process/foreign/seal/sys_keep.rs");
+    let cleared = "Some(mut s) => {\n            s.clear_witness();\n            0";
+    let at = keep.find(cleared).expect("cleared");
+    assert!(keep[..at].contains("sealed.remove(at)"));
+    assert!(!keep.contains("forget") && !keep.contains("ManuallyDrop"));
+    let wipe = include_str!("../../../../../../src/process/foreign/seal/wipe.rs");
+    let dropped = "impl Drop for Sealed {\n    fn drop(&mut self) {\n        self.clear_witness();";
+    assert!(wipe.contains(dropped));
+}
