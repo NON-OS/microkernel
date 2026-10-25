@@ -5193,6 +5193,7 @@
    "userland/capsule_vfs/src/blk/store.rs",
    "userland/capsule_vfs/src/blk/store_drop.rs",
    "userland/capsule_vfs/src/blk/store_entry.rs",
+   "userland/capsule_vfs/src/blk/store_erase.rs",
    "userland/capsule_vfs/src/blk/store_free.rs",
    "userland/capsule_vfs/src/blk/store_header.rs",
    "userland/capsule_vfs/src/blk/store_patch.rs",
@@ -6646,6 +6647,7 @@
    ".cargo",
    "userland/capsule_net_anon/src/cell/geometry.rs",
    "userland/capsule_net_anon/src/circuit/window.rs",
+   "userland/capsule_net_anon/src/manager/cold_wait_rule.rs",
    "userland/capsule_net_anon/src/protocol",
    "userland/capsule_net_anon/src/server/parse_req.rs",
    "userland/capsule_net_anon/src/server/respond.rs",
@@ -9168,6 +9170,7 @@
    "userland/capsule_terminal/src/jobs/box_draw.rs",
    "userland/capsule_terminal/src/jobs/box_hold.rs",
    "userland/capsule_terminal/src/jobs/box_log.rs",
+   "userland/capsule_terminal/src/jobs/box_missing.rs",
    "userland/capsule_terminal/src/jobs/box_screen.rs",
    "userland/capsule_terminal/src/jobs/box_wait.rs",
    "userland/capsule_terminal/src/jobs/external.rs",
@@ -10544,6 +10547,18 @@
    "userland/zstd/tests/support/damage.rs",
    "userland/zstd/tests/support/kinds.rs",
    "userland/zstd/tests/support/rng.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/zerostate_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/memory/paging/manager/address_space/leaf_release.rs",
+   "src/security/zerostate/keep_rule.rs",
+   "src/sys/policy/hostname/names_clear.rs",
+   "userland/zerostate_proofs"
   ],
   "md": [],
   "signed": []
