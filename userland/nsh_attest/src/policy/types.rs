@@ -52,7 +52,6 @@ pub struct Policy {
     pub(crate) authorities: Vec<Authority>,
     pub(crate) releases: Vec<Release>,
     pub(crate) revoked: Vec<[u8; 64]>,
-    pub(crate) boot_apps: Vec<[u8; 32]>,
 }
 
 /// Why a policy was refused before it was used.
@@ -70,6 +69,4 @@ pub enum PolicyError {
     SharedPcr9,
     /// More than `MAX_REVOKED` revoked enrolments.
     Revoked,
-    /// More than `MAX_BOOT_APPS` boot applications, or a zero one.
-    BootApplications,
 }
