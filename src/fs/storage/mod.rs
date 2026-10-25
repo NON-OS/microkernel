@@ -15,12 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod error;
-mod quota;
 mod stats;
 mod types;
 
 pub use error::{StorageError, StorageResult};
-pub use quota::*;
 pub use stats::*;
 pub use types::*;
 

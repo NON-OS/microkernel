@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The splash's own title, shown when the firmware left no logo to keep.
+//! The splash's own title, NONOS's mark above the attestation panel.
 
 use nonos_toolkit::font::atlas::FontAtlas;
 use nonos_toolkit::font::render::{draw_text, draw_text_scaled};

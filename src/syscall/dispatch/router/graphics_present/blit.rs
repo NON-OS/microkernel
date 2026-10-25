@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::consts::{EFAULT, EINVAL, ENOTSUP};
+use super::consts::{EBUSY, EFAULT, EINVAL, ENOTSUP};
+use crate::kernel_core::init::framebuffer;
 use crate::syscall::dispatch::util;
 use crate::syscall::SyscallResult;
 use crate::usercopy::copy_from_user;
@@ -35,8 +36,11 @@ pub(super) fn blit(
     // `span` is the surface byte length from the attach record. Userland
     // mappings are not tracked in proc VMAs, so the size comes from the
     // surface registry; copy_from_user validates each source page below.
-    let Some(fb) = crate::kernel_core::init::framebuffer::framebuffer_state() else {
-        return util::errno(ENOTSUP);
+    let Some(fb) = framebuffer::drawable() else {
+        // EBUSY while a display driver holds it, so the compositor turns to
+        // that driver instead of taking it for a machine with no screen.
+        let held = framebuffer::framebuffer_state().is_some();
+        return util::errno(if held { EBUSY } else { ENOTSUP });
     };
     if fb.frame_len().is_none() {
         return util::errno(EINVAL);

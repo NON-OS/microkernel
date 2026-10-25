@@ -19,20 +19,21 @@
 use super::super::error::AmdViError;
 use super::super::pte::{address, directory, index, is_present, next_level, LEVELS};
 use super::super::visible::store;
-use crate::arch::x86_64::iommu::tables::frame::{allocate_table, entries_mut};
+use crate::arch::x86_64::iommu::tables::frame::allocate_table;
+use crate::arch::x86_64::iommu::tables::view::Frame;
 
 /// The level 1 table and slot for `iova`, creating directories on the way.
 /// A new table is zeroed before the directory entry naming it is written.
 pub(super) fn walk_create(root: u64, iova: u64) -> Result<(u64, usize), AmdViError> {
     let mut table = root;
     for level in (2..=LEVELS).rev() {
-        let entries = entries_mut(table).map_err(|_| AmdViError::TableUnreachable)?;
+        let entries = Frame::at(table).map_err(|_| AmdViError::TableUnreachable)?;
         let slot = index(iova, level);
-        if !is_present(entries[slot]) {
+        if !is_present(entries.read(slot)?) {
             let next = allocate_table().map_err(|_| AmdViError::NoFrames)?;
-            store(&mut entries[slot], directory(next, level));
+            store(table, slot, directory(next, level))?;
         }
-        table = address(entries[slot]);
+        table = address(entries.read(slot)?);
     }
     Ok((table, index(iova, 1)))
 }
@@ -41,8 +42,8 @@ pub(super) fn walk_create(root: u64, iova: u64) -> Result<(u64, usize), AmdViErr
 pub(super) fn walk_lookup(root: u64, iova: u64) -> Result<Option<(u64, usize)>, AmdViError> {
     let mut table = root;
     for level in (2..=LEVELS).rev() {
-        let entries = entries_mut(table).map_err(|_| AmdViError::TableUnreachable)?;
-        let entry = entries[index(iova, level)];
+        let entries = Frame::at(table).map_err(|_| AmdViError::TableUnreachable)?;
+        let entry = entries.read(index(iova, level))?;
         if !is_present(entry) {
             return Ok(None);
         }

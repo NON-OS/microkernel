@@ -21,20 +21,23 @@ the boot splash, the setup wizard, the input probe, `desktop_shell` and the
 installer. Any other sender is refused (`GRABBERS`,
 `userland/capsule_input_router/src/server/handlers/grab_request.rs:28-29`).
 
-Two groups of keys never reach the focused window:
+Three groups of keys never reach the focused window:
 
 - Ctrl+Alt+Esc goes to `desktop_shell`, which brings Process Manager forward to
   end a window that misbehaves (`is_reserved_chord`,
   `userland/capsule_input_router/src/route/chord.rs:34-36`).
+- Ctrl+Alt+T goes to `desktop_shell` over focus, which brings the Terminal
+  forward or opens it (`is_terminal_chord` in the same file). It is not
+  reserved: a grab or the trusted hold takes it like any key.
 - Mute, Volume Down, Volume Up and Power go to `desktop_shell` whatever has
   focus (`is_shell_key`,
   `userland/capsule_input_router/src/route/shell_keys.rs:32-34`).
   [Audio](../audio.md#volume-and-the-volume-keys) says what the volume keys do.
   The Power key, from a keyboard or from the [ACPI power
-  button](../platform-acpi-power-button.md#the-power-button), only shows the notice `Power off is
-  not available from the desktop`: the desktop has no way to power off in 0.9.2
-  (`POWER_OFF_UNAVAILABLE`,
-  `userland/capsule_desktop_shell/src/state/system_key.rs:42-47`).
+  button](../platform-acpi-power-button.md#the-power-button), asks `Power off and
+  wipe memory?`, and Power Off sends `power.off` to capsule_power, which runs the
+  wiped shutdown (`userland/capsule_desktop_shell/src/server/handlers/power_off.rs:36`,
+  `userland/capsule_power/src/off/mod.rs:38`).
 
 ## Privacy
 
@@ -50,7 +53,7 @@ cannot write to the serial console (`CAPSULE_REQUIRED_CAPS`,
 The kernel makes `driver.ps2_kbd0`, `driver.usb_hid0` and `driver.i2c_hid0`
 [held endpoints](../../overview/glossary-hardware-broker.md#held-endpoint) with an empty sender
 list, so no capsule can ask a keyboard driver for keys (`KERNEL_ONLY`,
-`src/services/registry/held_table.rs:27-29`).
+`src/services/registry/held_table.rs:32-34`).
 
 The capability rules above close two gaps an earlier rule left. `Irq` no
 longer admits a post, so the AHCI, HD Audio, Intel Wi-Fi, NVMe, virtio-blk and
@@ -59,8 +62,10 @@ controller driver no longer asks for it, as its engine polls
 (`CAPSULE_REQUIRED_CAPS`, `userland/capsule_driver_i2c_pci/Capsule.mk:18`).
 And the three input drivers, which hold `InputSource`, cannot drain the ring:
 that takes `InputConsumer`, which `input_router` alone holds, with no
-`InputSource` (`userland/capsule_input_router/Capsule.mk:14-17`;
-`can_input_consumer`, `src/capabilities/token/types/authority_broker.rs:63-66`).
+`InputSource`, and the static checks and the seal refuse it in any other
+capsule (`userland/capsule_input_router/Capsule.mk:14-17`; `can_input_consumer`,
+`src/capabilities/token/types/authority_broker.rs:63-66`;
+`scripts/check_input_drain_cap.py`).
 
 ## See also
 

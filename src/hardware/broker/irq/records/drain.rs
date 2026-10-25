@@ -37,11 +37,11 @@ pub(in super::super) fn drain_for_pid(pid: u32) -> Vec<IrqGrant> {
     taken
 }
 
-pub(in super::super) fn drain_for_device(pid: u32, device_id: u64) -> Vec<IrqGrant> {
+pub(in super::super) fn drain_for_device(pid: u32, device_id: u64, epoch: u64) -> Vec<IrqGrant> {
     let mut all = RECORDS.lock();
     let mut taken = Vec::new();
     all.retain(|g| {
-        if g.pid == pid && g.device_id == device_id {
+        if (g.pid, g.device_id, g.claim_epoch) == (pid, device_id, epoch) {
             taken.push(*g);
             false
         } else {

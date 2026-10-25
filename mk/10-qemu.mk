@@ -123,7 +123,8 @@ SWTPM_SETUP ?= swtpm_setup
 QEMU_TPM := -chardev socket,id=chrtpm,path=$(SWTPM_SOCK) -tpmdev emulator,id=tpm0,chardev=chrtpm -device tpm-crb,tpmdev=tpm0
 
 ifeq ($(QEMU_NET_MODE),off)
-    QEMU_NET :=
+    # No NIC at all: without it q35 adds its default e1000e.
+    QEMU_NET := -nic none
     QEMU_NET_DESC := disabled
 else ifeq ($(QEMU_NET_MODE),nat)
     QEMU_NET := -device virtio-net-pci,netdev=net0 -netdev user,id=net0

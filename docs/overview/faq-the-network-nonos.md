@@ -45,13 +45,12 @@ image](../install/get-an-image.md) and [Make targets](../build/make-targets.md).
 
 ## What happens at shutdown
 
-In 0.9.2 the desktop cannot shut down or restart the machine: the Power key
-shows `Power off is not available from the desktop`. To turn the machine off,
-force it off with its power button, as the [release notes](../release/0.9.2.md)
-describe. A forced power-off skips the wipe below, as a power cut or a kernel
-panic does.
+The Power key, or Power Off in the desktop's menu, asks first and then powers
+off through the wipe below. Forcing the machine off with its power button skips
+that wipe, as a power cut does; a kernel panic wipes the kernel heap and powers
+off, but not process memory (see the [release notes](../release/0.9.2.md)).
 
-The one orderly path is the installer's restart, and it runs the
+The orderly paths, that power-off and the installer's restart, run the
 [ZeroState](glossary-stark-proof.md#zerostate) wipe first. The kernel stops the other CPUs
 and every claimed device, then wipes device buffers, process memory, kernel
 stacks, filesystem caches, its key vault, its RAM log and its heap, and only

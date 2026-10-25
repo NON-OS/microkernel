@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Reset a claimed function at claim and at release, with Bus
-//! Master already clear: whatever engines a dead driver, a predecessor or
-//! firmware left armed stop before a frame is freed or a new driver gets
-//! the device. A display device is left as it is: the firmware's scanout,
-//! which the boot console draws on, lives in it.
+//! Reset a function at claim, with Bus Master already clear: what
+//! firmware left armed stops before a new driver gets the device. Between
+//! holders the wipe resets it (L78), so this is the claim's own, and a
+//! display device is left as it is: the firmware's scanout, which the boot
+//! console draws on, lives in it. Its waits spin and are never slept: a
+//! claimant killed where it yields would strand its entry (L77).
 
 extern crate alloc;
 
@@ -34,14 +35,9 @@ const CLASS_DISPLAY: u8 = 0x03;
 /// Devices already said to offer no reset, so each is said once.
 static UNRESET: Mutex<alloc::vec::Vec<u64>> = Mutex::new(alloc::vec::Vec::new());
 
-/// At claim, from the claimant's own MkDeviceClaim, whose waits may sleep.
-pub(super) fn at_claim(device_id: u64, pid: u32) {
-    run(device_id, Some(pid), b" not reset at claim: no FLR");
-}
-
-/// At release; `sleeper` names a caller in its own MkDeviceRelease.
-pub(super) fn at_release(device_id: u64, sleeper: Option<u32>) {
-    run(device_id, sleeper, b" not reset at release: no FLR");
+/// At claim, between the entry and the admit: no sleeper is named.
+pub(super) fn at_claim(device_id: u64) {
+    run(device_id, None, b" not reset at claim: no FLR");
 }
 
 fn run(device_id: u64, sleeper: Option<u32>, unoffered: &[u8]) {

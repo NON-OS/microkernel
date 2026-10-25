@@ -14,22 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The VMBus core's calls on the Hyper-V SynIC. Each takes the VMBus root's
-//! device id, which the caller must hold claimed.
+//! VMBus's calls on the Hyper-V SynIC, on a record the caller holds
+//! claimed. On the VMBus root, the core keeps the bus. On a channel's record
+//! (`mk_hv_channel`), its driver drives that channel alone: it posts the
+//! channel's open, close and GPADLs (connection 0), takes the host's answers
+//! for it, takes its event flag and signals the host on it.
 
-use crate::syscall::{call_raw, N_MK_HV_EVENTS, N_MK_HV_POST, N_MK_HV_RECV, N_MK_HV_SIGNAL};
+use crate::syscall::{
+    call_raw, N_MK_HV_CHANNEL, N_MK_HV_EVENTS, N_MK_HV_POST, N_MK_HV_RECV, N_MK_HV_SIGNAL,
+};
 
 /// The VMBus root's record: Microsoft's vendor id and "VB".
 pub const MK_VMBUS_VENDOR: u16 = 0x1414;
 pub const MK_VMBUS_DEVICE: u16 = 0x5642;
+/// A channel's record (vendor `MK_VMBUS_VENDOR`), by interface. Its
+/// `irq_source` is the channel's relid.
+pub const MK_VMBUS_CHANNEL_NETWORK: u16 = 0x4E45;
+pub const MK_VMBUS_CHANNEL_SCSI: u16 = 0x5343;
+pub const MK_VMBUS_CHANNEL_IDE: u16 = 0x4944;
+pub const MK_VMBUS_CHANNEL_KEYBOARD: u16 = 0x4B42;
+pub const MK_VMBUS_CHANNEL_MOUSE: u16 = 0x4D53;
+pub const MK_VMBUS_CHANNEL_VIDEO: u16 = 0x5644;
 /// A SynIC message, header and payload.
 pub const MK_HV_MESSAGE_BYTES: usize = 256;
 /// The event flag words VMBus's SINT has.
 pub const MK_HV_EVENT_WORDS: usize = 32;
 
 /// Post a channel message to the host: 0, -EAGAIN when the host has no room
-/// now, -EPERM for a page the caller does not hold, -EINVAL for a message
-/// the core may not send.
+/// now (or a channel still being torn down), -EPERM for a page not held on
+/// the record, -ENOENT for another channel's message or a live GPADL id,
+/// -EINVAL for a message this caller may not send.
 #[no_mangle]
 pub extern "C" fn mk_hv_post(
     device_id: u64,
@@ -41,21 +55,34 @@ pub extern "C" fn mk_hv_post(
     call_raw(N_MK_HV_POST, [device_id, connection as u64, ty as u64, buf as u64, len as u64, 0])
 }
 
-/// The oldest message from the host into `out`: its length, or -EAGAIN.
+/// The oldest message from the host for the caller into `out`, header and
+/// payload: its length, or -EAGAIN. On a channel's record, the host's
+/// answers for that channel alone.
 #[no_mangle]
 pub extern "C" fn mk_hv_recv(device_id: u64, out: *mut [u8; MK_HV_MESSAGE_BYTES]) -> i64 {
     call_raw(N_MK_HV_RECV, [device_id, out as u64, 0, 0, 0, 0])
 }
 
-/// VMBus's event flags, up to `words`, each handed over and cleared: how
-/// many words were written.
+/// On the root: VMBus's event flags but for channels given to drivers, up
+/// to `words`, each handed over and cleared. On a channel's record: one
+/// word, 1 if its flag was set. How many words were written.
 #[no_mangle]
 pub extern "C" fn mk_hv_events(device_id: u64, out: *mut u64, words: usize) -> i64 {
     call_raw(N_MK_HV_EVENTS, [device_id, out as u64, words as u64, 0, 0, 0])
 }
 
-/// Signal the host on a channel's connection.
+/// Signal the host. On the root, on `connection`; on a channel's record, on
+/// the connection the host named for it, with `connection` 0.
 #[no_mangle]
 pub extern "C" fn mk_hv_signal(device_id: u64, connection: u32) -> i64 {
     call_raw(N_MK_HV_SIGNAL, [device_id, connection as u64, 0, 0, 0, 0])
+}
+
+/// Give the channel the host offered as `relid` a record of its own, for
+/// its driver to claim: the record's id, or -ENOENT for no such offer,
+/// -EBUSY for one already given, -EPERM for a host service no driver may be
+/// given. The VMBus root's holder alone.
+#[no_mangle]
+pub extern "C" fn mk_hv_channel(root_device_id: u64, relid: u32) -> i64 {
+    call_raw(N_MK_HV_CHANNEL, [root_device_id, relid as u64, 0, 0, 0, 0])
 }

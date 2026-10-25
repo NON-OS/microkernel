@@ -14,50 +14,59 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! AMD interrupt remapping's encodings against Linux amd/iommu.c:
-//! set_dte_irq_entry (IV, IntTabLen 9, IntCtl 10b, the table in 51:6),
-//! irte_prepare's legacy entry, and build_inv_irt.
-
 use super::command::{command_opcode, invalidate_interrupt_table};
-use super::dte::{blocked, keep_interrupts, translated};
-use super::intr_rule::{irte, passes_any, remapped, ABORT_ALL, ENTRIES};
+use super::dte::{blocked, passthrough, translated};
+use super::identity_change::is_passthrough;
+use super::intr_format::{
+    irte, keep_interrupts, msi_data, remapped_quadword, remaps, same_dma, ENTRIES, LEN_LOG2,
+};
+
+const TABLE: u64 = 0x0000_0001_2345_6000;
+/// InitPass 184, EIntPass 185, NMIPass 186, Lint0Pass 190, Lint1Pass 191.
+const PASS_BITS: u64 = (0b111 << 56) | (0b11 << 62);
 
 #[test]
-fn the_interrupt_quadword_matches_linux() {
-    let q = remapped(0x1234_5680);
-    assert_eq!(q, (2 << 60) | (9 << 1) | 1 | 0x1234_5680);
-    assert_eq!(remapped(0x1234_56FF) & 0xFFF, 0x6C0 | (9 << 1) | 1, "the root in bits 51:6");
-    assert_eq!(ENTRIES, 1 << 9);
-    assert!(!passes_any(q) && !passes_any(ABORT_ALL));
-    assert!(passes_any(0), "IV clear passes everything");
-    assert!(passes_any(ABORT_ALL | 1 << 58), "NMI pass");
-    assert!(passes_any(ABORT_ALL | 0b01 << 60), "IntCtl forward unmapped");
-    assert!(!passes_any(blocked()[2]), "a blocked device's interrupts are refused");
+fn a_remapped_device_passes_no_init_nmi_extint_or_lint() {
+    let q = remapped_quadword(TABLE);
+    assert_eq!(q & 1, 1, "IV");
+    assert_eq!((q >> 1) & 0xF, LEN_LOG2 as u64, "IntTabLen");
+    assert_eq!(q & 0x000F_FFFF_FFFF_FFC0, TABLE, "root");
+    assert_eq!((q >> 60) & 0b11, 0b10, "IntCtl remapped");
+    assert_eq!(q & PASS_BITS, 0);
+    assert_eq!(1usize << LEN_LOG2, ENTRIES);
 }
 
 #[test]
-fn a_remapping_entry_matches_linux() {
-    // RemapEn bit 0, IntType 0 (fixed), DM 0 (physical), dest 15:8, vector 23:16.
-    assert_eq!(irte(0x81, 3), 0x0081_0301);
-    for v in 0..=255u8 {
-        let e = irte(v, v ^ 0x5A);
-        assert!(e & 1 == 1 && (e >> 16) as u8 == v && (e >> 8) as u8 == v ^ 0x5A);
-        assert_eq!(e >> 24, 0);
+fn no_domain_move_turns_remapping_off() {
+    let remapped = [0, 0, remapped_quadword(TABLE), 0];
+    for dma in [blocked(), passthrough(), translated(0x7000, 4, 9)] {
+        let after = keep_interrupts(dma, remapped);
+        assert!(remaps(after));
+        assert!(same_dma(after, dma));
+        assert_eq!(is_passthrough(after), is_passthrough(dma));
     }
 }
 
 #[test]
-fn moving_a_device_between_domains_keeps_its_interrupts() {
-    let mut dte = translated(0x5000, 4, 7);
-    dte[2] = remapped(0x9000);
-    assert_eq!(keep_interrupts(blocked(), dte)[2], remapped(0x9000));
-    assert_eq!(keep_interrupts(blocked(), dte)[0], blocked()[0]);
-    assert_eq!(keep_interrupts(translated(0x6000, 4, 8), blocked())[2], ABORT_ALL);
+fn an_entry_is_fixed_physical_and_names_only_its_vector_and_cpu() {
+    for vector in 0..=255u8 {
+        for dest in [0u8, 1, 0x7F, 0xFF] {
+            let e = irte(vector, dest);
+            assert_eq!(e & 1, 1, "RemapEn");
+            assert_eq!(e & 0b1111_1110, 0, "SupIOPF, IntType, RqEoi, DM, GuestMode");
+            assert_eq!((e >> 8) as u8, dest);
+            assert_eq!((e >> 16) as u8, vector);
+            assert_eq!(e >> 24, 0);
+        }
+    }
 }
 
 #[test]
-fn the_interrupt_table_invalidation_names_the_device() {
-    let c = invalidate_interrupt_table(0x00A0);
-    assert_eq!(command_opcode(c), 0x5);
-    assert_eq!((c[0], c[2], c[3]), (0x00A0, 0, 0));
+fn the_message_carries_only_the_index_and_the_flush_names_the_device() {
+    for index in 0..ENTRIES as u16 {
+        assert_eq!(msi_data(index), index as u32);
+    }
+    assert_eq!(msi_data(0xFFFF), 0x7FF);
+    let c = invalidate_interrupt_table(0x00A8);
+    assert_eq!((c[0], command_opcode(c)), (0x00A8, 5));
 }

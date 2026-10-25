@@ -28,6 +28,9 @@ pub struct Context {
     pub surface_handle: u64,
     /// The compositor said it has the surface in its scene.
     pub registered: bool,
+    /// A worker is painting the built-in picture into the backing; nothing
+    /// else writes it or submits it meanwhile (first_paint/step.rs).
+    pub first_paint_out: bool,
     pub register_backoff: Backoff,
     /// A picture painted and not yet committed to the compositor.
     pub commit_pending: bool,

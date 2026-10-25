@@ -21,18 +21,23 @@
 //! must not reach memory before it is stopped, nor after its frames are
 //! freed. The broker clears it on every release, so each attempt sets it.
 //!
-//! Only allowlisted bits are written. Today the broker ORs them into the
-//! register, so the "off" writes take effect once it stores them as written
-//! (src/hardware/broker/pci/command.rs); until then they change nothing.
+//! Only allowlisted bits are written, and every other bit stays as it is.
+//! They go in by the masked form of the write (`mk_pci_config_update`),
+//! which names both bits so each takes the value given: "off" turns Bus
+//! Master off. The plain form ORs its bits into the register and could only
+//! turn them on (src/hardware/broker/pci/change.rs).
 
 use nonos_libc::{
-    mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_MEMORY_SPACE,
+    mk_pci_config_update, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_MEMORY_SPACE,
 };
+
+/// The Command bits this driver sets and clears.
+const MASK: u16 = MK_PCI_CMD_MEMORY_SPACE | MK_PCI_CMD_BUS_MASTER;
 
 pub fn command(device_id: u64, epoch: u64, bus_master: bool) -> Result<(), &'static str> {
     let master = if bus_master { MK_PCI_CMD_BUS_MASTER } else { 0 };
     let value = MK_PCI_CMD_MEMORY_SPACE | master;
-    if mk_pci_config_write(device_id, epoch, MK_PCI_CFG_COMMAND, value) < 0 {
+    if mk_pci_config_update(device_id, epoch, MK_PCI_CFG_COMMAND, MASK, value) < 0 {
         return Err(if bus_master {
             "pci command write refused (bus master)"
         } else {

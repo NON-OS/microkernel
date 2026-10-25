@@ -16,12 +16,12 @@
 
 /// A seed the firmware or loader handed over, condensed to 32 bytes, once.
 ///
-/// aarch64: the device tree's `/chosen` `rng-seed`. x86_64 seeds from its
-/// loader's handoff on its own entry path, and riscv64 has none yet.
+/// aarch64 and riscv64: the device tree's `/chosen` `rng-seed`. x86_64 seeds
+/// from its loader's handoff on its own entry path.
 pub(crate) fn firmware_entropy() -> Option<[u8; 32]> {
-    #[cfg(target_arch = "aarch64")]
-    return crate::arch::aarch64::boot_entropy::take();
+    #[cfg(any(target_arch = "aarch64", target_arch = "riscv64"))]
+    return crate::arch::common::boot_entropy::take();
 
-    #[cfg(not(target_arch = "aarch64"))]
+    #[cfg(not(any(target_arch = "aarch64", target_arch = "riscv64")))]
     return None;
 }

@@ -16,18 +16,9 @@
 
 use alloc::vec::Vec;
 
-/// Wire format version. A verifier that does not recognise it must refuse
-/// rather than parse optimistically: a document it half understands is worse
-/// than one it rejects.
-pub const DOC_VERSION: u32 = 3;
-
-pub const DOC_MAGIC: &[u8; 8] = b"NONOSATT";
-
-/// `iommu_vendor` values. A verifier that meets another value must refuse.
-pub const IOMMU_NONE: u8 = 0;
-pub const IOMMU_INTEL_VTD: u8 = 1;
-pub const IOMMU_AMD_VI: u8 = 2;
-pub const IOMMU_ARM_SMMU_V3: u8 = 3;
+#[path = "document_consts.rs"]
+mod consts;
+pub use consts::*;
 
 /// What the machine hands to whoever asked what it is running.
 ///
@@ -49,10 +40,20 @@ pub struct AttestationDoc {
     pub iommu_enforcing: bool,
     /// Mappings a device could reach with no IOMMU domain confining them when
     /// the document was produced. With `iommu_enforcing` set and this above
-    /// zero, the unit is in service and device DMA still goes around it; only
-    /// the two together say whether DMA on the machine is confined. Like the
-    /// registry root, all three are folded into what the TPM signs.
+    /// zero, the unit is in service and device DMA still goes around it. Like
+    /// the registry root, these are folded into what the TPM signs.
     pub unconfined_grants: u32,
+    /// Devices found and not claimed that the unit still lets reach all of
+    /// memory. Grants can all be confined while these are not, so DMA on the
+    /// machine is confined only when this and `unconfined_grants` are zero.
+    pub identity_devices: u32,
+    /// The values of `QUOTED_PCRS`, in that order: read just before the
+    /// quote, and matched against its digest, so they are the values signed.
+    pub pcrs: [[u8; 32]; QUOTED_PCRS.len()],
+    /// The firmware's TCG event log as the loader carried it, at most
+    /// `MAX_LOG` bytes; empty when it carried none. A verifier replays it to
+    /// the quoted values.
+    pub log: Vec<u8>,
     /// The `TPMS_ATTEST` the TPM produced, byte for byte as signed.
     pub attest: Vec<u8>,
     pub signature: Vec<u8>,
@@ -63,27 +64,7 @@ pub struct AttestationDoc {
     pub ak_public: [u8; 64],
 }
 
-impl AttestationDoc {
-    /// Length-prefixed and versioned, so a verifier never has to guess where a
-    /// field ends. Big-endian throughout to match the TPM structures it
-    /// carries, rather than mixing conventions inside one document.
-    pub fn encode(&self) -> Vec<u8> {
-        let mut out = Vec::with_capacity(128 + self.attest.len() + self.signature.len());
-        out.extend_from_slice(DOC_MAGIC);
-        out.extend_from_slice(&DOC_VERSION.to_be_bytes());
-        out.extend_from_slice(&self.challenge);
-        out.extend_from_slice(&self.registry_root);
-        out.extend_from_slice(&self.capsule_count.to_be_bytes());
-        out.push(u8::from(self.registry_complete));
-        out.push(self.iommu_vendor);
-        out.push(u8::from(self.iommu_enforcing));
-        out.extend_from_slice(&self.unconfined_grants.to_be_bytes());
-        out.extend_from_slice(&(self.attest.len() as u32).to_be_bytes());
-        out.extend_from_slice(&self.attest);
-        out.extend_from_slice(&(self.signature.len() as u32).to_be_bytes());
-        out.extend_from_slice(&self.signature);
-        out.extend_from_slice(&(self.ak_public.len() as u32).to_be_bytes());
-        out.extend_from_slice(&self.ak_public);
-        out
-    }
-}
+// The encoder, beside this file so each stays in bounds; a child module, so
+// whoever mounts this file by path has the encoder too.
+#[path = "document_encode.rs"]
+mod encode;

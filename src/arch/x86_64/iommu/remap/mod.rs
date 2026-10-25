@@ -21,12 +21,13 @@ mod irte;
 mod msi;
 mod route;
 mod slots;
+mod sources;
 mod table;
 mod unnamed;
 mod write;
 
 pub use init::init;
-pub use ioapic_rte::{handle_of, remappable};
+pub use ioapic_rte::{handle_of, remappable, remappable_rte, rte_index, Line as RteLine};
 pub use irte::{destination, encode, is_present, source, vector, Irte, Route};
 pub use msi::{handle, remapped, MsiMessage};
 pub use route::{release_msi, route_entry, route_msi};

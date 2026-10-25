@@ -43,12 +43,15 @@ pub struct IrqBindRequest {
     pub vector_count: u32,
 }
 
-// `IrqBindResult` is the base of an N-vector range. For INTx N is
-// always 1. For MSI-X N == request.vector_count and the capsule
+// `IrqBindResult` is the base of an N-vector range. For INTx and MSI
+// N is always 1. For MSI-X N == request.vector_count and the capsule
 // derives the per-vector grant IDs as `grant_id + i` and vectors
 // as `vector + i` for i in 0..vector_count.
 #[derive(Debug, Clone, Copy)]
 pub struct IrqBindResult {
     pub grant_id: u64,
     pub vector: u8,
+    /// N: how many grants this bind made, from `grant_id` up. A bind that
+    /// fails after this point undoes exactly these and nothing older.
+    pub grants: u32,
 }

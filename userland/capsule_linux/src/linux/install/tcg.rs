@@ -21,10 +21,12 @@
 //! hypervisor vendor leaf, CPUID 0x4000_0000, as "TCGTCGTCGTCG", and sets
 //! the hypervisor bit in leaf 1 for it to be read at all.
 
+#[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::__cpuid;
 
 /// True when CPUID says this is QEMU's TCG. Leaf 0x4000_0000 is read only
 /// when leaf 1 sets the hypervisor bit that promises it.
+#[cfg(target_arch = "x86_64")]
 pub fn under_tcg() -> bool {
     if __cpuid(1).ecx & (1 << 31) == 0 {
         return false;
@@ -35,4 +37,11 @@ pub fn under_tcg() -> bool {
     vendor[4..8].copy_from_slice(&leaf.ecx.to_le_bytes());
     vendor[8..].copy_from_slice(&leaf.edx.to_le_bytes());
     &vendor == b"TCGTCGTCGTCG"
+}
+
+/// Elsewhere there are no x86 vector builds for TCG to slow down, so the
+/// question does not arise and the answer is no.
+#[cfg(not(target_arch = "x86_64"))]
+pub fn under_tcg() -> bool {
+    false
 }

@@ -7,7 +7,7 @@ The guide for a person who uses NONOS every day: what each part of the desktop d
 - NONOS forgets by default. Unless it was installed to a disk, everything you make lives in memory and is gone at power off. Even an installed system keeps only some things; [Files](files.md) lists them.
 - Apps are [capsules](../overview/glossary-boot-root-record.md#capsule), each with its own short list of capabilities. A window that hangs cannot take the desktop with it: `Ctrl+Alt+Esc` always brings Processes forward, where you can end it.
 - The browser, Music downloads and the Terminal's `curl` and `git` leave through the default network chosen at setup or in Settings: the Nym mixnet, the Anyone network, or Direct. A route that cannot carry a request fails it and never falls back to another. Two things do not simply follow it: the wallet never goes direct, and Qwen model and Linux package downloads take the Anyone network unless you ask for one model download to go direct. [Privacy networks](privacy-network.md) has the whole table.
-- The desktop cannot power the machine off in this release. The power key shows `Power off is not available from the desktop`. To turn the machine off, hold its power button for four seconds, as the [release notes](../release/0.9.2-supported-hardware.md#known-issues) say. That forced power-off skips the shutdown wipe ([Device secrets and keys](../security/device-secrets-and-keys.md#wiped-at-shutdown-and-reboot)).
+- The power key, or Power Off in the desktop's menu, asks `Power off and wipe memory?` and then turns the machine off after wiping memory. Holding the power button four seconds still forces it off, and that skips the shutdown wipe ([Device secrets and keys](../security/device-secrets-and-keys.md#wiped-at-shutdown-and-reboot)).
 
 ## The pages
 
@@ -28,6 +28,7 @@ The guide for a person who uses NONOS every day: what each part of the desktop d
 | [Linux programs](linux-programs.md) | run `sh`, `python3`, `sqlite3` and the other Linux tools |
 | [Run a program in a box](linux-box.md) | run a program you do not trust in a sealed box, and read what it tried |
 | [Local model](local-ai.md) | chat with the Qwen model on this machine, offline, and pick its tier |
+| [Privacy apps](privacy-apps.md) | install the privacy apps from the App Store, and learn what each protects and what it does not |
 | [Marketplace](marketplace.md) | install Qwen tiers and Linux packages, or a signed `.nonos` package file |
 | [Wallet](wallet.md) | hold keys and make payments |
 

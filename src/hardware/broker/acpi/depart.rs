@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A PCI function that has left: its slot's `_STA` says absent after a
-//! bus or device check, or firmware ejected it. Before the broker answers,
-//! everything its holder was given is taken back: bus mastering stopped,
-//! interrupt routes torn down, DMA grants out of its domain, port grants
-//! dropped, MMIO grants dropped and their windows fenced (`mmio::fence`),
-//! and the claim with its confining domain released. Then the record and
-//! its index handle go, so a later arrival is read afresh under a new id.
+//! A PCI function that has left: its slot's `_STA` says absent after a bus
+//! or device check, or firmware ejected it. Before the broker answers, its
+//! claim is retired as a give-back's is and all granted under it taken back
+//! (L66, L69): bus mastering stopped, interrupts unbound, DMA grants out of
+//! its domain, ports and MMIO dropped, the windows fenced (`mmio::fence`),
+//! the claim and its domain released. Then the record and its index handle
+//! go, so a later arrival is read afresh under a new id.
 
-use super::super::claim::{lookup, quiesce, release_as};
+use super::super::claim::{lookup, quiesce_held, release, retire};
 use super::super::{dma, irq, mmio, pci_index, pio, table};
 
 #[derive(Debug, PartialEq, Eq)]
@@ -41,15 +41,15 @@ pub enum DepartError {
 }
 
 pub(super) fn revoke(pid: u32, id: u64) -> [usize; 4] {
-    quiesce::stop_bus_master_quietly(id);
+    let Ok(epoch) = retire(pid, id) else { return [0; 4] };
+    let _ = quiesce_held(pid, id, epoch);
     let counts = [
-        irq::revoke_for_device(pid, id),
-        dma::revoke_for_device(pid, id),
-        pio::release_for_device(pid, id),
-        mmio::revoke_for_device(pid, id),
+        irq::revoke_for_device(pid, id, epoch),
+        dma::revoke_for_device(pid, id, epoch),
+        pio::release_for_device(pid, id, epoch),
+        mmio::revoke_for_device(pid, id, epoch),
     ];
-    // Its retire (claim/retire.rs) finds the grants gone and no FLR to run.
-    let _ = release_as(pid, id, None, false);
+    let _ = release(pid, id, epoch);
     counts
 }
 

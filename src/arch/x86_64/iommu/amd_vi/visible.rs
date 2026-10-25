@@ -21,20 +21,34 @@
 
 use core::arch::x86_64::{_mm_clflush, _mm_mfence};
 
-/// Write one table entry, then push its line out to memory.
-pub(crate) fn store(slot: &mut u64, value: u64) {
-    *slot = value;
-    flush(slot);
+use super::error::AmdViError;
+use crate::arch::x86_64::iommu::tables::sl_pte::ENTRIES;
+use crate::arch::x86_64::iommu::tables::view::Frame;
+use crate::memory::addr::PhysAddr;
+use crate::memory::unified::phys_to_virt;
+
+/// Write entry `index` of the table at `table`, then push its line out to
+/// memory.
+pub(crate) fn store(table: u64, index: usize, value: u64) -> Result<(), AmdViError> {
+    Frame::at(table).map_err(|_| AmdViError::TableUnreachable)?.write(index, value)?;
+    flush(table, index)
 }
 
-/// Push the cache line holding `at` out to memory, ordered before any
-/// command that follows.
-pub(crate) fn flush(at: &u64) {
-    // SAFETY: eK@nonos.systems - `at` is a live reference, so the line is
-    // mapped; CLFLUSH only writes it back and MFENCE only orders, and both
-    // are in every x86_64 CPU (SSE2).
+/// Push the cache line holding entry `index` of the table at `table` out to
+/// memory, ordered before any command that follows.
+pub(crate) fn flush(table: u64, index: usize) -> Result<(), AmdViError> {
+    if index >= ENTRIES || table & 0xFFF != 0 {
+        return Err(AmdViError::OutOfRange);
+    }
+    let base = phys_to_virt(PhysAddr::new(table)).ok_or(AmdViError::TableUnreachable)?;
+    let at = (base.as_u64() + index as u64 * 8) as *const u8;
+    // SAFETY: eK@nonos.systems - `at` is inside the directmapped table frame
+    // (index checked above), mapped for the life of the kernel; CLFLUSH only
+    // writes the line back and MFENCE only orders, and both are in every
+    // x86_64 CPU (SSE2).
     unsafe {
-        _mm_clflush((at as *const u64).cast());
+        _mm_clflush(at);
         _mm_mfence();
     }
+    Ok(())
 }
