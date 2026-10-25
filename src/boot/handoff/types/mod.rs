@@ -24,6 +24,8 @@ pub mod info;
 pub mod map_window;
 pub mod memory;
 mod memory_read;
+pub mod refusal;
+mod refusal_says;
 pub mod security;
 
 pub use boot_evidence::{
@@ -38,6 +40,7 @@ pub use framebuffer::FramebufferInfo;
 pub use handoff::BootHandoffV1;
 pub use info::{AcpiInfo, Module, Modules, SmbiosInfo, Timing};
 pub use memory::{memory_type, MemoryMap, MemoryMapEntry};
+pub use refusal::{refusal, FbRefusal};
 pub use security::{AttestPolicy, Measurements, RngSeed, ZkAttestation};
 
 pub const MAX_CMDLINE: usize = constants::MAX_CMDLINE_LEN;
