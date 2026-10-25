@@ -34,6 +34,7 @@ pub(super) struct Armed {
     /// The services the program was given in the box, once it started.
     pub(super) granted: Option<u64>,
     pub(super) connected: super::connected::Connected,
+    pub(super) learned: super::learned::Learned,
 }
 
 pub(super) struct One(pub(super) RefCell<Option<Armed>>);
@@ -49,8 +50,9 @@ pub(super) static BOX: One = One(RefCell::new(None));
 pub fn arm(policy: BoxPolicy, key: Option<[u8; super::frames::KEY_LEN]>) {
     let hash = box_hash(&policy);
     let tally = Tally::default();
-    let connected = Default::default();
-    *BOX.0.borrow_mut() = Some(Armed { policy, hash, tally, key, granted: None, connected });
+    let (connected, learned) = Default::default();
+    *BOX.0.borrow_mut() =
+        Some(Armed { policy, hash, tally, key, granted: None, connected, learned });
 }
 
 /// The program's identity inside the box: never more than both allow.

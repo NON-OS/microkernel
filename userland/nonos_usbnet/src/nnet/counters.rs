@@ -20,11 +20,12 @@ use super::stats::Stats;
 use super::wire::STATS_LEN;
 
 impl Stats {
-    /// The twelve words OP_STATS carries, the last three zero.
+    /// The twelve words OP_STATS carries: the counters, the station
+    /// address's source in word 9, the last two zero.
     pub fn encode(&self, out: &mut [u8]) -> usize {
         let s = self;
         let head = [s.tx_frames, s.tx_errors, s.rx_frames, s.rx_errors, s.tx_bytes, s.rx_bytes];
-        let tail = [s.binds, s.losses, s.failing, 0, 0, 0];
+        let tail = [s.binds, s.losses, s.failing, s.station, 0, 0];
         for (i, w) in head.iter().chain(tail.iter()).enumerate() {
             out[i * 4..i * 4 + 4].copy_from_slice(&w.to_le_bytes());
         }
