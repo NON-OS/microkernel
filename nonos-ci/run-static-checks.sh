@@ -5016,6 +5016,16 @@ else
     bash nonos-ci/check-pqc-unvetted.sh >&2 || true
     fail_with "pqc-unvetted is turned on by a build: those schemes do not ship"
 fi
+
+# Every image starts every CPU: no profile, mk lane or QEMU lane drops back to
+# the boot CPU alone, as 0.9.2's did (cpu-2).
+if smp_out="$(python3 nonos-ci/check-smp-default.py 2>&1)"; then
+    note ok "every build and QEMU lane starts every CPU (check-smp-default)"
+else
+    printf '%s\n' "${smp_out}" >&2
+    fail_with "check-smp-default: a build or QEMU lane runs on one CPU"
+fi
+unset smp_out
 # Every crate's tests run in a lane or are listed with an owner, and
 # tools/nix/test-lanes.json is what the manifests' markers say.
 if lanes_out="$(python3 scripts/check_test_lanes.py 2>&1)"; then
