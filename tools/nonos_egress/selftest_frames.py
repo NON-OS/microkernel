@@ -49,14 +49,26 @@ def tcp(dst, dport, body, src=GUEST, src_ip=(10, 0, 2, 15)):
     return eth(ip(6, dst, seg, src=src_ip), src)
 
 
-def dhcp(options, chaddr=GUEST, src=GUEST, dst=(255, 255, 255, 255)):
+def dhcp(options, chaddr=GUEST, src=GUEST, dst=(255, 255, 255, 255), sname=b"", file=b""):
     body = bytearray(240)
     body[0], body[1], body[2] = 1, 1, 6
     body[28:34] = chaddr
+    body[44 : 44 + len(sname)], body[108 : 108 + len(file)] = sname, file
     body[236:240] = b"\x63\x82\x53\x63"
     for code, val in options:
         body += bytes([code, len(val)]) + val
     return udp(dst, 67, bytes(body) + b"\xff", sport=68, src=src)
+
+
+def offer(server=(10, 0, 2, 2), kind=b"\x02"):
+    """A DHCP OFFER (or ACK, kind 5) from `server` to the guest, as the ingress holds it."""
+    body = bytearray(240)
+    body[0], body[1], body[2] = 2, 1, 6
+    body[28:34] = GUEST
+    body[236:240] = b"\x63\x82\x53\x63"
+    body += bytes([53, 1]) + kind + bytes([54, 4]) + bytes(server) + b"\xff"
+    seg = struct.pack(">HHHH", 67, 68, 8 + len(body), 0) + bytes(body)
+    return GUEST + SLIRP + b"\x08\x00" + ip(17, (255, 255, 255, 255), seg, src=server)
 
 
 def arp(sender, src=GUEST):

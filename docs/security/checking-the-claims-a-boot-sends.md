@@ -26,7 +26,9 @@ The mode defaults to `nat` and the capture to `target/qemu-net.pcap`; `QEMU_NET_
 | `ip-proto` | IPv4 that is not TCP or UDP, ICMP included |
 | `mac` | a source that is not a locally administered unicast address, or the NIC's assigned address on a frame the firmware may not send |
 | `arp` | an ARP sender address that is not the frame's source |
-| `dhcp-id` | DHCP option 12, 60, 77 or 81 (a hostname, vendor class, user class or FQDN), or a chaddr or client identifier (option 61) that is not the frame's source, on any DHCP message, broadcast or not |
+| `dhcp-id` | DHCP option 12, 60, 77, 81 or 97 (a hostname, vendor class, user class, FQDN or machine UUID), or a chaddr or client identifier (option 61) that is not type 1 and the frame's source, on any DHCP message, broadcast or not |
+| `dhcp-opt` | any other DHCP option but 50, 53, 54, 55 and 57, or sname or file not empty (so option 52 cannot move options there) |
+| `dhcp-dst` | DHCP to an address neither 255.255.255.255 nor a server that an OFFER or ACK in the ingress named, by its source or option 54 |
 | `sni` | a TLS server name not on the allow-list |
 | `http` | a plaintext HTTP Host not on the allow-list, to any address, or a request with no Host to an address and port the image does not pin |
 | `peer` | a TCP or UDP address and port neither pinned nor a relay |
@@ -37,7 +39,7 @@ The allow-list is a committed file, `tools/nonos_egress/allowlist.json` (format 
 - the Nym gateways it enters through, each with its port: `capsule_net_nym/src/state/bootstrap.rs` (it reaches no mix node itself);
 - Anyone's directory authorities, each with its `dir_port`: `capsule_net_anon/src/directory/authority/list.rs`. These are marked as authorities.
 
-`--check-allowlist` scrapes those sources (`scrape.py`) and exits 2 when they say something else, so a changed pin waits for a reviewer to commit the new list. Relays come from the ingress: each TCP stream an authority sent from its pinned address and port is joined, its HTTP body inflated when it is zlib, and each `r` line's address with its ORPort (and DirPort, when it has one) taken.
+`--check-allowlist` scrapes those sources (`scrape.py`) and exits 2 when they say something else, so a changed pin waits for a reviewer to commit the new list. The firmware's DHCP, from the NIC's address before the OS sends, is held to the three DHCP rules too; it is spared only the guest's other rules. Relays come from the ingress: each TCP stream an authority sent from its pinned address and port is joined, its HTTP body inflated when it is zlib, and each `r` line's address with its ORPort (and DirPort, when it has one) taken.
 
 A capture that is damaged anywhere is unreadable (exit 2): a record cut short, longer than its original length or the snap length, or bytes left over after the last record. It is never judged on the part that parsed. A capture in which the guest sent nothing is `EMPTY` (exit 3). `--expect-silence` takes silence as the claim, for an image with no network. One with no DHCP, or no pinned peer reached, is `INCOMPLETE` (exit 4): the boot did not get far enough to show anything. Each peer is printed with a frame count and why it was allowed (`pinned` or `relay`), or `unchosen` when it fails. The DHCP parameter request list and every TLS server name and HTTP host are printed as well. `--json FILE` writes the whole report.
 
@@ -50,11 +52,12 @@ python3 tools/nonos-pcap-egress EGRESS --ingress INGRESS --json report.json
 `--self-test` builds a clean boot, one capture per rule, and the evasions an image under test could try:
 
 - DNS from QEMU's host address;
-- anything but ARP, DHCP or neighbour discovery from the NIC's address before the OS;
+- anything but ARP, DHCP or neighbour discovery from the NIC's address before the OS, and the firmware's own DHCP with a vendor class, an option it may not send, or an off-network destination;
+- DHCP to an address the guest picked, with data in option 224, or a renewal to a server the egress alone names, or one a NAK named;
 - a consensus sent in the egress, or from an authority's address on another port;
 - 802.1Q, LLDP, ICMP with a payload, and GRE.
 
-It also covers the identity rules, a capture cut inside a record (2000 cuts, each unreadable), 2000 corrupted copies (each a verdict or unreadable, never an exception), the empty and incomplete minimums, and the allow-list against the sources. `mutants.py` undoes each rule in turn and requires the self-test to fail on every one: 18 mutants. The flake's `static-abi` check runs both (`tools/nix/checks.nix`).
+It also covers the identity rules, a capture cut inside a record (2000 cuts, each unreadable), 2000 corrupted copies (each a verdict or unreadable, never an exception), the empty and incomplete minimums, and the allow-list against the sources. `mutants.py` undoes each rule in turn and requires the self-test to fail on every one: 26 mutants, all caught. The flake's `static-abi` check runs both (`tools/nix/checks.nix`).
 
 `scripts/no_telemetry_qemu_capture.sh` is the boot form (`make
 nonos-mk-no-telemetry-capture`, `mk/50-ci.mk`). With
