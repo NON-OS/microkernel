@@ -47,8 +47,8 @@ The second is a set of small modules in `src/arch` with one branch per architect
 
 The build picks the rest by architecture:
 
-- `build.rs` chooses the linker script in `script_name` (`build.rs:343-348`).
-- `user_target` picks the capsule target that matches the kernel and panics when `NONOS_USER_TARGET` names another architecture, because the kernel would load binaries its CPU cannot run (`build.rs:573-583`).
+- `build.rs` chooses the linker script in `script_name` (`build.rs:312-317`).
+- `user_target` picks the capsule target that matches the kernel and panics when `NONOS_USER_TARGET` names another architecture, because the kernel would load binaries its CPU cannot run (`build.rs:549-560`).
 - The static checks count `cfg(target_arch` sites outside `src/arch` into `cfg_count` and fail when the count grows past its [baseline](../overview/glossary-amnesic-boot.md#baseline) (`nonos-ci/run-static-checks.sh:46-47`). At this commit it already has: 234 against 116, as [Code style](../contributing/code-style.md) says.
 
 ## Starting work on a port
