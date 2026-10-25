@@ -15,10 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod compute;
+pub mod follow;
 pub mod limits;
 pub mod rows;
 pub mod types;
 
 pub use compute::compute;
+pub use follow::follow;
 pub use rows::row_top;
 pub use types::{Chrome, Layout, Rails, Rect};
