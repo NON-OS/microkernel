@@ -16,7 +16,7 @@
 //! Run a nox command about this machine; returns whether it succeeded.
 
 use super::route::host::Host;
-use super::{battery, caps, date, id, kill, svc, sysinfo, uptime};
+use super::{battery, caps, date, id, kill, latency, svc, sysinfo, uptime};
 use crate::command::output::Output;
 use crate::term::state::State;
 
@@ -26,6 +26,10 @@ pub(super) fn run(state: &mut State, cmd: Host, args: &[&[u8]], rest: &[&[u8]]) 
         Host::Kill => kill::run(state, rest),
         Host::Uptime => {
             uptime::run(state);
+            true
+        }
+        Host::Latency => {
+            latency::run(state);
             true
         }
         Host::Battery => {
