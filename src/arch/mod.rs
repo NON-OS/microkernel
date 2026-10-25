@@ -27,6 +27,7 @@ pub mod halt;
 mod hv;
 pub(crate) mod idle;
 mod init_boot_memory;
+pub(crate) mod mmio_order;
 mod rmrr_regions;
 mod dma_snoops_caches;
 mod early_screen;
@@ -58,6 +59,7 @@ pub mod wall_clock;
 pub mod cache_flush;
 mod cache_line_ops;
 mod cache_span;
+pub(crate) mod dma_sync;
 pub mod firmware_table;
 pub mod write_combining;
 #[cfg(target_arch = "x86_64")]
