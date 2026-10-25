@@ -52,3 +52,6 @@ pub mod iommu_own_id;
 pub mod iommu_release;
 #[path = "irq_bind_rollback_tests.rs"]
 mod irq_bind_rollback_tests;
+/// Every linker symbol the kernel declares is one its image defines.
+#[path = "link_symbols/mod.rs"]
+pub mod link_symbols;
