@@ -19,8 +19,10 @@
 //! has it made, and serves the disks behind it on the block wire.
 
 mod embed;
+mod endpoint;
 mod spawn;
 mod state;
 
+pub use endpoint::ENDPOINT;
 pub use spawn::{spawn_driver_storvsc_capsule, SpawnError};
 pub use state::shared_state;

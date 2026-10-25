@@ -80,7 +80,9 @@ little-endian, the words the EIP-712 encoding of the entry's fields in order.
 Reply, 181 bytes: `signer[20] | domainSeparator[32] | structHash[32] | digest[32] | sig[65]`.
 
 The caller never supplies a type, a domain or a verifying contract: those come
-from the table in `src/server/typed/`. It has three entries:
+from the table in `src/server/typed/`, which reads each struct, its domain and
+the contract's address on each chain from `nonos_nox_config`. It has three
+entries:
 
 - 1, `Voucher` under "NONOS Settlement", callable by the `payment` service. Its
   `payer` field must be the signing key's address.
