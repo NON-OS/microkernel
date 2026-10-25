@@ -9632,6 +9632,8 @@
    "userland/toolkit/src/components/label.rs",
    "userland/toolkit/src/design/color.rs",
    "userland/toolkit/src/design/motion.rs",
+   "userland/toolkit/src/design/roles.rs",
+   "userland/toolkit/src/design/roles_set.rs",
    "userland/toolkit/src/design/spacing.rs",
    "userland/toolkit/src/design/typography.rs",
    "userland/toolkit/src/font/atlas.rs",
