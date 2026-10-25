@@ -24,6 +24,7 @@
 
 mod deadline_tests;
 mod flood_tests;
+mod late_tests;
 mod match_tests;
 mod phase_tests;
 mod ring;
