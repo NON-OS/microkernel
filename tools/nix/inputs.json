@@ -1328,6 +1328,7 @@
    "userland/assets/icons",
    "userland/boot_splash_proofs",
    "userland/capsule_boot_splash/src/attest_lines.rs",
+   "userland/capsule_boot_splash/src/canvas.rs",
    "userland/capsule_boot_splash/src/chrome.rs",
    "userland/capsule_boot_splash/src/follow.rs",
    "userland/capsule_boot_splash/src/layout.rs",
