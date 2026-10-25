@@ -38,11 +38,11 @@ fn a_name_is_an_uppercase_letter_then_letters_and_digits() {
 }
 
 #[test]
-fn a_list_names_each_capability_once_and_at_most_thirty_seven() {
+fn a_list_names_each_capability_once_and_at_most_forty() {
     assert_eq!(read(&list(&[b"IPC", b"Dma", b"IPC"])), Err(WireError::Value));
-    let names: Vec<Vec<u8>> = (0..38).map(|i| format!("C{i:02}").into_bytes()).collect();
+    let names: Vec<Vec<u8>> = (0..41).map(|i| format!("C{i:02}").into_bytes()).collect();
     let refs: Vec<&[u8]> = names.iter().map(Vec::as_slice).collect();
-    assert_eq!(read(&list(&refs[..MAX_CAPS])).map(|v| v.len()), Ok(37));
+    assert_eq!(read(&list(&refs[..MAX_CAPS])).map(|v| v.len()), Ok(40));
     assert_eq!(read(&list(&refs)), Err(WireError::Oversize));
     assert_eq!(read(&[0]), Ok(vec![]));
 }

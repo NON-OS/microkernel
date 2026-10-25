@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The disk controllers hypervisors emulate and no current machine carries,
-//! each spawned only where the device table has its controller, before vfs,
-//! which looks for the store's disk.
+//! each spawned only where the device table has its controller (Hyper-V's,
+//! where its SynIC is up), before vfs, which looks for the store's disk.
 
 pub(in crate::userspace::init::spawn_plan) fn spawn() {
     spawn_piix_ide();
@@ -24,6 +24,7 @@ pub(in crate::userspace::init::spawn_plan) fn spawn() {
     spawn_pvscsi();
     spawn_buslogic();
     spawn_mpt();
+    spawn_storvsc();
 }
 
 #[cfg(feature = "nonos-capsule-driver-piix-ide")]
@@ -110,3 +111,22 @@ fn spawn_mpt() {
 }
 #[cfg(not(feature = "nonos-capsule-driver-mpt"))]
 fn spawn_mpt() {}
+
+/// Where the Hyper-V SynIC is up: the driver waits for the VMBus core to
+/// give it the SCSI controller's channel, and leaves if none comes.
+#[cfg(feature = "nonos-capsule-driver-storvsc")]
+fn spawn_storvsc() {
+    use crate::hardware::storvsc_capsule as c;
+    if !crate::arch::hv_vmbus_ready() {
+        crate::sys::boot_log::ok("DRIVER-STORVSC", "no Hyper-V SynIC, not spawned");
+        return;
+    }
+    super::super::boot::capsule(
+        "DRIVER-STORVSC",
+        "driver_storvsc",
+        c::spawn_driver_storvsc_capsule,
+        c::shared_state,
+    );
+}
+#[cfg(not(feature = "nonos-capsule-driver-storvsc"))]
+fn spawn_storvsc() {}

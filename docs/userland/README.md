@@ -8,6 +8,7 @@ Every program NONOS runs outside the kernel runs in ring 3, as a [capsule](../ov
 - [Shipping an app](shipping-an-app.md): from the crate to a signed image and a tile on the dock and in the Launchpad.
 - [Manifests and capabilities](manifests-and-capabilities.md): the manifest format and how the capability word is fixed.
 - [Signing and publisher keys](signing-and-publisher-keys.md): `capsule-sign`, the keys, the enrollment and the market's publishers.
+- [The marketplace catalogue](marketplace-catalogue.md): curated Linux apps listed with their own box, and how to add one; [how each is authenticated](marketplace-catalogue-authentication.md).
 - [libc and the Rust runtimes](libc.md): `nonos_libc`, `nonos_runtime`, the SDK, the toolkit and `std`.
 - [IPC services](ipc-services.md): service names, ports and message formats.
 - [The Linux personality](linux-personality.md): which Linux calls are served, which are refused, and why.

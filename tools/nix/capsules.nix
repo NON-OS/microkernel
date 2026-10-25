@@ -107,7 +107,7 @@ let
   compiled =
     e:
     build {
-      name = "nonos-capsule-${e.slug}";
+      name = "nonos-capsule-${e.slug}${e.suffix or ""}";
       src = source e.dir;
       lockFiles = [ (src.root + "/${e.dir}/Cargo.lock") ];
       rust = if e.needs_rt then rustStd else pins.rust;
@@ -227,8 +227,25 @@ let
     '';
 
   one = e: if e.prebuilt != "" then prebuilt e else compiled e;
+  bySlug = lib.listToAttrs (map (e: lib.nameValuePair e.slug (one e)) catalogue);
+
+  # The development capsule set: bySlug, but each capsule that declares
+  # CAPSULE_DEV_CARGO_FEATURES built again with them, as
+  # nonos-capsule-<slug>-dev, the name the seal refuses for a release. Only an
+  # image that is not a release takes this set (image.nix, artifacts.nix, the
+  # seal). The features come from capsules-dev.json, which only this reads, so
+  # no release derivation sees them.
+  devFeatures = lib.listToAttrs (map (r: lib.nameValuePair r.slug r.dev_cargo_features) (lib.importJSON ./capsules-dev.json));
+  devOf =
+    e:
+    assert lib.assertMsg (e.prebuilt == "") "capsule ${e.slug}: a prebuilt capsule cannot take CAPSULE_DEV_CARGO_FEATURES";
+    e // {
+      cargo_features = lib.concatStringsSep "," (builtins.filter (f: f != "") [ e.cargo_features devFeatures.${e.slug} ]);
+      suffix = "-dev";
+    };
+  withDev = builtins.filter (e: devFeatures ? ${e.slug}) catalogue;
 in
 {
-  inherit catalogue rustStd mkRustStd rt upstream;
-  bySlug = lib.listToAttrs (map (e: lib.nameValuePair e.slug (one e)) catalogue);
+  inherit catalogue rustStd mkRustStd rt upstream bySlug;
+  bySlugDev = bySlug // lib.listToAttrs (map (e: lib.nameValuePair e.slug (compiled (devOf e))) withDev);
 }

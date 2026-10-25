@@ -24,6 +24,7 @@ use crate::controller::{
 };
 use crate::error::{XhciError, XhciResult};
 use crate::server::context::Context;
+use crate::server::handlers::recover::keep_if_failed;
 use crate::slots::SlotResources;
 
 pub(super) fn run(
@@ -47,8 +48,12 @@ pub(super) fn run(
     write_isoch_input(&res.input_context, &res.output_context, context_size, ep);
     let (input_phys, superspeed) = (res.input_context.phys(), is_superspeed(res.speed, res.usb3));
     let (db, intr) = (d.layout.doorbell_base, d.layout.primary_intr_base);
-    issue_configure_endpoint(db, intr, &mut d.command_ring, &mut d.event_ring, input_phys, slot)?;
-    if let Some(res) = d.slots.resources_mut(slot, max_slots) {
+    let (cmd, evt) = (&mut d.command_ring, &mut d.event_ring);
+    if let Err(e) = issue_configure_endpoint(db, intr, cmd, evt, input_phys, slot) {
+        // A failed controller may have taken the ring; it stays with the slot.
+        return Err(keep_if_failed(ctx, slot, e, ring.into_regions().chain([buf])));
+    }
+    if let Some(res) = ctx.driver.slots.resources_mut(slot, max_slots) {
         *pipe_of(res, dci) = Some(IsochPipe::with(ring, buf, ep, superspeed));
     }
     Ok(())

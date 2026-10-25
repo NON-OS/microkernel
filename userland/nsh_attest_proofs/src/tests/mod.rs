@@ -26,12 +26,14 @@ mod doc_fields;
 mod doc_lengths;
 mod doc_version;
 mod enrol;
+mod enrol_boot;
 mod enrol_halves;
 mod enrol_sig;
 mod firmware;
 mod front;
 mod happy;
 mod host_proof;
+mod kernel_encoder;
 mod log_caps;
 mod log_diff;
 mod log_doc;
@@ -47,7 +49,6 @@ mod names;
 mod numbers;
 mod p256_kat;
 mod policy;
-mod policy_boot;
 mod policy_releases;
 mod quote_binding;
 mod quote_digest;
@@ -61,6 +62,7 @@ mod quote_v3_order;
 mod registry;
 mod release;
 mod robust;
+mod tool;
 
 /// The refusal a spec's host meets.
 pub fn refused(s: Spec) -> Refusal {

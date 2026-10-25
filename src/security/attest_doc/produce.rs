@@ -14,28 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-
-use super::binding::{qualifying_data, DmaPosture};
-use super::document::{
-    AttestationDoc, IOMMU_AMD_VI, IOMMU_ARM_SMMU_V3, IOMMU_INTEL_VTD, IOMMU_NONE,
-};
+use super::binding::qualifying_data;
+use super::document::AttestationDoc;
 use super::error::AttestDocError;
-use crate::memory::iommu::{capabilities, unconfined_grants, IommuVendor};
+use super::log::tcg_log;
+use super::posture::dma_posture;
+use super::produce_quote::quote_pcrs;
 use crate::security::attest_registry::{attested_count, registry_complete, registry_root};
 use crate::security::tpm::ak::ak_public;
 use crate::security::tpm::error::TpmError;
-use crate::security::tpm::quote::{build_quote, check_attest, parse_quote};
-use crate::security::tpm::transact_resending;
-
-/// PCRs covered by the quote: the firmware and boot chain measurements the
-/// firmware extended. Naming them explicitly rather than quoting every PCR
-/// keeps the document meaningful, since a verifier has to know which values it
-/// is being shown.
-const QUOTED_PCRS: [u8; 4] = [0, 1, 2, 7];
-
-/// Largest response this driver will accept from the part.
-const RESPONSE_MAX: usize = 4096;
 
 /// Answer "what is this machine running", signed.
 ///
@@ -52,20 +39,11 @@ pub(super) fn produce(
     let root = registry_root();
     let dma = dma_posture();
     let qualifying = qualifying_data(challenge, &root, &dma);
-
-    let cmd = build_quote(ak_handle, &qualifying, &QUOTED_PCRS);
-    let mut buf = [0u8; RESPONSE_MAX];
-    // SAFETY: eK@nonos.systems - a quote reads PCR state and signs it. It
-    // creates no objects and changes no key material.
-    let len = unsafe { transact_resending(&cmd, &mut buf) }.map_err(AttestDocError::Tpm)?;
+    let log = tcg_log()?;
+    let quoted = quote_pcrs(ak_handle, &qualifying)?;
 
     // Kept when the key was loaded; a handle without it is a driver fault.
     let ak_public = ak_public().ok_or(AttestDocError::Tpm(TpmError::InvalidResponse))?;
-    let quote = parse_quote(&buf[..len]).map_err(AttestDocError::Quote)?;
-    // Checked here, not only by the verifier: a machine that would hand out a
-    // quote whose nonce it never confirmed has no idea what it just signed.
-    check_attest(quote.attest, &qualifying).map_err(AttestDocError::Quote)?;
-
     Ok(AttestationDoc {
         challenge: *challenge,
         registry_root: root,
@@ -74,21 +52,11 @@ pub(super) fn produce(
         iommu_vendor: dma.vendor,
         iommu_enforcing: dma.enforcing,
         unconfined_grants: dma.unconfined_grants,
-        attest: Vec::from(quote.attest),
-        signature: Vec::from(quote.signature),
+        identity_devices: dma.identity_devices,
+        pcrs: quoted.pcrs,
+        log,
+        attest: quoted.attest,
+        signature: quoted.signature,
         ak_public,
     })
-}
-
-/// Read once, so the values bound into the quote are the values the document
-/// carries.
-fn dma_posture() -> DmaPosture {
-    let caps = capabilities();
-    let vendor = match caps.vendor {
-        IommuVendor::Absent => IOMMU_NONE,
-        IommuVendor::IntelVtd => IOMMU_INTEL_VTD,
-        IommuVendor::AmdVi => IOMMU_AMD_VI,
-        IommuVendor::ArmSmmuV3 => IOMMU_ARM_SMMU_V3,
-    };
-    DmaPosture { vendor, enforcing: caps.enforcing, unconfined_grants: unconfined_grants() }
 }

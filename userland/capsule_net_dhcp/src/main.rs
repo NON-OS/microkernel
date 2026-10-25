@@ -31,6 +31,8 @@ mod state;
 
 use nonos_libc::{heap_init, mk_exit, mk_yield};
 
+/// # Safety
+/// The kernel enters here once, on a fresh stack.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {

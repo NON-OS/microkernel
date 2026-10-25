@@ -20,8 +20,10 @@
 //! the controller.
 
 mod embed;
+mod endpoint;
 mod spawn;
 mod state;
 
+pub use endpoint::ENDPOINT;
 pub use spawn::{spawn_driver_piix_ide_capsule, SpawnError};
 pub use state::shared_state;

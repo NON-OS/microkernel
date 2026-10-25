@@ -17,8 +17,9 @@
 //! The start-up mode as section 12 and the driver's own limits say it must
 //! be, from the register file alone. Firmware's mode is kept when DISPI
 //! shows one: enabled with the linear framebuffer, 32 bits, from the start
-//! of video memory, a size, and its lines (the virtual width, at least the
-//! width) fitting both video memory and the mapping. Otherwise the panel's
+//! of video memory, a size, and its lines (the virtual width, no narrower
+//! than the width: narrower lines overlap, which no copy draws) fitting
+//! both video memory and the mapping. Otherwise the panel's
 //! preferred mode when it fits them, a width a multiple of 8, 640x480 to
 //! the largest side; else 1024x768. A mode past video memory or past the
 //! mapping is refused before anything is written, and a mode the adapter
@@ -44,7 +45,8 @@ pub fn want(f: &File, preferred: Option<(u32, u32)>, mapped: u64, lie: bool) -> 
     let room = video.min(mapped);
     let (w, h) = (u32::from(f[0]), u32::from(f[1]));
     let showing = f[3] & 0x41 == 0x41 && f[2] == 32 && f[7] == 0 && f[8] == 0 && w > 0 && h > 0;
-    let stride = u32::from(f[5]).max(w) * 4;
+    let showing = showing && u32::from(f[5]) >= w;
+    let stride = u32::from(f[5]) * 4;
     if showing && u64::from(stride) * u64::from(h) <= room {
         return Want::Kept(w, h, stride);
     }

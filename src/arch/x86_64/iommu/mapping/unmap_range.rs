@@ -19,9 +19,9 @@ use super::domain_root::domain_root;
 use super::validate_range::validate_range;
 use crate::arch::x86_64::iommu::globals::state::STATE;
 use crate::arch::x86_64::iommu::globals::{is_enforcing, page_levels};
-use crate::arch::x86_64::iommu::tables::frame::entries_mut;
 use crate::arch::x86_64::iommu::tables::sl_pte::is_present;
 use crate::arch::x86_64::iommu::tables::touched::Touched;
+use crate::arch::x86_64::iommu::tables::view::Frame;
 use crate::arch::x86_64::iommu::tables::walk::walk_lookup;
 use crate::arch::x86_64::iommu::types::{DomainId, VtdError, PAGE_SIZE_4K};
 
@@ -44,7 +44,7 @@ pub fn unmap_range(domain: DomainId, iova: u64, size: usize) -> Result<(), VtdEr
     for page in 0..pages {
         let addr = iova + (page * PAGE_SIZE_4K) as u64;
         match walk_lookup(root, addr, levels)? {
-            Some(slot) if is_present(entries_mut(slot.table_phys)?[slot.index]) => {}
+            Some(slot) if is_present(Frame::at(slot.table_phys)?.read(slot.index)?) => {}
             _ => return Err(VtdError::RangeNotMapped),
         }
     }
@@ -52,9 +52,9 @@ pub fn unmap_range(domain: DomainId, iova: u64, size: usize) -> Result<(), VtdEr
     for page in 0..pages {
         let addr = iova + (page * PAGE_SIZE_4K) as u64;
         if let Some(slot) = walk_lookup(root, addr, levels)? {
-            entries_mut(slot.table_phys)?[slot.index] = 0;
+            Frame::at(slot.table_phys)?.write(slot.index, 0)?;
             touched.note(slot.table_phys);
         }
     }
-    commit(touched)
+    commit(touched, domain, false)
 }

@@ -23,15 +23,15 @@ pub(crate) const NOX_SETTLE_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-nox-settle")]
 pub(crate) const NOX_SETTLE_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/nox_settle.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/nox_settle.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-nox-settle")]
 pub(crate) const NOX_SETTLE_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/nox_settle.manifest.bin");
+    crate::baked_trust!("capsules/nox_settle.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-nox-settle")]
 pub(crate) const NOX_SETTLE_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/nox_settle.zk_trailer.bin");
+    crate::baked_trust!("capsules/nox_settle.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-nox-settle"))]
 pub(crate) const NOX_SETTLE_ELF: &[u8] = &[];

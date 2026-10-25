@@ -28,7 +28,7 @@ use crate::proofs::lifecycle::teardown_log::{release, CMD, CORB, DPL, GCTL_AT, R
 
 /// The end of every teardown, last call first.
 const TAIL: [&str; 5] =
-    ["device_release", "mmio_unmap", "irq_unbind", "pci_config_write", "pci_config_read"];
+    ["device_release", "mmio_unmap", "irq_unbind", "pci_config_update", "pci_config_read"];
 
 pub fn quiesced_then_released(log: &[Call]) {
     let by_hand: Vec<&Call> = log.iter().filter(|c| c.name == "dma_unmap").collect();

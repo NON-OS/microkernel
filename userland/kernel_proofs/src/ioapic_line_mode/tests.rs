@@ -22,7 +22,7 @@ const PCI: LineMode = LineMode { level: true, active_low: true };
 #[test]
 fn isa_lines_without_an_override_are_edge_and_active_high() {
     for gsi in 0..ISA_LINES {
-        assert_eq!(line_mode(gsi, None), ISA, "gsi {gsi}");
+        assert_eq!(line_mode(gsi, None, None), ISA, "gsi {gsi}");
     }
 }
 
@@ -31,17 +31,34 @@ fn isa_lines_without_an_override_are_edge_and_active_high() {
 #[test]
 fn lines_above_the_isa_range_are_sensed_as_pci_intx() {
     for gsi in [16, 17, 19, 23, 40, 119, 255] {
-        assert_eq!(line_mode(gsi, None), PCI, "gsi {gsi}");
+        assert_eq!(line_mode(gsi, None, None), PCI, "gsi {gsi}");
     }
 }
 
 #[test]
 fn an_override_is_taken_as_written() {
     // The ACPI SCI, IRQ 9 on GSI 9, level and active-low on most firmware.
-    assert_eq!(line_mode(9, Some((true, true))), PCI);
+    assert_eq!(line_mode(9, Some((true, true)), None), PCI);
     // The timer moved from IRQ 0 to GSI 2, edge and active-high.
-    assert_eq!(line_mode(2, Some((false, false))), ISA);
+    assert_eq!(line_mode(2, Some((false, false)), None), ISA);
     // An override that names a line above 15 as an edge is believed.
-    assert_eq!(line_mode(20, Some((false, false))), ISA);
-    assert_eq!(line_mode(20, Some((true, false))), LineMode { level: true, active_low: false });
+    assert_eq!(line_mode(20, Some((false, false)), None), ISA);
+    assert_eq!(
+        line_mode(20, Some((true, false)), None),
+        LineMode { level: true, active_low: false }
+    );
+}
+
+// A device's own `_CRS` comes ahead of the override and the ISA default
+// (L43): a GPIO controller asking level, active-low on GSI 14.
+#[test]
+fn the_devices_own_description_comes_first() {
+    for gsi in [7, 9, 14, 20] {
+        for iso in [None, Some((false, false)), Some((true, true))] {
+            for described in [(true, true), (false, false), (true, false), (false, true)] {
+                let want = LineMode { level: described.0, active_low: described.1 };
+                assert_eq!(line_mode(gsi, iso, Some(described)), want, "gsi {gsi}");
+            }
+        }
+    }
 }

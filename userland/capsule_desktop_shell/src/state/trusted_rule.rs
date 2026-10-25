@@ -43,3 +43,9 @@ pub fn moves(up: bool, want: bool) -> Option<(u32, u32)> {
         _ => None,
     }
 }
+
+/// Whether the shell answers Ctrl+Alt+T: never while the chrome is in the
+/// band (`up`), so no Terminal opens over a prompt or the hidden screen.
+pub fn opens_terminal(up: bool) -> bool {
+    !up
+}

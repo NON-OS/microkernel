@@ -22,6 +22,7 @@ extern crate alloc;
 mod display;
 mod frame_pacer;
 mod protocol;
+mod refusal_note;
 mod requests;
 mod say;
 mod server;
@@ -29,6 +30,7 @@ mod setup;
 mod state;
 mod sw_blitter;
 mod wait_for_setup;
+mod waiting_line;
 
 use nonos_libc::{heap_init, mk_exit, mk_service_register};
 

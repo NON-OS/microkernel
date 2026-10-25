@@ -80,6 +80,7 @@ MBSL = 0x4C53424D
 MBTA = 0x4154424D
 MCLD = 0x444C434D
 MCVF = 0x4656434D
+MCOF = 0x464F434D
 MDFB = 0x4246444D
 MDFD = 0x4446444D
 MDIM = 0x4D49444D
@@ -111,6 +112,7 @@ MIRY = 0x5952494D
 MISR = 0x5253494D
 MKAR = 0x52414B4D
 MKIL = 0x4C494B4D
+MKEP = 0x50454B4D
 MLCG = 0x47434C4D
 MLCR = 0x52434C4D
 MLSG = 0x47534C4D
@@ -166,6 +168,7 @@ MCCK = 0x4B43434D
 MDLS = 0x534C444D
 MDCL = 0x4C43444D
 MDRL = 0x4C52444D
+MBFB = 0x4246424D
 MNNO = 0x4F4E4E4D
 MNDS = 0x53444E4D
 MDNN = 0x4E4E444D
@@ -188,6 +191,7 @@ MHVP = 0x5056484D
 MHVR = 0x5256484D
 MHVE = 0x4556484D
 MHVS = 0x5356484D
+MHVC = 0x4356484D
 MDBG = 0x4742444D
 MSRG = 0x4752534D
 MSSH = 0x4853534D
@@ -246,7 +250,7 @@ ret  = {type="!"}
 [desc.GDIM]
 nr   = 0x4D494447
 caps = ["GraphicsDisplayQuery"]
-args = [{name="display_id",type="u32",dir="in"},{name="dims_out",type="u8*",dir="out"}]
+args = [{name="display_id",type="u32",dir="in"},{name="width_out",type="u32*",dir="out"},{name="height_out",type="u32*",dir="out"},{name="mm_out",type="u32*",dir="out"},{name="why_out",type="u32*",dir="out"}]
 ret  = {type="i64"}
 
 [desc.MISD]
@@ -357,6 +361,12 @@ caps = ["Driver"]
 args = [{name="device_id",type="u64",dir="in"}]
 ret  = {type="i64"}
 
+[desc.MBFB]
+nr   = 0x4246424D
+caps = ["Mmio"]
+args = [{name="device_id",type="u64",dir="in"},{name="out",type="u8*",dir="out"},{name="out_len",type="usize",dir="in"}]
+ret  = {type="i64"}
+
 [desc.MMMP]
 nr   = 0x504D4D4D
 caps = ["Mmio"]
@@ -459,6 +469,12 @@ caps = ["Driver"]
 args = [{name="device_id",type="u64",dir="in"},{name="connection",type="u32",dir="in"}]
 ret  = {type="i64"}
 
+[desc.MHVC]
+nr   = 0x4356484D
+caps = ["Driver"]
+args = [{name="root_device_id",type="u64",dir="in"},{name="relid",type="u32",dir="in"}]
+ret  = {type="i64"}
+
 [desc.MDBG]
 nr   = 0x4742444D
 caps = ["Debug"]
@@ -468,31 +484,31 @@ ret  = {type="i64"}
 [desc.MSRG]
 nr   = 0x4752534D
 caps = ["GraphicsSurfaceCreate"]
-args = [{name="format",type="u32",dir="in"},{name="w",type="u32",dir="in"},{name="h",type="u32",dir="in"},{name="surface_id_out",type="u32*",dir="out"}]
+args = [{name="desc",type="u8*",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MSSH]
 nr   = 0x4853534D
 caps = ["GraphicsSurfaceCreate"]
-args = [{name="surface_id",type="u32",dir="in"},{name="target_pid",type="u32",dir="in"},{name="flags",type="u64",dir="in"}]
+args = [{name="sid",type="u64",dir="in"},{name="receiver_pid",type="u32",dir="in"},{name="flags",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MSAT]
 nr   = 0x5441534D
 caps = ["GraphicsSurfaceMap"]
-args = [{name="surface_id",type="u32",dir="in"},{name="vaddr_out",type="u64*",dir="out"}]
+args = [{name="handle",type="u64",dir="in"},{name="desc_out",type="u8*",dir="out"}]
 ret  = {type="i64"}
 
 [desc.MSRL]
 nr   = 0x4C52534D
 caps = ["GraphicsSurfaceCreate"]
-args = [{name="surface_id",type="u32",dir="in"}]
+args = [{name="handle",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MSPR]
 nr   = 0x5250534D
 caps = ["GraphicsPresent"]
-args = [{name="surface_id",type="u32",dir="in"},{name="region",type="u8*",dir="in"}]
+args = [{name="handle",type="u64",dir="in"},{name="x",type="u64",dir="in"},{name="y",type="u64",dir="in"},{name="w",type="u64",dir="in"},{name="h",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MDVW]
@@ -584,6 +600,11 @@ ret  = {type="i64"}
 nr   = 0x444C434D
 caps = ["CoreExec", "IPC", "Memory"]
 args = [{name="req_ptr",type="u64",dir="in"}]
+ret  = {type="i64"}
+[desc.MCOF]
+nr   = 0x464F434D
+caps_any = ["SpawnBroker"]
+args = [{name="pid",type="u64",dir="in"},{name="bit",type="u64",dir="in"},{name="sent_ms",type="u64",dir="in"}]
 ret  = {type="i64"}
 [desc.MCVF]
 nr   = 0x4656434D
@@ -906,6 +927,11 @@ nr   = 0x5756504D
 caps = ["IPC"]
 args = [{name="user_ptr",type="u64",dir="in"},{name="len",type="u64",dir="in"}]
 ret  = {type="i64"}
+[desc.MKEP]
+nr   = 0x50454B4D
+caps = ["valid_token"]
+args = []
+ret  = {type="bool"}
 [desc.MSRR]
 nr   = 0x5252534D
 caps = ["StoreWrite"]
@@ -1022,7 +1048,9 @@ args = [{name="which",type="u64",dir="in"},{name="initiator",type="u32",dir="in"
 ret  = {type="i64"}
 
 [desc.MBGL]
+# Retired (src/syscall/microkernel/retired.rs): the number is kept and answers
+# EINVAL to every caller; it was MkBootLogo, the firmware's logo for the splash.
 nr   = 0x4C47424D
-caps = ["GraphicsSurfaceCreate"]
+caps = ["valid_token"]
 args = [{name="which",type="u64",dir="in"},{name="out",type="u8*",dir="out"},{name="len",type="usize",dir="in"}]
 ret  = {type="i64"}

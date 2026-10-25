@@ -26,7 +26,7 @@ def b8(x): return bytes([len(x)]) + x
 def b16(x): return pack("<H", len(x)) + x
 def b32(x): return pack("<I", len(x)) + x
 def caps(names): return bytes([len(names)]) + b"".join(b8(n) for n in names)
-def hello(tail): return b"NSH1" + pack("<HHH", 1, 1, 0) + b"\x52" * 32 + tail
+def hello(tail): return b"NSH1" + pack("<HHH", 2, 1, 0) + b"\x52" * 32 + tail
 
 def grant(kind=1, approvals=()):
     gid, parent = (b"\x11" * 16, b"\0" * 16) if kind == 1 else (b"\x22" * 16, b"\x11" * 16)
@@ -38,7 +38,7 @@ def grant(kind=1, approvals=()):
 def enrol():
     body = b"NSHE" + pack("<HH", 1, 0) + b"\xf1" * 16 + b8(b"db-1.eu.example")
     body += b"\xac" * 64 + b"\x4b" * 64 + b"".join(bytes([p]) * 32 for p in (0, 1, 2, 7))
-    return body + pack("<Q", 9000) + b"\xaa" * 32 + SIG
+    return body + b"\x01\x01" + b"\xb0" * 32 + pack("<Q", 9000) + b"\xaa" * 32 + SIG
 
 def record():
     head = b"NSHR" + pack("<HH", 1, 0) + b"\x5e" * 16 + pack("<Q", 1000)

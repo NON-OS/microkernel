@@ -23,6 +23,5 @@ mod rx;
 mod tx;
 
 pub use api::{getc, init_uart, putc, puts};
-pub use config::{UartConfigError, UartConfigResult};
 pub use device::Ns16550;
 pub use interrupt::handle_uart_interrupt;

@@ -28,6 +28,7 @@
 use alloc::vec::Vec;
 
 use super::handle::BlockDevice;
+use super::units::each_unit;
 use super::unserved::unserved;
 use crate::driver::{Controller, Driver, ALL};
 use crate::error::BlkError;
@@ -35,6 +36,7 @@ use crate::error::BlkError;
 pub struct Found {
     pub driver: Driver,
     pub instance: u8,
+    pub unit: u16,
     pub device: Result<BlockDevice, BlkError>,
 }
 
@@ -44,19 +46,19 @@ pub fn discover(present: &[Controller]) -> Vec<Found> {
     for &driver in ALL.iter() {
         let mut served = 0u8;
         for instance in 0..driver.instances() {
-            let device = match BlockDevice::open(driver, instance) {
-                Ok(Some(device)) => Ok(device),
-                Ok(None) => continue,
-                Err(e) => Err(e),
-            };
-            served += 1;
-            out.push(Found { driver, instance, device });
+            let Some(port) = BlockDevice::lookup(driver, instance) else { continue };
+            let rows = each_unit(driver.units(), |u| BlockDevice::at(driver, instance, port, u));
+            served += u8::from(!rows.is_empty());
+            for (unit, device) in rows {
+                out.push(Found { driver, instance, unit, device });
+            }
         }
         let on_bus = present.iter().filter(|&&c| driver.serves(c)).count();
         for k in 0..unserved(one_disk_each(driver), on_bus, served) {
             out.push(Found {
                 driver,
                 instance: served.saturating_add(k),
+                unit: 0,
                 device: Err(BlkError::NoService),
             });
         }
@@ -64,13 +66,9 @@ pub fn discover(present: &[Controller]) -> Vec<Found> {
     out
 }
 
-/// An NVMe controller is one disk, and a UFS host one device. SATA and eMMC
-/// serve their disk from whichever controller holds one; a virtio-blk device
-/// can be the medium this boot came from. A card reader serves no controller
-/// kind (`Driver::controller`), so it is never counted missing.
+/// An NVMe controller is one disk, a UFS host one device. SATA and eMMC serve
+/// their disk from whichever controller holds one, a virtio-blk device can be
+/// the medium this boot came from, and a card reader is never counted missing.
 fn one_disk_each(driver: Driver) -> bool {
-    match driver {
-        Driver::Nvme | Driver::Ufs => true,
-        Driver::Ahci | Driver::VirtioBlk | Driver::Wire | Driver::Rtsx => false,
-    }
+    matches!(driver, Driver::Nvme | Driver::Ufs)
 }

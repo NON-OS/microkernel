@@ -28,6 +28,13 @@ pub fn init() {
         mgr.add_backend(alloc::boxed::Box::new(crate::log::backend::VgaBackend));
         mgr
     };
+    // The attack suite's boot reads the kernel's refusals off the serial line.
+    #[cfg(feature = "nonos-capsule-attack")]
+    let mgr = {
+        let mut mgr = mgr;
+        mgr.add_backend(alloc::boxed::Box::new(crate::log::backend::SerialBackend));
+        mgr
+    };
     *l = Some(mgr);
 }
 

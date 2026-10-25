@@ -18,8 +18,8 @@
 //! devices its scope resolves to; any doubt leaves a device with no
 //! reserved range, which is the blocked side.
 
-use super::build::{bridges, rmrr, scope, GFX};
-use super::dmar_rmrr::{names, parse_rmrr, RMRR_MAX};
+use super::build::{bridges, names, rmrr, scope, GFX};
+use super::dmar_rmrr::{parse_rmrr, RMRR_MAX};
 
 #[test]
 fn a_sound_rmrr_names_its_devices_and_no_other() {
@@ -27,7 +27,7 @@ fn a_sound_rmrr_names_its_devices_and_no_other() {
     let b = rmrr(0x7c00_0000, 0x7fff_ffff, &[scope(1, 0, &[(2, 0)]), usb]);
     let r = parse_rmrr(&b).expect("sound");
     assert_eq!(
-        (r.base, r.end, r.scope.count, r.scope.truncated),
+        (r.base, r.limit + 1, r.count, r.truncated),
         (0x7c00_0000, 0x8000_0000, 2, false)
     );
     assert!(names(&r, 0, GFX, &bridges), "the endpoint");
@@ -57,13 +57,13 @@ fn a_hostile_scope_list_names_nothing_it_cannot_resolve() {
     let mut overrun = rmrr(0x1000, 0x1fff, &[scope(1, 0, &[(2, 0)])]);
     overrun[25] = 40; // the scope claims more bytes than the structure holds
     let r = parse_rmrr(&overrun).expect("the region still parses");
-    assert!(r.scope.truncated && r.scope.count == 0);
+    assert!(r.truncated && r.count == 0);
     assert!(!names(&r, 0, GFX, &bridges));
     let lost = parse_rmrr(&rmrr(0x1000, 0x1fff, &[scope(1, 0, &[(9, 0), (0, 0)])])).expect("ok");
     assert!(!names(&lost, 0, (0, 0, 0), &bridges), "a path through no bridge resolves to nothing");
     for odd in [0u8, 5, 7] {
         let mut b = rmrr(0x1000, 0x1fff, &[scope(1, 0, &[(2, 0)])]);
         b[25] = odd;
-        assert!(parse_rmrr(&b).is_some_and(|r| r.scope.truncated), "scope length {odd}");
+        assert!(parse_rmrr(&b).is_some_and(|r| r.truncated), "scope length {odd}");
     }
 }

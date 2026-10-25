@@ -50,7 +50,13 @@ fn every_arch_reaches_the_lock_free_tick_with_its_origin() {
         ],
     );
     let rv = code("arch/riscv64/timer/interrupt.rs");
-    order(&rv, &["preemption::tick::tick();", "crate::process::exit::reclaim_at_tick(from_user);"]);
+    order(
+        &rv,
+        &[
+            "crate::process::scheduler::preemption::tick();",
+            "crate::process::exit::reclaim_at_tick(from_user);",
+        ],
+    );
     let reclaim = code("process/exit/reclaim.rs");
     assert!(
         reclaim.contains("let holds_no_lock = from_user || crate::process::accounting::is_idle();")

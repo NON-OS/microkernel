@@ -43,6 +43,7 @@ pub fn sys_dma_map(device_id: u64, claim_epoch: u64, length: u64, flags: u32, ou
         Some(p) => p,
         None => return ERRNO_PERM,
     };
+    let pid = crate::hardware::broker::holder_of(pid);
     if out_ptr == 0 {
         return ERRNO_FAULT;
     }

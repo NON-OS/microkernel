@@ -21,6 +21,3 @@ pub(super) const MAX_MEMORY_REGIONS: usize = 8;
 
 /// As many CPUs as the device tree walker reads in one pass.
 pub(super) const MAX_CPUS: usize = 64;
-
-/// Reserved ranges kept: the blob, the initrd, and firmware's own.
-pub(super) const MAX_RESERVED: usize = 16;

@@ -12,6 +12,12 @@ extern crate alloc;
 /// The real parser, unchanged.
 pub mod doc_parse;
 
+#[cfg(test)]
+#[path = "../../capsule_about/src/about/data/dma_words.rs"]
+mod dma_words;
+#[cfg(test)]
+mod dma_words_tests;
+
 /// About's live proof board: who was admitted, the headline, its words.
 #[cfg(test)]
 mod proof_board;
@@ -27,9 +33,14 @@ mod firmware_tests;
 /// a layout the kernel writes and the parser does not read fails here instead
 /// of on the machine.
 #[cfg(test)]
+#[allow(dead_code)]
 #[path = "../../../src/security/attest_doc/document.rs"]
 mod kernel_document;
 
+#[cfg(test)]
+mod doc_build;
+#[cfg(test)]
+mod parse_k1_tests;
 #[cfg(test)]
 mod parse_tests;
 

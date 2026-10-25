@@ -96,6 +96,13 @@ const KNOWN: [(Guid, &str); 14] = [
     ),
 ];
 
+/// Whether a channel of this interface is given to a driver: storage
+/// (SCSI, and IDE, which storvsc serves too) and network. Every other is
+/// left closed; the kernel refuses the host services in any case.
+pub fn given(g: Guid) -> bool {
+    matches!(name(g), "network" | "scsi" | "ide")
+}
+
 pub fn name(g: Guid) -> &'static str {
     KNOWN.iter().find(|(k, _)| *k == g).map_or("unknown", |(_, n)| n)
 }

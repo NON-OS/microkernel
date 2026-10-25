@@ -11,6 +11,8 @@ name: ci-build-aarch64
 #   - the signed manifest and signature sections are present
 #   - every driver capsule builds for aarch64-nonos-user through make's own
 #     capsule rule, and each is an AArch64 ELF (nonos-ci/build-driver-capsules.sh)
+#   - the riscv64 kernel builds and boots under QEMU virt as far as its port
+#     goes, stopping by name at the unported VM layer (nonos-mk-riscv-boot-check)
 # It does not boot the image. That is ci-boot-aarch64.yml's job.
 
 on:
@@ -59,3 +61,5 @@ jobs:
         # ELF's machine checked: the rule once built x86_64 here with every
         # step green.
         run: bash nonos-ci/build-driver-capsules.sh aarch64-nonos-user
+      - name: Build the riscv64 kernel and boot it as far as its port goes
+        run: make nonos-mk-riscv-boot-check SIGNING_KEY=.keys/signing_key_v1.bin

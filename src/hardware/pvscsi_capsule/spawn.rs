@@ -18,6 +18,7 @@ use super::embed::{
     DRIVER_PVSCSI_ATTESTATION_BYTES, DRIVER_PVSCSI_ELF, DRIVER_PVSCSI_MANIFEST_BYTES,
     DRIVER_PVSCSI_NONOS_ID_CERT_BYTES,
 };
+use super::endpoint::REPLY_INBOX;
 use super::state;
 use crate::capabilities::Capability;
 use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpecVerified};
@@ -30,7 +31,6 @@ pub use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 const SERVICE_NAME: &str = "driver.pvscsi0";
 const SERVICE_PORT: u32 = 4294;
-const REPLY_INBOX: &str = "endpoint.4294967357";
 const REPLY_PORT: u32 = 4295;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 

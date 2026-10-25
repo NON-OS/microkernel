@@ -22,7 +22,7 @@ use crate::arch::trap::contract::deliver;
 
 use super::fatal::fatal;
 
-pub fn dispatch(code: ExceptionCode, frame: &mut TrapFrame) {
+pub(super) fn dispatch(code: ExceptionCode, frame: &mut TrapFrame) {
     match code {
         ExceptionCode::SupervisorEcall => fatal(),
         ExceptionCode::MachineEcall => fatal(),

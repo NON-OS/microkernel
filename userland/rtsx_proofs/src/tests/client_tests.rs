@@ -37,7 +37,8 @@ fn the_client_table_speaks_this_drivers_wire() {
     assert_eq!((Driver::Rtsx.service(1), Driver::Rtsx.instances()), (None, 1));
     let kinds = [Controller::Nvme, Controller::Ahci, Controller::VirtioBlk, Controller::Emmc];
     assert!(kinds.iter().all(|&c| !Driver::Rtsx.serves(c)));
-    assert!(Driver::Wire.serves(Controller::Emmc) && Driver::Nvme.serves(Controller::Nvme));
+    assert!(Driver::Nvme.serves(Controller::Nvme) && Driver::Wire.serves(Controller::Emmc));
+    assert!(!Driver::Ahci.serves(Controller::Emmc), "eMMC has a driver of its own");
     assert_eq!(Driver::Rtsx.label(), b"SD");
 }
 
@@ -49,8 +50,8 @@ fn the_client_parses_this_drivers_identify_reply() {
     assert_eq!((id.model_str(), id.serial_str(), id.emmc), ("SC32G", "1234ABCD", false));
     let client = include_str!("../../../nonos_blk_client/src/device/identity.rs");
     assert!(client.contains(&format!("const OP_SD_IDENTIFY: u16 = {OP_IDENTIFY};")));
-    let client = include_str!("../../../nonos_blk_client/src/device/handle.rs");
-    assert!(client.contains(&format!("const E_NOMEDIUM: i32 = {E_NOMEDIUM};")));
+    let client = include_str!("../../../nonos_blk_client/src/device/medium.rs");
+    assert!(client.contains(&format!("pub const E_NOMEDIUM: i32 = {E_NOMEDIUM};")));
 }
 
 #[test]

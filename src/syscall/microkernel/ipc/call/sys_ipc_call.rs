@@ -16,7 +16,7 @@
 
 use crate::process::{accounting, current_pid};
 use crate::services::registry::lookup_port;
-use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL};
+use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL, ERRNO_SRCH};
 use crate::syscall::microkernel::narrow::u32_arg;
 
 use super::super::pending_reply;
@@ -25,6 +25,7 @@ use super::super::reply_inbox;
 use super::super::send::send_with_correlation;
 use super::settle::settle;
 use super::token::next_call_token;
+use super::verdict::{wait_ms, DEFAULT_MS};
 
 pub fn sys_ipc_call(
     ep: u64,
@@ -47,8 +48,10 @@ pub fn sys_ipc_call(
     let endpoint = u32_arg(ep).and_then(lookup_port);
     let endpoint_pid = endpoint.as_ref().map(|endpoint| endpoint.pid);
     if let Some(server_pid) = endpoint_pid {
-        if !pending_reply::push(server_pid, pid, inbox.clone(), token) {
-            return ERRNO_BUSY;
+        match pending_reply::push(server_pid, pid, inbox.clone(), token) {
+            Ok(()) => {}
+            Err(pending_reply::Refused::Busy) => return ERRNO_BUSY,
+            Err(pending_reply::Refused::Gone) => return ERRNO_SRCH,
         }
     }
     let send_result = send_with_correlation(ep, req, req_len, token);
@@ -63,8 +66,10 @@ pub fn sys_ipc_call(
     }
     accounting::bump(pid, accounting::Kind::IpcTx);
     accounting::bump_total(accounting::Total::IpcMessages);
-    let timeout = if timeout_ms == 0 { 5000 } else { timeout_ms };
+    let timeout = wait_ms(timeout_ms, DEFAULT_MS);
+    let start = crate::time::timestamp_millis();
     let recv_result = recv_reply_correlated(pid, &inbox, resp, resp_len, timeout, token);
-    settle(endpoint.as_ref(), pid, (req, req_len, resp), recv_result);
+    let waited = (timeout_ms, crate::time::timestamp_millis().saturating_sub(start));
+    settle(endpoint.as_ref(), pid, (req, req_len, resp), recv_result, waited);
     recv_result
 }

@@ -28,30 +28,45 @@ flowchart LR
 ### The power button
 
 `classify` reads the FADT. A fixed-feature button, with the `FADT_PWR_BUTTON`
-flag clear, latches `PWRBTN_STS`, which the kernel names `PM1_STS_PWRBTN` (bit
-8), in the PM1 status register, and the kernel can read it without AML
-(`src/arch/x86_64/acpi/hw/power_button.rs:17-36`). `init` arms polling only when
-the firmware has handed ACPI to the OS (SCI_EN set) and clears a press left from
-before boot (`src/arch/x86_64/acpi/power_button.rs:62-91`). `poll` runs every
-tenth tick of the boot CPU's clock (`src/interrupts/timer/clock.rs:43-48`),
-which ticks at 100 Hz as `MS_PER_TICK` assumes, so every 100 ms
-(`src/arch/x86_64/acpi/power_button.rs:47-48`). A press counts once per
-`DEBOUNCE_MS` (1000 ms) and becomes a `KEYCODE_POWER` (0x1304) press and release
-in the input ring (`src/arch/x86_64/acpi/hw/power_button.rs:39-41`,
-`src/arch/x86_64/acpi/power_button.rs:42-46`).
+flag clear, latches `PWRBTN_STS` (`PM1_STS_PWRBTN`, bit 8) in the PM1 status
+register, which the kernel reads without AML
+(`src/arch/x86_64/acpi/hw/power_button.rs`). `init` takes the button only when
+firmware has handed ACPI to the OS (SCI_EN set) and clears a press left from
+before boot (`src/arch/x86_64/acpi/power_button/init.rs:31-62`). `poll` runs
+every tenth tick of the boot CPU's 100 Hz clock, so every 100 ms
+(`power_button/poll.rs:29-64`); a press counts once per `DEBOUNCE_MS` (1000 ms,
+`power_button/gate.rs`) and becomes a `KEYCODE_POWER` (0x1304) press and release
+in the input ring (`power_button/deliver.rs`).
+
+QEMU's PM1 latches `PWRBTN_STS` only while `PWRBTN_EN` is set
+(`acpi_pm1_evt_power_down`, QEMU `hw/acpi/core.c`), where ACPI 6.5 4.8.1.1 has
+a status bit latch whatever its enable says. So once device interrupt routing
+is up, `arm` masks the SCI's IO-APIC line and then sets `PWRBTN_EN`, keeping
+every enable firmware set, and logs `[ACPI] power button: SCI line masked,
+PM1_EN=…` (`power_button/arm.rs`, the rule in `hw/power_button_arm.rs`, called
+from `src/arch/init_broker_irq_routing.rs`). It refuses, with a line saying
+why, when routing failed or is not up, when the line cannot be masked, or when a
+capsule holds the SCI. Booted on q35 under QEMU 11.1: a QMP `system_powerdown`
+reached the desktop ([P-05](../security/privacy-evidence/2026-10-25/p05-c39b8edd9/README.md)). On hardware the enable is not needed by the spec,
+and is harmless with the line masked; not hardware-verified.
+
+From QEMU's monitor, read and write the PM1 registers 16 bits wide: `i/h 0x602`,
+`o/h 0x602 0x0100`. In HMP `/w` is 32 bits, the PM1 regions take 1 or 2 bytes,
+and a 32-bit access is dropped: writes do not stick and reads return 0.
 
 A `ControlMethod` button (PNP0C0C), a hardware-reduced platform or a status
 register outside port I/O gets one log line and stays with the firmware
-(`src/arch/x86_64/acpi/power_button.rs:87-89`), pointing to the desktop's own
-Power Off (`userland/capsule_desktop_shell/src/server/handlers/menubar_action.rs:31`).
+(`power_button/init.rs:58-60`), pointing to Power Off in the desktop's menu.
 
-The shell answers the Power key with "Power off and wipe memory?"
-(`userland/capsule_desktop_shell/src/server/handlers/system_keys.rs:40`). Power
-Off goes to `power.off`, which the kernel registers for `capsule_power` at spawn
-(`src/userspace/capsule_power/power_off.rs:30`). It checks the sender is the
-shell, then calls `AdminShutdown`, zerostate's `terminate`
-(`userland/capsule_power/src/off/mod.rs:38`). It was walked booted on standard-dev
-([the walk](../security/privacy-evidence/2026-10-25/merge-fd40dd41f/walk/README.md)).
+The shell answers the Power key, and that menu item, with "Power off and wipe
+memory?" (`userland/capsule_desktop_shell/src/server/handlers/system_keys.rs:40`).
+Power Off goes to `power.off`, which the kernel registers for `capsule_power`
+at spawn (`src/userspace/capsule_power/power_off.rs:30`); it checks the sender
+is the shell, then calls `AdminShutdown`, zerostate's `terminate`
+(`userland/capsule_power/src/off/mod.rs:43`). Booted:
+[the walk](../security/privacy-evidence/2026-10-25/merge-fd40dd41f/walk/README.md),
+and with capsule_acpi present, both the Power key and its own button path
+([P-08b](../security/privacy-evidence/2026-10-25/p08b-a9f192a78/README.md)).
 
 ### The volume keys
 

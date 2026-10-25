@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const MSIP_BASE: u64 = 0x0000;
-pub const MTIMECMP_BASE: u64 = 0x4000;
-pub const MTIME: u64 = 0xBFF8;
-pub const DEFAULT_BASE: u64 = 0x0200_0000;
+pub(super) const MSIP_BASE: u64 = 0x0000;
+pub(super) const MTIMECMP_BASE: u64 = 0x4000;
+pub(super) const MTIME: u64 = 0xBFF8;
+pub(super) const DEFAULT_BASE: u64 = 0x0200_0000;

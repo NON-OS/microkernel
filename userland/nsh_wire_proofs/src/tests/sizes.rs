@@ -32,7 +32,7 @@ pub fn largest_grant() -> GrantB {
     GrantB {
         user: vec![b'u'; 32],
         role: vec![b'r'; 16],
-        caps: (0..37).map(|i| format!("C{i:031}").into_bytes()).collect(),
+        caps: (0..nsh_wire::MAX_CAPS).map(|i| format!("C{i:031}").into_bytes()).collect(),
         approvers: vec![[0xA1; 32], [0xA2; 32]],
         ..GrantB::escalation()
     }

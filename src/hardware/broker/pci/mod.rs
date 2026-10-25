@@ -15,7 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod allowlist;
+mod apply;
+mod change;
 mod command;
+mod command_bits;
 pub(crate) mod command_rule;
 mod ident_read;
 pub mod ownership;

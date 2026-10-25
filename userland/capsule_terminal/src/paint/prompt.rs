@@ -24,12 +24,16 @@ use super::user_host::draw_id;
 use crate::term::state::State;
 use crate::term::theme::types::Theme;
 
-/// Draw the prompt, and say how many cells it took.
-///
-/// Two heads, because the line means different things in the two modes. Under
-/// a search the location is replaced by what is being searched for: the
-/// location is not what the reader is looking at, and the line below is a
-/// match rather than something they typed.
+#[path = "prompt_tail.rs"]
+mod prompt_tail;
+#[path = "search_head.rs"]
+mod search_head;
+use prompt_tail::{draw_tail, tail};
+use search_head::{head, width};
+
+/// Draw the prompt, and say how many cells it took. Under a search the
+/// location gives way to what is searched for: the line below is a match,
+/// not something the reader typed.
 pub fn draw_prompt(
     state: &State,
     fb: &mut PaintBuffer,
@@ -49,22 +53,23 @@ pub fn draw_prompt(
     let take = cwd.len().min(room.max(1));
 
     if let Some(search) = &state.search {
-        let shown = take.min(search.needle.len());
-        text(fb, ox, y, b"?", t.accent, adv, px);
-        text(fb, ox + adv, y, &search.needle[..shown], t.fg, adv, px);
-        return 1 + shown + 1;
+        let (label, shown) = head(&search.needle, search.found, room.max(1));
+        let tone = if search.found { t.dim } else { t.err };
+        text(fb, ox, y, label, tone, adv, px);
+        text(fb, ox + label.len() as u32 * adv, y, shown, t.accent, adv, px);
+        return width(label, shown);
     }
 
-    // The mark takes the colour of what the last command did, so a reader who
-    // looked away while it ran learns the outcome where they are about to
-    // type rather than by finding the block it came from.
-    // Who, where, then the mark and a space: `ek@nonos ~/src % `. Read the
-    // other way round, `>~`, it looked like a redirect into a file named `~`.
+    // `ek@nonos ~/src main % `; the mark is coloured by how the last line went.
     let mark = if state.last_status == 0 { t.accent } else { t.err };
     let id = draw_id(fb, ox, y, adv, px, room.max(1), t);
-    let take = take.min(room.max(1) - id);
+    let left = room.max(1) - id;
+    let take = take.min(left);
     let x = ox + id as u32 * adv;
     text(fb, x, y, &cwd[cwd.len() - take..], t.path, adv, px);
-    text(fb, x + (take as u32 + 1) * adv, y, b"%", mark, adv, px);
-    id + take + 3
+    let mut buf = [0u8; 12];
+    let tl = tail(state, &mut buf, left.saturating_sub(3), take);
+    let more = draw_tail(fb, &tl, x + take as u32 * adv, y, m, t);
+    text(fb, x + (take + more + 1) as u32 * adv, y, b"%", mark, adv, px);
+    id + take + more + 3
 }

@@ -16,8 +16,10 @@
 
 use super::table::root_table;
 use crate::arch::x86_64::iommu::tables::context::{entry_address, is_present, root_low};
-use crate::arch::x86_64::iommu::tables::frame::{allocate_table, entries_mut};
+use crate::arch::x86_64::iommu::tables::frame::allocate_table;
+use crate::arch::x86_64::iommu::tables::pair::set_pair;
 use crate::arch::x86_64::iommu::tables::publish::publish;
+use crate::arch::x86_64::iommu::tables::view::Frame;
 use crate::arch::x86_64::iommu::types::VtdError;
 
 /// Root and context entries are 128 bits stored low half first, so entry `i`
@@ -32,16 +34,15 @@ pub(super) const fn slot_of(index: usize) -> usize {
 pub(super) fn context_table_for(bus: u8) -> Result<u64, VtdError> {
     let root = root_table()?;
     let slot = slot_of(bus as usize);
-    let low = entries_mut(root)?[slot];
+    let frame = Frame::at(root)?;
+    let low = frame.read(slot)?;
     if is_present(low) {
         return Ok(entry_address(low));
     }
     let table = allocate_table()?;
-    let entries = entries_mut(root)?;
     // The present bit in the low half publishes the entry, so everything it
     // describes is in place first.
-    entries[slot + 1] = 0;
-    entries[slot] = root_low(table);
+    set_pair(frame, slot, root_low(table), 0)?;
     publish(root);
     Ok(table)
 }

@@ -103,8 +103,7 @@ pub use foreign_signal::{
     mk_foreign_context, mk_foreign_interrupt, mk_foreign_signal, ForeignRegs, SIGNAL_DELIVER,
     SIGNAL_RETURN,
 };
-pub use graphics::{mk_boot_logo, BOOT_LOGO_FILE, BOOT_LOGO_RECORD, BOOT_LOGO_RECORD_LEN};
-pub use graphics::{nonos_display_dimensions, nonos_display_physical_mm};
+pub use graphics::{nonos_display_dimensions, nonos_display_physical_mm, nonos_display_refusal};
 #[cfg(feature = "heap")]
 pub use heap::{init as heap_init, init_sized as heap_init_sized, HeapError};
 pub use install_source::{
@@ -113,8 +112,8 @@ pub use install_source::{
     INSTALL_SOURCE_LOADER_IMAGE,
 };
 pub use ipc::{
-    mk_ipc_call, mk_ipc_call_timeout, mk_ipc_recv, mk_ipc_recv_from, mk_ipc_reply, mk_ipc_send,
-    mk_ipc_send_to_pid, mk_service_lookup, mk_service_register,
+    mk_ipc_call, mk_ipc_call_timeout, mk_ipc_recv, mk_ipc_recv_from, mk_ipc_recv_from_at,
+    mk_ipc_reply, mk_ipc_send, mk_ipc_send_to_pid, mk_service_lookup, mk_service_register,
 };
 pub use local_sign::{
     mk_app_install, mk_app_install_status, mk_app_launch, mk_app_uninstall, mk_local_sign,
@@ -123,21 +122,22 @@ pub use local_sign::{
 pub use mem::{mk_mmap, mk_munmap};
 pub use private_write::mk_private_write;
 pub use proc_output::{mk_proc_input, mk_proc_output, mk_stdin_read};
-pub use process::{mk_args, mk_getpid, mk_kill, mk_pid_alive, mk_wait};
+pub use process::{mk_args, mk_caps_of, mk_getpid, mk_kill, mk_pid_alive, mk_wait};
+pub use process::{CAPS_OF_APP_INSTALL, CAPS_OF_SPAWN_WINDOW};
 pub use procstat::{mk_proc_stat, ProcStatEntry, PROC_FLAG_DEBUG_WITHHELD, PROC_NAME_LEN};
 pub use procstat_header::ProcStatHeader;
 pub use prove::{mk_prove_job, PROVE_JOB_DELIVER, PROVE_JOB_PROVE};
 pub use seal::{mk_seal_note, mk_seal_read, mk_seal_read_live, SEAL_APP_ID, SEAL_DIAG};
 pub use spawn_instance::mk_spawn_instance;
-pub use store::{mk_store_read, mk_store_write};
+pub use store::{mk_keeping, mk_store_read, mk_store_write};
 pub use surface_registry::{
     input_abs_scale, mk_display_vsync_wait, mk_input_event_drain, mk_input_event_post,
     mk_input_event_wait, mk_surface_attach, mk_surface_present, mk_surface_present_rect,
-    mk_surface_register, mk_surface_release, mk_surface_share, InputEvent, SurfaceDescriptor,
-    INPUT_ABS_MAX, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP, INPUT_KIND_KEY_DOWN,
-    INPUT_KIND_KEY_UP, INPUT_KIND_PAD_AXIS, INPUT_KIND_PAD_BUTTON_DOWN, INPUT_KIND_PAD_BUTTON_UP,
-    INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL, INPUT_KIND_TOUCH, INPUT_KIND_WHEEL,
-    SURFACE_FORMAT_ARGB8888,
+    mk_surface_register, mk_surface_release, mk_surface_share, mk_surface_share_to, InputEvent,
+    SurfaceDescriptor, INPUT_ABS_MAX, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP,
+    INPUT_KIND_KEY_DOWN, INPUT_KIND_KEY_UP, INPUT_KIND_PAD_AXIS, INPUT_KIND_PAD_BUTTON_DOWN,
+    INPUT_KIND_PAD_BUTTON_UP, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL, INPUT_KIND_TOUCH,
+    INPUT_KIND_WHEEL, SURFACE_FORMAT_ARGB8888,
 };
 pub use syscall::call_raw as mk_syscall_raw;
 pub use thread::{mk_thread_spawn, Handoff, Look, WorkerSeat, WORKER_STACK};
