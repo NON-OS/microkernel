@@ -20,12 +20,13 @@ use nonos_app_skeleton::PaintBuffer;
 
 use crate::layout::{follow, Layout};
 use crate::paint::block_chrome::draw_block_chrome;
+use super::complete_panel::draw_completions;
 use crate::paint::draw_input_line::draw_input_line;
 use crate::paint::fetch::draw_fetch;
 use crate::paint::footer::draw_footer;
 use crate::paint::geometry::geometry;
 use crate::paint::header::draw_header;
-use crate::paint::hint_sets;
+use crate::paint::footer::hint_sets;
 use crate::paint::vt::{draw_find_bar, draw_vt, Area, Frame, Rows};
 use crate::term::state::State;
 use crate::term::theme::types::Theme;
@@ -56,7 +57,7 @@ pub fn paint(
     if owned {
         draw_vt(&f, fb, Rows::Screen, state.shade());
     } else if state.fresh {
-        draw_fetch(fb, text_x, l.body.y, text_r, t);
+        draw_fetch(fb, (text_x, l.body.y, text_r), t, &state.splash_art);
     } else {
         draw_block_chrome(state, fb, &f.area, rows.first(vt), &m, t);
         draw_vt(&f, fb, rows, state.shade());
@@ -65,6 +66,7 @@ pub fn paint(
         draw_find_bar(find, fb, l.input, m, t);
     } else if !owned {
         draw_input_line(state, fb, l.input, m, t);
+        draw_completions(state, fb, &l, m, t);
     }
     let running = state.fg_running || vt.alt_active();
     let mode = hint_sets::mode(running, state.find.is_some(), state.search.is_some());

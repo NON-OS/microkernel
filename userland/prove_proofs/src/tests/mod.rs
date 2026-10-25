@@ -16,9 +16,11 @@
 
 mod device_tests;
 mod ek_tests;
-mod market_buckets_tests;
 mod job_bound_tests;
+mod job_exit_tests;
 mod job_status_tests;
+mod job_wait_tests;
+mod market_buckets_tests;
 mod market_check_tests;
 mod market_container_tests;
 mod market_delivery_tests;

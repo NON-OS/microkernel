@@ -17,6 +17,12 @@ pub mod search_step;
 #[path = "../../capsule_terminal/src/term/prompt_bits.rs"]
 pub mod prompt_bits;
 
+// Where Tab's candidates are shown, and how they are laid out.
+#[path = "../../capsule_terminal/src/term/complete_list.rs"]
+pub mod complete_list;
+
+#[cfg(test)]
+mod complete_tests;
 #[cfg(test)]
 mod head_tests;
 #[cfg(test)]
