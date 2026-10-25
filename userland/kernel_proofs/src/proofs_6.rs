@@ -36,6 +36,9 @@ mod inventory_ids;
 /// The power-off's leave phase: every disk driver asked, each bounded.
 #[path = "leave_rule/mod.rs"]
 mod leave_rule;
+/// The memory type a MkMmioMap mapping gets: write-combined only where allowed.
+#[path = "mmio_cache/mod.rs"]
+mod mmio_cache;
 /// terminate()'s once: one caller to the wipe, however many race.
 #[path = "terminate_once/mod.rs"]
 mod terminate_once;
