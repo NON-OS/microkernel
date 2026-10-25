@@ -296,7 +296,7 @@ let
       nativeBuildInputs = [ pkgs.gnumake python pkgs.findutils pkgs.coreutils pins.rust ];
     } ''
       cp -r $src tree && chmod -R u+w tree && cd tree
-      for c in capsule store; do
+      for c in capsule capsule-dev store; do
         make -s --no-print-directory NONOS_IN_FLAKE=1 NONOS_QUIET=1 nonos-mk-$c-catalogue 2>/dev/null > $TMPDIR/$c.json
       done
       python3 tools/nix/catalogues.py --check
