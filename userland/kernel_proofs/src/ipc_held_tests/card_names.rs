@@ -56,6 +56,7 @@ fn the_table_names_every_card_the_kernel_starts() {
         include_str!("../../../../src/hardware/pcnet_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/vmxnet3_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/tulip_capsule/spawn.rs"),
+        include_str!("../../../../src/hardware/netvsc_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/cdc_ecm_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/cdc_ncm_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/rndis_capsule/spawn.rs"),
