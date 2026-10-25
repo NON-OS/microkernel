@@ -12,6 +12,13 @@ Part of [the README](../README.md).
 | 0x10 | Memory | bounded reply buffer |
 | 0x200 | Admin | invoke `AdminReboot` / `AdminShutdown` |
 
+Admin is broad: it admits `AdminReboot`, `AdminShutdown` and `AdminPolicyPush`
+alike (`src/syscall/contract/cap_table/admin.rs`), and the first two admit no
+narrower bit; they are this capsule's whole job. Four
+catalogued capsules hold Admin: this one, `policy`, `install` and
+`install-cli` (`tools/nix/capsules.json`). This one uses it only for the
+desktop shell's process, and never calls `AdminPolicyPush`.
+
 `Debug` is **deliberately absent**: power transitions must never
 leak to the serial surface.
 
