@@ -4,6 +4,7 @@
 extern crate alloc;
 
 mod attest_lines;
+mod canvas;
 mod chrome;
 mod detail;
 mod display;
@@ -15,7 +16,6 @@ mod interact;
 mod keys;
 mod layout;
 mod layout_fit;
-mod logo;
 mod look;
 mod paint;
 mod proto;
