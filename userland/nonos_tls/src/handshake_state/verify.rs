@@ -64,7 +64,7 @@ impl HandshakeState {
             None => transcript_hash,
         };
         Ok(ServerComplete {
-            handshake: self.keys,
+            handshake: self.keys.clone(),
             app,
             transcript_hash,
             certificates,

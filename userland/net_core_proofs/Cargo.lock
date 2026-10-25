@@ -90,12 +90,17 @@ name = "net_core_proofs"
 version = "0.1.0"
 dependencies = [
  "net_proofs_shim",
+ "nonos_policy_proto",
  "smoltcp",
 ]
 
 [[package]]
 name = "net_proofs_shim"
 version = "0.1.0"
+
+[[package]]
+name = "nonos_policy_proto"
+version = "0.3.0"
 
 [[package]]
 name = "proc-macro2"

@@ -28,10 +28,7 @@ pub struct CFI {
 }
 impl CFI {
     pub fn new() -> Self {
-        Self {
-            enabled: AtomicBool::new(false),
-            targets: RwLock::new(BTreeMap::new()),
-        }
+        Self { enabled: AtomicBool::new(false), targets: RwLock::new(BTreeMap::new()) }
     }
     pub fn add_target(&self, addr: u64, sig: u32) {
         self.targets.write().insert(addr, sig);
@@ -56,11 +53,12 @@ impl ASLR {
     pub fn new(entropy: u32) -> Self {
         Self { entropy_bits: entropy, enabled: AtomicBool::new(true) }
     }
-    pub fn randomize(&self, base: u64) -> u64 {
+    /// `None` when no randomness answers; a slide is never made without it.
+    pub fn randomize(&self, base: u64) -> Option<u64> {
         if !self.enabled.load(Ordering::Relaxed) {
-            return base;
+            return Some(base);
         }
-        let slide = crate::crypto::secure_random_u64() & ((1 << self.entropy_bits) - 1);
-        (base + (slide << 12)) & 0xFFFF_FFFF_FFFF_F000
+        let slide = crate::crypto::secure_random_u64().ok()? & ((1 << self.entropy_bits) - 1);
+        Some((base + (slide << 12)) & 0xFFFF_FFFF_FFFF_F000)
     }
 }
