@@ -2,7 +2,7 @@
 # each type-checked once so their code still compiles. Compile only: no nix,
 # no image, no boot, a debug check with no signing key in the environment, so
 # nothing it produces could be signed or booted. It is the one lane
-# scripts/check_proof_features.py allows to name the SMP boot proofs, and the
+# scripts/check_proof_features.py allows to name the boot proofs, and the
 # lane scripts/check_dark_features.py counts them as lit by. The Makefile reads
 # it outside the flake shell too, so it is guarded against a second include;
 # rust-toolchain.toml picks the toolchain.
@@ -17,5 +17,6 @@ check-dark-features:
 	$(DARK_CHECK) --features nonos-smp,nonos-shootdown-trace
 	$(DARK_CHECK) --features nonos-smp,nonos-smp-park-proof
 	$(DARK_CHECK) --features nonos-smp,nonos-smp-stuck-proof
+	$(DARK_CHECK) --features nonos-panic-proof
 	$(DARK_CHECK) --features pqc-unvetted
 endif
