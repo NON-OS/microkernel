@@ -29,6 +29,10 @@ mod router_bond_tests;
 mod router_bond_wire_tests;
 #[path = "router_brightness_key_tests.rs"]
 mod router_brightness_key_tests;
+#[path = "router_display_tests.rs"]
+mod router_display_tests;
+#[path = "router_mode_tests.rs"]
+mod router_mode_tests;
 #[path = "router_focus_tests.rs"]
 mod router_focus_tests;
 #[path = "router_hold_end_tests.rs"]
