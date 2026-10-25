@@ -19,6 +19,7 @@ python3 -m unittest discover -s scripts -p 'test_*.py'."""
 
 import unittest
 
+from bootmatrix import devices
 from bootmatrix.device_table import DEVICE_CELLS, nic
 from bootmatrix.qemu import command
 from bootmatrix.run import Paths
@@ -31,7 +32,15 @@ class NicCells(unittest.TestCase):
         self.assertIn("rtl8139,netdev=cellnet", argv)
         self.assertIn("user,id=cellnet", argv)
         self.assertEqual([c.name for c in DEVICE_CELLS if "-nic-" in c.name],
-                         ["q35-iommu-nic-e1000", "q35-iommu-nic-rtl8139"])
+                         ["q35-iommu-nic-e1000", "q35-iommu-nic-rtl8139", "q35-iommu-nic-igb"])
+
+    def test_the_igb_cell_fails_on_any_uncovered_claim(self):
+        igb = next(c for c in DEVICE_CELLS if c.name == "q35-iommu-nic-igb")
+        served = "\n".join(igb.expect) + "\n"
+        self.assertEqual(devices.verdict(igb, served), [])
+        bad = devices.verdict(igb, served + "[VT-D] refused: no remapping unit confines it\n")
+        self.assertEqual(bad, ["device cell: a line 'no remapping unit confines it'"])
+        self.assertEqual(nic("e1000").forbid, ())
 
     def test_every_cell_boots_under_an_iommu(self):
         # Fail closed (confine/decide.rs): with no remapping unit every DMA
