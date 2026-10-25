@@ -11,6 +11,11 @@ test-lane = true
 [lib]
 crate-type = ["rlib"]
 
+[features]
+# A local test chain, for development images only (P5): never in a release
+# profile, which nonos-ci's devnet check holds to.
+devnet = []
+
 [dependencies]
 
 # keccak-256 on the host only, so the tests derive every pinned hash
