@@ -55,5 +55,12 @@ pub fn bringup_controller() -> Arc<FakeBar> {
 }
 
 pub fn found() -> Found {
-    Found { device_id: 7, bar0_size: WINDOW as u64, vendor: 0x1b36, device: 0x000d }
+    Found {
+        device_id: 7,
+        bar0_size: WINDOW as u64,
+        vendor: 0x1b36,
+        device: 0x000d,
+        on_pci: true,
+        spi: 0,
+    }
 }

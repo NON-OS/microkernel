@@ -7,8 +7,9 @@
 //! capsule-store app uses the generated tile since it ships no artwork we
 //! embed, and all three carry a centred label underneath.
 
+use super::cells::cell_origin;
 use super::gen_icon;
-use super::grid::{cell_h, cell_origin, cell_w, tile};
+use super::grid::{cell_h, cell_w, tile};
 use super::hit::Target;
 use super::tool_icons;
 use crate::apps_off::is_off;
@@ -42,12 +43,12 @@ pub(super) fn paint(ctx: &Context, cell: usize, t: Target) {
             tool.label
         }
         Target::Installed(i) => {
-            let Some(name) = ctx.installed_apps.get(i) else { return };
+            let Some(name) = ctx.store_apps.installed_apps.get(i) else { return };
             gen_icon::draw(ctx, icon_x, cy, tile(), name);
             name.as_slice()
         }
         Target::Package(i) => {
-            let Some(name) = ctx.pkg_files.get(i) else { return };
+            let Some(name) = ctx.store_apps.pkg_files.get(i) else { return };
             let stem = name.strip_suffix(".nonos").unwrap_or(name.as_str());
             gen_icon::draw(ctx, icon_x, cy, tile(), stem.as_bytes());
             stem.as_bytes()

@@ -47,3 +47,14 @@ mod tests_random;
 mod tests_remove;
 #[cfg(test)]
 mod tests_streamed;
+#[cfg(test)]
+mod tests_withdraw;
+#[cfg(test)]
+mod tests_withdraw_kept;
+#[cfg(test)]
+mod tests_withdraw_erase;
+#[cfg(test)]
+mod tests_erase;
+#[cfg(test)]
+#[path = "../vfs_persist_rule_tests.rs"]
+mod vfs_persist_rule_tests;

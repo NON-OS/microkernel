@@ -15,12 +15,29 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::vec::Vec;
-use nonos_inflate::gunzip;
-use nonos_libc::{mk_time_millis, mk_yield};
 
-use super::conn::{connect, Conn, Rx, Transport};
-use super::framing;
 use super::http;
+
+#[path = "fetch_body.rs"]
+mod fetch_body;
+#[path = "fetch_head.rs"]
+mod fetch_head;
+#[path = "fetch_head_reuse.rs"]
+mod fetch_head_reuse;
+#[path = "fetch_keep.rs"]
+mod fetch_keep;
+#[path = "fetch_once.rs"]
+mod fetch_once;
+#[path = "fetch_retry.rs"]
+mod fetch_retry;
+#[path = "fetch_reuse.rs"]
+mod fetch_reuse;
+
+use fetch_body::decode;
+pub use fetch_head_reuse::head_reuse;
+pub use fetch_keep::get_on;
+pub use fetch_retry::get;
+pub use fetch_reuse::get_reuse;
 
 pub const MAX_FETCH: usize = 64 * 1024 * 1024;
 const CLOSE_WAIT: u8 = 4;
@@ -36,184 +53,6 @@ pub enum Fetched {
 
 fn is_redirect(status: u16) -> bool {
     matches!(status, 301 | 302 | 303 | 307 | 308)
-}
-
-pub fn get(
-    ip: [u8; 4],
-    port: u16,
-    host: &[u8],
-    path: &[u8],
-    extra: &[u8],
-) -> Result<Fetched, &'static str> {
-    let mut last = "connect failed";
-    for i in 0..RETRIES {
-        match attempt(ip, port, host, path, extra) {
-            Ok(body) => return Ok(body),
-            Err((false, e)) => return Err(e),
-            Err((true, e)) => {
-                last = e;
-                if i + 1 < RETRIES {
-                    backoff(BACKOFF_MS);
-                }
-            }
-        }
-    }
-    Err(last)
-}
-
-fn fetch_body(
-    conn: &mut Option<Conn>,
-    ip: [u8; 4],
-    port: u16,
-    host: &[u8],
-    path: &[u8],
-    extra: &[u8],
-) -> Result<Fetched, &'static str> {
-    for _ in 0..2 {
-        if conn.is_none() {
-            *conn = connect(ip, port);
-        }
-        let c = match conn {
-            Some(c) => c,
-            None => break,
-        };
-        match get_on(&*c, host, path, extra) {
-            Ok(f) => return Ok(f),
-            Err((false, e)) => return Err(e),
-            Err((true, _)) => {
-                if let Some(c) = conn.take() {
-                    c.close();
-                }
-            }
-        }
-    }
-    get(ip, port, host, path, extra)
-}
-
-pub fn get_reuse(
-    conn: &mut Option<Conn>,
-    ip: [u8; 4],
-    port: u16,
-    host: &[u8],
-    path: &[u8],
-    extra: &[u8],
-) -> Result<Vec<u8>, &'static str> {
-    let mut cur = path.to_vec();
-    for _ in 0..MAX_HOPS {
-        match fetch_body(conn, ip, port, host, &cur, extra)? {
-            Fetched::Body(b) => return Ok(b),
-            Fetched::Redirect(loc) => {
-                if let Some(c) = conn.take() {
-                    c.close();
-                }
-                cur = super::redirect::resolve(host, &cur, &loc)?;
-            }
-        }
-    }
-    Err("too many redirects")
-}
-
-pub fn head_reuse(
-    conn: &mut Option<Conn>,
-    ip: [u8; 4],
-    port: u16,
-    host: &[u8],
-    path: &[u8],
-    extra: &[u8],
-) -> Option<usize> {
-    for _ in 0..2 {
-        if conn.is_none() {
-            *conn = connect(ip, port);
-        }
-        let c = match conn {
-            Some(c) => c,
-            None => return None,
-        };
-        if let Some(n) = head_len(&*c, host, path, extra) {
-            return Some(n);
-        }
-        if let Some(c) = conn.take() {
-            c.close();
-        }
-    }
-    None
-}
-
-fn head_len<T: Transport>(conn: &T, host: &[u8], path: &[u8], extra: &[u8]) -> Option<usize> {
-    if !conn.send(&http::build_head(host, path, extra)) {
-        return None;
-    }
-    let mut raw = Vec::new();
-    let mut empties = 0u32;
-    loop {
-        if let Some(head) = http::parse_head(&raw) {
-            if head.status != 200 {
-                return None;
-            }
-            return head.content_length;
-        }
-        match conn.recv(&mut raw) {
-            Rx::Data => empties = 0,
-            Rx::Empty => {
-                if conn.state() >= CLOSE_WAIT {
-                    return None;
-                }
-                empties += 1;
-                if empties > EMPTY_BUDGET {
-                    return None;
-                }
-            }
-            Rx::Gone => return None,
-        }
-        if raw.len() > MAX_FETCH {
-            return None;
-        }
-    }
-}
-
-fn attempt(
-    ip: [u8; 4],
-    port: u16,
-    host: &[u8],
-    path: &[u8],
-    extra: &[u8],
-) -> Result<Fetched, (bool, &'static str)> {
-    let conn = connect(ip, port).ok_or((true, "connect failed"))?;
-    if !conn.send(&http::build_get(host, path, extra)) {
-        conn.close();
-        return Err((true, "send failed"));
-    }
-    let mut raw = Vec::new();
-    let mut empties = 0u32;
-    loop {
-        match conn.recv(&mut raw) {
-            Rx::Data => empties = 0,
-            Rx::Empty => {
-                if conn.state() >= CLOSE_WAIT {
-                    break;
-                }
-                empties += 1;
-                if empties > EMPTY_BUDGET {
-                    conn.close();
-                    return Err((true, "recv stalled"));
-                }
-            }
-            Rx::Gone => break,
-        }
-        if raw.len() > MAX_FETCH {
-            conn.close();
-            return Err((false, "response too large"));
-        }
-    }
-    conn.close();
-    finish(&raw).map_err(|e| (false, e))
-}
-
-fn backoff(ms: i64) {
-    let start = mk_time_millis();
-    while mk_time_millis().wrapping_sub(start) < ms {
-        mk_yield();
-    }
 }
 
 fn finish(raw: &[u8]) -> Result<Fetched, &'static str> {
@@ -232,56 +71,4 @@ fn finish(raw: &[u8]) -> Result<Fetched, &'static str> {
         None => &raw[head.body_off..],
     };
     decode(body, head.gzip).map(Fetched::Body).map_err(|(_, e)| e)
-}
-
-fn decode(body: &[u8], gzip: bool) -> Result<Vec<u8>, (bool, &'static str)> {
-    if gzip {
-        let out = gunzip(body).ok_or((false, "gunzip failed"))?;
-        if out.len() > MAX_FETCH {
-            return Err((false, "response too large"));
-        }
-        Ok(out)
-    } else {
-        Ok(body.to_vec())
-    }
-}
-
-pub fn get_on<T: Transport>(
-    conn: &T,
-    host: &[u8],
-    path: &[u8],
-    extra: &[u8],
-) -> Result<Fetched, (bool, &'static str)> {
-    if !conn.send(&http::build_get_ka(host, path, extra)) {
-        return Err((true, "send failed"));
-    }
-    let mut raw = Vec::new();
-    let mut empties = 0u32;
-    loop {
-        if let Some(f) = framing::frame(&raw)? {
-            if f.status == 200 {
-                return decode(&raw[f.body], f.gzip).map(Fetched::Body);
-            }
-            return match f.location {
-                Some(loc) if is_redirect(f.status) => Ok(Fetched::Redirect(loc)),
-                _ => Err((false, "http status not 200")),
-            };
-        }
-        match conn.recv(&mut raw) {
-            Rx::Data => empties = 0,
-            Rx::Empty => {
-                if conn.state() >= CLOSE_WAIT {
-                    return Err((true, "truncated body"));
-                }
-                empties += 1;
-                if empties > EMPTY_BUDGET {
-                    return Err((true, "recv stalled"));
-                }
-            }
-            Rx::Gone => return Err((true, "connection closed")),
-        }
-        if raw.len() > MAX_FETCH {
-            return Err((false, "response too large"));
-        }
-    }
 }

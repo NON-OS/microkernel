@@ -14,4 +14,5 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) const READINESS_LEN: usize = 7;
+/// The verdict, eleven gates and the bond's code: market_proto's length.
+pub(super) const READINESS_LEN: usize = nonos_market_proto::READINESS_LEN;

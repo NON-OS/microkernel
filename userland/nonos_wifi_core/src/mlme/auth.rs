@@ -18,13 +18,14 @@
 //! that BSS to this station counts (another station's refusal on the same
 //! channel used to fail the join). Open System needs transaction 2 with
 //! status 0; SAE frames go to the SAE exchange, which answers, accepts with a
-//! PMK, or fails with its reason.
+//! PMK, or discards the frame (only the driver's deadline ends it).
 
 use super::failure::MlmeFailure;
 use super::state::{Mlme, MlmeOutput};
 use crate::dot11::auth::{auth_frame, parse_auth};
 use crate::sae::frame::AUTH_ALG_SAE;
 use crate::sae::SaeStep;
+use crate::vault::wipe;
 use crate::wpa::akm::Akm;
 
 /// Open System: algorithm 0, the response is transaction 2.
@@ -37,7 +38,7 @@ impl Mlme {
         let Some(auth) = parse_auth(frame, &us, &bssid) else {
             return MlmeOutput::none();
         };
-        if self.akm() != Some(Akm::Sae) {
+        if self.akm() != Some(Akm::Sae) || self.cache_used {
             if auth.algorithm != AUTH_ALG_OPEN || auth.seq != OPEN_RESPONSE_SEQ {
                 return MlmeOutput::none();
             }
@@ -57,21 +58,12 @@ impl Mlme {
                 let sc = self.next_seq();
                 MlmeOutput::send(auth_frame(us, bssid, sc, AUTH_ALG_SAE, seq, status, &body))
             }
-            SaeStep::Accepted => match sae.pmk() {
-                Some((pmk, _pmkid)) => {
-                    self.pmk = pmk;
-                    self.assoc_request()
-                }
-                None => self.fail(MlmeFailure::NoEntropy),
-            },
-            SaeStep::Ignore => MlmeOutput::none(),
-            SaeStep::Failed => {
-                let why = sae.failure();
-                match why {
-                    Some(f) => self.fail(MlmeFailure::Sae(f)),
-                    None => self.fail(MlmeFailure::NoEntropy),
-                }
+            SaeStep::Accepted { mut pmk } => {
+                (self.pmk, self.pmkid) = (pmk, sae.pmkid());
+                wipe(&mut pmk);
+                self.assoc_request()
             }
+            SaeStep::Ignore => MlmeOutput::none(),
         }
     }
 }

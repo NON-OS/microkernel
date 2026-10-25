@@ -19,12 +19,13 @@
 //! Realtek parts offer MSI and no MSI-X, and without an ACPI _PRT walk their
 //! INTx line from config space may not name the pin they are wired to.
 
-use super::super::grant::{IrqGrant, IrqGrantKind, NO_LINE};
+use super::super::grant::{IrqGrant, IrqGrantKind};
 use super::super::types::{IrqBindError, IrqBindRequest, IrqBindResult};
 use super::super::validate::validate_msi_request;
 use super::super::{records, slots};
 use super::msi_route::program_slot;
 use super::quiet::msix_off;
+use super::sentinels::NO_LINE;
 use crate::hardware::broker::pci_index;
 
 pub(super) fn bind_msi(
@@ -45,12 +46,13 @@ pub(super) fn bind_msi(
         Ok(r) => r,
         Err(e) => {
             slots::free_slot(slot);
-            crate::log::info!("[IRQ] {} msi bind failed: {:?}", handle.address, e);
+            crate::log::info!("[IRQ] msi bind failed: {:?}", e);
             return Err(e);
         }
     };
     let grant_id = records::allocate_id();
-    records::insert(IrqGrant {
+    slots::activate(slot, grant_id, NO_LINE);
+    super::enter::enter(&[IrqGrant {
         grant_id,
         pid,
         device_id: req.device_id,
@@ -61,8 +63,8 @@ pub(super) fn bind_msi(
         kind: IrqGrantKind::Msi,
         device_vector: 0,
         irte,
-    });
-    slots::activate(slot, grant_id, NO_LINE);
-    crate::log::info!("[IRQ] {} msi vector {:#x}", handle.address, vector);
-    Ok(IrqBindResult { grant_id, vector })
+    }])?;
+    // No bus address on the line (K10).
+    crate::log::info!("[IRQ] msi vector {:#x}", vector);
+    Ok(IrqBindResult { grant_id, vector, grants: 1 })
 }

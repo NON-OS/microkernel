@@ -16,6 +16,7 @@
 
 mod describe;
 mod failure;
+mod firmware;
 mod init;
 mod state;
 

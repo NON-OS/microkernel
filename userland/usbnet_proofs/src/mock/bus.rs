@@ -7,7 +7,7 @@ use std::collections::VecDeque;
 use std::rc::Rc;
 
 use super::script::{Call, Responder, Script};
-use crate::bus::{Bus, Pipes};
+use crate::bus::{Bus, Notify, Pipes};
 use crate::setup::Setup;
 
 #[derive(Clone)]
@@ -15,7 +15,8 @@ pub struct MockBus(pub Rc<RefCell<Script>>);
 
 impl MockBus {
     pub fn new(respond: Responder) -> Self {
-        let s = Script { calls: vec![], bulk_in: VecDeque::new(), bulk_out_fails: None, respond };
+        let (calls, bulk_in, notices) = (vec![], VecDeque::new(), VecDeque::new());
+        let s = Script { calls, bulk_in, bulk_out_fails: None, notices, respond };
         Self(Rc::new(RefCell::new(s)))
     }
 
@@ -55,5 +56,19 @@ impl Bus for MockBus {
     fn reset_bulk(&mut self, dir_in: bool) -> Result<(), i32> {
         self.0.borrow_mut().calls.push(Call::ResetBulk(dir_in));
         Ok(())
+    }
+    /// The endpoint's DCI as a host numbers an IN endpoint: 2n + 1.
+    fn configure_interrupt(&mut self, ep: Notify) -> Result<u8, i32> {
+        Ok(2 * (ep.address & 0x0F) + 1)
+    }
+    fn interrupt_out(&mut self, dci: u8, data: &[u8]) -> Result<usize, i32> {
+        self.0.borrow_mut().calls.push(Call::InterruptOut(dci, data.to_vec()));
+        Ok(data.len())
+    }
+    fn interrupt_in_poll(&mut self, _dci: u8, out: &mut [u8]) -> Result<Option<usize>, i32> {
+        let Some(n) = self.0.borrow_mut().notices.pop_front() else { return Ok(None) };
+        let len = n.len().min(out.len());
+        out[..len].copy_from_slice(&n[..len]);
+        Ok(Some(len))
     }
 }

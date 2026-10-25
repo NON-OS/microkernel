@@ -16,12 +16,12 @@
 //! Replies for the bulk operations: the status, a four-byte prefix, and
 //! for a bulk IN the bytes that came in.
 use crate::protocol::{encode_response_header, write_status, Request, RESP_HDR_LEN, STATUS_LEN};
-pub(super) fn send_prefix(tx: &mut [u8], req: &Request, prefix: [u8; 4]) {
+pub(crate) fn send_prefix(tx: &mut [u8], req: &Request, prefix: [u8; 4]) {
     send_with_data(tx, req, prefix, 0);
 }
 /// Send the reply whose `data_len` data bytes the caller already wrote
 /// after the prefix.
-pub(super) fn send_with_data(tx: &mut [u8], req: &Request, prefix: [u8; 4], data_len: usize) {
+pub(crate) fn send_with_data(tx: &mut [u8], req: &Request, prefix: [u8; 4], data_len: usize) {
     let plen = STATUS_LEN + prefix.len() + data_len;
     encode_response_header(tx, req, plen as u32);
     write_status(&mut tx[RESP_HDR_LEN..], 0);
@@ -30,4 +30,4 @@ pub(super) fn send_with_data(tx: &mut [u8], req: &Request, prefix: [u8; 4], data
     crate::server::reply::send(tx.as_ptr(), RESP_HDR_LEN + plen);
 }
 /// Where the data of a bulk IN reply starts in `tx`.
-pub(super) const DATA_AT: usize = RESP_HDR_LEN + STATUS_LEN + 4;
+pub(crate) const DATA_AT: usize = RESP_HDR_LEN + STATUS_LEN + 4;

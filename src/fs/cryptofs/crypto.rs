@@ -25,7 +25,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use crate::crypto::chacha20poly1305::{aead_decrypt, aead_encrypt};
-use crate::crypto::rng::fill_random_bytes;
+use crate::crypto::rng::fill_random_bytes_secure;
 use crate::crypto::util::hmac::pbkdf2_hmac_sha256;
 
 use super::error::{CryptoFsError, CryptoResult};
@@ -46,10 +46,10 @@ pub fn derive_key(path: &str, salt: &[u8; SALT_SIZE]) -> [u8; KEY_SIZE] {
     key
 }
 
-pub fn generate_nonce() -> [u8; NONCE_SIZE] {
+pub fn generate_nonce() -> CryptoResult<[u8; NONCE_SIZE]> {
     let mut nonce = [0u8; NONCE_SIZE];
-    fill_random_bytes(&mut nonce);
-    nonce
+    fill_random_bytes_secure(&mut nonce).map_err(|_| CryptoFsError::RngFailed)?;
+    Ok(nonce)
 }
 
 pub fn encrypt_data(

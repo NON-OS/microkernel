@@ -10,13 +10,13 @@ What a machine needs to boot NONOS 0.9.2 from a USB stick, and to install it on 
 | [Secure Boot and a TPM](#secure-boot-and-the-tpm) | neither, for Standard on a `standard` image; both, for Hardened |
 | [Memory](#memory) | no set minimum; the amount decides what runs |
 | [USB stick](#usb-stick) | 2 GB or more |
-| [Install disk](#a-disk-to-install-to) | NVMe, SATA or Intel eMMC, 2177 MiB or more, with 512-byte blocks; the whole disk |
+| [Install disk](#a-disk-to-install-to) | NVMe or SATA, 2177 MiB or more, with 512-byte blocks; the whole disk |
 | [Network](#network) | optional |
 
 ## Processor and firmware
 
 - An x86_64 processor, with one core or many. NONOS starts every core the firmware enables, up to 256, and uses them all. The image carries one loader, `EFI/BOOT/BOOTX64.EFI`, and an x86_64 kernel.
-- UEFI firmware. The stick is a GPT disk whose only boot path is its EFI system partition, the [ESP](../overview/glossary.md#esp). There is no legacy BIOS path.
+- UEFI firmware. The stick is a GPT disk whose only boot path is its EFI system partition, the [ESP](../overview/glossary-dma-pool.md#esp). There is no legacy BIOS path.
 - The NX bit, and at least 36 bits of physical address. The loader stops on a processor without them, and its reason reads `This CPU has no NX bit` or `This CPU addresses under 36 bits of physical memory`.
 - A hardware random source. Every boot entry needs one for the boot's keys, and the menu lists `HARDWARE RNG` as missing when none answers. The loader's own advice is to turn on RDRAND or the TPM in the firmware, or to give a virtual machine a virtio-rng device.
 
@@ -27,18 +27,18 @@ What the firmware must have on depends on the boot entry you pick and on how the
 | Entry | Secure Boot | TPM 2.0 |
 |---|---|---|
 | Standard, Safe Mode, Recovery, Install | not needed | optional |
-| Air-Gapped | not needed | needed, for the [rollback floor](../overview/glossary.md#rollback-floor) |
+| Air-Gapped | not needed | needed, for the [rollback floor](../overview/glossary-peer-list.md#rollback-floor) |
 | Hardened | on, with a platform key (PK) and a signature database (db) | needed |
 
-These are the floors of an image built with the `standard`, `qemu` or `core` [build profile](../overview/glossary.md#build-profile). An image built `hardened` or `airgapped` uses the loader's production policy: every entry then needs [Secure Boot](../overview/glossary.md#secure-boot) and a [TPM](../overview/glossary.md#tpm), because the menu can raise the build's floor and never lower it. The menu shows that floor as `BUILD FLOOR`, beside the Secure Boot and TPM state, before you choose.
+These are the floors of an image built with the `standard`, `qemu` or `core` [build profile](../overview/glossary-boot-root-record.md#build-profile). An image built `hardened` or `airgapped` uses the loader's production policy: every entry then needs [Secure Boot](../overview/glossary-rollback-index.md#secure-boot) and a [TPM](../overview/glossary-stark-proof.md#tpm), because the menu can raise the build's floor and never lower it. The menu shows that floor as `BUILD FLOOR`, beside the Secure Boot and TPM state, before you choose.
 
-Unless the NONOS db certificate is enrolled in your firmware, turn Secure Boot off and boot Standard. Firmware with Secure Boot on starts a loader only when its own db trusts the signature, and the [seal](../overview/glossary.md#seal) signs `BOOTX64.EFI` with the NONOS db key and no other. Without that key the loader is not signed for Secure Boot at all, and a `--release` seal of a `hardened` or `airgapped` image stops. With Secure Boot off the firmware starts any loader; [Boot chain and signatures](../security/boot-chain-and-signatures.md#secure-boot) says what still holds. A `hardened` or `airgapped` image cannot boot that way, because every entry on it needs Secure Boot. This release documents no procedure for the enrollment, and booting with Secure Boot on is not tested in this release.
+Unless the NONOS db certificate is enrolled in your firmware, turn Secure Boot off and boot Standard. Firmware with Secure Boot on starts a loader only when its own db trusts the signature, and the [seal](../overview/glossary-rollback-index.md#seal) signs `BOOTX64.EFI` with the NONOS db key and no other. Without that key the loader is not signed for Secure Boot at all, and a `--release` seal of a `hardened` or `airgapped` image stops. With Secure Boot off the firmware starts any loader; [Boot chain and signatures](../security/boot-chain-and-signatures.md#secure-boot) says what still holds. A `hardened` or `airgapped` image cannot boot that way, because every entry on it needs Secure Boot. This release documents no procedure for the enrollment, and booting with Secure Boot on is not tested in this release.
 
 A Standard boot runs without a TPM, with these things missing:
 
 - No rollback floor. The menu shows `ROLLBACK` with `NO COUNTER`, the loader notes `No TPM: rollback protection is off`, and an older signed kernel would boot.
 - No measured check of the loader. The kernel checks the loader file the loader handed over, on the loader's own word, and its log says `self-reported, not measured`.
-- No key for an installed disk's [data volume](../overview/glossary.md#data-volume). The kernel derives that key from the TPM, and without one it leaves the volume closed.
+- No key for an installed disk's [data volume](../overview/glossary-claim-epoch.md#data-volume). The kernel derives that key from the TPM, and without one it leaves the volume closed.
 - No remembered Wi-Fi networks. A remembered passphrase is sealed with ChaCha20-Poly1305 under a key the TPM derives, and is never written in the clear. Without a TPM, remembering a network fails with `No TPM to seal the passphrase with`.
 
 ## Memory
@@ -55,7 +55,7 @@ The sealed image `nonos.img` is 1,043,148,800 bytes, about 995 MiB:
 
 | Part | Size |
 |---|---|
-| Partition table, [package store](../overview/glossary.md#store), [disk plan](../overview/glossary.md#disk-plan) and ESP | 384 MiB |
+| Partition table, [package store](../overview/glossary-linux-personality.md#store), [disk plan](../overview/glossary-claim-epoch.md#disk-plan) and ESP | 384 MiB |
 | The Qwen3 0.6B model file, laid past the ESP | 639,446,688 bytes, rounded up to whole sectors |
 | Room for the backup partition table | 1 MiB |
 
@@ -63,7 +63,7 @@ Use a stick of 2 GB or more. Writing the image erases everything on the stick.
 
 ## A disk to install to
 
-- An NVMe disk, a SATA disk on an AHCI controller, or an Intel eMMC host, which the SATA driver also serves. Under QEMU, a virtio disk. The installer lists disks from the NVMe, SATA and virtio-blk drivers only, so a USB disk is never a target.
+- An NVMe disk or a SATA disk on an AHCI controller. Under QEMU, a virtio disk. A USB disk is never a target. eMMC and UFS installs are not in 0.9.3: their driver capsules have no publisher key and are not in a shipped image. The installer would list their disks (`ALL` in `userland/nonos_blk_client/src/driver/table.rs`), but no image starts `driver.sdhci0` or `driver.ufs0`.
 - At least 2177 MiB, which a drive label calls 2.3 GB.
 - 512-byte logical blocks. A disk with 4096-byte blocks is listed and refused.
 - Preferably, the firmware's storage mode set to AHCI. With Intel RST in RAID mode the SATA driver still takes the controller, and with VMD on the kernel brings up the drives behind it, but that bring-up has not run on a machine with a VMD ([Intel VMD](../drivers/storage/vmd.md)). When an RST or VMD controller is on the bus and no disk shows, the installer says so; set the mode to AHCI then.
@@ -112,8 +112,8 @@ These items were reported working on one machine: Wi-Fi on the Realtek RTL8821CE
   - 1 MiB kept for the backup table: `GPT_TAIL` in `tools/nonos_seal/media.py:44`.
   - The model file's size: `QWEN3` in `userland/capsule_linux/src/linux/file/models/pinned_qwen3.rs:27-31`.
 - A disk to install to
-  - The Intel eMMC host on the SATA driver: `Emmc` in `userland/nonos_blk_client/src/driver/pci.rs:35-37`.
-  - Disks from the NVMe, SATA and virtio-blk drivers only: `ALL` in `userland/nonos_blk_client/src/driver/table.rs:31`.
+  - The drivers the installer asks: `ALL` in `userland/nonos_blk_client/src/driver/table.rs`.
+  - The capsules an image carries: `DESKTOP_BASE_SLUGS` in `mk/20-build.mk`, which names no `driver-sdhci` or `driver-ufs`.
   - 2177 MiB: `MIN_DISK_SECTORS` in `userland/nonos_disk/src/layout/sizes.rs:34-38`.
   - 4096-byte blocks refused: `refusal` in `userland/nonos_blk_client/src/disks/describe.rs:48-56`.
   - RST in RAID mode taken by the SATA driver: `is_ahci_function` in `userland/capsule_driver_ahci/src/discover/rule.rs:46-55`.

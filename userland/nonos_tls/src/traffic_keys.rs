@@ -13,15 +13,35 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use alloc::boxed::Box;
+use core::ops::Deref;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[path = "traffic_secrets.rs"]
+mod secrets;
+pub use secrets::{wipe, Secrets};
+
+/// One stage of a connection's keys. The secrets live in one heap block the
+/// value points to, written there by `build` and nowhere else, so moving a
+/// `TrafficKeys` copies a pointer and the suite, never a secret; dropping it
+/// wipes the block where it lies. Not `Copy`.
+#[derive(Clone, PartialEq, Eq)]
 pub struct TrafficKeys {
     pub suite: u16,
-    pub handshake_secret: [u8; 32],
-    pub client_secret: [u8; 32],
-    pub server_secret: [u8; 32],
-    pub client_key: [u8; 32],
-    pub client_iv: [u8; 12],
-    pub server_key: [u8; 32],
-    pub server_iv: [u8; 12],
+    secrets: Box<Secrets>,
+}
+
+impl TrafficKeys {
+    /// Keys `fill` writes into their block in place; `None`, with the block
+    /// wiped, when it fails.
+    pub fn build(suite: u16, fill: impl FnOnce(&mut Secrets) -> bool) -> Option<Self> {
+        let mut secrets = Box::<Secrets>::default();
+        fill(&mut secrets).then_some(Self { suite, secrets })
+    }
+}
+
+impl Deref for TrafficKeys {
+    type Target = Secrets;
+    fn deref(&self) -> &Secrets {
+        &self.secrets
+    }
 }

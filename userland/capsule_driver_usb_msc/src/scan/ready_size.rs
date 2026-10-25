@@ -21,9 +21,9 @@ use crate::disk::{capacity, test_ready, Disk, Unit};
 use crate::protocol::{E_IO, E_NOMEDIUM};
 use crate::state::State;
 
-/// UNIT ATTENTIONs a TEST UNIT READY is sent again past, as Linux's
-/// sd_spinup_disk sends it three times while one is said: a reader that
-/// starts its card again after a reset says a power-on, then a medium change.
+/// UNIT ATTENTIONs a TEST UNIT READY is sent again past: a reader that
+/// starts its card again after a reset says a power-on, then a medium
+/// change (as observed, unverified), one UNIT ATTENTION per command.
 const ATTENTIONS: usize = 2;
 
 /// Whether `disk` is ready, and the size it says now. What a UNIT

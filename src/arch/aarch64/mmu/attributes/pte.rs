@@ -30,6 +30,7 @@ pub const PTE_SH_OS: u64 = 0b10 << 8;
 pub const PTE_SH_IS: u64 = 0b11 << 8;
 pub const PTE_AF: u64 = 1 << 10;
 pub const PTE_NG: u64 = 1 << 11;
+pub const PTE_GP: u64 = 1 << 50;
 pub const PTE_CONT: u64 = 1 << 52;
 pub const PTE_PXN: u64 = 1 << 53;
 pub const PTE_UXN: u64 = 1 << 54;

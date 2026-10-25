@@ -139,7 +139,7 @@ fn map_one(
     // SAFETY: the `Broker` contract keeps `grant.length` bytes at `user_va`
     // valid until the grant is unmapped, and `in_page + usable` is within
     // that length (checked above).
-    let region = unsafe { Mmio::new(base as *mut u8, plan.usable) };
+    let region = unsafe { Mmio::registers(base as *mut u8, plan.usable) };
     Ok(Mapped { grant_id: grant.grant_id, region })
 }
 

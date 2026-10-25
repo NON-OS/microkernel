@@ -16,9 +16,8 @@
 
 use nonos_route_proof::{Network, RouteVerdict, Stage, Stale};
 
-use crate::proof_board::census::{
-    census, Admitted, Proc, AUTHORITY_PUBLISHER, CAP_NETWORK, STARTING_MS,
-};
+use crate::proof_board::census::marks::{AUTHORITY_PUBLISHER, STARTING_MS};
+use crate::proof_board::census::{census, Admitted, Proc, CAP_NETWORK};
 use crate::proof_board::session::{
     admitted_mark, boot_mark, headline, proven_mark, route_mark, Boot, Headline, Mark,
 };
@@ -64,7 +63,8 @@ fn a_process_holding_authority_with_no_record_breaks_the_claim_and_is_named() {
 
 #[test]
 fn a_capsule_mid_spawn_is_neither_passed_nor_failed() {
-    let young = Proc { pid: 7, state: RUNNING, uptime_ms: STARTING_MS - 1, caps: 0x19, name: b"app" };
+    let young =
+        Proc { pid: 7, state: RUNNING, uptime_ms: STARTING_MS - 1, caps: 0x19, name: b"app" };
     let c = census(&[p(2, RUNNING, 0x19, b"vfs"), young], &[a(2, 0x19, 0)]);
     assert_eq!((c.starting, c.unadmitted), (1, 0));
     let old = Proc { uptime_ms: STARTING_MS, ..young };
@@ -133,7 +133,13 @@ fn the_boot_chain_holds_only_when_all_three_hold() {
                 let m = boot(s, at, pr);
                 let any_broken = [s, at, pr].contains(&Broken);
                 let all_hold = [s, at, pr].iter().all(|x| *x == Holds);
-                let want = if any_broken { Broken } else if all_hold { Holds } else { Unknown };
+                let want = if any_broken {
+                    Broken
+                } else if all_hold {
+                    Holds
+                } else {
+                    Unknown
+                };
                 assert_eq!(m, want);
             }
         }
@@ -200,7 +206,10 @@ fn counts_and_durations_are_written_without_overflow() {
     let mut b = [0u8; 48];
     assert_eq!(words::of(3, 3, &mut b), b"3 of 3");
     let mut b = [0u8; 48];
-    assert_eq!(words::of(u64::MAX, u64::MAX, &mut b), b"18446744073709551615 of 18446744073709551615");
+    assert_eq!(
+        words::of(u64::MAX, u64::MAX, &mut b),
+        b"18446744073709551615 of 18446744073709551615"
+    );
     for (ms, want) in [
         (0u64, &b"0 s"[..]),
         (59_999, b"59 s"),
@@ -249,7 +258,10 @@ fn every_reason_and_stage_has_its_own_words() {
 
 #[test]
 fn the_route_evidence_names_the_network_or_the_reason() {
-    assert_eq!(words::route_evidence(RouteVerdict::Anonymous(Network::Anyone)), words::network(Network::Anyone));
+    assert_eq!(
+        words::route_evidence(RouteVerdict::Anonymous(Network::Anyone)),
+        words::network(Network::Anyone)
+    );
     assert_eq!(words::route_evidence(RouteVerdict::Exposed), b"direct");
     let r = RouteVerdict::NotEstablished(Network::Nym, Stale::DirectoryExpired);
     assert_eq!(words::route_evidence(r), words::why(Stale::DirectoryExpired));
@@ -276,7 +288,12 @@ fn the_directory_and_hop_lines_carry_the_reports_numbers() {
     assert_eq!(words::directory(&r, &mut b), b"6 of 5 signatures, 4812 nodes");
     let mut b = [0u8; 48];
     assert_eq!(words::hops(&r, &mut b), b"2 of 3 hops authenticated");
-    let big = nonos_route_proof::RouteReport { nodes: u32::MAX, signatures_verified: 255, signatures_required: 255, ..r };
+    let big = nonos_route_proof::RouteReport {
+        nodes: u32::MAX,
+        signatures_verified: 255,
+        signatures_required: 255,
+        ..r
+    };
     let mut b = [0u8; 48];
     assert!(words::directory(&big, &mut b).len() <= 48, "a long line is cut, never overflowed");
 }

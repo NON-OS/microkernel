@@ -25,126 +25,19 @@
 //! builds and holds the radio, [`scanner`] keeps the network picture current,
 //! [`control`] is the control protocol, and [`connect`] runs a WPA2 join.
 
+mod after;
+mod answer;
 mod connect;
 mod control;
+mod loss;
+mod net_core;
 mod radio;
 mod refuse;
+mod run;
 mod scanner;
 mod stage;
+mod tuning;
 
+pub use run::run;
 pub use stage::Stage;
-
-use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply};
-use nonos_wifi_core::key::KeyStore;
-use nonos_wifi_core::netif::{self, wire, MAX_RESPONSE};
-
-use crate::link::DeadLink;
-use crate::setup::Mapped;
-use crate::status;
-
-use connect::Session;
-use control::control;
-use radio::{build_radio, Radio};
-use refuse::refuse;
-use scanner::Scanner;
-
-/// The driver's own service inbox, where requests arrive.
-const SERVICE_INBOX: u64 = 0;
-/// How long the serve loop waits for a request before taking an idle scan step.
-/// Short enough that a background sweep makes steady progress, long enough that the
-/// loop is not busy-waiting.
-const IDLE_TIMEOUT_MS: u64 = 100;
-
-/// The 2.4GHz channels the background scan and the pre-join beacon hunt hop through.
-const SCAN_CHANNELS: [u8; 13] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
-/// The scratch buffer a scan or a beacon hunt reads each frame into.
-const SCAN_FRAME_MAX: usize = 2048;
-/// The channel the radio parks on until a scan retunes it. Channel 1 is always
-/// legal and is where a passive scan starts.
-const DEFAULT_CHANNEL: u8 = 1;
-
-/// Serve forever. Takes the mapped chip if bring-up got that far, and the stage it
-/// reached. This never exits and never hangs: even a failed bring-up keeps the
-/// service registered and answers the panel with the stage, which is the only
-/// diagnostic a machine without a serial port has.
-pub fn run(mapped: Option<Mapped>, stage: Stage) -> ! {
-    let (mut radio, stage) = build_radio(mapped, stage);
-    /*
-     * A warm reboot does not power the card down, so a BSSID and the linked
-     * network type a join of the last boot set can still be in the MAC. The
-     * radio starts unbound from any BSS, as rtw88 sets RTW_NET_NO_LINK when
-     * its interface comes up, so the scan hears every network.
-     */
-    if let Radio::Up(up) = &radio {
-        connect::set_media_no_link(&up.regs);
-    }
-    let mut session: Option<Session> = None;
-    let mut scanner = Scanner::new();
-    status::line(b"[rtl8821ce] serving net_core\n");
-
-    let mut rx = [0u8; wire::HDR_LEN + wire::MAX_FRAME];
-    let mut tx = [0u8; MAX_RESPONSE];
-    loop {
-        // Reply to the sender's pid, not a shared reply endpoint: net_core and the
-        // panel both call this driver, and a fixed endpoint routes answers by a
-        // FIFO that crosses under concurrent callers, so net_core's link-status
-        // reply could land in the panel's inbox.
-        let mut sender_pid = 0u32;
-        let n = mk_ipc_recv_from(
-            SERVICE_INBOX,
-            rx.as_mut_ptr(),
-            rx.len(),
-            IDLE_TIMEOUT_MS,
-            &mut sender_pid,
-        );
-        if n > 0 && sender_pid != 0 {
-            let req = &rx[..n as usize];
-            // net_core's link operations first; the control family is the
-            // fallthrough. A down radio answers through a link that is always down.
-            let served = match &mut radio {
-                Radio::Up(up) => netif::serve(req, &mut up.link, &mut tx),
-                Radio::Down => netif::serve(req, &mut DeadLink, &mut tx),
-            };
-            if let Some(len) = served {
-                if let Radio::Up(up) = &mut radio {
-                    up.link.note_netif_req();
-                    after_receive(up, &mut session);
-                }
-                let _ = mk_ipc_reply(sender_pid, tx.as_ptr(), len);
-            } else if let Some(len) =
-                control(req, &mut radio, &mut session, &scanner, stage, &mut tx)
-            {
-                let _ = mk_ipc_reply(sender_pid, tx.as_ptr(), len);
-            } else {
-                // Neither family took it; its caller still waits on an answer.
-                let len = refuse(req, &mut tx);
-                let _ = mk_ipc_reply(sender_pid, tx.as_ptr(), len);
-            }
-        }
-        // Advance the background scan while up and not associated. Draining runs on
-        // every pass so net_core traffic cannot starve it, and the channel hops on
-        // the clock, so a busy pass moves on as surely as an idle one. A session
-        // stops the scan, so it never knocks a live connection off its channel.
-        if session.is_none() {
-            if let Radio::Up(up) = &mut radio {
-                scanner.drain(&mut up.link, &up.regs);
-                scanner.advance(&up.regs);
-            }
-        }
-    }
-}
-
-// What the receive path left for the loop: a group key the AP rekeyed to goes
-// into the CAM (the old index is cleared once the new one is in), and a
-// deauthentication from the AP ends the session, clearing its keys, so the
-// link reads down and the background scan resumes.
-fn after_receive(up: &mut radio::RadioUp, session: &mut Option<Session>) {
-    if let (Some((id, key)), Some(s)) = (up.link.take_group_key(), session.as_mut()) {
-        if up.keys.install_gtk(&key, id) {
-            s.set_gtk_id(id);
-        }
-    }
-    if up.link.take_left().is_some() {
-        connect::disconnect(&mut up.link, &mut up.keys, &up.regs, session);
-    }
-}
+use tuning::{DEFAULT_CHANNEL, SCAN_CHANNELS, SCAN_FRAME_MAX};

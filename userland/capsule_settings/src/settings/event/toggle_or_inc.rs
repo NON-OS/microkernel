@@ -17,8 +17,11 @@
 use nonos_policy_proto::{kind_of, Field, KIND_BOOL, KIND_STR};
 
 use crate::settings::schema::{read_only, Slot};
+use crate::settings::screens;
 use crate::settings::state::status::StatusKind;
-use crate::settings::state::{cached_value, current_field, current_slot, edit_start, FieldValue, State};
+use crate::settings::state::{
+    cached_value, current_field, current_slot, edit_start, FieldValue, State,
+};
 
 use super::adjust::adjust;
 use super::adjust_tier::adjust_tier;
@@ -26,8 +29,11 @@ use super::commit_bool::commit_bool;
 use super::keep_wallpaper;
 
 pub fn toggle_or_inc(state: &mut State) {
-    if let Some(Slot::Wallpaper(i)) = current_slot(state) {
-        return keep_wallpaper::toggle(state, i);
+    match current_slot(state) {
+        Some(Slot::Wallpaper(i)) => return keep_wallpaper::toggle(state, i),
+        Some(Slot::Access(k)) if k.on_screens() => return screens::page::cycle(state, k),
+        Some(Slot::Access(knob)) => return crate::settings::access::page::cycle(state, knob),
+        _ => {}
     }
     let field = match current_field(state) {
         Some(f) => f,

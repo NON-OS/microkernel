@@ -22,6 +22,7 @@ pub mod get_capset_info;
 pub mod get_display_info;
 pub mod get_edid;
 pub mod hdr;
+pub mod le;
 pub mod release;
 pub mod resource_create_3d;
 pub mod set_scanout;

@@ -23,7 +23,16 @@
 use std::path::{Path, PathBuf};
 use std::{env, fs, process};
 
-const SETTINGS: [&str; 10] = [
+#[path = "build/image_files.rs"]
+mod image_files;
+#[path = "build/mirror_fence.rs"]
+mod mirror_fence;
+#[path = "src/linux/net/route.rs"]
+mod route;
+
+const SETTINGS: [&str; 11] = [
+    // Refused in every build: Alpine's mirror is compiled in (install/mirror.rs).
+    "NONOS_ALPINE_MIRROR",
     "NONOS_PACMAN_MIRROR",
     "NONOS_PACMAN_HOST",
     "NONOS_PACMAN_PATH",
@@ -41,10 +50,17 @@ fn main() {
     for var in SETTINGS {
         println!("cargo:rerun-if-env-changed={var}");
     }
+    let dev = env::var_os("CARGO_FEATURE_DEV_MIRROR").is_some();
+    if let Some(why) = mirror_fence::refused(|v| env::var(v).ok(), dev) {
+        fail(&why);
+    }
     let Some(out) = env::var_os("OUT_DIR").map(PathBuf::from) else { fail("no OUT_DIR") };
     pin("NONOS_PACMAN_KEYRING", &out.join("pacman-keyring.gpg"), None);
     // Kali's archive key is pinned by default; see design/package-trust.md.
     pin("NONOS_DEB_KEYRING", &out.join("deb-keyring.gpg"), Some("keys/kali/archive-key-2025.asc"));
+    if let Err(e) = image_files::write(&out.join("image_files.rs")) {
+        fail(&e);
+    }
 }
 
 /// The keyring `var` names, else `default` (relative to this crate), else none.

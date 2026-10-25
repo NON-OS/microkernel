@@ -22,7 +22,7 @@ use crate::hid::report_desc::Field;
 /// Field `f` of `body` as (position, range): read signed when its logical
 /// minimum is negative (HID 1.11, 6.2.2.7), less that minimum, and held to
 /// 0..=range, where range is the logical maximum less the minimum.
-pub(super) fn position(body: &[u8], f: &Field) -> (u32, i32) {
+pub(crate) fn position(body: &[u8], f: &Field) -> (u32, i32) {
     let raw = read_bits(body, f.bit_offset, f.bit_size);
     let value = match f.logical_min < 0 {
         true => i64::from(sign_extend(raw, f.bit_size)),

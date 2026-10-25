@@ -41,5 +41,5 @@ pub fn more(state: &State, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {
     for (i, (_, _, screen)) in rows.iter().enumerate() {
         hits::put(Press::Go(*screen), at[i]);
     }
-    h
+    h + super::landed::paint(state, fb, c, y + h)
 }

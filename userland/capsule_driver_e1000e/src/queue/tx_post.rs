@@ -22,7 +22,6 @@
 //! full ring would move TDT onto TDH, which the part reads as an empty one.
 
 use core::ptr::{addr_of, addr_of_mut, read_volatile, write_volatile};
-use core::sync::atomic::{fence, Ordering};
 
 use crate::constants::queue::{TX_CMD_EOP, TX_CMD_IFCS, TX_CMD_RS, TX_DESC_COUNT, TX_STATUS_DD};
 
@@ -48,7 +47,7 @@ impl TxRing {
     pub fn done(&self, idx: u16) -> bool {
         // SAFETY: callers pass `clean` or a posted index, both below the count.
         let status = unsafe { read_volatile(addr_of!((*self.descriptor(idx)).status)) };
-        fence(Ordering::Acquire);
+        nonos_libc::dma_rmb();
         status & TX_STATUS_DD != 0
     }
 

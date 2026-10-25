@@ -6,9 +6,9 @@ Which CPU architectures NONOS runs on, how complete each port is, and how a port
 
 | Architecture | Support | In short |
 |---|---|---|
-| [x86_64](x86_64.md) | Supported | The release target: a UEFI loader, every [build profile](../overview/glossary.md#profile), the CI boot check, and one hardware report. |
+| [x86_64](x86_64.md) | Supported | The release target: a UEFI loader, every [build profile](../overview/glossary-boot-root-record.md#profile), the CI boot check, and one hardware report. |
 | [aarch64](aarch64.md) | Preview | Builds only with `nonos-arch-preview`; CI builds it and boot-tests it under QEMU `virt`. No loader, no release image, no real hardware tested. |
-| [riscv64](riscv64.md) | Not supported | A backend with no kernel target file and no make target; its entry calls a function that does not exist, so it does not build into a kernel. |
+| [riscv64](riscv64.md) | Not supported | Builds and boots under QEMU `virt` with OpenSBI as far as the VM layer, which is not ported, and stops there by name (`make nonos-mk-riscv-boot-check`). |
 
 A kernel for any architecture other than x86_64 stops at `compile_error!` unless the `nonos-arch-preview` feature is on, so a release cannot ship another architecture by accident (`src/lib.rs:28-35`).
 
@@ -19,7 +19,7 @@ A kernel for any architecture other than x86_64 stops at `compile_error!` unless
 | backend | `src/arch/x86_64/`, 937 files | `src/arch/aarch64/`, 292 files | `src/arch/riscv64/`, 218 files |
 | kernel target file | `x86_64-nonos.json` | `aarch64-nonos.json` | none |
 | linker script | `linker.ld` | `linker_aarch64.ld` | `linker_riscv64.ld` |
-| [capsule](../overview/glossary.md#capsule) target file | `userland/x86_64-nonos-user.json` | `userland/aarch64-nonos-user.json` | `userland/riscv64-nonos-user.json` |
+| [capsule](../overview/glossary-boot-root-record.md#capsule) target file | `userland/x86_64-nonos-user.json` | `userland/aarch64-nonos-user.json` | `userland/riscv64-nonos-user.json` |
 | loader | `nonos-bootloader`, a UEFI application | none | none |
 | how it boots | UEFI firmware runs the loader | QEMU loads the kernel ELF | no boot path |
 | CI | build, boot check, boot matrix | build and three boot cells | none |
@@ -47,9 +47,9 @@ The second is a set of small modules in `src/arch` with one branch per architect
 
 The build picks the rest by architecture:
 
-- `build.rs` chooses the linker script in `script_name` (`build.rs:335-339`).
-- `user_target` picks the capsule target that matches the kernel and panics when `NONOS_USER_TARGET` names another architecture, because the kernel would load binaries its CPU cannot run (`build.rs:594-604`).
-- The static checks count `cfg(target_arch` sites outside `src/arch` into `cfg_count` and fail when the count grows past its [baseline](../overview/glossary.md#baseline) (`nonos-ci/run-static-checks.sh:46-47`). At this commit it already has: 234 against 116, as [Code style](../contributing/code-style.md) says.
+- `build.rs` chooses the linker script in `script_name` (`build.rs:343-348`).
+- `user_target` picks the capsule target that matches the kernel and panics when `NONOS_USER_TARGET` names another architecture, because the kernel would load binaries its CPU cannot run (`build.rs:573-583`).
+- The static checks count `cfg(target_arch` sites outside `src/arch` into `cfg_count` and fail when the count grows past its [baseline](../overview/glossary-amnesic-boot.md#baseline) (`nonos-ci/run-static-checks.sh:46-47`). At this commit it already has: 234 against 116, as [Code style](../contributing/code-style.md) says.
 
 ## Starting work on a port
 
@@ -60,6 +60,7 @@ Read the page for the port first. [What is missing](aarch64.md#what-is-missing) 
 - [x86_64](x86_64.md)
 - [aarch64](aarch64.md)
 - [riscv64](riscv64.md)
+- [Platform state: CPU architectures, many cores, GPU](platform-state.md)
 - [Boot handoff](../kernel/boot-handoff.md)
 - [Memory and paging](../kernel/memory-and-paging.md)
 - [Code style](../contributing/code-style.md)

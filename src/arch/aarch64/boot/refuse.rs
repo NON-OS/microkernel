@@ -22,7 +22,6 @@
 
 use crate::arch::aarch64::cpu;
 use crate::arch::aarch64::cpu::id::mpidr_affinity;
-use crate::arch::aarch64::security::pac::PacError;
 use crate::sys::serial::Line;
 
 /// Park this CPU after naming the step that failed and why.
@@ -36,11 +35,4 @@ pub(crate) fn refuse(step: &[u8], reason: &[u8]) -> ! {
         .hex(mpidr_affinity())
         .end_fatal();
     cpu::halt()
-}
-
-/// What the security bring-up error means, as a reason for [`refuse`].
-pub(crate) fn security_reason(error: PacError) -> &'static [u8] {
-    match error {
-        PacError::EntropyUnavailable => b"no entropy source to key pointer authentication from",
-    }
 }

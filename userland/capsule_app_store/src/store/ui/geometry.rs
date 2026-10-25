@@ -16,10 +16,12 @@
 
 //! Where the list is.
 
-use super::metrics::{
-    ACTION_H, ACTION_W, CARD_GAP, CARD_H, CARD_PAD, DETAIL_W, HEAD_H, PAD_TOP, PAD_X, TAB_H,
-    TAB_TO_LIST,
-};
+use super::metrics::{CARD_GAP, CARD_H, DETAIL_W, HEAD_H, PAD_TOP, PAD_X, TAB_H, TAB_TO_LIST};
+
+#[path = "geometry_controls.rs"]
+mod geometry_controls;
+
+pub use geometry_controls::{action_rect, on_action, on_remove, remove_rect};
 
 /// The y the first card starts at.
 pub fn list_top() -> u32 {
@@ -49,29 +51,4 @@ pub fn slot_at(y: i32, rows: usize) -> Option<usize> {
         true => Some(slot as usize),
         false => None,
     }
-}
-
-/// The action control inside a card whose box is `x, top, w`.
-pub fn action_rect(x: u32, top: u32, w: u32) -> (u32, u32, u32, u32) {
-    let ax = x + w.saturating_sub(CARD_PAD + ACTION_W);
-    let ay = top + (CARD_H - ACTION_H) / 2;
-    (ax, ay, ACTION_W, ACTION_H)
-}
-
-/// The Remove control an installed card shows, left of the action.
-pub fn remove_rect(x: u32, top: u32, w: u32) -> (u32, u32, u32, u32) {
-    let (ax, ay, aw, ah) = action_rect(x, top, w);
-    (ax.saturating_sub(aw + CARD_PAD / 2), ay, aw, ah)
-}
-
-/// Whether a point is inside the Remove control.
-pub fn on_remove(x: i32, y: i32, card_x: u32, top: u32, w: u32) -> bool {
-    let (rx, ry, rw, rh) = remove_rect(card_x, top, w);
-    x >= rx as i32 && x < (rx + rw) as i32 && y >= ry as i32 && y < (ry + rh) as i32
-}
-
-/// Whether a point is inside that control.
-pub fn on_action(x: i32, y: i32, card_x: u32, top: u32, w: u32) -> bool {
-    let (ax, ay, aw, ah) = action_rect(card_x, top, w);
-    x >= ax as i32 && x < (ax + aw) as i32 && y >= ay as i32 && y < (ay + ah) as i32
 }

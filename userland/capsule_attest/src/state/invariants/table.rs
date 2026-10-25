@@ -16,7 +16,7 @@
 
 //! The claims themselves.
 
-use super::super::live::{CAP_ADMIN, CAP_DEBUG};
+use super::super::live::{ADMIN_HOLDERS, CAP_ADMIN, CAP_DEBUG, CAP_SECRETS};
 use super::probe::Probe;
 
 pub struct Invariant {
@@ -28,10 +28,10 @@ pub struct Invariant {
 
 pub const INVARIANTS: &[Invariant] = &[
     Invariant {
-        name: b"NO LOGS",
-        claim: b"no shipped capsule may emit MkDebug or open a serial surface",
-        mechanism: b"every shipped Capsule.mk has Debug bit absent from CAPSULE_REQUIRED_CAPS; kernel rejects MkDebug syscalls outside the mask",
-        probe: Probe::NoneHold(CAP_DEBUG),
+        name: b"SECRETS NOT LOGGED",
+        claim: b"no capsule that takes keys or input, or holds a secret, can write a log",
+        mechanism: b"MkDebug needs Debug; a standard image grants it to capsules that ask (capsule-serial-debug) and the Linux personality holds it on every image, so no holder of InputSource, InputConsumer, Keyring or DeviceSecret may also hold Debug",
+        probe: Probe::NotBoth(CAP_DEBUG, CAP_SECRETS),
     },
     Invariant {
         name: b"NO TRACES",
@@ -64,9 +64,9 @@ pub const INVARIANTS: &[Invariant] = &[
         probe: Probe::NotAtRuntime,
     },
     Invariant {
-        name: b"ADMIN IS INIT ONLY",
-        claim: b"no capsule other than init holds authority over the whole machine",
-        mechanism: b"Admin is absent from every shipped CAPSULE_REQUIRED_CAPS but init's; the kernel refuses reboot and shutdown syscalls outside the mask",
-        probe: Probe::OnlyInit(CAP_ADMIN),
+        name: b"ADMIN IS NAMED",
+        claim: b"only init, policy, acpi, power and the two installers hold Admin",
+        mechanism: b"the kernel asks Admin of reboot, shutdown, the policy push and every ACPI call; those capsules' signed manifests declare it, and any other holder is broken",
+        probe: Probe::OnlyNamed(CAP_ADMIN, ADMIN_HOLDERS),
     },
 ];

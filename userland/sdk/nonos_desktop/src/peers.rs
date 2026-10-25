@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_service::lookup;
+use nonos_service::{lookup, owner};
 
 #[derive(Clone, Copy)]
 pub struct Peers {
@@ -29,4 +29,10 @@ pub fn lookup_peers() -> Option<Peers> {
         wm: lookup(b"wm")?,
         input_router: lookup(b"input_router")?,
     })
+}
+
+/// The compositor's pid, the one process a window's surface is shared with
+/// (K20).
+pub fn compositor_pid() -> Option<u32> {
+    owner(b"compositor")
 }

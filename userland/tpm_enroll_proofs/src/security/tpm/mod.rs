@@ -37,6 +37,8 @@ pub use transport::{transact, PORT};
 #[cfg(test)]
 pub(crate) mod live;
 #[cfg(test)]
+mod nonce_refusal_tests;
+#[cfg(test)]
 mod parse_hash_tests;
 #[cfg(test)]
 mod parse_nv_tests;

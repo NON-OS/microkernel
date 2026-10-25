@@ -27,3 +27,5 @@ pub mod edit_buffer;
 pub mod edit_paste;
 #[path = "../../../capsule_settings/src/settings/ui/valbuf.rs"]
 pub mod valbuf;
+#[path = "../../../capsule_settings/src/settings/ui/valbuf_text.rs"]
+pub mod valbuf_text;

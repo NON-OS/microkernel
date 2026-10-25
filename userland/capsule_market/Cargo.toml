@@ -26,7 +26,14 @@ nonos_ed25519 = { path = "../nonos_ed25519" }
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_marketplace_abi = { path = "../marketplace_abi" }
 nonos_market_proto = { path = "../market_proto" }
+# The bond cache's ASYNC READs through capsule_nox_settle (v1.4.23).
+nonos_settle_proto = { path = "../settle_proto" }
 nonos_app_skeleton = { path = "../app_skeleton" }
+# OP_GET_COMMERCE checks commerce and binding in this process, from pure
+# libraries, so the market needs no Crypto capability for it.
+blake3 = { version = "=1.8.6", default-features = false, features = ["pure"] }
+nonos_secp256k1 = { path = "../nonos_secp256k1" }
+sha3 = { version = "=0.10.9", default-features = false }
 
 [features]
 default = []

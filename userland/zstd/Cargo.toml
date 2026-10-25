@@ -11,3 +11,6 @@ name = "nonos_zstd"
 path = "src/lib.rs"
 
 [dependencies]
+
+[package.metadata.nonos]
+test-lane = true

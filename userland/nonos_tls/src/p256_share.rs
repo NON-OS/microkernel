@@ -24,19 +24,22 @@ use p256::{FieldBytes, PublicKey, SecretKey};
  * the group order, and a fresh one is drawn. One refusal has odds near
  * 2^-32, so eight draws all refused means the source is broken.
  */
-pub fn generate() -> Option<([u8; 32], [u8; 65])> {
+pub fn generate(scalar: &mut [u8; 32]) -> Option<[u8; 65]> {
     for _ in 0..8 {
-        let mut scalar = [0u8; 32];
         if nonos_libc::crypto_random(scalar.as_mut_ptr(), scalar.len()) != scalar.len() as i64 {
-            return None;
+            break;
         }
-        if let Ok(secret) = SecretKey::from_bytes(&FieldBytes::from(scalar)) {
+        let mut bytes = FieldBytes::from(*scalar);
+        let secret = SecretKey::from_bytes(&bytes);
+        super::traffic_keys::wipe(&mut bytes);
+        if let Ok(secret) = secret {
             let point = secret.public_key().to_encoded_point(false);
             let mut public = [0u8; 65];
             public.copy_from_slice(point.as_bytes());
-            return Some((scalar, public));
+            return Some(public);
         }
     }
+    super::traffic_keys::wipe(scalar);
     None
 }
 
@@ -45,11 +48,18 @@ pub fn generate() -> Option<([u8; 32], [u8; 65])> {
  * bytes for P-256. The peer's point must decode onto the curve and not be
  * the identity; from_sec1_bytes refuses both.
  */
-pub fn shared(private: &[u8; 32], peer: &[u8; 65]) -> Option<[u8; 32]> {
-    let secret = SecretKey::from_bytes(&FieldBytes::from(*private)).ok()?;
-    let public = PublicKey::from_sec1_bytes(peer).ok()?;
+/// Written into `out`, never returned by value. `SecretKey` and the product
+/// (`SharedSecret`) zeroize themselves on drop; the `NonZeroScalar` the crate
+/// hands `diffie_hellman` is `Copy`, so a copy of the scalar can stay in a
+/// stack slot this cannot reach (docs/security/privacy-guarantees.md, Keys).
+pub fn shared(private: &[u8; 32], peer: &[u8; 65], out: &mut [u8; 32]) -> bool {
+    let mut bytes = FieldBytes::from(*private);
+    let secret = SecretKey::from_bytes(&bytes);
+    super::traffic_keys::wipe(&mut bytes);
+    let (Ok(secret), Ok(public)) = (secret, PublicKey::from_sec1_bytes(peer)) else {
+        return false;
+    };
     let product = p256::ecdh::diffie_hellman(secret.to_nonzero_scalar(), public.as_affine());
-    let mut out = [0u8; 32];
     out.copy_from_slice(product.raw_secret_bytes());
-    Some(out)
+    true
 }

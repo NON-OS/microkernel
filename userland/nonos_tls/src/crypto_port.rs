@@ -25,6 +25,21 @@ use core::sync::atomic::{AtomicU32, Ordering};
  */
 static PORT: AtomicU32 = AtomicU32::new(0);
 
+/// The longest one call to the pool waits for its answer. Past it the check
+/// fails closed, as a signature that did not verify, and that first failure
+/// ends the walk, so a wedged pool costs a handshake this wait once.
+pub const CRYPTO_WAIT_MS: u64 = 3_000;
+
+/// The pool took the request and gave no answer within CRYPTO_WAIT_MS.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub struct PoolSilent;
+
+/// A signature check's verdict, or none, because the pool never answered.
+pub type Checked = Result<bool, PoolSilent>;
+
+/// What the kernel's call returns when the wait runs out.
+pub(crate) const ETIMEDOUT: i64 = -110;
+
 pub fn crypto_port() -> Option<u32> {
     let known = PORT.load(Ordering::Acquire);
     if known != 0 {

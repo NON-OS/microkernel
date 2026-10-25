@@ -21,11 +21,18 @@
 // terminal is allowed to signal. `caps`/`ps` lists the pids.
 
 use alloc::vec::Vec;
-use nonos_libc::{mk_kill, mk_service_lookup};
+use nonos_libc::mk_kill;
 
 use super::kill_target::{parse_u64, refused, resolve, target, Target, NAME_MAX};
 use crate::term::state::State;
-use crate::term::util::format_u64;
+
+#[path = "kill_lookup.rs"]
+mod kill_lookup;
+#[path = "kill_said.rs"]
+mod kill_said;
+
+use kill_lookup::lookup;
+use kill_said::killed;
 
 pub fn run(state: &mut State, args: &[&[u8]]) -> bool {
     let Some(&arg) = args.first() else {
@@ -56,27 +63,7 @@ pub fn run(state: &mut State, args: &[&[u8]]) -> bool {
         state.scrollback.push_error(refused(rc));
         return false;
     }
-    let mut line: Vec<u8> = Vec::new();
-    line.extend_from_slice(b"killed ");
-    if let Some(name) = name {
-        line.extend_from_slice(name);
-        line.push(b' ');
-    }
-    line.extend_from_slice(b"pid ");
-    append_u64(&mut line, pid);
+    let line = killed(pid, name);
     state.scrollback.push_line(&line);
     true
-}
-
-// The registry's pid for a live service, if one answers to `name`.
-fn lookup(name: &[u8]) -> Option<u64> {
-    let (mut port, mut pid) = (0u32, 0u32);
-    let rc = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);
-    (rc == 0 && port != 0 && pid != 0).then_some(pid as u64)
-}
-
-fn append_u64(out: &mut Vec<u8>, v: u64) {
-    let mut buf = [0u8; 24];
-    let k = format_u64(v, &mut buf);
-    out.extend_from_slice(&buf[..k]);
 }

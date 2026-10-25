@@ -17,9 +17,20 @@ license = "AGPL-3.0"
 authors = ["eK@nonos.systems"]
 description = "NONOS marketplace ABI: shared wire-form types and codec"
 
+[package.metadata.nonos]
+test-lane = true
+
 [lib]
 name = "nonos_marketplace_abi"
 crate-type = ["rlib"]
+
+[dependencies]
+# Tags, domains and typehashes for the ids and the binding digest.
+nonos_nox_config = { path = "../nonos_nox_config" }
+
+[dev-dependencies]
+# A host keccak for the tests of address_text against EIP-55's examples.
+sha3 = { version = "=0.10.9", default-features = false }
 
 [features]
 default = []

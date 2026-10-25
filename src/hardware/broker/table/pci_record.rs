@@ -16,7 +16,8 @@
 
 use crate::drivers::pci::types::{PciBar, PciDevice};
 use crate::hardware::broker::device::{BAR_FLAG_MEM64, BAR_FLAG_PREFETCH};
-use crate::hardware::broker::{classify_pci, Bar, BarKind, BusKind, DeviceRecord};
+use crate::hardware::broker::DEVICE_FLAG_DMA_NONCOHERENT;
+use crate::hardware::broker::{classify_pci, legacy, Bar, BarKind, BusKind, DeviceRecord};
 
 pub(super) fn record_from_pci(device_id: u64, dev: &PciDevice) -> DeviceRecord {
     let mut bars = [Bar::empty(); 6];
@@ -27,7 +28,7 @@ pub(super) fn record_from_pci(device_id: u64, dev: &PciDevice) -> DeviceRecord {
             bar_span = (i + 1) as u8;
         }
     }
-    DeviceRecord {
+    let mut record = DeviceRecord {
         device_id,
         bus_kind: BusKind::Pci as u8,
         pci_class: dev.class,
@@ -36,14 +37,18 @@ pub(super) fn record_from_pci(device_id: u64, dev: &PciDevice) -> DeviceRecord {
         class: classify_pci(dev.class, dev.subclass, dev.progif).id(),
         vendor: dev.vendor_id,
         device: dev.device_id,
-        flags: 0,
+        flags: if crate::arch::pci_dma_coherent() { 0 } else { DEVICE_FLAG_DMA_NONCOHERENT },
         bar_count: bar_span,
         irq_line: dev.interrupt_line,
         irq_pin: dev.interrupt_pin,
-        _pad1: [0; 1],
-        irq_source: dev.interrupt_line as u32,
+        numa_node: crate::hardware::broker::NUMA_UNKNOWN,
+        irq_source: crate::arch::pci_intx_source(dev),
         bars,
-    }
+    };
+    // An IDE channel in compatibility mode, or VBoxVGA, decodes ports no BAR
+    // names; they go in the record so only this function's claimant gets them.
+    legacy::attach(&mut record);
+    record
 }
 
 fn bar_from_pci(b: &PciBar) -> Bar {

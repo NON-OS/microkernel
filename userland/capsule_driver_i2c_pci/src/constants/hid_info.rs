@@ -18,26 +18,4 @@
 // carries interrupt and descriptor facts in bar 0's flags byte; the bits
 // this driver acts on.
 pub const HID_INFO_GPIO: u8 = 1 << 0;
-pub const HID_INFO_ACTIVE_HIGH: u8 = 1 << 3;
 pub const HID_INFO_TEN_BIT: u8 = 1 << 5;
-// The kernel's GPIO controller record (src/hardware/broker/acpi_gpio/
-// record.rs) carries the controller's eight `_HID` bytes in bar 5's base.
-pub const GPIO_HID_BAR: usize = 5;
-
-// Intel pinctrl community registers (Linux pinctrl-intel.c): PADBAR at 0x00C
-// holds the offset of the pad configuration array; PADCFG0 bit 1 is the
-// pad's input level after the glitch filter, before RX inversion.
-pub const GPIO_PADBAR: u64 = 0x00C;
-pub const GPIO_RXSTATE: u32 = 1 << 1;
-// Broxton/Gemini Lake pads have two configuration dwords (no debounce
-// register), so consecutive pads sit eight bytes apart.
-pub const BXT_PAD_STRIDE: u64 = 8;
-
-/// Where the pad configuration register of `pin` sits in a Broxton-family
-/// community window of `window` bytes whose PADBAR reads `padbar`, or None
-/// when it falls outside the window (a wrong community, or a PADBAR read
-/// from dead MMIO).
-pub fn bxt_pad_offset(padbar: u32, pin: u16, window: u64) -> Option<u64> {
-    let off = u64::from(padbar).checked_add(u64::from(pin) * BXT_PAD_STRIDE)?;
-    (padbar != 0 && padbar != u32::MAX && off + 4 <= window).then_some(off)
-}

@@ -19,9 +19,9 @@
 //! reaches the model host plugged in on this thread.
 
 mod mmio_window;
-#[path = "../../../../../capsule_driver_ahci/src/emmc/platform/env/serial_log.rs"]
+#[path = "../../../../../capsule_driver_sdhci/src/emmc/platform/env/serial_log.rs"]
 mod serial_log;
-#[path = "../../../../../capsule_driver_ahci/src/emmc/platform/env/uptime_clock.rs"]
+#[path = "../../../../../capsule_driver_sdhci/src/emmc/platform/env/uptime_clock.rs"]
 mod uptime_clock;
 
 pub use mmio_window::MmioWindow;

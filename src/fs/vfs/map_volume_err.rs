@@ -42,6 +42,7 @@ pub(super) fn map_volume_err(e: VolumeError) -> VfsError {
         VolumeError::Stretch(_) => VfsError::IoError("passphrase stretch refused"),
         VolumeError::Importing => VfsError::IoError("an import is still coming to the name"),
         VolumeError::NoMemory => VfsError::IoError("too little memory free for a volume in RAM"),
+        VolumeError::NoRandomness => VfsError::IoError("no randomness for a volume key"),
         VolumeError::BlockFs(BlockFsError::NotFound) => VfsError::NotFound,
         VolumeError::BlockFs(_) => VfsError::IoError("blockfs"),
     }

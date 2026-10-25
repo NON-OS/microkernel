@@ -14,30 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Naming a request this shim does not serve yet.
 
 use super::object::Object;
-
-pub fn name(what: Object) -> &'static [u8] {
-    match what {
-        Object::Display => b"wl_display",
-        Object::Registry => b"wl_registry",
-        Object::Callback => b"wl_callback",
-        Object::Compositor => b"wl_compositor",
-        Object::Shm => b"wl_shm",
-        Object::ShmPool => b"wl_shm_pool",
-        Object::Buffer => b"wl_buffer",
-        Object::Surface => b"wl_surface",
-        Object::XdgBase => b"xdg_wm_base",
-        Object::XdgSurface => b"xdg_surface",
-        Object::XdgToplevel => b"xdg_toplevel",
-        Object::Seat => b"wl_seat",
-        Object::Pointer => b"wl_pointer",
-        Object::Keyboard => b"wl_keyboard",
-        Object::Output => b"wl_output",
-    }
-}
+use super::object_names::name;
 
 /// A client that stalls should leave behind the interface and opcode it
 /// was waiting on, because a protocol stall has no other symptom.

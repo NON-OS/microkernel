@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub(super) const GICR_CTLR: u64 = 0x0000;
 pub(super) const GICR_TYPER: u64 = 0x0008;
 pub(super) const GICR_WAKER: u64 = 0x0014;
 pub(super) const GICR_SGI_BASE: u64 = 0x10000;

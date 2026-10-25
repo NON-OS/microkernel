@@ -18,8 +18,8 @@
 //! each held against the hubs this driver set up: the route names a port
 //! of a hub Configure Hub set up on that root port, no more than five
 //! tiers down; the speed is one that hub's ports carry; and the TT is the
-//! one the hub's place implies (xHCI 1.2 section 6.2.2, Linux
-//! `xhci_setup_addressable_virt_dev`), or none.
+//! one the hub's place implies (xHCI 1.2 section 6.2.2, as recalled,
+//! unverified), or none.
 
 use crate::contexts::{
     parent_of, route_depth, Place, Topology, SPEED_FULL, SPEED_HIGH, SPEED_LOW, SPEED_SUPER,

@@ -13,11 +13,16 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-/// One xHCI controller on the bus: its broker id and the size of BAR0.
+
 #[derive(Debug, Clone, Copy)]
 pub struct Found {
     pub device_id: u64,
     pub bar0_size: u64,
     pub vendor: u16,
     pub device: u16,
+    /// False for a device-tree controller: it has no config space to enable
+    /// bus mastering in, and no MSI-X.
+    pub on_pci: bool,
+    /// A device-tree controller's GIC SPI, zero for none.
+    pub spi: u32,
 }

@@ -14,62 +14,62 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Bochs display adapter's driver, proved against a register window
-//! and a framebuffer in memory rather than against an adapter.
-//!
-//! Each `#[path]` below pulls in the shipping driver source, so these tests
-//! run the code that boots, not a copy of it: the DISPI mode set, the mode
-//! kept from firmware and written back, and the display wire it serves the
-//! compositor. Bochs, QEMU and every clone of them implement the same
-//! published register set, so a driver that programs the wrong bits per
-//! pixel, or leaves the linear framebuffer undecoded, is wrong against all
-//! of them: the class of defect a test with no adapter can pin down.
+//! The BGA display capsule, proved against a register window and video memory in memory. Each
+//! `#[path]` pulls in the shipping driver source: the DISPI ID check, mode set and its order,
+//! read-back, the firmware's state kept or written back, the EDID read at BAR2, the start-up mode,
+//! one bring-up attempt end to end against `libc_shim`'s broker and kernel, and the adapter's half
+//! of the display wire. Bochs, QEMU and their clones share the register set, so a driver wrong
+//! against one is wrong against all.
 
 #[path = "../../capsule_driver_bga/src/constants.rs"]
 pub mod constants;
 pub mod dispi;
+#[path = "../../capsule_driver_bga/src/display/mod.rs"]
+pub mod display;
+#[path = "../../capsule_driver_bga/src/edid/mod.rs"]
+pub mod edid;
 #[path = "../../capsule_driver_bga/src/error.rs"]
 pub mod error;
 /// The shipping register access, each write answered by the adapter model.
 pub mod regs;
+#[path = "../../capsule_driver_bga/src/turn.rs"]
+pub mod turn;
 
-/// One bring-up attempt end to end, against `libc_shim`'s broker and kernel:
-/// discovery's record, the claim and PCI command, both BAR mappings, the
-/// DISPI ID, the mode kept or set and read back, the clear and the surface.
+/// The kernel's DGON, the one definition, mounted as libc mounts it: `turn`
+/// reaches its parser through the crate root.
+#[path = "../../../src/hardware/broker/acpi/dgon_wire.rs"]
+pub mod dgon;
+use dgon::dgon_parse;
+
+/// The kernel's display list, which the compositor walks to find bga.
+#[path = "../../../src/services/registry/displays.rs"]
+#[allow(dead_code)]
+mod displays;
+
+/// One bring-up attempt end to end (`tests::setup_tests` and the rest),
+/// against `libc_shim`'s broker and kernel.
+#[cfg(test)]
+#[path = "../../capsule_driver_bga/src/announce.rs"]
+mod announce;
 #[cfg(test)]
 #[path = "../../capsule_driver_bga/src/discover.rs"]
 mod discover;
 #[cfg(test)]
 #[path = "../../capsule_driver_bga/src/handles.rs"]
 mod handles;
-/// The display wire the driver serves once it is up.
-#[cfg(test)]
-mod serve;
 #[cfg(test)]
 #[path = "../../capsule_driver_bga/src/setup/mod.rs"]
 mod setup;
 
 #[cfg(test)]
-mod adapter;
+mod kernel_ids;
 #[cfg(test)]
-mod check_tests;
+mod model;
 #[cfg(test)]
-mod clear_tests;
+mod services;
 #[cfg(test)]
-mod display_tests;
+use kernel_ids::{hardware, process};
 #[cfg(test)]
-mod mode_tests;
+mod syscall;
 #[cfg(test)]
-mod offset_tests;
-#[cfg(test)]
-mod reason_tests;
-#[cfg(test)]
-mod setup_bound_tests;
-#[cfg(test)]
-mod setup_claim_tests;
-#[cfg(test)]
-mod setup_confirm_tests;
-#[cfg(test)]
-mod setup_tests;
-#[cfg(test)]
-mod span_tests;
+mod tests;

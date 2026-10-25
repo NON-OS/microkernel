@@ -33,7 +33,7 @@ mod identity;
 mod read;
 mod types;
 
-pub use caps::{CAP_ADMIN, CAP_DEBUG};
+pub use caps::{ADMIN_HOLDERS, CAP_ADMIN, CAP_DEBUG, CAP_SECRETS};
 pub use identity::identity;
 pub use read::snapshot;
 pub use types::Snapshot;

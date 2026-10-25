@@ -19,13 +19,11 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
 
-use super::super::super::cache;
-use super::super::size::resize;
-use super::zero::zero;
+use super::allocate::allocate;
 
 const KEEP_SIZE: u64 = 0x01;
 
-const PUNCH_HOLE: u64 = 0x02;
+pub(super) const PUNCH_HOLE: u64 = 0x02;
 
 /* FALLOC_FL_SUPPORTED_MASK: every mode bit Linux knows. */
 const KNOWN: u64 = 0x7f;
@@ -59,19 +57,6 @@ pub fn fallocate(guest: &mut Guest, fd: u64, mode: u64, at: u64, len: u64) -> u6
     if mode & !(KEEP_SIZE | PUNCH_HOLE) != 0 {
         return errno::fail(errno::EOPNOTSUPP);
     }
-    let path = entry.path.clone();
-    let now = cache::size(&path).unwrap_or(entry.size);
-    let want = at.saturating_add(len);
-    match mode {
-        /* The descriptor learns the new length only once the copy has it. */
-        0 if want > now => {
-            let done = resize(&path, want, true);
-            if let Some(e) = guest.fds.get_mut(fd as usize).filter(|_| done == errno::ok(0)) {
-                e.size = want;
-            }
-            done
-        }
-        m if m & PUNCH_HOLE != 0 && at < now => zero(&path, at, len),
-        _ => errno::ok(0),
-    }
+    let (path, size) = (entry.path.clone(), entry.size);
+    allocate(guest, fd, mode, (at, len), (&path, size))
 }

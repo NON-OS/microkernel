@@ -17,8 +17,22 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
+use core::sync::atomic::{AtomicU64, Ordering};
 use spin::RwLock;
 
 use crate::hardware::broker::DeviceRecord;
 
 pub(super) static TABLE: RwLock<Vec<DeviceRecord>> = RwLock::new(Vec::new());
+
+/// One past the highest id a removed record had: no new record takes an id
+/// below it, so an id is never handed to a second device.
+static RETIRED: AtomicU64 = AtomicU64::new(0);
+
+pub(super) fn retire(device_id: u64) {
+    RETIRED.fetch_max(device_id.saturating_add(1), Ordering::AcqRel);
+}
+
+/// The next id after `max` (the highest in the table), above every retired id.
+pub(super) fn next_id(max: Option<u64>, empty: u64) -> u64 {
+    max.map_or(empty, |m| m + 1).max(RETIRED.load(Ordering::Acquire))
+}

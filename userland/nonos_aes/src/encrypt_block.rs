@@ -22,8 +22,7 @@ use crate::sub_byte::sub_byte;
 use crate::types::{Aes128, BLOCK_BYTES, ROUNDS};
 
 impl Aes128 {
-    /// Encrypt one block in place. CTR mode never decrypts, so there is no
-    /// inverse cipher here and no inverse tables to carry.
+    /// Encrypt one block in place. The inverse is in `decrypt_block.rs`.
     pub fn encrypt_block(&self, block: &mut [u8; BLOCK_BYTES]) {
         encrypt_with(&self.round_keys, ROUNDS, block);
     }

@@ -28,7 +28,9 @@ mod group;
 pub mod ie;
 mod keys;
 mod message3;
+mod rekey;
 mod reply;
+mod seed;
 mod state;
 pub mod step;
 

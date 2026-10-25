@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::kernel_core::process_spawn::capsule_spawn::{LoadError, SpawnError};
-use crate::syscall::microkernel::errnos::{ERRNO_ACCES, ERRNO_EXIST, ERRNO_INVAL};
+use crate::syscall::microkernel::errnos::{ERRNO_ACCES, ERRNO_EXIST, ERRNO_INVAL, ERRNO_PERM};
 
 // Map a loader failure to the negative errno the syscall returns. A malformed
 // manifest is an invalid argument; a rejected signature, manifest, or
@@ -27,6 +27,10 @@ pub(super) fn load_errno(e: LoadError) -> i64 {
     match e {
         LoadError::Manifest => ERRNO_INVAL,
         LoadError::Spawn(SpawnError::EndpointCollision) => ERRNO_EXIST,
+        // A name the image reserves, or outside the publisher's (K18).
+        LoadError::ReservedName => ERRNO_PERM,
+        // More than its parent holds, from a parent that is no launcher.
+        LoadError::BeyondParent => ERRNO_PERM,
         LoadError::TrustAnchor | LoadError::Spawn(_) => ERRNO_ACCES,
     }
 }

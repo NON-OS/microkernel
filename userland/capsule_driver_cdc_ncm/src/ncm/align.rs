@@ -14,17 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Where an NDP and a datagram start in an NTB sent to the device: the
-//! device's wNdpOutAlignment, wNdpOutDivisor and wNdpOutPayloadRemainder
-//! (NCM 1.0, table 6-3), checked as Linux cdc_ncm_fix_modulus
-//! checks them.
+//! Where an NDP and a datagram start in an NTB sent to the device, from
+//! its wNdpOutAlignment, wNdpOutDivisor and wNdpOutPayloadRemainder (NCM
+//! 1.0, table 6-3, as recalled, unverified): NDPs on the alignment, and
+//! each datagram's payload, the bytes after its Ethernet header, at an
+//! offset whose remainder by the divisor is the one given.
 
 use nonos_usbnet::nic::ETH_HEADER;
 
 use super::params::NtbParams;
 
-/// USB_CDC_NCM_NDP_ALIGN_MIN_SIZE: what a value the device got wrong
-/// falls back to.
+/// NDPs start on four-byte boundaries whatever else is asked (NCM 1.0,
+/// 3.3); a value the device got wrong falls back to it.
 const ALIGN_MIN: usize = 4;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -50,8 +51,8 @@ pub fn out_align(p: &NtbParams, tx_max: usize) -> OutAlign {
     OutAlign { ndp, modulus, remainder }
 }
 
-/// Linux cdc_ncm_align_tail: from `len` to the next multiple of `modulus`
-/// plus `remainder`, never past `max`.
-pub fn align_tail(len: usize, modulus: usize, remainder: usize, max: usize) -> usize {
-    (len.next_multiple_of(modulus) + remainder).min(max).max(len)
+/// The first offset at or after `at` whose remainder by `modulus`, a power
+/// of two, is `remainder`.
+pub fn next(at: usize, modulus: usize, remainder: usize) -> usize {
+    at + (remainder.wrapping_sub(at) & (modulus - 1))
 }

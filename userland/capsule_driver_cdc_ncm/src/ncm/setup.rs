@@ -14,24 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Telling the device the sizes this host takes, as Linux cdc_ncm_setup
-//! does: the NTB input size (cdc_ncm_update_rxtx_max) and the largest
-//! datagram (cdc_ncm_set_dgram_size).
+//! Telling the device the sizes this host takes (NCM 1.0, 6.2.7 and 6.2.9):
+//! the NTB input size and the largest datagram.
 
 use nonos_usbnet::xhci::BULK_MAX;
 use nonos_usbnet::{Bus, Setup};
 
+use super::datagram::max_datagram;
 use super::function::NcmFunction;
 use super::limits::rx_max;
 use super::params::NtbParams;
-use super::requests::{CAP_MAX_DATAGRAM_SIZE, CAP_NTB_INPUT_SIZE_8, GET_MAX_DATAGRAM_SIZE};
-use super::requests::{SET_MAX_DATAGRAM_SIZE, SET_NTB_INPUT_SIZE};
+use super::requests::{CAP_NTB_INPUT_SIZE_8, SET_NTB_INPUT_SIZE};
 
 const LARGE: &str = "SET_NTB_INPUT_SIZE refused, blocks too large";
 const UNDER: &str = "dwNtbInMaxSize under 2048";
-/// CDC_NCM_MIN_DATAGRAM_SIZE and CDC_NCM_MAX_DATAGRAM_SIZE.
-const DGRAM_MIN: u16 = 1514;
-const DGRAM_MAX: u16 = 8192;
 
 /// The NTB input size in force: the device's own when it is one bulk
 /// transfer or less and the spec's minimum or more, else the one asked.
@@ -55,20 +51,4 @@ pub(super) fn setup<B: Bus>(
     }
     max_datagram(bus, f);
     Ok(rx)
-}
-
-/// Only for a device that offers it; Linux reads the size first and
-/// writes it only when it differs, and a failure changes nothing.
-fn max_datagram<B: Bus>(bus: &mut B, f: &NcmFunction) {
-    if f.caps & CAP_MAX_DATAGRAM_SIZE == 0 {
-        return;
-    }
-    let want = f.max_segment.clamp(DGRAM_MIN, DGRAM_MAX);
-    let mut now = [0u8; 2];
-    let get = Setup::class(true, GET_MAX_DATAGRAM_SIZE, 0, f.comm);
-    if bus.control_in(get, &mut now) != Ok(2) || u16::from_le_bytes(now) == want {
-        return;
-    }
-    let set = Setup::class(false, SET_MAX_DATAGRAM_SIZE, 0, f.comm);
-    let _ = bus.control_out(set, &want.to_le_bytes());
 }

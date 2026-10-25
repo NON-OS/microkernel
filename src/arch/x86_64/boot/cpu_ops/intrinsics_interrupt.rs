@@ -16,19 +16,7 @@
 
 use core::arch::asm;
 
-#[inline]
-pub fn cli() {
-    unsafe {
-        asm!("cli", options(nomem, nostack, preserves_flags));
-    }
-}
-
-#[inline]
-pub fn sti() {
-    unsafe {
-        asm!("sti", options(nomem, nostack, preserves_flags));
-    }
-}
+pub use crate::arch::x86_64::interrupt::irq_flag::{cli, sti};
 
 #[inline]
 pub fn hlt() {

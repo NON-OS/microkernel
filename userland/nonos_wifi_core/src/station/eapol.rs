@@ -21,15 +21,13 @@
 //! pairwise key when the message came protected, and in the clear when it did
 //! not (the AP has not installed the pairwise key yet, so it could not read a
 //! protected one). A new group key is taken for software decryption with its
-//! Key RSC as the replay floor and handed to the driver to install.
-
-use alloc::vec::Vec;
+//! Key RSC as the replay floor and handed to the driver to install; a rekey's
+//! pairwise key replaces the one in use once message 4 is framed.
 
 use super::receive::{Rx, RxDrop};
 use super::LinkStation;
-use crate::dot11::data::build_data;
-
-const ETHERTYPE_EAPOL: [u8; 2] = [0x88, 0x8E];
+use crate::rsn::TemporalKey;
+use crate::vault::wipe;
 
 impl LinkStation {
     pub(super) fn on_eapol(&mut self, eapol: &[u8], protected: bool) -> Rx {
@@ -37,34 +35,34 @@ impl LinkStation {
             return Rx::Dropped(RxDrop::NoSupplicant);
         };
         let out = sup.step(eapol);
-        let group_key = if out.new_group_key && sup.gtk().len() == 16 {
-            let mut key = [0u8; 16];
-            key.copy_from_slice(sup.gtk());
-            Some((sup.gtk_id(), key, sup.gtk_rsc()))
-        } else {
-            None
+        // A group rekey under management frame protection carries a new IGTK.
+        self.pmf.take_igtk(sup);
+        let fresh = out.new_group_key.then(|| TemporalKey::new(sup.group_cipher(), sup.gtk()));
+        let (id, rsc) = (sup.gtk_id(), sup.gtk_rsc());
+        // Message 4 of a rekey goes out under the pairwise key in use; the
+        // new one is taken only after it is framed.
+        let mut tk = [0u8; 32];
+        let n = if out.new_pairwise_key { sup.tk().len().min(32) } else { 0 };
+        tk[..n].copy_from_slice(&sup.tk()[..n]);
+        let fresh = fresh.flatten();
+        // Only a CCMP-128 key goes to the chip's key cache; a GCMP-256 one
+        // stays with the station, which decrypts group frames under it.
+        let chip = match &fresh {
+            Some(TemporalKey::Ccmp128(k)) => Some((id, *k)),
+            _ => None,
         };
-        if let Some((id, key, rsc)) = group_key {
-            self.set_group_key(id, key, rsc);
-        }
+        // A key the station already holds in that slot, an AP handing back
+        // one it rotated away from among them, is not installed again: not
+        // here, and not in the chip's key cache (802.11-2020, 12.7.7.3).
+        let taken = fresh.is_some_and(|key| self.set_group_key(id, key, rsc));
+        let group_key = chip.filter(|_| taken);
         let frame = out.reply.and_then(|r| self.eapol_frame(&r, protected));
-        Rx::Handshake { frame, group_key: group_key.map(|(id, key, _)| (id, key)) }
-    }
-
-    /// Frame an EAPOL payload to the access point, protected under the
-    /// pairwise key or in the clear.
-    pub fn eapol_frame(&mut self, eapol: &[u8], protect: bool) -> Option<Vec<u8>> {
-        let mut eth = Vec::with_capacity(14 + eapol.len());
-        eth.extend_from_slice(&self.bssid);
-        eth.extend_from_slice(&self.our_mac);
-        eth.extend_from_slice(&ETHERTYPE_EAPOL);
-        eth.extend_from_slice(eapol);
-        if protect {
-            return self.tx_frame(&eth);
+        if n != 0 {
+            self.set_pairwise_key(&tk[..n]);
         }
-        let seq = self.seq;
-        let frame = build_data(&eth, self.our_mac, self.bssid, seq)?;
-        self.seq = self.seq.wrapping_add(1) & 0x0FFF;
-        Some(frame)
+        // Only a CCMP-128 key goes to the chip, as for the group key.
+        let pairwise_key = tk[..n].try_into().ok();
+        wipe(&mut tk);
+        Rx::Handshake { frame, group_key, pairwise_key }
     }
 }

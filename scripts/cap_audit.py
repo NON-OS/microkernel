@@ -88,6 +88,12 @@ class Kernel:
         self.syscalls = kern.syscall_gates(root)
         self.handlers = kern.handler_gates(root)
         self.network, self.network_cite = kern.network_services(root)
+        self.keyed, self.keyed_cite = kern.key_services(root)
+        unseen = [n for n in self.keyed + self.network
+                  if not (user.NAME_LIT.fullmatch(n) or n in user.WORD_SERVICES)]
+        if unseen:
+            raise kern.SourceMoved(f"service names the userland scan cannot see: {unseen}; "
+                                   "add them to WORD_SERVICES in cap_audit_userland.py")
         self.owner_cite = kern.endpoint_owner_cite(root)
         self.acls = kern.service_acls(root, handle_of)
         self.grant_cite = kern.grant_rule_cite(root)
@@ -175,6 +181,10 @@ def assess(capsule, uses, kernel, root_crate):
                 apply(kern.Gate(f"names network service {use.literal}", "all", {"Network"},
                                 kern.CONDITIONAL, kernel.network_cite,
                                 "sending to it takes Network; naming it alone does not"), use)
+            if use.literal in kernel.keyed:
+                apply(kern.Gate(f"names key service {use.literal}", "all", {"Keyring"},
+                                kern.CONDITIONAL, kernel.keyed_cite,
+                                "sending to it takes Keyring; naming it alone does not"), use)
             for acl in kernel.acls:
                 if use.literal in acl.literal and not use.listed:
                     apply(acl, use)
@@ -190,6 +200,11 @@ def assess(capsule, uses, kernel, root_crate):
                         "spawn registers the endpoint and refuses an owner without IPC"),
               spawn)
     for name in capsule.service_names:
+        if name in kernel.keyed:
+            apply(kern.Gate(f"owns key service {name}", "all", {"Keyring"}, kern.HARD,
+                            kernel.keyed_cite,
+                            "spawn refuses an owner of a key service without Keyring"),
+                  spawn)
         if name in kernel.network:
             apply(kern.Gate(f"owns network service {name}", "all", {"Network"}, kern.HARD,
                             kernel.network_cite,

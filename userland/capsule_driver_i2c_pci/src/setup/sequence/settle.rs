@@ -31,7 +31,6 @@
 use core::iter::once;
 
 use super::sweep::sweep;
-use crate::constants::controller_index;
 use crate::discover::{AcpiTouchpad, Found};
 use crate::driver::Driver;
 use crate::transaction::{Presence, Reach};
@@ -64,7 +63,7 @@ pub fn settle(
     }
     let swept = sweep(driver, dev, targets);
     let addr = if tg.addressed() { tg.addr } else { swept.map_or(0, |(a, _)| a) };
-    let here = targets.iter().filter(|t| t.names_none() || t.names(dev, controller_index));
+    let here = targets.iter().filter(|t| t.may_be_on(dev));
     let declared = here.filter(|t| t.addressed()).map(|t| (t.addr, t.desc_reg));
     Settled {
         addr,

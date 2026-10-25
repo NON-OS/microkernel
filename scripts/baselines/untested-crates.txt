@@ -14,8 +14,6 @@
 #   orphan  a test file no target's module tree reaches
 # Owners: the track that moves it (A, B, C, D), the lead, or upstream for a
 # third-party suite.
-. d A target-only kernel: the inline tests in src/syscall/microkernel/time.rs and src/security/hardening/memory_sanitization/scrub_asm.rs want a #[path] mount in kernel_proofs
-nonos-boot-measure a A passes on the host (29 passed, 26s)
 nonos-bootloader/tools/embed-trailer a lead checks.nix's attest-poc runs its one test target, kernel_self_attest_poc; that check is not a proofs lane, so this list holds it until the crate takes the marker in its place
 nonos-device-attest t A builds and nothing fails, but the run hit the 10-minute cap: each proof test runs over 60s
 nonos-shield-prove a B builds on the host; its one test is #[ignore]d (0 passed, 1 ignored, 16s)
@@ -27,45 +25,17 @@ tools/nonos-pack/core a C passes on the host (19 passed, 2s); a member of tools/
 userland/capsule_audio d C no_std capsule: its tests/host programs (fn main) want a host proofs crate
 userland/capsule_audio_player d C no_std capsule: its tests/host programs want a host proofs crate (the host run could not fetch cc v1.4.0)
 userland/capsule_mdview/layout_tests c C the host run lacked the crate pulldown-cmark
-userland/capsule_net_core/tests/ipc_framing a C passes on the host (12 passed, 1s); it has no Cargo.lock of its own
 userland/capsule_net_nym d A no_std capsule: a host cargo test stops on a duplicate panic_impl lang item; its inline tests want a #[path] mount in a nym proofs crate
 userland/capsule_net_nym/tests/live_gateway c A needs the sphinx-packet git source, which the host run could not fetch, and its oracle a live Nym gateway
-userland/capsule_net_sockets/tests/connect_pending a C passes on the host (5 passed, 0s); it has no Cargo.lock of its own
-userland/capsule_net_sockets/tests/mixnet_framing a C passes on the host (12 passed, 2s); it has no Cargo.lock of its own
 userland/capsule_process_manager d C no_std capsule: its tests/host programs (fn main) want a host proofs crate
 userland/capsule_settings d C no_std capsule: its tests/host programs (fn main) want a host proofs crate
-userland/capsule_shield a B passes on the host (4 passed, 79s)
 userland/capsule_snake d C no_std capsule: its tests/host programs (fn main) want a host proofs crate
-userland/capsule_terminal d B no_std capsule: its tests/*_host.rs want a host proofs crate; built for the host now, it fails on `check` missing from super::verify
-userland/capsule_text_editor/layout_tests a C passes on the host (81 passed, 13s)
-userland/iwlwifi_proofs/src/link_tests.rs orphan C no mod line reaches it; re-added it fails on its import of crate::station, and passes (2 tests) once that is fixed
-userland/nonos_avi a C passes on the host (14 passed, 3s)
-userland/nonos_brotli a C passes on the host (7 passed, 33s)
-userland/nonos_gguf a C passes on the host (12 passed, 3s)
-userland/nonos_git a B passes on the host (73 passed, 23s)
-userland/nonos_hash a A passes on the host (2 passed, 3s)
 userland/nonos_hd c B the host run lacked the crate serde_json
-userland/nonos_http a A passes on the host (22 passed, 4s)
-userland/nonos_nox_broker a B passes on the host (9 passed, 2s)
-userland/nonos_nox_license c B the host run could not fetch libc v0.2.189
-userland/nonos_nox_receipt a B passes on the host (10 passed, 2s)
 userland/nonos_qjs c C the host run could not fetch cc v1.2.67
-userland/nonos_qr a B passes on the host (7 passed, 3s)
-userland/nonos_recon a B passes on the host (11 passed, 1s)
-userland/nonos_seal a B passes on the host (7 passed, 2s)
-userland/nonos_vault a B passes on the host (13 passed, 2s)
-userland/nonos_vt a B passes on the host (69 passed, 26s)
-userland/nonos_wifi_core a C passes on the host (6 passed, 19s)
-userland/openpgp a C passes on the host (12 passed, 40s)
-userland/policy_proto a A passes on the host (37 passed, 6s)
-userland/shield_core a B passes on the host (247 passed, 200s)
-userland/shield_wire a B passes on the host (6 passed, 1s)
 userland/stark_proofs/src/forgery_tests.rs orphan A no mod line reaches it; re-added it does not compile: the Poseidon preimage AIR it imports is gone and StarkProof has no clone
 userland/stark_proofs/src/poseidon_tests.rs orphan A no mod line reaches it; re-added it does not compile: crypto::stark::poseidon is gone
 userland/stark_proofs/src/recursive_verifier_tests.rs orphan A no mod line reaches it; re-added it does not compile: FinalLayerConstant, FriTranscript and recursive_verify are gone from stark::air
-userland/stark_proofs/src/transcript_tests.rs orphan A no mod line reaches it; re-added it passes (8 tests)
 userland/toolkit d C no_std library and target-only capsule: its tests/host programs want a host proofs crate
-userland/toolkit/image_tests a C passes on the host (8 passed, 16s)
 userland/upstream-src/atty-0.2.14 c upstream third-party suite, not the NONOS patches; the host run lacked the crate winapi; it has no Cargo.lock of its own
 userland/upstream-src/choose c upstream third-party suite, not the NONOS patches; the host run lacked the crate regex
 userland/upstream-src/csview c upstream third-party suite, not the NONOS patches; the host run lacked the crate anyhow
@@ -87,6 +57,3 @@ userland/upstream-src/tools-2048 a upstream third-party suite, not the NONOS pat
 userland/vendor/is-terminal c upstream third-party suite, not the NONOS patches; the host run lacked the crate rustix
 userland/vendor/mio c upstream third-party suite, not the NONOS patches; the host run lacked the crate env_logger
 userland/vendor/tokio c upstream third-party suite, not the NONOS patches; the host run lacked the crate mio
-userland/xz a C passes on the host (6 passed, 19s)
-userland/zstd a C passes on the host (7 passed, 30s)
-verification/trusted_path_poc a A passes on the host (8 passed, 1s)

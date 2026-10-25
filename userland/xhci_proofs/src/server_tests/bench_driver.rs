@@ -42,6 +42,7 @@ pub fn driver(bar: &FakeBar, pool: DmaPool, intr: u64, event_ring: EventRing) ->
         max_slots: SLOTS,
         max_ports: 2,
         max_scratchpad: 0,
+        max_psa: 0,
         context_size: 32,
         ports: PortProtocols::unknown(),
     };

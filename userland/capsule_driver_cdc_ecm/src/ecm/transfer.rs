@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One frame out and one in over the bulk pipes. A stalled pipe is brought
-//! back before the error goes up, so the next transfer finds it working.
+//! One frame out over the bulk OUT pipe, and a stalled pipe brought back
+//! before its error goes up, so the next transfer finds it working.
 
 use nonos_usbnet::halt::clear_halt;
 use nonos_usbnet::nic::{ETH_FRAME_MAX, ETH_HEADER};
 use nonos_usbnet::xhci::{E_INVAL, E_IO, E_PIPE};
 use nonos_usbnet::Bus;
 
-use super::frame::{padded_len, received_len};
+use super::frame::padded_len;
 use super::link::Ecm;
 
 /// One frame of 14 to 1514 bytes out; any other length is refused here,
@@ -41,18 +41,7 @@ pub(super) fn send<B: Bus>(ecm: &mut Ecm<B>, frame: &[u8]) -> Result<(), i32> {
     }
 }
 
-pub(super) fn recv<B: Bus>(ecm: &mut Ecm<B>, out: &mut [u8]) -> Result<Option<usize>, i32> {
-    let n = match ecm.bus.bulk_in_poll(&mut ecm.rx) {
-        Ok(Some(n)) => n,
-        Ok(None) => return Ok(None),
-        Err(e) => return Err(recover(&mut ecm.bus, e, ecm.pipes.bulk_in)),
-    };
-    let Some(len) = received_len(n).filter(|&l| l <= out.len()) else { return Ok(None) };
-    out[..len].copy_from_slice(&ecm.rx[..len]);
-    Ok(Some(len))
-}
-
-fn recover<B: Bus>(bus: &mut B, e: i32, endpoint: u8) -> i32 {
+pub(super) fn recover<B: Bus>(bus: &mut B, e: i32, endpoint: u8) -> i32 {
     if e == E_PIPE {
         let _ = clear_halt(bus, endpoint);
     }

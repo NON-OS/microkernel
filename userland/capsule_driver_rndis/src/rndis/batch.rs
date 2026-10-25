@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The frames in one bulk IN transfer. A device may batch several
-//! PACKET_MSGs into it (Remote NDIS 1.0, 2.2.13; Linux rndis_rx_fixup),
+//! PACKET_MSGs into it (Remote NDIS 1.0, 2.2.13),
 //! and every length in them comes from the device, so each is checked
 //! against the message and the message against the transfer.
 
@@ -30,8 +30,8 @@ use super::packet::{DATA_OFFSET, PACKET_HDR};
 /// Queue the frames of transfer `t` as ranges of it, in order; the number
 /// of messages dropped. A message of another type, or one whose
 /// MessageLength runs short of a header or past the transfer, ends the
-/// walk: what follows cannot be found (Linux drops the rest the same
-/// way). Zero padding after the last message ends it quietly.
+/// walk: what follows cannot be found. Zero padding after the last
+/// message ends it quietly.
 pub fn frames(t: &[u8], queue: &mut VecDeque<Range<usize>>) -> u32 {
     let (mut at, mut dropped) = (0usize, 0u32);
     while let (Some(kind), Some(len)) = (le32(t, at), le32(t, at + 4)) {

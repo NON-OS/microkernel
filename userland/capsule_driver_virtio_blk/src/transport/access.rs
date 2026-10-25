@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{fence, Ordering};
-
 use nonos_virtio::common::DEVICE_STATUS;
 
 use super::types::Transport;
@@ -23,11 +21,11 @@ use crate::constants::{LEG_ISR, LEG_QUEUE_NOTIFY, LEG_STATUS, STATUS_NEEDS_RESET
 
 impl Transport {
     /// Tell the device queue `queue` has a request. The available index
-    /// was published after a release fence (`queue::post`); this one keeps
+    /// was published after a DMA write barrier (`queue::post`); this keeps
     /// the doorbell after the index, so a device on a weakly ordered
     /// machine never finds the bell rung over a ring it cannot see yet.
     pub fn notify(self, queue: u16) {
-        fence(Ordering::SeqCst);
+        nonos_libc::dma_wmb();
         match self {
             Self::Legacy(regs) => regs.w16(LEG_QUEUE_NOTIFY, queue),
             Self::Modern(m) => m.notify.w16(m.doorbell, queue),

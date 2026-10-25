@@ -22,10 +22,12 @@
  * keeps no copy. Needs DeviceSecret, which nonos.prove alone holds.
  */
 
-use crate::syscall::microkernel::errnos::{ERRNO_ACCES, ERRNO_FAULT, ERRNO_INVAL, ERRNO_NODEV, ERRNO_NOENT, ERRNO_PERM};
 use crate::security::hardening::memory_sanitization::{secure_zero, secure_zero_slice};
 use crate::security::tpm::device_secret::{device_secret, from_boot};
 use crate::security::tpm::machine_key::KeyError;
+use crate::syscall::microkernel::errnos::{
+    ERRNO_ACCES, ERRNO_FAULT, ERRNO_INVAL, ERRNO_IO, ERRNO_NODEV, ERRNO_NOENT, ERRNO_PERM,
+};
 
 /// Four words of eight bytes; a buffer of any other length is refused.
 const SECRET_LEN: usize = 32;
@@ -51,6 +53,7 @@ pub(in crate::syscall::microkernel) fn sys_device_secret(out_ptr: u64, out_len: 
         Ok(words) => words,
         /* The TPM refused the policy: this is not an approved chain. */
         Err(KeyError::Refused(_)) => return ERRNO_ACCES,
+        Err(KeyError::NoRandomness) => return ERRNO_IO,
         Err(_) => return ERRNO_NODEV,
     };
     let mut bytes = [0u8; SECRET_LEN];

@@ -21,17 +21,7 @@ use crate::security::nonos_id_cert::{
 use crate::security::nonos_trust_anchor::NonosTrustAnchorPolicy;
 
 use super::super::spec::{CapsuleSpecVerified, SpawnError};
-use crate::security::capsule_attest::Proved;
-
-pub(crate) struct Preflighted {
-    /// What the spawn gate proved and who proved it, recorded once a pid
-    /// exists. `None` when nothing was proved.
-    pub proved: Option<Proved>,
-    pub install_caps: u64,
-    /// The publisher-signed identity of manifest and image, checked by
-    /// `verify_with_publisher`.
-    pub capsule_id: [u8; 32],
-}
+use super::{attest_gate::attest_gate, preflighted::Preflighted};
 
 pub(crate) fn run(
     spec: &CapsuleSpecVerified,
@@ -65,16 +55,21 @@ pub(crate) fn run(
         &declared,
     )?;
     let install_caps = verification.1;
-    crate::security::image_ceiling::would_refuse(spec.name, install_caps);
+    // The image ceiling binds every capsule (K16): over it, no spawn.
+    let ceiling = crate::security::image_ceiling::ceiling();
+    if crate::security::image_ceiling::gate(install_caps, ceiling).is_err() {
+        crate::security::image_ceiling::report(spec.name, install_caps);
+        return Err(SpawnError::ImageCeiling);
+    }
     let capsule_id = verification.0.capsule_id;
     let required_caps = verification.0.manifest.required_caps;
     let namespace = verification.0.manifest.namespace_str();
-    let proved = match super::tier::classify(namespace) {
-        super::tier::Tier::Enrolled => super::attest_gate::attest_gate(spec, required_caps)?,
+    let namespace_hash = *blake3::hash(namespace.as_bytes()).as_bytes();
+    let (proved, system) = match super::tier::classify(namespace) {
+        super::tier::Tier::Enrolled => (attest_gate(spec, required_caps)?, true),
         super::tier::Tier::Publisher => {
-            super::publisher_gate::publisher_gate(spec, namespace, required_caps)?
+            (super::publisher_gate::publisher_gate(spec, namespace, required_caps)?, false)
         }
     };
-
-    Ok(Preflighted { install_caps, proved, capsule_id })
+    Ok(Preflighted { install_caps, proved, capsule_id, namespace_hash, system })
 }

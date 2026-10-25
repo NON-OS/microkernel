@@ -20,7 +20,7 @@ use super::say::say_bound;
 use super::settle::settle;
 use crate::discover::{AcpiTouchpad, Found};
 use crate::driver::Driver;
-use crate::setup::gpio::doorbell;
+use crate::setup::doorbell;
 use crate::transaction::Presence;
 
 /// Bind `driver`, the controller `dev`, to `tg`, which setup's probe
@@ -38,7 +38,7 @@ pub(super) fn bind(
     driver.bound_desc_reg = settled.desc_reg;
     (driver.bound_pin, driver.bound_info) = (tg.gpio_pin, tg.info);
     driver.reach.set(settled.reach);
-    driver.doorbell = doorbell(driver.pci_device, tg);
+    driver.doorbell = doorbell(driver.device_id, tg);
     say_bound(&driver, Some(tg));
     driver
 }

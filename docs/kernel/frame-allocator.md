@@ -15,19 +15,19 @@ flowchart TD
     PA --> KS[kernel stacks]
 ```
 
-- The UEFI memory map from the [boot handoff](../overview/glossary.md#boot-handoff) says which RAM is usable.
+- The UEFI memory map from the [boot handoff](../overview/glossary-amnesic-boot.md#boot-handoff) says which RAM is usable.
 - `phys` is a bitmap with one bit per 4 KiB frame. It alone hands out physical memory.
 - `frame_alloc` is the entry point the rest of the kernel calls. It draws from `phys` and from nothing else. The paging manager takes every new page-table frame from its `allocate_frame` (`src/memory/paging/manager/mapping/tables.rs:32`).
 - `VmapAllocator` is a buddy allocator over a kernel virtual window. `page_allocator` wraps it and backs each page with a frame.
-- Two [DMA pools](../overview/glossary.md#dma-pool) are carved out of the bitmap at boot: a low one below 4 GiB for devices that can only address 32 bits, and a high one for display surfaces.
+- Two [DMA pools](../overview/glossary-dma-pool.md#dma-pool) are carved out of the bitmap at boot: a low one below 4 GiB for devices that can only address 32 bits, and a high one for display surfaces.
 
 ## From the memory map to the bitmap
 
 `init_memory` runs in the first stages of kernel init (`src/kernel_core/init/memory/setup.rs:25-75`). It takes the span from the lowest usable frame at or above 1 MiB to the highest usable frame. If the map gives no usable span of at least 1 MiB it uses 1 MiB to 2 GiB instead, and the end is capped at `MAX_PHYSICAL_MEMORY`, 64 GiB (`src/kernel_core/init/memory/setup.rs:44-48`, `src/memory/phys/constants/bitmap.rs:19`).
 
-`phys_init` allocates the bitmap for that span from the kernel heap (`src/memory/phys/allocator/api.rs:37-44`). Only map entries of type `CONVENTIONAL` count as usable, through `usable_regions` (`src/boot/handoff/types/memory.rs:75-82`). `phys_keep_usable` then marks every frame of the span that no usable region covers as taken: holes, device windows, firmware and the loader's own data (`src/memory/phys/allocator/reserve.rs:56-65`). The walk over the sorted regions is `walk_usable` (`src/memory/phys/usable_span.rs:31-54`). The same file is compiled into the `kernel_proofs` [proof crate](../overview/glossary.md#proof-crate) as its `usable_span` module, which is tested on the host (`userland/kernel_proofs/src/memory/phys/mod.rs:21-22`) and passes on this commit.
+`phys_init` allocates the bitmap for that span from the kernel heap (`src/memory/phys/allocator/api.rs:37-44`). Only map entries of type `CONVENTIONAL` count as usable, through `usable_regions` (`src/boot/handoff/types/memory.rs:75-82`). `phys_keep_usable` then marks every frame of the span that no usable region covers as taken: holes, device windows, firmware and the loader's own data (`src/memory/phys/allocator/reserve.rs:56-65`). The walk over the sorted regions is `walk_usable` (`src/memory/phys/usable_span.rs:31-54`). The same file is compiled into the `kernel_proofs` [proof crate](../overview/glossary-peer-list.md#proof-crate) as its `usable_span` module, which is tested on the host (`userland/kernel_proofs/src/memory/phys/mod.rs:21-22`) and passes on this commit.
 
-The result is one line on the [serial console](../overview/glossary.md#serial-console) from `say_managed` (`src/kernel_core/init/memory/span.rs:35-45`):
+The result is one line on the [serial console](../overview/glossary-rollback-index.md#serial-console) from `say_managed` (`src/kernel_core/init/memory/span.rs:35-45`):
 
 ```text
 [MEM] 3967 MiB free to allocate, in a span of 0x100000..0x180000000
@@ -39,7 +39,7 @@ Last, `find_low_dma_region` picks usable memory between `DMA_POOL_MIN_BASE`, 16 
 
 ## Allocating and freeing frames
 
-`allocate_frame` in `phys` is a next-fit scan: it starts at a hint just past the last frame it gave out and wraps around the bitmap (`src/memory/phys/allocator/alloc.rs:20-53`). With the `HIGH` flag it scans down from the top instead. With `ZERO` it clears the frame through the [directmap](../overview/glossary.md#directmap) before returning it.
+`allocate_frame` in `phys` is a next-fit scan: it starts at a hint just past the last frame it gave out and wraps around the bitmap (`src/memory/phys/allocator/alloc.rs:20-53`). With the `HIGH` flag it scans down from the top instead. With `ZERO` it clears the frame through the [directmap](../overview/glossary-claim-epoch.md#directmap) before returning it.
 
 `deallocate_frame` refuses a frame below or above the span, a misaligned address, and a frame that is already free, which it reports as `DoubleFree` (`src/memory/phys/allocator/alloc.rs:55-76`).
 
@@ -51,7 +51,7 @@ Kernel code outside the memory subsystem goes through `frame_alloc`. Its `alloc`
 
 `VmapAllocator` is a buddy allocator over the 256 MiB vmap window, with block orders from `MIN_ORDER`, 12, to `MAX_ORDER`, 20, that is 4 KiB to 1 MiB (`src/memory/buddy_alloc/allocator/core.rs:22-60`, `src/memory/buddy_alloc/constants/orders.rs:17-19`). A request larger than 1 MiB fails with `AllocationTooLarge` (`src/memory/buddy_alloc/allocator/alloc.rs:33-37`).
 
-`allocate_pages` takes a range from it, backs each page with a frame from `frame_alloc`, maps it and zeroes it (`src/memory/buddy_alloc/allocator/api/alloc.rs:25-41`). `release` gives pages back in a fixed order: unmap up to 32 pages under one [TLB shootdown](../overview/glossary.md#tlb-shootdown), free the frames, then free the range (`src/memory/buddy_alloc/allocator/api/release.rs:43-66`). Freeing a frame while another CPU might still translate to it would let that CPU reach memory that now belongs to someone else.
+`allocate_pages` takes a range from it, backs each page with a frame from `frame_alloc`, maps it and zeroes it (`src/memory/buddy_alloc/allocator/api/alloc.rs:25-41`). `release` gives pages back in a fixed order: unmap up to 32 pages under one [TLB shootdown](../overview/glossary-stark-proof.md#tlb-shootdown), free the frames, then free the range (`src/memory/buddy_alloc/allocator/api/release.rs:43-66`). Freeing a frame while another CPU might still translate to it would let that CPU reach memory that now belongs to someone else.
 
 `page_allocator` is started by `init_unified_vm` once paging is up (`src/memory/unified/init/run.rs:79-84`). Its main user is `allocate_kernel_stack`, which gives every process a kernel-only stack of `KERNEL_STACK_SIZE`, 32 KiB (`src/kernel_core/process_spawn/kernel_stack.rs:39-56`, `src/process/userspace/constants.rs:31`).
 

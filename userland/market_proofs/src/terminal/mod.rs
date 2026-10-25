@@ -19,6 +19,5 @@
 #[path = "../../../capsule_terminal/src/command/builtin/market/wrap.rs"]
 mod wrap;
 
-pub fn wrap(text: &[u8], width: usize) -> alloc::vec::Vec<&[u8]> {
-    wrap::wrap(text, width)
-}
+mod cut;
+pub use cut::wrap;

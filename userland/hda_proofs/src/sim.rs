@@ -28,6 +28,7 @@ mod answer;
 mod codec;
 mod get_verbs;
 mod handle;
+mod noise;
 mod start;
 
 pub use codec::*;

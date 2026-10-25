@@ -14,41 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The original PC mechanism: an address port and a data port.
-//!
-//! Only dwords move, so narrower reads shift out of the containing dword and
-//! narrower writes are read-modify-write. That is a real limitation of the
-//! mechanism and one reason ECAM is preferred where it exists.
-
+mod access;
 mod address;
 mod dword;
 
-pub(in crate::drivers::pci::config) use address::config_address;
-
-pub(super) fn read8(bus: u8, device: u8, function: u8, offset: u16) -> u8 {
-    let shift = (offset & 3) * 8;
-    ((dword::read(bus, device, function, offset) >> shift) & 0xFF) as u8
-}
-
-pub(super) fn read16(bus: u8, device: u8, function: u8, offset: u16) -> u16 {
-    let shift = (offset & 2) * 8;
-    ((dword::read(bus, device, function, offset) >> shift) & 0xFFFF) as u16
-}
-
-pub(super) fn read32(bus: u8, device: u8, function: u8, offset: u16) -> u32 {
-    dword::read(bus, device, function, offset)
-}
-
-pub(super) fn write8(bus: u8, device: u8, function: u8, offset: u16, value: u8) {
-    let shift = ((offset & 3) * 8) as u32;
-    dword::modify(bus, device, function, offset, 0xFF << shift, (value as u32) << shift);
-}
-
-pub(super) fn write16(bus: u8, device: u8, function: u8, offset: u16, value: u16) {
-    let shift = ((offset & 2) * 8) as u32;
-    dword::modify(bus, device, function, offset, 0xFFFF << shift, (value as u32) << shift);
-}
-
-pub(super) fn write32(bus: u8, device: u8, function: u8, offset: u16, value: u32) {
-    dword::write(bus, device, function, offset, value)
-}
+pub(super) use access::{read16, read32, read8, write16, write32, write8};

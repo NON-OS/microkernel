@@ -14,8 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::apps_desk::{
+    spawn_about, spawn_clock, spawn_file_manager, spawn_snake, spawn_wallet_nonos,
+};
+use super::apps_media::{
+    spawn_audio_player, spawn_install, spawn_process_manager, spawn_video_player,
+};
+use super::apps_tools::{
+    spawn_browser, spawn_calculator, spawn_settings, spawn_terminal, spawn_text_editor,
+};
+use super::error_name::spawn_error_name;
 use super::queue::{self, PendingApp};
-use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 /// Perform every queued window-instance spawn. Called from `init_loop`, so
 /// this runs in init's context, the same environment the boot spawns use.
@@ -59,158 +68,4 @@ pub(crate) fn service() {
         }
     }
     queue::settle();
-}
-
-fn spawn_error_name(e: SpawnError) -> &'static [u8] {
-    match e {
-        SpawnError::FeatureDisabled => b"FeatureDisabled",
-        SpawnError::ElfLoad => b"ElfLoad",
-        SpawnError::ProcessCreation => b"ProcessCreation",
-        SpawnError::AddressSpace => b"AddressSpace",
-        SpawnError::EndpointCollision => b"EndpointCollision",
-        SpawnError::InboxName => b"InboxName",
-        SpawnError::NonosIdCertRejected(_) => b"CertRejected",
-        SpawnError::ManifestRejected(_) => b"ManifestRejected",
-        SpawnError::AttestationRejected => b"AttestationRejected",
-        SpawnError::ProfileRefused => b"ProfileRefused",
-    }
-}
-
-#[cfg(feature = "nonos-capsule-terminal")]
-fn spawn_terminal() -> Result<u32, SpawnError> {
-    crate::userspace::capsule_terminal::spawn_terminal_instance()
-}
-
-#[cfg(not(feature = "nonos-capsule-terminal"))]
-fn spawn_terminal() -> Result<u32, SpawnError> {
-    Err(SpawnError::FeatureDisabled)
-}
-
-#[cfg(feature = "nonos-capsule-browser")]
-fn spawn_browser() -> Result<u32, SpawnError> {
-    crate::userspace::capsule_browser::spawn_browser_instance()
-}
-
-#[cfg(not(feature = "nonos-capsule-browser"))]
-fn spawn_browser() -> Result<u32, SpawnError> {
-    Err(SpawnError::FeatureDisabled)
-}
-
-#[cfg(feature = "nonos-capsule-text-editor")]
-fn spawn_text_editor() -> Result<u32, SpawnError> {
-    crate::userspace::capsule_text_editor::spawn_text_editor_instance()
-}
-
-#[cfg(not(feature = "nonos-capsule-text-editor"))]
-fn spawn_text_editor() -> Result<u32, SpawnError> {
-    Err(SpawnError::FeatureDisabled)
-}
-
-#[cfg(feature = "nonos-capsule-settings")]
-fn spawn_settings() -> Result<u32, SpawnError> {
-    crate::userspace::capsule_settings::spawn_settings_instance()
-}
-
-#[cfg(not(feature = "nonos-capsule-settings"))]
-fn spawn_settings() -> Result<u32, SpawnError> {
-    Err(SpawnError::FeatureDisabled)
-}
-
-#[cfg(feature = "nonos-capsule-calculator")]
-fn spawn_calculator() -> Result<u32, SpawnError> {
-    crate::userspace::capsule_calculator::spawn_calculator_instance()
-}
-
-#[cfg(not(feature = "nonos-capsule-calculator"))]
-fn spawn_calculator() -> Result<u32, SpawnError> {
-    Err(SpawnError::FeatureDisabled)
-}
-
-#[cfg(feature = "nonos-capsule-clock")]
-fn spawn_clock() -> Result<u32, SpawnError> {
-    crate::userspace::capsule_clock::spawn_clock_instance()
-}
-
-#[cfg(not(feature = "nonos-capsule-clock"))]
-fn spawn_clock() -> Result<u32, SpawnError> {
-    Err(SpawnError::FeatureDisabled)
-}
-
-#[cfg(feature = "nonos-capsule-about")]
-fn spawn_about() -> Result<u32, SpawnError> {
-    crate::userspace::capsule_about::spawn_about_instance()
-}
-
-#[cfg(not(feature = "nonos-capsule-about"))]
-fn spawn_about() -> Result<u32, SpawnError> {
-    Err(SpawnError::FeatureDisabled)
-}
-
-#[cfg(feature = "nonos-capsule-snake")]
-fn spawn_snake() -> Result<u32, SpawnError> {
-    crate::userspace::capsule_snake::spawn_snake_instance()
-}
-
-#[cfg(not(feature = "nonos-capsule-snake"))]
-fn spawn_snake() -> Result<u32, SpawnError> {
-    Err(SpawnError::FeatureDisabled)
-}
-
-#[cfg(feature = "nonos-capsule-wallet-nonos")]
-fn spawn_wallet_nonos() -> Result<u32, SpawnError> {
-    crate::userspace::capsule_wallet_nonos::spawn_wallet_nonos_instance()
-}
-
-#[cfg(not(feature = "nonos-capsule-wallet-nonos"))]
-fn spawn_wallet_nonos() -> Result<u32, SpawnError> {
-    Err(SpawnError::FeatureDisabled)
-}
-
-#[cfg(feature = "nonos-capsule-file-manager")]
-fn spawn_file_manager() -> Result<u32, SpawnError> {
-    crate::userspace::capsule_file_manager::spawn_file_manager_instance()
-}
-
-#[cfg(not(feature = "nonos-capsule-file-manager"))]
-fn spawn_file_manager() -> Result<u32, SpawnError> {
-    Err(SpawnError::FeatureDisabled)
-}
-
-#[cfg(feature = "nonos-capsule-process-manager")]
-fn spawn_process_manager() -> Result<u32, SpawnError> {
-    crate::userspace::capsule_process_manager::spawn_process_manager_instance()
-}
-
-#[cfg(not(feature = "nonos-capsule-process-manager"))]
-fn spawn_process_manager() -> Result<u32, SpawnError> {
-    Err(SpawnError::FeatureDisabled)
-}
-
-#[cfg(feature = "nonos-capsule-audio-player")]
-fn spawn_audio_player() -> Result<u32, SpawnError> {
-    crate::userspace::capsule_audio_player::spawn_audio_player_instance()
-}
-
-#[cfg(not(feature = "nonos-capsule-audio-player"))]
-fn spawn_audio_player() -> Result<u32, SpawnError> {
-    Err(SpawnError::FeatureDisabled)
-}
-
-#[cfg(feature = "nonos-capsule-video-player")]
-fn spawn_video_player() -> Result<u32, SpawnError> {
-    crate::userspace::capsule_video_player::spawn_video_player_instance()
-}
-
-#[cfg(not(feature = "nonos-capsule-video-player"))]
-fn spawn_video_player() -> Result<u32, SpawnError> {
-    Err(SpawnError::FeatureDisabled)
-}
-
-#[cfg(feature = "nonos-capsule-install")]
-fn spawn_install() -> Result<u32, SpawnError> {
-    crate::userspace::capsule_install::spawn_install_instance()
-}
-#[cfg(not(feature = "nonos-capsule-install"))]
-fn spawn_install() -> Result<u32, SpawnError> {
-    Err(SpawnError::FeatureDisabled)
 }

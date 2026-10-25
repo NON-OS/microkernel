@@ -14,13 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod by_base;
 pub mod layout;
 pub mod operations;
 mod try_current;
 pub mod types;
+mod types_new;
 
 pub use types::{PerCpuData, ASID_NONE};
 
+pub use by_base::by_base;
 pub use operations::{
     active_asid, current, current_mut, current_process, current_thread, enter_irq, get, in_irq,
     init_ap, init_bsp, kernel_stack, leave_irq, percpu_random, set_active_asid,

@@ -28,13 +28,15 @@ impl Scanner {
     /// One bounded step: the next command to the device being asked, the
     /// check of one that failed, or a look at the ports and a bind.
     pub fn step(&mut self, state: &mut State) {
-        let Some(xhci) = self.found() else { return self.decide() };
+        if !self.found() {
+            return self.decide();
+        }
         match core::mem::replace(&mut self.medium, Medium::Scanning) {
-            Medium::Checking(disk) => self.check(xhci, disk, state),
+            Medium::Checking(disk) => self.check(disk.xhci, disk, state),
             kept @ (Medium::Ready(_) | Medium::Changed) => self.medium = kept,
             idle => {
                 self.medium = idle;
-                self.search(xhci, state);
+                self.search(state);
             }
         }
     }
@@ -46,7 +48,7 @@ impl Scanner {
             (Medium::Ready(_) | Medium::Changed, _) => return 0,
             (Medium::Checking(_), _) => 0,
             (_, Some(asking)) => asking.wait_ms(),
-            _ if self.xhci.is_none() && self.searching => SCAN_POLL_MS,
+            _ if self.known == 0 && self.searching => SCAN_POLL_MS,
             _ => self.look.left_ms(),
         };
         due.max(1)

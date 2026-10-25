@@ -16,23 +16,35 @@
 
 mod backend;
 mod capabilities;
+pub(crate) mod dev_unconfined;
+pub(crate) mod dev_unremapped;
 mod device;
 mod domain;
 mod domain_id;
+mod domain_map;
 mod error;
+pub(crate) mod no_iommu;
+mod no_iommu_rule;
 mod posture;
+mod posture_line;
 mod protection;
 mod query;
+pub mod reserved;
 mod unconfined;
 mod vendor;
 
+#[cfg(target_arch = "x86_64")]
+pub(crate) use backend::block_faulted;
+#[cfg(all(target_arch = "x86_64", feature = "nonos-arch-iommu"))]
+pub(crate) use backend::note_fault;
 pub use capabilities::IommuCapabilities;
 pub use device::DeviceAddress;
 pub use domain::IommuDomain;
 pub use domain_id::DomainId;
 pub use error::IommuError;
+pub use no_iommu::decide as decide_no_iommu_posture;
 pub use posture::report_posture;
 pub use protection::IommuProtection;
-pub use query::{capabilities, select_vendor, translates};
+pub use query::{capabilities, identity_devices, select_vendor, translates};
 pub use unconfined::{note_unconfined, note_unconfined_released, unconfined_grants};
 pub use vendor::IommuVendor;

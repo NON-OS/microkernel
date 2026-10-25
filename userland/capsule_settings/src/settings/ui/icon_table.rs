@@ -23,8 +23,11 @@ pub fn icon(section: Section) -> IconId {
         Section::General => IconId::SettingsGeneral,
         Section::Network => IconId::SettingsNetwork,
         Section::Wifi => IconId::SettingsWifi,
+        Section::Bluetooth => IconId::SettingsBluetooth,
         Section::Security => IconId::SettingsSecurity,
         Section::Appearance => IconId::SettingsAppearance,
+        // The toolkit has no accessibility icon of its own yet.
+        Section::Accessibility => IconId::SettingsAppearance,
         Section::Privacy => IconId::SettingsPrivacy,
         Section::Sound => IconId::SettingsSound,
         Section::Updates => IconId::SettingsUpdates,

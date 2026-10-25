@@ -41,7 +41,11 @@ pub(super) fn answer(guest: &Guest, path: &[u8], op: Op, a: Args) -> u64 {
     if let Err(e) = table::check_name(&name) {
         return errno::fail(e);
     }
-    let writable = cache::held(path) || resolve::key(path).writable().is_ok();
+    // Asked once for every op; only a set or remove it refuses is a refused write.
+    let writable = cache::held(path) || resolve::key(path).may_write().is_ok();
+    if !writable && matches!(op, Op::Set | Op::Remove) {
+        crate::linux::boxed::note(crate::linux::boxed::Kind::Write, path);
+    }
     let done = match op {
         Op::Get => {
             return match table::get(path, &name) {

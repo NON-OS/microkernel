@@ -28,6 +28,14 @@ pub mod abi;
 pub mod assemble;
 /// The kernel's `MkBootSlots` slot and record encoders, unchanged.
 pub mod kernel_slots;
+/// The market half of capsule_prove (plan/14), the files that ship.
+pub mod market;
+/// The headless job's argv parse, the file that ships.
+#[path = "../../capsule_prove/src/job/bound.rs"]
+pub mod job_bound;
+/// The headless job's failure status from a kernel return, the file that ships.
+#[path = "../../capsule_prove/src/job/status.rs"]
+pub mod job_status;
 
 #[cfg(test)]
 mod fixture;

@@ -19,6 +19,8 @@
 
 #[path = "../../capsule_net_nym/src/state/table/ended.rs"]
 mod ended;
+#[path = "../../capsule_net_nym/src/state/table/gateway_set.rs"]
+mod gateway_set;
 #[path = "../../capsule_net_nym/src/state/table/ops.rs"]
 mod ops;
 #[path = "../../capsule_net_nym/src/state/table/owner.rs"]

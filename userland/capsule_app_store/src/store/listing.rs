@@ -19,51 +19,9 @@
 use alloc::vec::Vec;
 
 use super::market::{Detail, Readiness, Release};
+use super::price::Price;
 
-/// Where a listing came from, read off the namespace its id starts with.
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum Source {
-    NonOs,
-    Linux,
-    /// A Qwen tier: a model the fetcher downloads, listed in the linux
-    /// namespace (`linux.qwen-<tier>`) because the personality installs it,
-    /// but no Linux package. Shown as a Linux app, a build whose index held
-    /// only the seventeen tiers looked like a Linux tab of seventeen
-    /// packages.
-    Model,
-    Community,
-}
-
-impl Source {
-    pub fn of(listing_id: &[u8]) -> Source {
-        match listing_id {
-            id if id.starts_with(b"linux.qwen-") => Source::Model,
-            id if id.starts_with(b"linux.") => Source::Linux,
-            id if id.starts_with(b"community.") => Source::Community,
-            _ => Source::NonOs,
-        }
-    }
-
-    pub fn label(self) -> &'static [u8] {
-        match self {
-            Source::NonOs => b"NONOS",
-            Source::Linux => b"Linux",
-            Source::Model => b"Model",
-            Source::Community => b"Community",
-        }
-    }
-
-    /// The line under a card's name. The store sells apps: where a Linux
-    /// package is fetched from is provenance, kept in the signed listing and
-    /// checked at install, not what the card is about.
-    pub fn origin(self) -> &'static [u8] {
-        match self {
-            Source::Linux => b"Linux app",
-            Source::Model => b"Qwen model",
-            _ => self.label(),
-        }
-    }
-}
+pub use super::source::Source;
 
 pub struct Listing {
     pub id: Vec<u8>,
@@ -96,7 +54,13 @@ pub struct Known {
     /// is first selected.
     pub release: Option<Release>,
     pub readiness: Option<Readiness>,
+    /// What the release sells and how, from OP_GET_COMMERCE (B9).
+    pub price: Option<Price>,
     pub judged: bool,
+    /// When to ask the gates again while the market reads the bond, and
+    /// how many times it has been asked so (fill_order::RECHECKS at most).
+    pub recheck_at: Option<u64>,
+    pub rechecks: u8,
 }
 
 impl Listing {

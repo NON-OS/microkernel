@@ -17,6 +17,8 @@
 //! SMEP, SMAP and UMIP, each reported from a read-back rather than from what
 //! was asked for: a hypervisor may drop a CR4 write it does not implement.
 
+pub(super) mod pge;
+
 use core::arch::asm;
 
 use super::super::super::constants::{CR4_SMAP, CR4_SMEP, CR4_UMIP};
@@ -41,7 +43,6 @@ pub(super) fn enable(have: Supported) -> Cr4Live {
         cr4 |= CR4_UMIP;
     }
     write(cr4);
-
     let live = read();
     let smap = live & CR4_SMAP != 0;
     if smap {
@@ -50,7 +51,7 @@ pub(super) fn enable(have: Supported) -> Cr4Live {
     Cr4Live { smep: live & CR4_SMEP != 0, smap, umip: live & CR4_UMIP != 0 }
 }
 
-fn read() -> u64 {
+pub(super) fn read() -> u64 {
     let cr4: u64;
     // SAFETY: ek@nonos.systems - reading CR4 has no side effect.
     unsafe { asm!("mov {}, cr4", out(reg) cr4, options(nomem, nostack, preserves_flags)) };
@@ -59,9 +60,8 @@ fn read() -> u64 {
 
 fn write(cr4: u64) {
     // SAFETY: ek@nonos.systems - every bit set above was reported present by
-    // CPUID, so none is reserved on this part, and each one only narrows what
-    // ring 0 is permitted to do. The rest of the register is written back as
-    // it was read.
+    // CPUID, so none is reserved on this part, and each only narrows what ring
+    // 0 may do. The rest of the register is written back as it was read.
     unsafe { asm!("mov cr4, {}", in(reg) cr4, options(nomem, nostack, preserves_flags)) };
 }
 

@@ -45,7 +45,8 @@ pub(super) fn address_of(port: u16) -> Option<u64> {
         report_unreachable();
         return None;
     }
-    Some(CPU_BASE.load(Ordering::Relaxed) + offset)
+    // The window's physical address, as the kernel reaches it.
+    Some(crate::arch::paging::kernel_io(CPU_BASE.load(Ordering::Relaxed) + offset))
 }
 
 /// Say it once. A driver that pokes an absent port usually does so in a loop,

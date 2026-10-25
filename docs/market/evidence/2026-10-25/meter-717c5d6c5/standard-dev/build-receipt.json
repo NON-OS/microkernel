@@ -1,0 +1,47 @@
+{
+  "artifacts": {
+    "/home/user/pk-boot/target/dev/tree/target/release/standard-dev/nonos.img": {
+      "bytes": 1043148800,
+      "sha256": "bf839ff8f6605fea2ee85fb68f2f2ddaaa035b3bce7dcc958e36d7bd422f6e30"
+    },
+    "/home/user/pk-boot/target/dev/tree/target/release/standard-dev/nonos.iso": {
+      "bytes": 220680192,
+      "sha256": "eaa218ea24a62fe760e589347472ca6780609b1ee46c30f5ba3bfd59286e179c"
+    },
+    "/home/user/pk-boot/target/dev/tree/target/release/standard-dev/work/kernel.bin": {
+      "bytes": 86845567,
+      "sha256": "6406a6523a6764b035108a44caf861e1e1f79b5a430ac94b583000bbae242fdc"
+    }
+  },
+  "roots": {
+    "capsule_policy": {
+      "embedded_in_kernel": true,
+      "root": "0eb51427763a093ff20cc9d33adf6ddd1e5b6ae7aa99b56ae5a193ba91062714"
+    },
+    "kernel_attest": {
+      "embedded_in": "bootloader",
+      "ok": true,
+      "root": "80a97ed4ed3a0293a0390c07ab0428b276b1c5a3a9085abadc11fdb1daefc744"
+    }
+  },
+  "schema": "nonos.build.receipt.v1",
+  "source": {
+    "branch": "master",
+    "commit": "09297025e38e82097e99fc1667f8452180191514",
+    "dirty": true,
+    "source_date_epoch": "315532800"
+  },
+  "toolchain": {
+    "host": "Linux-x86_64",
+    "rustc": null
+  },
+  "verification": {
+    "gates_before_receipt": [
+      "ledger",
+      "manifest_signatures",
+      "declared_caps",
+      "stark_membership"
+    ],
+    "root_embedding": "pass"
+  }
+}

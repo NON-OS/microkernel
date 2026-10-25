@@ -16,18 +16,43 @@
 
 //! Giving back what clients that exited held, on every controller
 //! (`sweep_orphans`), and the multiplexer's slot ids that named it or that
-//! such a client had only reserved.
+//! such a client had only reserved. A shared device a live driver still
+//! claims an interface of, and a child parked below a hub, stay.
 
 use nonos_libc::mk_pid_alive;
 
 use super::mux::Mux;
 use super::mux_forward::VSlot;
 use super::sweep::sweep_orphans;
+use nonos_usb_virt::Virt;
 
 impl Mux {
     pub fn sweep(&mut self) {
-        for ctx in self.ctxs.iter_mut() {
-            sweep_orphans(ctx);
+        let single = self.ctxs.len() == 1;
+        for (i, ctx) in self.ctxs.iter_mut().enumerate() {
+            let (vslots, share, virt): (_, _, &Virt) = (&self.vslots, &self.share, &self.virt);
+            // The multiplexer's id for this controller's `slot`.
+            let id = |slot: u8| match single {
+                true => Some(slot),
+                false => (1..=255u8)
+                    .find(|&v| vslots[v as usize] == VSlot::Bound { ctrl: i as u8, slot }),
+            };
+            let keep = |slot: u8| {
+                id(slot).is_some_and(|v| {
+                    share.claims.held_live(v, |p| mk_pid_alive(p)) || virt.knows(v)
+                })
+            };
+            sweep_orphans(ctx, keep);
+        }
+        // What was kept about an id whose slot is gone goes too.
+        for v in 1..=255u8 {
+            let gone = self.at(v).is_some_and(|(c, l)| {
+                let d = &self.ctxs[c].driver;
+                !d.slots.is_allocated(l, d.layout.max_slots)
+            });
+            if gone {
+                self.share.forget(v);
+            }
         }
         for v in self.vslots.iter_mut() {
             let gone = match *v {

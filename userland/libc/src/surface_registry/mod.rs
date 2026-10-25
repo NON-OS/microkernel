@@ -19,6 +19,7 @@
 // abi/wire.toml byte for byte and is identical across every
 // supported user triple.
 
+mod abs;
 mod attach;
 mod input_drain;
 mod input_post;
@@ -30,6 +31,7 @@ mod share;
 mod types;
 mod vsync;
 
+pub use abs::{input_abs_scale, INPUT_ABS_MAX};
 pub use attach::mk_surface_attach;
 pub use input_drain::mk_input_event_drain;
 pub use input_post::mk_input_event_post;
@@ -37,10 +39,11 @@ pub use input_wait::mk_input_event_wait;
 pub use present::{mk_surface_present, mk_surface_present_rect};
 pub use register::mk_surface_register;
 pub use release::mk_surface_release;
-pub use share::mk_surface_share;
+pub use share::{mk_surface_share, mk_surface_share_to, SURFACE_SHARE_WRITE};
 pub use types::{
     InputEvent, SurfaceDescriptor, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP,
-    INPUT_KIND_KEY_DOWN, INPUT_KIND_KEY_UP, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL,
-    INPUT_KIND_TOUCH, INPUT_KIND_WHEEL, SURFACE_FORMAT_ARGB8888,
+    INPUT_KIND_KEY_DOWN, INPUT_KIND_KEY_UP, INPUT_KIND_PAD_AXIS, INPUT_KIND_PAD_BUTTON_DOWN,
+    INPUT_KIND_PAD_BUTTON_UP, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL, INPUT_KIND_TOUCH,
+    INPUT_KIND_WHEEL, SURFACE_FORMAT_ARGB8888,
 };
 pub use vsync::mk_display_vsync_wait;

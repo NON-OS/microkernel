@@ -15,3 +15,14 @@ pub trait KeyStore {
     /// Remove a key: a pairwise key names its peer, a group key passes None.
     fn remove_key(&mut self, key_id: u8, peer: Option<&[u8; 6]>);
 }
+
+/// A 16-byte key on its way from a join or a rekey to the device: not Copy,
+/// and wiped where it lies when dropped, which an assignment over it does in
+/// place.
+pub struct HeldKey(pub [u8; 16]);
+
+impl Drop for HeldKey {
+    fn drop(&mut self) {
+        crate::vault::wipe(&mut self.0);
+    }
+}

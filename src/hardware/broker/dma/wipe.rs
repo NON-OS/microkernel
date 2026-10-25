@@ -23,9 +23,10 @@
 //! warm reset leaves DRAM rows intact. Runs after every device has stopped
 //! mastering the bus (`claim::quiesce_all`), so nothing writes behind it.
 //!
-//! The grant table lock is only tried: the other CPUs were stopped by IPI at
-//! an arbitrary instruction, and one of them may hold it. Missing the wipe of
-//! these frames costs coverage; waiting on a stopped CPU costs the shutdown.
+//! The grant table lock is waited for a millisecond at most (`brief`): the
+//! other CPUs were stopped by IPI at an arbitrary instruction, and one of them
+//! may hold it. Missing the wipe of these frames costs coverage; waiting on a
+//! stopped CPU without end would cost the shutdown.
 
 use super::records::try_each;
 use super::scrub::scrub;
@@ -34,10 +35,20 @@ use super::scrub::scrub;
 /// is about to stop. The number of grants wiped, or `None` if the table was
 /// held by a stopped CPU.
 pub fn wipe_live_grants() -> Option<usize> {
-    let mut wiped = 0usize;
-    let seen = try_each(|g| {
-        scrub(g.physical_start, g.length);
-        wiped += 1;
-    });
-    seen.then_some(wiped)
+    let (mut wiped, start) = (0usize, crate::time::now_ns());
+    // A holder may be in a shootdown round waiting on this CPU (L75).
+    let again = || {
+        crate::smp::serve_shootdowns();
+        crate::hardware::broker::brief::within_a_millisecond(start)
+    };
+    let seen = try_each(
+        |g| {
+            scrub(g.physical_start, g.length);
+            wiped += 1;
+        },
+        again,
+    );
+    // The runs kept for their devices' wipes hold the same traffic (L78).
+    let kept = super::kept::scrub_all(again);
+    (seen && kept).then_some(wiped)
 }

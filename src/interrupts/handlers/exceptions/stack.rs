@@ -17,7 +17,6 @@
 use x86_64::structures::idt::InterruptStackFrame;
 
 use super::context::{log_exception_with_code, ExceptionContext};
-use crate::interrupts::idt::halt_loop;
 use crate::interrupts::stats;
 
 pub fn handle(frame: InterruptStackFrame, error_code: u64) {
@@ -54,5 +53,5 @@ fn terminate_user_process(_ctx: &ExceptionContext) -> ! {
 
 fn kernel_panic(_ctx: &ExceptionContext) {
     crate::log::logger::log_critical("KERNEL PANIC: Stack segment fault in kernel mode");
-    halt_loop();
+    crate::boot::panic::fatal();
 }

@@ -30,7 +30,7 @@ pub fn find_virtio_gpu() -> Option<Found> {
     let limit = core::cmp::min(n as usize, MAX_DEVICES);
     for r in &buf[..limit] {
         if match_device::is_match(r) {
-            return Some(Found { device_id: r.device_id, pci_device: r.device, bars: bars(r) });
+            return Some(Found { device_id: r.device_id, bars: bars(r) });
         }
     }
     None

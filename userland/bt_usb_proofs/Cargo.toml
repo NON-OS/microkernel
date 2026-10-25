@@ -1,0 +1,25 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the Bluetooth USB capsule: its pure modules run
+# here through #[path], and its link runs from scan to key events against a
+# simulated controller, the SMP proofs' responder and the HOGP proofs'
+# peripheral, all behind the USB pipes the capsule drives.
+[package]
+name = "bt_usb_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_bt_bond = { path = "../nonos_bt_bond" }
+nonos_bt_hci = { path = "../nonos_bt_hci" }
+nonos_bt_hogp = { path = "../nonos_bt_hogp" }
+nonos_bt_proto = { path = "../bt_proto" }
+nonos_bt_smp = { path = "../nonos_bt_smp" }
+nonos_bt_wire = { path = "../nonos_bt_wire" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

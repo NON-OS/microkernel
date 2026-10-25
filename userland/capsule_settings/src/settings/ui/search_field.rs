@@ -36,18 +36,18 @@ pub fn paint(fb: &mut PaintBuffer, state: &State) {
     }
     let r = h / 2;
     fb.fill_round(0, 0, w, h, r, SEARCH_BG);
-    let border = if state.search_focused { ACCENT } else { SEARCH_BORDER };
+    let border = if state.search.focused { ACCENT } else { SEARCH_BORDER };
     fb.stroke_round(0, 0, w, h, r, 1, border);
     draw(fb, IconId::SettingsSearch, PAD_X, (h - ICON) / 2, ICON, SEARCH_PLACEHOLDER);
     let x = PAD_X + ICON + GAP;
     let top = text::centred_top(0, h, BODY_PX);
-    let query = as_str(state.search.as_slice());
+    let query = as_str(state.search.text.as_slice());
     if query.is_empty() {
         text::left(fb, x, top, "Search settings", SEARCH_PLACEHOLDER, BODY_PX);
         return;
     }
     let end = text::left(fb, x, top, query, SEARCH_FG, BODY_PX).max(0) as u32;
-    if state.search_focused {
+    if state.search.focused {
         caret(fb, end + 2, h);
     }
 }

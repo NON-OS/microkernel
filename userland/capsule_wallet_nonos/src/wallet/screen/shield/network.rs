@@ -22,15 +22,12 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::consts::{
-    CHAIN_ID, FAUCET, NOX_TOKEN, POLICY, POOL, POOL_FROM_BLOCK, REGISTRY, VERIFIER,
-};
+use super::consts::{CHAIN_ID, POOL_FROM_BLOCK};
 use crate::wallet::etna::backdrop::Backdrop;
 use crate::wallet::etna::frame::{begin, end};
 use crate::wallet::etna::frame_spec::FrameSpec;
 use crate::wallet::etna::parts::action::Weight;
 use crate::wallet::etna::parts::fact::fact;
-use crate::wallet::etna::parts::value::value_block;
 use crate::wallet::etna::tokens::{GAP, TEXT_3};
 use crate::wallet::etna::wrap::wrapped;
 use crate::wallet::etna::Role;
@@ -64,19 +61,9 @@ pub fn network(state: &State, fb: &mut PaintBuffer) {
     for (name, value) in [("chain id", CHAIN_ID), ("events from block", POOL_FROM_BLOCK)] {
         y += fact(fb, c.x, y, c.w, name, value);
     }
-    for (name, value) in [
-        ("pool", POOL),
-        ("verifier", VERIFIER),
-        ("association registry", REGISTRY),
-        ("amount policy", POLICY),
-        ("NOX token", NOX_TOKEN),
-        ("faucet", FAUCET),
-    ] {
-        y += GAP / 2 + super::pick::label(fb, c, y + GAP / 2, &name.to_uppercase());
-        y += value_block(fb, c.x, y, c.w, value);
-    }
+    y = super::network_rows::contracts(fb, c, y);
     hits::reach(y, state.scroll, l.content_bottom);
     end(fb, &spec, &mut l);
-    super::edges::put(state, &l);
+    super::edges::put(&l);
     super::edges::footer(&l, &[true]);
 }

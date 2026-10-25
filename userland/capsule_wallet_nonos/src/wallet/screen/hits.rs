@@ -22,30 +22,9 @@ use spin::Mutex;
 
 use crate::wallet::etna::rect::Rect;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum Press {
-    Send,
-    Receive,
-    Swap,
-    Shield,
-    Settings,
-    Accounts,
-    Back,
-    Dismiss,
-    Footer(u8),
-    /* The Shield screens: a screen to open, an asset, a size, a field. */
-    Go(u8),
-    Asset(u8),
-    Pick(u8),
-    Field(u8),
-    /* Ethereum mainnet (0) or Sepolia (1). */
-    Network(u8),
-    /* A row of a settings list, by its index. */
-    Row(u8),
-    /* The Stake and Unstake tabs, a lock term, a staked position. */
-    Tab(u8),
-    Term(u8),
-}
+#[path = "hits_press.rs"]
+mod press;
+pub use press::Press;
 
 const MAX: usize = 32;
 static HITS: Mutex<([(Press, Rect); MAX], usize)> =

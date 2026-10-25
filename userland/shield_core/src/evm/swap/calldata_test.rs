@@ -1,8 +1,3 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::unwrap_used)]
-
 //! Each call as Foundry's `cast calldata` encodes it, byte for byte.
 
 use super::{approve, eth_for_tokens, tokens_for};

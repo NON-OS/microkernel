@@ -19,6 +19,7 @@
 //! IPC with the terminal's own pid, so the server's anti-impersonation check
 //! passes, and resolves paths against the current working directory.
 
+mod caller;
 mod cat;
 mod cd;
 mod cp;
@@ -53,37 +54,9 @@ mod tree;
 pub mod tree_render;
 mod wc;
 
-pub use cat::cat;
-pub use cd::cd;
-pub use cp::cp;
-pub use filter_file::filter_file;
-pub use find::find;
-pub use grep::grep;
-pub use head::head;
-pub use ls::ls;
-pub use mkdir::mkdir;
-pub use mv::mv;
-pub use pwd::pwd;
-pub use rm::rm;
-pub use rmdir::rmdir;
-pub use stat::stat;
-pub use tail::tail;
-pub use touch::touch;
-pub use tree::tree;
-pub use wc::wc;
-
-use crate::term::state::State;
-
-// The terminal's real pid, resolved once. The vfs server rejects a claimed
-// owner pid that differs from the sender, so this must be our own.
-pub(super) fn pid(state: &mut State) -> u32 {
-    if state.owner_pid == 0 {
-        state.owner_pid = nonos_libc::mk_getpid();
-    }
-    state.owner_pid
-}
-
-// Absolute path for an argument, resolved against the working directory.
-pub(super) fn abspath(state: &State, arg: &[u8]) -> alloc::vec::Vec<u8> {
-    crate::term::cwd::resolve(state.cwd.as_bytes(), arg)
-}
+pub use self::{
+    cat::cat, cd::cd, cp::cp, filter_file::filter_file, find::find, grep::grep, head::head, ls::ls,
+    mkdir::mkdir, mv::mv, pwd::pwd, rm::rm, rmdir::rmdir, stat::stat, tail::tail, touch::touch,
+    tree::tree, wc::wc,
+};
+pub(super) use caller::{abspath, pid};

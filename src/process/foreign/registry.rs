@@ -23,6 +23,9 @@ use spin::RwLock;
 struct Entry {
     pid: u32,
     supervisor: u32,
+    /// Its supervisor is gone. The row stays, foreign and hosted by no one, so
+    /// every call it makes is refused until its own teardown removes it.
+    orphaned: bool,
 }
 
 static FOREIGN: RwLock<Vec<Entry>> = RwLock::new(Vec::new());
@@ -34,7 +37,7 @@ pub(super) fn insert(pid: u32, supervisor: u32) -> bool {
     if t.iter().any(|e| e.pid == pid) {
         return false;
     }
-    t.push(Entry { pid, supervisor });
+    t.push(Entry { pid, supervisor, orphaned: false });
     true
 }
 
@@ -43,17 +46,18 @@ pub fn is_foreign(pid: u32) -> bool {
 }
 
 pub fn supervisor_of(pid: u32) -> Option<u32> {
-    FOREIGN.read().iter().find(|e| e.pid == pid).map(|e| e.supervisor)
+    FOREIGN.read().iter().find(|e| e.pid == pid && !e.orphaned).map(|e| e.supervisor)
 }
 
 /// How many guests, threads included, `supervisor` holds.
 pub(super) fn guest_count(supervisor: u32) -> usize {
-    FOREIGN.read().iter().filter(|e| e.supervisor == supervisor).count()
+    FOREIGN.read().iter().filter(|e| e.supervisor == supervisor && !e.orphaned).count()
 }
 
 /// Every guest of `supervisor`, so its death can take them with it.
 pub(super) fn guests_of(supervisor: u32) -> Vec<u32> {
-    FOREIGN.read().iter().filter(|e| e.supervisor == supervisor).map(|e| e.pid).collect()
+    let t = FOREIGN.read();
+    t.iter().filter(|e| e.supervisor == supervisor && !e.orphaned).map(|e| e.pid).collect()
 }
 
 /// Drop the row of `pid` as a guest only.
@@ -61,7 +65,10 @@ pub(super) fn remove(pid: u32) {
     FOREIGN.write().retain(|e| e.pid != pid);
 }
 
-/// Drop every row naming `pid`, as a guest or as a supervisor.
+/// Drop `pid`'s own row, and orphan the rows of the guests it hosted: they
+/// may still be on another CPU, and must stay refused until each is reaped.
 pub(super) fn drop_rows(pid: u32) {
-    FOREIGN.write().retain(|e| e.pid != pid && e.supervisor != pid);
+    let mut t = FOREIGN.write();
+    t.retain(|e| e.pid != pid);
+    t.iter_mut().filter(|e| e.supervisor == pid).for_each(|e| e.orphaned = true);
 }

@@ -14,14 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
-
 use super::config;
 use super::error::Result;
-use super::security::{
-    add_to_blocklist, clear_blocklist, get_security_stats, remove_from_blocklist, set_allowlist,
-};
-use alloc::vec::Vec;
 
 pub fn pci_read_config32(bus: u8, device: u8, function: u8, offset: u8) -> u32 {
     config::read32_unchecked(bus, device, function, offset)
@@ -43,26 +37,4 @@ pub fn pci_write_config32_safe(
     value: u32,
 ) -> Result<()> {
     config::write32(bus, device, function, offset as u16, value)
-}
-
-pub fn get_pci_stats_tuple() -> (u64, u64, u64) {
-    let security = get_security_stats();
-    let (reads, writes) = config::get_config_stats();
-    (reads, writes, security.violations)
-}
-
-pub fn set_device_allowlist(list: Option<Vec<(u16, u16)>>) {
-    set_allowlist(list);
-}
-
-pub fn add_device_to_blocklist(vendor_id: u16, device_id: u16) {
-    add_to_blocklist(vendor_id, device_id);
-}
-
-pub fn remove_device_from_blocklist(vendor_id: u16, device_id: u16) {
-    remove_from_blocklist(vendor_id, device_id);
-}
-
-pub fn clear_device_blocklist() {
-    clear_blocklist();
 }

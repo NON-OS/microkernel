@@ -16,11 +16,15 @@
 
 pub mod apic;
 pub mod broker;
+pub mod entry_flags;
 pub mod ioapic;
+pub mod irq_flag;
 pub mod pic;
 
 pub use apic::{ApicError, ApicResult, ApicStatus};
+pub use entry_flags::clear_ac;
 pub use ioapic::{IoApicError, IoApicResult, IoApicStatus};
+pub use irq_flag::{cli, sti};
 pub use pic::{PicError, PicResult, PicStatus};
 
 pub use ioapic as nonos_ioapic;

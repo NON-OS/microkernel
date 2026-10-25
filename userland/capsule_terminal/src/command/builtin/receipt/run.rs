@@ -19,7 +19,7 @@
 use alloc::vec;
 use alloc::vec::Vec;
 
-use nonos_libc::{mk_attest_entries, ATTEST_ENTRY_LEN};
+use nonos_libc::{mk_attest_entries, ATTEST_ENTRY_LEN, PROC_FLAG_DEBUG_WITHHELD};
 
 use super::hexdump::hexdump;
 use super::row::{heading, row};
@@ -57,8 +57,13 @@ pub fn run(out: &mut Output<'_>, argv: &[&[u8]]) {
         return;
     }
     heading(out);
+    let procs = crate::command::builtin::proc_table::table();
+    let withheld = |pid: &[u8]| {
+        let flag = |p: &&nonos_libc::ProcStatEntry| p.flags & PROC_FLAG_DEBUG_WITHHELD != 0;
+        procs.iter().filter(flag).any(|p| p.pid.to_be_bytes() == pid[..4])
+    };
     for e in entries.clone() {
-        row(out, e);
+        row(out, e, withheld(e));
     }
     summary(out, entries);
 }

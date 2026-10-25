@@ -1,0 +1,15 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proof of the x86_64 TLB shootdown protocol: an exhaustive
+# search over every interleaving of one round with the CPUs around it, AP
+# bring-up included, for every machine size up to the bound the tests name.
+[package]
+name = "shootdown_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

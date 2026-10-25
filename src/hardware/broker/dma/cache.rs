@@ -30,13 +30,12 @@ pub(super) fn flush_range(phys: u64, len: u64) {
 /// shows a ring got the memory type and the address its driver asked for.
 pub(super) fn say_mapped(phys: u64, pages: u64, asked_wc: bool) {
     let wc = asked_wc && crate::arch::write_combining::write_combining_ready();
+    let _ = phys;
     crate::sys::serial::print(if wc {
-        b"[DMA] grant write-combining phys="
+        b"[DMA] grant write-combining pages="
     } else {
-        b"[DMA] grant uncached phys="
+        b"[DMA] grant uncached pages="
     });
-    crate::sys::serial::print_hex(phys);
-    crate::sys::serial::print(b" pages=");
     crate::sys::serial::print_dec(pages);
     crate::sys::serial::println(b"");
 }

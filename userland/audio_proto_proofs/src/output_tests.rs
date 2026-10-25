@@ -86,6 +86,7 @@ fn the_server_reads_the_drivers_verdict_and_outputs() {
     assert_eq!(wire::read_output_status(&driver_reply(0, 0, 0b011, 1)), Some((0, FLAG_SPEAKER | FLAG_HEADPHONE | FLAG_PLUGGED)));
     assert_eq!(wire::read_output_status(&driver_reply(0, 2, 0, 0)), Some((OUTPUT_NEEDS_SOF, 0)));
     assert_eq!(wire::read_output_status(&driver_reply(0, 6, 0, 0)), Some((OUTPUT_AMD_ACP, 0)));
+    assert_eq!(wire::read_output_status(&driver_reply(0, 1, 0, 0)), Some((OUTPUT_NO_DEVICE, 0)), "a USB driver with no device");
     assert_eq!(wire::read_output_status(&driver_reply(-19, 0, 0, 0)), None, "a refused reply");
     assert_eq!(wire::read_output_status(&driver_reply(0, 7, 0, 0)), None, "a code only the server gives");
     assert_eq!(wire::read_output_status(&driver_reply(0, 0, 0, 0)[..30]), None, "a short reply");

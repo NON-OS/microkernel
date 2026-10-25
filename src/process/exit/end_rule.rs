@@ -25,6 +25,9 @@
 pub const EXIT_ABSENT: i32 = 2;
 /// The status it leaves with when a present device never came up.
 pub const EXIT_GAVE_UP: i32 = 6;
+/// The status a controller with nothing behind it leaves with (a disk
+/// controller with no disk; userland/libc/src/bringup/policy.rs).
+pub const EXIT_EMPTY: i32 = 3;
 
 const DRIVER_PREFIX: &str = "driver.";
 
@@ -39,6 +42,7 @@ pub const fn words(status: i32) -> &'static str {
     match status {
         EXIT_ABSENT => "no device present, not started",
         EXIT_GAVE_UP => "device present, bring-up failed and was given up",
+        EXIT_EMPTY => "controller present, nothing behind it to serve",
         _ => "ended with an error",
     }
 }

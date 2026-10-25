@@ -216,6 +216,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 
 [[package]]
+name = "keccak"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb26cec98cce3a3d96cbb7bced3c4b16e3d13f27ec56dbd62cbc8f39cfb9d653"
+dependencies = [
+ "cpufeatures 0.2.17",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.186"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -234,15 +243,58 @@ dependencies = [
  "blake3",
  "ed25519-dalek",
  "hex",
+ "nonos_equix",
  "nonos_marketplace_abi",
+ "nonos_nox_chunks",
+ "nonos_nox_config",
+ "nonos_settle_proto",
  "rand",
  "serde",
  "serde_json",
+ "sha3",
+ "x25519-dalek",
 ]
+
+[[package]]
+name = "nonos_equix"
+version = "0.1.0"
+
+[[package]]
+name = "nonos_eth_rpc"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_marketplace_abi"
 version = "0.3.0"
+dependencies = [
+ "nonos_nox_config",
+]
+
+[[package]]
+name = "nonos_nox_chunks"
+version = "0.1.0"
+dependencies = [
+ "nonos_equix",
+ "nonos_marketplace_abi",
+ "nonos_nox_config",
+ "nonos_seal",
+]
+
+[[package]]
+name = "nonos_nox_config"
+version = "0.1.0"
+
+[[package]]
+name = "nonos_seal"
+version = "0.3.0"
+
+[[package]]
+name = "nonos_settle_proto"
+version = "0.1.0"
+dependencies = [
+ "nonos_eth_rpc",
+ "nonos_nox_config",
+]
 
 [[package]]
 name = "pkcs8"
@@ -381,6 +433,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "sha3"
+version = "0.10.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77fd7028345d415a4034cf8777cd4f8ab1851274233b45f84e3d955502d93874"
+dependencies = [
+ "digest",
+ "keccak",
+]
+
+[[package]]
 name = "shlex"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -445,6 +507,16 @@ name = "wasi"
 version = "0.11.1+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ccf3ec651a847eb01de73ccad15eb7d99f80485de043efb2f370cd654f4ea44b"
+
+[[package]]
+name = "x25519-dalek"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c7e468321c81fb07fa7f4c636c3972b9100f0346e5b6a9f2bd0603a52f7ed277"
+dependencies = [
+ "curve25519-dalek",
+ "rand_core",
+]
 
 [[package]]
 name = "zerocopy"

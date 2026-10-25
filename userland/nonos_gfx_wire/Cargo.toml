@@ -1,0 +1,21 @@
+# NONOS userland: nonos_gfx_wire
+#
+# The display wire (NVGP v1) every display driver serves and the compositor
+# drives: the header, the ops, the errors and the body of each common op,
+# encoded and checked without allocating, and the fit rule for resizing.
+
+[package]
+name = "nonos_gfx_wire"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "NONOS display wire: NVGP header, ops and bodies"
+
+[lib]
+name = "nonos_gfx_wire"
+path = "src/lib.rs"
+
+[dependencies]
+# The one fit rule drivers and the compositor share.
+nonos_modes = { path = "../nonos_modes" }

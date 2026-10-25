@@ -17,25 +17,14 @@
 use super::traffic_keys::TrafficKeys;
 
 /// The application traffic keys, given the hash of ClientHello..server Finished.
+/// The master secret takes the handshake secret's place in the block.
 pub fn app_keys(handshake: &TrafficKeys, th: &[u8; 32]) -> Option<TrafficKeys> {
-    let zero = [0u8; 32];
-    let derived = super::schedule::secret(
-        &handshake.handshake_secret,
-        b"derived",
-        &super::schedule::EMPTY_HASH,
-    )?;
-    let master = super::hkdf::extract(&derived, &zero)?;
-    let client_secret = super::schedule::secret(&master, b"c ap traffic", th)?;
-    let server_secret = super::schedule::secret(&master, b"s ap traffic", th)?;
-    let suite = handshake.suite;
-    Some(TrafficKeys {
-        suite,
-        handshake_secret: master,
-        client_secret,
-        server_secret,
-        client_key: super::schedule::key(&client_secret, suite)?,
-        client_iv: super::schedule::iv(&client_secret)?,
-        server_key: super::schedule::key(&server_secret, suite)?,
-        server_iv: super::schedule::iv(&server_secret)?,
+    use super::schedule::{secret, stage, EMPTY_HASH};
+    TrafficKeys::build(handshake.suite, |s| {
+        let (zero, mut derived) = ([0u8; 32], [0u8; 32]);
+        let ok = secret(&handshake.handshake_secret, b"derived", &EMPTY_HASH, &mut derived)
+            && super::hkdf::extract(&derived, &zero, &mut s.handshake_secret);
+        super::traffic_keys::wipe(&mut derived);
+        ok && stage(s, th, b"c ap traffic", b"s ap traffic", handshake.suite)
     })
 }

@@ -29,15 +29,15 @@ use crate::xhci::interrupt::{clear, queue};
 fn no_report_stays_in_the_buffer_once_it_is_handed_on() {
     nonos_libc::reset();
     clear();
-    let (mut state, mut buf) = (State::new(), [0u8; 8]);
+    let (mut state, mut buf) = (State::new(), [0u8; 64]);
     let mut kbd = ep(1, 1, 3, HidKind::Keyboard);
     // Shift and "hunter2"'s first two letters held, then the keyboard goes.
     queue(3, &[0x02, 0, 0x0b, 0x18, 0, 0, 0, 0]);
     assert!(drain_endpoint(&mut state, &mut kbd, &mut buf, 1));
-    assert_eq!(buf, [0; 8], "the held keys are still in the buffer");
+    assert_eq!(buf, [0; 64], "the held keys are still in the buffer");
     let mut mouse = ep(1, 2, 5, HidKind::Mouse);
     queue(5, &[0x01, 0x10, 0xf0]);
     queue(5, &[0x00, 0x01, 0x01]);
     assert!(drain_endpoint(&mut state, &mut mouse, &mut buf, 1));
-    assert_eq!((buf, state.mouse_reports), ([0; 8], 2));
+    assert_eq!((buf, state.mouse_reports), ([0; 64], 2));
 }

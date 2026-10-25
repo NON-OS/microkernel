@@ -10,6 +10,19 @@ rustflags = [
   "--cfg", 'curve25519_dalek_backend="serial"',
 ]
 
+[target.aarch64-nonos]
+rustflags = [
+  # Every function that saves its link register signs it with the IA key and
+  # authenticates it before returning (pac-ret), and every function reachable
+  # by an indirect branch starts on a landing pad (bti). Both are hint-space
+  # instructions, no-ops on a core without the feature, so one image still
+  # runs on a Cortex-A72. Applied to core and alloc too, through build-std.
+  # The kernel checks its own instructions for both before turning either
+  # on (security::bti::built), so a build without this line runs unprotected
+  # rather than faulting.
+  "-Z", "branch-protection=bti,pac-ret",
+]
+
 # Platform-specific runners are defined in the Makefile for portability
 # Use `make run` instead of `cargo run` for QEMU testing
 

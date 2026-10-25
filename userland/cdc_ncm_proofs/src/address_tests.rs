@@ -41,7 +41,7 @@ fn a_device_that_takes_set_net_address_is_given_the_drawn_address() {
     let at = c.iter().position(|x| *x == set).expect("SET_NET_ADDRESS with the drawn address");
     let on = c.iter().position(|x| *x == Call::Out(Setup::set_interface(1, 1), vec![]));
     assert!(at < on.expect("data alternate"), "sent in alternate setting 0");
-    assert_eq!(filter_of(&c), Some(0x000E), "its filter stays as Linux sets it");
+    assert_eq!(filter_of(&c), Some(0x000E), "its filter stays closed to other stations");
 }
 
 #[test]

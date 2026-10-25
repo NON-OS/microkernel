@@ -14,15 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::search_results::{open_selected, step};
+use crate::settings::state::cache::STRING_CAP;
+use crate::settings::state::{search_clear, State};
 use nonos_app_skeleton::input::text::typed_char;
 use nonos_app_skeleton::{
     EventOutcome, InputEvent, KEY_BACKSPACE, KEY_DOWN, KEY_ENTER, KEY_ESC, KEY_UP,
 };
-
-use crate::settings::state::cache::STRING_CAP;
-use crate::settings::state::{search_clear, set_section, track_scroll, State};
-use crate::settings::ui::bytes::as_str;
-use crate::settings::ui::results;
 
 /// Widest query the titlebar field can show without the text running under its
 /// rounded right edge, so typing stops rather than scrolling out of sight.
@@ -33,51 +31,28 @@ pub(super) fn on_search_key(state: &mut State, event: &InputEvent) -> EventOutco
     match event.code {
         KEY_ESC => {
             search_clear(state);
-            state.search_focused = false;
+            state.search.focused = false;
             EventOutcome::Repaint
         }
         KEY_BACKSPACE => {
-            state.search.pop();
-            state.search_cursor = 0;
-            state.search_scroll = 0;
+            state.search.text.pop();
+            state.search.cursor = 0;
+            state.search.scroll = 0;
             EventOutcome::Repaint
         }
         KEY_UP => step(state, -1),
         KEY_DOWN => step(state, 1),
         KEY_ENTER => open_selected(state),
         _ => match typed_char(event) {
-            Some(ch) if state.search.char_count() < QUERY_MAX => {
-                if !state.search.push_char(ch, STRING_CAP) {
+            Some(ch) if state.search.text.char_count() < QUERY_MAX => {
+                if !state.search.text.push_char(ch, STRING_CAP) {
                     return EventOutcome::Idle;
                 }
-                state.search_cursor = 0;
-                state.search_scroll = 0;
+                state.search.cursor = 0;
+                state.search.scroll = 0;
                 EventOutcome::Repaint
             }
             _ => EventOutcome::Idle,
         },
     }
-}
-
-fn step(state: &mut State, delta: i32) -> EventOutcome {
-    let n = results::count(as_str(state.search.as_slice()));
-    if n == 0 {
-        return EventOutcome::Idle;
-    }
-    let next = (state.search_cursor as i32 + delta).clamp(0, n as i32 - 1);
-    state.search_cursor = next as usize;
-    EventOutcome::Repaint
-}
-
-pub(super) fn open_selected(state: &mut State) -> EventOutcome {
-    let query = as_str(state.search.as_slice());
-    let Some((section, index, _)) = results::at(query, state.search_cursor) else {
-        return EventOutcome::Idle;
-    };
-    search_clear(state);
-    state.search_focused = false;
-    set_section(state, section);
-    state.cursor[section.index()] = index;
-    track_scroll(state);
-    EventOutcome::Repaint
 }

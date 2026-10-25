@@ -14,35 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs for the eMMC driver (`userland/capsule_driver_ahci/src/emmc`),
-//! included file by file with `#[path]` so its `super::` paths resolve; the
-//! broker glue, `platform`, runs over a stand-in nonos_libc that logs every
-//! broker call. `model` is a register level SDHCI host with an eMMC behind
-//! it, so the real bring-up, read, write, flush and recovery run end to end.
+//! Host proofs for the SD host driver (`capsule_driver_sdhci/src/emmc`), its tree mounted by
+//! `#[path]`, the broker glue over a stand-in nonos_libc that logs every broker call, against
+//! `model`: a register level SDHCI host with an eMMC or an SD card behind it.
+
+extern crate alloc;
 
 pub mod emmc;
 
-/// The AHCI capsule's transfer limits, which the eMMC disk it serves shares.
-#[path = "../../capsule_driver_ahci/src/constants/ata.rs"]
-pub mod ahci_ata;
-/// The AHCI capsule's IDENTIFY reply, which names an eMMC part too.
-#[path = "../../capsule_driver_ahci/src/protocol/identify_reply.rs"]
-pub mod ahci_identify;
-/// The AHCI capsule's op numbers; the eMMC disk answers the same ops.
-#[path = "../../capsule_driver_ahci/src/protocol/ops.rs"]
-pub mod ahci_ops;
+/// The kernel's lists of the hosts it starts the capsule for.
+#[path = "../../../src/hardware/inventory/emmc.rs"]
+pub mod kernel_inventory;
+#[path = "../../../src/hardware/inventory/sd_host.rs"]
+pub mod kernel_sd_host;
+pub mod kernel_wire;
+/// Who the capsule serves the medium to.
+pub use nonos_blk_wire::medium_rule;
+/// The capsule's block wire, held to the kernel client's in `kernel_wire`.
+#[path = "../../capsule_driver_sdhci/src/protocol/mod.rs"]
+pub mod protocol;
+/// How the capsule checks the head of a READ or WRITE.
+#[path = "../../capsule_driver_sdhci/src/server/handlers/rw_parse.rs"]
+pub mod rw_parse;
 
-#[cfg(test)]
-mod model;
-
-#[cfg(test)]
-mod adma_bounds_tests;
 #[cfg(test)]
 mod adma_tests;
 #[cfg(test)]
-mod ahci_contract_tests;
-#[cfg(test)]
 mod bring_up_tests;
+#[cfg(test)]
+mod card_tests;
 #[cfg(test)]
 mod clock_tests;
 #[cfg(test)]
@@ -50,20 +50,36 @@ mod cmd_tests;
 #[cfg(test)]
 mod console_tests;
 #[cfg(test)]
-mod fault_tests;
+mod deadline_tests;
 #[cfg(test)]
-mod info_tests;
+mod fault_tests;
 #[cfg(test)]
 mod io_tests;
 #[cfg(test)]
-mod layout_tests;
+mod model;
+#[cfg(test)]
+mod names_tests;
 #[cfg(test)]
 mod open_proofs;
 #[cfg(test)]
 mod pci_tests;
 #[cfg(test)]
+mod acpi_host_tests;
+#[cfg(test)]
 mod reason_tests;
 #[cfg(test)]
 mod register_tests;
 #[cfg(test)]
+mod start_list_tests;
+#[cfg(test)]
 mod voltage_tests;
+#[cfg(test)]
+mod wire_server_tests;
+#[cfg(test)]
+mod sweep_rng;
+#[cfg(test)]
+mod wire_frame_sweep_tests;
+#[cfg(test)]
+mod wire_rw_rule;
+#[cfg(test)]
+mod wire_rw_sweep_tests;

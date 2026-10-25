@@ -13,13 +13,10 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! Finding the xHCI controllers. A laptop often has more than one: the
-//! chipset's (Intel PCH, AMD FCH), a Thunderbolt or USB4 controller beside
-//! it, and AMD Ryzen APUs carry two of their own. Every one found is
-//! returned, the chipset's first, so it is the primary and keeps root port
-//! numbers from 1: the ports a boot stick, keyboard and mouse sit on.
+
 mod find;
 mod found;
 mod thunderbolt;
+
 pub use find::find_all_xhci;
 pub use found::Found;

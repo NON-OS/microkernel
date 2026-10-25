@@ -25,6 +25,7 @@ pub const SYS_IPC_RECV_FROM: u64 = tag4(b"MIRF");
 pub const SYS_IPC_REPLY: u64 = tag4(b"MIRY");
 pub const SYS_IPC_SEND_TO_PID: u64 = tag4(b"MISP");
 pub const SYS_SERVICE_LOOKUP: u64 = tag4(b"MSVL");
+pub const SYS_THREAD_GROUP: u64 = tag4(b"MTGR");
 pub const SYS_SERVICE_REGISTER: u64 = tag4(b"MSVR");
 pub const SYS_MMAP: u64 = tag4(b"MMAP");
 pub const SYS_MUNMAP: u64 = tag4(b"MUMP");
@@ -57,6 +58,8 @@ pub const SYS_PRIVATE_WRITE: u64 = tag4(b"MPVW");
 /// The package store's sectors, written and read on the disk the block layer chose.
 pub const SYS_STORE_WRITE: u64 = tag4(b"MSWR");
 pub const SYS_STORE_READ: u64 = tag4(b"MSRR");
+/// Whether this boot keeps anything: 1 once the person chose it, else 0.
+pub const SYS_KEEPING: u64 = tag4(b"MKEP");
 /// The data volume: a verified import, a file's size, a range of it, a passphrase.
 pub const SYS_DATA_IMPORT: u64 = tag4(b"MDIM");
 pub const SYS_DATA_STAT: u64 = tag4(b"MDST");
@@ -115,6 +118,16 @@ pub const SYS_FOREIGN_FORK: u64 = tag4(b"MFFK");
 pub const SYS_PEER_UNMAP: u64 = tag4(b"MPUN");
 /// Replace the program a parked guest is running.
 pub const SYS_FOREIGN_EXEC: u64 = tag4(b"MFEX");
+/// The Linux run role asks to be started again with Network.
+pub const SYS_LINUX_RUN_NET: u64 = tag4(b"MLRN");
+/// Take the newest final record sealed for an app, with its witness and
+/// measurements; it is dropped as it is read.
+pub const SYS_SEAL_READ: u64 = tag4(b"MSLR");
+/// A supervisor's note in its family's record: the app, or a diagnostic.
+pub const SYS_SEAL_NOTE: u64 = tag4(b"MSNT");
+/// Ask for the headless prover, app.prove.job: PROVE for the store, DELIVER
+/// for a vendor supervisor of a live family.
+pub const SYS_PROVE_JOB: u64 = tag4(b"MPJB");
 /// Mint a trailer for something this machine is installing.
 pub const SYS_LOCAL_SIGN: u64 = tag4(b"MLSG");
 /// Ask whether an image is proved under a root this machine trusts.
@@ -143,6 +156,7 @@ pub const SYS_CAP_CHECK: u64 = tag4(b"MCCK");
 pub const SYS_DEVICE_LIST: u64 = tag4(b"MDLS");
 pub const SYS_DEVICE_CLAIM: u64 = tag4(b"MDCL");
 pub const SYS_DEVICE_RELEASE: u64 = tag4(b"MDRL");
+pub const SYS_BOOT_FRAMEBUFFER: u64 = tag4(b"MBFB");
 pub const SYS_MMIO_MAP: u64 = tag4(b"MMMP");
 pub const SYS_MMIO_UNMAP: u64 = tag4(b"MMUM");
 pub const SYS_IRQ_BIND: u64 = tag4(b"MIRB");
@@ -156,12 +170,60 @@ pub const SYS_PIO_GRANT: u64 = tag4(b"MPGT");
 pub const SYS_PIO_READ: u64 = tag4(b"MPRD");
 pub const SYS_PIO_WRITE: u64 = tag4(b"MPWR");
 pub const SYS_PIO_RELEASE: u64 = tag4(b"MPRL");
+/// One allowed VMware backdoor call, on a host that answers it; needs Pio.
+pub const SYS_HV_BACKDOOR: u64 = tag4(b"MHVB");
+/// The VMBus core's SynIC calls; each needs Driver and the VMBus root's claim.
+pub const SYS_HV_POST: u64 = tag4(b"MHVP");
+pub const SYS_HV_RECV: u64 = tag4(b"MHVR");
+pub const SYS_HV_EVENTS: u64 = tag4(b"MHVE");
+pub const SYS_HV_SIGNAL: u64 = tag4(b"MHVS");
+pub const SYS_HV_CHANNEL: u64 = tag4(b"MHVC");
 pub const SYS_MK_DEBUG: u64 = tag4(b"MDBG");
 pub const SYS_PCI_CONFIG_READ: u64 = tag4(b"MPCR");
 pub const SYS_PCI_CONFIG_WRITE: u64 = tag4(b"MPCW");
+/// The ACPI capsule: a checked firmware table, an OperationRegion grant, a port, a config access.
+pub const SYS_ACPI_TABLE: u64 = tag4(b"MTBL");
+pub const SYS_ACPI_REGION: u64 = tag4(b"MRGN");
+pub const SYS_ACPI_PORT: u64 = tag4(b"MRIO");
+pub const SYS_ACPI_PCI: u64 = tag4(b"MRPC");
+pub const SYS_ACPI_POWER: u64 = tag4(b"MAPW");
+pub const SYS_ACPI_EVENT: u64 = tag4(b"MAEV");
+pub const SYS_ACPI_SLEEP: u64 = tag4(b"MASL");
+pub const SYS_SMBIOS_TABLE: u64 = tag4(b"MSMB");
+pub const SYS_ACPI_CPU: u64 = tag4(b"MACP");
+pub const SYS_ACPI_HOLDS: u64 = tag4(b"MAHO");
+pub const SYS_PCI_PROBE_FUNCTION: u64 = tag4(b"MPPF");
+pub const SYS_PCI_DEPART: u64 = tag4(b"MPDP");
+pub const SYS_ACPI_FUNCTION_OF: u64 = tag4(b"MAFO");
+pub const SYS_ACPI_HW_ERROR: u64 = tag4(b"MAHE");
+pub const SYS_ACPI_PLATFORM_DEVICE: u64 = tag4(b"MAPD");
+pub const SYS_ACPI_DEVICE_NAME: u64 = tag4(b"MADN");
+pub const SYS_ACPI_USB_PORTS: u64 = tag4(b"MAUP");
+pub const SYS_USB_PORT_FACTS: u64 = tag4(b"MUPF");
+pub const SYS_ACPI_EXTERNAL_PORT: u64 = tag4(b"MAXP");
+pub const SYS_ACPI_RESERVED: u64 = tag4(b"MAMR");
+pub const SYS_ACPI_PROXIMITY: u64 = tag4(b"MAPX");
+pub const SYS_NUMA_NODE_OF: u64 = tag4(b"MNNO");
+pub const SYS_NUMA_DISTANCE: u64 = tag4(b"MNDS");
+pub const SYS_DEVICE_NODE: u64 = tag4(b"MDNN");
+pub const SYS_ACPI_OSC_GRANT: u64 = tag4(b"MAOG");
+pub const SYS_NUMA_HMAT: u64 = tag4(b"MNHM");
+pub const SYS_ACPI_LPIT: u64 = tag4(b"MALP");
+pub const SYS_BOOT_LOGO: u64 = tag4(b"MBGL");
+/// The ACPI capsule's first publish pass is done (L55); its owner only.
+pub const SYS_ACPI_FIRST_PASS: u64 = tag4(b"MAFP");
+/// A native hot-plug slot's four registers and what is below it; acpi owner only.
+pub const SYS_ACPI_SLOT: u64 = tag4(b"MRSL");
+/// The firmware tables the ACPI capsule was handed, measured; reading attestations.
+pub const SYS_ACPI_MEASURED: u64 = tag4(b"MAMT");
+/// A table AML loads at run time, measured before it loads; acpi owner only.
+pub const SYS_ACPI_LOADED: u64 = tag4(b"MALD");
+/// A processor's ceiling under passive cooling, in percent; acpi owner only.
+pub const SYS_ACPI_THERMAL_LIMIT: u64 = tag4(b"MATL");
 /// Spawn another window of an embedded, attested app (terminal or browser); needs SpawnWindow.
 pub const SYS_SPAWN_INSTANCE: u64 = tag4(b"MSPI");
 /// Run a baked, attested tool by name as the caller's child, to drive its stdio; needs IPC.
 pub const SYS_TOOL_RUN: u64 = tag4(b"MTRN");
+pub const SYS_CAPS_OF: u64 = tag4(b"MCOF");
 pub const SYS_TTY_SET: u64 = tag4(b"MTTY");
 pub const SYS_TTY_QUERY: u64 = tag4(b"MTTQ");

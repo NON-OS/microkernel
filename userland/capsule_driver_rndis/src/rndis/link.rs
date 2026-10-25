@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A bound RNDIS device: its pipes, its limits, and the frames of the
-//! last bulk IN.
+//! A bound RNDIS device: its pipes, buffers and limits (nic.rs serves it).
 
 use alloc::collections::VecDeque;
 use alloc::vec;
@@ -43,11 +42,18 @@ pub struct Rndis<B> {
     /// Frames of the last bulk IN not yet handed up, as ranges of `rx`.
     pub(super) queue: VecDeque<Range<usize>>,
     pub(super) tx: Vec<u8>,
+    /// The control interface, its notification endpoint's DCI, the media
+    /// state it last gave, and receives since it was last looked at.
+    pub(super) comm: u8,
+    pub notify: Option<u8>,
+    pub(super) link: bool,
+    pub(super) looks: u32,
 }
 
 impl<B: Bus> Rndis<B> {
     pub fn new(bus: B, station: ([u8; 6], Taken), pipes: Pipes, limits: Limits) -> Self {
         let (rx, tx) = (vec![0; RX_LEN], vec![0; PACKET_HDR + ETH_FRAME_MAX + 1]);
-        Self { bus, station, pipes, limits, rx, queue: VecDeque::new(), tx }
+        let (queue, notify, link) = (VecDeque::new(), None, true);
+        Self { bus, station, pipes, limits, rx, queue, tx, comm: 0, notify, link, looks: 0 }
     }
 }

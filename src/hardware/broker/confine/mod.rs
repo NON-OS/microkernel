@@ -14,20 +14,59 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One IOMMU domain per driver capsule. A device a capsule claims leaves the
-//! identity domain for the capsule's own, which maps nothing until `MkDmaMap`
-//! grants a buffer, so the device reaches that capsule's grants and faults on
-//! everything else. Without a unit in service these are no-ops that say so:
-//! the device then reaches all of memory, and the boot log states it.
-
+// The groups below open switches found at boot (L72): pure, every arch.
+mod acs_groups;
+mod acs_refusal;
+mod acs_span;
+/// The PCIe ACS walk that finds a device's isolation group: x86_64 only.
+#[cfg(target_arch = "x86_64")]
+mod acs_walk;
 mod attach;
+mod avoid;
+mod capsule;
+mod decide;
 mod detach;
+mod detach_all;
+mod gates;
+mod held;
+mod held_by;
+mod interrupts;
 mod iova;
+mod iova_holes;
 mod iova_space;
+mod join;
+mod join_alias;
+mod join_group;
 mod map;
+mod map_fail;
+mod member;
+mod one;
+mod open;
+mod port_only;
 mod posture;
+mod refuse;
+mod reserve;
+mod reserve_rmrr;
+mod reserved_rule;
+mod say;
+mod shared;
+mod streams;
 mod table;
+mod unconfined;
+mod unmap;
+mod unreserve;
+mod verdict;
+mod virtio;
+mod virtio_read;
+mod virtio_rule;
 
-pub(super) use attach::attach;
-pub(super) use detach::{detach, detach_all};
-pub(super) use map::{map, unmap};
+pub use acs_groups::set_acs_groups;
+pub use acs_span::Port;
+pub(super) use attach::{attach, untranslated};
+pub(super) use detach::detach;
+pub(super) use detach_all::detach_all;
+#[allow(unused_imports)] // read by the ACPI broker's SDEV posture, which only x86 builds
+pub(super) use held_by::held_by;
+pub(super) use map::{map, NoAddress};
+pub(super) use refuse::Refusal;
+pub(super) use unmap::unmap;

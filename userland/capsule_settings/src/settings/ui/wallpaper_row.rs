@@ -30,7 +30,6 @@ use super::control_str::paint_plain;
 use super::row_label;
 use super::switch;
 
-/// The kept set as the panel last read it: every wallpaper until it has.
 /// The kept set as the store gave it; None when it was not read. Every
 /// switch showed On then, and a toggle wrote that guess over the real set.
 pub fn kept_set(state: &State) -> Option<u64> {

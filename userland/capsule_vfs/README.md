@@ -70,9 +70,16 @@ any handler runs (`src/server/fs_gate.rs`). the kernel is asked with
 
 files are held in the capsule's 320 MiB heap and are gone at power off. a file
 reaches the disk only through `OP_STORE_PERSIST`, which the capsule allows only
-when the policy service says `Field::Persistent` is true (an all-zero payload,
-which withdraws a record, is always allowed), and only for a file the caller
-created. app installs reach it through `OP_STORE_INSTALL`, from the registered
+when the policy service says `Field::Persistent` is true, and only for a file
+the caller created. on a boot that keeps nothing an all-zero payload is taken
+only as a withdrawal: it replaces, at its own length, a record the disk
+already holds, and a name the disk does not hold stays off it
+(`src/server/handlers/persist_rule.rs`, `src/blk/store_withdraw.rs`). Any
+replacement writes the new bytes to a free extent, repoints the table entry
+in one sector, then zeroes the extent the record left
+(`src/blk/store_replace.rs`), so the old bytes leave the disk, not only the
+table. `OP_STORE_REMOVE` is refused and `OP_STORE_UNINSTALL`
+drops only the RAM half on such a boot, so the disk is left as it was found. app installs reach it through `OP_STORE_INSTALL`, from the registered
 `installer` only. unlinked files are wiped before their memory is freed
 (`src/store/fdtable/zeroize.rs`).
 

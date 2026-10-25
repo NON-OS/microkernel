@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod addr20;
-mod consts;
 mod discover;
 mod dispatch;
-mod fields;
+mod gate;
 mod handlers;
 mod pay_call;
+mod settle_call;
 mod runner;
-mod word32;
 
 pub use runner::run;

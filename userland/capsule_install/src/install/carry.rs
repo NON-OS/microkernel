@@ -40,11 +40,12 @@ impl CarrySource for VfsSource {
     }
 
     /// Sized first, so a file that changed between the size and the read
-    /// is not carried half.
+    /// is not carried half; read one byte past, so one that grew is not
+    /// carried cut either.
     fn read(&mut self, path: &str) -> Option<Vec<u8>> {
         let (size, is_dir) = vfs::stat(self.pid, path.as_bytes()).ok()?;
         let size = u32::try_from(size).ok().filter(|_| !is_dir)?;
-        let data = vfs::read_file(self.pid, path.as_bytes(), size).ok()?;
+        let data = vfs::read_file(self.pid, path.as_bytes(), size.checked_add(1)?).ok()?;
         (data.len() == size as usize).then_some(data)
     }
 }

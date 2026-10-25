@@ -42,10 +42,17 @@ pub fn with_report_len(iface: Interface, rec: &[u8]) -> Interface {
 /// interface it is in, if any.
 pub fn maybe_push(out: &mut Vec<HidBinding>, iface: Option<Interface>, rec: &[u8]) {
     let Some(iface) = iface else { return };
+    let raw = u16::from_le_bytes([rec[4], rec[5]]);
+    // Bits 15:13 are reserved (USB 2.0 9.6.6, as recalled, unverified): no
+    // report endpoint sets them. Bits 12:11 count transactions and are read
+    // past, as the size is bits 10:0.
+    if raw >> 13 != 0 {
+        return;
+    }
     let ep = Endpoint {
         address: rec[2],
         attributes: rec[3],
-        max_packet_size: u16::from_le_bytes([rec[4], rec[5]]) & 0x07ff,
+        max_packet_size: raw & 0x07ff,
         interval: rec[6],
     };
     if let Some(binding) = HidBinding::from_pair(iface, ep) {

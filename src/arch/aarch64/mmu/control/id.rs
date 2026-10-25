@@ -45,6 +45,6 @@ pub(super) fn intermediate_pa_size() -> u64 {
 }
 
 /// True when the core implements 16-bit ASIDs, which is what `AS` selects.
-pub(super) fn has_16_bit_asid() -> bool {
+pub(in crate::arch::aarch64::mmu) fn has_16_bit_asid() -> bool {
     (read_aa64mmfr0() >> 4) & 0xF == 0b0010
 }

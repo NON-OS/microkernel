@@ -26,18 +26,12 @@ pub(super) const BAR_BORDER: u32 = palette::LINE_SOFT;
 pub(super) const FG: u32 = palette::TEXT_DIM;
 pub(super) const WORDMARK: u32 = palette::TEXT;
 pub(super) const WORDMARK_TEXT: &str = "NØNOS";
-
 const LOGO_X_LOGICAL: u32 = 18;
 const LOGO_SIZE_LOGICAL: u32 = 17;
 const WORDMARK_X_LOGICAL: u32 = 44;
-
 const RIGHT_MARGIN_LOGICAL: u32 = 18;
 const PAD_X_LOGICAL: u32 = 12;
 const GAP_LOGICAL: u32 = 16;
-
-const BATT_GLYPH_W_LOGICAL: u32 = 26;
-const NET_GLYPH_W_LOGICAL: u32 = 16;
-const SEARCH_GLYPH_W_LOGICAL: u32 = 15;
 
 pub(super) fn logo_x() -> u32 {
     ui_font::px(LOGO_X_LOGICAL)
@@ -67,16 +61,4 @@ pub(super) fn pad_x() -> u32 {
 
 pub(super) fn gap() -> u32 {
     ui_font::px(GAP_LOGICAL)
-}
-
-pub(super) fn batt_glyph_w() -> u32 {
-    BATT_GLYPH_W_LOGICAL * ui_font::scale()
-}
-
-pub(super) fn net_glyph_w() -> u32 {
-    NET_GLYPH_W_LOGICAL * ui_font::scale()
-}
-
-pub(super) fn search_glyph_w() -> u32 {
-    SEARCH_GLYPH_W_LOGICAL * ui_font::scale()
 }

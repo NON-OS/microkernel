@@ -23,6 +23,8 @@ use crate::trb::write_volatile_at;
 use alloc::vec::Vec;
 pub struct TransferRing {
     pub(super) region: DmaRegion,
+    /// TRB slots in `region`, the Link in the last of them.
+    pub(super) trbs: usize,
     pub(super) cycle: u8,
     pub(super) enqueue_index: usize,
     /// TRBs queued that the controller is not known to have consumed
@@ -34,16 +36,21 @@ pub struct TransferRing {
 }
 impl TransferRing {
     pub fn new(pool: &DmaPool) -> XhciResult<Self> {
-        let bytes = (TRANSFER_RING_TRBS as u64) * (TRB_BYTES as u64);
+        Self::with_trbs(pool, TRANSFER_RING_TRBS)
+    }
+    /// A ring of `trbs` TRB slots, more than two, the Link in the last.
+    pub fn with_trbs(pool: &DmaPool, trbs: usize) -> XhciResult<Self> {
+        let bytes = (trbs as u64) * (TRB_BYTES as u64);
         let region = pool.alloc(bytes)?;
         region.zero();
-        let link_va = region.user_va() + ((TRANSFER_RING_TRBS as u64) - 1) * (TRB_BYTES as u64);
+        let link_va = region.user_va() + ((trbs as u64) - 1) * (TRB_BYTES as u64);
         let link =
             LinkTrbBuilder::new().target(region.phys()).toggle_cycle(true).cycle(true).build();
         // SAFETY: the last TRB slot of the ring's own grant, just mapped.
         unsafe { write_volatile_at(link_va, link) };
         Ok(Self {
             region,
+            trbs,
             cycle: 1,
             enqueue_index: 0,
             pending: Cell::new(0),

@@ -39,9 +39,9 @@ pub fn clear_halt(disk: &Disk, dir_in: bool) -> Result<(), i32> {
 
 /// Reset the device's BOT state machine. A pipe that did not halt makes
 /// its controller-side reset fail; the device-side clear still runs. Both
-/// pipes are cleared even when the device refuses the class reset, as Linux
-/// usb_stor_reset_common does: a halt left on either side fails every
-/// command after it.
+/// pipes are cleared even when the device refuses the class reset (BOT 1.0,
+/// 5.3.4, names the reset then both clears, as recalled): a halt left on
+/// either side fails every command after it.
 pub fn reset_recovery(disk: &Disk) -> Result<(), i32> {
     let _window = Window::open(RECOVERY_MS);
     let mut result =

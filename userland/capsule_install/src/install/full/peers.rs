@@ -20,17 +20,18 @@
  * wait bounds only a desktop that never came.
  */
 
-use nonos_app_skeleton::discover::lookup_port;
+use nonos_app_skeleton::discover::{lookup_port, lookup_service};
 use nonos_libc::{mk_yield, Deadline};
 
 const PEERS_WAIT_MS: u64 = 60_000;
 
-/* (compositor, input router) ports. */
-pub(super) fn wait() -> Result<(u32, u32), &'static str> {
+/* The compositor's port, the input router's, and the compositor's pid: the
+ * one process the overlay is shared with (K20). */
+pub(super) fn wait() -> Result<(u32, u32, u32), &'static str> {
     let until = Deadline::after_ms(PEERS_WAIT_MS);
     loop {
-        match (lookup_port(b"compositor"), lookup_port(b"input_router")) {
-            (Some(c), Some(r)) => return Ok((c, r)),
+        match (lookup_service(b"compositor"), lookup_port(b"input_router")) {
+            (Some(c), Some(r)) => return Ok((c.port, r, c.pid)),
             _ if until.expired() => return Err("no compositor or input router"),
             _ => {
                 let _ = mk_yield();

@@ -27,10 +27,10 @@ extern crate alloc;
 
 mod assoc;
 mod bringup;
+mod clock;
 mod coex;
 mod constants;
 mod discover;
-
 mod efuse;
 mod fw;
 mod fwload;
@@ -46,17 +46,17 @@ mod scan;
 mod sec;
 mod serve;
 mod setup;
+mod start;
+mod start_board;
+mod start_ready;
 mod station;
 mod status;
 mod tx;
+mod wait;
 
-use nonos_libc::{heap_init, mk_exit, start_driver, EXIT_ABSENT};
+use nonos_libc::{heap_init, mk_exit};
 
-use bringup::{probe, BringUp};
-use serve::Stage;
-use setup::Mapped;
-
-const DRIVER: &[u8] = b"driver.rtl8821ce";
+use start::bring_up;
 
 /// # Safety
 /// The capsule entry point. The runtime jumps here once, on a fresh stack, with
@@ -72,82 +72,4 @@ pub unsafe extern "C" fn _start() -> ! {
     // stage; exiting or hanging here would drop the service and show as nothing.
     let (mapped, stage) = bring_up();
     serve::run(mapped, stage);
-}
-
-/// Claim the device, power the MAC on, load the firmware and initialise the MAC,
-/// stopping at the first step that fails and reporting how far it got. On a
-/// serial-less machine the returned stage is the only way to see this, surfaced
-/// through the panel's status request.
-///
-/// A machine without the chip is the one case that does not serve: the driver
-/// says so and leaves (`EXIT_ABSENT`) before claiming anything, since there is
-/// no stage to report. The claim and register map are retried on the shared
-/// bounded schedule, each failed try giving the claim back; running out serves
-/// `NotClaimed`, so the panel can still say why.
-fn bring_up() -> (Option<Mapped>, Stage) {
-    let mut mapped = match start_driver(DRIVER, discover::find(), |dev| setup::run(*dev)) {
-        Ok(m) => m,
-        Err(EXIT_ABSENT) => mk_exit(EXIT_ABSENT),
-        Err(_) => {
-            status::line(b"[rtl8821ce] could not claim or map the chip\n");
-            return (None, Stage::NotClaimed);
-        }
-    };
-    match probe(&mapped.regs) {
-        Ok(_id) => status::line(b"[rtl8821ce] chip powered and answering\n"),
-        Err(BringUp::PowerFailed) => {
-            status::line(b"[rtl8821ce] power-on sequence failed\n");
-            return (Some(mapped), Stage::PowerFailed);
-        }
-        Err(BringUp::DeadMmio) => {
-            status::line(b"[rtl8821ce] no response after power-on\n");
-            return (Some(mapped), Stage::DeadMmio);
-        }
-    }
-    // Hold the link out of L1 before reading anything that matters. An L1 link
-    // gates the chip's internal clocks, and a gated block answers reads with
-    // zeros while the always-on registers keep answering, which reads as a
-    // register window that is half alive. The host had ASPM L1 enabled on this
-    // link, and the chip carries its own enable that only the driver can clear.
-    if !pcie::hold_link_awake(&mapped.regs) {
-        status::line(b"[rtl8821ce] pcie link config did not answer\n");
-    }
-    // As rtw88 does for this chip: a late completion through VT-d must not
-    // time out and stall the card's DMA.
-    if pcie::disable_completion_timeout(mapped.device_id, mapped.claim_epoch) {
-        status::line(b"[rtl8821ce] pcie completion timeout disabled\n");
-    } else {
-        status::line(b"[rtl8821ce] pcie completion timeout left on: write refused\n");
-    }
-    // Read the board facts here, on a freshly powered MAC, which is where rtw88
-    // takes them. Taken at the end of bring-up instead, after the firmware
-    // download and the MAC tables, the efuse control and LDO registers answered
-    // zero on real silicon while the chip id register a few offsets away answered
-    // normally. A failure here is not fatal to the rest of bring-up: the PHY needs
-    // the RF front-end option, so it reports the efuse stage itself.
-    mapped.efuse = efuse::read(&mapped.regs);
-    if mapped.efuse.is_none() {
-        status::line(b"[rtl8821ce] efuse unreadable on a freshly powered mac\n");
-    }
-    // With the MAC powered, load the 8051 firmware. On real silicon this runs the
-    // reserved-page staging and DDMA; off-silicon the whole path bar the DMA
-    // mapping and the card's own execution is proven in rtl8821ce_proofs.
-    if fwload::load(&mapped.regs, mapped.device_id, mapped.claim_epoch).is_err() {
-        status::line(b"[rtl8821ce] firmware download failed\n");
-        return (Some(mapped), Stage::FirmwareFailed);
-    }
-    status::line(b"[rtl8821ce] firmware loaded and ready\n");
-    // Switch the transmit and receive engines on: queue mapping, the reserved
-    // page boundaries and link-list table, and the H2C queue. Without this the
-    // register table below configures the receiver but it never runs, so the
-    // radio comes up yet hears nothing.
-    if !mac::init_trx_cfg(&mapped.regs) {
-        status::line(b"[rtl8821ce] trx engine enable failed\n");
-        return (Some(mapped), Stage::FirmwareFailed);
-    }
-    status::line(b"[rtl8821ce] trx engines enabled\n");
-    // Register work only: protocol, EDCA, beacon and WMAC configuration.
-    mac::run_mac_table(&mapped.regs, mac::MAC_INIT);
-    status::line(b"[rtl8821ce] mac initialised\n");
-    (Some(mapped), Stage::Ready)
 }

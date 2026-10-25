@@ -33,7 +33,7 @@ const ACTIONS: [(&str, Symbol, Press); 4] = [
 ];
 
 /* Swap is not offered in this build: no liquidity pool is wired to quote
- * or sign against (`pool::active` answers NotWired), so its screen could
+ * or sign against (`pool::active` answers None), so its screen could
  * only say so. It returns once a pool is. */
 const SWAP_OFFERED: bool = false;
 
@@ -42,7 +42,7 @@ pub fn actions(state: &State, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {
         ACTIONS.iter().filter(|(_, _, p)| *p != Press::Swap || SWAP_OFFERED).collect();
     let cell = c.w / shown.len() as u32;
     for (i, (title, sign, press)) in shown.into_iter().enumerate() {
-        let enabled = *press != Press::Send || state.balance_ready;
+        let enabled = *press != Press::Send || state.reads.balance_ready;
         let at = Rect::new(c.x + cell * i as u32, y, cell, round_height());
         round_action(fb, at, title, *sign, enabled);
         if enabled {

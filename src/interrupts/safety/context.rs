@@ -54,7 +54,7 @@ fn cpu_id() -> usize {
     }
     #[cfg(not(target_arch = "x86_64"))]
     {
-        0
+        crate::arch::cpu::dense_cpu_index().unwrap_or(0)
     }
 }
 

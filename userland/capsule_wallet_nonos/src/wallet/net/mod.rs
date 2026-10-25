@@ -15,28 +15,24 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod bounds;
-mod call;
-mod constants;
-mod health;
+mod handshake_end;
 pub mod last_read;
 mod link;
-mod lookup;
+pub mod private_route;
 mod probe_rpc_tcp;
 mod probe_status;
+mod probe_tls_blocked;
 mod probe_tls_rpc;
 pub mod read_snapshot;
 mod read_tls_flight;
-mod resolve_eth;
 mod route_text;
 mod rtc_stamp;
-pub mod send_cap;
-mod socket_close;
-mod socket_connect;
-mod socket_open;
-mod socket_recv;
-mod socket_send;
+mod snapshot_fields;
+mod snapshot_parse;
 mod status;
 pub mod step;
+pub mod wallet_route;
+mod wallet_route_now;
 
 /* The route type, named once here so the pure files below reach it as
  * `super::Route`, the way wallet_proofs compiles them. */
@@ -44,3 +40,4 @@ use nonos_route_link::Route;
 
 pub use route_text::{route_part, route_value};
 pub use status::NetStatus;
+pub use wallet_route::WalletRoute;

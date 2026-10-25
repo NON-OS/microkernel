@@ -38,6 +38,14 @@ impl PagingManager {
 
         let mapping = self.mappings.get_mut(&page_addr).ok_or(PagingError::PageNotMapped)?;
 
+        // A protection change is not a memory-type change. Rebuilt from the
+        // caller's permissions alone, a register page loses DEVICE and NO_CACHE
+        // and is remapped as cached RAM: gathered, merged and read ahead.
+        let memory = PagePermissions::NO_CACHE
+            .union(PagePermissions::WRITE_THROUGH)
+            .union(PagePermissions::DEVICE);
+        let kept = PagePermissions::from_bits(mapping.permissions.bits() & memory.bits());
+        let new_permissions = new_permissions.remove(memory).union(kept);
         mapping.permissions = new_permissions;
         mapping.last_accessed = get_timestamp();
 

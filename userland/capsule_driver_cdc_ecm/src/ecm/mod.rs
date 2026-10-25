@@ -17,10 +17,18 @@
 //! CDC-ECM: finding the function, binding it, and its framing.
 
 pub mod bind;
+pub mod claim;
+pub mod counts;
+pub mod data;
 pub mod frame;
 pub mod function;
 pub mod link;
+mod nic;
+pub mod notice;
+mod receive;
+pub mod segment;
 mod transfer;
-pub mod vendor;
+pub mod union;
+pub mod watch;
 
 pub use bind::bind;

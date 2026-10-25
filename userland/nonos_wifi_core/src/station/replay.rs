@@ -46,6 +46,11 @@ impl Replay {
         }
     }
 
+    /// Start the pairwise counters afresh for a new pairwise key.
+    pub(super) fn reset_unicast(&mut self) {
+        self.unicast = [0; TIDS];
+    }
+
     /// Accept `pn` for a pairwise (`group` = None) or group frame on `tid`,
     /// advancing the counter, or refuse it as a replay.
     pub(super) fn accept(&mut self, group: Option<u8>, tid: u8, pn: u64) -> bool {

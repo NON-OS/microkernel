@@ -37,9 +37,21 @@ const NETWORK_SERVICES: [&str; 11] = [
     "net.socks5",
 ];
 
+/*
+ * The keyring answers each caller only for the keys it owns, by the pid the
+ * kernel stamps, so no capsule can read another's. Reaching it still takes
+ * Keyring: a capsule granted none has no business making the keyring hold a
+ * secret for it, and the bit means what a manifest says it means only when
+ * the kernel holds a sender to it.
+ */
+const KEY_SERVICES: [&str; 1] = ["keyring"];
+
 pub fn required_caps(name: &str, default: u64) -> u64 {
     if NETWORK_SERVICES.contains(&name) {
         return default | Capability::Network.bit();
+    }
+    if KEY_SERVICES.contains(&name) {
+        return default | Capability::Keyring.bit();
     }
     default
 }

@@ -19,11 +19,15 @@
 //! block its UI. A caller that can wait wants none of that, so this walks the
 //! same steps in order and hands back the response.
 
+pub(crate) mod deadline;
 mod exchange;
 mod flight;
-mod response;
+pub(crate) mod response;
 pub(crate) mod start;
 mod traits;
+mod within;
 
+pub use deadline::{HANDSHAKE_MS, REPLY_MS, REPLY_TOO_SLOW};
 pub use exchange::exchange;
 pub use traits::{Io, SessionError};
+pub use within::exchange_within;

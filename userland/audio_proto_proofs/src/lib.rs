@@ -32,6 +32,9 @@ pub mod volume;
 #[allow(dead_code, clippy::new_without_default)]
 #[path = "../../capsule_audio/src/mixer.rs"]
 pub mod mixer;
+// Which sink driver the server plays through.
+#[path = "../../capsule_audio/src/sink/choose.rs"]
+pub mod sink_choose;
 
 #[cfg(test)]
 mod header_tests;
@@ -39,6 +42,12 @@ mod header_tests;
 mod output_tests;
 #[cfg(test)]
 mod refusal_tests;
+#[cfg(test)]
+mod restart_tests;
+#[cfg(test)]
+mod sink_choice_tests;
+#[cfg(test)]
+mod sink_machine_tests;
 #[cfg(test)]
 mod stream_owner_tests;
 #[cfg(test)]

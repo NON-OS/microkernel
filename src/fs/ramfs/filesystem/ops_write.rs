@@ -38,8 +38,7 @@ impl NonosFilesystem {
         let file = files.get_mut(name).ok_or(FsError::NotFound)?;
 
         let old_size = file.size;
-        secure_zeroize(&mut file.data);
-
+        // The new contents first: a refused write leaves the old file whole.
         let stored = if self.encryption_enabled {
             let key = self.get_key(name)?;
             encrypt_file_data(data, &key, &self.nonce_counter, &self.stats)?
@@ -47,6 +46,7 @@ impl NonosFilesystem {
             data.to_vec()
         };
 
+        secure_zeroize(&mut file.data);
         file.data = stored;
         file.size = data.len();
         file.modified = self.get_timestamp();
@@ -77,8 +77,7 @@ impl NonosFilesystem {
 
         if let Some(file) = files.get_mut(name) {
             old_size = file.size as u64;
-            secure_zeroize(&mut file.data);
-
+            // As in `write_file`: a refused write leaves the old file whole.
             let stored = if self.encryption_enabled {
                 let key = self.get_key(name)?;
                 encrypt_file_data(data, &key, &self.nonce_counter, &self.stats)?
@@ -86,6 +85,7 @@ impl NonosFilesystem {
                 data.to_vec()
             };
 
+            secure_zeroize(&mut file.data);
             file.data = stored;
             file.size = data.len();
             file.modified = self.get_timestamp();

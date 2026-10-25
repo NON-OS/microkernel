@@ -55,7 +55,9 @@ fn a_high_bandwidth_endpoint_gets_its_three_packets_and_nothing_wild_is_configur
     let mut b = Bench::new(HIGH_SPEED);
     let slot = b.root_device();
     let three = (1024u16 | 2 << 11).to_le_bytes();
-    for wild in [[0x81, 0, 0], [0x81, 0x00, 0x1C], [0x01, 64, 0], [0x80, 64, 0], [0x81, 0xFF, 0x07]]
+    // An OUT endpoint (0x01) is no wild one: a security key's reports go
+    // out on it (OP_INTERRUPT_OUT); EP0 either way is.
+    for wild in [[0x81, 0, 0], [0x81, 0x00, 0x1C], [0x00, 64, 0], [0x80, 64, 0], [0x81, 0xFF, 0x07]]
     {
         let body = [slot, wild[0], wild[1], wild[2], 4, 0];
         assert_eq!(b.call(OP_ALLOC_TRANSFER_RING, &body).status, E_INVAL, "{wild:x?}");

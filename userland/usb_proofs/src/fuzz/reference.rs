@@ -57,7 +57,8 @@ pub fn reference(raw: &[u8]) -> Option<Vec<Binding>> {
 
 fn endpoint([number, class, subclass, protocol]: [u8; 4], rec: &[u8]) -> Option<Binding> {
     let (address, attributes) = (rec[2], rec[3]);
-    let size = u16::from_le_bytes([rec[4], rec[5]]) & 0x07ff;
+    let raw = u16::from_le_bytes([rec[4], rec[5]]);
+    let size = raw & 0x07ff;
     let (kind, least) = match (class, subclass, protocol) {
         (0x03, 1, 1) => (HidKind::Keyboard, 8),
         (0x03, 1, 2) => (HidKind::Mouse, 3),
@@ -68,5 +69,7 @@ fn endpoint([number, class, subclass, protocol]: [u8; 4], rec: &[u8]) -> Option<
         _ => return None,
     };
     let interrupt_in = address & 0x80 != 0 && address & 0x0f != 0 && attributes & 0x03 == 0x03;
-    (interrupt_in && (least..=1024).contains(&size)).then_some((kind, number, address, size))
+    // bInterval 0 is no polling rate; bits 15:13 are reserved.
+    let fits = rec[6] != 0 && raw >> 13 == 0 && (least..=1024).contains(&size);
+    (interrupt_in && fits).then_some((kind, number, address, size))
 }

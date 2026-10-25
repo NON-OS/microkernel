@@ -24,30 +24,11 @@
 //! only briefly: a load the installer is still running when the wait ends is
 //! InFlight, and the caller follows it on later turns (`state/launch.rs`).
 
-use alloc::vec::Vec;
-
 use nonos_libc::mk_ipc_call_timeout;
 
-use super::constants::{HDR_LEN, ISSUE_TIMEOUT_MS, MAX_NAME, OP_LOAD_BY_NAME, REQUESTED_CAPS, SEQ};
+use super::constants::{HDR_LEN, ISSUE_TIMEOUT_MS, MAX_NAME};
+use super::load_wire::{request, Issued, ERR_INVALID, ERR_NOT_READY, ERR_TIMEDOUT, PID_END};
 use super::port::port;
-
-/// Reply is seq(4) | status(4) | pid(4); nothing past the pid is read.
-const PID_END: usize = HDR_LEN + 4;
-
-/// Local stand-in when the installer cannot be reached or replies short.
-const ERR_NOT_READY: i32 = -11;
-/// Local stand-in for a name the request cannot even carry.
-const ERR_INVALID: i32 = -22;
-/// The kernel's answer when the wait ran out with the request delivered.
-const ERR_TIMEDOUT: i64 = -110;
-
-/// How a load request went within the wait it was given.
-pub enum Issued {
-    Loaded(u32),
-    Refused(i32),
-    /// Delivered, and the installer is still at it.
-    InFlight,
-}
 
 pub fn issue_load(name: &[u8]) -> Issued {
     if name.is_empty() || name.len() > MAX_NAME {
@@ -83,17 +64,4 @@ pub fn issue_load(name: &[u8]) -> Issued {
         0 => Issued::Refused(ERR_NOT_READY),
         pid => Issued::Loaded(pid),
     }
-}
-
-/// Body after the header is requested_caps(8) | name_len(1) | name | args, with
-/// no args: the Launchpad launches an app plainly, as a dock click does.
-fn request(name: &[u8]) -> Vec<u8> {
-    let mut tx = Vec::with_capacity(HDR_LEN + 9 + name.len());
-    tx.extend_from_slice(&SEQ.to_le_bytes());
-    tx.extend_from_slice(&OP_LOAD_BY_NAME.to_le_bytes());
-    tx.extend_from_slice(&[0u8, 0u8]);
-    tx.extend_from_slice(&REQUESTED_CAPS.to_le_bytes());
-    tx.push(name.len() as u8);
-    tx.extend_from_slice(name);
-    tx
 }

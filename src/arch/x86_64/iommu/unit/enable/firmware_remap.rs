@@ -16,9 +16,8 @@
 
 //! Interrupt remapping firmware left on. Before the queue change, setting the
 //! root pointer wrote GCMD with SRTP alone, which also cleared IRE; now that
-//! GCMD keeps every persistent control, IRE must be turned off by name, as
-//! Linux does when it finds remapping on (intel/irq_remapping.c,
-//! intel_setup_irq_remapping, then iommu_disable_irq_remapping). Left on
+//! GCMD keeps every persistent control, IRE must be turned off by name
+//! before the kernel's table goes in (VT-d 10.4.4). Left on
 //! with firmware's table and CFI clear, every compatibility format MSI and
 //! I/O APIC interrupt the kernel programs is blocked (fault reason 0x25).
 

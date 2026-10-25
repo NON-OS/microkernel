@@ -17,23 +17,17 @@
 /* Which capsules a boot profile does not start. */
 
 use crate::boot::handoff::BootProfile;
+use crate::services::registry::nics;
 
-const NETWORK_DRIVERS: [&str; 6] = [
-    "driver.e1000_0",
-    "driver.rtl8139_0",
-    "driver.rtl8169_0",
-    "driver.virtio_net0",
-    "driver.iwlwifi0",
-    "driver.rtl8821ce0",
-];
 /* Safe Mode: no audio, and no game or demo beside the tools. */
-const NOT_SAFE: [&str; 4] = ["driver.hda0", "audio.server", "app.snake", "app.hello"];
+const NOT_SAFE: [&str; 5] =
+    ["driver.hda0", "driver.ac97_0", "audio.server", "app.snake", "app.hello"];
 /* Fetches models over the network. */
 const NETWORK_TOOLS: [&str; 1] = ["tool.model-fetch"];
 
 pub(super) fn refused(profile: BootProfile, name: &str) -> bool {
     let network = name.starts_with("net.")
-        || NETWORK_DRIVERS.contains(&name)
+        || nics::NICS.iter().any(|(card, _)| *card == name)
         || NETWORK_TOOLS.contains(&name);
     let not_safe = NOT_SAFE.iter().any(|n| is_instance(name, n));
     (network && !profile.network()) || (profile.minimal() && not_safe)

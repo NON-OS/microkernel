@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The control queue's named state, as OP_HEALTHCHECK reports it
-//! (plan/50 C1).
+//! The control queue's named state (plan/50 C1), and the count of stalls
+//! recovered in place that `server::recover` keeps.
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Health {
@@ -23,18 +23,18 @@ pub enum Health {
     /// place since; the driver counts those.
     Live,
     /// The device stalled and no recovery try brought it back. It is left
-    /// reset, the claim and every grant are kept (the compositor still
-    /// draws into the primary surface's frames), and device ops answer
-    /// E_DEVICE.
+    /// reset and every surface stays mapped (the host may hold none, but
+    /// nothing is handed back on a guess); every output answers LOST and
+    /// dark, FLUSH and MODE_SET ENXIO, and the compositor was told LEAVING.
     Down,
 }
 
-impl Health {
-    /// The word OP_HEALTHCHECK carries.
-    pub const fn code(self) -> u32 {
-        match self {
-            Self::Live => 0,
-            Self::Down => 1,
-        }
-    }
+/// Stalls recovered in place, recoveries in a row, and the queue's count of
+/// commands published and the clock when the last recovery ended.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Tally {
+    pub recoveries: u32,
+    pub in_a_row: u32,
+    pub recovered_at: u16,
+    pub recovered_ms: u64,
 }
