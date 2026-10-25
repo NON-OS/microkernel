@@ -22,7 +22,7 @@ mod init;
 #[cfg(target_arch = "x86_64")]
 pub mod main;
 
-mod panic;
+pub(crate) mod panic;
 mod stop;
 pub mod vga;
 

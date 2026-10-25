@@ -20,3 +20,5 @@ path = "src/lib.rs"
 # The stand-in nonos_libc the request decode's reply goes through.
 nonos_libc = { package = "net_proofs_shim", path = "../net_proofs/shim" }
 spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
+# The reference BLAKE3 the capsule's HKDF is checked against (hkdf_tests).
+blake3 = "=1.8.7"

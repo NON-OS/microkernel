@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The ACPI capsule, started before the drivers: it claims no PCI function,
-//! and the services that will ask it about batteries, lids and power find
-//! it already up.
+//! The power service, then the ACPI capsule, started before the drivers:
+//! neither claims a PCI function, and the services that will ask about
+//! batteries, lids and power find them already up. The power service goes
+//! first because it is the one owner of `power.off`, the shell's wiped
+//! power-off: an ACPI capsule built in beside it finds the name taken and
+//! serves the button alone (docs/build/feature-inventory.md).
 
 pub(super) fn spawn() {
+    spawn_power();
     spawn_acpi();
 }
 
@@ -30,3 +34,12 @@ fn spawn_acpi() {
 
 #[cfg(not(feature = "nonos-capsule-acpi"))]
 fn spawn_acpi() {}
+
+#[cfg(feature = "nonos-capsule-power")]
+fn spawn_power() {
+    use crate::userspace::capsule_power as c;
+    super::boot::capsule("POWER", "power", c::spawn_power_capsule, c::shared_state);
+}
+
+#[cfg(not(feature = "nonos-capsule-power"))]
+fn spawn_power() {}

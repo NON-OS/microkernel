@@ -32,6 +32,8 @@ pub const CR4_SMAP: u64 = 1 << 21;
 /// fail the check on hardware that is otherwise fully protected.
 pub const CR4_REQUIRED_BITS: u64 = CR4_SMEP | CR4_SMAP;
 
+pub const CPUID_BASIC_LEAF: u32 = 0x01;
+pub const CPUID_EDX_PGE: u32 = 1 << 13;
 pub const CPUID_FEATURES_LEAF: u32 = 0x07;
 pub const CPUID_EBX_SMEP: u32 = 1 << 7;
 pub const CPUID_EBX_SMAP: u32 = 1 << 20;
