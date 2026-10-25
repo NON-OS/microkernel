@@ -40,7 +40,7 @@ const KEY_LABEL: &[u8] = b"blockfs.data.v1";
 /// Open the data volume if it is not open yet. Every refusal is logged
 /// with its reason and returned; nothing is formatted over data.
 pub fn open_machine_volume() -> Result<(), VolumeError> {
-    if VOLUME.read().is_some() {
+    if crate::smp::read_responsive(&VOLUME).is_some() {
         return Ok(());
     }
     /*

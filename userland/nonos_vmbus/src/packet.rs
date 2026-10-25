@@ -116,3 +116,31 @@ pub fn gpa_direct(out: &mut [u8], len: u32, offset: u32, pfns: &[u64]) -> Option
     }
     Some(n)
 }
+
+/// A transfer-pages descriptor (QEMU's vmbus_pkt_xferpg, OpenVMM's
+/// TransferPageHeader): the transfer page set, then `range_count` ranges of
+/// (byte_count, byte_offset) into it. The set id and the ranges, or None
+/// when the descriptor is shorter than its count says.
+pub fn xfer_pages(desc: &[u8]) -> Option<(u16, XferRanges<'_>)> {
+    let head = desc.get(..8)?;
+    let set = u16::from_le_bytes([head[0], head[1]]);
+    let count = u32::from_le_bytes([head[4], head[5], head[6], head[7]]) as usize;
+    let ranges = desc.get(8..8 + count.checked_mul(8)?)?;
+    Some((set, XferRanges(ranges)))
+}
+
+/// The ranges of a transfer-pages descriptor, as (byte_count, byte_offset).
+#[derive(Clone, Copy, Debug)]
+pub struct XferRanges<'a>(&'a [u8]);
+
+impl Iterator for XferRanges<'_> {
+    type Item = (u32, u32);
+
+    fn next(&mut self) -> Option<(u32, u32)> {
+        let (r, rest) = self.0.split_at_checked(8)?;
+        self.0 = rest;
+        let count = u32::from_le_bytes([r[0], r[1], r[2], r[3]]);
+        let offset = u32::from_le_bytes([r[4], r[5], r[6], r[7]]);
+        Some((count, offset))
+    }
+}

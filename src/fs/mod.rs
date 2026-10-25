@@ -89,7 +89,7 @@ pub use storage::{
     get_filesystem_breakdown, get_inode_stats, get_storage_health, get_storage_stats,
     get_storage_usage_percent, get_total_available_bytes, get_total_used_bytes,
     FilesystemBreakdown, InodeStats, StorageError, StorageHealth, StorageHealthStatus,
-    StorageQuota, StorageResult, StorageStats,
+    StorageResult, StorageStats,
 };
 
 pub use errors::{FsSubsystemError, FsSubsystemResult};

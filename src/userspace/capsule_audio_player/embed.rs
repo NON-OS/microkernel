@@ -23,15 +23,15 @@ pub(crate) const AUDIO_PLAYER_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-audio-player")]
 pub(crate) const AUDIO_PLAYER_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/audio_player.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/audio_player.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-audio-player")]
 pub(crate) const AUDIO_PLAYER_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/audio_player.manifest.bin");
+    crate::baked_trust!("capsules/audio_player.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-audio-player")]
 pub(crate) const AUDIO_PLAYER_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/audio_player.zk_trailer.bin");
+    crate::baked_trust!("capsules/audio_player.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-audio-player"))]
 pub(crate) const AUDIO_PLAYER_ELF: &[u8] = &[];

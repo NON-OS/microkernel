@@ -63,11 +63,11 @@ for mk in sorted(glob.glob("userland/capsule_driver_*/Capsule.mk")):
         missing.append(readme)
     if f"{cdir}/target/" not in hay:
         missing.append("kernel embed userland target")
-    if f"trust/capsules/{name}.nonos_id_cert.bin" not in hay:
+    if f"capsules/{name}.nonos_id_cert.bin" not in hay:
         missing.append("kernel embed identity cert")
-    if f"trust/capsules/{name}.manifest.bin" not in hay:
+    if f"capsules/{name}.manifest.bin" not in hay:
         missing.append("kernel embed manifest")
-    if f"trust/capsules/{name}.zk_trailer.bin" not in hay:
+    if f"capsules/{name}.zk_trailer.bin" not in hay:
         missing.append("kernel embed zk trailer")
     if service not in hay or "spawn_verified" not in hay:
         missing.append("kernel spawn_verified service wiring")

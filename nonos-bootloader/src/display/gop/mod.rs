@@ -24,18 +24,19 @@ mod offered;
 pub mod order;
 pub mod pick;
 mod read;
+mod refusal_word;
 mod report;
 pub mod state;
 mod try_init;
 
 pub use draw::{clear_screen, draw_rect, fill_rect, hline, put_pixel, vline};
+pub(crate) use edid::read_edid;
 pub use handle::report_gop_handle;
 pub use init::init_gop;
-pub(crate) use edid::read_edid;
 pub(crate) use init::preferred_mode;
 pub(crate) use mode::linear_bgr;
 pub use read::get_pixel;
 pub use report::report_gop_mode;
 pub use state::{
-    get_dimensions, get_stride, is_initialized, latched_linear_fb, shutdown_for_exit,
+    get_dimensions, get_stride, is_initialized, latched_linear_fb, refusal, shutdown_for_exit,
 };

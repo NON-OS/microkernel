@@ -59,6 +59,19 @@ fn only_storvsc0_claims_the_scsi_channel_and_only_on_the_virt_bus() {
 }
 
 #[test]
+fn only_netvsc0_claims_the_network_channel_and_only_on_the_virt_bus() {
+    let net = seen(3, 0x1414, 0x4E45, 0xFFFF);
+    assert!(admits("driver.netvsc0", &net));
+    for s in ["driver.vmbus0", "driver.storvsc0", "driver.vmxnet3_0", "driver.virtio_net0"] {
+        assert!(!admits(s, &net), "{s}");
+    }
+    assert!(!admits("driver.netvsc0", &seen(1, 0x1414, 0x4E45, 0xFFFF)), "a PCI function");
+    for device in [0x5642, 0x5343, 0x4944] {
+        assert!(!admits("driver.netvsc0", &seen(3, 0x1414, device, 0xFFFF)), "{device:#x}");
+    }
+}
+
+#[test]
 fn the_acpi_capsule_claims_the_sci_record_alone() {
     assert!(admits("acpi", &seen(2, 0x0001, 0x0C08, 0xFFFF)));
     assert!(!admits("acpi", &seen(2, 0x0001, 0x0303, 0x0040)), "a PS/2 port");
