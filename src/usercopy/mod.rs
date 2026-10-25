@@ -28,6 +28,7 @@ mod value_rules;
 mod walk;
 
 pub(crate) use buffer::take_buffer;
+pub(crate) use policy::MAX_COPY_SIZE;
 pub use bytes::*;
 pub use copy::*;
 pub use error::*;
