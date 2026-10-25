@@ -58,7 +58,7 @@ const NVME: Ident = Ident {
 };
 
 #[test]
-fn intel_audio_gets_exactly_the_bits_snd_hda_intel_writes() {
+fn intel_audio_gets_exactly_tcsel_cgctl_and_devc_bits() {
     for ident in [HDA, DSP] {
         assert_eq!(writable(&ident, 0x44), Some(0x0007), "TCSEL");
         assert_eq!(writable(&ident, 0x48), Some(0x0040), "CGCTL MISCBDCGE");

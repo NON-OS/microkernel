@@ -1,6 +1,9 @@
 # capsule_driver_rndis
 
-Status: wired, not yet signed. The kernel mirror (`src/hardware/rndis_capsule`) embeds it under `nonos-capsule-driver-rndis` and spawns it where an xHCI controller is; net.core and net.l2 reach it through `src/services/registry/nics.rs`, and it reaches driver.xhci0, which serves its polled bulk IN. It has no owner certificate yet, so no image carries it.
+Status: wired, not yet signed. The kernel mirror (`src/hardware/rndis_capsule`) embeds it under
+`nonos-capsule-driver-rndis` and spawns it where an xHCI controller is; net.core and net.l2 reach it
+through `src/services/registry/nics.rs`, and it reaches driver.xhci0, which serves its polled bulk
+IN and control OUT data stage. It has no owner certificate yet, so no image carries it.
 
 ## Role
 
@@ -14,7 +17,16 @@ Android phone tethering over RNDIS, QEMU usb-net
 
 ## Microkernel contract
 
-The manifest's `CAPSULE_REQUIRED_CAPS = 0x38` grants IPC (0x08), Memory (0x10) and Crypto (0x20), and no InputSource, Driver, DeviceEnum, Mmio, Irq, Dma or Pio: it is a class capsule above xHCI. Debug (0x100) is its `CAPSULE_OPTIONAL_CAPS`, granted only to a build that compiles `capsule-serial-debug`. The capsule receives requests with `MkIpcRecvFrom` and answers with `MkIpcReply`, finds every USB host and its own pid with `MkServiceLookup` and calls it with `MkIpcCall` (each call bounded at 12 s), draws its station address with `CryptoRandom`, which needs Crypto, writes its `[usbnet rndis]` lines with `MkDebug`, which needs Debug, and waits between bring-up steps with libc's `mk_idle_ms`. It makes no enumeration, MMIO, IRQ, DMA or PIO broker syscall: driver.xhci0 owns the controller.
+The manifest's `CAPSULE_REQUIRED_CAPS = 0x38` grants IPC (0x08), Memory (0x10) and Crypto (0x20),
+and no CoreExec, InputSource, Driver, DeviceEnum, Mmio, Irq, Dma or Pio: it is a class capsule above
+xHCI. Debug (0x100) is its `CAPSULE_OPTIONAL_CAPS`, granted only to a build that compiles
+`capsule-serial-debug`. The capsule receives requests with `MkIpcRecvFrom` and answers with
+`MkIpcReply`, finds every USB host and its own pid with `MkServiceLookup` and calls it with
+`MkIpcCall` (each call bounded at 12 s), draws its station address with `CryptoRandom`, which needs
+Crypto, writes its `[usbnet rndis]` lines with `MkDebug`, which needs Debug, and waits between
+bring-up steps with libc's `mk_idle_ms`. It makes no enumeration, MMIO, IRQ, DMA or PIO broker
+syscall: driver.xhci0 owns the controller. Its own pid, by which the loop drops what it sent itself,
+is read back by its service name rather than through `MkGetPid`, so it needs no CoreExec.
 
 ## Interface contract
 
@@ -22,7 +34,11 @@ NNET, the protocol net.core speaks with every NIC driver, on `driver.rndis0` (po
 
 ## Authority
 
-Allowed: descriptor classification, RNDIS binding and framing, frame counters. Forbidden: xHCI ownership, USB scheduling, DMA buffers, routing, sockets, IP policy. The kernel holds `driver.rndis0` to the wired stack (net.core, net.l2) in `src/services/registry/held_table.rs`, so no app reaches it.
+Allowed: descriptor classification, RNDIS binding and framing, frame counters. Forbidden: xHCI
+ownership, USB scheduling, DMA buffers, routing, sockets, IP policy. The kernel holds
+`driver.rndis0` to the wired stack (net.core, net.l2) in `src/services/registry/held_table.rs`,
+through the NIC table (`src/services/registry/nics.rs`) as it holds the PCI NICs, so no app reaches
+it; it holds driver.xhci0 to its USB class drivers, this one among them.
 
 ## Privacy and persistence
 
@@ -58,11 +74,18 @@ Keep USB transfer mechanics in driver.xhci0 and IP policy in net.core. Do not ad
 
 ## Release evidence
 
-Build and host-proof evidence only so far (rndis_proofs, 30 tests; usbnet_proofs, 38 tests, for the shared core). Runtime evidence needs an owner certificate and a real device.
+Build and host-proof evidence only so far (rndis_proofs, 30 tests; usbnet_proofs, 53 tests, for the
+shared core). driver.xhci0 serves the polled bulk IN and control OUT data stage and the kernel
+spawns the capsule (`docs/drivers/ethernet/usb-net.md`); runtime evidence still needs an owner
+certificate and a real device.
 
 ## Release checklist
 
-The capsule builds with zero warnings and is clippy clean; rndis_proofs passes; the capsule is signed; on hardware, `[usbnet rndis] port N up, drawn station address programmed` (on QEMU's usb-net, which refuses the address, `drawn station address, device filter opened`) and `[NET-CORE] bind: interface up on driver.rndis0`, then DHCP and a page.
+The capsule builds with zero warnings and is clippy clean; rndis_proofs passes; the owner signs it,
+with net.core, net.l2, the setup wizard and capsule_attack re-signed for the NIC table; on hardware,
+`[usbnet rndis] port N up, drawn station address programmed` (on QEMU's usb-net, which refuses the
+address, `drawn station address, device filter opened`) and `[NET-CORE] bind: interface up on
+driver.rndis0`, then DHCP and a page.
 
 ## Explicit non-goals today
 

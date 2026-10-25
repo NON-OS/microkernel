@@ -64,10 +64,9 @@ pub fn discover(present: &[Controller]) -> Vec<Found> {
     out
 }
 
-/// An NVMe controller is one disk, and a UFS host one device. SATA and eMMC
-/// serve their disk from whichever controller holds one; a virtio-blk device
-/// can be the medium this boot came from. A card reader serves no controller
-/// kind (`Driver::controller`), so it is never counted missing.
+/// An NVMe controller is one disk, a UFS host one device. SATA and eMMC serve
+/// their disk from whichever controller holds one, a virtio-blk device can be
+/// the medium this boot came from, and a card reader is never counted missing.
 fn one_disk_each(driver: Driver) -> bool {
     match driver {
         Driver::Nvme | Driver::Ufs => true,

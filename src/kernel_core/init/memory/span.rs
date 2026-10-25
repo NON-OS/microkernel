@@ -30,6 +30,9 @@ pub(super) fn reserve_gaps(handoff: &BootHandoffV1) {
         unsafe { handoff.mmap.usable_regions().collect() };
     usable.sort_unstable();
     crate::memory::phys::keep_usable(&usable);
+    let mut ram: alloc::vec::Vec<(u64, u64)> = unsafe { handoff.mmap.ram_regions().collect() };
+    ram.sort_unstable();
+    crate::memory::phys::keep_ram(&ram);
 }
 
 /// `[MEM] 3967 MiB free to allocate, in a span of 0x100000..0x180000000`.

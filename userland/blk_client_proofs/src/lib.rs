@@ -23,6 +23,8 @@
 
 extern crate alloc;
 
+// The span code and the files it is cut into: the requests a range becomes,
+// a disk's blocks and its per-request ceiling.
 #[path = "../../nonos_blk_client/src/device/chunks.rs"]
 pub mod chunks;
 #[path = "../../nonos_blk_client/src/driver/mod.rs"]

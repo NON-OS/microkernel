@@ -23,6 +23,7 @@
 //! grant, so there is nothing else to undo.
 
 use super::grant::{self, PioGrant};
+use super::grant_drain;
 use super::types::PioError;
 
 pub fn release_grant(pid: u32, grant_id: u64) -> Result<(), PioError> {
@@ -30,11 +31,11 @@ pub fn release_grant(pid: u32, grant_id: u64) -> Result<(), PioError> {
     Ok(())
 }
 
-pub fn release_for_device(pid: u32, device_id: u64) -> usize {
-    grant::drain_for_device(pid, device_id).len()
+pub fn release_for_device(pid: u32, device_id: u64, epoch: u64) -> usize {
+    grant_drain::drain_for_device(pid, device_id, epoch).len()
 }
 
 pub fn release_all_for_pid(pid: u32) -> usize {
-    let drained: alloc::vec::Vec<PioGrant> = grant::drain_for_pid(pid);
+    let drained: alloc::vec::Vec<PioGrant> = grant_drain::drain_for_pid(pid);
     drained.len()
 }

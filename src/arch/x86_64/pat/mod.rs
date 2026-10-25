@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The page attribute table: one entry made write-combining, so the
-//! framebuffer can be mapped the way Linux maps efifb and simpledrm.
+//! The page attribute table: one entry made write-combining, so framebuffer
+//! stores combine in the WC buffer, not one bus write each (SDM Vol. 3A 12.3).
 
 mod program;
 pub mod value;

@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A device's isolation group and requester-id aliases, read from the
-//! hardware (K11): the functions the broker table enumerated, each bridge's
-//! buses and kind, and each hop's ACS, turned on where it is offered and
-//! read back (acs_read.rs).
+//! A device's isolation group and requester-id aliases, read from the hardware (K11): the
+//! functions the broker table enumerated, each bridge's buses and kind, and each hop's ACS,
+//! turned on where it is offered and read back (acs_read.rs). x86's alone.
 
 extern crate alloc;
 

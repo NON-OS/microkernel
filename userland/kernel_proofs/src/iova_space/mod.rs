@@ -16,9 +16,22 @@
 
 /*
  * Where the broker places a DMA grant in a confined capsule's device address
- * space. The real placement source is included by path.
+ * space, and how freed space is reused. The real placement, the step over
+ * reserved regions and the hole-list sources are included by path.
  */
 
+#[path = "../../../../src/hardware/broker/confine/avoid.rs"]
+pub mod avoid;
+#[path = "../../../../src/hardware/broker/confine/iova_holes.rs"]
+pub mod holes;
+mod holes_model_tests;
+mod holes_tests;
+#[path = "../../../../src/hardware/broker/confine/reserved_rule.rs"]
+pub mod reserved_rule;
+mod reserved_tests;
 #[path = "../../../../src/hardware/broker/confine/iova_space.rs"]
 pub mod space;
 mod tests;
+
+/// The name the hole list reaches the placement rules by in the kernel.
+use space as iova_space;
