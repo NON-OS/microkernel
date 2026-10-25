@@ -22,6 +22,7 @@
 //! malformed input rather than trusted, and it cannot be if reaching it needs a
 //! trusted platform module.
 
+mod k1;
 mod layout;
 mod parse;
 mod types;
