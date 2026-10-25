@@ -33,6 +33,9 @@ pub const KEYS: [(&[u8], &[u8]); 14] = [
     (b"theme", b"theme or profile to change colours"),
 ];
 
+/// What the fresh-tab splash names to start with: `help`, then three keys.
+pub const START: &str = "help, Tab, Ctrl+R history, Ctrl+K";
+
 pub const SHELL: [(&[u8], &[u8]); 8] = [
     (b"pipe", b"a | b          feed a's output to b"),
     (b"redirect", b"a > f   a >> f   a < f   to, onto, or from a file"),

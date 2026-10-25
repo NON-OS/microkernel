@@ -29,7 +29,7 @@ The prompt reads `nonos@nonos ~/workspace/project main 1 job %`: who and where y
 
 - The window opens at 1240 by 720 pixels, centred between the menu bar and the dock on a 1920 by 1080 screen: about 130 columns and 30 rows. On a smaller screen it opens as large as fits, centred. The prompt sits on the line under the last output and moves down with it until the window is full.
 - `Ctrl+Alt+T` brings the Terminal forward from anywhere on the desktop, or opens it.
-- A new tab opens on a splash: the NONOS banner, the system's facts and, when the window is wide enough, the same slashed zero drawn at the screen's own resolution.
+- A new tab opens on a splash: the NONOS banner, the system's facts with a `start` row naming `help`, `Tab`, `Ctrl+R` and `Ctrl+K`, and, when the window is wide enough, the same slashed zero drawn at the screen's own resolution.
 - A window holds up to nine tabs. `Ctrl+Shift+T` opens one, `Ctrl+Shift+W` closes one, `Ctrl+PgUp` and `Ctrl+PgDn` switch, and `Ctrl+1` to `Ctrl+9` jump to a tab.
 - Closing a tab, or the window, sends SIGTERM to every program that tab started. Closing the last tab closes the window.
 - `Ctrl+B` shows or hides the side rail. `Ctrl+K` opens a palette that filters, as you type, twelve common commands, the last twelve lines run in this tab, the open tabs, and a few actions such as a new tab or the next theme. `Enter` picks, `Esc` closes it.
