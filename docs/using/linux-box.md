@@ -34,7 +34,7 @@ A box named wrongly is refused before anything runs, with the reason, such as `l
 
 ## The report
 
-When the program has ended, the Terminal shows its report. The report comes from `capsule_linux` on frames that carry a key the Terminal made for this run and the program is never told, so nothing the program prints is taken for the report. It is drawn only after the program's output has ended, at the foot of a screen put back to its defaults first (the main screen, the whole screen as the scroll region, normal video, plain characters, no insert mode), so nothing the program left behind can hide or bend it. A program can scroll the screen but cannot write, hide or change its own report.
+When the program has ended, the Terminal shows its report. The report comes from `capsule_linux` on frames that carry a key the Terminal made for this run and the program is never told, so nothing the program prints is taken for the report. It is drawn only after the program's output has ended, on a screen put back to its defaults first (the main screen, the whole screen as the scroll region, normal video, plain characters, no insert mode), on a fresh line just below what the program printed, with everything below that line cleared. So the program's own output stays in view above the report, and nothing the program left behind can hide or bend it. A program can scroll the screen but cannot write, hide or change its own report.
 
 ```
 BOX REPORT v1
@@ -58,7 +58,7 @@ BOX REPORT v1
 - `started  no: <reason>` appears when the program never started (it was not found, or its proof was refused); nothing ran, so nothing was refused.
 - `exit` is the program's exit status.
 
-If no report arrives (the box word was refused, or the run was stopped or failed before its end), the Terminal says `linux: the box sent no report; the run ended before it could`. If only part of it arrives, the Terminal shows that part and says `linux: the box's report arrived incomplete`. If the run is stopped with `Ctrl+C`, a report that had already arrived whole is still shown; otherwise the Terminal says `linux: stopped before the box's report arrived`.
+If no report arrives (the box word was refused, or the run was stopped or failed before its end), the Terminal says `linux: the box sent no report; the run ended before it could`. If `capsule_linux` itself failed (exit 134), it says `linux: the box sent no report: capsule_linux stopped on an internal error (exit 134), so what the program tried is not known`. If only part of it arrives, the Terminal shows that part and says `linux: the box's report arrived incomplete`. A program that ignores `Ctrl+C` is ended by pressing it three times within 2 seconds; it then ends as any run does, and its report shows `exit 137`. If the run is stopped with `Ctrl+C`, a report that had already arrived whole is still shown; otherwise the Terminal says `linux: stopped before the box's report arrived`.
 
 A boxed run in the background that ends, or is stopped, while another program holds the screen keeps its report until that program has ended, then shows it.
 
@@ -74,10 +74,18 @@ The Terminal also writes the same summary to the serial log as one line, in a bu
 
 Every kind is always present. `v=1` is the format; a reader should refuse any other number. The line is written whole, in pieces the log joins, however long the box's hash and counts make it; if the log refuses it, the Terminal says `linux: the [BOX] line could not be written to the log`. A build without `capsule-serial-debug`, such as a hardened release, has no such log: no line is written, and the Terminal says nothing of it. Only the Terminal writes this line, from the report's keyed frames: a `[BOX]` line the program prints itself never reaches the log.
 
+When a boxed run's report does not arrive whole, the Terminal writes a line of its own instead, so a missing report is never read as a run that refused nothing:
+
+```
+[BOX-MISSING] v=1 report=none capsule_failed=yes exit=134 source=terminal
+```
+
+`report` is `none`, `incomplete` or `stopped` (Ctrl+C before the report came); `capsule_failed` is `yes` when no report came and `capsule_linux` ended with 134; every field is always present. A check of a run should fail it when it sees `[BOX-MISSING]`, or when it sees no `[BOX]` line at all.
+
 ## Where this comes from
 
 - The boxes, the hash and the report: `userland/capsule_linux/src/linux/boxed/`.
-- The report taken and drawn by the Terminal: `userland/capsule_terminal/src/jobs/box_hold.rs`, `box_screen.rs`, `box_draw.rs`, `box_wait.rs` and `box_log.rs`.
+- The report taken and drawn by the Terminal: `userland/capsule_terminal/src/jobs/box_hold.rs`, `box_screen.rs`, `box_draw.rs`, `box_wait.rs`, `box_log.rs` and `box_missing.rs`.
 - How a box narrows a program's own policy: `userland/capsule_linux/src/linux/app/identity_box.rs`.
 - The tests: `userland/capsule_linux_proofs/src/tests/boxed/`, `userland/terminal_line_proofs/src/jobs/box_*`, and the fuzz target `box_word` in `userland/capsule_linux_proofs/fuzz/`.
 

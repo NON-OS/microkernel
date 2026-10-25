@@ -71,5 +71,6 @@ fn code(err: &BlkError) -> u32 {
         BlkError::Exists => 10,
         BlkError::NoMemory => 11,
         BlkError::NoSpace => 12,
+        BlkError::Refused => 13,
     }
 }
