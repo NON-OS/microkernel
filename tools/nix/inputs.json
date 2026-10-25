@@ -3801,6 +3801,7 @@
    "userland/capsule_settings/src/wifi/interface.rs",
    "userland/capsule_settings/src/wifi/net_poll.rs",
    "userland/capsule_settings/src/wifi/station.rs",
+   "userland/capsule_settings/src/wifi/station_words.rs",
    "userland/capsule_settings/src/wifi/wifi_class.rs",
    "userland/capsule_settings_proofs",
    "userland/capsule_setup_wizard/src/qwen/labels.rs",
