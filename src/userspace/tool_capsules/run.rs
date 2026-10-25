@@ -5,7 +5,7 @@
 //! Starting a tool by its service name, for boot and for `MkToolRun`.
 
 use super::linux_terminal::spawn_errno;
-use super::registry::{embedded_tools, LINUX_TOOL};
+use super::registry::{embedded_tools, LINUX_NET_TOOL, LINUX_TOOL};
 use crate::sys::boot_log;
 use crate::userspace::capsule_linux::{LINUX_CAPS, LINUX_MANIFEST_BYTES};
 use crate::syscall::microkernel::errnos::{ERRNO_ACCES, ERRNO_NOENT};
@@ -37,6 +37,12 @@ pub fn run_named(name: &[u8], argv: &[u8]) -> Result<u32, i64> {
     }
     if name == LINUX_TOOL {
         return super::linux_terminal::run(argv);
+    }
+    if name == LINUX_NET_TOOL {
+        /* Network beyond LINUX_CAPS, which the caller must hold itself. */
+        let net = crate::capabilities::Capability::Network.bit();
+        super::bound::check(LINUX_MANIFEST_BYTES, LINUX_CAPS | net, name)?;
+        return super::linux_terminal::run_net(argv);
     }
     if name == super::model_fetch::TOOL {
         super::bound::check(super::model_fetch::MANIFEST, super::model_fetch::CAPS, name)?;
