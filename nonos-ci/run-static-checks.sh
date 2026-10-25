@@ -5252,6 +5252,16 @@ else
     fail_with "check_dark_features: a feature gates code that no lane builds"
 fi
 unset dark_out
+# The ipc.call diag lines name the endpoint and timing, never a pid: kernel
+# lines leave the machine in photos and bug reports (K10, K19, B-04).
+if ipcpid_out="$(python3 scripts/check_ipc_diag_no_pid.py --self-test 2>&1 \
+    && python3 scripts/check_ipc_diag_no_pid.py 2>&1)"; then
+    note ok "no ipc.call diag line can format a pid (check_ipc_diag_no_pid)"
+else
+    tail -n 5 <<< "${ipcpid_out}" >&2
+    fail_with "check_ipc_diag_no_pid: an ipc.call diag line can format a pid"
+fi
+unset ipcpid_out
 
 # Every way off the machine is listed: a capsule that gains Network, or an
 # address, host or build-time endpoint new to a networked capsule's source,
