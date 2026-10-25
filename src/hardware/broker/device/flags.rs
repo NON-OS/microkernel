@@ -16,6 +16,11 @@
 
 pub(in crate::hardware::broker) const BAR_FLAG_PREFETCH: u8 = 1 << 0;
 pub(in crate::hardware::broker) const BAR_FLAG_MEM64: u8 = 1 << 1;
+// A window the function decodes at a fixed address outside its BARs (an IDE
+// channel in compatibility mode, VBoxVGA's DISPI ports), placed in the record
+// by the broker rather than read from configuration space. The inventory
+// reads it too: such a window is never one of the function's own BARs.
+pub const BAR_FLAG_FIXED: u8 = 1 << 2;
 pub const DEVICE_FLAG_CLAIMED: u32 = 1 << 0;
 pub const DEVICE_FLAG_DISABLED: u32 = 1 << 1;
 /// Behind a PCIe port firmware calls external-facing: whoever can reach the

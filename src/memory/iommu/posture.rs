@@ -24,7 +24,7 @@
 
 use core::sync::atomic::{AtomicBool, Ordering};
 
-use super::posture_line::{flag, posture_line};
+use super::posture_line::{flag, identity_moved, posture_line};
 use super::query::capabilities;
 use crate::sys::serial::Line;
 
@@ -58,6 +58,14 @@ pub fn report_posture() {
 /// on a build that never reports a posture nothing is said at all.
 pub(super) fn report_again() {
     if REPORTED.load(Ordering::Acquire) {
+        posture_line();
+    }
+}
+
+/// After a device moved between domains: print the line again if that
+/// changed how many devices still reach all of memory.
+pub(super) fn report_if_identity_moved() {
+    if REPORTED.load(Ordering::Acquire) && identity_moved() {
         posture_line();
     }
 }

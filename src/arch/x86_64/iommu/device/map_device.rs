@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Assigning one PCI function to a domain.
-//!
-//! The context entry is written before the binding is recorded as complete and
-//! the caches are dropped immediately after, so the window in which the
-//! hardware disagrees with the kernel's bookkeeping is closed before this
-//! returns. Until the entry exists the device is denied, which is the safe
-//! direction to fail in; an entry whose invalidation failed comes out again
-//! with the binding (K12, attach_steps.rs).
+//! Assigning one PCI function to a domain. The binding is recorded first, the
+//! context entry written, and the caches dropped before this returns, so the
+//! hardware and the bookkeeping never disagree for long. Until the entry
+//! exists the device is denied, the safe direction to fail in.
+
+use core::cell::Cell;
 
 use super::super::globals::is_enforcing;
 use super::super::globals::state::{DeviceBinding, STATE};
@@ -54,19 +52,23 @@ pub fn map_device(domain: DomainId, bus: u8, device: u8, function: u8) -> Result
     }
     let sl_root = state.domains[index].root;
 
-    // Space for the binding is taken first. Programming the hardware and then
-    // finding nowhere to record it would leave a device assigned that the
-    // kernel cannot later detach.
+    // Space for the binding first: a device programmed with nowhere to record
+    // it could never be detached again.
     state.bindings.push(DeviceBinding { source, domain }).map_err(|_| VtdError::DomainTableFull)?;
 
+    // Written, then the caches dropped; a failed drop takes the entry out and
+    // drops again (K12). Kept on doubt, the binding has destroy_domain deny it.
     let aw = info.levels.context_aw();
+    let (wrote, cleared, dropped) = (Cell::new(false), Cell::new(false), Cell::new(false));
     let programmed = attach(
-        || set_context(source, sl_root, domain, aw),
-        invalidate_all_units,
-        || clear_context(source),
+        || set_context(source, sl_root, domain, aw).inspect(|_| wrote.set(true)),
+        || invalidate_all_units().inspect(|_| dropped.set(true)),
+        || clear_context(source).inspect(|_| cleared.set(true)),
     );
     if let Err(e) = programmed {
-        state.bindings.retain(|binding| binding.source != source);
+        if !wrote.get() || (cleared.get() && dropped.get()) {
+            state.bindings.retain(|binding| binding.source != source);
+        }
         return Err(e);
     }
     Ok(())

@@ -21,9 +21,9 @@ use crate::memory::paging::error::PagingResult;
 use crate::memory::paging::types::PagePermissions;
 
 // Map a coherent DMA buffer into the active user address space: user,
-// read+write, no-execute, and never write-back, as Linux dma_alloc_coherent
-// gives a device that does not snoop. Every store reaches memory without a
-// cache flush, so a ring entry the driver writes is what the device reads.
+// read+write, no-execute, and never write-back, for a device that may not
+// snoop the CPU's caches. Every store reaches memory without a cache flush,
+// so a ring entry the driver writes is what the device reads.
 //
 // Uncached is PCD+PWT, PAT index 3, strong UC under the table pat::value keeps:
 // not lowered by a write-combining MTRR the way UC- is (Intel SDM Vol. 3A,
