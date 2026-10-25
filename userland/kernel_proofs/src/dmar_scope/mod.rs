@@ -14,13 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * Which devices a DMAR remapping unit covers, from its flags and device
- * scopes, and the rule the broker confines by: a device gets an IOVA only when
- * a unit in service translates it. Also the reserved memory regions (RMRR)
- * firmware keeps doing DMA to, and the ACPI namespace devices (ANDD) with the
- * requester ids their scopes give. The parsers and the rule are included by path.
- */
+/* Which devices a DMAR remapping unit covers, and the broker's rule: a device
+ * gets an IOVA only when a unit in service translates it. Also RMRR regions and
+ * ANDD namespace devices. The parsers and the rule are included by path. */
 
 #[path = "../../../../src/arch/x86_64/acpi/parser/other/acpi_path.rs"]
 pub mod acpi_path;
@@ -44,6 +40,7 @@ mod dmar_hostile;
 mod dmar_walk_tests;
 mod namespace_tests;
 mod rmrr_barred_tests;
+mod rmrr_count_tests;
 mod rmrr_names_tests;
 mod rmrr_own_tests;
 mod rmrr_scope_tests;
@@ -65,6 +62,13 @@ pub mod dmar_ioapic_source;
 pub use scope as dmar_scope;
 #[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_keep.rs"]
 pub mod dmar_keep;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_scope_count.rs"]
+pub mod dmar_scope_count;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_truncated.rs"]
+pub mod truncated;
+mod cap_tests;
 mod ioapic_tests;
 mod keep_tests;
+mod qemu_igb_tests;
 mod tests;
+mod truncated_tests;
