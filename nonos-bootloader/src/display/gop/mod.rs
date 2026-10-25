@@ -24,6 +24,7 @@ mod offered;
 pub mod order;
 pub mod pick;
 mod read;
+mod refusal_word;
 mod report;
 pub mod state;
 mod try_init;
@@ -37,5 +38,5 @@ pub(crate) use mode::linear_bgr;
 pub use read::get_pixel;
 pub use report::report_gop_mode;
 pub use state::{
-    get_dimensions, get_stride, is_initialized, latched_linear_fb, shutdown_for_exit,
+    get_dimensions, get_stride, is_initialized, latched_linear_fb, refusal, shutdown_for_exit,
 };

@@ -49,3 +49,6 @@ pub mod iommu_own_id;
 pub mod iommu_release;
 #[path = "irq_bind_rollback_tests.rs"]
 mod irq_bind_rollback_tests;
+/// H-06(a): why there is no boot framebuffer, loader to kernel to userland.
+#[path = "handoff_refusal/mod.rs"]
+pub mod handoff_refusal;
