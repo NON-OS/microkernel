@@ -33,7 +33,7 @@ The prompt reads `nonos@nonos ~/workspace/project main 1 job %`: who and where y
 - A window holds up to nine tabs. `Ctrl+Shift+T` opens one, `Ctrl+Shift+W` closes one, `Ctrl+PgUp` and `Ctrl+PgDn` switch, and `Ctrl+1` to `Ctrl+9` jump to a tab.
 - `Ctrl+Shift+D` splits the window: a new tab opens beside the one you were in, each pane with its own size, so a program in it sees its own rows and columns. The pane with the keys has a line of the accent along its top; `Ctrl+Shift+Left` and `Ctrl+Shift+Right`, or a click, give the keys to the other. `Ctrl+Shift+D` again shows one tab; closing a pane's tab leaves the other in front.
 - Closing a tab, or the window, sends SIGTERM to every program that tab started. Closing the last tab closes the window.
-- `Ctrl+B` shows or hides the side rail. `Ctrl+K` opens a palette that filters, as you type, twelve common commands, the last twelve lines run in this tab, the open tabs, and a few actions such as a new tab or the next theme. `Enter` picks, `Esc` closes it.
+- `Ctrl+B` shows or hides the side rail. `Ctrl+K` opens a palette that filters, as you type, twelve common commands, the last twelve lines run in this tab, the open tabs, and a few actions: a new tab, the side rail, the theme picker, and split side by side. `Enter` picks, `Esc` closes it.
 - `Ctrl+=` and `Ctrl+-` change the font size, from scale 1 to 6.
 - `theme` switches the colours: `dark`, `dim`, `light` or `abyss`. `theme` alone opens a picker beside the prompt, each theme with swatches of its colours: `Up` and `Down` put each one on the window as you reach it, `Enter` keeps it, and `Esc` goes back to the one you had. On every theme all text, the dimmed hints and times included, is at least 4.5 to 1 against what it is drawn on, the WCAG AA level.
 
