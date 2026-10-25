@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Registers as a map with a log of every read and write. Status bits
-//! follow their request bits `lag` reads later, or never when it is None;
-//! `stuck` makes one status bit of one register never move.
+//! follow their request bits `lag` reads later, never when `lag` is None,
+//! and never for a (register, bit) in `stuck`. PHY group writes fan out.
 
-use nonos_intel_display_hw::access::Mmio;
 use std::collections::{BTreeMap, BTreeSet};
 
 pub use super::follow::CONFS;
-use super::follow::{settle, status_mask};
 
 #[derive(Default)]
 pub struct Regs {
@@ -52,24 +50,5 @@ impl Regs {
         } else {
             self.lag
         }
-    }
-}
-
-impl Mmio for Regs {
-    fn read(&mut self, offset: u32) -> u32 {
-        self.reads.push(offset);
-        settle(self, offset);
-        self.get(offset)
-    }
-    fn write(&mut self, offset: u32, value: u32) {
-        self.writes.push((offset, value));
-        let keep = status_mask(offset);
-        self.map.insert(offset, (value & !keep) | (self.get(offset) & keep));
-    }
-    fn write64(&mut self, offset: u32, value: u64) {
-        self.write(offset, value as u32);
-    }
-    fn read64(&mut self, offset: u32) -> u64 {
-        self.read(offset) as u64
     }
 }

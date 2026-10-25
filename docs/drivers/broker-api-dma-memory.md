@@ -5,14 +5,18 @@ Part of [Broker API](broker-api.md).
 ## DMA memory
 
 `mk_dma_map(device_id, epoch, length, flags, out)` returns a buffer the device
-may read and write; `mk_dma_map` is the wrapper
-(`userland/libc/src/broker/dma.rs:40-49`). The flags are `MK_DMA_MAP_HIGH` (bit
-0), `MK_DMA_MAP_DMA32` (bit 1, frames below 4 GiB or fail),
-`MK_DMA_MAP_COHERENT` (bit 2, mapped uncached, for rings both sides write) and
-`MK_DMA_MAP_WC` (bit 3, write-combining where the PAT has the entry)
-(`userland/libc/src/broker/dma.rs:22-38`). `validate` refuses HIGH with DMA32,
-COHERENT with WC, and a length that is zero or not a multiple of 4096
-(`src/hardware/broker/dma/map/validate.rs:32-45`).
+may read and write unless a direction flag says otherwise; `mk_dma_map` is the
+wrapper (`userland/libc/src/broker/dma.rs:49-57`). The flags are
+`MK_DMA_MAP_HIGH` (bit 0), `MK_DMA_MAP_DMA32` (bit 1, frames below 4 GiB or
+fail), `MK_DMA_MAP_COHERENT` (bit 2, mapped uncached, for rings both sides
+write), `MK_DMA_MAP_WC` (bit 3, write-combining where the PAT has the entry),
+`MK_DMA_MAP_TO_DEVICE` (bit 4, a buffer the device only reads, such as a
+transmit buffer) and `MK_DMA_MAP_FROM_DEVICE` (bit 5, one it only writes, such
+as a receive buffer) (`userland/libc/src/broker/dma.rs:22-46`). The direction is
+enforced by the IOMMU where one confines the device; set neither for a ring.
+`validate` refuses HIGH with DMA32, COHERENT with WC, the two directions
+together, and a length that is zero or not a multiple of 4096
+(`src/hardware/broker/dma/map/validate.rs:39-55`).
 
 One grant may not exceed the page ceiling of the device's class, from
 `dma_page_limit_for_class` (`src/hardware/broker/dma/limits.rs:27-47`):

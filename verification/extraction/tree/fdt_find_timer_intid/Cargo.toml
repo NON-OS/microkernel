@@ -1,7 +1,7 @@
 # NONOS Operating System
 # Copyright (C) 2026 NONOS Contributors
 #
-# Extraction root mirroring src/arch/fdt/find/timer/intid.rs. The kernel source is included with
+# Extraction root mirroring src/arch/fdt/irq/gic.rs. The kernel source is included with
 # #[path], never copied, so Charon reads the MIR rustc compiles.
 [package]
 name = "nonos_x_fdt_find_timer_intid"

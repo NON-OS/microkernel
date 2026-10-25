@@ -27,15 +27,16 @@ use alloc::vec::Vec;
 /// `read` gives a table's entries; `child` the table an entry at a level
 /// points to, None for a leaf or an empty entry. None when a table cannot
 /// be read: then nothing is given back, and nothing is reused.
-pub(crate) fn table_frames<'a>(
+pub(crate) fn table_frames<R: AsRef<[u64]>>(
     root: u64,
     levels: u8,
-    read: &impl Fn(u64) -> Option<&'a [u64]>,
+    read: &impl Fn(u64) -> Option<R>,
     child: &impl Fn(u64, u8) -> Option<u64>,
 ) -> Option<Vec<u64>> {
     let mut out = Vec::new();
     if levels > 1 {
-        for &entry in read(root)? {
+        let entries = read(root)?;
+        for &entry in entries.as_ref() {
             if let Some(next) = child(entry, levels) {
                 out.extend(table_frames(next, levels - 1, read, child)?);
             }
