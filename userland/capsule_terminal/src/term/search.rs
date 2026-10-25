@@ -31,10 +31,13 @@ pub struct Search {
     pub at: usize,
     /// The line as it was before the search began, restored on cancel.
     pub saved: Vec<u8>,
+    /// Whether the needle as typed has a match. Enter runs nothing while it
+    /// has none: the line still shows an older match the needle no longer names.
+    pub found: bool,
 }
 
 impl Search {
     pub fn new(saved: Vec<u8>, count: usize) -> Self {
-        Self { needle: Vec::new(), at: count, saved }
+        Self { needle: Vec::new(), at: count, saved, found: false }
     }
 }

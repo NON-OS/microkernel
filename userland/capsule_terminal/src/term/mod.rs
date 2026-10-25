@@ -30,10 +30,12 @@ pub mod prompt;
 pub mod rtc;
 pub mod scrollback;
 pub mod search;
+pub mod search_step;
 pub mod select;
 pub mod state;
 pub mod terminal;
 pub mod theme;
 pub mod util;
 
+#[cfg(not(feature = "agentproof-headless"))]
 pub use terminal::Terminal;

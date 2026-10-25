@@ -35,7 +35,8 @@ fn request(port: u32, op: u16, rid: u32, body: &[u8]) -> Result<(), i32> {
     tx[16..20].copy_from_slice(&(body.len() as u32).to_le_bytes());
     tx[REQ_HDR_LEN..REQ_HDR_LEN + body.len()].copy_from_slice(body);
     let mut rx = [0u8; REQ_HDR_LEN + 4];
-    let rc = mk_ipc_call(port as u64, tx.as_ptr(), REQ_HDR_LEN + body.len(), rx.as_mut_ptr(), rx.len());
+    let len = REQ_HDR_LEN + body.len();
+    let rc = mk_ipc_call(port as u64, tx.as_ptr(), len, rx.as_mut_ptr(), rx.len());
     if rc < (REQ_HDR_LEN + 4) as i64 {
         return Err(-11);
     }

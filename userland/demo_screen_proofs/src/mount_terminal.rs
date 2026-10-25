@@ -30,7 +30,7 @@ mod git;
 mod jobs;
 #[allow(clippy::all)]
 #[path = "../../capsule_terminal/src/layout/mod.rs"]
-mod layout;
+pub mod layout;
 #[allow(clippy::all)]
 #[path = "../../capsule_terminal/src/mixnet/mod.rs"]
 mod mixnet;

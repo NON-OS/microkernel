@@ -1,0 +1,60 @@
+{
+  "schema_version": 3,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.minisign",
+      "capsule_id": "0f6ff7c67abd8c49a812cc39549fecb8f81540d2d4df100a961842692fd32c7e",
+      "name": "minisign",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Sign files and verify signatures, offline, with tiny Ed25519 keys.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "minisign@0.11-r1",
+          "manifest_hash": "0f6ff7c67abd8c49a812cc39549fecb8f81540d2d4df100a961842692fd32c7e",
+          "package_hash": "0f6ff7c67abd8c49a812cc39549fecb8f81540d2d4df100a961842692fd32c7e",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/minisign-0.11-r1.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c303101000000000000008b26ac7a3c8d52c3b5ef7e17c28bce0a288c607c224cf90b436e8bfce12acabe0801000000000000903255f8ca2cb184a616be9d086f2b807d1b50591dcb8b0f433d00db00f768935858235d2eeed56928a62b61235dc07ade0936cb70c0c7c6271d7270dd6ef3ac0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 13389 bytes; licence ISC; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}

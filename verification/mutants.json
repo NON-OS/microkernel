@@ -22,16 +22,16 @@
  },
  {
   "name": "private-tmp",
-  "file": "userland/capsule_linux/src/linux/file/private/names.rs",
-  "old": ".any(|p| visible.starts_with(p) && matches!(visible.get(p.len()), None | Some(b'/')))",
-  "new": ".any(|p| p.is_empty() && visible.starts_with(p))",
+  "file": "userland/capsule_linux/src/linux/file/private/rule.rs",
+  "old": "visible.starts_with(p)\n            && matches!(visible.get(p.len()), None | Some(b'/'))",
+  "new": "p.is_empty() && visible.starts_with(p)",
   "escapes": "[GUEST] reader ESCAPED the sibling's /tmp/nonos-sibling"
  },
  {
   "name": "read-only-tree",
-  "file": "userland/capsule_linux/src/linux/file/root.rs",
-  "old": "match self.1 && !super::private::shared_writes_allowed() {",
-  "new": "match false {",
+  "file": "userland/capsule_linux/src/linux/file/root_write.rs",
+  "old": "if self.1 && !super::private::shared_writes_allowed() {",
+  "new": "if false {",
   "escapes": "[GUEST] reader ESCAPED the sibling's /nonos-sibling"
  },
  {
@@ -44,8 +44,8 @@
  {
   "name": "amnesic-gate",
   "file": "userland/capsule_vfs/src/server/handlers/persist_gate.rs",
-  "old": "lookup().and_then(|port| get_bool(port, Field::Persistent)) == Some(true)",
-  "new": "true",
+  "old": "pub(super) fn may_persist() -> bool {\n    mk_keeping()\n}",
+  "new": "pub(super) fn may_persist() -> bool {\n    true\n}",
   "escapes": "[amnesic] the boot left"
  },
  {
