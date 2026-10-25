@@ -66,4 +66,6 @@ pub struct State {
     pub cooked: crate::event::cooked::Cooked,
     /// The branch the prompt shows, read after each line; empty outside git.
     pub git_branch: alloc::vec::Vec<u8>,
+    /// Tab's candidates on show beside the prompt; the next key clears them.
+    pub completions: alloc::vec::Vec<alloc::vec::Vec<u8>>,
 }

@@ -17,6 +17,7 @@
 pub mod banner;
 pub mod block;
 pub mod context;
+pub mod complete_list;
 pub mod cwd;
 pub mod dimensions;
 pub mod dur;
