@@ -13,43 +13,35 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use alloc::boxed::Box;
+use core::ops::Deref;
 
-/// One stage of a connection's keys. Not `Copy`: every copy is a value whose
-/// drop wipes it, so no secret outlives the connection that derived it.
+#[path = "traffic_secrets.rs"]
+mod secrets;
+pub use secrets::{wipe, Secrets};
+
+/// One stage of a connection's keys. The secrets live in one heap block the
+/// value points to, written there by `build` and nowhere else, so moving a
+/// `TrafficKeys` copies a pointer and the suite, never a secret; dropping it
+/// wipes the block where it lies. Not `Copy`.
 #[derive(Clone, PartialEq, Eq)]
 pub struct TrafficKeys {
     pub suite: u16,
-    pub handshake_secret: [u8; 32],
-    pub client_secret: [u8; 32],
-    pub server_secret: [u8; 32],
-    pub client_key: [u8; 32],
-    pub client_iv: [u8; 12],
-    pub server_key: [u8; 32],
-    pub server_iv: [u8; 12],
+    secrets: Box<Secrets>,
 }
 
-impl Drop for TrafficKeys {
-    fn drop(&mut self) {
-        for secret in [
-            &mut self.handshake_secret,
-            &mut self.client_secret,
-            &mut self.server_secret,
-            &mut self.client_key,
-            &mut self.server_key,
-        ] {
-            wipe(secret);
-        }
-        wipe(&mut self.client_iv);
-        wipe(&mut self.server_iv);
+impl TrafficKeys {
+    /// Keys `fill` writes into their block in place; `None`, with the block
+    /// wiped, when it fails.
+    pub fn build(suite: u16, fill: impl FnOnce(&mut Secrets) -> bool) -> Option<Self> {
+        let mut secrets = Box::<Secrets>::default();
+        fill(&mut secrets).then_some(Self { suite, secrets })
     }
 }
 
-/// Zeros that the optimiser may not drop.
-pub fn wipe(bytes: &mut [u8]) {
-    for byte in bytes.iter_mut() {
-        // SAFETY: `byte` is a valid, exclusive reference; the volatile store
-        // is what keeps a key from outliving its use.
-        unsafe { core::ptr::write_volatile(byte, 0) };
+impl Deref for TrafficKeys {
+    type Target = Secrets;
+    fn deref(&self) -> &Secrets {
+        &self.secrets
     }
-    core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
 }

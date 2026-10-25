@@ -28,12 +28,15 @@ use super::transcript::Transcript;
 pub fn server_keys(client: &ClientFlight, record: &[u8]) -> Option<ServerContext> {
     let (server_hello, used) = first_handshake(record)?;
     let (suite, peer) = super::server_hello::key_share(server_hello)?;
-    let shared = agree(client, &peer)?;
+    let mut shared = agree(client, &peer)?;
     let mut transcript = Transcript::new();
     transcript.push(&client.handshake);
     transcript.push(server_hello);
-    let keys = super::schedule::handshake_keys(&shared, &transcript.digest(), suite)?;
-    Some(ServerContext { used, keys, transcript })
+    // The ECDHE secret recovers every key of the connection: it goes once
+    // the schedule has taken what it needs, whatever the schedule made of it.
+    let keys = super::schedule::handshake_keys(&shared, &transcript.digest(), suite);
+    super::traffic_keys::wipe(&mut shared);
+    Some(ServerContext { used, keys: keys?, transcript })
 }
 
 fn agree(client: &ClientFlight, peer: &ServerShare) -> Option<[u8; 32]> {
@@ -42,6 +45,7 @@ fn agree(client: &ClientFlight, peer: &ServerShare) -> Option<[u8; 32]> {
             let mut shared = [0u8; 32];
             let (private, out) = (client.private.as_ptr(), shared.as_mut_ptr());
             if nonos_libc::crypto_x25519_shared(private, key.as_ptr(), out) != 32 {
+                super::traffic_keys::wipe(&mut shared);
                 return None;
             }
             Some(shared)
