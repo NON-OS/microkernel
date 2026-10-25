@@ -51,7 +51,7 @@ pub fn choose<'a>(
     };
     let last = |n: &[u8]| files.iter().rev().find(|(m, _)| *m == n).map(|f| f.1);
     let named = |n: &[u8]| {
-        n.starts_with(BIN) && last(n).is_some_and(|b| hash(b) == *want)
+        n.starts_with(BIN) && last(n).is_some_and(|b| b.starts_with(ELF) && hash(b) == *want)
     };
     if let Some(&(n, _)) = files.iter().find(|(n, _)| own(n) && named(n)) {
         return Some(n);
