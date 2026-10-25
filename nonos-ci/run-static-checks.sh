@@ -679,7 +679,7 @@ done
 note ok "capsule_driver_virtio_gpu setup phases roll back prior broker grants"
 
 # Polled driver: the legacy pin is disabled in setup/pci.rs, no IRQ bind.
-if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x1B9018' userland/capsule_driver_virtio_gpu/Capsule.mk ||
+if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0xB9018' userland/capsule_driver_virtio_gpu/Capsule.mk ||
    ! grep -q 'mk_device_claim' userland/capsule_driver_virtio_gpu/src/setup/claim.rs ||
    ! grep -rq 'mk_mmio_map' userland/capsule_driver_virtio_gpu/src/setup/mmio ||
    ! grep -qE '\| *MK_PCI_CMD_INTX_DISABLE' userland/capsule_driver_virtio_gpu/src/setup/pci.rs ||
@@ -5008,6 +5008,26 @@ else
 fi
 unset mirror_out
 
+# A capsule the catalogue says the kernel spawns must have its spawn mirror,
+# and its feature named in kernel source: capsule_power had neither, and the
+# shell's power-off found no service on any image.
+if mirrors_out="$(python3 scripts/check_kernel_mirrors.py 2>&1)" &&
+   python3 scripts/check_kernel_mirrors.py --self-test >/dev/null 2>&1; then
+    note ok "every catalogued kernel spawn has its mirror and its feature (check_kernel_mirrors)"
+else
+    tail -n 5 <<< "${mirrors_out}" >&2
+    fail_with "check_kernel_mirrors: a capsule the kernel should spawn has no mirror"
+fi
+unset mirrors_out
+
+# SPHINCS+, NTRU and Classic McEliece do not ship: nothing turns on the
+# feature that builds them.
+if bash nonos-ci/check-pqc-unvetted.sh >/dev/null 2>&1; then
+    note ok "no default, profile or build turns on pqc-unvetted"
+else
+    bash nonos-ci/check-pqc-unvetted.sh >&2 || true
+    fail_with "pqc-unvetted is turned on by a build: those schemes do not ship"
+fi
 # Every crate's tests run in a lane or are listed with an owner, and
 # tools/nix/test-lanes.json is what the manifests' markers say.
 if lanes_out="$(python3 scripts/check_test_lanes.py 2>&1)"; then
@@ -5067,6 +5087,45 @@ else
     fail_with "check_display_profiles: a display driver is left out of microkernel-full-gui"
 fi
 unset display_out
+# The surface registry's GATE is a spin lock: a holder that reaches a function
+# taking it again spins forever with interrupts off, and the surface path on
+# every CPU stops behind it (orphans::reclaim and reclaim_dma, the black
+# desktop). The self-test first, so a scan that stopped seeing holders cannot
+# pass by finding none.
+if gate_out="$(python3 scripts/check_gate_reentry.py --self-test 2>&1 \
+    && python3 scripts/check_gate_reentry.py 2>&1)"; then
+    note ok "no surface registry function takes GATE while holding it (check_gate_reentry)"
+else
+    tail -n 5 <<< "${gate_out}" >&2
+    fail_with "check_gate_reentry: a GATE holder reaches a function that takes GATE again"
+fi
+unset gate_out
+
+# nonos-stark-enroll writes the policy roots. A crate it builds that compiles
+# one in is rebuilt by every enrolment, and the stamps made with the old
+# binary go stale: the kernel was re-enrolled after the loader baked its root,
+# and the loader refused it. The self-test first, so a scan that stopped
+# seeing includes cannot pass by finding none.
+if enrol_out="$(python3 scripts/check_enrol_inputs.py --self-test 2>&1 \
+    && python3 scripts/check_enrol_inputs.py 2>&1)"; then
+    note ok "the enrolment tool compiles in none of the roots it writes (check_enrol_inputs)"
+else
+    tail -n 5 <<< "${enrol_out}" >&2
+    fail_with "check_enrol_inputs: nonos-stark-enroll compiles in a trust file it writes"
+fi
+unset enrol_out
+
+# The GPU pages in docs/hardware say what each GPU gets today; the check holds
+# them to the code they describe. The self-test first, so a check that stopped
+# reading the pages cannot pass by finding nothing.
+if gpu_doc_out="$(python3 scripts/check_gpu_doc.py --self-test 2>&1 \
+    && python3 scripts/check_gpu_doc.py 2>&1)"; then
+    note ok "the GPU pages match the tree (check_gpu_doc)"
+else
+    tail -n 5 <<< "${gpu_doc_out}" >&2
+    fail_with "check_gpu_doc: docs/hardware/gpu*.md is out of step with the tree"
+fi
+unset gpu_doc_out
 
 # nonos-harden reads GO over a nonos-verify gap only when the gap is on
 # scripts/baselines/declared-limits.txt; the list follows the source and may
@@ -5080,6 +5139,51 @@ else
     fail_with "check_declared_limits: the declared-limits list names a gap it may not"
 fi
 unset limits_out
+# An AP asked to park parks only at a checkpoint of bring_up, where it holds
+# no lock, before the boot CPU sends INIT; the self-test first, so a parser
+# that stopped seeing statements cannot pass by finding none.
+if park_out="$(python3 scripts/check_ap_checkpoints.py --self-test 2>&1 \
+    && python3 scripts/check_ap_checkpoints.py 2>&1)"; then
+    note ok "every AP bring-up step is followed by a checkpoint outside any lock (check_ap_checkpoints)"
+else
+    tail -n 5 <<< "${park_out}" >&2
+    fail_with "check_ap_checkpoints: an AP could park holding a lock, or a step has no checkpoint"
+fi
+unset park_out
+# The SMP boot proofs (shootdown trace, forced park, forced stall) are defined
+# alone and named by no profile, image list, make lane or workflow; the kernel
+# refuses them only beside production and release. Self-test first.
+if proofs_out="$(python3 scripts/check_proof_features.py --self-test 2>&1 \
+    && python3 scripts/check_proof_features.py 2>&1)"; then
+    note ok "no profile or image enables an SMP boot proof (check_proof_features)"
+else
+    tail -n 5 <<< "${proofs_out}" >&2
+    fail_with "check_proof_features: a profile, image or lane enables an SMP boot proof"
+fi
+unset proofs_out
+# The power button is armed only once device interrupt routing is up: armed
+# at the broker's seeding the SCI's mask is refused and the button stays dead
+# (P-05). The order in the source, and the line a q35 boot cell must carry.
+if pbo_out="$(python3 scripts/check_power_button_order.py --self-test 2>&1 \
+    && python3 scripts/check_power_button_order.py 2>&1 \
+    && (cd scripts && python3 -m unittest -q bootmatrix.test_power 2>&1))"; then
+    note ok "the power button is armed after routing, and q35 cells must see it armed"
+else
+    tail -n 5 <<< "${pbo_out}" >&2
+    fail_with "power button: armed before device interrupt routing, or the q35 verdict does not hold it"
+fi
+unset pbo_out
+# A kernel feature that gates code and that no lane turns on is dark; the dark
+# set may only shrink (scripts/baselines/dark-features.txt). The SMP boot
+# proofs and pqc-unvetted are lit by the compile-only check-dark-features.
+if dark_out="$(python3 scripts/check_dark_features.py --self-test 2>&1 \
+    && python3 scripts/check_dark_features.py 2>&1)"; then
+    note ok "no kernel feature joined the dark set (check_dark_features)"
+else
+    tail -n 8 <<< "${dark_out}" >&2
+    fail_with "check_dark_features: a feature gates code that no lane builds"
+fi
+unset dark_out
 
 if [ "${fail}" -ne 0 ]; then
     echo

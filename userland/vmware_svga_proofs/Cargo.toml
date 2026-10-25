@@ -15,3 +15,6 @@ path = "src/lib.rs"
 
 [dependencies]
 nonos_libc = { package = "vmware_svga_proofs_libc_shim", path = "libc_shim" }
+# The wire server the driver now serves through, and its bodies.
+nonos_gfx_serve = { path = "../nonos_gfx_serve" }
+nonos_gfx_wire = { path = "../nonos_gfx_wire" }
