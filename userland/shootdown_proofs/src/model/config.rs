@@ -1,7 +1,7 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! The rules under test, and the bound on machine size.
 
-use super::types::{Flush, Step, BRING_UP};
+use super::types::{Flush, Pge, Step, BRING_UP};
 
 /// The rules under test. `Config::kernel()` is the code; every other value is
 /// a mutant that removes or reorders one rule.
@@ -36,9 +36,11 @@ pub struct Config {
     pub write_before_select: bool,
     /// A target flushes before it acknowledges.
     pub flush_before_ack: bool,
-    /// The initiator's CR4.PGE. Kernel PTEs are GLOBAL, so with PGE set a CR3
-    /// reload leaves the page cached on that CPU.
-    pub initiator_pge: bool,
+    /// Which CPUs have CR4.PGE set. Kernel PTEs are GLOBAL.
+    pub pge: Pge,
+    /// The full flush toggles PGE, which drops GLOBAL entries too. The mutant
+    /// is a CR3 write alone, which keeps them on a CPU with PGE set.
+    pub full_toggles_pge: bool,
 }
 
 impl Config {
@@ -54,7 +56,8 @@ impl Config {
             drop_after_init: true,
             write_before_select: true,
             flush_before_ack: true,
-            initiator_pge: false,
+            pge: Pge::Every,
+            full_toggles_pge: true,
         }
     }
 }
