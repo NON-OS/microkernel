@@ -14,8 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The networks typed data may be signed for: mainnet and Sepolia, the two
-//! OP_SIGN_TX accepts. A signature for any other chain id would be valid on
-//! a chain nobody here reviewed.
+//! H-06(b): how many bytes one surface may span, by the boot framebuffer.
+//! The real rule is included by path.
 
-pub const CHAINS: [u64; 2] = [1, 11_155_111];
+#[path = "../../../../src/syscall/dispatch/router/surface_handlers/cap.rs"]
+pub mod cap;
+
+#[cfg(test)]
+mod glue_tests;
+#[cfg(test)]
+mod slices_tests;
+#[cfg(test)]
+mod tests;
