@@ -4,16 +4,17 @@ How NONOS drives USB: one xHCI capsule owns every USB controller, and class caps
 
 ## What is supported
 
-| Hardware | Matched by | Capsule | State in 0.9.2 |
+| Hardware | Matched by | Capsule | State |
 |---|---|---|---|
-| xHCI host controller, USB 2 and USB 3 ports | PCI class 0Ch, subclass 03h, prog-if 30h | `driver.xhci0` | Works |
-| Intel Thunderbolt and USB4 xHCI controllers | 15 Intel device ids | `driver.xhci0` | Works after the chipset's controller, best effort |
-| EHCI, OHCI and UHCI host controllers | prog-if 20h, 10h and 00h | none | Not supported: no driver |
-| Keyboards and mice in boot protocol | interface class 03h | `driver.usb_hid0` | Works on root ports. See [USB keyboards and mice](hid.md). |
-| USB sticks and disks, Bulk-Only | interface class 08h | `driver.usb_msc0` | Works on root ports. See [USB mass storage](../storage/usb-mass-storage.md). |
+| xHCI host controller, USB 2 and USB 3 ports | PCI class 0Ch, subclass 03h, prog-if 30h | `driver.xhci0` | Written and tested on the host; boot evidence pending |
+| Intel Thunderbolt and USB4 xHCI controllers | 15 Intel device ids | `driver.xhci0` | Written and tested on the host, after the chipset's controller, best effort |
+| EHCI, OHCI and UHCI host controllers | prog-if 20h, 10h and 00h | `driver.ehci0`, `driver.ohci0`, `driver.uhci0` | Written and tested on the host; not in the shipped images until their publisher keys are made. EHCI hands full- and low-speed devices to its companions. |
+| Keyboards and mice in boot protocol | interface class 03h | `driver.usb_hid0` | Written and tested on the host, on root ports. See [USB keyboards and mice](hid.md). |
+| USB sticks and disks, Bulk-Only | interface class 08h | `driver.usb_msc0` | Written and tested on the host, on root ports. See [USB mass storage](../storage/usb-mass-storage.md). |
 | Hubs | interface class 09h | `driver.usb_hub0`, over `nonos_usb_hub` | Wired, not signed: hubs on every host (xHCI, EHCI with TTs, UHCI and OHCI behind full-speed hubs); each device behind one is listed as a virtual port every class driver claims as a root port. Proven on models only. See [USB hubs](hubs.md). |
 | USB network adapters | per adapter | none in the image | Not supported: not in the image. See [USB network adapters](../ethernet/usb-net.md). |
-| Audio devices, cameras | | none | Not supported: no isochronous transfers |
+| Speakers and headsets (USB Audio Class) | interface class 01h | `driver.usb_audio0` | Written and tested on the host; not in the shipped images until its publisher key is made. See [Audio](../audio.md#usb-speakers-and-headsets). |
+| Cameras (USB Video Class) | interface class 0Eh | `driver.uvc0` | Written and tested on the host; not in the shipped images until its publisher key is made. |
 
 ## How the pieces fit
 
@@ -69,7 +70,7 @@ Every port is reset before it is addressed, a USB 3 port that is already enabled
 | Interrupt IN | keyboard and mouse reports, HCI events | 4 endpoints per device beside one bulk pair, one packet of at most 64 bytes per read, `MAX_INTERRUPT_ENDPOINTS` in `userland/capsule_driver_xhci/src/slots/resources.rs`, `INTERRUPT_IN_MAX` in `userland/capsule_driver_xhci/src/protocol/limits.rs` and `interrupt_limit` in `userland/capsule_driver_xhci/src/slots/admit.rs` |
 | Bulk IN and OUT | mass storage | 4096 bytes per transfer, `BULK_MAX` in `userland/capsule_driver_xhci/src/protocol/limits.rs:37-38`, and 5 s, `BULK_TIMEOUT_MS` in `userland/capsule_driver_xhci/src/controller/bulk/wait.rs:28` |
 
-Isochronous transfers and interrupt OUT are not implemented. The driver configures control, interrupt IN and bulk endpoints only (`userland/capsule_driver_xhci/src/controller/bulk/input.rs:20-21`, `EP_TYPE_BULK_IN`; `userland/capsule_driver_xhci/src/contexts/configure_ep.rs:20`, `EP_TYPE_INTERRUPT_IN`). USB audio devices and cameras therefore have no path in this release.
+Isochronous transfers serve USB audio and cameras: a batch of at most 31 packets and 4096 bytes, with two batches sharing an endpoint's ring, one in flight while the next is queued (`OP_ISOCH_OUT`, `OP_ISOCH_IN` in `userland/capsule_driver_xhci/src/protocol/ops.rs`; `ISOCH_PACKETS_MAX`, `ISOCH_MAX` in `userland/capsule_driver_xhci/src/protocol/limits.rs`). Interrupt OUT carries one report per request (`OP_INTERRUPT_OUT`).
 
 A command such as Address Device gets 5 s (`userland/capsule_driver_xhci/src/controller/wait_command_completion.rs:24-26`, `COMPLETION_TIMEOUT_MS`), and one that does not complete is aborted so the commands behind it are not stuck (`userland/capsule_driver_xhci/src/controller/run_command.rs:37`, `abort`). After a STALL, another error or a timeout, the endpoint is reset or stopped and its ring moved past the failed transfer (`userland/capsule_driver_xhci/src/controller/recover_endpoint.rs:51-77`, `recover_endpoint`).
 

@@ -25,10 +25,11 @@ and RETIRE; all desktop policy stays in the compositor.
 ## Microkernel contract
 
 The manifest grants `IPC`, `Memory`, `GraphicsSurfaceCreate`, `Driver`,
-`DeviceEnum`, `Mmio`, `Dma`, and `Pio`:
+`DeviceEnum`, `Mmio` and `Dma`, and no `Pio`: both virtio layouts are
+reached through a memory BAR (`userland/nonos_virtio`):
 
 ```text
-CAPSULE_REQUIRED_CAPS = 0x1B9018
+CAPSULE_REQUIRED_CAPS = 0xB9018
 CAPSULE_OPTIONAL_CAPS = 0x100
 ```
 

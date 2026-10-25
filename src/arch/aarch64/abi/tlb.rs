@@ -20,7 +20,7 @@ use crate::memory::addr::VirtAddr;
 
 #[inline(always)]
 pub(super) unsafe fn flush_one(addr: VirtAddr) {
-    let page = addr.as_u64() >> 12;
+    let page = crate::arch::aarch64::mmu::tlbi_operand::vaae1is(addr.as_u64());
     asm!(
         "dsb ishst",
         "tlbi vaae1is, {0}",

@@ -14,25 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The scope rows (scope.rs): each driver the kernel spawns, by the service
-//! name its spawn.rs registers, and what it may claim. The USB function
-//! drivers, i2c_hid and spi_hid claim nothing: they reach their devices
-//! through a host's driver, so they have no row; nor has vmmouse0, which
-//! speaks only the backdoor. The ACPI capsule claims the SCI record alone
-//! (acpi/sci.rs).
+//! The scope rows (scope.rs): each driver the kernel spawns, by the service name its
+//! spawn.rs registers, and what it may claim. The USB function drivers, i2c_hid and
+//! spi_hid claim nothing: they reach their devices through a host's driver, so they
+//! have no row; nor has vmmouse0, which speaks only the backdoor. The ACPI capsule
+//! claims the SCI record alone (acpi/sci.rs).
 
 use super::hosts::{SDHCI, SPI, XHCI};
-use super::ids::{E1000, E1000E, IGB, IWLWIFI, IXGBE, RTL8169};
-use super::rows::{AHCI, ANY, HDA, I2C_PCI, INTEL, PS2, SVGA, VBOX, VMWARE};
+use super::ids_nic::{E1000, E1000E, IGB, IGC, IWLWIFI, IXGBE, RTL8169};
+use super::rows::{
+    AHCI, ANY, HDA, I2C_PCI, INTEL, INTEL_GFX, PS2, REALTEK, SVGA, VBOX, VIRTIO, VMWARE,
+};
 use super::rule::Match::{self, Acpi, Class, Ids, Virt};
-
-const REALTEK: u16 = 0x10EC;
-const VIRTIO: u16 = 0x1AF4;
 
 pub(super) const SCOPE: &[(&str, &[Match])] = &[
     ("driver.e1000_0", &[Ids(INTEL, E1000)]),
     ("driver.e1000e_0", &[Ids(INTEL, E1000E)]),
     ("driver.igb_0", &[Ids(INTEL, IGB)]),
+    ("driver.igc_0", &[Ids(INTEL, IGC)]),
     ("driver.ixgbe_0", &[Ids(INTEL, IXGBE)]),
     ("driver.rtl8169_0", &[Ids(REALTEK, RTL8169)]),
     ("driver.rtl8139_0", &[Ids(REALTEK, &[0x8139, 0x8139])]),
@@ -56,6 +55,7 @@ pub(super) const SCOPE: &[(&str, &[Match])] = &[
     ("driver.virtio_rng", &[Ids(VIRTIO, &[0x1005, 0x1005, 0x1044, 0x1044])]),
     ("driver.virtio_gpu0", &[Ids(VIRTIO, &[0x1050, 0x1050])]),
     ("driver.bga0", &[Ids(0x1234, &[0x1111, 0x1111])]),
+    ("driver.intel_display0", INTEL_GFX),
     ("driver.hda0", HDA),
     ("driver.ac97_0", &[Ids(INTEL, &[0x2415, 0x2415])]),
     ("driver.buslogic0", &[Ids(0x104B, &[0x1040, 0x1040])]),

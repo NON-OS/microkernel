@@ -18,7 +18,7 @@ use super::frame::frame;
 use super::log::log_handoff_fb;
 use super::marker::paint_mapped_marker;
 use super::report::{log_mapped, log_refused};
-use super::state::{KernelFramebuffer, FRAMEBUFFER};
+use super::state::{KernelFramebuffer, FRAMEBUFFER, FRAME_PHYS};
 use super::window::{keep, PhysWindow};
 use crate::boot::handoff::{BootHandoffV1, FramebufferInfo};
 use crate::memory::addr::PhysAddr;
@@ -65,6 +65,9 @@ pub(crate) fn init_framebuffer_from(fb: &FramebufferInfo) {
         bgr,
         physical_mm: fb.physical_mm(),
     });
+    if let Some(len) = kfb.frame_len() {
+        FRAME_PHYS.call_once(|| (fb.ptr, len as u64));
+    }
     log_mapped(kfb.width, kfb.height, kfb.stride, bgr, wc, kfb.hidpi_scale());
     paint_mapped_marker(base_va, f.offset, fb.stride, fb.width);
 }
