@@ -14,10 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The two domains of the plan, both at version "1".
+//! H-06(b): how many bytes one surface may span, by the boot framebuffer.
+//! The real rule is included by path.
 
-use super::domain::Domain;
+#[path = "../../../../src/syscall/dispatch/router/surface_handlers/cap.rs"]
+pub mod cap;
 
-pub static SETTLEMENT: Domain = Domain { name: "NONOS Settlement", version: "1" };
-
-pub static BOND: Domain = Domain { name: "NONOS Bond", version: "1" };
+#[cfg(test)]
+mod glue_tests;
+#[cfg(test)]
+mod slices_tests;
+#[cfg(test)]
+mod tests;

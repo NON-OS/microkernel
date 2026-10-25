@@ -45,3 +45,4 @@ mod geometry_tests;
 mod identity_tests;
 mod span_tests;
 mod status_tests;
+mod table_tests;

@@ -14,15 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The EIP-712 domains the keyring signs under. Name and version are fixed
-//! here; the chain and the verifying contract are filled in per request
-//! from the table, never from the caller.
+//! The headless AgentProof run (feature `agentproof-headless`): a job the
+//! image holds, run as a typed line, its screen copied to serial.
 
-pub const DOMAIN_TYPE: &str =
-    "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)";
-
-#[derive(Debug)]
-pub struct Domain {
-    pub name: &'static str,
-    pub version: &'static str,
-}
+pub mod boot;
+mod dump;
+pub mod job;

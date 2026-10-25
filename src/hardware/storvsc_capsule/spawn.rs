@@ -18,6 +18,7 @@ use super::embed::{
     DRIVER_STORVSC_ATTESTATION_BYTES, DRIVER_STORVSC_ELF, DRIVER_STORVSC_MANIFEST_BYTES,
     DRIVER_STORVSC_NONOS_ID_CERT_BYTES,
 };
+use super::endpoint::REPLY_INBOX;
 use super::state;
 use crate::capabilities::Capability;
 use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpecVerified};
@@ -30,7 +31,6 @@ pub use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 const SERVICE_NAME: &str = "driver.storvsc0";
 const SERVICE_PORT: u32 = 4304;
-const REPLY_INBOX: &str = "endpoint.4294967394";
 const REPLY_PORT: u32 = 4305;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 

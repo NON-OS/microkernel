@@ -19,7 +19,7 @@
 //! panics inside a box: no report, and its `[BOX-MISSING]` line. Compiled in
 //! only with the `selftest-panic` feature, which only the selftest
 //! development image turns on (tools/nonos-dev-image), and which
-//! scripts/check_selftest_panic.py keeps out of every committed build.
+//! scripts/check_copy_only_features.py keeps out of every committed build.
 
 /// The word, after `linux --box <box>`, that panics in a selftest build.
 #[cfg(feature = "selftest-panic")]
