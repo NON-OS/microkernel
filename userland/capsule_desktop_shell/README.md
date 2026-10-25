@@ -47,10 +47,11 @@ wm / wallpaper / market (peer IPC)
 | `OP_TRAY_REMOVE` | 0x0004 | drop a tray entry |
 | `OP_NOTIFY` | 0x0005 | post a transient notification |
 | `OP_SPOTLIGHT_OPEN` | 0x0006 | open the Launchpad and its search, or close it |
-| `OP_OPEN_WITH` | 0x0007 | open a file in another app (the file manager uses it for images); only a path starting with `/` is taken |
+| `OP_OPEN_WITH` | 0x0007 | open a file in another app; only the editor, the image viewer and the players, and only a path starting with `/`; any other app is refused with a `[CAP-DENY]` line (`state/open_arg/opener.rs`) |
 | `OP_TAKE_OPEN_ARG` | 0x0008 | the opened app takes the file it was opened with; a Terminal window takes a tool tile's `run:` or `type:` command line instead (`state/open_arg/`) |
 | `OP_ACCESSIBILITY` | 0x0009 | from a window of Settings only (E_PERM otherwise): one display's colour filter, contrast and magnifier, passed to the compositor as NCMP 0x000F, its status answered (`server/handlers/accessibility.rs`) |
 | `OP_ACCESSIBILITY_GET` | 0x000A | from a window of Settings only: one display's settings as the compositor holds them (NCMP 0x0010), 16 bytes |
+| `OP_FOCUS_CHILD` | 0x000F | the asker's own freshly loaded app that draws gets the focus frame it waits on, so its window opens (the Terminal's `install`); anyone else's child, or a program with no display right, is E_PERM (`state/apps/focus_rule.rs`) |
 
 ## Authority
 
