@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::family::HardwareFamily;
-use crate::hardware::broker::{BarKind, DeviceRecord};
+use crate::hardware::broker::{BarKind, DeviceRecord, BAR_FLAG_FIXED};
 
 pub(super) fn classify_display(vendor: u16) -> HardwareFamily {
     match vendor {
@@ -33,8 +33,10 @@ pub(super) fn classify_display(vendor: u16) -> HardwareFamily {
 
 /// Whether an SVGA II function has its index and value ports where its ids
 /// put them: BAR0 under VMware's id, BAR1 under VirtualBox's. VBoxVGA shares
-/// VBoxSVGA's id and has no such window.
+/// VBoxSVGA's id and has no such window; the broker puts its DISPI ports in
+/// the first free slot, BAR1, flagged fixed, and those are not the window.
 pub(super) fn svga_ports(rec: &DeviceRecord) -> bool {
     let bar = if rec.vendor == 0x80ee { 1 } else { 0 };
-    rec.bar_count as usize > bar && rec.bars[bar].kind == BarKind::Pio as u8
+    let b = rec.bars[bar];
+    rec.bar_count as usize > bar && b.kind == BarKind::Pio as u8 && b.flags & BAR_FLAG_FIXED == 0
 }

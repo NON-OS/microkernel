@@ -1,0 +1,60 @@
+{
+  "schema_version": 3,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.age",
+      "capsule_id": "fcae34dc04d4c30ef905a18c0f6c951d254c585704b08bf33bcac7dd4ffba04a",
+      "name": "age",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Simple, modern file encryption, offline, to a passphrase or to a recipient key made elsewhere. The age-keygen in its package has no box of its own and is refused at its installed path.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "age@1.2.1-r0",
+          "manifest_hash": "fcae34dc04d4c30ef905a18c0f6c951d254c585704b08bf33bcac7dd4ffba04a",
+          "package_hash": "fcae34dc04d4c30ef905a18c0f6c951d254c585704b08bf33bcac7dd4ffba04a",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/age-1.2.1-r0.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c30310100000000000000e7a1998c0c9644a016723b8d9ad257f40924f0a66226620d3b4809fe996b96fe080100000000000050be9446122132086705d9fca0e347b83d4caae2e146fb4f274cb96e52517da949f2babe40c15ec68f3b6a897fe93dc9bd6208c4f27b39b86cc46a133a7636d80000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 2528568 bytes; licence BSD-3-Clause; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}

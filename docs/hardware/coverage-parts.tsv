@@ -1,0 +1,54 @@
+# area	part	years	common	ids	table	feature	owner	priority	gap
+net	Intel I219-LM/V (e1000e), onboard on most Intel desktops and laptops	2017-2026	1	8086:15b7 8086:15b8 8086:15bb 8086:15bc 8086:15bd 8086:15be 8086:0d4e 8086:0d4f 8086:15fb 8086:15fc 8086:1a1e 8086:1a1f 8086:0dc7 8086:550a 8086:57a0	userland/capsule_driver_e1000e/src/constants/ids.rs	nonos-capsule-driver-e1000e	B	P0	listed in full-gui with no trust files: the release seals it; boot a real I219
+net	Intel I225-V/LM, I226-V/LM (igc), 2.5 GbE on 2020+ desktop boards	2020-2026	1	8086:15f2 8086:15f3 8086:125b 8086:125c 8086:125d	userland/capsule_driver_igc/src/constants/pci.rs	nonos-capsule-driver-igc	H-01	P0	host-proved, not booted: no QEMU model, so only a real I225/I226 run can show it; the release seals and lists it
+net	Realtek RTL8111/8168 GbE	2017-2026	1	10ec:8168 10ec:8161 10ec:8136	userland/capsule_driver_rtl8169/src/constants/pci.rs	nonos-capsule-driver-rtl8169	B	P1	in the image; never booted on a real card on main
+net	Realtek RTL8125 2.5 GbE, Killer E3000	2019-2026	1	10ec:8125 10ec:3000	userland/capsule_driver_rtl8169/src/constants/pci.rs	nonos-capsule-driver-rtl8169	B	P1	in the image; never booted on a real card on main
+net	Realtek RTL8126 5 GbE	2024-2026	2	10ec:8126	-	-	B, hw	P2	named by rtl8169 only to exclude it: register map not written
+net	Intel I210/I211 (igb)	2017-2021	2	8086:1533 8086:1539 8086:157b	userland/capsule_driver_igb/src/facts/ids.rs	nonos-capsule-driver-igb	B	P1	listed in full-gui with no trust files: the release seals it
+net	Intel I350 server GbE (igb)	2017-2026	2	8086:1521 8086:1523	userland/capsule_driver_igb/src/facts/ids.rs	nonos-capsule-driver-igb	B	P2	listed, the release seals it; copper only
+net	Intel X540/X550 10GBASE-T (ixgbe)	2017-2024	3	8086:1528 8086:1563 8086:15d1	userland/capsule_driver_ixgbe/src/facts/ids.rs	nonos-capsule-driver-ixgbe	B	P2	out of Standard until sealed; X550EM refused
+net	Intel X710/XL710 (i40e)	2017-2026	2	8086:1572 8086:1583 8086:1584 8086:1589 8086:15ff	-	-	hw	P2	no driver
+net	Intel E810 (ice)	2020-2026	2	8086:1591 8086:1592 8086:1593 8086:159b	-	-	hw	P3	no driver
+net	Broadcom BCM5720/5719 server GbE (tg3)	2017-2026	2	14e4:165f 14e4:1657	-	-	B	P2	tg3 work covered the 57765 class only; the 5717 class is excluded
+net	Broadcom NetXtreme-E BCM574xx (bnxt)	2018-2026	3	14e4:16d7 14e4:16d8	-	-	hw	P3	no driver
+net	Killer E2200/E2400, Qualcomm Atheros (alx)	2016-2019	3	1969:e0a1 1969:e091	-	-	hw	P3	no driver
+net	Aquantia/Marvell AQC107/AQC113 10 GbE	2018-2026	3	1d6a:07b1 1d6a:04c0 1d6a:94c0	-	-	hw	P3	no driver
+wifi	Intel AX200	2019-2022	1	8086:2723	userland/capsule_driver_iwlwifi/src/firmware/gen3/select.rs	nonos-capsule-driver-iwlwifi	E	P0	recognised, never claimed: no firmware path for this family
+wifi	Intel AX201 / 9560 (CNVi)	2018-2022	1	8086:a0f0 8086:02f0 8086:06f0 8086:43f0 8086:34f0 8086:9df0 8086:a370	userland/capsule_driver_iwlwifi/src/firmware/gen3/select.rs	nonos-capsule-driver-iwlwifi	E	P0	recognised, never claimed
+wifi	Intel AX210/AX211/AX411/BE200	2021-2026	1	8086:2725 8086:51f0 8086:51f1 8086:54f0 8086:7af0 8086:7a70 8086:7f70 8086:272b	userland/capsule_driver_iwlwifi/src/firmware/gen3/select.rs	nonos-capsule-driver-iwlwifi	E	P1	SO-family CNVi ids claimed; AX210 (2725) has no firmware committed; BE200 (272b) unknown
+wifi	Intel 8265/8260/7265	2015-2019	2	8086:24fd 8086:24f3 8086:095a	userland/capsule_driver_iwlwifi/src/firmware/gen3/select.rs	nonos-capsule-driver-iwlwifi	E	P2	recognised, never claimed
+wifi	Realtek RTL8821CE	2017-2022	2	10ec:c821	userland/capsule_driver_rtl8821ce/src/constants/mod.rs	nonos-capsule-driver-rtl8821ce	E	-	works on the bench laptop (6 Oct report)
+wifi	Realtek RTL8822CE, RTL8852AE/BE	2019-2026	1	10ec:c822 10ec:8852 10ec:b852	-	-	E	P1	no driver
+wifi	MediaTek MT7921/MT7922	2021-2026	1	14c3:7961 14c3:0616	-	-	E	P1	no driver; most AMD laptops since 2021
+wifi	Qualcomm QCA6174, WCN685x	2016-2026	2	168c:003e 17cb:1103	-	-	E	P2	no driver
+storage	AHCI SATA, any vendor (Intel PCH, AMD FCH and Promontory, ASMedia)	2017-2026	1	class:01/06	-	nonos-capsule-driver-ahci	B	P1	class match; booted in QEMU only on main
+storage	Intel RST RAID mode, AHCI personality	2017-2026	2	class:01/04	-	nonos-capsule-driver-ahci	B	P1	taken as AHCI; RST-remapped NVMe drives are detected and named, not driven
+storage	NVMe, any vendor	2017-2026	1	class:01/08	-	nonos-capsule-driver-nvme	B	-	class match; installer on a real NVMe disk works (6 Oct report)
+storage	Intel VMD, the default on 11th-gen and later laptops	2020-2026	1	8086:9a0b 8086:467f 8086:a77f 8086:7d0b 8086:ad0b	src/drivers/pci/vmd/domain/ids.rs	kernel	B, A	P0	kernel enumerates the VMD domain; inventory still says enumerate-only; never booted on a real VMD machine
+storage	eMMC on Intel SDHCI (cheap laptops)	2017-2022	2	8086:31cc 8086:5acc 8086:4dc4 8086:9dc4	userland/capsule_driver_sdhci/src/emmc/pci/ids.rs	nonos-capsule-driver-sdhci	B	P1	listed with no trust files (the release seals it); never booted on main
+storage	UFS (Intel Lakefield/ADL-N, Samsung)	2020-2026	3	8086:54ff 8086:98fa	userland/capsule_driver_ufs/src/platform/hosts.rs	nonos-capsule-driver-ufs	B	P2	listed in full-gui with no trust files: the release seals it
+storage	Hyper-V synthetic SCSI (storvsc), the disk of a Generation 2 Hyper-V or Azure guest	2016-2026	3	1414:5343	src/hardware/broker/scope_table.rs	nonos-capsule-driver-storvsc	D	P2	host-proved, not booted: QEMU offers no storage VSP and TCG no SynIC, so only a Hyper-V Gen 2 guest can show it; in no release profile. A VMBus channel carries no requester id, so its DMA grants are physical addresses, open only under the no-IOMMU posture or the development opt-in
+usb	xHCI, any vendor (Intel PCH, AMD, ASMedia, Renesas, Fresco)	2017-2026	1	class:0c/03/30	-	nonos-capsule-driver-xhci	B	P1	class match; no per-vendor quirk table (only Thunderbolt ordering)
+usb	USB hubs (internal laptop hubs, front-panel hubs, docks, keyboards)	2017-2026	1	usb:09	-	nonos-capsule-driver-usb-hub	B	P1	in Standard since 25 October; never booted behind a real hub
+usb	USB Attached SCSI sticks and SSDs	2017-2026	2	usb:08/06/62	-	-	B	P2	UAS crate exists; usb_msc is BOT only, which most UAS devices also offer
+usb	USB Ethernet (CDC ECM/NCM, RNDIS) and USB audio class	2017-2026	2	usb:02/06 usb:02/0d usb:01/01	-	nonos-capsule-driver-cdc-ncm	B	P2	drivers exist, in no image; held endpoint takes only HID and storage
+usb	USB microphones and headsets (audio class capture)	2017-2026	1	usb:01/02	-	nonos-capsule-driver-usb-mic	B	P2	driver exists, in no image: nothing is claimed for it in 0.9.3
+audio	Intel HD Audio controller (PCH)	2017-2026	1	class:04/03	-	nonos-capsule-driver-hda	B	-	works on the bench laptop (6 Oct report)
+audio	Intel SST/SOF DSP laptops with digital microphones	2019-2026	1	8086:02c8 8086:a0c8 8086:51c8 8086:7e28	userland/capsule_driver_hda/src/controller/intel/identity.rs	nonos-capsule-driver-hda	B	P2	codec output through HDA; the DSP's DMIC capture has no driver
+audio	Realtek ALC codecs (ALC2xx, ALC897, ALC1220)	2017-2026	1	10ec:0256 10ec:0257 10ec:0269 10ec:0295 10ec:0897 10ec:1220	userland/capsule_driver_hda/src/controller/codec/realtek_eapd.rs	nonos-capsule-driver-hda	B	P1	EAPD table covers them; per-board pin fixups not checked on real boards
+audio	Conexant, Cirrus Logic and other HDA codecs	2017-2026	2	14f1:* 1013:* 111d:*	-	nonos-capsule-driver-hda	B	P2	generic path only; no EAPD or pin rules
+audio	AMD ACP (laptop microphones and speakers on some boards)	2019-2026	2	1022:15e2	-	-	B	P3	detected only
+input	I2C-HID touchpads on Intel LPSS (Skylake to Meteor Lake)	2017-2026	1	8086:9d60 8086:a368 8086:02e8 8086:a0e8 8086:51e8 8086:7acc 8086:7a4c 8086:7e78	userland/capsule_driver_i2c_pci/src/constants/device_info.rs	nonos-capsule-driver-i2c-pci	F, B	P1	listed through Meteor Lake-P; works on the bench Gemini Lake
+input	I2C-HID on Arrow Lake, Lunar Lake, Panther Lake LPSS	2024-2026	1	-	userland/capsule_driver_i2c_pci/src/constants/device_info.rs	nonos-capsule-driver-i2c-pci	F, B	P1	not in the table; ids to be read from the parts' datasheets
+input	I2C-HID on AMD (AMDI0010)	2018-2026	1	acpi:AMDI0010	src/arch/x86_64/acpi/aml/controller/hid_match.rs	nonos-capsule-driver-i2c-pci	F	P1	matched; never booted on an AMD laptop
+input	i8042 PS/2 keyboard and touchpad	2017-2026	1	acpi:PNP0303 acpi:PNP0F13	userland/nonos_aml/src/legacy/kind.rs	nonos-capsule-driver-ps2-input	F	-	works on the bench laptop; _CID honoured
+input	Embedded controller, battery, AC, lid	2017-2026	1	acpi:PNP0C09 acpi:PNP0C0A acpi:ACPI0003 acpi:PNP0C0D	src/arch/x86_64/acpi/aml/power_devices.rs	kernel	F	P1	matched; battery and EC never reported from a real laptop on main
+input	HID over SPI touchpads and keyboards	2021-2026	3	acpi:PNP0C51	userland/nonos_aml/src/serial/hid_spi_types.rs	nonos-capsule-driver-spi-hid	B	P3	driver exists, in no image
+platform	PCH root ports, 100/200-series and 7th/8th-gen U, ACS in the dword layout	2016-2019	1	-	src/hardware/broker/confine/acs_layout.rs	kernel	A	P1	the dword layout is read since K11b; never booted on a real 100/200-series laptop
+platform	Firmware with VT-d or AMD-Vi switched off	2017-2026	1	-	-	-	hw	P0	every bus-master claim refused, boot stops at the splash; hw-1 posture pending
+platform	AMD-Vi on AMD desktops and laptops	2017-2026	1	acpi:IVRS	src/arch/x86_64/iommu/amd_vi/init.rs	kernel	A	P1	QEMU's amd-iommu reads enforcing=0 in the boot matrix; real AMD-Vi never booted
+platform	AMD SMBus (FCH)	2017-2026	2	1022:790b	-	nonos-capsule-driver-smbus	B	P3	smbus is Intel only, and in no image
+gpu	Intel display, Haswell to Raptor Lake	2017-2024	1	8086:3e92 8086:9bc8 8086:9a49 8086:46a6 8086:a780	userland/capsule_driver_intel_display/data	nonos-capsule-driver-intel-display	G	P1	wired; out of Standard until sealed; firmware framebuffer meanwhile
+gpu	Intel Meteor Lake, Arrow Lake, Lunar Lake, Arc	2023-2026	1	8086:7d55 8086:7dd5 8086:64a0 8086:56a0	-	-	G	P2	firmware framebuffer only
+gpu	AMD Radeon integrated and discrete	2017-2026	1	1002:*	-	-	G	P2	firmware framebuffer only
+gpu	NVIDIA GeForce	2017-2026	1	10de:*	-	-	G	P3	firmware framebuffer only

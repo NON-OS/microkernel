@@ -45,10 +45,13 @@ const FORBIDDEN_AMBIENT: u64 = Capability::Admin.bit()
     | Capability::GraphicsPresent.bit()
     | Capability::SpawnBroker.bit()
     | Capability::DeviceSecret.bit()
-    | Capability::InputConsumer.bit();
+    | Capability::InputConsumer.bit()
+    | Capability::CameraCapture.bit()
+    | Capability::MicrophoneCapture.bit()
+    | Capability::ScreenCapture.bit();
 
 const _: () = assert!(
     AMBIENT_CAPS & FORBIDDEN_AMBIENT == 0,
     "AMBIENT_CAPS holds a FORBIDDEN_AMBIENT bit: hardware, Admin, Debug, graphics, SpawnBroker, \
-     DeviceSecret or InputConsumer"
+     DeviceSecret, InputConsumer or a capture bit"
 );

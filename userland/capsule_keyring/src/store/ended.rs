@@ -32,7 +32,8 @@ impl Store {
     pub fn drop_ended(&mut self, alive: impl Fn(u32) -> bool) -> usize {
         let before = self.entries.len();
         self.entries.retain(|_, entry| {
-            if alive(entry.owner_pid) {
+            // Kept for a name, not a pid: the name's next owner adopts it.
+            if entry.holder.is_some() || alive(entry.owner_pid) {
                 return true;
             }
             super::wipe::secure_wipe(&mut entry.data);

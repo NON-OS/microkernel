@@ -21,8 +21,9 @@ use crate::arch::x86_64::iommu::unit::queue;
 use crate::sys::serial::Line;
 
 /// Start the queue where the unit has one. A queue that will not start leaves
-/// the unit on its registers, as Linux falls back in intel/iommu.c, init_dmars;
-/// interrupt remapping then stays off on that unit, since it needs the queue.
+/// the unit on its register-based invalidation, which every unit has (VT-d
+/// 6.5.1); interrupt remapping then stays off on that unit, since it needs
+/// the queue.
 ///
 /// # Safety
 /// Bring-up only, before the unit translates with this kernel's tables.

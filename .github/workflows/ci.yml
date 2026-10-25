@@ -34,6 +34,13 @@ jobs:
   boot-aarch64:
     uses: ./.github/workflows/ci-boot-aarch64.yml
 
+  # Every capsule and proof crate for aarch64 and riscv64 (arch-1).
+  every-arch-capsules:
+    uses: ./.github/workflows/ci-every-arch-capsules.yml
+
+  every-arch-proofs:
+    uses: ./.github/workflows/ci-every-arch-proofs.yml
+
   # The baked trust ledger must verify on every checkout, not only on a
   # release tag. The keystore re-enrollment shipped with a stale ledger
   # and nothing between merges and the tag ever looked, so the first

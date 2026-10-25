@@ -28,7 +28,9 @@ mod dma;
 mod entropy;
 mod grants;
 mod ipc;
+mod ordered;
 mod pci;
+mod pci_write;
 mod port;
 mod steps;
 
@@ -41,8 +43,10 @@ pub use dma::{dma_flags, line_up, mk_dma_map, DmaMapOut, MK_DMA_MAP_DMA32};
 pub use entropy::{crypto_random, entropy, Entropy};
 pub use grants::{given_back, mk_device_release, mk_dma_unmap, mk_pio_release, PioGrantOut};
 pub use ipc::{line_up_requests, mk_ipc_recv_from, mk_ipc_reply, recv_ready, replies, SERVED};
-pub use pci::{command, mk_pci_config_write, refuse_bus_master, set_command};
+pub use ordered::*;
+pub use pci::{command, refuse_bus_master, set_command};
 pub use pci::{MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_MEMORY_SPACE};
+pub use pci_write::{mk_pci_config_update, mk_pci_config_write};
 pub use port::{attach, mk_pio_read, mk_pio_write, Attached, Port};
 pub use steps::{seen, watch, Part, Seen, Step};
 

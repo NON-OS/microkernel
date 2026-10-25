@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! Which interrupt remapping a broker message goes through: AMD's when its
 //! units are in service, else VT-d's when built, else none.
 
@@ -24,7 +23,7 @@ use crate::drivers::pci::types::PciAddress;
 pub(super) fn attempt(address: &PciAddress, vector: u8, dest: u8) -> (Attempt, Option<Routed>) {
     #[cfg(feature = "nonos-iommu-amdvi")]
     if crate::arch::x86_64::iommu::amd_vi::intr::is_remapping() {
-        return super::remap_amd::attempt(address, vector, dest);
+        return super::amd_remap::attempt(address, vector, dest);
     }
     #[cfg(feature = "nonos-iommu-intremap")]
     return super::remap::attempt(address, vector, dest);
@@ -33,14 +32,4 @@ pub(super) fn attempt(address: &PciAddress, vector: u8, dest: u8) -> (Attempt, O
         let _ = (address, vector, dest);
         (Attempt::Off, None)
     }
-}
-
-pub(super) fn release(address: &PciAddress, irte: u16) {
-    #[cfg(feature = "nonos-iommu-amdvi")]
-    if crate::arch::x86_64::iommu::amd_vi::intr::is_remapping() {
-        return super::remap_amd::release(address, irte);
-    }
-    #[cfg(feature = "nonos-iommu-intremap")]
-    super::remap::release(irte);
-    let _ = (address, irte);
 }

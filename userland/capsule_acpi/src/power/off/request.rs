@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The shell's request on `power.off`. The kernel's HELD line lets
-//! only the shell address that name, but every name of this capsule lands
-//! in one inbox, so the sender is checked here as well. A request that
+//! The shell's power-off frame, on `acpi`. The name `power.off` is
+//! capsule_power's; this capsule answers the same frame on its own inbox,
+//! which HELD opens to more than the shell, so the sender is checked here. A request that
 //! passes runs at once, \_TTS(5) and \_PTS(5) then AdminShutdown, inside
 //! the shell's 5 s wait as long as firmware's methods are quick (F-111);
 //! only a refusal is answered.

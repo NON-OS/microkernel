@@ -22,12 +22,13 @@ pub const PORT_FREE: u8 = 0;
 /// A slot is addressed on the port with no endpoint of its own yet: a
 /// class driver is reading its descriptors and may still let it go.
 pub const PORT_ADDRESSED: u8 = 1;
-/// A class driver configured an interrupt or bulk endpoint on it.
+/// A class driver configured an interrupt, bulk or isoch endpoint on it.
 pub const PORT_CLAIMED: u8 = 2;
 impl SlotTable {
     pub fn port_state(&self, port_id: u8) -> u8 {
         let state = |r: &super::super::SlotResources| {
-            if !r.interrupt.is_empty() || r.has_bulk() {
+            let isoch = r.isoch.is_some() || r.isoch_in.is_some();
+            if !r.interrupt.is_empty() || r.has_bulk() || isoch {
                 PORT_CLAIMED
             } else {
                 PORT_ADDRESSED

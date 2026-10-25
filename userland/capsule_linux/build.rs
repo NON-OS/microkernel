@@ -25,8 +25,14 @@ use std::{env, fs, process};
 
 #[path = "build/image_files.rs"]
 mod image_files;
+#[path = "build/mirror_fence.rs"]
+mod mirror_fence;
+#[path = "src/linux/net/route.rs"]
+mod route;
 
-const SETTINGS: [&str; 10] = [
+const SETTINGS: [&str; 11] = [
+    // Refused in every build: Alpine's mirror is compiled in (install/mirror.rs).
+    "NONOS_ALPINE_MIRROR",
     "NONOS_PACMAN_MIRROR",
     "NONOS_PACMAN_HOST",
     "NONOS_PACMAN_PATH",
@@ -43,6 +49,10 @@ const SETTINGS: [&str; 10] = [
 fn main() {
     for var in SETTINGS {
         println!("cargo:rerun-if-env-changed={var}");
+    }
+    let dev = env::var_os("CARGO_FEATURE_DEV_MIRROR").is_some();
+    if let Some(why) = mirror_fence::refused(|v| env::var(v).ok(), dev) {
+        fail(&why);
     }
     let Some(out) = env::var_os("OUT_DIR").map(PathBuf::from) else { fail("no OUT_DIR") };
     pin("NONOS_PACMAN_KEYRING", &out.join("pacman-keyring.gpg"), None);

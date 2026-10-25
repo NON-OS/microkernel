@@ -14,12 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::read_volatile;
-
 use super::constants::{ADMIN_ENTRIES, ADMIN_SQ_ID, CQ_BYTES};
 use super::cq0_head::cq0_head;
 use super::types::AdminQueue;
-use crate::admin::{wait_for_completion, Completion};
+use crate::admin::{read_slot, wait_for_completion, Completion};
 use crate::clock;
 use crate::error::{NvmeError, NvmeResult};
 use crate::regs::Regs;
@@ -49,7 +47,7 @@ impl AdminQueue {
                 let slot = ring + (head as u64) * (core::mem::size_of::<Completion>() as u64);
                 // SAFETY: head is below ADMIN_ENTRIES (the assert above), so
                 // the slot lies in the completion queue's mapped DMA region.
-                unsafe { read_volatile(slot as *const Completion) }
+                unsafe { read_slot(slot) }
             },
             // SAFETY: the CQ0 head doorbell lies in the mapped register block.
             |head| unsafe { regs.w32(cq0_head(stride), head as u32) },
