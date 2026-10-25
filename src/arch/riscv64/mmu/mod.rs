@@ -18,6 +18,7 @@ pub mod attributes;
 mod boot_map;
 mod branch;
 mod constants;
+mod image_map;
 mod map;
 mod mode;
 mod satp;

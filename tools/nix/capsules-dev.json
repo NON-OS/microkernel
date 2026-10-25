@@ -1,5 +1,9 @@
 [
  {
+  "slug": "linux",
+  "dev_cargo_features": "dev-mirror"
+ },
+ {
   "slug": "payment",
   "dev_cargo_features": "devnet"
  },

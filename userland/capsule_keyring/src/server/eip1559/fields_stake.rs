@@ -19,8 +19,8 @@
 use alloc::vec::Vec;
 
 use super::consts::{CHAIN_ID, NOX_TOKEN, STAKING_PROXY};
-use super::fields::tx_fields;
 use super::stake_data::{stake_approve_calldata, stake_calldata};
+use super::tx_fields::{tx_fields, TxFields};
 
 // approve(stakingProxy, amount) on the NOX token.
 pub fn nox_stake_approve_fields(
@@ -30,16 +30,16 @@ pub fn nox_stake_approve_fields(
     gas: &[u8; 32],
     amount: &[u8; 32],
 ) -> Vec<Vec<u8>> {
-    tx_fields(
-        &[CHAIN_ID],
+    tx_fields(&TxFields {
+        chain_id: &[CHAIN_ID],
         nonce,
         max_priority,
         max_fee,
         gas,
-        &NOX_TOKEN,
-        &[0u8; 32],
-        &stake_approve_calldata(amount),
-    )
+        to: &NOX_TOKEN,
+        value: &[0u8; 32],
+        data: &stake_approve_calldata(amount),
+    })
 }
 
 pub fn nox_stake_fields(
@@ -49,14 +49,14 @@ pub fn nox_stake_fields(
     gas: &[u8; 32],
     amount: &[u8; 32],
 ) -> Vec<Vec<u8>> {
-    tx_fields(
-        &[CHAIN_ID],
+    tx_fields(&TxFields {
+        chain_id: &[CHAIN_ID],
         nonce,
         max_priority,
         max_fee,
         gas,
-        &STAKING_PROXY,
-        &[0u8; 32],
-        &stake_calldata(amount),
-    )
+        to: &STAKING_PROXY,
+        value: &[0u8; 32],
+        data: &stake_calldata(amount),
+    })
 }

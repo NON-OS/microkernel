@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A build may compile in a mirror on the local network, dialled past
-//! nonos_route_link, only with the dev-mirror feature; NONOS_ALPINE_MIRROR,
-//! which only development images set, needs it whatever it names.
+//! nonos_route_link, only with the dev-mirror feature; NONOS_ALPINE_MIRROR
+//! is refused in every build, since Alpine's mirror is compiled in.
 
 use alloc::string::String;
 
@@ -33,10 +33,11 @@ fn no_setting_is_any_build_s_to_have() {
 }
 
 #[test]
-fn alpine_s_mirror_needs_dev_mirror_whatever_it_names() {
+fn alpine_s_mirror_is_set_by_no_build() {
     for at in ["10.0.2.2:8080", "dl-cdn.alpinelinux.org:80", "mirror.example.org"] {
-        assert!(refused(only("NONOS_ALPINE_MIRROR", at), false).is_some(), "{at}");
-        assert_eq!(refused(only("NONOS_ALPINE_MIRROR", at), true), None, "{at}");
+        for dev in [false, true] {
+            assert!(refused(only("NONOS_ALPINE_MIRROR", at), dev).is_some(), "{at}, dev {dev}");
+        }
     }
 }
 

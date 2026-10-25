@@ -20,8 +20,15 @@
 #[cfg(test)]
 #[path = "../../../capsule_keyring/src/server/answer.rs"]
 pub mod answer;
+/// The keyring's EIP-1559 field builder, held to an encoding written apart.
+#[cfg(test)]
+pub mod eip1559;
 /// The keyring's wire types, and the ops it retired.
 pub mod protocol;
+/// The keyring's RLP encoders, which its transactions are built from.
+#[cfg(test)]
+#[path = "../../../capsule_keyring/src/server/rlp/mod.rs"]
+pub mod rlp;
 #[path = "../../../capsule_keyring/src/server/secp.rs"]
 pub mod secp;
 /// The keyring's typed-data allowlist and the checks around it.

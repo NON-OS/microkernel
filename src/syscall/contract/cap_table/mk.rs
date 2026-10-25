@@ -34,6 +34,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkProcStat
         | SyscallNumber::MkAttestStatus
         | SyscallNumber::MkAttestPolicy
+        | SyscallNumber::MkKeeping
         | SyscallNumber::MkBootAttest
         | SyscallNumber::MkCapCheck => caps.is_valid(),
 

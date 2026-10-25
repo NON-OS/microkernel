@@ -41,6 +41,9 @@ pub mod confine_map_fail;
 pub mod console_gate;
 #[path = "dma_direction/mod.rs"]
 pub mod dma_direction;
+/// H-06(a): why there is no boot framebuffer, loader to kernel to userland.
+#[path = "handoff_refusal/mod.rs"]
+pub mod handoff_refusal;
 #[path = "input_authority_tests.rs"]
 mod input_authority_tests;
 #[path = "iommu_own_id/mod.rs"]
@@ -49,3 +52,6 @@ pub mod iommu_own_id;
 pub mod iommu_release;
 #[path = "irq_bind_rollback_tests.rs"]
 mod irq_bind_rollback_tests;
+/// Every linker symbol the kernel declares is one its image defines.
+#[path = "link_symbols/mod.rs"]
+pub mod link_symbols;

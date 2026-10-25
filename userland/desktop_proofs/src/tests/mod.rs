@@ -22,6 +22,7 @@ mod desktop_files_tests;
 mod dialog_keys_tests;
 mod dock_clock_tests;
 mod dock_tests;
+mod focus_child_tests;
 mod go_menu_tests;
 mod grab_rule_tests;
 mod instance_tests;

@@ -33,6 +33,9 @@ pub const NOTIFY_KIND_CLOSED: u32 = 1;
 /// closed event, which ends it too. Subscribers that know only kinds 0 and 1
 /// drop this one, so the envelope and its version are unchanged.
 pub const NOTIFY_KIND_FULL_SCREEN: u32 = 2;
+/// Focus moved, by any path: `owner_pid` and `window_id` name the window
+/// focused now, both 0 when nothing has focus (focus/notice.rs).
+pub const NOTIFY_KIND_FOCUSED: u32 = 3;
 
 pub fn encode_notify(
     out: &mut [u8; NOTIFY_LEN],

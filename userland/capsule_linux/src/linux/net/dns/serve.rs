@@ -57,3 +57,9 @@ pub fn answer_out(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> (u64, Optio
         _ => (errno::ok(take as u64), Some(peer)),
     }
 }
+
+/// The length of the oldest answer waiting on the resolver `fd`, if any.
+pub fn waiting(guest: &Guest, fd: u64) -> Option<u64> {
+    let entry = guest.fds.get(fd as usize).filter(|f| f.kind == Kind::Resolver)?;
+    entry.replies.first().map(|(msg, _)| msg.len() as u64)
+}

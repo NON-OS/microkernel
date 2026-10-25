@@ -33,6 +33,7 @@ mod firmware;
 mod front;
 mod happy;
 mod host_proof;
+mod kernel_encoder;
 mod log_caps;
 mod log_diff;
 mod log_doc;
@@ -61,6 +62,7 @@ mod quote_v3_order;
 mod registry;
 mod release;
 mod robust;
+mod tool;
 
 /// The refusal a spec's host meets.
 pub fn refused(s: Spec) -> Refusal {

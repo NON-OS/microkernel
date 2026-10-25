@@ -15,10 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod bond;
-pub mod chains;
 pub mod check;
-pub mod domain;
-pub mod domains;
 pub mod entry;
 pub mod field;
 pub mod hashes;

@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::cfi::init_cfi;
-use super::pmp::{init_pmp, PmpResult};
+//! The supervisor's own hardening. PMP is not here: it is an M-mode
+//! register file, the SBI firmware's, and an S-mode kernel can neither read
+//! it nor should it clear the firmware's protection of itself.
 
-pub fn init_all() -> PmpResult<()> {
+use super::cfi::init_cfi;
+
+pub fn init_all() {
     init_cfi();
-    init_pmp()
 }

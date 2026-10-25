@@ -32,6 +32,4 @@ pub use percpu::{
     get_all_stack_regions, get_module_regions, get_percpu_region_for, get_percpu_regions,
 };
 pub use regions::{layout_summary, log_kernel_sections, managed_span, region_from_firmware};
-pub use state::{
-    boot_stacks_region, kernel_end, kernel_sections, kernel_start, percpu_template_region,
-};
+pub use state::{kernel_end, kernel_sections, kernel_start};

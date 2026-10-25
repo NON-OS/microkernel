@@ -7,8 +7,13 @@ pub mod ansi;
 pub mod box_arms;
 #[path = "../../capsule_terminal/src/paint/fetch_arch.rs"]
 pub mod fetch_arch;
+// The lift the bars and blocks are drawn on, for the themes' contrast.
+#[path = "../../capsule_terminal/src/paint/shade.rs"]
+pub mod shade;
 
 #[cfg(test)]
 mod box_tests;
+#[cfg(test)]
+mod contrast_tests;
 #[cfg(test)]
 mod palette_tests;

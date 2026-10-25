@@ -18,6 +18,7 @@ use super::embed::{
     DRIVER_VIRTIO_SCSI_ATTESTATION_BYTES, DRIVER_VIRTIO_SCSI_ELF,
     DRIVER_VIRTIO_SCSI_MANIFEST_BYTES, DRIVER_VIRTIO_SCSI_NONOS_ID_CERT_BYTES,
 };
+use super::endpoint::REPLY_INBOX;
 use super::state;
 use crate::capabilities::Capability;
 use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpecVerified};
@@ -30,7 +31,6 @@ pub use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 const SERVICE_NAME: &str = "driver.virtio_scsi0";
 const SERVICE_PORT: u32 = 4292;
-const REPLY_INBOX: &str = "endpoint.4294967356";
 const REPLY_PORT: u32 = 4293;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 

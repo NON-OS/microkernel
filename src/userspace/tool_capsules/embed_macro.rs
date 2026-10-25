@@ -20,21 +20,9 @@ macro_rules! tool_capsule {
             reply_inbox: $reply,
             reply_port: $reply_port,
             elf: include_bytes!($elf),
-            cert: include_bytes!(concat!(
-                "../../../nonos-data/trust/capsules/",
-                $bin,
-                ".nonos_id_cert.bin"
-            )),
-            manifest: include_bytes!(concat!(
-                "../../../nonos-data/trust/capsules/",
-                $bin,
-                ".manifest.bin"
-            )),
-            attestation: include_bytes!(concat!(
-                "../../../nonos-data/trust/capsules/",
-                $bin,
-                ".zk_trailer.bin"
-            )),
+            cert: $crate::baked_trust!(concat!("capsules/", $bin, ".nonos_id_cert.bin")),
+            manifest: $crate::baked_trust!(concat!("capsules/", $bin, ".manifest.bin")),
+            attestation: $crate::baked_trust!(concat!("capsules/", $bin, ".zk_trailer.bin")),
         }
     };
 }

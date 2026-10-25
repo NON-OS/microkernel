@@ -29,6 +29,7 @@ use super::tally::Tally;
 pub fn box_line(policy: &BoxPolicy, hash: &[u8; 32], tally: &Tally, e: &End) -> String {
     let mut s = String::new();
     let _ = write!(s, "[BOX] v={VERSION} preset={}", preset_name(policy.preset));
+    s.push_str(super::learn_report::enforced(policy));
     let _ = write!(s, " policy={}", hex(hash));
     let _ = write!(s, " refused={}", tally.total());
     for kind in ALL {
