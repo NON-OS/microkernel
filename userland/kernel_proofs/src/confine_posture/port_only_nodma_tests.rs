@@ -40,9 +40,9 @@ const BUILDS: [(bool, bool); 4] = [(false, false), (true, false), (true, true), 
 #[test]
 fn port_only_gets_no_dma_wherever_no_unit_confines_it() {
     for (rid, covered, domain) in UNCONFINED {
-        for build in BUILDS {
-            let v = verdict(rid, covered, domain, port_only(false, false), build);
-            assert_eq!(v, NoDma, "{rid} {covered} {domain:?} {build:?}");
+        for (build, posture) in BUILDS.into_iter().flat_map(|b| [(b, false), (b, true)]) {
+            let v = verdict(rid, covered, domain, port_only(false, false), build, posture);
+            assert_eq!(v, NoDma, "{rid} {covered} {domain:?} {build:?} {posture}");
         }
     }
 }
@@ -50,7 +50,7 @@ fn port_only_gets_no_dma_wherever_no_unit_confines_it() {
 #[test]
 fn port_only_under_a_unit_is_still_confined() {
     for build in BUILDS {
-        assert_eq!(verdict(true, true, Ok(()), port_only(false, false), build), Confine);
+        assert_eq!(verdict(true, true, Ok(()), port_only(false, false), build, true), Confine);
     }
 }
 
@@ -59,7 +59,7 @@ fn a_capsule_holding_dma_or_mmio_is_refused_without_a_unit() {
     for (dma, mmio) in [(true, false), (false, true), (true, true)] {
         for (rid, covered, domain) in UNCONFINED.into_iter().filter(|d| d.0) {
             for build in [(false, false), (true, true), (false, true)] {
-                let v = verdict(rid, covered, domain, port_only(dma, mmio), build);
+                let v = verdict(rid, covered, domain, port_only(dma, mmio), build, false);
                 assert_eq!(v, Refuse, "dma {dma} mmio {mmio} {covered} {domain:?} {build:?}");
             }
         }
