@@ -1,0 +1,15 @@
+# Every capsule that does not build for a user target, and why. The key is
+# the capsule's directory, the value the targets it does not build for,
+# joined by commas.
+# nonos-ci/build-every-capsule.sh leaves these out of its lane and, with
+# --recheck, fails on any that builds after all; arch_reach_proofs holds
+# each row to a capsule that exists and a target the tree has. Every NONOS
+# capsule without a row here must build, and be an ELF for that machine.
+
+userland/capsule_nonos_install aarch64-nonos-user,riscv64-nonos-user
+    The installer is written wholly in x86_64 assembly (src/arch/x86_64/asm), system calls and
+    all. A port is a rewrite: in Rust over libc, or in each architecture's assembly.
+userland/capsule_pastel aarch64-nonos-user,riscv64-nonos-user
+    Its getrandom is built with the rdrand backend (nonos_upstream_tool_rule, mk/20-build.mk),
+    an x86 instruction. The fix is a NONOS getrandom backend over the kernel's random call, the
+    one the std layer uses (sys/random), for every architecture alike.
