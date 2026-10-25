@@ -23,15 +23,15 @@ pub(crate) const STD_PROOF_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-std-proof")]
 pub(crate) const STD_PROOF_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/std_proof.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/std_proof.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-std-proof")]
 pub(crate) const STD_PROOF_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/std_proof.manifest.bin");
+    crate::baked_trust!("capsules/std_proof.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-std-proof")]
 pub(crate) const STD_PROOF_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/std_proof.zk_trailer.bin");
+    crate::baked_trust!("capsules/std_proof.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-std-proof"))]
 pub(crate) const STD_PROOF_ELF: &[u8] = &[];

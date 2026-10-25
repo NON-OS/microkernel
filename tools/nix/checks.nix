@@ -246,10 +246,11 @@ let
       "scripts/check_dark_features.py --self-test" "scripts/check_dark_features.py"
       "scripts/check_test_lanes.py --self-test" "scripts/check_test_lanes.py"
       "-m unittest discover -s tools/nonos_selftest -p 'test_*.py'"
+      "-m unittest discover -s tools/agentproof_gauntlet -t tools -p 'test_*.py'"
     ]);
     # verify.yml, abi-contracts and syscall-reach
     static-abi = static "abi" (scripts [
-      "scripts/check_syscall_abi.py" "scripts/check_abi_stable.py"
+      "scripts/check_syscall_abi.py --self-test" "scripts/check_syscall_abi.py" "scripts/check_abi_stable.py"
       "nonos-ci/attack_suite_check.py --self-test" "nonos-ci/boot_attest_check.py --self-test"
       "scripts/check_capsule_ports.py --self-test" "scripts/check_capsule_ports.py"
       "scripts/check_handoff_mirror.py --self-test" "scripts/check_handoff_mirror.py"
@@ -257,12 +258,13 @@ let
       "scripts/check_prebuilt.py" "scripts/check_syscall_args.py" "scripts/check_caps_abi.py"
       "scripts/check_userland_caps.py" "scripts/check_cap_parity.py" "scripts/check_service_caps.py"
       "scripts/check_baked_names.py --self-test" "scripts/check_baked_names.py"
-      "scripts/check_selftest_panic.py --self-test" "scripts/check_selftest_panic.py"
+      "scripts/check_copy_only_features.py --self-test" "scripts/check_copy_only_features.py"
       "tools/nonos-cap-audit --self-test" "tools/nonos-cap-audit"
       "tools/nonos-pcap-egress --self-test" "tools/nonos_egress/mutants.py" "tools/nonos-efi-vars --self-test" "scripts/check_sealed_caps.py --self-test"
       "scripts/check_kernel_wait.py --self-test" "scripts/check_kernel_wait.py"
       "scripts/check_attest_params.py" "tools/nonos-assumptions"
       "scripts/check_unenforced.py" "scripts/check_unenforced.py --self-test"
+      "tools/ratchets/linux_calls.py --self-test"
       "tools/nonos-linux-coverage --baseline scripts/baselines/linux-syscalls.txt"
       "tools/nonos-wayland-coverage --baseline scripts/baselines/wayland-globals.txt"
       "tools/ratchets/disclosure.py" "tools/nonos-mutant --check"

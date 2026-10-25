@@ -39,7 +39,7 @@ pub(super) fn boot_secret() -> Option<([u8; 32], Source)> {
             return Some((secret, Source::Rndr));
         }
     }
-    let secret = crate::arch::aarch64::boot_entropy::derive(SEED_CONTEXT)?;
+    let secret = crate::arch::common::boot_entropy::derive(SEED_CONTEXT)?;
     Some((secret, Source::DeviceTreeSeed))
 }
 

@@ -100,6 +100,9 @@ LITERAL = re.compile(r'"((?:[^"\\\n]|\\.){1,300})"')
 PATHLIKE = re.compile(r"^[\w./+@-]+$")
 PY_IMPORT = re.compile(r"^\s*(?:from|import)\s+(\w+)", re.M)
 RERUN = re.compile(r"rerun-if-changed=([\w./+@-]+)")
+# A trust file the kernel names through baked_trust!, relative to the trust
+# set's root: the tree's is TRUST (build_baked_trust.rs).
+BAKED = re.compile(r'baked_trust!\(\s*(?:concat!\(\s*)?"([^"]+)"')
 MODULE = re.compile(r"^\s*(?:pub(?:\([\w:]+\))?\s+)?mod\s+(\w+)\s*;", re.M)
 
 
@@ -328,6 +331,9 @@ class Inputs:
                 self.literal(f, crate, m.group(1))
             for m in RERUN.finditer(body):
                 self.literal(f, crate, m.group(1))
+            for m in BAKED.finditer(body):
+                rel = os.path.relpath(os.path.join(TRUST, m.group(1)), os.path.dirname(f))
+                self.literal(f, crate, rel + ("/" if m.group(1).endswith("/") else ""))
             self.modules(f, body)
             for marker, files in MARKERS.items():
                 if marker in body:

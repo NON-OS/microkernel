@@ -23,6 +23,9 @@ mod classify_storage;
 mod driver;
 mod emmc;
 mod family;
+mod i2c_host;
+#[cfg(any(feature = "nonos-capsule-driver-i2c-pci", feature = "nonos-capsule-driver-i2c-hid"))]
+mod i2c_present;
 mod intel_ethernet_ids;
 mod missing;
 mod platform_sd;
@@ -40,6 +43,9 @@ pub use classify_device::classify_device;
 pub use driver::family_driver;
 pub use emmc::{is_intel_emmc, INTEL_EMMC_DEVICE_IDS};
 pub use family::HardwareFamily;
+pub use i2c_host::i2c_host;
+#[cfg(any(feature = "nonos-capsule-driver-i2c-pci", feature = "nonos-capsule-driver-i2c-hid"))]
+pub use i2c_present::i2c_host_present;
 pub use intel_ethernet_ids::{
     E1000E_DEVICE_IDS, E1000_DEVICE_IDS, IGB_DEVICE_IDS, IGC_DEVICE_IDS, IXGBE_DEVICE_IDS,
 };
