@@ -23,15 +23,15 @@ pub(super) const DRIVER_NETVSC_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-netvsc")]
 pub(super) const DRIVER_NETVSC_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_netvsc.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_netvsc.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-netvsc")]
 pub(super) const DRIVER_NETVSC_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_netvsc.manifest.bin");
+    crate::baked_trust!("capsules/driver_netvsc.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-netvsc")]
 pub(super) const DRIVER_NETVSC_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_netvsc.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_netvsc.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-netvsc"))]
 pub(super) const DRIVER_NETVSC_ELF: &[u8] = &[];
