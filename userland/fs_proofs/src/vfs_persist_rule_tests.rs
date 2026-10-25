@@ -12,6 +12,7 @@
 // GNU Affero General Public License for more details.
 //
 // You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The amnesic persist rule, every case: a boot that keeps nothing lets
 //! only zeros through, and only as a withdrawal.

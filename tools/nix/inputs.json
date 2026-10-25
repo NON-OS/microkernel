@@ -3017,6 +3017,7 @@
    "userland/capsule_net_anon/src/stream/owned.rs",
    "userland/capsule_net_anon/src/stream/table.rs",
    "userland/capsule_net_sockets/src/protocol/errno.rs",
+   "userland/capsule_net_sockets/src/server/handlers/connect/handle_host.rs",
    "userland/capsule_net_sockets/src/server/handlers/connect/host_target.rs",
    "userland/capsule_net_sockets/src/server/handlers/connect/parse_host.rs",
    "userland/capsule_net_sockets/src/server/handlers/connect/parse_ipv4.rs",

@@ -12,6 +12,7 @@
 // GNU Affero General Public License for more details.
 //
 // You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The secrets live in one block a `TrafficKeys` points to, filled in place:
 //! moving the keys copies a pointer and the suite, never a secret.

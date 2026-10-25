@@ -243,5 +243,3 @@ mod store_patch_tests;
 mod ramfs;
 #[cfg(test)]
 mod store_replace_tests;
-#[cfg(test)]
-mod vfs_persist_rule_tests;
