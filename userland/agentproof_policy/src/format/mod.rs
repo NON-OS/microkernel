@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The `nonos-box 1` file: a header line, then `base`, `write` and `network`
-//! lines in any order, and `#` comment lines. One file has one meaning, and a
-//! line this reader does not know is refused, never skipped.
+//! The `nonos-box 1` file: a header line, then `base`, `write`, `network`
+//! and `connect` lines in any order, and `#` comment lines. One file has one
+//! meaning, and a line this reader does not know is refused, never skipped.
 
 mod finish;
 mod line;
@@ -24,7 +24,7 @@ mod words;
 
 use alloc::vec::Vec;
 
-pub use line::MAX_WRITES;
+pub use line::{MAX_CONNECTS, MAX_WRITES};
 
 /// The largest policy file this reader takes.
 pub const MAX_FILE: usize = 16384;
@@ -44,6 +44,9 @@ pub struct Policy {
     pub base: Base,
     /// The `write` folders, as written, in the file's order.
     pub writes: Vec<Vec<u8>>,
+    /// The `connect` destinations, as written, in the file's order; empty for
+    /// `network none`.
+    pub connects: Vec<Vec<u8>>,
 }
 
 /// Why a file was refused, and on which line (1 is the first; 0 is the file
