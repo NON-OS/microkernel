@@ -36,3 +36,10 @@ fn each_move_places_before_it_takes() {
     assert_eq!(moves(true, true), None);
     assert_eq!(moves(false, false), None);
 }
+
+#[test]
+fn no_terminal_opens_over_a_prompt() {
+    use crate::state::trusted_rule::opens_terminal;
+    assert!(opens_terminal(false), "Ctrl+Alt+T on a plain desktop opens the Terminal");
+    assert!(!opens_terminal(true), "never over a prompt or the hidden screen");
+}

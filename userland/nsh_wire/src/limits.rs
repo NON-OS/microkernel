@@ -26,6 +26,6 @@ pub const MAX_DATA: usize = 16_384;
 pub const HELLO_CAP: usize = 2048;
 /// The largest type byte and body while the host and the user prove
 /// themselves: `HOST_PROOF` carries the attestation document.
-pub const AUTH_CAP: usize = 262_144;
+pub const AUTH_CAP: usize = 1152 * 1024;
 /// The largest type byte and body once the session runs.
 pub const SESSION_CAP: usize = 1 + MAX_DATA;
