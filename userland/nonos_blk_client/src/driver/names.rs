@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The service names each driver's instances register.
 
 use super::table::Driver;
@@ -54,6 +53,17 @@ impl Driver {
             Driver::VirtioBlk | Driver::Wire | Driver::Ufs | Driver::Rtsx | Driver::Ide => 1,
             Driver::Nvme | Driver::Ahci => 4,
             Driver::Scsi => 5,
+        }
+    }
+
+    /// How many disks one service of this driver may hold, each asked for
+    /// by its unit: an IDE controller's four (two channels, two drives
+    /// each), a SCSI host's sixteen as the shared SCSI server keeps them.
+    pub fn units(self) -> u16 {
+        match self {
+            Driver::Ide => 4,
+            Driver::Scsi => 16,
+            _ => 1,
         }
     }
 }
