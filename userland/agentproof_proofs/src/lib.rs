@@ -17,6 +17,8 @@
 //! Proofs for agentproof_policy. `check` is what every file must leave,
 //! shared by the seeded sweep and the fuzz target.
 
+extern crate alloc;
+
 pub mod check;
 
 #[cfg(test)]
