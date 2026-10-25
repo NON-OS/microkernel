@@ -24,8 +24,12 @@
   mac        a source that is not locally administered unicast, or the NIC's
              own assigned address on any frame the firmware may not send
   arp        an ARP sender address that is not the frame's source
-  dhcp-id    a DHCP option that names the machine (12, 60, 77, 81), a chaddr
-             or client identifier (61) that is not the frame's source
+  dhcp-id    a DHCP option that names the machine (12, 60, 77, 81, 97), a
+             chaddr or client identifier (61) that is not the frame's source
+  dhcp-opt   any other option but 50, 53, 54, 55 and 57, or sname or file set
+  dhcp-dst   DHCP to an address neither broadcast nor a server the ingress's
+             OFFER or ACK named
+             (the firmware's DHCP is held to all three: dhcp_rules.py)
   sni        a TLS server name not on the allow-list
   http       a plaintext Host not on the allow-list, or a request with no
              Host to a peer the image does not pin
@@ -37,6 +41,7 @@ pinned peer reached is incomplete: neither is a pass."""
 from .allow import Allow
 from .pcap import frames
 from .relays import relays
+from .dhcp_rules import servers
 from .report import QEMU_NIC_MAC, Report
 
 
@@ -44,8 +49,9 @@ def judge(egress, ingress=b"", allow=Allow(), nic_mac=QEMU_NIC_MAC):
     """The report for an egress capture's bytes, with the ingress capture's
     relays allowed. Either capture damaged raises Unreadable."""
     out = frames(egress)
-    learned = relays(frames(ingress), allow.authorities) if ingress else set()
-    r = Report(allow, learned, nic_mac)
+    inward = frames(ingress) if ingress else []
+    learned = relays(inward, allow.authorities)
+    r = Report(allow, learned, nic_mac, servers(inward))
     for f in out:
         r.frame(f)
     return r.done()

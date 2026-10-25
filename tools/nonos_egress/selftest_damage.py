@@ -26,6 +26,7 @@ from .pcap import Unreadable
 from .scrape import scrape
 from .selftest import ALLOW, CLEAN, INGRESS, clean, run
 from .selftest_frames import GUEST, dhcp, pcap, tcp
+from .selftest_dhcp import dhcp_rules
 from .selftest_rules import evasions, identity, rules
 
 
@@ -91,6 +92,7 @@ def self_test():
     rules()
     evasions()
     identity()
+    dhcp_rules()
     damage()
     minimums()
     allowlist()
