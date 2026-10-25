@@ -27,15 +27,18 @@
 use super::super::error::LoadError;
 use crate::capabilities::Capability;
 use crate::kernel_core::process_spawn::capsule_spawn::AttestedParent;
+use crate::process::core::AMBIENT_CAPS;
 use crate::security::capsule_manifest::CapsuleManifest;
 
 /// The bits `child` would install that `parent` lacks; zero when allowed.
+/// The ambient set counts as held: every process has it, so a child holding
+/// it gains nothing (`AMBIENT_CAPS`, which no spawn mask need repeat).
 pub(crate) fn missing(child: u64, parent: u64) -> u64 {
     let launcher = Capability::SpawnWindow.bit() | Capability::Admin.bit();
     if parent & launcher != 0 {
         return 0;
     }
-    child & !parent
+    child & !(parent | AMBIENT_CAPS)
 }
 
 /// What the manifest installs for `requested`, as the verified spawn will.
