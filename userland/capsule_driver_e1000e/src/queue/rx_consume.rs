@@ -20,7 +20,6 @@
 //! returns the slot to the part without copying from it.
 
 use core::ptr::{addr_of, addr_of_mut, read_volatile, write_volatile};
-use core::sync::atomic::{fence, Ordering};
 
 use crate::constants::queue::{RX_DESC_COUNT, RX_STATUS_DD, RX_STATUS_EOP};
 use crate::constants::MAX_ETHERNET_FRAME;
@@ -38,7 +37,7 @@ impl RxRing {
             return None;
         }
         // Length, errors and the frame are only the part's once DD is seen.
-        fence(Ordering::Acquire);
+        nonos_libc::dma_rmb();
         // SAFETY: as above; the part is done with this descriptor.
         let (errors, len) = unsafe {
             let e = read_volatile(addr_of!((*desc).errors));

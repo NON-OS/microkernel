@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::l2_pool::l2_under;
 use super::state;
 use super::{tlb, PageAttributes};
 
@@ -26,19 +27,23 @@ pub fn map_page(virt: u64, phys: u64, attrs: PageAttributes) {
     }
 }
 
+/// Only the identity map's first `L3_L1_SPAN` gigabytes have level 3 tables,
+/// one per 2 MiB, so a page goes there or nowhere. A block already mapping
+/// the 2 MiB, or a table other than that one, means the page would be written
+/// where no walk reaches it, and the mapping is refused instead.
 unsafe fn map_inner(index: PageIndex, phys: u64, attrs: &PageAttributes) -> bool {
-    if index.l0 >= 4 || index.l1 >= 512 || index.l1 >= 4 {
+    if index.l0 != 0 || index.l1 >= state::L3_L1_SPAN {
         return false;
     }
-    if !state::l0().is_valid(index.l0) {
-        state::l0().set_table(index.l0, state::l1_addr());
-    }
-    if !state::l1().is_valid(index.l1) {
-        state::l1().set_table(index.l1, state::l2_addr(index.l1));
-    }
-    let l2 = state::l2(index.l1);
+    let Some(l2) = l2_under(state::l1(), index.l1) else {
+        return false;
+    };
+    let l3 = state::l3_addr(index.l1, index.l2);
     if !l2.is_valid(index.l2) {
-        l2.set_table(index.l2, state::l3_addr(index.l1, index.l2));
+        l2.set_table(index.l2, l3);
+    }
+    if l2.table_address(index.l2) != Some(l3) {
+        return false;
     }
     state::l3(index.l1, index.l2).set_page(index.l3, phys, attrs);
     true

@@ -17,58 +17,51 @@
 use super::CapabilityToken;
 use crate::capabilities::types::Capability;
 
+/*
+ * The five device checks take their own capability and nothing else
+ *: Admin, which the installer holds for its reboot, no longer
+ * drives a device, so an unclaimed device is reached only by a capsule
+ * granted the bit for it.
+ */
 impl CapabilityToken {
-    // Claim / release authority. A driver capsule needs this on top
-    // of `DeviceEnum` to take exclusive ownership of a device.
+    // Claim / release: with `DeviceEnum`, exclusive ownership of a device.
     #[inline]
     pub fn can_driver(&self) -> bool {
-        self.grants(Capability::Driver) || self.grants(Capability::Admin)
+        self.grants(Capability::Driver)
     }
-    // MMIO mapping authority. Required in addition to `Driver` —
-    // claim ownership alone is not enough to receive a physical
-    // mapping into the capsule's address space.
+    // MMIO mapping, beyond `Driver`: a claim alone maps nothing.
     #[inline]
     pub fn can_mmio(&self) -> bool {
-        self.grants(Capability::Mmio) || self.grants(Capability::Admin)
+        self.grants(Capability::Mmio)
     }
-    // IRQ binding authority. Required in addition to `Driver` for
-    // a capsule to receive interrupt delivery from a device it has
-    // claimed.
+    // IRQ binding, beyond `Driver`: interrupts from a claimed device.
     #[inline]
     pub fn can_irq(&self) -> bool {
-        self.grants(Capability::Irq) || self.grants(Capability::Admin)
+        self.grants(Capability::Irq)
     }
-    // DMA buffer authority. Required in addition to `Driver` for a
-    // capsule to receive a DMA-coherent buffer the claimed device
-    // can read or write through.
+    // DMA buffers, beyond `Driver`: memory the claimed device can reach.
     #[inline]
     pub fn can_dma(&self) -> bool {
-        self.grants(Capability::Dma) || self.grants(Capability::Admin)
+        self.grants(Capability::Dma)
     }
-    // PIO grant authority. Required in addition to `Driver` for a
-    // capsule to mint a port-window grant on a claimed device and
-    // run kernel-mediated `in`/`out` instructions through it.
+    // PIO grants, beyond `Driver`: kernel-mediated `in`/`out` on a window.
     #[inline]
     pub fn can_pio(&self) -> bool {
-        self.grants(Capability::Pio) || self.grants(Capability::Admin)
+        self.grants(Capability::Pio)
     }
-    // Authority to POST raw input events into the kernel ring. Held by input
-    // *producers*: dedicated input drivers (`InputSource`) and any device driver
-    // that surfaces events off its own interrupt (`Irq`).
+    /*
+     * The raw input ring carries every keystroke (K8). A dedicated input
+     * driver posts into it under InputSource; only input_router, under
+     * InputConsumer, drains or waits on it. Irq and Admin stand in for
+     * neither: every device driver holds Irq, and a driver that could post
+     * could forge keys, as one that could drain could read them.
+     */
     #[inline]
     pub fn can_input_source(&self) -> bool {
         self.grants(Capability::InputSource)
-            || self.grants(Capability::Irq)
-            || self.grants(Capability::Admin)
     }
-    // Authority to DRAIN/WAIT on the raw input ring, which carries every
-    // keystroke. This is the input router's consumer authority and must NOT
-    // include `Irq`: every device driver holds `Irq`, so accepting it here let
-    // any driver capsule read the focused app's keystrokes (cross-capsule
-    // keylogging). Only a capsule explicitly granted `InputSource` (the router)
-    // may consume the stream.
     #[inline]
     pub fn can_input_consumer(&self) -> bool {
-        self.grants(Capability::InputSource) || self.grants(Capability::Admin)
+        self.grants(Capability::InputConsumer)
     }
 }

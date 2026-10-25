@@ -46,7 +46,7 @@ fn grant_mmio(dev: Found, epoch: u64) -> Result<Regs, &'static str> {
     // SAFETY: MkMmioMap mapped `out.length` bytes at `user_va`, readable and
     // writable, until MkMmioUnmap or the claim's release; the view covers no
     // more than that, and no window is used after the release.
-    Ok(Regs::mmio(unsafe { Mmio::new(base as *mut u8, len) }))
+    Ok(Regs::mmio(unsafe { Mmio::registers(base as *mut u8, len) }))
 }
 
 fn grant_pio(dev: Found, epoch: u64) -> Result<Regs, &'static str> {

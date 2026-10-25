@@ -28,30 +28,38 @@ use crate::sys::io::{inl, outl};
 
 static PORT_LOCK: Mutex<()> = Mutex::new(());
 
-pub(super) fn read(bus: u8, device: u8, function: u8, offset: u16) -> u32 {
-    let addr = config_address(bus, device, function, offset);
+pub(super) fn read(bus: u8, device: u8, function: u8, offset: u16) -> Option<u32> {
+    let addr = config_address(bus, device, function, offset)?;
     let _guard = PORT_LOCK.lock();
     // SAFETY: the config port pair belongs to this module and nothing else
     // drives it. The lock makes the address/data pair atomic.
-    unsafe {
+    Some(unsafe {
         outl(PCI_CONFIG_ADDRESS, addr);
         inl(PCI_CONFIG_DATA)
-    }
+    })
 }
 
-pub(super) fn write(bus: u8, device: u8, function: u8, offset: u16, value: u32) {
-    let addr = config_address(bus, device, function, offset);
+pub(super) fn write(bus: u8, device: u8, function: u8, offset: u16, value: u32) -> Option<()> {
+    let addr = config_address(bus, device, function, offset)?;
     let _guard = PORT_LOCK.lock();
     // SAFETY: as for `read`.
     unsafe {
         outl(PCI_CONFIG_ADDRESS, addr);
         outl(PCI_CONFIG_DATA, value);
     }
+    Some(())
 }
 
 /// Replace the bits `mask` selects within the containing dword.
-pub(super) fn modify(bus: u8, device: u8, function: u8, offset: u16, mask: u32, value: u32) {
-    let addr = config_address(bus, device, function, offset);
+pub(super) fn modify(
+    bus: u8,
+    device: u8,
+    function: u8,
+    offset: u16,
+    mask: u32,
+    value: u32,
+) -> Option<()> {
+    let addr = config_address(bus, device, function, offset)?;
     let _guard = PORT_LOCK.lock();
     // SAFETY: as for `read`. The lock also makes the read and write below one
     // indivisible modification.
@@ -61,4 +69,5 @@ pub(super) fn modify(bus: u8, device: u8, function: u8, offset: u16, mask: u32, 
         outl(PCI_CONFIG_ADDRESS, addr);
         outl(PCI_CONFIG_DATA, (current & !mask) | (value & mask));
     }
+    Some(())
 }

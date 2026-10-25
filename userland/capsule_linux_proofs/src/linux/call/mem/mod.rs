@@ -16,7 +16,7 @@
 
 //! mmap, mprotect, mremap and munmap: what each refuses from its arguments.
 
-#[path = "../../../../../capsule_linux/src/linux/call/mem/map_args.rs"]
+#[path = "../../../../../capsule_linux/src/linux/call/mem/map_args/mod.rs"]
 pub mod map_args;
 #[path = "../../../../../capsule_linux/src/linux/call/mem/prot_args.rs"]
 pub mod prot_args;

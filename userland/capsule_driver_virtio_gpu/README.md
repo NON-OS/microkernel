@@ -4,8 +4,8 @@
 
 `capsule_driver_virtio_gpu` is the virtio GPU display-controller capsule. It
 owns the PCI device claim, BAR mapping, control-queue DMA, the virtio
-initialization sequence, and the primary scanout surface for
-`driver.virtio_gpu0`.
+initialization sequence, and the display behind `driver.virtio_gpu0`, which
+it serves on the display wire (`nonos_gfx_wire`, through `nonos_gfx_serve`)
 
 ```text
 compositor (the only sender the kernel admits)
@@ -13,26 +13,28 @@ compositor (the only sender the kernel admits)
         v
 driver.virtio_gpu0 -- control queue DMA --> virtio-gpu device
         |
-        `-- primary scanout: a DMA grant registered and shared as a surface
+        |-- primaries: anonymous pages registered and shared as surfaces
+        `-- per output: a surface of its own (DMA + a 2D resource) on its scanout
 ```
 
 The capsule is not a compositor, window manager, renderer, toolkit, or input
-router. It exposes device configuration and 2D scanout and resource commands;
-all desktop policy stays in the compositor.
+router. It answers the wire's CAPS, MODES, STATE, SURFACE, FLUSH, MODE_SET
+and RETIRE; all desktop policy stays in the compositor.
 
 ## Microkernel contract
 
 The manifest grants `IPC`, `Memory`, `GraphicsSurfaceCreate`, `Driver`,
-`DeviceEnum`, `Mmio`, `Dma`, and `Pio`:
+`DeviceEnum`, `Mmio` and `Dma`, and no `Pio`: both virtio layouts are
+reached through a memory BAR (`userland/nonos_virtio`):
 
 ```text
-CAPSULE_REQUIRED_CAPS = 0x1B9018
+CAPSULE_REQUIRED_CAPS = 0xB9018
 CAPSULE_OPTIONAL_CAPS = 0x100
 ```
 
 The optional bit is `Debug`, which only a `capsule-serial-debug` build grants.
 `GraphicsSurfaceCreate` admits `MkSurfaceRegister` and `MkSurfaceShare`, which
-publish the primary scanout as a surface. `Pio` is no longer used: it served
+publish each primary as a surface. `Pio` is no longer used: it served
 only the legacy transport, which is gone; the bit can leave the manifest at
 its next signing.
 
@@ -46,47 +48,47 @@ interpret GPU resources, scanout policy, composition, cursor policy, or window
 ownership.
 
 Only the compositor may send to `driver.virtio_gpu0`: the kernel holds the
-endpoint to it (`src/services/registry/held.rs`), by name and by pid. Within
-the driver, the primary resource is bound to the first pid that asks for it,
-and transfer, scanout and flush refuse a resource another pid owns.
+endpoint to it (`src/services/registry/held.rs`), by name and by pid. The
 
 ## Interface contract
 
-| Operation | Input | Output |
-|---|---|---|
-| `OP_HEALTHCHECK` | none | the control queue's state (0 live, 1 down) and the stalls recovered in place |
-| `OP_CONTROLLER_INFO` | none | device id, queue size, feature bits |
-| `OP_DISPLAY_INFO` | none | events, scanout count, capset count |
-| `OP_CONTROLQ_STATE` | none | control queue DMA metadata |
-| `OP_QUERY_CAPS` | none | scanout count, capset count, events, and whether the virgl probe passed |
-| `OP_TRANSFER_TO_HOST` | resource, rectangle | TRANSFER_TO_HOST_2D posted |
-| `OP_SET_SCANOUT` | resource, scanout | SET_SCANOUT posted |
-| `OP_FLUSH` | resource, rectangle | RESOURCE_FLUSH posted |
-| `OP_MODE_LIST` | none | the scanout modes |
-| `OP_GET_PRIMARY_SURFACE` | none | the primary surface handle and geometry |
+The display wire (`nonos_gfx_wire`), served by `nonos_gfx_serve`:
 
-Unknown operations reply `E_BAD_OP`. Malformed request bodies reply `E_INVAL`.
-Ops `0x0006` and `0x0007` once created a client resource and attached backing
-to it. No client sent them, a resource could never be destroyed, and once the
-64-entry table was full a create left behind the host resource it had just
-made; they are answered as unknown now and their numbers are not reused.
+| Operation | What virtio-gpu answers |
+|---|---|
+| `CAPS` | kind 1 (VIRTIO_GPU), one output per enabled scanout (at most 4), `MODE_SET \| MODE_RANGE \| HINTS`, sides to 4096, surface budget one display grant (32 MiB) |
+| `STATE` | the size shown and the host's wanted size: scanning out; dark (no flags) while the host has the scanout off; LOST once it is back, while the wire server shows the primary on it again. A raised display event is read first (and on every turn of the receive loop) |
+| `SURFACE`, `FLUSH`, `MODE_SET`, `RETIRE` | as the wire defines. A flush copies into the output's surface, sends the rectangles to the host and flushes them. A mode set makes the new surface, loads it whole, and only then sets it on the scanout |
+| `CURSOR` | `ENOSYS`: no cursor plane yet |
+
+While the host has an output's scanout off, its FLUSH sends nothing and
+its MODE_SET answers `EAGAIN`; the scanout is let go of and its surface
+kept (`src/display/plug.rs`). A display event that changes an output (off,
+back, or a new wanted size) is told to the compositor at once with
+`OUTPUT_NOTICE` (`OUTPUTS_CHANGED`). Only scanouts taken at bring-up are
+outputs: one the host turns on for the first time later is not driven.
+
+A frame from sender 0 is a DGON: one naming this device ends the driver.
+The driver's own private ops (`OP_HEALTHCHECK`, `OP_GET_PRIMARY_SURFACE` and
+state shows on the wire as each output's STATE (below, Failure model).
 
 ## Authority
 
 The capsule may claim the virtio GPU PCI device, map the virtio 1.0 structures
 its capabilities place in a memory BAR, allocate broker-owned DMA for control
-queue 0 and for the primary scanout's backing, and register and share that
-backing as a surface. It binds
+queue 0 and for each output's surface, and register and share the
+primaries' pages as surfaces. It binds
 no interrupt. It has no framebuffer MMIO grant, no compositor authority, no
 input authority, and no filesystem or network authority.
 
 ## Privacy and persistence
 
 The capsule stores no windows, screenshots, pointer paths, keystrokes, or
-display history. The primary scanout's backing holds the last frame drawn; it
-is a DMA grant, revoked on exit and zeroed by the broker before reuse. Runtime
-state is otherwise grant ids, queue addresses, device feature bits, the
-resource table, and virtio-gpu config counters.
+display history. Each output's surface holds the last frame flushed; it is a
+DMA grant, revoked on exit and zeroed by the broker before reuse. When the
+primaries from zeroed pages. Runtime
+state is otherwise grant ids, queue addresses, the heads (each output's
+scanout, surface and the host's wanted size), and surfaces in limbo.
 
 ## Runtime lifecycle
 
@@ -98,15 +100,15 @@ VIRGL and EDID when offered, and ACCESS_PLATFORM whenever offered), allocates
 queue DMA, programs control queue 0, and only then turns bus mastering on and
 sets DRIVER_OK: a device left live by a dead predecessor may reach memory only
 once it reads back reset and its queue is on this grant, and a device refused
-at any step never may. It then reads the scanouts, asks for EDID when offered (logged
-only), runs a best-effort virgl render probe that only logs whether 3D works,
-and creates the primary scanout: a DMA grant attached to a 2D resource, set on
-scanout 0, then registered with `mk_surface_register` and shared with
-`mk_surface_share` (`src/setup/primary_surface/create.rs`). A probe command
-that stalls resets the device; the queue is restarted on the same grant and
-the primary scanout still goes up, without virgl (`src/setup/probes.rs`). It
-then serves IPC. Whether the claim is confined to an IOMMU domain is the kernel's to
-enforce at claim time; the capsule does not guess.
+at any step never may. It then reads the scanouts, reads output 0's EDID when
+offered (the wire's panel), runs a best-effort virgl render probe that only
+logs whether 3D works, and takes every enabled scanout
+(`src/display/take.rs`): a zeroed DMA surface of the host's size, a 2D resource
+on it, sent whole, set on the scanout and flushed. A probe command that stalls
+resets the device; the queue is restarted on the same grant and the outputs
+are still taken (`src/setup/probes.rs`). It then serves the display wire,
+Whether the claim is confined to an IOMMU domain is the kernel's to enforce at
+claim time; the capsule does not guess.
 
 ## Failure model
 
@@ -121,24 +123,33 @@ capsule from serving. A scanout mode under 16x16, or whose frame would not fit
 the broker's display grant (32 MiB, one 3840x2160 frame), is recorded as
 1280x720 rather than failing the bring-up; any other is taken as the device
 gives it.
-The resource ops post controlq commands; the others read state.
 
 One control command is in flight at most, counted by the driver. A command
 the device does not answer within `CTRLQ_MS` (2 s, by the uptime clock), or
 answers out of turn, ends in a device reset: its chain named the staging page
-the next command would reuse. By then the compositor draws into the primary
-surface's frames, so the server never gives the device back or exits (the
-kernel would free the frames under it, and nothing restarts a driver). It
-recovers in place (`src/server/recover/`): the queue restarted on the same
-grant, the primary resource made again under the same id on the same frames
-and set on scanout 0, at most three tries, each logged
+the next command would reuse. By then the compositor draws into the
+primaries and every output shows a surface whose pages the driver holds, so
+the server never gives the device back or exits (the kernel would free the
+pages under the host, and nothing restarts a driver). It recovers in place
+on the next turn of the receive loop (`src/server/recover/`): the queue
+restarted on the same grant, every output's surface made again under its own
+id on its own pages, loaded whole and set on its scanout
+(`src/display/reshow.rs`), at most three tries, each logged
 (`driver.virtio_gpu0: control queue stalled; device reset, recovering (try 1
-of 3)`). The reset takes the render context, so `OP_QUERY_CAPS` stops offering
-3D. If no try works, or the device stalls again after three recoveries in a
+of 3)`). Surfaces in limbo go back to the kernel then: a reset host holds
+none. If no try works, or the device stalls again after three recoveries in a
 row without serving 30 s after any of them, it stays up and `Down`: the
-device left reset, the claim and every grant kept, device ops answering
-`E_DEVICE`, and `OP_HEALTHCHECK` naming the state. Only a failed service registration, before
-anyone holds the surface, resets the device and gives it back before exit 1.
+device left reset, the claim and every grant kept, every output's STATE LOST
+and dark under a new generation, FLUSH and MODE_SET `ENXIO`, and the
+compositor told `OUTPUT_NOTICE` `LEAVING` once, so it drives another display.
+Only a failed service registration, before anyone holds a primary, resets the
+device and gives it back before exit 1.
+
+flushed twice, so each surface, the host's copy and the screen hold none of its
+frame. A blank a device did not take whole is tried again on the next wake. A
+surface the host will not let go of stays in limbo with its pages mapped, never
+handed back to the kernel while the host may read them. It is tried again on
+every mode set and STATE (`src/display/limbo.rs`).
 
 ## Current implemented surface
 
@@ -150,22 +161,21 @@ anyone holds the surface, resets the device and gives it back before exit 1.
   MSI-X table pages skipped), the regions mapped and bounds-checked, the
   features negotiated and the queue programmed.
 - Config reads for events, scanout count, and capset count.
-- IPC health, controller info, display info, control queue state, caps,
-  mode list, and the 2D resource commands.
-- The primary scanout surface, shared with the compositor.
+- The display wire: CAPS, MODES, STATE (with the host's display events),
+  SURFACE, FLUSH, MODE_SET and RETIRE, through `nonos_gfx_serve`, for every
+  enabled scanout.
 - Static gates for capability boundary and endpoint ownership.
 
 ## Wire format
 
-Requests use the `NVGP` capsule header, version `1`, and the shared 20-byte
-driver envelope. Replies begin with a 4-byte signed status word. All multi-byte
-integers are little-endian.
+The display wire's 20-byte envelope (`NVGP` magic, version `1`) and its bodies,
+as `nonos_gfx_wire` defines them. The driver's own private ops (0x02 to 0x0C)
 
 ## State ownership
 
 `driver.virtio_gpu0` owns only hardware-facing GPU state: PCI claim, register
-grant, control queue DMA grant, the primary scanout's DMA grant, the resource
-table, queue size, feature mask, and config counters. The compositor owns surfaces, damage, focus, cursor, z-order, and
+grant, control queue DMA grant, each output's surface (its DMA and its 2D
+resource), the primaries' pages, and surfaces in limbo. The compositor owns surfaces, damage, focus, cursor, z-order, and
 presentation policy.
 
 ## Operating rules
@@ -225,9 +235,9 @@ the features taken, the control queue (a timed-out command reset, never run
 with the next command's bytes) and its wire formats, the device configuration
 offsets, the doorbell bound, Bus Master only after the reset and the queue
 and never on a refusal, the scanout mode, the server's answers, the
-recovery from a stall on the same surface or to `Down` with nothing released,
+recovery from a stall on the same surfaces or to `Down` with nothing released,
 the recoveries in a row bounded, a probe stall at bring-up still ending in the
-2D surface, and the reset-before-release orders
+outputs taken, and the reset-before-release orders
 (`userland/virtio_gpu_proofs`). Only a boot shows
 the rest. Under QEMU q35, confirm both ways:
 

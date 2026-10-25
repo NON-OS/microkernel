@@ -22,3 +22,31 @@ pub const OP_INPUT_SUBSCRIBE: u16 = 0x0005;
 pub const OP_CURSOR_UPDATE: u16 = 0x0006;
 pub const OP_SCENE_REMOVE: u16 = 0x0007;
 pub const OP_DISPLAY_INFO: u16 = 0x0008;
+/// A guest service's host size hint (section 12, Size).
+pub const OP_DISPLAY_HINT: u16 = 0x0009;
+/// A capturing driver's camera or microphone on or off (Decision 9).
+pub const OP_INDICATOR: u16 = 0x000A;
+/// The shell's choice for several outputs: mirrored or extended (unit 10).
+pub const OP_OUTPUT_LAYOUT: u16 = 0x000B;
+/// The composed screen into a capture holder's surface, with a notice.
+pub const OP_SCREENSHOT: u16 = 0x000C;
+/// The shell's scale for one output, in quarters.
+pub const OP_OUTPUT_SCALE: u16 = 0x000D;
+/// The shell's colour temperature for the screen (night light).
+pub const OP_NIGHT_LIGHT: u16 = 0x000E;
+/// The shell's accessibility settings for one output.
+pub const OP_ACCESSIBILITY: u16 = 0x000F;
+/// One output's accessibility settings as they are now.
+pub const OP_ACCESSIBILITY_GET: u16 = 0x0010;
+/// The displays as laid out now, for Settings through the shell.
+pub const OP_OUTPUT_ARRANGEMENT: u16 = 0x0011;
+/// A display driver's word, unanswered (`nonos_gfx_wire::notice`).
+pub const OP_OUTPUT_NOTICE: u16 = 0x0012;
+/// The shell's lid: closed darkens every output, open wakes them.
+pub const OP_LID: u16 = 0x0013;
+/// A brightness key: the focused output's panel to its next level.
+pub const OP_BRIGHTNESS_STEP: u16 = 0x0014;
+/// One of a monitor's own controls set, on the person's word.
+pub const OP_SET_VCP: u16 = 0x0015;
+pub const OP_BRIGHTNESS_GET: u16 = 0x0016;
+pub const OP_INPUT_SOURCES: u16 = 0x0017;

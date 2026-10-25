@@ -15,9 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! REMOTE_NDIS_HALT_MSG (Remote NDIS 1.0, 2.2.3): sent when a bind stops
-//! after the device was initialized, as Linux generic_rndis_bind does at
-//! halt_fail_and_release, so the device is left uninitialized. It has no
-//! completion, so nothing is read back.
+//! after the device was initialized, so the device is left uninitialized.
+//! It has no completion, so nothing is read back.
 
 use nonos_usbnet::{Bus, Setup};
 
@@ -29,6 +28,6 @@ pub(super) fn halt<B: Bus>(bus: &mut B, comm: u8) {
     put32(&mut msg, 4, 12);
     let send = Setup::class(false, SEND_ENCAPSULATED_COMMAND, 0, comm);
     // The bind has already failed; a device that does not take the halt
-    // changes nothing about that, as Linux ignores it too.
+    // changes nothing about that.
     let _ = bus.control_out(send, &msg);
 }

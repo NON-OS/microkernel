@@ -21,7 +21,7 @@ use super::origin::origin;
 use crate::state::Context;
 
 pub fn hit(ctx: &Context, px: u32, py: u32) -> Option<usize> {
-    ctx.desktop_menu?;
+    ctx.desk_ui.desktop_menu?;
     let (ox, oy) = origin(ctx);
     if px < ox || px >= ox + width(ctx) {
         return None;

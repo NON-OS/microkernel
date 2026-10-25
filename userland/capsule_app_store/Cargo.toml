@@ -30,11 +30,18 @@ nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_app_skeleton = { path = "../app_skeleton" }
 nonos_toolkit = { path = "../toolkit", default-features = false }
 nonos_market_proto = { path = "../market_proto" }
+# A listing's commerce block, decoded for its price line (B9).
+nonos_marketplace_abi = { path = "../marketplace_abi" }
+# The chain INSTALL_READY reads a sold listing's bond on (v1.4.23).
+nonos_nox_config = { path = "../nonos_nox_config" }
+nonos_payment_proto = { path = "../payment_proto" }
 # Whether this boot is live, for which Qwen tiers fit (Persistent).
 nonos_policy_client = { path = "../policy_client" }
 nonos_policy_proto = { path = "../policy_proto" }
 # The network a tier's download would leave by, said on its card.
 nonos_route_link = { path = "../nonos_route_link" }
+# keccak for a payee's EIP-55 line, in process: public bytes need no Crypto.
+sha3 = { version = "=0.10.9", default-features = false }
 
 [profile.release]
 panic = "abort"

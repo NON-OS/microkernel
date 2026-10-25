@@ -19,3 +19,12 @@ path = "src/lib.rs"
 # The encoder writes the well formed indexes the decode proofs damage.
 nonos_marketplace_abi = { path = "../marketplace_abi", features = ["canonical-encode"] }
 nonos_market_proto = { path = "../market_proto" }
+nonos_payment_proto = { path = "../payment_proto" }
+
+# Host hashes and a real secp256k1 for the schema 3 proofs: the abi takes
+# its hashes and signer recovery injected, and these are the injections.
+[dev-dependencies]
+blake3 = { version = "=1.8.6", default-features = false, features = ["pure"] }
+nonos_nox_config = { path = "../nonos_nox_config" }
+nonos_secp256k1 = { path = "../nonos_secp256k1" }
+sha3 = { version = "=0.10.9", default-features = false }

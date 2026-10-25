@@ -23,21 +23,14 @@
 use alloc::format;
 use nonos_app_skeleton::PaintBuffer;
 
-use super::history_labels::{kind, stage};
 use crate::wallet::etna::backdrop::Backdrop;
 use crate::wallet::etna::frame::{begin, end};
 use crate::wallet::etna::frame_spec::FrameSpec;
-use crate::wallet::etna::parts::tile::{row_height, tile, tile_row};
-use crate::wallet::etna::rect::Rect;
 use crate::wallet::etna::tokens::{GAP, TEXT_3};
 use crate::wallet::etna::wrap::wrapped;
 use crate::wallet::etna::Role;
 use crate::wallet::screen::hits;
 use crate::wallet::state::State;
-
-const EMPTY: &str = "No shielded activity yet. Deposits, payments, withdrawals and payments \
-     received appear here with the state each one has reached, kept in this account's \
-     shield store.";
 
 pub fn history(state: &State, fb: &mut PaintBuffer) {
     hits::clear();
@@ -56,22 +49,7 @@ pub fn history(state: &State, fb: &mut PaintBuffer) {
     let c = l.content;
     let log = &state.shield_ui.history;
     let mut y = c.y;
-    if log.is_empty() {
-        y += wrapped(fb, c.x as i32, y as i32, c.w as i32, Role::Lead, EMPTY, TEXT_3) as u32;
-    } else {
-        let at = Rect::new(c.x, y, c.w, row_height() * log.len() as u32);
-        tile(fb, at);
-        for (i, e) in log.iter().enumerate() {
-            let name = format!("{} {} {}", kind(e.kind), e.amount, super::consts::ticker(e.asset));
-            let tx =
-                e.tx.as_ref()
-                    .filter(|t| t.len() > 10)
-                    .map(|t| format!("{}  {}..", stage(e.stage), &t[..10]));
-            let value = tx.unwrap_or_else(|| alloc::string::String::from(stage(e.stage)));
-            tile_row(fb, at, y + row_height() * i as u32, &name, &value, i + 1 == log.len());
-        }
-        y += at.h;
-    }
+    y = super::history_rows::rows(fb, c, y, log);
     let cut = state.shield_ui.history_cut;
     if cut > 0 {
         let note = format!(
@@ -83,5 +61,5 @@ pub fn history(state: &State, fb: &mut PaintBuffer) {
     }
     hits::reach(y, state.scroll, l.content_bottom);
     end(fb, &spec, &mut l);
-    super::edges::put(state, &l);
+    super::edges::put(&l);
 }

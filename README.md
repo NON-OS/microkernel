@@ -215,15 +215,16 @@ holder has:
  make boot-install # beside a blank disk, to try the installer
  make usb DISK=/dev/sdX # write it to a stick, after typing the path again
 
-A build is one of six profiles, set in `nonos.toml` or as `PROFILE=airgapped make`:
+A build is one of seven profiles, set in `nonos.toml` or as `PROFILE=airgapped make`:
 
 | profile | for | what it adds or takes away |
 |---|---|---|
-| standard | a person's own machine | every driver, the desktop, first-boot setup and the installer |
-| hardened | a machine that may be seized | Secure Boot and a TPM required at boot; no capsule writes to a serial console |
+| standard | a person's own machine | every driver, the desktop, first-boot setup and the installer; no capsule writes to a serial console |
+| hardened | a machine that may be seized | standard, with Secure Boot and a TPM required at boot |
 | airgapped | keys that must never touch a network | hardened, with no network driver, stack or online program compiled in |
 | qemu | trying NONOS in a virtual machine | the desktop, without the drivers only real hardware has |
 | dev | working on NONOS | the loader's development policy; never sealed for release |
+| selftest | the self-test | dev, with a capsule that tries what an attacker would at boot ([docs/security/self-test.md](docs/security/self-test.md)) |
 | core | kernel work | the microkernel and its base capsules, no desktop |
 
 A release image is built `hardened`. [docs/build](docs/build/README.md) is the step by step

@@ -17,12 +17,12 @@
 //! Where the magnifier sits. The painter and the hit test both read the box
 //! from here, so a click always lands on the glyph that was drawn.
 
-use crate::render::layout::menubar_rect;
+use super::cluster::cluster_x;
+use super::glyph_w::batt_glyph_w;
+use super::metrics::gap;
 use crate::render::measure_aa::measure_aa_bytes;
-use crate::render::ui_font::{px, scale, STATUS_PX};
+use crate::render::ui_font::{px, STATUS_PX};
 use crate::state::Context;
-
-use super::metrics::{batt_glyph_w, gap, net_glyph_w, right_margin, search_glyph_w};
 
 /// Whether the battery label is a reading ("57%"), the only case that gets
 /// the gauge glyph. "No battery" and "Battery status unavailable" are words
@@ -50,30 +50,4 @@ pub(super) fn fitted<'a>(ctx: &Context, btext: &'a [u8], when: &[u8]) -> &'a [u8
     } else {
         &btext[..0]
     }
-}
-
-pub(super) fn total(btext: &[u8], when: &[u8]) -> u32 {
-    battery_w(btext)
-        + net_glyph_w()
-        + gap()
-        + search_glyph_w()
-        + gap()
-        + measure_aa_bytes(when, STATUS_PX)
-}
-
-/// Where the status cluster starts, or None when the bar has no room for it.
-pub(super) fn cluster_x(ctx: &Context, btext: &[u8], when: &[u8]) -> Option<u32> {
-    let bar = menubar_rect(ctx.width);
-    let span = total(btext, when);
-    if bar.width <= span + right_margin() {
-        return None;
-    }
-    Some(bar.x + bar.width - right_margin() - span)
-}
-
-pub(super) fn search_box(ctx: &Context, btext: &[u8], when: &[u8]) -> Option<(u32, u32, u32)> {
-    let bar = menubar_rect(ctx.width);
-    let x = cluster_x(ctx, btext, when)? + battery_w(btext) + net_glyph_w() + gap();
-    let y = bar.y + (bar.height - 10 * scale()) / 2;
-    Some((x, y, search_glyph_w()))
 }

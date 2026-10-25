@@ -6,5 +6,8 @@ license = "AGPL-3.0-or-later"
 publish = false
 description = "The calls between the wallet and nonos.shield, and their framing"
 
+[package.metadata.nonos]
+test-lane = true
+
 [lib]
 path = "src/lib.rs"

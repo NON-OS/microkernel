@@ -19,6 +19,8 @@
 //! reduced would be another secret, whose commitment nobody enrolled.
 
 use nonos_device_attest::{commit, scope, tag, words_of, Statement, Witness};
+use nonos_stark::air::RATE;
+use nonos_stark::field::Fp;
 
 use super::enrolled::Enrolled;
 use super::error::Refusal;
@@ -32,6 +34,20 @@ pub fn assemble(
     slots: Slots,
     secret: &[u8; 32],
 ) -> Result<(Statement, Witness), Refusal> {
+    let e = scope(&req.verifier, req.window).ok_or(Refusal::Scope)?;
+    bound(e, words_of(&req.nonce), &req.device_root, device, slots, secret)
+}
+
+/// The statement under scope `e` and context words `context`: the window's
+/// come from its request, the market's from the record and the listing.
+pub fn bound(
+    e: [Fp; 2],
+    context: [Fp; RATE],
+    device_root: &[u8; 32],
+    device: Enrolled,
+    slots: Slots,
+    secret: &[u8; 32],
+) -> Result<(Statement, Witness), Refusal> {
     if !canonical(secret) {
         return Err(Refusal::SecretWord);
     }
@@ -39,14 +55,13 @@ pub fn assemble(
     if commit(&s) != words_of(&device.commitment) {
         return Err(Refusal::CommitmentMismatch);
     }
-    let e = scope(&req.verifier, req.window).ok_or(Refusal::Scope)?;
     let statement = Statement {
         boot_root: words_of(&slots.boot_root),
         kernel_root: words_of(&slots.kernel_root),
-        device_root: words_of(&req.device_root),
+        device_root: words_of(device_root),
         device_depth: device.depth,
         scope: e,
-        context: words_of(&req.nonce),
+        context,
         tag: tag(&s, &e),
     };
     let witness = Witness {

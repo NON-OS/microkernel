@@ -33,6 +33,7 @@ pub(super) fn enrol(pid: u32, supervisor: u32) -> bool {
      * held while the other is taken.
      */
     if alive(supervisor) {
+        super::seal::enrolled(supervisor);
         return true;
     }
     super::registry::remove(pid);

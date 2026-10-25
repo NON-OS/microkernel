@@ -20,16 +20,23 @@
 //! (`adapters`, `interface`), the RTL8821CE's data-path counters (`datapath`),
 //! and the address net_core bound (`lease`, `net_status`).
 
+mod adapter_name;
 mod adapters;
 mod datapath;
+mod datapath_ask;
+mod driver_ids;
 mod interface;
 mod lease;
+mod lease_read;
 mod net_poll;
 mod net_status;
+mod wifi_class;
 
 pub use adapters::scan_adapters;
-pub use datapath::{driver_datapath, DataPath};
-pub use interface::{has_driver, WifiInterface};
+pub use datapath::DataPath;
+pub use datapath_ask::driver_datapath;
+pub use driver_ids::has_driver;
+pub use interface::WifiInterface;
 pub use lease::{Lease, NetStatus};
 pub use net_poll::net_poll_due;
 pub use net_status::net_status;

@@ -15,7 +15,8 @@ use crate::discover::Found;
 use crate::error::AhciError;
 use crate::model::{CrStuck, HbaRig};
 
-pub(super) const AHCI: Found = Found { device_id: 9, irq_line: 11, abar_size: 0x2000 };
+pub(super) const AHCI: Found =
+    Found { device_id: 9, vendor: 0x8086, irq_line: 11, abar_size: 0x2000 };
 
 #[test]
 fn an_hba_left_armed_is_reset_before_bus_master_goes_on() {

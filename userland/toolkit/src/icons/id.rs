@@ -66,4 +66,5 @@ pub enum IconId {
     CalcHistory,
     Install,
     Qwen,
+    SettingsBluetooth,
 }

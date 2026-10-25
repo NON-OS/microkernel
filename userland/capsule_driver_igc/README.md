@@ -1,7 +1,9 @@
 # capsule_driver_igc
 
-Status: not in the 0.9.2 image. The capsule builds and its host proofs
-it is not yet wired into the kernel mirror and the stack.
+Status: wired, not yet signed. The kernel mirror (`src/hardware/igc_capsule`)
+embeds and spawns it under `nonos-capsule-driver-igc` (the
+`microkernel-driver-igc` build), the broker scope row `driver.igc_0` admits
+its id list, and net.core and net.l2 reach it through
 
 ## Role
 
@@ -74,8 +76,9 @@ down, the part reset, both rings restart from slot 0, and the part goes
 back on the air under the same station address, Bus Master staying on.
 
 Teardown is stand-down (both queues and engines off), reset, Bus Master off
-then `MkDeviceRelease`, which is the real guard: it clears Bus Master with a
-read-back before freeing every grant.
+(the masked Command write, which names the bits it changes; the plain one
+only ORs bits on), then `MkDeviceRelease`, which is the real guard: it
+clears Bus Master with a read-back before freeing every grant.
 
 ## Failure model
 

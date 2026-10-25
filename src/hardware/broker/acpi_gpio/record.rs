@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::x86_64::acpi::aml::GpioController;
+use crate::arch::firmware_table::devices::GpioController;
 use crate::hardware::broker::class::ids;
 use crate::hardware::broker::device::{Bar, BarKind, BusKind, DeviceRecord};
 
@@ -22,7 +22,7 @@ use crate::hardware::broker::device::{Bar, BarKind, BusKind, DeviceRecord};
 const HID_BAR: usize = 5;
 
 /// Build an ACPI-bus DeviceRecord for a GPIO controller: bars 0.. are its
-/// community windows in Linux barno order, so a driver claims it and maps
+/// community windows in `_CRS` order, so a driver claims it and maps
 /// the window a pin's pad lives in through `MkMmioMap`. Bar 5 (kind None,
 /// never mapped, past `bar_count`) carries the eight `_HID` bytes as a
 /// little-endian `base`, which picks the pad layout in nonos_pinctrl. The
@@ -41,6 +41,11 @@ pub(super) fn device_record(ctl: &GpioController) -> DeviceRecord {
         aux: 0,
         _pad: [0; 2],
     };
+    // The shared line, bindable through MkIrqBind like a function's INTx
+    // when it fits the record's byte; a GSI past it is left unbound and
+    // the GPIO capsule polls.
+    let irq_line =
+        ctl.irq.and_then(|g| u8::try_from(g).ok()).filter(|g| *g != 0xFF).unwrap_or(0xFF);
     DeviceRecord {
         bus_kind: BusKind::Acpi as u8,
         class: ids::GPIO_CTRL,
@@ -48,6 +53,8 @@ pub(super) fn device_record(ctl: &GpioController) -> DeviceRecord {
         device: (ctl.uid & 0xFFFF) as u16,
         bar_count: count as u8,
         bars,
+        irq_line,
+        irq_pin: u8::from(irq_line != 0xFF),
         ..DeviceRecord::empty()
     }
 }

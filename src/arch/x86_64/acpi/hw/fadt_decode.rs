@@ -19,18 +19,18 @@
 //! The FADT grew with every ACPI revision: 116 bytes in 1.0, 244 in 2.0,
 //! 268 in 5.0, 276 in 6.0. Reading the full struct out of a short table reads
 //! whatever firmware put after it, which is how a 1.0 FADT ends up with a
-//! "reset register" made of the next table's bytes. ACPICA copies the table
-//! into a zeroed local of full size (`acpi_tb_create_local_fadt`); this does
-//! the same thing field by field: a field that does not fit inside `length`
-//! reads as zero.
+//! "reset register" made of the next table's bytes. Here a field that does
+//! not fit inside `length` reads as zero, as if the table had been copied
+//! into a zeroed FADT of full size.
 //!
-//! The 64-bit X_ fields win over the 32-bit ones whenever they are nonzero,
-//! as in ACPICA's `acpi_tb_select_address` and `acpi_tb_convert_fadt` with
-//! the default `acpi_gbl_use32_bit_fadt_addresses = FALSE`. When an X_ block
-//! is absent the legacy port and its length byte make a System I/O GAS. The
-//! PM1 event, PM1 control and PM timer widths are forced to their fixed sizes
-//! (32, 16 and 32 bits) as ACPICA does with `use_default_register_widths`,
-//! because firmware gets those bit widths wrong more often than right.
+//! The 64-bit X_ fields win over the 32-bit ones whenever they are nonzero:
+//! ACPI 2.0 on says the X_ field is used when it is set (ACPI 6.5, 5.2.9;
+//! recalled, unverified). When an X_ block is absent the legacy port and
+//! its length byte make a System I/O GAS. The PM1 event, PM1 control and PM
+//! timer widths are forced to their fixed sizes (32, 16 and 32 bits, the
+//! widths the fixed hardware register descriptions in ACPI 6.5, 4.8 give;
+//! recalled, unverified), because firmware gets those bit widths wrong more
+//! often than right.
 
 use super::gas::Gas;
 
@@ -90,8 +90,8 @@ pub struct FadtInfo {
     pub length: u32,
     pub revision: u8,
     /// True when the bytes summed to zero. A bad checksum is reported, not
-    /// fatal: Linux warns and carries on, and firmware that patches the FADT
-    /// at boot without fixing the sum is common.
+    /// fatal: firmware that patches the FADT at boot without fixing the sum
+    /// is common, and refusing it would leave no power control at all.
     pub checksum_ok: bool,
     pub firmware_ctrl: u64,
     pub dsdt: u64,
@@ -164,7 +164,7 @@ fn gas_at(t: &[u8], len: usize, at: usize) -> Gas {
     bytes::<12>(t, len, at).map(|b| Gas::from_bytes(&b)).unwrap_or(Gas::empty())
 }
 
-/// `acpi_tb_select_address`: the 64-bit field when nonzero, else the 32-bit.
+/// The 64-bit field when nonzero, else the 32-bit (ACPI 6.5, 5.2.9; recalled).
 pub fn select_address(addr32: u32, addr64: u64) -> u64 {
     if addr64 != 0 {
         addr64
@@ -213,8 +213,8 @@ pub fn decode_fadt(t: &[u8]) -> Option<FadtInfo> {
     let x_gpe1 = gas_at(t, len, off::X_GPE1_BLK);
     let gpe0 = select_block(x_gpe0, u32_at(t, len, off::GPE0_BLK), gpe0_blk_len, 0);
     let gpe1 = select_block(x_gpe1, u32_at(t, len, off::GPE1_BLK), gpe1_blk_len, 0);
-    // The GPE length byte is authoritative (Linux sizes the GPE registers
-    // from it); the X_ bit width is the fallback only when the byte is 0.
+    // The GPE length byte is authoritative (ACPI 6.5, 5.2.9 sizes the GPE
+    // blocks by it; recalled); the X_ bit width is the fallback for a 0 byte.
     let gpe0_len = if gpe0_blk_len != 0 { gpe0_blk_len } else { gpe0.bit_width / 8 };
     let gpe1_len = if gpe1_blk_len != 0 { gpe1_blk_len } else { gpe1.bit_width / 8 };
 

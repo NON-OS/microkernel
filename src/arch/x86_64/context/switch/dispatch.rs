@@ -14,33 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::process::core::PROCESS_TABLE;
+use alloc::sync::Arc;
+
+use crate::arch::x86_64::gdt::fs_gs;
+use crate::process::core::{ProcessControlBlock, PROCESS_TABLE};
 use crate::process::nonos_core::INTERRUPT_SAVED_CONTEXTS;
-use core::sync::atomic::{AtomicU32, Ordering};
+use crate::security::hardening::spectre_mitigations;
 
 use super::first_entry::try_first_entry;
 use super::kernel_thread::resume_kernel_thread;
 use super::resume::try_resume;
-
-static DISPATCH_TRACE_COUNT: AtomicU32 = AtomicU32::new(0);
-
-fn trace(label: &[u8], pid: u32) {
-    if !matches!(pid, 7 | 8 | 9 | 0x1b | 0x1c | 0x26 | 0x27)
-        || DISPATCH_TRACE_COUNT.fetch_add(1, Ordering::Relaxed) >= 64
-    {
-        return;
-    }
-    crate::sys::serial::trace(b"[DISPATCH] pid=");
-    crate::sys::serial::trace_hex(pid as u64);
-    crate::sys::serial::trace(b" ");
-    crate::sys::serial::traceln(label);
-}
 
 pub(crate) fn switch_to_user_pcb_x86_64(pid: u32) {
     let pcb = match PROCESS_TABLE.find_by_pid(pid) {
         Some(p) => p,
         None => return,
     };
+    // SAFETY: reading this CPU's fs base has no side effect.
+    let saved_fs = unsafe { fs_gs::get_fs_base() };
+    // A different process than this CPU last ran must not inherit the
+    // indirect branch predictions the previous one trained.
+    spectre_mitigations::switch_barrier(pcb.thread_group_id());
 
     // Install this task's user fs base before any of the entry paths run.
     // Threads of one process share an address space but not TLS, and the
@@ -50,9 +44,20 @@ pub(crate) fn switch_to_user_pcb_x86_64(pid: u32) {
     // previously scheduled capsule left behind.
     // SAFETY: MSR_FS_BASE only redirects user-mode fs-segment addressing;
     // the value is either zero or a user VA validated by sys_set_tls.
-    unsafe { crate::arch::x86_64::gdt::fs_gs::set_fs_base(pcb.get_tls_base()) };
+    unsafe { fs_gs::set_fs_base(pcb.get_tls_base()) };
 
-    if try_first_entry(&pcb, pid) {
+    enter(&pcb, pid);
+    // Back here means nothing was entered, and this CPU resumes what it ran:
+    // with that process's fs base, not `pid`'s, and with the barrier owed to
+    // whatever runs next.
+    spectre_mitigations::switch_aborted();
+    // SAFETY: the value this CPU's process had on the way in.
+    unsafe { fs_gs::set_fs_base(saved_fs) };
+}
+
+/// Returns only when nothing was entered.
+fn enter(pcb: &Arc<ProcessControlBlock>, pid: u32) {
+    if try_first_entry(pcb, pid) {
         return;
     }
     // A pid blocked inside a syscall can have both a stale user-mode
@@ -60,14 +65,11 @@ pub(crate) fn switch_to_user_pcb_x86_64(pid: u32) {
     // context must win; resuming the stale user frame re-enters at an
     // arbitrary old RIP and skips the syscall continuation entirely.
     if INTERRUPT_SAVED_CONTEXTS.read().contains_key(&pid) {
-        trace(b"kernel ctx", pid);
-        resume_kernel_thread(&pcb, pid);
+        resume_kernel_thread(pcb, pid);
         return;
     }
-    if try_resume(&pcb, pid) {
-        trace(b"user ctx", pid);
+    if try_resume(pcb, pid) {
         return;
     }
-    trace(b"fallback kernel", pid);
-    resume_kernel_thread(&pcb, pid);
+    resume_kernel_thread(pcb, pid);
 }

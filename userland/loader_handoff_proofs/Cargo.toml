@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the aarch64 kernel taking a NONOS loader's
+# handoff in x1 (C-49): where a handoff may lie, checked against a model over
+# generated memory maps, and the order the boot path keeps from start.S to the
+# shared handoff every reader asks for. The kernel's own source is included
+# via #[path].
+[package]
+name = "loader_handoff_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

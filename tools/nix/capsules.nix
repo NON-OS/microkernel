@@ -107,7 +107,7 @@ let
   compiled =
     e:
     build {
-      name = "nonos-capsule-${e.slug}";
+      name = "nonos-capsule-${e.slug}${e.suffix or ""}";
       src = source e.dir;
       lockFiles = [ (src.root + "/${e.dir}/Cargo.lock") ];
       rust = if e.needs_rt then rustStd else pins.rust;
@@ -122,7 +122,10 @@ let
         ${lib.optionalString (e.slug == "linux") ''
           # The personality's built-in BusyBox, built from source here; the
           # committed guests/busybox.elf is the same bytes, for make.
-          cp ${busybox}/busybox ${e.dir}/guests/busybox.elf${lib.optionalString (packageMirror != "") ''
+          cp ${busybox}/busybox ${e.dir}/guests/busybox.elf
+          # The vendor programs its policies.txt binds, by their BLAKE3, as
+          # userland/linux_userland/Policies.mk points make at them.
+          export NONOS_LINUX_USERLAND=${linuxUserland}${lib.optionalString (packageMirror != "") ''
 
           # The NONOS package mirror in-tree tools install from (nonos.toml).
           export NONOS_PACKAGE_MIRROR=${packageMirror}''}
@@ -224,8 +227,25 @@ let
     '';
 
   one = e: if e.prebuilt != "" then prebuilt e else compiled e;
+  bySlug = lib.listToAttrs (map (e: lib.nameValuePair e.slug (one e)) catalogue);
+
+  # The development capsule set: bySlug, but each capsule that declares
+  # CAPSULE_DEV_CARGO_FEATURES built again with them, as
+  # nonos-capsule-<slug>-dev, the name the seal refuses for a release. Only an
+  # image that is not a release takes this set (image.nix, artifacts.nix, the
+  # seal). The features come from capsules-dev.json, which only this reads, so
+  # no release derivation sees them.
+  devFeatures = lib.listToAttrs (map (r: lib.nameValuePair r.slug r.dev_cargo_features) (lib.importJSON ./capsules-dev.json));
+  devOf =
+    e:
+    assert lib.assertMsg (e.prebuilt == "") "capsule ${e.slug}: a prebuilt capsule cannot take CAPSULE_DEV_CARGO_FEATURES";
+    e // {
+      cargo_features = lib.concatStringsSep "," (builtins.filter (f: f != "") [ e.cargo_features devFeatures.${e.slug} ]);
+      suffix = "-dev";
+    };
+  withDev = builtins.filter (e: devFeatures ? ${e.slug}) catalogue;
 in
 {
-  inherit catalogue rustStd mkRustStd rt upstream;
-  bySlug = lib.listToAttrs (map (e: lib.nameValuePair e.slug (one e)) catalogue);
+  inherit catalogue rustStd mkRustStd rt upstream bySlug;
+  bySlugDev = bySlug // lib.listToAttrs (map (e: lib.nameValuePair e.slug (compiled (devOf e))) withDev);
 }

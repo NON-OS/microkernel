@@ -38,4 +38,11 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "box_word"
+path = "fuzz_targets/box_word.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]

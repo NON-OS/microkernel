@@ -19,9 +19,10 @@ use crate::dma::DmaRegion;
 const INPUT_CONTROL_INDEX: usize = 0;
 const ADD_SLOT_FLAG: u32 = 1;
 const EP_TYPE_INTERRUPT_IN: u32 = 7;
+const EP_TYPE_INTERRUPT_OUT: u32 = 3;
 const CERR: u32 = 3;
 const DCS: u32 = 1;
-/// The parameters of the interrupt-IN endpoint being configured, bundled so the
+/// The parameters of the interrupt endpoint being configured, bundled so the
 /// writer stays within the argument limit. `interval` is already the
 /// controller's exponent (`interrupt_interval`), not bInterval.
 #[derive(Clone, Copy)]
@@ -33,7 +34,7 @@ pub struct EndpointConfig {
     pub interval: u8,
 }
 
-/// The input context that adds one interrupt-IN endpoint, the Slot Context
+/// The input context that adds one interrupt endpoint, the Slot Context
 /// taken from the device's `output` context.
 pub fn write_configure_endpoint_input(input: &DmaRegion, output: &DmaRegion, cfg: EndpointConfig) {
     input.zero();
@@ -44,15 +45,15 @@ pub fn write_configure_endpoint_input(input: &DmaRegion, output: &DmaRegion, cfg
 
 /// Mult stays 0, as for every endpoint but a SuperSpeed isochronous one;
 /// Max Burst Size and Max ESIT Payload carry the interval's every packet,
-/// and the Average TRB Length is that payload, as Linux sets it for an
-/// interrupt endpoint (xHCI 1.2 section 6.2.3).
+/// and the Average TRB Length is that payload (xHCI 1.2 section 6.2.3, as
+/// recalled, unverified).
 fn write_endpoint(region: &DmaRegion, cfg: EndpointConfig) {
     let (csz, at, p) = (cfg.context_size, cfg.dci as usize + 1, cfg.payload);
     let dw0 = (cfg.interval as u32) << 16;
-    let dw1 = (CERR << 1)
-        | (EP_TYPE_INTERRUPT_IN << 3)
-        | ((p.max_burst as u32) << 8)
-        | ((p.max_packet as u32) << 16);
+    // An odd DCI is an IN endpoint, an even one OUT (a security key's).
+    let ep_type = if cfg.dci % 2 == 1 { EP_TYPE_INTERRUPT_IN } else { EP_TYPE_INTERRUPT_OUT };
+    let dw1 =
+        (CERR << 1) | (ep_type << 3) | ((p.max_burst as u32) << 8) | ((p.max_packet as u32) << 16);
     write_dw(region, csz, at, 0, dw0);
     write_dw(region, csz, at, 1, dw1);
     write_dw(region, csz, at, 2, (cfg.ring_phys as u32) | DCS);

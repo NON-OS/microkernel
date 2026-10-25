@@ -31,10 +31,11 @@ mod ephemeral;
 mod fail;
 mod finish_band;
 mod fit_display;
+pub mod fit_rule;
 mod frame_finish;
-pub mod full_screen_ask;
 #[cfg(feature = "runtime")]
 mod frame_loop;
+pub mod full_screen_ask;
 mod held;
 mod idle;
 mod maximize;

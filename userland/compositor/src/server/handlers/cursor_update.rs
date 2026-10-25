@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::protocol::{Request, CURSOR_UPDATE_REQ_LEN};
+use crate::protocol::Request;
 use crate::state::{damage::Rect, Context};
 
 const CURSOR_SIDE: u32 = 32;
@@ -26,23 +26,18 @@ pub fn handle(
     body: &[u8],
     _tx: &mut [u8],
 ) -> Result<(), &'static str> {
-    if body.len() != CURSOR_UPDATE_REQ_LEN {
+    let Some(c) = crate::requests::pointer::cursor_update(body) else {
+        return Ok(());
+    };
+    if !c.on(ctx.width, ctx.height) {
         return Ok(());
     }
-    let Some(x) = super::u32_at(body, 0) else {
-        return Ok(());
-    };
-    let Some(y) = super::u32_at(body, 4) else {
-        return Ok(());
-    };
-    let Some(visible_raw) = super::u32_at(body, 8) else {
-        return Ok(());
-    };
-    let visible = visible_raw != 0;
-    if x >= ctx.width || y >= ctx.height {
-        return Ok(());
-    }
+    let (x, y, visible) = (c.x, c.y, c.visible);
     let prev = ctx.cursor.update(x, y, visible);
+    if ctx.hw_cursor() {
+        // The next frame moves the device's plane; no pixel changed.
+        return Ok(());
+    }
     if prev.visible {
         let w = core::cmp::min(CURSOR_SIDE, ctx.width.saturating_sub(prev.x));
         let h = core::cmp::min(CURSOR_SIDE, ctx.height.saturating_sub(prev.y));

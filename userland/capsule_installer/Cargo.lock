@@ -143,7 +143,30 @@ dependencies = [
  "blake3",
  "nonos-pack-core",
  "nonos_app_skeleton",
+ "nonos_nox_config",
+ "nonos_payment_proto",
+ "nonos_settle_proto",
  "nonos_userland_libc",
+]
+
+[[package]]
+name = "nonos_eth_rpc"
+version = "0.1.0"
+
+[[package]]
+name = "nonos_nox_config"
+version = "0.1.0"
+
+[[package]]
+name = "nonos_payment_proto"
+version = "0.1.0"
+
+[[package]]
+name = "nonos_settle_proto"
+version = "0.1.0"
+dependencies = [
+ "nonos_eth_rpc",
+ "nonos_nox_config",
 ]
 
 [[package]]

@@ -7,10 +7,15 @@ name = "nonos_devmodel"
 version = "0.1.0"
 
 [[package]]
+name = "nonos_usb_virt"
+version = "0.3.0"
+
+[[package]]
 name = "xhci_proofs"
 version = "0.3.0"
 dependencies = [
  "nonos_devmodel",
+ "nonos_usb_virt",
  "xhci_proofs_libc_shim",
 ]
 

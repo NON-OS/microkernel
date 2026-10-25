@@ -28,10 +28,18 @@
 pub mod apic_constants;
 #[path = "../../../../src/arch/x86_64/interrupt/apic/plan.rs"]
 pub mod apic_plan;
+#[path = "../../../../src/smp/boot_budget.rs"]
+pub mod boot_budget;
 #[path = "../../../../src/smp/boot_claim.rs"]
 pub mod boot_claim;
+#[path = "../../../../src/smp/boot_park.rs"]
+mod boot_park;
+#[path = "../../../../src/smp/boot_race.rs"]
+mod boot_race;
 #[path = "../../../../src/smp/topology/core_kind.rs"]
 pub mod core_kind;
+#[path = "../../../../src/arch/x86_64/cpu/hybrid.rs"]
+pub mod hybrid;
 #[path = "../../../../src/smp/topology/detection/probe_x86_64/plan.rs"]
 pub mod madt_plan;
 // Only the timer band is checked; the TSC band and the cache are kernel-side.
@@ -40,5 +48,16 @@ pub mod madt_plan;
 pub mod calibrate_consts;
 /* Mounted once, in idt_vectors; a second mount is clippy's duplicate_mod. */
 pub use crate::idt_vectors::vectors as idt_vectors;
+mod apic_base_tests;
+mod calibration_tests;
+mod claim_tests;
 mod core_kind_tests;
-mod tests;
+mod icr_tests;
+mod ids_tests;
+mod lint_tests;
+mod madt_limit_tests;
+#[cfg(test)]
+mod madt_support;
+mod madt_tests;
+mod park_tests;
+mod startup_tests;

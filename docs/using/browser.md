@@ -7,8 +7,8 @@ Use the Browser to open web pages and search over the network you choose, and le
 - Click the `Browser` tile on the dock, choose `Go` then `Browser` on the menu bar, or pick `Browser` in the Launchpad. The window is titled `NONOS Browser`.
 - It opens on its home page with the caret in the address bar. The home page has a search field, `Search or enter a URL`, and four shortcuts to plain http sites: `neverssl.com`, `example.com`, `info.cern.ch` and `httpforever.com`.
 - The Browser is one of the eight optional apps first-boot setup can turn off. A dock click then says the app was `turned off at setup`.
-- Init keeps it off on the Safe Mode, Air-Gapped and Recovery [boot profiles](../overview/glossary.md#boot-profile).
-- An image built with the `airgapped` [build profile](../overview/glossary.md#build-profile) does not carry it at all: that profile drops `nonos-capsule-browser` with every other network feature.
+- Init keeps it off on the Safe Mode, Air-Gapped and Recovery [boot profiles](../overview/glossary-amnesic-boot.md#boot-profile).
+- An image built with the `airgapped` [build profile](../overview/glossary-boot-root-record.md#build-profile) does not carry it at all: that profile drops `nonos-capsule-browser` with every other network feature.
 
 The toolbar holds, from the left, Back, Forward, Reload (a Stop cross while a page loads), Home, the address bar, and at the right end the menu button that opens the Browser's own Settings panel. The right end of the address bar always names the network the next request leaves through, for example `Network: Nym mixnet`.
 
@@ -51,20 +51,20 @@ While the page has the keyboard, its scripts hear each key first, and a script t
 - A click on a link opens it in the same window, and a link to another part of the page scrolls there. Links to `javascript:`, `mailto:`, `tel:` or any scheme other than http and https do nothing. Pointing at a link shows its address at the bottom of the page.
 - Text fields, text areas, check boxes, radio buttons, lists and buttons work. A form is sent as a GET or a urlencoded POST. A file field is left out, so nothing can be uploaded, and a form with more than 512 fields is not sent.
 - There are no tabs. Each window is a process of its own, with its own cookies, history and network choice.
-- One process, `app.browser`, starts at boot with the other apps and waits without a window. A window you open is normally a new process, `app.browser.1`, `app.browser.2` or `app.browser.3`, each an [endpoint](../overview/glossary.md#endpoint) declared in the Browser's signed [manifest](../overview/glossary.md#manifest). With all three open, a request for another raises one of them instead.
+- One process, `app.browser`, starts at boot with the other apps and waits without a window. A window you open is normally a new process, `app.browser.1`, `app.browser.2` or `app.browser.3`, each an [endpoint](../overview/glossary-dma-pool.md#endpoint) declared in the Browser's signed [manifest](../overview/glossary-linux-personality.md#manifest). With all three open, a request for another raises one of them instead.
 - The dock tile and `Go` then `Browser` raise a Browser window that is already open, and open a new one only when there is none. `Browser` in the Launchpad asks for a new window each time.
 - Closing a window ends its process, and what the process held in memory goes with it. The boot-time `app.browser` process draws a window only when the kernel will not queue a new one; it then goes back to waiting when that window closes, and keeps what it holds in memory.
 
 ## The about: pages
 
 - `about:loads` lists how this window's page loads ended, newest last: the stage each stopped in and why, how long it took, how much arrived, and the network it went over. It keeps the last 60. Open it when a page will not load.
-- The same lines go to the [serial console](../overview/glossary.md#serial-console) as `[BROWSER]` lines, but only in an image built with `capsule-serial-debug`, which gives the Browser its optional Debug [capability](../overview/glossary.md#capability). The `hardened` and `airgapped` build profiles leave it out.
+- The same lines go to the [serial console](../overview/glossary-rollback-index.md#serial-console) as `[BROWSER]` lines, but only in an image built with `capsule-serial-debug`, which gives the Browser its optional Debug [capability](../overview/glossary-boot-root-record.md#capability). The `hardened` and `airgapped` build profiles leave it out.
 - `about:engine` is a demo page for the layout and script engines, and every other `about:` name shows it too.
 - Both are served from memory and never touch the network.
 
 ## Which network a page leaves through
 
-The Browser uses the same three networks as the rest of NONOS: the [Nym mixnet](../overview/glossary.md#nym-mixnet), the [Anyone network](../overview/glossary.md#anyone-network) and Direct. The panel calls them `Nym mixnet`, `Anyone network` and `Direct, not anonymised`.
+The Browser uses the same three networks as the rest of NONOS: the [Nym mixnet](../overview/glossary-linux-personality.md#nym-mixnet), the [Anyone network](../overview/glossary-amnesic-boot.md#anyone-network) and Direct. The panel calls them `Nym mixnet`, `Anyone network` and `Direct, not anonymised`.
 
 ```mermaid
 flowchart TD
@@ -80,7 +80,7 @@ flowchart TD
 
 ### The network a window starts on
 
-A Browser process reads the system's `Default network` once, when it starts, from the [policy store](../overview/glossary.md#policy-store). With no value, a value it does not know, or no answer, it starts on Nym. Each new window is a new process, so a window opened after you change `Default network` in [Settings](settings.md) starts on the new network, and a window already open keeps the one it has.
+A Browser process reads the system's `Default network` once, when it starts, from the [policy store](../overview/glossary-peer-list.md#policy-store). With no value, a value it does not know, or no answer, it starts on Nym. Each new window is a new process, so a window opened after you change `Default network` in [Settings](settings.md) starts on the new network, and a window already open keeps the one it has.
 
 ### Switch the network for this window
 
@@ -171,7 +171,7 @@ A mixnet holds every packet at every hop on purpose, so its waits are the longes
 
 ## What the Browser keeps
 
-Nothing is written to disk. The Browser is a [capsule](../overview/glossary.md#capsule) whose manifest requires `0x183d`: CoreExec, Network, IPC, Memory, Crypto, GraphicsDisplayQuery and GraphicsSurfaceCreate, with no FileSystem. Its only optional bit is Debug, so its [capability word](../overview/glossary.md#capability-word) is `0x183d`, or `0x193d` in an image built with `capsule-serial-debug`. There are no downloads, bookmarks or saved history, and nothing is cached on disk. To fetch a URL outside the Browser, the Terminal's `curl` uses the network chosen in Settings; see [Terminal](terminal.md).
+Nothing is written to disk. The Browser is a [capsule](../overview/glossary-boot-root-record.md#capsule) whose manifest requires `0x183d`: CoreExec, Network, IPC, Memory, Crypto, GraphicsDisplayQuery and GraphicsSurfaceCreate, with no FileSystem. Its only optional bit is Debug, so its [capability word](../overview/glossary-boot-root-record.md#capability-word) is `0x183d`, or `0x193d` in an image built with `capsule-serial-debug`. There are no downloads, bookmarks or saved history, and nothing is cached on disk. To fetch a URL outside the Browser, the Terminal's `curl` uses the network chosen in Settings; see [Terminal](terminal.md).
 
 | What | Held | Gone |
 |---|---|---|
@@ -226,9 +226,8 @@ The error page reads `Navigation failed`, then the reason, then `The browser sto
 
 ## What is tested
 
-The [proof crates](../overview/glossary.md#proof-crate) that compile the Browser's own modules on the host pass on this commit: `capsule_browser_proofs` (612 tests), `capsule_browser_html_proofs` (43) and `browser_http_proofs` (32), with `tls_proofs` (129) for the TLS client, `route_link_proofs` (73) for the route rules, and the `qjs-prelude` check of the script bindings. They hold, among other rules, the way each connection takes and the sentence each failure gets. A booted image loading pages through a live Nym gateway or a live Anyone circuit is not tested in this release.
+The [proof crates](../overview/glossary-peer-list.md#proof-crate) that compile the Browser's own modules on the host pass on this commit: `capsule_browser_proofs` (612 tests), `capsule_browser_html_proofs` (43) and `browser_http_proofs` (32), with `tls_proofs` (129) for the TLS client, `route_link_proofs` (73) for the route rules, and the `qjs-prelude` check of the script bindings. They hold, among other rules, the way each connection takes and the sentence each failure gets. A booted image loading pages through a live Nym gateway or a live Anyone circuit is not tested in this release.
 
-The real-hardware report for this path covers browser traffic over Wi-Fi on the Realtek RTL8821CE, PCI `10ec:c821`: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded. See [Wi-Fi and networking](wifi-and-networking.md).
 
 ## Where this comes from
 

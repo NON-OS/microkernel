@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::drain::drain_for_pid;
-use super::records::{allocate_id, insert, try_each};
+use super::records::{allocate_id, insert_if, try_each};
 use super::types::DmaGrant;
 
 fn grant(pid: u32, phys: u64) -> DmaGrant {
@@ -36,32 +36,41 @@ fn grant(pid: u32, phys: u64) -> DmaGrant {
 // The table is one static, so the cases share it and run as one test, each
 // leaving it as it found it.
 #[test]
-fn the_wipe_walk_sees_every_live_grant_and_never_waits_on_a_held_table() {
+fn the_wipe_walk_sees_every_live_grant_and_waits_on_a_held_table_only_as_long_as_bounded() {
     let pid = 0xD3A1;
     for i in 0..5u64 {
-        insert(grant(pid, 0x10_0000 + i * 4096));
+        assert!(matches!(insert_if(grant(pid, 0x10_0000 + i * 4096), |_| true), Some(Ok(()))));
     }
     let mut seen = std::vec::Vec::new();
-    assert!(try_each(|g| {
+    let first = |g: &DmaGrant| {
         if g.pid == pid {
             seen.push(g.physical_start)
         }
-    }));
+    };
+    assert!(try_each(first, || false), "a free table is taken at the first try");
     seen.sort();
     assert_eq!(seen, (0..5).map(|i| 0x10_0000 + i * 4096).collect::<std::vec::Vec<_>>());
 
     // A CPU stopped by IPI while holding the table, modelled by a walk that is
-    // itself running: the inner walk reports that it could not look, at once,
-    // and visits nothing, instead of spinning on a lock nobody will release.
+    // itself running: the inner walk tries for as long as its caller's bound
+    // says (L73), then reports that it could not look and visits nothing,
+    // instead of spinning on a lock nobody will release.
     let mut inner_saw = None;
-    assert!(try_each(|_| {
+    let outer = |_: &DmaGrant| {
         if inner_saw.is_none() {
-            let mut visited = 0;
-            let looked = try_each(|_| visited += 1);
-            inner_saw = Some((looked, visited));
+            let (mut visited, mut tries) = (0, 0);
+            let looked = try_each(
+                |_| visited += 1,
+                || {
+                    tries += 1;
+                    tries < 4
+                },
+            );
+            inner_saw = Some((looked, visited, tries));
         }
-    }));
-    assert_eq!(inner_saw, Some((false, 0)));
+    };
+    assert!(try_each(outer, || false));
+    assert_eq!(inner_saw, Some((false, 0, 4)), "asked four times, then let go");
 
     assert_eq!(drain_for_pid(pid).len(), 5);
 }

@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{fence, Ordering};
-
 use crate::constants::queue::TX_DESC_COUNT;
 use crate::constants::regs::{DESC_EOR, DESC_FS, DESC_LS, DESC_OWN};
 use crate::constants::MIN_WIRE_FRAME;
@@ -59,10 +57,10 @@ pub fn send(driver: &mut Driver, frame: &[u8]) {
     };
     // SAFETY: `idx` is below TX_DESC_COUNT in the mapped ring, and the slot
     // is the driver's: the caller saw OWN clear on it through `busy`. The
-    // release fence in `publish` puts the frame bytes before OWN.
+    // write barrier in `publish` puts the frame bytes before OWN.
     unsafe { publish(driver.tx.desc_va, idx, d) };
     // OWN before the doorbell that sends the part to read it.
-    fence(Ordering::Release);
+    nonos_libc::dma_wmb();
     ring(&driver.regs, driver.chip.ver);
     driver.tx.cur = (idx + 1) % TX_DESC_COUNT;
 }

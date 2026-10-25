@@ -21,28 +21,8 @@ one that does not. `profile` names which built ESP the cell boots, since the
 multiprocessor image is a separate build of the same tree.
 """
 
-from dataclasses import dataclass
-
-
-@dataclass(frozen=True)
-class Cell:
-    name: str
-    profile: str
-    machine: str
-    cpus: int
-    # The IOMMU QEMU presents: "" for none, "intel-iommu" or "amd-iommu".
-    iommu: str = ""
-    # Kill QEMU once the store is serving, then boot the same disk again and
-    # require it to come back clean. Crash consistency of the block store.
-    kill: bool = False
-    # The store disk on a USB mass-storage stick on the xHCI controller, in
-    # place of virtio-blk, with logical blocks of this many bytes; 0 keeps
-    # virtio-blk. The stick is served by driver.xhci0 and driver.usb_msc0,
-    # the path a live boot from a stick takes on hardware.
-    usb_block: int = 0
-
-    def wants_smp_proof(self):
-        return self.cpus > 1
+from .cell import Cell
+from .device_table import DEVICE_CELLS
 
 
 CELLS = [
@@ -55,9 +35,11 @@ CELLS = [
     Cell("q35-iommu-up", "up", "q35", 1, iommu="intel-iommu"),
     Cell("q35-iommu-smp4", "smp", "q35", 4, iommu="intel-iommu"),
     Cell("q35-amdvi-up", "up", "q35", 1, iommu="amd-iommu"),
+    Cell("q35-iommu-legacy-virtio", "up", "q35", 1, "intel-iommu", usb_block=512, legacy_virtio=True),
     Cell("q35-kill-reboot", "up", "q35", 1, kill=True),
     Cell("q35-usb-stick", "smp", "q35", 4, usb_block=512),
     Cell("q35-usb-stick-4k", "up", "q35", 1, usb_block=4096),
+    *DEVICE_CELLS,
 ]
 
 

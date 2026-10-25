@@ -18,3 +18,7 @@ pub const OP_HEALTHCHECK: u16 = 0x0001;
 pub const OP_SUBSCRIBE: u16 = 0x0002;
 pub const OP_GRAB_REQUEST: u16 = 0x0003;
 pub const OP_GRAB_RELEASE: u16 = 0x0004;
+/// From the compositor only, one-way: who holds the trusted band.
+pub const OP_TRUSTED_HOLD: u16 = 0x0005;
+/// From the compositor only, one-way: its display size, on every change.
+pub const OP_DISPLAY_SIZE: u16 = 0x0006;

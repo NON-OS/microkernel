@@ -22,8 +22,11 @@ mod error;
 mod hash;
 mod limits;
 mod message;
+mod message_view;
+mod wipe;
 
 pub use error::ChannelError;
 pub use hash::{compute_channel_key, compute_checksum, init_ipc_secret};
 pub use limits::MAX_MESSAGE_SIZE;
 pub use message::IpcMessage;
+pub use wipe::Payload;

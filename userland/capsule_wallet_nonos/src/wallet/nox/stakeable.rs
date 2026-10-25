@@ -16,9 +16,6 @@
 
 use super::q32_to_u128::q32_to_u128;
 
-/// Wei in one whole NOX.
-pub const WEI_PER_NOX: u128 = 1_000_000_000_000_000_000;
-
 /// Decimal places the token divides into.
 pub const NOX_DECIMALS: u32 = 18;
 

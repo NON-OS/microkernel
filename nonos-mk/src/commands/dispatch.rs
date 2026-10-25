@@ -17,7 +17,7 @@
 use crate::args::Flags;
 use crate::error::CliError;
 
-use super::{encode, inspect, keygen, sign, sign_release, verify};
+use super::{encode, escrow_serve, inspect, keygen, sign, sign_release, verify};
 
 pub fn dispatch(args: &[String]) -> Result<(), CliError> {
     let cmd = args.first().map(String::as_str).unwrap_or("");
@@ -30,6 +30,7 @@ pub fn dispatch(args: &[String]) -> Result<(), CliError> {
         "verify" => verify::run(&flags),
         "inspect" => inspect::run(&flags),
         "keygen" => keygen::run(&flags),
+        "escrow-serve" => escrow_serve::run(&flags),
         "" | "help" | "--help" | "-h" => {
             print_usage();
             Ok(())
@@ -49,7 +50,9 @@ fn print_usage() {
                      [--pubkey <hex32>] [--json-out <path>] [--previous-serial N]\n\
            verify    --in <blob> --pubkey <hex32> [--previous-serial N]\n\
            inspect   --in <blob>\n\
-           keygen    --out <seed-file>\n\n\
+           keygen    --out <seed-file>\n\
+           escrow-serve --listing-key <hex32> --release-key <hex32> --package <file>\n\
+                     --keys <file> [--listen 127.0.0.1:8640] [--per-minute 30]\n\n\
          signing seed sources: --key-file <path-with-32-byte-binary-seed>\n\
          or --key-env <ENV_WITH_32_BYTE_HEX_SEED>. The CLI never\n\
          prints, copies, or otherwise emits private key material.\n"

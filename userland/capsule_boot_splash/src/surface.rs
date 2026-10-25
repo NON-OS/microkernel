@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_libc::{
-    mk_mmap, mk_surface_register, mk_surface_share, SurfaceDescriptor, SURFACE_FORMAT_ARGB8888,
+    mk_mmap, mk_service_lookup, mk_surface_register, mk_surface_share, SurfaceDescriptor,
+    SURFACE_FORMAT_ARGB8888,
 };
 
 const PROT_READ_WRITE: i32 = 0x3;
@@ -23,14 +24,8 @@ const MAP_PRIVATE_ANON: i32 = 0x22;
 
 pub(crate) fn setup(w: u32, h: u32, stride: u32) -> Option<(u64, u64)> {
     let byte_len = (stride as u64).checked_mul(h as u64)?;
-    let base = mk_mmap(
-        core::ptr::null_mut(),
-        byte_len as usize,
-        PROT_READ_WRITE,
-        MAP_PRIVATE_ANON,
-        -1,
-        0,
-    );
+    let base =
+        mk_mmap(core::ptr::null_mut(), byte_len as usize, PROT_READ_WRITE, MAP_PRIVATE_ANON, -1, 0);
     if base.is_null() {
         return None;
     }
@@ -43,14 +38,29 @@ pub(crate) fn setup(w: u32, h: u32, stride: u32) -> Option<(u64, u64)> {
         byte_len,
         base_va,
         flags: 0,
+        owner_pid: 0,
+        writable: 0,
     };
     let sid = mk_surface_register(&desc);
     if sid < 0 {
         return None;
     }
-    let handle = mk_surface_share(sid as u64);
+    let handle = mk_surface_share(sid as u64, compositor_pid(), 0);
     if handle <= 0 {
         return None;
     }
     Some((base_va, handle as u64))
+}
+
+/// The compositor's pid, 0 when it is gone: the splash is shared with it
+/// alone, read-only (K20).
+fn compositor_pid() -> u32 {
+    let name = b"compositor";
+    let (mut port, mut pid) = (0u32, 0u32);
+    let rc = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);
+    if rc < 0 {
+        0
+    } else {
+        pid
+    }
 }

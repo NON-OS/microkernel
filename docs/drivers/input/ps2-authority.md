@@ -5,8 +5,8 @@ how it is checked. What it drives is in [PS/2 keyboard and mouse](ps2.md).
 
 ## Authority and privacy
 
-The [capsule](../../overview/glossary.md#capsule) manifest asks for the
-[capabilities](../../overview/glossary.md#capability) IPC, Memory, DeviceEnum,
+The [capsule](../../overview/glossary-boot-root-record.md#capsule) manifest asks for the
+[capabilities](../../overview/glossary-boot-root-record.md#capability) IPC, Memory, DeviceEnum,
 Driver, Irq, Pio and InputSource and nothing else: no MMIO, no DMA and no Debug
 (`CAPSULE_REQUIRED_CAPS`, `userland/capsule_driver_ps2_input/Capsule.mk:18`).
 The kernel installs the set the signed manifest names, and its spawn site asks
@@ -38,7 +38,7 @@ input ring until the router delivers them. The driver writes nothing to disk.
 
 ## How this is checked
 
-- The [proof crate](../../overview/glossary.md#proof-crate) `ps2_input_proofs`
+- The [proof crate](../../overview/glossary-peer-list.md#proof-crate) `ps2_input_proofs`
   runs the presence probe, the bring-up sequence and its fallbacks, the keyboard
   and mouse setup, the key framing, the lock LEDs and the bring-up of a mouse
   that reset against a modelled i8042 that records every byte the driver sends:

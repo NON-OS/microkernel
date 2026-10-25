@@ -50,6 +50,7 @@ fn drain_unit(info: &UnitInfo, budget: &mut Budget) -> usize {
     let mut drained = 0;
     for index in 0..cap::fault_recording_count(info.cap) as usize {
         if let Some(record) = take_fault(&info.unit, info.cap, index) {
+            crate::memory::iommu::note_fault(record.source);
             if budget.admit() {
                 log_record(&record);
             }

@@ -55,6 +55,10 @@ impl Capability {
             Self::LocalSign => "LocalSign",
             Self::StreamImport => "StreamImport",
             Self::DeviceSecret => "DeviceSecret",
+            Self::InputConsumer => "InputConsumer",
+            Self::CameraCapture => "CameraCapture",
+            Self::MicrophoneCapture => "MicrophoneCapture",
+            Self::ScreenCapture => "ScreenCapture",
         }
     }
 }

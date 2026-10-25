@@ -19,12 +19,12 @@ use core::sync::atomic::Ordering;
 use crate::arch::aarch64::gic;
 use crate::hardware::broker::irq::types::IrqError;
 
-use super::pending;
+use super::pending_find;
 
 // Re-enable the SPI line that the trampoline masked. Owner check is
 // the grant→pid match; non-owners hit `NotHolder`.
 pub fn ack_grant(pid: u32, grant_id: u64) -> Result<(), IrqError> {
-    let e = pending::find_by_grant(grant_id).ok_or(IrqError::UnknownGrant)?;
+    let e = pending_find::find_by_grant(grant_id).ok_or(IrqError::UnknownGrant)?;
     if e.pid.load(Ordering::Acquire) != pid {
         return Err(IrqError::NotHolder);
     }
@@ -32,6 +32,9 @@ pub fn ack_grant(pid: u32, grant_id: u64) -> Result<(), IrqError> {
     if intid == 0 {
         return Err(IrqError::UnknownGrant);
     }
-    gic::enable_irq(intid);
+    // The trampoline never masked a message vector; there is nothing to undo.
+    if !e.message.load(Ordering::Acquire) {
+        gic::enable_irq(intid);
+    }
     Ok(())
 }

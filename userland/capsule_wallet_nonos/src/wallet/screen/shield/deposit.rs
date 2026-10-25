@@ -69,6 +69,6 @@ pub fn deposit(state: &State, fb: &mut PaintBuffer) {
     y += super::held::held(fb, c, y, ui, crate::wallet::state::shield_ui::SHIELD_DEPOSIT);
     hits::reach(y, state.scroll, l.content_bottom);
     end(fb, &spec, &mut l);
-    super::edges::put(state, &l);
+    super::edges::put(&l);
     super::edges::footer(&l, &[ready]);
 }

@@ -27,8 +27,6 @@ pub struct QueueGrant {
     pub view: Mmio,
     /// What the device is told.
     pub device_addr: u64,
-    pub user_va: u64,
-    pub grant_id: u64,
 }
 
 pub fn map_queue(device_id: u64, claim_epoch: u64) -> Result<QueueGrant, &'static str> {
@@ -43,10 +41,5 @@ pub fn map_queue(device_id: u64, claim_epoch: u64) -> Result<QueueGrant, &'stati
     // write, of which VQ_REGION_SIZE are used. They stay mapped until the
     // claim is released, and nothing reaches the queue after that.
     let view = unsafe { Mmio::new(base as *mut u8, VQ_REGION_SIZE) };
-    Ok(QueueGrant {
-        view,
-        device_addr: out.device_addr,
-        user_va: out.user_va,
-        grant_id: out.grant_id,
-    })
+    Ok(QueueGrant { view, device_addr: out.device_addr })
 }

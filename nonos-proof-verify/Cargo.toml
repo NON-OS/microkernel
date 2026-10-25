@@ -1,0 +1,70 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# The proof verifier anyone can run: a kernel, bootloader or capsule's v4
+# trailer checked against a policy root exactly as the gates check it, with
+# the gates' own path crate and STARK verifier, and nothing proven here.
+
+[package]
+name = "nonos-proof-verify"
+version = "1.0.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+publish = false
+description = "Check a NONOS v4 attestation trailer against a policy root, as the boot and spawn gates check it"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "nonos-proof-verify"
+path = "src/main.rs"
+required-features = ["release-roots"]
+
+[features]
+# The committed release roots compiled in, so a report can say whether the
+# root it checked against is a release's, and the report, runner and CLI
+# built on them. nonos-stark-enroll leaves it off: it writes those roots, and
+# a tool compiled from them was rebuilt by every enrolment, re-enrolling the
+# kernel after the loader had baked its root.
+default = ["release-roots"]
+release-roots = []
+
+# The shipping binary and the report: built only with the release roots.
+[[test]]
+name = "cli"
+required-features = ["release-roots"]
+
+[[test]]
+name = "edges"
+required-features = ["release-roots"]
+
+[[test]]
+name = "release_material"
+required-features = ["release-roots"]
+
+[dependencies]
+nonos-attest-path = { path = "../nonos-attest-path", features = ["alloc"] }
+nonos-boot-measure = { path = "../nonos-boot-measure" }
+# The gates' verifier, from the same STARK project the enroll tool pins.
+nox_verify = { git = "https://github.com/NON-OS/STARKs.git", branch = "main" }
+blake3 = "1"
+
+[dev-dependencies]
+serde_json = "1"
+
+[package.metadata.nonos]
+test-lane = true

@@ -1,0 +1,39 @@
+[package]
+name = "nonos-harden"
+version = "0.9.3"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+description = "One GO or NO-GO before an image touches a machine: runs the verifiers the tree holds over a sealed release and prints one versioned verdict, optionally signed with the operator's own key."
+
+[[bin]]
+name = "nonos-harden"
+path = "src/main.rs"
+
+[dependencies]
+# The trust-chain library the seal and the kernel's spawn gate share: key files
+# and ML-DSA-65 verification, so the kernel's signature is checked by the same
+# code that made it.
+nonos-sign = { path = "../nonos-sign" }
+blake3 = "1"
+ed25519-dalek = "2"
+hex = "0.4"
+# Opening a file once, without following a link or blocking on a FIFO, and
+# killing a verifier with every process it started.
+libc = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+# Git's own blob ids, so tree.source hashes the tree itself, not git's view.
+sha1 = "0.10"
+
+[dev-dependencies]
+# The seal's own code, so the proofs build a signed, attested kernel exactly as
+# the seal does: sign-kernel's signature block and footer, embed-trailer's
+# loader and assembler.
+embed-trailer = { path = "../nonos-bootloader/tools/embed-trailer" }
+nonos-sign-kernel = { path = "../nonos-bootloader/tools/sign-kernel" }
+proptest = "1"
+tempfile = "3"
+
+[package.metadata.nonos]
+test-lane = true

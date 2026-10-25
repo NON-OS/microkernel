@@ -26,7 +26,7 @@ pub fn start_rename(ctx: &mut Context, index: usize) {
         Some(item) => item.name.clone(),
         None => return,
     };
-    ctx.rename_buf = name;
-    ctx.rename = Some(index);
+    ctx.desk_ui.rename_buf = name;
+    ctx.desk_ui.rename = Some(index);
     crate::server::grabs::sync(ctx);
 }

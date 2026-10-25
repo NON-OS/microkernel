@@ -58,6 +58,5 @@ pub fn bootstrap_gateway(index: usize) -> Option<Gateway> {
         stream: 0,
         transport: Transport::WebSocket,
         identity,
-        shared_key: [0u8; 32],
     })
 }

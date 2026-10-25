@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the aarch64 switch at an IRQ's return to EL0
+# (C-45), read from the kernel's own source: a kernel built without FP/SIMD,
+# a task's FP/SIMD registers and TPIDR_EL0 kept before it is requeued and
+# installed on the CPU that takes it up, a kernel context resumed ahead of
+# an older user snapshot, and the switch itself taken only from EL0.
+[package]
+name = "el0_switch_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

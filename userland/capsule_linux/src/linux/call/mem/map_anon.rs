@@ -21,32 +21,14 @@ use crate::linux::guest::Guest;
 
 use super::map_req::MapReq;
 use super::prot::{PROT_EXEC, PROT_WRITE};
+use nonos_linux_policy::mask::JIT;
 
 const MAP_SHARED: u64 = 0x01;
 
-/// A memfd has nothing to read in: it is pages, and the client is about to
-/// draw into them.
-pub fn memfd(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
-    let out = anonymous(guest, req, at, span);
-    if (out as i64) < 0 {
-        return out;
-    }
-    guest.mark_kept(at, span);
-    crate::linux::file::set_mapped(guest, req.fd, at);
-    /*
-     * A descriptor this capsule staged content on, the keymap being the one
-     * that matters, has to arrive with those bytes already in it: the client
-     * maps it and reads it without ever issuing a read.
-     */
-    if let Some(bytes) = crate::linux::file::staged(guest, req.fd) {
-        if guest.write(at, &bytes) < bytes.len() as i64 {
-            return errno::fail(errno::EFAULT);
-        }
-    }
-    out
-}
-
 pub fn anonymous(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
+    if req.prot & PROT_EXEC != 0 && !crate::linux::app::granted(guest, JIT) {
+        return crate::linux::app::refuse("executable anonymous memory", "JIT", errno::EPERM);
+    }
     if !req.make_room(guest, at, span) {
         return super::map_refused::refused("no room", span);
     }

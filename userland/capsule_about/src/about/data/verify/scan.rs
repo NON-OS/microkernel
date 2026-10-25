@@ -22,7 +22,8 @@
 
 use nonos_libc::mk_getpid;
 
-use super::super::caps::{ADMIN, DEBUG, FILESYSTEM, MASK, RAW_HARDWARE};
+use super::super::caps::{FILESYSTEM, MASK, RAW_HARDWARE};
+use super::held_by::{ADMIN, ADMIN_CLAIM, ADMIN_HOLDERS, LOG_CLAIM};
 use super::own_mask::own_mask_verdict;
 use super::table::Tally;
 use super::table_read::read;
@@ -36,7 +37,7 @@ pub fn live() -> Option<Live> {
 
     Some(Live {
         checks: [
-            check(b"no running capsule can write a log", t.holders(DEBUG), t.total),
+            check(LOG_CLAIM, t.secret_loggers(), t.total),
             admin(&t),
             check(b"every running capsule carries a capability mask", t.unmasked, t.total),
             Check {
@@ -61,9 +62,8 @@ fn check(claim: &'static [u8], found: u32, of: u32) -> Check {
     Check { claim, verdict: Verdict::from_bool(found == 0), found, of }
 }
 
-// init is the one process entitled to hold Admin, and it is excluded by name
-// rather than by pid: the pid is an implementation detail, the name is what the
-// manifest and the kernel agree on.
+// The Admin holders are excluded by name rather than by pid: the pid is an
+// implementation detail, the name is what the manifest and the kernel agree on.
 fn admin(t: &Tally) -> Check {
-    check(b"only init holds admin authority", t.stray(ADMIN), t.total)
+    check(ADMIN_CLAIM, t.beyond(ADMIN, ADMIN_HOLDERS), t.total)
 }

@@ -22,6 +22,10 @@ use crate::linux::guest::Guest;
 
 pub use super::prot_args::{PROT_ANY, PROT_EXEC, PROT_WRITE};
 
+fn may_jit(guest: &Guest) -> bool {
+    crate::linux::app::granted(guest, nonos_linux_policy::mask::JIT)
+}
+
 pub fn mprotect(guest: &mut Guest, addr: u64, len: u64, prot: u64) -> u64 {
     /*
      * Checked before anything else, because `len` is the guest's: `addr +
@@ -41,6 +45,10 @@ pub fn mprotect(guest: &mut Guest, addr: u64, len: u64, prot: u64) -> u64 {
      */
     if prot & PROT_EXEC != 0 && guest.span_unproven(start, span) {
         return errno::fail(errno::EPERM);
+    }
+    /* Code made executable that was not: a JIT's, which its policy names. */
+    if prot & PROT_EXEC != 0 && guest.span_gains_exec(start, span) && !may_jit(guest) {
+        return crate::linux::app::refuse("mprotect +x", "JIT", errno::EPERM);
     }
     super::prot_walk::walk(guest, start, span, prot)
 }

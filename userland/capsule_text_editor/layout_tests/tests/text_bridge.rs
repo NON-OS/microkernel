@@ -61,5 +61,5 @@ fn list_lines_stay_paragraphs_with_their_markers() {
 #[test]
 fn invalid_utf8_does_not_panic() {
     let d = doc_from_text(&[0xFF, 0xFE, b'\n', b'a']);
-    assert!(d.blocks.len() >= 1);
+    assert!(!d.blocks.is_empty());
 }

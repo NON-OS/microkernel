@@ -64,3 +64,11 @@ impl Pipe {
         self.capacity - self.bytes_available
     }
 }
+
+// A pipe's bytes are zeroed before its buffer is freed (C8). No host test
+// covers it: mounting this file needs a crypto shim for secure_zero.
+impl Drop for Pipe {
+    fn drop(&mut self) {
+        crate::crypto::secure_zero(&mut self.buffer);
+    }
+}

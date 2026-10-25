@@ -16,7 +16,12 @@
 
 use super::deadline::{default_tick_delta, set_next_timer};
 
-pub fn handle_timer_interrupt() {
+/// `from_user`: sstatus.SPP was clear, so the trap came from U-mode
+/// (privileged spec, sstatus).
+pub fn handle_timer_interrupt(from_user: bool) {
+    // Before the tick runs: its dead-thread switch and band wake act only on
+    // a tick that interrupted U-mode, which holds no kernel lock.
+    crate::process::accounting::set_tick_origin(from_user);
     if set_next_timer(default_tick_delta()).is_err() {
         super::super::cpu::halt();
     }
@@ -28,5 +33,8 @@ pub fn handle_timer_interrupt() {
     {
         super::super::cpu::halt();
     }
-    crate::process::scheduler::preemption::tick::tick();
+    crate::process::scheduler::preemption::tick();
+    // Queued teardowns finish here, as on the other two arches, under the
+    // same rule: only a tick from U-mode or the idle halt holds no lock.
+    crate::process::exit::reclaim_at_tick(from_user);
 }

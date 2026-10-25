@@ -14,22 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// A number becomes a pointer only in `mmu::pointer`, which says what each
+// kind of address means; anywhere else it is refused at compile time, and
+// the few allowed exceptions are counted (nonos-ci/run-static-checks.sh).
+#![deny(fuzzy_provenance_casts)]
+
 pub mod abi;
+// The ACPI tables, parsed but not yet read: the UEFI boot path will hand
+// them over (`acpi/mod.rs`). The allow stays only until C wires that path;
+// remove it in the same change.
+#[allow(dead_code, unreachable_pub)]
+pub mod acpi;
 pub mod asm;
 pub mod boot;
 mod constants;
 pub mod context;
 pub mod cpu;
 pub mod cpu_random;
+pub mod dma;
 pub mod exceptions;
+pub mod firmware;
 pub mod fpu;
 pub mod gic;
+pub mod idle_states;
 pub mod interrupt_controller;
+pub mod iommu;
+pub mod iort;
 pub mod mmu;
+pub mod pci_intx;
+pub mod platform_devices;
 pub mod psci;
 pub mod rtc;
 pub mod security;
+pub mod smccc;
 pub mod timer;
+pub mod tpm_tree;
 pub mod uart;
 
 pub use abi::Aarch64;
@@ -38,7 +57,7 @@ pub use boot::init;
 pub use constants::{PAGE_SIZE, STACK_SIZE};
 pub use cpu::{cpu_id, disable_interrupts, enable_interrupts, halt};
 pub use exceptions::ExceptionFrame;
-pub use gic::{init_gic, send_sgi, Gic};
+pub use gic::{init_gic, send_sgi};
 pub use mmu::{init_mmu, map_page, unmap_page, PageTable};
 pub use psci::{cpu_off, cpu_on, system_off, system_reset};
 pub use timer::{current_time_ns, init_timer, set_timer};

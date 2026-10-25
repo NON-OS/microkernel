@@ -16,8 +16,6 @@
 
 //! The available ring, which the driver writes.
 
-use core::sync::atomic::{fence, Ordering};
-
 use super::layout::QueueLayout;
 use crate::constants::VQ_AVAIL_OFFSET;
 
@@ -30,7 +28,8 @@ const AVAIL_RING: usize = VQ_AVAIL_OFFSET + 4;
 pub fn publish(layout: QueueLayout, next: u16, head: u16) {
     layout.ring.w16(AVAIL_RING + 2 * usize::from(next % layout.queue_size), head);
     // The device may read the entry, its chain and the request the moment
-    // the index covers them.
-    fence(Ordering::Release);
+    // the index covers them: libc's barrier orders the stores as the device
+    // sees them, which a fence does not promise on aarch64.
+    nonos_libc::dma_wmb();
     layout.ring.w16(AVAIL_IDX, next.wrapping_add(1));
 }

@@ -18,17 +18,11 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use nonos_market_proto::installed_line;
-
-use crate::store::next_step::refused_uninstall;
-use crate::store::progress::Progress;
-use crate::store::progress_text::waiting_behind;
-use crate::store::route_offer::progress_line;
 use crate::store::state::State;
-use crate::store::theme::{ACCENT, DANGER, MUTED, OK};
-use crate::store::verdict::Verdict;
+use crate::store::theme::{DANGER, MUTED};
 
 use super::gates;
+use super::headline::headline;
 use super::metrics::{BODY_PX, SMALL_PX};
 use super::text;
 use super::wrap::wrap;
@@ -43,43 +37,8 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, left: u32, room: u32, mut top:
     let Some(listing) = state.current() else { return top };
     match listing.known.readiness {
         Some(r) => {
-            let v = Verdict::of(&r);
-            let hue = match v {
-                Verdict::Ready => OK,
-                Verdict::Installed => ACCENT,
-                Verdict::Blocked => DANGER,
-            };
-            // Once the person has asked, what happened is the headline; the
-            // verdict from before they asked would contradict it.
-            /*
-             * Installed says where it is held, which differs by kind and by
-             * boot (`installed_line`): never "kept" for what goes at restart.
-             */
-            let (line, tone) = match listing.progress {
-                Progress::Installed => (installed_line(&listing.id).as_bytes(), OK),
-                p if refused_uninstall(p, listing.removing) => {
-                    (&b"The system would not start the uninstall; press u to ask again"[..], DANGER)
-                }
-                p => p.sentence().unwrap_or((v.sentence(), hue)),
-            };
-            /*
-             * While a tier's model comes, what the fetcher says of it is the
-             * headline: how far, or which exit it is waiting on.
-             */
-            let fetching = state.fetch_of(listing).map(|s| progress_line(&s));
-            /* Queued behind another install: which, and how far it has got. */
-            let behind = (listing.progress == Progress::Queued)
-                .then(|| state.ahead_of(listing))
-                .flatten()
-                .map(|ahead| {
-                    let how = state.fetch_of(ahead).map(|s| progress_line(&s));
-                    waiting_behind(&ahead.name, how.as_deref())
-                });
-            let (line, tone) = match (&fetching, &behind) {
-                (Some(said), _) => (said.as_bytes(), ACCENT),
-                (None, Some(said)) => (&said[..], MUTED),
-                (None, None) => (line, tone),
-            };
+            let (line, tone) = headline(state, listing, &r);
+            let line = &line[..];
             for part in wrap(line, room, BODY_PX).iter().take(SENTENCE_LINES) {
                 text::line(fb, left, top, part, tone, BODY_PX);
                 top += 22;

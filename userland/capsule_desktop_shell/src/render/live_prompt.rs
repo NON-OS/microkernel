@@ -5,9 +5,10 @@
 //! Paint the offer to install NONOS at the start of a live session: a centred
 //! panel saying that nothing here is kept, with Install NONOS and Not now.
 
-use super::consent::{
-    border, button, fill, line, margin, wrap_at, APPROVE_BG, BORDER, CANCEL_BG, DIM, FG, PANEL,
+use super::dialog_kit::{
+    border, button, fill, margin, APPROVE_BG, BORDER, CANCEL_BG, DIM, FG, PANEL,
 };
+use super::dialog_text::{line, wrap_at};
 use crate::render::ui_font::{line_h, TITLE_PX, UI_PX};
 use crate::server::handlers::live_prompt::{install_rect, later_rect, panel_rect};
 use crate::state::dialog_keys::Choice;
@@ -17,7 +18,7 @@ const TITLE: &str = "This is a live session";
 const NOTE: &str = "Nothing here is kept: files, settings and models are gone when the machine stops. Install NONOS to keep them.";
 
 pub fn paint_live_prompt(ctx: &Context) {
-    if !ctx.live_prompt.showing() {
+    if !ctx.pending.live_prompt.showing() {
         return;
     }
     let p = panel_rect(ctx.width, ctx.height);

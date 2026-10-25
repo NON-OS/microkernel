@@ -73,9 +73,9 @@ NAMESPACES = ("kali.", "blackarch.", "qwen-", "nonos-")
 KALI = "https://kali.download/kali"
 KALI_SUITE = "kali-rolling"
 KALI_KEY = Path("userland/capsule_linux/keys/kali/archive-key-2025.asc")
-# 2: the release carries the hash of its zk trailer, and the publisher
-# signature covers it.
-SCHEMA = 2
+# 3: every entry carries a commerce block and every release the fields
+# that sell it, all under the publisher's v3 signature.
+SCHEMA = 3
 
 # Capsules that are not applications. A driver or a transport is part of
 # the system, cannot be installed or removed by a user, and listing one
@@ -363,6 +363,13 @@ def main() -> int:
                     help="repeatable; a package to fetch, hash and list")
     ap.add_argument("--linux-list", type=Path,
                     help="file of package names, one per line; kali.<name> for Kali")
+    # Curated apps, each with the box it runs in (linux-catalogue.json).
+    ap.add_argument("--catalogue", type=Path,
+                    help="JSON of recipes: Alpine packages listed with a guest_policy, each at the "
+                         "version its .lock.json beside it pins; any recipe not listed stops the run")
+    ap.add_argument("--update-lock", action="store_true",
+                    help="write the catalogue's lock from this run instead of holding to it "
+                         "(a maintainer's deliberate step; review its diff)")
     ap.add_argument("--guest-list", type=Path,
                     help="JSON of programs the image ships, listed as linux.<tail>")
     # The in-tree tools an image does not carry, listed only for an image
@@ -412,6 +419,16 @@ def main() -> int:
         found = kali_entries(args.cache, kali, "amd64", key, when_ms)
         print(f"linux: {len(found)} of {len(kali)} Kali packages", file=sys.stderr)
         entries += found
+
+    if args.catalogue:
+        # Loaded only when asked: the catalogue's own modules, beside this one.
+        from nonos_market_catalogue.run import catalogue_run
+        entries += catalogue_run(args.catalogue, args.cache, MIRROR, args.alpine_release,
+                                 args.alpine_arch, key, when_ms, args.update_lock)
+        ids = [e["listing_id"] for e in entries]
+        twice = sorted({i for i in ids if ids.count(i) > 1})
+        if twice:
+            sys.exit(f"{twice[0]}: in both the package list and the catalogue")
 
     if args.guest_list and args.guest_list.exists():
         found = guest_entries(args.guest_list, key, when_ms)

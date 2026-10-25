@@ -19,10 +19,16 @@ use alloc::vec::Vec;
 use super::call::{keyring_call, wipe};
 use super::constants::{HDR_LEN, OP_WALLET_EXPORT};
 
-// Ask the keyring for this wallet's raw private key. The keyring returns it only
-// to the owning process. The caller must wipe the returned secret the moment it
-// is done with it; nothing here or in the keyring keeps a second copy.
-pub fn export_secret(port: u32, owner_pid: u32, wallet_id: u32) -> Result<[u8; 32], i32> {
+// Ask the keyring for this wallet's raw private key, written straight into
+// the caller's `out`. The keyring returns it only to the owning process. The
+// caller must wipe `out` the moment it is done with it; nothing here keeps a
+// copy, not even one returned by value.
+pub fn export_secret(
+    port: u32,
+    owner_pid: u32,
+    wallet_id: u32,
+    out: &mut [u8; 32],
+) -> Result<(), i32> {
     let mut payload = Vec::with_capacity(8);
     payload.extend_from_slice(&owner_pid.to_le_bytes());
     payload.extend_from_slice(&wallet_id.to_le_bytes());
@@ -31,8 +37,7 @@ pub fn export_secret(port: u32, owner_pid: u32, wallet_id: u32) -> Result<[u8; 3
         wipe(&mut rx);
         return Err(-11);
     }
-    let mut out = [0u8; 32];
     out.copy_from_slice(&rx[HDR_LEN..HDR_LEN + 32]);
     wipe(&mut rx);
-    Ok(out)
+    Ok(())
 }

@@ -3,6 +3,8 @@
 pub mod bits;
 #[path = "../../../../../src/arch/paging/descriptor/aarch64/build.rs"]
 pub mod build;
+#[path = "../../../../../src/arch/paging/descriptor/aarch64/memory_type.rs"]
+pub mod memory_type;
 #[path = "../../../../../src/arch/paging/descriptor/aarch64/read.rs"]
 pub mod read;
 

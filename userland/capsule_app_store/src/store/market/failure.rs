@@ -17,11 +17,10 @@
 //! Why a market call brought back no body, and what the store says for it
 //! in place of the catalogue.
 
-use alloc::format;
-use alloc::vec::Vec;
+use nonos_market_proto::ReplyError;
 
-use nonos_market_proto::status::{E_INVAL, E_MSGSIZE, E_NODATA};
-use nonos_market_proto::{status_name, ReplyError};
+#[path = "failure_text.rs"]
+mod failure_text;
 
 /// A market call that brought back nothing to read.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -46,43 +45,6 @@ impl From<ReplyError> for Failure {
             ReplyError::Foreign | ReplyError::Stale => Failure::Mismatch,
             ReplyError::Truncated => Failure::Malformed,
             ReplyError::Status(status) => Failure::Status(status),
-        }
-    }
-}
-
-impl Failure {
-    /// What the catalogue pane says, one line per `\n`.
-    pub fn catalogue_trouble(self) -> Vec<u8> {
-        match self {
-            Failure::NoReply => b"market did not answer\npress r to ask again".to_vec(),
-            Failure::Mismatch => b"market answered another request\npress r to ask again".to_vec(),
-            /*
-             * A build without the operator key has no catalogue here, and no
-             * signed model catalogue for the fetcher either: only a model
-             * already on the disk runs, so that is all this says.
-             */
-            Failure::Status(E_NODATA) => b"this machine has no signed catalogue (ENODATA)\n\
-                so nothing can be installed from here; a Qwen model\n\
-                already on this disk still runs with qwen in the Terminal"
-                .to_vec(),
-            Failure::Status(E_INVAL) => b"the market did not understand the request (EINVAL)\n\
-                this window and the market may be from different builds"
-                .to_vec(),
-            Failure::Status(E_MSGSIZE) => b"the catalogue is too large for one reply (EMSGSIZE)\n\
-                so this window cannot show it"
-                .to_vec(),
-            Failure::Status(status) => match status_name(status) {
-                Some(name) => {
-                    format!("market refused the catalogue: {name} ({status})\npress r to ask again")
-                }
-                None => format!(
-                    "market refused the catalogue with status {status}\npress r to ask again"
-                ),
-            }
-            .into_bytes(),
-            Failure::Malformed => b"market sent a catalogue this store cannot read\n\
-                the two may be from different builds; press r to retry"
-                .to_vec(),
         }
     }
 }

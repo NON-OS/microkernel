@@ -21,8 +21,6 @@
 //! `enable`, read back on the clock before RDT hands the part every slot
 //! but one, as igc_alloc_rx_buffers does.
 
-use core::sync::atomic::{fence, Ordering};
-
 use crate::constants::queue::{RX_DESC_COUNT, RX_RING_BYTES};
 use crate::constants::regs::*;
 use crate::constants::rx_bits::*;
@@ -48,7 +46,7 @@ pub fn program(regs: &Regs, rx: &RxRing, ring_phys: u64) {
         for i in 0..RX_DESC_COUNT {
             *descs.add(i) = RxDesc { buffer_addr: rx.buffer_phys(i as u16), ..RxDesc::default() };
         }
-        fence(Ordering::Release);
+        nonos_libc::dma_wmb();
         regs.w32(REG_RXDCTL, 0);
         regs.w32(REG_RDBAL, ring_phys as u32);
         regs.w32(REG_RDBAH, (ring_phys >> 32) as u32);

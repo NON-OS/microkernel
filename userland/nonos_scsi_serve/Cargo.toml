@@ -1,0 +1,21 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# The block wire served for SCSI disks: the units a host adapter found, the
+# serve loop, the six ops mapped onto `nonos_scsi`, the medium rule and the
+# console lines. Every SCSI host driver (virtio-scsi, Fusion-MPT, PVSCSI,
+# BusLogic, storvsc) runs it over its own `Hba`; each driver's proof crate
+# mounts these files by path under its libc shim.
+[package]
+name = "nonos_scsi_serve"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_scsi = { path = "../nonos_scsi" }

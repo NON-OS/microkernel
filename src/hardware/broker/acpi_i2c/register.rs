@@ -16,13 +16,14 @@
 
 use alloc::vec::Vec;
 
-use crate::arch::x86_64::acpi::aml::{enumerate_gpio_controllers, enumerate_i2c_controllers};
-use crate::arch::x86_64::acpi::devices::i2c::{
+use crate::arch::firmware_table::devices::{enumerate_gpio_controllers, enumerate_i2c_controllers};
+use crate::arch::firmware_table::devices::{
     enumerate_i2c_hid_devices, enumerate_platform_i2c_hosts, I2cHidDeviceType,
 };
 
 use super::super::table::register_platform_device;
 use super::hid_record::hid_record;
+use super::host_resolve::Hosts;
 use super::record::device_record;
 use super::report::report;
 
@@ -34,18 +35,19 @@ use super::report::report;
 /// A machine whose firmware declares no such device registers nothing and
 /// says nothing.
 pub fn register_acpi_i2c() {
-    for ctl in enumerate_i2c_controllers() {
-        register_platform_device(device_record(&ctl));
-    }
+    let registered: Vec<(u64, u64)> = enumerate_i2c_controllers()
+        .iter()
+        .map(|ctl| (ctl.mmio_base, register_platform_device(device_record(ctl))))
+        .collect();
     let gpio = enumerate_gpio_controllers();
-    let hosts = enumerate_platform_i2c_hosts();
+    let hosts = Hosts::new(enumerate_platform_i2c_hosts(), registered);
     let mut devices: Vec<_> = enumerate_i2c_hid_devices()
         .into_iter()
         .filter(|d| d.device_type != I2cHidDeviceType::Touchscreen)
         .collect();
     devices.sort_by_key(|d| d.device_type != I2cHidDeviceType::Touchpad);
     for dev in &devices {
-        report(dev, &hosts);
-        register_platform_device(hid_record(dev, &gpio, &hosts));
+        report(dev, &hosts.platform);
+        register_platform_device(hid_record(dev, &gpio, hosts.device_id(dev.controller)));
     }
 }

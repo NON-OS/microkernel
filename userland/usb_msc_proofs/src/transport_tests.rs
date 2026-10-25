@@ -1,10 +1,9 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! The BOT transport (`disk`) against a scripted device that does what real
-//! sticks do and the Bulk-Only specification does not allow, as Linux's
-//! usb_stor_Bulk_transport copes with it: a zero-length packet ahead of the
-//! CSW, a CSW sent in place of a data phase, and a data phase that ends
-//! short under a CSW that says it did not (residue_tests holds residues
-//! that count nothing).
+//! sticks do and the Bulk-Only specification does not allow (as observed,
+//! unverified): a zero-length packet ahead of the CSW, a CSW sent in place
+//! of a data phase, and a data phase that ends short under a CSW that says
+//! it did not (residue_tests holds residues that count nothing).
 
 use crate::disk::read;
 use crate::fixture::{answers_left, class_resets, disk, sense};

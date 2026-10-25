@@ -1,11 +1,12 @@
 /* EL1 vector table. 16 entries x 0x80, 2KB-aligned. VBAR_EL1 install
  * point lives in exceptions::install. Frame layout matches
- * exceptions::frame::ExceptionFrame (288 bytes, repr(C)). */
+ * exceptions::frame::ExceptionFrame (304 bytes, repr(C)). */
 
 .section .text.vectors, "ax", %progbits
 
-/* 31 GPRs + sp + elr + spsr + esr + far = 36*8 = 288. */
-.equ FRAME_SIZE, 288
+/* 31 GPRs + sp + elr + spsr + esr + far = 36*8 = 288, then EL0's IA key. */
+.equ FRAME_SIZE, 304
+.equ FRAME_PAC_IA, 288
 
 .macro SAVE_GPRS
     sub     sp, sp, #FRAME_SIZE
@@ -48,6 +49,57 @@
     mrs     x0, esr_el1
     mrs     x1, far_el1
     stp     x0, x1,   [sp, #272]
+.endm
+
+#include "spectre_work.h"
+
+/* Speculation work on entry from EL0 (spectre_work.h), before the handler's
+ * first indirect branch, which is what EL0's branch history must not steer.
+ * The frame holds every register already, so x0-x3 and x9-x10 are free. */
+.macro SPECTRE_FROM_EL0
+    adrp    x9, NONOS_SPECTRE_EL0_ENTRY
+    ldr     w9, [x9, :lo12:NONOS_SPECTRE_EL0_ENTRY]
+    cbz     w9, 9f
+    SPECTRE_WORK w9, w10
+.endm
+
+#include "epd1.h"
+
+#include "percpu.h"
+
+/* Whether this CPU switches IA keys (security::pac): its per-CPU block,
+ * which TPIDR_EL1 names, says so. Falls through with x9 the block when it
+ * does, and branches to `skip` when it does not, before any key register
+ * is touched: a CPU without pointer authentication has none. */
+.macro PAC_ON skip
+    mrs     x9, tpidr_el1
+    cbz     x9, \skip
+    ldr     x10, [x9, #PERCPU_PAC_ON]
+    cbz     x10, \skip
+.endm
+
+/* The IA key across the EL0 boundary: EL0's is kept in the frame and the
+ * kernel's put in, and EL0's put back before the eret. x9-x11 are saved in
+ * the frame already and reloaded from it after. */
+.macro PAC_FROM_EL0
+    PAC_ON  1f
+    mrs     x10, S3_0_C2_C1_0           /* APIAKeyLo_EL1 */
+    mrs     x11, S3_0_C2_C1_1           /* APIAKeyHi_EL1 */
+    stp     x10, x11, [sp, #FRAME_PAC_IA]
+    ldp     x10, x11, [x9, #PERCPU_PAC_KERNEL]
+    msr     S3_0_C2_C1_0, x10
+    msr     S3_0_C2_C1_1, x11
+    isb
+1:
+.endm
+
+/* No isb: the eret that follows synchronizes the write. */
+.macro PAC_TO_EL0
+    PAC_ON  1f
+    ldp     x10, x11, [sp, #FRAME_PAC_IA]
+    msr     S3_0_C2_C1_0, x10
+    msr     S3_0_C2_C1_1, x11
+1:
 .endm
 
 .macro RESTORE_GPRS
@@ -133,6 +185,38 @@ __aarch64_vectors_el1:
 
 .size __aarch64_vectors_el1, . - __aarch64_vectors_el1
 
+/* Where the EPD1 trampoline's slots land, in the same order as the table
+ * above: x30 back from TPIDRRO_EL0, which is cleared, then the same entry
+ * the table's slot takes, through its `_scrubbed` door for an entry from
+ * EL0 (LOWER_ENTRY). Reached by BR from the trampoline, hence `bti j`. */
+.macro TRAMP_TARGET handler
+    .balign 0x80
+    hint    #36                         /* BTI j */
+    mrs     x30, tpidrro_el0
+    msr     tpidrro_el0, xzr
+    b       \handler
+.endm
+
+.balign 0x800
+.globl __aarch64_tramp_targets
+__aarch64_tramp_targets:
+    TRAMP_TARGET __aarch64_invalid_sp0_sync
+    TRAMP_TARGET __aarch64_invalid_sp0_irq
+    TRAMP_TARGET __aarch64_invalid_sp0_fiq
+    TRAMP_TARGET __aarch64_invalid_sp0_serror
+    TRAMP_TARGET __aarch64_sync_current
+    TRAMP_TARGET __aarch64_irq_current
+    TRAMP_TARGET __aarch64_fiq_current
+    TRAMP_TARGET __aarch64_serror_current
+    TRAMP_TARGET __aarch64_sync_lower_scrubbed
+    TRAMP_TARGET __aarch64_irq_lower_scrubbed
+    TRAMP_TARGET __aarch64_fiq_lower_scrubbed
+    TRAMP_TARGET __aarch64_serror_lower_scrubbed
+    TRAMP_TARGET __aarch64_invalid_aarch32_sync
+    TRAMP_TARGET __aarch64_invalid_aarch32_irq
+    TRAMP_TARGET __aarch64_invalid_aarch32_fiq
+    TRAMP_TARGET __aarch64_invalid_aarch32_serror
+
 /* Entry stubs. Each saves the frame, calls the Rust handler with x0 =
  * frame pointer, then restores and erets. A handler that diverges
  * (halt) never reaches the eret path. */
@@ -177,45 +261,34 @@ __aarch64_serror_current:
     RESTORE_GPRS
     eret
 
+/* Entries from EL0. Each has a second door, `_scrubbed`, which only the
+ * EPD1 trampoline's targets use: the trampoline has already run the
+ * speculation work before its own indirect branch, so doing it again here
+ * would only cost time. Everything else is the same path. */
+.macro LOWER_ENTRY name, handler
 .balign 16
-__aarch64_sync_lower:
+\name\()_scrubbed:
     SAVE_GPRS
     SAVE_SYSREGS_USER
+    b       8f
+.balign 16
+\name:
+    SAVE_GPRS
+    SAVE_SYSREGS_USER
+    SPECTRE_FROM_EL0
+8:  PAC_FROM_EL0
     mov     x0, sp
-    bl      aarch64_exc_sync_lower
+    bl      \handler
     RESTORE_SYSREGS_USER
+    PAC_TO_EL0
     RESTORE_GPRS
-    eret
+    EXIT_TO_EL0
+.endm
 
-.balign 16
-__aarch64_irq_lower:
-    SAVE_GPRS
-    SAVE_SYSREGS_USER
-    mov     x0, sp
-    bl      aarch64_exc_irq_lower
-    RESTORE_SYSREGS_USER
-    RESTORE_GPRS
-    eret
-
-.balign 16
-__aarch64_fiq_lower:
-    SAVE_GPRS
-    SAVE_SYSREGS_USER
-    mov     x0, sp
-    bl      aarch64_exc_fiq_lower
-    RESTORE_SYSREGS_USER
-    RESTORE_GPRS
-    eret
-
-.balign 16
-__aarch64_serror_lower:
-    SAVE_GPRS
-    SAVE_SYSREGS_USER
-    mov     x0, sp
-    bl      aarch64_exc_serror_lower
-    RESTORE_SYSREGS_USER
-    RESTORE_GPRS
-    eret
+LOWER_ENTRY __aarch64_sync_lower, aarch64_exc_sync_lower
+LOWER_ENTRY __aarch64_irq_lower, aarch64_exc_irq_lower
+LOWER_ENTRY __aarch64_fiq_lower, aarch64_exc_fiq_lower
+LOWER_ENTRY __aarch64_serror_lower, aarch64_exc_serror_lower
 
 /* The two groups the kernel never uses. Each slot gets its own entry so
  * the handler knows which kind of exception it was: ESR_EL1 and FAR_EL1

@@ -58,12 +58,17 @@ fn the_virtio_row_is_the_virtio_blk_drivers_own() {
     holds(Driver::VirtioBlk, h, o, w);
 }
 
+/// The block wire's drivers share one dialect, its magic and ops alike.
 #[test]
-fn no_two_drivers_share_a_magic_or_a_service_name() {
-    for (i, a) in ALL.iter().enumerate() {
-        for b in &ALL[i + 1..] {
-            assert_ne!(a.magic(), b.magic(), "{a:?} and {b:?}");
+fn no_two_drivers_share_a_service_name_or_a_magic_off_the_block_wire() {
+    let wire = [Driver::Wire, Driver::Ufs];
+    let ops = |d: Driver| (d.ops().capacity, d.ops().read, d.ops().write, d.ops().flush);
+    for (i, &a) in ALL.iter().enumerate() {
+        for &b in &ALL[i + 1..] {
             assert_ne!(a.service(0), b.service(0), "{a:?} and {b:?}");
+            let one_dialect = wire.contains(&a) && wire.contains(&b);
+            assert_eq!(a.magic() == b.magic(), one_dialect, "{a:?} and {b:?}: the magic");
+            assert!(!one_dialect || ops(a) == ops(b), "{a:?} and {b:?}: the ops");
         }
     }
 }

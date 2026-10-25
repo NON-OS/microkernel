@@ -15,14 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The wheel over the Launchpad turns its pages. The grid holds whole pages,
-//! not a scrolled strip, so notches are added up and every three turn one
-//! page: a mouse turns a page per three clicks, and a touchpad's two-finger
-//! swipe, which posts a notch per 1/32 of the pad, turns one for about six
-//! millimetres of travel rather than racing through them all. A notch away
-//! from the user (positive, as every pointer driver posts it) goes back
-//! toward the first page, as it scrolls a list toward its top. Turning
-//! stops at the first and last page and what was added up past them is
-//! dropped, so the way back starts at once.
+//! not a scrolled strip, so every three notches turn one page: a mouse's
+//! three clicks, or about six millimetres of a touchpad's two-finger swipe
+//! (a notch per 1/32 of the pad) rather than racing through them all. A
+//! notch away from the user (positive, as every pointer driver posts it)
+//! goes back toward the first page, as it scrolls a list toward its top.
+//! Turning stops at the first and last page and what was added up past
+//! them is dropped, so the way back starts at once.
 
 /// Notches that turn one page.
 pub const NOTCHES_PER_PAGE: i32 = 3;

@@ -75,7 +75,7 @@ pub fn dod_5220_erase(ptr: *mut u8, len: usize) {
     }
     memory_fence();
 
-    let random_seed = crate::crypto::secure_random_u64();
+    let random_seed = crate::crypto::rng::random_u64();
     let mut rng_state = random_seed;
     for i in 0..len {
         rng_state ^= rng_state << 13;
@@ -154,7 +154,7 @@ pub fn gutmann_erase(ptr: *mut u8, len: usize) {
         memory_fence();
     }
 
-    let random_seed = crate::crypto::secure_random_u64();
+    let random_seed = crate::crypto::rng::random_u64();
     let mut rng_state = random_seed;
     for i in 0..len {
         rng_state ^= rng_state << 13;

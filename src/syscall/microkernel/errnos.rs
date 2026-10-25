@@ -21,6 +21,7 @@
 
 pub const ERRNO_PERM: i64 = -1;
 pub const ERRNO_NOENT: i64 = -2;
+pub const ERRNO_SRCH: i64 = -3;
 /* The volume or the disk under it could not do what was asked. */
 pub const ERRNO_IO: i64 = -5;
 pub const ERRNO_CHILD: i64 = -10;
@@ -31,6 +32,7 @@ pub const ERRNO_ACCES: i64 = -13;
 pub const ERRNO_FAULT: i64 = -14;
 pub const ERRNO_BUSY: i64 = -16;
 pub const ERRNO_EXIST: i64 = -17;
+pub const ERRNO_XDEV: i64 = -18;
 pub const ERRNO_NODEV: i64 = -19;
 pub const ERRNO_INVAL: i64 = -22;
 pub const ERRNO_NOTTY: i64 = -25;

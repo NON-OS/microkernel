@@ -22,20 +22,19 @@
 //! small panel's own mode (320x240, say) used to be raised to 1280x720, a
 //! frame it cannot show.
 
+use crate::display::gpu::GRANT_BYTES;
+
 /// What a scanout too small, too large or unknown is recorded at.
 pub const DEFAULT: (u32, u32) = (1280, 720);
 /// Below this a mode is not a display but a device's mistake.
 const MIN: (u32, u32) = (16, 16);
-/// The broker's display grant: DISPLAY_FRAMEBUFFER_PAGES, 8192 pages of
-/// 4 KiB (src/hardware/broker/dma/limits.rs), one 3840x2160 frame.
-pub const MAX_SURFACE_BYTES: u64 = 8192 * 4096;
 const BYTES_PER_PIXEL: u64 = 4;
 
 pub fn fit(width: u32, height: u32) -> (u32, u32) {
     let bytes = u64::from(width)
         .checked_mul(u64::from(height))
         .and_then(|px| px.checked_mul(BYTES_PER_PIXEL));
-    let fits = matches!(bytes, Some(b) if b <= MAX_SURFACE_BYTES);
+    let fits = matches!(bytes, Some(b) if b <= GRANT_BYTES);
     if width < MIN.0 || height < MIN.1 || !fits {
         return DEFAULT;
     }

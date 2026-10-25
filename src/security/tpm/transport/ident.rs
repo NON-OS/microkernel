@@ -17,7 +17,7 @@
 //! What the part itself says it is.
 
 use crate::security::tpm::error::TpmError;
-use crate::security::tpm::mmio::{init_window, read32, read8, TPM_MMIO_BASE};
+use crate::security::tpm::mmio::{init_window, read32, read8, tpm_mmio_base};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum Interface {
@@ -38,8 +38,12 @@ const ACCESS_VALID: u8 = 0x80;
 /// Map the window and read the interface identity. Returns the raw
 /// register for the log line, and the interface when one answers.
 pub(super) fn identify() -> Result<(u32, Option<Interface>), TpmError> {
+    let Some(base) = tpm_mmio_base() else {
+        crate::log::warn!("[TPM] no TPM register window on this platform");
+        return Err(TpmError::NotPresent);
+    };
     if init_window().is_err() {
-        crate::log::warn!("[TPM] could not map the window at {:#X}", TPM_MMIO_BASE);
+        crate::log::warn!("[TPM] could not map the window at {:#X}", base);
         return Err(TpmError::NotPresent);
     }
     let id = read32(INTERFACE_ID)?;

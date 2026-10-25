@@ -1,0 +1,57 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Drive one EAPOL-Key frame through the handshake (IEEE Std 802.11-2020,
+//! 12.7.6 and 12.7.7). Every frame must be an RSN descriptor with Key Ack set,
+//! no Request or Error, the key descriptor version of the negotiated AKM, and
+//! a replay counter above the last one whose MIC verified; anything else is
+//! dropped unanswered. Message 1 (no MIC) yields message 2, also when the AP
+//! repeats message 1 because message 2 was lost. Message 3 must carry Install,
+//! Secure and Encrypted Key Data, verify under the KCK, repeat the ANonce, and
+//! hold the beacon's RSNE; it yields message 4. Once connected, a repeated
+//! message 3 is answered with message 4 again without reinstalling any key,
+//! and a group message 1 delivers the next GTK and yields group message 2.
+//!
+//! A frame that fails its MIC is dropped, not treated as the end of the
+//! handshake: an unauthenticated frame must not be able to tear the join down.
+//! Only an authentic message that is unacceptable (a downgraded RSNE, key data
+//! without a valid group key) fails it.
+
+use super::*;
+
+/// What `step` produced: a frame to transmit, and whether the group key
+/// changed. A frame is returned for messages 2 and 4 and for group message 2;
+/// `None` means the input was not a message the supplicant acts on, or it was
+/// dropped (check `Supplicant::state` for `Failed`).
+pub struct StepOutput {
+    pub reply: Option<Vec<u8>>,
+    /// A group key handshake delivered a new group key: the caller installs
+    /// `Supplicant::gtk` at `Supplicant::gtk_id`.
+    pub new_group_key: bool,
+    /// A rekey finished: the caller sends `reply` (message 4) under the
+    /// pairwise key in use, then installs `Supplicant::tk` in its place.
+    pub new_pairwise_key: bool,
+}
+
+impl StepOutput {
+    pub(in crate::wpa::supplicant) fn none() -> Self {
+        Self { reply: None, new_group_key: false, new_pairwise_key: false }
+    }
+
+    pub(in crate::wpa::supplicant) fn reply(frame: Option<Vec<u8>>) -> Self {
+        Self { reply: frame, new_group_key: false, new_pairwise_key: false }
+    }
+}

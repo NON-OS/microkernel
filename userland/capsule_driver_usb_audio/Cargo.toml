@@ -1,0 +1,31 @@
+# NONOS userland: capsule_driver_usb_audio
+# eK@nonos.systems
+#
+# USB Audio 1.0 playback class capsule. It sits above driver.xhci0 through
+# nonos_usbnet's port scanner and xHCI client, and serves audio.server the
+# NHDA PCM wire driver.hda0 serves. It has no controller, MMIO, IRQ or DMA
+# authority.
+
+[package]
+name = "nonos_capsule_driver_usb_audio"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland USB Audio Class 1.0 playback driver capsule"
+
+[[bin]]
+name = "driver_usb_audio"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_usbnet = { path = "../nonos_usbnet" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

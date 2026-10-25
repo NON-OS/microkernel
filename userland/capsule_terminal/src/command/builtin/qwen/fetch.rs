@@ -69,5 +69,5 @@ pub fn start(state: &mut State, fetch: &Fetch<'_>) -> Option<JobWork> {
     };
     crate::jobs::tty::attach(state, pid);
     state.last_status = 0;
-    Some(JobWork::ExternalStage { pid, stdin: StdinQueue::new(false), capture: None })
+    Some(JobWork::ExternalStage { pid, stdin: StdinQueue::new(false), capture: None, boxed: None })
 }

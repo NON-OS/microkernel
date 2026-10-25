@@ -1,0 +1,18 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Runs shield_core's fuzzing rounds in the proof lane: seeded, bounded rounds over
+# the readers of what a server or the chain sends (replies, batches, a note's open,
+# ABI words, and the swap, lander and rewards readers), so the `fuzzing` feature
+# is built and exercised by a check and cannot rot.
+[package]
+name = "shield_fuzz_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nox_shield_core = { package = "nonos_shield_core", path = "../shield_core", features = ["fuzzing"] }

@@ -18,6 +18,7 @@ use nonos_marketplace_abi::MarketplaceEntry;
 
 use crate::error::CliError;
 
+use super::encode_commerce::to_commerce;
 use super::encode_price::to_price;
 use super::encode_release::to_release;
 use super::encode_token::to_token;
@@ -25,16 +26,19 @@ use super::hex_helpers::{hex20, hex32};
 use super::schema::EntryJson;
 
 pub(super) fn to_entry(e: &EntryJson) -> Result<MarketplaceEntry, CliError> {
+    let publisher_pubkey = hex32(&e.publisher_pubkey, "publisher_pubkey")?;
+    let commerce = e.commerce.as_ref().map(|c| to_commerce(c, &publisher_pubkey)).transpose()?;
     Ok(MarketplaceEntry {
         listing_id: e.listing_id.clone(),
         capsule_id: hex32(&e.capsule_id, "capsule_id")?,
         name: e.name.clone(),
         publisher_name: e.publisher_name.clone(),
-        publisher_pubkey: hex32(&e.publisher_pubkey, "publisher_pubkey")?,
+        publisher_pubkey,
         publisher_eth_address: hex20(&e.publisher_eth_address, "publisher_eth_address")?,
         description: e.description.clone(),
         price: to_price(&e.price)?,
         token: to_token(&e.token)?,
+        commerce,
         releases: e
             .releases
             .iter()

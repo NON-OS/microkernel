@@ -36,19 +36,4 @@ impl Rect {
             && px < self.x.saturating_add(self.w)
             && py < self.y.saturating_add(self.h)
     }
-
-    pub fn bottom(&self) -> u32 {
-        self.y.saturating_add(self.h)
-    }
-
-    /// The same box with `by` taken off every side.
-    pub fn inset(&self, by: u32) -> Rect {
-        let twice = by.saturating_mul(2);
-        Rect::new(
-            self.x + by,
-            self.y + by,
-            self.w.saturating_sub(twice),
-            self.h.saturating_sub(twice),
-        )
-    }
 }

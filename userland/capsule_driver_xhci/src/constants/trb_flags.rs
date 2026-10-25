@@ -25,3 +25,5 @@ pub const TRT_OUT_DATA: u32 = 2 << 16;
 pub const TRT_IN_DATA: u32 = 3 << 16;
 pub const TRB_ISP: u32 = 1 << 2;
 pub const TRB_CH: u32 = 1 << 4;
+/// Isoch TRB: Start Isoch ASAP, the Frame ID ignored (xHCI 1.2 6.4.1.3).
+pub const TRB_SIA: u32 = 1 << 31;

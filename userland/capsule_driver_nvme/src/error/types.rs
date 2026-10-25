@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NvmeError {
     ClaimFailed,
     BrokerCallFailed,
     UnsupportedController,
     UnsupportedPageSize,
+    /// CAP.CSS does not list the NVM command set, the only one served.
+    NoNvmCommandSet,
     ControllerTimeout,
     /// CSTS.CFS still set once CC.EN is clear and CAP.TO has passed: the
     /// reset that clears it did not.
@@ -28,6 +30,9 @@ pub enum NvmeError {
     ClockFailed,
     AdminCommandFailed,
     InvalidTransfer,
+    /// CSTS.SHST never read complete within the shutdown budget (RTD3E,
+    /// capped): the power-off goes on without it.
+    ShutdownTimeout,
 }
 
 pub type NvmeResult<T> = Result<T, NvmeError>;

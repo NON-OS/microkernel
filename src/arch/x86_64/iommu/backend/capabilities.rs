@@ -16,7 +16,7 @@
 
 //! The guarantees the selected IOMMU gives right now.
 
-use crate::arch::x86_64::acpi::parser::other::foreign_segment_units;
+use crate::arch::x86_64::acpi::parser::other::{dmar_address_width, units_left_off};
 use crate::arch::x86_64::iommu::globals::{is_enforcing, page_levels};
 use crate::arch::x86_64::iommu::regs::cap::snoop_control;
 #[cfg(feature = "nonos-iommu-intremap")]
@@ -39,25 +39,28 @@ pub(crate) fn capabilities() -> IommuCapabilities {
 }
 
 /*
- * Bring-up programs every segment 0 unit. A unit on another segment is left
- * off, and devices behind it reach memory directly, so nothing is claimed. The width is what the domains' depth reaches, cut to what the unit
- * accepts. Pages are 4 KiB only because map_range installs nothing larger.
+ * Bring-up programs every segment 0 unit it holds. A unit left off (another
+ * segment, past eight, past an unreadable DMAR structure) translates nothing,
+ * and devices behind it reach memory directly, so nothing is claimed. The
+ * width is what the domains' depth reaches, cut to what the unit accepts and
+ * to DMAR's host address width (K11). Pages are 4 KiB: map_range maps no more.
  */
 fn vtd() -> IommuCapabilities {
     let none = IommuCapabilities::none_in_force(IommuVendor::IntelVtd);
     let (Some(info), Some(levels)) = (probed(), page_levels()) else {
         return none;
     };
-    if !is_enforcing() || foreign_segment_units() != 0 {
+    if !is_enforcing() || units_left_off() != 0 {
         return none;
     }
+    let haw = dmar_address_width().unwrap_or(u8::MAX);
     let Some(reach) = levels.checked_mul(9).and_then(|bits| bits.checked_add(12)) else {
         return none;
     };
     IommuCapabilities {
         vendor: IommuVendor::IntelVtd,
         enforcing: true,
-        address_width_bits: reach.min(info.max_address_width),
+        address_width_bits: reach.min(info.max_address_width).min(haw),
         interrupt_remapping: is_remapping(),
         page_sizes: PAGE_SIZE_4K as u64,
         snoop_control: snoop_control(info.ecap),

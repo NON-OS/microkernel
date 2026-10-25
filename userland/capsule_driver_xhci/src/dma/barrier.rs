@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Ordering against the controller on every target the capsule builds for
-//! (Linux `dma_rmb` and `writel`). On x86 loads are not reordered with
+//! (each architecture's memory model, as recalled, unverified). On x86 loads are not reordered with
 //! loads and stores reach memory before a later uncached MMIO store, so a
 //! full fence is more than enough. On aarch64 a `fence` orders only the
 //! inner shareable domain, not the device's, and riscv64 has a fence for

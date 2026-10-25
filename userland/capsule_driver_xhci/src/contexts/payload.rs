@@ -31,7 +31,8 @@ pub struct Payload {
     /// wMaxPacketSize bits 10:0.
     pub max_packet: u16,
     /// Packets past the first in one interval: the Endpoint Context's Max
-    /// Burst Size for both kinds (Linux `xhci_get_endpoint_max_burst`).
+    /// Burst Size for both kinds (xHCI 1.2 section 6.2.3, as recalled,
+    /// unverified).
     pub max_burst: u8,
     /// Max ESIT Payload: every packet of the interval.
     pub esit: u16,

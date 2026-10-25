@@ -6,7 +6,7 @@ use super::shield_view::{refused, shown};
 use super::ticket::{approve_calldata, sentence};
 use super::{Pending, Wallet};
 use crate::error::{NetError, WalletError};
-use crate::evm::shield::{review_shield, ShieldChecked, ShieldOrder};
+use crate::evm::shield::{review_shield, ShieldChecked, ShieldOrder, ETH_SHORT};
 use crate::evm::{self, Network};
 use crate::ffi::amount_read::parse_base_units;
 use crate::ffi::evm::parse_evm_address;
@@ -23,11 +23,14 @@ impl Wallet {
         let amount = parse_base_units(&amount)?;
         // A deposit is public, so it is a standard size inside the pool's range, whole note units.
         let units = u64::try_from(amount.checked_div(asset.scale).unwrap_or(0)).unwrap_or(0);
-        if amount.checked_rem(asset.scale) != Some(0) || !asset.allows(units) {
+        if amount.checked_rem(asset.scale) != Some(0) {
             return Err(WalletError::NotStandard);
         }
         let (from, to) = self.with(|s| (s.evm().address(), s.address()))?;
         let tor = self.tor()?;
+        if !crate::net::policy_standard::standard_now(&tor, &ACTIVE, asset, units)? {
+            return Err(WalletError::NotStandard);
+        }
         let state = read_pool_state_checked(&tor, &RPCS, &ACTIVE, &from, asset.id)?;
         if state.scale != asset.scale {
             return Ok(refused(
@@ -52,6 +55,7 @@ impl Wallet {
         let review = match review_shield(&tor, &from, &order, &sends)? {
             ShieldChecked::Ready(review) => review,
             ShieldChecked::Refused(why) => return Ok(refused(amount, why)),
+            ShieldChecked::ShortOfEth(_) => return Ok(refused(amount, ETH_SHORT)),
         };
         let id = self.next_review_id();
         let note = (!review.approval).then(|| request.note.clone());

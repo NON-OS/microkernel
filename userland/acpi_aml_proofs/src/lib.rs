@@ -22,6 +22,10 @@ mod entry_count_tests;
 #[cfg(test)]
 mod i2c_hid_enum_tests;
 #[cfg(test)]
+mod i2c_firmware_ids_tests;
+#[cfg(test)]
+mod pci_host_enum_tests;
+#[cfg(test)]
 mod scan_tests;
 #[cfg(test)]
 mod bus_fake;
@@ -33,6 +37,10 @@ mod fadt_tests;
 mod sleep_tests;
 #[cfg(test)]
 mod power_button_tests;
+#[cfg(test)]
+mod power_button_arm_model;
+#[cfg(test)]
+mod power_button_arm_tests;
 #[cfg(test)]
 mod reset_tests;
 #[cfg(test)]

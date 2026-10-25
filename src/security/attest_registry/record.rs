@@ -41,4 +41,5 @@ pub fn record_attested(pid: u32, measurement: [u8; 32], caps: u64, authority: Au
 /// runs for capsules that never reached the attestation gate.
 pub fn forget_attested(pid: u32) {
     let _ = TABLE.lock().remove(pid);
+    super::namespace::forget_namespace(pid);
 }

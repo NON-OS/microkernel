@@ -24,7 +24,7 @@ const KIND_FIQ: u64 = 2;
 const KIND_SERROR: u64 = 3;
 
 #[no_mangle]
-pub extern "C" fn aarch64_exc_invalid_sp0(frame: *mut ExceptionFrame, kind: u64) -> ! {
+pub(crate) extern "C" fn aarch64_exc_invalid_sp0(frame: *mut ExceptionFrame, kind: u64) -> ! {
     let frame = unsafe { &*frame };
     match kind {
         KIND_IRQ => fatal_interrupt(b"SP_EL0 vector IRQ", None, frame),
@@ -35,7 +35,7 @@ pub extern "C" fn aarch64_exc_invalid_sp0(frame: *mut ExceptionFrame, kind: u64)
 }
 
 #[no_mangle]
-pub extern "C" fn aarch64_exc_invalid_aarch32(frame: *mut ExceptionFrame, kind: u64) -> ! {
+pub(crate) extern "C" fn aarch64_exc_invalid_aarch32(frame: *mut ExceptionFrame, kind: u64) -> ! {
     let frame = unsafe { &*frame };
     match kind {
         KIND_IRQ => fatal_interrupt(b"AArch32 vector IRQ", None, frame),

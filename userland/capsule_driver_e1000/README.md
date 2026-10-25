@@ -53,6 +53,7 @@ state. It only enforces capabilities and revokes grants.
 | `OP_MAC_ADDRESS` | the station address drawn this boot | 6 bytes |
 | `OP_TX_PACKET` | transmit one Ethernet frame | status word |
 | `OP_RX_PACKET` | poll one received frame | length plus frame bytes |
+| `OP_RX_BATCH` | every frame waiting, numbered and kept until the next number; an empty request asks whether batches are served | count, then length plus frame bytes per frame |
 | `OP_STATS` | live register and ring cursor snapshot | 48-byte state record |
 
 ## Authority
@@ -85,9 +86,10 @@ A transmit watchdog runs on every send: frames in flight with the link up
 and none completed for 5 s is a hung transmitter, and the part is reset and
 both rings restarted under the same station address, Bus Master staying on.
 
-lands; the broker ORs Command bits today), then `MkDeviceRelease`, which is
-the real guard: it clears Bus Master with a read-back before freeing every
-grant.
+Teardown is stop, reset, Bus Master off (the masked Command write, which
+names the bits it changes; the plain one only ORs bits on), then
+`MkDeviceRelease`, which is the real guard: it clears Bus Master with a
+read-back before freeing every grant.
 
 ## Failure model
 

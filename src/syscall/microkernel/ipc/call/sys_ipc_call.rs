@@ -14,36 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::process::{accounting, current_pid};
+use crate::services::registry::lookup_port;
 use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL};
 use crate::syscall::microkernel::narrow::u32_arg;
-use crate::{process::current_pid, services::registry::lookup_port};
-use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 use super::super::pending_reply;
-use super::super::recv::recv_reply_correlated;
+use super::super::recv_reply::recv_reply_correlated;
 use super::super::reply_inbox;
 use super::super::send::send_with_correlation;
-use super::trace::trace;
-
-static STARVED: crate::sys::diag::Site = crate::sys::diag::Site::new(b"ipc.call");
-
-static GPU_TRANSFER: AtomicBool = AtomicBool::new(false);
-static GPU_SCANOUT: AtomicBool = AtomicBool::new(false);
-static GPU_FLUSH: AtomicBool = AtomicBool::new(false);
-
-// Per-call correlation token: monotonic and never zero, so it can never collide
-// with the correlation an attacker's `mk_ipc_send` produces (always 0) nor with
-// another in-flight call. The reply must carry this exact value.
-static CALL_TOKEN: AtomicU64 = AtomicU64::new(1);
-
-fn next_call_token() -> u64 {
-    let t = CALL_TOKEN.fetch_add(1, Ordering::Relaxed);
-    if t == 0 {
-        CALL_TOKEN.fetch_add(1, Ordering::Relaxed)
-    } else {
-        t
-    }
-}
+use super::settle::settle;
+use super::token::next_call_token;
+use super::verdict::{wait_ms, DEFAULT_MS};
 
 pub fn sys_ipc_call(
     ep: u64,
@@ -60,11 +42,7 @@ pub fn sys_ipc_call(
     if crate::usercopy::validate_user_write(resp, resp_len).is_err() {
         return ERRNO_FAULT;
     }
-    // This call's correlation token, registered with the pending reply keyed by
-    // this caller's inbox. Both reply paths read it back from that same entry:
-    // the redirect path (a service replying via `mk_ipc_send` to its fixed reply
-    // endpoint) and the direct `mk_ipc_reply` path both stamp the reply with it.
-    // The genuine reply carries this token; a forged injection can only carry 0.
+    // Registered with the pending reply keyed by this caller's inbox (token.rs).
     let token = next_call_token();
     let inbox = reply_inbox::for_pid(pid);
     let endpoint = u32_arg(ep).and_then(lookup_port);
@@ -75,7 +53,6 @@ pub fn sys_ipc_call(
         }
     }
     let send_result = send_with_correlation(ep, req, req_len, token);
-    trace(pid, b"send", send_result);
     if send_result < 0 {
         if let Some(server_pid) = endpoint_pid {
             // Strip exactly the entry this call pushed: the newest match. An
@@ -85,55 +62,12 @@ pub fn sys_ipc_call(
         }
         return send_result;
     }
-    crate::process::accounting::bump(pid, crate::process::accounting::Kind::IpcTx);
-    crate::process::accounting::bump_total(crate::process::accounting::Total::IpcMessages);
-    let timeout = if timeout_ms == 0 { 5000 } else { timeout_ms };
+    accounting::bump(pid, accounting::Kind::IpcTx);
+    accounting::bump_total(accounting::Total::IpcMessages);
+    let timeout = wait_ms(timeout_ms, DEFAULT_MS);
+    let start = crate::time::timestamp_millis();
     let recv_result = recv_reply_correlated(pid, &inbox, resp, resp_len, timeout, token);
-    if recv_result >= 0 {
-        crate::process::accounting::bump(pid, crate::process::accounting::Kind::IpcRx);
-    }
-    if recv_result < 0 {
-        // The pending entry is NOT removed on a timeout. The server received
-        // this request and will still reply to it; the redirect pairs replies
-        // to callers strictly by FIFO position, so consuming an entry out of
-        // order shifts every later reply onto the wrong caller, stamped with
-        // that caller's own token. One timeout then desyncs the server's whole
-        // reply stream and the misdeliveries cause further timeouts. Left in
-        // place, the entry is popped in order and the late reply lands on this
-        // (no longer waiting) inbox, where the correlation check discards it.
-        // Entries are only removed when the send itself failed, where the
-        // server never saw a request, and by clear_pid when either side dies.
-        //
-        // A negative receive after a successful send is a served call that got
-        // no answer: the server is wedged or the reply path lost the message.
-        // Refusals log at the gates, so this line is specifically starvation.
-        if let Some(endpoint) = endpoint.as_ref() {
-            STARVED.starved(&endpoint.name, pid, recv_result, endpoint.pid);
-        }
-    }
-    if recv_result >= 24 && req_len >= 20 {
-        if let Some(endpoint) = endpoint.as_ref() {
-            let mut hdr = [0u8; 20];
-            let mut status = [0u8; 4];
-            let ok_hdr = crate::usercopy::copy_from_user(req, &mut hdr).is_ok();
-            let ok_status = crate::usercopy::copy_from_user(resp + 20, &mut status).is_ok();
-            if endpoint.name.as_bytes() == b"driver.virtio_gpu0" && ok_hdr && ok_status {
-                let magic = u32::from_le_bytes([hdr[0], hdr[1], hdr[2], hdr[3]]);
-                let op = u16::from_le_bytes([hdr[6], hdr[7]]);
-                if magic == 0x4E56_4750 && u32::from_le_bytes(status) == 0 {
-                    if op == 0x0008 {
-                        crate::sys::bench::mark_once(&GPU_TRANSFER, b"virtio_gpu_transfer_first");
-                    }
-                    if op == 0x0009 {
-                        crate::sys::bench::mark_once(&GPU_SCANOUT, b"virtio_gpu_scanout_first");
-                    }
-                    if op == 0x000A {
-                        crate::sys::bench::mark_once(&GPU_FLUSH, b"virtio_gpu_flush_first");
-                    }
-                }
-            }
-        }
-    }
-    trace(pid, b"recv", recv_result);
+    let waited = (timeout_ms, crate::time::timestamp_millis().saturating_sub(start));
+    settle(endpoint.as_ref(), pid, (req, req_len, resp), recv_result, waited);
     recv_result
 }

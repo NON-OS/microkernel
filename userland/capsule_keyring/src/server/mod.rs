@@ -14,22 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod answer;
+mod bond_gate;
 mod caller;
 mod dispatch;
 mod eip1559;
-mod eip712;
 mod ethaddr;
 mod field32;
 mod handlers;
 mod hd;
-pub(crate) mod words_own;
 mod reap;
-mod secp;
+mod registry;
 mod rlp;
 mod runner;
+mod secp;
+mod typed;
 mod vault_gate;
 mod wallet_rail;
 mod wipe;
+pub(crate) mod words_own;
 mod zeroize;
 
 pub use runner::run;

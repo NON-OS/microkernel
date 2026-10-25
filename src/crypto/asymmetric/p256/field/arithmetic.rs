@@ -22,13 +22,11 @@ impl FieldElement {
         let mut carry = 0u128;
 
         for (out, (a, b)) in result.iter_mut().zip(self.0.iter().zip(other.0.iter())) {
-
             carry += *a as u128 + *b as u128;
 
             *out = carry as u64;
 
             carry >>= 64;
-
         }
 
         let mut res = Self(result);
@@ -53,23 +51,17 @@ impl FieldElement {
         let mut borrow = 0i128;
 
         for (out, (a, b)) in result.iter_mut().zip(self.0.iter().zip(other.0.iter())) {
-
             borrow += *a as i128 - *b as i128;
 
             if borrow < 0 {
-
                 *out = (borrow + (1i128 << 64)) as u64;
 
                 borrow = -1;
-
             } else {
-
                 *out = borrow as u64;
 
                 borrow = 0;
-
             }
-
         }
 
         let mut res = Self(result);
@@ -170,23 +162,17 @@ impl FieldElement {
             let mut borrow = 0i128;
 
             for (out, (a, b)) in temp.iter_mut().zip(result.0.iter().zip(Self::P.iter())) {
-
                 borrow += *a as i128 - *b as i128;
 
                 if borrow < 0 {
-
                     *out = ((1i128 << 64) + borrow) as u64;
 
                     borrow = -1;
-
                 } else {
-
                     *out = borrow as u64;
 
                     borrow = 0;
-
                 }
-
             }
 
             let no_borrow = ((borrow >> 127) & 1) as u64;
@@ -204,23 +190,17 @@ impl FieldElement {
         let mut temp = [0u64; 4];
 
         for (out, (a, b)) in temp.iter_mut().zip(self.0.iter().zip(Self::P.iter())) {
-
             borrow += *a as i128 - *b as i128;
 
             if borrow < 0 {
-
                 *out = (borrow + (1i128 << 64)) as u64;
 
                 borrow = -1;
-
             } else {
-
                 *out = borrow as u64;
 
                 borrow = 0;
-
             }
-
         }
 
         let no_borrow = ((borrow >> 127) & 1) as u64;

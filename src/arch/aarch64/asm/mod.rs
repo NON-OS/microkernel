@@ -18,6 +18,6 @@ mod secondary_start;
 mod start;
 mod vectors;
 
-pub use secondary_start::_aarch64_secondary_start;
+pub use secondary_start::{_aarch64_secondary_start, _aarch64_spin_table_start};
 pub use start::_start;
 pub use vectors::vectors_el1_addr;

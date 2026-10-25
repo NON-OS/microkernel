@@ -14,16 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::arch::asm;
-
+/// This CPU's hardware id: its packed affinity, all four levels, the value
+/// the GIC compares and the descriptors are filled from (`local_id`). It
+/// used to leave Aff3 out, so on a part with Aff3 set it matched no
+/// descriptor. Not an index (`cpu::cpu_id` is).
 #[inline(always)]
 pub(super) fn current() -> u32 {
-    let mpidr: u64;
-    unsafe {
-        asm!("mrs {}, mpidr_el1", out(reg) mpidr, options(nostack));
-    }
-    let aff0 = (mpidr & 0xFF) as u32;
-    let aff1 = ((mpidr >> 8) & 0xFF) as u32;
-    let aff2 = ((mpidr >> 16) & 0xFF) as u32;
-    (aff2 << 16) | (aff1 << 8) | aff0
+    crate::arch::aarch64::cpu::cpu_affinity()
 }

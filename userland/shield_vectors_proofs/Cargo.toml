@@ -1,0 +1,30 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host proofs for capsule_shield_vectors (Test 5). Its modules are mounted by
+# #[path], so the checks run here are the capsule's own; only the machine's
+# kernel calls are stood in for (src/machine.rs). The tests prove nothing: the
+# pinned proof.json of each vector is held to its proof-format7.bin over a
+# 48-byte top carrying PERIODIC_ROOT (fixtures/), and the shipped cache, when
+# NONOS_PERIODIC_CACHE names it, is checked whole. The full proving run, about
+# four minutes, is this crate's binary, run on its own (README.md).
+[package]
+name = "shield_vectors_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+authors = ["eK@nonos.systems"]
+
+[[bin]]
+name = "shield_vectors_proofs"
+path = "src/main.rs"
+
+[dependencies]
+# The prover the capsule links, with the capsule's features and pins.
+nox_prover = { git = "https://github.com/NON-OS/STARKs.git", branch = "main", features = ["not_before", "parallel"] }
+rayon = "=1.12.0"
+blake3 = { version = "=1.8.7", default-features = false, features = ["pure"] }
+
+[dev-dependencies]
+sha2 = "=0.10.9"

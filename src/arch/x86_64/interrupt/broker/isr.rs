@@ -39,6 +39,7 @@ use crate::hardware::broker::irq::dispatch;
 macro_rules! broker_irq_entry {
     ($name:ident, $vector:expr) => {
         pub extern "x86-interrupt" fn $name(_frame: InterruptStackFrame) {
+            crate::arch::x86_64::interrupt::clear_ac();
             dispatch::on_vector($vector);
         }
     };

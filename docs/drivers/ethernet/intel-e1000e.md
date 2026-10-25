@@ -1,6 +1,6 @@
 # Intel e1000e (82574, 82583, I217, I218, I219)
 
-The e1000e [capsule](../../overview/glossary.md#capsule) is written and host-tested but built into no image in 0.9.2. The e1000 driver in the image is on the [Intel Ethernet](intel.md) page.
+The e1000e [capsule](../../overview/glossary-boot-root-record.md#capsule) is written and host-tested but built into no image in 0.9.2. The e1000 driver in the image is on the [Intel Ethernet](intel.md) page.
 
 ## Device ids
 
@@ -27,7 +27,7 @@ The capsule has the same link protocol and the same polled, interrupt-free desig
 ## Why it is not in 0.9.2
 
 - The build does not include its makefile, whose `CAPSULE_SLUG` is `driver-e1000e`; a comment in it says wiring it into the kernel and the stack is a separate step (`userland/capsule_driver_e1000e/Capsule.mk:8-11`, `CAPSULE_SLUG`). The Ethernet makefiles the build includes are those of virtio-net, e1000, RTL8139 and RTL8169 (`mk/20-build.mk:540-550`, `capsule_driver_e1000`).
-- The [kernel mirror](../../overview/glossary.md#kernel-mirror) it names, `src/hardware/e1000e_capsule`, does not exist in the tree (`userland/capsule_driver_e1000e/Capsule.mk:31`, `CAPSULE_KERNEL_MIRROR`), so the kernel cannot start it.
+- The [kernel mirror](../../overview/glossary-hardware-broker.md#kernel-mirror) it names, `src/hardware/e1000e_capsule`, does not exist in the tree (`userland/capsule_driver_e1000e/Capsule.mk:31`, `CAPSULE_KERNEL_MIRROR`), so the kernel cannot start it.
 - The kernel holds no endpoint for it, and `net.core` does not look it up (`userland/capsule_net_core/src/setup/candidates.rs:25-38`, `WIRED_NICS`).
 
 ## Tests

@@ -8,7 +8,8 @@
 # until the file layer carries it, and the rest is the ordinary capsule
 # floor.
 #
-# LocalSign is what lets this capsule vouch for a package it installed.
+# LocalSign (0x200000000, optional, asked for by the install role alone) is
+# what lets this capsule vouch for a package it installed.
 # Without it MkLocalSign is refused, every package goes into the store
 # with no trailer, and the exec gate then refuses all of them: the
 # marketplace installs software that can never run. It is a narrow
@@ -18,7 +19,7 @@
 #
 # = CoreExec 0x1 | IPC 0x8 | Memory 0x10 | Crypto 0x20 | FileSystem 0x40
 #   | Debug 0x100 | GfxQuery 0x800 | GfxCreate 0x1000 | StoreWrite 0x4000000
-#   | ForeignExec 0x100000000 | LocalSign 0x200000000 = 0x304001979
+#   | ForeignExec 0x100000000 = 0x104001979
 # FileSystem and StoreWrite are the data volume's: a guest reads a model
 # under /models, and the personality imports a model it pins.
 # GfxQuery and GfxCreate are what any windowed app holds, for a guest's
@@ -40,13 +41,23 @@ CAPSULE_REPLY_ENDPOINT   := reply:4937:endpoint.app.linux.reply
 # before the capsule started. The two app.linux.term.N pairs are the slots a
 # terminal runs a Qwen tier in, as its own child
 # (src/userspace/capsule_linux/terminal/roles.rs); 4944/4945 belong to a Linux
-# guest (Guests.mk), so they start at 4946.
-CAPSULE_INSTANCE_ENDPOINTS := service:4938:app.linux.install reply:4939:endpoint.app.linux.install.reply service:4942:app.linux.run reply:4943:endpoint.app.linux.run.reply service:5100:app.linux.term reply:5101:endpoint.app.linux.term.reply service:4946:app.linux.term.1 reply:4947:endpoint.app.linux.term.1.reply service:4948:app.linux.term.2 reply:4949:endpoint.app.linux.term.2.reply
-CAPSULE_REQUIRED_CAPS    := 0x304001979
-# Network (bit 2) is optional: only the install role asks for it, to reach a
-# package mirror through net.sockets (roles.rs). A guest runs without it.
-CAPSULE_OPTIONAL_CAPS    := 0x4
-CAPSULE_CAPS_CEILING     := 0x30400197D
+# guest (Guests.mk), so they start at 4946. app.linux.run.net is the run
+# started again with Network for a program whose policy has NET_ANON
+# (src/userspace/capsule_linux/run_net.rs).
+CAPSULE_INSTANCE_ENDPOINTS := service:4938:app.linux.install reply:4939:endpoint.app.linux.install.reply service:4942:app.linux.run reply:4943:endpoint.app.linux.run.reply service:5204:app.linux.run.net reply:5205:endpoint.app.linux.run.net.reply service:5100:app.linux.term reply:5101:endpoint.app.linux.term.reply service:4946:app.linux.term.1 reply:4947:endpoint.app.linux.term.1.reply service:4948:app.linux.term.2 reply:4949:endpoint.app.linux.term.2.reply
+CAPSULE_REQUIRED_CAPS    := 0x104001979
+# Network (bit 2), LocalSign (bit 33) and StreamImport (bit 34) are optional:
+# the install role asks for all three, to reach a package mirror through
+# net.sockets, to vouch for what it installed (roles.rs), and to start the
+# model fetcher, which holds StreamImport, within its own capabilities; the
+# run.net role asks for Network alone. No run holds LocalSign or
+# StreamImport, so a guest that escapes into the personality cannot sign a
+# policy for itself or feed the data volume.
+CAPSULE_OPTIONAL_CAPS    := 0x600000004
+CAPSULE_CAPS_CEILING     := 0x70400197D
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_linux
+# Development images only (tools/nix/capsules-dev.json): Alpine's mirror is
+# the host's relay at 10.0.2.2:8080, dialled directly (docs/build/dev-mirror.md).
+CAPSULE_DEV_CARGO_FEATURES := dev-mirror
 
 include nonos-mk/capsule.mk

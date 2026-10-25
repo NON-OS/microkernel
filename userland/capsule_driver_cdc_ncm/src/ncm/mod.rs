@@ -20,21 +20,25 @@
 mod address;
 pub mod align;
 pub mod bind;
+mod datagram;
+pub mod format;
 pub mod function;
 mod init;
 pub mod limits;
 pub mod link;
+mod link_watch;
+pub mod ndp;
 mod nic;
+pub mod notice;
 pub mod ntb_in;
 pub mod ntb_out;
+pub mod nth;
 pub mod pad;
 pub mod params;
-pub mod quirk;
 mod requests;
 mod setup;
 pub mod shape;
 mod start;
 mod transfer;
-pub mod verify;
 
 pub use bind::bind;

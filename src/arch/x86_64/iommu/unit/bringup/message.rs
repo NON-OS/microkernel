@@ -24,6 +24,7 @@ pub(super) fn reason(e: VtdError) -> &'static [u8] {
         VtdError::TableUnreachable => b"table outside the directmap",
         VtdError::DomainTableFull => b"more devices than bindings",
         VtdError::InvalidationRejected => b"unit refused a queued invalidation",
+        VtdError::QueueHeadOutOfRange => b"unit's queue head is past its ring",
         _ => b"unexpected error",
     }
 }

@@ -1,6 +1,6 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! Each way a bind stops has its name and errno, and a device stopped
-//! after INITIALIZE gets a HALT, as Linux generic_rndis_bind leaves it.
+//! after INITIALIZE gets a HALT, so it is left uninitialized.
 
 use nonos_usbnet::found::fetch;
 use nonos_usbnet::mock::{drawn, Call, MockBus};

@@ -31,11 +31,6 @@ mod call_kind;
 mod cap;
 mod close;
 mod connect;
-mod connect_anon;
-mod connect_dgram;
-mod connect_dial;
-mod connect_lo;
-mod connect_out;
 mod dest;
 mod dgram;
 mod dgram_addr;
@@ -47,10 +42,7 @@ mod host_body;
 mod iov;
 mod listen;
 mod mmsg;
-mod mmsg_each;
 mod msg;
-mod msg_hdr;
-mod msg_recv;
 mod name;
 mod named;
 mod offline;
@@ -60,24 +52,25 @@ mod pair;
 mod peer_addr;
 mod policy;
 mod poll;
-mod poll_set;
-mod poll_socket;
+/* A development build's local mirror, dialled directly (dev-mirror). */
+#[cfg(feature = "dev-mirror")]
 pub mod raw;
+#[cfg(feature = "dev-mirror")]
 pub mod raw_io;
 mod ready_sets;
 mod recvfrom;
 mod resolver;
+#[cfg(feature = "dev-mirror")]
 pub mod route;
 mod select;
 mod shutdown;
 pub mod sock;
 mod sockaddr;
-mod sockaddr_out;
 mod socket;
+mod socket_kind;
 mod stream;
 mod try_call;
-mod xfer_in;
-mod xfer_out;
+mod xfer;
 
 /* The route every capsule holding Network leaves by, read in guest_route.rs. */
 use nonos_route_link::{Route, ANYONE_DOWN};

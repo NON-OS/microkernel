@@ -23,6 +23,7 @@ pub fn sys_mmio_unmap(grant_id: u64) -> i64 {
         Some(p) => p,
         None => return ERRNO_PERM,
     };
+    let pid = crate::hardware::broker::holder_of(pid);
     match broker::unmap_grant(pid, grant_id) {
         Ok(()) => 0,
         Err(GrantError::NotHolder) => ERRNO_PERM,

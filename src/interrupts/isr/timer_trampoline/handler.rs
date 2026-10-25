@@ -101,7 +101,7 @@ pub(crate) extern "C" fn timer_trap_handler(ctx: *mut UserContext, fx: *mut u8) 
             *pcb.saved_user_context.lock() = None;
         }
     }
-    super::reclaim::on_tick(from_user);
+    crate::process::exit::reclaim_at_tick(from_user);
     if from_user {
         drop(_ctx_guard);
         super::guest_stop::on_user_tick(ctx, fx);

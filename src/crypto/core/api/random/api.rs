@@ -14,25 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! The core API's random calls. Each draws from the seeded RNG only, and
+//! refuses with `InsufficientEntropy` before it is seeded; none falls back.
+
+use crate::crypto::error::{CryptoError, CryptoResult};
 use crate::crypto::util::rng;
 
-pub fn secure_random_u32() -> u32 {
-    let mut bytes = [0u8; 4];
-    rng::fill_random_bytes(&mut bytes);
-    u32::from_le_bytes(bytes)
+pub fn fill_random(buf: &mut [u8]) -> CryptoResult<()> {
+    rng::fill_random_bytes_secure(buf).map_err(|_| CryptoError::InsufficientEntropy)
 }
-pub fn secure_random_u64() -> u64 {
+pub fn secure_random_u64() -> CryptoResult<u64> {
     let mut bytes = [0u8; 8];
-    rng::fill_random_bytes(&mut bytes);
-    u64::from_le_bytes(bytes)
+    fill_random(&mut bytes)?;
+    Ok(u64::from_le_bytes(bytes))
 }
-pub fn secure_random_u8() -> u8 {
-    let mut bytes = [0u8; 1];
-    rng::fill_random_bytes(&mut bytes);
-    bytes[0]
+pub fn secure_random_u32() -> CryptoResult<u32> {
+    Ok(secure_random_u64()? as u32)
 }
-pub fn fill_random(buf: &mut [u8]) {
-    rng::fill_random_bytes(buf);
+pub fn secure_random_u8() -> CryptoResult<u8> {
+    Ok(secure_random_u64()? as u8)
 }
 
 pub fn generate_secure_key_checked() -> Result<[u8; 32], &'static str> {

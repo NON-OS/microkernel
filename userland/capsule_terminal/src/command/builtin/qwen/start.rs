@@ -45,5 +45,5 @@ pub fn spawn(state: &mut State, tier: &'static [u8], question: &[u8]) -> Option<
         first.push(b'\n');
         let _ = stdin.push(&first);
     }
-    Some(JobWork::ExternalStage { pid, stdin, capture: None })
+    Some(JobWork::ExternalStage { pid, stdin, capture: None, boxed: None })
 }

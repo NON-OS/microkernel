@@ -30,7 +30,7 @@ impl RegisterGrant {
                 // SAFETY: MkMmioMap mapped `length` bytes at `user_va`, read
                 // and write, and they stay until the claim is released; the
                 // driver reaches no register after that.
-                Some(Regs::mmio(unsafe { Mmio::new(base, len) }))
+                Some(Regs::mmio(unsafe { Mmio::registers(base, len) }))
             }
             Self::Pio(g) => Some(Regs::pio(g.grant_id)),
         }

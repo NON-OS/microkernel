@@ -4,7 +4,7 @@ Put NONOS on a disk in this computer: how the installer picks the disk, what it 
 
 ## Start the installer
 
-The installer is `capsule_install`. It writes the system this machine is running onto a disk you name, with its package [store](../overview/glossary.md#store) and an encrypted [data volume](../overview/glossary.md#data-volume). There are three ways in:
+The installer is `capsule_install`. It writes the system this machine is running onto a disk you name, with its package [store](../overview/glossary-linux-personality.md#store) and an encrypted [data volume](../overview/glossary-claim-epoch.md#data-volume). There are three ways in:
 
 - Boot the stick and choose `Install NØNOS` in the boot menu. Setup opens with Install chosen on its Mode step. When you finish the Review step, the installer takes the whole screen, with no desktop behind it. If an earlier boot of the stick kept its answers, setup does not run and the installer opens at once.
 - Choose `Install to this computer` on setup's Mode step, on any boot that runs setup.
@@ -29,7 +29,7 @@ stateDiagram-v2
 
 The screens run in a fixed order. Nothing touches the disk before you press Enter on Confirm.
 
-1. Welcome, titled `Install NØNOS on this computer`. Read what will be written: the loader and kernel sizes, the kernel measurement, the boot verdict, the firmware's [Secure Boot](../overview/glossary.md#secure-boot) state and the [TPM](../overview/glossary.md#tpm). Press Enter.
+1. Welcome, titled `Install NØNOS on this computer`. Read what will be written: the loader and kernel sizes, the kernel measurement, the boot verdict, the firmware's [Secure Boot](../overview/glossary-rollback-index.md#secure-boot) state and the [TPM](../overview/glossary-stark-proof.md#tpm). Press Enter.
 2. Proofs, titled `What this boot proved`. Read what each proof found. `VERIFIED` and `FAILED` are verdicts a check reached. `SELF-REPORTED` is a pass on the loader's word alone, with nothing measuring it. `NOT VERIFIED`, `NOT CHECKED` and `UNKNOWN` are not passes. Press Enter to list the disks.
 3. Disks, titled `Choose the disk`. Choose a disk with Up and Down, press `r` to look again, and press Enter.
 4. Confirm, titled `Everything on this disk will be erased`. Read what is erased and written, type the disk's word, and press Enter.
@@ -43,7 +43,7 @@ Escape steps back. On Welcome and on Stopped it closes the installer, and on Don
 
 ## Which disks are offered
 
-The Disks screen lists every disk the NVMe, SATA and virtio-blk drivers serve, and the SATA driver also serves Intel eMMC hosts. Each row gives the model or the bus, the size, the serial, the block size when it is not 512 bytes, and what the disk holds now: `blank`, `NONOS installed`, `another system (GPT)`, `another system (MBR)`, `unrecognised contents` or `did not answer a read`.
+The Disks screen lists every disk the NVMe, SATA and virtio-blk drivers serve. eMMC and UFS installs are not in 0.9.3: their driver capsules have no publisher key and are not in a shipped image. Each row gives the model or the bus, the size, the serial, the block size when it is not 512 bytes, and what the disk holds now: `blank`, `NONOS installed`, `another system (GPT)`, `another system (MBR)`, `unrecognised contents` or `did not answer a read`.
 
 Some rows are not targets, and say why:
 
@@ -80,12 +80,12 @@ The disk gets a GPT with four partitions, laid out in 512-byte sectors:
 |---|---|---|
 | 0 to 33 | | the protective MBR and the primary GPT |
 | 256 to 245,759 | `NONOS-STORE` | the package store |
-| 245,760 to 262,143 | `NONOS-PLAN` | the [disk plan](../overview/glossary.md#disk-plan) naming the data volume, then the key header, cleared |
+| 245,760 to 262,143 | `NONOS-PLAN` | the [disk plan](../overview/glossary-claim-epoch.md#disk-plan) naming the data volume, then the key header, cleared |
 | 262,144 to the ESP | `NONOS-DATA` | the data volume, everything between the plan and the ESP |
 | 1 GiB, or whole MiBs more for larger boot files, ending on the last MiB boundary before the backup GPT | `NONOS-ESP` | the boot files |
 | the last 33 sectors | | the backup GPT |
 
-The [ESP](../overview/glossary.md#esp) holds `EFI/BOOT/BOOTX64.EFI`, then `kernel.bin`, `bootloader.trailer`, `boot_root.approval`, `boot.cfg` and, when the running image has one, `kernel.approval` under `EFI/nonos/`, and `startup.nsh` at the top. The loader and kernel bytes are the ones the loader verified on this boot and handed to the kernel, read back from the kernel and not read again from the stick.
+The [ESP](../overview/glossary-dma-pool.md#esp) holds `EFI/BOOT/BOOTX64.EFI`, then `kernel.bin`, `bootloader.trailer`, `boot_root.approval`, `boot.cfg` and, when the running image has one, `kernel.approval` under `EFI/nonos/`, and `startup.nsh` at the top. The loader and kernel bytes are the ones the loader verified on this boot and handed to the kernel, read back from the kernel and not read again from the stick.
 
 The store carries, in this order, while it has room: setup's answers and their marker, the wallpapers those answers keep, the signed programs under `/linux/` and then `/capsules/`, each program whole or not at all, then the files the Linux programs read. Nothing else from the running session is carried: files you made, the consent to run installed software and remembered Wi-Fi networks stay behind. The store is not encrypted: the kernel writes it to the disk as it is given.
 
@@ -109,7 +109,6 @@ The installer writes no firmware boot entry: the firmware finds the loader at th
 
 On its first boot, the first time a program asks for the data volume, the kernel finds the cleared key header, derives the volume key from the TPM and formats the volume, and the log says `[DATA] formatted a volume of` with its size in sectors. Without a TPM the volume stays closed: the program gets EIO, and the serial console says `[DATA] refused with EIO: MachineKey(...)`. The kernel's own `[DATA] no machine key` line goes to its structured log, which nothing installs in this release, so it does not print. Setup does not run there when setup's answers came with the store.
 
-Installing to an internal NVMe disk and booting from it was reported on real hardware. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
 
 ## Other installers in the tree
 
@@ -139,7 +138,7 @@ Installing to an internal NVMe disk and booting from it was reported on real har
   - The boot stick left off, a loader copy withheld: `By::Partition` and `withheld`, `userland/nonos_blk_client/src/disks/scan.rs:100-102`, `userland/nonos_blk_client/src/disks/scan.rs:139-149`.
   - A driver that did not come up: `fault`, `userland/nonos_blk_client/src/disks/scan.rs:154-162`.
   - First sectors that did not read: `unread`, `userland/nonos_blk_client/src/disks/probe.rs:46-55`.
-  - Three drivers only, eMMC through SATA: `ALL` and `serves`, `userland/nonos_blk_client/src/driver/table.rs:31`, `userland/nonos_blk_client/src/driver/table.rs:76-79`.
+  - The drivers asked: `ALL` and `serves`, `userland/nonos_blk_client/src/driver/table.rs`; the capsules an image carries: `DESKTOP_BASE_SLUGS`, `mk/20-build.mk`.
   - Looking again: `EVERY_MS` and `due`, `userland/capsule_install/src/install/rescan.rs:27-32`.
   - The RST or VMD hint: `RAID`, `userland/capsule_install/src/install/ui/screens/disks.rs:36`, and `raid_hides_disks`, `userland/nonos_blk_client/src/disks/scan.rs:68-72`.
 - The confirmation word

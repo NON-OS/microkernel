@@ -48,8 +48,10 @@ pub fn already_done() -> Option<u8> {
         let _ = mk_idle_ms(STORE_POLL_MS);
     }
     let pid = mk_getpid();
-    let done = vfs::read_file(pid, DONE_PATH, DONE.len() as u32).is_ok_and(|raw| is_done(&raw));
-    let raw = vfs::read_file(pid, ANSWERS_PATH, ANSWERS_LEN as u32);
+    // One byte past each, so a longer file fails the exact-length checks
+    // rather than being cut to a marker or a record.
+    let done = vfs::read_file(pid, DONE_PATH, DONE.len() as u32 + 1).is_ok_and(|raw| is_done(&raw));
+    let raw = vfs::read_file(pid, ANSWERS_PATH, ANSWERS_LEN as u32 + 1);
     raw.ok().and_then(|raw| Record::decode(&raw)).filter(|_| done).map(|r| r.apps_off)
 }
 

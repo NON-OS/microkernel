@@ -20,12 +20,10 @@
 //! behind it, which sits in the same window and would otherwise come out of
 //! reset able to reach any physical page a missing IOMMU leaves open.
 //!
-//! The reset bits are the ones Linux names in drivers/mfd/intel-lpss.c
-//! (LPSS_PRIV_RESETS_FUNC 0x3, LPSS_PRIV_RESETS_IDMA BIT(2)), coreboot in
-//! soc/intel/common/block/lpss (LPSS_CNT_RST_RELEASE 0x3,
-//! LPSS_DMA_RST_RELEASE 1 << 2) and Intel's FSP headers (RESETS_FUNC BIT0,
-//! RESETS_APB BIT1, RESETS_IDMA BIT2). They are written out here rather than
-//! taken from the driver, so a driver table that had them swapped is caught.
+//! The reset bits are the LPSS chapter's RESETS_FUNC (bit 0), RESETS_APB
+//! (bit 1) and RESETS_IDMA (bit 2), as recalled, unverified. They are
+//! written out here rather than taken from the driver, so a driver table
+//! that had them swapped is caught.
 
 use nonos_libc::{
     take_pci_writes, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_MEMORY_SPACE,

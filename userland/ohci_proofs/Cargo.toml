@@ -1,0 +1,21 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the OHCI host capsule: its schedule, transfers
+# and wire handlers run here from the shipped source through #[path],
+# against a model controller that walks its lists frame by frame and the
+# devices on its root ports.
+[package]
+name = "ohci_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_usb_hub = { path = "../nonos_usb_hub" }
+nonos_usb_virt = { path = "../nonos_usb_virt" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

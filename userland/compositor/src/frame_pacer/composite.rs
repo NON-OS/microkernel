@@ -28,12 +28,26 @@ pub fn paint(ctx: &mut Context, rect: Rect) {
         height: ctx.height,
         byte_len: ctx.backing_len,
     };
+    // Closed: nothing of the scene, the pointer or the band, only black.
+    if ctx.lid.black() {
+        crate::sw_blitter::fill_rect(dst, rect, crate::state::lid_rule::LID_BLACK);
+        return;
+    }
+    // On the device's cursor plane the arrow is not in the frame.
     let cursor = ctx.cursor.current();
+    let shown = cursor.visible && !ctx.hw_cursor();
     let scene = Scene {
         scene: &mut ctx.scene,
         attach: &mut ctx.attach,
         kernel: &mut Kernel,
         damage: &mut ctx.damage,
+        ceiling: u32::MAX,
     };
-    compose(dst, rect, scene, cursor.visible.then_some((cursor.x, cursor.y)));
+    compose(dst, rect, scene, shown.then_some((cursor.x, cursor.y)));
+    super::look_paint::paint_looks(ctx, dst, rect);
+    // Last: nothing a client draws or places can cover the band.
+    let captured = ctx.screen_notice_until != 0;
+    let trusted = crate::state::trusted_rule::holder(ctx.scene.layers()).is_some();
+    let dma = ctx.dma_unconfined;
+    super::indicator_band::draw(dst, rect, &ctx.indicators, captured, trusted, dma);
 }

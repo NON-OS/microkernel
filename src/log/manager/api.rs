@@ -15,36 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::state::{LogManager, LOGGER, PANIC_MODE};
-#[cfg(target_arch = "x86_64")]
-use crate::log::backend::VgaBackend;
 use crate::log::types::{LogEntry, Severity};
-use alloc::boxed::Box;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
 use spin::Mutex;
-
-pub fn init() {
-    let mut l = LOGGER.lock();
-    let mut mgr = LogManager::new();
-    #[cfg(target_arch = "x86_64")]
-    mgr.add_backend(Box::new(VgaBackend));
-    *l = Some(mgr);
-}
-
-/// The shutdown wipe's: overwrite what the logger holds in RAM. It never
-/// waits for the lock, since a holder may be the very CPU that is shutting
-/// down; a log held at that moment keeps its text until power goes.
-pub fn wipe_ram_log() -> bool {
-    match LOGGER.try_lock() {
-        Some(mut l) => {
-            if let Some(mgr) = l.as_mut() {
-                mgr.wipe();
-            }
-            true
-        }
-        None => false,
-    }
-}
 
 pub fn log(sev: Severity, msg: &str) {
     if let Some(mgr) = LOGGER.lock().as_mut() {

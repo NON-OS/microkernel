@@ -1,24 +1,10 @@
 //! Whether the pool would take a deposit, with the contract's checks in its order.
 
-use super::deposit::split_deposit;
+#[path = "deposit_gate_state.rs"]
+mod state;
 
-/// The pool state for one depositor and asset. `open_deposits` lets anyone in, caps still apply.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub struct PoolState {
-    pub deposits_paused: bool,
-    pub wound_down: bool,
-    pub beta_mode: bool,
-    pub beta_paused: bool,
-    pub is_depositor: bool,
-    pub addr_deposited: u128,
-    pub addr_cap: u128,
-    pub total_deposited: u128,
-    pub total_cap: u128,
-    pub fee_bps: u16,
-    pub open_deposits: bool,
-    /// Base units per note unit. One on a format 5 pool, which counts base units.
-    pub scale: u128,
-}
+use super::deposit::split_deposit;
+pub use state::PoolState;
 
 /// Why the pool would refuse, named the way a screen can say it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -26,6 +12,8 @@ pub enum Refusal {
     DepositsPaused,
     /// The pool never settles again, so money deposited could leave only by refund.
     WoundDown,
+    /// The policy is paused; its guardian may hold it for up to 14 days.
+    PolicyPaused,
     /// Zero, above one note's ceiling, or a fee that would take all of it.
     Amount,
     /// Not a whole number of pool units. The remainder would back no note.
@@ -43,6 +31,9 @@ pub fn check(state: &PoolState, amount: u128) -> Result<(), Refusal> {
     }
     if state.wound_down {
         return Err(Refusal::WoundDown);
+    }
+    if state.policy_paused {
+        return Err(Refusal::PolicyPaused);
     }
     let units = units_of(amount, state.scale)?;
     if state.beta_mode {

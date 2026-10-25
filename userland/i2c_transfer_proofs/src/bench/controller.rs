@@ -20,14 +20,14 @@ use crate::discover::Found;
 
 /// Gemini Lake's I2C input clock, the part this capsule was brought up on.
 pub const GEMINI_LAKE_HZ: u32 = 133_000_000;
-/// Where the controller's window sits physically, for the LPSS remap.
+/// Where the controller's window sits physically, for the LPSS remap: its
+/// record shows it once the controller is claimed, and discovery never sees it.
 pub const LPSS_PHYS: u64 = 0x0000_0001_0000_0000;
 
 /// Gemini Lake's I2C0.
 pub fn controller() -> Found {
     Found {
         device_id: 1,
-        bar0_base: LPSS_PHYS,
         bar0_size: 0x1000,
         pci_device: 0x31AC,
         clock_hz: GEMINI_LAKE_HZ,

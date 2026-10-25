@@ -17,8 +17,9 @@
 //! Which title, and which row of the open drop-down, sits under a point.
 
 use super::items::{rows, TITLE_COUNT};
-use super::metrics::{pad_y, panel_w, row_h, title_w, title_x};
+use super::metrics::{pad_y, panel_w, row_h};
 use super::origin::origin;
+use super::title_geom::{title_w, title_x};
 use crate::render::layout::menubar_height;
 use crate::render::topbar::brand_right;
 use crate::state::Context;

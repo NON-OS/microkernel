@@ -21,12 +21,14 @@
 /// eight LPSS I2C functions; other platforms fewer.
 pub const MAX_CONTROLLERS: usize = 8;
 
+/// A controller as the device list shows it before the claim. Its window's
+/// base is not kept: the list shows it only to the device's holder, so
+/// bring-up reads it back once claimed (claimed_base.rs).
 #[derive(Clone, Copy, Default)]
 pub struct Found {
+    /// The id of the controller's own record, which a touchpad declaration
+    /// names it by.
     pub device_id: u64,
-    /// Physical base of the MMIO window, which the LPSS remap register is
-    /// programmed with and an ACPI touchpad record names its controller by.
-    pub bar0_base: u64,
     pub bar0_size: u64,
     pub pci_device: u16,
     pub clock_hz: u32,

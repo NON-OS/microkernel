@@ -21,7 +21,6 @@ use nonos_libc::mk_device_release;
 use super::bind::bind;
 use super::bring_up_one::bring_up_one;
 use super::order::{probe_order, standard_mode};
-use crate::constants::controller_index;
 use crate::discover::{AcpiTouchpad, Found};
 use crate::driver::Driver;
 use crate::transaction::{probe_hid, Presence};
@@ -49,7 +48,7 @@ pub(super) fn find_descriptor(cands: &[Found], targets: &[AcpiTouchpad]) -> Resu
                 Ok(found @ Presence::HidDescriptor(_)) => {
                     return Ok(bind(driver, &dev, tg, found, targets))
                 }
-                Ok(Presence::Acked) if weak.is_none() && tg.names(&dev, controller_index) => {
+                Ok(Presence::Acked) if weak.is_none() && tg.names(&dev) => {
                     weak = Some((i, *tg));
                 }
                 _ => {}

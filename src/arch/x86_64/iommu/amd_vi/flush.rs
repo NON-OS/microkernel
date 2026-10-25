@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The invalidations the kernel sends, each to every unit: the device table
-//! is shared, so a change to it is stale in every unit's caches, and a
-//! command for a device behind another unit is a harmless no-op.
+//! The invalidations the kernel sends, each to every unit: the device table is
+//! shared, so a change is stale in every unit's caches; elsewhere it is a no-op.
 
-use super::command::{invalidate_all, invalidate_devtab_entry, invalidate_domain_pages, Command};
+use super::command::{invalidate_all, invalidate_devtab_entry, Command};
+use super::command::{invalidate_domain_pages, invalidate_interrupt_table};
 use super::error::AmdViError;
 use super::regs;
 use super::submit::submit;
@@ -37,14 +37,19 @@ pub fn flush_device(device_id: u16) -> Result<(), AmdViError> {
     submit_all(&[invalidate_devtab_entry(device_id)])
 }
 
+/// The entry, then the remapping entries it names, after either changed.
+pub(super) fn flush_interrupts(device_id: u16) -> Result<(), AmdViError> {
+    submit_all(&[invalidate_devtab_entry(device_id), invalidate_interrupt_table(device_id)])
+}
+
 pub fn flush_domain(domain: u16) -> Result<(), AmdViError> {
     submit_all(&[invalidate_domain_pages(domain)])
 }
 
 /// Everything a unit may hold from firmware's tables, right after it is
-/// enabled with the kernel's, as Linux amd_iommu_flush_all_caches: one
-/// INVALIDATE_IOMMU_ALL where EFR.IASup says the unit takes it, otherwise
-/// every device table entry and every domain id the kernel hands out.
+/// enabled with the kernel's: one INVALIDATE_IOMMU_ALL where EFR.IASup says
+/// the unit takes it, otherwise every device table entry, interrupt table and
+/// domain id it hands out, since a cached entry outlives a rewritten table.
 pub(super) fn flush_everything(index: usize, domains: u16) -> Result<(), AmdViError> {
     let unit = units().get(index).ok_or(AmdViError::NotPresent)?;
     let efr = unit.read64(regs::EXT_FEATURE).unwrap_or(0);
@@ -55,6 +60,11 @@ pub(super) fn flush_everything(index: usize, domains: u16) -> Result<(), AmdViEr
     for first in (0..=u16::MAX as u32).step_by(batch.len()) {
         for (i, slot) in batch.iter_mut().enumerate() {
             *slot = invalidate_devtab_entry((first as usize + i) as u16);
+        }
+        submit(index, &batch)?;
+        // And any remapping entry firmware's tables left cached (K4).
+        for (i, slot) in batch.iter_mut().enumerate() {
+            *slot = invalidate_interrupt_table((first as usize + i) as u16);
         }
         submit(index, &batch)?;
     }

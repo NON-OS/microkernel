@@ -24,11 +24,11 @@ terminal -- MkProcInput / MkProcOutput / MkTtySet --> its child jobs
 - Service `service:4722:app.terminal`, reply
   `reply:4723:endpoint.app.terminal.reply`. Three more windows can open on the
   instance endpoints `app.terminal.1` to `app.terminal.3` (ports 4740 to 4745).
-- `CAPSULE_REQUIRED_CAPS = 0xc000187d`: CoreExec, Network, IPC, Memory, Crypto,
-  FileSystem, GraphicsDisplayQuery, GraphicsSurfaceCreate, AppInstall and
-  AttestRead. AppInstall is what `market install`, `market uninstall`,
-  `market list` and `market info` take to ask the system for an install or a
-  removal and to read where it stands.
+- `CAPSULE_REQUIRED_CAPS = 0xc100187d`: CoreExec, Network, IPC, Memory, Crypto,
+  FileSystem, GraphicsDisplayQuery, GraphicsSurfaceCreate, SpawnWindow,
+  AppInstall and AttestRead. AppInstall lets `market` ask for an install or a
+  removal and read where it stands. SpawnWindow makes the Terminal a launcher:
+  what it loads or runs gets its own manifest's capabilities, not the Terminal's.
   Network is what the network services and `MkToolRun` check for the network
   commands and the model fetcher; FileSystem is what vfs serves; Crypto backs
   the TLS handshake; AttestRead lets `receipt` read the attestation registry
@@ -105,9 +105,7 @@ the window sends SIGTERM to every program that tab started.
 `userland/terminal_line_proofs` compiles the parser, expansion, filters, the
 help text, the `qwen` line handling and the direct-only gate on the host;
 `pipe_filter_tests` holds the pipe filters to their flags and
-`help_truth_tests` holds `help` to the commands and the identity lines to the
-registry. The
-host tests under `tests/` cover layout, the rail and `pull` framing. Each is
-one file built with `rustc --edition 2021 --test tests/<name>.rs`, as its
-header says; `context_host` also takes `nonos_policy_proto` built as an rlib
-and handed over with `--extern`.
+`tables/` holds `help`, dispatch and completion to the tables the shell
+routes by, and `help_truth_tests` the identity lines to the registry.
+`userland/terminal_host_proofs` holds the host tests for layout, the rail,
+the prefs codec and `pull` framing; `cargo test` runs them in the proof lane.

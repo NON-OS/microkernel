@@ -16,6 +16,10 @@
 
 use crate::syscall::{call_raw, N_MK_IPC_RECV_FROM};
 
+/// A `timeout_ms` that looks once: a receive on an empty inbox returns
+/// -EAGAIN at once. 0 still waits for ever.
+pub const MK_IPC_NO_WAIT: u64 = u64::MAX;
+
 // Dequeue one message and write the sender pid to `sender_pid_out`
 // (if non-null). Same blocking + timeout semantics as `mk_ipc_recv`.
 #[no_mangle]
@@ -29,5 +33,30 @@ pub extern "C" fn mk_ipc_recv_from(
     call_raw(
         N_MK_IPC_RECV_FROM,
         [endpoint, buf as u64, len as u64, timeout_ms, sender_pid_out as u64, 0],
+    )
+}
+
+// As `mk_ipc_recv_from`, and writes to `enqueued_ms_out` (if non-null)
+// when the kernel queued the message, in `mk_uptime_ms` milliseconds: a
+// receiver times a request from its arrival, not from when it got to it.
+#[no_mangle]
+pub extern "C" fn mk_ipc_recv_from_at(
+    endpoint: u64,
+    buf: *mut u8,
+    len: usize,
+    timeout_ms: u64,
+    sender_pid_out: *mut u32,
+    enqueued_ms_out: *mut u64,
+) -> i64 {
+    call_raw(
+        N_MK_IPC_RECV_FROM,
+        [
+            endpoint,
+            buf as u64,
+            len as u64,
+            timeout_ms,
+            sender_pid_out as u64,
+            enqueued_ms_out as u64,
+        ],
     )
 }

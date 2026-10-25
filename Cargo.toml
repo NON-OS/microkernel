@@ -50,8 +50,8 @@ harness = false
 [features]
 default = ["microkernel-core"]
 
-# Bring up a non-x86_64 arch tree (aarch64/riscv64) in QEMU. Compiles + boots
-# the arch but is not a release-signed target. See the arch guard in lib.rs.
+# Bring up a non-x86_64 arch tree: aarch64 boots under QEMU, riscv64 up to its
+# unported VM layer. Neither is a release target; see lib.rs's guard.
 nonos-arch-preview = []
 
 # Run the in-kernel microbenchmarks at boot and print them on the serial
@@ -64,6 +64,19 @@ nonos-bench-micro = []
 # enables them; a kernel built with one stops at that exception by design.
 nonos-trap-proof-sp0 = []
 nonos-trap-proof-kernel-abort = []
+
+# x86_64 SMP boot proofs. No profile enables them. `nonos-shootdown-trace`
+# prints one line per TLB shootdown round (targets, starting targets,
+# acknowledgements paid for abandoned ones). `nonos-smp-park-proof` makes CPU 1
+# slow in bring-up, checkpointing as it goes, so the boot CPU parks and resets
+# it; `nonos-smp-stuck-proof` stalls it with no checkpoint, so it stays a
+# shootdown target and the next kernel shootdown fails closed.
+# `nonos-smp-pge-proof` sets CR4.PGE on the boot CPU alone before the kernel
+# sets it, as firmware may, so a boot shows every CPU ending with the same pge.
+nonos-shootdown-trace = []
+nonos-smp-park-proof = []
+nonos-smp-stuck-proof = []
+nonos-smp-pge-proof = []
 
 # Bootstrap. `kernel` switches malloc/free to Rust `alloc`; `standalone`
 # brings in the panic handler and global allocator.
@@ -91,6 +104,10 @@ nonos-capsule-shield            = []
 # Test 5, the pinned wallet vectors proved on the machine: development images
 # only (tools/nix/config.nix refuses it beside any other loader policy).
 nonos-capsule-shield-vectors    = []
+# The attack suite's capsule: development images only, as above. The
+# selftest profile turns it on; it also echoes the kernel's warnings to the
+# serial line, so the report shows each refusal from the kernel's side.
+nonos-capsule-attack            = []
 nonos-capsule-ripgrep           = []
 nonos-capsule-sd                = []
 nonos-capsule-tokio-smoke       = []
@@ -107,7 +124,6 @@ nonos-capsule-desktop-shell     = []
 nonos-capsule-input-router      = []
 nonos-capsule-input-proof       = []
 nonos-capsule-input-probe       = []
-nonos-capsule-flacprobe         = []
 nonos-capsule-setup-wizard      = []
 nonos-capsule-wm                = []
 nonos-capsule-toolkit           = []
@@ -116,6 +132,7 @@ nonos-capsule-nonos-install     = []
 nonos-capsule-clipboard         = []
 nonos-capsule-attest            = []
 nonos-capsule-power             = []
+nonos-capsule-acpi              = []
 nonos-capsule-image-codec       = []
 nonos-capsule-image-viewer      = []
 nonos-capsule-video-player      = []
@@ -126,6 +143,8 @@ nonos-capsule-install-cli       = []
 # trust data first.
 nonos-capsule-prove             = []
 nonos-capsule-model-fetch       = []
+# nonos.prove.fetch. In no profile yet: it needs its trust data.
+nonos-capsule-prove-fetch       = []
 nonos-capsule-app-store         = []
 nonos-capsule-audio-player      = []
 nonos-capsule-hello             = []
@@ -147,23 +166,68 @@ nonos-capsule-entropy           = []
 nonos-capsule-crypto            = []
 nonos-capsule-vfs               = []
 nonos-capsule-installer         = []
+# payment: the meter, which signs NOX vouchers with its own key.
+nonos-capsule-payment           = []
+# nox_settle: reads the chain and broadcasts for the meter and the wallet,
+# over the wallet's route only; in networkFeatures.
+nonos-capsule-nox-settle        = []
 nonos-capsule-driver-virtio-rng = []
 nonos-capsule-driver-virtio-blk = []
 nonos-capsule-driver-virtio-gpu = []
 nonos-capsule-driver-virtio-net = []
 nonos-capsule-driver-ps2-input  = []
+nonos-capsule-driver-virtio-input= []
 nonos-capsule-driver-xhci       = []
 nonos-capsule-driver-usb-hid    = []
 nonos-capsule-driver-usb-msc    = []
 nonos-capsule-driver-e1000      = []
+nonos-capsule-driver-igb        = []
+nonos-capsule-driver-ixgbe      = []
+nonos-capsule-driver-e1000e     = []
+nonos-capsule-driver-igc        = []
 nonos-capsule-driver-i2c-pci    = []
+nonos-capsule-driver-gpio       = []
 nonos-capsule-driver-i2c-hid    = []
 nonos-capsule-driver-iwlwifi    = []
 nonos-capsule-driver-rtl8821ce  = []
 nonos-capsule-driver-rtl8139    = []
 nonos-capsule-driver-rtl8169    = []
+nonos-capsule-driver-pcnet      = []
+nonos-capsule-driver-vmxnet3    = []
+nonos-capsule-driver-tulip      = []
+nonos-capsule-driver-vmware-svga= []
 nonos-capsule-driver-ahci       = []
+nonos-capsule-driver-sdhci      = []
+nonos-capsule-driver-ufs        = []
+nonos-capsule-driver-bga        = []
+nonos-capsule-driver-intel-display = []
+nonos-capsule-driver-usb-audio  = []
+nonos-capsule-driver-usb-hub    = []
+nonos-capsule-driver-uvc        = []
+nonos-capsule-driver-cdc-acm    = []
+nonos-capsule-driver-usb-mic    = []
+nonos-capsule-driver-ccid       = []
+nonos-capsule-driver-fido       = []
+nonos-capsule-driver-spi        = []
+nonos-capsule-driver-spi-hid    = []
+nonos-capsule-driver-cdc-ecm    = []
+nonos-capsule-driver-cdc-ncm    = []
+nonos-capsule-driver-rndis      = []
+nonos-capsule-driver-smbus      = []
+nonos-capsule-driver-uhci       = []
+nonos-capsule-driver-ohci       = []
+nonos-capsule-driver-ehci       = []
 nonos-capsule-driver-hda        = []
+nonos-capsule-driver-ac97       = []
+nonos-capsule-driver-vmmdev     = []
+nonos-capsule-driver-vmmouse    = []
+nonos-capsule-driver-vmbus      = []
+nonos-capsule-driver-storvsc    = []
+nonos-capsule-driver-piix-ide   = []
+nonos-capsule-driver-virtio-scsi = []
+nonos-capsule-driver-pvscsi = []
+nonos-capsule-driver-buslogic = []
+nonos-capsule-driver-mpt = []
 nonos-capsule-audio             = []
 nonos-capsule-driver-nvme       = []
 nonos-capsule-net-l2            = []
@@ -221,11 +285,38 @@ nonos-ntp-smoketest = ["microkernel-net-ntp", "nonos-user-entry-proof", "capsule
 # The booted spawn gate against four broken capsules and one honest one. Test
 # only: lib.rs refuses it beside nonos-production.
 nonos-attest-refusal-smoketest = ["microkernel-core", "nonos-capsule-proof-io"]
+# Init panics once the spawn plan has run, so a boot shows the panic path's
+# halt, wipe and power-off (src/userspace/init/injected.rs). Test only: it
+# refuses to compile beside nonos-production or nonos-release.
+nonos-panic-proof = []
+# Init raises a kernel #UD once the spawn plan has run, so a boot shows a CPU
+# exception's kernel branch wiping and powering off. Test only, refused
+# beside nonos-production or nonos-release (src/userspace/init/injected.rs).
+nonos-fault-proof = []
 # A development image: the gates admit a capsule, the kernel and the loader on
 # their Merkle path alone, with no STARK proof, so a test image is enrolled in
 # seconds. Only the dev profile turns it on, beside the loader's development
 # policy; nonos-production refuses it (src/lib.rs).
 nonos-dev-attest = ["nonos-boot-measure/dev-attest"]
+# The owner's development opt-in to unconfined DMA: a device no
+# IOMMU domain confines may still be claimed and handed its physical address.
+# Never in a release: lib.rs refuses it beside nonos-production or
+# nonos-release, and the IOMMU posture line says it is on.
+nonos-dev-unconfined-dma = []
+# The owner's development opt-in to interrupts without remapping (K3): a PCI
+# device is claimed, and its MSI bound in compatibility format, where no unit
+# remaps. Never in a release (src/memory/iommu/dev_unremapped.rs refuses it
+# beside nonos-production or nonos-release); the posture line says it is on.
+nonos-dev-unremapped-interrupts = []
+# The no-IOMMU posture (src/memory/iommu/no_iommu_rule.rs): on a machine
+# whose firmware left VT-d or AMD-Vi off, so no remapping unit is in service,
+# bus-master claims go ahead unconfined instead of the boot stopping at the
+# splash. Taken only then, never in a Hardened or Air-Gapped boot, and always
+# said: its own [IOMMU] posture line, the attestation, the splash and About.
+# It rides microkernel-desktop-gui, not microkernel-core, so the hardened and
+# airgapped profiles can take it out (tools/nix/config.nix) without opening
+# microkernel-core into members that are not kernel features.
+nonos-dma-unconfined-posture = []
 # Every image the seal may seal for release: tools/nix/config.nix turns it on
 # for each profile whose loader is not the development one. A kernel built
 # with it refuses to compile nonos-dev-attest (src/lib.rs).
@@ -246,6 +337,8 @@ microkernel-core = [
   "crypto-ed25519-int",
   "nonos-arch-iommu",
   "nonos-iommu-enforce",
+  "nonos-iommu-intremap",
+  "nonos-iommu-amdvi",
 ]
 
 # Runtime baseline: core + the three live capsule embeds.
@@ -269,6 +362,8 @@ microkernel-proof-io = [
   "nonos-production",
   "nonos-user-entry-proof",
   "nonos-capsule-proof-io",
+  # Its proof is a serial line that needs Debug (src/userspace/init/entry.rs).
+  "capsule-serial-debug",
 ]
 
 microkernel-ramfs = [
@@ -407,6 +502,34 @@ microkernel-driver-e1000 = [
   "nonos-capsule-driver-e1000",
 ]
 
+microkernel-driver-igb = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-igb",
+]
+
+microkernel-driver-e1000e = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-e1000e",
+]
+
+microkernel-driver-igc = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-igc",
+]
+
+microkernel-driver-ixgbe = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-ixgbe",
+]
+
 microkernel-driver-rtl8139 = [
   "microkernel-core",
   "nonos-production",
@@ -421,6 +544,41 @@ microkernel-driver-rtl8169 = [
   "nonos-capsule-driver-rtl8169",
 ]
 
+microkernel-driver-pcnet = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-pcnet",
+]
+
+microkernel-driver-vmxnet3 = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-vmxnet3",
+]
+
+microkernel-driver-tulip = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-tulip",
+]
+
+microkernel-driver-virtio-input = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-virtio-input",
+]
+
+microkernel-driver-vmware-svga = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-vmware-svga",
+]
+
 microkernel-driver-ahci = [
   "microkernel-core",
   "nonos-production",
@@ -428,11 +586,245 @@ microkernel-driver-ahci = [
   "nonos-capsule-driver-ahci",
 ]
 
+microkernel-driver-sdhci = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-sdhci",
+]
+
+microkernel-driver-ufs = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-ufs",
+]
+
+microkernel-driver-bga = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-bga",
+]
+
+microkernel-driver-intel-display = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-intel-display",
+]
+
+microkernel-driver-cdc-ecm = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-cdc-ecm",
+]
+
+microkernel-driver-cdc-ncm = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-cdc-ncm",
+]
+
+microkernel-driver-rndis = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-rndis",
+]
+
+microkernel-driver-usb-hub = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-usb-hid",
+  "nonos-capsule-driver-usb-hub",
+]
+
+microkernel-driver-uvc = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-usb-hid",
+  "nonos-capsule-driver-usb-hub",
+  "nonos-capsule-driver-uvc",
+]
+
+microkernel-driver-cdc-acm = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-usb-hid",
+  "nonos-capsule-driver-usb-hub",
+  "nonos-capsule-driver-cdc-acm",
+]
+
+microkernel-driver-usb-mic = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-usb-hid",
+  "nonos-capsule-driver-usb-hub",
+  "nonos-capsule-driver-usb-mic",
+]
+
+microkernel-driver-ccid = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-usb-hid",
+  "nonos-capsule-driver-usb-hub",
+  "nonos-capsule-driver-ccid",
+]
+
+microkernel-driver-fido = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-usb-hid",
+  "nonos-capsule-driver-usb-hub",
+  "nonos-capsule-driver-fido",
+]
+
+microkernel-driver-spi = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-i2c-pci",
+  "nonos-capsule-driver-spi",
+]
+
+microkernel-driver-spi-hid = [
+  "microkernel-driver-spi",
+  "nonos-capsule-driver-spi-hid",
+]
+
+microkernel-driver-usb-audio = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-usb-audio",
+  "nonos-capsule-audio",
+]
+
+microkernel-driver-smbus = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-smbus",
+]
+
+microkernel-driver-uhci = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-uhci",
+  "nonos-capsule-driver-usb-hid",
+]
+
+microkernel-driver-ohci = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-ohci",
+  "nonos-capsule-driver-usb-hid",
+]
+
+microkernel-driver-ehci = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-ehci",
+  "nonos-capsule-driver-usb-msc",
+]
+
 microkernel-driver-hda = [
   "microkernel-core",
   "nonos-production",
   "nonos-capsule-proof-io",
   "nonos-capsule-driver-hda",
+]
+
+microkernel-driver-ac97 = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-ac97",
+]
+
+microkernel-driver-vmmdev = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-vmmdev",
+]
+
+microkernel-driver-vmmouse = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-vmmouse",
+]
+
+microkernel-driver-vmbus = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-vmbus",
+]
+
+microkernel-driver-storvsc = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-storvsc",
+]
+
+microkernel-driver-piix-ide = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-piix-ide",
+]
+
+microkernel-driver-virtio-scsi = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-virtio-scsi",
+]
+
+microkernel-driver-pvscsi = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-pvscsi",
+]
+
+microkernel-driver-buslogic = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-buslogic",
+]
+
+microkernel-driver-mpt = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-mpt",
 ]
 
 microkernel-driver-nvme = [
@@ -548,6 +940,7 @@ microkernel-desktop-offline = [
   "nonos-capsule-driver-virtio-blk",
   "nonos-capsule-driver-nvme",
   "nonos-capsule-driver-ahci",
+  "nonos-capsule-driver-sdhci",
   "nonos-capsule-driver-virtio-gpu",
   "nonos-capsule-driver-ps2-input",
   "nonos-capsule-driver-xhci",
@@ -611,6 +1004,7 @@ microkernel-desktop-base = [
 # first-party app capsules in one kernel image.
 microkernel-desktop-gui = [
   "microkernel-desktop-base",
+  "nonos-dma-unconfined-posture",
   "nonos-tool-capsules",
 ]
 
@@ -624,26 +1018,55 @@ microkernel-desktop-gui-async-gate = [
   "nonos-capsule-tokio-smoke",
 ]
 
-# Full desktop image, what `make` and `make qemu` build. The desktop-gui set
-# plus every production hardware driver capsule, the market and input-proof
-# capsules, and first-boot setup, which runs before the desktop starts. Only
-# the input-probe injection harness, which fakes input for tests, is left
-# out. Every capsule here is already in the verified-capsule policy root.
+# Full desktop image, what `make` and the standard, hardened and airgapped
+# profiles build. The desktop-gui set plus every production hardware driver
+# capsule, the market, and first-boot setup, which runs before the desktop
+# starts. Test and demo capsules are left out: input-proof (it writes the
+# first key code it sees to the serial console), hello (the docs' example
+# window) and the input-probe injection harness. A capsule here is sealed by
+# the release seal like any other; one added since the last seal has no
+# trust set in nonos-data/trust yet, and the image is refused until it has
+# (tools/nix/image.nix, `unsealed`).
 microkernel-full-gui = [
   "microkernel-desktop-gui",
+  "nonos-capsule-nox-settle",
+  "nonos-capsule-prove-fetch",
+  "nonos-capsule-driver-igb",
+  "nonos-capsule-driver-e1000e",
+  "nonos-capsule-driver-ufs",
+  "nonos-capsule-driver-uhci",
+  "nonos-capsule-driver-ohci",
+  "nonos-capsule-driver-ehci",
+  "nonos-capsule-driver-usb-hub",
+  "nonos-capsule-driver-usb-audio",
+  "nonos-capsule-driver-uvc",
+  "nonos-capsule-driver-ccid",
+  "nonos-capsule-driver-fido",
   "nonos-capsule-driver-e1000",
   "nonos-capsule-driver-rtl8139",
   "nonos-capsule-driver-rtl8169",
+  "nonos-capsule-driver-pcnet",
+  "nonos-capsule-driver-vmxnet3",
+  "nonos-capsule-driver-tulip",
+  "nonos-capsule-driver-virtio-input",
+  "nonos-capsule-driver-vmware-svga",
   "nonos-capsule-driver-iwlwifi",
   "nonos-capsule-driver-rtl8821ce",
   "nonos-capsule-driver-hda",
+  "nonos-capsule-driver-ac97",
+  "nonos-capsule-driver-vmmdev",
+  "nonos-capsule-driver-vmmouse",
+  "nonos-capsule-driver-vmbus",
+  "nonos-capsule-driver-piix-ide",
+  "nonos-capsule-driver-virtio-scsi",
+  "nonos-capsule-driver-pvscsi",
+  "nonos-capsule-driver-buslogic",
+  "nonos-capsule-driver-mpt",
   "nonos-capsule-driver-usb-msc",
   "nonos-capsule-driver-i2c-pci",
   "nonos-capsule-driver-i2c-hid",
   "nonos-capsule-market",
   "microkernel-setup-wizard",
-  "nonos-capsule-input-proof",
-  "nonos-capsule-hello",
 ]
 
 microkernel-toolkit = ["microkernel-desktop-gui"]
@@ -876,18 +1299,17 @@ nonos-arch-iommu     = []   # src/arch/x86_64/iommu/*
 # without a translation.
 nonos-iommu-enforce  = ["nonos-arch-iommu"]
 
-# Interrupt remapping on every VT-d unit (VT-d chapter 5), with compatibility
-# format interrupts still passed (CFI), and the remapped-entry routing drivers
-# move their MSI and MSI-X vectors onto. Off by default until a boot log from
-# QEMU intel-iommu,intremap=on and from a real Intel machine shows the units
-# acknowledging it.
+# Interrupt remapping on every VT-d unit (VT-d chapter 5) with CFI clear, so
+# compatibility format interrupts are blocked: every MSI, MSI-X and IO-APIC
+# line names an entry for its own source. In microkernel-core (K3); a build
+# without it claims no PCI device but under the development opt-in.
 nonos-iommu-intremap = ["nonos-iommu-enforce"]
 
-# Drive AMD-Vi units (AMD IOMMU spec 48882): a shared device table with every
-# enumerated device identity mapped and every other requester id denied, a
-# command buffer and event log per unit, and capsule domains behind the same
-# broker calls as VT-d. Off by default until QEMU amd-iommu and a real AMD
-# machine show the units in service.
+# Drive AMD-Vi units (AMD IOMMU spec 48882): a shared device table in which
+# every requester id starts blocked, its interrupts refused, a device with
+# IVMD ranges keeping only those; a command buffer and event log per unit;
+# capsule domains and per-device interrupt tables behind the same broker
+# calls as VT-d. In microkernel-core (K4).
 nonos-iommu-amdvi = ["nonos-arch-iommu"]
 
 # In-tree crypto, audit-anchored constant-time implementations.
@@ -901,12 +1323,15 @@ crypto-curve25519    = ["curve25519-dalek", "x25519-dalek"]
 mlkem512  = []
 mlkem768  = []
 mlkem1024 = []
+# SPHINCS+, NTRU and Classic McEliece: built only under this feature. Each
+# of the kernel's own implementations fails its first full run, so none is
+# shipped until it passes its published vectors. No default or release
+# profile may enable it (nonos-ci/check-pqc-unvetted.sh).
+pqc-unvetted = []
 mldsa2    = []
 mldsa3    = []
 mldsa5    = []
 
-# Legacy hash, retained for Git object hashes / TOTP only.
-sha1-legacy = []
 
 # Host-side build. Used by tests that compile against std on the host.
 std = []
@@ -916,7 +1341,7 @@ nonos_bench_core = { path = "nonos-bench", version = "0.1.0" }
 # The attestation path check, shared with the bootloader and secops.
 nonos-attest-path = { path = "nonos-attest-path" }
 nonos-boot-measure = { path = "nonos-boot-measure" }
-# The STARK lane's gate verifier, no_std. Every capsule is admitted only when
+# The STARK project's gate verifier, no_std. Every capsule is admitted only when
 # its path and its STARK proof over the same slot both check. Pinned by rev.
 nox_verify = { version = "0.1", git = "https://github.com/NON-OS/STARKs.git", branch = "main" }
 # Synchronization. spin is the kernel-wide lock primitive (no_std,

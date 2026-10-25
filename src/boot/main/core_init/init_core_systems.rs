@@ -16,7 +16,6 @@
 
 use crate::bus;
 use crate::sys::{apic, serial};
-use core::arch::asm;
 
 use super::acpi_tables::init_acpi_tables;
 use super::cpu_tables::init_cpu_tables;
@@ -47,9 +46,7 @@ pub fn init_core_systems() {
     // PS/2 input + IRQ wiring belongs to the legacy tree. The
     // microkernel boot path does not bring up keyboard/mouse rings;
     // input is owned by future capsule migration (input capsule).
-    unsafe {
-        asm!("sti", options(nomem, nostack));
-    }
+    crate::arch::interrupt::sti();
     serial::println(b"[NONOS] Interrupts enabled");
     super::super::init_memory_encryption();
     bus::pci::init();
@@ -65,6 +62,9 @@ pub fn init_core_systems() {
      * left unrestricted, on hardware as much as under QEMU. It runs from
      * `microkernel_init` now, after paging.
      */
+    // The baseline draws the boot nonce and the token signing key, which
+    // fail closed on an unseeded RNG, so the bootloader's seed goes in first.
+    crate::entry::security::apply_boot_seed();
     crate::kernel_core::init::init_platform_baseline();
     crate::sys::bench::mark(b"kernel_core_ready");
 }

@@ -52,6 +52,9 @@ impl SlotResources {
             ep0,
             interrupt: Vec::new(),
             bulk: None,
+            bulk2: None,
+            isoch: None,
+            isoch_in: None,
             quarantine: Vec::new(),
         })
     }

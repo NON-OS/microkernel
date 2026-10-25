@@ -16,7 +16,7 @@
 
 use crate::hardware::broker::MmioMapError;
 use crate::syscall::microkernel::errnos::{
-    ERRNO_INVAL, ERRNO_NODEV, ERRNO_NOMEM, ERRNO_NOTSUP, ERRNO_PERM, ERRNO_STALE,
+    ERRNO_ACCES, ERRNO_INVAL, ERRNO_NODEV, ERRNO_NOMEM, ERRNO_NOTSUP, ERRNO_PERM, ERRNO_STALE,
 };
 
 pub(super) fn errno_for(e: MmioMapError) -> i64 {
@@ -29,8 +29,14 @@ pub(super) fn errno_for(e: MmioMapError) -> i64 {
         | MmioMapError::BadAlignment
         | MmioMapError::BadRange
         | MmioMapError::ZeroLength
-        | MmioMapError::Overflow => ERRNO_INVAL,
-        MmioMapError::WouldExposeMsixTable | MmioMapError::WouldExposePba => ERRNO_PERM,
+        | MmioMapError::Overflow
+        | MmioMapError::MixedMemoryType
+        | MmioMapError::WcNotPrefetchable
+        | MmioMapError::WcPastBar => ERRNO_INVAL,
+        MmioMapError::WouldExposeMsixTable
+        | MmioMapError::WouldExposePba
+        | MmioMapError::Forbidden => ERRNO_PERM,
+        MmioMapError::FirmwareReserved => ERRNO_ACCES,
         MmioMapError::UnsupportedFlags => ERRNO_NOTSUP,
         MmioMapError::NoVaSpace | MmioMapError::MapFailed => ERRNO_NOMEM,
     }

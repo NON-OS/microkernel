@@ -67,8 +67,8 @@ def wait_for(proc, log, markers, deadline):
         time.sleep(POLL)
 
 
-def boot(argv, log, timeout, kill_at_serving=False):
-    """Run QEMU to readiness. Returns (log text, reached, how it ended)."""
+def boot(argv, log, timeout, kill_at_serving=False, also=()):
+    """Run QEMU to readiness and every line in `also`. Returns (log, reached, how it ended)."""
     log.unlink(missing_ok=True)
     proc = subprocess.Popen(argv, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
     deadline = time.monotonic() + timeout
@@ -81,7 +81,7 @@ def boot(argv, log, timeout, kill_at_serving=False):
                 proc.kill()
                 return read_log(log), True, "killed while serving"
             return text, False, why or "store never served"
-        text, reached, why = wait_for(proc, log, READY, deadline)
+        text, reached, why = wait_for(proc, log, READY + list(also), deadline)
         return text, reached, "ready" if reached else why or "timed out"
     finally:
         if proc.poll() is None:

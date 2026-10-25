@@ -21,13 +21,8 @@
 //! fits the broker's display grant. A small one (a 320x240 panel) is the
 //! device's too: raising it to 1280x720 drew a frame the panel cannot show.
 
-use crate::setup::geometry::derive;
-use crate::setup::mode::{fit, DEFAULT, MAX_SURFACE_BYTES};
-use crate::state::Scanout;
-
-fn scanout(width: u32, height: u32) -> Scanout {
-    Scanout { x: 0, y: 0, width, height, current_resource_id: 0, enabled: true }
-}
+use crate::display::modes::within_grant;
+use crate::setup::mode::{fit, DEFAULT};
 
 #[test]
 fn a_mode_whose_frame_fits_the_display_grant_is_taken_as_offered() {
@@ -47,13 +42,13 @@ fn a_mode_too_small_or_too_large_falls_back_to_the_default() {
     }
 }
 
+// Bring-up's mode and the wire's MODES judge a frame by the one grant
+// (`display::gpu::GRANT_BYTES`): a size bring-up takes is one MODES offers,
+// and one it falls back from is one MODES leaves out.
 #[test]
-fn a_surface_past_the_display_grant_is_refused_not_asked_of_the_broker() {
-    let g = derive(scanout(3840, 2160)).expect("fits").expect("enabled");
-    assert!(g.byte_len <= MAX_SURFACE_BYTES);
-    for (w, h) in [(32767, 32767), (3840, 2400), (65536, 65535)] {
-        assert!(derive(scanout(w, h)).is_err(), "{w}x{h}");
+fn bring_up_and_modes_judge_a_frame_by_the_same_grant() {
+    let sides = [16, 640, 1920, 2048, 3840, 4096, 8192, 32767];
+    for (w, h) in sides.iter().flat_map(|&w| sides.iter().map(move |&h| (w, h))) {
+        assert_eq!(fit(w, h) == (w, h), within_grant(w, h), "{w}x{h}");
     }
-    assert!(derive(scanout(u32::MAX, 1)).is_err(), "the stride overflows");
-    assert!(derive(Scanout { enabled: false, ..scanout(1024, 768) }).expect("ok").is_none());
 }

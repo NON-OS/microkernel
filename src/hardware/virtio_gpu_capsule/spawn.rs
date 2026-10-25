@@ -54,8 +54,7 @@ pub fn spawn_driver_virtio_gpu_capsule() -> Result<(), SpawnError> {
             | Capability::DeviceEnum.bit()
             | Capability::Driver.bit()
             | Capability::Mmio.bit()
-            | Capability::Dma.bit()
-            | Capability::Pio.bit(),
+            | Capability::Dma.bit(),
         debug_tag: b"",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

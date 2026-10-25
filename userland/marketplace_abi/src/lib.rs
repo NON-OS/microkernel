@@ -49,18 +49,26 @@
 extern crate alloc;
 
 pub mod codec;
+pub mod ids;
 pub mod limits;
 pub mod types;
+pub mod verdict;
 
-pub use codec::{decode_index, release_signing_bytes, DecodeError};
+pub use codec::{commerce_bytes, commerce_from_bytes, commerce_hash_input, decode_index};
+pub use codec::{decode_entry_document, decode_release_document, release_signing_bytes};
 #[cfg(feature = "canonical-encode")]
-pub use codec::{encode_and_sign, encode_index, EncodedIndex};
+pub use codec::{encode_and_sign, encode_index, EncodeError, EncodedIndex};
+#[cfg(feature = "canonical-encode")]
+pub use codec::{encode_entry_document, encode_release_document};
+pub use codec::{DecodeError, COMMERCE_DOMAIN, CURRENT_SCHEMA, SCHEMA_V2, SCHEMA_V3};
+pub use ids::{address_text, bond_id, listing_id, release_hash, release_id, Blake3, Keccak};
 pub use limits::{
-    MAX_ARCHES, MAX_CAPABILITIES, MAX_DESCRIPTION, MAX_ENTRIES, MAX_NAME, MAX_PUBLISHER,
-    MAX_RELEASES, MAX_SIGNATURE, MAX_SUPPORTED_ARCH_LEN, MAX_TOKEN_SYMBOL, MAX_URL, PUBKEY_LEN,
-    SHA256_LEN, SIG_LEN,
+    GUEST_POLICY_LEN, MAX_ARCHES, MAX_CAPABILITIES, MAX_DESCRIPTION, MAX_ENTRIES, MAX_NAME,
+    MAX_PROOF_ANCHORS, MAX_PROOF_REQS, MAX_PUBLISHER, MAX_RELEASES, MAX_SIGNATURE,
+    MAX_SUPPORTED_ARCH_LEN, MAX_TOKEN_SYMBOL, MAX_URL, PUBKEY_LEN, SHA256_LEN, SIG_LEN,
 };
 pub use types::{
-    CapsuleRelease, InstallReadiness, MarketplaceEntry, MarketplaceIndex, PriceKind, PriceModel,
-    TokenInfo, ValidationReport, ValidationStatus,
+    CapsuleRelease, Commerce, InstallReadiness, MarketplaceEntry, MarketplaceIndex, PriceKind,
+    PriceModel, ProofReq, ReleaseExt, SettleMode, TokenInfo, ValidationReport, ValidationStatus,
 };
+pub use verdict::*;

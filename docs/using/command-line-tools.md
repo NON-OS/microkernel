@@ -4,7 +4,7 @@ Run the seven command-line programs that ship with the NONOS desktop: what each 
 
 ## The seven tools
 
-Each tool is a program from crates.io, built for NONOS from source kept in the NONOS source tree and shipped as its own signed [capsule](../overview/glossary.md#capsule). One line per tool in the list of apps registers it.
+Each tool is a program from crates.io, built for NONOS from source kept in the NONOS source tree and shipped as its own signed [capsule](../overview/glossary-boot-root-record.md#capsule). One line per tool in the list of apps registers it.
 
 | Tool | Version | What it does | How it takes a file |
 |---|---|---|---|
@@ -16,7 +16,7 @@ Each tool is a program from crates.io, built for NONOS from source kept in the N
 | `huniq` | 2.7.0 | Prints each line once and drops the repeats. | None: it reads only the keyboard |
 | `csview` | 1.3.4 | Draws a CSV file as an aligned table. | The file name |
 
-The tools are baked into the kernel image by the `nonos-tool-capsules` feature. `microkernel-desktop-gui` and `microkernel-setup-wizard` both turn it on, and every [build profile](../overview/glossary.md#build-profile) except `core` builds on one of them. In a build without the feature the Terminal answers `grex: not installed in this build`.
+The tools are baked into the kernel image by the `nonos-tool-capsules` feature. `microkernel-desktop-gui` and `microkernel-setup-wizard` both turn it on, and every [build profile](../overview/glossary-boot-root-record.md#build-profile) except `core` builds on one of them. In a build without the feature the Terminal answers `grex: not installed in this build`.
 
 ## Start a tool
 
@@ -30,7 +30,7 @@ Type the tool's name and its arguments, as in any shell. The Terminal looks the 
 - `--help` after any tool's name prints all of its options.
 - `Tab` completes a tool's name as it completes a command.
 
-The same table holds `linux`, which runs a Linux program through the [Linux personality](../overview/glossary.md#linux-personality). It is described on [Linux programs](linux-programs.md).
+The same table holds `linux`, which runs a Linux program through the [Linux personality](../overview/glossary-linux-personality.md#linux-personality). It is described on [Linux programs](linux-programs.md).
 
 ### From the Launchpad
 
@@ -59,7 +59,7 @@ The Terminal prints the tool's name and one reason:
 | `one is already running` | Another copy of the same tool is running. |
 | `the kernel refused to start it` | Any other refusal, such as a capsule the spawn gate did not accept. |
 
-Each tool owns two fixed [endpoints](../overview/glossary.md#endpoint), a service port and a reply port, so one copy of a tool runs at a time. A second `jsonxf`, in another tab or in the background, is refused with `jsonxf: one is already running`. The kernel frees a tool's endpoints a little after it ends, and the Terminal asks again only for `linux`, so a tool started straight after its last run ended can get the same answer for a moment. Run it again.
+Each tool owns two fixed [endpoints](../overview/glossary-dma-pool.md#endpoint), a service port and a reply port, so one copy of a tool runs at a time. A second `jsonxf`, in another tab or in the background, is refused with `jsonxf: one is already running`. The kernel frees a tool's endpoints a little after it ends, and the Terminal asks again only for `linux`, so a tool started straight after its last run ended can get the same answer for a moment. Run it again.
 
 ## How a tool runs
 
@@ -75,9 +75,9 @@ flowchart LR
     term --> redirect["redirect file"]
 ```
 
-A typed command, or a Launchpad tile, reaches the Terminal. The Terminal asks the kernel to run `tool.<name>`, with the words you typed as the tool's arguments. The kernel's [spawn gate](../overview/glossary.md#spawn-gate) checks the tool capsule's [NONOS ID certificate](../overview/glossary.md#nonos-id-certificate), its [manifest](../overview/glossary.md#manifest) and its [attestation trailer](../overview/glossary.md#attestation-trailer) under the trust anchor baked into the kernel, then starts it as a child of the Terminal. The tool opens files through the [file store](../overview/glossary.md#file-store). What it prints comes back to the Terminal, which shows it in the Terminal tab or, after `>`, writes it to the redirect file.
+A typed command, or a Launchpad tile, reaches the Terminal. The Terminal asks the kernel to run `tool.<name>`, with the words you typed as the tool's arguments. The kernel's [spawn gate](../overview/glossary-rollback-index.md#spawn-gate) checks the tool capsule's [NONOS ID certificate](../overview/glossary-linux-personality.md#nonos-id-certificate), its [manifest](../overview/glossary-linux-personality.md#manifest) and its [attestation trailer](../overview/glossary-amnesic-boot.md#attestation-trailer) under the trust anchor baked into the kernel, then starts it as a child of the Terminal. The tool opens files through the [file store](../overview/glossary-dma-pool.md#file-store). What it prints comes back to the Terminal, which shows it in the Terminal tab or, after `>`, writes it to the redirect file.
 
-Every tool runs with the same four [capabilities](../overview/glossary.md#capability), `0x59` in all:
+Every tool runs with the same four [capabilities](../overview/glossary-boot-root-record.md#capability), `0x59` in all:
 
 | Bit | Capability | What it is for |
 |---|---|---|
@@ -258,7 +258,7 @@ Not tested in this release.
 
 ## How far this is tested
 
-- The Terminal's tool table, its refusals of `<` and `|` for tools, and the Launchpad tiles' command lines are covered by the `terminal_line_proofs` and `desktop_proofs` [proof crates](../overview/glossary.md#proof-crate), which pass on this commit.
+- The Terminal's tool table, its refusals of `<` and `|` for tools, and the Launchpad tiles' command lines are covered by the `terminal_line_proofs` and `desktop_proofs` [proof crates](../overview/glossary-peer-list.md#proof-crate), which pass on this commit.
 - The kernel can run each tool once at boot with `--version`, or `-h` for `jsonxf`, under the `nonos-tool-selftest` feature. No build in this tree turns that feature on.
 - No test runs the examples on this page. They follow the code and each tool's own options, and are not tested in this release.
 

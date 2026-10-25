@@ -22,9 +22,17 @@ use crate::memory::addr::PhysAddr;
 use crate::memory::mmio::map_device_memory;
 use crate::security::tpm::error::TpmError;
 
-pub(in crate::security::tpm) const TPM_MMIO_BASE: u64 = 0xFED4_0000;
 /// Localities 0 through 4, one page each.
 pub(super) const TPM_MMIO_SIZE: usize = 0x5000;
+
+/// The window's physical base, as the platform places it (arch::tpm_window),
+/// or `None` with no TPM there. One shorter than the five localities is
+/// refused: every register access is bounded by `TPM_MMIO_SIZE`, and would
+/// otherwise reach past what the device decodes.
+pub(in crate::security::tpm) fn tpm_mmio_base() -> Option<u64> {
+    let (base, len) = crate::arch::tpm_window()?;
+    (len >= TPM_MMIO_SIZE as u64).then_some(base)
+}
 
 /// Virtual address of the mapped register window, or zero before bring-up.
 /// The kernel differs from the bootloader here: there is no identity map, so
@@ -39,7 +47,8 @@ pub(in crate::security::tpm) fn init_window() -> Result<u64, TpmError> {
     if existing != 0 {
         return Ok(existing);
     }
-    let va = map_device_memory(PhysAddr::new(TPM_MMIO_BASE), TPM_MMIO_SIZE)
+    let base = tpm_mmio_base().ok_or(TpmError::NotPresent)?;
+    let va = map_device_memory(PhysAddr::new(base), TPM_MMIO_SIZE)
         .map_err(|_| TpmError::NotPresent)?
         .as_u64();
     match WINDOW.compare_exchange(0, va, Ordering::AcqRel, Ordering::Acquire) {

@@ -17,47 +17,59 @@
 #![no_std]
 #![no_main]
 
+mod announce;
 mod constants;
 mod discover;
 mod dispi;
+mod display;
+mod edid;
 mod error;
+mod gone;
 mod handles;
 mod regs;
 mod serve;
 mod setup;
+mod turn;
 
-use nonos_libc::{mk_exit, start_driver};
+use nonos_gfx_pool::Pool;
+use nonos_libc::{heap_init, mk_exit, start_driver};
+// `turn` reaches the DGON parser here, where its proofs mount the kernel's
+// own definition under the same name.
+use nonos_libc::dgon_parse;
 
 use crate::error::reason;
 
 /// The service was refused: the kernel would not register the name.
 const EXIT_UNANNOUNCED: i32 = 1;
+/// No heap: the display server allocates from the first request on.
+const EXIT_HEAP_INIT: i32 = 1;
 
 /// Without an adapter the driver says so and leaves (`EXIT_ABSENT`) before
-/// claiming anything. An adapter that is there is set up on the shared
-/// bounded schedule and running out is `EXIT_GAVE_UP`. Once it is up the
-/// driver serves the compositor the display wire, waiting in its receive.
+/// claiming anything; one that is there is set up on the shared bounded
+/// schedule (`EXIT_GAVE_UP` when it runs out), then `driver.bga0` is
+/// announced and the display wire served until the driver is stopped.
 ///
 /// # Safety
-///
-/// The capsule's entry point: the kernel calls it once, on a fresh stack,
-/// and nothing else may.
+/// The kernel enters here once, on the capsule's own stack.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
-    let started = start_driver(serve::SERVICE_NAME, discover::find_bga(), |dev| {
-        setup::run(*dev).map_err(reason)
+    if heap_init().is_err() {
+        mk_exit(EXIT_HEAP_INIT);
+    }
+    let started = start_driver(announce::SERVICE_NAME, discover::find_bga(), |dev| {
+        setup::run(*dev, Pool::default()).map_err(reason)
     });
-    let driver = match started {
+    let mut driver = match started {
         Ok(driver) => driver,
         Err(code) => mk_exit(code),
     };
-    if !serve::announce() {
-        // The compositor finds the surface only through the service, so
-        // nothing holds it: the adapter is given back showing the
-        // firmware's mode before the capsule leaves, not left on grants
-        // the exit frees.
+    if !announce::announce() {
+        // The compositor finds the display only through the service, so
+        // nothing holds a primary: the adapter is given back in the firmware's
+        // mode before the capsule leaves, not left on grants the exit frees.
         drop(driver);
         mk_exit(EXIT_UNANNOUNCED);
     }
-    serve::run(driver)
+    let device_id = driver.handles.device_id();
+    serve::run(&mut driver.server, device_id)
 }

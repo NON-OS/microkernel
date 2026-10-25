@@ -14,27 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU32, Ordering};
-
 use crate::ipc::nonos_inbox::{self, StrictEnqueueError, KERNEL_OWNER};
 use crate::process::caps;
 use crate::services::registry::lookup_service;
-
-static ROUTE_TRACE_COUNT: AtomicU32 = AtomicU32::new(0);
-
-fn trace_route(caller_pid: u32, target: &str, dest_pid: u32, woke: bool) {
-    if !matches!(dest_pid, 9 | 0x17) || ROUTE_TRACE_COUNT.fetch_add(1, Ordering::Relaxed) >= 40 {
-        return;
-    }
-    crate::sys::serial::trace(b"[ROUTE] from=");
-    crate::sys::serial::trace_hex(caller_pid as u64);
-    crate::sys::serial::trace(b" target=");
-    crate::sys::serial::trace(target.as_bytes());
-    crate::sys::serial::trace(b" dest=");
-    crate::sys::serial::trace_hex(dest_pid as u64);
-    crate::sys::serial::trace(if woke { b" wake=1" } else { b" wake=0" });
-    crate::sys::serial::traceln(b"");
-}
 
 pub const EACCES: i32 = -13;
 pub const ENOENT: i32 = -2;
@@ -80,14 +62,11 @@ pub fn kernel_route_ipc_corr(
     msg.correlation = correlation;
     match nonos_inbox::try_enqueue_strict(&dest, msg) {
         Ok(()) => {
-            // Wake unconditionally on delivery (state-checked, idempotent);
-            // the sleep-map gate strands a receiver that is Sleeping without
-            // a map entry.
-            let woke = endpoint.pid != KERNEL_OWNER;
-            if woke {
+            // Wake on delivery (state-checked, idempotent): the sleep-map
+            // gate strands a Sleeping receiver that has no map entry.
+            if endpoint.pid != KERNEL_OWNER {
                 crate::sched::wake_process(endpoint.pid);
             }
-            trace_route(caller_pid, target, endpoint.pid, woke);
             Ok(())
         }
         Err(StrictEnqueueError::MissingInbox) | Err(StrictEnqueueError::DeadOwner) => Err(ESRCH),

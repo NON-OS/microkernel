@@ -18,7 +18,7 @@ use core::cell::UnsafeCell;
 
 use super::types::{IrqStack, KernelStack};
 
-pub const MAX_HARTS: usize = 64;
+pub(super) const MAX_HARTS: usize = 64;
 
 struct StackBank<T, const N: usize> {
     slots: UnsafeCell<[T; N]>,
@@ -45,14 +45,14 @@ static KERNEL_STACKS: StackBank<KernelStack, MAX_HARTS> =
 static IRQ_STACKS: StackBank<IrqStack, MAX_HARTS> =
     StackBank::new([const { IrqStack::new() }; MAX_HARTS]);
 
-pub fn kernel_top(hart_id: usize) -> Option<u64> {
+pub(super) fn kernel_top(hart_id: usize) -> Option<u64> {
     KERNEL_STACKS.get(hart_id).map(KernelStack::top)
 }
 
-pub fn kernel_base(hart_id: usize) -> Option<u64> {
+pub(super) fn kernel_base(hart_id: usize) -> Option<u64> {
     KERNEL_STACKS.get(hart_id).map(KernelStack::base)
 }
 
-pub fn irq_top(hart_id: usize) -> Option<u64> {
+pub(super) fn irq_top(hart_id: usize) -> Option<u64> {
     IRQ_STACKS.get(hart_id).map(IrqStack::top)
 }

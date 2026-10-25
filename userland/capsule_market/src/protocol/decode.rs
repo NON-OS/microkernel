@@ -20,17 +20,17 @@ pub(in super::super) fn decode_request(buf: &[u8]) -> Option<Request> {
     if buf.len() < HDR_LEN {
         return None;
     }
-    let magic = u32::from_le_bytes(buf[0..4].try_into().ok()?);
+    let magic = u32::from_le_bytes(buf.get(0..4)?.try_into().ok()?);
     if magic != MAGIC {
         return None;
     }
-    let version = u16::from_le_bytes(buf[4..6].try_into().ok()?);
+    let version = u16::from_le_bytes(buf.get(4..6)?.try_into().ok()?);
     if version != VERSION {
         return None;
     }
-    let op = u16::from_le_bytes(buf[6..8].try_into().ok()?);
-    let flags = u16::from_le_bytes(buf[8..10].try_into().ok()?);
-    let request_id = u32::from_le_bytes(buf[12..16].try_into().ok()?);
-    let payload_len = u32::from_le_bytes(buf[16..20].try_into().ok()?);
+    let op = u16::from_le_bytes(buf.get(6..8)?.try_into().ok()?);
+    let flags = u16::from_le_bytes(buf.get(8..10)?.try_into().ok()?);
+    let request_id = u32::from_le_bytes(buf.get(12..16)?.try_into().ok()?);
+    let payload_len = u32::from_le_bytes(buf.get(16..20)?.try_into().ok()?);
     Some(Request { op, flags, request_id, payload_len })
 }

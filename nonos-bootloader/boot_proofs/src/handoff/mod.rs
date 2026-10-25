@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The loader's handoff flags, which `menu::types::mode` names.
+//! The loader's handoff flags, which `menu::types::mode` names, and its
+//! memory map copy.
 
+pub mod jump;
 pub mod types;

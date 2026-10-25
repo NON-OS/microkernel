@@ -19,7 +19,6 @@ use x86_64::structures::idt::InterruptStackFrame;
 use super::context::{log_exception_with_code, ExceptionContext};
 use super::rip_probe::rip_byte_range_mapped;
 use crate::arch::x86_64::diag::print_hex_u64;
-use crate::interrupts::idt::halt_loop;
 use crate::interrupts::stats;
 
 #[derive(Debug, Clone, Copy)]
@@ -82,7 +81,7 @@ fn emit_fatal_notice(error: &GpfErrorCode) {
     crate::sys::serial::print(&[b'0' + error.is_idt() as u8]);
     crate::sys::serial::print(b" ldt=");
     crate::sys::serial::print(&[b'0' + error.is_ldt() as u8]);
-    crate::sys::serial::println(b" -- CPU halting, boot terminated");
+    crate::sys::serial::println(b" -- to the panic path: wipe, power off");
 }
 
 fn analyze_gpf(ctx: &ExceptionContext, error: &GpfErrorCode) {
@@ -146,5 +145,5 @@ fn terminate_user_process() -> ! {
 
 fn kernel_panic(_ctx: &ExceptionContext) {
     crate::log::logger::log_critical("KERNEL PANIC: General protection fault in kernel mode");
-    halt_loop();
+    crate::boot::panic::fatal();
 }

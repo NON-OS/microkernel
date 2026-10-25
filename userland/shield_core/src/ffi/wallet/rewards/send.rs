@@ -5,7 +5,7 @@ use super::super::account_view::VALID_FOR;
 use super::super::{Pending, Wallet};
 use super::view::RewardsReview;
 use crate::error::{NetError, WalletError};
-use crate::evm::shield::{review_shield, ShieldChecked, ShieldOrder};
+use crate::evm::shield::{review_shield, ShieldChecked, ShieldOrder, ETH_SHORT};
 use crate::evm::{self, checksummed, Network};
 use crate::net::tor::Tor;
 use crate::wallet::rewards::{counts_from, LinkState, REGISTRY_BYTES};
@@ -30,6 +30,7 @@ impl Wallet {
         let review = match review_shield(tor, &testnet, &order, &sends)? {
             ShieldChecked::Ready(review) => review,
             ShieldChecked::Refused(why) => return Ok(refused(&mainnet, &testnet, why)),
+            ShieldChecked::ShortOfEth(_) => return Ok(refused(&mainnet, &testnet, ETH_SHORT)),
         };
         let id = self.next_review_id();
         let shown = RewardsReview {

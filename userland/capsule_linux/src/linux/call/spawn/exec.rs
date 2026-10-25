@@ -26,6 +26,9 @@ use super::exec_load::load_over;
 use super::exec_resolve::resolve;
 
 pub fn execve(guest: &mut Guest, pid: u32, path: u64, argv: u64, envp: u64) -> Answer {
+    if !crate::linux::app::granted(guest, nonos_linux_policy::mask::EXEC) {
+        return Answer::value(crate::linux::app::refuse("execve", "EXEC", errno::EACCES));
+    }
     let name = match crate::linux::file::name_of(guest, path) {
         Ok(name) => name,
         Err(e) => return Answer::value(errno::fail(e)),
@@ -51,6 +54,7 @@ pub fn execve(guest: &mut Guest, pid: u32, path: u64, argv: u64, envp: u64) -> A
     clear(guest);
     match load_over(guest, pid, &program, &env) {
         Some(()) => {
+            guest.app = guest.app.exec(&program.app);
             released(guest, pid);
             Answer::Park
         }
