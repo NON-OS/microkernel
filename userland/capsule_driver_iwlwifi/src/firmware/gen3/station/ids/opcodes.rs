@@ -20,6 +20,8 @@ pub const TXPATH_FLUSH: u8 = 0x1E;
 /// `SESSION_PROTECTION_CMD` and its notification, in `MAC_CONF_GROUP`.
 pub const SESSION_PROTECTION_CMD: u8 = 0x05;
 pub const SESSION_PROTECTION_NOTIF: u8 = 0xFB;
+/// `MAC_PM_POWER_TABLE` (legacy, sent wide in `LONG_GROUP`).
+pub const MAC_PM_POWER_TABLE: u8 = 0xA9;
 
 /// `STA_CONFIG_CMD` and `STA_REMOVE_CMD`, in `MAC_CONF_GROUP`.
 pub const STA_CONFIG_CMD: u8 = 0x0A;

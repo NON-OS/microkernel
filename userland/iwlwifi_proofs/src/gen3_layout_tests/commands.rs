@@ -15,7 +15,7 @@ fn every_command_payload_has_its_linux_shape() {
     assert_eq!(u32::from_le_bytes(soc[0..4].try_into().unwrap()), (2 << 2) | 2, "LTR 2500 us, low latency");
     assert_eq!(u32::from_le_bytes(soc[4..8].try_into().unwrap()), 12000);
     assert_eq!(soc_configuration(false, 0, false, 0)[0], 1, "discrete");
-    assert_eq!(device_power(), [0; 4], "CAM");
+    assert_eq!(device_power(), [1, 0, 0, 0], "DEVICE_POWER_FLAGS_POWER_SAVE_ENA");
     let mcc = mcc_update_world();
     assert_eq!((mcc.len(), u16::from_le_bytes([mcc[0], mcc[1]]), mcc[2]), (28, 0x5A5A, 0), "ZZ, from the firmware");
     let sc = scan_config(3, 1);

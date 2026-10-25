@@ -5,8 +5,9 @@
 use super::super::super::cmds::{LINK_CONFIG_CMD, LONG_GROUP, MAC_CONFIG_CMD, MAC_CONF_GROUP};
 use super::super::super::ucode::Ucode;
 use super::opcodes::{
-    DATA_PATH_GROUP, PHY_CONTEXT_CMD, RLC_CONFIG_CMD, SCAN_ABORT_UMAC, SCD_QUEUE_CONFIG_CMD,
-    SEC_KEY_CMD, SESSION_PROTECTION_CMD, STA_CONFIG_CMD, STA_REMOVE_CMD, TXPATH_FLUSH, TX_CMD,
+    DATA_PATH_GROUP, MAC_PM_POWER_TABLE, PHY_CONTEXT_CMD, RLC_CONFIG_CMD, SCAN_ABORT_UMAC,
+    SCD_QUEUE_CONFIG_CMD, SEC_KEY_CMD, SESSION_PROTECTION_CMD, STA_CONFIG_CMD, STA_REMOVE_CMD,
+    TXPATH_FLUSH, TX_CMD,
 };
 
 /// One command and the versions whose layout this driver encodes. An empty
@@ -19,7 +20,7 @@ pub struct Api {
 }
 
 /// Every command the join sends.
-pub const APIS: [Api; 12] = [
+pub const APIS: [Api; 13] = [
     // iwl_phy_context_cmd, PHY_CONTEXT_CMD_API_VE_4.
     Api { group: LONG_GROUP, cmd: PHY_CONTEXT_CMD, listed: &[4] },
     // iwl_umac_scan_abort, version 1.
@@ -45,6 +46,8 @@ pub const APIS: [Api; 12] = [
     Api { group: DATA_PATH_GROUP, cmd: SCD_QUEUE_CONFIG_CMD, listed: &[3] },
     // iwl_sec_key_cmd, SEC_KEY_CMD_API_S_VER_1.
     Api { group: DATA_PATH_GROUP, cmd: SEC_KEY_CMD, listed: &[1] },
+    // iwl_mac_power_cmd, MAC_PM_POWER_TABLE version 1.
+    Api { group: LONG_GROUP, cmd: MAC_PM_POWER_TABLE, listed: &[1] },
 ];
 
 /// The first command whose reported version this driver does not encode,
