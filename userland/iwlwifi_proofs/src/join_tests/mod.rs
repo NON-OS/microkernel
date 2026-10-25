@@ -22,6 +22,7 @@ mod krack_group;
 mod krack_rig;
 mod leave;
 mod order;
+mod power;
 mod queues;
 mod refusals;
 mod rekey;
