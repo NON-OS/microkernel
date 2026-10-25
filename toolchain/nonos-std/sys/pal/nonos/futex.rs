@@ -32,17 +32,9 @@ const N_MK_FUTEX_WAKE: i64 = tag4(b"MFTK");
 // deadline (the kernel still caps each call, so the caller loops).
 fn futex_wait_syscall(addr: u64, expected: u32, timeout_ms: u64) {
     // SAFETY: MFTW reads the futex word itself and only ever deschedules the
-    // caller; rcx/r11 are burned by the syscall instruction.
+    // caller.
     unsafe {
-        core::arch::asm!(
-            "syscall",
-            in("rax") N_MK_FUTEX_WAIT,
-            in("rdi") addr,
-            in("rsi") expected as u64,
-            in("rdx") timeout_ms,
-            out("rcx") _,
-            out("r11") _,
-        );
+        crate::sys::pal::trap::trap(N_MK_FUTEX_WAIT, addr, expected as u64, timeout_ms, 0, 0, 0);
     }
 }
 
@@ -51,23 +43,16 @@ fn futex_wake_syscall(addr: u64, count: u64) -> i64 {
     let r: i64;
     // SAFETY: MFTK only moves descheduled waiters back onto the run queue.
     unsafe {
-        core::arch::asm!(
-            "syscall",
-            inout("rax") N_MK_FUTEX_WAKE => r,
-            in("rdi") addr,
-            in("rsi") count,
-            out("rcx") _,
-            out("r11") _,
-        );
+        r = crate::sys::pal::trap::trap(N_MK_FUTEX_WAKE, addr, count, 0, 0, 0, 0);
     }
     r
 }
 
 fn now_ms() -> u64 {
     let r: i64;
-    // SAFETY: MTMS takes no arguments and returns the kernel clock in rax.
+    // SAFETY: MTMS takes no arguments and returns the kernel clock.
     unsafe {
-        core::arch::asm!("syscall", inout("rax") N_MK_TIME_MILLIS => r, out("rcx") _, out("r11") _);
+        r = crate::sys::pal::trap::trap(N_MK_TIME_MILLIS, 0, 0, 0, 0, 0, 0);
     }
     if r < 0 {
         0

@@ -50,8 +50,7 @@ impl Exchange {
     pub(super) fn sealed(&mut self, app: TrafficKeys, flight: Vec<u8>, end: usize) {
         self.handshake = None;
         if let Some(client) = self.flight.as_mut() {
-            client.private = [0; 32];
-            client.p256_private = [0; 32];
+            client.wipe_private();
         }
         self.app = Some(app);
         self.flight_end = end;

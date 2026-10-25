@@ -59,8 +59,9 @@ fn vboxvga_and_a_mismatched_order_are_left_alone() {
 fn a_vboxsvga_is_brought_up_through_its_own_bars() {
     let mut bench = Bench::standard();
     let f = bench.laid_out(VBOX_LAYOUT, firmware);
-    let d = crate::setup::run(f).expect("bring-up through VirtualBox's order");
-    assert_eq!((d.fb.width, d.fb.height), (1280, 800));
+    let d = crate::setup::run(f, crate::pool::Pool::default())
+        .expect("bring-up through VirtualBox's order");
+    assert_eq!((d.server.display.mode.width, d.server.display.mode.height), (1280, 800));
     let grants: Vec<_> = calls().into_iter().filter(|c| c.0 != "claim").collect();
     assert_eq!(grants[..3], [("pio_grant", 1), ("mmio_map", 2), ("mmio_map", 0)]);
 }

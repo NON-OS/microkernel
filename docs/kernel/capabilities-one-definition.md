@@ -5,8 +5,8 @@ Part of [Capabilities](capabilities.md).
 ## One definition
 
 The kernel names every capability once, in the `capability_table` list, with the
-bit it occupies (`src/capabilities/types/defs.rs:17-75`). There are 37, on bits
-0 to 36, and `count` is derived from the list so it cannot drift from it
+bit it occupies (`src/capabilities/types/defs.rs:17-75`). There are 40, on bits
+0 to 39, and `count` is derived from the list so it cannot drift from it
 (`src/capabilities/types/table.rs:39-43`).
 
 [abi/caps.toml](../../abi/caps.toml) publishes the same bits for toolchains and
@@ -17,7 +17,7 @@ at `CORE_EXEC`, is generated from the kernel list by `scripts/gen_caps_abi.py`
 
 ```
 $ python3 scripts/check_caps_abi.py
-caps-abi: 37 published bits agree with the kernel
+caps-abi: 40 published bits agree with the kernel
 ```
 
 ## The capability word

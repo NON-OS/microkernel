@@ -18,7 +18,13 @@
 //! drivers are held to the compositor from displays.rs and the network cards
 //! to their stacks from nics.rs (held_cards.rs), not listed here.
 
+// The lists the entries name sit beside this file, mounted by path for the
+// same reason held.rs mounts this one.
+#[path = "held_lists.rs"]
+mod lists;
+
 use super::super::usb_hosts::USB_HOSTS;
+use lists::{BLUETOOTH_PANELS, KERNEL_ONLY, USB_CLIENTS};
 
 /// An endpoint held to a list, then the endpoints whose owners may send to it.
 pub(super) const HELD: &[(&str, &[&str])] = &[
@@ -59,33 +65,3 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
 /// A display driver shows whatever it is given over the whole screen: only
 /// the compositor drives one (every name in displays.rs).
 pub(super) const DISPLAY_CALLERS: &[&str] = &["compositor"];
-
-/// The kernel polls the keyboards and pointers, reads the random source and serves USB storage
-/// itself, and the hub walker answers it alone; no capsule has reason to reach them. The SMBus host
-/// has no driver above it yet: a raw transfer reaches any device on the bus, so it is opened to one
-/// when one exists. A smart card signs and decrypts for whoever reaches its reader, and a security
-/// key signs for whoever reaches it once its user touches it: the owner names who. The SPI host
-/// moves raw bytes to any device on its bus: only the HID driver above it reaches it, and that
-/// driver posts input, serving no one.
-const KERNEL_ONLY: &[&str] = &[];
-
-/// The hub walker and class drivers above every USB host (usb_hosts.rs), each finding its own kind.
-const USB_CLIENTS: &[&str] = &[
-    "driver.usb_hub0",
-    "driver.usb_hid0",
-    "driver.usb_msc0",
-    "driver.usb_audio0",
-    "driver.uvc0",
-    "driver.cdc_acm0",
-    "driver.usb_mic0",
-    "driver.ccid0",
-    "driver.fido0",
-    "driver.cdc_ecm0",
-    "driver.cdc_ncm0",
-    "driver.rndis0",
-];
-
-/// Bluetooth answers Settings, which scans, pairs and forgets in any window, and the shell, which
-/// shows link and battery; the capsule checks each op again (letter E-25).
-const BLUETOOTH_PANELS: &[&str] =
-    &["app.settings", "app.settings.1", "app.settings.2", "desktop_shell"];

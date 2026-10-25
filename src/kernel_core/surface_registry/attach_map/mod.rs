@@ -22,7 +22,7 @@ mod record;
 pub mod snapshot;
 mod state;
 
-pub use forget::forget;
+pub use forget::{forget, forget_at};
 pub use forget_handle::forget_handle;
 pub use forget_pid::forget_pid;
 pub use lookup::lookup;
