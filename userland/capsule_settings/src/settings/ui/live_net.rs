@@ -59,3 +59,10 @@ pub fn adapter(b: &mut ValBuf, state: &State) -> Tone {
     b.push_bytes(state.wifi_adapters[0].name());
     Tone::Idle
 }
+
+/// Where the wired card's address came from, in the page's words; nothing
+/// when its driver does not say (wifi/station.rs).
+pub fn station(b: &mut ValBuf, state: &State) -> Tone {
+    b.push_str(state.wifi_diag.station.and_then(crate::wifi::station::said).unwrap_or(""));
+    Tone::Idle
+}

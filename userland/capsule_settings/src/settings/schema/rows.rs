@@ -15,11 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_policy_proto::Field;
-
 use super::access_knob::Knob;
 pub use super::bt_live::BtLive;
 
-/// A value the panel reads from the running system rather than from policy.
+/// A value the panel reads from the running system, not from policy.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Live {
     LinkState,
@@ -36,6 +35,7 @@ pub enum Live {
     WifiRemember,
     MachineKey,
     AudioOutput,
+    Station,
     Bt(BtLive),
 }
 

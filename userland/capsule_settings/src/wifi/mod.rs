@@ -30,6 +30,8 @@ mod lease;
 mod lease_read;
 mod net_poll;
 mod net_status;
+pub mod station;
+mod station_ask;
 mod wifi_class;
 
 pub use adapters::scan_adapters;
@@ -40,4 +42,5 @@ pub use interface::WifiInterface;
 pub use lease::{Lease, NetStatus};
 pub use net_poll::net_poll_due;
 pub use net_status::net_status;
+pub use station_ask::station_source;
 pub use nonos_wifi_client::{ConnectResult, DriverStage, ScanNetwork, ScanOutcome, ScanStats};

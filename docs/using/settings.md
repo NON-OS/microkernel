@@ -56,6 +56,7 @@ The panels, in sidebar order:
 |---|---|
 | `Default network` | The route the [Browser](browser.md) starts on, and the one Music downloads and the Terminal's `curl` and `git` take: `Nym mixnet`, `Anyone network` or `Direct`. A route never falls back to another. |
 | `Connection`, `IP address`, `Gateway`, `DNS` | What the DHCP client holds, read live. |
+| `Network address` | Where the wired card's address came from, as its driver says. On Hyper-V: `A private address, drawn for this boot`, or `Using the address Hyper-V assigned: it drops a chosen address unless MAC spoofing is on for this VM's adapter`. Empty for a card that always uses the address it drew for the boot. |
 | `Wireless adapter` | The name of the first wireless controller on the PCI bus, or `None detected`. It names the adapter only; it does not say NONOS drives it. |
 
 The note under `Default network` says Qwen downloads take it. They do not in this release: model downloads take the Anyone network whatever this row says, unless you ask for one download to go direct, and the wallet turns a `Direct` choice into Nym or Anyone. See [Privacy networks](privacy-network.md) for what each route hides and costs.
