@@ -16,6 +16,7 @@
 
 mod app_choice;
 mod capsule_boot;
+mod dev_attest;
 mod entry;
 mod injected;
 mod instance_spawn;

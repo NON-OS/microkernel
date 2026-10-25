@@ -34,11 +34,12 @@ use crate::term::state::State;
 /// completion, or a character to type.
 pub(super) fn plain_key(state: &mut State, event: InputEvent) -> EventOutcome {
     match event.code {
-        // Clears the line. Esc used to close the window, so one stray press
-        // took the scrollback, history and working directory with it. Closing
-        // is the titlebar's job.
+        // Clears the line, or under a search leaves it with the line put back.
+        // Esc used to close the window, so one stray press took the
+        // scrollback, history and working directory with it. Closing is the
+        // titlebar's job.
         KEY_ESC => {
-            state.line.clear();
+            crate::term::search_step::escape(&mut state.search, &mut state.line);
             EventOutcome::Repaint
         }
         KEY_ENTER => on_enter(state),
