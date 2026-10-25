@@ -24,6 +24,7 @@ mod dma_window;
 mod image;
 mod regions;
 mod reserve;
+mod span;
 mod uncached;
 
 use super::info::BootInfo;
@@ -45,11 +46,10 @@ pub(crate) fn init_boot_memory(info: &BootInfo) {
 
     // The image sits inside the region firmware calls available, so the
     // allocator has to be told where it ends. A frame holding kernel text is
-    // not a fault the kernel survives to report: it is handed out as a fresh
-    // page table, zeroed, and the next call into whatever lived there executes
-    // zeros.
+    // handed out as a fresh page table, zeroed, and the next call into
+    // whatever lived there executes zeros.
     let (image_start, image_end) = image::bounds();
-    let start = if image_end > region_start && image_end < end { image_end } else { region_start };
+    let start = span::span_start((region_start, end), (image_start, image_end));
     if start >= end {
         serial::println(b"[MEM] nothing usable above the kernel image");
         return;
