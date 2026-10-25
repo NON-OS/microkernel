@@ -14,17 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::limits::{AMOUNT_BYTES, HASH_BYTES, MAX_PAYMENT_ID_LEN};
+//! The unit's register window as the device tree describes it, for the
+//! broker's forbidden list: a capsule mapping these pages could turn
+//! translation off or point a stream at any memory. Described is enough,
+//! in service or not: a unit that failed bring-up is no capsule's either.
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct SalTxDraft {
-    pub amount: [u8; AMOUNT_BYTES],
-    pub fee: [u8; AMOUNT_BYTES],
-    pub payment_id_len: u16,
-    pub payment_id: [u8; MAX_PAYMENT_ID_LEN],
-}
+use super::state::DESCRIBED;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct SalTxHash {
-    pub bytes: [u8; HASH_BYTES],
+/// Register pages 0 and 1, 64 KiB each (Arm SMMUv3, the register layout;
+/// recalled, unverified): the least a described window is taken to cover.
+const MIN_WINDOW: u64 = 0x2_0000;
+
+/// Base and length of the described unit's registers, or `None` when the
+/// tree names no SMMUv3.
+pub fn described_window() -> Option<(u64, u64)> {
+    let (info, _) = DESCRIBED.get()?;
+    Some((info.base, info.size.max(MIN_WINDOW)))
 }

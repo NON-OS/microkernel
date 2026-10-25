@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub struct SalRequest<'a> {
-    pub seq: u32,
-    pub op: u16,
-    pub payload: &'a [u8],
-}
+//! The register window of an IOMMU the platform describes, for the
+//! broker's forbidden list on arches whose units are not ACPI's (x86_64
+//! lists its VT-d and AMD-Vi units from the firmware tables itself).
 
-pub struct SalResponse<'a> {
-    pub seq: u32,
-    pub status: u16,
-    pub payload: &'a [u8],
+/// Base and length of the platform's IOMMU registers, or `None`.
+pub(crate) fn iommu_register_window() -> Option<(u64, u64)> {
+    #[cfg(target_arch = "aarch64")]
+    return crate::arch::aarch64::iommu::smmu::described_window();
+    #[cfg(not(target_arch = "aarch64"))]
+    None
 }
