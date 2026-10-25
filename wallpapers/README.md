@@ -1,30 +1,34 @@
 # NØNOS Wallpapers
 
-The wallpaper collection shipped with the NØNOS desktop, created by Eric Jordan.
-These are the exact images the live system serves. The `wallpaper_catalog`
-capsule embeds them and streams them to the `wallpaper` capsule, which paints the
-desktop background, so nothing here is decorative: it is the running set.
+The wallpapers shipped with the NØNOS desktop. The `wallpaper_catalog`
+capsule serves them, each held to its SHA-256 pin, and the `wallpaper`
+capsule paints the desktop with them.
 
-The order below matches the catalog, family by family and image by image, so
-scrolling this page walks the same sequence the OS offers. The canonical order
-is also written out in [MANIFEST.txt](MANIFEST.txt).
+Since 0.9.3 the build ships the four NØNOS wallpapers below, by the NØNOS
+team, in this order. The first, `nonos-canyon-neon`, is the default and the
+picture the desktop shows before the catalog answers. The order is the
+catalog's (`nonos-data/wallpapers/catalog.txt`) and is written out in
+[MANIFEST.txt](MANIFEST.txt).
 
-62 wallpapers in four families:
+The earlier collection, 62 wallpapers by Eric Jordan in four families, was
+shipped until 0.9.2. It stays here and in `nonos-data/wallpapers`, but the
+build no longer packs it. It is shown after the NØNOS set.
 
-| Family | Count |
-|--------|-------|
-| Field Focus | 13 |
-| Hardware Aesthetic | 14 |
-| Network Topology | 18 |
-| Special Variant | 17 |
+| Collection | Count | Shipped |
+|--------|-------|---------|
+| NØNOS | 4 | since 0.9.3 |
+| Field Focus | 13 | until 0.9.2 |
+| Hardware Aesthetic | 14 | until 0.9.2 |
+| Network Topology | 18 | until 0.9.2 |
+| Special Variant | 17 | until 0.9.2 |
 
-Each image is JPEG, stored under its family folder and named by the slug the
-catalog uses to address it. The full collection renders inline below, one after
-another.
+Each shipped image is a 1920x1080 JPEG, named by the slug the catalog uses
+to address it. Its PNG master is kept beside it.
 
 ## Credits
 
-Every wallpaper in this collection was created by Eric Jordan.
+The NØNOS wallpapers were made by the NØNOS team. Every wallpaper in the
+earlier collection was created by Eric Jordan.
 
 ## License
 
@@ -32,6 +36,30 @@ Part of the NØNOS project, licensed under the GNU Affero General Public License
 version 3. The full text is in [LICENSE](LICENSE).
 
 ---
+
+## NØNOS
+
+4 wallpapers, shipped since 0.9.3.
+
+**nonos-canyon-neon** (the default)
+
+![nonos-canyon-neon](nonos/nonos-canyon-neon.jpg)
+
+**nonos-canyon-real**
+
+![nonos-canyon-real](nonos/nonos-canyon-real.jpg)
+
+**nonos-canyon-real-soft**
+
+![nonos-canyon-real-soft](nonos/nonos-canyon-real-soft.jpg)
+
+**nonos-neon-sign**
+
+![nonos-neon-sign](nonos/nonos-neon-sign.jpg)
+
+---
+
+The earlier collection, shipped until 0.9.2.
 
 ## Field Focus
 

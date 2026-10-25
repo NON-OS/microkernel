@@ -49,5 +49,5 @@ pub use doc::Doc;
 pub use evidence::{Evidence, Session};
 pub use evidence_verify::EvidenceError;
 pub use policy::{Authority, Policy, PolicyError, Release};
-pub use refusal::{FormatFault, LogFault, QuoteFault};
+pub use refusal::{CapsuleFault, FormatFault, LogFault, QuoteFault};
 pub use refusal_kind::Refusal;
