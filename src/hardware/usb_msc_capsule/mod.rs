@@ -24,6 +24,7 @@ mod capability;
 mod error;
 mod generation;
 mod io;
+mod leave;
 mod protocol;
 mod report;
 mod report_words;
@@ -32,5 +33,6 @@ mod transport;
 
 pub use error::DriverUsbMscError;
 pub use io::{capacity, flush, geometry, read_blocks, write_blocks};
+pub(crate) use leave::leave_leg;
 pub use report::{report_line, state_reply, StateReply};
 pub(crate) use transport::REPLY_INBOX;

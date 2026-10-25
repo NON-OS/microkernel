@@ -24,4 +24,4 @@ mod report;
 mod state;
 
 pub(crate) use init::init_framebuffer;
-pub(crate) use state::{framebuffer_state, KernelFramebuffer};
+pub(crate) use state::{framebuffer_phys, framebuffer_state, KernelFramebuffer};

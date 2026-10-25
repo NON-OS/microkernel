@@ -24,6 +24,7 @@
 
 #![no_std]
 
+pub mod pll;
 pub mod regs;
 pub mod timing;
 pub mod transcoder;

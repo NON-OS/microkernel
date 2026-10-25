@@ -34,5 +34,6 @@ pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     seed.copy_from_slice(&body[..32]);
     public.copy_from_slice(&body[32..]);
     set_client_identity(&seed, &public);
+    crate::crypto::wipe::wipe(&mut seed);
     respond(pid, OP_SET_IDENTITY, E_OK, req.request_id, 0, tx);
 }
