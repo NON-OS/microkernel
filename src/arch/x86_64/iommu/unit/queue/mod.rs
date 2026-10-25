@@ -27,8 +27,10 @@ mod flush;
 mod state;
 mod submit;
 
-pub use descriptor::{context_global, iec_global, iec_index, iotlb_global, wait, Descriptor};
+pub use descriptor::{
+    context_global, iec_global, iec_index, iotlb_domain, iotlb_global, wait, Descriptor,
+};
 pub use enable::enable;
-pub use flush::{flush_caches, flush_interrupt_entries, flush_iotlb};
+pub use flush::{flush_caches, flush_interrupt_entries, flush_iotlb, flush_iotlb_domain};
 pub use state::is_live;
 pub use submit::submit;

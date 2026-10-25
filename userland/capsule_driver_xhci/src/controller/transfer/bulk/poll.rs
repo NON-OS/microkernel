@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The polled bulk IN a network class driver reads with. One TRB stays armed
-//! on the IN ring into the poll page, and each look either takes its
-//! completion or answers at once, so an idle link never holds the controller
-//! as a waited bulk IN (a USB stick's) does for up to five seconds.
+//! on the IN ring into the poll page, with a place kept for its event, and
+//! each look either takes its completion or answers at once, so an idle link
+//! never holds the controller as a waited bulk IN (a USB stick's) does for
+//! up to five seconds.
+use super::arm::arm;
 use super::look::look;
 use super::pipes::BulkPipes;
 use crate::constants::{CC_SHORT_PACKET, CC_SUCCESS};
-use crate::controller::ring_doorbell::ring_doorbell;
 use crate::error::{XhciError, XhciResult};
 use crate::protocol::BULK_MAX;
 use crate::rings::event::{EventRing, IssuedTransfer};
-use crate::trb::builders::normal::normal;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum BulkPoll {
@@ -50,24 +50,14 @@ pub fn poll_bulk_in(
     }
     let (phys, asked) = match pipes.armed {
         Some(armed) => armed,
-        None => {
-            // A place for its event first: one read by another wait is kept.
-            if !evt_ring.can_expect() {
-                return Err(XhciError::TooManyArmed);
-            }
-            let trb = normal(pipes.poll_buf.phys(), len, pipes.in_ring.cycle() != 0, true, false);
-            let phys = pipes.in_ring.enqueue(trb)?;
-            ring_doorbell(doorbell_base, slot, pipes.dci_in);
-            evt_ring.expect(IssuedTransfer { phys, slot, dci: pipes.dci_in });
-            pipes.armed = Some((phys, len));
-            (phys, len)
-        }
+        None => arm(doorbell_base, evt_ring, pipes, slot, len)?,
     };
     let issued = IssuedTransfer { phys, slot, dci: pipes.dci_in };
     let Some(event) = look(intr_base, evt_ring, issued) else {
         return Ok(BulkPoll::Pending);
     };
-    evt_ring.settle(issued);
+    // `look` gave the event's place back. The controller ran every TRB on
+    // the ring up to this one, which is spent whatever its code.
     pipes.armed = None;
     pipes.in_ring.retire();
     match event.completion_code() {

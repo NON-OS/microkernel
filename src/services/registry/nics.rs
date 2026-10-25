@@ -36,11 +36,13 @@ pub(crate) enum Link {
 }
 
 /// Every card, wired and Wi-Fi each in the order net.l2 and net.core try
-/// them: QEMU's virtio-net first, then the PCI cards, then the USB ones.
+/// them: QEMU's virtio-net first, then the PCI cards (a virtual machine's
+/// among them), then the USB ones.
 pub(crate) const NICS: &[(&str, Link)] = &[
     ("driver.virtio_net0", Link::Wired),
     ("driver.e1000_0", Link::Wired),
     ("driver.e1000e_0", Link::Wired),
+    ("driver.igc_0", Link::Wired),
     ("driver.rtl8169_0", Link::Wired),
     ("driver.rtl8139_0", Link::Wired),
     ("driver.igb_0", Link::Wired),

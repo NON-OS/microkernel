@@ -51,6 +51,8 @@ let
     "nonos-capsule-driver-virtio-net" "nonos-capsule-driver-e1000" "nonos-capsule-driver-rtl8139"
     "nonos-capsule-driver-rtl8169" "nonos-capsule-driver-iwlwifi" "nonos-capsule-driver-rtl8821ce"
     "nonos-capsule-driver-pcnet" "nonos-capsule-driver-vmxnet3" "nonos-capsule-driver-tulip"
+    "nonos-capsule-driver-igb" "nonos-capsule-driver-ixgbe" "nonos-capsule-driver-e1000e"
+    "nonos-capsule-driver-cdc-ecm" "nonos-capsule-driver-cdc-ncm" "nonos-capsule-driver-rndis"
     "nonos-capsule-net-l2" "nonos-capsule-net-ip" "nonos-capsule-net-udp" "nonos-capsule-net-dhcp"
     "nonos-capsule-net-tcp" "nonos-capsule-net-dns" "nonos-capsule-net-ntp" "nonos-capsule-net-core"
     "nonos-capsule-net-sockets" "nonos-capsule-net-nym" "nonos-capsule-net-anon" "nonos-capsule-socks5"
@@ -71,10 +73,10 @@ let
     standard = {
       about = "the full system for real hardware: every driver, the desktop, first-boot setup and the installer";
       for = "a person's own machine, every day";
-      privacy = "amnesic until the person chooses to install; only a program granted the network capability can open a socket, and the Nym mixnet client is there for those that use it; capsules may write to the serial console for diagnosis";
+      privacy = "amnesic until the person chooses to install; only a program granted the network capability can open a socket, and the Nym mixnet client is there for those that use it; no capsule can write to the serial console (a development image can)";
       kernel = [ "microkernel-full-gui" ];
       loader = "standard";
-      drop = [ ];
+      drop = debugFeatures;
     };
     hardened = {
       about = "the full system with Secure Boot and a TPM required at boot and no serial console for capsules";
@@ -105,6 +107,14 @@ let
       for = "working on NONOS itself";
       privacy = "none promised: the loader's development override is compiled in, and the gates admit capsules on their path alone, without the STARK proof";
       kernel = [ "microkernel-desktop-gui" "microkernel-setup-wizard" "nonos-dev-attest" ];
+      loader = "dev-qemu";
+      drop = [ ];
+    };
+    selftest = {
+      about = "the dev image with the attack suite's capsule, which tries what an attacker would at boot";
+      for = "the self-test: tools/nonos-selftest boots it and judges every refusal";
+      privacy = "none promised, as dev; the kernel's warnings also go to the serial line";
+      kernel = [ "microkernel-desktop-gui" "microkernel-setup-wizard" "nonos-dev-attest" "nonos-capsule-attack" ];
       loader = "dev-qemu";
       drop = [ ];
     };
@@ -171,6 +181,10 @@ let
     # never in an image any other loader boots.
     assert lib.assertMsg (!(builtins.elem "nonos-capsule-shield-vectors" enabled) || loader == "dev-qemu")
       "nonos.toml: nonos-capsule-shield-vectors is Test 5, for development images only (dev = true)";
+    # The attack suite's capsule tries what an attacker would: a development
+    # test, never in an image any other loader boots.
+    assert lib.assertMsg (!(builtins.elem "nonos-capsule-attack" enabled) || loader == "dev-qemu")
+      "nonos.toml: nonos-capsule-attack is the attack suite, for development images only (profile selftest)";
     c // {
       inherit features enabled loader;
       # What the profile takes out, closed over Cargo.toml: none of it may be

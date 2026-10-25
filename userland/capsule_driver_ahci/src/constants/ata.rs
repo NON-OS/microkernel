@@ -18,6 +18,9 @@ pub const ATA_IDENTIFY: u8 = 0xec;
 pub const ATA_READ_DMA_EXT: u8 = 0x25;
 pub const ATA_WRITE_DMA_EXT: u8 = 0x35;
 pub const ATA_FLUSH_EXT: u8 = 0xea;
+/// STANDBY IMMEDIATE (ACS-3 7.47): heads parked and spindle stopped, the
+/// disk's own preparation for power going.
+pub const ATA_STANDBY_IMMEDIATE: u8 = 0xe0;
 
 pub const FIS_TYPE_REG_H2D: u8 = 0x27;
 pub const FIS_H2D_COMMAND: u8 = 1 << 7;

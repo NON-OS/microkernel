@@ -25,7 +25,13 @@ built into the `microkernel-net-dhcp` and `microkernel-net-ntp` profiles and the
   (`0x10`) and Crypto (`0x20`). the kernel mirror
   (`src/userspace/capsule_net_dhcp/spawn.rs`) requests exactly
   `Capability::IPC | Capability::Memory | Capability::Crypto |
-  Capability::Network`. no optional caps.
+  Capability::Network`, and `serial_debug_cap()`.
+- `CAPSULE_OPTIONAL_CAPS = 0x100`: Debug, granted only by a build with
+  `capsule-serial-debug`. It carries one line per bound lease,
+  `[DHCP] lease <ip>/<prefix> gw <gw> from <server>` (`none` for an address
+  the server left out; `src/dora/lease_line.rs`), which is how a boot reads
+  that the card received the offer and the ack. Without it the lease binds
+  all the same.
 - service `service:4440:net.dhcp.client`, reply
   `reply:4441:endpoint.net.dhcp.client.reply`, declared for the manifest; the
   kernel registers the `net.dhcp.client` name at spawn.
@@ -62,8 +68,9 @@ app may send them; any other sender gets `E_PERM` (8). `LEASE_ADMINS` and
 
 `CAPSULE_REQUIRED_CAPS = 0x0003c` is the whole authority the capsule asks for:
 Network, IPC, Memory and Crypto. Network because the kernel registers a network
-service only for a holder of it; Crypto to draw each bootp transaction id. no
-CoreExec, FileSystem, Debug or hardware bits: the card belongs to the NIC driver
+service only for a holder of it; Crypto to draw each bootp transaction id.
+Debug is optional, for the lease line alone. no CoreExec, FileSystem or
+hardware bits: the card belongs to the NIC driver
 capsule, reached through `net.l2`. `net.l2` lets only this capsule and `net.ip`
 move frames, and only this capsule set the address. the kernel installs the mask
 from the verified manifest at spawn and the capsule cannot widen it.
@@ -143,8 +150,10 @@ real `net.l2` and `net.ip`.
 
 ## Release checklist
 
-- [ ] `CAPSULE_REQUIRED_CAPS` unchanged at `0x0003c`, kernel mirror requests the
-      same four caps.
+- [ ] `CAPSULE_REQUIRED_CAPS` unchanged at `0x0003c`, optional Debug `0x100`,
+      kernel mirror requests the same four caps and `serial_debug_cap()`.
+- [ ] a boot over QEMU's user net shows
+      `[DHCP] lease 10.0.2.15/24 gw 10.0.2.2 from 10.0.2.2`.
 - [ ] the five ops answer, and authz refuses request, renew and release to any
       sender but Settings.
 - [ ] the transaction id is drawn from Crypto and replies are matched to it.
