@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{
-    InputEvent, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP, INPUT_KIND_POINTER_ABS,
-    INPUT_KIND_POINTER_REL, INPUT_KIND_TOUCH, INPUT_KIND_WHEEL,
-};
+use nonos_libc::{InputEvent, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP};
 
 use crate::state::{Context, Press};
 
+use super::event_kinds::{is_motion, needs_hit_test};
 use super::hover_motion::hover_motion;
 use super::mirror_shell_pointer::mirror_shell_pointer;
 use super::refresh_display::refresh_display;
@@ -31,7 +29,11 @@ use super::shell_pid::shell_pid;
 use super::topmost_target::topmost_target;
 
 pub fn route_pointer(ctx: &mut Context, event: &InputEvent) -> u32 {
-    refresh_display(ctx);
+    if !refresh_display(ctx, event) {
+        // No edges yet: placed on a guess, the event would land elsewhere.
+        ctx.record(0);
+        return 0;
+    }
     let (x, y) = ctx.cursor.apply(event);
     ctx.cursor_x = x;
     ctx.cursor_y = y;
@@ -101,15 +103,4 @@ pub fn route_pointer(ctx: &mut Context, event: &InputEvent) -> u32 {
     }
     ctx.record(delivered);
     delivered
-}
-
-fn is_motion(kind: u16) -> bool {
-    kind == INPUT_KIND_POINTER_REL || kind == INPUT_KIND_POINTER_ABS
-}
-
-fn needs_hit_test(kind: u16) -> bool {
-    matches!(
-        kind,
-        INPUT_KIND_BUTTON_DOWN | INPUT_KIND_BUTTON_UP | INPUT_KIND_TOUCH | INPUT_KIND_WHEEL
-    )
 }
