@@ -72,7 +72,8 @@ pub fn draw(ctx: &Context) {
     let room = l.line_rows(WALL_AFTER_LINES, 2);
     let y = appearance_rows::draw(buf, spx, w, h, x, l.body_y, ctx, room);
     let total = WALLPAPER_LABELS.len();
-    let kept_line = format!("{} of {total} kept; the desktop's is {}.", count(ctx), shown(name(ctx)));
+    let kept_line =
+        format!("{} of {total} kept; the desktop's is {}.", count(ctx), shown(name(ctx)));
     let y = lines::text(buf, spx, w, h, x, y + l.gap, &[kept_line.as_bytes()], FG);
     lines::text(buf, spx, w, h, x, y + l.gap, KEEPING, HINT);
 }
