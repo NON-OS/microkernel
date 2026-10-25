@@ -6038,7 +6038,8 @@
    "userland/nonos_wifi_client/src/network.rs",
    "userland/nonos_wifi_core",
    "userland/nonos_wifi_core_proofs/src/ap_sim",
-   "userland/nonos_wifi_core_proofs/src/ap_sim.rs"
+   "userland/nonos_wifi_core_proofs/src/ap_sim.rs",
+   "userland/nonos_wifi_core_proofs/src/sweep/fuzz.rs"
   ],
   "md": [],
   "signed": []
