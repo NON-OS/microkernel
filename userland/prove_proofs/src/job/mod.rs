@@ -14,26 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! How many config accesses went through the validated and scan paths.
+//! The headless job's answers, its state and its exit rule, the files that
+//! ship, mounted side by side so each finds the others where it imports them.
 
-use core::sync::atomic::{AtomicU64, Ordering};
-
-static READS: AtomicU64 = AtomicU64::new(0);
-static WRITES: AtomicU64 = AtomicU64::new(0);
-
-pub(super) fn read() {
-    READS.fetch_add(1, Ordering::Relaxed);
-}
-
-pub(super) fn wrote() {
-    WRITES.fetch_add(1, Ordering::Relaxed);
-}
-
-pub fn get_config_stats() -> (u64, u64) {
-    (READS.load(Ordering::Relaxed), WRITES.load(Ordering::Relaxed))
-}
-
-pub fn reset_config_stats() {
-    READS.store(0, Ordering::Relaxed);
-    WRITES.store(0, Ordering::Relaxed);
-}
+#[path = "../../../capsule_prove/src/job/answer.rs"]
+pub mod answer;
+#[path = "../../../capsule_prove/src/job/exit_rule.rs"]
+pub mod exit_rule;
+#[path = "../../../capsule_prove/src/job/state.rs"]
+pub mod state;
