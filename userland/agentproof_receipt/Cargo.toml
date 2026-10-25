@@ -33,10 +33,17 @@ path = "src/lib.rs"
 [[bin]]
 name = "agentproof-receipt"
 path = "src/bin/agentproof_receipt.rs"
+required-features = ["verify"]
 
 [dependencies]
 blake3 = { version = "1", default-features = false, features = ["pure"] }
 agentproof_policy = { path = "../agentproof_policy" }
 nonos_linux_policy = { path = "../nonos_linux_policy" }
 nonos_proof_abi = { path = "../nonos_proof_abi" }
-nsh_attest = { path = "../nsh_attest" }
+nsh_attest = { path = "../nsh_attest", optional = true }
+
+[features]
+# The writer alone is what a capsule builds (capsule_prove's receipt job);
+# the verifier, its trust file and its CLI need nsh_attest.
+default = ["verify"]
+verify = ["dep:nsh_attest"]

@@ -27,7 +27,9 @@
 //! One receipt has one encoding: a reader refuses another version, a short or
 //! long field, and any byte past the doc.
 
+#[cfg(feature = "verify")]
 pub mod doc_form;
+pub mod doc_clear;
 pub mod read;
 pub mod write;
 
