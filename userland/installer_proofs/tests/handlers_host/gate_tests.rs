@@ -66,5 +66,5 @@ fn the_dispatcher_gates_before_any_op_and_the_runner_keeps_the_time() {
     assert!(gate.expect("the gate") < d.find("matchreq.op{").expect("the ops"));
     let r: String = RUNNER.split_whitespace().collect();
     assert!(r.contains("mk_ipc_recv_from_at(0,buf.as_mut_ptr(),MAX_MSG,0,&mutpid,&mutsent_ms)"));
-    assert!(r.contains("dispatch(req,Sender{pid,sent_ms})"));
+    assert!(r.contains("dispatch(req,Sender{pid,sent_ms},&mutkept)"));
 }

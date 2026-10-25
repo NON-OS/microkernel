@@ -61,7 +61,7 @@ pub fn paint(
             row_label::paint_within(fb, card_x, screen_y, row_h, label, note, at.saturating_sub(GAP));
         }
         Row::Access(k) => super::access_row::paint(fb, state, *k, card_x, card_w, screen_y, row_h),
-        Row::Networks | Row::Saved | Row::Wallpapers | Row::BtDevices => {}
+        Row::Networks | Row::Saved | Row::Wallpapers | Row::BtDevices | Row::Station => {}
     }
 }
 
