@@ -52,6 +52,7 @@ pub(super) fn recv_reply_correlated(
                 }
                 return copy_len as i64;
             }
+            super::call::note_drop(msg.correlation, want);
         }
         let elapsed = crate::time::timestamp_millis().saturating_sub(start);
         if timeout_ms > 0 && elapsed >= timeout_ms {
