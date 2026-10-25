@@ -52,7 +52,7 @@ pub use irq::{
     mk_irq_ack, mk_irq_bind, mk_irq_poll, mk_irq_unbind, MK_IRQ_BIND_MSI, MK_IRQ_BIND_MSIX,
 };
 pub use irq_wait::{mk_irq_wait, MK_IRQ_WAIT_TIMED_OUT};
-pub use mmio::{mk_mmio_map, mk_mmio_unmap};
+pub use mmio::{mk_mmio_map, mk_mmio_unmap, MK_MMIO_MAP_WC};
 pub use mmio_access::{
     mmio_read16, mmio_read32, mmio_read64, mmio_read8, mmio_write16, mmio_write32, mmio_write64,
     mmio_write8,

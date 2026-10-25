@@ -20,6 +20,7 @@ use spin::Mutex;
 use super::super::error::DriverAhciError;
 use super::super::protocol::decode_response;
 use super::super::state;
+use crate::hardware::block_device::leave::Wire;
 use crate::services::lifecycle::transport;
 
 pub(crate) const REPLY_INBOX: &str = "endpoint.4294967311";
@@ -55,5 +56,17 @@ fn map_err(e: transport::TransportError) -> DriverAhciError {
         transport::TransportError::Stale => DriverAhciError::Stale,
         transport::TransportError::TransportFailure => DriverAhciError::TransportFailure,
         transport::TransportError::ProtocolMismatch => DriverAhciError::ProtocolMismatch,
+    }
+}
+
+/// The wire as the leave phase holds it: the same lock, so its request is
+/// never sent behind another caller's or its reply taken by one.
+pub(super) fn wire() -> Wire {
+    Wire {
+        lock: &TRANSPORT_LOCK,
+        sender: SENDER_NAME,
+        reply_inbox: REPLY_INBOX,
+        state: state::shared_state(),
+        decode: decode_response,
     }
 }
