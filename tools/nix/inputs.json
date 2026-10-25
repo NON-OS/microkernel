@@ -8748,6 +8748,7 @@
   "include": [
    ".cargo",
    "toolchain/nonos-std/sys/pal/nonos/thread_regs.rs",
+   "userland/libc/src/thread/entry.rs",
    "userland/std_pal_proofs"
   ],
   "md": [],

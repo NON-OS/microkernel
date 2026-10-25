@@ -28,16 +28,17 @@ src/drivers/pci/config/extended_write.rs 1
 src/hardware/broker/acpi/kernel/platform.rs 1
     ACPI parser alias for broker. Elsewhere: nothing: broker acpi x86-gated
 
+src/hardware/broker/irq/bind/amd_remap.rs 1
+    AMD-Vi interrupt remapping for a bound MSI. Elsewhere: nothing: irq::bind is x86's; aarch64
+    binds through the GIC ITS in src/arch
+
 src/hardware/broker/irq/bind/message.rs 1
     APIC dest for MSI message. Elsewhere: aarch64 message/ (ITS/doorbell)
 
 src/hardware/broker/irq/bind/remap.rs 2
     VT-d interrupt remap of MSI. Elsewhere: nothing: x86 remap hole; aarch64 uses ITS
 
-src/hardware/broker/irq/bind/remap_amd.rs 2
-    AMD-Vi interrupt remap. Elsewhere: nothing: x86-only
-
-src/hardware/broker/irq/bind/remap_vendor.rs 2
+src/hardware/broker/irq/bind/remap_vendor.rs 1
     pick VT-d vs AMD-Vi remap. Elsewhere: nothing: x86-only
 
 src/hardware/broker/mmio/forbidden_iommu.rs 1
