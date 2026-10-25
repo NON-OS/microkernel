@@ -16,18 +16,9 @@
 
 use alloc::vec::Vec;
 
-/// Wire format version. A verifier that does not recognise it must refuse
-/// rather than parse optimistically: a document it half understands is worse
-/// than one it rejects.
-pub const DOC_VERSION: u32 = 4;
-
-pub const DOC_MAGIC: &[u8; 8] = b"NONOSATT";
-
-/// `iommu_vendor` values. A verifier that meets another value must refuse.
-pub const IOMMU_NONE: u8 = 0;
-pub const IOMMU_INTEL_VTD: u8 = 1;
-pub const IOMMU_AMD_VI: u8 = 2;
-pub const IOMMU_ARM_SMMU_V3: u8 = 3;
+#[path = "document_consts.rs"]
+mod consts;
+pub use consts::*;
 
 /// What the machine hands to whoever asked what it is running.
 ///
@@ -56,6 +47,13 @@ pub struct AttestationDoc {
     /// memory. Grants can all be confined while these are not, so DMA on the
     /// machine is confined only when this and `unconfined_grants` are zero.
     pub identity_devices: u32,
+    /// The values of `QUOTED_PCRS`, in that order: read just before the
+    /// quote, and matched against its digest, so they are the values signed.
+    pub pcrs: [[u8; 32]; QUOTED_PCRS.len()],
+    /// The firmware's TCG event log as the loader carried it, at most
+    /// `MAX_LOG` bytes; empty when it carried none. A verifier replays it to
+    /// the quoted values.
+    pub log: Vec<u8>,
     /// The `TPMS_ATTEST` the TPM produced, byte for byte as signed.
     pub attest: Vec<u8>,
     pub signature: Vec<u8>,
