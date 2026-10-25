@@ -40,7 +40,8 @@ pub fn doc<'a, 't>(r: &Receipt<'a>, trust: &'t Trust) -> Result<(Doc<'a>, &'t Re
     // nsh_attest's own rule: an IOMMU present and enforcing, no grant
     // around it, and no device left in a domain that reaches all of memory.
     steps::dma(&doc).map_err(|_| Refusal::Dma)?;
-    if !doc.registry_complete {
+    // The entries are what ran only if they fold to the root the quote bound.
+    if !doc.registry_complete || steps::fold(r.entries) != *doc.registry_root {
         return Err(Refusal::Registry);
     }
     Ok((doc, release))

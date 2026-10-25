@@ -23,9 +23,10 @@
 //! | app policy | 256 | the program's NLXPOL01 policy; its app_id is recomputed |
 //! | launcher | 32 | the capsule that asked for the run; zero until named (gap 5) |
 //! | doc | ..=DOC_MAX | NONOSATT v5 for this receipt's challenge, its unsigned parts cleared |
+//! | entries | 45 each, 1..=4096 | MkAttestEntries: what ran; they fold to the doc's signed root |
 //!
 //! One receipt has one encoding: a reader refuses another version, a short or
-//! long field, and any byte past the doc.
+//! long field, and any byte past the entries.
 
 mod cursor;
 pub mod doc_form;
@@ -41,6 +42,9 @@ pub const POLICY: usize = 256;
 pub const LAUNCHER: usize = 32;
 /// nsh's cap on a version 5 document (docs/design/nsh-v1-wire.md).
 pub const DOC_MAX: usize = 1088 * 1024;
+/// One MkAttestEntries entry (src/security/attest_registry/format.rs).
+pub const ENTRY: usize = 45;
+pub const ENTRIES_MAX: usize = 4096 * ENTRY;
 
 /// The challenge the doc answers: BLAKE3 over this domain and every byte of
 /// the receipt before the doc's length.
@@ -53,6 +57,8 @@ pub struct Receipt<'a> {
     pub policy: &'a [u8; POLICY],
     pub launcher: &'a [u8; LAUNCHER],
     pub doc: &'a [u8],
+    /// Every capsule the machine ran, as the doc's registry root folds them.
+    pub entries: &'a [u8],
     /// The bytes the challenge covers.
     pub bound: &'a [u8],
 }
