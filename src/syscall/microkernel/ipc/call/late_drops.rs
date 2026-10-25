@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The late replies the correlation check has discarded since boot: the
 //! direct count behind a "late" line, so a late call is evidence, not an
 //! inference.
