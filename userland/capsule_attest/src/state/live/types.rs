@@ -20,9 +20,6 @@
 /// this, and the count the caller receives is what was actually walked.
 pub const MAX_PROCS: usize = 128;
 
-/// The one process entitled to hold Admin.
-pub const INIT_NAME: &[u8] = b"init";
-
 pub struct Capsule {
     pub name: [u8; 24],
     pub name_len: u8,
@@ -45,15 +42,15 @@ impl Snapshot {
         &self.capsules[..self.count]
     }
 
-    /// How many live capsules hold any of `mask`.
-    pub fn holders(&self, mask: u64) -> u32 {
-        self.live().iter().filter(|c| c.caps & mask != 0).count() as u32
+    /// Holders of `mask` whose name `named` does not list.
+    pub fn holders_beyond(&self, mask: u64, named: &[&[u8]]) -> u32 {
+        let stray = |c: &&Capsule| c.caps & mask != 0 && !named.contains(&c.name());
+        self.live().iter().filter(stray).count() as u32
     }
 
-    /// Holders of `mask` other than init, which is the shape every "only init may
-    /// hold this" invariant needs.
-    pub fn holders_beyond_init(&self, mask: u64) -> u32 {
-        self.live().iter().filter(|c| c.caps & mask != 0 && c.name() != INIT_NAME).count() as u32
+    /// Capsules holding any of `a` and also any of `b`.
+    pub fn holders_both(&self, a: u64, b: u64) -> u32 {
+        self.live().iter().filter(|c| c.caps & a != 0 && c.caps & b != 0).count() as u32
     }
 
     pub fn unmasked(&self) -> u32 {

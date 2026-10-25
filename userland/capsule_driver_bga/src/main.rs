@@ -54,7 +54,7 @@ const EXIT_UNANNOUNCED: i32 = 1;
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     let started = start_driver(announce::SERVICE_NAME, discover::find_bga(), |dev| {
-        setup::run(*dev, Pool).map_err(reason)
+        setup::run(*dev, Pool::default()).map_err(reason)
     });
     let mut driver = match started {
         Ok(driver) => driver,

@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_ipc_recv_from;
+use nonos_libc::{mk_ipc_recv_from, mk_uptime_ms};
 
+use super::breadcrumb::{request, step};
 use super::dispatch::dispatch;
+use super::stall_rule::Step;
 use crate::protocol::parse;
 use crate::server::respond;
 use crate::state::Context;
@@ -32,19 +34,17 @@ const RECV_FRAME_MS: u64 = 16;
 const RECV_POLL_MS: u64 = 1;
 const MAX_BATCH: usize = 16;
 
-pub fn drain_ipc(ctx: &mut Context, rx: &mut [u8], tx: &mut [u8]) {
+/// The first request this drain served (op, sender), if any.
+pub fn drain_ipc(ctx: &mut Context, rx: &mut [u8], tx: &mut [u8]) -> Option<(u16, u32)> {
+    let mut first = None;
     for i in 0..MAX_BATCH {
         let timeout = if i == 0 { RECV_FRAME_MS } else { RECV_POLL_MS };
+        step(Step::Wait, mk_uptime_ms());
         let mut sender_pid = 0u32;
-        let n = mk_ipc_recv_from(
-            SERVICE_INBOX,
-            rx.as_mut_ptr(),
-            rx.len(),
-            timeout,
-            &mut sender_pid,
-        );
+        let n =
+            mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), timeout, &mut sender_pid);
         if n <= 0 || sender_pid == 0 {
-            return;
+            return first;
         }
         let (req, body) = match parse(&rx[..n as usize]) {
             Ok(parsed) => parsed,
@@ -53,8 +53,11 @@ pub fn drain_ipc(ctx: &mut Context, rx: &mut [u8], tx: &mut [u8]) {
                 continue;
             }
         };
+        first = first.or(Some((req.op, sender_pid)));
+        request(req.op, sender_pid, mk_uptime_ms());
         if dispatch(ctx, sender_pid, req, body, tx).is_err() {
-            return;
+            return first;
         }
     }
+    first
 }

@@ -15,3 +15,5 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
+# The status line's font, as the splash draws it.
+nonos_toolkit = { path = "../toolkit", default-features = false }

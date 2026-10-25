@@ -54,7 +54,8 @@ impl Tree {
         t.put(&format!("{TRUST}/capsules/about.manifest.bin"), b"a capsule manifest");
         t.put(&format!("{TRUST}/policy/kernel_attest_root.bin"), b"a root");
         fs::create_dir_all(t.path().join(TRUST).join("keys")).unwrap();
-        write_pub(&t.path().join(ED_PUB), AlgId::Ed25519, t.ed.verifying_key().as_bytes()).unwrap();
+        // Raw, as the seal writes it; the ML-DSA-65 key in a NONOSPK1 file.
+        fs::write(t.path().join(ED_PUB), t.ed.verifying_key().as_bytes()).unwrap();
         write_pub(&t.path().join(PQ_PUB), AlgId::MlDsa65, &t.pq_pub).unwrap();
         t.ledger();
         t.git(&["init", "-q"]);

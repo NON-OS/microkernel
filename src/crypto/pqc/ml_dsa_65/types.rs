@@ -55,5 +55,8 @@ pub struct MlDsa65KeyPair {
 #[derive(Debug)]
 pub enum MlDsa65Error {
     FfiError,
+    /// The call drew from a randomness source that failed; nothing it made
+    /// is returned.
+    RandomnessFailed,
     InvalidLength,
 }

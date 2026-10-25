@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A stand-in for the tree's verifiers, for the proofs. It leaves the traces
-//! each real one leaves (nonos-verify's report, the verify matrix's summary,
-//! inputs.py's exit status), as each proof sets them, and lists what it ran.
+//! A stand-in for the tree's verifiers: it leaves the traces each real one
+//! leaves (report, matrix summary, exit status), as each proof sets them.
 
 pub use super::fake_report::report;
 use crate::tree::runner::{Cmd, Done, Runner};
@@ -45,6 +44,9 @@ impl Default for Fake {
 impl Runner for Fake {
     fn run(&self, cmd: &Cmd, log: &Path) -> Result<Done, String> {
         fs::write(log, "").unwrap();
+        // A relative path would name another place from the verifier's own cwd.
+        let rel = cmd.args.iter().find(|a| a.contains('/') && !a.starts_with('/'));
+        assert!(cmd.cwd.is_absolute() && rel.is_none(), "relative: {:?} {rel:?}", cmd.cwd);
         let (tool, last) = (cmd.args[0].as_str(), cmd.args.last().unwrap().as_str());
         self.ran.borrow_mut().push(format!("{} {last}", cmd.program));
         let code = match (cmd.program.as_str(), tool) {

@@ -81,7 +81,7 @@ pub fn init() -> KeyResult<()> {
 
     let mut store = KEY_STORE.write();
     let mut master = [0u8; 32];
-    crate::crypto::rng::fill_bytes(&mut master);
+    crate::crypto::rng::fill_random_bytes_secure(&mut master).map_err(|_| KeyError::CryptoError)?;
 
     if master.iter().all(|&b| b == 0) {
         return Err(KeyError::CryptoError);

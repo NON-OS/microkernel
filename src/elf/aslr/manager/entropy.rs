@@ -14,32 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{
-    constants::{FALLBACK_SEED, LCG_INCREMENT, LCG_MULTIPLIER},
-    state::AslrManager,
-};
+//! The randomness the layout is drawn from: a fresh value for every offset,
+//! from the CPU's instruction or else the seeded RNG. When neither answers
+//! the layout is refused, never guessed: a constant seed or a counter
+//! would place every program at the same addresses on every such boot.
+
+use super::state::AslrManager;
 use crate::arch::cpu_random;
 
-pub(super) fn gather_entropy() -> u64 {
-    cpu_random::random_u64().unwrap_or(FALLBACK_SEED)
+pub(super) fn draw() -> Option<u64> {
+    cpu_random::random_u64().or_else(|| crate::crypto::rng::random_u64_secure().ok())
 }
 
 impl AslrManager {
-    pub fn random_offset(&mut self, max_offset: u64) -> u64 {
+    /// An offset below `max_offset`, or `None` when no randomness answers.
+    pub fn random_offset(&mut self, max_offset: u64) -> Option<u64> {
         if max_offset == 0 {
-            return 0;
+            return Some(0);
         }
-        if let Some(rand) = cpu_random::random_u64() {
-            self.entropy_pool ^= rand;
-        } else {
-            self.entropy_pool =
-                self.entropy_pool.wrapping_mul(LCG_MULTIPLIER).wrapping_add(LCG_INCREMENT);
-        }
-        (self.entropy_pool >> 16) % max_offset
+        self.entropy_pool ^= draw()?;
+        Some((self.entropy_pool >> 16) % max_offset)
     }
 
-    pub fn reseed(&mut self) {
-        self.entropy_pool ^= gather_entropy();
+    /// Mix a fresh value into the pool; false when none could be drawn.
+    pub fn reseed(&mut self) -> bool {
+        draw().map(|v| self.entropy_pool ^= v).is_some()
     }
     pub fn entropy(&self) -> u64 {
         self.entropy_pool

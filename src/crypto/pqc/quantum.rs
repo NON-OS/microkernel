@@ -23,26 +23,7 @@ use super::kyber;
 #[cfg(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5"))]
 use super::ml_dsa_65;
 
-use super::mceliece;
-use super::ntru;
-use super::sphincs;
-
-pub use sphincs::{
-    sphincs_keygen, sphincs_sign, sphincs_verify, SphincsKeyPair, SphincsPublicKey,
-    SphincsSecretKey, SphincsSignature, SPHINCS_PK_BYTES, SPHINCS_SIG_BYTES, SPHINCS_SK_BYTES,
-};
-
-pub use ntru::{
-    ntru_decaps, ntru_encaps, ntru_keygen, NtruCiphertext, NtruKeyPair, NtruPublicKey,
-    NtruSecretKey, NTRU_CIPHERTEXT_BYTES, NTRU_PUBLICKEY_BYTES, NTRU_SECRETKEY_BYTES,
-    NTRU_SHARED_SECRET_BYTES,
-};
-
-pub use mceliece::{
-    mceliece_decaps, mceliece_encaps, mceliece_keygen, McElieceCiphertext, McElieceKeyPair,
-    McEliecePublicKey, McElieceSecretKey, MCELIECE_CIPHERTEXT_BYTES, MCELIECE_PUBLICKEY_BYTES,
-    MCELIECE_SECRETKEY_BYTES, MCELIECE_SHARED_SECRET_BYTES,
-};
+pub use super::unvetted::*;
 
 #[cfg(any(feature = "mlkem512", feature = "mlkem768", feature = "mlkem1024"))]
 pub fn kyber1024_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
@@ -175,74 +156,6 @@ pub fn ml_dsa_653_sign(_message: &[u8], _sk: &[u8]) -> Result<Vec<u8>, &'static 
 #[cfg(not(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5")))]
 pub fn ml_dsa_653_verify(_message: &[u8], _sig: &[u8], _pk: &[u8]) -> bool {
     false
-}
-
-pub fn sphincs128s_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
-    let keypair = sphincs::sphincs_keygen()?;
-    Ok((
-        sphincs::sphincs_serialize_public_key(&keypair.public_key),
-        sphincs::sphincs_serialize_secret_key(&keypair.secret_key),
-    ))
-}
-
-pub fn sphincs128s_sign(message: &[u8], sk: &[u8]) -> Result<Vec<u8>, &'static str> {
-    let secret_key = sphincs::sphincs_deserialize_secret_key(sk)?;
-    let sig = sphincs::sphincs_sign(&secret_key, message)?;
-    Ok(sphincs::sphincs_serialize_signature(&sig))
-}
-
-pub fn sphincs128s_verify(message: &[u8], sig: &[u8], pk: &[u8]) -> bool {
-    let public_key = match sphincs::sphincs_deserialize_public_key(pk) {
-        Ok(k) => k,
-        Err(_) => return false,
-    };
-    let signature = match sphincs::sphincs_deserialize_signature(sig) {
-        Ok(s) => s,
-        Err(_) => return false,
-    };
-    sphincs::sphincs_verify(&public_key, message, &signature)
-}
-
-pub fn ntruhps4096821_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
-    let keypair = ntru::ntru_keygen()?;
-    Ok((
-        ntru::ntru_serialize_public_key(&keypair.public_key),
-        ntru::ntru_serialize_secret_key(&keypair.secret_key),
-    ))
-}
-
-pub fn ntruhps4096821_encapsulate(pk: &[u8]) -> Result<(Vec<u8>, Vec<u8>), &'static str> {
-    let public_key = ntru::ntru_deserialize_public_key(pk)?;
-    let (ct, ss) = ntru::ntru_encaps(&public_key)?;
-    Ok((ntru::ntru_serialize_ciphertext(&ct), ss.to_vec()))
-}
-
-pub fn ntruhps4096821_decapsulate(ct: &[u8], sk: &[u8]) -> Result<Vec<u8>, &'static str> {
-    let ciphertext = ntru::ntru_deserialize_ciphertext(ct)?;
-    let secret_key = ntru::ntru_deserialize_secret_key(sk)?;
-    let ss = ntru::ntru_decaps(&ciphertext, &secret_key)?;
-    Ok(ss.to_vec())
-}
-
-pub fn mceliece348864_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
-    let keypair = mceliece::mceliece_keygen()?;
-    Ok((
-        mceliece::mceliece_serialize_public_key(&keypair.public_key),
-        mceliece::mceliece_serialize_secret_key(&keypair.secret_key),
-    ))
-}
-
-pub fn mceliece348864_encapsulate(pk: &[u8]) -> Result<(Vec<u8>, Vec<u8>), &'static str> {
-    let public_key = mceliece::mceliece_deserialize_public_key(pk)?;
-    let (ct, ss) = mceliece::mceliece_encaps(&public_key)?;
-    Ok((mceliece::mceliece_serialize_ciphertext(&ct), ss.to_vec()))
-}
-
-pub fn mceliece348864_decapsulate(ct: &[u8], sk: &[u8]) -> Result<Vec<u8>, &'static str> {
-    let ciphertext = mceliece::mceliece_deserialize_ciphertext(ct)?;
-    let secret_key = mceliece::mceliece_deserialize_secret_key(sk)?;
-    let ss = mceliece::mceliece_decaps(&ciphertext, &secret_key)?;
-    Ok(ss.to_vec())
 }
 
 pub fn lattice_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {

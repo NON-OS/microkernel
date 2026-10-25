@@ -17,6 +17,7 @@
 pub mod bring_up;
 
 mod current_tests;
+mod dispi_sweep;
 mod edid_read_tests;
 mod endian_tests;
 mod fresh_tests;
