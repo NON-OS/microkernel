@@ -61,7 +61,7 @@ pub fn register_backing(
     let desc = SurfaceDescriptor { width, height, stride, format, byte_len, base_va, ..blank };
     let sid = mk_surface_register(&desc);
     if sid < 0 {
-        super::rejected::say_once(byte_len, &super::rejected::SAID, crate::say::say);
+        super::rejected::say_once(byte_len, sid, &super::rejected::SAID, crate::say::say);
         return Err("gop: surface register rejected");
     }
     let handle = handle_of(sid)?;

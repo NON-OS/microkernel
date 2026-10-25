@@ -55,6 +55,6 @@ fn the_compositor_names_the_kernels_ceiling_once() {
     let mirrored = "pub const SURFACE_CEILING: u64 = 128 * 1024 * 1024;";
     assert!(REJECTED.contains(mirrored));
     assert_eq!(CEILING, 128 * 1024 * 1024, "the compositor's mirror is stale");
-    let said = BACKING.find("super::rejected::say_once(byte_len, &super::rejected::SAID").expect("unsaid");
+    let said = BACKING.find("super::rejected::say_once(byte_len, sid, &super::rejected::SAID").expect("unsaid");
     assert!(said < BACKING.find("return Err(\"gop: surface register rejected\");").unwrap());
 }
