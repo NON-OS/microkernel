@@ -96,6 +96,8 @@ pub struct Offer {
     pub connection: u32,
     pub monitor: Option<u8>,
     pub dedicated_interrupt: bool,
+    /// The record the kernel gave the channel for its driver, once given.
+    pub record: Option<u64>,
 }
 
 /// OFFERCHANNEL, 196 bytes: the offer (its interface and instance, its
@@ -110,6 +112,7 @@ pub fn offer(p: &[u8]) -> Option<Offer> {
         connection: u32_at(p, 192)?,
         monitor: (*p.get(189)? & 1 != 0).then_some(*p.get(188)?),
         dedicated_interrupt: u16_at(p, 190)? & 1 != 0,
+        record: None,
     })
 }
 

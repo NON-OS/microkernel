@@ -65,9 +65,10 @@ the [capability](../overview/glossary-boot-root-record.md#capability) gate in th
 | `MPWR` | `MkPioWrite` | `grant_id`, `port_offset`, `w`, `value` | 0 | Pio | `mk_pio_write` |
 | `MPRL` | `MkPioRelease` | `grant_id` | 0 | Pio | `mk_pio_release` |
 | `MHVB` | `MkHvBackdoor` | `cmd`, `arg`, `out_regs` | 0, with EAX, EBX, ECX and EDX written as `[u32; 4]` | Pio | `mk_hv_backdoor` |
-| `MHVP` | `MkHvPost` | `device_id`, `connection`, `msg_type`, `payload`, `len` | 0 | Driver | `mk_hv_post` |
-| `MHVR` | `MkHvRecv` | `device_id`, `out` | The message's length, with header and payload written | Driver | `mk_hv_recv` |
-| `MHVE` | `MkHvEvents` | `device_id`, `out`, `words` | The words written | Driver | `mk_hv_events` |
-| `MHVS` | `MkHvSignal` | `device_id`, `connection` | 0 | Driver | `mk_hv_signal` |
+| `MHVP` | `MkHvPost` | `device_id`, `connection`, `msg_type`, `payload`, `len` | 0: on the root, one of the bus's messages; on a channel's record, `connection` 0, one of that channel's | Driver | `mk_hv_post` |
+| `MHVR` | `MkHvRecv` | `device_id`, `out` | The message's length, with header and payload written: on the root, the core's; on a channel's record, the host's answers for it | Driver | `mk_hv_recv` |
+| `MHVE` | `MkHvEvents` | `device_id`, `out`, `words` | The words written: on the root, the flags but for channels given to drivers; on a channel's record, one word, 1 if its flag was set | Driver | `mk_hv_events` |
+| `MHVS` | `MkHvSignal` | `device_id`, `connection` | 0; on a channel's record, `connection` 0 and the host's own connection for it | Driver | `mk_hv_signal` |
+| `MHVC` | `MkHvChannel` | `root_device_id`, `relid` | The new channel record's id; -ENOENT not offered, -EBUSY already given, -EPERM a host service | Driver | `mk_hv_channel` |
 
 The rules behind the table:

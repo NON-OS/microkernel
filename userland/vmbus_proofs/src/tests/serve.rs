@@ -20,7 +20,8 @@
 
 use nonos_libc::logged;
 
-use super::util::{chan, host, up, usual, HEARTBEAT, KBD, NET, ROOT, SCSI};
+use super::util::{chan, host, up, usual, HEARTBEAT, IDE, KBD, NET, ROOT, SCSI};
+use crate::give::give;
 use crate::guid::{name, Guid};
 use crate::model::{offer_bytes, rescind_bytes};
 use crate::msg;
@@ -35,16 +36,16 @@ fn the_console_names_the_version_and_each_channel_by_its_interface() {
     let log = logged();
     assert_eq!(
         log[0],
-        "driver.vmbus0: VMBus 5.3 on connection 4, 5 channels offered, none opened\n"
+        "driver.vmbus0: VMBus 5.3 on connection 4, 5 channels offered, 3 given to drivers\n"
     );
     assert_eq!(
         log[1..],
         [
-            "driver.vmbus0: channel 1: network\n",
-            "driver.vmbus0: channel 2: scsi\n",
+            "driver.vmbus0: channel 1: network, given to its driver\n",
+            "driver.vmbus0: channel 2: scsi, given to its driver\n",
             "driver.vmbus0: channel 3: keyboard\n",
             "driver.vmbus0: channel 4: heartbeat\n",
-            "driver.vmbus0: channel 5: scsi, sub-channel 1\n",
+            "driver.vmbus0: channel 5: scsi, sub-channel 1, given to its driver\n",
         ]
     );
     assert!(log.iter().all(|l| !l.contains("a5") && !l.contains("A5")), "no instance GUID");
@@ -162,4 +163,75 @@ fn a_slot_message_short_of_its_header_or_of_another_type_is_dropped() {
     assert_eq!(d.offers.count(), 0);
     m.send(&offer_bytes(&chan(9, KBD, 0)));
     assert_eq!(step(&mut d), 1, "the slot behind them is read");
+}
+
+#[test]
+fn storage_and_network_channels_are_given_records_for_their_drivers() {
+    let (d, _) = up(vec![
+        chan(1, NET, 0),
+        chan(2, SCSI, 0),
+        chan(3, KBD, 0),
+        chan(4, HEARTBEAT, 0),
+        chan(5, SCSI, 1),
+        chan(6, IDE, 0),
+    ]);
+    let given: Vec<(u32, u16)> = nonos_libc::given().iter().map(|&(_, r, dev)| (r, dev)).collect();
+    assert_eq!(given, [(1, 0x4E45), (2, 0x5343), (5, 0x5343), (6, 0x4944)]);
+    let records: Vec<(u32, bool)> =
+        d.offers.iter().map(|o| (o.relid, o.record.is_some())).collect();
+    assert_eq!(records, [(1, true), (2, true), (3, false), (4, false), (5, true), (6, true)]);
+    let first = nonos_libc::given()[0].0;
+    assert_eq!(d.offers.iter().next().unwrap().record, Some(first));
+}
+
+#[test]
+fn a_channel_offered_later_is_given_and_a_withdrawn_one_given_again_afresh() {
+    let (mut d, m) = up(vec![chan(1, NET, 0)]);
+    m.send(&offer_bytes(&chan(9, SCSI, 0)));
+    assert_eq!(step(&mut d), 1);
+    assert_eq!(logged().last().unwrap(), "driver.vmbus0: channel 9: scsi, given to its driver\n");
+    let first = nonos_libc::given().last().unwrap().0;
+    m.send(&rescind_bytes(9));
+    step(&mut d);
+    assert!(!d.offers.iter().any(|o| o.relid == 9));
+    m.send(&offer_bytes(&chan(9, SCSI, 0)));
+    step(&mut d);
+    let again = d.offers.iter().find(|o| o.relid == 9).unwrap().record.unwrap();
+    assert_ne!(again, first, "a withdrawn channel's record is never handed out again");
+}
+
+#[test]
+fn a_channel_the_kernel_will_not_give_is_said_and_left_without_a_record() {
+    let (d, _) = up(vec![chan(1, NET, 0)]);
+    let mut again = *d.offers.iter().next().unwrap();
+    again.record = None;
+    give(&d.hv, &mut again);
+    assert_eq!(again.record, None);
+    assert_eq!(
+        logged().last().unwrap(),
+        "driver.vmbus0: channel 1 (network) not given to a driver: already given\n"
+    );
+    let mut unknown = again;
+    unknown.relid = 77;
+    give(&d.hv, &mut unknown);
+    assert_eq!(
+        logged().last().unwrap(),
+        "driver.vmbus0: channel 77 (network) not given to a driver: not known to the kernel\n"
+    );
+    assert_eq!(nonos_libc::given().len(), 1, "no second record");
+}
+
+#[test]
+fn a_given_channel_s_answers_never_reach_the_core() {
+    let (mut d, m) = up(vec![chan(2, SCSI, 0)]);
+    let mut opened = vec![0u8; 20];
+    opened[0] = 6;
+    opened[8..12].copy_from_slice(&2u32.to_le_bytes());
+    m.send(&opened);
+    assert_eq!(step(&mut d), 0, "the driver's answer is the driver's");
+    // Another channel's answer, given to no driver, still reaches the core.
+    let (mut d, m) = up(vec![chan(3, KBD, 0)]);
+    opened[8..12].copy_from_slice(&3u32.to_le_bytes());
+    m.send(&opened);
+    assert_eq!(step(&mut d), 1);
 }
