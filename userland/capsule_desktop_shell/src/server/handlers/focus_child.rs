@@ -31,7 +31,7 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     };
     let status = match entry(pid) {
         None => E_NOENT,
-        Some((parent, caps)) if may_focus(sender_pid, parent, caps) => {
+        Some(parent) if may_focus(sender_pid, parent) => {
             boot(pid);
             0
         }
@@ -40,7 +40,7 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     let _ = respond::status(sender_pid, req, status, tx);
 }
 
-/* The parent and caps the process table shows for `pid`, if it is alive. */
-fn entry(pid: u32) -> Option<(u32, u64)> {
-    table().into_iter().find(|e| pid != 0 && e.pid == pid).map(|e| (e.ppid, e.caps))
+/* The parent the process table shows for `pid`, if it is alive. */
+fn entry(pid: u32) -> Option<u32> {
+    table().into_iter().find(|e| pid != 0 && e.pid == pid).map(|e| e.ppid)
 }

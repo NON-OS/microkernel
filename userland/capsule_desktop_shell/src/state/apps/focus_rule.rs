@@ -16,15 +16,13 @@
 
 //! Whom the shell gives the focus frame a freshly loaded app waits on before
 //! it builds its window (launch_wake.rs), when another process asks: only
-//! the asker's own child, and only an app that draws (GraphicsSurfaceCreate).
-//! The app takes the frame from the shell alone, so the Terminal that loaded
-//! it asks here rather than sending it, and no process can wake another's app.
-
-/// GraphicsSurfaceCreate: a process without it has no window to open.
-pub const DRAWS: u64 = 1 << 12;
+//! the asker's own child. The app takes the frame from the shell alone, so
+//! the Terminal that loaded it asks here rather than sending it, and no
+//! process can wake another's app. Whether the child draws is the asker's to
+//! know: the process table hides other processes' caps from the shell.
 
 /// Whether `asker` may have the shell focus the process whose parent is
-/// `parent` and whose caps are `caps`.
-pub fn may_focus(asker: u32, parent: u32, caps: u64) -> bool {
-    asker != 0 && parent == asker && caps & DRAWS != 0
+/// `parent`.
+pub fn may_focus(asker: u32, parent: u32) -> bool {
+    asker != 0 && parent == asker
 }

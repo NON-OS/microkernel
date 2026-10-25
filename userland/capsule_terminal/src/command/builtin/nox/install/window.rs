@@ -16,21 +16,28 @@
 
 //! A program this terminal loaded that draws a window waits, before it opens
 //! one, for a focus frame it takes from the desktop shell alone. So the
-//! terminal asks the shell to send it (OP_FOCUS_CHILD); the shell does only
-//! for the asker's own child, and only for a program holding a display right
-//! (desktop_shell's state/apps/focus_rule.rs). A program with no window is
-//! refused there, and the terminal drains its output as before.
+//! terminal asks the shell to send it (OP_FOCUS_CHILD), which the shell does
+//! only for the asker's own child (desktop_shell's state/apps/focus_rule.rs).
+//! Only a program that draws (GraphicsSurfaceCreate, read from the process
+//! table, whose caps the terminal sees by AttestRead) is asked for; any other
+//! has its output drained as before.
 
 use nonos_app_skeleton::discover::lookup_service;
 use nonos_app_skeleton::wire::call_status;
+
+use crate::command::builtin::proc_table::table;
 
 // Hand-synced with desktop_shell's protocol::{MAGIC, OP_FOCUS_CHILD}.
 const NDSH: u32 = 0x4E44_5348;
 const OP_FOCUS_CHILD: u16 = 0x000F;
 
+/// GraphicsSurfaceCreate: a program without it has no window to open.
+const DRAWS: u64 = 1 << 12;
+
 /// Whether `pid` now opens its own window.
 pub(super) fn open(pid: u32) -> bool {
-    let Some(shell) = lookup_service(b"desktop_shell") else {
+    let draws = table().iter().any(|e| e.pid == pid && e.caps & DRAWS != 0);
+    let Some(shell) = lookup_service(b"desktop_shell").filter(|_| draws) else {
         return false;
     };
     matches!(call_status(shell.port, NDSH, OP_FOCUS_CHILD, 1, &pid.to_le_bytes()), Ok(0))
