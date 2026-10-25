@@ -41,5 +41,6 @@ pub mod truncated;
 mod cap_tests;
 mod ioapic_tests;
 mod keep_tests;
+mod qemu_igb_tests;
 mod tests;
 mod truncated_tests;
