@@ -33,7 +33,6 @@ pub enum Why {
     Button = 1,
     Battery = 2,
     Thermal = 3,
-    Shell = 4,
 }
 
 static ASKED: AtomicU8 = AtomicU8::new(0);
@@ -48,8 +47,7 @@ fn said(why: u8) -> &'static [u8] {
     match why {
         1 => b"power button",
         2 => b"battery critical",
-        3 => b"thermal zone at _CRT",
-        _ => b"the shell asked",
+        _ => b"thermal zone at _CRT",
     }
 }
 
