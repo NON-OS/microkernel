@@ -52,3 +52,9 @@ pub(crate) fn framebuffer_phys() -> Option<(u64, u64)> {
 pub(crate) fn framebuffer_state() -> Option<&'static KernelFramebuffer> {
     FRAMEBUFFER.get()
 }
+
+/// The boot framebuffer's length in bytes (stride x height), its geometry
+/// alone: what the surface cap is sized by (surface_handlers/cap.rs).
+pub(crate) fn boot_frame_len() -> Option<usize> {
+    framebuffer_state().and_then(|f| f.frame_len())
+}
