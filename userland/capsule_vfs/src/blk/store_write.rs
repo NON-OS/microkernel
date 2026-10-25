@@ -23,67 +23,18 @@
 //! will be, never a descriptor naming bytes that did not land.
 use alloc::vec;
 
-use nonos_disk_map::{digest16, STORE_BASE_LBA, TOC_SPAN};
+use nonos_disk_map::{digest16, STORE_BASE_LBA};
 use nonos_libc::mk_store_write;
 
-use super::client::{capacity, read_blocks, read_span};
 use super::error::BlkError;
-use super::store_header::{entry_count, ENTRY_LEN, HEADER_LEN, MAX_ENTRIES};
+use super::store_header::{ENTRY_LEN, HEADER_LEN, MAX_ENTRIES};
 use super::store_room::{make_room, place};
-use super::store_toc::{decode, room_for, valid_name, TocEntry, Window, NAME_LEN};
+use super::store_table::Table;
+use super::store_toc::{room_for, valid_name, TocEntry, NAME_LEN};
 use super::wire::SECTOR_SIZE;
 
 /// The kernel's store write takes at most this much a call.
 pub(super) const MAX_WRITE_BYTES: usize = 8192;
-
-/*
- * A withdrawal on a boot that keeps nothing. The zeros may only take the place
- * of a record the disk already holds, at its own length, through the same
- * replace a kept record goes through; a name the disk does not hold stays off
- * it. Nothing is ever appended, so no name, length or digest reaches the disk
- * from an amnesic boot.
- */
-pub fn withdraw(name: &str, data: &[u8]) -> Result<(), BlkError> {
-    if data.iter().any(|b| *b != 0) {
-        return Err(BlkError::Inval);
-    }
-    let t = Table::read()?;
-    let Some(index) = t.entries.iter().position(|e| e.name == name) else {
-        return Ok(());
-    };
-    same_bytes(&t.entries[index], data).or_else(|_| {
-        super::store_replace::replace(&t.toc, index, &t.entries, t.floor, t.capacity_bytes, data)
-    })
-}
-
-/// The table as the disk holds it now, with the bounds a write is kept to.
-struct Table {
-    toc: alloc::vec::Vec<u8>,
-    count: usize,
-    base: u64,
-    floor: u64,
-    capacity_bytes: u64,
-    entries: super::store_toc::Toc,
-}
-
-impl Table {
-    fn read() -> Result<Self, BlkError> {
-        let mut head = [0u8; SECTOR_SIZE];
-        read_blocks(STORE_BASE_LBA, &mut head)?;
-        let count = entry_count(&head)?;
-        let mut toc = vec![0u8; sector_span(HEADER_LEN + ENTRY_LEN * count)];
-        read_span(STORE_BASE_LBA, &mut toc)?;
-        let capacity_bytes = capacity()?.checked_mul(SECTOR_SIZE as u64).ok_or(BlkError::BadLength)?;
-        let base = STORE_BASE_LBA * SECTOR_SIZE as u64;
-        /*
-         * Payloads go past a full table, so nothing this writes is ever in the
-         * way of the table growing again.
-         */
-        let floor = base + TOC_SPAN as u64;
-        let entries = decode(&toc, count, Window { base, end: capacity_bytes })?;
-        Ok(Self { toc, count, base, floor, capacity_bytes, entries })
-    }
-}
 
 pub fn append(name: &str, data: &[u8]) -> Result<(), BlkError> {
     let Table { mut toc, count, base, floor, capacity_bytes, mut entries } = Table::read()?;
@@ -128,7 +79,7 @@ pub fn append(name: &str, data: &[u8]) -> Result<(), BlkError> {
  * extent, and reporting success there would leave the caller believing the old
  * bytes had been replaced.
  */
-fn same_bytes(entry: &TocEntry, data: &[u8]) -> Result<(), BlkError> {
+pub(super) fn same_bytes(entry: &TocEntry, data: &[u8]) -> Result<(), BlkError> {
     if entry.len == data.len() as u64 && entry.digest == digest16(data) {
         return Ok(());
     }
@@ -181,6 +132,6 @@ pub(super) fn write_sectors(lba: u64, buf: &[u8]) -> Result<(), BlkError> {
     }
 }
 
-fn sector_span(bytes: usize) -> usize {
+pub(super) fn sector_span(bytes: usize) -> usize {
     bytes.div_ceil(SECTOR_SIZE) * SECTOR_SIZE
 }

@@ -49,3 +49,7 @@ mod tests_remove;
 mod tests_streamed;
 #[cfg(test)]
 mod tests_withdraw;
+#[cfg(test)]
+mod tests_withdraw_kept;
+#[cfg(test)]
+mod tests_erase;

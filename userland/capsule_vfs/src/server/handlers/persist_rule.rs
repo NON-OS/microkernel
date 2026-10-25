@@ -24,7 +24,7 @@ pub enum Keep {
     Record,
     /// An amnesic boot asked to clear a record: zeros may only take the place
     /// of one the disk already holds, in place, and nothing new is added
-    /// (`blk::store_write::withdraw`).
+    /// (`blk::store_withdraw::withdraw`).
     Withdraw,
 }
 
