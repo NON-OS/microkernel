@@ -31,7 +31,7 @@ def sealed(inner): return b16(inner)
 def enrol():
     body = b"NSHE" + pack("<HH", 1, 0) + b"\xf1" * 16 + b8(b"db-1.eu.example")
     body += b"\xac" * 64 + b"\x4b" * 64 + b"".join(bytes([p]) * 32 for p in (0, 1, 2, 7))
-    return body + pack("<Q", 9000000) + b"\xaa" * 32 + SIG
+    return body + b"\x01\x01" + b"\xb0" * 32 + pack("<Q", 9000000) + b"\xaa" * 32 + SIG
 
 def host_proof():
     doc = b"TDOC" + b"\x00" * 32 + b"\xac" * 64 + b"".join(bytes([p]) * 32 for p in (0, 1, 2, 7))

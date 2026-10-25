@@ -3,7 +3,7 @@
 //! the blob: the bytes kept are the seed's, and the erase touches exactly
 //! them, leaving a tree that still parses.
 
-use crate::arch::aarch64::boot_entropy::KEPT;
+use crate::arch::common::boot_entropy::KEPT;
 use crate::arch::fdt::Fdt;
 use crate::arch::seed_step::{erase, keep};
 use crate::fixtures::VIRT_GICV3 as VIRT;

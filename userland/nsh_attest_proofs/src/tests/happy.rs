@@ -39,7 +39,7 @@ fn a_policy_naming_another_pcr9_is_shown_as_policy_pcr9() {
 #[test]
 fn the_first_failed_check_is_the_one_named() {
     // Bad PCR 9 (step 5) and bad DMA (step 6): step 5 is named.
-    let s = Spec { pcr: vec![(9, [0x99; 32])], dma: (1, true, 3), ..Spec::default() };
+    let s = Spec { pcr: vec![(9, [0x99; 32])], dma: (1, true, 3, 0), ..Spec::default() };
     assert_eq!(refused(s), Refusal::Pcr9);
     // A bad challenge (step 2) before a bad certificate (step 4).
     let s = Spec { challenge: Some([0x5A; 32]), cert: |c| c.fleet = [0xF2; 16], ..Spec::default() };

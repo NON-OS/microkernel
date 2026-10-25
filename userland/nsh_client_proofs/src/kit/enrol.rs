@@ -60,6 +60,8 @@ impl EnrolSpec {
         out.extend_from_slice(&self.ak);
         out.extend_from_slice(&self.host_keys);
         self.pcrs.iter().for_each(|p| out.extend_from_slice(p));
+        out.extend_from_slice(&[1, 1]);
+        out.extend_from_slice(&[0xB0; 32]);
         out.extend_from_slice(&self.not_after.to_le_bytes());
         out.extend_from_slice(&self.authority_id);
         let sig = signed(self.signer, &labelled(Label::Enrol, &out), self.sig);

@@ -136,6 +136,7 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MPVW", SyscallNumber::MkPrivateWrite, "MkPrivateWrite"),
     e(b"MSWR", SyscallNumber::MkStoreWrite, "MkStoreWrite"),
     e(b"MSRR", SyscallNumber::MkStoreRead, "MkStoreRead"),
+    e(b"MKEP", SyscallNumber::MkKeeping, "MkKeeping"),
     e(b"MDIM", SyscallNumber::MkDataImport, "MkDataImport"),
     e(b"MDST", SyscallNumber::MkDataStat, "MkDataStat"),
     e(b"MDRD", SyscallNumber::MkDataRead, "MkDataRead"),

@@ -19,6 +19,7 @@
 mod auth_ok;
 mod cap_names;
 mod enrol;
+mod enrol_boot;
 mod frame;
 mod grant;
 mod grant_approvals;

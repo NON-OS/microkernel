@@ -28,30 +28,30 @@ the ports.
 | `MUMP` | `0x504D554D` | `MkMunmap` | Memory | `can_deallocate_memory` `src/syscall/contract/cap_table/mk_proc.rs:39` | Unmap pages the caller mapped. |
 | `MCLD` | `0x444C434D` | `MkCapsuleLoad` | CoreExec and IPC and Memory | `grants_all` `src/syscall/contract/cap_table/mk_proc.rs:41-44` | Verify a [capsule](../overview/glossary-boot-root-record.md#capsule) from the ELF, certificate, manifest and trailer the caller passes, and start it; returns the pid. |
 | `MCVF` | `0x4656434D` | `MkCapsuleVerify` | CoreExec and IPC and Memory | `grants_all` `src/syscall/contract/cap_table/mk_proc.rs:46-49` | Run the same verification without starting anything, and write a summary. |
-| `MEXT` | `0x5458454D` | `MkExit` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:38` | End the calling process with an exit code. |
-| `MPAL` | `0x4C41504D` | `MkPidAlive` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:38` | 1 when a pid names a live process, else 0. |
+| `MEXT` | `0x5458454D` | `MkExit` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | End the calling process with an exit code. |
+| `MPAL` | `0x4C41504D` | `MkPidAlive` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | 1 when a pid names a live process, else 0. |
 | `MWAT` | `0x5441574D` | `MkWait` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:35` | Wait, up to a timeout, for a child to exit, and return its exit code. |
 | `MKIL` | `0x4C494B4D` | `MkKill` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:36` | Send SIGINT, SIGTERM or SIGKILL to a child, a supervised guest, or, with ProcessControl or Admin, any process. |
 | `MGPD` | `0x4450474D` | `MkGetPid` | CoreExec | `can_getpid` `src/syscall/contract/cap_table/mk_ipc.rs:24` | The caller's pid. |
 | `MKAR` | `0x52414B4D` | `MkArgs` | CoreExec | `can_getpid` `src/syscall/contract/cap_table/mk_ipc.rs:25` | Copy the caller's arguments, NUL separated. |
 | `MTSP` | `0x5053544D` | `MkThreadSpawn` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:26` | Start a thread in the caller's address space; returns its id. |
 | `MSTB` | `0x4254534D` | `MkSetTls` | valid token | `is_valid` `src/syscall/contract/cap_table/mk_ipc.rs:31` | Set the caller's thread pointer base. |
-| `MYLD` | `0x444C594D` | `MkYield` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:38` | Give up the CPU. |
-| `MFTW` | `0x5754464D` | `MkFutexWait` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:38` | Sleep while a 32-bit word holds an expected value. |
-| `MFTK` | `0x4B54464D` | `MkFutexWake` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:38` | Wake waiters on a word. |
+| `MYLD` | `0x444C594D` | `MkYield` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | Give up the CPU. |
+| `MFTW` | `0x5754464D` | `MkFutexWait` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | Sleep while a 32-bit word holds an expected value. |
+| `MFTK` | `0x4B54464D` | `MkFutexWake` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | Wake waiters on a word. |
 | `MSPI` | `0x4950534D` | `MkSpawnInstance` | Admin or SpawnWindow | `can_spawn_window` `src/syscall/contract/cap_table/mk_surface.rs:37` | Ask for another window of an embedded, attested app. |
 | `MTRN` | `0x4E52544D` | `MkToolRun` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_surface.rs:51` | Run a baked, attested tool by name as the caller's child, holding no more than the caller unless the caller holds `SpawnWindow` or `Admin` (`src/userspace/tool_capsules/bound.rs`). |
-| `MTMS` | `0x534D544D` | `MkTimeMillis` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:38` | Wall-clock milliseconds; a time correction can move it. |
-| `MMON` | `0x4E4F4D4D` | `MkTimeMonotonic` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:38` | Milliseconds since boot; never moves backwards. |
-| `MTRT` | `0x5452544D` | `MkTimeRtc` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:38` | Read the real-time clock as a date and time record. |
+| `MTMS` | `0x534D544D` | `MkTimeMillis` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | Wall-clock milliseconds; a time correction can move it. |
+| `MMON` | `0x4E4F4D4D` | `MkTimeMonotonic` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | Milliseconds since boot; never moves backwards. |
+| `MTRT` | `0x5452544D` | `MkTimeRtc` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | Read the real-time clock as a date and time record. |
 | `MTAD` | `0x4441544D` | `MkTimeAdjust` | TimeSet | `can_set_time` `src/syscall/contract/cap_table/mk_proc.rs:36` | Correct the wall clock to a Unix time in milliseconds between 2025-01-01 and 2100-01-01 UTC. |
-| `MBAT` | `0x5441424D` | `MkBatteryStatus` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:38` | Battery charge; in 0.9.2 always `ENODEV` or `EOPNOTSUPP`, since the kernel runs no AML. |
+| `MBAT` | `0x5441424D` | `MkBatteryStatus` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | Battery charge; in 0.9.2 always `ENODEV` or `EOPNOTSUPP`, since the kernel runs no AML. |
 
 ### Output, input and terminals
 
 | Tag | Number | Name | Capability | Gate | Meaning |
 |---|---|---|---|---|---|
-| `MPST` | `0x5453504D` | `MkProcStat` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:38` | Read the process table; redacted unless the caller holds AttestRead or ProcessControl. |
+| `MPST` | `0x5453504D` | `MkProcStat` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | Read the process table; redacted unless the caller holds AttestRead or ProcessControl. |
 | `MOUT` | `0x54554F4D` | `MkProcOutput` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:32` | Drain one line a child wrote to its `proc.<pid>` inbox. |
 | `MPIN` | `0x4E49504D` | `MkProcInput` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:33` | Feed one message to a child's `stdin.<pid>` inbox. |
 | `MSRD` | `0x4452534D` | `MkStdinRead` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:34` | Read the caller's own stdin. |
