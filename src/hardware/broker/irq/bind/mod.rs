@@ -17,11 +17,15 @@
 // x86-only: IO-APIC redirect (INTx) + PCI MSI-X capability program.
 #![cfg(target_arch = "x86_64")]
 
+#[cfg(feature = "nonos-iommu-amdvi")]
+mod amd_remap;
 mod bind;
+mod enter;
 mod grant_run;
 mod handle_view;
 mod intx;
 mod intx_line;
+mod intx_mode;
 mod intx_open;
 mod intx_say;
 mod message;
@@ -34,14 +38,12 @@ mod msix_route;
 mod quiet;
 #[cfg(feature = "nonos-iommu-intremap")]
 mod remap;
-#[cfg(feature = "nonos-iommu-amdvi")]
-mod remap_amd;
 mod remap_rule;
 mod remap_vendor;
 mod sentinels;
 mod teardown;
 
 pub use bind::bind;
-pub(super) use message::release_for as release_irte;
+pub(super) use message::release as release_irte;
 pub(super) use sentinels::NO_LINE;
 pub(super) use teardown::{disable_msi_for_device, disable_msix_for_device, teardown_msix_vector};

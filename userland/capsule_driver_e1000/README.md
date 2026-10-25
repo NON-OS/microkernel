@@ -86,10 +86,10 @@ A transmit watchdog runs on every send: frames in flight with the link up
 and none completed for 5 s is a hung transmitter, and the part is reset and
 both rings restarted under the same station address, Bus Master staying on.
 
-Teardown is stop, reset, Bus Master off (effective once the kernel's K6
-lands; the broker ORs Command bits today), then `MkDeviceRelease`, which is
-the real guard: it clears Bus Master with a read-back before freeing every
-grant.
+Teardown is stop, reset, Bus Master off (the masked Command write, which
+names the bits it changes; the plain one only ORs bits on), then
+`MkDeviceRelease`, which is the real guard: it clears Bus Master with a
+read-back before freeing every grant.
 
 ## Failure model
 

@@ -47,24 +47,13 @@ pub mod service_policy;
 pub mod services;
 pub mod store_copy_span;
 pub mod store_errno;
-#[cfg(test)]
-pub use proofs_4::{lifecycle_state, usb_msc_report_words, watch_rule};
-#[cfg(test)]
-pub use proofs_5::{arm_acpi, arm_acpi_tests, bgrt, seeded_tables, smbios};
 #[cfg(kani)]
 mod kani_proofs;
+/// The test groups, named at the root with what they share (proofs.rs).
 #[cfg(test)]
-pub mod proofs_1;
+mod proofs;
 #[cfg(test)]
-pub mod proofs_2;
-#[cfg(test)]
-pub mod proofs_3;
-#[cfg(test)]
-pub mod proofs_4;
-#[cfg(test)]
-pub mod proofs_5;
-#[cfg(test)]
-pub mod proofs_6;
+pub use proofs::*;
 #[cfg(test)]
 mod registry_support;
 pub mod spec;
