@@ -9,8 +9,6 @@ use nonos_policy_proto::settings_record::{SETTINGS_DIR, VALUES_PATH};
 
 use super::write_steps::{write, Vfs};
 
-/// vfs's own words for a call that got no answer in time.
-const NO_ANSWER: &str = "vfs ipc failed";
 
 struct Live {
     pid: u32,
@@ -19,7 +17,7 @@ struct Live {
 
 impl Live {
     fn seen(&mut self, r: Result<(), &'static str>) -> Result<(), ()> {
-        self.late |= r == Err(NO_ANSWER);
+        self.late |= r == Err(vfs::TIMEOUT);
         r.map_err(|_| ())
     }
 }

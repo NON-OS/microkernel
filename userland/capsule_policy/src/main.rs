@@ -39,5 +39,7 @@ pub unsafe extern "C" fn _start() -> ! {
         mk_exit(2);
     }
     push::seed_kernel();
+    // Every vfs call is bounded, so none holds the loop past a client's wait.
+    nonos_app_skeleton::clients::vfs::set_deadline_ms(progress::VFS_DEADLINE_MS);
     server::run(bootstrap::SERVICE_PORT as u64);
 }

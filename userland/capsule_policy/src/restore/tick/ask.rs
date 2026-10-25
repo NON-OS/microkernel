@@ -61,7 +61,7 @@ fn stage_read(stage: Stage, pid: u32) -> Option<Read> {
     };
     Some(match vfs::read_file_within(pid, path, max as u32, VFS_DEADLINE_MS) {
         Ok(raw) => Read::Bytes(raw),
-        Err("vfs ipc failed") => Read::Late,
+        Err(vfs::TIMEOUT) => Read::Late,
         Err(_) => Read::Absent,
     })
 }
