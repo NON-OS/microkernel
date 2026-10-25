@@ -25,9 +25,9 @@
 //! where its next call drops it as not its own. The installer makes the
 //! terminal the parent of what it loads, so the loaded program is a child
 //! that was not there before and is no older than the load. And the
-//! installer serves one request at a time, in order, so once a health probe
-//! sent after the load is answered, the load is over: no such child by then
-//! means it failed. Hand-synced with the desktop's
+//! installer serves one request at a time, in order, so once a probe sent
+//! after the load is answered, the load is over, and the probe's answer is
+//! how it ended (probe.rs): a refusal, or no such child. Hand-synced with the desktop's
 //! `capsule_desktop_shell/src/state/launch.rs`, which follows a Launchpad
 //! launch the same way.
 
@@ -56,6 +56,8 @@ pub enum Step {
     Probe,
     /// The program is running as this pid.
     Loaded(u32),
+    /// The installer refused it, with this status.
+    Refused(i32),
     /// The installer finished without it.
     Failed,
     /// The deadline passed with no answer either way.
@@ -69,5 +71,5 @@ pub struct Follow {
     next_probe_ms: i64,
     probe_gap_ms: i64,
     next_look_ms: i64,
-    served: bool,
+    served: Option<i32>,
 }
