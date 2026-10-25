@@ -25,6 +25,8 @@ static STATE: CapsuleState = CapsuleState::new();
 static SPAWNED: AtomicU32 = AtomicU32::new(0);
 
 pub(super) fn set_alive(pid: u32) {
+    /* Before setup can end: it waits on a person, and its answer is kept. */
+    crate::process::exit::keep_status_of(pid);
     SPAWNED.store(pid, Ordering::SeqCst);
     STATE.set_alive(pid);
 }
