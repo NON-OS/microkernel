@@ -152,12 +152,18 @@ def selftest_panic():
     profile copies the checkout's file back, and scripts/check_selftest_panic.py
     fails any committed build that names the feature."""
     path = TREE / "tools/nix/capsules.json"
-    entries = json.loads(path.read_text())
+    path.write_text(json.dumps(panicking(json.loads(path.read_text())), indent=1) + "\n")
+    commit()
+
+
+def panicking(entries):
+    """capsules.json's entries with selftest-panic added to capsule_linux's
+    cargo_features, keeping any it already has (scripts/selftest_panic_fixture.py)."""
     for e in entries:
         if e["slug"] == "linux":
-            e["cargo_features"] = "selftest-panic"
-    path.write_text(json.dumps(entries, indent=1) + "\n")
-    commit()
+            have = [f for f in e["cargo_features"].split(",") if f]
+            e["cargo_features"] = ",".join(have + ["selftest-panic"] * ("selftest-panic" not in have))
+    return entries
 
 
 def main():
