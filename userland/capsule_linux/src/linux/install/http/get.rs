@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A GET to a package mirror. A mirror on the local network is dialled
-//! directly by address, as raw.rs says; any other is named and reached through
-//! the network the person chose (http_route.rs).
+//! A GET to a package mirror, named and reached through the network the
+//! person chose (route.rs). Only a development build (`dev-mirror`) dials a
+//! mirror on the local network directly by address, as raw.rs says.
 
 use alloc::format;
 use alloc::vec::Vec;
 
 use super::super::http_reply::{body, complete};
 use super::super::mirror::mirror;
+#[cfg(feature = "dev-mirror")]
 use super::direct::direct;
 use super::route::exchange;
+#[cfg(feature = "dev-mirror")]
 use crate::linux::net::route::is_local;
 
 /// Enough for the largest package index; a reply beyond it is refused
@@ -43,10 +45,13 @@ pub fn get_as(at: &str, port: u16, host: &str, path: &str) -> Option<Vec<u8>> {
     let req = format!(
         "GET {path} HTTP/1.1\r\nHost: {host}\r\nUser-Agent: nonos\r\nConnection: close\r\n\r\n"
     );
+    #[cfg(feature = "dev-mirror")]
     let raw = match is_local(at) {
         true => direct(at, port, req.as_bytes()),
         false => exchange(at, port, req.as_bytes(), MAX_BODY, &complete),
     };
+    #[cfg(not(feature = "dev-mirror"))]
+    let raw = exchange(at, port, req.as_bytes(), MAX_BODY, &complete);
     let got = raw.and_then(body);
     let line = match &got {
         Some(b) => format!("[LINUX] mirror {at}: {path}, {} bytes\n", b.len()),

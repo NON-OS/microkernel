@@ -20,6 +20,12 @@ description = "NONOS Linux personality: hosts Linux binaries outside the trusted
 name = "linux"
 path = "src/main.rs"
 
+[features]
+# A development image's Linux personality (docs/build/dev-mirror.md): a mirror
+# on the local network, dialled directly by address, which no release build
+# carries. Every other build sends every download over nonos_route_link.
+dev-mirror = []
+
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_app_skeleton = { path = "../app_skeleton", default-features = false }

@@ -21,16 +21,15 @@ use alloc::format;
 use super::super::route_read::offline;
 use super::super::Why;
 use super::anyone::down;
-use crate::linux::net::route::is_local;
 
-/// Whether an install from `at` can start now: a mirror on the local
-/// network at once; any other once Anyone, which installs download over,
+/// Whether an install from `at` can start now: in a development build
+/// (`dev-mirror`) a mirror on the local network at once; any other once Anyone, which installs download over,
 /// is up, waited for up to three minutes (`anyone::down`). When
 /// it does not come up, that is said before anything is fetched, as
 /// NoNetwork: an outage, which a retry once it runs gets past, not a mirror
 /// that refused.
 pub fn reachable(at: &str) -> Result<(), Why> {
-    match offline(is_local(at), down) {
+    match offline(local(at), down) {
         None => Ok(()),
         Some(why) => {
             let line = format!("[LINUX] mirror {at}: not reachable now: {why}\n");
@@ -38,4 +37,15 @@ pub fn reachable(at: &str) -> Result<(), Why> {
             Err(Why::NoNetwork)
         }
     }
+}
+
+#[cfg(feature = "dev-mirror")]
+fn local(at: &str) -> bool {
+    crate::linux::net::route::is_local(at)
+}
+
+/* No release build dials a mirror but through the route layer. */
+#[cfg(not(feature = "dev-mirror"))]
+fn local(_: &str) -> bool {
+    false
 }

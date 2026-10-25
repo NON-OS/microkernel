@@ -18,6 +18,11 @@ authors = ["eK@nonos.systems"]
 [lib]
 path = "src/lib.rs"
 
+[features]
+# capsule_linux's own feature, named so the files it gates compile here as in
+# a release build: off.
+dev-mirror = []
+
 [dependencies]
 # What the mounted installer files link against in the capsule.
 nonos_inflate = { path = "../inflate" }
