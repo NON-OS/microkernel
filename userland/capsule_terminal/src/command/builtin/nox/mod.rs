@@ -67,6 +67,7 @@ mod touch;
 mod unalias;
 mod unknown;
 mod unset;
+mod latency;
 mod uptime;
 mod whereis;
 mod write;
