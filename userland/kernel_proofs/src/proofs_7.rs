@@ -47,6 +47,9 @@ mod input_authority_tests;
 pub mod iommu_own_id;
 #[path = "iommu_release/mod.rs"]
 pub mod iommu_release;
+/// A direct reply carries the token of the call it answers.
+#[path = "ipc_reply_token/mod.rs"]
+pub mod ipc_reply_token;
 #[path = "irq_bind_rollback_tests.rs"]
 mod irq_bind_rollback_tests;
 /// Every linker symbol the kernel declares is one its image defines.
