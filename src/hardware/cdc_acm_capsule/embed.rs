@@ -23,15 +23,15 @@ pub(super) const DRIVER_CDC_ACM_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-cdc-acm")]
 pub(super) const DRIVER_CDC_ACM_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_cdc_acm.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_cdc_acm.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-cdc-acm")]
 pub(super) const DRIVER_CDC_ACM_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_cdc_acm.manifest.bin");
+    crate::baked_trust!("capsules/driver_cdc_acm.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-cdc-acm")]
 pub(super) const DRIVER_CDC_ACM_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_cdc_acm.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_cdc_acm.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-cdc-acm"))]
 pub(super) const DRIVER_CDC_ACM_ELF: &[u8] = &[];
