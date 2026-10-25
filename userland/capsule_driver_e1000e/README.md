@@ -91,9 +91,10 @@ back on the air under the same station address, Bus Master on again.
 
 Teardown is stop (the I219 ring flush on the driver's own rings, then new
 master requests blocked and waited out, both units stopped, DMA in flight
-drained), Bus Master off (effective once the kernel's K6 lands; the broker
-ORs Command bits today), reset, then `MkDeviceRelease`, which is the real
-guard: it clears Bus Master with a read-back before freeing every grant. A
+drained), Bus Master off (the masked Command write, which names the bits it
+changes; the plain one only ORs bits on), reset, then `MkDeviceRelease`,
+which is the real guard: it clears Bus Master with a read-back before
+freeing every grant. A
 setup that fails on a DMA grant, before any ring was programmed, stops an
 older part the same way without the flush, and stops an I219's units
 without the reset: a reset over descriptors it may still hold is the unit

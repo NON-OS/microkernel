@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A guest's name in the process table follows the program it runs, as a
-//! Linux task's comm does: the last part of argv[0], at most 15 bytes of
-//! printable ASCII, behind a "foreign:" the guest cannot remove.
+//! A guest's name in the process table follows the program it runs: the last
+//! part of argv[0], at most 15 bytes of printable ASCII, behind a "foreign:"
+//! the guest cannot remove, 23 bytes in all and so whole in MkProcStat's 24.
 
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -26,7 +26,7 @@ use crate::memory::paging::manager::translate_in_asid;
 
 use super::peer_guard::{in_user_half, PAGE};
 
-/// Linux keeps this many bytes of a task's name.
+/// A Linux guest's own name length (recalled, unverified), so both agree.
 const COMM: usize = 15;
 /// How far into argv[0] its terminator is looked for.
 const LOOK: u64 = 256;

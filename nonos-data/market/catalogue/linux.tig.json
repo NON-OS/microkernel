@@ -1,0 +1,60 @@
+{
+  "schema_version": 3,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.tig",
+      "capsule_id": "f2543fcea8165dfde08d40fcef8440009642a6f22dcbad39a5e35933469ed3bf",
+      "name": "tig",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A text interface for browsing a Git repository's history. Runs git.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "tig@2.5.10-r0",
+          "manifest_hash": "f2543fcea8165dfde08d40fcef8440009642a6f22dcbad39a5e35933469ed3bf",
+          "package_hash": "f2543fcea8165dfde08d40fcef8440009642a6f22dcbad39a5e35933469ed3bf",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/tig-2.5.10-r0.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c303101000000000000008a73639c4983652bc586b005eb27352a449b0c51f51edaea9c7bcde27376bed2480100000000000001c45bb9fd887eb4ac924230b47eb9b444fcc32849a62f8892fa08acfa7a9d6feea918b5c6c49c581f24f8597e9fb2fc18dc25ed510844160c4be9aeecbb8ff00000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 199250 bytes; licence GPL-2.0-or-later; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -49,6 +49,9 @@ mod constants_tests;
 mod heap_tests;
 
 #[cfg(test)]
+mod iommu_pair_tests;
+
+#[cfg(test)]
 mod iommu_tests;
 
 #[cfg(test)]

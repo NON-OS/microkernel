@@ -36,14 +36,24 @@ impl Regs {
     }
 
     /// # Safety
-    ///
+    /// As for the shipping `r8`.
+    pub unsafe fn r8(self, off: u32) -> u8 {
+        self.shipped.r8(off)
+    }
+
+    /// # Safety
+    /// As for the shipping `w8`: the VGA ports, which no model answers.
+    pub unsafe fn w8(self, off: u32, value: u8) {
+        self.shipped.w8(off, value);
+    }
+
+    /// # Safety
     /// As for the shipping `r16`.
     pub unsafe fn r16(self, off: u32) -> u16 {
         self.shipped.r16(off)
     }
 
     /// # Safety
-    ///
     /// As for the shipping `w16`.
     pub unsafe fn w16(self, off: u32, value: u16) {
         self.shipped.w16(off, value);
@@ -51,29 +61,13 @@ impl Regs {
     }
 
     /// # Safety
-    ///
-    /// As for the shipping `r8`.
-    pub unsafe fn r8(self, off: u32) -> u8 {
-        self.shipped.r8(off)
-    }
-
-    /// # Safety
-    ///
-    /// As for the shipping `w8`.
-    pub unsafe fn w8(self, off: u32, value: u8) {
-        self.shipped.w8(off, value);
-    }
-
-    /// # Safety
-    ///
     /// As for the shipping `r32`.
     pub unsafe fn r32(self, off: u32) -> u32 {
         self.shipped.r32(off)
     }
 
     /// # Safety
-    ///
-    /// As for the shipping `w32`.
+    /// As for the shipping `w32`: the extension block, which no model answers.
     pub unsafe fn w32(self, off: u32, value: u32) {
         self.shipped.w32(off, value);
     }

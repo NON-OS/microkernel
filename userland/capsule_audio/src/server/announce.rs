@@ -27,7 +27,7 @@ pub(super) fn announce(sink: Option<&Sink>, mixer: &mut Mixer) {
         #[cfg(feature = "nonos-audio-smoketest")]
         Some(s) => crate::selftest::boot(mixer, s),
         #[cfg(not(feature = "nonos-audio-smoketest"))]
-        Some(s) => mark(&alloc::format!("[AUDIO] output {}\n", s.name())),
+        Some(s) => mark(s.output_line()),
         /* A fixed sink driver is registered before this capsule is spawned
          * and dropped when it finds no controller, and driver.usb_audio0 is
          * registered only where an xHCI controller is, so none after the

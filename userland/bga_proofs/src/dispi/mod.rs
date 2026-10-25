@@ -18,7 +18,8 @@
 //! its read-back, video memory, and the firmware's state read and written
 //! back. The capsule keeps the index arithmetic private to its tree; named
 //! here as siblings, it is reachable to the tests through the same path the
-//! mode set uses.
+//! mode set uses. The tests below drive these files, and the start-up
+//! choice made over them, with no bring-up.
 
 #[path = "../../../capsule_driver_bga/src/dispi/check.rs"]
 mod check;
@@ -47,3 +48,12 @@ pub use fit::video_memory;
 pub use restore::{restore, write_back};
 pub use set_mode::{regs_len, set_mode};
 pub use state::{read, Dispi};
+
+#[cfg(test)]
+mod choose_tests;
+#[cfg(test)]
+mod read_tests;
+#[cfg(test)]
+mod room_tests;
+#[cfg(test)]
+mod window_tests;
