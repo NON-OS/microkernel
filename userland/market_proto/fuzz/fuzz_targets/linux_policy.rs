@@ -17,14 +17,13 @@
 //! The market's OP_GET_LINUX_POLICY reply, as init reads it: neither reader
 //! panics, the two agree on every byte string, and whatever they accept is
 //! exactly what the market's writer would have sent for it, so no reply is
-//! read two ways.
+//! read two ways; and init takes it only for the pin it was made for.
 
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
 use nonos_market_proto::{linux_policy_body, parse_linux_policy, LinuxPolicy};
 
-#[allow(dead_code)]
 #[path = "../../../../src/security/market_capsule/client/linux_policy_wire.rs"]
 mod kernel;
 
@@ -43,6 +42,9 @@ fuzz_target!(|data: &[u8]| {
             };
             assert!(same, "the two readers read one reply two ways");
             assert_eq!(linux_policy_body(p, a), data, "accepted bytes the writer never sends");
+            let other = a.map(|x| x ^ 1);
+            assert!(kernel::held_to(read.clone().expect("read"), a).is_some(), "its own pin");
+            assert!(kernel::held_to(read.clone().expect("read"), &other).is_none(), "another pin");
         }
         _ => panic!("one reader accepts what the other refuses"),
     }

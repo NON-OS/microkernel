@@ -20,7 +20,7 @@
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 
-use super::linux_policy::*;
+use super::*;
 
 fn arg() -> [u8; MARKET_ARG_LEN] {
     let mut m = [0u8; MARKET_ARG_LEN];
@@ -68,7 +68,7 @@ fn a_cut_long_or_foreign_reply_is_refused() {
 
 #[test]
 fn the_op_and_lengths_are_pinned() {
-    assert_eq!(super::ops::OP_GET_LINUX_POLICY, 8);
+    assert_eq!(crate::ops::OP_GET_LINUX_POLICY, 8);
     assert_eq!(linux_policy_body(&LinuxPolicy::Policy(Box::new(arg())), &HASH).len(), 354);
     assert_eq!(linux_policy_body(&LinuxPolicy::Refused, &HASH).len(), LINUX_POLICY_HEAD);
     assert_eq!((KIND_NONE, KIND_POLICY, KIND_REFUSED, LINUX_POLICY_VERSION), (0, 1, 2, 2));

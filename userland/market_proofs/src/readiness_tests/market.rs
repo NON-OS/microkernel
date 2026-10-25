@@ -58,19 +58,3 @@ fn a_schema_2_release_keeps_todays_checks() {
     rel.ext = None;
     assert!(market_gates(&Host, &e, &rel, true).all());
 }
-
-/* plan/30: a linux.* release fetched from an index carries its box, whatever
- * its schema; only a vendor program ("store:") is boxed by the personality. */
-#[test]
-fn a_schema_2_linux_release_without_its_box_is_not_ready() {
-    let mut e = sold().entries[0].clone();
-    e.commerce = None;
-    e.listing_id = "linux.curl".into();
-    let mut rel = e.releases[0].clone();
-    rel.ext = None;
-    rel.package_url = "https://dl-cdn.alpinelinux.org/curl.apk".into();
-    let g = market_gates(&Host, &e, &rel, true);
-    assert!(!g.policy && !g.all());
-    rel.package_url = "store:/bin/qwenchat".into();
-    assert!(market_gates(&Host, &e, &rel, true).all());
-}

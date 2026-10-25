@@ -29,6 +29,7 @@ use super::packages::Record;
 use super::source::source;
 use crate::linux::install::limit::max_packages;
 use crate::linux::install::place::all::unpack;
+use crate::linux::install::refuse::refuse as say;
 use crate::linux::install::Why;
 
 pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
@@ -69,10 +70,4 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
         wanted.extend(rec.depends.iter().cloned());
     }
     Ok(())
-}
-
-/// Log a refusal and name it.
-fn say(line: &[u8], why: Why) -> Result<(), Why> {
-    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
-    Err(why)
 }
