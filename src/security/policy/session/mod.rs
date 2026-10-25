@@ -18,6 +18,7 @@ pub mod account;
 pub mod api;
 pub mod helpers;
 pub mod manager;
+mod salt;
 pub mod session;
 pub mod types;
 

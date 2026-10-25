@@ -32,7 +32,7 @@ pub(crate) const REPLY_INBOX: &str = "endpoint.4294967315";
 const SENDER_NAME: &str = "kernel.driver_usb_msc";
 
 static TRANSPORT_LOCK: Mutex<()> = Mutex::new(());
-static SEQ: AtomicU32 = AtomicU32::new(1);
+pub(super) static SEQ: AtomicU32 = AtomicU32::new(1);
 
 /// Send `op` with `body`; the reply's data on status 0.
 pub(super) fn round_trip(op: u16, body: &[u8]) -> Result<Vec<u8>, E> {
@@ -56,4 +56,10 @@ pub(super) fn round_trip(op: u16, body: &[u8]) -> Result<Vec<u8>, E> {
         transport::TransportError::ProtocolMismatch => E::ProtocolMismatch,
     })?;
     lift(resp.status).map(|()| resp.body)
+}
+
+/// The lock, sender and reply inbox, as the leave phase holds them: the same
+/// lock, so its request is never sent behind another caller's.
+pub(super) fn wire_parts() -> (&'static Mutex<()>, &'static str, &'static str) {
+    (&TRANSPORT_LOCK, SENDER_NAME, REPLY_INBOX)
 }

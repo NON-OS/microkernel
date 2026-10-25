@@ -72,23 +72,17 @@ impl Scalar {
         let mut borrow = 0i128;
 
         for (out, (a, b)) in result.iter_mut().zip(Self::N.iter().zip(self.0.iter())) {
-
             borrow += *a as i128 - *b as i128;
 
             if borrow < 0 {
-
                 *out = (borrow + (1i128 << 64)) as u64;
 
                 borrow = -1;
-
             } else {
-
                 *out = borrow as u64;
 
                 borrow = 0;
-
             }
-
         }
 
         Self(result)

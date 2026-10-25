@@ -18,6 +18,7 @@ mod constants;
 pub mod ecdh;
 mod ecdsa;
 mod field;
+mod keygen;
 mod point;
 mod scalar;
 
@@ -25,10 +26,8 @@ pub use constants::{CompressedPublicKey, PublicKey, SecretKey, Signature};
 
 pub use ecdh::{p256_ecdh, p256_ecdh_keypair};
 
-pub use ecdsa::{
-    generate_keypair, public_key_from_secret, sign, sign_message, verify, verify_message,
-    P256KeyPair,
-};
+pub use ecdsa::{public_key_from_secret, sign, sign_message, verify, verify_message, P256KeyPair};
+pub use keygen::generate_keypair;
 
 pub use field::FieldElement;
 

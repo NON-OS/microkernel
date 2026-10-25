@@ -18,6 +18,7 @@
 
 mod derive;
 mod ephemeral;
+mod finish;
 mod frame;
 mod init;
 mod material;

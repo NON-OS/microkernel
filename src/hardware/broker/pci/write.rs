@@ -16,6 +16,7 @@
 
 //! `MkPciConfigWrite` orchestration.
 
+use crate::capabilities::Capability;
 use crate::drivers::pci::config::ConfigSpace;
 use crate::drivers::pci::constants::CFG_COMMAND;
 
@@ -29,9 +30,11 @@ pub fn write(pid: u32, req: PciWriteRequest) -> Result<(), PciWriteError> {
     let cfg = ConfigSpace::new(handle.address);
     let current = cfg.read16(req.offset as u16).map_err(|_| PciWriteError::PlatformError)?;
     let ident = ident(&cfg, req.offset)?;
-    // Bus Master is for DMA: only a caller holding Dma may set it.
-    let may_master = crate::process::caps::has(pid, crate::capabilities::Capability::Dma.bit());
-    let action = validate(&req, handle.msix.as_ref(), &ident, current, may_master)?;
+    // Bus Master is for DMA, Memory Space for MMIO: only a caller holding
+    // Dma, or Mmio, may set each (K6, H-02).
+    let has = |c: Capability| crate::process::caps::has(pid, c.bit());
+    let may = (has(Capability::Dma), has(Capability::Mmio));
+    let action = validate(&req, handle.msix.as_ref(), &ident, current, may)?;
     apply(&cfg, action)
 }
 

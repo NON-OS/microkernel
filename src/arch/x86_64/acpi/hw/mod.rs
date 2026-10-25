@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! ACPI fixed hardware: FADT decoding, Generic Address Structure access,
-//! sleep entry and reset. `fadt_decode`, `gas`, `sleep`, `reset`, `power_button` and
-//! `madt_cpu` are pure and proven on the host (acpi_aml_proofs); `port_bus`
+//! sleep entry and reset. `fadt_decode`, `gas`, `sleep`, `reset`, `power_button`,
+//! `power_button_arm` and `madt_cpu` are pure and proven on the host (acpi_aml_proofs); `port_bus`
 //! is the kernel's bus behind them.
 
 pub mod fadt_decode;
@@ -25,5 +25,6 @@ pub mod leave_events;
 pub mod madt_cpu;
 pub mod port_bus;
 pub mod power_button;
+pub mod power_button_arm;
 pub mod reset;
 pub mod sleep;

@@ -86,5 +86,5 @@ pub extern "C" fn nonos_free(ptr: *mut u8) {
 #[no_mangle]
 pub extern "C" fn nonos_panic() -> ! {
     crate::sys::serial::println(b"[FATAL] PQClean fatal error");
-    crate::arch::halt_loop()
+    crate::boot::panic::fatal()
 }

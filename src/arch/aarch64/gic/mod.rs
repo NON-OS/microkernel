@@ -50,8 +50,8 @@ pub use in_service::{
     complete as complete_interrupt, enter as enter_service, leave as leave_service,
 };
 pub use irq_handlers::{
-    dispatch as dispatch_irq, register as register_irq_handler,
-    register_for_capsule as register_irq_handler_for_capsule,
+    dispatch as dispatch_irq, holds_kernel_handler as irq_held_by,
+    register as register_irq_handler, register_for_capsule as register_irq_handler_for_capsule,
     unregister_for_capsule as unregister_irq_handler_for_capsule,
 };
 pub use redistributor::GicRedistributor;

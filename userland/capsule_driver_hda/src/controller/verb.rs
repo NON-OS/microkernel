@@ -26,6 +26,7 @@
 //! gets no answer still moved the controller's write pointer, so the shadow
 //! moves with it, or every verb after one slow answer would time out.
 
+use super::ring_health::Health;
 use crate::regs::Regs;
 
 /// Linux waits up to a second for an answer; a working codec answers in
@@ -42,6 +43,8 @@ pub struct Link {
     pub(super) wp: u16,
     pub(super) rp: u16,
     pub(super) unsolicited: u32,
+    /// The recovery's state (ring_recover.rs).
+    pub(crate) health: Health,
 }
 
 impl Link {
@@ -49,7 +52,8 @@ impl Link {
     /// `corb::init` leaves them.
     pub fn new(regs: Regs, corb_va: u64, rirb_va: u64, entries: u16) -> Self {
         let mask = if entries == 0 { 0xff } else { entries - 1 };
-        Link { regs, corb_va, rirb_va, mask, wp: 0, rp: 0, unsolicited: 0 }
+        let health = Health::default();
+        Link { regs, corb_va, rirb_va, mask, wp: 0, rp: 0, unsolicited: 0, health }
     }
 
     /// The controller register window, for the Immediate Command fallback when

@@ -33,8 +33,7 @@ pub struct Hc {
     pub cycle: bool,
     pub enabled: [bool; SLOTS as usize + 1],
     pub ep0: [(u64, bool); SLOTS as usize + 1],
-    /// The slot whose next Address Device never completes: its device
-    /// NAKs the SET_ADDRESS status stage.
+    /// The slot whose next Address Device never completes (SET_ADDRESS NAKed).
     pub stall_address: Option<u8>,
     /// The command the ring is stuck on, and its slot.
     pub stuck: Option<(u64, u8)>,
@@ -46,11 +45,11 @@ pub struct Hc {
     /// Reset, Stop Endpoint and Set TR Dequeue fail with a TRB Error.
     pub refuse_recovery: bool,
     pub race: Race,
-    /// USBSTS shows a Host System Error, which no reset clears unless
-    /// resets are followed.
+    /// USBSTS shows a Host System Error, cleared only if resets are followed.
     pub fault: bool,
     /// How an HCRST is taken (`hc_reset`).
     pub resets: Resets,
+    pub bulk: super::hc_bulk::Bulk,
 }
 
 impl Hc {
@@ -70,6 +69,7 @@ impl Hc {
             race: Race::default(),
             fault: false,
             resets: Resets::Ignored,
+            bulk: Default::default(),
         }
     }
 }

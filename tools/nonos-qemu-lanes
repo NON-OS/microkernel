@@ -46,9 +46,11 @@ def main():
         plan = lanes.plan(a.lane, a.dir, a.audio)
     except lanes.LaneError as e:
         sys.exit(f"nonos-qemu-lanes: {e}")
-    if "iommu" in plan.swaps:
-        sys.exit("nonos-qemu-lanes: an iommu= lane changes the whole machine; boot it with "
-                 "nix run .#qemu -- --lane " + f"iommu={plan.swaps['iommu']}")
+    # These rewrite the finished command line (iommu.py, siblings.py), which make does not build.
+    whole = {"iommu": f"iommu={plan.swaps.get('iommu')}", "audio": "hda-beside-nic"}
+    for lane in [whole[k] for k in whole if k in plan.swaps]:
+        sys.exit(f"nonos-qemu-lanes: the {lane} lane changes the whole machine; boot it with "
+                 f"nix run .#qemu -- --lane {lane}")
     if a.what == "images":
         lanes.make_images(plan.images)
     elif a.what == "args":
