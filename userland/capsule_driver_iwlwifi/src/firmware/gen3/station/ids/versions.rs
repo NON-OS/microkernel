@@ -1,53 +1,13 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// NONOS Operating System (AGPL-3.0-or-later)
 
-//! The groups and opcodes of the join's commands (fw/api/commands.h,
-//! mac-cfg.h, datapath.h) and the version of each one's layout this driver
-//! encodes. A firmware file says, per command, which version it runs
-//! (`IWL_UCODE_TLV_FW_CMD_VERSIONS`); a command it does not list runs the
-//! version Linux falls back to. [`check`] holds the loaded firmware to this
-//! table before anything is sent, so a firmware that moved a layout is
-//! refused instead of handed bytes it reads differently. The versions are
-//! the ones both bundled SO images report.
+//! The layout version of each command this driver encodes, and the check that the firmware runs it.
 
-use super::super::cmds::{LINK_CONFIG_CMD, LONG_GROUP, MAC_CONFIG_CMD, MAC_CONF_GROUP};
-use super::super::ucode::Ucode;
-
-/// `DATA_PATH_GROUP`.
-pub const DATA_PATH_GROUP: u8 = 0x5;
-
-/// `PHY_CONTEXT_CMD` (legacy, sent wide in `LONG_GROUP`).
-pub const PHY_CONTEXT_CMD: u8 = 0x08;
-/// `SCAN_ABORT_UMAC`.
-pub const SCAN_ABORT_UMAC: u8 = 0x0E;
-/// `TX_CMD`: a frame on a transmit queue, and the firmware's response to it.
-pub const TX_CMD: u8 = 0x1C;
-/// `TXPATH_FLUSH`.
-pub const TXPATH_FLUSH: u8 = 0x1E;
-/// `SESSION_PROTECTION_CMD` and its notification, in `MAC_CONF_GROUP`.
-pub const SESSION_PROTECTION_CMD: u8 = 0x05;
-pub const SESSION_PROTECTION_NOTIF: u8 = 0xFB;
-/// `STA_CONFIG_CMD` and `STA_REMOVE_CMD`, in `MAC_CONF_GROUP`.
-pub const STA_CONFIG_CMD: u8 = 0x0A;
-pub const STA_REMOVE_CMD: u8 = 0x0C;
-/// `RLC_CONFIG_CMD`, `SCD_QUEUE_CONFIG_CMD` and `SEC_KEY_CMD`, in
-/// `DATA_PATH_GROUP`.
-pub const RLC_CONFIG_CMD: u8 = 0x08;
-pub const SCD_QUEUE_CONFIG_CMD: u8 = 0x17;
-pub const SEC_KEY_CMD: u8 = 0x18;
+use super::super::super::cmds::{LINK_CONFIG_CMD, LONG_GROUP, MAC_CONFIG_CMD, MAC_CONF_GROUP};
+use super::super::super::ucode::Ucode;
+use super::opcodes::{
+    DATA_PATH_GROUP, PHY_CONTEXT_CMD, RLC_CONFIG_CMD, SCAN_ABORT_UMAC, SCD_QUEUE_CONFIG_CMD,
+    SEC_KEY_CMD, SESSION_PROTECTION_CMD, STA_CONFIG_CMD, STA_REMOVE_CMD, TXPATH_FLUSH, TX_CMD,
+};
 
 /// One command and the versions whose layout this driver encodes. An empty
 /// `listed` means the firmware must not list the command at all (or list it
