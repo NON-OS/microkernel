@@ -16,7 +16,10 @@
 
 //! The enrolment certificate, `nsh-enrol/1`: the fleet's authority says
 //! that this TPM's attestation key, these host keys, this host name and
-//! these firmware PCRs belong together, until `not_after_ms`.
+//! these firmware PCRs and boot applications belong together, until
+//! `not_after_ms`.
+
+pub mod boot;
 
 use crate::keys::{HybridSig, DIGEST_LEN, KEY_ID_LEN};
 use crate::WireError;
@@ -37,6 +40,8 @@ pub struct Enrol<'a> {
     pub ak_public: &'a [u8; AK_PUBLIC_LEN],
     pub host_keys: &'a [u8; DIGEST_LEN],
     pub pcrs: [&'a [u8; PCR_LEN]; FIRMWARE_PCRS],
+    /// The boot applications, whole digests end to end (`boot`).
+    pub boot_apps: &'a [u8],
     pub not_after_ms: u64,
     pub authority: &'a [u8; KEY_ID_LEN],
     pub sig: HybridSig<'a>,

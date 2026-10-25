@@ -1,0 +1,26 @@
+# NØNOS userland: agentproof_policy
+#
+# An AgentProof box policy as a file a person writes and reviews: versioned,
+# one meaning per file, compiled to the exact `linux --box` word capsule_linux
+# reads. The box itself, its hash and its words are capsule_linux's own files,
+# mounted by path, so this crate never restates what the box enforces.
+
+[package]
+name = "agentproof_policy"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "agentproof"
+path = "src/bin/agentproof.rs"
+
+[dependencies]
+# What the mounted box hash folds with.
+blake3 = { version = "1", default-features = false, features = ["pure"] }
+# The services mask and the destination list the mounted box files read.
+nonos_linux_policy = { path = "../nonos_linux_policy" }

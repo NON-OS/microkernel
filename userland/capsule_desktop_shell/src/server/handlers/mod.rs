@@ -22,6 +22,7 @@ pub mod consent_rect;
 pub mod delete_prompt;
 pub mod dialog_key;
 pub mod escape_chord;
+pub mod focus_child;
 pub mod hand_over;
 pub mod health;
 pub mod input_menu;

@@ -58,27 +58,17 @@ fn the_virtio_row_is_the_virtio_blk_drivers_own() {
     holds(Driver::VirtioBlk, h, o, w);
 }
 
-/// The eMMC and UFS drivers both serve the one block wire (nonos_blk_wire),
-/// so they share its magic and its ops; every other pair differs in both.
-fn one_wire(a: Driver, b: Driver) -> bool {
-    matches!((a, b), (Driver::Wire, Driver::Ufs) | (Driver::Ufs, Driver::Wire))
-}
-
+/// The block wire's drivers share one dialect, its magic and ops alike.
 #[test]
-fn no_two_drivers_share_a_magic_or_a_service_name() {
+fn no_two_drivers_share_a_service_name_or_a_magic_off_the_block_wire() {
+    let wire = [Driver::Wire, Driver::Ufs, Driver::Ide, Driver::Scsi];
+    let ops = |d: Driver| (d.ops().capacity, d.ops().read, d.ops().write, d.ops().flush);
     for (i, &a) in ALL.iter().enumerate() {
         for &b in &ALL[i + 1..] {
             assert_ne!(a.service(0), b.service(0), "{a:?} and {b:?}");
-            if one_wire(a, b) {
-                assert_eq!(a.magic(), b.magic(), "{a:?} and {b:?}");
-                let ops = |d: Driver| {
-                    let o = d.ops();
-                    [o.capacity, o.read, o.write, o.flush]
-                };
-                assert_eq!(ops(a), ops(b), "{a:?} and {b:?}");
-            } else {
-                assert_ne!(a.magic(), b.magic(), "{a:?} and {b:?}");
-            }
+            let one_dialect = wire.contains(&a) && wire.contains(&b);
+            assert_eq!(a.magic() == b.magic(), one_dialect, "{a:?} and {b:?}: the magic");
+            assert!(!one_dialect || ops(a) == ops(b), "{a:?} and {b:?}: the ops");
         }
     }
 }

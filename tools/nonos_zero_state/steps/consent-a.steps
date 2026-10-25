@@ -1,0 +1,43 @@
+# Consent erase, boot A: setup with a mode that keeps and local software
+# allowed, so a real consent token, the answers and the setup marker are
+# kept on the stick. The installer that follows is left alone.
+until:[SETUP-WIZARD] capsule spawned:1800
+wait:360
+key:ret
+wait:20
+type:zqconsentname
+key:ret
+wait:20
+key:ret
+wait:20
+key:down
+wait:5
+key:down
+wait:10
+shot:a04-mode-install
+key:ret
+wait:20
+key:ret
+wait:15
+key:ret
+wait:15
+key:ret
+wait:15
+key:ret
+wait:15
+key:ret
+wait:15
+key:ret
+wait:15
+key:down
+wait:10
+shot:a11-software-allowed
+key:ret
+wait:20
+type:zqconsenthost
+key:ret
+wait:20
+shot:a13-review
+key:ret
+wait:240
+shot:a20-after-setup

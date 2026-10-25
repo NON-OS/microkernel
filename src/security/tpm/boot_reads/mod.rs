@@ -14,12 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The two TPM reads the kernel's check of the bootloader needs: PCR 4, where
+//! The TPM reads the kernel's check of the bootloader needs: PCR 4, where
 //! the firmware extended every application it started, and the loader's
-//! rollback floor in NV, which a boot-root record's epoch must reach.
+//! rollback floor in NV, which a boot-root record's epoch must reach. And
+//! the read of every PCR the attestation document quotes.
 
 mod floor;
 mod pcr4;
+mod pcrs;
+mod pcrs_round;
 
 pub use floor::rollback_floor;
 pub use pcr4::pcr4;
+pub use pcrs::read_pcrs;

@@ -16,11 +16,11 @@
 
 use super::limits::{MAX_CPUS, MAX_MEMORY_REGIONS};
 use super::memory::MemoryRegion;
-use super::reserved::Reserved;
 use crate::arch::aarch64::gic::GicVersion;
 use crate::arch::fdt::find::msi::MsiController;
 use crate::arch::fdt::find::smmu::{IommuMap, SmmuInfo};
 use crate::arch::fdt::find::uart::UartInfo;
+use crate::arch::fdt::reserved_set::Reserved;
 
 #[derive(Debug, Clone)]
 pub struct BootInfo {

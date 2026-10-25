@@ -14,22 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod busy;
 mod claim_owned;
 pub mod closing;
 mod closing_rule;
-mod dma_held;
-pub mod dma_hold;
+/*
+ * K15's plan for a released grant, proven in kernel_proofs::dma_surface. The
+ * kernel holds a grant's run through grant_run.rs (L35), which also waits for
+ * an exited group's tables (L49), and takes only its strip rule from here.
+ */
+#[allow(dead_code)]
 mod dma_plan;
+#[allow(dead_code)] // `due` is the proofs': grant_run.rs gives the runs back
 mod dma_rule;
 pub mod drop_attach;
 pub mod exit;
 mod exit_owned;
+mod foreign_windows;
 mod frames_of;
 pub mod gate;
+mod grant_detach;
+pub mod grant_run;
 pub mod held;
+pub mod kept;
+mod orphan_settle;
 pub mod orphans;
+mod orphans_free;
+mod own_orphans;
 pub(super) mod process_of;
 mod reclaim_rule;
+pub mod register_check;
+mod register_grant;
+pub mod register_race;
+pub mod register_rule;
 mod unmap_receiver;
 pub mod unmap_rule;
 mod window;

@@ -19,6 +19,8 @@ mod descriptor_tests;
 #[cfg(test)]
 mod execute_boundary_tests;
 #[cfg(test)]
+mod global_boundary_tests;
+#[cfg(test)]
 mod memory_type_tests;
 #[cfg(test)]
 mod pat_tests;

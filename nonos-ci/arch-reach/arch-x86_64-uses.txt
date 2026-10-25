@@ -1,0 +1,198 @@
+# Every kernel file outside src/arch that names crate::arch::x86_64, with the
+# number of lines that do and why. arch_reach_proofs holds the tree to this
+# file the same way as cfg-x86_64.txt. Generic code should reach the platform
+# through src/arch's facades; each row here is a place it does not yet.
+
+src/boot/main/core_init/acpi_tables.rs 4
+    ACPI init, power button, PM-timer TSC cal. Elsewhere: nothing: parent boot::main x86-gated
+
+src/boot/main/core_init/cpu_tables.rs 2
+    GDT + SYSCALL init. Elsewhere: nothing: parent x86-gated; arch boot does its own
+
+src/boot/main/core_init/init_core_systems.rs 3
+    boot time, APIC idle/preempt timer. Elsewhere: nothing: parent x86-gated; arch boot does its own
+
+src/boot/main/core_init/syscall_msrs.rs 1
+    SYSCALL MSRs (STAR/LSTAR). Elsewhere: nothing: parent x86-gated
+
+src/crypto/hardware_accel.rs 1
+    CPUID AES-NI/SHA detect. Elsewhere: nothing: flags stay false, unused
+
+src/drivers/pci/config/extended.rs 2
+    MCFG segment list for ext. config. Elsewhere: nothing: x86-gated; generic ECAM could serve ext.
+    reads (see AER/ACS)
+
+src/drivers/pci/config/extended_write.rs 1
+    MCFG ext. config write. Elsewhere: nothing: x86-gated
+
+src/hardware/broker/acpi/kernel/platform.rs 1
+    ACPI parser alias for broker. Elsewhere: nothing: broker acpi x86-gated
+
+src/hardware/broker/irq/bind/amd_remap.rs 1
+    AMD-Vi interrupt remapping for a bound MSI. Elsewhere: nothing: irq::bind is x86's; aarch64
+    binds through the GIC ITS in src/arch
+
+src/hardware/broker/irq/bind/message.rs 1
+    APIC dest for MSI message. Elsewhere: aarch64 message/ (ITS/doorbell)
+
+src/hardware/broker/irq/bind/remap.rs 2
+    VT-d interrupt remap of MSI. Elsewhere: nothing: x86 remap hole; aarch64 uses ITS
+
+src/hardware/broker/irq/bind/remap_vendor.rs 1
+    pick VT-d vs AMD-Vi remap. Elsewhere: nothing: x86-only
+
+src/hardware/broker/mmio/forbidden_iommu.rs 1
+    GAP: DMAR/IVRS unit bases. Elsewhere: SMMU window not forbidden
+
+src/interrupts/handlers/exceptions/alignment.rs 1
+    #AC fatal notice. Elsewhere: aarch64/riscv64 traps in arch
+
+src/interrupts/handlers/exceptions/bound.rs 1
+    #BR fatal notice. Elsewhere: nothing: no such trap off x86
+
+src/interrupts/handlers/exceptions/device/handle_missing_fpu.rs 1
+    #NM fatal notice. Elsewhere: aarch64/riscv64 FP traps in arch
+
+src/interrupts/handlers/exceptions/divide.rs 1
+    #DE fatal notice. Elsewhere: nothing: no divide trap on aarch64/riscv64
+
+src/interrupts/handlers/exceptions/double_fault.rs 1
+    #DF fatal (no lock). Elsewhere: nothing: no counterpart trap
+
+src/interrupts/handlers/exceptions/gpf.rs 2
+    #GP dump. Elsewhere: aarch64/riscv64 traps in arch
+
+src/interrupts/handlers/exceptions/machine_check.rs 1
+    #MC fatal notice. Elsewhere: aarch64 SError handler in arch
+
+src/interrupts/handlers/exceptions/opcode.rs 2
+    #UD dump. Elsewhere: aarch64 sync handler sends SIGILL
+
+src/interrupts/handlers/exceptions/overflow.rs 1
+    #OF fatal notice. Elsewhere: nothing: no such trap off x86
+
+src/interrupts/handlers/exceptions/page_fault.rs 2
+    #PF dump. Elsewhere: aarch64/riscv64 aborts in arch
+
+src/interrupts/handlers/exceptions/segment.rs 1
+    #NP/#SS fatal. Elsewhere: nothing: no segments off x86
+
+src/interrupts/handlers/exceptions/tss.rs 1
+    #TS fatal. Elsewhere: nothing: no TSS off x86
+
+src/interrupts/handlers/exceptions/virtualization.rs 1
+    #VE fatal. Elsewhere: nothing: no counterpart
+
+src/interrupts/idt/constants.rs 1
+    IST indices from GDT. Elsewhere: nothing: no IST off x86
+
+src/interrupts/idt/table.rs 1
+    IDT build with APIC LVT gates. Elsewhere: aarch64/riscv64 vector tables in arch
+
+src/interrupts/idt/table_ist.rs 1
+    IST stacks for IDT gates. Elsewhere: nothing: no IST off x86
+
+src/interrupts/timer/clock.rs 2
+    GAP: power button + VT-d fault poll. Elsewhere: no power-button poll
+
+src/kernel_core/init/entry/init_dma_protection.rs 3
+    VT-d/AMD-Vi init. Elsewhere: aarch64 SMMU via arch facade
+
+src/kernel_core/init/entry/init_extended_state.rs 3
+    XSAVE/SSE enable. Elsewhere: arch fpu code on others
+
+src/kernel_core/init/entry/init_vm_and_protection.rs 1
+    GAP: GDT stack guard pages. Elsewhere: no guard pages
+
+src/kernel_core/init/framebuffer/init.rs 1
+    GAP: PAT program for WC. Elsewhere: uncached framebuffer (no WC)
+
+src/kernel_core/init/start_secondary.rs 1
+    adopt LAPIC state before SIPI. Elsewhere: NOTE: gated by nonos-smp only, no arch cfg; arch boots
+    CPUs
+
+src/log/backend/vga.rs 5
+    VGA text writes. Elsewhere: nothing: absent
+
+src/log/types/severity.rs 1
+    VGA colour type. Elsewhere: nothing: method absent
+
+src/memory/encryption/detect.rs 2
+    CPUID for SME/TME detect. Elsewhere: nothing: no counterpart
+
+src/memory/mmio/manager/core/map_page.rs 1
+    GAP: PAT WC ready check. Elsewhere: uncached
+
+src/memory/paging/manager/api/mapping_in_asid.rs 1
+    IDT without_interrupts. Elsewhere: arch::run_without_interrupts
+
+src/memory/unified/init/clear_low_half.rs 1
+    GAP: x86 paging clear_low_half. Elsewhere: low map kept
+
+src/process/context/full/restore/sanitize_rflags.rs 1
+    RFLAGS sanitize on restore. Elsewhere: aarch64 context in arch
+
+src/process/foreign/frame_snapshot.rs 1
+    syscall frame word count. Elsewhere: foreign_absent.rs ENOSYS
+
+src/process/userspace/asm.rs 1
+    user-entry assert (CR3/RIP/RSP). Elsewhere: aarch64/riscv64 user entry in arch
+
+src/process/userspace/types.rs 3
+    XSAVE area size + use. Elsewhere: arch fpu on others
+
+src/smp/ap/bring_up.rs 2
+    GAP: AP LAPIC, CPU, XSAVE, GDT, timer. Elsewhere: riscv64 no APs; aarch64 multicore in arch
+
+src/smp/ap/bring_up_late.rs 3
+    x86 AP late bring-up: XSAVE mirror, GDT guard pages, the LAPIC timer. Elsewhere: nothing:
+    smp::ap is x86-gated; aarch64 starts its cores through PSCI in src/arch
+
+src/smp/ap/tsc_adjust.rs 1
+    TSC_ADJUST MSR sync. Elsewhere: nothing: no TSC off x86
+
+src/smp/ap/user_setup.rs 1
+    per-AP SYSCALL MSRs. Elsewhere: nothing: no SYSCALL MSRs off x86
+
+src/smp/init/ap_identity.rs 1
+    GAP: clear low half on AP. Elsewhere: low map kept
+
+src/smp/init/ap_unit.rs 1
+    INIT/SIPI start, park AP. Elsewhere: aarch64 PSCI/spin-table in arch
+
+src/smp/init/ap_unit/abandon.rs 1
+    parks a failed AP with an INIT through the LAPIC. Elsewhere: nothing: ap_unit is x86-gated;
+    aarch64 starts its cores through PSCI in src/arch
+
+src/smp/ipi_dispatch/x86_64/install.rs 1
+    GAP: IPI IDT gates. Elsewhere: riscv64 no IPIs; aarch64 SGI handlers
+
+src/smp/topology/detection/probe_x86_64/mod.rs 1
+    GAP: ACPI MADT processors. Elsewhere: riscv64 reports 1 CPU; aarch64 probe
+
+src/sys/apic/api.rs 1
+    IDT IRQ handler registration. Elsewhere: GIC/PLIC in arch
+
+src/sys/apic/ioapic/enable_irq.rs 1
+    IO-APIC destination. Elsewhere: GIC/PLIC in arch
+
+src/sys/apic/ioapic/regs.rs 1
+    IO-APIC register lock. Elsewhere: GIC/PLIC in arch
+
+src/sys/apic/ioapic/set_irq.rs 1
+    IO-APIC compat check. Elsewhere: GIC/PLIC in arch
+
+src/sys/apic/ioapic_madt.rs 2
+    MADT IO-APIC/overrides. Elsewhere: GIC from DT/MADT in arch
+
+src/sys/apic/local/program.rs 3
+    LAPIC LINT/NMI plan. Elsewhere: GIC in arch
+
+src/sys/apic/local/x2apic.rs 3
+    x2APIC MSRs + ids. Elsewhere: GIC in arch
+
+src/sys/apic/local_calibrate/accurate_tsc_hz.rs 1
+    CPUID TSC freq. Elsewhere: generic timer freq in arch
+
+src/syscall/microkernel/battery.rs 1
+    GAP: ACPI battery presence. Elsewhere: ENOTSUP

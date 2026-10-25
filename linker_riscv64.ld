@@ -2,11 +2,9 @@ ENTRY(_start)
 OUTPUT_ARCH(riscv)
 OUTPUT_FORMAT(elf64-littleriscv)
 
-/* riscv64 kernel image. Linked at 0x80200000 — QEMU virt RAM base
- * (0x80000000) plus 2 MiB OpenSBI reservation. On real hardware the
- * loader places PT_LOAD segments at matching physical addresses per
- * board profile. The kernel runs in Sv39/Sv48/Sv57 once mmu::init_mmu
- * installs the kernel translation; until then accesses are physical. */
+/* riscv64 kernel image, linked at 0x80200000: QEMU virt's RAM base plus the
+ * 2 MiB the SBI firmware keeps. The section bounds below are what the boot
+ * page tables map, each with its own rights. */
 
 PHDRS {
     text   PT_LOAD FLAGS(5);  /* r-x */
@@ -19,23 +17,29 @@ SECTIONS {
     __kernel_image_start = .;
 
     .text ALIGN(0x1000) : {
+        __kernel_text_start = .;
         *(.text._start)
         *(.text .text.*)
         *(.ltext .ltext.*)
+        __kernel_text_end = .;
     } :text
 
     .rodata ALIGN(0x1000) : {
+        __kernel_rodata_start = .;
         *(.rodata .rodata.*)
         *(.lrodata .lrodata.*)
         /* RISC-V small-data anchor used by gp-relative addressing. */
         . = ALIGN(0x10);
         __global_pointer$ = . + 0x800;
         *(.sdata2 .sdata2.*)
+        __kernel_rodata_end = .;
     } :rodata
 
     .data ALIGN(0x1000) : {
+        __kernel_data_start = .;
         *(.data .data.*)
         *(.sdata .sdata.*)
+        __kernel_data_end = .;
     } :data
 
     .nonos.manifest ALIGN(0x1000) : {
@@ -52,11 +56,13 @@ SECTIONS {
 
     .bss ALIGN(0x1000) : {
         __bss_start = .;
+        __kernel_bss_start = .;
         *(.bss .bss.*)
         *(.sbss .sbss.*)
         *(COMMON)
         . = ALIGN(8);
         __bss_end = .;
+        __kernel_bss_end = .;
     } :data
 
     . = ALIGN(0x1000);
@@ -68,20 +74,8 @@ SECTIONS {
     _end = .;
 
     /DISCARD/ : {
-        *(.eh_frame*)
-        *(.comment)
-        *(.note*)
-        *(.debug*)
-        *(.plt*)
-        *(.dynamic)
-        *(.dynsym)
-        *(.dynstr)
-        *(.hash)
-        *(.gnu.hash)
-        *(.rela.*)
-        *(.got)
-        *(.got.plt)
-        *(.interp)
-        *(.riscv.attributes)
+        *(.eh_frame*) *(.comment) *(.note*) *(.debug*) *(.plt*)
+        *(.dynamic) *(.dynsym) *(.dynstr) *(.hash) *(.gnu.hash)
+        *(.rela.*) *(.got) *(.got.plt) *(.interp) *(.riscv.attributes)
     }
 }

@@ -15,18 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The status line: a spinner, the label and a blinking cursor, repainted
-//! whole within its band (`layout::status`) on every frame, and only there,
+//! whole within its band (the layout's `status`) on every frame, and only there,
 //! so damage for that band alone shows each frame whole.
 
 use nonos_toolkit::font::atlas::FontAtlas;
 use nonos_toolkit::font::render::draw_text;
 
+use crate::layout::Area;
+
 const DIM: u32 = 0xFF5B_6B78;
 const ACCENT: u32 = 0xFF00_D4AA;
 const SPIN: &[u8] = b"|/-\\";
 
-pub(crate) fn status(buf: &mut [u32], spx: usize, w: u32, h: u32, frame: u32) {
-    let (_, y, _, rows) = crate::layout::status(w, h);
+pub(crate) fn status(buf: &mut [u32], spx: usize, w: u32, h: u32, band: Area, frame: u32) {
+    let (_, y, _, rows) = band;
     crate::vignette::fill_band(buf, spx, w, h, y, rows);
     let atlas = FontAtlas::default();
     let sp = [SPIN[(frame % 4) as usize]];

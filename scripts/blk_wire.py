@@ -14,16 +14,21 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """The block wire as the source states it, for check_blk_wire.py: the client's
-per-driver table, the constants a driver's protocol files define, and which
-capsule registers which service name."""
+per-driver table, the constants a driver's protocol files define or take from
+the shared block wire, and which capsule registers which service name."""
 
 import re
+
+import blk_wire_protocol
 from pathlib import Path
 
 CLIENT = "userland/nonos_blk_client/src"
-# Each field of a row, and the names a driver's protocol may give it.
-WANT = {"magic": "MAGIC", "VERSION": "VERSION", "HDR_LEN": "HDR_LEN", "capacity": "OP_CAPACITY OP_GEOMETRY",
-        "read": "OP_READ_BLOCKS OP_READ", "write": "OP_WRITE_BLOCKS OP_WRITE", "flush": "OP_FLUSH"}
+WIRE = "userland/nonos_blk_wire/src"
+# Each field of a row, and the names a driver's protocol may give it. GEOMETRY
+# stands for capacity on the shared wire: its reply opens with the block count.
+WANT = {"magic": "MAGIC", "VERSION": "VERSION", "HDR_LEN": "HDR_LEN",
+        "capacity": "OP_CAPACITY OP_GEOMETRY", "read": "OP_READ_BLOCKS OP_READ",
+        "write": "OP_WRITE_BLOCKS OP_WRITE", "flush": "OP_FLUSH"}
 NUM = r"(0x[0-9a-fA-F_]+|\d[\d_]*)"
 
 
@@ -37,6 +42,10 @@ def consts(files):
     return {n: num(v) for f in files for n, v in re.findall(pattern, f.read_text())}
 
 
+def protocol(root, crate):
+    return blk_wire_protocol.protocol(root, crate, consts)
+
+
 def table(root):
     """The client's rows by driver: magic, the four ops, the first service name."""
     text = "".join(p.read_text() for p in sorted((root / CLIENT / "driver").glob("*.rs")))
@@ -47,7 +56,9 @@ def table(root):
         rows.setdefault(d, {})["magic"] = num(v)
     for d, body in re.findall(r"Driver::(\w+)\s*=>\s*Ops\s*\{([^}]*)\}", text):
         rows.setdefault(d, {}).update((k, num(v)) for k, v in re.findall(r"(\w+):\s*(\w+)", body))
-    for d, name in re.findall(r"Driver::(\w+)\s*=>[^\n]*?b\"(driver\.\w+)\"", text):
+    # The first name on the arm's line, or opening a list wrapped below it.
+    arm = r"Driver::(\w+)\s*=>(?:[^\n]*?|\s*&\[\s*)b\"(driver\.\w+)\""
+    for d, name in re.findall(arm, text):
         rows.setdefault(d, {}).setdefault("service", name)
     return rows
 

@@ -25,7 +25,11 @@ immediate data, and the IN transfer type; the data stage carries the buffer
 address split across the low words, the 17-bit length, and the IN direction;
 the status stage interrupts on completion. The cycle bit, the ring ownership
 handshake, follows the caller's argument in every stage. A Kani harness
-proves the data stage faithful for every address, length, and cycle.
+proves the data stage faithful for every address, length, and cycle. A
+request OUT carries exactly its wLength bytes after the setup and they go
+out as the client gave them; a body that carries any other count, or an IN
+request that carries bytes, is refused before anything is queued
+(`control_out_tests`, `server_tests/control_out_tests`).
 
 ## Wire header
 
@@ -78,6 +82,14 @@ valid under either cycle state, so a read past the segment shows.
   residual of u32::MAX read as 24 bits, a null pointer, a pointer of all
   ones, and pointers 8 bytes into the issued TRB and into each neighbour,
   each through every wait it reaches.
+- Armed places (`armed_tests`, `parked_tests`, `armed_place/`, the
+  `bulk_poll_*` and `isoch_*` files): an interrupt report, the polled bulk
+  IN and an isoch batch's last TD each keep a place for their event, so a
+  wait that reads it first parks it for them, and with every place taken
+  nothing is queued. The polled IN answers at once while nothing came and
+  consumes a command completion nobody waits for. An isoch batch is a TD per
+  packet in the free half of its buffer; two full batches fit the isoch ring
+  at once, and a batch it has no room for is refused whole.
 - Fuzz (`fuzz_tests`): 200,000 xorshift rounds of up to four random events,
   their steering fields biased to the edges above, handed to a random
   consumer, with half-written TRBs left at the enqueue slot. After every

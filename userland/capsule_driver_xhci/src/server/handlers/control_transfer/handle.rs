@@ -28,11 +28,11 @@ use crate::server::handlers::recover::{recover_after, DCI_EP0};
 const CC_STALL: u8 = 6;
 
 /// `OP_CONTROL_TRANSFER` (`slot, 0, bmRequestType, bRequest, wValue,
-/// wIndex, wLength`, little-endian), one EP0 request. A request OUT carries
-/// its data stage after those ten bytes, wLength of them; one IN carries
-/// none, and its reply carries the bytes the device really sent. The OUT
-/// stage used to go out as zeros, so a class request that sets a value (a
-/// sampling rate) set 0.
+/// wIndex, wLength`, little-endian): one EP0 request. One OUT carries its
+/// data stage after these ten bytes, wLength of them, and is refused
+/// without them: the stage went out as zeros, so a class request that sets
+/// a value (a sampling rate) set 0, and was reported a success. One IN
+/// carries none, and its reply the bytes the device really sent.
 pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     let Some((head, out)) = body.split_first_chunk::<CONTROL_TRANSFER_REQUEST_LEN>() else {
         return reply_with_status(tx, req, E_INVAL);

@@ -329,7 +329,7 @@ native hot-plug ports, port facts and the Type-C session.
 
 ## Authority
 
-`CAPSULE_REQUIRED_CAPS := 0x58218`: IPC (0x8) to serve ports 4530 and 4532; Memory
+`CAPSULE_REQUIRED_CAPS := 0x58218`: IPC (0x8) to serve port 4530; Memory
 (0x10) for the heap and the interpreter's objects; DeviceEnum (0x8000) to
 find the SCI record; Driver (0x10000) to claim it; Irq (0x40000) to bind
 it; Admin (0x200) for the ACPI calls and MkSmbiosTable, which the kernel gates on Admin
@@ -520,19 +520,11 @@ other op: no one.
   and one `[ACPI] pci label` line each. The UUID, revisions (3, then 2),
   function numbers and shapes are recalled, unverified. Layout in
   `src/pci_firmware/wire.rs`.
-- The shell's power-off (G-53), on `power.off` (port 4532), the capsule's
-  second name, which the kernel's HELD line admits from `desktop_shell`
-  alone. It is not an op: one 20-byte little-endian header, magic
-  "POFF" (0x4646_4F50), version 1, op 1, flags 0, reserved 0, a request
-  id, payload length 0. The kernel registers the name beside `acpi` at
-  spawn, on the same inbox, so the sender is checked here too. A request
-  that passes runs the wiped power-off at once, with no boot guard,
-  debounce or ACPI work first, and is never answered. A refusal echoes
-  the header with an i32 status at offset 20:
-  - EINVAL for anything not exactly that header;
-  - EPERM for a sender not the shell's process;
-  - the kernel's errno if it refuses AdminShutdown.
-  Layout in `src/power/off/wire.rs`.
+- Not the shell's power-off. `power.off` has one owner, capsule_power
+  (P-08): the shell's request (G-53) goes there, and capsule_power asks
+  this capsule to prepare soft-off (OP_PREPARE_SLEEP, \_TTS(5) and
+  \_PTS(5)) before its own AdminShutdown. A POFF frame sent to `acpi` is
+  refused like any unknown op.
 - SMBIOS (8): the machine's identity from SMBIOS (DMTF DSP0134), read
   once at start through `MkSmbiosTable` and walked by `nonos_smbios`: vendor,
   product, version, board vendor, board, BIOS vendor, version and date, and

@@ -1,14 +1,14 @@
 # nsh_attest
 
 The nsh/1 client's check of a host, run before any credential is sent:
-steps 1 to 7 of `docs/design/nsh-v1-attest.md` over a `NONOSATT` version 4
+steps 1 to 7 of `docs/design/nsh-v1-attest.md` over a `NONOSATT` version 5
 document (`docs/design/k1-attest-doc-v4.md`). The first failed step ends the
 session with `ABORT(POLICY)`, shown to the user as `POLICY (<name>)`.
 Proofs, mutants and fuzz targets are in `../nsh_attest_proofs`.
 
-No version 4 producer exists yet: the kernel still writes `DOC_VERSION` 3,
-and this checker refuses version 3. Interoperating with the kernel's
-document, and a swtpm known-answer test, stay part of K1.
+No version 5 producer exists yet: the kernel writes `DOC_VERSION` 4
+(version 3 plus the identity-domain device count), and this checker
+refuses it. Interoperating with the kernel's document, and a swtpm known-answer test, stay part of K1.
 
 ## Proposed amendment to k1-attest-doc-v4.md and nsh-v1-attest.md
 
@@ -22,8 +22,8 @@ pins it through the log:
   never types, so any other type could hide a measurement;
 - a separator or action must carry the SHA-256 of its own body;
 - every application digest in PCR 4 must be the release's loader or a boot
-  application the policy lists (a machine's boot manager, pinned at
-  enrolment), and the loader must be present. "Last application" is not
+  application the machine's enrolment lists (its boot manager, pinned and
+  signed at enrolment), and the loader must be present. "Last application" is not
   enough: an earlier application could load the loader and never start it.
 
 A release therefore carries the loader's Authenticode digest, PCR 8, PCR 9,
@@ -37,14 +37,14 @@ release instead. The header must be PCR 0, `EV_NO_ACTION`, a zero digest,
 `Spec ID Event03`, version 2.0, a 32-byte SHA-256 bank and no trailing
 bytes. Every event carries exactly the declared banks, each once. A
 startup-locality event is honoured once, in PCR 0, before any extend, for
-locality 0, 3 or 4. Caps: 131072 bytes, 1024 events, 65536 bytes per body.
+locality 0, 3 or 4. Caps, the loader's: 1048576 bytes, 4096 events, 65536 bytes per body.
 
 **Layout.** Big-endian, every length capped, nothing trailing:
 - flags are 0 or 1, and `iommu_vendor` is at most 3;
 - `pcr_count` is exactly 8, with indices 0, 1, 2, 4, 7, 8, 9, 14 in order;
-- log 0 to 131072 bytes (an empty log is then refused as `log`);
+- log 0 to 1048576 bytes (an empty log is then refused as `log`);
 - attest 1 to 1024, signature 1 to 72, `ak_public` length exactly 64;
-- the whole document is at most 196608 bytes.
+- the whole document is at most 1114112 bytes.
 
 **Quote.** The signature is `TPMT_SIGNATURE` ECDSA over SHA-256, with r and
 s of 1 to 32 bytes each, left-padded. The selection is one SHA-256 bank,

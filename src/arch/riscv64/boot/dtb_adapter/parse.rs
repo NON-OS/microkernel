@@ -14,16 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::fdt::find::cpus;
-use crate::arch::fdt::find::isa::find_boot_hart as find_isa;
 use crate::arch::fdt::find::memory::{find as find_memory, MemoryRange};
-use crate::arch::fdt::find::plic::find as find_plic;
-use crate::arch::fdt::find::timebase::find_riscv64 as find_timebase;
-use crate::arch::fdt::find::uart::{find as find_uart, UartKind};
 use crate::arch::fdt::Fdt;
 use crate::arch::riscv64::boot::info::BootInfo;
-use crate::arch::riscv64::cpu::caps;
-use crate::arch::riscv64::timer::set_frequency;
 
 pub fn populate(dtb_ptr: u64, info: &mut BootInfo) -> bool {
     // SAFETY: paging is off, so a0 is the blob's physical address; zero is
@@ -40,36 +33,20 @@ pub fn populate(dtb_ptr: u64, info: &mut BootInfo) -> bool {
         Ok(n) => n,
         Err(_) => return false,
     };
-    if mem_count == 0 {
+    if mem_count == 0 || !super::memory::populate(&fdt, info, &ranges[..mem_count]) {
         return false;
     }
-    info.ram_base = ranges[0].base;
-    info.ram_size = ranges[0].size;
 
-    if let Ok(Some(u)) = find_uart(&fdt) {
-        if u.kind == UartKind::Ns16550 {
-            info.uart_base = u.base;
-        }
+    super::devices::populate(&fdt, info);
+
+    // The tree's `/chosen` `rng-seed` keys the RNG; once kept, its bytes are
+    // zeroed in the blob so nothing reading the tree later finds them.
+    let seed = crate::arch::common::boot_seed::keep(&fdt, dtb_ptr);
+    drop(fdt);
+    if let Some(at) = seed {
+        // SAFETY: `at` came from `keep` on this blob, the parser is dropped,
+        // and no other reference into the blob is live.
+        unsafe { crate::arch::common::boot_seed::erase(dtb_ptr as *mut u8, at) };
     }
-
-    if let Ok(Some(p)) = find_plic(&fdt) {
-        info.plic_base = p.base;
-    }
-
-    let mut hart_ids = [0u64; 64];
-    if let Ok(n) = cpus::find(&fdt, &mut hart_ids) {
-        if n > 0 {
-            info.hart_count = n as u32;
-        }
-    }
-
-    if let Ok(Some(freq)) = find_timebase(&fdt) {
-        set_frequency(freq);
-    }
-
-    if let Ok(Some(flags)) = find_isa(&fdt) {
-        caps::configure(flags);
-    }
-
     true
 }

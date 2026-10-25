@@ -43,7 +43,7 @@ fn paint(px: &mut [u32], clip: Rect, s: Shows) {
     let byte_len = px.len() as u64 * 4;
     let dst =
         Surface { base_va: px.as_mut_ptr() as u64, stride: W * 4, width: W, height: H, byte_len };
-    draw(dst, clip, &s.ind, s.captured, s.trusted);
+    draw(dst, clip, &s.ind, s.captured, s.trusted, false);
 }
 
 pub(super) fn whole(s: Shows) -> Vec<u32> {

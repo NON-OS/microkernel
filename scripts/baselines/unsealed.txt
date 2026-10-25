@@ -1,0 +1,31 @@
+# Unsealed release capsules waiting on the owner's seal ceremony; may only shrink.
+# scripts/check_release_trust.py fails on a slug added here, on one sealed and
+# still listed, and on any difference from docs/build/feature-inventory.md's list.
+driver-ac97
+driver-buslogic
+driver-ccid
+driver-e1000e
+driver-ehci
+driver-fido
+driver-igb
+driver-mpt
+driver-ohci
+driver-pcnet
+driver-piix-ide
+driver-pvscsi
+driver-sdhci
+driver-tulip
+driver-ufs
+driver-uhci
+driver-usb-audio
+driver-usb-hub
+driver-uvc
+driver-virtio-input
+driver-virtio-scsi
+driver-vmbus
+driver-vmmdev
+driver-vmmouse
+driver-vmware-svga
+driver-vmxnet3
+nox-settle
+prove-fetch

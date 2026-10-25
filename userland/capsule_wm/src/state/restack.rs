@@ -20,7 +20,7 @@
 //! Every raise and focus change here is told to the compositor with a
 //! focus_set, which lifts that process's layer. The compositor reads requests
 //! between frames, and a frame it composes whole can take far longer than the
-//! call's 16 ms: "ipc.call unanswered compositor caller=wm". Such a call was
+//! call's 16 ms: "ipc.call late compositor after 16 ms". Such a call was
 //! still delivered, the compositor acts on it in order, and asking again
 //! would only lift the same layer twice, so a late answer counts as done.
 //!

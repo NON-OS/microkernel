@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Each driver's request magic and opcodes, copied from its `protocol`
-//! module; the driver's own tests hold the two together.
+//! module; the proofs and the drivers' own tests hold the two together.
 
 use super::table::Driver;
 
@@ -39,8 +39,11 @@ impl Driver {
             Driver::Nvme => 0x4E4E_564D,
             Driver::Ahci => 0x4E41_4843,
             Driver::Rtsx => 0x4E53_4452,
+            // One arm each: scripts/check_blk_wire.py reads a row per driver.
             Driver::Wire => 0x4E42_5731,
             Driver::Ufs => 0x4E42_5731,
+            Driver::Ide => 0x4E42_5731,
+            Driver::Scsi => 0x4E42_5731,
         }
     }
 
@@ -55,6 +58,8 @@ impl Driver {
             // row by row (scripts/check_blk_wire.py).
             Driver::Wire => Ops { capacity: 2, read: 3, write: 4, flush: 5 },
             Driver::Ufs => Ops { capacity: 2, read: 3, write: 4, flush: 5 },
+            Driver::Ide => Ops { capacity: 2, read: 3, write: 4, flush: 5 },
+            Driver::Scsi => Ops { capacity: 2, read: 3, write: 4, flush: 5 },
         }
     }
 }

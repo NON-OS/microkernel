@@ -35,7 +35,9 @@ impl PagePermissions {
         if self.contains(Self::DEVICE) {
             flags |= PTE_DEVICE;
         }
-        if self.contains(Self::GLOBAL) {
+        // Never on a user page: CR4.PGE is on, and a GLOBAL user entry would
+        // outlive the CR3 write that leaves its address space.
+        if self.contains(Self::GLOBAL) && !self.contains(Self::USER) {
             flags |= PTE_GLOBAL;
         }
         if !self.contains(Self::EXECUTE) {

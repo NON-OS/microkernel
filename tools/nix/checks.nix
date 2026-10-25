@@ -5,7 +5,7 @@
 # What stays in its own workflow, because it needs a network or a toolchain no
 # lock can pin yet: Kani (cargo kani setup downloads CBMC), Verus, the
 # Charon/Aeneas extraction, cargo-fuzz runs and cargo-audit's advisory feed.
-{ pkgs, lib, pins, cargo, rustBuild, src, capsules, config, self, starks, busybox, periodic }:
+{ pkgs, lib, pins, cargo, rustBuild, src, capsules, config, image, self, starks, busybox, periodic }:
 let
   # The static and drift checks read the tree as a reviewer does, docs and
   # all; every cargo check reads only its own crate (tools/nix/inputs.py).
@@ -238,10 +238,12 @@ let
       "scripts/check_driver_proofs.py"
       "scripts/check_dark_features.py --self-test" "scripts/check_dark_features.py"
       "scripts/check_test_lanes.py --self-test" "scripts/check_test_lanes.py"
+      "-m unittest discover -s tools/nonos_selftest -p 'test_*.py'"
+      "-m unittest discover -s tools/agentproof_gauntlet -t tools -p 'test_*.py'"
     ]);
     # verify.yml, abi-contracts and syscall-reach
     static-abi = static "abi" (scripts [
-      "scripts/check_syscall_abi.py" "scripts/check_abi_stable.py"
+      "scripts/check_syscall_abi.py --self-test" "scripts/check_syscall_abi.py" "scripts/check_abi_stable.py"
       "nonos-ci/attack_suite_check.py --self-test" "nonos-ci/boot_attest_check.py --self-test"
       "scripts/check_capsule_ports.py --self-test" "scripts/check_capsule_ports.py"
       "scripts/check_handoff_mirror.py --self-test" "scripts/check_handoff_mirror.py"
@@ -249,16 +251,29 @@ let
       "scripts/check_prebuilt.py" "scripts/check_syscall_args.py" "scripts/check_caps_abi.py"
       "scripts/check_userland_caps.py" "scripts/check_cap_parity.py" "scripts/check_service_caps.py"
       "scripts/check_baked_names.py --self-test" "scripts/check_baked_names.py"
+      "scripts/check_copy_only_features.py --self-test" "scripts/check_copy_only_features.py"
       "tools/nonos-cap-audit --self-test" "tools/nonos-cap-audit"
       "tools/nonos-pcap-egress --self-test" "tools/nonos_egress/mutants.py" "tools/nonos-efi-vars --self-test" "scripts/check_sealed_caps.py --self-test"
       "scripts/check_kernel_wait.py --self-test" "scripts/check_kernel_wait.py"
       "scripts/check_attest_params.py" "tools/nonos-assumptions"
       "scripts/check_unenforced.py" "scripts/check_unenforced.py --self-test"
+      "tools/ratchets/linux_calls.py --self-test"
       "tools/nonos-linux-coverage --baseline scripts/baselines/linux-syscalls.txt"
       "tools/nonos-wayland-coverage --baseline scripts/baselines/wayland-globals.txt"
       "tools/ratchets/disclosure.py" "tools/nonos-mutant --check"
       "scripts/check_syscall_reach.py --baseline scripts/baselines/syscall-unreachable-count.txt"
     ]);
+    # Every capsule a release profile ships has its sealed trust set, but for
+    # those scripts/baselines/unsealed.txt names, which may only shrink.
+    static-release-trust =
+      let
+        resolved = map (p: config.resolve (config.file // { profile = p; })) (builtins.attrNames config.profiles);
+        slugs = lib.unique (lib.concatMap (c: map (e: e.slug) (image.shipped c.enabled)) (builtins.filter (c: c.release) resolved));
+      in
+      static "release-trust" (scripts [
+        "scripts/check_release_trust.py --self-test"
+        "scripts/check_release_trust.py --baseline scripts/baselines/unsealed.txt --doc docs/build/feature-inventory.md ${toString slugs}"
+      ]);
     # make nonos-mk-static: the grep gates over the whole tree
     static-tree = static "tree" ''
       export HOME=$TMPDIR CARGO_NET_OFFLINE=true
@@ -283,7 +298,7 @@ let
       nativeBuildInputs = [ pkgs.gnumake python pkgs.findutils pkgs.coreutils pins.rust ];
     } ''
       cp -r $src tree && chmod -R u+w tree && cd tree
-      for c in capsule store; do
+      for c in capsule capsule-dev store; do
         make -s --no-print-directory NONOS_IN_FLAKE=1 NONOS_QUIET=1 nonos-mk-$c-catalogue 2>/dev/null > $TMPDIR/$c.json
       done
       python3 tools/nix/catalogues.py --check
@@ -363,8 +378,41 @@ let
       cmp ${cargo.rustSrcLock} $(readlink -f ${pins.rust}/lib/rustlib/src)/rust/library/Cargo.lock
       touch $out
     '';
-    # nonos.toml resolves, for every profile, against Cargo.toml's features.
-    config = pkgs.writeText "config" (builtins.toJSON (map (p: (config.resolve (config.file // { profile = p; })).features) (builtins.attrNames config.profiles)));
+    # nonos.toml resolves, for every profile, against Cargo.toml's features;
+    # a release image that asks for the meter fails to evaluate, while its
+    # development twin, the same request with dev = true, resolves; and every
+    # development twin carries the meter, and settle unless the profile takes
+    # the network out.
+    config =
+      let
+        names = builtins.attrNames config.profiles;
+        meter = p: dev: { profile = p; inherit dev; features = [ "nonos-capsule-payment" ]; };
+        resolves = raw: (builtins.tryEval (builtins.deepSeq (config.resolve raw).features true)).success;
+        release = builtins.filter (p: config.profiles.${p}.loader != "dev-qemu") names;
+        carries = p: lib.all (f: builtins.elem f (config.resolve { profile = p; dev = true; }).enabled
+          || builtins.elem f config.profiles.${p}.drop) [ "nonos-capsule-payment" "nonos-capsule-nox-settle" ];
+      in
+      assert lib.assertMsg (release != [ ] && !(lib.any (p: resolves (meter p false)) release))
+        "config: a release profile resolved with nonos-capsule-payment, the meter";
+      assert lib.assertMsg (lib.all (p: resolves (meter p true)) names)
+        "config: a development twin refused nonos-capsule-payment, the meter";
+      assert lib.assertMsg (lib.all carries names)
+        "config: a development twin left out the meter or settle";
+      pkgs.writeText "config" (builtins.toJSON (map (p: (config.resolve (config.file // { profile = p; })).features) (builtins.attrNames config.profiles)));
+    # Capsule serial output: a profile's development twin keeps it, and no
+    # profile a release loader boots may carry it. The last assertion is the
+    # rule's self-test: qemu, which keeps it, refused on a standard loader.
+    profile-serial =
+      let
+        has = r: builtins.elem "capsule-serial-debug" r.enabled;
+        res = p: dev: config.resolve (config.file // { profile = p; inherit dev; });
+        onStandard = config.resolve (config.file // { profile = "qemu"; dev = false; loader = "standard"; });
+      in
+      assert has (res "standard" true) && has (res "hardened" true);
+      assert !(has (res "standard" false)) && !(has (res "hardened" false)) && !(has (res "airgapped" false));
+      assert has (res "core" true) == has (res "core" false);
+      assert !(builtins.tryEval (has onStandard)).success;
+      pkgs.writeText "profile-serial" "a development twin keeps capsule serial output; a release loader never";
   };
 
   # The determinism property, proved on Linux alone. A capsule is built twice in
