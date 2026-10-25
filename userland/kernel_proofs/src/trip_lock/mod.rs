@@ -21,8 +21,7 @@
  * and a reused pid, on one CPU and two, with the knob table it must give.
  */
 
-#[path = "../../../../src/services/lifecycle/transport_rule.rs"]
-mod transport_rule;
+use crate::proofs::proofs_8::transport_takeover::transport_rule;
 #[path = "../../../../src/services/lifecycle/trip_rows.rs"]
 mod trip_rows;
 #[path = "../../../../src/services/lifecycle/trip_turn.rs"]
