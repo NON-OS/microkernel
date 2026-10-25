@@ -21,4 +21,6 @@
 mod verdict;
 
 #[cfg(test)]
+mod glue;
+#[cfg(test)]
 mod tests;
