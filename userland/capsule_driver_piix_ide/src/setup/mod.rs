@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod claim;
+pub mod command;
 mod dma;
 mod driver;
 mod grants;

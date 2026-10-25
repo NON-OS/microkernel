@@ -43,7 +43,7 @@ pub fn survey() -> Survey {
     let chosen = ask();
     let mut out = Vec::new();
     for found in discover(&present) {
-        let (driver, instance) = (found.driver, found.instance);
+        let (driver, instance, unit) = (found.driver, found.instance, found.unit);
         let row = match found.device {
             Ok(device) => match booted.by(&device) {
                 Some(By::Partition) => continue,
@@ -51,10 +51,10 @@ pub fn survey() -> Survey {
                 None if running_from(chosen, driver, instance) => withheld(device, RUNNING),
                 None => match Contents::probe(&device) {
                     Contents::Unread(status) => unread(device, status),
-                    contents => target(driver, instance, device, contents),
+                    contents => target(device, contents),
                 },
             },
-            Err(e) => failed(driver, instance, &e),
+            Err(e) => failed(driver, instance, unit, &e),
         };
         out.push(row);
     }
