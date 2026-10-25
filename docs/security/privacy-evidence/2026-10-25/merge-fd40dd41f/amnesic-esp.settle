@@ -1,0 +1,7 @@
+4b28a45dc5279600678e6cca84d76896881fe7cfc8e72d30f4bb4cdf09c4d4a5  ./EFI/BOOT/BOOTX64.EFI
+0e707387884c131bad9f4aea6d31fa31437a104f8179f3697201e6af26c597ed  ./EFI/nonos/boot.cfg
+eb23a00fcd5a7395f2e69fffb18155a7cf247271b709006b13bd3101ac18bc7e  ./EFI/nonos/boot_root.approval
+72de0d3bd82e782513b4b23b9e62a90a530f90bfe4c947ee379eafac354658fa  ./EFI/nonos/bootloader.trailer
+1869bd7abc0c3cb6205c4148d1fd4a720e1d3761efc816025217f02af9cc14d4  ./EFI/nonos/kernel.approval
+ebfea4e6ea2ddc66a93acc957921fd8181eb98801cf2377b9c4a5a0d2468dbcb  ./EFI/nonos/kernel.bin
+ed39b5b42240a75d490cd78e13a9091e7b274e9a1d251442aa90258026e80321  ./startup.nsh

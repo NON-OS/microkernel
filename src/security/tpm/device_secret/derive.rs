@@ -24,12 +24,14 @@ use super::consts::{APPROVED_PCRS, MACHINE_PCRS};
 use super::draw::draw;
 use super::public::p256_name;
 use super::verify::verified;
-use crate::crypto::fill_random_bytes;
+use crate::crypto::rng::fill_random_bytes_secure;
 use crate::security::tpm::machine_key::consts::NONCE_LEN;
 use crate::security::tpm::machine_key::create::{build_create, parse_create};
 use crate::security::tpm::machine_key::derive::IN_PROGRESS;
 use crate::security::tpm::machine_key::flush::build_flush;
-use crate::security::tpm::machine_key::policy::{build_get_digest, build_policy_pcr, parse_get_digest, parse_policy_pcr};
+use crate::security::tpm::machine_key::policy::{
+    build_get_digest, build_policy_pcr, parse_get_digest, parse_policy_pcr,
+};
 use crate::security::tpm::machine_key::run::run;
 use crate::security::tpm::machine_key::session::{build_start, parse_start};
 use crate::security::tpm::machine_key::KeyError;
@@ -39,7 +41,7 @@ use crate::security::tpm::machine_key::KeyError;
 pub fn device_secret(a: &Approval) -> Result<[u64; 4], KeyError> {
     let _one = IN_PROGRESS.lock();
     let mut nonce = [0u8; NONCE_LEN];
-    fill_random_bytes(&mut nonce);
+    fill_random_bytes_secure(&mut nonce).map_err(|_| KeyError::NoRandomness)?;
     let session = parse_start(&run(&build_start(&nonce))?)?;
     let result = under_session(session, a);
     let _ = run(&build_flush(session));
@@ -51,7 +53,9 @@ fn under_session(session: u32, a: &Approval) -> Result<[u64; 4], KeyError> {
     let approved = parse_get_digest(&run(&build_get_digest(session))?)?;
     let ticket = verified(a, &approved)?;
     let name = p256_name(&a.key_x, &a.key_y);
-    parse_policy_authorize(&run(&build_policy_authorize(session, &approved, POLICY_REF, &name, &ticket))?)?;
+    parse_policy_authorize(&run(&build_policy_authorize(
+        session, &approved, POLICY_REF, &name, &ticket,
+    ))?)?;
     parse_policy_pcr(&run(&build_policy_pcr(session, &MACHINE_PCRS))?)?;
     let policy = parse_get_digest(&run(&build_get_digest(session))?)?;
     let key = parse_create(&run(&build_create(&policy))?)?;

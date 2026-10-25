@@ -42,7 +42,7 @@ One address serves two networks. You switch between them in the wallet; every si
 
 The hosts and contracts are fixed in the code; the wallet has no field to add a network, a token or an RPC host.
 
-Sepolia is Ethereum's test network, and the wallet says so: nothing on it has value. The NOX Shield is a private pool that runs only on Sepolia in this release. The `Receive` screen puts the difference this way: paid at the private address, "the sender, the amount, your balance and the notes you hold stay out of sight"; at the `0x` address, "anyone can see what this address holds and sends". The shield's keys and notes are kept by a separate capsule, `capsule_shield`. `Receive` shows the `0x` address, and on Sepolia the private address once the shield has opened for the account. `Copy address` puts the address shown on the clipboard every app shares, where any running program can read it until the clipboard clears, ten minutes after the last copy or paste. The wallet never copies a key or the recovery words. See [Copy and paste](desktop.md#copy-and-paste).
+Sepolia is Ethereum's test network, and the wallet says so: nothing on it has value. The NOX Shield is a private pool that runs only on Sepolia in this release. The `Receive` screen puts the difference this way: paid at the private address, "the sender, the amount, your balance and the notes you hold stay out of sight"; at the `0x` address, "anyone can see what this address holds and sends". The shield's keys and notes are kept by a separate capsule, `capsule_shield`. `Receive` shows the `0x` address, and on Sepolia the private address once the shield has opened for the account. `Copy address` puts the address shown on the clipboard every app shares, where any running program can read it until the clipboard clears, ten minutes after the last copy or paste. The wallet copies only a whole address, `0x` and 40 hex digits or a whole `nox1` private address, and refuses anything else with `only an address is ever copied`, so it never copies a key or the recovery words. See [Copy and paste](desktop.md#copy-and-paste).
 
 ## Send
 
@@ -87,7 +87,7 @@ On a boot that keeps data, the wallet writes these files under `/data` in the NO
 | `/data/wallet.kind` | Whether the wallet came from words or a private key. Not secret. |
 | `/data/wallet.network` | Mainnet or Sepolia. Not secret. |
 
-The seal is a key derived for each record from the [machine key](../overview/glossary.md#machine-key), which the TPM computes under an object bound to PCRs 0, 4, 7 and 9. Nothing stores that key. It is the same on every boot of this machine with this firmware and this kernel, and different anywhere else. That is why an update, or another machine, cannot open the sealed copy.
+The seal is a key derived for each record from the [machine key](../overview/glossary-linux-personality.md#machine-key), which the TPM computes under an object bound to PCRs 0, 4, 7 and 9. Nothing stores that key. It is the same on every boot of this machine with this firmware and this kernel, and different anywhere else. That is why an update, or another machine, cannot open the sealed copy.
 
 When the wallet cannot be kept, the status line says why and what to do, for example:
 
@@ -129,22 +129,23 @@ The code behind each section, at the commit in the footer.
 - Networks and assets
   - Chain ids, contracts and RPC hosts: `MAINNET` and `SEPOLIA` in `userland/capsule_wallet_nonos/src/wallet/chain.rs:73-97`.
   - The `Receive` screen's words: `PUBLIC` and `PRIVATE` in `userland/capsule_wallet_nonos/src/wallet/screen/receive.rs:39-43`.
+  - Only an address is copied: `copy_address` in `userland/capsule_wallet_nonos/src/wallet/copy/mod.rs`, by `copyable` in `copy/rule.rs`; `wallet_proofs` checks that no other wallet, keyring or shield code writes the clipboard.
 - Send
   - The 1000 gwei fee ceiling: `FEE_CEILING_WEI` in `userland/capsule_wallet_nonos/src/wallet/send/gas.rs:34`.
 - Where keys live and how signing works
-  - The shown key wiped when hidden: `toggle_export` in `userland/capsule_wallet_nonos/src/wallet/event/export_key.rs:28`.
+  - The shown key wiped when hidden: `toggle_export` in `userland/capsule_wallet_nonos/src/wallet/event/custody/export_key.rs:30`.
   - 128 keys, 16 for one program: `MAX_KEYS` and `MAX_KEYS_PER_OWNER` in `userland/capsule_keyring/src/store/types/constants.rs:17-21`.
 - What NONOS keeps, and the TPM
   - The five files under `/data`: `VAULT_PATH` and the paths beside it in `userland/capsule_wallet_nonos/src/wallet/vault/path.rs:23-42`.
   - PCRs 0, 4, 7 and 9: `BOUND_PCRS` in `src/security/tpm/machine_key/pcrs.rs:24`.
-  - The status lines when nothing can be kept: `kept_status` in `userland/capsule_wallet_nonos/src/wallet/event/keep_plan.rs:76-93`.
+  - The status lines when nothing can be kept: `kept_status` in `userland/capsule_wallet_nonos/src/wallet/event/locking/kept_status.rs:23-42`.
 - Network use
   - Nym or Anyone for the wallet, never direct: `for_wallet` in `userland/nonos_route_link/src/chosen.rs:46-48`.
   - No shield connection under a Direct default: `anonymous_route` in `userland/shield_core/src/net/tor/stream.rs:15-19`.
 - What the wallet does not do
   - Swap hidden: `SWAP_OFFERED` in `userland/capsule_wallet_nonos/src/wallet/screen/home_actions.rs:38`.
   - The `Wallet` switch, and no wallet on Safe Mode or Recovery boots: `BootProfile` in `src/userspace/init/app_choice/profile.rs:41-42`.
-  - Host tests that pass on this commit: `wallet_proofs` (184 tests), `nonos_secp256k1` (12), `shield_wire_proofs` (12) and `tpm_key_proofs` (42).
+  - Host tests that pass on this commit: `wallet_proofs` (428 tests), `nonos_secp256k1` (12), `shield_wire_proofs` (12) and `tpm_key_proofs` (42).
 
 ## See also
 

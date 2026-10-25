@@ -34,12 +34,25 @@ pub(super) fn bind_errno(e: IrqBindError) -> i64 {
         // released. Reported apart from AlreadyBound so a driver is not told
         // to wait for a line that will not come free.
         IrqBindError::ReservedGsi => ERRNO_PERM,
+        // Refused by policy (K3): retrying never helps.
+        IrqBindError::NotRemapped => ERRNO_PERM,
         IrqBindError::AlreadyBound => ERRNO_BUSY,
         IrqBindError::NoVector => ERRNO_NOMEM,
         IrqBindError::UnsupportedFlags => ERRNO_NOTSUP,
         IrqBindError::MsixProgramFailed
         | IrqBindError::MsiProgramFailed
         | IrqBindError::PlatformError => ERRNO_NODEV,
+    }
+}
+
+/// As `grant_errno`, but a grant a depart took answers ENODEV: the device
+/// is gone, which is not the caller's mistake.
+pub(super) fn grant_errno_for(pid: u32, grant_id: u64, e: IrqError) -> i64 {
+    match e {
+        IrqError::UnknownGrant if crate::hardware::broker::irq::gone::departed(pid, grant_id) => {
+            ERRNO_NODEV
+        }
+        e => grant_errno(e),
     }
 }
 

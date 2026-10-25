@@ -20,14 +20,16 @@ use super::constants::{
 use super::device::GicRedistributor;
 
 impl GicRedistributor {
-    pub fn init(&self) {
-        self.wake();
+    pub fn init(&self) -> Result<(), &'static str> {
+        self.wake()?;
         self.write_reg(GICR_IGROUPR0, 0xFFFF_FFFF);
         self.write_reg(GICR_IGRPMODR0, 0);
         for irq in (0..32u32).step_by(4) {
             self.write_reg(GICR_IPRIORITYR + irq as u64, 0xA0A0_A0A0);
         }
         self.write_reg(GICR_ICENABLER0, 0xFFFF_0000);
+        self.settle()?;
         self.write_reg(GICR_ISENABLER0, 0x0000_FFFF);
+        Ok(())
     }
 }

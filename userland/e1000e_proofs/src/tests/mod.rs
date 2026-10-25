@@ -44,6 +44,7 @@ mod reset_tests;
 mod rollback_master_tests;
 mod rollback_tests;
 mod runner_tests;
+mod rx_batch_tests;
 mod rx_handler_tests;
 mod rx_ring_tests;
 mod rx_tests;

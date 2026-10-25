@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod attach_child;
-mod attach_hub;
 mod bind;
 mod classify;
 mod configure_port;
@@ -23,18 +21,13 @@ mod constants;
 mod devices;
 mod drop_port;
 mod forget;
-mod forget_slot;
 mod read_configuration;
 mod root_ports;
 mod run;
 mod say_port;
-mod scan_hub;
-mod scan_hubs;
-mod step_port;
 mod types;
 
 pub use devices::Devices;
 pub use root_ports::RootPorts;
 pub use run::enumerate;
-pub use scan_hubs::scan_hubs;
 pub use types::HidEndpoint;

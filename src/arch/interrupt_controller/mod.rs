@@ -34,7 +34,7 @@ mod kind;
 mod local_id;
 mod nmi;
 
-pub(crate) use cache_boot_id::cache_boot_cpu_id;
+pub(crate) use cache_boot_id::{cache_boot_cpu_id, latch_boot_cpu_id};
 pub(crate) use eoi::end_of_interrupt;
 pub(crate) use ipi::{broadcast_ipi, send_ipi};
 pub use kind::Ipi;

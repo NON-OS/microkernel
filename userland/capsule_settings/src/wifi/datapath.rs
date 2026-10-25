@@ -18,14 +18,6 @@
 //! stuck DHCP: no TX means net_core handed nothing down, RX frames without parsed
 //! frames means the AP replies but the frames never decrypt.
 
-use nonos_wifi_client::{find, OP_STATUS, WIFI_HDR};
-
-const STATUS_TIMEOUT_MS: u64 = 500;
-/// The firmware report's offset past the stage byte (it follows the 52 bytes of
-/// counters and registers), and where its 25 bytes end, counted from the stage.
-const FW_REPORT_AT: usize = 52;
-const FW_REPORT_END: usize = 1 + FW_REPORT_AT + 25;
-
 /// The driver's TX and RX frame counts since bring-up, plus the number of
 /// net_core link-protocol requests it has answered (zero means the stack never
 /// reached the radio).
@@ -37,56 +29,18 @@ pub struct DataPath {
     pub rx_eth: u32,
     pub netif_reqs: u32,
     pub rx_err: u32,
-    /// The efuse control, address and LDO registers as the last stalled read left
-    /// them. All zero means no read has stalled since boot, so a radio that
-    /// reports the efuse stage with zeros here never entered the polling loop.
-    pub efuse_ctl: u32,
-    pub efuse_addr: u32,
-    pub efuse_ldo: u32,
-    /// The BAR the register window was taken from and the low half of its
-    /// address. rtw88 uses bar_id 2 on this chip, so anything else means the
-    /// registers are being read from the wrong window.
-    pub bar_index: u32,
-    pub window_va: u32,
+    /// The last stalled efuse read, as named fields with no efuse content:
+    /// flags (bit 0, the window read back all ones; bit 1, the control
+    /// register held the address written), the address it stalled on plus
+    /// one, and the LDO/efuse register's bank-select and LDO enable bits. All
+    /// zero means no read has stalled since boot.
+    pub efuse_flags: u32,
+    pub efuse_stalled_at: u32,
+    pub efuse_bank_ldo: u32,
     /// Where firmware bring-up stopped (0: it did not stop), the chunks that
     /// had landed, and `REG_MCUFW_CTRL` as the stop left it. Zero from a driver
     /// built before the report.
     pub fw_step: u8,
     pub fw_chunks: u32,
     pub fw_ctrl: u32,
-}
-
-/// Query the driver for its data-path counts. `None` when no Wi-Fi driver is
-/// registered or it does not answer with the counters (the iwlwifi driver
-/// answers the status op with its stage alone).
-pub fn driver_datapath() -> Option<DataPath> {
-    let driver = find()?;
-    let mut resp = [0u8; WIFI_HDR + FW_REPORT_END];
-    let n = driver.request(OP_STATUS, &[], &mut resp, STATUS_TIMEOUT_MS)? as i64;
-    if n < (WIFI_HDR + 25) as i64 {
-        return None;
-    }
-    let b = &resp[WIFI_HDR + 1..];
-    // The efuse words are newer than the counters, so a driver built before them
-    // answers the shorter reply and those three stay zero rather than failing the
-    // whole read.
-    let long = n >= (WIFI_HDR + 45) as i64;
-    let fw = n >= (WIFI_HDR + FW_REPORT_END) as i64;
-    let word = |i: usize| u32::from_le_bytes([b[i], b[i + 1], b[i + 2], b[i + 3]]);
-    Some(DataPath {
-        tx_ok: word(0),
-        tx_drop: word(4),
-        rx_ring: word(8),
-        rx_eth: word(12),
-        netif_reqs: word(16),
-        rx_err: word(20),
-        efuse_ctl: if long { word(24) } else { 0 },
-        efuse_addr: if long { word(28) } else { 0 },
-        efuse_ldo: if long { word(32) } else { 0 },
-        bar_index: if long { word(36) } else { 0xFFFF_FFFF },
-        window_va: if long { word(40) } else { 0 },
-        fw_step: if fw { b[FW_REPORT_AT] } else { 0 },
-        fw_chunks: if fw { word(FW_REPORT_AT + 1) } else { 0 },
-        fw_ctrl: if fw { word(FW_REPORT_AT + 5) } else { 0 },
-    })
 }

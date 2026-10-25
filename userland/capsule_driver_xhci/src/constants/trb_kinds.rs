@@ -17,6 +17,7 @@ pub const TRB_TYPE_NORMAL: u32 = 1;
 pub const TRB_TYPE_SETUP_STAGE: u32 = 2;
 pub const TRB_TYPE_DATA_STAGE: u32 = 3;
 pub const TRB_TYPE_STATUS_STAGE: u32 = 4;
+pub const TRB_TYPE_ISOCH: u32 = 5;
 pub const TRB_TYPE_LINK: u32 = 6;
 pub const TRB_TYPE_ENABLE_SLOT_CMD: u32 = 9;
 pub const TRB_TYPE_DISABLE_SLOT_CMD: u32 = 10;

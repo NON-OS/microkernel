@@ -13,3 +13,5 @@ pub mod reset;
 pub mod madt_cpu;
 #[path = "../../../../../../../src/arch/x86_64/acpi/hw/power_button.rs"]
 pub mod power_button;
+#[path = "../../../../../../../src/arch/x86_64/acpi/hw/power_button_arm.rs"]
+pub mod power_button_arm;

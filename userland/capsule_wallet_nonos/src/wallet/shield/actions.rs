@@ -24,29 +24,25 @@ use alloc::string::String;
 
 use shield_wire::*;
 
-use super::client::call;
 use crate::wallet::screen::shield::sizes::sizes;
 use crate::wallet::screen::shield::typed::reads_typed;
 use crate::wallet::state::shield_ui::*;
 use crate::wallet::state::State;
 
-const NO_FRESH: &str = "A withdrawal goes only to a fresh account of this wallet, never one \
-     used before, and a wallet from a private key has no other account. Restore from the \
-     recovery words to withdraw.";
-pub const OVERRIDE: &str = "spend early";
+pub use super::actions_confirm::{confirm, review_self_settle, take_back};
+pub use super::actions_withdraw::review_withdraw;
+#[path = "actions_coin.rs"]
+mod coin;
+pub use coin::coin;
 
-pub fn coin(asset: u8) -> &'static str {
-    if asset == ASSET_NOX {
-        "NOX"
-    } else {
-        "ETH"
-    }
-}
+pub const OVERRIDE: &str = "spend early";
 
 /* The amount in the units the service reads: the chosen standard size for
  * a deposit or a withdrawal, the typed amount for a private payment. */
 pub fn amount(ui: &ShieldUi) -> String {
-    if reads_typed(ui.screen, ui.from, SHIELD_SEND, SHIELD_REVIEW) {
+    // An escrow deposit is funded with the order's exact price (B8).
+    if reads_typed(ui.screen, ui.from, SHIELD_SEND, SHIELD_REVIEW) || ui.payee.to_deposit.is_some()
+    {
         return ui.amount.clone();
     }
     let all = sizes(ui.asset);
@@ -56,7 +52,7 @@ pub fn amount(ui: &ShieldUi) -> String {
         .unwrap_or_default()
 }
 
-fn early(ui: &ShieldUi) -> &'static str {
+pub(super) fn early(ui: &ShieldUi) -> &'static str {
     if ui.override_text == OVERRIDE {
         "1"
     } else {
@@ -72,66 +68,4 @@ pub fn review_deposit(state: &mut State) {
 pub fn review_send(state: &mut State) {
     let a = amount(&state.shield_ui);
     super::job::start(state, OP_QUOTE, &[coin(state.shield_ui.asset), &a, "0"]);
-}
-
-pub fn review_withdraw(state: &mut State) {
-    let fresh = match call(OP_FRESH_ADDRESS, &[]) {
-        Ok(a) => a,
-        Err(why) => {
-            state.shield_ui.failure = Some(String::from(why));
-            return;
-        }
-    };
-    let Some(to) = field(&fresh.body, "address").filter(|_| fresh.status == STATUS_OK) else {
-        let why = if fresh.status == STATUS_OK {
-            String::from(NO_FRESH)
-        } else {
-            String::from(field(&fresh.body, "why").unwrap_or(super::client::NO_ANSWER))
-        };
-        state.shield_ui.failure = Some(why);
-        return;
-    };
-    state.shield_ui.withdraw_to = Some(String::from(to));
-    let a = amount(&state.shield_ui);
-    super::job::start(state, OP_QUOTE, &[coin(state.shield_ui.asset), &a, "1"]);
-}
-
-/* Confirm on the review: send what was reviewed, or prove the payment. */
-pub fn confirm(state: &mut State) {
-    let ui = &state.shield_ui;
-    let (c, a, e) = (coin(ui.asset), amount(ui), early(ui));
-    match ui.from {
-        SHIELD_DEPOSIT | SHIELD_SETTLE => {
-            let Some(id) = ui.review.as_ref().map(|r| r.id.clone()) else { return };
-            super::job::start(state, OP_CONFIRM, &[&id]);
-        }
-        SHIELD_SEND => {
-            let to = ui.to.clone();
-            let asset = ui.asset;
-            if super::job::start(state, OP_SEND, &[c, &to, &a, e]) {
-                state.shield_ui.proving = Some((asset, a));
-                state.shield_ui.screen = SHIELD_PROVING;
-            }
-        }
-        _ => {
-            let Some(to) = ui.withdraw_to.clone() else { return };
-            let asset = ui.asset;
-            if super::job::start(state, OP_WITHDRAW, &[c, &to, &a, e]) {
-                state.shield_ui.proving = Some((asset, a));
-                state.shield_ui.screen = SHIELD_PROVING;
-            }
-        }
-    }
-}
-
-/* Settle from the account the last spend, or the earlier one kept as `id`. */
-pub fn review_self_settle(state: &mut State, id: Option<String>) {
-    let fields: alloc::vec::Vec<&str> = id.as_deref().into_iter().collect();
-    if super::job::start(state, OP_REVIEW_SELF_SETTLE, &fields) {
-        state.shield_ui.settling_id = id;
-    }
-}
-
-pub fn take_back(state: &mut State) {
-    super::job::start(state, OP_TAKE_BACK, &[]);
 }

@@ -1,0 +1,11 @@
+# format: nonos-harden-declared-limits/1
+#
+# The gaps a nonos-verify module may declare while nonos-harden still reads
+# GO. One line each, `<module>: <what>`, where <what> is the first argument
+# of a `rpt.gap(...)` call in that module's source. nonos-harden reads this
+# file from the tree it checks: a declared gap on this list becomes a limit,
+# printed under the verdict line and counted in it ("GO, N declared limits");
+# a gap not on it is NO-GO. scripts/check_declared_limits.py holds the list
+# to the source and to the commit before: a line whose gap the source no
+# longer declares must go, and no line may be added. The list only shrinks.
+trust-chain: per-capsule field assertions

@@ -25,6 +25,9 @@ use alloc::vec::Vec;
 
 use super::super::bounds::Bounds;
 
+#[path = "gather_take.rs"]
+mod gather_take;
+
 /// Where a gathered flight stands after a slice.
 #[derive(Debug, PartialEq, Eq)]
 pub enum Gathered {
@@ -49,38 +52,6 @@ impl Gather {
         Gather { bounds, start: now, last: now, out: Vec::new() }
     }
 
-    /// What one slice brought, and whether the far end said it finished,
-    /// at `now`. `done` says the flight is whole.
-    pub fn take(
-        &mut self,
-        bytes: &[u8],
-        ended: bool,
-        now: i64,
-        mut done: impl FnMut(&[u8]) -> bool,
-    ) -> Gathered {
-        if !bytes.is_empty() {
-            self.out.extend_from_slice(bytes);
-            self.last = now;
-            if self.out.len() > self.bounds.max {
-                self.out.clear();
-                return Gathered::Nothing;
-            }
-            if done(&self.out) {
-                return self.finish();
-            }
-        }
-        if ended {
-            return self.finish();
-        }
-        let wait = if self.out.is_empty() { self.bounds.first_ms } else { self.bounds.quiet_ms };
-        let quiet = now.saturating_sub(self.last) >= clamp(wait);
-        let spent = now.saturating_sub(self.start) >= clamp(self.bounds.total_ms);
-        if quiet || spent {
-            return self.finish();
-        }
-        Gathered::More
-    }
-
     /// The stream broke: what came before the break is judged as it is.
     pub fn broke(&mut self) -> Gathered {
         self.finish()
@@ -94,8 +65,4 @@ impl Gather {
             Gathered::Whole(out)
         }
     }
-}
-
-fn clamp(ms: u64) -> i64 {
-    i64::try_from(ms).unwrap_or(i64::MAX)
 }

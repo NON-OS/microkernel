@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The PCI command register as a plain store: what the broker does with a
-//! command write once a capsule can clear a bit through it. Today's broker
-//! ORs a write naming only writable bits into the register instead. A test
-//! can have the broker refuse it, as it does a claim it no longer honours.
+//! The PCI command register. The driver changes it by the masked write
+//! (`pci_update.rs`); the plain write here stores a value whole, which a
+//! test uses to stand in for the kernel's release. A test can have the
+//! broker refuse both, as it does a claim it no longer honours.
 
 use std::cell::Cell;
 
@@ -28,8 +28,9 @@ pub const MK_PCI_CMD_MEMORY_SPACE: u16 = 1 << 1;
 pub const MK_PCI_CMD_BUS_MASTER: u16 = 1 << 2;
 
 thread_local! {
-    static COMMAND: Cell<u16> = const { Cell::new(MK_PCI_CMD_BUS_MASTER | MK_PCI_CMD_MEMORY_SPACE) };
-    static REFUSED: Cell<bool> = const { Cell::new(false) };
+    pub(crate) static COMMAND: Cell<u16> =
+        const { Cell::new(MK_PCI_CMD_BUS_MASTER | MK_PCI_CMD_MEMORY_SPACE) };
+    pub(crate) static REFUSED: Cell<bool> = const { Cell::new(false) };
 }
 
 /// The PCI command register as the driver last left it.

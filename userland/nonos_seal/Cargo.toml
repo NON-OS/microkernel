@@ -5,5 +5,8 @@ edition = "2021"
 description = "ChaCha20-Poly1305 AEAD sealing for NONOS keyring seed-at-rest, no_std"
 license = "AGPL-3.0"
 
+[package.metadata.nonos]
+test-lane = true
+
 [lib]
 crate-type = ["rlib"]

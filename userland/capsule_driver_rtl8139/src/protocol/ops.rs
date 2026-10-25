@@ -19,4 +19,8 @@ pub const OP_LINK_STATUS: u16 = 2;
 pub const OP_MAC_ADDRESS: u16 = 3;
 pub const OP_TX_PACKET: u16 = 4;
 pub const OP_RX_PACKET: u16 = 5;
-pub const OP_STATS: u16 = 6;
+/// Every frame waiting, in one numbered reply; net.core probes for it.
+pub const OP_RX_BATCH: u16 = 6;
+/// The register snapshot. It sat at 6, where net.core took it for a batch
+/// and dropped every frame.
+pub const OP_STATS: u16 = 7;

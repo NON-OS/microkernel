@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::control::{configure_cache, configure_sctlr, enable_fp_simd};
+use super::control::enable_fp_simd;
+use super::icache::configure_cache;
+use super::sctlr::configure_sctlr;
 
 pub fn init_cpu() {
     configure_sctlr();

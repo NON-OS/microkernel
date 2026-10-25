@@ -1,6 +1,6 @@
 # Display
 
-How NONOS puts the desktop on a screen: through the UEFI GOP framebuffer on any machine, through virtio-gpu in a virtual machine, and what it cannot drive.
+How NONOS puts the desktop on a screen: through the UEFI GOP framebuffer on any machine, through virtio-gpu or the Bochs adapter in a virtual machine, and what it cannot drive.
 
 ## Three paths
 
@@ -8,7 +8,7 @@ How NONOS puts the desktop on a screen: through the UEFI GOP framebuffer on any 
 |---|---|---|
 | UEFI GOP framebuffer | the bootloader, `src/kernel_core/init/framebuffer`, the compositor | on every UEFI machine, whenever no virtio GPU driver answers |
 | virtio-gpu | `capsule_driver_virtio_gpu`, served as `driver.virtio_gpu0` | a virtio GPU in a virtual machine |
-| Bochs BGA | `capsule_driver_bga` | never: the capsule is parked and in no image |
+| Bochs BGA | `capsule_driver_bga`, served as `driver.bga0` | QEMU's `-device VGA` or `bochs-display`, in an image built with it (below) |
 
 There is no native driver for an Intel, AMD or NVIDIA GPU. On real hardware the desktop is drawn through the framebuffer the firmware set up before boot.
 
@@ -19,10 +19,12 @@ flowchart TD
     C -->|no virtio GPU| P[MkSurfacePresent]
     P --> F[GOP framebuffer]
     C -->|driver answers| G[driver.virtio_gpu0]
-    G --> S[scanout 0]
+    G --> S[its scanouts]
+    C -->|driver answers| B[driver.bga0]
+    B --> V[video memory]
 ```
 
-The loader makes the GOP mode choice, `init_framebuffer` maps it in the kernel, and the compositor either presents its frames through `MkSurfacePresent` to that framebuffer or hands them to `driver.virtio_gpu0`, which shows them on scanout 0.
+The loader makes the GOP mode choice, `init_framebuffer` maps it in the kernel, and the compositor either presents its frames through `MkSurfacePresent` to that framebuffer or hands them over the display wire to the first display driver on the kernel's list that has announced itself (`src/services/registry/displays.rs`: virtio-gpu before bga), which shows them.
 
 ## The GOP framebuffer
 
@@ -43,49 +45,80 @@ Any width or height above `MAX_DIM` (8192) is refused (`nonos-bootloader/src/dis
 
 ### The kernel's mapping
 
-`init_framebuffer` takes the framebuffer from the [boot handoff](../overview/glossary.md#boot-handoff) (`src/kernel_core/init/framebuffer/init.rs:25-57`). `frame` maps the pitch times the height and never the firmware's FrameBufferSize, which some firmware reports as the whole GPU aperture. It refuses, with a `Refusal` it logs, a zero width, height, pitch or address, a pitch shorter than a row of 4-byte pixels, an overflow, or a FrameBufferSize smaller than the frame (`src/kernel_core/init/framebuffer/frame.rs:21-75`).
+`init_framebuffer` takes the framebuffer from the [boot handoff](../overview/glossary-amnesic-boot.md#boot-handoff) (`src/kernel_core/init/framebuffer/init.rs:25-57`). `frame` maps the pitch times the height and never the firmware's FrameBufferSize, which some firmware reports as the whole GPU aperture. It refuses, with a `Refusal` it logs, a zero width, height, pitch or address, a pitch shorter than a row of 4-byte pixels, an overflow, or a FrameBufferSize smaller than the frame (`src/kernel_core/init/framebuffer/frame.rs:21-75`).
 
 Before the mapping and before any AP starts, `program_boot` makes page attribute table entry 1 write-combining on the boot CPU, `mirror_on_ap` writes the same table on each AP, and on a CPU with no PAT the frame is mapped uncached (`src/arch/x86_64/pat/program.rs:31-61`). The new table comes from `with_wc`, which changes entry 1 and keeps every other entry (`src/arch/x86_64/pat/value.rs:31-40`). The kernel logs `[FB] mapped WxH pitch=N BGRX write-combining scale=S`, with `RGBX` or `uncached` where those apply, or `[FB] not mapped:` with the reason, through `log_mapped` and `log_refused` (`src/kernel_core/init/framebuffer/report.rs:21-41`).
 
-`hidpi_scale` doubles the scale on a panel of 192 DPI or more each way whose half is still at least 1280 by 720; without a physical size from the EDID, it doubles from 2560 by 1440 up (`src/kernel_core/init/framebuffer/hidpi.rs:23-79`). The compositor keeps the same rule in `scale_for_panel` (`userland/compositor/src/setup/canvas_scale.rs:65`), and `setup_layout_proofs` holds the two to the same answer (`userland/compositor/src/setup/canvas_scale.rs:17-21`); it passes 56 tests at this commit.
+`hidpi_scale` doubles the scale on a panel of 192 DPI or more each way whose half is still at least 1280 by 720; without a physical size from the EDID, it doubles from 2560 by 1440 up (`src/kernel_core/init/framebuffer/hidpi.rs:23-79`). The compositor keeps the same rule in `scale_for_panel` (`userland/compositor/src/setup/canvas_scale.rs`), and `setup_layout_proofs` holds the two to the same answer (`userland/compositor/src/setup/canvas_scale.rs`); it passes 56 tests at this commit.
 
 ### The compositor on GOP
 
-When no virtio GPU driver announces itself, `run_gop_once` gives the compositor a surface backed by its own memory and presents through `MkSurfacePresent`; the kernel copies each frame into the firmware framebuffer (`userland/compositor/src/setup/prime_gop.rs:17-22`, `userland/compositor/src/setup/prime_gop.rs:36-88`). The present path refuses a rectangle outside the screen, through `blit` (`src/syscall/dispatch/router/graphics_present/blit.rs:22-67`).
+When no virtio GPU driver announces itself, `run_gop_once` gives the compositor a surface backed by its own memory and presents through `MkSurfacePresent`; the kernel copies each frame into the firmware framebuffer (`userland/compositor/src/setup/prime_gop.rs`). The present path refuses a rectangle outside the screen, through `blit` (`src/syscall/dispatch/router/graphics_present/blit.rs:22-67`).
 
-A screen smaller than 1024 by 720, such as an 800 by 600 firmware mode or a 1024 by 600 panel, gets a canvas of its own shape that covers 1024 by 720 and is shrunk onto the screen, from `floor_canvas` (`userland/compositor/src/setup/canvas_floor.rs:16-43`). The picture is soft but every screen fits.
+A screen smaller than 1024 by 720, such as an 800 by 600 firmware mode or a 1024 by 600 panel, gets a canvas of its own shape that covers 1024 by 720 and is shrunk onto the screen, from `floor_canvas` (`userland/compositor/src/setup/canvas_floor.rs`). The picture is soft but every screen fits.
 
-If the virtio GPU driver answers after the compositor fell back to GOP, `upgrade_to_virtio` moves the display over and repaints the whole scene there (`userland/compositor/src/setup/upgrade.rs:17-52`).
+If a display driver answers after the compositor fell back to GOP, `upgrade_from_gop` moves the display over and repaints the whole scene there (`userland/compositor/src/setup/upgrade.rs`).
 
 ## virtio-gpu
 
-The [driver capsule](../overview/glossary.md#driver-capsule) `capsule_driver_virtio_gpu` drives a virtio GPU, PCI 1AF4:1010 (transitional) or 1AF4:1050 (modern), the ids `VIRTIO_GPU_TRANSITIONAL` and `VIRTIO_GPU_MODERN` that `is_match` accepts (`userland/capsule_driver_virtio_gpu/src/constants/pci.rs:16-18`, `userland/capsule_driver_virtio_gpu/src/discover/match_device.rs:23-27`). It polls and binds no interrupt. Its [capability word](../overview/glossary.md#capability-word), `0x1B9018`, adds `GraphicsSurfaceCreate` to the usual driver bits so it can register and share the screen surface (`userland/capsule_driver_virtio_gpu/Capsule.mk`). Only the `compositor` may send to it (`src/services/registry/held_table.rs:34`).
+The [driver capsule](../overview/glossary-dma-pool.md#driver-capsule) `capsule_driver_virtio_gpu` drives a virtio GPU, PCI 1AF4:1050, the id `VIRTIO_GPU_MODERN` that `is_match` accepts; virtio-gpu has no transitional id, so nothing presents 1AF4:1010 (`userland/capsule_driver_virtio_gpu/src/constants/pci.rs`, `userland/capsule_driver_virtio_gpu/src/discover/match_device.rs`). The kernel's scope row for `driver.virtio_gpu0` admits that one id (`src/hardware/broker/scope_table.rs`). It polls and binds no interrupt. Its [capability word](../overview/glossary-boot-root-record.md#capability-word), `0xB9018`, holds no `Pio` (both virtio layouts are reached through a memory BAR) and adds `GraphicsSurfaceCreate` to the usual driver bits so the wire server can register and share each output's primary surface, with the compositor alone and writable: the share names its receiver (K20, `userland/nonos_gfx_pool/src/surface.rs`; `userland/capsule_driver_virtio_gpu/Capsule.mk`). It is one of the names on the display list the compositor asks (`src/services/registry/displays.rs:27`).
 
-One bring-up attempt, `claimed`, takes the device off its legacy interrupt line, maps the registers, takes the control-queue DMA, runs the virtio handshake, reads the scanouts, asks for EDID, probes for 3D and creates the primary surface (`userland/capsule_driver_virtio_gpu/src/setup/sequence.rs:45-92`). The EDID answer is only logged. The 3D probe is logged, and its result, `virgl_ready`, is reported by `OP_QUERY_CAPS` (`userland/capsule_driver_virtio_gpu/src/server/handlers/query_caps.rs:25-28`). No op of the service uses 3D, so the 2D path is the same either way.
+It speaks the display wire, the same protocol as every other display driver, through `nonos_gfx_serve`; the private NVGP ops and the shared primary surface it had before G-77 are gone. One bring-up attempt, `claimed`, takes the device off its legacy interrupt line, maps the registers, takes the control-queue DMA, runs the virtio handshake, reads the scanouts, probes for 3D, reads output 0's EDID, and takes every enabled scanout; an attempt that fails resets the device before the claim is given back (`userland/capsule_driver_virtio_gpu/src/setup/sequence.rs`, `setup/live.rs`). The 3D probe is only logged; no wire op uses 3D.
 
-### Modes
+### Outputs and modes
 
-`seed` asks the device for its display info and records each enabled scanout at the size the host reports. A scanout smaller than 640 by 480 gets `DEFAULT_SCANOUT_WIDTH` by `DEFAULT_SCANOUT_HEIGHT`, 1280 by 720, and with no enabled scanout scanout 0 is set to that size (`userland/capsule_driver_virtio_gpu/src/setup/scanouts.rs:20-69`). `OP_MODE_LIST` returns the recorded scanouts, written out by `handle` (`userland/capsule_driver_virtio_gpu/src/server/handlers/mode_list.rs:20-42`).
+`seed` asks the device for its display info and records each enabled scanout at the size the host reports, when it is at least 16 by 16 and its frame fits one display grant; any other size is recorded at 1280 by 720, and with no enabled scanout scanout 0 is set to that size (`userland/capsule_driver_virtio_gpu/src/setup/scanouts.rs`, `setup/mode.rs`). Every reply is the device's word: the type, the length the used ring claims, and for an EDID its size word and magic are checked before any of it is read (`device/cmd/get_display_info.rs`, `get_edid.rs`). `take` makes each recorded scanout, up to the wire's four outputs, an output: a zeroed DMA surface with a B8G8R8A8 2D resource and one backing entry, sent to the host whole, set on the scanout and flushed. A scanout whose surface cannot be made is left as the host has it, and with none taken the attempt fails (`userland/capsule_driver_virtio_gpu/src/display/take.rs`).
 
-### The primary surface
+CAPS reports kind 1 (`VIRTIO_GPU`), MODE_SET, MODE_RANGE up to 4096 a side with any width, and HINTS; FLUSH copies into the driver's surface, so DEVICE_READS is not set (`userland/capsule_driver_virtio_gpu/src/display/describe.rs`). MODES lists the host's wanted size first, then output 0's EDID modes, then the size shown, each once (`userland/capsule_driver_virtio_gpu/src/display/modes.rs`). One display grant from the [hardware broker](../overview/glossary-hardware-broker.md#hardware-broker) is capped at `DISPLAY_FRAMEBUFFER_PAGES`, 8192 pages or 32 MiB (`src/hardware/broker/dma/limits.rs:28-44`). CAPS gives that as the surface budget and MODES offers no mode whose surface would not fit it, so a 4096 by 4096 mode is never offered; the wire server refuses a MODE_SET over the budget (`userland/capsule_driver_virtio_gpu/src/display/modes.rs`).
 
-`create` makes the screen surface on scanout 0 only (`userland/capsule_driver_virtio_gpu/src/setup/create_primary.rs:21-37`). It takes a DMA [grant](../overview/glossary.md#grant) the size of the frame, creates a B8G8R8A8 2D resource on it, sets it on the scanout, and registers and shares it with `mk_surface_register` and `mk_surface_share` so the compositor can draw into it (`userland/capsule_driver_virtio_gpu/src/setup/primary_surface/create.rs:23-73`). A frame of 4 GiB or more is refused by `derive` (`userland/capsule_driver_virtio_gpu/src/setup/primary_surface/geometry.rs:22-33`). The [hardware broker](../overview/glossary.md#hardware-broker) caps one display grant at `DISPLAY_FRAMEBUFFER_PAGES`, 8192 pages or 32 MiB, which holds one 3840 by 2160 frame at 4 bytes a pixel (`src/hardware/broker/dma/limits.rs:28-44`). For a larger scanout 0, such as 3840 by 2400, the primary surface's `mk_dma_map` fails (`userland/capsule_driver_virtio_gpu/src/setup/primary_surface/dma.rs:19-29`). `create_primary::create` hands that error to the bring-up attempt, so every attempt fails the same way (`userland/capsule_driver_virtio_gpu/src/setup/sequence.rs:66-73`).
+### Mode sets, flushes and the host's events
 
-The service answers twelve ops, from `OP_HEALTHCHECK` to `OP_GET_PRIMARY_SURFACE` (`userland/capsule_driver_virtio_gpu/src/protocol/ops.rs:16-27`). Each resource records the process that created it in `owner_pid`, and the resource ops refuse another process's resource (`userland/capsule_driver_virtio_gpu/src/server/handlers/create_resource.rs:59`, `userland/capsule_driver_virtio_gpu/src/server/handlers/set_scanout.rs:33`).
+A mode set makes before it breaks: a new surface of the size, the compositor's shadow loaded into it whole, and only then the scanout pointed at it. A step that fails gives the new surface back and leaves the old one showing (`userland/capsule_driver_virtio_gpu/src/display/mode_set.rs`). FLUSH copies the rectangles from the shadow, transfers them to the host and flushes them (`userland/capsule_driver_virtio_gpu/src/display/show.rs`). A surface is given back by detaching its backing, unreferencing the resource and only then unmapping its pages; one the host keeps waits in limbo with its pages mapped and is tried again on each mode set and each STATE (`userland/capsule_driver_virtio_gpu/src/display/limbo.rs`).
 
-Without a virtio GPU the capsule exits with `EXIT_ABSENT` (2) at once, and the compositor stays on GOP; a device that fails every bring-up attempt exits with `EXIT_GAVE_UP` (`userland/capsule_driver_virtio_gpu/src/main.rs:40-55`). At this commit `virtio_gpu_proofs` passes 38 host tests. Its crate comment lists what they hold to the specification: the status handshake, the accepted features, the control queue and the wire bytes of each 2D command, with the shipping source mounted by `#[path]` (`userland/virtio_gpu_proofs/src/lib.rs:17-32`).
+The driver reads the device's events word on every turn of its receive loop and on each STATE. When the host raised the display bit (a window resized, a display turned on or off) the driver asks for the display info again, and each output follows it (`userland/capsule_driver_virtio_gpu/src/display/events.rs`, `userland/capsule_driver_virtio_gpu/src/display/plug.rs`). A scanout turned off is let go of and answers dark: FLUSH sends nothing and MODE_SET answers EAGAIN. One turned back on answers LOST once, while the wire server shows the primary on it again. Any change moves the generation and is told to the compositor at once with OUTPUT_NOTICE. Only scanouts taken at bring-up are outputs. There is no cursor plane yet: CURSOR answers ENOSYS and the compositor draws the arrow itself (`userland/capsule_driver_virtio_gpu/src/display/wire.rs`).
+
+### A device that stops answering
+
+A command the device does not answer within the control queue's deadline, or answers out of turn, resets the device and takes the queue out of service. The serve loop then recovers in place (`userland/capsule_driver_virtio_gpu/src/server/recover/`): the queue restarted, every output's surface made again under its own id and shown, limbo given back. It tries up to three times in a row, logging `driver.virtio_gpu0: control queue stalled; device reset, recovering (try N of 3)` and `driver.virtio_gpu0: recovered in place, same surfaces`. Past that the driver is down: every output answers STATE LOST and dark, FLUSH and MODE_SET answer ENXIO, the compositor is told OUTPUT_NOTICE LEAVING once so it can drive another display, and `driver.virtio_gpu0: down; ...` is logged. The claim and every grant are kept.
+
+Without a virtio GPU the capsule exits with `EXIT_ABSENT` (2) at once, and the compositor stays on GOP; a device that fails every bring-up attempt (seven, on the shared bounded schedule) exits with `EXIT_GAVE_UP` (6) (`userland/capsule_driver_virtio_gpu/src/main.rs`). `virtio_gpu_proofs` mounts the shipping source by `#[path]` and holds the bring-up and the 2D command bytes to the virtio specification; a host model answers the ring on the driver's own thread for the wire server's sweeps and the recovery, and `tests/reply_sweep` fuzzes every reply the driver reads against what the response rules say (G-83). It passes 85 host tests at this commit.
 
 ## Bochs BGA
 
-`capsule_driver_bga` matches the QEMU and Bochs display adapter, PCI 1234:1111 (`VENDOR_QEMU_BOCHS`, `DEVICE_BGA`), with its framebuffer in BAR 0 and registers in BAR 2, as `find_bga` checks (`userland/capsule_driver_bga/src/constants.rs:17-22`, `userland/capsule_driver_bga/src/discover.rs:34-57`). It sets one mode, `MODE_WIDTH` by `MODE_HEIGHT` at 32 bits, 1024 by 768 (`userland/capsule_driver_bga/src/constants.rs:33-35`), then serves nothing and sleeps in turns of `HOLD_MS`, 60 seconds (`userland/capsule_driver_bga/src/main.rs:32-53`).
+`capsule_driver_bga` drives the QEMU and Bochs display adapter, PCI 1234:1111 (`VENDOR_QEMU_BOCHS`, `DEVICE_BGA`), served as `driver.bga0` on service 4240 (`userland/capsule_driver_bga/Capsule.mk`). Its video memory is BAR 0, mapped write-combining; BAR 2 holds the EDID at 0 and the DISPI registers at 0x500, mapped uncached. It needs no DMA and no interrupt: every wire request is answered at once.
 
-It is parked. It has no `Capsule.mk`, no Cargo feature and no kernel mirror, and `family_driver` leaves `DisplayBga` without a driver on purpose: re-moding the adapter would destroy the firmware scanout the compositor presents into (`src/hardware/inventory/driver.rs:33-36`). `bga_proofs` passes 9 host tests at this commit.
+One bring-up attempt (`userland/capsule_driver_bga/src/setup/`) turns Memory Space on and Bus Master off, maps both BARs, refuses a register window that ends inside the DISPI block, and refuses an adapter whose DISPI ID is outside 0xB0C0 to 0xB0C5. It reads the DISPI state firmware left, whole, so it can be written back at every drop. It zeroes video memory, then starts on firmware's mode when DISPI shows a linear 32-bit mode from the start of video memory that fits both video memory (VIDEO_MEMORY_64K) and the mapping; else on the monitor's preferred mode when it fits; else 1024 by 768 (`setup/mode.rs`). A mode past video memory or the mapping is refused by name before any register is written, and a mode set must read back as set, line layout included.
+
+It speaks the display wire through `nonos_gfx_serve`, a single output of kind 2 (`DISPI`): MODE_SET and MODE_RANGE from 640 by 480 to 4096 a side, widths a multiple of 8, no cursor plane (CURSOR answers ENOSYS), the surface budget the video memory (`display/describe.rs`). MODES lists the EDID's modes that fit, and the one shown. FLUSH copies its rectangles from the compositor's shadow into video memory at the mode's stride. STATE checks DISPI still shows the mode; when firmware or a VGA reset turned it off, the mode is set again before the answer and STATE says LOST under a new generation, so the compositor repaints (`display/health.rs`). A MODE_SET the adapter does not take is refused with EINVAL and the previous mode put back.
+
+Without an adapter the capsule exits `EXIT_ABSENT` (2) before claiming anything; an adapter that fails bring-up is retried seven times on the shared schedule, each failed try giving its claim back with firmware's DISPI state written back, then `EXIT_GAVE_UP` (6). The kernel spawns it only when the inventory sees `DisplayBga` (`src/userspace/init/spawn_plan/drivers_virtio_display.rs`), in an image built with `nonos-capsule-driver-bga`: today the `microkernel-driver-bga` profile. It joins `microkernel-full-gui`, the image `make` builds, when the owner's seal gives it its trust artifacts; until then `scripts/check_display_profiles.py`, which holds every display driver on the kernel's list to the full image, carries it in its shrink-only baseline, as it does intel_display. `bga_proofs` runs the bring-up end to end on a libc shim and the wire on the shipping server, and `tests/dispi_sweep` fuzzes every DISPI register and EDID byte it reads (G-83). It passes 77 host tests at this commit.
+
+## The primaries, and a compositor started again
+
+Each output's primary is anonymous memory of the driver's own, zeroed when made, registered as an ARGB8888 surface and shared writable with the compositor alone (`userland/nonos_gfx_pool`). Device memory is never shared. A share right belongs to the pid it names and dies with it, so when the compositor is started again under a new pid, the driver keeps the primary it holds and names the new pid a receiver of it on its first SURFACE; the new compositor attaches the same pages and the picture comes back (G-81). A compositor not heard for three seconds has its primaries scrubbed and the screen blanked, so the next one never sees the last one's picture (`userland/nonos_gfx_serve/src/watch.rs`). `gfx_pool_proofs` holds the pool to the kernel's surface rules on a shim.
+
+## What a good boot shows
+
+With the Debug capability granted to the compositor and the driver, the kernel log shows, for virtio-gpu:
+
+- `[GPU-EDID] EDID read: its modes offered`, or `[GPU-EDID] no EDID: the host's size leads`
+- `[GPU-3D] virgl not offered (2d scanout only)` on a 2D device
+- `[DISPLAY] gfx lookup: driver.virtio_gpu0`
+- `[DISPLAY] on driver.virtio_gpu0 1280x720, canvas 1280x720 at scale 1.00`, at the size the host set
+
+and for bga the same `[DISPLAY]` lines naming `driver.bga0`. None of `control queue stalled`, `down;`, or `[EXIT] ... status 6` should appear. Without Debug only the kernel's own lines show (`[FB]`, and `[EXIT]` for a capsule that left).
+
+A driver whose compositor has been silent for 3 s clears its screen (cursor off, every primary scrubbed and shown blank, `nonos_gfx_serve/src/watch.rs`) and says `[DISPLAY] compositor silent 3 s: screen cleared` once for that silence. A black screen with that line is a hung or dead compositor, not a bad frame; the compositor's own watchdog line (`[DISPLAY] turn N stuck T ms in ...`) names where it stopped.
+
+On a machine with no Intel graphics function, QEMU among them, the kernel says `[DRIVER-INTEL-DISPLAY] no controller present, not spawned`, and the same for bga where there is no Bochs adapter (`[DRIVER-BGA]`).
+
+The screen: the desktop with the menubar on top and the dock below. A Terminal opens centred with the NONOS banner, a fetch block (os, kernel, shell, signed, arch, uptime), the prompt `nonos@nonos ~ %` and the footer of key hints; About opens on its Overview with three ring tiles, the Display tile showing the mode inside its ring. Killing the compositor brings the same picture back once it is started again. `userland/demo_screen_proofs` draws both apps through their own paint code at 1024x768, 1280x720, 1280x800 and 1920x1080 under each driver.
 
 ## What is not supported
 
-- Native GPU drivers. Intel, AMD and NVIDIA display functions are enumerate-only, and `missing_path` names a `native modeset and scanout driver` for them (`src/hardware/inventory/missing.rs:19-27`). There is no mode change after boot, no second display and no hardware acceleration on real machines.
+- Native GPU drivers. AMD and NVIDIA display functions are enumerate-only, and `missing_path` names a `native modeset and scanout driver` for them (`src/hardware/inventory/missing.rs`). Intel graphics goes to `capsule_driver_intel_display`, spawned where the inventory sees the function (`src/userspace/init/spawn_plan/drivers_native_display.rs`) in an image built with `nonos-capsule-driver-intel-display` (the `microkernel-driver-intel-display` profile); it joins the full image with the owner's seal, and has not been booted on a machine. The boot framebuffer driver, `capsule_driver_bootfb`, is in no image: the kernel side it claims from is not on main. There is no mode change after boot, no second display and no hardware acceleration on real machines.
 - A GOP without a linear 32-bit framebuffer.
-- 3D. The virtio-gpu probe reports whether the host could, and no op uses it.
+- 3D. The virtio-gpu probe logs whether the host could, and no op uses it.
 - Backlight control.
 
 ## See also

@@ -14,25 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/// The class drivers; their hosts spawn earlier (orchestrator.rs).
 pub(super) fn spawn() {
-    spawn_xhci();
+    super::drivers_usb_hub::spawn();
     spawn_usb_hid();
     spawn_usb_msc();
+    super::drivers_uvc::spawn();
+    super::drivers_cdc_acm::spawn();
+    super::drivers_usb_mic::spawn();
+    super::drivers_ccid::spawn();
+    super::drivers_fido::spawn();
 }
-
-#[cfg(feature = "nonos-capsule-driver-xhci")]
-fn spawn_xhci() {
-    use crate::hardware::xhci_capsule as c;
-    super::boot::capsule(
-        "DRIVER-XHCI",
-        "driver_xhci",
-        c::spawn_driver_xhci_capsule,
-        c::shared_state,
-    );
-}
-
-#[cfg(not(feature = "nonos-capsule-driver-xhci"))]
-fn spawn_xhci() {}
 
 #[cfg(feature = "nonos-capsule-driver-usb-hid")]
 fn spawn_usb_hid() {
@@ -49,16 +41,16 @@ fn spawn_usb_hid() {
 fn spawn_usb_hid() {}
 
 /*
- * Whether a mass-storage device is plugged in is known only once the xHCI
- * driver has enumerated its ports, after this plan has run. So the driver
- * starts wherever an xHCI controller is, looks for its device itself within
+ * Whether a mass-storage device is plugged in is known only once a USB
+ * host's driver has enumerated its ports, after this plan has run. So the
+ * driver starts wherever a USB host is, looks for its device itself within
  * a bounded window, and tells the block layer "no device" if it finds none.
  */
 #[cfg(feature = "nonos-capsule-driver-usb-msc")]
 fn spawn_usb_msc() {
-    use crate::hardware::inventory::HardwareFamily;
     use crate::userspace::capsule_driver_usb_msc as c;
-    if !super::device_present::present("DRIVER-USB-MSC", HardwareFamily::UsbXhci) {
+    if !super::usb_host::usb_host() {
+        crate::sys::boot_log::ok("DRIVER-USB-MSC", "no USB host present, not spawned");
         return;
     }
     super::boot::capsule(

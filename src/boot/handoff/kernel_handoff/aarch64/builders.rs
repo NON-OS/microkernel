@@ -21,6 +21,7 @@ use super::super::measurement::Measurement;
 use super::super::memory::MemoryHandoff;
 use super::super::timing::TimingHandoff;
 use crate::arch::aarch64::boot::info::{BootInfo, MemoryType};
+use crate::boot::handoff::BootHandoffV1;
 
 pub(super) fn memory(info: &BootInfo) -> MemoryHandoff {
     let largest_usable_bytes = info
@@ -59,9 +60,12 @@ pub(super) fn timing() -> TimingHandoff {
     TimingHandoff { fixed_freq_hz: (hz > 0).then_some(hz), unix_epoch_ms: 0 }
 }
 
-pub(super) fn measurement() -> Measurement {
-    // Nothing in this boot path has verified a signature: the aarch64
-    // bootloader chain does not exist yet. Claiming otherwise would put a
-    // measurement in the security log that never happened.
-    Measurement { secure_boot: false, kernel_signature_verified: false }
+pub(super) fn measurement(loader: Option<&BootHandoffV1>) -> Measurement {
+    // What a NONOS loader verified, as its handoff says; with none (QEMU's
+    // -kernel, U-Boot) nothing verified a signature, and claiming otherwise
+    // would put a measurement in the security log that never happened.
+    Measurement {
+        secure_boot: loader.is_some_and(|h| h.secure_boot_enabled()),
+        kernel_signature_verified: loader.is_some_and(|h| h.kernel_verified()),
+    }
 }

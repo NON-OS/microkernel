@@ -30,14 +30,32 @@ pub mod state;
 /// The device behind driver.xhci0, scripted, where `disk` calls it.
 pub mod xhci;
 
+/// The driver's BOT command, mounted where the sweep reaches it.
+#[cfg(test)]
+mod bot_parts;
+/// A seeded sweep over BOT commands.
+#[cfg(test)]
+mod bot_sweep;
+/// A seeded sweep over the SCSI answers a disk is sized and flushed by.
+#[cfg(test)]
+mod scsi_sweep;
+
 #[cfg(test)]
 mod answers;
 #[cfg(test)]
+mod bot_sweep_tests;
+#[cfg(test)]
 mod change_tests;
+#[cfg(test)]
+mod csw_shape_tests;
 #[cfg(test)]
 mod fixture;
 #[cfg(test)]
 mod kernel;
+#[cfg(test)]
+mod scsi_sweep_tests;
+#[cfg(test)]
+mod sense_tests;
 #[cfg(test)]
 mod server;
 #[cfg(test)]
@@ -46,6 +64,10 @@ mod serving;
 mod sticks;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod uas_tag_tests;
+#[cfg(test)]
+mod uas_tests;
 
 #[cfg(kani)]
 mod kani_proofs;

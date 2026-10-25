@@ -31,10 +31,7 @@ pub fn seed(
             continue;
         }
         let (width, height) = mode::fit(s.width, s.height);
-        if !table.record(
-            i as u32,
-            Scanout { x: s.x, y: s.y, width, height, current_resource_id: 0, enabled: true },
-        ) {
+        if !table.record(i as u32, Scanout { width, height, enabled: true }) {
             return Err("virtio-gpu: scanout table rejected display info");
         }
         recorded += 1;
@@ -45,17 +42,7 @@ pub fn seed(
     Ok(())
 }
 fn seed_default(table: &ScanoutTable) -> Result<(), &'static str> {
-    if table.record(
-        0,
-        Scanout {
-            x: 0,
-            y: 0,
-            width: mode::DEFAULT.0,
-            height: mode::DEFAULT.1,
-            current_resource_id: 0,
-            enabled: true,
-        },
-    ) {
+    if table.record(0, Scanout { width: mode::DEFAULT.0, height: mode::DEFAULT.1, enabled: true }) {
         return Ok(());
     }
     Err("virtio-gpu: scanout table rejected default mode")

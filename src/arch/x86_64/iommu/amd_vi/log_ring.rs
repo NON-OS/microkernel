@@ -19,19 +19,21 @@
 
 use core::sync::atomic::{AtomicU64, Ordering};
 
+use super::control::{CONTROL, EVENT_LOG_EN};
 use super::error::AmdViError;
 use super::mmio::Unit;
 use super::regs;
 use crate::arch::x86_64::acpi::parser::other::ivrs_walk::MAX_AMD_IOMMUS;
 use crate::arch::x86_64::iommu::tables::frame::allocate_table;
+use crate::arch::x86_64::iommu::tables::view::Frame;
 
 const NONE: AtomicU64 = AtomicU64::new(0);
 
 /// The event log page of each unit, zero before bring-up.
 pub(super) static LOGS: [AtomicU64; MAX_AMD_IOMMUS] = [NONE; MAX_AMD_IOMMUS];
 
-/// Point the unit at a fresh event log with head and tail at zero, as Linux
-/// does in amd/init.c (iommu_enable_event_buffer) before EVENT_LOG_EN.
+/// Point the unit at a fresh event log with head and tail at zero before
+/// EVENT_LOG_EN, so the unit's first entry and the kernel's first read meet.
 ///
 /// # Safety
 /// The unit must be stopped.
@@ -50,4 +52,24 @@ pub(super) unsafe fn attach_log(index: usize, unit: &Unit) -> Result<(), AmdViEr
         unit.write64(regs::EVENT_TAIL, 0);
     }
     Ok(())
+}
+
+/// After an overflow a unit logs nothing more until EventLogEn is cycled
+/// (K12): off, the overflow cleared, the log emptied, on again.
+pub(super) fn restart_log(index: usize, unit: &Unit) {
+    let (Some(control), Some(slot)) = (unit.read64(CONTROL), LOGS.get(index)) else {
+        return;
+    };
+    if let Ok(words) = Frame::at(slot.load(Ordering::Acquire)) {
+        words.zero();
+    }
+    // SAFETY: eK@nonos.systems - logging is off while the pointers move, and
+    // the page stays the kernel's; nothing here maps or translates.
+    unsafe {
+        unit.write64(CONTROL, control & !EVENT_LOG_EN);
+        unit.write64(regs::STATUS, regs::STATUS_EVENT_OVERFLOW);
+        unit.write64(regs::EVENT_HEAD, 0);
+        unit.write64(regs::EVENT_TAIL, 0);
+        unit.write64(CONTROL, control | EVENT_LOG_EN);
+    }
 }

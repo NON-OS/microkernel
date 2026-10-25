@@ -23,24 +23,10 @@
 //! listing per catalogue. The selected listing goes first; after it, each
 //! listing's description is asked in turn so the search can match it.
 
-use super::fill_order::next;
-use super::market::{self, Failure};
+use super::fill_order::{next, recheck};
+use super::fill_step::{kept, now_ms, Step};
+use super::market;
 use super::state::State;
-
-/// How soon the next step runs while there is one: quick enough that the
-/// pane fills as the cursor lands, without a busy loop.
-pub const STEP_MS: i64 = 30;
-
-/// What a step did.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum Step {
-    /// Nothing left to ask.
-    Done,
-    /// Asked about a listing; the screen shows what changed.
-    Shown,
-    /// Asked about a listing nothing on screen depends on yet.
-    Quiet,
-}
 
 impl State {
     /// One step of asking. A new description can change what the search
@@ -49,7 +35,8 @@ impl State {
         if !self.filling() {
             return Step::Done;
         }
-        let Some((at, selected)) = next(&self.listings, self.current_index()) else {
+        let now = now_ms();
+        let Some((at, selected)) = next(&self.listings, self.current_index(), now) else {
             return Step::Done;
         };
         let port = self.port;
@@ -59,12 +46,16 @@ impl State {
             l.known.detail = kept(market::get_app(port, market::next_id(), &l.id), &mut silent);
             l.known.described = true;
         }
-        if selected {
+        if selected && !l.known.judged {
             let release = market::get_release(port, market::next_id(), &l.id);
             l.known.release = kept(release, &mut silent);
+            l.known.price = kept(market::get_price(port, market::next_id(), &l.id), &mut silent);
+        }
+        if selected {
             let readiness = market::install_ready(port, market::next_id(), &l.id);
             l.known.readiness = kept(readiness, &mut silent);
             l.known.judged = true;
+            recheck(&mut l.known, now);
         }
         /*
          * A market that has stopped answering costs a timeout per call, and
@@ -79,17 +70,4 @@ impl State {
             false => Step::Quiet,
         }
     }
-
-    /// Whether the market still has something to be asked. False once it
-    /// has stopped answering (`port` zero), since every answer would be the
-    /// same silence.
-    pub fn filling(&self) -> bool {
-        self.port != 0 && next(&self.listings, self.current_index()).is_some()
-    }
-}
-
-/// The answer, noting when there was none at all.
-fn kept<T>(got: Result<T, Failure>, silent: &mut bool) -> Option<T> {
-    *silent |= matches!(got, Err(Failure::NoReply));
-    got.ok()
 }

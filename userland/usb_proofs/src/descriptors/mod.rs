@@ -15,14 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The driver's descriptor walks, loaded from its own files: the
-//! configuration descriptor and the report descriptor.
+//! configuration descriptor, the report descriptor and a gamepad's layout.
 
+#[path = "../../../capsule_driver_usb_hid/src/descriptors/application.rs"]
+pub mod application;
 #[path = "../../../capsule_driver_usb_hid/src/descriptors/binding.rs"]
 pub mod binding;
 #[path = "../../../capsule_driver_usb_hid/src/descriptors/config.rs"]
 pub mod config;
 #[path = "../../../capsule_driver_usb_hid/src/descriptors/packet_size.rs"]
 pub mod packet_size;
+#[path = "../../../capsule_driver_usb_hid/src/descriptors/pad/mod.rs"]
+pub mod pad;
 // The parser returns Result<_, ()>, its own choice.
 #[allow(clippy::result_unit_err)]
 #[path = "../../../capsule_driver_usb_hid/src/descriptors/parse.rs"]
@@ -35,5 +39,6 @@ pub mod report;
 pub mod types;
 
 pub use binding::HidBinding;
+pub use pad::{pad_layout, PadEvent, PadLayout, PadState};
 pub use parse::hid_bindings;
 pub use types::HidKind;

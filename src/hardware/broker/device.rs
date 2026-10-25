@@ -19,9 +19,15 @@ mod bus;
 mod flags;
 mod record;
 
+pub(super) use bar::BAR_KIND_MMIO;
+#[allow(unused_imports)] // the ACPI broker's alone, which only x86 builds
+pub(super) use bar::BAR_KIND_PIO;
 pub use bar::{Bar, BarKind};
-pub(super) use bar::{BAR_KIND_MMIO, BAR_KIND_PIO};
 pub use bus::BusKind;
+pub use flags::{
+    BAR_FLAG_FIXED, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DEPS_UNMET, DEVICE_FLAG_DISABLED,
+    DEVICE_FLAG_DMA_NONCOHERENT, DEVICE_FLAG_EXTERNAL, DEVICE_FLAG_IRQ_ACTIVE_LOW,
+    DEVICE_FLAG_IRQ_EDGE,
+};
 pub(super) use flags::{BAR_FLAG_MEM64, BAR_FLAG_PREFETCH};
-pub use flags::{DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED};
-pub use record::DeviceRecord;
+pub use record::{DeviceRecord, NUMA_UNKNOWN};

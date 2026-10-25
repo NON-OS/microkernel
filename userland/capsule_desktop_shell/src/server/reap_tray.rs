@@ -43,7 +43,7 @@ pub(crate) fn reap_now(ctx: &mut Context) {
     paint_chrome(ctx);
     let r = menubar_rect(ctx.width);
     let rid = ctx.issue_request_id();
-    let _ = push_damage_commit(ctx.compositor_port, rid, r.x, r.y, r.width, r.height);
+    let _ = push_damage_commit(ctx.ports.compositor_port, rid, r.x, r.y, r.width, r.height);
     sync_toast_layer(ctx);
 }
 

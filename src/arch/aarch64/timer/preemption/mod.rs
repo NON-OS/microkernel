@@ -18,5 +18,5 @@ mod handler;
 mod install;
 mod state;
 
-pub use install::install_on_cpu;
-pub use state::configure;
+pub use install::{arm_on_secondary, install_on_cpu};
+pub use state::{configure, is_preemption_tick};

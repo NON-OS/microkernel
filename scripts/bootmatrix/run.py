@@ -13,14 +13,14 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""A cell, repeated. Each run gets its own copy of the disk and the firmware
-variables, so one boot cannot leave state for the next to find."""
+"""A cell, repeated, each run on its own copy of the disk and firmware variables."""
 
 import shutil
 import time
 from dataclasses import dataclass, field
 
 from .boot import boot
+from .devices import scratch_disks
 from .qemu import accelerator, command
 from .verdict import judge
 
@@ -62,11 +62,11 @@ def one(cell, paths, accel, out, attempt, timeout):
         if not served:
             return Run(cell.name, attempt, accel, time.monotonic() - started, ending,
                        [f"first boot: {ending}"], str(first))
-    argv = command(cell, paths, accel, log, blk, variables)
-    text, reached, ending = boot(argv, log, timeout)
+    argv = command(cell, paths, accel, log, blk, variables, disks := scratch_disks(cell, stem))
+    text, reached, ending = boot(argv, log, timeout, also=cell.expect)
     failures = judge(cell, text, reached, ending)
-    blk.unlink()
-    variables.unlink()
+    for path in (blk, variables, *disks):
+        path.unlink()
     return Run(cell.name, attempt, accel, time.monotonic() - started, ending, failures, str(log))
 
 

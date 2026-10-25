@@ -22,6 +22,7 @@
 //! number to index an array with. [`cpu_affinity`] answers the first;
 //! [`cpu_id`] answers the second.
 
+use super::index::cpu_id;
 use super::mpidr::mpidr;
 
 /// This CPU's affinity, in the layout the GIC compares against.
@@ -48,16 +49,6 @@ pub const fn pack_affinity(mpidr_affinity: u64) -> u32 {
 /// the device tree publishes and PSCI expects as a target.
 pub fn mpidr_affinity() -> u64 {
     mpidr() & 0x0000_00FF_00FF_FFFF
-}
-
-/// This CPU's dense index: its position in the device tree's CPU list.
-///
-/// Contiguous by construction, which is what per-CPU tables need. Falls back
-/// to zero before the roster is latched, which is correct because only the
-/// boot CPU is running then. It is not an affinity: never hand it to the GIC
-/// or to PSCI, which both want [`cpu_affinity`] or [`mpidr_affinity`].
-pub fn cpu_id() -> usize {
-    crate::arch::aarch64::boot::multicore::roster::index_of(mpidr_affinity()).unwrap_or(0)
 }
 
 pub fn core_id() -> usize {

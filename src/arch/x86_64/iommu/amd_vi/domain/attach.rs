@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Moving a device's requester id between denied, identity and a capsule
+//! Moving a device's requester id between denied, reserved and a capsule
 //! domain by rewriting its device table entry, then dropping the cached copy
 //! on every unit before returning.
 
-use super::super::devtab::{read_dte, write_dte};
-use super::super::dte::{blocked, domain_of, mode_of, passthrough, translated, Dte};
+use super::super::devtab::{read_dte, update_dte};
+use super::super::dte::{blocked, domain_of, keep_interrupts, mode_of, translated, Dte};
 use super::super::error::AmdViError;
 use super::super::flush::flush_device;
+use super::super::intr_format::same_dma;
 use super::super::pte::LEVELS;
+use super::identity::note;
 use super::lifetime::{root_of, ROOTS};
 
 pub fn device_id(bus: u8, device: u8, function: u8) -> u16 {
@@ -35,29 +37,34 @@ pub fn device_id(bus: u8, device: u8, function: u8) -> u16 {
 pub fn attach(domain: u16, id: u16) -> Result<(), AmdViError> {
     let roots = ROOTS.lock();
     let root = root_of(&roots, domain)?;
-    if mode_of(read_dte(id)?) != 0 {
+    let current = read_dte(id)?;
+    if mode_of(current) != 0 {
         return Err(AmdViError::DeviceAlreadyAttached);
     }
-    replace(id, translated(root, LEVELS, domain))
+    // The broker frees the domain on this error, so no entry may still name
+    // it: back to denied, and if no unit confirms even that, its tables stay.
+    replace(id, translated(root, LEVELS, domain)).inspect_err(|_| {
+        if replace(id, blocked()).is_err() {
+            super::pinned::pin(domain);
+        }
+    })
 }
 
-/// Deny the device everything, from identity or from a capsule domain.
+/// Deny the device everything, from its reserved or a capsule domain.
 pub fn detach(id: u16) -> Result<(), AmdViError> {
     let _roots = ROOTS.lock();
     let current = read_dte(id)?;
-    if current == blocked() {
+    if same_dma(current, blocked()) {
         return Err(AmdViError::DeviceNotAttached);
     }
     crate::log::info!("[amd-vi] detaching device {} from domain {}", id, domain_of(current));
     replace(id, blocked())
 }
 
-/// Identity for a device the kernel enumerated, at bring-up.
-pub(in crate::arch::x86_64::iommu::amd_vi) fn pass(id: u16) -> Result<(), AmdViError> {
-    write_dte(id, passthrough())
-}
-
-fn replace(id: u16, entry: Dte) -> Result<(), AmdViError> {
-    write_dte(id, entry)?;
+/// Only the DMA half changes: a device whose interrupts are remapped, or
+/// refused (K4), stays so through every move (`intr_format`).
+fn replace(id: u16, dma: Dte) -> Result<(), AmdViError> {
+    let (before, after) = update_dte(id, |current| keep_interrupts(dma, current))?;
+    note(before, after);
     flush_device(id)
 }

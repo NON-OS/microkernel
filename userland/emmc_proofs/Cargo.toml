@@ -15,5 +15,8 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
+# The capsule side of the block wire, which the mounted protocol module
+# re-exports.
+nonos_blk_wire = { path = "../nonos_blk_wire" }
 # The platform glue's broker calls, logged with the model's state at each one.
 nonos_libc = { package = "ahci_proofs_libc_shim", path = "../ahci_link_proofs/libc_shim" }

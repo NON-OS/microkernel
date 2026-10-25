@@ -19,6 +19,9 @@
 
 #![allow(dead_code)]
 
+// The verb transport, mounted from its own file for the line budget.
+include!("mount_verbs.rs");
+
 #[path = "../../../capsule_driver_hda/src/controller/bdl.rs"]
 pub mod bdl;
 #[path = "../../../capsule_driver_hda/src/controller/codec/mod.rs"]
@@ -33,8 +36,6 @@ pub mod corb;
 pub mod crst;
 #[path = "../../../capsule_driver_hda/src/controller/dma_sync.rs"]
 pub mod dma_sync;
-#[path = "../../../capsule_driver_hda/src/controller/immediate.rs"]
-pub mod immediate;
 #[path = "../../../capsule_driver_hda/src/controller/info.rs"]
 pub mod info;
 #[path = "../../../capsule_driver_hda/src/controller/intel/mod.rs"]
@@ -45,8 +46,6 @@ pub mod position;
 pub mod quiesce;
 #[path = "../../../capsule_driver_hda/src/controller/reset.rs"]
 pub mod reset;
-#[path = "../../../capsule_driver_hda/src/controller/rirb.rs"]
-mod rirb;
 #[path = "../../../capsule_driver_hda/src/controller/sst.rs"]
 pub mod sst;
 #[path = "../../../capsule_driver_hda/src/controller/stop.rs"]
@@ -57,10 +56,6 @@ pub mod stream_layout;
 pub mod stream_run;
 #[path = "../../../capsule_driver_hda/src/controller/streams.rs"]
 pub mod streams;
-#[path = "../../../capsule_driver_hda/src/controller/verb.rs"]
-pub mod verb;
-#[path = "../../../capsule_driver_hda/src/controller/verb_send.rs"]
-mod verb_send;
 #[path = "../../../capsule_driver_hda/src/controller/verdict.rs"]
 pub mod verdict;
 #[path = "../../../capsule_driver_hda/src/controller/verdict_name.rs"]

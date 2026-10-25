@@ -24,5 +24,6 @@ pub use convert::{
     ticks_to_milliseconds, ticks_to_nanoseconds,
 };
 pub use count::{current_count, virtual_count};
+pub(super) use freq::cntfrq as freq_register;
 pub use freq::frequency;
 pub use offset::{physical_to_virtual, virtual_offset, virtual_to_physical};

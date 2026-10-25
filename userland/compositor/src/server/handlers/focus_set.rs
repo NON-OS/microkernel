@@ -16,7 +16,7 @@
 
 use nonos_libc::mk_service_lookup;
 
-use crate::protocol::{Request, E_INVAL, E_PERM, FOCUS_SET_REQ_LEN};
+use crate::protocol::{Request, E_INVAL, E_PERM};
 use crate::server::respond;
 use crate::state::{raise_rule, scene_raise, Context};
 
@@ -40,10 +40,7 @@ pub fn handle(
     if !raise_rule::may_raise(sender_pid, wm_pid()) {
         return respond::status(sender_pid, req, E_PERM, tx);
     }
-    if body.len() != FOCUS_SET_REQ_LEN {
-        return respond::status(sender_pid, req, E_INVAL, tx);
-    }
-    let Some(target_pid) = super::u32_at(body, 0) else {
+    let Some(target_pid) = crate::requests::pointer::focus_set(body) else {
         return respond::status(sender_pid, req, E_INVAL, tx);
     };
     // The window manager sends this whenever a window is focused or raised in

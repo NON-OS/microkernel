@@ -38,11 +38,12 @@ pub(super) fn drain_for_pid(pid: u32) -> Vec<DmaGrant> {
     taken
 }
 
-pub(super) fn drain_for_device(pid: u32, device_id: u64) -> Vec<DmaGrant> {
+/// The grants of `pid`'s claim of `device_id` at `epoch` only (L71).
+pub(super) fn drain_for_device(pid: u32, device_id: u64, epoch: u64) -> Vec<DmaGrant> {
     let mut all = RECORDS.lock();
     let mut taken = Vec::new();
     all.retain(|g| {
-        if g.pid == pid && g.device_id == device_id {
+        if (g.pid, g.device_id, g.claim_epoch) == (pid, device_id, epoch) {
             taken.push(*g);
             false
         } else {

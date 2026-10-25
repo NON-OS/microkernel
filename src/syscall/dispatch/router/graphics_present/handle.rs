@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::blit::blit;
+use super::consts::EBUSY;
+use crate::syscall::dispatch::util;
 use crate::syscall::SyscallResult;
 
 /// Present a surface, or one damage rectangle of it. Zero width or height
@@ -28,6 +30,9 @@ pub(in crate::syscall::dispatch::router) fn handle(
     w: u64,
     h: u64,
 ) -> SyscallResult {
+    if super::boot_fb::held() {
+        return util::errno(EBUSY);
+    }
     let full = w == 0 || h == 0;
     blit(display, surface, span, x, y, w, h, full)
 }

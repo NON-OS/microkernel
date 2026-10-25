@@ -1,6 +1,3 @@
-// Tests assert by panicking and print measurements, so those lints are off here only.
-#![allow(clippy::expect_used, clippy::panic)]
-
 use nox_shield_core::bench::bench_launch;
 use nox_shield_core::custody::{generate_phrase, phrase_to_seed};
 use nox_shield_core::keys::Account;

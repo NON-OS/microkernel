@@ -24,9 +24,26 @@ shield_wire = { path = "../shield_wire" }
 nonos_tls = { path = "../nonos_tls" }
 # Every RPC request leaves through the network the person chose.
 nonos_route_link = { path = "../nonos_route_link" }
+# The JSON-RPC requests and answer readers, shared with nox-settle.
+nonos_eth_rpc = { path = "../nonos_eth_rpc" }
 # Whether this boot keeps anything past power off, as the store itself asks.
 nonos_policy_client = { path = "../policy_client" }
 nonos_policy_proto = { path = "../policy_proto" }
+# NOX's address and the Shield pool, from the one config every chain
+# constant lives in (B7).
+nonos_nox_config = { path = "../nonos_nox_config" }
+# The meter's ACCOUNT: the address a Shield withdraw funds (B7).
+nonos_payment_proto = { path = "../payment_proto" }
+nonos_market_proto = { path = "../market_proto" }
+# The publisher screen reads an entry document and derives ids (B8, plan/31).
+nonos_marketplace_abi = { path = "../marketplace_abi" }
+# orderId and the deposit address, the meter's own derivation, recomputed
+# before any Shield withdraw funds an order (plan/22, plan/27).
+nonos_nox_chunks = { path = "../nonos_nox_chunks" }
+# settle's wire: the wallet's ASYNC BROADCAST, READ and INTENT (v1.4.53).
+nonos_settle_proto = { path = "../settle_proto" }
+# Secrets are wiped through zeroize's volatile writes, with no unsafe here.
+zeroize = { version = "=1.9.0", default-features = false, features = ["alloc"] }
 
 [profile.release]
 panic = "abort"

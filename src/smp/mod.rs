@@ -18,7 +18,10 @@ extern crate alloc;
 
 #[cfg(target_arch = "x86_64")]
 mod ap;
+pub mod boot_budget;
 pub mod boot_claim;
+mod boot_park;
+mod boot_race;
 mod constants;
 mod cpu;
 mod cpu_id;
@@ -28,9 +31,14 @@ mod ipi_dispatch;
 mod ipi_handler;
 mod panic_ipi;
 mod preempt;
+mod register_secondary;
 mod responsive;
 mod serve;
 mod sole_cpu;
+mod spin_holders;
+mod spin_report;
+mod spin_wait;
+mod spin_watch;
 mod state;
 mod stats;
 mod types;
@@ -46,7 +54,7 @@ pub use constants::*;
 pub use cpu::*;
 pub use cpu_id::{cpu_id, current_cpu_id};
 pub use sole_cpu::sole_cpu_apic_id;
-pub(crate) use state::{cpu_count, cpu_is_online, cpus_online};
+pub(crate) use state::{cpu_count, cpu_is_offline, cpu_is_online, cpu_is_starting, cpus_online};
 /// Called by the IDT builder, which is the only point early enough that every
 /// CPU is guaranteed to load a table carrying these vectors.
 #[cfg(target_arch = "x86_64")]
@@ -56,8 +64,9 @@ pub use types::*;
 pub use ap::*;
 pub use init::*;
 pub use ipi_handler::*;
-pub use panic_ipi::send_panic_ipi;
+pub use panic_ipi::{others_halted, send_panic_ipi};
 pub use preempt::*;
+pub use register_secondary::register_secondary;
 pub use responsive::lock_responsive;
 pub use serve::{in_serve_units, serve_shootdowns, SERVE_UNIT};
 pub use stats::*;

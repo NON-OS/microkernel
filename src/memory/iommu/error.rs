@@ -29,8 +29,15 @@ pub enum IommuError {
     DeviceDetachFailed,
     PageTableExhausted,
     BackendFault,
+    /// A map wrote its entries but the unit did not confirm it saw them, so
+    /// the range may be live: its frames stay out of the allocator until an
+    /// unmap of it succeeds.
+    Uncommitted,
     /// IVRS describes AMD-Vi hardware and this kernel has no AMD-Vi backend.
     AmdViNotDriven,
     /// The firmware described neither a DMAR remapping unit nor an IVRS table.
     NoIommu,
+    /// A failed map whose entries the unit may still hold: its frames must
+    /// never be freed or reused (plan/50 P5).
+    Stranded,
 }

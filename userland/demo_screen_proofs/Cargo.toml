@@ -1,0 +1,62 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# The demo's screens drawn on the host: About, through its own paint code,
+# at the window each display mode gives it, framed as app_skeleton frames
+# it, so what a recording shows can be looked at before a boot.
+[package]
+name = "demo_screen_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+# About's own build script, so its build screen names this tree and compiler.
+build = "../capsule_about/build.rs"
+
+[lib]
+path = "src/lib.rs"
+# The proofs are tests/screens: built as a unit test the terminal's files
+# would compile their host-test variants instead of what ships.
+test = false
+doctest = false
+
+[dependencies]
+nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
+nonos_toolkit = { path = "../toolkit", default-features = false }
+nonos_policy_proto = { path = "../policy_proto" }
+nonos_route_proof = { path = "../route_proof" }
+nonos_libc = { package = "demo_screen_proofs_libc_shim", path = "libc_shim" }
+# The terminal's own libraries, as capsule_terminal links them.
+nonos_inflate = { path = "../inflate" }
+nonos_base64 = { path = "../base64" }
+nonos_bench_core = { path = "../../nonos-bench" }
+nonos_git = { path = "../nonos_git" }
+nonos_http = { path = "../nonos_http" }
+nonos_market_proto = { path = "../market_proto" }
+nonos_nox_config = { path = "../nonos_nox_config" }
+nonos_socket = { path = "../nonos_socket" }
+nonos_tls = { path = "../nonos_tls" }
+nonos_vt = { path = "../nonos_vt" }
+nonos_route_link = { path = "../nonos_route_link" }
+# The desktop shell's, as capsule_desktop_shell links them.
+nonos_audio_proto = { path = "../audio_proto" }
+nonos_policy_client = { package = "demo_screen_proofs_policy_shim", path = "policy_shim" }
+
+[features]
+# The terminal's self-test build; never on here.
+nonos-autorun-selftest = []
+# The shell's frame timing log; never on here.
+shell-frametime = []

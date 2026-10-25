@@ -16,7 +16,7 @@
 
 //! Kernel-side glue for the PS/2 keyboard userland driver capsule.
 //! Embed, spawn, and a thin IPC client that mirrors the userland
-//! endpoint surface (healthcheck, poll_events, get_state). The
+//! endpoint surface it uses (healthcheck, get_state). The
 //! kernel does not touch the i8042 — the capsule speaks broker
 //! syscalls (PIO + IRQ) and owns the controller.
 
@@ -28,7 +28,7 @@ mod protocol;
 mod spawn;
 mod state;
 
-pub use client::{get_state, healthcheck, poll_events, KeyEvent, RingState};
+pub use client::{get_state, healthcheck, RingState};
 pub use error::DriverPs2Error;
 pub use spawn::{spawn_driver_ps2_input_capsule, SpawnError};
 pub use state::shared_state;

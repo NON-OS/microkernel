@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Issue a PIO grant against a device's PIO BAR. Mirrors
-//! `mmio::map_for_caller`: resolve claim, resolve device, validate
-//! BAR is PIO and fits in 16-bit port space, allocate grant id,
-//! record the grant. Reads and writes off the new id go through
-//! `access`; the kernel is the only side that ever executes the
-//! `in`/`out` instructions.
+//! A PIO grant on a device's PIO BAR, as mmio::map_for_caller: the claim, the device, a BAR
+//! in the port space clear of firmware's ports and the FADT's power registers (`bar_window`,
+//! `power_ports`), then the record, overlapping no other device's grant, while the claim holds
+//! (K10). Only the kernel runs `in`/`out` (`access`).
 
+use super::bar_window::port_window;
 use super::grant::{self, PioGrant};
+use super::grant_insert::insert_exclusive;
 use super::types::{PioError, PioGrantRequest, PioGrantResult};
 use crate::hardware::broker::claim;
-use crate::hardware::broker::device::BAR_KIND_PIO;
+use crate::hardware::broker::reserved;
 use crate::hardware::broker::table;
 
 const FLAGS_KNOWN: u32 = 0;
@@ -48,31 +48,20 @@ pub(super) fn grant_for_caller(pid: u32, req: PioGrantRequest) -> Result<PioGran
     if bar_idx >= device.bars.len() || bar_idx >= device.bar_count as usize {
         return Err(PioError::BadBarIndex);
     }
+    let (port_base, port_count) = port_window(device.bars[bar_idx])?;
     let bar = device.bars[bar_idx];
-    if bar.kind != BAR_KIND_PIO {
-        return Err(PioError::NotPioBar);
+    if reserved::refuses(b"PIO", reserved::IO, bar.base, bar.size, true) {
+        return Err(PioError::FirmwareReserved);
     }
-    if bar.size == 0 {
-        return Err(PioError::ZeroSize);
-    }
-    if bar.base > u16::MAX as u64 {
-        return Err(PioError::PortOverflow);
-    }
-    let port_base = bar.base as u16;
-    let last_port = bar.base.checked_add(bar.size).ok_or(PioError::PortOverflow)?;
-    if last_port > u16::MAX as u64 + 1 {
-        return Err(PioError::PortOverflow);
-    }
-    let port_count = (bar.size & u16::MAX as u64) as u16;
 
     let grant_id = grant::allocate_id();
-    grant::insert(PioGrant {
+    insert_exclusive(PioGrant {
         grant_id,
         pid,
         device_id: req.device_id,
         claim_epoch: claim.epoch,
         port_base,
         port_count,
-    });
+    })?;
     Ok(PioGrantResult { port_base, port_count, grant_id })
 }

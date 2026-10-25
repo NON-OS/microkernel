@@ -27,7 +27,7 @@ const MS_INVALIDATE: u64 = 2;
 const MS_SYNC: u64 = 4;
 
 pub fn msync(guest: &Guest, addr: u64, len: u64, flags: u64) -> u64 {
-    if flags & !(MS_ASYNC | MS_INVALIDATE | MS_SYNC) != 0 || addr % PAGE != 0 {
+    if flags & !(MS_ASYNC | MS_INVALIDATE | MS_SYNC) != 0 || !addr.is_multiple_of(PAGE) {
         return errno::fail(errno::EINVAL);
     }
     if flags & MS_ASYNC != 0 && flags & MS_SYNC != 0 {

@@ -41,7 +41,7 @@ static NEXT_ID: AtomicU32 = AtomicU32::new(1);
 pub(super) fn call(op: u16, body: &[u8]) -> Result<Vec<u8>, Failure> {
     let port = port().ok_or(Failure::NotAnnounced)?;
     let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
-    let tx = request(op, id, body);
+    let tx = request(op, id, body).ok_or(Failure::Malformed)?;
     let mut rx = vec![0u8; RX_CAP];
     let rc = mk_ipc_call_timeout(
         port as u64,

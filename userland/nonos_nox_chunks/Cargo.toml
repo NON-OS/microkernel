@@ -1,0 +1,35 @@
+# NONOS userland: nonos_nox_chunks
+#
+# Escrow's chunk trees, cipher and order ids (plan/22), shared by the
+# buyer's OS side, the installer's pin and the seller's host tool, so the
+# three cannot drift.
+
+[package]
+name = "nonos_nox_chunks"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "Escrow chunk trees, keystream and order ids, no_std"
+
+[package.metadata.nonos]
+test-lane = true
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+nonos_nox_config = { path = "../nonos_nox_config" }
+nonos_marketplace_abi = { path = "../marketplace_abi" }
+# The escrow answer's ChaCha20-Poly1305 (plan/22 step 1).
+nonos_seal = { path = "../nonos_seal" }
+# A FETCH 1 request's proof of work, checked by the agent and solved by the meter (plan/29).
+nonos_equix = { path = "../nonos_equix" }
+
+[dev-dependencies]
+# X25519 on the host only, as shield_core pins it.
+x25519-dalek = { version = "=2.0.1", default-features = false, features = ["static_secrets"] }
+# keccak-256 on the host only.
+sha3 = { version = "=0.10.9", default-features = false }
+# OrderTerms is the tuple settle_proto names for fund(T).
+nonos_settle_proto = { path = "../settle_proto" }

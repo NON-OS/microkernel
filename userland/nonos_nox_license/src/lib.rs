@@ -29,7 +29,7 @@ mod price;
 mod verify;
 
 pub use entitlement::{Entitlement, ParseError, BODY_LEN, ENTITLEMENT_LEN, MAGIC, SIG_LEN};
-pub use price::{price_of, tool_name, ToolId, TREASURY};
+pub use price::{price_of, tool_name, ToolId};
 pub use verify::{check, CheckError, Checked, Verify};
 
 #[cfg(test)]

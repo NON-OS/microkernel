@@ -17,11 +17,11 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
 
-use crate::about::theme::{ACCENT, LABEL, MUTED, TITLE, TRACK_BG};
+use crate::about::theme::{ACCENT, LABEL, MUTED, TRACK_BG};
 
 use super::card;
 use super::metrics::{
-    BODY_PX, CARD_PAD, TILE_H, TILE_RING_R, TILE_RING_T, TILE_RING_TOP, TILE_SUB_GAP, VALUE_PX,
+    BODY_PX, CARD_PAD, TILE_H, TILE_RING_R, TILE_RING_T, TILE_RING_TOP, TILE_SUB_GAP,
 };
 use super::text;
 
@@ -46,9 +46,7 @@ pub fn tile(
     let cy = y + TILE_RING_TOP + TILE_RING_R;
     fb.ring(cx, cy, TILE_RING_R, TILE_RING_T, TRACK_BG);
     fb.ring_arc(cx, cy, TILE_RING_R, TILE_RING_T, num, den.max(1), ACCENT);
-    let value_top = text::top_of((cy - TILE_RING_R) as i32, TILE_RING_R * 2, VALUE_PX);
-    let value_w = text::width(fb, value, VALUE_PX);
-    text::line(fb, cx.saturating_sub(value_w / 2), value_top, value, TITLE, VALUE_PX);
+    super::gauge_value::paint(fb, cx, cy, value);
     let inner = card::inner(w);
     let label_y = cy + TILE_RING_R + CARD_PAD;
     label_line(fb, x, label_y, inner, label, LABEL);

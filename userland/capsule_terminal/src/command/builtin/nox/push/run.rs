@@ -14,20 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-
-use nonos_app_skeleton::clients::vfs::read_file;
-
 use super::super::ensure_pid::ensure_pid;
 use super::super::pull::auth::extra_headers;
 use super::super::pull::resolve::resolve_host;
-use super::{args, request, walk};
+use super::{args, walk};
 use crate::command::builtin::direct_gate::{refusal_line, PUSH};
 use crate::command::builtin::offline_probe::offline;
 use crate::term::cwd::resolve;
 use crate::term::state::State;
 
-const MAX: u32 = 64 * 1024 * 1024;
+#[path = "run_file.rs"]
+mod run_file;
+
+use run_file::push_file;
 
 pub fn run(state: &mut State, argv: &[&[u8]]) -> bool {
     let a = match args::parse(argv) {
@@ -58,23 +57,5 @@ pub fn run(state: &mut State, argv: &[&[u8]]) -> bool {
     if a.target.is_dir {
         return walk::walk(state, pid, ip, &path, &a.target, &extra);
     }
-    let body = match read_file(pid, &path, MAX) {
-        Ok(b) => b,
-        Err(e) => {
-            state.scrollback.push_error(e.as_bytes());
-            return false;
-        }
-    };
-    match request::put(ip, a.target.port, &a.target.host, &a.target.path, &body, &extra) {
-        Ok(()) => {
-            let mut msg = Vec::from(&b"pushed "[..]);
-            msg.extend_from_slice(&a.target.path);
-            state.scrollback.push_line(&msg);
-            true
-        }
-        Err(e) => {
-            state.scrollback.push_error(e.as_bytes());
-            false
-        }
-    }
+    push_file(state, pid, ip, path, &a, extra)
 }

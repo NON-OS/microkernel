@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The proofs themselves, kept out of the crate root so the list of
-//! production files included above stays readable.
+//! The proofs, kept out of the crate root so its list of included files reads.
 
 mod alert_named;
 mod alert_plaintext;
@@ -40,8 +39,11 @@ mod chain_names_forged;
 mod wallet_names;
 mod chain_validity;
 mod crypto_requests;
+mod crypto_wait;
 mod der_build;
 mod fake_server;
+mod handshake_deadline;
+mod handshake_flight_cap;
 mod flight_alert;
 mod flight_complete;
 mod flight_order;
@@ -54,8 +56,10 @@ mod hkdf_label_shape;
 mod inner_plain;
 mod inner_plain_edges;
 mod key_share_offer;
+#[cfg(feature = "live-relays")]
 mod live_relay;
 mod p256_share;
+mod reply_deadline;
 mod rfc8448_flight;
 mod schedule_records;
 mod schedule_rfc8448;
@@ -68,4 +72,4 @@ mod server_hello_vectors;
 mod sha384_long_body;
 mod step_plain;
 mod stream_records;
-mod tls13_only;
+mod tls13;

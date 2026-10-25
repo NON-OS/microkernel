@@ -13,101 +13,50 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! Device enumerate / claim / release. Cap-gated at the contract
 //! layer: `MkDeviceList` requires `DeviceEnum`, claim and release
 //! require `Driver`. Handlers do not re-check the capability;
-//! reaching here proves it.
+//! reaching here proves it. The list is device_list.rs.
 
-use core::mem::size_of;
-use core::sync::atomic::{AtomicU32, Ordering};
+#[path = "device_errno.rs"]
+mod device_errno;
 
-use super::errnos::{ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL, ERRNO_NODEV, ERRNO_PERM};
-use crate::hardware::broker::{self, ClaimError, DeviceRecord};
+use super::errnos::{ERRNO_NODEV, ERRNO_PERM};
+use crate::hardware::broker;
 use crate::process::current_pid;
-use crate::usercopy::{validate_user_write, write_user_value};
 
-static DEVICE_RELEASE_TRACE_COUNT: AtomicU32 = AtomicU32::new(0);
-
-fn trace_release(label: &[u8], pid: u32) {
-    if pid != 7 || DEVICE_RELEASE_TRACE_COUNT.fetch_add(1, Ordering::Relaxed) >= 24 {
-        return;
-    }
-    crate::sys::serial::print(b"[DEV-RELEASE] ");
-    crate::sys::serial::println(label);
-}
-
-pub fn sys_device_list(class: u32, buf_ptr: u64, count: u64) -> i64 {
-    let snapshot = broker::list_by_class(class);
-    let total = snapshot.len();
-    if count == 0 {
-        return total as i64;
-    }
-    if buf_ptr == 0 {
-        return ERRNO_FAULT;
-    }
-    let to_write = core::cmp::min(count as usize, total);
-    let bytes = match (to_write as u64).checked_mul(size_of::<DeviceRecord>() as u64) {
-        Some(v) => v,
-        None => return ERRNO_INVAL,
-    };
-    if validate_user_write(buf_ptr, bytes as usize).is_err() {
-        return ERRNO_FAULT;
-    }
-    let stride = size_of::<DeviceRecord>() as u64;
-    for (i, rec) in snapshot.iter().take(to_write).enumerate() {
-        let dst = buf_ptr + (i as u64) * stride;
-        if write_user_value(dst, rec).is_err() {
-            return ERRNO_FAULT;
-        }
-    }
-    to_write as i64
-}
+pub use super::device_list::sys_device_list;
 
 pub fn sys_device_claim(device_id: u64) -> i64 {
     let pid = match current_pid() {
         Some(p) => p,
         None => return ERRNO_PERM,
     };
+    let pid = crate::hardware::broker::holder_of(pid);
     if !broker::contains(device_id) {
         return ERRNO_NODEV;
     }
     match broker::claim_device(pid, device_id) {
         Ok(epoch) => epoch as i64,
-        Err(ClaimError::AlreadyClaimed) => ERRNO_BUSY,
-        Err(ClaimError::UnknownDevice) => ERRNO_NODEV,
-        Err(ClaimError::NotHolder) | Err(ClaimError::NotClaimed) => ERRNO_INVAL,
-        Err(ClaimError::Unconfined) => ERRNO_PERM,
+        Err(e) => device_errno::claim_errno(e),
     }
 }
 
-// Releases the claim on `device_id` held by the calling pid. Bus
-// mastering stops first, so nothing the device still has in flight can
-// land in a DMA frame once it is freed below; then the outstanding MMIO,
-// IRQ, DMA and PIO grants are torn down (the caller's CR3 is active here
-// so the unmap and TLB shootdown are in-context), and the claim goes
-// last. The exit path performs the same cleanup for every claim a dying
-// capsule was holding, and drops its claims before its DMA grants.
+// Releases the claim on `device_id` held by the calling pid, with every
+// grant made against it (`give_back`, L66): retired first, so nothing more
+// is granted; Bus Master off; its MMIO, IRQ, DMA and port grants taken
+// down, each page out of the holder's tables and each grant out of the
+// device's domain before a frame is freed (K10); the claim last, and the
+// function's wipe owed then (L78). The exit path does the same for every
+// claim a dying capsule held.
 pub fn sys_device_release(device_id: u64) -> i64 {
     let pid = match current_pid() {
         Some(p) => p,
         None => return ERRNO_PERM,
     };
-    trace_release(b"enter", pid);
-    let _ = broker::quiesce_held_device(pid, device_id);
-    let _ = broker::release_for_device(pid, device_id);
-    let _ = broker::irq_release_for_device(pid, device_id);
-    let _ = broker::dma_release_for_device(pid, device_id);
-    let _ = broker::pio_release_for_device(pid, device_id);
-    match broker::release_device(pid, device_id) {
-        Ok(_epoch) => {
-            trace_release(b"ok", pid);
-            0
-        }
-        Err(ClaimError::NotClaimed) => ERRNO_NODEV,
-        Err(ClaimError::NotHolder) => ERRNO_PERM,
-        Err(ClaimError::AlreadyClaimed)
-        | Err(ClaimError::UnknownDevice)
-        | Err(ClaimError::Unconfined) => ERRNO_INVAL,
+    let pid = crate::hardware::broker::holder_of(pid);
+    match broker::give_back(pid, device_id) {
+        Ok(_epoch) => 0,
+        Err(e) => device_errno::release_errno(e),
     }
 }

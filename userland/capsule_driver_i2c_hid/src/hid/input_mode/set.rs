@@ -18,7 +18,8 @@
 //! and the length-prefixed report. Whether the pad took it: a write it or
 //! the bus refuses leaves it as it was, for a later set-up to try again.
 
-use super::command::{Command, REPORT_MAX};
+use super::command::Command;
+use super::port::REPORT_MAX;
 use crate::i2c_client::write_read;
 
 const OPCODE_SET_REPORT: u8 = 0x03;

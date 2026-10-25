@@ -23,11 +23,14 @@ use core::sync::atomic::{AtomicU64, Ordering};
 static CALLS: AtomicU64 = AtomicU64::new(0);
 static MISSED: AtomicU64 = AtomicU64::new(0);
 
+/// A trap: the diagnostic head as of the calls before it goes to the seal.
 pub fn call() {
+    crate::linux::recent::trace::flush();
     CALLS.fetch_add(1, Ordering::Relaxed);
 }
 
 pub fn missed() {
+    crate::linux::recent::trace::unserved();
     MISSED.fetch_add(1, Ordering::Relaxed);
 }
 

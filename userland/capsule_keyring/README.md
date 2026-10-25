@@ -23,9 +23,10 @@ keyring -- resolve_caller --> in-memory store, 128 keys, 16 per owner
 
 ## Microkernel contract
 
-- `CAPSULE_REQUIRED_CAPS = 0x38`: IPC (`0x8`), Memory (`0x10`) and Crypto
-  (`0x20`). The kernel mirror (`src/security/keyring_capsule`) requests the same
-  three bits. There is no optional mask. The capsule is the authority for the
+- `CAPSULE_REQUIRED_CAPS = 0x10000038`: IPC (`0x8`), Memory (`0x10`), Crypto
+  (`0x20`) and Keyring (`0x10000000`), which every keyring endpoint requires of
+  its owner (`required_caps`). The kernel mirror (`src/security/keyring_capsule`)
+  requests the same four bits. There is no optional mask. The capsule is the authority for the
   Keyring bit, so it does not hold `Capability::Keyring`; callers do.
 - Service `service:4098:keyring`, reply `reply:4099:endpoint.4294967298`.
 - The feature `nonos-capsule-keyring` is in `microkernel-keyring`,
@@ -41,7 +42,7 @@ keyring -- resolve_caller --> in-memory store, 128 keys, 16 per owner
 
 ## Interface contract
 
-29 ops, all listed in `ALL` in `src/protocol/ops.rs`, where a const assertion
+31 ops, all listed in `ALL` in `src/protocol/ops.rs`, where a const assertion
 (`all_distinct`) fails the build if two share a code. They are served by
 `src/server/dispatch.rs`:
 
@@ -49,17 +50,58 @@ keyring -- resolve_caller --> in-memory store, 128 keys, 16 per owner
 |---|---|
 | `OP_STORE`, `OP_RETRIEVE`, `OP_DELETE`, `OP_METADATA`, `OP_COUNT` | caller-owned key records |
 | `OP_LOCK`, `OP_UNLOCK` | lock or release one entry the caller owns |
+| `OP_LIST` (31) | `[pid u32][key type u8]` -> `[count u32][id u32 each]`: the caller's own ids of one kind |
 | `OP_WALLET_IMPORT`, `OP_WALLET_GENERATE`, `OP_WALLET_GENERATE_HD`, `OP_WALLET_RECOVER`, `OP_WALLET_DERIVE` | create or derive a wallet key: from a 32-byte secret, at random, or from a BIP39 mnemonic (m/44'/60'/0'/0/0) |
 | `OP_WALLET_ADDRESS`, `OP_WALLET_EXPORT` | the Ethereum address; the raw key, to its owner only |
-| `OP_SIGN_NOX_RECEIPT` | a recoverable EIP-712 signature |
-| `OP_SIGN_NOX_APPROVE`, `OP_SIGN_NOX_TRANSFER`, `OP_SIGN_NOX_STAKE_APPROVE`, `OP_SIGN_NOX_STAKE`, `OP_SIGN_NOX_UNSTAKE`, `OP_SIGN_NOX_STAKE_LOCKED`, `OP_SIGN_ETH_TRANSFER`, `OP_SIGN_TX` | raw signed EIP-1559 transactions |
+| `OP_SIGN_TYPED_DATA` | a recoverable EIP-712 signature over an entry of the keyring's own table (`src/server/typed/`); see below |
+| `OP_SIGN_NOX_TRANSFER`, `OP_SIGN_NOX_STAKE_APPROVE`, `OP_SIGN_NOX_STAKE`, `OP_SIGN_NOX_UNSTAKE`, `OP_SIGN_NOX_STAKE_LOCKED`, `OP_SIGN_ETH_TRANSFER`, `OP_SIGN_TX` | raw signed EIP-1559 transactions |
 | `OP_LIST_WALLET_RAILS` | the wallet rails and their status |
 | `OP_VAULT_SEAL`, `OP_VAULT_OPEN`, `OP_SHIELD_MATERIAL`, `OP_SHIELD_SEAL`, `OP_SHIELD_OPEN` | seal, open and shield the wallet's account record; the wallet only |
+| `OP_SIGN_NOX_RECEIPT` (11), `OP_SIGN_NOX_APPROVE` (12) | retired: EINVAL. Both signed for the retired, upgradeable ReceiptSettlement proxy; the numbers stay reserved (`src/protocol/retired.rs`) |
 
 Every op that names an owner goes through `resolve_caller` (`src/server/caller.rs`):
 the pid in the request is accepted only when it equals the pid the kernel stamped
 on the message, and sender 0 is refused. A frame too short to carry a sequence
 number is answered with `EINVAL` under sequence 0.
+
+Key types 10 (`BtBond`, 48 octets) and 11 (`BtLocalIrk`, 17 octets) are kept
+for a service name, not a pid (`src/store/named.rs`). Only a process that owns a
+name in `BOND_HOLDERS` (`src/server/bond_gate/rule.rs`: `driver.bt_usb0`) may
+store them. The reaper leaves them when that pid ends. Before any request is
+answered, the records go to whichever pid owns the name now, so a restarted
+driver finds its bonds with `OP_LIST`. They last the boot only until
+Decision 27.
+
+### `OP_SIGN_TYPED_DATA` (30)
+
+Request: `pid u32 | key u32 | entry u16 | reserved u16 = 0 | chain_id u64 | n u8 | n x 32-byte words`,
+little-endian, the words the EIP-712 encoding of the entry's fields in order.
+
+Reply, 181 bytes: `signer[20] | domainSeparator[32] | structHash[32] | digest[32] | sig[65]`.
+
+The caller never supplies a type, a domain or a verifying contract: those come
+from the table in `src/server/typed/`, which reads each struct, its domain and
+the contract's address on each chain from `nonos_nox_config`. It has three
+entries:
+
+- 1, `Voucher` under "NONOS Settlement", callable by the `payment` service. Its
+  `payer` field must be the signing key's address.
+- 2, `PublisherBinding`, under "NONOS Bond", callable by the wallet.
+- 3, `ReleaseAttest`, under "NONOS Bond", callable by the wallet.
+
+A request is signed only when every one of these holds:
+
+- the caller owns one of the entry's services;
+- `resolve_caller` passes;
+- the chain is mainnet or Sepolia;
+- the entry's contract is deployed on that chain;
+- every word is a canonical encoding of its field's type;
+- the key is the caller's own, unlocked and unexpired.
+
+Failures answer `EACCES` for the caller, `ENOENT` for a contract not deployed,
+and `EINVAL` for anything else. No contract is deployed yet, so every entry
+refuses with `ENOENT`. `wallet_proofs` holds the table's pure code and pins its
+hashes.
 
 `OP_LIST_WALLET_RAILS` returns:
 
@@ -81,9 +123,9 @@ ported and tested.
 
 ## Authority
 
-`CAPSULE_REQUIRED_CAPS = 0x38` is the whole authority the capsule asks for: IPC
-for `mk_ipc_recv_from`/`mk_ipc_send`, Memory for the heap, and Crypto for
-`CryptoRandom` and `CryptoMachineKey`. It holds no device, MMIO, IRQ, DMA, PIO,
+`CAPSULE_REQUIRED_CAPS = 0x10000038` is the whole authority the capsule asks
+for: IPC for `mk_ipc_recv_from`/`mk_ipc_send`, Memory for the heap, Crypto for
+`CryptoRandom` and `CryptoMachineKey`, and Keyring to own its endpoints. It holds no device, MMIO, IRQ, DMA, PIO,
 filesystem, network, admin or debug capability, and no Keyring bit. The kernel
 installs the mask from the verified manifest at spawn; the capsule cannot widen
 it.
@@ -119,7 +161,7 @@ reported to clients with an errno of its own by the kernel path.
 
 ## Current implemented surface
 
-The 29 ops above, served by the handlers under `src/server/handlers/`, over the
+The 31 ops above, served by the handlers under `src/server/handlers/`, over the
 store in `src/store/` (128 keys, 16 per owner, `MAX_KEY_SIZE` 256 bytes). EIP-712
 and EIP-1559 encoding live under `src/server/eip712/` and `src/server/eip1559/`;
 RLP under `src/server/rlp/`; the vault under `src/vault/`. Nothing else.
@@ -146,7 +188,9 @@ is ever mirrored into kernel service state.
   every other program of a slot.
 - Drop the keys of an owner that ended, each wiped as its own delete would have;
   checked every two seconds while requests arrive, and before any request when
-  the store is full (`src/server/reap.rs`, `src/store/ended.rs`).
+  the store is full (`src/server/reap.rs`, `src/store/ended.rs`). Records kept
+  for a name stay, for the name's next owner.
+- Only a `BOND_HOLDERS` name's owner stores key types 10 and 11.
 - `unlock` and its locking twin act only on an entry the caller owns.
 - Only the wallet pids may seal or open the vault.
 - Never mirror keys into kernel service state; wipe the receive buffer after
@@ -160,7 +204,10 @@ is ever mirrored into kernel service state.
 
 `userland/wallet_proofs` (`keyring_owner_tests.rs`) runs the real store on the
 host: the per-owner share and the dropping of ended owners' keys, with the vault
-gate rule exercised there too. The static gate `nonos-ci/run-static-checks.sh`
+gate rule exercised there too. `keyring_bond_tests.rs` covers records kept by
+name: refused through `OP_STORE`'s plain path, kept past their pid, adopted by
+the name's next owner, listed per kind, and the per-owner share across a
+restart. The static gate `nonos-ci/run-static-checks.sh`
 runs `scripts/check_mirror_caps.py` over the spawn mirror's capability word.
 
 ## Release checklist

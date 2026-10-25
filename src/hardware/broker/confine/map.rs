@@ -13,56 +13,60 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 use super::iova;
+use super::map_fail::{after_refusal, MapFail};
 use super::table::CAPSULES;
 use crate::memory::addr::PhysAddr;
-use crate::memory::iommu::IommuProtection;
+use crate::memory::iommu::{IommuError, IommuProtection};
 
-/// The address a device is given for a grant, and whether it is an IOVA in
-/// the capsule's domain. A device no unit confines gets the physical address,
-/// and the grant is marked so its teardown knows there is nothing to unmap.
+/// Why a grant got no device address: no domain confines the device
+/// (decide.rs), or the domain would not map it.
+pub(in crate::hardware::broker) enum NoAddress {
+    Unconfined,
+    /// Nothing of the grant is mapped: its frames may be freed.
+    Failed,
+    /// The failed map may still be reachable: its frames are never reused.
+    Stranded,
+}
+
+/// A grant's device address, and whether it is an IOVA in the capsule's
+/// domain. Under the development opt-in alone, an unconfined device gets its
+/// physical address, marked so its teardown knows there is nothing to unmap.
 pub(in crate::hardware::broker) fn map(
     pid: u32,
     device_id: u64,
     phys: u64,
     length: u64,
-) -> Option<(u64, bool)> {
+    access: IommuProtection,
+) -> Result<(u64, bool), NoAddress> {
     let mut all = CAPSULES.lock();
     let held = |c: &&mut super::table::Capsule| c.devices.iter().any(|(d, _)| *d == device_id);
     let Some(c) = all.iter_mut().filter(|c| c.pid == pid).find(held) else {
-        return Some((phys, false));
+        let physical = super::open::physical_dma();
+        return if physical { Ok((phys, false)) } else { Err(NoAddress::Unconfined) };
     };
-    let iova = iova::take(c, length)?;
-    // SAFETY: eK@nonos.systems - `[phys, phys+length)` is a run the broker just
-    // allocated and zeroed for this grant, and frees only after `unmap` below
-    // returns true. `[iova, iova+length)` was taken fresh from this domain's
-    // allocator, so nothing is mapped there. Both are page aligned: the broker
-    // refuses a length that is not, and IOVA_BASE is.
-    let mapped = unsafe {
-        c.domain.map(iova, PhysAddr::new(phys), length as usize, IommuProtection::READ_WRITE)
-    };
-    if mapped.is_err() {
-        iova::give_back(c, iova, length);
-        return None;
+    let iova = iova::take(c, length).ok_or(NoAddress::Failed)?;
+    // SAFETY: eK@nonos.systems - `[phys, phys+length)` is a zeroed run the broker
+    // frees only after `unmap` returns true or a refused map is known to have
+    // left it unmapped; or, with `DOORBELL`, an MSI doorbell page whose one
+    // register takes a message and reads as zero. `[iova, iova+length)` is fresh
+    // from this domain's allocator; both are page aligned.
+    match unsafe { c.domain.map(iova, PhysAddr::new(phys), length as usize, access) } {
+        Ok(()) => Ok((iova, true)),
+        // Entries written but not confirmed, or a map the unit may still
+        // hold: the frames go back only if an unmap takes the range away,
+        // and a range none took keeps its IOVA too (plan/50 P5).
+        Err(e) => {
+            let unmap = || c.domain.unmap(iova, length as usize).is_ok();
+            let fail = match e {
+                IommuError::Stranded => MapFail::Pinned,
+                e => after_refusal(e == IommuError::Uncommitted, unmap),
+            };
+            if fail == MapFail::Pinned {
+                return Err(NoAddress::Stranded);
+            }
+            iova::give_back(c, iova, length);
+            Err(NoAddress::Failed)
+        }
     }
-    Some((iova, true))
-}
-
-/// True once no device can reach the grant, which is when its frames may be
-/// scrubbed and handed to someone else. False means they must not be.
-pub(in crate::hardware::broker) fn unmap(pid: u32, iova: u64, length: u64, confined: bool) -> bool {
-    if !confined {
-        return true;
-    }
-    let mut all = CAPSULES.lock();
-    let Some(c) = all.iter_mut().find(|c| c.pid == pid) else {
-        // The capsule's last device was detached, which denied it this too.
-        return true;
-    };
-    if c.domain.unmap(iova, length as usize).is_err() {
-        return false;
-    }
-    iova::give_back(c, iova, length);
-    true
 }

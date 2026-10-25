@@ -21,8 +21,7 @@
 
 use super::bound::driver;
 use super::controller::controller;
-use crate::constants::controller_index;
-use crate::discover::AcpiTouchpad;
+use crate::discover::{AcpiTouchpad, Found};
 use crate::driver::Driver;
 use crate::setup::settle::settle;
 use crate::transaction::Presence;
@@ -35,8 +34,21 @@ pub fn settled(
     found: Presence,
     targets: &[AcpiTouchpad],
 ) -> Result<Driver, &'static str> {
+    settled_on(&controller(), clock_hz, tg, found, targets)
+}
+
+/// The same, bound as the controller `dev` discovery listed, the bench's
+/// core standing in for that controller's own.
+pub fn settled_on(
+    dev: &Found,
+    clock_hz: u32,
+    tg: &AcpiTouchpad,
+    found: Presence,
+    targets: &[AcpiTouchpad],
+) -> Result<Driver, &'static str> {
     let mut d = driver(clock_hz, 0)?;
-    let s = settle(&d, &controller(), tg, found, targets);
+    (d.device_id, d.pci_device) = (dev.device_id, dev.pci_device);
+    let s = settle(&d, dev, tg, found, targets);
     (d.bound_addr, d.bound_desc_reg, d.bound_by_probe) = (s.addr, s.desc_reg, s.by_probe);
     d.reach.set(s.reach);
     Ok(d)
@@ -46,7 +58,7 @@ pub fn settled(
 pub fn unaddressed(clock_hz: u32) -> Result<Driver, &'static str> {
     let tpd0 = AcpiTouchpad {
         desc_reg: 0x0001,
-        controller_idx: controller_index(controller().pci_device),
+        host: Some(controller().device_id),
         ..AcpiTouchpad::default()
     };
     settled(clock_hz, &tpd0, Presence::Absent, &[tpd0])

@@ -14,34 +14,56 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// LIMIT: this newtype encodes a PCI bus/device/function only. SMMU
-// stream IDs and other non-PCI bus identifiers will need either an
-// enum or sibling newtypes when those backends arrive.
+/// A DMA requester as the remapping unit sees it, which is not always the
+/// device itself: a function behind an Intel VMD reaches the unit as the
+/// VMD, and on SMMUv3 a PCI requester becomes a StreamID through the device
+/// tree's `iommu-map`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct DeviceAddress(u32);
+pub enum DeviceAddress {
+    /// `rid` is `bus << 8 | device << 3 | function`.
+    Pci { segment: u16, rid: u16 },
+    /// A platform device's SMMU StreamID, from the device tree's `iommus`.
+    Stream(u32),
+}
 
 impl DeviceAddress {
-    pub const fn new(raw: u32) -> Self {
-        Self(raw)
-    }
-
+    /// A requester in segment 0, the only one most machines have.
     pub const fn pci(bus: u8, device: u8, function: u8) -> Self {
-        Self(((bus as u32) << 8) | ((device as u32 & 0x1F) << 3) | (function as u32 & 0x7))
+        Self::pci_in(0, bus, device, function)
     }
 
-    pub const fn as_u32(&self) -> u32 {
-        self.0
+    /// Device and function are masked to their fields, so an out-of-range
+    /// one cannot spill into the next bus and name another device's context.
+    pub const fn pci_in(segment: u16, bus: u8, device: u8, function: u8) -> Self {
+        let rid = (bus as u16) << 8 | (device as u16 & 0x1F) << 3 | (function as u16 & 0x7);
+        Self::Pci { segment, rid }
     }
 
-    pub const fn pci_bus(&self) -> u8 {
-        ((self.0 >> 8) & 0xFF) as u8
+    pub const fn stream(sid: u32) -> Self {
+        Self::Stream(sid)
     }
 
-    pub const fn pci_device(&self) -> u8 {
-        ((self.0 >> 3) & 0x1F) as u8
+    pub const fn segment(&self) -> Option<u16> {
+        match *self {
+            Self::Pci { segment, .. } => Some(segment),
+            Self::Stream(_) => None,
+        }
     }
 
-    pub const fn pci_function(&self) -> u8 {
-        (self.0 & 0x7) as u8
+    pub const fn rid(&self) -> Option<u16> {
+        match *self {
+            Self::Pci { rid, .. } => Some(rid),
+            Self::Stream(_) => None,
+        }
+    }
+
+    /// A PCI requester's bus, device and function.
+    pub const fn bdf(&self) -> Option<(u8, u8, u8)> {
+        match *self {
+            Self::Pci { rid, .. } => {
+                Some(((rid >> 8) as u8, ((rid >> 3) & 0x1F) as u8, (rid & 0x7) as u8))
+            }
+            Self::Stream(_) => None,
+        }
     }
 }

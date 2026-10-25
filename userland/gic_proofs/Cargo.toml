@@ -1,0 +1,15 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the aarch64 GIC's pure parts: which GIC the kernel
+# drives, and the GICv2 acknowledge and SGI register values. The kernel's own
+# source is included via #[path].
+[package]
+name = "gic_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

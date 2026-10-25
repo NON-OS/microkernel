@@ -56,6 +56,7 @@ pub(crate) const WATCHED: &[&str] = &[
     "wallpaper_catalog",
     "image_codec",
     "shield",
+    "acpi",
 ];
 
 pub(crate) fn is_watched(name: &str) -> bool {

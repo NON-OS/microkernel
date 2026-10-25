@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Waiting for one bulk TRB's transfer event. Events for other TRBs that
-//! arrive first are parked for their own waiters; none is ever parked for
-//! a bulk TRB, which only its own wait reads.
+//! arrive first are parked for their own waiters, the polled IN's among
+//! them; none is ever parked for a waited bulk TRB, which only its own
+//! wait reads.
 use nonos_libc::Deadline;
 
 use crate::constants::TRB_TYPE_TRANSFER_EVENT;
@@ -27,7 +28,7 @@ use crate::trb::Trb;
 /// A USB stick answers a 4 KiB transfer in milliseconds; five seconds
 /// covers a device that is still spinning up or flushing its cache.
 const BULK_TIMEOUT_MS: u64 = 5_000;
-pub(super) fn wait_bulk(
+pub(crate) fn wait_bulk(
     intr_base: u64,
     issued: IssuedTransfer,
     evt_ring: &mut EventRing,

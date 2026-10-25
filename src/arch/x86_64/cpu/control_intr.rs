@@ -30,19 +30,7 @@ pub fn hlt() {
     }
 }
 
-#[inline]
-pub fn cli() {
-    unsafe {
-        asm!("cli", options(nomem, nostack));
-    }
-}
-
-#[inline]
-pub fn sti() {
-    unsafe {
-        asm!("sti", options(nomem, nostack));
-    }
-}
+pub use crate::arch::x86_64::interrupt::irq_flag::{cli, sti};
 
 #[inline]
 pub fn interrupts_enabled() -> bool {

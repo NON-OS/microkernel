@@ -15,13 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::pool::EntropyPool;
+use crate::crypto::error::{CryptoError, CryptoResult};
 use crate::crypto::util::rng;
 
-pub(super) fn collect(pool: &mut EntropyPool) {
+/// The seeded generator's share of the pool; refused before it is seeded,
+/// since the pool's other sources are timing and system state.
+pub(super) fn collect(pool: &mut EntropyPool) -> CryptoResult<()> {
     let mut rng_bytes = [0u8; 64];
-    rng::fill_random_bytes(&mut rng_bytes);
+    rng::fill_random_bytes_secure(&mut rng_bytes).map_err(|_| CryptoError::InsufficientEntropy)?;
     pool.append(&rng_bytes);
     zeroize(&mut rng_bytes);
+    Ok(())
 }
 
 fn zeroize(bytes: &mut [u8]) {

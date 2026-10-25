@@ -6,8 +6,12 @@ grab (`capsule_input_router/src/state/press.rs`), the window manager's
 stack, focus and hit test (`capsule_wm/src/`), the compositor's scene and
 raise (`compositor/src/state/`), and app_skeleton's chrome, dispatch,
 drag and press grab (`app_skeleton/src/runner/`), each included through
-`#[path]` under the module paths its files name each other by. `desk.rs`
-is the small desktop that wires them together.
+`#[path]` under the module paths its files name each other by. `src/runner/desk/`
+is the small desktop that wires them together. The mounts sit in six
+folders by owner (`from_wm`, `pointer_path`, `shell_desk`, `shell_dock`,
+`shell_actions`, `shell_frames`), re-exported at the crate root; the proofs
+are under `src/tests/`, and those that reach app_skeleton's runner pieces
+under `src/runner/tests/`.
 
 | Tests | What they hold |
 |---|---|

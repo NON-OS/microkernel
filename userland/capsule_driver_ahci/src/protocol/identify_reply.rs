@@ -23,8 +23,8 @@
 //!      8     4  logical sector size in bytes, u32 little endian (512)
 //!     12     1  model length in bytes, 0..=40
 //!     13     1  serial length in bytes, 0..=20
-//!     14     1  medium: 0 a SATA disk, 1 an eMMC part (this capsule also
-//!                   serves eMMC hosts until those get their own capsule)
+//!     14     1  medium: 0 a SATA disk (1, an eMMC part, was answered while
+//!                   this capsule served eMMC hosts; driver.sdhci0 does now)
 //!     15     1  reserved, zero
 //!     16    40  model, printable ASCII, zero padded
 //!     56    20  serial, printable ASCII, zero padded

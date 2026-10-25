@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod acpi_touchpad;
+mod claimed_base;
 mod classify;
 mod defs;
 mod find_controllers;
 mod find_touchpad_addrs;
 mod found;
+mod pairing;
 
 pub use acpi_touchpad::{AcpiTouchpad, MAX_TARGETS};
-pub use defs::CLASS_GPIO_CTRL;
+pub use claimed_base::claimed_base;
 pub use find_controllers::find_controllers;
 pub use find_touchpad_addrs::find_touchpad_addrs;
 pub use found::{Found, MAX_CONTROLLERS};

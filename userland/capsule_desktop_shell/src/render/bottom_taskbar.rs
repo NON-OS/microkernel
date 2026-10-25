@@ -14,56 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::layout::{
-    bottom_dock_rect, dock_box_inset, dock_divider_w, dock_gap, dock_pad, launchpad_slot_x,
-    taskbar_entry_w, Rect,
-};
-use super::surface::surface;
-use super::{palette, ui_font};
+//! The dock: a tile for each app, then the Launchpad slot.
+
+use super::dock_marks::{draw_divider, draw_launchpad_button, icon_size, running_dot};
+use super::layout::{bottom_dock_rect, dock_box_inset, dock_gap, dock_pad, taskbar_entry_w, Rect};
+use super::palette;
 use crate::state::{Context, DOCK_APPS, LAUNCHER_APPS, TASKBAR_NO_ACTIVE};
 
 const TILE_RADIUS_LOGICAL: u32 = 10;
-
-fn icon_size() -> u32 {
-    taskbar_entry_w()
-}
-
-// The rule between the app run and the Launchpad slot.
-fn draw_divider(ctx: &Context, box_top: u32, box_h: u32) {
-    let slot_x = launchpad_slot_x(bottom_dock_rect(ctx.width, ctx.height));
-    let sc = ui_font::scale();
-    let h = box_h.saturating_sub(ui_font::px(12));
-    let x = slot_x.saturating_sub(dock_divider_w() / 2);
-    surface(ctx).fill_rect(x, box_top + (box_h - h) / 2, sc, h, palette::LINE);
-}
-
-// The Launchpad button: the familiar 3x3 grid, sitting in the dock slot just
-// past the last app.
-/// The launchpad button: the brand mark, at the end of the dock.
-///
-/// It was a three by three grid of dots, which is the generic "more" glyph
-/// every launcher uses and says nothing about whose machine this is. The mark
-/// is already rasterised from the brand SVG and drawn elsewhere in this shell;
-/// the one place a person looks for the system itself was the one place it did
-/// not appear.
-fn draw_launchpad_button(ctx: &Context, box_top: u32, box_h: u32) {
-    let slot_x = launchpad_slot_x(bottom_dock_rect(ctx.width, ctx.height));
-    // Sized to the tile the way an app icon is, so the row reads evenly rather
-    // than ending on something larger or smaller than its neighbours.
-    let size = icon_size();
-    let x = slot_x + (taskbar_entry_w().saturating_sub(size)) / 2;
-    let y = box_top + (box_h.saturating_sub(size)) / 2;
-    super::icons::draw_logo(ctx, x, y, size);
-}
-
-// The running indicator: a dot under the tile, accented when the app holds
-// focus and dimmed when it is merely open.
-fn running_dot(ctx: &Context, cx: u32, active: bool) {
-    let dock = bottom_dock_rect(ctx.width, ctx.height);
-    let cy = dock.y + dock.height - ui_font::px(2);
-    let argb = if active { palette::ACCENT } else { palette::ACCENT_DIM };
-    surface(ctx).circle(cx, cy, ui_font::px(2), argb);
-}
 
 pub fn paint_bottom_taskbar(ctx: &Context) {
     let dock = bottom_dock_rect(ctx.width, ctx.height);

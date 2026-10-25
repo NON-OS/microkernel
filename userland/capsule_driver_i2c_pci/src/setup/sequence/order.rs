@@ -17,24 +17,23 @@
 //! Which controllers to try first, at what speed, and which declared
 //! devices are within reach.
 
-use crate::constants::controller_index;
 use crate::discover::{AcpiTouchpad, Found, MAX_CONTROLLERS};
 use crate::transaction::Reach;
 
-/// The declared addresses a client may reach while no device is bound.
-pub(super) fn declared(targets: &[AcpiTouchpad]) -> Reach {
-    Reach::declared(targets.iter().filter(|tg| tg.addressed()).map(|tg| (tg.addr, tg.desc_reg)))
+/// The declared addresses a client may reach on `dev` while no device is
+/// bound: those of the devices that may sit on it (pairing.rs in discover),
+/// never one whose record names another controller.
+pub fn declared(dev: &Found, targets: &[AcpiTouchpad]) -> Reach {
+    let here = targets.iter().filter(|tg| tg.addressed() && tg.may_be_on(dev));
+    Reach::declared(here.map(|tg| (tg.addr, tg.desc_reg)))
 }
 
 /// Controllers in probe order: those a declared device names first (in
 /// declaration order), then the rest in discovery order.
-pub(super) fn probe_order(
-    cands: &[Found],
-    targets: &[AcpiTouchpad],
-) -> ([usize; MAX_CONTROLLERS], usize) {
+pub fn probe_order(cands: &[Found], targets: &[AcpiTouchpad]) -> ([usize; MAX_CONTROLLERS], usize) {
     let mut out = [0usize; MAX_CONTROLLERS];
     let mut n = 0usize;
-    let named = |i: usize| targets.iter().any(|tg| tg.names(&cands[i], controller_index));
+    let named = |i: usize| targets.iter().any(|tg| tg.names(&cands[i]));
     for pass in [true, false] {
         for i in 0..cands.len().min(MAX_CONTROLLERS) {
             if named(i) == pass && !out[..n].contains(&i) {
@@ -48,8 +47,6 @@ pub(super) fn probe_order(
 
 /// Standard mode when a device this controller may carry declared a speed
 /// below 400 kHz: one it is named by, or one that names no controller.
-pub(super) fn standard_mode(dev: &Found, targets: &[AcpiTouchpad]) -> bool {
-    targets
-        .iter()
-        .any(|tg| (tg.names_none() || tg.names(dev, controller_index)) && tg.wants_standard_mode())
+pub fn standard_mode(dev: &Found, targets: &[AcpiTouchpad]) -> bool {
+    targets.iter().any(|tg| tg.may_be_on(dev) && tg.wants_standard_mode())
 }

@@ -18,9 +18,12 @@ mod barrier;
 mod control;
 pub mod features;
 mod halt;
+mod icache;
 pub mod id;
 mod init;
 mod irq;
+pub mod percpu;
+mod sctlr;
 pub mod state;
 mod wait;
 

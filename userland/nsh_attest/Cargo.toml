@@ -1,0 +1,44 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# The nsh/1 client's check of a host's attestation (docs/design/nsh-v1-attest.md
+# and docs/design/k1-attest-doc-v4.md): the NONOSATT version 4 document, the
+# TPM quote and its P-256 signature, the TCG event log replayed to the PCRs,
+# the enrolment certificate, and the client policy. Each step refuses with its
+# own name. P-256 is the kernel's own arithmetic, compiled from the kernel
+# source; ML-DSA-65, Ed25519 and SHA-2 are the crates the tree already uses.
+
+[package]
+name = "nsh_attest"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0"
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+blake3 = { version = "1.5", default-features = false, features = ["pure"] }
+nonos-mldsa65 = { path = "../../nonos-mldsa65" }
+nonos_ed25519 = { path = "../nonos_ed25519" }
+nonos_hash = { path = "../nonos_hash" }
+nsh_crypto = { path = "../nsh_crypto" }
+nsh_wire = { path = "../nsh_wire" }
+
+[features]
+# For the proof crate only: the P-256 arithmetic, so the proofs can sign
+# quotes of their own with a key they hold.
+proofs = []

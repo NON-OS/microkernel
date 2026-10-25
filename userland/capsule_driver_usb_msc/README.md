@@ -85,11 +85,13 @@ drops that memory through normal userland process cleanup.
 
 The search for the device runs one bounded step at a time between requests, so
 every request is answered within its own window while it lasts. The capsule
-waits up to 30 s for `driver.xhci0` to register, then looks for its device for
-at most 10 s, answering the block surface `E_AGAIN` meanwhile, and `E_NODEV`
+waits up to 30 s for a USB host to register (`driver.xhci0`, then the EHCI,
+OHCI and UHCI hosts, fastest first; a device stays with the host it is found
+on), then looks for its device for at most 10 s, answering the block surface `E_AGAIN` meanwhile, and `E_NODEV`
 once every connected port is decided, 1.5 s at the soonest; ports are listed
 again every 5 s after, so a late stick is still taken. It addresses each free
-connected port, keeps the first SCSI-transparent BOT interface, reads the serial
+connected port, binds a UAS interface by UAS at high speed or on streams at
+SuperSpeed, else keeps the first SCSI-transparent BOT interface, reads the serial
 number (none when it does not read), and asks each logical unit INQUIRY, TEST
 UNIT READY and READ CAPACITY, a command a step, for 30 s at most. An empty card
 reader is passed a second after it was configured, and its port waits 5 s, then
@@ -151,6 +153,19 @@ USB mass-storage transport before issuing more commands.
 - The block surface for the kernel: capacity, read, write and flush of whole
   512-byte sectors over the bulk pipes `driver.xhci0` keeps for this driver.
 - Bounded transfer-length validation.
+- USB Attached SCSI at high speed (nonos_uas): a device with a UAS
+  alternate (protocol 62h) on a high-speed port is bound by it, command and
+  status pipes on the host's first bulk pair, data pipes on its second
+  (OP_CONFIGURE_BULK2, 0x23). One command in flight, tags 1 and 2 by turns (an IU
+  for the other tag, or after the command ended, is let go and counted,
+  eight at most); READ READY
+  or WRITE READY before the data, a Sense IU at the end, and a CHECK
+  CONDITION's sense kept for the REQUEST SENSE that follows. At SuperSpeed
+  it moves on streams (OP_CONFIGURE_STREAMS, 0x24): three on the status and
+  data pipes, the command's data at once on the tag's stream, then its
+  status there. A SuperSpeed device whose pipes take no streams is left to
+  BOT; a UAS-only one of those is not bound, and the log names its
+  interface (08h 06h 62h).
 - Kernel-spawnable capsule metadata and stable endpoint contract.
 
 ## Wire format
@@ -228,14 +243,15 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
 
 ## Explicit non-goals today
 
-Not here: UASP, more than one logical unit served at a time, write-protect
-detection and UNMAP, filesystems, partitions, caching and encryption.
-Descriptor-format sense is not decoded: one counts as a UNIT ATTENTION, so a
-reader that uses it still has a change seen, and the generation rises after any
-request that failed with one. Two sticks of one make, size and serial number
-cannot be told apart once the one served has left its port. Stall and
-phase-error recovery follow BOT 6.6 and 5.3.4; a failed command is not retried
-beyond that and the check after it.
+Not here: UAS with commands queued, UAS task management, more than one
+logical unit served at a time, write-protect detection and UNMAP,
+filesystems, partitions, caching and encryption. Descriptor-format sense is
+not decoded: one counts as a UNIT ATTENTION, so a reader that uses it still
+has a change seen, and the generation rises after any request that failed
+with one. Two sticks of one make, size and serial number cannot be told
+apart once the one served has left its port. Stall and phase-error recovery
+follow BOT 6.6 and 5.3.4; a failed command is not retried beyond that and
+the check after it.
 
 ## Verification
 

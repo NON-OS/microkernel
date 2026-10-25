@@ -14,7 +14,7 @@ flowchart LR
     T -->|MkLogTail| L[Terminal log]
 ```
 
-The [serial console](../overview/glossary.md#serial-console) is the main record. Kernel code writes `[TAG]` lines to it, the `boot_log` helpers write the same lines there and, when the on-screen log is built in, to the panel, and a [capsule](../overview/glossary.md#capsule) with the `Debug` [capability](../overview/glossary.md#capability) can add its own. On images built with `capsule-serial-debug`, the `standard` [build profile](../overview/glossary.md#build-profile) among them, the kernel also keeps a copy in memory, the serial tail, which the Terminal's `log` command reads back.
+The [serial console](../overview/glossary-rollback-index.md#serial-console) is the main record. Kernel code writes `[TAG]` lines to it, the `boot_log` helpers write the same lines there and, when the on-screen log is built in, to the panel, and a [capsule](../overview/glossary-boot-root-record.md#capsule) with the `Debug` [capability](../overview/glossary-boot-root-record.md#capability) can add its own. On images built with `capsule-serial-debug`, the `standard` [build profile](../overview/glossary-boot-root-record.md#build-profile) among them, the kernel also keeps a copy in memory, the serial tail, which the Terminal's `log` command reads back.
 
 ### The serial console
 
@@ -24,15 +24,15 @@ On x86_64 the console is the 16550 UART at I/O port `0x3F8`, which `init` sets t
 
 Every byte the console takes is also kept in memory: the first `HEAD`, 64 KiB, of the boot, which is never pushed out, and the latest `CAPACITY`, 64 KiB (`src/sys/serial/tail.rs:27-32`). `write_byte` keeps the byte before it tries the UART, so the tail fills on a machine with no serial port too (`src/sys/serial/core.rs:63-66`). A byte that arrives while the tail is being read is dropped from the tail, not waited for.
 
-The tail exists only in kernels built with the `capsule-serial-debug` feature: without it, `keep` returns at once and nothing is kept (`src/sys/serial/tail.rs:49-54`). The `standard` build profile has the feature through `microkernel-desktop-base` (`Cargo.toml:591-594`). The `hardened` and `airgapped` build profiles drop it through `debugFeatures` (`tools/nix/config.nix:62`, `tools/nix/config.nix:84`, `tools/nix/config.nix:92`), so on those images the kernel's lines stay on the serial port only. These are build profiles, chosen when the image is made. The Hardened and Air-Gapped [boot profiles](../overview/glossary.md#boot-profile) in the boot menu do not change what a kernel was built with.
+The tail exists only in kernels built with the `capsule-serial-debug` feature: without it, `keep` returns at once and nothing is kept (`src/sys/serial/tail.rs:49-54`). The `standard` build profile has the feature through `microkernel-desktop-base` (`Cargo.toml:591-594`). The `hardened` and `airgapped` build profiles drop it through `debugFeatures` (`tools/nix/config.nix:62`, `tools/nix/config.nix:84`, `tools/nix/config.nix:92`), so on those images the kernel's lines stay on the serial port only. These are build profiles, chosen when the image is made. The Hardened and Air-Gapped [boot profiles](../overview/glossary-amnesic-boot.md#boot-profile) in the boot menu do not change what a kernel was built with.
 
 ### The panel
 
-The kernel's on-screen boot log is off. `init_after_fb` prints `[fbconsole] on-screen log disabled; serial only` unless the kernel was built with `NONOS_FBCONSOLE=1` (`src/sys/boot_log/init.rs:22-39`). The panel is still used when the [boot stops](../overview/glossary.md#boot-stop) or the kernel panics; see [panic and boot stop](panic-and-boot-stop.md).
+The kernel's on-screen boot log is off. `init_after_fb` prints `[fbconsole] on-screen log disabled; serial only` unless the kernel was built with `NONOS_FBCONSOLE=1` (`src/sys/boot_log/init.rs:22-39`). The panel is still used when the [boot stops](../overview/glossary-amnesic-boot.md#boot-stop) or the kernel panics; see [panic and boot stop](panic-and-boot-stop.md).
 
 ### Capsule lines
 
-A capsule holding the `Debug` capability writes one line of up to `MAX_LEN`, 256 bytes, with `MkDebug` (`src/syscall/microkernel/debug.rs:37-69`). Its number is the tag `SYS_MK_DEBUG`, `0x4742444D` (`src/syscall/microkernel/numbers.rs:159`). A spawn grants it only in a kernel built with `capsule-serial-debug`; otherwise `serial_debug_cap` returns 0 (`src/capabilities/serial_debug.rs:34-50`). A Terminal's run of a Linux program is private: `sys_mk_debug` sends its lines only to that process's own inbox and never to the console (`src/syscall/microkernel/debug.rs:39-66`).
+A capsule holding the `Debug` capability writes one line of up to `MAX_LEN`, 256 bytes, with `MkDebug` (`src/syscall/microkernel/debug.rs:37-69`). Its number is the tag `SYS_MK_DEBUG`, `0x4742444D` (`src/syscall/microkernel/numbers.rs:181`). A spawn grants it only in a kernel built with `capsule-serial-debug`; otherwise `serial_debug_cap` returns 0 (`src/capabilities/serial_debug.rs:34-50`). A Terminal's run of a Linux program is private: `sys_mk_debug` sends its lines only to that process's own inbox and never to the console (`src/syscall/microkernel/debug.rs:39-66`).
 
 ### The structured log and the debug ring
 
@@ -55,7 +55,7 @@ Not tested in this release.
 
 `log` alone shows the newest `NEWEST`, 200, lines. With words, `run` shows every line that contains any of them, ignoring case (`userland/capsule_terminal/src/command/builtin/log.rs:18-55`). `log > boot.txt` writes the output to a file, as with any command. On an image without the tail it prints `log: no line matches`.
 
-The command calls `mk_log_tail`, the `MkLogTail` system call, number `0x474F4C4D`, which the kernel names `SYS_LOG_TAIL` (`src/syscall/microkernel/numbers.rs:78`). It needs the `AttestRead` [capability](capabilities.md), checked as `can_attest_read` (`src/syscall/contract/cap_table/mk.rs:54`). The Terminal requests it in `CAPSULE_REQUIRED_CAPS` (`userland/capsule_terminal/Capsule.mk:19-24`), where it is the `ATTEST_READ` bit (`abi/caps.toml:37`). `sys_log_tail` copies up to `KEPT` bytes, oldest first (`src/syscall/microkernel/log_tail.rs:32-46`). The Terminal itself is described on [Terminal](../using/terminal.md).
+The command calls `mk_log_tail`, the `MkLogTail` system call, number `0x474F4C4D`, which the kernel names `SYS_LOG_TAIL` (`src/syscall/microkernel/numbers.rs:80-81`). It needs the `AttestRead` [capability](capabilities.md), checked as `can_attest_read` (`src/syscall/contract/cap_table/mk.rs:58`). The Terminal requests it in `CAPSULE_REQUIRED_CAPS` (`userland/capsule_terminal/Capsule.mk:19-24`), where it is the `ATTEST_READ` bit (`abi/caps.toml:37`). `sys_log_tail` copies up to `KEPT` bytes, oldest first (`src/syscall/microkernel/log_tail.rs:32-46`). The Terminal itself is described on [Terminal](../using/terminal.md).
 
 ## Reading the log with a serial port or in QEMU
 
@@ -86,7 +86,7 @@ Each kernel line starts with a tag in square brackets. These are the ones a read
 | `[MEM]`, `[VM-INIT]`, `[KSEC]`, `[STACK-GUARD]` | memory init | the physical span, page tables, W^X and stack guards |
 | `[TIMER]`, `[APIC]`, `[BOOT-ENTROPY]` | clock and tick setup | the counter rate, the tick, the boot nonce |
 | `[HEAP-GUARD]`, `[OOM]` | the kernel heap | a corrupted block, or an exhausted heap |
-| `[EXIT]` | `note` (`src/process/exit/end_note.rs:23-37`) | a [driver capsule](../overview/glossary.md#driver-capsule) ended by itself with a nonzero status |
+| `[EXIT]` | `note` (`src/process/exit/end_note.rs:23-37`) | a [driver capsule](../overview/glossary-dma-pool.md#driver-capsule) ended by itself with a nonzero status |
 
 `[TRAP xx]` and `[PANIC xx]` are explained on [panic and boot stop](panic-and-boot-stop.md); memory lines on [memory and paging](memory-and-paging.md); CPU lines on [scheduler and SMP](scheduler-and-smp.md).
 
@@ -95,7 +95,7 @@ Each kernel line starts with a tag in square brackets. These are the ones a read
 - The bootloader's random seed. `log_entropy` says only whether it arrived (`src/entry/security.rs:33-36`).
 - A private Linux run's output, as above.
 
-Fault lines do print addresses: the `[TRAP xx]` line from `dump_trap` carries the instruction and stack pointers, CR3 and, for a page fault, the faulting address (`src/arch/x86_64/diag/dump_trap.rs:23-63`). At shutdown the [ZeroState](../overview/glossary.md#zerostate) wipe calls `wipe_ram_log` for the structured log's buffer (`src/security/hardening/memory_sanitization/api.rs:92-96`); the serial tail is a separate static buffer, and the wipe does not clear it.
+Fault lines do print addresses: the `[TRAP xx]` line from `dump_trap` carries the instruction and stack pointers, CR3 and, for a page fault, the faulting address (`src/arch/x86_64/diag/dump_trap.rs:23-63`). At shutdown the [ZeroState](../overview/glossary-stark-proof.md#zerostate) wipe calls `wipe_ram_log` for the structured log's buffer (`src/security/hardening/memory_sanitization/api.rs:92-96`); the serial tail is a separate static buffer, and the wipe does not clear it.
 
 ## Limits
 

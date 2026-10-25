@@ -17,12 +17,8 @@
 use alloc::vec::Vec;
 
 use super::super::rlp::{rlp_list, rlp_string, rlp_uint_be};
-use super::approve_data::approve_calldata;
-use super::consts::{CHAIN_ID, NOX_TOKEN, STAKING_PROXY};
-use super::stake_data::{
-    stake_approve_calldata, stake_calldata, stake_locked_calldata, transfer_calldata,
-    unstake_position_calldata,
-};
+use super::consts::{CHAIN_ID, NOX_TOKEN};
+use super::stake_data::transfer_calldata;
 
 pub fn tx_fields(
     chain_id: &[u8],
@@ -47,25 +43,6 @@ pub fn tx_fields(
     f
 }
 
-pub fn nox_approve_fields(
-    nonce: &[u8; 32],
-    max_priority: &[u8; 32],
-    max_fee: &[u8; 32],
-    gas: &[u8; 32],
-    amount: &[u8; 32],
-) -> Vec<Vec<u8>> {
-    tx_fields(
-        &[CHAIN_ID],
-        nonce,
-        max_priority,
-        max_fee,
-        gas,
-        &NOX_TOKEN,
-        &[0u8; 32],
-        &approve_calldata(amount),
-    )
-}
-
 pub fn eth_transfer_fields(
     nonce: &[u8; 32],
     max_priority: &[u8; 32],
@@ -77,26 +54,6 @@ pub fn eth_transfer_fields(
     tx_fields(&[CHAIN_ID], nonce, max_priority, max_fee, gas, to, value, &[])
 }
 
-// approve(stakingProxy, amount) on the NOX token.
-pub fn nox_stake_approve_fields(
-    nonce: &[u8; 32],
-    max_priority: &[u8; 32],
-    max_fee: &[u8; 32],
-    gas: &[u8; 32],
-    amount: &[u8; 32],
-) -> Vec<Vec<u8>> {
-    tx_fields(
-        &[CHAIN_ID],
-        nonce,
-        max_priority,
-        max_fee,
-        gas,
-        &NOX_TOKEN,
-        &[0u8; 32],
-        &stake_approve_calldata(amount),
-    )
-}
-
 // transfer(to, amount) on the NOX token.
 pub fn nox_transfer_fields(
     nonce: &[u8; 32],
@@ -106,73 +63,6 @@ pub fn nox_transfer_fields(
     to: &[u8; 20],
     amount: &[u8; 32],
 ) -> Vec<Vec<u8>> {
-    tx_fields(
-        &[CHAIN_ID],
-        nonce,
-        max_priority,
-        max_fee,
-        gas,
-        &NOX_TOKEN,
-        &[0u8; 32],
-        &transfer_calldata(to, amount),
-    )
-}
-
-// stake(amount) on the staking proxy.
-pub fn nox_stake_locked_fields(
-    nonce: &[u8; 32],
-    max_priority: &[u8; 32],
-    max_fee: &[u8; 32],
-    gas: &[u8; 32],
-    amount: &[u8; 32],
-    lock: &[u8; 32],
-) -> Vec<Vec<u8>> {
-    tx_fields(
-        &[CHAIN_ID],
-        nonce,
-        max_priority,
-        max_fee,
-        gas,
-        &STAKING_PROXY,
-        &[0u8; 32],
-        &stake_locked_calldata(amount, lock),
-    )
-}
-
-pub fn nox_unstake_fields(
-    nonce: &[u8; 32],
-    max_priority: &[u8; 32],
-    max_fee: &[u8; 32],
-    gas: &[u8; 32],
-    index: &[u8; 32],
-) -> Vec<Vec<u8>> {
-    tx_fields(
-        &[CHAIN_ID],
-        nonce,
-        max_priority,
-        max_fee,
-        gas,
-        &STAKING_PROXY,
-        &[0u8; 32],
-        &unstake_position_calldata(index),
-    )
-}
-
-pub fn nox_stake_fields(
-    nonce: &[u8; 32],
-    max_priority: &[u8; 32],
-    max_fee: &[u8; 32],
-    gas: &[u8; 32],
-    amount: &[u8; 32],
-) -> Vec<Vec<u8>> {
-    tx_fields(
-        &[CHAIN_ID],
-        nonce,
-        max_priority,
-        max_fee,
-        gas,
-        &STAKING_PROXY,
-        &[0u8; 32],
-        &stake_calldata(amount),
-    )
+    let data = transfer_calldata(to, amount);
+    tx_fields(&[CHAIN_ID], nonce, max_priority, max_fee, gas, &NOX_TOKEN, &[0u8; 32], &data)
 }

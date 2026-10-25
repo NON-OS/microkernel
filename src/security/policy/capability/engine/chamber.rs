@@ -41,7 +41,7 @@ impl CapabilityEngine {
 
         let chamber_id = self.chamber_counter.fetch_add(1, Ordering::Release);
         let mut encryption_key = [0u8; 32];
-        crate::crypto::fill_random(&mut encryption_key);
+        crate::crypto::fill_random(&mut encryption_key).map_err(|_| "no randomness")?;
 
         let capability_set = CapabilitySet::new();
         for &cap in initial_caps {
@@ -88,7 +88,7 @@ impl CapabilityEngine {
             format!("chamber_id:{},level:{:?},timestamp:{}", chamber_id, level, current_time);
 
         let mut chamber_signature = [0u8; 64];
-        crate::crypto::fill_random(&mut chamber_signature[..32]);
+        crate::crypto::fill_random(&mut chamber_signature[..32]).map_err(|_| "no randomness")?;
         chamber_signature[32..].copy_from_slice(&self.signing_key);
 
         let chamber = Box::new(IsolationChamber {
@@ -103,7 +103,7 @@ impl CapabilityEngine {
             ephemeral_keys: RwLock::new(BTreeMap::new()),
             secure_rng_state: Mutex::new({
                 let mut state = [0u8; 32];
-                crate::crypto::fill_random(&mut state);
+                crate::crypto::fill_random(&mut state).map_err(|_| "no randomness")?;
                 state
             }),
             chamber_signature,
@@ -120,7 +120,7 @@ impl CapabilityEngine {
 
     pub(super) fn create_quantum_state(&self) -> Result<QuantumState, &'static str> {
         let mut quantum_key = [0u8; 64];
-        crate::crypto::fill_random(&mut quantum_key);
+        crate::crypto::fill_random(&mut quantum_key).map_err(|_| "no randomness")?;
 
         let particles = (0..4)
             .map(|_| {

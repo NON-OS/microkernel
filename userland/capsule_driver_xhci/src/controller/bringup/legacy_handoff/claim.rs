@@ -21,7 +21,8 @@ use crate::regs::{mmio_read32, mmio_write32};
 const USBLEGSUP_BIOS_OWNED: u32 = 1 << 16;
 const USBLEGSUP_OS_OWNED: u32 = 1 << 24;
 // USBLEGCTLSTS (offset +4): mask of bits to preserve when clearing every SMI
-// enable, and the RW1C SMI status bits to acknowledge. Same values Linux uses.
+// enable, and the RW1C SMI status bits to acknowledge (xHCI 1.2 section 7.1.2, as recalled,
+// unverified).
 const CTLSTS_DISABLE_SMI: u32 = (0x7 << 1) | (0xff << 5) | (0x7 << 17);
 const CTLSTS_SMI_EVENTS: u32 = 0x7 << 29;
 

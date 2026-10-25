@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod about;
+pub mod audit;
 pub mod bench;
 pub mod cap_names;
 pub mod capsules;
@@ -31,6 +32,7 @@ pub mod help_one;
 mod help_pages;
 mod help_tools;
 mod help_unknown;
+mod help_usage;
 pub mod history_cmd;
 pub mod jobs;
 pub mod log;
@@ -48,8 +50,8 @@ pub mod receipt;
 pub mod service;
 pub mod theme;
 pub mod tool;
-mod tool_list;
 mod tool_busy;
+mod tool_list;
 mod tool_refused;
 pub mod version;
 pub mod which;

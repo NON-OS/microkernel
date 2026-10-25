@@ -1,6 +1,3 @@
-// A test asserts by panicking, so the lints that forbid it are off here.
-#![allow(clippy::expect_used, clippy::indexing_slicing)]
-
 use super::{plan, refused};
 use crate::custody::Seed;
 use crate::keys::Account;

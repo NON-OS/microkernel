@@ -26,11 +26,14 @@ mod attest;
 mod binding;
 mod document;
 mod error;
+mod posture;
 mod produce;
+mod quote_shape;
 
 pub use attest::attest;
 pub use binding::{qualifying_data, DmaPosture};
 pub use document::{
-    AttestationDoc, DOC_MAGIC, DOC_VERSION, IOMMU_AMD_VI, IOMMU_INTEL_VTD, IOMMU_NONE,
+    AttestationDoc, DOC_MAGIC, DOC_VERSION, IOMMU_AMD_VI, IOMMU_ARM_SMMU_V3, IOMMU_INTEL_VTD,
+    IOMMU_NONE,
 };
 pub use error::AttestDocError;

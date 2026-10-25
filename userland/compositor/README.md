@@ -4,10 +4,12 @@
 
 `compositor` is the userland window compositor. It owns the scene
 (one layer per client process), damage tracking, the frame loop, the
-software blitter and the IPC client into `driver.virtio_gpu0`. Every
-pixel a window shows goes through this capsule. It presents either
-through the virtio-gpu driver or, on any other UEFI machine, through the
-kernel's framebuffer blit (`MkSurfacePresent`).
+software blitter and the client of the display wire (NVGP v1,
+PLAN-coverage section 12). Every pixel a window shows goes through this
+capsule. It presents through the first display driver in the kernel's
+list (`src/services/registry/displays.rs`) that answers, or, on any
+other UEFI machine, through the kernel's framebuffer blit
+(`MkSurfacePresent`).
 
 ```text
 windowing apps (terminal, calculator, desktop_shell, ...)
@@ -16,10 +18,11 @@ windowing apps (terminal, calculator, desktop_shell, ...)
     v
 compositor (this capsule) <--- focus_set (raise) from wm only
     |
-    | virtio path: gfx_client (transfer_to_host / set_scanout / flush)
+    | wire path:   display/ (CAPS, SURFACE, STATE, FLUSH, RETIRE)
     | GOP path:    MkSurfacePresent on its own registered surface
     v
-driver.virtio_gpu0 or the firmware framebuffer --> display
+a display driver (driver.bga0, driver.virtio_gpu0, ...) or the
+firmware framebuffer --> display
 ```
 
 The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
@@ -30,13 +33,55 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
   requests from windowing capsules.
 - `MkSurfaceAttach` maps each window's surface into this capsule's
   address space; the attach cache keeps one mapping per handle.
-- On the virtio path `gfx_client` asks `driver.virtio_gpu0` for its
-  primary surface, attaches it, and drives `transfer_to_host`,
-  `set_scanout` and `resource_flush` over IPC.
+- A driver found is asked CAPS first (`setup/prime_wire.rs`). At start-up
+  that first CAPS waits up to 3 s (`display/call.rs`'s START_MS): a driver is
+  announced as it is spawned, before its device is up, and the 250 ms every
+  later CAPS gets left the call unanswered. On the
+  wire path it then asks SURFACE, which makes it the primary's owner (a
+  restarted compositor gets its surface back), attaches the primary,
+  sends each frame's damaged rectangles in one FLUSH (up to 15), polls STATE every 500 ms with
+  the driver's pid looked up again, and on a new primary attaches it,
+  releases the old handle and sends RETIRE (`setup/{poll,adopt}.rs`).
+  Every output past 0 that CAPS counts (up to the wire server's four)
+  mirrors the screen: its primary attached, each frame's rectangles drawn
+  onto it fitted and centred (`sw_blitter/resample.rs`) and sent in one
+  FLUSH per output (`frame_pacer/mirror.rs`); the poll reads each one's
+  STATE and CAPS' output count, and a monitor plugged in or pulled out
+  primes the mirrored outputs again (`setup/{heads,poll_heads}.rs`). The
+  shell may extend instead (OUTPUT_LAYOUT): one canvas across every output
+  side by side, output 0's canvas at the left and each further output a
+  slice its screen holds at the same scale (`display/layout_rule.rs`,
+  `setup/layout.rs`); each composed rectangle's part in a slice is drawn on
+  that output and flushed once a frame (`frame_pacer/extend.rs`); outputs
+  coming or going lay the canvas out again; the pointer is composited.
+  Each output has its own scale in quarters (OUTPUT_SCALE; default the
+  panel rule, whole steps as the kernel's boot console): whole steps go
+  through `upscale`, 1.25 and 1.5 through `sw_blitter/stretch.rs` (each
+  screen pixel the canvas pixel its centre falls in), and the pointer and
+  damage are mapped through the same arithmetic (`display/scale_rule.rs`).
+  The host is followed (G 6, `display/follow.rs`'s FOLLOW_HOST, Decision 15
+  as the lead recommends it): on a steady driver with MODE_SET the poll asks
+  the preferred mode at start, then any size the host has wanted for 250 ms
+  (STATE's hint or a DISPLAY_HINT), put through `fit`; one MODE_SET, the new
+  primary adopted at once and the canvas refitted; a size asked once is not
+  asked again (`setup/resize.rs`, `display/resize_rule.rs`).
+  A driver whose CAPS has HW_CURSOR gets the pointer on its cursor plane:
+  the arrow is drawn into each primary's cursor slot (scaled with the
+  screen, transparent around it) and announced with NEW_SHAPE, then each
+  frame the pointer moved sends one CURSOR per output, its position mapped
+  onto the screen and into each mirrored output's fitted box; the arrow is
+  then neither composited nor damaged around. A refused CURSOR hides the
+  plane everywhere and composites the arrow again until the primary is
+  replaced (`frame_pacer/{hw_cursor,hw_cursor_back,cursor_shape}.rs`,
+  `display/cursor_rule.rs`).
+- A driver that does not answer CAPS is not used: every display driver,
+  virtio-gpu included, speaks the display wire, and the compositor stays
+  on (or falls back to) the GOP path.
 - On the GOP path the compositor maps a buffer, registers and attaches it
   with `MkSurfaceRegister`, and presents with `MkSurfacePresent`. While in
-  GOP mode it probes for the virtio driver every `VIRTIO_PROBE_FRAMES`
-  frames and moves over when it answers (`setup/upgrade.rs`).
+  GOP mode it asks one name of the display list per tick, 500 ms apart and
+  backing off to 30 s, and moves over when one answers
+  (`setup/upgrade.rs`, `display/backoff.rs`).
 - `MkServiceLookup` finds `wm` on every `OP_FOCUS_SET`, and the GPU
   driver at setup.
 - The frame loop does not call `MkDisplayVsyncWait`: the first blocking
@@ -48,13 +93,24 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
 | Op | Value | Purpose |
 |---|---|---|
 | `OP_HEALTHCHECK` | 0x0001 | liveness ping |
-| `OP_SCENE_SUBMIT` | 0x0002 | submit or update the sender's layer: handle, x, y, width, height, z |
-| `OP_DAMAGE_COMMIT` | 0x0003 | mark a rectangle dirty |
+| `OP_SCENE_SUBMIT` | 0x0002 | submit or update the sender's layer: handle, x, y, width, height, z; a z at or above `TRUSTED_Z` (0x4000_0000), the trusted band where the lock screen and permission prompts are drawn, only from a trusted source (the desktop shell), E_PERM otherwise (`state/trusted_rule.rs`) |
+| `OP_DAMAGE_COMMIT` | 0x0003 | mark a rectangle dirty, counted only where the sender's own layers are |
 | `OP_FOCUS_SET` | 0x0004 | raise a pid's layer to the top of its band; the window manager only, anyone else gets E_PERM |
 | `OP_INPUT_SUBSCRIBE` | 0x0005 | sets the compositor's focus record to the sender; restacks nothing |
 | `OP_CURSOR_UPDATE` | 0x0006 | move or hide the software cursor: x, y, visible |
-| `OP_SCENE_REMOVE` | 0x0007 | remove the sender's layer |
+| `OP_SCENE_REMOVE` | 0x0007 | remove the sender's layers; body z u32, flags u32, and flag 1 (BAND_ONLY) removes only its layer in band z, its surface's mapping kept while another layer shows it (`server/handlers/scene_remove_band.rs`) |
 | `OP_DISPLAY_INFO` | 0x0008 | canvas width, height, stride and format |
+| `OP_DISPLAY_HINT` | 0x0009 | a host size hint (output, width, height, source) -> flags; only from a service in `HINT_SOURCES` (empty until the host-services decision), others get E_PERM; for output 0 of a wire driver held and followed like a STATE hint and answered 1 (resizable), else 0 |
+| `OP_INDICATOR` | 0x000A | a capturing driver's camera (kind 1) or microphone (kind 2) on (1) or off (0), 8 bytes; only from a holder of that kind's capture capability bit (CameraCapture 1<<37, MicrophoneCapture 1<<38; no capsule may hold either until Decision 9), others get E_PERM, shown in the reserved band and presented before the answer (E_IO and no change if the present fails), E_BUSY past eight holders |
+| `OP_OUTPUT_LAYOUT` | 0x000B | the shell's choice for several outputs: mode u32, 0 mirror or 1 extend; only from desktop_shell (E_PERM otherwise); kept while one output is present; answers u32 1 when extended now, else 0 |
+| `OP_SCREENSHOT` | 0x000C | the scene composed again into the caller's own shared ARGB surface, without the trusted band, the cursor, the tint or the band: handle u64; only from a holder of the screen capture bit (ScreenCapture 1<<39; no capsule may hold it until Decision 9), others get E_PERM; the band's blue mark shows for 3 s, presented before the copy; answers width and height copied, u32 each |
+| `OP_OUTPUT_SCALE` | 0x000D | the shell's scale for one output: output u32, quarters u32 (0 the panel's own rule, else 4, 5, 6, 8, 12 or 16: 1, 1.25, 1.5, 2, 3, 4 times); only from desktop_shell; the canvas is laid out again; answers output 0's scale in quarters |
+| `OP_NIGHT_LIGHT` | 0x000E | the shell's colour temperature: kelvin u32 (0 or 6500 and above true colour, 1000 the warmest); only from desktop_shell; every composed pixel looked up through three ramps (`display/night_rule.rs`, `frame_pacer/night_tint.rs`), the indicator band kept true; the shell keeps the schedule |
+| `OP_ACCESSIBILITY_GET` | 0x0010 | one output's settings now: output u32 in, filter, contrast, magnify and follow u32 each out; only from desktop_shell, which asks for Settings (`server/handlers/accessibility_get.rs`) |
+| `OP_ACCESSIBILITY` | 0x000F | one output's accessibility, as Settings chose it: output, filter (0 none, 1 greyscale, 2 protan, 3 deutan, 4 tritan), contrast (0 or 1), magnification in quarters (4, 6, 8, 12, 16, 24 or 32; 4 is off), follow (0 the pointer, 1 the focused window), u32 each; only from desktop_shell, E_INVAL past four outputs or a step it does not have. Filters work on linear light with matrices derived in `display/cvd_rule.rs`, `cvd_filter.rs` and `colour_rule.rs`, then night light, then contrast (`frame_pacer/look.rs`); the magnifier draws each output through a lens on its own canvas (`display/magnifier_rule.rs`, `sw_blitter/magnify.rs`). Mirrored outputs show output 0's |
+| `OP_LID` | 0x0013 | the shell's lid: closed u32, 1 or 0; only from desktop_shell (E_PERM otherwise), any other body E_INVAL. Closed, every output is composed black once, through the same path as any frame, the cursor plane's arrow hidden, and then nothing is presented; open damages the whole canvas, so the band and the trusted mark come back drawn whole (`state/lid_rule.rs`, compositor_proofs `lid_tests`) |
+| `OP_BRIGHTNESS_STEP` | 0x0014 | a brightness key: up u32, 1 or 0; only from desktop_shell; the driver's panels asked with F 12's BRIGHTNESS (the kernel lets only the compositor reach a driver), the focused output's panel (else the first listed) moved to its next listed level, and that level answered as a u32 percent, unchanged at either end (0 beside any refusal); E_NOENT with no panel, E_IO when the driver does not answer or refuses (`display/brightness_rule.rs`, `brightness_list.rs`) |
+| `OP_SET_VCP` | 0x0015 | one of a monitor's own controls set, the input source among them: panel, code and value u32 each; only from desktop_shell, which sends it only on the person's choice; carried to the driver as F 12's SET_VCP, which holds it to its allowlist and to what the monitor's capabilities list; E_NOENT from a driver with no controls |
 
 The window manager owns the stacking order, and `OP_FOCUS_SET` is how it keeps the compositor's
 order the same. The compositor looks the window manager's pid up in the service registry on every
@@ -72,7 +128,7 @@ submit at `z` 2 and the desktop shell's overlay at 1.
 
 | Bit | Capability | Purpose |
 |---|---|---|
-| 0x0008 | IPC | recv on port 4310 + send to driver.virtio_gpu0 |
+| 0x0008 | IPC | recv on port 4310 + send to the display drivers |
 | 0x0010 | Memory | scene, damage and attach cache; the GOP and canvas buffers |
 | 0x0800 | GraphicsDisplayQuery | read the framebuffer size on the GOP path |
 | 0x1000 | GraphicsSurfaceCreate | register the GOP present surface |
@@ -93,12 +149,13 @@ the compositor's own code makes no debug call. No `CoreExec`, `Driver`,
 | EPHEMERAL | Zero files. The attach cache (`state/attach.rs`) holds surface mappings for the life of each handle. |
 | NOT LINUX | NONOS Mk syscall ABI. The wire format is the NCMP header, not Wayland. |
 | PRIVACY MICROKERNEL | Six required bits, all graphics or IPC. No Network, FileSystem or Crypto path. |
+| TRUSTED PATH | The band's fourth mark is white while the trusted band is held, so a prompt or the lock with it is the system's and a lookalike drawn by a window is not. The lock screen and permission prompts are drawn in the trusted band: no client layer can be placed in it or raised into it, no screenshot holds it, and the input router gives its holder every key and click while it is up (`server/trusted_notice.rs`). |
 
 ## Runtime lifecycle
 
-1. `_start` initialises the heap; `wait_for_setup` asks for the virtio
-   GPU first and, after `VIRTIO_ATTEMPTS_BEFORE_GOP` failed rounds, also
-   tries the firmware framebuffer, taking whichever answers.
+1. `_start` initialises the heap; `wait_for_setup` asks for the first
+   announced display driver and, after 500 ms with none, also tries the
+   firmware framebuffer, taking whichever answers.
 2. `fit_canvas` gives clients a half-size canvas on panels of 2560 by
    1440 or more (`setup/canvas_scale.rs`); each damaged rectangle is
    doubled onto the screen.
@@ -115,9 +172,17 @@ the compositor's own code makes no debug call. No `CoreExec`, `Driver`,
   not registered until one answers.
 - `mk_surface_attach` on a layer's handle fails for 60 frames in a row:
   the layer is dropped and its rectangle repainted.
-- `gfx_client` calls use a 100 ms reply timeout, so a lost reply costs a
-  late frame; `scanout_error_reported` notes a failed scanout once and
-  the loop continues.
+- Wire calls and FLUSH use a 100 ms reply timeout, so a lost
+  reply costs a late frame; `scanout_error_reported` notes a failed
+  present once and the loop continues. A refused FLUSH leaves its
+  rectangle damaged for the next frame; ESTALE also has the next pass ask
+  SURFACE again.
+- A driver whose CAPS has no MODE_SET answering STATE with LOST and dark
+  (bootfb once a GPU driver has its scanout, L79) is a display that left,
+  notice or not: the desktop moves to the best other display announced,
+  scene, focus and damage kept, every output damaged whole there. It never
+  goes back to the boot framebuffer, last in the kernel's list
+  (`display/poll_rule.rs`, `display/return_rule.rs`).
 - A malformed request gets a typed errno (`E_BAD_MAGIC`, `E_BAD_VERSION`,
   `E_BAD_LEN`, `E_BAD_OP`, `E_INVAL`, `E_PERM`).
 
@@ -130,16 +195,16 @@ the compositor's own code makes no debug call. No `CoreExec`, `Driver`,
 | Reply builder | `server/respond.rs` |
 | Scene table, raise order, reaping | `state/scene/*.rs`, `state/scene_raise.rs`, `state/scene_submit.rs`, `state/scene_remove.rs` |
 | Who may raise | `state/raise_rule.rs` |
-| Damage accumulator | `state/damage.rs` |
+| Damage accumulator | `state/damage/` (coalesced until no two rectangles touch); the sender's bound, `state/damage_bound.rs` |
 | Focus record | `state/focus.rs` |
 | Cursor tracker | `state/cursor.rs` |
 | Attach cache | `state/attach.rs` |
 | Context (owned by runner) | `state/context.rs` |
-| Frame loop (paint, cursor, present) | `frame_pacer/{tick,composite,cursor}.rs` |
-| gfx_client (driver.virtio_gpu0 IPC) | `gfx_client/{get_primary,transfer,set_scanout,flush}.rs`, `gfx_client/wire/*.rs` |
+| Frame loop (paint, cursor, present) | `frame_pacer/{tick,to_screen,composite,cursor,drain_batch,hw_cursor}.rs` |
 | Software blitter and 2x upscale | `sw_blitter/*.rs` |
 | Wire protocol (header/ops/errno/limits) | `protocol/*.rs` |
-| Setup (virtio, GOP, canvas, upgrade) | `setup/*.rs`, `wait_for_setup.rs` |
+| Display wire client (calls, back-off, poll and hint rules) | `display/*.rs`, `frame_pacer/present_wire.rs`, `server/runner/upkeep.rs`, `server/handlers/display_hint.rs` |
+| Setup (wire, GOP, canvas, upgrade, poll) | `setup/*.rs`, `wait_for_setup.rs` |
 
 ## Wire format
 
@@ -153,7 +218,9 @@ match the message exactly. Payloads are at most 256 bytes.
 `Context` (`state/context.rs`) owns: gfx_port, resource_id, width,
 height, stride, backing_len, backing_va, gop_mode, surface_handle,
 first_scanout_done, scanout_error_reported, next_request_id, scene,
-damage, focus, cursor, attach, scale and screen. There is no shared
+damage, focus, cursor, attach, scale, screen and wire (the driver on
+the display wire: its name, pid, primary serial and CAPS' panel size).
+The NVGP request id is the one shared static (`display/call.rs`). There is no other shared
 static state. Per-window state is keyed by the caller's pid.
 
 ## Operating rules
@@ -189,11 +256,22 @@ must produce a signed ELF whose SHA matches the embedded manifest
 ## Explicit non-goals today
 
 - No GPU 3D acceleration. The compositor is a 2D blitter.
-- No hardware cursor; the cursor is drawn into each damaged rectangle.
+- A hardware cursor only on a wire driver with HW_CURSOR; otherwise the
+  cursor is drawn into each damaged rectangle.
 - No compositing effects beyond alpha-blended copy.
 - One display, number 0.
 - A client can still submit another process's surface handle as its own
-  layer; the compositor does not check who shared it.
+  layer; the compositor does not check who shared it, and the kernel's
+  attach names no receiver (reported to the lead; the fix is kernel-side,
+  `mk_surface_share_to`).
+- No op reads back pixels, a surface or a handle to a client; the screen's
+  pixels reach only a screen capture holder's own surface, with the band's
+  notice shown first (`privacy_tests`, `screenshot_tests`).
+- The capture indicator's band (top right, 44x16 canvas pixels) is drawn
+  after every layer in every frame that touches it, so no surface covers it
+  (`frame_pacer/indicator_band.rs`).
+- INPUT_SUBSCRIBE no longer makes the sender the focused process: input is
+  the input router's to deliver, to the window the window manager focused.
 
 ## Verification
 

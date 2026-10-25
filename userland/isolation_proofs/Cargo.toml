@@ -1,0 +1,25 @@
+# NONOS userland: isolation_proofs
+#
+# Host proofs for isolation_stark: an honest histogram proves and verifies,
+# through the engine and through nox_verify over the statement's program
+# image; a forged one does not. Minutes, for the proofs.
+
+[package]
+name = "isolation_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+isolation_stark = { path = "../isolation_stark", features = ["parallel", "forge"] }
+nonos_proof_abi = { path = "../nonos_proof_abi" }
+nonos-stark = { git = "https://github.com/NON-OS/STARKs.git", branch = "main", features = ["fri8"] }
+stark_proofs = { git = "https://github.com/NON-OS/STARKs.git", branch = "main", features = ["fri8"] }
+nox_verify = { git = "https://github.com/NON-OS/STARKs.git", branch = "main" }
+
+[profile.dev.package."*"]
+opt-level = 3

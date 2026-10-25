@@ -24,7 +24,7 @@
 use super::acpi::{control_area, start_method, START_ACPI, START_CRB, START_CRB_ACPI, START_FIFO};
 use super::ident::{identify, Interface};
 use crate::security::tpm::error::TpmError;
-use crate::security::tpm::mmio::TPM_MMIO_BASE;
+use crate::security::tpm::mmio::tpm_mmio_base;
 
 pub(super) fn detect() -> Result<Interface, TpmError> {
     let acpi = start_method();
@@ -61,7 +61,7 @@ pub(super) fn detect() -> Result<Interface, TpmError> {
     }
     let (id, found) = identify()?;
     let Some(found) = found else {
-        crate::log::warn!("[TPM] no TPM at {:#X} (interface id {:#X})", TPM_MMIO_BASE, id);
+        crate::log::warn!("[TPM] no TPM at {:#X} (interface id {:#X})", tpm_mmio_base().unwrap_or(0), id);
         return Err(TpmError::NotPresent);
     };
     if let (Some(method), Some(want)) = (acpi, wanted) {
@@ -86,12 +86,12 @@ fn announce(found: Interface, id: u32, acpi: bool) {
         Interface::Crb => "CRB",
     };
     let by = if acpi { "ACPI agrees" } else { "no ACPI start method" };
-    let line = alloc::format!("[TPM] interface {} at {:#X}, locality 0 (id {:#X}, {})", name, TPM_MMIO_BASE, id, by);
+    let line = alloc::format!("[TPM] interface {} at {:#X}, locality 0 (id {:#X}, {})", name, tpm_mmio_base().unwrap_or(0), id, by);
     crate::sys::serial::println(line.as_bytes());
     crate::log::info!("{}", line);
 }
 
-/// Whether `at` is in the register window at 0xFED40000.
+/// Whether `at` is in the register window, wherever the platform put it.
 fn in_window(at: u64) -> bool {
-    (TPM_MMIO_BASE..TPM_MMIO_BASE + 0x5000).contains(&at)
+    tpm_mmio_base().is_some_and(|base| (base..base + 0x5000).contains(&at))
 }

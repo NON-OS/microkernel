@@ -1,0 +1,47 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# Host proofs that the kernel's post-quantum C draws its randomness fail
+# closed. The kernel's own randomness hook (src/crypto/pqclean_support),
+# its ML-DSA-65 and ML-KEM-768 wrappers, and its weak fallback are mounted
+# by #[path] over the pinned C the kernel compiles, with the kernel's C
+# hook in front of it; only the seeded RNG and the serial line are stood
+# in for, so a test can make the RNG fail and see what the wrappers do.
+
+[package]
+name = "pqclean_rng_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[features]
+default = ["mlkem768", "std"]
+# The kernel's parameter-set features, as the mounted files name them; the
+# proofs build ML-KEM-768 and the default ML-DSA-65.
+mlkem768 = []
+mlkem512 = []
+mlkem1024 = []
+mldsa2 = []
+mldsa3 = []
+mldsa5 = []
+# The kernel's ML-DSA verify takes its plain path, not its own stack, here.
+std = []
+
+[build-dependencies]
+cc = "1.1"

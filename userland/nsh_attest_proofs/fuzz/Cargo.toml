@@ -1,0 +1,60 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# Fuzz targets for nsh_attest's parsers of untrusted bytes: the NONOSATT
+# version 4 document, the TCG event log and its replay, and the quote's
+# signed structure. Each target checks what a parse that succeeds must
+# mean, not only that it does not panic; the log target also holds the
+# replay to the kernel's own (nonos-boot-measure). Seed the corpus with
+# seed.py, then run one with:
+#   cargo +nightly-2026-01-16 fuzz run <target>
+
+[package]
+name = "nsh_attest_proofs-fuzz"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+nsh_attest = { path = "../../nsh_attest" }
+sha2 = { version = "0.10", default-features = false }
+
+[[bin]]
+name = "attest_doc"
+path = "fuzz_targets/attest_doc.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "attest_tcg_log"
+path = "fuzz_targets/attest_tcg_log.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "attest_quote"
+path = "fuzz_targets/attest_quote.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]

@@ -35,8 +35,7 @@ const REPLY_INBOX: &str = "endpoint.app.terminal.reply";
 const REPLY_PORT: u32 = 4723;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 
-// The requested-caps ceiling, shared by the boot instance and every extra
-// window so the attestation context (which binds granted caps) is identical.
+// One ceiling for the boot instance and every window: attestation binds it.
 fn terminal_caps() -> u64 {
     Capability::CoreExec.bit()
         | Capability::IPC.bit()
@@ -46,9 +45,10 @@ fn terminal_caps() -> u64 {
         | Capability::FileSystem.bit()
         | Capability::GraphicsDisplayQuery.bit()
         | Capability::GraphicsSurfaceCreate.bit()
-        // `market install` and `uninstall` ask the system as the Marketplace
-        // window does, and `market list` and `info` read where that stands.
+        // `market` asks the system to install, as the Marketplace window does.
         | Capability::AppInstall.bit()
+        // A launcher: `nox install` loads and its tools run with their own caps.
+        | Capability::SpawnWindow.bit()
         | crate::capabilities::serial_debug_cap()
 }
 

@@ -56,6 +56,10 @@ pub(super) extern "C" fn syscall_handler(
         crate::process::accounting::Kind::Syscall,
     );
     crate::process::accounting::bump_total(crate::process::accounting::Total::Syscalls);
+    // A guest naming a native number is refused before the cap table (plan/10).
+    if crate::process::foreign::seal::native(number) {
+        return (-(errnos::EPERM as i64)) as u64;
+    }
     let result = contract_dispatch(sc, SyscallArgs::new([arg1, arg2, arg3, arg4, arg5, arg6]));
     result.value as u64
 }

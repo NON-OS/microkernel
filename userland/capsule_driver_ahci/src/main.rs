@@ -24,17 +24,18 @@ mod clock;
 mod constants;
 mod controller;
 mod discover;
-mod emmc;
 mod engine;
 mod error;
+mod exit_code;
 mod handles;
 mod identity;
 mod log;
 mod protocol;
 mod regs;
-mod served;
 mod server;
 mod setup;
+
+use alloc::vec::Vec;
 
 use nonos_libc::{heap_init, mk_exit, start_driver};
 
@@ -44,24 +45,29 @@ const DRIVER: &[u8] = b"driver.ahci";
 /// The capsule entry point. The kernel loader calls this once on a fresh stack
 /// with the capsule's heap region reserved; it must never be called from Rust.
 ///
-/// Without an AHCI controller or an eMMC host the driver says so and leaves
-/// (`EXIT_ABSENT`) before claiming anything. With either, the bring-up
-/// (`served::bring_up`: a SATA disk first, else the eMMC) is retried on the
-/// shared bounded schedule while no disk comes up, and running out is
-/// `EXIT_GAVE_UP`.
+/// Without an AHCI controller the driver says so and leaves (`EXIT_ABSENT`)
+/// before claiming anything. With one, the bring-up (`setup::run`) is
+/// retried on the shared bounded schedule while no disk comes up; running
+/// out with no disk on any port is `EXIT_EMPTY`, any other way `EXIT_GAVE_UP`.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(1);
     }
 
-    let hosts = served::Hosts::find();
-    let present = hosts.any().then_some(hosts);
-    let started = start_driver(DRIVER, present, served::bring_up);
-    let mut served = match started {
-        Ok(served) => served,
-        Err(code) => mk_exit(code),
+    let hosts = discover::find_ahci();
+    let present = (!hosts.is_empty()).then_some(hosts);
+    let mut last = None;
+    let started = start_driver(DRIVER, present, |h: &Vec<_>| {
+        setup::run(h).map_err(|e| {
+            last = Some(e);
+            error::reason(e)
+        })
+    });
+    let mut driver = match started {
+        Ok(driver) => driver,
+        Err(code) => mk_exit(exit_code::exit_code(code, last)),
     };
 
-    server::run(&mut served);
+    server::run(&mut driver);
 }

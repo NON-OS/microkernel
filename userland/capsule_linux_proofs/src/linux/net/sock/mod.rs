@@ -21,9 +21,9 @@
 
 #[path = "../../../../../capsule_linux/src/linux/net/sock/adopt.rs"]
 mod adopt;
-#[path = "../../../../../capsule_linux/src/linux/net/sock/anon_rx.rs"]
+#[path = "../../../../../capsule_linux/src/linux/net/sock/anon_rx/mod.rs"]
 mod anon_rx;
-#[path = "../../../../../capsule_linux/src/linux/net/sock/backend.rs"]
+#[path = "../../../../../capsule_linux/src/linux/net/sock/backend/mod.rs"]
 mod backend;
 #[path = "../../../../../capsule_linux/src/linux/net/sock/free.rs"]
 mod free;

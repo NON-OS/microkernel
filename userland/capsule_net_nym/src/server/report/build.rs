@@ -41,7 +41,9 @@ pub fn build(now_ms: u64) -> RouteReport {
     let valid_for_ms = topology::meta().map_or(0, |m| m.not_after_ms.saturating_sub(now_ms));
     let mut table = TABLE.lock();
     let gateway_authenticated = super::super::connect_tick::connected()
-        && table.gateway().is_some_and(|g| g.identity != [0u8; 32] && g.shared_key != [0u8; 32]);
+        && table
+            .gateway()
+            .is_some_and(|g| g.identity != [0u8; 32] && crate::state::gateway_key_held());
     let surbs = table.with_sphinx_session(|s| s.surbs.held()).unwrap_or(0);
     drop(table);
     let next_cover = crate::state::next_cover_ms();

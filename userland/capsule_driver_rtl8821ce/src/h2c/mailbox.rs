@@ -24,6 +24,7 @@
 //! device in `rtl8821ce_proofs`.
 
 use crate::regs::Mmio;
+use crate::wait::until_ms;
 
 /// `REG_HMETFR`: one bit per mailbox, set while the firmware still owns it.
 const REG_HMETFR: usize = 0x01CC;
@@ -33,8 +34,9 @@ const REG_HMEBOX0: usize = 0x01D0;
 const REG_HMEBOX0_EX: usize = 0x01F0;
 /// The number of mailboxes.
 const BOX_COUNT: u8 = 4;
-/// Reads allowed before a mailbox is declared stuck (firmware not draining).
-const FREE_POLL_LIMIT: u32 = 100_000;
+/// How long a mailbox may stay full before the firmware is declared not to be
+/// draining it (rtw88 `rtw_fw_send_h2c_command`: 3 ms).
+const FREE_MS: u64 = 3;
 
 /// The round-robin mailbox cursor.
 #[derive(Clone, Copy, Default)]
@@ -62,12 +64,6 @@ impl H2c {
 
     // A mailbox is free once its bit in the transfer register reads clear.
     fn box_free<M: Mmio>(&self, mmio: &M) -> bool {
-        for _ in 0..FREE_POLL_LIMIT {
-            if (mmio.read8(REG_HMETFR) >> self.box_num) & 0x1 == 0 {
-                return true;
-            }
-            core::hint::spin_loop();
-        }
-        false
+        until_ms(FREE_MS, || (mmio.read8(REG_HMETFR) >> self.box_num) & 0x1 == 0)
     }
 }

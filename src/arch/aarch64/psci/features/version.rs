@@ -32,6 +32,12 @@ impl PsciVersion {
         self.major >= 1
     }
 
+    /// Bit 31 is zero in every version the spec defines; a firmware that
+    /// lacks PSCI_VERSION answers NOT_SUPPORTED, a negative word, which sets it.
+    pub fn answered(&self) -> bool {
+        self.major & 0x8000 == 0
+    }
+
     pub fn supports_features(&self) -> bool {
         self.major >= 1
     }

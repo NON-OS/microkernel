@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The bench's controller, brought up by the shipping bring-up and bound
-//! the way setup binds one after a successful probe.
+//! The bench's controller, brought up by the shipping bring-up as
+//! bring_up_one.rs brings one up once claimed and mapped, and bound the way
+//! setup binds one after a successful probe.
 
 use core::cell::Cell;
 
 use super::controller::{controller, LPSS_PHYS};
+use crate::discover::Found;
 use crate::driver::Driver;
-use crate::init::{bring_up, BusSetup};
 use crate::regs::Regs;
+use crate::setup::brought_up::brought_up;
 use crate::transaction::{BusState, Reach};
 
 /// Run the shipping bring-up against the attached core and bind the result
@@ -30,8 +32,9 @@ use crate::transaction::{BusState, Reach};
 /// setup bound no declared device and nothing is in reach.
 pub fn driver(clock_hz: u32, bound_addr: u8) -> Result<Driver, &'static str> {
     let regs = Regs::new(0, 0x1000);
-    let setup = BusSetup { clock_hz, lpss_base: Some(LPSS_PHYS), standard_mode: false };
-    let init = bring_up(regs, setup)?;
+    // Claimed, the controller's own record shows where its window is.
+    let claimed = |_| Some(LPSS_PHYS);
+    let (setup, init) = brought_up(&Found { clock_hz, ..controller() }, claimed, regs, false)?;
     Ok(Driver {
         device_id: controller().device_id,
         pci_device: controller().pci_device,

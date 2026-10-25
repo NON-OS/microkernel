@@ -1,12 +1,11 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::expect_used)]
-
 //! A withdrawal pays an unused address of this wallet: the next account's, which moves on when an
 //! account is added. A wallet from a private key has no next account to offer.
 
-mod keystore;
+/// The stand ins this test runs against (tests/keystore/).
+mod keystore {
+    mod guard;
+    pub use guard::TestGuard;
+}
 mod restored;
 
 use keystore::TestGuard;

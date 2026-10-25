@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+"""What a set of device lanes asks of QEMU, for make (mk/40-run.mk): the
+lanes are tools/nonos_qemu/lanes.py's, so `make QEMU_LANES=...` and
+`nix run .#qemu -- --lane ...` boot the same machine.
+
+  nonos-qemu-lanes args   --dir D LANE...  the QEMU lines to add
+  nonos-qemu-lanes nic    --dir D LANE...  the NIC model in virtio-net's place
+  nonos-qemu-lanes tpm    --dir D LANE...  the TPM interface in tpm-crb's place
+  nonos-qemu-lanes gpu    --dir D LANE...  the display device in virtio-vga's place
+  nonos-qemu-lanes images --dir D LANE...  make the lanes' disks, once"""
+
+import argparse
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from nonos_qemu import lanes
+
+
+def main():
+    ap = argparse.ArgumentParser(prog="nonos-qemu-lanes", description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("what", choices=["args", "nic", "tpm", "gpu", "images"])
+    ap.add_argument("--dir", required=True, help="where the lanes' disks are kept")
+    ap.add_argument("--audio", default="none", help="the audio backend usb-audio plays to")
+    ap.add_argument("lane", nargs="*")
+    a = ap.parse_args()
+    try:
+        plan = lanes.plan(a.lane, a.dir, a.audio)
+    except lanes.LaneError as e:
+        sys.exit(f"nonos-qemu-lanes: {e}")
+    # These rewrite the finished command line (iommu.py, siblings.py), which make does not build.
+    whole = {"iommu": f"iommu={plan.swaps.get('iommu')}", "audio": "hda-beside-nic"}
+    for lane in [whole[k] for k in whole if k in plan.swaps]:
+        sys.exit(f"nonos-qemu-lanes: the {lane} lane changes the whole machine; boot it with "
+                 f"nix run .#qemu -- --lane {lane}")
+    if a.what == "images":
+        lanes.make_images(plan.images)
+    elif a.what == "args":
+        print(" ".join(plan.args))
+    else:
+        print(plan.swaps.get(a.what, ""))
+
+
+if __name__ == "__main__":
+    main()

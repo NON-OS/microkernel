@@ -19,48 +19,14 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use nonos_route_link::{Route, RouteOpening, RouteStream};
+use nonos_route_link::{Route, RouteStream};
 use nonos_tls::flight::ClientFlight;
 use nonos_tls::{AppReader, HandshakeState, TrafficKeys};
 
 use super::wait::Wait;
 
-/// Where an exchange has got to.
-pub(super) enum Phase {
-    /// Nothing done yet: the first step opens the connection.
-    Start,
-    /// A tunnel through the chosen network, opened a slice at a time.
-    Opening(RouteOpening),
-    /// Carrying `out` to the far end; then `After`.
-    Send(After),
-    /// TLS: reading the server's handshake flight.
-    Flight,
-    /// Reading the response.
-    Response,
-    /// Over; the result has been handed back.
-    Done,
-}
-
-#[derive(Clone, Copy)]
-pub(super) enum After {
-    Flight,
-    Response,
-}
-
-/// What a person is shown of an exchange's progress.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Stage {
-    Connecting,
-    Handshake,
-    Sending,
-    Receiving,
-}
-
-pub enum Poll {
-    Pending,
-    /// The response's bytes (decrypted, for TLS), or why there are none.
-    Ready(Result<Vec<u8>, &'static str>),
-}
+pub(super) use super::phase::{After, Phase};
+pub use super::phase::{Poll, Stage};
 
 pub(super) struct Tls {
     pub(super) client: ClientFlight,

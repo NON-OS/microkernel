@@ -30,3 +30,4 @@ mod summary;
 
 pub use own_read::own_line;
 pub use run::{entries, run};
+pub(crate) use summary::count_line;

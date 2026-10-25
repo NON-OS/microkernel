@@ -34,4 +34,9 @@ const _: () = assert!(SELF_PTR == 0x00);
 const _: () = assert!(CPU_ID == 0x08);
 const _: () = assert!(KERNEL_STACK_TOP == 0x20);
 const _: () = assert!(USER_STACK_SAVED == 0x28);
+/// The pointer-authentication words, which `asm/percpu.h` names for the
+/// aarch64 vectors: the user key at +0, the kernel key at +16, on at +32.
+pub const PAC: usize = core::mem::offset_of!(PerCpuData, pac);
+
+const _: () = assert!(PAC == 136);
 const _: () = assert!(core::mem::size_of::<PerCpuData>() == 4096);

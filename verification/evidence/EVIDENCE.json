@@ -19,7 +19,7 @@
   },
   "proof_systems": {
     "kani": {
-      "harnesses": 109
+      "harnesses": 115
     },
     "lean_extraction": {
       "bv_decide_calls": 10,
@@ -1224,15 +1224,15 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/CapabilitiesChainChain.lean",
-          "sha256": "b68402bb72a0caf76a1c6c4e97da1cb1b96996587725db81cbe0f37eb7b443df"
+          "sha256": "6359b2cd61db2be6a1082d1019d8894367f572aa3a7d6366407d00614a6d82a8"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/CapabilitiesTokenTypesConstruct.lean",
-          "sha256": "a4bf4a4d51813705cab5f0b0d4bed39b44906f3934777e4c1b651ff222d2e365"
+          "sha256": "6e151b6e25940e58fad265d3c82134a430424ea676d43369bd4540cf59adf5e2"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Caps.lean",
-          "sha256": "53dc5882055ce67198564d5e8312843fbff799b9bd637d363a94fe103bdca11a"
+          "sha256": "4f7895e2b3807fcb844f4e1787bc4609908b72094bc076694f9da6d4e10f2614"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/CensusBuf.lean",
@@ -1720,7 +1720,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/PagingTypesPermissionsConvert.lean",
-          "sha256": "c089795ca81ad724705e5f026e2afc5e17903ebcec56c7d222f9365b73c7a34f"
+          "sha256": "0f380962817fad97e28f38edc4b14291dfe841ccb70c4e206d21673bd7adc840"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/PagingTypesPermissionsFlags.lean",
@@ -2160,7 +2160,7 @@
         },
         {
           "path": "verification/extraction/lean/Policy/Funs.lean",
-          "sha256": "ada8c41c4178910e8cd1ec00d2037c4c3688723bc02db9225654e955b374ac30"
+          "sha256": "973483bc1917092cd4842509267ce2d9231ee2d454c049ebe105fc70b6a6626e"
         },
         {
           "path": "verification/extraction/lean/Policy/FunsExternal_Template.lean",
@@ -2173,18 +2173,18 @@
       ]
     },
     "lean_specification": {
-      "axiom_profiled_theorems": 626,
+      "axiom_profiled_theorems": 631,
       "mathlib": false,
-      "modules": 190,
+      "modules": 191,
       "sorry_count": 0,
-      "theorems": 1499,
+      "theorems": 1503,
       "toolchain": "leanprover/lean4:v4.15.0"
     },
     "runnable": {
-      "proof_crates": 107
+      "proof_crates": 202
     },
     "verus": {
-      "source_files": 5
+      "source_files": 6
     }
   },
   "schema": "nonos-verification-evidence/v1",

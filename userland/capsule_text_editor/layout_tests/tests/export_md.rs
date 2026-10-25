@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use capsule_text_editor_layout_tests::doc::block::{Block, Run};
+use capsule_text_editor_layout_tests::doc::block::Block;
 use capsule_text_editor_layout_tests::doc::document::Doc;
 use capsule_text_editor_layout_tests::doc::export::md::to_markdown;
 use capsule_text_editor_layout_tests::doc::kind::BlockKind;
@@ -22,14 +22,6 @@ use capsule_text_editor_layout_tests::doc::style::RunStyle;
 
 fn doc_of(blocks: Vec<Block>) -> Doc {
     Doc { blocks }
-}
-
-fn styled(bold: bool, italic: bool, strike: bool) -> RunStyle {
-    let mut s = RunStyle::body();
-    s.bold = bold;
-    s.italic = italic;
-    s.strike = strike;
-    s
 }
 
 #[test]

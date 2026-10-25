@@ -16,22 +16,26 @@
 
 pub mod access;
 pub mod bridge;
+pub mod check;
+mod command_edit;
 pub mod config_space;
+mod counters;
 #[cfg(target_arch = "x86_64")]
 mod extended;
+#[cfg(target_arch = "x86_64")]
+mod extended_write;
+pub mod power;
+mod transport;
+mod unchecked;
 
+pub use access::{read16, read32, read8, write16, write32, write8};
+pub use bridge::BridgeConfigSpace;
+pub use check::check;
+pub use config_space::ConfigSpace;
+pub use counters::{get_config_stats, reset_config_stats};
 #[cfg(target_arch = "x86_64")]
 pub(crate) use extended::map_ecam_bus;
-mod transport;
-
-pub mod power;
-
-pub use access::{
-    get_config_stats, make_config_address, read16, read32, read32_unchecked, read8,
-    reset_config_stats, write16, write32, write32_unchecked, write8,
-};
-pub use bridge::BridgeConfigSpace;
-pub use config_space::ConfigSpace;
+pub use transport::ecam::{self, EcamError, EcamWindow};
+pub use unchecked::{read32_unchecked, write32_unchecked};
 #[cfg(target_arch = "x86_64")]
-pub use extended::read_extended32;
-pub use transport::set_ecam_window;
+pub use {extended::read_extended32, extended_write::write_extended32};

@@ -19,9 +19,9 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::wallet::etna::Role;
 use crate::wallet::etna::text::{draw, draw_in, line};
 use crate::wallet::etna::tokens::{CORNER, OUTLINE, TEXT_3, TIGHT};
+use crate::wallet::etna::Role;
 use crate::wallet::state::State;
 
 const COLS: u32 = 3;
@@ -29,11 +29,11 @@ const PAD: u32 = 14;
 
 /// Draw the words at `x, y` across `w`; returns the grid's height.
 pub fn grid(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32) -> u32 {
-    let count = state.backup_count as usize;
+    let count = state.custody.backup_count as usize;
     let cell_w = (w - (COLS - 1) * TIGHT) / COLS;
     let cell_h = line(Role::RowValue) as u32 + 2 * PAD;
     let rows = (count as u32).div_ceil(COLS);
-    for (i, &index) in state.backup_words.iter().take(count).enumerate() {
+    for (i, &index) in state.custody.backup_words.iter().take(count).enumerate() {
         let (col, row) = (i as u32 % COLS, i as u32 / COLS);
         let cx = x + col * (cell_w + TIGHT);
         let cy = y + row * (cell_h + TIGHT);

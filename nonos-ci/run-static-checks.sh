@@ -204,6 +204,10 @@ for capsule_dir in userland/capsule_driver_*; do
         driver_doc_fail=1
         continue
     fi
+    # A README over 75 lines is split into parts under the crate's docs/,
+    # linked from it; the contract is read across the README and its parts.
+    # A crate without docs/ reads its README alone, as before.
+    doc_text="$(cat "${readme}" "${capsule_dir}"/docs/*.md 2>/dev/null || true)"
     for section in \
         '## Role' \
         '## Microkernel contract' \
@@ -221,20 +225,20 @@ for capsule_dir in userland/capsule_driver_*; do
         '## Release checklist' \
         '## Explicit non-goals today' \
         '## Verification'; do
-        if ! grep -Fq "${section}" "${readme}"; then
+        if ! grep -Fq -- "${section}" <<<"${doc_text}"; then
             fail_with "${readme} missing required section: ${section}"
             driver_doc_fail=1
         fi
     done
-    if ! grep -Fq '```text' "${readme}"; then
+    if ! grep -Fq '```text' <<<"${doc_text}"; then
         fail_with "${readme} must include an ASCII architecture diagram"
         driver_doc_fail=1
     fi
-    if ! grep -Fq 'CAPSULE_REQUIRED_CAPS' "${readme}"; then
+    if ! grep -Fq 'CAPSULE_REQUIRED_CAPS' <<<"${doc_text}"; then
         fail_with "${readme} must name the manifest capability mask"
         driver_doc_fail=1
     fi
-    if ! grep -Eq 'Mk(DeviceList|DeviceClaim|MmioMap|PioGrant|DmaMap|IrqBind|IpcRecv)' "${readme}"; then
+    if ! grep -Eq 'Mk(DeviceList|DeviceClaim|MmioMap|PioGrant|DmaMap|IrqBind|IpcRecv)' <<<"${doc_text}"; then
         fail_with "${readme} must name the Mk/broker syscall contract"
         driver_doc_fail=1
     fi
@@ -471,6 +475,49 @@ fi
 tlb_local_callers="$( { grep -rn 'tlb::invalidate_page\|tlb::invalidate_all' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/arch/' || true; } | wc -l | tr -d '[:space:]')"
 run_baseline 'tlb::invalidate_* callers outside paging/arch' "${baselines_dir}/tlb-local-callers.txt" "${tlb_local_callers}"
 
+# aarch64: a number becomes a pointer only in src/arch/aarch64/mmu/pointer.rs,
+# which says whether it is RAM (the direct map, which no user root can take
+# away), a boot device window or a window the kernel mapped. The compiler
+# refuses the cast everywhere else under src/arch/aarch64
+# (`#![deny(fuzzy_provenance_casts)]` in its mod.rs, the lint enabled in
+# lib.rs). This holds the deny in place, refuses a module-wide allow and the
+# provenance APIs that would step around the lint, and counts the
+# statement-level exceptions, which only shrink.
+a64_ptr_file='src/arch/aarch64/mmu/pointer.rs'
+if grep -Fxq '#![deny(fuzzy_provenance_casts)]' src/arch/aarch64/mod.rs \
+    && grep -Fxq '#![feature(strict_provenance_lints)]' src/lib.rs; then
+    note ok "aarch64 denies integer-to-pointer casts outside ${a64_ptr_file}"
+else
+    fail_with "src/arch/aarch64/mod.rs must deny fuzzy_provenance_casts, and src/lib.rs enable strict_provenance_lints"
+fi
+a64_ptr_inner="$( { grep -rn '#!\[.*fuzzy_provenance_casts' src/arch/aarch64 --include='*.rs' || true; } | { grep -v "^src/arch/aarch64/mod.rs:\|^${a64_ptr_file}:" || true; } )"
+a64_ptr_apis="$( { grep -rnE 'with_exposed_provenance|from_exposed_addr|without_provenance|transmute.*\b(u64|usize)\b' src/arch/aarch64 --include='*.rs' || true; } | { grep -v "^${a64_ptr_file}:" || true; } )"
+if [ -n "${a64_ptr_inner}${a64_ptr_apis}" ]; then
+    fail_with "aarch64: an address made a pointer around ${a64_ptr_file}"
+    printf '%s\n' "${a64_ptr_inner}" "${a64_ptr_apis}" >&2
+else
+    note ok "no module-wide allow or provenance API steps around ${a64_ptr_file}"
+fi
+a64_ptr_count="$( { grep -rn 'allow(fuzzy_provenance_casts)' src/arch/aarch64 --include='*.rs' || true; } | { grep -v "^${a64_ptr_file}:" || true; } | wc -l | tr -d '[:space:]')"
+run_baseline 'aarch64 integer-to-pointer casts outside mmu/pointer.rs' "${baselines_dir}/aarch64-pointer-casts.txt" "${a64_ptr_count}"
+unset a64_ptr_file a64_ptr_inner a64_ptr_apis a64_ptr_count
+
+# aarch64: TPIDR_EL1 has one meaning, the address of this CPU's per-CPU block
+# (smp::percpu), which the vectors read the PAC keys out of at fixed offsets
+# (asm/percpu.h). It was once also a key-slot pointer, and the two writers
+# took turns. Only the per-CPU base setter may write it, and the powerdown
+# resume (asm/suspend.S) may put back the value it wrote, from this CPU's
+# own context slot and nothing else (userland/suspend_proofs). LOAD is that
+# file's restore macro, so it is looked for as well as a bare MSR.
+tpidr_writers="$( { grep -rniE '(msr|LOAD)[[:space:]]+tpidr_el1' src --include='*.rs' --include='*.S' --include='*.h' || true; } | { grep -v '^src/arch/percpu_base.rs:' || true; } | { grep -vE '^src/arch/aarch64/asm/suspend\.S:[0-9]+:[[:space:]]+LOAD[[:space:]]+tpidr_el1, CTX_TPIDR_EL1$' || true; } )"
+if [ -n "${tpidr_writers}" ]; then
+    fail_with "TPIDR_EL1 written outside src/arch/percpu_base.rs and the resume's one restore"
+    printf '%s\n' "${tpidr_writers}" >&2
+else
+    note ok "TPIDR_EL1 written only by the per-CPU base setter, and put back by the resume"
+fi
+unset tpidr_writers
+
 # Driver capsule isolation. The userland virtio-rng driver capsule
 # must reach hardware only through the broker. Pulling kernel
 # driver modules in (`crate::drivers::*`) would defeat the
@@ -632,18 +679,18 @@ done
 note ok "capsule_driver_virtio_gpu setup phases roll back prior broker grants"
 
 # Polled driver: the legacy pin is disabled in setup/pci.rs, no IRQ bind.
-if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x1B9018' userland/capsule_driver_virtio_gpu/Capsule.mk ||
+if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0xB9018' userland/capsule_driver_virtio_gpu/Capsule.mk ||
    ! grep -q 'mk_device_claim' userland/capsule_driver_virtio_gpu/src/setup/claim.rs ||
    ! grep -rq 'mk_mmio_map' userland/capsule_driver_virtio_gpu/src/setup/mmio ||
    ! grep -qE '\| *MK_PCI_CMD_INTX_DISABLE' userland/capsule_driver_virtio_gpu/src/setup/pci.rs ||
    ! grep -q 'mk_dma_map' userland/capsule_driver_virtio_gpu/src/setup/dma.rs ||
-   ! grep -rq 'GPU_CFG_NUM_SCANOUTS' userland/capsule_driver_virtio_gpu/src/constants ||
-   ! grep -q 'OP_DISPLAY_INFO' userland/capsule_driver_virtio_gpu/src/protocol/ops.rs ||
+   ! grep -rq 'GPU_CFG_EVENTS_READ' userland/capsule_driver_virtio_gpu/src/constants ||
+   ! grep -q 'impl Display for Gpu' userland/capsule_driver_virtio_gpu/src/display/wire.rs ||
    ! grep -rq 'spawn_driver_virtio_gpu_capsule' src/userspace/init/ ||
    ! grep -q 'pub mod virtio_gpu_capsule' src/hardware/mod.rs; then
-    fail_with "capsule_driver_virtio_gpu must expose brokered device setup + display-info IPC"
+    fail_with "capsule_driver_virtio_gpu must expose brokered device setup + the display wire"
 else
-    note ok "capsule_driver_virtio_gpu exposes brokered device setup + display-info IPC"
+    note ok "capsule_driver_virtio_gpu exposes brokered device setup + the display wire"
 fi
 
 gpu_endpoint_marker="$( { grep -rn 'driver\.virtio_gpu0' userland/capsule_driver_virtio_gpu src/hardware/virtio_gpu_capsule --include='*.rs' || true; } )"
@@ -894,7 +941,7 @@ unset iwl_dead_code
 for phase_file in \
     userland/capsule_driver_iwlwifi/src/setup/mmio.rs:mk_device_release \
     userland/capsule_driver_iwlwifi/src/setup/irq.rs:mk_mmio_unmap \
-    userland/capsule_driver_iwlwifi/src/setup/dma.rs:mk_irq_unbind ; do
+    userland/capsule_driver_iwlwifi/src/setup/grants.rs:mk_irq_unbind ; do
     file="${phase_file%%:*}"
     needle="${phase_file##*:}"
     if [ ! -f "${file}" ]; then
@@ -909,13 +956,10 @@ if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0xF8038' userland/capsule_driver_iwlwi
    ! grep -q 'mk_device_claim' userland/capsule_driver_iwlwifi/src/setup/claim.rs ||
    ! grep -q 'mk_mmio_map' userland/capsule_driver_iwlwifi/src/setup/mmio.rs ||
    ! grep -q 'mk_irq_bind' userland/capsule_driver_iwlwifi/src/setup/irq.rs ||
-   ! grep -q 'mk_dma_map' userland/capsule_driver_iwlwifi/src/setup/dma.rs ||
+   ! grep -q 'mk_dma_map' userland/capsule_driver_iwlwifi/src/server/radio/grant.rs ||
    ! grep -q 'include_bytes!' userland/capsule_driver_iwlwifi/src/firmware/blob.rs ||
-   ! grep -q 'OP_FIRMWARE_INFO' userland/capsule_driver_iwlwifi/src/protocol/ops.rs ||
-   ! grep -q 'OP_FIRMWARE_STAGE' userland/capsule_driver_iwlwifi/src/protocol/ops.rs ||
-   ! grep -q 'OP_ALIVE_WAIT' userland/capsule_driver_iwlwifi/src/protocol/ops.rs ||
-   ! grep -rq 'stage_firmware' userland/capsule_driver_iwlwifi/src/firmware/stage ||
-   ! grep -q 'OP_RF_STATE' userland/capsule_driver_iwlwifi/src/protocol/ops.rs ||
+   ! grep -q 'pub fn gen3_blob' userland/capsule_driver_iwlwifi/src/firmware/blob.rs ||
+   ! grep -q 'OP_STATUS' userland/capsule_driver_iwlwifi/src/server/control/kinds.rs ||
    ! grep -rq 'spawn_driver_iwlwifi_capsule' src/userspace/init/ ||
    ! grep -q 'pub mod iwlwifi_capsule' src/hardware/mod.rs; then
     fail_with "capsule_driver_iwlwifi must expose brokered setup + firmware/RF IPC"
@@ -1921,10 +1965,10 @@ fi
 # Capability split for the driver-broker syscalls. `MkMmioMap` and
 # `MkMmioUnmap` must route through `can_mmio()`; `MkDeviceClaim` /
 # `MkDeviceRelease` through `can_driver()`; only `MkDeviceList` may
-# share the old `can_device_enum()`. The cap_table::mk module is
-# the single source of truth, so the gate inspects that file
+# share the old `can_device_enum()`. The cap_table::mk_device module
+# holds the driver-broker rows, so the gate inspects that file
 # directly.
-mk_table='src/syscall/contract/cap_table/mk.rs'
+mk_table='src/syscall/contract/cap_table/mk_device.rs'
 if [ ! -f "${mk_table}" ]; then
     fail_with "missing ${mk_table}"
 elif ! grep -qE 'MkMmioMap[^=]*\|[^=]*MkMmioUnmap[^=]*=>[[:space:]]*caps\.can_mmio\(\)' "${mk_table}"; then
@@ -2016,7 +2060,7 @@ fi
 # and route the resulting rejection through `BadLengthForClass`.
 dma_limits='src/hardware/broker/dma/limits.rs'
 dma_validate='src/hardware/broker/dma/map/validate.rs'
-dma_errno_map='src/syscall/microkernel/dma.rs'
+dma_errno_map='src/syscall/microkernel/dma/errno.rs'
 dma_types='src/hardware/broker/dma/types.rs'
 if [ ! -f "${dma_limits}" ]; then
     fail_with "missing ${dma_limits} (DMA class-aware page bounds)"
@@ -2097,8 +2141,12 @@ unset gsi_owners gsi_state gsi_claim ioapic_bind broker_release
 # bit, the broker grant record, and revocation. This gate keeps
 # `map_device_memory` callers in the kernel TCB only (memory/paging
 # itself, memory/mmio, memory/unified LAPIC rebind, drivers, apic,
-# virtio, IOMMU unit probe, TPM register window, aarch64 PCI windows).
-device_map_external="$( { grep -rn 'map_device_memory' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/memory/mmio/' || true; } | { grep -v '^src/memory/unified/' || true; } | { grep -v '^src/drivers/' || true; } | { grep -v '^src/arch/x86_64/apic/' || true; } | { grep -v '^src/arch/x86_64/interrupt/' || true; } | { grep -v '^src/interrupts/' || true; } | { grep -v '^src/sys/serial' || true; } | { grep -vE '^src/arch/[a-z0-9_]+/iommu/' || true; } | { grep -v '^src/security/tpm/mmio/map\.rs:' || true; } | { grep -v '^src/arch/aarch64/boot/pci_windows\.rs:' || true; } | { grep -v '^src/arch/x86_64/acpi/hw/port_bus\.rs:' || true; } | { grep -v '^src/arch/x86_64/time/hpet\.rs:' || true; } )"
+# virtio, IOMMU unit probe, TPM register window, aarch64 PCI windows, and
+# the broker's stop for a device-tree device, which maps its registers for
+# the kernel alone so it can halt the device's DMA when its capsule lets go,
+# the Raspberry Pi firmware mailbox, which only the kernel talks to, and the
+# aarch64 broadcast timer frame, which keeps sleeping CPUs' deadlines).
+device_map_external="$( { grep -rn 'map_device_memory' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/memory/mmio/' || true; } | { grep -v '^src/memory/unified/' || true; } | { grep -v '^src/drivers/' || true; } | { grep -v '^src/arch/x86_64/apic/' || true; } | { grep -v '^src/arch/x86_64/interrupt/' || true; } | { grep -v '^src/interrupts/' || true; } | { grep -v '^src/sys/serial' || true; } | { grep -vE '^src/arch/[a-z0-9_]+/iommu/' || true; } | { grep -v '^src/security/tpm/mmio/map\.rs:' || true; } | { grep -v '^src/arch/aarch64/boot/pci_windows\.rs:' || true; } | { grep -v '^src/hardware/broker/described/register\.rs:' || true; } | { grep -v '^src/arch/aarch64/firmware/state\.rs:' || true; } | { grep -v '^src/arch/x86_64/acpi/hw/port_bus\.rs:' || true; } | { grep -v '^src/arch/x86_64/time/hpet\.rs:' || true; } | { grep -v '^src/arch/aarch64/timer/broadcast/start\.rs:' || true; } )"
 if [ -n "${device_map_external}" ]; then
     fail_with "map_device_memory called from outside the kernel TCB; user-facing MMIO must go through the broker"
     printf '%s\n' "${device_map_external}" >&2
@@ -2251,6 +2299,7 @@ else
 fi
 unset mk_tool_drift
 
+# >>> operator-key block
 # Operator pubkey trust list must compile in. keys.rs pulls the
 # marketplace operator pubkey in from the committed .pub with
 # include_bytes!, and TRUSTED_OPERATORS wires it in. The key is
@@ -2261,16 +2310,32 @@ trust_keys='userland/capsule_market/src/bootstrap_trust/keys.rs'
 operator_pubkey_hex='bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2'
 trust_key_rel="$( { grep -A1 'const NOX_OPERATOR_V1: \[u8; 32\] =' "${trust_keys}" 2>/dev/null || true; } | { grep -oE 'include_bytes!\("[^"]+marketplace_operator_ed25519\.pub"\)' || true; } | head -n 1 | sed -E 's/^include_bytes!\("//; s/"\)$//')"
 trust_key_file="$(dirname "${trust_keys}")/${trust_key_rel}"
+# NONOS_STATIC_SKIP_KEYS=1 leaves .keys/ unread, as a session's run must:
+# the trust list's shape is still checked, the key bytes are not.
 if [ ! -f "${trust_keys}" ]; then
     fail_with "missing ${trust_keys} (operator trust list)"
-elif [ -z "${trust_key_rel}" ] || [ ! -f "${trust_key_file}" ] ||
-     [ "$(od -An -tx1 -v "${trust_key_file}" | tr -d ' \n')" != "${operator_pubkey_hex}" ] ||
+elif [ -z "${trust_key_rel}" ] ||
      ! grep -qE 'TRUSTED_OPERATORS: &\[\[u8; 32\]\] = &\[NOX_OPERATOR_V1\]' "${trust_keys}"; then
+    fail_with "marketplace operator pubkey missing from bootstrap_trust or not the committed key"
+elif [ "${NONOS_STATIC_SKIP_KEYS:-0}" = 1 ]; then
+    note skip "operator pubkey bytes not compared: NONOS_STATIC_SKIP_KEYS=1 leaves .keys/ unread"
+elif [ ! -f "${trust_key_file}" ] ||
+     [ "$(od -An -tx1 -v "${trust_key_file}" | tr -d ' \n')" != "${operator_pubkey_hex}" ]; then
     fail_with "marketplace operator pubkey missing from bootstrap_trust or not the committed key"
 else
     note ok "marketplace operator pubkey baked into capsule_market trust list"
 fi
 unset trust_keys operator_pubkey_hex trust_key_rel trust_key_file
+# <<< operator-key block
+# The block above, run traced on a fake tree: skipped, it opens nothing under
+# .keys/ and still checks the trust list's shape; --selftest shows each
+# mutant of it fails.
+if python3 -I nonos-ci/check-skip-keys.py --selftest >/dev/null; then
+    note ok "NONOS_STATIC_SKIP_KEYS=1 leaves .keys/ unread and the trust list checked"
+else
+    python3 -I nonos-ci/check-skip-keys.py --selftest >&2 || true
+    fail_with "the operator-key block reads .keys/ when skipped, or checks too little"
+fi
 
 boot_build='nonos-bootloader/build.rs'
 if [ ! -f "${boot_build}" ]; then
@@ -2285,6 +2350,14 @@ elif ! grep -q 'NONOS_KERNEL_ATTEST_ROOT is all zeroes' "${boot_build}"; then
     fail_with "bootloader build must reject an all-zero kernel attestation root"
 else
     note ok "bootloader fails closed on its signing key and the enrolled kernel root"
+fi
+# The loader's build script writes only under OUT_DIR, so no build puts a key
+# in nonos-bootloader/keys/ or .keys/; --selftest shows each mutant fails it.
+if python3 -I nonos-ci/check-build-writes.py --selftest "${boot_build}" >/dev/null; then
+    note ok "bootloader build.rs writes nothing outside OUT_DIR, so never a key in the tree"
+else
+    python3 -I nonos-ci/check-build-writes.py --selftest "${boot_build}" >&2 || true
+    fail_with "bootloader build.rs writes outside OUT_DIR"
 fi
 unset boot_build
 
@@ -2593,10 +2666,10 @@ unset unguarded_driver_spawns
 compositor_ops='userland/compositor/src/protocol/ops.rs'
 compositor_runner='userland/compositor/src/server/runner'
 compositor_prime='userland/compositor/src/setup/prime.rs'
-compositor_wire='userland/compositor/src/gfx_client/wire.rs'
+compositor_wire='userland/compositor/src/display/call.rs'
 if [ ! -f "${compositor_ops}" ] || [ ! -d "${compositor_runner}" ] \
         || [ ! -f "${compositor_prime}" ] || [ ! -f "${compositor_wire}" ]; then
-    fail_with "compositor runtime missing protocol/runner/setup/gfx_client modules"
+    fail_with "compositor runtime missing protocol/runner/setup/display wire modules"
 elif ! grep -q 'OP_SCENE_SUBMIT' "${compositor_ops}"; then
     fail_with "${compositor_ops} must define OP_SCENE_SUBMIT"
 elif ! grep -q 'OP_SCENE_REMOVE' "${compositor_ops}"; then
@@ -2609,14 +2682,14 @@ elif ! grep -rq 'mk_ipc_recv_from' "${compositor_runner}"; then
     fail_with "${compositor_runner} must receive via mk_ipc_recv_from"
 elif ! grep -rq 'mk_surface_attach' userland/compositor/src/setup; then
     fail_with "compositor setup must map the primary surface via mk_surface_attach"
-elif ! grep -rq 'mk_ipc_call' userland/compositor/src/gfx_client/wire; then
+elif ! grep -q 'mk_ipc_call' "${compositor_wire}"; then
     fail_with "${compositor_wire} must drive gfx requests via mk_ipc_call"
 elif find userland/compositor/src -name '*.rs' -print0 2>/dev/null \
         | xargs -0 grep -lE 'nonos_surface_create|nonos_surface_present_full|nonos_surface_destroy' 2>/dev/null \
         | grep -q .; then
     fail_with "compositor still uses legacy nonos_surface_* graphics syscalls"
 else
-    note ok "compositor runtime owns scene/damage/cursor through the Mk* + gfx_client path"
+    note ok "compositor runtime owns scene/damage/cursor through the Mk* + display wire path"
 fi
 unset compositor_ops compositor_runner compositor_prime compositor_wire
 
@@ -3117,13 +3190,17 @@ unset cleanup_src
 # returns to a global bump.
 mmap_src='src/syscall/microkernel/memory/mmap.rs'
 munmap_src='src/syscall/microkernel/memory/munmap.rs'
+# The per-page loop lives in unmap_range.rs; sys_munmap frees through it.
+unmap_range_src='src/syscall/microkernel/memory/va/unmap_range.rs'
 if [ ! -f "${mmap_src}" ] || [ ! -f "${munmap_src}" ]; then
     fail_with "missing ${mmap_src} or ${munmap_src}"
 elif grep -qE '\bNEXT_USER_VA\b' "${mmap_src}" "${munmap_src}"; then
     fail_with "memory split reintroduced a global NEXT_USER_VA; reserve via pcb.mmap_va"
 elif ! awk '/pub fn sys_mmap/,/^\}/' "${mmap_src}" | grep -qE 'reserve_va\(' ; then
     fail_with "${mmap_src} sys_mmap must reserve via the per-pid allocator"
-elif ! awk '/pub fn sys_munmap/,/^\}/' "${munmap_src}" | grep -qE 'deallocate_frame\(' ; then
+elif ! { awk '/pub fn sys_munmap/,/^\}/' "${munmap_src}" | grep -qE 'deallocate_frame\(' \
+        || { awk '/pub fn sys_munmap/,/^\}/' "${munmap_src}" | grep -qE 'unmap_range\(' \
+             && awk '/fn unmap_range/,/^\}/' "${unmap_range_src}" | grep -qE 'deallocate_frame\(' ; } ; } ; then
     fail_with "${munmap_src} sys_munmap must deallocate the unmapped frames"
 elif ! awk '/pub fn sys_munmap/,/^\}/' "${munmap_src}" | grep -qE 'release_va\(' ; then
     fail_with "${munmap_src} sys_munmap must update per-pid mmap-VA state"
@@ -3556,10 +3633,11 @@ unset pcb_ops_src
 # every fork is intersected against. Production builds keep
 # hardware authority (Driver/DeviceEnum/Mmio/Irq/Dma/Pio), Admin,
 # Debug, and the graphics caps out of the ambient set. The
-# const_assert in the file enforces this at compile time; this
-# gate proves the const_assert and the forbidden mask still exist
-# and that no forbidden bit was textually added to the ambient.
-inherit_src='src/process/core/table/inherit.rs'
+# const_assert beside the masks, in ambient.rs since the set moved out
+# of inherit.rs, enforces this at compile time; this gate proves the
+# const_assert and the forbidden mask still exist and that no
+# forbidden bit was textually added to the ambient.
+inherit_src='src/process/core/table/ambient.rs'
 if [ ! -f "${inherit_src}" ]; then
     fail_with "missing ${inherit_src}"
 elif ! grep -qE '^(pub(\([^)]*\))?[[:space:]]+)?const AMBIENT_CAPS:' "${inherit_src}"; then
@@ -3650,7 +3728,7 @@ unset graphics_cap_src graphics_park_src
 # Graphics capabilities stay out of the ambient inheritance set.
 # `FORBIDDEN_AMBIENT` already includes them; this gate fails loud
 # if a graphics variant is silently dropped from the forbidden mask.
-inherit_src='src/process/core/table/inherit.rs'
+inherit_src='src/process/core/table/ambient.rs'
 graphics_in_ambient="$(awk '/^(pub(\([^)]*\))?[ \t]+)?const AMBIENT_CAPS:/{g=1} g{print; if (/;/) exit}' "${inherit_src}" \
     | grep -E 'Capability::Graphics(DisplayQuery|SurfaceCreate|SurfaceMap|Present)' || true)"
 graphics_in_forbidden="$(awk '/^const FORBIDDEN_AMBIENT:/{g=1} g{print; if (/;/) exit}' "${inherit_src}" \
@@ -4136,7 +4214,7 @@ unset abi_registry_dir abi_registry_files syscall_defs convert_src graphics_park
 ipc_primitives='src/syscall/microkernel/ipc/recv_from.rs src/syscall/microkernel/ipc/send_to_pid.rs src/syscall/microkernel/ipc/lookup.rs'
 ipc_dispatch='src/syscall/microkernel/dispatch/ipc.rs'
 ipc_defs='src/syscall/numbers/defs.rs'
-ipc_cap='src/syscall/contract/cap_table/mk.rs'
+ipc_cap='src/syscall/contract/cap_table/mk_ipc.rs'
 ipc_libc='userland/libc/src/ipc/recv_from.rs userland/libc/src/ipc/send_to_pid.rs userland/libc/src/ipc/lookup.rs'
 ipc_missing=
 for f in ${ipc_primitives} ${ipc_libc}; do
@@ -4286,6 +4364,15 @@ if bash nonos-ci/check-capsule-ports.sh src/hardware src/fs src/security src/use
 else
     fail_with "capsule IPC port collision"
     bash nonos-ci/check-capsule-ports.sh src/hardware src/fs src/security src/userspace >&2 || true
+fi
+
+# The same numbers as each Capsule.mk records them, reply inboxes included,
+# and each spawn file held to its Capsule.mk.
+if python3 -I nonos-ci/check-capsule-endpoints.py . >/dev/null 2>&1; then
+    note ok "capsule endpoints unique and spawn files match their Capsule.mk"
+else
+    fail_with "capsule endpoint collision or Capsule.mk drift"
+    python3 -I nonos-ci/check-capsule-endpoints.py . >&2 || true
 fi
 
 # init_handoff must run validate_security on every BootHandoffV1
@@ -4959,6 +5046,58 @@ else
 fi
 unset mirror_out
 
+# Draining the raw input ring reads every key typed. Its bit belongs to the
+# input router and to no driver; the seal refuses it elsewhere too.
+# capsule_linux dials a local-network mirror directly, past nonos_route_link,
+# only in a development build: the dev-mirror feature gates every piece of
+# that path, and no release set builds with it (docs/build/dev-mirror.md).
+if dev_mirror_out="$(python3 scripts/check_dev_mirror.py 2>&1)" \
+    && python3 scripts/check_dev_mirror.py --self-test >/dev/null 2>&1; then
+    note ok "capsule_linux's direct dial is development only (check_dev_mirror)"
+else
+    printf '%s\n' "${dev_mirror_out}" >&2
+    fail_with "check_dev_mirror: capsule_linux's direct dial reaches a release build"
+fi
+unset dev_mirror_out
+
+if drain_out="$(python3 scripts/check_input_drain_cap.py 2>&1)"; then
+    note ok "InputDrain is held by the input router alone (check_input_drain_cap)"
+else
+    tail -n 5 <<< "${drain_out}" >&2
+    fail_with "check_input_drain_cap: a capsule other than the input router asks for InputDrain"
+fi
+unset drain_out
+
+# A camera's frames and a microphone's samples never pass the kernel, so the
+# bits that gate them are kept scarce by signing alone: no capsule until
+# Decision 9 names one.
+if capture_out="$(python3 scripts/check_capture_caps.py 2>&1)"; then
+    note ok "CameraCapture, MicrophoneCapture and ScreenCapture are held by no capsule (check_capture_caps)"
+else
+    tail -n 5 <<< "${capture_out}" >&2
+    fail_with "check_capture_caps: a capsule asks for a capture bit (camera, microphone, screen)"
+fi
+unset capture_out
+# A capsule the catalogue says the kernel spawns must have its spawn mirror,
+# and its feature named in kernel source: capsule_power had neither, and the
+# shell's power-off found no service on any image.
+if mirrors_out="$(python3 scripts/check_kernel_mirrors.py 2>&1)" &&
+   python3 scripts/check_kernel_mirrors.py --self-test >/dev/null 2>&1; then
+    note ok "every catalogued kernel spawn has its mirror and its feature (check_kernel_mirrors)"
+else
+    tail -n 5 <<< "${mirrors_out}" >&2
+    fail_with "check_kernel_mirrors: a capsule the kernel should spawn has no mirror"
+fi
+unset mirrors_out
+
+# SPHINCS+, NTRU and Classic McEliece do not ship: nothing turns on the
+# feature that builds them.
+if bash nonos-ci/check-pqc-unvetted.sh >/dev/null 2>&1; then
+    note ok "no default, profile or build turns on pqc-unvetted"
+else
+    bash nonos-ci/check-pqc-unvetted.sh >&2 || true
+    fail_with "pqc-unvetted is turned on by a build: those schemes do not ship"
+fi
 # Every crate's tests run in a lane or are listed with an owner, and
 # tools/nix/test-lanes.json is what the manifests' markers say.
 if lanes_out="$(python3 scripts/check_test_lanes.py 2>&1)"; then
@@ -4968,6 +5107,209 @@ else
     fail_with "check_test_lanes: a test runs in no lane and is not listed"
 fi
 unset lanes_out
+# The keymap a Wayland guest is given is generated data; regenerating it is a
+# deliberate step (tools/nonos-linux-keymap), and this holds it to its pin.
+if keymap_out="$(python3 scripts/check_keymap.py 2>&1)"; then
+    note ok "the guest keymap is the pinned one (check_keymap)"
+else
+    tail -n 5 <<< "${keymap_out}" >&2
+    fail_with "check_keymap: keymap-us.xkb differs from its pin"
+fi
+unset keymap_out
+
+# Every Wayland global foot looks for is offered, or held back with a reason.
+if foot_out="$(python3 scripts/check_foot_globals.py 2>&1)"; then
+    note ok "foot's Wayland globals are offered or held (check_foot_globals)"
+else
+    tail -n 5 <<< "${foot_out}" >&2
+    fail_with "check_foot_globals: a global foot looks for is neither offered nor held"
+fi
+unset foot_out
+
+# Every gate between a Linux guest and the outside is where its table says.
+if gates_out="$(python3 scripts/check_linux_gates.py 2>&1)"; then
+    note ok "a Linux guest's gates are where guest-gates.txt says (check_linux_gates)"
+else
+    tail -n 10 <<< "${gates_out}" >&2
+    fail_with "check_linux_gates: a guest gate moved, went, or a new file answers a frame"
+fi
+unset gates_out
+# K6f: each driver capsule's discover table stays inside its kernel scope row
+# (src/hardware/broker/scope_table.rs), and the row admits no id range the
+# table never names; the self-test first, so a parser that stopped seeing ids
+# cannot pass by finding none.
+if scope_out="$(python3 scripts/check_driver_scope.py --self-test 2>&1 \
+    && python3 scripts/check_driver_scope.py 2>&1)"; then
+    note ok "every driver's discover table and its scope row agree (check_driver_scope)"
+else
+    tail -n 5 <<< "${scope_out}" >&2
+    fail_with "check_driver_scope: a driver capsule and its scope row disagree"
+fi
+unset scope_out
+# G-84: every display driver the compositor tries, with a capsule, is in the
+# full desktop image or on a list that may only shrink; the self-test first,
+# so a scan that stopped seeing drivers cannot pass by finding none.
+if display_out="$(python3 scripts/check_display_profiles.py --self-test 2>&1 \
+    && python3 scripts/check_display_profiles.py 2>&1)"; then
+    note ok "every display driver ships in the full desktop image (check_display_profiles)"
+else
+    tail -n 5 <<< "${display_out}" >&2
+    fail_with "check_display_profiles: a display driver is left out of microkernel-full-gui"
+fi
+unset display_out
+# capsule_linux's deliberate panic is for the selftest image's copy alone: no
+# committed build may carry it; the self-test first, so the scan is seen to bite.
+if selftest_panic_out="$(python3 scripts/check_selftest_panic.py --self-test 2>&1 \
+    && python3 scripts/check_selftest_panic.py 2>&1)"; then
+    note ok "no committed build carries capsule_linux's selftest-panic (check_selftest_panic)"
+else
+    tail -n 5 <<< "${selftest_panic_out}" >&2
+    fail_with "check_selftest_panic: a committed build carries selftest-panic"
+fi
+unset selftest_panic_out
+# The surface registry's GATE is a spin lock: a holder that reaches a function
+# taking it again spins forever with interrupts off, and the surface path on
+# every CPU stops behind it (orphans::reclaim and reclaim_dma, the black
+# desktop). The self-test first, so a scan that stopped seeing holders cannot
+# pass by finding none.
+if gate_out="$(python3 scripts/check_gate_reentry.py --self-test 2>&1 \
+    && python3 scripts/check_gate_reentry.py 2>&1)"; then
+    note ok "no surface registry function takes GATE while holding it (check_gate_reentry)"
+else
+    tail -n 5 <<< "${gate_out}" >&2
+    fail_with "check_gate_reentry: a GATE holder reaches a function that takes GATE again"
+fi
+unset gate_out
+
+# nonos-stark-enroll writes the policy roots. A crate it builds that compiles
+# one in is rebuilt by every enrolment, and the stamps made with the old
+# binary go stale: the kernel was re-enrolled after the loader baked its root,
+# and the loader refused it. The self-test first, so a scan that stopped
+# seeing includes cannot pass by finding none.
+if enrol_out="$(python3 scripts/check_enrol_inputs.py --self-test 2>&1 \
+    && python3 scripts/check_enrol_inputs.py 2>&1)"; then
+    note ok "the enrolment tool compiles in none of the roots it writes (check_enrol_inputs)"
+else
+    tail -n 5 <<< "${enrol_out}" >&2
+    fail_with "check_enrol_inputs: nonos-stark-enroll compiles in a trust file it writes"
+fi
+unset enrol_out
+
+# The GPU pages in docs/hardware say what each GPU gets today; the check holds
+# them to the code they describe. The self-test first, so a check that stopped
+# reading the pages cannot pass by finding nothing.
+if gpu_doc_out="$(python3 scripts/check_gpu_doc.py --self-test 2>&1 \
+    && python3 scripts/check_gpu_doc.py 2>&1)"; then
+    note ok "the GPU pages match the tree (check_gpu_doc)"
+else
+    tail -n 5 <<< "${gpu_doc_out}" >&2
+    fail_with "check_gpu_doc: docs/hardware/gpu*.md is out of step with the tree"
+fi
+unset gpu_doc_out
+
+# nonos-harden reads GO over a nonos-verify gap only when the gap is on
+# scripts/baselines/declared-limits.txt; the list follows the source and may
+# only shrink. The self-test first, so a parser that stopped seeing gaps
+# cannot pass by finding none.
+if limits_out="$(python3 scripts/check_declared_limits.py --self-test 2>&1 \
+    && python3 scripts/check_declared_limits.py 2>&1)"; then
+    note ok "nonos-harden's declared limits are in the source and only shrink (check_declared_limits)"
+else
+    tail -n 5 <<< "${limits_out}" >&2
+    fail_with "check_declared_limits: the declared-limits list names a gap it may not"
+fi
+unset limits_out
+# An AP asked to park parks only at a checkpoint of bring_up, where it holds
+# no lock, before the boot CPU sends INIT; the self-test first, so a parser
+# that stopped seeing statements cannot pass by finding none.
+if park_out="$(python3 scripts/check_ap_checkpoints.py --self-test 2>&1 \
+    && python3 scripts/check_ap_checkpoints.py 2>&1)"; then
+    note ok "every AP bring-up step is followed by a checkpoint outside any lock (check_ap_checkpoints)"
+else
+    tail -n 5 <<< "${park_out}" >&2
+    fail_with "check_ap_checkpoints: an AP could park holding a lock, or a step has no checkpoint"
+fi
+unset park_out
+# The SMP boot proofs (shootdown trace, forced park, forced stall) are defined
+# alone and named by no profile, image list, make lane or workflow; the kernel
+# refuses them only beside production and release. Self-test first.
+if proofs_out="$(python3 scripts/check_proof_features.py --self-test 2>&1 \
+    && python3 scripts/check_proof_features.py 2>&1)"; then
+    note ok "no profile or image enables an SMP boot proof (check_proof_features)"
+else
+    tail -n 5 <<< "${proofs_out}" >&2
+    fail_with "check_proof_features: a profile, image or lane enables an SMP boot proof"
+fi
+unset proofs_out
+# The power button is armed only once device interrupt routing is up: armed
+# at the broker's seeding the SCI's mask is refused and the button stays dead
+# (P-05). The order in the source, and the line a q35 boot cell must carry.
+if pbo_out="$(python3 scripts/check_power_button_order.py --self-test 2>&1 \
+    && python3 scripts/check_power_button_order.py 2>&1 \
+    && (cd scripts && python3 -m unittest -q bootmatrix.test_power 2>&1))"; then
+    note ok "the power button is armed after routing, and q35 cells must see it armed"
+else
+    tail -n 5 <<< "${pbo_out}" >&2
+    fail_with "power button: armed before device interrupt routing, or the q35 verdict does not hold it"
+fi
+unset pbo_out
+# A kernel feature that gates code and that no lane turns on is dark; the dark
+# set may only shrink (scripts/baselines/dark-features.txt). The SMP boot
+# proofs and pqc-unvetted are lit by the compile-only check-dark-features.
+if dark_out="$(python3 scripts/check_dark_features.py --self-test 2>&1 \
+    && python3 scripts/check_dark_features.py 2>&1)"; then
+    note ok "no kernel feature joined the dark set (check_dark_features)"
+else
+    tail -n 8 <<< "${dark_out}" >&2
+    fail_with "check_dark_features: a feature gates code that no lane builds"
+fi
+unset dark_out
+# The ipc.call diag lines name the endpoint and timing, never a pid: kernel
+# lines leave the machine in photos and bug reports (K10, K19, B-04).
+if ipcpid_out="$(python3 scripts/check_ipc_diag_no_pid.py --self-test 2>&1 \
+    && python3 scripts/check_ipc_diag_no_pid.py 2>&1)"; then
+    note ok "no ipc.call diag line can format a pid (check_ipc_diag_no_pid)"
+else
+    tail -n 5 <<< "${ipcpid_out}" >&2
+    fail_with "check_ipc_diag_no_pid: an ipc.call diag line can format a pid"
+fi
+unset ipcpid_out
+# A release takes the capsules as make declares them, never the development
+# set (capsules-dev): the lines that choose it are pinned, and a release seal
+# handed it refuses by what was built, not by the flag. The self-tests first,
+# so a check that stopped seeing a mutant cannot pass quietly.
+if devset_out="$(python3 scripts/check_dev_capsule_set.py --self-test 2>&1 \
+    && python3 scripts/check_dev_capsule_set.py 2>&1 \
+    && python3 scripts/check_seal_dev_refusal.py 2>&1)"; then
+    note ok "no release takes the development capsule set (check_dev_capsule_set, check_seal_dev_refusal)"
+else
+    tail -n 8 <<< "${devset_out}" >&2
+    fail_with "check_dev_capsule_set: a release path can take the development capsule set"
+fi
+unset devset_out
+
+# The host relay a development image installs through serves a package the
+# market catalogue lists only as the bytes its lock pins (nonos-mirror-relay).
+if relay_out="$( (cd tools && python3 -m unittest -q nonos_mirror_relay.test_pins) 2>&1)"; then
+    note ok "the mirror relay serves a locked package only as its pinned bytes (nonos_mirror_relay)"
+else
+    tail -n 8 <<< "${relay_out}" >&2
+    fail_with "nonos_mirror_relay: the relay can serve a locked package as other bytes"
+fi
+unset relay_out
+
+# Every way off the machine is listed: a capsule that gains Network, or an
+# address, host or build-time endpoint new to a networked capsule's source,
+# fails until docs/security/privacy.md names it with why and how to turn it
+# off; a row the code no longer has fails too. The audit's own tests run first.
+if egress_out="$( (cd tools && python3 -m unittest -q nonos_egress_audit.test_egress) 2>&1 \
+    && python3 tools/nonos-egress-audit 2>&1)"; then
+    note ok "every outbound path is listed in docs/security/privacy.md (nonos-egress-audit)"
+else
+    tail -n 8 <<< "${egress_out}" >&2
+    fail_with "nonos-egress-audit: a way off the machine is not listed, or a row is stale"
+fi
+unset egress_out
 
 if [ "${fail}" -ne 0 ]; then
     echo

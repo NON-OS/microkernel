@@ -17,5 +17,5 @@
 mod caller_has_register_right;
 mod owner_has_required;
 
-pub(in crate::services::registry) use caller_has_register_right::caller_has_register_right;
+pub(crate) use caller_has_register_right::caller_has_register_right;
 pub(in crate::services::registry) use owner_has_required::owner_has_required;

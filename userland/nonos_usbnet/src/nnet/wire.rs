@@ -33,10 +33,12 @@ pub const OP_LINK_STATUS: u16 = 2;
 pub const OP_MAC_ADDRESS: u16 = 3;
 pub const OP_TX_PACKET: u16 = 4;
 pub const OP_RX_PACKET: u16 = 5;
-/// The counters, off every number net.core sends: its 6 is OP_RX_BATCH,
-/// which these drivers do not serve, and a status-0 answer to 6 used to
-/// be read as a batch, so no received frame ever reached the stack.
-pub const OP_STATS: u16 = 0x0100;
+/// Not 6: net.core asks every card for OP_RX_BATCH (6) first, and a
+/// status-0 answer to it used to be read as a batch, so no received frame
+/// reached the stack. These drivers serve one frame per call and answer 6
+/// as not served; the counters sit on 7, where igb and ixgbe keep theirs,
+/// and net.core sends neither.
+pub const OP_STATS: u16 = 7;
 
 pub const E_INVAL: i32 = -22;
 pub const E_IO: i32 = -5;

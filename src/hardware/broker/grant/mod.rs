@@ -1,0 +1,28 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+mod drain;
+mod one;
+mod table;
+mod types;
+mod va;
+
+pub(super) use drain::{drain_for_device, drain_for_pid};
+pub(super) use one::{find, remove};
+#[allow(unused_imports)] // insert_unclaimed is the ACPI broker's alone, which only x86 builds
+pub(super) use table::{allocate_id, insert_live, insert_unclaimed};
+pub use types::{GrantError, MmioGrant};
+pub(super) use va::{release_user_va, reserve_user_va, USER_MMIO_BASE, USER_MMIO_END};

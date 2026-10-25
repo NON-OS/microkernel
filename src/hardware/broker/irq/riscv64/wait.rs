@@ -19,10 +19,10 @@
 
 use crate::hardware::broker::irq::types::IrqError;
 
-pub fn wait_arm(_pid: u32, _grant_id: u64) -> Result<u64, IrqError> {
+pub fn wait_arm(_holder: u32, _waiter: u32, _grant_id: u64) -> Result<u64, IrqError> {
     Err(IrqError::PlatformError)
 }
 
-pub fn wait_disarm(_pid: u32, _grant_id: u64) -> Result<u64, IrqError> {
+pub fn wait_disarm(_holder: u32, _waiter: u32, _grant_id: u64) -> Result<u64, IrqError> {
     Err(IrqError::PlatformError)
 }

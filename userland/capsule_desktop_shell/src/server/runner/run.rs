@@ -23,7 +23,6 @@ use super::refresh_clock::refresh_clock;
 use super::tick::{tick_due, wake_at};
 use crate::protocol::{HDR_LEN, IPC_PAYLOAD_MAX};
 use crate::render::sync_toast_layer;
-use crate::server::refresh_taskbar::refresh_taskbar;
 use crate::state::Context;
 
 pub fn run(mut ctx: Context) -> ! {
@@ -49,51 +48,7 @@ pub fn run(mut ctx: Context) -> ! {
          */
         let tick_ms = mk_uptime_ms();
         if tick_due(tick_ms, last_tick_ms) {
-            refresh_clock(&mut ctx);
-            if !ctx.input_ready {
-                let port = ctx.input_router_port;
-                crate::setup::subscribe_input(&mut ctx, port);
-            }
-            if !ctx.wm_notify_ready {
-                let port = ctx.wm_port;
-                crate::setup::subscribe_wm(&mut ctx, port);
-            }
-            /*
-             * Keep the desktop icons in step with the filesystem, but only
-             * when the store says something moved. Both listings below walk a
-             * directory and copy it across an IPC boundary, and they used to do
-             * that every second whether or not there was anything to find.
-             */
-            if crate::server::store_changed::since_last_look() {
-                if crate::server::desktop::refresh(&mut ctx) {
-                    crate::server::repaint::repaint(&mut ctx);
-                }
-                crate::server::packages::refresh(&mut ctx);
-            }
-            crate::server::wallpaper_policy::retry(&mut ctx);
-            crate::server::installed_apps::load_once(&mut ctx);
-            crate::server::store_health::check(&mut ctx);
-            // Asks the policy store, so not while it is quiet (refresh_clock).
-            if ctx.policy_gap.due(tick_ms.max(0) as u64) {
-                crate::server::handlers::live_prompt::check(&mut ctx);
-            }
-            // A window whose process ended without its close reaching the
-            // shell: the dock mark and the menubar's app name go with it.
-            if crate::state::forget_dead_windows(&mut ctx.taskbar, |p| nonos_libc::mk_pid_alive(p))
-                != 0
-            {
-                crate::server::repaint::repaint(&mut ctx);
-            }
-            // A launch whose window never came is said, not left as a dock
-            // that did nothing.
-            let dock_now = crate::server::dock_clock::now();
-            crate::server::launch_overdue::say(&mut ctx, dock_now);
-            let pulse_dirty = crate::state::expire_taskbar_pulses(&mut ctx.taskbar, dock_now);
-            crate::state::expire_taskbar_visibility(&mut ctx.taskbar, dock_now);
-            if pulse_dirty && ctx.taskbar.visible {
-                refresh_taskbar(&mut ctx);
-            }
-            crate::server::dock_sync::sync(&mut ctx);
+            super::on_tick::on_tick(&mut ctx, tick_ms);
             last_tick_ms = tick_ms;
         }
         /*
@@ -104,7 +59,7 @@ pub fn run(mut ctx: Context) -> ! {
          * queue moved, so a pass with nothing new costs one comparison.
          */
         ctx.toasts.expire(crate::server::toast_clock::now());
-        if ctx.toasts_synced != ctx.toasts.generation() {
+        if ctx.toast_view.toasts_synced != ctx.toasts.generation() {
             sync_toast_layer(&mut ctx);
         }
         /*

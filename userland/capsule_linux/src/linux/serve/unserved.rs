@@ -30,6 +30,7 @@ pub fn unserved(number: u64) -> u64 {
         b"?" => decimal(number, &mut digits),
         known => known,
     };
+    crate::linux::boxed::note(crate::linux::boxed::Kind::Unserved, tag);
     let n = head.len().min(line.len());
     line[..n].copy_from_slice(&head[..n]);
     let m = (n + tag.len()).min(line.len());

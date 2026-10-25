@@ -26,10 +26,25 @@ pub mod args;
 pub mod wayland_object;
 #[path = "../../capsule_linux/src/linux/wayland/frame_len.rs"]
 pub mod frame_len;
+#[path = "../../capsule_linux/src/linux/wayland/opaque.rs"]
+pub mod opaque;
+/* A key as the Linux key it came from, and the modifiers it carries. */
+#[path = "../../capsule_linux/src/linux/wayland/evdev.rs"]
+pub mod evdev;
+#[path = "../../capsule_linux/src/linux/wayland/evdev_keys.rs"]
+pub mod evdev_keys;
+#[path = "../../capsule_linux/src/linux/wayland/xkb_mods.rs"]
+pub mod xkb_mods;
+#[path = "../../capsule_linux/src/linux/wayland/pointer_codes.rs"]
+pub mod pointer_codes;
+#[path = "../../capsule_linux/src/linux/wayland/held_keys.rs"]
+pub mod held_keys;
+#[path = "../../capsule_linux/src/linux/wayland/focus_step.rs"]
+pub mod wayland_focus_step;
 #[path = "../../capsule_linux/src/linux/wayland/window_damage.rs"]
 pub mod window_damage;
 /* A guest window full screen and back, and taken down when it ends. */
-#[path = "../../capsule_linux/src/linux/wayland/fit.rs"]
+#[path = "../../capsule_linux/src/linux/wayland/fit/mod.rs"]
 pub mod fit;
 #[path = "../../capsule_linux/src/linux/wayland/ops.rs"]
 pub mod ops;
@@ -41,7 +56,9 @@ pub mod configure;
 pub mod reshape;
 #[path = "../../capsule_linux/src/linux/wayland/scene_pixels.rs"]
 pub mod scene_pixels;
-#[path = "../../capsule_linux/src/linux/wayland/window_life.rs"]
+pub mod wayland_popup;
+pub mod wayland_sub;
+#[path = "../../capsule_linux/src/linux/wayland/window_life/mod.rs"]
 pub mod window_life;
 
 mod host_doubles;
@@ -57,6 +74,8 @@ pub mod family;
 pub mod hash_windows;
 #[path = "../../capsule_linux/src/linux/file/root.rs"]
 pub mod root;
+#[path = "../../capsule_linux/src/linux/file/root_write.rs"]
+pub mod root_write;
 #[path = "../../capsule_linux/src/linux/file/resolve.rs"]
 pub mod resolve;
 #[path = "../../capsule_linux/src/linux/file/models/name.rs"]
@@ -113,6 +132,14 @@ pub mod anon_server_end;
 
 #[path = "../../capsule_linux/src/linux/applets.rs"]
 pub mod applets;
+#[path = "../../capsule_linux/src/linux/file/private/rule.rs"]
+pub mod private_rule;
+
+/* The box a guest runs in: its policy, its identity, what it allows. */
+pub mod app;
+
+/* `linux --box`: its presets, what it refused, and its report. */
+pub mod boxed;
 
 pub mod calls;
 pub mod console;
@@ -126,6 +153,10 @@ pub mod image;
 
 /// The installer's parsers, which read bytes fetched off a network.
 pub mod install;
+
+/// The sealed diagnostic chain's link (plan/32).
+#[path = "../../capsule_linux/src/linux/serve/trace_link.rs"]
+pub mod trace_link;
 
 #[cfg(test)]
 mod tests;

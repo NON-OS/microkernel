@@ -27,8 +27,9 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     let (slot, dci) = (body[0], body[1]);
     let length = u16::from_le_bytes([body[2], body[3]]);
     // Up to the endpoint's payload, three packets of 1024 at most; the
-    // report is armed at the endpoint's own length whatever this is.
-    if length == 0 || length > INTERRUPT_PAYLOAD_MAX {
+    // report is armed at the endpoint's own length whatever this is. An
+    // even DCI is an OUT endpoint: never armed for a read.
+    if length == 0 || length > INTERRUPT_PAYLOAD_MAX || dci % 2 == 0 {
         reply_with_status(tx, req, E_INVAL);
         return;
     }

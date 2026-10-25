@@ -1,8 +1,3 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::unwrap_used)]
-
 use super::{body, limbs};
 use crate::notes::BLOB_LEN;
 

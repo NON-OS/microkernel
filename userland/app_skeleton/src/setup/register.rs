@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::discover::lookup_service;
 use nonos_libc::{
     mk_surface_register, mk_surface_share, SurfaceDescriptor, SURFACE_FORMAT_ARGB8888,
 };
@@ -33,12 +34,16 @@ pub(super) fn register_and_share(
         byte_len,
         base_va: backing_va,
         flags: 0,
+        owner_pid: 0,
+        writable: 0,
     };
     let sid = mk_surface_register(&desc);
     if sid < 0 {
         return Err("surface register rejected");
     }
-    let handle = mk_surface_share(sid as u64);
+    // Only the compositor maps it, read-only (K20).
+    let compositor = lookup_service(b"compositor").ok_or("compositor not announced")?;
+    let handle = mk_surface_share(sid as u64, compositor.pid, 0);
     if handle <= 0 {
         return Err("surface share rejected");
     }

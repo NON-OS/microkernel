@@ -16,7 +16,7 @@
 
 use crate::wallet::num::mul_div;
 
-use super::amount_out::BPS;
+use super::BPS;
 
 /// How far a trade moves the price against itself, in hundredths of a
 /// percent.

@@ -20,7 +20,7 @@ use super::flags::IsaFlags;
 // Single-letter extensions appear as bare characters. Multi-letter
 // extensions appear after an `_` (we ignore them here; F/D/V/C/A are
 // all single-letter). The "g" alias expands to IMAFD.
-pub fn parse(s: &[u8]) -> IsaFlags {
+pub(crate) fn parse(s: &[u8]) -> IsaFlags {
     let mut flags = IsaFlags::default();
     // Skip optional NUL terminator coming in from FDT strings.
     let body = match s.iter().position(|&b| b == 0) {

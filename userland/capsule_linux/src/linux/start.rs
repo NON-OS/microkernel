@@ -28,18 +28,8 @@ use super::{file::family::choose, guest::Guest};
 pub fn run() -> ! {
     super::heap::init();
     routine(b"[LINUX] personality up\n");
-    if let Some((name, pin)) = super::request::install_request() {
-        say(b"[LINUX] installing\n");
-        // A USB boot loads the store from the stick a minute or more after the
-        // desktop is up: an install asked for before then waits for it rather
-        // than reading a store that is not there yet.
-        let _ = super::settle::wait_settled();
-        let pkg = choose(&name);
-        super::file::allow_shared_writes();
-        // The exit code names the reason, which the store shows.
-        let done = super::install::install(pkg, &pin);
-        say(if done.is_ok() { b"[LINUX] installed\n" } else { b"[LINUX] install failed\n" });
-        mk_exit(done.map_or_else(|why| why.code(), |()| 0))
+    if let Some(asked) = super::request_install::install_request() {
+        super::start_install::install(asked)
     }
     if let Some(name) = super::request::uninstall_request() {
         say(b"[LINUX] uninstalling\n");
@@ -51,19 +41,19 @@ pub fn run() -> ! {
         mk_exit(done.map_or_else(|why| why.code(), |()| 0))
     }
     /* source() has said why when it starts nothing. */
-    let Some(launch) = source() else { mk_exit(1) };
+    let Some(launch) = source() else { super::start_stop::stop("no program to run", 1) };
     let pid = mk_foreign_spawn(b"linux");
     if pid < 0 {
         say(b"[LINUX] no guest, errno ");
         let e = (-pid) as u32;
         let digits = [b'0' + (e / 10 % 10) as u8, b'0' + (e % 10) as u8, b'\n'];
         say(&digits);
-        mk_exit(1)
+        super::start_stop::stop("the kernel gave no guest", 1)
     }
     super::call::mark_start();
     if !super::file::prepare_private() {
         say(b"[LINUX] no private directories, not starting\n");
-        mk_exit(1)
+        super::start_stop::stop("no private folders", 1)
     }
     let mut guest = Guest::new(pid as u32);
     guest.links = alloc::rc::Rc::new(super::guest::Links::load());
@@ -75,7 +65,7 @@ pub fn run() -> ! {
         Err(step) => {
             super::file::clear_private();
             say(step);
-            mk_exit(2)
+            super::start_stop::stop(super::start_stop::why(step), 2)
         }
     };
     super::file::clear_private();

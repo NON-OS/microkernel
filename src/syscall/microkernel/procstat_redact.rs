@@ -46,6 +46,7 @@ pub(super) fn visible(mut e: ProcStatEntry, caller: u32, all: bool) -> ProcStatE
     }
     e.run_ticks = 0;
     e.caps = 0;
+    e.flags = 0;
     e.mem_kb = 0;
     e.syscalls = 0;
     e.ipc_tx = 0;

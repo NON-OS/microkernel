@@ -23,37 +23,11 @@
 
 use crate::kernel_core::init::framebuffer::{framebuffer_state, KernelFramebuffer};
 
+// The stop and panic screens draw even while a display driver holds the
+// framebuffer: a halted machine has to say why.
 pub(super) fn screen() -> Option<KernelFramebuffer> {
     if let Some(fb) = framebuffer_state() {
         return Some(*fb);
     }
-    early_screen()
-}
-
-#[cfg(target_arch = "x86_64")]
-fn early_screen() -> Option<KernelFramebuffer> {
-    use super::early_frame::identity_frame_ok;
-    // Once clear_low_half has run the identity mapping is gone, and a write
-    // through it would fault inside the panic path.
-    if !crate::arch::x86_64::paging::boot_identity_live() {
-        return None;
-    }
-    let fb = crate::boot::handoff::get_handoff()?.framebuffer()?;
-    if !identity_frame_ok(fb.ptr, fb.size, fb.width, fb.height, fb.stride) {
-        return None;
-    }
-    Some(KernelFramebuffer {
-        width: fb.width,
-        height: fb.height,
-        stride: fb.stride,
-        base_va: crate::memory::addr::VirtAddr::new(fb.ptr),
-        offset: 0,
-        bgr: matches!(fb.pixel_format, 1 | 3),
-        physical_mm: fb.physical_mm(),
-    })
-}
-
-#[cfg(not(target_arch = "x86_64"))]
-fn early_screen() -> Option<KernelFramebuffer> {
-    None
+    crate::arch::early_screen()
 }

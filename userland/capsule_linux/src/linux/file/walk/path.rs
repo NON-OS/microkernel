@@ -69,7 +69,7 @@ pub fn walk_under(
             continue;
         };
         check(Step::Link { at: &at, to: &to })?;
-        w.into_link(&to);
+        w.enter_link(&to);
     }
     Ok(joined(&w.done))
 }

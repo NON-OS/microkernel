@@ -20,12 +20,13 @@ use alloc::vec::Vec;
 
 use super::error::DecodeError;
 use super::reader::Reader;
+use super::schema::SCHEMA_V3;
 use super::strings::{bounded_count, bounded_string};
-use super::{decode_price, decode_release, decode_token};
+use super::{decode_commerce, decode_price, decode_release, decode_token};
 use crate::limits::{MAX_DESCRIPTION, MAX_NAME, MAX_PUBLISHER, MAX_RELEASES};
-use crate::types::{CapsuleRelease, MarketplaceEntry};
+use crate::types::{CapsuleRelease, MarketplaceEntry, SettleMode};
 
-pub(super) fn read(r: &mut Reader<'_>) -> Result<MarketplaceEntry, DecodeError> {
+pub(super) fn read(r: &mut Reader<'_>, schema: u32) -> Result<MarketplaceEntry, DecodeError> {
     let listing_id = bounded_string(r, MAX_NAME)?;
     let capsule_id = r.fixed::<32>()?;
     let name = bounded_string(r, MAX_NAME)?;
@@ -36,11 +37,23 @@ pub(super) fn read(r: &mut Reader<'_>) -> Result<MarketplaceEntry, DecodeError> 
 
     let price = decode_price::read(r)?;
     let token = decode_token::read(r)?;
+    let commerce = if schema >= SCHEMA_V3 { Some(decode_commerce::read(r)?) } else { None };
 
     let rel_count = bounded_count(r, MAX_RELEASES)?;
     let mut releases: Vec<CapsuleRelease> = Vec::with_capacity(rel_count as usize);
     for _ in 0..rel_count {
-        releases.push(decode_release::read(r)?);
+        releases.push(decode_release::read(r, schema)?);
+    }
+
+    // An escrow sale is pinned by the chunk tree; a release without one
+    // could never be checked chunk by chunk, so the listing is malformed.
+    if commerce.as_ref().is_some_and(|c| c.settle_mode == SettleMode::Escrow) {
+        let unpinned = |rel: &CapsuleRelease| {
+            rel.ext.as_ref().is_none_or(|x| x.chunk_root == [0; 32] || x.content_len == 0)
+        };
+        if releases.iter().any(unpinned) {
+            return Err(DecodeError::Inconsistent);
+        }
     }
 
     Ok(MarketplaceEntry {
@@ -53,6 +66,7 @@ pub(super) fn read(r: &mut Reader<'_>) -> Result<MarketplaceEntry, DecodeError> 
         description,
         price,
         token,
+        commerce,
         releases,
     })
 }

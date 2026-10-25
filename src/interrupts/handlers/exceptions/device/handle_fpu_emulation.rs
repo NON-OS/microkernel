@@ -15,12 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::interrupts::handlers::exceptions::context::ExceptionContext;
-use crate::interrupts::idt::halt_loop;
 
 pub(crate) fn handle_fpu_emulation(ctx: &ExceptionContext) -> ! {
     crate::log::logger::log_warning!("FPU emulation not supported");
     if ctx.is_user_mode() {
         crate::process::exit::exit_and_yield(-4, true)
     }
-    halt_loop();
+    crate::boot::panic::fatal();
 }

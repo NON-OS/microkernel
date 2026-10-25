@@ -30,5 +30,8 @@ pub const fn iotlb_offset(ecap: u64) -> usize {
 
 pub const IOTLB_IVT: u64 = 1 << 63;
 pub const IOTLB_IIRG_GLOBAL: u64 = 1 << 60;
+/// Domain-selective, with the domain id in bits 47:32 (DMA_TLB_DSI_FLUSH).
+pub const IOTLB_IIRG_DOMAIN: u64 = 2 << 60;
+pub const IOTLB_DID_SHIFT: u32 = 32;
 /// The granularity the unit actually performed. Zero means it did nothing.
 pub const IOTLB_IAIG_MASK: u64 = 0b11 << 57;

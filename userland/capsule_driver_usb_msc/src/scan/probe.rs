@@ -32,7 +32,7 @@ pub enum Probe {
     NotOurs(u32),
     /// Another class driver is addressing the port; ask again later.
     Busy,
-    /// The device did not answer as a BOT device should, at this stage,
+    /// The device did not answer as a BOT or UAS device should, at this stage,
     /// with this errno.
     Failed(Stage, i32),
 }

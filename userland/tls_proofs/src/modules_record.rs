@@ -46,10 +46,6 @@ pub mod record_frame;
 pub mod record_open;
 #[path = "../../nonos_tls/src/record_seal.rs"]
 pub mod record_seal;
-#[path = "../../nonos_tls/src/scan_messages.rs"]
-pub mod scan_messages;
-#[path = "../../nonos_tls/src/scan_server_finished.rs"]
-pub mod scan_server_finished;
 #[path = "../../nonos_tls/src/schedule.rs"]
 pub mod schedule;
 #[path = "../../nonos_tls/src/server_complete/mod.rs"]

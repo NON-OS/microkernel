@@ -16,13 +16,13 @@
 
 use crate::state::damage::Rect;
 
-const FILL: u32 = 0xFFFF_FFFF;
-const OUTLINE: u32 = 0xFF00_0000;
+pub const FILL: u32 = 0xFFFF_FFFF;
+pub const OUTLINE: u32 = 0xFF00_0000;
 
 // A classic left pointer, one byte per pixel: 'X' is the black outline, 'o' the
 // white interior, a space is transparent. The tip sits at the top-left so the
 // hotspot lands on the reported pointer position.
-const ARROW: [&[u8]; 19] = [
+pub const ARROW: [&[u8]; 19] = [
     b"X",
     b"XX",
     b"XoX",

@@ -24,7 +24,9 @@
  */
 
 mod node;
+mod refused_write;
 mod roots;
 
 pub use node::{node, owns, Node, S_IFCHR, S_IFDIR, S_IFLNK, S_IFREG};
+pub use refused_write::refused_write;
 pub use roots::{num, ROOTS};

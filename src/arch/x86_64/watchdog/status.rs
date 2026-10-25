@@ -18,6 +18,7 @@ use super::constants::{TCO1_STS, TCO2_STS};
 use super::detect::detect_tco_watchdog;
 use super::ops::is_enabled;
 use super::state::{LAST_KICK, TIMEOUT_MS};
+use super::wdat::{wdat_status, WdatStatus};
 use crate::arch::x86_64::port::inw;
 use core::sync::atomic::Ordering;
 
@@ -29,6 +30,8 @@ pub struct WatchdogStatus {
     pub tco_detected: bool,
     pub tco1_status: u16,
     pub tco2_status: u16,
+    /// The firmware's WDAT watchdog, read-only.
+    pub wdat: Option<WdatStatus>,
 }
 
 pub fn get_status() -> WatchdogStatus {
@@ -41,5 +44,6 @@ pub fn get_status() -> WatchdogStatus {
         tco_detected: detect_tco_watchdog(),
         tco1_status: tco1_sts,
         tco2_status: tco2_sts,
+        wdat: wdat_status(),
     }
 }

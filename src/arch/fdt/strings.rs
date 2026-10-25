@@ -19,16 +19,7 @@ use super::error::FdtError;
 // Resolve a NUL-terminated string at `offset` inside the strings block.
 // Returns the bytes without the terminator.
 pub fn resolve(strings: &[u8], offset: u32) -> Result<&[u8], FdtError> {
-    let start = offset as usize;
-    if start >= strings.len() {
-        return Err(FdtError::StringMissing);
-    }
-    let mut end = start;
-    while end < strings.len() && strings[end] != 0 {
-        end += 1;
-    }
-    if end == strings.len() {
-        return Err(FdtError::StringMissing);
-    }
-    Ok(&strings[start..end])
+    let rest = strings.get(offset as usize..).ok_or(FdtError::StringMissing)?;
+    let len = rest.iter().position(|&b| b == 0).ok_or(FdtError::StringMissing)?;
+    Ok(&rest[..len])
 }

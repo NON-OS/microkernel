@@ -18,6 +18,9 @@
 
 use alloc::vec::Vec;
 
+#[path = "search_match.rs"]
+mod search_match;
+
 /// Longer than any name listed, so a held key cannot grow the field.
 const MAX: usize = 64;
 
@@ -55,24 +58,5 @@ impl Search {
 
     pub fn pop(&mut self) -> bool {
         self.text.pop().is_some()
-    }
-
-    /// A listing is kept when its name or, once known, its description
-    /// holds the query.
-    pub fn matches(&self, name: &[u8], description: Option<&[u8]>) -> bool {
-        self.accepts(name) || description.is_some_and(|d| self.accepts(d))
-    }
-
-    /// Case-insensitive substring. Empty accepts everything; longer
-    /// than the name matches nothing rather than panicking.
-    pub fn accepts(&self, name: &[u8]) -> bool {
-        if self.text.is_empty() {
-            return true;
-        }
-        if self.text.len() > name.len() {
-            return false;
-        }
-        let lower = |b: &u8| b.to_ascii_lowercase();
-        name.windows(self.text.len()).any(|w| w.iter().map(lower).eq(self.text.iter().copied()))
     }
 }

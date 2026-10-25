@@ -1,0 +1,128 @@
+{
+ "status": "pass",
+ "frames": 2287,
+ "guest_frames": 2284,
+ "firmware_frames": 3,
+ "guest_macs": [
+  "2a:73:11:ff:f3:04"
+ ],
+ "dhcp_seen": true,
+ "pinned_reached": true,
+ "dhcp_parameter_lists": [
+  [
+   1,
+   3,
+   6,
+   15,
+   31,
+   33,
+   43,
+   44,
+   46,
+   47,
+   119,
+   121,
+   249,
+   252
+  ]
+ ],
+ "tls_server_names": {
+  "validator.nymtech.net": 52
+ },
+ "http_hosts": {},
+ "relays_learned": 0,
+ "peers": [
+  {
+   "proto": "tcp",
+   "ip": "152.53.92.255",
+   "port": 9000,
+   "frames": 70,
+   "why": "pinned"
+  },
+  {
+   "proto": "tcp",
+   "ip": "159.89.174.132",
+   "port": 9000,
+   "frames": 69,
+   "why": "pinned"
+  },
+  {
+   "proto": "tcp",
+   "ip": "172.232.103.199",
+   "port": 9000,
+   "frames": 77,
+   "why": "pinned"
+  },
+  {
+   "proto": "tcp",
+   "ip": "176.9.29.53",
+   "port": 9230,
+   "frames": 223,
+   "why": "pinned"
+  },
+  {
+   "proto": "tcp",
+   "ip": "188.172.228.15",
+   "port": 9000,
+   "frames": 70,
+   "why": "pinned"
+  },
+  {
+   "proto": "tcp",
+   "ip": "213.226.71.95",
+   "port": 9000,
+   "frames": 70,
+   "why": "pinned"
+  },
+  {
+   "proto": "tcp",
+   "ip": "49.13.145.234",
+   "port": 9230,
+   "frames": 225,
+   "why": "pinned"
+  },
+  {
+   "proto": "tcp",
+   "ip": "5.161.108.187",
+   "port": 9230,
+   "frames": 224,
+   "why": "pinned"
+  },
+  {
+   "proto": "tcp",
+   "ip": "5.161.228.187",
+   "port": 9230,
+   "frames": 224,
+   "why": "pinned"
+  },
+  {
+   "proto": "tcp",
+   "ip": "5.78.90.106",
+   "port": 9230,
+   "frames": 225,
+   "why": "pinned"
+  },
+  {
+   "proto": "tcp",
+   "ip": "5.78.94.15",
+   "port": 9230,
+   "frames": 224,
+   "why": "pinned"
+  },
+  {
+   "proto": "tcp",
+   "ip": "92.39.63.14",
+   "port": 443,
+   "frames": 332,
+   "why": "pinned"
+  },
+  {
+   "proto": "tcp",
+   "ip": "95.216.32.105",
+   "port": 9230,
+   "frames": 225,
+   "why": "pinned"
+  }
+ ],
+ "failures": []
+}

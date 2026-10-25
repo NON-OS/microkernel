@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Telling whether a GET_ENCAPSULATED_RESPONSE answer is the completion of
-//! the request just sent, as Linux rndis_command matches it: the type with
-//! the completion bit, then the RequestID. Anything else (an indication,
-//! a stale completion, QEMU's one zero byte while nothing is queued) is
-//! passed over and the channel is polled again.
+//! the request just sent: the type with the completion bit, then the
+//! RequestID (Remote NDIS 1.0, 2.2). Anything else (an indication, a stale
+//! completion, the single zero byte a device with nothing queued may
+//! return) is passed over and the channel is polled again.
 
 use super::message::{le32, MSG_INDICATE};
 
@@ -27,7 +27,8 @@ pub enum Answer {
     /// The completion: its status word and its MessageLength, which is
     /// at least 16 and no more than the bytes that came.
     Done { status: u32, len: usize },
-    /// An INDICATE_STATUS message, skipped as Linux logs and skips it.
+    /// An INDICATE_STATUS message: not the answer; wait.rs keeps its
+    /// media state.
     Indication,
     /// Not ours: too short, another request's, or of another type.
     Other,

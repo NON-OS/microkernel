@@ -29,7 +29,9 @@
 //! wall time bounds that. Giving the processor up at every question made a
 //! stall of 2000 questions 2000 trips through the scheduler, and the suite
 //! ten times as long on a loaded host; the turn rule is what keeps a part
-//! held back from reading as a timeout.
+//! held back from reading as a timeout. Each question also yields through
+//! the shim, as the shipping clock does, so a host model hung on that yield
+//! (`on_yield`) answers the ring on the driver's own thread.
 
 use std::cell::Cell;
 use std::thread::yield_now;
@@ -45,6 +47,7 @@ pub fn expired_after(ms: u64) -> impl FnMut() -> bool {
     parts::between_steps();
     let (mut spent, mut seen, mut since) = (0u64, parts::turns(), None);
     move || {
+        nonos_libc::mk_yield();
         spent += 1;
         pass(1);
         let now = parts::turns();
