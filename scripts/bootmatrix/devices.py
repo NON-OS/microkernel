@@ -44,9 +44,11 @@ def arguments(cell, disks=()):
 
 
 def verdict(cell, text):
-    """Every line the cell's driver had to write and did not, and a virtio NIC
-    bound where the card under test should have been."""
+    """Every line the cell's driver had to write and did not, every line it
+    must not have written, and a virtio NIC bound where the card under test
+    should have been."""
     bad = [f"device cell: no line {line!r}" for line in cell.expect if line not in text]
+    bad += [f"device cell: a line {line!r}" for line in cell.forbid if line in text]
     if cell.expect and "bind: interface up on driver.virtio_net0" in text:
         bad.append("device cell: net.core bound the virtio NIC, not the card under test")
     return bad
