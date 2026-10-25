@@ -52,3 +52,10 @@ release path names this directory.
 The signature is the only refusal. Every build reads schema 2 and schema 3
 alike, and the market capsule never checks the schema, so nothing refuses
 this catalogue for being schema 3: do not count on a schema gate.
+
+Every listing is priced on the local test chain, 31337, so a development
+image's market reads go to the devnet node behind its TLS proxy and nothing
+real. No contract is deployed there, so a read stops at the first contract
+it needs; no payment completes until test contracts exist (P1). A catalogue
+under nonos-data/market, the one a release seals, may not name 31337
+(`scripts/dev_catalogue_chain.py`).

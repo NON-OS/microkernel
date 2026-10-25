@@ -21,6 +21,7 @@ import json
 import dev_catalogue_scan as scan
 from dev_catalogue_behaviour import behaviour
 from dev_catalogue_content import SOURCE, catalogue, load
+import dev_catalogue_chain as chain
 
 SEAL = "tools/nonos_seal/dev_market.py"
 FLIPS = [  # the seal's choice, inverted or widened
@@ -63,6 +64,7 @@ def self_test(root):
     cases += [(not catalogue(payee), False),
               (not catalogue(dict(doc, entries=[e for e in doc["entries"] if e["listing_id"] != "devtest.free"])), False),
               (not catalogue(dict(doc, schema_version=2)), False)]
+    cases += chain.cases(doc, json.loads((root / "nonos-data/market/index.json").read_text()))
     wrong = [i for i, (passed, ok) in enumerate(cases) if passed != ok]
     if wrong:
         print(f"dev-catalogue: self-test failed on cases {wrong}")
