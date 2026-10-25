@@ -23,6 +23,8 @@
 mod bus;
 #[path = "../../../nonos_blk_client/src/driver/dialect.rs"]
 mod dialect;
+#[path = "../../../nonos_blk_client/src/driver/names.rs"]
+mod names;
 #[path = "../../../nonos_blk_client/src/driver/table.rs"]
 mod table;
 #[path = "../../../nonos_blk_client/src/device/unserved.rs"]

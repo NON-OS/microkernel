@@ -70,6 +70,7 @@ pub mod virtio_scsi_capsule;
 pub mod vmmdev_capsule;
 pub mod vmbus_capsule;
 pub mod storvsc_capsule;
+pub mod netvsc_capsule;
 pub mod vmmouse_capsule;
 pub mod vmware_svga_capsule;
 pub mod vmxnet3_capsule;
