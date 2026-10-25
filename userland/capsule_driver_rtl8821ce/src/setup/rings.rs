@@ -9,9 +9,9 @@ use crate::rx::ring::{RX_BUF_STRIDE, RX_DESC_COUNT};
 use crate::tx::ring::{TX_BUF_STRIDE, TX_DESC_COUNT};
 
 /// Map the four DMA regions the data path needs, each rounded up to whole pages.
-type Rings = (Grant, Grant, Grant, Grant);
+pub type Rings = (Grant, Grant, Grant, Grant);
 
-pub(super) fn map_rings(device_id: u64, claim_epoch: u64) -> Option<Rings> {
+pub fn map_rings(device_id: u64, claim_epoch: u64) -> Option<Rings> {
     let tx_ring = map(device_id, claim_epoch, TX_DESC_COUNT as usize * TX_BUF_DESC_SIZE)?;
     let tx_buffers = map(device_id, claim_epoch, TX_DESC_COUNT as usize * TX_BUF_STRIDE)?;
     let rx_ring = map(device_id, claim_epoch, RX_DESC_COUNT as usize * RX_BUF_DESC_SIZE)?;
@@ -20,7 +20,7 @@ pub(super) fn map_rings(device_id: u64, claim_epoch: u64) -> Option<Rings> {
 }
 
 // Round a byte count up to whole pages and map it below 4 GiB.
-pub(super) fn map(device_id: u64, claim_epoch: u64, bytes: usize) -> Option<Grant> {
+fn map(device_id: u64, claim_epoch: u64, bytes: usize) -> Option<Grant> {
     let pages = ((bytes + 0xFFF) & !0xFFF) as u64;
     crate::fwload::map_dma32(device_id, claim_epoch, pages)
 }
