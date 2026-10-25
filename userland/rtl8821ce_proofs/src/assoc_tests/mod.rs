@@ -9,6 +9,7 @@
 mod beacons;
 mod budget;
 mod dedup;
+mod facts;
 mod frames;
 mod handshake;
 mod idle;
