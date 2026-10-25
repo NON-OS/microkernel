@@ -540,6 +540,7 @@
    "src/arch/x86_64/acpi/hw/gas.rs",
    "src/arch/x86_64/acpi/hw/madt_cpu.rs",
    "src/arch/x86_64/acpi/hw/power_button.rs",
+   "src/arch/x86_64/acpi/hw/power_button_arm.rs",
    "src/arch/x86_64/acpi/hw/reset.rs",
    "src/arch/x86_64/acpi/hw/sleep.rs",
    "src/arch/x86_64/acpi/tables/sdt/entry_count.rs",
