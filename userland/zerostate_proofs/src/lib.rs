@@ -42,3 +42,5 @@ mod leaf_tests;
 mod names_tests;
 #[cfg(test)]
 mod rule_tests;
+#[cfg(test)]
+mod scrub_tests;
