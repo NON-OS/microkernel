@@ -46,6 +46,7 @@ static A: Refusing = Refusing;
 
 const BIG: &[u8] = include_bytes!("vectors/big.gz");
 const APK: &[u8] = include_bytes!("vectors/apk_shape.gz");
+const HALVES: &[u8] = include_bytes!("vectors/halves.gz");
 const MIB: usize = 1 << 20;
 
 /* One test: LIMIT is the whole binary's, and tests run on threads. The
@@ -59,7 +60,14 @@ fn a_refused_allocation_is_a_reason_not_an_abort() {
     let (end, short) = (r.end, r.short);
     drop(r);
     let members = members_checked(APK, 4 * MIB).map(|m| m.len());
+    /* Each half inflates under 700 KiB; joining them asks for a whole MiB. */
+    LIMIT.store(700 << 10, Ordering::Relaxed);
+    let joined = gunzip_partial(HALVES, 4 * MIB);
+    let (join_end, join_short) = (joined.end, joined.short);
+    drop(joined);
     LIMIT.store(usize::MAX, Ordering::Relaxed);
+    assert_eq!(join_end, End::NoMemory, "the join asks the allocator too");
+    assert!(join_short.is_some_and(|n| n >= MIB), "the join's size: {join_short:?}");
     assert_eq!(end, End::NoMemory);
     assert!(short.is_some_and(|n| n > 256 << 10), "it says how much it asked: {short:?}");
     match members {
