@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod bound;
 mod ambient;
+mod argv_bound;
 mod asked;
 mod broker;
 mod check;
