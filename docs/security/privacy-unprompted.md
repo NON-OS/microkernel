@@ -9,12 +9,23 @@ Each address is fixed in the image and is dialled without a name lookup.
 
 | Address | Who | Why | How to turn it off |
 |---|---|---|---|
-| `255.255.255.255` | `net_core` (and the older `net_dhcp`) | DHCP asks the local network for an address | `Air-Gapped` boot |
+| `255.255.255.255` | `net_core` (and the older `net_dhcp`); on Hyper-V, `driver_netvsc` first | DHCP asks the local network for an address | `Air-Gapped` boot |
 
 The request comes from a random, locally administered hardware address drawn
 this boot, on wired cards as on Wi-Fi (`nonos_mac`). It carries no host name.
 Its client id is that same per-boot address (smoltcp's DHCP client in
 `net_core`; the older `net_dhcp` sends none, `dhcp/constants.rs`).
+
+On Hyper-V, the network driver (`driver_netvsc`) sends up to three DHCP
+DISCOVERs itself, two seconds apart, before the link is reported up, to learn
+whether the host carries the drawn address: Hyper-V drops frames from any
+address but the one it assigned unless the VM's MAC spoofing is on. Each comes
+from the drawn address, to the broadcast address, with option 53 alone and no
+client id or host name (`capsule_driver_netvsc/src/probe.rs`). If nothing
+answers, the driver uses the address the host assigned the VM, which the host
+knows already but the local network then sees, and says so on the console.
+Turn MAC spoofing on for the VM's adapter to keep the drawn address
+(`capsule_driver_netvsc/README.md`).
 
 ## The Nym mixnet client
 
