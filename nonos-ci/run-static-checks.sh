@@ -5288,6 +5288,16 @@ else
 fi
 unset devset_out
 
+# The host relay a development image installs through serves a package the
+# market catalogue lists only as the bytes its lock pins (nonos-mirror-relay).
+if relay_out="$( (cd tools && python3 -m unittest -q nonos_mirror_relay.test_pins) 2>&1)"; then
+    note ok "the mirror relay serves a locked package only as its pinned bytes (nonos_mirror_relay)"
+else
+    tail -n 8 <<< "${relay_out}" >&2
+    fail_with "nonos_mirror_relay: the relay can serve a locked package as other bytes"
+fi
+unset relay_out
+
 # Every way off the machine is listed: a capsule that gains Network, or an
 # address, host or build-time endpoint new to a networked capsule's source,
 # fails until docs/security/privacy.md names it with why and how to turn it
