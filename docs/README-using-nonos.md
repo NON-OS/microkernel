@@ -46,3 +46,7 @@ Part of [NONOS documentation](README.md).
   its state, and what that state rests on.
 - [Reporting a machine](hardware/report.md): how to tell the NONOS team what
   NONOS did on your machine.
+- [Hardware coverage map](hardware/coverage.md): the parts machines from 2017
+  to 2026 ship, which ones NONOS can drive, and who closes each gap.
+- [The real-hardware kit](hardware/real-hardware-kit.md): which machines to
+  boot, how, and what to bring back.
