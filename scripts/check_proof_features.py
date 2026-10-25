@@ -27,6 +27,11 @@ not a development or shared image that carries one in, so:
      feature's list.
   2. No profile, image list, make lane, CI script or workflow names one:
      nonos.toml, tools/nix, mk, nonos-ci and .github are searched whole.
+     The one exception is mk/55-dark-features.mk, the compile-only lane
+     `make check-dark-features`, and only while it stays compile-only: one
+     target, every recipe line `$(DARK_CHECK) --features ...`, DARK_CHECK a
+     debug `cargo check` with NONOS_SIGNING_KEY removed from the environment,
+     and nothing in the file that runs nix or QEMU, builds, signs or packs.
 
     scripts/check_proof_features.py [--self-test]
 """
@@ -71,12 +76,45 @@ def check_cargo(text):
     return failed
 
 
+DARK_LANE = "mk/55-dark-features.mk"
+# The include guard and the target: the only lines besides DARK_CHECK and recipes.
+LANE_FRAME = (
+    "ifndef NONOS_DARK_FEATURES_MK",
+    "NONOS_DARK_FEATURES_MK := 1",
+    ".PHONY: check-dark-features",
+    "check-dark-features:",
+    "endif",
+)
+DARK_RECIPE = re.compile(r"^\t\$\(DARK_CHECK\) --features [A-Za-z0-9_,-]+$")
+DARK_FORBIDDEN = re.compile(r"--release|\bnix\b|qemu|nonos_kernel_build|\bbuild\b|sign|esp|image|run")
+
+
+def check_dark_lane(text):
+    """Why mk/55-dark-features.mk is no longer a compile-only lane, if it is not."""
+    failed = []
+    body = [line for line in text.split("\n") if line.strip() and not line.startswith("#")]
+    define = " ".join(line.strip() for line in body if not line.startswith("\t$(DARK_CHECK)")
+                      and line not in LANE_FRAME)
+    if not define.startswith("DARK_CHECK = env -u NONOS_SIGNING_KEY ") or " cargo check " not in define:
+        failed.append("DARK_CHECK is not a cargo check with the signing key unset")
+    if DARK_FORBIDDEN.search(define.replace("build-std", "")):
+        failed.append("DARK_CHECK does more than type-check")
+    for line in body:
+        if line.startswith("\t") and not DARK_RECIPE.match(line):
+            failed.append(f"recipe line is not a DARK_CHECK: {line.strip()}")
+        if line.endswith(":") and line != "check-dark-features:":
+            failed.append(f"a second target: {line}")
+    return failed
+
+
 def check_tree(files):
     failed = []
     for path, text in files:
-        for p in PROOFS:
-            if p in text:
-                failed.append(f"{path} names {p}")
+        named = [p for p in PROOFS if p in text]
+        if named and Path(path).as_posix() == DARK_LANE:
+            failed += [f"{path}: {why}" for why in check_dark_lane(text)]
+            continue
+        failed += [f"{path} names {p}" for p in named]
     return failed
 
 
@@ -87,6 +125,14 @@ def tree_files(root):
         for path in paths:
             if path.is_file() and (path.suffix in SUFFIXES or path.name == "Makefile"):
                 yield path, path.read_text(errors="replace")
+
+
+LANE = (
+    "# compile only\n.PHONY: check-dark-features\n"
+    "DARK_CHECK = env -u NONOS_SIGNING_KEY cargo check --locked "
+    "--target x86_64-nonos.json -Zbuild-std=core,alloc\n"
+    "check-dark-features:\n\t$(DARK_CHECK) --features nonos-smp,nonos-smp-park-proof\n"
+)
 
 
 def self_test():
@@ -100,6 +146,13 @@ def self_test():
         (check_tree([("tools/nix/config.nix", 'features = [ "nonos-smp" ];')]), True),
         (check_tree([("tools/nix/config.nix", 'features = [ "nonos-smp" "nonos-smp-stuck-proof" ];')]), False),
         (check_tree([("mk/20-build.mk", "$(_boot_comma)nonos-shootdown-trace")]), False),
+        (check_tree([(DARK_LANE, LANE)]), True),
+        (check_tree([(DARK_LANE, LANE.replace("check --locked", "build --locked"))]), False),
+        (check_tree([(DARK_LANE, LANE.replace(" --locked", " --release --locked"))]), False),
+        (check_tree([(DARK_LANE, LANE.replace("env -u NONOS_SIGNING_KEY ", ""))]), False),
+        (check_tree([(DARK_LANE, LANE + "\tnix develop --command make nonos-mk-esp\n")]), False),
+        (check_tree([(DARK_LANE, LANE + "boot:\n\t$(DARK_CHECK) --features nonos-smp-park-proof\n")]), False),
+        (check_tree([("mk/56-other.mk", LANE)]), False),
     ]
     wrong = [i for i, (failed, ok) in enumerate(cases) if (not failed) != ok]
     if wrong:
@@ -119,7 +172,8 @@ def main():
         print(f"proof-features: {line}")
     if failed:
         return 1
-    print("proof-features: the SMP boot proofs are defined, alone, and in no profile, image or lane")
+    print("proof-features: the SMP boot proofs are defined, alone, and in no profile, image or lane "
+          "but the compile-only check-dark-features")
     return 0
 
 
