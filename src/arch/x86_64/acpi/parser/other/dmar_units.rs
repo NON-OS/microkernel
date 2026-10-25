@@ -26,7 +26,7 @@ use super::dmar_scope::UnitScope;
 mod record;
 #[path = "dmar_truncated.rs"]
 mod truncated;
-pub(super) use record::record;
+pub(super) use record::record_drhd;
 
 static REMAP_UNIT_BASES: Mutex<heapless::Vec<u64, MAX_REMAP_UNITS>> =
     Mutex::new(heapless::Vec::new());
@@ -36,16 +36,15 @@ static REMAP_UNIT_SCOPES: Mutex<heapless::Vec<UnitScope, MAX_REMAP_UNITS>> =
     Mutex::new(heapless::Vec::new());
 
 /// Register bases of the segment 0 remapping units DMAR reported, in table
-/// order. A client Intel machine has two: one scoped to the integrated
-/// graphics and one for every other device. The VT-d driver programs all of
-/// them; a device's DMA is translated only by the unit whose scope holds it.
+/// order: often two, one for the integrated graphics and one for the rest.
+/// All are programmed; a device is translated by the unit whose scope holds it.
 pub fn remap_unit_bases() -> heapless::Vec<u64, MAX_REMAP_UNITS> {
     REMAP_UNIT_BASES.lock().clone()
 }
 
-/// Units DMAR listed that the kernel left off: on a segment other than 0,
-/// which it does not enumerate, past the eight it holds, or past a
-/// structure it could not read. Their devices reach memory untranslated.
+/// Units DMAR listed that the kernel left off: on a segment it does not
+/// enumerate, past the eight it holds, with a register base it refused, or
+/// past a structure it could not read. Their devices reach memory untranslated.
 pub fn units_left_off() -> usize {
     *LEFT_OFF.lock()
 }

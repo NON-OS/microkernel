@@ -37,5 +37,6 @@ pub(super) fn find_by_grant(grant_id: u64) -> Option<&'static Entry> {
 // Mark the slot free. Caller must have already unregistered the GIC
 // handler before this so no trampoline can race the slot's reuse.
 pub(super) fn free(e: &'static Entry) {
+    e.grant_id.store(0, Ordering::Release);
     e.intid.store(0, Ordering::Release);
 }

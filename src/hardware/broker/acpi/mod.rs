@@ -113,6 +113,6 @@ pub use memory_grant::grant_memory;
 pub use memory_record::{MemoryGrant, ACPI_DEVICE};
 pub use pci_access::{pci_read, pci_write};
 pub use port_access::{port_read, port_write};
-pub use sci::{register_sci, PNP_DEVICE_ACPI, PNP_VENDOR};
+pub use sci::{arm_power_button, register_sci, PNP_DEVICE_ACPI, PNP_VENDOR};
 pub use table_check::TableError;
 pub use table_report::table_for_capsule;

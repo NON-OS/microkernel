@@ -46,7 +46,7 @@ def canonical(name: str) -> str:
 
 def read_kernel(root: Path):
     text = (root / KERNEL_BITS).read_text()
-    pairs = re.findall(r"^\s*(\w+)\s*=\s*1\s*<<\s*(\d+)\s*,", text, re.M)
+    pairs = re.findall(r"^\s*(?:#\[[^\]\n]*\]\s*)*(\w+)\s*=\s*1\s*<<\s*(\d+)\s*,", text, re.M)
     return {canonical(n): (n, 1 << int(v)) for n, v in pairs}
 
 
