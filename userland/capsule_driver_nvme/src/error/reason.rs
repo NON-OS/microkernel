@@ -34,5 +34,6 @@ pub const fn reason(e: NvmeError) -> &'static str {
         NvmeError::ClockFailed => "nvme: monotonic clock unreadable, no wait can be bounded",
         NvmeError::AdminCommandFailed => "nvme: admin command failed",
         NvmeError::InvalidTransfer => "nvme: invalid transfer",
+        NvmeError::ShutdownTimeout => "nvme: shutdown did not complete in its budget",
     }
 }

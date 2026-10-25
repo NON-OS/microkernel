@@ -32,6 +32,29 @@ path = "src/lib.rs"
 [[bin]]
 name = "nonos-proof-verify"
 path = "src/main.rs"
+required-features = ["release-roots"]
+
+[features]
+# The committed release roots compiled in, so a report can say whether the
+# root it checked against is a release's, and the report, runner and CLI
+# built on them. nonos-stark-enroll leaves it off: it writes those roots, and
+# a tool compiled from them was rebuilt by every enrolment, re-enrolling the
+# kernel after the loader had baked its root.
+default = ["release-roots"]
+release-roots = []
+
+# The shipping binary and the report: built only with the release roots.
+[[test]]
+name = "cli"
+required-features = ["release-roots"]
+
+[[test]]
+name = "edges"
+required-features = ["release-roots"]
+
+[[test]]
+name = "release_material"
+required-features = ["release-roots"]
 
 [dependencies]
 nonos-attest-path = { path = "../nonos-attest-path", features = ["alloc"] }

@@ -26,6 +26,7 @@ mod controller;
 mod discover;
 mod engine;
 mod error;
+mod exit_code;
 mod handles;
 mod identity;
 mod log;
@@ -46,8 +47,8 @@ const DRIVER: &[u8] = b"driver.ahci";
 ///
 /// Without an AHCI controller the driver says so and leaves (`EXIT_ABSENT`)
 /// before claiming anything. With one, the bring-up (`setup::run`) is
-/// retried on the shared bounded schedule while no disk comes up, and
-/// running out is `EXIT_GAVE_UP`.
+/// retried on the shared bounded schedule while no disk comes up; running
+/// out with no disk on any port is `EXIT_EMPTY`, any other way `EXIT_GAVE_UP`.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
@@ -56,10 +57,16 @@ pub unsafe extern "C" fn _start() -> ! {
 
     let hosts = discover::find_ahci();
     let present = (!hosts.is_empty()).then_some(hosts);
-    let started = start_driver(DRIVER, present, |h: &Vec<_>| setup::run(h).map_err(error::reason));
+    let mut last = None;
+    let started = start_driver(DRIVER, present, |h: &Vec<_>| {
+        setup::run(h).map_err(|e| {
+            last = Some(e);
+            error::reason(e)
+        })
+    });
     let mut driver = match started {
         Ok(driver) => driver,
-        Err(code) => mk_exit(code),
+        Err(code) => mk_exit(exit_code::exit_code(code, last)),
     };
 
     server::run(&mut driver);

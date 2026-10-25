@@ -35,3 +35,12 @@ fn a_local_service_takes_only_what_it_asked() {
         assert_eq!(required_caps(name, ipc), ipc, "{name:?}");
     }
 }
+
+#[test]
+fn the_keyring_takes_keyring_and_nothing_else_does() {
+    let (ipc, keyring) = (bit_of(Capability::IPC), bit_of(Capability::Keyring));
+    assert_eq!(required_caps("keyring", ipc), ipc | keyring);
+    for name in ["keyring.x", "Keyring", "keyrin", "vfs", "net.nym"] {
+        assert_eq!(required_caps(name, ipc) & keyring, 0, "{name:?}");
+    }
+}

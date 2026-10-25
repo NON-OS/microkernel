@@ -27,8 +27,6 @@ extern crate alloc;
 
 #[path = "../../capsule_driver_xhci/src/contexts/mod.rs"]
 pub mod contexts;
-#[path = "../../capsule_driver_xhci/src/server/handlers/control_transfer/region.rs"]
-pub mod control_region;
 #[path = "../../capsule_driver_xhci/src/controller/mod.rs"]
 pub mod controller;
 pub mod discover;
