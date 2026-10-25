@@ -5703,9 +5703,11 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/security/capsule_manifest/schema/constants.rs",
    "tools/nonos-pack/core",
    "userland/capsule_installer/src/protocol",
    "userland/capsule_installer/src/server/discover.rs",
+   "userland/capsule_installer/src/server/dispatch.rs",
    "userland/capsule_installer/src/server/handlers",
    "userland/installer_proofs",
    "userland/libc/src/capsule_load.rs",
@@ -8742,6 +8744,25 @@
    "userland/capsule_net_sockets/src/sockets",
    "userland/net_proofs/shim",
    "userland/sockets_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/spawn_bound_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/capabilities/types",
+   "src/kernel_core",
+   "src/process/core/table/ambient.rs",
+   "src/security/capsule_manifest/verify/caps_bits.rs",
+   "src/syscall/microkernel/tool_run.rs",
+   "src/userspace/init/entry.rs",
+   "src/userspace/tool_capsules/bound.rs",
+   "src/userspace/tool_capsules/model_fetch/spawn.rs",
+   "src/userspace/tool_capsules/registry.rs",
+   "src/userspace/tool_capsules/run.rs",
+   "userland/spawn_bound_proofs"
   ],
   "md": [],
   "signed": []

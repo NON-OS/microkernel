@@ -31,7 +31,7 @@ use crate::syscall::microkernel::errnos::{ERRNO_NETDOWN, ERRNO_NOENT, ERRNO_PERM
 /* The name `MkToolRun` takes for it. */
 pub(crate) const TOOL: &[u8] = b"tool.model-fetch";
 
-const CAPS: u64 = Capability::CoreExec.bit()
+pub(in super::super) const CAPS: u64 = Capability::CoreExec.bit()
     | Capability::Network.bit()
     | Capability::IPC.bit()
     | Capability::Memory.bit()
