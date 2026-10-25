@@ -17,7 +17,7 @@ Every image is the standard profile's development twin (`tools/nonos-dev-image
 | Install, fixed | 354676751, sha256 `790ba4fe3455a371…` | 0 | keeping turned on; installed, every sector read back (`install-09-installed.png`) |
 | Amnesic, fixed | the same | 0 | setup with the defaults, then ten minutes on the desktop; keeping never turned on (`amnesic-30-desktop.png`) |
 | Kept, boot A, fixed | the same, as a stick | 0 | setup in Install mode, the installer left; Settings opened from the dock, the timezone raised from 0 to +3, the clock moved from 18:49 to 21:49 (`keepA-22-settings.png`, `keepA-23-timezone-3.png`); no `[VFS] refused persist`; Power Off went through the wipe |
-| Kept, boot A2, fixed | boot A's stick | 0 | setup skipped, keeping turned on by the restore, the clock at 21:56, three hours ahead of UTC (`keepA2-10-desktop.png`) |
+| Kept, boot A2, fixed | boot A's stick | 0 from vfs; 1 later, the desktop's 64 ms ask (below) | setup skipped, keeping turned on by the restore, the clock at 21:56, three hours ahead of UTC (`keepA2-10-desktop.png`) |
 
 The install runs used hw's steps: `--fresh --install-target`, setup in
 Install mode, then the installer's disks, Confirm, and ten minutes of writing.
@@ -33,5 +33,13 @@ and the Power Off line, with their line numbers.
 ## What it does not show
 
 - One run of each, under TCG, on one virtual machine; real hardware is not covered.
+- vfs no longer calls policy, and no line in the fixed runs comes from vfs.
+  Policy is still late to other callers now and then. On boot A2, 20
+  minutes after the screenshot, serial line 1609 reads `ipc.call late policy
+  after 66 ms`: the desktop's indicators, which wait 64 ms. Boot C of the
+  consent runs has one at 152 ms: input_router, which waits 150 ms. The
+  cause is the same: policy's loop makes its own blocking calls to vfs,
+  for the restore and the keeper, and while vfs is slow it answers nobody.
+  That is the next fix (letter priv/05).
 - The other `late` lines in the fixed runs (virtio_net0, virtio_gpu0,
   wallpaper) are other services' replies, not policy's, and are not judged here.

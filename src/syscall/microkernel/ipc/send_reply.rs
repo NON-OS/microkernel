@@ -30,13 +30,17 @@ use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_PERM};
  */
 pub(super) fn to_caller(
     pid: u32,
-    endpoint: u64,
     data: &[u8],
     (caller_inbox, caller_pid, token): (&str, u32, u64),
 ) -> i64 {
-    if !super::send_caps::caller_satisfies_endpoint(endpoint, caller_inbox)
-        || !crate::services::registry::caller_may_reach_pid(caller_pid)
-    {
+    /*
+     * The inbox is the one the kernel recorded when the caller called, never
+     * one the service names, so the question is whether it is still that
+     * caller's (reply_dest.rs), not whether the service may send to it as an
+     * endpoint. Asked as an endpoint, a worker thread's `proc.<tid>`, which
+     * is an inbox and no endpoint, refused every answer to a thread.
+     */
+    if !super::reply_dest_facts::admits(pid, caller_inbox, caller_pid) {
         return ERRNO_PERM;
     }
     /*
@@ -57,7 +61,10 @@ pub(super) fn to_caller(
                     crate::sched::wake_process(caller_pid);
                     0
                 }
-                Err(_) => ERRNO_FAULT,
+                Err(_) => {
+                    super::reply_dest_facts::undelivered(pid);
+                    ERRNO_FAULT
+                }
             }
         }
         Err(_) => ERRNO_FAULT,
