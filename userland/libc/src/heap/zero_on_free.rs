@@ -56,7 +56,11 @@ impl ZeroOnFree {
 unsafe impl GlobalAlloc for ZeroOnFree {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
         // SAFETY: forwarded unchanged.
-        unsafe { self.inner.alloc(layout) }
+        let block = unsafe { self.inner.alloc(layout) };
+        if !block.is_null() {
+            super::stats::took(layout.size());
+        }
+        block
     }
 
     unsafe fn dealloc(&self, block: *mut u8, layout: Layout) {
@@ -71,6 +75,9 @@ unsafe impl GlobalAlloc for ZeroOnFree {
                 // and unaliased.
                 unsafe { ptr::write_volatile(block.add(i), 0) };
             }
+        }
+        if !block.is_null() {
+            super::stats::gave(layout.size());
         }
         // SAFETY: forwarded unchanged, after the block was cleared in place.
         unsafe { self.inner.dealloc(block, layout) }
