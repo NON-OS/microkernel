@@ -30,8 +30,8 @@ pass back. See [Broker](broker.md) for the arguments and the records.
 | `MPWR` | `0x5257504D` | `MkPioWrite` | Pio | `can_pio` `src/syscall/contract/cap_table/mk_device.rs:38` | Write 1, 2 or 4 bytes to a granted port. |
 | `MPRL` | `0x4C52504D` | `MkPioRelease` | Pio | `can_pio` `src/syscall/contract/cap_table/mk_device.rs:38` | Drop a port grant. |
 | `MHVB` | `0x4256484D` | `MkHvBackdoor` | Pio | `can_pio` `src/syscall/contract/cap_table/mk_device.rs:38` | One VMware backdoor call from the absolute pointer's set, where the host answers it; -19 elsewhere. |
-| `MHVP` | `0x5056484D` | `MkHvPost` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_platform.rs:68` | Post a VMBus channel message to the host; the VMBus root's holder only. |
-| `MHVR` | `0x5256484D` | `MkHvRecv` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_platform.rs:68` | Take the oldest SynIC message for VMBus. |
+| `MHVP` | `0x5056484D` | `MkHvPost` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_platform.rs:68` | Post a VMBus message: the bus's on the root, a channel's own on its record. |
+| `MHVR` | `0x5256484D` | `MkHvRecv` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_platform.rs:68` | Take the oldest VMBus message: the core's on the root, a channel's answers on its record. |
 | `MHVE` | `0x4556484D` | `MkHvEvents` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_platform.rs:68` | Take and clear VMBus's channel event flags: the core's on the root, a channel's on its record. |
 | `MHVS` | `0x5356484D` | `MkHvSignal` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_platform.rs:68` | Signal the host on a channel's connection: any on the root, the channel's own on its record. |
 | `MHVC` | `0x4356484D` | `MkHvChannel` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_platform.rs:68` | Give a channel the host offered a record of its own, for its driver; the VMBus root's holder only, never a host service. |

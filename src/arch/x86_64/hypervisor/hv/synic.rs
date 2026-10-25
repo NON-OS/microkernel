@@ -27,7 +27,7 @@ use core::sync::atomic::{fence, AtomicU64, Ordering};
 
 use spin::{Mutex, Once};
 
-use super::channels::{BindError, Channel, Channels, Interface, Retire};
+use super::channels::{BindError, Channel, Channels, Interface, Retire, Route, MAX_GPADLS};
 use super::features::{Features, LEAF_FEATURES};
 use super::hypercall::{call, choose_instruction};
 use super::hypercall_abi::{
@@ -40,7 +40,7 @@ use super::regs::{
     MSR_SCONTROL, MSR_SIEFP, MSR_SIMP, MSR_SINT0, MSR_VP_INDEX, SINT_VMBUS, VECTOR_HV_SYNIC,
 };
 use super::ring::Ring;
-use super::vmbus_out::{check, Holder, Refusal, MESSAGE_TYPE_CHANNEL};
+use super::vmbus_out::{check, check_channel, Refusal, MESSAGE_TYPE_CHANNEL};
 use crate::arch::x86_64::cpu::{cpuid, rdmsr, wrmsr};
 
 /// The event flags one SINT has: 2048 bits.
@@ -99,51 +99,99 @@ pub fn unmask() {
     }
 }
 
-/*
- * Move what the host left in VMBus's slot into the ring, freeing the slot
- * and, when the host has more queued, ending the message so it sends the
- * next. Only on VP 0, whose slot it is and whose EOM counts; the gate's
- * handler runs there, and so does the core's poll on a one-CPU guest.
- */
-pub fn service() {
-    let Some(s) = SYNIC.get() else { return };
-    if rdmsr(MSR_VP_INDEX) != 0 {
+/// Broker work a host message left: records retired or settled. Taken by
+/// whichever syscall looks next, in process context.
+static RETIRES: Mutex<[Retire; 16]> = Mutex::new([Retire::None; 16]);
+
+fn note(retire: Retire) {
+    if retire == Retire::None {
         return;
     }
-    let slot = s.simp.at(SINT_VMBUS as usize * MESSAGE_BYTES) as *mut [u8; MESSAGE_BYTES];
-    let mut ring = RING.lock();
-    loop {
-        // SAFETY: VMBus's slot in the message page, which the hypervisor
-        // writes and only this function, under the ring's lock, clears.
-        let m = unsafe { read_volatile(slot) };
-        let Slot::Full { pending, .. } = read(&m) else { break };
-        if !ring.push(&m) {
-            break;
-        }
-        // SAFETY: as above; the type word frees the slot.
-        unsafe { write_volatile(slot as *mut u32, 0) };
-        fence(Ordering::SeqCst);
-        if !pending {
-            break;
-        }
-        wrmsr(MSR_EOM, 0);
+    let mut r = RETIRES.lock();
+    // An unload stands for everything; otherwise the first free slot. Full,
+    // the oldest settle is dropped first: a settle not taken leaves pages
+    // kept, never freed early.
+    let free = r.iter().position(|x| *x == Retire::None);
+    let at = free.or_else(|| r.iter().position(|x| matches!(x, Retire::Settle(_))));
+    match (retire, at) {
+        (Retire::All, _) => *r = [Retire::None; 16],
+        (_, Some(i)) => r[i] = retire,
+        (_, None) => {}
+    }
+    if retire == Retire::All {
+        r[0] = Retire::All;
     }
 }
 
-/// The oldest message taken, header and payload, its length, and the
-/// channel record it retired, if any. A channel message is read into the
-/// kernel's own table of channels on its way to the core.
-pub fn recv(out: &mut [u8; MESSAGE_BYTES]) -> Option<(usize, Retire)> {
+/// The broker work waiting, taken.
+pub fn retires() -> [Retire; 16] {
+    core::mem::replace(&mut *RETIRES.lock(), [Retire::None; 16])
+}
+
+/*
+ * Move what the host left in VMBus's slot on, freeing the slot and, when
+ * the host has more queued, ending the message so it sends the next. A
+ * channel message updates the kernel's table of channels; a bound
+ * channel's answer goes to its queue, anything else to the core's ring.
+ * Only on VP 0, whose slot it is and whose EOM counts; the gate's handler
+ * runs there, and so does any poll on a one-CPU guest. Then whatever the
+ * kernel owes the host for a released channel is sent.
+ */
+pub fn service() {
+    let Some(s) = SYNIC.get() else { return };
+    if rdmsr(MSR_VP_INDEX) == 0 {
+        let slot = s.simp.at(SINT_VMBUS as usize * MESSAGE_BYTES) as *mut [u8; MESSAGE_BYTES];
+        let mut ring = RING.lock();
+        loop {
+            // SAFETY: VMBus's slot in the message page, which the hypervisor
+            // writes and only this function, under the ring's lock, clears.
+            let m = unsafe { read_volatile(slot) };
+            let Slot::Full { ty, len, pending } = read(&m) else { break };
+            if ring.full() {
+                break;
+            }
+            let route = if ty == MESSAGE_TYPE_CHANNEL {
+                let (route, retire) =
+                    CHANNELS.lock().from_host(&m[HEADER_BYTES..HEADER_BYTES + len]);
+                note(retire);
+                route
+            } else {
+                Route::Core
+            };
+            if route == Route::Core {
+                ring.push(&m);
+            }
+            // SAFETY: as above; the type word frees the slot.
+            unsafe { write_volatile(slot as *mut u32, 0) };
+            fence(Ordering::SeqCst);
+            if !pending {
+                break;
+            }
+            wrmsr(MSR_EOM, 0);
+        }
+    }
+    clean_up();
+}
+
+/// The oldest message for the core, header and payload, and its length.
+pub fn recv(out: &mut [u8; MESSAGE_BYTES]) -> Option<usize> {
     service();
     let m = RING.lock().pop()?;
-    let Slot::Full { ty, len, .. } = read(&m) else { return None };
-    let retire = if ty == MESSAGE_TYPE_CHANNEL {
-        CHANNELS.lock().from_host(&m[HEADER_BYTES..HEADER_BYTES + len])
-    } else {
-        Retire::None
-    };
+    let Slot::Full { len, .. } = read(&m) else { return None };
     *out = m;
-    Some((HEADER_BYTES + len, retire))
+    Some(HEADER_BYTES + len)
+}
+
+/// The oldest host answer for a record's channel, as a SynIC message, and
+/// its length.
+pub fn recv_channel(record: u64, out: &mut [u8; MESSAGE_BYTES]) -> Option<usize> {
+    service();
+    let (n, b) = CHANNELS.lock().take(record)?;
+    *out = [0; MESSAGE_BYTES];
+    out[..4].copy_from_slice(&MESSAGE_TYPE_CHANNEL.to_le_bytes());
+    out[4] = n as u8;
+    out[HEADER_BYTES..HEADER_BYTES + n].copy_from_slice(&b[..n]);
+    Some(HEADER_BYTES + n)
 }
 
 /// Why a post did not go.
@@ -154,26 +202,44 @@ pub enum PostError {
     NoSynic,
 }
 
-/// Check a post against what the core may send and the channels it may
-/// build or open, send it, and, once the host took it, note the GPADL it
-/// tied to a channel. One lock across all three, so the table the check
-/// read is the table the post changes.
-pub fn post_checked(
+fn sent(status: Option<u16>) -> Result<(), PostError> {
+    match status {
+        None => Err(PostError::NoSynic),
+        Some(super::hypercall_abi::STATUS_SUCCESS) => Ok(()),
+        Some(s) => Err(PostError::Status(s)),
+    }
+}
+
+/// A post from the VMBus core: the bus's messages alone, its pages on the
+/// root. The request for offers names the bus's connection.
+pub fn post_core(
     connection: u32,
     ty: u32,
     payload: &[u8],
-    held: impl Fn(Holder, u64) -> bool,
+    held: impl Fn(u64) -> bool,
+) -> Result<(), PostError> {
+    check(connection, ty, payload, held).map_err(PostError::Refused)?;
+    sent(post(connection, ty, payload))?;
+    CHANNELS.lock().from_core(connection, payload);
+    Ok(())
+}
+
+/// A post from a channel's driver, holding `record`: its own channel's
+/// messages alone, on the bus's connection, its frames on its record. One
+/// lock across the check, the post and what the post changes, so the table
+/// the check read is the table the post changes.
+pub fn post_channel(
+    record: u64,
+    ty: u32,
+    payload: &[u8],
+    held: impl Fn(u64) -> bool,
 ) -> Result<(), PostError> {
     let mut channels = CHANNELS.lock();
-    check(connection, ty, payload, &channels, held).map_err(PostError::Refused)?;
-    match post(connection, ty, payload) {
-        None => Err(PostError::NoSynic),
-        Some(super::hypercall_abi::STATUS_SUCCESS) => {
-            channels.from_guest(payload);
-            Ok(())
-        }
-        Some(status) => Err(PostError::Status(status)),
-    }
+    check_channel(ty, payload, &channels, record, held).map_err(PostError::Refused)?;
+    let Some(bus) = channels.bus() else { return Err(PostError::NoSynic) };
+    sent(post(bus, ty, payload))?;
+    channels.from_driver(payload);
+    Ok(())
 }
 
 /// The interface a live, unbound, offered channel would be given as, or
@@ -187,28 +253,35 @@ pub fn channel_interface(relid: u32) -> Result<Interface, BindError> {
     Interface::of(&c.interface).ok_or(BindError::Interface)
 }
 
-/// The type of the note the kernel leaves the core in its ring: a channel's
-/// driver let go while the host may still hold GPADLs of it, and the core
-/// is to close the channel and tear them down. The payload is the relid.
-/// The host's VMBus messages are type 1; this is no message of the host's.
-pub const NOTE_RELEASED: u32 = 0x4E4F_0001;
-
-/// A channel record's grants are being drained: whether their pages must be
-/// kept, because the host may still hold a GPADL over them. The first time,
-/// the core is left a note to close the channel; if its ring is full, the
-/// next drain tries again.
+/// A channel record's grants are being drained: whether their pages must
+/// be kept, because the host may still hold a GPADL over them. If so, the
+/// kernel closes the channel and tears its GPADLs down itself.
 pub fn released(record: u64) -> bool {
-    let (busy, first) = CHANNELS.lock().released(record);
-    if let Some(relid) = first {
-        let mut m = [0u8; MESSAGE_BYTES];
-        m[..4].copy_from_slice(&NOTE_RELEASED.to_le_bytes());
-        m[4] = 4;
-        m[HEADER_BYTES..HEADER_BYTES + 4].copy_from_slice(&relid.to_le_bytes());
-        if !RING.lock().push(&m) {
-            CHANNELS.lock().unnote(relid);
+    let keep = CHANNELS.lock().release(record);
+    if keep {
+        clean_up();
+    }
+    keep
+}
+
+/// What the kernel owes the host for released channels, sent: each
+/// channel's close and teardowns, or none of it marked sent, for the next
+/// look to send again.
+fn clean_up() {
+    let mut owed = [([0u8; 16], 0usize); MAX_GPADLS + 1];
+    loop {
+        let mut channels = CHANNELS.lock();
+        let Some((relid, n)) = channels.owed(&mut owed) else { return };
+        let Some(bus) = channels.bus() else { return };
+        let ok = owed[..n].iter().all(|(m, len)| {
+            post(bus, MESSAGE_TYPE_CHANNEL, &m[..*len])
+                == Some(super::hypercall_abi::STATUS_SUCCESS)
+        });
+        channels.cleaned(relid, ok);
+        if !ok {
+            return;
         }
     }
-    busy
 }
 
 /// Give a channel to its record.

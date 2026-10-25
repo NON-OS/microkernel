@@ -30,12 +30,12 @@ mod ring;
 mod synic;
 mod vmbus_out;
 
-pub use channels::{BindError, Channel, Interface, Retire};
+pub use channels::{BindError, Channel, Interface, Retire, TargetError};
 pub use hypercall_abi::{STATUS_INSUFFICIENT_BUFFERS, STATUS_SUCCESS};
 pub use message::{MESSAGE_BYTES, PAYLOAD_MAX};
 pub use regs::VECTOR_HV_SYNIC;
 pub use synic::{
-    bind, channel_event, channel_interface, channel_of, events, init, post_checked, ready, recv,
-    released, service, signal, unmask, PostError, EVENT_WORDS, NOTE_RELEASED,
+    bind, channel_event, channel_interface, channel_of, events, init, post_channel, post_core,
+    ready, recv, recv_channel, released, retires, service, signal, unmask, PostError, EVENT_WORDS,
 };
-pub use vmbus_out::{Holder, Refusal};
+pub use vmbus_out::Refusal;

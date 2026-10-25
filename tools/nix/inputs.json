@@ -10197,6 +10197,7 @@
    "userland/capsule_driver_vmbus/src/connect.rs",
    "userland/capsule_driver_vmbus/src/constants.rs",
    "userland/capsule_driver_vmbus/src/discover.rs",
+   "userland/capsule_driver_vmbus/src/give.rs",
    "userland/capsule_driver_vmbus/src/guid.rs",
    "userland/capsule_driver_vmbus/src/hv.rs",
    "userland/capsule_driver_vmbus/src/msg.rs",

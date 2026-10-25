@@ -27,7 +27,8 @@ use std::rc::Rc;
 use crate::broker::CLAIMED;
 use crate::channels::Channels;
 use crate::dma::LIVE;
-use crate::vmbus_out::{check, Holder, Refusal};
+use crate::channels::{Interface, Route};
+use crate::vmbus_out::{check, Refusal};
 
 pub const MK_VMBUS_VENDOR: u16 = 0x1414;
 pub const MK_VMBUS_DEVICE: u16 = 0x5642;
@@ -38,6 +39,7 @@ const E_INVAL: i64 = -22;
 const E_PERM: i64 = -1;
 const E_NODEV: i64 = -19;
 const E_NOENT: i64 = -2;
+const E_BUSY: i64 = -16;
 
 /// The host on the other side of the SynIC.
 pub trait Host {
@@ -51,6 +53,19 @@ thread_local! {
     static HOST: RefCell<Option<Rc<RefCell<dyn Host>>>> = const { RefCell::new(None) };
     /// The kernel's table of channels, as the kernel keeps it.
     pub(crate) static CHANNELS: RefCell<Channels> = const { RefCell::new(Channels::new()) };
+    /// Records the kernel made for channels: (record, relid, device).
+    pub static GIVEN: RefCell<Vec<(u64, u32, u16)>> = const { RefCell::new(Vec::new()) };
+}
+
+/// The records the kernel gave channels so far.
+pub fn given() -> Vec<(u64, u32, u16)> {
+    GIVEN.with(|g| g.borrow().clone())
+}
+
+/// A fresh kernel table, for a test that starts again.
+pub fn reset_channels() {
+    CHANNELS.with(|c| *c.borrow_mut() = Channels::new());
+    GIVEN.with(|g| g.borrow_mut().clear());
 }
 
 pub fn set_host(h: Rc<RefCell<dyn Host>>) {
@@ -75,27 +90,43 @@ pub fn mk_hv_post(device_id: u64, connection: u32, ty: u32, buf: *const u8, len:
     }
     // SAFETY: the caller hands `len` readable bytes, as the real call requires.
     let payload = unsafe { std::slice::from_raw_parts(buf, len) };
-    let on = |dev: u64, gpa: u64| {
+    let held = |gpa: u64| {
         LIVE.with(|l| {
-            l.borrow().iter().any(|&(_, d, at, n)| d == dev && at <= gpa && gpa + 4096 <= at + n)
+            l.borrow().iter().any(|&(_, d, at, n)| d == device_id && at <= gpa && gpa + 4096 <= at + n)
         })
     };
-    let held = |h: Holder, gpa: u64| match h {
-        Holder::Root => on(device_id, gpa),
-        Holder::Record(r) => on(r, gpa),
-    };
-    let checked = CHANNELS.with(|c| check(connection, ty, payload, &c.borrow(), held));
-    match checked {
+    match check(connection, ty, payload, held) {
         Ok(()) => {}
         Err(Refusal::Page) => return E_PERM,
-        Err(Refusal::Channel) => return E_NOENT,
         Err(_) => return E_INVAL,
     }
     let rc = h.borrow_mut().post(connection, payload);
     if rc == 0 {
-        CHANNELS.with(|c| c.borrow_mut().from_guest(payload));
+        CHANNELS.with(|c| c.borrow_mut().from_core(connection, payload));
     }
     rc
+}
+
+/// MkHvChannel as the kernel serves it: a live, unbound channel of an
+/// interface a driver may be given, made a record.
+pub fn mk_hv_channel(root: u64, relid: u32) -> i64 {
+    if !holds(root) {
+        return E_PERM;
+    }
+    CHANNELS.with(|c| {
+        let mut c = c.borrow_mut();
+        let Some(ch) = c.get(relid).copied() else { return E_NOENT };
+        if ch.record.is_some() {
+            return E_BUSY;
+        }
+        let Some(i) = Interface::of(&ch.interface) else { return E_PERM };
+        let record = 0x1_0000_1000 + GIVEN.with(|g| g.borrow().len()) as u64;
+        if c.bind(relid, record).is_err() {
+            return E_NOENT;
+        }
+        GIVEN.with(|g| g.borrow_mut().push((record, relid, i.device())));
+        record as i64
+    })
 }
 
 pub fn mk_hv_recv(device_id: u64, out: *mut [u8; MK_HV_MESSAGE_BYTES]) -> i64 {
@@ -103,12 +134,20 @@ pub fn mk_hv_recv(device_id: u64, out: *mut [u8; MK_HV_MESSAGE_BYTES]) -> i64 {
         return E_PERM;
     }
     let Some(h) = host() else { return E_NODEV };
-    let Some(m) = h.borrow_mut().recv() else { return E_AGAIN };
-    let n = m.len().min(MK_HV_MESSAGE_BYTES);
-    if n >= 16 && m[..4] == 1u32.to_le_bytes() {
+    // A bound channel's answers go to its driver, never to the core.
+    let m = loop {
+        let Some(m) = h.borrow_mut().recv() else { return E_AGAIN };
+        let n = m.len().min(MK_HV_MESSAGE_BYTES);
+        if n < 16 || m[..4] != 1u32.to_le_bytes() {
+            break m;
+        }
         let len = (m[4] as usize).min(n - 16);
-        CHANNELS.with(|c| c.borrow_mut().from_host(&m[16..16 + len]));
-    }
+        let (route, _) = CHANNELS.with(|c| c.borrow_mut().from_host(&m[16..16 + len]));
+        if route == Route::Core {
+            break m;
+        }
+    };
+    let n = m.len().min(MK_HV_MESSAGE_BYTES);
     // SAFETY: the caller hands a writable 256-byte buffer.
     unsafe { (&mut *out)[..n].copy_from_slice(&m[..n]) };
     n as i64
