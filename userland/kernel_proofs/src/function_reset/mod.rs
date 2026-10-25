@@ -18,11 +18,9 @@
 mod busy_tests;
 #[cfg(test)]
 mod fake;
-#[path = "../../../../src/hardware/broker/pio/access/gate.rs"]
 pub mod gate;
 #[cfg(test)]
 mod gate_tests;
-#[path = "../../../../src/hardware/broker/claim/leaving.rs"]
 pub mod leaving;
 #[path = "../../../../src/hardware/broker/claim/reset_rule.rs"]
 pub mod reset_rule;
@@ -32,7 +30,6 @@ pub mod reset_run;
 pub mod reset_wait;
 #[cfg(test)]
 mod record_tests;
-#[path = "../../../../src/hardware/broker/claim/retire.rs"]
 pub mod retire;
 #[cfg(test)]
 mod retire_fake;
@@ -42,10 +39,10 @@ mod retire_holder;
 mod retire_tests;
 #[cfg(test)]
 mod tests;
-#[path = "../../../../src/hardware/broker/claim/state.rs"]
 pub mod state;
-#[path = "../../../../src/hardware/broker/claim/still_held.rs"]
 pub mod still_held;
+// Mounted in claim_stage too; the lifecycle fields go unread in this copy.
+#[allow(clippy::duplicate_mod, dead_code)]
 #[path = "../../../../src/hardware/broker/claim/types.rs"]
 pub mod types;
 #[cfg(test)]

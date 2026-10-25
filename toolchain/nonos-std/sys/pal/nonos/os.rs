@@ -69,15 +69,13 @@ pub fn home_dir() -> Option<PathBuf> {
 }
 
 pub fn exit(code: i32) -> ! {
-    unsafe {
-        core::arch::asm!("syscall", in("rax") N_MK_EXIT, in("rdi") code as u64, options(noreturn));
-    }
+    crate::sys::pal::trap::trap_exit(N_MK_EXIT, code as u64);
 }
 
 pub fn getpid() -> u32 {
     let r: i64;
     unsafe {
-        core::arch::asm!("syscall", inout("rax") N_MK_GETPID => r, out("rcx") _, out("r11") _);
+        r = crate::sys::pal::trap::trap(N_MK_GETPID, 0, 0, 0, 0, 0, 0);
     }
     if r < 0 { 0 } else { r as u32 }
 }

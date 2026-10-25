@@ -1,0 +1,57 @@
+name: ci-every-arch-proofs
+
+# Every proof crate type-checked, tests included, for aarch64 and riscv64
+# Linux, so the kernel and capsule source each mounts by #[path] compiles
+# under that architecture's cfg (nonos-ci/check-proofs-every-arch.sh); then
+# std_pal_proofs run there under qemu-user, so the std layer's and libc's
+# thread trampolines and thread pointer reads are executed, not only built.
+# The ledgers of x86_64-only kernel code are held by arch_reach_proofs, which
+# the flake's proof checks run.
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  proofs:
+    name: proofs (${{ matrix.triple }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - triple: aarch64-unknown-linux-gnu
+            cc: gcc-aarch64-linux-gnu
+            linker: aarch64-linux-gnu-gcc
+            env: AARCH64_UNKNOWN_LINUX_GNU
+            qemu: qemu-aarch64 -L /usr/aarch64-linux-gnu
+          - triple: riscv64gc-unknown-linux-gnu
+            cc: gcc-riscv64-linux-gnu
+            linker: riscv64-linux-gnu-gcc
+            env: RISCV64GC_UNKNOWN_LINUX_GNU
+            qemu: qemu-riscv64 -L /usr/riscv64-linux-gnu
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Toolchain, the target's std and its C compiler
+        run: |
+          channel="$(sed -nE 's/^channel *= *"([^"]+)".*/\1/p' rust-toolchain.toml)"
+          rustup toolchain install "${channel}" --profile minimal --target ${{ matrix.triple }}
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ${{ matrix.cc }} qemu-user
+      - name: Type-check every proof crate
+        run: bash nonos-ci/check-proofs-every-arch.sh ${{ matrix.triple }}
+      - name: Run the thread register proofs on that architecture
+        working-directory: userland/std_pal_proofs
+        run: |
+          export CARGO_TARGET_${{ matrix.env }}_LINKER=${{ matrix.linker }}
+          export CARGO_TARGET_${{ matrix.env }}_RUNNER="${{ matrix.qemu }}"
+          cargo test --locked --target ${{ matrix.triple }}

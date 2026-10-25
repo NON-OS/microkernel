@@ -21,14 +21,15 @@
 //! adapter again. Both mappings are as long as the broker made them. The
 //! adapter must name a DISPI version before anything else is read; the
 //! state firmware left is read whole before any write and written back
-//! when the handles drop, on a failed step as when the driver goes.
+//! when the handles drop, on a failed step as when the driver goes; then
+//! its framebuffer is set little endian where it has the register.
 
 use nonos_gfx_serve::{Platform, Server};
-use nonos_libc::mk_device_release;
+use nonos_libc::{mk_device_release, MK_MMIO_MAP_WC};
 
 use super::fresh::fresh;
 use super::{claim, mmio, pci, Driver};
-use crate::constants::{EDID_WINDOW, FB_BAR, MK_MMIO_MAP_WC, REG_BAR};
+use crate::constants::{EDID_WINDOW, FB_BAR, REG_BAR};
 use crate::discover::Found;
 use crate::error::{BgaError, BgaResult};
 use crate::handles::BrokerHandles;

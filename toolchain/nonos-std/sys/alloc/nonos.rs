@@ -1,6 +1,6 @@
 // NONOS std PAL: global allocator.
 //
-// A real heap: dlmalloc (the same allocator std uses for wasm/sgx/xous)
+// A real heap: the dlmalloc crate std already carries for its other ports,
 // backed by NONOS page allocation through the MMAP syscall. dlmalloc owns
 // free lists and coalescing, so memory is reclaimed and reused. A capsule
 // may run several threads (std::thread spawns them with MTSP), so every
@@ -20,16 +20,7 @@ const N_MK_MMAP: i64 = tag4(b"MMAP");
 unsafe fn mmap(len: usize) -> *mut u8 {
     let r: i64;
     unsafe {
-        core::arch::asm!(
-            "syscall",
-            inout("rax") N_MK_MMAP => r,
-            in("rdi") 0u64,
-            in("rsi") len as u64,
-            in("rdx") 3u64,
-            in("r10") 0u64,
-            out("rcx") _,
-            out("r11") _,
-        );
+        r = crate::sys::pal::trap::trap(N_MK_MMAP, 0u64, len as u64, 3u64, 0u64, 0, 0);
     }
     if r <= 0 { ptr::null_mut() } else { r as *mut u8 }
 }

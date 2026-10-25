@@ -21,8 +21,9 @@ use super::command::{
 use super::event::{address, code, device_id, domain, from_words, is_write, IO_PAGE_FAULT};
 use super::regs::{dev_table_base, ring_base, ring_index, ring_next, ring_offset, RING_ENTRIES};
 
-/* Linux build_completion_wait: data[0] = lower(paddr) | STORE (bit 0),
-data[1] = upper(paddr) | type 1 << 28, data[2..3] = the 64-bit store data. */
+/* 48882 2.4.1 COMPLETION_WAIT: dword 0 the store address's low bits with S
+(bit 0), dword 1 its high bits with opcode 1 in 31:28, dwords 2 and 3 the
+64-bit store data. */
 #[test]
 fn completion_wait_stores_its_sequence() {
     let c = completion_wait(0x1234_5678_9007, 0xDEAD_BEEF_0000_0001);
@@ -30,8 +31,8 @@ fn completion_wait_stores_its_sequence() {
     assert_eq!(command_opcode(c), 1);
 }
 
-/* Linux build_inv_dte, build_inv_iommu_pages with the all-pages address
-0x7FFF_FFFF_FFFF_F000 plus S and PDE, and build_inv_all. */
+/* 48882 2.4.2, 2.4.3 and INVALIDATE_IOMMU_ALL: the device id in dword 0;
+the domain with the all-pages address 0x7FFF_FFFF_FFFF_F000 plus S and PDE. */
 #[test]
 fn invalidations_match_linux() {
     assert_eq!(invalidate_devtab_entry(0x00A0), [0xA0, 0x2000_0000, 0, 0]);
@@ -51,8 +52,8 @@ fn registers_hold_sizes_where_the_spec_puts_them() {
     assert_eq!(ring_next(RING_ENTRIES - 1), 0);
 }
 
-/* Linux iommu_print_event: devid event[0] 15:0, type event[1] 31:28, flags
-event[1] 27:16 with RW = 0x020, address event[3]:event[2]. */
+/* 48882 2.5: device id in dword 0 15:0, event code in dword 1 31:28, flags
+in dword 1 27:16 with RW = 0x020, address in dwords 3:2. */
 #[test]
 fn a_page_fault_event_names_the_device_and_the_write() {
     let low = ((((2u32 << 28) | (0x020 << 16) | 5) as u64) << 32) | 0x0200;
