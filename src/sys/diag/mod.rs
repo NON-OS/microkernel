@@ -30,6 +30,8 @@ use core::sync::atomic::{AtomicU32, Ordering};
 
 use super::serial;
 
+mod late;
+
 /// One instrumented gate. Declare as a `static` at the call site so each gate
 /// rate-limits independently.
 pub struct Site {
