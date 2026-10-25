@@ -34,14 +34,15 @@ use super::band_meet::meet;
 
 pub const BAND_W: u32 = 84;
 pub const BAND_H: u32 = 16;
-/// The menu bar's colour (the shell's palette::BAR), made opaque.
-pub const BAND_ARGB: u32 = 0xFF04_080C;
-pub const CAMERA_ON: u32 = 0xFF2E_CC40;
-pub const MICROPHONE_ON: u32 = 0xFFFF_9F1A;
-pub const MARK_OFF: u32 = 0xFF4A_5560;
-pub const SCREEN_ON: u32 = 0xFF3D_8BFF;
-pub const TRUSTED_ON: u32 = 0xFFF2_F2F2;
-pub const DMA_UNCONFINED: u32 = 0xFFFF_3B3B;
+pub const BAND_ARGB: u32 = 0xFF04_080C; // BAR, made opaque
+/// The shell's palette tokens (capsule_desktop_shell render/palette.rs), so
+/// the band and the bar it sits in are one colour set.
+pub const CAMERA_ON: u32 = 0xFF35_D6A0; // POSITIVE
+pub const MICROPHONE_ON: u32 = 0xFFE8_B75C; // WARN
+pub const MARK_OFF: u32 = 0xFF4C_5D68; // TEXT_MUTED
+pub const SCREEN_ON: u32 = 0xFF22_C3F0; // ACCENT
+pub const TRUSTED_ON: u32 = 0xFFE6_F1F6; // TEXT
+pub const DMA_UNCONFINED: u32 = 0xFFE4_574F; // NEGATIVE
 const UNDERLINE: u32 = 2;
 
 /// The band on a canvas `w` x `h`.

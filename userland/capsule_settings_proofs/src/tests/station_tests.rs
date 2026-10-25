@@ -67,9 +67,8 @@ fn anything_but_our_ok_answer_is_none() {
 #[test]
 fn each_source_has_its_words() {
     assert_eq!(said(0), None, "not reported: nothing shown");
-    assert_eq!(said(1), Some("A private address, drawn for this boot"));
-    let host = "Using the address Hyper-V assigned: it drops a chosen address unless \
-                MAC spoofing is on for this VM's adapter";
-    assert_eq!((said(2), said(3)), (Some(host), Some(host)));
-    assert_eq!((said(4), stats::STATION_DRAWN), (None, 1));
+    assert_eq!(said(1), Some(("Private, new each boot", None)));
+    let host = Some(("Assigned by Hyper-V", Some(station::HYPER_V)));
+    assert_eq!((said(2), said(3), said(4)), (host, host, None));
+    assert!(station::HYPER_V.contains("MAC spoofing is on for this VM's adapter"));
 }

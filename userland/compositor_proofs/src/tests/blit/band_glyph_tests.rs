@@ -56,7 +56,7 @@ fn every_mark_on_and_off() {
             shows(&px, g, slot as u32, if slot == lit { *on } else { MARK_OFF });
         }
     }
-    assert_eq!((BAND_ARGB, MARK_OFF), (0xFF04_080C, 0xFF4A_5560));
+    assert_eq!((BAND_ARGB, MARK_OFF), (0xFF04_080C, 0xFF4C_5D68));
 }
 
 #[test]

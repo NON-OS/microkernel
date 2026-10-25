@@ -53,14 +53,16 @@ pub fn station_of(reply: &[u8], id: u32) -> Option<u32> {
     word(DATA_AT + 9 * 4)
 }
 
-/// What the page says for a source; None shows nothing.
-pub fn said(source: u32) -> Option<&'static str> {
+/// What the page says for a source: the value, and the line under the
+/// label when the value needs one. None shows nothing.
+pub fn said(source: u32) -> Option<(&'static str, Option<&'static str>)> {
     match source {
-        1 => Some("A private address, drawn for this boot"),
-        2 | 3 => Some(
-            "Using the address Hyper-V assigned: it drops a chosen address unless \
-             MAC spoofing is on for this VM's adapter",
-        ),
+        1 => Some(("Private, new each boot", None)),
+        2 | 3 => Some(("Assigned by Hyper-V", Some(HYPER_V))),
         _ => None,
     }
 }
+
+/// Why Hyper-V's address is used, as the project worded it.
+pub const HYPER_V: &str =
+    "Hyper-V drops a chosen address unless MAC spoofing is on for this VM's adapter.";

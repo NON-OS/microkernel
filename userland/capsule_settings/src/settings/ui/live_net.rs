@@ -19,6 +19,7 @@ use crate::settings::state::State;
 use crate::wifi::{Lease, NetStatus};
 
 use super::valbuf::ValBuf;
+use crate::wifi::station::said;
 
 pub fn link_state(state: &State) -> (ValBuf, Tone) {
     let mut b = ValBuf::new();
@@ -63,6 +64,11 @@ pub fn adapter(b: &mut ValBuf, state: &State) -> Tone {
 /// Where the wired card's address came from, in the page's words; nothing
 /// when its driver does not say (wifi/station.rs).
 pub fn station(b: &mut ValBuf, state: &State) -> Tone {
-    b.push_str(state.wifi_diag.station.and_then(crate::wifi::station::said).unwrap_or(""));
+    b.push_str(state.wifi_diag.station.and_then(said).map_or("", |s| s.0));
     Tone::Idle
+}
+
+/// The line under the address row, when its value needs one.
+pub fn station_note(state: &State) -> Option<&'static str> {
+    state.wifi_diag.station.and_then(said).and_then(|s| s.1)
 }

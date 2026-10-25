@@ -4357,6 +4357,8 @@
   "include": [
    ".cargo",
    "src/services/registry/displays.rs",
+   "userland/capsule_boot_splash/src/warning.rs",
+   "userland/capsule_desktop_shell/src/render/palette.rs",
    "userland/compositor/Capsule.mk",
    "userland/compositor/src/display/access_rule.rs",
    "userland/compositor/src/display/access_wire.rs",
