@@ -23,6 +23,35 @@ use super::send::mark_and_send;
 use super::wait::wait_for_acks;
 use crate::memory::addr::VirtAddr;
 
+/// What one round reached, for `trace`; a kernel built without it keeps none.
+#[cfg(feature = "nonos-shootdown-trace")]
+pub(super) struct Round {
+    pub(super) asid: u32,
+    pub(super) pages: u32,
+    pub(super) selected: [u64; super::select::WORDS],
+    pub(super) targets: u32,
+    pub(super) starting: u32,
+    pub(super) answered_for: u32,
+}
+
+#[cfg(not(feature = "nonos-shootdown-trace"))]
+type Round = ();
+
+#[cfg(feature = "nonos-shootdown-trace")]
+fn summary(
+    asid: u32,
+    pages: u32,
+    selected: [u64; super::select::WORDS],
+    targets: u32,
+    starting: u32,
+    answered_for: u32,
+) -> Round {
+    Round { asid, pages, selected, targets, starting, answered_for }
+}
+
+#[cfg(not(feature = "nonos-shootdown-trace"))]
+fn summary(_: u32, _: u32, _: [u64; super::select::WORDS], _: u32, _: u32, _: u32) -> Round {}
+
 pub(super) fn broadcast(va: VirtAddr, page_count: u32, asid: u32) {
     /*
      * The whole round runs masked. A holder of `SHOOTDOWN_LOCK` that took an
@@ -32,10 +61,18 @@ pub(super) fn broadcast(va: VirtAddr, page_count: u32, asid: u32) {
      * longer runs. The wait itself serves this cpu's own requests by hand,
      * so masking costs it nothing it needs to hear.
      */
-    crate::arch::run_without_interrupts(|| round(va, page_count, asid))
+    let done = crate::arch::run_without_interrupts(|| round(va, page_count, asid));
+    // After the round, its lock released: the line takes the serial lock, and
+    // no cpu may wait on this one for an acknowledgement while it does.
+    #[cfg(feature = "nonos-shootdown-trace")]
+    if let Some(done) = &done {
+        super::trace::report(done);
+    }
+    #[cfg(not(feature = "nonos-shootdown-trace"))]
+    let _ = done;
 }
 
-fn round(va: VirtAddr, page_count: u32, asid: u32) {
+fn round(va: VirtAddr, page_count: u32, asid: u32) -> Option<Round> {
     let me = crate::smp::percpu::current();
     // Serve any round already in flight while waiting for our turn. Page-table
     // mutation sites reach here with interrupts masked, so a cpu that simply
@@ -56,9 +93,9 @@ fn round(va: VirtAddr, page_count: u32, asid: u32) {
      * comes after those writes and it cannot have cached the old entries.
      */
     core::sync::atomic::fence(Ordering::SeqCst);
-    let (selected, targets) = select(asid);
+    let (selected, targets, starting) = select(asid);
     if targets == 0 {
-        return;
+        return None;
     }
 
     REQ_VA.store(va.as_u64(), Ordering::Release);
@@ -66,5 +103,6 @@ fn round(va: VirtAddr, page_count: u32, asid: u32) {
     REQ_PENDING_ACKS.store(targets, Ordering::SeqCst);
 
     mark_and_send(&selected);
-    wait_for_acks(&selected);
+    let answered_for = wait_for_acks(&selected);
+    Some(summary(asid, page_count, selected, targets, starting, answered_for))
 }
