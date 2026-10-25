@@ -21,6 +21,7 @@ DISCOVER = [
     ("driver.e1000e_0", "e1000e/src/constants/ids.rs",
      "I82574 I82583 PCH_LPT PCH_SPT PCH_CNP PCH_TGP PCH_ADP PCH_MTP PCH_PTP"),
     ("driver.igb_0", "igb/src/facts/ids.rs", "IGB_PARTS"),
+    ("driver.igc_0", "igc/src/constants/pci.rs", "IGC_DEVICE_IDS"),
     ("driver.ixgbe_0", "ixgbe/src/facts/ids.rs", "IXGBE_PARTS"),
     ("driver.rtl8169_0", "rtl8169/src/constants/pci.rs", "RTL8169_DEVICE_IDS"),
     ("driver.rtl8139_0", "rtl8139/src/constants/pci.rs", "RTL8139_DEVICE_ID"),

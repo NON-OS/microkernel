@@ -33,6 +33,8 @@ pub fn report(flags: ProtectionFlags) {
     bit(flags.nx_enabled);
     serial::print(b" wp=");
     bit(flags.wp_enabled);
+    serial::print(b" pge=");
+    bit(flags.pge_enabled);
     serial::println(b"");
 
     if !flags.is_fully_protected() {

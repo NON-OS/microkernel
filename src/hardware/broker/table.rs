@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod boot_fb;
+mod boot_fb_rule;
 mod external;
 mod init;
 mod legacy_ide;
@@ -24,6 +26,7 @@ mod remove;
 mod state;
 
 // For the ACPI broker, which only x86 builds.
+pub use boot_fb::boot_fb_held;
 pub use external::external_port_of;
 #[allow(unused_imports)] // x86 alone declares ports yet
 pub(in crate::hardware::broker) use external::mark as mark_external;
