@@ -8,7 +8,7 @@ What NONOS promises about leaving no trace and leaking nothing. Each promise nam
 
 No claim is rounded up. Where a promise does not hold, this page says so and names the open work.
 
-The image the booted rows refer to is the `standard` profile's development twin at commit 308615832, sealed with throwaway keys (`tools/nonos-dev-image --profile standard`, image sha256 `e1b3cff8…5cd011288`). It carries the shipped feature set, with path-only attestation and the development loader. Like `standard`, it has no capsule serial output (see [the feature inventory](../build/feature-inventory.md)). Section 7 says how it was booted, and what the boots did and did not exercise.
+The network and amnesic rows marked 2026-10-25 refer to the image §7 names for that day, built at a test merge of this branch and privacy/power-off. The other booted rows refer to the `standard` profile's development twin at commit 308615832, sealed with throwaway keys (`tools/nonos-dev-image --profile standard`, image sha256 `e1b3cff8…5cd011288`). It carries the shipped feature set, with path-only attestation and the development loader. Like `standard`, it has no capsule serial output (see [the feature inventory](../build/feature-inventory.md)). Section 7 says how it was booted, and what the boots did and did not exercise.
 
 ## 1. Nothing persists unless the person chose it
 
@@ -17,7 +17,7 @@ The image the booted rows refer to is the `standard` profile's development twin 
 | A boot keeps nothing until first-boot setup records the choice. The policy field `Persistent` starts `false` (`userland/capsule_policy/src/store/defaults/store.rs`), and only setup and settings may write it (`capsule_policy/src/server/handle_set.rs`). | design | none |
 | On a boot that keeps nothing, vfs refuses to keep a file (`EACCES`). Zeros, an empty file included, go to the disk only as the replacement of a record the disk already holds, at its own length; a name the disk does not hold is never added (`keep`, `userland/capsule_vfs/src/server/handlers/persist_rule.rs`; `withdraw`, `userland/capsule_vfs/src/blk/store_withdraw.rs`). A replacement writes the new bytes to a free extent, repoints the entry, then zeroes the extent the record left, so a withdrawn or replaced record's old bytes leave the disk, not only the table (`userland/capsule_vfs/src/blk/store_replace.rs`). This holds when that last write lands: if it fails, or the machine stops between the repoint and the zeroing, the old bytes stay in a free extent, and nothing finds and zeroes such an extent later, at mount or on a retry. | host-tested | `userland/fs_proofs`: `vfs_disk::tests_withdraw` (the disk is unchanged sector for sector when nothing may be written), `tests_withdraw_kept` (a cut at any sector leaves the old record or the zeros), `tests_erase` (none of a withdrawn or replaced record's old bytes is left anywhere on the disk), and `vfs_persist_rule_tests`. Mutants: withdraw appending an absent name; the rule passing any byte; the old extent left unzeroed. Each is caught. |
 | On a boot that keeps nothing, removing a store entry is refused and an uninstall drops only the RAM copy (`store_remove.rs`, `store_uninstall.rs` in `userland/capsule_vfs/src/server/handlers/`). | design | none: the boot in §7 removes nothing |
-| An idle first boot writes nothing. With the disk driver up for 25 minutes, the data disk is byte for byte as it went in, and every changed EFI variable is one the firmware writes, by GUID and name, the per-NIC record by the NIC's address. Their contents are not judged: `Boot0007`, `MTC` or the per-NIC record would pass with any payload, so a write by NONOS into one of them would not be seen; a diff against a firmware-only boot on the same store would close that. | booted, by the superseded check (§7); the ESP and the per-boot judging are host-tested until the re-run | `scripts/amnesic_boot_check.sh` (§7); `scripts/amnesic_boot_check_selftest.sh` |
+| An idle first boot writes nothing. With the disk driver up for 25 minutes, the data disk is byte for byte as it went in, and every changed EFI variable is one the firmware writes, by GUID and name, the per-NIC record by the NIC's address. Their contents are not judged: `Boot0007`, `MTC` or the per-NIC record would pass with any payload, so a write by NONOS into one of them would not be seen; a diff against a firmware-only boot on the same store would close that. | booted (§7, 2026-10-25: two boots on one machine, each judged) | `scripts/amnesic_boot_check.sh` (§7); `scripts/amnesic_boot_check_selftest.sh` |
 | There is no swap or page-out path. | design | no swap, page-out or swapon code exists in `src/` |
 | A panic writes no crash record: the handler writes only to serial and the screen (`src/boot/panic/handler.rs`), and nothing calls the kernel's `set_variable` (`src/arch/x86_64/uefi/api.rs`). | design | none |
 | The DNS cache lives in RAM only. | design | `capsule_net_dns/src/state.rs`; the image does not ship net.dns, and net.core's resolver keeps no cache on disk |
@@ -48,7 +48,7 @@ The image the booted rows refer to is the `standard` profile's development twin 
 
 | claim | level | proof |
 |---|---|---|
-| The image sends no DNS, NTP, mDNS, LLMNR, SSDP or NetBIOS packet and no IPv6, and talks only to peers it chose: pinned bootstrap hosts, and relays named by a consensus a pinned authority sent. | booted, by the superseded judge (§7) | `scripts/no_telemetry_qemu_capture.sh` judged by the judge at 104a091fc (§7): 2283 guest frames, every peer pinned. The committed `egress.pcap` holds both directions, which the judge then counted together; the current judge reads the egress alone, fails that file, and has not judged a new capture yet. |
+| The image sends no DNS, NTP, mDNS, LLMNR, SSDP or NetBIOS packet and no IPv6, and talks only to peers it chose: pinned bootstrap hosts, and relays named by a consensus a pinned authority sent. | booted (§7, 2026-10-25) | `scripts/no_telemetry_qemu_capture.sh`, judged by the current `tools/nonos-pcap-egress` on the guest's egress alone (§7): 2284 guest frames, 0 failures, every peer pinned |
 | No name is looked up through the resolver unless the chosen network is Direct. Off Direct, net.sockets refuses a connect by name on any socket (`host_target`, `userland/capsule_net_sockets/src/server/handlers/connect/host_target.rs`), and net.core refuses RESOLVE_A itself (`route_gate`, `userland/capsule_net_core/src/server/handlers/dns/route_gate.rs`), so a caller that asks net.core directly, the terminal's `ping` and `nox` among them, is refused too. A store that does not answer is not Direct. Not covered: a capsule holding the Network capability can still send UDP or TCP to port 53 by address, on any route; only that capability gates it, and the egress capture fails any such packet (§7). | host-tested | `userland/capsule_linux_proofs` `mixnet_name_tests`; `userland/net_core_proofs` `dns::route_gate_tests` (every route value, and the gate before any query starts). Mutants: the Direct check dropped in net.sockets; the gate open; the gate dropped from RESOLVE_A. Each is caught. |
 | The wallet's RPC never goes Direct (`Route::for_wallet`, `userland/nonos_route_link/src/pick.rs`). Installs go over Anyone by default (`Route::for_installs`). | design | none |
 | The image has no time sync, so it sends no NTP. `net.ntp` is not spawned beside `net.core` (`spawn_legacy_stack`). | design | the capture (§7) |
@@ -65,7 +65,7 @@ The image the booted rows refer to is the `standard` profile's development twin 
 | claim | level | proof |
 |---|---|---|
 | Every NIC transmits from a fresh random, locally administered unicast MAC on each bring-up, never the burned-in one (`nonos_mac::apply`, `userland/nonos_mac/src/local.rs`). | host-tested; booted for virtio-net | `userland/nonos_mac/src/tests.rs` and the driver proofs crates; on the boot in §7 the guest sent from `7e:4e:99:54:18:58`, and the NIC's own `52:54:00:12:34:56` only in the firmware's three frames before NONOS ran |
-| The image sends no hostname: no DHCP option 12, 60, 77, 81 or 97, and no mDNS. Its DHCP carries no option but 50, 53, 54, 55, 57 and 61 and goes only to broadcast or the server the network named. | booted, by the superseded judge at 104a091fc (§7); the DHCP option and destination rules are host-tested until the re-run | the capture's `dhcp-id`, `dhcp-opt`, `dhcp-dst` and `discovery` rules; `--self-test` and `mutants.py` |
+| The image sends no hostname: no DHCP option 12, 60, 77, 81 or 97, and no mDNS. Its DHCP carries no option but 50, 53, 54, 55, 57 and 61 and goes only to broadcast or the server the network named. | booted (§7, 2026-10-25), the firmware's DHCP judged too | the capture's `dhcp-id`, `dhcp-opt`, `dhcp-dst` and `discovery` rules; `--self-test` and `mutants.py` |
 | DHCP asks for what Windows 10 and 11 ask for, in their order (`PARAMETER_REQUEST_LIST`, `userland/capsule_net_core/src/iface/dhcp/request_list.rs`), not smoltcp's `[1, 3, 6]`, which marked a NONOS machine on any LAN. | host-tested; booted | `userland/net_core_proofs` `dhcp::tests` takes net.core's first DHCPDISCOVER off a smoltcp link (mutant: the list not set, caught); the capture in §7 shows the list on the wire |
 | Scripts in the browser see UTC: `localtime_r` is stubbed to zero (`userland/nonos_qjs/vendor/stubs.c`), and no client sends a `Date` header. | design | none |
 | Scripts in the browser get no font list, screen size or `hardwareConcurrency`. | design | the DOM prelude (`userland/nonos_qjs/vendor/dom_prelude_1.inc`) exposes none of them |
@@ -103,24 +103,29 @@ The manifests these change are re-signed by the next release seal: keyring, logi
 
 ## 7. Booted evidence
 
-Both runs boot the image named at the top under QEMU 11.1.1 with OVMF, on a q35 machine with an Intel IOMMU (`--lane iommu=intel`). A release image refuses device DMA that no IOMMU confines, and without one its disk and network drivers do not come up at all. QEMU had no KVM, so it emulated the CPU (TCG): 8 GiB, 4 CPUs, virtio-net on user-mode networking, virtio-blk, virtio-vga, xHCI and HDA. Each run lasted 25 minutes, and nobody answered first-boot setup. The exact QEMU command lines are in the evidence folder.
+### 2026-10-25, with the current tools
 
-The evidence is in [`privacy-evidence/2026-10-24/`](privacy-evidence/2026-10-24/). **It was judged by the tools as they stood at 104a091fc**, which have since been superseded: the network judge then read a capture holding both directions (the current one judges the guest's egress alone, and FAILs the committed `egress.pcap`), and the amnesic check then hashed no system partition and judged no second boot. Neither has been re-run with the current tools; until it is, the PASS lines below are the old tools' verdicts.
+Every run boots one image: the `standard` profile's development twin (`tools/nonos-dev-image --profile standard`, throwaway keys, sha256 `b1a79ab1…0e3cd4e`) built at a **test merge**, fd40dd41f, of privacy/k-series 6c1848052 and privacy/power-off 1b9afc7ea, never pushed (`merge-fd40dd41f/heads.txt`). QEMU 11.1.1 with OVMF, q35 with an Intel IOMMU (`--lane iommu=intel`): a release image refuses device DMA no IOMMU confines. No KVM, so the CPU was emulated (TCG). Each run lasted 25 minutes and nobody answered first-boot setup. The evidence is in [`privacy-evidence/2026-10-25/merge-fd40dd41f/`](privacy-evidence/2026-10-25/merge-fd40dd41f/), with each run's command line in its `-run.txt`.
 
-**Network** (`scripts/no_telemetry_qemu_capture.sh` with `NONOS_QEMU_LANES=iommu=intel`): PASS.
+**Network** (`scripts/no_telemetry_qemu_capture.sh`, the current judge): PASS, exit 0.
 
-- 2894 frames were captured: 2283 from the guest, 3 from the firmware before NONOS ran, and the rest from the host.
-- Every peer the guest reached is pinned in the image:
-  - the five Nym bootstrap gateways on :9000;
-  - Nym's directory API at 92.39.63.14:443;
-  - the seven Anyone directory authorities on :9230.
-- There was no DNS, NTP, discovery packet or IPv6, and no DHCP option naming the machine.
-- The DHCP parameter request list was Windows'.
-- `egress-verdict.txt` is the tool's output, `egress-report.json` its report, `egress.pcap` the capture and `egress-serial.log` the serial console.
+- The egress capture holds 2287 frames: 2284 from the guest, under one random locally administered MAC, and 3 from the firmware before NONOS ran; the ingress is a capture of its own (`egress.pcap`, `ingress.pcap`).
+- 0 failures. Every peer the guest reached is pinned in the image: the five Nym bootstrap gateways on :9000, Nym's directory API at 92.39.63.14:443, and the seven Anyone directory authorities on :9230. No relay was learned.
+- No DNS, NTP, discovery packet or IPv6. DHCP carried only the allowed options, went to broadcast or the server the network named, and the firmware's DHCP passed the same rules. The parameter request list was Windows' (`egress-report.json`).
+- `python3 tools/nonos-pcap-egress egress.pcap --ingress ingress.pcap` on the committed files gives the same PASS.
+
+**Amnesic** (`scripts/amnesic_boot_check.sh`, the current check): PASS, exit 0.
+
+- Two boots on one machine: 25 minutes, then 120 s on the disk, system partition and variable store the first left (`--keep-machine`). Each serial log shows `driver.virtio_blk0` up and the store answered from the loader's copy.
+- After each boot, the data disk's sha256 was `c88497c3…46670088`, as it went in, with no sector changed; the system partition's digest was `4398ba31…6cef9d1`, as it went in, with no file changed; and no EFI variable but the firmware's own changed (`amnesic-report.json`, `amnesic-efi-vars-main.txt`, `amnesic-efi-vars-settle.txt`).
+
+### 2026-10-24, with the tools at 104a091fc (superseded)
+
+These runs booted the image named at the top. **They were judged by the tools as they stood at 104a091fc**: the network judge then read a capture holding both directions (the current one judges the guest's egress alone, and FAILs that run's `egress.pcap`), and the amnesic check then hashed no system partition and judged no second boot. They stand as history; the runs above replace them. The evidence is in [`privacy-evidence/2026-10-24/`](privacy-evidence/2026-10-24/).
 
 **Network, on other NICs** (the driver lanes, `docs/build/feature-inventory.md`): the same capture with an emulated Intel NIC in place of virtio-net. The e1000e lane passed with 2313 guest frames and the igb lane with 2307, every peer pinned. The usb-net lane is `EMPTY`, not a pass: the guest sent nothing over it. Each lane's report and serial console are in the evidence folder as `lane-<A|B|C|E>-report.json` and `lane-<…>-serial.log`, with the two NIC captures as `lane-A-e1000e.pcap` and `lane-B-igb.pcap`. runs A to C booted the image named at the top; run E booted `2f423b3b…`, commit e90c51abf.
 
-**Amnesic** (`scripts/amnesic_boot_check.sh` with the same lane): PASS.
+**Amnesic, 2026-10-24** (the check then): PASS.
 
 - The data disk's sha256 was `1815711f…7b9b8310` before and after the boot.
 - `driver.virtio_blk0` came up and stayed up (`amnesic-serial.log`), so the disk could have been written.
