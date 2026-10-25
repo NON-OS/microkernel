@@ -9,6 +9,7 @@ use super::phy::phy_setup;
 use crate::constants::regs::REG_MACID;
 use crate::fw::dma::Grant;
 use crate::link::{RtlKeys, RtlLink};
+use crate::ps::Ps;
 use crate::regs::{Mmio, Regs};
 use crate::setup::Mapped;
 use crate::status;
@@ -49,7 +50,9 @@ pub(in super::super) fn build_radio(mapped: Option<Mapped>, stage: Stage) -> (Ra
         return (Radio::Down, stage);
     }
     let our_mac = read_mac(&m.regs);
-    let link = RtlLink::new(m.regs, tx_ring, tx_buffers, rx_ring, rx_buffers, our_mac);
+    let ps = Ps::new(crate::setup::host_aspm(&m));
+    let mut link = RtlLink::new(m.regs, tx_ring, tx_buffers, rx_ring, rx_buffers, our_mac);
+    link.set_ps(ps);
     let keys = RtlKeys::new(m.regs);
     (Radio::Up(Box::new(RadioUp { link, keys, regs: m.regs })), Stage::Ready)
 }
