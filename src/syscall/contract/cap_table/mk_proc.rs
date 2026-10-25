@@ -43,6 +43,9 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
                 && caps.grants_all(&[Capability::CoreExec, Capability::IPC, Capability::Memory])
         }
 
+        /* Whether a message's sender holds one right; the installer's question. */
+        SyscallNumber::MkCapsOf => caps.is_valid() && caps.grants(Capability::SpawnBroker),
+
         SyscallNumber::MkCapsuleVerify => {
             caps.is_valid()
                 && caps.grants_all(&[Capability::CoreExec, Capability::IPC, Capability::Memory])

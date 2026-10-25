@@ -24,8 +24,13 @@ use nonos_gfx_wire::{ops, Caps, Cursor, Errno, Flush, Rect, State, Surface};
 use super::call::{call, PRESENT_MS, SETUP_MS};
 
 pub fn caps(port: u32) -> Result<Caps, Errno> {
+    caps_within(port, SETUP_MS)
+}
+
+/// CAPS, waiting up to `ms` for the answer.
+pub fn caps_within(port: u32, ms: u64) -> Result<Caps, Errno> {
     let mut b = [0u8; 32];
-    let n = call((port, 0), ops::CAPS, &[], &mut b, SETUP_MS)?;
+    let n = call((port, 0), ops::CAPS, &[], &mut b, ms)?;
     Caps::decode(&b[..n])
 }
 
