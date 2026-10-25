@@ -20,13 +20,13 @@ use nonos_app_skeleton::PaintBuffer;
 
 use crate::layout::{follow, Layout};
 use crate::paint::block_chrome::draw_block_chrome;
-use crate::paint::complete_panel::draw_completions;
+use super::complete_panel::draw_completions;
 use crate::paint::draw_input_line::draw_input_line;
 use crate::paint::fetch::draw_fetch;
 use crate::paint::footer::draw_footer;
 use crate::paint::geometry::geometry;
 use crate::paint::header::draw_header;
-use crate::paint::hint_sets;
+use crate::paint::footer::hint_sets;
 use crate::paint::vt::{draw_find_bar, draw_vt, Area, Frame, Rows};
 use crate::term::state::State;
 use crate::term::theme::types::Theme;
