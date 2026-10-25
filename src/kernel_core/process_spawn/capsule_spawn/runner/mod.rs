@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod attest_gate;
+pub(crate) mod built_gate;
 mod install;
 pub(crate) mod preflight;
 mod preflighted;

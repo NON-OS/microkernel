@@ -25,5 +25,7 @@ pub enum LoadError {
     TrustAnchor,
     /// An endpoint name the image reserves, or outside the publisher's own.
     ReservedName,
+    /// The ELF read from the store is empty: never a missing feature (B-02).
+    EmptyImage,
     Spawn(SpawnError),
 }
