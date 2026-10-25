@@ -31,6 +31,7 @@ pub(super) fn attach_streams(
     pid: u32,
     device_id: u64,
     iommus: DescribedIommus,
+    port_only: bool,
 ) -> Result<(), Refused> {
     let in_service = crate::arch::iommu_unit_in_service;
     match verdict(&iommus, in_service, |sid| translates(DeviceAddress::stream(sid))) {
@@ -45,7 +46,7 @@ pub(super) fn attach_streams(
         Verdict::Attach => {
             for sid in iommus.sids() {
                 let stream = DeviceAddress::stream(*sid);
-                if attach_one(pid, device_id, stream, true, (&[], &[])).is_err() {
+                if attach_one(pid, device_id, stream, (true, port_only), (&[], &[])).is_err() {
                     // The streams already in go back out: all of them or none.
                     detach(pid, device_id);
                     return Err(Refused);

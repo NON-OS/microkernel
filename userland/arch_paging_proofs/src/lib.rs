@@ -22,6 +22,8 @@ mod execute_boundary_tests;
 mod memory_type_tests;
 #[cfg(test)]
 mod pat_tests;
+#[cfg(test)]
+mod tlbi_operand_tests;
 
 #[cfg(kani)]
 mod kani_proofs;

@@ -55,6 +55,7 @@ pub fn report_cpu(cpu: u32, flags: &MmuResult<ProtectionFlags>) {
             l.str(b" umip=").dec(f.umip_enabled as u64);
             l.str(b" nx=").dec(f.nx_enabled as u64);
             l.str(b" wp=").dec(f.wp_enabled as u64);
+            l.str(b" pge=").dec(super::report::global_pages() as u64);
         }
         Err(_) => {
             l.str(b" FAIL no-execute absent");

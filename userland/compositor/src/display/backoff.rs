@@ -30,11 +30,13 @@ pub struct Backoff {
     pub next: usize,
     pub gap_ms: i64,
     pub due_ms: i64,
+    /// A round `held` started that has not reached the end of the list.
+    pub held_round: bool,
 }
 
 impl Backoff {
     pub fn new(now_ms: i64) -> Self {
-        Backoff { next: 0, gap_ms: FIRST_MS, due_ms: now_ms.saturating_add(FIRST_MS) }
+        Backoff { next: 0, gap_ms: FIRST_MS, due_ms: now_ms.saturating_add(FIRST_MS), held_round: false }
     }
 
     /// The name to try now, if one is due, with the next one scheduled.
@@ -46,6 +48,7 @@ impl Backoff {
         self.next = (i + 1) % names;
         if self.next == 0 {
             self.gap_ms = self.gap_ms.saturating_mul(2).min(LAST_MS);
+            self.held_round = false;
         }
         self.due_ms = now_ms.saturating_add(self.gap_ms);
         Some(i)
@@ -53,7 +56,12 @@ impl Backoff {
 
     /// The kernel says a driver holds the boot framebuffer (a present
     /// answered EBUSY): ask again from the first name, now, at the first gap.
+    /// Every frame on GOP is refused while it holds, so a refusal during a
+    /// round this started leaves that round alone: restarted on each, it
+    /// asked the first name for ever and never reached the driver holding it.
     pub fn held(&mut self, now_ms: i64) {
-        *self = Backoff { next: 0, gap_ms: FIRST_MS, due_ms: now_ms };
+        if !self.held_round {
+            *self = Backoff { next: 0, gap_ms: FIRST_MS, due_ms: now_ms, held_round: true };
+        }
     }
 }

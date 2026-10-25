@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod bar_select;
+mod cache;
 pub mod fence;
 mod forbidden;
 mod forbidden_image;
