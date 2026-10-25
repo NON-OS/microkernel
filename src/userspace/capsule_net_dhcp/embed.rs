@@ -29,15 +29,15 @@ pub(super) const NET_DHCP_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-net-dhcp")]
 pub(super) const NET_DHCP_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_dhcp.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/net_dhcp.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-net-dhcp")]
 pub(super) const NET_DHCP_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_dhcp.manifest.bin");
+    crate::baked_trust!("capsules/net_dhcp.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-net-dhcp")]
 pub(super) const NET_DHCP_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_dhcp.zk_trailer.bin");
+    crate::baked_trust!("capsules/net_dhcp.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-net-dhcp")]

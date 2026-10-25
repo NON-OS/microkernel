@@ -23,15 +23,15 @@ pub(super) const DRIVER_MPT_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-mpt")]
 pub(super) const DRIVER_MPT_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_mpt.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_mpt.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-mpt")]
 pub(super) const DRIVER_MPT_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_mpt.manifest.bin");
+    crate::baked_trust!("capsules/driver_mpt.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-mpt")]
 pub(super) const DRIVER_MPT_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_mpt.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_mpt.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-driver-mpt")]

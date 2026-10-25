@@ -27,15 +27,14 @@ pub(crate) const LINUX_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-linux")]
 pub(crate) const LINUX_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/linux.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/linux.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-linux")]
-pub(crate) const LINUX_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/linux.manifest.bin");
+pub(crate) const LINUX_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/linux.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-linux")]
 pub(crate) const LINUX_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/linux.zk_trailer.bin");
+    crate::baked_trust!("capsules/linux.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-linux")]

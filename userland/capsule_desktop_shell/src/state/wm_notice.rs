@@ -25,6 +25,7 @@ pub const NOTICE_LEN: usize = 28;
 const OPENED: u32 = 0;
 const CLOSED: u32 = 1;
 const FULL_SCREEN: u32 = 2;
+const FOCUSED: u32 = 3;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum WmEvent {
@@ -32,6 +33,8 @@ pub enum WmEvent {
     Closed,
     /// The window covers the dock's band now (true) or no longer (false).
     FullScreen(bool),
+    /// This window has focus now; pid and window 0 when none has.
+    Focused,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -62,6 +65,7 @@ pub fn decode_wm_notice(buf: &[u8]) -> Option<Option<WmNotice>> {
         OPENED => WmEvent::Opened,
         CLOSED => WmEvent::Closed,
         FULL_SCREEN => WmEvent::FullScreen(x != 0),
+        FOCUSED => WmEvent::Focused,
         _ => return Some(None),
     };
     Some(Some(WmNotice { event, owner_pid, window_id }))
