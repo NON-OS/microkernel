@@ -36,6 +36,7 @@ pub(super) fn to_entry(e: &EntryJson) -> Result<MarketplaceEntry, CliError> {
         publisher_pubkey,
         publisher_eth_address: hex20(&e.publisher_eth_address, "publisher_eth_address")?,
         description: e.description.clone(),
+        logo_hash: if e.logo_hash.is_empty() { [0; 32] } else { hex32(&e.logo_hash, "logo_hash")? },
         price: to_price(&e.price)?,
         token: to_token(&e.token)?,
         commerce,
