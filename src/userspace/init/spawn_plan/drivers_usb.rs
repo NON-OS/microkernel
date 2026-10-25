@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/// The class drivers; their hosts spawn earlier (orchestrator.rs).
 pub(super) fn spawn() {
-    super::drivers_usb_hosts::spawn();
     super::drivers_usb_hub::spawn();
     spawn_usb_hid();
     spawn_usb_msc();
