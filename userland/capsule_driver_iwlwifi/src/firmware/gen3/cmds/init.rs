@@ -54,8 +54,12 @@ pub fn soc_configuration(
     le32s(&[flags, xtal_latency])
 }
 
-/// `iwl_device_power_cmd`: power save off (the CAM scheme). The driver polls
-/// and does not wake the device for each access, so it keeps it awake.
+/// `iwl_device_power_cmd` as Linux's `iwl_mvm_power_update_device` sends it
+/// under its default (balanced) scheme: `DEVICE_POWER_FLAGS_POWER_SAVE_ENA`,
+/// the device may sleep. Every access this driver makes once the firmware
+/// runs is to CSR space or to a shadowed trigger register (the transmit and
+/// command doorbells, the receive free index), which a sleeping AX210-family
+/// device takes without a wake request, as Linux relies on there.
 pub fn device_power() -> [u8; 4] {
-    [0; 4]
+    [1, 0, 0, 0]
 }
