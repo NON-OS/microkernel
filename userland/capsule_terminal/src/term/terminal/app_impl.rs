@@ -31,6 +31,10 @@ impl App for Terminal {
         outcome
     }
 
+    fn wants_rect(&self) -> Option<nonos_app_skeleton::WorkRect> {
+        crate::term::drop::rect(self.dropped)
+    }
+
     fn paint(&mut self, fb: &mut PaintBuffer) {
         self.paint_inner(fb)
     }
