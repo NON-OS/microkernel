@@ -17,6 +17,7 @@
 mod get;
 mod get_domain;
 mod init;
+mod names_clear;
 mod set;
 mod set_domain;
 mod state;
