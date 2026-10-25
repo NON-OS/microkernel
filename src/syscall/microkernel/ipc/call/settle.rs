@@ -34,7 +34,6 @@
 //! and so is a pair whose late calls span the default with no answer in time
 //! (silence.rs): the server is wedged or the reply path lost it.
 
-use super::late_drops::dropped;
 use super::marks::display_marks;
 use super::silence::Pair;
 use super::silence_table;
@@ -44,7 +43,6 @@ use crate::services::registry::ServiceEndpoint;
 use crate::syscall::microkernel::errnos::ERRNO_TIMEDOUT;
 
 static STARVED: crate::sys::diag::Site = crate::sys::diag::Site::new(b"ipc.call");
-static LATE: crate::sys::diag::Site = crate::sys::diag::Site::new(b"ipc.call");
 
 /// `call` is the request's address and length and the reply's address;
 /// `waited` the caller's timeout (0: the default) and the time it waited.
@@ -64,10 +62,9 @@ pub(super) fn settle(
         silence_table::answered(pair);
     } else {
         match no_answer(rc == ERRNO_TIMEDOUT, waited.0, DEFAULT_MS, waited.1) {
-            NoAnswer::Late => {
-                LATE.late(&endpoint.name, waited.1, dropped());
-                silence_table::report(&STARVED, pair, &endpoint.name, waited.1);
-            }
+            // A late call alone says nothing: a poll may miss. Only a pair
+            // silent the default's length is reported (silence.rs).
+            NoAnswer::Late => silence_table::report(&STARVED, pair, &endpoint.name, waited.1),
             NoAnswer::Starved => STARVED.starved(&endpoint.name, rc),
         }
     }

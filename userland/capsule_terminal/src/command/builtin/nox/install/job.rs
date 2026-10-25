@@ -38,11 +38,19 @@ pub struct InstallJob {
     load: Option<Follow>,
     start: i64,
     saw_output: bool,
+    asked_window: bool,
 }
 
 impl InstallJob {
     pub fn new(pid: u32) -> Self {
-        Self { pid, stem: Vec::new(), load: None, start: mk_time_millis(), saw_output: false }
+        Self {
+            pid,
+            stem: Vec::new(),
+            load: None,
+            start: mk_time_millis(),
+            saw_output: false,
+            asked_window: false,
+        }
     }
 
     /// A load the installer had not answered within the issue's wait.
@@ -53,6 +61,7 @@ impl InstallJob {
             load: Some(follow),
             start: mk_time_millis(),
             saw_output: false,
+            asked_window: false,
         }
     }
 }
