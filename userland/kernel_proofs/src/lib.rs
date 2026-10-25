@@ -56,6 +56,7 @@ mod proofs;
 pub use proofs::*;
 #[cfg(test)]
 mod registry_support;
+mod mmap_masked;
 pub mod spec;
 pub mod sys;
 pub mod syscall;
