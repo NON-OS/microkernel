@@ -19,6 +19,3 @@ pub use find::find_i2c_controller_devices;
 pub(super) use interrupt::parse_extended_interrupt;
 #[cfg(test)]
 pub(super) use memory32::parse_memory32_fixed;
-// And the Extended Interrupt decode, for a GPIO controller's shared line.
-#[cfg(test)]
-pub(super) use interrupt::parse_extended_interrupt;
