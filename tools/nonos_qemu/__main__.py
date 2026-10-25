@@ -44,7 +44,7 @@ import subprocess
 import sys
 import time
 
-from . import disk, iommu, lanes, machine, siblings, tpm
+from . import disk, extra, iommu, lanes, machine, siblings, tpm
 
 TARGET = "target/qemu"
 
@@ -164,7 +164,7 @@ def main():
            *machine.disks(boot, target if (a.install_target or a.installed) else None, a.installed, a.usb),
            *machine.devices(a.net, sock, os.path.join(TARGET, "qmp.sock"), lane.swaps), *capture, *lane.args,
            *(machine.usb_stick(stick) if a.usb else []),
-           *serial, *machine.display(a.headless), "-no-reboot"]
+           *serial, *machine.display(a.headless), "-no-reboot", *extra.words()]
     print(" ".join(cmd := iommu.apply(siblings.apply(cmd, lane.swaps), lane.swaps.get("iommu"))), flush=True)
     proc = None
     try:

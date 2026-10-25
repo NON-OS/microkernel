@@ -34,6 +34,7 @@ override, and the seal refuses to seal it for release.
 """
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
@@ -144,6 +145,21 @@ def keys(host_tools):
     commit()
 
 
+def selftest_panic():
+    """The selftest image's capsule_linux is built with selftest-panic, so its
+    boot shows the Terminal's answer to a panic inside a box. Only here, in
+    the copy's capsules.json, for this profile: the next build of any other
+    profile copies the checkout's file back, and scripts/check_selftest_panic.py
+    fails any committed build that names the feature."""
+    path = TREE / "tools/nix/capsules.json"
+    entries = json.loads(path.read_text())
+    for e in entries:
+        if e["slug"] == "linux":
+            e["cargo_features"] = "selftest-panic"
+    path.write_text(json.dumps(entries, indent=1) + "\n")
+    commit()
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     ap.add_argument("--profile", default="qemu", help="the profile whose development twin to build")
@@ -158,6 +174,8 @@ def main():
     commit()
     host_tools = sh("nix", "build", ".#host-tools", "--no-link", "--print-out-paths", capture=True)
     keys(host_tools)
+    if a.profile == "selftest":
+        selftest_panic()
     if a.keys_only:
         print(f"nonos-dev-image: {TREE.relative_to(ROOT)} and its throwaway keys are ready")
         return
