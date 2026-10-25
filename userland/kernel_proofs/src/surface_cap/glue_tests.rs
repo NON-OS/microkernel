@@ -23,20 +23,26 @@ use super::cap::CEILING;
 
 const FRAMES: &str =
     include_str!("../../../../src/syscall/dispatch/router/surface_handlers/frames.rs");
+const STATE: &str = include_str!("../../../../src/kernel_core/init/framebuffer/state.rs");
 const REJECTED: &str = include_str!("../../../compositor/src/setup/rejected.rs");
 const BACKING: &str = include_str!("../../../compositor/src/setup/gop_backing.rs");
 
 #[test]
 fn the_cap_comes_from_the_validated_framebuffer() {
-    assert!(FRAMES.contains("framebuffer_state().and_then(|f| f.frame_len())"));
+    // Through the framebuffer module's geometry accessor, never its state: the
+    // console gate pins who reads that (console_gate::glue_writers_tests).
+    assert!(FRAMES.contains("let fb = boot_frame_len().map(|n| n as u64);"));
+    assert!(!FRAMES.contains("framebuffer_state"), "the register path reads the console's state");
+    let accessor = STATE.find("pub(crate) fn boot_frame_len() -> Option<usize> {").expect("no accessor");
+    assert!(STATE[accessor..].starts_with("pub(crate) fn boot_frame_len() -> Option<usize> {\n    framebuffer_state().and_then(|f| f.frame_len())"));
     assert!(FRAMES.contains("desc.byte_len > surface_cap(fb)"));
     assert!(!FRAMES.contains("MAX_SURFACE_BYTES"), "a fixed cap left beside the rule");
 }
 
 #[test]
 fn the_whole_range_is_validated_in_slices_before_any_translation() {
-    let end = FRAMES.find("if desc.base_va.checked_add(desc.byte_len).is_none() {").expect("end unchecked");
-    let slice = FRAMES.find("for (start, len) in slices(desc.base_va, desc.byte_len, SLICE) {").expect("no slices");
+    let end = FRAMES.find("if base.checked_add(desc.byte_len).is_none() {").expect("end unchecked");
+    let slice = FRAMES.find("for (start, len) in slices(base, desc.byte_len, SLICE) {").expect("no slices");
     let walk = FRAMES.find("translate_address(va)").expect("no translation");
     assert!(end < slice && slice < walk, "{end} {slice} {walk}");
     assert!(FRAMES.find("desc.byte_len == 0 ||").expect("an empty surface admitted") < end);
