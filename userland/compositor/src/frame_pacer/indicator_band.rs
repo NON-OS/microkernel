@@ -21,11 +21,15 @@
 //! one, a screenshot just taken a blue one; off is a dim mark, so the band
 //! is always there to look at. The fourth is white while the trusted band
 //! is held: a prompt or the lock with it is the system's, and one without
-//! it, drawn by a window to look the same, is not.
+//! it, drawn by a window to look the same, is not. Under the marks, the
+//! band's bottom two rows are red while device DMA is not confined by
+//! hardware (no IOMMU), for the whole boot.
 
 use crate::state::damage::Rect;
 use crate::state::indicator::{Indicators, KIND_CAMERA, KIND_MICROPHONE};
 use crate::sw_blitter::{fill_rect, Surface};
+
+use super::band_meet::meet;
 
 pub const BAND_W: u32 = 84;
 pub const BAND_H: u32 = 16;
@@ -36,6 +40,8 @@ pub const MICROPHONE_ON: u32 = 0xFFFF_9F1A;
 pub const MARK_OFF: u32 = 0xFF3A_3A3A;
 pub const SCREEN_ON: u32 = 0xFF3D_8BFF;
 pub const TRUSTED_ON: u32 = 0xFFF2_F2F2;
+pub const DMA_UNCONFINED: u32 = 0xFFFF_3B3B;
+const UNDERLINE: u32 = 2;
 
 /// The band on a canvas `w` x `h`.
 pub fn band(w: u32, h: u32) -> Rect {
@@ -44,12 +50,14 @@ pub fn band(w: u32, h: u32) -> Rect {
 }
 
 /// Draw the part of the band inside `clip` onto `dst`.
-pub fn draw(dst: Surface, clip: Rect, ind: &Indicators, captured: bool, trusted: bool) {
+pub fn draw(dst: Surface, clip: Rect, ind: &Indicators, captured: bool, trusted: bool, dma: bool) {
     let b = band(dst.width, dst.height);
     let cam = Rect { x: b.x + 7, y: 3, width: MARK, height: MARK };
     let mic = Rect { x: b.x + 27, y: 3, width: MARK, height: MARK };
     let scr = Rect { x: b.x + 47, y: 3, width: MARK, height: MARK };
     let held = Rect { x: b.x + 67, y: 3, width: MARK, height: MARK };
+    let rows = UNDERLINE.min(b.height);
+    let under = Rect { x: b.x, y: b.height - rows, width: b.width, height: rows };
     let color = |kind, on| if ind.shown(kind) { on } else { MARK_OFF };
     let parts = [
         (b, BAND_ARGB),
@@ -57,17 +65,11 @@ pub fn draw(dst: Surface, clip: Rect, ind: &Indicators, captured: bool, trusted:
         (mic, color(KIND_MICROPHONE, MICROPHONE_ON)),
         (scr, if captured { SCREEN_ON } else { MARK_OFF }),
         (held, if trusted { TRUSTED_ON } else { MARK_OFF }),
+        (under, if dma { DMA_UNCONFINED } else { BAND_ARGB }),
     ];
     for (r, argb) in parts {
         if let Some(r) = meet(r, clip) {
             fill_rect(dst, r, argb);
         }
     }
-}
-
-fn meet(a: Rect, b: Rect) -> Option<Rect> {
-    let (x0, y0) = (a.x.max(b.x), a.y.max(b.y));
-    let x1 = (a.x + a.width).min(b.x.saturating_add(b.width));
-    let y1 = (a.y + a.height).min(b.y.saturating_add(b.height));
-    (x0 < x1 && y0 < y1).then(|| Rect { x: x0, y: y0, width: x1 - x0, height: y1 - y0 })
 }
