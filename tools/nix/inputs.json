@@ -584,6 +584,22 @@
   "md": [],
   "signed": []
  },
+ "userland/agentproof_proofs": {
+  "exclude": [
+   "userland/agentproof_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "userland/agentproof_policy",
+   "userland/agentproof_proofs",
+   "userland/capsule_linux/policies.txt",
+   "userland/capsule_linux/src/linux/boxed",
+   "userland/capsule_linux/src/linux/install/chat_pick.rs",
+   "userland/nonos_linux_policy"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/ahci_link_proofs": {
   "exclude": [],
   "include": [
