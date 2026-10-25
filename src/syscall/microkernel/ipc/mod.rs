@@ -15,13 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod call;
+mod enqueued_at;
 mod inbox_name;
 mod lookup;
 mod payload_in;
-mod thread_group;
 mod pending_reply;
 mod recv;
-mod enqueued_at;
+mod thread_group;
 pub(crate) use enqueued_at::enqueued_uptime;
 mod recv_from;
 mod recv_from_deliver;
@@ -38,17 +38,16 @@ mod reply_dest_facts;
 mod reply_inbox;
 mod send;
 mod send_address;
+mod send_caps;
 mod send_redirect;
 mod send_reply;
 mod send_reply_inbox;
-mod send_caps;
 mod send_to_pid;
 mod sender_pid;
 mod wait_rule;
 
 pub use call::sys_ipc_call;
 pub use lookup::sys_service_lookup;
-pub use thread_group::sys_thread_group;
 pub(crate) use pending_reply::clear_pid as release_pending_replies_for_pid;
 pub(crate) use pending_reply::forget_dead as forget_dead_server;
 pub use recv::sys_ipc_recv;
@@ -57,3 +56,4 @@ pub use register::sys_service_register;
 pub use reply::sys_ipc_reply;
 pub use send::sys_ipc_send;
 pub use send_to_pid::sys_ipc_send_to_pid;
+pub use thread_group::sys_thread_group;
