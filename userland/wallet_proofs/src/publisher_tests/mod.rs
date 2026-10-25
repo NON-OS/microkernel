@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod attest;
+mod attest_confirm;
+mod attest_guard;
 mod binding;
 mod broadcast;
 mod fixture;

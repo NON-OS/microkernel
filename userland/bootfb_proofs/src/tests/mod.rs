@@ -17,6 +17,7 @@
 mod bring_up_tests;
 mod fb_tests;
 mod fdt_tests;
+mod heap_tests;
 mod loss_ask;
 mod loss_play;
 mod loss_tests;

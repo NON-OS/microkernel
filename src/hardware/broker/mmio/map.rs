@@ -18,21 +18,21 @@
 //! and its epoch, the BAR (map_resolve.rs); the pages the request touches,
 //! kept off every MSI-X table and PBA (window.rs) and off RAM, the kernel
 //! image and the IOMMUs' registers (forbidden.rs); a user VA in the MMIO
-//! region, mapped user, read+write, uncached, NX; then the grant's record,
+//! region, mapped user, read+write, NX, uncached or, asked and allowed,
+//! write-combined (cache.rs); then the grant's record,
 //! while the claim still holds (map_record.rs). A rejection maps nothing. `user_va` is the VA of the first byte asked for
 //! (a 2 KiB ABAR at ...800 gets a VA ending 0x800), `length` the bytes usable.
 
-use super::map_shared::{note_shared_page, window_error};
+use super::cache::{self, Cache};
+use super::map_shared::{cache_error, note_shared_page, window_error};
 use super::types::{MmioMapError, MmioMapRequest, MmioMapResult};
 use super::window::{self, PAGE_SIZE};
 use super::{forbidden_ranges, msix_exclusion};
 use crate::hardware::broker::grant::{self, USER_MMIO_BASE, USER_MMIO_END};
 use crate::memory::addr::PhysAddr;
 
-const FLAGS_KNOWN: u32 = 0;
-
 pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, MmioMapError> {
-    if req.flags & !FLAGS_KNOWN != 0 {
+    if !cache::known(req.flags) {
         return Err(MmioMapError::UnsupportedFlags);
     }
     if req.length == 0 {
@@ -43,6 +43,10 @@ pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, Mm
     let w = window::window(bar.base, bar.size, req.offset, req.length, &protected)
         .map_err(window_error)?;
     forbidden_ranges::admit(w.page_start, w.page_bytes)?;
+    let wc_ready = crate::arch::write_combining::write_combining_ready();
+    let bar_held = (bar.base, bar.size, bar.flags);
+    let cache = cache::cache_for(req.flags, bar_held, (w.page_start, w.page_bytes), wc_ready)
+        .map_err(cache_error)?;
     note_shared_page(&device, &w);
     let pages = w.page_bytes / PAGE_SIZE;
     let user_va = grant::reserve_user_va(pid, pages).ok_or(MmioMapError::NoVaSpace)?;
@@ -52,7 +56,8 @@ pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, Mm
         return Err(MmioMapError::NoVaSpace);
     }
     let phys = PhysAddr::new(w.page_start);
-    if crate::memory::paging::map_user_mmio(user_va, phys, bytes as usize).is_err() {
+    let wc = cache == Cache::WriteCombined;
+    if crate::memory::paging::map_user_mmio(user_va, phys, bytes as usize, wc).is_err() {
         let _ = crate::memory::paging::unmap_user_mmio(user_va, bytes as usize);
         grant::release_user_va(pid, va, bytes);
         return Err(MmioMapError::MapFailed);
