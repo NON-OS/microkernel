@@ -54,6 +54,7 @@ pub fn answer(receipt: &[u8], trust: &str) -> Answer {
         out.push("mode     LEARN, not enforced: this run was held to no policy of yours".into());
     }
     out.push(format!("sealed   by {} as family {:016x}", hex(&v.supervisor), v.seal_no));
+    out.extend(crate::cli_ran::lines(&v.ran));
     out.push("counts   not carried in v0".into());
     Answer { code: 0, out, err: vec![] }
 }
