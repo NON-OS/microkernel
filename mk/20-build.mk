@@ -523,6 +523,7 @@ include userland/capsule_snake/Capsule.mk
 include userland/capsule_wallet_nonos/Capsule.mk
 include userland/capsule_shield/Capsule.mk
 include userland/capsule_shield_vectors/Capsule.mk
+include userland/capsule_attack/Capsule.mk
 include userland/capsule_terminal/Capsule.mk
 include userland/capsule_file_manager/Capsule.mk
 include userland/capsule_text_editor/Capsule.mk

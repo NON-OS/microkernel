@@ -4,10 +4,10 @@
 use nonos_wifi_core::netif::{serve, wire, MAX_RESPONSE};
 use nonos_wifi_core::rsn::JoinPolicy;
 
+use super::drive::{netif, run_join, status};
 use crate::gen3::join::link::Port;
 use crate::gen3::tx_cmd::{IWL_TX_FLAGS_CMD_RATE, IWL_TX_FLAGS_ENCRYPT_DIS};
 use crate::join_rig::*;
-use super::drive::{netif, run_join, status};
 
 #[test]
 fn data_crosses_both_ways_through_the_link_protocol() {
@@ -34,7 +34,11 @@ fn data_crosses_both_ways_through_the_link_protocol() {
             assert_eq!(status(&out), 0);
             let last = r.sent().last().unwrap().clone();
             assert!(decrypts(&last.frame, &tk), "protected by the station");
-            assert_eq!(last.flags, IWL_TX_FLAGS_CMD_RATE | IWL_TX_FLAGS_ENCRYPT_DIS, "no second encryption");
+            assert_eq!(
+                last.flags,
+                IWL_TX_FLAGS_CMD_RATE | IWL_TX_FLAGS_ENCRYPT_DIS,
+                "no second encryption"
+            );
             assert_eq!(last.rate, 0x4003, "data at 11 Mb/s, the highest basic rate");
             let got = r.ap.borrow().got.last().unwrap().clone();
             assert_eq!(&got[6..], &[&[0x08, 0x00][..], b"dhcp discover"].concat()[..]);
