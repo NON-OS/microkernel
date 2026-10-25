@@ -43,7 +43,8 @@ fn no_name_is_exempt() {
 
 #[test]
 fn every_tool_name_is_bounded() {
-    let mut names = vec!["tool.linux", "tool.qwen", "tool.install", "tool.model-fetch"];
+    let mut names =
+        vec!["tool.linux", "tool.linux.net", "tool.qwen", "tool.install", "tool.model-fetch"];
     for chunk in REGISTRY.split("tool_capsule!(").skip(1) {
         names.push(chunk.split('"').nth(1).expect("a tool's name"));
     }
