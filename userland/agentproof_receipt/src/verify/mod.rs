@@ -17,12 +17,15 @@
 //! signed for this receipt's bytes, then the run's half those bytes carry.
 
 mod doc;
+mod ran;
 mod refusal;
 mod run;
 
+pub use ran::Ran;
 pub use refusal::Refusal;
 
 use alloc::string::String;
+use alloc::vec::Vec;
 
 use agentproof_policy::boxed::preset::Preset;
 
@@ -44,6 +47,8 @@ pub struct Verdict {
     pub built_in: bool,
     pub supervisor: [u8; 32],
     pub seal_no: u64,
+    /// Every capsule the machine ran when the doc was made.
+    pub ran: Vec<Ran>,
 }
 
 pub fn verify(bytes: &[u8], trust: &Trust) -> Result<Verdict, Refusal> {
@@ -61,5 +66,6 @@ pub fn verify(bytes: &[u8], trust: &Trust) -> Result<Verdict, Refusal> {
         built_in: run.built_in,
         supervisor: run.record.sup_meas,
         seal_no: run.record.seal_no,
+        ran: ran::ran(r.entries),
     })
 }

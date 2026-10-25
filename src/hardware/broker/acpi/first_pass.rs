@@ -31,7 +31,6 @@ pub fn mark() -> bool {
 }
 
 /// Whether the first pass is done.
-#[allow(dead_code)] // the spawn plan's wait (the maintainers' half) reads it
 pub fn done() -> bool {
     DONE.load(Ordering::Acquire)
 }
