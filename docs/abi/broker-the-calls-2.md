@@ -63,8 +63,8 @@ Part of [Broker](broker.md).
 - The PCI calls check a live claim and an allowlist of registers in the broker,
   and both `sys_pci_config_read` and `sys_pci_config_write` ask for `Driver`
   themselves, so `Admin` alone is refused
-  (`src/syscall/microkernel/pci.rs:28-35`,
-  `src/syscall/microkernel/pci.rs:43-50`). A write is one 16-bit register, and
+  (`src/syscall/microkernel/pci/config.rs:27-34`,
+  `src/syscall/microkernel/pci/config.rs:42-49`). A write is one 16-bit register, and
   `u16_arg` refuses a wider value with `EINVAL`
   (`src/syscall/microkernel/dispatch/debug.rs:31-36`).
 - Port I/O exists on x86_64 only. On aarch64 and riscv64 every port call returns

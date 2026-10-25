@@ -20,6 +20,7 @@ mod held;
 mod leaving;
 mod lookup;
 mod no_snoop;
+mod port_only;
 pub(super) mod quiesce;
 mod refusal;
 mod release;
