@@ -32,7 +32,7 @@ use nonos_linux_policy::dests::Target;
 use nonos_linux_policy::mask::NET_ANON;
 
 use crate::linux::abi::errno;
-use crate::linux::app::{granted, may_dial};
+use crate::linux::app::granted;
 use crate::linux::guest::Guest;
 
 use super::super::guest_route::{path, Path};
@@ -47,7 +47,7 @@ pub fn connect(guest: &Guest, id: u32, to: Addr) -> u64 {
         Some(name) => alloc::format!("{}:{port}", String::from_utf8_lossy(name)),
         None => alloc::format!("{a}.{b}.{c}.{d}:{port}"),
     };
-    if !may_dial(guest, target, to.port) {
+    if !crate::linux::app::may_dial(guest, target, to.port) {
         let needs = if granted(guest, NET_ANON) { "this destination" } else { "NET_ANON" };
         crate::linux::boxed::tried(dest.as_bytes());
         let what = alloc::format!("a stream to {dest}");
