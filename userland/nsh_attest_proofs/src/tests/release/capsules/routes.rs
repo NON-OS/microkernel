@@ -43,8 +43,12 @@ fn a_capsule_not_proved_under_the_vendor_s_root_is_refused_by_name() {
 }
 
 #[test]
-fn the_first_capsule_not_the_vendor_s_is_the_one_named() {
-    let caps = [(1, PROOF_VERIFIED), (2, LOCAL_BUILD), (3, PATH_ONLY)];
+fn every_capsule_not_the_vendor_s_is_listed_and_the_first_named() {
+    let caps = [(1, PROOF_VERIFIED), (2, LOCAL_BUILD), (3, PATH_ONLY), (4, DEVELOPER)];
+    let replayed = nsh_attest::log::replay(&log_of(&caps).bytes).expect("replays");
+    let listed = nsh_attest::steps::not_vendor(&replayed);
+    use nsh_attest::log::Admitted::{Developer, LocalBuild, PathOnly};
+    assert_eq!(listed, [(1, LocalBuild), (2, PathOnly), (3, Developer)]);
     let s = Spec { log: log_of(&caps), ..Spec::default() };
     assert_eq!(refused(s), Refusal::Pcr14(CapsuleFault::LocalBuild));
 }

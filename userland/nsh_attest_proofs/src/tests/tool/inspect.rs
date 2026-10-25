@@ -23,7 +23,10 @@ use crate::build::Spec;
 fn lines(s: Spec) -> Vec<String> {
     let b = s.build();
     let out = nsh_enrol::inspect(&b.doc, None).expect("inspected");
-    out.lines().filter(|l| l.starts_with("capsule")).map(Into::into).collect()
+    out.lines()
+        .filter(|l| l.starts_with("capsule") || l.starts_with("refused"))
+        .map(Into::into)
+        .collect()
 }
 
 #[test]
@@ -32,7 +35,7 @@ fn each_capsule_is_shown_with_how_it_was_admitted() {
     assert_eq!(got.len(), 4, "{got:?}");
     let first = format!("capsule    vendor cert {} verifier {}", "01".repeat(32), "c1".repeat(32));
     assert_eq!(got[0], first);
-    assert_eq!(got[3], "capsules   3, release ok true");
+    assert_eq!(got[3], "capsules   3, pcr 14 ok true");
 }
 
 #[test]
@@ -41,5 +44,6 @@ fn a_path_only_capsule_is_shown_and_no_release_takes_it() {
     s.log.capsule([4; 32], path_only_tag(), PATH_ONLY);
     let got = lines(s);
     assert!(got[3].starts_with("capsule    path-only cert 0404"), "{got:?}");
-    assert_eq!(got[4], "capsules   4, release ok false");
+    assert_eq!(got[4], "capsules   4, pcr 14 ok false");
+    assert_eq!(got[5], "refused    capsule 3, path-only");
 }

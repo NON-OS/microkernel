@@ -1,0 +1,98 @@
+[
+ {
+  "name": "mapped-before-zeroed",
+  "file": "src/syscall/microkernel/memory/va/map_loop.rs",
+  "old": "        ops.zero(frame);\n        if !ops.map(i, frame) {",
+  "new": "        let mapped = ops.map(i, frame);\n        ops.zero(frame);\n        if !mapped {",
+  "crate": "userland/kernel_proofs",
+  "test": "mmap_masked"
+ },
+ {
+  "name": "never-zeroed",
+  "file": "src/syscall/microkernel/memory/va/map_loop.rs",
+  "old": "        ops.zero(frame);\n",
+  "new": "",
+  "crate": "userland/kernel_proofs",
+  "test": "mmap_masked"
+ },
+ {
+  "name": "no-window",
+  "file": "src/syscall/microkernel/memory/va/map_loop.rs",
+  "old": "            ops.window();\n",
+  "new": "",
+  "crate": "userland/kernel_proofs",
+  "test": "mmap_masked"
+ },
+ {
+  "name": "windows-further-apart",
+  "file": "src/syscall/microkernel/memory/va/map_loop.rs",
+  "old": "pub(crate) const WINDOW_PAGES: usize = 16;",
+  "new": "pub(crate) const WINDOW_PAGES: usize = 64;",
+  "crate": "userland/kernel_proofs",
+  "test": "mmap_masked"
+ },
+ {
+  "name": "window-at-start",
+  "file": "src/syscall/microkernel/memory/va/map_loop.rs",
+  "old": "        if i % WINDOW_PAGES == 0 && i > 0 {",
+  "new": "        if i % WINDOW_PAGES == 0 {",
+  "crate": "userland/kernel_proofs",
+  "test": "mmap_masked"
+ },
+ {
+  "name": "no-shootdown-service",
+  "file": "src/syscall/microkernel/memory/va/map_loop.rs",
+  "old": "        ops.serve_shootdowns();\n",
+  "new": "",
+  "crate": "userland/kernel_proofs",
+  "test": "mmap_masked"
+ },
+ {
+  "name": "map-failure-leaks-its-frame",
+  "file": "src/syscall/microkernel/memory/va/map_loop.rs",
+  "old": "            ops.free(frame);\n",
+  "new": "",
+  "crate": "userland/kernel_proofs",
+  "test": "mmap_masked"
+ },
+ {
+  "name": "rollback-one-short",
+  "file": "src/syscall/microkernel/memory/va/map_loop.rs",
+  "old": "            ops.rollback(i);\n            return false;\n        };",
+  "new": "            ops.rollback(i.saturating_sub(1));\n            return false;\n        };",
+  "crate": "userland/kernel_proofs",
+  "test": "mmap_masked"
+ },
+ {
+  "name": "map-failure-not-undone",
+  "file": "src/syscall/microkernel/memory/va/map_loop.rs",
+  "old": "            ops.free(frame);\n            ops.rollback(i);",
+  "new": "            ops.free(frame);",
+  "crate": "userland/kernel_proofs",
+  "test": "mmap_masked"
+ },
+ {
+  "name": "kernel-window-leaves-unmasked",
+  "file": "src/syscall/microkernel/memory/va/map_kernel.rs",
+  "old": "        core::hint::spin_loop();\n        crate::arch::disable_interrupts();",
+  "new": "        core::hint::spin_loop();",
+  "crate": "userland/kernel_proofs",
+  "test": "mmap_masked"
+ },
+ {
+  "name": "kernel-loop-not-used",
+  "file": "src/syscall/microkernel/memory/va/map_fresh.rs",
+  "old": "    map_loop(&mut Kernel { base, perms }, pages as usize)",
+  "new": "    let _ = map_loop::<Kernel>;\n    true",
+  "crate": "userland/kernel_proofs",
+  "test": "mmap_masked"
+ },
+ {
+  "name": "kernel-window-masks-an-open-cpu",
+  "file": "src/syscall/microkernel/memory/va/map_kernel.rs",
+  "old": "        if crate::arch::cpu::interrupts_enabled() {\n            return;\n        }\n",
+  "new": "",
+  "crate": "userland/kernel_proofs",
+  "test": "mmap_masked"
+ }
+]

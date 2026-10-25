@@ -19,21 +19,28 @@
 //! batteries, lids and power find them already up. The power service is
 //! the one owner of `power.off`, the shell's wiped power-off; the ACPI
 //! capsule claims no such name and serves the button alone
-//! (docs/build/feature-inventory.md).
+//! (docs/build/feature-inventory.md). Then, L55, the drivers wait for the
+//! capsule's first publish pass, so a host only ACPI names (an SD or eMMC
+//! host, a GPIO or I2C controller, a function it powers) is in the table
+//! before its driver asks: only on an ACPI boot whose capsule was spawned,
+//! and never past FIRST_PASS_WAIT_MS (arch/x86_64/acpi/first_pass_wait.rs).
 
 pub(super) fn spawn() {
     spawn_power();
-    spawn_acpi();
+    crate::arch::acpi_first_pass_wait(spawn_acpi());
 }
 
 #[cfg(feature = "nonos-capsule-acpi")]
-fn spawn_acpi() {
+fn spawn_acpi() -> bool {
     use crate::userspace::capsule_acpi as c;
     super::boot::capsule("ACPI", "acpi", c::spawn_acpi_capsule, c::shared_state);
+    c::shared_state().is_alive()
 }
 
 #[cfg(not(feature = "nonos-capsule-acpi"))]
-fn spawn_acpi() {}
+fn spawn_acpi() -> bool {
+    false
+}
 
 #[cfg(feature = "nonos-capsule-power")]
 fn spawn_power() {

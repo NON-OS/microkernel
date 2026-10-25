@@ -22,13 +22,14 @@ use nonos_app_skeleton::PaintBuffer;
 use crate::settings::state::State;
 
 use super::walk::Item;
-use super::{bt_rows, net_rows, row, saved_rows};
+use super::{bt_rows, net_rows, row, saved_rows, station_row};
 
 pub fn paint(fb: &mut PaintBuffer, state: &State, item: Item, x: u32, w: u32, y: i32, h: u32) {
     match item {
         Item::Network(i) => net_rows::paint(fb, state, i, x, w, y, h),
         Item::Saved(i) => saved_rows::paint(fb, state, i, x, w, y, h),
         Item::BtDevice(i) => bt_rows::paint(fb, state, i, x, w, y, h),
+        Item::Station => station_row::paint(fb, state, x, w, y, h),
         _ => return,
     }
     row::hairline(fb, x, w, y, h);

@@ -35,6 +35,8 @@ pub struct WifiDiag {
     /// When `net` was last asked of the DHCP client, on the uptime clock
     /// (wifi/net_poll.rs).
     pub net_polled_ms: Option<i64>,
+    /// The wired card's station source (wifi/station.rs), once answered.
+    pub station: Option<u32>,
 }
 
 impl WifiDiag {
@@ -45,6 +47,7 @@ impl WifiDiag {
             datapath: None,
             net: NetStatus::NoService,
             net_polled_ms: None,
+            station: None,
         }
     }
 }

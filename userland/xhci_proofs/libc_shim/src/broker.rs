@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The device broker, for one device per test thread: a claim, and a PCI
-//! Command register written as a plain store. Every call that gives
-//! something back is recorded in order (`log`).
+//! The device broker, for one device per test thread: a claim, a PCI
+//! Command register written as a plain store, and the rest of config space
+//! as the test offers it (`pci_config`). Every call that gives something
+//! back or changes the device is recorded in order (`log`).
 
 use crate::log::{record, Call};
 use crate::pci_command::write;
+use crate::{pci_config, pci_config_write};
 
-/// Offset of the PCI Command register, the one offset the kernel accepts.
+/// Offset of the PCI Command register, written as a plain store.
 pub const MK_PCI_CFG_COMMAND: u32 = 0x04;
 pub const MK_PCI_CMD_MEMORY_SPACE: u16 = 1 << 1;
 pub const MK_PCI_CMD_BUS_MASTER: u16 = 1 << 2;
@@ -38,13 +40,13 @@ pub fn mk_device_release(device_id: u64) -> i64 {
 
 pub fn mk_pci_config_write(_device_id: u64, _epoch: u64, offset: u32, value: u16) -> i64 {
     if offset != MK_PCI_CFG_COMMAND {
-        return -22;
+        return pci_config_write::write(offset, value);
     }
     write(value);
     record(Call::PciCommand(value));
     0
 }
 
-pub fn mk_debug(_buf: *const u8, _len: usize) -> i64 {
-    0
+pub fn mk_pci_config_read(_device_id: u64, _epoch: u64, offset: u32, width: u32) -> i64 {
+    pci_config::read(offset, width)
 }

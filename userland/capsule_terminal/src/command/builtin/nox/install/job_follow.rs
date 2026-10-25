@@ -21,10 +21,9 @@ use alloc::vec::Vec;
 use nonos_libc::mk_time_millis;
 
 use super::super::children::new_child;
-use super::super::emit::emit_ok;
-use super::super::follow::Step;
-use super::super::probe::probe;
+use super::super::emit::{emit_err, emit_ok};
 use super::super::run::debug_marker;
+use super::super::{follow::Step, probe::probe};
 use super::InstallJob;
 use crate::command::output::Output;
 use crate::jobs::JobProgress;
@@ -40,7 +39,7 @@ impl InstallJob {
         }
         let mut step = follow.step(now, new_child(&follow.before, follow.elapsed_ms(now)));
         if step == Step::Probe {
-            follow.probed(now, probe());
+            follow.probed(now, probe(&self.stem));
             step = follow.step(now, new_child(&follow.before, follow.elapsed_ms(now)));
         }
         match step {
@@ -52,6 +51,12 @@ impl InstallJob {
                 emit_ok(out, &self.stem, pid);
                 debug_marker(b"[TERMINAL-INSTALL] load ok\n");
                 JobProgress::Running
+            }
+            Step::Refused(status) => {
+                self.load = None;
+                emit_err(out, status);
+                debug_marker(b"[TERMINAL-INSTALL] load failed\n");
+                JobProgress::Done(1)
             }
             Step::Failed => self.give_up(out, b" did not load: the installer finished without it"),
             Step::TimedOut => self.give_up(out, b" did not load within 30 seconds"),
