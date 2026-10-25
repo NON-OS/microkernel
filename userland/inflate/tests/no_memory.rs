@@ -48,18 +48,23 @@ const BIG: &[u8] = include_bytes!("vectors/big.gz");
 const APK: &[u8] = include_bytes!("vectors/apk_shape.gz");
 const MIB: usize = 1 << 20;
 
-/* One test: LIMIT is the whole binary's, and tests run on threads. */
+/* One test: LIMIT is the whole binary's, and tests run on threads. The
+results are taken under the limit and checked after it is lifted: a failed
+assert that panics with big blocks refused hangs the harness, not fails it. */
 #[test]
 fn a_refused_allocation_is_a_reason_not_an_abort() {
     assert_eq!(gunzip_partial(BIG, 4 * MIB).end, End::Complete, "the vector opens with room");
     LIMIT.store(256 << 10, Ordering::Relaxed);
     let r = gunzip_partial(BIG, 4 * MIB);
-    assert_eq!(r.end, End::NoMemory);
-    assert!(r.short.is_some_and(|n| n > 256 << 10), "it says how much it asked: {:?}", r.short);
-    match members_checked(APK, 4 * MIB) {
-        Err(Refused::NoMemory(n)) => assert!(n > 256 << 10, "asked {n}"),
-        other => panic!("not a NoMemory refusal: {:?}", other.map(|m| m.len())),
-    }
+    let (end, short) = (r.end, r.short);
+    drop(r);
+    let members = members_checked(APK, 4 * MIB).map(|m| m.len());
     LIMIT.store(usize::MAX, Ordering::Relaxed);
+    assert_eq!(end, End::NoMemory);
+    assert!(short.is_some_and(|n| n > 256 << 10), "it says how much it asked: {short:?}");
+    match members {
+        Err(Refused::NoMemory(n)) => assert!(n > 256 << 10, "asked {n}"),
+        other => panic!("not a NoMemory refusal: {other:?}"),
+    }
     assert_eq!(members_checked(APK, 4 * MIB).map(|m| m.len()), Ok(3), "and opens again with room");
 }
