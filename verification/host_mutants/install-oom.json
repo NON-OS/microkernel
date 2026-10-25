@@ -1,0 +1,8 @@
+[
+ {"name": "oom-reserve-infallible", "file": "userland/inflate/src/out_room.rs", "old": "if self.buf.try_reserve_exact(more).is_err() {", "new": "if false {", "crate": "userland/inflate", "test": "a"},
+ {"name": "oom-end-not-said", "file": "userland/inflate/src/inflate_raw.rs", "old": "        Err(_) if out.short.is_some() => End::NoMemory,\n", "new": "", "crate": "userland/inflate", "test": "a"},
+ {"name": "oom-members-say-bad", "file": "userland/inflate/src/members_checked.rs", "old": "End::NoMemory => return Err(Refused::NoMemory(m.short.unwrap_or(0))),", "new": "End::NoMemory => return Err(Refused::Bad),", "crate": "userland/inflate", "test": "a"},
+ {"name": "oom-small-member-keeps-room", "file": "userland/inflate/src/out_room.rs", "old": "            self.buf.shrink_to_fit();", "new": "", "crate": "userland/inflate", "test": "a"},
+ {"name": "oom-isize-unchecked", "file": "userland/inflate/src/gzip_member.rs", "old": "word(0) != crc32(&r.out) || word(4) != r.out.len() as u32", "new": "word(0) != crc32(&r.out)", "crate": "userland/inflate", "test": "a"},
+ {"name": "oom-join-infallible", "file": "userland/inflate/src/gzip.rs", "old": "} else if all.out.try_reserve_exact(m.out.len()).is_err() {", "new": "} else if false {", "crate": "userland/inflate", "test": "a"}
+]
