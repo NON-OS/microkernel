@@ -53,8 +53,9 @@ SECTORS = DISK_BYTES // 512
 # q35-smbus-novtd (no IOMMU, H-02b; smbus in an image, item 52), to see "port-only
 # with no remapping unit over it: Bus Master off, no DMA grant", "driver.smbus:
 # i801 0x8086:0x2930 up, spd answered", and "no remapping unit confines it".
-# igb's VFs make QEMU's DMAR name every endpoint, once past 16: none refused.
+# igb's VFs make QEMU's DMAR name every endpoint, past 16: held for its keys.
 UNCOVERED = "no remapping unit confines it"
+HELD_CELLS = [nic("igb", forbid=(UNCOVERED,))]
 
 DEVICE_CELLS = [
     Cell("q35-iommu-nvme", "up", "q35", 1, iommu="intel-iommu",
@@ -68,7 +69,6 @@ DEVICE_CELLS = [
          expect=("[HDA] ready: ", "[AUDIO] output driver.hda0")),
     nic("e1000"),
     nic("rtl8139"),
-    nic("igb", forbid=(UNCOVERED,)),
     Cell("q35-iommu-hda-beside-e1000", "eth", "q35", 1, iommu="intel-iommu",
          devices=(USER_NET, *SIBLINGS),
          expect=("[NET-CORE] bind: interface up on driver.e1000_0", "[NET-CORE] lease ", HDA_HELD)),
