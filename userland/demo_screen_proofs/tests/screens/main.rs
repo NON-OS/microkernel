@@ -22,6 +22,8 @@
 extern crate alloc;
 
 mod about_shots;
+mod app_census;
+mod app_windows;
 #[path = "../../../capsule_wm/src/server/handlers/window_open/cascade.rs"]
 mod cascade;
 mod compose;

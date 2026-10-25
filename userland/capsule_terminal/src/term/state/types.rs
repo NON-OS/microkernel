@@ -36,12 +36,10 @@ pub struct State {
     // Fallible commands set it on error; `&&` and `||` gate the next
     // statement on it.
     pub last_status: i32,
-    // Command aliases, defined with `alias NAME EXPANSION`. The first word
-    // of a line is replaced by its expansion before the line is run.
+    // Aliases from `alias NAME EXPANSION`: a line's first word is replaced.
     pub aliases: Vec<(Vec<u8>, Vec<u8>)>,
-    // The text typed when history navigation began. Up and Down recall only
-    // entries that start with it, and restore it when the search runs off
-    // the newest entry.
+    // The text typed when history navigation began: Up and Down recall only
+    // entries that start with it, and restore it past the newest.
     pub hist_prefix: Vec<u8>,
     /// An in-progress reverse search, or nothing when not searching.
     pub search: Option<crate::term::search::Search>,
@@ -72,4 +70,6 @@ pub struct State {
     pub splash_art: core::cell::RefCell<crate::paint::fetch::fetch_emblem::Art>,
     /// The theme picker, while `theme` with no name has it open.
     pub theme_pick: Option<crate::term::theme_pick::Pick>,
+    /// How long keys took to reach the screen, for `latency`.
+    pub key_lat: crate::term::latency::Latency,
 }

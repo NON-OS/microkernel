@@ -61,3 +61,8 @@ pub fn tried(dest: &[u8]) {
         a.learned.tried.note(dest);
     }
 }
+
+/// The armed box's policy hash, for the seal's note (seal_slot.rs).
+pub fn armed_hash() -> Option<[u8; 32]> {
+    BOX.0.borrow().as_ref().map(|a| a.hash)
+}

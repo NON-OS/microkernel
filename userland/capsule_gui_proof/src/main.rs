@@ -20,6 +20,7 @@
 extern crate alloc;
 
 mod app;
+mod manifest;
 
 use nonos_app_skeleton::run;
 
