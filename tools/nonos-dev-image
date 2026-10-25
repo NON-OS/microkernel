@@ -18,6 +18,7 @@
 """A development image to boot and test, in minutes, with no real key.
 
     tools/nonos-dev-image [--profile qemu]
+    tools/nonos-dev-image --keys-only        the copy and its keys, no image
 
 It builds the profile's development twin (<profile>-dev: the same kernel
 features, path-only attestation, the loader's development policy) and seals
@@ -146,6 +147,9 @@ def keys(host_tools):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     ap.add_argument("--profile", default="qemu", help="the profile whose development twin to build")
+    ap.add_argument("--keys-only", action="store_true",
+                    help="bring the copy and its throwaway keys up to date, and seal nothing: for a make "
+                         "lane run inside target/dev/tree, as tools/nonos-selftest does")
     a = ap.parse_args()
     attr = "dev" if a.profile == "dev" else f"{a.profile}-dev"
     TREE.mkdir(parents=True, exist_ok=True)
@@ -154,6 +158,9 @@ def main():
     commit()
     host_tools = sh("nix", "build", ".#host-tools", "--no-link", "--print-out-paths", capture=True)
     keys(host_tools)
+    if a.keys_only:
+        print(f"nonos-dev-image: {TREE.relative_to(ROOT)} and its throwaway keys are ready")
+        return
     sh("nix", "run", ".#seal", "--", "--profile", attr,
        env={"SIGNING_KEY": str(TREE / ".keys/signing_key_v1.bin")})
     img = TREE / "target/release" / attr / "nonos.img"
