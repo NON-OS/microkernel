@@ -107,6 +107,7 @@ Both build the `hardened` profile with the rest of `nonos.toml` unchanged (`ATTR
 | [sbom.md](sbom.md) | the CycloneDX bill of materials and the other supply chain records |
 | [ci.md](ci.md) | the GitHub workflows, what runs on a pull request, and the state of the checks at this commit |
 | [host-tools.md](host-tools.md) | every program under `tools/`: what it does, what runs it, and how to call it by hand |
+| [dev-mirror.md](dev-mirror.md) | the development mirror: how a development image installs Linux apps from this machine, and why no release image can |
 
 ## See also
 
