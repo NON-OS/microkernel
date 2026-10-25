@@ -182,7 +182,8 @@ class _Kernel:
 
     def __init__(self):
         self.bits = {"CoreExec": 1, "Network": 4, "IPC": 8, "Memory": 16, "Debug": 256,
-                     "Admin": 512, "DeviceEnum": 0x8000, "AttestRead": 0x80000000}
+                     "Admin": 512, "DeviceEnum": 0x8000, "Keyring": 0x10000000,
+                     "AttestRead": 0x80000000}
         self.syscalls = {
             "MMAP": kern.Gate("MkMmap", "all", {"Memory"}, kern.HARD, "t"),
             "MDLS": kern.Gate("MkDeviceList", "any", {"DeviceEnum", "Admin"}, kern.HARD, "t"),
@@ -192,6 +193,7 @@ class _Kernel:
         self.handlers = {"MADC": [kern.Gate("h", "all", {"Network"}, kern.HARD, "t",
                                             refuses=True)]}
         self.network, self.network_cite = ["net.tcp"], "t"
+        self.keyed, self.keyed_cite = ["keyring"], "t"
         self.owner_cite, self.acls, self.grant_cite = "t", [], "t"
 
 
@@ -210,6 +212,12 @@ def check_assess():
     # With DeviceEnum held, Admin is not what the enumeration is credited to.
     credit, _, _, _ = cap_audit.assess(_Capsule(8 | 512 | 0x8000), uses[1:2], k, own)
     assert "Admin" not in credit and "DeviceEnum" in credit
+    # A capsule that names the keyring owes Keyring; one that does not, doesn't.
+    keyring = [user.Use(own, "a:6", literal="keyring")]
+    credit, _, _, _ = cap_audit.assess(_Capsule(8 | 0x10000000), keyring, k, own)
+    assert "Keyring" in credit, credit
+    credit, _, _, _ = cap_audit.assess(_Capsule(8 | 0x10000000), uses[4:5], k, own)
+    assert "Keyring" not in credit, credit
 
 
 def check_vfs_reach(tmp):

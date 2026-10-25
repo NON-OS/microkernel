@@ -27,6 +27,7 @@
 mod calls;
 mod checks;
 mod clock;
+mod config;
 mod console;
 mod device;
 mod dma;
@@ -40,6 +41,7 @@ mod types;
 pub use calls::{Call, Engines, Seen};
 pub use checks::{bus_master_after_reset, first_bus_master, refused_without_bus_master};
 pub use clock::{mk_uptime_ms, uptime};
+pub use config::{config_reads, set_config};
 pub use console::{mk_debug, said};
 pub use device::{mk_device_claim, mk_device_release, mk_pci_config_read, mk_pci_config_write};
 pub use dma::mk_dma_map;
@@ -49,6 +51,11 @@ pub use log::{seen, watch};
 pub use refuse::{refuse, refuse_after};
 pub use released::{bus_master_off, bus_master_off_after_stop, released_last};
 pub use types::{Bar, DmaMapOut, IrqBindOut, MmioMapOut, BAR_KIND_MMIO, BAR_KIND_PIO};
+
+/// The bring-up exit codes and give-up decision: the real nonos_libc
+/// policy, at the path nonos_libc re-exports it under.
+#[path = "../../../libc/src/bringup/policy.rs"]
+pub mod bringup;
 
 /// The PCI Command bits and the DMA flag, as nonos_libc defines them.
 pub const MK_PCI_CFG_COMMAND: u32 = 0x04;

@@ -27,6 +27,7 @@ mod registers;
 mod ring;
 mod seen;
 mod serve;
+mod shutdown;
 mod stall;
 mod up;
 

@@ -14,29 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A name on a mixnet socket is refused; an address, and other sockets, go as before.
+//! A name on a mixnet socket is refused, and net.dns never asked; an address
+//! goes as it was given.
 
-use crate::host_body::host_body;
+use super::helpers::connect_by_host;
 use crate::protocol::{E_BAD_ADDR, E_NAME_REFUSED};
-use crate::server::handlers::host_target::host_target;
-use crate::server::handlers::parse_host::parse;
-
-/// Run a connect by host the way a guest's goes, counting what net.dns is
-/// asked.
-pub(super) fn connect_by_host(
-    mixnet: bool,
-    host: &[u8],
-    answer: Result<[u8; 4], u16>,
-) -> (Result<[u8; 4], u16>, usize) {
-    let body = host_body(9, 443, host).unwrap_or_default();
-    let Some((_, _, name)) = parse(&body) else { panic!("the server reads what the capsule sent") };
-    let mut asked = 0usize;
-    let got = host_target(mixnet, name, |_| {
-        asked += 1;
-        answer
-    });
-    (got, asked)
-}
 
 #[test]
 fn a_name_on_a_mixnet_socket_is_refused_and_net_dns_is_never_asked() {

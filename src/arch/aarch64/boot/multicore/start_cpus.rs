@@ -61,9 +61,15 @@ fn wait_for_checkin(expected: u32) {
     while CPUS_ONLINE.load(Ordering::Acquire) < expected {
         if spins >= CHECKIN_SPINS {
             serial::println(b"[SMP] timed out waiting for a secondary to check in");
-            return;
+            break;
         }
         spins += 1;
         core::hint::spin_loop();
     }
+    // Said either way, so a boot where every core came up says so rather than
+    // saying nothing, and a boot check can read the count.
+    let mut l = serial::Line::new();
+    l.str(b"[SMP] online=").dec(u64::from(CPUS_ONLINE.load(Ordering::Acquire)));
+    l.str(b" of ").dec(u64::from(expected));
+    l.end();
 }

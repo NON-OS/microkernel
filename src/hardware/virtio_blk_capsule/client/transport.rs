@@ -28,9 +28,9 @@ use crate::services::lifecycle::transport;
 // mirror at userland/capsule_driver_virtio_blk/src/protocol/
 // endpoint.rs.
 pub(crate) const REPLY_INBOX: &str = "endpoint.4294967304";
-const SENDER_NAME: &str = "kernel.driver_virtio_blk";
+pub(super) const SENDER_NAME: &str = "kernel.driver_virtio_blk";
 
-static TRANSPORT_LOCK: Mutex<()> = Mutex::new(());
+pub(super) static TRANSPORT_LOCK: Mutex<()> = Mutex::new(());
 
 pub(super) struct ResponseBytes {
     pub status: i32,

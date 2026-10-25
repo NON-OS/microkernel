@@ -23,7 +23,7 @@ use spin::Mutex;
 pub const ASID_KERNEL: u32 = 0;
 
 /// Hard bound on the cross-CPU wait, in wall-clock milliseconds, converted to
-/// ticks against the calibrated counter frequency by `wait::budget`. A healthy
+/// ticks against the calibrated counter frequency by `clock::budget`. A healthy
 /// ack takes microseconds, but a peer vCPU descheduled by its host, or one
 /// finishing a stretch of work between two serve points under emulation, can
 /// take tens of milliseconds, and halting the machine over a slow peer is

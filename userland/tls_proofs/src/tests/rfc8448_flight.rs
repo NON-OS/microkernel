@@ -26,9 +26,9 @@ use crate::traffic_keys::TrafficKeys;
 
 /// The trace's client: its ClientHello and its X25519 private key.
 pub fn client() -> ClientFlight {
-    let mut private = [0u8; 32];
-    private.copy_from_slice(CLIENT_PRIVATE);
-    ClientFlight { record: Vec::new(), handshake: CLIENT_HELLO.to_vec(), private, p256_private: [0; 32] }
+    let (private, p256_private) =
+        (Box::new(CLIENT_PRIVATE.try_into().expect("32")), Box::new([0; 32]));
+    ClientFlight { record: Vec::new(), handshake: CLIENT_HELLO.to_vec(), private, p256_private }
 }
 
 /// ServerHello, then the encrypted flight as the trace sent it: one record.

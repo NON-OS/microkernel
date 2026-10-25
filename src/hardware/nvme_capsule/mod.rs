@@ -36,6 +36,7 @@ pub use client::{
     lba_size_addressable, read_blocks, smart_health, write_blocks, NvmeControllerIdentity,
     NvmeControllerInfo, NvmeNamespaceIdentity, NvmeSmartHealth,
 };
+pub(crate) use client::leave_leg;
 pub use error::DriverNvmeError;
 pub use spawn::{spawn_driver_nvme_capsule, SpawnError};
 pub use state::shared_state;
