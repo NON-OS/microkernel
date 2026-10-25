@@ -17,27 +17,28 @@
 //! The reserved band the capture indicator lives in: a strip at the top
 //! right of the canvas, drawn after every layer and the cursor's place in
 //! every frame that touches it, so no surface can cover it, move it or draw
-//! a lookalike in it. Camera on is a green mark, microphone on an amber
-//! one, a screenshot just taken a blue one; off is a dim mark, so the band
-//! is always there to look at. The fourth is white while the trusted band
-//! is held: a prompt or the lock with it is the system's, and one without
-//! it, drawn by a window to look the same, is not. Under the marks, the
-//! band's bottom two rows are red while device DMA is not confined by
-//! hardware (no IOMMU), for the whole boot.
+//! a lookalike in it. It is the menu bar's colour, so it sits inside the
+//! bar. Its marks are glyphs (band_glyph_art.rs): a green camera, an amber
+//! microphone, a blue screen for a screenshot just taken, and a white lock
+//! while the trusted band is held (a prompt or lock with it is the
+//! system's; one without it, drawn by a window to look the same, is not).
+//! Off, each is dim, so the band is always there to look at. Under them the
+//! bottom two rows are red while device DMA is not confined by hardware.
 
 use crate::state::damage::Rect;
 use crate::state::indicator::{Indicators, KIND_CAMERA, KIND_MICROPHONE};
 use crate::sw_blitter::{fill_rect, Surface};
 
+use super::band_glyphs::{draw_glyph, CAMERA, LOCK, MICROPHONE, SCREEN};
 use super::band_meet::meet;
 
 pub const BAND_W: u32 = 84;
 pub const BAND_H: u32 = 16;
-const MARK: u32 = 10;
-pub const BAND_ARGB: u32 = 0xFF00_0000;
+/// The menu bar's colour (the shell's palette::BAR), made opaque.
+pub const BAND_ARGB: u32 = 0xFF04_080C;
 pub const CAMERA_ON: u32 = 0xFF2E_CC40;
 pub const MICROPHONE_ON: u32 = 0xFFFF_9F1A;
-pub const MARK_OFF: u32 = 0xFF3A_3A3A;
+pub const MARK_OFF: u32 = 0xFF4A_5560;
 pub const SCREEN_ON: u32 = 0xFF3D_8BFF;
 pub const TRUSTED_ON: u32 = 0xFFF2_F2F2;
 pub const DMA_UNCONFINED: u32 = 0xFFFF_3B3B;
@@ -52,24 +53,22 @@ pub fn band(w: u32, h: u32) -> Rect {
 /// Draw the part of the band inside `clip` onto `dst`.
 pub fn draw(dst: Surface, clip: Rect, ind: &Indicators, captured: bool, trusted: bool, dma: bool) {
     let b = band(dst.width, dst.height);
-    let cam = Rect { x: b.x + 7, y: 3, width: MARK, height: MARK };
-    let mic = Rect { x: b.x + 27, y: 3, width: MARK, height: MARK };
-    let scr = Rect { x: b.x + 47, y: 3, width: MARK, height: MARK };
-    let held = Rect { x: b.x + 67, y: 3, width: MARK, height: MARK };
     let rows = UNDERLINE.min(b.height);
     let under = Rect { x: b.x, y: b.height - rows, width: b.width, height: rows };
-    let color = |kind, on| if ind.shown(kind) { on } else { MARK_OFF };
-    let parts = [
-        (b, BAND_ARGB),
-        (cam, color(KIND_CAMERA, CAMERA_ON)),
-        (mic, color(KIND_MICROPHONE, MICROPHONE_ON)),
-        (scr, if captured { SCREEN_ON } else { MARK_OFF }),
-        (held, if trusted { TRUSTED_ON } else { MARK_OFF }),
-        (under, if dma { DMA_UNCONFINED } else { BAND_ARGB }),
-    ];
-    for (r, argb) in parts {
+    let under_argb = if dma { DMA_UNCONFINED } else { BAND_ARGB };
+    for (r, argb) in [(b, BAND_ARGB), (under, under_argb)] {
         if let Some(r) = meet(r, clip) {
             fill_rect(dst, r, argb);
         }
+    }
+    let color = |kind, on| if ind.shown(kind) { on } else { MARK_OFF };
+    let marks = [
+        (&CAMERA, color(KIND_CAMERA, CAMERA_ON)),
+        (&MICROPHONE, color(KIND_MICROPHONE, MICROPHONE_ON)),
+        (&SCREEN, if captured { SCREEN_ON } else { MARK_OFF }),
+        (&LOCK, if trusted { TRUSTED_ON } else { MARK_OFF }),
+    ];
+    for (i, (g, argb)) in marks.into_iter().enumerate() {
+        draw_glyph(dst, g, (b.x + 7 + 20 * i as u32, 3), argb, clip);
     }
 }
