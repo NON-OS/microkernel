@@ -66,7 +66,8 @@ def args():
     ap.add_argument("--mem", default="8G", help="memory: Qwen, Linux programs and a second window need more than 2G")
     ap.add_argument("--net", choices=["nat", "off"], default="nat")
     ap.add_argument("--capture", metavar="PCAP",
-                    help="write every frame on the network, both ways, to this capture (tools/nonos-pcap-egress reads it)")
+                    help="write every frame the guest sends to this capture, and what it is sent to "
+                         "PCAP-in.pcap beside it (tools/nonos-pcap-egress reads both)")
     ap.add_argument("--install-target", action="store_true", help="attach a blank NVMe disk to install to")
     ap.add_argument("--installed", action="store_true", help="boot the NVMe disk the installer wrote, alone")
     ap.add_argument("--lane", action="append", default=[], metavar="LANE",
@@ -138,7 +139,7 @@ def main():
         sys.exit(str(e))
     if a.capture and a.net == "off":
         sys.exit("--capture records the network, and --net off has none")
-    capture = ["-object", f"filter-dump,id=capture0,netdev=net0,file={a.capture}"] if a.capture else []
+    capture = machine.capture(a.capture) if a.capture else []
     if ("nic" in lane.swaps and a.net == "off") or ("tpm" in lane.swaps and not a.tpm):
         sys.exit("a nic= lane needs the network on, and tpm-tis needs --tpm: each swaps a device in")
     lanes.make_images(lane.images)
