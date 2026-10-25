@@ -65,10 +65,13 @@ or flake check runs it.
 
 `scripts/amnesic_boot_check.sh` boots a sealed image (`NONOS_AMNESIC_IMAGE`)
 on the data disk `tools/nonos-qemu` lays the store on, for
-`NONOS_AMNESIC_TIMEOUT` seconds, then boots it a second time on the same disk,
-system partition and variable store for `NONOS_AMNESIC_SETTLE` seconds (120 by
-default). That catches a write left for shutdown, or for the next boot to find.
-After both boots it compares:
+`NONOS_AMNESIC_TIMEOUT` seconds, then boots it a second time for
+`NONOS_AMNESIC_SETTLE` seconds (120 by default) on the disk, system partition
+and variable store exactly as the first boot left them (`tools/nonos-qemu
+--keep-machine`; without it nonos-qemu lays a fresh partition and a fresh
+store on every boot, which once erased the first boot's writes before they
+were judged). That catches a write left for shutdown, or for the next boot to
+find. After each boot, not only the last, it compares with what went in:
 
 - the data disk, byte for byte, naming every changed sector;
 - the EFI system partition, which QEMU serves read-write from a directory,
@@ -91,6 +94,16 @@ always writes some. A changed variable passes only when it is one of the exact
 
 `BootNext` is not allowed: it picks the next boot, and the firmware only ever
 deletes it.
+
+A verdict names the boot it fell on, `main` or `settle`, and a write by the
+first boot shows under both. `scripts/amnesic_boot_check_selftest.sh` puts the
+check to a stand-in machine (`scripts/amnesic_standin.py`, nonos-qemu's own
+`disk.prepare` and `disk.vars_store`, and a variable store a real first boot
+left, `scripts/testdata/ovmf-vars-first-boot.fd.gz`, under this flake's OVMF):
+no write passes; a write to the partition, the disk or the variable store by
+the first boot fails under both names; one by the second boot fails under its
+own. Mutants: the first boot not judged, the second on a fresh machine, the
+store never kept. Each is caught. Run it inside `nix develop`.
 
 The serial log of each boot must show the disk driver up and the store answered
 from the loader's copy of this disk (`[STORE] the loader's copy of the
