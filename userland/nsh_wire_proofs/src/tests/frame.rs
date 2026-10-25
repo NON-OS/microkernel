@@ -41,7 +41,7 @@ fn each_stage_takes_its_cap_and_refuses_one_more() {
 
 #[test]
 fn the_caps_are_the_specified_ones() {
-    assert_eq!((HELLO_CAP, AUTH_CAP, SESSION_CAP), (2048, 262_144, 16_385));
+    assert_eq!((HELLO_CAP, AUTH_CAP, SESSION_CAP), (2048, 1_179_648, 16_385));
     assert_eq!(Expect::ClientHello.cap(), HELLO_CAP);
     assert_eq!(Expect::UserAuth.cap(), AUTH_CAP);
     assert_eq!(Expect::ClientSession.cap(), SESSION_CAP);

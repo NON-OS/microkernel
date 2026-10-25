@@ -25,6 +25,10 @@ mod plain_key;
 use plain_key::plain_key;
 
 pub fn on_key(state: &mut State, event: InputEvent) -> EventOutcome {
+    // Tab's list lasts until the next key: Tab again keeps it.
+    if event.code != nonos_app_skeleton::KEY_TAB {
+        state.completions.clear();
+    }
     if let Some(out) = super::key_first::key_first(state, event) {
         return out;
     }
