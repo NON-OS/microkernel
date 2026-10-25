@@ -20,7 +20,8 @@ use alloc::vec::Vec;
 use nonos_libc::mk_ipc_call_timeout;
 
 use super::rx_seq::next_rid;
-use crate::device::DEVICE_CALL_MS;
+use super::learned_bound::SINGLE;
+use super::rx_learned::{timed, SINGLE_MS};
 use crate::protocol::header::{parse_response, write_request};
 use crate::protocol::ops::{HDR_LEN, OP_RX_PACKET};
 
@@ -33,14 +34,8 @@ pub fn poll_frame(port: u32) -> Option<Vec<u8>> {
         return None;
     }
     let mut resp = vec![0u8; RESP_CAP];
-    let n = mk_ipc_call_timeout(
-        port as u64,
-        req.as_ptr(),
-        HDR_LEN,
-        resp.as_mut_ptr(),
-        resp.len(),
-        DEVICE_CALL_MS,
-    );
+    let (rp, rl) = (resp.as_mut_ptr(), resp.len());
+    let n = timed(&SINGLE_MS, &SINGLE, |ms| mk_ipc_call_timeout(port as u64, req.as_ptr(), HDR_LEN, rp, rl, ms));
     if n < 0 {
         return None;
     }

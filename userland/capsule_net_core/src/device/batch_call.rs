@@ -23,14 +23,16 @@ use alloc::vec::Vec;
 
 use nonos_libc::mk_ipc_call_timeout;
 
+use super::learned_bound::BATCH;
+use super::rx_learned::{timed, BATCH_MS};
 use super::rx_seq::next_rid;
 use crate::protocol::header::{parse_response, write_request};
 use crate::protocol::ops::{HDR_LEN, OP_RX_BATCH};
 
-/// A batch of up to 44 frames takes longer to copy than one frame, so its
-/// reply is given longer than the 8 ms a single-frame call gets. A reply
-/// later than this is not lost: the driver keeps it for the same number.
-const BATCH_CALL_MS: u64 = 24;
+// A batch of up to 44 frames takes longer to copy than one frame, so its
+// bound is learned from the driver's answers between BATCH's floor and
+// ceiling (learned_bound.rs). A reply later than it is not lost: the driver
+// keeps it for the same number.
 
 /// Room for the largest batch the driver sends, and its headers.
 const RESP_CAP: usize = HDR_LEN + 4 + 64 * 1024;
@@ -47,7 +49,7 @@ pub fn call(port: u32, seq: Option<u32>) -> Option<Vec<u8>> {
     }
     let mut resp = vec![0u8; RESP_CAP];
     let (rp, rl) = (resp.as_mut_ptr(), resp.len());
-    let n = mk_ipc_call_timeout(port as u64, req.as_ptr(), HDR_LEN + len, rp, rl, BATCH_CALL_MS);
+    let n = timed(&BATCH_MS, &BATCH, |ms| mk_ipc_call_timeout(port as u64, req.as_ptr(), HDR_LEN + len, rp, rl, ms));
     let view = resp.get(..usize::try_from(n).ok()?)?;
     let (op, _, _) = parse_response(view)?;
     let status = i32::from_le_bytes(view.get(HDR_LEN..HDR_LEN + 4)?.try_into().ok()?);
