@@ -1,0 +1,33 @@
+# NONOS userland: capsule_driver_netvsc
+#
+# Userland Hyper-V synthetic network (netvsc) driver capsule. It runs on the
+# network adapter's VMBus channel, which the VMBus core gives it: three
+# coherent DMA grants for the channel's rings, the receive buffer and the
+# send buffer, polled. NVSP and RNDIS on the channel; the NNET frame
+# service to net.core through nonos_usbnet's. The station address is the
+# drawn one if the host carries it, else the host-assigned one, said so.
+
+[package]
+name = "nonos_capsule_driver_netvsc"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland Hyper-V netvsc driver capsule"
+
+[[bin]]
+name = "driver_netvsc"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_usbnet = { path = "../nonos_usbnet" }
+nonos_vmbus = { path = "../nonos_vmbus" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

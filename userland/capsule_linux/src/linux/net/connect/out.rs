@@ -32,6 +32,7 @@ use nonos_linux_policy::dests::Target;
 use nonos_linux_policy::mask::NET_ANON;
 
 use crate::linux::abi::errno;
+use crate::linux::app::granted;
 use crate::linux::guest::Guest;
 
 use super::super::guest_route::{path, Path};
@@ -41,16 +42,14 @@ use super::super::Route;
 pub fn connect(guest: &Guest, id: u32, to: Addr) -> u64 {
     let host = super::super::dns::host_for(guest, to.ip);
     let target = host.as_deref().map_or(Target::V4(to.ip), Target::Name);
-    let [a, b, c, d] = to.ip;
+    let ([a, b, c, d], port) = (to.ip, to.port);
     let dest = match host.as_deref() {
-        Some(name) => alloc::format!("{}:{}", String::from_utf8_lossy(name), to.port),
-        None => alloc::format!("{a}.{b}.{c}.{d}:{}", to.port),
+        Some(name) => alloc::format!("{}:{port}", String::from_utf8_lossy(name)),
+        None => alloc::format!("{a}.{b}.{c}.{d}:{port}"),
     };
     if !crate::linux::app::may_dial(guest, target, to.port) {
-        let needs = match crate::linux::app::granted(guest, NET_ANON) {
-            true => "this destination",
-            false => "NET_ANON",
-        };
+        let needs = if granted(guest, NET_ANON) { "this destination" } else { "NET_ANON" };
+        crate::linux::boxed::tried(dest.as_bytes());
         let what = alloc::format!("a stream to {dest}");
         return crate::linux::app::refuse(&what, needs, errno::ENETUNREACH);
     }
