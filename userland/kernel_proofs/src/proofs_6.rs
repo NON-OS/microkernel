@@ -36,4 +36,4 @@ pub mod unit_base;
 pub mod secret_log;
 /// When a lock wait is reported, and called a re-take.
 #[path = "spin_watch/mod.rs"]
-pub mod spin_watch;
+pub mod spin_waits;

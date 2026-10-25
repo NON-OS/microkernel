@@ -38,7 +38,7 @@ pub fn remove_import(name: &[u8]) -> Result<(), VolumeError> {
     let (mark, mark_len) = suffixed(name, b".partial")?;
     let (record, record_len) = suffixed(name, b".sha256")?;
     without_stream(name, || {
-        let guard = VOLUME.write();
+        let guard = crate::smp::write_responsive(&VOLUME);
         let state = guard.as_ref().ok_or(VolumeError::NotMounted)?;
         let (key, mount) = (&state.key, &state.mount);
         let gone = |path: &[u8]| match blockfs::unlink_path(key, mount, path) {
@@ -60,7 +60,7 @@ pub fn remove_import(name: &[u8]) -> Result<(), VolumeError> {
 /* A record whose file is gone, as a removal cut short leaves: taken away. */
 pub(super) fn forget_record(name: &[u8]) -> Result<(), VolumeError> {
     let (record, len) = suffixed(name, b".sha256")?;
-    let guard = VOLUME.write();
+    let guard = crate::smp::write_responsive(&VOLUME);
     let state = guard.as_ref().ok_or(VolumeError::NotMounted)?;
     match blockfs::unlink_path(&state.key, &state.mount, &record[..len]) {
         Ok(()) | Err(BlockFsError::NotFound) => Ok(()),
