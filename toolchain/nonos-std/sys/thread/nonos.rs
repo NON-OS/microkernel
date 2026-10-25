@@ -1,13 +1,13 @@
 // NONOS std threads over the MTSP syscall. The kernel clones the current
 // capsule's address space handle into a fresh schedulable task, so a thread
 // here is a task sharing memory and capabilities with its spawner. The
-// spawn ABI carries only an entry point and a stack pointer; the ThreadInit
-// pointer rides the new stack, and the pal's trampoline (thread_regs)
-// passes it to thread_start as its argument. Join polls MPAL (pid-alive) with a yield between
-// probes; the kernel reaps a dead task from the process table within a
-// timer tick, after which its user stack is provably untouched and can be
-// freed. Detached threads leak their stack, since nobody learns when the
-// task dies.
+// spawn ABI carries only an entry point and a stack pointer, so the new
+// stack carries two words, thread_start and the ThreadInit pointer, and the
+// pal's trampoline (thread_regs) calls the one with the other. Join polls
+// MPAL (pid-alive) with a yield between probes; the kernel reaps a dead task
+// from the process table within a timer tick, after which its user stack is
+// provably untouched and can be freed. Detached threads leak their stack,
+// since nobody learns when the task dies.
 
 use crate::alloc::{GlobalAlloc, Layout, System};
 use crate::ffi::CStr;
