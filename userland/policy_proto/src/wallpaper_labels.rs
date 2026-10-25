@@ -14,69 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const WALLPAPER_LABELS: &[&[u8]] = &[
-    b"Field Focus 01",
-    b"Field Focus 02",
-    b"Field Focus 03",
-    b"Field Focus 04",
-    b"Field Focus 05",
-    b"Field Focus 06",
-    b"Field Focus 07",
-    b"Field Focus 08",
-    b"Field Focus 09",
-    b"Field Focus 10",
-    b"Field Focus 11",
-    b"Field Focus 12",
-    b"Field Focus 13",
-    b"Hardware Aesthetic 01",
-    b"Hardware Aesthetic 02",
-    b"Hardware Aesthetic 03",
-    b"Hardware Aesthetic 04",
-    b"Hardware Aesthetic 05",
-    b"Hardware Aesthetic 06",
-    b"Hardware Aesthetic 07",
-    b"Hardware Aesthetic 08",
-    b"Hardware Aesthetic 09",
-    b"Hardware Aesthetic 10",
-    b"Hardware Aesthetic 11",
-    b"Hardware Aesthetic 12",
-    b"Hardware Aesthetic 13",
-    b"Hardware Aesthetic 14",
-    b"Network Topology 01",
-    b"Network Topology 02",
-    b"Network Topology 03",
-    b"Network Topology 04",
-    b"Network Topology 05",
-    b"Network Topology 06",
-    b"Network Topology 07",
-    b"Network Topology 08",
-    b"Network Topology 09",
-    b"Network Topology 10",
-    b"Network Topology 11",
-    b"Network Topology 13",
-    b"Network Topology 14",
-    b"Network Topology 15",
-    b"Network Topology 16",
-    b"Network Topology 17",
-    b"Network Topology 18",
-    b"Network Topology 19",
-    b"Special Variant 1a",
-    b"Special Variant 1b",
-    b"Special Variant 2a",
-    b"Special Variant 2b",
-    b"Special Variant 03",
-    b"Special Variant 04",
-    b"Special Variant 05",
-    b"Special Variant 06",
-    b"Special Variant 07",
-    b"Special Variant 08",
-    b"Special Variant 09",
-    b"Special Variant 10",
-    b"Special Variant 11",
-    b"Special Variant 12",
-    b"Special Variant 13",
-    b"Special Variant 14",
-    b"Special Variant 15",
-    // Appended last, matching the FEATURED catalog entry (pepenonos).
-    b"NONOS Dev Pepe",
-];
+/*
+ * The wallpapers' names, in catalog order (nonos-data/wallpapers/catalog.txt):
+ * a wallpaper's index is its place in this list, the setting's value, and its
+ * bit in the kept set. wallpaper_catalog_proofs checks the list against the
+ * catalog's pins, so a picture added to one and not the other fails there.
+ */
+pub const WALLPAPER_LABELS: &[&[u8]] =
+    &[b"Canyon neon", b"Canyon real", b"Canyon real soft", b"Neon sign"];
+
+/*
+ * The catalog's era. Era 1 was the 63 pictures of 0.9.2; this is era 2. A
+ * record kept in an earlier era names its wallpaper by that era's index, and
+ * the readers (setup_record, settings_record) take such a choice as the
+ * default instead of as the picture now at that index.
+ */
+pub const CATALOG_ERA: u8 = 2;
+
+/*
+ * The desktop's wallpaper until someone picks another: the policy store's
+ * default, setup's first choice, and the picture the wallpaper service links
+ * in for its first frame (wallpaper_catalog_proofs pins all three to it).
+ */
+pub const WALLPAPER_DEFAULT: u8 = 0;

@@ -16,7 +16,7 @@
 
 //! A UHCI controller's LEGSUP, for any vendor, and no other USB host's.
 
-use super::quirk_bits::{only, writable, Ident};
+use super::quirk_bits::{only, writable, Ident, Route};
 
 const UHCI: Ident = Ident {
     vendor: 0x8086,
@@ -25,6 +25,8 @@ const UHCI: Ident = Ident {
     prog_if: 0,
     pcie_cap: None,
     before: [0xFF; 3],
+    device: 0,
+    route: Route::NONE,
 };
 
 #[test]

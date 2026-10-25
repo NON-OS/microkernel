@@ -45,6 +45,8 @@ pub mod security;
 #[path = "../../../src/services/registry/policy.rs"]
 pub mod service_policy;
 pub mod services;
+/// What init reads setup to have asked for.
+pub mod setup_outcome;
 pub mod store_copy_span;
 pub mod store_errno;
 #[cfg(kani)]

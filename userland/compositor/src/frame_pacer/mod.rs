@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod band_rule;
+pub mod band_glyph_art;
+pub mod band_glyphs;
 pub mod band_meet;
 pub mod band_watch;
 pub mod canvas_copy;
