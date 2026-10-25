@@ -115,6 +115,8 @@ pub enum Why {
     /// canonical, not market ready, naming another listing, release or
     /// program, or not written. Nothing of the package is left (`market`).
     Policy = 36,
+    /// A package would not fit in free memory to unpack; nothing of it landed.
+    UnpackMemory = 37,
 }
 
 impl Why {
