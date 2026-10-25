@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Every name the client looks up for a disk on IDE or a SCSI adapter is the
 //! handle a capsule registers, so a disk those drivers serve is offered to
 //! install on. Only the first name of each driver is held by

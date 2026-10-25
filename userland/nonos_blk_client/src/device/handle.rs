@@ -14,24 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The handle: which driver, which instance of it, on which port, how big,
-//! and the blocks its disk is addressed in.
+//! The handle: which driver, which instance of it, which disk behind that
+//! instance, on which port, how big, and the blocks its disk is addressed in.
 
 use nonos_libc::mk_service_lookup;
 
+use super::addressed::geometry_of;
 use super::geometry::Geometry;
-use super::nvme;
+use super::medium::held;
 use crate::driver::Driver;
 use crate::error::BlkError;
-
-/// The status a driver answers when no medium is in its device.
-const E_NOMEDIUM: i32 = -123;
 
 #[derive(Clone, Copy, Debug)]
 pub struct BlockDevice {
     pub driver: Driver,
     /// Which of the driver's service names answered: 0 for `driver.nvme0`.
     pub instance: u8,
+    /// Which disk behind that service, 0 first; only the block wire's
+    /// drivers have more than unit 0.
+    pub unit: u16,
     pub port: u32,
     /// The size in 512-byte sectors, whatever the disk's own block size.
     pub sectors: u64,
@@ -39,35 +40,32 @@ pub struct BlockDevice {
 }
 
 impl BlockDevice {
-    /// Look instance `instance` of the driver's service up and ask it how
-    /// big its disk is and what blocks it is addressed in. `None` when no
-    /// such service is registered on this boot, or when it serves a card
-    /// reader with an empty slot; an error when it is and did not answer.
-    pub fn open(driver: Driver, instance: u8) -> Result<Option<BlockDevice>, BlkError> {
-        let Some(name) = driver.service(instance) else {
-            return Ok(None);
-        };
+    /// The port instance `instance` of the driver's service answers on,
+    /// `None` when no such service is registered on this boot.
+    pub fn lookup(driver: Driver, instance: u8) -> Option<u32> {
+        let name = driver.service(instance)?;
         let (mut port, mut pid) = (0u32, 0u32);
         let rc = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);
-        if rc < 0 || port == 0 {
+        (rc >= 0 && port != 0).then_some(port)
+    }
+
+    /// Ask unit `unit` behind `port` how big its disk is and what blocks it
+    /// is addressed in. `None` when it holds no disk: a reader with no card,
+    /// or a unit its driver does not have; an error when it did not answer.
+    pub fn at(
+        driver: Driver,
+        instance: u8,
+        port: u32,
+        unit: u16,
+    ) -> Result<Option<BlockDevice>, BlkError> {
+        let Some(geometry) = held(driver, geometry_of(driver, port, unit))? else {
             return Ok(None);
-        }
-        let geometry = match driver {
-            Driver::Nvme => nvme::geometry(port),
-            Driver::Wire | Driver::Ufs | Driver::Ide | Driver::Scsi => super::wire::geometry(port),
-            Driver::Ahci | Driver::VirtioBlk | Driver::Rtsx => Ok(Geometry::SECTORS),
         };
-        /* A reader or slot with no card in it serves no disk, whether its
-         * GEOMETRY or its capacity is the reply that says so. */
-        let geometry = match geometry {
-            Err(BlkError::Status(E_NOMEDIUM)) => return Ok(None),
-            g => g?,
+        let mut dev = BlockDevice { driver, instance, unit, port, sectors: 0, geometry };
+        let Some(blocks) = held(driver, dev.capacity_blocks())? else {
+            return Ok(None);
         };
-        let mut dev = BlockDevice { driver, instance, port, sectors: 0, geometry };
-        dev.sectors = match dev.capacity_blocks() {
-            Err(BlkError::Status(E_NOMEDIUM)) => return Ok(None),
-            blocks => geometry.sectors(blocks?),
-        };
+        dev.sectors = geometry.sectors(blocks);
         Ok(Some(dev))
     }
 }
