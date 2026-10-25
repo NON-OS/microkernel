@@ -49,7 +49,9 @@ pub fn call(port: u32, seq: Option<u32>) -> Option<Vec<u8>> {
     }
     let mut resp = vec![0u8; RESP_CAP];
     let (rp, rl) = (resp.as_mut_ptr(), resp.len());
-    let n = timed(&BATCH_MS, &BATCH, |ms| mk_ipc_call_timeout(port as u64, req.as_ptr(), HDR_LEN + len, rp, rl, ms));
+    let n = timed(&BATCH_MS, &BATCH, |ms| {
+        mk_ipc_call_timeout(port as u64, req.as_ptr(), HDR_LEN + len, rp, rl, ms)
+    });
     let view = resp.get(..usize::try_from(n).ok()?)?;
     let (op, _, _) = parse_response(view)?;
     let status = i32::from_le_bytes(view.get(HDR_LEN..HDR_LEN + 4)?.try_into().ok()?);

@@ -20,6 +20,7 @@ use super::encode::{reply, status};
 use super::stats::Stats;
 use super::wire::{Request, DATA_AT, E_AGAIN, RX_PREFIX_LEN};
 use crate::nic::{Nic, ETH_FRAME_MAX};
+use nonos_mac::resend::{asked, serve, Kept};
 
 pub(super) fn send<N: Nic>(
     nic: &mut N,
@@ -33,13 +34,26 @@ pub(super) fn send<N: Nic>(
     status(tx, req, sent.err().unwrap_or(0))
 }
 
-/// The frame as `len_le32, bytes`, or `E_AGAIN` when none has come.
-pub(super) fn recv<N: Nic>(nic: &mut N, stats: &mut Stats, req: &Request, tx: &mut [u8]) -> usize {
+/// The frame as `len_le32, bytes`, or `E_AGAIN` when none has come. A
+/// request numbered as the last one gets the same frame again, its reply
+/// having come too late (nonos_mac::resend); only a fresh frame is counted.
+pub(super) fn recv<N: Nic>(
+    nic: &mut N,
+    stats: &mut Stats,
+    kept: &mut Kept<ETH_FRAME_MAX>,
+    (req, body): (&Request, &[u8]),
+    tx: &mut [u8],
+) -> usize {
     let at = DATA_AT + RX_PREFIX_LEN;
-    let got = nic.recv(&mut tx[at..at + ETH_FRAME_MAX]);
-    stats.rx(got);
+    let got = serve(kept, asked(body), |buf| {
+        let got = nic.recv(buf);
+        stats.rx(got);
+        got
+    });
     match got {
-        Ok(Some(n)) => {
+        Ok(Some(frame)) => {
+            let n = frame.len();
+            tx[at..at + n].copy_from_slice(frame);
             tx[DATA_AT..at].copy_from_slice(&(n as u32).to_le_bytes());
             reply(tx, req, 0, RX_PREFIX_LEN + n)
         }

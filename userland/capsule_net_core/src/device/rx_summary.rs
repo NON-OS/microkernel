@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! One line now and then saying how a receive op has fared: its calls, how
 //! many went unanswered in time, and the bound it has learned. Sparse, at
 //! 256, 1024, 4096 and 16384 calls, so a boot log shows a slow driver being
