@@ -5048,6 +5048,18 @@ unset mirror_out
 
 # Draining the raw input ring reads every key typed. Its bit belongs to the
 # input router and to no driver; the seal refuses it elsewhere too.
+# capsule_linux dials a local-network mirror directly, past nonos_route_link,
+# only in a development build: the dev-mirror feature gates every piece of
+# that path, and no release set builds with it (docs/build/dev-mirror.md).
+if dev_mirror_out="$(python3 scripts/check_dev_mirror.py 2>&1)" \
+    && python3 scripts/check_dev_mirror.py --self-test >/dev/null 2>&1; then
+    note ok "capsule_linux's direct dial is development only (check_dev_mirror)"
+else
+    printf '%s\n' "${dev_mirror_out}" >&2
+    fail_with "check_dev_mirror: capsule_linux's direct dial reaches a release build"
+fi
+unset dev_mirror_out
+
 if drain_out="$(python3 scripts/check_input_drain_cap.py 2>&1)"; then
     note ok "InputDrain is held by the input router alone (check_input_drain_cap)"
 else

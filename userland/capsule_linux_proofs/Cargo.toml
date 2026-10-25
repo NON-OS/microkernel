@@ -22,6 +22,9 @@ path = "src/lib.rs"
 # Mirrors capsule_linux's, so the mounted selftest_panic.rs is proved both
 # ways: `cargo test` (off) and `cargo test --features selftest-panic` (on).
 selftest-panic = []
+# capsule_linux's own feature, named so the files it gates compile here as in
+# a release build: off.
+dev-mirror = []
 
 [dependencies]
 # What the mounted installer files link against in the capsule.
