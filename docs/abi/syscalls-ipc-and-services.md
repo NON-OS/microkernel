@@ -28,6 +28,7 @@ the ports.
 | `MUMP` | `0x504D554D` | `MkMunmap` | Memory | `can_deallocate_memory` `src/syscall/contract/cap_table/mk_proc.rs:39` | Unmap pages the caller mapped. |
 | `MCLD` | `0x444C434D` | `MkCapsuleLoad` | CoreExec and IPC and Memory | `grants_all` `src/syscall/contract/cap_table/mk_proc.rs:41-44` | Verify a [capsule](../overview/glossary-boot-root-record.md#capsule) from the ELF, certificate, manifest and trailer the caller passes, and start it; returns the pid. |
 | `MCVF` | `0x4656434D` | `MkCapsuleVerify` | CoreExec and IPC and Memory | `grants_all` `src/syscall/contract/cap_table/mk_proc.rs:46-49` | Run the same verification without starting anything, and write a summary. |
+| `MCOF` | `0x464F434D` | `MkCapsOf` | SpawnBroker | `grants` `src/syscall/contract/cap_table/mk_proc.rs:47` | For a broker: whether the sender of a message it received, at that message's time, holds SpawnWindow (Admin standing in) or AppInstall. 1 or 0; EINVAL for any other bit, ESRCH for a dead sender or a pid reused since (`src/syscall/microkernel/caps_of/rule.rs`). |
 | `MEXT` | `0x5458454D` | `MkExit` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | End the calling process with an exit code. |
 | `MPAL` | `0x4C41504D` | `MkPidAlive` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | 1 when a pid names a live process, else 0. |
 | `MWAT` | `0x5441574D` | `MkWait` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:35` | Wait, up to a timeout, for a child to exit, and return its exit code. |
