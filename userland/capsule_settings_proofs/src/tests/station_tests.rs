@@ -22,7 +22,9 @@ mod counters;
 #[path = "../../../nonos_usbnet/src/nnet/encode.rs"]
 mod encode;
 #[path = "../../../capsule_settings/src/wifi/station.rs"]
-mod station;
+pub(super) mod station;
+#[path = "../../../capsule_settings/src/wifi/station_words.rs"]
+pub(super) mod station_words;
 #[allow(dead_code)]
 #[path = "../../../nonos_usbnet/src/nnet/stats.rs"]
 mod stats;
@@ -30,7 +32,7 @@ mod stats;
 #[path = "../../../nonos_usbnet/src/nnet/wire.rs"]
 mod wire;
 
-use station::{said, station_of, stats_request, REPLY_LEN};
+use station::{station_of, stats_request, REPLY_LEN};
 
 fn answer(id: u32, source: u32, status: i32) -> Vec<u8> {
     let req = wire::decode(&stats_request(id)).expect("the driver reads our request");
@@ -62,13 +64,4 @@ fn anything_but_our_ok_answer_is_none() {
     let mut foreign = ok.clone();
     foreign[0] ^= 1;
     assert_eq!(station_of(&foreign, 7), None, "not NNET");
-}
-
-#[test]
-fn each_source_has_its_words() {
-    assert_eq!(said(0), None, "not reported: nothing shown");
-    assert_eq!(said(1), Some(("Private, new each boot", None)));
-    let host = Some(("Assigned by Hyper-V", Some(station::HYPER_V)));
-    assert_eq!((said(2), said(3), said(4)), (host, host, None));
-    assert!(station::HYPER_V.contains("MAC spoofing is on for this VM's adapter"));
 }

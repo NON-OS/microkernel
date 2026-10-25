@@ -31,6 +31,7 @@ mod lease_read;
 mod net_poll;
 mod net_status;
 pub mod station;
+mod station_words;
 mod station_ask;
 mod wifi_class;
 
