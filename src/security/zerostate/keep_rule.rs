@@ -19,9 +19,10 @@
 //! Only the installer writes a disk plan that keeps a volume, and it does so
 //! only after the person chose to install. So a disk carrying such a plan is
 //! one the person asked to keep things on, and every other disk is a boot
-//! that keeps nothing. On those the store may only be cleared: a sector of
-//! zeros erases, it cannot record. A disk whose plan could not be read is
-//! treated as keeping nothing, so a fault never opens the store.
+//! that keeps nothing: no write reaches its store at all. Not even zeros, as
+//! which sectors were cleared is itself something written. A disk whose plan
+//! could not be read is treated as keeping nothing, so a fault never opens
+//! the store.
 //!
 //! No crate paths here, so the host proofs mount this file as it is.
 
@@ -36,13 +37,9 @@ pub(crate) enum Disk {
     Unread,
 }
 
-/// True when `bytes` may be written to the store on a boot whose disk is
-/// `disk`.
-pub(crate) fn may_write(disk: Disk, bytes: &[u8]) -> bool {
-    match disk {
-        Disk::Installed => true,
-        Disk::Live | Disk::Unread => bytes.iter().all(|b| *b == 0),
-    }
+/// True when the store may be written on a boot whose disk is `disk`.
+pub(crate) fn may_write(disk: Disk) -> bool {
+    disk == Disk::Installed
 }
 
 /// How a plan read maps to a `Disk`: `Some(true)` a plan with a volume,
