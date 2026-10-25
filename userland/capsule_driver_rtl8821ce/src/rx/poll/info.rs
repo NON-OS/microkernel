@@ -25,6 +25,10 @@ where
     B: RxBuffers,
 {
     let idx = mmio.read32(REG_RXBD_IDX_MPDUQ);
+    // All ones: the card is gone, and its index names no slot it wrote.
+    if idx == u32::MAX {
+        return None;
+    }
     let hw_wp = ((idx & TRX_BD_HW_IDX_MASK) >> TRX_BD_HW_IDX_SHIFT) % state.len;
 
     while state.ready(hw_wp) > 0 {
