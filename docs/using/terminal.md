@@ -266,7 +266,7 @@ The source behind the facts above, at the commit in the footer.
   - The credentials message: `say_failure` in `userland/capsule_terminal/src/command/builtin/git/clone/fail.rs:40-51`.
 - The network a command uses
   - The refusal that ends `so nothing was sent`: `refusal_line` in `userland/capsule_terminal/src/command/builtin/direct_gate.rs:46-54`.
-- Tabs and windows contrast
+- Colour
   - Every theme's text at 4.5 to 1 or more: `contrast_tests.rs` in `userland/terminal_line_proofs/src/paint/`.
 - What is kept
   - The kept preferences: `load` and `save` in `userland/capsule_terminal/src/term/prefs/store.rs:32-49`.
