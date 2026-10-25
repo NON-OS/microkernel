@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::{EventOutcome, InputEvent};
+use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
 
 use super::types::Terminal;
 use crate::event::on_event;
@@ -22,6 +22,9 @@ use crate::term::dimensions::{MAX_FONT_SCALE, MIN_FONT_SCALE};
 
 impl Terminal {
     pub(super) fn on_event_inner(&mut self, event: InputEvent) -> EventOutcome {
+        if event.kind == InputKind::KeyDown {
+            self.key_at = nonos_libc::mk_uptime_ms().max(1);
+        }
         if let Some(outcome) = self.palette_key(event) {
             return outcome;
         }

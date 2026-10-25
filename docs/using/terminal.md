@@ -97,7 +97,7 @@ The built-ins that wait on the network or on an install run as jobs even in the 
 
 ## Built-in commands
 
-`help` lists the commands in groups, and `help <command>` shows one command's usage. These are the 69 commands it documents, grouped here much as `help` groups them.
+`help` lists the commands in groups, and `help <command>` shows one command's usage. These are the 70 commands it documents, grouped here much as `help` groups them.
 
 | Files | What it does |
 |---|---|
@@ -146,6 +146,7 @@ The built-ins that wait on the network or on an install run as jobs even in the 
 | `whoami`, `id` | Your name, then this capsule and who the kernel says signed it. |
 | `date` | The real-time clock, as year-month-day hour:minute:second UTC. |
 | `uptime` | How long the system has run, from the monotonic clock. |
+| `latency` | How long the last keys typed in this tab took to reach the screen, from the key's arrival to the frame it changed being painted: the middle, the 95th percentile and the worst, in milliseconds, over up to 64 keys. |
 
 | Network | What it does |
 |---|---|
@@ -264,7 +265,7 @@ The source behind the facts above, at the commit in the footer.
 - What Ctrl+C does
   - Each case in the table: `interrupt` in `userland/capsule_terminal/src/event/interrupt.rs:25-35`.
 - Built-in commands
-  - The 69 documented commands: `USAGE` in `userland/capsule_terminal/src/command/builtin/help_one.rs:35`.
+  - The 70 documented commands: `USAGE` in `userland/capsule_terminal/src/command/builtin/help_one.rs:35`.
   - The other names, `write`, `keep`, `pull` and `push`: `dispatch` in `userland/capsule_terminal/src/command/builtin/nox/dispatch.rs:27-59`.
 - neofetch
   - The splash's emblem: `beside` in `userland/capsule_terminal/src/paint/fetch_emblem.rs`.

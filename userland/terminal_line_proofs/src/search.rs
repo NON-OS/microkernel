@@ -17,6 +17,9 @@ pub mod search_step;
 #[path = "../../capsule_terminal/src/term/prompt_bits.rs"]
 pub mod prompt_bits;
 
+// Keystroke to screen, as `latency` reports it.
+#[path = "../../capsule_terminal/src/term/latency.rs"]
+pub mod latency;
 // Where Tab's candidates are shown, and how they are laid out.
 #[path = "../../capsule_terminal/src/term/complete_list.rs"]
 pub mod complete_list;
@@ -25,6 +28,8 @@ pub mod complete_list;
 mod complete_tests;
 #[cfg(test)]
 mod head_tests;
+#[cfg(test)]
+mod latency_tests;
 #[cfg(test)]
 mod prompt_tests;
 #[cfg(test)]

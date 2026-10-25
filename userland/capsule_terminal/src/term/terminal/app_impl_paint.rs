@@ -54,5 +54,11 @@ impl Terminal {
             owned,
         });
         self.layout = Some(l);
+        // The key that asked for this frame has reached the screen.
+        if self.key_at > 0 {
+            let ms = (nonos_libc::mk_uptime_ms() - self.key_at).clamp(0, u32::MAX as i64);
+            self.cur().key_lat.push(ms as u32);
+            self.key_at = 0;
+        }
     }
 }

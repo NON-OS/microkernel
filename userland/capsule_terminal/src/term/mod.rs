@@ -25,6 +25,7 @@ pub mod git_probe;
 pub mod handed;
 pub mod history;
 pub mod identity;
+pub mod latency;
 pub mod line;
 pub mod manifest;
 pub mod prefs;
