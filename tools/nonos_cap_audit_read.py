@@ -24,9 +24,12 @@ def read(root: Path, rel: str) -> str:
 
 
 def declared(root: Path) -> set:
-    """The one list, as `Name = 1 << n,` inside the table invocation."""
+    """The one list, as `Name = 1 << n,` inside the table invocation, an
+    entry carrying its doc as `#[doc = ".."]` on the same line included: one
+    that did not count was audited by nothing, and IO and Hardware read as
+    enforced for being missing from the declared set."""
     src = read(root, "src/capabilities/types/defs.rs")
-    return set(re.findall(r"^\s{4}(\w+) = 1 << \d+,$", src, re.M))
+    return set(re.findall(r"^\s{4}(?:#\[[^\]\n]*\]\s*)*(\w+) = 1 << \d+,$", src, re.M))
 
 
 def code_lines(path: Path):
