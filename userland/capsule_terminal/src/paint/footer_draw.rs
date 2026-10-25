@@ -19,7 +19,7 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use super::{footer_h, HINT_PX, KEY_GAP, PAD_TOP, PAIR_GAP};
-use crate::paint::hint_sets::{hints, Mode};
+use super::hint_sets::{hints, Mode};
 use crate::paint::constants::TEXT_LEFT;
 use crate::paint::shade::elevate;
 use crate::term::theme::types::Theme;
