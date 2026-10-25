@@ -15,14 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_libc::mk_debug;
-use nonos_policy_proto::{route, Field};
+use nonos_policy_proto::Field;
 
 use crate::protocol::{E_BAD_LEN, E_NAME_REFUSED, E_NO_HANDLE};
 use crate::server::parse_req::Request;
 use crate::sockets::{Kind, SocketKey, SOCKETS};
 use crate::{clients::dns, state};
 
-use super::host_target::host_target;
+use super::host_target::{host_target, is_direct};
 use super::{finish_host, parse_host, status_host};
 
 /* Said once per refusal, without the name, which the log does not keep. */
@@ -30,12 +30,12 @@ const NAME_REFUSED: &[u8] = b"[SOCKETS] connect by name refused: the socket is a
 or the chosen network is not Direct, and the name would be resolved in the clear\n";
 
 /* Whether the person's chosen network is Direct, asked afresh for each
- * lookup. A policy store that does not answer is not Direct, as every other
- * reader of the choice takes it (nonos_route_link `direct_refused`). */
+ * lookup (`is_direct` holds the rule). */
 fn direct_chosen() -> bool {
-    nonos_policy_client::lookup()
-        .and_then(|port| nonos_policy_client::get_u8(port, Field::NetworkRoute))
-        == Some(route::DIRECT)
+    is_direct(
+        nonos_policy_client::lookup()
+            .and_then(|port| nonos_policy_client::get_u8(port, Field::NetworkRoute)),
+    )
 }
 
 pub fn handle_host(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
