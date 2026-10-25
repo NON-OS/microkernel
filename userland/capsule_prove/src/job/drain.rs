@@ -16,6 +16,7 @@
 
 //! Between a job's stages: the frames queued up, answered.
 
+use nonos_libc::ipc::MK_IPC_NO_WAIT;
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply};
 use nonos_proof_abi::wire::{Header, PROVE_MAGIC};
 
@@ -26,7 +27,7 @@ use super::state::Job;
 pub fn drain(job: &mut Job, buf: &mut [u8]) {
     loop {
         let mut sender = 0u32;
-        let n = mk_ipc_recv_from(0, buf.as_mut_ptr(), buf.len(), 0, &mut sender);
+        let n = mk_ipc_recv_from(0, buf.as_mut_ptr(), buf.len(), MK_IPC_NO_WAIT, &mut sender);
         let Some(n) = usize::try_from(n).ok().filter(|&n| n > 0 && sender != 0) else {
             return;
         };
