@@ -24,12 +24,14 @@ mod mapping;
 mod mapping_in_asid;
 mod protection;
 mod query;
+mod scrub;
 mod stats;
 mod tlb_ops;
 
 pub use address_space::{
-    cleanup_address_space, cleanup_address_space_keeping, create_address_space, get_process_cr3, hand_over_address_space,
-    lookup_asid_for_process, switch_address_space, switch_to_process_address_space,
+    cleanup_address_space, cleanup_address_space_keeping, create_address_space, get_process_cr3,
+    hand_over_address_space, lookup_asid_for_process, switch_address_space,
+    switch_to_process_address_space,
 };
 pub use asid_lookup::lookup_asid_for_cr3;
 pub use faults::handle_page_fault;
@@ -48,6 +50,7 @@ pub use query::{
     active_asid, active_page_table, address_spaces_count, get_mapping_info, get_page_permissions,
     is_mapped, translate_address,
 };
+pub use scrub::scrub_every_user_space;
 pub use stats::{get_memory_usage, get_paging_stats};
 pub use tlb_ops::{
     disable_write_protection, enable_write_protection, flush_tlb, get_current_cr3,
