@@ -27,3 +27,5 @@ mod tests;
 #[allow(dead_code)]
 #[path = "../../../../src/process/userspace/constants.rs"]
 pub mod user_constants;
+#[cfg(test)]
+mod verdict_tests;
