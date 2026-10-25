@@ -20,6 +20,7 @@
 //! address spaces (seeded once from KERNEL_ASID); they are not
 //! touched here.
 
+use super::leaf_release::{leaf, release};
 use crate::memory::addr::PhysAddr;
 use crate::memory::frame_alloc;
 use crate::memory::layout::DIRECTMAP_BASE;
@@ -64,14 +65,12 @@ unsafe fn free_subtree(table_phys: u64, level: u8, keep: &[PhysAddr], base_va: u
             // the RAM free list twice and a register page was zeroed through
             // the directmap, while other drivers' rings already lived there.
             let device = crate::hardware::broker::touches_device_window(va, span);
-            if !kept && !device {
-                // What the process left in the frame goes before the frame
-                // does: freed unzeroed, it outlived the process and the
-                // power-off wipe, which reaches only live processes.
-                let frame = (DIRECTMAP_BASE + next_phys) as *mut u8;
-                crate::security::secure_zero(frame, span as usize);
-                let _ = frame_alloc::deallocate_frame(PhysAddr::new(next_phys));
-            }
+            let frame = (DIRECTMAP_BASE + next_phys) as *mut u8;
+            release(
+                leaf(kept, device),
+                || crate::security::secure_zero(frame, span as usize),
+                || _ = frame_alloc::deallocate_frame(PhysAddr::new(next_phys)),
+            );
         } else {
             unsafe { free_subtree(next_phys, level - 1, keep, va) };
             let _ = frame_alloc::deallocate_frame(PhysAddr::new(next_phys));
