@@ -20,8 +20,7 @@
  * four instruction immediates and never appeared as 32 bytes. A root file of
  * any other length now fails the build instead of refusing every capsule.
  */
-static ROOT: [u8; 32] =
-    *include_bytes!("../../../nonos-data/trust/policy/zk_capsule_policy_root.bin");
+static ROOT: [u8; 32] = *crate::baked_trust!("policy/zk_capsule_policy_root.bin");
 
 pub(super) fn root() -> Option<[u8; 32]> {
     Some(*core::hint::black_box(&ROOT))
