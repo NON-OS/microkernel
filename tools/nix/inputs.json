@@ -1792,6 +1792,7 @@
    "userland/nonos_tls/src/spki_point.rs",
    "userland/nonos_tls/src/stream",
    "userland/nonos_tls/src/traffic_keys.rs",
+   "userland/nonos_tls/src/traffic_secrets.rs",
    "userland/nonos_tls/src/transcript.rs",
    "userland/nonos_tls/src/verify_link",
    "userland/nonos_tls/src/verify_p256.rs",
@@ -6369,6 +6370,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/capsule_net_core/src/autojoin/machine",
    "userland/capsule_net_core/src/autojoin/machine.rs",
    "userland/capsule_net_core/src/device/batch_call.rs",
@@ -6388,7 +6390,8 @@
    "userland/capsule_net_core/src/server/respond.rs",
    "userland/capsule_net_core/src/server/runner/refuse.rs",
    "userland/net_core_proofs",
-   "userland/net_proofs/shim"
+   "userland/net_proofs/shim",
+   "userland/policy_proto"
   ],
   "md": [],
   "signed": []
@@ -8974,6 +8977,7 @@
    "userland/nonos_tls/src/spki_point.rs",
    "userland/nonos_tls/src/stream",
    "userland/nonos_tls/src/traffic_keys.rs",
+   "userland/nonos_tls/src/traffic_secrets.rs",
    "userland/nonos_tls/src/transcript.rs",
    "userland/nonos_tls/src/verify_link",
    "userland/nonos_tls/src/verify_p256.rs",

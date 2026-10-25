@@ -17,9 +17,15 @@
 //! What net.core's DHCP client puts on the wire: its first DHCPDISCOVER,
 //! taken from smoltcp on an Ethernet link that keeps every frame sent.
 
+#[cfg(test)]
 #[path = "../../../capsule_net_core/src/iface/dhcp/create.rs"]
 mod create;
+#[cfg(test)]
 #[path = "../../../capsule_net_core/src/iface/dhcp/request_list.rs"]
 mod request_list;
 #[cfg(test)]
+mod device;
+#[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod wire;
