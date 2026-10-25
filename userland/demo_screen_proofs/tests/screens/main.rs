@@ -35,6 +35,7 @@ mod geometry;
 mod modes;
 mod png;
 mod ring;
+mod terminal_damage;
 mod terminal_geometry;
 mod terminal_shots;
 mod wallpaper_mount;
