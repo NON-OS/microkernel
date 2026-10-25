@@ -11,6 +11,7 @@ mod budget;
 mod dedup;
 mod frames;
 mod handshake;
+mod idle;
 mod keys;
 mod policy;
 mod radio;

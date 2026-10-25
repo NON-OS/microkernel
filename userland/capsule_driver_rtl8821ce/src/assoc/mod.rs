@@ -28,6 +28,7 @@
 //! only the transmit and receive calls touch a radio.
 
 pub mod classify;
+mod clock;
 mod drive;
 pub mod eapol;
 mod frame;
@@ -38,6 +39,7 @@ pub mod resend;
 mod run;
 mod send;
 
+pub use clock::JoinClock;
 pub use outcome::Outcome;
 pub use radio::Radio;
 pub use report::Report;
