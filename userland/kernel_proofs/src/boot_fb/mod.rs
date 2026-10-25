@@ -14,23 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! K20: the share names the owner, and a share the kernel refuses names no
-//! owner at all.
+//! The boot framebuffer's holder (broker/table/boot_fb_rule.rs): while a
+//! claimed device's memory window contains the frame the loader handed over,
+//! the GOP present answers EBUSY; once the claim goes, GOP is writable again.
 
-use super::util::up;
-use crate::bench::Bench;
-use crate::protocol::Request;
-use crate::server::dispatch::dispatch;
-use nonos_libc::{fail_share, shares};
+#[path = "../../../../src/hardware/broker/table/boot_fb_rule.rs"]
+mod boot_fb_rule;
 
-#[test]
-fn a_refused_share_names_no_owner() {
-    let mut bench = Bench::standard();
-    let mut d = up(&mut bench, |_| {});
-    let mut tx = [0u8; 64];
-    fail_share();
-    let get_primary = Request { op: 0x0C, flags: 0, request_id: 9 };
-    assert_eq!(dispatch(&mut d, 40, &get_primary, &[], &mut tx), Some(-110));
-    assert_eq!((d.owner, d.handle), (0, 0), "nobody may draw");
-    assert!(shares().is_empty());
-}
+#[cfg(test)]
+mod tests;
