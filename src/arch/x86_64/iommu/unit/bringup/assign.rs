@@ -20,10 +20,11 @@
 use super::domain::reserved_domain;
 use super::start::{start_for, Start};
 use crate::arch::x86_64::iommu::device::bdf_to_source_id;
-use crate::arch::x86_64::iommu::globals::state::{DeviceBinding, STATE};
+use crate::arch::x86_64::iommu::globals::state::{DeviceBinding, VtdState, STATE};
 use crate::arch::x86_64::iommu::tables::root::set_context;
-use crate::arch::x86_64::iommu::types::{DomainId, VtdError};
+use crate::arch::x86_64::iommu::types::{DomainId, SourceId, VtdError};
 use crate::arch::x86_64::iommu::unit::coverage::reserved_for;
+use crate::memory::phys::touches_usable;
 
 /// How many functions got an entry, and how many of them reserved memory.
 pub(super) fn assign_enumerated(
@@ -31,27 +32,44 @@ pub(super) fn assign_enumerated(
     levels: u8,
     address_width: u8,
 ) -> Result<(usize, usize), VtdError> {
-    let devices = crate::bus::pci::enumerate_devices();
     let (mut count, mut reserved) = (0, 0);
-    for dev in devices.iter() {
+    for dev in crate::bus::pci::enumerate_devices().iter() {
         let source = bdf_to_source_id(dev.bus, dev.device, dev.function);
         if STATE.lock().bindings.iter().any(|binding| binding.source == source) {
             continue;
         }
-        let ranges = reserved_for(dev.bus, dev.device, dev.function);
+        // Made before STATE is held, since making one takes it. As on a claim
+        // (L60), no region over usable RAM or the interrupt window is mapped.
+        let mut ranges = reserved_for(dev.bus, dev.device, dev.function);
+        ranges.retain(|&(b, e)| !(b < 0xFEF0_0000 && e > 0xFEE0_0000) && !touches_usable(b, e));
         let own = (!ranges.is_empty()).then(|| reserved_domain(levels, &ranges).ok()).flatten();
-        let (domain, root) = match (start_for(!ranges.is_empty(), own.is_some()), own) {
-            (Start::Reserved, Some(own)) => own,
-            _ => (blocked, blocked_root),
-        };
-        reserved += usize::from(domain != blocked);
-        // Bookkeeping first: a device programmed but unrecorded could never be
-        // detached again.
-        if STATE.lock().bindings.push(DeviceBinding { source, domain }).is_err() {
-            return Err(VtdError::DomainTableFull);
-        }
-        set_context(source, root, domain, address_width)?;
-        count += 1;
+        let start = start_for(!ranges.is_empty(), own.is_some());
+        let (domain, root) =
+            own.filter(|_| start == Start::Reserved).unwrap_or((blocked, blocked_root));
+        let added = bind(&mut STATE.lock(), source, root, domain, address_width)?;
+        reserved += usize::from(added && domain != blocked);
+        count += usize::from(added);
     }
     Ok((count, reserved))
+}
+
+/// Give `source` a context entry in `domain` unless it has one already; true
+/// when it was added.
+pub(super) fn bind(
+    state: &mut VtdState,
+    source: SourceId,
+    root: u64,
+    domain: DomainId,
+    address_width: u8,
+) -> Result<bool, VtdError> {
+    if state.bindings.iter().any(|binding| binding.source == source) {
+        return Ok(false);
+    }
+    // Bookkeeping first: a device programmed but unrecorded could never be
+    // detached again.
+    if state.bindings.push(DeviceBinding { source, domain }).is_err() {
+        return Err(VtdError::DomainTableFull);
+    }
+    set_context(source, root, domain, address_width)?;
+    Ok(true)
 }

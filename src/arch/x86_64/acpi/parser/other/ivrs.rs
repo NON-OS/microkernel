@@ -66,6 +66,7 @@ pub fn parse_ivrs(registry: &mut TableRegistry) {
     let mut covered = [Span { first: 0, last: 0, named: false }; MAX_SPANS];
     let n = spans(bytes, &mut covered);
     *SPANS.lock() = covered[..n].iter().copied().collect();
+    super::ivhd_alias_store::record_aliases(bytes);
     super::ivmd_table::record(bytes);
     super::ivhd_special_table::record(bytes);
 }
