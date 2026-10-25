@@ -24,15 +24,15 @@ pub(crate) const BROWSER_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-browser")]
 pub(crate) const BROWSER_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/browser.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/browser.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-browser")]
 pub(crate) const BROWSER_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/browser.manifest.bin");
+    crate::baked_trust!("capsules/browser.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-browser")]
 pub(crate) const BROWSER_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/browser.zk_trailer.bin");
+    crate::baked_trust!("capsules/browser.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-browser"))]
 pub(crate) const BROWSER_ELF: &[u8] = &[];

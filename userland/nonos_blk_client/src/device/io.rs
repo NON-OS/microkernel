@@ -27,7 +27,7 @@ impl BlockDevice {
     pub fn flush(&self) -> Result<(), BlkError> {
         let op = self.driver.ops().flush;
         let mut rx = [0u8; HDR_LEN + STATUS_LEN];
-        let done = call(self.port, self.driver.magic(), op, &[], &mut rx)
+        let done = call(self.port, self.driver.magic(), op, self.unit, &[], &mut rx)
             .and_then(|(n, id)| decode_reply(&rx, n, self.driver.magic(), op, id).map(|_| ()));
         done.inspect_err(|e| super::refused::refused("flush", 0, 0, e))
     }
