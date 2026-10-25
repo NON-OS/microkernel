@@ -24,6 +24,7 @@ mod cert_ext_entry;
 mod cert_is_ca;
 mod cert_issuer;
 mod cert_problem;
+mod cert_problem_why;
 mod cert_sig_alg;
 mod cert_signature;
 mod cert_spki;

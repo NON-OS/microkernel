@@ -16,8 +16,8 @@
 
 //! The local test chain's throwaway root (P5) as nonos_tls's devnet module
 //! holds it, against the files tools/devnet/tls commits. A build without the
-//! feature mounts the module here, so these hold whether or not the crate's
-//! store takes it; dev_root_trust proves which builds do.
+//! feature mounts the module here, so these hold in every build;
+//! dev_root_trust and dev_root_refusals prove which chains it anchors.
 
 use p256::ecdsa::SigningKey;
 use sha2::{Digest, Sha256};
@@ -31,6 +31,10 @@ use crate::cert_spki::cert_spki;
 mod dev;
 #[cfg(feature = "devnet")]
 use crate::roots::dev;
+/* nonos_route_link's own file, so the name it dials and the name the root
+ * vouches for cannot drift apart. */
+#[path = "../../../nonos_route_link/src/devnet.rs"]
+mod route;
 
 pub(super) static ROOT: &[u8] = include_bytes!("../../../../tools/devnet/tls/root.der");
 pub(super) static LEAF: &[u8] = include_bytes!("../../../../tools/devnet/tls/leaf.der");
@@ -56,14 +60,10 @@ fn the_root_signs_a_leaf_for_the_local_rpc_alone() {
     }
 }
 #[test]
-fn the_module_answers_for_its_own_root_only() {
-    assert!(dev::is_dev_root(&dev::DEV_ROOT_SPKI_SHA256));
-    let mut near = dev::DEV_ROOT_SPKI_SHA256;
-    near[31] ^= 1;
-    assert!(!dev::is_dev_root(&near));
-    assert_eq!(dev::dev_spki_by_subject(dev::DEV_ROOT_SUBJECT), Some(dev::DEV_ROOT_SPKI));
-    let cut = &dev::DEV_ROOT_SUBJECT[..dev::DEV_ROOT_SUBJECT.len() - 1];
-    assert_eq!(dev::dev_spki_by_subject(cut), None);
+fn the_one_name_the_root_vouches_for_is_the_name_settle_dials() {
+    assert_eq!(dev::DEV_RPC_HOST, route::DEVNET_RPC_HOST.as_bytes());
+    assert_eq!(HOST, dev::DEV_RPC_HOST);
+    assert_eq!(route::dial_at(route::DEVNET_RPC_HOST), route::DEVNET_RPC_AT);
 }
 #[test]
 fn the_proxy_key_is_the_leaf_key() {

@@ -63,5 +63,5 @@ pub fn verify_chain(body: &[u8], host: &[u8], now: u64) -> super::crypto_port::C
     let Some(top) = super::cert_at::cert_at(body, n - 1) else {
         return Ok(false);
     };
-    super::chain_anchor::anchor(top)
+    super::chain_anchor::anchor(top, leaf, host, n)
 }

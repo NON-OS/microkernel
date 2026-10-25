@@ -14,44 +14,43 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which builds trust the throwaway root: a `devnet` build (the devnet lane)
-//! takes the local RPC's leaf by both ways a chain ends at a root, and every
-//! other build, a release's, refuses it as an unknown issuer.
+//! Which builds take the local RPC's leaf: a `devnet` build (the devnet
+//! lane), by the leaf alone or with the root over it, and no other. Both
+//! lanes run every test here. In neither do the general lookups know the
+//! root: its key is public, so only the dev anchor, which checks the name,
+//! the leaf's use and the link, may take it.
 
 use sha2::{Digest, Sha256};
 
 use super::dev_root::{HOST, LEAF, NOW, ROOT};
+use crate::cert_problem::{cert_problem, CertProblem};
 use crate::chain_walk::verify_chain;
 use crate::roots::{find_spki_by_subject, is_trusted_spki_hash};
 use crate::tests::cert_message_vectors::message;
 
-fn root_hash() -> [u8; 32] {
-    Sha256::digest(crate::cert_spki::cert_spki(ROOT).expect("spki")).into()
-}
+const DEVNET: bool = cfg!(feature = "devnet");
 
-fn issuer() -> &'static [u8] {
-    crate::cert_issuer::cert_issuer(LEAF).expect("issuer")
-}
-
-#[cfg(not(feature = "devnet"))]
 #[test]
-fn a_release_build_does_not_know_the_dev_root() {
-    use crate::cert_problem::{cert_problem, CertProblem};
-    assert!(!is_trusted_spki_hash(&root_hash()));
-    assert_eq!(find_spki_by_subject(issuer()), None);
+fn no_build_puts_the_dev_root_in_the_general_lookups() {
+    let h: [u8; 32] = Sha256::digest(crate::cert_spki::cert_spki(ROOT).expect("spki")).into();
+    assert!(!is_trusted_spki_hash(&h));
+    let issuer = crate::cert_issuer::cert_issuer(LEAF).expect("issuer");
+    assert_eq!(find_spki_by_subject(issuer), None);
+}
+
+#[test]
+fn only_a_devnet_build_takes_the_local_rpc_leaf() {
     for chain in [&[LEAF][..], &[LEAF, ROOT][..]] {
-        assert_eq!(verify_chain(&message(chain), HOST, NOW), Ok(false));
-        assert_eq!(cert_problem(&message(chain), HOST, NOW), Some(CertProblem::UnknownIssuer));
+        let body = message(chain);
+        assert_eq!(verify_chain(&body, HOST, NOW), Ok(DEVNET));
+        let problem = (!DEVNET).then_some(CertProblem::UnknownIssuer);
+        assert_eq!(cert_problem(&body, HOST, NOW), problem);
     }
 }
 
-#[cfg(feature = "devnet")]
 #[test]
-fn a_devnet_build_takes_the_local_rpc_leaf_and_nothing_else() {
-    assert!(is_trusted_spki_hash(&root_hash()));
-    assert_eq!(find_spki_by_subject(issuer()), crate::cert_spki::cert_spki(ROOT));
+fn the_local_rpc_leaf_holds_for_its_name_and_window_only() {
     for chain in [&[LEAF][..], &[LEAF, ROOT][..]] {
-        assert_eq!(verify_chain(&message(chain), HOST, NOW), Ok(true));
         assert_eq!(verify_chain(&message(chain), b"example.com", NOW), Ok(false));
         assert_eq!(verify_chain(&message(chain), HOST, 20460101000000), Ok(false));
     }
