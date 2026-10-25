@@ -35,6 +35,8 @@ pub(super) struct Armed {
     pub(super) granted: Option<u64>,
     pub(super) connected: super::connected::Connected,
     pub(super) learned: super::learned::Learned,
+    /// The policy a receipt names the program by (app_line.rs), once started.
+    pub(super) app: Option<[u8; 256]>,
 }
 
 pub(super) struct One(pub(super) RefCell<Option<Armed>>);
@@ -50,9 +52,9 @@ pub(super) static BOX: One = One(RefCell::new(None));
 pub fn arm(policy: BoxPolicy, key: Option<[u8; super::frames::KEY_LEN]>) {
     let hash = box_hash(&policy);
     let tally = Tally::default();
-    let (connected, learned) = Default::default();
+    let (connected, learned, app) = Default::default();
     *BOX.0.borrow_mut() =
-        Some(Armed { policy, hash, tally, key, granted: None, connected, learned });
+        Some(Armed { policy, hash, tally, key, granted: None, connected, learned, app });
 }
 
 /// The program's identity inside the box: never more than both allow.
@@ -62,6 +64,7 @@ pub fn narrow(app: AppIdentity) -> AppIdentity {
     // The list lives as long as the run: the identity holds it by 'static.
     let boxed = app.boxed(a.policy.mask, Vec::leak(a.policy.dests.clone()));
     a.granted = Some(boxed.mask);
+    a.app = Some(super::app_line::policy_of(&boxed.app_id, &boxed.policy));
     boxed
 }
 
