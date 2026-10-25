@@ -29,7 +29,7 @@ pub const MT_WB: u8 = 0x06;
 pub const MT_UC_MINUS: u8 = 0x07;
 
 /// The entry a 4 KiB page selects with PWT alone (PAT and PCD clear).
-/// Linux's pat_bp_init puts write-combining in the same entry.
+/// Its reset type, WT, is the one of entries 0 to 3 no page here uses.
 pub const WC_INDEX: u32 = 1;
 
 /// `pat` with entry 1 made write-combining and every other entry kept, so a

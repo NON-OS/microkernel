@@ -30,6 +30,7 @@ mod ipc;
 mod look;
 mod mmio;
 mod pci;
+mod pci_write;
 mod steps;
 
 pub use broker::{given_back, mk_device_release, mk_dma_unmap, mk_mmio_unmap};
@@ -41,8 +42,9 @@ pub use entropy::{crypto_random, entropy, Entropy};
 pub use ipc::{line_up_requests, mk_ipc_recv_from, mk_ipc_reply, recv_ready, replies, SERVED};
 pub use look::{on_clock, OnClock};
 pub use mmio::{map_at_most, mk_mmio_map, MmioMapOut};
-pub use pci::{command, mk_pci_config_write, refuse_bus_master, set_command};
+pub use pci::{command, refuse_bus_master, set_command};
 pub use pci::{MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_MEMORY_SPACE};
+pub use pci_write::{mk_pci_config_update, mk_pci_config_write};
 pub use steps::{seen, watch, Part, Seen, Step};
 
 // The real libc's register accessors and DMA barriers, mounted so the driver

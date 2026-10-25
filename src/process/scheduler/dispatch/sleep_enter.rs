@@ -50,6 +50,15 @@ pub(super) fn enter_sleep(pid: u32, wake_time_ms: u64, token: Option<u64>) {
     if token.is_some_and(|t| wake_slot(pid).load(Ordering::Acquire) != t) {
         return;
     }
+    // Killed from another CPU, or gone: no sleep over the kill, which a wake
+    // would then have made Ready again. The yield that follows finds it dead
+    // and parks it (L77d).
+    let live = state
+        .as_ref()
+        .is_some_and(|s| !matches!(**s, ProcessState::Zombie(_) | ProcessState::Terminated(_)));
+    if !live {
+        return;
+    }
     remove_from_run_queue(pid);
     if let Some(state) = state.as_mut() {
         **state = ProcessState::Sleeping;

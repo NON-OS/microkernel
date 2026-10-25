@@ -45,19 +45,25 @@ def arch.paging.descriptor.flags.WRITE_THROUGH : Result Std.U64 :=
   1#u64 <<< 3#i32
 
 /-- [nonos_policy::arch::paging::descriptor::flags::NO_CACHE]
-    Source: 'src/arch/paging/descriptor/../../../../../../../src/arch/paging/descriptor/flags.rs', lines 35:0-35:33
+    Source: 'src/arch/paging/descriptor/../../../../../../../src/arch/paging/descriptor/flags.rs', lines 36:0-36:33
     Visibility: public -/
 @[global_simps, irreducible]
 def arch.paging.descriptor.flags.NO_CACHE : Result Std.U64 := 1#u64 <<< 4#i32
 
 /-- [nonos_policy::arch::paging::descriptor::flags::GLOBAL]
-    Source: 'src/arch/paging/descriptor/../../../../../../../src/arch/paging/descriptor/flags.rs', lines 42:0-42:31
+    Source: 'src/arch/paging/descriptor/../../../../../../../src/arch/paging/descriptor/flags.rs', lines 43:0-43:31
     Visibility: public -/
 @[global_simps, irreducible]
 def arch.paging.descriptor.flags.GLOBAL : Result Std.U64 := 1#u64 <<< 8#i32
 
+/-- [nonos_policy::arch::paging::descriptor::flags::DEVICE]
+    Source: 'src/arch/paging/descriptor/../../../../../../../src/arch/paging/descriptor/flags.rs', lines 49:0-49:32
+    Visibility: public -/
+@[global_simps, irreducible]
+def arch.paging.descriptor.flags.DEVICE : Result Std.U64 := 1#u64 <<< 52#i32
+
 /-- [nonos_policy::arch::paging::descriptor::flags::NO_EXECUTE]
-    Source: 'src/arch/paging/descriptor/../../../../../../../src/arch/paging/descriptor/flags.rs', lines 44:0-44:36
+    Source: 'src/arch/paging/descriptor/../../../../../../../src/arch/paging/descriptor/flags.rs', lines 51:0-51:36
     Visibility: public -/
 @[global_simps, irreducible]
 def arch.paging.descriptor.flags.NO_EXECUTE : Result Std.U64 :=
@@ -73,6 +79,22 @@ def memory.paging.types.permissions.flags.PagePermissions.contains
   := do
   let i ← lift (self.bits &&& other.bits)
   ok (i = other.bits)
+
+/-- [nonos_policy::memory::paging::constants::permissions::PERM_DEVICE]
+    Source: 'src/memory/paging/../../../../../../src/memory/paging/constants/permissions.rs', lines 29:0-29:37
+    Visibility: public -/
+@[global_simps, irreducible]
+def memory.paging.constants.permissions.PERM_DEVICE : Result Std.U32 :=
+  1#u32 <<< 12#i32
+
+/-- [nonos_policy::memory::paging::types::permissions::flags::{nonos_policy::memory::paging::types::permissions::flags::PagePermissions}::DEVICE]
+    Source: 'src/memory/paging/types/../../../../../../../src/memory/paging/types/permissions/flags.rs', lines 37:4-37:56
+    Visibility: public -/
+@[global_simps, irreducible]
+def memory.paging.types.permissions.flags.PagePermissions.DEVICE
+  : Result memory.paging.types.permissions.flags.PagePermissions := do
+  let i ← memory.paging.constants.permissions.PERM_DEVICE
+  ok { bits := i }
 
 /-- [nonos_policy::memory::paging::constants::permissions::PERM_WRITE_THROUGH]
     Source: 'src/memory/paging/../../../../../../src/memory/paging/constants/permissions.rs', lines 23:0-23:43
@@ -171,18 +193,25 @@ def memory.paging.types.permissions.flags.PagePermissions.WRITE
   ok { bits := i }
 
 /-- [nonos_policy::memory::paging::constants::pte_flags::PTE_NO_EXECUTE]
-    Source: 'src/memory/paging/../../../../../../src/memory/paging/constants/pte_flags.rs', lines 35:0-35:50
+    Source: 'src/memory/paging/../../../../../../src/memory/paging/constants/pte_flags.rs', lines 36:0-36:50
     Visibility: public -/
 @[global_simps, irreducible]
 def memory.paging.constants.pte_flags.PTE_NO_EXECUTE : Result Std.U64 :=
   arch.paging.descriptor.flags.NO_EXECUTE
 
 /-- [nonos_policy::memory::paging::constants::pte_flags::PTE_GLOBAL]
-    Source: 'src/memory/paging/../../../../../../src/memory/paging/constants/pte_flags.rs', lines 34:0-34:42
+    Source: 'src/memory/paging/../../../../../../src/memory/paging/constants/pte_flags.rs', lines 35:0-35:42
     Visibility: public -/
 @[global_simps, irreducible]
 def memory.paging.constants.pte_flags.PTE_GLOBAL : Result Std.U64 :=
   arch.paging.descriptor.flags.GLOBAL
+
+/-- [nonos_policy::memory::paging::constants::pte_flags::PTE_DEVICE]
+    Source: 'src/memory/paging/../../../../../../src/memory/paging/constants/pte_flags.rs', lines 31:0-31:42
+    Visibility: public -/
+@[global_simps, irreducible]
+def memory.paging.constants.pte_flags.PTE_DEVICE : Result Std.U64 :=
+  arch.paging.descriptor.flags.DEVICE
 
 /-- [nonos_policy::memory::paging::constants::pte_flags::PTE_CACHE_DISABLE]
     Source: 'src/memory/paging/../../../../../../src/memory/paging/constants/pte_flags.rs', lines 30:0-30:51
@@ -220,7 +249,7 @@ def memory.paging.constants.pte_flags.PTE_PRESENT : Result Std.U64 :=
   arch.paging.descriptor.flags.PRESENT
 
 /-- [nonos_policy::memory::paging::types::permissions::convert::{nonos_policy::memory::paging::types::permissions::flags::PagePermissions}::to_pte_flags]:
-    Source: 'src/memory/paging/types/../../../../../../../src/memory/paging/types/permissions/convert.rs', lines 21:4-42:5
+    Source: 'src/memory/paging/types/../../../../../../../src/memory/paging/types/permissions/convert.rs', lines 21:4-47:5
     Visibility: public -/
 def memory.paging.types.permissions.convert.PagePermissions.to_pte_flags
   (self : memory.paging.types.permissions.flags.PagePermissions) :
@@ -268,24 +297,39 @@ def memory.paging.types.permissions.convert.PagePermissions.to_pte_flags
       let i ← memory.paging.constants.pte_flags.PTE_CACHE_DISABLE
       ok (flags3 ||| i)
     else ok flags3
-  let pp4 ← memory.paging.types.permissions.flags.PagePermissions.GLOBAL
+  let pp4 ← memory.paging.types.permissions.flags.PagePermissions.DEVICE
   let b4 ←
     memory.paging.types.permissions.flags.PagePermissions.contains self pp4
   let flags5 ←
     if b4
     then
       do
-      let i ← memory.paging.constants.pte_flags.PTE_GLOBAL
+      let i ← memory.paging.constants.pte_flags.PTE_DEVICE
       ok (flags4 ||| i)
     else ok flags4
-  let pp5 ← memory.paging.types.permissions.flags.PagePermissions.EXECUTE
+  let pp5 ← memory.paging.types.permissions.flags.PagePermissions.GLOBAL
   let b5 ←
     memory.paging.types.permissions.flags.PagePermissions.contains self pp5
-  if b5
-  then ok flags5
+  let flags6 ←
+    if b5
+    then
+      do
+      let b6 ←
+        memory.paging.types.permissions.flags.PagePermissions.contains self pp1
+      if b6
+      then ok flags5
+      else
+        let i ← memory.paging.constants.pte_flags.PTE_GLOBAL
+        ok (flags5 ||| i)
+    else ok flags5
+  let pp6 ← memory.paging.types.permissions.flags.PagePermissions.EXECUTE
+  let b6 ←
+    memory.paging.types.permissions.flags.PagePermissions.contains self pp6
+  if b6
+  then ok flags6
   else
     let i ← memory.paging.constants.pte_flags.PTE_NO_EXECUTE
-    ok (flags5 ||| i)
+    ok (flags6 ||| i)
 
 /-- [nonos_policy::to_pte_flags]:
     Source: 'src/lib.rs', lines 13:0-15:1

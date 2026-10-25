@@ -36,6 +36,10 @@ mod sleep_tests;
 #[cfg(test)]
 mod power_button_tests;
 #[cfg(test)]
+mod power_button_arm_model;
+#[cfg(test)]
+mod power_button_arm_tests;
+#[cfg(test)]
 mod reset_tests;
 #[cfg(test)]
 mod madt_cpu_tests;
