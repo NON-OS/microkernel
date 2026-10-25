@@ -28,7 +28,7 @@ const MAX_ARTIFACT: u32 = 16 * 1024 * 1024;
 pub(super) struct Artifacts {
     elf: Vec<u8>,
     cert: Vec<u8>,
-    manifest: Vec<u8>,
+    pub(super) manifest: Vec<u8>,
     trailer: Vec<u8>,
 }
 

@@ -32,6 +32,7 @@ pub use family::package_arg;
 pub use install::{spawn_install, spawn_run, spawn_terminal, spawn_uninstall};
 pub use run_net::spawn_run_net;
 pub use run_owner::{run_busy, run_net_busy, run_package_of};
+pub(crate) use embed::LINUX_MANIFEST_BYTES;
 pub use spawn::{spawn_linux_capsule, LINUX_CAPS};
 pub use state::shared_state;
 pub use terminal::{
