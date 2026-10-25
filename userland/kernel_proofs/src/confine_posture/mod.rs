@@ -27,6 +27,8 @@ pub mod decide;
 #[allow(dead_code)]
 #[path = "../../../../src/hardware/broker/confine/member.rs"]
 mod member;
+// `blocked_by` is proven in acs_group symmetric_tests.
+#[allow(dead_code)]
 #[path = "../../../../src/hardware/broker/confine/port_only.rs"]
 mod port_only;
 
@@ -37,5 +39,7 @@ mod decide_tests;
 mod interrupt_tests;
 #[cfg(test)]
 mod port_only_glue_tests;
+#[cfg(test)]
+mod port_only_nodma_tests;
 #[cfg(test)]
 mod port_only_tests;

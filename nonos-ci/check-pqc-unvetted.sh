@@ -19,7 +19,9 @@
 # the `pqc-unvetted` feature that builds them must never be turned on by a
 # default, a profile, a build target or CI. The only places the name may
 # appear are its own definition and comments in Cargo.toml, this check, the
-# kernel sources that test for it, and documents.
+# kernel sources that test for it, documents, and the one type-check line in
+# mk/55-dark-features.mk, the compile-only `make check-dark-features` that
+# scripts/check_proof_features.py holds to compiling and nothing else.
 
 set -euo pipefail
 
@@ -39,7 +41,9 @@ for p in "${places[@]}"; do
 done
 if hits="$(grep -rnI 'pqc-unvetted' "${existing[@]}" 2>/dev/null \
     | grep -v '^nonos-ci/check-pqc-unvetted.sh:' \
-    | grep -v '^nonos-ci/run-static-checks.sh:')" && [ -n "${hits}" ]; then
+    | grep -v '^nonos-ci/run-static-checks.sh:' \
+    | grep -vxE 'mk/55-dark-features.mk:[0-9]+:	\$\(DARK_CHECK\) --features pqc-unvetted')" \
+    && [ -n "${hits}" ]; then
     printf '%s\n' "${hits}" >&2
     echo "a build or CI file names pqc-unvetted" >&2
     bad=1
