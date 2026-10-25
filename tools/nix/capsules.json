@@ -2090,7 +2090,7 @@
   "recovery": "",
   "namespace": "systems.nonos.nox_settle",
   "service_endpoint": "service:5200:nox_settle",
-  "reply_endpoint": "reply:5201:endpoint.4294967324",
+  "reply_endpoint": "reply:5201:endpoint.4294967332",
   "instance_endpoints": "",
   "required_caps": "0x3C",
   "optional_caps": "0x0",
