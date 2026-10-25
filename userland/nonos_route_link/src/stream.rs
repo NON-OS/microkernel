@@ -39,6 +39,10 @@ pub enum RouteStream {
 
 impl RouteStream {
     pub fn connect(route: Route, host: &str, port: u16) -> Result<RouteStream, &'static str> {
+        // A devnet build dials the local test chain's one name at the
+        // development host (P5); the name itself still goes to TLS.
+        #[cfg(feature = "devnet")]
+        let host = crate::devnet::dial_at(host);
         let (route, anon) = for_host(route, host);
         match route {
             Route::Direct => {
