@@ -29,6 +29,7 @@ mod find_bar;
 mod find_seek;
 mod interrupt;
 mod key_first;
+mod theme_keys;
 pub(crate) mod keymap;
 mod on_ctrl;
 mod on_down;

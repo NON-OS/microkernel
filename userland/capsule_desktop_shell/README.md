@@ -34,7 +34,12 @@ wm / wallpaper / market (peer IPC)
 - `MkMmap` allocates the overlay backing buffer, sized from the
   compositor's `OP_DISPLAY_INFO`.
 - `MkSurfaceRegister` / `MkSurfaceShare` publish the overlay.
-- `MkSpawnInstance` opens another window of an app from the dock.
+- `MkSpawnInstance` opens another window of an app from the dock. An app
+  with no window open is first offered to the process started for it at
+  boot, which waits idle for an open: it takes the first window, so one
+  process holds one window (`state/taskbar/first_open.rs`). The menu bar
+  names the focused app on every focus the window manager reports (kind 3,
+  `state/taskbar/focus_moved.rs`).
 - `MkPidAlive` finds tray items whose clients ended.
 
 ## Interface contract

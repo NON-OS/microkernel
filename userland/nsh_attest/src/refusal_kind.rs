@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The refusals, one per check, in the order the checks run.
+use crate::{CapsuleFault, FormatFault, LogFault, QuoteFault};
 
-use crate::{FormatFault, LogFault, QuoteFault};
-
+/// The refusals, one per check, in the order the checks run.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Refusal {
     /// Step 1: the document does not parse.
@@ -53,7 +52,8 @@ pub enum Refusal {
     /// Step 5: no accepted release has this PCR 9, or it is zero.
     Pcr9,
     Pcr8,
-    Pcr14,
+    /// Step 5: PCR 14 records no capsule, or one admitted on its path alone.
+    Pcr14(CapsuleFault),
     /// Step 5: the TCG event log does not parse.
     Log(LogFault),
     /// Step 5: replaying the log does not give the quoted value of this PCR.
