@@ -33,6 +33,7 @@ impl Refusal {
             Refusal::Protected(Hardware::Iommu) => "IOMMU",
             Refusal::Protected(Hardware::Ecam) => "PCI configuration window",
             Refusal::Protected(Hardware::Msix) => "MSI-X table or pending bits",
+            Refusal::Protected(Hardware::PowerControl) => "FADT power control register",
             Refusal::Legacy(Legacy::Dma) => "DMA controller ports",
             Refusal::Legacy(Legacy::Pic) => "PIC ports",
             Refusal::Legacy(Legacy::Pit) => "PIT ports",
@@ -42,6 +43,7 @@ impl Refusal {
             Refusal::Legacy(Legacy::Reset) => "system control port A (reset)",
             Refusal::Legacy(Legacy::Console) => "kernel console CRT ports",
             Refusal::Legacy(Legacy::Debug) => "kernel debug ports",
+            Refusal::Legacy(Legacy::ResetRegister) => "FADT reset register",
             Refusal::Bridge => "bridge bus number, window or bus master",
         }
     }

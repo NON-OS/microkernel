@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The spawn order as a second guard among claimants that DMA (H-02): the
+//! The spawn order as a second guard among claimants that DMA (H-02, H-03):
+//! the USB hosts before the Wi-Fi, so USB wins a CNVi card's group; the
 //! SATA and NVMe controllers spawn before the bus drivers (smbus, spi,
 //! i2c), the NICs and the rest, so a disk controller claims its isolation
 //! group ahead of anything sharing it. HDA stays after the NICs: where HDA
@@ -27,6 +28,7 @@ mod tests {
         include_str!("../../../../src/userspace/init/spawn_plan/orchestrator.rs");
     const STORAGE: &str =
         include_str!("../../../../src/userspace/init/spawn_plan/drivers_storage.rs");
+    const USB: &str = include_str!("../../../../src/userspace/init/spawn_plan/drivers_usb.rs");
 
     fn at(text: &str, what: &str) -> usize {
         text.find(what).unwrap_or_else(|| panic!("{what} is gone"))
@@ -43,6 +45,14 @@ mod tests {
         let disks = at(ORCHESTRATOR, "super::drivers_storage::spawn_disks();");
         assert!(disks < at(ORCHESTRATOR, "super::drivers_bus::spawn();"), "after the bus");
         assert!(disks < at(ORCHESTRATOR, "super::drivers_nic::spawn();"), "after the NICs");
+    }
+
+    #[test]
+    fn the_usb_hosts_spawn_before_the_wifi_so_usb_wins_a_cnvi_group() {
+        let hosts = at(ORCHESTRATOR, "super::drivers_usb_hosts::spawn();");
+        assert!(hosts < at(ORCHESTRATOR, "super::drivers_bus::spawn();"), "after the Wi-Fi");
+        assert!(at(ORCHESTRATOR, "super::drivers_storage::spawn_disks();") < hosts, "disks first");
+        assert!(!USB.contains("drivers_usb_hosts::spawn()"), "the hosts spawned twice");
     }
 
     #[test]

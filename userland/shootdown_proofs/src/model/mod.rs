@@ -36,4 +36,4 @@ pub use check::check;
 pub use config::{Config, MAX_CPUS};
 pub use state::{Ap, Handler, Init, State};
 pub use step::successors;
-pub use types::{Flush, Step, Val, BRING_UP};
+pub use types::{Flush, Pge, Step, Val, BRING_UP};

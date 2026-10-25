@@ -1,0 +1,13 @@
+{
+ "status": "empty",
+ "frames": 3,
+ "guest_frames": 0,
+ "firmware_frames": 0,
+ "guest_macs": [],
+ "dhcp_parameter_lists": [],
+ "tls_server_names": {},
+ "http_hosts": {},
+ "relays_learned": 0,
+ "peers": [],
+ "failures": []
+}

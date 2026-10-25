@@ -52,6 +52,11 @@ pub use refuse::{refuse, refuse_after};
 pub use released::{bus_master_off, bus_master_off_after_stop, released_last};
 pub use types::{Bar, DmaMapOut, IrqBindOut, MmioMapOut, BAR_KIND_MMIO, BAR_KIND_PIO};
 
+/// The bring-up exit codes and give-up decision: the real nonos_libc
+/// policy, at the path nonos_libc re-exports it under.
+#[path = "../../../libc/src/bringup/policy.rs"]
+pub mod bringup;
+
 /// The PCI Command bits and the DMA flag, as nonos_libc defines them.
 pub const MK_PCI_CFG_COMMAND: u32 = 0x04;
 pub const MK_PCI_CMD_MEMORY_SPACE: u16 = 1 << 1;
