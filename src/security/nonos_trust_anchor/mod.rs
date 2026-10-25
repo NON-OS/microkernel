@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod baked;
+mod baked_trust;
 mod cursor;
 mod decode;
 mod error;
