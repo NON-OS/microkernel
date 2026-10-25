@@ -34,6 +34,7 @@ mod handed;
 mod help;
 mod input_line;
 mod jobs;
+pub mod market;
 mod neighbours;
 mod network;
 pub mod neofetch;
