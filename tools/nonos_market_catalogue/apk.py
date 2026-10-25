@@ -44,11 +44,17 @@ def program(files: bytes, name: str, wanted: str = ""):
             return None
         chosen = elves[0]
     body = [e.body for e in entries if e.name == chosen][-1]
+    return chosen.decode(errors="replace"), bound(chosen.decode(errors="replace"), body)
+
+
+def bound(path: str, body: bytes) -> bytes:
+    """The program's bytes, or ValueError when they are not an ELF or are
+    past what the device binds."""
     if not body.startswith(b"\x7fELF"):
-        raise ValueError(f"its {chosen.decode(errors='replace')} is not an ELF")
+        raise ValueError(f"its {path} is not an ELF")
     if len(body) > MAX_IMAGE:
         raise ValueError(f"its program is past the {MAX_IMAGE >> 20} MiB the device binds")
-    return chosen.decode(errors="replace"), body
+    return body
 
 
 def chosen_by_bytes(entries, name: str, wanted: str):
@@ -61,10 +67,7 @@ def chosen_by_bytes(entries, name: str, wanted: str):
     body = last.get(want)
     if not want.startswith(b"usr/bin/") or body is None:
         raise ValueError(f"its program {wanted} is not in the package")
-    if not body.startswith(b"\x7fELF"):
-        raise ValueError(f"its program {wanted} is not an ELF")
-    if len(body) > MAX_IMAGE:
-        raise ValueError(f"its program is past the {MAX_IMAGE >> 20} MiB the device binds")
+    bound(wanted, body)
     same = [e.name for e in entries if e.name.startswith(b"usr/bin/") and last[e.name] == body]
     own = f"usr/bin/{name}".encode()
     device = own if own in same else same[0]
