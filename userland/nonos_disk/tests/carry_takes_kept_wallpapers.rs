@@ -83,11 +83,11 @@ fn slice(all: &[u8], i: usize) -> Vec<u8> {
 fn only_the_kept_wallpapers_go_each_alone() {
     let all = collection();
     let mut v = FakeVfs::default();
-    v.put("/nonos/setup/answers", &answers(40, (1 << 3) | (1 << 40) | (1 << 62)));
+    v.put("/nonos/setup/answers", &answers(2, (1 << 1) | (1 << 2) | (1 << 3)));
     v.put(COLLECTION, &all);
     let c = gather(&mut v);
     assert_eq!((c.wallpapers.carried, c.wallpapers.left_out), (3, 0));
-    let want: Vec<(String, Vec<u8>)> = [3, 40, 62]
+    let want: Vec<(String, Vec<u8>)> = [1, 2, 3]
         .into_iter()
         .map(|i| (format!("/Wallpapers/{}.jpg", std::str::from_utf8(PINS[i].slug).unwrap()), slice(&all, i)))
         .collect();
@@ -97,7 +97,7 @@ fn only_the_kept_wallpapers_go_each_alone() {
 #[test]
 fn every_wallpaper_kept_goes_as_the_collection() {
     let all = collection();
-    for kept_answers in [Some(answers(55, ALL)), None] {
+    for kept_answers in [Some(answers(0, ALL)), None] {
         let mut v = FakeVfs::default();
         if let Some(a) = &kept_answers {
             v.put("/nonos/setup/answers", a);
@@ -114,24 +114,24 @@ fn every_wallpaper_kept_goes_as_the_collection() {
 #[test]
 fn a_kept_wallpaper_the_device_changed_is_left_out() {
     let mut all = collection();
-    all[PINS[3].offset as usize + 100] ^= 1;
+    all[PINS[1].offset as usize + 100] ^= 1;
     let mut v = FakeVfs::default();
-    v.put("/nonos/setup/answers", &answers(40, (1 << 3) | (1 << 40)));
+    v.put("/nonos/setup/answers", &answers(2, (1 << 1) | (1 << 2)));
     v.put(COLLECTION, &all);
     let c = gather(&mut v);
     assert_eq!((c.wallpapers.carried, c.wallpapers.left_out), (1, 1));
     let names: Vec<String> = wallpapers(c.store.bytes()).into_iter().map(|(n, _)| n).collect();
-    assert_eq!(names, [format!("/Wallpapers/{}.jpg", std::str::from_utf8(PINS[40].slug).unwrap())]);
+    assert_eq!(names, [format!("/Wallpapers/{}.jpg", std::str::from_utf8(PINS[2].slug).unwrap())]);
 }
 
 #[test]
 fn a_disk_an_install_wrote_carries_its_own_kept_files_again() {
     let all = collection();
     let mut v = FakeVfs::default();
-    v.put("/nonos/setup/answers", &answers(40, 1 << 40));
-    let path = format!("/Wallpapers/{}.jpg", std::str::from_utf8(PINS[40].slug).unwrap());
-    v.put(&path, &slice(&all, 40));
+    v.put("/nonos/setup/answers", &answers(2, 1 << 2));
+    let path = format!("/Wallpapers/{}.jpg", std::str::from_utf8(PINS[2].slug).unwrap());
+    v.put(&path, &slice(&all, 2));
     let c = gather(&mut v);
     assert_eq!((c.wallpapers.carried, c.wallpapers.left_out), (1, 0));
-    assert_eq!(wallpapers(c.store.bytes()), [(path, slice(&all, 40))]);
+    assert_eq!(wallpapers(c.store.bytes()), [(path, slice(&all, 2))]);
 }

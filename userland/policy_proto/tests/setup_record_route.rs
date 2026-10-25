@@ -31,7 +31,7 @@ fn every_network_round_trips_in_the_current_version() {
     for route in [NYM, ANYONE, DIRECT] {
         let r = record(route);
         let raw = r.encode();
-        assert_eq!((raw.len(), &raw[..4]), (ANSWERS_LEN, &b"NSA6"[..]));
+        assert_eq!((raw.len(), &raw[..4]), (ANSWERS_LEN, &b"NSA7"[..]));
         assert_eq!(Record::decode(&raw), Some(r));
         assert_eq!(check_record(&raw).unwrap().route, route);
     }

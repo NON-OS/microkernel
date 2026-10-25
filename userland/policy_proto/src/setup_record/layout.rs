@@ -25,6 +25,10 @@
  * through, as crate::route has it. Older records read as the Nym mixnet.
  * Version 6 adds eight bytes: the wallpapers kept, as
  * crate::wallpapers_kept has them. Older records keep every wallpaper.
+ * Version 7 is version 6's layout in the catalog's second era (see
+ * crate::wallpaper_labels::CATALOG_ERA): its wallpaper and kept set name the
+ * pictures this build ships. Every older version named them by the first
+ * era's indices, so it is read as the default wallpaper with every one kept.
  */
 
 use super::rules::{HOST_MAX, NAME_MAX, TIER_MAX};
@@ -41,6 +45,7 @@ pub(super) const MAGIC_V3: [u8; 4] = *b"NSA3";
 pub(super) const MAGIC_V4: [u8; 4] = *b"NSA4";
 pub(super) const MAGIC_V5: [u8; 4] = *b"NSA5";
 pub(super) const MAGIC_V6: [u8; 4] = *b"NSA6";
+pub(super) const MAGIC_V7: [u8; 4] = *b"NSA7";
 
 /* Magic, keyboard, time zone, wallpaper. */
 pub const ANSWERS_V1_LEN: usize = 7;
