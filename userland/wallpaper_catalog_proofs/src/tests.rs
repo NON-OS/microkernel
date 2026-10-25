@@ -15,10 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The proofs, each in its own file beside this one.
 
-#[path = "../../capsule_wallpaper/src/first_paint/embedded.rs"]
-mod wallpaper_embedded;
-#[path = "../../policy_proto/src/wallpaper_labels.rs"]
-mod wallpaper_labels;
 #[path = "default_tests.rs"]
 mod default_tests;
 #[path = "download_tests.rs"]
@@ -31,7 +27,11 @@ mod pin_tests;
 mod serve_tests;
 #[path = "wallpaper_backoff_tests.rs"]
 mod wallpaper_backoff_tests;
+#[path = "../../capsule_wallpaper/src/first_paint/embedded.rs"]
+mod wallpaper_embedded;
 #[path = "wallpaper_job_tests.rs"]
 mod wallpaper_job_tests;
+#[path = "../../policy_proto/src/wallpaper_labels.rs"]
+mod wallpaper_labels;
 #[path = "wallpaper_said_tests.rs"]
 mod wallpaper_said_tests;
