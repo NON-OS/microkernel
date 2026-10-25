@@ -34,7 +34,7 @@ The Terminal runs a box naming destinations in the personality's one terminal ro
 
 - The program may open TCP connections to the destinations named and to no other. A connection anywhere else, and any UDP datagram, is refused and counted as `network`.
 - Each connection goes over the anonymity network the system uses (the Nym mixnet, or Anyone when it is chosen), never directly, even when the default network is Direct.
-- A name is answered by NONOS itself; the lookup never leaves the machine.
+- A name is answered by NONOS itself; the lookup never leaves the machine. On the image booted for this release a lookup from inside a box does not yet return (Python's `gethostbyname` says `Try again`), so name each destination by its IPv4 address for now.
 - A program with no policy of its own gets the network the box names. A program with a published policy gets it only if its own policy grants the network, and is then held to its own destinations and the box's both. A box never widens a published policy; such a program with no network is not started: `[LINUX] the network role runs only a program granted NET_ANON`.
 - Each program the run starts is held to the same list.
 

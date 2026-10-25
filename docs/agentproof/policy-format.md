@@ -1,10 +1,11 @@
 # AgentProof box policies: the `nonos-box 1` file
 
 A box policy is a short text file that says what a program run in an AgentProof box may
-write and which destinations it may connect to. `agentproof policy check` reads it, refuses it with the line and the reason, or says in
-plain words what it allows, with the `linux --box` word it means and that box's policy hash.
-The hash is the one the run's `BOX REPORT` shows, because the word is checked and hashed by
-`capsule_linux`'s own code, not a copy of it.
+write and which destinations it may connect to. `agentproof policy check` reads it, refuses
+it with the line and the reason, or says in plain words what it allows, with the
+`linux --box` word it means and that box's policy hash. The hash is the one the run's `BOX REPORT`
+shows, because the word is checked and hashed by `capsule_linux`'s own code, not a copy of
+it.
 
 ## An example
 
@@ -45,9 +46,10 @@ Run the program in it with `linux --box allow:/home/work,/tmp/out python3 build.
 - A line whose first word starts with `#` is a comment. Blank lines are skipped.
 
 Words are separated by spaces. Lines may come in any order after the header. `base` and
-`network` are each named once; a file names `network none` or at least one `connect` line. A file is printable ASCII, spaces and newlines, at most 16384
-bytes; a tab or carriage return is refused. Any other line is refused, never skipped. The
-box word a file makes is at most 255 bytes.
+`network` are each named once; a file names `network none` or at least one `connect` line. A
+file is printable ASCII, spaces and newlines, at most 16384 bytes; a tab or carriage return
+is refused. Any other line is refused, never skipped. The box word a file makes is at most
+255 bytes.
 
 ## A box with destinations
 
@@ -71,11 +73,14 @@ network (`app.linux.term.net`); every other box runs in a role that has none. In
   connection to anything else, and any UDP datagram, is refused and counted as `network`.
 - Each connection goes over the anonymity network the system uses (the Nym mixnet, or
   Anyone when it is chosen), never directly, whatever the default network is.
-- A name is answered by NONOS itself; the lookup never leaves the machine.
+- A name is answered by NONOS itself; the lookup never leaves the machine. On the image
+  booted for this release a lookup from inside a box does not yet return (Python's
+  `gethostbyname` says `Try again`), so name each destination by its IPv4 address for now.
 - A program with no policy of its own gets the network the box names. A program with a
   published policy gets it only if its own policy grants the network, and is then held to
-  its own destinations and the box's both; a box never widens a published policy. A program with a published policy and no network is not started in a
-  box naming destinations: `the network role runs only a program granted NET_ANON`.
+  its own destinations and the box's both; a box never widens a published policy. A program
+  with a published policy and no network is not started in a box naming destinations:
+  `the network role runs only a program granted NET_ANON`.
 - Each program the run starts is held to the same list.
 
 The report lists the destinations the box allowed and each one the run connected to, and
@@ -87,8 +92,8 @@ a `[BOX-NET]` line before the `[BOX]` line logs both (see
 Every box gives a terminal and execve, and each program the run starts is held to the same
 box. The image is read-only. A box without `connect` lines has no network. A program gets
 what both the box and its own policy allow, so a folder in `/home` or `/root` is writable
-only when the program's own policy gives it a home. The run's folders are new at its start and wiped at its end. See
-[Run a program in a box](../using/linux-box.md).
+only when the program's own policy gives it a home. The run's folders are new at its start
+and wiped at its end. See [Run a program in a box](../using/linux-box.md).
 
 ## The command
 
