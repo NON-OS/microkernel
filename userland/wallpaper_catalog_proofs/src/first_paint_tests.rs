@@ -19,10 +19,10 @@
 
 use nonos_toolkit::image::scale::scale_cover;
 
+use super::wallpaper_embedded::EMBEDDED;
 use crate::wallpaper_decode::decode_jpeg;
 use crate::wallpaper_first_paint::{paint, Backing};
 
-const EMBEDDED: &[u8] = include_bytes!("../../../nonos-data/wallpapers/special-variant-9.jpg");
 const INK: u32 = 0xFF0A_0B0D;
 /// What the spare pixels past each row hold before and after.
 const SPARE: u32 = 0x5A5A_5A5A;

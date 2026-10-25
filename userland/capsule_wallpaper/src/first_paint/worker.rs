@@ -28,9 +28,7 @@ use nonos_libc::{Handoff, Look, WorkerSeat};
 
 use super::job::{paint, Backing};
 
-/// The picture linked in, up before any catalog fetch returns.
-pub const EMBEDDED: &[u8] =
-    include_bytes!("../../../../nonos-data/wallpapers/special-variant-9.jpg");
+pub(super) use super::embedded::EMBEDDED;
 
 static DONE: Handoff<bool> = Handoff::new();
 static SEAT: WorkerSeat = WorkerSeat::new();
