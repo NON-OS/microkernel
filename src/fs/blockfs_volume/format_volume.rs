@@ -25,6 +25,6 @@ pub fn format_volume(uuid: [u8; 16]) -> Result<u32, VolumeError> {
         .map_err(|_| VolumeError::NoRandomness)?;
     let key_id = store(KeyType::MasterKey, &key, 0).map_err(VolumeError::Keyring)?;
     let mount = blockfs::format(&key, uuid).map_err(VolumeError::BlockFs)?;
-    *VOLUME.write() = Some(VolumeState { key, mount });
+    *crate::smp::write_responsive(&VOLUME) = Some(VolumeState { key, mount });
     Ok(key_id)
 }

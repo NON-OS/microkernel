@@ -14,55 +14,49 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `neofetch` — the fresh-tab splash rendered as scrollback text.
-
-use alloc::vec::Vec;
-use nonos_libc::mk_uptime_ms;
+//! `neofetch`: the system's facts beside the emblem, in the fastfetch style.
 
 use crate::command::output::Output;
 use crate::term::state::State;
-use crate::term::util::copy_into;
+use crate::term::theme::profiles::by_index;
 
 use super::compose::two_column;
-use super::logo::LOGO;
+use super::emblem::emblem;
 use super::palette::palette;
 
+#[path = "facts.rs"]
+mod facts;
+#[path = "gather.rs"]
+mod gather;
 #[path = "run_info.rs"]
 mod run_info;
 
-use run_info::info;
-
-const VERSION: &str = include_str!("../../../../../../VERSION");
+use gather::read;
+use run_info::{info, Facts};
 
 const GAP: usize = 2;
 
-/*
- * The system's uptime, from the monotonic clock `uptime` reads. It was the
- * time since this tab opened, under a row labelled uptime.
- */
-fn uptime(buf: &mut [u8]) -> usize {
-    let ms = mk_uptime_ms();
-    if ms < 0 {
-        return copy_into(buf, b"unavailable");
-    }
-    crate::paint::fetch_uptime::uptime_str(ms as u64, buf)
-}
-
 pub fn run(state: &mut State) {
-    let mut ubuf = [0u8; 32];
-    let n = uptime(&mut ubuf);
-    let signed = crate::command::builtin::receipt::own_line();
-    let mut kernel = Vec::with_capacity(32);
-    kernel.extend_from_slice(b"microkernel ");
-    kernel.extend_from_slice(VERSION.trim_end().as_bytes());
-
-    let rows = two_column(&LOGO, &info(&kernel, &ubuf[..n], signed), GAP);
-    let (plain, styled) = palette();
-
+    let r = read(state);
+    let f = Facts {
+        kernel: &r.kernel,
+        uptime: &r.uptime,
+        signed: crate::command::builtin::receipt::own_line(),
+        memory: &r.memory,
+        processes: &r.processes,
+        load: &r.load,
+        terminal: &r.terminal,
+        theme: r.theme,
+    };
+    let bg = by_index(state.scrollback.theme_of.unwrap_or(0)).bg & 0x00FF_FFFF;
+    let rows = two_column(&emblem(bg), &info(&f), GAP);
     let out = &mut Output::new(&mut state.scrollback);
-    for line in &rows {
-        out.writeln(line);
+    for (plain, styled) in &rows {
+        out.writeln_styled(plain, styled);
     }
     out.writeln(b"");
-    out.writeln_styled(&plain, &styled);
+    for strip in 0..2 {
+        let (plain, styled) = palette(strip);
+        out.writeln_styled(&plain, &styled);
+    }
 }

@@ -257,6 +257,7 @@ let
       "scripts/check_kernel_wait.py --self-test" "scripts/check_kernel_wait.py"
       "scripts/check_attest_params.py" "tools/nonos-assumptions"
       "scripts/check_unenforced.py" "scripts/check_unenforced.py --self-test"
+      "tools/ratchets/linux_calls.py --self-test"
       "tools/nonos-linux-coverage --baseline scripts/baselines/linux-syscalls.txt"
       "tools/nonos-wayland-coverage --baseline scripts/baselines/wayland-globals.txt"
       "tools/ratchets/disclosure.py" "tools/nonos-mutant --check"

@@ -23,15 +23,15 @@ pub(super) const DRIVER_STORVSC_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-storvsc")]
 pub(super) const DRIVER_STORVSC_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_storvsc.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_storvsc.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-storvsc")]
 pub(super) const DRIVER_STORVSC_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_storvsc.manifest.bin");
+    crate::baked_trust!("capsules/driver_storvsc.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-storvsc")]
 pub(super) const DRIVER_STORVSC_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_storvsc.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_storvsc.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-storvsc"))]
 pub(super) const DRIVER_STORVSC_ELF: &[u8] = &[];

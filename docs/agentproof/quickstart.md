@@ -131,7 +131,7 @@ or no `[BOX]` line at all, as a failed run.
 
 ## 6. Give it a destination
 
-An `allow:` box may name destinations, `net:<IPv4 address>:<port>`. The program may open TCP
+An `allow:` box may name destinations, `net:<IPv4 address or name>:<port>`. The program may open TCP
 connections to those and to nothing else, over the anonymity network, never directly. The
 Gauntlet booted this box, with an agent that tries listed and unlisted destinations:
 
@@ -161,14 +161,54 @@ BOX REPORT v1
   agent started tried with `nc`; its `nc` to `10.0.2.2:80` went through the box like the
   agent's own.
 - A UDP datagram is refused.
-- A name lookup from inside a box does not yet return in this release (`Try again`), so name
-  destinations by address for now.
+- A name is answered inside NONOS and never looked up outside: `api.example.com` resolves to
+  an address that stands for the name, and a connection to it is held to the list by name.
 
 The serial log adds one line before `[BOX]`:
 
 ```
 [BOX-NET] v=1 allowed=10.0.2.2:80,api.example.com:443 connected=none
 ```
+
+## 7. Learn the box
+
+`linux --box learn` runs the agent once to learn the box it needs. It is held as `offline` with
+no network, and records what it wrote and where it tried to connect. The agent from section 1,
+with a name lookup and a connection to `api.example.com:443` added, booted under the Gauntlet:
+
+```
+BOX REPORT v1
+  policy   learn b2c15450111fd5ce2432a6da256639732a53d02a3181efc58d16eef0be4e02ad
+  mode     LEARN, not enforced: held as offline with no network, to learn what it does
+  ...
+  refused  3
+    write         1  /etc/d
+    network       2  a stream to 10.0.2.2:80, a stream to api.example.com:443
+  ...
+  learned  the tightest nonos-box 1 file for what it did:
+    nonos-box 1
+    # learned from one run; check it before you use it
+    # also refused, which no file allows: write 1
+    base folders
+    write /home/c
+    write /home/e
+    write /tmp/a
+    write /tmp/out
+    connect 10.0.2.2:80
+    connect api.example.com:443
+```
+
+Its `[BOX]` line says `preset=learn enforced=no`, and the Gauntlet fails a learn run: it is
+not a policy. Save the file and check it:
+
+```
+$ agentproof policy word learned.box
+allow:/home/c,/home/e,/tmp/a,/tmp/out,net:10.0.2.2:80,net:api.example.com:443
+```
+
+The same agent, run in that box, booted with one refusal, the write to `/etc/d` that no file
+can allow. Its writes and both connections went through the box, and the report's hash,
+`15e3a131...dcad6`, is the one `agentproof policy hash` gives for the file.
 
 ## What this does and does not prove
 
