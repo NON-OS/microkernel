@@ -1129,6 +1129,7 @@
    "src/security/attest_policy/record.rs",
    "src/security/boot/loader_check/record.rs",
    "userland/attest_doc_proofs",
+   "userland/capsule_about/src/about/data/dma_words.rs",
    "userland/capsule_about/src/about/data/doc_parse/layout.rs",
    "userland/capsule_about/src/about/data/doc_parse/parse.rs",
    "userland/capsule_about/src/about/data/doc_parse/types.rs",
