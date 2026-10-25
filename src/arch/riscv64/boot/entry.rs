@@ -19,9 +19,17 @@ use super::info::BootInfo;
 #[no_mangle]
 pub extern "C" fn kernel_entry(dtb_ptr: u64) -> ! {
     let mut info = BootInfo::default();
-    super::dtb_adapter::populate(dtb_ptr, &mut info);
+    let parsed = super::dtb_adapter::populate(dtb_ptr, &mut info);
 
     super::init(&info);
+    // Without the tree nothing is known about RAM or what in it the firmware
+    // keeps, so the boot stops here, on the default UART, and says so.
+    if !parsed {
+        crate::sys::serial::println(
+            b"[NONOS] riscv64: the device tree could not be read; stopping",
+        );
+        crate::arch::halt_loop()
+    }
 
     // Into the path every architecture shares, as aarch64 does: the bootstrap
     // heap first, then the neutral handoff.

@@ -1,0 +1,63 @@
+#!/bin/bash
+# The worker-reply booted proof, scratch only (pk-build): privacy/worker-reply
+# at $1, profile wrproof = the full desktop with capsule serial debug kept and
+# nonos-capsule-proof-io, whose main.rs is replaced by wr_proof_main.rs (the
+# installer and crypto_pool from its main thread, then from a worker). Setup
+# walked; then the Terminal runs `pkg` jobs on its worker, each timed by the
+# serial log. Evidence only.
+SP=/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad
+PK=/home/user/privatekernel
+HEAD_SHA=${1:?the worker-reply head}
+TAG=${2:-wr}
+P=$SP/$TAG; rm -rf $P; mkdir -p $P
+cd /home/user/pk-build && git reset -q --hard && git clean -qfd tools/nix mk userland/capsule_proof_io >/dev/null
+for i in 1 2 3 4; do git fetch -q origin privacy/worker-reply main && break; sleep $((2**i)); done
+git checkout -q --detach "$HEAD_SHA" || { echo "NO SUCH HEAD"; exit 1; }
+git log --oneline -1 | tee $P/head.txt
+cp $SP/wr_proof_main.rs userland/capsule_proof_io/src/main.rs
+python3 - <<'PY'
+p="tools/nix/config.nix"; s=open(p).read()
+a="    standard = {\n"
+add='''    wrproof = {
+      about = "the worker-reply scratch proof: the full desktop with proof_io calling from a worker thread";
+      for = "the worker-reply boot";
+      privacy = "none: a test image";
+      kernel = [ "microkernel-full-gui" "nonos-capsule-proof-io" ];
+      loader = "standard";
+      drop = [ ];
+    };
+'''
+assert s.count(a)==1; open(p,"w").write(s.replace(a, add+a))
+PY
+git diff --stat | tee -a $P/head.txt
+git add -A -f tools/nix userland/capsule_proof_io >/dev/null
+nix develop --command python3 tools/nix/catalogues.py > $SP/$TAG-cat.log 2>&1 || { echo CATALOGUE-FAILED; tail -20 $SP/$TAG-cat.log; exit 1; }
+git add -A -f tools/nix >/dev/null
+nix develop --command python3 tools/nix/inputs.py >> $SP/$TAG-cat.log 2>&1 || { echo INPUTS-FAILED; tail -20 $SP/$TAG-cat.log; exit 1; }
+git add -A -f tools/nix >/dev/null
+NIX_CONFIG=$'max-jobs = 4\ncores = 4' python3 tools/nonos-dev-image --profile wrproof > $SP/devimg-$TAG.log 2>&1 || { echo IMAGE-FAILED; tail -40 $SP/devimg-$TAG.log; exit 1; }
+IMG=/home/user/pk-build/target/dev/tree/target/release/wrproof-dev/nonos.img
+sha256sum $IMG | tee -a $P/head.txt
+cd $PK
+rm -f target/qemu/qmp.sock
+q() { python3 $SP/walk-a/qmp.py "$@"; }
+echo "boot at $(date -u +%T)"
+nix develop --command python3 tools/nonos-qemu --image "$IMG" --tpm --fresh --headless --smp 4 --mem 6G --timeout 7000 \
+  --serial $P/serial.log --lane iommu=intel --lane usb-kbd --lane usb-tablet > $P/qemu.log 2>&1 &
+for i in $(seq 1 720); do grep -qa 'name=app.setup_wizard' $P/serial.log 2>/dev/null && break; sleep 5; done
+sleep 180
+q shot:$P/00-setup.png >/dev/null
+for k in ret "n o n o s ret" ret ret ret ret ret ret ret ret ret ret ret; do q $k sleep:6 >/dev/null; done
+sleep 60; q esc sleep:4 shot:$P/20-desktop.png >/dev/null
+echo "-- proof_io"; grep -a 'EXIT\] code=[0-9]* proof_io\|SPAWN\] name=proof_io' $P/serial.log | cut -c1-120
+python3 $SP/walk-a/click.py click:450,1020 sleep:20 >/dev/null
+n=30
+for cmd in 'pkg remove gui_demo' 'pkg install /home/nonos/readme.txt' 'pkg remove zz'; do
+  L=$(wc -l < $P/serial.log); echo "== $cmd at $(date -u +%T)"
+  python3 $SP/type.py "$cmd"$'\n'; sleep 5
+  q shot:$P/$n-5s-$(echo $cmd | tr ' /' '__').png >/dev/null; sleep 35
+  q shot:$P/$n-40s-$(echo $cmd | tr ' /' '__').png >/dev/null; n=$((n+1))
+  tail -n +$L $P/serial.log | grep -a 'ipc.call\|INSTALLER\|installer' | cut -c1-170
+done
+echo "-- every ipc.call DIAG in the boot"; grep -a 'DIAG\] ipc.call' $P/serial.log | cut -c1-170
+echo WR-DONE

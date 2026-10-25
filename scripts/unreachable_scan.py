@@ -27,8 +27,11 @@ an import is not a call: the KASLR validator was re-exported through three
 levels of mod.rs and invoked from nowhere. And a definition mentions its own
 name, so counting that line makes every function look used.
 
-Architectures the build is not targeting are skipped. Their code does not
-compile into anything, so "nothing calls it" says nothing about it.
+Definitions in architectures the build is not targeting are skipped. Their
+code does not compile into anything, so "nothing calls it" says nothing about
+it. Their calls still count: a shared function that only the aarch64 DMA
+backend calls is called, on aarch64, and moving that backend under src/arch
+must not make it read as dead.
 """
 
 import re
@@ -44,11 +47,11 @@ EXPORTED_TO_LINKER = re.compile(r"#\[(no_mangle|export_name)")
 INACTIVE = ("src/arch/aarch64/", "src/arch/riscv64/")
 
 
-def sources(root, roots=("src",)):
+def sources(root, roots=("src",), skip=INACTIVE):
     for base in roots:
         for path in sorted((root / base).rglob("*.rs")):
             rel = path.relative_to(root)
-            if any(str(rel).startswith(skip) for skip in INACTIVE):
+            if any(str(rel).startswith(s) for s in skip):
                 continue
             yield rel, path.read_text(errors="replace").splitlines()
 
@@ -68,9 +71,10 @@ def definitions(root, roots=("src",)):
 
 
 def called(root, roots=("src",)):
-    """Every name mentioned somewhere that is not an import or a definition."""
+    """Every name mentioned somewhere that is not an import or a definition,
+    the inactive architectures' call sites included."""
     seen = set()
-    for _, lines in sources(root, roots):
+    for _, lines in sources(root, roots, skip=()):
         for line in lines:
             if IMPORT.match(line) or COMMENT.match(line) or DEFINITION.match(line):
                 continue

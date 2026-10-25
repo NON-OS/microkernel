@@ -1,0 +1,30 @@
+# AgentProof Gauntlet for your own repository: copy to .github/workflows/agentproof.yml.
+# It runs your agent in a NONOS box on every push and fails the build when the
+# box refuses anything. Never add this to NONOS's own repositories.
+name: agentproof
+on: [push, pull_request]
+jobs:
+  gauntlet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      # The NONOS tree the gauntlet image is built from, at a release you pin.
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.NONOS_REPOSITORY }}
+          ref: ${{ vars.NONOS_REF }}
+          path: nonos
+          token: ${{ secrets.NONOS_READ_TOKEN }}
+      # QEMU, its firmware and the TPM emulator come from the NONOS flake. QEMU
+      # uses KVM where /dev/kvm opens, and emulates the CPU where it does not.
+      - uses: cachix/install-nix-action@v27
+      # agentproof/ in your repository holds `job` and your agent's files.
+      - name: Run the agent in its box
+        working-directory: nonos
+        run: python3 tools/agentproof-gauntlet --job "$GITHUB_WORKSPACE/agentproof" --out "$GITHUB_WORKSPACE/agentproof-result"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agentproof-result
+          path: agentproof-result/

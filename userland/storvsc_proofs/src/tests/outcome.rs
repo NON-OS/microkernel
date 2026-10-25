@@ -40,7 +40,7 @@ fn a_read_request_is_built_as_linux_builds_it() {
     let p = srb(Addr { target: 1, lun: 7 }, &READ10, Dir::In, 512).unwrap();
     let w32 = |at: usize| u32::from_le_bytes(p[at..at + 4].try_into().unwrap());
     assert_eq!((w32(0), w32(4), w32(8)), (3, 1, 0), "EXECUTE_SRB, completion asked");
-    assert_eq!(u16::from_le_bytes([p[12], p[13]]), 48);
+    assert_eq!(u16::from_le_bytes([p[12], p[13]]), 52);
     assert_eq!(&p[14..24], &[0, 0, 0, 0, 1, 7, 10, 20, 1, 0]);
     assert_eq!(w32(24), 512);
     assert_eq!(&p[28..38], &READ10);

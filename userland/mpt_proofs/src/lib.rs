@@ -24,6 +24,8 @@ extern crate alloc;
 pub mod constants;
 #[path = "../../capsule_driver_mpt/src/discover.rs"]
 pub mod discover;
+#[path = "../../capsule_driver_mpt/src/frame.rs"]
+pub mod frame;
 #[path = "../../capsule_driver_mpt/src/handshake.rs"]
 pub mod handshake;
 #[path = "../../capsule_driver_mpt/src/hba.rs"]

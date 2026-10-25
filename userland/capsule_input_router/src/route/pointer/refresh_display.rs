@@ -14,28 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_libc::InputEvent;
+
 use crate::clients::compositor;
 use crate::state::Context;
 
-// How often the display size is asked again once it is known. The compositor
-// moves from the firmware framebuffer to the virtio-gpu display once that
-// driver answers, at that display's size; asked once, the cursor kept the old
-// edges for the rest of the session.
+// How often the display size is asked again once it is known: the fallback
+// for a size notice lost or sent before the router was up (cursor_edges.rs).
+// Until it is known, every pointer event asks.
 const RECHECK_MS: i64 = 2000;
 
-pub(super) fn refresh_display(ctx: &mut Context) {
+/// True once the cursor's edges are the display's. Until then `event`'s
+/// absolute position, if it has one, is held for when they are.
+pub(super) fn refresh_display(ctx: &mut Context, event: &InputEvent) -> bool {
     let now = nonos_libc::mk_uptime_ms();
     let since = now.saturating_sub(ctx.display_checked_ms);
     if ctx.cursor.configured && (0..RECHECK_MS).contains(&since) {
-        return;
+        return true;
     }
     ctx.display_checked_ms = now;
     let rid = ctx.issue_request_id();
     if let Some((width, height)) = compositor::display_size(&mut ctx.compositor_port, rid) {
-        if ctx.cursor.configured {
-            ctx.cursor.resize(width, height);
-        } else {
-            ctx.cursor.configure(width, height);
-        }
+        ctx.cursor.adopt(width, height);
     }
+    if !ctx.cursor.configured {
+        ctx.cursor.hold(event);
+    }
+    ctx.cursor.configured
 }

@@ -1,0 +1,2 @@
+[SPAWN] name=net.core pid=0x0000000000000023 caps=0x000000000000047D entry=0x000000001E48D260
+[NET-CORE] capsule spawned

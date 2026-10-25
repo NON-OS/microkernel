@@ -55,6 +55,8 @@ mod retired_tests;
 mod store_default_tests;
 #[path = "tests_custody_typed.rs"]
 mod tests_custody_typed;
+#[path = "keyring_tx_fields_tests.rs"]
+mod keyring_tx_fields_tests;
 #[path = "vault_gate_tests.rs"]
 mod vault_gate_tests;
 #[path = "vault_read/mod.rs"]
