@@ -16,7 +16,7 @@ CAPSULE_NAMESPACE        := systems.nonos.nox_settle
 # services'. The reply name is this capsule's own kernel reply
 # endpoint, 0x1_0000_001C.
 CAPSULE_SERVICE_ENDPOINT := service:5200:nox_settle
-CAPSULE_REPLY_ENDPOINT   := reply:5201:endpoint.4294967324
+CAPSULE_REPLY_ENDPOINT   := reply:5201:endpoint.4294967332
 # Network | IPC | Memory | Crypto = 0x04 | 0x08 | 0x10 | 0x20
 CAPSULE_REQUIRED_CAPS    := 0x3C
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_nox_settle
