@@ -1,0 +1,33 @@
+[efi-vars] added   firmware 04b37fe8-f6ae-480b-bdd5-37d98c5e89aa VarErrorFlag
+[efi-vars] added   firmware 4b47d616-a8d6-4552-9d44-ccad2e0f4cf9 InitialAttemptOrder
+[efi-vars] added   firmware 4c19049f-4137-4dd3-9c10-8b97a83ffdfa MemoryTypeInformation
+[efi-vars] added   firmware 59324945-ec44-4c0d-b1cd-9db139df070c Attempt 1
+[efi-vars] added   firmware 59324945-ec44-4c0d-b1cd-9db139df070c Attempt 2
+[efi-vars] added   firmware 59324945-ec44-4c0d-b1cd-9db139df070c Attempt 3
+[efi-vars] added   firmware 59324945-ec44-4c0d-b1cd-9db139df070c Attempt 4
+[efi-vars] added   firmware 59324945-ec44-4c0d-b1cd-9db139df070c Attempt 5
+[efi-vars] added   firmware 59324945-ec44-4c0d-b1cd-9db139df070c Attempt 6
+[efi-vars] added   firmware 59324945-ec44-4c0d-b1cd-9db139df070c Attempt 7
+[efi-vars] added   firmware 59324945-ec44-4c0d-b1cd-9db139df070c Attempt 8
+[efi-vars] added   firmware 5b446ed1-e30b-4faa-871a-3654eca36080 525400123456
+[efi-vars] added   firmware 8be4df61-93ca-11d2-aa0d-00e098032b8c Boot0000
+[efi-vars] added   firmware 8be4df61-93ca-11d2-aa0d-00e098032b8c Boot0001
+[efi-vars] added   firmware 8be4df61-93ca-11d2-aa0d-00e098032b8c Boot0002
+[efi-vars] added   firmware 8be4df61-93ca-11d2-aa0d-00e098032b8c Boot0003
+[efi-vars] added   firmware 8be4df61-93ca-11d2-aa0d-00e098032b8c Boot0004
+[efi-vars] added   firmware 8be4df61-93ca-11d2-aa0d-00e098032b8c Boot0005
+[efi-vars] added   firmware 8be4df61-93ca-11d2-aa0d-00e098032b8c Boot0006
+[efi-vars] added   firmware 8be4df61-93ca-11d2-aa0d-00e098032b8c Boot0007
+[efi-vars] added   firmware 8be4df61-93ca-11d2-aa0d-00e098032b8c BootOrder
+[efi-vars] added   firmware 8be4df61-93ca-11d2-aa0d-00e098032b8c ConIn
+[efi-vars] added   firmware 8be4df61-93ca-11d2-aa0d-00e098032b8c ConOut
+[efi-vars] added   firmware 8be4df61-93ca-11d2-aa0d-00e098032b8c ErrOut
+[efi-vars] added   firmware 8be4df61-93ca-11d2-aa0d-00e098032b8c Key0000
+[efi-vars] added   firmware 8be4df61-93ca-11d2-aa0d-00e098032b8c Key0001
+[efi-vars] added   firmware 8be4df61-93ca-11d2-aa0d-00e098032b8c Lang
+[efi-vars] added   firmware 8be4df61-93ca-11d2-aa0d-00e098032b8c PlatformLang
+[efi-vars] added   firmware 8be4df61-93ca-11d2-aa0d-00e098032b8c Timeout
+[efi-vars] added   firmware 937fe521-95ae-4d1a-8929-48bcd90ad31a 525400123456
+[efi-vars] added   firmware 9fb9a8a1-2f4a-43a6-889c-d0f7b6c47ad5 ClientId
+[efi-vars] added   firmware eb704011-1402-11d3-8e77-00a0c969723b MTC
+[efi-vars] PASS: 32 changed, 0 not the firmware's

@@ -22,7 +22,7 @@ impl Context {
         if let Err(e) = self.validate() {
             crate::sys::serial::println(b"[FATAL] Context restore failed");
             crate::sys::serial::println(e.as_bytes());
-            crate::arch::halt_loop()
+            crate::boot::panic::fatal()
         }
         let mut safe_ctx = *self;
         safe_ctx.rflags = Self::sanitize_rflags(safe_ctx.rflags);

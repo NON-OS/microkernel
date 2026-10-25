@@ -48,7 +48,7 @@ pub fn stack_canary_failed() -> ! {
     );
 
     // The stack this frame stands on is already corrupt, so there is no safe
-    // way back. Mask interrupts and stop the CPU here.
+    // way back. Mask interrupts and leave as a panic does: wiped, then off.
     crate::arch::disable_interrupts();
-    crate::arch::halt_loop()
+    crate::boot::panic::fatal()
 }

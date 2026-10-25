@@ -35,13 +35,15 @@ and `MK_PCI_MSIX_CTRL_ENABLE` (bit 15)
 
 The call is `mk_mmio_map(device_id, epoch, bar_index, flags, offset, length,
 out)`, and `mk_mmio_map` packs the BAR index into the top half of one argument
-(`userland/libc/src/broker/mmio.rs:24-36`). `flags` must be 0, since
-`FLAGS_KNOWN` is empty (`src/hardware/broker/mmio/map.rs:47-53`).
+(`userland/libc/src/broker/mmio.rs`). `flags` is 0, or `MK_MMIO_MAP_WC` for
+a framebuffer on a prefetchable BAR; any other bit is `ENOTSUP`
+(`src/hardware/broker/mmio/cache.rs`, `fn cache_for`).
 `map_for_caller` then checks the claim and epoch, that the BAR is a memory BAR
 within `bar_count`, and that the request fits the BAR. It maps the pages into
-the capsule as user, read-write, uncached and no-execute, and `map_for_caller`
-records the [grant](../overview/glossary-dma-pool.md#grant) last
-(`src/hardware/broker/mmio/map.rs:49-112`). The offset and length need not be
+the capsule as user, read-write, uncached and no-execute, or write-combined
+when asked and allowed, and `map_for_caller` records the
+[grant](../overview/glossary-dma-pool.md#grant) last
+(`src/hardware/broker/mmio/map.rs`, `fn map_for_caller`). The offset and length need not be
 page aligned: the returned `user_va` already carries the offset into its first
 page (`src/hardware/broker/mmio/map.rs:30-35`).
 
