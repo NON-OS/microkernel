@@ -18,7 +18,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::layout::Layout;
+use crate::layout::{follow, Layout};
 use crate::paint::block_chrome::draw_block_chrome;
 use crate::paint::draw_input_line::draw_input_line;
 use crate::paint::fetch::draw_fetch;
@@ -48,6 +48,8 @@ pub fn paint(
      * whole body and is drawn as its screen; the prompt returns at its end.
      */
     let owned = vt.alt_active() || state.fg_running;
+    let rows = Rows::Shell { rows: (l.body.h / m.lh.max(1)) as usize, back: vt.view_offset() };
+    let l = if owned || state.fresh { l } else { follow(l, rows.used(vt), m.lh) };
     let bottom = if owned { l.footer.y } else { l.input.y };
     let area = Area { x: text_x, y: l.body.y, max_x: text_r, max_y: bottom };
     let f = Frame { vt, area, m, t };
@@ -56,7 +58,6 @@ pub fn paint(
     } else if state.fresh {
         draw_fetch(fb, text_x, l.body.y, text_r, t);
     } else {
-        let rows = Rows::Shell { rows: (l.body.h / m.lh.max(1)) as usize, back: vt.view_offset() };
         draw_block_chrome(state, fb, &f.area, rows.first(vt), &m, t);
         draw_vt(&f, fb, rows, state.shade());
     }
