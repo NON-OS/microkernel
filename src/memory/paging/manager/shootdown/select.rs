@@ -36,7 +36,7 @@ pub(super) fn select(asid: u32) -> ([u64; WORDS], u32) {
      * reaches its deadline and halts the machine.
      */
     for cpu in 0..crate::smp::MAX_CPUS {
-        if cpu == self_cpu || !crate::smp::cpu_is_online(cpu) {
+        if cpu == self_cpu || !may_hold_entries(cpu, asid) {
             continue;
         }
         let Some(d) = crate::smp::percpu::get(cpu) else {
@@ -49,6 +49,26 @@ pub(super) fn select(asid: u32) -> ([u64; WORDS], u32) {
         targets += 1;
     }
     (selected, targets)
+}
+
+/// Online, or, for a kernel round, still being brought up.
+///
+/// An AP runs kernel code on the kernel's CR3 from the trampoline on, long
+/// before it publishes `Online`, and caches what it touches. Targeting only
+/// `Online` skipped it: a round could return while an AP in `bring_up` still
+/// held the old entry, and the page under it could be freed and reused. The
+/// boot CPU stores `Starting` before it sends INIT (`ap_unit::start`), and
+/// INIT empties the AP's TLB, so a cpu read here as `Offline` holds nothing
+/// from before this round's write. A `Starting` target takes no IPI
+/// (`send.rs`) and serves its mark itself; one the boot CPU gives up on is
+/// answered for by the waiter (`wait.rs`). `userland/shootdown_proofs`
+/// searches every interleaving of this with the round and its mutants.
+///
+/// A user round needs no such cpu: bring-up runs on the kernel's tables,
+/// which map no user address space, so its active asid is none.
+#[inline]
+fn may_hold_entries(cpu: usize, asid: u32) -> bool {
+    crate::smp::cpu_is_online(cpu) || (asid == ASID_KERNEL && crate::smp::cpu_is_starting(cpu))
 }
 
 /// Only a cpu running the asid can hold its entries: CR3 is loaded untagged

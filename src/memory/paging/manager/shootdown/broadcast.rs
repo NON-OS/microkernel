@@ -66,5 +66,5 @@ fn round(va: VirtAddr, page_count: u32, asid: u32) {
     REQ_PENDING_ACKS.store(targets, Ordering::SeqCst);
 
     mark_and_send(&selected);
-    wait_for_acks();
+    wait_for_acks(&selected);
 }
