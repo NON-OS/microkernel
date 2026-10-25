@@ -371,3 +371,31 @@ fn a_waiting_host_is_signalled_exactly_when_its_room_is_there() {
         assert_eq!(s, signal, "the host waiting for {wanted}");
     }
 }
+
+#[test]
+fn a_transfer_pages_descriptor_reads_as_its_set_and_ranges() {
+    use crate::packet::xfer_pages;
+    let mut d = vec![0xEF, 0xBE, 0xAA, 0x55, 2, 0, 0, 0];
+    d.extend_from_slice(&[60, 0, 0, 0, 0, 0, 0, 0, 0xEA, 5, 0, 0, 0x0E, 7, 0, 0]);
+    let (set, ranges) = xfer_pages(&d).unwrap();
+    assert_eq!(set, 0xBEEF, "the reserved half may hold anything");
+    assert_eq!(ranges.collect::<Vec<_>>(), [(60, 0), (0x5EA, 0x70E)]);
+    assert!(xfer_pages(&d[..16]).is_none(), "fewer ranges than the count");
+    assert!(xfer_pages(&d[..7]).is_none());
+    let mut huge = d.clone();
+    huge[4..8].copy_from_slice(&u32::MAX.to_le_bytes());
+    assert!(xfer_pages(&huge).is_none());
+}
+
+#[test]
+fn a_host_packet_with_a_descriptor_reads_back_with_its_data_after_it() {
+    let (mut m, _, inb, _, hin) = rings(2);
+    let desc = [1u8, 0, 0, 0, 1, 0, 0, 0, 9, 0, 0, 0, 4, 0, 0, 0];
+    hin.send_packet(&mut m, 7, 1, 33, &desc, b"nvsp").unwrap();
+    let mut buf = [0u8; 128];
+    let (h, n, _) = inb.recv(&mut m, &mut buf).unwrap().unwrap();
+    assert_eq!((h.ty, h.flags, h.transaction_id, h.data_at), (7, 1, 33, 32));
+    assert_eq!(&buf[16..32], &desc);
+    assert_eq!(&buf[32..36], b"nvsp");
+    assert_eq!(n, 40);
+}
