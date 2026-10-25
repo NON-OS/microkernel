@@ -90,6 +90,7 @@ mod store_errno;
 pub mod store_read;
 pub mod store_write;
 pub mod time;
+pub mod caps_of;
 pub mod tool_run;
 pub mod tty;
 pub mod tty_table;
