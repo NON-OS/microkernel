@@ -26,6 +26,8 @@ const REAP_LOG_CAP: usize = 64;
 
 /// Keep `pid`'s status for its parent, evicting to stay inside the cap.
 pub(super) fn record(pid: Pid, parent: Pid, code: i32) {
+    #[cfg(feature = "microkernel-setup-wizard")]
+    super::kept::note(pid, code);
     let mut log = REAP_LOG.lock();
     if log.len() >= REAP_LOG_CAP {
         if let Some((&oldest, _)) = log.iter().next() {
