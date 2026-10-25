@@ -66,6 +66,8 @@ mod scheme_contrast_tests;
 #[cfg(test)]
 mod scheme_tests;
 #[cfg(test)]
+mod store_start_tests;
+#[cfg(test)]
 mod text_scale_range_tests;
 #[cfg(test)]
 mod text_scale_tests;
