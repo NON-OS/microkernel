@@ -19,10 +19,12 @@
 
 /// Its device_id, its bus, device and function, and those of the hop it
 /// reaches the claimed device past: a port without ACS, the device itself
-/// for a sibling function, or the bridge to a shared conventional bus.
+/// for a sibling function, or the bridge to a shared conventional bus, which
+/// `shared` says (a port-only claim is blocked only so, port_only.rs).
 #[derive(Clone, Copy)]
 pub(super) struct Member {
     pub id: u64,
     pub at: (u8, u8, u8),
     pub hop: (u8, u8, u8),
+    pub shared: bool,
 }

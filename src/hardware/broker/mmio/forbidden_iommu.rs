@@ -21,16 +21,13 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-/// A VT-d unit's registers, as unit/access.rs maps them.
-#[cfg(target_arch = "x86_64")]
-const VTD_WINDOW: u64 = 0x1000;
-/// An AMD-Vi unit's whole MMIO aperture, performance counters included.
-#[cfg(target_arch = "x86_64")]
-const AMD_WINDOW: u64 = 0x8_0000;
-
 #[cfg(target_arch = "x86_64")]
 pub(super) fn push(out: &mut Vec<(u64, u64)>) {
     use crate::arch::x86_64::acpi::parser::other::{amd_iommu_bases, remap_unit_bases};
+    /// A VT-d unit's registers, as unit/access.rs maps them.
+    const VTD_WINDOW: u64 = 0x1000;
+    /// An AMD-Vi unit's whole MMIO aperture, performance counters included.
+    const AMD_WINDOW: u64 = 0x8_0000;
     let vtd = remap_unit_bases().into_iter().map(|b| (b, VTD_WINDOW));
     let amd = amd_iommu_bases().into_iter().map(|b| (b, AMD_WINDOW));
     // A base so high its window wraps is cut at the top, never dropped.
