@@ -82,7 +82,14 @@ Lifecycle subscribers receive an `NWMV` envelope (8-byte header +
 20-byte payload: `event_kind u32, owner_pid u32, window_id u32, x u32, y u32`)
 on `OP_WINDOW_OPEN` and `OP_WINDOW_CLOSE`. Event kinds: 0 = opened, 1 = closed,
 2 = full screen, with `x` 1 when the window now covers the dock's band and
-0 when it no longer does.
+0 when it no longer does, 3 = focused.
+
+Kind 3 is sent whenever the focused window after a request, or after the
+sweep of dead processes, is not the one before it, whatever moved it: a
+click, the dock, a chord, a new window, a close. `owner_pid` and
+`window_id` name the window focused now, both 0 when nothing has focus
+(`focus/notice.rs`, `server/focus_notify.rs`). The desktop shell names the
+focused app in its menu bar from it.
 
 `OP_WINDOW_MAXIMIZE`'s `flags` word was padding. Bit 0
 (`MAXIMIZE_FLAG_FULL_SCREEN`) makes the window full screen: the client's
@@ -94,3 +101,26 @@ restore from the dock, and a window opened again. A close or the end of the
 process is the closed event, which ends it too. A client that sends zero
 there maximises as before, and a subscriber that knows only kinds 0 and 1
 drops kind 2, so the envelope keeps version 1.
+
+## Tiling (in progress)
+
+`src/tile/` is the layout engine for the keyboard-driven desktop (letter
+HANDOFF/letters/gpu/09-desktop-plan.md, step 1). The capsule does not
+declare the module yet, so it changes no image; `wm_proofs` holds it.
+
+- A workspace's tiled windows form a split tree (`node.rs`). A split lays
+  its children out across or down, and a floating set sits beside the tree
+  (`workspace.rs`, `workspace_float.rs`).
+- A window opens beside the focused one: in its split when that splits the
+  same way, in a new split of the two otherwise (`insert.rs`). Closing one
+  collapses any split left with a single child (`remove.rs`).
+- Placement: the outer gap comes off every edge. Each split shares its
+  length equally, with the inner gap between children; the pixels that do
+  not divide go one each to the first children (`place.rs`).
+- Focus by direction goes to the nearest window wholly beyond the focused
+  one's edge, the most in line first (`neighbour.rs`).
+- There are nine workspaces (`desk.rs`, `desk_send.rs`):
+  - switching says which windows to hide and which to show;
+  - a window sent to another workspace keeps floating if it floated.
+
+Proofs: `tile_*_tests.rs` in `wm_proofs`; mutants 26 of 26 caught.
