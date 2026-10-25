@@ -32,7 +32,14 @@ pub fn claim_new(pid: Pid) -> bool {
     .unwrap_or(false)
 }
 
-/// Put a claim back, for a caller whose setup failed after winning one.
+/// Put a claim back, for a caller whose setup failed after winning one: that
+/// claim only, since the pid is queued nowhere yet, so Ready is this caller's
+/// own; a kill since then stands (L77e).
 pub fn release_new(pid: Pid) {
-    crate::process::with_process(pid, |pcb| *pcb.state.lock() = ProcessState::New);
+    crate::process::with_process(pid, |pcb| {
+        let mut state = pcb.state.lock();
+        if matches!(*state, ProcessState::Ready) {
+            *state = ProcessState::New;
+        }
+    });
 }

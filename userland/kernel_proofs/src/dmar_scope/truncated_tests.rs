@@ -16,6 +16,8 @@
 
 //! The boot line for a truncated unit names a count, never a requester id.
 
+use super::dmar_scope_count::pci_scopes_named;
+use super::tests::{drhd, scope};
 use super::truncated::{line, LINE_MAX};
 
 fn said(unit: usize, named: u16) -> String {
@@ -39,4 +41,14 @@ fn a_scope_that_did_not_parse_is_said_as_such() {
         "[DMAR] remapping unit 3: a device scope could not be read; the devices it names are refused"
     );
     assert!(!said(7, 255).contains("names 255"), "at the cap is not past it");
+}
+
+#[test]
+fn the_count_takes_pci_scopes_only_and_stops_at_a_malformed_one() {
+    let mut s =
+        vec![scope(3, 0xf0, &[(0x1f, 0)]), scope(1, 0, &[(2, 0)]), scope(2, 0, &[(0x1c, 0)])];
+    assert_eq!(pci_scopes_named(&drhd(0, 0, &s), 16), 2, "an IOAPIC scope names no PCI device");
+    s.push(vec![1, 3, 0]);
+    s.push(scope(1, 0, &[(3, 0)]));
+    assert_eq!(pci_scopes_named(&drhd(0, 0, &s), 16), 2, "nothing after a malformed entry");
 }

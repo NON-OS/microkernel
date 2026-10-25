@@ -14,7 +14,7 @@
 use super::consts::{BAR_H, BAR_X0};
 
 pub(super) fn draw_bar(y0: u32, len: u32, color: u32) {
-    let Some(fb) = crate::kernel_core::init::framebuffer::framebuffer_state() else {
+    let Some(fb) = crate::kernel_core::init::framebuffer::drawable() else {
         return;
     };
     if y0 + BAR_H > fb.height || BAR_X0 >= fb.width {

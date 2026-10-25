@@ -20,6 +20,7 @@
 //! parser once kept, so 00:1f.2 (AHCI) and 00:1f.3 (SMBus) were refused.
 //! Bytes as the kernel read them from the table, in a development boot.
 
+use super::dmar_scope_count::pci_scopes_named;
 use super::scope::{scope_covers, translated_by_some, Cover};
 use super::tests::{bridges, parse};
 
@@ -62,7 +63,7 @@ fn the_fixture_is_the_structure_qemu_gave() {
 fn every_function_qemu_names_is_kept_and_covered() {
     let u = parse(&drhd());
     assert!(!u.include_all && !u.truncated);
-    assert_eq!((u.count, u.named), (18, 18));
+    assert_eq!((u.count, pci_scopes_named(&drhd(), 16)), (18, 18));
     for bdf in [(0, 0x1f, 2), (0, 0x1f, 3), (0, 0x16, 6), (0, 5, 0), (0, 0, 0)] {
         assert_eq!(scope_covers(&u, 0, bdf, &bridges), Cover::Yes, "{bdf:?}");
         assert!(translated_by_some(&[u], 0, bdf, &bridges), "{bdf:?}");

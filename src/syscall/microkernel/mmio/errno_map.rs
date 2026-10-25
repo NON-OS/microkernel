@@ -30,6 +30,7 @@ pub(super) fn errno_for(e: MmioMapError) -> i64 {
         | MmioMapError::BadRange
         | MmioMapError::ZeroLength
         | MmioMapError::Overflow
+        | MmioMapError::MixedMemoryType
         | MmioMapError::WcNotPrefetchable
         | MmioMapError::WcPastBar => ERRNO_INVAL,
         MmioMapError::WouldExposeMsixTable

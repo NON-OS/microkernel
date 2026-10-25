@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod classify;
+mod classify_device;
 mod classify_display;
 mod classify_network;
 mod classify_serial_bus;
@@ -34,7 +35,8 @@ mod state;
 mod support;
 mod vmd;
 
-pub use classify::{classify_device, classify_family};
+pub use classify::classify_family;
+pub use classify_device::classify_device;
 pub use driver::family_driver;
 pub use emmc::{is_intel_emmc, INTEL_EMMC_DEVICE_IDS};
 pub use family::HardwareFamily;
