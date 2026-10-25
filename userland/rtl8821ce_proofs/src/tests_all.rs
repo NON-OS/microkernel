@@ -12,7 +12,7 @@ mod connect_tests;
 #[cfg(test)]
 mod ddma_tests;
 #[cfg(test)]
-mod dma_reach_tests;
+mod dma_tests;
 #[cfg(test)]
 mod download_tests;
 #[cfg(test)]

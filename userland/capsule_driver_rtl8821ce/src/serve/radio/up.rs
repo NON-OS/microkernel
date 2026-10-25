@@ -10,7 +10,7 @@ use crate::constants::regs::REG_MACID;
 use crate::fw::dma::Grant;
 use crate::link::{RtlKeys, RtlLink};
 use crate::regs::{Mmio, Regs};
-use crate::setup::{map_rings, Mapped};
+use crate::setup::Mapped;
 use crate::status;
 
 /// The radio brought up: its rings, its key store and a register handle for
@@ -29,19 +29,18 @@ pub(in super::super) enum Radio {
     Down,
 }
 
-/// Bring the radio to `Up` when bring-up reached `Ready` and the rings map, else
-/// leave it `Down`. Returns the possibly-downgraded stage so a DMA failure at
-/// this last step is reported too.
+/// Bring the radio to `Up` when bring-up reached `Ready` with its rings mapped
+/// (`start_ready` maps them before the engines run), else leave it `Down`.
+/// Returns the possibly-downgraded stage, so a failure here is reported too.
 pub(in super::super) fn build_radio(mapped: Option<Mapped>, stage: Stage) -> (Radio, Stage) {
     if stage != Stage::Ready {
         return (Radio::Down, stage);
     }
-    let Some(m) = mapped else {
+    let Some(mut m) = mapped else {
         return (Radio::Down, Stage::NotClaimed);
     };
-    let Some((tx_ring, tx_buffers, rx_ring, rx_buffers)) = map_rings(m.device_id, m.claim_epoch)
-    else {
-        status::line(b"[rtl8821ce] dma ring mapping failed\n");
+    let Some((tx_ring, tx_buffers, rx_ring, rx_buffers)) = m.rings.take() else {
+        status::line(b"[rtl8821ce] ready without its rings\n");
         crate::setup::stopped(&m);
         return (Radio::Down, Stage::NoDma);
     };
