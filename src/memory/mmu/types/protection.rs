@@ -32,6 +32,9 @@ pub struct ProtectionFlags {
     // leaks from userspace but is not present on every CPU, so it is
     // tracked here without gating `is_fully_protected`.
     pub umip_enabled: bool,
+    // Global pages: not a restriction, but what lets a full flush and a CR3
+    // reload differ, so every CPU must answer the same as the boot CPU.
+    pub pge_enabled: bool,
 }
 
 impl ProtectionFlags {
@@ -43,6 +46,7 @@ impl ProtectionFlags {
             nx_enabled: false,
             wp_enabled: false,
             umip_enabled: false,
+            pge_enabled: false,
         }
     }
 

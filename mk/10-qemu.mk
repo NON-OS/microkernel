@@ -34,8 +34,9 @@ QEMU_HOST_SSH_PORT ?= 2222
 QEMU_HOST_HTTP_PORT ?= 8080
 QEMU_NET_MODE ?= nat
 # Every networked run is captured, so what a boot sent is on disk rather than
-# inferred from the code; tools/nonos-pcap-egress summarises it. Set it empty
-# to run without one.
+# inferred from the code: the guest's egress here, and what it was sent beside
+# it as -in.pcap; tools/nonos-pcap-egress judges them. Set it empty to run
+# without one.
 QEMU_NET_CAPTURE ?= $(TARGET_DIR)/qemu-net.pcap
 QEMU_SERIAL_LOG ?= $(TARGET_DIR)/qemu-serial.log
 QEMU_SMP_SERIAL_LOG ?= $(TARGET_DIR)/qemu-smp-serial.log
@@ -122,20 +123,23 @@ SWTPM_SETUP ?= swtpm_setup
 QEMU_TPM := -chardev socket,id=chrtpm,path=$(SWTPM_SOCK) -tpmdev emulator,id=tpm0,chardev=chrtpm -device tpm-crb,tpmdev=tpm0
 
 ifeq ($(QEMU_NET_MODE),off)
-    QEMU_NET :=
+    # No NIC at all: without it q35 adds its default e1000e.
+    QEMU_NET := -nic none
     QEMU_NET_DESC := disabled
 else ifeq ($(QEMU_NET_MODE),nat)
     QEMU_NET := -device virtio-net-pci,netdev=net0 -netdev user,id=net0
     QEMU_NET_DESC := nat outbound virtio-net
     ifneq ($(QEMU_NET_CAPTURE),)
-        QEMU_NET += -object filter-dump,id=net0dump,netdev=net0,file=$(QEMU_NET_CAPTURE)
+        QEMU_NET += -object filter-dump,id=net0dump,netdev=net0,queue=rx,file=$(QEMU_NET_CAPTURE)
+        QEMU_NET += -object filter-dump,id=net0in,netdev=net0,queue=tx,file=$(QEMU_NET_CAPTURE:.pcap=-in.pcap)
         QEMU_NET_DESC := $(QEMU_NET_DESC) capture=$(QEMU_NET_CAPTURE)
     endif
 else ifeq ($(QEMU_NET_MODE),hostfwd)
     QEMU_NET := -device virtio-net-pci,netdev=net0 -netdev user,id=net0,hostfwd=tcp::$(QEMU_HOST_SSH_PORT)-:22,hostfwd=tcp::$(QEMU_HOST_HTTP_PORT)-:80
     QEMU_NET_DESC := hostfwd ssh=$(QEMU_HOST_SSH_PORT) http=$(QEMU_HOST_HTTP_PORT)
     ifneq ($(QEMU_NET_CAPTURE),)
-        QEMU_NET += -object filter-dump,id=net0dump,netdev=net0,file=$(QEMU_NET_CAPTURE)
+        QEMU_NET += -object filter-dump,id=net0dump,netdev=net0,queue=rx,file=$(QEMU_NET_CAPTURE)
+        QEMU_NET += -object filter-dump,id=net0in,netdev=net0,queue=tx,file=$(QEMU_NET_CAPTURE:.pcap=-in.pcap)
         QEMU_NET_DESC := $(QEMU_NET_DESC) capture=$(QEMU_NET_CAPTURE)
     endif
 else

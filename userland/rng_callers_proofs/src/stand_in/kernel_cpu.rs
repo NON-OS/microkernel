@@ -58,8 +58,14 @@ pub mod arch {
     }
 
     pub fn disable_interrupts() {}
-    /// Only the canary's failure path stops the CPU; no test reaches it.
-    pub fn halt_loop() -> ! {
-        panic!("the CPU was stopped")
+}
+
+/// The kernel's one way out of a fatal stop, which the canary's failure path
+/// takes; no test reaches it.
+pub mod boot {
+    pub mod panic {
+        pub fn fatal() -> ! {
+            panic!("the kernel stopped")
+        }
     }
 }

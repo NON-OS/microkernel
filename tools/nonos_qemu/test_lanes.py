@@ -27,7 +27,7 @@ sys.path.insert(0, os.path.dirname(HERE))
 from nonos_qemu import lanes  # noqa: E402
 from nonos_qemu.lane_disks import DISKS  # noqa: E402
 
-ALL = [n for n in lanes.NAMES if not n.startswith(("nic=", "iommu="))]
+ALL = [n for n in lanes.NAMES if not n.startswith(("nic=", "iommu=", "gpu=")) and n != "bochs-display"]
 ALL += ["nic=igb", "iommu=intel"]
 
 
@@ -45,7 +45,7 @@ class Lanes(unittest.TestCase):
         self.assertTrue(set(used) <= set(made), "a drive= with no -drive")
         self.assertTrue(all(i.startswith("lane-") for i in made))
         self.assertEqual(p.swaps, {"nic": "igb", "tpm": "tpm-tis", "gpu": "vmware-svga",
-                                   "iommu": "intel"})
+                                   "iommu": "intel", "audio": "beside-nic"})
 
     def test_a_lanes_disk_is_its_own_and_a_power_of_two(self):
         p = lanes.plan([*DISKS, "emmc"], "/a dir")

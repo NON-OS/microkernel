@@ -35,8 +35,10 @@ pub struct Regs {
 }
 
 impl Regs {
-    /// Tell the device queue `queue` has a command.
+    /// Tell the device queue `queue` has a command, once every store to the
+    /// queue's memory is ordered before the doorbell as the device sees it.
     pub fn notify(self, queue: u16) {
+        nonos_libc::dma_wmb();
         self.notify.w16(self.doorbell, queue);
     }
 

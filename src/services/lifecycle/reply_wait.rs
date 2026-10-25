@@ -21,8 +21,8 @@
 const FAST_ROUNDS: u32 = 64;
 
 /// How long a caller that has fallen back to sleeping keeps waiting: longer
-/// than any driver's own wait for its device (NVMe 30 s per command, as on
-/// Linux), so the driver, not this budget, says why a slow request failed. At
+/// than any driver's own wait for its device (our NVMe driver's 30 s per I/O
+/// command), so the driver, not this budget, says why a slow request failed. At
 /// 5 s a DRAM-less SSD pausing mid-write failed the request and every one
 /// queued behind it while the drive was still working.
 const SLOW_BUDGET_MS: u64 = 35_000;
@@ -61,7 +61,7 @@ pub(super) fn wake_mark() -> u64 {
 
 /// Give the CPU away for one round, by sleeping a tick once plain yields
 /// have had their chance. A caller with no process can only yield.
-pub(super) fn rest(round: u32) {
+pub fn rest(round: u32) {
     rest_since(round, wake_mark());
 }
 

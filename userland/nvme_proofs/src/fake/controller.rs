@@ -48,6 +48,12 @@ pub(crate) struct Fake {
     pub hold: u64,
     /// Clock reads RDY takes to follow a change of CC.EN.
     pub slow: u64,
+    /// Clock reads SHST takes to read complete after CC.SHN is set; with
+    /// `never_shut` it never does.
+    pub shut_after: u64,
+    pub never_shut: bool,
+    /// The clock read CC.SHN was first seen at, until a disable.
+    pub(super) shut: Option<u64>,
     /// Every I/O command id fetched; ids carry on across resets (io::take).
     pub(super) fetched: Vec<u16>,
     /// I/O commands fetched and not yet completed, with the read they are due.

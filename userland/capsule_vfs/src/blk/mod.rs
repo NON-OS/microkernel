@@ -25,6 +25,8 @@ mod store_header;
 pub(crate) mod store_remove;
 mod store_drop;
 mod store_toc;
+mod store_table;
+pub(crate) mod store_withdraw;
 pub(crate) mod store_write;
 pub(crate) mod store_entry;
 pub(crate) mod store_free;

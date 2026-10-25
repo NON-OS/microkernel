@@ -126,7 +126,7 @@ None of this has been booted.
   - reserve the handoff and the modules in the device tree it hands over (a memory reservation or `/reserved-memory`), because the aarch64 kernel takes its free RAM from the tree, not from an EFI memory map.
 - A sealed image and a runner for it. The Nix image build makes the x86_64 kernel and loader only (`tools/nix/image.nix`), the profiles carry no architecture (`tools/nix/config.nix`), and `tools/nonos_qemu` starts only x86_64 machines. So `make dev-image` has no aarch64 profile.
 - Kernel stack guard pages. `arm_stack_guards` exists only on x86_64 (`src/kernel_core/init/entry/init_vm_and_protection.rs`).
-- The capsules that link the std platform layer, which issues system calls with x86_64 registers and does not cross-compile to aarch64 yet (`DESKTOP_STD_TOOL_ARTIFACTS`, `mk/20-build.mk`).
+- The capsules that link the std platform layer in the desktop (`DESKTOP_STD_TOOL_ARTIFACTS`, `mk/20-build.mk`). They build for `aarch64-nonos-user`: the layer reaches the kernel through one file per architecture's registers (`toolchain/nonos-std/sys/pal/nonos/trap.rs`). The arm desktop does not carry them yet, and none has run on aarch64.
 - Checks for every profile. The flake's `profileChecks` type-check each profile against `x86_64-nonos.json` only (`tools/nix/checks.nix`).
 
 Since this page was first written, the kernel gained:

@@ -27,6 +27,9 @@ The running system:
 - [Randomness and cryptography](randomness-and-cryptography.md): where random
   bytes come from, the two generators, the crypto system calls and which code
   runs which algorithm.
+- [Privacy guarantees](privacy-guarantees.md): what NONOS promises about
+  leaving no trace and leaking nothing on the network, each promise with its
+  proof and whether it was booted, host-tested or is design only.
 
 The network:
 
@@ -44,6 +47,9 @@ Limits, checks and reports:
 - [Checking the security claims yourself](checking-the-claims.md): the tools in
   the tree that test these claims, how to run them and what they printed at this
   commit.
+- [The self-test](self-test.md): three boots in which a program tries what an
+  attacker would, and the checker that passes only when every attempt was
+  refused.
 - [Reporting a vulnerability](reporting-a-vulnerability.md): how to report a
   security bug privately.
 - [Service names](service-names.md): who may hold a service name, and what a

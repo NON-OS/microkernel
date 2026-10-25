@@ -20,7 +20,9 @@
 use spin::Mutex;
 
 use super::dmar_keep::{keep, Unit, MAX_REMAP_UNITS};
+use super::dmar_namespace_store::record_namespace_scopes;
 use super::dmar_scope::{parse_drhd, UnitScope};
+use super::dmar_source_store::record_source_scopes;
 use super::unit_base::DRHD_WINDOW;
 
 static REMAP_UNIT_BASES: Mutex<heapless::Vec<u64, MAX_REMAP_UNITS>> =
@@ -31,16 +33,15 @@ static REMAP_UNIT_SCOPES: Mutex<heapless::Vec<UnitScope, MAX_REMAP_UNITS>> =
     Mutex::new(heapless::Vec::new());
 
 /// Register bases of the segment 0 remapping units DMAR reported, in table
-/// order. A client Intel machine has two: one scoped to the integrated
-/// graphics and one for every other device. The VT-d driver programs all of
-/// them; a device's DMA is translated only by the unit whose scope holds it.
+/// order: often two, one for the integrated graphics and one for the rest.
+/// All are programmed; a device is translated by the unit whose scope holds it.
 pub fn remap_unit_bases() -> heapless::Vec<u64, MAX_REMAP_UNITS> {
     REMAP_UNIT_BASES.lock().clone()
 }
 
-/// Units DMAR listed that the kernel left off: on a segment other than 0,
-/// which it does not enumerate, past the eight it holds, or past a
-/// structure it could not read. Their devices reach memory untranslated.
+/// Units DMAR listed that the kernel left off: on a segment it does not
+/// enumerate, past the eight it holds, with a register base it refused, or
+/// past a structure it could not read. Their devices reach memory untranslated.
 pub fn units_left_off() -> usize {
     *LEFT_OFF.lock()
 }
@@ -55,10 +56,9 @@ pub fn remap_unit_scopes() -> heapless::Vec<UnitScope, MAX_REMAP_UNITS> {
     REMAP_UNIT_SCOPES.lock().clone()
 }
 
-/// Keep one DRHD (`bytes` exactly its length). True when a segment 0 unit
-/// was kept. A unit whose structure does not parse is kept with an empty,
-/// truncated scope, so it is never taken to cover a device.
-pub(super) fn record(bytes: &[u8], segment: u16, base: u64) -> bool {
+/// Keep one DRHD (`bytes` exactly its length); true when it was kept. One
+/// whose scopes do not parse is kept truncated, never taken to cover a device.
+pub(super) fn record_drhd(bytes: &[u8], segment: u16, base: u64) -> bool {
     let mut bases = REMAP_UNIT_BASES.lock();
     let mut scopes = REMAP_UNIT_SCOPES.lock();
     let fits = keep(segment, bases.len().max(scopes.len())) == Unit::Kept;
@@ -67,6 +67,8 @@ pub(super) fn record(bytes: &[u8], segment: u16, base: u64) -> bool {
         left_off();
         return false;
     }
+    record_namespace_scopes(bases.len() as u8, bytes);
+    record_source_scopes(bases.len() as u8, bytes);
     super::dmar_ioapic_table::record(bytes);
     let scope = parse_drhd(bytes).unwrap_or(UnitScope { truncated: true, ..UnitScope::EMPTY });
     bases.push(base).is_ok() && scopes.push(scope).is_ok()

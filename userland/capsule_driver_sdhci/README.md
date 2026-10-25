@@ -39,10 +39,14 @@ The capsule talks to hardware only through the broker:
 - `MkDeviceClaim` binds one host to this process; `MkDeviceRelease` gives
   it back when its card does not come up.
 - `MkPciConfigRead` reads Slot Information; `MkPciConfigWrite` sets memory
-  decoding and bus mastering and turns the INTx pin off.
+  decoding with the INTx pin off at the claim, bus mastering only once the
+  host reset is seen to finish, and bus mastering off again before the
+  release.
 - `MkMmioMap` maps the slot's register BAR; `MkMmioUnmap` on release.
-- `MkDmaMap` and `MkDmaUnmap` hold the ADMA2 descriptor page and the data
-  buffer every transfer goes through.
+- `MkDmaMap` maps the ADMA2 descriptor page and the data buffer every
+  transfer goes through, below 4 GiB (`MK_DMA_MAP_DMA32`) on a host without
+  64-bit addressing, which 32-bit ADMA2 reaches. Neither is unmapped by
+  hand: `MkDeviceRelease` frees them once it reads Bus Master back off.
 - `MkIpcRecv` and `MkIpcSend` serve `driver.sdhci0` on
   `service:4260:driver.sdhci0`, replying to `endpoint.4294967324`.
 
@@ -85,25 +89,32 @@ lifetime resources and are revoked by kernel teardown.
 ## Runtime lifecycle
 
 Discovery lists every SDHCI function, Intel eMMC hosts first, then any other
-host in device list order. Each is opened in turn: claim, memory decode and
-bus master with INTx off, slot BAR mapped, a generic host refused unless its
-slot type is embedded, the two DMA regions mapped, the card brought from
-power on to transfer state, and sector 0 read once to prove the data path.
-The first host whose card comes up is served for the life of the capsule.
-Only when every host was refused for not being embedded is the first
-removable slot served, card or no card. Before each request such a slot
+host in device list order. Each is opened in turn: claim, memory decode on
+with INTx off, slot BAR mapped, a generic host refused unless its slot type
+is embedded, then the host reset (Software Reset For All read back clear,
+Present State then idle, ADMA2 offered), so ADMA a dead driver left running
+reaches nothing. Only then are the two DMA regions mapped and bus mastering
+turned on, so a host refused before then never gets it; then the card is
+brought from power on to transfer state, and sector 0 read once to prove
+the data path. The first host whose card comes up is served for the life of
+the capsule. Only when every host was refused for not being embedded is the
+first removable slot served, card or no card. Before each request such a slot
 reads its card detect and the removal the host latched: a card taken out is
-dropped, a card put in is brought up once (SD first, then MMC), and READ,
-WRITE and FLUSH wait until GEOMETRY has described the card in the slot.
+dropped, a card put in is brought up once on a host reset for it (SD
+first, then MMC, the host reset again between the two), and READ, WRITE
+and FLUSH wait until GEOMETRY has described the card in the slot.
 
 ## Failure model
 
 With no SDHCI function in the device list the capsule logs one line and
 exits `EXIT_ABSENT` (2) before claiming anything. A host whose claim,
-command write, mapping, DMA or card bring-up fails is quiesced (reset, power
-off) and released; when no host gives a card, the whole walk is retried on
-the shared bounded schedule (`nonos_libc::bring_up`), and running out logs
-the first host's reason and exits `EXIT_GAVE_UP` (6). Every host and card
+command write, mapping, reset, DMA or card bring-up fails is quiesced
+(reset, power off), has bus mastering written off (a no-op until the broker
+stores Command words as written, K6), and is released; a host still busy
+after its reset is refused (`HostBusy`). When no host gives a card, the
+whole walk is retried on the shared bounded schedule
+(`nonos_libc::bring_up`), and running out logs the first host's reason and
+exits `EXIT_GAVE_UP` (6). Every host and card
 wait is on the monotonic clock with its own deadline (`src/emmc/sdhci/`,
 `src/emmc/mmc/`). A failed request answers -110 for a timeout, a status
 carrying the host's Error Interrupt Status or the card's R1 error bit
@@ -149,7 +160,9 @@ mapping, disk selection and every filesystem above it.
   on a machine with neither.
 - Never send data to a card GEOMETRY has not described.
 - Never answer a request outside the disk or larger than one buffer.
-- Quiesce the host before any DMA region is freed.
+- Reset the host before any DMA region is mapped or bus mastering goes on.
+- Quiesce the host before any DMA region is freed, and never unmap one by
+  hand: the release frees them.
 - Report every failure upward; never retry a write silently.
 
 ## Release target
@@ -168,7 +181,8 @@ Intel eMMC laptop that installs to and boots from the eMMC, and QEMU
 - Signed manifest, publisher keys and kernel mirror present.
 - `userland/emmc_proofs` passes.
 - An eMMC laptop boots from its eMMC through `driver.sdhci0`.
-- Teardown releases the claim, window and both DMA regions.
+- Teardown stops the host, writes bus mastering off, unmaps the window and
+  releases the claim, which frees both DMA regions.
 
 ## Explicit non-goals today
 

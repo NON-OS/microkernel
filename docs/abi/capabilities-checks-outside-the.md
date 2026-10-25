@@ -56,7 +56,7 @@ runs:
   open the full process table, since `sees_all` asks for `AttestRead` or
   `ProcessControl` (`src/syscall/microkernel/procstat_redact.rs:29-33`).
   `sys_pci_config_read` and `sys_pci_config_write` ask for `Driver` once more
-  themselves (`src/syscall/microkernel/pci.rs:28-35`).
+  themselves (`src/syscall/microkernel/pci/config.rs:27-34`).
 - The input ring has two rights: `can_input_source` takes `InputSource` to post,
   and `can_input_consumer` takes `InputConsumer` to drain and wait; `Irq`, which
   every driver holds, opens neither

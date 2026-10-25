@@ -17,6 +17,7 @@
 use alloc::vec::Vec;
 
 use crate::protocol::{encode_response, Request, EACCES, EINVAL, ENOSPC};
+use crate::server::bond_gate;
 use crate::store::{KeyType, Store, StoreError};
 
 const HDR: usize = 4 + 8 + 8 + 1 + 2;
@@ -42,9 +43,18 @@ pub fn store(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
         return encode_response(req.seq, EINVAL, &[]);
     }
     let data = &p[HDR..HDR + data_len];
-    match store.store(key_type, data, caller_pid, now, expires_at) {
+    // A kind kept by name only from the service that holds the name (L33).
+    let stored = match key_type.held_by_name() {
+        false => store.store(key_type, data, caller_pid, now, expires_at),
+        true => match bond_gate::holder(caller_pid) {
+            Some(at) => store.store_named(at, key_type, data, caller_pid, now, expires_at),
+            None => return encode_response(req.seq, EACCES, &[]),
+        },
+    };
+    match stored {
         Ok(id) => encode_response(req.seq, 0, &id.to_le_bytes()),
         Err(StoreError::InvalidArgument) => encode_response(req.seq, EINVAL, &[]),
+        Err(StoreError::AccessDenied) => encode_response(req.seq, EACCES, &[]),
         Err(StoreError::Full) => encode_response(req.seq, ENOSPC, &[]),
         Err(_) => encode_response(req.seq, EINVAL, &[]),
     }

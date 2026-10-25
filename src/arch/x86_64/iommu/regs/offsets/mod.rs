@@ -27,7 +27,8 @@ pub use global::{
     GCMD_TE, GCMD_WBF, GSTS, GSTS_RTPS, GSTS_TES, GSTS_WBFS, PMEN, PMEN_EPM, PMEN_PRS, RTADDR, VER,
 };
 pub use invalidate::{
-    iotlb_offset, iva_offset, CCMD, CCMD_CIRG_GLOBAL, CCMD_ICC, IOTLB_IAIG_MASK, IOTLB_IIRG_GLOBAL,
+    iotlb_offset, iva_offset, CCMD, CCMD_CIRG_GLOBAL, CCMD_ICC, IOTLB_DID_SHIFT, IOTLB_IAIG_MASK, IOTLB_IIRG_DOMAIN,
+    IOTLB_IIRG_GLOBAL,
     IOTLB_IVT,
 };
 pub use queue::{

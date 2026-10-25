@@ -30,6 +30,9 @@ pub enum NvmeError {
     ClockFailed,
     AdminCommandFailed,
     InvalidTransfer,
+    /// CSTS.SHST never read complete within the shutdown budget (RTD3E,
+    /// capped): the power-off goes on without it.
+    ShutdownTimeout,
 }
 
 pub type NvmeResult<T> = Result<T, NvmeError>;

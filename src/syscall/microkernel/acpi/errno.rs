@@ -24,7 +24,7 @@ use crate::syscall::microkernel::errnos::{
 
 pub(super) fn region_errno(e: RegionError) -> i64 {
     match e {
-        RegionError::Refused(_) | RegionError::NotGranted => ERRNO_ACCES,
+        RegionError::Refused(_) | RegionError::NotGranted | RegionError::SleepEnable => ERRNO_ACCES,
         RegionError::Full => ERRNO_NOSPC,
         RegionError::NoVaSpace | RegionError::MapFailed => ERRNO_NOMEM,
         RegionError::BadWidth => ERRNO_INVAL,

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::super::attested_parent::AttestedParent;
+use super::super::preflighted::Preflighted;
 
 pub(crate) struct InstallParams<'a> {
     pub name: &'a str,
@@ -29,4 +30,7 @@ pub(crate) struct InstallParams<'a> {
      * caller. `None` preserves the default (caller-as-parent) behavior.
      */
     pub on_behalf_of: Option<AttestedParent>,
+    /// What the gate proved, the capsule's namespace and whether it is the
+    /// system's own, all recorded before the pid can run (L61).
+    pub gate: &'a Preflighted,
 }

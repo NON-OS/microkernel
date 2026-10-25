@@ -54,6 +54,8 @@ pub enum PciWriteError {
     PlatformError,
     /// Bus Master asked for by a caller without Dma.
     BusMasterWithoutDma,
+    /// Memory Space asked for by a caller without Mmio.
+    MemorySpaceWithoutMmio,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

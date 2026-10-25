@@ -14,21 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) fn has_ibrs_ibpb() -> bool {
-    let result = core::arch::x86_64::__cpuid_count(7, 0);
-    (result.edx & (1 << 26)) != 0
-}
-
-pub(super) fn has_stibp() -> bool {
-    let result = core::arch::x86_64::__cpuid_count(7, 0);
-    (result.edx & (1 << 27)) != 0
-}
-
-pub(super) fn has_ssbd() -> bool {
-    let result = core::arch::x86_64::__cpuid_count(7, 0);
-    (result.edx & (1 << 31)) != 0
-}
-
 pub(super) fn has_l1d_flush() -> bool {
     let result = core::arch::x86_64::__cpuid_count(7, 0);
     (result.edx & (1 << 28)) != 0
@@ -51,4 +36,15 @@ pub(super) fn is_amd() -> bool {
     vendor[4..8].copy_from_slice(&result.edx.to_le_bytes());
     vendor[8..12].copy_from_slice(&result.ecx.to_le_bytes());
     vendor == *b"AuthenticAMD"
+}
+
+/// Enhanced IBRS (ARCH_CAPABILITIES.IBRS_ALL): IBRS set once covers every
+/// later entry to the kernel.
+pub(super) fn has_enhanced_ibrs() -> bool {
+    // SAFETY: CPUID reported ARCH_CAPABILITIES, so the MSR exists and a read
+    // has no side effect.
+    has_arch_capabilities()
+        && unsafe { super::msr::rdmsr(super::constants::MSR_IA32_ARCH_CAPABILITIES) }
+            & super::constants::ARCH_CAP_IBRS_ALL
+            != 0
 }

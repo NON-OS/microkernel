@@ -68,5 +68,5 @@ fn parse_gateway(body: &[u8]) -> Result<Gateway, u16> {
     if body.len() >= 7 + 32 {
         identity.copy_from_slice(&body[7..7 + 32]);
     }
-    Ok(Gateway { ip, port, stream: 0, transport, identity, shared_key: [0u8; 32] })
+    Ok(Gateway { ip, port, stream: 0, transport, identity })
 }

@@ -17,7 +17,7 @@
 //! The controllers and their windows. In compatibility mode (programming
 //! interface bit 0 or 2 clear) a channel's command and control blocks sit at
 //! the ISA addresses and its BARs read zero; the kernel's device table lists
-//! them in BAR 0..3 all the same (`src/hardware/broker/table/legacy_ide.rs`),
+//! them in BAR 0..3 all the same (`src/hardware/broker/legacy/attach.rs`),
 //! so the driver reads every window from the record either way.
 
 pub const INTEL_VENDOR_ID: u16 = 0x8086;

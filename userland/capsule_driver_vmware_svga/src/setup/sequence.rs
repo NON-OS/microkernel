@@ -14,59 +14,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The bring-up: claim and the port grant, SVGA version 2, the FIFO mapped
-//! and laid out, the mode chosen and set, the visible framebuffer mapped,
-//! the surface made. A failing step puts the firmware's mode back and gives
-//! back every grant and the claim.
+//! The bring-up: the claim and the port grant, SVGA version 2, the FIFO
+//! mapped and laid out, the mode chosen and set, the framebuffer BAR
+//! mapped from its start for as much as VRAM holds, so a later mode set
+//! finds its frame mapped. A failing step drops the handles, which put the
+//! firmware's mode back and give back every grant and the claim.
 
-use nonos_libc::{mk_device_release, mk_mmio_unmap, mk_pio_release};
+use nonos_gfx_serve::{Platform, Server};
 
-use super::{claim, driver::Driver, map::map, restore::Saved, surface};
+use super::{adapter, claim, map::map, restore::Saved, Driver};
 use crate::constants::regs::{CAPABILITIES, MAX_HEIGHT, MAX_WIDTH, MEM_SIZE, VRAM_SIZE};
 use crate::discover::Found;
 use crate::fifo::{configure, Fifo};
+use crate::handles::BrokerHandles;
 use crate::init::{firmware_mode, negotiate, set_mode};
 use crate::regs::{Port, Regs};
-use crate::screen::{choose, Limits, Plane};
+use crate::screen::{choose, Limits};
 
-pub fn run(dev: Found) -> Result<Driver, &'static str> {
+pub fn run<P: Platform>(dev: Found, platform: P) -> Result<Driver<P>, &'static str> {
     let (epoch, pio) = claim::claim(dev.device_id, dev.layout.port)?;
+    let mut handles = BrokerHandles::new(dev.device_id, pio);
     let regs = Regs::new(Port::new(pio));
-    let back = |maps: &[u64], e: &'static str| {
-        for &g in maps.iter().rev() {
-            let _ = mk_mmio_unmap(g);
-        }
-        let _ = mk_pio_release(pio);
-        let _ = mk_device_release(dev.device_id);
-        e
-    };
-    negotiate(&regs).map_err(|e| back(&[], e))?;
-    let saved = Saved::read(&regs);
+    negotiate(&regs)?;
+    handles.restore_at_drop(regs, Saved::read(&regs));
     let fifo_len = (regs.read(MEM_SIZE) as u64).min(dev.fifo_bytes) & !0xFFF;
-    let fifo_map =
-        map(dev.device_id, epoch, dev.layout.fifo, 0, fifo_len).map_err(|e| back(&[], e))?;
-    let undo = |maps: &[u64], e| {
-        saved.restore(&regs);
-        back(maps, e)
-    };
+    let fifo_map = map(dev.device_id, epoch, dev.layout.fifo, 0, fifo_len)?;
+    handles.mapped(fifo_map.grant_id);
     let mut fifo = Fifo::new(fifo_map.user_va, fifo_len);
-    configure(&regs, &mut fifo, regs.read(CAPABILITIES))
-        .map_err(|e| undo(&[fifo_map.grant_id], e))?;
-    let lim =
-        Limits { max: (regs.read(MAX_WIDTH), regs.read(MAX_HEIGHT)), vram: regs.read(VRAM_SIZE) };
-    let (w, h) = choose(firmware_mode(&regs), lim)
-        .ok_or("no mode fits VRAM")
-        .map_err(|e| undo(&[fifo_map.grant_id], e))?;
-    let layout = set_mode(&regs, (w, h)).map_err(|e| undo(&[fifo_map.grant_id], e))?;
-    let fb_len = layout.pitch as u64 * h as u64;
-    let end = layout.offset as u64 + fb_len;
-    if end > lim.vram as u64 || end > dev.fb_bytes {
-        return Err(undo(&[fifo_map.grant_id], "framebuffer past VRAM"));
-    }
-    let fb_map = map(dev.device_id, epoch, dev.layout.fb, layout.offset as u64, fb_len)
-        .map_err(|e| undo(&[fifo_map.grant_id], e))?;
-    let (surface, sid) =
-        surface::create(w, h).map_err(|e| undo(&[fifo_map.grant_id, fb_map.grant_id], e))?;
-    let fb = Plane { va: fb_map.user_va, stride: layout.pitch, width: w, height: h };
-    Ok(Driver { regs, fifo, fb, surface, sid, handle: 0, owner: 0 })
+    configure(&regs, &mut fifo, regs.read(CAPABILITIES))?;
+    let vram = regs.read(VRAM_SIZE);
+    let max = (regs.read(MAX_WIDTH), regs.read(MAX_HEIGHT));
+    let (w, h) = choose(firmware_mode(&regs), Limits { max, vram }).ok_or("no mode fits VRAM")?;
+    let layout = set_mode(&regs, (w, h))?;
+    let fb_len = (vram as u64).min(dev.fb_bytes) & !0xFFF;
+    let fb_map = map(dev.device_id, epoch, dev.layout.fb, 0, fb_len)?;
+    handles.mapped(fb_map.grant_id);
+    let window = (fb_map.user_va, fb_len);
+    let svga = adapter::adapter((regs, fifo), window, (max, vram), (w, h), layout)?;
+    Ok(Driver { handles, server: Server::new(svga, platform) })
 }

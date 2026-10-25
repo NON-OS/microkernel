@@ -16,8 +16,8 @@
 
 //! The arch's answer to which ranges a device must find mapped through its
 //! IOMMU (`memory::iommu::reserved`). aarch64 reads them from the device
-//! tree. No other arch reads any yet: x86_64's DMAR RMRRs are not parsed in
-//! this tree, so every device there has none.
+//! tree. No other arch answers here: x86_64's DMAR RMRRs take L60's own path
+//! (`rmrr_regions`), so every device there has none in this answer.
 
 use crate::memory::iommu::reserved::Reserved;
 use crate::memory::iommu::DeviceAddress;

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
 use alloc::vec::Vec;
 use spin::Mutex;
 
@@ -29,6 +28,7 @@ mod peers;
 mod peers_check;
 mod policy;
 mod reserved;
+mod system_names;
 pub(crate) mod usb_hosts;
 
 pub(crate) use addressed::addressed_admits;
@@ -41,6 +41,7 @@ pub(crate) use peers_check::caller_owns;
 pub use peers_check::{caller_may_reach, caller_may_reach_pid, caller_may_write_inbox};
 pub use policy::required_caps;
 pub(crate) use reserved::{is_reserved_service, is_runtime_registrable};
+pub(crate) use system_names::{is_reserved_form, is_system_name};
 
 pub const MAX_SERVICES: usize = 256;
 pub(self) static ENDPOINTS: Mutex<Vec<ServiceEndpoint>> = Mutex::new(Vec::new());

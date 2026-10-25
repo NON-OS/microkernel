@@ -19,10 +19,8 @@
 //! nothing is registered or shared; a withdrawn output gives its handle back;
 //! only the compositor started again is named, by the sid the pool kept.
 
-#[path = "../../../nonos_gfx_pool/src/surface.rs"]
-mod pool_surface;
-#[path = "../../../nonos_gfx_pool/src/receiver.rs"]
-mod receiver;
+use super::primaries::receiver;
+use super::primaries::surface as pool_surface;
 
 use nonos_gfx_serve::Region;
 use nonos_gfx_wire::errno::EINVAL;

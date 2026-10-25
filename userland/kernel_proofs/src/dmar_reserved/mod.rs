@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// The scope parser, mounted once (crate::dmar_scope), under the name the
-// RMRR parser imports it by.
-pub use crate::dmar_scope::scope as dmar_scope;
-#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_rmrr.rs"]
-pub mod dmar_rmrr;
+// The RMRR parser and the rule naming its devices, mounted once beside the
+// scope parser (crate::dmar_scope), so these proofs hold the same code.
+pub use crate::dmar_scope::{dmar_rmrr, dmar_rmrr_names};
 #[cfg(test)]
 mod build;
 #[cfg(test)]

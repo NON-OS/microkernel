@@ -1,7 +1,7 @@
 # Booting the image under QEMU (GUI, headless, serial, GDB, TPM), plus the
 # static and verification gates that run over the built kernel.
 
-.PHONY: nonos-mk-boot-matrix nonos-mk-boot-matrix-esp-smp nonos-mk-boot-matrix-esp-up nonos-mk-check-caps nonos-mk-debug nonos-mk-plan-a-runtime nonos-mk-run nonos-mk-run-input-probe-inject-serial-log nonos-mk-run-iommu-serial-log nonos-mk-run-nat nonos-mk-run-net nonos-mk-run-serial nonos-mk-run-serial-log nonos-mk-run-serial-nat nonos-mk-run-serial-net nonos-mk-run-smp-serial-log nonos-mk-scan nonos-mk-static nonos-mk-swtpm-start nonos-mk-swtpm-stop nonos-mk-verify nonos-mk-verify-fast
+.PHONY: nonos-mk-boot-matrix nonos-mk-boot-matrix-esp-eth nonos-mk-boot-matrix-esp-smp nonos-mk-boot-matrix-esp-up nonos-mk-check-caps nonos-mk-debug nonos-mk-plan-a-runtime nonos-mk-run nonos-mk-run-input-probe-inject-serial-log nonos-mk-run-iommu-serial-log nonos-mk-run-nat nonos-mk-run-net nonos-mk-run-serial nonos-mk-run-serial-log nonos-mk-run-serial-nat nonos-mk-run-serial-net nonos-mk-run-smp-serial-log nonos-mk-scan nonos-mk-static nonos-mk-swtpm-start nonos-mk-swtpm-stop nonos-mk-verify nonos-mk-verify-fast
 
 # Build a kernel profile, then pack the ESP from it.
 #
@@ -551,6 +551,12 @@ nonos-mk-boot-matrix-esp-up:
 nonos-mk-boot-matrix-esp-smp:
 	$(call nonos_kernel_and_esp,nonos-mk-smp-prod)
 	@rm -rf $(BOOT_MATRIX_DIR)/esp-smp && mkdir -p $(BOOT_MATRIX_DIR) && cp -R $(ESP_DIR) $(BOOT_MATRIX_DIR)/esp-smp
+
+# The device cells with a NIC (scripts/bootmatrix/devices.py): the desktop with
+# the wired drivers QEMU models, so each card must take a lease through itself.
+nonos-mk-boot-matrix-esp-eth:
+	$(call nonos_kernel_and_esp,nonos-mk-ethernet-prod)
+	@rm -rf $(BOOT_MATRIX_DIR)/esp-eth && mkdir -p $(BOOT_MATRIX_DIR) && cp -R $(ESP_DIR) $(BOOT_MATRIX_DIR)/esp-eth
 
 nonos-mk-boot-matrix: $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP) $(QEMU_OVMF_VARS_RW)
 	@profiles="$$($(NONOS_PYTHON) scripts/boot_matrix.py --profiles $(BOOT_MATRIX_CELLS))"; \
