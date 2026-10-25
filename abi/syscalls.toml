@@ -1048,7 +1048,9 @@ args = [{name="which",type="u64",dir="in"},{name="initiator",type="u32",dir="in"
 ret  = {type="i64"}
 
 [desc.MBGL]
+# Retired (src/syscall/microkernel/retired.rs): the number is kept and answers
+# EINVAL to every caller; it was MkBootLogo, the firmware's logo for the splash.
 nr   = 0x4C47424D
-caps = ["GraphicsSurfaceCreate"]
+caps = ["valid_token"]
 args = [{name="which",type="u64",dir="in"},{name="out",type="u8*",dir="out"},{name="len",type="usize",dir="in"}]
 ret  = {type="i64"}

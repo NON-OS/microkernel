@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The two domains of the plan, both at version "1".
+//! A server silent to a caller across late calls is reported unanswered,
+//! from a fixed table whose eviction can only make a report earlier.
 
-use super::domain::Domain;
+#[path = "../../../../src/syscall/microkernel/ipc/call/silence.rs"]
+mod silence;
 
-pub static SETTLEMENT: Domain = Domain { name: "NONOS Settlement", version: "1" };
-
-pub static BOND: Domain = Domain { name: "NONOS Bond", version: "1" };
+#[cfg(test)]
+mod model;
+#[cfg(test)]
+mod tests;
