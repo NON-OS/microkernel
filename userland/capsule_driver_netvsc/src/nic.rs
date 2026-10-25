@@ -36,6 +36,8 @@ const E_AGAIN: i32 = -11;
 pub struct Net {
     pub link: NetLink,
     pub mac: [u8; 6],
+    /// Where the address came from, as STATS word 9 carries it.
+    pub station: u32,
     /// The link at the start, before the host said otherwise.
     pub started_up: bool,
 }

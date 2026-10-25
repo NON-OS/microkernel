@@ -26,7 +26,7 @@ use std::path::{Path, PathBuf};
 // A ceiling file present under the trust policy is copied verbatim; when it is
 // absent the eight zero bytes written here decode, per image_ceiling::ceiling,
 // to the unrestricted default.
-pub fn stage_image_capability_ceiling(trust: &Path) {
+pub(crate) fn stage_image_capability_ceiling(trust: &Path) {
     let out_dir = env::var("OUT_DIR").unwrap();
     let src = trust.join("policy/image_capability_ceiling.bin");
     println!("cargo:rerun-if-changed={}", src.display());
@@ -40,7 +40,7 @@ pub fn stage_image_capability_ceiling(trust: &Path) {
 // verbatim; absent, 64 zero bytes, and the kernel treats the key as not
 // provisioned. NONOS_DEVICE_POLICY_PUBKEY names a test key in place of the
 // trust set's, made outside the tree.
-pub fn stage_device_policy_key(trust: &Path) {
+pub(crate) fn stage_device_policy_key(trust: &Path) {
     let out_dir = env::var("OUT_DIR").unwrap();
     println!("cargo:rerun-if-env-changed=NONOS_DEVICE_POLICY_PUBKEY");
     let named = env::var_os("NONOS_DEVICE_POLICY_PUBKEY").map(PathBuf::from);

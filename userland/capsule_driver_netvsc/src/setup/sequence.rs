@@ -138,6 +138,6 @@ pub fn run(dev: Found) -> Result<Driver, &'static str> {
         let _ = mk_debug(FELL_BACK.as_ptr(), FELL_BACK.len());
     }
     let mac = station::address(verdict, drawn, started.host_mac);
-    let net = Net { link, mac, started_up: started.link_up };
+    let net = Net { link, mac, station: verdict.station(), started_up: started.link_up };
     Ok(Driver { net, device_id: dev.device_id, grants, relid, buffers })
 }

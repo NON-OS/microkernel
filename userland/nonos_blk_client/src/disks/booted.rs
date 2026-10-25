@@ -84,11 +84,8 @@ impl Booted {
             Some(_) => (By::Partition, "its partition"),
             None => (By::Loader, "its loader"),
         };
-        let line = alloc::format!(
-            "[BLK] {:?}{} disk is the boot media by {how}\n",
-            device.driver,
-            device.instance
-        );
+        let (d, n, u) = (device.driver, device.instance, device.unit);
+        let line = alloc::format!("[BLK] {d:?}{n}.{u} disk is the boot media by {how}\n");
         let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
         Some(by)
     }

@@ -47,6 +47,9 @@ impl State {
             find: None,
             cooked: crate::event::cooked::Cooked::default(),
             git_branch: alloc::vec::Vec::new(),
+            completions: alloc::vec::Vec::new(),
+            splash_art: Default::default(),
+            theme_pick: None,
         }
     }
 }
