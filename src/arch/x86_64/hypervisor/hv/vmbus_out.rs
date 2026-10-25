@@ -15,23 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * What the VMBus core may say to the host. Every message it posts is held
- * here before the hypercall: one of the channel messages a guest sends,
- * long enough for its fields, aimed at VP 0 where the SynIC is, and every
- * guest page it names held as DMA. The contact's monitor and interrupt
- * pages are the core's own, on the VMBus root. A GPADL's frames are the
- * channel's, held on the record of the channel it is for. That channel must
- * be one the host offered and the core gave a driver (`channels`), and an
- * open must use that channel's own GPADL. Anything else would let a
- * capsule hand the host memory that is not its own, or open a host service
- * no driver was given.
+ * What may be said to the host, held here before the hypercall. Every
+ * message is a channel message (SynIC type 1) a guest sends, long enough for
+ * its fields, aimed at VP 0 where the SynIC is, and every guest page it
+ * names held as DMA where it must be. Anything else would let a capsule
+ * hand the host memory that is not its own, or reach a channel that is not
+ * its own.
+ *
+ * - The VMBus core, on the root (`check`): the bus's messages alone. These
+ *   are the contact, the request for offers, a withdrawn relid released and
+ *   the unload. The contact's pages are the core's own, held on the root.
+ * - A channel's driver, on its record (`check_channel`): its own channel's
+ *   messages alone (`Channels::target`). These are the open, the close and
+ *   its GPADLs, whose frames must be held on its record. The core never
+ *   reaches a channel.
  */
 
-use super::channels::Channels;
+use super::channels::{Channels, TargetError};
 
 pub(super) const MESSAGE_TYPE_CHANNEL: u32 = 1;
-/// The connections the host takes channel messages on: 1 before VMBus 5.0,
-/// 4 from it.
+/// The connections the host takes the core's messages on: 1 before VMBus
+/// 5.0, 4 from it.
 pub(super) const CONNECTION_MESSAGE: u32 = 1;
 pub(super) const CONNECTION_MESSAGE_V5: u32 = 4;
 
@@ -52,26 +56,16 @@ const PAGE: u64 = 4096;
 pub enum Refusal {
     /// Not a channel message on a channel connection.
     Route,
-    /// A channel message a guest does not send, or one the core may not.
+    /// A channel message a guest does not send, or one this caller may not.
     Kind,
     /// Shorter than its fields.
     Short,
     /// Aimed at a VP other than 0, or a SINT other than VMBus's.
     Target,
-    /// A page the caller does not hold.
+    /// A page not held where it must be.
     Page,
-    /// A GPADL or open for no channel given to a driver, or an open whose
-    /// GPADL is not that channel's.
-    Channel,
-}
-
-/// Who must hold a page a message names.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Holder {
-    /// The caller, on the VMBus root.
-    Root,
-    /// Anyone, on this channel's record.
-    Record(u64),
+    /// Not for the caller's own channel, or a GPADL it may not make now.
+    Channel(TargetError),
 }
 
 fn u32_at(p: &[u8], at: usize) -> Option<u32> {
@@ -80,6 +74,14 @@ fn u32_at(p: &[u8], at: usize) -> Option<u32> {
 
 fn u64_at(p: &[u8], at: usize) -> Option<u64> {
     Some(u64::from_le_bytes(p.get(at..at + 8)?.try_into().ok()?))
+}
+
+fn need(p: &[u8], n: usize) -> Result<(), Refusal> {
+    if p.len() < n {
+        Err(Refusal::Short)
+    } else {
+        Ok(())
+    }
 }
 
 /// Every frame from `at` to the end of `p`, eight bytes each.
@@ -98,36 +100,26 @@ fn frames(p: &[u8], at: usize, held: &dyn Fn(u64) -> bool) -> Result<(), Refusal
     Ok(())
 }
 
-/// Whether `payload`, posted as `ty` on `connection`, may go to the host.
-/// `held` says whether the page at a guest address is held by `Holder`.
+/// Whether the VMBus core may post `payload` as `ty` on `connection`.
+/// `held` says whether the core holds the page at a guest address on the
+/// root.
 pub(super) fn check(
     connection: u32,
     ty: u32,
     payload: &[u8],
-    channels: &Channels,
-    held: impl Fn(Holder, u64) -> bool,
+    held: impl Fn(u64) -> bool,
 ) -> Result<(), Refusal> {
-    let root = |gpa: u64| held(Holder::Root, gpa);
     if ty != MESSAGE_TYPE_CHANNEL
         || !matches!(connection, CONNECTION_MESSAGE | CONNECTION_MESSAGE_V5)
     {
         return Err(Refusal::Route);
     }
     let kind = u32_at(payload, 0).ok_or(Refusal::Short)?;
-    let need = |n: usize| if payload.len() < n { Err(Refusal::Short) } else { Ok(()) };
     match kind {
-        REQUESTOFFERS | UNLOAD => need(8),
-        CLOSECHANNEL | RELID_RELEASED => need(12),
-        GPADL_TEARDOWN => need(16),
-        OPENCHANNEL => {
-            need(28)?;
-            if u32_at(payload, 20) != Some(0) {
-                return Err(Refusal::Target);
-            }
-            channels.target(payload).map(|_| ()).ok_or(Refusal::Channel)
-        }
+        REQUESTOFFERS | UNLOAD => need(payload, 8),
+        RELID_RELEASED => need(payload, 12),
         INITIATE_CONTACT => {
-            need(40)?;
+            need(payload, 40)?;
             let version = u32_at(payload, 8).ok_or(Refusal::Short)?;
             if u32_at(payload, 12) != Some(0) {
                 return Err(Refusal::Target);
@@ -137,33 +129,52 @@ pub(super) fn check(
                 if payload[16] != super::regs::SINT_VMBUS as u8 {
                     return Err(Refusal::Target);
                 }
-            } else if !root(u64_at(payload, 16).ok_or(Refusal::Short)?) {
+            } else if !held(u64_at(payload, 16).ok_or(Refusal::Short)?) {
                 return Err(Refusal::Page);
             }
             for at in [24, 32] {
-                if !root(u64_at(payload, at).ok_or(Refusal::Short)?) {
+                if !held(u64_at(payload, at).ok_or(Refusal::Short)?) {
                     return Err(Refusal::Page);
                 }
             }
             Ok(())
         }
+        _ => Err(Refusal::Kind),
+    }
+}
+
+/// Whether a channel's driver, holding `record`, may post `payload` as
+/// `ty`: one of its own channel's messages. `held` says whether a page at a
+/// guest address is held on its record.
+pub(super) fn check_channel(
+    ty: u32,
+    payload: &[u8],
+    channels: &Channels,
+    record: u64,
+    held: impl Fn(u64) -> bool,
+) -> Result<(), Refusal> {
+    if ty != MESSAGE_TYPE_CHANNEL {
+        return Err(Refusal::Route);
+    }
+    let kind = u32_at(payload, 0).ok_or(Refusal::Short)?;
+    match kind {
+        CLOSECHANNEL => need(payload, 12)?,
+        OPENCHANNEL => need(payload, 28)?,
+        GPADL_HEADER => need(payload, 28)?,
+        GPADL_BODY | GPADL_TEARDOWN => need(payload, 16)?,
+        _ => return Err(Refusal::Kind),
+    }
+    channels.target(record, payload).map_err(Refusal::Channel)?;
+    match kind {
+        OPENCHANNEL if u32_at(payload, 20) != Some(0) => Err(Refusal::Target),
         GPADL_HEADER => {
-            // One range, its byte count and offset, then its first frames.
-            need(28)?;
+            // One range: its byte count and offset, then its first frames.
             if u32_at(payload, 16).map(|w| w >> 16) != Some(1) {
                 return Err(Refusal::Kind);
             }
-            let record = channels.target(payload).ok_or(Refusal::Channel)?;
-            if !channels.gpadl_free(u32_at(payload, 12).ok_or(Refusal::Short)?) {
-                return Err(Refusal::Channel);
-            }
-            frames(payload, 28, &|gpa| held(Holder::Record(record), gpa))
+            frames(payload, 28, &held)
         }
-        GPADL_BODY => {
-            need(16)?;
-            let record = channels.target(payload).ok_or(Refusal::Channel)?;
-            frames(payload, 16, &|gpa| held(Holder::Record(record), gpa))
-        }
-        _ => Err(Refusal::Kind),
+        GPADL_BODY => frames(payload, 16, &held),
+        _ => Ok(()),
     }
 }

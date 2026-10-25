@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whether live grants on a device cover a page named to it, as the bus
-//! sees it: the caller's own, or anyone's.
+//! Whether a caller's live grants on a device cover a page the caller
+//! names to it, as the bus sees it.
 
 use super::records::RECORDS;
 
@@ -26,17 +26,6 @@ pub fn covers(pid: u32, device_id: u64, device_addr: u64) -> bool {
     RECORDS.lock().iter().any(|g| {
         g.pid == pid
             && g.device_id == device_id
-            && g.device_addr <= device_addr
-            && g.device_addr.checked_add(g.length).is_some_and(|e| end <= e)
-    })
-}
-
-/// Whether any live grant on a device covers a page, whoever holds it: a
-/// VMBus channel's frames are its driver's, named to the host by the core.
-pub fn covers_any(device_id: u64, device_addr: u64) -> bool {
-    let Some(end) = device_addr.checked_add(PAGE) else { return false };
-    RECORDS.lock().iter().any(|g| {
-        g.device_id == device_id
             && g.device_addr <= device_addr
             && g.device_addr.checked_add(g.length).is_some_and(|e| end <= e)
     })
