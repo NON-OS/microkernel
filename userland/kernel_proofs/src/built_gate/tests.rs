@@ -16,7 +16,7 @@
 
 use std::cell::Cell;
 
-use super::built_gate::{checked, gate, stored};
+use super::rule::{checked, gate, stored};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum E {

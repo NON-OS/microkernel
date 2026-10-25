@@ -33,6 +33,16 @@ pub(super) const DRIVER_STORVSC_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_STORVSC_ATTESTATION_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/driver_storvsc.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-storvsc")]
+const _: () = assert!(
+    !DRIVER_STORVSC_ELF.is_empty()
+        && !DRIVER_STORVSC_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_STORVSC_MANIFEST_BYTES.is_empty()
+        && !DRIVER_STORVSC_ATTESTATION_BYTES.is_empty(),
+    "storvsc_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-storvsc"))]
 pub(super) const DRIVER_STORVSC_ELF: &[u8] = &[];
 

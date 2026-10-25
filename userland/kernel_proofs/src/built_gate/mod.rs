@@ -20,7 +20,7 @@
 //! image before it spawns.
 
 #[path = "../../../../src/kernel_core/process_spawn/capsule_spawn/runner/built_gate.rs"]
-mod built_gate;
+mod rule;
 
 #[cfg(test)]
 mod tests;

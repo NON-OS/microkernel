@@ -28,3 +28,12 @@ pub(crate) const ATTACK_MANIFEST_BYTES: &[u8] =
 
 pub(crate) const ATTACK_ATTESTATION_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/attack.zk_trailer.bin");
+
+// A capsule built in with an empty file never compiles (B-02).
+const _: () = assert!(
+    !ATTACK_ELF.is_empty()
+        && !ATTACK_NONOS_ID_CERT_BYTES.is_empty()
+        && !ATTACK_MANIFEST_BYTES.is_empty()
+        && !ATTACK_ATTESTATION_BYTES.is_empty(),
+    "capsule_attack built in with an empty image"
+);
