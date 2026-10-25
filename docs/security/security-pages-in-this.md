@@ -36,6 +36,9 @@ The network:
 - [TLS and certificate trust](tls-and-certificates.md): the TLS 1.3 client
   capsules share, how a certificate chain is checked, where the roots come from
   and which clock dates are read against.
+- [Privacy: every way off the machine](privacy.md): each capsule that holds
+  Network and each place the image reaches, why, and how to turn it off; with
+  [the privacy threat model](privacy-threat-model.md).
 - [How the Nym and Anyone transports are built](anonymity-transports.md): the
   two anonymity transports, the cryptography on their wire, how each checks its
   directory, and what they lack.
