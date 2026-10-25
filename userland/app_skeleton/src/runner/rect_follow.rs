@@ -38,7 +38,7 @@ pub(super) fn follow_rect<A: App>(booted: &mut BootedApp<A>, peers: &Peers, requ
     let want = booted.app.wants_rect();
     let b = &booted.binding;
     let now = (b.x, b.y, b.width, b.height);
-    let mv = booted.rect_ask.step(want, now, || {
+    let mv = booted.asks.rect.step(want, now, || {
         let di = compositor::display_info(peers.compositor, next(request_id)).ok()?;
         let (bar, dock) = (menubar_for(di.width, di.height), dock_for(di.width, di.height));
         Some((0, bar, di.width, di.height.saturating_sub(bar + dock)))

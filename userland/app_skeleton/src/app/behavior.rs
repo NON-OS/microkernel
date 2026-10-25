@@ -32,14 +32,11 @@ pub trait App {
         1000
     }
 
-    /// Whether the app has pending asynchronous work, such as an in-flight
-    /// network request or a load in progress, and needs to keep ticking
-    /// promptly. When true the runner yields cooperatively between frames
-    /// instead of sleeping to the next vblank, so the work advances even where
-    /// the scheduler's periodic wake is unreliable and a frame would otherwise
-    /// stall until the next input event. Under `run`, which otherwise blocks
-    /// on its inbox until the next tick, it caps each wait at a millisecond.
-    /// Defaults to idle.
+    /// Whether the app has pending asynchronous work (a request in flight, a
+    /// load) and must keep ticking promptly: the runner then yields between
+    /// frames instead of sleeping to the next vblank, so the work advances where
+    /// the scheduler's wake is unreliable; under `run` each wait is capped at a
+    /// millisecond. Defaults to idle.
     fn busy(&self) -> bool {
         false
     }
@@ -54,14 +51,11 @@ pub trait App {
         None
     }
 
-    /// Width in pixels of an app-owned widget hosted in the titlebar, right
-    /// aligned inside it. Zero, the default, means the app owns no titlebar
-    /// widget and the frame keeps the whole bar. A non-zero width moves the
-    /// centred title clear of the widget, hands `paint_accessory` a sub-buffer
-    /// over it, and routes pointer events landing inside it to
-    /// `on_accessory_event` instead of starting a window drag. Keyboard events
-    /// are unaffected and keep arriving through `on_event`, so an accessory
-    /// that takes text tracks its own focus.
+    /// Width of an app-owned widget right aligned in the titlebar; zero, the
+    /// default, keeps the whole bar. A width moves the title clear of it, hands
+    /// `paint_accessory` a sub-buffer over it, and sends pointer events inside
+    /// it to `on_accessory_event` rather than a drag; keys still go through
+    /// `on_event`, so an accessory that takes text tracks its own focus.
     fn titlebar_accessory_w(&self) -> u32 {
         0
     }
