@@ -22,10 +22,10 @@ use nonos_market_proto::{linux_policy_body, parse_linux_policy, LinuxPolicy};
 use nonos_marketplace_abi::{listing_id, release_id};
 
 use super::hosts::Host;
-use super::linux_policy_encode::{answer, encode};
+use super::linux_policy_encode::encode;
 use super::policy_fixture::{linux, policy};
 
-fn read(reply: LinuxPolicy) -> LinuxPolicy {
+pub(super) fn read(reply: LinuxPolicy) -> LinuxPolicy {
     parse_linux_policy(&linux_policy_body(&reply, &[0; 32]))
         .expect("the market's own reply reads")
         .0
@@ -62,73 +62,4 @@ fn a_policy_nobody_signed_or_that_fails_the_gate_is_refused() {
         LinuxPolicy::Refused,
         "a vendor program naming ids"
     );
-}
-
-#[test]
-fn a_vendor_program_or_a_listing_not_linux_sends_no_policy() {
-    for p in [vec![], policy([0; 32], [0; 32])] {
-        let (e, rel) = linux(p, "store:/bin/qwenchat");
-        assert_eq!(read(encode(&e, &rel, true, true)), LinuxPolicy::NoPolicy);
-    }
-    let (mut e, rel) = linux(vec![], "https://pkg");
-    e.listing_id = "nonos.app.calculator".into();
-    assert_eq!(read(encode(&e, &rel, true, true)), LinuxPolicy::NoPolicy);
-}
-
-/* The box goes out only for a release init would install: a valid, signed
- * policy for a release readiness refuses is still refused. */
-#[test]
-fn a_policy_for_a_release_that_is_not_ready_is_refused() {
-    let (e, rel) = linux(vec![], "https://pkg");
-    let listing = listing_id(&Host, &e.publisher_pubkey, &e.listing_id);
-    let release = release_id(&Host, &listing, &rel.release_id);
-    let (e, mut rel) = linux(policy(listing, release), "https://pkg");
-    assert!(matches!(read(encode(&e, &rel, true, true)), LinuxPolicy::Policy(_)));
-    rel.supported_arches = vec!["riscv64".into()];
-    assert_eq!(read(encode(&e, &rel, true, true)), LinuxPolicy::Refused, "another arch");
-    let (mut sale, rel) = linux(policy(listing, release), "https://pkg");
-    sale.commerce = super::fixtures::sold().entries[0].commerce.clone();
-    assert_eq!(read(encode(&sale, &rel, true, true)), LinuxPolicy::Refused, "a sale with no bond");
-}
-
-/* The answer is for the release the market found, by the same resolution as
- * readiness, with that release's package hash; each signature is the
- * accepted index's own. */
-#[test]
-fn the_answer_is_for_the_release_found_with_its_hash_and_signatures() {
-    let (e, rel) = linux(vec![], "https://pkg");
-    let listing = listing_id(&Host, &e.publisher_pubkey, &e.listing_id);
-    let release = release_id(&Host, &listing, &rel.release_id);
-    let (e, rel) = linux(policy(listing, release), "https://pkg");
-    let mut index = super::fixtures::sold();
-    index.entries =
-        vec![nonos_marketplace_abi::MarketplaceEntry { releases: vec![rel.clone()], ..e.clone() }];
-    let ask = |signed, publisher: bool| answer(&index, signed, |_, _| publisher, &e.listing_id, "");
-    let (reply, hash) = ask(true, true).expect("found");
-    assert!(matches!(reply, LinuxPolicy::Policy(_)) && hash == rel.package_hash);
-    assert_eq!(ask(false, true).map(|a| a.0), Some(LinuxPolicy::Refused), "index unsigned");
-    assert_eq!(ask(true, false).map(|a| a.0), Some(LinuxPolicy::Refused), "publisher unsigned");
-    assert!(answer(&index, true, |_, _| true, "linux.other", "").is_none(), "no such listing");
-    assert!(
-        answer(&index, true, |_, _| true, &e.listing_id, "nope@1").is_none(),
-        "no such release"
-    );
-    let mut second = rel.clone();
-    second.release_id = "pkg@2".into();
-    second.package_hash = [0xab; 32];
-    index.entries[0].releases.push(second);
-    let (_, hash) = answer(&index, true, |_, _| true, &e.listing_id, "pkg@2").expect("the second");
-    assert_eq!(hash, [0xab; 32], "the hash of the release asked for, not the first");
-    let mut seen = None;
-    let _ = answer(
-        &index,
-        true,
-        |at, r| {
-            seen = Some((at, r));
-            true
-        },
-        &e.listing_id,
-        "pkg@2",
-    );
-    assert_eq!(seen, Some((0, 1)), "the publisher flag asked of the release found");
 }

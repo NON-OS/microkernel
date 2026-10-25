@@ -29,7 +29,10 @@ mod entry_document;
 pub(crate) mod fixtures;
 mod hosts;
 mod ids;
+mod linux_policy_answer_tests;
+mod linux_policy_gate_tests;
 mod linux_policy_kernel;
+mod linux_policy_pin;
 mod linux_policy_wire;
 mod pinning;
 mod policy;
@@ -48,5 +51,9 @@ pub(crate) mod chain_hosts;
 mod commerce_encode;
 #[path = "../../../../src/security/market_capsule/client/linux_policy_wire.rs"]
 mod kernel_linux_policy;
+#[path = "../../../capsule_market/src/server/handlers/get_linux_policy/answer.rs"]
+mod linux_policy_answer;
 #[path = "../../../capsule_market/src/server/handlers/get_linux_policy/encode.rs"]
 mod linux_policy_encode;
+/* answer.rs names its sibling as the capsule does. */
+use linux_policy_encode as encode;
