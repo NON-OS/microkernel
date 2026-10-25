@@ -15,6 +15,7 @@ the kernel, is left out; everything it hands on is proven here.
 | `prepare_tests` | record and file to the logo shown: pixel for pixel, turned, halved, and placed from its margins when the mode is unknown |
 | `refuse_tests` | not on screen, a record and a file that disagree, or a logo too large to hold: nothing is drawn |
 | `draw_tests` | the prepared logo is copied to its spot, clipped at every edge, with nothing written outside |
+| `follow_tests`, `follow_limit_tests` | the splash asks the canvas size every 250 ms, at once if the clock went back; a new size (or stride) is a move, the same size or a failed answer is not; four redraws at most; its time on screen kept across a redraw |
 
 `build.rs` writes the BMP files and records the tests hand the splash.
 
