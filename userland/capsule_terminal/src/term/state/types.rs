@@ -64,4 +64,6 @@ pub struct State {
     pub find: Option<crate::term::select::Find>,
     /// The line editing a foreground program gets while it reads lines.
     pub cooked: crate::event::cooked::Cooked,
+    /// The branch the prompt shows, read after each line; empty outside git.
+    pub git_branch: alloc::vec::Vec<u8>,
 }

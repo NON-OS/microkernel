@@ -243,7 +243,7 @@ let
     ]);
     # verify.yml, abi-contracts and syscall-reach
     static-abi = static "abi" (scripts [
-      "scripts/check_syscall_abi.py" "scripts/check_abi_stable.py"
+      "scripts/check_syscall_abi.py --self-test" "scripts/check_syscall_abi.py" "scripts/check_abi_stable.py"
       "nonos-ci/attack_suite_check.py --self-test" "nonos-ci/boot_attest_check.py --self-test"
       "scripts/check_capsule_ports.py --self-test" "scripts/check_capsule_ports.py"
       "scripts/check_handoff_mirror.py --self-test" "scripts/check_handoff_mirror.py"

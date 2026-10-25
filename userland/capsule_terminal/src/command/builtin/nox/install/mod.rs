@@ -21,6 +21,7 @@ pub mod follow;
 mod job;
 mod probe;
 mod run;
+mod window;
 
 pub(crate) use call::call_installer;
 pub use job::InstallJob;
