@@ -43,8 +43,8 @@ fn the_network_bit_is_the_receipt_readers() {
 #[test]
 fn a_second_network_capsule_under_another_authority_is_refused() {
     let front = entry_by(5, FRONT, NETWORK, VENDOR);
-    assert_eq!(set(vec![front, entry_by(7, [0x77; 32], NETWORK, 1)]), Refusal::Front);
-    assert_eq!(set(vec![front, entry_by(7, [0x77; 32], NETWORK, 255)]), Refusal::Front);
+    assert_eq!(set(vec![front, entry_by(7, [0x77; 32], NETWORK, 1)]), Refusal::NotVendor);
+    assert_eq!(set(vec![front, entry_by(7, [0x77; 32], NETWORK, 255)]), Refusal::NotVendor);
     assert_eq!(set(vec![front, entry_by(7, [0x77; 32], NETWORK, VENDOR)]), Refusal::Front);
 }
 
@@ -52,7 +52,7 @@ fn a_second_network_capsule_under_another_authority_is_refused() {
 fn a_front_twice_or_not_admitted_by_the_vendor_is_refused() {
     let front = entry_by(5, FRONT, NETWORK, VENDOR);
     assert_eq!(set(vec![front, entry_by(8, FRONT, NETWORK, VENDOR)]), Refusal::Front);
-    assert_eq!(set(vec![entry_by(5, FRONT, NETWORK, 1)]), Refusal::Front);
+    assert_eq!(set(vec![entry_by(5, FRONT, NETWORK, 1)]), Refusal::NotVendor);
     assert_eq!(set(vec![entry_by(5, [0xF1; 32], NETWORK, VENDOR)]), Refusal::Front);
 }
 
@@ -61,7 +61,7 @@ fn a_front_without_network_or_no_network_capsule_is_refused() {
     assert_eq!(set(vec![entry_by(5, FRONT, 1 << 3, VENDOR)]), Refusal::Front);
     assert_eq!(set(vec![]), Refusal::Front);
     assert!(
-        refused(Spec { entries: vec![entry(0, FRONT, NETWORK)], ..Spec::default() })
+        refused(Spec { entries: vec![entry(0, FRONT, 1 << 3)], ..Spec::default() })
             == Refusal::Front
     );
 }

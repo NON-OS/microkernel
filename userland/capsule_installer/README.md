@@ -50,6 +50,7 @@ same sequence word and a status.
 | 6 | `OP_PKG_QUERY` | verify a `.nonos` package with the kernel and return its BLAKE3 digest, capability word, tier, name and namespace |
 | 7 | `OP_PKG_COMMIT` | re-read and re-verify the package, refuse it unless the digest is the one consented to, then write its four files to the store |
 | 8 | `OP_PKG_REMOVE` | delete whichever of an installed name's four files exist |
+| 9 | `OP_LOAD_OUTCOME` | the body is a load's own (caps, name, argv); the status is how the sender's last load of that name ended, `ENOENT` when none is kept. The last 8 loads are kept, each told only to its sender, so the Terminal, which waits on a load for 40 ms, still shows a refusal's reason (`server/outcomes.rs`) |
 
 Ops 6, 7 and 8 need a sender holding SpawnWindow, and 2 AppInstall or
 SpawnWindow, as the kernel answers `mk_caps_of` for that message (`server/gate.rs`,

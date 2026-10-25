@@ -53,7 +53,7 @@ pub fn stream_begin(
     if let Some(size) = recorded(name, want)? {
         return Ok(Begun::Done(size));
     }
-    let mut live = LIVE.lock();
+    let mut live = crate::smp::lock_responsive(&LIVE);
     if let Some(l) = live.as_mut() {
         let owned = l.pid == pid || !alive(l.pid);
         if l.is(name, want, bytes) && (owned || probe) {

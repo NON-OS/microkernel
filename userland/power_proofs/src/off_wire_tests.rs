@@ -19,7 +19,7 @@
 //! payload length or length is not; any request id is; and a refusal
 //! echoes the header with the status at offset 20.
 
-use super::off_wire::*;
+use crate::wire::*;
 
 fn header(id: u32) -> [u8; HEADER] {
     let mut h = [0u8; HEADER];

@@ -29,10 +29,10 @@ pub const MAX_DOC: usize = 1024 * 1024 + 64 * 1024;
 pub const QUOTED_PCRS_V4: [u8; 8] = [0, 1, 2, 4, 7, 8, 9, 14];
 /// How many PCR values a version 5 document carries.
 pub const PCR_COUNT: usize = QUOTED_PCRS_V4.len();
-/// The PCRs the TCG event log must reproduce: the ones firmware extends.
-/// PCRs 8, 9 and 14 are extended by NONOS code outside the firmware log and
-/// are held to the release's values instead.
-pub const REPLAYED_PCRS: [u8; 5] = [0, 1, 2, 4, 7];
+/// The PCRs the TCG event log must reproduce: the firmware's, and 14, whose
+/// capsule events the kernel appends. PCRs 8 and 9 are extended by the
+/// loader outside the log and are held to the release's values instead.
+pub const REPLAYED_PCRS: [u8; 6] = [0, 1, 2, 4, 7, 14];
 /// The firmware PCRs the enrolment certificate fixes, in its order.
 pub const ENROLLED_PCRS: [u8; 4] = [0, 1, 2, 7];
 /// The largest TCG event log a document carries.

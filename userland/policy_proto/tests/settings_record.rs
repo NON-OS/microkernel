@@ -30,8 +30,8 @@ fn every_kept() -> Vec<(Field, Value<'static>)> {
         (Field::ClockFormat24, Value::Bool(false)),
         (Field::NotificationsEnabled, Value::Bool(true)),
         (Field::WifiRadio, Value::Bool(false)),
-        (Field::Wallpaper, Value::U8(62)),
-        (Field::WallpapersKept, Value::U64((1 << 62) | (1 << 3))),
+        (Field::Wallpaper, Value::U8(3)),
+        (Field::WallpapersKept, Value::U64((1 << 3) | (1 << 1))),
         (Field::MouseSensitivity, Value::U8(7)),
         (Field::SoundEnabled, Value::Bool(true)),
         (Field::Volume, Value::U8(40)),
@@ -75,8 +75,8 @@ fn an_entry_this_build_does_not_keep_is_skipped() {
 fn a_record_that_does_not_frame_is_refused_whole() {
     let raw = encode([(Field::Volume, Value::U8(9)), (Field::Username, Value::Str(b"ada"))]);
     for cut in 5..raw.len() {
-        if cut == 9 {
-            continue; // a whole first entry and nothing after it frames
+        if cut == 9 || cut == 14 {
+            continue; // the era entry, then the first value, each frames whole
         }
         assert!(decode_values(&raw[..cut]).is_none(), "cut at {cut}");
     }

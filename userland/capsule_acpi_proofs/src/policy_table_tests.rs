@@ -43,7 +43,7 @@ fn the_table_the_lead_set() {
     assert_eq!(allowed(12), Allowed::AnyAdmitted, "PROPERTIES: the kernel's holder test");
     assert_eq!(allowed(13), Allowed::AnyAdmitted, "GPIO_EVENT: the kernel's holder test");
     assert_eq!(allowed(16), Allowed::AnyAdmitted, "QUIRKS: the kernel's holder test");
-    // 0x50 is "P", the first byte of the shell's POFF request.
+    // 0x50 is "P": a POFF frame sent here is refused like any unknown op (P-08).
     for op in [0, 1, 2, 23, 24, 25, 0x50, 255] {
         assert_eq!(allowed(op), Allowed::Nobody, "op {op}");
     }
