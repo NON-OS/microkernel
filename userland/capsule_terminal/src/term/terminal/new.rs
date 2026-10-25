@@ -47,6 +47,7 @@ impl Terminal {
             ptr: Default::default(),
             key_at: 0,
             split: None,
+            dropped: false,
             started_ms: mk_time_millis(),
             handed_due_ms: 0,
         }

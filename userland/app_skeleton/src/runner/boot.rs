@@ -43,6 +43,7 @@ pub(super) struct BootedApp<A: App> {
     pub saved: (u32, u32, u32, u32),
     /// Whether the app asks for full screen, and whether it took it.
     pub full_ask: FullScreenAsk,
+    pub rect_ask: super::rect_ask::RectAsk,
     pub drag: DragState,
     /* Size, frame hover and maximized state of the last repaint, so a repaint
      * that changes none of them can leave the frame as it is. */
@@ -70,6 +71,7 @@ pub(super) fn boot<A: App>(
         minimized: false,
         saved: (0, 0, 0, 0),
         full_ask: FullScreenAsk::new(),
+        rect_ask: super::rect_ask::RectAsk::new(),
         drag: DragState::new(),
         painted: (0, 0, DecorationHit::None, false),
     })

@@ -82,6 +82,12 @@ pub trait App {
         false
     }
 
+    /// A rect the window should stand at, in thousandths of the work area
+    /// (runner/rect_ask.rs); None, the default, leaves the window alone.
+    fn wants_rect(&self) -> Option<crate::runner::work_rect::WorkRect> {
+        None
+    }
+
     /// Asked when the window's close button is pressed. An app holding work
     /// the user would lose returns false, says so in its own window, and the
     /// window stays open; pressing close again is the user's answer. Defaults
