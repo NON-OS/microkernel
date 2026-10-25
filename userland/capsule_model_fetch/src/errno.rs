@@ -32,7 +32,7 @@ const NAMES: &[(i64, &str, &str)] = &[
         "too little free memory to hold this live session's data volume; install NONOS \
          to keep models on a disk",
     ),
-    (-13, "EACCES", "the data volume is locked; unlock it with its passphrase first"),
+    (-13, "EACCES", "the data volume is locked; open it with its passphrase first"),
     (-16, "EBUSY", "another download is feeding the data volume"),
     (-17, "EEXIST", "the name is taken on the data volume by another file"),
     (
