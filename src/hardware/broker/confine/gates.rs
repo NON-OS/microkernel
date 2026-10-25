@@ -35,18 +35,10 @@ pub(super) fn admit(device_id: u64) -> Result<(Vec<Member>, Vec<DeviceAddress>),
         return Err(Refused);
     }
     // What it reaches without the IOMMU is its group.
-    #[cfg(target_arch = "x86_64")]
-    return match super::acs_walk::acs::reach(device_id) {
-        Some(r) => {
-            Ok((r.group, r.aliases.iter().map(|&(b, d, f)| DeviceAddress::pci(b, d, f)).collect()))
-        }
-        None => {
-            say(b"refused: no isolation group, behind a VMD or a looped bus");
-            Err(Refused)
-        }
-    };
-    #[cfg(not(target_arch = "x86_64"))]
-    Ok((Vec::new(), Vec::new()))
+    reach(device_id).ok_or_else(|| {
+        say(b"refused: no isolation group, behind a VMD or a looped bus");
+        Refused
+    })
 }
 
 /// A device another capsule holds, as a claim beside it sees it: its
@@ -58,18 +50,26 @@ pub(super) struct Peer {
 }
 
 /// None for a device off the PCI tree, which has no group and blocks none.
-#[cfg(target_arch = "x86_64")]
 pub(super) fn peer(device_id: u64) -> Option<Peer> {
     let a = crate::hardware::broker::pci_index::lookup(device_id)?.address;
     let at = (a.bus, a.device, a.function);
-    let Some(r) = super::acs::reach(device_id) else {
-        return Some(Peer { at, group: None, aliases: Vec::new() });
-    };
-    let aliases = r.aliases.iter().map(|&(b, d, f)| DeviceAddress::pci(b, d, f)).collect();
-    Some(Peer { at, group: Some(r.group), aliases })
+    Some(match reach(device_id) {
+        Some((group, aliases)) => Peer { at, group: Some(group), aliases },
+        None => Peer { at, group: None, aliases: Vec::new() },
+    })
 }
 
-#[cfg(not(target_arch = "x86_64"))]
-pub(super) fn peer(_: u64) -> Option<Peer> {
-    None
+/// The device's group and its DMA's requester ids; None where the walk cannot
+/// place it. The walk is x86_64's (acs_walk.rs): elsewhere nothing is reached.
+fn reach(device_id: u64) -> Option<(Vec<Member>, Vec<DeviceAddress>)> {
+    #[cfg(target_arch = "x86_64")]
+    return super::acs_walk::acs::reach(device_id).map(|r| {
+        let aliases = r.aliases.iter().map(|&(b, d, f)| DeviceAddress::pci(b, d, f)).collect();
+        (r.group, aliases)
+    });
+    #[cfg(not(target_arch = "x86_64"))]
+    {
+        let _ = device_id;
+        Some((Vec::new(), Vec::new()))
+    }
 }

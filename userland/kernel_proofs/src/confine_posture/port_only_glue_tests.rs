@@ -33,7 +33,7 @@ fn the_group_check_asks_the_rule_both_ways_for_the_claim_and_each_holder() {
     assert!(JOIN_GROUP.contains("filter_map(|&e| Some((e, peer(e)?)))"), "no held device's group");
     assert!(JOIN_GROUP.contains("(p.at, p.group.as_deref())"), "an unread group taken as empty");
     assert!(JOIN_GROUP.contains("Blocked::Unreadable(at) => unreadable_line(at, &holder(c.pid))"));
-    assert!(GATES.contains("return Some(Peer { at, group: None, aliases: Vec::new() });"));
+    assert!(GATES.contains("None => Peer { at, group: None, aliases: Vec::new() },"));
 }
 
 #[test]
