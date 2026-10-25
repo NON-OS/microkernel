@@ -21,6 +21,7 @@ mod endpoint;
 mod name_rule;
 mod names;
 mod spawn;
+mod spawn_from;
 mod trust;
 
 pub(crate) use spawn::load_capsule_from_vfs;
