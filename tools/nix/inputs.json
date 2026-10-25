@@ -8239,6 +8239,7 @@
    ".cargo",
    "src/capabilities/types",
    "src/kernel_core",
+   "src/process/core/table/ambient.rs",
    "src/security/capsule_manifest/verify/caps_bits.rs",
    "src/userspace/tool_capsules/bound.rs",
    "src/userspace/tool_capsules/model_fetch/spawn.rs",
