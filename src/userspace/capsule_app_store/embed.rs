@@ -36,6 +36,16 @@ pub(crate) const APP_STORE_MANIFEST_BYTES: &[u8] =
 pub(crate) const APP_STORE_ATTESTATION_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/app_store.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-app-store")]
+const _: () = assert!(
+    !APP_STORE_ELF.is_empty()
+        && !APP_STORE_NONOS_ID_CERT_BYTES.is_empty()
+        && !APP_STORE_MANIFEST_BYTES.is_empty()
+        && !APP_STORE_ATTESTATION_BYTES.is_empty(),
+    "capsule_app_store built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-app-store"))]
 pub(crate) const APP_STORE_ELF: &[u8] = &[];
 
