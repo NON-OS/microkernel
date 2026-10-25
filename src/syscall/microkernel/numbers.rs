@@ -58,6 +58,8 @@ pub const SYS_PRIVATE_WRITE: u64 = tag4(b"MPVW");
 /// The package store's sectors, written and read on the disk the block layer chose.
 pub const SYS_STORE_WRITE: u64 = tag4(b"MSWR");
 pub const SYS_STORE_READ: u64 = tag4(b"MSRR");
+/// Whether this boot keeps anything: 1 once the person chose it, else 0.
+pub const SYS_KEEPING: u64 = tag4(b"MKEP");
 /// The data volume: a verified import, a file's size, a range of it, a passphrase.
 pub const SYS_DATA_IMPORT: u64 = tag4(b"MDIM");
 pub const SYS_DATA_STAT: u64 = tag4(b"MDST");
@@ -154,6 +156,7 @@ pub const SYS_CAP_CHECK: u64 = tag4(b"MCCK");
 pub const SYS_DEVICE_LIST: u64 = tag4(b"MDLS");
 pub const SYS_DEVICE_CLAIM: u64 = tag4(b"MDCL");
 pub const SYS_DEVICE_RELEASE: u64 = tag4(b"MDRL");
+pub const SYS_BOOT_FRAMEBUFFER: u64 = tag4(b"MBFB");
 pub const SYS_MMIO_MAP: u64 = tag4(b"MMMP");
 pub const SYS_MMIO_UNMAP: u64 = tag4(b"MMUM");
 pub const SYS_IRQ_BIND: u64 = tag4(b"MIRB");
@@ -174,6 +177,7 @@ pub const SYS_HV_POST: u64 = tag4(b"MHVP");
 pub const SYS_HV_RECV: u64 = tag4(b"MHVR");
 pub const SYS_HV_EVENTS: u64 = tag4(b"MHVE");
 pub const SYS_HV_SIGNAL: u64 = tag4(b"MHVS");
+pub const SYS_HV_CHANNEL: u64 = tag4(b"MHVC");
 pub const SYS_MK_DEBUG: u64 = tag4(b"MDBG");
 pub const SYS_PCI_CONFIG_READ: u64 = tag4(b"MPCR");
 pub const SYS_PCI_CONFIG_WRITE: u64 = tag4(b"MPCW");
@@ -220,5 +224,6 @@ pub const SYS_ACPI_THERMAL_LIMIT: u64 = tag4(b"MATL");
 pub const SYS_SPAWN_INSTANCE: u64 = tag4(b"MSPI");
 /// Run a baked, attested tool by name as the caller's child, to drive its stdio; needs IPC.
 pub const SYS_TOOL_RUN: u64 = tag4(b"MTRN");
+pub const SYS_CAPS_OF: u64 = tag4(b"MCOF");
 pub const SYS_TTY_SET: u64 = tag4(b"MTTY");
 pub const SYS_TTY_QUERY: u64 = tag4(b"MTTQ");

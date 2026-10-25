@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Which path a fetch takes. Everything goes over the mixnet, so what this
-//! machine installs is not visible on the network it sits on, except a mirror
-//! on a private or link-local address: a LAN or offline mirror, which a mixnet
-//! exit could not reach. That exception is said in the log every time, and in
-//! design/install-network.md.
+//! machine installs is not visible on the network it sits on. Only a
+//! development build (dev-mirror) makes an exception, for a mirror on a
+//! private or link-local address, which a mixnet exit could not reach; that
+//! exception is said in the log every time (docs/build/dev-mirror.md).
 
 /// 10/8, 172.16/12, 192.168/16 and 169.254/16, as a dotted quad.
 pub fn is_local(ip: &str) -> bool {

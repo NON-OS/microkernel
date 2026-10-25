@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The rows a hypervisor's bus and the ACPI capsule take: the VMBus root by
-//! its ids on BUS_KIND_VIRT, and the SCI record by its PnP id, nothing more.
+//! The rows a hypervisor's bus and the ACPI capsule take: the VMBus root and
+//! the SCSI controller's channel by their ids on BUS_KIND_VIRT, and the SCI
+//! record by its PnP id, nothing more.
 
 use super::scope::{admits, Seen};
 
@@ -42,6 +43,19 @@ fn only_vmbus0_claims_the_vmbus_root_and_only_on_the_virt_bus() {
         assert!(!admits("driver.vmbus0", &seen(bus, 0x1414, 0x5642, 0xFFFF)), "bus {bus}");
     }
     assert!(!admits("driver.vmbus0", &seen(3, 0x1414, 0x5643, 0xFFFF)));
+}
+
+#[test]
+fn only_storvsc0_claims_the_scsi_channel_and_only_on_the_virt_bus() {
+    let scsi = seen(3, 0x1414, 0x5343, 0xFFFF);
+    assert!(admits("driver.storvsc0", &scsi));
+    for s in ["driver.vmbus0", "driver.pvscsi0", "driver.virtio_scsi0", "acpi"] {
+        assert!(!admits(s, &scsi), "{s}");
+    }
+    assert!(!admits("driver.storvsc0", &seen(1, 0x1414, 0x5343, 0xFFFF)), "a PCI function");
+    for device in [0x5642, 0x4E45, 0x4944] {
+        assert!(!admits("driver.storvsc0", &seen(3, 0x1414, device, 0xFFFF)), "{device:#x}");
+    }
 }
 
 #[test]

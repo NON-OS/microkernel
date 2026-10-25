@@ -29,9 +29,7 @@ use super::state::HARTS_ONLINE;
 pub extern "C" fn riscv64_ap_entry(_hart_id: u64, _stack_top: u64) -> ! {
     install_stvec();
     cpu::init_cpu();
-    if security::init_all().is_err() {
-        cpu::halt();
-    }
+    security::init_all();
     if init_plic_hart().is_err() {
         cpu::halt();
     }
@@ -39,7 +37,7 @@ pub extern "C" fn riscv64_ap_entry(_hart_id: u64, _stack_top: u64) -> ! {
         cpu::halt();
     }
     HARTS_ONLINE.fetch_add(1, Ordering::AcqRel);
-    let hart = cpu::id::hart_id();
+    let _hart = cpu::id::hart_id();
     loop {
         idle_cpu();
     }

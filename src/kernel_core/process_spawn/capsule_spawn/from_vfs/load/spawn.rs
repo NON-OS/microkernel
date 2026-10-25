@@ -28,9 +28,9 @@ use crate::security::capsule_manifest::{decode as decode_manifest, EndpointKind}
 // declares and the caller cannot misname or misroute it. The artifacts then go
 // through the same verified spawn path baked capsules use, with every identity,
 // manifest, publisher signature, capability, and attestation check intact.
-// requested_caps is the upper bound for optional caps, identical to a baked
-// spawn site; the verified manifest still decides what is actually granted.
-// An empty image is refused here, by name, before a spec exists.
+// requested_caps may name only what the manifest offers (asked.rs); the
+// verified manifest still decides what is actually granted. An empty image is
+// refused here, by name, before a spec exists.
 pub(crate) fn load_capsule_from_vfs(
     artifacts: CapsuleArtifacts,
     requested_caps: u64,
@@ -41,8 +41,10 @@ pub(crate) fn load_capsule_from_vfs(
     let service = endpoint(&manifest, EndpointKind::Service)?;
     let reply = endpoint(&manifest, EndpointKind::Reply)?;
     super::names::check(service.0, reply.0, manifest.namespace_str())?;
+    let requested = super::asked::within_manifest(&manifest, requested_caps, service.0)?;
+    super::bound::check(&manifest, requested, on_behalf_of, service.0)?;
     let at = Endpoints { service, reply };
-    let spawn = || spawn_from(&artifacts, &manifest, at, requested_caps, args, on_behalf_of);
+    let spawn = || spawn_from(&artifacts, &manifest, at, requested, args, on_behalf_of);
     stored(&artifacts.elf, LoadError::EmptyImage, spawn).inspect_err(|e| {
         if *e == LoadError::EmptyImage {
             crate::sys::serial::print(b"[RUNTIME-LOAD] ");

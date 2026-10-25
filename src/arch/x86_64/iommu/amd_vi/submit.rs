@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Running commands on a unit and waiting for them, as Linux does in
-//! amd/iommu.c (iommu_queue_command_sync, then iommu_completion_wait): the
-//! commands, a completion wait behind them, the tail, then the store polled.
+//! Running commands on a unit and waiting for them: the commands, a
+//! COMPLETION_WAIT behind them that stores to memory (48882, 2.4.1), the
+//! tail, then the store polled, since commands complete in order.
 
 use core::sync::atomic::{compiler_fence, Ordering};
 
@@ -26,7 +26,7 @@ use super::regs;
 use super::ring::RINGS;
 use super::units::units;
 use crate::arch::x86_64::iommu::regs::offsets::COMMAND_MS;
-use crate::arch::x86_64::iommu::tables::frame::entries_mut;
+use crate::arch::x86_64::iommu::tables::view::Frame;
 use crate::arch::x86_64::iommu::unit::clock::wait_ms;
 
 /// Returns once unit `index` stored this batch's sequence, which it does
@@ -45,27 +45,30 @@ pub(super) fn submit(index: usize, batch: &[Command]) -> Result<(), AmdViError> 
     ring.sequence = ring.sequence.wrapping_add(1).max(1);
     let sequence = ring.sequence;
     let wait = completion_wait(ring.store_phys, sequence);
-    let slots = entries_mut(ring.phys).map_err(|_| AmdViError::TableUnreachable)?;
+    let slots = Frame::at(ring.phys).map_err(|_| AmdViError::TableUnreachable)?;
+    let mut tail = ring.tail;
     for command in batch.iter().chain(core::iter::once(&wait)) {
-        let at = ring.tail as usize * 2;
-        slots[at] = ((command[1] as u64) << 32) | command[0] as u64;
-        slots[at + 1] = ((command[3] as u64) << 32) | command[2] as u64;
-        ring.tail = regs::ring_next(ring.tail);
+        let at = tail as usize * 2;
+        slots.write(at, ((command[1] as u64) << 32) | command[0] as u64)?;
+        slots.write(at + 1, ((command[3] as u64) << 32) | command[2] as u64)?;
+        tail = regs::ring_next(tail);
     }
+    ring.tail = tail;
     compiler_fence(Ordering::SeqCst);
     // SAFETY: eK@nonos.systems - every slot below the new tail holds a command
     // written above; the commands only invalidate caches.
     unsafe { unit.write64(regs::CMD_TAIL, regs::ring_offset(ring.tail)) };
-    let store = entries_mut(ring.store_phys).map_err(|_| AmdViError::TableUnreachable)?;
-    let store = store.as_ptr();
-    // SAFETY: eK@nonos.systems - the first quadword of the store page this
-    // module owns; the unit writes it, so it is read volatile.
-    let done = wait_ms(COMMAND_MS, || unsafe { core::ptr::read_volatile(store) } == sequence);
+    let store = Frame::at(ring.store_phys).map_err(|_| AmdViError::TableUnreachable)?;
+    // The unit stores the sequence into the first quadword of the page.
+    let done = wait_ms(COMMAND_MS, || store.read(0).is_ok_and(|word| word == sequence));
     if done {
         Ok(())
     } else {
         if let Some(first) = batch.first() {
-            crate::log::warn!("[amd-vi] command opcode {} did not complete in time", command_opcode(*first));
+            crate::log::warn!(
+                "[amd-vi] command opcode {} did not complete in time",
+                command_opcode(*first)
+            );
         }
         Err(AmdViError::Timeout)
     }

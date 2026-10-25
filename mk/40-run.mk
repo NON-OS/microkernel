@@ -506,13 +506,15 @@ nonos-mk-run-installed: nonos-mk-swtpm-start $(QEMU_OVMF_VARS_RW)
 		-serial mon:stdio -vga none -display $(QEMU_DISPLAY) -no-reboot
 
 # The DMA-protection boot. Every other lane starts QEMU with no remapping
-# hardware, so the kernel finds neither a DMAR unit nor an IVRS table and
-# says so:
+# hardware, so the kernel finds neither a DMAR unit nor an IVRS table and,
+# in an image that carries nonos-dma-unconfined-posture, boots with its
+# devices unconfined and says so on its own line:
 #
-#     [IOMMU] no DMAR remapping unit and no IVRS table; IOMMU domains refused; DMA is unrestricted
+#     [IOMMU] posture=dma-unconfined reason=no-remapping-hardware-described profile=Standard built=1; ...
 #
-# which means the IOMMU bring-up compiled into every image has never run. This
-# lane presents an intel-iommu so it does. TCG rather than hvf: the hypervisor
+# A hardened image refuses every bus-master claim there instead. Either way
+# the VT-d bring-up compiled into every image does not run on those lanes.
+# This lane presents an intel-iommu so it does, and every device is confined. TCG rather than hvf: the hypervisor
 # framework does not emulate VT-d, so this boots slowly on purpose. It is a
 # proof lane, not an iteration lane.
 nonos-mk-run-iommu-serial-log: nonos-mk-desktop-gui-prod $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP) $(QEMU_OVMF_VARS_RW)
@@ -538,8 +540,9 @@ nonos-mk-run-iommu-serial-log: nonos-mk-desktop-gui-prod $(QEMU_BLK_IMG) $(QEMU_
 # amd-iommu, a kill during store traffic followed by a reboot of the same
 # disk, and the store on a USB stick with 512 and with 4096-byte blocks. A cell fails on any boot that misses readiness, reports a fault, brings
 # up fewer CPUs than it was given, prints an [IOMMU] posture line other than
-# the one its IOMMU calls for, or says DMA is unrestricted with an intel-iommu
-# present.
+# the one its IOMMU calls for, says DMA is unrestricted or takes the no-IOMMU
+# posture with an intel-iommu present, or runs without a unit in service and
+# does not say posture=dma-unconfined (scripts/bootmatrix/iommu.py).
 BOOT_MATRIX_DIR ?= $(TARGET_DIR)/boot-matrix
 BOOT_MATRIX_REPEAT ?= 5
 BOOT_MATRIX_TIMEOUT ?= 300

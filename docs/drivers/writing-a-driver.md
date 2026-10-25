@@ -138,7 +138,7 @@ pub fn run() -> Result<Driver, &'static str> {
 
 On the legacy path, `grant` looks at the register BAR's kind and calls `grant_mmio` or `grant_pio` (`userland/capsule_driver_virtio_rng/src/setup/registers/grant.rs:22-28`). `grant_mmio` rounds the BAR size up to whole pages and calls `mk_mmio_map`; on failure it releases the device before it returns (`userland/capsule_driver_virtio_rng/src/setup/registers/grant_mmio.rs:22-31`). `Regs` then reads and writes through the mapping with volatile accesses, or through `mk_pio_read` and `mk_pio_write` for a port BAR (`userland/capsule_driver_virtio_rng/src/regs/state.rs:23-89`).
 
-On the modern path, `enable` sets Memory Space, Bus Master and Interrupt Disable in one `mk_pci_config_write`, because the broker clears Bus Master on every release (`userland/capsule_driver_virtio_rng/src/setup/modern/pci.rs:31-37`). `map_window` from `nonos_virtio` then maps the common and notify structures (`userland/capsule_driver_virtio_rng/src/setup/modern/run.rs:36-41`).
+On the modern path, `enable` sets Memory Space, Bus Master and Interrupt Disable in one `mk_pci_config_write`, because the broker clears Bus Master on every claim and every release; a driver that moves data by DMA turns it on itself once its rings exist (`userland/capsule_driver_virtio_rng/src/setup/modern/pci.rs:31-37`). `map_window` from `nonos_virtio` then maps the common and notify structures (`userland/capsule_driver_virtio_rng/src/setup/modern/run.rs:36-41`).
 
 ## 7. DMA memory
 

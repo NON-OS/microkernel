@@ -17,7 +17,7 @@
 //! The escrow pin word init writes for an escrow install.
 
 use crate::install::escrow_pin::{escrow_pin, EscrowPin, NotEscrowPin, ESCROW_PIN_LEN};
-use crate::install::market_arg::market_arg;
+use crate::install::market::arg::market_arg;
 
 pub(super) const THREE_ROOT: &str =
     "7adc7dc20cfc847b03a2a898702639fe91196acb0449b051618444e71d7307b1";

@@ -23,7 +23,6 @@ or the virtio GPU (vmware-svga, gpu=bga, gpu=gop-only)."""
 PLAIN = {
     "usb-audio": "-audiodev {audio},id=lane-usb-snd -device usb-audio,audiodev=lane-usb-snd,bus=xhci.0",
     "AC97": "-audiodev {audio},id=lane-ac97-snd -device AC97,audiodev=lane-ac97-snd",
-    "usb-tablet": "-device usb-tablet,bus=xhci.0",
     # A reader with no card in it: driver.ccid0 finds the slot empty.
     "usb-ccid": "-device usb-ccid,bus=xhci.0",
     "usb-tablet": "-device usb-tablet,bus=xhci.0,id=lane-usb-tablet",
@@ -31,6 +30,10 @@ PLAIN = {
     "virtio-tablet": "-device virtio-tablet-pci",
     "virtio-balloon": "-device virtio-balloon-pci",
     "vmbus": "-device vmbus-bridge -device hv-balloon",
+    # Not a device: the machine stops at power-off instead of exiting, so a
+    # test can read its memory after the wipe. The launcher's -no-reboot
+    # makes a restart a power-off, so a restart stops there too.
+    "hold-at-off": "-action shutdown=pause",
 }
 
 NICS = ("e1000", "e1000e", "igb", "rtl8139", "pcnet", "vmxnet3", "tulip")

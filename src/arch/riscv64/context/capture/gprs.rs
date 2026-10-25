@@ -17,7 +17,7 @@
 use crate::arch::riscv64::context::types::SavedUser;
 use crate::arch::riscv64::interrupts::frame::TrapFrame;
 
-pub fn copy(saved: &mut SavedUser, frame: &TrapFrame) {
+pub(super) fn copy(saved: &mut SavedUser, frame: &TrapFrame) {
     saved.gprs[0] = frame.ra as u64;
     saved.gprs[1] = frame.sp as u64;
     saved.gprs[2] = frame.gp as u64;

@@ -69,6 +69,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkDeviceList
             | MkDeviceClaim
             | MkDeviceRelease
+            | MkBootFramebuffer
             | MkMmioMap
             | MkMmioUnmap
             | MkIrqBind
@@ -89,6 +90,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkHvRecv
             | MkHvEvents
             | MkHvSignal
+            | MkHvChannel
             | MkAcpiTable
             | MkAcpiRegion
             | MkAcpiPort
@@ -127,6 +129,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkPrivateWrite
             | MkStoreWrite
             | MkStoreRead
+            | MkKeeping
             | MkDataImport
             | MkDataStat
             | MkDataRead
@@ -164,6 +167,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkAppInstallStatus
             | MkAppUninstall
             | MkToolRun
+            | MkCapsOf
             | MkTtySet
             | MkTtyQuery
     )

@@ -23,8 +23,8 @@ CAPSULE_REPLY_ENDPOINT   := reply:4255:endpoint.4294967362
 # bind; without entropy no device is bound.
 CAPSULE_REQUIRED_CAPS    := 0x38
 # Debug (0x100, bit 8), granted only by a build that compiles
-# `capsule-serial-debug`: it carries the [usbnet rndis] lines, none of
-# which holds a station address.
+# `capsule-serial-debug`: it carries the [usbnet rndis] lines, which no
+# frame and no station address reaches.
 CAPSULE_OPTIONAL_CAPS    := 0x100
 CAPSULE_KERNEL_MIRROR    := src/hardware/rndis_capsule
 

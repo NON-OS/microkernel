@@ -15,11 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod drain;
+mod one;
 mod table;
 mod types;
 mod va;
 
-pub(super) use drain::{drain_for_device, drain_for_pid, remove};
-pub(super) use table::{allocate_id, insert};
+pub(super) use drain::{drain_for_device, drain_for_pid};
+pub(super) use one::{find, remove};
+#[allow(unused_imports)] // insert_unclaimed is the ACPI broker's alone, which only x86 builds
+pub(super) use table::{allocate_id, insert_live, insert_unclaimed};
 pub use types::{GrantError, MmioGrant};
 pub(super) use va::{release_user_va, reserve_user_va, USER_MMIO_BASE, USER_MMIO_END};

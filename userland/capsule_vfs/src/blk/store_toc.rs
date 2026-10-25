@@ -33,7 +33,9 @@ use super::error::BlkError;
 use super::store_header::{le_u64, ENTRY_LEN, HEADER_LEN};
 use super::wire::SECTOR_SIZE;
 
-pub(super) use nonos_disk_map::{streamed, valid_name, MAX_TOTAL_BYTES, NAME_LEN, STREAMED_MAX_BYTES};
+pub(super) use nonos_disk_map::{
+    streamed, valid_name, MAX_TOTAL_BYTES, NAME_LEN, STREAMED_MAX_BYTES,
+};
 
 #[derive(Clone)]
 pub struct TocEntry {
@@ -89,9 +91,15 @@ pub fn decode(toc: &[u8], count: usize, window: Window) -> Result<Toc, BlkError>
      */
     let mut loaded = MAX_TOTAL_BYTES;
     let mut streams = STREAMED_MAX_BYTES;
+    let mut erased = 0;
     for slot in 0..count {
         let at = HEADER_LEN + ENTRY_LEN * slot;
         let raw = &toc[at..at + ENTRY_LEN];
+        /* A slot a withdrawal erased holds nothing, which is not damage. */
+        if raw.iter().all(|b| *b == 0) {
+            erased += 1;
+            continue;
+        }
         let Some(entry) = descriptor(raw, slot, floor, window.end) else {
             say_refused(&alloc::format!("slot {slot}"), "its name or extent is out of bounds");
             continue;
@@ -104,7 +112,7 @@ pub fn decode(toc: &[u8], count: usize, window: Window) -> Result<Toc, BlkError>
             say_refused(&entry.name, "it is past the store's byte budget");
         }
     }
-    Ok(Toc { refused: count - entries.len(), entries })
+    Ok(Toc { refused: count - entries.len() - erased, entries })
 }
 
 /// The bytes a payload named `name` may still take: what is left of the

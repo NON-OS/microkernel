@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod allocate_domain_id;
+mod domain_id_limit;
+mod identity_devices;
 mod is_enforcing;
 mod is_present;
 mod page_levels;
@@ -23,6 +25,8 @@ mod snoop_control;
 pub(super) mod state;
 
 pub use allocate_domain_id::allocate_domain_id;
+pub use domain_id_limit::domain_id_limit;
+pub use identity_devices::identity_devices;
 pub use is_enforcing::{is_enforcing, set_enforcing};
 pub use is_present::is_present;
 pub use page_levels::{page_levels, set_page_levels};

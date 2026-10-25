@@ -44,7 +44,8 @@ pub fn leaf(pa: u64, flags: u64) -> u64 {
         entry |= AP_READ_ONLY;
     }
     entry |= execute_never(user, flags & flags::NO_EXECUTE == 0);
-    if flags & flags::GLOBAL == 0 {
+    // EL0 never global whatever was asked: it would outlive the ASID switch.
+    if user || flags & flags::GLOBAL == 0 {
         entry |= NOT_GLOBAL;
     }
     entry

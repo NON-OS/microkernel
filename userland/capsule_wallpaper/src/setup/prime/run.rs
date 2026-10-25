@@ -18,22 +18,15 @@ use super::super::discover;
 use super::{backing, register};
 use crate::catalog_client::lookup_catalog;
 use crate::compositor_client::healthcheck;
-use crate::paint::{decode_jpeg, fill_argb, paint_image};
+use crate::first_paint::job::DEFAULT_ARGB;
 use crate::policy_client::lookup_policy;
-use crate::server::scene::first_submit;
 use crate::state::{Backoff, Context, FadeTimeline, Policy};
 use crate::subscriber::job::Plan;
-
-// Ink, the desktop's darkest tone, shows if no image decodes.
-const DEFAULT_ARGB: u32 = 0xFF0A_0B0D;
-const EMBEDDED_WALLPAPER: &[u8] =
-    include_bytes!("../../../../../nonos-data/wallpapers/special-variant-9.jpg");
 
 pub fn run() -> Result<Context, &'static str> {
     let compositor_port = discover::lookup_compositor_port()?;
     healthcheck(compositor_port, 1)?;
     let backing = backing::allocate(compositor_port, 2)?;
-    fill_argb(backing.backing_va, backing.stride, backing.width, backing.height, DEFAULT_ARGB);
     let surface_handle = register::share_surface(&backing, discover::lookup_compositor_pid()?)?;
     let mut ctx = Context {
         compositor_port,
@@ -43,6 +36,7 @@ pub fn run() -> Result<Context, &'static str> {
         backing_va: backing.backing_va,
         surface_handle,
         registered: false,
+        first_paint_out: false,
         register_backoff: Backoff::new(),
         commit_pending: false,
         commit_backoff: Backoff::new(),
@@ -57,11 +51,9 @@ pub fn run() -> Result<Context, &'static str> {
         subscriber_ticks: 0,
     };
     ctx.set_argb(DEFAULT_ARGB);
-    if let Some(img) = decode_jpeg(EMBEDDED_WALLPAPER) {
-        let _ = paint_image(&ctx, &img);
-    }
-    // Unanswered, the service loop asks again while it serves.
-    first_submit(&mut ctx);
+    // Painted by a worker while the service answers; the service loop puts
+    // it in the compositor's scene once it is up (first_paint/).
+    crate::first_paint::start(&mut ctx);
     // The chosen wallpaper is not fetched here. Setup used to fetch and
     // decode it before the service answered anyone, up to 15 s for the first
     // chunk alone, and the desktop shell's setup gave up on its calls ("setup

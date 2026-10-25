@@ -38,7 +38,7 @@ fn set(a: &Adapter, index: u32, value: u16) {
 #[test]
 fn only_a_mode_the_driver_can_draw_is_kept() {
     let no_lfb = |a: &Adapter| set(a, DISPI_INDEX_ENABLE, DISPI_ENABLED);
-    let cases: [Case; 10] = [
+    let cases: [Case; 11] = [
         ("as OVMF leaves it", |_| {}, 256, (800, 600)),
         ("VGA text, DISPI off", |a| set(a, DISPI_INDEX_ENABLE, 0), 256, (1024, 768)),
         ("no linear framebuffer", no_lfb, 256, (1024, 768)),
@@ -49,6 +49,7 @@ fn only_a_mode_the_driver_can_draw_is_kept() {
             256,
             (800, 600),
         ),
+        ("lines narrower", |a| set(a, DISPI_INDEX_VIRT_WIDTH, 640), 256, (1024, 768)),
         ("panned across", |a| set(a, DISPI_INDEX_X_OFFSET, 8), 256, (1024, 768)),
         ("panned down", |a| set(a, DISPI_INDEX_Y_OFFSET, 1), 256, (1024, 768)),
         ("no height", |a| set(a, DISPI_INDEX_YRES, 0), 256, (1024, 768)),

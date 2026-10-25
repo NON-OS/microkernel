@@ -16,7 +16,8 @@
 
 use alloc::vec::Vec;
 
-use super::queue::{tgid_of, FUTEX_QUEUE};
+use super::queue::{ended, tgid_of, FUTEX_QUEUE};
+use super::waiters::take_live;
 use crate::process::current_pid;
 use crate::syscall::microkernel::errnos::ERRNO_PERM;
 
@@ -34,8 +35,7 @@ pub fn sys_futex_wake(vaddr: u64, count: u64) -> i64 {
         let mut q = FUTEX_QUEUE.lock();
         match q.get_mut(&key) {
             Some(v) => {
-                let n = if count == 0 { v.len() } else { (count as usize).min(v.len()) };
-                let drained: Vec<u32> = v.drain(..n).collect();
+                let drained = take_live(v, count as usize, ended);
                 if v.is_empty() {
                     q.remove(&key);
                 }

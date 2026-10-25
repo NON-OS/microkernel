@@ -36,6 +36,9 @@ The network:
 - [TLS and certificate trust](tls-and-certificates.md): the TLS 1.3 client
   capsules share, how a certificate chain is checked, where the roots come from
   and which clock dates are read against.
+- [Privacy: every way off the machine](privacy.md): each capsule that holds
+  Network and each place the image reaches, why, and how to turn it off; with
+  [the privacy threat model](privacy-threat-model.md).
 - [How the Nym and Anyone transports are built](anonymity-transports.md): the
   two anonymity transports, the cryptography on their wire, how each checks its
   directory, and what they lack.
@@ -47,6 +50,9 @@ Limits, checks and reports:
 - [Checking the security claims yourself](checking-the-claims.md): the tools in
   the tree that test these claims, how to run them and what they printed at this
   commit.
+- [The self-test](self-test.md): three boots in which a program tries what an
+  attacker would, and the checker that passes only when every attempt was
+  refused.
 - [Reporting a vulnerability](reporting-a-vulnerability.md): how to report a
   security bug privately.
 - [Service names](service-names.md): who may hold a service name, and what a

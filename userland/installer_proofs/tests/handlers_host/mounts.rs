@@ -18,6 +18,8 @@
 
 #[path = "../support/alloc_watch.rs"]
 pub mod alloc_watch;
+#[path = "../support/caps_of.rs"]
+pub mod caps_of;
 #[path = "../../../libc/src/capsule_load.rs"]
 mod capsule_load;
 #[path = "../../../libc/src/capsule_verify.rs"]
@@ -26,14 +28,14 @@ mod capsule_verify;
 pub mod clients;
 #[path = "../support/fixtures.rs"]
 pub mod fixtures;
+#[path = "../../../capsule_installer/src/server/gate.rs"]
+pub mod gate;
 #[path = "frame.rs"]
 pub mod frame;
 #[path = "../../../libc/src/ipc/lookup.rs"]
 mod lookup;
 #[path = "../support/packages.rs"]
 pub mod packages;
-#[path = "../support/payloads.rs"]
-pub mod payloads;
 #[path = "pkg_frame.rs"]
 pub mod pkg_frame;
 #[path = "../support/process.rs"]
@@ -47,5 +49,6 @@ pub mod verify;
 
 pub use capsule_load::{mk_capsule_load, CapsuleLoadRequest};
 pub use capsule_verify::{mk_capsule_verify, CapsuleVerifyRequest, CapsuleVerifySummary};
+pub use caps_of::{mk_caps_of, CAPS_OF_APP_INSTALL, CAPS_OF_SPAWN_WINDOW};
 pub use lookup::mk_service_lookup;
 pub use process::mk_getpid;

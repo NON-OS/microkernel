@@ -4,12 +4,12 @@
 use nonos_wifi_core::netif::LinkPort;
 use nonos_wifi_core::rsn::JoinPolicy;
 
+use super::drive::run_join;
+use super::rig::{FLUSH, JOIN_COMMANDS, KEY, LINK, MAC, PHY, QUEUE, STA_RM};
 use crate::gen3::join::bss::Stage;
 use crate::gen3::join::link::Port;
 use crate::gen3::join::run::leave;
 use crate::join_rig::*;
-use super::drive::run_join;
-use super::rig::{FLUSH, JOIN_COMMANDS, KEY, LINK, MAC, PHY, QUEUE, STA_RM};
 
 #[test]
 fn leaving_tells_the_access_point_removes_the_keys_and_takes_everything_down() {

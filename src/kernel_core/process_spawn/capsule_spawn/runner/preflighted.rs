@@ -32,15 +32,18 @@ pub(crate) struct Preflighted {
     /// BLAKE3 of the verified manifest's namespace: whose bound machine keys
     /// the capsule may derive, if the vendor root proved it.
     pub namespace_hash: [u8; 32],
+    /// Spawned from the system's own namespace (L61).
+    pub system: bool,
 }
 
 impl Preflighted {
     /*
-     * First point at which a pid exists. What goes in is the measurement the
-     * gate checked, never one recomputed from the image. A capsule that ran
-     * on a publisher signature alone is recorded under that authority rather
-     * than left out: the registry claims to be complete, and a receipt that
-     * omits a running program is the one lie a verifier cannot catch.
+     * Written by install before the pid can run, so its first call already
+     * finds it (L61). What goes in is the measurement the gate checked, never
+     * one recomputed from the image. A capsule that ran on a publisher
+     * signature alone is recorded under that authority rather than left out:
+     * the registry claims to be complete, and a receipt that omits a running
+     * program is the one lie a verifier cannot catch.
      */
     pub(super) fn record(&self, pid: u32) {
         let (measurement, authority) = match self.proved {
@@ -49,5 +52,8 @@ impl Preflighted {
         };
         record_attested(pid, measurement, super::profile_gate::caps(self.install_caps), authority);
         record_namespace(pid, self.namespace_hash);
+        if self.system {
+            crate::process::core::spawn_tier::mark_system(pid);
+        }
     }
 }

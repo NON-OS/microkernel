@@ -43,7 +43,7 @@ impl From<Refused> for Refusal {
 }
 
 /// A PCI device with no domain of its own: refused, but claimed port-only
-/// (decide.rs, H-02b) or under the opt-in.
+/// (decide.rs, H-02b), or under the opt-in or the no-IOMMU posture (open.rs).
 pub(super) fn without_domain(v: Verdict) -> Result<(), Refused> {
     match v {
         Verdict::NoDma => {
@@ -51,7 +51,7 @@ pub(super) fn without_domain(v: Verdict) -> Result<(), Refused> {
             return Ok(());
         }
         Verdict::Unconfined => {
-            say(b"unconfined under the development opt-in, reaches all memory");
+            say(super::open::unconfined_words());
             return Ok(());
         }
         Verdict::Confine | Verdict::Refuse => {}

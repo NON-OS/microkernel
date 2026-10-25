@@ -28,4 +28,7 @@ pub enum LoadError {
     /// The ELF read from the store is empty: never a missing feature (B-02).
     EmptyImage,
     Spawn(SpawnError),
+    /// The capsule would hold capabilities its parent lacks, and the parent
+    /// is no launcher.
+    BeyondParent,
 }

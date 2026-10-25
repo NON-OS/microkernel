@@ -46,13 +46,18 @@ CAPSULE_REPLY_ENDPOINT   := reply:4937:endpoint.app.linux.reply
 # (src/userspace/capsule_linux/run_net.rs).
 CAPSULE_INSTANCE_ENDPOINTS := service:4938:app.linux.install reply:4939:endpoint.app.linux.install.reply service:4942:app.linux.run reply:4943:endpoint.app.linux.run.reply service:5204:app.linux.run.net reply:5205:endpoint.app.linux.run.net.reply service:5100:app.linux.term reply:5101:endpoint.app.linux.term.reply service:4946:app.linux.term.1 reply:4947:endpoint.app.linux.term.1.reply service:4948:app.linux.term.2 reply:4949:endpoint.app.linux.term.2.reply
 CAPSULE_REQUIRED_CAPS    := 0x104001979
-# Network (bit 2) and LocalSign (bit 33) are optional: the install role asks
-# for both, to reach a package mirror through net.sockets and to vouch for
-# what it installed (roles.rs), and the run.net role for Network alone. No
-# run holds LocalSign, so a guest that escapes into the personality cannot
-# sign a policy for itself.
-CAPSULE_OPTIONAL_CAPS    := 0x200000004
-CAPSULE_CAPS_CEILING     := 0x30400197D
+# Network (bit 2), LocalSign (bit 33) and StreamImport (bit 34) are optional:
+# the install role asks for all three, to reach a package mirror through
+# net.sockets, to vouch for what it installed (roles.rs), and to start the
+# model fetcher, which holds StreamImport, within its own capabilities; the
+# run.net role asks for Network alone. No run holds LocalSign or
+# StreamImport, so a guest that escapes into the personality cannot sign a
+# policy for itself or feed the data volume.
+CAPSULE_OPTIONAL_CAPS    := 0x600000004
+CAPSULE_CAPS_CEILING     := 0x70400197D
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_linux
+# Development images only (tools/nix/capsules-dev.json): Alpine's mirror is
+# the host's relay at 10.0.2.2:8080, dialled directly (docs/build/dev-mirror.md).
+CAPSULE_DEV_CARGO_FEATURES := dev-mirror
 
 include nonos-mk/capsule.mk

@@ -48,5 +48,6 @@ pub fn paint(ctx: &mut Context, rect: Rect) {
     // Last: nothing a client draws or places can cover the band.
     let captured = ctx.screen_notice_until != 0;
     let trusted = crate::state::trusted_rule::holder(ctx.scene.layers()).is_some();
-    super::indicator_band::draw(dst, rect, &ctx.indicators, captured, trusted);
+    let dma = ctx.dma_unconfined;
+    super::indicator_band::draw(dst, rect, &ctx.indicators, captured, trusted, dma);
 }

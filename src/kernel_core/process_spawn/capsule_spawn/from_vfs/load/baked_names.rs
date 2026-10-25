@@ -52,6 +52,7 @@ pub(crate) const CORE: &[(&str, &str)] = &[
     ("ramfs", "systems.nonos.ramfs"),
     ("shield_vectors", "systems.nonos.shield_vectors"),
     ("std_proof", "systems.nonos.std_proof"),
+    ("test.attack", "systems.nonos.test.attack"),
     ("tokio_smoke", "systems.nonos.tokio_smoke"),
     ("toolkit", "systems.nonos.toolkit"),
     ("vfs_pool", "systems.nonos.vfs"),

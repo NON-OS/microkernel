@@ -14,10 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A port-only claim's Command register (H-02, confine/port_only.rs).
+//! A port-only claim (H-02, confine/port_only.rs): its confinement, asked
+//! once, and its Command register.
 
 use crate::drivers::pci::config::ConfigSpace;
+use crate::hardware::broker::confine::{self, Refusal};
 use crate::hardware::broker::pci::command_rule::{at_claim, BUS_MASTER, MEMORY_SPACE};
+
+/// Confine the device, and whether its claim is port-only, asked once here
+///. VMMDev reads guest memory past any IOMMU: it is never port-only,
+/// and goes ahead only where an unconfined device may (decide.rs).
+pub(super) fn confine(pid: u32, device_id: u64, untranslated: bool) -> Result<bool, Refusal> {
+    match untranslated {
+        true => confine::untranslated(device_id).map(|()| false),
+        false => confine::attach(pid, device_id),
+    }
+}
 
 /// A port-only claim's Command register: Memory Space and Bus Master
 /// off (pci::command_rule::at_claim), read back as stop_bus_master_quietly

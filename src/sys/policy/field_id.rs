@@ -21,6 +21,8 @@ pub enum PolicyField {
     TimezoneOffset = 0x0002,
     Hostname = 0x0003,
     DomainName = 0x0004,
+    /// The person chose to keep things across boots; on only, never off.
+    KeepAcrossBoots = 0x0005,
 }
 
 impl PolicyField {
@@ -30,6 +32,7 @@ impl PolicyField {
             0x0002 => Some(Self::TimezoneOffset),
             0x0003 => Some(Self::Hostname),
             0x0004 => Some(Self::DomainName),
+            0x0005 => Some(Self::KeepAcrossBoots),
             _ => None,
         }
     }

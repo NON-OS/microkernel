@@ -1,63 +1,78 @@
 # riscv64
 
-What exists of the riscv64 port of NONOS, why it does not build into a kernel, and what it would take.
+What exists of the riscv64 port of NONOS, how far it boots, and what it would take.
 
 ## Status
 
-riscv64 is not supported. The tree holds a backend under `src/arch/riscv64`, a linker script and a [capsule](../overview/glossary-boot-root-record.md#capsule) target file, but no kernel target file, no make target and no CI job, and the backend's entry calls a function that does not exist. No page here gives a date for the port.
-
-The comment on `nonos-arch-preview` says the feature compiles and boots the `aarch64` and `riscv64` trees in QEMU (`Cargo.toml:53-55`). For riscv64 that is not so.
-
-## Why it does not build
-
-```mermaid
-flowchart LR
-    S[_start] --> E[kernel_entry]
-    E --> I[init]
-    I --> K[kernel_main]
-```
-
-- `kernel_entry` fills `BootInfo` from the device tree, runs `init`, and then calls `crate::kernel_main` (`src/arch/riscv64/boot/entry.rs:19-27`). No file under `src/` defines `kernel_main`; x86_64 and aarch64 reach the shared kernel through `microkernel_init` instead.
-- The shared kernel takes its boot facts as a `KernelHandoff`, and `ArchSpecificHandoff` has variants for x86_64 and aarch64 only; its comment says a new architecture adds one when its boot tree lands (`src/boot/handoff/kernel_handoff/arch.rs:17-34`).
-- The repository root holds `x86_64-nonos.json` and `aarch64-nonos.json` and no riscv64 kernel target file. The `build` check of `nonos-verify` records the same gap for riscv64 in its loop over each `arch`: no kernel target file and no make build target, only the capsule target file (`nonos-verify/src/build.rs:103-116`).
-
-To confirm the missing function on your own checkout:
+riscv64 is not supported. The kernel builds and links for riscv64 and boots under QEMU `virt` with OpenSBI as far as the VM layer, which is not ported yet. It stops there by name. No loader starts it, and it has not run on real hardware. It needs `nonos-arch-preview`, as aarch64 does (`src/lib.rs:28-35`). No page here gives a date for the port.
 
 ```
-grep -rn "fn kernel_main" src/
+make nonos-mk-riscv-boot-check
 ```
 
-It prints nothing.
+- `nonos-mk-riscv` builds the kernel for rustc's own `riscv64gc-unknown-none-elf` with `microkernel-core` and `nonos-arch-preview`.
+- `nonos-mk-riscv-boot-check` boots it with `-M virt -cpu rv64 -m 512 -bios default` and holds the serial log to the markers below, with no trap, panic or fatal line on the way (`scripts/check_riscv64_boot.py`). CI runs it in `ci-build-aarch64.yml`.
+- The kernel's assembly is built for RV64GC with the `lp64d` ABI, the Rust target's own (`c_target`, `build_c_target.rs`).
+
+## How far a boot gets
+
+The serial log after OpenSBI's banner, at `-m 512`:
+
+```
+[BENCH] 0 microkernel_init_start
+[BOOT-ENTROPY] nonce drawn, hardware generator absent
+[MEM] phys init OK
+[DMA] display pool pages=8192
+[DMA] low32 pool unavailable (no low region)
+[fbconsole] on-screen log disabled; serial only
+[NONOS] Microkernel init
+[RNG] seeded from: firmware-seed
+[TIMER] Initialized, generic timer freq=10 MHz
+[VM] riscv64: the VM layer is not ported (no Sv48 direct map, no page descriptors); stopping
+```
+
+- OpenSBI starts the kernel in S-mode at `0x80200000` with the device tree in a1. The kernel touches no PMP CSR: those are M-mode, the firmware's own (`src/arch/riscv64/security/init.rs`).
+- The device tree gives RAM, the console UART, the PLIC, the harts and the timebase. Its blob, its reservation block and `/reserved-memory`, which holds OpenSBI's own range, go into `BootInfo.reserved` (`src/arch/riscv64/boot/dtb_adapter/`). A tree that cannot be read stops the boot.
+- The boot tables map RAM as data, and the image by section: text read and execute, read-only data read only, the rest read and write. They also map the UART and the PLIC (`src/arch/riscv64/mmu/image_map.rs`).
+- The entry takes the shared path, as aarch64 does: the bootstrap heap, `KernelHandoff::from_riscv64`, then `microkernel_init` (`src/arch/riscv64/boot/entry.rs`).
+- The frame allocator takes the widest RAM region, past the image, with every reserved range out (`init_boot_memory`, `src/arch/riscv64/boot/memory.rs`). There is no low 32-bit DMA pool: no riscv64 device is given DMA yet.
+- The RNG is seeded from the tree's `/chosen` `rng-seed`, which QEMU `virt` provides; the seed is zeroed in the blob once kept (`src/arch/common/boot_entropy.rs`, `src/arch/common/boot_seed.rs`).
+- The VM layer needs a page-descriptor backend and a direct map at `DIRECTMAP_BASE`, which Sv39 cannot address. riscv64 has neither yet, so `require_vm_port` stops the boot before the first write through the direct map (`src/arch/paging/ported.rs`).
+
+The shared code riscv64 needed has a riscv64 branch:
+- the scheduler's saved kernel `Context`, which holds s0 to s11, ra and sp (`src/arch/riscv64/context/kernel.rs`);
+- MMIO ordering as RISC-V FENCEs over device input and output and memory reads and writes (`src/arch/riscv64/mmio_order/`, selected in `src/arch/common/mmio_order.rs`);
+- the DMA sync windows, a full FENCE, because the base ISA has no cache maintenance. A non-snooping part would need Zicbom, which is not in the tree (`src/arch/riscv64/dma_sync.rs`, selected in `src/arch/common/dma_sync.rs`).
 
 ## What exists
 
-`src/arch/riscv64` holds 218 files and 8423 lines, headers included.
+`src/arch/riscv64` holds 217 files and 8608 lines, headers included.
 
 | Module | Size | What it holds |
 |---|---|---|
 | `abi` (`src/arch/riscv64/mod.rs:17`) | 10 files, 295 lines | the `Riscv64` implementation of `ArchOps` |
 | `asm` (`src/arch/riscv64/mod.rs:18`) | 12 files, 508 lines | `start.S`, the trap entry with its register save and restore, user entry and resume, FP save and restore, secondary hart start |
-| `boot` (`src/arch/riscv64/mod.rs:19`) | 23 files, 839 lines | entry, the device tree adapter, the hart id, `BootInfo`, `init`, secondary harts, stacks |
-| `context` (`src/arch/riscv64/mod.rs:21`) | 12 files, 513 lines | first entry to user mode, saving and resuming user frames, the switch |
+| `boot` (`src/arch/riscv64/mod.rs:19`) | 27 files, 1048 lines | entry, the device tree adapter, the hart id, `BootInfo`, `init`, secondary harts, stacks |
+| `context` (`src/arch/riscv64/mod.rs:21`) | 15 files, 695 lines | first entry to user mode, saving and resuming user frames, the switch, the scheduler's saved kernel `Context` |
 | `cpu` (`src/arch/riscv64/mod.rs:22`) | 22 files, 874 lines | CSR access, extension and capability queries, fences, hart and vendor ids, interrupt masking |
 | `fpu` (`src/arch/riscv64/mod.rs:23`) | 10 files, 355 lines | lazy floating point state per task |
-| `interrupts` (`src/arch/riscv64/mod.rs:24`) | 18 files, 692 lines | trap causes, the trap frame, handlers, the `stvec` install |
-| `mmu` (`src/arch/riscv64/mod.rs:25`) | 19 files, 1046 lines | Sv39 and Sv48 tables, `satp`, page attributes, TLB fences |
+| `interrupts` (`src/arch/riscv64/mod.rs:24`) | 18 files, 696 lines | trap causes, the trap frame, handlers, the `stvec` install |
+| `mmu` (`src/arch/riscv64/mod.rs:25`) | 20 files, 1128 lines | Sv39 and Sv48 tables, `satp`, page attributes, TLB fences |
 | `plic` (`src/arch/riscv64/mod.rs:26`) | 18 files, 687 lines | the PLIC: claim, complete, priorities, per-hart contexts, interrupt handlers including ones bound for capsules |
-| `sbi` (`src/arch/riscv64/mod.rs:27`) | 29 files, 1026 lines | SBI calls: base, hart start, stop and suspend, IPIs, remote fences, the timer, the console, reset |
-| `security` (`src/arch/riscv64/mod.rs:28`) | 20 files, 743 lines | control-flow integrity and PMP setup |
-| `timer` (`src/arch/riscv64/mod.rs:29`) | 13 files, 432 lines | the CLINT, tick conversion, deadlines, delays |
-| `uart` (`src/arch/riscv64/mod.rs:30`) | 10 files, 353 lines | the NS16550 console |
+| `sbi` (`src/arch/riscv64/mod.rs:27`) | 29 files, 1025 lines | SBI calls: base, hart start, stop and suspend, IPIs, remote fences, the timer, the console, reset |
+| `security` (`src/arch/riscv64/mod.rs:28`) | 7 files, 246 lines | control-flow integrity; PMP is the M-mode firmware's |
+| `timer` (`src/arch/riscv64/mod.rs:29`) | 13 files, 445 lines | the CLINT, tick conversion, deadlines, delays |
+| `uart` (`src/arch/riscv64/mod.rs:30`) | 10 files, 361 lines | the NS16550 console |
 
 As written, the boot would go like this:
 
 - `_start` takes the hart id in a0 and the device tree in a1 from SBI firmware, and `_riscv64_secondary_start` is the address handed to SBI to start the other harts (`src/arch/riscv64/asm/start.S:1-9`).
-- `init` installs `stvec`, runs the security setup, `init_mmu`, the PLIC when the device tree names one, and the timer, then starts the other harts. Any failure calls `halt` with no message (`src/arch/riscv64/boot/init.rs:20-39`), where aarch64 says why before it stops.
+- `init` installs `stvec`, runs the security setup, `init_mmu`, the PLIC when the device tree names one, and the timer, then starts the other harts. A PLIC or timer that does not start stops the boot with a line that names it (`src/arch/riscv64/boot/init.rs`).
 - Secondary harts start through SBI `hart_start` (`src/arch/riscv64/boot/multicore/start_harts.rs:38`).
 - The kernel builds every page table for Sv39, `KERNEL_MMU_MODE` (`src/arch/riscv64/mmu/mode.rs:26-28`).
-- Without a device tree, `BootInfo` assumes QEMU's `virt` layout: 4 GB of RAM at `0x8000_0000`, the kernel at `0x8020_0000`, the UART at `0x1000_0000`, the CLINT at `0x0200_0000`, no PLIC and one hart (`ram_size`, `src/arch/riscv64/boot/info/types.rs:42-60`).
+- `BootInfo` starts from QEMU's `virt` layout: 4 GB of RAM at `0x8000_0000`, the kernel at `0x8020_0000`, the UART at `0x1000_0000`, the CLINT at `0x0200_0000`, no PLIC and one hart (`src/arch/riscv64/boot/info/types.rs`). Those values only open the console: without a device tree the boot stops (`src/arch/riscv64/boot/entry.rs`).
 
-`linker_riscv64.ld` places the image at `0x80200000`, above the 2 MB its comment reserves for OpenSBI, in three `PT_LOAD` segments, and sets the global pointer for gp-relative addressing (`PHDRS`, `linker_riscv64.ld:11-32`). Unlike the other two scripts it defines no `__kernel_text_start` pairs, which the kernel's W^X check reads. `userland/riscv64-nonos-user.json` builds capsules for `generic-rv64` with the M, A, F, D and C extensions in its `features` and the `lp64d` ABI (`userland/riscv64-nonos-user.json:19-21`).
+`linker_riscv64.ld` places the image at `0x80200000`, above the 2 MB its comment leaves to the SBI firmware, in three `PT_LOAD` segments, and sets the global pointer for gp-relative addressing (`PHDRS`, `linker_riscv64.ld:9-36`). It defines the `__kernel_text_start` to `__kernel_bss_end` pairs the other two scripts define, which the boot tables and the kernel's W^X check read. `userland/riscv64-nonos-user.json` builds capsules for `generic-rv64` with the M, A, F, D and C extensions in its `features` and the `lp64d` ABI (`userland/riscv64-nonos-user.json:19-21`).
 
 Seven extraction crates lower small riscv64 functions to Lean, among them `riscv64_boot_hart_id_store`, `riscv64_cpu_caps_query`, `riscv64_cpu_extensions_query` and `riscv64_sbi_extensions_extension` (`verification/extraction/crates.json:3460-3515`), each with a refinement module in `verification/extraction/lean/NonosExtraction/`. They reason about those functions in Lean; they do not make the port build.
 
@@ -75,13 +90,11 @@ The facade modules in `src/arch` have no riscv64 branch, so riscv64 gets each on
 
 ## What it would take
 
-From the code above, a riscv64 kernel needs at least:
+From the code above, a riscv64 kernel still needs at least:
 
-- a kernel target file and a make target that builds with `nonos-arch-preview`;
-- an entry that builds a `KernelHandoff` and calls `microkernel_init`, with a riscv64 variant of `ArchSpecificHandoff`;
-- the `__kernel_text_start` and related section symbols in `linker_riscv64.ld`;
+- Sv48 boot tables with the direct map at `DIRECTMAP_BASE`, and a riscv64 page-descriptor backend in `src/arch/paging/descriptor/`, with the root and TLB facades;
 - riscv64 branches in the facades listed above;
-- a CI job that builds it and boots it, as `ci-build-aarch64.yml` and `ci-boot-aarch64.yml` do for aarch64.
+- a loader, an image and a boot cell that reaches Core ready.
 
 [aarch64](aarch64.md) shows how far the same steps took that port.
 

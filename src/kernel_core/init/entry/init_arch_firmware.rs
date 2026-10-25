@@ -28,5 +28,8 @@ pub(super) fn init_arch_firmware(handoff: &KernelHandoff) {
         // memory all came from there. There is no second pass to run.
         #[cfg(target_arch = "aarch64")]
         ArchSpecificHandoff::Aarch64 { .. } => {}
+        // The same on riscv64: its boot path read the device tree first.
+        #[cfg(target_arch = "riscv64")]
+        ArchSpecificHandoff::Riscv64 { .. } => {}
     }
 }

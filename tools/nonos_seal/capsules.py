@@ -42,6 +42,13 @@ CAPSULE_ROOT = f"{keys.TRUST}/policy/zk_capsule_policy_root.bin"
 DEVELOPMENT = False
 
 
+def attr():
+    """The flake output the capsules are built from: an image that is not a
+    release takes the development set, which adds each capsule's
+    CAPSULE_DEV_CARGO_FEATURES (capsules.nix, bySlugDev)."""
+    return "capsules-dev" if DEVELOPMENT else "capsules"
+
+
 def catalogue():
     with open("tools/nix/capsules.json") as f:
         return [e for e in json.load(f) if DEVELOPMENT or not e["dev_only"]]
@@ -78,6 +85,8 @@ def sign(step, tools, capsules_out, e):
     keys.require([e["seed_ed25519"], e["seed_mldsa65"], e["pub_ed25519"], e["pub_mldsa65"]], e["slug"])
     caps = [e["caps_ceiling"], e["required_caps"], e["optional_caps"]]
     step.run("python3", "scripts/check_device_secret_cap.py", "--slug", e["slug"], "--caps", *caps)
+    step.run("python3", "scripts/check_input_drain_cap.py", "--slug", e["slug"], "--caps", *caps)
+    step.run("python3", "scripts/check_capture_caps.py", "--slug", e["slug"], "--caps", *caps)
     nonos_id = step.run(tools.sign, "derive-id", "--handle", e["handle"], "--domain", e["domain"],
                         "--recovery", e["recovery"], capture=True)
     step.run(tools.sign, "sign-id-cert", "--serial", e["serial"], "--nonos-id", nonos_id,

@@ -12,14 +12,15 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Affero General Public License for more details.
 
-"""Writes, or checks, tools/nix/capsules.json and tools/nix/store.json from
-what make prints about the capsules and the store (mk/60-nix.mk).
+"""Writes, or checks, tools/nix/capsules.json, tools/nix/capsules-dev.json and
+tools/nix/store.json from what make prints about the capsules, the
+development set's features and the store (mk/60-nix.mk).
 
-    python3 tools/nix/catalogues.py          regenerate both, from make
-    python3 tools/nix/catalogues.py --check  fail if either is stale
+    python3 tools/nix/catalogues.py          regenerate all three, from make
+    python3 tools/nix/catalogues.py --check  fail if any is stale
 
-The check reads make's output from $TMPDIR/{capsule,store}.json, which the
-flake's `catalogues` check writes first."""
+The check reads make's output from $TMPDIR/{capsule,capsule-dev,store}.json,
+which the flake's `catalogues` check writes first."""
 
 import argparse
 import json
@@ -39,6 +40,9 @@ def from_make(which):
 def shape(which, raw):
     if which == "capsule":
         return raw
+    # Only the capsules the development set builds again; most have no row.
+    if which == "capsule-dev":
+        return [r for r in raw if r["dev_cargo_features"]]
     def files(entries):
         return [dict(zip(("path", "file"), e.split("=", 1))) for e in entries.split()]
     # The groups, then the Linux packages: one list of files per package.
@@ -55,7 +59,7 @@ def main():
     ap.add_argument("--check", action="store_true")
     args = ap.parse_args()
     stale = []
-    for which, name in (("capsule", "capsules.json"), ("store", "store.json")):
+    for which, name in (("capsule", "capsules.json"), ("capsule-dev", "capsules-dev.json"), ("store", "store.json")):
         if args.check:
             with open(os.path.join(os.environ["TMPDIR"], f"{which}.json")) as f:
                 raw = json.load(f)

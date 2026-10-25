@@ -15,8 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod args;
+mod asked;
 mod baked_apps;
 mod baked_names;
+mod bound;
 mod endpoint;
 mod name_rule;
 mod names;
@@ -24,4 +26,5 @@ mod spawn;
 mod spawn_from;
 mod trust;
 
+pub(crate) use bound::{installed as child_caps, missing as beyond_parent};
 pub(crate) use spawn::load_capsule_from_vfs;

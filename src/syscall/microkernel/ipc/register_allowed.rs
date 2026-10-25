@@ -32,8 +32,11 @@ pub(super) fn allowed(name: &str, port: u32, pid: u32) -> Result<(), i64> {
     if lookup_service(name).is_some_and(|e| e.pid == pid && e.port == port) {
         return Ok(());
     }
-    // The right alone was not enough.
-    match caller_has_register_right() && is_runtime_registrable(name) {
+    // The right alone was not enough, and a publisher's capsule never takes
+    // a system name at run time either (L57): only one spawned from the
+    // system's own namespace, a mark set before it first ran (L61).
+    let own = crate::process::core::spawn_tier::is_system(crate::hardware::broker::holder_of(pid));
+    match own && caller_has_register_right() && is_runtime_registrable(name) {
         true => Ok(()),
         false => Err(ERRNO_PERM),
     }

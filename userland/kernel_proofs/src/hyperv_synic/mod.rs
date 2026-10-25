@@ -20,6 +20,8 @@
  * the message ring, and what the VMBus core may post to the host.
  */
 
+#[path = "../../../../src/arch/x86_64/hypervisor/hv/channels.rs"]
+mod channels;
 #[path = "../../../../src/arch/x86_64/hypervisor/hv/features.rs"]
 mod features;
 #[path = "../../../../src/arch/x86_64/hypervisor/hv/hypercall_abi.rs"]
@@ -31,6 +33,8 @@ mod regs;
 #[path = "../../../../src/arch/x86_64/hypervisor/hv/ring.rs"]
 mod ring;
 mod tests;
+mod tests_channels;
+mod tests_record;
 mod tests_vmbus;
 #[path = "../../../../src/arch/x86_64/hypervisor/hv/vmbus_out.rs"]
 mod vmbus_out;
