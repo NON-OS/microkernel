@@ -6423,6 +6423,7 @@
    "userland/capsule_market/src/protocol/decode.rs",
    "userland/capsule_market/src/protocol/header.rs",
    "userland/capsule_market/src/server/handlers/get_commerce/encode.rs",
+   "userland/capsule_market/src/server/handlers/get_linux_policy/answer.rs",
    "userland/capsule_market/src/server/handlers/get_linux_policy/encode.rs",
    "userland/capsule_market/src/server/handlers/get_release/encode_release.rs",
    "userland/capsule_market/src/server/handlers/install_ready/find_release.rs",
