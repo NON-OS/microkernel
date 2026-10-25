@@ -45,3 +45,10 @@ pub(crate) fn release(leaf: Leaf, zero: impl FnOnce(), free: impl FnOnce()) {
         free();
     }
 }
+
+/// Whether the power-off wipe scrubs a live process's leaf frame: every one
+/// but a device window, whose bytes are registers, not memory; the broker
+/// wipes the DMA frames it granted on its own.
+pub(crate) fn scrubbed_at_end(leaf: Leaf) -> bool {
+    leaf != Leaf::Device
+}
