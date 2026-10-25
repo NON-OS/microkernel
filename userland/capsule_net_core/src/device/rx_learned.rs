@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The learned answer time of each receive op, and the timed call that
 //! keeps it (learned_bound.rs has the rule).
 
@@ -31,7 +30,11 @@ pub static SINGLE_MS: AtomicU64 = AtomicU64::new(0);
 fn tally(slot: &AtomicU64) -> &'static AtomicU64 {
     static BATCH: AtomicU64 = AtomicU64::new(0);
     static SINGLE: AtomicU64 = AtomicU64::new(0);
-    if core::ptr::eq(slot, &BATCH_MS) { &BATCH } else { &SINGLE }
+    if core::ptr::eq(slot, &BATCH_MS) {
+        &BATCH
+    } else {
+        &SINGLE
+    }
 }
 
 /// Make `call` with the op's learned bound, reading `now` before and after,
@@ -49,7 +52,12 @@ pub fn timed_with(
     let elapsed = now().saturating_sub(start).max(0) as u64;
     slot.store(learn(ewma, sample(n >= 0, elapsed, waited)), Ordering::Relaxed);
     let t = tally(slot).fetch_add((1 << 32) | u64::from(n < 0), Ordering::Relaxed) + (1 << 32);
-    super::rx_summary::at(core::ptr::eq(slot, &BATCH_MS), t >> 32, t & 0xffff_ffff, bound(op, ewma));
+    super::rx_summary::at(
+        core::ptr::eq(slot, &BATCH_MS),
+        t >> 32,
+        t & 0xffff_ffff,
+        bound(op, ewma),
+    );
     n
 }
 

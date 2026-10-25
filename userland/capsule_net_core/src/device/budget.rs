@@ -57,4 +57,5 @@ pub const CLIENT_MS: u64 = 64;
 // its ceiling, then the sends. Each fits a client's wait.
 const SENDS_MS: u64 = TX_FLOOR as u64 * DEVICE_CALL_MS;
 const _: () = assert!(super::learned_bound::BATCH.ceiling + SENDS_MS <= CLIENT_MS);
-const _: () = assert!(POLL_WINDOW_MS as u64 + super::learned_bound::SINGLE.ceiling + SENDS_MS <= CLIENT_MS);
+const _: () =
+    assert!(POLL_WINDOW_MS as u64 + super::learned_bound::SINGLE.ceiling + SENDS_MS <= CLIENT_MS);

@@ -7,6 +7,7 @@
 use crate::nic::Nic;
 use crate::nnet::{answer, decode, Request, Stats, E_INVAL, OP_STATS, STATS_LEN};
 use crate::station::Taken;
+use nonos_mac::resend::Kept;
 
 struct Unbound;
 
@@ -31,7 +32,13 @@ impl Nic for Unbound {
 fn status(op: u16) -> (i32, usize) {
     let req = Request { op, flags: 0, request_id: 3, payload_len: 4 };
     let mut tx = vec![0u8; 256];
-    let n = answer::<Unbound>(None, &mut Stats::default(), &req, &1u32.to_le_bytes(), &mut tx);
+    let n = answer::<Unbound>(
+        None,
+        (&mut Stats::default(), &mut Kept::new()),
+        &req,
+        &1u32.to_le_bytes(),
+        &mut tx,
+    );
     assert_eq!(decode(&tx[..n]).map(|r| r.op), Some(op));
     (i32::from_le_bytes(tx[20..24].try_into().unwrap()), n - 24)
 }
