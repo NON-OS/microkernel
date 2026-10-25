@@ -1,0 +1,67 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+//! SCRATCH ONLY, for S-13b's boot: capsule_proof_io (IPC and Memory, no
+//! launcher) asks the installer to query, commit and remove a package. Each
+//! must come back EPERM; the exit code says which did not (42: all did).
+
+#![no_std]
+#![no_main]
+
+use nonos_libc::{mk_exit, mk_idle_ms, mk_ipc_call_timeout, mk_service_lookup};
+
+const EPERM: i64 = -1;
+
+fn installer() -> Option<u64> {
+    for _ in 0..1200 {
+        let (mut port, mut pid) = (0u32, 0u32);
+        let rc = mk_service_lookup(b"installer".as_ptr(), 9, &mut port, &mut pid);
+        if rc >= 0 && port != 0 {
+            return Some(port as u64);
+        }
+        mk_idle_ms(500);
+    }
+    None
+}
+
+/// One request: seq | op | pad | body; the reply's status.
+fn call(port: u64, op: u16, body: &[u8]) -> i64 {
+    let mut tx = [0u8; 128];
+    tx[0..4].copy_from_slice(&9u32.to_le_bytes());
+    tx[4..6].copy_from_slice(&op.to_le_bytes());
+    tx[8..8 + body.len()].copy_from_slice(body);
+    let mut rx = [0u8; 64];
+    let rc = mk_ipc_call_timeout(port, tx.as_ptr(), 8 + body.len(), rx.as_mut_ptr(), 64, 60_000);
+    if rc < 8 {
+        return -1000 + rc;
+    }
+    i32::from_le_bytes([rx[4], rx[5], rx[6], rx[7]]) as i64
+}
+
+fn prefixed(out: &mut [u8], s: &[u8]) -> usize {
+    out[..2].copy_from_slice(&(s.len() as u16).to_le_bytes());
+    out[2..2 + s.len()].copy_from_slice(s);
+    2 + s.len()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn _start() -> ! {
+    mk_idle_ms(20_000);
+    let Some(port) = installer() else { mk_exit(13) };
+    let mut b = [0u8; 96];
+    let n = prefixed(&mut b, b"/home/nonos/readme.txt");
+    if call(port, 6, &b[..n]) != EPERM {
+        mk_exit(16);
+    }
+    let mut c = [0xA5u8; 96];
+    let m = 32 + prefixed(&mut c[32..], b"/home/nonos/readme.txt");
+    if call(port, 7, &c[..m]) != EPERM {
+        mk_exit(17);
+    }
+    let n = prefixed(&mut b, b"gui_demo");
+    if call(port, 8, &b[..n]) != EPERM {
+        mk_exit(18);
+    }
+    mk_exit(42)
+}
