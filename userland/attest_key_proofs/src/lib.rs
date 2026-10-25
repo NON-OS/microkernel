@@ -25,6 +25,8 @@ pub mod security;
 #[cfg(test)]
 mod binding_tests;
 #[cfg(test)]
+mod document_k1_tests;
+#[cfg(test)]
 mod document_tests;
 #[cfg(test)]
 mod fixtures;

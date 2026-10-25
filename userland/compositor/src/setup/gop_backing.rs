@@ -18,10 +18,8 @@
 //! an anonymous mapping of its own, registered as a surface and attached
 //! back so the kernel's present path resolves it.
 
-use nonos_libc::{
-    mk_mmap, mk_surface_attach, mk_surface_register, nonos_display_dimensions, SurfaceDescriptor,
-    SURFACE_FORMAT_ARGB8888,
-};
+use nonos_libc::{mk_mmap, mk_surface_attach, mk_surface_register, nonos_display_dimensions};
+use nonos_libc::{SurfaceDescriptor, SURFACE_FORMAT_ARGB8888};
 
 use crate::state::Primary;
 
@@ -63,6 +61,7 @@ pub fn register_backing(
     let desc = SurfaceDescriptor { width, height, stride, format, byte_len, base_va, ..blank };
     let sid = mk_surface_register(&desc);
     if sid < 0 {
+        super::rejected::say_once(byte_len, sid, &super::rejected::SAID, crate::say::say);
         return Err("gop: surface register rejected");
     }
     let handle = handle_of(sid)?;

@@ -23,15 +23,15 @@ pub(super) const DRIVER_UHCI_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-uhci")]
 pub(super) const DRIVER_UHCI_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_uhci.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_uhci.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-uhci")]
 pub(super) const DRIVER_UHCI_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_uhci.manifest.bin");
+    crate::baked_trust!("capsules/driver_uhci.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-uhci")]
 pub(super) const DRIVER_UHCI_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_uhci.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_uhci.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-uhci"))]
 pub(super) const DRIVER_UHCI_ELF: &[u8] = &[];
