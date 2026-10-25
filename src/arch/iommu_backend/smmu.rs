@@ -17,6 +17,6 @@
 //! The SMMUv3 driver's backend, under the names `memory::iommu` calls.
 
 pub(in crate::memory::iommu) use crate::arch::aarch64::iommu::smmu::backend::{
-    allocate_domain, attach_device, capabilities, detach_device, free_domain, map, select_vendor,
-    translates, unmap,
+    allocate_domain, attach_device, capabilities, detach_device, free_domain, identity_devices,
+    map, select_vendor, translates, unmap,
 };

@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 #[cfg(target_arch = "aarch64")]
 mod aarch64;
+#[cfg(target_arch = "riscv64")]
+mod riscv64;
 // Anything with no trap of its own gets the stub, which reports ENOSYS rather
 // than pretending a call happened.
-#[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
+#[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64", target_arch = "riscv64")))]
 mod fallback;
 #[cfg(target_arch = "x86_64")]
 mod x86;
@@ -26,7 +28,9 @@ mod x86_asm;
 
 #[cfg(target_arch = "aarch64")]
 pub(super) use aarch64::raw;
-#[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
+#[cfg(target_arch = "riscv64")]
+pub(super) use riscv64::raw;
+#[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64", target_arch = "riscv64")))]
 pub(super) use fallback::raw;
 #[cfg(target_arch = "x86_64")]
 pub(super) use x86::raw;

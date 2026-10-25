@@ -18,8 +18,12 @@ pub const CONTROLLER_STATUS_PAYLOAD_LEN: usize = 56;
 pub const PORT_ENTRY_BYTES: usize = 8;
 pub const MAX_PORTS_REPORTED: usize = 255;
 pub const PORT_STATUS_HEADER_BYTES: usize = 4;
-/// The larger of a bulk OUT and an isoch OUT request.
+/// The longest request: an isoch OUT batch, which neither a bulk OUT nor a
+/// control OUT with its data stage passes.
 pub const MAX_REQUEST_PAYLOAD_LEN: usize = ISOCH_REQUEST_MAX;
+const _: () = assert!(MAX_REQUEST_PAYLOAD_LEN >= BULK_HEADER_LEN + BULK_MAX);
+const _: () =
+    assert!(MAX_REQUEST_PAYLOAD_LEN >= CONTROL_TRANSFER_REQUEST_LEN + CONTROL_DATA_MAX as usize);
 pub const SLOT_ENABLE_PAYLOAD_LEN: usize = 4;
 pub const SLOT_DISABLE_PAYLOAD_LEN: usize = 1;
 pub const ADDRESS_DEVICE_REQUEST_LEN: usize = 2;

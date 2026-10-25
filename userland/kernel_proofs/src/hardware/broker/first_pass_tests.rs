@@ -16,8 +16,8 @@
 
 //! L55's flag: set once and never again, read back as set, and asked for
 //! only by the `acpi` owner's thread group. And F-76's three SD/eMMC
-//! record shapes classify as the ACPI-published SD host, while PCI eMMC
-//! hosts and other platform records do not.
+//! record shapes are the ACPI-published SD host, of the SD host family
+//! (B-102), while PCI eMMC hosts and other platform records are not.
 
 use super::acpi::first_pass::{done, mark};
 use super::acpi::first_pass_rule::{admits, wait_needed};
@@ -25,7 +25,7 @@ use super::acpi::platform_record::record;
 use super::acpi::platform_wire::{GPIO, I2C, SD};
 use super::device::BusKind;
 use super::round_trip_tests::platform;
-use crate::hardware::platform_sd::is_platform_sd_host;
+use crate::{hardware::platform_sd::is_platform_sd_host, inventory_ids as inv};
 
 #[test]
 fn the_flag_goes_up_once_and_stays_up() {
@@ -54,6 +54,7 @@ fn the_three_sd_shapes_are_sd_hosts_and_nothing_else_is() {
     for hid in [&b"80860F14"[..], b"80860F16", b"AMDI0040"] {
         let r = record(&platform(SD, hid, &[(0xFED0_0000, 0x1000)], b"\\_SB.SDHC"), 0);
         assert!(is_platform_sd_host(r.bus_kind, r.pci_class, r.pci_subclass), "{hid:?}");
+        assert_eq!(inv::classify_device(&r), inv::HardwareFamily::StorageSdhci, "{hid:?}");
     }
     for class in [I2C, GPIO] {
         let r = record(&platform(class, b"INT33C2", &[(0xFED1_0000, 0x1000)], b"\\_SB.I2C0"), 0);
