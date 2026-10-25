@@ -19,7 +19,10 @@
 //! entry would stay readable to the next process. `to_pte_g` is `to_pte` with
 //! the GLOBAL request, as `PagePermissions::to_pte_flags` and
 //! `PageTableEntry::to_raw` encode it: kept on a kernel page, dropped on a
-//! user page.
+//! user page. The aarch64 encoders (the manager's `leaf` and
+//! `PageAttributes`) set nG on every EL0 page by the same rule, which
+//! `userland/arch_paging_proofs` checks by execution; the model is
+//! arch-neutral.
 
 use vstd::prelude::*;
 use crate::page_permissions::*;
