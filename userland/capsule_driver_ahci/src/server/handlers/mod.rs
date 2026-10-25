@@ -21,6 +21,7 @@ pub mod flush;
 pub mod health;
 pub mod identify;
 pub mod port_list;
+pub mod power_off;
 pub mod read;
 mod rw_parse;
 pub mod write;

@@ -22,24 +22,18 @@ use crate::browser::tls13::TrafficKeys;
 
 /// Application keys chosen for the proofs, for records sealed by hand.
 pub fn app_keys() -> TrafficKeys {
-    let (client_secret, server_secret) = ([1; 32], [2; 32]);
-    let (client_key, client_iv, server_key, server_iv) = ([3; 32], [4; 12], [5; 32], [6; 12]);
-    let handshake_secret = [0; 32];
-    TrafficKeys {
-        suite: 0x1303,
-        handshake_secret,
-        client_secret,
-        server_secret,
-        client_key,
-        client_iv,
-        server_key,
-        server_iv,
-    }
+    TrafficKeys::build(0x1303, |k| {
+        (k.client_secret, k.server_secret) = ([1; 32], [2; 32]);
+        (k.client_key, k.client_iv, k.server_key, k.server_iv) = ([3; 32], [4; 12], [5; 32], [6; 12]);
+        true
+    })
+    .expect("filled")
 }
 
 /// A verified TLS context holding `app_keys`, as a handshake leaves one.
 pub fn settled() -> TlsCtx {
-    let cf = ClientFlight { record: Vec::new(), handshake: Vec::new(), private: [0; 32], p256_private: [0; 32] };
+    let (private, p256_private) = (Box::new([0; 32]), Box::new([0; 32]));
+    let cf = ClientFlight { record: Vec::new(), handshake: Vec::new(), private, p256_private };
     let mut tls = TlsCtx::new(cf, 20260601000000);
     tls.settle(app_keys());
     tls

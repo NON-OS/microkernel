@@ -16,8 +16,8 @@
 
 //! The interrupt and descriptor facts of an I2C-HID record's bar 0.
 
-use crate::arch::x86_64::acpi::aml::GpioController;
-use crate::arch::x86_64::acpi::devices::i2c::{HidInterrupt, I2cHidDevice};
+use crate::arch::firmware_table::devices::GpioController;
+use crate::arch::firmware_table::devices::{HidInterrupt, I2cHidDevice};
 
 use super::slots::gpio_community_slot;
 
