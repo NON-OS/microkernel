@@ -33,6 +33,8 @@ pub fn report(flags: ProtectionFlags) {
     bit(flags.nx_enabled);
     serial::print(b" wp=");
     bit(flags.wp_enabled);
+    serial::print(b" pge=");
+    bit(global_pages());
     serial::println(b"");
 
     if !flags.is_fully_protected() {
@@ -40,6 +42,15 @@ pub fn report(flags: ProtectionFlags) {
         // plenty of parts that are otherwise fully protected.
         serial::println(b"[CPU-PROT] WARNING kernel is not fully protected from user pages");
     }
+}
+
+/// CR4.PGE on the calling CPU. Nothing in the kernel sets or clears it: the
+/// boot CPU keeps what firmware left, an AP has what its trampoline builds.
+/// Kernel PTEs carry GLOBAL, so with PGE on a CR3 reload leaves kernel entries
+/// cached, and a full shootdown done that way would not remove them. Logged on
+/// every CPU so a boot says which it is. This module is built for x86_64 only.
+pub(super) fn global_pages() -> bool {
+    super::cr4::read() & (1 << 7) != 0
 }
 
 fn bit(on: bool) {
