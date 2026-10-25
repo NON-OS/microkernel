@@ -15,14 +15,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-"""Launcher for the egress audit; the implementation lives in tools/nonos_egress/."""
+"""Launcher for the egress audit; the implementation lives in tools/nonos_egress_audit/."""
 
 import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from nonos_egress.__main__ import main
+from nonos_egress_audit.__main__ import main
 
 if __name__ == "__main__":
     sys.exit(main())
