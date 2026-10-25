@@ -20,7 +20,6 @@
 //! WINDOW_PAGES pages and never more than that apart, and every failure
 //! undone (cpu-6).
 
-// Only the tests drive it, so outside them it is not built.
 #[cfg(test)]
 #[path = "../../../../src/syscall/microkernel/memory/va/map_loop.rs"]
 mod map_loop;
