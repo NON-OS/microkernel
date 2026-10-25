@@ -43,3 +43,7 @@ pub fn may_write(path: &[u8]) -> bool {
 pub fn wrote(path: &[u8]) {
     WROTE.with(|w| w.borrow_mut().push(path.to_vec()));
 }
+
+pub fn learning() -> bool {
+    false
+}
