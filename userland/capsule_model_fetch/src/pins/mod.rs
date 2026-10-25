@@ -32,5 +32,7 @@ mod pinned_qwen25;
 mod pinned_qwen25_big;
 #[path = "../../../capsule_linux/src/linux/file/models/pinned_qwen3.rs"]
 mod pinned_qwen3;
+#[path = "../../../capsule_linux/src/linux/file/models/pinned_qwen35.rs"]
+mod pinned_qwen35;
 
 pub use pinned::{all, keepable, pin_of};

@@ -55,7 +55,7 @@ fn chosen(t: &[(&'static [u8], u64)], offered: &[u8], total: u64, who: For) -> O
 #[test]
 fn the_smallest_tiers_lead_the_list() {
     let t = tiers();
-    assert_eq!(t.len(), 17);
+    assert_eq!(t.len(), 19);
     assert_eq!(core::str::from_utf8(t[0].0).unwrap(), "small");
     assert_eq!(core::str::from_utf8(t[1].0).unwrap(), "qwen3-0.6b");
 }
