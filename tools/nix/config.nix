@@ -68,6 +68,13 @@ let
   # said everywhere; a hardened image must refuse those claims instead.
   postureFeatures = [ "nonos-dma-unconfined-posture" ];
 
+  # The marketplace's payment path, for development images only (the maintainers'
+  # P3): the meter, which no release seal has re-signed since its caps were
+  # narrowed, and settle beside it. A release image gets the meter only when
+  # the owner names its profile and seals it; settle is already in
+  # microkernel-full-gui by the owner's choice.
+  marketDevFeatures = [ "nonos-capsule-payment" "nonos-capsule-nox-settle" ];
+
   # The bootloader's policies, weakest first. Development compiles in the F12
   # override and is never sealed for release.
   loaders = [ "dev-qemu" "standard-qemu" "standard" "production" ];
@@ -158,6 +165,7 @@ let
       drop = p.drop ++ lib.optionals (!c.install) installFeatures;
       features = without drop (p.kernel ++ lib.optional c.smp "nonos-smp" ++ c.features
         ++ lib.optional (c.dev && !(builtins.elem "nonos-dev-attest" p.kernel)) "nonos-dev-attest"
+        ++ lib.optionals (loader == "dev-qemu") marketDevFeatures
         ++ lib.optional (loader != "dev-qemu") "nonos-release");
       enabled = closure features;
       missing = builtins.filter (f: !(kernelFeatures ? ${f})) features;
@@ -189,6 +197,10 @@ let
     # test, never in an image any other loader boots.
     assert lib.assertMsg (!(builtins.elem "nonos-capsule-attack" enabled) || loader == "dev-qemu")
       "nonos.toml: nonos-capsule-attack is the attack suite, for development images only (profile selftest)";
+    # The meter's sealed manifest is stale and no release profile names it:
+    # until the owner does, only the development loader carries it.
+    assert lib.assertMsg (!(builtins.elem "nonos-capsule-payment" enabled) || loader == "dev-qemu")
+      "nonos.toml: nonos-capsule-payment, the meter, is for development images only until the owner seals it into a release profile";
     c // {
       inherit features enabled loader;
       # What the profile takes out, closed over Cargo.toml: none of it may be
