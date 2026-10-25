@@ -28,6 +28,7 @@ d7d84c9b6a3b1976acb97a2bec7102e24a6b5d794110c0dcbd107ab5d9877e5f nonos-bootloade
 432828456433c7344a4729cc2dbdb5055f987f062839c85bb754556b4e3571f0 nonos-bootloader/firmware/intel/iwlwifi-9260-th-b0-jf-b0-46.ucode
 0a1df434d4acffa2262224d7e8dd492531aefca377da056e70ffcd3907062c61 nonos-bootloader/firmware/intel/iwlwifi-cc-a0-77.ucode
 cea0aaeb034aadb36cde1d7b6f2a0f38cb78209cbe81a40d973318f820ebdd0c nonos-bootloader/firmware/intel/iwlwifi-so-a0-gf-a0-86.ucode
+78abe08cf33bc209b96a887c7e3db8855a1d9650edacf849c4fa0d4596bcfac5 nonos-bootloader/firmware/intel/iwlwifi-so-a0-gf-a0.pnvm
 20ce23a3c723efddbd909a239b99f9c9451c1f4fbcbdb1568eca9057853aa110 nonos-bootloader/firmware/intel/iwlwifi-so-a0-hr-b0-84.ucode
 5c91eed7bd29c1dabc911b10c854032c21722b2529a1041e11baad96f7da5fa5 nonos-bootloader/firmware/intel/x710-ethernet.bin
 3573f67c34e315af431fd63ffe1d0cb83e6ca33d723ddd924414f5918426218a nonos-bootloader/firmware/lenovo/thinkpad-x1-carbon.bin
