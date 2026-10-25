@@ -16,8 +16,8 @@
 
 //! Turning a queue off, for a unit firmware handed over with QIE still set.
 //! A queue cannot be re-pointed while enabled, and IQH only returns to zero
-//! once it is off (VT-d 3.4, 11.4.9.1), so Linux disables before every
-//! enable (intel/dmar.c, dmar_disable_qi) and so does this.
+//! once it is off (VT-d 3.4, 11.4.9.1), so the queue is turned off before
+//! every enable.
 
 use crate::arch::x86_64::iommu::regs::offsets;
 use crate::arch::x86_64::iommu::types::VtdError;

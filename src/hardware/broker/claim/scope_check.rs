@@ -17,26 +17,24 @@
 //! The claim's scope check (K6f): the claimant's process, by every service
 //! name the kernel registered for it, against scope.rs.
 
+use super::types::ClaimError;
 use crate::hardware::broker::scope::{admits, Seen};
-use crate::hardware::broker::{table, DeviceRecord};
+use crate::hardware::broker::{holder_of, table, DeviceRecord};
 
 /// Whether some service `pid`'s process owns may claim `device_id`. A thread
-/// is held to its process's rows; a pid with no registered service, or a
-/// device not in the table, is refused.
-pub(super) fn admitted(pid: u32, device_id: u64) -> bool {
+/// is held to its process's rows (L32); a pid with no registered service, or
+/// a device not in the table, is refused.
+pub(super) fn admit(pid: u32, device_id: u64) -> Result<(), ClaimError> {
     let Some(record) = table::list().into_iter().find(|r| r.device_id == device_id) else {
-        return false;
+        return Err(ClaimError::OutOfScope);
     };
-    let group = crate::process::with_process(pid, |pcb| pcb.thread_group_id())
-        .filter(|&tgid| tgid != 0)
-        .unwrap_or(pid);
     let seen = seen(&record);
-    let served = crate::services::registry::endpoints_of(group);
+    let served = crate::services::registry::endpoints_of(holder_of(pid));
     if served.iter().any(|ep| admits(&ep.name, &seen)) {
-        return true;
+        return Ok(());
     }
     crate::sys::serial::println(b"[CLAIM] refused: the device is outside the driver's scope");
-    false
+    Err(ClaimError::OutOfScope)
 }
 
 fn seen(r: &DeviceRecord) -> Seen {

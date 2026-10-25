@@ -16,17 +16,36 @@
 
 //! The PCI Command register half of the `MkPciConfigWrite` allowlist.
 
+use super::command_bits::{exact, plain};
 use super::command_rule::{command_value, Refused};
 use super::types::{PciWriteError, WriteAction};
 
-/// The Command register write, by the rule in command_rule.rs; `may` is
-/// whether the caller holds Dma, and Mmio.
+/*
+ * The only PCI Command bits a driver capsule may flip. Bus Master is for
+ * DMA. Memory Space decodes the MMIO BAR: firmware often leaves it clear on
+ * an LPSS controller it did not use, and then every MMIO access silently
+ * drops. Interrupt Disable lets a driver that polls its device silence the
+ * legacy INTx pin: a level-triggered line is shared on real chipsets and on
+ * QEMU's q35, and a device whose status no driver reads holds it up, so
+ * every other device on the line sees deliveries it never raised. The bit
+ * quiets only the claimed device; MSI and MSI-X are unaffected. No other
+ * command bit (I/O space, SERR, parity, etc.) is writable through this path.
+ * The bits themselves are in `command_bits.rs`, pure for the proofs.
+ */
+/// `masked` is the form of `change.rs`: `new` is then the whole register.
+/// The register the form leaves is then held to `command_rule.rs` (K6): no
+/// bit outside the writable three moves, Bus Master is set or kept on only
+/// for a caller holding Dma, and Memory Space only for one holding Mmio
+/// (H-02); `may` is whether the caller holds Dma, and Mmio.
 pub(super) fn validate_command(
     new: u16,
     current: u16,
+    masked: bool,
     may: (bool, bool),
 ) -> Result<WriteAction, PciWriteError> {
-    match command_value(new, current, may.0, may.1) {
+    let desired = if masked { exact(new, current) } else { plain(new, current) };
+    let desired = desired.ok_or(PciWriteError::BitsNotAllowed)?;
+    match command_value(desired, current, may.0, may.1) {
         Ok(value) => Ok(WriteAction::Command(value)),
         Err(Refused::Bits) => Err(PciWriteError::BitsNotAllowed),
         Err(Refused::BusMaster) => Err(PciWriteError::BusMasterWithoutDma),

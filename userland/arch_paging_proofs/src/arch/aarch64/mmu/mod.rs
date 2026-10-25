@@ -16,7 +16,7 @@ pub mod attributes {
 
     pub use kind::MemoryType;
     pub use page::PageAttributes;
-    pub use pte::{PTE_AP_RW_ALL, PTE_GP, PTE_PXN, PTE_UXN};
+    pub use pte::{PTE_AP_RW_ALL, PTE_GP, PTE_NG, PTE_PXN, PTE_UXN};
 }
 
 pub use attributes::MemoryType;

@@ -13,22 +13,22 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-//! A device into the claiming capsule's domain, once it has one: a
-//! requester id shared behind a VMD joins the capsule that holds it, and is
-//! refused to any other; its reserved ranges go in before it does.
+//! A device into the claiming capsule's domain, once it has one and nothing
+//! it reaches is held elsewhere (one.rs): its RMRR regions mapped one to one
+//! (L60), a requester id shared behind a VMD joined to the capsule that holds
+//! it, and its reserved ranges in before it is.
 
 extern crate alloc;
 
 use alloc::vec::Vec;
 
-use super::join_group::group_held;
-use super::member::Member;
 use super::refuse::{refuse, Refusal};
 use super::reserve::reserve;
+use super::reserve_rmrr::map_reserved;
 use super::say::say;
+use super::shared::regions_elsewhere;
 use super::table::Capsule;
-use super::unreserve::release;
+use super::unreserve::{release, unmap_reserved};
 use crate::memory::iommu::DeviceAddress;
 
 pub(super) fn join(
@@ -36,22 +36,11 @@ pub(super) fn join(
     pos: usize,
     device_id: u64,
     address: DeviceAddress,
-    reach: (&[Member], &[DeviceAddress]),
 ) -> Result<(), Refusal> {
-    if group_held(all, pos, (device_id, address), reach) {
-        if all[pos].devices.is_empty() {
-            all.remove(pos);
-        }
-        return Err(Refusal::GroupHeld);
-    }
-    // Drives behind one VMD share its requester id. One capsule may hold
-    // several of them in its domain; a second capsule cannot take the id
-    // without pulling it out from under the first.
-    if all.iter().enumerate().any(|(i, c)| i != pos && c.devices.iter().any(|(_, a)| *a == address))
-    {
-        let why = b"refused: requester id held by another capsule";
-        return refuse(all, pos, why, Refusal::GroupHeld);
-    }
+    let others = regions_elsewhere(all, pos);
+    map_reserved(&mut all[pos], device_id, address, &others);
+    // Drives behind one VMD share its requester id: one capsule may hold
+    // several of them in its domain (another is refused in one.rs).
     if all[pos].devices.iter().any(|(_, a)| *a == address) {
         all[pos].devices.push((device_id, address));
         say(b"confined to its capsule's domain (shared requester id)");
@@ -60,6 +49,7 @@ pub(super) fn join(
     // Its reserved ranges in the new domain before it is attached there, so
     // it never runs without them; all of them, or the claim is refused.
     if let Err(why) = reserve(&mut all[pos], address) {
+        unmap_reserved(&mut all[pos], device_id);
         return refuse(all, pos, why, Refusal::Refused);
     }
     // Out of its bring-up domain first. Between the two writes the device has
@@ -67,6 +57,7 @@ pub(super) fn join(
     let _ = all[pos].domain.detach_device(address);
     if all[pos].domain.attach_device(address).is_err() {
         release(&mut all[pos], address);
+        unmap_reserved(&mut all[pos], device_id);
         return refuse(all, pos, b"refused: attach failed", Refusal::Refused);
     }
     all[pos].devices.push((device_id, address));

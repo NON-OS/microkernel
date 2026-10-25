@@ -36,6 +36,14 @@ pub const MK_DMA_MAP_COHERENT: u32 = 1 << 2;
 /// entry), for data the driver writes whole before it rings the device.
 /// Stores may merge and reorder: fence (sfence) before the doorbell.
 pub const MK_DMA_MAP_WC: u32 = 1 << 3;
+/// The device only reads the buffer (transmit, command data out). Where an
+/// IOMMU confines the device the broker maps it read-only, so the device
+/// cannot write into it. Not together with `MK_DMA_MAP_FROM_DEVICE`.
+pub const MK_DMA_MAP_TO_DEVICE: u32 = 1 << 4;
+/// The device only writes the buffer (receive, data in). Where an IOMMU
+/// confines the device the broker maps it without read permission, as far
+/// as the unit allows. Set neither for a ring both sides use.
+pub const MK_DMA_MAP_FROM_DEVICE: u32 = 1 << 5;
 
 #[no_mangle]
 pub extern "C" fn mk_dma_map(

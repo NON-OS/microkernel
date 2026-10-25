@@ -26,4 +26,4 @@ mod env;
 mod open;
 
 pub use discover::Found;
-pub use open::{open, Opened};
+pub use open::{open, open_removable, Opened};

@@ -19,7 +19,7 @@
   },
   "proof_systems": {
     "kani": {
-      "harnesses": 109
+      "harnesses": 115
     },
     "lean_extraction": {
       "bv_decide_calls": 10,
@@ -1720,7 +1720,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/PagingTypesPermissionsConvert.lean",
-          "sha256": "c089795ca81ad724705e5f026e2afc5e17903ebcec56c7d222f9365b73c7a34f"
+          "sha256": "0f380962817fad97e28f38edc4b14291dfe841ccb70c4e206d21673bd7adc840"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/PagingTypesPermissionsFlags.lean",
@@ -2160,7 +2160,7 @@
         },
         {
           "path": "verification/extraction/lean/Policy/Funs.lean",
-          "sha256": "ada8c41c4178910e8cd1ec00d2037c4c3688723bc02db9225654e955b374ac30"
+          "sha256": "973483bc1917092cd4842509267ce2d9231ee2d454c049ebe105fc70b6a6626e"
         },
         {
           "path": "verification/extraction/lean/Policy/FunsExternal_Template.lean",
@@ -2173,18 +2173,18 @@
       ]
     },
     "lean_specification": {
-      "axiom_profiled_theorems": 628,
+      "axiom_profiled_theorems": 631,
       "mathlib": false,
-      "modules": 190,
+      "modules": 191,
       "sorry_count": 0,
-      "theorems": 1500,
+      "theorems": 1503,
       "toolchain": "leanprover/lean4:v4.15.0"
     },
     "runnable": {
-      "proof_crates": 110
+      "proof_crates": 202
     },
     "verus": {
-      "source_files": 5
+      "source_files": 6
     }
   },
   "schema": "nonos-verification-evidence/v1",

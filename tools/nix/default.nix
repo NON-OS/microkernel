@@ -48,7 +48,7 @@ let
 
   shell = import ./shell.nix { inherit pkgs lib pins userland capsules; };
   checks = import ./checks.nix {
-    inherit pkgs lib pins cargo rustBuild src capsules config self starks periodic;
+    inherit pkgs lib pins cargo rustBuild src capsules config image self starks periodic;
     busybox = userland.busybox;
   };
   apps = import ./apps.nix { inherit pkgs lib hostTools shell; };
