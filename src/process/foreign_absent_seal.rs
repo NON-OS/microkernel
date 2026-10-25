@@ -35,3 +35,11 @@ pub(crate) fn supervises_live(_sup: u32) -> bool {
 
 /// A measurement no family takes.
 pub(crate) fn measured(_measurement: &[u8; 32]) {}
+
+/// A guest naming a number the kernel knows gets EPERM before the cap table,
+/// the rule x86_64 keeps in seal/absorb.rs. No guest exists here today, so it
+/// is never true; the handlers ask it anyway, so the rule is already in place
+/// the day one can.
+pub(crate) fn native(_nr: u64) -> bool {
+    crate::process::current_pid().is_some_and(super::is_foreign)
+}
