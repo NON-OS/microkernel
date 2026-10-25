@@ -36,6 +36,10 @@ pub mod dmar_ioapic_source;
 pub use scope as dmar_scope;
 #[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_keep.rs"]
 pub mod dmar_keep;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_truncated.rs"]
+pub mod truncated;
+mod cap_tests;
 mod ioapic_tests;
 mod keep_tests;
 mod tests;
+mod truncated_tests;
