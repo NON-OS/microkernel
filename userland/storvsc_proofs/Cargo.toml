@@ -1,0 +1,24 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the storvsc driver. Builds for the host so
+# `cargo test` runs the real driver source and nonos_scsi_serve (included
+# via #[path]) against a Hyper-V storage host model: nonos_vmbus's model of
+# the host's side for the channel's GPADL, open and close, and a storage
+# server on the channel's rings, written from Linux's storvsc_drv.c, that
+# answers each request from nonos_scsi's simulated logical units through
+# the data buffer's pages.
+[package]
+name = "storvsc_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_vmbus = { path = "../nonos_vmbus", features = ["model"] }
+nonos_scsi = { path = "../nonos_scsi" }
+nonos_libc = { package = "storvsc_proofs_libc_shim", path = "libc_shim" }
