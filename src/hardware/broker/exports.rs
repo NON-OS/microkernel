@@ -35,7 +35,7 @@ pub use super::device::{
     DEVICE_FLAG_EXTERNAL, DEVICE_FLAG_IRQ_ACTIVE_LOW, DEVICE_FLAG_IRQ_EDGE, NUMA_UNKNOWN,
 };
 pub use super::dma::{
-    covers as dma_covers, covers_any as dma_covers_any, free_held_run as dma_free_held_run,
+    covers as dma_covers, free_held_run as dma_free_held_run,
     grant_run_covering as dma_grant_run_covering, map_for_caller as dma_map_for_caller,
     release_all_for_pid as dma_release_all_for_pid, release_for_device as dma_release_for_device,
     unmap_grant as dma_unmap_grant, wipe_live_grants as dma_wipe_live_grants, DmaError, DmaGrant,
