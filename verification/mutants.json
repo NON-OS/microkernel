@@ -65,8 +65,8 @@
  {
   "name": "register-right",
   "file": "src/syscall/microkernel/ipc/register_allowed.rs",
-  "old": "match caller_has_register_right() && is_runtime_registrable(name) {",
-  "new": "match is_runtime_registrable(name) {",
+  "old": "match own && caller_has_register_right() && is_runtime_registrable(name) {",
+  "new": "match own && is_runtime_registrable(name) {",
   "escapes": "[ATTACK] cap-escape ESCAPED: register net.dns without RegisterService, MkServiceRegister returned"
  }
 ]
