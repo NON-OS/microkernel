@@ -55,9 +55,9 @@ pub(in crate::security::tpm) fn run(cmd: &[u8]) -> Result<Response, KeyError> {
      * SAFETY: eK@nonos.systems - every command built under security::tpm
      * creates or flushes a transient object, starts a session, signs, hashes,
      * or reads: PCRs, the rollback counter, and the EK certificate indices
-     * 0x01C00002 and 0x01C0000A. None writes NV storage or makes an object
-     * persistent, so a failure here cannot leave the TPM in a state that
-     * outlives the boot.
+     * 0x01C00002 and 0x01C0000A; or extends PCR 14, which the next reset
+     * clears. None writes NV storage or makes an object persistent, so a
+     * failure here cannot leave the TPM in a state that outlives the boot.
      */
     let len = unsafe { transact_resending(cmd, &mut buf) };
     let response = len.map(|n| Response(buf[..n].to_vec())).map_err(KeyError::from);
