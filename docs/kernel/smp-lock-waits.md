@@ -28,7 +28,7 @@ When the holder's frame lies on the waiting CPU's own kernel stack, the waiter's
 
 The waiter knows its own stack exactly on x86_64: the per-CPU block holds the top of the running process's 32 KiB kernel stack (`kernel_stack_top`), and stacks that are in use never overlap, so a lock held on any other CPU is never judged this way (`src/smp/spin_verdict.rs`). Two cases add only `, likely re-taken by its own holder` to the `held from` line, when the holder's frame is within 32 KiB of the waiter's:
 
-- the waiter's stack bounds are not known: a boot stack, or any waiter on aarch64;
+- the waiter's stack bounds are not known: a boot stack, or any waiter on aarch64 or riscv64, where nothing writes `kernel_stack_top`;
 - the last take was a reader's. Another reader may still hold the lock after that one let go, so a reader's take is never judged a re-take.
 
 Neither changes what the CPU does: it goes on waiting, as it would have without the report.
