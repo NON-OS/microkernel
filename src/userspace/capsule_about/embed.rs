@@ -24,15 +24,14 @@ pub(crate) const ABOUT_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-about")]
 pub(crate) const ABOUT_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/about.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/about.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-about")]
-pub(crate) const ABOUT_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/about.manifest.bin");
+pub(crate) const ABOUT_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/about.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-about")]
 pub(crate) const ABOUT_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/about.zk_trailer.bin");
+    crate::baked_trust!("capsules/about.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-about"))]
 pub(crate) const ABOUT_ELF: &[u8] = &[];
