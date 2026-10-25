@@ -45,7 +45,7 @@
  {"name": "file-format", "file": "recipes_file.py", "old": "doc.get(\"format\") != FORMAT", "new": "False"},
  {"name": "file-duplicate", "file": "recipes_file.py", "old": "if len(set(names)) != len(names):", "new": "if False:"},
  {"name": "file-size", "file": "recipes_file.py", "old": "if len(raw) > MAX_BYTES:", "new": "if False:"},
- {"name": "build-licence-drift", "file": "catalogue.py", "old": "if rec.get(\"L\", \"\") != recipe[\"licence\"]:", "new": "if False:"},
+ {"name": "build-licence-drift", "file": "catalogue.py", "old": "if rec.get(\"L\", \"\") != recipe.get(\"index_licence\", recipe[\"licence\"]):", "new": "if False:"},
  {"name": "build-record-unchecked", "file": "catalogue.py", "old": "rec = index_record(rec)", "new": "pass"},
  {"name": "build-chain", "file": "catalogue.py", "old": "files = alpine_auth.package_files(raw, alpine_auth.checksum(rec.get(\"C\")))", "new": "files = alpine_auth.gz.members(raw)[-1].body"},
  {"name": "build-no-policy", "file": "catalogue.py", "old": "rel[\"ext\"] = {\"guest_policy\": policy.hex()}", "new": "rel[\"ext\"] = {}"},
