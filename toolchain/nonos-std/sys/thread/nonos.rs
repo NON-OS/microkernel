@@ -1,13 +1,13 @@
 // NONOS std threads over the MTSP syscall. The kernel clones the current
 // capsule's address space handle into a fresh schedulable task, so a thread
 // here is a task sharing memory and capabilities with its spawner. The
-// spawn ABI carries only an entry point and a stack pointer; the ThreadInit
-// pointer rides the new stack, and a naked trampoline moves it into rdi
-// before entering Rust. Join polls MPAL (pid-alive) with a yield between
-// probes; the kernel reaps a dead task from the process table within a
-// timer tick, after which its user stack is provably untouched and can be
-// freed. Detached threads leak their stack, since nobody learns when the
-// task dies.
+// spawn ABI carries only an entry point and a stack pointer, so the new
+// stack carries two words, thread_start and the ThreadInit pointer, and the
+// pal's trampoline (thread_regs) calls the one with the other. Join polls
+// MPAL (pid-alive) with a yield between probes; the kernel reaps a dead task
+// from the process table within a timer tick, after which its user stack is
+// provably untouched and can be freed. Detached threads leak their stack,
+// since nobody learns when the task dies.
 
 use crate::alloc::{GlobalAlloc, Layout, System};
 use crate::ffi::CStr;
@@ -31,17 +31,17 @@ const N_MK_PROC_STAT: i64 = tag4(b"MPST");
 pub const DEFAULT_MIN_STACK_SIZE: usize = 1 << 20;
 
 fn raw_yield() {
-    // SAFETY: MYLD takes no arguments; rcx/r11 are burned by syscall.
+    // SAFETY: MYLD takes no arguments and touches no memory.
     unsafe {
-        core::arch::asm!("syscall", in("rax") N_MK_YIELD, out("rcx") _, out("r11") _);
+        crate::sys::pal::trap::trap(N_MK_YIELD, 0, 0, 0, 0, 0, 0);
     }
 }
 
 fn now_ms() -> u64 {
     let r: i64;
-    // SAFETY: MTMS takes no arguments and returns the kernel clock in rax.
+    // SAFETY: MTMS takes no arguments and returns the kernel clock.
     unsafe {
-        core::arch::asm!("syscall", inout("rax") N_MK_TIME_MILLIS => r, out("rcx") _, out("r11") _);
+        r = crate::sys::pal::trap::trap(N_MK_TIME_MILLIS, 0, 0, 0, 0, 0, 0);
     }
     if r < 0 {
         0
@@ -52,21 +52,19 @@ fn now_ms() -> u64 {
 
 fn pid_alive(tid: u32) -> bool {
     let r: i64;
-    // SAFETY: MPAL takes a pid in rdi and returns 0/1 in rax.
+    // SAFETY: MPAL takes a pid and answers 0 or 1.
     unsafe {
-        core::arch::asm!("syscall", inout("rax") N_MK_PID_ALIVE => r, in("rdi") tid as u64,
-            out("rcx") _, out("r11") _);
+        r = crate::sys::pal::trap::trap(N_MK_PID_ALIVE, tid as u64, 0, 0, 0, 0, 0);
     }
     r == 1
 }
 
 fn thread_spawn(entry: u64, stack: u64) -> i64 {
     let r: i64;
-    // SAFETY: MTSP takes (entry, stack) in (rdi, rsi) and returns the new
-    // tid or a negative errno in rax.
+    // SAFETY: MTSP takes (entry, stack) and answers the new tid or a
+    // negative errno.
     unsafe {
-        core::arch::asm!("syscall", inout("rax") N_MK_THREAD_SPAWN => r, in("rdi") entry,
-            in("rsi") stack, out("rcx") _, out("r11") _);
+        r = crate::sys::pal::trap::trap(N_MK_THREAD_SPAWN, entry, stack, 0, 0, 0, 0);
     }
     r
 }
@@ -83,21 +81,6 @@ unsafe impl Send for Thread {}
 // SAFETY: same reasoning; the handle itself never aliases the stack memory.
 unsafe impl Sync for Thread {}
 
-// The kernel enters the new task exactly at `entry` with rsp set to the
-// value passed to MTSP. The parent leaves the ThreadInit pointer just above
-// that rsp, so the first real instruction lifts it into the C argument
-// register before calling into Rust. rsp is 16-aligned at the call site,
-// which is what the SysV ABI expects.
-#[unsafe(naked)]
-unsafe extern "C" fn thread_entry() -> ! {
-    core::arch::naked_asm!(
-        "mov rdi, [rsp + 8]",
-        "call {start}",
-        "ud2",
-        start = sym thread_start,
-    )
-}
-
 extern "C" fn thread_start(data: *mut ThreadInit) -> ! {
     // TLS first: everything below (current-thread setup, dtors) needs it.
     crate::sys::thread_local::key::init_tls();
@@ -106,13 +89,11 @@ extern "C" fn thread_start(data: *mut ThreadInit) -> ! {
     // happens after this call.
     unsafe { crate::sys::thread_local::key::destroy_tls() };
     // SAFETY: MEXT never returns; the kernel reaps this task.
-    unsafe {
-        core::arch::asm!("syscall", in("rax") N_MK_EXIT, in("rdi") 0u64, options(noreturn));
-    }
+    crate::sys::pal::trap::trap_exit(N_MK_EXIT, 0u64);
 }
 
 // Kept out of thread_start so no stack slot holding `init` state outlives
-// the TLS teardown (the same reordering hazard the xous port documents).
+// the TLS teardown, where the compiler could otherwise reorder it.
 #[inline(never)]
 fn run_init(data: *mut ThreadInit) {
     // SAFETY: recreates the box leaked by `Thread::new`; the kernel spawn
@@ -124,8 +105,8 @@ fn run_init(data: *mut ThreadInit) {
 
 impl Thread {
     pub unsafe fn new(stack: usize, init: Box<ThreadInit>) -> io::Result<Thread> {
-        // Sixteen-byte alignment for the ABI, and room above the entry rsp
-        // for the ThreadInit pointer slot.
+        // Sixteen-byte alignment for the ABI, and room above the entry stack
+        // pointer for the two words the trampoline reads.
         let size = stack.max(DEFAULT_MIN_STACK_SIZE);
         let size = size.checked_add(15).map(|s| s & !15).unwrap_or(size);
         let layout = Layout::from_size_align(size, 16)
@@ -137,11 +118,16 @@ impl Thread {
         }
         let data = Box::into_raw(init);
         let top = base as u64 + size as u64;
-        let entry_rsp = top - 16;
-        // SAFETY: top-8..top lies inside the fresh allocation; the spawned
-        // thread reads it exactly once from [rsp + 8].
-        unsafe { ((top - 8) as *mut u64).write((data as usize) as u64) };
-        let tid = thread_spawn(thread_entry as usize as u64, entry_rsp);
+        let entry_sp = top - 16;
+        let start = thread_start as extern "C" fn(*mut ThreadInit) -> !;
+        // SAFETY: top-16..top lies inside the fresh allocation; the spawned
+        // thread reads each word once, the function at +0, its argument at +8.
+        unsafe {
+            (entry_sp as *mut u64).write(start as usize as u64);
+            ((top - 8) as *mut u64).write((data as usize) as u64);
+        }
+        let entry = crate::sys::pal::thread_regs::thread_entry as *const () as usize as u64;
+        let tid = thread_spawn(entry, entry_sp);
         if tid <= 0 {
             // The kernel refused the spawn, so the box was never consumed
             // and this thread still owns both allocations.
@@ -189,11 +175,9 @@ pub fn available_parallelism() -> io::Result<NonZero<usize>> {
     let mut buf = [0u64; 128];
     let r: i64;
     // SAFETY: MPST writes at most the header plus `max_entries` (1) entries
-    // into the buffer named in rdi, which is 1 KiB and writable.
+    // into the buffer named first, which is 1 KiB and writable.
     unsafe {
-        core::arch::asm!("syscall", inout("rax") N_MK_PROC_STAT => r,
-            in("rdi") buf.as_mut_ptr() as u64, in("rsi") 1u64,
-            out("rcx") _, out("r11") _);
+        r = crate::sys::pal::trap::trap(N_MK_PROC_STAT, buf.as_mut_ptr() as u64, 1u64, 0, 0, 0, 0);
     }
     let version = (buf[1] >> 32) as u32;
     // Any refusal or an answer out of range reads as one core, the honest
@@ -207,7 +191,7 @@ pub fn current_os_id() -> Option<u64> {
     let r: i64;
     // SAFETY: MGPD takes no arguments and returns the calling task id.
     unsafe {
-        core::arch::asm!("syscall", inout("rax") N_MK_GETPID => r, out("rcx") _, out("r11") _);
+        r = crate::sys::pal::trap::trap(N_MK_GETPID, 0, 0, 0, 0, 0, 0);
     }
     if r < 0 {
         None

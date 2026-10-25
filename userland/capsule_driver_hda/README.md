@@ -97,8 +97,9 @@ controller in turn until one plays:
    read-modify-write (`src/setup/config.rs`), map BAR0, bind the interrupt,
    a kill) left its engines armed at frames freed since, and the kernel's
    release cleared only Bus Master, so it stays off until step 2 stops them.
-   Today's broker ORs the bits it is given into the Command register, so this
-   write cannot yet clear a Bus Master left set; the kernel clears it at claim
+   The write is the broker's masked form, which names the bits it changes,
+   so it clears a Bus Master left set; the plain form only ORs bits on. The
+   kernel's claim turns Bus Master off as well.
    that will not fails the attempt by name; its teardown resets the
    controller for the next, `src/controller/stop.rs`), then a full reset: CRST
    low and seen low, held 1 ms, high and seen high, 2 ms for the codecs, then
@@ -159,8 +160,9 @@ will not stop is logged by name and the teardown goes on.
 The release is the real guard: the broker clears bus mastering itself and
 reads it back before it drains the DMA grants (rings, BDL, PCM ring), so no
 frame is freed under an engine still writing it. The driver's own Bus Master
-write is defence in depth: the broker ORs a command write that names only
-writable bits into the register today, so it takes effect once the kernel's
+write is defence in depth, by the masked form of the command write so that
+it clears the bit: the plain form ORs a write that names only writable bits
+into the register.
 
 ## Failure model
 
