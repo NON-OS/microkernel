@@ -14,20 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{InputEvent, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP};
+use nonos_libc::InputEvent;
 
-use crate::state::{Context, Press};
+use crate::state::Context;
 
 use super::event_kinds::{is_motion, needs_hit_test};
+use super::hit_route::hit_route;
 use super::hover_motion::hover_motion;
 use super::mirror_shell_pointer::mirror_shell_pointer;
+use super::press_path::press_path;
 use super::refresh_display::refresh_display;
-use super::route_to_press::route_to_press;
-use super::route_to_shell::route_to_shell;
-use super::route_to_window::route_to_window;
-use super::shell_pid::shell_pid;
-use super::topmost_target::topmost_target;
 
+/// Place one pointer event and deliver it: to the shell's mirror, to the
+/// window holding the gesture if one does, else to what is under it.
 pub fn route_pointer(ctx: &mut Context, event: &InputEvent) -> u32 {
     if !refresh_display(ctx, event) {
         // No edges yet: placed on a guess, the event would land elsewhere.
@@ -39,34 +38,8 @@ pub fn route_pointer(ctx: &mut Context, event: &InputEvent) -> u32 {
     ctx.cursor_y = y;
     ctx.cursor_dirty = true;
     let mut delivered = mirror_shell_pointer(ctx, event, x, y);
-    // A second button pressed while the grab is held joins it, so the pressed
-    // window keeps the whole gesture. The same button pressed again means its
-    // release was lost (device desync, capsule restart): drop the stale grab
-    // and let the new press hit-test normally, instead of routing every click
-    // to a dead window from then on.
-    if event.kind == INPUT_KIND_BUTTON_DOWN {
-        if let Some(press) = ctx.press.as_mut() {
-            if !press.hold(event.code) {
-                ctx.press = None;
-            }
-        }
-    }
-    // Any press can restack windows: one on a window raises it, one on the
-    // dock brings another up. The cached hover window may no longer be the
-    // one on top under the pointer, so forget it and ask again.
-    if event.kind == INPUT_KIND_BUTTON_DOWN {
-        ctx.hover = None;
-    }
-    if ctx.press.is_some() {
-        delivered += route_to_press(ctx, event, x, y);
-        if event.kind == INPUT_KIND_BUTTON_UP {
-            if let Some(press) = ctx.press.as_mut() {
-                press.lift(event.code);
-                if press.idle() {
-                    ctx.press = None;
-                }
-            }
-        }
+    if let Some(held) = press_path(ctx, event, x, y) {
+        delivered += held;
         ctx.record(delivered);
         return delivered;
     }
@@ -74,32 +47,7 @@ pub fn route_pointer(ctx: &mut Context, event: &InputEvent) -> u32 {
         delivered += hover_motion(ctx, event, x, y);
     }
     if needs_hit_test(event.kind) {
-        let target = topmost_target(ctx, x, y);
-        let shell = shell_pid(ctx);
-        delivered += match target {
-            Some(target) if target.owner_pid != shell => {
-                if event.kind == INPUT_KIND_BUTTON_DOWN {
-                    let mut press =
-                        Press::arm(target.owner_pid, x, y, target.local_x, target.local_y);
-                    press.hold(event.code);
-                    ctx.press = Some(press);
-                }
-                route_to_window(ctx, event, target)
-            }
-            // A press on the desk, the dock or no window at all is the
-            // shell's, and so is its release wherever the pointer is by then.
-            // The shell grabs the pointer for an icon drag only once it has
-            // read the press; a tap's release is routed before that, and
-            // without this grab it was dropped, leaving the icon on the pointer.
-            _ => {
-                if event.kind == INPUT_KIND_BUTTON_DOWN && shell != 0 {
-                    let mut press = Press::arm(shell, x, y, x, y);
-                    press.hold(event.code);
-                    ctx.press = Some(press);
-                }
-                route_to_shell(ctx, event, x, y)
-            }
-        };
+        delivered += hit_route(ctx, event, x, y);
     }
     ctx.record(delivered);
     delivered
