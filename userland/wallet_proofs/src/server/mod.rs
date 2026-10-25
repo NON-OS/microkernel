@@ -34,8 +34,8 @@ pub mod secp;
 /// The keyring's typed-data allowlist and the checks around it.
 #[path = "../../../capsule_keyring/src/server/typed/mod.rs"]
 pub mod typed;
-#[path = "../../../capsule_keyring/src/server/words_own.rs"]
-pub mod words_own;
 #[cfg(test)]
 #[path = "../../../capsule_keyring/src/server/wipe.rs"]
 mod wipe;
+#[path = "../../../capsule_keyring/src/server/words_own.rs"]
+pub mod words_own;
