@@ -33,6 +33,7 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         NetworkE1000 => "driver_e1000",
         NetworkE1000e => "driver_e1000e",
         NetworkIgb => "driver_igb",
+        NetworkIgc => "driver_igc",
         NetworkIxgbe => "driver_ixgbe",
         NetworkRtl8139 => "driver_rtl8139",
         NetworkRtl8169 => "driver_rtl8169",

@@ -14,19 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The proofs, one module per property under test.
-//!
-//! They are gathered under a module rather than listed at the crate root only
-//! so that no file in this crate runs past the line budget the tree holds
-//! itself to. Each module below states, in its own header, which part of the
-//! HD Audio specification it is holding the driver to and what goes wrong on a
-//! real machine when the driver stops holding to it.
+//! The proofs, one module per property under test, gathered under a module so
+//! no file in this crate runs past the tree's line budget. Each module's header
+//! names the part of the HD Audio specification it holds the driver to, and
+//! what goes wrong on a real machine when the driver stops holding to it.
 
 mod amp_index_tests;
 mod amp_route_tests;
 mod at_start;
 mod bdl_tests;
 mod codec_refusal_tests;
+mod codec_sweep_tests;
 mod codec_tests;
 mod conn_tests;
 mod corb_start_tests;
@@ -58,6 +56,7 @@ pub mod program_sim;
 mod program_tests;
 mod reason_tests;
 mod reset_tests;
+mod ring;
 mod route_sel_tests;
 mod sst_tests;
 mod stream_dma_tests;

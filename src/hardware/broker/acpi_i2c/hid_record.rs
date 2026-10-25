@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::x86_64::acpi::aml::GpioController;
-use crate::arch::x86_64::acpi::devices::i2c::I2cHidDevice;
+use crate::arch::firmware_table::devices::GpioController;
+use crate::arch::firmware_table::devices::I2cHidDevice;
 use crate::hardware::broker::class::ids;
 use crate::hardware::broker::device::{Bar, BarKind, BusKind, DeviceRecord};
 

@@ -55,4 +55,8 @@ pub enum MmioMapError {
     Forbidden,
     /// The BAR runs into a range firmware keeps for itself.
     FirmwareReserved,
+    /// Write-combining asked on a BAR that is not prefetchable (cache.rs).
+    WcNotPrefetchable,
+    /// Write-combining asked for pages reaching past the BAR (cache.rs).
+    WcPastBar,
 }

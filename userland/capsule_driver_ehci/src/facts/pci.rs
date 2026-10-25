@@ -24,3 +24,11 @@ pub const PROGIF_EHCI: u8 = 0x20;
 pub const MMIO_BAR: u32 = 0;
 /// The capability registers and room for the operational ones.
 pub const MMIO_MIN: u64 = 0x100;
+
+/// The register grant asked of the broker: the BAR, not a page more. The
+/// broker maps every page the grant touches and refuses a length past the
+/// BAR's end (src/hardware/broker/mmio/window.rs), so rounding a sub-page
+/// BAR up to a page had the grant refused: an Intel EHCI's BAR0 is 1 KiB.
+pub const fn register_grant(bar_size: u64) -> u64 {
+    bar_size
+}

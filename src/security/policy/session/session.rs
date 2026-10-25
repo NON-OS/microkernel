@@ -19,7 +19,7 @@ extern crate alloc;
 use super::account::UserAccount;
 use super::helpers::normalize_path;
 use super::types::{PrivilegeLevel, SessionState, SESSION_TIMEOUT_TICKS, TOKEN_SIZE};
-use crate::crypto::rng::fill_random_bytes;
+use crate::crypto::rng::fill_random_bytes_secure;
 use crate::time::current_ticks;
 use alloc::{collections::BTreeMap, format, string::String};
 
@@ -40,9 +40,9 @@ pub struct UserSession {
 }
 
 impl UserSession {
-    pub fn new(id: u64, user: &UserAccount) -> Self {
+    pub fn new(id: u64, user: &UserAccount) -> Result<Self, &'static str> {
         let mut token = [0u8; TOKEN_SIZE];
-        fill_random_bytes(&mut token);
+        fill_random_bytes_secure(&mut token).map_err(|_| "no randomness")?;
 
         let now = current_ticks();
 
@@ -54,7 +54,7 @@ impl UserSession {
         env.insert(String::from("PATH"), String::from("/bin:/usr/bin:/sbin:/usr/sbin"));
         env.insert(String::from("TERM"), String::from("nonos-term"));
 
-        Self {
+        Ok(Self {
             id,
             token,
             uid: user.uid,
@@ -67,7 +67,7 @@ impl UserSession {
             terminal: None,
             elevated: user.privilege == PrivilegeLevel::Root,
             pgid: 0,
-        }
+        })
     }
 
     pub fn touch(&mut self) {
