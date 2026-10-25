@@ -14,11 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whether a family's app is noted to slot 0 of the kernel's seal. A family
-//! never noted is dropped at its end (plan/10-seal.md), so every proved app
-//! is noted (I-C6). The capsule's own BusyBox has an app_id no verifier
-//! takes, all zero, and is not: its family is dropped as before.
+//! What a family notes to slot 0 of the kernel's seal. A family never noted
+//! is dropped at its end (plan/10-seal.md), so every proved app is noted
+//! (I-C6). Outside a box that is the app_id. The capsule's own BusyBox has an
+//! app_id no verifier takes, all zero, and outside a box it is not noted.
+//!
+//! In a box the note is the app and the box together, so a receipt names
+//! the box the run was held in (letter agent-02, gaps 1 and 2):
+//! BLAKE3(BOXED_DOMAIN | app_id | box_hash). That is never zero, so a
+//! BusyBox run in a box is sealed too.
 
-pub fn noted(app_id: &[u8; 32]) -> bool {
-    *app_id != [0; 32]
+pub const BOXED_DOMAIN: &[u8] = b"NONOS.agentproof.app.v1";
+
+/// The note for `app_id`, run in the box `box_hash` names, if any; None for
+/// a family that is not noted.
+pub fn slot0(app_id: &[u8; 32], box_hash: Option<&[u8; 32]>) -> Option<[u8; 32]> {
+    match box_hash {
+        Some(h) => {
+            let mut b = blake3::Hasher::new();
+            b.update(BOXED_DOMAIN).update(app_id).update(h);
+            Some(*b.finalize().as_bytes())
+        }
+        None => (*app_id != [0; 32]).then_some(*app_id),
+    }
 }

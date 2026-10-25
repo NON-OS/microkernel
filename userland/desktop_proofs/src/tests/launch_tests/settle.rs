@@ -36,7 +36,7 @@ fn a_new_launch_waits_before_its_first_probe() {
 fn the_app_appearing_starts_it_at_any_point() {
     let mut l = fresh();
     assert_eq!(l.step(Uptime(1_010), Some(42)), Step::Started(42));
-    l.probed(Uptime(1_600), true);
+    l.probed(Uptime(1_600), Some(0));
     assert_eq!(l.step(Uptime(1_600), Some(42)), Step::Started(42));
     assert_eq!(l.step(Uptime(1_000 + DEADLINE_MS + 5), Some(42)), Step::Started(42));
 }
@@ -44,7 +44,7 @@ fn the_app_appearing_starts_it_at_any_point() {
 #[test]
 fn an_answered_probe_with_no_app_fails_it() {
     let mut l = fresh();
-    l.probed(Uptime(1_500), true);
+    l.probed(Uptime(1_500), Some(0));
     assert!(l.served());
     assert_eq!(l.step(Uptime(1_500), None), Step::Failed);
 }
