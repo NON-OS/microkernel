@@ -23,7 +23,7 @@ into the QEMU block store under `/capsules/game_2048.*` with the other demo caps
 - `0x0010` Memory: heap.
 - `0x0800` GraphicsDisplayQuery and `0x1000` GraphicsSurfaceCreate: its window surface.
 
-Endpoints: service `service:4920:app.game_2048`, reply `reply:4921:endpoint.app.game_2048.reply`.
+Endpoints: service `service:4920:com.example.game_2048`, reply `reply:4921:endpoint.com.example.game_2048.reply`.
 The domain is `com.example`.
 
 ## Interface
