@@ -6682,6 +6682,7 @@
    ".cargo",
    "userland/capsule_driver_mpt/src/constants",
    "userland/capsule_driver_mpt/src/discover.rs",
+   "userland/capsule_driver_mpt/src/frame.rs",
    "userland/capsule_driver_mpt/src/handshake.rs",
    "userland/capsule_driver_mpt/src/hba.rs",
    "userland/capsule_driver_mpt/src/ioc.rs",
