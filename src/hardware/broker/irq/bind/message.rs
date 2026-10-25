@@ -18,7 +18,8 @@
 //! remapping on, the message names an IRTE the IOMMU's route_msi wrote
 //! for this function (VT-d 3.4, 5.1.5.2), or the bind is refused. A
 //! compatibility format message naming a LAPIC directly is made only with
-//! remapping off and under the development opt-in (remap_rule).
+//! remapping off, under the development opt-in or the no-IOMMU posture
+//! (remap_rule).
 
 use super::super::types::IrqBindError;
 use super::remap_rule::{outcome, Outcome};
@@ -41,7 +42,7 @@ pub(super) fn dest_apic_id() -> Result<u8, IrqBindError> {
 
 pub(super) fn route(address: &PciAddress, vector: u8, dest: u8) -> Result<Routed, IrqBindError> {
     let (attempt, routed) = super::remap_vendor::attempt(address, vector, dest);
-    match outcome(attempt, holds()) {
+    match outcome(attempt, holds() || crate::memory::iommu::no_iommu::holds()) {
         Outcome::Remapped => routed.ok_or(IrqBindError::PlatformError),
         Outcome::Compat => {
             Ok(Routed { msg: MsiMessage::for_local_apic(vector, dest), irte: NO_IRTE })

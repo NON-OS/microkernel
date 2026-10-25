@@ -33,6 +33,7 @@ pub(super) fn posture_line() {
         .dec(u64::from(unconfined_grants()))
         .str(super::dev_unconfined::posture_tail())
         .str(super::dev_unremapped::posture_tail())
+        .str(super::no_iommu::posture_tail())
         .end();
 }
 

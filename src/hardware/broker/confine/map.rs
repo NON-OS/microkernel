@@ -41,7 +41,7 @@ pub(in crate::hardware::broker) fn map(
     let mut all = CAPSULES.lock();
     let held = |c: &&mut super::table::Capsule| c.devices.iter().any(|(d, _)| *d == device_id);
     let Some(c) = all.iter_mut().filter(|c| c.pid == pid).find(held) else {
-        return if super::decide::physical_dma() {
+        return if super::open::physical_dma() {
             Ok((phys, false))
         } else {
             Err(NoAddress::Unconfined)

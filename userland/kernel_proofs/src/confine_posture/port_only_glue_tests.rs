@@ -66,10 +66,12 @@ fn a_port_only_claim_closes_memory_space_before_the_device_is_powered() {
 
 #[test]
 fn every_claim_no_unit_confines_asks_the_verdict_with_port_only() {
-    let asked = "Ok(()), port_only, (OPT_IN, PRODUCTION))";
-    assert!(ATTACH.contains(&format!("verdict(false, false, {asked}")));
-    assert!(ATTACH.contains(&format!("without_domain(verdict(true, false, {asked})")));
-    assert!(CAPSULE.contains("without_domain(verdict(true, true, Err(true), port_only, (OPT_IN"));
+    let asked = "port_only, (OPT_IN, PRODUCTION), posture())";
+    assert!(ATTACH.contains(&format!("verdict(false, false, Ok(()), {asked}")));
+    assert!(ATTACH.contains(&format!("verdict(true, false, domain, {asked};")));
+    assert!(ATTACH.contains("return Ok(without_domain(v)?);"));
+    assert!(CAPSULE.contains("verdict(true, true, Err(true), port_only, (OPT_IN"));
+    assert!(CAPSULE.contains("without_domain(v)?;"));
     let no_dma = REFUSE.find("Verdict::NoDma => {").expect("NoDma refused");
     let ok = REFUSE[no_dma..].find("return Ok(());").expect("NoDma not admitted");
     assert!(ok < REFUSE[no_dma..].find("Verdict::Unconfined").unwrap());
