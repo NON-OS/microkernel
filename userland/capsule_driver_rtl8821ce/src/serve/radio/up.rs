@@ -52,7 +52,7 @@ pub(in super::super) fn build_radio(mapped: Option<Mapped>, stage: Stage) -> (Ra
     let our_mac = read_mac(&m.regs);
     let ps = Ps::new(crate::setup::host_aspm(&m));
     let mut link = RtlLink::new(m.regs, tx_ring, tx_buffers, rx_ring, rx_buffers, our_mac);
-    link.set_ps(ps);
+    link.set_ps(ps, m.beacon.take());
     let keys = RtlKeys::new(m.regs);
     (Radio::Up(Box::new(RadioUp { link, keys, regs: m.regs })), Stage::Ready)
 }
