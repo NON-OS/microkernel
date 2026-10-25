@@ -94,6 +94,12 @@ the sealed artifacts. Until the kernel's public keys are committed under
 `nonos-data/trust/keys/`, `nix build` leaves the loader out and writes
 `bootloader/README` saying why (`tools/nix/artifacts.nix`).
 
+A trust set that is there can still be stale: a `Capsule.mk` that narrows or
+widens a grant changes `capsules.json` at once, and the sealed manifest only
+at the next seal. The kernel build refuses to start while any capsule it ships
+has a sealed manifest granting other caps (`scripts/check_sealed_caps.py`), so
+no image ships an old grant under new code; the seal rewrites the manifest.
+
 ## Seal (ek)
 
 ```
