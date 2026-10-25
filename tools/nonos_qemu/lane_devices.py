@@ -23,7 +23,8 @@ or the virtio GPU (vmware-svga, gpu=bga, gpu=gop-only)."""
 PLAIN = {
     "usb-audio": "-audiodev {audio},id=lane-usb-snd -device usb-audio,audiodev=lane-usb-snd,bus=xhci.0",
     "AC97": "-audiodev {audio},id=lane-ac97-snd -device AC97,audiodev=lane-ac97-snd",
-    "usb-tablet": "-device usb-tablet,bus=xhci.0",
+    "usb-tablet": "-device usb-tablet,bus=xhci.0,id=lane-usb-tablet",
+    "usb-kbd": "-device usb-kbd,bus=xhci.0,id=lane-usb-kbd",
     "virtio-tablet": "-device virtio-tablet-pci",
     "virtio-balloon": "-device virtio-balloon-pci",
     "vmbus": "-device vmbus-bridge -device hv-balloon",
