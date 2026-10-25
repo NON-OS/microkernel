@@ -18,7 +18,7 @@ evasions an image under test could try, and damaged files."""
 
 from .allow import Allow
 from .judge import judge
-from .selftest_frames import GUEST, arp, consensus, dhcp, hello, pcap, reply, tcp
+from .selftest_frames import GUEST, arp, consensus, dhcp, hello, offer, pcap, reply, tcp
 
 AUTH = ("49.13.145.234", 9230)
 ALLOW = Allow(names=frozenset({"validator.nymtech.net", "www.abcdefgh.net"}),
@@ -33,7 +33,7 @@ CLEAN = [
     tcp((49, 13, 145, 234), 9230, GET),
     tcp((5, 6, 7, 8), 9001, hello("www.abcdefgh.net")),
 ]
-INGRESS = [reply((49, 13, 145, 234), 9230, consensus("5.6.7.8", "9.9.9.9"))]
+INGRESS = [offer(), reply((49, 13, 145, 234), 9230, consensus("5.6.7.8", "9.9.9.9"))]
 
 
 def run(egress, ingress=INGRESS, allow=ALLOW):
