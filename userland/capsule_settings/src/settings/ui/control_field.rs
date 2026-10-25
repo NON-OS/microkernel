@@ -33,7 +33,7 @@ pub fn paint_number(
     right: u32,
     screen_y: i32,
     row_h: u32,
-) {
+) -> u32 {
     match number_text(value) {
         Some(v) => paint_plain(fb, v.as_str(), right, screen_y, row_h),
         None => paint_plain(fb, "--", right, screen_y, row_h),
@@ -48,7 +48,7 @@ pub fn paint_string(
     right: u32,
     screen_y: i32,
     row_h: u32,
-) {
+) -> u32 {
     let editing = state.editing && current_field(state) == Some(field);
     let top = text::centred_top(0, row_h, BODY_PX) + screen_y;
     let fg = if editing { ACCENT } else { VALUE_FG };
@@ -57,5 +57,5 @@ pub fn paint_string(
         Some(b) if field == Field::QwenTier => text::right(fb, right, top, as_str(shown(b)), fg, BODY_PX),
         Some(b) => text::right(fb, right, top, as_str(b), fg, BODY_PX),
         None => text::right(fb, right, top, "--", IDLE, BODY_PX),
-    };
+    }
 }
