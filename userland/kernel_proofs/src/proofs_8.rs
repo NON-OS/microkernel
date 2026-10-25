@@ -29,6 +29,8 @@ pub mod pci_bar_slots;
 pub mod pci_config_change;
 #[path = "registry_names/mod.rs"]
 pub mod registry_names;
+// CPUID is x86_64's alone, so its proofs are too.
+#[cfg(target_arch = "x86_64")]
 #[path = "spectre_cpuid/mod.rs"]
 pub mod spectre_cpuid;
 #[path = "speculation_policy/mod.rs"]
