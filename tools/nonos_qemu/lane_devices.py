@@ -51,4 +51,6 @@ SWAPS = {
     # Not a device in place of another: iommu.py rewrites the machine for it.
     "iommu=intel": ("iommu", "intel"),
     "iommu=amd": ("iommu", "amd"),
+    # Neither: siblings.py moves the HDA and the NIC behind one root port.
+    "hda-beside-nic": ("audio", "beside-nic"),
 }
