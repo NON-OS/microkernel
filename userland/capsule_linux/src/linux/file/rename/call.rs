@@ -49,6 +49,10 @@ pub fn renameat2(guest: &Guest, olddir: u64, old: u64, newdir: u64, new: u64, fl
     if from == to {
         return errno::ok(0);
     }
+    /* The home is its own mount and quota: a move into or out of it copies. */
+    if super::super::private::in_home(&from) != super::super::private::in_home(&to) {
+        return errno::fail(errno::EXDEV);
+    }
     if guest.links.rename(&from, to.clone()) {
         return errno::ok(0);
     }
