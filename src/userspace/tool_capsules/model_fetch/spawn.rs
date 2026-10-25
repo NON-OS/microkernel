@@ -39,7 +39,9 @@ pub(in super::super) const CAPS: u64 = Capability::CoreExec.bit()
     | Capability::StreamImport.bit();
 
 /* The fetcher's pid; ENOENT if not built in, ENETDOWN on a no-network boot,
- * EPERM when its signed artifacts do not verify, EBUSY while one runs. */
+ * EPERM when its signed artifacts do not verify, EBUSY while one runs. Who
+ * may start it is MkToolRun's bound alone (tool_capsules/bound.rs): a
+ * launcher, or a caller holding every capability it installs. */
 pub(crate) fn run_for_caller(argv: &[u8]) -> Result<u32, i64> {
     if ELF.is_empty() {
         return Err(ERRNO_NOENT);
@@ -47,11 +49,6 @@ pub(crate) fn run_for_caller(argv: &[u8]) -> Result<u32, i64> {
     /* The boot profile runs no network; say that, not that the caller lacks it. */
     if !crate::boot::handoff::boot_profile().network() {
         return Err(ERRNO_NETDOWN);
-    }
-    /* Only a caller that holds the network and the files itself, as the Terminal does. */
-    let caller = crate::syscall::caps::current_caps_or_default();
-    if !(caller.can_network() && caller.can_open_files()) {
-        return Err(ERRNO_PERM);
     }
     let anchor = decode(BAKED_TRUST_ANCHOR_POLICY).map_err(|_| ERRNO_PERM)?;
     let spec = CapsuleSpecVerified {
