@@ -19,6 +19,7 @@ use alloc::vec;
 use nonos_libc::mk_display_vsync_wait;
 
 use super::drain::drain_ipc;
+use crate::first_paint;
 use crate::protocol::{HDR_LEN, IPC_PAYLOAD_MAX};
 use crate::server::{scene, tick};
 use crate::state::Context;
@@ -29,6 +30,11 @@ pub fn run(mut ctx: Context) -> ! {
     let mut tx = vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
     loop {
         drain_ipc(&mut ctx, &mut rx, &mut tx);
+        first_paint::step(&mut ctx);
+        if ctx.first_paint_out {
+            let _ = mk_display_vsync_wait(0);
+            continue;
+        }
         scene::keep_registered(&mut ctx);
         subscriber_tick(&mut ctx);
         scene::keep_committed(&mut ctx);

@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::limits::MAX_CPUS;
-use super::reserved::Reserved;
 use super::types::BootInfo;
 use super::virt_ram::{memory_map, RAM_BASE, RAM_SIZE};
 use super::virt_uart::VIRT_UART;
+use crate::arch::fdt::reserved_set::Reserved;
 
 impl Default for BootInfo {
     fn default() -> Self {

@@ -34,15 +34,16 @@ impl Spec {
         let host = hybrid(HOST);
         let ch = attest_challenge(&self.th, &host.ed.public, &host.ml_public[..]);
         let challenge = self.challenge.unwrap_or(ch);
-        let (v, e, g) = self.bound_dma.unwrap_or(self.dma);
-        let posture = DmaPosture { vendor: v, enforcing: e, unconfined_grants: g };
+        let (v, e, g, i) = self.bound_dma.unwrap_or(self.dma);
+        let posture =
+            DmaPosture { vendor: v, enforcing: e, unconfined_grants: g, identity_devices: i };
         let extra = qualifying_data(&challenge, &root, &posture);
         let mut quote = Quote::honest(&extra, &QUOTED_PCRS_V4, &self.quoted_values());
         (self.quote)(&mut quote);
         let mut attest = quote.bytes();
         let (r, s) = Key::new(self.signing_key).sign(&sha256(&attest), 0);
         (self.after_sign)(&mut attest);
-        let (vendor, enforcing, grants) = self.dma;
+        let (vendor, enforcing, grants, identity) = self.dma;
         let mut parts = Parts {
             version: self.version,
             challenge,
@@ -50,6 +51,7 @@ impl Spec {
             count: self.entries.len() as u32,
             flags: [1, vendor, enforcing as u8],
             grants,
+            identity,
             pcrs: QUOTED_PCRS_V4.iter().copied().zip(self.values()).collect(),
             log: self.log.bytes.clone(),
             attest,
@@ -57,7 +59,7 @@ impl Spec {
             ak: Key::new(self.doc_key).public().to_vec(),
         };
         (self.doc)(&mut parts);
-        let mut doc = if self.version == 3 { parts.v3() } else { parts.v4() };
+        let mut doc = if self.version <= 4 { parts.kernel(self.version) } else { parts.v5() };
         (self.bytes)(&mut doc);
         doc
     }

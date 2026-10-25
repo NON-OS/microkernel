@@ -18,7 +18,7 @@ mod acpi;
 mod announce;
 mod describe;
 mod devices;
-mod entropy;
+use crate::arch::common::boot_seed as entropy;
 mod gic;
 mod idle;
 mod memory;

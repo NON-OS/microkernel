@@ -40,6 +40,8 @@ pub mod scene_raise;
 pub mod scene_remove;
 #[path = "../../../compositor/src/state/scene_submit.rs"]
 pub mod scene_submit;
+#[path = "../../../compositor/src/state/display_rule.rs"]
+pub mod display_rule;
 #[path = "../../../compositor/src/state/trusted_rule.rs"]
 pub mod trusted_rule;
 #[path = "../../../compositor/src/state/visible.rs"]

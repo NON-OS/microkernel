@@ -110,8 +110,8 @@ pub(super) fn is_hid_over_i2c_id(id: &[u8; 8]) -> bool {
     (&id[..7] == b"PNP0C50" && id[7] == 0) || id == b"ACPI0C50"
 }
 
-/// A `_HID` from a vendor that ships HID-over-I2C touchpads.
+/// A touchpad vendor's `_HID`; of Microsoft's only MSFT0001 (MSFT0101 is the TPM 2.0).
 pub(super) fn has_touchpad_vendor_prefix(hid: &[u8; 8]) -> bool {
-    const PREFIXES: [&[u8]; 6] = [b"ELAN", b"SYNA", b"ALPS", b"FTE", b"CYAP", b"MSFT"];
-    PREFIXES.iter().any(|p| hid.starts_with(p))
+    const PREFIXES: [&[u8]; 5] = [b"ELAN", b"SYNA", b"ALPS", b"FTE", b"CYAP"];
+    hid == b"MSFT0001" || PREFIXES.iter().any(|p| hid.starts_with(p))
 }

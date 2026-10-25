@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Step 6: an IOMMU is present and enforcing, and nothing goes around it.
+//! Step 6: an IOMMU is present and enforcing, nothing goes around it, and
+//! no device is left reaching all of memory.
 
 use nsh_attest::Refusal;
 
@@ -23,7 +24,9 @@ use crate::build::Spec;
 
 #[test]
 fn dma_that_is_not_confined_is_refused() {
-    for dma in [(0, true, 0), (0, false, 0), (1, false, 0), (1, true, 1), (2, true, u32::MAX)] {
+    let bad = [(0, true, 0, 0), (0, false, 0, 0), (1, false, 0, 0), (1, true, 1, 0)];
+    let more = [(2, true, u32::MAX, 0), (1, true, 0, 1), (3, true, 0, u32::MAX)];
+    for dma in bad.into_iter().chain(more) {
         assert_eq!(refused(Spec { dma, ..Spec::default() }), Refusal::Dma, "{dma:?}");
     }
 }
@@ -31,6 +34,6 @@ fn dma_that_is_not_confined_is_refused() {
 #[test]
 fn every_enforcing_iommu_is_accepted() {
     for vendor in 1..=3 {
-        passes(Spec { dma: (vendor, true, 0), ..Spec::default() });
+        passes(Spec { dma: (vendor, true, 0, 0), ..Spec::default() });
     }
 }

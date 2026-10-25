@@ -7,7 +7,7 @@ Part of [Capabilities](capabilities.md).
 Some calls need only a valid token: `MkExit`, `MkPidAlive`, `MkYield`, the futex
 and time reads, `MkBatteryStatus`, `MkProcStat`, `MkAttestStatus`,
 `MkAttestPolicy`, `MkBootAttest` and `MkCapCheck`, listed together under
-`is_valid` (`src/syscall/contract/cap_table/mk.rs:25-38`). A valid token is one
+`is_valid` (`src/syscall/contract/cap_table/mk.rs:25-39`). A valid token is one
 that has not expired and grants at least one capability, as `is_valid` reads
 (`src/capabilities/token/types/query.rs:44-47`). `MkSetTls` needs the same,
 since it changes nothing outside the caller

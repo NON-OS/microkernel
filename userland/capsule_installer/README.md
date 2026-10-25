@@ -6,9 +6,8 @@
 `installer`. It verifies signed NONOS packages with the kernel and writes their
 four files into the capsule store, removes them, lists what is installed, and
 loads a stored capsule through the kernel's verified spawn path for a caller.
-For an install a person pays for, it asks the meter (`payment`) for a
-signed voucher. It owns no
-storage device and writes nothing to a disk itself. The handbook page is
+For an install a person pays for, it asks the meter (`payment`) for a signed
+voucher. It owns no storage device and writes nothing to a disk itself. The handbook page is
 [docs/handbook/apps/market-and-store.md](../../docs/handbook/apps/market-and-store.md).
 The disk installer is a different capsule, `capsule_install`.
 
@@ -52,11 +51,12 @@ same sequence word and a status.
 | 7 | `OP_PKG_COMMIT` | re-read and re-verify the package, refuse it unless the digest is the one consented to, then write its four files to the store |
 | 8 | `OP_PKG_REMOVE` | delete whichever of an installed name's four files exist |
 
-An unknown op or a malformed body is answered `EINVAL`, and a frame shorter
-than the 8-byte header is answered `EINVAL` under sequence 0. A commit
-refuses a name that already holds any artifact or that a running service
-answers to (`EEXIST`). The install name is the last part of the verified
-namespace, never the file name.
+Ops 6, 7 and 8 need a sender holding SpawnWindow, and 2 AppInstall or
+SpawnWindow, as the kernel answers `mk_caps_of` for that message (`server/gate.rs`,
+S-13b); else `EPERM`. An unknown op or a malformed body is `EINVAL`, as is a
+frame shorter than the 8-byte header, under sequence 0. A commit refuses a name
+that already holds any artifact or that a running service answers to
+(`EEXIST`). The install name is the verified namespace's last part.
 
 ## Authority
 

@@ -18,7 +18,7 @@ use nonos_libc::mk_time_millis;
 use smoltcp::time::Instant;
 
 use crate::device::poll_window;
-use crate::iface::{dhcp, no_lease, relink};
+use crate::iface::{dhcp, no_lease};
 use crate::state;
 
 pub fn pump() {
@@ -33,6 +33,5 @@ pub fn pump() {
     });
     poll_window::close_poll();
     dhcp::poll_event();
-    relink::check();
     no_lease::check();
 }

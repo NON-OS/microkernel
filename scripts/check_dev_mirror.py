@@ -22,7 +22,8 @@ when:
   - the feature is not declared, or is in `default`, or in capsules.json's
     cargo_features for the release set;
   - a module of the direct path (net/raw.rs, net/raw_io.rs, net/route.rs,
-    install/http/direct.rs) or KIND_STREAM is declared without
+    install/http/direct.rs), KIND_STREAM or the development mirror's
+    address (install/mirror.rs) is declared without
     #[cfg(feature = "dev-mirror")] on the line before it;
   - any other line of capsule_linux names the direct path without that
     cfg within the three lines before it.
@@ -41,7 +42,8 @@ CAPSULE = "userland/capsule_linux"
 CFG = '#[cfg(feature = "dev-mirror")]'
 GATED = {"src/linux/net/mod.rs": ["pub mod raw;", "pub mod raw_io;", "pub mod route;"],
          "src/linux/install/http/mod.rs": ["pub(super) mod direct;"],
-         "src/linux/net/ops.rs": ["pub const KIND_STREAM"]}
+         "src/linux/net/ops.rs": ["pub const KIND_STREAM"],
+         "src/linux/install/mirror.rs": ['const AT: &str = "10.0.2.2:8080"']}
 PATH_FILES = {"src/linux/net/raw.rs", "src/linux/net/raw_io.rs", "src/linux/net/route.rs",
               "src/linux/install/http/direct.rs"}
 NAMES = re.compile(r"net::raw\b|raw_io::|route::is_local|direct::direct|\bdirect\(|KIND_STREAM")
@@ -51,9 +53,9 @@ def faults(root: Path) -> list:
     out, crate = [], root / CAPSULE
     toml = (crate / "Cargo.toml").read_text()
     features = toml.split("[features]", 1)[1].split("\n[", 1)[0] if "[features]" in toml else ""
-    if not re.search(r"^dev-mirror\s*=", features, re.M):
+    if not re.search(r"^dev-mirror\s*=", features, re.MULTILINE):
         out.append("capsule_linux declares no dev-mirror feature")
-    if re.search(r"^default\s*=.*dev-mirror", features, re.M):
+    if re.search(r"^default\s*=.*dev-mirror", features, re.MULTILINE):
         out.append("dev-mirror is in capsule_linux's default features")
     for e in json.loads((root / "tools/nix/capsules.json").read_text()):
         if "dev-mirror" in e.get("cargo_features", ""):
@@ -80,6 +82,7 @@ DECOYS = [
     ("src/linux/net/mod.rs", CFG + "\npub mod raw;\n", "pub mod raw;\n"),
     ("src/linux/install/http/mod.rs", CFG + "\npub(super) mod direct;\n", "pub(super) mod direct;\n"),
     ("src/linux/net/ops.rs", CFG + "\npub const KIND_STREAM", "pub const KIND_STREAM"),
+    ("src/linux/install/mirror.rs", '"dl-cdn.alpinelinux.org:80"', '"10.0.2.2:8080"'),
     ("src/linux/install/http/get.rs", "    " + CFG + "\n    let raw = match is_local", "    let raw = match is_local"),
     ("Cargo.toml", "dev-mirror = []", "default = [\"dev-mirror\"]\ndev-mirror = []"),
     ("Cargo.toml", "dev-mirror = []", ""),

@@ -113,8 +113,8 @@ pub use install_source::{
     INSTALL_SOURCE_LOADER_IMAGE,
 };
 pub use ipc::{
-    mk_ipc_call, mk_ipc_call_timeout, mk_ipc_recv, mk_ipc_recv_from, mk_ipc_reply, mk_ipc_send,
-    mk_ipc_send_to_pid, mk_service_lookup, mk_service_register,
+    mk_ipc_call, mk_ipc_call_timeout, mk_ipc_recv, mk_ipc_recv_from, mk_ipc_recv_from_at,
+    mk_ipc_reply, mk_ipc_send, mk_ipc_send_to_pid, mk_service_lookup, mk_service_register,
 };
 pub use local_sign::{
     mk_app_install, mk_app_install_status, mk_app_launch, mk_app_uninstall, mk_local_sign,
@@ -123,13 +123,14 @@ pub use local_sign::{
 pub use mem::{mk_mmap, mk_munmap};
 pub use private_write::mk_private_write;
 pub use proc_output::{mk_proc_input, mk_proc_output, mk_stdin_read};
-pub use process::{mk_args, mk_getpid, mk_kill, mk_pid_alive, mk_wait};
+pub use process::{mk_args, mk_caps_of, mk_getpid, mk_kill, mk_pid_alive, mk_wait};
+pub use process::{CAPS_OF_APP_INSTALL, CAPS_OF_SPAWN_WINDOW};
 pub use procstat::{mk_proc_stat, ProcStatEntry, PROC_FLAG_DEBUG_WITHHELD, PROC_NAME_LEN};
 pub use procstat_header::ProcStatHeader;
 pub use prove::{mk_prove_job, PROVE_JOB_DELIVER, PROVE_JOB_PROVE};
 pub use seal::{mk_seal_note, mk_seal_read, mk_seal_read_live, SEAL_APP_ID, SEAL_DIAG};
 pub use spawn_instance::mk_spawn_instance;
-pub use store::{mk_store_read, mk_store_write};
+pub use store::{mk_keeping, mk_store_read, mk_store_write};
 pub use surface_registry::{
     input_abs_scale, mk_display_vsync_wait, mk_input_event_drain, mk_input_event_post,
     mk_input_event_wait, mk_surface_attach, mk_surface_present, mk_surface_present_rect,

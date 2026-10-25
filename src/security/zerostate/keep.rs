@@ -29,6 +29,11 @@ use super::keep_rule::{after, may_arm, may_write, Policy};
 
 static ARMED: AtomicBool = AtomicBool::new(false);
 
+/// Whether this boot keeps: what vfs asks before it writes anything down.
+pub(crate) fn keeping() -> bool {
+    ARMED.load(Ordering::Acquire)
+}
+
 /// The policy service's ask to turn keeping on (`on`) or leave it. False,
 /// said on serial, when the caller is not the policy capsule the kernel
 /// spawned, or the ask is to turn it off.

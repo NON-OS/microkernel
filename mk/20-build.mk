@@ -566,6 +566,7 @@ include userland/capsule_driver_ac97/Capsule.mk
 include userland/capsule_driver_vmmdev/Capsule.mk
 include userland/capsule_driver_vmmouse/Capsule.mk
 include userland/capsule_driver_vmbus/Capsule.mk
+include userland/capsule_driver_storvsc/Capsule.mk
 include userland/capsule_driver_piix_ide/Capsule.mk
 include userland/capsule_driver_virtio_scsi/Capsule.mk
 include userland/capsule_driver_pvscsi/Capsule.mk
@@ -941,19 +942,6 @@ nonos-mk-arm: | $(SIGNING_KEY)
 		NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build $(ARM_KERNEL_BUILD_FLAGS) \
-		--no-default-features --features microkernel-core$(_boot_comma)nonos-arch-preview
-
-# The riscv64 kernel, type-checked only: no riscv64 boot memory path or
-# image exists yet, so nothing links or boots it. This keeps main building
-# every target it carries. The target is rustc's own RV64GC bare-metal one.
-.PHONY: nonos-mk-riscv-check
-nonos-mk-riscv-check: | $(SIGNING_KEY)
-	@echo "Type-checking kernel (riscv64, microkernel-core + nonos-arch-preview)..."
-	@NONOS_USER_TARGET=riscv64-nonos-user \
-		NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
-		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) check --release --target riscv64gc-unknown-none-elf \
-		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem \
 		--no-default-features --features microkernel-core$(_boot_comma)nonos-arch-preview
 
 # The same kernel as an arm64 Image, for loaders that hand over a device tree.

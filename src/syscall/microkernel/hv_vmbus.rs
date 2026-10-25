@@ -228,7 +228,7 @@ pub fn sys_hv_channel(root: u64, relid: u64) -> i64 {
         Ok(d) => d,
         Err(e) => return errno(e),
     };
-    let Some(record) = register_vmbus_channel(device) else { return ERRNO_NOMEM };
+    let Some(record) = register_vmbus_channel(device, relid) else { return ERRNO_NOMEM };
     match hv_vmbus_bind(relid, record) {
         Ok(_) => record as i64,
         Err(e) => {
