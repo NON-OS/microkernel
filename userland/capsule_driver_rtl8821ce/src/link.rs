@@ -28,6 +28,8 @@ mod dead;
 mod ends;
 #[path = "link/frames.rs"]
 mod frames;
+#[path = "link/gone.rs"]
+mod gone;
 #[path = "link/held.rs"]
 mod held;
 #[path = "link/history.rs"]
