@@ -36,7 +36,7 @@ pub(super) fn admit(device_id: u64) -> Result<(Vec<Member>, Vec<DeviceAddress>),
     }
     // What it reaches without the IOMMU is its group (K11).
     #[cfg(target_arch = "x86_64")]
-    return match super::acs::reach(device_id) {
+    return match super::acs_walk::acs::reach(device_id) {
         Some(r) => {
             Ok((r.group, r.aliases.iter().map(|&(b, d, f)| DeviceAddress::pci(b, d, f)).collect()))
         }

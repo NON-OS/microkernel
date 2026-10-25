@@ -16,7 +16,7 @@
 
 use alloc::format;
 
-use crate::arch::x86_64::acpi::aml::GpioController;
+use crate::arch::firmware_table::devices::GpioController;
 use crate::sys::serial;
 
 use super::p2sb::sbreg_bar;
