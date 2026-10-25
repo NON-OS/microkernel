@@ -37,4 +37,6 @@ one = member(BIG)
 (HERE / "big.gz").write_bytes(one)
 (HERE / "apk_shape.gz").write_bytes(member(b"sig") + member(b"control") + one)
 (HERE / "isize_more.gz").write_bytes(isize(one, len(BIG) + 1))
+# Two halves: each inflates under a 700 KiB limit, joined they do not.
+(HERE / "halves.gz").write_bytes(member(BIG[: len(BIG) // 2]) + member(BIG[len(BIG) // 2 :]))
 (HERE / "isize_less.gz").write_bytes(isize(one, len(BIG) - 1))
