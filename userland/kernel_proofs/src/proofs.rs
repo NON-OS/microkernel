@@ -43,6 +43,6 @@ pub use proofs_1::amd_vi;
 pub use proofs_2::{iommu_window, mmio_window};
 pub(crate) use proofs_3::authorization_tests;
 pub use proofs_4::{lifecycle_state, usb_msc_report_words, watch_rule};
-pub use proofs_5::{arm_acpi, arm_acpi_tests, bgrt, seeded_tables, smbios};
+pub use proofs_5::{arm_acpi, arm_acpi_tests, seeded_tables, smbios};
 pub(crate) use proofs_6::inventory_ids;
 pub use proofs_8::legacy_ports;
