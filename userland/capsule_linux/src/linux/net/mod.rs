@@ -26,6 +26,7 @@ mod anon_stream;
 mod anon_wire;
 mod api;
 mod bind;
+mod bind_any;
 mod call;
 mod call_kind;
 mod cap;

@@ -53,10 +53,10 @@ circuit and never learns or dials their address.
 |---|---|---|---|
 | `162.159.200.1` | `net_ntp` | Clock sync on UDP 123, in the `microkernel-net-ntp` build only | Do not build it |
 | `1.1.1.1` | `net_dns` | The older stack's default resolver; the desktop uses the DHCP lease's | Not built with `net_core` |
+| `10.0.2.2` | Linux installer | Alpine's packages from the host's relay, in a development image only on port 8080 (`dev-mirror`, [the development mirror](../build/dev-mirror.md)) | No release image has it |
 
 | Build setting | Who | What it names | When it is dialled |
 |---|---|---|---|
-| `NONOS_ALPINE_MIRROR` | Linux installer | The Alpine mirror in place of `dl-cdn.alpinelinux.org` | You install a package |
 | `NONOS_PACKAGE_MIRROR` | Linux installer | The NONOS mirror for the in-tree tools | You install one |
 | `NONOS_DEB_MIRROR`, `NONOS_DEB_HOST` | Linux installer | A Debian mirror; unset, none | You install a Debian package |
 | `NONOS_PACMAN_MIRROR`, `NONOS_PACMAN_HOST` | Linux installer | A pacman mirror; unset, none | You install one |

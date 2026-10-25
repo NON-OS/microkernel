@@ -16,8 +16,10 @@
 
 //! The three hashes of an EIP-712 signature.
 
+use nonos_nox_config::domain_words_at;
+
 use super::entry::Entry;
-use super::preimage::{digest_preimage, domain_preimage, struct_preimage};
+use super::preimage::{digest_preimage, struct_preimage};
 
 pub struct Hashes {
     pub domain_separator: [u8; 32],
@@ -32,8 +34,8 @@ pub fn hashes(
     words: &[u8],
     keccak: impl Fn(&[u8]) -> Option<[u8; 32]>,
 ) -> Option<Hashes> {
-    let domain_separator = keccak(&domain_preimage(e.domain, chain, contract, &keccak)?)?;
-    let struct_hash = keccak(&struct_preimage(e, words, &keccak)?)?;
+    let domain_separator = keccak(&domain_words_at(e.typed.domain, chain, *contract))?;
+    let struct_hash = keccak(&struct_preimage(e, words))?;
     let digest = keccak(&digest_preimage(&domain_separator, &struct_hash))?;
     Some(Hashes { domain_separator, struct_hash, digest })
 }
