@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What the serve loop tells the armed box as the run goes: whether a write
-//! is let through, a new call, each refusal, and each destination reached.
+//! is let through, a new call, each refusal, each destination reached, and
+//! for a learn run each path written and destination tried.
 
 use super::kind::Kind;
+use super::preset::Preset;
 use super::state::BOX;
 
 pub fn may_write(path: &[u8]) -> bool {
@@ -39,5 +41,23 @@ pub fn note(kind: Kind, example: &[u8]) {
 pub fn connected(dest: &[u8]) {
     if let Some(a) = BOX.0.borrow_mut().as_mut() {
         a.connected.note(dest);
+    }
+}
+
+/// Whether this run is a learn run (preset.rs): only then is an internet
+/// socket opened without the network, so a connect names where it would go.
+pub fn learning() -> bool {
+    BOX.0.borrow().as_ref().is_some_and(|a| a.policy.preset == Preset::Learn)
+}
+
+pub fn wrote(path: &[u8]) {
+    if let Some(a) = BOX.0.borrow_mut().as_mut().filter(|a| a.policy.preset == Preset::Learn) {
+        a.learned.wrote(path);
+    }
+}
+
+pub fn tried(dest: &[u8]) {
+    if let Some(a) = BOX.0.borrow_mut().as_mut().filter(|a| a.policy.preset == Preset::Learn) {
+        a.learned.tried.note(dest);
     }
 }
