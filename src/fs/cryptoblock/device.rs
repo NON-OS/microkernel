@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Where the volume's sealed sectors go: the disk, or RAM on a live boot.
 
+use core::sync::atomic::{AtomicBool, Ordering};
+
 use crate::hardware::block_device::{self, BlockDeviceError};
+use crate::security::zerostate::volume_rule::may_write;
+
+static REFUSED: AtomicBool = AtomicBool::new(false);
 
 pub(super) fn read(lba: u64, out: &mut [u8]) -> Result<(), BlockDeviceError> {
     if super::ram::on() {
@@ -26,8 +30,20 @@ pub(super) fn read(lba: u64, out: &mut [u8]) -> Result<(), BlockDeviceError> {
     block_device::read(lba, out)
 }
 
+/*
+ * A disk takes a sealed sector only on a boot that keeps (volume_rule.rs).
+ * The volume is opened in RAM until then, so a refusal here is a bug in
+ * that switch failing closed, said once.
+ */
 pub(super) fn write(lba: u64, bytes: &[u8]) -> Result<(), BlockDeviceError> {
-    if super::ram::on() {
+    let ram = super::ram::on();
+    if !may_write(ram, crate::security::zerostate::keeping()) {
+        if !REFUSED.swap(true, Ordering::Relaxed) {
+            crate::sys::serial::print(b"[DATA] volume write refused: this boot keeps nothing\n");
+        }
+        return Err(BlockDeviceError::AccessDenied);
+    }
+    if ram {
         return super::ram::write(lba, bytes);
     }
     block_device::write(lba, bytes)
