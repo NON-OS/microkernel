@@ -16,31 +16,41 @@
 
 //! HKDF-SHA-256, RFC 5869, computed in the caller.
 
-use super::hmac_sha256::tag;
+use super::hmac_sha256::tag_into;
+use super::traffic_keys::wipe;
 
 /*
  * Each HMAC here used to be its own syscall and kernel round trip to the
  * crypto pool: nine of them for the handshake keys and eight more for the
  * application keys, on every attempt at a handshake.
  */
-pub fn extract(salt: &[u8], ikm: &[u8]) -> Option<[u8; 32]> {
-    tag(salt, &[ikm])
+/// The pseudorandom key, written into `prk` where the caller keeps it.
+pub fn extract(salt: &[u8], ikm: &[u8], prk: &mut [u8; 32]) -> bool {
+    tag_into(salt, &[ikm], prk)
 }
 
+/// Each block is key material; the one kept for the next round is wiped
+/// before this returns, on either outcome.
 pub fn expand(prk: &[u8; 32], info: &[u8], out: &mut [u8]) -> bool {
-    let mut prev = [0u8; 32];
+    let (mut prev, mut block) = ([0u8; 32], [0u8; 32]);
     let mut have_prev = false;
     let mut done = 0usize;
     let mut counter = 1u8;
+    let mut ok = true;
     while done < out.len() {
         let previous: &[u8] = if have_prev { &prev } else { &[] };
-        let Some(block) = tag(prk, &[previous, info, &[counter]]) else { return false };
+        if !tag_into(prk, &[previous, info, &[counter]], &mut block) {
+            ok = false;
+            break;
+        }
         let n = core::cmp::min(block.len(), out.len() - done);
         out[done..done + n].copy_from_slice(&block[..n]);
-        prev = block;
+        prev.copy_from_slice(&block);
         have_prev = true;
         done += n;
         counter = counter.wrapping_add(1);
     }
-    true
+    wipe(&mut prev);
+    wipe(&mut block);
+    ok
 }

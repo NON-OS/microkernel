@@ -18,6 +18,12 @@
 
 use crate::p256_share::{generate, shared};
 
+/// The agreement into a buffer, as `shared` writes it, or None when refused.
+fn agree(private: &[u8; 32], peer: &[u8; 65]) -> Option<[u8; 32]> {
+    let mut out = [0u8; 32];
+    shared(private, peer, &mut out).then_some(out)
+}
+
 fn hex<const N: usize>(s: &str) -> [u8; N] {
     let mut out = [0u8; N];
     for (i, b) in out.iter_mut().enumerate() {
@@ -40,23 +46,24 @@ const GIRX: &str = "D6840F6B42F6EDAFD13116E0E12565202FEF8E9ECE7DCE03812464D04B94
 
 #[test]
 fn the_shared_secret_is_the_rfc_5903_x_coordinate_from_either_side() {
-    assert_eq!(shared(&hex(I), &point(GRX, GRY)), Some(hex::<32>(GIRX)));
-    assert_eq!(shared(&hex(R), &point(GIX, GIY)), Some(hex::<32>(GIRX)));
+    assert_eq!(agree(&hex(I), &point(GRX, GRY)), Some(hex::<32>(GIRX)));
+    assert_eq!(agree(&hex(R), &point(GIX, GIY)), Some(hex::<32>(GIRX)));
 }
 
 #[test]
 fn a_point_off_the_curve_is_refused() {
     let mut bad = point(GRX, GRY);
     bad[64] ^= 1;
-    assert_eq!(shared(&hex(I), &bad), None);
+    assert_eq!(agree(&hex(I), &bad), None);
 }
 
 #[test]
 fn a_fresh_share_is_an_uncompressed_point_that_agrees_with_itself() {
-    let (a_private, a_public) = generate().expect("a share");
-    let (b_private, b_public) = generate().expect("a second share");
+    let (mut a_private, mut b_private) = ([0u8; 32], [0u8; 32]);
+    let a_public = generate(&mut a_private).expect("a share");
+    let b_public = generate(&mut b_private).expect("a second share");
     assert_eq!(a_public[0], 4);
     assert_ne!(a_public, b_public, "two draws gave one key");
-    let ab = shared(&a_private, &b_public).expect("a with b");
-    assert_eq!(Some(ab), shared(&b_private, &a_public), "the agreement is symmetric");
+    let ab = agree(&a_private, &b_public).expect("a with b");
+    assert_eq!(Some(ab), agree(&b_private, &a_public), "the agreement is symmetric");
 }

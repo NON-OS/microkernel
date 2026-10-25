@@ -21,10 +21,15 @@
 //! medium. A health check stays open. Pure, so the decision is held on the
 //! host.
 
-use crate::protocol::OP_HEALTHCHECK;
+use crate::protocol::{OP_HEALTHCHECK, OP_POWER_OFF};
 
 /// The kernel stamps every capsule's sender pid, and pid 0 is never handed to
-/// a process, so it marks the kernel-internal client and nothing else.
+/// a process, so it marks the kernel-internal client and nothing else. The
+/// power-off is the kernel's alone: a store writer that could send it would
+/// shut the disk down under every other reader.
 pub fn allows(op: u16, sender_pid: u32, holds_store_write: bool) -> bool {
+    if op == OP_POWER_OFF {
+        return sender_pid == 0;
+    }
     op == OP_HEALTHCHECK || sender_pid == 0 || holds_store_write
 }

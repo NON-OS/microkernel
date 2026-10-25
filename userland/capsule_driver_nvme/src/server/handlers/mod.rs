@@ -20,6 +20,7 @@ pub mod flush;
 pub mod health;
 pub mod identify_controller;
 pub mod identify_namespace;
+pub mod power_off;
 pub mod read;
 mod rw_parse;
 pub mod smart_health;

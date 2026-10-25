@@ -17,6 +17,7 @@
 mod access;
 mod grant;
 mod map;
+mod power_ports;
 mod release;
 mod types;
 pub(crate) mod window;

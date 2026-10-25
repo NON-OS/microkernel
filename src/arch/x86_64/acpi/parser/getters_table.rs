@@ -37,3 +37,12 @@ where
 {
     TABLES.read().as_ref().map(|t| f(&t.data))
 }
+
+/// `with_data` that never waits: `None` while the lock is held for writing,
+/// for a path that may not block (the panic path's soft-off read).
+pub fn try_with_data<F, R>(f: F) -> Option<R>
+where
+    F: FnOnce(&AcpiData) -> R,
+{
+    TABLES.try_read()?.as_ref().map(|t| f(&t.data))
+}

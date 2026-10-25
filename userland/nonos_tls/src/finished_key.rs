@@ -19,6 +19,7 @@ pub fn finished_key(secret: &[u8; 32]) -> Option<[u8; 32]> {
     if super::expand_label::expand_label(secret, b"finished", &[], &mut out) {
         Some(out)
     } else {
+        super::traffic_keys::wipe(&mut out);
         None
     }
 }

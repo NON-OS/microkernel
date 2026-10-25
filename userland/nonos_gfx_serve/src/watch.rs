@@ -28,6 +28,7 @@ use nonos_gfx_wire::{Cursor, Rect};
 use super::display::Display;
 use super::platform::Platform;
 use super::server::Server;
+use super::watch_tell::Tell;
 
 /// Six of the compositor's polls missed.
 pub const OWNER_SILENCE_MS: u64 = 3_000;
@@ -36,7 +37,7 @@ impl<D: Display, P: Platform> Server<D, P> {
     /// A request from `sender` came at `now_ms`.
     pub fn heard(&mut self, sender: u32, now_ms: u64) {
         if self.owner.is_none_or(|o| o == sender) {
-            (self.heard_ms, self.quiet) = (now_ms, false);
+            (self.heard_ms, self.quiet, self.tell) = (now_ms, false, Tell::Quiet);
         }
     }
 
@@ -64,6 +65,7 @@ impl<D: Display, P: Platform> Server<D, P> {
         }
         // A blank a device did not take whole is tried again next wake.
         self.quiet = whole;
+        self.tell.ran();
         true
     }
 }
