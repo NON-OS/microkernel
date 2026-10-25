@@ -41,7 +41,7 @@ pub fn paint(
         Item::Head => page_head::paint(fb, state.section, sy),
         Item::Card => card::paint_body(fb, card_x, sy, card_w, h, view_h),
         Item::CardHead(bi) => card::paint_head(fb, state, &blocks[bi], card_x, sy, card_w),
-        Item::Network(_) | Item::Saved(_) | Item::BtDevice(_) => {
+        Item::Network(_) | Item::Saved(_) | Item::BtDevice(_) | Item::Station => {
             list_rows::paint(fb, state, item, card_x, card_w, sy, h)
         }
         Item::Row(..) | Item::Wallpaper(_) => {}

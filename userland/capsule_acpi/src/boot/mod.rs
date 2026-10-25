@@ -16,6 +16,7 @@
 
 //! From the kernel's tables to a running platform.
 
+mod acpi_mode;
 mod assemble;
 mod bringup;
 mod bringup_say;

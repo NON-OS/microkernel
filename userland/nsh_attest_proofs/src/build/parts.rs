@@ -21,9 +21,9 @@ use nsh_attest::Release;
 use super::spec::Entry;
 use super::tcg_log::loader;
 
-/// An entry under a developer key (authority byte 1).
+/// An entry the vendor's root admitted (authority byte 0).
 pub fn entry(pid: u32, measurement: [u8; 32], caps: u64) -> Entry {
-    entry_by(pid, measurement, caps, 1)
+    entry_by(pid, measurement, caps, 0)
 }
 
 pub fn entry_by(pid: u32, measurement: [u8; 32], caps: u64, authority: u8) -> Entry {
@@ -40,7 +40,6 @@ pub fn release() -> Release {
         version: "0.9.4".into(),
         pcr8: [0x08; 32],
         pcr9: [0x09; 32],
-        pcr14: [0x14; 32],
         loader: loader(),
         front: [0xF0; 32],
     }
