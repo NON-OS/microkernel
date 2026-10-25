@@ -41,6 +41,9 @@ pub mod logo {
 }
 
 #[cfg(test)]
+#[path = "../../capsule_boot_splash/src/attest_lines.rs"]
+pub mod attest_lines;
+#[cfg(test)]
 #[path = "../../capsule_boot_splash/src/follow.rs"]
 pub mod follow;
 #[cfg(test)]

@@ -3,6 +3,7 @@
 
 extern crate alloc;
 
+mod attest_lines;
 mod chrome;
 mod detail;
 mod display;
@@ -43,8 +44,9 @@ fn run() -> i32 {
     let Some(comp) = ready::wait_compositor() else { return 2 };
     let Ok(size) = display::query(comp, 2) else { return 4 };
     let mut att = AttestStatus::default();
-    let badge = if mk_attest_status(&mut att) == 0 { Some(att.zk_verified == 1) } else { None };
-    let (mut up, mut look) = match show::raise(comp, size, att, badge) {
+    let rc = mk_attest_status(&mut att);
+    let chain = look::chain(&att, rc);
+    let (mut up, mut look) = match show::raise(comp, size, att, chain) {
         Ok(u) => u,
         Err(code) => return code,
     };
@@ -55,7 +57,7 @@ fn run() -> i32 {
         let _ = input::grab(rp, 11);
     }
     while let Some(next) = interact::interact(comp, up.base, &look, &mut f) {
-        match show::raise(comp, next, att, badge) {
+        match show::raise(comp, next, att, chain) {
             Ok((u, l)) => {
                 show::give_back(&up);
                 (up, look) = (u, l);
