@@ -20,26 +20,43 @@
 use core::panic::Location;
 
 use super::spin_holders::taker;
-use super::spin_watch::same_chain;
+use super::spin_watch::{judge, Holder};
 
-/// The one line for a wait on `lock` at `site` that has lasted `ms`.
+/// The one line for a wait on `lock` at `site` that has lasted `ms`. It takes
+/// no lock but the serial port's, which nothing takes through
+/// `lock_responsive` and whose holders only write bytes, and allocates
+/// nothing.
 pub(super) fn report(lock: usize, site: &'static Location<'static>, sp: usize, ms: u64) {
+    let cpu = super::cpu_id::try_cpu_id();
+    let held = taker(lock).map(|(at, held_sp)| (at, judge(held_sp, sp, stack_top(cpu))));
     let mut line = crate::sys::serial::Line::new();
+    if matches!(held, Some((_, Holder::ReTaken))) {
+        line.str(b"[FATAL] lock re-taken by its own holder, this CPU cannot go on: ");
+    }
     line.str(b"[LOCK] waiting ms=").dec(ms).str(b" at ");
     line.str(site.file().as_bytes()).str(b":").dec(site.line() as u64);
-    if let Some(cpu) = super::cpu_id::try_cpu_id() {
+    if let Some(cpu) = cpu {
         let pid = crate::process::current_pid().unwrap_or(0);
         line.str(b" cpu=").dec(cpu as u64).str(b" pid=").hex(pid as u64);
     }
-    match taker(lock) {
-        Some((held_at, held_sp)) => {
-            line.str(b" held from ").str(held_at.file().as_bytes());
-            line.str(b":").dec(held_at.line() as u64);
-            if same_chain(held_sp, sp) {
+    match held {
+        Some((at, verdict)) => {
+            line.str(b" held from ").str(at.file().as_bytes()).str(b":").dec(at.line() as u64);
+            if verdict == Holder::Likely {
                 line.str(b", likely re-taken by its own holder");
             }
         }
         None => _ = line.str(b" holder unknown"),
     }
     line.end();
+}
+
+/// The top of the kernel stack this CPU runs on, 0 when unknown.
+fn stack_top(cpu: Option<usize>) -> usize {
+    #[cfg(target_arch = "x86_64")]
+    if let Some(data) = cpu.and_then(super::percpu::get) {
+        return data.kernel_stack_top as usize;
+    }
+    let _ = cpu;
+    0
 }
