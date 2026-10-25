@@ -8,8 +8,14 @@
 mod dma_place;
 
 #[cfg(test)]
+#[path = "../../../src/arch/aarch64/boot/memory/span.rs"]
+mod span;
+
+#[cfg(test)]
 mod brute_tests;
 #[cfg(test)]
 mod high_half_tests;
 #[cfg(test)]
 mod layout_tests;
+#[cfg(test)]
+mod span_tests;
