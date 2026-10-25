@@ -29,7 +29,8 @@ pub(crate) fn names_destinations(argv: &[u8]) -> bool {
         first = words.next();
     }
     first == Some(b"--box".as_slice())
-        && words.next().and_then(|w| w.strip_prefix(b"allow:")).is_some_and(|items| {
-            items.split(|c| *c == b',').any(|i| i.starts_with(b"net:"))
-        })
+        && words
+            .next()
+            .and_then(|w| w.strip_prefix(b"allow:"))
+            .is_some_and(|items| items.split(|c| *c == b',').any(|i| i.starts_with(b"net:")))
 }
