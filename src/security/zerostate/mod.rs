@@ -27,6 +27,7 @@
 mod leave;
 mod once;
 mod panic_plan;
+mod panic_stack;
 mod panic_wipe;
 mod terminate;
 

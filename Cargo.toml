@@ -281,6 +281,10 @@ nonos-attest-refusal-smoketest = ["microkernel-core", "nonos-capsule-proof-io"]
 # halt, wipe and power-off (src/userspace/init/injected.rs). Test only: it
 # refuses to compile beside nonos-production or nonos-release.
 nonos-panic-proof = []
+# Init raises a kernel #UD once the spawn plan has run, so a boot shows a CPU
+# exception's kernel branch wiping and powering off. Test only, refused
+# beside nonos-production or nonos-release (src/userspace/init/injected.rs).
+nonos-fault-proof = []
 # A development image: the gates admit a capsule, the kernel and the loader on
 # their Merkle path alone, with no STARK proof, so a test image is enrolled in
 # seconds. Only the dev profile turns it on, beside the loader's development
