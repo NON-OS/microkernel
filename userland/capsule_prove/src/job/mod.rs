@@ -20,6 +20,7 @@ mod bound;
 mod deliver;
 mod device;
 mod drain;
+mod exit_rule;
 mod isolation;
 mod run;
 mod serve;
