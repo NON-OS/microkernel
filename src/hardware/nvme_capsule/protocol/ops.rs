@@ -22,4 +22,6 @@ pub(in super::super) const OP_SMART_HEALTH: u16 = 0x0005;
 pub(in super::super) const OP_CAPACITY: u16 = 0x0006;
 pub(in super::super) const OP_READ_BLOCKS: u16 = 0x0007;
 pub(in super::super) const OP_WRITE_BLOCKS: u16 = 0x0008;
+/// Before power goes, the kernel's alone (block_device::leave).
+pub(in super::super) const OP_POWER_OFF: u16 = 0x000A;
 pub(in super::super) const OP_FLUSH: u16 = 0x0009;

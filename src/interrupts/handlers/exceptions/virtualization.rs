@@ -18,7 +18,6 @@ use x86_64::structures::idt::InterruptStackFrame;
 
 use super::context::{log_exception, ExceptionContext};
 use crate::arch::x86_64::diag::emit_fatal_notice;
-use crate::interrupts::idt::halt_loop;
 use crate::interrupts::stats;
 
 const VE_INFO_ADDRESS: u64 = 0;
@@ -117,5 +116,5 @@ fn handle_kernel_mode_ve(ctx: &ExceptionContext, info: &VeInfo) {
         info.guest_physical_address
     ));
 
-    halt_loop();
+    crate::boot::panic::fatal();
 }

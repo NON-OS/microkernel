@@ -33,6 +33,7 @@ pub mod hda_capsule;
 pub mod gpio_capsule;
 pub mod i2c_pci_capsule;
 pub mod igb_capsule;
+pub mod igc_capsule;
 pub mod intel_display_capsule;
 pub mod inventory;
 pub mod iwlwifi_capsule;

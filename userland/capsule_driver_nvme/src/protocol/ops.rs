@@ -23,3 +23,6 @@ pub const OP_CAPACITY: u16 = 0x0006;
 pub const OP_READ_BLOCKS: u16 = 0x0007;
 pub const OP_WRITE_BLOCKS: u16 = 0x0008;
 pub const OP_FLUSH: u16 = 0x0009;
+/// Flush, the normal shutdown and the reset, before power goes; the
+/// kernel's alone (server::medium_rule).
+pub const OP_POWER_OFF: u16 = 0x000A;

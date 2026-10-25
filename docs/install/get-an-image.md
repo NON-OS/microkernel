@@ -56,8 +56,8 @@ Not tested in this release.
 
 | Profile | For | What the image carries |
 |---|---|---|
-| `standard` | a person's own machine | every driver, the desktop, first-boot setup and the installer; capsules may write to the serial console, so the Terminal's `log` works |
-| `hardened` | a machine that may be seized | Secure Boot and a TPM required at boot; no capsule writes to a serial console |
+| `standard` | a person's own machine | every driver, the desktop, first-boot setup and the installer; no capsule writes to the serial console, so the Terminal's `log` keeps nothing (a development image keeps it) |
+| `hardened` | a machine that may be seized | standard, with Secure Boot and a TPM required at boot |
 | `airgapped` | keys and documents that must never touch a network | `hardened`, with no network driver, stack or online program compiled in |
 | `qemu` | trying NONOS in a virtual machine | the desktop, without the drivers only real hardware has |
 | `dev` | working on NONOS | the `qemu` image with the loader's development policy and path-only attestation; a `--release` seal refuses it |

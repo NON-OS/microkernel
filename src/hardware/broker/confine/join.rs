@@ -38,7 +38,7 @@ pub(super) fn join(
     address: DeviceAddress,
     reach: (&[Member], &[DeviceAddress]),
 ) -> Result<(), Refusal> {
-    if group_held(all, pos, reach) {
+    if group_held(all, pos, (device_id, address), reach) {
         if all[pos].devices.is_empty() {
             all.remove(pos);
         }

@@ -31,9 +31,9 @@ use super::flush::build_flush;
 use super::hmac::{build_hmac, parse_hmac};
 use super::pcrs::BOUND_PCRS;
 use super::policy::{build_get_digest, build_policy_pcr, parse_get_digest, parse_policy_pcr};
-use super::session::{build_start, parse_start};
 use super::run::run;
-use crate::crypto::fill_random_bytes;
+use super::session::{build_start, parse_start};
+use crate::crypto::rng::fill_random_bytes_secure;
 
 /// One derivation at a time. Two in flight would each hold a session and an
 /// object, and that is the whole slot budget of a small part.
@@ -46,7 +46,7 @@ pub fn derive(label: &[u8]) -> Result<[u8; DIGEST_LEN], KeyError> {
     }
     let _one = IN_PROGRESS.lock();
     let mut nonce = [0u8; NONCE_LEN];
-    fill_random_bytes(&mut nonce);
+    fill_random_bytes_secure(&mut nonce).map_err(|_| KeyError::NoRandomness)?;
     let session = parse_start(&run(&build_start(&nonce))?)?;
     let result = under_session(session, label);
     let _ = run(&build_flush(session));

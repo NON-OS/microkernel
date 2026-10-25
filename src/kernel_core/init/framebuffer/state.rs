@@ -41,6 +41,13 @@ impl KernelFramebuffer {
 }
 
 pub(super) static FRAMEBUFFER: Once<KernelFramebuffer> = Once::new();
+/// The frame's physical range, `(start, pitch * height)`: what a device
+/// window must contain to hold the boot framebuffer (broker::boot_fb_held).
+pub(super) static FRAME_PHYS: Once<(u64, u64)> = Once::new();
+
+pub(crate) fn framebuffer_phys() -> Option<(u64, u64)> {
+    FRAME_PHYS.get().copied()
+}
 
 pub(crate) fn framebuffer_state() -> Option<&'static KernelFramebuffer> {
     FRAMEBUFFER.get()

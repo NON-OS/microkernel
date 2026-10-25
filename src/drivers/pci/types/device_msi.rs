@@ -14,16 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::device::PciDevice;
-
-impl PciDevice {
-    // MSI and MSI-X delivery here is written in terms of the local APIC: the
-    // message address names an APIC ID and the message data carries an
-    // interrupt vector. An arm64 machine routes the same PCI messages through
-    // the GIC's ITS, addressed by device ID and translated through tables the
-    // interrupt controller owns, so none of this transfers. These four stay
-    // with the architecture whose message format they encode.
-    #[cfg(target_arch = "x86_64")]
+// MSI and MSI-X delivery here is written in terms of the local APIC: the
+// message address names an APIC ID and the message data carries an
+// interrupt vector. An arm64 machine routes the same PCI messages through
+// the GIC's ITS, addressed by device ID and translated through tables the
+// interrupt controller owns, so none of this transfers. These four stay
+// with the architecture whose message format they encode.
+#[cfg(target_arch = "x86_64")]
+impl super::device::PciDevice {
     pub fn configure_msix(
         &mut self,
         irq_vector: u8,
@@ -44,7 +42,6 @@ impl PciDevice {
         Ok(())
     }
 
-    #[cfg(target_arch = "x86_64")]
     pub fn disable_msix(&mut self) -> Result<(), crate::drivers::pci::error::PciError> {
         let msix =
             self.msix.as_ref().ok_or(crate::drivers::pci::error::PciError::MsixNotSupported)?;
@@ -52,7 +49,6 @@ impl PciDevice {
         crate::drivers::pci::msi::disable_msix(&config, msix)
     }
 
-    #[cfg(target_arch = "x86_64")]
     pub fn configure_msi(
         &mut self,
         irq_vector: u8,
@@ -63,7 +59,6 @@ impl PciDevice {
         crate::drivers::pci::msi::configure_msi(&config, msi, irq_vector, dest_apic_id)
     }
 
-    #[cfg(target_arch = "x86_64")]
     pub fn disable_msi(&mut self) -> Result<(), crate::drivers::pci::error::PciError> {
         let msi = self.msi.as_ref().ok_or(crate::drivers::pci::error::PciError::MsiNotSupported)?;
         let config = crate::drivers::pci::config::ConfigSpace::new(self.address);

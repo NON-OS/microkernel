@@ -27,12 +27,19 @@ pub struct Ephemeral {
     pub salt: [u8; SALT_BYTES],
 }
 
+/// The secret is wiped when the exchange that drew it is over, whichever way
+/// it ended.
+impl Drop for Ephemeral {
+    fn drop(&mut self) {
+        crate::crypto::wipe::wipe(&mut self.secret);
+    }
+}
+
 pub fn new_ephemeral() -> Result<Ephemeral, HandshakeError> {
-    let mut secret = [0u8; 32];
-    fill_random(&mut secret).map_err(|_| HandshakeError::Crypto)?;
-    let mut public = [0u8; EPHEMERAL_BYTES];
-    x25519_public(&secret, &mut public).map_err(|_| HandshakeError::Crypto)?;
-    let mut salt = [0u8; SALT_BYTES];
-    fill_random(&mut salt).map_err(|_| HandshakeError::Crypto)?;
-    Ok(Ephemeral { secret, public, salt })
+    let mut eph =
+        Ephemeral { secret: [0u8; 32], public: [0u8; EPHEMERAL_BYTES], salt: [0u8; SALT_BYTES] };
+    fill_random(&mut eph.secret).map_err(|_| HandshakeError::Crypto)?;
+    x25519_public(&eph.secret, &mut eph.public).map_err(|_| HandshakeError::Crypto)?;
+    fill_random(&mut eph.salt).map_err(|_| HandshakeError::Crypto)?;
+    Ok(eph)
 }

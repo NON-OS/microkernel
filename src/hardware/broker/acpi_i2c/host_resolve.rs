@@ -23,7 +23,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use super::host_id::{host_device_id, pci_host_device_id, UNRESOLVED};
-use crate::arch::x86_64::acpi::devices::i2c::{I2cHostName, I2cPciHost};
+use crate::arch::firmware_table::devices::{I2cHostName, I2cPciHost};
 use crate::hardware::broker::pci_index;
 
 pub(super) struct Hosts {
@@ -35,7 +35,7 @@ pub(super) struct Hosts {
 
 impl Hosts {
     pub(super) fn new(platform: Vec<I2cHostName>, registered: Vec<(u64, u64)>) -> Self {
-        let pci = crate::arch::x86_64::acpi::devices::i2c::enumerate_pci_i2c_hosts();
+        let pci = crate::arch::firmware_table::devices::enumerate_pci_i2c_hosts();
         let functions = pci_index::all()
             .into_iter()
             .filter(|h| h.address.segment == 0)

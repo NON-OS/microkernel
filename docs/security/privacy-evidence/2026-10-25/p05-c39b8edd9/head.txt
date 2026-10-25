@@ -1,0 +1,2 @@
+c39b8edd9 power button: armed once device interrupt routing is up, not at the broker's seeding, where the IO-APIC table did not yet hold the SCI's line and the mask failed closed [skip ci]
+27aee15a592bf0dda6d819fc13447c2fa7f66c936384baf92f29a704393d8d11  /home/user/pk-build/target/dev/tree/target/release/standard-dev/nonos.img

@@ -26,7 +26,7 @@ mod end_rule;
 
 #[cfg(test)]
 mod tests {
-    use super::end_rule::{told, words, EXIT_ABSENT, EXIT_GAVE_UP};
+    use super::end_rule::{told, words, EXIT_ABSENT, EXIT_EMPTY, EXIT_GAVE_UP};
 
     #[test]
     fn a_driver_that_found_no_device_is_named() {
@@ -38,6 +38,13 @@ mod tests {
     fn a_driver_that_gave_up_is_named() {
         assert!(told("driver.nvme0", EXIT_GAVE_UP, false));
         assert!(words(EXIT_GAVE_UP).contains("given up"));
+    }
+
+    #[test]
+    fn a_controller_with_nothing_behind_it_is_named_apart_from_a_give_up() {
+        assert!(told("driver.ahci0", EXIT_EMPTY, false));
+        assert_eq!(words(EXIT_EMPTY), "controller present, nothing behind it to serve");
+        assert!(!words(EXIT_EMPTY).contains("failed"), "an empty controller read as a failure");
     }
 
     #[test]
@@ -59,6 +66,7 @@ mod tests {
         let policy = include_str!("../../../libc/src/bringup/policy.rs");
         assert!(policy.contains("pub const EXIT_ABSENT: i32 = 2;"));
         assert!(policy.contains("pub const EXIT_GAVE_UP: i32 = 6;"));
-        assert_eq!((EXIT_ABSENT, EXIT_GAVE_UP), (2, 6));
+        assert!(policy.contains("pub const EXIT_EMPTY: i32 = 3;"));
+        assert_eq!((EXIT_ABSENT, EXIT_GAVE_UP, EXIT_EMPTY), (2, 6, 3));
     }
 }

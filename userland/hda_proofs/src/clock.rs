@@ -15,11 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The host's stand-in for the capsule's `clock` module: the same two
 //! functions, on `std::time`, how many times each thread has slept, and a
-//! clock a test can set by hand on its own thread.
+//! clock a test can set by hand on its own thread, or step a model on.
 
 use std::cell::Cell;
 use std::sync::OnceLock;
 use std::time::{Duration, Instant};
+
+mod poll;
+pub use poll::{on_poll, Polled};
 
 thread_local! {
     static SLEPT: Cell<u64> = const { Cell::new(0) };
@@ -32,6 +35,7 @@ fn epoch() -> Instant {
 }
 
 pub fn now_ms() -> u64 {
+    poll::step();
     if let Some(ms) = SET.with(Cell::get) {
         return ms;
     }

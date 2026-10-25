@@ -28,18 +28,18 @@ pub struct AdvancedSecurityManager {
 }
 
 impl AdvancedSecurityManager {
-    pub fn new(config: SecurityConfig) -> Self {
-        Self {
-            stack_canary: StackCanary::new(),
+    pub fn new(config: SecurityConfig) -> Result<Self, &'static str> {
+        Ok(Self {
+            stack_canary: StackCanary::new()?,
             cfi: CFI::new(),
             aslr: ASLR::new(28),
             config,
             violations: AtomicU64::new(0),
-        }
+        })
     }
-    pub fn init(&self) {
+    pub fn init(&self) -> Result<(), &'static str> {
         if self.config.enable_stack_canaries {
-            self.stack_canary.rotate();
+            self.stack_canary.rotate()?;
         }
         if self.config.enable_cfi {
             self.cfi.enable();
@@ -47,6 +47,7 @@ impl AdvancedSecurityManager {
         if self.config.enable_aslr {
             self.aslr.enabled.store(true, Ordering::Release);
         }
+        Ok(())
     }
     pub fn report_violation(&self, msg: &str) {
         self.violations.fetch_add(1, Ordering::Release);

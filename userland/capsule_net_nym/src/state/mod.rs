@@ -26,6 +26,7 @@ mod identity;
 mod replay;
 mod rx_queue;
 mod session;
+mod key_slot;
 mod shared_key;
 mod surb;
 mod surb_id;
@@ -48,7 +49,10 @@ pub use gateway::{Gateway, Transport};
 pub use identity::{client_identity, set_client_identity, Identity as ClientIdentity};
 pub use rx_queue::RX_DEPTH;
 pub use session::Session;
-pub use shared_key::{clear_gateway_shared_key, gateway_shared_key, set_gateway_shared_key};
+pub use shared_key::{
+    clear_gateway_shared_key, gateway_key_held, keep_gateway_key_for, set_gateway_shared_key,
+    with_gateway_key,
+};
 pub use surb::{consume as consume_surb, create as create_surb, default_ttl_ms as surb_ttl_ms};
 pub use table::{TableError, TABLE};
 pub use timing::{cover_due, install as install_timing, next_cover_ms, policy as timing_policy};
