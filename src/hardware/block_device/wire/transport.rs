@@ -26,7 +26,9 @@ use crate::services::lifecycle::transport::{self, TransportError};
 /// payload on success, the lifted status otherwise.
 pub(super) fn call(t: Target, op: u16, body: &[u8]) -> Result<Vec<u8>, WireError> {
     let e = t.e;
+    let asked = crate::sys::timer::uptime_ms();
     let _one = transport::lock_yielding(&e.slot.call);
+    let sent = crate::sys::timer::uptime_ms();
     let request_id = transport::next_request_id(&e.slot.seq);
     let frame = encode_request(op, t.unit, request_id, body);
     let resp = transport::round_trip(
@@ -37,7 +39,13 @@ pub(super) fn call(t: Target, op: u16, body: &[u8]) -> Result<Vec<u8>, WireError
         e.state,
         decode_response,
     )
-    .map_err(map_err)?;
+    .map_err(|err| {
+        let timed_out = err == TransportError::TransportFailure;
+        super::slow::lost(e, op, timed_out, sent - asked, crate::sys::timer::uptime_ms() - asked);
+        map_err(err)
+    })?;
+    let now = crate::sys::timer::uptime_ms();
+    super::slow::say(e, op, resp.status, sent - asked, now - asked);
     if resp.status != 0 {
         return Err(lift(resp.status));
     }

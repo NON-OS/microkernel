@@ -53,6 +53,7 @@ fn a_free_listing_passes_and_a_sale_waits_for_its_bond_domain() {
 fn a_schema_2_release_keeps_todays_checks() {
     let mut e = sold().entries[0].clone();
     e.commerce = None;
+    e.listing_id = "nonos.pkg".into();
     let mut rel = e.releases[0].clone();
     rel.ext = None;
     assert!(market_gates(&Host, &e, &rel, true).all());

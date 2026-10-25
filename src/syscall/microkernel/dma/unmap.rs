@@ -25,6 +25,7 @@ pub fn sys_dma_unmap(grant_id: u64) -> i64 {
         Some(p) => p,
         None => return ERRNO_PERM,
     };
+    let pid = crate::hardware::broker::holder_of(pid);
     match crate::hardware::broker::dma_unmap_grant(pid, grant_id) {
         Ok(()) => 0,
         Err(DmaError::NotHolder) => ERRNO_PERM,

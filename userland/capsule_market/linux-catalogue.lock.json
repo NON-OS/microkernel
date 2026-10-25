@@ -1,0 +1,20 @@
+{"format": "nonos.linux-catalogue-lock.v2", "packages": {
+  "age": {"V": "1.2.1-r0", "C": "Q1z9INA9M2b3uLFuB4E2HA/h6Jatk=", "S": "2528568", "B": "fcae34dc04d4c30ef905a18c0f6c951d254c585704b08bf33bcac7dd4ffba04a"},
+  "bat": {"V": "0.24.0-r1", "C": "Q1hPtSxSZkO8z4gBieAPf7ydvlS24=", "S": "1948145", "B": "e3982995bb864b7db472aac2ea7c57feb6d8da5b824e58b309ff51cb60c81905"},
+  "eza": {"V": "0.18.16-r0", "C": "Q1jVOib1yhkl8JWRHOc7Hy/gAyZjE=", "S": "442099", "B": "c80eee2ebda363c195f3a3e538f9a663c36a4f87997d67f96d83750cede8f7d9"},
+  "flac": {"V": "1.4.3-r1", "C": "Q1Xe6nSz6GInHPGsgXbfCLG9ZBKQU=", "S": "147831", "B": "70e65d29623cbb0227455c51f8a6765784768198fca424a883d2338ff5cd6bfa"},
+  "fzf": {"V": "0.52.0-r3", "C": "Q1vGwCl2arsYeziu8mAlrZ8k9YoB4=", "S": "1618062", "B": "1b10b2dea73c3e10c0b0592ba46f13718a282ad181eba8c43041887303e1abb9"},
+  "geth": {"V": "1.14.3-r3", "C": "Q1FurICbkxlIqflZQrECckVPbAIiQ=", "S": "16787646", "B": "c54908b260b831edd2cc5f6adf8d06e934f63496a64b61cb52535096146f94e1"},
+  "git": {"V": "2.45.4-r0", "C": "Q1BEWRI7JToWDeVfFkQxuv5BGoO0U=", "S": "3281791", "B": "b12993cafb31eaec88e41b3fdfd8f64ff7522a482668f423be0f99c10fc3b205"},
+  "helix": {"V": "24.03-r0", "C": "Q1klk+hg+F0Am9idLMVwwY8c1ncb4=", "S": "4154112", "B": "0b8eba63b212940eccd0b07925b56c6d5194e218e3d13d6724d31698c07ae8d7"},
+  "kakoune": {"V": "2024.05.18-r0", "C": "Q1b7Ne3uRKGC8ru4QMOcE9ZLk8IPI=", "S": "1023474", "B": "6534b2b253d04eb2ff357c75a40975b511e64bbddb96779d20497e506f309993"},
+  "lame": {"V": "3.100-r5", "C": "Q1FwfXdfNn6nwLByHnXJdaFxJrqGg=", "S": "148756", "B": "d9b28774e3c7b9bdb15e893b755ad0a6710179cc018bd43a8344832bed4691bb"},
+  "lazygit": {"V": "0.41.0-r4", "C": "Q1jjvW9KQk45fZua7/zcqWGVF7lyE=", "S": "6733105", "B": "e8d4332e4a41f0bd69d47a13165888e12dd72309c619dfb830b407dd8a68c412"},
+  "micro": {"V": "2.0.13-r6", "C": "Q1UsMUYZZpcJDY2QFUlpzHUohdAyM=", "S": "5016347", "B": "a3ab8ed97ce6adf486bea876d1c26a5f1bf34999592e7f9feeca88663de05123"},
+  "minisign": {"V": "0.11-r1", "C": "Q1AQ0YX5JOLIiUEbnZ0dQuROT2y6U=", "S": "13389", "B": "0f6ff7c67abd8c49a812cc39549fecb8f81540d2d4df100a961842692fd32c7e"},
+  "ncdu": {"V": "1.20-r0", "C": "Q1Gv0LAoqj+PHs0khOyHveedYVud4=", "S": "34596", "B": "6b2acdef7f057b723ca613ec31aac0b11a1bbf20a17e2085c89988580c555f24"},
+  "nnn": {"V": "4.9-r0", "C": "Q18erg5ybXnvWq6caIG05shJMgEYQ=", "S": "61507", "B": "099d13c03f5e3ad2a2a604dd4f0354acd931f6673b182c03de816ace2d7fe19e"},
+  "profanity": {"V": "0.14.0-r1", "C": "Q1Lpz+Dq84ad+3v4PZcoeRv+NUFvQ=", "S": "414700", "B": "aad57d028f143425a29598383104ae1a9ed624f0396774cfbe36dd7bdb1e0cf1"},
+  "tig": {"V": "2.5.10-r0", "C": "Q13sZq/SIGXngty0auMy+P4CCQDEg=", "S": "199250", "B": "f2543fcea8165dfde08d40fcef8440009642a6f22dcbad39a5e35933469ed3bf"},
+  "vim": {"V": "9.1.0707-r0", "C": "Q1JH+XfzD5kVNgb92NMgeEQbUZE88=", "S": "1476729", "B": "64641cc28aa7ef9fb3211727152842e4f619bff4b346dba77a308dfc3d194a1a"}
+}}

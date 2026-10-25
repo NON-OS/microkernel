@@ -37,8 +37,8 @@ impl MmioManager {
         }
         /*
          * The framebuffer is written write-combining through PAT entry 1
-         * (PWT alone) once every CPU's table has it, as Linux maps efifb
-         * and simpledrm. Before, it had PCD alone, UC-, which under an
+         * (PWT alone) once every CPU's table has it, so stores merge into
+         * bursts. Before, it had PCD alone, UC-, which under an
          * uncached MTRR, or a write-back default with no MTRR over the
          * aperture, comes out uncached (SDM Vol. 3A table 12-7): every
          * 4-byte store of a present was its own bus write. PAT WC is WC

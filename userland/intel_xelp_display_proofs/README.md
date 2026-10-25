@@ -22,4 +22,19 @@ sides of a test. What is proved:
 - a sweep of 200,000 random timings: each refused with nothing written, or
   written with every field decoded back inside Vol 2c's limits.
 
-Run with `cargo test`; the 40 mutants of the letter gpu-2a are each caught.
+- the PLL registers and fields at their Vol 2c addresses and bits;
+- every row of Vol 12's DisplayPort table giving back its rate by Vol 12's
+  own formula, and its P, Q and K as the table writes them;
+- Vol 12's worked HDMI example (113.309 MHz), the symbol clock's range, and
+  every symbol clock re-derived from the rule, plus each divider's DCO
+  bounds and the facts that make three rules unobservable on kHz inputs;
+- the PLL sequences' order, a power or lock that never comes leaving the
+  PLL down, and the port clock's two writes.
+
+- the combo PHY: register addresses, the procmon table column by column,
+  initialisation's values and order (and B refused before A), every swing
+  row and lane field, loadgen per lane, IO power and the DDI buffer. The
+  model fans group writes out to the lanes and answers group reads with
+  junk, so a read of a group address would be seen.
+
+Run with `cargo test`. Letters gpu-2a to gpu-2c list the mutants caught.

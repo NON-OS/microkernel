@@ -32,8 +32,11 @@ call silently, at a different place each time:
                claims is refused for everyone, permanently and quietly.
   router       `dispatch/router/*.rs` picks the family that handles it. A
                variant no family matches falls to the router's default.
-  handler      for the microkernel family, an arm in `microkernel/dispatch/`
-               keyed on the `SYS_*` constant. Without it `route` returns -1.
+  handler      for the microkernel family, an arm keyed on the `SYS_*` constant
+               (`syscall_mk_arms` says where). Without it `route` returns -1.
+               A number retired under the stable-ABI rule has no arm: `route`
+               answers it EINVAL before any family, so its handler is that
+               gate, and an arm left behind for it is one nothing reaches.
 
 The earlier version of this check read the enum and the microkernel constants
 and asked only whether the tag appeared in one of them. A `SYS_*` constant on
@@ -56,6 +59,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from check_caps_abi import sections  # noqa: E402
 import check_syscall_caps as caps  # noqa: E402
+from syscall_mk_arms import mk_arms, mk_retired  # noqa: E402
 
 ABI = Path("abi/syscalls.toml")
 ENUM = Path("src/syscall/numbers/defs.rs")
@@ -64,8 +68,6 @@ CAP_TABLE = Path("src/syscall/contract/cap_table")
 ROUTER = Path("src/syscall/dispatch/router")
 MK_NUMBERS = Path("src/syscall/microkernel/numbers.rs")
 MK_DISPATCH = Path("src/syscall/microkernel/dispatch")
-# route_tail hands the ACPI capsule's numbers to this match, outside dispatch/.
-MK_ACPI_DISPATCH = Path("src/syscall/microkernel/acpi/dispatch.rs")
 MK_ROUTER = ROUTER / "microkernel_ops.rs"
 
 ENUM_RE = re.compile(r"(\w+)\s*=\s*tag4\(b\"(\w{4})\"\)")
@@ -73,7 +75,8 @@ ENUM_RE = re.compile(r"(\w+)\s*=\s*tag4\(b\"(\w{4})\"\)")
 # whichever letter a file happens to have picked.
 REGISTRY_RE = re.compile(r"\b[a-z]\(b\"(\w{4})\"\s*,\s*SyscallNumber::(\w+)")
 MK_CONST_RE = re.compile(r"pub const (\w+)\s*:\s*u64\s*=\s*tag4\(b\"(\w{4})\"\)")
-MK_ARM_RE = re.compile(r"^\s*(SYS_\w+)(?:\s*\|\s*SYS_\w+)*\s*=>", re.M)
+# The whole or-pattern is the group, so every name in `SYS_A | SYS_B =>` counts.
+MK_ARM_RE = re.compile(r"^\s*(SYS_\w+(?:\s*\|\s*SYS_\w+)*)\s*=>", re.M)
 IDENT_RE = re.compile(r"\b([A-Z]\w+)\b")
 
 
@@ -110,9 +113,8 @@ def read_kernel(root):
         "capped": variants_in(read_tree(root, CAP_TABLE), names),
         "routed": variants_in(read_tree(root, ROUTER), names),
         "mk_routed": variants_in(read_text(root, MK_ROUTER), names),
-        "mk_arms": {arm for text in [read_tree(root, MK_DISPATCH),
-                                     read_text(root, MK_ACPI_DISPATCH)]
-                    for group in MK_ARM_RE.findall(text) for arm in group.split("|")},
+        "mk_arms": mk_arms(root, MK_DISPATCH, MK_ARM_RE),
+        "mk_retired": mk_retired(root, MK_DISPATCH),
     }
 
 
@@ -154,6 +156,8 @@ def check_published(tag, value, k, described):
                    f"table's unwrap_or(false) refuses it for every caller")
     if variant not in k["routed"]:
         bad.append(f"{tag} ({variant}) is matched by no router family")
+    if tag in k["mk_retired"]:
+        return bad + check_retired(tag, variant, k)
     if variant in k["mk_routed"]:
         const = k["mk_consts"].get(tag)
         if const is None:
@@ -163,6 +167,19 @@ def check_published(tag, value, k, described):
             bad.append(f"{tag} ({variant}) routes to the microkernel and {const} "
                        f"has no dispatch arm: route returns -1")
     return bad
+
+
+def check_retired(tag, variant, k):
+    """A retired number reaches the gate at the top of the microkernel's
+    `route`, so it has to route there, and no arm may still be keyed on it."""
+    if variant not in k["mk_routed"]:
+        return [f"{tag} ({variant}) is retired, but routes to a family other "
+                f"than the microkernel, whose route holds the retired gate"]
+    const = k["mk_consts"].get(tag)
+    if const in k["mk_arms"]:
+        return [f"{tag} ({variant}) is retired and {const} still has a dispatch "
+                f"arm: the retired gate answers first, so nothing reaches it"]
+    return []
 
 
 def check_kernel_side(k):
@@ -180,7 +197,12 @@ def main() -> int:
     ap.add_argument("--strict", action="store_true",
                     help="fail when a dispatched syscall is unpublished, rather "
                          "than only listing it")
+    ap.add_argument("--self-test", action="store_true",
+                    help="prove the retired-number rules bite on fixtures")
     args = ap.parse_args()
+    if args.self_test:
+        from syscall_abi_selftest import self_test
+        return self_test(check_published, MK_ARM_RE)
 
     try:
         k = read_kernel(args.root)

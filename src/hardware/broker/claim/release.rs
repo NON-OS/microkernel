@@ -14,49 +14,60 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
+//! A release's last steps (L66, L75). A claim being released stays in the
+//! table, so no newer claim of the device can be made, until every release of
+//! it and every path still inside it is done; the last of them removes it.
 
-use super::leaving::{take_all, take_held};
-use super::retire::retire;
-use super::retire_io::Leaving;
-use super::state::{BUSY, CLAIMS};
-use super::types::ClaimError;
+use super::stage_rule::gone;
+use super::state::claims;
+use super::types::{ClaimError, Stage};
 
-// Release a claim held by `pid`, the caller in its own MkDeviceRelease.
-// The claim goes first, so a thread of `pid` that faults on a revoked BAR
-// and tears down meanwhile finds nothing to reset or free (K10b). Returns
-// the released epoch.
-pub fn release(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
-    release_as(pid, device_id, Some(pid), true)
+type Key = (u32, u64, u64);
+
+fn named(key: Key) -> impl Fn(&super::Claim) -> bool {
+    move |c| {
+        (c.pid, c.device_id, c.epoch) == key && matches!(c.stage, Stage::Leaving | Stage::Exiting)
+    }
 }
 
-// `release` from a path other than the holder's own syscall: a depart
-// (acpi/depart.rs) names no sleeper and runs outside the holder's tables.
-pub(crate) fn release_as(
-    pid: u32,
-    device_id: u64,
-    sleeper: Option<u32>,
-    in_context: bool,
-) -> Result<u64, ClaimError> {
-    let epoch = {
-        let mut claims = CLAIMS.lock();
-        take_held(&mut claims, &mut BUSY.lock(), pid, device_id)?
-    };
-    retire(&mut Leaving::new(pid, device_id, sleeper, in_context));
+/// One release of the claim at `key` done: true when it was the last, and
+/// the entry has gone. None when no claim being released is at `key`.
+pub(super) fn settle(key: Key) -> Option<bool> {
+    let mut claims = claims();
+    let at = claims.iter().position(named(key))?;
+    let c = &mut claims[at];
+    c.leavers = c.leavers.saturating_sub(1);
+    let last = gone(c.stage, c.leavers, c.inflight);
+    if last {
+        super::gone::remove(claims, at);
+    }
+    Some(last)
+}
+
+/// Release the claim `pid` retired at `epoch`, and that one only (L69). Its
+/// device stops while the entry, which this release keeps, still names it,
+/// so a newer claim's device is never the one stopped (L75).
+pub fn release(pid: u32, device_id: u64, epoch: u64) -> Result<u64, ClaimError> {
+    let key = (pid, device_id, epoch);
+    if !claims().iter().any(named(key)) {
+        return Err(ClaimError::NotClaimed);
+    }
+    super::quiesce::stop_bus_master(device_id);
+    if settle(key) == Some(true) {
+        crate::hardware::broker::confine::detach(pid, device_id);
+        super::wipe::step_all(true);
+    }
     Ok(epoch)
 }
 
-// Release every claim held by `pid`, from exit teardown, whose waits spin
-// (reset_wait). `in_context` when `pid`'s page tables are active. Returns
-// the number of claims revoked.
-pub fn release_all_for_pid(pid: u32, in_context: bool) -> usize {
-    let held = {
-        let mut claims = CLAIMS.lock();
-        take_all(&mut claims, &mut BUSY.lock(), pid)
-    };
-    for device_id in &held {
-        retire(&mut Leaving::new(pid, *device_id, None, in_context));
+/// Stop a device a release holds from mastering the bus, before its grants
+/// are torn down. The entry stays while this release is under way (L75), so
+/// the device stopped is this claim's; false, and nothing written, when no
+/// claim being released is at `epoch`.
+pub fn quiesce_held(pid: u32, device_id: u64, epoch: u64) -> bool {
+    let held = claims().iter().any(named((pid, device_id, epoch)));
+    if held {
+        super::quiesce::stop_bus_master_quietly(device_id);
     }
-    crate::hardware::broker::confine::detach_all(pid);
-    held.len()
+    held
 }

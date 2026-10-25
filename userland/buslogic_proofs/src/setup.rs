@@ -16,6 +16,8 @@
 
 //! The driver's setup files by path.
 
+#[path = "../../capsule_driver_buslogic/src/setup/command.rs"]
+pub mod command;
 #[path = "../../capsule_driver_buslogic/src/setup/driver.rs"]
 pub mod driver;
 #[path = "../../capsule_driver_buslogic/src/setup/sequence.rs"]

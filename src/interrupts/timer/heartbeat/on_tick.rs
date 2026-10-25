@@ -28,7 +28,7 @@ pub fn on_tick(ticks: u64) {
     input_activity_bars();
     let phase = PHASE.fetch_add(1, Ordering::Relaxed);
     let color = PALETTE[(phase as usize) % PALETTE.len()];
-    let Some(fb) = crate::kernel_core::init::framebuffer::framebuffer_state() else {
+    let Some(fb) = crate::kernel_core::init::framebuffer::drawable() else {
         return;
     };
     if X0 + SIZE > fb.width || Y0 + SIZE > fb.height {

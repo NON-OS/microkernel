@@ -4,13 +4,18 @@
 capsule that tries what a hostile program would, and prints one `[ATTACK]` line per attempt
 with the kernel's answer. It is test only.
 
-It is not wired into any build yet. `Capsule.mk` names the feature `nonos-capsule-attack` and the
-kernel mirror `src/userspace/capsule_attack`, but the root `Cargo.toml` declares no such feature,
-the mirror does not exist, and nothing under `mk/` includes this `Capsule.mk`. So no profile and
-no image embeds it, and no boot has run it. The attack suite it plans,
-which `lib.rs` would refuse beside `nonos-production`, is not written. What runs today is the
-checker's self-test, `nonos-ci/attack_suite_check.py --self-test`, in the flake's `static-abi`
-check. The isolation model it attacks is described in
+It runs in development images only. The `selftest` profile (`tools/nix/config.nix`) turns on
+the kernel feature `nonos-capsule-attack`, which embeds it (`src/userspace/capsule_attack`) and
+spawns it last, after every service it attacks owns its name. The same feature echoes the
+kernel's warnings to the serial line as `[KLOG WARN] ...`, so the report can set each refusal
+beside the kernel's own `[CAP-DENY]` line. The kernel refuses to compile it beside
+`nonos-release`, the flake refuses it beside any loader but `dev-qemu`, and `CAPSULE_DEV_ONLY`
+keeps it out of every make lane's signing and every release seal.
+
+Its first line is `[ATTACK-START] capsule pid N`, so the checker pairs each refusal with that
+pid's `[CAP-DENY]` and no other's. `tools/nonos-selftest` boots it and runs
+`nonos-ci/attack_suite_check.py` over the serial log; [the self-test page](../../docs/security/self-test.md)
+says how, and what each line means. The isolation model it attacks is described in
 [the capabilities page](../../docs/handbook/kernel/capabilities.md).
 
 ## Capabilities

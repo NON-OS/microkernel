@@ -16,6 +16,9 @@
 
 mod capture;
 mod enter;
+mod kernel;
+mod kernel_ops;
+mod restored;
 mod resume;
 mod setup;
 mod switch;
@@ -23,6 +26,7 @@ mod types;
 
 pub use capture::save_user_frame;
 pub use enter::{enter_user, EnterError, SSTATUS_USER_INITIAL};
+pub use kernel::Context;
 pub use resume::{resume_user, ResumeError};
 pub use setup::{setup_initial_user_pcb_riscv64, SetupError};
 pub(crate) use switch::switch_to_user_pcb_riscv64;

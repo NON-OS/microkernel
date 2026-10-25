@@ -30,6 +30,7 @@ unless the Rust names one. `--check` fails when the committed file is not
 what this prints, which `nix flake check` runs (inputs drift check).
 """
 
+import fnmatch
 import glob
 import json
 import os
@@ -81,6 +82,11 @@ MARKERS = {
     "models/catalogue.bin": ["nonos-data/models/catalogue.bin"],
 }
 
+# A glob a source names as a string literal: every tracked file it matches,
+# one directory deep, is that crate's input (the system-name proof reads
+# every capsule's Capsule.mk, L61).
+GLOBS = ("userland/*/Capsule.mk",)
+
 # The trust set the seal rewrites as it signs and enrolls. A capsule that read
 # any of it would be rebuilt between its signing and the kernel's build, and
 # the kernel would embed bytes its signed manifest does not name, which the
@@ -94,6 +100,9 @@ LITERAL = re.compile(r'"((?:[^"\\\n]|\\.){1,300})"')
 PATHLIKE = re.compile(r"^[\w./+@-]+$")
 PY_IMPORT = re.compile(r"^\s*(?:from|import)\s+(\w+)", re.M)
 RERUN = re.compile(r"rerun-if-changed=([\w./+@-]+)")
+# A trust file the kernel names through baked_trust!, relative to the trust
+# set's root: the tree's is TRUST (build_baked_trust.rs).
+BAKED = re.compile(r'baked_trust!\(\s*(?:concat!\(\s*)?"([^"]+)"')
 MODULE = re.compile(r"^\s*(?:pub(?:\([\w:]+\))?\s+)?mod\s+(\w+)\s*;", re.M)
 
 
@@ -322,10 +331,19 @@ class Inputs:
                 self.literal(f, crate, m.group(1))
             for m in RERUN.finditer(body):
                 self.literal(f, crate, m.group(1))
+            for m in BAKED.finditer(body):
+                rel = os.path.relpath(os.path.join(TRUST, m.group(1)), os.path.dirname(f))
+                self.literal(f, crate, rel + ("/" if m.group(1).endswith("/") else ""))
             self.modules(f, body)
             for marker, files in MARKERS.items():
                 if marker in body:
                     self.signed.update(files)
+            for g in GLOBS:
+                if f'"{g}"' in body:
+                    depth = g.count("/")
+                    for p in sorted(FILES):
+                        if p.count("/") == depth and fnmatch.fnmatch(p, g):
+                            self.add(p)
 
     def cargo_configs(self):
         for c in self.crates:

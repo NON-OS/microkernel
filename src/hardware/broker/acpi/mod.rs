@@ -20,7 +20,6 @@
 //! them this machine's facts and does what they allow.
 
 pub mod battery_watch;
-pub mod boot_logo;
 pub mod button_owner;
 mod bridge_log;
 pub mod claim_holder;
@@ -50,7 +49,6 @@ pub mod late_bars;
 pub mod leave;
 pub mod leave_rule;
 pub mod lid_state;
-pub mod logo_record;
 pub mod lpi_record;
 pub mod lpi_wire;
 pub mod loaded_rule;
@@ -113,6 +111,6 @@ pub use memory_grant::grant_memory;
 pub use memory_record::{MemoryGrant, ACPI_DEVICE};
 pub use pci_access::{pci_read, pci_write};
 pub use port_access::{port_read, port_write};
-pub use sci::{register_sci, PNP_DEVICE_ACPI, PNP_VENDOR};
+pub use sci::{arm_power_button, register_sci, PNP_DEVICE_ACPI, PNP_VENDOR};
 pub use table_check::TableError;
 pub use table_report::table_for_capsule;

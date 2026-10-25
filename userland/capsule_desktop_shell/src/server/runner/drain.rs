@@ -16,7 +16,7 @@
 
 use nonos_libc::{mk_ipc_recv_from, mk_uptime_ms};
 
-use super::constants::{RECV_BLOCK, RECV_RETRY_MS, SERVICE_INBOX};
+use super::constants::{INPUT_MAGIC, RECV_BLOCK, RECV_RETRY_MS, SERVICE_INBOX};
 use super::tick::{wait_ms, wake_due};
 use crate::protocol::parse;
 use crate::server::respond;
@@ -45,14 +45,24 @@ pub(super) fn drain(ctx: &mut Context, rx: &mut [u8], tx: &mut [u8], wake_ms: i6
         if n <= 0 || sender_pid == 0 {
             return;
         }
-        if crate::server::wm_notify::handle(ctx, &rx[..n as usize]) {
+        let msg = &rx[..n as usize];
+        // A window notice is believed only from the window manager
+        // (`server::peer`), an input frame only from the input router
+        // (`server::input_source`); from anyone else either is dropped,
+        // never parsed as a request.
+        if crate::state::wm_notice::decode_wm_notice(msg).is_some() {
+            if crate::server::peer::WM.sent(sender_pid) {
+                crate::server::wm_notify::handle(ctx, msg);
+            }
             continue;
         }
-        let routed = crate::server::input_source::routed(sender_pid);
-        if routed.is_some_and(|by| crate::server::input::handle(ctx, by, &rx[..n as usize])) {
+        if msg.get(..4) == Some(&INPUT_MAGIC[..]) {
+            if let Some(by) = crate::server::input_source::routed(sender_pid) {
+                crate::server::input::handle(ctx, by, msg);
+            }
             continue;
         }
-        let (req, body) = match parse(&rx[..n as usize]) {
+        let (req, body) = match parse(msg) {
             Ok(parsed) => parsed,
             Err((code, req)) => {
                 let _ = respond::status(sender_pid, &req, code, tx);

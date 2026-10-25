@@ -32,28 +32,7 @@ pub struct PioGrantResult {
     pub grant_id: u64,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(u8)]
-pub enum PioWidth {
-    U8 = 1,
-    U16 = 2,
-    U32 = 4,
-}
-
-impl PioWidth {
-    pub fn from_byte(b: u8) -> Option<Self> {
-        match b {
-            1 => Some(Self::U8),
-            2 => Some(Self::U16),
-            4 => Some(Self::U32),
-            _ => None,
-        }
-    }
-
-    pub fn bytes(self) -> u16 {
-        self as u16
-    }
-}
+pub use super::width::PioWidth;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PioError {
@@ -69,7 +48,9 @@ pub enum PioError {
     NotHolder,
     BadOffset,
     BadWidth,
+    WindowHeld,
     /// The window includes a port the machine keeps (window.rs, K6).
     ReservedPort,
+    /// The BAR runs into ports firmware keeps for itself.
     FirmwareReserved,
 }

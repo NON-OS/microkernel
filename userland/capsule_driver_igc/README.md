@@ -78,9 +78,9 @@ down, the part reset, both rings restart from slot 0, and the part goes
 back on the air under the same station address, Bus Master staying on.
 
 Teardown is stand-down (both queues and engines off), reset, Bus Master off
-(effective once the kernel's K6 lands; the broker ORs Command bits today),
-then `MkDeviceRelease`, which is the real guard: it clears Bus Master with a
-read-back before freeing every grant.
+(the masked Command write, which names the bits it changes; the plain one
+only ORs bits on), then `MkDeviceRelease`, which is the real guard: it
+clears Bus Master with a read-back before freeing every grant.
 
 ## Failure model
 
