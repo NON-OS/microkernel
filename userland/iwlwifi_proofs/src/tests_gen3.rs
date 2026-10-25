@@ -15,6 +15,8 @@ mod gen3_cmdq_tests;
 #[cfg(test)]
 mod gen3_fetch_tests;
 #[cfg(test)]
+mod gen3_fuzz_tests;
+#[cfg(test)]
 mod gen3_image_tests;
 #[cfg(test)]
 mod gen3_layout_tests;
