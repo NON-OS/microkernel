@@ -19,12 +19,18 @@ use core::str;
 
 use super::installer_gate::require_installer;
 use super::path::normalize;
+use super::persist_gate::may_persist;
 use super::util::{map_blk_err, split_caller};
-use crate::protocol::{encode_response, Request, EINVAL, MAX_PATH_BYTES, OP_STORE_REMOVE};
+use crate::protocol::{encode_response, Request, EACCES, EINVAL, MAX_PATH_BYTES, OP_STORE_REMOVE};
 
 pub fn store_remove(req: Request<'_>, sender_pid: u32) -> Vec<u8> {
     if let Err(s) = require_installer(sender_pid) {
         return encode_response(OP_STORE_REMOVE, req.flags, req.request_id, s, &[]);
+    }
+    // Removal rewrites the table, so on a boot that keeps nothing the disk is
+    // left exactly as it was found, as the install path leaves it.
+    if !may_persist() {
+        return encode_response(OP_STORE_REMOVE, req.flags, req.request_id, EACCES, &[]);
     }
     let (_pid, rest) = match split_caller(req.payload, sender_pid) {
         Ok(v) => v,

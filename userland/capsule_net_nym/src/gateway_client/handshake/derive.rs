@@ -18,6 +18,7 @@ use super::sizes::{EPHEMERAL_BYTES, SALT_BYTES};
 use crate::crypto::ecdh::x25519_shared;
 use crate::crypto::hkdf_blake3::{expand, extract};
 use crate::crypto::types::CryptoError;
+use crate::crypto::wipe::wipe;
 
 /// Gateway shared key: HKDF over BLAKE3, salted with the initiator's salt and
 /// keyed by the ephemeral Diffie-Hellman result. BLAKE3, not SHA-256: the
@@ -27,11 +28,19 @@ pub fn derive_shared_key(
     remote_ephemeral: &[u8; EPHEMERAL_BYTES],
     salt: &[u8; SALT_BYTES],
 ) -> Result<[u8; 32], CryptoError> {
-    let mut dh = [0u8; 32];
-    x25519_shared(own_ephemeral_secret, remote_ephemeral, &mut dh)?;
-    let mut prk = [0u8; 32];
-    extract(salt, &dh, &mut prk)?;
-    let mut key = [0u8; 32];
-    expand(&prk, &[], &mut key)?;
-    Ok(key)
+    let (mut dh, mut prk, mut key) = ([0u8; 32], [0u8; 32], [0u8; 32]);
+    let derived = x25519_shared(own_ephemeral_secret, remote_ephemeral, &mut dh)
+        .and_then(|()| extract(salt, &dh, &mut prk))
+        .and_then(|()| expand(&prk, &[], &mut key));
+    // The Diffie-Hellman result and the extracted key recover the shared key;
+    // neither outlives the call, whatever its outcome.
+    wipe(&mut dh);
+    wipe(&mut prk);
+    match derived {
+        Ok(()) => Ok(key),
+        Err(e) => {
+            wipe(&mut key);
+            Err(e)
+        }
+    }
 }

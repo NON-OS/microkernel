@@ -41,6 +41,7 @@ pub fn matches_boot(this: &ProtectionFlags) -> bool {
         && (this.umip_enabled || !boot.umip_enabled)
         && (this.nx_enabled || !boot.nx_enabled)
         && (this.wp_enabled || !boot.wp_enabled)
+        && this.pge_enabled == boot.pge_enabled
 }
 
 /// One line for `cpu`, built whole so it does not interleave with another
@@ -55,6 +56,7 @@ pub fn report_cpu(cpu: u32, flags: &MmuResult<ProtectionFlags>) {
             l.str(b" umip=").dec(f.umip_enabled as u64);
             l.str(b" nx=").dec(f.nx_enabled as u64);
             l.str(b" wp=").dec(f.wp_enabled as u64);
+            l.str(b" pge=").dec(f.pge_enabled as u64);
         }
         Err(_) => {
             l.str(b" FAIL no-execute absent");
