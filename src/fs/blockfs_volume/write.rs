@@ -19,7 +19,7 @@ use super::state::VOLUME;
 use crate::fs::blockfs;
 
 pub fn write(path: &[u8], data: &[u8]) -> Result<(), VolumeError> {
-    let mut guard = VOLUME.write();
+    let mut guard = crate::smp::write_responsive(&VOLUME);
     let state = guard.as_mut().ok_or(VolumeError::NotMounted)?;
     super::import_guard::guard(&state.key, &state.mount, path, "write")?;
     blockfs::write_path(&state.key, &mut state.mount, path, data).map_err(VolumeError::BlockFs)
