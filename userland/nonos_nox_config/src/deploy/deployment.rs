@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{mainnet, sepolia};
-use crate::chain::Chain;
 use crate::contract::Contract;
 
 /// One contract on one chain: its address, and the block it was deployed in,
@@ -63,12 +61,5 @@ impl Deployment {
             Some(d) => Some(d.address),
             None => None,
         }
-    }
-}
-
-pub const fn deployment(chain: Chain) -> &'static Deployment {
-    match chain {
-        Chain::Mainnet => &mainnet::MAINNET,
-        Chain::Sepolia => &sepolia::SEPOLIA,
     }
 }
