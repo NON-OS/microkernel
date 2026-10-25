@@ -26,6 +26,10 @@ After boot A the stick held `/nonos/settings/values`, 129 bytes, the
 keeper's record, with the timezone at 3. Before the fix that write was
 refused every time, so no Settings change made after setup was ever kept.
 
+The full serial logs are kept outside the repository (`*.log` is ignored);
+`serial-extract.txt` holds, per run, every policy line, every `[ZS]` line
+and the Power Off line, with their line numbers.
+
 ## What it does not show
 
 - One run of each, under TCG, on one virtual machine; real hardware is not covered.
