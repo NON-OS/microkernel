@@ -24,7 +24,14 @@ pub mod owner_gate;
 mod owner_gate_names_tests;
 #[cfg(test)]
 mod owner_gate_tests;
+#[path = "../../../../../src/syscall/microkernel/retired.rs"]
+pub mod retired;
+#[cfg(test)]
+mod retired_tests;
+#[cfg(test)]
+mod no_bgrt_tests;
 
 pub mod caps_of;
 pub mod enqueued_at;
+pub mod reply_dest;
 pub mod wait;

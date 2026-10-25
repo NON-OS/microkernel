@@ -19,15 +19,15 @@
 use alloc::string::String;
 
 use super::survey::Disk;
-use super::word::serial_word;
+use super::word::{bus_word, serial_word};
 use crate::driver::Driver;
 
 impl Disk {
     /// The word a person types to erase this disk: the last four characters
     /// of its serial when the part has one, so the word is on the sticker
     /// and on no other disk in the machine; the bus name otherwise, with
-    /// the instance after it past the first, so two SATA disks are told
-    /// apart.
+    /// the instance and the unit after it past the first, so two SATA disks,
+    /// or two disks on one IDE controller, are told apart.
     pub fn confirm_word(&self) -> String {
         if let Some(word) = self.identity.as_ref().and_then(|id| serial_word(id.serial_str())) {
             return word;
@@ -39,10 +39,9 @@ impl Disk {
             Driver::Wire => "emmc",
             Driver::Ufs => "ufs",
             Driver::Rtsx => "sd",
+            Driver::Ide => "ide",
+            Driver::Scsi => "scsi",
         };
-        match self.instance {
-            0 => String::from(bus),
-            n => alloc::format!("{bus}{n}"),
-        }
+        bus_word(bus, self.instance, self.unit)
     }
 }
