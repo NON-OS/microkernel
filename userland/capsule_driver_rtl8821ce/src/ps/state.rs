@@ -4,6 +4,7 @@
 
 use super::switch::LPS;
 use super::watch::{Seen, Watch};
+use crate::h2c::H2c;
 use crate::pcie::Aspm;
 use crate::regs::Mmio;
 
@@ -13,12 +14,13 @@ use crate::regs::Mmio;
 pub struct Ps {
     pub(super) aspm: Aspm,
     pub(super) asleep: bool,
+    pub(super) h2c: H2c,
     watch: Watch,
 }
 
 impl Ps {
     pub fn new(aspm: Aspm) -> Self {
-        Self { aspm, ..Self::default() }
+        Self { aspm, h2c: H2c::new(), ..Self::default() }
     }
 
     /// For the proofs: whether the firmware was put to sleep.

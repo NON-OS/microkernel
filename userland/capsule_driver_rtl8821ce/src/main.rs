@@ -20,6 +20,7 @@ mod discover;
 mod efuse;
 mod fw;
 mod fwload;
+mod h2c;
 mod link;
 mod mac;
 mod pcie;
