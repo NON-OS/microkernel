@@ -13,7 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-/// Read the 32-bit register at `addr`.
+/// Read the 32-bit register at `addr`, through libc's accessor so the
+/// load is ordered before any later read of DMA memory it vouches for.
 ///
 /// # Safety
 /// `addr` is a 4-byte aligned register inside a register window this

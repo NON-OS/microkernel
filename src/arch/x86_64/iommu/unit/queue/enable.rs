@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Putting a unit's invalidations on its queue (VT-d 3.4, 6.5.2), the way
-//! Linux does in intel/dmar.c, __dmar_enable_qi: tail to zero, the queue
-//! address, then QIE, then wait for QIES.
+//! Putting a unit's invalidations on its queue (VT-d 3.4, 6.5.2): tail to
+//! zero, the queue address, then QIE, then wait for QIES, since the address
+//! may only change while the queue is off.
 
 use super::disable::disable;
 use super::state::slot_of;

@@ -21,6 +21,7 @@
 //! the runtime-registrable net names with the register right, is allowed.
 
 use super::register_allowed::allowed;
+use crate::process::core::spawn_tier::set_system;
 use crate::services::registry::{hold, set_right};
 use crate::syscall::microkernel::errnos::ERRNO_PERM;
 
@@ -45,4 +46,13 @@ fn nor_takes_it_while_it_is_free_even_with_the_register_right() {
     assert_eq!(allowed("net.dns", 5000, INTRUDER), Ok(()), "a runtime net name");
     set_right(false);
     assert_eq!(allowed("net.dns", 5000, INTRUDER), Err(ERRNO_PERM), "and only with the right");
+}
+
+#[test]
+fn a_publisher_s_capsule_takes_no_runtime_name_even_with_the_right() {
+    set_right(true);
+    set_system(false);
+    let refused = allowed("net.dns", 5000, INTRUDER);
+    set_system(true);
+    assert_eq!(refused, Err(ERRNO_PERM), "only one spawned the system's own (L61)");
 }

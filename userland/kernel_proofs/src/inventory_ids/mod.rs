@@ -16,8 +16,15 @@
 
 //! The inventory names a network, storage or SMBus part as the capsule that
 //! takes it does: the kernel's tables and classification included by path,
-//! beside the capsules' own.
+//! beside the capsules' own. The whole of `classify_device` is here too, for
+//! the broker's proofs that read a record after its fixed windows are placed.
 
+#[path = "../../../../src/hardware/inventory/classify.rs"]
+mod classify;
+#[path = "../../../../src/hardware/inventory/classify_device.rs"]
+mod classify_device;
+#[path = "../../../../src/hardware/inventory/classify_display.rs"]
+mod classify_display;
 #[path = "../../../../src/hardware/inventory/classify_network.rs"]
 mod classify_network;
 #[path = "../../../../src/hardware/inventory/classify_serial_bus.rs"]
@@ -33,6 +40,12 @@ mod intel_ethernet_ids;
 mod realtek_ids;
 // Mounted once, by the VMD proofs; classify_storage reaches it here.
 use crate::proofs_3::vmd_domain::inventory_vmd as vmd;
+// Likewise the SD host lists, which `classify` reads, and the platform rule.
+use crate::proofs_1::emmc_hosts::{emmc, sd_host};
+use crate::hardware::platform_sd;
+
+pub(crate) use classify_device::classify_device;
+pub(crate) use family::HardwareFamily;
 
 #[path = "../../../capsule_driver_e1000/src/constants/pci.rs"]
 #[allow(dead_code)]

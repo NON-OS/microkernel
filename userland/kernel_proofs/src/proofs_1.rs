@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs, group 1 of 6: test modules mounted by path
-//! from lib.rs, each at its own file.
+//! Host proofs, group 1 of 8: test modules mounted by path
+//! from proofs.rs, each at its own file.
 
 #[path = "addr_align/mod.rs"]
 pub mod addr_align;

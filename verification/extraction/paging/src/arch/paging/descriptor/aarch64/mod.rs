@@ -2,8 +2,14 @@
 // The aarch64 backend. `read.rs` reads its bit positions through `super::bits`
 // and `build.rs` reads the neutral flags through `super::super::flags`, so all
 // three files are mirrored and the module graph matches the kernel's.
+// `build.rs` picks its MAIR slot through `super::memory_type`, which names
+// `crate::arch::aarch64::mmu::MemoryType`, so that file is mounted too. It is
+// private, as in the kernel: nothing outside this backend calls it.
 #[path = "../../../../../../../../src/arch/paging/descriptor/aarch64/bits.rs"]
 pub mod bits;
+
+#[path = "../../../../../../../../src/arch/paging/descriptor/aarch64/memory_type.rs"]
+mod memory_type;
 
 #[path = "../../../../../../../../src/arch/paging/descriptor/aarch64/read.rs"]
 pub mod read;

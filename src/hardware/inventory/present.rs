@@ -16,7 +16,7 @@
 
 //! Whether the machine has a device of one family, from the broker's list.
 
-use super::classify::classify_device;
+use super::classify_device::classify_device;
 use super::family::HardwareFamily;
 use crate::hardware::broker::list;
 

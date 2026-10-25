@@ -46,6 +46,9 @@ pub fn current(regs: Regs) -> Option<DispiMode> {
         return None;
     }
     let (width, height) = (r(DISPI_INDEX_XRES) as u32, r(DISPI_INDEX_YRES) as u32);
-    let virt = (r(DISPI_INDEX_VIRT_WIDTH) as u32).max(width);
-    (width > 0 && height > 0).then_some(DispiMode { width, height, stride: virt * 4 })
+    let virt = r(DISPI_INDEX_VIRT_WIDTH) as u32;
+    // Lines narrower than the mode would overlap one another in video
+    // memory, which no copy draws at any stride: not a mode to keep.
+    let drawn = width > 0 && height > 0 && virt >= width;
+    drawn.then_some(DispiMode { width, height, stride: virt * 4 })
 }
