@@ -26,7 +26,7 @@ pub fn plic_present() -> bool {
     PLIC_PRESENT.load(Ordering::Acquire)
 }
 
-pub fn install(base: u64) -> PlicResult<()> {
+pub(super) fn install(base: u64) -> PlicResult<()> {
     if base == 0 {
         return Err(PlicError::InvalidBase);
     }

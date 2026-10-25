@@ -10,8 +10,8 @@ Part of [NONOS documentation](README.md).
   CPU, and where each part lives.
 - [aarch64](architectures/aarch64.md): a preview port, how to build and boot it
   under QEMU, and what is missing.
-- [riscv64](architectures/riscv64.md): a backend that does not build into a
-  kernel, and what it would take.
+- [riscv64](architectures/riscv64.md): a backend that type-checks as a kernel
+  but neither links nor boots, and what it would take.
 
 ### Release notes
 

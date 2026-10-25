@@ -16,13 +16,13 @@
 
 use core::arch::asm;
 
-pub fn switch_to(stack_top: u64) {
+pub(super) fn switch_to(stack_top: u64) {
     unsafe {
         asm!("mv sp, {0}", in(reg) stack_top, options(nostack));
     }
 }
 
-pub fn current_stack_pointer() -> u64 {
+pub(super) fn current_stack_pointer() -> u64 {
     let sp: u64;
     unsafe {
         asm!("mv {}, sp", out(reg) sp, options(nostack));

@@ -25,7 +25,7 @@
 use core::sync::atomic::{compiler_fence, Ordering};
 
 #[inline(always)]
-pub(in crate::memory::mmio::ordering) fn fence_writes() {
+pub(crate) fn fence_writes() {
     compiler_fence(Ordering::Release);
     // SAFETY: `dsb st` takes no operands and touches no register or flag. It
     // waits for every prior store to complete, which is the hardware half of
@@ -36,7 +36,7 @@ pub(in crate::memory::mmio::ordering) fn fence_writes() {
 }
 
 #[inline(always)]
-pub(in crate::memory::mmio::ordering) fn fence_reads() {
+pub(crate) fn fence_reads() {
     // SAFETY: `dsb ld` takes no operands and touches no register or flag. It
     // waits for every prior load to complete before later accesses issue.
     unsafe {
@@ -46,7 +46,7 @@ pub(in crate::memory::mmio::ordering) fn fence_reads() {
 }
 
 #[inline(always)]
-pub(in crate::memory::mmio::ordering) fn fence_full() {
+pub(crate) fn fence_full() {
     compiler_fence(Ordering::SeqCst);
     // SAFETY: `dsb sy` takes no operands and touches no register or flag. It
     // is the full-system barrier, the only one that orders stores against
