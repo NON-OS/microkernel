@@ -19,6 +19,7 @@ use alloc::vec;
 use nonos_libc::mk_ipc_recv_from;
 
 use crate::protocol::{parse, HDR_LEN, IPC_PAYLOAD_MAX};
+use crate::server::focus_notify::tell_if_moved;
 use crate::server::respond;
 use crate::server::tell_compositor::resync;
 use crate::state::Context;
@@ -36,7 +37,9 @@ pub fn run(mut ctx: Context) -> ! {
     loop {
         sweep_ticks = sweep_ticks.wrapping_add(1);
         if sweep_ticks % SWEEP_INTERVAL_TICKS == 0 {
+            let was = ctx.focus.current();
             sweep_dead(&mut ctx);
+            tell_if_moved(&mut ctx, was);
         }
         resync(&mut ctx);
         // A restack owed to the compositor is due within its backoff, which
@@ -54,6 +57,8 @@ pub fn run(mut ctx: Context) -> ! {
                 continue;
             }
         };
+        let was = ctx.focus.current();
         dispatch(&mut ctx, sender_pid, req, body, &mut tx);
+        tell_if_moved(&mut ctx, was);
     }
 }
