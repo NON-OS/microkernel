@@ -40,6 +40,12 @@ pub mod packages;
 pub mod pkg_frame;
 #[path = "../support/process.rs"]
 pub mod process;
+#[path = "../../../capsule_installer/src/server"]
+pub mod server {
+    pub mod outcomes;
+}
+#[path = "load_outcome_tests.rs"]
+mod load_outcome_tests;
 #[path = "../support/services.rs"]
 pub mod services;
 #[path = "../support/pkg_syscall.rs"]
