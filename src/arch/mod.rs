@@ -27,6 +27,7 @@ pub mod halt;
 mod hv;
 pub(crate) mod idle;
 mod init_boot_memory;
+pub(crate) mod mmio_order;
 mod rmrr_regions;
 mod dma_snoops_caches;
 mod early_screen;
@@ -35,6 +36,7 @@ mod own_core_kind;
 mod init_broker_irq_routing;
 mod outgoing;
 mod iommu_unit;
+#[cfg(not(target_arch = "x86_64"))]
 mod iommu_window;
 pub mod interrupt_controller;
 pub mod paging;
@@ -57,6 +59,7 @@ pub mod wall_clock;
 pub mod cache_flush;
 mod cache_line_ops;
 mod cache_span;
+pub(crate) mod dma_sync;
 pub mod firmware_table;
 pub mod write_combining;
 #[cfg(target_arch = "x86_64")]
@@ -92,6 +95,7 @@ pub(crate) use remap_pci_windows::remap_pci_windows;
 pub(crate) use report_dma_posture::report_dma_posture;
 pub(crate) use outgoing::keep_outgoing_user_state;
 pub(crate) use iommu_unit::iommu_unit_in_service;
+#[cfg(not(target_arch = "x86_64"))]
 pub(crate) use iommu_window::iommu_register_window;
 pub(crate) use reserved_regions::{device_reserved_regions, reserved_memory_regions};
 pub(crate) use run_without_interrupts::run_without_interrupts;

@@ -24,8 +24,7 @@ pub(crate) const fn tag4(b: &[u8; 4]) -> i64 {
 pub(crate) unsafe fn sys3(num: i64, a1: u64, a2: u64, a3: u64) -> i64 {
     let r: i64;
     unsafe {
-        core::arch::asm!("syscall", inout("rax") num => r, in("rdi") a1, in("rsi") a2,
-            in("rdx") a3, out("rcx") _, out("r11") _);
+        r = crate::sys::pal::trap::trap(num, a1, a2, a3, 0, 0, 0);
     }
     r
 }
@@ -33,8 +32,7 @@ pub(crate) unsafe fn sys3(num: i64, a1: u64, a2: u64, a3: u64) -> i64 {
 pub(crate) unsafe fn sys5(num: i64, a1: u64, a2: u64, a3: u64, a4: u64, a5: u64) -> i64 {
     let r: i64;
     unsafe {
-        core::arch::asm!("syscall", inout("rax") num => r, in("rdi") a1, in("rsi") a2,
-            in("rdx") a3, in("r10") a4, in("r8") a5, out("rcx") _, out("r11") _);
+        r = crate::sys::pal::trap::trap(num, a1, a2, a3, a4, a5, 0);
     }
     r
 }
@@ -45,8 +43,7 @@ pub(crate) unsafe fn sys5(num: i64, a1: u64, a2: u64, a3: u64, a4: u64, a5: u64)
 pub(crate) unsafe fn sys6(num: i64, a1: u64, a2: u64, a3: u64, a4: u64, a5: u64, a6: u64) -> i64 {
     let r: i64;
     unsafe {
-        core::arch::asm!("syscall", inout("rax") num => r, in("rdi") a1, in("rsi") a2,
-            in("rdx") a3, in("r10") a4, in("r8") a5, in("r9") a6, out("rcx") _, out("r11") _);
+        r = crate::sys::pal::trap::trap(num, a1, a2, a3, a4, a5, a6);
     }
     r
 }

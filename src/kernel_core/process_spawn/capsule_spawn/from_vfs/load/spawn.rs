@@ -28,8 +28,8 @@ use crate::security::capsule_manifest::{decode as decode_manifest, EndpointKind}
 // declares and the caller cannot misname or misroute it. The artifacts then go
 // through the same verified spawn path baked capsules use, with every identity,
 // manifest, publisher signature, capability, and attestation check intact.
-// requested_caps is the upper bound for optional caps, identical to a baked
-// spawn site; the verified manifest still decides what is actually granted.
+// requested_caps may name only what the manifest offers (asked.rs); the
+// verified manifest still decides what is actually granted.
 pub(crate) fn load_capsule_from_vfs(
     artifacts: CapsuleArtifacts,
     requested_caps: u64,
@@ -40,6 +40,8 @@ pub(crate) fn load_capsule_from_vfs(
     let (service_name, service_port) = endpoint(&manifest, EndpointKind::Service)?;
     let (reply_name, reply_port) = endpoint(&manifest, EndpointKind::Reply)?;
     super::names::check(service_name, reply_name, manifest.namespace_str())?;
+    let requested = super::asked::within_manifest(&manifest, requested_caps, service_name)?;
+    super::bound::check(&manifest, requested, on_behalf_of, service_name)?;
 
     /*
      * Borrowed from artifacts, which this function owns and drops on the way
@@ -63,7 +65,7 @@ pub(crate) fn load_capsule_from_vfs(
         manifest_bytes: &artifacts.manifest,
         attestation_trailer: &artifacts.trailer,
         target_triple: manifest.target_triple_str(),
-        requested_caps: requested_caps & (manifest.required_caps | manifest.optional_caps),
+        requested_caps: requested,
         debug_tag: b"[RUNTIME-LOAD] elf error:",
     };
     let (trust, now_ms) = super::trust::trust_and_now()?;

@@ -16,12 +16,12 @@
 
 //! Where the pool's raw bytes come from, per architecture.
 
-#[cfg(target_arch = "aarch64")]
-mod aarch64;
+#[cfg(not(target_arch = "x86_64"))]
+mod kernel;
 #[cfg(target_arch = "x86_64")]
 mod x86_64;
 
-#[cfg(target_arch = "aarch64")]
-pub(super) use aarch64::fill;
+#[cfg(not(target_arch = "x86_64"))]
+pub(super) use kernel::fill;
 #[cfg(target_arch = "x86_64")]
 pub(super) use x86_64::fill;

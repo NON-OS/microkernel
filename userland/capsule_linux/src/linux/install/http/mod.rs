@@ -17,6 +17,7 @@
 //! HTTP to a mirror, over the network the person chose.
 
 pub(super) mod anyone;
+#[cfg(feature = "dev-mirror")]
 pub(super) mod direct;
 pub(super) mod get;
 pub(super) mod reach;
