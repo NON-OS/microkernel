@@ -88,12 +88,12 @@ pub const PROVEN: &[(&str, &str)] = &[
     ("coder-7b", "docs/using/evidence/qwen-arch/README.md: small answered"),
     ("coder-14b", "docs/using/evidence/qwen-arch/README.md: small answered"),
     ("coder-32b", "docs/using/evidence/qwen-arch/README.md: small answered"),
-    ("qwen3-0.6b", "docs/using/evidence/qwen-arch/README.md: qwen3-0.6b answered"),
-    ("qwen3-1.7b", "docs/using/evidence/qwen-arch/README.md: qwen3-0.6b answered"),
-    ("qwen3-4b", "docs/using/evidence/qwen-arch/README.md: qwen3-0.6b answered"),
-    ("qwen3-8b", "docs/using/evidence/qwen-arch/README.md: qwen3-0.6b answered"),
-    ("qwen3-14b", "docs/using/evidence/qwen-arch/README.md: qwen3-0.6b answered"),
-    ("qwen3-32b", "docs/using/evidence/qwen-arch/README.md: qwen3-0.6b answered"),
+    ("qwen3-0.6b", "docs/using/evidence/qwen-arch-qwen3/README.md: qwen3-0.6b answered"),
+    ("qwen3-1.7b", "docs/using/evidence/qwen-arch-qwen3/README.md: qwen3-0.6b answered"),
+    ("qwen3-4b", "docs/using/evidence/qwen-arch-qwen3/README.md: qwen3-0.6b answered"),
+    ("qwen3-8b", "docs/using/evidence/qwen-arch-qwen3/README.md: qwen3-0.6b answered"),
+    ("qwen3-14b", "docs/using/evidence/qwen-arch-qwen3/README.md: qwen3-0.6b answered"),
+    ("qwen3-32b", "docs/using/evidence/qwen-arch-qwen3/README.md: qwen3-0.6b answered"),
 ];
 
 /* Whether `tier` is proven on NONOS, so may be a default. */
