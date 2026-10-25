@@ -38,7 +38,10 @@ pub fn answer(job: Option<&mut Job>, sender: u32, h: &Header, body: &[u8]) -> Ve
             if job_of(body).is_some_and(|(id, _)| id == j.id) && sender == j.owner =>
         {
             match (h.op, job_of(body)) {
-                (STATUS, Some((_, None))) => (j.status, status_body(j.stage, j.total()).to_vec()),
+                (STATUS, Some((_, None))) => {
+                    j.told |= j.stage == Stage::Failed;
+                    (j.status, status_body(j.stage, j.total()).to_vec())
+                }
                 (GET, Some((_, Some(at)))) if j.stage == Stage::Done => slice(j, at as usize),
                 _ => (EINVAL, Vec::new()),
             }
