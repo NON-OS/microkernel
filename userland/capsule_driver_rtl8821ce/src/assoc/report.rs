@@ -4,7 +4,8 @@
 
 use super::outcome::Outcome;
 use super::radio::Counters;
-use nonos_wifi_core::mlme::{Mlme, MlmeFailure, MlmeState};
+use super::state_code::state_code;
+use nonos_wifi_core::mlme::{Mlme, MlmeFailure};
 use nonos_wifi_core::wpa::akm::Akm;
 
 /// The join outcome together with how far it got: frames transmitted, frames
@@ -40,18 +41,6 @@ pub struct Report {
     pub failure: Option<MlmeFailure>,
     /// The AKM chosen from the beacon, once one was.
     pub akm: Option<Akm>,
-}
-
-/// The state machine's progress as a single byte, for reporting.
-fn state_code(s: MlmeState) -> u8 {
-    match s {
-        MlmeState::Scanning => 0,
-        MlmeState::Authenticating => 1,
-        MlmeState::Associating => 2,
-        MlmeState::FourWay => 3,
-        MlmeState::Connected => 4,
-        MlmeState::Failed => 5,
-    }
 }
 
 // Wrap an outcome with the progress counters and the final state.
