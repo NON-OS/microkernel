@@ -41,10 +41,13 @@ python3 scripts/check_driver_proofs.py
 The tree-wide script takes longer:
 
 ```
-bash nonos-ci/run-static-checks.sh
+NONOS_STATIC_SKIP_KEYS=1 bash nonos-ci/run-static-checks.sh
 ```
 
-Not tested in this release.
+One gate compares the market operator's public key in `.keys/` with the bytes
+it must hold. With `NONOS_STATIC_SKIP_KEYS=1` that gate checks the trust list's
+shape and opens nothing under `.keys/`; every run runs it that way. The
+both sides.
 
 ## Kani
 
