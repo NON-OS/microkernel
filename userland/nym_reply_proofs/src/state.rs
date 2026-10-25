@@ -46,3 +46,4 @@ pub use session::Session;
 pub mod identity;
 #[path = "../../capsule_net_nym/src/state/shared_key.rs"]
 pub mod shared_key;
+pub use shared_key::keep_gateway_key_for;
