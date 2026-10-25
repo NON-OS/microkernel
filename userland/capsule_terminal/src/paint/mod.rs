@@ -16,6 +16,7 @@
 
 mod block_chrome;
 mod block_meta;
+mod complete_panel;
 mod compose;
 mod constants;
 mod draw_cursor;

@@ -20,6 +20,7 @@ use nonos_app_skeleton::PaintBuffer;
 
 use crate::layout::{follow, Layout};
 use crate::paint::block_chrome::draw_block_chrome;
+use crate::paint::complete_panel::draw_completions;
 use crate::paint::draw_input_line::draw_input_line;
 use crate::paint::fetch::draw_fetch;
 use crate::paint::footer::draw_footer;
@@ -65,6 +66,7 @@ pub fn paint(
         draw_find_bar(find, fb, l.input, m, t);
     } else if !owned {
         draw_input_line(state, fb, l.input, m, t);
+        draw_completions(state, fb, &l, m, t);
     }
     let running = state.fg_running || vt.alt_active();
     let mode = hint_sets::mode(running, state.find.is_some(), state.search.is_some());
