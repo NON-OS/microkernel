@@ -5046,6 +5046,17 @@ else
 fi
 unset mirror_out
 
+# A publisher's capsule declaring a name outside its namespace is refused at
+# load (name_rule.rs), so it would install and never start.
+if pub_out="$(python3 scripts/check_publisher_names.py --self-test 2>&1 &&
+              python3 scripts/check_publisher_names.py 2>&1)"; then
+    note ok "every publisher capsule's names are under its namespace (check_publisher_names)"
+else
+    tail -n 5 <<< "${pub_out}" >&2
+    fail_with "check_publisher_names: a publisher capsule declares a name outside its namespace"
+fi
+unset pub_out
+
 # Draining the raw input ring reads every key typed. Its bit belongs to the
 # input router and to no driver; the seal refuses it elsewhere too.
 # capsule_linux dials a local-network mirror directly, past nonos_route_link,
