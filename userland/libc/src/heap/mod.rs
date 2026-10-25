@@ -17,6 +17,8 @@
 mod allocator;
 mod init;
 mod span;
+mod stats;
 mod zero_on_free;
 
 pub use init::{init, init_sized, HeapError};
+pub use stats::{reset_peak, stats, Stats};

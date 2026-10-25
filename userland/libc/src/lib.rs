@@ -105,7 +105,10 @@ pub use foreign_signal::{
 };
 pub use graphics::{nonos_display_dimensions, nonos_display_physical_mm};
 #[cfg(feature = "heap")]
-pub use heap::{init as heap_init, init_sized as heap_init_sized, HeapError};
+pub use heap::{
+    init as heap_init, init_sized as heap_init_sized, reset_peak as heap_reset_peak,
+    stats as heap_stats, HeapError, Stats as HeapStats,
+};
 pub use install_source::{
     mk_install_source, mk_install_source_size, INSTALL_SOURCE_BOOT_ROOT_RECORD,
     INSTALL_SOURCE_BOOT_TRAILER, INSTALL_SOURCE_KERNEL_APPROVAL, INSTALL_SOURCE_KERNEL_IMAGE,
