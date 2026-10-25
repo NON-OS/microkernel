@@ -19,6 +19,7 @@ use nonos_marketplace_abi::MarketplaceEntry;
 use super::decode_commerce::commerce_to_json;
 use super::decode_enums::price_kind_str;
 use super::decode_release::release_to_json;
+use super::hex_more::hex_or_empty;
 use super::schema::{EntryJson, PriceJson, TokenJson};
 
 pub(super) fn entry_to_json(e: &MarketplaceEntry) -> EntryJson {
@@ -30,6 +31,7 @@ pub(super) fn entry_to_json(e: &MarketplaceEntry) -> EntryJson {
         publisher_pubkey: hex::encode(e.publisher_pubkey),
         publisher_eth_address: format!("0x{}", hex::encode(e.publisher_eth_address)),
         description: e.description.clone(),
+        logo_hash: hex_or_empty(&e.logo_hash),
         price: PriceJson {
             kind: price_kind_str(e.price.kind).to_string(),
             amount_atomic: e.price.amount_atomic.to_string(),
