@@ -90,13 +90,16 @@ theorem is_wx_violation_iff (p : memory.paging.types.permissions.flags.PagePermi
 set_option maxHeartbeats 64000000 in
 /-- The extracted to_pte_flags never fails, and its output carries exactly
     the security bits the model demands: present set, writable iff WRITE,
-    user iff USER, NX iff not EXECUTE. -/
+    user iff USER, NX iff not EXECUTE, and GLOBAL iff GLOBAL was asked on a
+    page that is not USER (P-06: a global user entry would outlive the CR3
+    write to the next address space while CR4.PGE is on). -/
 theorem to_pte_flags_spec (p : memory.paging.types.permissions.flags.PagePermissions) :
     ∃ v, to_pte_flags p = ok v ∧
       v.val.testBit 0 = true ∧
       v.val.testBit 1 = p.bits.val.testBit 1 ∧
       v.val.testBit 2 = p.bits.val.testBit 3 ∧
-      v.val.testBit 63 = !p.bits.val.testBit 2 := by
+      v.val.testBit 63 = !p.bits.val.testBit 2 ∧
+      v.val.testBit 8 = (p.bits.val.testBit 4 && !p.bits.val.testBit 3) := by
   simp only [to_pte_flags,
     memory.paging.types.permissions.convert.PagePermissions.to_pte_flags,
     memory.paging.types.permissions.flags.PagePermissions.contains,
@@ -138,7 +141,7 @@ theorem to_pte_flags_spec (p : memory.paging.types.permissions.flags.PagePermiss
   cases h1 : p.bits.val.testBit 1 <;> cases h2 : p.bits.val.testBit 3 <;>
     cases h3 : p.bits.val.testBit 6 <;> cases h4 : p.bits.val.testBit 5 <;>
     cases h5 : p.bits.val.testBit 4 <;> cases h6 : p.bits.val.testBit 2 <;>
-    exact ⟨_, rfl, by decide, by decide, by decide, by decide⟩
+    exact ⟨_, rfl, by decide, by decide, by decide, by decide, by decide⟩
 
 /-- The W^X page theorem on the extracted encoder: a permission set that is
     not a violation never encodes a page both writable and executable. -/
@@ -146,7 +149,7 @@ theorem extracted_no_wx_page (p : memory.paging.types.permissions.flags.PagePerm
     (v : Std.U64) (hv : to_pte_flags p = ok v)
     (hok : ¬(p.bits.val.testBit 1 = true ∧ p.bits.val.testBit 2 = true)) :
     ¬(v.val.testBit 1 = true ∧ v.val.testBit 63 = false) := by
-  obtain ⟨v', hv', _, hw, _, hx⟩ := to_pte_flags_spec p
+  obtain ⟨v', hv', _, hw, _, hx, _⟩ := to_pte_flags_spec p
   rw [hv] at hv'
   have heq : v = v' := (ok.injEq _ _).mp hv'
   subst heq
@@ -160,6 +163,17 @@ theorem extracted_no_wx_page (p : memory.paging.types.permissions.flags.PagePerm
     · rw [h] at h63
       simp at h63
     · rfl
+
+/-- No user page is encoded GLOBAL by the extracted encoder (P-06). -/
+theorem extracted_user_page_never_global (p : memory.paging.types.permissions.flags.PagePermissions)
+    (v : Std.U64) (hv : to_pte_flags p = ok v) (huser : p.bits.val.testBit 3 = true) :
+    v.val.testBit 8 = false := by
+  obtain ⟨v', hv', _, _, _, _, hg⟩ := to_pte_flags_spec p
+  rw [hv] at hv'
+  have heq : v = v' := (ok.injEq _ _).mp hv'
+  subst heq
+  rw [hg, huser]
+  simp
 
 /-! ## The extracted user-copy range policy -/
 
