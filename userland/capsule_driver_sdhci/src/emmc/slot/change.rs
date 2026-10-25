@@ -32,7 +32,8 @@ impl<M: Mmio + Clone, C: Clock + Clone, L: Log + Clone> Slot<M, C, L> {
         self.arm();
     }
 
-    /// One attempt; a failure has been logged by the bring-up itself.
+    /// One attempt, on a host reset for this card; a failure has been
+    /// logged by the reset or the bring-up itself.
     pub(super) fn bring_up(&mut self) {
         match EmmcDisk::reset(self.parts.host()).and_then(|h| EmmcDisk::bring_up(h, self.data)) {
             Ok(d) => {

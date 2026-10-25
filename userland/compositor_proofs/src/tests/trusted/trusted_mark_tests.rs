@@ -52,6 +52,7 @@ fn the_mark_is_lit_only_while_the_band_is_held() {
             &Indicators::default(),
             false,
             held,
+            false,
         );
         assert_eq!(mark(&px), want, "held {held}");
     }
@@ -63,7 +64,7 @@ fn the_lock_screen_leaves_the_band_on_top() {
     let whole = Rect { x: 0, y: 0, width: W, height: H };
     // The lock fills the screen; the band is drawn after it, as every frame does.
     fill_rect(screen(&mut px), whole, LOCK);
-    draw(screen(&mut px), whole, &Indicators::default(), false, true);
+    draw(screen(&mut px), whole, &Indicators::default(), false, true, false);
     assert_eq!(mark(&px), TRUSTED_ON);
     let b = band(W, H);
     assert!((b.y..b.y + b.height).all(|y| (b.x..W).all(|x| px[(y * W + x) as usize] != LOCK)));

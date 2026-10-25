@@ -18,7 +18,7 @@ use super::args::Args;
 use crate::syscall::microkernel::errnos::ERRNO_INVAL;
 use crate::syscall::microkernel::hv_backdoor::sys_hv_backdoor;
 use crate::syscall::microkernel::hv_vmbus::{
-    sys_hv_events, sys_hv_post, sys_hv_recv, sys_hv_signal,
+    sys_hv_channel, sys_hv_events, sys_hv_post, sys_hv_recv, sys_hv_signal,
 };
 use crate::syscall::microkernel::narrow::{u32_arg, u8_arg};
 use crate::syscall::microkernel::numbers::*;
@@ -40,6 +40,7 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_HV_RECV => sys_hv_recv(a.a0, a.a1),
         SYS_HV_EVENTS => sys_hv_events(a.a0, a.a1, a.a2),
         SYS_HV_SIGNAL => sys_hv_signal(a.a0, a.a1),
+        SYS_HV_CHANNEL => sys_hv_channel(a.a0, a.a1),
         _ => return None,
     })
 }

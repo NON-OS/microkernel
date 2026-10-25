@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs, group 5 of 6: test modules mounted by path
-//! from lib.rs, each at its own file.
+//! Host proofs, group 5 of 8: test modules mounted by path
+//! from proofs.rs, each at its own file.
 
 #[path = "acpi_cpu/mod.rs"]
 pub mod acpi_cpu;
@@ -36,8 +36,6 @@ pub mod acpi_tables;
 pub mod arm_acpi;
 #[path = "arm_acpi_tests/mod.rs"]
 pub mod arm_acpi_tests;
-#[path = "bgrt/mod.rs"]
-pub mod bgrt;
 #[path = "boot_cpu_id/mod.rs"]
 pub mod boot_cpu_id;
 #[path = "device_shown/mod.rs"]

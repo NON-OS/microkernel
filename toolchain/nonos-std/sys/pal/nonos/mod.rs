@@ -5,6 +5,8 @@
 
 pub mod futex;
 pub mod os;
+pub mod thread_regs;
+pub mod trap;
 pub mod time;
 
 mod common;

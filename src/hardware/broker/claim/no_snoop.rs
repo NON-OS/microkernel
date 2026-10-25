@@ -21,8 +21,8 @@
 //! holds a stale line over what the device wrote, and a ring the driver just
 //! filled can be read from memory before its dirty lines get there. Cleared,
 //! the function must snoop every request, so a write-back grant is coherent
-//! on every machine. Linux leaves the bit to drivers; HD Audio's own snoop
-//! bits (quirk_bits) stay the driver's.
+//! on every machine. HD Audio's own snoop bits (quirk_bits) stay the
+//! driver's.
 
 use crate::drivers::pci::ConfigSpace;
 

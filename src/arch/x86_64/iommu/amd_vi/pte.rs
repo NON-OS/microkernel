@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! AMD IOMMU page table entries (spec 48882, section 2.2.3), as Linux builds
-//! them in amd/io_pgtable.c: PR in bit 0, the next level in bits 11:9, the
+//! AMD IOMMU page table entries (spec 48882, section 2.2.3), in the spec's
+//! entry format: PR in bit 0, the next level in bits 11:9, the
 //! address in 51:12, FC in 60, IR in 61 and IW in 62. A directory names the
 //! level of the table below it; a 4 KiB leaf at level 1 names level 0. Pure.
 
@@ -30,7 +30,8 @@ const WRITE: u64 = 1 << 62;
 const ADDR_MASK: u64 = 0x000F_FFFF_FFFF_F000;
 
 /// A directory entry at `level` (2 or more) pointing at the table below.
-/// IR and IW are set so the leaf alone decides, as Linux does.
+/// IR and IW are set so the leaf alone decides: permissions are the AND of
+/// every level's (48882, 2.2.3).
 pub const fn directory(table_phys: u64, level: u8) -> u64 {
     PRESENT | (((level as u64 - 1) & 0x7) << 9) | (table_phys & ADDR_MASK) | READ | WRITE
 }

@@ -18,6 +18,8 @@
 //! recorded per thread; every test runs on its own thread.
 
 mod broker;
+#[path = "../../../piix_ide_proofs/libc_shim/src/command_judge.rs"]
+pub mod command_judge;
 mod devices;
 mod dma;
 mod dma_at;
@@ -26,8 +28,9 @@ mod pio;
 mod script;
 
 pub use broker::{
-    mk_device_claim, mk_device_release, mk_pci_config_write, mk_pio_grant, mk_pio_release,
-    PioGrantOut, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_INTX_DISABLE,
+    mk_device_claim, mk_device_release, mk_pci_config_update, mk_pci_config_write, mk_pio_grant,
+    mk_pio_release, PioGrantOut, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_INTX_DISABLE,
+    MK_PCI_CMD_MEMORY_SPACE,
 };
 pub use devices::{
     mk_device_list, set_devices, Bar, DeviceRecord, BAR_KIND_MMIO, BAR_KIND_PIO, BUS_KIND_PCI,

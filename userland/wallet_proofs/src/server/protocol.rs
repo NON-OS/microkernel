@@ -20,6 +20,8 @@
 pub mod encode;
 #[path = "../../../capsule_keyring/src/protocol/errno.rs"]
 pub mod errno;
+#[path = "../../../capsule_keyring/src/protocol/gated.rs"]
+pub mod gated;
 #[path = "../../../capsule_keyring/src/protocol/retired.rs"]
 pub mod retired;
 #[path = "../../../capsule_keyring/src/protocol/types.rs"]

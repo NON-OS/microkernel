@@ -9,8 +9,14 @@ dependencies. It covers:
 - the tags at the head of every derived id;
 - the price units.
 
-crate may name an address or a typehash. A redeploy changes this crate and
-nothing else.
+The owner is redeploying the marketplace contracts from scratch, so no other
+crate may name their addresses or a typehash, and a redeploy of them changes
+this crate and nothing else. The keyring's typed-data table
+(`server/typed/`, op 30) reads each struct, its domain and its verifying
+contract on each chain from here, so a deployed address reaches its signatures
+with no change there. The copies listed under Known copies are of contracts
+the redeploy does not touch: NOX, the staking proxy, Shield and the retired
+receipt settlement.
 
 ## What it holds
 
@@ -33,6 +39,7 @@ nothing else.
   `deployed()` answers both; `CONTRACTS` lists them in the order settle checks.
 - Every address is an `Option`. An undeployed contract is `None`, and
   `address()` answers `NotDeployed`, never a zero address. Today every new
+  contract is `None`, so every caller fails closed until the owner deploys.
 - Domains: `SETTLEMENT`, `ESCROW`, `BOND` and `LISTING`, all version "1".
   - `domain_words` gives the 160 bytes the domain separator hashes.
   - `domain_answer_matches` says whether a contract's ERC-5267
@@ -67,7 +74,7 @@ they are, and each must match this crate where they overlap:
 
 ## Tests
 
-16 host tests in `tests/`. `sha3` is a dev-dependency only, so every pinned
+22 host tests in `tests/`. `sha3` is a dev-dependency only, so every pinned
 hash is recomputed independently of the constant it checks:
 - typehashes from their type strings;
 - name hashes from their names;

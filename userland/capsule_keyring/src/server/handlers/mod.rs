@@ -16,6 +16,7 @@
 
 mod count;
 mod delete;
+mod list;
 mod list_wallet_rails;
 mod lock;
 mod metadata;
@@ -27,6 +28,8 @@ mod sign_stake;
 mod sign_stake_approve;
 mod sign_stake_locked;
 mod sign_tx;
+mod sign_tx_parse;
+mod sign_tx_rlp;
 mod sign_typed;
 mod sign_unstake;
 mod store;
@@ -43,6 +46,7 @@ mod wallet_recover;
 
 pub(super) use count::count;
 pub(super) use delete::delete;
+pub(super) use list::list;
 pub(super) use list_wallet_rails::list_wallet_rails;
 pub(super) use lock::lock;
 pub(super) use metadata::metadata;
@@ -54,7 +58,7 @@ pub(super) use sign_stake::sign_stake;
 pub(super) use sign_stake_approve::sign_stake_approve;
 pub(super) use sign_stake_locked::sign_stake_locked;
 pub(super) use sign_tx::sign_tx;
-pub(super) use sign_tx::MAX_DATA as SIGN_TX_MAX_DATA;
+pub(super) use sign_tx_parse::MAX_DATA as SIGN_TX_MAX_DATA;
 pub(super) use sign_typed::sign_typed;
 pub(super) use sign_unstake::sign_unstake;
 pub(super) use store::store;

@@ -1,0 +1,41 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# Fuzz target for OP_GET_LINUX_POLICY's two readers of the market's reply:
+# market_proto's and the kernel's own copy. Run with:
+# cargo +nightly-2026-01-16 fuzz run linux_policy
+
+[package]
+name = "nonos_market_proto-fuzz"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+nonos_market_proto = { path = ".." }
+
+[[bin]]
+name = "linux_policy"
+path = "fuzz_targets/linux_policy.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]

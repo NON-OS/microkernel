@@ -14,31 +14,33 @@ nix build .#core
 
 Not tested in this release.
 
-`make profiles` prints, for each profile, what it is, who it is for, its privacy posture and its [loader policy](../overview/glossary-linux-personality.md#loader-policy) (`describe`, `tools/nix/config.nix:193-202`).
+`make profiles` prints, for each profile, what it is, who it is for, its privacy posture and its [loader policy](../overview/glossary-linux-personality.md#loader-policy) (`describe`, `tools/nix/config.nix:208-217`).
 
-## The six profiles
+## The seven profiles
 
 | profile | kernel features it starts from | loader policy | takes out | for |
 |---|---|---|---|---|
-| `standard`, `tools/nix/config.nix` | `microkernel-full-gui` | `standard` | `capsule-serial-debug` | a person's own machine, every day |
-| `hardened`, `tools/nix/config.nix:78-85` | `microkernel-full-gui` | `production` | `capsule-serial-debug` | a machine that may be seized or tampered with |
-| `airgapped`, `tools/nix/config.nix:86-93` | `microkernel-full-gui` | `production` | `capsule-serial-debug` and every network feature | keys and documents that must never touch a network |
-| `qemu`, `tools/nix/config.nix:94-101` | `microkernel-desktop-gui`, `microkernel-setup-wizard` | `standard-qemu` | nothing | trying NONOS in a virtual machine, and CI's boot smoke test |
-| `dev`, `tools/nix/config.nix:102-109` | the qemu set and `nonos-dev-attest` | `dev-qemu` | nothing | working on NONOS itself |
-| `core`, `tools/nix/config.nix:110-117` | `microkernel-capsules` | `standard-qemu` | nothing | kernel work and the smallest image that boots |
+| `standard`, `tools/nix/config.nix:73-80` | `microkernel-full-gui` | `standard` | `capsule-serial-debug` | a person's own machine, every day |
+| `hardened`, `tools/nix/config.nix:81-88` | `microkernel-full-gui` | `production` | `capsule-serial-debug` | a machine that may be seized or tampered with |
+| `airgapped`, `tools/nix/config.nix:89-96` | `microkernel-full-gui` | `production` | `capsule-serial-debug` and every network feature | keys and documents that must never touch a network |
+| `qemu`, `tools/nix/config.nix:97-104` | `microkernel-desktop-gui`, `microkernel-setup-wizard` | `standard-qemu` | nothing | trying NONOS in a virtual machine, and CI's boot smoke test |
+| `dev`, `tools/nix/config.nix:105-112` | the qemu set and `nonos-dev-attest` | `dev-qemu` | nothing | working on NONOS itself |
+| `selftest`, `tools/nix/config.nix:113-120` | the dev set and `nonos-capsule-attack` | `dev-qemu` | nothing | the self-test: a capsule that tries what an attacker would at boot ([self-test.md](../security/self-test.md)) |
+| `gauntlet`, `tools/nix/config.nix:132-139` | `microkernel-desktop-gui` and `nonos-dev-attest`, with no first-boot setup | `dev-qemu` | nothing | the AgentProof Gauntlet: its apps start at boot, and a job's headless Terminal runs one agent in a box and exits ([gauntlet.md](../agentproof/gauntlet.md)) |
+| `core`, `tools/nix/config.nix:121-128` | `microkernel-capsules` | `standard-qemu` | nothing | kernel work and the smallest image that boots |
 
 `microkernel-full-gui`, the set `make` builds by default, is the desktop with every production hardware driver [capsule](../overview/glossary-boot-root-record.md#capsule), the market and first-boot setup (`Cargo.toml:627-646`). `microkernel-capsules`, the set of the `core` profile, is the core kernel with three capsules embedded: proof I/O, the RAM file system and the keyring (`Cargo.toml:251-257`).
 
-`capsule-serial-debug` lets service capsules write to the [serial console](../overview/glossary-rollback-index.md#serial-console), which no release image allows: `standard`, `hardened` and `airgapped` take it out, and only `qemu`, `dev` and a profile's development twin keep it (`debugFeatures`, `tools/nix/config.nix:60-62`). The network features the airgapped profile removes are everything that reaches a network: the drivers, the stack, and the programs whose only job is to go online, such as the browser, the market and the model fetcher (`networkFeatures`, `tools/nix/config.nix:48-58`).
+`capsule-serial-debug` lets service capsules write to the [serial console](../overview/glossary-rollback-index.md#serial-console), which no release image allows: `standard`, `hardened` and `airgapped` take it out, and only `qemu`, `dev`, `selftest`, `gauntlet` and a profile's development twin keep it (`debugFeatures`, `tools/nix/config.nix:63-65`). The network features the airgapped profile removes are everything that reaches a network: the drivers, the stack, and the programs whose only job is to go online, such as the browser, the market and the model fetcher (`networkFeatures`, `tools/nix/config.nix:48-61`).
 
-The profile's own description says the `production` loader refuses to start without [Secure Boot](../overview/glossary-rollback-index.md#secure-boot) and a [TPM](../overview/glossary-stark-proof.md#tpm) to measure into (`privacy`, `tools/nix/config.nix:78-85`). The build only selects that policy, by building the loader with the cargo feature of the same name (`cargo`, `tools/nix/image.nix:161-162`); the refusal itself is in the loader's verification code and is not checked on this page.
+The profile's own description says the `production` loader refuses to start without [Secure Boot](../overview/glossary-rollback-index.md#secure-boot) and a [TPM](../overview/glossary-stark-proof.md#tpm) to measure into (`privacy`, `tools/nix/config.nix:81-88`). The build only selects that policy, by building the loader with the cargo feature of the same name (`cargo`, `tools/nix/image.nix:161-162`); the refusal itself is in the loader's verification code and is not checked on this page.
 
 ## The keys of `nonos.toml`
 
 | key | default | what it does |
 |---|---|---|
 | `profile` | `standard` | the kind of image (`profile`, `nonos.toml:17`) |
-| `dev` | `false` | builds the profile's development twin, with path-only attestation and the `dev-qemu` loader, under the name `<profile>-dev`; `nonos.toml` does not list this key (`dev`, `tools/nix/config.nix:122-126`) |
+| `dev` | `false` | builds the profile's development twin, with path-only attestation and the `dev-qemu` loader, under the name `<profile>-dev`; `nonos.toml` does not list this key (`dev`, `tools/nix/config.nix:133-137`) |
 | `smp` | `true` | brings up every CPU the firmware enables, through the `nonos-smp` feature; no profile turns it off, and with `false` the kernel runs on the boot CPU alone (`smp`, `nonos.toml:19-20`) |
 | `install` | `true` | keeps first-boot setup and the installer; `false` takes both out (`install`, `nonos.toml:22-25`) |
 | `rollback_index` | `1` | the [rollback index](../overview/glossary-rollback-index.md#rollback-index) bound into the signed kernel (`rollback_index`, `nonos.toml:27-29`) |
@@ -47,39 +49,39 @@ The profile's own description says the `production` loader refuses to start with
 | `linux_packages` | empty | the package mirror, as `name:port`, that the in-tree Linux tools the image does not carry install from (`linux_packages`, `nonos.toml:38-44`) |
 | `store.linux`, `store.media` | `true`, `true` | whether the [package store](../overview/glossary-linux-personality.md#package-store) carries the Linux tools and the Qwen runner, and the sample films (`store`, `nonos.toml:46-49`) |
 
-The defaults live in the flake as well, and a key the flake does not know fails the evaluation (`defaults`, `tools/nix/config.nix:120-134`).
+The defaults live in the flake as well, and a key the flake does not know fails the evaluation (`defaults`, `tools/nix/config.nix:131-145`).
 
-`nonos.toml` states that every boot is amnesic: nothing is kept unless the person chooses to install in first-boot setup. With `install = false` the image has no first-boot setup and no installer, so no boot of it can keep anything or write a disk (`install`, `nonos.toml:22-25`). Such a build takes the name suffix `-live`, and a development twin takes `-dev` (`name`, `tools/nix/config.nix:184`).
+`nonos.toml` states that every boot is amnesic: nothing is kept unless the person chooses to install in first-boot setup. With `install = false` the image has no first-boot setup and no installer, so no boot of it can keep anything or write a disk (`install`, `nonos.toml:22-25`). Such a build takes the name suffix `-live`, and a development twin takes `-dev` (`name`, `tools/nix/config.nix:199`).
 
 ## How a profile resolves
 
-The flake turns a profile into kernel features in one place (`resolve`, `tools/nix/config.nix:136-188`):
+The flake turns a profile into kernel features in one place (`resolve`, `tools/nix/config.nix:147-203`):
 
 1. Start from the profile's `kernel` features.
 2. Add `nonos-smp` when `smp` is true, and the extra `features`.
 3. Add `nonos-dev-attest` for a development twin, and `nonos-release` when the loader is not `dev-qemu`.
 4. Take out everything the profile drops, and with `install = false` the setup and installer features too, replacing any feature that would bring one back by its own members.
 
-The features come from `Cargo.toml`, never from a hand list, so what a profile takes out is not in the kernel binary at all (`kernelFeatures`, `tools/nix/config.nix:4-15`).
+The features come from `Cargo.toml`, never from a hand list, so what a profile takes out is not in the kernel binary at all (`kernelFeatures`, `tools/nix/config.nix:15`).
 
 ## The floors
 
-A profile sets floors, not defaults. A `nonos.toml` that asks a profile for less fails to evaluate, before anything builds, with a message that starts with `nonos.toml:` (`assertMsg`, `tools/nix/config.nix:157-172`). It fails when:
+A profile sets floors, not defaults. A `nonos.toml` that asks a profile for less fails to evaluate, before anything builds, with a message that starts with `nonos.toml:` (`assertMsg`, `tools/nix/config.nix:168-187`). It fails when:
 
 - a key is unknown, or a feature is not in `Cargo.toml`;
 - a feature the profile takes out comes back in through another feature;
-- the loader is weaker than the profile's, in the order `dev-qemu`, `standard-qemu`, `standard`, `production` (`loaders`, `tools/nix/config.nix:66`), unless `dev` is true;
+- the loader is weaker than the profile's, in the order `dev-qemu`, `standard-qemu`, `standard`, `production` (`loaders`, `tools/nix/config.nix:69`), unless `dev` is true;
 - `rollback_index` is not an integer of at least 1, or `linux_packages` is not empty or a host name with an optional `:port`;
-- `nonos-dev-attest`, which admits capsules without their [STARK proof](../overview/glossary-stark-proof.md#stark-proof), or the wallet test vectors, would reach an image whose loader is not `dev-qemu`.
+- `nonos-dev-attest`, which admits capsules without their [STARK proof](../overview/glossary-stark-proof.md#stark-proof), the wallet test vectors, or the attack suite's capsule, would reach an image whose loader is not `dev-qemu`.
 
-For example, this `nonos.toml` fails with `nonos.toml: profile hardened needs at least loader production, not standard` (`level`, `tools/nix/config.nix:160`):
+For example, this `nonos.toml` fails with `nonos.toml: profile hardened needs at least loader production, not standard` (`level`, `tools/nix/config.nix:171`):
 
 ```
 profile = "hardened"
 loader = "standard"
 ```
 
-When a feature the kernel tests by name pulls back something the profile takes out, the flake still evaluates, but the kernel refuses to build and says which features are tangled and that the profile builds only with `install = false` (`blocked`, `tools/nix/config.nix:178-182`, `refuse`, `tools/nix/image.nix:78-88`).
+When a feature the kernel tests by name pulls back something the profile takes out, the flake still evaluates, but the kernel refuses to build and says which features are tangled and that the profile builds only with `install = false` (`blocked`, `tools/nix/config.nix:193-197`, `refuse`, `tools/nix/image.nix:78-88`).
 
 The `kernel-profile-<profile>` checks type-check the kernel with exactly each profile's features (`profileChecks`, `tools/nix/checks.nix:169-193`), and the build receipt reads the kernel's bytes to confirm that no capsule a profile takes out is inside it (`enforcement`, `tools/nonos-receipt:103-126`).
 

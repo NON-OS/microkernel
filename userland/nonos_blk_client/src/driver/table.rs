@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Per-driver constants, copied from each driver's `protocol` module. They
 //! are the contract those capsules publish; a change there is a change
-//! here, and blk_client_proofs and scripts/check_blk_wire.py hold the two
-//! together until the protocols become one. Magics and opcodes are in
-//! `dialect.rs`, the controllers each serves in `bus.rs`.
+//! here, and blk_client_proofs, the drivers' own tests and
+//! scripts/check_blk_wire.py hold the two together until the protocols
+//! become one. Magics and opcodes are in `dialect.rs`, the controllers each
+//! serves in `bus.rs`.
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Driver {
@@ -33,37 +33,20 @@ pub enum Driver {
     Ufs,
     /// The Realtek PCIe SD card reader, serving the card in its slot.
     Rtsx,
+    /// The PIIX IDE controller's driver (driver.piix_ide0), on the block wire.
+    Ide,
+    /// The virtual SCSI adapters' drivers, on the block wire: virtio-scsi,
+    /// VMware PVSCSI, BusLogic, LSI MPT and Hyper-V's synthetic SCSI.
+    Scsi,
 }
 
-pub const ALL: [Driver; 6] =
-    [Driver::Nvme, Driver::Ahci, Driver::Wire, Driver::Ufs, Driver::VirtioBlk, Driver::Rtsx];
-
-impl Driver {
-    /// The service name of instance `n` of this driver, `None` past the
-    /// last one known. Each driver serves one controller under its `0`
-    /// name today; the next names are looked up as well, so a kernel that
-    /// registers a second NVMe or SATA instance has its disks listed with
-    /// no change here, and a name nobody registered costs one lookup.
-    pub fn service(self, n: u8) -> Option<&'static [u8]> {
-        let names: &[&'static [u8]] = match self {
-            /* Written as a call site, not an array entry: the capability
-             * audit reads this name as the evidence that a client of this
-             * crate needs StoreWrite. */
-            Driver::VirtioBlk => return (n == 0).then_some(&b"driver.virtio_blk0"[..]),
-            Driver::Nvme => &[b"driver.nvme0", b"driver.nvme1", b"driver.nvme2", b"driver.nvme3"],
-            Driver::Ahci => &[b"driver.ahci0", b"driver.ahci1", b"driver.ahci2", b"driver.ahci3"],
-            Driver::Wire => &[b"driver.sdhci0"],
-            Driver::Ufs => &[b"driver.ufs0"],
-            Driver::Rtsx => &[b"driver.rtsx0"],
-        };
-        names.get(n as usize).copied()
-    }
-
-    /// How many instance names [`Driver::service`] knows.
-    pub fn instances(self) -> u8 {
-        match self {
-            Driver::VirtioBlk | Driver::Wire | Driver::Ufs | Driver::Rtsx => 1,
-            Driver::Nvme | Driver::Ahci => 4,
-        }
-    }
-}
+pub const ALL: [Driver; 8] = [
+    Driver::Nvme,
+    Driver::Ahci,
+    Driver::Wire,
+    Driver::Ufs,
+    Driver::Ide,
+    Driver::Scsi,
+    Driver::VirtioBlk,
+    Driver::Rtsx,
+];

@@ -16,29 +16,29 @@
 
 use super::error::CfiError;
 
-pub const SHADOW_STACK_CAPACITY: usize = 256;
+pub(super) const SHADOW_STACK_CAPACITY: usize = 256;
 
-pub struct ShadowStack {
+pub(super) struct ShadowStack {
     entries: [usize; SHADOW_STACK_CAPACITY],
     depth: usize,
     enabled: bool,
 }
 
 impl ShadowStack {
-    pub const fn new() -> Self {
+    pub(super) const fn new() -> Self {
         Self { entries: [0; SHADOW_STACK_CAPACITY], depth: 0, enabled: false }
     }
 
-    pub fn enable(&mut self) {
+    pub(super) fn enable(&mut self) {
         self.depth = 0;
         self.enabled = true;
     }
 
-    pub fn is_enabled(&self) -> bool {
+    pub(super) fn is_enabled(&self) -> bool {
         self.enabled
     }
 
-    pub fn push(&mut self, ra: usize) -> Result<(), CfiError> {
+    pub(super) fn push(&mut self, ra: usize) -> Result<(), CfiError> {
         if !self.enabled {
             return Err(CfiError::Disabled);
         }
@@ -50,7 +50,7 @@ impl ShadowStack {
         Ok(())
     }
 
-    pub fn pop(&mut self) -> Result<usize, CfiError> {
+    pub(super) fn pop(&mut self) -> Result<usize, CfiError> {
         if !self.enabled {
             return Err(CfiError::Disabled);
         }
