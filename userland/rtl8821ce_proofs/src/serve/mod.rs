@@ -29,6 +29,11 @@ mod stage;
 #[path = "../../../capsule_driver_rtl8821ce/src/serve/tuning.rs"]
 mod tuning;
 
+#[cfg(test)]
+mod host_radio;
+#[cfg(test)]
+mod hostile_tests;
+
 pub use run::run;
 pub use stage::Stage;
 use tuning::{DEFAULT_CHANNEL, SCAN_CHANNELS, SCAN_FRAME_MAX};

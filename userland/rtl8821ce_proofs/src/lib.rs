@@ -25,3 +25,7 @@ mod tests_all;
 mod ap_sim;
 #[cfg(test)]
 mod pwr_mock;
+// The Wi-Fi core proofs' seeded generator, for the hostile-input proofs.
+#[cfg(test)]
+#[path = "../../nonos_wifi_core_proofs/src/sweep/fuzz.rs"]
+mod fuzz;

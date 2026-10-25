@@ -15,6 +15,8 @@ mod ends;
 mod entropy;
 #[path = "../../../../capsule_driver_rtl8821ce/src/serve/connect/hunt/mod.rs"]
 mod hunt;
+#[cfg(test)]
+mod hunt_tests;
 #[path = "../../../../capsule_driver_rtl8821ce/src/serve/connect/install.rs"]
 pub mod install;
 #[cfg(test)]
