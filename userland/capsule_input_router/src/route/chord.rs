@@ -23,6 +23,10 @@
 //! Ctrl+Alt+Delete is the secure attention chord: it goes to the shell alone,
 //! ahead of any grab or hold, so whatever is on screen a user can bring up
 //! the lock screen or a prompt's real owner knowing no window answered it.
+//!
+//! Ctrl+Alt+T opens the Terminal or brings it forward. The focused window
+//! never sees it, but it is not reserved: under a grab or a hold it goes where
+//! every key goes, and the shell never answers it over a prompt.
 
 /// nonos_libc INPUT_KIND_KEY_DOWN.
 const KEY_DOWN: u16 = 0;
@@ -45,4 +49,14 @@ pub fn is_reserved_chord(kind: u16, code: u32, flags: u16) -> bool {
 /// Whether a key event is the press of the secure attention chord.
 pub fn is_secure_attention(kind: u16, code: u32, flags: u16) -> bool {
     kind == KEY_DOWN && code == KEY_DELETE && flags & MOD_CTRL != 0 && flags & MOD_ALT != 0
+}
+
+/// The letter T, as the keymaps deliver it with Ctrl and Alt held.
+const KEY_T: u32 = b't' as u32;
+const KEY_T_UP: u32 = b'T' as u32;
+
+/// Whether a key event is the press of the Terminal chord.
+pub fn is_terminal_chord(kind: u16, code: u32, flags: u16) -> bool {
+    let t = code == KEY_T || code == KEY_T_UP;
+    kind == KEY_DOWN && t && flags & MOD_CTRL != 0 && flags & MOD_ALT != 0
 }
