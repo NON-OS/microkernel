@@ -8,7 +8,7 @@ Each claim is marked with how far it has been checked:
 - **host-tested**: checked by a test or a tool run on a build machine, not on a boot;
 - **design**: what the code and the app's own source say should happen, not yet seen either way.
 
-Nothing on this page is booted yet. The boot plan for each app is in `the design notes`.
+Profanity's install, download and a run in its box are booted; its connection is not. The boot plan for each app is in `the design notes`.
 
 ## What every networked app here shares
 
@@ -42,7 +42,7 @@ Listing `linux.profanity`, package `profanity 0.14.0-r1`, licence GPL-3.0-or-lat
 
 ### Using it
 
-1. Install `linux.profanity` from the App Store's Linux tab, then run `linux profanity` in the Terminal (`linux` starts a Linux program; see [Linux programs](linux-programs.md)).
+1. Install `linux.profanity` from the App Store's Linux tab, then run `linux profanity` in the Terminal (`linux` starts a Linux program; see [Linux programs](linux-programs.md)). Started from the Terminal, it runs without the network: a Terminal's run is never given the network role, and Profanity says `offline`. It cannot connect from there. *booted*
 2. `/connect you@example.org`. Give the password at the prompt.
 3. `/omemo gen`, then `/omemo policy always`. Until homes are kept between runs, do this at every start.
 4. Before you trust a contact: compare fingerprints over another channel, then `/omemo trust <contact> <fingerprint>`.
