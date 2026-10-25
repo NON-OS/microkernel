@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.dirname(HERE))
 
 from nonos_qemu import lanes, machine  # noqa: E402
 
-ALL = [n for n in lanes.NAMES if not n.startswith(("nic=", "iommu="))]
+ALL = [n for n in lanes.NAMES if not n.startswith(("nic=", "iommu=", "gpu="))]
 ALL += ["nic=igb"]
 
 
