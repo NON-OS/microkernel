@@ -60,6 +60,8 @@ pub mod dmar_rmrr_names;
 pub(super) mod dmar_rmrr_store;
 #[path = "dmar_scope.rs"]
 pub mod dmar_scope;
+#[path = "dmar_scope_count.rs"]
+mod dmar_scope_count;
 #[path = "dmar_scope_walk.rs"]
 pub mod dmar_scope_walk;
 #[path = "dmar_source_store.rs"]

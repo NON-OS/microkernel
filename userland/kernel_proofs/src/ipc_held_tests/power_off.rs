@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `power.off` (F-88): held to the desktop shell alone, registered by the
-//! ACPI capsule's spawn under the name and port its Capsule.mk declares.
-//! It shares the capsule's inbox with `acpi`, so a send straight to that
-//! pid must pass both gates, which only the shell does.
+//! `power.off` (F-88): held to the desktop shell alone, registered by
+//! capsule_power's spawn under the name and port its Capsule.mk declares,
+//! and claimed by no other capsule. It shares that capsule's inbox with
+//! `power`, so a send straight to that pid must pass both gates, which only
+//! the shell does.
 
 use super::held::{callers_of, endpoint_admits, inbox_admits};
 
@@ -30,18 +31,20 @@ fn only_the_shell_asks_for_the_wiped_power_off() {
         assert!(!endpoint_admits("power.off", |n| n == caller), "{caller}");
     }
     assert!(endpoint_admits("power.off", |n| n == SHELL));
-    let served = [("acpi", 0x8u64), ("power.off", 0x8)];
+    let served = [("power", 0x8u64), ("power.off", 0x8)];
     assert!(inbox_admits(served, 0x8, |n| n == SHELL), "the shell by pid");
-    assert!(!inbox_admits(served, 0x8, |n| n == "power"), "power by pid: power.off refuses");
+    assert!(!inbox_admits(served, 0x8, |n| n == "acpi"), "acpi by pid: power.off refuses");
 }
 
 #[test]
 fn the_name_is_the_one_registered_and_declared() {
-    let spawn = include_str!("../../../../src/userspace/capsule_acpi/power_off.rs");
+    let spawn = include_str!("../../../../src/userspace/capsule_power/power_off.rs");
     assert!(spawn.contains("const NAME: &str = \"power.off\";"));
-    assert!(spawn.contains("const PORT: u32 = 4532;"));
-    let mk = include_str!("../../../capsule_acpi/Capsule.mk");
-    assert!(mk.contains("CAPSULE_INSTANCE_ENDPOINTS := service:4532:power.off"));
+    assert!(spawn.contains("const PORT: u32 = 4446;"));
+    let mk = include_str!("../../../capsule_power/Capsule.mk");
+    assert!(mk.contains("CAPSULE_INSTANCE_ENDPOINTS := service:4446:power.off"));
+    let acpi = include_str!("../../../capsule_acpi/Capsule.mk");
+    assert!(!acpi.contains("power.off"), "the ACPI capsule claims no second name");
     let shell = include_str!("../../../../src/userspace/capsule_desktop_shell/spawn.rs");
     assert!(shell.contains("\"desktop_shell\""), "the shell registers the name HELD names");
 }

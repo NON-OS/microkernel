@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::scope::{parse_drhd, scope_covers, translated_by_some, Cover, UnitScope, MAX_SCOPES};
+use super::scope::{parse_drhd, scope_covers, translated_by_some, Cover, UnitScope};
 
 /* A DRHD: type 0, length, flags, size, segment, register base, then scopes. */
-fn drhd(flags: u8, segment: u16, scopes: &[Vec<u8>]) -> Vec<u8> {
+pub(super) fn drhd(flags: u8, segment: u16, scopes: &[Vec<u8>]) -> Vec<u8> {
     let mut b = vec![0u8, 0, 0, 0, flags, 0];
     b.extend_from_slice(&segment.to_le_bytes());
     b.extend_from_slice(&0xFED9_0000u64.to_le_bytes());
@@ -30,7 +30,7 @@ fn drhd(flags: u8, segment: u16, scopes: &[Vec<u8>]) -> Vec<u8> {
 }
 
 /* A device scope: type, length, reserved, enumeration id, start bus, path. */
-fn scope(kind: u8, start_bus: u8, path: &[(u8, u8)]) -> Vec<u8> {
+pub(super) fn scope(kind: u8, start_bus: u8, path: &[(u8, u8)]) -> Vec<u8> {
     let mut s = vec![kind, (6 + 2 * path.len()) as u8, 0, 0, 0, start_bus];
     for &(d, f) in path {
         s.push(d);
@@ -41,7 +41,7 @@ fn scope(kind: u8, start_bus: u8, path: &[(u8, u8)]) -> Vec<u8> {
 
 /* Bus 0 has a root port at 00:1c.0 whose secondary bus is 1 (where an M.2 Wi-Fi
 card sits, 01:00.0), and one at 00:1d.0 bridging buses 2..=3. */
-fn bridges(bus: u8, dev: u8, func: u8) -> Option<(u8, u8)> {
+pub(super) fn bridges(bus: u8, dev: u8, func: u8) -> Option<(u8, u8)> {
     match (bus, dev, func) {
         (0, 0x1c, 0) => Some((1, 1)),
         (0, 0x1d, 0) => Some((2, 3)),
@@ -49,8 +49,10 @@ fn bridges(bus: u8, dev: u8, func: u8) -> Option<(u8, u8)> {
     }
 }
 
-fn parse(b: &[u8]) -> UnitScope {
-    parse_drhd(b).expect("a DRHD parses")
+pub(super) fn parse(b: &[u8]) -> UnitScope {
+    let mut u = UnitScope::EMPTY;
+    assert!(parse_drhd(b, &mut u), "a DRHD parses");
+    u
 }
 
 /* Shaped like a Gemini Lake laptop: the graphics unit names 00:02.0, and the
@@ -82,10 +84,11 @@ fn ioapic_and_hpet_scopes_name_no_pci_device() {
 
 #[test]
 fn a_short_or_mistyped_structure_is_not_a_drhd() {
-    assert!(parse_drhd(&[0u8; 8]).is_none());
+    let mut u = UnitScope::EMPTY;
+    assert!(!parse_drhd(&[0u8; 8], &mut u));
     let mut b = drhd(0, 0, &[]);
     b[0] = 1;
-    assert!(parse_drhd(&b).is_none());
+    assert!(!parse_drhd(&b, &mut u));
 }
 
 #[test]
@@ -96,14 +99,6 @@ fn a_malformed_scope_marks_the_unit_truncated() {
     b[2..4].copy_from_slice(&len.to_le_bytes());
     let u = parse(&b);
     assert_eq!(u.count, 1);
-    assert!(u.truncated);
-}
-
-#[test]
-fn more_scopes_than_kept_marks_the_unit_truncated() {
-    let many: Vec<Vec<u8>> = (0..MAX_SCOPES as u8 + 1).map(|d| scope(1, 0, &[(d, 0)])).collect();
-    let u = parse(&drhd(0, 0, &many));
-    assert_eq!(u.count as usize, MAX_SCOPES);
     assert!(u.truncated);
 }
 

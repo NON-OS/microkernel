@@ -23,12 +23,17 @@ extern "C" {
     static __kernel_rw_start: u8;
 }
 
-/// Text and read-only data, `[start, end)`: writable data starts the next
-/// 2 MiB block.
+/// Text and read-only data, `[start, end)`, physical: writable data starts
+/// the next 2 MiB block. Physical on either side of the move to TTBR1, since
+/// every caller sets them against RAM: the boot tables as they are built,
+/// and `make_block_uncached` long after the move.
 pub(super) fn image_bounds() -> (u64, u64) {
-    ((&raw const __kernel_image_start) as u64, (&raw const __kernel_rw_start) as u64)
+    let pa = super::image_pa;
+    (pa((&raw const __kernel_image_start) as u64), pa((&raw const __kernel_rw_start) as u64))
 }
 
+/// Text alone, `[start, end)`, physical, as above.
 pub(super) fn text_bounds() -> (u64, u64) {
-    ((&raw const __kernel_text_start) as u64, (&raw const __kernel_text_end) as u64)
+    let pa = super::image_pa;
+    (pa((&raw const __kernel_text_start) as u64), pa((&raw const __kernel_text_end) as u64))
 }

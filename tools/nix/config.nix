@@ -114,6 +114,14 @@ let
       loader = "dev-qemu";
       drop = [ ];
     };
+    selftest = {
+      about = "the dev image with the attack suite's capsule, which tries what an attacker would at boot";
+      for = "the self-test: tools/nonos-selftest boots it and judges every refusal";
+      privacy = "none promised, as dev; the kernel's warnings also go to the serial line";
+      kernel = [ "microkernel-desktop-gui" "microkernel-setup-wizard" "nonos-dev-attest" "nonos-capsule-attack" ];
+      loader = "dev-qemu";
+      drop = [ ];
+    };
     core = {
       about = "the microkernel and its base capsules, no desktop";
       for = "kernel work and the smallest image that boots";
@@ -177,6 +185,10 @@ let
     # never in an image any other loader boots.
     assert lib.assertMsg (!(builtins.elem "nonos-capsule-shield-vectors" enabled) || loader == "dev-qemu")
       "nonos.toml: nonos-capsule-shield-vectors is Test 5, for development images only (dev = true)";
+    # The attack suite's capsule tries what an attacker would: a development
+    # test, never in an image any other loader boots.
+    assert lib.assertMsg (!(builtins.elem "nonos-capsule-attack" enabled) || loader == "dev-qemu")
+      "nonos.toml: nonos-capsule-attack is the attack suite, for development images only (profile selftest)";
     c // {
       inherit features enabled loader;
       # What the profile takes out, closed over Cargo.toml: none of it may be

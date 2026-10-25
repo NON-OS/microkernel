@@ -133,6 +133,7 @@ syscalls.numbers MFTW 1465140813
 syscalls.numbers MFWT 1415005773
 syscalls.numbers MGPD 1146111821
 syscalls.numbers MHVB 1112950861
+syscalls.numbers MHVC 1129728077
 syscalls.numbers MHVE 1163282509
 syscalls.numbers MHVP 1347831885
 syscalls.numbers MHVR 1381386317

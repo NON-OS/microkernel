@@ -7,6 +7,7 @@
 use super::linux_terminal::spawn_errno;
 use super::registry::{embedded_tools, LINUX_TOOL};
 use crate::sys::boot_log;
+use crate::userspace::capsule_linux::{LINUX_CAPS, LINUX_MANIFEST_BYTES};
 use crate::syscall::microkernel::errnos::{ERRNO_ACCES, ERRNO_NOENT};
 
 /// The name a terminal starts a Qwen tier by. It names no embedded tool: it
@@ -31,18 +32,37 @@ pub fn run_named(name: &[u8], argv: &[u8]) -> Result<u32, i64> {
     if crate::userspace::init::app_tool_off(name) {
         return Err(ERRNO_ACCES);
     }
+    if name == LINUX_TOOL || name == QWEN_TOOL {
+        super::bound::check(LINUX_MANIFEST_BYTES, LINUX_CAPS, name)?;
+    }
     if name == LINUX_TOOL {
         return super::linux_terminal::run(argv);
     }
     if name == super::model_fetch::TOOL {
+        super::bound::check(super::model_fetch::MANIFEST, super::model_fetch::CAPS, name)?;
         return super::model_fetch::run_for_caller(argv);
     }
     if name == QWEN_TOOL {
         return crate::userspace::capsule_linux::run_qwen_for_caller(argv);
     }
-    let Some(tool) = embedded_tools().into_iter().find(|t| t.name.as_bytes() == name) else {
-        return Err(ERRNO_NOENT);
-    };
+    let tool = embedded(name)?;
+    super::bound::check(tool.manifest, tool.caps, name)?;
+    spawn(&tool, argv)
+}
+
+/// The kernel's own run of an embedded tool, for init's boot self-test: the
+/// kernel is the spawner, as for every boot spawn, so no caller's mask
+/// bounds it. Never reached from `MkToolRun`, which takes `run_named`.
+#[cfg(feature = "nonos-tool-selftest")]
+pub fn run_embedded_for_kernel(name: &[u8], argv: &[u8]) -> Result<u32, i64> {
+    spawn(&embedded(name)?, argv)
+}
+
+fn embedded(name: &[u8]) -> Result<super::spec::ToolCapsule, i64> {
+    embedded_tools().into_iter().find(|t| t.name.as_bytes() == name).ok_or(ERRNO_NOENT)
+}
+
+fn spawn(tool: &super::spec::ToolCapsule, argv: &[u8]) -> Result<u32, i64> {
     tool.spawn_with_args(argv).map_err(|e| {
         boot_log::error("tool capsule spawn failed");
         spawn_errno(&e)

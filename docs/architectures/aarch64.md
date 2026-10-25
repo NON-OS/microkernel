@@ -44,7 +44,7 @@ Not tested in this release.
 
 - `ci-build-aarch64.yml` builds through `nonos-mk-arm` and checks the result is a loadable AArch64 kernel: a static executable whose entry is `_start`, the entry in an executable `PT_LOAD`, no segment both writable and executable, and the manifest and signature sections present (`.github/workflows/ci-build-aarch64.yml:3-12`).
 - `ci-boot-aarch64.yml` boots three images under QEMU `virt` with a GICv3 and `-cpu max`, emulated on an x86_64 runner, and holds each serial log to `scripts/check_aarch64_boot.py` (`.github/workflows/ci-boot-aarch64.yml:3-20`).
-- The `core` image must print the `CORE_MARKERS` in order, `[KSEC] 4/4 sections mapped as declared`, `[NONOS] Core ready`, `[UKERNEL] Entering userspace` and `[INIT] Starting`, and none of the `NEVER` lines (`scripts/check_aarch64_boot.py:55-57`).
+- The `core` image must print the `CORE_MARKERS` in order, `[KSEC] 4/4 sections mapped as declared`, `[NONOS] Core ready` and the two lines of the stop described under [Where a boot stops today](#where-a-boot-stops-today), and none of the `NEVER` lines (`scripts/check_aarch64_boot.py:63-69`). `NEVER` includes `[UKERNEL] Entering userspace` and `[INIT] Starting`: a boot without a loader that started userspace would have skipped the check of the bootloader.
 - The `trap-sp0` and `trap-kernel-abort` images are built with the `nonos-trap-proof-sp0` and `nonos-trap-proof-kernel-abort` features, each of which compiles one deliberate exception into the boot path, `sp_el0_vector` or `kernel_data_abort`; no profile enables either (`src/arch/aarch64/boot/trap_proof.rs:17-59`). Each must print the `[TRAP]` line the architecture defines for it, such as `SP0_ESR` 0xF2005350 for the breakpoint that `BRK_5350` encodes (`scripts/check_aarch64_boot.py:59-63`).
 
 The checker tests itself without QEMU:
@@ -53,7 +53,7 @@ The checker tests itself without QEMU:
 python3 scripts/check_aarch64_boot.py --self-test
 ```
 
-On this tree it answers that 17 bad logs were rejected and 4 good ones accepted.
+On this tree it answers that 19 bad logs were rejected and 4 good ones accepted.
 
 ## Boot path
 

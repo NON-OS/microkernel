@@ -38,7 +38,7 @@ fn committed() {
 fn a_committed_package_loads_by_name_from_its_verified_sections() {
     committed();
     syscall::reset(31);
-    let p = [&0u64.to_le_bytes()[..], &[INSTALL_NAME.len() as u8], INSTALL_NAME].concat();
+    let p = [&0x18u64.to_le_bytes()[..], &[INSTALL_NAME.len() as u8], INSTALL_NAME].concat();
     assert_eq!(by_name(&frame(OP_LOAD_BY_NAME, &p), 77), reply(0, &31u32.to_le_bytes()));
     let loads = syscall::take();
     assert_eq!((loads.len(), loads[0].num), (1, N_MK_CAPSULE_LOAD));
