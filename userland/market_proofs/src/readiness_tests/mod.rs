@@ -17,5 +17,6 @@
 pub(crate) mod fixture;
 mod gates;
 mod market;
+mod market_linux;
 
 pub(crate) use fixture::release;

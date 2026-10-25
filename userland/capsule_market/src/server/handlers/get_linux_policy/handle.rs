@@ -16,7 +16,7 @@
 
 use nonos_market_proto::linux_policy_body;
 
-use super::encode::answer;
+use super::answer::answer;
 use crate::protocol::{Request, E_INVAL, E_MSGSIZE, E_NODATA};
 use crate::server::error::reply_status;
 use crate::server::lp::parse_pair;
