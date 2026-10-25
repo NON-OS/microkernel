@@ -14,62 +14,61 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::leaving::{claimable, done};
-use super::state::{next_epoch, BUSY, CLAIMS};
-use super::types::{Claim, ClaimError};
+use super::hold;
+use super::types::ClaimError;
 
-// Register a claim. Returns the granted epoch on success. The caller
-// must have already verified that `device_id` exists in the broker
-// table.
-/*
- * The claim is published last (K5, A10 gap 4): until it is in CLAIMS no
- * epoch exists, so no thread of the caller can reach the device's config
- * space or set Bus Master before it is confined, powered and snooping.
- */
+// Register a claim; the granted epoch on success. The caller has already
+// verified that `device_id` exists in the broker table.
 pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     if super::firmware::is_firmware(device_id) {
         return Err(ClaimError::Firmware);
     }
-    let flags =
-        crate::hardware::broker::list().iter().find(|r| r.device_id == device_id).map(|r| r.flags);
-    if flags.is_some_and(|f| f & crate::hardware::broker::DEVICE_FLAG_DISABLED != 0) {
-        return Err(ClaimError::Disabled);
+    hold::admits(pid, device_id)?;
+    let fresh = super::wipe::fresh(pid, device_id);
+    let covers = crate::hardware::broker::bootfb::covers(device_id);
+    let epoch = super::enter::enter(pid, device_id, fresh.as_ref())?;
+    // Confined before it is powered, so it never runs unconfined (port_only.rs).
+    let untranslated = hold::untranslated(device_id);
+    let port_only = match super::port_only::confine(pid, device_id, untranslated) {
+        Ok(port_only) => port_only,
+        Err(refusal) => {
+            super::pending::withdraw(pid, device_id, epoch);
+            return Err(refusal.into());
+        }
+    };
+    // Not mastering while the reset below waits out what is in flight.
+    if !untranslated {
+        super::master_off::bus_master_off(device_id);
     }
-    // Reserved first: no other claim, and no retire, works on the
-    // device while this one does, and a device still retiring is refused.
-    {
-        let claims = CLAIMS.lock();
-        let mut busy = BUSY.lock();
-        claimable(&claims, &busy, device_id)?;
-        busy.push(device_id);
-    }
-    let claimed = claim_reserved(pid, device_id);
-    done(&mut BUSY.lock(), device_id);
-    claimed
-}
-
-fn claim_reserved(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
-    // Only what the driver's row names, before the device is touched.
-    if !super::scope_check::admitted(pid, device_id) {
-        return Err(ClaimError::OutOfScope);
-    }
-    // Confined before it is powered, so the device never runs unconfined.
-    let port_only = crate::hardware::broker::confine::attach(pid, device_id)?;
-    // Bus Master off: the driver turns it on itself, once it holds Dma.
-    super::quiesce::stop_bus_master_quietly(device_id);
-    // A port-only claim has Memory Space off too, and kept off.
+    // A port-only claim has Memory Space off too, and kept off, before
+    // the reset saves the header it puts back.
     if port_only {
         super::port_only::port_only_quietly(device_id);
     }
-    // Bring the device to power state D0 before its driver maps MMIO. Done
-    // outside the claims lock: it touches config space and settles for a moment.
+    // In D0 before its driver maps MMIO; outside the claims lock, as it settles.
     crate::hardware::broker::power::power_on_device(device_id);
-    // Powered, so its reset takes: armed engines stop before the driver.
-    super::reset::at_claim(device_id, pid);
-    // Before the driver can turn bus mastering on, so no request it ever
-    // makes is no-snoop.
+    // Powered, so its reset takes: what firmware left armed stops.
+    super::reset::at_claim(device_id);
+    // Its BARs put back where the move to D0 lost them; one that won't stick refuses (L62).
+    if !super::restore::restore(device_id) {
+        super::pending::withdraw(pid, device_id, epoch);
+        return Err(ClaimError::Refused);
+    }
+    // Before Bus Master can go on, so no request it ever makes is no-snoop.
     super::no_snoop::snoop_every_request(device_id);
-    let epoch = next_epoch();
-    CLAIMS.lock().push(Claim { pid, device_id, epoch });
-    Ok(epoch)
+    // It starts its claim unable to master (L34; VMMDev reads past any gate), past
+    // every refusal; the scanout taken then, and a refusal at the admit gives it back (L79).
+    if !hold::untranslated(device_id) {
+        super::master_off::bus_master_off(device_id);
+    }
+    if covers {
+        super::scanout::take(device_id);
+    }
+    // Only now is anything granted against it, so a refusal above leaves no
+    // map, binding or DMA behind for the next claimant's device (L65).
+    let admitted = super::pending::admit(pid, device_id, epoch, fresh.as_ref(), covers);
+    if covers {
+        crate::kernel_core::init::framebuffer::end_takeover();
+    }
+    admitted.map(|()| epoch).inspect_err(|_| super::pending::withdraw(pid, device_id, epoch))
 }

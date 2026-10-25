@@ -9,6 +9,7 @@ back.
 
 - [One definition; The capability word](capabilities-one-definition.md)
 - [What each bit admits](capabilities-what-each-bit.md)
+- [What each bit admits, continued](capabilities-valid-token.md)
 - [The token](capabilities-the-token.md)
 - [The check on every NONOS system call](capabilities-the-check-on.md)
 - [Granting and revoking; Groups and delegation in the ABI file; What

@@ -18,4 +18,5 @@
 pub(crate) fn purge_for_new_pid(pid: crate::process::core::Pid) {
     super::postmortem::purge_for_new_pid(pid);
     super::reap_log::purge_for_new_pid(pid);
+    crate::services::lifecycle::forget_transport_holder(pid);
 }

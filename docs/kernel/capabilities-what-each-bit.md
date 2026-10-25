@@ -32,7 +32,7 @@ siblings ask for their own bit alone
 | 14 | `GraphicsPresent` | `MkSurfacePresent`. |
 | 15 | `DeviceEnum` | `MkDeviceList`, `MkInstallSource`. |
 | 16 | `Driver` | `MkDeviceClaim`, `MkDeviceRelease`, `MkPciConfigRead`, `MkPciConfigWrite`. |
-| 17 | `Mmio` | `MkMmioMap`, `MkMmioUnmap`. |
+| 17 | `Mmio` | `MkMmioMap`, `MkMmioUnmap`, `MkBootFramebuffer`. |
 | 18 | `Irq` | `MkIrqBind`, `MkIrqUnbind`, `MkIrqAck`, `MkIrqPoll`, `MkIrqWait`. |
 | 19 | `Dma` | `MkDmaMap`, `MkDmaUnmap`. |
 | 20 | `Pio` | `MkPioGrant`, `MkPioRead`, `MkPioWrite`, `MkPioRelease`. |
@@ -52,24 +52,6 @@ siblings ask for their own bit alone
 | 34 | `StreamImport` | `MkDataFeedBegin`, `MkDataFeed`, `MkDataRemove`. |
 | 35 | `DeviceSecret` | `MkDeviceSecret`, `MkBootSlots`, `MkEnroll`. |
 | 36 | `InputConsumer` | `MkInputEventDrain`, `MkInputEventWait`; input_router alone holds it. |
-
-Some calls need only a valid token: `MkExit`, `MkPidAlive`, `MkYield`, the futex
-and time reads, `MkBatteryStatus`, `MkProcStat`, `MkAttestStatus`,
-`MkAttestPolicy`, `MkBootAttest` and `MkCapCheck`, listed together under
-`is_valid` (`src/syscall/contract/cap_table/mk.rs:25-38`). A valid token is one
-that has not expired and grants at least one capability, as `is_valid` reads
-(`src/capabilities/token/types/query.rs:44-47`). `MkSetTls` needs the same,
-since it changes nothing outside the caller
-(`src/syscall/contract/cap_table/mk_ipc.rs:27-31`). `MkTtyQuery` admits every
-caller whose token passed the resolver
-(`src/syscall/contract/cap_table/mk_surface.rs:51`). `MkProcStat` shows a caller
-without `AttestRead` or `ProcessControl` only the identity and state of other
-processes, as `sees_all` decides
-(`src/syscall/microkernel/procstat_redact.rs:29-34`).
-
-Two refusals are written into the predicates themselves. `can_attest_doc`
-refuses a caller that holds `Network`, because a TPM quote names the machine for
-good (`src/syscall/caps/checks/system.rs:42-47`). `can_input_consumer` takes
-`InputConsumer` alone, so neither a device driver, which holds `Irq`, nor a
-holder of `Admin` reads the keystroke stream
-(`src/capabilities/token/types/authority_broker.rs:64-66`).
+| 37 | `CameraCapture` | No call. Services check it with `MkCapCheck`: the USB stack before it hands a video interface, the compositor before it takes a camera indicator. No capsule holds it until Decision 9 (`scripts/check_capture_caps.py`). |
+| 38 | `MicrophoneCapture` | No call. Checked as `CameraCapture` is, by the audio service and the compositor's microphone indicator. |
+| 39 | `ScreenCapture` | No call. The compositor checks it with `MkCapCheck` before a screenshot (NCMP 0x000C) and shows a notice while it takes one. No capsule holds it until Decision 9. |

@@ -17,7 +17,7 @@
 //! Where the port-only rule is used: the group check asks it for the
 //! claim and each holder, the group marks members across a shared bus, the
 //! capsule records it, and the claim closes Memory Space for one; with no
-//! unit to confine it, every verdict is asked with it.
+//! unit to confine it, every verdict is asked with it (H-02b, port_only_verdict_glue_tests.rs).
 
 const JOIN_GROUP: &str = include_str!("../../../../src/hardware/broker/confine/join_group.rs");
 const GATES: &str = include_str!("../../../../src/hardware/broker/confine/gates.rs");
@@ -25,8 +25,6 @@ const ACS: &str = include_str!("../../../../src/hardware/broker/confine/acs.rs")
 const ONE: &str = include_str!("../../../../src/hardware/broker/confine/one.rs");
 const ATTACH: &str = include_str!("../../../../src/hardware/broker/confine/attach.rs");
 const CLAIM: &str = include_str!("../../../../src/hardware/broker/claim/claim.rs");
-const CAPSULE: &str = include_str!("../../../../src/hardware/broker/confine/capsule.rs");
-const REFUSE: &str = include_str!("../../../../src/hardware/broker/confine/refuse.rs");
 
 #[test]
 fn the_group_check_asks_the_rule_both_ways_for_the_claim_and_each_holder() {
@@ -50,7 +48,7 @@ fn a_held_device_carrying_the_claimed_requester_id_refuses_it() {
 fn members_across_a_shared_bus_are_marked_and_the_capsule_records_its_claim() {
     assert!(ACS.contains("let across = shared(&hops);"));
     assert!(ACS.contains("shared: across.contains(&at)"));
-    assert!(ONE.contains("capsule_for(&mut all, pid, (must, port_only))"));
+    assert!(ONE.contains("capsule_for(&mut all, pid, device_id, (must, port_only))"));
     assert!(ATTACH.contains("attach_one(pid, device_id, address, (false, port_only)"));
     assert!(ONE.contains("port_only(has(Capability::Dma), has(Capability::Mmio))"));
 }
@@ -62,15 +60,4 @@ fn a_port_only_claim_closes_memory_space_before_the_device_is_powered() {
     let gate = CLAIM.find("if port_only {").expect("closed for every claim");
     let power = CLAIM.find("power_on_device(device_id)").expect("never powered");
     assert!(gate < close && close < power, "{gate} {close} {power}");
-}
-
-#[test]
-fn every_claim_no_unit_confines_asks_the_verdict_with_port_only() {
-    let asked = "Ok(()), port_only, (OPT_IN, PRODUCTION))";
-    assert!(ATTACH.contains(&format!("verdict(false, false, {asked}")));
-    assert!(ATTACH.contains(&format!("without_domain(verdict(true, false, {asked})")));
-    assert!(CAPSULE.contains("without_domain(verdict(true, true, Err(true), port_only, (OPT_IN"));
-    let no_dma = REFUSE.find("Verdict::NoDma => {").expect("NoDma refused");
-    let ok = REFUSE[no_dma..].find("return Ok(());").expect("NoDma not admitted");
-    assert!(ok < REFUSE[no_dma..].find("Verdict::Unconfined").unwrap());
 }

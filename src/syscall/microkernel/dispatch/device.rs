@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::args::Args;
+use crate::syscall::microkernel::boot_framebuffer::sys_boot_framebuffer;
 use crate::syscall::microkernel::device::{sys_device_claim, sys_device_list, sys_device_release};
 use crate::syscall::microkernel::errnos::ERRNO_INVAL;
 use crate::syscall::microkernel::narrow::u32_arg;
@@ -28,6 +29,7 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         },
         SYS_DEVICE_CLAIM => sys_device_claim(a.a0),
         SYS_DEVICE_RELEASE => sys_device_release(a.a0),
+        SYS_BOOT_FRAMEBUFFER => sys_boot_framebuffer(a.a0, a.a1, a.a2),
         _ => return None,
     })
 }

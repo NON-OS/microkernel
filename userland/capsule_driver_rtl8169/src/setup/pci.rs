@@ -14,14 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_pci_config_write, MK_PCI_CFG_COMMAND};
+use nonos_libc::{mk_pci_config_update, MK_PCI_CFG_COMMAND};
+use nonos_libc::{MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_MEMORY_SPACE};
 
 use super::command_word::command_word;
+
+/// The Command bits the word sets and clears.
+const MASK: u16 = MK_PCI_CMD_MEMORY_SPACE | MK_PCI_CMD_BUS_MASTER;
 
 /// Write the Command word under the claim (see `command_word`).
 pub fn command(device_id: u64, epoch: u64, bus_master: bool) -> Result<(), &'static str> {
     let word = command_word(bus_master);
-    if mk_pci_config_write(device_id, epoch, MK_PCI_CFG_COMMAND, word) < 0 {
+    if mk_pci_config_update(device_id, epoch, MK_PCI_CFG_COMMAND, MASK, word) < 0 {
         return Err(if bus_master {
             "pci command write refused (bus master)"
         } else {

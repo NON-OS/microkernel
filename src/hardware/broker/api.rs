@@ -13,48 +13,26 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! The rest of the broker's names, as the rest of the kernel uses them:
+//! the tables, the boot's registrations, the arch-specific stand-ins and
+//! x86_64's own names in one use (exports.rs holds the claim and grant calls).
 
-//! The broker's names, as the rest of the kernel uses them.
-
-// pub use super::census::render_and_hold as device_census; // bring-up diagnostic, silenced
-pub use super::claim::{
-    claim as claim_device, lookup as claim_lookup, quiesce_all as quiesce_all_devices,
-    release as release_device, release_all_for_pid as release_claims_for_pid, Claim, ClaimError,
-};
-pub use super::class::{classify_pci, Class};
-pub use super::device::{
-    Bar, BarKind, BusKind, DeviceRecord, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DEPS_UNMET,
-    DEVICE_FLAG_DISABLED, DEVICE_FLAG_DMA_NONCOHERENT, DEVICE_FLAG_EXTERNAL,
-    DEVICE_FLAG_IRQ_ACTIVE_LOW, DEVICE_FLAG_IRQ_EDGE, NUMA_UNKNOWN,
-};
-pub use super::dma::{
-    covers as dma_covers, map_for_caller as dma_map_for_caller,
-    release_all_for_pid as dma_release_all_for_pid, unmap_grant as dma_unmap_grant,
-    wipe_live_grants as dma_wipe_live_grants, DmaError, DmaGrant, DmaMapError, DmaMapRequest,
-    DmaMapResult,
-};
-pub use super::external_range::ExternalRange;
-pub use super::grant::{GrantError, MmioGrant};
-pub use super::irq::{
-    ack_grant as irq_ack_grant, bind as irq_bind, poll as irq_poll,
-    release_all_for_pid as irq_release_all_for_pid, release_for_device as irq_release_for_device,
-    unmap_grant as irq_unmap_grant, wait_arm as irq_wait_arm, wait_disarm as irq_wait_disarm,
-    IrqBindError, IrqBindRequest, IrqBindResult, IrqError, IrqPollResult,
-};
-pub use super::mmio::{
-    map_for_caller, release_all_for_pid, unmap_grant, MmioMapError, MmioMapRequest, MmioMapResult,
-};
-pub use super::pci::{
-    read as pci_config_read, write as pci_config_write, PciReadError, PciReadRequest,
-    PciWriteError, PciWriteRequest,
+#[cfg(not(target_arch = "x86_64"))]
+pub use super::pio_absent::{
+    pio_release_all_for_pid, pio_release_for_device as pio_release_for_device_unkeyed,
 };
 #[cfg(not(target_arch = "x86_64"))]
-pub use super::pio_absent::{pio_release_all_for_pid, pio_release_for_device};
+pub use super::pio_absent_claim::pio_release_for_device;
 pub use super::platform::register_legacy as register_legacy_platform_devices;
 pub use super::table::{
     boot_fb_held, contains, external_port_of, init_from_pci, list, list_by_class, list_shown,
 };
-pub use super::vmbus::{register_vmbus, vmbus_held_by, VMBUS_DEVICE, VMBUS_VENDOR};
+pub use super::vmbus::{
+    channel_held_by as vmbus_channel_held_by, is_channel as vmbus_is_channel,
+    register_channel as register_vmbus_channel, register_vmbus,
+    retire_all_channels as retire_all_vmbus_channels, retire_channel as retire_vmbus_channel,
+    settle_channel as settle_vmbus_channel, vmbus_held_by, VMBUS_DEVICE, VMBUS_VENDOR,
+};
 pub use super::windows::touches_device_window;
 #[cfg(target_arch = "x86_64")]
 pub use super::{

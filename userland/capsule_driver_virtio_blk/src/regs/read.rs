@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Reads of the legacy window. A memory window's read is followed by libc's
+//! read barrier, as libc's own accessors are: nothing the register vouches
+//! for in DMA memory is read before it.
+
 use super::io::RegIo;
 use super::pio;
 use super::state::Regs;
@@ -21,21 +25,33 @@ use super::state::Regs;
 impl Regs {
     pub fn r8(self, offset: usize) -> u8 {
         match self.io {
-            RegIo::Mmio(m) => m.r8(offset),
+            RegIo::Mmio(m) => {
+                let value = m.r8(offset);
+                nonos_libc::dma_rmb();
+                value
+            }
             RegIo::Pio(grant) => pio::read(grant, offset, 1) as u8,
         }
     }
 
     pub fn r16(self, offset: usize) -> u16 {
         match self.io {
-            RegIo::Mmio(m) => m.r16(offset),
+            RegIo::Mmio(m) => {
+                let value = m.r16(offset);
+                nonos_libc::dma_rmb();
+                value
+            }
             RegIo::Pio(grant) => pio::read(grant, offset, 2) as u16,
         }
     }
 
     pub fn r32(self, offset: usize) -> u32 {
         match self.io {
-            RegIo::Mmio(m) => m.r32(offset),
+            RegIo::Mmio(m) => {
+                let value = m.r32(offset);
+                nonos_libc::dma_rmb();
+                value
+            }
             RegIo::Pio(grant) => pio::read(grant, offset, 4),
         }
     }

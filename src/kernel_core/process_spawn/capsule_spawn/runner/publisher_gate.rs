@@ -25,6 +25,13 @@ pub(crate) fn publisher_gate(
     if !matches!(super::tier::classify(namespace), super::tier::Tier::Publisher) {
         return Err(SpawnError::AttestationRejected);
     }
+    // Never a name the image's own capsules declare, running or not (L52),
+    // nor one under a root or in a form only the system takes (L57).
+    use crate::services::registry::{is_reserved_form, is_system_name};
+    let system = |n: &str| is_system_name(n) || is_reserved_form(n);
+    if system(spec.name) || system(spec.reply_inbox) {
+        return Err(SpawnError::EndpointCollision);
+    }
     /*
      * A publisher's capsule runs only with a v4 trailer that verifies, path and
      * STARK, under the vendor root or a root the person enrolled: the same gate,

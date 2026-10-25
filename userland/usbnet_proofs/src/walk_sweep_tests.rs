@@ -19,8 +19,8 @@ fn every_sound_configuration_walks_as_built() {
         sizes[raw.len().next_power_of_two().trailing_zeros() as usize] += 1;
     }
     if !cfg!(miri) {
-        for k in 5..=12 {
-            assert!(sizes[k] >= 500, "only {} configurations near {} bytes", sizes[k], 1 << k);
+        for (k, &n) in sizes.iter().enumerate().skip(5) {
+            assert!(n >= 500, "only {n} configurations near {} bytes", 1 << k);
         }
     }
 }

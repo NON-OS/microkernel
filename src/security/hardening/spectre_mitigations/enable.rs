@@ -20,28 +20,22 @@
 //! two read the same in a log and are not the same thing, and the second one
 //! is how a machine ends up trusted for a mitigation nobody wired up.
 
+use super::constants::{SPEC_CTRL_IBRS, SPEC_CTRL_SSBD, SPEC_CTRL_STIBP};
+use super::cpu_apply::{apply_on_this_cpu, decide};
 use super::cpuid;
-use super::ibrs::ibrs_enable;
-use super::ssbd::ssbd_enable;
-use super::stibp::stibp_enable;
 use super::types::MitigationStatus;
 
 pub fn enable_mitigations() -> MitigationStatus {
     let mut status = MitigationStatus::default();
 
-    if cpuid::has_ibrs_ibpb() {
-        ibrs_enable();
-        status.ibrs_enabled = true;
-        status.ibpb_enabled = true;
-    }
-    if cpuid::has_stibp() {
-        stibp_enable();
-        status.stibp_enabled = true;
-    }
-    if cpuid::has_ssbd() {
-        ssbd_enable();
-        status.ssbd_enabled = true;
-    }
+    // Decided here for every CPU; each AP applies the same bits from its
+    // own bring-up, since SPEC_CTRL is per logical CPU.
+    let bits = decide();
+    apply_on_this_cpu();
+    status.ibrs_enabled = bits & SPEC_CTRL_IBRS != 0;
+    status.ibpb_enabled = super::cpu_apply::has_ibpb();
+    status.stibp_enabled = bits & SPEC_CTRL_STIBP != 0;
+    status.ssbd_enabled = bits & SPEC_CTRL_SSBD != 0;
 
     // These two are buffer-clearing operations rather than modes, and both
     // record CPU support only. The exit hook issues VERW when md_clear is

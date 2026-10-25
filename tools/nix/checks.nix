@@ -5,7 +5,7 @@
 # What stays in its own workflow, because it needs a network or a toolchain no
 # lock can pin yet: Kani (cargo kani setup downloads CBMC), Verus, the
 # Charon/Aeneas extraction, cargo-fuzz runs and cargo-audit's advisory feed.
-{ pkgs, lib, pins, cargo, rustBuild, src, capsules, config, self, starks, busybox, periodic }:
+{ pkgs, lib, pins, cargo, rustBuild, src, capsules, config, image, self, starks, busybox, periodic }:
 let
   # The static and drift checks read the tree as a reviewer does, docs and
   # all; every cargo check reads only its own crate (tools/nix/inputs.py).
@@ -238,6 +238,7 @@ let
       "scripts/check_driver_proofs.py"
       "scripts/check_dark_features.py --self-test" "scripts/check_dark_features.py"
       "scripts/check_test_lanes.py --self-test" "scripts/check_test_lanes.py"
+      "-m unittest discover -s tools/nonos_selftest -p 'test_*.py'"
     ]);
     # verify.yml, abi-contracts and syscall-reach
     static-abi = static "abi" (scripts [
@@ -259,6 +260,17 @@ let
       "tools/ratchets/disclosure.py" "tools/nonos-mutant --check"
       "scripts/check_syscall_reach.py --baseline scripts/baselines/syscall-unreachable-count.txt"
     ]);
+    # Every capsule a release profile ships has its sealed trust set, but for
+    # those scripts/baselines/unsealed.txt names, which may only shrink.
+    static-release-trust =
+      let
+        resolved = map (p: config.resolve (config.file // { profile = p; })) (builtins.attrNames config.profiles);
+        slugs = lib.unique (lib.concatMap (c: map (e: e.slug) (image.shipped c.enabled)) (builtins.filter (c: c.release) resolved));
+      in
+      static "release-trust" (scripts [
+        "scripts/check_release_trust.py --self-test"
+        "scripts/check_release_trust.py --baseline scripts/baselines/unsealed.txt --doc docs/build/feature-inventory.md ${toString slugs}"
+      ]);
     # make nonos-mk-static: the grep gates over the whole tree
     static-tree = static "tree" ''
       export HOME=$TMPDIR CARGO_NET_OFFLINE=true

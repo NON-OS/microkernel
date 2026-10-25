@@ -21,9 +21,7 @@
  * value and the broker's flags are included by path.
  */
 
-#[path = "../../../../src/hardware/broker/dma/flags.rs"]
-#[allow(dead_code)]
-pub mod flags;
+pub use crate::dma_flags as flags;
 mod tests;
 #[path = "../../../../src/arch/x86_64/pat/value.rs"]
 #[allow(dead_code)]

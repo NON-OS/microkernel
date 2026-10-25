@@ -20,6 +20,11 @@
 //! row, prefetchable, its `aux` the first pixel's offset into that page. Only
 //! the process serving `driver.bootfb0` may claim it. `mk_boot_framebuffer`
 //! answers the rest, for the holder only. Cap requirement: `Mmio`.
+//!
+//! Once a GPU driver's claim takes the scanout (L79), the holder's mapping
+//! shows a kernel sink page, `mk_boot_framebuffer` answers -ENODEV for good,
+//! a release -ENODEV and a new claim -EPERM for the rest of the boot. No DMA
+//! is ever granted against this record.
 
 use core::mem::size_of;
 

@@ -3,7 +3,7 @@
 // Stdin reads this process's kernel stdin channel, fed by a launcher (the
 // terminal). The kernel read does not block; `read` yields and asks again
 // until bytes arrive.
-// Raw syscall: rax = tag, rdi/rsi = (buf, len).
+// Each call (pal trap) takes (buf, len).
 
 use crate::io;
 
@@ -23,14 +23,7 @@ const CHUNK: usize = 240;
 unsafe fn stdin_read(ptr: *mut u8, len: usize) -> i64 {
     let ret: i64;
     unsafe {
-        core::arch::asm!(
-            "syscall",
-            inout("rax") N_MK_STDIN_READ => ret,
-            in("rdi") ptr as u64,
-            in("rsi") len as u64,
-            out("rcx") _,
-            out("r11") _,
-        );
+        ret = crate::sys::pal::trap::trap(N_MK_STDIN_READ, ptr as u64, len as u64, 0, 0, 0, 0);
     }
     ret
 }
@@ -38,7 +31,7 @@ unsafe fn stdin_read(ptr: *mut u8, len: usize) -> i64 {
 #[inline]
 fn raw_yield() {
     unsafe {
-        core::arch::asm!("syscall", in("rax") N_MK_YIELD, out("rcx") _, out("r11") _);
+        crate::sys::pal::trap::trap(N_MK_YIELD, 0, 0, 0, 0, 0, 0);
     }
 }
 
@@ -49,14 +42,7 @@ fn raw_yield() {
 unsafe fn stdout_write(ptr: *const u8, len: usize) {
     let ret: i64;
     unsafe {
-        core::arch::asm!(
-            "syscall",
-            inout("rax") N_MK_STDOUT_WRITE => ret,
-            in("rdi") ptr as u64,
-            in("rsi") len as u64,
-            out("rcx") _,
-            out("r11") _,
-        );
+        ret = crate::sys::pal::trap::trap(N_MK_STDOUT_WRITE, ptr as u64, len as u64, 0, 0, 0, 0);
     }
     let _ = ret;
 }

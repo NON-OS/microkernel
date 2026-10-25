@@ -50,12 +50,15 @@ pub enum MmioMapError {
     NoVaSpace,
     MapFailed,
     WouldExposeMsixTable,
+    /// The kernel maps the range itself with two memory types.
+    MixedMemoryType,
     WouldExposePba,
     /// The pages touch RAM, the kernel image or an IOMMU (forbidden.rs).
     Forbidden,
     /// The BAR runs into a range firmware keeps for itself.
     FirmwareReserved,
-    /// Write-combining asked on a BAR that is not prefetchable (cache.rs).
+    /// Write-combining asked on a BAR that is not prefetchable (cache.rs,
+    /// memory_type.rs).
     WcNotPrefetchable,
     /// Write-combining asked for pages reaching past the BAR (cache.rs).
     WcPastBar,

@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Writes to the legacy window. A memory window's write follows libc's
+//! write barrier, as libc's own accessors do: every store to DMA memory
+//! before it reaches the device first, a ring before its doorbell.
+
 use super::io::RegIo;
 use super::pio;
 use super::state::Regs;
@@ -21,21 +25,30 @@ use super::state::Regs;
 impl Regs {
     pub fn w8(self, offset: usize, value: u8) {
         match self.io {
-            RegIo::Mmio(m) => m.w8(offset, value),
+            RegIo::Mmio(m) => {
+                nonos_libc::dma_wmb();
+                m.w8(offset, value)
+            }
             RegIo::Pio(grant) => pio::write(grant, offset, 1, value as u32),
         }
     }
 
     pub fn w16(self, offset: usize, value: u16) {
         match self.io {
-            RegIo::Mmio(m) => m.w16(offset, value),
+            RegIo::Mmio(m) => {
+                nonos_libc::dma_wmb();
+                m.w16(offset, value)
+            }
             RegIo::Pio(grant) => pio::write(grant, offset, 2, value as u32),
         }
     }
 
     pub fn w32(self, offset: usize, value: u32) {
         match self.io {
-            RegIo::Mmio(m) => m.w32(offset, value),
+            RegIo::Mmio(m) => {
+                nonos_libc::dma_wmb();
+                m.w32(offset, value)
+            }
             RegIo::Pio(grant) => pio::write(grant, offset, 4, value),
         }
     }

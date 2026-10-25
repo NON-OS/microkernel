@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::assign::assign_enumerated;
+use super::assign_named::assign_named;
 use super::domain::blocked_domain;
 use crate::arch::x86_64::iommu::globals::{set_enforcing, set_page_levels, set_snoop_control};
 use crate::arch::x86_64::iommu::regs::offsets;
@@ -48,7 +49,10 @@ pub fn bring_up() -> Result<(usize, usize), VtdError> {
     let root = root_table()?;
 
     let blocked = blocked_domain()?;
-    let assigned = assign_enumerated(blocked, levels, info.levels.context_aw())?;
+    let aw = info.levels.context_aw();
+    let (assigned, reserved) = assign_enumerated(blocked, levels, aw)?;
+    // Devices only the ACPI namespace declares start blocked too.
+    let named = assign_named(blocked.1, blocked.0, aw)?;
 
     // A unit that fails after others came up leaves those translating through
     // the blocked and reserved domains; enforcement is simply not claimed.
@@ -63,5 +67,5 @@ pub fn bring_up() -> Result<(usize, usize), VtdError> {
     }
     super::firmware::release_protected_regions_all();
     set_enforcing();
-    Ok(assigned)
+    Ok((assigned + named, reserved))
 }
