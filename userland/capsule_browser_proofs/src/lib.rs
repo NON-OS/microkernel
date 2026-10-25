@@ -58,6 +58,8 @@ mod keyword_tests;
 mod link_tests;
 mod marker_tests;
 #[cfg(test)]
+mod media_height_tests;
+#[cfg(test)]
 mod media_query_tests;
 mod bg_layer_tests;
 mod filter_tests;
