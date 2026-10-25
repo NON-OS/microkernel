@@ -16,8 +16,6 @@
 
 //! What the parsers of the other ACPI tables give the rest of the kernel.
 
-pub use super::bgrt_load::{boot_logo, boot_logo_file, parse_bgrt};
-pub use super::bgrt_mode::firmware_mode;
 pub use super::dmar_tables::dmar::parse_dmar;
 pub use super::dmar_tables::dmar_ats::ats_structures;
 pub use super::dmar_tables::dmar_flags::{
