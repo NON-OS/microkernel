@@ -42,7 +42,7 @@ pub(in crate::hardware::broker) fn map(
     let mut all = CAPSULES.lock();
     let held = |c: &&mut super::table::Capsule| c.devices.iter().any(|(d, _)| *d == device_id);
     let Some(c) = all.iter_mut().filter(|c| c.pid == pid).find(held) else {
-        let physical = super::decide::physical_dma();
+        let physical = super::open::physical_dma();
         return if physical { Ok((phys, false)) } else { Err(NoAddress::Unconfined) };
     };
     let iova = iova::take(c, length).ok_or(NoAddress::Failed)?;
