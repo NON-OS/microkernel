@@ -20,4 +20,5 @@ mod wipe;
 
 pub use hold::Vault;
 pub(crate) use not_copy::assert_not_copy;
-pub(crate) use wipe::{wipe, wipe_value};
+pub use wipe::wipe;
+pub(crate) use wipe::wipe_value;

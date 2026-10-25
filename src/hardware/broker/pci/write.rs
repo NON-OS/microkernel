@@ -32,7 +32,9 @@ pub fn write(pid: u32, req: PciWriteRequest) -> Result<(), PciWriteError> {
     let current = cfg.read16(register).map_err(|_| PciWriteError::PlatformError)?;
     // The register, not the call's argument: a masked write's mask is above it.
     let ident = ident(&cfg, register as u32)?;
-    let judge = |now| validate(&req, handle.msix.as_ref(), &ident, now);
+    // Bus Master is for DMA: only a caller holding Dma may set it (K6).
+    let may_master = crate::process::caps::has(pid, crate::capabilities::Capability::Dma.bit());
+    let judge = |now| validate(&req, handle.msix.as_ref(), &ident, now, may_master);
     let action = judge(current)?;
     // Never after an exit moved the claim on and stopped the device (L69).
     let make = || super::apply::apply(&cfg, action, judge);

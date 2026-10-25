@@ -13,9 +13,9 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! Shared to a pid once the broker has `mk_surface_share_to` (L18 (c));
-//! until then the share is the registry's own, and the wire's owner rule
-//! is the only limit on who is answered.
+//! Shared with the compositor when it is registered (surface.rs, K20), so
+//! `share` has nothing left to do; the wire's owner rule picks which
+//! compositor is answered.
 
 use nonos_gfx_serve::{Platform, Region};
 use nonos_gfx_wire::Errno;

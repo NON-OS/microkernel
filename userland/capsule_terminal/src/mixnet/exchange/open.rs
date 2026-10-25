@@ -22,7 +22,7 @@
 
 use alloc::vec::Vec;
 
-use nonos_route_link::{Route, RouteOpening, RouteStream, Slice};
+use nonos_route_link::{Route, RouteOpening, RouteStream};
 
 use super::types::{Exchange, Phase};
 
@@ -55,24 +55,6 @@ impl Exchange {
             Err(_) => {
                 let stream = RouteStream::connect(self.route, &self.host, self.port)?;
                 self.stream = Some(stream);
-                self.connected()
-            }
-        }
-    }
-
-    pub(super) fn opening(&mut self) -> Result<Option<Vec<u8>>, &'static str> {
-        let Phase::Opening(opening) = &mut self.phase else {
-            return Ok(None);
-        };
-        match opening.step(SLICE_MS) {
-            Slice::Waiting => Ok(None),
-            Slice::Failed(why) => Err(why),
-            Slice::Done => {
-                let Phase::Opening(opening) = core::mem::replace(&mut self.phase, Phase::Start)
-                else {
-                    return Ok(None);
-                };
-                self.stream = Some(opening.into_stream());
                 self.connected()
             }
         }

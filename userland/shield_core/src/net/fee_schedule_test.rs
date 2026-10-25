@@ -1,6 +1,3 @@
-// A test asserts by panicking, so the lints that forbid it are off here.
-#![allow(clippy::expect_used, clippy::indexing_slicing)]
-
 use super::{fee, schedule, split, Schedule, RUNG};
 
 /// The production policy's schedules on Sepolia, read on 1 October.

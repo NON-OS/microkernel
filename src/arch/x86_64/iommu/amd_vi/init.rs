@@ -14,25 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! AMD-Vi. A unit firmware left enabled translates every device's DMA
+//! through firmware's tables, so storage and USB miss the kernel's memory:
+//! each unit is disabled first. With `nonos-iommu-amdvi` the kernel drives
+//! them (AMD IOMMU spec 48882): one device table, a command buffer and an
+//! event log per unit, capsule domains and remapped interrupts behind the
+//! broker's calls. Without it, DMA on AMD is unrestricted, as posture says.
+
 //! What AMD-Vi bring-up says on the console, and the call boot makes.
 
 use super::release::release_from_firmware;
+use crate::arch::x86_64::iommu::handover::amd_stop;
 use crate::sys::serial;
 #[cfg(feature = "nonos-iommu-amdvi")]
 use crate::sys::serial::Line;
 
-/// Take every unit back from firmware, then, in a kernel built with
-/// `nonos-iommu-amdvi`, put them in service with the kernel's tables.
+/// In a kernel built with `nonos-iommu-amdvi`, take every unit back from
+/// firmware and put it in service with the kernel's tables. Without it, a
+/// unit firmware left running keeps running (iommu::handover), but under the
+/// development opt-in.
 pub fn init() {
-    release_from_firmware();
+    let dev = crate::memory::iommu::dev_unconfined::holds();
+    if amd_stop(cfg!(feature = "nonos-iommu-amdvi"), dev) {
+        release_from_firmware();
+    }
     #[cfg(feature = "nonos-iommu-amdvi")]
     match super::bringup::bring_up() {
         Ok(assigned) => {
             let mut line = Line::new();
             line.str(b"[AMD-VI] IOMMU translation enabled, units=");
             line.dec(super::units::units().len() as u64);
-            line.str(b" devices=").dec(assigned as u64).end();
-            serial::println(b"[AMD-VI] enumerated devices identity mapped; others denied");
+            line.str(b" reserved=").dec(assigned as u64).end();
+            serial::println(b"[AMD-VI] every other requester id blocked, its interrupts refused");
+            super::unnamed::say_unnamed_ioapics();
         }
         Err(e) => {
             let mut line = Line::new();

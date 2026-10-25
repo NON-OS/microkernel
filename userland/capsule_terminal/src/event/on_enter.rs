@@ -20,10 +20,13 @@ use nonos_libc::mk_time_millis;
 use crate::command;
 use crate::term::dimensions::LINE_MAX;
 use crate::term::state::State;
-use crate::term::util::{copy_into, format_u64};
 
 use super::echo_line::echo_line;
 use super::run_line::run_line;
+
+#[path = "enter_expand.rs"]
+mod enter_expand;
+use enter_expand::expand_line;
 
 pub fn on_enter(state: &mut State) -> EventOutcome {
     // Running a line ends any search that found it. The match is already on
@@ -32,44 +35,10 @@ pub fn on_enter(state: &mut State) -> EventOutcome {
     state.fresh = false;
     let started = mk_time_millis();
     state.open_block(crate::term::rtc::rtc_hms());
-    // A `!` form is resolved before anything else sees the line, so what is
-    // echoed, recorded in history and run are all the same text. Expanding
-    // later would put one command on screen and another through the parser.
     let mut entered = [0u8; LINE_MAX];
-    let typed = state.line.as_bytes();
-    let mut n = typed.len().min(LINE_MAX);
-    entered[..n].copy_from_slice(&typed[..n]);
-    /*
-     * A line that starts with `qwen` is a question, and a `!word` in it is
-     * part of what is asked, not a history reference.
-     */
-    let expanded = if command::builtin::qwen::is_line(state.line.as_bytes()) {
-        None
-    } else {
-        crate::term::history::expand(state.line.as_bytes(), &state.history)
+    let Some(n) = expand_line(state, &mut entered) else {
+        return EventOutcome::Repaint;
     };
-    match expanded {
-        // The expansion is what gets echoed, which is the whole safety of the
-        // feature: the reader sees the command that is about to run, not the
-        // shorthand they typed for it.
-        Some(Ok(line)) => {
-            n = line.len().min(LINE_MAX);
-            entered[..n].copy_from_slice(&line[..n]);
-        }
-        Some(Err(_)) => {
-            // Naming an entry that is not there runs nothing. Silently
-            // dropping the `!` would run the rest of the line, which is how
-            // history expansion earns its reputation.
-            echo_line(state, &entered[..n]);
-            state.scrollback.push_line(b"no matching history entry");
-            state.line.clear();
-            state.history.reset_cursor();
-            state.last_status = 1;
-            state.scrollback.jump_bottom();
-            return EventOutcome::Repaint;
-        }
-        None => {}
-    }
     echo_line(state, &entered[..n]);
     /*
      * A question to Qwen is the rest of the line as typed. It is taken
@@ -94,19 +63,4 @@ pub fn on_enter(state: &mut State) -> EventOutcome {
         command::Outcome::Exit => EventOutcome::Close,
         command::Outcome::Repaint => EventOutcome::Repaint,
     }
-}
-
-// "[n] started" line printed when a background job is submitted; the
-// job's own output streams into the scrollback as Task 13's on_tick pump
-// steps it.
-pub(super) fn print_started(state: &mut State, id: u32) {
-    let mut num = [0u8; 20];
-    let nk = format_u64(id as u64, &mut num);
-    let mut msg = [0u8; 32];
-    let mut mk = 0;
-    msg[mk] = b'[';
-    mk += 1;
-    mk += copy_into(&mut msg[mk..], &num[..nk]);
-    mk += copy_into(&mut msg[mk..], b"] started");
-    state.scrollback.push_line(&msg[..mk]);
 }

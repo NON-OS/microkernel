@@ -5,6 +5,9 @@ edition = "2021"
 description = "Git object model, hashing and object store for the NONOS terminal, no_std"
 license = "AGPL-3.0"
 
+[package.metadata.nonos]
+test-lane = true
+
 [lib]
 crate-type = ["rlib"]
 

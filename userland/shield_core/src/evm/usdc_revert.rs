@@ -19,7 +19,6 @@ pub(super) fn why(revert: &[u8]) -> &'static str {
 
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::arithmetic_side_effects, clippy::integer_division)]
     use super::why;
 
     fn error(text: &str) -> Vec<u8> {

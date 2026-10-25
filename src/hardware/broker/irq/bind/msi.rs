@@ -46,7 +46,7 @@ pub(super) fn bind_msi(
         Ok(r) => r,
         Err(e) => {
             slots::free_slot(slot);
-            crate::log::info!("[IRQ] {} msi bind failed: {:?}", handle.address, e);
+            crate::log::info!("[IRQ] msi bind failed: {:?}", e);
             return Err(e);
         }
     };
@@ -64,6 +64,7 @@ pub(super) fn bind_msi(
         device_vector: 0,
         irte,
     }])?;
-    crate::log::info!("[IRQ] {} msi vector {:#x}", handle.address, vector);
+    // No bus address on the line (K10).
+    crate::log::info!("[IRQ] msi vector {:#x}", vector);
     Ok(IrqBindResult { grant_id, vector, grants: 1 })
 }

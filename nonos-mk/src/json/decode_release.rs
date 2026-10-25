@@ -16,6 +16,7 @@
 
 use nonos_marketplace_abi::CapsuleRelease;
 
+use super::decode_commerce::ext_to_json;
 use super::decode_enums::validation_status_str;
 use super::schema::{ReleaseJson, ValidationJson};
 
@@ -34,6 +35,7 @@ pub(super) fn release_to_json(r: &CapsuleRelease) -> ReleaseJson {
         } else {
             hex::encode(r.zk_trailer_hash)
         },
+        ext: r.ext.as_ref().map(ext_to_json),
         validation: ValidationJson {
             status: validation_status_str(r.validation.status).to_string(),
             note: r.validation.note.clone(),

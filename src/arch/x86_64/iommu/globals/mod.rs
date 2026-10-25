@@ -26,7 +26,7 @@ pub(super) mod state;
 
 pub use allocate_domain_id::allocate_domain_id;
 pub use domain_id_limit::domain_id_limit;
-pub use identity_devices::{identity_devices, set_identity_domain};
+pub use identity_devices::identity_devices;
 pub use is_enforcing::{is_enforcing, set_enforcing};
 pub use is_present::is_present;
 pub use page_levels::{page_levels, set_page_levels};

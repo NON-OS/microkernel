@@ -22,6 +22,8 @@ pub mod config_space;
 mod counters;
 #[cfg(target_arch = "x86_64")]
 mod extended;
+#[cfg(target_arch = "x86_64")]
+mod extended_write;
 pub mod power;
 mod transport;
 mod unchecked;
@@ -35,5 +37,7 @@ pub use counters::{get_config_stats, reset_config_stats};
 pub(crate) use extended::map_ecam_bus;
 #[cfg(target_arch = "x86_64")]
 pub use extended::read_extended32;
+#[cfg(target_arch = "x86_64")]
+pub use extended_write::write_extended32;
 pub use transport::ecam::{self, EcamError, EcamWindow};
 pub use unchecked::{read32_unchecked, write32_unchecked};

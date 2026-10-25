@@ -17,8 +17,13 @@
 //! Where an install this window asked for stands, as the system reports it,
 //! and how that reads to a person.
 
-use nonos_market_proto::reason::{WHY_NOT_INSTALLED, WHY_NO_VOLUME};
-use nonos_market_proto::{reason, Stage};
+use nonos_market_proto::reason::WHY_NO_VOLUME;
+use nonos_market_proto::Stage;
+
+#[path = "progress_ask.rs"]
+mod progress_ask;
+#[path = "progress_button.rs"]
+mod progress_button;
 
 /// The installer's reason code for a machine with no data volume.
 pub const NO_VOLUME: u8 = WHY_NO_VOLUME;
@@ -54,51 +59,6 @@ impl Progress {
             Stage::Failed(why) => Progress::Failed(why),
             Stage::Removing => Progress::Removing,
             Stage::Removed => Progress::Removed,
-        }
-    }
-
-    /// The installer stopped because no disk here carries NONOS, so there is
-    /// no data volume at all (ENODEV). A live stick's volume is in memory and
-    /// is not this. Asking again cannot change it, so Enter does nothing and
-    /// the button says why instead of offering a retry.
-    pub fn needs_installed_system(self) -> bool {
-        self == Progress::Failed(NO_VOLUME)
-    }
-
-    /// A stopped install that asking again could finish. No NONOS disk, or a
-    /// system built without what the install needs, is not one: no Retry
-    /// is offered for what can only fail the same way again.
-    pub fn retryable(self) -> bool {
-        match self {
-            Progress::Refused => true,
-            Progress::Failed(why) => reason(why).retry,
-            _ => false,
-        }
-    }
-
-    /// Still moving, so worth asking again.
-    pub fn pending(self) -> bool {
-        matches!(self, Progress::Queued | Progress::Installing | Progress::Removing)
-    }
-
-    /// As good as never installed: nothing asked, taken away, or an
-    /// uninstall that found nothing installed. Install is offered again.
-    pub fn uninstalled(self) -> bool {
-        matches!(self, Progress::Idle | Progress::Removed | Progress::Failed(WHY_NOT_INSTALLED))
-    }
-
-    pub fn button(self, ready: bool) -> &'static [u8] {
-        match self {
-            p if p.uninstalled() && ready => b"Install",
-            Progress::Queued => b"Queued",
-            Progress::Installing => b"Installing",
-            Progress::Installed => b"Open",
-            Progress::Removing => b"Removing",
-            p if p.needs_installed_system() => b"Live boot",
-            p if p.retryable() => b"Retry",
-            Progress::Idle | Progress::Removed | Progress::Refused | Progress::Failed(_) => {
-                b"Details"
-            }
         }
     }
 }

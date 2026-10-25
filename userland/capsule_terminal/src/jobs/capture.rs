@@ -21,10 +21,10 @@
 
 use alloc::vec::Vec;
 
-use nonos_libc::{TAG_STDERR, TAG_STDOUT};
-
-use crate::command::dispatch::{not_written, write_out, wrote_to, REDIRECT_MAX};
-use crate::command::output::Output;
+#[path = "capture_end.rs"]
+mod capture_end;
+#[path = "capture_take.rs"]
+mod capture_take;
 
 pub struct Capture {
     /// The terminal's pid, which the vfs knows its files by.
@@ -55,53 +55,5 @@ impl Capture {
     pub fn split_by(mut self, tool: &[u8]) -> Self {
         self.split = tool == b"linux";
         self
-    }
-
-    /// One message of the program's output: the screen's when it is a tagged
-    /// stderr, else this file's.
-    pub fn route(&mut self, msg: &[u8], out: &mut Output<'_>) {
-        match (self.split, msg.split_first()) {
-            (true, Some((&TAG_STDERR, rest))) => out.feed_raw(rest),
-            (true, Some((&TAG_STDOUT, rest))) => self.take(rest),
-            _ => self.take(msg),
-        }
-    }
-
-    /// Output the program wrote.
-    pub fn take(&mut self, bytes: &[u8]) {
-        if self.path.is_empty() {
-            return;
-        }
-        let room = REDIRECT_MAX - self.held.len();
-        let kept = bytes.len().min(room);
-        self.held.extend_from_slice(&bytes[..kept]);
-        self.over += bytes.len() - kept;
-    }
-
-    /// The program ended: write the file and say how that went. False when
-    /// the file does not hold all the program wrote.
-    pub fn finish(&mut self, out: &mut Output<'_>) -> bool {
-        if self.path.is_empty() {
-            return true;
-        }
-        let held = core::mem::take(&mut self.held);
-        if let Err(e) = write_out(self.owner, &self.path, &held, self.append) {
-            out.writeln_error(&not_written(&self.path, e));
-            return false;
-        }
-        out.writeln(&wrote_to(&self.path));
-        if self.over > 0 {
-            out.writeln_error(&[&self.path[..], b": the output past 1 MiB was not kept"].concat());
-            return false;
-        }
-        true
-    }
-
-    /// The program was stopped with Ctrl+C: what it wrote is dropped, with
-    /// the file left as it stood when it started.
-    pub fn interrupted(&self, out: &mut Output<'_>) {
-        if !self.path.is_empty() {
-            out.writeln_error(&not_written(&self.path, "the program was interrupted"));
-        }
     }
 }

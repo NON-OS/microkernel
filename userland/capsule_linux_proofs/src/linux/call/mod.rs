@@ -16,20 +16,20 @@
 
 //! The argument rules of the capsule's calls, each a pure file of its own.
 
-#[path = "../../../../capsule_linux/src/linux/call/spawn/clone_flags.rs"]
+#[path = "../../../../capsule_linux/src/linux/call/spawn/clone_flags/mod.rs"]
 pub mod clone_flags;
 #[path = "../../../../capsule_linux/src/linux/call/spawn/exec_args.rs"]
 pub mod exec_args;
-#[path = "../../../../capsule_linux/src/linux/call/futex_op.rs"]
+#[path = "../../../../capsule_linux/src/linux/call/futex_op/mod.rs"]
 pub mod futex_op;
-#[path = "../../../../capsule_linux/src/linux/call/ioctl_req.rs"]
+#[path = "../../../../capsule_linux/src/linux/call/ioctl_req/mod.rs"]
 pub mod ioctl_req;
 #[path = "../../../../capsule_linux/src/linux/call/iovec.rs"]
 pub mod iovec;
 pub mod mem;
 #[path = "../../../../capsule_linux/src/linux/call/random_flags.rs"]
 pub mod random_flags;
-#[path = "../../../../capsule_linux/src/linux/call/signal_act.rs"]
+#[path = "../../../../capsule_linux/src/linux/call/signal_act/mod.rs"]
 pub mod signal_act;
 #[path = "../../../../capsule_linux/src/linux/call/spawn/tasks.rs"]
 pub mod tasks;

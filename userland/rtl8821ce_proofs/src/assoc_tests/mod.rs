@@ -1,0 +1,18 @@
+// NONOS Operating System (AGPL-3.0-or-later)
+
+//! Proofs for the association radio glue (`assoc`): a management frame is
+//! classified as management, an EAPOL-carrying data frame is unwrapped to its
+//! payload, anything else is ignored, an EAPOL payload wraps into an 802.11 data
+//! frame addressed to the AP, and a join against a silent radio times out rather
+//! than hanging.
+
+mod beacons;
+mod budget;
+mod dedup;
+mod frames;
+mod handshake;
+mod keys;
+mod policy;
+mod radio;
+mod resend;
+mod silent;

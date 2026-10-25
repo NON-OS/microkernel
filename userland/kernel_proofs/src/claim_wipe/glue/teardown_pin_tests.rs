@@ -20,7 +20,8 @@
 //! (L78, L80); an unconfined one not kept is counted released once, at its
 //! teardown; a run the registry let go is freed unless its wipe still keeps
 //! it, and counted released then only if it was kept (glue_tests and
-//! kept_count_tests read the same orders and notes).
+//! kept_count_tests read the same orders and notes). Its pages come out of
+//! the holder's own tables first, from any context (K10).
 
 use super::code::flat;
 use super::whole::whole;
@@ -28,8 +29,10 @@ use super::whole::whole;
 const TEARDOWN: &str = include_str!("../../../../../src/hardware/broker/dma/teardown.rs");
 const HELD: &str = include_str!("../../../../../src/hardware/broker/dma/held_run.rs");
 
-const TEARS: [&str; 15] = [
-    "pub(super) fn teardown(g: &DmaGrant, unmap_pages: bool, released: bool) { if unmap_pages {",
+const TEARS: [&str; 17] = [
+    "pub(super) fn teardown(g: &DmaGrant, unmap_pages: bool, released: bool) {",
+    "if super::super::holder_space::unmap_from_holder(g.pid, g.user_va, g.length) {",
+    "super::va::release(g.pid, g.user_va, g.length); } else if unmap_pages {",
     "let _ = crate::memory::paging::unmap_user_dma(VirtAddr::new(g.user_va), g.length as usize); }",
     "if !super::super::confine::unmap(g.pid, g.device_addr, g.length, g.confined) {",
     r#"crate::sys::serial::println( b"[DMA] grant still reachable by its device; frames"#,

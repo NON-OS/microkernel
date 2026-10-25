@@ -1,6 +1,6 @@
 # libc and the Rust runtimes
 
-A [capsule](../overview/glossary.md#capsule) reaches the kernel through one of three userland layers; each is described below with what it implements, what it leaves out and which capsules use it.
+A [capsule](../overview/glossary-boot-root-record.md#capsule) reaches the kernel through one of three userland layers; each is described below with what it implements, what it leaves out and which capsules use it.
 
 | Layer | Where | Used by |
 |---|---|---|
@@ -32,11 +32,11 @@ The crate root re-exports one module per area (`userland/libc/src/lib.rs:64-137`
 | threads | `mk_thread_spawn`, which starts a thread in the same process at an entry and a stack the caller provides |
 | time | `mk_time_millis`, `mk_time_rtc`, `mk_uptime_ms`, `mk_time_adjust` |
 | cryptography | `crypto_random`, `crypto_hash`, `crypto_encrypt`, `crypto_decrypt`, HKDF, HMAC, Keccak-256, X25519 |
-| [hardware broker](../overview/glossary.md#hardware-broker) | device claim and release, MMIO, IRQ, DMA and port I/O for [driver capsules](../overview/glossary.md#driver-capsule) |
+| [hardware broker](../overview/glossary-hardware-broker.md#hardware-broker) | device claim and release, MMIO, IRQ, DMA and port I/O for [driver capsules](../overview/glossary-dma-pool.md#driver-capsule) |
 | graphics and input | surface register, attach, share and present, input events |
 | capsules and apps | `mk_capsule_load`, `mk_capsule_verify`, `mk_app_install`, `mk_app_launch`, `mk_spawn_instance`, `mk_tool_run` |
-| storage | `mk_store_read`, `mk_store_write`, the [data volume](../overview/glossary.md#data-volume) calls |
-| Linux guests | the `mk_foreign_*` calls the [Linux personality](../overview/glossary.md#linux-personality) uses |
+| storage | `mk_store_read`, `mk_store_write`, the [data volume](../overview/glossary-claim-epoch.md#data-volume) calls |
+| Linux guests | the `mk_foreign_*` calls the [Linux personality](../overview/glossary-linux-personality.md#linux-personality) uses |
 | logging | `mk_debug`, one line of at most 256 bytes on the serial log, refused to a capsule without Debug |
 | other | reboot and shutdown, attestation queries, capability checks, process statistics, the terminal's standard streams |
 
@@ -61,7 +61,7 @@ Seventeen capsules are ordinary Rust programs that use `std`. Seven are compiled
 
 The platform layer in `toolchain/nonos-std/sys/` gives `std` its NONOS backends: allocation, arguments, environment, files over `vfs_pool`, sockets over `net.sockets` and `net.dns`, random numbers, threads, thread-local keys, time and standard I/O. Some parts are missing or refused:
 
-- Symbolic and hard links, and reading a link, return `Unsupported`, because the [file store](../overview/glossary.md#file-store) does not model links (`toolchain/nonos-std/sys/fs/nonos/ops/links.rs:24-34`, `symlink`).
+- Symbolic and hard links, and reading a link, return `Unsupported`, because the [file store](../overview/glossary-dma-pool.md#file-store) does not model links (`toolchain/nonos-std/sys/fs/nonos/ops/links.rs:24-34`, `symlink`).
 - There is no process module in the layer, so `std::process::Command` cannot start a program.
 - `TcpStream` goes to `net.sockets` and DNS to `net.dns` by name (`toolchain/nonos-std/sys/net/connection/nonos/transport/consts.rs:21-24`, `SK_NAME`). A `std` capsule still needs Network for either service to answer it.
 - `TcpStream` opens a plain stream socket, kind 1, never a mixnet socket, so a `std` program's connections do not follow the default network chosen in Settings (`toolchain/nonos-std/sys/net/connection/nonos/tcp_stream/connect.rs:41-48`, `connect_addr`). A name resolves through `net.dns` to one IPv4 address.
@@ -74,7 +74,7 @@ The platform layer in `toolchain/nonos-std/sys/` gives `std` its NONOS backends:
 
 - `nonos_main!` emits `_start`, which calls `run` (`userland/nonos_runtime/src/macros.rs:17-25`, `nonos_main`).
 - `run` calls `boot`, then the entry function, then the cleanup hooks, and exits with 0; a failed `boot` exits with 1 (`userland/nonos_runtime/src/run.rs:21-28`, `run_cleanup`).
-- `boot` maps a fixed 16 MiB heap (`userland/nonos_alloc/src/init.rs:24`, `INITIAL_HEAP_SIZE`) and records the [capability word](../overview/glossary.md#capability-word) the program says it has (`userland/nonos_runtime/src/boot.rs:20-24`, `set_granted`). The record is informational: the kernel enforces the word from the signed [manifest](../overview/glossary.md#manifest), whatever the program records.
+- `boot` maps a fixed 16 MiB heap (`userland/nonos_alloc/src/init.rs:24`, `INITIAL_HEAP_SIZE`) and records the [capability word](../overview/glossary-boot-root-record.md#capability-word) the program says it has (`userland/nonos_runtime/src/boot.rs:20-24`, `set_granted`). The record is informational: the kernel enforces the word from the signed [manifest](../overview/glossary-linux-personality.md#manifest), whatever the program records.
 
 No capsule in this release uses it. Its users are the crates in `userland/nonos_examples/` and three crates of the SDK, and no `Capsule.mk` builds any of them.
 

@@ -14,13 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Remapped MSIs for claimed devices on AMD-Vi (`intr_format` says why).
+//! Remapped interrupts on AMD-Vi (`intr_format` says why): a claimed
+//! device's MSIs by handle (route.rs), and sources whose messages carry the
+//! vector itself, an I/O APIC's lines among them, by vector (by_vector.rs).
 
+mod by_vector;
 mod handles;
 mod irte_write;
 mod route;
 pub mod slots;
 mod table;
 
+pub use by_vector::{is_remapping, release, route};
 pub use handles::is_amd;
 pub use route::{release_msi, route_msi};

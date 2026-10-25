@@ -28,7 +28,7 @@ fn outcome(r: Rx) -> Result<Vec<u8>, Option<RxDrop>> {
     match r {
         Rx::Ethernet(eth) => Ok(eth),
         Rx::Dropped(d) => Err(Some(d)),
-        Rx::Handshake { .. } => Err(None),
+        Rx::Handshake { .. } | Rx::Send(_) | Rx::Lost(_) => Err(None),
     }
 }
 

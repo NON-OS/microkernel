@@ -39,9 +39,9 @@ mod intel_ethernet_ids;
 #[path = "../../../../src/hardware/inventory/realtek_ids.rs"]
 mod realtek_ids;
 // Mounted once, by the VMD proofs; classify_storage reaches it here.
-use crate::vmd_domain::inventory_vmd as vmd;
+use crate::proofs_3::vmd_domain::inventory_vmd as vmd;
 // Likewise the SD host lists, which `classify` reads, and the platform rule.
-use crate::emmc_hosts::{emmc, sd_host};
+use crate::proofs_1::emmc_hosts::{emmc, sd_host};
 use crate::hardware::platform_sd;
 
 pub(crate) use classify_device::classify_device;

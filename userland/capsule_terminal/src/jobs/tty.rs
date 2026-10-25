@@ -21,8 +21,11 @@
 
 use nonos_libc::{mk_tty_set, TTY_STDERR, TTY_STDIN, TTY_STDOUT};
 
-use super::JobWork;
 use crate::term::state::State;
+
+#[path = "tty_resized.rs"]
+mod tty_resized;
+pub use tty_resized::resized;
 
 /// The program `pid` reads the keyboard and writes to this screen. A kernel
 /// without the call leaves it believing it writes to a pipe, which is where
@@ -60,18 +63,4 @@ pub fn attach_streams(state: &State, pid: u32, streams: u64) {
     let vt = &state.scrollback.vt;
     let (cols, rows) = (vt.cols().min(u16::MAX as usize), vt.rows().min(u16::MAX as usize));
     let _ = mk_tty_set(pid, streams, cols as u16, rows as u16);
-}
-
-/// The screen changed size: the program in front hears the new one the
-/// next time it asks.
-pub fn resized(state: &State) {
-    let Some(id) = state.jobs.foreground() else { return };
-    let (pid, streams) = match state.jobs.get(id).map(|j| &j.work) {
-        Some(JobWork::ExternalStage { pid, capture, stdin }) => {
-            (*pid, streams(capture.is_some(), !stdin.takes_keys()))
-        }
-        Some(JobWork::InstallDrain(job)) if job.pid != 0 => (job.pid, ALL),
-        _ => return,
-    };
-    attach_streams(state, pid, streams);
 }

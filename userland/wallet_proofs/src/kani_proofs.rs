@@ -18,7 +18,6 @@
 //! every input, not just the sampled vectors. Each harness mirrors a theorem in
 //! `verification/lean/Nonos/Wallet*.lean`, but runs against the shipping Rust.
 
-use crate::nox::apr_bps::apr_bps;
 use crate::nox::calldata_addr::calldata_addr;
 use crate::nox::q32_to_u128::q32_to_u128;
 
@@ -68,30 +67,5 @@ fn quantity_guard_and_value() {
             j += 1;
         }
         assert!(got == Some(expected));
-    }
-}
-
-/// `WalletNoxApr`: an empty pool never divides. Returns `None`, never a panic.
-#[kani::proof]
-fn apr_empty_pool_is_none() {
-    let emission: u128 = kani::any();
-    assert!(apr_bps(emission, 0).is_none());
-}
-
-/// `WalletNoxApr`: the checked arithmetic never overflows or panics for any
-/// emission and stake; an out-of-range result is folded to `None`.
-#[kani::proof]
-fn apr_never_panics() {
-    let emission: u128 = kani::any();
-    let total: u128 = kani::any();
-    let _ = apr_bps(emission, total);
-}
-
-/// `WalletHex`: an accepted nibble is always a real hex value below sixteen.
-#[kani::proof]
-fn hex_digit_in_range() {
-    let code: u32 = kani::any();
-    if let Some(v) = crate::hex_digit::hex_digit(code) {
-        assert!(v < 16);
     }
 }

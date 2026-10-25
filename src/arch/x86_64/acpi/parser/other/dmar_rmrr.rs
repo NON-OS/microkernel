@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! RMRR: memory the firmware keeps doing DMA to behind the kernel's back, such
-//! as USB legacy keyboard emulation and integrated graphics' stolen memory,
-//! which the devices it names must still reach once a unit translates. Pure,
-//! so the host proofs hold it.
+//! RMRR (VT-d 3.x, 8.4): memory firmware keeps doing DMA to behind the
+//! kernel's back, such as USB legacy keyboard emulation and graphics' stolen
+//! memory, which the devices it names must still reach once a unit
+//! translates. Pure, so the host proofs hold it; only a sound one is kept (K2).
 
 use super::dmar_scope::Scope;
 use super::dmar_scope_walk::{names_off_pci, walk_scopes};
@@ -26,6 +26,8 @@ pub const RMRR_TYPE: u16 = 1;
 const RMRR_HEADER_LEN: usize = 24;
 pub const MAX_RMRR_SCOPES: usize = 8;
 const PAGE_MASK: u64 = 0xFFF;
+/// The largest region believed: graphics stolen memory is at most 1 GiB.
+pub const RMRR_MAX: u64 = 1 << 30;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Rmrr {
@@ -42,16 +44,18 @@ pub struct Rmrr {
 }
 
 /// Parse one RMRR (`bytes` is exactly its `length` bytes, type 1). `None` for
-/// a structure too short, or a region that is empty, inverted or not whole
-/// pages: firmware gets those wrong, and mapping a guess is worse than
-/// leaving the region out and saying so.
+/// a structure too short, or a region empty, inverted, not whole pages, past
+/// the top of memory or over RMRR_MAX: firmware gets those wrong, and mapping
+/// a guess is worse than leaving the region out and saying so.
 pub fn parse_rmrr(bytes: &[u8]) -> Option<Rmrr> {
     if bytes.len() < RMRR_HEADER_LEN || u16::from_le_bytes([bytes[0], bytes[1]]) != RMRR_TYPE {
         return None;
     }
     let word = |at: usize| u64::from_le_bytes(bytes[at..at + 8].try_into().unwrap_or([0; 8]));
     let (base, limit) = (word(8), word(16));
-    if base & PAGE_MASK != 0 || limit & PAGE_MASK != PAGE_MASK || limit < base {
+    let end = limit.checked_add(1)?;
+    let sound = base & PAGE_MASK == 0 && limit & PAGE_MASK == PAGE_MASK && limit >= base;
+    if !sound || end - base > RMRR_MAX {
         return None;
     }
     let mut scopes = [Scope::EMPTY; MAX_RMRR_SCOPES];

@@ -18,13 +18,15 @@
 
 use alloc::vec::Vec;
 
-use nonos_app_skeleton::clients::vfs;
-
 use super::grep_scan::{scan, Opts};
-use super::{abspath, pid};
 use crate::command::flags::{parse, Spec};
 use crate::command::output::Output;
 use crate::term::state::State;
+
+#[path = "grep_expand.rs"]
+mod grep_expand;
+
+use grep_expand::expand;
 
 pub fn grep(state: &mut State, argv: &[&[u8]]) {
     let parsed = match parse(&Spec::new(b"grep", b"cinrv"), &argv[1..]) {
@@ -54,24 +56,5 @@ pub fn grep(state: &mut State, argv: &[&[u8]]) {
     }
     for target in targets {
         scan(state, &target, pat, &opts);
-    }
-}
-
-fn expand(state: &mut State, arg: &[u8], out: &mut Vec<Vec<u8>>) {
-    let mut dir = abspath(state, arg);
-    if dir.last() != Some(&b'/') {
-        dir.push(b'/');
-    }
-    let owner = pid(state);
-    match vfs::list_paths(owner, &dir) {
-        Ok(paths) => {
-            for p in paths {
-                let bytes = p.into_bytes();
-                if bytes.last() != Some(&b'/') {
-                    out.push(bytes);
-                }
-            }
-        }
-        Err(_) => out.push(arg.to_vec()),
     }
 }

@@ -14,27 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The fast path for kernel-served randomness.
-//!
-//! The entropy capsule stays the root of the entropy story: it is where seed
-//! material comes from and the only thing that can say a seed existed. It must
-//! not be a per-byte dependency: a round trip per `crypto_random` put a context
-//! switch inside the hottest primitive, millions of messages a minute into one
-//! inbox on one core under a networking load, and the machine queued behind.
-//!
-//! So: a ChaCha20 generator, seeded from the capsule, serving locally. Fast key
-//! erasure — every fill ends by replacing the key with fresh keystream, so a
-//! later key compromise does not expose earlier output. Reseeded from the
-//! capsule after `RESEED_AFTER` bytes, which keeps the capsule the recurring
-//! source without putting it on the per-call path.
+//! The fast path for kernel-served randomness: a local ChaCha20 generator,
+//! so no syscall waits on IPC. Each fill ends by replacing the key with
+//! keystream no caller saw. Every RESEED_AFTER bytes the key is hashed with
+//! a seed from every source (K9), the entropy capsule's held bytes never
+//! enough alone; the capsule is asked first, unlocked and never waited on.
 
 use spin::Mutex;
 
+use crate::crypto::hash::sha256;
 use crate::crypto::symmetric::chacha20poly1305::chacha20_block;
+use crate::crypto::util::rng::collect_seed_entropy_secure;
 
-/// Output served between capsule reseeds. One reseed per this many bytes is
-/// one IPC per megabyte instead of one per call.
+/// Output served between reseeds.
 const RESEED_AFTER: u64 = 1024 * 1024;
+const DOMAIN: &[u8] = b"NONOS fast rng reseed v1";
 
 struct State {
     key: [u8; 32],
@@ -44,48 +38,34 @@ struct State {
 
 static STATE: Mutex<Option<State>> = Mutex::new(None);
 
-/// Fill `out` from the local generator, seeding or reseeding from the entropy
-/// capsule when due. Returns false only when no seed has ever been obtained
-/// and the capsule cannot provide one now; the caller keeps its existing
-/// hardware-RNG fallback for that case.
+/// Fill `out` from the local generator, seeding it when due. False only
+/// when it has never been seeded and no seed can be made now; the caller
+/// then falls to the hardware RNG.
 pub fn fill(out: &mut [u8]) -> bool {
-    let due = |s: &Option<State>| s.as_ref().is_none_or(|s| s.since_reseed >= RESEED_AFTER);
-    // The capsule is asked with STATE let go: a caller paused in that round
-    // trip, or killed in it and never woken, would leave every other caller
-    // spinning on it with interrupts masked (L81).
-    let reseed_due = due(&STATE.lock());
-    if reseed_due {
-        let mut seed = [0u8; 32];
-        if let Ok(n) = super::client::get_random(&mut seed) {
-            let mut guard = STATE.lock();
-            // Another caller's reseed may have landed meanwhile; one is enough.
-            if n == seed.len() && due(&guard) {
-                *guard = Some(State { key: seed, counter: 0, since_reseed: 0 });
-            }
-        }
-        // A failed reseed keeps serving on the ratcheted key rather than
-        // stalling every caller. A failed first seed leaves no state, and the
-        // binding below reports that so the caller falls to the hardware RNG.
-        seed.fill(0);
-    }
-
+    super::client::poll();
     let mut guard = STATE.lock();
+    if guard.as_ref().map_or(true, |s| s.since_reseed >= RESEED_AFTER) {
+        // A failed reseed keeps serving on the ratcheted key.
+        if let Ok(mut seed) = collect_seed_entropy_secure() {
+            let mut input = [0u8; 24 + 64];
+            input[..24].copy_from_slice(DOMAIN);
+            input[24..56].copy_from_slice(guard.as_ref().map_or(&[0u8; 32], |s| &s.key));
+            input[56..].copy_from_slice(&seed);
+            *guard = Some(State { key: sha256(&input), counter: 0, since_reseed: 0 });
+            input.fill(0);
+            seed.fill(0);
+        }
+    }
     let Some(state) = guard.as_mut() else {
         return false;
     };
     let nonce = [0u8; 12];
     let mut block = [0u8; 64];
-    let mut done = 0usize;
-    while done < out.len() {
+    for chunk in out.chunks_mut(64) {
         chacha20_block(&state.key, &nonce, state.counter, &mut block);
         state.counter = state.counter.wrapping_add(1);
-        let take = (out.len() - done).min(block.len());
-        out[done..done + take].copy_from_slice(&block[..take]);
-        done += take;
+        chunk.copy_from_slice(&block[..chunk.len()]);
     }
-
-    // Fast key erasure: the next key is keystream the caller never saw, and
-    // the old key does not survive the fill it produced.
     chacha20_block(&state.key, &nonce, state.counter, &mut block);
     state.counter = state.counter.wrapping_add(1);
     state.key.copy_from_slice(&block[..32]);

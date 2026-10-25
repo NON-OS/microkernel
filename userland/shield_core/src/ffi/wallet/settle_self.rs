@@ -6,7 +6,7 @@
 use super::shield_view::{refused, shown};
 use super::{Pending, Wallet};
 use crate::error::{NetError, WalletError};
-use crate::evm::shield::{review_shield, ShieldChecked, ShieldOrder};
+use crate::evm::shield::{review_shield, ShieldChecked, ShieldOrder, ETH_SHORT};
 use crate::evm::{self, Network};
 use crate::ffi::evm::parse_evm_address;
 use crate::ffi::PublicShield;
@@ -51,6 +51,7 @@ impl Wallet {
         let review = match review_shield(&tor, &from, &order, &sends)? {
             ShieldChecked::Ready(review) => review,
             ShieldChecked::Refused(why) => return Ok(refused(0, why)),
+            ShieldChecked::ShortOfEth(_) => return Ok(refused(0, ETH_SHORT)),
         };
         let id = self.next_review_id();
         let view = shown(id, &review, [0, 0, 0]);
