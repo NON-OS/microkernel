@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod artifacts;
+mod own_caps;
 
 use alloc::vec::Vec;
 
@@ -25,17 +26,14 @@ use artifacts::Artifacts;
 
 // Request payload: requested_caps(8) | name_len(1) | name | args.
 //
-// The caller hands us a store name, not the bytes. We read
-// /capsules/<name>.{elf,nonos_id_cert.bin,manifest.bin,zk_trailer.bin}
-// ourselves and pass them to the load syscall, which runs the full trust
-// chain before the capsule is allowed to spawn.
-// `sender_pid` is the kernel-attested pid of whoever sent this request
-// (from `mk_ipc_recv_from`), never a value the payload carries. It becomes
-// the spawned capsule's parent instead of this installer, so the requester
-// can later `mk_wait`/`mk_kill`/`mk_proc_input`/`mk_proc_output` the child it
-// asked for; honoring it kernel-side still requires this installer's own
-// spawn-broker capability, so an ordinary capsule forging the same field
-// through a raw `mk_capsule_load` call gets no effect.
+// The caller hands us a store name, not the bytes: we read
+// /capsules/<name>.{elf,nonos_id_cert.bin,manifest.bin,zk_trailer.bin} and pass
+// them to the load syscall, which runs the full trust chain. A requested_caps
+// of 0 asks for the manifest's own set (own_caps.rs); the kernel refuses any
+// request beyond the manifest. `sender_pid` is the kernel-attested sender
+// (`mk_ipc_recv_from`), never a payload field. It becomes the child's parent,
+// so the kernel bounds the child by the sender's capabilities, not this
+// installer's, and the sender can `mk_wait`/`mk_kill` the child it asked for.
 pub fn load_by_name(req: Request<'_>, sender_pid: u32) -> Vec<u8> {
     let p = req.payload;
     if p.len() < 9 {
@@ -54,8 +52,10 @@ pub fn load_by_name(req: Request<'_>, sender_pid: u32) -> Vec<u8> {
     if !valid_name(name) {
         return encode_response(req.seq, EINVAL, &[]);
     }
-
     let Some(artifacts) = Artifacts::read(mk_getpid(), name) else {
+        return encode_response(req.seq, EINVAL, &[]);
+    };
+    let Some(caps) = own_caps::asked(caps, &artifacts.manifest) else {
         return encode_response(req.seq, EINVAL, &[]);
     };
     let load = artifacts.request(caps, args, sender_pid);
