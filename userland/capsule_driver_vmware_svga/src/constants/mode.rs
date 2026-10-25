@@ -20,7 +20,3 @@ pub const DEFAULT_MODE: (u32, u32) = (1024, 768);
 pub const FALLBACK_MODES: [(u32, u32); 2] = [(800, 600), (640, 480)];
 pub const BITS_PER_PIXEL: u32 = 32;
 pub const BYTES_PER_PIXEL: u32 = 4;
-/// virtio-gpu's B8G8R8A8: the format the compositor draws and asks for.
-pub const FORMAT_B8G8R8A8: u32 = 1;
-/// The one resource this driver offers, the primary surface.
-pub const PRIMARY_RESOURCE: u32 = 1;

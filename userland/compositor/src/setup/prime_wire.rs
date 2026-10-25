@@ -24,15 +24,22 @@ use nonos_gfx_wire::body::caps::{HW_CURSOR, MODE_SET};
 
 use super::attach_primary::attach_primary;
 use super::discover::GfxEndpoint;
+use super::unprimed::Unprimed;
 use crate::display::{ops, WireLink};
 use crate::state::Context;
 
 pub fn prime(ep: GfxEndpoint) -> Result<Context, &'static str> {
-    let caps = ops::caps(ep.port).map_err(|_| "display: CAPS not answered")?;
-    let s = ops::surface(ep.port, 0).map_err(|_| "display: SURFACE refused")?;
-    let p = attach_primary(s.handle)?;
+    prime_with(ep).map_err(|u| u.what)
+}
+
+/// `prime`, with the step that failed and its errno (unprimed.rs).
+pub fn prime_with(ep: GfxEndpoint) -> Result<Context, Unprimed> {
+    let fail = |step, code, what| Unprimed { step, code, what };
+    let caps = ops::caps(ep.port).map_err(|c| fail("CAPS", c, "display: CAPS not answered"))?;
+    let s = ops::surface(ep.port, 0).map_err(|c| fail("SURFACE", c, "display: SURFACE refused"))?;
+    let p = attach_primary(s.handle).map_err(|w| fail("ATTACH", 0, w))?;
     if (p.width, p.height) != (s.width, s.height) {
-        return Err("display: primary is not the size SURFACE said");
+        return Err(fail("ATTACH", 0, "display: primary is not the size SURFACE said"));
     }
     let mut ctx = Context::new(p, ep.port, false);
     let (name, serial, pid, physical_mm) = (ep.name, s.serial, ep.pid, caps.physical_mm);

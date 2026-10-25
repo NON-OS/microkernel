@@ -14,19 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The rectangle a request names, checked against the screen.
+//! The boot framebuffer's holder (broker/table/boot_fb_rule.rs): while a
+//! claimed device's memory window contains the frame the loader handed over,
+//! the GOP present answers EBUSY; once the claim goes, GOP is writable again.
 
-use crate::protocol::le_u32;
-use crate::screen::{rect_fits, Rect};
-use crate::setup::Driver;
+#[path = "../../../../src/hardware/broker/table/boot_fb_rule.rs"]
+mod boot_fb_rule;
 
-/// Four u32s at `at`: x, y, width, height; None unless they fit the screen.
-pub fn rect_at(d: &Driver, body: &[u8], at: usize) -> Option<Rect> {
-    let r = Rect {
-        x: le_u32(body, at)?,
-        y: le_u32(body, at + 4)?,
-        w: le_u32(body, at + 8)?,
-        h: le_u32(body, at + 12)?,
-    };
-    rect_fits(r, d.fb.width, d.fb.height).then_some(r)
-}
+#[cfg(test)]
+mod tests;

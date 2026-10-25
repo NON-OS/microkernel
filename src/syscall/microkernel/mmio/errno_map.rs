@@ -29,7 +29,9 @@ pub(super) fn errno_for(e: MmioMapError) -> i64 {
         | MmioMapError::BadAlignment
         | MmioMapError::BadRange
         | MmioMapError::ZeroLength
-        | MmioMapError::Overflow => ERRNO_INVAL,
+        | MmioMapError::Overflow
+        | MmioMapError::WcNotPrefetchable
+        | MmioMapError::WcPastBar => ERRNO_INVAL,
         MmioMapError::WouldExposeMsixTable
         | MmioMapError::WouldExposePba
         | MmioMapError::Forbidden => ERRNO_PERM,

@@ -17,6 +17,7 @@
 //! What the compositor decides about displays: polls, sizes, scales and the cursor plane.
 
 mod arrange_tests;
+mod backoff_held_tests;
 mod backoff_tests;
 mod bootfb_gone_tests;
 mod brightness_get_tests;
