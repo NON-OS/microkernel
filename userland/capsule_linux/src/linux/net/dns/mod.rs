@@ -24,4 +24,4 @@ mod reply;
 mod serve;
 
 pub use automap::host_for;
-pub use serve::{answer_out, query};
+pub use serve::{answer_out, query, waiting};

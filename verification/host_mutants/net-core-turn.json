@@ -1,0 +1,50 @@
+[
+ {
+  "name": "turn-probes-yield-to-load",
+  "file": "userland/capsule_net_core/src/server/runner/turn.rs",
+  "old": "    if now.saturating_sub(probed) >= PROBE_EVERY_MS {",
+  "new": "    if !wanted && now.saturating_sub(probed) >= PROBE_EVERY_MS {",
+  "test": "turn",
+  "crate": "userland/net_core_proofs"
+ },
+ {
+  "name": "turn-no-idle-floor",
+  "file": "userland/capsule_net_core/src/server/runner/turn.rs",
+  "old": "wanted || now.saturating_sub(polled) >= IDLE_POLL_MS",
+  "new": "wanted",
+  "test": "turn",
+  "crate": "userland/net_core_proofs"
+ },
+ {
+  "name": "turn-probe-every-turn",
+  "file": "userland/capsule_net_core/src/server/runner/turn.rs",
+  "old": ">= PROBE_EVERY_MS {",
+  "new": ">= 0 {",
+  "test": "turn",
+  "crate": "userland/net_core_proofs"
+ },
+ {
+  "name": "loop-poll-also-probes",
+  "file": "userland/capsule_net_core/src/server/runner/run.rs",
+  "old": "                crate::iface::poll::pump();\n",
+  "new": "                crate::iface::poll::pump();\n                crate::iface::relink::check();\n",
+  "test": "turn_glue",
+  "crate": "userland/net_core_proofs"
+ },
+ {
+  "name": "pump-checks-link-again",
+  "file": "userland/capsule_net_core/src/iface/poll.rs",
+  "old": "    dhcp::poll_event();\n",
+  "new": "    dhcp::poll_event();\n    crate::iface::relink::check();\n",
+  "test": "turn_glue",
+  "crate": "userland/net_core_proofs"
+ },
+ {
+  "name": "loop-wall-clock",
+  "file": "userland/capsule_net_core/src/server/runner/run.rs",
+  "old": "let now = mk_uptime_ms();",
+  "new": "let now = nonos_libc::mk_time_millis();",
+  "test": "turn_glue",
+  "crate": "userland/net_core_proofs"
+ }
+]

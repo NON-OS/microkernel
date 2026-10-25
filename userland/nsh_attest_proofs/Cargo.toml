@@ -38,6 +38,7 @@ nsh_wire = { path = "../nsh_wire" }
 nonos_hash = { path = "../nonos_hash" }
 nonos_ed25519 = { path = "../nonos_ed25519" }
 nonos-mldsa65 = { path = "../../nonos-mldsa65" }
+nsh-enrol = { path = "../../tools/nsh-enrol" }
 blake3 = { version = "1.5", default-features = false, features = ["pure"] }
 # The checker's registry fold, against the receipt reader's own.
 attest_receipt = { path = "../attest_receipt" }

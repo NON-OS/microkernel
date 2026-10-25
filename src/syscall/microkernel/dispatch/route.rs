@@ -31,6 +31,9 @@ pub fn dispatch_microkernel_syscall(
 }
 
 fn route(nr: u64, args: Args) -> i64 {
+    if let Some(result) = crate::syscall::microkernel::retired::handle(nr) {
+        return result;
+    }
     if let Some(result) = ipc::handle(nr, args) {
         return result;
     }

@@ -23,15 +23,15 @@ pub(super) const DRIVER_BGA_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-bga")]
 pub(super) const DRIVER_BGA_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_bga.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_bga.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-bga")]
 pub(super) const DRIVER_BGA_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_bga.manifest.bin");
+    crate::baked_trust!("capsules/driver_bga.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-bga")]
 pub(super) const DRIVER_BGA_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_bga.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_bga.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-bga"))]
 pub(super) const DRIVER_BGA_ELF: &[u8] = &[];

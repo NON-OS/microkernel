@@ -23,7 +23,7 @@ session has exactly one terminal.
 - **`AUTH_OK`.** The session id comes from the server's entropy. `idle_s`
   is between 1 and 86400.
 - **Cap names.** A cap name matches `[A-Z][A-Za-z0-9]{0,31}`. A list holds
-  at most 37 names and never repeats one. The names listed in `AUTH_OK` are
+  at most 40 names and never repeats one. The names listed in `AUTH_OK` are
   the capabilities the session capsule was actually given.
 - **`RECORD`.** The record arrives in parts. The client joins the parts in
   order, up to and including the one with `last = 1`.

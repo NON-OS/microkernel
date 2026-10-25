@@ -18,6 +18,7 @@ use super::embed::{
     DRIVER_BUSLOGIC_ATTESTATION_BYTES, DRIVER_BUSLOGIC_ELF, DRIVER_BUSLOGIC_MANIFEST_BYTES,
     DRIVER_BUSLOGIC_NONOS_ID_CERT_BYTES,
 };
+use super::endpoint::REPLY_INBOX;
 use super::state;
 use crate::capabilities::Capability;
 use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpecVerified};
@@ -30,7 +31,6 @@ pub use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 const SERVICE_NAME: &str = "driver.buslogic0";
 const SERVICE_PORT: u32 = 4296;
-const REPLY_INBOX: &str = "endpoint.4294967358";
 const REPLY_PORT: u32 = 4297;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 

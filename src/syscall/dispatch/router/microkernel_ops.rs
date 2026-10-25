@@ -129,6 +129,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkPrivateWrite
             | MkStoreWrite
             | MkStoreRead
+            | MkKeeping
             | MkDataImport
             | MkDataStat
             | MkDataRead
@@ -166,6 +167,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkAppInstallStatus
             | MkAppUninstall
             | MkToolRun
+            | MkCapsOf
             | MkTtySet
             | MkTtyQuery
     )

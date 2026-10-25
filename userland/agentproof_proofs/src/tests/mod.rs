@@ -15,8 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod cli_tests;
+mod connect_tests;
 mod corpus;
 mod enforce_tests;
+mod learn_example_tests;
+mod learn_mount;
+mod learn_tests;
 mod pin_tests;
 mod random;
 mod refusal_file_tests;
