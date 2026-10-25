@@ -33,6 +33,9 @@ pub(super) unsafe fn bring_up(cpu_id: u32) -> super::user_setup::Prepared {
     // enabled, and touches only this CPU's own LAPIC registers.
     CPU_DESCRIPTORS[cpu_id as usize].set_stage(crate::smp::Stage::ApEntered);
     checkpoint(cpu_id);
+    #[cfg(any(feature = "nonos-smp-park-proof", feature = "nonos-smp-stuck-proof"))]
+    super::park::proof_stall(cpu_id);
+    checkpoint(cpu_id);
     unsafe { crate::arch::x86_64::interrupt::apic::init_ap_lapic() };
     checkpoint(cpu_id);
     let apic_id = crate::arch::interrupt_controller::local_id();
