@@ -25,8 +25,7 @@ pub enum Hardware {
     IoApic,
     Hpet,
     Iommu,
-    /// The PCI Express configuration window (MCFG): a memory region over it
-    /// would reach a claimed function's configuration around `pci_config`.
+    /// The PCIe configuration window (MCFG): it reaches around `pci_config`.
     Ecam,
     /// A function's MSI-X table or pending bits: written, it aims interrupts.
     Msix,
@@ -43,11 +42,9 @@ pub enum Legacy {
     Pic,
     /// The 8254 interval timer.
     Pit,
-    /// The configuration address and data ports, and the reset control
-    /// register between them.
+    /// The configuration address and data ports, and reset control between.
     PciConfig,
-    /// The CMOS index and data pair the kernel's clock reads through; an
-    /// index written between the kernel's two accesses reads the wrong byte.
+    /// The CMOS index and data pair the kernel's clock reads through.
     Rtc,
     /// The first serial port, which carries the kernel's own log.
     Serial,
@@ -57,9 +54,8 @@ pub enum Legacy {
     Console,
     /// The debug ports the kernel's log may also go to.
     Debug,
-    /// The FADT's PM1 control, sleep control or reset register: the kernel
-    /// enters soft-off and resets through them itself, after the wipe.
-    PowerControl,
+    /// The FADT's reset register: the kernel resets through it, after the wipe.
+    ResetRegister,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
