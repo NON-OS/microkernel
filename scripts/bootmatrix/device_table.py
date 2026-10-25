@@ -46,9 +46,16 @@ HDA_HELD = "[VT-D] refused: 01:00.1 reaches it through 01:00.0 without ACS; driv
 # The scratch disk is 64 MiB: 131072 sectors, which the driver names once it
 # read the namespace's size. Every image boots on the loader's copy of the
 # store, so the block layer asks no disk, and each cell is held to its
-# driver's own lines (Debug, optional in their manifests). AHCI's cell waits
-# for hw/debug-grants: until then its driver has no line of its own.
+# driver's own lines (Debug, optional in their manifests).
 SECTORS = DISK_BYTES // 512
+
+# Held, each until the release seal gives its driver what the cell needs:
+# - q35-iommu-ahci waits for hw/debug-grants; until then its driver has no
+#   line of its own.
+# - q35-smbus-novtd (no IOMMU, H-02b) waits for smbus in a shipping image
+#   (item 52), and must see "port-only with no remapping unit over it: Bus
+#   Master off, no DMA grant", "driver.smbus: i801 0x8086:0x2930 up, spd
+#   answered", and "no remapping unit confines it" for every other claim.
 
 DEVICE_CELLS = [
     Cell("q35-iommu-nvme", "up", "q35", 1, iommu="intel-iommu",
