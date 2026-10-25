@@ -26,4 +26,7 @@ pub enum LoadError {
     /// An endpoint name the image reserves, or outside the publisher's own.
     ReservedName,
     Spawn(SpawnError),
+    /// The capsule would hold capabilities its parent lacks, and the parent
+    /// is no launcher.
+    BeyondParent,
 }

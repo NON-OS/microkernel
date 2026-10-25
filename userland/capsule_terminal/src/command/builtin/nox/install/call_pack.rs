@@ -18,10 +18,10 @@
 
 use alloc::vec::Vec;
 
-// Grant the loaded capsule its full declared optional caps. The verified
-// manifest and the identity certificate ceiling are the real bounds; this only
-// avoids restricting a capsule below what it legitimately declares.
-const REQUESTED_CAPS: u64 = u64::MAX;
+// None named: the installer asks for the capsule's own manifest set, and the
+// kernel refuses a request beyond the manifest, so the Terminal never picks
+// what a capsule it launches holds.
+const REQUESTED_CAPS: u64 = 0;
 
 // Installer wire: seq(4) | op(2) | pad(2) | body. Mirrors the installer's
 // decode_request, which reads the op at byte 4 and the body after an 8 byte
