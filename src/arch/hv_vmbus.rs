@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The SynIC's calls for VMBus, for the syscall layer: the core's four, and
-//! the channels it gives drivers. Elsewhere than x86_64 there is no SynIC,
-//! and every call answers that.
+//! The SynIC's calls for VMBus, for the syscall layer: the core's on the
+//! bus, and a channel's driver's on its own channel. Elsewhere than x86_64
+//! there is no SynIC, and every call answers that.
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[cfg_attr(not(target_arch = "x86_64"), allow(dead_code))]
@@ -27,7 +27,7 @@ pub(crate) enum HvVmbusError {
     Refused,
     /// A page the message names is not held as it must be.
     NotHeld,
-    /// A GPADL or open for no channel given to a driver.
+    /// Not for the caller's own channel, or a GPADL id already live.
     NoChannel,
     /// The host has no room for it now.
     Busy,
@@ -39,16 +39,6 @@ pub(crate) enum HvVmbusError {
     Bound,
     /// An interface no driver may be given (a host service).
     Interface,
-}
-
-/// Who must hold a page a posted message names.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-#[cfg_attr(not(target_arch = "x86_64"), allow(dead_code))]
-pub(crate) enum HvHolder {
-    /// The caller, on the VMBus root.
-    Root,
-    /// Anyone, on this channel record.
-    Record(u64),
 }
 
 /// A channel record a host message retired.
@@ -76,7 +66,7 @@ pub(crate) const HV_EVENT_WORDS: usize = 32;
 
 #[cfg(target_arch = "x86_64")]
 mod imp {
-    use super::{HvChannel, HvHolder, HvRetire, HvVmbusError};
+    use super::{HvChannel, HvRetire, HvVmbusError};
     use crate::arch::x86_64::hypervisor::hv;
 
     const _: () = assert!(
@@ -99,37 +89,66 @@ mod imp {
         }
     }
 
-    pub(crate) fn post(
-        connection: u32,
-        ty: u32,
-        payload: &[u8],
-        held: impl Fn(HvHolder, u64) -> bool,
-    ) -> Result<(), HvVmbusError> {
-        if !hv::ready() {
-            return Err(HvVmbusError::NoSynic);
-        }
-        let held = |h: hv::Holder, gpa: u64| match h {
-            hv::Holder::Root => held(HvHolder::Root, gpa),
-            hv::Holder::Record(r) => held(HvHolder::Record(r), gpa),
-        };
-        hv::post_checked(connection, ty, payload, held).map_err(|e| match e {
+    fn post_error(e: hv::PostError) -> HvVmbusError {
+        match e {
             hv::PostError::Refused(hv::Refusal::Page) => HvVmbusError::NotHeld,
-            hv::PostError::Refused(hv::Refusal::Channel) => HvVmbusError::NoChannel,
+            hv::PostError::Refused(hv::Refusal::Channel(t)) => match t {
+                hv::TargetError::Releasing | hv::TargetError::Full => HvVmbusError::Busy,
+                hv::TargetError::NoBus => HvVmbusError::NoSynic,
+                _ => HvVmbusError::NoChannel,
+            },
             hv::PostError::Refused(_) => HvVmbusError::Refused,
             hv::PostError::NoSynic => HvVmbusError::NoSynic,
             hv::PostError::Status(s) => status(s),
-        })
+        }
     }
 
-    pub(crate) fn recv(out: &mut [u8; super::HV_MESSAGE_BYTES]) -> Option<(usize, HvRetire)> {
-        let (n, retire) = hv::recv(out)?;
-        let retire = match retire {
+    fn retire(r: hv::Retire) -> HvRetire {
+        match r {
             hv::Retire::None => HvRetire::None,
             hv::Retire::Record(r) => HvRetire::Record(r),
             hv::Retire::All => HvRetire::All,
             hv::Retire::Settle(r) => HvRetire::Settle(r),
-        };
-        Some((n, retire))
+        }
+    }
+
+    pub(crate) fn post(
+        connection: u32,
+        ty: u32,
+        payload: &[u8],
+        held: impl Fn(u64) -> bool,
+    ) -> Result<(), HvVmbusError> {
+        if !hv::ready() {
+            return Err(HvVmbusError::NoSynic);
+        }
+        hv::post_core(connection, ty, payload, held).map_err(post_error)
+    }
+
+    pub(crate) fn post_channel(
+        record: u64,
+        ty: u32,
+        payload: &[u8],
+        held: impl Fn(u64) -> bool,
+    ) -> Result<(), HvVmbusError> {
+        if !hv::ready() {
+            return Err(HvVmbusError::NoSynic);
+        }
+        hv::post_channel(record, ty, payload, held).map_err(post_error)
+    }
+
+    pub(crate) fn recv(out: &mut [u8; super::HV_MESSAGE_BYTES]) -> Option<usize> {
+        hv::recv(out)
+    }
+
+    pub(crate) fn recv_channel(
+        record: u64,
+        out: &mut [u8; super::HV_MESSAGE_BYTES],
+    ) -> Option<usize> {
+        hv::recv_channel(record, out)
+    }
+
+    pub(crate) fn retires() -> [HvRetire; 16] {
+        hv::retires().map(retire)
     }
 
     pub(crate) fn events(out: &mut [u64]) -> usize {
@@ -177,19 +196,39 @@ mod imp {
 
 #[cfg(not(target_arch = "x86_64"))]
 mod imp {
-    use super::{HvChannel, HvHolder, HvRetire, HvVmbusError};
+    use super::{HvChannel, HvRetire, HvVmbusError};
 
     pub(crate) fn post(
         _connection: u32,
         _ty: u32,
         _payload: &[u8],
-        _held: impl Fn(HvHolder, u64) -> bool,
+        _held: impl Fn(u64) -> bool,
     ) -> Result<(), HvVmbusError> {
         Err(HvVmbusError::NoSynic)
     }
 
-    pub(crate) fn recv(_out: &mut [u8; super::HV_MESSAGE_BYTES]) -> Option<(usize, HvRetire)> {
+    pub(crate) fn post_channel(
+        _record: u64,
+        _ty: u32,
+        _payload: &[u8],
+        _held: impl Fn(u64) -> bool,
+    ) -> Result<(), HvVmbusError> {
+        Err(HvVmbusError::NoSynic)
+    }
+
+    pub(crate) fn recv(_out: &mut [u8; super::HV_MESSAGE_BYTES]) -> Option<usize> {
         None
+    }
+
+    pub(crate) fn recv_channel(
+        _record: u64,
+        _out: &mut [u8; super::HV_MESSAGE_BYTES],
+    ) -> Option<usize> {
+        None
+    }
+
+    pub(crate) fn retires() -> [HvRetire; 16] {
+        [HvRetire::None; 16]
     }
 
     pub(crate) fn events(_out: &mut [u64]) -> usize {
@@ -230,6 +269,7 @@ pub use imp::ready as hv_vmbus_ready;
 pub(crate) use imp::{
     bind as hv_vmbus_bind, channel_device as hv_vmbus_channel_device,
     channel_event as hv_vmbus_channel_event, channel_of as hv_vmbus_channel_of,
-    events as hv_vmbus_events, post as hv_vmbus_post, recv as hv_vmbus_recv,
-    released as hv_vmbus_released, signal as hv_vmbus_signal,
+    events as hv_vmbus_events, post as hv_vmbus_post, post_channel as hv_vmbus_post_channel,
+    recv as hv_vmbus_recv, recv_channel as hv_vmbus_recv_channel, released as hv_vmbus_released,
+    retires as hv_vmbus_retires, signal as hv_vmbus_signal,
 };
