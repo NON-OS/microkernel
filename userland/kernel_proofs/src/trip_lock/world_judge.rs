@@ -22,7 +22,7 @@ impl World {
     /// Marks the bad states the move reached; always true.
     pub(super) fn judge(&mut self) -> bool {
         let inside: Vec<usize> = (0..4).filter(|&i| self.live_inside(i)).collect();
-        self.bad |= 0x01 * (inside.len() > 1 && inside.iter().any(|&i| WHOLE[i])) as u16;
+        self.bad |= u16::from(inside.len() > 1 && inside.iter().any(|&i| WHOLE[i]));
         for i in 0..4 {
             let lost = self.p[i] == P::Waiting
                 && self.alive[i]
