@@ -29,5 +29,5 @@ fn the_run_path_checks_before_every_spawn() {
     assert!(at("ifname==LINUX_TOOL||name==QWEN_TOOL{") < linux);
     let tool = at("super::bound::check(tool.manifest,tool.caps,name)?;");
     assert!(tool < at("tool.spawn_with_args(argv)"));
-    assert_eq!(code.matches("bound::check(").count(), 2);
+    assert_eq!(code.matches("bound::check(").count(), 3);
 }

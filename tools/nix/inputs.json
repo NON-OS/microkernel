@@ -5489,6 +5489,7 @@
    "tools/nonos-pack/core",
    "userland/capsule_installer/src/protocol",
    "userland/capsule_installer/src/server/discover.rs",
+   "userland/capsule_installer/src/server/dispatch.rs",
    "userland/capsule_installer/src/server/handlers",
    "userland/installer_proofs",
    "userland/libc/src/capsule_load.rs",
@@ -8240,6 +8241,8 @@
    "src/kernel_core",
    "src/security/capsule_manifest/verify/caps_bits.rs",
    "src/userspace/tool_capsules/bound.rs",
+   "src/userspace/tool_capsules/model_fetch/spawn.rs",
+   "src/userspace/tool_capsules/registry.rs",
    "src/userspace/tool_capsules/run.rs",
    "userland/spawn_bound_proofs"
   ],
