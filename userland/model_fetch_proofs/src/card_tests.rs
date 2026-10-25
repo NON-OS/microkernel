@@ -56,7 +56,7 @@ fn the_small_and_4b_cards_say_their_download_and_memory() {
 fn every_card_agrees_with_the_signed_catalogue() {
     let blob = written();
     let cat = parse(&blob[..blob.len() - 64]).unwrap();
-    assert_eq!(cat.tiers.len(), 17);
+    assert_eq!(cat.tiers.len(), 19);
     for t in &cat.tiers {
         let how = if t.word == crate::need::STICK_TIER { ", on release sticks;" } else { " download," };
         let want = format!("{}{how} needs {} of memory", size(t.bytes()), size(t.memory));

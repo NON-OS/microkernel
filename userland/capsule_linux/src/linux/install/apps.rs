@@ -26,6 +26,7 @@
 use super::apps_coder::CODER;
 use super::apps_qwen25::QWEN25;
 use super::apps_qwen3::QWEN3;
+use super::apps_qwen35::QWEN35;
 
 pub struct App {
     pub name: &'static str,
@@ -103,7 +104,7 @@ pub(super) use tier;
 /*
  * Every table, smallest family first.
  */
-pub const FAMILIES: &[&[App]] = &[QWEN25, QWEN3, CODER];
+pub const FAMILIES: &[&[App]] = &[QWEN25, QWEN3, QWEN35, CODER];
 
 /*
  * Every shipped tier, family by family.
