@@ -30,6 +30,7 @@ pub mod hash;
 pub mod kdf;
 pub mod random;
 pub mod types;
+pub mod wipe;
 
 pub use aead::{open, seal};
 pub use ecdh::{x25519_public, x25519_shared};

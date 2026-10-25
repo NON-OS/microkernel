@@ -40,7 +40,7 @@ fn both_ways_out_go_through_the_one_end() {
 #[test]
 fn the_once_guard_then_the_leave_phase_come_before_the_stop_and_the_wipe() {
     let body = body_of("end");
-    let once = body.find("if !first(&ENDING)").expect("the once-guard is gone");
+    let once = body.find("!first(&ENDING)").expect("the once-guard is gone");
     let leave = body.find("super::leave::run(off, leave_ms);").expect("end() no longer leaves");
     let stop = body.find("broadcast_ipi(Ipi::Stop)").expect("end() no longer stops the CPUs");
     let wipe = body.find("zerostate_shutdown_wipe()").expect("end() no longer wipes");

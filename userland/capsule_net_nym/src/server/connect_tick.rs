@@ -42,6 +42,8 @@ pub fn connected() -> bool {
 /// refusing us.
 pub fn gateway_lost() {
     CONNECTED.store(false, Ordering::Relaxed);
+    // The key belonged to the link that went away; the next one registers anew.
+    crate::state::clear_gateway_shared_key();
     SKIP.store(0, Ordering::Relaxed);
     BACKOFF.store(1, Ordering::Relaxed);
 }

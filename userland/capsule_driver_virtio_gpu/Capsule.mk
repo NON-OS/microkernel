@@ -1,4 +1,7 @@
-# virtio_gpu: virtio display controller. PCI MMIO/PIO + DMA, polled.
+# virtio_gpu: virtio display controller. PCI MMIO + DMA, polled. Both the
+# modern and the legacy layout are reached through a memory BAR
+# (userland/nonos_virtio), so it holds no Pio: an I/O BAR is read off the
+# device record (src/discover/bars.rs) and never claimed.
 # The capsule owns device initialization and the control queue; UI,
 # compositor policy, surfaces, and focus stay outside the driver.
 
@@ -11,8 +14,8 @@ CAPSULE_FEATURE          := nonos-capsule-driver-virtio-gpu
 CAPSULE_NAMESPACE        := systems.nonos.driver.virtio_gpu0
 CAPSULE_SERVICE_ENDPOINT := service:4226:driver.virtio_gpu0
 CAPSULE_REPLY_ENDPOINT   := reply:4227:endpoint.4294967316
-# IPC | Memory | GraphicsSurfaceCreate | DeviceEnum | Driver | Mmio | Dma | Pio
-# = 0x08 | 0x10 | 0x1000 | 0x8000 | 0x10000 | 0x20000 | 0x80000 | 0x100000 = 0x1B9018
+# IPC | Memory | GraphicsSurfaceCreate | DeviceEnum | Driver | Mmio | Dma
+# = 0x08 | 0x10 | 0x1000 | 0x8000 | 0x10000 | 0x20000 | 0x80000 = 0xB9018
 # No Irq: the driver polls its rings and makes no MkIrq* call (and posts
 # no input), the only calls Irq admits. A driver moved to interrupts
 # takes the bit back.
@@ -20,7 +23,7 @@ CAPSULE_REPLY_ENDPOINT   := reply:4227:endpoint.4294967316
 # grants it through serial_debug_cap() under the capsule-serial-debug build:
 # a grant outside the manifest once made the spawn gate reject this driver,
 # leaving the compositor with no gpu backend.
-CAPSULE_REQUIRED_CAPS    := 0x1B9018
+CAPSULE_REQUIRED_CAPS    := 0xB9018
 # Debug, granted only by a build that compiles `capsule-serial-debug`: the
 # kernel mirror folds it in through serial_debug_cap().
 CAPSULE_OPTIONAL_CAPS    := 0x100

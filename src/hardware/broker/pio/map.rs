@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Issue a PIO grant against a device's PIO BAR, as mmio::map_for_caller
-//! does: the claim, the device, a PIO BAR inside the 16-bit port space and
-//! clear of firmware's ports, then the record, while the claim still holds
-//!. Access goes through `access`; only the kernel executes `in`/`out`.
+//! A PIO grant on a device's PIO BAR, as mmio::map_for_caller: the claim, the device, a BAR
+//! in the port space clear of firmware's ports and the FADT's power registers (`power_ports`),
+//! then the record while the claim holds. Only the kernel runs `in`/`out` (`access`).
 
 use super::grant::{self, PioGrant};
+use super::power_ports::clear;
 use super::types::{PioError, PioGrantRequest, PioGrantResult};
 use super::window::{window, Refused};
 use crate::hardware::broker::device::BarKind;
@@ -53,7 +53,7 @@ pub(super) fn grant_for_caller(pid: u32, req: PioGrantRequest) -> Result<PioGran
     if bar.size == 0 {
         return Err(PioError::ZeroSize);
     }
-    let (port_base, port_count) = window(bar.base, bar.size).map_err(|r| match r {
+    let (port_base, port_count) = clear(window(bar.base, bar.size)).map_err(|r| match r {
         Refused::Overflow => PioError::PortOverflow,
         Refused::Reserved => PioError::ReservedPort,
     })?;

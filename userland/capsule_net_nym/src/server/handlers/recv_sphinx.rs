@@ -16,7 +16,7 @@
 
 use crate::gateway_client::{is_pushed_message, parse_blob};
 use crate::sphinx::payload::unpad_payload;
-use crate::state::{gateway_shared_key, TABLE};
+use crate::state::{with_gateway_key, TABLE};
 use alloc::vec::Vec;
 
 /// Take one encrypted gateway frame and queue what the mixnet delivered.
@@ -24,8 +24,7 @@ use alloc::vec::Vec;
 /// The frame is authenticated before anything inside it is read, so a forged
 /// push cannot reach a session queue.
 pub fn accept_frame(raw: &[u8]) -> bool {
-    let Some(key) = gateway_shared_key() else { return false };
-    let Some(frame) = parse_blob(raw, &key) else { return false };
+    let Some(frame) = with_gateway_key(|key| parse_blob(raw, key)).flatten() else { return false };
     if !is_pushed_message(frame.kind) {
         return false;
     }

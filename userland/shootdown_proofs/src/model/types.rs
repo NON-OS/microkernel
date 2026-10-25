@@ -8,12 +8,22 @@ pub enum Val {
     New,
 }
 
-/// How a target drops the page: `invlpg` for a range, or a CR3 reload for
-/// `pages == 0` (`handle.rs`).
+/// How a target drops the page: `invlpg` for a range, or the full flush
+/// (`invalidate_all`) for `pages == 0` (`handle.rs`).
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Flush {
     Page,
     Full,
+}
+
+/// Which CPUs have CR4.PGE set, so keep GLOBAL kernel entries across a CR3
+/// write. The kernel sets it on every CPU; firmware may leave it on the boot
+/// CPU alone, which is how the code ran before it did.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Pge {
+    Off,
+    BootOnly,
+    Every,
 }
 
 /// One step of an AP's `bring_up`, as far as parking is concerned.

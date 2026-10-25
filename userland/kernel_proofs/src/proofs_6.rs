@@ -52,3 +52,15 @@ pub mod secret_log;
 /// When a lock wait is reported, and called a re-take.
 #[path = "spin_watch/mod.rs"]
 pub mod spin_watch;
+#[path = "pio_reset/mod.rs"]
+pub mod pio_reset;
+#[path = "panic_plan/mod.rs"]
+pub mod panic_plan;
+#[path = "panic_stage/mod.rs"]
+pub mod panic_stage;
+#[path = "proof_io_spawn_tests.rs"]
+#[cfg(test)]
+mod proof_io_spawn_tests;
+#[path = "proof_io_spawn_walk.rs"]
+#[cfg(test)]
+mod proof_io_spawn_walk;

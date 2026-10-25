@@ -29,8 +29,8 @@ static ENDING: AtomicBool = AtomicBool::new(false);
 ///
 /// The order is the whole point and it is not negotiable:
 ///
-/// 0. Once: a later caller (a second press, a critical battery during the
-///    leave) parks, so none stops the CPUs under the first's wipe.
+/// 0. Once: a later caller (a second press, a critical battery, any caller
+///    once a panic took its path) parks, so none stops the CPUs under a wipe.
 /// 1. Leave: the disks flushed and their controllers told power is going,
 ///    each bounded and all within 15 s (leave.rs). The capsules that do it
 ///    must still run, so this comes before anything stops.
@@ -54,7 +54,7 @@ pub(crate) fn terminate_critical(off: PowerOff) -> ! {
 }
 
 fn end(off: PowerOff, leave_ms: u64) -> ! {
-    if !first(&ENDING) {
+    if crate::boot::panic::panic_stage_taken() || !first(&ENDING) {
         park()
     }
     super::leave::run(off, leave_ms);

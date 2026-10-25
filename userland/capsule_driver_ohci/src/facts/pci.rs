@@ -24,3 +24,11 @@ pub const PROGIF_OHCI: u8 = 0x10;
 pub const MMIO_BAR: u32 = 0;
 /// The registers through the last root port's (15 ports).
 pub const MMIO_MIN: u64 = 0x54 + 4 * 15;
+
+/// The register grant asked of the broker: the BAR, not a page more. The
+/// broker maps every page the grant touches and refuses a length past the
+/// BAR's end (src/hardware/broker/mmio/window.rs), so rounding a sub-page
+/// BAR up to a page had the grant refused: QEMU's pci-ohci BAR0 is 256 bytes.
+pub const fn register_grant(bar_size: u64) -> u64 {
+    bar_size
+}
