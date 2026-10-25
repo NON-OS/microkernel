@@ -18,6 +18,8 @@
 //! layout constants; they must stay the kernel's, or the set it asks for
 //! drifts from the one the kernel checks.
 
+use crate::{CAPS_OF_APP_INSTALL as INSTALL, CAPS_OF_SPAWN_WINDOW as WINDOW};
+
 const KERNEL: &str = include_str!("../../../../src/security/capsule_manifest/schema/constants.rs");
 const OWN: &str =
     include_str!("../../../capsule_installer/src/server/handlers/load_by_name/own_caps.rs");
@@ -36,4 +38,14 @@ fn the_installer_reads_the_head_with_the_kernel_s_layout() {
     ] {
         assert_eq!(value(OWN, own), value(KERNEL, kernel), "{own} against the kernel's {kernel}");
     }
+}
+
+#[test]
+fn libc_names_the_kernel_s_two_askable_bits() {
+    let libc = include_str!("../../../libc/src/process.rs");
+    let kernel = include_str!("../../../../src/syscall/microkernel/caps_of/rule.rs");
+    assert!(libc.contains("pub const CAPS_OF_SPAWN_WINDOW: u64 = 1 << 24;"));
+    assert!(libc.contains("pub const CAPS_OF_APP_INSTALL: u64 = 1 << 30;"));
+    assert!(kernel.contains("[Capability::SpawnWindow.bit(), Capability::AppInstall.bit()]"));
+    assert_eq!((WINDOW, INSTALL), (1 << 24, 1 << 30), "the stand-in's are libc's");
 }

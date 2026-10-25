@@ -224,5 +224,6 @@ pub const SYS_ACPI_THERMAL_LIMIT: u64 = tag4(b"MATL");
 pub const SYS_SPAWN_INSTANCE: u64 = tag4(b"MSPI");
 /// Run a baked, attested tool by name as the caller's child, to drive its stdio; needs IPC.
 pub const SYS_TOOL_RUN: u64 = tag4(b"MTRN");
+pub const SYS_CAPS_OF: u64 = tag4(b"MCOF");
 pub const SYS_TTY_SET: u64 = tag4(b"MTTY");
 pub const SYS_TTY_QUERY: u64 = tag4(b"MTTQ");
