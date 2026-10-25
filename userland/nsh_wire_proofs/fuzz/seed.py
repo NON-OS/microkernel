@@ -26,7 +26,7 @@ def b8(x): return bytes([len(x)]) + x
 def b16(x): return pack("<H", len(x)) + x
 def b32(x): return pack("<I", len(x)) + x
 def caps(names): return bytes([len(names)]) + b"".join(b8(n) for n in names)
-def hello(tail): return b"NSH1" + pack("<HHH", 1, 1, 0) + b"\x52" * 32 + tail
+def hello(tail): return b"NSH1" + pack("<HHH", 2, 1, 0) + b"\x52" * 32 + tail
 
 def grant(kind=1, approvals=()):
     gid, parent = (b"\x11" * 16, b"\0" * 16) if kind == 1 else (b"\x22" * 16, b"\x11" * 16)

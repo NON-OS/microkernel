@@ -5,9 +5,9 @@
 # `cargo test` runs the real driver source and nonos_scsi_serve (included
 # via #[path]) against a Hyper-V storage host model: nonos_vmbus's model of
 # the host's side for the channel's GPADL, open and close, and a storage
-# server on the channel's rings, written from Linux's storvsc_drv.c, that
-# answers each request from nonos_scsi's simulated logical units through
-# the data buffer's pages.
+# server on the channel's rings, written from OpenVMM's storvsp (the host
+# side Microsoft publishes, cited line by line), that answers each request
+# from nonos_scsi's simulated logical units through the data buffer's pages.
 [package]
 name = "storvsc_proofs"
 version = "0.1.0"
