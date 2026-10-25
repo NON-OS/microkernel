@@ -24,13 +24,20 @@ use alloc::vec;
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply};
 use nonos_usbnet::nic::ETH_FRAME_MAX;
 use nonos_usbnet::nnet::{answer, decode, status, Request, Stats, DATA_AT, E_INVAL, HDR_LEN};
+use nonos_usbnet::nnet::{STATION_DRAWN, STATION_HOST_REFUSED, STATION_HOST_UNANSWERED};
 use nonos_usbnet::run::own_pid;
 use nonos_usbnet::Nic;
 
 use crate::nic::Net;
 use crate::NAME;
 
+use crate::probe::Verdict;
+
 const SERVICE_INBOX: u64 = 0;
+// The codes probe.rs gives are the frame service's.
+const _: () = assert!(Verdict::Drawn.station() == STATION_DRAWN);
+const _: () = assert!(Verdict::Unanswered.station() == STATION_HOST_UNANSWERED);
+const _: () = assert!(Verdict::Refused.station() == STATION_HOST_REFUSED);
 /// How long a receive waits for a request before the channel is looked at.
 const WAIT_MS: u64 = 1;
 
@@ -39,7 +46,8 @@ pub fn run(net: &mut Net) {
     let mut rx = vec![0u8; HDR_LEN + ETH_FRAME_MAX + 64];
     let mut tx = vec![0u8; DATA_AT + 4 + ETH_FRAME_MAX + 64];
     let me = own_pid(core::str::from_utf8(NAME).unwrap_or(""));
-    let mut stats = Stats::default();
+    // Settings reads where the address came from in OP_STATS's word 9.
+    let mut stats = Stats { station: net.station, ..Stats::default() };
     loop {
         let mut from = 0u32;
         let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), WAIT_MS, &mut from);
