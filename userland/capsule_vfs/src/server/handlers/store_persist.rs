@@ -57,7 +57,7 @@ pub fn store_persist(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Ve
     };
     let written = match require_persistent(&data) {
         Ok(Keep::Record) => crate::blk::store_write::append(&path, &data),
-        Ok(Keep::Withdraw) => crate::blk::store_write::withdraw(&path, &data),
+        Ok(Keep::Withdraw) => crate::blk::store_withdraw::withdraw(&path, &data),
         Err(s) => return encode_response(OP_STORE_PERSIST, req.flags, req.request_id, s, &[]),
     };
     match written {
