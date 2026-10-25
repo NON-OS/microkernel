@@ -80,7 +80,7 @@ On serial it writes `[BOX-MISSING] v=1 report=none capsule_failed=yes exit=134 s
 This is typed in the selftest image's Terminal: no attacker in the three boots above types it.
 
 `tools/nonos-dev-image --profile selftest` turns the feature on, in its own copy of the tree
-only. `scripts/check_selftest_panic.py`, in the static checks and the flake's `static-abi`
+only. `scripts/check_copy_only_features.py`, in the static checks and the flake's `static-abi`
 check, fails any committed build that names it: `tools/nix/capsules.json`, a `Capsule.mk`, or
 `capsule_linux`'s default features. It also fails if the tool turns it on outside that profile.
 Its `--self-test` makes each of those four mistakes and must catch every one.
