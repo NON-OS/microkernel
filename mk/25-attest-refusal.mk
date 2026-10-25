@@ -55,7 +55,7 @@ nonos-mk-attest-refusal-test: $(proof-io_ARTIFACTS) nonos-mk-attest-refusal-vari
 nonos-mk-attest-refusal-run: $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP)
 	$(call nonos_kernel_and_esp,nonos-mk-attest-refusal-test)
 	@mkdir -p $(dir $(ATTEST_REFUSAL_LOG))
-	@-timeout 240 $(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
+	@-timeout 240 $(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp $(QEMU_SMP) -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
 		$(QEMU_BLK) $(QEMU_RNG) -serial "file:$(ATTEST_REFUSAL_LOG)" -display none -no-reboot
