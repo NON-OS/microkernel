@@ -96,7 +96,7 @@ its DMA and the stream's buffers are driver.xhci0's.
 
 - One device, one playback stream, 48 kHz stereo 16-bit only, USB Audio
   1.0 or 2.0.
-- Each batch is up to 8 ms of sound (at most 32 packets and 4032 bytes),
+- Each batch is up to 8 ms of sound (at most 31 packets and 4032 bytes),
   sent with OP_ISOCH_OUT; the call returns when the batch before has played,
   which paces the loop. A stream that runs short plays silence.
 - Three failed batches in a row give the device back and the search resumes.
