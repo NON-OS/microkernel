@@ -62,6 +62,7 @@ mod mux_revive_tests;
 mod mux_stale_slot_tests;
 mod orphan_tests;
 mod quarantine_tests;
+mod served_tests;
 mod shared_slot_tests;
 mod stall_answer_tests;
 mod stale_slot_tests;
