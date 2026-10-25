@@ -18,7 +18,7 @@ use super::memory::MemoryRegion;
 
 /// Enough for the memory nodes a board actually publishes. Fixed because the
 /// device tree is walked before the heap exists.
-pub const MAX_MEMORY_REGIONS: usize = 8;
+pub(super) const MAX_MEMORY_REGIONS: usize = 8;
 
 #[derive(Debug, Clone)]
 pub struct BootInfo {

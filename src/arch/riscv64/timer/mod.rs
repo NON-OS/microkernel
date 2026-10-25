@@ -30,6 +30,6 @@ pub use clint::{
 pub use convert::{current_time_ns, current_time_us, ns_to_ticks, ticks_to_ns};
 pub use deadline::{init_timer, init_timer_hart, set_next_timer};
 pub use delay::{delay_ms, delay_ns, delay_us};
-pub use frequency::set_frequency;
+pub use frequency::{frequency_hz, set_frequency};
 pub use interrupt::handle_timer_interrupt;
 pub use read::read_time;

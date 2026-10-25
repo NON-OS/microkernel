@@ -18,7 +18,7 @@ use core::arch::asm;
 
 use super::super::error::{PmpError, PmpResult};
 
-pub fn write_cfg(index: usize, cfg: u8) -> PmpResult<()> {
+pub(super) fn write_cfg(index: usize, cfg: u8) -> PmpResult<()> {
     let shift = (index % 8) * 8;
     let mask = !(0xff_u64 << shift);
     let value = (cfg as u64) << shift;

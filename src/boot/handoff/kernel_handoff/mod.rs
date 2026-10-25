@@ -23,6 +23,8 @@ mod framebuffer;
 mod handoff;
 mod measurement;
 mod memory;
+#[cfg(target_arch = "riscv64")]
+mod riscv64;
 mod timing;
 mod x86_64;
 

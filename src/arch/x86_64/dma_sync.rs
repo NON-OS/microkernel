@@ -16,33 +16,37 @@
 
 use core::sync::atomic::{compiler_fence, Ordering};
 
-use super::super::super::Coherency;
-use super::maintain::{barrier, range, Op};
 use crate::memory::addr::VirtAddr;
 use crate::memory::dma::types::DmaDirection;
 
-pub(in crate::memory::dma::coherency) fn sync_for_device(
-    cpu_addr: VirtAddr,
-    size: usize,
-    direction: DmaDirection,
-    coherency: Coherency,
+use crate::memory::dma::coherency::Coherency;
+
+pub(crate) fn sync_for_device(
+    _cpu_addr: VirtAddr,
+    _size: usize,
+    _direction: DmaDirection,
+    _coherency: Coherency,
 ) {
-    compiler_fence(Ordering::SeqCst);
-    if coherency.requires_cache_maintenance() && direction.writes_to_device() {
-        range(cpu_addr, size, Op::Clean);
-    }
-    barrier();
+    bus_fence();
 }
 
-pub(in crate::memory::dma::coherency) fn sync_for_cpu(
-    cpu_addr: VirtAddr,
-    size: usize,
-    direction: DmaDirection,
-    coherency: Coherency,
+pub(crate) fn sync_for_cpu(
+    _cpu_addr: VirtAddr,
+    _size: usize,
+    _direction: DmaDirection,
+    _coherency: Coherency,
 ) {
-    if coherency.requires_cache_maintenance() && direction.reads_from_device() {
-        range(cpu_addr, size, Op::CleanAndInvalidate);
-    }
-    barrier();
+    bus_fence();
+}
+
+#[inline(always)]
+fn bus_fence() {
     compiler_fence(Ordering::SeqCst);
+    // SAFETY: ek@nonos.systems — every supported x86_64 host bus is
+    // hardware-coherent, so the sync windows reduce to a fence; `mfence`
+    // gives StoreLoad ordering between the buffer accesses and the
+    // device-side transactions on either side of the window.
+    unsafe {
+        core::arch::asm!("mfence", options(nostack, preserves_flags));
+    }
 }

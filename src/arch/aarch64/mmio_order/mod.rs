@@ -17,7 +17,7 @@
 pub(super) mod access;
 pub(super) mod fences;
 
-pub(in crate::memory::mmio::ordering) use access::{
+pub(crate) use access::{
     read_acquire, read_relaxed, write_relaxed, write_release,
 };
-pub(in crate::memory::mmio::ordering) use fences::{fence_full, fence_reads, fence_writes};
+pub(crate) use fences::{fence_full, fence_reads, fence_writes};
