@@ -19,10 +19,10 @@
 use nonos_wifi_core::key::KeyStore;
 
 use crate::assoc::{self, Outcome};
-use crate::fw::dma::Grant;
-use crate::link::{RtlKeys, RtlLink};
+use crate::fw::dma::DmaMem;
+use crate::link::{RtlKeys, RtlLink, RxBuffers};
 use crate::phy::channel::{set_rf, Bw};
-use crate::regs::Regs;
+use crate::regs::Mmio;
 use crate::status;
 
 use super::consts::*;
@@ -33,12 +33,12 @@ use super::session::Session;
 
 /// What the join came to: on a join, the keys go into the CAM and the
 /// session is recorded; the reply carries the handshake's progress either way.
-pub(super) fn answer(
+pub(in crate::serve) fn answer<M: Mmio, D: DmaMem, RB: RxBuffers>(
     mut report: assoc::Report,
     ssid: &[u8],
-    link: &mut RtlLink<Regs, Grant, Grant>,
-    keys: &mut RtlKeys<Regs>,
-    regs: &Regs,
+    link: &mut RtlLink<M, D, RB>,
+    keys: &mut RtlKeys<M>,
+    regs: &M,
     session: &mut Option<Session>,
 ) -> ConnectResult {
     let mut r = counts(&report);

@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! Opening a host: as a fixed slot, whose card must come up, or as a
 //! removable one, served with or without a card. Either way the host is
 //! reset before any DMA region is mapped or bus mastering goes on.
@@ -59,13 +60,15 @@ fn ready(dev: &Found, fixed: bool) -> EmmcResult<(Parts, DmaBuf, super::claim::C
     } else {
         check_removable(&log, &io)?;
     }
-    let dma64 = reset_host(io.clone(), dev)?.caps.dma64();
-    let region = |len| dma::map(dev.device_id, epoch, len, dma64).inspect_err(|e| say_dma(&log, *e));
+    let dma64 = reset_host(io, dev)?.caps.dma64();
+    let region =
+        |len| dma::map(dev.device_id, epoch, len, dma64).inspect_err(|e| say_dma(&log, *e));
     let table = region(DESC_TABLE_BYTES)?;
     let data = region(DATA_BUF_BYTES as u64)?;
     if !dev.acpi {
         command(&log, dev.device_id, epoch, true)?;
     }
-    let parts = HostParts { io, clock: UptimeClock, log, table, intel_emmc: dev.kind == Kind::IntelEmmc };
+    let parts =
+        HostParts { io, clock: UptimeClock, log, table, intel_emmc: dev.kind == Kind::IntelEmmc };
     Ok((parts, data, claim))
 }

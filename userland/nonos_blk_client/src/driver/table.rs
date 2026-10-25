@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Per-driver constants, copied from each driver's `protocol` module. They
 //! are the contract those capsules publish; a change there is a change
-//! here, and blk_client_proofs and scripts/check_blk_wire.py hold the two
-//! together until the protocols become one. Magics and opcodes are in
-//! `dialect.rs`, the controllers each serves in `bus.rs`.
+//! here, and blk_client_proofs, the drivers' own tests and
+//! scripts/check_blk_wire.py hold the two together until the protocols
+//! become one. Magics and opcodes are in `dialect.rs`, the controllers each
+//! serves in `bus.rs`.
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Driver {

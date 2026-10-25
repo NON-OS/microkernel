@@ -65,3 +65,5 @@ mod refusal_tests;
 mod session_share_tests;
 #[cfg(test)]
 mod surb_tests;
+#[cfg(test)]
+mod wipes;

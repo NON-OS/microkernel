@@ -20,22 +20,33 @@
 //! so the barriers Rust emits for `fence` on aarch64 (DMB ISH) do not order
 //! what a device sees; the outer shareable forms do (Arm ARM, DDI 0487, the
 //! shareability domains and DMB). A `compiler_fence` emits no instruction at
-//! all. x86_64 orders write-back stores and uncached MMIO accesses as program
-//! order already (Intel SDM Vol. 3A, the memory-ordering rules), so there
-//! these are compiler barriers, which is what the drivers used before.
+//! all. riscv64's `fence` names what it orders: i and o for device input and
+//! output, r and w for memory (the RISC-V memory model, RVWMO), so each
+//! barrier names the device side too. x86_64 orders write-back stores and
+//! uncached MMIO as program order already (Intel SDM Vol. 3A), so there these
+//! are compiler barriers, which is what the drivers used before.
 
 use core::sync::atomic::{compiler_fence, Ordering};
+
+/// The barrier instruction, on the architectures that need one: `$a` on
+/// aarch64, `$r` on riscv64.
+macro_rules! io_fence {
+    ($a:literal, $r:literal) => {
+        // SAFETY: a barrier only.
+        #[cfg(target_arch = "aarch64")]
+        unsafe { core::arch::asm!($a, options(nostack, preserves_flags)) };
+        // SAFETY: a barrier only.
+        #[cfg(target_arch = "riscv64")]
+        unsafe { core::arch::asm!($r, options(nostack, preserves_flags)) };
+    };
+}
 
 /// Every store before it is seen by the device before any store after it: a
 /// descriptor before the index that hands it over, a ring before the
 /// doorbell.
 #[inline(always)]
 pub fn dma_wmb() {
-    #[cfg(target_arch = "aarch64")]
-    // SAFETY: a barrier only.
-    unsafe {
-        core::arch::asm!("dmb oshst", options(nostack, preserves_flags))
-    };
+    io_fence!("dmb oshst", "fence ow, ow");
     compiler_fence(Ordering::Release);
 }
 
@@ -43,11 +54,7 @@ pub fn dma_wmb() {
 /// that says a buffer is done before the buffer is read.
 #[inline(always)]
 pub fn dma_rmb() {
-    #[cfg(target_arch = "aarch64")]
-    // SAFETY: a barrier only.
-    unsafe {
-        core::arch::asm!("dmb oshld", options(nostack, preserves_flags))
-    };
+    io_fence!("dmb oshld", "fence ir, ir");
     compiler_fence(Ordering::Acquire);
 }
 
@@ -55,12 +62,8 @@ pub fn dma_rmb() {
 /// the store that lets the device write it again.
 #[inline(always)]
 pub fn dma_mb() {
-    #[cfg(target_arch = "aarch64")]
-    // SAFETY: a barrier only.
-    unsafe {
-        core::arch::asm!("dmb osh", options(nostack, preserves_flags))
-    };
-    #[cfg(not(target_arch = "aarch64"))]
+    io_fence!("dmb osh", "fence iorw, iorw");
+    #[cfg(target_arch = "x86_64")]
     core::sync::atomic::fence(Ordering::SeqCst);
     compiler_fence(Ordering::SeqCst);
 }
