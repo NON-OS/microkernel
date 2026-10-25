@@ -1,0 +1,60 @@
+{
+  "schema_version": 3,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.lazygit",
+      "capsule_id": "e8d4332e4a41f0bd69d47a13165888e12dd72309c619dfb830b407dd8a68c412",
+      "name": "lazygit",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A terminal interface for Git: stage, commit, branch and rebase with a few keys. Runs git.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "lazygit@0.41.0-r4",
+          "manifest_hash": "e8d4332e4a41f0bd69d47a13165888e12dd72309c619dfb830b407dd8a68c412",
+          "package_hash": "e8d4332e4a41f0bd69d47a13165888e12dd72309c619dfb830b407dd8a68c412",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/lazygit-0.41.0-r4.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c303101000000000000000c84c07c803ede9dd8516fd07b7e8188705420b98356baeced202e3011e4b33148010000000000000de1a427fc43e4b71b758f0292226f6b26642a4a5791bb09b95b25abac8f7f711268c20511e69fc99bf95b8decbf932bb88759985e8a92d8af27d4f3dcce0e790000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 6733105 bytes; licence MIT; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}
