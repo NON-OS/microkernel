@@ -5200,6 +5200,16 @@
   "md": [],
   "signed": []
  },
+ "userland/hwreport_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/hwreport_proofs",
+   "userland/nonos_hwreport"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/i2c_hid_proofs": {
   "exclude": [],
   "include": [
