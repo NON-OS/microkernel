@@ -9658,6 +9658,8 @@
    "userland/capsule_terminal/src/jobs/external_io.rs",
    "userland/capsule_terminal/src/jobs/external_route.rs",
    "userland/capsule_terminal/src/jobs/external_stop.rs",
+   "userland/capsule_terminal/src/jobs/net_ask.rs",
+   "userland/capsule_terminal/src/jobs/stdin_kept.rs",
    "userland/capsule_terminal/src/jobs/work_step.rs",
    "userland/capsule_terminal/src/mixnet/exchange/wait.rs",
    "userland/capsule_terminal/src/mixnet/exchange/wait_clock.rs",
