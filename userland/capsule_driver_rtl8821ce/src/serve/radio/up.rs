@@ -6,12 +6,11 @@ use alloc::boxed::Box;
 
 use super::super::Stage;
 use super::phy::phy_setup;
-use super::rings::map_rings;
 use crate::constants::regs::REG_MACID;
 use crate::fw::dma::Grant;
 use crate::link::{RtlKeys, RtlLink};
 use crate::regs::{Mmio, Regs};
-use crate::setup::Mapped;
+use crate::setup::{map_rings, Mapped};
 use crate::status;
 
 /// The radio brought up: its rings, its key store and a register handle for
