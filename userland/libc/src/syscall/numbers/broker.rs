@@ -37,6 +37,7 @@ pub(crate) const N_MK_HV_POST: i64 = tag4(b"MHVP");
 pub(crate) const N_MK_HV_RECV: i64 = tag4(b"MHVR");
 pub(crate) const N_MK_HV_EVENTS: i64 = tag4(b"MHVE");
 pub(crate) const N_MK_HV_SIGNAL: i64 = tag4(b"MHVS");
+pub(crate) const N_MK_HV_CHANNEL: i64 = tag4(b"MHVC");
 pub(crate) const N_MK_DEBUG: i64 = tag4(b"MDBG");
 pub(crate) const N_MK_STORE_WRITE: i64 = tag4(b"MSWR");
 pub(crate) const N_MK_STORE_READ: i64 = tag4(b"MSRR");
