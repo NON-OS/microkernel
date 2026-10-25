@@ -24,7 +24,10 @@ impl App for Terminal {
     }
 
     fn on_event(&mut self, event: InputEvent) -> EventOutcome {
+        let before = self.frame_key();
         let outcome = self.on_event_inner(event);
+        let key = event.kind == nonos_app_skeleton::InputKind::KeyDown;
+        self.line_only = key && outcome == EventOutcome::Repaint && self.frame_key() == before;
         if outcome == EventOutcome::Close {
             self.hang_up_all();
         }
@@ -40,7 +43,13 @@ impl App for Terminal {
     }
 
     fn on_tick(&mut self) -> bool {
-        self.on_tick_inner()
+        let repaint = self.on_tick_inner();
+        self.line_only &= !repaint;
+        repaint
+    }
+
+    fn take_damage(&mut self) -> Option<crate::layout::Rect> {
+        self.take_damage_inner()
     }
 
     fn tick_interval_ms(&self) -> i64 {
