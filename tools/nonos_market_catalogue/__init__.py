@@ -14,3 +14,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """Pieces of tools/nonos-market-catalogue, kept in files of their own."""
+
+import os
+import shutil
+
+
+def load_tests(loader, standard_tests, pattern):
+    """The suite, once b3sum is found: listings carry its BLAKE3 digests, so
+    without it the suite stops in one line rather than failing test by test."""
+    if shutil.which("b3sum") is None:
+        raise SystemExit("the catalogue suite needs b3sum (BLAKE3); install it")
+    standard_tests.addTests(loader.discover(os.path.dirname(__file__), pattern or "test*.py"))
+    return standard_tests

@@ -25,7 +25,14 @@
 //! of the three or nothing.
 
 use alloc::boxed::Box;
-use alloc::vec::Vec;
+
+mod body;
+mod parse;
+#[cfg(test)]
+mod tests;
+
+pub use body::linux_policy_body;
+pub use parse::parse_linux_policy;
 
 pub const LINUX_POLICY_VERSION: u8 = 2;
 /// No policy rides with this release (a vendor program, whose box is the
@@ -45,32 +52,4 @@ pub enum LinuxPolicy {
     NoPolicy,
     Policy(Box<[u8; MARKET_ARG_LEN]>),
     Refused,
-}
-
-/// The answer and the package hash of the release it was made from.
-pub fn parse_linux_policy(body: &[u8]) -> Option<(LinuxPolicy, [u8; 32])> {
-    let [LINUX_POLICY_VERSION, kind, rest @ ..] = body else { return None };
-    let (hash, rest) = rest.split_first_chunk::<32>()?;
-    let reply = match (*kind, rest) {
-        (KIND_NONE, []) => LinuxPolicy::NoPolicy,
-        (KIND_REFUSED, []) => LinuxPolicy::Refused,
-        (KIND_POLICY, m) => LinuxPolicy::Policy(Box::new(m.try_into().ok()?)),
-        _ => return None,
-    };
-    Some((reply, *hash))
-}
-
-pub fn linux_policy_body(reply: &LinuxPolicy, package_hash: &[u8; 32]) -> Vec<u8> {
-    let mut out = Vec::with_capacity(LINUX_POLICY_HEAD.saturating_add(MARKET_ARG_LEN));
-    out.push(LINUX_POLICY_VERSION);
-    out.push(match reply {
-        LinuxPolicy::NoPolicy => KIND_NONE,
-        LinuxPolicy::Refused => KIND_REFUSED,
-        LinuxPolicy::Policy(_) => KIND_POLICY,
-    });
-    out.extend_from_slice(package_hash);
-    if let LinuxPolicy::Policy(m) = reply {
-        out.extend_from_slice(m.as_slice());
-    }
-    out
 }

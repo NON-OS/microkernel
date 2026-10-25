@@ -21,7 +21,7 @@ name, since the installer writes entries in order."""
 
 from . import tarwalk
 
-# install/market.rs reads a bound program through store_read(.., MAX_IMAGE).
+# install/market/bind.rs reads a bound program through store_read(.., MAX_IMAGE).
 MAX_IMAGE = 64 << 20
 
 

@@ -20,8 +20,8 @@
 
 use nonos_linux_policy::{decode, market_ready, LinuxAppPolicy};
 
-use super::apps::{wanted, Wanted};
-use super::market_arg::MARKET_LEN;
+use super::super::apps::{wanted, Wanted};
+use super::arg::MARKET_LEN;
 
 /// Everything that can be decided before the package is fetched: a canonical
 /// policy, market ready, naming the listing and release the market resolved.
