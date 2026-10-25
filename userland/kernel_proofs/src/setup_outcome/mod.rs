@@ -21,8 +21,10 @@
  * path; glue_tests holds the kernel to calling them.
  */
 
+#[cfg(test)]
 #[path = "../../../../src/process/exit/kept_table.rs"]
 mod kept_table;
+#[cfg(test)]
 #[path = "../../../../src/userspace/capsule_setup_wizard/outcome_rule.rs"]
 mod outcome_rule;
 
