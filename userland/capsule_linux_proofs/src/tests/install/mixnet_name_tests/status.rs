@@ -16,7 +16,7 @@
 
 //! The statuses net.sockets sends, read back by the capsule.
 
-use super::refused::connect_by_host;
+use super::helpers::connect_by_host;
 use crate::net_ops::{NET_E_NAME_REFUSED, NET_E_NO_TRANSPORT};
 use crate::protocol::{E_BAD_ADDR, E_NAME_REFUSED, E_NO_DNS, E_NO_TRANSPORT};
 use crate::server::handlers::host_target::lookup_status;
