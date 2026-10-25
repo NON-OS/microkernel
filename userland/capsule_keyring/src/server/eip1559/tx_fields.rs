@@ -16,7 +16,6 @@
 //! The nine RLP fields every EIP-1559 transaction this keyring signs starts
 //! from, before its signature: chain id through an empty access list.
 
-use alloc::vec;
 use alloc::vec::Vec;
 
 use super::super::rlp::{rlp_list, rlp_string, rlp_uint_be};
@@ -34,15 +33,17 @@ pub struct TxFields<'a> {
 }
 
 pub fn tx_fields(t: &TxFields<'_>) -> Vec<Vec<u8>> {
-    vec![
-        rlp_uint_be(t.chain_id),
-        rlp_uint_be(t.nonce),
-        rlp_uint_be(t.max_priority),
-        rlp_uint_be(t.max_fee),
-        rlp_uint_be(t.gas),
-        rlp_string(t.to),
-        rlp_uint_be(t.value),
-        rlp_string(t.data),
-        rlp_list(&[]),
-    ]
+    // Sized once for its nine fields, so no push below ever reallocates.
+    let mut f = Vec::with_capacity(9);
+    let chain_id = rlp_uint_be(t.chain_id);
+    f.push(chain_id);
+    f.push(rlp_uint_be(t.nonce));
+    f.push(rlp_uint_be(t.max_priority));
+    f.push(rlp_uint_be(t.max_fee));
+    f.push(rlp_uint_be(t.gas));
+    f.push(rlp_string(t.to));
+    f.push(rlp_uint_be(t.value));
+    f.push(rlp_string(t.data));
+    f.push(rlp_list(&[]));
+    f
 }
