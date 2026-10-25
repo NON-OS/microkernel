@@ -41,11 +41,12 @@ pub fn call(
     port: u32,
     magic: u32,
     op: u16,
+    unit: u16,
     body: &[u8],
     rx: &mut [u8],
 ) -> Result<(usize, u32), BlkError> {
     let request_id = REQUEST_ID.fetch_add(1, Ordering::Relaxed);
-    let tx = encode_request(magic, op, request_id, body);
+    let tx = encode_request(magic, op, unit, request_id, body);
     let n = mk_ipc_call_timeout(
         port as u64,
         tx.as_ptr(),

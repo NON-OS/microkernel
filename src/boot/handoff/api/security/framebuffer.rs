@@ -18,6 +18,9 @@ use super::super::super::types::{flags, BootHandoffV1};
 use super::super::error::{FbGeometryReason, HandoffError};
 
 pub(super) fn check(handoff: &BootHandoffV1) -> Result<(), HandoffError> {
+    if super::super::super::types::refusal(handoff.flags, handoff.fb.pixel_format).is_err() {
+        return Err(reject(FbGeometryReason::RefusedAndAvailable));
+    }
     if !handoff.has_flag(flags::FB_AVAILABLE) {
         return Ok(());
     }

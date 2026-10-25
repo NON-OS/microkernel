@@ -23,15 +23,15 @@ pub(super) const DRIVER_UVC_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-uvc")]
 pub(super) const DRIVER_UVC_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_uvc.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_uvc.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-uvc")]
 pub(super) const DRIVER_UVC_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_uvc.manifest.bin");
+    crate::baked_trust!("capsules/driver_uvc.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-uvc")]
 pub(super) const DRIVER_UVC_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_uvc.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_uvc.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-uvc"))]
 pub(super) const DRIVER_UVC_ELF: &[u8] = &[];

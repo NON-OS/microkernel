@@ -45,4 +45,10 @@ pub mod flags {
     pub const PROFILE_SAFE: u64 = 1 << 13;
     pub const PROFILE_AIR_GAPPED: u64 = 1 << 14;
     pub const PROFILE_RECOVERY: u64 = 1 << 15;
+    /*
+     * No framebuffer was handed over, and fb.pixel_format says why: the word
+     * display/gop/refusal_word.rs makes. Never set with FB_AVAILABLE; an
+     * additive flag in handoff version 2, which an older loader leaves clear.
+     */
+    pub const FB_REFUSED: u64 = 1 << 16;
 }

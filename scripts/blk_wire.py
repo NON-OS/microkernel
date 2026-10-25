@@ -18,6 +18,8 @@ per-driver table, the constants a driver's protocol files define or take from
 the shared block wire, and which capsule registers which service name."""
 
 import re
+
+import blk_wire_protocol
 from pathlib import Path
 
 CLIENT = "userland/nonos_blk_client/src"
@@ -41,12 +43,7 @@ def consts(files):
 
 
 def protocol(root, crate):
-    """The constants `crate`'s protocol files state. A capsule on the shared block
-    wire takes them from nonos_blk_wire by path, so that crate's count as its own,
-    and a constant the capsule defines itself wins over the shared one."""
-    own = sorted((crate / "src/protocol").glob("*.rs"))
-    shared = any(re.search(r"\bnonos_blk_wire::", f.read_text()) for f in own)
-    return consts((sorted((root / WIRE).glob("*.rs")) if shared else []) + own)
+    return blk_wire_protocol.protocol(root, crate, consts)
 
 
 def table(root):
@@ -59,7 +56,9 @@ def table(root):
         rows.setdefault(d, {})["magic"] = num(v)
     for d, body in re.findall(r"Driver::(\w+)\s*=>\s*Ops\s*\{([^}]*)\}", text):
         rows.setdefault(d, {}).update((k, num(v)) for k, v in re.findall(r"(\w+):\s*(\w+)", body))
-    for d, name in re.findall(r"Driver::(\w+)\s*=>[^\n]*?b\"(driver\.\w+)\"", text):
+    # The first name on the arm's line, or opening a list wrapped below it.
+    arm = r"Driver::(\w+)\s*=>(?:[^\n]*?|\s*&\[\s*)b\"(driver\.\w+)\""
+    for d, name in re.findall(arm, text):
         rows.setdefault(d, {}).setdefault("service", name)
     return rows
 

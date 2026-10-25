@@ -60,6 +60,7 @@ mod punch_tests;
 mod quota_tests;
 mod ready_tests;
 mod resolve_tests;
+mod resolver_msg_tests;
 mod route_tests;
 mod run_mode_tests;
 mod sigframe_layout_tests;

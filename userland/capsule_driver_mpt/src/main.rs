@@ -21,6 +21,7 @@ extern crate alloc;
 
 mod constants;
 mod discover;
+mod frame;
 mod handshake;
 mod hba;
 mod ioc;
