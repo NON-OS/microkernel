@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::memory::MemoryRegion;
+use crate::arch::fdt::reserved_set::Reserved;
 
 /// Enough for the memory nodes a board actually publishes. Fixed because the
 /// device tree is walked before the heap exists.
@@ -37,6 +38,9 @@ pub struct BootInfo {
     /// long before the heap exists, so it cannot be a `Vec`.
     pub memory_regions: [MemoryRegion; MAX_MEMORY_REGIONS],
     pub memory_region_count: usize,
+    /// What the allocator must leave alone: the blob, the reservation block
+    /// and `/reserved-memory`, among them the SBI firmware's own range.
+    pub reserved: Reserved,
 }
 
 impl Default for BootInfo {
@@ -55,6 +59,7 @@ impl Default for BootInfo {
             boot_hart: 0,
             memory_regions: [MemoryRegion::EMPTY; MAX_MEMORY_REGIONS],
             memory_region_count: 0,
+            reserved: Reserved::EMPTY,
         }
     }
 }

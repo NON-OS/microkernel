@@ -14,7 +14,7 @@ the first 64 KiB of the boot and the last 64 KiB (`HEAD` and `CAPACITY`,
 profiles](../overview/glossary-boot-root-record.md#build-profile) drop
 (`debugFeatures`, `tools/nix/config.nix:84`, `tools/nix/config.nix:92`). The
 call needs `AttestRead` (`can_attest_read`,
-`src/syscall/contract/cap_table/mk.rs:57`), which the Terminal holds
+`src/syscall/contract/cap_table/mk.rs:58`), which the Terminal holds
 (`CAPSULE_REQUIRED_CAPS`, `userland/capsule_terminal/Capsule.mk:17-22`). The
 spawn gate writes one line for each capsule whose trailer it checks:
 `[ZK-ATTEST] ok <name> <authority>`, `[ZK-ATTEST] FAIL <name>: <reason>` or
@@ -30,7 +30,7 @@ Not tested in this release.
 `receipt` prints what the kernel recorded about every running capsule, read with
 `mk_attest_entries`
 (`userland/capsule_terminal/src/command/builtin/receipt/run.rs:36`), which needs
-`AttestRead` too (`src/syscall/contract/cap_table/mk.rs:56`).
+`AttestRead` too (`src/syscall/contract/cap_table/mk.rs:57`).
 [Terminal](../using/terminal.md) has the other commands.
 
 

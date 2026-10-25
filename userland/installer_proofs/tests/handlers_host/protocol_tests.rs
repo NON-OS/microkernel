@@ -20,9 +20,10 @@
 // its decode_request), so its whole table is pinned: renumbering an op or the
 // reply endpoint breaks the market driver and the kernel, which hold copies.
 
+use crate::protocol::types::OP_LOAD_FROM_STORE;
 use crate::protocol::{
     EINVAL, KERNEL_REPLY_ENDPOINT, OP_HEALTHCHECK, OP_INSTALL, OP_LIST_INSTALLED, OP_LOAD_BY_NAME,
-    OP_LOAD_FROM_STORE, OP_PKG_COMMIT, OP_PKG_QUERY, OP_PKG_REMOVE,
+    OP_PKG_COMMIT, OP_PKG_QUERY, OP_PKG_REMOVE,
 };
 
 #[test]

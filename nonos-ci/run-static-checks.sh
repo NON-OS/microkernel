@@ -5168,16 +5168,16 @@ else
     fail_with "check_display_profiles: a display driver is left out of microkernel-full-gui"
 fi
 unset display_out
-# capsule_linux's deliberate panic is for the selftest image's copy alone: no
-# committed build may carry it; the self-test first, so the scan is seen to bite.
-if selftest_panic_out="$(python3 scripts/check_selftest_panic.py --self-test 2>&1 \
-    && python3 scripts/check_selftest_panic.py 2>&1)"; then
-    note ok "no committed build carries capsule_linux's selftest-panic (check_selftest_panic)"
+# The copy-only features (selftest-panic, agentproof-headless) are for a dev
+# image's copy alone: no committed build may carry them; the self-test first.
+if copy_only_out="$(python3 scripts/check_copy_only_features.py --self-test 2>&1 \
+    && python3 scripts/check_copy_only_features.py 2>&1)"; then
+    note ok "no committed build carries a copy-only feature (check_copy_only_features)"
 else
-    tail -n 5 <<< "${selftest_panic_out}" >&2
-    fail_with "check_selftest_panic: a committed build carries selftest-panic"
+    tail -n 5 <<< "${copy_only_out}" >&2
+    fail_with "check_copy_only_features: a committed build carries a copy-only feature"
 fi
-unset selftest_panic_out
+unset copy_only_out
 # The surface registry's GATE is a spin lock: a holder that reaches a function
 # taking it again spins forever with interrupts off, and the surface path on
 # every CPU stops behind it (orphans::reclaim and reclaim_dma, the black
@@ -5298,6 +5298,16 @@ else
     fail_with "check_dev_capsule_set: a release path can take the development capsule set"
 fi
 unset devset_out
+
+# The host relay a development image installs through serves a package the
+# market catalogue lists only as the bytes its lock pins (nonos-mirror-relay).
+if relay_out="$( (cd tools && python3 -m unittest -q nonos_mirror_relay.test_pins) 2>&1)"; then
+    note ok "the mirror relay serves a locked package only as its pinned bytes (nonos_mirror_relay)"
+else
+    tail -n 8 <<< "${relay_out}" >&2
+    fail_with "nonos_mirror_relay: the relay can serve a locked package as other bytes"
+fi
+unset relay_out
 
 # Every way off the machine is listed: a capsule that gains Network, or an
 # address, host or build-time endpoint new to a networked capsule's source,

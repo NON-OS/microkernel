@@ -48,7 +48,7 @@ capabilities](../abi/capabilities-checks-outside-the.md#checks-outside-the-sysca
 Exiting, yielding, futex waits, reading the clock and reading process stats take
 no particular bit, only a valid [capability
 token](glossary-boot-root-record.md#capability-token), which is one that holds at least one bit
-(`check` in `src/syscall/contract/cap_table/mk.rs:23-38`). After spawn, a
+(`check` in `src/syscall/contract/cap_table/mk.rs:23-39`). After spawn, a
 process that holds Admin can add to another process any bit it holds itself,
 whether or not that process's manifest declares it (`sys_cap_grant` in
 `src/syscall/microkernel/capability/handlers.rs:33-52`).

@@ -140,5 +140,6 @@ or no `[BOX]` line at all, as a failed run.
 
 - [Run a program in a box](../using/linux-box.md)
 - [The policy file format](policy-format.md)
+- [The Gauntlet: run an agent in a box on every change](gauntlet.md)
 - [Linux programs](../using/linux-programs.md)
 - [The AgentProof assessment](assessment/README.md)

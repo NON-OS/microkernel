@@ -32,7 +32,7 @@ The kernel's on-screen boot log is off. `init_after_fb` prints `[fbconsole] on-s
 
 ### Capsule lines
 
-A capsule holding the `Debug` capability writes one line of up to `MAX_LEN`, 256 bytes, with `MkDebug` (`src/syscall/microkernel/debug.rs:37-69`). Its number is the tag `SYS_MK_DEBUG`, `0x4742444D` (`src/syscall/microkernel/numbers.rs:159`). A spawn grants it only in a kernel built with `capsule-serial-debug`; otherwise `serial_debug_cap` returns 0 (`src/capabilities/serial_debug.rs:34-50`). A Terminal's run of a Linux program is private: `sys_mk_debug` sends its lines only to that process's own inbox and never to the console (`src/syscall/microkernel/debug.rs:39-66`).
+A capsule holding the `Debug` capability writes one line of up to `MAX_LEN`, 256 bytes, with `MkDebug` (`src/syscall/microkernel/debug.rs:37-69`). Its number is the tag `SYS_MK_DEBUG`, `0x4742444D` (`src/syscall/microkernel/numbers.rs:181`). A spawn grants it only in a kernel built with `capsule-serial-debug`; otherwise `serial_debug_cap` returns 0 (`src/capabilities/serial_debug.rs:34-50`). A Terminal's run of a Linux program is private: `sys_mk_debug` sends its lines only to that process's own inbox and never to the console (`src/syscall/microkernel/debug.rs:39-66`).
 
 ### The structured log and the debug ring
 
@@ -55,7 +55,7 @@ Not tested in this release.
 
 `log` alone shows the newest `NEWEST`, 200, lines. With words, `run` shows every line that contains any of them, ignoring case (`userland/capsule_terminal/src/command/builtin/log.rs:18-55`). `log > boot.txt` writes the output to a file, as with any command. On an image without the tail it prints `log: no line matches`.
 
-The command calls `mk_log_tail`, the `MkLogTail` system call, number `0x474F4C4D`, which the kernel names `SYS_LOG_TAIL` (`src/syscall/microkernel/numbers.rs:78`). It needs the `AttestRead` [capability](capabilities.md), checked as `can_attest_read` (`src/syscall/contract/cap_table/mk.rs:57`). The Terminal requests it in `CAPSULE_REQUIRED_CAPS` (`userland/capsule_terminal/Capsule.mk:19-24`), where it is the `ATTEST_READ` bit (`abi/caps.toml:37`). `sys_log_tail` copies up to `KEPT` bytes, oldest first (`src/syscall/microkernel/log_tail.rs:32-46`). The Terminal itself is described on [Terminal](../using/terminal.md).
+The command calls `mk_log_tail`, the `MkLogTail` system call, number `0x474F4C4D`, which the kernel names `SYS_LOG_TAIL` (`src/syscall/microkernel/numbers.rs:80-81`). It needs the `AttestRead` [capability](capabilities.md), checked as `can_attest_read` (`src/syscall/contract/cap_table/mk.rs:58`). The Terminal requests it in `CAPSULE_REQUIRED_CAPS` (`userland/capsule_terminal/Capsule.mk:19-24`), where it is the `ATTEST_READ` bit (`abi/caps.toml:37`). `sys_log_tail` copies up to `KEPT` bytes, oldest first (`src/syscall/microkernel/log_tail.rs:32-46`). The Terminal itself is described on [Terminal](../using/terminal.md).
 
 ## Reading the log with a serial port or in QEMU
 

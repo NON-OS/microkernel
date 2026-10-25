@@ -38,6 +38,8 @@ unsafe fn setup_kernel_page_tables(boot_info: &BootInfo) {
     for region in boot_info.memory_map().iter() {
         map_region(region);
     }
+    // SAFETY: the boot hart, before satp names these tables.
+    unsafe { super::image_map::map_image_and_devices(boot_info) };
 }
 
 unsafe fn map_region(region: &MemoryRegion) {
