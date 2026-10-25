@@ -17,7 +17,7 @@ nonos-shootdown-trace, nonos-smp-park-proof and nonos-smp-stuck-proof change
 how a kernel boots on purpose: one prints every early shootdown, one holds
 CPU 1 back so the boot CPU parks it, one stalls CPU 1 so the next shootdown
 fails closed. The kernel refuses them beside nonos-production and
-nonos-release at compile time (src/smp/ap/park.rs,
+nonos-release at compile time (src/smp/ap/park_proof.rs,
 src/memory/paging/manager/shootdown/trace.rs). That catches a release build,
 not a development or shared image that carries one in, so:
 
