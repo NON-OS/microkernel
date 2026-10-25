@@ -37,9 +37,9 @@ pub fn doc<'a, 't>(r: &Receipt<'a>, trust: &'t Trust) -> Result<(Doc<'a>, &'t Re
         return Err(Refusal::Ak);
     }
     let release = release(&doc, trust).ok_or(Refusal::Release)?;
-    if !doc.iommu_enforcing || doc.unconfined_grants != 0 {
-        return Err(Refusal::Dma);
-    }
+    // nsh_attest's own rule: an IOMMU present and enforcing, no grant
+    // around it, and no device left in a domain that reaches all of memory.
+    steps::dma(&doc).map_err(|_| Refusal::Dma)?;
     if !doc.registry_complete {
         return Err(Refusal::Registry);
     }
