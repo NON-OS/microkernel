@@ -17,23 +17,26 @@
 
 //! Where Alpine's packages come from: Alpine's CDN, by name. The name is
 //! resolved by the network the install leaves through (http/route.rs), never
-//! in the clear unless Direct is the person's choice. Only a development
-//! image's build sets NONOS_ALPINE_MIRROR, to a.b.c.d:port for a mirror on
-//! the local network, dialled directly; build.rs refuses it in any build
-//! without the dev-mirror feature (docs/build/dev-mirror.md). Alpine's own
-//! signatures and the market's pin authenticate the bytes whichever mirror
-//! serves them.
+//! in the clear unless Direct is the person's choice. A development build
+//! (dev-mirror) takes the host's relay instead, at the address QEMU's user
+//! network gives the host, dialled directly (docs/build/dev-mirror.md). No
+//! setting moves either: build.rs refuses NONOS_ALPINE_MIRROR in every
+//! build. Alpine's own signatures and the market's pin authenticate the
+//! bytes whichever mirror serves them.
 
-const DEFAULT: &str = "dl-cdn.alpinelinux.org:80";
+#[cfg(not(feature = "dev-mirror"))]
+const AT: &str = "dl-cdn.alpinelinux.org:80";
+#[cfg(feature = "dev-mirror")]
+const AT: &str = "10.0.2.2:8080";
 
 /// The name a CDN serves Alpine's tree under, the Host line for a mirror
 /// given by address.
 pub const HOST_LINE: &str = "dl-cdn.alpinelinux.org";
 
-/// The mirror this image was built for: its name or address, its port, and
+/// The mirror this build fetches from: its name or address, its port, and
 /// the Host line it is asked with.
 pub fn mirror() -> (&'static str, u16, &'static str) {
-    parse(option_env!("NONOS_ALPINE_MIRROR").unwrap_or(DEFAULT))
+    parse(AT)
 }
 
 /// `name:port` or `a.b.c.d:port`, the port 80 when absent or unreadable. A
