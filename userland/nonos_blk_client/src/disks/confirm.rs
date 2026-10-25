@@ -39,6 +39,8 @@ impl Disk {
             Driver::Wire => "emmc",
             Driver::Ufs => "ufs",
             Driver::Rtsx => "sd",
+            Driver::Ide => "ide",
+            Driver::Scsi => "scsi",
         };
         match self.instance {
             0 => String::from(bus),

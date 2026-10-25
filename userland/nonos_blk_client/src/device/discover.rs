@@ -68,8 +68,5 @@ pub fn discover(present: &[Controller]) -> Vec<Found> {
 /// their disk from whichever controller holds one, a virtio-blk device can be
 /// the medium this boot came from, and a card reader is never counted missing.
 fn one_disk_each(driver: Driver) -> bool {
-    match driver {
-        Driver::Nvme | Driver::Ufs => true,
-        Driver::Ahci | Driver::VirtioBlk | Driver::Wire | Driver::Rtsx => false,
-    }
+    matches!(driver, Driver::Nvme | Driver::Ufs)
 }
