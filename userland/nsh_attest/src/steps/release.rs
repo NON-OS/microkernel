@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Step 5, the NONOS chain: PCR 9 names the admitted kernel and so picks
-//! the one accepted release; PCR 8 (the loader's own measurement) and PCR
-//! 14 (the capsules and proofs) must then be that release's. A zero value
-//! is what a boot that extended nothing leaves, and is refused.
+//! the one accepted release; PCR 8 (the loader's own measurement) must then
+//! be that release's. A zero value is what a boot that extended nothing
+//! leaves, and is refused. PCR 14 is replayed from the log (`capsules`).
 
 use crate::{Doc, Policy, Refusal, Release};
 
@@ -27,9 +27,6 @@ pub fn release<'p>(doc: &Doc<'_>, policy: &'p Policy) -> Result<&'p Release, Ref
     let release = policy.release(pcr9).ok_or(Refusal::Pcr9)?;
     if *pcr(8, Refusal::Pcr8)? != release.pcr8 {
         return Err(Refusal::Pcr8);
-    }
-    if *pcr(14, Refusal::Pcr14)? != release.pcr14 {
-        return Err(Refusal::Pcr14);
     }
     Ok(release)
 }

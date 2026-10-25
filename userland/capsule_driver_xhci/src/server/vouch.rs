@@ -20,18 +20,18 @@
 //! a slot only to the client that enabled it (`dispatch`), save one the
 //! multiplexer vouched for, for this request alone: `set_sender` clears it.
 
-use core::sync::atomic::{AtomicBool, Ordering};
+use core::sync::atomic::Ordering;
 
-static VOUCHED: AtomicBool = AtomicBool::new(false);
+use super::served::served;
 
 pub fn vouch() {
-    VOUCHED.store(true, Ordering::Relaxed);
+    served(|s| s.vouched.store(true, Ordering::Relaxed));
 }
 
 pub(super) fn unvouch() {
-    VOUCHED.store(false, Ordering::Relaxed);
+    served(|s| s.vouched.store(false, Ordering::Relaxed));
 }
 
 pub fn vouched() -> bool {
-    VOUCHED.load(Ordering::Relaxed)
+    served(|s| s.vouched.load(Ordering::Relaxed))
 }
