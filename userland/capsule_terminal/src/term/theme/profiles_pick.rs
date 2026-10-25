@@ -17,7 +17,7 @@
 //! Finding a profile by its number, or by a name typed for it.
 
 use super::{ABYSS, DARK, DIM, LIGHT};
-use crate::term::theme::types::Theme;
+use super::super::types::Theme;
 
 pub fn by_index(i: u16) -> &'static Theme {
     match i {
