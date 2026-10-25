@@ -5101,6 +5101,20 @@ else
 fi
 unset gate_out
 
+# nonos-stark-enroll writes the policy roots. A crate it builds that compiles
+# one in is rebuilt by every enrolment, and the stamps made with the old
+# binary go stale: the kernel was re-enrolled after the loader baked its root,
+# and the loader refused it. The self-test first, so a scan that stopped
+# seeing includes cannot pass by finding none.
+if enrol_out="$(python3 scripts/check_enrol_inputs.py --self-test 2>&1 \
+    && python3 scripts/check_enrol_inputs.py 2>&1)"; then
+    note ok "the enrolment tool compiles in none of the roots it writes (check_enrol_inputs)"
+else
+    tail -n 5 <<< "${enrol_out}" >&2
+    fail_with "check_enrol_inputs: nonos-stark-enroll compiles in a trust file it writes"
+fi
+unset enrol_out
+
 # The GPU pages in docs/hardware say what each GPU gets today; the check holds
 # them to the code they describe. The self-test first, so a check that stopped
 # reading the pages cannot pass by finding nothing.

@@ -22,21 +22,31 @@
 //! and the spawn's decision off the machine.
 
 mod check;
+#[cfg(feature = "release-roots")]
 mod cli;
 mod measure;
+#[cfg(feature = "release-roots")]
 mod report;
+#[cfg(feature = "release-roots")]
 mod roots;
+#[cfg(feature = "release-roots")]
 mod run;
 mod slot;
 mod transcript;
 
 pub use check::{check_v4, statement_kind, Proof, Refused, DEPTH};
+#[cfg(feature = "release-roots")]
 pub use cli::{cli, parse as parse_args, Output, HELP};
 pub use measure::{authenticode_of, blake3_of, Slot, BOOT_EPOCH, POLICY_EPOCH};
+#[cfg(feature = "release-roots")]
 pub use report::{kind_name, q as json_string, shown, Failure, Outcome, Report, Subject, Verdict};
+#[cfg(feature = "release-roots")]
 pub use report::{FORMAT, FORMAT_VERSION};
+#[cfg(feature = "release-roots")]
 pub use roots::{release_of, Release, RELEASE};
+#[cfg(feature = "release-roots")]
 pub use run::{against, in_slot, read_file, read_file_within, run, run_with};
+#[cfg(feature = "release-roots")]
 pub use run::{Mode, Reader, Request, MAX_FILE};
 pub use slot::{opens, Opens};
 pub use transcript::{hex32, read as read_transcript, rebuild, Transcript, HEADER};
