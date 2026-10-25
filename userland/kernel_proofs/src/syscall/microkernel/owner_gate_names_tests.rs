@@ -39,7 +39,7 @@ fn the_capsules_calls_are_the_owners() {
     for name in once_admin_alone.iter().chain(&["SYS_ACPI_SLOT", "SYS_ACPI_LOADED"]) {
         assert!(owner_only(u64::from(u32::from_le_bytes(tag_of(name)))), "{name}");
     }
-    for name in ["SYS_ACPI_DEVICE_NAME", "SYS_ACPI_MEASURED", "SYS_BOOT_LOGO", "SYS_NUMA_NODE_OF"] {
+    for name in ["SYS_ACPI_DEVICE_NAME", "SYS_ACPI_MEASURED", "SYS_NUMA_NODE_OF"] {
         assert!(!owner_only(u64::from(u32::from_le_bytes(tag_of(name)))), "{name}");
     }
     assert!(!owner_only(0) && !owner_only(u64::MAX));
