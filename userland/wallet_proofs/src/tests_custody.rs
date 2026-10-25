@@ -41,6 +41,8 @@ mod keyring_ended_tests;
 mod keyring_owner_rig;
 #[path = "keyring_owner_tests.rs"]
 mod keyring_owner_tests;
+#[path = "keyring_tx_fields_tests.rs"]
+mod keyring_tx_fields_tests;
 #[path = "layout_frame.rs"]
 mod layout_frame;
 #[path = "layout_tests.rs"]
