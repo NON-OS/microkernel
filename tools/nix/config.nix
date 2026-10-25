@@ -125,7 +125,9 @@ let
       about = "the dev image with the attack suite's capsule, which tries what an attacker would at boot";
       for = "the self-test: tools/nonos-selftest boots it and judges every refusal";
       privacy = "none promised, as dev; the kernel's warnings also go to the serial line";
-      kernel = [ "microkernel-desktop-gui" "microkernel-setup-wizard" "nonos-dev-attest" "nonos-capsule-attack" ];
+      # No first-boot setup: the desktop comes up at once, so the shell the
+      # attack capsule's deputy-escape asks is serving when it runs.
+      kernel = [ "microkernel-desktop-gui" "nonos-dev-attest" "nonos-capsule-attack" ];
       loader = "dev-qemu";
       drop = [ ];
     };
