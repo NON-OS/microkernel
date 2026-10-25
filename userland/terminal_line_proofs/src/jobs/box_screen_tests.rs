@@ -47,7 +47,8 @@ fn whatever_the_guest_left_the_report_is_drawn_last_and_whole() {
         let t = drawn(left);
         let rows = t.screen_text();
         let last = rows.iter().rposition(|r| !r.trim().is_empty()).unwrap();
-        let tail: Vec<&str> = rows[last + 1 - REPORT.len()..=last].iter().map(|r| r.as_str()).collect();
+        let tail: Vec<&str> =
+            rows[last + 1 - REPORT.len()..=last].iter().map(|r| r.as_str()).collect();
         assert_eq!(tail, REPORT, "after {left:?}: {rows:#?}");
         let m = &t.modes;
         assert!(!t.alt_active() && !m.newline && !m.reverse_video, "after {left:?}");

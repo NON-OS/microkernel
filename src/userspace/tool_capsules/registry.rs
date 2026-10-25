@@ -19,6 +19,10 @@ use super::spec::ToolCapsule;
 /// beside the generated list rather than in `userland/apps.list`.
 pub(super) const LINUX_TOOL: &[u8] = b"tool.linux";
 
+/// The same, for a `--box` naming destinations: the personality in the one
+/// terminal role that holds Network (capsule_linux::spawn_terminal_net).
+pub(super) const LINUX_NET_TOOL: &[u8] = b"tool.linux.net";
+
 /// Every embedded tool capsule, generated from `userland/apps.list`. Off the
 /// `nonos-tool-capsules` feature (core builds that do not cross-compile the
 /// tool binaries) the list is empty, so nothing is `include_bytes`d.

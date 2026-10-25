@@ -27,6 +27,7 @@ mod app_reach_exec_tests;
 mod app_reach_tests;
 mod app_reach_write;
 mod app_rules_tests;
+mod bind_any_tests;
 mod applets_tests;
 mod clone_flag_tests;
 mod console_tests;
