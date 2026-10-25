@@ -18,11 +18,13 @@
 
 use nonos_marketplace_abi::{CapsuleRelease, MarketplaceEntry};
 
-use super::fixtures::sold;
+use super::fixtures::{free_commerce, sold};
 
 pub(super) fn linux(policy: Vec<u8>, url: &str) -> (MarketplaceEntry, CapsuleRelease) {
     let mut e = sold().entries[0].clone();
     e.listing_id = "linux.pkg".into();
+    // Free, so readiness rests on the release alone and not on a bond.
+    e.commerce = Some(free_commerce());
     let mut rel = e.releases[0].clone();
     rel.package_url = url.into();
     rel.ext.as_mut().unwrap().guest_policy = policy;

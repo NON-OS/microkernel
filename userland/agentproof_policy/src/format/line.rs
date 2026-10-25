@@ -18,11 +18,10 @@
 
 use alloc::vec::Vec;
 
-use super::words::{base, write};
+use super::words::{base, connect, write};
 use super::Base;
-use crate::boxed::terminal_run::NO_NETWORK;
 
-pub use super::words::MAX_WRITES;
+pub use super::words::{MAX_CONNECTS, MAX_WRITES};
 
 #[derive(Default)]
 pub struct Seen {
@@ -31,6 +30,8 @@ pub struct Seen {
     pub network: bool,
     /// Each folder with the line that named it.
     pub writes: Vec<(usize, Vec<u8>)>,
+    /// Each destination (`<address or name>:<port>`) with the line that named it.
+    pub connects: Vec<(usize, Vec<u8>)>,
     pub line: usize,
 }
 
@@ -66,9 +67,10 @@ pub fn take(seen: &mut Seen, raw: &[u8]) -> Result<(), &'static str> {
             seen.network = true;
             Ok(())
         }
-        b"network" | b"connect" => Err(NO_NETWORK),
+        b"network" => Err("network is `none`; name each destination on a connect line"),
+        b"connect" => connect(seen, arg),
         b"write" => write(seen, arg),
         b"nonos-box" => Err("the header is named once"),
-        _ => Err("a line is base, write, network or a # comment"),
+        _ => Err("a line is base, write, network, connect or a # comment"),
     }
 }

@@ -94,3 +94,17 @@ The remaining reducible arch-leaks are the deferred `Arch`-trait migration
 moves behind the trait, drop this count and record the move here. The
 multi-arch dispatch arms (category 1) are permanent and correct; they leave
 the count only if the subsystem itself moves under `src/arch`.
+
+### 219 to 215: the MMIO and DMA backends move under src/arch (arch-3)
+
+The riscv64 kernel needed an arm in each multi-arch dispatch it reached:
+- the handoff variant and its three `kernel_core/init/entry` arms (+5);
+- the scheduler `Context` export (+1, −1 in `sched/mod.rs`);
+- an MMIO-ordering and a DMA-sync backend (+4).
+
+The two backend selectors were six `cfg(target_arch)` lines each, in
+`memory/mmio/ordering/backend.rs` and `memory/dma/coherency/backend.rs`. They
+moved into `src/arch/common/mmio_order.rs` and `src/arch/common/dma_sync.rs`, with each
+architecture's body under `src/arch/<arch>/`. The two files outside `src/arch`
+now re-export with no cfg. The count is 215: the subsystem selectors moved
+under `src/arch`, as the paragraph above says they must to leave the count.

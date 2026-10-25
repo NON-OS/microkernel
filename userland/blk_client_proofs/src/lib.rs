@@ -36,13 +36,20 @@ pub mod error;
 pub mod geometry;
 #[path = "../../nonos_blk_client/src/device/identity_parse.rs"]
 pub mod identity_parse;
+// Which answers mean no disk at a unit, and every unit of a service asked.
+#[path = "../../nonos_blk_client/src/device/medium.rs"]
+pub mod medium;
 #[path = "../../nonos_blk_client/src/device/span.rs"]
 pub mod span;
 #[path = "../../nonos_blk_client/src/status_text.rs"]
 pub mod status_text;
 #[path = "../../nonos_blk_client/src/device/transfer.rs"]
 pub mod transfer;
+#[path = "../../nonos_blk_client/src/device/units.rs"]
+pub mod units;
 pub mod wire;
+#[path = "../../nonos_blk_client/src/disks/word.rs"]
+pub mod word;
 
 #[cfg(test)]
 mod tests;

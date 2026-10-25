@@ -18,12 +18,13 @@
 
 // Big-endian throughout, matching the TPM structures the document carries.
 pub(super) const MAGIC: &[u8; 8] = b"NONOSATT";
-pub(super) const VERSION: u32 = 4;
+pub(super) const VERSION: u32 = 5;
 
-// A TPMS_ATTEST with an ECDSA signature lands well inside this. The syscall
-// refuses rather than truncating if it does not fit, so a short read here is
-// reported as a refusal rather than parsed as a short document.
-pub const DOC_CAP: usize = 2048;
+// The firmware's event log, at most 1 MiB, and a TPMS_ATTEST with an ECDSA
+// signature land well inside this. The syscall refuses rather than truncating
+// if it does not fit, so a short read here is reported as a refusal rather than
+// parsed as a short document. Allocated on the heap, once per request.
+pub const DOC_CAP: usize = 1024 * 1024 + 64 * 1024;
 
 pub(super) const ROOT_AT: usize = 8 + 4 + 32;
 pub(super) const COUNT_AT: usize = ROOT_AT + 32;
@@ -32,7 +33,7 @@ pub(super) const VENDOR_AT: usize = COMPLETE_AT + 1;
 pub(super) const ENFORCING_AT: usize = VENDOR_AT + 1;
 pub(super) const UNCONFINED_AT: usize = ENFORCING_AT + 1;
 pub(super) const IDENTITY_AT: usize = UNCONFINED_AT + 4;
-pub(super) const ATTEST_LEN_AT: usize = IDENTITY_AT + 4;
+pub(super) const PCRS_AT: usize = IDENTITY_AT + 4;
 
 /// Highest `iommu_vendor` value the kernel writes: none, VT-d, AMD-Vi, SMMUv3.
 pub(super) const VENDOR_MAX: u8 = 3;

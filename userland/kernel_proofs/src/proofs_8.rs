@@ -17,6 +17,13 @@
 //! Host proofs, group 8 of 8: test modules mounted by path
 //! from proofs.rs, each at its own file.
 
+/// Late versus starved for an ipc.call with no answer (B-04).
+#[path = "ipc_death/mod.rs"]
+pub mod ipc_death;
+#[path = "ipc_silence/mod.rs"]
+pub mod ipc_silence;
+#[path = "ipc_call_verdict/mod.rs"]
+pub mod ipc_call_verdict;
 #[path = "legacy_ports/mod.rs"]
 pub mod legacy_ports;
 #[path = "load_average/mod.rs"]

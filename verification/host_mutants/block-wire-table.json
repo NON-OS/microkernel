@@ -1,0 +1,66 @@
+[
+ {
+  "name": "storvsc-row-dropped",
+  "file": "src/hardware/block_device/wire/table.rs",
+  "old": "    #[cfg(feature = \"nonos-capsule-driver-storvsc\")]\n    &crate::hardware::storvsc_capsule::ENDPOINT,\n",
+  "new": "",
+  "crate": "userland/kernel_proofs",
+  "test": "block_wire::table"
+ },
+ {
+  "name": "storvsc-row-wrong-feature",
+  "file": "src/hardware/block_device/wire/table.rs",
+  "old": "#[cfg(feature = \"nonos-capsule-driver-storvsc\")]",
+  "new": "#[cfg(feature = \"nonos-capsule-driver-ufs\")]",
+  "crate": "userland/kernel_proofs",
+  "test": "block_wire::table"
+ },
+ {
+  "name": "storvsc-inbox-wrong",
+  "file": "src/hardware/storvsc_capsule/endpoint.rs",
+  "old": "\"endpoint.4294967394\"",
+  "new": "\"endpoint.4294967393\"",
+  "crate": "userland/kernel_proofs",
+  "test": "block_wire::table"
+ },
+ {
+  "name": "storvsc-shown-wrong",
+  "file": "src/hardware/storvsc_capsule/endpoint.rs",
+  "old": "\"Hyper-V SCSI (driver.storvsc0)\"",
+  "new": "\"Hyper-V SCSI (driver.storvsc)\"",
+  "crate": "userland/kernel_proofs",
+  "test": "block_wire::table"
+ },
+ {
+  "name": "virtio-scsi-row-dropped",
+  "file": "src/hardware/block_device/wire/table.rs",
+  "old": "    #[cfg(feature = \"nonos-capsule-driver-virtio-scsi\")]\n    &crate::hardware::virtio_scsi_capsule::ENDPOINT,\n",
+  "new": "",
+  "crate": "userland/kernel_proofs",
+  "test": "block_wire::table"
+ },
+ {
+  "name": "piix-ide-inbox-wrong",
+  "file": "src/hardware/piix_ide_capsule/endpoint.rs",
+  "old": "\"endpoint.4294967355\"",
+  "new": "\"endpoint.4294967356\"",
+  "crate": "userland/kernel_proofs",
+  "test": "block_wire::table"
+ },
+ {
+  "name": "mpt-spawn-own-inbox",
+  "file": "src/hardware/mpt_capsule/spawn.rs",
+  "old": "use super::endpoint::REPLY_INBOX;\n",
+  "new": "const REPLY_INBOX: &str = \"endpoint.4294967359\";\n",
+  "crate": "userland/kernel_proofs",
+  "test": "block_wire::table"
+ },
+ {
+  "name": "pvscsi-shown-wrong",
+  "file": "src/hardware/pvscsi_capsule/endpoint.rs",
+  "old": "\"VMware PVSCSI (driver.pvscsi0)\"",
+  "new": "\"VMware PVSCSI\"",
+  "crate": "userland/kernel_proofs",
+  "test": "block_wire::table"
+ }
+]

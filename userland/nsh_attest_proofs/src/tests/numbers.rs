@@ -29,10 +29,12 @@ use crate::build::Spec;
 
 #[test]
 fn the_written_numbers_are_the_ones_used() {
-    assert_eq!((MAX_DOC, MAX_LOG), (196_608, 131_072));
+    assert_eq!((MAX_DOC, MAX_LOG), (1_114_112, 1_048_576));
     assert_eq!(QUOTED_PCRS_V4, [0, 1, 2, 4, 7, 8, 9, 14]);
     assert_eq!(REPLAYED_PCRS, [0, 1, 2, 4, 7]);
-    let big = |p: &mut crate::build::doc::Parts| p.log.resize(131_073, 0);
+    // The loader's caps, nonos-boot-measure's MAX_EVENTS and MAX_EVENT_BYTES.
+    assert_eq!((nsh_attest::log::MAX_EVENTS, nsh_attest::log::MAX_EVENT_BODY), (4096, 65_536));
+    let big = |p: &mut crate::build::doc::Parts| p.log.resize(1_048_577, 0);
     assert_eq!(
         refused(Spec { doc: big, ..Spec::default() }),
         Refusal::Format(FormatFault::Oversize)
@@ -48,10 +50,11 @@ fn pcr_7_is_replayed_even_when_enrolled_alike() {
 
 #[test]
 fn a_pcr_count_below_the_entries_that_follow_is_refused() {
-    // Byte 87 is pcr_count: magic 8, version 4, 32 + 32, count 4, 3 flags, grants 4.
-    let s = Spec { bytes: |d| d[87] = 7, ..Spec::default() };
+    // Byte 91 is pcr_count: magic 8, version 4, 32 + 32, count 4, 3 flags,
+    // grants 4, identity 4.
+    let s = Spec { bytes: |d| d[91] = 7, ..Spec::default() };
     assert_eq!(refused(s), Refusal::Format(FormatFault::Value));
-    passes(Spec { bytes: |d| assert_eq!(d[87], 8), ..Spec::default() });
+    passes(Spec { bytes: |d| assert_eq!(d[91], 8), ..Spec::default() });
 }
 
 #[test]

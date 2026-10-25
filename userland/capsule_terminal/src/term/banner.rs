@@ -24,6 +24,6 @@ pub fn paint_motd(sb: &mut Scrollback) {
     sb.push_line(b"  Hybrid Ed25519 + ML-DSA-65 trust chain end to end.");
     sb.push_line(b"  Not Linux. Not BSD. Native.");
     sb.push_line(b"");
-    sb.push_line(b"  type 'nox help' for the command index.");
+    sb.push_line(b"  type 'help' for the commands, 'help keys' for the keys.");
     sb.push_line(b"");
 }

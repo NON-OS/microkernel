@@ -22,7 +22,7 @@ mod slow_rule;
 
 #[cfg(test)]
 mod tests {
-    use super::slow_rule::{said, SLOW_MS};
+    use super::slow_rule::{lost_said, said, SLOW_MS};
 
     // Said before a driver's own 30 s budget runs out.
     const _: () = assert!(SLOW_MS < 30_000);
@@ -33,6 +33,16 @@ mod tests {
             for ms in [0, 1, SLOW_MS - 1, SLOW_MS, 35_000] {
                 assert!(said(status, ms), "{status} {ms}");
             }
+        }
+    }
+
+    #[test]
+    fn no_answer_is_said_only_when_the_wait_ran_out_or_was_slow() {
+        // A dead driver or a stale request is turned away at once: nothing said.
+        assert!(!lost_said(false, 0) && !lost_said(false, SLOW_MS - 1));
+        assert!(lost_said(false, SLOW_MS), "turned away, but only after a stall");
+        for ms in [0, 1, SLOW_MS, 35_000] {
+            assert!(lost_said(true, ms), "the kernel's wait ran out at {ms}");
         }
     }
 

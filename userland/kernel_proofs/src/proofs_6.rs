@@ -52,6 +52,9 @@ pub mod secret_log;
 /// When a lock wait is reported, and called a re-take.
 #[path = "spin_watch/mod.rs"]
 pub mod spin_waits;
+/// H-06(b): one surface's cap, by the boot framebuffer.
+#[path = "surface_cap/mod.rs"]
+pub mod surface_cap;
 #[path = "pio_reset/mod.rs"]
 pub mod pio_reset;
 #[path = "panic_plan/mod.rs"]

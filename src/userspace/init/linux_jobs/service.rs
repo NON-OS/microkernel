@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::security::market_capsule::client::{queued_get_release, queued_install_ready};
 use crate::sys::serial::{print, println};
-use crate::userspace::capsule_linux::{package_arg, spawn_install, spawn_uninstall};
+use crate::userspace::capsule_linux::{package_arg, spawn_uninstall};
 
 use super::queue::{hold, take, Job};
 use super::status::Stage;
@@ -34,65 +33,12 @@ pub(crate) fn service() {
     for job in take() {
         match job {
             Job::Install(..) | Job::Uninstall(_) if super::status::one_moving() => waiting.push(job),
-            Job::Install(listing, release) => install(&listing, &release),
+            Job::Install(listing, release) => super::install::install(&listing, &release),
             Job::Uninstall(listing) => uninstall(&listing),
             Job::Run(package, how) => super::run::run(&package, how),
         }
     }
     hold(waiting);
-}
-
-fn install(listing: &str, release: &str) {
-    /* A tier asked to download its model directly (`direct`). */
-    let (release, direct) = super::direct::split(listing, release);
-    if direct {
-        println(b"[LINUX-INSTALL] the person chose a direct download of this tier's model");
-    }
-    if super::super::app_choice::linux_off() {
-        super::status::set(listing, Stage::Refused);
-        return println(b"[LINUX-INSTALL] Linux turned off at setup, refused");
-    }
-    /*
-     * A listing whose package name the personality cannot take. Said as a
-     * refusal: returning without a stage left the store showing Queued for
-     * the rest of the boot.
-     */
-    let Some(name) = listing.strip_prefix("linux.").and_then(package_arg) else {
-        super::status::set(listing, Stage::Refused);
-        print(b"[LINUX-INSTALL] no package name the personality takes, refused ");
-        return println(listing.as_bytes());
-    };
-    /*
-     * The store showed the listing as ready, and that was its word. The
-     * market's own verdict is asked for again here, and the release's
-     * package hash goes to the installer, which refuses any other bytes.
-     */
-    let asked = queued_install_ready(listing, release);
-    let ready = asked.as_ref().is_ok_and(|r| r.install_ready);
-    let pinned = queued_get_release(listing, release).map(|r| r.package_hash);
-    super::why::say(&asked, &pinned);
-    let said: &[u8] = match (ready, pinned.ok()) {
-        // None: this tree's market is schema 2 and no release carries a
-        // guest_policy, so "-" is the truth here. I-C5 passes the real one.
-        (true, Some(hash)) => match spawn_install(&name, &hash, None, direct) {
-            Ok(pid) => {
-                super::status::set(listing, Stage::Running(pid));
-                b"[LINUX-INSTALL] started "
-            }
-            Err(e) => {
-                super::status::set(listing, Stage::Refused);
-                // Which preflight check refused the installer, not only that one did.
-                println(alloc::format!("[LINUX-INSTALL] installer refused: {e:?}").as_bytes());
-                b"[LINUX-INSTALL] refused "
-            }
-        },
-        _ => {
-            super::status::set(listing, Stage::Refused);
-            b"[LINUX-INSTALL] not ready, refused "
-        }
-    };
-    print(said);
-    println(listing.as_bytes());
 }
 
 /* Nothing is fetched or checked: the personality removes only the files its

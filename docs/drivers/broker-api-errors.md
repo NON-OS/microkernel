@@ -27,7 +27,7 @@ driver meets most:
   a device is taken; the claim answers -16 instead.
 - `abi/syscalls.toml` describes `MkPioGrant` with `port_base` and `port_count`
   arguments, while `sys_pio_grant` takes a BAR index
-  (`abi/syscalls.toml:393-396`, `src/syscall/microkernel/pio/grant.rs:40-46`).
+  (`abi/syscalls.toml:417-421`, `src/syscall/microkernel/pio/grant.rs:40-46`).
   The code is what runs.
 - Without a remapping unit in service a claimed device can reach all of memory.
   The broker says so in the log on each claim.

@@ -52,7 +52,7 @@ pub(super) fn send_with_correlation(endpoint: u64, buf: u64, len: usize, correla
     let target = resolve_send_target(endpoint);
     match redirect_reply(pid, &target) {
         Redirect::ToCaller { caller_inbox, caller_pid, token } => {
-            to_caller(pid, endpoint, &data, (&caller_inbox, caller_pid, token))
+            to_caller(pid, &data, (&caller_inbox, caller_pid, token))
         }
         Redirect::ToReplyInbox => to_reply_inbox(pid, &target, &data),
         Redirect::AsAddressed => as_addressed(pid, endpoint, &target, &data, correlation),

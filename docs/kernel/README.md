@@ -71,7 +71,7 @@ Read them in order for the whole story, from the bootloader's jump to a fatal st
 
 | Folder | Files | Lines | What it holds |
 |---|---:|---:|---|
-| `src/arch` | 1567 | 77576 | Architecture code: x86_64, the aarch64 preview and a riscv64 backend that does not build into a kernel. Syscall entry, ACPI, VT-d and AMD-Vi units, interrupt controllers, paging. |
+| `src/arch` | 1567 | 77576 | Architecture code: x86_64, the aarch64 preview and a riscv64 backend that boots under QEMU as far as its unported VM layer. Syscall entry, ACPI, VT-d and AMD-Vi units, interrupt controllers, paging. |
 | `src/boot` | 61 | 3235 | The handoff from the bootloader, early init order, boot stop and panic screens. |
 | `src/bus` | 19 | 1153 | The first PCI scan, BAR assignment for unassigned endpoints, AER reports. |
 | `src/capabilities` | 72 | 3754 | The capability list, the bit helpers and the capability token. |

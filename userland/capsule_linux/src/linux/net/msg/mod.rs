@@ -18,5 +18,6 @@
 
 pub(super) mod hdr;
 pub(super) mod recv;
+pub(super) mod recv_resolver;
 pub(super) mod send;
 pub(super) use send::*;

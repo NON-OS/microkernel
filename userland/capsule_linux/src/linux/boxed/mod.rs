@@ -18,6 +18,7 @@
 //! report of everything the box refused it.
 
 mod allowed;
+mod connected;
 mod dests;
 mod end;
 mod finish;
@@ -26,9 +27,14 @@ mod frames;
 mod hash;
 mod items;
 mod kind;
+mod learn_folders;
+mod learn_report;
+mod learned;
+mod learned_text;
 mod line;
 mod notes;
 mod preset;
+mod net_report;
 mod report;
 mod state;
 mod tally;
@@ -37,6 +43,6 @@ mod terminal_run;
 pub use finish::{finish, not_started};
 pub use frames::key_of;
 pub use kind::{of_needs, Kind};
-pub use notes::{call_begins, may_write, note};
-pub use state::{arm, narrow};
-pub use terminal_run::for_terminal;
+pub use notes::{call_begins, connected, learning, may_write, note, tried, wrote};
+pub use state::{arm, exec_program, narrow};
+pub use terminal_run::{for_terminal, NO_LIST};

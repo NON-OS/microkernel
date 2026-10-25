@@ -1,0 +1,6 @@
+[
+ {
+  "slug": "linux",
+  "dev_cargo_features": "dev-mirror"
+ }
+]

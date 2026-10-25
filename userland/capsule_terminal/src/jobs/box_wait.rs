@@ -59,7 +59,7 @@ pub(super) fn waiting(
 pub(super) fn stopped(hold: Option<&mut BoxHold>, out: &mut Output<'_>, held: bool) -> JobProgress {
     match hold {
         Some(hold) if !hold.complete() => {
-            out.writeln_error(b"linux: stopped before the box's report arrived");
+            super::box_draw::missing(super::box_missing::Missing::Stopped, STOPPED, out);
             JobProgress::Done(STOPPED)
         }
         hold => ended(hold, STOPPED, out, held),

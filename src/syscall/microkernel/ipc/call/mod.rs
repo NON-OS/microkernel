@@ -14,9 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod late_drops;
 mod marks;
 mod settle;
+mod silence;
+mod silence_table;
 mod sys_ipc_call;
 mod token;
+mod verdict;
 
+pub(super) use late_drops::note_drop;
 pub use sys_ipc_call::sys_ipc_call;

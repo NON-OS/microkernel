@@ -17,6 +17,7 @@
 pub mod abi;
 mod acpi_capsule;
 mod active_page_table_root;
+pub(crate) mod common;
 pub mod console;
 pub mod context;
 pub mod cpu;
@@ -31,7 +32,6 @@ mod rmrr_regions;
 mod dma_snoops_caches;
 mod early_screen;
 mod firmware_entropy;
-mod own_core_kind;
 mod init_broker_irq_routing;
 mod outgoing;
 mod iommu_unit;
@@ -84,7 +84,7 @@ pub(crate) use dma_snoops_caches::{
 };
 pub(crate) use early_screen::early_screen;
 pub(crate) use firmware_entropy::firmware_entropy;
-pub(crate) use own_core_kind::own_core_kind;
+pub(crate) use common::own_core_kind::own_core_kind;
 pub(crate) use init_broker_irq_routing::init_broker_irq_routing;
 pub(crate) use pci_intx_source::pci_intx_source;
 pub(crate) use publish_described_devices::publish_described_devices;
