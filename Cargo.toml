@@ -104,6 +104,10 @@ nonos-capsule-shield            = []
 # Test 5, the pinned wallet vectors proved on the machine: development images
 # only (tools/nix/config.nix refuses it beside any other loader policy).
 nonos-capsule-shield-vectors    = []
+# The attack suite's capsule: development images only, as above. The
+# selftest profile turns it on; it also echoes the kernel's warnings to the
+# serial line, so the report shows each refusal from the kernel's side.
+nonos-capsule-attack            = []
 nonos-capsule-ripgrep           = []
 nonos-capsule-sd                = []
 nonos-capsule-tokio-smoke       = []
