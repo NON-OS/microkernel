@@ -24,15 +24,15 @@ pub(super) const KEYRING_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-keyring")]
 pub(super) const KEYRING_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/keyring.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/keyring.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-keyring")]
 pub(super) const KEYRING_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/keyring.manifest.bin");
+    crate::baked_trust!("capsules/keyring.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-keyring")]
 pub(super) const KEYRING_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/keyring.zk_trailer.bin");
+    crate::baked_trust!("capsules/keyring.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-keyring"))]
 pub(super) const KEYRING_ELF: &[u8] = &[];
