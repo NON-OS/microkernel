@@ -679,7 +679,7 @@ done
 note ok "capsule_driver_virtio_gpu setup phases roll back prior broker grants"
 
 # Polled driver: the legacy pin is disabled in setup/pci.rs, no IRQ bind.
-if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x1B9018' userland/capsule_driver_virtio_gpu/Capsule.mk ||
+if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0xB9018' userland/capsule_driver_virtio_gpu/Capsule.mk ||
    ! grep -q 'mk_device_claim' userland/capsule_driver_virtio_gpu/src/setup/claim.rs ||
    ! grep -rq 'mk_mmio_map' userland/capsule_driver_virtio_gpu/src/setup/mmio ||
    ! grep -qE '\| *MK_PCI_CMD_INTX_DISABLE' userland/capsule_driver_virtio_gpu/src/setup/pci.rs ||
@@ -5007,6 +5007,18 @@ else
     fail_with "check_mirror_caps: a spawn mirror or README disagrees with its manifest"
 fi
 unset mirror_out
+
+# A capsule the catalogue says the kernel spawns must have its spawn mirror,
+# and its feature named in kernel source: capsule_power had neither, and the
+# shell's power-off found no service on any image.
+if mirrors_out="$(python3 scripts/check_kernel_mirrors.py 2>&1)" &&
+   python3 scripts/check_kernel_mirrors.py --self-test >/dev/null 2>&1; then
+    note ok "every catalogued kernel spawn has its mirror and its feature (check_kernel_mirrors)"
+else
+    tail -n 5 <<< "${mirrors_out}" >&2
+    fail_with "check_kernel_mirrors: a capsule the kernel should spawn has no mirror"
+fi
+unset mirrors_out
 
 # SPHINCS+, NTRU and Classic McEliece do not ship: nothing turns on the
 # feature that builds them.

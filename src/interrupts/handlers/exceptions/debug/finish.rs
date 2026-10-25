@@ -15,11 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::interrupts::handlers::exceptions::context::ExceptionContext;
-use crate::interrupts::idt::halt_loop;
 
 pub(crate) fn finish_debug_exception(ctx: &ExceptionContext) -> ! {
     if ctx.is_user_mode() {
         crate::process::exit::exit_and_yield(5, true)
     }
-    halt_loop();
+    crate::boot::panic::fatal();
 }
