@@ -96,6 +96,7 @@ syscalls.numbers MBTA 1096041037
 syscalls.numbers MCCK 1262699341
 syscalls.numbers MCGT 1413956429
 syscalls.numbers MCLD 1145848653
+syscalls.numbers MCOF 1179599693
 syscalls.numbers MCRV 1448231757
 syscalls.numbers MCVF 1180058445
 syscalls.numbers MDBG 1195525197
@@ -154,6 +155,7 @@ syscalls.numbers MISD 1146308941
 syscalls.numbers MISP 1347635533
 syscalls.numbers MISR 1381189965
 syscalls.numbers MKAR 1380010829
+syscalls.numbers MKEP 1346718541
 syscalls.numbers MKIL 1279871821
 syscalls.numbers MLCG 1195592781
 syscalls.numbers MLCR 1380142157

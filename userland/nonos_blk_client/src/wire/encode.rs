@@ -14,21 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Request header: magic, version, op, flags, pad, request id, payload
-//! length, then the body. Twenty bytes, little-endian, the same for all
-//! three drivers apart from the magic.
+//! Request header: magic, version, op, flags, unit, request id, payload
+//! length, then the body. Twenty bytes, little-endian, the same for every
+//! driver apart from the magic; only the block wire has more than unit 0.
 
 use alloc::vec::Vec;
 
 use super::{HDR_LEN, VERSION};
 
-pub fn encode_request(magic: u32, op: u16, request_id: u32, body: &[u8]) -> Vec<u8> {
+pub fn encode_request(magic: u32, op: u16, unit: u16, request_id: u32, body: &[u8]) -> Vec<u8> {
     let mut out = Vec::with_capacity(HDR_LEN + body.len());
     out.extend_from_slice(&magic.to_le_bytes());
     out.extend_from_slice(&VERSION.to_le_bytes());
     out.extend_from_slice(&op.to_le_bytes());
     out.extend_from_slice(&0u16.to_le_bytes());
-    out.extend_from_slice(&0u16.to_le_bytes());
+    out.extend_from_slice(&unit.to_le_bytes());
     out.extend_from_slice(&request_id.to_le_bytes());
     out.extend_from_slice(&(body.len() as u32).to_le_bytes());
     out.extend_from_slice(body);

@@ -14,11 +14,5 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// PCRs covered by the quote: the firmware and boot chain measurements the
-/// firmware extended. Naming them explicitly rather than quoting every PCR
-/// keeps the document meaningful, since a verifier has to know which values it
-/// is being shown.
-pub(super) const QUOTED_PCRS: [u8; 4] = [0, 1, 2, 7];
-
 /// Largest response this driver will accept from the part.
 pub(super) const RESPONSE_MAX: usize = 4096;
