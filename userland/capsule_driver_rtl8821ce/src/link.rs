@@ -44,6 +44,8 @@ mod new;
 mod radio;
 #[path = "link/receive.rs"]
 mod receive;
+#[path = "link/rings.rs"]
+mod rings;
 #[path = "link/send.rs"]
 mod send;
 #[path = "link/session.rs"]
@@ -62,4 +64,5 @@ pub use buffers::RxBuffers;
 pub use counts::LinkStats;
 pub use dead::DeadLink;
 pub use keys::RtlKeys;
+pub use rings::engines_on;
 pub use state::RtlLink;
