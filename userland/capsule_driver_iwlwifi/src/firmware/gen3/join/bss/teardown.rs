@@ -29,6 +29,7 @@ impl Bss {
                 MAC_CONFIG_CMD,
                 &mac_config(ACTION_MODIFY, self.addr, None),
             );
+            let _ = self.power(fw, false);
         }
         if self.stage >= Stage::MgmtQueue {
             let _ = fw.command(LONG_GROUP, TXPATH_FLUSH, &flush_sta());
