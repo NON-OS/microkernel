@@ -21,6 +21,7 @@ import tempfile
 from pathlib import Path
 
 from blk_wire import CLIENT, WIRE
+from blk_wire_protocol import SERVE
 
 
 def const(pairs):
@@ -30,15 +31,20 @@ def const(pairs):
 # D defines its own protocol. W re-exports the shared wire, which answers a
 # capacity with GEOMETRY and writes its flush in hex, so that dropping D's
 # flush shows the shared crate is never read for a capsule that does not use it.
+# S serves the wire through the SCSI server's copy, its name list wrapped.
 OWN = (("MAGIC", "0x4E43"), ("VERSION", 1), ("HDR_LEN", 20), ("OP_CAPACITY", 2),
        ("OP_READ", 3), ("OP_WRITE_BLOCKS", 4), ("OP_FLUSH", 5))
 SHARED = (("MAGIC", "0x4E57"), ("VERSION", 1), ("HDR_LEN", 20), ("OP_GEOMETRY", 2),
           ("OP_READ", 3), ("OP_WRITE", 4), ("OP_FLUSH", "0x5"))
-TABLE = ("fn magic(self) {\n    Driver::D => 0x4E43,\n    Driver::W => 0x4E57,\n}\n"
+TABLE = ("fn magic(self) {\n    Driver::D => 0x4E43,\n    Driver::W => 0x4E57,\n"
+         "    Driver::S => 0x4E53,\n}\n"
          "fn instances(self) {\n    Driver::D => 1,\n}\n"
          'Driver::D => b"driver.d0"\nDriver::W => &[b"driver.w0"]\n'
+         'Driver::S => &[\n    b"driver.s0",\n]\n'
          "Driver::D => Ops { capacity: 2, read: 3, write: 4, flush: 5 },\n"
-         "Driver::W => Ops { capacity: 2, read: 3, write: 4, flush: 5 },\n")
+         "Driver::W => Ops { capacity: 2, read: 3, write: 4, flush: 5 },\n"
+         "Driver::S => Ops { capacity: 2, read: 3, write: 4, flush: 5 },\n")
+SERVED = 'nonos_scsi_serve = { path = "../nonos_scsi_serve" }\n'
 FILES = {f"{CLIENT}/driver/t.rs": TABLE,
          f"{CLIENT}/wire/header.rs":
              "pub const VERSION: u16 = 1;\npub const HDR_LEN: usize = 20;\n",
@@ -46,13 +52,16 @@ FILES = {f"{CLIENT}/driver/t.rs": TABLE,
          "userland/c/src/protocol/p.rs": const(OWN),
          "userland/w/Capsule.mk": "CAPSULE_HANDLE := driver.w0\n",
          "userland/w/src/protocol/mod.rs": "pub use nonos_blk_wire::{HDR_LEN, OP_GEOMETRY};\n",
-         f"{WIRE}/h.rs": const(SHARED)}
+         f"{WIRE}/h.rs": const(SHARED),
+         "userland/s/Capsule.mk": "CAPSULE_HANDLE := driver.s0\n",
+         "userland/s/Cargo.toml": SERVED,
+         f"{SERVE}/h.rs": const((("MAGIC", "0x4E53"),) + SHARED[1:])}
 # Each pair plants one drift by replacing text in every file; the first plants
 # none. The last has W define its own read op, which wins over the shared one.
 DECOYS = (("", ""), ("write: 4", "write: 7"), ("0x4E43,", "0x4E44,"), ("driver.d0\n", "x\n"),
-          ("0x4E57,", "0x4E58,"), ("OP_GEOMETRY: u16 = 2", "OP_GEOMETRY: u16 = 9"),
+          ("0x4E57,", "0x4E58,"), ("OP_GEOMETRY: u16 = 2", "OP_GEOMETRY: u16 = 9"), (SERVED, "x\n"),
           ("nonos_blk_wire::", "elsewhere::"), ("OP_FLUSH: u16 = 5;", "OP_FLUSHED: u16 = 5;"),
-          ("OP_GEOMETRY};\n", "OP_GEOMETRY};\npub const OP_READ: u16 = 8;\n"))
+          ("OP_GEOMETRY};\n", "OP_GEOMETRY};\npub const OP_READ: u16 = 8;\n"), ("x4E53,", "x4E54,"))
 
 
 def self_test(problems):

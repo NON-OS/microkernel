@@ -20,8 +20,10 @@
 //! target then LUN order; the kernel never touches the device.
 
 mod embed;
+mod endpoint;
 mod spawn;
 mod state;
 
+pub use endpoint::ENDPOINT;
 pub use spawn::{spawn_driver_virtio_scsi_capsule, SpawnError};
 pub use state::shared_state;

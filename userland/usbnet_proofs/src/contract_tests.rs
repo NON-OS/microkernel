@@ -54,3 +54,19 @@ fn a_lease_query_under_net_core_s_other_magic_is_never_read_as_ours() {
     assert_eq!(net_core::OP_LEASE_STATUS, OP_MAC_ADDRESS);
     assert!(decode(&req).is_none());
 }
+
+#[test]
+fn the_station_addresss_source_is_word_nine_and_every_usb_driver_leaves_it_unreported() {
+    use crate::nnet::{STATION_DRAWN, STATION_HOST_REFUSED, STATION_HOST_UNANSWERED, STATION_UNREPORTED};
+    let (_, data) = ask(OP_STATS, &[]);
+    assert_eq!(&data[36..40], &STATION_UNREPORTED.to_le_bytes(), "a USB driver says nothing");
+    let codes = [STATION_UNREPORTED, STATION_DRAWN, STATION_HOST_UNANSWERED, STATION_HOST_REFUSED];
+    assert_eq!(codes, [0, 1, 2, 3], "the codes Settings reads");
+    for code in codes {
+        let s = Stats { station: code, failing: 7, ..Stats::default() };
+        let mut out = [0u8; STATS_LEN];
+        assert_eq!(s.encode(&mut out), STATS_LEN);
+        let word = |i: usize| u32::from_le_bytes(out[4 * i..4 * i + 4].try_into().unwrap());
+        assert_eq!((word(8), word(9), word(10), word(11)), (7, code, 0, 0));
+    }
+}

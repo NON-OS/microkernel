@@ -26,6 +26,8 @@ use crate::boxed::tally::Tally;
 thread_local! {
     pub static TALLY: RefCell<Tally> = RefCell::new(Tally::default());
     pub static FOLDERS: RefCell<Option<Vec<Vec<u8>>>> = const { RefCell::new(None) };
+    /// Each write let through, as a learn run records it.
+    pub static WROTE: RefCell<Vec<Vec<u8>>> = const { RefCell::new(Vec::new()) };
 }
 
 pub fn note(kind: Kind, example: &[u8]) {
@@ -36,4 +38,12 @@ pub fn may_write(path: &[u8]) -> bool {
     FOLDERS.with(|f| {
         f.borrow().as_ref().is_none_or(|folders| crate::boxed::folders::may_write(folders, path))
     })
+}
+
+pub fn wrote(path: &[u8]) {
+    WROTE.with(|w| w.borrow_mut().push(path.to_vec()));
+}
+
+pub fn learning() -> bool {
+    false
 }

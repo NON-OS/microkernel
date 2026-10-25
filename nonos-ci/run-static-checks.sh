@@ -2360,6 +2360,17 @@ else
     fail_with "bootloader build.rs writes outside OUT_DIR"
 fi
 unset boot_build
+# The kernel embeds its trust set only through baked_trust!, so a build pointed
+# at a test set (NONOS_BAKED_TRUST_DIR) replaces every file of it; a trust file
+# included by its literal path would keep the tree's copy in that build.
+literal_trust="$( { grep -rnE '"(\.\./)+nonos-data/trust/' src --include='*.rs' || true; } )"
+if [ -n "${literal_trust}" ]; then
+    fail_with "a kernel file includes the trust set by a literal path, not through baked_trust!"
+    printf '%s\n' "${literal_trust}" >&2
+else
+    note ok "the kernel embeds its trust set only through baked_trust!"
+fi
+unset literal_trust
 
 boot_features='nonos-bootloader/Cargo.toml'
 if ! grep -q '^hardened-production = \["production"\]' "${boot_features}"; then
