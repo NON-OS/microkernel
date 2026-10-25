@@ -23,7 +23,18 @@
 /// exist then. Without one PCI keeps INTx, which is not a failed stage.
 pub(crate) fn init_broker_irq_routing() -> Result<usize, ()> {
     #[cfg(target_arch = "x86_64")]
-    return crate::arch::x86_64::interrupt::ioapic::init_from_acpi();
+    {
+        let routed = crate::arch::x86_64::interrupt::ioapic::init_from_acpi();
+        // The IO-APIC's entries exist from here, and not at the broker's
+        // seeding, so the power button's SCI line can be masked only now.
+        match routed {
+            Ok(_) => crate::hardware::broker::acpi::arm_power_button(),
+            Err(()) => crate::sys::serial::println(
+                b"[ACPI] power button: device interrupt routing failed, so PWRBTN_EN stays clear",
+            ),
+        }
+        return routed;
+    }
 
     #[cfg(target_arch = "aarch64")]
     return Ok(crate::arch::aarch64::gic::msi::bring_up_and_report());

@@ -99,6 +99,10 @@ fails or eight seconds pass. it is long lived and holds the one endpoint open.
 - on a mixnet socket, `OP_CONNECT_HOST` refuses any non-address name with
   `E_NAME_REFUSED` (15) and never asks `net.dns`: a mixnet frame carries an
   address, so a name could only reach the exit after a lookup in the clear.
+  On a stream or datagram socket the same refusal holds unless the chosen
+  network (`Field::NetworkRoute` in the policy store) is Direct; a store that
+  does not answer is not Direct (`direct_chosen`,
+  `src/server/handlers/connect/handle_host.rs`).
 - a client that ended without closing its sockets has them freed, releasing
   their transports through the close handler's `release`.
 - a malformed frame is answered rather than dropped.

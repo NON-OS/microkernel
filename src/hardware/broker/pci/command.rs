@@ -34,19 +34,21 @@ use super::types::{PciWriteError, WriteAction};
  */
 /// `masked` is the form of `change.rs`: `new` is then the whole register.
 /// The register the form leaves is then held to `command_rule.rs` (K6): no
-/// bit outside the writable three moves, and Bus Master is set or kept on
-/// only for a caller holding Dma (`may_master`).
+/// bit outside the writable three moves, Bus Master is set or kept on only
+/// for a caller holding Dma, and Memory Space only for one holding Mmio
+/// (H-02); `may` is whether the caller holds Dma, and Mmio.
 pub(super) fn validate_command(
     new: u16,
     current: u16,
     masked: bool,
-    may_master: bool,
+    may: (bool, bool),
 ) -> Result<WriteAction, PciWriteError> {
     let desired = if masked { exact(new, current) } else { plain(new, current) };
     let desired = desired.ok_or(PciWriteError::BitsNotAllowed)?;
-    match command_value(desired, current, may_master) {
+    match command_value(desired, current, may.0, may.1) {
         Ok(value) => Ok(WriteAction::Command(value)),
         Err(Refused::Bits) => Err(PciWriteError::BitsNotAllowed),
         Err(Refused::BusMaster) => Err(PciWriteError::BusMasterWithoutDma),
+        Err(Refused::MemorySpace) => Err(PciWriteError::MemorySpaceWithoutMmio),
     }
 }

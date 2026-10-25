@@ -47,17 +47,24 @@ pub fn hold(start: u64, length: u64) -> bool {
     held
 }
 
-/* Give back every run no orphan holds any more. `reclaim` calls it, gated. */
+/*
+ * Give back every run no orphan holds any more: chosen under GATE, which
+ * `reclaim` has let go before it calls this, and freed once it is let go
+ * again, so the broker's free never runs inside it (reclaim_rule.rs).
+ */
 pub(super) fn free_unheld() {
-    let held: Vec<(u64, u64)> = ORPHANS.lock().iter().filter_map(|o| o.grant).collect();
     let mut free = Vec::new();
-    RUNS.lock().retain(|run| {
-        let keep = held.contains(run);
-        if !keep {
-            free.push(*run);
-        }
-        keep
-    });
+    {
+        let _gate = lock_responsive(&GATE);
+        let held: Vec<(u64, u64)> = ORPHANS.lock().iter().filter_map(|o| o.grant).collect();
+        RUNS.lock().retain(|run| {
+            let keep = held.contains(run);
+            if !keep {
+                free.push(*run);
+            }
+            keep
+        });
+    }
     for (start, length) in free {
         crate::hardware::broker::dma_free_held_run(start, length);
     }

@@ -23,6 +23,7 @@ mod grant_drain;
 mod grant_insert;
 mod map;
 mod overlap;
+mod power_ports;
 mod release;
 mod types;
 mod width;

@@ -55,10 +55,11 @@ pub(super) fn tool_job(state: &mut State, args: &[&[u8]]) -> Verdict {
          * long as it runs: an install's drain gave up on it at 5 s. */
         name if tool::is_tool(name) => match tool::prepare(state, args, tty::streams(false, false))
         {
-            Some(pid) => {
+            Some((pid, boxed)) => {
                 /* The Linux personality hears a lone 0x04 as end of input. */
                 let stdin = StdinQueue::new(hears_end_of_input(name));
-                Verdict::Job(JobWork::ExternalStage { pid, stdin, capture: None })
+                let boxed = boxed.map(alloc::boxed::Box::new);
+                Verdict::Job(JobWork::ExternalStage { pid, stdin, capture: None, boxed })
             }
             None => Verdict::Handled,
         },

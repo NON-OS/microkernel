@@ -36,3 +36,7 @@ pub fn mk_tty_query(fd: u32) -> Option<(u16, u16)> {
 pub const TAG_STDOUT: u8 = 1;
 /// First byte of a message from stderr, on a split channel.
 pub const TAG_STDERR: u8 = 2;
+/// First byte of a boxed run's report to the terminal that started it, then
+/// the 16-byte key that terminal gave it: a guest, never told the key, cannot
+/// write one (capsule_linux boxed/frames.rs, capsule_terminal jobs/box_hold.rs).
+pub const TAG_BOX: u8 = 3;

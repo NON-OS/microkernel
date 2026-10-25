@@ -30,7 +30,9 @@ Part of [Broker](broker.md).
   third as the BAR index in the high 32 bits and flags in the low 32 bits
   (`src/syscall/microkernel/dispatch/unpack.rs:19-40`). One flag is accepted,
   `MK_MMIO_MAP_WC` (bit 0): write-combining, only on a BAR with
-  `BAR_FLAG_PREFETCH` (`EINVAL` otherwise). Where the kernel maps the range
+  `BAR_FLAG_PREFETCH` and for pages wholly inside it (`EINVAL` otherwise), and
+  uncached until every CPU's PAT has its WC entry
+  (`src/hardware/broker/mmio/cache.rs`). Where the kernel maps the range
   itself (the boot frame buffer, write-combining) the capsule gets the kernel's
   memory type whatever it asked, since one page under two memory types is
   undefined; two kernel mappings of the range that disagree refuse the map
