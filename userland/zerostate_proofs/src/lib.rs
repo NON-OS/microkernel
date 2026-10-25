@@ -18,15 +18,15 @@
 //! source, so what is proved here is what the kernel runs.
 
 // The rules the store write and the policy push ask.
-#[allow(dead_code)]
+#[cfg(test)]
 #[path = "../../../src/security/zerostate/keep_rule.rs"]
 pub mod keep_rule;
 
 // A dying address space's leaf frames, and the names the wipe clears.
-#[allow(dead_code)]
+#[cfg(test)]
 #[path = "../../../src/memory/paging/manager/address_space/leaf_release.rs"]
 pub mod leaf_release;
-#[allow(dead_code)]
+#[cfg(test)]
 #[path = "../../../src/sys/policy/hostname/names_clear.rs"]
 pub mod names_clear;
 
