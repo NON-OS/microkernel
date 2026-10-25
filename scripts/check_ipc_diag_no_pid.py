@@ -58,7 +58,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--self-test", action="store_true")
     a = ap.parse_args()
-    diag = Path("src/sys/diag/mod.rs").read_text() + Path("src/sys/diag/late.rs").read_text()
+    diag = "".join(p.read_text() for p in sorted(Path("src/sys/diag").glob("*.rs")))
     sources = {str(p): p.read_text() for p in sorted(Path("src").rglob("*.rs"))}
     if a.self_test:
         bad = [w for w, f, n in CASES if len(problems(*f(diag, sources))) != n]
