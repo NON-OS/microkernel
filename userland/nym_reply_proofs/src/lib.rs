@@ -56,14 +56,20 @@ mod delivery_tests;
 #[cfg(test)]
 mod frame_tests;
 #[cfg(test)]
+mod hkdf_tests;
+#[cfg(test)]
+mod key_slot_tests;
+#[cfg(test)]
 mod ledger_tests;
 #[cfg(test)]
 mod reassembly_tests;
 #[cfg(test)]
 mod refusal_tests;
 #[cfg(test)]
+mod secret_wipe_tests;
+#[cfg(test)]
 mod session_share_tests;
 #[cfg(test)]
 mod surb_tests;
 #[cfg(test)]
-mod secret_wipe_tests;
+mod wipe_glue_tests;

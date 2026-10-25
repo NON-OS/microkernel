@@ -7150,6 +7150,8 @@
   "include": [
    ".cargo",
    "userland/capsule_net_nym/src/ack/ledger.rs",
+   "userland/capsule_net_nym/src/crypto/hkdf_blake3",
+   "userland/capsule_net_nym/src/crypto/types.rs",
    "userland/capsule_net_nym/src/crypto/wipe.rs",
    "userland/capsule_net_nym/src/gateway_client/ws/frame/parse.rs",
    "userland/capsule_net_nym/src/gateway_client/ws/frame/read.rs",
