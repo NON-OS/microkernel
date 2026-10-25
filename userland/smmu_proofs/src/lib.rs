@@ -12,3 +12,5 @@ mod event_tests;
 mod idr_tests;
 #[cfg(test)]
 mod queue_tests;
+#[cfg(test)]
+mod window_tests;

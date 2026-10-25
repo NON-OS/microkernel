@@ -34,5 +34,11 @@ pub(super) fn push(out: &mut Vec<(u64, u64)>) {
     out.extend(vtd.chain(amd).map(|(b, len)| (b, b.saturating_add(len))));
 }
 
+/// The unit the platform describes, in service or not: an SMMUv3 the device
+/// tree names on aarch64 (arch::iommu_register_window).
 #[cfg(not(target_arch = "x86_64"))]
-pub(super) fn push(_out: &mut Vec<(u64, u64)>) {}
+pub(super) fn push(out: &mut Vec<(u64, u64)>) {
+    if let Some((base, len)) = crate::arch::iommu_register_window() {
+        out.push((base, base.saturating_add(len)));
+    }
+}
