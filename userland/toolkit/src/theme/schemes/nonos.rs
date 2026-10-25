@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::Scheme;
+use crate::design::roles::{self, Roles};
 
 /*
  * The NØNOS schemes, from nonos.software/brand: Ink #0A0B0D is the dark ground,
@@ -28,18 +29,11 @@ use super::Scheme;
  * theme_proofs holds every scheme to the WCAG floors through the derived roles,
  * these two with the rest.
  */
-pub const INK: Scheme = Scheme {
-    bg: 0xFF0A_0B0D,
-    surface: 0xFF10_1215,
-    accent: 0xFF66_FFFF,
-    text: 0xFFF2_F3F7,
-    border: 0xFF26_282B,
-};
+pub const INK: Scheme = seeds(&roles::INK);
+pub const PAPER: Scheme = seeds(&roles::PAPER);
 
-pub const PAPER: Scheme = Scheme {
-    bg: 0xFFF2_F3F7,
-    surface: 0xFFFF_FFFF,
-    accent: 0xFF00_7C82,
-    text: 0xFF0A_0B0D,
-    border: 0xFFD5_D7DD,
-};
+/* A scheme's five seeds are its roles' ground, surface, accent, text and
+ * rule, so the brand's numbers are written once, in design::roles. */
+const fn seeds(r: &Roles) -> Scheme {
+    Scheme { bg: r.ground, surface: r.surface, accent: r.accent, text: r.text, border: r.rule }
+}
