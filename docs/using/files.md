@@ -156,7 +156,7 @@ The code behind each section, at the commit in the footer.
   - 2048 names and 64 MiB for one file: `MAX_FILES` and `MAX_FILE_BYTES` in `userland/capsule_vfs/src/store/fdtable/types.rs:20-25`.
   - A quarter of the names for one program, 160 MiB in all, and a refusal the store survives: `DATA_BYTES_MAX` and `NAMES_PER_OWNER` in `userland/capsule_vfs/src/store/fdtable/budget.rs:26-42`.
 - What is kept after power off
-  - The keep gate: `require_persistent` in `userland/capsule_vfs/src/server/handlers/persist_gate.rs:35-39`.
+  - The keep gate: `require_persistent` in `userland/capsule_vfs/src/server/handlers/persist_gate.rs:40-47`.
   - An installed disk turns the field back on: `apply` in `userland/capsule_policy/src/restore/apply.rs:30-32`.
   - A live stick's volume stays in memory: `is_live` in `src/fs/blockfs_volume/plan_types.rs:57`, and `open_session_volume` in `src/fs/blockfs_volume/open_machine.rs:66-67`.
   - Setup's answers handed to the installer: `stage` in `userland/capsule_setup_wizard/src/keep/save.rs:52`.

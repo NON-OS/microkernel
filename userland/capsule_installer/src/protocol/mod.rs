@@ -16,13 +16,13 @@
 
 mod decode;
 mod encode;
-mod retired;
-mod types;
+pub mod retired;
+pub mod types;
 
 pub use decode::decode_request;
 pub use encode::encode_response;
-pub use retired::{retired, RETIRED};
+pub use retired::retired;
 pub use types::{
-    Request, EINVAL, KERNEL_REPLY_ENDPOINT, OP_HEALTHCHECK, OP_INSTALL, OP_LIST_INSTALLED,
-    OP_LOAD_BY_NAME, OP_LOAD_FROM_STORE, OP_PKG_COMMIT, OP_PKG_QUERY, OP_PKG_REMOVE,
+    Request, EINVAL, EPERM, KERNEL_REPLY_ENDPOINT, OP_HEALTHCHECK, OP_INSTALL, OP_LIST_INSTALLED,
+    OP_LOAD_BY_NAME, OP_PKG_COMMIT, OP_PKG_QUERY, OP_PKG_REMOVE,
 };

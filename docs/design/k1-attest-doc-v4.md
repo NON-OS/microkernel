@@ -1,6 +1,9 @@
-# K1: `NONOSATT` version 4, a quote that names the NONOS chain
+# K1: `NONOSATT` version 5, a quote that names the NONOS chain
 
 Status: design, for the lead's review. Nothing lands before the 0.9.3 seal.
+The kernel has since used version 4 for the count of devices the IOMMU
+still lets reach all of memory, so K1's document is version 5. The file
+keeps its name so links to it hold.
 
 ## The gap today
 
@@ -20,30 +23,31 @@ state. The PCRs NONOS itself extends are left out:
 | 9 | the admitted kernel: `SHA-256(kernel_blake3 \|\| kernel_attest_root)` | `boot/attestation/kernel_gate.rs` |
 | 14 | the capsule and ZK-proof measurements | `security/enforce/checks/measurements.rs`, `tpm_extend/components.rs` |
 
-The result is that a version 3 document signed by a genuine TPM says which
+The result is that a version 3 or 4 document signed by a genuine TPM says which
 firmware booted, but not which loader, kernel or proof. A machine running
-any kernel produces an equally valid version 3 document.
+any kernel produces an equally valid version 4 document.
 
 The registry root inside it describes the capsules the running kernel says
 it started. That claim comes from the kernel's own memory. A changed kernel
 could report the right registry.
 
-## Version 4
+## Version 5
 
-The document keeps its version 3 layout (big-endian, length-prefixed) and
-adds two fields after `unconfined_grants`.
+The document keeps its version 4 layout (big-endian, length-prefixed) and
+adds two fields after `identity_devices`.
 
 | Field | Size |
 |---|---|
-| `"NONOSATT"`, version u32 = 4 | 12 |
-| challenge, registry_root, capsule_count, registry_complete, iommu_vendor, iommu_enforcing, unconfined_grants | as in version 3 |
+| `"NONOSATT"`, version u32 = 5 | 12 |
+| challenge, registry_root, capsule_count, registry_complete, iommu_vendor, iommu_enforcing, unconfined_grants, identity_devices | as in version 4 |
 | **pcr_count** (u8), then each **index** (u8) and its **SHA-256 value** (32) | 1 + 33 × n |
 | **TCG event log**, as the firmware handed it over (`MODULE_KIND_TCG_LOG`) | u32 length, then the bytes; at most 131072 |
-| attest, signature, ak_public | as in version 3 |
+| attest, signature, ak_public | as in version 4 |
 
 - `QUOTED_PCRS_V4 = [0, 1, 2, 4, 7, 8, 9, 14]`. The quote's selection must
   equal this list, and the values must be in this order.
-- **The binding.** The qualifying data stays `nonos.attest.bind.v2`. The
+- **The binding.** The qualifying data stays `nonos.attest.bind.v3`, which
+  already folds in `identity_devices`. The
   PCR selection and its digest are inside `TPMS_ATTEST`, which the TPM
   signs, so the binding does not need to change. Leaving it alone keeps
   the change small.
@@ -81,14 +85,14 @@ adds two fields after `unconfined_grants`.
   - `src/security/attest_doc/`, in `produce.rs` and `document.rs`;
   - the PCR read in `src/security/tpm/boot_reads/` or `tpm/quote/`, turned
     into a general read for up to eight PCRs.
-- **Readers:** `capsule_about`'s `doc_parse` moves to version 4 in the same
+- **Readers:** `capsule_about`'s `doc_parse` moves to version 5 in the same
   change.
 - **Proofs:**
-  - `attest_doc_proofs` and `attest_key_proofs` move to version 4;
+  - `attest_doc_proofs` and `attest_key_proofs` move to version 5;
   - `tpm_enroll_proofs/live` gets a swtpm quote over eight PCRs, with a
     move between the read and the quote forced to show the retry;
-  - a new fuzz target covers the version 4 document parser. Today there is
-    none at all.
+  - a fuzz target covers the version 5 document parser: `attest_doc` in
+    `nsh_attest_proofs`.
 - **Mutants:**
   - the selection list;
   - the digest comparison;
@@ -98,7 +102,7 @@ adds two fields after `unconfined_grants`.
 ## Open points
 
 - **PCR 8 and PCR 14 are extended in more than one place.** Before setting
-  the expected values I will trace, on the lead's first version 4 boot,
+  the expected values I will trace, on the lead's first version 5 boot,
   which of those extends actually run on a booted image. The document
   carries the values, so the boot shows them directly.
 - **The expected-value tool must not need the signing keys.** It reads the
