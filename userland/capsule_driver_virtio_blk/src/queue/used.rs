@@ -46,7 +46,8 @@ impl Queue {
             return None;
         }
         // The element, the status and the data are the device's only once
-        // the index that covers them is seen.
+        // the index that covers them is seen (libc's barrier, which orders
+        // what the device wrote, where a fence on aarch64 does not).
         nonos_libc::dma_rmb();
         let at = used + USED_RING + ELEM_BYTES * self.pos(self.used);
         let (id, len) = (self.ring.r32(at), self.ring.r32(at + 4));

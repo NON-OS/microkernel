@@ -40,8 +40,8 @@ pub(super) fn reserve(c: &mut Capsule, device: DeviceAddress) -> Result<(), &'st
     // the same host bridge, is in place; anything else must be admitted.
     let ranges = unheld(&c.reserved, found.ranges());
     // Everything below the bump pointer may be granted: held as one span.
-    let mut held: Vec<(u64, u64)> =
-        c.reserved.iter().map(|h| (h.range.iova, h.range.iova + h.range.len)).collect();
+    // Its RMRR regions (L60) are held too, so no range lands on one.
+    let mut held: Vec<(u64, u64)> = c.reserved_spans();
     if c.next_iova > IOVA_BASE {
         held.push((IOVA_BASE, c.next_iova));
     }
@@ -61,6 +61,8 @@ pub(super) fn reserve(c: &mut Capsule, device: DeviceAddress) -> Result<(), &'st
             )
         };
         if mapped.is_err() {
+            // One refused after its entries were written may have left some.
+            let _ = c.domain.unmap(range.iova, range.len as usize);
             for done in &ranges[..i] {
                 let _ = c.domain.unmap(done.iova, done.len as usize);
             }

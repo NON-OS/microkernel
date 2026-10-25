@@ -75,7 +75,7 @@ DeviceRecord                       Bar
  = 176 bytes
 ```
 
-- `bus_kind`: 1 PCI, 2 ACPI, 3 virtual (`device/bus.rs`).
+- `bus_kind`: 1 PCI, 2 ACPI, 3 virtual, 5 firmware: the boot framebuffer (`device/bus.rs`).
 - `bar_count` is the span of BAR slots in use, not a compacted count; the
   hardware BAR index is kept and an empty slot is zeroed.
 - `Bar.kind`: 0 none, 1 MMIO, 2 port I/O. `Bar.flags`: 1 prefetchable,
@@ -228,8 +228,11 @@ it is not (`src/hardware/broker/dma/map/`, `confine/map.rs`).
   from the display pool or high memory; `DMA_MAP_DMA32` (2) keeps the frames
   below 4 GiB (`ENOMEM` when there are none) and the device address too
   (`ERANGE` when it would not fit); `DMA_MAP_COHERENT` (4) maps uncached;
-  `DMA_MAP_WC` (8) maps write-combining. `DMA_MAP_HIGH` with `DMA_MAP_DMA32`, or
-  `DMA_MAP_COHERENT` with `DMA_MAP_WC`, is `ENOTSUP`, as is any unknown bit.
+  `DMA_MAP_WC` (8) maps write-combining; `DMA_MAP_TO_DEVICE` (0x10) lets a
+  confined device only read the grant and `DMA_MAP_FROM_DEVICE` (0x20) only
+  write it (read and write on a VT-d unit without CAP.ZLR). `DMA_MAP_HIGH` with
+  `DMA_MAP_DMA32`, `DMA_MAP_COHERENT` with `DMA_MAP_WC`, or the two directions
+  together, is `ENOTSUP`, as is any unknown bit.
 
 `MkDmaUnmap` takes the grant from the device first, then scrubs the frames and
 frees them; frames the device's domain will not give up are kept out of use
@@ -253,6 +256,13 @@ Mask and Enable bits, and the vendor bits `pci/quirk_bits/` names for audio
 and network functions (`src/hardware/broker/pci/allowlist.rs`). Anything else
 is `EINVAL`. A value too wide to be a 16-bit register is refused by the
 dispatch arm with `EINVAL` rather than written with its top half dropped.
+
+A Command value holding only those three bits is ORed onto the register, so
+the plain call turns them on but never off. Bits 16 to 31 of `offset` carry a
+change mask instead (`mk_pci_config_update`): each named bit takes the value's
+setting, every other bit stays, and a value bit outside the mask is `EINVAL`
+(`src/hardware/broker/pci/change.rs`). Bits 12 to 15 of `offset` are `EINVAL`.
+The masked register is then judged by the same rules.
 
 ## Port I/O grants
 
@@ -298,6 +308,7 @@ irq/errno_map.rs, dma.rs, pci.rs, pio/errno.rs}`.
 
 - No broker call grants access without both the capability and current device
   ownership.
+- Grants are scoped to one owner process and one claim epoch, and are dropped
   when the claim is released or the process exits.
 - MMIO grants stay inside the claimed device's BARs and never map an MSI-X
   table or PBA.

@@ -35,6 +35,14 @@ pub fn route_msi(
     vector: u8,
     destination: u32,
 ) -> Result<(u16, MsiMessage), VtdError> {
+    if !is_remapping() {
+        return Err(VtdError::InterruptRemappingOff);
+    }
+    // Its messages may carry a bridge's id, which an entry checked against
+    // its own would block: it gets no entry (L54).
+    if !super::super::own_id_read::own_id(bus, device, function) {
+        return Err(VtdError::SharedRequesterId);
+    }
     let source = bdf_to_source_id(bus, device, function).as_u16();
     let index = route_entry(Route { vector, destination, source, level: false })?;
     Ok((index, remapped(index)))

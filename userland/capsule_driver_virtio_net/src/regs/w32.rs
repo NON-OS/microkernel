@@ -21,7 +21,12 @@ use super::regs_type::Regs;
 impl Regs {
     pub fn w32(self, offset: usize, value: u32) {
         match self.io {
-            RegIo::Mmio(m) => m.w32(offset, value),
+            RegIo::Mmio(m) => {
+                // Every store to DMA memory before it reaches the device
+                // first, as libc's own accessors order a write.
+                nonos_libc::dma_wmb();
+                m.w32(offset, value)
+            }
             RegIo::Pio(grant) => pio_write(grant, offset, 4, value),
         }
     }

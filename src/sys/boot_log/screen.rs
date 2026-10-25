@@ -23,6 +23,8 @@
 
 use crate::kernel_core::init::framebuffer::{framebuffer_state, KernelFramebuffer};
 
+// The stop and panic screens draw even while a display driver holds the
+// framebuffer: a halted machine has to say why.
 pub(super) fn screen() -> Option<KernelFramebuffer> {
     if let Some(fb) = framebuffer_state() {
         return Some(*fb);

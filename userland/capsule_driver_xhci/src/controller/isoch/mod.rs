@@ -24,6 +24,7 @@ mod pipe;
 mod queue;
 mod queue_in;
 mod received;
+mod tds;
 mod wait;
 
 // Reached by the host proofs (userland/xhci_proofs), not by the capsule.

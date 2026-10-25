@@ -24,6 +24,9 @@ impl Transport {
             Self::Legacy(regs) => regs.w16(LEG_QUEUE_NOTIFY, queue),
             Self::Modern(m) => {
                 if let Some(&at) = m.doorbells.get(queue as usize) {
+                    // The ring's index reaches the device before the doorbell
+                    // that sends it to look, as a legacy window write orders.
+                    nonos_libc::dma_wmb();
                     m.notify.w16(at, queue);
                 }
             }

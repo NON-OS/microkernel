@@ -30,6 +30,7 @@ pub fn sys_pio_read(grant_id: u64, port_offset: u64, w: u64, out_value: u64) -> 
         Some(p) => p,
         None => return ERRNO_PERM,
     };
+    let pid = crate::hardware::broker::holder_of(pid);
     if out_value == 0 {
         return ERRNO_FAULT;
     }

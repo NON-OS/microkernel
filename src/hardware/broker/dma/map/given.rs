@@ -26,13 +26,15 @@ use crate::memory::iommu::IommuProtection;
 
 /// The device address, and whether it is an IOVA; or the step that refused
 /// and why, with the placement already taken back.
+/// `access`: read-only or write-only for the device, by the map's direction.
 pub(super) fn device_address(
     pid: u32,
     req: &DmaMapRequest,
     placed: &Placed,
+    access: IommuProtection,
 ) -> Result<(u64, bool), (&'static str, DmaMapError)> {
-    let (phys, rw) = (placed.phys_start, IommuProtection::READ_WRITE);
-    let (given, confined) = match confine::map(pid, req.device_id, phys, req.length, rw) {
+    let phys = placed.phys_start;
+    let (given, confined) = match confine::map(pid, req.device_id, phys, req.length, access) {
         Ok(got) => got,
         Err(no) => return Err(("confine", placed.refused(no))),
     };

@@ -81,6 +81,12 @@ The kernel embeds each capsule's certificate, manifest and STARK trailer from `n
 
 So `nix build` of the default image waits for the next release seal, which writes all 28 trust sets in one step. A development image (`make dev-image`, `tools/nonos-dev-image`) is sealed with throwaway keys and builds and boots now.
 
+The 28, as `scripts/baselines/unsealed.txt` holds them. The flake's `static-release-trust` check fails when a release profile ships any other capsule without its trust set, when one of these is sealed and still listed, or when this list and the baseline differ:
+
+<!-- unsealed: begin -->
+`driver-ac97`, `driver-buslogic`, `driver-ccid`, `driver-e1000e`, `driver-ehci`, `driver-fido`, `driver-igb`, `driver-mpt`, `driver-ohci`, `driver-pcnet`, `driver-piix-ide`, `driver-pvscsi`, `driver-sdhci`, `driver-tulip`, `driver-ufs`, `driver-uhci`, `driver-usb-audio`, `driver-usb-hub`, `driver-uvc`, `driver-virtio-input`, `driver-virtio-scsi`, `driver-vmbus`, `driver-vmmdev`, `driver-vmmouse`, `driver-vmware-svga`, `driver-vmxnet3`, `nox-settle`, `prove-fetch`.
+<!-- unsealed: end -->
+
 ## Off, and why
 
 ### Test and development only: never in a release

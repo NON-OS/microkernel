@@ -23,7 +23,8 @@ DEFS = "src/capabilities/types/defs.rs"
 
 def capability_bits(root):
     bits = {}
-    for m in re.finditer(r"^\s*(\w+)\s*=\s*([^,]+),", (root / DEFS).read_text(), re.M):
+    for m in re.finditer(r"^\s*(?:#\[doc = \"[^\"]*\"\]\s*)?(\w+)\s*=\s*([^,]+),",
+                         (root / DEFS).read_text(), re.M):
         expr = m.group(2).strip()
         bits[m.group(1)] = (1 << int(expr.split("<<")[1])) if "<<" in expr else int(expr, 0)
     return bits

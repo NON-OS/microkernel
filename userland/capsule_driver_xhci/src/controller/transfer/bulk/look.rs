@@ -13,15 +13,17 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! One bulk transfer through the slot's DMA page: a single Normal TRB, the
-//! One look at the event ring for a transfer's completion, without waiting.
-//! Any other transfer event goes to `park`, kept only for a TRB armed for
-//! it, and a command's completion is left in place for the command wait.
-use crate::constants::TRB_TYPE_TRANSFER_EVENT;
+//! Looking at the event ring for a polled TRB's completion without waiting:
+//! the events already written, one lap at most. Another armed endpoint's
+//! completion is kept for its own poll (`park`). Anything else is nobody's,
+//! a command completion among them: no command is in flight inside a poll,
+//! and one left at the head would hold the poll's own completion behind it.
+use crate::constants::{EVENT_RING_SEGMENT_TRBS, TRB_TYPE_TRANSFER_EVENT};
 use crate::regs::runtime::erdp_program;
 use crate::rings::event::{EventRing, IssuedTransfer};
 use crate::trb::Trb;
 
+/// The event of `issued`, its place given back; `None` while none came.
 pub(super) fn look(
     intr_base: u64,
     evt_ring: &mut EventRing,
@@ -30,19 +32,20 @@ pub(super) fn look(
     if let Some(event) = evt_ring.take_parked(issued) {
         return Some(event);
     }
-    if !evt_ring.has_event() {
-        return None;
+    for _ in 0..EVENT_RING_SEGMENT_TRBS {
+        if !evt_ring.has_event() {
+            break;
+        }
+        let event = evt_ring.current_trb();
+        evt_ring.advance();
+        erdp_program(intr_base, evt_ring.current_dequeue_phys(), true, 0);
+        if issued.completed_by(&event) {
+            evt_ring.settle(issued);
+            return Some(event);
+        }
+        if event.get_type() == TRB_TYPE_TRANSFER_EVENT {
+            evt_ring.park(event);
+        }
     }
-    let event = evt_ring.current_trb();
-    let ours = issued.completed_by(&event);
-    if !ours && event.get_type() != TRB_TYPE_TRANSFER_EVENT {
-        return None;
-    }
-    evt_ring.advance();
-    erdp_program(intr_base, evt_ring.current_dequeue_phys(), true, 0);
-    if !ours {
-        evt_ring.park(event);
-        return None;
-    }
-    Some(event)
+    None
 }
