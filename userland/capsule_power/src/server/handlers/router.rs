@@ -15,19 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::{health, reboot, shutdown};
-use crate::off::rule::{op_allowed, EPERM};
+use crate::off::rule::{op_allowed, Caller, EPERM};
 use crate::protocol::{parse, E_BAD_OP, OP_HEALTHCHECK, OP_REBOOT, OP_SHUTDOWN};
 use crate::server::respond;
 use crate::state::PowerState;
 
-/// One `power` request. Reboot and shutdown run for the desktop shell
-/// alone (`op_allowed`), as `power.off` does.
-pub fn route(state: &mut PowerState, input: &[u8], from_shell: bool, out: &mut [u8]) -> usize {
+/// One `power` request. Reboot runs for the shell and the installers,
+/// shutdown for the shell alone (`op_allowed`).
+pub fn route(state: &mut PowerState, input: &[u8], from: Caller, out: &mut [u8]) -> usize {
     let (req, _payload) = match parse(input) {
         Ok(parsed) => parsed,
         Err((req, status)) => return respond::status(out, &req, status),
     };
-    if !op_allowed(req.op, from_shell) {
+    if !op_allowed(req.op, from) {
         return respond::status(out, &req, EPERM);
     }
     match req.op {
