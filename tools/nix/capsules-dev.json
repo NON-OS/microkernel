@@ -1,1 +1,10 @@
-[]
+[
+ {
+  "slug": "payment",
+  "dev_cargo_features": "devnet"
+ },
+ {
+  "slug": "nox-settle",
+  "dev_cargo_features": "devnet"
+ }
+]
