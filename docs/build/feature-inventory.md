@@ -21,7 +21,7 @@ print("\n".join(sorted(k for k in f if k not in on)))
 EOF
 ```
 
-Host-tested on 2026-10-24: the closure has every production capsule below and leaves out 154 features. Of those, 92 are `microkernel-*` lane sets and 62 are the features in the tables.
+Host-tested on 2026-10-24: the closure has every production capsule below and leaves out 155 features. Of those, 92 are `microkernel-*` lane sets and 63 are the features in the tables.
 
 ## What the default image carries
 
@@ -85,6 +85,7 @@ So `nix build` of the default image waits for the next release seal, which write
 | `nonos-dev-attest` | admits capsules on their Merkle path with no STARK proof | `compile_error!` beside `nonos-release`, `src/lib.rs`; `resolve` asserts it needs loader `dev-qemu` |
 | `nonos-dev-unconfined-dma`, `nonos-dev-unremapped-interrupts` | DMA with no IOMMU domain, or interrupts with no remapping | each refuses `nonos-production` and `nonos-release` (`src/memory/iommu/dev_unconfined.rs`, `dev_unremapped.rs`) |
 | `nonos-attest-refusal-smoketest` | embeds four deliberately broken capsules | `compile_error!` beside `nonos-production`, `src/lib.rs` |
+| `nonos-panic-proof` | panics init once the spawn plan has run, to show the panic path's halt, wipe and power-off booted | `compile_error!` beside `nonos-production` or `nonos-release`, `src/userspace/init/injected.rs` |
 | `nonos-capsule-shield-vectors` | Test 5, the pinned wallet vectors | `compile_error!` under `nonos-release`, `src/userspace/capsule_shield_vectors/mod.rs`; `resolve` refuses it without loader `dev-qemu` |
 | `nonos-terminal-smoketest`, `nonos-image-viewer-smoketest`, `nonos-video-player-smoketest`, `nonos-ntp-smoketest`, `nonos-tool-selftest` | boot lanes that read serial markers | `Cargo.toml` comments; each pulls in `nonos-user-entry-proof`, and the NTP lane also pulls in `capsule-serial-debug` |
 | `nonos-user-entry-proof` | a page-table audit before every return to user mode, which halts on failure | `Cargo.toml` comment; a cost on every user entry, for the test lanes |
