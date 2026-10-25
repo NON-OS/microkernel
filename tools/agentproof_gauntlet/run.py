@@ -27,6 +27,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from .identity import commit, job_hash
 from .verdict import judge, read
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -61,7 +62,9 @@ def main(argv=None) -> int:
     booted = boot(log, a.timeout)
     result = read(log.read_text(errors="replace"))
     why = judge(result, a.max_refused)
-    result.update(passed=not why, why=why, booted=booted, image="test keys (development copy)")
+    result.update(passed=not why, why=why, booted=booted, keys="test keys (development copy)",
+                  job_sha256=job_hash(a.job), image_commit=commit(IMAGE.parents[3]),
+                  source_commit=commit(ROOT))
     (a.out / "result.json").write_text(json.dumps(result, indent=1) + "\n")
     for line in result["out"]:
         print(f"  | {line}")
