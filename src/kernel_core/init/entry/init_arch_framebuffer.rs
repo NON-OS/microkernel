@@ -34,5 +34,8 @@ pub(super) fn init_arch_framebuffer(handoff: &KernelHandoff) {
                 super::super::framebuffer::init::init_framebuffer_from(&fb);
             }
         }
+        // No firmware framebuffer on riscv64: display comes from virtio-gpu.
+        #[cfg(target_arch = "riscv64")]
+        ArchSpecificHandoff::Riscv64 { .. } => {}
     }
 }

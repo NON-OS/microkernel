@@ -48,7 +48,7 @@ pub(super) fn paint(px: &mut [u32], clip: Rect, lid: Lid, s: Shows) {
         return fill_rect(dst, clip, LID_BLACK);
     }
     fill_rect(dst, clip, DESK);
-    draw(dst, clip, &s.ind, s.captured, s.trusted);
+    draw(dst, clip, &s.ind, s.captured, s.trusted, false);
 }
 
 /// The screen drawn whole for `lid` and what the band shows.

@@ -1,0 +1,13 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host proofs for zero-state: the kernel's rules for who turns keeping on
+# and what a store write may change, mounted from their source.
+[package]
+name = "zerostate_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
