@@ -41,6 +41,7 @@ pub fn run_init() -> ! {
     #[cfg(feature = "nonos-capsule-attack")]
     crate::userspace::capsule_attack::run();
     boot_log::ok("INIT", "Capsules spawned");
+    super::dev_attest::dump();
     super::injected::panic();
     super::injected::fault();
     run_tool_selftest();
@@ -52,9 +53,8 @@ pub fn run_init() -> ! {
 
 // proof_io's proof is a serial line, and its third step needs Debug, which
 // only a kernel built with capsule-serial-debug grants: without it the step
-// is refused for the capability and the capsule exits 3, a false failure. So
-// it runs only in an image that can print its line (kernel_proofs
-// proof_io_spawn).
+// is refused and the capsule exits 3, a false failure. So it runs only in an
+// image that can print its line (kernel_proofs proof_io_spawn).
 #[cfg(all(feature = "nonos-user-entry-proof", feature = "capsule-serial-debug"))]
 fn run_user_entry_proof() {
     let _ = crate::userspace::capsule_proof_io::spawn_proof_io_capsule();
