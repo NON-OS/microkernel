@@ -44,6 +44,8 @@ pub(crate) fn attest_gate(
             crate::sys::serial::print(b" ");
             crate::sys::serial::print(proved.authority.as_str().as_bytes());
             crate::sys::serial::print(b"\n");
+            let cert = spec.nonos_id_cert_bytes;
+            crate::security::capsule_measure::admit(cert, trailer, proved.is_vendor());
             Ok(Some(proved))
         }
         Err(e) => {

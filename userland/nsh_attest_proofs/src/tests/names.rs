@@ -16,7 +16,7 @@
 
 //! Every refusal is shown by a name no other refusal has.
 
-use nsh_attest::{FormatFault, LogFault, QuoteFault, Refusal};
+use nsh_attest::{CapsuleFault, FormatFault, LogFault, QuoteFault, Refusal};
 
 #[test]
 fn every_refusal_has_its_own_name() {
@@ -41,7 +41,10 @@ fn every_refusal_has_its_own_name() {
         Refusal::EnrolRevoked,
         Refusal::Pcr9,
         Refusal::Pcr8,
-        Refusal::Pcr14,
+        Refusal::Pcr14(CapsuleFault::None),
+        Refusal::Pcr14(CapsuleFault::PathOnly),
+        Refusal::Pcr14(CapsuleFault::Developer),
+        Refusal::Pcr14(CapsuleFault::LocalBuild),
         Refusal::Log(LogFault::Short),
         Refusal::Replay(4),
         Refusal::Loader,
