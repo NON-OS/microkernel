@@ -33,6 +33,7 @@ impl State {
             trouble: None,
             asked: None,
             orders: Default::default(),
+            proofs: Default::default(),
             search: super::super::search::Search::default(),
             port: 0,
             loaded: false,
