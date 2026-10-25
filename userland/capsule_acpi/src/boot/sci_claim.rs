@@ -21,7 +21,9 @@ use crate::events_io::PortIo;
 use crate::sys::acpi::ports;
 use crate::sys::log::Line;
 use nonos_aml::events::{enter_acpi_mode, Events, Fadt};
-use nonos_libc::{mk_device_claim, mk_device_list, mk_irq_bind, DeviceRecord, IrqBindOut};
+use nonos_libc::{
+    mk_device_claim, mk_device_list, mk_irq_ack, mk_irq_bind, DeviceRecord, IrqBindOut,
+};
 
 /// The kernel's SCI record (src/hardware/broker/acpi/sci.rs).
 const CLASS_OTHER: u32 = 0xFFFF;
@@ -38,8 +40,12 @@ pub(super) fn claim_and_bind() -> Option<Sci> {
         return None;
     }
     let mut out = IrqBindOut { grant_id: 0, vector: 0 };
-    (mk_irq_bind(rec.device_id, epoch as u64, rec.irq_line as u32, 0, 0, &mut out) >= 0)
-        .then_some(Sci { grant: out.grant_id, seq: 0 })
+    if mk_irq_bind(rec.device_id, epoch as u64, rec.irq_line as u32, 0, 0, &mut out) < 0 {
+        return None;
+    }
+    // A bound line starts masked; the first ack opens it, as every driver does.
+    let _ = mk_irq_ack(out.grant_id);
+    Some(Sci { grant: out.grant_id, seq: 0 })
 }
 
 /// The ports the event layer reaches: PM1 event and control, the GPE
