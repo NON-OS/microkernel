@@ -22,7 +22,7 @@ flowchart LR
     R --> I[is_shell_key]
     I --> S[desktop shell]
     S --> V[audio.server]
-    S --> T[POWER_OFF_UNAVAILABLE]
+    S --> O[power.off: capsule_power, terminate]
 ```
 
 ### The power button
@@ -56,14 +56,14 @@ and a 32-bit access is dropped: writes do not stick and reads return 0.
 
 A `ControlMethod` button (PNP0C0C), a hardware-reduced platform or a status
 register outside port I/O gets one log line and stays with the firmware
-(`src/arch/x86_64/acpi/power_button.rs:87-89`). Those lines point to a Shut Down
-menu, which the desktop does not have in this release.
+(`power_button/init.rs:58-60`), pointing to the desktop menu's Power Off.
 
-The desktop shell answers the Power key with `POWER_OFF_UNAVAILABLE`, the notice
-`Power off is not available from the desktop`, because `capsule_power` is built
-but not spawned and the desktop cannot shut the machine down in this release
-(`userland/capsule_desktop_shell/src/state/system_key.rs:42-47`,
-`userland/capsule_desktop_shell/src/server/handlers/system_keys.rs:39`).
+The shell answers the Power key, and that menu item, with "Power off and wipe
+memory?" (`userland/capsule_desktop_shell/src/server/handlers/system_keys.rs:40`).
+Power Off goes to `power.off`, which the kernel registers for `capsule_power`
+at spawn (`src/userspace/capsule_power/power_off.rs:30`); it checks the sender
+is the shell, then calls `AdminShutdown`, zerostate's `terminate`. Booted:
+[the walk](../security/privacy-evidence/2026-10-25/merge-fd40dd41f/walk/README.md).
 
 ### The volume keys
 
