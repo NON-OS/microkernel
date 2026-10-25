@@ -34,7 +34,7 @@ log > boot-log.txt
 
 Not tested in this release.
 
-The kernel keeps that log only on images built with capsule serial output, such as `standard` and `qemu`. A `hardened` or `airgapped` image keeps nothing, and `log` prints `log: no line matches`. If `log` prints `log: the kernel would not hand over its log (this terminal needs AttestRead)`, this Terminal was not granted the log.
+The kernel keeps that log only on images built with capsule serial output, such as `qemu` and a development image. A `standard`, `hardened` or `airgapped` image keeps nothing, and `log` prints `log: no line matches`. If `log` prints `log: the kernel would not hand over its log (this terminal needs AttestRead)`, this Terminal was not granted the log.
 
 To report a machine, follow [Reporting a machine](../hardware/report.md).
 
