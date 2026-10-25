@@ -27,6 +27,16 @@ What is here so far (gpu-2a):
   clock deadline, and an enable that never lights turned back off;
 - `wait`: a register's bits awaited until a deadline.
 
+And the combo PHY's PLLs (gpu-2b):
+
+- `regs::pll` and `regs::clka`: DPLL0, DPLL1 and DPLL4 (absent on Y and U
+  parts), DPCLKA_CFGCR0 and DSSM's reference clock;
+- `pll::dp`: Vol 12's DisplayPort table for 1.62 to 8.1 Gbit/s, as given;
+- `pll::hdmi` and `pll::split`: Vol 12's HDMI divider search;
+- `pll::sequence` and `pll::lock`: the enable and disable sequences, with
+  the voltage switch left between `configure` and `lock` for the caller;
+- `pll::map`: a combo port's clock select and gate, as two writes.
+
 Proved by `intel_xelp_display_proofs`. Nothing here has run on a machine:
 no QEMU device models these engines, so it is tested against register
 models until the owner boots it on real hardware.
