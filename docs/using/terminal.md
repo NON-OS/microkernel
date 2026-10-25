@@ -31,7 +31,7 @@ flowchart LR
 
 ## Editing a line
 
-`help keys` prints a short form of this list. It still names `Ctrl-K` for cutting to the end of the line; in this release `Ctrl+K` opens the palette and `Ctrl+Shift+K` cuts.
+`help keys` prints a short form of this list. The bar under the prompt names the keys that matter for what you are doing: at the prompt, `Tab`, `Ctrl+R`, `Ctrl+K` and the find and tab keys; in a history search, how to run, step and leave; in the find bar, how to move and close; and while a program runs, `Ctrl+C` to stop it and the copy and paste keys. `Ctrl+K` opens the palette and `Ctrl+Shift+K` cuts to the end of the line.
 
 | Keys | What they do |
 |---|---|
@@ -237,7 +237,8 @@ The source behind the facts above, at the commit in the footer.
 - Editing a line
   - `Esc` leaving a search, and `Enter` running nothing on `no match`: `escape` and `runs` in `userland/capsule_terminal/src/term/search_step.rs`.
   - What the prompt shows while searching: `head` in `userland/capsule_terminal/src/paint/search_head.rs`.
-  - The keys list that still names `Ctrl-K`: `KEYS` in `userland/capsule_terminal/src/command/builtin/help_pages.rs:19-21`.
+  - The keys list: `KEYS` in `userland/capsule_terminal/src/command/builtin/help_pages.rs`.
+  - The keys the bar names in each state: `hints` in `userland/capsule_terminal/src/paint/hint_sets.rs`.
   - `Ctrl+K` opens the palette, `Ctrl+Shift+K` cuts: `opens` in `userland/capsule_terminal/src/term/terminal/palette_key.rs:67-70`.
 - Pipes, redirects and chains
   - The ten built-ins that read a pipe, `grep` and the rest: `userland/capsule_terminal/README.md:52-57`.
