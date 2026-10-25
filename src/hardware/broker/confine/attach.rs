@@ -35,7 +35,7 @@ fn attach_as(pid: u32, device_id: u64, port_only: bool) -> Result<(), Refusal> {
             return Ok(attach_streams(pid, device_id, iommus, port_only)?);
         }
         // No requester id, no bus master: map.rs refuses its DMA grants.
-        return match verdict(false, false, Ok(()), OPT_IN, PRODUCTION) {
+        return match verdict(false, false, Ok(()), port_only, (OPT_IN, PRODUCTION)) {
             Verdict::Refuse => Err(Refused.into()),
             _ => Ok(()),
         };
@@ -47,7 +47,7 @@ fn attach_as(pid: u32, device_id: u64, port_only: bool) -> Result<(), Refusal> {
      * firmware from whatever lived at 0x100000. Such a device is refused.
      */
     if !crate::memory::iommu::translates(address) {
-        return Ok(without_domain(verdict(true, false, Ok(()), OPT_IN, PRODUCTION))?);
+        return Ok(without_domain(verdict(true, false, Ok(()), port_only, (OPT_IN, PRODUCTION)))?);
     }
     let (group, aliases) = super::gates::admit(device_id)?;
     super::one::attach_one(pid, device_id, address, (false, port_only), (&group, &aliases))
