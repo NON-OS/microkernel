@@ -58,7 +58,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32
         }
         top += 10;
     }
-
+    top = super::proof_pane::paint(fb, state, left, room, top);
     top = super::standing::paint(fb, state, left, room, top);
     if let Some(r) = listing.known.release.as_ref().filter(|r| !r.note.is_empty()) {
         text::line(fb, left, top, &r.note, MUTED, SMALL_PX);

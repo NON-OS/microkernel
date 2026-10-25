@@ -15,7 +15,8 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """One debug run's log, as the boot session keeps it (HANDOFF/catalogue/05):
 whether it shows the app installed in its release's box, its workload
-ending well, and exactly one measured set, the app's own family's."""
+ending well, exactly one measured set, the app's own family's, and the
+store holding that run's proof (I-B9a: the verdict needs Done)."""
 
 import re
 
@@ -25,6 +26,8 @@ STARTED, REFUSED = b"[LINUX-INSTALL] started, in its release's box linux.", (
     b"[LINUX] refused the market's policy", b"the market does not vouch for its box")
 EXITED = re.compile(rb"\[LINUX\] process \d+ exited, status (\d+)")
 SIGNALLED = (b"ended by signal", b"ended on a signal")
+MEASURED, HELD = b"[PROVE] syscall buckets ok=", b"[STORE-PROVE] held: linux."
+FAILED = rb"\[STORE-PROVE\] failed: linux\.%s, (\S+)"  # a code, or the store's word
 
 
 def run_verdict(app: str, log: bytes):
@@ -44,4 +47,9 @@ def run_verdict(app: str, log: bytes):
         return False, [], f"its measured set is malformed: {why}"
     if len(sets) != 1:
         return False, [], f"{len(sets)} measured sets in one run: prove the app's family alone"
-    return True, sets, "installed in its box, workload ran, set measured"
+    failed = re.compile(FAILED % re.escape(app.encode())).search(log, log.find(MEASURED))
+    if failed:
+        return False, [], f"the proof failed after its set was measured: {failed.group(1).decode()}"
+    if HELD + app.encode() + b"," not in log:
+        return False, [], "the store never held its proof: the verdict needs Done"
+    return True, sets, "installed in its box, workload ran, set measured, proof held"
