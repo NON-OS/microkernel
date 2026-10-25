@@ -28,8 +28,8 @@ fn every_sound_block_gives_every_datagram_in_chain_order() {
         assert_eq!(model::datagrams(&b.raw, b.rx_max, true), all, "seed {seed}: the rule");
         sizes[b.raw.len().next_power_of_two().ilog2() as usize] += 1;
     }
-    for k in 7..=12 {
-        assert!(cfg!(miri) || sizes[k] >= 500, "only {} blocks near {} bytes", sizes[k], 1 << k);
+    for (k, &n) in sizes.iter().enumerate().skip(7) {
+        assert!(cfg!(miri) || n >= 500, "only {n} blocks near {} bytes", 1 << k);
     }
 }
 

@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::constants::{MSR_IA32_SPEC_CTRL, SPEC_CTRL_STIBP};
-use super::cpuid;
+use super::cpuid_spec;
 use super::msr::{rdmsr, wrmsr};
 
 #[inline(always)]
 pub fn stibp_enable() {
-    if cpuid::has_stibp() {
+    if cpuid_spec::read().stibp {
         // SAFETY: STIBP MSR access is valid when STIBP feature is supported.
         let current = unsafe { rdmsr(MSR_IA32_SPEC_CTRL) };
         unsafe {
@@ -31,7 +31,7 @@ pub fn stibp_enable() {
 
 #[inline(always)]
 pub fn stibp_disable() {
-    if cpuid::has_stibp() {
+    if cpuid_spec::read().stibp {
         // SAFETY: STIBP MSR access is valid when STIBP feature is supported.
         let current = unsafe { rdmsr(MSR_IA32_SPEC_CTRL) };
         unsafe {

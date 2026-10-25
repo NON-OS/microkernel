@@ -23,7 +23,7 @@ impl TransferRing {
     /// frame the kernel handed on could be written. Kept on the slot until
     /// Disable Slot, these grew by one for every request whose recovery the
     /// controller refused. Each buffered request queues at least two TRBs
-    /// that only `retire` gives back, so no more than `MAX_PENDING` / 2
+    /// that only `retire` gives back, so no more than `max_pending` / 2
     /// are kept before the ring refuses new ones.
     pub fn keep(&self, buf: DmaRegion) {
         let mut kept = self.kept.take();

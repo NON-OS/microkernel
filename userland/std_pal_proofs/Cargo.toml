@@ -1,0 +1,18 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the thread register code of the std platform layer
+# (toolchain/nonos-std/sys/pal/nonos/thread_regs.rs) and of libc
+# (userland/libc/src/thread/entry.rs), both mounted via #[path]: each thread
+# trampoline entered on a fresh stack the way the kernel enters a spawned
+# thread, and the thread pointer read, on x86_64 and, under qemu-user, on
+# aarch64 and riscv64.
+[package]
+name = "std_pal_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

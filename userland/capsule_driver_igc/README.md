@@ -1,8 +1,11 @@
 # capsule_driver_igc
 
-Status: not in the 0.9.2 image. The capsule builds and its host proofs
-pass, but it has no owner certificate and the kernel never spawns it:
-it is not yet wired into the kernel mirror and the stack.
+Status: wired, not yet signed. The kernel mirror (`src/hardware/igc_capsule`)
+embeds and spawns it under `nonos-capsule-driver-igc` (the
+`microkernel-driver-igc` build), the broker scope row `driver.igc_0` admits
+its id list, and net.core and net.l2 reach it through
+`src/services/registry/nics.rs`. It has no owner certificate yet, so no image
+carries it until the owner signs it.
 
 ## Role
 
@@ -75,9 +78,9 @@ down, the part reset, both rings restart from slot 0, and the part goes
 back on the air under the same station address, Bus Master staying on.
 
 Teardown is stand-down (both queues and engines off), reset, Bus Master off
-(effective once the kernel's K6 lands; the broker ORs Command bits today),
-then `MkDeviceRelease`, which is the real guard: it clears Bus Master with a
-read-back before freeing every grant.
+(the masked Command write, which names the bits it changes; the plain one
+only ORs bits on), then `MkDeviceRelease`, which is the real guard: it
+clears Bus Master with a read-back before freeing every grant.
 
 ## Failure model
 
@@ -120,7 +123,7 @@ line and a `link up` line, and DHCP completing through `net.core`.
 
 ## Release checklist
 
-- Wired into the kernel mirror and the stack, sealed by the owner.
+- Sealed by the owner (the kernel mirror and the stack are wired).
 - One I225/I226 boot photographed with the lines in `docs/hardware/igc.md`.
 
 ## Explicit non-goals today

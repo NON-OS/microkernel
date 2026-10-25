@@ -54,3 +54,9 @@ mod tests_bridge;
 mod tests_bridge_log;
 #[cfg(test)]
 mod tests_ports;
+#[cfg(test)]
+mod tests_power;
+#[cfg(test)]
+mod tests_sleep_enable;
+#[cfg(test)]
+mod sleep_enable_glue_tests;

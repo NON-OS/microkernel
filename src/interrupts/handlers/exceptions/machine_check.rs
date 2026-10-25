@@ -18,7 +18,6 @@ use x86_64::structures::idt::InterruptStackFrame;
 
 use super::context::{log_exception, ExceptionContext};
 use crate::arch::x86_64::diag::emit_fatal_notice;
-use crate::interrupts::idt::halt_loop;
 use crate::interrupts::stats;
 
 const IA32_MCG_STATUS: u32 = 0x17A;
@@ -44,7 +43,7 @@ pub fn handle(frame: InterruptStackFrame) -> ! {
     dump_mca_banks(status.bank_count);
 
     crate::log::logger::log_critical("SYSTEM HALTED: Unrecoverable hardware error");
-    halt_loop();
+    crate::boot::panic::fatal();
 }
 
 fn read_mcg_status() -> MachineCheckStatus {
