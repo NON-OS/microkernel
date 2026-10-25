@@ -16,8 +16,8 @@
 
 //! The wiped power-off (F-88). AdminShutdown wipes on the way down; it is
 //! asked for by a power-button press, a thermal zone at _CRT, a critical
-//! battery, or the shell through `power.off` (the shell confirms first;
-//! nothing here asks). Each is asked for, then run from the capsule's
+//! battery, or the shell's POFF frame on `acpi` (the shell confirms first;
+//! nothing here asks; `power.off` is capsule_power's). Each is asked for, then run from the capsule's
 //! loop with \_TTS(5) and \_PTS(5) first (`serve`, F-111). Firmware's own
 //! critical shutdown would cut power without the wipe.
 

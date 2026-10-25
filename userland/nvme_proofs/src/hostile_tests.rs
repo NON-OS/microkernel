@@ -281,7 +281,7 @@ fn a_hostile_controller_never_panics_never_passes_and_never_indexes_out_of_range
         assert_eq!((cursor.head, cursor.phase), (head, phase), "round {round}");
         assert!(cursor.head < entries);
         if outcome == Outcome::TimedOut {
-            assert_eq!(w.reads, DEADLINE_CHECK_SPINS as u64);
+            assert_eq!(w.reads, DEADLINE_CHECK_SPINS as u64 + 1, "and a last look");
         }
         seen[4 + got as usize] += 1;
 
