@@ -32,8 +32,8 @@ call silently, at a different place each time:
                claims is refused for everyone, permanently and quietly.
   router       `dispatch/router/*.rs` picks the family that handles it. A
                variant no family matches falls to the router's default.
-  handler      for the microkernel family, an arm in `microkernel/dispatch/`
-               keyed on the `SYS_*` constant. Without it `route` returns -1.
+  handler      for the microkernel family, an arm keyed on the `SYS_*` constant
+               (`syscall_mk_arms` says where). Without it `route` returns -1.
 
 The earlier version of this check read the enum and the microkernel constants
 and asked only whether the tag appeared in one of them. A `SYS_*` constant on
@@ -56,6 +56,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from check_caps_abi import sections  # noqa: E402
 import check_syscall_caps as caps  # noqa: E402
+from syscall_mk_arms import mk_arms  # noqa: E402
 
 ABI = Path("abi/syscalls.toml")
 ENUM = Path("src/syscall/numbers/defs.rs")
@@ -64,8 +65,6 @@ CAP_TABLE = Path("src/syscall/contract/cap_table")
 ROUTER = Path("src/syscall/dispatch/router")
 MK_NUMBERS = Path("src/syscall/microkernel/numbers.rs")
 MK_DISPATCH = Path("src/syscall/microkernel/dispatch")
-# route_tail hands the ACPI capsule's numbers to this match, outside dispatch/.
-MK_ACPI_DISPATCH = Path("src/syscall/microkernel/acpi/dispatch.rs")
 MK_ROUTER = ROUTER / "microkernel_ops.rs"
 
 ENUM_RE = re.compile(r"(\w+)\s*=\s*tag4\(b\"(\w{4})\"\)")
@@ -110,9 +109,7 @@ def read_kernel(root):
         "capped": variants_in(read_tree(root, CAP_TABLE), names),
         "routed": variants_in(read_tree(root, ROUTER), names),
         "mk_routed": variants_in(read_text(root, MK_ROUTER), names),
-        "mk_arms": {arm for text in [read_tree(root, MK_DISPATCH),
-                                     read_text(root, MK_ACPI_DISPATCH)]
-                    for group in MK_ARM_RE.findall(text) for arm in group.split("|")},
+        "mk_arms": mk_arms(root, MK_DISPATCH, MK_ARM_RE),
     }
 
 

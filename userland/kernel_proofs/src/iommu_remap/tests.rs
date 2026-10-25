@@ -28,11 +28,11 @@ fn irta_names_one_page_of_entries() {
     assert_eq!(IRTA_EIME, 1 << 11);
 }
 
-/* Linux: present bit 0, trigger mode bit 4, vector bits 23:16, dest_id bits
-63:32 holding IRTE_DEST(d) = d << 8 in xAPIC mode; svt bits 83:82 = 01,
-sq bits 81:80 = 00, sid bits 79:64. */
+/* VT-d 9.10: present bit 0, trigger mode bit 4, vector bits 23:16, the
+destination in bits 63:32 as d << 8 in xAPIC mode; SVT bits 83:82 = 01,
+SQ bits 81:80 = 00, SID bits 79:64. */
 #[test]
-fn an_xapic_entry_matches_the_linux_layout() {
+fn an_xapic_entry_matches_the_spec_layout() {
     let route = Route { vector: 0x41, destination: 3, source: XHCI, level: false };
     let [low, high] = encode(route, false).unwrap();
     assert_eq!(low, 1 | (0x41 << 16) | (3 << 40));

@@ -29,6 +29,8 @@ mod launch_overdue;
 mod packages;
 mod paint_initial;
 mod paste;
+mod peer;
+mod peer_rule;
 mod ready_to_block;
 mod reap_tray;
 mod refresh_taskbar;

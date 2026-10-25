@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Event log entries (AMD IOMMU spec 48882, section 2.5), four dwords, read
-//! the way Linux reads them in amd/iommu.c (iommu_print_event). Pure.
+//! Event log entries (AMD IOMMU spec 48882, section 2.5), four dwords: the
+//! code in bits 31:28 of the second, the device id and address where each
+//! event's format puts them. Pure.
 
 pub type Event = [u32; 4];
 

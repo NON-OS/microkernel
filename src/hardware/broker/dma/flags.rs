@@ -21,10 +21,18 @@ pub(super) const DMA_MAP_HIGH: u32 = 1 << 0;
 /// 4 GiB, or the map fails. Not with `DMA_MAP_HIGH`.
 pub(super) const DMA_MAP_DMA32: u32 = 1 << 1;
 /// A descriptor ring or anything else the device and the driver both write
-/// while it runs: mapped uncached, so neither side needs a cache flush, as
-/// Linux dma_alloc_coherent. Not with `DMA_MAP_WC`.
+/// while it runs: mapped uncached, so neither side needs a cache flush. Not
+/// with `DMA_MAP_WC`.
 pub(super) const DMA_MAP_COHERENT: u32 = 1 << 2;
 /// A buffer the driver fills whole before the doorbell: mapped
 /// write-combining where the PAT has the entry, else uncached. The driver
 /// fences (sfence) before it rings the device.
 pub(super) const DMA_MAP_WC: u32 = 1 << 3;
+/// The device only reads this grant (a transmit or command buffer). Where an
+/// IOMMU confines the device it is mapped read-only, so a device that goes
+/// wrong cannot write into it. Not with `DMA_MAP_FROM_DEVICE`.
+pub(super) const DMA_MAP_TO_DEVICE: u32 = 1 << 4;
+/// The device only writes this grant (a receive buffer). Where an IOMMU
+/// confines the device it is mapped without read permission, as far as the
+/// unit allows. Not with `DMA_MAP_TO_DEVICE`; set neither for a ring.
+pub(super) const DMA_MAP_FROM_DEVICE: u32 = 1 << 5;
