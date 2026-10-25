@@ -37,20 +37,23 @@ pub fn sys_futex_wait(vaddr: u64, expected: u32, timeout_ms: u64) -> i64 {
     let token = crate::sched::wake_token(caller);
     let key = (tgid_of(caller), vaddr);
     /*
-     * Queued before the word is read, as Linux futex_wait_setup reads it
-     * with the waiter's bucket held. Read first, a waker that changed the
-     * word just after the read and woke before the queueing found nobody,
+     * Queued before the word is read: a waker stores the new word before it
+     * calls wake, so the read sees that word or the wake finds this entry.
+     * Read first, a waker that changed the word just after the read and woke
+     * before the queueing found nobody,
      * bumped no wake count, and this wait then slept its whole timeout with
      * the word already changed: for a timed wait, up to a minute.
      */
     join(&mut FUTEX_QUEUE.lock(), key, caller);
     // Re-read the word under the kernel's eyes: if it already changed since
-    // the caller's own check, a wake happened and we must not block.
+    // the caller's own check, a wake happened and we must not block. Killed
+    // before it queued, teardown's forget has run: it leaves by itself (L77e).
     let mut buf = [0u8; 4];
     let read = crate::usercopy::copy_from_user(vaddr, &mut buf);
-    if read.is_err() || u32::from_ne_bytes(buf) != expected {
+    let dead = super::queue::ended(caller);
+    if dead || read.is_err() || u32::from_ne_bytes(buf) != expected {
         // Bound first, so the queue lock is dropped before the wake.
-        let next = leave_early(&mut FUTEX_QUEUE.lock(), key, caller);
+        let next = leave_early(&mut FUTEX_QUEUE.lock(), key, caller, super::queue::ended);
         if let Some(next) = next {
             crate::sched::wake_process(next);
         }
@@ -58,10 +61,8 @@ pub fn sys_futex_wait(vaddr: u64, expected: u32, timeout_ms: u64) -> i64 {
     }
 
     // A timed wait sleeps the time it asked for: the queueing and the wake
-    // token above mean a wake that races the sleep is never lost, so the
-    // safety cap is only for an untimed wait. Capped, `mk_idle_ms` slept at most 20 ms, and every
-    // driver loop counting sleeps (a stick's spin-up, a port's reset
-    // recovery) ended long before the time it meant to give.
+    // token mean a wake racing the sleep is never lost, so the safety cap is
+    // only for an untimed wait; capped, a driver's counted sleeps ran short.
     let cap = if timeout_ms == 0 { SAFETY_MS } else { timeout_ms.min(MAX_TIMED_MS) };
     let deadline = crate::time::timestamp_millis().saturating_add(cap.max(1));
     crate::sched::sleep_until_unless_woken(caller, deadline, token);

@@ -24,9 +24,9 @@ const SPAWN: &str = include_str!("../../../../src/hardware/spi_capsule/spawn.rs"
 
 #[test]
 fn the_spi_host_starts_after_the_i2c_host_with_no_irq_dma_or_pio() {
-    let bus = include_str!("../../../../src/userspace/init/spawn_plan/drivers_bus.rs");
+    let bus = include_str!("../../../../src/userspace/init/spawn_plan/drivers_bus/mod.rs");
     let at = |s: &str| bus.find(s).expect(s);
-    assert!(at("spawn_i2c_pci();") < at("drivers_spi::spawn();"));
+    assert!(at("i2c::spawn();") < at("drivers_spi::spawn();"));
     for line in [
         "const SERVICE_NAME: &str = \"driver.spi0\";",
         "const SERVICE_PORT: u32 = 4528;",

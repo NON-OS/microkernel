@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Remapped-format interrupt remapping table entries (VT-d 3.4, 9.10), low
-//! quadword first, laid out as Linux struct irte (include/linux/dmar.h).
+//! quadword first, each field where the spec's entry format draws it.
 
 pub type Irte = [u64; 2];
 
@@ -33,8 +33,8 @@ pub struct Route {
 const PRESENT: u64 = 1 << 0;
 const TRIGGER_LEVEL: u64 = 1 << 4;
 /// SVT 01 with SQ 00: the request's source id must equal the entry's, all
-/// sixteen bits, so no other device can raise this vector (Linux
-/// set_irte_sid with SVT_VERIFY_SID_SQ and SQ_ALL_16).
+/// sixteen bits, so no other device can raise this vector (VT-d 9.10's SVT
+/// and SQ fields).
 const VERIFY_SOURCE: u64 = 0b01 << 18;
 
 /// The entry for `route`, or `None` when the destination does not fit: an

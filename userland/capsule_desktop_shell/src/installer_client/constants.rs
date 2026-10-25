@@ -43,11 +43,10 @@ pub(super) const ISSUE_TIMEOUT_MS: u64 = 40;
 /// load, it answers once the load is done, long after this.
 pub(super) const PROBE_TIMEOUT_MS: u64 = 20;
 
-/// Ceiling on the optional caps the loaded capsule may receive. The verified
-/// manifest and the identity certificate are the real bounds; this only avoids
-/// restricting a capsule below what it legitimately declares, which would show
-/// up as a silent denial on its first service call.
-pub(super) const REQUESTED_CAPS: u64 = u64::MAX;
+/// None named: the installer asks for the app's own manifest set, and the
+/// kernel refuses a request beyond the manifest. The shell never picks what
+/// an app it launches holds; SpawnWindow lets that exceed the shell's own.
+pub(super) const REQUESTED_CAPS: u64 = 0;
 
 /// Reply buffer size, the same budget the desktop gives a vfs listing. Anything
 /// past it is simply not shown rather than risking a large per-tick allocation.

@@ -25,6 +25,9 @@ pub(in crate::store) struct KeyEntry {
     pub(in crate::store) expires_at: u64,
     pub(in crate::store) use_count: u64,
     pub(in crate::store) locked: bool,
+    /// The service name a kind kept by name belongs to, as its place in
+    /// `BOND_HOLDERS`; None for every other key (`store/named.rs`).
+    pub(in crate::store) holder: Option<u8>,
 }
 
 impl Drop for KeyEntry {

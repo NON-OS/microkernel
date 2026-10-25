@@ -16,13 +16,13 @@
 
 //! One write to the Command register under the claim (see `pci_command`).
 
-use nonos_libc::{mk_pci_config_write, MK_PCI_CFG_COMMAND};
+use nonos_libc::{mk_pci_config_update, MK_PCI_CFG_COMMAND};
 
-use super::pci_command::command_value;
+use super::pci_command::{command_value, COMMAND_MASK};
 
 pub fn command(device_id: u64, epoch: u64, bus_master: bool) -> Result<(), &'static str> {
     let value = command_value(bus_master);
-    if mk_pci_config_write(device_id, epoch, MK_PCI_CFG_COMMAND, value) < 0 {
+    if mk_pci_config_update(device_id, epoch, MK_PCI_CFG_COMMAND, COMMAND_MASK, value) < 0 {
         return Err(if bus_master {
             "PCI command write (bus master) refused"
         } else {

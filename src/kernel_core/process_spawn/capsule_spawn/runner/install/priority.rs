@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::priority_vm::{INTERACTIVE_VM, STORAGE_PATH_VM};
 use crate::process::core::Priority;
-use crate::services::registry::nics;
 use crate::services::registry::displays::is_display;
+use crate::services::registry::nics;
 
 /// Capsules on the pointer/keyboard -> compositor -> scanout path; the
 /// display drivers that scan out are every name in `displays.rs`.
@@ -28,18 +29,15 @@ use crate::services::registry::displays::is_display;
 /// through to `Normal` on the next switch - a promoted capsule that spun
 /// would cost half the CPU, never all of it.
 const INTERACTIVE: [&str; 3] = ["driver.ps2_kbd0", "input_router", "compositor"];
-// The same paths in a virtual machine (its network cards are on nics.rs).
-const INTERACTIVE_VM: [&str; 4] =
-    ["driver.virtio_input0", "driver.vmmdev0", "driver.vmmouse0", "driver.vmbus0"];
 
 /*
  * Capsules that move a frame between the card and TCP: the card drivers
  * (registry/nics.rs) and the stack, which is where acknowledgements are
  * made. They park the same way (`mk_irq_wait`, `mk_ipc_recv_from` with a
- * timeout), so the band stays empty on an idle network. In the Normal band a wake queued behind every runnable
- * capsule, and a capture of a 92 KB page load showed a median of 230 ms
- * between the guest's acknowledgements, which set the pace of every
- * slow-start round.
+ * timeout), so the band stays empty on an idle network. In the Normal band a
+ * wake queued behind every runnable capsule, and a capture of a 92 KB page
+ * load showed a median of 230 ms between the guest's acknowledgements, which
+ * set the pace of every slow-start round.
  *
  * `net.sockets` and `net.tcp` stay Normal: they wait for a connection by
  * yielding in a loop, and two of those in this band could hold it for a whole
@@ -62,24 +60,13 @@ const STORAGE_PATH: [&str; 6] = [
     "driver.sdhci0",
     "driver.ufs0",
 ];
-// The same in a virtual machine: its disk controllers poll a request out,
-// yielding and then sleeping a millisecond between looks.
-const STORAGE_PATH_VM: [&str; 5] = [
-    "driver.piix_ide0",
-    "driver.virtio_scsi0",
-    "driver.pvscsi0",
-    "driver.buslogic0",
-    "driver.mpt0",
-];
 
 /// Scheduling band a freshly installed capsule starts in.
 pub(super) fn for_capsule(name: &str) -> Priority {
     let bands: [&[&str]; 5] =
         [&INTERACTIVE, &INTERACTIVE_VM, &PACKET_PATH, &STORAGE_PATH, &STORAGE_PATH_VM];
-    if is_display(name)
-        || nics::NICS.iter().any(|(card, _)| *card == name)
-        || bands.iter().any(|band| band.contains(&name))
-    {
+    let banded = bands.iter().any(|band| band.contains(&name));
+    if is_display(name) || banded || nics::NICS.iter().any(|(card, _)| *card == name) {
         Priority::High
     } else {
         Priority::Normal

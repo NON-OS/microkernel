@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::ptr::{self, addr_of_mut};
+
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct Descriptor {

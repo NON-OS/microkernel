@@ -15,12 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The mode bga starts on: firmware's when DISPI already shows a linear
-//! 32-bit mode from the start of video memory that fits (section 12: a
-//! driver keeps the mode firmware left until a MODE_SET, and OVMF's GOP
-//! mode is then left where the compositor's GOP fallback finds it); else
-//! the monitor's preferred mode when it fits, else 1024x768, refused by
-//! name before a register is written when it does not fit either limit,
-//! and held to reading back as set.
+//! 32-bit mode from the start of video memory, its lines no narrower than
+//! it, that fits (section 12: a driver keeps the mode firmware left until a
+//! MODE_SET, so OVMF's GOP mode stays set with no re-mode; the kernel's GOP
+//! blit is gone by then, stopped by the claim of an adapter holding the
+//! boot framebuffer); else the monitor's preferred mode when it fits, else
+//! 1024x768, refused by name before a register is written when it does not
+//! fit either limit, and held to reading back as set.
 
 use crate::constants::FALLBACK_MODE;
 use crate::dispi::{current, set_mode, DispiMode};

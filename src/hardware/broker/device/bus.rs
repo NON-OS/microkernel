@@ -17,7 +17,9 @@
 const BUS_KIND_PCI: u8 = 1;
 const BUS_KIND_ACPI: u8 = 2;
 const BUS_KIND_VIRT: u8 = 3;
+// 4 is the device tree's (C-13); 5 is what firmware hands over at boot.
 const BUS_KIND_FDT: u8 = 4;
+const BUS_KIND_FIRMWARE: u8 = 5;
 
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -27,4 +29,5 @@ pub enum BusKind {
     Virt = BUS_KIND_VIRT,
     /// Named by the device tree: no config space, see `broker::described`.
     Fdt = BUS_KIND_FDT,
+    Firmware = BUS_KIND_FIRMWARE,
 }

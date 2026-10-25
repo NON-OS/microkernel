@@ -28,8 +28,8 @@ mod inner;
 mod inner;
 
 pub(super) use inner::{
-    allocate_domain, attach_device, capabilities, detach_device, free_domain, map, select_vendor,
-    translates, unmap,
+    allocate_domain, attach_device, capabilities, detach_device, free_domain, identity_devices,
+    map, select_vendor, translates, unmap,
 };
 #[cfg(all(target_arch = "x86_64", feature = "nonos-arch-iommu"))]
 pub(crate) use inner::{block_faulted, note_fault};

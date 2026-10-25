@@ -1,0 +1,18 @@
+# NONOS userland: nonos_hwreport
+#
+# The hardware report a tester carries off a machine NONOS booted on: PCI ids,
+# the measured ACPI tables, what bound and what was refused, the boot log and
+# the IOMMU posture. Written without allocation into a caller's buffer, and
+# scrubbed so no serial number, UUID, MAC or network address leaves with it.
+
+[package]
+name = "nonos_hwreport"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "NONOS hardware report: format, redaction and parser"
+
+[lib]
+name = "nonos_hwreport"
+path = "src/lib.rs"

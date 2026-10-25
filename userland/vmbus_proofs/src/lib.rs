@@ -25,6 +25,8 @@ pub mod connect;
 pub mod constants;
 #[path = "../../capsule_driver_vmbus/src/discover.rs"]
 pub mod discover;
+#[path = "../../capsule_driver_vmbus/src/give.rs"]
+pub mod give;
 #[path = "../../capsule_driver_vmbus/src/guid.rs"]
 pub mod guid;
 #[path = "../../capsule_driver_vmbus/src/hv.rs"]
