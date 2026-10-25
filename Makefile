@@ -22,6 +22,9 @@
 #                                    throwaway keys in target/dev and path-only
 #                                    attestation: minutes, no prover, no real key
 #              make dev-boot         boot it under QEMU
+#              make selftest         three boots that each try what an attacker
+#                                    would, and the verdict on every attempt
+#                                    (docs/security/self-test.md)
 #
 #   A boot keeps its data disk, and the encrypted volume on it, from one boot
 #   to the next. FRESH=1 starts it again; MODEL=auto lays the Qwen tier setup
@@ -45,7 +48,7 @@ NIX ?= nix
 # The data disk and the model a boot starts with (tools/nonos_qemu/disk.py).
 BOOT_DISK = $(if $(FRESH),--fresh) $(foreach m,$(MODEL),--model $(m))
 
-.PHONY: build check seal boot dev-image dev-boot boot-install boot-installed qemu qemu-tpm qemu-install qemu-installed profiles shell usb doctor clean help
+.PHONY: build check seal boot dev-image dev-boot selftest boot-install boot-installed qemu qemu-tpm qemu-install qemu-installed profiles shell usb doctor clean help
 
 # The build, then its receipt: every artifact, the toolchain and every pinned
 # input by hash, what the seal will sign, and whether these are the bytes the
@@ -76,6 +79,12 @@ dev-image:
 
 dev-boot:
 	$(NIX) run .#qemu -- --image target/dev/tree/target/release/$(DEV_ATTR)/nonos.img --tpm $(BOOT_DISK) $(QEMU_ARGS)
+
+# The self-test: the selftest profile's development image and make's attest
+# and Linux guest lanes, each boot bounded, then the attack suite's checker
+# over all three logs. SELFTEST_ARGS=--dry-run prints what it would run.
+selftest:
+	$(NIX) develop --command python3 tools/nonos-selftest $(SELFTEST_ARGS)
 
 # The installer lane: the sealed stick beside a blank NVMe disk, then that disk
 # alone, which proves the machine boots from what the installer wrote.

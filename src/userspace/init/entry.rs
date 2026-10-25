@@ -37,6 +37,9 @@ pub fn run_init() -> ! {
     run_shield();
     run_shield_vectors();
     run_tokio_smoke();
+    // Last, so every service it attacks is already up and owns its name.
+    #[cfg(feature = "nonos-capsule-attack")]
+    crate::userspace::capsule_attack::run();
     boot_log::ok("INIT", "Capsules spawned");
     super::injected::panic();
     super::injected::fault();
