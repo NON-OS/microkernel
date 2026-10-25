@@ -103,7 +103,7 @@ fn the_interfaces_are_linux_s_guids_and_the_rest_are_refused() {
     for (n, text) in services.iter().enumerate() {
         let relid = 20 + n as u32;
         assert_eq!(Interface::of(&wire(text)), None, "{text}");
-        c.from_host(&offer(relid, wire(text), 0x2000 + relid));
+        c.take_host_message(&offer(relid, wire(text), 0x2000 + relid));
         assert_eq!(c.bind(relid, 0x99), Err(BindError::Interface), "{text}");
     }
 }
@@ -113,20 +113,20 @@ fn an_offer_is_learnt_from_the_host_alone() {
     let mut c = Channels::new();
     let mut m = offer(5, SCSI, 0x2005);
     m[180..182].copy_from_slice(&3u16.to_le_bytes());
-    assert_eq!(c.from_host(&m), (Route::Core, Retire::None));
+    assert_eq!(c.take_host_message(&m), (Route::Core, Retire::None));
     let ch = c.get(5).copied().unwrap();
     assert_eq!((ch.relid, ch.connection, ch.interface, ch.sub_index), (5, 0x2005, SCSI, 3));
     assert_eq!((ch.record, ch.open, ch.releasing), (None, false, false));
     // Too short, past the event flags: nothing learnt.
-    c.from_host(&offer(6, SCSI, 1)[..195]);
+    c.take_host_message(&offer(6, SCSI, 1)[..195]);
     assert!(c.get(6).is_none());
-    c.from_host(&offer(2048, SCSI, 1));
+    c.take_host_message(&offer(2048, SCSI, 1));
     assert!(c.get(2048).is_none());
-    c.from_host(&offer(2047, SCSI, 1));
+    c.take_host_message(&offer(2047, SCSI, 1));
     assert!(c.get(2047).is_some());
     // What a guest posts teaches the table nothing about offers.
-    c.from_driver(&offer(9, SCSI, 1));
-    c.from_core(1, &offer(9, SCSI, 1));
+    c.take_driver_message(&offer(9, SCSI, 1));
+    c.take_core_message(1, &offer(9, SCSI, 1));
     assert!(c.get(9).is_none());
 }
 
@@ -134,9 +134,9 @@ fn an_offer_is_learnt_from_the_host_alone() {
 fn the_bus_s_connection_is_the_core_s_request_for_offers() {
     let mut c = Channels::new();
     assert_eq!(c.bus(), None);
-    c.from_core(1, &msg(14, 40));
+    c.take_core_message(1, &msg(14, 40));
     assert_eq!(c.bus(), None, "the contact names none");
-    c.from_core(4, &msg(3, 8));
+    c.take_core_message(4, &msg(3, 8));
     assert_eq!(c.bus(), Some(4));
 }
 
@@ -144,12 +144,12 @@ fn the_bus_s_connection_is_the_core_s_request_for_offers() {
 fn the_table_holds_sixty_four_channels() {
     let mut c = Channels::new();
     for r in 0..65 {
-        c.from_host(&offer(r, SCSI, r));
+        c.take_host_message(&offer(r, SCSI, r));
     }
     assert!(c.get(63).is_some());
     assert!(c.get(64).is_none(), "the 65th is not kept");
-    c.from_host(&rescind(0));
-    c.from_host(&offer(64, SCSI, 64));
+    c.take_host_message(&rescind(0));
+    c.take_host_message(&offer(64, SCSI, 64));
     assert!(c.get(64).is_some(), "room again after a withdrawal");
 }
 
@@ -157,7 +157,7 @@ fn the_table_holds_sixty_four_channels() {
 fn a_channel_is_given_once_to_one_record() {
     let mut c = Channels::new();
     assert_eq!(c.bind(5, 0xA), Err(BindError::Unknown));
-    c.from_host(&offer(5, SCSI, 0x2005));
+    c.take_host_message(&offer(5, SCSI, 0x2005));
     assert!(c.bind(5, 0xA).is_ok());
     assert_eq!(c.bind(5, 0xB), Err(BindError::Bound));
     assert_eq!(c.by_record(0xA).map(|x| x.relid), Some(5));
@@ -167,32 +167,36 @@ fn a_channel_is_given_once_to_one_record() {
 #[test]
 fn a_withdrawal_or_a_new_offer_retires_the_record() {
     let mut c = world();
-    assert_eq!(c.from_host(&offer(RELID, SCSI, 0x3005)).1, Retire::Record(RECORD));
+    assert_eq!(c.take_host_message(&offer(RELID, SCSI, 0x3005)).1, Retire::Record(RECORD));
     assert_eq!(c.get(RELID).map(|x| (x.connection, x.record)), Some((0x3005, None)));
     c.bind(RELID, 0xB).unwrap();
-    c.from_driver(&gpadl_header(RELID, 7, 1, &[1]));
-    assert_eq!(c.from_host(&rescind(RELID)).1, Retire::Record(0xB));
+    c.take_driver_message(&gpadl_header(RELID, 7, 1, &[1]));
+    assert_eq!(c.take_host_message(&rescind(RELID)).1, Retire::Record(0xB));
     assert!(c.get(RELID).is_none());
     assert_eq!(c.gpadl_relid(7), None, "its GPADLs go with it");
-    assert_eq!(c.from_host(&rescind(RELID)).1, Retire::None);
-    c.from_host(&offer(6, SCSI, 1));
-    assert_eq!(c.from_host(&rescind(6)).1, Retire::None, "an unbound channel retires nothing");
+    assert_eq!(c.take_host_message(&rescind(RELID)).1, Retire::None);
+    c.take_host_message(&offer(6, SCSI, 1));
+    assert_eq!(
+        c.take_host_message(&rescind(6)).1,
+        Retire::None,
+        "an unbound channel retires nothing"
+    );
 }
 
 #[test]
 fn an_unload_forgets_everything() {
     let mut c = world();
-    c.from_driver(&gpadl_header(RELID, 7, 1, &[1]));
-    assert_eq!(c.from_host(&msg(17, 8)).1, Retire::All);
+    c.take_driver_message(&gpadl_header(RELID, 7, 1, &[1]));
+    assert_eq!(c.take_host_message(&msg(17, 8)).1, Retire::All);
     assert!(c.get(RELID).is_none() && c.gpadl_relid(7).is_none() && c.bus().is_none());
 }
 
 #[test]
 fn a_bound_channel_s_answers_go_to_its_queue() {
     let mut c = world();
-    c.from_driver(&gpadl_header(RELID, 7, 1, &[1]));
-    assert_eq!(c.from_host(&created(RELID, 7, 0)), (Route::Channel(RELID), Retire::None));
-    assert_eq!(c.from_host(&opened(RELID, 0)), (Route::Channel(RELID), Retire::None));
+    c.take_driver_message(&gpadl_header(RELID, 7, 1, &[1]));
+    assert_eq!(c.take_host_message(&created(RELID, 7, 0)), (Route::Channel(RELID), Retire::None));
+    assert_eq!(c.take_host_message(&opened(RELID, 0)), (Route::Channel(RELID), Retire::None));
     let (n, b) = c.take(RECORD).unwrap();
     assert_eq!((n, u32_at(&b, 0), u32_at(&b, 12)), (20, 10, 7));
     let (n, b) = c.take(RECORD).unwrap();
@@ -200,45 +204,48 @@ fn a_bound_channel_s_answers_go_to_its_queue() {
     assert!(c.take(RECORD).is_none());
     assert!(c.take(RECORD + 1).is_none(), "another record has no queue");
     // An unbound or unknown channel's answers stay the core's.
-    c.from_host(&offer(6, SCSI, 1));
-    assert_eq!(c.from_host(&opened(6, 0)).0, Route::Core);
-    assert_eq!(c.from_host(&opened(9, 0)).0, Route::Core);
-    assert_eq!(c.from_host(&torndown(99)).0, Route::Core);
+    c.take_host_message(&offer(6, SCSI, 1));
+    assert_eq!(c.take_host_message(&opened(6, 0)).0, Route::Core);
+    assert_eq!(c.take_host_message(&opened(9, 0)).0, Route::Core);
+    assert_eq!(c.take_host_message(&torndown(99)).0, Route::Core);
 }
 
 #[test]
 fn a_full_queue_drops_the_answer() {
     let mut c = world();
     for _ in 0..8 {
-        assert_eq!(c.from_host(&opened(RELID, 0)).0, Route::Channel(RELID));
+        assert_eq!(c.take_host_message(&opened(RELID, 0)).0, Route::Channel(RELID));
     }
-    assert_eq!(c.from_host(&opened(RELID, 0)).0, Route::Dropped(RELID));
+    assert_eq!(c.take_host_message(&opened(RELID, 0)).0, Route::Dropped(RELID));
     c.take(RECORD).unwrap();
-    assert_eq!(c.from_host(&opened(RELID, 0)).0, Route::Channel(RELID));
+    assert_eq!(c.take_host_message(&opened(RELID, 0)).0, Route::Channel(RELID));
 }
 
 #[test]
 fn a_gpadl_the_host_failed_to_make_is_untied() {
     let mut c = world();
-    c.from_driver(&gpadl_header(RELID, 7, 1, &[1]));
-    c.from_driver(&gpadl_header(RELID, 8, 1, &[2]));
-    assert_eq!(c.from_host(&created(RELID, 7, 0xC000_0001)), (Route::Channel(RELID), Retire::None));
+    c.take_driver_message(&gpadl_header(RELID, 7, 1, &[1]));
+    c.take_driver_message(&gpadl_header(RELID, 8, 1, &[2]));
+    assert_eq!(
+        c.take_host_message(&created(RELID, 7, 0xC000_0001)),
+        (Route::Channel(RELID), Retire::None)
+    );
     assert_eq!(c.gpadl_relid(7), None);
     assert_eq!(c.gpadl_relid(8), Some(RELID));
     // A failure naming another channel's GPADL unties nothing.
     let mut other = world();
-    other.from_driver(&gpadl_header(RELID, 7, 1, &[1]));
-    other.from_host(&created(6, 7, 1));
+    other.take_driver_message(&gpadl_header(RELID, 7, 1, &[1]));
+    other.take_host_message(&created(6, 7, 1));
     assert_eq!(other.gpadl_relid(7), Some(RELID));
     // The last one failed: nothing left for the host to reach.
-    assert_eq!(c.from_host(&created(RELID, 8, 1)).1, Retire::Settle(RECORD));
+    assert_eq!(c.take_host_message(&created(RELID, 8, 1)).1, Retire::Settle(RECORD));
 }
 
 #[test]
 fn bound_bits_stay_the_driver_s() {
     let mut c = Channels::new();
     for r in [1, 63, 64, 130] {
-        c.from_host(&offer(r, SCSI, r));
+        c.take_host_message(&offer(r, SCSI, r));
     }
     c.bind(1, 0xA).unwrap();
     c.bind(64, 0xB).unwrap();
@@ -269,7 +276,7 @@ fn a_driver_s_let_go_is_cleaned_up_by_the_kernel() {
     post(&mut c, &gpadl_header(RELID, 7, 1, &[0x800])).unwrap();
     post(&mut c, &gpadl_header(RELID, 8, 1, &[0x801])).unwrap();
     post(&mut c, &open(RELID, 7, 0)).unwrap();
-    c.from_host(&opened(RELID, 0));
+    c.take_host_message(&opened(RELID, 0));
     assert!(c.release(RECORD));
     assert!(c.take(RECORD).is_none(), "the gone driver's queue is emptied");
     // Its close, then a teardown of each GPADL, on its relid.
@@ -286,8 +293,8 @@ fn a_driver_s_let_go_is_cleaned_up_by_the_kernel() {
     assert_eq!(c.owed(&mut owed), None);
     assert!(!c.get(RELID).unwrap().open);
     // The host's word: the kernel's own teardowns are no driver's answers.
-    assert_eq!(c.from_host(&torndown(7)), (Route::Core, Retire::None), "one still up");
-    assert_eq!(c.from_host(&torndown(8)), (Route::Core, Retire::Settle(RECORD)));
+    assert_eq!(c.take_host_message(&torndown(7)), (Route::Core, Retire::None), "one still up");
+    assert_eq!(c.take_host_message(&torndown(8)), (Route::Core, Retire::Settle(RECORD)));
     assert!(!c.get(RELID).unwrap().releasing);
     assert!(!c.release(RECORD), "nothing left to keep");
 }
@@ -306,6 +313,6 @@ fn a_closed_channel_is_only_torn_down() {
 fn a_driver_s_own_teardown_answer_is_its_own() {
     let mut c = world();
     post(&mut c, &gpadl_header(RELID, 7, 1, &[0x800])).unwrap();
-    assert_eq!(c.from_host(&torndown(7)), (Route::Channel(RELID), Retire::Settle(RECORD)));
+    assert_eq!(c.take_host_message(&torndown(7)), (Route::Channel(RELID), Retire::Settle(RECORD)));
     assert_eq!(c.take(RECORD).map(|(n, b)| (n, u32_at(&b, 0), u32_at(&b, 8))), Some((12, 12, 7)));
 }
