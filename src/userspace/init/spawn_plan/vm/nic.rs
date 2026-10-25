@@ -15,12 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The network cards hypervisors emulate and no current machine carries,
-//! each spawned only where the device table has its device.
+//! each spawned only where the device table has its device (Hyper-V's,
+//! where its SynIC is up).
 
 pub(in crate::userspace::init::spawn_plan) fn spawn() {
     spawn_pcnet();
     spawn_vmxnet3();
     spawn_tulip();
+    spawn_netvsc();
 }
 
 #[cfg(feature = "nonos-capsule-driver-pcnet")]
@@ -73,3 +75,22 @@ fn spawn_tulip() {
 }
 #[cfg(not(feature = "nonos-capsule-driver-tulip"))]
 fn spawn_tulip() {}
+
+/// Where the Hyper-V SynIC is up: the driver waits for the VMBus core to
+/// give it the network adapter's channel, and leaves if none comes.
+#[cfg(feature = "nonos-capsule-driver-netvsc")]
+fn spawn_netvsc() {
+    use crate::hardware::netvsc_capsule as c;
+    if !crate::arch::hv_vmbus_ready() {
+        crate::sys::boot_log::ok("DRIVER-NETVSC", "no Hyper-V SynIC, not spawned");
+        return;
+    }
+    super::super::boot::capsule(
+        "DRIVER-NETVSC",
+        "driver_netvsc",
+        c::spawn_driver_netvsc_capsule,
+        c::shared_state,
+    );
+}
+#[cfg(not(feature = "nonos-capsule-driver-netvsc"))]
+fn spawn_netvsc() {}

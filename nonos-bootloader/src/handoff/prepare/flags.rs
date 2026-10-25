@@ -29,6 +29,8 @@ pub fn build_handoff_flags(
     let mut f: u64 = 0;
     if fb_available {
         f |= flags::FB_AVAILABLE;
+    } else {
+        f |= flags::FB_REFUSED;
     }
     if acpi_available {
         f |= flags::ACPI_AVAILABLE;

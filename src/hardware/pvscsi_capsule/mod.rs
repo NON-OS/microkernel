@@ -20,8 +20,10 @@
 //! target then LUN order; the kernel never touches the adapter.
 
 mod embed;
+mod endpoint;
 mod spawn;
 mod state;
 
+pub use endpoint::ENDPOINT;
 pub use spawn::{spawn_driver_pvscsi_capsule, SpawnError};
 pub use state::shared_state;

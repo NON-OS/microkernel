@@ -24,15 +24,14 @@ pub(crate) const RIPGREP_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-ripgrep")]
 pub(crate) const RIPGREP_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/rg.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/rg.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-ripgrep")]
-pub(crate) const RIPGREP_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/rg.manifest.bin");
+pub(crate) const RIPGREP_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/rg.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-ripgrep")]
 pub(crate) const RIPGREP_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/rg.zk_trailer.bin");
+    crate::baked_trust!("capsules/rg.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-ripgrep"))]
 pub(crate) const RIPGREP_ELF: &[u8] = &[];

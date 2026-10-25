@@ -29,6 +29,8 @@ pub struct Disk {
     pub driver: Driver,
     /// Which of the driver's service names serves it.
     pub instance: u8,
+    /// Which disk behind that service, 0 first.
+    pub unit: u16,
     /// The device to install to. `None` for every row that is not a
     /// target: a driver that did not answer, a controller nothing serves,
     /// a disk that may be the one this boot came from.
@@ -59,15 +61,14 @@ impl Survey {
         self.disks.iter().filter(|d| d.device.is_some()).count()
     }
 
-    /// Whether to tell the person to change the firmware's storage mode:
-    /// only when the RAID controller is there and no disk is, since a disk
-    /// found means the firmware already lets this system reach one.
+    /// Whether to tell the person to change the firmware's storage mode: only
+    /// with the RAID controller there and no disk, since a disk found means
+    /// the firmware already lets this system reach one.
     pub fn raid_hides_disks(&self) -> bool {
         self.raid && self.targets() == 0
     }
 
-    /// Whether a later look may find more: there is nothing to install to,
-    /// or a row says a driver is missing or did not answer.
+    /// Whether a later look may find more: nothing to install to, or a driver missing.
     pub fn incomplete(&self) -> bool {
         self.targets() == 0 || self.disks.iter().any(Disk::missing)
     }

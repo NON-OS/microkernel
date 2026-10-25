@@ -25,8 +25,7 @@ use crate::memory::addr::PhysAddr;
 
 pub(crate) fn init_framebuffer(handoff: &BootHandoffV1) {
     let Some(fb) = handoff.framebuffer() else {
-        log_refused(b"the loader handed over no framebuffer");
-        return;
+        return super::no_fb::no_framebuffer(handoff);
     };
     init_framebuffer_from(fb);
 }
