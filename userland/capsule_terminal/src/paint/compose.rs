@@ -28,6 +28,8 @@ use crate::term::theme::types::Theme;
 mod complete_panel;
 #[path = "compose_tab.rs"]
 mod compose_tab;
+#[path = "theme_panel.rs"]
+mod theme_panel;
 use compose_tab::paint;
 
 /// What a frame paints around the active tab: every tab, which one is active,

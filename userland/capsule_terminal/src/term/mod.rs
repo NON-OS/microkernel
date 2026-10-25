@@ -38,6 +38,7 @@ pub mod select;
 pub mod state;
 pub mod terminal;
 pub mod theme;
+pub mod theme_pick;
 pub mod util;
 
 #[cfg(not(feature = "agentproof-headless"))]

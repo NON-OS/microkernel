@@ -70,4 +70,6 @@ pub struct State {
     pub completions: alloc::vec::Vec<alloc::vec::Vec<u8>>,
     /// The splash's emblem as last drawn, kept so a frame does not redo it.
     pub splash_art: core::cell::RefCell<crate::paint::fetch::fetch_emblem::Art>,
+    /// The theme picker, while `theme` with no name has it open.
+    pub theme_pick: Option<crate::term::theme_pick::Pick>,
 }
