@@ -33,6 +33,7 @@ pub mod sig;
 pub mod spec;
 mod spec_default;
 pub mod tcg;
+pub mod tcg_capsule;
 pub mod tcg_event;
 pub mod tcg_log;
 
