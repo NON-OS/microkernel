@@ -33,6 +33,7 @@ impl<'a> Enrol<'a> {
         let ak_public = r.array()?;
         let host_keys = r.array()?;
         let pcrs = [r.array()?, r.array()?, r.array()?, r.array()?];
+        let boot_apps = crate::enrol::boot::read(&mut r)?;
         let not_after_ms = r.u64()?;
         let authority = r.array()?;
         let sig = HybridSig::read(&mut r)?;
@@ -44,6 +45,7 @@ impl<'a> Enrol<'a> {
             ak_public,
             host_keys,
             pcrs,
+            boot_apps,
             not_after_ms,
             authority,
             sig,

@@ -35,8 +35,10 @@ fn extra_data_that_is_not_the_clients_binding_is_refused() {
 #[test]
 fn a_dma_posture_other_than_the_one_bound_is_refused() {
     // The document says what the quote did not sign.
-    let s = Spec { bound_dma: Some((1, true, 4)), ..Spec::default() };
-    assert_eq!(refused(s), Refusal::Binding);
+    for bound in [(1, true, 4, 0), (1, true, 0, 2)] {
+        let s = Spec { bound_dma: Some(bound), ..Spec::default() };
+        assert_eq!(refused(s), Refusal::Binding, "{bound:?}");
+    }
     let s = Spec { root: Some([0x11; 32]), doc: |p| p.root = [0x12; 32], ..Spec::default() };
     assert_eq!(refused(s), Refusal::Binding);
 }

@@ -1,9 +1,26 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! What PCR 4 may hold. The TPM extends only an event's digest, never its
 //! type, so a type is only a claim: an application relabelled as an action
 //! would replay the same. PCR 4 therefore admits four types alone, and a
 //! separator or action must carry the SHA-256 of its own body, so the
 //! only digests in PCR 4 the client cannot recompute are applications,
-//! and every one of those is held to the policy.
+//! and every one of those is held to the release's loader or the
+//! machine's enrolment.
 
 use nonos_hash::sha256;
 
