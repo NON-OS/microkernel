@@ -56,6 +56,7 @@ fn every_refusal_has_its_own_name() {
         Refusal::Registry,
         Refusal::RegistryIncomplete,
         Refusal::CapsuleCount,
+        Refusal::NotVendor,
         Refusal::Front,
     ];
     let names: std::collections::HashSet<_> = all.iter().map(|r| r.name()).collect();

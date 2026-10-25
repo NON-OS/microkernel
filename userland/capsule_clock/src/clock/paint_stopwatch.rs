@@ -22,7 +22,9 @@ use crate::clock::{fmt, theme};
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let e = state.sw.elapsed(state.now_ms);
     let buf = fmt::ms_clock(e);
-    fb.text_scaled(40, 150, &buf, theme::FG, 5);
+    // Eight glyphs, each 9 x scale on: at 4 they end at x 324, inside the
+    // 360 the clock is laid out for.
+    fb.text_scaled(40, 150, &buf, theme::FG, 4);
     let label: &[u8] = if state.sw.running { b"Stop" } else { b"Start" };
     fb.fill_rect(40, 300, 130, 46, theme::ACCENT);
     fb.text(80, 318, label, theme::BG);

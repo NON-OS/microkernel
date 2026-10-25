@@ -16,7 +16,6 @@
 
 use nonos_app_skeleton::{EventOutcome, InputEvent, PaintBuffer};
 
-use super::manifest::HEIGHT;
 use super::state::{Mode, State};
 use super::theme::{BACKGROUND, FOREGROUND, MUTED};
 
@@ -55,7 +54,8 @@ pub fn paint_help(fb: &mut PaintBuffer) {
         fb.text(LEFT, y, line.as_bytes(), MUTED);
         y += LINE_H;
     }
-    fb.text(LEFT, HEIGHT - 22, b"any key to close", MUTED);
+    // Under the keys, at the foot of the window it is painted into.
+    fb.text(LEFT, fb.height.saturating_sub(22).max(y), b"any key to close", MUTED);
 }
 
 // Any key dismisses the help back to browsing.
