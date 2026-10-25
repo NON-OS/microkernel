@@ -62,12 +62,9 @@ src/entry/fallback.rs 1
 src/fs/procfs/cpuinfo/mod.rs 3
     GAP: /proc/cpuinfo from CPUID. Elsewhere: riscv64 gets empty string; aarch64 has own branch
 
-src/hardware/broker/api.rs 2
+src/hardware/broker/api.rs 3
     GAP: ACPI GPIO/I2C register, port-I/O grants. Elsewhere: no GPIO broker; I2C via fdt_i2c, PIO
     stubs in pio_absent.rs
-
-src/hardware/broker/claim/retire_io.rs 1
-    quiesce port-I/O grants on release. Elsewhere: nothing: no port space, nothing to quiesce
 
 src/hardware/broker/confine/gates.rs 2
     GAP: ACS isolation group + DMA aliases. Elsewhere: empty group, no aliases; needs ACS walk over
@@ -103,7 +100,11 @@ src/hardware/broker/mmio/forbidden_iommu.rs 2
     GAP: VT-d/AMD-Vi register windows forbidden. Elsewhere: pushes nothing; SMMU window not
     forbidden (none found)
 
-src/hardware/broker/mod.rs 5
+src/hardware/broker/mmio/mod.rs 1
+    boot RAM ranges handed to the x86 ACPI parser that checks IOMMU unit bases. Elsewhere: nothing:
+    its one caller is under src/arch/x86_64
+
+src/hardware/broker/mod.rs 6
     GAP: ACPI, ACPI GPIO/I2C, port-I/O broker. Elsewhere: no GPIO broker off ACPI; I2C via fdt_i2c,
     PIO via pio_absent.rs
 
@@ -218,8 +219,9 @@ src/process/address_space/types.rs 2
 src/process/context/mod.rs 4
     GAP: x86 saved Context + install. Elsewhere: riscv64 has no Context type; aarch64 has own
 
-src/process/exit/finalize.rs 1
-    release port-I/O grants at exit. Elsewhere: nothing: no port grants exist
+src/process/core/entered.rs 1
+    an entry that loaded nothing marks its process ready again; x86_64's entry parks or retries
+    instead. Elsewhere: this is the path they take
 
 src/process/mod.rs 2
     GAP: foreign (guest) hosting. Elsewhere: no guest hosting; foreign_absent.rs answers ENOSYS
