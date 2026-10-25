@@ -29,15 +29,14 @@ pub(super) const NET_IP_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-net-ip")]
 pub(super) const NET_IP_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_ip.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/net_ip.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-net-ip")]
-pub(super) const NET_IP_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_ip.manifest.bin");
+pub(super) const NET_IP_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/net_ip.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-net-ip")]
 pub(super) const NET_IP_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_ip.zk_trailer.bin");
+    crate::baked_trust!("capsules/net_ip.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-net-ip"))]
 pub(super) const NET_IP_ELF: &[u8] = &[];
