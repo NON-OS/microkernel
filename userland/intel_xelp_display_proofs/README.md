@@ -31,4 +31,10 @@ sides of a test. What is proved:
 - the PLL sequences' order, a power or lock that never comes leaving the
   PLL down, and the port clock's two writes.
 
-Run with `cargo test`. Letters gpu-2a and gpu-2b list the mutants caught.
+- the combo PHY: register addresses, the procmon table column by column,
+  initialisation's values and order (and B refused before A), every swing
+  row and lane field, loadgen per lane, IO power and the DDI buffer. The
+  model fans group writes out to the lanes and answers group reads with
+  junk, so a read of a group address would be seen.
+
+Run with `cargo test`. Letters gpu-2a to gpu-2c list the mutants caught.

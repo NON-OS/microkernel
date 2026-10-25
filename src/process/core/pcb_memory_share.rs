@@ -46,4 +46,17 @@ impl ProcessControlBlock {
         mem.resident_pages.fetch_add(pages as u64, Ordering::Relaxed);
         Ok(va)
     }
+
+    /* Give back a window from `reserve_vma` whose mapping failed. */
+    pub fn unreserve_vma(&self, start: VirtAddr, length: usize) {
+        let pages = length.div_ceil(4096) as u64;
+        let mut mem = self.memory_state();
+        if let Some(at) = mem.vmas.iter().position(|v| v.start == start) {
+            mem.vmas.remove(at);
+            mem.resident_pages.fetch_sub(pages, Ordering::Relaxed);
+        }
+        drop(mem);
+        // And its addresses, which `reserve_unmapped` took (L54).
+        let _ = self.mmap_va.lock().release(start.as_u64(), pages);
+    }
 }

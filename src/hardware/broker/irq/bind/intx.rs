@@ -24,7 +24,7 @@ use super::intx_say::say_route;
 use super::sentinels::NO_IRTE;
 use crate::arch::interrupt::broker::vector_of;
 use crate::arch::interrupt::ioapic;
-use crate::hardware::broker::table;
+use crate::hardware::broker::{pio, table};
 
 pub(super) fn bind_intx(
     pid: u32,
@@ -35,18 +35,18 @@ pub(super) fn bind_intx(
         .into_iter()
         .find(|r| r.device_id == req.device_id)
         .ok_or(IrqBindError::UnknownDevice)?;
-    validate_intx_request(&req, device.irq_pin, device.irq_line)?;
-    // The driver names its line by ISA IRQ number; the IOAPIC is programmed by
-    // GSI. Resolve the MADT override once (identity when none) and route, mask
-    // and record by that GSI so ack/unmask hit the same redirection entry.
+    let (pin, line) = pio::intx_view(&device, req.irq_source);
+    validate_intx_request(&req, pin, line)?;
+    // The driver names an ISA IRQ; the IOAPIC is programmed by GSI, the MADT
+    // override resolved once, so ack and unmask hit the same entry.
     let gsi = ioapic::gsi_for_irq(req.irq_source);
     line_free(gsi, req.device_id)?;
 
     let slot = slots::try_alloc_slot().ok_or(IrqBindError::NoVector)?;
     let vector = vector_of(slot).ok_or(IrqBindError::NoVector)?;
     let dest_apic_id = crate::arch::interrupt_controller::local_id();
-
-    let (rte, irte) = match ioapic::program_route_external(gsi, vector, dest_apic_id) {
+    let mode = super::intx_mode::described(&device);
+    let (rte, irte) = match ioapic::program_route_external(gsi, vector, dest_apic_id, mode) {
         Ok((rte, irte)) => (rte, irte.unwrap_or(NO_IRTE)),
         Err(e) => {
             slots::free_slot(slot);
@@ -56,9 +56,10 @@ pub(super) fn bind_intx(
     let _ = ioapic::mask(gsi, true);
     open_intx(req.device_id);
     say_route(req.device_id, gsi, &rte);
-
     let grant_id = records::allocate_id();
-    records::insert(IrqGrant {
+    // Active before the record is seen: a drain finding it comes after (L77).
+    slots::activate(slot, grant_id, gsi);
+    super::enter::enter(&[IrqGrant {
         grant_id,
         pid,
         device_id: req.device_id,
@@ -69,8 +70,7 @@ pub(super) fn bind_intx(
         kind: IrqGrantKind::Intx,
         device_vector: 0,
         irte,
-    });
-    slots::activate(slot, grant_id, gsi);
+    }])?;
 
-    Ok(IrqBindResult { grant_id, vector })
+    Ok(IrqBindResult { grant_id, vector, grants: 1 })
 }

@@ -30,7 +30,8 @@ pub enum XhciError {
     CommandCompletionFailed(u8),
     UnexpectedCompletionSlot,
     TransferCompletionFailed(u8),
-    /// Every place for an armed interrupt TRB's event is taken.
+    /// Every place for an armed TRB's event (interrupt, polled bulk IN, isoch)
+    /// is taken.
     TooManyArmed,
     /// USBSTS reads all ones (the controller is gone) or reports a Host
     /// System Error or Host Controller Error, or an abort never stopped
