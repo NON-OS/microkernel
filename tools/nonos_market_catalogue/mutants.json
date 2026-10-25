@@ -119,5 +119,11 @@
  {"name": "run-update-writes", "file": "run.py", "old": "if update_lock:\n        lock.write", "new": "if False:\n        lock.write"},
  {"name": "run-holds-apk", "file": "run.py", "old": "        if pins is not None:\n            lock.bytes_held(", "new": "        if False:\n            lock.bytes_held("},
  {"name": "lock-apk-compared", "file": "lock.py", "old": "if pins[n][\"B\"] != b]", "new": "if False]"},
- {"name": "lock-pins-apk", "file": "lock_file.py", "old": "PINNED = FIELDS + (\"B\",)", "new": "PINNED = FIELDS"}
+ {"name": "lock-pins-apk", "file": "lock_file.py", "old": "PINNED = FIELDS + (\"B\",)", "new": "PINNED = FIELDS"},
+ {"name": "program-path-unchecked", "file": "recipes.py", "old": "    if \"program\" in item and not PROGRAM.fullmatch(item[\"program\"]):", "new": "    if False:"},
+ {"name": "program-by-bytes-ignored", "file": "apk.py", "old": "    if wanted:\n        return chosen_by_bytes(entries, name, wanted)\n", "new": ""},
+ {"name": "program-other-name-first", "file": "apk.py", "old": "    if device != want:", "new": "    if False:"},
+ {"name": "program-own-name-not-first", "file": "apk.py", "old": "    device = own if own in same else same[0]", "new": "    device = same[0]"},
+ {"name": "program-not-elf-kept", "file": "apk.py", "old": "    if not body.startswith(b\"\\x7fELF\"):\n        raise ValueError(f\"its program {wanted} is not an ELF\")", "new": ""},
+ {"name": "program-first-copy", "file": "apk.py", "old": "    last = {e.name: e.body for e in entries}", "new": "    last = {e.name: e.body for e in reversed(entries)}"}
 ]

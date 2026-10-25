@@ -15,12 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! A market program installed in the box its release names: the
 //! fourth word of the request (arg), what the policy is held to (check),
-//! the install (run) and its binding (bind), and what keeps the package's
+//! the install (run), which program it records (choose) and its binding
+//! (bind), and what keeps the package's
 //! programs from starting unboxed meanwhile (minted, take, hold).
 
 pub(super) mod arg;
 mod bind;
 mod check;
+pub(super) mod choose;
 pub(super) mod hold;
 pub(super) mod minted;
 mod run;

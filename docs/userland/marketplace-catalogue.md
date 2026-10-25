@@ -4,10 +4,13 @@ How a curated Linux app becomes a schema-3 Marketplace listing that carries its 
 
 ## What a listing carries
 
-A catalogue app is an Alpine v3.20 package. Its release pins the BLAKE3 of the `.apk`. It also carries a `guest_policy`, the 256-byte box of the plan, written for the exact program the installer will record (`install/record/program.rs`):
+A catalogue app is an Alpine v3.20 package. Its release pins the BLAKE3 of the `.apk`. It also carries a `guest_policy`, the 256-byte box of the plan, written for the exact program the installer will record (`install/market/choose.rs`):
 
 - `usr/bin/<package>` when the package has a regular file there;
-- else its first ELF under `usr/bin`, in archive order.
+- else its first ELF under `usr/bin`, in archive order;
+- or, for a package of many programs, the one its recipe names as `program` (monero's `usr/bin/monero-wallet-cli`).
+
+On the device a market install records the program whose bytes its policy names: of the names under `usr/bin` whose last copy is an ELF of those bytes, `usr/bin/<package>` if it is one, else the first in archive order. A policy naming bytes the package does not carry records nothing, and the install is refused. The generator holds a recipe's `program` to that same rule and refuses one that would lead the device to another name (`tools/nonos_market_catalogue/apk.py`, `chosen_by_bytes`).
 
 The bytes hashed are the last copy of that name, which is the one that lands. A package whose `usr/bin/<package>` is not an ELF is refused, never passed over (`tools/nonos_market_catalogue/apk.py`, `program`).
 
@@ -38,6 +41,7 @@ Nothing is listed until the generator has authenticated it as the device does, u
 | `name`, `text` | yes | what the store shows |
 | `calls` | no | the measured set, as `nonos-linux-pack syscalls --from-log` prints it |
 | `dests` | no | a file inside the tree of the plan destinations, one a line; needs NET_ANON |
+| `program` | no | the program the listing sells, as `usr/bin/<name>`, for a package of many programs |
 
 Without `calls` the set is UNMEASURED: buckets 0 to 511 set and 512 clear (`tools/nonos_market_catalogue/recipes.py:31`). That is the market-ready form of "no set yet". A recipe is refused if:
 
@@ -99,4 +103,4 @@ After the fetch, every listing's `.apk` must be the one `B` pins. So two seals o
 - **A real package:** `vectors/` holds one real Alpine package (CC0-1.0) and its signed index record. RSA verification and the package chain are tested against Alpine's own signature, and a test key covers the padding and length rules.
 - **Hostile inputs:** tests for every refusal: gzip, tar, pax, the chain, the index, names, recipes, documents, fetches and the run.
 - **A seeded fuzz sweep:** `test_fuzz.py`, over every parser of untrusted input. Use NONOS_FUZZ_ITERS and NONOS_FUZZ_SEED for a long run.
-- **Mutants:** `test_mutants.py` applies each of the 121 mutants in `tools/nonos_market_catalogue/mutants.json` to a copy of the tree. The suite must fail on every one and pass on the unmutated copy. A mutant that hangs the suite counts as killed after 120 s.
+- **Mutants:** `test_mutants.py` applies each of the 127 mutants in `tools/nonos_market_catalogue/mutants.json` to a copy of the tree. The suite must fail on every one and pass on the unmutated copy. A mutant that hangs the suite counts as killed after 120 s.

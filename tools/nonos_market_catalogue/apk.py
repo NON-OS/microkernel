@@ -25,11 +25,16 @@ from . import tarwalk
 MAX_IMAGE = 64 << 20
 
 
-def program(files: bytes, name: str):
+def program(files: bytes, name: str, wanted: str = ""):
     """(path, body) of the program, None when there is none, or ValueError
     when the recorded file is not an ELF: the program could not start, and
-    a policy naming it would name nothing that runs."""
+    a policy naming it would name nothing that runs. `wanted` is a recipe's
+    `program`, the path its listing sells; the device records by the bytes
+    the policy names (install/market/choose.rs), so the path must be the one
+    those bytes lead it to."""
     entries = tarwalk.files(files)
+    if wanted:
+        return chosen_by_bytes(entries, name, wanted)
     own = f"usr/bin/{name}".encode()
     if any(e.name == own for e in entries):
         chosen = own
@@ -44,3 +49,25 @@ def program(files: bytes, name: str):
     if len(body) > MAX_IMAGE:
         raise ValueError(f"its program is past the {MAX_IMAGE >> 20} MiB the device binds")
     return chosen.decode(errors="replace"), body
+
+
+def chosen_by_bytes(entries, name: str, wanted: str):
+    """choose.rs's rule with a policy: of the usr/bin names whose last copy
+    is an ELF of the wanted program's bytes, usr/bin/<name> if one, else the
+    first in archive order. It must lead back to `wanted`, or the device
+    would record another path than the one the listing sells."""
+    want = wanted.encode()
+    last = {e.name: e.body for e in entries}
+    body = last.get(want)
+    if not want.startswith(b"usr/bin/") or body is None:
+        raise ValueError(f"its program {wanted} is not in the package")
+    if not body.startswith(b"\x7fELF"):
+        raise ValueError(f"its program {wanted} is not an ELF")
+    if len(body) > MAX_IMAGE:
+        raise ValueError(f"its program is past the {MAX_IMAGE >> 20} MiB the device binds")
+    same = [e.name for e in entries if e.name.startswith(b"usr/bin/") and last[e.name] == body]
+    own = f"usr/bin/{name}".encode()
+    device = own if own in same else same[0]
+    if device != want:
+        raise ValueError(f"its program's bytes are also {device.decode(errors='replace')}, which the device would record")
+    return wanted, body

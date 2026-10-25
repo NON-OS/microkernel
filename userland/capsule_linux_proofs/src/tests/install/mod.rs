@@ -41,6 +41,7 @@ mod listed_find_tests;
 mod listing_family_tests;
 mod manifest_tests;
 mod market_gate_tests;
+mod choose_tests;
 mod market_tests;
 mod minted_tests;
 mod mirror_fence_tests;

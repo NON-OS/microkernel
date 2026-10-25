@@ -22,6 +22,7 @@ use nonos_app_skeleton::clients::vfs;
 use nonos_libc::mk_getpid;
 
 use super::super::auth::Verified;
+use super::super::market::choose::choose;
 use super::super::tar::entries;
 
 // Outside every family's tree, where no guest can rewrite what its package
@@ -29,20 +30,18 @@ use super::super::tar::entries;
 use crate::linux::file::family::records;
 use crate::linux::whole::{ask, whole};
 
-/// Record `usr/bin/<name>` if the package has it, else its first program.
-/// True when it is recorded, or the package has no program to record.
+/// Record the program market::choose picks: the one a market release's
+/// policy names, else `usr/bin/<name>`, else the package's first program.
+/// True when it is recorded, or the package has no program to record; a
+/// policy naming bytes the package does not carry records nothing, and bind
+/// refuses the install.
 pub(in crate::linux::install) fn record(name: &str, files: &Verified) -> bool {
     let all = entries(files.files());
-    let mut programs = all
-        .iter()
-        .filter(|e| e.name.starts_with(b"usr/bin/") && e.body.starts_with(b"\x7fELF"))
-        .map(|e| e.name.as_slice());
-    let own = [b"usr/bin/".as_slice(), name.as_bytes()].concat();
-    let chosen = match all.iter().any(|e| e.name == own) {
-        true => Some(own.as_slice()),
-        false => programs.next(),
-    };
-    let Some(path) = chosen else { return true };
+    let pairs: Vec<(&[u8], &[u8])> =
+        all.iter().map(|e| (e.name.as_slice(), e.body.as_slice())).collect();
+    let want = super::super::market::hold::wanted();
+    let hash = |b: &[u8]| *blake3::hash(b).as_bytes();
+    let Some(path) = choose(&pairs, name.as_bytes(), want.as_ref(), hash) else { return true };
     let pid = mk_getpid();
     make_records(pid);
     vfs::write_file(pid, &at(name), &[b"/".as_slice(), path].concat()).is_ok()

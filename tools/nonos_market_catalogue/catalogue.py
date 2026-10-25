@@ -43,7 +43,7 @@ def one(recipe: dict, rec: dict, raw: bytes, key: str, when_ms: int) -> dict:
     if rec.get("L", "") != recipe.get("index_licence", recipe["licence"]):
         raise ValueError(f"the index now says {rec.get('L')!r}, the recipe {recipe['licence']!r}")
     files = alpine_auth.package_files(raw, alpine_auth.checksum(rec.get("C")))
-    found = apk.program(files, name)
+    found = apk.program(files, name, recipe.get("program", ""))
     if found is None:
         raise ValueError("the package has no program under usr/bin")
     app, rel_id = f"linux.{name}", f"{name}@{rec['V']}"

@@ -18,6 +18,7 @@ package, the licence the index must still give it, the services its box
 grants, optionally a dests file (one the plan item a line) and a measured
 set, and the store's text. Every field is checked before any is used."""
 
+import re
 from pathlib import Path
 
 from nonos_linux_pack.dests import dests_list
@@ -33,7 +34,10 @@ UNMEASURED = b"\xff" * 64 + b"\x00"
 # linux.blackarch.* as pacman, qwen- and nonos- are the image's own tiers and tools.
 NAMESPACES = ("kali.", "blackarch.", "qwen-", "nonos-")
 KEYS = frozenset(("package", "licence", "mask", "dests", "calls", "name", "text",
-                  "index_licence", "licence_source"))
+                  "index_licence", "licence_source", "program"))
+# A recipe's `program`: the one program of a package of many its listing
+# sells, by its path in the package (install/market/choose.rs).
+PROGRAM = re.compile(r"usr/bin/[a-z0-9][a-z0-9._+-]{0,63}")
 
 
 def calls_of(item: dict) -> bytes:
@@ -60,6 +64,8 @@ def checked(item: dict, root: Path) -> dict:
     said, source = item.get("index_licence"), item.get("licence_source")
     if (said or source) and not (said and source and source.startswith("https://") and said != item["licence"]):
         raise ValueError(f"{item['package']}: index_licence and licence_source go together, cite https, and differ")
+    if "program" in item and not PROGRAM.fullmatch(item["program"]):
+        raise ValueError(f"{item['package']}: its program is not a path under usr/bin")
     mask = mask_of(item["mask"])
     dests = None
     if item.get("dests"):
