@@ -21,9 +21,9 @@ its test shows.
 
 | Claim | Against | What holds it |
 |---|---|---|
-| C1. Until you choose to keep things, the kernel refuses every write to the disk store, whichever capsule calls the store write; only the policy capsule the kernel spawned can turn keeping on, and nothing turns it off within a boot | A1, A5 | `zerostate_proofs`, with the mutant "keeping turned on by another capsule" caught; `src/security/zerostate/keep.rs` |
+| C1. Until you choose to keep things, the kernel lets no write record anything on the disk store, whichever capsule calls the store write: only an erase, every changed byte a zero, passes; only the policy capsule the kernel spawned can turn keeping on, and nothing turns it off within a boot | A1, A5 | `zerostate_proofs`, with the mutant "keeping turned on by another capsule" caught; `src/security/zerostate/keep.rs` |
 | C2. An installed disk's data volume opens only under the TPM's key for this machine in this boot state | A1 | the key is derived by the TPM under PCRs 0, 4, 7 and 9 (`src/security/tpm/machine_key/pcrs.rs`); no booted test in this unit |
-| C3. After Power Off, what you typed this boot is not in RAM | A2 | the zero-state boot test (`tools/nonos-zero-state-check`) |
+| C3. After Power Off, what you typed this boot is not in RAM | A2 | booted at 6d87d9aff: 8 copies before, 0 after (`privacy-evidence/2026-10-25/zs-6d87d9aff`) |
 | C4. Nothing that lasts across boots reaches the wire: hardware address, DHCP, Nym and Anyone identities are new each boot | A3, A4 | `nonos_mac`, held by `e1000_proofs`, `e1000e_proofs` and `igb_proofs`; DHCP's options are not yet held by a test |
 | C5. Every connection made without your asking is listed, with why and how to stop it | A3 | `tools/nonos-egress-audit`, in the static checks |
 | C6. A capsule without Network is refused every network service by the kernel | A5 | the send gate in `src/syscall/microkernel/ipc/send_caps.rs`; a booted refusal test is still to come |
