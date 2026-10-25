@@ -213,5 +213,5 @@ let
   loaderReady = lib.all (f: builtins.pathExists (src.root + "/${f}")) (builtins.attrValues kernelKeys);
 in
 {
-  inherit kernel bootloader hostTools kernelKeys epoch rev loaderReady kernelReady unsealed;
+  inherit kernel bootloader hostTools kernelKeys epoch rev loaderReady kernelReady unsealed shipped;
 }
