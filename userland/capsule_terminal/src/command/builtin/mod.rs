@@ -29,7 +29,7 @@ pub mod git;
 pub mod help;
 mod help_layout;
 pub mod help_one;
-mod help_pages;
+pub mod help_pages;
 mod help_tools;
 mod help_unknown;
 mod help_usage;

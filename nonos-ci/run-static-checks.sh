@@ -2360,6 +2360,17 @@ else
     fail_with "bootloader build.rs writes outside OUT_DIR"
 fi
 unset boot_build
+# The kernel embeds its trust set only through baked_trust!, so a build pointed
+# at a test set (NONOS_BAKED_TRUST_DIR) replaces every file of it; a trust file
+# included by its literal path would keep the tree's copy in that build.
+literal_trust="$( { grep -rnE '"(\.\./)+nonos-data/trust/' src --include='*.rs' || true; } )"
+if [ -n "${literal_trust}" ]; then
+    fail_with "a kernel file includes the trust set by a literal path, not through baked_trust!"
+    printf '%s\n' "${literal_trust}" >&2
+else
+    note ok "the kernel embeds its trust set only through baked_trust!"
+fi
+unset literal_trust
 
 boot_features='nonos-bootloader/Cargo.toml'
 if ! grep -q '^hardened-production = \["production"\]' "${boot_features}"; then
@@ -5100,6 +5111,21 @@ else
     fail_with "check_kernel_mirrors: a capsule the kernel should spawn has no mirror"
 fi
 unset mirrors_out
+# The flake builds capsules from tools/nix's catalogues, so one left behind by
+# a new role makes the spawn refuse it on the next image. Only `nix flake
+# check` compared them; here the same comparison runs from make's own output.
+cat_dir="$(mktemp -d)"
+if (for which in capsule capsule-dev store; do
+        make -s --no-print-directory NONOS_IN_FLAKE=1 NONOS_QUIET=1 \
+            "nonos-mk-${which}-catalogue" > "${cat_dir}/${which}.json" || exit 1
+    done) && cat_out="$(TMPDIR="${cat_dir}" python3 -I tools/nix/catalogues.py --check 2>&1)"; then
+    note ok "tools/nix catalogues match what make says the capsules are (catalogues.py)"
+else
+    tail -n 5 <<< "${cat_out:-make failed}" >&2
+    fail_with "catalogues: tools/nix is stale; regenerate with python3 tools/nix/catalogues.py"
+fi
+rm -rf "${cat_dir}"
+unset cat_dir cat_out
 
 # SPHINCS+, NTRU and Classic McEliece do not ship: nothing turns on the
 # feature that builds them.
