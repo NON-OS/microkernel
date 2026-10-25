@@ -20,8 +20,10 @@
  * size the re-take window is drawn from.
  */
 
+#[path = "../../../../src/smp/spin_verdict.rs"]
+pub mod spin_verdict;
 #[path = "../../../../src/smp/spin_watch.rs"]
-pub mod rule;
+pub mod spin_watch;
 #[cfg(test)]
 mod tests;
 #[allow(dead_code)]

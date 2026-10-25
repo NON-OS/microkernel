@@ -24,6 +24,6 @@ pub fn mount_volume(key_id: u32) -> Result<(), VolumeError> {
     let bytes = retrieve(key_id).map_err(VolumeError::Keyring)?;
     let key = key_to_array(&bytes)?;
     let mount = blockfs::mount(&key).map_err(VolumeError::BlockFs)?;
-    *VOLUME.write() = Some(VolumeState { key, mount });
+    *crate::smp::write_responsive(&VOLUME) = Some(VolumeState { key, mount });
     Ok(())
 }
