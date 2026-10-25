@@ -54,6 +54,13 @@ pub fn host_target(
     resolve(host).map_err(lookup_status)
 }
 
+/// Whether `chosen`, the NetworkRoute the policy store gave, is Direct. A
+/// store that does not answer is not Direct, as every other reader of the
+/// choice takes it (nonos_route_link `direct_refused`).
+pub fn is_direct(chosen: Option<u8>) -> bool {
+    chosen == Some(nonos_policy_proto::route::DIRECT)
+}
+
 /// net.dns's answer for a failed lookup, as this service's status. net.dns
 /// unanswered (the envelope's 15) or saying no upstream server answered it
 /// (its E_TIMEOUT, 6) is no DNS server reachable; anything else is a name
