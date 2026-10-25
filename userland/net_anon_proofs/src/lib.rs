@@ -27,9 +27,15 @@ pub mod circuit;
 #[path = "../../capsule_net_anon/src/protocol/mod.rs"]
 pub mod protocol;
 
+// How long the directory waits out a network that is not up yet.
+#[path = "../../capsule_net_anon/src/manager/cold_wait_rule.rs"]
+pub mod cold_wait_rule;
+
 // The header decode and the reply; not the handlers, the SOCKS front or the
 // receive loop.
 pub mod server;
 
+#[cfg(test)]
+mod cold_wait_tests;
 #[cfg(test)]
 mod refusal_tests;

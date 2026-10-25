@@ -17,6 +17,7 @@
 pub mod box_draw;
 pub mod box_hold;
 pub mod box_log;
+pub mod box_missing;
 pub mod box_screen;
 mod box_wait;
 mod capture;

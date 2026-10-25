@@ -26,10 +26,13 @@ use crate::store::{set_bool, set_i8, set_str, set_u64, set_u8};
 /*
  * Persistent goes back on first: the answers were only kept because setup
  * chose a mode that keeps state, and vfs asks this field before every write.
+ * The kernel is told too, as its store write refuses everything until then.
  */
 pub(super) fn apply(record: Record) {
     let answers = record.answers;
-    let _ = set_bool::set(Field::Persistent, true);
+    if set_bool::set(Field::Persistent, true) {
+        push::on_bool_set(Field::Persistent, true);
+    }
     /* Zero, every app on, in a record kept before setup asked. */
     let _ = set_u8::set(Field::AppsOff, record.apps_off);
     /* The Nym mixnet in a record kept before setup asked which network. */

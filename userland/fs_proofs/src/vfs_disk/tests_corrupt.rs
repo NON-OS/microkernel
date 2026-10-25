@@ -59,9 +59,10 @@ fn a_flipped_magic_or_version_bit_refuses_the_store_whole() {
 /*
  * The count is the one header field a flip can leave plausible. Past
  * MAX_ENTRIES the store is refused; above the real count the slots it
- * invents are zeros and each is left out; below it, the dropped tail is a
- * smaller store as far as the format can tell. That last case is the
- * container's own limit: the table carries no check over itself.
+ * invents are zeros, which read as erased slots, so each is left out and
+ * none is called damage; below it, the dropped tail is a smaller store as far
+ * as the format can tell. Both are the container's own limit: the table
+ * carries no check over itself.
  */
 #[test]
 fn a_flipped_count_bit_refuses_invents_nothing_or_drops_the_tail_unseen() {
@@ -75,7 +76,7 @@ fn a_flipped_count_bit_refuses_invents_nothing_or_drops_the_tail_unseen() {
             Ok((same, other, refused)) => {
                 assert!(other.is_empty(), "count {count} served a changed file");
                 if count > 3 {
-                    assert_eq!((same.len(), refused), (3, count as usize - 3), "count {count}");
+                    assert_eq!((same.len(), refused), (3, 0), "count {count}");
                 } else {
                     assert_eq!((same, refused), (files[..count as usize].to_vec(), 0));
                 }
