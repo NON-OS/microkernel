@@ -128,6 +128,11 @@ syscalls.numbers MFTK 1263814221
 syscalls.numbers MFTW 1465140813
 syscalls.numbers MFWT 1415005773
 syscalls.numbers MGPD 1146111821
+syscalls.numbers MHVB 1112950861
+syscalls.numbers MHVE 1163282509
+syscalls.numbers MHVP 1347831885
+syscalls.numbers MHVR 1381386317
+syscalls.numbers MHVS 1398163533
 syscalls.numbers MICL 1279478093
 syscalls.numbers MIED 1145391437
 syscalls.numbers MIEP 1346718029
