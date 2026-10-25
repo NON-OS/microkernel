@@ -46,7 +46,7 @@ fn spawn_i2c_pci() {
     );
 }
 
-#[cfg(not(feature = "nonos-capsule-driver-i2c-pci"))]
+#[cfg(all(not(feature = "nonos-capsule-driver-i2c-pci"), feature = "nonos-capsule-driver-i2c-hid"))]
 fn spawn_i2c_pci() {}
 
 #[cfg(feature = "nonos-capsule-driver-i2c-hid")]
@@ -60,5 +60,5 @@ fn spawn_i2c_hid() {
     );
 }
 
-#[cfg(not(feature = "nonos-capsule-driver-i2c-hid"))]
+#[cfg(all(not(feature = "nonos-capsule-driver-i2c-hid"), feature = "nonos-capsule-driver-i2c-pci"))]
 fn spawn_i2c_hid() {}
