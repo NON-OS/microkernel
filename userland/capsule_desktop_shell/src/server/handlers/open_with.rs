@@ -20,7 +20,7 @@ use super::launcher_request::LaunchOutcome;
 use crate::protocol::{Request, E_BUSY, E_INVAL, E_NOENT};
 use crate::server::respond;
 use crate::state::apps::LAUNCHER_APPS;
-use crate::state::open_arg::is_path;
+use crate::state::open_arg::{is_path, opens_files};
 use crate::state::Context;
 
 pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
@@ -35,7 +35,11 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
     }
     let svc = &body[2..2 + nlen];
     let path = &body[2 + nlen..];
-    let Some(index) = LAUNCHER_APPS.iter().position(|a| a.service == svc) else {
+    // Only an app that opens files (state::open_arg::opener): the shell is a
+    // launcher, and no sender borrows that to start anything stronger.
+    let found = LAUNCHER_APPS.iter().position(|a| a.service == svc && opens_files(svc));
+    let Some(index) = found else {
+        refused(sender_pid, svc);
         let _ = respond::status(sender_pid, req, E_NOENT, tx);
         return;
     };
@@ -56,4 +60,11 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         _ => 0,
     };
     let _ = respond::status(sender_pid, req, status, tx);
+}
+
+/* One serial line for a start refused, as the kernel's bounds say theirs. */
+fn refused(sender_pid: u32, svc: &[u8]) {
+    let svc = core::str::from_utf8(svc).unwrap_or("?");
+    let line = alloc::format!("[CAP-DENY] open-with: pid={sender_pid} app={svc} opens no file\n");
+    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
 }

@@ -40,7 +40,8 @@ pub(super) fn call(t: Target, op: u16, body: &[u8]) -> Result<Vec<u8>, WireError
         decode_response,
     )
     .map_err(|err| {
-        super::slow::lost(e, op, sent - asked, crate::sys::timer::uptime_ms() - asked);
+        let timed_out = err == TransportError::TransportFailure;
+        super::slow::lost(e, op, timed_out, sent - asked, crate::sys::timer::uptime_ms() - asked);
         map_err(err)
     })?;
     let now = crate::sys::timer::uptime_ms();

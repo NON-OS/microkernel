@@ -42,6 +42,13 @@ fn a_broker_naming_no_parent_is_refused_even_within_itself() {
 }
 
 #[test]
+fn a_broker_naming_itself_is_refused() {
+    world(Some(2), &[(2, APP | BROKER)]);
+    assert_eq!(check(&plain(), 0, Some(AttestedParent(2)), "app"), Err(LoadError::BeyondParent));
+    assert_eq!(said(), "[CAP-DENY] load: a broker named no attested parent\n");
+}
+
+#[test]
 fn a_caller_holding_no_broker_may_load_for_itself() {
     world(Some(7), &[(7, APP)]);
     assert_eq!(check(&plain(), 0, None, "app"), Ok(()));

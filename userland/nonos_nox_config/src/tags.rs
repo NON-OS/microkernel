@@ -18,7 +18,8 @@
 //! abi.encode, never the raw string. Each id lives in its own space, so a
 //! channel id can never be passed off as an order or a bond.
 //!
-//!   channelId = keccak256(abi.encode(CHANNEL_TAG, payer, payee, listingId, chainId))
+//!   channelId = keccak256(abi.encode(CHANNEL_TAG, chainId, settlement, payer, payee,
+//!                                    listingId, openNonce))
 //!   orderId   = keccak256(abi.encode(ORDER_TAG, chainId, escrow, terms))
 //!   bondId    = keccak256(abi.encode(BOND_TAG, payee, publisherKey))
 //!   listingId = keccak256(abi.encode(LISTING_TAG, publisherKey, keccak256(appId)))
