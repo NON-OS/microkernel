@@ -19,7 +19,8 @@
 //! delivered drops exactly that record. A failure anywhere between loses
 //! nothing. The invariant is one record, one consume: MkSealRead's take or
 //! MkSealDrop, never both, and never twice. Both are nonos.prove's alone,
-//! by the gate MkSealRead has.
+//! by the gate MkSealRead has, and nonos.prove serves one op at a time on
+//! one thread, so a take never runs between a receipt's peek and its drop.
 
 use super::table::SEALED;
 use crate::syscall::microkernel::device_secret_caller;
@@ -52,9 +53,12 @@ pub(crate) fn sys_seal_drop(app_id_ptr: u64, seal_no: u64) -> i64 {
     let Some(app_id) = app_id_at(app_id_ptr) else { return ERRNO_FAULT };
     let mut sealed = SEALED.lock();
     let at = sealed.iter().position(|s| s.app_id == app_id && s.seal_no == seal_no);
-    /* Dropped here, its witness cleared as every Sealed is (wipe.rs). */
+    /* Its witness cleared here, and again by Sealed's Drop (wipe.rs). */
     match at.and_then(|at| sealed.remove(at)) {
-        Some(_) => 0,
+        Some(mut s) => {
+            s.clear_witness();
+            0
+        }
         None => ERRNO_NOENT,
     }
 }
