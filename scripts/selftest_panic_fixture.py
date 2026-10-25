@@ -20,6 +20,8 @@ the feature could reach a committed build is caught."""
 import json
 import shutil
 import tempfile
+from importlib.machinery import SourceFileLoader
+from importlib.util import module_from_spec, spec_from_loader
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -59,8 +61,26 @@ MUTANTS = {
 }
 
 
+def keeps_features() -> bool:
+    """The selftest copy adds selftest-panic to capsule_linux's cargo_features
+    and drops none it has: a release feature, or one another row gave it."""
+    loader = SourceFileLoader("nonos_dev_image", str(ROOT / "tools/nonos-dev-image"))
+    tool = module_from_spec(spec_from_loader(loader.name, loader))
+    loader.exec_module(tool)
+    entries = [{"slug": "linux", "cargo_features": "dev-mirror"}, {"slug": "hello", "cargo_features": ""}]
+    once = tool.panicking(json.loads(json.dumps(entries)))
+    twice = tool.panicking(json.loads(json.dumps(once)))
+    bare = tool.panicking([{"slug": "linux", "cargo_features": ""}])
+    return (once == twice == [{"slug": "linux", "cargo_features": "dev-mirror,selftest-panic"},
+                              {"slug": "hello", "cargo_features": ""}]
+            and bare == [{"slug": "linux", "cargo_features": "selftest-panic"}])
+
+
 def self_test(problems) -> int:
     bad = 0
+    kept = keeps_features()
+    print(f"selftest-panic self-test: a feature capsule_linux has: {'kept' if kept else 'DROPPED'}")
+    bad += not kept
     with tempfile.TemporaryDirectory() as d:
         if problems(tree(Path(d))):
             print("selftest-panic self-test: the clean tree is refused")
