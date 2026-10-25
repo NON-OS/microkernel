@@ -36,7 +36,7 @@ pub fn load(state: &mut State, target: &str) -> Result<(), &'static str> {
     if crate::browser::fetch::about_page::about_page(state, target) {
         return Ok(());
     }
-    let url = url::parse(target).ok_or("bad url")?;
+    let url = url::parse(target).ok_or_else(|| url::refusal(target))?;
     let moved = super::services::services(state, &url.host)?;
     let mut w = NetWire(state.sockets_port);
     if let Some(old) = state.fetch.take() {
