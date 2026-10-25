@@ -53,6 +53,9 @@ pub fn report(b: &BoxPolicy, hash: &[u8; 32], t: &Tally, granted: Option<u64>, e
     for line in allowed(b, granted) {
         let _ = writeln!(s, "  allowed  {line}");
     }
+    if let Some(line) = super::net_report::connected(b, e.reached) {
+        let _ = writeln!(s, "  {line}");
+    }
     let _ = writeln!(s, "  refused  {}", t.total());
     for kind in ALL.iter().filter(|k| t.count(**k) > 0) {
         let _ = write!(s, "    {:<9}{:>6}", kind.tag(), t.count(*kind));

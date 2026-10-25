@@ -1,0 +1,14 @@
+CAUGHT dead admitted 101
+CAUGHT inbox not compared 101
+CAUGHT any pid owns 101
+CAUGHT kernel owns for anyone 101
+CAUGHT missing admitted 101
+CAUGHT peer list ignored 101
+CAUGHT glue: endpoint gate back 101
+CAUGHT glue: rule not asked 101
+CAUGHT facts: zombie alive 101
+CAUGHT facts: names_now from the entry 101
+CAUGHT facts: named always 101
+CAUGHT facts: reachable always 101
+CAUGHT facts: refusal unsaid 101
+13/13 caught

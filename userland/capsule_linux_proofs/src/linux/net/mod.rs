@@ -18,6 +18,8 @@
 //! stream outside the family takes: the route decision, what is said to
 //! net.anon and read back, and the socket table's bookkeeping for it.
 
+#[path = "../../../../capsule_linux/src/linux/net/bind_any.rs"]
+pub mod bind_any;
 #[path = "../../../../capsule_linux/src/linux/net/ready_sets.rs"]
 pub mod ready_sets;
 

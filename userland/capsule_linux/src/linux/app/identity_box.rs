@@ -16,15 +16,23 @@
 
 //! A program's identity inside a `linux --box` box: the services both grant,
 //! and its streams held to the box's destinations as well as its own.
+//!
+//! The one widening: a program with no policy of its own, which runs in the
+//! owner's default box (nonos_linux_policy::unlisted), is given NET_ANON by a
+//! box that names destinations, and is held to exactly that list; so is each
+//! such program the run execs (boxed::exec_program). The person who types the
+//! command owns the machine and that default; a program with a published
+//! policy of its own is only ever narrowed.
 
 use nonos_linux_policy::mask::{narrow, NET_ANON};
+use nonos_linux_policy::unlisted;
 
 use super::identity::AppIdentity;
 use super::reach::{chain, ANYWHERE};
 
 impl AppIdentity {
     pub fn boxed(&self, mask: u64, dests: &'static [u8]) -> Self {
-        let mask = narrow(self.mask, mask);
+        let mask = narrow(self.widened(dests).mask, mask);
         let own = match dests.is_empty() {
             true => ANYWHERE,
             false => [dests, &[]],
@@ -34,5 +42,14 @@ impl AppIdentity {
             None => (mask & !NET_ANON, ANYWHERE),
         };
         Self { mask, reach, ..*self }
+    }
+
+    /// The program's own services, with NET_ANON added only for a program
+    /// with no policy of its own in a box that names destinations.
+    pub fn widened(&self, dests: &[u8]) -> Self {
+        match !dests.is_empty() && self.policy == unlisted(self.policy.program_blake3) {
+            true => Self { mask: self.mask | NET_ANON, ..*self },
+            false => *self,
+        }
     }
 }

@@ -1,0 +1,12 @@
+== keepA: 2088 serial lines
+1194:[ZS] keeping turned on: the person chose it, the policy service says
+2087:[POWER] leave: driver.ahci0 done
+2088:[POWER] leave: driver.usb_msc0 answered -19
+== consentB: 1860 serial lines
+1198:[ZS] store erase on a boot that keeps nothing
+1200:[ZS] store erase on a boot that keeps nothing
+== consentC: 1173 serial lines
+646:[DIAG] ipc.call late policy after 152 ms dropped=1
+A after [('/nonos/consent/local.token', 32), ('/nonos/setup/answers', 139), ('/nonos/setup/done', 4), ('/nonos/settings/values', 129)]
+B before [('/nonos/consent/local.token', 32), ('/nonos/setup/answers', 139), ('/nonos/settings/values', 129)]
+B after [('/nonos/setup/answers', 139), ('/nonos/settings/values', 129)]

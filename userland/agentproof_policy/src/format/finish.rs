@@ -25,8 +25,15 @@ pub fn finish(seen: Seen) -> Result<Policy, Error> {
         return whole("the first line is `nonos-box 1`");
     }
     let Some(base) = seen.base else { return whole("base is missing") };
-    if !seen.network {
-        return whole("network is missing; write `network none`");
+    match (seen.network, seen.connects.first()) {
+        (false, None) => return whole("network is missing; write `network none`"),
+        (true, Some((line, _))) => {
+            return Err(Error { line: *line, why: "connect lines replace `network none`" })
+        }
+        (false, Some((line, _))) if base != Base::Folders => {
+            return Err(Error { line: *line, why: "connect lines go with base folders" })
+        }
+        _ => {}
     }
     match (base, seen.writes.first()) {
         (Base::Folders, None) => whole("base folders needs at least one write line"),
@@ -34,6 +41,10 @@ pub fn finish(seen: Seen) -> Result<Policy, Error> {
             line: *line,
             why: "write lines go with base folders; strict and offline name their own",
         }),
-        _ => Ok(Policy { base, writes: seen.writes.into_iter().map(|(_, w)| w).collect() }),
+        _ => Ok(Policy {
+            base,
+            writes: seen.writes.into_iter().map(|(_, w)| w).collect(),
+            connects: seen.connects.into_iter().map(|(_, c)| c).collect(),
+        }),
     }
 }
