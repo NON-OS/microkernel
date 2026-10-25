@@ -15,10 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Where the wired card's station (MAC) address came from, as its driver
 //! says in word 9 of NNET's OP_STATS (nonos_usbnet nnet/wire.rs, stats.rs),
-//! and the words the Network page shows for it. Only Hyper-V's netvsc
-//! reports it; a driver that always serves the address it drew for the boot
-//! leaves it 0, and the page shows nothing. Pure; held in
+//! and the words the Network page shows for it (station_words.rs). Only
+//! Hyper-V's netvsc reports it; a driver that always serves the address it
+//! drew for the boot leaves it 0, and the page shows nothing. Pure; held in
 //! capsule_settings_proofs.
+
+pub use super::station_words::{rows, said};
 
 const MAGIC: u32 = 0x4E4E_4554;
 const VERSION: u16 = 1;
@@ -52,17 +54,3 @@ pub fn station_of(reply: &[u8], id: u32) -> Option<u32> {
     }
     word(DATA_AT + 9 * 4)
 }
-
-/// What the page says for a source: the value, and the line under the
-/// label when the value needs one. None shows nothing.
-pub fn said(source: u32) -> Option<(&'static str, Option<&'static str>)> {
-    match source {
-        1 => Some(("Private, new each boot", None)),
-        2 | 3 => Some(("Assigned by Hyper-V", Some(HYPER_V))),
-        _ => None,
-    }
-}
-
-/// Why Hyper-V's address is used, as the lead worded it.
-pub const HYPER_V: &str =
-    "Hyper-V drops a chosen address unless MAC spoofing is on for this VM's adapter.";

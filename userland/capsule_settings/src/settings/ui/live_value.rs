@@ -22,7 +22,7 @@ use crate::settings::state::State;
 use super::build_info::{ARCHITECTURE, GIT_SHA, TOOLCHAIN, VERSION};
 use super::live_bt::bt;
 use super::live_link::link;
-use super::live_net::{adapter, addr, link_state, station, station_note};
+use super::live_net::{adapter, addr, link_state};
 use super::live_wifi::{join, remember};
 use super::valbuf::ValBuf;
 
@@ -43,7 +43,6 @@ pub fn resolve(state: &State, live: Live) -> (ValBuf, Tone) {
         Live::WifiJoin => join(&mut b, state),
         Live::WifiRemember => remember(&mut b, state),
         Live::Bt(which) => bt(&mut b, state, which),
-        Live::Station => station(&mut b, state),
         Live::MachineKey => {
             let (words, tone) = said(state.machine_key);
             b.push_str(words);
@@ -63,7 +62,6 @@ pub fn resolve(state: &State, live: Live) -> (ValBuf, Tone) {
 pub fn note(state: &State, live: Live) -> Option<&'static str> {
     match live {
         Live::AudioOutput => Some(audio_output::said(state.audio_output).2),
-        Live::Station => station_note(state),
         _ => None,
     }
 }
