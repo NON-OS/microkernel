@@ -32,6 +32,7 @@ app.linux.run.net
 app.linux.term
 app.linux.term.1
 app.linux.term.2
+app.linux.term.net
 app.nonos_install
 app.nonos_wallet
 app.nonos_wallet.1
@@ -233,6 +234,7 @@ endpoint.app.linux.run.net.reply
 endpoint.app.linux.run.reply
 endpoint.app.linux.term.1.reply
 endpoint.app.linux.term.2.reply
+endpoint.app.linux.term.net.reply
 endpoint.app.linux.term.reply
 endpoint.app.nonos_install.reply
 endpoint.app.nonos_wallet.1.reply

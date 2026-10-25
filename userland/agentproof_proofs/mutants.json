@@ -12,7 +12,7 @@
  {"name": "max-writes", "file": "src/format/words.rs", "old": "seen.writes.len() == MAX_WRITES", "new": "seen.writes.len() == MAX_WRITES + 1"},
  {"name": "file-size", "file": "src/format/mod.rs", "old": "text.len() > MAX_FILE", "new": "text.len() > MAX_FILE + 1"},
  {"name": "needs-header", "file": "src/format/finish.rs", "old": "if !seen.header {", "new": "if false {"},
- {"name": "needs-network", "file": "src/format/finish.rs", "old": "if !seen.network {", "new": "if false {"},
+ {"name": "needs-network", "file": "src/format/finish.rs", "old": "(false, None) => return whole(", "new": "(false, None) if false => return whole("},
  {"name": "presets-no-writes", "file": "src/format/finish.rs", "old": "(Base::Strict | Base::Offline, Some((line, _)))", "new": "(Base::Strict, Some((line, _)))"},
  {"name": "folders-need-writes", "file": "src/format/finish.rs", "old": "(Base::Folders, None) =>", "new": "(Base::Folders, Some((0, _))) =>"},
  {"name": "word-sorted", "file": "src/compile.rs", "old": "            folders.sort();\n", "new": ""},
@@ -21,5 +21,12 @@
  {"name": "whole-file-line", "file": "src/cli/answer.rs", "old": "0 => format!(\"{file}: {}\", e.why)", "new": "0 => format!(\"{file}:0: {}\", e.why)"},
  {"name": "refused-exit", "file": "src/cli/answer.rs", "old": "code: 1,", "new": "code: 2,"},
  {"name": "verbs", "file": "src/cli/mod.rs", "old": "verb @ (\"check\" | \"word\" | \"hash\")", "new": "verb"},
- {"name": "explain-hash", "file": "src/explain.rs", "old": "hex(&c.hash)", "new": "hex(&c.word)"}
+ {"name": "explain-hash", "file": "src/explain.rs", "old": "hex(&c.hash)", "new": "hex(&c.word)"},
+ {"name": "connect-comma", "file": "src/format/words.rs", "old": "if arg.contains(&b',') {", "new": "if false {"},
+ {"name": "connect-with-network-none", "file": "src/format/finish.rs", "old": "(true, Some((line, _))) => {", "new": "(true, Some((line, _))) if false => {"},
+ {"name": "connect-with-strict", "file": "src/format/finish.rs", "old": "if base != Base::Folders", "new": "if false"},
+ {"name": "connect-twice", "file": "src/format/words.rs", "old": "if seen.connects.iter().any(", "new": "if false && seen.connects.iter().any("},
+ {"name": "connect-65", "file": "src/format/words.rs", "old": "seen.connects.len() == MAX_CONNECTS", "new": "seen.connects.len() == MAX_CONNECTS + 1"},
+ {"name": "connect-without-net-role", "file": "src/compile.rs", "old": "for_terminal(&word, !policy.connects.is_empty())", "new": "for_terminal(&word, false)"},
+ {"name": "connect-dropped", "file": "src/compile.rs", "old": "folders.into_iter().chain(nets).collect()", "new": "{ drop(nets); folders }"}
 ]

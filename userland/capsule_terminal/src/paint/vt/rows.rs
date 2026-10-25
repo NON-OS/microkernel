@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which lines fill the body. The shell draws its history ending at the
-//! last line written, so output sits just above the prompt. A program in
-//! the foreground, or on the alternate screen, owns the whole body and is
-//! drawn as its screen.
+//! Which lines fill the body. The shell draws its history ending at the last
+//! line written, with the prompt under it; a program in the foreground, or on
+//! the alternate screen, owns the whole body and is drawn as its screen.
 
 use nonos_vt::{Line, Term};
 
@@ -25,8 +24,7 @@ use nonos_vt::{Line, Term};
 pub enum Rows {
     /// Screen rows `0..n`, as the program laid them out.
     Screen,
-    /// `n` lines of history ending at the last line written, `back` lines
-    /// back into history.
+    /// `n` lines of history ending at the last line written, `back` back.
     Shell { rows: usize, back: usize },
 }
 
@@ -36,12 +34,19 @@ impl Rows {
         match *self {
             Rows::Screen => vt.abs_of_row(0),
             Rows::Shell { rows, back } => {
-                let cur = vt.cursor_pos();
-                let written = vt.line_at(cur.line).is_some_and(|l| l.content_len() > 0);
-                let last =
-                    if cur.col > 0 || written { cur.line } else { cur.line.saturating_sub(1) };
-                let top = (last + 1).saturating_sub(rows as u64).saturating_sub(back as u64);
+                let top = (last(vt) + 1).saturating_sub(rows as u64).saturating_sub(back as u64);
                 top.max(vt.first_line())
+            }
+        }
+    }
+
+    /// The body rows the shell's lines fill, at most `rows`; the prompt follows.
+    pub fn used(&self, vt: &Term) -> usize {
+        match *self {
+            Rows::Screen => vt.rows(),
+            Rows::Shell { rows, .. } => {
+                let filled = (last(vt) + 1).saturating_sub(self.first(vt));
+                (filled as usize).min(rows)
             }
         }
     }
@@ -61,4 +66,11 @@ impl Rows {
             }
         }
     }
+}
+
+/// The last line written: the cursor's, unless it starts an empty line.
+fn last(vt: &Term) -> u64 {
+    let cur = vt.cursor_pos();
+    let written = vt.line_at(cur.line).is_some_and(|l| l.content_len() > 0);
+    if cur.col > 0 || written { cur.line } else { cur.line.saturating_sub(1) }
 }

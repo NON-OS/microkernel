@@ -243,7 +243,7 @@ let
     ]);
     # verify.yml, abi-contracts and syscall-reach
     static-abi = static "abi" (scripts [
-      "scripts/check_syscall_abi.py" "scripts/check_abi_stable.py"
+      "scripts/check_syscall_abi.py --self-test" "scripts/check_syscall_abi.py" "scripts/check_abi_stable.py"
       "nonos-ci/attack_suite_check.py --self-test" "nonos-ci/boot_attest_check.py --self-test"
       "scripts/check_capsule_ports.py --self-test" "scripts/check_capsule_ports.py"
       "scripts/check_handoff_mirror.py --self-test" "scripts/check_handoff_mirror.py"
@@ -257,6 +257,7 @@ let
       "scripts/check_kernel_wait.py --self-test" "scripts/check_kernel_wait.py"
       "scripts/check_attest_params.py" "tools/nonos-assumptions"
       "scripts/check_unenforced.py" "scripts/check_unenforced.py --self-test"
+      "tools/ratchets/linux_calls.py --self-test"
       "tools/nonos-linux-coverage --baseline scripts/baselines/linux-syscalls.txt"
       "tools/nonos-wayland-coverage --baseline scripts/baselines/wayland-globals.txt"
       "tools/ratchets/disclosure.py" "tools/nonos-mutant --check"
