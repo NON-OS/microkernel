@@ -25,3 +25,10 @@ pub mod parse_req;
 pub mod refuse;
 #[path = "../../capsule_net_core/src/server/respond.rs"]
 pub mod respond;
+// The serve loop's turn: a poll or the once-a-second probes, never both.
+#[path = "../../capsule_net_core/src/server/runner/turn.rs"]
+pub mod turn;
+#[cfg(test)]
+mod turn_tests;
+#[cfg(test)]
+mod turn_glue_tests;
