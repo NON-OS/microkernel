@@ -31,6 +31,7 @@ def main():
     ap.add_argument("--image", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--steps", type=Path, required=True, help="first boot: type {secret}")
+    ap.add_argument("--off", type=Path, required=True, help="the desktop's Power Off")
     ap.add_argument("--after", type=Path, required=True, help="second boot's steps")
     ap.add_argument("--mem", default="3G")
     ap.add_argument("--off-secs", type=float, default=180)
