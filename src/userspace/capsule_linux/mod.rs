@@ -27,6 +27,8 @@ mod run_net;
 mod run_owner;
 mod spawn;
 mod state;
+mod term_ticket;
+mod term_ticket_rule;
 mod terminal;
 
 pub use family::package_arg;
@@ -39,6 +41,7 @@ pub use run_owner::{run_busy, run_net_busy, run_package_of};
 pub(crate) use embed::LINUX_MANIFEST_BYTES;
 pub use spawn::{spawn_linux_capsule, LINUX_CAPS};
 pub use state::shared_state;
+pub use term_ticket::{asked_by_terminal_role, end_tickets_of, take_term_ticket};
 pub use terminal::{
     admit_terminal_run, end_terminal_runs_of, is_private_run, run_qwen_for_caller,
     terminal_run_gone,

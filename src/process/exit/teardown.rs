@@ -76,4 +76,5 @@ pub fn teardown(pid: Pid, exit_code: i32, by_signal: bool) {
      * zombie already, so a run's own teardown cannot come back here for it.
      */
     crate::userspace::capsule_linux::end_terminal_runs_of(pid);
+    crate::userspace::capsule_linux::end_tickets_of(pid);
 }
