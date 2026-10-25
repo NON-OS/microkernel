@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The splash while it is up: a key toggles the attestation detail, the
-//! status line spins, and it ends when `dwell` says the desktop has it.
+//! The splash while up: a key toggles the attestation detail, the status
+//! line spins, and it ends when `dwell` says the desktop has it.
 
 use nonos_libc::{mk_ipc_recv_from, mk_uptime_ms, mk_yield, INPUT_KIND_KEY_DOWN};
 
@@ -41,6 +41,7 @@ pub(crate) fn interact(comp: u32, base: u64, w: u32, h: u32, stride: u32, look: 
             desktop_up_at = now;
         }
         if dwell::over(el, now, desktop_up_at, show_detail, iters) {
+            crate::say::stepped_aside(now, desktop_up_at);
             break;
         }
         iters = iters.saturating_add(1);
@@ -54,7 +55,7 @@ pub(crate) fn interact(comp: u32, base: u64, w: u32, h: u32, stride: u32, look: 
                     } else {
                         paint::splash(base, w, h, stride, look);
                     }
-                    let _ = scene::damage(comp, 20, w, h);
+                    let _ = scene::damage(comp, 20, (0, 0, w, h));
                 }
             }
             continue;
@@ -63,10 +64,7 @@ pub(crate) fn interact(comp: u32, base: u64, w: u32, h: u32, stride: u32, look: 
             let f = (el / 150) as u32;
             if f != frame {
                 frame = f;
-                let buf =
-                    unsafe { core::slice::from_raw_parts_mut(base as *mut u32, spx * h as usize) };
-                paint::status(buf, spx, w, h, frame);
-                let _ = scene::damage(comp, 21, w, h);
+                crate::spin::spin(comp, base, (w, h, spx), frame);
             }
         }
         mk_yield();

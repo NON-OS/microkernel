@@ -26,7 +26,7 @@ pub fn brk(guest: &mut Guest, want: u64) -> u64 {
      * A break outside the heap area is reported as no move, which is what a
      * Linux program reads as the request being refused.
      */
-    if want == 0 || want < BRK_BASE || want > BRK_LIMIT {
+    if want == 0 || !(BRK_BASE..=BRK_LIMIT).contains(&want) {
         return errno::ok(guest.brk);
     }
     /* Whole pages: the page the old break sits in is already held. */

@@ -13,16 +13,16 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::{ffi, keygen, verify};
+use super::{ffi, guard, keygen, verify};
 use crate::algs::traits::{KeyPair, Signer, Verifier};
 use crate::error::SignError;
 pub struct MlDsa65;
 impl MlDsa65 {
+    /// The deterministic signature of FIPS 204: no randomness is drawn, so
+    /// the same key and message give the same bytes. The zero mode it uses
+    /// is on only inside the lock, and never while a key is made.
     pub fn sign_reproducible(seed: &[u8], msg: &[u8]) -> Result<Vec<u8>, SignError> {
-        unsafe { ffi::NONOS_mldsa65_deterministic_random(1) };
-        let out = Self::sign(seed, msg);
-        unsafe { ffi::NONOS_mldsa65_deterministic_random(0) };
-        out
+        sign_with(true, seed, msg)
     }
 }
 impl Signer for MlDsa65 {
@@ -35,39 +35,35 @@ impl Signer for MlDsa65 {
     }
 
     fn sign(seed: &[u8], msg: &[u8]) -> Result<Vec<u8>, SignError> {
-        if seed.len() != ffi::SECRET_KEY_BYTES {
-            return Err(SignError::InvalidSeedLength {
-                alg: "mldsa65",
-                expected: ffi::SECRET_KEY_BYTES,
-                actual: seed.len(),
-            });
-        }
-        let mut sig = vec![0u8; ffi::SIGNATURE_BYTES];
-        let mut siglen: usize = 0;
-        let rc = unsafe {
-            ffi::PQCLEAN_MLDSA65_CLEAN_crypto_sign_signature(
-                sig.as_mut_ptr(),
-                &mut siglen as *mut usize,
-                msg.as_ptr(),
-                msg.len(),
-                seed.as_ptr(),
-            )
-        };
-        if rc != 0 {
-            return Err(SignError::PqcleanFailed("mldsa65 sign"));
-        }
-        if siglen != ffi::SIGNATURE_BYTES {
-            return Err(SignError::InvalidSignatureLength {
-                alg: "mldsa65",
-                expected: ffi::SIGNATURE_BYTES,
-                actual: siglen,
-            });
-        }
-        Ok(sig)
+        sign_with(false, seed, msg)
     }
 }
 impl Verifier for MlDsa65 {
     fn verify(pubkey: &[u8], msg: &[u8], sig: &[u8]) -> Result<bool, SignError> {
         verify::verify_raw(pubkey, msg, sig)
     }
+}
+
+fn sign_with(reproducible: bool, seed: &[u8], msg: &[u8]) -> Result<Vec<u8>, SignError> {
+    if seed.len() != ffi::SECRET_KEY_BYTES {
+        return Err(SignError::InvalidSeedLength {
+            alg: "mldsa65",
+            expected: ffi::SECRET_KEY_BYTES,
+            actual: seed.len(),
+        });
+    }
+    let mut sig = vec![0u8; ffi::SIGNATURE_BYTES];
+    let mut siglen: usize = 0;
+    let rc = guard::signature(reproducible, &mut sig, &mut siglen, msg, seed)?;
+    if rc != 0 {
+        return Err(SignError::PqcleanFailed("mldsa65 sign"));
+    }
+    if siglen != ffi::SIGNATURE_BYTES {
+        return Err(SignError::InvalidSignatureLength {
+            alg: "mldsa65",
+            expected: ffi::SIGNATURE_BYTES,
+            actual: siglen,
+        });
+    }
+    Ok(sig)
 }

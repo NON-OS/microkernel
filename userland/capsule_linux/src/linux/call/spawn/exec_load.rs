@@ -24,9 +24,8 @@ use super::exec_resolve::Program;
 use crate::linux::guest::{Guest, STACK_SIZE, STACK_TOP};
 use crate::linux::image;
 
-/// The stack top a guest wakes on. The same one a fresh guest gets,
-/// because after exec it is a fresh guest in every way but its pid.
-
+// The stack top a guest wakes on is the same one a fresh guest gets,
+// because after exec it is a fresh guest in every way but its pid.
 pub fn load_over(guest: &mut Guest, pid: u32, program: &Program, envp: &[Vec<u8>]) -> Option<()> {
     let (loaded, entry, interp_base) = image::program(guest, &program.bytes).ok()?;
     guest.map(STACK_TOP - STACK_SIZE, STACK_SIZE, true, false);

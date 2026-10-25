@@ -9,15 +9,15 @@ use super::rig::{eth_frame, link_with, AP_MAC, PTK, STA_MAC};
 use super::rxbuf::RxBuf;
 
 /// RX descriptor word 0: security type AES (`RX_DESC_ENC_AES`, bits 20-22).
-pub(super) const W0_ENC_AES: u32 = 4 << 20;
+pub(crate) const W0_ENC_AES: u32 = 4 << 20;
 
 /// RX descriptor word 0: the chip left decryption to software.
-pub(super) const W0_SWDEC: u32 = 1 << 27;
+pub(crate) const W0_SWDEC: u32 = 1 << 27;
 
 // The access point's frame for `eth` (sent to us), as this chip hands it up
 // after decrypting it in place: FromDS, Protected, the CCMP header (packet
 // number `pn`), the plaintext, the MIC and the FCS still on.
-pub(super) fn chip_decrypted(eth: &[u8], pn: u8) -> Vec<u8> {
+pub(crate) fn chip_decrypted(eth: &[u8], pn: u8) -> Vec<u8> {
     let mut f = vec![0x08, 0x42, 0, 0];
     f.extend_from_slice(&eth[0..6]); // addr1: the destination, us
     f.extend_from_slice(&AP_MAC); // addr2: the BSSID
@@ -57,7 +57,7 @@ fn receive_on_an_empty_ring_yields_nothing() {
 }
 
 // The access point's frame for `eth` in the clear: FromDS, not protected.
-pub(super) fn from_ap_plain(eth: &[u8]) -> Vec<u8> {
+pub(crate) fn from_ap_plain(eth: &[u8]) -> Vec<u8> {
     let mut f = vec![0x08, 0x02, 0, 0];
     f.extend_from_slice(&eth[0..6]);
     f.extend_from_slice(&AP_MAC);
