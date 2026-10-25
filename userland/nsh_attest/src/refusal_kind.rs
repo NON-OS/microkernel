@@ -14,19 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{CapsuleFault, FormatFault, LogFault, QuoteFault};
-
 /// The refusals, one per check, in the order the checks run.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Refusal {
     /// Step 1: the document does not parse.
-    Format(FormatFault),
+    Format(crate::FormatFault),
     /// Step 1: a version other than 5, versions 3 and 4 included.
     Version(u32),
     /// Step 2: the document answers another challenge.
     Challenge,
     /// Step 3: the signed structure is not a TPM quote.
-    Quote(QuoteFault),
+    Quote(crate::QuoteFault),
     /// Step 3: `extraData` is not the client's own `qualifying_data`.
     Binding,
     /// Step 3: `qualifiedSigner` is not a SHA-256 name.
@@ -52,10 +50,10 @@ pub enum Refusal {
     /// Step 5: no accepted release has this PCR 9, or it is zero.
     Pcr9,
     Pcr8,
-    /// Step 5: PCR 14 records no capsule, or one admitted on its path alone.
-    Pcr14(CapsuleFault),
+    /// Step 5: PCR 14 records no capsule, or one not the vendor root's.
+    Pcr14(crate::CapsuleFault),
     /// Step 5: the TCG event log does not parse.
-    Log(LogFault),
+    Log(crate::LogFault),
     /// Step 5: replaying the log does not give the quoted value of this PCR.
     Replay(u8),
     /// Step 5: the last application in PCR 4 is not the release's loader.
@@ -70,6 +68,8 @@ pub enum Refusal {
     Registry,
     RegistryIncomplete,
     CapsuleCount,
+    /// Step 7: an entry the vendor's root did not admit.
+    NotVendor,
     /// Step 7: no entry holds the release's `nsh.front` measurement.
     Front,
 }

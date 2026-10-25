@@ -32,7 +32,6 @@ use crate::store::{eth_secret_valid, KeyType, Store, StoreError};
 
 /// Accounts 1 to 7 beside the root: each account holds two entries (its key
 /// and its words), so eight of them are an owner's whole share of sixteen.
-
 pub fn wallet_derive(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
     let p = req.payload;
     if p.len() != 28 {
