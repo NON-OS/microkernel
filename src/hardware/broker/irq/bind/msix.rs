@@ -50,7 +50,7 @@ pub(super) fn bind_msix(
     let base_slot = slots::try_alloc_contiguous(n).ok_or(IrqBindError::NoVector)?;
     let base_vector = vector_of(base_slot).ok_or(IrqBindError::NoVector)?;
     match program_routed(&handle, &msix, base_vector, n) {
-        Ok(irtes) => Ok(record_run(pid, &req, epoch, base_slot, base_vector, &irtes)),
+        Ok(irtes) => record_run(pid, &req, epoch, base_slot, base_vector, &irtes),
         Err(e) => {
             slots::free_contiguous(base_slot, n);
             crate::log::info!("[IRQ] msi-x bind failed: {:?}", e);

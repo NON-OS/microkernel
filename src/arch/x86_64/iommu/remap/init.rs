@@ -15,9 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Interrupt remapping at boot: one table, every unit pointed at it, and a
-//! line that says whether it took. A DMAR without INTR_REMAP, or a unit
-//! without ECAP.IR or a live queue, leaves it off machine-wide: a device's
-//! handle must mean the same entry behind every unit.
+//! line that says whether it took. A DMAR without INTR_REMAP, a unit without
+//! ECAP.IR or a live queue, leaves it off: a handle names one entry for all.
 
 use core::sync::atomic::Ordering;
 
@@ -72,4 +71,5 @@ pub fn init() {
     let mut line = Line::new();
     line.str(b"[VT-D] IOMMU interrupt remapping on, entries=").dec(offsets::IRTE_ENTRIES as u64);
     line.str(b", compatibility format interrupts blocked").end();
+    super::sources::say_sources();
 }
