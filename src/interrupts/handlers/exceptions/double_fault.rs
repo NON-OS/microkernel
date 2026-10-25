@@ -18,7 +18,6 @@ use x86_64::structures::idt::InterruptStackFrame;
 
 use super::context::{log_exception, ExceptionContext};
 use crate::arch::x86_64::diag::emit_fatal_notice_nolock;
-use crate::interrupts::idt::halt_loop;
 use crate::interrupts::stats;
 use crate::security::observability::redact::redact_address;
 
@@ -33,7 +32,7 @@ pub fn handle(frame: InterruptStackFrame, error_code: u64) -> ! {
     dump_stack_info(&ctx);
 
     crate::log::logger::log_critical("SYSTEM HALTED: Double fault is unrecoverable");
-    halt_loop();
+    crate::boot::panic::fatal();
 }
 
 fn dump_stack_info(ctx: &ExceptionContext) {

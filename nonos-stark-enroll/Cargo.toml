@@ -12,6 +12,8 @@ path = "src/main.rs"
 [dependencies]
 nonos-attest-path = { path = "../nonos-attest-path", features = ["alloc"] }
 nonos-boot-measure = { path = "../nonos-boot-measure" }
+# The re-check of every trailer before it is written: the proof verifier's own.
+nonos-proof-verify = { path = "../nonos-proof-verify", default-features = false }
 # The STARK lane's prover and the gates' verifier, pinned by rev, never vendored.
 stark_proofs = { git = "https://github.com/NON-OS/STARKs.git", branch = "main", features = ["fri8", "parallel"] }
 nox_verify = { git = "https://github.com/NON-OS/STARKs.git", branch = "main" }

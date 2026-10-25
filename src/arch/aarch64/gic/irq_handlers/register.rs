@@ -42,6 +42,16 @@ pub fn unregister_for_capsule(intid: u32) -> Result<(), GicIrqError> {
     release(intid, OWNER_CAPSULE)
 }
 
+/// Whether the kernel holds `intid` with `handler`. An SGI or PPI is banked:
+/// each CPU has its own, all served from one slot here, so the boot CPU
+/// registers it once and a secondary only checks it is there before enabling
+/// its own. Registering again would find the slot claimed.
+pub fn holds_kernel_handler(intid: u32, handler: fn(u32)) -> bool {
+    let Some(at) = slot(intid) else { return false };
+    IRQ_OWNERS[at].load(Ordering::Acquire) == OWNER_KERNEL
+        && IRQ_HANDLERS[at].load(Ordering::Acquire) == handler as *mut ()
+}
+
 fn claim(intid: u32, handler: fn(u32), owner: u8) -> Result<(), GicIrqError> {
     let at = slot(intid).ok_or(GicIrqError::OutOfRange)?;
     IRQ_OWNERS[at]

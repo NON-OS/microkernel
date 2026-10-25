@@ -33,11 +33,12 @@ const SERVICE_PORT: u32 = 4098;
 const REPLY_PORT: u32 = 4099;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 
-// The capsule itself never needs CAP_KEYRING — it is the keyring.
 // Bits below are what the userland binary needs to run: IPC for
 // MkIpc recv/send, Memory for heap_init/mmap, Crypto for any
-// kernel crypto syscall the implementation may reach. Manifest is
-// the source of truth at spawn time.
+// kernel crypto syscall the implementation may reach, and Keyring,
+// which its own endpoint asks of every sender and so of its owner
+// (services/registry/policy.rs). Manifest is the source of truth at
+// spawn time.
 pub fn spawn_keyring_capsule() -> Result<(), SpawnError> {
     let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)
         .map_err(|_| SpawnError::NonosIdCertRejected(IdCertVerifyError::TrustAnchorPolicy))?;
@@ -52,7 +53,10 @@ pub fn spawn_keyring_capsule() -> Result<(), SpawnError> {
         manifest_bytes: KEYRING_MANIFEST_BYTES,
         attestation_trailer: KEYRING_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: Capability::IPC.bit() | Capability::Memory.bit() | Capability::Crypto.bit(),
+        requested_caps: Capability::IPC.bit()
+            | Capability::Memory.bit()
+            | Capability::Crypto.bit()
+            | Capability::Keyring.bit(),
         debug_tag: b"[KEYRING-DEBUG] load_elf_executable error:",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

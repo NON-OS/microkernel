@@ -1,0 +1,80 @@
+{
+ "format": "nonos-egress-allow/1",
+ "names": [
+  "validator.nymtech.net"
+ ],
+ "peers": [
+  {
+   "ip": "5.78.90.106",
+   "port": 9230,
+   "what": "Anyone directory authority",
+   "authority": true
+  },
+  {
+   "ip": "5.78.94.15",
+   "port": 9230,
+   "what": "Anyone directory authority",
+   "authority": true
+  },
+  {
+   "ip": "5.161.108.187",
+   "port": 9230,
+   "what": "Anyone directory authority",
+   "authority": true
+  },
+  {
+   "ip": "5.161.228.187",
+   "port": 9230,
+   "what": "Anyone directory authority",
+   "authority": true
+  },
+  {
+   "ip": "49.13.145.234",
+   "port": 9230,
+   "what": "Anyone directory authority",
+   "authority": true
+  },
+  {
+   "ip": "95.216.32.105",
+   "port": 9230,
+   "what": "Anyone directory authority",
+   "authority": true
+  },
+  {
+   "ip": "176.9.29.53",
+   "port": 9230,
+   "what": "Anyone directory authority",
+   "authority": true
+  },
+  {
+   "ip": "152.53.92.255",
+   "port": 9000,
+   "what": "Nym bootstrap gateway"
+  },
+  {
+   "ip": "159.89.174.132",
+   "port": 9000,
+   "what": "Nym bootstrap gateway"
+  },
+  {
+   "ip": "172.232.103.199",
+   "port": 9000,
+   "what": "Nym bootstrap gateway"
+  },
+  {
+   "ip": "188.172.228.15",
+   "port": 9000,
+   "what": "Nym bootstrap gateway"
+  },
+  {
+   "ip": "213.226.71.95",
+   "port": 9000,
+   "what": "Nym bootstrap gateway"
+  },
+  {
+   "ip": "92.39.63.14",
+   "port": 443,
+   "what": "Nym directory API"
+  }
+ ]
+}
