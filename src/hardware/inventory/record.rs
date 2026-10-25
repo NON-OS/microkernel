@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::classify::classify_device;
+use super::classify_device::classify_device;
 use super::driver::family_driver;
 use super::family::HardwareFamily;
 use super::missing::missing_path;

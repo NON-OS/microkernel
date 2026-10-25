@@ -18,11 +18,12 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use crate::drivers::pci::types::PciDevice;
+use crate::drivers::pci::types::{HeaderType, PciDevice};
 use crate::hardware::broker::DeviceRecord;
 
 use super::pci_record::record_from_pci;
 use super::state::{next_id, TABLE};
+use crate::hardware::broker::claim::{reset_caps, say_reset_ways};
 use crate::hardware::broker::pci_index::{self, PciHandle};
 
 pub fn init_from_pci(devices: &[PciDevice]) {
@@ -30,14 +31,10 @@ pub fn init_from_pci(devices: &[PciDevice]) {
     let mut handles: Vec<PciHandle> = Vec::with_capacity(devices.len());
     for (idx, dev) in devices.iter().enumerate() {
         records.push(record_from_pci(idx as u64, dev));
-        handles.push(PciHandle {
-            device_id: idx as u64,
-            address: dev.address,
-            bars: dev.bars,
-            msi: dev.msi,
-            msix: dev.msix,
-        });
+        handles.push(handle_for(idx as u64, dev));
     }
+    let ways: Vec<_> = handles.iter().map(|h| (h.address, h.reset)).collect();
+    say_reset_ways(&ways);
     *TABLE.write() = records;
     pci_index::install(handles);
 }
@@ -50,21 +47,18 @@ pub(in crate::hardware::broker) fn register_platform_device(mut record: DeviceRe
     record.device_id
 }
 
-/// A PCI function that answered only after firmware powered it up (`_PS0`),
-/// added after the boot scan under the next free id, with its index handle.
-#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
-/// `disabled` marks a function no driver may claim (its BARs unassigned).
-pub(in crate::hardware::broker) fn add_pci_function(dev: &PciDevice, disabled: bool) -> u64 {
-    let external = super::external::flag_for(&dev.address);
-    let mut table = TABLE.write();
-    let id = next_id(table.iter().map(|r| r.device_id).max(), 0);
-    let mut record = record_from_pci(id, dev);
-    record.flags |= external;
-    if disabled {
-        record.flags |= crate::hardware::broker::DEVICE_FLAG_DISABLED;
+/// The kernel-only handle for a PCI function, the same whether it was found
+/// in the boot scan or added after it.
+pub(super) fn handle_for(device_id: u64, dev: &PciDevice) -> PciHandle {
+    PciHandle {
+        device_id,
+        address: dev.address,
+        bars: dev.bars,
+        msi: dev.msi,
+        msix: dev.msix,
+        // An Intel VMD gates its drives' DMA and config as a bridge does (L61).
+        standard: matches!(dev.header_type, HeaderType::Standard)
+            && !crate::hardware::inventory::is_intel_vmd(dev.vendor_id, dev.device_id),
+        reset: reset_caps(dev),
     }
-    table.push(record);
-    let (address, bars, msi, msix) = (dev.address, dev.bars, dev.msi, dev.msix);
-    pci_index::push(PciHandle { device_id: id, address, bars, msi, msix });
-    id
 }
