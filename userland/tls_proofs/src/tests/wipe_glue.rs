@@ -12,6 +12,7 @@
 // GNU Affero General Public License for more details.
 //
 // You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Where the TLS secrets are wiped on paths the host cannot watch, read from
 //! the source: the ECDHE secret, every HKDF block, the MAC's output, the

@@ -16,11 +16,10 @@
 
 use super::derive::derive_shared_key;
 use super::ephemeral::new_ephemeral;
-use super::frame::{decode, encode, HandshakeFrameError, INIT_TAG, PAYLOAD_TAG};
+use super::finish::{finish, map_frame};
+use super::frame::{decode, encode, INIT_TAG};
 use super::init::init_message;
 use super::parse_gateway::parse_gateway_material;
-use super::seal_material::seal_material;
-use super::verify_material::verify_material;
 use super::wire::{HandshakeError, Identity, Wire};
 
 /// Run the three-message registration and return the gateway shared key.
@@ -40,7 +39,8 @@ pub fn run_handshake<W: Wire>(
     // The salt is ours, so the gateway cannot steer the derivation.
     let mut shared = derive_shared_key(&eph.secret, &gateway_ephemeral, &eph.salt)
         .map_err(|_| HandshakeError::Crypto)?;
-    let outcome = finish(wire, identity, version, &eph, &gateway_ephemeral, &gateway_material, &shared);
+    let outcome =
+        finish(wire, identity, version, &eph, &gateway_ephemeral, &gateway_material, &shared);
     // The caller keeps the key only when the gateway took it; every other end
     // leaves no copy here.
     if let Err(e) = outcome {
@@ -48,40 +48,4 @@ pub fn run_handshake<W: Wire>(
         return Err(e);
     }
     Ok(shared)
-}
-
-fn finish<W: Wire>(
-    wire: &mut W,
-    identity: &Identity<'_>,
-    version: u64,
-    eph: &super::ephemeral::Ephemeral,
-    gateway_ephemeral: &[u8; super::sizes::EPHEMERAL_BYTES],
-    gateway_material: &super::material::Material,
-    shared: &[u8; 32],
-) -> Result<(), HandshakeError> {
-    if !verify_material(
-        identity.gateway_public,
-        gateway_ephemeral,
-        &eph.public,
-        shared,
-        gateway_material,
-    ) {
-        return Err(HandshakeError::BadSignature);
-    }
-
-    let ours = seal_material(identity.own_seed, &eph.public, gateway_ephemeral, shared)
-        .map_err(|_| HandshakeError::Crypto)?;
-    wire.send_text(&encode(PAYLOAD_TAG, version, &ours.to_bytes()))?;
-
-    match decode(&wire.recv_text()?).map_err(map_frame)?.as_slice() {
-        [1] => Ok(()),
-        _ => Err(HandshakeError::Refused),
-    }
-}
-
-fn map_frame(e: HandshakeFrameError) -> HandshakeError {
-    match e {
-        HandshakeFrameError::Refused => HandshakeError::Refused,
-        HandshakeFrameError::Malformed => HandshakeError::Malformed,
-    }
 }
