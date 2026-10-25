@@ -41,6 +41,9 @@ class Seal(unittest.TestCase):
                 self.assertEqual(lock.read(pinned), {"x": PIN, "y": PIN})
                 self.assertEqual(run.catalogue_run(recipes, Path(d), "https://e.org", "v3.20", "x86_64",
                                                    "11" * 32, 1), listed)
+                moved = {**KNOWN, "x": dict(KNOWN["x"], V="1.1-r0")}  # the index moved, the bytes did not
+                with mock.patch.object(run, "table", return_value=moved), self.assertRaises(SystemExit):
+                    run.catalogue_run(recipes, Path(d), "https://e.org", "v3.20", "x86_64", "11" * 32, 1)
                 listed[1]["releases"][0]["package_hash"] = "cd" * 32  # the .apk changed, not its record
                 with self.assertRaises(SystemExit):
                     run.catalogue_run(recipes, Path(d), "https://e.org", "v3.20", "x86_64", "11" * 32, 1)
