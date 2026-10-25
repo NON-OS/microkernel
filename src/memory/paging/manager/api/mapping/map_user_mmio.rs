@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{map_page, unmap_page};
+use super::map_user_run::map_user_run;
 use crate::memory::addr::{PhysAddr, VirtAddr};
-use crate::memory::paging::constants::{pages_needed, PAGE_SIZE_4K};
 use crate::memory::paging::error::PagingResult;
 use crate::memory::paging::types::PagePermissions;
 
@@ -40,24 +39,12 @@ pub fn map_user_mmio(
     // IC_ENABLE and every transfer fails while the driver believes it came up.
     let base = PagePermissions::USER | PagePermissions::READ | PagePermissions::WRITE;
     // A prefetchable BAR the broker lets the driver write-combine (its
-    // mmio/cache.rs): PWT alone, PAT index 1, once every CPU's PAT has it;
-    // not DEVICE, which forbids the merging asked for.
+    // mmio/cache.rs and memory_type.rs): PWT alone, PAT index 1, once every
+    // CPU's PAT has it; not DEVICE, which forbids the merging asked for.
     let permissions = if write_combining && crate::arch::write_combining::write_combining_ready() {
         base | PagePermissions::WRITE_THROUGH
     } else {
         base | PagePermissions::NO_CACHE | PagePermissions::WRITE_THROUGH | PagePermissions::DEVICE
     };
-    let pages = pages_needed(size);
-    for i in 0..pages {
-        let va = VirtAddr::new(virtual_addr.as_u64() + (i * PAGE_SIZE_4K) as u64);
-        let pa = PhysAddr::new(physical_addr.as_u64() + (i * PAGE_SIZE_4K) as u64);
-        if let Err(e) = map_page(va, pa, permissions) {
-            for j in 0..i {
-                let rb = VirtAddr::new(virtual_addr.as_u64() + (j * PAGE_SIZE_4K) as u64);
-                let _ = unmap_page(rb);
-            }
-            return Err(e);
-        }
-    }
-    Ok(())
+    map_user_run(virtual_addr, physical_addr, size, permissions)
 }

@@ -13,8 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 use super::iova;
+use super::map_fail::{after_refusal, MapFail};
 use super::table::CAPSULES;
 use crate::memory::addr::PhysAddr;
 use crate::memory::iommu::{IommuError, IommuProtection};
@@ -23,6 +23,7 @@ use crate::memory::iommu::{IommuError, IommuProtection};
 /// (decide.rs), or the domain would not map it.
 pub(in crate::hardware::broker) enum NoAddress {
     Unconfined,
+    /// Nothing of the grant is mapped: its frames may be freed.
     Failed,
     /// The failed map may still be reachable: its frames are never reused.
     Stranded,
@@ -36,31 +37,34 @@ pub(in crate::hardware::broker) fn map(
     device_id: u64,
     phys: u64,
     length: u64,
-    protection: IommuProtection,
+    access: IommuProtection,
 ) -> Result<(u64, bool), NoAddress> {
     let mut all = CAPSULES.lock();
     let held = |c: &&mut super::table::Capsule| c.devices.iter().any(|(d, _)| *d == device_id);
     let Some(c) = all.iter_mut().filter(|c| c.pid == pid).find(held) else {
-        return if super::decide::physical_dma() {
-            Ok((phys, false))
-        } else {
-            Err(NoAddress::Unconfined)
-        };
+        let physical = super::decide::physical_dma();
+        return if physical { Ok((phys, false)) } else { Err(NoAddress::Unconfined) };
     };
     let iova = iova::take(c, length).ok_or(NoAddress::Failed)?;
-    // SAFETY: eK@nonos.systems - `[phys, phys+length)` is a run the broker just
-    // allocated and zeroed for this grant, freed only after `unmap` returns
-    // true, or with `DOORBELL` the page of an MSI controller's doorbell, whose
-    // one register takes a message and reads as zero. `[iova, iova+length)`
-    // was taken fresh from this domain's allocator, so nothing is mapped there.
-    // Both are page aligned: the broker refuses a length that is not, and
-    // IOVA_BASE is.
-    let mapped = unsafe { c.domain.map(iova, PhysAddr::new(phys), length as usize, protection) };
-    match mapped {
+    // SAFETY: eK@nonos.systems - `[phys, phys+length)` is a zeroed run the broker
+    // frees only after `unmap` returns true or a refused map is known to have
+    // left it unmapped; or, with `DOORBELL`, an MSI doorbell page whose one
+    // register takes a message and reads as zero. `[iova, iova+length)` is fresh
+    // from this domain's allocator; both are page aligned.
+    match unsafe { c.domain.map(iova, PhysAddr::new(phys), length as usize, access) } {
         Ok(()) => Ok((iova, true)),
-        // The IOVA stays taken as well: the unit may still translate it.
-        Err(IommuError::Stranded) => Err(NoAddress::Stranded),
-        Err(_) => {
+        // Entries written but not confirmed, or a map the unit may still
+        // hold: the frames go back only if an unmap takes the range away,
+        // and a range none took keeps its IOVA too (plan/50 P5).
+        Err(e) => {
+            let unmap = || c.domain.unmap(iova, length as usize).is_ok();
+            let fail = match e {
+                IommuError::Stranded => MapFail::Pinned,
+                e => after_refusal(e == IommuError::Uncommitted, unmap),
+            };
+            if fail == MapFail::Pinned {
+                return Err(NoAddress::Stranded);
+            }
             iova::give_back(c, iova, length);
             Err(NoAddress::Failed)
         }

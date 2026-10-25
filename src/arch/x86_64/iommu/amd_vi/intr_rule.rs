@@ -16,7 +16,7 @@
 
 //! AMD interrupt remapping's encodings (spec 48882, 2.2.5), pure (K4): a
 //! device table entry's interrupt quadword and a 32-bit remapping entry,
-//! as Linux's amd/iommu.c builds them (set_dte_irq_entry, irte_prepare).
+//! in the bit positions the spec's entry formats give.
 //! An interrupt from a device whose entry has no table is target aborted,
 //! and NMI, INIT, ExtInt and LINT pass for none: no device writes a
 //! message that reaches a CPU but through an entry the kernel wrote.

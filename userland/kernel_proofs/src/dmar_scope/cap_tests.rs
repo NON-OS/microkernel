@@ -18,12 +18,15 @@
 //! bus alone has 256 functions before any SR-IOV VF. Past that the unit is
 //! truncated, and a device it may name is refused (fail closed).
 
-use super::scope::{scope_covers, translated_by_some, Cover, MAX_SCOPES};
+use super::dmar_scope_count::pci_scopes_named;
+use super::dmar_scope_walk::walk_scopes;
+use super::scope::{scope_covers, translated_by_some, Cover, Scope, MAX_SCOPES};
 use super::tests::{bridges, drhd, parse, scope};
 
 /// `n` endpoint scopes on bus 0: device i % 32, function i / 32.
 fn endpoints(n: usize) -> Vec<u8> {
-    let s: Vec<Vec<u8>> = (0..n).map(|i| scope(1, 0, &[((i % 32) as u8, (i / 32) as u8)])).collect();
+    let s: Vec<Vec<u8>> =
+        (0..n).map(|i| scope(1, 0, &[((i % 32) as u8, (i / 32) as u8)])).collect();
     drhd(0, 0, &s)
 }
 
@@ -33,9 +36,10 @@ fn nth(i: usize) -> (u8, u8, u8) {
 
 #[test]
 fn eighteen_endpoint_scopes_cover_the_seventeenth_and_eighteenth() {
-    let u = parse(&endpoints(18));
+    let b = endpoints(18);
+    let u = parse(&b);
     assert!(!u.truncated);
-    assert_eq!((u.count, u.named), (18, 18));
+    assert_eq!((u.count, pci_scopes_named(&b, 16)), (18, 18));
     for i in [16, 17] {
         assert!(translated_by_some(&[u], 0, nth(i), &bridges), "scope {}", i + 1);
     }
@@ -53,9 +57,17 @@ fn exactly_255_is_kept_whole() {
 
 #[test]
 fn past_255_the_unit_is_truncated_and_the_rest_refused() {
-    let u = parse(&endpoints(256));
+    let b = endpoints(256);
+    let u = parse(&b);
     assert!(u.truncated);
-    assert_eq!((u.count, u.named), (255, 256), "count never wraps");
+    assert_eq!((u.count, pci_scopes_named(&b, 16)), (255, 256), "count never wraps");
     assert_eq!(scope_covers(&u, 0, nth(255), &bridges), Cover::Unknown);
     assert!(!translated_by_some(&[u], 0, nth(255), &bridges));
+}
+
+#[test]
+fn a_buffer_past_255_still_keeps_no_more_than_a_u8_counts() {
+    let b = endpoints(256);
+    let mut out = [Scope::EMPTY; 300];
+    assert_eq!(walk_scopes(&b, 16, &mut out), (255, true), "never wraps to 0");
 }
