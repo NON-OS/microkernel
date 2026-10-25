@@ -30,6 +30,8 @@ mod stage;
 mod tuning;
 
 #[cfg(test)]
+mod gone_tests;
+#[cfg(test)]
 mod host_radio;
 #[cfg(test)]
 mod hostile_tests;
