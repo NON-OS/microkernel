@@ -1,0 +1,9 @@
+[CEILING] refused input_router: image forbids InputConsumer
+[ERROR] INPUT-ROUTER: refused, its caps exceed the image ceiling
+[CEILING] refused input_router: image forbids InputConsumer
+[ERROR] INPUT-ROUTER: refused, its caps exceed the image ceiling
+[SETUP] not started: lookup input_router; the desktop starts without first-boot setup
+[CEILING] refused attest: image forbids AttestRead
+[CEILING] refused app.about: image forbids AttestRead
+[CEILING] refused app.terminal: image forbids AttestRead
+[CEILING] refused app.linux: image forbids ForeignExec
