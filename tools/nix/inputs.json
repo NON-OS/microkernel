@@ -5772,6 +5772,8 @@
    "src",
    "userland/capsule_acpi/Capsule.mk",
    "userland/capsule_attack/src/attempts.rs",
+   "userland/capsule_driver_bga/src/constants.rs",
+   "userland/capsule_driver_bootfb/src/libc_firmware.rs",
    "userland/capsule_driver_e1000/src/constants/pci.rs",
    "userland/capsule_driver_e1000e/src/constants/ids.rs",
    "userland/capsule_driver_igb/src/facts/ids.rs",
