@@ -56,7 +56,7 @@ pub(crate) fn check(
 ) -> Result<(), LoadError> {
     let caller = crate::process::current_pid().ok_or(LoadError::BeyondParent)?;
     let broker = crate::process::caps::has(caller, Capability::SpawnBroker.bit());
-    if broker && on_behalf_of.map_or(true, |p| p.pid() == caller) {
+    if broker && on_behalf_of.is_none_or(|p| p.pid() == caller) {
         crate::sys::serial::println(b"[CAP-DENY] load: a broker named no attested parent");
         return Err(LoadError::BeyondParent);
     }
