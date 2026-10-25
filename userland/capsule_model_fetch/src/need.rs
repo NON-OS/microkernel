@@ -22,7 +22,12 @@
  * plus 64 bytes for every embedding value of a 512-token batch. Each shape
  * is (layers, KV heads, head width, embedding width) from the model's
  * config.json in the Qwen team's Hugging Face repository (Qwen/<model>),
- * read on 2026-09-30.
+ * read on 2026-09-30, or, for a tier pinned from ggml-org, from the same
+ * keys in its GGUF file's header (block_count, attention.head_count_kv,
+ * attention.key_length, embedding_length), which is what qwenchat reads,
+ * read on 2026-10-25. Qwen3.5 and Qwen3.6 attend in one layer in four; the
+ * rule counts every layer, as qwenchat does, so their KV need is about four
+ * times their cache.
  *
  * This table is the one source: tools/nonos_qwen_tier/shapes.py reads it to
  * write each tier's memory into the signed catalogue, the fetcher admits a
@@ -50,6 +55,8 @@ pub const SHAPES: &[(&str, u64, u64, u64, u64)] = &[
     ("qwen3-14b", 40, 8, 128, 5120),       // Qwen3-14B
     ("qwen3-30b-a3b", 48, 4, 128, 2048),   // Qwen3-30B-A3B
     ("qwen3-32b", 64, 8, 128, 5120),       // Qwen3-32B
+    ("qwen3.5-0.8b", 25, 2, 256, 1024),    // Qwen3.5-0.8B, from its GGUF
+    ("qwen3.6-27b", 64, 4, 256, 5120),     // Qwen3.6-27B, from its GGUF
     ("coder-1.5b", 28, 2, 128, 1536),      // Qwen2.5-Coder-1.5B-Instruct
     ("coder-7b", 28, 4, 128, 3584),        // Qwen2.5-Coder-7B-Instruct
     ("coder-14b", 48, 8, 128, 5120),       // Qwen2.5-Coder-14B-Instruct
