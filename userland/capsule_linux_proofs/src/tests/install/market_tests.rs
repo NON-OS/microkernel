@@ -17,23 +17,23 @@
 //! The fourth word of an install request, and the four checks a market
 //! policy passes before the install role vouches for it (plan/30).
 
-use crate::install::market_arg::{market_arg, NotMarket, MARKET_LEN};
-use crate::install::market_check::{admit, names_program};
+use crate::install::market::arg::{market_arg, NotMarket, MARKET_LEN};
+use crate::install::market::check::{admit, names_program};
 use nonos_linux_policy::{unlisted, LinuxAppPolicy, SyscallSet};
 
 const PROGRAM: &[u8] = b"\x7fELF a market program";
 
-fn policy(listing: u8, release: u8, calls: SyscallSet) -> LinuxAppPolicy {
+pub(super) fn policy(listing: u8, release: u8, calls: SyscallSet) -> LinuxAppPolicy {
     let program = *blake3::hash(PROGRAM).as_bytes();
     let (listing_id, release_id) = ([listing; 32], [release; 32]);
     LinuxAppPolicy { listing_id, release_id, syscall_set: calls, ..unlisted(program) }
 }
 
-fn ready() -> SyscallSet {
+pub(super) fn ready() -> SyscallSet {
     SyscallSet::NONE.with(0).with(60).with(231)
 }
 
-fn market(p: &LinuxAppPolicy, listing: u8, release: u8) -> [u8; MARKET_LEN] {
+pub(super) fn market(p: &LinuxAppPolicy, listing: u8, release: u8) -> [u8; MARKET_LEN] {
     let mut m = [0u8; MARKET_LEN];
     m[..256].copy_from_slice(&p.encode());
     m[256..288].fill(listing);

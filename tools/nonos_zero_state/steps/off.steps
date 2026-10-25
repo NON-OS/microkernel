@@ -1,0 +1,8 @@
+# The desktop's Power Off: the Power key asks, the keyboard starts on Cancel,
+# Tab moves to Power Off, Enter sends it to capsule_power and terminate.
+key:power
+wait:20
+shot:30-confirm
+key:tab
+wait:3
+key:ret
