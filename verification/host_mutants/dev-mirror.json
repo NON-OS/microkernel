@@ -1,0 +1,6 @@
+[
+ {"name": "fence-alpine-any", "file": "userland/capsule_linux/build/mirror_fence.rs", "old": "        if var == \"NONOS_ALPINE_MIRROR\" {", "new": "        if false {", "crate": "userland/capsule_linux_proofs", "test": "mirror_fence_tests"},
+ {"name": "fence-local-allowed", "file": "userland/capsule_linux/build/mirror_fence.rs", "old": "        if is_local(host) {", "new": "        if false && is_local(host) {", "crate": "userland/capsule_linux_proofs", "test": "mirror_fence_tests"},
+ {"name": "fence-dev-ignored", "file": "userland/capsule_linux/build/mirror_fence.rs", "old": "    if dev {\n        return None;\n    }", "new": "    let _ = dev;", "crate": "userland/capsule_linux_proofs", "test": "mirror_fence_tests"},
+ {"name": "fence-port-kept", "file": "userland/capsule_linux/build/mirror_fence.rs", "old": "at.rsplit_once(':').map_or(at.as_str(), |(h, _)| h)", "new": "at.as_str()", "crate": "userland/capsule_linux_proofs", "test": "mirror_fence_tests"}
+]

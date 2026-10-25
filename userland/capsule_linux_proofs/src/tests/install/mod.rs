@@ -43,6 +43,14 @@ mod manifest_tests;
 mod market_gate_tests;
 mod market_tests;
 mod minted_tests;
+mod mirror_fence_tests;
+/* capsule_linux's build script's mirror fence, beside the route it reads. */
+#[path = "."]
+mod fence {
+    pub use crate::route;
+    #[path = "../../../../capsule_linux/build/mirror_fence.rs"]
+    pub mod mirror_fence;
+}
 mod member_refusal_tests;
 mod merged_name_tests;
 mod mirror_tests;

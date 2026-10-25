@@ -19,17 +19,18 @@ whatever the setting, to a mirror given by a fixed address:
   cannot open is refused with its reason. No failure is answered by trying
   another network, which would name this machine to the mirror.
 
-One exception stays, decided 2026-09-27: a mirror on a private or link-local
+One exception was decided 2026-09-27: a mirror on a private or link-local
 address (10/8, 172.16/12, 192.168/16, 169.254/16) is dialled directly,
-whatever the chosen network. An exit is on the public internet and cannot
-reach such an address, and a LAN or offline mirror is how a machine without
-a reachable network, or a site with its own mirror, installs at all. Each
-such fetch is logged (`[LINUX] mirror <ip> is on the local network: reached
-directly`).
+whatever the chosen network. Since the dev-mirror change it exists only in a
+development build, one compiled with capsule_linux's `dev-mirror` feature;
+a release build has no direct path, and refuses to compile when it is given
+a mirror on a private address (docs/build/dev-mirror.md). In a development
+build each such fetch is logged (`[LINUX] mirror <ip> is on the local
+network: reached directly`).
 
-What the direct exception discloses: to anyone on that local network, that
-this machine fetched from that mirror, and which files. Nothing reaches the
-public internet directly on that path.
+What the direct exception discloses, in a development build: to anyone on
+that local network, that this machine fetched from that mirror, and which
+files. Nothing reaches the public internet directly on that path.
 
 What none of this changes: every file is still held to its distribution's
 signature and checksums, and the package the person chose to its market
