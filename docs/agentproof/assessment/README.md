@@ -27,9 +27,12 @@ Read this before you scope. The assessment claims only what the code does today.
   BusyBox tools, `perl`, `lua`, `tclsh`, `qjs`, `jq` and others) and packages from the store. An
   agent written for one of these runs as it is; an agent that needs a binary or a library NONOS
   does not carry needs us to package and sign it first, which is a pilot item, not this one.
-- **No network inside a box.** Every box has none in this release. An agent that calls a
-  hosted model is run against that model's recorded replies, so we see what the agent does with
-  them; we do not let it reach the model from inside the box.
+- **Network only to destinations you list, by IPv4 address.** A box may name destinations;
+  the agent reaches those over the anonymity network and nothing else, and the report names
+  each one it reached. A name lookup from inside a box does not yet return in this release.
+  Our lab boots without a route to the mixnet, so an agent that calls a hosted model is run
+  against that model's recorded replies; we see what it does with them, and which
+  destinations it tried.
 - **x86_64, in QEMU with the Intel IOMMU enforcing**, which is where every box run on these
   pages was booted. Running on your own hardware needs that machine booted first.
 - **The report is not a signed receipt.** Its counts are what `capsule_linux` refused, sent
