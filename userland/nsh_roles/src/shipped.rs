@@ -16,7 +16,7 @@
 
 //! The three roles nsh ships, the reviewed table plan step P6 asks for. A
 //! fleet's role table writes them as they are here. No ceiling names any of
-//! the forbidden six, nor `TimeSet` (the grant checks trust the host clock),
+//! the forbidden nine, nor `TimeSet` (the grant checks trust the host clock),
 //! `InputConsumer` (every keystroke), `SpawnBroker`, `ForeignExec` or any
 //! driver capability; until kernel change K2, nor `Crypto` or
 //! `RegisterService`. Each list is in ascending byte order, as written.

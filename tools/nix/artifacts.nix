@@ -66,7 +66,7 @@ pkgs.runCommand "nonos-${cfg.name}" {
   ${if image.loaderReady then "cp ${loader}/nonos_boot.efi $out/bootloader/" else "echo ${lib.escapeShellArg loaderNote} > $out/bootloader/README"}
   ${lib.concatMapStrings (e: ''
     mkdir -p $out/capsules/${e.slug}
-    cp ${capsules.bySlug.${e.slug}}/${e.bin} $out/capsules/${e.slug}/${e.bin}
+    cp ${(image.capsuleSet cfg).${e.slug}}/${e.bin} $out/capsules/${e.slug}/${e.bin}
   '') (builtins.filter (e: !e.dev_only || !cfg.release) capsules.catalogue)}
   # -r: a program can carry its own data directory (Tcl's script library).
   cp -rL ${userland.all}/* $out/linux/
