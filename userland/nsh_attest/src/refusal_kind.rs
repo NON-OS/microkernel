@@ -22,7 +22,7 @@ use crate::{FormatFault, LogFault, QuoteFault};
 pub enum Refusal {
     /// Step 1: the document does not parse.
     Format(FormatFault),
-    /// Step 1: a version other than 4, version 3 included.
+    /// Step 1: a version other than 5, versions 3 and 4 included.
     Version(u32),
     /// Step 2: the document answers another challenge.
     Challenge,
@@ -34,7 +34,7 @@ pub enum Refusal {
     Signer,
     /// Step 3: the AK's signature does not verify, or is not ECDSA SHA-256.
     Signature,
-    /// Step 3: the quote does not select exactly the version 4 PCRs.
+    /// Step 3: the quote does not select exactly K1's PCRs.
     Selection,
     /// Step 3: the document's PCR values are not the ones the quote signed.
     PcrDigest,
