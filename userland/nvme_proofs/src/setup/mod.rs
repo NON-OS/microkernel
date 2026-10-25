@@ -34,6 +34,8 @@ mod mask_tests;
 pub mod mmio;
 #[path = "../../../capsule_driver_nvme/src/setup/pci.rs"]
 pub mod pci;
+#[path = "../../../capsule_driver_nvme/src/setup/power_off.rs"]
+mod power_off;
 #[cfg(test)]
 mod refusal_tests;
 pub mod say;

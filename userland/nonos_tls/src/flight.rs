@@ -14,13 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 pub struct ClientFlight {
     pub record: Vec<u8>,
     pub handshake: Vec<u8>,
-    /// The X25519 private key.
-    pub private: [u8; 32],
+    /// The X25519 private key. Boxed, as is the scalar below: a flight is
+    /// returned and moved by value, and a move copies only the pointer.
+    pub private: Box<[u8; 32]>,
     /// The secp256r1 private scalar, for a server that takes the P-256 share.
-    pub p256_private: [u8; 32],
+    pub p256_private: Box<[u8; 32]>,
+}
+
+impl ClientFlight {
+    /// The two private keys, which with the transcript recover every traffic
+    /// key, wiped where they lie: for a caller that keeps the flight past the
+    /// handshake (a connection's `settle`).
+    pub fn wipe_private(&mut self) {
+        super::traffic_keys::wipe(&mut self.private[..]);
+        super::traffic_keys::wipe(&mut self.p256_private[..]);
+    }
+}
+
+impl Drop for ClientFlight {
+    fn drop(&mut self) {
+        self.wipe_private();
+    }
 }
