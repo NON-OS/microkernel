@@ -16,18 +16,34 @@
 
 //! Where the port-only rule (H-02) is used: the group check asks it for the
 //! claim and each holder, the group marks members across a shared bus, the
-//! capsule records it, and the claim closes Memory Space for one.
+//! capsule records it, and the claim closes Memory Space for one; with no
+//! unit to confine it, every verdict is asked with it (H-02b).
 
 const JOIN_GROUP: &str = include_str!("../../../../src/hardware/broker/confine/join_group.rs");
+const GATES: &str = include_str!("../../../../src/hardware/broker/confine/gates.rs");
 const ACS: &str = include_str!("../../../../src/hardware/broker/confine/acs.rs");
 const ONE: &str = include_str!("../../../../src/hardware/broker/confine/one.rs");
 const ATTACH: &str = include_str!("../../../../src/hardware/broker/confine/attach.rs");
 const CLAIM: &str = include_str!("../../../../src/hardware/broker/claim/claim.rs");
+const CAPSULE: &str = include_str!("../../../../src/hardware/broker/confine/capsule.rs");
+const REFUSE: &str = include_str!("../../../../src/hardware/broker/confine/refuse.rs");
 
 #[test]
-fn the_group_check_asks_the_rule_for_the_claim_and_each_holder() {
+fn the_group_check_asks_the_rule_both_ways_for_the_claim_and_each_holder() {
     assert!(JOIN_GROUP.contains("let claim_port_only = all[pos].port_only;"));
-    assert!(JOIN_GROUP.contains("blocker(group, holds_id, claim_port_only, c.port_only)"));
+    assert!(JOIN_GROUP.contains("let ports = (claim_port_only, c.port_only);"));
+    assert!(JOIN_GROUP.contains("blocked_by(claimed, group, &held, ports, place)"));
+    assert!(JOIN_GROUP.contains("filter_map(|&e| Some((e, peer(e)?)))"), "no held device's group");
+    assert!(JOIN_GROUP.contains("(p.at, p.group.as_deref())"), "an unread group taken as empty");
+    assert!(JOIN_GROUP.contains("Blocked::Unreadable(at) => unreadable_line(at, &holder(c.pid))"));
+    assert!(GATES.contains("None => Peer { at, group: None, aliases: Vec::new() },"));
+}
+
+#[test]
+fn a_held_device_carrying_the_claimed_requester_id_refuses_it() {
+    let check = "if let Some((_, p)) = peers.iter().find(|(_, p)| p.aliases.contains(&address)) {";
+    assert!(JOIN_GROUP.contains(check), "the reverse alias check is not as written");
+    assert!(JOIN_GROUP.contains("peer_alias_line(p.at, &holder(c.pid))"));
 }
 
 #[test]
@@ -46,4 +62,15 @@ fn a_port_only_claim_closes_memory_space_before_the_device_is_powered() {
     let gate = CLAIM.find("if port_only {").expect("closed for every claim");
     let power = CLAIM.find("power_on_device(device_id)").expect("never powered");
     assert!(gate < close && close < power, "{gate} {close} {power}");
+}
+
+#[test]
+fn every_claim_no_unit_confines_asks_the_verdict_with_port_only() {
+    let asked = "Ok(()), port_only, (OPT_IN, PRODUCTION))";
+    assert!(ATTACH.contains(&format!("verdict(false, false, {asked}")));
+    assert!(ATTACH.contains(&format!("without_domain(verdict(true, false, {asked})")));
+    assert!(CAPSULE.contains("without_domain(verdict(true, true, Err(true), port_only, (OPT_IN"));
+    let no_dma = REFUSE.find("Verdict::NoDma => {").expect("NoDma refused");
+    let ok = REFUSE[no_dma..].find("return Ok(());").expect("NoDma not admitted");
+    assert!(ok < REFUSE[no_dma..].find("Verdict::Unconfined").unwrap());
 }
