@@ -38,6 +38,8 @@ pub mod capabilities {
     pub use defs::Capability;
 }
 
+#[path = "../../../src/process/core/table/ambient.rs"]
+mod ambient;
 #[path = "../../../src/security/capsule_manifest/verify/caps_bits.rs"]
 mod spawn_caps;
 

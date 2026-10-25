@@ -17,6 +17,9 @@
 //! The kernel modules the bound calls into, over the stand-in's state.
 
 pub mod process {
+    pub mod core {
+        pub(crate) use crate::ambient::AMBIENT_CAPS;
+    }
     pub fn current_pid() -> Option<u32> {
         super::super::CALLER.get()
     }
