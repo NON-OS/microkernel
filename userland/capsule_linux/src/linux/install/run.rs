@@ -54,9 +54,7 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
             say(line.as_bytes());
             return Err(super::Why::TooLarge);
         }
-        let Some(files) = fetch(pkg, (pkg.name == name).then_some(pin)) else {
-            return Err(super::Why::Package);
-        };
+        let files = fetch(pkg, (pkg.name == name).then_some(pin))?;
         say(b"[LINUX] provenance Verified: index signature and checksums match\n");
         unpack(&files, &pkg.name, pkg.name == name, false)?;
         done.push(pkg.name.clone());
