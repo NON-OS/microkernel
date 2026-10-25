@@ -1,0 +1,18 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for nonos_hwreport: the scrub over every shape of value
+# a log line may carry, a seeded sweep that plants MACs, addresses, UUIDs and
+# serials in random lines and finds none in a report, the parser over random
+# and mutated reports, and every buffer size a report can be written into.
+[package]
+name = "hwreport_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_hwreport = { path = "../nonos_hwreport" }
