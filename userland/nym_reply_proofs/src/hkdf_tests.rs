@@ -12,6 +12,7 @@
 // GNU Affero General Public License for more details.
 //
 // You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The capsule's HKDF-BLAKE3, which now wipes every block it makes, against a
 //! reference written here from RFC 2104 and RFC 5869 over the BLAKE3 crate:
