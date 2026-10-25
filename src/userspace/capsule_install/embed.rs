@@ -27,15 +27,15 @@ pub(crate) const INSTALL_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-install")]
 pub(crate) const INSTALL_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/install.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/install.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-install")]
 pub(crate) const INSTALL_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/install.manifest.bin");
+    crate::baked_trust!("capsules/install.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-install")]
 pub(crate) const INSTALL_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/install.zk_trailer.bin");
+    crate::baked_trust!("capsules/install.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-install"))]
 pub(crate) const INSTALL_ELF: &[u8] = &[];

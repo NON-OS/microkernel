@@ -23,15 +23,15 @@ pub(super) const DRIVER_HDA_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-hda")]
 pub(super) const DRIVER_HDA_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_hda.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_hda.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-hda")]
 pub(super) const DRIVER_HDA_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_hda.manifest.bin");
+    crate::baked_trust!("capsules/driver_hda.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-hda")]
 pub(super) const DRIVER_HDA_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_hda.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_hda.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-hda"))]
 pub(super) const DRIVER_HDA_ELF: &[u8] = &[];

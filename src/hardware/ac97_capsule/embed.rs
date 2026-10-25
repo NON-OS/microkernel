@@ -23,15 +23,15 @@ pub(super) const DRIVER_AC97_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-ac97")]
 pub(super) const DRIVER_AC97_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_ac97.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-ac97")]
 pub(super) const DRIVER_AC97_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_ac97.manifest.bin");
+    crate::baked_trust!("capsules/driver_ac97.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-ac97")]
 pub(super) const DRIVER_AC97_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_ac97.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_ac97.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-ac97"))]
 pub(super) const DRIVER_AC97_ELF: &[u8] = &[];
