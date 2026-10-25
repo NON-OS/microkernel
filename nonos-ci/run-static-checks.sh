@@ -5135,6 +5135,17 @@ else
     fail_with "check_proof_features: a profile, image or lane enables an SMP boot proof"
 fi
 unset proofs_out
+# A kernel feature that gates code and that no lane turns on is dark; the dark
+# set may only shrink (scripts/baselines/dark-features.txt). The SMP boot
+# proofs and pqc-unvetted are lit by the compile-only check-dark-features.
+if dark_out="$(python3 scripts/check_dark_features.py --self-test 2>&1 \
+    && python3 scripts/check_dark_features.py 2>&1)"; then
+    note ok "no kernel feature joined the dark set (check_dark_features)"
+else
+    tail -n 8 <<< "${dark_out}" >&2
+    fail_with "check_dark_features: a feature gates code that no lane builds"
+fi
+unset dark_out
 
 if [ "${fail}" -ne 0 ]; then
     echo
