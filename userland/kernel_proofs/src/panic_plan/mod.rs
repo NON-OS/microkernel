@@ -25,6 +25,12 @@ mod glue_tests;
 mod helpers;
 #[path = "../../../../src/security/zerostate/panic_plan.rs"]
 pub mod plan;
+// panic_stack names the plan by its kernel path.
+use plan as panic_plan;
+#[path = "../../../../src/security/zerostate/panic_stack.rs"]
+pub mod panic_stack;
+#[cfg(test)]
+mod tests_stacks;
 #[cfg(test)]
 mod tests;
 #[cfg(test)]
