@@ -30,9 +30,9 @@ pub mod state;
 mod try_init;
 
 pub use draw::{clear_screen, draw_rect, fill_rect, hline, put_pixel, vline};
+pub(crate) use edid::read_edid;
 pub use handle::report_gop_handle;
 pub use init::init_gop;
-pub(crate) use edid::read_edid;
 pub(crate) use init::preferred_mode;
 pub(crate) use mode::linear_bgr;
 pub use read::get_pixel;

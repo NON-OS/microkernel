@@ -18,6 +18,7 @@ pub mod boot_evidence;
 pub mod boot_media;
 pub mod constants;
 pub mod firmware;
+pub mod flag_names;
 pub mod framebuffer;
 pub mod handoff;
 pub mod info;
@@ -29,8 +30,8 @@ mod refusal_says;
 pub mod security;
 
 pub use boot_evidence::{
-    MODULE_KIND_BOOT_ROOT_RECORD, MODULE_KIND_BOOT_TRAILER, MODULE_KIND_LOADER_IMAGE,
-    MODULE_KIND_DISK_MIRROR, MODULE_KIND_STORE, MODULE_KIND_TCG_LOG,
+    MODULE_KIND_BOOT_ROOT_RECORD, MODULE_KIND_BOOT_TRAILER, MODULE_KIND_DISK_MIRROR,
+    MODULE_KIND_LOADER_IMAGE, MODULE_KIND_STORE, MODULE_KIND_TCG_LOG,
 };
 pub use boot_media::{BootMedia, BOOT_MEDIA_LEN, MODULE_KIND_BOOT_MEDIA};
 pub use constants::{flags, pixel_format, HANDOFF_MAGIC, HANDOFF_VERSION};

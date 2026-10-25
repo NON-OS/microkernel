@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::mode::linear_bgr;
-use super::refusal_word::mask_bits;
 use super::pick::Offered;
+use super::refusal_word::mask_bits;
 use super::state::{NO_FB_BAD_GEOMETRY, NO_FB_BITMASK, NO_FB_BLT_ONLY};
 use alloc::vec::Vec;
 use uefi::proto::console::gop::{GraphicsOutput, PixelFormat};
