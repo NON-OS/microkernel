@@ -20,7 +20,6 @@
 //! them this machine's facts and does what they allow.
 
 pub mod battery_watch;
-pub mod boot_logo;
 pub mod button_owner;
 mod bridge_log;
 pub mod claim_holder;
@@ -50,7 +49,6 @@ pub mod late_bars;
 pub mod leave;
 pub mod leave_rule;
 pub mod lid_state;
-pub mod logo_record;
 pub mod lpi_record;
 pub mod lpi_wire;
 pub mod loaded_rule;

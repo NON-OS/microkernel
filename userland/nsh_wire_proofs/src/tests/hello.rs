@@ -34,7 +34,7 @@ fn the_lengths_are_the_specified_ones() {
 #[test]
 fn a_client_hello_round_trips() {
     let bytes = client();
-    assert_eq!(&bytes[..10], b"NSH1\x01\x00\x01\x00\x00\x00");
+    assert_eq!(&bytes[..10], b"NSH1\x02\x00\x01\x00\x00\x00");
     let h = ClientHello::parse(&bytes).expect("valid");
     assert_eq!((h.random, &h.kem_ek[..]), (&[0x52; 32], &[0xEE; 1216][..]));
 }

@@ -149,14 +149,29 @@ def selftest_panic():
     """The selftest image's capsule_linux is built with selftest-panic, so its
     boot shows the Terminal's answer to a panic inside a box. Only here, in
     the copy's capsules.json, for this profile: the next build of any other
-    profile copies the checkout's file back, and scripts/check_selftest_panic.py
+    profile copies the checkout's file back, and scripts/check_copy_only_features.py
     fails any committed build that names the feature."""
     path = TREE / "tools/nix/capsules.json"
-    entries = json.loads(path.read_text())
+    path.write_text(json.dumps(panicking(json.loads(path.read_text())), indent=1) + "\n")
+    commit()
+
+
+def panicking(entries):
+    """capsules.json's entries with selftest-panic added to capsule_linux's
+    cargo_features, keeping any it already has (scripts/selftest_panic_fixture.py)."""
     for e in entries:
         if e["slug"] == "linux":
-            e["cargo_features"] = "selftest-panic"
-    path.write_text(json.dumps(entries, indent=1) + "\n")
+            have = [f for f in e["cargo_features"].split(",") if f]
+            e["cargo_features"] = ",".join(have + ["selftest-panic"] * ("selftest-panic" not in have))
+    return entries
+
+
+def agentproof_job(job_dir):
+    """The copy's Terminal built headless, running the job in `job_dir`
+    (tools/agentproof_gauntlet/image.py): a Gauntlet image, never a release."""
+    sys.path.insert(0, str(ROOT / "tools"))
+    from agentproof_gauntlet.image import place
+    place(TREE, job_dir)
     commit()
 
 
@@ -166,7 +181,11 @@ def main():
     ap.add_argument("--keys-only", action="store_true",
                     help="bring the copy and its throwaway keys up to date, and seal nothing: for a make "
                          "lane run inside target/dev/tree, as tools/nonos-selftest does")
+    ap.add_argument("--agentproof-job", metavar="DIR",
+                    help="a Gauntlet image: the Terminal built headless, running the job in DIR")
     a = ap.parse_args()
+    if a.agentproof_job and a.profile != "gauntlet":
+        sys.exit("nonos-dev-image: --agentproof-job builds the gauntlet profile, whose apps start at boot")
     attr = "dev" if a.profile == "dev" else f"{a.profile}-dev"
     TREE.mkdir(parents=True, exist_ok=True)
     print(f"nonos-dev-image: {attr}, in {TREE.relative_to(ROOT)}")
@@ -176,6 +195,8 @@ def main():
     keys(host_tools)
     if a.profile == "selftest":
         selftest_panic()
+    if a.agentproof_job:
+        agentproof_job(Path(a.agentproof_job).resolve())
     if a.keys_only:
         print(f"nonos-dev-image: {TREE.relative_to(ROOT)} and its throwaway keys are ready")
         return

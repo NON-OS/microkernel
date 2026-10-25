@@ -18,12 +18,13 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::{footer_h, HINTS, HINT_PX, KEY_GAP, PAD_TOP, PAIR_GAP};
+use super::{footer_h, HINT_PX, KEY_GAP, PAD_TOP, PAIR_GAP};
+use crate::paint::hint_sets::{hints, Mode};
 use crate::paint::constants::TEXT_LEFT;
 use crate::paint::shade::elevate;
 use crate::term::theme::types::Theme;
 
-pub fn draw_footer(fb: &mut PaintBuffer, t: &Theme) {
+pub fn draw_footer(fb: &mut PaintBuffer, mode: Mode, t: &Theme) {
     let band = footer_h();
     let y = fb.height.saturating_sub(band);
     fb.fill_rect(0, y, fb.width, band, elevate(t.bg, 10));
@@ -33,7 +34,7 @@ pub fn draw_footer(fb: &mut PaintBuffer, t: &Theme) {
 
     let baseline = (y + PAD_TOP) as i32;
     let mut x = TEXT_LEFT as i32;
-    for (key, label) in HINTS {
+    for (key, label) in hints(mode) {
         let key_w = fb.measure_ttf(key, HINT_PX);
         let label_w = fb.measure_ttf(label, HINT_PX);
         // Stop before a pair would run under the right edge, rather than
