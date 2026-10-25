@@ -16,13 +16,14 @@
 
 //! An enrolment certificate: one that parses names a well-formed host and
 //! a fleet, is no larger than the largest certificate, and signs all but
-//! its signature.
+//! its signature, its boot applications among what is signed: whole
+//! digests, at most eight, none zero and none twice.
 
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
 use nsh_wire::keys::HYBRID_SIG_LEN;
-use nsh_wire::{names, Enrol, MAX_ENROL};
+use nsh_wire::{names, Enrol, BOOT_APP_LEN, MAX_BOOT_APPS, MAX_ENROL};
 
 fuzz_target!(|data: &[u8]| {
     if let Ok(e) = Enrol::parse(data) {
@@ -30,5 +31,13 @@ fuzz_target!(|data: &[u8]| {
         assert!(e.fleet_id.iter().any(|b| *b != 0));
         assert!(data.len() <= MAX_ENROL);
         assert_eq!(e.signed, &data[..data.len() - HYBRID_SIG_LEN]);
+        let apps: Vec<_> = e.boot_applications().collect();
+        assert_eq!(e.boot_apps.len(), apps.len() * BOOT_APP_LEN);
+        assert!(apps.len() <= MAX_BOOT_APPS);
+        for (i, a) in apps.iter().enumerate() {
+            assert!(a.iter().any(|b| *b != 0) && !apps[..i].contains(a));
+        }
+        let at = e.boot_apps.as_ptr() as usize - e.signed.as_ptr() as usize;
+        assert!(at + e.boot_apps.len() <= e.signed.len(), "the section is signed");
     }
 });

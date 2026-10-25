@@ -28,7 +28,7 @@ use super::tcg_log::Log;
 impl Default for Spec {
     fn default() -> Self {
         Spec {
-            version: 4,
+            version: 5,
             th: [0x77; 64],
             host: b"db-1.eu.example".to_vec(),
             now_ms: 5_000,
@@ -36,7 +36,7 @@ impl Default for Spec {
             pcr: Vec::new(),
             quoted: Vec::new(),
             challenge: None,
-            dma: (1, true, 0),
+            dma: (1, true, 0, 0),
             bound_dma: None,
             quote: |_| {},
             after_sign: |_| {},
