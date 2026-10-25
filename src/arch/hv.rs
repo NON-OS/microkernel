@@ -29,7 +29,9 @@ pub use hv_backdoor::hv_backdoor_present;
 pub(crate) use hv_backdoor::{hv_backdoor, HvBackdoorError};
 pub use hv_vmbus::hv_vmbus_ready;
 pub(crate) use hv_vmbus::{
-    hv_vmbus_events, hv_vmbus_post, hv_vmbus_recv, hv_vmbus_signal, HvVmbusError, HV_EVENT_WORDS,
+    hv_vmbus_bind, hv_vmbus_channel_device, hv_vmbus_channel_event, hv_vmbus_channel_of,
+    hv_vmbus_events, hv_vmbus_post, hv_vmbus_post_channel, hv_vmbus_recv, hv_vmbus_recv_channel,
+    hv_vmbus_released, hv_vmbus_retires, hv_vmbus_signal, HvRetire, HvVmbusError, HV_EVENT_WORDS,
     HV_MESSAGE_BYTES,
 };
 pub(crate) use report_hypervisor::report_hypervisor;

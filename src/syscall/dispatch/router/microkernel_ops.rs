@@ -90,6 +90,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkHvRecv
             | MkHvEvents
             | MkHvSignal
+            | MkHvChannel
             | MkAcpiTable
             | MkAcpiRegion
             | MkAcpiPort

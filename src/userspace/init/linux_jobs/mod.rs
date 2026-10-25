@@ -18,13 +18,16 @@
 //! Work a capsule asks the Linux personality to do, performed by init: an
 //! install once the market vouches for it, or a run of what was installed.
 
+mod box_of;
 mod direct;
 mod evict;
+mod install;
 mod order;
 mod queue;
 mod run;
 mod service;
 mod status;
+mod vouched;
 mod why;
 
 pub(crate) use queue::{has_pending, request_install, request_quiet_run, request_run, request_uninstall};

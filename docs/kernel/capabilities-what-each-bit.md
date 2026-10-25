@@ -39,7 +39,7 @@ siblings ask for their own bit alone
 | 21 | `InputSource` | `MkInputEventPost`. |
 | 22 | `TimeSet` | `MkTimeAdjust`. `Admin` does not stand in for it. |
 | 23 | `SpawnBroker` | Naming another live pid as the parent of a capsule load. |
-| 24 | `SpawnWindow` | `MkSpawnInstance`. |
+| 24 | `SpawnWindow` | `MkSpawnInstance`; launching a capsule for the user beyond the launcher's own capabilities (`MkCapsuleLoad`, `MkToolRun`). `Admin` stands in. |
 | 25 | `ProcessControl` | `MkKill` on a process the caller does not parent, and every field of other processes in `MkProcStat`. |
 | 26 | `StoreWrite` | `MkStoreWrite`, `MkStoreRead`; with `FileSystem`, the data import calls. |
 | 27 | `EnrolDevRoot` | `MkDevRootRequest`, `MkDevRootConfirm`, `MkDevRootLocal`, `MkLocalConsent`, `MkLocalRestore`. `Admin` does not imply it. |
