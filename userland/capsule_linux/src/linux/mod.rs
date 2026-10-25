@@ -33,6 +33,7 @@ mod env;
 mod file;
 mod guest;
 mod heap;
+mod heap_choice;
 mod image;
 mod install;
 mod launch;
