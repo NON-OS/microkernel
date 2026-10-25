@@ -11,13 +11,24 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Affero General Public License for more details.
 """The tree as scripts/check_devnet_feature.py reads it: which files each
-rule of devnet_feature_scan.py applies to. Where a release could pick the
-development set is scripts/check_dev_capsule_set.py's to pin, not this."""
+rule of devnet_feature_scan.py applies to, and the lines that must hold."""
 
 import os
 from pathlib import Path
 
+import devnet_feature_lanes as lanes
 import devnet_feature_scan as scan
+
+# The release ELF check still looks for the throwaway TLS root's name. Where
+# a release could pick the development set is scripts/check_dev_capsule_set.py's
+# to pin, not this check's.
+PINS = {"tools/nix/release_names.nix": '\n    "NONOS-devnet-throwaway-root"\n'}
+
+
+def pinned(files):
+    """Each pinned line still holds."""
+    return [f"{p}: no longer holds: {want}" for p, want in PINS.items() if want not in files.get(p, "")]
+
 
 PLACES = ("nonos.toml", "Makefile", "mk", "nonos-mk", "nonos-ci", ".github", "tools/nix")
 SUFFIXES = {".toml", ".nix", ".mk", ".sh", ".yml", ".yaml", ".json", ".py"}
@@ -53,5 +64,9 @@ def failures(root):
         for path, text in walk(root, top):
             if path in FILE_LISTS:
                 continue
+            if path == lanes.LANES:
+                out += lanes.lanes(path, text, lanes.capsule_dirs(root))
+                continue
             out += scan.catalogue(path, text, CATALOGUES[path]) if path in CATALOGUES else scan.anywhere(path, text)
-    return out
+    pins = {p: (root / p).read_text() for p in PINS if (root / p).is_file()}
+    return out + pinned(pins)
