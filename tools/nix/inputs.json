@@ -1542,6 +1542,7 @@
    "userland/capsule_acpi/src/aei/rate.rs",
    "userland/capsule_acpi/src/backlight/engine_rule.rs",
    "userland/capsule_acpi/src/boot/pass.rs",
+   "userland/capsule_acpi/src/boot/sci.rs",
    "userland/capsule_acpi/src/boot/sci_claim.rs",
    "userland/capsule_acpi/src/cooling/ceilings.rs",
    "userland/capsule_acpi/src/cpu/caps.rs",
