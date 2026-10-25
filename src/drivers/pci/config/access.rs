@@ -23,20 +23,18 @@
 
 use super::super::error::Result;
 use super::super::types::PciAddress;
-use super::{check::check, counters, transport};
+use super::{check::check, transport};
 
 /// Generate a checked read and write for one width.
 macro_rules! checked {
     ($read:ident, $write:ident, $ty:ty, $width:expr) => {
         pub fn $read(bus: u8, device: u8, function: u8, offset: u16) -> Result<$ty> {
             check(PciAddress::new(bus, device, function), offset, $width)?;
-            counters::read();
             transport::$read(bus, device, function, offset)
         }
 
         pub fn $write(bus: u8, device: u8, function: u8, offset: u16, value: $ty) -> Result<()> {
             check(PciAddress::new(bus, device, function), offset, $width)?;
-            counters::wrote();
             transport::$write(bus, device, function, offset, value)
         }
     };
