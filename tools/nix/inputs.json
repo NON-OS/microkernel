@@ -3959,7 +3959,6 @@
    "src/hardware/broker/acpi/dgon_wire.rs",
    "src/syscall/microkernel/store_read.rs",
    "src/syscall/microkernel/store_write.rs",
-   "src/userspace/init/app_choice/bits.rs",
    "tools/nonos-store-check",
    "tools/nonos-store-pack",
    "tools/nonos_data_plan/__main__.py",
@@ -3968,9 +3967,7 @@
    "userland/capsule_vfs",
    "userland/fs_proofs/libc_shim/src/store.rs",
    "userland/libc",
-   "userland/nonos_disk_map",
-   "userland/policy_client",
-   "userland/policy_proto"
+   "userland/nonos_disk_map"
   ],
   "md": [],
   "signed": []
@@ -10799,9 +10796,14 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "nonos-data/trust/capsules/hello.manifest.bin",
+   "nonos-data/trust/capsules/hello.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/hello.zk_trailer.bin",
    "src/memory/paging/manager/address_space/leaf_release.rs",
    "src/security/zerostate/keep_rule.rs",
    "src/sys/policy/hostname/names_clear.rs",
+   "userland/capsule_policy/src/store/keep_once.rs",
+   "userland/capsule_vfs",
    "userland/zerostate_proofs"
   ],
   "md": [],
