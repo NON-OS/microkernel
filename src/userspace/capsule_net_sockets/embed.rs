@@ -23,15 +23,15 @@ pub(super) const NET_SOCKETS_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-net-sockets")]
 pub(super) const NET_SOCKETS_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_sockets.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/net_sockets.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-net-sockets")]
 pub(super) const NET_SOCKETS_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_sockets.manifest.bin");
+    crate::baked_trust!("capsules/net_sockets.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-net-sockets")]
 pub(super) const NET_SOCKETS_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_sockets.zk_trailer.bin");
+    crate::baked_trust!("capsules/net_sockets.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-net-sockets"))]
 pub(super) const NET_SOCKETS_ELF: &[u8] = &[];
