@@ -16,6 +16,15 @@ license = "AGPL-3.0-or-later"
 [lib]
 path = "src/lib.rs"
 
+[features]
+# What the capsule keeps for these proofs alone: the route tables' name
+# lists and the last box report's policy (capsule_terminal Cargo.toml).
+default = ["line-proofs"]
+line-proofs = []
+# The terminal's headless agent build; never on here, declared so its cfg is
+# a known one.
+agentproof-headless = []
+
 [dependencies]
 nonos_vt = { path = "../nonos_vt" }
 # The route values the policy store holds, for the direct-only commands.

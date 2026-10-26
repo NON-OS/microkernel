@@ -47,6 +47,7 @@ pub fn assert_rows_keep_their_source(items: &[Entry]) {
         Action::NewSession,
         Action::ToggleMonitor,
         Action::ChangeTheme,
+        Action::Split,
     ];
     for (i, a) in all.iter().enumerate() {
         for (j, b) in all.iter().enumerate() {
