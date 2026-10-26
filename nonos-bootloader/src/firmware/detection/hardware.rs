@@ -115,21 +115,8 @@ fn map_fw(vid: u16, did: u16) -> FirmwareType {
     }
 }
 
+/// A dword of configuration space, or all ones (no device) where the
+/// architecture has no port window to read it through (arch::cpu).
 fn pci_read(addr: u32) -> u32 {
-    let data: u32;
-    unsafe {
-        core::arch::asm!(
-            "out dx, eax",
-            in("dx") 0xCF8u16,
-            in("eax") addr & 0xFFFF_FFFC,
-            options(nomem, nostack, preserves_flags)
-        );
-        core::arch::asm!(
-            "in eax, dx",
-            out("eax") data,
-            in("dx") 0xCFCu16,
-            options(nomem, nostack, preserves_flags)
-        );
-    }
-    data
+    crate::arch::cpu::pci_config_read(addr).unwrap_or(0xFFFF_FFFF)
 }

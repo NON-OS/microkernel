@@ -36,7 +36,7 @@ pub fn mk_kill(_pid: u64, _sig: u64) -> i64 {
 pub fn mk_wait(_pid: u64, _timeout_ms: u64) -> i64 {
     ESRCH
 }
-pub fn mk_pid_alive(_pid: u32) -> bool {
+pub extern "C" fn mk_pid_alive(_pid: u32) -> bool {
     false
 }
 pub fn mk_tty_set(_pid: u32, _streams: u64, _cols: u16, _rows: u16) -> i64 {

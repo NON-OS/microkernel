@@ -68,9 +68,8 @@ pub fn run() -> ! {
             ctx.cursor_dirty = false;
         }
         if n == 0 {
-            let mut seq = last_seq;
-            let _ = mk_input_event_wait(last_seq, INPUT_WAIT_MS, &mut seq);
-            last_seq = seq;
+            crate::route::settle_hover(&mut ctx);
+            let _ = mk_input_event_wait(last_seq, INPUT_WAIT_MS, &mut last_seq);
         }
     }
 }

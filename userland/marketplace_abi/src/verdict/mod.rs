@@ -36,7 +36,7 @@ pub use bond_reading::BondReading;
 pub use commerce::{commerce_verdict, CommerceVerdict};
 pub use digest::{binding_digest, binding_digest_at};
 pub use policy::{policy_verdict, AT_LISTING, AT_RELEASE};
-pub use policy::{POLICY_LEN, POLICY_MAGIC, POLICY_VERSION};
+pub use policy::{POLICY_LEN, POLICY_MAGIC, POLICY_VERSION, TIER_LISTING, TIER_PACKAGE};
 pub use policy_kind::PolicyVerdict;
 pub use price::{price_verdict, PriceVerdict};
 pub use recover::Recover;

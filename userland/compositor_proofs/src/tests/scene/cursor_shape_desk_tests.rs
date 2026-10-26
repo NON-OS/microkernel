@@ -26,7 +26,7 @@ fn the_window_s_resize_arrow_is_drawn_from_its_middle_and_leaves_no_trail() {
     let mut d = Desk::new();
     d.kernel.register(40, 60, 40, 60, WINDOW);
     d.submit(5, 40, (10, 10, 60, 40), 2);
-    d.scene.set_cursor(5, 40, EW_CODE).expect("its own surface");
+    d.scene.set_cursor(5, 40, Some(EW_CODE)).expect("its own surface");
     d.frame();
     for step in 0..8u32 {
         let (x, y) = (30 + step * 3, 25 + step);
