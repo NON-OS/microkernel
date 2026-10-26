@@ -17,7 +17,7 @@
 use super::super::constants::MIN_ALIGNMENT;
 use super::allocator::SecureHeapAllocator;
 use super::header::{data_offset, AllocationHeader};
-use core::alloc::{GlobalAlloc, Layout};
+use core::alloc::Layout;
 use core::mem;
 use core::ptr::{self, null_mut};
 use core::sync::atomic::Ordering;
@@ -45,8 +45,7 @@ pub(super) unsafe fn alloc_impl(allocator: &SecureHeapAllocator, layout: Layout)
             return null_mut();
         };
 
-        let raw_ptr =
-            crate::arch::run_without_interrupts(|| allocator.inner.alloc(adjusted_layout));
+        let raw_ptr = crate::arch::run_without_interrupts(|| allocator.raw_alloc(adjusted_layout));
         if raw_ptr.is_null() {
             return null_mut();
         }

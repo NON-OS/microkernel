@@ -28,6 +28,8 @@ mod anon;
 pub mod pool;
 #[path = "../../nonos_gfx_pool/src/receiver.rs"]
 mod receiver;
+#[path = "../../nonos_gfx_pool/src/run_state.rs"]
+mod run_state;
 #[path = "../../nonos_gfx_pool/src/surface.rs"]
 mod surface;
 
