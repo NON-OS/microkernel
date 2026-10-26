@@ -74,7 +74,7 @@ Every app window has a title bar with its name at the left and three controls at
 - The controls have no colour until the pointer is over one. Then it is shaded, and close turns red, because closing is the one that can lose work.
 - A name too long for the bar ends in `…` before the controls.
 - Drag the title bar to move the window. A window cannot be dragged under the menu bar.
-- Drag any edge or corner to resize: the edge you hold follows the pointer and the opposite one stays. The top edge is the thin band above the controls. The new size and place are applied together when you let go, never as a move and then a resize. A window cannot be made smaller than its app allows, or dragged above the menu bar.
+- Drag any edge or corner to resize: the pointer becomes a two-headed arrow over each, and the edge you hold follows it while the opposite one stays. The top edge is the thin band above the controls. The new size and place are applied together when you let go, never as a move and then a resize. A window cannot be made smaller than its app allows, or dragged above the menu bar.
 - Full screen makes the window the whole width, from the foot of the menu bar to the bottom edge, over the dock's band. Press it again to get the old size back.
 - A click in a window raises it and gives it the keyboard in one step.
 - The first new window opens in the middle of the work area, between the menu bar and the dock. Each later one, in runs of five, steps down and to the right so its title bar stays reachable.

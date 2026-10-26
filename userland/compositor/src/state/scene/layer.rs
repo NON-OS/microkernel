@@ -38,4 +38,7 @@ pub struct Layer {
     pub stack: u32,
     pub in_use: bool,
     pub miss_count: u16,
+    /// The pointer's shape over this layer, as its owner asked
+    /// (frame_pacer/cursor_shapes.rs); 0, the arrow, until it asks.
+    pub cursor: u8,
 }
