@@ -51,7 +51,7 @@ pub fn inspect(bytes: &[u8], challenge: Option<[u8; 32]>) -> Result<String, Erro
         format!("vendor {} enforcing {} unconfined {} identity {}", dma.0, dma.1, dma.2, dma.3),
     );
     line("dma held", (nsh_attest::steps::dma(&doc).is_ok()).to_string());
-    line("registry", format!("{} capsules, complete {}", doc.capsule_count, doc.registry_complete));
+    line("registry", format!("{} capsules", doc.capsule_count));
     line("root", of(doc.registry_root));
     line("log", format!("{} bytes", doc.log.len()));
     Ok(out)
