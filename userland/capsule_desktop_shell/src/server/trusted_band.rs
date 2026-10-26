@@ -40,7 +40,7 @@ pub fn sync(ctx: &mut Context) {
     };
     let rid = ctx.issue_request_id();
     let (port, handle, w, h) = (ctx.ports.compositor_port, t.chrome_handle, ctx.width, ctx.height);
-    if push_scene_submit(port, rid, handle, 0, 0, w, h, place).is_err() {
+    if push_scene_submit(port, rid, handle, (0, 0, w, h), place).is_err() {
         return;
     }
     let rid = ctx.issue_request_id();
