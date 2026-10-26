@@ -39,7 +39,7 @@ pub(in crate::editor) fn menubar_hit(
     let (x, y) = (x as u32, y as u32);
     if let Some(o) = open {
         let (px, py, pw, ph) = panel_rect(spans, o);
-        if x >= px && x < px + pw && y >= py + 1 && y < py + ph - 1 {
+        if x >= px && x < px + pw && y > py && y < py + ph - 1 {
             let idx = ((y - py - 1) / row_h()) as usize;
             return match rows(o).get(idx) {
                 Some(_) => MenuHit::Row(idx),
