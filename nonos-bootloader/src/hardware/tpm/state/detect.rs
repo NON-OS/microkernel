@@ -38,6 +38,9 @@ impl TpmState {
     /// fTPM are both CRB, so the bootloader skipped the TPM on any machine
     /// with a firmware TPM and fell back to a software machine id.
     pub fn detect(&mut self) -> Result<bool, TpmError> {
+        if !crate::arch::cpu::PC_TPM_WINDOW {
+            return Ok(false);
+        }
         let interface_id = self.read_reg32(TPM_INTERFACE_ID);
         let is_crb =
             !absent(interface_id) && (interface_id & TPM_INTF_TYPE_MASK) == TPM_INTF_TYPE_CRB;

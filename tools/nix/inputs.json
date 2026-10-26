@@ -1406,9 +1406,12 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/arch/aarch64/boot/memory/clip.rs",
    "src/arch/aarch64/boot/memory/dma_place.rs",
+   "src/arch/aarch64/boot/memory/efi_runs.rs",
    "src/arch/aarch64/boot/memory/image.rs",
    "src/arch/aarch64/boot/memory/span.rs",
+   "src/arch/aarch64/boot/memory/usable.rs",
    "src/arch/aarch64/mmu/image_bounds.rs",
    "userland/boot_memory_proofs"
   ],
@@ -6544,6 +6547,31 @@
    "userland/capsule_net_l2/src/server/respond",
    "userland/l2_proofs",
    "userland/net_proofs/shim"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/loader_arm_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "VERSION",
+   "nonos-bootloader/assets/fonts/nonos.nxf",
+   "nonos-bootloader/firmware/intel/iwlwifi-7265D-29.ucode",
+   "nonos-bootloader/firmware/intel/iwlwifi-8265-36.ucode",
+   "nonos-bootloader/firmware/intel/iwlwifi-9260-th-b0-jf-b0-46.ucode",
+   "nonos-bootloader/firmware/intel/iwlwifi-cc-a0-77.ucode",
+   "nonos-bootloader/firmware/intel/iwlwifi-so-a0-gf-a0-86.ucode",
+   "nonos-bootloader/firmware/realtek/rtw8723d_fw.bin",
+   "nonos-bootloader/firmware/realtek/rtw8821c_fw.bin",
+   "nonos-bootloader/firmware/realtek/rtw8822b_fw.bin",
+   "nonos-bootloader/firmware/realtek/rtw8822c_fw.bin",
+   "nonos-bootloader/firmware/realtek/rtw8851b_fw.bin",
+   "nonos-bootloader/firmware/realtek/rtw8852a_fw.bin",
+   "nonos-bootloader/firmware/realtek/rtw8852b_fw.bin",
+   "nonos-bootloader/firmware/realtek/rtw8852c_fw.bin",
+   "nonos-bootloader/src",
+   "userland/loader_arm_proofs"
   ],
   "md": [],
   "signed": []
