@@ -19,12 +19,14 @@ use core::str;
 
 use super::path::{is_read_only, normalize};
 use super::util::{map_store_err, split_caller};
-use crate::protocol::{encode_response, Request, EACCES, EINVAL, MAX_PATH_BYTES, OP_TRUNCATE};
+use crate::protocol::{
+    encode_response, Request, EACCES, EBUSY, EINVAL, MAX_PATH_BYTES, OP_TRUNCATE,
+};
 use crate::store::Store;
 
 // Payload: u32 caller_pid, u8 path_len, path bytes, u64 size.
 pub fn truncate(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
-    let (_pid, rest) = match split_caller(req.payload, sender_pid) {
+    let (pid, rest) = match split_caller(req.payload, sender_pid) {
         Ok(v) => v,
         Err(s) => return encode_response(OP_TRUNCATE, req.flags, req.request_id, s, &[]),
     };
@@ -47,6 +49,9 @@ pub fn truncate(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8>
     };
     if is_read_only(&path) {
         return encode_response(OP_TRUNCATE, req.flags, req.request_id, EACCES, &[]);
+    }
+    if store.held_by_another(&path, pid) {
+        return encode_response(OP_TRUNCATE, req.flags, req.request_id, EBUSY, &[]);
     }
     match store.truncate(&path, size) {
         Ok(()) => encode_response(OP_TRUNCATE, req.flags, req.request_id, 0, &[]),
