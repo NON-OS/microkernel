@@ -31,14 +31,13 @@
 
 #[path = "need/shapes.rs"]
 mod shapes;
-pub use shapes::{BATCH, MARGIN, POSITIONS, SHAPES, VISION, VISION_MARGIN};
+pub use shapes::{BATCH, MARGIN, POSITIONS, SHAPES};
 
 /* Bytes `tier` needs in memory with `weights` bytes of model files. */
 pub fn memory(tier: &str, weights: u64) -> Option<u64> {
     let &(_, layers, kv_heads, head, embd) = SHAPES.iter().find(|s| s.0 == tier)?;
     let kv = layers * kv_heads * 2 * head * 2 * POSITIONS;
-    let vision = if VISION.contains(&tier) { VISION_MARGIN } else { 0 };
-    Some(weights + kv + MARGIN + BATCH * embd * 64 + vision)
+    Some(weights + kv + MARGIN + BATCH * embd * 64 + shapes::vision(tier))
 }
 
 /*

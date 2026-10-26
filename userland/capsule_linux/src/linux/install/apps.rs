@@ -23,11 +23,9 @@
  * split names. The tables sit beside this file, one a family.
  */
 
-use super::apps_coder::CODER;
-use super::apps_qwen25::QWEN25;
-use super::apps_qwen3::QWEN3;
-use super::apps_qwen35::QWEN35;
-use super::apps_vl::VL;
+use super::{
+    apps_coder::CODER, apps_qwen25::QWEN25, apps_qwen3::QWEN3, apps_qwen35::QWEN35, apps_vl::VL,
+};
 
 pub struct App {
     pub name: &'static str,

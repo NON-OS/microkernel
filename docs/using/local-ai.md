@@ -49,7 +49,7 @@ The local Qwen model, running offline: Works on an x86_64 laptop (Intel Gemini L
 
 There are 20 tiers. Every file is a GGUF file published on Hugging Face, pinned by name, length and SHA-256 inside the signed personality. The Qwen team publishes most of them. It publishes Qwen3.5 and Qwen3.6 in safetensors only, so those two tiers are the GGUF files ggml-org, the llama.cpp project, converts and publishes: `ggml-org/Qwen3.5-0.8B-GGUF` and `ggml-org/Qwen3.6-27B-GGUF`, each Apache-2.0 on its own model card.
 
-Sizes are in GiB (2^30 bytes). "Files" is the pinned lengths summed. "To run" is what the model fetcher's rule says a chat needs: the files, a key and value cache for 2048 positions, a 512-token batch and a 64 MiB margin. "Installed" is the smallest total memory that fits on an installed NONOS: the run plus 1 GiB kept for the system. These figures come from that rule; they were not measured on a machine.
+Sizes are in GiB (2^30 bytes). "Files" is the pinned lengths summed. "To run" is what the model fetcher's rule says a chat needs: the files, a key and value cache for 2048 positions, a 512-token batch and a 64 MiB margin, and for a vision tier 512 MiB more for encoding the image (the peak measured on a vl-2b boot, rounded up). "Installed" is the smallest total memory that fits on an installed NONOS: the run plus 1 GiB kept for the system. These figures come from that rule; they were not measured on a machine, but for the vision margin.
 
 | Tier | Model and quantisation | Files | To run | Installed |
 |---|---|---:|---:|---:|
@@ -68,7 +68,7 @@ Sizes are in GiB (2^30 bytes). "Files" is the pinned lengths summed. "To run" is
 | `qwen3-32b` | Qwen3 32B, Q4_K_M | 18.40 | 19.12 | 20.12 |
 | `qwen3.5-0.8b` | Qwen3.5 0.8B, Q8_0 | 0.78 | 0.97 | 1.97 |
 | `qwen3.6-27b` | Qwen3.6 27B, Q4_K_M | 17.78 | 18.50 | 19.50 |
-| `vl-2b` | Qwen3-VL 2B Instruct, Q4_K_M, with its vision projector at Q8_0, 2 files | 1.45 | 2.16 | 3.16 |
+| `vl-2b` | Qwen3-VL 2B Instruct, Q4_K_M, with its vision projector at Q8_0, 2 files | 1.45 | 2.29 | 3.29 |
 | `coder-1.5b` | Qwen2.5-Coder 1.5B Instruct, Q4_K_M | 1.04 | 1.20 | 2.20 |
 | `coder-7b` | Qwen2.5-Coder 7B Instruct, Q4_K_M, 2 files | 4.36 | 4.64 | 5.64 |
 | `coder-14b` | Qwen2.5-Coder 14B Instruct, Q4_K_M, 2 files | 8.37 | 8.96 | 9.96 |

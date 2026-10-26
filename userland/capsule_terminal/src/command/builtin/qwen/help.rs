@@ -28,7 +28,7 @@ pub const HELP: &[&[u8]] = &[
     b"    Qwen3.5 and Qwen3.6: qwen3.5-0.8b, qwen3.6-27b",
     b"    Vision: vl-2b, shown a PNG or JPEG: qwen vl-2b QUESTION < FILE (1 MiB at most)",
     b"    Coder: coder-1.5b, coder-7b, coder-14b, coder-32b",
-    b"  a tier needs its file size plus up to 0.8 GB of memory to run; qwen tiers says",
+    b"  a tier needs its file size plus up to 0.91 GB of memory to run; qwen tiers says",
     b"    how much each one needs, as qwen get and the Store hold a download to",
     b"  qwen tiers lists every tier, its download, the memory it needs, and if it is here;",
     b"  qwen get TIER... downloads tiers. Both work only on a system built with the",
