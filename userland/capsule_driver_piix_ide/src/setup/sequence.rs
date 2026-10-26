@@ -22,6 +22,7 @@
 
 use super::{claim, dma, driver::Driver};
 use crate::channel::{Channel, Probe};
+use crate::constants::ata::IDENTIFY_WORDS;
 use crate::constants::bmide::{bmis_drive_dma, BMIC, BMIS};
 use crate::constants::pci::CHANNELS;
 use crate::discover::Found;
@@ -52,10 +53,11 @@ pub fn run(dev: Found) -> Result<Driver, &'static str> {
         let mut dma_bits = ch.bm_read8(BMIS) & (bmis_drive_dma(0) | bmis_drive_dma(1));
         for drive in 0..2u8 {
             let unit = unit_of(c, drive);
-            match ch.probe(drive) {
+            let mut words = [0u16; IDENTIFY_WORDS];
+            match ch.probe(drive, &mut words) {
                 Probe::Absent => {}
                 Probe::Packet => say::packet(unit),
-                Probe::Ata(words) => match parse(&words) {
+                Probe::Ata => match parse(&words) {
                     Ok(id) => {
                         disks[unit] = Some(Disk { channel: c, drive, id });
                         dma_bits |= bmis_drive_dma(drive);
