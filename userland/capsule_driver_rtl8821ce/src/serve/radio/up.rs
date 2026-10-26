@@ -6,10 +6,10 @@ use alloc::boxed::Box;
 
 use super::super::Stage;
 use super::phy::phy_setup;
-use super::rings::map_rings;
 use crate::constants::regs::REG_MACID;
 use crate::fw::dma::Grant;
 use crate::link::{RtlKeys, RtlLink};
+use crate::ps::Ps;
 use crate::regs::{Mmio, Regs};
 use crate::setup::Mapped;
 use crate::status;
@@ -30,19 +30,18 @@ pub(in super::super) enum Radio {
     Down,
 }
 
-/// Bring the radio to `Up` when bring-up reached `Ready` and the rings map, else
-/// leave it `Down`. Returns the possibly-downgraded stage so a DMA failure at
-/// this last step is reported too.
+/// Bring the radio to `Up` when bring-up reached `Ready` with its rings mapped
+/// (`start_ready` maps them before the engines run), else leave it `Down`.
+/// Returns the possibly-downgraded stage, so a failure here is reported too.
 pub(in super::super) fn build_radio(mapped: Option<Mapped>, stage: Stage) -> (Radio, Stage) {
     if stage != Stage::Ready {
         return (Radio::Down, stage);
     }
-    let Some(m) = mapped else {
+    let Some(mut m) = mapped else {
         return (Radio::Down, Stage::NotClaimed);
     };
-    let Some((tx_ring, tx_buffers, rx_ring, rx_buffers)) = map_rings(m.device_id, m.claim_epoch)
-    else {
-        status::line(b"[rtl8821ce] dma ring mapping failed\n");
+    let Some((tx_ring, tx_buffers, rx_ring, rx_buffers)) = m.rings.take() else {
+        status::line(b"[rtl8821ce] ready without its rings\n");
         crate::setup::stopped(&m);
         return (Radio::Down, Stage::NoDma);
     };
@@ -51,7 +50,10 @@ pub(in super::super) fn build_radio(mapped: Option<Mapped>, stage: Stage) -> (Ra
         return (Radio::Down, stage);
     }
     let our_mac = read_mac(&m.regs);
-    let link = RtlLink::new(m.regs, tx_ring, tx_buffers, rx_ring, rx_buffers, our_mac);
+    let ps = Ps::new(crate::setup::host_aspm(&m));
+    let mut link = RtlLink::new(m.regs, tx_ring, tx_buffers, rx_ring, rx_buffers, our_mac);
+    link.set_ps(ps, m.beacon.take());
+    link.set_rfe(m.efuse.map_or(0, |e| e.rfe));
     let keys = RtlKeys::new(m.regs);
     (Radio::Up(Box::new(RadioUp { link, keys, regs: m.regs })), Stage::Ready)
 }

@@ -15,6 +15,8 @@ mod gen3_cmdq_tests;
 #[cfg(test)]
 mod gen3_fetch_tests;
 #[cfg(test)]
+mod gen3_fuzz_tests;
+#[cfg(test)]
 mod gen3_image_tests;
 #[cfg(test)]
 mod gen3_layout_tests;
@@ -24,6 +26,8 @@ mod gen3_master_tests;
 pub(crate) mod gen3_model;
 #[cfg(test)]
 mod gen3_parse_tests;
+#[cfg(test)]
+mod gen3_pnvm_real_tests;
 #[cfg(test)]
 mod gen3_pnvm_tests;
 #[cfg(test)]

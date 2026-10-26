@@ -28,6 +28,7 @@ mod auth;
 mod beacon;
 mod beacon_protection;
 mod cached;
+mod deadline;
 mod failure;
 mod given;
 mod judge;
@@ -37,6 +38,7 @@ mod sae_start;
 mod state;
 mod step;
 
+pub use deadline::{ASSOC_MS, AUTH_MS, FOURWAY_MS, SAE_MS};
 pub use failure::MlmeFailure;
 pub use judge::{judge, Judged};
 pub use state::{Entropy, JoinRequest, Mlme, MlmeOutput, MlmeState, SAE_ENTROPY, SECRET_MAX};
