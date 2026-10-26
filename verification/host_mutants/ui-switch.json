@@ -185,5 +185,27 @@
     "args": [
       "--release"
     ]
+  },
+  {
+    "name": "strip-see-through",
+    "file": "userland/capsule_desktop_shell/src/render/palette.rs",
+    "old": "pub const PANEL_SOLID: u32 = 0xFF10_1A22;",
+    "new": "pub const PANEL_SOLID: u32 = 0xE610_1A22;",
+    "crate": "userland/desktop_proofs",
+    "test": "switch_strip",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "strip-on-the-old-panel",
+    "file": "userland/capsule_desktop_shell/src/render/switch/paint.rs",
+    "old": "palette::PANEL_SOLID",
+    "new": "palette::PANEL",
+    "crate": "userland/desktop_proofs",
+    "test": "switch_strip",
+    "args": [
+      "--release"
+    ]
   }
 ]

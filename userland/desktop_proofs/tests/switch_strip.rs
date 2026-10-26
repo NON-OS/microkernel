@@ -57,3 +57,17 @@ fn switch_strip_is_centred_and_on_screen() {
         }
     }
 }
+
+const PALETTE: &str = include_str!("../../capsule_desktop_shell/src/render/palette.rs");
+const PAINT: &str = include_str!("../../capsule_desktop_shell/src/render/switch/paint.rs");
+
+/// The strip is drawn over windows, so nothing of theirs may read through
+/// its tiles: booted with the 90% panel, a window's text showed between them.
+#[test]
+fn switch_strip_panel_is_opaque() {
+    let line = PALETTE.lines().find(|l| l.contains("const PANEL_SOLID")).expect("PANEL_SOLID");
+    let hex: String = line.split("0x").nth(1).expect("hex").chars().take(9).collect();
+    let argb = u32::from_str_radix(&hex.replace('_', ""), 16).expect("argb");
+    assert_eq!(argb >> 24, 0xFF, "{line}");
+    assert!(PAINT.contains("palette::PANEL_SOLID"), "the strip draws on it");
+}

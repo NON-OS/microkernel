@@ -38,7 +38,7 @@ pub fn paint_switcher(ctx: &Context) {
         return;
     }
     let p = panel(ctx.width, ctx.height, shown);
-    shadow_panel(ctx, p, palette::R_CARD, palette::PANEL, palette::LINE);
+    shadow_panel(ctx, p, palette::R_CARD, palette::PANEL_SOLID, palette::LINE);
     let from = first(at, shown);
     for (i, &w) in windows.iter().enumerate().skip(from).take(shown) {
         let c = cell(p, i - from);
