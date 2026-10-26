@@ -44,15 +44,13 @@ pub(super) fn print(user_rip: u64, leaf: Leaf) {
 }
 
 fn emit(rip: u64, bytes: &[u8]) {
-    crate::sys::serial::print(b"[USER-PROOF] bytes rip=");
-    super::super::print_hex::print_hex_u64(rip);
-    crate::sys::serial::print(b" =");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[USER-PROOF] bytes rip=").hex_lower(rip).str(b" =");
     let mut text = [b' '; BYTES_PER_LINE * 3];
     for (i, b) in bytes.iter().enumerate() {
         text[i * 3] = b' ';
         text[i * 3 + 1] = HEX[(b >> 4) as usize];
         text[i * 3 + 2] = HEX[(b & 0xf) as usize];
     }
-    crate::sys::serial::print(&text);
-    crate::sys::serial::println(b"");
+    l.str(&text).end();
 }
