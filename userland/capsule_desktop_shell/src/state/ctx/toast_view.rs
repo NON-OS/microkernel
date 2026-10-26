@@ -30,6 +30,12 @@ pub struct ToastView {
     pub toast_window: Option<(u32, u32, u32, u32)>,
 }
 
+impl Default for ToastView {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ToastView {
     pub fn new() -> Self {
         ToastView { toast_layer_live: false, toasts_drawn: 0, toasts_synced: 0, toast_window: None }

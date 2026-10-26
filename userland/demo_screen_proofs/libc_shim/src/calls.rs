@@ -17,6 +17,7 @@
 //! The plain calls: who and when, capabilities, lookups, the display.
 
 use crate::machine::{name_of, MODE, OWN_PID, PROCS};
+use crate::user_mem::{bytes, put};
 
 pub fn mk_getpid() -> u32 {
     OWN_PID
@@ -39,17 +40,17 @@ pub fn mk_cap_check(pid: u32, mask: u64) -> bool {
 /// Every process's name is announced, the shown driver's among them.
 pub fn mk_service_lookup(name: *const u8, len: usize, port: *mut u32, pid: *mut u32) -> i64 {
     // SAFETY: the caller hands `len` bytes at `name`, as the real call does.
-    let name = unsafe { std::slice::from_raw_parts(name, len) };
+    let name = unsafe { bytes(name as usize, len) };
     let Some(&(p, _, _)) = PROCS.iter().find(|e| name_of(e.1).as_bytes() == name) else {
         return -2;
     };
     // SAFETY: each out pointer is null or a u32 the caller holds.
     unsafe {
         if !port.is_null() {
-            *port = 4000 + p;
+            put(port as usize, 4000 + p);
         }
         if !pid.is_null() {
-            *pid = p;
+            put(pid as usize, p);
         }
     }
     0
@@ -66,6 +67,6 @@ pub fn nonos_display_dimensions(display: u32, w: *mut u32, h: *mut u32) -> i64 {
     }
     let (mw, mh) = MODE.with(|m| m.get());
     // SAFETY: both out pointers were checked non-null and are the caller's.
-    unsafe { (*w, *h) = (mw, mh) };
+    unsafe { (put(w as usize, mw), put(h as usize, mh)) };
     0
 }
