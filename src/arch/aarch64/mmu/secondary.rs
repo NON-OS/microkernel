@@ -21,7 +21,7 @@
 //! so neither sees what the other wrote, and its atomics act on memory with
 //! Device attributes, where exclusive accesses are not guaranteed to work
 //! (Arm ARM, DDI 0487, the synchronization primitives and memory types). So
-//! the entry stub loads this block and switches the MMU on before any Rust
+//! the entry code loads this block and switches the MMU on before any Rust
 //! runs, and the boot CPU writes the block out to memory first: read with the
 //! cache off, a value still in the boot CPU's cache is not seen.
 
