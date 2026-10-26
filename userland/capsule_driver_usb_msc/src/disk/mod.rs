@@ -17,7 +17,7 @@
 //! The bound device: BOT or UAS transport, recovery, and the SCSI commands
 //! the kernel's block client needs.
 
-pub(crate) mod bot;
+mod bot;
 mod capacity;
 mod csw;
 mod data;
@@ -31,7 +31,7 @@ mod scsi_io;
 mod sense;
 mod serial;
 mod transport;
-pub(crate) mod types;
+mod types;
 mod uas;
 mod uas_cmd;
 mod uas_data;

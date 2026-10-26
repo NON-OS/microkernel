@@ -27,6 +27,7 @@ pub mod window_maximize;
 pub mod window_minimize;
 pub mod window_move;
 pub mod window_open;
+pub mod window_place;
 pub mod window_raise;
 pub mod window_resize;
 pub mod window_restore;

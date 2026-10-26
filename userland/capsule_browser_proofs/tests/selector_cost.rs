@@ -18,7 +18,6 @@
 //! huge attribute stop at the cascade's step budget, whatever its size.
 
 use std::sync::Mutex;
-use std::time::{Duration, Instant};
 
 use capsule_browser_proofs::browser::css::matching::spent;
 use capsule_browser_proofs::browser::{css, dom};
@@ -32,8 +31,8 @@ const CALL: usize = 131_072;
 
 /* One element whose attribute `attr` holds `value` (up to 1 MB, the most
  * a value may hold), under 3,000 rules that each read all of it and match
- * nothing, then one that colours it. Returns the steps and time spent. */
-fn hostile(attr: &str, value: &str, sel: impl Fn(usize) -> String) -> (usize, Duration) {
+ * nothing, then one that colours it. Returns the steps spent. */
+fn hostile(attr: &str, value: &str, sel: impl Fn(usize) -> String) -> usize {
     let _one = ONE_AT_A_TIME.lock().unwrap_or_else(|e| e.into_inner());
     let html = format!("<!DOCTYPE html><html><body><p><b {attr}='{value}'>x</b></p></body></html>");
     let d = dom::parse(html.as_bytes());
@@ -41,21 +40,20 @@ fn hostile(attr: &str, value: &str, sel: impl Fn(usize) -> String) -> (usize, Du
     assert_eq!(d.nodes[b].attr(attr).map(str::len), Some(value.len()), "value kept whole");
     let rules: String = (0..3_000).map(|i| format!("{}{{color:#ff0000}}", sel(i))).collect();
     let sheet = format!("{rules}b{{color:#00ff00}}");
-    let (before, start) = (spent(), Instant::now());
+    let before = spent();
     let st = css::compute(&d, &sheet);
-    let (used, took) = (spent() - before, start.elapsed());
-    println!("{attr}: {used} steps in {took:?}");
+    let used = spent() - before;
     assert_ne!(st.styles[b].color, 0xff00_ff00, "the budget stopped author matching");
-    (used, took)
+    used
 }
 
-fn bounded((used, took): (usize, Duration)) {
+/* The work is counted, not timed: every read a test makes is paid for before
+ * it is made (matching/cost.rs charge, 16 bytes a step), so the steps are the
+ * bytes read, and a cascade that went quadratic would spend past the bound. A
+ * wall clock only repeated this, and failed on a slow debug run. */
+fn bounded(used: usize) {
     assert!(used > CASCADE, "the budget was reached: {used}");
     assert!(used <= CASCADE + CALL + 1_000, "and overrun by at most one call: {used}");
-    // The step count above is the bound; the clock only catches a cascade
-    // that went quadratic, which over a 1 MB value takes minutes. A loaded
-    // nix builder took 2 s for the bounded one, so the ceiling is 10 s.
-    assert!(took < Duration::from_secs(10), "took {took:?}");
 }
 
 #[test]
