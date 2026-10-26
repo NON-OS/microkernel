@@ -25,9 +25,9 @@ pub mod cache;
 pub mod edit_buffer;
 #[path = "../../../capsule_settings/src/settings/state/edit_paste.rs"]
 pub mod edit_paste;
+#[path = "../../../capsule_settings/src/settings/ui/text/fit.rs"]
+pub mod fit;
 #[path = "../../../capsule_settings/src/settings/ui/valbuf.rs"]
 pub mod valbuf;
 #[path = "../../../capsule_settings/src/settings/ui/valbuf_text.rs"]
 pub mod valbuf_text;
-#[path = "../../../capsule_settings/src/settings/ui/text/fit.rs"]
-pub mod fit;
