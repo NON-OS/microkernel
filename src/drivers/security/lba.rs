@@ -30,24 +30,6 @@ pub fn validate_lba_range(lba: u64, count: u64, max_lba: u64) -> Result<(), Driv
     Ok(())
 }
 
-pub fn validate_lba_range_with_size(
-    lba: u64,
-    count: u64,
-    max_lba: u64,
-    block_size: u32,
-    max_transfer_bytes: usize,
-) -> Result<usize, DriverError> {
-    validate_lba_range(lba, count, max_lba)?;
-
-    let total_bytes = count.checked_mul(block_size as u64).ok_or(DriverError::LbaOutOfRange)?;
-
-    if total_bytes > max_transfer_bytes as u64 {
-        return Err(DriverError::LbaOutOfRange);
-    }
-
-    Ok(total_bytes as usize)
-}
-
 pub fn is_lba_in_partition(lba: u64, partition_start: u64, partition_size: u64) -> bool {
     if partition_size == 0 {
         return false;
