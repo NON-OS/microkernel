@@ -46,21 +46,27 @@ fn every_block_client_asks_the_one_gate() {
 }
 
 #[test]
-fn the_gate_asks_the_rule_with_the_caller_s_own_caps() {
+fn the_gate_asks_the_rule_for_the_thread_and_the_guard_lets_go() {
     let s = flat(SCOPE);
-    assert!(s.contains("letinside=INSIDE.iter().any(|s|s.load(Ordering::Acquire)==pid);"));
+    assert!(s.contains("admits(inside(&seen(),tid),has_capability(tid,CAP_DRIVER),has_capability(tid,CAP_STORAGE))"));
     assert!(
-        s.contains("admits(inside,has_capability(pid,CAP_DRIVER),has_capability(pid,CAP_STORAGE))")
+        s.contains("lettid=crate::process::current_pid()?;"),
+        "the thread's own, not its process's"
     );
-    assert!(s.contains("letpid=crate::process::current_pid()?;"), "a scope is the caller's own");
+    assert!(
+        s.contains("for_in0..SLOTS{letslot=free_slot(&seen())?;"),
+        "bounded, none past the last"
+    );
     assert!(s.contains("fndrop(&mutself){INSIDE[self.slot].store(0,Ordering::Release);}"));
+    assert_eq!(s.matches(".store(0,").count(), 1, "released by the guard's drop alone");
 }
 
 #[test]
-fn only_crate_fs_opens_a_scope() {
-    let s = flat(SCOPE);
-    assert!(s.contains("pubfnvolume_scope(_:&VolumeIo)->Option<VolumeScope>{"));
+fn only_crate_fs_opens_a_scope_and_a_full_table_is_refused() {
+    assert!(flat(SCOPE).contains("pubfnvolume_scope(_:&VolumeIo)->Option<VolumeScope>{"));
     let t = flat(TOKEN);
     assert!(t.contains("pubstructVolumeIo(());"), "a private field: made in volume_io.rs alone");
-    assert!(t.contains("pub(incrate::fs)fnvolume_scope()->Option<VolumeScope>{"));
+    assert!(t.contains("pub(incrate::fs)fnvolume_scope()->Result<VolumeScope,BlockDeviceError>{"));
+    assert!(t.contains(".ok_or_else(||{") && t.contains("BlockDeviceError::NotReady"), "EAGAIN");
+    assert!(t.contains("[DATA]volumeI/Orefused:everyvolumescopeistaken;tryagain"));
 }

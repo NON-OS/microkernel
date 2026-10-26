@@ -50,7 +50,7 @@ pub(super) fn stream_in(
         let sectors = take.div_ceil(512);
         let lba = at + done / 512;
         let span = &mut buf[..(sectors * 512) as usize];
-        let io = crate::fs::cryptoblock::volume_scope();
+        let io = crate::fs::cryptoblock::volume_scope().map_err(VolumeError::Device)?;
         crate::hardware::block_device::read(lba, span).map_err(VolumeError::Device)?;
         drop(io);
         let part = &span[..take as usize];

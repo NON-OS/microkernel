@@ -19,11 +19,21 @@
 //! and only crate::fs reaches `volume_scope`: the volume's reads, writes,
 //! plan and key header, for a data syscall that checked its caller.
 
-use crate::hardware::block_device::VolumeScope;
+use core::sync::atomic::{AtomicBool, Ordering};
+
+use crate::hardware::block_device::{BlockDeviceError, VolumeScope};
 
 pub struct VolumeIo(());
 
-/// Enter the scope for one I/O; hold it until the I/O is done.
-pub(in crate::fs) fn volume_scope() -> Option<VolumeScope> {
-    crate::hardware::block_device::volume_scope(&VolumeIo(()))
+static SAID: AtomicBool = AtomicBool::new(false);
+
+/// Enter the scope for one I/O; hold it until the I/O is done. With every
+/// slot taken the I/O is refused (NotReady, EAGAIN to the caller), said once.
+pub(in crate::fs) fn volume_scope() -> Result<VolumeScope, BlockDeviceError> {
+    crate::hardware::block_device::volume_scope(&VolumeIo(())).ok_or_else(|| {
+        if !SAID.swap(true, Ordering::Relaxed) {
+            crate::sys::serial::print(b"[DATA] volume I/O refused: every volume scope is taken; try again\n");
+        }
+        BlockDeviceError::NotReady
+    })
 }

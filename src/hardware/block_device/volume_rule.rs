@@ -25,3 +25,15 @@
 pub(crate) const fn admits(volume_io: bool, driver: bool, storage: bool) -> bool {
     driver || storage || volume_io
 }
+
+/// The slot a thread's scope takes: the first free one, or None when every
+/// slot is taken, and the volume's I/O is then refused, never admitted.
+pub(crate) fn free_slot(slots: &[u32]) -> Option<usize> {
+    slots.iter().position(|&s| s == 0)
+}
+
+/// Whether thread `tid` is inside a scope: its own slot alone counts, so
+/// another thread of its process stays held to the process's caps.
+pub(crate) fn inside(slots: &[u32], tid: u32) -> bool {
+    tid != 0 && slots.contains(&tid)
+}
