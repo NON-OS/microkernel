@@ -30,6 +30,7 @@ pub mod paint;
 pub mod protocol;
 pub mod qr;
 pub mod server;
+pub mod text;
 pub mod theme;
 
 pub use animation::{easing, runner, state as animation_state, timing, transitions};
