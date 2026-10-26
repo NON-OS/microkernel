@@ -42,6 +42,19 @@ impl PagingManager {
             return Err(PagingError::WXViolation);
         }
 
+        // Each page a process maps costs a record in the kernel heap below. A
+        // process's page is refused while the heap's free space is under the
+        // floor, so what processes map can never leave the kernel's own
+        // allocations nothing: before, a 1 GiB map took the last of the heap
+        // and the next kernel allocation took the panic path.
+        if crate::memory::heap::sizing::user_page_refused(
+            permissions.contains(PagePermissions::USER),
+            crate::memory::heap::get_allocator().free_bytes(),
+            crate::memory::heap::constants::USER_MAP_FLOOR,
+        ) {
+            return Err(PagingError::FrameAllocationFailed);
+        }
+
         let pte_flags = permissions.to_pte_flags();
         let flush = self.install_mapping(virtual_addr, physical_addr, pte_flags)?;
 
