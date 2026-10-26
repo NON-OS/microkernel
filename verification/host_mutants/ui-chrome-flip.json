@@ -53,5 +53,16 @@
     "args": [
       "--release"
     ]
+  },
+  {
+    "name": "flip-adds-a-layer",
+    "file": "userland/compositor/src/state/scene/submit.rs",
+    "old": "if slot.in_use && slot.owner_pid == layer.owner_pid && slot.z == layer.z {",
+    "new": "if slot.in_use && slot.owner_pid == layer.owner_pid && slot.z == layer.z && slot.surface_handle == layer.surface_handle {",
+    "crate": "userland/compositor_proofs",
+    "test": "flip_submit",
+    "args": [
+      "--release"
+    ]
   }
 ]
