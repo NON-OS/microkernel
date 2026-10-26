@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod brightness;
+pub mod cursor_shape;
 pub mod damage_commit;
 pub mod display_info;
 pub mod health;
