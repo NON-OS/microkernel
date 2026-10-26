@@ -66,7 +66,7 @@ pub mod tty;
 mod unistd;
 pub mod wait;
 pub use acpi_measured::{mk_acpi_measured, ACPI_MEASURED_LEN};
-pub use admin::{mk_admin_policy_push, mk_admin_reboot, mk_admin_shutdown};
+pub use admin::{mk_admin_policy_push, mk_admin_reboot, mk_admin_shutdown, power_restart};
 pub use attest::{
     mk_attest_doc, mk_attest_entries, mk_attest_policy, mk_attest_status, mk_log_tail,
     AttestStatus, ATTEST_DOC_REFUSED, ATTEST_ENTRY_LEN, ZK_PATH_ONLY, ZK_STARK,
@@ -126,8 +126,9 @@ pub use process::{mk_args, mk_caps_of, mk_getpid, mk_kill, mk_pid_alive, mk_wait
 pub use process::{CAPS_OF_APP_INSTALL, CAPS_OF_SPAWN_WINDOW};
 pub use procstat::{mk_proc_stat, ProcStatEntry, PROC_FLAG_DEBUG_WITHHELD, PROC_NAME_LEN};
 pub use procstat_header::ProcStatHeader;
-pub use prove::{mk_prove_job, PROVE_JOB_DELIVER, PROVE_JOB_PROVE};
-pub use seal::{mk_seal_note, mk_seal_read, mk_seal_read_live, SEAL_APP_ID, SEAL_DIAG};
+pub use prove::{mk_prove_job, PROVE_JOB_DELIVER, PROVE_JOB_PROVE, PROVE_JOB_RECEIPT};
+pub use seal::{mk_seal_drop, mk_seal_note, mk_seal_peek, mk_seal_read, mk_seal_read_live};
+pub use seal::{SEAL_APP_ID, SEAL_DIAG};
 pub use spawn_instance::mk_spawn_instance;
 pub use store::{mk_keeping, mk_store_read, mk_store_write};
 pub use surface_registry::{

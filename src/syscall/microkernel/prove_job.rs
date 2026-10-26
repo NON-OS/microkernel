@@ -17,7 +17,8 @@
 //! `MkProveJob(kind)`: ask for the headless prover (plan/14, plan/15). Kind 1
 //! PROVE: the caller owns app.store. Kind 2 DELIVER: the caller is at Vendor
 //! authority and supervises a live family, so no capsule without one can
-//! hold the prover for minutes. Anything else is EPERM. Init's loop spawns
+//! hold the prover for minutes. Kind 3 RECEIPT: the caller holds SpawnWindow
+//! (the Terminal or the shell). Anything else is EPERM. Init's loop spawns
 //! the job, bound to the caller; the caller then sends its frame to
 //! app.prove.job once that endpoint is registered.
 
@@ -29,6 +30,7 @@ use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_PERM};
 use crate::userspace::init::{prove_job_ask, ProveCaller};
 
 const STORE: &str = "app.store";
+const SPAWN_WINDOW: u64 = crate::capabilities::Capability::SpawnWindow.bit();
 
 /// 0 once a job is asked for; EBUSY while one is asked for, a prover runs,
 /// or the supervisor's measurement delivered within the rate's span.
@@ -42,6 +44,7 @@ pub fn sys_prove_job(kind: u64) -> i64 {
         owns_store: caller_owns(STORE),
         vendor: vendor.map(|c| c.measurement),
         supervises_live: supervises_live(pid),
+        launcher: crate::process::caps::bits(pid).is_some_and(|c| c & SPAWN_WINDOW != 0),
     };
     let Some(ask) = prove_job_ask(kind, &caller) else {
         return ERRNO_PERM;
