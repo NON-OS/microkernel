@@ -2360,6 +2360,16 @@ else
     fail_with "bootloader build.rs writes outside OUT_DIR"
 fi
 unset boot_build
+# "[INIT] Capsules spawned" is printed only when no capsule failed to spawn;
+# every boot check fails the "capsule spawn incomplete" line in its place, and
+# --selftest shows each check, with that clause taken out, passing it.
+if spawn_out="$(python3 -I nonos-ci/check-spawn-incomplete.py --selftest 2>&1)"; then
+    note ok "every boot check fails a boot whose capsules did not all spawn"
+else
+    tail -n 5 <<< "${spawn_out}" >&2
+    fail_with "a boot check passes a boot whose capsules did not all spawn"
+fi
+unset spawn_out
 # The kernel embeds its trust set only through baked_trust!, so a build pointed
 # at a test set (NONOS_BAKED_TRUST_DIR) replaces every file of it; a trust file
 # included by its literal path would keep the tree's copy in that build.
@@ -5355,6 +5365,16 @@ else
     fail_with "nonos_mirror_relay: the relay can serve a locked package as other bytes"
 fi
 unset relay_out
+
+# A drive whose `until` step times out leaves every CPU's registers and the
+# code at each one's PC behind, read from that CPU (tools/nonos_drive).
+if drive_out="$( (cd tools && python3 -m unittest -q nonos_drive.test_drive) 2>&1)"; then
+    note ok "a drive that stops at a step leaves every CPU's state (nonos_drive)"
+else
+    tail -n 8 <<< "${drive_out}" >&2
+    fail_with "nonos_drive: a timed-out step can leave no machine state behind"
+fi
+unset drive_out
 
 # Every way off the machine is listed: a capsule that gains Network, or an
 # address, host or build-time endpoint new to a networked capsule's source,
