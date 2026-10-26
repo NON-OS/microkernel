@@ -60,6 +60,21 @@ keyring -- resolve_caller --> in-memory store, 128 keys, 16 per owner
 | `OP_SIGN_NOX_RECEIPT` (11), `OP_SIGN_NOX_APPROVE` (12) | retired: EINVAL. Both signed for the retired, upgradeable ReceiptSettlement proxy; the numbers stay reserved (`src/protocol/retired.rs`) |
 | `OP_SIGN_ETH_TRANSFER` (13), `OP_SIGN_NOX_TRANSFER` (18) | retired: EINVAL. Each signed a plain transfer for any caller and no part of the OS asked for either; the numbers stay reserved |
 
+Creating, importing and signing go only to the names that use them
+(`src/protocol/callers.rs`, asked by `src/server/key_gate.rs` before any
+handler; anyone else gets `EACCES`):
+
+| Ops | Callers |
+|---|---|
+| `OP_STORE` | `driver.bt_usb0` (its bond records) |
+| `OP_WALLET_GENERATE` | `payment` (the meter) |
+| `OP_WALLET_IMPORT`, `OP_SIGN_TX`, `OP_SIGN_TYPED_DATA` | the wallet's windows, `payment` |
+| `OP_WALLET_GENERATE_HD`, `_RECOVER`, `_DERIVE`, the four `OP_SIGN_NOX_STAKE*`/`UNSTAKE` ops | the wallet's windows |
+
+Each of these five names owns at most `MAX_KEYS_PER_OWNER` (16) entries,
+and a const assertion holds 5 x 16 within `MAX_KEYS` (128), so no other
+owner can fill the store and leave the wallet with `ENOSPC`.
+
 Every op that names an owner goes through `resolve_caller` (`src/server/caller.rs`):
 the pid in the request is accepted only when it equals the pid the kernel stamped
 on the message, and sender 0 is refused. A frame too short to carry a sequence
