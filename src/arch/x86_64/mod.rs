@@ -16,6 +16,9 @@
 
 extern crate alloc;
 
+#[cfg(not(feature = "nonos-arch-iommu"))]
+compile_error!("an x86_64 kernel needs nonos-arch-iommu, as arch-x86_64 implies");
+
 pub mod abi;
 pub mod acpi;
 mod api;
@@ -33,8 +36,6 @@ pub(crate) mod idle;
 pub mod idt;
 pub mod interrupt;
 pub mod interrupt_controller;
-#[cfg(feature = "nonos-arch-iommu")]
-#[cfg(feature = "nonos-arch-iommu")]
 pub mod iommu;
 pub mod multiboot;
 pub mod paging;
@@ -69,7 +70,6 @@ pub use serial::{write_str as serial_write_str, SerialWriter};
 pub use time::{delay_ms, delay_ns, delay_us, now_ns};
 pub use vga::{clear, print_critical, set_color, write_byte, write_str, Color, ColorCode};
 
-#[cfg(feature = "nonos-arch-iommu")]
 pub use iommu::types::{
     DomainId as IommuDomainId, IommuPageFlags, SourceId as IommuSourceId, VtdError as IommuVtdError,
 };
