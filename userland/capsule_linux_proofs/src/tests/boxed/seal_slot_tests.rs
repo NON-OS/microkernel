@@ -38,23 +38,21 @@ fn the_app_is_noted_to_the_seal_between_its_proof_and_its_start() {
     );
     assert!(proved < noted && noted < started);
     let note = include_str!("../../../../capsule_linux/src/linux/seal_note.rs");
-    assert!(note.contains("mk_seal_note(nonos_libc::SEAL_APP_ID, app_id)"));
+    assert!(note.contains("mk_seal_note(nonos_libc::SEAL_APP_ID, &note)"));
+    assert!(note.contains("super::seal_slot::slot0(app_id, super::boxed::armed_hash().as_ref())"));
     let spawn = include_str!("../../../../capsule_linux/src/linux/start.rs");
     assert!(spawn.find("mk_foreign_spawn").unwrap() < spawn.find("start(&mut guest").unwrap());
 }
 
 #[test]
-fn every_proved_app_is_noted_and_the_built_in_busybox_is_not() {
-    use crate::boxed::seal_slot::noted;
-    assert!(!noted(&[0; 32]));
-    assert!(
-        noted(&[1; 32])
-            && noted(&{
-                let mut a = [0; 32];
-                a[31] = 1;
-                a
-            })
-    );
+fn outside_a_box_every_proved_app_is_noted_and_the_built_in_busybox_is_not() {
+    use crate::boxed::seal_slot::slot0;
+    assert_eq!(slot0(&[0; 32], None), None);
+    let mut last = [0; 32];
+    last[31] = 1;
+    for app in [[1; 32], last] {
+        assert_eq!(slot0(&app, None), Some(app), "the app_id itself");
+    }
 }
 
 // The box narrows what the app may do, never which app the seal is told it is.

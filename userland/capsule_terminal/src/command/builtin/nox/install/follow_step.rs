@@ -18,14 +18,19 @@
 
 use super::{Follow, Step, DEADLINE_MS, PROBE_GAP_MAX_MS};
 
+/// The installer kept no outcome for the load (its ENOENT).
+const NO_OUTCOME: i32 = -2;
+
 impl Follow {
     /// The next step, given the new child if one has appeared.
     pub fn step(&self, now_ms: i64, found: Option<u32>) -> Step {
         if let Some(pid) = found {
             return Step::Loaded(pid);
         }
-        if self.served {
-            return Step::Failed;
+        match self.served {
+            Some(status) if status < 0 && status != NO_OUTCOME => return Step::Refused(status),
+            Some(_) => return Step::Failed,
+            None => {}
         }
         if self.elapsed_ms(now_ms) >= DEADLINE_MS {
             return Step::TimedOut;
@@ -36,11 +41,11 @@ impl Follow {
         Step::Wait
     }
 
-    /// What a probe found. Answered, the load is over and the next step
-    /// settles it; unanswered, the next probe waits twice as long.
-    pub fn probed(&mut self, now_ms: i64, answered: bool) {
-        if answered {
-            self.served = true;
+    /// What a probe found. Answered, the load is over and its status
+    /// settles the next step; unanswered, the next probe waits twice as long.
+    pub fn probed(&mut self, now_ms: i64, answer: Option<i32>) {
+        if answer.is_some() {
+            self.served = answer;
             return;
         }
         self.probe_gap_ms = self.probe_gap_ms.saturating_mul(2).min(PROBE_GAP_MAX_MS);
