@@ -33,6 +33,16 @@ pub(super) const DRIVER_CDC_NCM_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_CDC_NCM_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/driver_cdc_ncm.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-cdc-ncm")]
+const _: () = assert!(
+    !DRIVER_CDC_NCM_ELF.is_empty()
+        && !DRIVER_CDC_NCM_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_CDC_NCM_MANIFEST_BYTES.is_empty()
+        && !DRIVER_CDC_NCM_ATTESTATION_BYTES.is_empty(),
+    "cdc_ncm_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-cdc-ncm"))]
 pub(super) const DRIVER_CDC_NCM_ELF: &[u8] = &[];
 

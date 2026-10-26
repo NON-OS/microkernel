@@ -33,6 +33,16 @@ pub(super) const DRIVER_INTEL_DISPLAY_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_INTEL_DISPLAY_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/driver_intel_display.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-intel-display")]
+const _: () = assert!(
+    !DRIVER_INTEL_DISPLAY_ELF.is_empty()
+        && !DRIVER_INTEL_DISPLAY_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_INTEL_DISPLAY_MANIFEST_BYTES.is_empty()
+        && !DRIVER_INTEL_DISPLAY_ATTESTATION_BYTES.is_empty(),
+    "intel_display_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-intel-display"))]
 pub(super) const DRIVER_INTEL_DISPLAY_ELF: &[u8] = &[];
 

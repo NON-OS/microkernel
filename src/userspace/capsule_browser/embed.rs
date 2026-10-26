@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-browser")]
-pub(crate) const BROWSER_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(crate) const BROWSER_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_browser/target/",
     env!("NONOS_USER_TARGET"),
     "/release/browser"
@@ -33,6 +32,16 @@ pub(crate) const BROWSER_MANIFEST_BYTES: &[u8] =
 #[cfg(feature = "nonos-capsule-browser")]
 pub(crate) const BROWSER_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/browser.zk_trailer.bin");
+
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-browser")]
+const _: () = assert!(
+    !BROWSER_ELF.is_empty()
+        && !BROWSER_NONOS_ID_CERT_BYTES.is_empty()
+        && !BROWSER_MANIFEST_BYTES.is_empty()
+        && !BROWSER_ATTESTATION_BYTES.is_empty(),
+    "capsule_browser built in with an empty image"
+);
 
 #[cfg(not(feature = "nonos-capsule-browser"))]
 pub(crate) const BROWSER_ELF: &[u8] = &[];

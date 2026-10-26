@@ -33,6 +33,16 @@ pub(crate) const IMAGE_CODEC_MANIFEST_BYTES: &[u8] =
 pub(crate) const IMAGE_CODEC_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/image_codec.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-image-codec")]
+const _: () = assert!(
+    !IMAGE_CODEC_ELF.is_empty()
+        && !IMAGE_CODEC_NONOS_ID_CERT_BYTES.is_empty()
+        && !IMAGE_CODEC_MANIFEST_BYTES.is_empty()
+        && !IMAGE_CODEC_ATTESTATION_BYTES.is_empty(),
+    "capsule_image_codec built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-image-codec"))]
 pub(crate) const IMAGE_CODEC_ELF: &[u8] = &[];
 

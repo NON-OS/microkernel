@@ -37,6 +37,13 @@ pub(in super::super) const MANIFEST: &[u8] =
 #[cfg(feature = "nonos-capsule-model-fetch")]
 pub(super) const ATTESTATION: &[u8] = crate::baked_trust!("capsules/model-fetch.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-model-fetch")]
+const _: () = assert!(
+    !ELF.is_empty() && !CERT.is_empty() && !MANIFEST.is_empty() && !ATTESTATION.is_empty(),
+    "model_fetch built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-model-fetch"))]
 pub(super) const ELF: &[u8] = &[];
 
