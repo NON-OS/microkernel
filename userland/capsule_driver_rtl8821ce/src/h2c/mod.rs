@@ -19,8 +19,12 @@
 //! commands are 32-byte packets sent down the H2C transfer queue (`packet`), of
 //! which the IQK calibration request is one.
 
+pub mod cmds;
 pub mod mailbox;
+// The IQK packet is not sent by the capsule yet; its proofs pin the layout.
+#[cfg(test)]
 pub mod packet;
 
 pub use mailbox::H2c;
+#[cfg(test)]
 pub use packet::build_iqk;

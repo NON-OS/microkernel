@@ -18,6 +18,7 @@ mod regs;
 mod reset;
 mod stop;
 
+pub use bounds::RSVD_BOUNDARY;
 pub use engines::init_trx_cfg;
 pub use reset::reset_trx_dma;
 pub use stop::quiesce;
