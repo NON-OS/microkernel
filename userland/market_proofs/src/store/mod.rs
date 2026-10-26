@@ -19,7 +19,7 @@
 //! market is asked in, and install progress.
 
 pub mod market {
-    pub use nonos_market_proto::{App as Detail, Readiness, Release};
+    pub use nonos_market_proto::{logo::Logo, App as Detail, Readiness, Release};
 }
 
 #[path = "../../../capsule_app_store/src/store/search.rs"]

@@ -23,4 +23,5 @@ pub mod pending;
 pub mod ports;
 pub mod readings;
 pub mod store_apps;
+pub mod switch;
 pub mod toast_view;

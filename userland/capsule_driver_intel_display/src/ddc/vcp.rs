@@ -36,7 +36,7 @@ pub fn may_read(code: u8, caps: &Caps) -> Result<(), DdcError> {
     if !ALLOWED.contains(&code) {
         return Err(DdcError::NotAllowed);
     }
-    caps.has(code).then_some(()).ok_or(DdcError::Unsupported)
+    caps.has(code).then_some(()).ok_or(DdcError::NotOffered)
 }
 
 /// Whether `value` may be written to `code`, given the most it reads and
