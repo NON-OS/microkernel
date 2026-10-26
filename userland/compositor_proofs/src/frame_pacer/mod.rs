@@ -32,6 +32,10 @@ pub mod cursor_shape;
 pub mod drain_batch;
 #[path = "../../../compositor/src/frame_pacer/drain_damage.rs"]
 pub mod drain_damage;
+#[path = "../../../compositor/src/frame_pacer/band_glyph_art.rs"]
+pub mod band_glyph_art;
+#[path = "../../../compositor/src/frame_pacer/band_glyphs.rs"]
+pub mod band_glyphs;
 #[path = "../../../compositor/src/frame_pacer/band_meet.rs"]
 pub mod band_meet;
 #[path = "../../../compositor/src/frame_pacer/indicator_band.rs"]

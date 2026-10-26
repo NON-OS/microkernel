@@ -41,7 +41,7 @@ pub(super) fn service_frame<A: App>(
     }
     // A window whose app asks for full screen takes it from its first frame
     // on, and gives it back when the app stops asking.
-    maximize::follow_ask(booted, peers, request_id);
+    super::asks::follow(booted, peers, request_id);
     let result = drain(
         &mut booted.app,
         &mut booted.drag,
@@ -80,7 +80,7 @@ pub(super) fn service_frame<A: App>(
         restore(booted, peers, request_id);
     }
     if result.maximize {
-        booted.full_ask.person_chose();
+        booted.asks.full.person_chose();
         maximize::toggle(booted, peers, request_id);
         return false;
     }

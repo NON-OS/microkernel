@@ -31,8 +31,7 @@ use crate::dma::DmaPool;
 use crate::handles::BrokerHandles;
 use crate::regs::cap::PortProtocols;
 use crate::rings::{command::CommandRing, event::EventRing};
-use crate::setup::Driver;
-use crate::slots::SlotTable;
+use crate::{setup::Driver, slots::SlotTable};
 
 pub fn driver(bar: &FakeBar, pool: DmaPool, intr: u64, event_ring: EventRing) -> Driver {
     let layout = ControllerLayout {
@@ -60,6 +59,7 @@ pub fn driver(bar: &FakeBar, pool: DmaPool, intr: u64, event_ring: EventRing) ->
         dead: false,
         generation: 0,
         revivals: 0,
+        ports: None,
     }
 }
 

@@ -18,41 +18,53 @@ use crate::term::prefs::RAIL_VISIBLE;
 use nonos_app_skeleton::PaintBuffer;
 
 use super::types::Terminal;
+
+#[path = "app_impl_paint_split.rs"]
+mod app_impl_paint_split;
+
 impl Terminal {
     pub(super) fn paint_inner(&mut self, fb: &mut PaintBuffer) {
         self.width = fb.width;
+        if !self.paint_line_only(fb) {
+            match self.split.filter(|&s| s < self.tabs.len() && s != self.active) {
+                Some(other) => self.paint_split(fb, other),
+                None => self.paint_pane(fb, self.active, 0),
+            }
+        }
+        // The key that asked for this frame has reached the screen.
+        if self.key_at > 0 {
+            let ms = (nonos_libc::mk_uptime_ms() - self.key_at).clamp(0, u32::MAX as i64);
+            self.cur().key_lat.push(ms as u32);
+            self.key_at = 0;
+        }
+    }
+
+    /// Tab `ix` over the whole of `fb`, which sits `dx` from the window's
+    /// left; the tab in front also leaves where its cells fell, for the pointer.
+    pub(super) fn paint_pane(&mut self, fb: &mut PaintBuffer, ix: usize, dx: u32) {
         let theme = crate::term::theme::profiles::by_index(self.theme);
         let rail_open = self.prefs.rails & RAIL_VISIBLE != 0;
         let (cols, rows, m) = crate::paint::grid_size(fb, self.font_scale, rail_open);
         let theme_ix = self.theme;
-        let sb = &mut self.cur().scrollback;
+        let sb = &mut self.tabs[ix].scrollback;
         let resized = sb.fit(cols, rows, m.adv, m.lh);
         sb.follow_theme(theme_ix, theme);
         if resized {
-            crate::jobs::tty::resized(self.cur_ref());
+            crate::jobs::tty::resized(&self.tabs[ix]);
         }
         let scene = crate::paint::Scene {
             tabs: &self.tabs,
-            active: self.active,
+            active: ix,
             rail: &self.rail,
             projects: self.prefs.project_slice(),
             monitor: self.prefs.rails & 1 == 0,
             scroll: self.rail_scroll,
             pal: &self.palette,
-            rail_open: self.prefs.rails & RAIL_VISIBLE != 0,
+            rail_open,
         };
         let l = crate::paint::paint_tabs(&scene, fb, theme, self.font_scale);
-        let s = self.cur_ref();
-        let owned = s.scrollback.vt.alt_active() || s.fg_running;
-        self.cells = Some(super::pointer::CellGeom {
-            x: l.body.x + crate::paint::TEXT_LEFT,
-            y: l.body.y,
-            adv: m.adv,
-            lh: m.lh,
-            pad: crate::paint::TEXT_LEFT,
-            shell_rows: (l.body.h / m.lh.max(1)) as usize,
-            owned,
-        });
-        self.layout = Some(l);
+        if ix == self.active {
+            self.record_front(l, m, dx);
+        }
     }
 }
