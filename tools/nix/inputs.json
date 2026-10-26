@@ -8795,6 +8795,7 @@
    "src/process/foreign_absent_seal.rs",
    "src/syscall/microkernel/errnos.rs",
    "userland/libc/src/foreign_frame.rs",
+   "userland/libc/src/linux_ask_net.rs",
    "userland/nonos_proof_abi",
    "userland/seal_proofs"
   ],
