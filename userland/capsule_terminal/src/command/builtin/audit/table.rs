@@ -63,9 +63,9 @@ pub fn line(row: &Row) -> Vec<u8> {
         pad(&mut line, 7 + NAME_W + 9 * i);
         line.extend_from_slice(if reaches(c.caps, area) { b"YES" } else { b"no" });
     }
-    pad(&mut line, 7 + NAME_W + 28);
+    pad(&mut line, 7 + NAME_W + 36);
     line.extend_from_slice(signer(c.authority));
-    pad(&mut line, 7 + NAME_W + 39);
+    pad(&mut line, 7 + NAME_W + 47);
     list(&mut line, &names(c.caps));
     if row.debug_withheld {
         line.extend_from_slice(b"; ");

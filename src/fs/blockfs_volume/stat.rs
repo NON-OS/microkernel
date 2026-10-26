@@ -19,7 +19,7 @@ use super::state::VOLUME;
 use crate::fs::blockfs::{self, MODE_DIR};
 
 pub fn stat(path: &[u8]) -> Result<(u64, bool), VolumeError> {
-    let guard = crate::smp::read_responsive(&VOLUME);
+    let guard = VOLUME.read();
     let state = guard.as_ref().ok_or(VolumeError::NotMounted)?;
     let lba = blockfs::resolve(&state.key, &state.mount, path).map_err(VolumeError::BlockFs)?;
     let node = blockfs::read_node(&state.key, lba).map_err(VolumeError::BlockFs)?;

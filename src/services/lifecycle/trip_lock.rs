@@ -57,7 +57,8 @@ impl<T> TripLock<T> {
     /// One look under the rows: in, or marked as waiting.
     fn look(&self, me: u32, whole: bool) -> bool {
         let _quiet = super::rest_mark::quiet();
-        let (mut rows, now) = (self.rows.lock(), crate::time::timestamp_millis());
+        let rows = crate::smp::lock_responsive(&self.rows);
+        let (mut rows, now) = (rows, crate::time::timestamp_millis());
         let gone = super::transport_holder::never_runs_again;
         if !rows.may_take(me, whole, now) && rows.sweep(gone) {
             self.left(true);
