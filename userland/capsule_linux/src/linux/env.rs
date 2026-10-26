@@ -34,3 +34,10 @@ pub fn default() -> Vec<Vec<u8>> {
         b"WAYLAND_DISPLAY=wayland-0".to_vec(),
     ]
 }
+
+/// The same, with PWD the directory the first program starts in.
+pub fn with_pwd(cwd: &[u8]) -> Vec<Vec<u8>> {
+    let mut env = default();
+    env.iter_mut().filter(|v| v.starts_with(b"PWD=")).for_each(|v| *v = [b"PWD=", cwd].concat());
+    env
+}
