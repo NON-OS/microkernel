@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod respond;
+mod reply;
 mod respond_status_only;
 
-pub use respond::respond;
+pub use reply::respond;
 pub use respond_status_only::respond_status_only;

@@ -18,6 +18,7 @@ use nonos_app_skeleton::PaintBuffer;
 
 use crate::pm::theme::{FOREGROUND, TRACK_BG};
 
+use super::chrome::Rect;
 use super::metrics::{BAR_H, BAR_ROW_H, BODY_PX, NUM_PX};
 use super::text;
 
@@ -30,7 +31,8 @@ pub const BAR_GAP: u32 = 12;
 // product is taken in u64 since a resident figure in kb reaches ~4e9. Both the
 // track and the fill blend, so an alpha-carrying tint cannot punch through the
 // panel underneath the way a raw fill_rect would.
-pub fn hbar(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32, num: u64, den: u64, tint: u32) {
+pub fn hbar(fb: &mut PaintBuffer, at: &Rect, num: u64, den: u64, tint: u32) {
+    let &Rect { x, y, w, h } = at;
     let radius = BAR_RADIUS.min(h / 2);
     fb.fill_round(x, y, w, h, radius, TRACK_BG);
     if den == 0 || w == 0 {
@@ -51,15 +53,14 @@ pub fn hbar(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32, num: u64, den:
 // process would draw a blob wider than its own value.
 pub fn labelled(
     fb: &mut PaintBuffer,
-    x: u32,
-    y: u32,
-    w: u32,
+    at: (u32, u32, u32),
     label: &[u8],
     value: &[u8],
     num: u64,
     den: u64,
     tint: u32,
 ) {
+    let (x, y, w) = at;
     let val_w = text::mono_width(fb, value, NUM_PX);
     let label_w = (w / 3).min(w.saturating_sub(val_w + BAR_GAP * 2));
     let top = text::centred_top(y, BAR_ROW_H, BODY_PX);
@@ -68,5 +69,6 @@ pub fn labelled(
     text::mono_right(fb, x + w, top, value, tint, NUM_PX);
     let bar_w = w.saturating_sub(label_w + val_w + BAR_GAP * 2);
     let bar_y = y + BAR_ROW_H.saturating_sub(BAR_H) / 2;
-    hbar(fb, x + label_w + BAR_GAP, bar_y, bar_w, BAR_H, num, den, tint);
+    let bar = Rect { x: x + label_w + BAR_GAP, y: bar_y, w: bar_w, h: BAR_H };
+    hbar(fb, &bar, num, den, tint);
 }

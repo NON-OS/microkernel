@@ -17,7 +17,7 @@
 //! The window thread's side of a scan or join on the worker: handing it
 //! over, and putting the answer on the panel.
 
-use super::super::state::State;
+use super::super::model::State;
 use super::apply::apply;
 use super::pending::{Pending, Work};
 use super::worker::send;
