@@ -16,6 +16,7 @@ version = "0.1.0"
 dependencies = [
  "agentproof_policy",
  "blake3",
+ "nonos_hash",
  "nonos_linux_policy",
  "nonos_proof_abi",
  "nsh_attest",

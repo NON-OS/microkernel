@@ -47,6 +47,11 @@ def guest_entries(listing: Path, key: str, when_ms: int) -> list:
     out = []
     for item in json.loads(listing.read_text()):
         program = Path(item["program"])
+        # The market takes a release with no policy only as a shipped tier:
+        # linux.qwen-* running the image's qwenchat (marketplace_abi
+        # verdict/policy.rs). Anything else would be listed and never ready.
+        if not item["tail"].startswith("qwen-") or program.name != "qwenchat":
+            sys.exit(f"guest: {item['tail']}: only a Qwen tier running qwenchat ships unboxed")
         if not program.exists():
             print(f"guest: {item['tail']}: {program} not built, not listed", file=sys.stderr)
             continue

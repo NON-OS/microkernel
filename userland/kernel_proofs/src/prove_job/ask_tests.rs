@@ -20,9 +20,9 @@ use super::slots::{Next, Slots};
 const MIN: u64 = 60 * 1000;
 const LINUX: [u8; 32] = [0x11; 32];
 
-fn caller(pid: u32, owns_store: bool, vendor: bool, live: bool) -> Caller {
+pub fn caller(pid: u32, owns_store: bool, vendor: bool, live: bool) -> Caller {
     let vendor = vendor.then_some(LINUX);
-    Caller { pid, owns_store, vendor, supervises_live: live }
+    Caller { pid, owns_store, vendor, supervises_live: live, launcher: false }
 }
 
 #[test]

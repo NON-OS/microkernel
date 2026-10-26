@@ -19,7 +19,7 @@
 #[path = "../../../src/syscall/microkernel/errnos.rs"]
 mod kernel;
 
-pub use kernel::{ERRNO_IO, ERRNO_NOENT, ERRNO_NOMEM, ERRNO_SRCH};
+pub use kernel::{ERRNO_FAULT, ERRNO_IO, ERRNO_NOENT, ERRNO_NOMEM, ERRNO_PERM, ERRNO_SRCH};
 #[cfg(test)]
 #[path = "errno_tests.rs"]
 mod tests;

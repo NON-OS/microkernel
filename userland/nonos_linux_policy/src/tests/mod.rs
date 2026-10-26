@@ -33,4 +33,5 @@ mod refuse_tests;
 mod sample;
 mod set_order_tests;
 mod set_tests;
+#[cfg(feature = "vendor")]
 mod vendor_tests;

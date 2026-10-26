@@ -32,9 +32,8 @@ use super::state::Job;
 /// the job exits at once rather than fail halfway through a proof. `bound`:
 /// the op and the pid init spawned it for; no other first frame starts it.
 pub fn serve(held: bool, bound: Option<(u16, u32)>) -> ! {
-    if bound.is_none() {
-        mk_exit(1);
-    }
+    let Some((op, pid)) = bound else { mk_exit(1) };
+    if op == nonos_proof_abi::wire::RECEIPT { super::receipt_serve::serve(pid, held) }
     let mut buf = vec![0u8; FRAME_MAX];
     let mut job: Option<Job> = None;
     let mut last = now();
