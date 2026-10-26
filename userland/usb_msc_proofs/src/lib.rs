@@ -31,8 +31,6 @@ pub mod state;
 pub mod xhci;
 
 /// The driver's BOT command, mounted where the sweep reaches it.
-#[cfg(test)]
-mod bot_parts;
 /// A seeded sweep over BOT commands.
 #[cfg(test)]
 mod bot_sweep;

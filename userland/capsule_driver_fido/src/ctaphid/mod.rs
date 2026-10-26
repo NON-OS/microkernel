@@ -13,10 +13,10 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-mod assemble;
+pub(crate) mod assemble;
 mod assembled;
-mod frame;
-mod heard;
+pub(crate) mod frame;
+pub(crate) mod heard;
 mod init;
 mod job;
 mod job_end;

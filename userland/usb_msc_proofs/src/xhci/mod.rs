@@ -10,7 +10,7 @@ mod bulk;
 mod call;
 mod control;
 mod device;
-mod hosts;
+mod host_rig;
 mod ipc;
 mod pairs;
 #[path = "../../../capsule_driver_usb_msc/src/xhci/port_list.rs"]
@@ -28,7 +28,7 @@ pub mod wire;
 pub use bulk::{bulk_in, bulk_out, configure_bulk, reset_bulk};
 pub use control::{config_descriptor, control_in, control_no_data};
 pub use device::{cbw_takes, device, script, setup, Answer, Device};
-pub use hosts::{host, hosts, Hosts};
+pub use host_rig::{host, hosts, Hosts};
 pub(crate) use ipc::mk_ipc_call_timeout;
 pub use pairs::{bulk_in_on, bulk_out_on, configure_bulk2, configure_streams, port_speed};
 pub use pairs::{reset_bulk_on, DATA_PAIR};

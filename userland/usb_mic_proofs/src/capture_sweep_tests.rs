@@ -32,7 +32,7 @@ fn after_any_lie_capture_keeps_counts_and_orders_every_byte() {
                 Step::Take(most) => {
                     let got = ring.take(*most);
                     assert_eq!(got, m.take(*most), "{at}: the rule");
-                    assert!(got.1.len() % frame == 0, "{at}: whole frames");
+                    assert!(got.1.len().is_multiple_of(frame), "{at}: whole frames");
                     (kept, lost) = (kept + got.1.len(), lost + got.0 as usize);
                 }
             }
