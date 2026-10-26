@@ -65,7 +65,7 @@ outside the copy, or a signing key outside it (exit 2). No row needs the owner's
 
 | boot | attacker | attacks | ends when |
 |---|---|---|---|
-| capsule | `userland/capsule_attack`, the last capsule init spawns | `cap-escape`, `foreign-memory`, `service-squat`, `held-escape`, `fault-containment` | its `[ATTACK-FAULT]` line is in the log, plus 30 s |
+| capsule | `userland/capsule_attack`, the last capsule init spawns | `cap-escape`, `foreign-memory`, `service-squat`, `held-escape`, `deputy-escape`, `reply-twice`, `fault-containment` | its `[ATTACK-FAULT]` line is in the log, plus 30 s |
 | attest | the probe kernel's spawn gate, against four tampered trailers (`src/userspace/attest_refusal`) | `trailer-flip`, `trailer-extra-cap`, `trailer-kernel-kind`, `trailer-stale-epoch` | make's lane ends; it stops QEMU at 240 s |
 | linux | `/bin/suite` under the Linux personality (`userland/linux_guests`) | `linux-fs-escape`, `linux-foreign-memory`, `linux-raw-syscall` | all three attacks are in the log, plus 10 s |
 
