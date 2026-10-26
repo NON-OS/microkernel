@@ -18,7 +18,7 @@
 
 use alloc::string::String;
 
-use crate::sys::serial::{print, println};
+use crate::sys::serial::Line;
 use crate::userspace::capsule_linux::{spawn_run, spawn_run_net};
 
 /// How a queued run starts.
@@ -47,10 +47,11 @@ pub(super) fn run(package: &str, how: How) {
         false if spawn(package).is_ok() => b"[LINUX-RUN] started ",
         false => b"[LINUX-RUN] refused ",
     };
-    print(said);
-    println(match how {
+    let mut l = Line::new();
+    l.str(said).str(match how {
         How::Named => package.as_bytes(),
         How::Quiet => b"a Qwen window",
         How::Net => b"the same run, with the network",
     });
+    l.end();
 }

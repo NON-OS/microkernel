@@ -30,24 +30,20 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use super::super::types::CpuTopology;
-use super::state::{set_ap_list, set_topology};
 use crate::arch::aarch64::boot::multicore::roster;
 use crate::arch::aarch64::cpu::pack_affinity;
 use crate::smp::MAX_CPUS;
 
-pub(super) fn detect() -> usize {
+pub(super) fn detect() -> (CpuTopology, Vec<u32>) {
     let count = roster::len().min(MAX_CPUS).max(1);
-
-    set_topology(CpuTopology {
+    let topology = CpuTopology {
         logical_cpus: count,
         physical_cores: count,
         numa_nodes: 1,
         hyperthreading: false,
         x2apic: false,
-    });
-
-    set_ap_list(secondaries());
-    count
+    };
+    (topology, secondaries())
 }
 
 /// Every CPU in the roster except the one running, named by the packed

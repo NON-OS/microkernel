@@ -41,9 +41,8 @@ pub extern "C" fn kernel_entry(dtb_ptr: u64, handoff_phys: u64) -> ! {
     if let Err(reason) = crate::arch::aarch64::uart::init_uart(&info.uart) {
         super::refuse(b"console", reason.as_bytes());
     }
-    serial::print(b"[NONOS] dtb at ");
-    serial::print_hex(dtb_ptr);
-    serial::println(b"");
+    let mut l = serial::Line::new();
+    l.str(b"[NONOS] dtb at ").hex(dtb_ptr).end();
 
     #[cfg(feature = "nonos-trap-proof-sp0")]
     super::trap_proof::sp_el0_vector();

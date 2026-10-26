@@ -42,8 +42,8 @@ pub(super) static LOG: Mutex<Log> =
 
 pub(super) fn broke(log: &mut Log, why: &[u8]) {
     log.broken = true;
-    crate::sys::serial::print(why);
-    crate::sys::serial::println(b"; attestation refused until reboot");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(why).str(b"; attestation refused until reboot").end();
 }
 
 /// Runs `f` over the kernel's events, holding the lock no extend can pass;

@@ -62,9 +62,9 @@ pub(in crate::hardware::broker) fn stop_sd_host(device_id: u64) -> bool {
     running.retain(|&d| d != device_id);
     if !frees(outcome) {
         running.push(device_id);
-        crate::sys::serial::print(b"[DMA] SD host ");
-        crate::sys::serial::print_hex(device_id);
-        crate::sys::serial::println(b" did not stop; its released frames are kept");
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[DMA] SD host ").hex(device_id);
+        l.str(b" did not stop; its released frames are kept").end();
     }
     true
 }

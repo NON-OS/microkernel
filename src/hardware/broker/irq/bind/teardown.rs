@@ -32,7 +32,7 @@ pub(crate) fn disable_msix_for_device(device_id: u64) {
 
 pub(crate) fn disable_msi_for_device(device_id: u64) {
     let Some(handle) = pci_index::lookup(device_id) else { return };
-    let Some(msi) = handle.msi else { return };
+    let Some(msi) = pci_index::msi_of(&handle) else { return };
     if clear(&handle.address, &msi).is_err() {
         crate::log::info!("[IRQ] {} msi left enabled: config write refused", handle.address);
     }

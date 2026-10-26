@@ -2,8 +2,6 @@
 //! `crate::arch::aarch64::mmu` rebuilt from the kernel's files, unmodified;
 //! the TLB flush and the image's linker symbols are host stand-ins.
 
-// The kernel's files carry what the rest of the kernel uses of them too.
-#![allow(dead_code)]
 // A `#[path]` file not named mod.rs lends no directory: children restated.
 pub mod alias;
 #[path = "../../../../../../src/arch/aarch64/mmu/attributes"]
@@ -26,8 +24,8 @@ mod direct_map;
 mod geometry;
 #[path = "../../../../../../src/arch/aarch64/mmu/granule"]
 pub mod granule {
-    mod align;
-    mod constants;
+    pub mod align;
+    pub mod constants;
     mod index;
     mod kind;
     mod size;
@@ -38,7 +36,7 @@ mod image_bounds;
 #[path = "../../../../../../src/arch/aarch64/mmu/image_map.rs"]
 mod image_map;
 #[path = "../../../../../../src/arch/aarch64/mmu/kernel_va.rs"]
-mod kernel_va;
+pub mod kernel_va;
 #[path = "../../../../../../src/arch/aarch64/mmu/l2_pool.rs"]
 mod l2_pool;
 #[path = "../../../../../../src/arch/aarch64/mmu/l3_tables.rs"]
@@ -49,6 +47,7 @@ mod map;
 #[path = "../../../../../../src/arch/aarch64/mmu/one_to_one.rs"]
 mod one_to_one;
 pub mod probe;
+pub mod probe_high;
 #[path = "../../../../../../src/arch/aarch64/mmu/ram_map.rs"]
 mod ram_map;
 #[path = "../../../../../../src/arch/aarch64/mmu/state.rs"]

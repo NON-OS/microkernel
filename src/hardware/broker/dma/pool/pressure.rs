@@ -38,11 +38,9 @@ pub(super) fn note(used: usize, total: usize) {
     if quarter < 3 || SAID.fetch_max(quarter, Ordering::Relaxed) >= quarter {
         return;
     }
-    crate::sys::serial::print(b"[DMA] low32 pool pressure: used=");
-    crate::sys::serial::print_dec(used as u64);
-    crate::sys::serial::print(b" of ");
-    crate::sys::serial::print_dec(total as u64);
-    crate::sys::serial::println(b" pages");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[DMA] low32 pool pressure: used=").dec(used as u64).str(b" of ").dec(total as u64);
+    l.str(b" pages").end();
 }
 
 /// Say how the low pool stands, for a map that found no memory.
@@ -51,11 +49,7 @@ pub(in crate::hardware::broker::dma) fn say_low32() {
         let pool = LOW32_POOL.lock();
         (count_used(&pool.used), pool.pages)
     };
-    crate::sys::serial::print(b"[DMA] low32 pool used=");
-    crate::sys::serial::print_dec(used as u64);
-    crate::sys::serial::print(b" of ");
-    crate::sys::serial::print_dec(total as u64);
-    crate::sys::serial::print(b" floor=");
-    crate::sys::serial::print_dec(low32_floor(total) as u64);
-    crate::sys::serial::println(b"");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[DMA] low32 pool used=").dec(used as u64).str(b" of ").dec(total as u64);
+    l.str(b" floor=").dec(low32_floor(total) as u64).end();
 }
