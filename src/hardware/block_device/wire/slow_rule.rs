@@ -21,9 +21,15 @@
 /// own latency, well short of a driver's 30 s budget.
 pub(crate) const SLOW_MS: u64 = 5_000;
 
-/// Whether a request is said: it failed, or it took SLOW_MS or longer.
+/// ENXIO: no disk at the unit asked. It is how a driver serving several
+/// units tells the client which are empty (a UFS part with one logical unit
+/// of eight), so it is the answer the wire defines, not a failure.
+pub(crate) const NO_UNIT: i32 = -6;
+
+/// Whether a request is said: it failed, or it took SLOW_MS or longer. An
+/// empty unit is said only when it was slow to say so.
 pub(crate) const fn said(status: i32, answered_ms: u64) -> bool {
-    status != 0 || answered_ms >= SLOW_MS
+    (status != 0 && status != NO_UNIT) || answered_ms >= SLOW_MS
 }
 
 /// Whether a request with no answer is said: the kernel's wait for it ran out

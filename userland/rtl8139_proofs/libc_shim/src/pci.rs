@@ -56,12 +56,19 @@ pub(crate) fn stop_bus_master() {
 }
 
 /// The register with the bits of `mask` as `value` has them, unless the
-/// value turns Bus Master on while the broker refuses that.
+/// value turns Bus Master on while the broker refuses that, or the register
+/// would be left with Memory Space on: the capsule holds no Mmio, and the
+/// broker refuses that whether the write turns the bit on or leaves it
+/// (src/hardware/broker/pci/command_rule.rs).
 pub(crate) fn store(value: u16, mask: u16) -> i64 {
     note(Step::Command(value));
     if value & MK_PCI_CMD_BUS_MASTER != 0 && REFUSE.with(|r| r.get()) {
         return -1;
     }
-    COMMAND.with(|c| c.set((c.get() & !mask) | value));
+    let next = (command() & !mask) | value;
+    if next & MK_PCI_CMD_MEMORY_SPACE != 0 {
+        return -1;
+    }
+    COMMAND.with(|c| c.set(next));
     0
 }
