@@ -22,6 +22,7 @@ use super::{close_rect, DOT_X, LABEL_PX, RADIUS, TEXT_X};
 use crate::layout::Rect;
 use crate::paint::fit_text::{fit_text, width_of};
 use crate::paint::tokens::{DOT_IDLE, DOT_OK, TAB_ACTIVE, TAB_ACTIVE_EDGE, TAB_IDLE};
+use crate::paint::tokens::TAB_IDLE_EDGE;
 use crate::paint::tokens::{TOOLBAR_ACTIVE, TOOLBAR_LABEL};
 
 pub fn draw_pill(fb: &mut PaintBuffer, r: Rect, label: &[u8], name_len: usize, active: bool) {
@@ -29,9 +30,8 @@ pub fn draw_pill(fb: &mut PaintBuffer, r: Rect, label: &[u8], name_len: usize, a
         return;
     }
     fb.fill_round(r.x, r.y, r.w, r.h, RADIUS, if active { TAB_ACTIVE } else { TAB_IDLE });
-    if active {
-        fb.stroke_round(r.x, r.y, r.w, r.h, RADIUS, 1, TAB_ACTIVE_EDGE);
-    }
+    let edge = if active { TAB_ACTIVE_EDGE } else { TAB_IDLE_EDGE };
+    fb.stroke_round(r.x, r.y, r.w, r.h, RADIUS, 1, edge);
     fb.circle(r.x + DOT_X, r.y + r.h / 2, 3, if active { DOT_OK } else { DOT_IDLE });
     let fg = if active { TOOLBAR_ACTIVE } else { TOOLBAR_LABEL };
     let baseline = (r.y + r.h / 2) as i32 - (LABEL_PX as i32) / 2;

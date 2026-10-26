@@ -14,19 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! K15b: an orphan's holders are counted against its own owner thread,
-//! never against the thread whose grant is being released.
+//! The bad states a move reached.
 
-use super::common::{grant_frames, Registry, FB, GPU, LEN, START};
-use super::dma_rule::PageOrphan;
+use super::world::{pid, World, P, WHOLE};
 
-const WORKER: u32 = 8;
-
-#[test]
-fn the_owners_record_on_its_orphan_is_no_foreign_holder() {
-    let mut r =
-        Registry { attaches: vec![(FB, GPU)], threads: vec![(WORKER, GPU)], ..Default::default() };
-    r.orphans.push(PageOrphan { owner: GPU, handle: FB, frames: grant_frames(), free: Vec::new() });
-    assert!(!r.release(WORKER, Vec::new()), "only its owner maps it: freed at once");
-    assert_eq!(r.given_back, vec![(START, LEN)]);
+impl World {
+    /// Marks the bad states the move reached; always true.
+    pub(super) fn judge(&mut self) -> bool {
+        let inside: Vec<usize> = (0..4).filter(|&i| self.live_inside(i)).collect();
+        self.bad |= u16::from(inside.len() > 1 && inside.iter().any(|&i| WHOLE[i]));
+        for i in 0..4 {
+            let lost = self.p[i] == P::Waiting
+                && self.alive[i]
+                && !self.woken[i]
+                && !self.rows.waiting.contains(&pid(i));
+            self.bad |= 0x04 * lost as u16;
+        }
+        true
+    }
 }

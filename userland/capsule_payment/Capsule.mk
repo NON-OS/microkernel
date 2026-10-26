@@ -26,4 +26,7 @@ CAPSULE_REPLY_ENDPOINT   := reply:4115:endpoint.4294967323
 CAPSULE_REQUIRED_CAPS    := 0x10000079
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_payment
 
+# The development capsule set alone knows the local test chain (P5).
+CAPSULE_DEV_CARGO_FEATURES := devnet
+
 include nonos-mk/capsule.mk
