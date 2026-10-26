@@ -23,6 +23,8 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkIpcCall
             | MkIpcRecvFrom
             | MkIpcReply
+            | MkIpcRecvReq
+            | MkIpcReplyTo
             | MkIpcSendToPid
             | MkServiceLookup
             | MkThreadGroup

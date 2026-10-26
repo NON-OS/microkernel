@@ -58,8 +58,8 @@ See [Capabilities](capabilities.md) for the bits.
 
 | Tag | Number | Name | Capability | Gate | Meaning |
 |---|---|---|---|---|---|
-| `MCGT` | `0x5447434D` | `MkCapGrant` | Admin | `can_admin` `src/syscall/contract/cap_table/mk_ipc.rs:51` | Grant capability bits to a process; the caller must hold Admin and every bit it grants. |
-| `MCRV` | `0x5652434D` | `MkCapRevoke` | Admin | `can_admin` `src/syscall/contract/cap_table/mk_ipc.rs:51` | Revoke capability bits from a process. |
+| `MCGT` | `0x5447434D` | `MkCapGrant` | Admin | `can_admin` `src/syscall/contract/cap_table/mk_ipc.rs:53` | Grant capability bits to a process; the caller must hold Admin and every bit it grants. |
+| `MCRV` | `0x5652434D` | `MkCapRevoke` | Admin | `can_admin` `src/syscall/contract/cap_table/mk_ipc.rs:53` | Revoke capability bits from a process. |
 | `MCCK` | `0x4B43434D` | `MkCapCheck` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | 1 when a process holds every bit of a mask, else 0. |
 | `ARBT` | `0x54425241` | `AdminReboot` | Admin | `can_admin` `src/syscall/contract/cap_table/admin.rs:24` | Reboot. |
 | `ASDN` | `0x4E445341` | `AdminShutdown` | Admin | `can_admin` `src/syscall/contract/cap_table/admin.rs:24` | Shut down. |
