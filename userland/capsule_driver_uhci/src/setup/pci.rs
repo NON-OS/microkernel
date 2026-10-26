@@ -16,14 +16,15 @@
 
 //! The function's PCI side: its I/O decode must already be on (the broker
 //! flips no I/O Space bit), bus mastering on for the schedule, its INTx pin
-//! silenced since the driver polls, and firmware's legacy keyboard and SMI
-//! traps in LEGSUP off, their status cleared, before the controller resets.
+//! silenced since the driver polls, Memory Space off (facts/pci.rs), and
+//! firmware's legacy keyboard and SMI traps in LEGSUP off, their status
+//! cleared, before the controller resets.
 
-use nonos_libc::{mk_pci_config_read, mk_pci_config_write, MK_PCI_CFG_COMMAND};
-use nonos_libc::{MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_INTX_DISABLE};
+use nonos_libc::{mk_pci_config_read, mk_pci_config_update, mk_pci_config_write};
+use nonos_libc::MK_PCI_CFG_COMMAND;
 
 use super::claim::Claim;
-use crate::facts::pci::{LEGSUP, LEGSUP_CLEAR, LEGSUP_KEEP};
+use crate::facts::pci::{COMMAND_BITS, COMMAND_MASK, LEGSUP, LEGSUP_CLEAR, LEGSUP_KEEP};
 
 const CMD_IO_SPACE: i64 = 1;
 
@@ -35,8 +36,8 @@ pub fn enable(c: &Claim) -> Result<(), &'static str> {
     if cmd & CMD_IO_SPACE == 0 {
         return Err("uhci: firmware left the controller's I/O decode off");
     }
-    let want = MK_PCI_CMD_BUS_MASTER | MK_PCI_CMD_INTX_DISABLE;
-    if mk_pci_config_write(c.device_id, c.epoch, MK_PCI_CFG_COMMAND, want) < 0 {
+    let cfg = MK_PCI_CFG_COMMAND;
+    if mk_pci_config_update(c.device_id, c.epoch, cfg, COMMAND_MASK, COMMAND_BITS) < 0 {
         return Err("uhci: bus master refused");
     }
     let legsup = mk_pci_config_read(c.device_id, c.epoch, LEGSUP, 2);
