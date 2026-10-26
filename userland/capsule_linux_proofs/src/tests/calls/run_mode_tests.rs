@@ -43,7 +43,12 @@ fn a_tier_on_the_terminal_keeps_its_model_and_drops_its_window() {
         let cli = Mode::Cli.tier_args(app.args);
         assert!(!cli.iter().any(|a| a == b"-ui" || a == b"window"), "{}", app.name);
         let model = [&b"/models"[..], app.models[0]].concat();
-        assert_eq!(cli, [b"-m".to_vec(), model], "{}", app.name);
+        let mut want = alloc::vec![b"-m".to_vec(), model];
+        /* A vision tier keeps its projector on the terminal, where its image comes. */
+        if app.args.contains(&&b"-mmproj"[..]) {
+            want.extend([b"-mmproj".to_vec(), [&b"/models"[..], app.models[1]].concat()]);
+        }
+        assert_eq!(cli, want, "{}", app.name);
     }
 }
 
