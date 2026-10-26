@@ -31,7 +31,7 @@ const NAMES: &str = include_str!("system_names.txt");
  * NVMe's `driver.nvme1`, `driver.bootfb0`), and the kernel's own forms. A
  * numeric `endpoint.<n>` is how a send addresses a port by number (L57).
  */
-const ROOTS: [&str; 5] = ["driver.", "net.", "proc.", "stdin.", "kernel."];
+const ROOTS: [&str; 6] = ["driver.", "net.", "proc.", "stdin.", "stdout.", "kernel."];
 
 /// Whether `name` is a form only the system may take.
 pub(crate) fn is_reserved_form(name: &str) -> bool {
