@@ -33,6 +33,16 @@ pub(super) const NET_SOCKETS_MANIFEST_BYTES: &[u8] =
 pub(super) const NET_SOCKETS_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/net_sockets.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-net-sockets")]
+const _: () = assert!(
+    !NET_SOCKETS_ELF.is_empty()
+        && !NET_SOCKETS_NONOS_ID_CERT_BYTES.is_empty()
+        && !NET_SOCKETS_MANIFEST_BYTES.is_empty()
+        && !NET_SOCKETS_ATTESTATION_BYTES.is_empty(),
+    "capsule_net_sockets built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-net-sockets"))]
 pub(super) const NET_SOCKETS_ELF: &[u8] = &[];
 

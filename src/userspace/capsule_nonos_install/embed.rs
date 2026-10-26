@@ -33,6 +33,16 @@ pub(crate) const NONOS_INSTALL_MANIFEST_BYTES: &[u8] =
 pub(crate) const NONOS_INSTALL_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/nonos_install.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-nonos-install")]
+const _: () = assert!(
+    !NONOS_INSTALL_ELF.is_empty()
+        && !NONOS_INSTALL_NONOS_ID_CERT_BYTES.is_empty()
+        && !NONOS_INSTALL_MANIFEST_BYTES.is_empty()
+        && !NONOS_INSTALL_ATTESTATION_BYTES.is_empty(),
+    "capsule_nonos_install built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-nonos-install"))]
 pub(crate) const NONOS_INSTALL_ELF: &[u8] = &[];
 
