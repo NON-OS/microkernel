@@ -18,8 +18,7 @@
 //! as the `net.l2` and `net.ip` embeds.
 
 #[cfg(feature = "nonos-capsule-net-udp")]
-pub(super) const NET_UDP_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(super) const NET_UDP_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_net_udp/target/",
     env!("NONOS_USER_TARGET"),
     "/release/net_udp"

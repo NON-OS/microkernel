@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-socks5")]
-pub(super) const SOCKS5_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(super) const SOCKS5_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_socks5/target/",
     env!("NONOS_USER_TARGET"),
     "/release/socks5"

@@ -17,8 +17,7 @@
 // Build-time embed of the marketplace window.
 
 #[cfg(feature = "nonos-capsule-app-store")]
-pub(crate) const APP_STORE_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(crate) const APP_STORE_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_app_store/target/",
     env!("NONOS_USER_TARGET"),
     "/release/app_store"

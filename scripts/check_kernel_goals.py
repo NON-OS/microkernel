@@ -42,7 +42,7 @@ def problems(text: str) -> list:
     rule = text[text.find(RULE) : text.find("\n\n", text.find(RULE))] if RULE in text else ""
     if FILTER not in rule.split("\n", 1)[0]:
         out.append("the default kernel rule does not wait for a kernel goal on the command line")
-    guard = r"if \[ -e \$@ \]; then \\\n(?:.*\\\n)*?\s*else \\\n(?:.*\\\n)*?.*\$\(CARGO\) build"
+    guard = r"if \[ -e \$@ \]; then \\\n(?:.*\\\n)*?\s*else \$\(MAKE\) --no-print-directory nonos-mk-kernel-default; fi"
     if not re.search(guard, rule.partition("\n")[2]):
         out.append("the default kernel rule does not keep a built ELF in the shell that builds one")
     return out
@@ -51,7 +51,7 @@ def problems(text: str) -> list:
 CASES = [("as built", lambda t: t, 0), ("a goal unlisted", lambda t: t.replace(
          "nonos-mk-desktop-gui-prod nonos-mk-driver", "nonos-mk-driver", 1), 1),
          ("filter dropped", lambda t: t.replace(" " + FILTER, "", 1), 1),
-         ("guard in its own shell", lambda t: t.replace("kept\"; \\\n\telse \\", "kept\"; exit 0; fi\n\t@if true; then \\", 1), 1)]
+         ("guard in its own shell", lambda t: t.replace("else $(MAKE) --no-print-directory", "exit 0; fi\n\t@$(MAKE) --no-print-directory", 1), 1)]
 
 
 def main() -> int:

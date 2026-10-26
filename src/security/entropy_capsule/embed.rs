@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-entropy")]
-pub(super) const ENTROPY_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(super) const ENTROPY_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_entropy/target/",
     env!("NONOS_USER_TARGET"),
     "/release/entropy"
