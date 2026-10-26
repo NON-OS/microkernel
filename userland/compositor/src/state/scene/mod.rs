@@ -22,6 +22,7 @@ mod layers;
 mod new;
 mod raise;
 mod reap_unattachable;
+mod set_cursor;
 mod snapshot;
 mod submit;
 mod table;

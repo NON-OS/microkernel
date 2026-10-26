@@ -26,7 +26,7 @@ pub(super) const W: u32 = 700;
 pub(super) const H: u32 = 400;
 
 pub(super) fn press(state: &mut DragState, x: i32, y: i32) -> PointerAction {
-    drag::handle(state, W, H, 100, 100, false, &event(InputKind::ButtonDown, x, y))
+    drag::handle(state, (W, H), (100, 100), false, &event(InputKind::ButtonDown, x, y))
 }
 
 pub(super) fn moved(action: PointerAction) -> Option<(u32, u32)> {

@@ -19,8 +19,10 @@
 use crate::process::signal::SIGKILL;
 
 /// `parent` is exiting: end every run it started. A run outliving its
-/// terminal would hold a slot, and a model's memory, for no one to read.
+/// terminal would hold a slot, and a model's memory, for no one to read;
+/// a network ticket it was given (term_ticket.rs) goes with it too.
 pub fn end_terminal_runs_of(parent: u32) {
+    super::super::end_tickets_of(parent);
     for pid in super::held::held_by(parent) {
         crate::process::exit::teardown(pid, 128 + SIGKILL as i32, true);
     }
