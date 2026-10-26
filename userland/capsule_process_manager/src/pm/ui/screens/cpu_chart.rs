@@ -43,7 +43,7 @@ pub(super) fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect, h: u32) {
     spark::cpu(fb, x, py, w, ph, &state.history.total, ACCENT);
     // The part of busy that was the processes' own code, drawn over it: the
     // gap between the two lines is the kernel working on their behalf.
-    spark::rate(fb, x, py, w, ph, &state.history.user, 100, OK);
+    spark::rate(fb, &Rect { x, y: py, w, h: ph }, &state.history.user, 100, OK);
     let sat = py + ph - ph * SATURATION / 100;
     dashed(fb, x, sat, w, DANGER);
     text::left(fb, x, sat + DASH, b"SATURATION", DANGER, BODY_PX);
