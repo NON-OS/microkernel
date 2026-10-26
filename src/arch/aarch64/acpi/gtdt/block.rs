@@ -22,7 +22,7 @@ use super::super::sdt::TableError;
 use super::timer::Timer;
 use alloc::vec::Vec;
 
-pub const BLOCK_MIN: usize = 20;
+pub(crate) const BLOCK_MIN: usize = 20;
 const FRAME_LEN: usize = 40;
 const MAX_FRAMES: u32 = 8;
 
@@ -54,7 +54,7 @@ fn frame(f: &[u8]) -> Option<GtFrame> {
     })
 }
 
-pub fn block(s: &[u8], at: usize) -> Result<GtBlock, TableError> {
+pub(crate) fn block(s: &[u8], at: usize) -> Result<GtBlock, TableError> {
     let bad = TableError::Structure(at);
     let (count, offset) = (u32_at(s, 12).ok_or(bad)?, u32_at(s, 16).ok_or(bad)? as usize);
     if count > MAX_FRAMES || (count > 0 && offset < BLOCK_MIN) {

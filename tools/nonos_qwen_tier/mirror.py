@@ -15,7 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """`mirror`: the NONOS model repository, laid out for upload.
 
-Each chosen tier's files are fetched from the Qwen team's repository, a cut
+Each chosen tier's files are fetched from their publisher's repository, a cut
 download resumed, checked against their pins and kept as <dir>/<tier>/<file>,
 the layout layout.py names. The signed catalogue then goes beside them as
 <dir>/catalogue.bin; it lists every pinned tier, each file under this

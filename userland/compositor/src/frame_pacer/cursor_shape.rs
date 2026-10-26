@@ -19,29 +19,35 @@
 //! arrow pixel a square of `scale` screen pixels so the plane's arrow is the
 //! size the composited one would be on that screen.
 
-use super::cursor::{ARROW, FILL, OUTLINE};
+use super::cursor::{FILL, OUTLINE};
+use super::cursor_shapes::shape;
 
-/// The slot's side in pixels and its bytes (`nonos_gfx_wire` CURSOR).
 pub const SIDE: usize = 64;
 pub const SLOT: usize = SIDE * SIDE * 4;
 
-/// The largest square per arrow pixel that keeps the 19-row arrow inside
-/// the slot; a screen scaled further shows a smaller arrow, not a cut one.
-const MAX_SCALE: usize = SIDE / 19;
+/// The most rows or columns any shape has: the up-and-down arrow's 21.
+const MAX_EXTENT: usize = 21;
+const MAX_SCALE: usize = SIDE / MAX_EXTENT;
 
-/// The drawn arrow's width and height at `scale`.
-pub fn shape_side(scale: u32) -> (u16, u16) {
-    let s = (scale as usize).clamp(1, MAX_SCALE);
-    let w = ARROW.iter().map(|l| l.len()).max().unwrap_or(0);
-    ((w * s) as u16, (ARROW.len() * s) as u16)
+/// The width and height of shape `code` at `scale`, a whole number.
+pub fn shape_side(scale: u32, code: u8) -> (u16, u16) {
+    let (s, rows) = ((scale as usize).clamp(1, MAX_SCALE), shape(code).rows);
+    let w = rows.iter().map(|l| l.len()).max().unwrap_or(0);
+    ((w * s) as u16, (rows.len() * s) as u16)
 }
 
-/// Draw the arrow into `slot`; None when the slot is short.
-pub fn draw_shape(slot: &mut [u8], scale: u32) -> Option<()> {
+/// Its hot spot at `scale`.
+pub fn shape_hot(scale: u32, code: u8) -> (u16, u16) {
+    let (s, hot) = (scale.clamp(1, MAX_SCALE as u32), shape(code).hot);
+    ((hot.0 * s) as u16, (hot.1 * s) as u16)
+}
+
+/// Shape `code` at `scale` into a clear slot, its top-left at the slot's.
+pub fn draw_shape(slot: &mut [u8], scale: u32, code: u8) -> Option<()> {
     let slot = slot.get_mut(..SLOT)?;
     slot.fill(0);
     let s = (scale as usize).clamp(1, MAX_SCALE);
-    for (row, line) in ARROW.iter().enumerate() {
+    for (row, line) in shape(code).rows.iter().enumerate() {
         for (col, &pixel) in line.iter().enumerate() {
             let argb = match pixel {
                 b'X' => OUTLINE,
