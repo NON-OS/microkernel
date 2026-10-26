@@ -14,19 +14,16 @@ pub fn paint(st: &mut ViewerState, fb: &mut PaintBuffer) {
     st.view_w = fb.width;
     st.view_h = fb.height;
     fb.fill_rect(0, 0, fb.width, fb.height, BG);
-    match st.img.as_ref() {
-        Some(img) => {
-            clamp_pan_mode(&mut st.view, st.fit_mode, img.w, img.h, fb.width, fb.height);
-            let p = place_mode(st.fit_mode, img.w, img.h, fb.width, fb.height, &st.view);
-            let (w, h, stride) = (fb.width, fb.height, fb.stride_words);
-            let mut dst = Dst { px: fb.pixels, stride, w, h };
-            if st.fit_mode == FitMode::Actual && st.view.zoom == 1.0 {
-                draw_nn(&mut dst, &img.px, img.w, img.h, p.dx, p.dy, p.dw, p.dh);
-            } else {
-                draw_bilinear(&mut dst, &img.px, img.w, img.h, p.dx, p.dy, p.dw, p.dh);
-            }
+    if let Some(img) = st.img.as_ref() {
+        clamp_pan_mode(&mut st.view, st.fit_mode, img.w, img.h, fb.width, fb.height);
+        let p = place_mode(st.fit_mode, img.w, img.h, fb.width, fb.height, &st.view);
+        let (w, h, stride) = (fb.width, fb.height, fb.stride_words);
+        let mut dst = Dst { px: fb.pixels, stride, w, h };
+        if st.fit_mode == FitMode::Actual && st.view.zoom == 1.0 {
+            draw_nn(&mut dst, &img.px, img.w, img.h, p.dx, p.dy, p.dw, p.dh);
+        } else {
+            draw_bilinear(&mut dst, &img.px, img.w, img.h, p.dx, p.dy, p.dw, p.dh);
         }
-        None => {}
     }
     if !st.status.is_empty() {
         fb.text(8, fb.height.saturating_sub(20), st.status.as_bytes(), FG);
