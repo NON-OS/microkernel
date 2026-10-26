@@ -151,6 +151,7 @@ A desktop on a UEFI Arm board, whether a Raspberry Pi 5 with community EDK2 firm
 
 - **design.** Composition is all CPU. The compositor sends FLUSH with damage rectangles, and the driver copies them into its backing store, then does `TRANSFER_TO_HOST_2D` and `RESOURCE_FLUSH` (`userland/capsule_driver_virtio_gpu/src/display/show.rs:37-58`).
 - **design.** virtio-gpu offers `VIRGL`. The capsule runs one 3D probe, creates a context, clears and reads back, then tears down. It logs the result and draws nothing through 3D (`userland/capsule_driver_virtio_gpu/src/setup/probes.rs:53-55`). It polls and holds no interrupt.
+- **design.** `intel_display` covers display only: takeover on Haswell to Raptor Lake, modeset on Gen9, GGTT, planes, cursor, DP and HDMI. It has no render or GT engine and no GuC or HuC, and it has never booted, since QEMU has no Intel graphics. AMD has a register-document survey and no code. NVIDIA is enumerate-only.
 - **design.** DMA confinement is the strongest piece:
   - every claim attaches the capsule's own IOMMU domain before the device is powered, and IOVAs map only the capsule's grants (`src/hardware/broker/claim/claim.rs:56-57`, `confine/capsule.rs:33-64`);
   - a device no IOMMU unit translates is refused, and on x86 a claim without interrupt remapping is refused;
