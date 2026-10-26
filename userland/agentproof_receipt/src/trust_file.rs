@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The verifier's trust file, `nonos-receipt-trust 1`: a header, then lines
-//! `release <version> <pcr8> <pcr9> <pcr14>`, `supervisor <meas> <caps>` and
+//! `release <version> <pcr8> <pcr9>`, `supervisor <meas> <caps>` and
 //! one `ak <key>`, hex throughout, `#` comments. One file has one meaning;
 //! a line this reader does not know is refused.
 
@@ -34,11 +34,10 @@ pub fn read(text: &str) -> Result<Trust, (usize, &'static str)> {
             (_, [c, ..]) if c.starts_with('#') => {}
             (false, ["nonos-receipt-trust", "1"]) => header = true,
             (false, _) => return Err(at("the first line is `nonos-receipt-trust 1`")),
-            (true, ["release", v, p8, p9, p14]) => releases.push(Release {
+            (true, ["release", v, p8, p9]) => releases.push(Release {
                 version: v.to_string(),
                 pcr8: hex(p8).ok_or(at("a PCR is 64 hex digits"))?,
                 pcr9: hex(p9).ok_or(at("a PCR is 64 hex digits"))?,
-                pcr14: hex(p14).ok_or(at("a PCR is 64 hex digits"))?,
             }),
             (true, ["supervisor", m, c]) => supervisors.push(Supervisor {
                 meas: hex(m).ok_or(at("a measurement is 64 hex digits"))?,

@@ -18,6 +18,7 @@
 //! report of everything the box refused it.
 
 mod allowed;
+mod app_line;
 mod connected;
 mod dests;
 mod end;

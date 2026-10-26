@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod allow_fuzz_tests;
+mod app_line_tests;
 mod bound_line_tests;
 mod connected_tests;
 mod frames_tests;
@@ -37,4 +38,5 @@ mod seal_slot_tests;
 mod selftest_panic_tests;
 mod sites_tests;
 mod tally_tests;
+mod vendor_table_tests;
 mod terminal_run_tests;
