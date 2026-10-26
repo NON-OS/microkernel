@@ -38,10 +38,6 @@ impl Store {
 
     // Most recently accessed paths, newest first, capped at `max`.
     pub fn journal_list(&self, max: usize) -> Vec<(u64, &str)> {
-        self.journal
-            .iter()
-            .take(max.min(JOURNAL_CAP))
-            .map(|(t, p)| (*t, p.as_str()))
-            .collect()
+        self.journal.iter().take(max.min(JOURNAL_CAP)).map(|(t, p)| (*t, p.as_str())).collect()
     }
 }
