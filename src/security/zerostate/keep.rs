@@ -34,16 +34,17 @@ pub(crate) fn keeping() -> bool {
     ARMED.load(Ordering::Acquire)
 }
 
-/// The policy service's ask to turn keeping on (`on`) or leave it. False,
-/// said on serial, when the caller is not the policy capsule the kernel
-/// spawned, or the ask is to turn it off.
+/// The policy service's ask to turn keeping on (`on`). False, said on serial, unless the
+/// caller is the policy capsule the kernel spawned and asks for on.
 pub(crate) fn arm(on: bool) -> bool {
     let state = crate::userspace::capsule_policy::shared_state();
     let policy = Policy { pid: state.pid(), alive: state.is_alive() };
-    let caller = crate::process::current_pid().unwrap_or(0);
-    let granted = may_arm(caller, policy, on);
+    let granted = may_arm(crate::process::current_pid().unwrap_or(0), policy, on);
     let was = ARMED.load(Ordering::Acquire);
     ARMED.store(after(was, granted), Ordering::Release);
+    if granted && !was {
+        crate::fs::blockfs_volume::keeping_on();
+    }
     crate::sys::serial::print(match (granted, was) {
         (true, false) => b"[ZS] keeping turned on: the person chose it, the policy service says\n",
         (true, true) => b"[ZS] keeping already on\n",
