@@ -41,7 +41,8 @@ pub(in crate::syscall::microkernel::ipc) fn push(
     let queue = map.entry(server_pid).or_default();
     let mine = queue.iter().filter(|e| e.pid == caller_pid).count();
     if admits(queue.len(), mine) {
-        queue.push_back(Entry::new(caller_pid, caller_inbox, token));
+        let request = super::request_ids::next(server_pid);
+        queue.push_back(Entry::new(caller_pid, caller_inbox, token, request));
         Ok(())
     } else {
         Err(Refused::Busy)

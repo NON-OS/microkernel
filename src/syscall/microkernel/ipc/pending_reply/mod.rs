@@ -23,9 +23,11 @@ mod pop;
 mod push;
 mod remove;
 mod reply_rule;
+mod request_ids;
 mod served_rule;
 mod share;
 mod state;
+mod take_named;
 mod take_reply;
 
 pub(crate) use abandoned::forget as forget_dead;
@@ -35,4 +37,5 @@ pub(crate) use mark::mark_served;
 pub(super) use pop::pop;
 pub(super) use push::{push, Refused};
 pub(super) use remove::remove_latest;
+pub(super) use take_named::take_named;
 pub(super) use take_reply::take_for_reply;

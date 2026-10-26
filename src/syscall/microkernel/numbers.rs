@@ -23,6 +23,10 @@ pub const SYS_IPC_RECV: u64 = tag4(b"MIRC");
 pub const SYS_IPC_CALL: u64 = tag4(b"MICL");
 pub const SYS_IPC_RECV_FROM: u64 = tag4(b"MIRF");
 pub const SYS_IPC_REPLY: u64 = tag4(b"MIRY");
+/// A receive that names the request, for MkIpcReplyTo to answer.
+pub const SYS_IPC_RECV_REQ: u64 = tag4(b"MIRQ");
+/// A reply to the request MkIpcRecvReq named, and only that one.
+pub const SYS_IPC_REPLY_TO: u64 = tag4(b"MIRT");
 pub const SYS_IPC_SEND_TO_PID: u64 = tag4(b"MISP");
 pub const SYS_SERVICE_LOOKUP: u64 = tag4(b"MSVL");
 pub const SYS_THREAD_GROUP: u64 = tag4(b"MTGR");

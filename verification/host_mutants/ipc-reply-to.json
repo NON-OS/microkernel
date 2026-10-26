@@ -1,0 +1,82 @@
+[
+ {
+  "name": "ipc-reply-to-takes-an-undequeued-call",
+  "file": "src/syscall/microkernel/ipc/pending_reply/served_rule.rs",
+  "old": "queue.position(|e| e.served && e.request == request)",
+  "new": "queue.position(|e| e.request == request)",
+  "test": "ipc_reply_token::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "ipc-reply-to-ignores-the-name",
+  "file": "src/syscall/microkernel/ipc/pending_reply/served_rule.rs",
+  "old": "queue.position(|e| e.served && e.request == request)",
+  "new": "queue.position(|e| e.served)",
+  "test": "ipc_reply_token::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "ipc-dequeue-names-the-token",
+  "file": "src/syscall/microkernel/ipc/pending_reply/served_rule.rs",
+  "old": "    Some(e.request)\n",
+  "new": "    Some(e.token)\n",
+  "test": "ipc_reply_token::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "ipc-request-ids-shared-by-servers",
+  "file": "src/syscall/microkernel/ipc/pending_reply/request_ids.rs",
+  "old": "map.entry(server).or_insert(0)",
+  "new": "map.entry(0).or_insert(0)",
+  "test": "ipc_reply_token::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "ipc-request-ids-reused",
+  "file": "src/syscall/microkernel/ipc/pending_reply/request_ids.rs",
+  "old": "    *last = last.wrapping_add(1).max(1);\n",
+  "new": "    *last = 1;\n",
+  "test": "ipc_reply_token::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "ipc-request-ids-outlive-the-server",
+  "file": "src/syscall/microkernel/ipc/pending_reply/request_ids.rs",
+  "old": "    NEXT.lock().remove(&pid);\n",
+  "new": "",
+  "test": "ipc_reply_token::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "ipc-meta-any-length",
+  "file": "src/syscall/microkernel/ipc/recv_meta.rs",
+  "old": "    meta_len == META_V1_LEN as u64\n",
+  "new": "    meta_len != 0\n",
+  "test": "ipc_reply_token::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "ipc-meta-no-version",
+  "file": "src/syscall/microkernel/ipc/recv_meta.rs",
+  "old": "    out[0..2].copy_from_slice(&META_V1.to_le_bytes());\n",
+  "new": "",
+  "test": "ipc_reply_token::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "ipc-meta-request-is-the-time",
+  "file": "src/syscall/microkernel/ipc/recv_meta.rs",
+  "old": "    out[16..24].copy_from_slice(&request.to_le_bytes());\n",
+  "new": "    out[16..24].copy_from_slice(&enqueued_ms.to_le_bytes());\n",
+  "test": "ipc_reply_token::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "ipc-meta-sender-dropped",
+  "file": "src/syscall/microkernel/ipc/recv_meta.rs",
+  "old": "    out[4..8].copy_from_slice(&sender.to_le_bytes());\n",
+  "new": "",
+  "test": "ipc_reply_token::",
+  "crate": "userland/kernel_proofs"
+ }
+]
