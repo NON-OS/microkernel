@@ -35,23 +35,25 @@ pub struct PioGrantOut {
 
 pub fn mk_device_claim(device_id: u64) -> i64 {
     note("claim", device_id);
-    answer().claim
+    command_judge::claim(answer().claim)
 }
 pub fn mk_device_release(device_id: u64) -> i64 {
     note("device_release", device_id);
     0
 }
-pub fn mk_pci_config_write(_d: u64, epoch: u64, offset: u32, value: u16) -> i64 {
-    assert_eq!((epoch, offset), (7, MK_PCI_CFG_COMMAND), "the command register, under the claim");
-    note("pci_command", value as u64);
-    let scripted = answer().command;
-    if scripted < 0 { scripted } else { command_judge::plain(value) }
+/// The plain form: the same call, its offset naming no mask.
+pub fn mk_pci_config_write(d: u64, epoch: u64, offset: u32, value: u16) -> i64 {
+    mk_pci_config_update(d, epoch, offset, 0, value)
 }
 pub fn mk_pci_config_update(_d: u64, epoch: u64, offset: u32, mask: u16, value: u16) -> i64 {
     assert_eq!((epoch, offset), (7, MK_PCI_CFG_COMMAND), "the command register, under the claim");
     note("pci_command", value as u64);
     let scripted = answer().command;
-    if scripted < 0 { scripted } else { command_judge::masked(mask, value) }
+    if scripted < 0 {
+        scripted
+    } else {
+        command_judge::write(offset, mask, value)
+    }
 }
 pub fn mk_pio_grant(_d: u64, epoch: u64, bar: u8, _f: u32, out: *mut PioGrantOut) -> i64 {
     assert_eq!(epoch, 7, "a grant under the claim's epoch");
