@@ -24,7 +24,30 @@ extern crate alloc;
 
 mod build;
 /// The kernel's own document and encoder, unchanged.
-#[allow(dead_code)]
 #[path = "../../../src/security/attest_doc/document.rs"]
-mod kernel_document;
-mod tests;
+pub mod kernel_document;
+/// The kernel's hashes, at the path its PCR 14 event builder names them.
+#[path = "../../../src/crypto"]
+pub mod crypto {
+    pub mod hash {
+        pub type Hash256 = [u8; 32];
+        #[path = "unified/sha1_tpm.rs"]
+        mod sha1_tpm;
+        #[path = "unified/sha256.rs"]
+        pub mod sha256_file;
+        pub mod sha384;
+        pub mod sha512;
+        pub(crate) use sha1_tpm::tpm_bank_sha1;
+        pub use sha256_file::sha256;
+        pub use sha512::sha512;
+    }
+}
+/// The kernel's PCR 14 event builder, unchanged.
+#[path = "../../../src/security/capsule_measure"]
+pub mod kernel_measure {
+    pub mod algs;
+    pub mod declared;
+    pub mod event;
+    pub mod kind;
+}
+pub mod tests;

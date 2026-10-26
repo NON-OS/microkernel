@@ -2,12 +2,11 @@
 //! Host proofs for the broadcast deadline. `book` and `halves` are the
 //! kernel's own files.
 
-#![allow(dead_code)]
-
-// The kernel's book has a const `new` for its static and no `Default`.
-#[allow(clippy::new_without_default)]
+// The kernel's book has a const `new` for its static and no `Default`; the
+// proofs give it one (book_default.rs).
 #[path = "../../../src/arch/aarch64/timer/broadcast/book.rs"]
 pub mod book;
+mod book_default;
 #[path = "../../../src/arch/aarch64/timer/broadcast/halves.rs"]
 pub mod halves;
 

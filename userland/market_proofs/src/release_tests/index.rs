@@ -33,6 +33,7 @@ pub(crate) fn index() -> MarketplaceIndex {
         publisher_pubkey: [0; 32],
         publisher_eth_address: [0; 20],
         description: String::new(),
+        logo_hash: [0; 32],
         price: PriceModel { kind: PriceKind::Free, amount_atomic: 0, period_seconds: 0 },
         token: TokenInfo {
             symbol: String::new(),

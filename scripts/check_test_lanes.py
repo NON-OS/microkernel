@@ -23,6 +23,7 @@ userland/*_proofs crate and for every crate whose manifest asks:
     [package.metadata.nonos]
     test-lane = true
     test-args = "--workspace"    # optional, appended to cargo test
+    feature-lanes = ["devnet"]   # optional, a lane each with that feature on
 
 tools/nix/test-lanes.json is those markers as nix and tools/nix/inputs.py read
 them; --write-lanes writes it, and the check fails when it is stale.
@@ -39,7 +40,7 @@ import sys
 from pathlib import Path
 
 from test_lanes.baseline import LANES, render
-from test_lanes.lanes import marked
+from test_lanes.feature_lanes import table
 from test_lanes.selftest import self_test
 from test_lanes.tree import Tree
 from test_lanes.verdict import verdict
@@ -55,8 +56,8 @@ def main():
         return self_test()
     tree = Tree(args.root)
     if args.write_lanes:
-        (args.root / LANES).write_text(render(marked(tree)))
-        print(f"test-lanes: {LANES} written, {len(marked(tree))} marked crates")
+        (args.root / LANES).write_text(render(table(tree)))
+        print(f"test-lanes: {LANES} written, {len(table(tree))} lanes")
     problems, lane, listed = verdict(tree)
     for p in problems:
         print(f"test-lanes: {p}")

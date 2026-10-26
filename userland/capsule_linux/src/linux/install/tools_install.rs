@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! `install nonos-<tool>`: an in-tree tool the image does not carry, from
 //! the NONOS package mirror this image was built for (NONOS_PACKAGE_MIRROR,
 //! name:port, from nonos.toml's linux_packages). The content is fetched
@@ -36,17 +35,17 @@ use super::Why;
 pub fn install(tool: &str, pin: &[u8; 32]) -> Result<(), Why> {
     let Some(at) = option_env!("NONOS_PACKAGE_MIRROR").filter(|m| !m.is_empty()) else {
         say(b"[LINUX] this image was built without a NONOS package mirror\n");
-        return Err(Why::NoMirror);
+        return Err(Why::NO_MIRROR);
     };
     let (name, port, _) = parse(at);
     reachable(name)?;
     let Some(content) = get_as(name, port, name, &content_path(pin)) else {
         say(b"[LINUX] the tool did not download\n");
-        return Err(Why::Package);
+        return Err(Why::PACKAGE);
     };
     if blake3::hash(&content).as_bytes() != pin {
         say(b"[LINUX] the tool is not the one the market listed\n");
-        return Err(Why::Package);
+        return Err(Why::PACKAGE);
     }
     say(b"[LINUX] provenance Verified: the market's pin matches\n");
     // Held to the signed index's pin above, so these are authenticated bytes.

@@ -28,17 +28,24 @@ use nonos_toolkit::decorations::TITLEBAR_H;
 #[test]
 fn the_right_end_of_the_title_bar_moves_and_the_border_below_it_resizes() {
     let bottom = 10 + TITLEBAR_H;
-    for y in [12, bottom as i32 - 4, bottom as i32 - 1] {
+    // Below the controls, the bar's right end moves the window; above them,
+    // its top edge is the top-right corner, which resizes (decorations/edges.rs).
+    for y in [bottom as i32 - 4, bottom as i32 - 1] {
         let mut s = DragState::new();
         press(&mut s, W as i32 - 15, y);
         assert!(s.active, "a press at y {y} on the titlebar's right end moves the window");
     }
     let mut s = DragState::new();
+    press(&mut s, W as i32 - 15, 12);
+    assert!(!s.active, "the top-right corner resizes rather than moves");
+    let mut s = DragState::new();
     press(&mut s, W as i32 - 15, bottom as i32 + 1);
     assert!(!s.active, "just below the titlebar the right border resizes");
-    let up = drag::handle(&mut s, W, H, 100, 100, false, &event(InputKind::PointerAbs, 800, 300));
+    let up =
+        drag::handle(&mut s, (W, H), (100, 100), false, &event(InputKind::PointerAbs, 800, 300));
     assert!(moved(up).is_none());
-    let done = drag::handle(&mut s, W, H, 100, 100, false, &event(InputKind::ButtonUp, 800, 300));
+    let done =
+        drag::handle(&mut s, (W, H), (100, 100), false, &event(InputKind::ButtonUp, 800, 300));
     // The border moves as far as the pointer did, 115 to the right of the
     // press. It used to jump to the pointer plus the shadow margin, so this
     // press five pixels inside the border moved it five pixels before the

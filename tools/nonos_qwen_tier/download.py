@@ -13,8 +13,9 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""Fetch a pinned file from the Qwen team's Hugging Face repository, or
-from another source serving the same bytes."""
+"""Fetch a pinned file from the Hugging Face repository that publishes it
+(the Qwen team's, or ggml-org's), or from another source serving the same
+bytes."""
 
 import os
 import re
@@ -24,24 +25,29 @@ import urllib.request
 from .pins import check
 from .upstream import upstream
 
-HF = "https://huggingface.co/Qwen/{}/resolve/main/{}"
+HF = "https://huggingface.co/{}/resolve/main/{}"
 QWEN25 = re.compile(r"qwen2\.5-(coder-)?(\d+(?:\.\d+)?)b-instruct-q[\w-]+\.gguf")
 QWEN3 = re.compile(r"Qwen3-(\d+(?:\.\d+)?B(?:-A\d+B)?)-Q[\w-]+\.gguf")
+# Models the Qwen team publishes in safetensors only: the GGUF files are
+# ggml-org's, the llama.cpp project's, each pinned by its LFS digest.
+GGML = re.compile(r"(Qwen3\.5-0\.8B|Qwen3\.6-27B)-Q[\w-]+\.gguf")
 
 
 def repo(name):
-    """The Hugging Face repository the Qwen team publishes `name` in, by its
-    published name (upstream.py)."""
+    """The Hugging Face repository that publishes `name`, as owner/repo, by
+    its published name (upstream.py)."""
     if m := QWEN25.fullmatch(name):
         coder = "Coder-" if m.group(1) else ""
-        return f"Qwen2.5-{coder}{m.group(2)}B-Instruct-GGUF"
+        return f"Qwen/Qwen2.5-{coder}{m.group(2)}B-Instruct-GGUF"
     if m := QWEN3.fullmatch(name):
-        return f"Qwen3-{m.group(1)}-GGUF"
-    sys.exit(f"{name}: no known Qwen repository publishes this file")
+        return f"Qwen/Qwen3-{m.group(1)}-GGUF"
+    if m := GGML.fullmatch(name):
+        return f"ggml-org/{m.group(1)}-GGUF"
+    sys.exit(f"{name}: no known repository publishes this file")
 
 
 def url(name):
-    """Where the Qwen team serves the file pinned as `name`."""
+    """Where the file pinned as `name` is served upstream."""
     published = upstream(name)
     return HF.format(repo(published), published)
 

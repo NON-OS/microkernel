@@ -40,7 +40,7 @@ pub(crate) fn writable(id: &Ident, offset: u32) -> Option<u16> {
         _ if id.class == 0x02 && id.pcie_cap.is_some_and(|c| offset == c as u32 + 0x28) => {
             Some(0x001F)
         }
-        _ => None,
+        _ => super::xhci_route::xhci_route(id, offset),
     }
 }
 

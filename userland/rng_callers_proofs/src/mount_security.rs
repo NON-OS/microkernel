@@ -23,6 +23,10 @@
 #[path = "../../../src/security"]
 pub mod security {
     pub use crate::stand_in::{audit, keyring_capsule};
+    pub mod zerostate {
+        pub mod volume_rule;
+        pub use crate::stand_in::block_io::keeping;
+    }
     pub mod tpm {
         pub use crate::stand_in::machine_key;
     }

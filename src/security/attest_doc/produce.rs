@@ -21,6 +21,7 @@ use super::log::tcg_log;
 use super::posture::dma_posture;
 use super::produce_quote::quote_pcrs;
 use crate::security::attest_registry::{attested_count, registry_complete, registry_root};
+use crate::security::capsule_measure::with_events;
 use crate::security::tpm::ak::ak_public;
 use crate::security::tpm::error::TpmError;
 
@@ -39,8 +40,16 @@ pub(super) fn produce(
     let root = registry_root();
     let dma = dma_posture();
     let qualifying = qualifying_data(challenge, &root, &dma);
-    let log = tcg_log()?;
-    let quoted = quote_pcrs(ak_handle, &qualifying)?;
+    // The log's copy and the quote under the lock every PCR 14 extend takes,
+    // so the log carried is the one whose events the quoted PCR 14 holds.
+    let taken = with_events(|events| {
+        Ok::<_, AttestDocError>((tcg_log(events)?, quote_pcrs(ak_handle, &qualifying)?))
+    });
+    let (log, quoted) = taken.ok_or(AttestDocError::MeasureFailed)??;
+    // Complete never turns back, so this covers every spawn up to the quote.
+    if !registry_complete() {
+        return Err(AttestDocError::RegistryIncomplete);
+    }
 
     // Kept when the key was loaded; a handle without it is a driver fault.
     let ak_public = ak_public().ok_or(AttestDocError::Tpm(TpmError::InvalidResponse))?;

@@ -30,6 +30,9 @@ use super::pill::tone_argb;
 use super::theme::ROW_LINE;
 use super::{row_focus, row_label, text};
 
+/// Room kept between a row's label and its value.
+const GAP: u32 = 16;
+
 pub fn paint(
     fb: &mut PaintBuffer,
     state: &State,
@@ -43,27 +46,25 @@ pub fn paint(
     if selected {
         row_focus::paint(fb, card_x, card_w, screen_y, row_h);
     }
-    match row {
+    let (at, title, note) = match row {
         Row::Field(f) => {
-            row_label::paint(fb, card_x, screen_y, row_h, as_str(label_of(*f)), note_of(*f));
-            control::paint(fb, state, *f, card_x, card_w, screen_y, row_h);
+            let at = control::paint(fb, state, *f, card_x, card_w, screen_y, row_h);
+            (at, as_str(label_of(*f)), note_of(*f))
         }
         Row::Live(label, live) => {
-            row_label::paint(fb, card_x, screen_y, row_h, label, note(state, *live));
             let (value, tone) = resolve(state, *live);
             let top = text::centred_top(0, row_h, BODY_PX) + screen_y;
-            text::right(
-                fb,
-                right_edge(card_x, card_w),
-                top,
-                value.as_str(),
-                tone_argb(tone),
-                BODY_PX,
-            );
+            let right = right_edge(card_x, card_w);
+            let at = text::right(fb, right, top, value.as_str(), tone_argb(tone), BODY_PX);
+            (at, *label, note(state, *live))
         }
-        Row::Access(k) => super::access_row::paint(fb, state, *k, card_x, card_w, screen_y, row_h),
-        Row::Networks | Row::Saved | Row::Wallpapers | Row::BtDevices => {}
-    }
+        Row::Access(k) => {
+            return super::access_row::paint(fb, state, *k, card_x, card_w, screen_y, row_h)
+        }
+        Row::Networks | Row::Saved | Row::Wallpapers | Row::BtDevices | Row::Station => return,
+    };
+    // The label ends, cut with an ellipsis, a gap short of the value.
+    row_label::paint_within(fb, card_x, screen_y, row_h, title, note, at.saturating_sub(GAP));
 }
 
 pub fn hairline(fb: &mut PaintBuffer, card_x: u32, card_w: u32, screen_y: i32, row_h: u32) {

@@ -16,19 +16,18 @@
 
 //! Following a Launchpad launch the installer is still loading, one bounded
 //! step per turn of the shell's serve loop: a registry lookup, now and then a
-//! health probe of at most 20 ms, and, once the installer is done, one read of
-//! the process table. None of it waits on the load itself
+//! probe of at most 20 ms asking how the load ended, and, once the installer
+//! is done, one read of the process table. None of it waits on the load itself
 //! (`state/launch.rs` has the reasoning).
 
 use nonos_app_skeleton::log_line::{say as log, Line};
 
-use super::launch_children::new_child;
-use super::launch_find::already_running;
-use super::launch_say::{said, toast};
+use super::launch_find::find;
+use super::launch_say::{report_failure, said, toast};
 use super::launch_wake::boot;
 use crate::installer_client::probe;
-use crate::state::launch::{Launch, Step};
-use crate::state::{Context, NotifyLevel, Uptime};
+use crate::state::launch::Step;
+use crate::state::{Context, NotifyLevel};
 
 pub(crate) fn poll(ctx: &mut Context) {
     let now = crate::server::dock_clock::now();
@@ -40,7 +39,7 @@ pub(crate) fn poll(ctx: &mut Context) {
     }
     let mut step = launch.step(now, find(launch, now));
     if step == Step::Probe {
-        launch.probed(now, probe());
+        launch.probed(now, probe(&launch.name));
         step = launch.step(now, find(launch, now));
     }
     match step {
@@ -51,6 +50,11 @@ pub(crate) fn poll(ctx: &mut Context) {
             }
             boot(pid);
         }
+        Step::Refused(status) => {
+            if let Some(launch) = ctx.store_apps.launch.take() {
+                report_failure(ctx, &launch.name, status);
+            }
+        }
         Step::Failed => {
             if let Some(launch) = ctx.store_apps.launch.take() {
                 toast(ctx, &said(b"", &launch.name, b" did not start"), NotifyLevel::Error);
@@ -60,16 +64,4 @@ pub(crate) fn poll(ctx: &mut Context) {
             }
         }
     }
-}
-
-/// The app, by the service name packaged apps register, or, once the
-/// installer has finished, as the child it made for the shell.
-fn find(launch: &Launch, now: Uptime) -> Option<u32> {
-    if let Some(pid) = already_running(&launch.name) {
-        return Some(pid);
-    }
-    if launch.served() {
-        return new_child(&launch.children, launch.elapsed_ms(now));
-    }
-    None
 }

@@ -22,15 +22,15 @@ pub use super::kind::Kind;
 use super::mapping::Mapping;
 use alloc::vec::Vec;
 
-pub const HEADER: usize = 16;
+pub(crate) const HEADER: usize = 16;
 
-pub const ITS_GROUP: u8 = 0;
-pub const NAMED_COMPONENT: u8 = 1;
-pub const ROOT_COMPLEX: u8 = 2;
-pub const SMMU_V1_V2: u8 = 3;
-pub const SMMU_V3: u8 = 4;
+pub(crate) const ITS_GROUP: u8 = 0;
+pub(crate) const NAMED_COMPONENT: u8 = 1;
+pub(crate) const ROOT_COMPLEX: u8 = 2;
+pub(crate) const SMMU_V1_V2: u8 = 3;
+pub(crate) const SMMU_V3: u8 = 4;
 /// Reserved memory ranges (IORT revision E.c and later, recalled).
-pub const RMR: u8 = 6;
+pub(crate) const RMR: u8 = 6;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Node {

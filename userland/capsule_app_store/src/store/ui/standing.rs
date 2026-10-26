@@ -31,9 +31,10 @@ use super::wrap::wrap;
 /// is read whole, not cut at the pane's edge.
 const SENTENCE_LINES: usize = 2;
 
-/// Paints and returns the y to carry on from. `room` is the pane's width
-/// for text.
-pub fn paint(fb: &mut PaintBuffer, state: &State, left: u32, room: u32, mut top: i32) -> i32 {
+/// Paints from `span`'s top, no gate row below its bottom, and returns the
+/// y to carry on from. `room` is the pane's width for text.
+pub fn paint(fb: &mut PaintBuffer, state: &State, left: u32, room: u32, span: (i32, i32)) -> i32 {
+    let (mut top, bottom) = span;
     let Some(listing) = state.current() else { return top };
     match listing.known.readiness {
         Some(r) => {
@@ -47,7 +48,7 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, left: u32, room: u32, mut top:
             top = super::tier_path::paint(fb, state, listing, left, room, top);
             // Where the gates end, not a guess at their height: a guess once
             // put the measurement on top of the last gate.
-            top = gates::paint(fb, left, top, &r) + 14;
+            top = gates::paint(fb, left, top, &r, bottom) + 14;
         }
         /*
          * Asked and not answered, or the market went quiet before this one

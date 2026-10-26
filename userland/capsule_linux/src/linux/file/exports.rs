@@ -42,6 +42,7 @@ pub use super::owner::{fchown_ids, fchownat, utimensat, utimes};
 pub use super::path::name_of;
 pub use super::pread::{pread64, preadv, pwrite64, pwritev};
 pub use super::private::{allow_shared_writes, clear as clear_private, prepare as prepare_private};
+pub use super::private::{erase_home, open_home};
 pub use super::read::read;
 pub use super::rename::renameat2;
 pub use super::resolve::{key, visible};

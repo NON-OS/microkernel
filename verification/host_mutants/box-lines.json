@@ -1,0 +1,34 @@
+[
+ {
+  "name": "run-line-says-nothing-refused",
+  "file": "userland/capsule_linux/src/linux/boxed/run_line.rs",
+  "old": "    if tally.total() == 0 {\n        return None;\n    }\n",
+  "new": "",
+  "crate": "userland/capsule_linux_proofs",
+  "test": "run_line"
+ },
+ {
+  "name": "run-line-names-zero-kinds",
+  "file": "userland/capsule_linux/src/linux/boxed/run_line.rs",
+  "old": "ALL.iter().filter(|k| tally.count(**k) != 0)",
+  "new": "ALL.iter()",
+  "crate": "userland/capsule_linux_proofs",
+  "test": "run_line"
+ },
+ {
+  "name": "bound-line-names-unserved-bits",
+  "file": "userland/capsule_linux/src/linux/app/bound_line.rs",
+  "old": "served & bit != 0",
+  "new": "(policy | served) & bit != 0",
+  "crate": "userland/capsule_linux_proofs",
+  "test": "bound_line"
+ },
+ {
+  "name": "bound-line-file-wins-over-vendor",
+  "file": "userland/capsule_linux/src/linux/app/bound_line.rs",
+  "old": "            (true, _) => Self::Vendor,\n            (false, true) => Self::Market,",
+  "new": "            (_, true) => Self::Market,\n            (true, false) => Self::Vendor,",
+  "crate": "userland/capsule_linux_proofs",
+  "test": "bound_line"
+ }
+]

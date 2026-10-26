@@ -15,11 +15,11 @@ The bar runs across the top of the screen and stays there, even over a full-scre
 
 | Menu | Rows |
 |---|---|
-| App name, or `Desktop` | `Focus Window` (or `Refresh Desktop`), `Show All Apps`, `About This System` |
+| App name, or `Desktop` | `Focus Window` (or `Refresh Desktop`), `Show all apps`, `About this system` |
 | `File` | `New Folder`, `New File`, `Open Files` |
 | `View` | `Show Launchpad`, `Show Dock`, `Refresh Desktop` |
 | `Go` | `Terminal`, `Browser`, `Settings` |
-| `Help` | `About This System`, `Processes` |
+| `Help` | `About this system`, `Processes` |
 
 - A menu row that opens an app brings that app's window forward if it has one, and opens a window only when it has none.
 - The status area at the right end holds, in order, the battery label, a network mark that dims while there is no DHCP lease, the magnifier, and the date and time.
@@ -69,12 +69,14 @@ The icons on the desk are the entries of the home folder, `/home/nonos`.
 
 ## Windows
 
-Every app window has a title bar with three round buttons at its left end: close, minimise, and the green button.
+Every app window has a title bar with its name at the left and three controls at its right end: minimise (a line), full screen (a square) and close (a cross).
 
+- The controls have no colour until the pointer is over one. Then it is shaded, and close turns red, because closing is the one that can lose work.
+- A name too long for the bar ends in `…` before the controls.
 - Drag the title bar to move the window. A window cannot be dragged under the menu bar.
-- Drag the right or bottom border to resize. The new size is applied when you let go.
-- The green button makes the window full screen: the whole width, from the foot of the menu bar to the bottom edge, over the dock's band. Press it again to get the old size back.
-- A click in a window raises it and gives it the keyboard in one step.
+- Drag any edge or corner to resize: the pointer becomes a two-headed arrow over each, and the edge you hold follows it while the opposite one stays. The top edge is the thin band above the controls. The new size and place are applied together when you let go, never as a move and then a resize. A window cannot be made smaller than its app allows, or dragged above the menu bar.
+- Full screen makes the window the whole width, from the foot of the menu bar to the bottom edge, over the dock's band. Press it again to get the old size back.
+- A click in a window raises it and gives it the keyboard in one step. `Alt+Tab` does the same from the keyboard (see [Keys the desktop answers](#keys-the-desktop-answers)).
 - The first new window opens in the middle of the work area, between the menu bar and the dock. Each later one, in runs of five, steps down and to the right so its title bar stays reachable.
 
 A window that hangs, or takes every key, can always be ended: press `Ctrl+Alt+Esc` to bring Processes forward and end it there.
@@ -114,6 +116,7 @@ These keys go to the desktop shell whatever window has focus:
 |---|---|
 | `Ctrl+Alt+Esc` | Closes the Launchpad and menus, and brings Processes forward, opening it if needed. No window ever sees this chord. |
 | `Ctrl+Alt+T` | Brings the Terminal forward, opening it if it is not running. The focused window never sees it; a window that grabs the keyboard keeps it, and while a prompt is up the shell ignores it. |
+| `Alt+Tab` | Raises the window you used before this one and gives it the keyboard, and shows a strip of the open windows with that one ringed. Each press while the strip is up goes on to the next window, in the order they last had focus; `Shift+Alt+Tab` goes back. The strip leaves 1.2 seconds after the last press. The focused window never sees the chord, and `Tab` and `Ctrl+Tab` stay the window's; a window that grabs the keyboard keeps it, and while a prompt is up the shell ignores it. |
 | Volume Up, Volume Down | Steps the master volume by 5 out of 100 and shows a notice such as `Volume 45%`. See [Sound and media](audio.md). |
 | Mute | Mutes or unmutes, and shows `Muted` or the level. |
 | Power | Asks `Power off and wipe memory?`; Power Off wipes memory and turns the machine off. |
@@ -171,6 +174,16 @@ The Proofs headline is one of six sentences:
 
 A part that could not be read is shown as unknown, never as a pass. About writes nothing and asks no network anything.
 
+## Type
+
+The desktop sets text in the brand's two faces, from nonos.software/brand. Both are under the SIL Open Font License 1.1.
+
+- Geist for everything people read, and Geist Medium for titles and the focused app's name.
+- JetBrains Mono for data: hashes, addresses, versions, sizes and paths.
+- A character Geist lacks, such as the wider Latin or Greek, is drawn from Noto Sans. A sign or arrow neither of those has comes from JetBrains Mono, not as a box.
+- Nothing is drawn smaller than 14 px, except mono labels, which may go down to 12. Text asked for at a smaller size is drawn at that floor. The text-size setting scales every size together, the floor included. Settings has no row for it yet.
+- The Terminal draws through the same faces and floor.
+
 ## What draws the screen
 
 Three capsules make the desktop, and every pixel reaches the display through the compositor.
@@ -179,7 +192,7 @@ Three capsules make the desktop, and every pixel reaches the display through the
 - The window manager keeps each window's place, size, stacking order and focus. It never sees pixels.
 - The desktop shell owns two full-screen layers: the desk under every window, with the desktop icons, and the chrome over every window, with the menu bar, the dock, the Launchpad, menus and notices.
 
-The compositor keeps a band at the top right of the screen that no window can cover: marks for the camera, the microphone, a screenshot just taken and the trusted prompt. When the machine runs without an IOMMU, so device DMA is not confined by hardware, the band's bottom edge is red for the whole session, and the boot splash says `device DMA not confined by hardware` in red under its attestation panel. Both read the kernel's `BOOT_DMA_UNCONFINED` flag (`userland/compositor/src/frame_pacer/indicator_band.rs`, `userland/capsule_boot_splash/src/warning.rs`).
+The compositor keeps a band at the top right of the screen, inside the menu bar and in its colour, that no window can cover or imitate. It holds four small glyphs: a camera (green while the camera is on), a microphone (amber), a screen (blue just after a screenshot) and a lock (white while a system prompt or the lock screen holds the trusted band). Each is dim grey while off, so the band is always there to look at. When the machine runs without an IOMMU, so device DMA is not confined by hardware, the band's bottom edge is red for the whole session, and the boot splash says `device DMA not confined by hardware` in red under its attestation panel. Both read the kernel's `BOOT_DMA_UNCONFINED` flag (`userland/compositor/src/frame_pacer/indicator_band.rs`, `userland/capsule_boot_splash/src/warning.rs`).
 
 The keyboard and pointer drivers send their events to the input router. A window gets the keys while it has focus. A small set of reserved keys never reaches a window and always goes to the desktop shell: they are listed under [Keys the desktop answers](#keys-the-desktop-answers). The app tells the window manager its geometry, and the window manager keeps the stacking the compositor draws.
 
@@ -216,10 +229,14 @@ The code behind each section, at the commit in the footer.
 - Desktop icons
   - The desk lists the home folder: `HOME` in `userland/capsule_desktop_shell/src/server/desktop/home.rs:28`.
   - A folder goes with everything in it: `RECURSIVE` in `userland/capsule_desktop_shell/src/vfs_client/remove.rs:29-31`.
+- Type
+  - The faces: `BODY`, `BOLD`, `MONO` and `WIDE` in `userland/toolkit/src/font/ttf/face.rs`.
+  - The order a missing character is looked for in: `face_for` in `userland/toolkit/src/font/ttf/fallback.rs`.
+  - The floors: `MIN_UI_PX` and `MIN_MONO_PX` in `userland/toolkit/src/font/ttf/readable.rs`.
 - Windows
   - The three title bar buttons: `DecorationHit` in `userland/toolkit/src/decorations/hit_test.rs:22-31`.
   - A resize applied on release: `ResizeTo` in `userland/app_skeleton/src/runner/drag.rs:133-140`.
-  - The green button's full-screen frame: `full_screen` in `userland/app_skeleton/src/runner/chrome.rs:110-121`.
+  - The full-screen control's frame: `full_screen` in `userland/app_skeleton/src/runner/chrome.rs:110-121`.
   - New windows centred, then stepped in runs of five: `cascade` and `CASCADE_WRAP` in `userland/capsule_wm/src/server/handlers/window_open/cascade.rs:21-29`.
 - Apps that ship
   - Labels, services and dock order: `LAUNCHER_APPS` in `userland/capsule_desktop_shell/src/state/apps.rs:47-132`.
@@ -228,7 +245,7 @@ The code behind each section, at the commit in the footer.
   - The seven tools, `grex` first: `userland/apps.list:4-10`.
 - Keys the desktop answers
   - `Ctrl+Alt+T` to the shell over focus: `is_terminal_chord` in `userland/capsule_input_router/src/route/chord.rs`; never over a prompt: `opens_terminal` in `userland/capsule_desktop_shell/src/state/trusted_rule.rs`.
-  - `Ctrl+Alt+Esc` held back from every window: `is_reserved_chord` in `userland/capsule_input_router/src/route/chord.rs:34-36`.
+  - `Ctrl+Alt+Esc` held back from every window: `is_reserved_chord` in `userland/capsule_input_router/src/route/chord.rs:48-50`.
   - Mute, volume and power keys sent to the shell: `is_shell_key` in `userland/capsule_input_router/src/route/shell_keys.rs:26-34`.
   - The ACPI power button posted as the Power key: `KEYCODE_POWER` in `src/arch/x86_64/acpi/power_button/deliver.rs`.
   - The Power key's confirmation and its request: `ask` in `userland/capsule_desktop_shell/src/server/handlers/power_off.rs:36`, served by `power.off` in `userland/capsule_power/src/off/mod.rs:38`.

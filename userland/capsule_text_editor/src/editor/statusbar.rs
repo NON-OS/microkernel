@@ -32,8 +32,8 @@ use super::state::State;
 use super::theme;
 use crate::doc::counts::word_count;
 
-// Status-bar text draws at the facade's 17px floor, so the gap between groups
-// is sized against that, not against the nominal STATUS_PX.
+// Status-bar text draws at the facade's floor, 14, above the nominal STATUS_PX,
+// so the gap between groups is sized against that.
 const GROUP_GAP: i32 = 24;
 const VIEW: &str = "Page view";
 

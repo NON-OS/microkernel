@@ -14,12 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The claim's own types and stage rule, included by path, so the model
-//! takes its entry through the stages the kernel does.
+//! The claim's own types and stage rule, the kernel's files claim_stage
+//! mounts by path, so the model takes its entry through the stages the
+//! kernel does.
 
-#[allow(clippy::duplicate_mod)]
-#[path = "../../../../src/hardware/broker/claim/stage_rule.rs"]
-pub(super) mod stage_rule;
-#[allow(clippy::duplicate_mod)]
-#[path = "../../../../src/hardware/broker/claim/types.rs"]
-pub(super) mod types;
+pub(super) use crate::proofs_7::claim_stage::{stage_rule, types};

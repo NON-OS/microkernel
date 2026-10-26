@@ -23,7 +23,7 @@ use spin::Mutex;
 use super::transport_lock::HOLDERS;
 
 /// Killed, or gone from the table, and on no CPU's tables.
-pub(super) fn never_runs_again(pid: u32) -> bool {
+pub(crate) fn never_runs_again(pid: u32) -> bool {
     use crate::process::core::{ProcessState, PROCESS_TABLE};
     let dead =
         |s: &ProcessState| matches!(s, ProcessState::Zombie(_) | ProcessState::Terminated(_));
@@ -35,6 +35,7 @@ pub(super) fn never_runs_again(pid: u32) -> bool {
 /// A pid given to a new process: a lock its old holder still has is taken
 /// back now, before the new process could be mistaken for that holder.
 pub(crate) fn forget(pid: u32) {
+    let _quiet = super::rest_mark::quiet();
     let mut holders = HOLDERS.lock();
     for &(key, _) in holders.iter().filter(|h| h.1 == pid) {
         // SAFETY: every key is a `&'static Mutex<()>` given to `lock_yielding`.

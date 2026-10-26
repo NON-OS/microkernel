@@ -27,14 +27,16 @@ pub fn may_write(path: &[u8]) -> bool {
 }
 
 pub fn call_begins() {
-    if let Some(a) = BOX.0.borrow_mut().as_mut() {
-        a.tally.call_begins();
+    match BOX.0.borrow_mut().as_mut() {
+        Some(a) => a.tally.call_begins(),
+        None => super::run_tally::call_begins(),
     }
 }
 
 pub fn note(kind: Kind, example: &[u8]) {
-    if let Some(a) = BOX.0.borrow_mut().as_mut() {
-        a.tally.note(kind, example);
+    match BOX.0.borrow_mut().as_mut() {
+        Some(a) => a.tally.note(kind, example),
+        None => super::run_tally::note(kind, example),
     }
 }
 
@@ -60,4 +62,9 @@ pub fn tried(dest: &[u8]) {
     if let Some(a) = BOX.0.borrow_mut().as_mut().filter(|a| a.policy.preset == Preset::Learn) {
         a.learned.tried.note(dest);
     }
+}
+
+/// The armed box's policy hash, for the seal's note (seal_slot.rs).
+pub fn armed_hash() -> Option<[u8; 32]> {
+    BOX.0.borrow().as_ref().map(|a| a.hash)
 }

@@ -55,5 +55,6 @@ pub(super) fn assemble(
         dead: false,
         generation: 0,
         revivals: 0,
+        ports: None,
     })
 }

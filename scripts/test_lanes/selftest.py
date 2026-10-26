@@ -19,11 +19,41 @@ fail, each of which must give exactly the problems it names."""
 import tempfile
 from pathlib import Path
 
-from .fixture import BL, LISTED, LJ, TEST, build, skipping, workspace
+from .fixture import BASE, BL, LISTED, LJ, MARK, PKG, TEST, build, skipping, workspace
 from .tree import Tree
 from .verdict import verdict
 
 LOST = "userland/x_proofs/src/lost.rs"
+X = "userland/x_proofs/src/"
+# The marked crate asking for its tests again with a feature on.
+FEATURED = PKG.format("marked") + MARK + 'feature-lanes = ["devnet"]\n'
+DECLARED = FEATURED + "\n[features]\ndevnet = []\n"
+WITH = '{\n "marked": "",\n "marked+devnet": "--features devnet"\n}\n'
+
+
+def mounting(lib, files):
+    """x_proofs' lib.rs with `lib` after its own lines, and files under its src/."""
+    return {X + "lib.rs": BASE[X + "lib.rs"] + lib, **{X + k: v for k, v in files.items()}}
+
+
+# The module tree as rustc reads it (scripts/test_lanes/modules.py).
+INLINE = [
+    ("a mount inside an inline #[path] module",
+     mounting('#[path = "../../capsule"]\nmod cap {\n    #[path = "../x_proofs/src/far.rs"]\n    mod far;\n}\n',
+              {"far.rs": TEST}), []),
+    ("an inline module's file, a brace in a string and a comment",
+     mounting('mod inline {\n    const S: &str = "}"; // }\n    mod deep;\n}\n', {"inline/deep.rs": TEST}), []),
+    ("a file beside an inline module, not in it",
+     mounting("mod inline {\n    mod deep;\n}\n", {"deep.rs": TEST}), [f"{X}deep.rs holds tests that no target"]),
+    ("an inline #[path] in a plain x.rs, taken from beside x.rs",
+     mounting("", {"local.rs": TEST + '#[path = "p"]\nmod q {\n    mod r;\n}\n', "p/r.rs": TEST}), []),
+    ("an include!d file, read in its own directory",
+     mounting('#[path = "../../capsule"]\nmod cap {\n    include!("inc/more.rs");\n}\n',
+              {"inc/more.rs": "mod held;\n", "inc/held.rs": TEST}), []),
+    ("each cfg_attr path, and the file they stand in for",
+     mounting('#[cfg_attr(unix, path = "a_unix.rs")]\n#[cfg_attr(windows, path = "a_win.rs")]\nmod a;\n',
+              {"a.rs": TEST, "a_unix.rs": TEST, "a_win.rs": TEST}), []),
+]
 # (case, edits, the text each expected problem holds; none for a pass)
 CASES = [
     ("the fixture as built", {}, []),
@@ -49,7 +79,10 @@ CASES = [
     ("a malformed line", {BL: "unmarked z lead x\n"}, ["class 'z'", "unmarked has tests in no lane"]),
     ("a member its root runs", workspace("--workspace"), []),
     ("a member its root leaves out", workspace(""), ["ws/core has tests in no lane"]),
-]
+    ("a feature lane", {"marked/Cargo.toml": DECLARED, LJ: WITH}, []),
+    ("a feature lane test-lanes.json lacks", {"marked/Cargo.toml": DECLARED}, ["test-lanes.json lacks marked+devnet"]),
+    ("an undeclared feature's lane", {"marked/Cargo.toml": FEATURED, LJ: WITH}, ["which [features] does not declare"]),
+] + INLINE
 
 
 def self_test():

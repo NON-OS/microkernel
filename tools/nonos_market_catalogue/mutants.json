@@ -56,7 +56,7 @@
  {"name": "fetch-http", "file": "fetch.py", "old": "except (OSError, http.client.HTTPException) as why:", "new": "except OSError as why:"},
  {"name": "docs-listing-name", "file": "documents.py", "old": "lid = listing(", "new": "lid = ("},
  {"name": "docs-duplicate", "file": "documents.py", "old": "if lid in docs:", "new": "if False:"},
- {"name": "docs-schema", "file": "documents.py", "old": "or index.get(\"schema_version\") != 3:", "new": ":"},
+ {"name": "docs-schema", "file": "documents.py", "old": "or index.get(\"schema_version\") != 4:", "new": ":"},
  {"name": "apkindex-entry-name", "file": "apkindex.py", "old": "if e.name.endswith(b\"APKINDEX\")", "new": "if True"},
  {"name": "apkindex-needs-version", "file": "apkindex.py", "old": "if rec.get(\"P\") and rec.get(\"V\"):", "new": "if rec.get(\"P\"):"},
  {"name": "apkindex-first-wins", "file": "apkindex.py", "old": "return next((r for r in recs if r[\"P\"] == name), None)", "new": "return next((r for r in reversed(recs) if r[\"P\"] == name), None)"},
@@ -107,7 +107,7 @@
  {"name": "pax-overflow", "file": "tarpax.py", "old": "return None if len(digits) > 20 else int(digits or b\"0\")", "new": "return int(digits or b\"0\")"},
  {"name": "lock-format", "file": "lock_file.py", "old": "doc.get(\"format\") != FORMAT or ", "new": ""},
  {"name": "lock-missing", "file": "lock_file.py", "old": "if not path.is_file():", "new": "if False:"},
- {"name": "lock-pin-keys", "file": "lock_file.py", "old": " or set(pin) != set(PINNED):", "new": ":"},
+ {"name": "lock-pin-keys", "file": "lock_file.py", "old": " or set(pin) != set(PINNED + LOGO):", "new": ":"},
  {"name": "lock-version", "file": "lock_file.py", "old": "version(pin[\"V\"]) != pin[\"V\"] or ", "new": ""},
  {"name": "lock-strings", "file": "lock_file.py", "old": "not all(isinstance(pin[f], str) and pin[f] for f in PINNED)", "new": "False"},
  {"name": "lock-moved-checksum", "file": "lock.py", "old": "any(known[n].get(f) != pins[n][f] for f in FIELDS)", "new": "known[n].get(\"V\") != pins[n][\"V\"]"},
@@ -124,5 +124,12 @@
  {"name": "program-by-bytes-ignored", "file": "apk.py", "old": "    if wanted:\n        return chosen_by_bytes(entries, name, wanted)\n", "new": ""},
  {"name": "program-other-name-first", "file": "apk.py", "old": "    if device != want:", "new": "    if False:"},
  {"name": "program-own-name-not-first", "file": "apk.py", "old": "    device = own if own in same else same[0]", "new": "    device = same[0]"},
- {"name": "program-first-copy", "file": "apk.py", "old": "    last = {e.name: e.body for e in entries}", "new": "    last = {e.name: e.body for e in reversed(entries)}"}
+ {"name": "program-first-copy", "file": "apk.py", "old": "    last = {e.name: e.body for e in entries}", "new": "    last = {e.name: e.body for e in reversed(entries)}"},
+ {"name": "logo-clear", "file": "recipes.py", "old": "if not allowed(root, item[\"package\"]):", "new": "if False:"},
+ {"name": "logo-unclear-unruled", "file": "logos.py", "old": "(verdict.startswith(\"UNCLEAR\") and RULING in verdict)", "new": "verdict.startswith(\"UNCLEAR\")"},
+ {"name": "logo-skip-source", "file": "logos.py", "old": "if n in pins and pins[n][\"G\"] != g]", "new": "if False]"},
+ {"name": "logo-skip-raster", "file": "logos.py", "old": "if n in pins and pins[n][\"R\"] != r]", "new": "if False]"},
+ {"name": "logo-less-bytes", "file": "logos.py", "old": "if at.exists():", "new": "if False:"},
+ {"name": "logo-outside-tree", "file": "recipes.py", "old": "if not logo.is_relative_to(root.resolve()) or not logo.is_file():", "new": "if not logo.is_file():"},
+ {"name": "lock-logo-hex", "file": "lock_file.py", "old": "len(pin[f]) in (0, 64) and HEX >= set(pin[f])", "new": "True"}
 ]

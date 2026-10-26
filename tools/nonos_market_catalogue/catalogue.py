@@ -53,7 +53,7 @@ def one(recipe: dict, rec: dict, raw: bytes, key: str, when_ms: int) -> dict:
                   ["ForeignExec"], NOTE.format(len(raw), recipe["licence"]),
                   "nonos.operator.linux", when_ms)
     rel["ext"] = {"guest_policy": policy.hex()}
-    return entry(app, digest, recipe["name"], "Linux", key, recipe["text"], [rel])
+    return entry(app, digest, recipe["name"], "Linux", key, recipe["text"], [rel], recipe.get("logo_hash", ""))
 
 
 def catalogue_entries(recipes: list, table: dict, get, key: str, when_ms: int) -> list:

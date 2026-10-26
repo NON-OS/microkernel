@@ -15,10 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod bind;
+mod bound_line;
 mod calls;
 mod choose;
 mod family;
 mod gate;
+mod home_key;
 mod identity;
 mod identity_box;
 mod identity_exec;
@@ -29,5 +31,6 @@ pub use bind::{bind, bind_built_in};
 pub use calls::{outside, undeclared};
 pub use family::{grant, home, models};
 pub use gate::{granted, inet, may_dial, refuse};
+pub use home_key::home_key;
 pub use identity::AppIdentity;
 pub use rules::{net_step, NetStep};
