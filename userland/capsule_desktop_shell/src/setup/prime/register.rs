@@ -20,7 +20,7 @@ use nonos_libc::{
 };
 
 use super::overlay::Overlay;
-use crate::compositor_client::push_scene_submit;
+use crate::compositor_client::{push_scene_submit, Placement};
 
 pub fn register_overlay(
     compositor_port: u32,
@@ -48,16 +48,8 @@ pub fn register_overlay(
     if handle <= 0 {
         return Err("overlay surface share rejected");
     }
-    if let Err(e) = push_scene_submit(
-        compositor_port,
-        request_id,
-        handle as u64,
-        0,
-        0,
-        overlay.width,
-        overlay.height,
-        z,
-    ) {
+    let at = Placement { x: 0, y: 0, width: overlay.width, height: overlay.height, z };
+    if let Err(e) = push_scene_submit(compositor_port, request_id, handle as u64, &at) {
         if mk_surface_release(handle as u64) < 0 {
             return Err("overlay surface release rejected");
         }

@@ -31,17 +31,17 @@ const ROW_ARGB: u32 = 0xFF1B_2030;
 const TEXT_ARGB: u32 = 0xFFCF_E6E9;
 
 pub(super) fn paint_toasts(ctx: &Context, r: Rect) {
-    let (va, st, w, h) = (ctx.backing_va, ctx.stride, ctx.width, ctx.height);
     let panel = panel_rect(ctx, r);
     let (panel_x, panel_w) = (panel.x, panel.width);
     let row_h = row_height();
-    fill_rect(va, st, w, h, panel_x, r.y, panel_w, r.height, PANEL_ARGB);
+    let fill = |x, y, width, height, argb| fill_rect(ctx, Rect { x, y, width, height }, argb);
+    fill(panel_x, r.y, panel_w, r.height, PANEL_ARGB);
     for (i, toast) in ctx.toasts.iter_live().enumerate() {
         let row_y = r.y + row_gap() + i as u32 * (row_h + row_gap());
         let inset = panel_edge_inset();
         let row_w = panel_w.saturating_sub(inset * 2);
-        fill_rect(va, st, w, h, panel_x + inset, row_y, row_w, row_h, ROW_ARGB);
-        fill_rect(va, st, w, h, panel_x + inset, row_y, accent_width(), row_h, toast.level.tint());
+        fill(panel_x + inset, row_y, row_w, row_h, ROW_ARGB);
+        fill(panel_x + inset, row_y, accent_width(), row_h, toast.level.tint());
         let text_x = panel_x + inset + accent_width() + text_inset();
         let text_max_w = (panel_x + panel_w).saturating_sub(text_x + text_inset());
         let label = truncate_to_width(valid_str(&toast.text[..toast.len]), UI_PX, text_max_w);
