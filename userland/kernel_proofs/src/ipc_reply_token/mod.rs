@@ -21,6 +21,8 @@
 //! inbox, and never one already answered. With the request ids and the
 //! meta MkIpcRecvReq hands the server, held to abi/wire.toml.
 
+#[path = "../../../../src/syscall/microkernel/ipc/pending_reply/give_up_rule.rs"]
+mod give_up_rule;
 #[path = "../../../../src/syscall/microkernel/ipc/recv_meta.rs"]
 mod recv_meta;
 #[path = "../../../../src/syscall/microkernel/ipc/pending_reply/reply_rule.rs"]
@@ -34,8 +36,11 @@ mod served_rule;
 use crate::proofs::proofs_8::ipc_death::entry;
 
 mod answered_tests;
+mod given_up_race;
+mod given_up_tests;
 mod meta_tests;
 mod model;
+mod model_answer;
 mod redirect_tests;
 mod reply_to_tests;
 mod sequence_tests;
