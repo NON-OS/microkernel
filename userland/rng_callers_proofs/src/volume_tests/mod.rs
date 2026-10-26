@@ -32,10 +32,11 @@ use super::state::VOLUME;
 
 static TURN: Mutex<()> = Mutex::new(());
 
-/// This test's turn, with no volume open.
+/// This test's turn, with no volume open and keeping off.
 fn turn() -> MutexGuard<'static, ()> {
     let turn = TURN.lock().unwrap_or_else(|p| p.into_inner());
     *VOLUME.write() = None;
+    crate::stand_in::block_io::set_keeping(false);
     turn
 }
 

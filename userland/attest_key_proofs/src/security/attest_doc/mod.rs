@@ -17,5 +17,6 @@
 #[cfg(test)]
 #[path = "../../../../../src/security/attest_doc/binding.rs"]
 pub mod binding;
+#[cfg(test)]
 #[path = "../../../../../src/security/attest_doc/document.rs"]
 pub mod document;
