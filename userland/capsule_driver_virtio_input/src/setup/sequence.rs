@@ -40,7 +40,7 @@ pub fn run(dev: Found) -> Result<Input, &'static str> {
     let need = Need { isr: false, device: true };
     let window =
         map_window(&mut broker, &caps, need).map_err(VirtioError::message).map_err(release)?;
-    let dma = dma::map(dev.device_id, epoch).inspect_err(|e| {
+    let dma = dma::map(dev.device_id, epoch).inspect_err(|_| {
         abandon(dev.device_id, epoch, &window, None);
     })?;
     let fail = |e: &'static str| {
