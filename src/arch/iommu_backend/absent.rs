@@ -37,7 +37,7 @@ pub(in crate::memory::iommu) fn identity_devices() -> usize {
 }
 
 // The domain calls, beside this file so each stays in bounds.
-#[path = "unsupported_domain.rs"]
+#[path = "absent_domain.rs"]
 mod domain_calls;
 
 pub(in crate::memory::iommu) use domain_calls::{
