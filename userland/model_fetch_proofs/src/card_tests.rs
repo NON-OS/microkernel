@@ -49,7 +49,8 @@ fn the_small_and_4b_cards_say_their_download_and_memory() {
     assert_eq!(four, format!("2.49 GB download, needs {} of memory", size(need("qwen3-4b"))));
     /* The stick tier names release sticks, not a download, and never this stick. */
     let tiny = line("linux.qwen-qwen3-0.6b").unwrap();
-    assert_eq!(tiny, format!("639 MB, on release sticks; needs {} of memory", size(need("qwen3-0.6b"))));
+    let n = size(need("qwen3-0.6b"));
+    assert_eq!(tiny, format!("639 MB, on release sticks; needs {n} of memory"));
 }
 
 #[test]
@@ -58,7 +59,8 @@ fn every_card_agrees_with_the_signed_catalogue() {
     let cat = parse(&blob[..blob.len() - 64]).unwrap();
     assert_eq!(cat.tiers.len(), 20);
     for t in &cat.tiers {
-        let how = if t.word == crate::need::STICK_TIER { ", on release sticks;" } else { " download," };
+        let how =
+            if t.word == crate::need::STICK_TIER { ", on release sticks;" } else { " download," };
         let want = format!("{}{how} needs {} of memory", size(t.bytes()), size(t.memory));
         assert_eq!(line(&format!("linux.qwen-{}", t.word)).as_deref(), Some(want.as_str()));
     }
