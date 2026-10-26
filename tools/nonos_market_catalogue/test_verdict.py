@@ -30,7 +30,8 @@ from . import verdict
 SET = "02" + "00" * 64  # bucket 1 only; exit and exit_group are always added
 OTHER = "01" + "00" * 64
 RUN = b"[LINUX-INSTALL] started, in its release's box linux.age\n[LINUX] process 2 exited, status 0\n"
-OK = RUN + b"[PROVE] syscall buckets ok=" + SET.encode()
+HELD = b"\n[STORE-PROVE] held: linux.age, 4096 bytes, not sent"
+OK = RUN + b"[PROVE] syscall buckets ok=" + SET.encode() + HELD
 
 
 class Verdict(unittest.TestCase):
