@@ -32,6 +32,7 @@ mod ipc;
 mod mem;
 mod mmio;
 mod pci;
+pub mod proc_stat;
 mod records;
 mod seal;
 mod service;
@@ -50,6 +51,7 @@ pub use pci::{
     command, mk_pci_config_read, mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER,
     MK_PCI_CMD_MEMORY_SPACE, PCI_CMD_IO_SPACE,
 };
+pub use proc_stat::{mk_proc_stat, ProcStatEntry, ProcStatHeader};
 pub use records::{mk_device_list, offer, Bar, DeviceRecord, BAR_KIND_MMIO, BUS_KIND_PCI};
 pub use seal::untouched_since_unmap;
 pub use service::{hold, mk_getpid, mk_service_lookup, mk_service_register, services};

@@ -1,0 +1,14 @@
+[
+ {"name": "emmc-small-bar-rounded-away", "file": "userland/capsule_driver_sdhci/src/emmc/platform/open/sizes.rs",
+  "old": "if size >= PAGE { size & !(PAGE - 1) } else { size }", "new": "size & !(PAGE - 1)",
+  "test": "open_proofs::", "crate": "userland/emmc_proofs"},
+ {"name": "emmc-no-slot-floor", "file": "userland/capsule_driver_sdhci/src/emmc/platform/open/sizes.rs",
+  "old": "    if length < slot_window {", "new": "    if length == 0 {",
+  "test": "open_proofs::", "crate": "userland/emmc_proofs"},
+ {"name": "emmc-page-bar-unrounded", "file": "userland/capsule_driver_sdhci/src/emmc/platform/open/sizes.rs",
+  "old": "if size >= PAGE { size & !(PAGE - 1) } else { size }", "new": "if size > PAGE { size } else { size & !(PAGE - 1) }",
+  "test": "open_proofs::", "crate": "userland/emmc_proofs"},
+ {"name": "emmc-pio-bar-taken", "file": "userland/capsule_driver_sdhci/src/emmc/platform/open/map_slot.rs",
+  "old": "let usable = bar < dev.bar_count && b.kind == BAR_KIND_MMIO;", "new": "let usable = bar < dev.bar_count;",
+  "test": "open_proofs::", "crate": "userland/emmc_proofs"}
+]

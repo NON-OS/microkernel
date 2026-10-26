@@ -48,6 +48,8 @@ pub mod state;
 pub mod surface;
 #[path = "../../nonos_gfx_serve/src/watch.rs"]
 pub mod watch;
+#[path = "../../nonos_gfx_serve/src/watch_starved.rs"]
+pub mod watch_starved;
 #[path = "../../nonos_gfx_serve/src/watch_tell.rs"]
 pub mod watch_tell;
 

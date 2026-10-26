@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Changing the protection of pages a guest already has.
 
 use crate::memory::addr::VirtAddr;
-use crate::memory::paging::manager::{map_page_in_asid, translate_in_asid};
+use crate::memory::paging::manager::protect_span_in_asid;
 use crate::memory::paging::types::PagePermissions;
 use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL};
 
@@ -44,16 +43,10 @@ pub fn sys_peer_protect(pid: u64, addr: u64, len: u64, prot: u64) -> i64 {
         return ERRNO_INVAL;
     }
     let perms = perms_of(prot);
-    for i in 0..len.div_ceil(PAGE) {
-        let va = VirtAddr::new(addr + i * PAGE);
-        let Some(phys) = translate_in_asid(asid, va) else {
-            return ERRNO_FAULT;
-        };
-        if map_page_in_asid(asid, va, phys, perms).is_err() {
-            return ERRNO_FAULT;
-        }
+    match protect_span_in_asid(asid, VirtAddr::new(addr), len.div_ceil(PAGE) as usize, perms) {
+        true => 0,
+        false => ERRNO_FAULT,
     }
-    0
 }
 
 pub(super) fn perms_of(prot: u64) -> PagePermissions {

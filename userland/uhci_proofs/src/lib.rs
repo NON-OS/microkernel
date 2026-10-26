@@ -28,6 +28,8 @@ mod bulk_tests;
 #[cfg(test)]
 mod control_tests;
 #[cfg(test)]
+mod command_tests;
+#[cfg(test)]
 mod ep0_fault_tests;
 #[cfg(test)]
 mod hostile_td_tests;

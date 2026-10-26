@@ -30,19 +30,19 @@ Guest memory is read and written through the kernel, by pid, with `mk_peer_read`
 
 ## Which calls are served
 
-The personality answers 220 of the 373 x86_64 Linux system calls, 59.0%. The count comes from this tool, which only reads the source:
+The personality answers 224 of the 373 x86_64 Linux system calls, 60.1%. The count comes from this tool, which only reads the source:
 
 ```sh
 python3 tools/nonos-linux-coverage --list
 ```
 
-It prints `[syscalls] 220 of 373 served (59.0%)` on this tree, then names the 153 unserved calls. The denominator is `userland/capsule_linux/abi/x86_64-syscalls.txt`. The flake check `static-abi` runs the same tool with `--baseline` and fails when fewer than 107 calls are served, the number in `scripts/baselines/linux-syscalls.txt` (`tools/nix/checks.nix:230`, `baseline`).
+It prints `[syscalls] 224 of 373 served (60.1%)` on this tree, then names the 149 unserved calls. The denominator is `userland/capsule_linux/abi/x86_64-syscalls.txt`. The flake check `static-abi` runs the same tool with `--baseline` and fails when fewer than 107 calls are served, the number in `scripts/baselines/linux-syscalls.txt` (`tools/nix/checks.nix:230`, `baseline`).
 
 The calls are routed in two stages. Process, futex, sleep and blocking calls go first, because they can leave the caller parked (`userland/capsule_linux/src/linux/serve/dispatch.rs:40-75`, `route`). The rest go through the file, link, network, memory, process and signal tables and a short list of single calls (`userland/capsule_linux/src/linux/serve/table.rs:30-71`, `plain`). Served, by family:
 
 - Files and paths: `open`, `openat`, `openat2`, `read`, `write`, the vector and positional forms, `stat` and `statx`, `getdents64`, `rename` and `renameat2`, `link` and `symlink`, the `*xattr` calls, `copy_file_range`, `sendfile`, `fsync`, `flock`.
 - Memory: `mmap`, `munmap`, `mprotect`, `mremap`, `brk`, `madvise`, `memfd_create`, the `mlock` family.
-- Processes and threads: `clone`, `fork`, `vfork`, `execve`, `wait4`, `waitid`, `exit`, `exit_group`, `futex`, `set_tid_address`, `arch_prctl`, `prctl`, the uid, gid and session calls except `setreuid`, `setregid`, `setfsuid` and `setfsgid`, `prlimit64`.
+- Processes and threads: `clone`, `fork`, `vfork`, `execve`, `wait4`, `waitid`, `exit`, `exit_group`, `futex`, `set_tid_address`, `arch_prctl`, `prctl`, the uid, gid and session calls, `prlimit64`.
 - Signals and time: `rt_sigaction`, `rt_sigprocmask`, `rt_sigreturn`, `rt_sigsuspend`, `rt_sigtimedwait`, `sigaltstack`, `kill`, `tgkill`, `signalfd4`, POSIX timers, interval timers, `clock_gettime`, `nanosleep`, `clock_nanosleep`.
 - Events: `poll`, `ppoll`, `select`, `pselect6`, the `epoll` calls, `eventfd2`, `timerfd_*`, pipes.
 - Sockets: `socket`, `socketpair`, `connect`, `bind`, `listen`, `accept4`, the send and receive calls, socket options.

@@ -50,6 +50,9 @@ pub fn spawn_driver_rtl8139_capsule() -> Result<(), SpawnError> {
         target_triple: TARGET_TRIPLE,
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
+            // The manifest's optional Debug, for the driver's own "driver.rtl8139:" lines;
+            // 0 unless the kernel is built with capsule-serial-debug.
+            | crate::capabilities::serial_debug_cap()
             // The station address is drawn rather than read out of the IDR,
             // and CryptoRandom is gated on this capability. The draw fails
             // closed, so without it the card never comes up.

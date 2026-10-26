@@ -1,0 +1,26 @@
+[
+ {
+  "name": "uhci-mask-keeps-memory-space",
+  "file": "userland/capsule_driver_uhci/src/facts/pci.rs",
+  "old": "pub const COMMAND_MASK: u16 = COMMAND_BITS | (1 << 1);",
+  "new": "pub const COMMAND_MASK: u16 = COMMAND_BITS;",
+  "test": "command_tests::",
+  "crate": "userland/uhci_proofs"
+ },
+ {
+  "name": "uhci-bits-set-memory-space",
+  "file": "userland/capsule_driver_uhci/src/facts/pci.rs",
+  "old": "pub const COMMAND_BITS: u16 = (1 << 2) | (1 << 10);",
+  "new": "pub const COMMAND_BITS: u16 = (1 << 2) | (1 << 10) | (1 << 1);",
+  "test": "command_tests::",
+  "crate": "userland/uhci_proofs"
+ },
+ {
+  "name": "uhci-bits-no-bus-master",
+  "file": "userland/capsule_driver_uhci/src/facts/pci.rs",
+  "old": "pub const COMMAND_BITS: u16 = (1 << 2) | (1 << 10);",
+  "new": "pub const COMMAND_BITS: u16 = 1 << 10;",
+  "test": "command_tests::",
+  "crate": "userland/uhci_proofs"
+ }
+]

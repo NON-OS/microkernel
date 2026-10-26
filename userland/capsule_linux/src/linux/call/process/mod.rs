@@ -23,6 +23,6 @@ pub(super) mod ids;
 pub(super) mod usage;
 
 pub use ids::{
-    getgroups, getpriority, getres, nice_of, personality, setgroups, setpriority, setres,
+    getgroups, getpriority, getres, nice_of, personality, setfs, setgroups, setpriority, setres,
 };
 pub use usage::{getrusage, mine as usage_of, sysinfo, times};
