@@ -13,26 +13,24 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! The faces the desktop draws in: the brand's Geist for text, its Medium
+//! for the bold weight, JetBrains Mono for data, and Noto Sans for the
+//! wider Latin, Greek and the rest Geist has no glyph for. All SIL OFL 1.1;
+//! the notices are beside them in assets/fonts.
 
 use ab_glyph::FontRef;
 use spin::Once;
 
-// Body face (Noto Sans) for prose and UI with its true bold cut; monospace face
-// (Noto Sans Mono) for pre/code. Noto has a tall x-height that stays legible at
-// small sizes, and both cover Latin, Greek, Cyrillic, punctuation and common
-// symbols; unmapped codepoints fall back to .notdef. Both are OFL, see
-// assets/fonts/NotoSans-OFL.txt.
-const BODY: &[u8] = include_bytes!("../../../assets/fonts/NotoSans-Regular.ttf");
-const BOLD: &[u8] = include_bytes!("../../../assets/fonts/NotoSans-Bold.ttf");
-const MONO: &[u8] = include_bytes!("../../../assets/fonts/NotoSansMono-Regular.ttf");
+const BODY: &[u8] = include_bytes!("../../../assets/fonts/Geist-Regular.ttf");
+const BOLD: &[u8] = include_bytes!("../../../assets/fonts/Geist-Medium.ttf");
+const MONO: &[u8] = include_bytes!("../../../assets/fonts/JetBrainsMono-Regular.ttf");
+const WIDE: &[u8] = include_bytes!("../../../assets/fonts/NotoSans-Regular.ttf");
 
 static BODY_FACE: Once<Option<FontRef<'static>>> = Once::new();
 static BOLD_FACE: Once<Option<FontRef<'static>>> = Once::new();
 static MONO_FACE: Once<Option<FontRef<'static>>> = Once::new();
+static WIDE_FACE: Once<Option<FontRef<'static>>> = Once::new();
 
-// Parse once and hand back a shared borrow of the requested face. A corrupt
-// asset yields None and every draw/measure degrades to a no-op rather than
-// faulting.
 pub(super) fn face(mono: bool) -> Option<&'static FontRef<'static>> {
     if mono {
         MONO_FACE.call_once(|| FontRef::try_from_slice(MONO).ok()).as_ref()
@@ -41,8 +39,11 @@ pub(super) fn face(mono: bool) -> Option<&'static FontRef<'static>> {
     }
 }
 
-// The built-in face for a weight and pitch. Bold monospace keeps the regular
-// mono cut; callers thicken it themselves.
+/// The face a character neither Geist nor JetBrains Mono has is drawn in.
+pub(super) fn wide() -> Option<&'static FontRef<'static>> {
+    WIDE_FACE.call_once(|| FontRef::try_from_slice(WIDE).ok()).as_ref()
+}
+
 pub fn builtin_face(mono: bool, bold: bool) -> Option<&'static FontRef<'static>> {
     if !mono && bold {
         return BOLD_FACE.call_once(|| FontRef::try_from_slice(BOLD).ok()).as_ref();

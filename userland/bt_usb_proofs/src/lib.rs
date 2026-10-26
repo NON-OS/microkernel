@@ -25,25 +25,21 @@ mod env_desk;
 mod env_link;
 mod fixture;
 mod fixture_link;
-#[allow(unused)]
 #[path = "../../nonos_bt_hci_proofs/src/sim/mod.rs"]
-mod hci_sim;
-#[allow(unused)]
+pub mod hci_sim;
 #[path = "../../nonos_bt_hogp_proofs/src/sim/mod.rs"]
-mod hogp_sim;
+pub mod hogp_sim;
 #[path = "../../capsule_driver_bt_usb/src/link/mod.rs"]
 mod link;
 #[path = "../../capsule_driver_bt_usb/src/hid/modifier.rs"]
 mod modifier;
-#[allow(unused)]
 #[path = "../../capsule_driver_bt_usb/src/nbtc/mod.rs"]
-mod nbtc;
+pub mod nbtc;
 mod ring;
 mod ring_sim;
 mod ring_sim_ops;
-#[allow(unused)]
 #[path = "../../nonos_bt_smp_proofs/src/sim/mod.rs"]
-mod smp_sim;
+pub mod smp_sim;
 mod usb;
 
 mod battery_link_tests;

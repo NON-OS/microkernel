@@ -18,6 +18,7 @@ check-dark-features:
 	$(DARK_CHECK) --features nonos-smp,nonos-smp-park-proof
 	$(DARK_CHECK) --features nonos-smp,nonos-smp-stuck-proof
 	$(DARK_CHECK) --features nonos-smp,nonos-smp-pge-proof
+	$(DARK_CHECK) --features nonos-smp,nonos-smp-shootdown-proof
 	$(DARK_CHECK) --features nonos-panic-proof
 	$(DARK_CHECK) --features nonos-fault-proof
 	$(DARK_CHECK) --features pqc-unvetted

@@ -24,7 +24,7 @@ use alloc::vec;
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply};
 use nonos_usbnet::nic::ETH_FRAME_MAX;
 use nonos_usbnet::nnet::{answer, decode, status, Request, Stats, DATA_AT, E_INVAL, HDR_LEN};
-use nonos_usbnet::nnet::{STATION_DRAWN, STATION_HOST_REFUSED, STATION_HOST_UNANSWERED};
+use nonos_usbnet::nnet::{Kept, STATION_DRAWN, STATION_HOST_REFUSED, STATION_HOST_UNANSWERED};
 use nonos_usbnet::run::own_pid;
 use nonos_usbnet::Nic;
 
@@ -47,7 +47,7 @@ pub fn run(net: &mut Net) {
     let mut tx = vec![0u8; DATA_AT + 4 + ETH_FRAME_MAX + 64];
     let me = own_pid(core::str::from_utf8(NAME).unwrap_or(""));
     // Settings reads where the address came from in OP_STATS's word 9.
-    let mut stats = Stats { station: net.station, ..Stats::default() };
+    let (mut stats, mut kept) = (Stats { station: net.station, ..Stats::default() }, Kept::new());
     loop {
         let mut from = 0u32;
         let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), WAIT_MS, &mut from);
@@ -56,7 +56,9 @@ pub fn run(net: &mut Net) {
         if n > 0 && from != 0 && from != me {
             let n = (n as usize).min(rx.len());
             let len = match decode(&rx[..n]) {
-                Some(req) => answer(Some(net), &mut stats, &req, &rx[HDR_LEN..n], &mut tx),
+                Some(req) => {
+                    answer(Some(net), (&mut stats, &mut kept), &req, &rx[HDR_LEN..n], &mut tx)
+                }
                 None => {
                     let none = Request { op: 0, flags: 0, request_id: 0, payload_len: 0 };
                     status(&mut tx, &none, E_INVAL)

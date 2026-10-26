@@ -18,7 +18,8 @@
 
 use super::super::pinned_published::TIERS;
 use crate::model_name::volume_name;
-use crate::models::pinned::{all, keepable, pin_of, ENTRY_BYTES, STREAM_NAME_MAX};
+use crate::models::pinned::keep::{keepable, ENTRY_BYTES, STREAM_NAME_MAX};
+use crate::models::pinned::{all, pin_of};
 
 /*
  * The volume's name field and the longest name the kernel streams, in
