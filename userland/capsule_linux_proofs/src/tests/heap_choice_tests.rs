@@ -19,7 +19,7 @@
 //! read through a 256-byte buffer ran in the 64 MiB run heap, and
 //! vim-common's unpack died there (booted, code 134).
 
-use crate::heap_choice::{first_word, is_install, ARGS_MAX};
+use crate::linux::heap_choice::{first_word, is_install, ARGS_MAX};
 
 fn argv(words: &[&[u8]]) -> Vec<u8> {
     words.join(&0u8)

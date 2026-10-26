@@ -21,7 +21,7 @@ mod trace_link_tests;
 
 mod boxed;
 mod calls;
+mod heap_choice_tests;
 mod install;
 mod wayland;
 mod whole;
-mod heap_choice_tests;
