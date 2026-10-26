@@ -16,6 +16,7 @@
 
 //! A device a caller holds: found by driver, then read, written, flushed.
 
+mod addressed;
 mod capacity;
 mod chunks;
 mod discover;
@@ -25,6 +26,7 @@ mod identity;
 mod identity_parse;
 mod io;
 mod laid_out;
+mod medium;
 mod native;
 mod nvme;
 mod present;
@@ -32,6 +34,7 @@ mod read;
 mod refused;
 mod span;
 mod transfer;
+mod units;
 mod unserved;
 mod wire;
 mod wire_identity_parse;

@@ -22,7 +22,7 @@ use nonos_toolkit::font::render::draw_text;
 use crate::layout::Area;
 
 pub const TEXT: &[u8] = b"device DMA not confined by hardware";
-pub const RED: u32 = 0xFFFF_3B3B;
+pub const RED: u32 = 0xFFE4_574F;
 
 pub(crate) fn draw(buf: &mut [u32], spx: usize, w: u32, h: u32, row: Area) {
     let x = w.saturating_sub(FontAtlas::default().text_width(TEXT)) / 2;

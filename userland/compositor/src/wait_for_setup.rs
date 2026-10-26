@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::format;
-
 use nonos_libc::{mk_uptime_ms, mk_yield};
 
+use crate::refusal_note::{note, Note};
 use crate::say::{say, say_display};
 use crate::state::Context;
+use crate::waiting_line::waiting_line;
 
 // How long the display drivers get to announce themselves before the GOP
 // framebuffer is taken, so a machine with a display driver uses it and
@@ -33,7 +33,7 @@ const RETRY_MS: i64 = 20;
 
 pub fn wait_for_setup() -> Context {
     let start = mk_uptime_ms();
-    let mut said_none = false;
+    let (mut first_fail, mut said, mut logged) = (None, false, false);
     loop {
         if let Ok(ctx) = crate::setup::run_display() {
             return fitted(ctx, "on");
@@ -41,11 +41,21 @@ pub fn wait_for_setup() -> Context {
         if mk_uptime_ms().saturating_sub(start) >= VIRTIO_WAIT_MS {
             match crate::setup::run_gop() {
                 Ok(ctx) => return fitted(ctx, "on"),
-                Err(why) if !said_none => {
-                    say(&format!("no display yet ({}); waiting for a display driver", why));
-                    said_none = true;
+                Err(why) => {
+                    let now = mk_uptime_ms();
+                    let since = now.saturating_sub(*first_fail.get_or_insert(now));
+                    match note(since, said, logged) {
+                        Note::Say => {
+                            say(&waiting_line(why, false));
+                            said = true;
+                        }
+                        Note::Log => {
+                            say(&waiting_line(why, true));
+                            logged = true;
+                        }
+                        Note::Quiet => {}
+                    }
                 }
-                Err(_) => {}
             }
         }
         let next = mk_uptime_ms().saturating_add(RETRY_MS);

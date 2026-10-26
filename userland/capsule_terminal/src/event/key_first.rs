@@ -28,6 +28,9 @@ pub fn key_first(state: &mut State, event: InputEvent) -> Option<EventOutcome> {
     if state.find.is_some() {
         return Some(super::find_bar::key(state, event));
     }
+    if state.theme_pick.is_some() {
+        return Some(super::theme_keys::key(state, event.code));
+    }
     // Typing moves on from whatever was picked.
     state.sel = None;
     /*

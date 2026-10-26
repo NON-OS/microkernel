@@ -52,4 +52,5 @@ pub(crate) const SYSTEM: &[(&[u8], &[u8], &[u8])] = &[
     (b"whoami", b"whoami", b"the user name, then this capsule and who the kernel says signed it"),
     (b"date", b"date", b"the real time clock, as year-month-day hour:minute:second UTC"),
     (b"uptime", b"uptime", b"how long this system has been running, from the monotonic clock"),
+    (b"latency", b"latency", b"how long the last keys took to reach the screen, in ms"),
 ];
