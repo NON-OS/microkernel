@@ -19,24 +19,8 @@
 //! good again so only the field is wrong, and set so no other check
 //! refuses it too; the CRC itself broken; a disk smaller than the table.
 
-extern crate alloc;
-
-#[path = "common/entropy.rs"]
-mod entropy;
-#[path = "common/files.rs"]
-mod files;
-#[path = "common/gpt_damage.rs"]
-mod gpt_damage;
-#[path = "common/kernel_gpt/mod.rs"]
-#[allow(dead_code, unused_imports)]
-mod kernel_gpt;
-#[path = "common/mem_disk.rs"]
-mod mem_disk;
-#[path = "common/written.rs"]
-mod written;
-
-use gpt_damage::{put, seal, table, T};
-use kernel_gpt::{header, Which};
+use crate::gpt_damage::{put, seal, table, T};
+use crate::kernel_gpt::{header, Which};
 type Field = (usize, u64, usize); // offset, value, width in bytes
 
 #[test]

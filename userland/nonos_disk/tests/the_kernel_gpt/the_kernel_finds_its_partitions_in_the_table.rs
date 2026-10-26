@@ -17,25 +17,11 @@
 //! The kernel finds, in the table the installer writes, the store, plan and
 //! data partitions where the layout put them, and the ESP among them.
 
-extern crate alloc;
-
-#[path = "common/entropy.rs"]
-mod entropy;
-#[path = "common/files.rs"]
-mod files;
-#[path = "common/kernel_gpt/mod.rs"]
-#[allow(dead_code, unused_imports)]
-mod kernel_gpt;
-#[path = "common/mem_disk.rs"]
-mod mem_disk;
-#[path = "common/written.rs"]
-mod written;
-
-use kernel_gpt::{entries, header, holds, places, Entry, Extent, Places, FIXED};
-use kernel_gpt::Which;
-use mem_disk::MemDisk;
+use crate::kernel_gpt::Which;
+use crate::kernel_gpt::{entries, header, holds, places, Entry, Extent, Places, FIXED};
+use crate::mem_disk::MemDisk;
+use crate::written::written;
 use nonos_disk::{Guid, MIN_DISK_SECTORS};
-use written::written;
 
 fn read(disk: &MemDisk, total: u64) -> Option<Vec<Entry>> {
     let h = header::parse_as(&disk.read_sectors(1, 1), total, Which::Primary)?;
@@ -63,7 +49,7 @@ fn the_kernel_finds_each_partition_where_the_layout_put_it() {
 
 #[test]
 fn the_kernels_types_are_the_ones_written() {
-    use kernel_gpt::places::{NONOS_DATA, NONOS_PLAN, NONOS_STORE};
+    use crate::kernel_gpt::places::{NONOS_DATA, NONOS_PLAN, NONOS_STORE};
     assert_eq!(NONOS_STORE, Guid::NONOS_STORE.0);
     assert_eq!(NONOS_PLAN, Guid::NONOS_PLAN.0);
     assert_eq!(NONOS_DATA, Guid::NONOS_DATA.0);
