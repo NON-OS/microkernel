@@ -14,10 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Where the firmware found this loader: the removable-media path the UEFI
-//! specification gives each architecture (3.5.1.1), which an image installs
-//! the loader at. The kernel's check hashes the file found here.
-
 use uefi::CStr16;
 
 #[cfg(target_arch = "x86_64")]
