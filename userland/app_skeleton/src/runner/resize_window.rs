@@ -49,6 +49,6 @@ pub(super) fn apply_resize<A: App>(
     let placement = WindowPlacement { x, y, width: w, height: h };
     if reopen(booted, peers, request_id, placement, false) {
         let _ = wm::window_resize(peers.wm, next(request_id), booted.manifest.window_id, w, h);
-        booted.full_ask.person_chose();
+        booted.asks.full.person_chose();
     }
 }

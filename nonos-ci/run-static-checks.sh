@@ -5368,6 +5368,16 @@ else
 fi
 unset relay_out
 
+# A drive whose `until` step times out leaves every CPU's registers and the
+# code at each one's PC behind, read from that CPU (tools/nonos_drive).
+if drive_out="$( (cd tools && python3 -m unittest -q nonos_drive.test_drive) 2>&1)"; then
+    note ok "a drive that stops at a step leaves every CPU's state (nonos_drive)"
+else
+    tail -n 8 <<< "${drive_out}" >&2
+    fail_with "nonos_drive: a timed-out step can leave no machine state behind"
+fi
+unset drive_out
+
 # Every way off the machine is listed: a capsule that gains Network, or an
 # address, host or build-time endpoint new to a networked capsule's source,
 # fails until docs/security/privacy.md names it with why and how to turn it
