@@ -35,7 +35,7 @@ pub fn install(pkg: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
         Wanted::UnknownTier => {
             let line = alloc::format!("[LINUX] {pkg}: no shipped Qwen tier has this name\n");
             let _ = mk_debug(line.as_ptr(), line.len());
-            return Err(super::Why::ModelUnknown);
+            return Err(super::Why::MODEL_UNKNOWN);
         }
         Wanted::Package => {}
     }
