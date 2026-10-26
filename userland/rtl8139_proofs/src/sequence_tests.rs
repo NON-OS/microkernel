@@ -41,5 +41,6 @@ fn the_claim_is_written_bus_master_off_before_any_grant() {
     let steps: Vec<Step> = seen().iter().map(|s| s.step).collect();
     assert_eq!(steps, [Step::Command(0)], "one write, Bus Master off");
     assert_eq!(command() & BM, 0, "still off when the bring-up starts");
+    assert_eq!(command() & MEM, 0, "Memory Space off with it");
     assert_eq!((d.rx_device_addr, d.tx_device_addr), (0x10_0000, 0x20_0000));
 }

@@ -32,3 +32,12 @@ pub const LEGSUP: u32 = 0xC0;
 pub const LEGSUP_CLEAR: u16 = 0x8F00;
 /// Bits 12 and 14, which the driver has no business with, written as read.
 pub const LEGSUP_KEEP: u16 = 0x5000;
+
+/// The Command bits the driver sets: Bus Master for the schedule, and the
+/// INTx pin silenced, as it polls. I/O decode is the firmware's and the
+/// kernel boot pass's; the broker lets no driver write it.
+pub const COMMAND_BITS: u16 = (1 << 2) | (1 << 10);
+/// The bits the one masked write names: those, and Memory Space, cleared.
+/// The boot pass turns Memory Space on for every function, and the broker
+/// refuses a Command write that leaves it on for a capsule with no Mmio.
+pub const COMMAND_MASK: u16 = COMMAND_BITS | (1 << 1);
