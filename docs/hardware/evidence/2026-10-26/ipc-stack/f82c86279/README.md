@@ -10,8 +10,9 @@ profile, throwaway keys). rc=1, `attack suite: FAIL`. The report fails:
   ENOENT; see ../selftest-capsule.log).
 
 reply-twice-lines.txt holds every reply-twice and deputy line. The case
-passed over 32 messages, every one `8 bytes first byte 91 sender 56
-request 0`: from itself (test.attack is pid 0x38 = 56), at least 8 bytes,
+passed over 32 messages: 28 lines read whole `8 bytes first byte 91
+sender 56 request 0`, and 4 are cut by other capsules' serial output
+(2 after `first byte 91`, 2 after `8 bytes`). Those 28 are from itself (test.attack is pid 0x38 = 56), at least 8 bytes,
 starting `[` (0x5b), and not a request (id 0). It then said `its own
 requests were not in its inbox`: `take` reads at most 16 messages per
 body, and the 32 plain messages came ahead of the queued calls.
