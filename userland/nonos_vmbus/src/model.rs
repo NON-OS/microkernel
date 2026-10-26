@@ -40,6 +40,10 @@ fn delta(idx1: u32, idx2: u32, len: u32, allow_catchup: bool) -> u32 {
 }
 
 /// One ring as the host sees it.
+/// A packet as the host takes it: type, flags, transaction id, descriptor
+/// and data.
+pub type Packet = (u16, u16, u64, Vec<u8>, Vec<u8>);
+
 pub struct HostRing {
     pub hdr: usize,
     pub len: u32,
@@ -113,14 +117,10 @@ impl HostRing {
 
     /// The host as consumer (recv_start + recv_pop): the next packet's
     /// type, flags, transaction id, descriptor and data, or None.
-    #[allow(clippy::type_complexity)]
-    pub fn recv(&self, m: &mut impl Shared) -> Option<(u16, u16, u64, Vec<u8>, Vec<u8>)> {
+    pub fn recv(&self, m: &mut impl Shared) -> Option<Packet> {
         let rd = self.idx(m, 4);
         let wr = self.idx(m, 0);
-        assert!(
-            rd < self.len && wr < self.len,
-            "guest index out of the ring"
-        );
+        assert!(rd < self.len && wr < self.len, "guest index out of the ring");
         let avail = delta(rd, wr, self.len, true);
         if avail == 0 {
             return None;
@@ -132,26 +132,13 @@ impl HostRing {
         let len = u16::from_le_bytes([hdr[4], hdr[5]]) as usize * 8;
         let flags = u16::from_le_bytes([hdr[6], hdr[7]]);
         let txid = u64::from_le_bytes(hdr[8..16].try_into().unwrap());
-        assert!(
-            len + 8 <= avail as usize && off >= 16 && off <= len,
-            "a malformed guest packet"
-        );
+        assert!(len + 8 <= avail as usize && off >= 16 && off <= len, "a malformed guest packet");
         let mut pkt = vec![0u8; len + 8];
         self.io(m, rd, &mut pkt, false);
         let trailer = u64::from_le_bytes(pkt[len..len + 8].try_into().unwrap());
-        assert_eq!(
-            trailer >> 32,
-            u64::from(rd),
-            "the trailer names where the packet began"
-        );
+        assert_eq!(trailer >> 32, u64::from(rd), "the trailer names where the packet began");
         m.store32(self.hdr + 4, (rd + (len + 8) as u32) % self.len);
-        Some((
-            ty,
-            flags,
-            txid,
-            pkt[16..off].to_vec(),
-            pkt[off..len].to_vec(),
-        ))
+        Some((ty, flags, txid, pkt[16..off].to_vec(), pkt[off..len].to_vec()))
     }
 }
 
@@ -167,12 +154,7 @@ pub struct Script {
 
 impl Default for Script {
     fn default() -> Self {
-        Self {
-            gpadl_status: Some(0),
-            open_status: Some(0),
-            torndown: true,
-            busy: 0,
-        }
+        Self { gpadl_status: Some(0), open_status: Some(0), torndown: true, busy: 0 }
     }
 }
 
@@ -238,19 +220,14 @@ impl Model {
                 assert_eq!(u32_at(p, 20) as usize, total * PAGE, "whole pages");
                 assert_eq!(u32_at(p, 24), 0, "from the first page's start");
                 self.gpadl_want = total;
-                self.gpadl_pfns = p[28..]
-                    .chunks(8)
-                    .map(|c| u64::from_le_bytes(c.try_into().unwrap()))
-                    .collect();
+                self.gpadl_pfns =
+                    p[28..].chunks(8).map(|c| u64::from_le_bytes(c.try_into().unwrap())).collect();
                 self.finish_gpadl(relid, id);
             }
             9 => {
                 let id = u32_at(p, 12);
-                self.gpadl_pfns.extend(
-                    p[16..]
-                        .chunks(8)
-                        .map(|c| u64::from_le_bytes(c.try_into().unwrap())),
-                );
+                self.gpadl_pfns
+                    .extend(p[16..].chunks(8).map(|c| u64::from_le_bytes(c.try_into().unwrap())));
                 self.finish_gpadl(u32::MAX, id);
             }
             5 => {
@@ -258,10 +235,7 @@ impl Model {
                 assert_eq!(u32_at(p, 20), 0, "VP 0");
                 let (relid, open_id, gpadl, at) =
                     (u32_at(p, 8), u32_at(p, 12), u32_at(p, 16), u32_at(p, 24));
-                assert!(
-                    self.gpadls.iter().any(|(id, _)| *id == gpadl),
-                    "open on a made GPADL"
-                );
+                assert!(self.gpadls.iter().any(|(id, _)| *id == gpadl), "open on a made GPADL");
                 if let Some(status) = self.script.open_status {
                     if status == 0 {
                         self.open = Some((relid, gpadl, at));
@@ -272,10 +246,7 @@ impl Model {
             7 => self.open = None,
             11 => {
                 let id = u32_at(p, 12);
-                assert!(
-                    self.open.is_none_or(|o| o.1 != id),
-                    "teardown of an open channel's GPADL"
-                );
+                assert!(self.open.is_none_or(|o| o.1 != id), "teardown of an open channel's GPADL");
                 self.gpadls.retain(|(g, _)| *g != id);
                 if self.script.torndown {
                     self.reply(answer(12, &[id]));
@@ -289,17 +260,9 @@ impl Model {
         if self.gpadl_pfns.len() < self.gpadl_want {
             return;
         }
-        assert_eq!(
-            self.gpadl_pfns.len(),
-            self.gpadl_want,
-            "no more pages than the header said"
-        );
+        assert_eq!(self.gpadl_pfns.len(), self.gpadl_want, "no more pages than the header said");
         let pfns = std::mem::take(&mut self.gpadl_pfns);
-        let relid = if relid == u32::MAX {
-            self.last_relid()
-        } else {
-            relid
-        };
+        let relid = if relid == u32::MAX { self.last_relid() } else { relid };
         if let Some(status) = self.script.gpadl_status {
             if status == 0 {
                 self.gpadls.push((id, pfns));
@@ -310,20 +273,15 @@ impl Model {
 
     fn reply(&mut self, a: Vec<u8>) {
         let kind = u32_at(&a, 0);
-        let (before, rest): (Vec<_>, Vec<_>) = std::mem::take(&mut self.stale)
-            .into_iter()
-            .partition(|s| u32_at(s, 0) == kind);
+        let (before, rest): (Vec<_>, Vec<_>) =
+            std::mem::take(&mut self.stale).into_iter().partition(|s| u32_at(s, 0) == kind);
         self.stale = rest;
         self.answers.extend(before);
         self.answers.push_back(a);
     }
 
     fn last_relid(&self) -> u32 {
-        self.posted
-            .iter()
-            .rev()
-            .find(|p| u32_at(p, 0) == 8)
-            .map_or(0, |p| u32_at(p, 8))
+        self.posted.iter().rev().find(|p| u32_at(p, 0) == 8).map_or(0, |p| u32_at(p, 8))
     }
 
     pub fn kinds(&self) -> Vec<u32> {

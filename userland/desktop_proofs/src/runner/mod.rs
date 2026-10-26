@@ -33,7 +33,7 @@ pub mod min_size;
 mod dispatch;
 
 #[cfg(test)]
-#[path = "../../../app_skeleton/src/runner/drag.rs"]
+#[path = "../../../app_skeleton/src/runner/drag/mod.rs"]
 mod drag;
 
 #[cfg(test)]
