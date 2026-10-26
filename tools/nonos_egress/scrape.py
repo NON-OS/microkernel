@@ -46,7 +46,7 @@ def scrape(root=Path(".")):
         raise ValueError("a pinned name, the HTTPS port or the API addresses moved in the source")
     peers = [{"ip": _ip(m), "port": int(https.group(1)), "what": "Nym directory API"}
              for m in re.finditer(QUAD, api.group(1))]
-    for m in re.finditer(r"\(\(" + QUAD + r", (\d+)\)", read(NYM / "state/bootstrap.rs")):
+    for m in re.finditer(r"\(\s*\(" + QUAD + r", (\d+)\)", read(NYM / "state/bootstrap.rs")):
         peers.append({"ip": _ip(m), "port": int(m.group(5)), "what": "Nym bootstrap gateway"})
     for m in re.finditer(r"address: " + QUAD + r",\s*dir_port: (\d+),", read(ANON)):
         peers.append({"ip": _ip(m), "port": int(m.group(5)), "what": "Anyone directory authority",
