@@ -45,6 +45,12 @@ pub struct Report {
 /// The bytes `encode` writes.
 pub const REPORT_LEN: usize = 20;
 
+impl Default for Report {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Report {
     pub const fn new() -> Self {
         Self {
