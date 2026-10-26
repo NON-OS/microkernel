@@ -35,19 +35,19 @@ pub fn vouch(path: &[u8], image: &[u8]) -> bool {
 /// Mint a trailer for `bytes`, a program or its policy, and write it beside
 /// `path` under `suffix`.
 pub(in crate::linux::install) fn sign_beside(path: &[u8], image: &[u8], suffix: &[u8]) -> bool {
-    let needed = mk_local_sign_len(image, GUEST_CAPS);
-    let Ok(len) = usize::try_from(needed) else {
-        // Negative: no enrolled identity, or this capsule may not mint.
-        return false;
-    };
-    let mut trailer: Vec<u8> = alloc::vec![0u8; len];
-    let wrote = mk_local_sign(image, GUEST_CAPS, &mut trailer);
-    let Ok(got) = usize::try_from(wrote) else {
-        return false;
-    };
-    trailer.truncate(got);
+    let Some(trailer) = mint(image) else { return false };
     let at = beside(path, suffix);
     store_write(&key(&at), &trailer).is_ok()
+}
+
+/// The trailer this machine mints for `bytes`; None with no enrolled
+/// identity, or in a capsule that may not mint.
+pub(in crate::linux::install) fn mint(bytes: &[u8]) -> Option<Vec<u8>> {
+    let len = usize::try_from(mk_local_sign_len(bytes, GUEST_CAPS)).ok()?;
+    let mut trailer: Vec<u8> = alloc::vec![0u8; len];
+    let got = usize::try_from(mk_local_sign(bytes, GUEST_CAPS, &mut trailer)).ok()?;
+    trailer.truncate(got);
+    Some(trailer)
 }
 
 /// Every ELF a package lands, shared objects too: an interpreter loads them,
