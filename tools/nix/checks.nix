@@ -247,6 +247,7 @@ let
       "scripts/check_test_lanes.py --self-test" "scripts/check_test_lanes.py"
       "-m unittest discover -s tools/nonos_selftest -p 'test_*.py'"
       "-m unittest discover -s tools/agentproof_gauntlet -t tools -p 'test_*.py'"
+      "-m unittest discover -s tools/nonos_qemu -t tools -p 'test_*.py'"
       # The market catalogue tool's suite; its digests are BLAKE3, so b3sum.
       "-m unittest discover -s tools/nonos_market_catalogue -t tools -p 'test_*.py'"
     ]);
@@ -264,6 +265,7 @@ let
       "tools/nonos-cap-audit --self-test" "tools/nonos-cap-audit"
       "tools/nonos-pcap-egress --self-test" "tools/nonos_egress/mutants.py" "tools/nonos-efi-vars --self-test" "scripts/check_sealed_caps.py --self-test"
       "scripts/check_kernel_wait.py --self-test" "scripts/check_kernel_wait.py"
+      "scripts/check_redacted_addresses.py --self-test" "scripts/check_redacted_addresses.py"
       "scripts/check_volume_io.py --self-test" "scripts/check_volume_io.py"
       "scripts/check_pending_order.py --self-test" "scripts/check_pending_order.py"
       "scripts/check_attest_params.py" "tools/nonos-assumptions"

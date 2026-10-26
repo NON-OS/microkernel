@@ -21,7 +21,7 @@ use crate::process::foreign::{
     sys_foreign_thread, sys_foreign_wait, sys_peer_copy, sys_peer_map, sys_peer_protect,
     sys_peer_tls, sys_peer_unmap,
 };
-use crate::process::foreign::seal::{sys_seal_note, sys_seal_read};
+use crate::process::foreign::seal::{sys_seal_drop, sys_seal_note, sys_seal_peek, sys_seal_read};
 use crate::syscall::microkernel::app_install::sys_app_install;
 use crate::syscall::microkernel::prove_job::sys_prove_job;
 use crate::syscall::microkernel::app_install_status::sys_app_install_status;
@@ -116,6 +116,8 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_FOREIGN_EXEC => sys_foreign_exec(a.a0, a.a1, a.a2),
         SYS_LINUX_RUN_NET => sys_linux_run_net(a.a0),
         SYS_SEAL_READ => sys_seal_read(a.a0, a.a1, a.a2, a.a3),
+        SYS_SEAL_PEEK => sys_seal_peek(a.a0, a.a1, a.a2),
+        SYS_SEAL_DROP => sys_seal_drop(a.a0, a.a1),
         SYS_SEAL_NOTE => sys_seal_note(a.a0, a.a1),
         SYS_PROVE_JOB => sys_prove_job(a.a0),
         SYS_LOCAL_SIGN => sys_local_sign(a.a0, a.a1, a.a2, a.a3, a.a4),

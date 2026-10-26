@@ -3317,9 +3317,9 @@ else
     libc_mmap="$( { grep -R -h -E '^pub(\([^)]*\))? const N_MK_MMAP: i64 = ' "${libc_numbers}" --include='*.rs' 2>/dev/null || true; } | head -n 1 | sed 's/.*= //; s/;.*//')"
     libc_exit="$( { grep -R -h -E '^pub(\([^)]*\))? const N_MK_EXIT: i64 = ' "${libc_numbers}" --include='*.rs' 2>/dev/null || true; } | head -n 1 | sed 's/.*= //; s/;.*//')"
     libc_yield="$( { grep -R -h -E '^pub(\([^)]*\))? const N_MK_YIELD: i64 = ' "${libc_numbers}" --include='*.rs' 2>/dev/null || true; } | head -n 1 | sed 's/.*= //; s/;.*//')"
-    kern_mmap="$(grep -E '^pub const SYS_MMAP: u64 = ' src/syscall/microkernel/numbers.rs | sed 's/.*= //; s/;.*//')"
-    kern_exit="$(grep -E '^pub const SYS_EXIT: u64 = ' src/syscall/microkernel/numbers.rs | sed 's/.*= //; s/;.*//')"
-    kern_yield="$(grep -E '^pub const SYS_YIELD: u64 = ' src/syscall/microkernel/numbers.rs | sed 's/.*= //; s/;.*//')"
+    kern_mmap="$(grep -hE '^pub const SYS_MMAP: u64 = ' src/syscall/microkernel/numbers.rs src/syscall/microkernel/numbers/*.rs | sed 's/.*= //; s/;.*//')"
+    kern_exit="$(grep -hE '^pub const SYS_EXIT: u64 = ' src/syscall/microkernel/numbers.rs src/syscall/microkernel/numbers/*.rs | sed 's/.*= //; s/;.*//')"
+    kern_yield="$(grep -hE '^pub const SYS_YIELD: u64 = ' src/syscall/microkernel/numbers.rs src/syscall/microkernel/numbers/*.rs | sed 's/.*= //; s/;.*//')"
 
     abi_drift=0
     if [ "${libc_mmap}" != "${kern_mmap}" ]; then
@@ -4005,7 +4005,7 @@ fi
 unset libc_debug_helper
 
 libc_mk_debug="$( { grep -R -h -E '^pub(\([^)]*\))? const N_MK_DEBUG: i64 = ' userland/libc/src/syscall/numbers --include='*.rs' 2>/dev/null || true; } | head -n 1 | sed 's/.*= //; s/;.*//')"
-kern_mk_debug="$(grep -E '^pub const SYS_MK_DEBUG: u64 = ' src/syscall/microkernel/numbers.rs | sed 's/.*= //; s/;.*//')"
+kern_mk_debug="$(grep -hE '^pub const SYS_MK_DEBUG: u64 = ' src/syscall/microkernel/numbers.rs src/syscall/microkernel/numbers/*.rs | sed 's/.*= //; s/;.*//')"
 if [ "${libc_mk_debug}" != "${kern_mk_debug}" ] || [ -z "${libc_mk_debug}" ]; then
     fail_with "ABI drift: libc N_MK_DEBUG=${libc_mk_debug} vs kernel SYS_MK_DEBUG=${kern_mk_debug}"
 else
@@ -4088,10 +4088,12 @@ unset cap_dir forbidden_cap_files
 # raw old-format Mk numeric IDs may remain as syscall constants.
 defs_src='src/syscall/numbers/defs.rs'
 sys_src='src/syscall/microkernel/numbers.rs'
+# numbers.rs keeps its constants in parts, in numbers/.
+sys_dir='src/syscall/microkernel/numbers'
 libc_numbers='userland/libc/src/syscall/numbers'
 
 defs_non_tag="$(awk '/^pub enum SyscallNumber/{f=1; next} f && /^}/{exit} f && /=/' "${defs_src}" \
-    | grep -vE '=[[:space:]]*tag4\(b"[A-Z0-9]{4}"\)' || true)"
+    | grep -vE '=[[:space:]]*(crate::syscall::abi::)?tag4\(b"[A-Z0-9]{4}"\)' || true)"
 if [ -n "${defs_non_tag}" ]; then
     fail_with "${defs_src} has SyscallNumber discriminants that are not tag4(b\"....\")"
     printf '%s\n' "${defs_non_tag}" >&2
@@ -4100,7 +4102,7 @@ else
 fi
 unset defs_non_tag
 
-sys_non_tag="$(grep -E '^pub const SYS_' "${sys_src}" | grep -vE '=[[:space:]]*tag4\(b"[A-Z0-9]{4}"\);' || true)"
+sys_non_tag="$(grep -hE '^pub const SYS_' "${sys_src}" "${sys_dir}"/*.rs | grep -vE '=[[:space:]]*tag4\(b"[A-Z0-9]{4}"\);' || true)"
 if [ -n "${sys_non_tag}" ]; then
     fail_with "${sys_src} has SYS_* constants that are not tag4(b\"....\")"
     printf '%s\n' "${sys_non_tag}" >&2
@@ -4121,8 +4123,8 @@ unset libc_non_tag
 # No old-format numeric syscall IDs may remain as syscall
 # constants in the active syscall surfaces. Old Mk range was
 # 0x1000..0x1050; old parked range was 900..1309.
-old_mk_lits="$( { grep -nE '=[[:space:]]*0x10[0-5][0-9a-fA-F]\b' "${defs_src}" "${sys_src}" || true; grep -R -n -E '=[[:space:]]*0x10[0-5][0-9a-fA-F]\b' "${libc_numbers}" --include='*.rs' 2>/dev/null || true; } )"
-old_parked_lits="$( { grep -nE '=[[:space:]]*(9[0-9]{2}|10[0-9]{2}|11[0-9]{2}|12[0-9]{2}|13[0-9]{2})[[:space:]]*;' "${defs_src}" "${sys_src}" || true; grep -R -n -E '=[[:space:]]*(9[0-9]{2}|10[0-9]{2}|11[0-9]{2}|12[0-9]{2}|13[0-9]{2})[[:space:]]*;' "${libc_numbers}" --include='*.rs' 2>/dev/null || true; } )"
+old_mk_lits="$( { grep -nE '=[[:space:]]*0x10[0-5][0-9a-fA-F]\b' "${defs_src}" "${sys_src}" "${sys_dir}"/*.rs || true; grep -R -n -E '=[[:space:]]*0x10[0-5][0-9a-fA-F]\b' "${libc_numbers}" --include='*.rs' 2>/dev/null || true; } )"
+old_parked_lits="$( { grep -nE '=[[:space:]]*(9[0-9]{2}|10[0-9]{2}|11[0-9]{2}|12[0-9]{2}|13[0-9]{2})[[:space:]]*;' "${defs_src}" "${sys_src}" "${sys_dir}"/*.rs || true; grep -R -n -E '=[[:space:]]*(9[0-9]{2}|10[0-9]{2}|11[0-9]{2}|12[0-9]{2}|13[0-9]{2})[[:space:]]*;' "${libc_numbers}" --include='*.rs' 2>/dev/null || true; } )"
 if [ -n "${old_mk_lits}" ]; then
     fail_with "old Mk numeric IDs (0x10xx) remain in syscall constants"
     printf '%s\n' "${old_mk_lits}" >&2
@@ -4132,7 +4134,7 @@ elif [ -n "${old_parked_lits}" ]; then
 else
     note ok "no old-format syscall numeric IDs remain in active surfaces"
 fi
-unset old_mk_lits old_parked_lits defs_src sys_src libc_numbers
+unset old_mk_lits old_parked_lits defs_src sys_src sys_dir libc_numbers
 
 # ABI registry coverage. The registry was split into one file per
 # domain under `src/syscall/abi/registry/`; the union of those
@@ -4154,7 +4156,7 @@ elif ! grep -qE '^[[:space:]]+abi::lookup_id\(' "${convert_src}"; then
 elif grep -qE '^[[:space:]]+[0-9]+[[:space:]]*=>[[:space:]]*Some\(Self::' "${convert_src}"; then
     fail_with "${convert_src} carries a parallel numeric match table; route through the registry"
 else
-    enum_variants="$(sed -n '/^pub enum SyscallNumber/,/^}/p' "${syscall_defs}" | grep -oE '[A-Z][A-Za-z0-9]+ *= *tag4' | awk '{print $1}' | sort -u)"
+    enum_variants="$(sed -n '/^pub enum SyscallNumber/,/^}/p' "${syscall_defs}" | grep -oE '[A-Z][A-Za-z0-9]+ *= *(crate::syscall::abi::)?tag4' | awk '{print $1}' | sort -u)"
     registry_variants="$(cat ${abi_registry_files} | grep -oE 'SyscallNumber::[A-Za-z0-9]+' | sed 's/.*:://' | sort)"
     registry_unique="$(printf '%s\n' "${registry_variants}" | sort -u)"
     if [ "${registry_variants}" != "${registry_unique}" ]; then
@@ -4245,11 +4247,11 @@ for f in ${ipc_primitives} ${ipc_libc}; do
 done
 if [ -n "${ipc_missing}" ]; then
     fail_with "missing IPC primitives:${ipc_missing}"
-elif ! grep -qE 'MkIpcRecvFrom = tag4' "${ipc_defs}"; then
+elif ! grep -qE 'MkIpcRecvFrom = (crate::syscall::abi::)?tag4' "${ipc_defs}"; then
     fail_with "${ipc_defs} must declare MkIpcRecvFrom"
-elif ! grep -qE 'MkIpcSendToPid = tag4' "${ipc_defs}"; then
+elif ! grep -qE 'MkIpcSendToPid = (crate::syscall::abi::)?tag4' "${ipc_defs}"; then
     fail_with "${ipc_defs} must declare MkIpcSendToPid"
-elif ! grep -qE 'MkServiceLookup = tag4' "${ipc_defs}"; then
+elif ! grep -qE 'MkServiceLookup = (crate::syscall::abi::)?tag4' "${ipc_defs}"; then
     fail_with "${ipc_defs} must declare MkServiceLookup"
 elif ! grep -qE 'SYS_IPC_RECV_FROM => sys_ipc_recv_from' "${ipc_dispatch}"; then
     fail_with "${ipc_dispatch} must dispatch SYS_IPC_RECV_FROM"
@@ -5422,6 +5424,18 @@ else
 fi
 unset relay_out
 
+# The Gauntlet's verdict and its receipt check, with no image: a run passes
+# only when its report came whole and its receipt verified, and a receipt
+# with one byte flipped was refused (tools/agentproof_gauntlet).
+if gauntlet_out="$( (cd tools && python3 -m unittest -q agentproof_gauntlet.test_verdict \
+    agentproof_gauntlet.test_verdict_edges agentproof_gauntlet.test_receipt \
+    agentproof_gauntlet.test_receipt_rule) 2>&1)"; then
+    note ok "the Gauntlet judges a run by its report and a receipt that verifies (agentproof_gauntlet)"
+else
+    tail -n 8 <<< "${gauntlet_out}" >&2
+    fail_with "agentproof_gauntlet: the verdict or the receipt check is wrong"
+fi
+unset gauntlet_out
 # The market catalogue tool (tools/nonos_market_catalogue): the listings it
 # writes, the lock it seals against, its hostile-input refusals and the
 # mutants each refusal must catch. It ran in no lane once, and two failures

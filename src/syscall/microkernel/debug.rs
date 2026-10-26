@@ -19,7 +19,7 @@
 //! `Capability::Debug` token; this layer only validates the user
 //! buffer and writes it through. A caller whose output is private (a
 //! terminal's run of the Linux personality, or a guest it hosts) is never
-//! written to serial; its line goes only to its own `proc.<pid>` inbox,
+//! written to serial; its line goes only to its own `stdout.<pid>` inbox,
 //! where the terminal that started it shows it.
 //!
 //! The line is bounded to `MAX_LEN` bytes after which the syscall

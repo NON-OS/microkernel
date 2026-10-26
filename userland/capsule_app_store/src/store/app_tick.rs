@@ -27,7 +27,7 @@ pub(super) fn tick(state: &mut State) -> bool {
         return true;
     }
     let moved = state.any_pending() && state.poll_pending();
-    let fetched = state.poll_fetch() | state.watch_order();
+    let fetched = state.poll_fetch() | state.watch_order() | state.watch_proof();
     if moved {
         // "install requested" is stale once the system has said more.
         state.asked = None;

@@ -67,8 +67,7 @@ impl State {
             let now = Progress::of(mk_app_install_status(&l.id));
             // A request this window made is not forgotten by an early answer.
             let now = if now == Progress::Idle && l.progress.pending() { l.progress } else { now };
-            changed |= now != l.progress;
-            l.progress = now;
+            changed |= self.proofs.moved(l, now);
         }
         changed
     }

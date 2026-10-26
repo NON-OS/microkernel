@@ -30,6 +30,7 @@ dependencies = [
  "nonos_bt_proto",
  "nonos_policy_proto",
  "nonos_seal",
+ "nonos_toolkit",
 ]
 
 [[package]]

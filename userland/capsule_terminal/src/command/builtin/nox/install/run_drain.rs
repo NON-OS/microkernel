@@ -21,7 +21,7 @@ use crate::command::output::Output;
 use crate::jobs::JobProgress;
 use crate::term::state::State;
 
-// Pull the loaded capsule's stdout out of its proc.<pid> inbox and into
+// Pull the loaded capsule's stdout out of its stdout.<pid> inbox and into
 // the terminal window. The kernel mirrors each MkDebug line there. We
 // step the drain job on the current thread until it finishes or times
 // out, so a child that never exits cannot freeze the terminal.

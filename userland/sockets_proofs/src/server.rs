@@ -20,5 +20,12 @@
 
 #[path = "../../capsule_net_sockets/src/server/parse_req.rs"]
 pub mod parse_req;
+#[path = "../../capsule_net_sockets/src/server/request.rs"]
+pub mod request;
 #[path = "../../capsule_net_sockets/src/server/respond.rs"]
 pub mod respond;
+// What a connect answered after its turn leaves on the caller's socket.
+#[path = "../../capsule_net_sockets/src/server/handlers/connect/install_transport.rs"]
+pub mod install_transport;
+#[path = "../../capsule_net_sockets/src/server/handlers/connect/pending/verdict.rs"]
+pub mod verdict;

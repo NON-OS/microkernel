@@ -24,7 +24,7 @@ pub enum Fault {
     Head,
     /// A field's length is not its own, or runs past the end.
     Field(&'static str),
-    /// Bytes after the entries.
+    /// Bytes after the capsules.
     Trailing,
 }
 
@@ -43,6 +43,10 @@ pub fn parse<'a>(b: &'a [u8]) -> Result<Receipt<'a>, Fault> {
     if entries.len() % ENTRY != 0 {
         return Err(Fault::Field("entries"));
     }
+    let capsules = c.field("capsules", 0, CAPSULES_MAX)?;
+    if capsules.len() % CAPSULE != 0 {
+        return Err(Fault::Field("capsules"));
+    }
     if c.at != b.len() {
         return Err(Fault::Trailing);
     }
@@ -53,6 +57,7 @@ pub fn parse<'a>(b: &'a [u8]) -> Result<Receipt<'a>, Fault> {
         launcher: fixed(launcher)?,
         doc,
         entries,
+        capsules,
         bound,
     })
 }

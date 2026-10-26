@@ -16,8 +16,7 @@
 
 //! Between a job's stages: the frames queued up, answered.
 
-use nonos_libc::ipc::MK_IPC_NO_WAIT;
-use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply};
+use nonos_libc::ipc::{mk_ipc_recv_req, mk_ipc_reply_to, IpcReqMeta, MK_IPC_NO_WAIT};
 use nonos_proof_abi::wire::{Header, PROVE_MAGIC};
 
 use super::answer::answer;
@@ -26,14 +25,14 @@ use super::state::Job;
 /// While a job runs: answer what has queued up, without waiting.
 pub fn drain(job: &mut Job, buf: &mut [u8]) {
     loop {
-        let mut sender = 0u32;
-        let n = mk_ipc_recv_from(0, buf.as_mut_ptr(), buf.len(), MK_IPC_NO_WAIT, &mut sender);
-        let Some(n) = usize::try_from(n).ok().filter(|&n| n > 0 && sender != 0) else {
+        let mut m = IpcReqMeta::default();
+        let n = mk_ipc_recv_req(0, buf.as_mut_ptr(), buf.len(), MK_IPC_NO_WAIT, &mut m);
+        let Some(n) = usize::try_from(n).ok().filter(|&n| n > 0 && m.sender != 0) else {
             return;
         };
         if let Some((h, body)) = Header::parse(&buf[..n], PROVE_MAGIC) {
-            let tx = answer(Some(job), sender, &h, body);
-            let _ = mk_ipc_reply(sender, tx.as_ptr(), tx.len());
+            let tx = answer(Some(job), m.sender, &h, body);
+            job.replied(mk_ipc_reply_to(m.request, tx.as_ptr(), tx.len()));
         }
     }
 }

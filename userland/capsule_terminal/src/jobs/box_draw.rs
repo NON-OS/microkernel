@@ -41,6 +41,7 @@ pub(super) fn draw(hold: &BoxHold, out: &mut Output<'_>) {
             if !hold.net_lines().into_iter().chain([l]).all(to_log) {
                 out.writeln_error(b"linux: the [BOX] line could not be written to the log");
             }
+            super::box_app::keep(hold);
         }
         None if !hold.lines().0.is_empty() => missing(Missing::Incomplete, exit, out),
         None => {}

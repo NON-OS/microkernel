@@ -21,8 +21,9 @@
 use super::embed::{
     PROVE_ATTESTATION_BYTES, PROVE_ELF, PROVE_MANIFEST_BYTES, PROVE_NONOS_ID_CERT_BYTES,
 };
-use super::job_argv::{job_argv, JobKind};
+use super::job_argv::{job_argv, job_caps, JobKind};
 use super::spawn::{PROVE_CAPS, WINDOW};
+use crate::capabilities::{serial_debug_cap, Capability};
 use crate::kernel_core::process_spawn::capsule_spawn::{
     spawn_verified, CapsuleSpecVerified, SpawnError,
 };
@@ -34,8 +35,8 @@ pub const JOB: &str = "app.prove.job";
 const JOB_PORT: u32 = 5206;
 const JOB_REPLY: &str = "endpoint.app.prove.job.reply";
 const JOB_REPLY_PORT: u32 = 5207;
-
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
+const ATTEST_READ: u64 = Capability::AttestRead.bit();
 /// A prover is live, as a job or as the window.
 pub fn prover_live() -> bool {
     lookup_service(JOB).is_some()
@@ -63,7 +64,7 @@ pub fn spawn_prove_job(kind: JobKind, asker: u32) -> Result<u32, SpawnError> {
         manifest_bytes: PROVE_MANIFEST_BYTES,
         attestation_trailer: PROVE_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: PROVE_CAPS | crate::capabilities::serial_debug_cap(),
+        requested_caps: job_caps(kind, PROVE_CAPS, ATTEST_READ) | serial_debug_cap(),
         debug_tag: b"[PROVE-JOB] elf error:",
     };
     let pid = spawn_verified(&spec, &trust, None)?;

@@ -66,13 +66,16 @@ mounted by `#[path]`. Keys
 move; Left and Right change tab; `/` opens search; Enter installs, waits or opens, and after an
 uninstall that stopped asks to uninstall again; `o` opens; `u` (or Remove on an installed card)
 uninstalls, and asks the system even for a listing this boot never installed, since a tier's model
-may be on the disk from an earlier boot (`src/store/next_step.rs`); `r` reloads. Painting lives in
-`src/store/ui/`.
+may be on the disk from an earlier boot (`src/store/next_step.rs`); `r` reloads. For an installed
+Linux listing the pane asks once per store session whether to prove how it ran (I-B9a,
+`src/store/proof.rs`): `y` asks the headless prover, `n` says not now or stops a run, `p` asks
+again. Painting lives in `src/store/ui/`.
 
 ## State and privacy
 
 In memory only: the listings with each one's install progress, the cursor, scroll, tab, search
-text and the last answers from the market (`src/store/state.rs`). It reads no files, writes nothing,
+text and the last answers from the market (`src/store/state.rs`), and a proof once made, wiped when
+dropped and never sent. It reads no files, writes nothing,
 and has no FileSystem or Network bit; it does not see package bytes or URLs (the release URL is
 skipped in `src/store/market/release.rs`).
 

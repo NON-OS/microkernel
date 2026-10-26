@@ -1,0 +1,74 @@
+[
+ {
+  "name": "prove-publish-before-result",
+  "file": "userland/capsule_prove/src/job/progress.rs",
+  "old": "        unsafe { *self.result.get() = Some(result) };\n        let last = if done { Stage::Done as u32 } else { Stage::Failed as u32 };\n        self.stage.store(last, Ordering::Release);\n",
+  "new": "        let last = if done { Stage::Done as u32 } else { Stage::Failed as u32 };\n        self.stage.store(last, Ordering::Release);\n        unsafe { *self.result.get() = Some(result) };\n",
+  "test": "job_",
+  "crate": "userland/prove_proofs"
+ },
+ {
+  "name": "prove-publish-relaxed",
+  "file": "userland/capsule_prove/src/job/progress.rs",
+  "old": "self.stage.store(last, Ordering::Release);",
+  "new": "self.stage.store(last, Ordering::Relaxed);",
+  "test": "job_",
+  "crate": "userland/prove_proofs"
+ },
+ {
+  "name": "prove-result-read-on-any-stage",
+  "file": "userland/capsule_prove/src/job/progress.rs",
+  "old": "            Stage::Done | Stage::Failed => unsafe { (*self.result.get()).take() },\n            _ => None,\n",
+  "new": "            _ => unsafe { (*self.result.get()).take() },\n",
+  "test": "job_",
+  "crate": "userland/prove_proofs"
+ },
+ {
+  "name": "prove-quiet-ends-a-working-job",
+  "file": "userland/capsule_prove/src/job/exit_rule.rs",
+  "old": "    if job.is_some_and(|j| j.working) {\n        return false;\n    }\n",
+  "new": "",
+  "test": "job_",
+  "crate": "userland/prove_proofs"
+ },
+ {
+  "name": "prove-working-not-polled",
+  "file": "userland/capsule_prove/src/job/exit_rule.rs",
+  "old": "        Some(j) if j.working => POLL_MS,\n",
+  "new": "",
+  "test": "job_",
+  "crate": "userland/prove_proofs"
+ },
+ {
+  "name": "prove-told-on-the-answer",
+  "file": "userland/capsule_prove/src/job/answer.rs",
+  "old": "j.answered |= j.stage == Stage::Failed;",
+  "new": "j.told |= j.stage == Stage::Failed;",
+  "test": "job_",
+  "crate": "userland/prove_proofs"
+ },
+ {
+  "name": "prove-a-frame-reads-nothing",
+  "file": "userland/capsule_prove/src/job/state_ops.rs",
+  "old": "        self.told |= self.answered;\n",
+  "new": "",
+  "test": "job_",
+  "crate": "userland/prove_proofs"
+ },
+ {
+  "name": "prove-stage-not-carried",
+  "file": "userland/capsule_prove/src/job/poll_rule.rs",
+  "old": "            j.stage = stage;\n",
+  "new": "",
+  "test": "job_",
+  "crate": "userland/prove_proofs"
+ },
+ {
+  "name": "prove-failure-clock-not-reset",
+  "file": "userland/capsule_prove/src/job/poll_rule.rs",
+  "old": "(j.working, j.asker_ms) = (false, now);",
+  "new": "j.working = false;",
+  "test": "job_",
+  "crate": "userland/prove_proofs"
+ }
+]

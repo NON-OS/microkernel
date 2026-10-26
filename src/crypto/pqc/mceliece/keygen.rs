@@ -29,8 +29,7 @@ pub fn mceliece_keygen() -> Result<McElieceKeyPair, &'static str> {
 
     let support = generate_support()?;
 
-    let gcd_degree =
-        polynomial_gcd(&goppa, &support.iter().map(|&x| x).collect::<alloc::vec::Vec<_>>());
+    let gcd_degree = polynomial_gcd(&goppa, &support);
     if gcd_degree > 0 {
         return Err("Polynomial and support are not coprime");
     }
