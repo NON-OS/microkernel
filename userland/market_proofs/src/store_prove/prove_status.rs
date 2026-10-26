@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! STATUS, one at a time (ruling 3): a timed-out one is still outstanding,
-//! so no tick sends another until a reply comes; the job's quiet spell ends
-//! it. And the GETs: in order, to exactly the total, nothing past it.
+//! STATUS, one at a time (ruling 3): one that times out is given up and the
+//! next tick asks again, since the kernel drops a reply whose call gave up;
+//! the job's quiet spell ends it. And the GETs: in order, to exactly the
+//! total, nothing past it.
 
 use super::proof_event::{Call, Event};
 use super::proof_fail::Fail;
@@ -25,16 +26,18 @@ use super::proof_seq::{Phase, DEVICE, DONE, ISOLATION};
 use super::prove_seq::walk;
 
 #[test]
-fn a_timed_out_status_keeps_its_slot_until_a_reply_comes() {
+fn a_timed_out_status_is_given_up_and_asked_again() {
     let (held, calls) = walk(Phase::Proving { stage: DEVICE, out: false }, &[Event::Tick]);
     assert_eq!(
         (held, &calls[..]),
         (Phase::Proving { stage: DEVICE, out: true }, &[Call::Status][..])
     );
-    let (late, calls) = walk(held, &[Event::StatusLate, Event::Tick, Event::Tick, Event::Tick]);
-    assert_eq!(late, held, "still working, still outstanding");
-    assert_eq!(calls, [Call::None; 4], "never a second STATUS while one is outstanding");
-    let (told, calls) = walk(late, &[Event::Status(Ok((ISOLATION, 0))), Event::Tick]);
+    let (late, calls) = walk(held, &[Event::StatusLate]);
+    assert_eq!((late, &calls[..]), (Phase::Proving { stage: DEVICE, out: false }, &[Call::None][..]));
+    let (again, calls) = walk(late, &[Event::Tick, Event::Tick]);
+    assert_eq!(again, held, "one STATUS outstanding again");
+    assert_eq!(calls, [Call::Status, Call::None], "never two at once");
+    let (told, calls) = walk(again, &[Event::Status(Ok((ISOLATION, 0))), Event::Tick]);
     assert_eq!(
         (told, &calls[..]),
         (Phase::Proving { stage: ISOLATION, out: true }, &[Call::None, Call::Status][..])
