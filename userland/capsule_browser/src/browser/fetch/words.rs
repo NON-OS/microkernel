@@ -102,6 +102,9 @@ pub fn words(code: &str, way: Way, host: &str) -> String {
              still be starting; try again in a moment.",
         ),
         "bad url" => String::from("That address could not be read. Check it and try again."),
+        "not a web address" => String::from(
+            "This browser opens web addresses, http and https, only; that address is not one.",
+        ),
         "response too large" => {
             String::from("The page is larger than 4 MB, the most this browser reads.")
         }
