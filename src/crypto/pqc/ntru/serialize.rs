@@ -96,7 +96,7 @@ pub fn ntru_serialize_secret_key(sk: &NtruSecretKey) -> Vec<u8> {
 }
 
 pub fn ntru_deserialize_secret_key(bytes: &[u8]) -> Result<NtruSecretKey, &'static str> {
-    let f_packed_len = (NTRU_N + 3) / 4;
+    let f_packed_len = NTRU_N.div_ceil(4);
     if bytes.len() < f_packed_len + NTRU_PUBLICKEY_BYTES {
         return Err("Invalid secret key length");
     }

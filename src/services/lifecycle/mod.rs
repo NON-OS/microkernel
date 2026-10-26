@@ -49,6 +49,7 @@ pub use registry::{register, tick, Capsule};
 pub use reply_rest::rest;
 pub use state::CapsuleState;
 pub use supervisor::{tick as supervisor_tick, Supervised};
+pub(crate) use rest_mark::quiet;
 pub(crate) use transport_holder::forget as forget_transport_holder;
 pub use trip_guard::{TripGuard, TripRead, TripWrite};
 pub use trip_lock::TripLock;

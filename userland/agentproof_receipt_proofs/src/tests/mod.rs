@@ -15,9 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! A whole receipt verifies, and says what it carries.
 mod cli;
+mod doc_clear_tests;
 mod doc_refusals;
 mod encoding;
+mod pin;
 mod refusals;
+mod release;
+mod release_walk;
+mod release_bodies;
 mod registry;
 mod says;
 mod sweep;
