@@ -19,8 +19,9 @@
 
 use super::keycodes::{
     KEYCODE_DEL, KEYCODE_DOWN, KEYCODE_END, KEYCODE_HOME, KEYCODE_INS, KEYCODE_LEFT, KEYCODE_LMETA,
-    KEYCODE_MUTE, KEYCODE_PGDN, KEYCODE_PGUP, KEYCODE_POWER, KEYCODE_RALT, KEYCODE_RCTRL,
-    KEYCODE_RIGHT, KEYCODE_RMETA, KEYCODE_UP, KEYCODE_VOLUME_DOWN, KEYCODE_VOLUME_UP,
+    KEYCODE_MUTE, KEYCODE_PAUSE, KEYCODE_PGDN, KEYCODE_PGUP, KEYCODE_POWER, KEYCODE_PRINT,
+    KEYCODE_RALT, KEYCODE_RCTRL, KEYCODE_RIGHT, KEYCODE_RMETA, KEYCODE_UP, KEYCODE_VOLUME_DOWN,
+    KEYCODE_VOLUME_UP,
 };
 
 pub(super) fn keycode_for(code: u16) -> Option<u32> {
@@ -28,6 +29,7 @@ pub(super) fn keycode_for(code: u16) -> Option<u32> {
         96 => 0x0D,          // KEY_KPENTER
         97 => KEYCODE_RCTRL, // KEY_RIGHTCTRL
         98 => b'/' as u32,   // KEY_KPSLASH
+        99 => KEYCODE_PRINT, // KEY_SYSRQ: Print Screen
         100 => KEYCODE_RALT,
         102 => KEYCODE_HOME,
         103 => KEYCODE_UP,
@@ -43,6 +45,7 @@ pub(super) fn keycode_for(code: u16) -> Option<u32> {
         114 => KEYCODE_VOLUME_DOWN,
         115 => KEYCODE_VOLUME_UP,
         116 => KEYCODE_POWER,
+        119 => KEYCODE_PAUSE,
         125 => KEYCODE_LMETA,
         126 => KEYCODE_RMETA,
         _ => return None,
