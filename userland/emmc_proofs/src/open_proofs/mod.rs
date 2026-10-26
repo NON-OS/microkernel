@@ -26,3 +26,4 @@ mod open_refusal_tests;
 mod open_tests;
 mod refused_write_tests;
 mod removable_tests;
+mod small_bar_tests;
