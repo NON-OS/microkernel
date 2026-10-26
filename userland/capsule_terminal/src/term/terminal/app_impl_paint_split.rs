@@ -16,7 +16,7 @@
 
 //! Painting a split window: each pane is its tab over its own half, sized to
 //! that half so a program in it sees its real grid, with the divider between
-//! them and a line of the accent over the pane that has the keys.
+//! them, a line of the accent over the pane with the keys, the other dimmed.
 
 use nonos_app_skeleton::PaintBuffer;
 
@@ -43,8 +43,11 @@ impl Terminal {
         }
         let t = crate::term::theme::profiles::by_index(self.theme);
         fb.fill_rect(lw, 0, DIVIDER, h, t.chrome_edge);
-        let (fx, fw) = if self.active == left { (lx, lw) } else { (rx, rw) };
+        let (fx, fw, ox, ow) =
+            if self.active == left { (lx, lw, rx, rw) } else { (rx, rw, lx, lw) };
         fb.fill_rect(fx, 0, fw, 2, t.accent);
+        // The pane without the keys sits back under a light scrim.
+        fb.blend_rect(ox, 0, ow, h, (t.bg & 0x00FF_FFFF) | 0x50 << 24);
     }
 
     /// Where the tab in front drew its cells and bands, for the pointer.
