@@ -8,7 +8,7 @@ same way.
 
 ## What it proves
 
-256 `#[test]` functions, among them:
+263 `#[test]` functions, among them:
 
 - the power sequence, efuse read, firmware header, sections, staging and
   download over DDMA and H2C (`pwr_tests`, `efuse_tests`, `fw_tests`,
@@ -28,6 +28,9 @@ same way.
 - power save: the host's Link Control, the chip's L1 enables, the watch, the
   firmware commands and reserved pages, on the link and the serving radio
   (`ps_tests`, `serve::busy_tests`, `serve::sleep_tests`);
+- the signal read from the PHY status, and the hunt and the scan list ranked
+  and filled by it (`signal_tests`, `serve::connect::rank_tests`,
+  `serve::scan_signal_tests`);
 - the whole serve stage, mounted file by file with a libc shim for its kernel
   calls, fed hostile requests from net_core and strangers, and a hunt fed
   hostile frames (`serve::hostile_tests`, `serve::connect::hunt_tests`).

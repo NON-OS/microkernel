@@ -23,15 +23,26 @@ pub fn parse(buf: &[u8]) -> Option<RxInfo> {
     }
     let w0 = u32::from_le_bytes([buf[0], buf[1], buf[2], buf[3]]);
     let w2 = u32::from_le_bytes([buf[8], buf[9], buf[10], buf[11]]);
+    let drv_info_size = ((w0 >> W0_DRV_INFO_SHIFT) & W0_DRV_INFO_MASK) as usize * 8;
+    let shift = ((w0 >> W0_SHIFT_SHIFT) & W0_SHIFT_MASK) as usize;
+    // rtw88 reads the PHY status at the descriptor's end plus the shift.
+    let at = RX_PKT_DESC_SIZE + shift;
+    let words = (w0 & W0_PHYST != 0 && drv_info_size >= 16).then(|| buf.get(at..at + 16)).flatten();
+    let phy = words.map(|b| {
+        core::array::from_fn(|i| {
+            u32::from_le_bytes([b[4 * i], b[4 * i + 1], b[4 * i + 2], b[4 * i + 3]])
+        })
+    });
     Some(RxInfo {
         pkt_len: (w0 & W0_PKT_LEN) as usize,
-        drv_info_size: ((w0 >> W0_DRV_INFO_SHIFT) & W0_DRV_INFO_MASK) as usize * 8,
-        shift: ((w0 >> W0_SHIFT_SHIFT) & W0_SHIFT_MASK) as usize,
+        drv_info_size,
+        shift,
         phy_status: w0 & W0_PHYST != 0,
         crc_err: w0 & W0_CRC32 != 0,
         icv_err: w0 & W0_ICV_ERR != 0,
         is_c2h: w2 & W2_C2H != 0,
         enc_type: ((w0 >> W0_ENC_TYPE_SHIFT) & W0_ENC_TYPE_MASK) as u8,
         swdec: w0 & W0_SWDEC != 0,
+        phy,
     })
 }
