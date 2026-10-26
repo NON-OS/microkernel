@@ -22,6 +22,8 @@ after every mutant, whatever happens.
 
     tools/nonos-host-mutants FILE.json            run every mutant
     tools/nonos-host-mutants FILE.json --check    each applies exactly once
+A mutant may name "cmd" instead, a command run from the tree's root that
+must then fail.
 """
 
 import argparse
@@ -32,8 +34,8 @@ from pathlib import Path
 
 
 def test(m) -> int:
-    cmd = ["cargo", "test", "-q", *m.get("args", []), m["test"]]
-    return subprocess.run(cmd, cwd=m["crate"], stdout=subprocess.DEVNULL,
+    cmd = m.get("cmd") or ["cargo", "test", "-q", *m.get("args", []), m["test"]]
+    return subprocess.run(cmd, cwd=m.get("crate", "."), stdout=subprocess.DEVNULL,
                           stderr=subprocess.DEVNULL, check=False, timeout=1800).returncode
 
 
