@@ -2,10 +2,9 @@
 //! Host proofs for confining described devices. `verdict` and the
 //! described `iommus` type are the kernel's own files.
 
-#![allow(dead_code)]
-
 #[path = "../../../src/hardware/broker/described/iommus.rs"]
 pub mod described_iommus;
+#[cfg(test)]
 #[path = "../../../src/hardware/broker/confine/verdict.rs"]
 pub mod verdict;
 

@@ -21,7 +21,7 @@
 use super::super::le::u32_at;
 use alloc::vec::Vec;
 
-pub const NODE_MIN: usize = 20;
+pub(crate) const NODE_MIN: usize = 20;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ProcessorNode {
@@ -36,7 +36,7 @@ pub struct ProcessorNode {
 }
 
 /// None when the structure cannot hold the resources it counts.
-pub fn node(s: &[u8], offset: u32) -> Option<ProcessorNode> {
+pub(crate) fn node(s: &[u8], offset: u32) -> Option<ProcessorNode> {
     let n = u32_at(s, 16)? as usize;
     if n > (s.len() - NODE_MIN) / 4 {
         return None;

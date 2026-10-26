@@ -36,6 +36,10 @@ pub const NOTIFY_KIND_FULL_SCREEN: u32 = 2;
 /// Focus moved, by any path: `owner_pid` and `window_id` name the window
 /// focused now, both 0 when nothing has focus (focus/notice.rs).
 pub const NOTIFY_KIND_FOCUSED: u32 = 3;
+/// To a window's owner alone, never broadcast: that window has the keyboard
+/// now (`x` 1) or no longer has it (`x` 0). Sent on the same edge as
+/// NOTIFY_KIND_FOCUSED, the loser told first (focus/notice.rs keys_notices).
+pub const NOTIFY_KIND_KEYS: u32 = 4;
 
 pub fn encode_notify(
     out: &mut [u8; NOTIFY_LEN],

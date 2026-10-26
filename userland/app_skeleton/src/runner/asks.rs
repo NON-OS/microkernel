@@ -38,6 +38,6 @@ impl Asks {
 
 /// Follow both asks: full screen first, which a rect then stays out of.
 pub(super) fn follow<A: App>(booted: &mut BootedApp<A>, peers: &Peers, request_id: &mut u32) {
-    super::maximize::follow_ask(booted, peers, request_id);
+    super::window_ops::follow_ask(booted, peers, request_id);
     super::rect_follow::follow_rect(booted, peers, request_id);
 }

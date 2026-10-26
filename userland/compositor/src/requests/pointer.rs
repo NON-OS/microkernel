@@ -17,8 +17,9 @@
 //! FOCUS_SET and CURSOR_UPDATE: who has the keyboard, and where the
 //! pointer is drawn.
 
+use super::read::wide;
 use super::read::words;
-use crate::protocol::{CURSOR_UPDATE_REQ_LEN, FOCUS_SET_REQ_LEN};
+use crate::protocol::{CURSOR_SHAPE_REQ_LEN, CURSOR_UPDATE_REQ_LEN, FOCUS_SET_REQ_LEN};
 
 /// FOCUS_SET: the pid now focused; the padding word must be zero.
 pub fn focus_set(body: &[u8]) -> Option<u32> {
@@ -38,6 +39,14 @@ pub struct Cursor {
 pub fn cursor_update(body: &[u8]) -> Option<Cursor> {
     let [x, y, visible, pad] = words::<4, CURSOR_UPDATE_REQ_LEN>(body)?;
     (pad == 0).then_some(Cursor { x, y, visible: visible != 0 })
+}
+
+/// The surface a shape is asked for and the shape, which must be one the
+/// compositor draws (frame_pacer/cursor_shapes.rs).
+pub fn cursor_shape(body: &[u8]) -> Option<(u64, u8)> {
+    let [lo, hi, code, pad] = words::<4, CURSOR_SHAPE_REQ_LEN>(body)?;
+    let known = code <= crate::frame_pacer::cursor_shapes::NESW_CODE as u32;
+    (pad == 0 && known).then_some((wide(lo, hi), code as u8))
 }
 
 impl Cursor {

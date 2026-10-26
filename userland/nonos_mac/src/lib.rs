@@ -32,9 +32,15 @@
 #![cfg_attr(not(test), no_std)]
 
 mod local;
+pub mod resend;
+pub mod resend_cell;
 
 #[cfg(kani)]
 mod proofs;
+#[cfg(test)]
+mod resend_tests;
+#[cfg(test)]
+mod resend_wire_tests;
 #[cfg(test)]
 mod tests;
 

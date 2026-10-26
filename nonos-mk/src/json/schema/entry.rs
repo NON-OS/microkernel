@@ -28,9 +28,12 @@ pub struct EntryJson {
     pub publisher_pubkey: String,
     pub publisher_eth_address: String,
     pub description: String,
+    /// The BLAKE3 of the listing's logo raster in hex, "" for none (schema 4).
+    #[serde(default)]
+    pub logo_hash: String,
     pub price: PriceJson,
     pub token: TokenJson,
-    /// Required to encode: the encoder writes schema 3 only. Absent when a
+    /// Required to encode: the encoder writes schema 4 only. Absent when a
     /// schema 2 blob is inspected.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub commerce: Option<CommerceJson>,

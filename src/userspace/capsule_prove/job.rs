@@ -68,8 +68,6 @@ pub fn spawn_prove_job(kind: JobKind, asker: u32) -> Result<u32, SpawnError> {
         debug_tag: b"[PROVE-JOB] elf error:",
     };
     let pid = spawn_verified(&spec, &trust, None)?;
-    crate::process::with_process(pid, |pcb| {
-        *pcb.argv.lock() = job_argv(kind, asker);
-    });
+    let _ = crate::process::set_argv(pid, job_argv(kind, asker));
     Ok(pid)
 }

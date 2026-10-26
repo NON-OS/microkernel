@@ -26,7 +26,6 @@ pub mod spin_verdict;
 pub mod spin_watch;
 #[cfg(test)]
 mod tests;
-#[allow(dead_code)]
 #[path = "../../../../src/process/userspace/constants.rs"]
 pub mod user_constants;
 #[cfg(test)]

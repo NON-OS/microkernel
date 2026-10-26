@@ -45,6 +45,8 @@ mod seen_line;
 mod select;
 pub mod store_copy;
 mod types;
+mod volume_rule;
+mod volume_scope;
 mod wait;
 mod wait_since;
 pub mod wire;
@@ -62,4 +64,5 @@ pub use placed::{plan_lba, read_plan_sector, read_store, write_plan_sector, writ
 pub use read::read;
 pub use select::selected;
 pub use types::BlockGeometry;
+pub use volume_scope::{disk_caller_admitted, volume_scope, VolumeScope};
 pub use write::write;

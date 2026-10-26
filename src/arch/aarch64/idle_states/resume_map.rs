@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The boot check that a core coming back from a powerdown state can run
-//! its stub one to one under the root it turns its MMU on with. Made once;
-//! until it passes, and if it fails, no powerdown state is asked for.
+//! its resume entry one to one under the root it turns its MMU on with.
+//! Made once; until it passes, and if it fails, no powerdown state is asked
+//! for.
 
 use core::sync::atomic::{AtomicBool, Ordering};
 
@@ -42,8 +43,9 @@ fn span(from: unsafe extern "C" fn(), to: unsafe extern "C" fn()) -> (u64, u64) 
     (image_pa(from as u64), image_pa(to as u64))
 }
 
-/// Check the stub, and the rest of the resume too while the kernel still
-/// runs one to one; on success powerdown states may be used. Why not, else.
+/// Check the resume entry, and the rest of the resume too while the kernel
+/// still runs one to one; on success powerdown states may be used. Why not,
+/// else.
 pub(super) fn verify() -> Result<(), &'static [u8]> {
     let root = published_root().ok_or(&b"no MMU record for a core to come back with"[..])?;
     let reach = |pa: u64| {

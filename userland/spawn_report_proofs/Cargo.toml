@@ -1,0 +1,16 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs that init says its capsules spawned only when none
+# failed: the boot's failure count, which errors it counts, the line init ends
+# its spawns with, and the boot checks that read that line as a failure. The
+# kernel's own source is included via #[path].
+[package]
+name = "spawn_report_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

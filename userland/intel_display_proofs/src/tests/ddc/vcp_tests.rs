@@ -35,7 +35,7 @@ fn only_four_controls_are_spoken_of_and_only_those_the_display_names() {
     }
     let some = Caps::parse(b"(vcp(10))").unwrap();
     assert_eq!(may_read(0x10, &some), Ok(()));
-    assert_eq!(may_read(0x12, &some), Err(DdcError::Unsupported), "not named");
+    assert_eq!(may_read(0x12, &some), Err(DdcError::NotOffered), "not named");
 }
 
 #[test]

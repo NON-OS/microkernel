@@ -28,7 +28,6 @@ mod acpi;
 mod bring_up;
 mod feature;
 // Shared with HID over I2C, whose frame dump this driver does not make.
-#[allow(dead_code)]
 #[path = "../../capsule_driver_i2c_hid/src/diag.rs"]
 mod diag;
 mod hid;
@@ -40,8 +39,7 @@ mod setup;
 mod shape;
 mod spi;
 // The state HID over I2C kept before its own moved to its reset recovery and
-// interrupt pacing; its bus address and register fields go unread here.
-#[allow(dead_code)]
+// interrupt pacing.
 mod state;
 
 use nonos_libc::{heap_init, mk_exit, say_absent, EXIT_ABSENT};
@@ -56,7 +54,7 @@ pub unsafe extern "C" fn _start() -> ! {
         mk_exit(1);
     }
     match setup::run() {
-        Ok(link) => run::run(link, state::State::new(0, 0)),
+        Ok(link) => run::run(link, state::State::new()),
         Err(why) => {
             diag::line(alloc::format!("{why}\n"));
             say_absent(DRIVER);

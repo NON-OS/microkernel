@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::error::DriverAhciError;
-use crate::services::caps::{has_capability, CAP_DRIVER, CAP_STORAGE};
 
 pub(super) fn gate_call() -> Result<u32, DriverAhciError> {
     let pid = match crate::process::current_pid() {
@@ -24,11 +23,12 @@ pub(super) fn gate_call() -> Result<u32, DriverAhciError> {
     };
     /*
      * The same authority as the virtio-blk client: a driver, or the holder of
-     * the store (vfs persisting packages, the data volume's readers). Without
+     * the store (vfs persisting packages), or the data volume's own I/O
+     * (block_device::volume_rule). Without
      * the second, a machine whose only disk sat behind this controller
      * refused every store write from vfs and every data volume read.
      */
-    if !has_capability(pid, CAP_DRIVER) && !has_capability(pid, CAP_STORAGE) {
+    if !crate::hardware::block_device::disk_caller_admitted(pid) {
         return Err(DriverAhciError::AccessDenied);
     }
     Ok(pid)

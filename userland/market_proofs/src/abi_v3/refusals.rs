@@ -39,7 +39,8 @@ fn a_byte_after_the_signature_is_refused() {
 #[test]
 fn an_unknown_price_kind_is_not_free() {
     let mut b = blob(sold());
-    let at = find(&b, b"DESC") + 4;
+    // The price follows the description and, from schema 4, the logo hash.
+    let at = find(&b, b"DESC") + 4 + 32;
     b[at] = 9;
     assert_eq!(decode(&b).err(), Some(DecodeError::UnknownKind));
 }

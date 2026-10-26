@@ -38,7 +38,7 @@ const SLOTS: usize = 64;
 #[no_mangle]
 static AARCH64_SPIN_STACKS: [AtomicU64; 2 * SLOTS] = [const { AtomicU64::new(0) }; 2 * SLOTS];
 
-/// Give the CPU with `affinity` its stack, in the table its entry stub reads.
+/// Give the CPU with `affinity` its stack, in the table its entry code reads.
 pub(super) fn assign_stack(
     slot: usize,
     affinity: u64,

@@ -20,7 +20,11 @@
 //! (`stand_in`).
 
 #![cfg(test)]
-#![allow(dead_code)]
 
 include!("mount.rs");
 mod tests;
+
+// The capability tokens' nonces, which only the unit tests draw; only the
+// crypto paths they use matter.
+#[path = "../../../src/capabilities/token/nonce.rs"]
+pub mod nonce;
