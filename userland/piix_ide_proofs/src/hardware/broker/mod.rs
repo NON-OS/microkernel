@@ -19,11 +19,13 @@
 //! record types it names (`device`).
 
 pub mod device;
-#[allow(dead_code)] // the proofs place IDE windows; DISPI's ids go unread
 #[path = "../../../../../src/hardware/broker/legacy/mod.rs"]
 mod legacy;
 
 pub use device::{Bar, DeviceRecord};
+
+#[cfg(test)]
+mod fixed_flags_tests;
 
 /// The kernel's `legacy::attach` on a PCI record of `class`, `subclass` and
 /// `progif` holding `bars`, its count `span`: what the broker lists.

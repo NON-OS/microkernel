@@ -69,6 +69,6 @@ pub mod route;
 #[cfg(test)]
 mod router_desk;
 #[cfg(test)]
-mod router_tests;
+pub mod router_tests;
 #[cfg(test)]
 mod tests;

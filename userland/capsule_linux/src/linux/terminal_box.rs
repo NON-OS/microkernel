@@ -42,11 +42,12 @@ pub(super) fn program<'a>(parts: &mut impl Iterator<Item = &'a [u8]>) -> Option<
         }
         first = parts.next().filter(|p| !p.is_empty());
         super::selftest_panic::maybe(first);
-    } else if net_role {
-        /* The network role, started with no box: nothing runs. */
-        say(alloc::format!("linux: --box refused: {}\n", crate::linux::boxed::NO_LIST).as_bytes());
-        return None;
     }
+    /*
+     * The network role with no box is the kernel's ticket for a program
+     * whose own policy grants NET_ANON (run_net.rs): the policy is bound
+     * and app::net_step runs nothing else.
+     */
     if first.is_none() {
         say(USAGE);
     }

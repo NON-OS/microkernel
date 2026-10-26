@@ -40,7 +40,6 @@ pub(in crate::hardware::broker) mod ids {
     /// A platform GPIO community controller enumerated from ACPI. The input
     /// driver claims the community a touchpad's GpioInt names and maps its
     /// MMIO window to poll the pad's interrupt status register.
-    #[allow(dead_code)] // ABI id on every arch; only x86's ACPI enumerator records it
     pub(in crate::hardware::broker) const GPIO_CTRL: u32 = 0x0080;
     pub(in crate::hardware::broker) const OTHER: u32 = 0xFFFF;
 }

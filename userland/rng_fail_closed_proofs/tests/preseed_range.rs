@@ -16,8 +16,6 @@
 
 //! Through random_range, random_u32 and random_u64.
 
-#![allow(dead_code, clippy::let_unit_value)]
-
 include!("../src/mount.rs");
 
 fn said() -> String {

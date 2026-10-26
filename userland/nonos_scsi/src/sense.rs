@@ -74,7 +74,7 @@ pub fn verdict(s: Sense) -> Verdict {
         (NOT_READY, 0x04, 0x01) => Verdict::Retry,
         // Medium not present.
         (NOT_READY, 0x3A, _) => Verdict::Fail(E_NOMEDIUM),
-        // Logical block address out of range; logical unit not supported.
+        // Logical block address out of range (21h); no such logical unit (25h).
         (ILLEGAL_REQUEST, 0x21, _) | (ILLEGAL_REQUEST, 0x25, _) => Verdict::Fail(E_NXIO),
         (ILLEGAL_REQUEST, _, _) => Verdict::Fail(E_INVAL),
         (DATA_PROTECT, _, _) => Verdict::Fail(E_ROFS),
@@ -83,7 +83,7 @@ pub fn verdict(s: Sense) -> Verdict {
 }
 
 /// Invalid command operation code: the target does not have the command.
-pub fn unsupported(s: Sense) -> bool {
+pub fn invalid_opcode(s: Sense) -> bool {
     s.key == ILLEGAL_REQUEST && s.asc == 0x20
 }
 
@@ -144,7 +144,7 @@ mod tests {
         assert_eq!(v(ILLEGAL_REQUEST, 0x25, 0), Verdict::Fail(-6));
         assert_eq!(v(ILLEGAL_REQUEST, 0x24, 0), Verdict::Fail(-22));
         assert_eq!(v(DATA_PROTECT, 0x27, 0), Verdict::Fail(-30));
-        assert!(unsupported(Sense { key: ILLEGAL_REQUEST, asc: 0x20, ascq: 0 }));
-        assert!(!unsupported(Sense { key: ILLEGAL_REQUEST, asc: 0x24, ascq: 0 }));
+        assert!(invalid_opcode(Sense { key: ILLEGAL_REQUEST, asc: 0x20, ascq: 0 }));
+        assert!(!invalid_opcode(Sense { key: ILLEGAL_REQUEST, asc: 0x24, ascq: 0 }));
     }
 }
