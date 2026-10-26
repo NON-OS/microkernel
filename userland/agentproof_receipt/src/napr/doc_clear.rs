@@ -48,3 +48,10 @@ pub fn clear(kernel_doc: &[u8]) -> Option<Vec<u8>> {
     out.extend_from_slice(rest);
     Some(out)
 }
+
+/// The kernel doc's event log, where the receipt's capsules are walked from.
+pub fn log_of(kernel_doc: &[u8]) -> Option<&[u8]> {
+    let len = kernel_doc.get(LOG_AT..LOG_AT + 4)?;
+    let n = u32::from_be_bytes([len[0], len[1], len[2], len[3]]) as usize;
+    kernel_doc.get(LOG_AT + 4..LOG_AT.checked_add(4)?.checked_add(n)?)
+}

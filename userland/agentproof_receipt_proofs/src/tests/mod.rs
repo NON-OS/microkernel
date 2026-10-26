@@ -20,6 +20,8 @@ mod doc_refusals;
 mod encoding;
 mod pin;
 mod refusals;
+mod release;
+mod release_walk;
 mod registry;
 mod says;
 mod sweep;

@@ -41,9 +41,11 @@ agentproof_policy = { path = "../agentproof_policy" }
 nonos_linux_policy = { path = "../nonos_linux_policy", default-features = false }
 nonos_proof_abi = { path = "../nonos_proof_abi" }
 nsh_attest = { path = "../nsh_attest", optional = true }
+# PCR 14's replay, in SHA-256 as the TPM's bank holds it.
+nonos_hash = { path = "../nonos_hash", optional = true }
 
 [features]
 # The writer alone is what a capsule builds (capsule_prove's receipt job);
 # the verifier, its trust file and its CLI need nsh_attest.
 default = ["verify"]
-verify = ["dep:nsh_attest"]
+verify = ["dep:nsh_attest", "dep:nonos_hash"]

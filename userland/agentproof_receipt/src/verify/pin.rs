@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Trust on first use: the trust file a receipt would verify under, taken
-//! from that receipt. Its AK, its release's PCR 8, 9 and 14, and the
+//! from that receipt. Its AK, its release's PCR 8 and 9, and the
 //! supervisor that sealed its record are pinned as they are, and the trust
 //! is given only once the receipt verifies under it, so every check but
 //! "this AK, release and supervisor are ones I trust" has passed. That one
@@ -41,12 +41,7 @@ pub fn pin(bytes: &[u8]) -> Result<Trust, Refusal> {
     let pcr = |i: u8| doc.pcr(i).copied().ok_or(Refusal::Release);
     let record = decode_record(r.record).ok_or(Refusal::Record)?;
     let trust = Trust {
-        releases: vec![Release {
-            version: String::from(FIRST_USE),
-            pcr8: pcr(8)?,
-            pcr9: pcr(9)?,
-            pcr14: pcr(14)?,
-        }],
+        releases: vec![Release { version: String::from(FIRST_USE), pcr8: pcr(8)?, pcr9: pcr(9)? }],
         supervisors: vec![Supervisor { meas: record.sup_meas, caps: record.sup_caps }],
         ak: *doc.ak_public,
     };
