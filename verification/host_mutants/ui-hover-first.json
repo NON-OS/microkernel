@@ -1,0 +1,38 @@
+[
+  {
+    "name": "leave-waits-for-the-count",
+    "file": "userland/capsule_input_router/src/route/pointer/hover_motion.rs",
+    "old": "        ctx.hover = None;\n        // The event that leaves a window may be the first into another: it\n        // asks now, so the window entered never waits on the count below.\n        return rehover(ctx, None, event, x, y, now);\n",
+    "new": "        ctx.hover = None;\n",
+    "crate": "userland/input_proofs",
+    "test": "hover_first",
+    "args": ["--release"]
+  },
+  {
+    "name": "skipped-motion-not-owed",
+    "file": "userland/capsule_input_router/src/route/pointer/hover_motion.rs",
+    "old": "ctx.hover_owed = Some((*event, x, y));",
+    "new": "ctx.hover_owed = None;",
+    "crate": "userland/input_proofs",
+    "test": "hover_first",
+    "args": ["--release"]
+  },
+  {
+    "name": "an-ask-leaves-the-debt",
+    "file": "userland/capsule_input_router/src/route/pointer/hover_motion.rs",
+    "old": "    ctx.hover_owed = None;\n    let shell = shell_pid(ctx);",
+    "new": "    let shell = shell_pid(ctx);",
+    "crate": "userland/input_proofs",
+    "test": "hover_first",
+    "args": ["--release"]
+  },
+  {
+    "name": "no-cap",
+    "file": "userland/capsule_input_router/src/route/pointer/hover_motion.rs",
+    "old": "const REQUERY_EVERY: u32 = 4;",
+    "new": "const REQUERY_EVERY: u32 = 1;",
+    "crate": "userland/input_proofs",
+    "test": "hover_first",
+    "args": ["--release"]
+  }
+]

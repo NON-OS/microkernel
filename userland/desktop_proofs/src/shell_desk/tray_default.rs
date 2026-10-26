@@ -14,16 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The tray table's `Default`, the proofs' alone: the shell builds its one
-//! table with the const `new` and wants no other way to make one.
-
-use super::tray::TrayTable;
-
-impl Default for TrayTable {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+//! The tray table's `Default` (state/tray/table.rs) is the empty table the
+//! const `new` makes.
 
 #[cfg(test)]
 mod tests {

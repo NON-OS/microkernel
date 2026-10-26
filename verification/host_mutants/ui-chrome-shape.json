@@ -1,0 +1,68 @@
+[
+  {
+    "name": "withdraw-refused",
+    "file": "userland/compositor/src/requests/pointer.rs",
+    "old": "CURSOR_WITHDRAW => None,",
+    "new": "CURSOR_WITHDRAW => return None,",
+    "crate": "userland/compositor_proofs",
+    "test": "cursor_overlay",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "withdraw-keeps-the-say",
+    "file": "userland/compositor/src/state/scene/set_cursor.rs",
+    "old": "        l.cursor = code;",
+    "new": "        l.cursor = code.or(l.cursor);",
+    "crate": "userland/compositor_proofs",
+    "test": "cursor_overlay",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "faint-is-the-shells",
+    "file": "userland/capsule_desktop_shell/src/state/ctx/pointer_shape.rs",
+    "old": "pixel >> 24 >= OWN_ALPHA",
+    "new": "pixel >> 24 > OWN_ALPHA",
+    "crate": "userland/desktop_proofs",
+    "test": "pointer_shape",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "told-every-pass",
+    "file": "userland/capsule_desktop_shell/src/state/ctx/pointer_shape.rs",
+    "old": "(self.said != Some(over)).then_some(over)",
+    "new": "Some(over)",
+    "crate": "userland/desktop_proofs",
+    "test": "pointer_shape",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "not-synced",
+    "file": "userland/capsule_desktop_shell/src/server/runner/run.rs",
+    "old": "        crate::server::pointer_shape::sync(&mut ctx);\n",
+    "new": "",
+    "crate": "userland/desktop_proofs",
+    "test": "pointer_shape",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "pointer-not-recorded",
+    "file": "userland/capsule_desktop_shell/src/server/input/pointer.rs",
+    "old": "        ctx.pointer_shape.at = Some((x as u32, y as u32));\n",
+    "new": "",
+    "crate": "userland/desktop_proofs",
+    "test": "pointer_shape",
+    "args": [
+      "--release"
+    ]
+  }
+]
