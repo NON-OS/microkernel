@@ -30,11 +30,9 @@ pub mod reopen;
 #[path = "window_table.rs"]
 pub mod table;
 
-// The capsule's own layout: window/mod.rs holds window/window.rs as `window`.
-#[allow(clippy::module_inception)]
-#[path = "../../capsule_wm/src/window/window.rs"]
-pub mod window;
+#[path = "../../capsule_wm/src/window/record.rs"]
+pub mod record;
 
 pub use kind::{from_u32 as kind_from_u32, Kind};
+pub use record::{Visibility, Window};
 pub use table::WindowTable;
-pub use window::{Visibility, Window};
