@@ -20,10 +20,12 @@ use super::scene::Layer;
 use crate::frame_pacer::cursor_shapes::ARROW_CODE;
 
 /// The shape of the topmost of `layers`, given bottom to top, that holds
-/// (x, y); the arrow when none does.
+/// (x, y) and has asked for one; the arrow when none has. The shell's chrome
+/// covers the whole display over every window and asks for none, so it never
+/// hides the shape of the window under its transparent pixels.
 pub fn shape_at<'a>(layers: impl DoubleEndedIterator<Item = &'a Layer>, x: u32, y: u32) -> u8 {
     let holds = |l: &&Layer| x >= l.x && y >= l.y && x - l.x < l.width && y - l.y < l.height;
-    layers.rev().find(holds).map_or(ARROW_CODE, |l| l.cursor)
+    layers.rev().filter(holds).find_map(|l| l.cursor).unwrap_or(ARROW_CODE)
 }
 
 /// How far any shape reaches above and left of its hot spot.
