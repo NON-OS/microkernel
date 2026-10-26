@@ -31,8 +31,8 @@ mod input_mask;
 mod register_overlay;
 #[path = "../../../capsule_desktop_shell/src/setup/prime/run/require_status.rs"]
 mod require_status;
-#[path = "../../../capsule_desktop_shell/src/setup/prime/run/run.rs"]
-mod run;
+#[path = "../../../capsule_desktop_shell/src/setup/prime/run/steps.rs"]
+mod steps;
 #[path = "../../../capsule_desktop_shell/src/setup/prime/run/subscribe_input.rs"]
 mod subscribe_input;
 #[path = "../../../capsule_desktop_shell/src/setup/prime/run/subscribe_input_router.rs"]
@@ -40,6 +40,6 @@ mod subscribe_input_router;
 #[path = "../../../capsule_desktop_shell/src/setup/prime/run/subscribe_wm.rs"]
 mod subscribe_wm;
 
-pub use run::run;
+pub use steps::run;
 pub use subscribe_input::subscribe_input;
 pub use subscribe_wm::subscribe_wm;

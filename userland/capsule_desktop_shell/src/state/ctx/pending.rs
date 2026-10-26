@@ -39,6 +39,12 @@ pub struct Pending {
     pub pending_delete: crate::state::delete_prompt::DeletePrompt,
 }
 
+impl Default for Pending {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Pending {
     pub fn new() -> Self {
         Pending {
