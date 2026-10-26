@@ -24,8 +24,9 @@ use crate::namespace::Id;
 
 #[derive(Debug)]
 pub enum MoveError {
-    /// D1 or D2 on a device with neither _PSx nor _PRx for it.
-    Unsupported,
+    /// D1 or D2 on a device with neither _PSx nor _PRx for it: the device
+    /// has no such state.
+    NoSuchState,
     /// Between two low-power states: the device goes back to D0 first.
     NotFromD0,
     Fault(crate::exec::Fault),
@@ -35,7 +36,7 @@ pub(super) fn refused(aml: &Aml, dev: Id, from: DState, to: DState) -> Option<Mo
     let defines = |s| aml.ns.child(dev, s).is_some();
     let shallow = matches!(to, DState::D1 | DState::D2);
     if shallow && !(defines(to.ps()) || to.pr().is_some_and(defines)) {
-        return Some(MoveError::Unsupported);
+        return Some(MoveError::NoSuchState);
     }
     (from != DState::D0 && to != DState::D0 && from != to).then_some(MoveError::NotFromD0)
 }

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub(super) const fn required_entropy_bytes(bits: usize) -> usize {
-    if bits % 8 == 0 {
+    if bits.is_multiple_of(8) {
         bits / 8
     } else {
         (bits / 8) + 1

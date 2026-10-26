@@ -48,7 +48,6 @@ pub fn release_for_device(pid: u32, device_id: u64, epoch: u64) -> usize {
 /// A device that left while `pid` held it: every grant leaves the device's
 /// domain and is scrubbed; the holder's pages come out of its own tables as
 /// `teardown` finds them, or with its address space.
-#[allow(dead_code)] // the ACPI broker (x86 only) and the VMBus channels
 pub fn revoke_for_device(pid: u32, device_id: u64, epoch: u64) -> usize {
     let drained = drain::drain_for_device(pid, device_id, epoch);
     for g in &drained {

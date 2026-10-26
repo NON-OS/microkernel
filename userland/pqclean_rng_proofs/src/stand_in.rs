@@ -40,8 +40,7 @@ pub fn fail_draws(at: Option<(u64, bool)>) {
     DRAWS.with(|d| *d.borrow_mut() = (0, at));
 }
 
-#[allow(clippy::result_unit_err)]
-pub fn fill_random_bytes_secure(buf: &mut [u8]) -> Result<(), ()> {
+pub(crate) fn fill_random_bytes_secure(buf: &mut [u8]) -> Result<(), ()> {
     let fail = DRAWS.with(|d| {
         let mut d = d.borrow_mut();
         d.0 += 1;
@@ -59,4 +58,5 @@ pub fn fill_random_bytes(buf: &mut [u8]) {
     buf.iter_mut().enumerate().for_each(|(i, b)| *b = (i as u8).wrapping_mul(97) ^ 0x5a);
 }
 
-pub use crate::stand_in_hw::{entropy_works, get_entropy64_secure, SERIAL};
+pub(crate) use crate::stand_in_hw::get_entropy64_secure;
+pub use crate::stand_in_hw::{entropy_works, SERIAL};
