@@ -27,6 +27,9 @@
 //! Ctrl+Alt+T opens the Terminal or brings it forward. The focused window
 //! never sees it, but it is not reserved: under a grab or a hold it goes where
 //! every key goes, and the shell never answers it over a prompt.
+//!
+//! Alt+Tab moves focus to the next window (Shift+Alt+Tab, the one before),
+//! the switcher the shell draws. Like Ctrl+Alt+T it goes over focus only.
 
 /// nonos_libc INPUT_KIND_KEY_DOWN.
 const KEY_DOWN: u16 = 0;
@@ -59,4 +62,13 @@ const KEY_T_UP: u32 = b'T' as u32;
 pub fn is_terminal_chord(kind: u16, code: u32, flags: u16) -> bool {
     let t = code == KEY_T || code == KEY_T_UP;
     kind == KEY_DOWN && t && flags & MOD_CTRL != 0 && flags & MOD_ALT != 0
+}
+
+/// The tab key's code (app_skeleton input/keys.rs KEY_TAB).
+const KEY_TAB: u32 = 0x09;
+
+/// Whether a key event is the press of the window switcher's chord: Tab with
+/// Alt and without Ctrl, so Ctrl+Tab and Ctrl+Alt+Tab stay the window's.
+pub fn is_switch_chord(kind: u16, code: u32, flags: u16) -> bool {
+    kind == KEY_DOWN && code == KEY_TAB && flags & MOD_ALT != 0 && flags & MOD_CTRL == 0
 }

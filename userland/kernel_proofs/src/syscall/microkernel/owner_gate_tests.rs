@@ -19,7 +19,12 @@
 //! the twelve that once took the Admin bit alone among them, are the
 //! owner's; and the shared ones are not.
 
-use super::owner_gate::{owner_only, OWNER_ONLY, SHARED};
+use super::owner_gate::{owner_only, OWNER_ONLY};
+
+/// Read by others, each under its own gate: device names by enumerators
+/// (a holder question only for the owner, see `asker`), USB port and NUMA
+/// facts by drivers, the measured tables by attestation readers.
+const SHARED: [[u8; 4]; 7] = [*b"MADN", *b"MUPF", *b"MNNO", *b"MNDS", *b"MDNN", *b"MNHM", *b"MAMT"];
 
 pub(super) const DISPATCH: &str =
     include_str!("../../../../../src/syscall/microkernel/acpi/dispatch.rs");

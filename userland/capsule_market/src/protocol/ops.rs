@@ -16,6 +16,6 @@
 
 /* The op numbers its clients send, from the one place they are defined. */
 pub(in super::super) use nonos_market_proto::{
-    OP_GET_APP, OP_GET_COMMERCE, OP_GET_LINUX_POLICY, OP_GET_RELEASE, OP_HEALTHCHECK,
+    OP_GET_APP, OP_GET_COMMERCE, OP_GET_LINUX_POLICY, OP_GET_LOGO, OP_GET_RELEASE, OP_HEALTHCHECK,
     OP_INSTALL_READY, OP_LIST_APPS, OP_LOAD_INDEX,
 };

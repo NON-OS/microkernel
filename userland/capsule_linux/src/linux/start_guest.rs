@@ -49,6 +49,10 @@ pub(super) fn start(guest: &mut Guest, launch: Launch) -> Result<(), &'static [u
     super::seal_note::seal_app(&guest.app.app_id);
     super::run_net::settle(guest.app.mask)?;
     super::app::grant(guest.app.mask);
+    let (listing, program) = (&guest.app.policy.listing_id, &guest.app.policy.program_blake3);
+    if super::app::home() && !super::file::open_home(super::app::home_key(listing, program)) {
+        return Err(&b"[LINUX] its home could not be opened\n"[..]);
+    }
     let (image, entry, interp_base) = image::program(guest, bytes).map_err(|e| e.why())?;
     guest.map(STACK_TOP - STACK_SIZE, STACK_SIZE, true, false);
     let mut argv = alloc::vec![launch.argv0.clone().unwrap_or_else(|| path.to_vec())];

@@ -5,13 +5,13 @@
 //! after an error, the bytes that came where they belong, and as the lie
 //! must leave it.
 
-use crate::bot_parts::bot::command;
-use crate::bot_parts::types::{Data, Disk};
 use crate::bot_sweep::build::{Ans, Cmd, Dir};
 use crate::bot_sweep::lie::{run as sound_run, tell, Want, LIES};
 use crate::bot_sweep::model::{rule, Seen};
 use crate::bot_sweep::rng::{rounds, Rng};
 use crate::descriptors::MscBinding;
+use crate::disk::bot::command;
+use crate::disk::types::{Data, Disk};
 use crate::state::State;
 use crate::xhci::{cbw_takes, device, script, Answer};
 

@@ -26,7 +26,7 @@ pub fn find(fdt: &Fdt) -> Result<Option<u64>, FdtError> {
     let mut in_cpus = false;
     let mut child_freq: Option<u64> = None;
 
-    while let Some(event) = walker.next()? {
+    while let Some(event) = walker.next_event()? {
         match event {
             Event::BeginNode { name, .. } => {
                 depth += 1;

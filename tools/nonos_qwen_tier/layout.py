@@ -14,11 +14,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """Where each file of a tier is served: the NONOS model repository first,
-then the Qwen team's own file on Hugging Face as the fallback.
+then the publisher's own file on Hugging Face as the fallback.
 
 The repository's layout is fixed: <base>/<tier>/<file>, the tier word as
-the signed pins give it and the file under the name the Qwen team publishes
-it by (upstream.py), so a mirror is the tree `mirror` writes, served as it
+the signed pins give it and the file under the name its publisher gives
+it (upstream.py), so a mirror is the tree `mirror` writes, served as it
 is by any HTTPS server. The base is what the
 operator passes as --nonos-mirror; no hostname is assumed.
 """

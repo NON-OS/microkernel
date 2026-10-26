@@ -17,8 +17,8 @@
 //! NCMP 0x0009 DISPLAY_HINT: its body, and the rule that only a service in
 //! the kernel's HINT_SOURCES may send one.
 
+use super::display_hints::HINT_SOURCES;
 use crate::display::hint_rule::{allowed, Hint, SOURCE_VMMDEV, SOURCE_VMWARE};
-use crate::displays::HINT_SOURCES;
 
 fn body(output: u32, w: u32, h: u32, source: u32) -> Vec<u8> {
     [output, w, h, source].iter().flat_map(|v| v.to_le_bytes()).collect()

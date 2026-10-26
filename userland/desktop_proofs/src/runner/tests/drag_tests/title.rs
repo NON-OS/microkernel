@@ -26,7 +26,7 @@ fn a_press_on_the_title_bar_starts_a_drag_with_nothing_before_it() {
     let mut s = DragState::new();
     press(&mut s, 300, 25);
     assert!(s.active, "the first event the window sees is the press, and it drags");
-    let a = drag::handle(&mut s, W, H, 100, 100, false, &event(InputKind::PointerAbs, 340, 75));
+    let a = drag::handle(&mut s, (W, H), (100, 100), false, &event(InputKind::PointerAbs, 340, 75));
     assert_eq!(moved(a), Some((140, 150)), "the window moves by the pointer's delta");
 }
 
@@ -34,7 +34,8 @@ fn a_press_on_the_title_bar_starts_a_drag_with_nothing_before_it() {
 fn a_drag_never_puts_the_title_bar_under_the_menubar() {
     let mut s = DragState::new();
     press(&mut s, 300, 25);
-    let a = drag::handle(&mut s, W, H, 100, 100, false, &event(InputKind::PointerAbs, 300, -400));
+    let a =
+        drag::handle(&mut s, (W, H), (100, 100), false, &event(InputKind::PointerAbs, 300, -400));
     let (_, y) = moved(a).expect("a move");
     assert_eq!(y, super::super::super::chrome::MENUBAR_H);
 }
@@ -43,9 +44,10 @@ fn a_drag_never_puts_the_title_bar_under_the_menubar() {
 fn a_release_ends_the_drag() {
     let mut s = DragState::new();
     press(&mut s, 300, 25);
-    drag::handle(&mut s, W, H, 100, 100, false, &event(InputKind::ButtonUp, 320, 40));
+    drag::handle(&mut s, (W, H), (100, 100), false, &event(InputKind::ButtonUp, 320, 40));
     assert!(!s.active);
-    let a = drag::handle(&mut s, W, H, 100, 100, false, &event(InputKind::PointerAbs, 500, 200));
+    let a =
+        drag::handle(&mut s, (W, H), (100, 100), false, &event(InputKind::PointerAbs, 500, 200));
     assert!(moved(a).is_none(), "motion after the release is hover, not a drag");
 }
 

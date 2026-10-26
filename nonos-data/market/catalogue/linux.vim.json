@@ -1,5 +1,5 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "operator_id": "nonos.marketplace.v1",
   "published_at_ms": 1792844669000,
   "serial": 1792844669,
@@ -12,6 +12,7 @@
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "The classic modal editor, with its full runtime of syntax files and plugins.",
+      "logo_hash": "621cd01f40b9dbccfd004f15863e74f75d126aa1460a20087d7e46ac59723748",
       "price": {
         "kind": "free",
         "amount_atomic": "0",

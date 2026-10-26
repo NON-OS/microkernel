@@ -39,8 +39,8 @@ pub struct Register {
 }
 
 impl Register {
-    /// _CPC's way of saying a register is not implemented (8.4.6.1): a
-    /// descriptor whose every field is zero.
+    /// _CPC's way of saying the platform gives no such register (8.4.6.1):
+    /// a descriptor whose every field is zero.
     pub fn is_null(&self) -> bool {
         *self == Register::default()
     }

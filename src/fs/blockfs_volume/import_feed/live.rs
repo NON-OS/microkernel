@@ -72,21 +72,3 @@ impl Live {
 }
 
 pub(super) static LIVE: Mutex<Option<Live>> = Mutex::new(None);
-
-/*
- * `f`, run while no stream is coming to `name`, with the stream lock held so
- * none can begin under it; Importing when one is. The stream lock is always
- * taken before the volume's, as a feed takes them.
- */
-pub(in super::super) fn without_stream<R>(
-    name: &[u8],
-    f: impl FnOnce() -> Result<R, super::super::error::VolumeError>,
-) -> Result<R, super::super::error::VolumeError> {
-    let live = crate::smp::lock_responsive(&LIVE);
-    if live.as_ref().is_some_and(|l| &l.name[..l.name_len] == name) {
-        return Err(super::super::error::VolumeError::Importing);
-    }
-    let done = f();
-    drop(live);
-    done
-}

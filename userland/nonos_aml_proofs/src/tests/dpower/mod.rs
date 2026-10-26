@@ -30,6 +30,5 @@ mod wake_rig;
 mod wake_tests;
 // The capsule's own sweep, by path, proven against the real disarm;
 // its read check is the capsule's proofs'.
-#[allow(dead_code)]
 #[path = "../../../../capsule_acpi/src/dpower/wake_sweep.rs"]
 mod wake_sweep;

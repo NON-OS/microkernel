@@ -24,6 +24,7 @@ pub mod sha256;
 mod sha3;
 // SHA-1 needed for WPA compatibility
 pub mod sha1;
+mod sha1_tpm;
 
 pub type Hash256 = [u8; 32];
 
@@ -33,6 +34,7 @@ pub use hkdf_sha384::{hkdf_expand_sha384, hkdf_extract_sha384};
 pub use hmac::{hmac_sha256, hmac_verify};
 pub use hmac_sha384::{hmac_sha384, hmac_sha384_verify};
 pub use ripemd160::ripemd160;
+pub(crate) use sha1_tpm::tpm_bank_sha1;
 pub use sha256::sha256;
 pub use sha3::sha3_256_hash;
 

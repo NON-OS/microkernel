@@ -16,9 +16,9 @@
 
 mod align;
 mod event;
+mod pass;
 mod read;
 mod step;
-mod walker;
 
 pub use event::Event;
-pub use walker::Walker;
+pub use pass::Walker;

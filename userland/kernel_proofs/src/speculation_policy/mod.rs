@@ -21,8 +21,8 @@
  */
 
 #[path = "../../../../src/security/hardening/spectre_mitigations/constants.rs"]
-#[allow(dead_code)]
 pub mod constants;
+mod msr_tests;
 #[path = "../../../../src/security/hardening/spectre_mitigations/policy.rs"]
 pub mod policy;
 mod tests;
