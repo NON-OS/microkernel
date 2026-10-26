@@ -38,4 +38,7 @@ pub(super) fn init_arch_framebuffer(handoff: &KernelHandoff) {
         #[cfg(target_arch = "riscv64")]
         ArchSpecificHandoff::Riscv64 { .. } => {}
     }
+    // The first point the kernel can draw: a boot the IOMMU posture refused
+    // stops here, its line on the panel, before any process exists.
+    crate::memory::iommu::stop_if_no_iommu_refused();
 }
