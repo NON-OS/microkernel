@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-attest")]
-pub(crate) const ATTEST_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(crate) const ATTEST_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_attest/target/",
     env!("NONOS_USER_TARGET"),
     "/release/attest"
