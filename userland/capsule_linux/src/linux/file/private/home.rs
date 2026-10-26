@@ -37,7 +37,7 @@ static KEY: Key = Key(RefCell::new(None));
 
 /// The store root of the home `key` names: its first 128 bits, so a guest
 /// path under it keeps most of the store's 255 bytes.
-pub fn root_of(key: &[u8; 32]) -> Vec<u8> {
+fn root_of(key: &[u8; 32]) -> Vec<u8> {
     let mut out = [HOMES, b"/"].concat();
     out.extend(key[..16].iter().flat_map(|b| alloc::format!("{b:02x}").into_bytes()));
     out
