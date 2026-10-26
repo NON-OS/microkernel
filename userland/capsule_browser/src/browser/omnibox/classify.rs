@@ -53,6 +53,8 @@ pub fn classify(input: &str, search: &str) -> Nav {
                 return Nav::Url(s.to_string());
             }
         }
+        // Another scheme:// (file, ftp) is gone to and refused there, not searched.
+        Some(name) if s[name.len()..].starts_with("://") => return Nav::Url(s.to_string()),
         Some(_) => {}
         None if !s.contains(char::is_whitespace) => {
             let plain = match host_kind(&s[..stop]) {

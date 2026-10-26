@@ -23,7 +23,9 @@
 //! come in between and what it kept is thrown away. A reader that took the
 //! count after a write finds that write's sector held, and every fetch
 //! sends what is held before it reads, so it cannot see the sector's older
-//! contents either.
+//! contents either. A reader never meets another caller's held sector at
+//! all: readers are kept out while a writer is in, and whatever a writer
+//! leaves held is dropped as it leaves (drop_held).
 
 use core::sync::atomic::{AtomicU64, Ordering};
 
