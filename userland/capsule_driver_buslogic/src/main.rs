@@ -46,6 +46,9 @@ const EXIT_HEAP_INIT: i32 = 1;
 /// resets the adapter, gives it its mailboxes and scans the targets, giving
 /// everything back when a step fails; the attempts are bounded and slept
 /// between. An adapter with nothing on it is given back too.
+///
+/// # Safety
+/// The kernel enters here once, on the capsule's own fresh stack.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {

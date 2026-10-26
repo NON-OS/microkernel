@@ -44,6 +44,9 @@ const DRIVER: &[u8] = b"driver.vmbus";
 /// With it, each attempt claims the root, contacts the host and gathers
 /// the offers, giving everything back when a step fails; the attempts are
 /// bounded and slept between.
+///
+/// # Safety
+/// The kernel enters here once, on the capsule's own fresh stack.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     let mut driver = match start_driver(DRIVER, discover::find(), |id| setup::run(*id)) {
