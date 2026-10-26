@@ -56,6 +56,7 @@ The panels, in sidebar order:
 |---|---|
 | `Default network` | The route the [Browser](browser.md) starts on, and the one Music downloads and the Terminal's `curl` and `git` take: `Nym mixnet`, `Anyone network` or `Direct`. A route never falls back to another. |
 | `Connection`, `IP address`, `Gateway`, `DNS` | What the DHCP client holds, read live. |
+| `Network address` | Where the wired card's address came from, as its driver says. On Hyper-V: `Private, new each boot`, or `Assigned by Hyper-V` with the line under it: Hyper-V drops a chosen address unless MAC spoofing is on for this VM's adapter. Empty for a card that always uses the address it drew for the boot. |
 | `Wireless adapter` | The name of the first wireless controller on the PCI bus, or `None detected`. It names the adapter only; it does not say NONOS drives it. |
 
 The note under `Default network` says Qwen downloads take it. They do not in this release: model downloads take the Anyone network whatever this row says, unless you ask for one download to go direct, and the wallet turns a `Direct` choice into Nym or Anyone. See [Privacy networks](privacy-network.md) for what each route hides and costs.
@@ -151,7 +152,7 @@ The panel shows no "signed" badge: Settings cannot check the image's signature i
 The policy store keeps its values in memory.
 
 - On an amnesic boot, the default, every change is gone at power off.
-- On a machine where `Keep data across reboots` is on, the policy store writes the values it keeps to `/nonos/settings/values` about a second after your last change, and puts them back at the next boot after setup's answers.
+- On a machine where `Keep data across reboots` is on, the policy store writes the values it keeps to `/nonos/settings/values` about a second after your last change, and puts them back at the next boot after setup's answers. Until they are back, a program asking for one of them gets no answer yet, rather than the default.
 
 ## Where this comes from
 

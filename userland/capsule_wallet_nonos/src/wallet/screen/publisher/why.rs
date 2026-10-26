@@ -28,7 +28,7 @@ pub fn why(w: Why) -> &'static str {
         Why::NotAnAddress => "that is not one address: 0x and 40 hex digits",
         Why::Checksum => "that mixes cases without the address's checksum; check every digit",
         Why::ZeroAgent => "the zero address delivers nothing",
-        Why::Locked => "the bond is not unlocked yet",
+        Why::Locked => "the bond is still locked",
         Why::NoCredit => "the Bond holds no credit for this account",
         Why::Uri => "the uri is https, at most 256 bytes, with no user, password or port",
         Why::Schema2 => "this is a schema 2 release, which is never signed under v3",
