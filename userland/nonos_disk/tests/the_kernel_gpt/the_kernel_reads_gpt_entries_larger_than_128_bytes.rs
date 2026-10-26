@@ -18,25 +18,9 @@
 //! as 128 x 2^n (as recalled, unverified): believed, and each entry read
 //! for the first 128 bytes, where every field the kernel reads lies.
 
-extern crate alloc;
-
-#[path = "common/entropy.rs"]
-mod entropy;
-#[path = "common/files.rs"]
-mod files;
-#[path = "common/gpt_damage.rs"]
-mod gpt_damage;
-#[path = "common/kernel_gpt/mod.rs"]
-#[allow(dead_code, unused_imports)]
-mod kernel_gpt;
-#[path = "common/mem_disk.rs"]
-mod mem_disk;
-#[path = "common/written.rs"]
-mod written;
-
-use gpt_damage::{put, seal, table, T};
-use kernel_gpt::{entries, header};
-use kernel_gpt::Which;
+use crate::gpt_damage::{put, seal, table, T};
+use crate::kernel_gpt::Which;
+use crate::kernel_gpt::{entries, header};
 
 #[test]
 fn entries_of_256_bytes_are_read_for_their_first_128() {
@@ -53,6 +37,7 @@ fn entries_of_256_bytes_are_read_for_their_first_128() {
     put(&mut h, 80, 64, 4);
     put(&mut h, 84, 256, 4);
     seal(&mut h, &wide);
-    let hd = header::parse_as(&h, T, Which::Primary).expect("64 entries of 256 bytes fill the same 32 sectors");
+    let hd = header::parse_as(&h, T, Which::Primary)
+        .expect("64 entries of 256 bytes fill the same 32 sectors");
     assert_eq!(entries(&hd, &wide).unwrap(), want);
 }
