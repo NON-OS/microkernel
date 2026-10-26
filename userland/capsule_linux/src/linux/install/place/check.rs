@@ -69,5 +69,5 @@ fn refuse(pkg: &str, member: &[u8], why: &str) -> Result<(), Why> {
     let member = alloc::string::String::from_utf8_lossy(member);
     let line = format!("[LINUX] {pkg}: refused member {member}: {why}; nothing of it is written\n");
     let _ = mk_debug(line.as_ptr(), line.len());
-    Err(Why::Package)
+    Err(Why::PACKAGE)
 }
