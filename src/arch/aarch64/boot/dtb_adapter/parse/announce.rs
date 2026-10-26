@@ -32,6 +32,6 @@ pub(super) fn model(fdt: &Fdt) {
             *out = byte;
         }
     }
-    serial::print(b"[DT] model: ");
-    serial::println(&line[..len]);
+    let mut l = serial::Line::new();
+    l.str(b"[DT] model: ").str(&line[..len]).end();
 }

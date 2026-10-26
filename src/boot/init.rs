@@ -34,15 +34,10 @@ pub fn init_panic_handler() {}
 // `boot::stage1::serial_print` is gated off; the trusted-path serial
 // sink is `crate::sys::serial::print`, the same byte-stream the panic
 // path already uses.
-struct SerialWriter;
-impl Write for SerialWriter {
-    fn write_str(&mut self, s: &str) -> core::fmt::Result {
-        crate::sys::serial::print(s.as_bytes());
-        Ok(())
-    }
-}
-
+/* serial_print!: formatted into one Line and written whole. */
 #[inline]
 pub fn serial_print_wrapper(args: core::fmt::Arguments) {
-    let _ = SerialWriter.write_fmt(args);
+    let mut l = crate::sys::serial::Line::new();
+    let _ = l.write_fmt(args);
+    l.end_text();
 }

@@ -28,9 +28,8 @@ use crate::boot::handoff::{boot_profile, BootProfile};
 
 pub(crate) fn apply() {
     let profile = boot_profile();
-    for part in [b"[INIT] boot profile: ".as_slice(), profile.name().as_bytes(), b"\n"] {
-        crate::sys::serial::print(part);
-    }
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[INIT] boot profile: ").str(profile.name().as_bytes()).end();
     super::gate::withhold(withheld(profile));
 }
 
