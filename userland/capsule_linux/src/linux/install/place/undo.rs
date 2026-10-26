@@ -55,5 +55,5 @@ pub(super) fn partial(landed: &[Vec<u8>], failed: usize) -> Why {
         n => format!("{n} file(s)"),
     };
     undo(landed, &what);
-    Why::Partial
+    Why::PARTIAL
 }
