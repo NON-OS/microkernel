@@ -53,10 +53,10 @@ pub fn mk_proc_stat(buf: *mut u8, max: u32) -> i64 {
     let rows = (max as usize).min(PROCS.len());
     // SAFETY: the caller hands room for a header and `max` rows, as the
     // real call requires; both are plain integers written unaligned.
+    let (head, row) = (size_of::<ProcStatHeader>(), size_of::<ProcStatEntry>());
     unsafe {
-        core::ptr::write_unaligned(buf as *mut ProcStatHeader, header());
-        let at = buf.add(size_of::<ProcStatHeader>()) as *mut ProcStatEntry;
-        (0..rows).for_each(|i| core::ptr::write_unaligned(at.add(i), entry(i)));
+        crate::user_mem::put(buf as usize, header());
+        (0..rows).for_each(|i| crate::user_mem::put(buf as usize + head + i * row, entry(i)));
     }
     rows as i64
 }

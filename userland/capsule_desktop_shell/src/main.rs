@@ -20,6 +20,8 @@
 extern crate alloc;
 
 mod apps_off;
+mod bench;
+mod bench_line;
 mod compositor_client;
 mod frametime;
 mod input_router_client;
@@ -44,6 +46,7 @@ pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(1);
     }
+    bench::began();
     let ctx = wait_for_setup::wait_for_setup();
     server::run(ctx);
 }

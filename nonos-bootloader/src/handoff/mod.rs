@@ -24,7 +24,9 @@ pub mod types;
 
 pub use bootinfo::{build_bootinfo, BootInfoParams, BootModeFlags, ZeroStateBootInfo};
 pub use exit::exit_and_jump;
-pub use jump::{copy_memory_map, finalize_mmap, jump_to_kernel, settle_delay, MemoryMapEntry};
+#[cfg(target_arch = "x86_64")]
+pub use jump::jump_to_kernel;
+pub use jump::{copy_memory_map, finalize_mmap, settle_delay, MemoryMapEntry};
 pub use prepare::{
     allocate_handoff_resources, build_handoff_flags, detect_cpu_security_features,
     estimate_tsc_frequency, HandoffAllocations,

@@ -41,12 +41,20 @@ pub fn cursor_update(body: &[u8]) -> Option<Cursor> {
     (pad == 0).then_some(Cursor { x, y, visible: visible != 0 })
 }
 
+/// The code that withdraws a surface's say in the shape: the pointer over it
+/// takes the shape of what lies under it again (state/cursor_pick.rs).
+pub const CURSOR_WITHDRAW: u32 = 0xFF;
+
 /// The surface a shape is asked for and the shape, which must be one the
-/// compositor draws (frame_pacer/cursor_shapes.rs).
-pub fn cursor_shape(body: &[u8]) -> Option<(u64, u8)> {
+/// compositor draws (frame_pacer/cursor_shapes.rs), or None to withdraw.
+pub fn cursor_shape(body: &[u8]) -> Option<(u64, Option<u8>)> {
     let [lo, hi, code, pad] = words::<4, CURSOR_SHAPE_REQ_LEN>(body)?;
-    let known = code <= crate::frame_pacer::cursor_shapes::NESW_CODE as u32;
-    (pad == 0 && known).then_some((wide(lo, hi), code as u8))
+    let shape = match code {
+        CURSOR_WITHDRAW => None,
+        c if c <= crate::frame_pacer::cursor_shapes::NESW_CODE as u32 => Some(c as u8),
+        _ => return None,
+    };
+    (pad == 0).then_some((wide(lo, hi), shape))
 }
 
 impl Cursor {

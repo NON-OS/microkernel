@@ -20,9 +20,6 @@
 //! call (the procstat header, the worker handoff, the deadline) are mounted
 //! as they are.
 
-// Every call keeps libc's signature, raw pointers taken by safe functions.
-#![allow(clippy::not_unsafe_ptr_arg_deref)]
-
 mod attest;
 pub mod boot_attest;
 mod calls;
@@ -34,6 +31,7 @@ mod quiet;
 mod seat;
 mod surface;
 mod time;
+mod user_mem;
 
 #[path = "../../../libc/src/thread/handoff.rs"]
 mod handoff;

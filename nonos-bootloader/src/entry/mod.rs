@@ -21,6 +21,7 @@ mod boot_evidence;
 mod dev;
 mod init;
 mod install_source;
+mod loader_path;
 mod mode;
 mod pipeline;
 mod proofs;

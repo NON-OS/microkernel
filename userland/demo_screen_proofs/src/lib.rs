@@ -25,8 +25,6 @@ extern crate alloc;
 
 pub mod desk;
 
-// Their crates set their own lint bar; clippy here holds the harness alone.
-#[allow(dead_code, clippy::all)] // and the event and tick paths a picture never takes
 #[path = "../../capsule_about/src/about/mod.rs"]
 pub mod about;
 
