@@ -16,27 +16,19 @@
 
 //! The logger's start and its shutdown wipe.
 
-use super::state::{LogManager, LOGGER};
+use super::state::LOGGER;
 
+/// Start the logger's backends, once, from boot as soon as the heap is up
+/// (every log macro formats into the heap). The RAM log needs no start.
+/// There is no screen backend: the kernel's one x86 entry is the NONOS
+/// loader's UEFI handoff, whose console is the GOP framebuffer, so no VGA
+/// text console exists to mirror the log onto. The serial echo is the
+/// attack suite's and the serial-debug images' (backend/serial.rs).
 pub fn init() {
-    let mut l = LOGGER.lock();
-    let mgr = LogManager::new();
-    // Only x86 has a text-mode console to mirror the log onto.
-    #[cfg(target_arch = "x86_64")]
-    let mgr = {
-        let mut mgr = mgr;
-        mgr.add_backend(alloc::boxed::Box::new(crate::log::backend::VgaBackend));
-        mgr
-    };
-    // The attack suite's boot, and every image that shows capsule output on
-    // serial, read the kernel's refusals there, budgeted (backend/serial.rs).
     #[cfg(any(feature = "nonos-capsule-attack", feature = "capsule-serial-debug"))]
-    let mgr = {
-        let mut mgr = mgr;
+    if let Some(mgr) = LOGGER.lock().as_mut() {
         mgr.add_backend(alloc::boxed::Box::new(crate::log::backend::SerialBackend::new()));
-        mgr
-    };
-    *l = Some(mgr);
+    }
 }
 
 /// The shutdown wipe's: overwrite what the logger holds in RAM. It never

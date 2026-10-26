@@ -18,12 +18,8 @@ mod ram_buffer;
 #[cfg(any(feature = "nonos-capsule-attack", feature = "capsule-serial-debug"))]
 mod serial;
 mod traits;
-#[cfg(target_arch = "x86_64")]
-mod vga;
 
 pub use ram_buffer::{RamBufferBackend, RAM_BUF_SIZE};
 #[cfg(any(feature = "nonos-capsule-attack", feature = "capsule-serial-debug"))]
 pub use serial::SerialBackend;
 pub use traits::LogBackend;
-#[cfg(target_arch = "x86_64")]
-pub use vga::VgaBackend;
