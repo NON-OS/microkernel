@@ -26,3 +26,6 @@
 pub const HOME: u64 = 16 << 20;
 pub const HOME_NAMES: u64 = 128;
 pub const HOMES: u64 = 64 << 20;
+// The store keeps 2048 names and a 320 MiB heap for every capsule: the
+// build itself holds the ceilings inside it.
+const _: () = assert!(HOMES <= 64 << 20 && HOME <= HOMES && HOME_NAMES <= 128);

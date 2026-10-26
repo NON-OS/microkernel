@@ -52,9 +52,3 @@ fn the_home_and_the_scratch_are_held_apart() {
     assert_eq!(allows(k(0, 0), k(PRIVATE, 1)), Ok(()));
     assert_eq!(home_allows(k(HOME, 1), k(HOME, 1), (HOME, HOME)), Ok(()));
 }
-
-#[test]
-fn the_ceilings_fit_the_store() {
-    // The store keeps 2048 names and a 320 MiB heap for every capsule.
-    assert!(HOMES <= 64 << 20 && HOME <= HOMES && HOME_NAMES <= 128);
-}
