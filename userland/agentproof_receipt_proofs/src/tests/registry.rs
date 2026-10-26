@@ -30,7 +30,7 @@ use crate::fixture::Fixture;
 fn with_entries(f: &mut Fixture, entries: &[u8]) -> Vec<u8> {
     let honest = f.bytes();
     let r = parse(&honest).unwrap();
-    write::finish(r.bound.to_vec(), r.doc, entries)
+    write::finish(r.bound.to_vec(), r.doc, entries, r.capsules)
 }
 
 #[test]

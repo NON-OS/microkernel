@@ -17,8 +17,10 @@
 //! `MkSealRead(app_id, buf, len, pid)`: nonos.prove takes the newest final
 //! record sealed for an app, as record | witness | measurement list. The
 //! record is dropped as it is read, so one sealed run yields at most one
-//! proof. With app_id 0 it is the live form (plan/15): the family `pid`
-//! supervises, as it stands, for DELIVER; nothing is dropped.
+//! proof; a receipt peeks and then drops instead (sys_keep.rs), so each
+//! record is consumed once either way. With app_id 0 it is the live form
+//! (plan/15): the family `pid` supervises, as it stands, for DELIVER;
+//! nothing is dropped.
 
 use alloc::vec::Vec;
 
@@ -63,7 +65,7 @@ pub(crate) fn sys_seal_read(app_id_ptr: u64, out_ptr: u64, out_len: u64, pid: u6
 }
 
 /// The copy holds the witness: cleared whether or not the write went through.
-fn write(out_ptr: u64, mut bytes: Vec<u8>) -> i64 {
+pub(super) fn write(out_ptr: u64, mut bytes: Vec<u8>) -> i64 {
     let n = match crate::usercopy::write_user_bytes(out_ptr, &bytes) {
         Ok(()) => i64::try_from(bytes.len()).unwrap_or(ERRNO_FAULT),
         Err(_) => ERRNO_FAULT,
