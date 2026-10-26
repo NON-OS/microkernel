@@ -21,5 +21,7 @@
 pub mod answer;
 #[path = "../../../capsule_prove/src/job/exit_rule.rs"]
 pub mod exit_rule;
+#[path = "../../../capsule_prove/src/job/seen.rs"]
+pub mod seen;
 #[path = "../../../capsule_prove/src/job/state.rs"]
 pub mod state;
