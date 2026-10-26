@@ -31,6 +31,7 @@ impl SceneTable {
                 stack: 0,
                 in_use: false,
                 miss_count: 0,
+                cursor: 0,
             }; MAX_LAYERS],
             count: 0,
             next_stack: 1,

@@ -18,6 +18,7 @@ mod accessory;
 mod control_rect;
 mod controls;
 mod edges;
+mod edges_cursor;
 mod frame_rect;
 mod glyph;
 mod hit_test;
@@ -35,6 +36,7 @@ pub use accessory::{accessory_rect, accessory_rect_at};
 pub use control_rect::{control_rect, control_rect_at, controls_left_at, CONTROLS};
 pub use controls::draw_controls_at;
 pub use edges::{edges_at, Edges, EDGE_PX, TOP_EDGE_PX};
+pub use edges_cursor::{ARROW_CURSOR, EW_CURSOR, NESW_CURSOR, NS_CURSOR, NWSE_CURSOR};
 pub use frame_rect::{
     border_at, frame_rect, frame_rect_at, margin, margin_at, radius, radius_at, titlebar_h_at,
 };

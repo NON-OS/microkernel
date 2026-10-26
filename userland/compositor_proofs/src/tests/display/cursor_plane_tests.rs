@@ -17,6 +17,7 @@
 //! The arrow a device's cursor plane shows, drawn into a primary's slot.
 use crate::frame_pacer::cursor::{FILL, OUTLINE};
 use crate::frame_pacer::cursor_shape::{draw_shape, shape_side, SIDE, SLOT};
+use crate::frame_pacer::cursor_shapes::ARROW_CODE;
 
 fn px(slot: &[u8], x: usize, y: usize) -> u32 {
     let at = (y * SIDE + x) * 4;
@@ -26,20 +27,20 @@ fn px(slot: &[u8], x: usize, y: usize) -> u32 {
 #[test]
 fn the_arrow_is_drawn_on_a_clear_slot_its_tip_at_the_corner() {
     let mut slot = vec![0xEEu8; SLOT];
-    assert_eq!(draw_shape(&mut slot, 1), Some(()));
+    assert_eq!(draw_shape(&mut slot, 1, ARROW_CODE), Some(()));
     assert_eq!((px(&slot, 0, 0), px(&slot, 1, 2), px(&slot, 2, 2)), (OUTLINE, FILL, OUTLINE));
     assert_eq!((px(&slot, 1, 0), px(&slot, 63, 63)), (0, 0), "transparent, not left over");
-    assert_eq!(shape_side(1), (11, 19));
-    assert_eq!(draw_shape(&mut slot[..SLOT - 1], 1), None, "a short slot is refused");
+    assert_eq!(shape_side(1, ARROW_CODE), (11, 19));
+    assert_eq!(draw_shape(&mut slot[..SLOT - 1], 1, ARROW_CODE), None, "a short slot is refused");
 }
 
 #[test]
 fn a_scaled_screen_gets_a_scaled_arrow_that_still_fits() {
     let mut slot = vec![0u8; SLOT];
-    draw_shape(&mut slot, 2);
+    draw_shape(&mut slot, 2, ARROW_CODE);
     assert_eq!((px(&slot, 1, 1), px(&slot, 0, 4), px(&slot, 3, 5)), (OUTLINE, OUTLINE, FILL));
-    assert_eq!(shape_side(2), (22, 38));
-    draw_shape(&mut slot, 9);
-    assert_eq!(shape_side(9), (33, 57), "three a pixel at most: 19 rows in 64");
+    assert_eq!(shape_side(2, ARROW_CODE), (22, 38));
+    draw_shape(&mut slot, 9, ARROW_CODE);
+    assert_eq!(shape_side(9, ARROW_CODE), (33, 57), "three a pixel at most: 19 rows in 64");
     assert!((57..SIDE).all(|y| (0..SIDE).all(|x| px(&slot, x, y) == 0)));
 }

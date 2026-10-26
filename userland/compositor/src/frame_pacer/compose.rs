@@ -51,14 +51,9 @@ pub fn compose<K: SurfaceKernel>(
         sw_blitter::composite_layer(dst, *src, layer.x, layer.y, layer.width, layer.height, rect);
     }
     if let Some((x, y)) = cursor {
-        crate::frame_pacer::cursor::blit(
-            dst.base_va,
-            dst.stride,
-            dst.width,
-            dst.height,
-            x,
-            y,
-            rect,
-        );
+        let drawn = layers.iter().take(count).map(|(l, _)| l).filter(|l| l.z < s.ceiling);
+        let code = crate::state::cursor_pick::shape_at(drawn, x, y);
+        let size = (dst.width, dst.height);
+        crate::frame_pacer::cursor::blit_shape(dst.base_va, dst.stride, size, (x, y), code, rect);
     }
 }

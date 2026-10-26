@@ -29,6 +29,9 @@ pub(in crate::runner) struct DragState {
     pub(in crate::runner) base_y: u32,
     /// The edges a resize holds, the rect it started from, and where it is.
     pub(in crate::runner) resizing: Option<(Edges, Placed, Placed)>,
+    /// The pointer's shape the frame under it wants, and the one last asked
+    /// of the compositor (window_ops/tell_cursor.rs).
+    pub(in crate::runner) cursor: (u8, u8),
 }
 
 impl DragState {
@@ -42,6 +45,7 @@ impl DragState {
             base_x: 0,
             base_y: 0,
             resizing: None,
+            cursor: (0, 0),
         }
     }
 }

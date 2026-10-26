@@ -48,5 +48,9 @@ pub(super) fn service_frame<A: App>(
         window_id,
         request_id,
     );
-    apply(booted, peers, request_id, result)
+    if apply(booted, peers, request_id, result) {
+        return true;
+    }
+    super::window_ops::tell_cursor(booted, peers, request_id);
+    false
 }

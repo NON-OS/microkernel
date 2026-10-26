@@ -21,9 +21,11 @@ mod move_window;
 mod place_window;
 mod resize_window;
 mod restore;
+mod tell_cursor;
 
 pub(in crate::runner) use maximize::{follow_ask, toggle};
 pub(in crate::runner) use move_window::apply_move;
 pub(in crate::runner) use place_window::apply_place;
 pub(in crate::runner) use resize_window::apply_resize;
 pub(in crate::runner) use restore::restore;
+pub(in crate::runner) use tell_cursor::tell_cursor;

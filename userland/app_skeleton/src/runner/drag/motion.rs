@@ -17,7 +17,7 @@
 //! leave (nothing is reallocated until the release), a held title bar moves
 //! the window, and otherwise the control under the pointer lights.
 
-use nonos_toolkit::decorations::{hit_test_at, reshaped, DecorationHit};
+use nonos_toolkit::decorations::{edges_at, hit_test_at, reshaped, DecorationHit, Edges};
 
 use super::super::min_size::{MIN_H, MIN_W};
 use super::state::{DragState, PointerAction};
@@ -44,11 +44,16 @@ pub(in crate::runner) fn motion(
         let ny = state.base_y as i64 + travel.1;
         return PointerAction::MoveTo(nx.max(0) as u32, ny.max(top as i64) as u32);
     }
-    let hit = if event.x >= 0 && event.y >= 0 {
-        hit_test_at(width, height, maximized, event.x as u32, event.y as u32, quarters)
+    let (hit, edges) = if event.x >= 0 && event.y >= 0 {
+        let (x, y) = (event.x as u32, event.y as u32);
+        (
+            hit_test_at(width, height, maximized, x, y, quarters),
+            edges_at(width, height, maximized, x, y, quarters),
+        )
     } else {
-        DecorationHit::None
+        (DecorationHit::None, Edges::default())
     };
+    state.cursor.0 = edges.cursor();
     if hit == state.hover {
         return PointerAction::None;
     }
