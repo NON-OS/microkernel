@@ -38,15 +38,7 @@ pub(super) fn service_frame<A: App>(
     super::asks::follow(booted, peers, request_id);
     let frame = Frame::of(&booted.binding, booted.maximized);
     let (window_id, wm) = (booted.manifest.window_id, peers.wm);
-    let result = drain(
-        &mut booted.app,
-        &mut booted.drag,
-        &mut booted.held,
-        rx,
-        frame,
-        wm,
-        window_id,
-        request_id,
-    );
+    let ids = (wm, window_id, &mut *request_id);
+    let result = drain(&mut booted.app, &mut booted.drag, &mut booted.held, rx, frame, ids);
     apply(booted, peers, request_id, result)
 }

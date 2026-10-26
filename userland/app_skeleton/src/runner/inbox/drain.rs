@@ -26,16 +26,14 @@ use super::result::{DrainResult, Frame};
 
 /// Take every message waiting, in order, and say what the frame loop must do.
 /// A close, minimise or maximise ends the drain there; the rest gather.
-#[allow(clippy::too_many_arguments)]
+/// `wm` is the WM's port, the window and the request id.
 pub(in crate::runner) fn drain<A: App>(
     app: &mut A,
     drag_state: &mut DragState,
     held: &mut Option<Held>,
     rx: &mut [u8],
     frame: Frame,
-    wm_port: u32,
-    window_id: u32,
-    request_id: &mut u32,
+    (wm_port, window_id, request_id): (u32, u32, &mut u32),
 ) -> DrainResult {
     let mut out = DrainResult::default();
     loop {
