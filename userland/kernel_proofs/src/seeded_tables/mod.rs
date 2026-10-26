@@ -56,6 +56,7 @@ mod debug_tests;
 mod dmar_tests;
 mod fixed_tests;
 mod hmat_tests;
+mod ivrs_cap_tests;
 mod ivrs_tests;
 mod mcfg_tests;
 mod numa_tests;

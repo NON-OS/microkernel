@@ -57,8 +57,11 @@ fn a_ragged_empty_or_oversize_set_is_refused() {
     no(&Spec { entries: many, ..Spec::default() }.build());
 }
 
+/// The flag is outside the quote: changed after signing, the quote and
+/// binding still hold, so only its own check refuses it, and a 1 proves
+/// nothing (the kernel writes 1 always, and quotes only when complete).
 #[test]
-fn an_incomplete_registry_is_refused() {
+fn the_unbound_completeness_flag_is_held_to_1_and_nothing_else() {
     let s = Spec { doc: |p| p.flags[0] = 0, ..Spec::default() };
     assert_eq!(refused(s), Refusal::RegistryIncomplete);
 }

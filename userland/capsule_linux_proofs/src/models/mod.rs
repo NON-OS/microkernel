@@ -16,25 +16,29 @@
 
 //! The personality's pinned models, assembled for the host.
 
+#[path = "../../../capsule_linux/src/linux/install/apps.rs"]
+pub mod apps;
+#[path = "../../../capsule_linux/src/linux/install/apps_coder.rs"]
+pub mod apps_coder;
+#[path = "../../../capsule_linux/src/linux/install/apps_qwen25.rs"]
+pub mod apps_qwen25;
+#[path = "../../../capsule_linux/src/linux/install/apps_qwen3.rs"]
+pub mod apps_qwen3;
+#[path = "../../../capsule_linux/src/linux/install/apps_qwen35.rs"]
+pub mod apps_qwen35;
+#[path = "../../../capsule_linux/src/linux/install/chat_pick.rs"]
+pub mod chat_pick;
 #[path = "../../../capsule_linux/src/linux/file/models/hex.rs"]
 pub mod hex;
 #[path = "../../../capsule_linux/src/linux/file/models/pinned.rs"]
 pub mod pinned;
-#[path = "../../../capsule_linux/src/linux/install/apps.rs"]
-pub mod apps;
+#[path = "../../../capsule_linux/src/linux/file/models/pinned_coder.rs"]
+pub mod pinned_coder;
 #[path = "../../../capsule_linux/src/linux/file/models/pinned_qwen25.rs"]
 pub mod pinned_qwen25;
 #[path = "../../../capsule_linux/src/linux/file/models/pinned_qwen25_big.rs"]
 pub mod pinned_qwen25_big;
 #[path = "../../../capsule_linux/src/linux/file/models/pinned_qwen3.rs"]
 pub mod pinned_qwen3;
-#[path = "../../../capsule_linux/src/linux/file/models/pinned_coder.rs"]
-pub mod pinned_coder;
-#[path = "../../../capsule_linux/src/linux/install/apps_qwen25.rs"]
-pub mod apps_qwen25;
-#[path = "../../../capsule_linux/src/linux/install/apps_qwen3.rs"]
-pub mod apps_qwen3;
-#[path = "../../../capsule_linux/src/linux/install/apps_coder.rs"]
-pub mod apps_coder;
-#[path = "../../../capsule_linux/src/linux/install/chat_pick.rs"]
-pub mod chat_pick;
+#[path = "../../../capsule_linux/src/linux/file/models/pinned_qwen35.rs"]
+pub mod pinned_qwen35;
