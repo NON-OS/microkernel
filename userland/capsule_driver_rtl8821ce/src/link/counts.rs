@@ -44,6 +44,8 @@ pub struct LinkStats {
     /// Times the rings were reset because the card stopped reading the
     /// transmit ring.
     pub tx_resets: u32,
+    /// Probes and SA Queries the station's watch sent: the AP went quiet.
+    pub watch_sends: u32,
 }
 
 impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {

@@ -3,6 +3,8 @@ use alloc::vec::Vec;
 
 use nonos_libc::mk_ipc_call;
 
+use super::placement::Placement;
+
 const MAGIC: u32 = 0x4E43_4D50;
 const VERSION: u16 = 1;
 const HDR_LEN: usize = 20;
@@ -46,19 +48,15 @@ pub fn push_scene_submit(
     port: u32,
     request_id: u32,
     surface_handle: u64,
-    x: u32,
-    y: u32,
-    width: u32,
-    height: u32,
-    z: u32,
+    at: &Placement,
 ) -> Result<(), i32> {
     let mut tx = header(OP_SCENE_SUBMIT, request_id, SCENE_REQ_LEN as u32);
     tx.extend_from_slice(&surface_handle.to_le_bytes());
-    tx.extend_from_slice(&x.to_le_bytes());
-    tx.extend_from_slice(&y.to_le_bytes());
-    tx.extend_from_slice(&width.to_le_bytes());
-    tx.extend_from_slice(&height.to_le_bytes());
-    tx.extend_from_slice(&z.to_le_bytes());
+    tx.extend_from_slice(&at.x.to_le_bytes());
+    tx.extend_from_slice(&at.y.to_le_bytes());
+    tx.extend_from_slice(&at.width.to_le_bytes());
+    tx.extend_from_slice(&at.height.to_le_bytes());
+    tx.extend_from_slice(&at.z.to_le_bytes());
     tx.extend_from_slice(&0u32.to_le_bytes());
     call_status(port, &tx)
 }

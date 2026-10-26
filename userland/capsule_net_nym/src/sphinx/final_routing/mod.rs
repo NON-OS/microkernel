@@ -25,5 +25,4 @@ mod types;
 pub use add_padding::add_padding;
 pub use combine::combine_with_filler;
 pub use encrypt::encrypt_final;
-pub use padded_len::padded_len;
 pub use types::FinalRoutingInformation;

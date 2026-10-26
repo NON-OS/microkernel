@@ -22,7 +22,7 @@ mod types;
 pub use decode::decode_request;
 pub use encode::encode_response;
 pub use errno::{
-    EACCES, EBADF, EEXIST, EINVAL, EIO, EISDIR, EMSGSIZE, ENODEV, ENOENT, ENOSPC, ENOTEMPTY,
+    EACCES, EBADF, EBUSY, EEXIST, EINVAL, EIO, EISDIR, EMSGSIZE, ENODEV, ENOENT, ENOSPC, ENOTEMPTY,
     EUCLEAN,
 };
 pub use types::{

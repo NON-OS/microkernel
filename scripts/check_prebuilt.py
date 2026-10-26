@@ -25,7 +25,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 RULES, PINS = (ROOT / "scripts/baselines" / n for n in ("prebuilt.txt", "upstream.sha256"))
-EXTS = (".bin", ".der", ".pem", ".pub", ".efi", ".img", ".elf", ".ucode", ".o", ".a", ".so", ".wasm")
+EXTS = (".bin", ".der", ".pem", ".pub", ".efi", ".img", ".elf", ".ucode", ".pnvm", ".o", ".a", ".so", ".wasm")
 
 
 def lines(path):

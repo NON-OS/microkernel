@@ -28,9 +28,8 @@ impl PagingManager {
         // the root register carry an ASID or PCID rather than address, so they
         // are masked off the same way a descriptor's are.
         self.active_page_table = Some(PhysAddr::new(descriptor::address(read_root())));
-        crate::sys::serial::print(b"[VM] adopted root ");
-        crate::sys::serial::print_hex(descriptor::address(read_root()));
-        crate::sys::serial::println(b"");
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[VM] adopted root ").hex(descriptor::address(read_root())).end();
         self.initialized = true;
         self.create_kernel_address_space()?;
         Ok(())

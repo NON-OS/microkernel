@@ -20,8 +20,6 @@ use super::limits::GEOMETRY_LEN;
 
 /// The flags: bit 0 a removable medium, bit 1 one that may not be written,
 /// bit 2 a medium present. A fixed disk is only present.
-pub const REMOVABLE: u32 = 1 << 0;
-pub const READ_ONLY: u32 = 1 << 1;
 pub const MEDIA_PRESENT: u32 = 1 << 2;
 
 /// Write the body into `out[..GEOMETRY_LEN]`, little endian in wire order:

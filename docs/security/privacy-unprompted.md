@@ -38,7 +38,7 @@ Turn MAC spoofing on for the VM's adapter to keep the drawn address
 | `54.38.81.30`, `207.148.68.94`, `162.55.174.117` | `net_nym` | Layer-two mix nodes, the same | `Air-Gapped` boot |
 | `15.235.208.197`, `23.128.116.127`, `152.53.236.228` | `net_nym` | Layer-three mix nodes, the same | `Air-Gapped` boot |
 
-The directory's own address is pinned in `directory_sync/pinned.rs` and
+The directory's own name and address are pinned in
 `directory_sync/live.rs`; the gateways are in `state/bootstrap.rs`, the mix
 nodes in `state/bootstrap_mix/table.rs`. This machine never connects to a mix
 node: its packets are wrapped for them and handed to the gateway, which sends

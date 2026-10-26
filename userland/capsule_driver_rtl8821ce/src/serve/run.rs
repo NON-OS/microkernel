@@ -1,18 +1,4 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// NONOS Operating System (AGPL-3.0-or-later)
 
 //! The serving loop: one request answered per pass (answer.rs), then the
 //! link's clock and a step of the background scan (after.rs).
@@ -26,6 +12,7 @@ use crate::status;
 use super::after::after_pass;
 use super::answer::answer;
 use super::connect::{self, Session};
+use super::gone::check_gone;
 use super::radio::{build_radio, Radio};
 use super::scanner::Scanner;
 use super::tuning::{IDLE_TIMEOUT_MS, SERVICE_INBOX};
@@ -36,7 +23,7 @@ use super::Stage;
 /// service registered and answers the panel with the stage, which is the only
 /// diagnostic a machine without a serial port has.
 pub fn run(mapped: Option<Mapped>, stage: Stage) -> ! {
-    let (mut radio, stage) = build_radio(mapped, stage);
+    let (mut radio, mut stage) = build_radio(mapped, stage);
     /*
      * A warm reboot does not power the card down, so a BSSID and the linked
      * network type a join of the last boot set can still be in the MAC. The
@@ -71,5 +58,6 @@ pub fn run(mapped: Option<Mapped>, stage: Stage) -> ! {
             let _ = mk_ipc_reply(sender_pid, tx.as_ptr(), len);
         }
         after_pass(&mut radio, &mut session, &mut scanner);
+        check_gone(&mut radio, &mut session, &mut stage);
     }
 }

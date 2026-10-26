@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-net-dns")]
-pub(super) const NET_DNS_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(super) const NET_DNS_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_net_dns/target/",
     env!("NONOS_USER_TARGET"),
     "/release/net_dns"
@@ -33,6 +32,16 @@ pub(super) const NET_DNS_MANIFEST_BYTES: &[u8] =
 #[cfg(feature = "nonos-capsule-net-dns")]
 pub(super) const NET_DNS_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/net_dns.zk_trailer.bin");
+
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-net-dns")]
+const _: () = assert!(
+    !NET_DNS_ELF.is_empty()
+        && !NET_DNS_NONOS_ID_CERT_BYTES.is_empty()
+        && !NET_DNS_MANIFEST_BYTES.is_empty()
+        && !NET_DNS_ATTESTATION_BYTES.is_empty(),
+    "capsule_net_dns built in with an empty image"
+);
 
 #[cfg(not(feature = "nonos-capsule-net-dns"))]
 pub(super) const NET_DNS_ELF: &[u8] = &[];

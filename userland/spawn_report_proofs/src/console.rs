@@ -16,15 +16,26 @@ fn put(s: &str) {
 }
 
 pub mod serial {
-    pub fn print(b: &[u8]) {
-        super::put(&String::from_utf8_lossy(b));
-    }
-    pub fn println(b: &[u8]) {
-        print(b);
-        super::put("\n");
-    }
-    pub fn print_dec(v: u64) {
-        super::put(&v.to_string());
+    /// The kernel's line builder, reduced to what the report uses: the whole
+    /// line reaches the buffer in one write, newline included.
+    #[derive(Default)]
+    pub struct Line(String);
+
+    impl Line {
+        pub fn new() -> Self {
+            Self::default()
+        }
+        pub fn str(&mut self, b: &[u8]) -> &mut Self {
+            self.0.push_str(&String::from_utf8_lossy(b));
+            self
+        }
+        pub fn dec(&mut self, v: u64) -> &mut Self {
+            self.0.push_str(&v.to_string());
+            self
+        }
+        pub fn end(&self) {
+            super::put(&format!("{}\n", self.0));
+        }
     }
 }
 

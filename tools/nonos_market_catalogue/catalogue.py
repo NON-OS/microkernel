@@ -21,7 +21,7 @@ import sys
 from nonos_linux_pack.dests import dests_hash
 from nonos_linux_pack.policy import encode, listing_id, release_id
 
-from . import alpine_auth, apk
+from . import alpine_auth, apk, pack_size
 from .digest import blake3
 from .names import index_record
 from .records import entry, release
@@ -43,7 +43,8 @@ def one(recipe: dict, rec: dict, raw: bytes, key: str, when_ms: int) -> dict:
     if rec.get("L", "") != recipe.get("index_licence", recipe["licence"]):
         raise ValueError(f"the index now says {rec.get('L')!r}, the recipe {recipe['licence']!r}")
     files = alpine_auth.package_files(raw, alpine_auth.checksum(rec.get("C")))
-    found = apk.program(files, name)
+    pack_size.check(files)
+    found = apk.program(files, name, recipe.get("program", ""))
     if found is None:
         raise ValueError("the package has no program under usr/bin")
     app, rel_id = f"linux.{name}", f"{name}@{rec['V']}"

@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub fn emit_debug_diag(code: u64) {
-    crate::sys::serial::print(b"[MkDebug-DIAG ");
-    crate::sys::serial::print_hex(code);
-    crate::sys::serial::println(b"]");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[MkDebug-DIAG ").hex(code).str(b"]").end();
 }

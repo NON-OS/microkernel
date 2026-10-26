@@ -1,0 +1,50 @@
+[
+ {
+  "name": "msc-step-asking-gets-long",
+  "file": "userland/capsule_driver_usb_msc/src/scan/step_window.rs",
+  "old": "self.asking.is_some() || matches!",
+  "new": "matches!",
+  "test": "tests::",
+  "crate": "userland/usb_msc_proofs"
+ },
+ {
+  "name": "msc-step-served-gets-long",
+  "file": "userland/capsule_driver_usb_msc/src/scan/step_window.rs",
+  "old": "matches!(self.medium, Medium::Ready(_) | Medium::Checking(_))",
+  "new": "matches!(self.medium, Medium::Checking(_))",
+  "test": "tests::",
+  "crate": "userland/usb_msc_proofs"
+ },
+ {
+  "name": "msc-step-search-short",
+  "file": "userland/capsule_driver_usb_msc/src/scan/step_window.rs",
+  "old": "pub const SEARCH_STEP_MS: u64 = 15_000;",
+  "new": "pub const SEARCH_STEP_MS: u64 = 6_000;",
+  "test": "tests::",
+  "crate": "userland/usb_msc_proofs"
+ },
+ {
+  "name": "msc-step-search-past-kernel-wait",
+  "file": "userland/capsule_driver_usb_msc/src/scan/step_window.rs",
+  "old": "pub const SEARCH_STEP_MS: u64 = 15_000;",
+  "new": "pub const SEARCH_STEP_MS: u64 = 25_000;",
+  "test": "tests::",
+  "crate": "userland/usb_msc_proofs"
+ },
+ {
+  "name": "msc-step-windows-swapped",
+  "file": "userland/capsule_driver_usb_msc/src/scan/step_window.rs",
+  "old": "        if talks_to_a_device {\n            STEP_MS\n        } else {\n            SEARCH_STEP_MS\n        }",
+  "new": "        if talks_to_a_device {\n            SEARCH_STEP_MS\n        } else {\n            STEP_MS\n        }",
+  "test": "tests::",
+  "crate": "userland/usb_msc_proofs"
+ },
+ {
+  "name": "msc-step-serve-ignores-rule",
+  "file": "userland/capsule_driver_usb_msc/src/server/serve.rs",
+  "old": "Window::open(self.scanner.step_ms());",
+  "new": "Window::open(crate::scan::STEP_MS);",
+  "test": "tests::",
+  "crate": "userland/usb_msc_proofs"
+ }
+]
