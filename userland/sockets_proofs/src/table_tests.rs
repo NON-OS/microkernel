@@ -18,19 +18,10 @@
 //! ended without closing them.
 
 use std::collections::HashSet;
-use std::sync::{Mutex, MutexGuard};
 
 use crate::bounds::{PER_PID_MAX, TABLE_CAP};
+use crate::fresh_table::fresh;
 use crate::sockets::{Kind, SocketKey, SOCKETS};
-
-static SERIAL: Mutex<()> = Mutex::new(());
-
-/// The one table, emptied, for a proof that holds it for its whole run.
-fn fresh() -> MutexGuard<'static, ()> {
-    let g = SERIAL.lock().unwrap_or_else(|e| e.into_inner());
-    SOCKETS.take_dead(|_| false);
-    g
-}
 
 fn fill(pid: u32, n: usize) -> Vec<SocketKey> {
     (0..n).map(|_| SOCKETS.open(pid, Kind::Mixnet).expect("a socket within the bounds")).collect()
