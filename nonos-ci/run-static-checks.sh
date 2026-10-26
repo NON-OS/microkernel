@@ -5397,6 +5397,17 @@ else
 fi
 unset drive_out
 
+# A drive's type: step sends every printable character as the keys that type
+# it, and refuses one with no key instead of dropping it; each rule's mutant
+# fails the keys suite (tools/nonos_drive/mutants.json).
+if keys_out="$( (cd tools && python3 -m unittest -q nonos_drive.test_keys nonos_drive.test_mutants) 2>&1)"; then
+    note ok "a typed line reaches the guest whole, or the drive stops (nonos_drive)"
+else
+    tail -n 8 <<< "${keys_out}" >&2
+    fail_with "nonos_drive: a typed character can be dropped without a word"
+fi
+unset keys_out
+
 # Every way off the machine is listed: a capsule that gains Network, or an
 # address, host or build-time endpoint new to a networked capsule's source,
 # fails until docs/security/privacy.md names it with why and how to turn it
