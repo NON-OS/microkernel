@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // The broker's records, class table (its code map checked whole, L79), BAR choice, external-facing
-// ports, firmware's reserved ranges and the device tree's DesignWare I2C stop routine, by path.
+// ports, firmware's reserved ranges and the MSI side table's rules, by path.
 
 pub mod acpi;
 #[path = "../../../../../src/hardware/broker/class.rs"]
@@ -26,6 +26,7 @@ pub mod external_range;
 #[path = "../../../../../src/hardware/broker/irq/gone.rs"]
 pub mod irq_gone;
 pub mod mmio;
+pub mod msi;
 pub mod reserved;
 pub mod table;
 
