@@ -15,10 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub fn mark_named(event: &[u8], name: &[u8]) {
-    crate::sys::serial::print(b"[BENCH] ");
-    crate::sys::serial::print_dec(crate::sys::timer::uptime_ms());
-    crate::sys::serial::print(b" ");
-    crate::sys::serial::print(event);
-    crate::sys::serial::print(b":");
-    crate::sys::serial::println(name);
+    // One write, so another CPU's line never lands inside it.
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[BENCH] ").dec(crate::sys::timer::uptime_ms()).str(b" ").str(event);
+    l.str(b":").str(name).end();
 }

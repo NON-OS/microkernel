@@ -32,12 +32,12 @@
 //! inside the held region would take it again. So the line is built in a
 //! caller-owned buffer and handed to the port in one call.
 
-use super::print::println;
+use super::print::line;
 
 /// Bytes a single diagnostic line may carry. Longer lines are truncated
 /// rather than split, because half a line that looks whole is what this
 /// module exists to prevent.
-const LINE_MAX: usize = 192;
+const LINE_MAX: usize = 256;
 
 pub struct Line {
     buf: [u8; LINE_MAX],
@@ -97,13 +97,22 @@ impl Line {
         self
     }
 
+    /// As `hex`, in lower case, for the lines that have always printed so.
+    pub fn hex_lower(&mut self, val: u64) -> &mut Self {
+        const HEX: &[u8] = b"0123456789abcdef";
+        self.str(b"0x");
+        for i in (0..16).rev() {
+            self.push(HEX[((val >> (i * 4)) & 0xF) as usize]);
+        }
+        self
+    }
+
     /// Emit the line, one lock acquisition, one newline.
     pub fn end(&self) {
-        println(&self.buf[..self.len]);
+        line(&self.buf[..self.len]);
     }
 }
 
-#[cfg(target_arch = "aarch64")]
 impl Line {
     /// Emit the line from a path that will never return, without waiting on a
     /// lock that may never be released. See `core::write_fatal_line`.

@@ -18,8 +18,6 @@ use core::sync::atomic::Ordering;
 
 use super::clear_low_half::clear_low_half;
 use super::count_pml4_entries::count_pml4_entries;
-use super::print_dec::print_dec_usize;
-use super::print_hex::print_hex_u64;
 use super::state::VM_UNIFIED_INITIALIZED;
 use crate::memory::frame_alloc;
 use crate::memory::paging::manager::api as paging_api;
@@ -62,14 +60,12 @@ pub fn init_unified_vm() -> Result<(), &'static str> {
         unsafe { count_pml4_entries(active.as_u64(), KERNEL_HALF_START..KERNEL_HALF_END) }
             .ok_or("init_unified_vm: active PML4 is outside directmap")?;
     if kernel_half_populated == 0 {
-        crate::sys::serial::print(b"[VM-INIT] kernel half empty; CR3=");
-        print_hex_u64(active.as_u64());
-        crate::sys::serial::println(b"");
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[VM-INIT] kernel half empty; CR3=").hex_lower(active.as_u64()).end();
         return Err("init_unified_vm: bootloader CR3 has no kernel-half PML4 entries (256..511)");
     }
-    crate::sys::serial::print(b"[VM-INIT] kernel half populated entries: ");
-    print_dec_usize(kernel_half_populated);
-    crate::sys::serial::println(b"");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[VM-INIT] kernel half populated entries: ").dec(kernel_half_populated as u64).end();
 
     // Step 5: prove the frame allocator can hand out a page.
     let probe = frame_alloc::allocate_frame()

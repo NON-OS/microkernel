@@ -18,37 +18,19 @@
 //! short failure line. The orchestrator owns the policy; this
 //! module owns the bytes.
 
-use super::super::print_hex::print_hex_u64;
 use super::gs_state::GsState;
+use crate::sys::serial::Line;
 
 pub(super) fn fail(reason: &[u8], v: u64) {
-    crate::sys::serial::print(b"[USER-PROOF] FAIL ");
-    crate::sys::serial::print(reason);
-    crate::sys::serial::print(b" v=");
-    print_hex_u64(v);
-    crate::sys::serial::println(b"");
+    let mut l = Line::new();
+    l.str(b"[USER-PROOF] FAIL ").str(reason).str(b" v=").hex_lower(v).end();
 }
 
 pub(super) fn ok(cr3: u64, rip: u64, rsp: u64, rsp0: u64, gs: GsState, df: u64, pf: u64, gp: u64) {
-    crate::sys::serial::print(b"[USER-PROOF] OK cr3=");
-    print_hex_u64(cr3);
-    crate::sys::serial::print(b" rip=");
-    print_hex_u64(rip);
-    crate::sys::serial::print(b" rsp=");
-    print_hex_u64(rsp);
-    crate::sys::serial::print(b" rsp0=");
-    print_hex_u64(rsp0);
-    crate::sys::serial::print(b" gsrsp0=");
-    print_hex_u64(gs.rsp0);
-    crate::sys::serial::print(b" gs=");
-    print_hex_u64(gs.base);
-    crate::sys::serial::print(b" kgs=");
-    print_hex_u64(gs.kernel_base);
-    crate::sys::serial::print(b" istDF=");
-    print_hex_u64(df);
-    crate::sys::serial::print(b" istPF=");
-    print_hex_u64(pf);
-    crate::sys::serial::print(b" istGP=");
-    print_hex_u64(gp);
-    crate::sys::serial::println(b"");
+    let mut l = Line::new();
+    l.str(b"[USER-PROOF] OK cr3=").hex_lower(cr3).str(b" rip=").hex_lower(rip);
+    l.str(b" rsp=").hex_lower(rsp).str(b" rsp0=").hex_lower(rsp0);
+    l.str(b" gsrsp0=").hex_lower(gs.rsp0).str(b" gs=").hex_lower(gs.base);
+    l.str(b" kgs=").hex_lower(gs.kernel_base).str(b" istDF=").hex_lower(df);
+    l.str(b" istPF=").hex_lower(pf).str(b" istGP=").hex_lower(gp).end();
 }
