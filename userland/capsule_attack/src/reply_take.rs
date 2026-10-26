@@ -14,11 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! reply-twice's calls to itself and its receives (reply_twice.rs). Every
-//! line the capsule prints is also put in this inbox by MkDebug
-//! (src/syscall/microkernel/debug/proc_mirror.rs), from itself and owing no
-//! reply: request 0. Those are passed over uncounted and unprinted, or the
-//! case's own lines would stand between it and its requests.
+//! reply-twice's calls to itself and its receives (reply_twice.rs).
 
 use nonos_libc::ipc::{mk_ipc_recv_req, IpcReqMeta};
 use nonos_libc::mk_ipc_call_timeout;
@@ -27,9 +23,6 @@ use nonos_libc::mk_ipc_call_timeout;
 pub const OWN_PORT: u64 = 4954;
 const ETIMEDOUT: i64 = -110;
 const TAKE_MS: u64 = 2_000;
-const NO_WAIT: u64 = u64::MAX;
-/// More than the inbox holds (1024), so a full inbox of lines is passed.
-const LOOKS: usize = 2_048;
 
 /// A call to itself nobody answers in time: its request stays queued.
 pub fn unanswered(body: &[u8; 1]) -> bool {
@@ -38,36 +31,16 @@ pub fn unanswered(body: &[u8; 1]) -> bool {
     rc == ETIMEDOUT
 }
 
-fn receive(wait: u64) -> (i64, u8, IpcReqMeta) {
-    let (mut buf, mut meta) = ([0u8; 8], IpcReqMeta::default());
-    let rc = mk_ipc_recv_req(0, buf.as_mut_ptr(), buf.len(), wait, &mut meta);
-    (rc, buf[0], meta)
-}
-
-/// Empty the inbox of what owes no reply: the lines printed so far.
-pub fn drain_lines() {
-    for _ in 0..LOOKS {
-        let (rc, _, meta) = receive(NO_WAIT);
-        if rc <= 0 || meta.request != 0 {
-            return;
-        }
-    }
-}
-
 /// The id of the next request in its inbox from `from` carrying `body`.
 pub fn take(body: u8, from: u32) -> Option<u64> {
-    let mut requests = 0;
-    for _ in 0..LOOKS {
-        let (rc, first, meta) = receive(TAKE_MS);
-        if rc > 0 && meta.request == 0 {
-            continue;
-        }
-        if rc == 1 && first == body && meta.sender == from {
+    for _ in 0..16 {
+        let (mut buf, mut meta) = ([0u8; 8], IpcReqMeta::default());
+        let rc = mk_ipc_recv_req(0, buf.as_mut_ptr(), buf.len(), TAKE_MS, &mut meta);
+        if rc == 1 && buf[0] == body && meta.sender == from && meta.request != 0 {
             return Some(meta.request);
         }
-        crate::reply_seen::seen(rc, first, &meta);
-        requests += 1;
-        if rc < 0 || requests == 16 {
+        crate::reply_seen::seen(rc, buf[0], &meta);
+        if rc < 0 {
             return None;
         }
     }
