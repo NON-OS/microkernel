@@ -43,8 +43,7 @@ pub(super) fn advance() {
 pub(super) fn paced_work() {
     if state::get_ticks() % 10 == 0 {
         crate::process::alarm::tick();
-        #[cfg(target_arch = "x86_64")]
-        crate::arch::x86_64::acpi::power_button::poll(state::get_ticks());
+        crate::arch::acpi_power_button_tick(state::get_ticks());
     }
 
     if state::get_ticks() % LOAD_SAMPLE_TICKS == 0 {

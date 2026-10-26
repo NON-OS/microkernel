@@ -45,12 +45,6 @@ pub(in crate::hardware::broker) fn fence(f: Fenced) {
     }
 }
 
-/// The holder whose fence a window falls in, if any.
-#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
-pub(in crate::hardware::broker) fn fenced_by(start: u64, len: u64) -> Option<u32> {
-    FENCED.lock().iter().find(|f| overlaps(f.start, f.len, start, len)).map(|f| f.pid)
-}
-
 /// A process's tables are freed (`heir` None) or handed to another thread
 /// of its group (`heir` its pid), which keeps the mappings and so the fence.
 pub fn after_exit(pid: u32, heir: Option<u32>) {
@@ -59,4 +53,10 @@ pub fn after_exit(pid: u32, heir: Option<u32>) {
         None => v.retain(|f| f.pid != pid),
         Some(h) => v.iter_mut().filter(|f| f.pid == pid).for_each(|f| f.pid = h),
     }
+}
+
+crate::arch::acpi_only! {
+    #[path = "fence/fenced_by.rs"]
+    mod fenced_by;
+    pub(in crate::hardware::broker) use fenced_by::fenced_by;
 }

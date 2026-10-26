@@ -31,22 +31,23 @@
 //! ever invented: a plausible fixed one is the one answer that cannot be
 //! checked and cannot be corrected.
 
-use super::errnos::ERRNO_NOTSUP;
+use super::errnos::{ERRNO_NODEV, ERRNO_NOTSUP};
+
+crate::arch::acpi_only! {
+    mod report;
+}
+crate::arch::acpi_only! {
+    else
+    #[path = "battery/report_absent.rs"]
+    mod report;
+}
 
 pub fn sys_battery_status() -> i64 {
-    #[cfg(target_arch = "x86_64")]
-    {
-        use crate::hardware::broker::acpi::power_report::{battery, Battery};
-        match battery(crate::sys::clock::since_boot_ms()) {
-            Battery::Percent(p) => return p as i64,
-            Battery::Absent => return super::errnos::ERRNO_NODEV,
-            Battery::Present => return ERRNO_NOTSUP,
-            Battery::Unreported => {}
-        }
-        if crate::arch::x86_64::acpi::parser::with_data(|d| d.power_devices.battery) == Some(false)
-        {
-            return super::errnos::ERRNO_NODEV;
-        }
+    if let Some(answer) = report::answer() {
+        return answer;
+    }
+    if crate::arch::acpi_tables_declare_battery() == Some(false) {
+        return ERRNO_NODEV;
     }
     ERRNO_NOTSUP
 }

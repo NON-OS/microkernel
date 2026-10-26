@@ -108,3 +108,17 @@ moved into `src/arch/common/mmio_order.rs` and `src/arch/common/dma_sync.rs`, wi
 architecture's body under `src/arch/<arch>/`. The two files outside `src/arch`
 now re-export with no cfg. The count is 215: the subsystem selectors moved
 under `src/arch`, as the paragraph above says they must to leave the count.
+
+### 215 to 209: the ACPI gate says which arches are ACPI platforms once
+
+`acpi_only!` (`src/arch/acpi_capsule/gate.rs`) declares the modules that exist
+only on an ACPI platform, so the list of those arches lives under `src/arch`
+(`scripts/check_acpi_only.py` holds it to x86_64 alone). Counted lines gone:
+- `hardware/broker/mod.rs`: `acpi`, `acpi_gpio`, `acpi_i2c` (−3);
+- `syscall/microkernel/mod.rs`: the `acpi` and `acpi_absent` pair (−1; its
+  `cfg(not(...))` line was never counted);
+- `syscall/microkernel/battery.rs` (−1): its ACPI report is a gated module;
+- `interrupts/timer/clock.rs` (−1): the power-button poll is
+  `arch::acpi_power_button_tick`.
+The broker's late writers, which carried `allow(dead_code)` on aarch64 and
+riscv64, are gated by the same macro and add none.

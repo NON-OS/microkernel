@@ -25,10 +25,8 @@ extern crate alloc;
 use alloc::vec::Vec;
 use spin::Mutex;
 
-use super::state::TABLE;
 use crate::drivers::pci::types::PciAddress;
 use crate::hardware::broker::external_range::{behind, ExternalRange};
-use crate::hardware::broker::{pci_index, DEVICE_FLAG_EXTERNAL};
 
 // Taken before TABLE and never while holding it.
 static RANGES: Mutex<Vec<ExternalRange>> = Mutex::new(Vec::new());
@@ -42,33 +40,8 @@ pub fn external_port_of(a: &PciAddress) -> Option<ExternalRange> {
     RANGES.lock().iter().find(|r| behind(r, a.segment, bdf(a))).copied()
 }
 
-/// Records the range (again, for a capsule that restarted) and flags each
-/// function in it, answering how many the table holds.
-#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
-pub(in crate::hardware::broker) fn mark(range: ExternalRange) -> usize {
-    {
-        let mut ranges = RANGES.lock();
-        ranges.retain(|r| (r.segment, r.port) != (range.segment, range.port));
-        ranges.push(range);
-    }
-    let ids: Vec<u64> = pci_index::all()
-        .into_iter()
-        .filter(|h| behind(&range, h.address.segment, bdf(&h.address)))
-        .map(|h| h.device_id)
-        .collect();
-    let mut table = TABLE.write();
-    for r in table.iter_mut().filter(|r| ids.contains(&r.device_id)) {
-        r.flags |= DEVICE_FLAG_EXTERNAL;
-    }
-    ids.len()
-}
-
-/// The flag a function found after boot starts with.
-pub(super) fn flag_for(a: &PciAddress) -> u32 {
-    let behind_any = RANGES.lock().iter().any(|r| behind(r, a.segment, bdf(a)));
-    if behind_any {
-        DEVICE_FLAG_EXTERNAL
-    } else {
-        0
-    }
+crate::arch::acpi_only! {
+    mod late;
+    pub(in crate::hardware::broker) use late::mark;
+    pub(super) use late::flag_for;
 }

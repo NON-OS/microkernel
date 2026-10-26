@@ -69,7 +69,7 @@ pub mod write_combining;
 #[cfg(target_arch = "x86_64")]
 pub mod x86_64;
 pub use abi::ArchOps;
-pub(crate) use acpi_capsule::{acpi_capsule_exit, acpi_first_pass_wait, acpi_from_init};
+pub(crate) use acpi_capsule::*;
 pub(crate) use active_page_table_root::active_page_table_root;
 pub(crate) use common::own_core_kind::own_core_kind;
 #[cfg(target_arch = "x86_64")]

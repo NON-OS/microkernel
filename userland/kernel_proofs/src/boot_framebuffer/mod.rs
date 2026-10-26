@@ -46,6 +46,7 @@ mod cover_tests;
 mod covers_fallback_tests;
 mod covers_tests;
 mod dma_glue_tests;
+mod glue_files;
 mod glue_lex;
 mod glue_text;
 mod map_glue_tests;

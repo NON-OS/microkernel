@@ -22,6 +22,7 @@
 //! class or bus kind find has read ever changes, and what find stored stays
 //! true for the rest of the boot with no lock taken to read it.
 
+use super::glue_files::files_under;
 use super::glue_text::{body, code};
 
 const DIR: &str = "hardware/broker/table";
@@ -34,7 +35,8 @@ const JOIN: &str = concat!(
     "record.device_id",
 );
 
-const WRITERS: [&str; 6] = ["add.rs", "external.rs", "init.rs", "init.rs", "numa.rs", "remove.rs"];
+const WRITERS: [&str; 6] =
+    ["add.rs", "external/late.rs", "init.rs", "init.rs", "numa.rs", "remove.rs"];
 const NUMA: &str = concat!(
     "letmuttable=TABLE.write();forrintable.iter_mut(){",
     "ifletSome((_,n))=nodes.iter().find(|(id,_)|*id==r.device_id){r.numa_node=*n;}}",
@@ -48,9 +50,7 @@ fn file(name: &str) -> String {
 #[test]
 fn the_table_is_replaced_by_the_scan_alone_and_otherwise_only_grows() {
     let mut writers = Vec::new();
-    let path = format!("{}/../../src/{DIR}", env!("CARGO_MANIFEST_DIR"));
-    for entry in std::fs::read_dir(path).expect("table/ readable") {
-        let name = entry.expect("an entry").file_name().into_string().expect("a name");
+    for name in files_under(DIR) {
         writers.extend(std::iter::repeat_n(name.clone(), file(&name).matches(".write()").count()));
     }
     writers.sort();
@@ -69,5 +69,5 @@ fn the_table_is_replaced_by_the_scan_alone_and_otherwise_only_grows() {
     assert!(file("remove.rs").contains("retire(device_id);Some(table.remove(at))"));
     let numa = file("numa.rs");
     assert_eq!(body(&numa, "fnset_numa_nodes(nodes:&[(u64,u8)]){"), NUMA, "NUMA writes more");
-    assert!(file("external.rs").contains(EXTERNAL), "a port's mark writes more than its flag");
+    assert!(file("external/late.rs").contains(EXTERNAL), "a port's mark writes more than its flag");
 }

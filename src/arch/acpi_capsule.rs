@@ -17,7 +17,14 @@
 //! The ACPI capsule's exit, a power-button press while it restarts (F-107)
 //! and the critical watches' clocks (F-108), callable on every target so
 //! teardown and init's loop stay one path. Only x86_64 runs the capsule;
-//! elsewhere there is nothing held.
+//! elsewhere there is nothing held. `gate` says which targets are ACPI
+//! platforms (`acpi_only!`).
+
+mod gate;
+mod power;
+
+pub(crate) use gate::acpi_only;
+pub(crate) use power::{acpi_power_button_tick, acpi_tables_declare_battery};
 
 /// From process teardown, for every pid: the ACPI capsule's holds given
 /// back and its events disarmed, the Global Lock with them if it held it.

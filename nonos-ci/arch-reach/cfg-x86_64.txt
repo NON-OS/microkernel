@@ -104,9 +104,8 @@ src/hardware/broker/mmio/mod.rs 1
     boot RAM ranges handed to the x86 ACPI parser that checks IOMMU unit bases. Elsewhere: nothing:
     its one caller is under src/arch/x86_64
 
-src/hardware/broker/mod.rs 6
-    GAP: ACPI, ACPI GPIO/I2C, port-I/O broker. Elsewhere: no GPIO broker off ACPI; I2C via fdt_i2c,
-    PIO via pio_absent.rs
+src/hardware/broker/mod.rs 3
+    GAP: port-I/O broker. Elsewhere: PIO via pio_absent.rs (ACPI, ACPI GPIO/I2C: acpi_only!)
 
 src/interrupts/mod.rs 11
     IDT, APIC, PIC, ISRs, timer exports. Elsewhere: aarch64/riscv64 interrupt code lives in arch
@@ -115,9 +114,8 @@ src/interrupts/mod.rs 11
 src/interrupts/safety/context.rs 2
     CPU index read from GS. Elsewhere: fallback uses arch::cpu::dense_cpu_index()
 
-src/interrupts/timer/clock.rs 2
-    GAP: ACPI power button poll, VT-d fault poll. Elsewhere: no power-button poll; SMMU faults via
-    its event queue
+src/interrupts/timer/clock.rs 1
+    GAP: VT-d fault poll. Elsewhere: SMMU faults via its event queue
 
 src/kernel_core/init/entry/init_dma_protection.rs 1
     GAP: VT-d / AMD-Vi bring-up. Elsewhere: riscv64 no IOMMU; aarch64 SMMUv3 via
@@ -275,12 +273,6 @@ src/sys/mod.rs 8
 
 src/sys/timer/tsc/init.rs 2
     "TSC" log label. Elsewhere: different label (generic timer)
-
-src/syscall/microkernel/battery.rs 1
-    GAP: ACPI battery percent. Elsewhere: always ENOTSUP; needs DT/firmware battery source
-
-src/syscall/microkernel/mod.rs 2
-    GAP: ACPI capsule syscalls. Elsewhere: ~30 ACPI/NUMA/SMBIOS calls ENOSYS (acpi_absent.rs)
 
 src/syscall/microkernel/pio/mod.rs 12
     port-I/O syscalls. Elsewhere: fallback refuses with ENOSYS (unsupported.rs)
