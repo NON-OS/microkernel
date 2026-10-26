@@ -154,7 +154,11 @@ runs. A capsule spawned again with the same body adds nothing.
 - **The client** (`nsh_attest`) replays PCR 14 from the log as well. It
   reports each capsule's kind, and the release check requires at least
   one PCR 14 event and every one kind 1, not just a nonzero value. The
-  first that is not is named: `path-only`, `developer` or `local-build`.
+  first that is not is named: `path-only`, `developer` or `local-build`;
+  `steps::not_vendor` lists them all, and `nsh-enrol inspect` prints
+  them. The registry step holds every entry to the vendor's authority in
+  the same way: a release host runs vendor-root capsules only, for the
+  whole boot.
   A capsule names the path-only tag exactly when it is kind 2, or the
   log is refused.
 
