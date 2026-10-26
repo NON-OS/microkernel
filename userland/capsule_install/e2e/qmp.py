@@ -80,13 +80,27 @@ class Qmp:
         keys = [{"type": "qcode", "data": n} for n in names]
         return self.cmd("send-key", keys=keys, **{"hold-time": hold_ms})
 
-    def type_text(self, text):
+    def _event(self, name, down):
+        event = {"type": "key", "data": {"down": down, "key": {"type": "qcode", "data": name}}}
+        reply = self.cmd("input-send-event", events=[event])
+        if "error" in reply:
+            raise RuntimeError(f"QEMU refused {name}: {reply['error']}")
+
+    def type_text(self, text, gap=0.04):
+        """Type `text`: each character's keys pressed in order and released in
+        reverse, one event at a time with a gap between, so a guest busy under
+        TCG sees shift go down before the key and up after it, every time
+        (send-key's chords left shift held in the guest after a run of
+        capitals)."""
         keys = [keys_for(ch) for ch in text]
-        for k in keys:
-            reply = self.key(*k)
-            if "error" in reply:
-                raise RuntimeError(f"QEMU refused {k}: {reply['error']}")
-            time.sleep(0.05)
+        for chord in keys:
+            for name in chord:
+                self._event(name, True)
+                time.sleep(gap)
+            for name in reversed(chord):
+                self._event(name, False)
+                time.sleep(gap)
+            time.sleep(2 * gap)
 
     def quit(self):
         try:
