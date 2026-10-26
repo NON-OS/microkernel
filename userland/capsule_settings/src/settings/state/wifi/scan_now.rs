@@ -18,7 +18,7 @@
 //! long scan handed to the worker only then; every other path shows why there
 //! is no list.
 
-use super::super::state::{State, WifiScan};
+use super::super::model::{State, WifiScan};
 use super::answer::hand_off;
 use super::pending::Work;
 use super::radio::radio_on;

@@ -30,14 +30,6 @@ mod verify_material;
 mod wire;
 mod ws_wire;
 
-pub use derive::derive_shared_key;
-pub use frame::{decode, encode, HandshakeFrameError, INIT_TAG, PAYLOAD_TAG};
-pub use init::init_message;
-pub use material::Material;
-pub use parse_gateway::parse_gateway_material;
 pub use run::run_handshake;
-pub use seal_material::seal_material;
-pub use sizes::*;
-pub use verify_material::verify_material;
-pub use wire::{HandshakeError, Identity, Wire};
+pub use wire::Identity;
 pub use ws_wire::WsWire;
