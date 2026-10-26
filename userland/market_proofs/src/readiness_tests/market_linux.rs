@@ -21,7 +21,8 @@ use crate::chain_hosts::Host;
 use crate::install_ready::market::market_gates;
 
 /* the plan: a linux.* release fetched from an index carries its box, whatever
- * its schema; only a vendor program ("store:") is boxed by the personality. */
+ * its schema; only a shipped tier (linux.qwen-*, "store:/bin/qwenchat") is
+ * boxed by the personality. A "store:" url under any other listing is not. */
 #[test]
 fn a_schema_2_linux_release_without_its_box_is_not_ready() {
     let mut e = sold().entries[0].clone();
@@ -33,5 +34,7 @@ fn a_schema_2_linux_release_without_its_box_is_not_ready() {
     let g = market_gates(&Host, &e, &rel, true);
     assert!(!g.policy && !g.all());
     rel.package_url = "store:/bin/qwenchat".into();
+    assert!(!market_gates(&Host, &e, &rel, true).all(), "a store: url is not a tier");
+    e.listing_id = "linux.qwen-small".into();
     assert!(market_gates(&Host, &e, &rel, true).all());
 }
