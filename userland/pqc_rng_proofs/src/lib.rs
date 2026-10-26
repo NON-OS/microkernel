@@ -19,7 +19,6 @@
 //! (`stand_in`), so a test can make its draws fail.
 
 #![cfg(test)]
-#![allow(dead_code)]
 
 extern crate alloc;
 

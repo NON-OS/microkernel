@@ -13,37 +13,46 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! A window's frame at a scale: its measures, its pixels and its title's rows.
+//! What is drawn is where the geometry says: glyphs with no colour at rest,
+//! the hovered control's wash, close's red, and the bar's rule.
 
-//! What is drawn is where the geometry says, the title inside its bar.
-
-use super::rig::{paint, title_rows, H, SCALES, W};
+use super::rig::{paint, paint_in, px, AT_REST, H, SCALES, W};
 use nonos_toolkit::decorations::{
-    content_rect_at, light_rect_at, HAIRLINE, LIGHT_CLOSE, LIGHT_MAXIMIZE, LIGHT_MINIMIZE,
+    content_rect_at, control_rect_at, frame_bg, frame_edge, glyph_rest, DecorationHit, FrameState,
+    Rect, CLOSE_HOVER,
 };
+
+fn at(px: &[u32], x: u32, y: u32) -> u32 {
+    px[(y * W + x) as usize]
+}
 
 #[test]
 fn what_is_drawn_is_where_the_geometry_says() {
-    let lights = [LIGHT_CLOSE, LIGHT_MINIMIZE, LIGHT_MAXIMIZE];
     for q in SCALES {
         let px = paint(q, b"");
-        for (i, argb) in lights.iter().enumerate() {
-            let r = light_rect_at(i as u32, W, H, false, q);
-            let centre = px[((r.y + r.h / 2) * W + r.x + r.w / 2) as usize];
-            assert_eq!(centre, *argb, "button {i} painted at its centre at {q}");
-        }
-        // The hairline under the bar is the content's top edge.
+        let (min, max) = (control_rect_at(0, W, H, false, q), control_rect_at(1, W, H, false, q));
+        let centre = |r: Rect| (r.x + r.w / 2, r.y + r.h / 2);
+        let (mx, my) = centre(min);
+        assert_eq!(at(&px, mx, my), glyph_rest(), "minimize's line through its centre at {q}");
+        let (xx, xy) = centre(max);
+        assert_eq!(at(&px, xx, xy), frame_bg(), "maximize's square is open at {q}");
+        assert_eq!(at(&px, min.x + 1, min.y + min.h / 2), frame_bg(), "no wash at rest");
         let c = content_rect_at(W, H, false, q);
-        assert_eq!(px[(c.y * W + W / 2) as usize], HAIRLINE, "the bar's hairline at {q}");
+        assert_eq!(at(&px, W / 2, c.y), frame_edge(), "the bar's rule at {q}");
     }
 }
 
 #[test]
-fn the_title_grows_with_the_bar_and_stays_inside_it() {
-    let (t1, b1) = title_rows(4);
-    let (t2, b2) = title_rows(8);
-    let (h1, h2) = (b1 - t1 + 1, b2 - t2 + 1);
-    assert!(h2 * 10 >= h1 * 17 && h2 * 10 <= h1 * 23, "type at 2x is about twice: {h1} then {h2}");
+fn the_hovered_control_is_washed_and_close_is_red() {
     for q in SCALES {
-        title_rows(q);
+        let close = control_rect_at(2, W, H, false, q);
+        let hot = paint_in(q, b"", FrameState { hover: DecorationHit::CloseButton, ..AT_REST });
+        assert_eq!(at(&hot, close.x + px(8, q), close.y + close.h / 2), CLOSE_HOVER, "{q}");
+        let min = control_rect_at(0, W, H, false, q);
+        let lit = paint_in(q, b"", FrameState { hover: DecorationHit::MinimizeButton, ..AT_REST });
+        let (x, y) = (min.x + px(4, q), min.y + min.h / 2);
+        assert_ne!(at(&lit, x, y), frame_bg(), "minimize washed at {q}");
+        assert_eq!(at(&lit, close.x + px(8, q), close.y + close.h / 2), frame_bg());
     }
 }

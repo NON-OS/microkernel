@@ -1,0 +1,5 @@
+[
+ {"name": "pump-short-frame-ends-pass", "file": "userland/capsule_linux/src/linux/wayland/input/took.rs", "old": "        n if n < cap as i64 => Took::Skip,", "new": "        n if n < cap as i64 => Took::Done,", "crate": "userland/capsule_linux_proofs", "test": "a_frame_shorter_than_input_is_passed_over_not_the_end"},
+ {"name": "pump-empty-inbox-drained-on", "file": "userland/capsule_linux/src/linux/wayland/input/took.rs", "old": "        ..=0 => Took::Done,", "new": "        ..=0 => Took::Skip,", "crate": "userland/capsule_linux_proofs", "test": "an_empty_inbox_or_a_failed_receive_ends_the_pass"},
+ {"name": "pump-whole-frame-skipped", "file": "userland/capsule_linux/src/linux/wayland/input/took.rs", "old": "        _ => Took::Frame,", "new": "        _ => Took::Skip,", "crate": "userland/capsule_linux_proofs", "test": "a_whole_frame_is_read"}
+]
