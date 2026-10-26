@@ -34,6 +34,8 @@ pub struct Doc {
     /// memory. DMA is held only when this and `unconfined_grants` are zero.
     pub identity_devices: u32,
     /// How long the firmware's event log is; zero when the loader carried none.
+    /// Only the proofs read it back; the screen shows none of it.
+    #[cfg(test)]
     pub log_len: u32,
     /// Whether the challenge came back unchanged. This is the anti-replay check
     /// and the one part of the document this capsule can verify on its own.
