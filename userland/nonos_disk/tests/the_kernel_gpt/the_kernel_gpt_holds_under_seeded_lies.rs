@@ -20,20 +20,12 @@
 //! lies, says when a holding backup disagrees, and whatever it names lies
 //! in the usable range with no sector shared.
 
-extern crate alloc;
-
-#[path = "common/gpt_sweep/mod.rs"]
-mod gpt_sweep;
-#[path = "common/kernel_gpt/mod.rs"]
-#[allow(dead_code, unused_imports)]
-mod kernel_gpt;
-
-use gpt_sweep::build::disk;
-use gpt_sweep::expect::expected;
-use gpt_sweep::lie::{tell, LIES};
-use gpt_sweep::rng::{rounds, Rng};
-use gpt_sweep::rule::{rule, Named};
-use gpt_sweep::view::{held, kernel};
+use crate::gpt_sweep::build::disk;
+use crate::gpt_sweep::expect::expected;
+use crate::gpt_sweep::lie::{tell, LIES};
+use crate::gpt_sweep::rng::{rounds, Rng};
+use crate::gpt_sweep::rule::{rule, Named};
+use crate::gpt_sweep::view::{held, kernel};
 
 #[test]
 fn every_sound_disk_is_read_from_its_primary_as_built() {

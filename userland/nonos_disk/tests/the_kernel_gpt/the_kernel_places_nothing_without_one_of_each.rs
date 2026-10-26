@@ -18,25 +18,9 @@
 //! plan too small for the key header behind it; a missing data partition is
 //! only absent.
 
-extern crate alloc;
-
-#[path = "common/entropy.rs"]
-mod entropy;
-#[path = "common/files.rs"]
-mod files;
-#[path = "common/gpt_damage.rs"]
-mod gpt_damage;
-#[path = "common/kernel_gpt/mod.rs"]
-#[allow(dead_code, unused_imports)]
-mod kernel_gpt;
-#[path = "common/mem_disk.rs"]
-mod mem_disk;
-#[path = "common/written.rs"]
-mod written;
-
-use gpt_damage::{put, seal, table, T};
-use kernel_gpt::{entries, header, places};
-use kernel_gpt::Which;
+use crate::gpt_damage::{put, seal, table, T};
+use crate::kernel_gpt::Which;
+use crate::kernel_gpt::{entries, header, places};
 
 #[test]
 fn a_nonos_partition_missing_doubled_or_too_small_places_nothing() {

@@ -7,7 +7,7 @@
 
 use nonos_wifi_client::{forget, forget_all, load, SavedError, ScanNetwork};
 
-use super::super::state::State;
+use super::super::model::State;
 
 /// Read the saved networks' names. Opening the record asks the TPM for the
 /// key, so this runs on entering the tab and after a change, not every frame.

@@ -16,6 +16,8 @@
 
 //! The radio's state, and the rest between sweeps.
 
+use alloc::boxed::Box;
+
 use crate::setup::command::command;
 use nonos_wifi_core::scan_list::ScanResults;
 
@@ -32,7 +34,8 @@ pub(super) const REST_MS: u64 = 3000;
 pub(super) const STALLS_SAID: u32 = 3;
 
 pub(super) enum State {
-    Up(Up),
+    /// Running; boxed, as it dwarfs the other two.
+    Up(Box<Up>),
     /// The firmware failed (an error cause, or commands left unanswered); it
     /// boots again at `at_ms`.
     Restarting(Restart),

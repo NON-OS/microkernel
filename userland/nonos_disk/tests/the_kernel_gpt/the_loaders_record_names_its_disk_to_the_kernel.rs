@@ -18,26 +18,12 @@
 //! the kernel by the ESP's GUID, as the installer wrote it; a record of an
 //! MBR partition, of no partition, or of another length names none.
 
-extern crate alloc;
-
-#[path = "common/entropy.rs"]
-mod entropy;
-#[path = "common/files.rs"]
-mod files;
-#[path = "common/kernel_gpt/mod.rs"]
-#[allow(dead_code, unused_imports)]
-mod kernel_gpt;
-#[path = "common/mem_disk.rs"]
-mod mem_disk;
-#[path = "common/written.rs"]
-mod written;
-
-use kernel_gpt::{boot_guid, entries, header, holds, Entry};
-use kernel_gpt::Which;
-use mem_disk::MemDisk;
+use crate::kernel_gpt::Which;
+use crate::kernel_gpt::{boot_guid, entries, header, holds, Entry};
+use crate::mem_disk::MemDisk;
+use crate::written::written;
 use nonos_disk::{BootPartition, MIN_DISK_SECTORS};
 use nonos_disk::{SIGNATURE_GUID, TABLE_GPT};
-use written::written;
 
 fn read(disk: &MemDisk, total: u64) -> Option<Vec<Entry>> {
     let h = header::parse_as(&disk.read_sectors(1, 1), total, Which::Primary)?;

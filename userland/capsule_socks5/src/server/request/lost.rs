@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::constants::{BLINDING_FACTOR_SIZE, REPLAY_TAG_SIZE};
-use super::offsets::BLINDING_FACTOR_AT;
-use super::types::ExpandedSharedSecret;
+//! Telling a lost conversation from a new one.
 
-impl ExpandedSharedSecret {
-    pub fn replay_tag(&self) -> [u8; REPLAY_TAG_SIZE] {
-        let at = BLINDING_FACTOR_AT + BLINDING_FACTOR_SIZE;
-        let mut tag = [0u8; REPLAY_TAG_SIZE];
-        tag.copy_from_slice(&self.0[at..at + REPLAY_TAG_SIZE]);
-        tag
-    }
+/// The first number of a conversation, after its reset.
+pub const FIRST_SEQ: u32 = 1;
+
+/// Whether exchange `seq` asks for a conversation this proxy lost: not the
+/// first of one, while no conversation is `held` for its stream and no
+/// answer is `kept` for that number.
+pub fn lost(seq: u32, held: bool, kept: bool) -> bool {
+    seq != FIRST_SEQ && !held && !kept
 }
