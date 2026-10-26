@@ -22,6 +22,7 @@ mod outcome;
 mod refusal;
 
 pub use focus::focus_app;
+pub(crate) use focus::focus_pid;
 pub(crate) use frame::{focus_frame, lookup_pid};
 pub use outcome::{request, request_service, LaunchOutcome};
 pub use refusal::take_refusal;

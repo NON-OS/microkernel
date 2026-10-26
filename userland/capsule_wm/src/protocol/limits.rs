@@ -28,6 +28,8 @@ pub const WINDOW_RAISE_REQ_LEN: usize = 8;
 pub const WINDOW_MINIMIZE_REQ_LEN: usize = 8;
 pub const WINDOW_RESTORE_REQ_LEN: usize = 8;
 pub const WINDOW_MAXIMIZE_REQ_LEN: usize = 24;
+/// window_id, reserved, x, y, width, height.
+pub const WINDOW_PLACE_REQ_LEN: usize = 24;
 pub const QUERY_TOPMOST_REQ_LEN: usize = 8;
 pub const QUERY_TOPMOST_RESP_LEN: usize = 32;
 pub const ROUTE_FOCUS_REQ_LEN: usize = 8;

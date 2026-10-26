@@ -47,6 +47,8 @@ pub(crate) mod router_pad_tests;
 pub(crate) mod router_trusted_tests;
 #[path = "secure_chord_tests.rs"]
 mod secure_chord_tests;
+#[path = "switch_chord_tests.rs"]
+mod switch_chord_tests;
 #[path = "terminal_chord_tests.rs"]
 mod terminal_chord_tests;
 #[path = "trusted_rule_tests.rs"]

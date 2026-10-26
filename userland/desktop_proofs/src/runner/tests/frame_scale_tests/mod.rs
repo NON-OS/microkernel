@@ -21,5 +21,7 @@
 mod buttons;
 mod drag;
 mod drawn;
+mod finish;
 mod measures;
 mod rig;
+mod states;
