@@ -29,16 +29,3 @@ pub fn is_token_signature_valid(tok: &CapabilityToken) -> bool {
 pub fn is_token_not_revoked(tok: &CapabilityToken) -> bool {
     !is_revoked(tok.owner_module, tok.nonce)
 }
-
-pub fn validate_token_full(tok: &CapabilityToken) -> Result<(), &'static str> {
-    if !verify_token(tok) {
-        return Err("Invalid signature");
-    }
-    if !tok.not_expired() {
-        return Err("Token expired");
-    }
-    if is_revoked(tok.owner_module, tok.nonce) {
-        return Err("Token revoked");
-    }
-    Ok(())
-}

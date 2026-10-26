@@ -38,7 +38,6 @@ fn bdf(a: &PciAddress) -> (u8, u8, u8) {
 }
 
 /// The range a function sits in, if any: for the IOMMU's domain choice.
-#[allow(dead_code)] // the IOMMU half reads it; x86 alone declares ports yet
 pub fn external_port_of(a: &PciAddress) -> Option<ExternalRange> {
     RANGES.lock().iter().find(|r| behind(r, a.segment, bdf(a))).copied()
 }

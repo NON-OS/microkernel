@@ -53,7 +53,7 @@ pub fn install_from(
 
 pub(super) fn refused(why: &str) -> Why {
     say(&alloc::format!("[LINUX] refused the market's policy: {why}\n"));
-    Why::Policy
+    Why::POLICY
 }
 
 fn say(line: &str) {
