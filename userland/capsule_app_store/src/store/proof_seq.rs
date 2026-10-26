@@ -39,8 +39,8 @@ pub enum Phase {
     Asked,
     /// app.prove.job is up: PROVE is sent.
     Up,
-    /// The job's last stage told, and whether a STATUS is outstanding:
-    /// at most one is (ruling 3).
+    /// The job's last stage told, and whether a STATUS is outstanding: at
+    /// most one is (ruling 3), and one that timed out is given up.
     Proving {
         stage: u8,
         out: bool,
