@@ -16,6 +16,7 @@
 
 extern crate alloc;
 
+use alloc::vec;
 use alloc::vec::Vec;
 
 use crate::crypto::hkdf_sha256;
@@ -31,8 +32,7 @@ pub fn apply(
     info.extend_from_slice(b"NONOS-NYM-SPHINX-MASK-v1");
     info.extend_from_slice(seed);
     info.push(idx);
-    let mut mask = Vec::new();
-    mask.resize(region.len(), 0);
+    let mut mask = vec![0; region.len()];
     hkdf_sha256(seed, key, &info, &mut mask).map_err(|_| PacketError::Crypto)?;
     for i in 0..region.len() {
         region[i] ^= mask[i];
