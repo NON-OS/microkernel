@@ -30,7 +30,7 @@ const BODIES: [(&str, &str); 4] = [
 const GATES: [(&str, &str); 4] = [
     ("broker", include_str!("../../../src/arch/x86_64/interrupt/broker/isr.rs")),
     ("lvt", include_str!("../../../src/arch/x86_64/interrupt/apic/lvt_gates.rs")),
-    ("ipi", include_str!("../../../src/smp/ipi_dispatch/x86_64/gates.rs")),
+    ("ipi", include_str!("../../../src/arch/interrupt_controller/ipi_dispatch/x86_64/gates.rs")),
     ("fatal", include_str!("../../../src/interrupts/isr/wrappers_fatal.rs")),
 ];
 const NMI: &str = include_str!("../../../src/interrupts/isr/wrappers.rs");

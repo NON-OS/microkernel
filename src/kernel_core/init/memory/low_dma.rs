@@ -40,7 +40,10 @@ pub(super) fn find_low_dma_region(handoff: &BootHandoffV1) -> (u64, usize) {
             }
         }
     }
-    let target = crate::hardware::broker::dma::low32_target_pages(low_usable);
+    let target = crate::arch::common::low32_sizing::low32_target_pages(
+        low_usable,
+        crate::hardware::broker::dma::pool::sizing::LOW32_MAX_PAGES_TRACKED,
+    );
     // SAFETY: as above.
     unsafe {
         for (start, end) in handoff.mmap.usable_regions() {
@@ -50,7 +53,7 @@ pub(super) fn find_low_dma_region(handoff: &BootHandoffV1) -> (u64, usize) {
             }
         }
     }
-    match crate::hardware::broker::dma::low32_fit(target, best.1) {
+    match crate::arch::common::low32_sizing::low32_fit(target, best.1) {
         0 => (0, 0),
         pages => (best.0, pages),
     }

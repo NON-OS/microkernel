@@ -30,6 +30,4 @@ pub(crate) fn end_of_interrupt(ipi: Ipi) {
     crate::arch::x86_64::interrupt_controller::end_of_interrupt(ipi);
     #[cfg(target_arch = "aarch64")]
     crate::arch::aarch64::interrupt_controller::end_of_interrupt(ipi);
-    #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
-    let _ = ipi;
 }

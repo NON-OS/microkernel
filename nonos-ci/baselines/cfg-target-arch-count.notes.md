@@ -122,3 +122,14 @@ only on an ACPI platform, so the list of those arches lives under `src/arch`
   `arch::acpi_power_button_tick`.
 The broker's late writers, which carried `allow(dead_code)` on aarch64 and
 riscv64, are gated by the same macro and add none.
+
+### 209 to 203: the IPI dispatch moves under src/arch
+
+`smp/ipi_dispatch` attaches the IPI handlers to the interrupt controller: IDT
+gates on x86_64, GIC SGIs on aarch64. It is now
+`arch/interrupt_controller/ipi_dispatch`, with its four selector lines (−4).
+`smp/mod.rs`'s gated `install_ipi_gates` re-export goes with it (−1), and
+`smp/init/bsp.rs` calls `interrupt_controller::register_ipi_handlers` on every
+arch rather than under an aarch64 gate (−1). The handlers and the arch
+`end_of_interrupt` are compiled only where IPIs are delivered, decided inside
+`src/arch`: riscv64 has none.

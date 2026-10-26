@@ -259,10 +259,7 @@ src/smp/init/mod.rs 6
 src/smp/init/start.rs 2
     GAP: start APs. Elsewhere: riscv64 returns Ok(0); aarch64 counts arch-started CPUs
 
-src/smp/ipi_dispatch/mod.rs 3
-    GAP: IPI IDT gates. Elsewhere: riscv64 no IPIs; aarch64 has own branch
-
-src/smp/mod.rs 4
+src/smp/mod.rs 3
     GAP: AP bring-up, real-mode trampoline. Elsewhere: riscv64 none; aarch64 in arch boot
 
 src/smp/topology/detection/mod.rs 3

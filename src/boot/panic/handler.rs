@@ -35,7 +35,7 @@ fn serial_print(args: core::fmt::Arguments<'_>) {
 // without a lock and power off (`zerostate::panic_wipe_and_off`, which
 // says the order). `end` is taken before anything is printed, so a fault or
 // a second panic in the printing goes straight to the wipe. The receiving
-// side is the IPI vector itself (`smp::ipi_dispatch::handlers::panic`),
+// side is the IPI vector itself (`arch::interrupt_controller::ipi_dispatch::handlers::panic`),
 // which halts without returning; on a single-CPU runtime the broadcast
 // targets nobody and the local halt is the whole story. No VGA text banner:
 // 0xB8000 is in no process's address space, so writing it from a panic in
