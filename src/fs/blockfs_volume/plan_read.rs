@@ -22,6 +22,7 @@ use super::plan_types::{Plan, PlanError};
 use crate::hardware::block_device::{self, Places};
 
 pub(super) fn read_plan() -> Result<Plan, VolumeError> {
+    let _io = crate::fs::cryptoblock::volume_scope();
     let capacity = block_device::capacity().map_err(VolumeError::Device)?;
     let mut sector = [0u8; 512];
     block_device::read_plan_sector(0, &mut sector).map_err(VolumeError::Device)?;
