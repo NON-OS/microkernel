@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Scratch: lead/allows flow. $1 name, $2 lane, $3 "full" (Settings, About, Files, USB keyboard) or "save".
-S=/tmp/claude-0/-home-user-privatekernel/0d9b5db8-715b-5a9c-b79c-b573aa1baa2a/scratchpad
+S=/tmp/nonos-run/scratchpad
 n=$1; lane=$2; mode=$3; O=$S/m3/boot; mkdir -p $O; rm -f $S/$n.serial
 extra=""; [ "$mode" = full ] && { extra="--lane usb-kbd"; export SCRATCH_NO_I8042=1; }
 (BOOT_TIMEOUT=1200 $S/boot.sh $n --fresh --lane $lane --lane usb-tablet $extra > $O/qemu-$n.out 2>&1 &)

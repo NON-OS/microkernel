@@ -46,4 +46,4 @@ It expects EPERM each time, and exits 42 only if every step got it.
 
 ## Not shown here
 
-A Linux guest naming a native number gets EPERM. That is host-tested and source-pinned, not booted: `HANDOFF/letters/privacy/02-s13-load-bound.md` §2 says why.
+A Linux guest naming a native number gets EPERM. That is host-tested and source-pinned, not booted.

@@ -97,7 +97,7 @@ By listing, the whole closure if nothing is installed yet: (measured)
 So vim alone fills the store. git and tig together pass 512. With packs, the largest closure, profanity, is
 33 names. (measured; design)
 
-The vim boot agrees (booted: HANDOFF/catalogue/evidence/boot-plan-2026-10-25/vim-fixed/):
+The vim boot agrees (booted: docs/market/evidence/catalogue/boot-plan-2026-10-25/vim-fixed/):
 - vim-common unpacked at a 51 MiB peak.
 - 1348 of its files were not written once the owner reached 512 names.
 - The 455 written were taken out.
@@ -154,7 +154,7 @@ says as UNPACK_MEMORY, not a panic. (host-tested)
 The parser does no allocation proportional to `count` before it has checked `index_len` against the pack's
 length. (design)
 
-### Trust (booted: HANDOFF/catalogue/evidence/pack-2026-10-26)
+### Trust (booted: docs/market/evidence/catalogue/pack-2026-10-26)
 
 The installer builds the pack from the apk it has already verified: the signed index, the pin and the
 checksums (host-read: install/auth/package.rs). The machine mints a local-sign trailer (mk_local_sign, the
@@ -170,9 +170,9 @@ At run time, capsule_linux:
 A store tamper after install is therefore refused at load if it touches the head, and at the file if it
 touches the file. Each ELF's own trailer is a file in the pack, so exec's gate reads it as it reads a
 store file's. The market's verification of the release is unchanged. (the parser and verify
-host-tested; the load and serve booted: HANDOFF/catalogue/evidence/pack-2026-10-26)
+host-tested; the load and serve booted: docs/market/evidence/catalogue/pack-2026-10-26)
 
-### How a guest reads a file (booted: HANDOFF/catalogue/evidence/pack-2026-10-26)
+### How a guest reads a file (booted: docs/market/evidence/catalogue/pack-2026-10-26)
 
 capsule_linux's tree (`file/root.rs`) gains a table of mounted packs, one per installed package:
 - package name;
@@ -198,7 +198,7 @@ install script.
 The installer's own reads of a package are unchanged. It writes one object, the pack, instead of each file,
 except a market program held until its policy is bound: that stays a file of its own with PENDING beside it
 (minted.rs), because binding later writes beside it and a pack does not change once in. Links stay lines in the
-link table. (booted: HANDOFF/catalogue/evidence/pack-2026-10-26)
+link table. (booted: docs/market/evidence/catalogue/pack-2026-10-26)
 
 ## 4. Update, uninstall, and the home
 
@@ -233,7 +233,7 @@ link table. (booted: HANDOFF/catalogue/evidence/pack-2026-10-26)
   (host-read: files-home; design)
 - **Store use:** two names per package, its pack and its trailer. A market listing's held program adds itself,
   its PENDING and, once bound, its policy and their trailers. vim's install took the store from 231 names to
-  255, where its files would be 1940 (booted: HANDOFF/catalogue/evidence/pack-2026-10-26). The 512-name owner
+  255, where its files would be 1940 (booted: docs/market/evidence/catalogue/pack-2026-10-26). The 512-name owner
   budget then holds every listing in the catalogue at once: the largest closure, profanity's, is 33 packages.
   (measured; design)
 - **Memory:** a pack is the package's bytes once, as today's files are. The install heap must still hold one

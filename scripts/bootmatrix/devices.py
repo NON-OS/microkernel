@@ -17,7 +17,7 @@
 to a boot that must then show the driver serving it, not merely spawned.
 
 Each cell names the lines that prove it, and the boot fails when any is
-missing (HANDOFF/hardware/README.md: "booted" means this, no less). A cell with
+missing (docs/hardware/booted.md: "booted" means this, no less). A cell with
 a NIC boots the ethernet image (`eth`, nonos-mk-ethernet-prod) with no virtio
 NIC beside its card, so net.core has only the card under test to bind and
 its lease comes through that card's receive path. "{disk}" in a cell's

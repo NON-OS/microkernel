@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The least the built-in faces are drawn or measured at (HANDOFF/ui/identity.md,
+ * The least the built-in faces are drawn or measured at (docs/design/ui-identity.md,
  * Type): nothing under 12, and only the mono face, which `type.label` is set
  * in, under 14. Below that a face renders unreadable on a high-resolution
  * panel. Draw and measure clamp through the same function, so a clamped size
