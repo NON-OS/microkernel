@@ -135,7 +135,7 @@ let
       about = "the dev image without first-boot setup, so its apps start at boot: a Gauntlet job's headless Terminal runs one agent in a box, writes the report to serial and exits";
       for = "tools/agentproof-gauntlet: an agent run in CI, its build failed on any refusal";
       privacy = "none promised, as dev; the box's report and the program's output go to the serial line";
-      kernel = [ "microkernel-desktop-gui" "nonos-dev-attest" ];
+      kernel = [ "microkernel-desktop-gui" "nonos-dev-attest" "nonos-agentproof" ];
       loader = "dev-qemu";
       drop = [ ];
     };
