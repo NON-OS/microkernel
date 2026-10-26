@@ -9,7 +9,7 @@ The two NONOS system calls that let the threads of a [capsule](../overview/gloss
 | `MkFutexWait` | `0x5754464D`, the tag `MFTW` | `vaddr`, `expected`, `timeout_ms` | 0, or a negative error |
 | `MkFutexWake` | `0x4B54464D`, the tag `MFTK` | `vaddr`, `count` | how many waiters were woken |
 
-The numbers are four-letter [syscall tags](../overview/glossary-stark-proof.md#syscall-tag), `SYS_FUTEX_WAIT` and `SYS_FUTEX_WAKE` (`src/syscall/microkernel/numbers.rs:42-43`), dispatched to `sys_futex_wait` and `sys_futex_wake` (`src/syscall/microkernel/dispatch/process.rs:78-79`). Their entries in the ABI file are `desc.MFTK` and `desc.MFTW` (`abi/syscalls.toml:548-557`).
+The numbers are four-letter [syscall tags](../overview/glossary-stark-proof.md#syscall-tag), `SYS_FUTEX_WAIT` and `SYS_FUTEX_WAKE` (`src/syscall/microkernel/numbers/ipc_process.rs:47-48`), dispatched to `sys_futex_wait` and `sys_futex_wake` (`src/syscall/microkernel/dispatch/process.rs:78-79`). Their entries in the ABI file are `desc.MFTK` and `desc.MFTW` (`abi/syscalls.toml:548-557`).
 
 Both need only a valid [capability token](../overview/glossary-boot-root-record.md#capability-token): `MkFutexWait` and `MkFutexWake` sit with exit, yield and the clock calls that any process may make (`src/syscall/contract/cap_table/mk.rs:23-39`). The check itself is on [capabilities](capabilities.md).
 
