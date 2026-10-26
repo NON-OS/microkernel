@@ -5357,6 +5357,17 @@ else
     fail_with "acpi_only!: the gate names another arch, or holds code"
 fi
 unset acpi_out
+# An x86_64 kernel without nonos-arch-iommu is not one: the platform init
+# reaches the IOMMU unconditionally. arch-x86_64 implies it, every kernel feature
+# set resolves to it, and src/arch/x86_64 refuses to compile without it.
+if xio_out="$(python3 scripts/check_x86_iommu_feature.py --self-test 2>&1 \
+    && python3 scripts/check_x86_iommu_feature.py 2>&1)"; then
+    note ok "no x86_64 kernel feature set lacks nonos-arch-iommu (check_x86_iommu_feature)"
+else
+    tail -n 5 <<< "${xio_out}" >&2
+    fail_with "x86_64 iommu feature: a kernel feature set can leave nonos-arch-iommu out"
+fi
+unset xio_out
 # The pre-push check every unit runs (tools/nonos-unit-check): rustfmt, the
 # 75-line rule, no new #[allow], no key material. Its self-test makes each
 # finding in a scratch repository and proves a clean unit passes.
