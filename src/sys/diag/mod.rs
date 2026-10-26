@@ -28,7 +28,7 @@
 
 use core::sync::atomic::{AtomicU32, Ordering};
 
-use super::serial;
+use super::serial::Line;
 
 mod late;
 mod reply;
@@ -53,34 +53,29 @@ impl Site {
         (n < VERBOSE || n % SAMPLE == 0).then_some(n)
     }
 
+    /// "[DIAG] <label>", the start of each of this site's lines. A line is
+    /// built whole and written once (serial/line.rs), so no other CPU's line
+    /// lands inside it.
+    fn head(&self) -> Line {
+        let mut l = Line::new();
+        l.str(b"[DIAG] ").str(self.label);
+        l
+    }
+
     /// A capability gate refused `pid`: it held `have`, the gate wanted `need`.
     pub fn refused(&self, what: &str, pid: u32, have: u64, need: u64) {
         let Some(n) = self.admit() else { return };
-        serial::print(b"[DIAG] ");
-        serial::print(self.label);
-        serial::print(b" refused ");
-        serial::print_str(what);
-        serial::print(b" pid=");
-        serial::print_hex(pid as u64);
-        serial::print(b" have=");
-        serial::print_hex(have);
-        serial::print(b" need=");
-        serial::print_hex(need);
-        trail(n);
+        let mut l = self.head();
+        l.str(b" refused ").str(what.as_bytes()).str(b" pid=").hex(pid as u64);
+        trail(l.str(b" have=").hex(have).str(b" need=").hex(need), n);
     }
 
     /// The gate rejected `what` for a reason other than capabilities.
     pub fn reject(&self, what: &str, why: &'static str, pid: u32) {
         let Some(n) = self.admit() else { return };
-        serial::print(b"[DIAG] ");
-        serial::print(self.label);
-        serial::print(b" ");
-        serial::print_str(why);
-        serial::print(b" ");
-        serial::print_str(what);
-        serial::print(b" pid=");
-        serial::print_hex(pid as u64);
-        trail(n);
+        let mut l = self.head();
+        l.str(b" ").str(why.as_bytes()).str(b" ").str(what.as_bytes());
+        trail(l.str(b" pid=").hex(pid as u64), n);
     }
 
     /// A call that was sent and never answered: `errno` from the receive.
@@ -88,35 +83,26 @@ impl Site {
     /// can leave the machine in a photo or a bug report.
     pub fn starved(&self, what: &str, errno: i64) {
         let Some(n) = self.admit() else { return };
-        serial::print(b"[DIAG] ");
-        serial::print(self.label);
-        serial::print(b" unanswered ");
-        serial::print_str(what);
-        serial::print(b" err=");
+        let mut l = self.head();
+        l.str(b" unanswered ").str(what.as_bytes()).str(b" err=");
         if errno < 0 {
-            serial::print(b"-");
+            l.str(b"-");
         }
-        serial::print_dec(errno.unsigned_abs());
-        trail(n);
+        trail(l.dec(errno.unsigned_abs()), n);
     }
 
     /// A state transition worth one line, `what` = `value`.
     pub fn note(&self, what: &str, value: u64) {
         let Some(n) = self.admit() else { return };
-        serial::print(b"[DIAG] ");
-        serial::print(self.label);
-        serial::print(b" ");
-        serial::print_str(what);
-        serial::print(b"=");
-        serial::print_hex(value);
-        trail(n);
+        let mut l = self.head();
+        trail(l.str(b" ").str(what.as_bytes()).str(b"=").hex(value), n);
     }
 }
 
-fn trail(n: u32) {
+/// The sample count once past `VERBOSE`, then the line, in one write.
+fn trail(l: &mut Line, n: u32) {
     if n >= VERBOSE {
-        serial::print(b" hits=");
-        serial::print_hex(n as u64);
+        l.str(b" hits=").hex(n as u64);
     }
-    serial::println(b"");
+    l.end();
 }

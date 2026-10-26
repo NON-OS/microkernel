@@ -37,7 +37,7 @@ use super::print::println;
 /// Bytes a single diagnostic line may carry. Longer lines are truncated
 /// rather than split, because half a line that looks whole is what this
 /// module exists to prevent.
-const LINE_MAX: usize = 192;
+const LINE_MAX: usize = 256;
 
 pub struct Line {
     buf: [u8; LINE_MAX],
