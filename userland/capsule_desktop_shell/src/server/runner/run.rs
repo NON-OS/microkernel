@@ -27,19 +27,21 @@ use crate::state::Context;
 
 pub fn run(mut ctx: Context) -> ! {
     crate::server::paint_initial::paint_initial(&mut ctx);
+    crate::bench::mark(b"serving");
     let mut rx = vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
     let mut tx = vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
     let mut last_tick_ms: i64 = mk_uptime_ms();
     refresh_clock(&mut ctx);
     loop {
-        let toast_due = ctx.toasts.next_expiry().map(|t| t.0);
-        drain(&mut ctx, &mut rx, &mut tx, wake_at(last_tick_ms, toast_due));
+        let due = super::timed::due(&ctx);
+        drain(&mut ctx, &mut rx, &mut tx, wake_at(last_tick_ms, due));
         // A menu, a dialog or the Launchpad opened or closed by what was just
         // handled takes or gives back the pointer here.
         crate::server::grabs::sync(&mut ctx);
         // A full-screen window shown or gone, or the pointer at the bottom
         // edge: the dock drawn or cleared, its window opened or closed.
         crate::server::dock_sync::sync(&mut ctx);
+        crate::server::pointer_shape::sync(&mut ctx);
         /*
          * The tick is timed on the uptime clock. The wall clock can step back
          * when NTP corrects it, or read as an error before it is set, and a
@@ -52,13 +54,13 @@ pub fn run(mut ctx: Context) -> ! {
             last_tick_ms = tick_ms;
         }
         /*
-         * The toasts, on every pass rather than on the tick: a toast whose
-         * time is up leaves now, the loop having woken for it (`wake_at`),
-         * and one pushed by any handler is put on screen now, whether or not
-         * that handler synced the panel. The panel is synced only when the
+         * The toasts and the switcher's strip, on every pass rather than on
+         * the tick: one whose time is up leaves now, the loop having woken for
+         * it (`wake_at`), and a toast pushed by any handler is put on screen
+         * now, whether or not that handler synced the panel. The panel is synced only when the
          * queue moved, so a pass with nothing new costs one comparison.
          */
-        ctx.toasts.expire(crate::server::toast_clock::now());
+        super::timed::expire(&mut ctx);
         if ctx.toast_view.toasts_synced != ctx.toasts.generation() {
             sync_toast_layer(&mut ctx);
         }

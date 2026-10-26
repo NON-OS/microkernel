@@ -42,13 +42,12 @@ pub fn step_external(
             break;
         }
         let n = (n as usize).min(buf.len());
+        stdin.heard();
         route(&buf[..n], capture.as_deref_mut(), boxed.as_deref_mut(), out);
         taken += n;
     }
-    /*
-     * What the program asked the terminal (its cursor position, its
-     * identity) is answered on its stdin, as a tty answers.
-     */
+    // What the program asked the terminal (its cursor position, its identity)
+    // is answered on its stdin, as a tty answers.
     let replies = out.take_replies();
     if !replies.is_empty() {
         let _ = stdin.push(&replies);

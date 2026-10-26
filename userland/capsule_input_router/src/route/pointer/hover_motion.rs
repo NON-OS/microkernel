@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{InputEvent, INPUT_KIND_POINTER_ABS};
+use nonos_libc::InputEvent;
 
 use crate::state::{Context, Hover};
 
-use super::super::deliver::deliver_one;
+use super::hover_deliver::{deliver_local, send_leave};
 use super::shell_pid::shell_pid;
 use super::topmost_target::topmost_target;
 
@@ -38,12 +38,28 @@ pub(super) fn hover_motion(ctx: &mut Context, event: &InputEvent, x: u32, y: u32
         }
         send_leave(ctx, hover.pid, event);
         ctx.hover = None;
+        // The event that leaves a window may be the first into another: it
+        // asks now, so the window entered never waits on the count below.
+        return rehover(ctx, None, event, x, y, now);
     }
     ctx.hover_tick = ctx.hover_tick.wrapping_add(1);
     if !ctx.hover_tick.is_multiple_of(REQUERY_EVERY) {
+        // Owed, and paid when the input stops (settle_hover): the place the
+        // pointer comes to rest is always asked, whatever the count.
+        ctx.hover_owed = Some((*event, x, y));
         return 0;
     }
     rehover(ctx, None, event, x, y, now)
+}
+
+/// Ask the window manager about a skipped motion once the router has no input
+/// waiting: at most once per pause, so the cap on asks holds while the
+/// pointer moves and the window it stops over still gets the hover.
+pub fn settle_hover(ctx: &mut Context) {
+    let Some((event, x, y)) = ctx.hover_owed.take() else { return };
+    if ctx.hover.is_none() && ctx.press.is_none() {
+        rehover(ctx, None, &event, x, y, nonos_libc::mk_uptime_ms());
+    }
 }
 
 // Ask the window manager what is on top at (x, y) and hover it; the window
@@ -56,6 +72,7 @@ fn rehover(
     y: u32,
     now: i64,
 ) -> u32 {
+    ctx.hover_owed = None;
     let shell = shell_pid(ctx);
     let next = match topmost_target(ctx, x, y) {
         Some(t) if t.owner_pid != shell => Some(Hover {
@@ -75,35 +92,5 @@ fn rehover(
     match next {
         Some(hover) if hover.contains(x, y) => deliver_local(ctx, hover, event, x, y),
         _ => 0,
-    }
-}
-
-fn deliver_local(ctx: &mut Context, hover: Hover, event: &InputEvent, x: u32, y: u32) -> u32 {
-    let mut routed = *event;
-    routed.kind = INPUT_KIND_POINTER_ABS;
-    routed.x = (x - hover.x) as i32;
-    routed.y = (y - hover.y) as i32;
-    routed.delta_x = 0;
-    routed.delta_y = 0;
-    if !ctx.subscriptions.allows(hover.pid, routed.kind) {
-        return 0;
-    }
-    let delivered = deliver_one(hover.pid, &routed);
-    if delivered == 0 {
-        ctx.forget_pid(hover.pid);
-        ctx.hover = None;
-    }
-    delivered
-}
-
-fn send_leave(ctx: &mut Context, pid: u32, event: &InputEvent) {
-    let mut routed = *event;
-    routed.kind = INPUT_KIND_POINTER_ABS;
-    routed.x = -1;
-    routed.y = -1;
-    routed.delta_x = 0;
-    routed.delta_y = 0;
-    if ctx.subscriptions.allows(pid, routed.kind) && deliver_one(pid, &routed) == 0 {
-        ctx.forget_pid(pid);
     }
 }

@@ -31,6 +31,7 @@ mod paint_initial;
 mod paste;
 mod peer;
 mod peer_rule;
+mod pointer_shape;
 mod ready_to_block;
 mod reap_tray;
 mod refresh_taskbar;
@@ -45,6 +46,7 @@ pub mod toast_clock;
 mod trusted_band;
 pub mod wallpaper_policy;
 mod wm_notify;
+mod wm_notify_switch;
 mod wm_notify_toast;
 mod wm_notify_track;
 

@@ -118,7 +118,7 @@ Amnesic starts the desktop. Install keeps the answers, then hands the whole scre
   - Downloads over Anyone: `for_installs`, `userland/nonos_route_link/src/chosen.rs:50-52`.
   - The privacy statements: `FACTS`, `userland/capsule_setup_wizard/src/render/screens/privacy.rs:10-18`.
   - Random MAC addresses: `draw`, `userland/capsule_driver_e1000/src/init/station_address.rs:24-26`; `program`, `userland/capsule_driver_rtl8169/src/init/mac.rs:27-29`; `draw`, `userland/capsule_driver_rtl8821ce/src/station.rs:24-26`; for the drivers the screen does not name, `apply`, `userland/nonos_mac/src/local.rs:53`.
-  - The Qwen step's starting row: `default_row`, `userland/capsule_setup_wizard/src/qwen/default.rs:78-86`, and `STICK_TIER`, `userland/capsule_model_fetch/src/default_tier.rs:84-88`.
+  - The Qwen step's starting row: `default_row`, `userland/capsule_setup_wizard/src/qwen/default.rs:78-86`, and `STICK_TIER`, `userland/capsule_model_fetch/src/need.rs:95`.
   - Installed software: `MODES`, `userland/capsule_setup_wizard/src/render/screens/local_software.rs:24-30`.
   - A refused answer named once on Review: `unsaved_told`, `userland/capsule_setup_wizard/src/render/screens/review.rs:69-80`.
 - What is kept, and where
