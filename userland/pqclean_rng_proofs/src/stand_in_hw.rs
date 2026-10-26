@@ -30,8 +30,7 @@ pub fn entropy_works(ok: bool) {
     ENTROPY_OK.with(|e| *e.borrow_mut() = ok);
 }
 
-#[allow(clippy::result_unit_err)]
-pub fn get_entropy64_secure() -> Result<u64, ()> {
+pub(crate) fn get_entropy64_secure() -> Result<u64, ()> {
     ENTROPY_OK.with(|e| if *e.borrow() { Ok(0x0123_4567_89ab_cdef) } else { Err(()) })
 }
 

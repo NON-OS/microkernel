@@ -26,7 +26,7 @@ fn a_box_word_past_255_bytes_is_refused_as_the_box_field() {
     assert_eq!(word.len(), 256);
     let rec = Fixture::new(b"strict").record.encode();
     let bound = agentproof_receipt::napr::write::bound(&rec, &word, &[0; 256], &[0; 32]);
-    let b = agentproof_receipt::napr::write::finish(bound, b"x");
+    let b = agentproof_receipt::napr::write::finish(bound, b"x", &[0; 45]);
     assert_eq!(parse(&b), Err(Fault::Field("box")));
 }
 

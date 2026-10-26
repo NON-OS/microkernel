@@ -20,5 +20,6 @@ mod on_tick;
 mod refresh_clock;
 mod run;
 pub(crate) mod tick;
+mod timed;
 
 pub use run::run;

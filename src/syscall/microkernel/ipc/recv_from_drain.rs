@@ -31,7 +31,7 @@ pub(super) fn drain(buf: u64, len: usize, timeout_ms: u64, outs: (u64, u64), inb
         // window as recv_from_inbox; this loop is the one most servers run.
         let token = crate::sched::wake_token(pid);
         if let Some(msg) = nonos_inbox::try_dequeue_existing(inbox) {
-            super::pending_reply::record_served(pid, msg.correlation);
+            super::pending_reply::mark_served(pid, msg.correlation);
             return deliver(pid, &msg, buf, len, outs);
         }
         let elapsed = crate::time::timestamp_millis().saturating_sub(start);
@@ -42,7 +42,7 @@ pub(super) fn drain(buf: u64, len: usize, timeout_ms: u64, outs: (u64, u64), inb
         };
         crate::sched::sleep_until_unless_woken(pid, deadline, token);
         if let Some(msg) = nonos_inbox::try_dequeue_existing(inbox) {
-            super::pending_reply::record_served(pid, msg.correlation);
+            super::pending_reply::mark_served(pid, msg.correlation);
             return deliver(pid, &msg, buf, len, outs);
         }
         crate::sched::yield_now();

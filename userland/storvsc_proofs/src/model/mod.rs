@@ -21,6 +21,7 @@
 //! answers, and nothing of the driver's code. The host reads and writes
 //! the grant itself, by the page numbers it was handed, as Hyper-V does.
 
+mod pages;
 pub mod server;
 #[path = "../../../nonos_scsi/src/sim.rs"]
 pub mod sim;
@@ -31,7 +32,7 @@ use nonos_vmbus::model::{Model, Script};
 use nonos_vmbus::msg::MESSAGE_MAX;
 use nonos_vmbus::{Host, Pages, PostError};
 
-pub use server::{Server, Seen};
+pub use server::{Seen, Server};
 
 pub const PAGE: usize = 4096;
 /// The page number the grant's first page has, as the host sees it.
@@ -83,9 +84,8 @@ impl StorHost {
 
     fn run(&mut self) {
         if let Some((_, gpadl, in_at)) = self.vmbus.open {
-            let pfns = self.vmbus.gpadls.iter().find(|(id, _)| *id == gpadl).map(|(_, p)| p.clone());
-            if let Some(pfns) = pfns {
-                self.server.run(self.grant, &pfns, in_at as usize);
+            if let Some((_, pfns)) = self.vmbus.gpadls.iter().find(|(id, _)| *id == gpadl) {
+                self.server.run(self.grant, pfns, in_at as usize);
             }
         }
     }

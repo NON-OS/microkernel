@@ -25,3 +25,5 @@ pub const OP_HEALTHCHECK: u16 = 6;
 pub const OP_GET_COMMERCE: u16 = 7;
 /// The box a Linux release is sold with, for init's install (I-C5).
 pub const OP_GET_LINUX_POLICY: u16 = 8;
+/// A listing's logo, checked against the BLAKE3 its signed entry names.
+pub const OP_GET_LOGO: u16 = 9;

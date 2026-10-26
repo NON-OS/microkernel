@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_toolkit::decorations::DecorationHit;
+use nonos_toolkit::decorations::{DecorationHit, FrameState};
 
 use crate::app::{App, AppManifest};
 use crate::clients::compositor;
@@ -32,7 +32,8 @@ pub(super) fn paint_once<A: App>(
     request_id: &mut u32,
     maximized: bool,
 ) -> bool {
-    paint(app, manifest, binding, DecorationHit::None, maximized, peers.toolkit, next(request_id));
+    let state = FrameState { hover: DecorationHit::None, focused: true };
+    paint(app, manifest, binding, state, maximized, peers.toolkit, next(request_id));
     let rid = next(request_id);
     compositor::damage_commit(
         peers.compositor,

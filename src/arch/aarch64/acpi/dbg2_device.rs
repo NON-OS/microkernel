@@ -42,7 +42,7 @@ pub struct Dbg2Device {
 }
 
 /// The structure at `at` and its length.
-pub fn device(t: &[u8], at: usize) -> Result<(Dbg2Device, usize), TableError> {
+pub(crate) fn device(t: &[u8], at: usize) -> Result<(Dbg2Device, usize), TableError> {
     let bad = TableError::Structure(at);
     let len = usize::from(u16_at(t, at + 1).ok_or(bad)?);
     let s = t.get(at..at.checked_add(len).ok_or(bad)?).filter(|_| len >= HEAD).ok_or(bad)?;

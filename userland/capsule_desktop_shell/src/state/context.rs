@@ -64,4 +64,6 @@ pub struct Context {
     pub trusted: crate::state::trusted::Trusted,
     /// Which of the open dialog's two buttons the keyboard is on.
     pub dialog_focus: crate::state::dialog_keys::DialogFocus,
+    /// The window switcher's order and run (`ctx/switch`).
+    pub switch: crate::state::ctx::switch::SwitchOrder,
 }

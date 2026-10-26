@@ -17,10 +17,9 @@
 //! Panel geometry.
 //!
 //! Every size here is a real pixel: apps paint at 1x and the AA text facade
-//! clamps at `ttf::MIN_UI_PX` (17.0) for draw *and* measure. A caption asked for
-//! at 13px renders at 17px but measures at 17px too, so rows sized for a smaller
-//! caption would overflow the box they were measured into. The scale below
-//! starts at the floor and the rows are tall enough to hold two lines of it.
+//! clamps proportional text at `ttf::MIN_UI_PX` (14) for draw *and* measure.
+//! The scale below starts at the body size, 17, and the rows are tall enough
+//! to hold two lines of it.
 
 pub const SIDEBAR_W: u32 = 212;
 pub const NAV_TOP: u32 = 14;

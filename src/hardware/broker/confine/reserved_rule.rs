@@ -15,14 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A claimant's reserved regions in its domain (L60): where one may be mapped
-//! one to one, and placement that steps over every one mapped. Pure, so the
-//! host proofs hold it.
+//! one to one. Placement steps over every one mapped through the kernel's
+//! own `avoid::place_avoiding`, given these with the reserved ranges
+//! (`reserved_spans`). Pure, so the host proofs hold it.
 
-extern crate alloc;
-
-use alloc::vec::Vec;
-
-use super::avoid::place_avoiding;
 use super::iova_space::{touches_interrupt_window, IOVA_BASE};
 
 /// A reserved region `[base, end)` mapped for `device`'s sake.
@@ -62,14 +58,4 @@ pub(super) fn verdict(base: u64, end: u64, next: u64, held: &[Held], barred: boo
         return Verdict::Refuse(b"refused: an RMRR overlaps the capsule's grants");
     }
     Verdict::Map
-}
-
-/// The kernel's placement (`avoid::place_avoiding`) over the held regions
-/// alone: it steps over each as over the interrupt window, so no grant's IOVA
-/// lands on a region mapped one to one. The host proofs place by it; the
-/// kernel passes these and the reserved ranges together (`reserved_spans`).
-#[allow(dead_code)]
-pub(super) fn place_clear(next: u64, length: u64, held: &[Held]) -> Option<(u64, u64)> {
-    let spans: Vec<(u64, u64)> = held.iter().map(|h| (h.base, h.end)).collect();
-    place_avoiding(next, length, &spans)
 }

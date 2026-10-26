@@ -19,19 +19,14 @@ use crate::hid::{MouseLayout, Multitouch, TouchLayout};
 use crate::input::TouchGesture;
 
 pub struct State {
-    pub i2c_port: u32,
-    pub i2c_pid: u32,
-    pub addr: u8,
     pub descriptor: [u8; 30],
     pub descriptor_len: usize,
     pub input_register: u16,
     pub input_len: usize,
     pub last_buttons: u8,
-    pub probes: u64,
     pub input_polls: u64,
     pub input_reports: u64,
     pub post_failures: u64,
-    pub woke: bool,
     /// The touch field map has decoded at least one real report. Until then
     /// the relative fallback stays available: a device that never streams
     /// its absolute collection must not go silent. Once proven, unmatched
@@ -57,17 +52,6 @@ pub struct State {
     /// has no precision touchpad collection).
     pub mouse_layout: MouseLayout,
     pub gesture: TouchGesture,
-    /// The controller has said it has no doorbell (or failed to answer it
-    /// several times running): reads go by timer and it is not asked again.
-    pub doorbell_absent: bool,
-    pub doorbell_failures: u32,
-    /// Reads made because the doorbell said a report waited that found
-    /// none, in a row. A line that reads asserted with nothing pending is
-    /// the wrong pin or the wrong polarity, and trusting it would hold reads
-    /// back exactly while the finger moves.
-    pub doorbell_misses: u32,
-    /// The last input read returned a report (a non-zero length).
-    pub last_read_had_report: bool,
     /// A plain-language console line about this pad was already printed.
     pub said: bool,
 }

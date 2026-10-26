@@ -40,7 +40,7 @@ pub fn undo(c: Coding, data: &[u8], partial: bool) -> Option<(Vec<u8>, bool)> {
         End::Complete => return Some((r.out, true)),
         End::Truncated => partial,
         End::Capped => partial && r.used.saturating_mul(MIN_READ_SHARE) >= data.len(),
-        End::Corrupt => false,
+        End::Corrupt | End::NoMemory => false,
     };
     kept.then_some((r.out, false))
 }

@@ -16,6 +16,7 @@
 
 use alloc::string::String;
 
+use super::served_rule::redirect_at;
 use super::state::PENDING;
 
 pub(in crate::syscall::microkernel::ipc) fn pop(server_pid: u32) -> Option<(u32, String, u64)> {
@@ -26,13 +27,10 @@ pub(in crate::syscall::microkernel::ipc) fn pop(server_pid: u32) -> Option<(u32,
     // it. A server answering a kernel request finds no match here, and the
     // send path drops that reply as addressed to nobody, which is what it is.
     let want = super::state::last_served(server_pid);
-    if want == 0 {
-        return None;
-    }
     let mut map = PENDING.lock();
     let queue = map.get_mut(&server_pid)?;
-    let pos = queue.iter().position(|(_, _, token)| *token == want)?;
-    let entry = queue.remove(pos);
+    let pos = redirect_at(queue.iter(), want)?;
+    let entry = queue.remove(pos).map(|e| (e.pid, e.inbox, e.token));
     if queue.is_empty() {
         map.remove(&server_pid);
     }

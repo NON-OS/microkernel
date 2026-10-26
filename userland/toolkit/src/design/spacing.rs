@@ -30,3 +30,8 @@ impl Default for SpacingScale {
         Self { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 }
     }
 }
+
+/* The NØNOS spacing scale: a 4 px half step and an 8 px unit, in logical
+ * pixels. Dense rows use the low end; screens that ask for consent, money or a
+ * disk use the high end. No other spacing number belongs in app code. */
+pub const SPACE: [u16; 8] = [4, 8, 12, 16, 24, 32, 48, 64];

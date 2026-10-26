@@ -13,19 +13,24 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+#[cfg(target_arch = "x86_64")]
+pub mod acpi;
+#[cfg(not(target_arch = "x86_64"))]
+#[path = "acpi_absent.rs"]
+pub mod acpi;
 pub mod app_install;
 pub mod app_install_status;
-pub mod app_uninstall;
 pub mod app_launch;
+pub mod app_uninstall;
 pub mod attest;
 pub mod attest_doc;
 pub mod attest_entries;
-pub mod log_tail;
 pub mod attest_policy;
 pub mod battery;
 mod boot_attest;
 pub mod boot_framebuffer;
 pub mod capability;
+pub mod caps_of;
 pub mod capsule_load;
 pub mod capsule_verify;
 pub mod data;
@@ -34,7 +39,7 @@ pub mod debug;
 pub mod debug_diag;
 pub mod device;
 mod device_list;
-mod device_proof;
+pub(crate) mod device_proof;
 pub mod dispatch;
 #[cfg(feature = "nonos-user-entry-proof")]
 pub mod dispatch_trace;
@@ -49,8 +54,8 @@ pub mod install_source;
 mod install_source_approval;
 mod install_source_in_use;
 mod install_source_kinds;
-mod install_source_records;
 pub mod install_source_modules;
+mod install_source_records;
 pub mod install_source_window;
 pub mod ipc;
 pub mod irq;
@@ -60,23 +65,17 @@ pub mod local_consent;
 mod local_image;
 pub mod local_sign;
 pub mod local_verify;
+pub mod log_tail;
 pub mod memory;
 pub mod mmio;
 pub(crate) mod narrow;
 pub mod numbers;
 pub mod pci;
 pub mod pio;
-#[cfg(target_arch = "x86_64")]
-pub mod acpi;
-#[cfg(not(target_arch = "x86_64"))]
-#[path = "acpi_absent.rs"]
-pub mod acpi;
 pub mod private_write;
 pub mod proc_output;
 pub mod proc_stdin;
 pub mod process;
-pub mod prove_job;
-pub mod retired;
 pub mod procstat;
 mod procstat_boot;
 pub mod procstat_codes;
@@ -85,18 +84,18 @@ pub mod procstat_fill;
 pub mod procstat_header;
 pub mod procstat_header_fill;
 pub mod procstat_redact;
+pub mod prove_job;
+pub mod retired;
 pub mod spawn_instance;
 pub mod stdout_write;
 mod store_errno;
 pub mod store_read;
 pub mod store_write;
 pub mod time;
-pub mod caps_of;
 pub mod tool_run;
 pub mod tty;
 pub mod tty_table;
 pub mod wait;
-pub(crate) use device_proof::device_secret_caller;
 pub use attest::sys_attest_status;
 pub use attest_doc::sys_attest_doc;
 pub use attest_entries::sys_attest_entries;

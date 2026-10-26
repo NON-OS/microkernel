@@ -191,6 +191,15 @@ def main():
     print(f"nonos-dev-image: {attr}, in {TREE.relative_to(ROOT)}")
     sync()
     commit()
+    # host-tools mounts the market's key file, so a fresh copy holds the
+    # checkout's tracked operator key, public by design, until keys() makes
+    # the throwaway pair that replaces it.
+    pub = TREE / ".keys/marketplace_operator_ed25519.pub"
+    if not pub.is_file():
+        pub.parent.mkdir(exist_ok=True)
+        shutil.copy2(ROOT / ".keys/marketplace_operator_ed25519.pub", pub)
+        sh("git", "add", "-f", ".keys/marketplace_operator_ed25519.pub")
+        commit()
     host_tools = sh("nix", "build", ".#host-tools", "--no-link", "--print-out-paths", capture=True)
     keys(host_tools)
     if a.profile == "selftest":

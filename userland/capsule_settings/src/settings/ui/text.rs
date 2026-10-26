@@ -17,6 +17,8 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
 
+mod fit;
+
 /// `text_ttf` takes the top of the line box, so a row that wants its text
 /// optically centred has to subtract the line height itself. Painter and hit
 /// test both come through here, which is what keeps a click on the same pixels
@@ -39,4 +41,9 @@ pub fn right(fb: &mut PaintBuffer, right_x: u32, top: i32, s: &str, argb: u32, p
 
 pub fn width(fb: &PaintBuffer, s: &str, px: f32) -> u32 {
     fb.measure_ttf(s, px).max(0) as u32
+}
+
+/// `s` cut to fit `max_w` pixels at `px` (see `fit`).
+pub fn fit(fb: &PaintBuffer, s: &str, px: f32, max_w: u32) -> alloc::string::String {
+    fit::fit(s, max_w, |t| width(fb, t, px))
 }

@@ -40,10 +40,10 @@ def documents():
 class Documents(unittest.TestCase):
     def test_split_keeps_the_header_and_one_entry_each(self):
         a, b = {"listing_id": "linux.a"}, {"listing_id": "linux.b"}
-        docs = split({"schema_version": 3, "serial": 7, "entries": [a, b]})
-        self.assertEqual(docs["linux.b"], {"schema_version": 3, "serial": 7, "entries": [b]})
+        docs = split({"schema_version": 4, "serial": 7, "entries": [a, b]})
+        self.assertEqual(docs["linux.b"], {"schema_version": 4, "serial": 7, "entries": [b]})
         with tempfile.TemporaryDirectory() as d:
-            got = write({"schema_version": 3, "entries": [a, b]}, Path(d))
+            got = write({"schema_version": 4, "entries": [a, b]}, Path(d))
             self.assertEqual([p.name for p in got], ["linux.a.json", "linux.b.json"])
 
     def test_there_is_a_document_for_every_recipe_and_no_other(self):
@@ -57,7 +57,7 @@ class Documents(unittest.TestCase):
             recipe = RECIPES[e["listing_id"].removeprefix("linux.")]
             p = bytes.fromhex(rel["ext"]["guest_policy"])
             lid = listing_id(bytes.fromhex(e["publisher_pubkey"]), e["listing_id"])
-            self.assertEqual(doc["schema_version"], 3)
+            self.assertEqual(doc["schema_version"], 4)
             self.assertEqual(int.from_bytes(p[48:56], "little"), recipe["mask"], e["listing_id"])
             self.assertEqual(p[152:217], recipe["calls"], e["listing_id"])
             self.assertEqual((p[56:88], p[88:120]), (lid, release_id(lid, rel["release_id"])))

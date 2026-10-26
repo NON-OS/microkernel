@@ -20,6 +20,8 @@ pub const SCENE_SUBMIT_REQ_LEN: usize = 32;
 pub const DAMAGE_COMMIT_REQ_LEN: usize = 16;
 pub const FOCUS_SET_REQ_LEN: usize = 8;
 pub const CURSOR_UPDATE_REQ_LEN: usize = 16;
+/// surface handle (low, high), shape, reserved 0.
+pub const CURSOR_SHAPE_REQ_LEN: usize = 16;
 pub const SCENE_REMOVE_REQ_LEN: usize = 8;
 pub const INDICATOR_REQ_LEN: usize = 8;
 pub const OUTPUT_LAYOUT_REQ_LEN: usize = 4;

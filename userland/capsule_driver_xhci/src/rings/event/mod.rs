@@ -23,9 +23,6 @@ mod failed;
 mod has_event;
 mod issued_transfer;
 mod park;
-mod state;
+pub(crate) mod state;
 pub use issued_transfer::IssuedTransfer;
 pub use state::EventRing;
-// Reached by the host proofs (userland/xhci_proofs), not by the capsule.
-#[allow(unused_imports)]
-pub use state::ARMED;
