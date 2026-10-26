@@ -240,6 +240,7 @@ let
       "scripts/check_test_lanes.py --self-test" "scripts/check_test_lanes.py"
       "-m unittest discover -s tools/nonos_selftest -p 'test_*.py'"
       "-m unittest discover -s tools/agentproof_gauntlet -t tools -p 'test_*.py'"
+      "-m unittest discover -s tools/nonos_qemu -t tools -p 'test_*.py'"
     ]);
     # verify.yml, abi-contracts and syscall-reach
     static-abi = static "abi" (scripts [

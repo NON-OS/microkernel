@@ -18,7 +18,7 @@
 //! a time as `[AGENTPROOF-OUT] <row>`, history first, so a host reads the
 //! program's own output beside the box's line.
 
-use nonos_libc::mk_debug;
+use nonos_libc::{mk_debug, mk_exit};
 
 use crate::term::state::State;
 
@@ -52,4 +52,13 @@ fn out(line: &nonos_vt::line::Line, cols: usize) {
     if !text.is_empty() {
         say(&alloc::format!("[AGENTPROOF-OUT] {text}\n"));
     }
+}
+
+pub fn lossy(b: &[u8]) -> alloc::string::String {
+    alloc::string::String::from_utf8_lossy(b).into_owned()
+}
+
+pub fn done(line: &[u8], code: i32) -> ! {
+    say(&lossy(line));
+    mk_exit(code)
 }
