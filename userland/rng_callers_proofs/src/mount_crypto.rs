@@ -24,7 +24,7 @@ pub mod crypto {
     pub use error::{CryptoError, CryptoResult};
     pub use hash::{blake3, sha512};
     pub use symmetric::chacha20poly1305;
-    pub use util::{constant_time, hmac, rng};
+    pub use util::{constant_time, constant_time::secure_zero, hmac, rng};
 
     pub mod symmetric {
         pub mod chacha20poly1305;
