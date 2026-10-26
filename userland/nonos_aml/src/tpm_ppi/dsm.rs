@@ -17,7 +17,7 @@
 //! The PPI _DSM: its UUID, the TPM device ids that carry it, and the three
 //! read functions used here: 0 (the supported functions, a bit each), 1
 //! (the interface version, a string such as "1.3") and 8 (for one
-//! operation, what the OS may do: 0 not implemented, 1 firmware only, 2
+//! operation, what the OS may do: 0 not offered, 1 firmware only, 2
 //! blocked by firmware settings, 3 allowed with a physically present user,
 //! 4 allowed without). Functions 2, 6 and 7 submit requests and are never
 //! called. All recalled from the TCG Physical Presence Interface

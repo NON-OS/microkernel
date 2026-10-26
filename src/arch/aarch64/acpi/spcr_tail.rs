@@ -21,9 +21,9 @@ use super::le::{u16_at, u64_at, u8_at};
 use super::sdt::TableError;
 use alloc::vec::Vec;
 
-pub const FIXED_V4: usize = 88;
+pub(crate) const FIXED_V4: usize = 88;
 
-pub fn gas(t: &[u8], at: usize) -> Option<Gas> {
+pub(crate) fn gas(t: &[u8], at: usize) -> Option<Gas> {
     Some(Gas {
         space: u8_at(t, at)?,
         bit_width: u8_at(t, at + 1)?,
@@ -43,7 +43,7 @@ pub struct Gas {
 }
 
 /// The path, its length and offset at 84 and 86, NUL-terminated inside.
-pub fn namespace(t: &[u8]) -> Result<Vec<u8>, TableError> {
+pub(crate) fn namespace(t: &[u8]) -> Result<Vec<u8>, TableError> {
     let (len, at) = (u16_at(t, 84).unwrap_or(0) as usize, u16_at(t, 86).unwrap_or(0) as usize);
     if len == 0 {
         return Ok(Vec::new());
