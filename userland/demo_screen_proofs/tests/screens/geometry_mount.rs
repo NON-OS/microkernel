@@ -19,7 +19,6 @@
 
 #[path = "../../../capsule_wm/src/geometry/constrain.rs"]
 mod constrain;
-#[allow(dead_code)] // the hit test placement does not use
 #[path = "../../../capsule_wm/src/geometry/rect.rs"]
 mod rect;
 
