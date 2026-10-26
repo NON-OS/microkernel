@@ -27,6 +27,7 @@ pub(crate) mod bound_model;
 mod bound_session_tests;
 mod bound_tests;
 mod coalesce_tests;
+mod cursor_overlay_tests;
 mod cursor_shape_ask_tests;
 mod cursor_shape_desk_tests;
 mod cursor_shape_tests;
