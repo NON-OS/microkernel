@@ -44,18 +44,8 @@ pub fn run() -> Result<Context, &'static str> {
             return Err(e);
         }
     };
-    if compositor::push_scene_submit(
-        compositor_port,
-        1,
-        handle,
-        0,
-        0,
-        width,
-        height,
-        super::constants::OVERLAY_Z,
-    )
-    .is_err()
-    {
+    let at = compositor::Placement { x: 0, y: 0, width, height, z: super::constants::OVERLAY_Z };
+    if compositor::push_scene_submit(compositor_port, 1, handle, &at).is_err() {
         super::cleanup_surface::cleanup_surface(handle)?;
         super::cleanup_backing::cleanup_backing(backing_va, byte_len)?;
         return Err("compositor scene submit failed");
