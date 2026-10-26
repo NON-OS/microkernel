@@ -26,7 +26,7 @@ REPORT_VERSION = 1
 BOOTS = {
     "attest": ("trailer-flip", "trailer-extra-cap", "trailer-kernel-kind", "trailer-stale-epoch"),
     "capsule": ("cap-escape", "foreign-memory", "service-squat", "held-escape", "deputy-escape",
-                "fault-containment"),
+                "reply-twice", "fault-containment"),
     "linux": ("linux-fs-escape", "linux-foreign-memory", "linux-raw-syscall"),
 }
 ATTACKS = tuple(a for attacks in BOOTS.values() for a in attacks)
