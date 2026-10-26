@@ -14,12 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which pending entry a direct mk_ipc_reply answers: the request the
-//! server dequeued last when it is the caller's, else the caller's oldest
-//! dequeued one; a request still in the inbox is never answered.
+//! Which pending entry a reply answers. A direct mk_ipc_reply: the request
+//! the server dequeued last when it is the caller's, else the caller's
+//! oldest dequeued one. A redirect: the request dequeued last. An
+//! MkIpcReplyTo: the dequeued request it names. Never one still in the
+//! inbox, and never one already answered. With the request ids and the
+//! meta MkIpcRecvReq hands the server, held to abi/wire.toml.
 
+#[path = "../../../../src/syscall/microkernel/ipc/recv_meta.rs"]
+mod recv_meta;
 #[path = "../../../../src/syscall/microkernel/ipc/pending_reply/reply_rule.rs"]
 mod reply_rule;
+#[path = "../../../../src/syscall/microkernel/ipc/pending_reply/request_ids.rs"]
+mod request_ids;
 #[path = "../../../../src/syscall/microkernel/ipc/pending_reply/served_rule.rs"]
 mod served_rule;
 
@@ -27,7 +34,9 @@ mod served_rule;
 use crate::proofs::proofs_8::ipc_death::entry;
 
 mod answered_tests;
+mod meta_tests;
 mod model;
 mod redirect_tests;
+mod reply_to_tests;
 mod sequence_tests;
 mod tests;

@@ -11,14 +11,16 @@ the ports.
 
 | Tag | Number | Name | Capability | Gate | Meaning |
 |---|---|---|---|---|---|
-| `MISD` | `0x4453494D` | `MkIpcSend` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:46` | Send a message to the endpoint a port number names. |
-| `MIRC` | `0x4352494D` | `MkIpcRecv` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:46` | Receive from the caller's own inbox (endpoint 0) or an endpoint it owns; a timeout of 0 waits for ever. |
-| `MICL` | `0x4C43494D` | `MkIpcCall` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:46` | Send a request and wait for the reply that carries its correlation token. |
-| `MIRF` | `0x4652494D` | `MkIpcRecvFrom` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:46` | Receive as `MIRC` does, and also write the sender's pid. |
-| `MIRY` | `0x5952494D` | `MkIpcReply` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:46` | Answer a caller whose `MICL` this server took. |
-| `MISP` | `0x5053494D` | `MkIpcSendToPid` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:46` | Send straight to a process's own `proc.<pid>` inbox. |
-| `MSVL` | `0x4C56534D` | `MkServiceLookup` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:46` | Resolve a service name to its port and owning pid. |
-| `MSVR` | `0x5256534D` | `MkServiceRegister` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:46` | Register a service name on a port; few names may be claimed at run time. |
+| `MISD` | `0x4453494D` | `MkIpcSend` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:48` | Send a message to the endpoint a port number names. |
+| `MIRC` | `0x4352494D` | `MkIpcRecv` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:48` | Receive from the caller's own inbox (endpoint 0) or an endpoint it owns; a timeout of 0 waits for ever. |
+| `MICL` | `0x4C43494D` | `MkIpcCall` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:48` | Send a request and wait for the reply that carries its correlation token. |
+| `MIRF` | `0x4652494D` | `MkIpcRecvFrom` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:48` | Receive as `MIRC` does, and also write the sender's pid. |
+| `MIRY` | `0x5952494D` | `MkIpcReply` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:48` | Answer a caller whose `MICL` this server took. |
+| `MIRQ` | `0x5152494D` | `MkIpcRecvReq` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:48` | Receive as `MIRF` does, and write the request's meta v1: sender, when queued, and the id `MIRT` answers it by. |
+| `MIRT` | `0x5452494D` | `MkIpcReplyTo` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:48` | Answer the request `MIRQ` named, and only that one; a second answer is `ENOENT`. |
+| `MISP` | `0x5053494D` | `MkIpcSendToPid` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:48` | Send straight to a process's own `proc.<pid>` inbox. |
+| `MSVL` | `0x4C56534D` | `MkServiceLookup` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:48` | Resolve a service name to its port and owning pid. |
+| `MSVR` | `0x5256534D` | `MkServiceRegister` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:48` | Register a service name on a port; few names may be claimed at run time. |
 
 ### Processes, memory and time
 

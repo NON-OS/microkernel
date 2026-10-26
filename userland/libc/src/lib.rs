@@ -113,7 +113,8 @@ pub use install_source::{
 };
 pub use ipc::{
     mk_ipc_call, mk_ipc_call_timeout, mk_ipc_recv, mk_ipc_recv_from, mk_ipc_recv_from_at,
-    mk_ipc_reply, mk_ipc_send, mk_ipc_send_to_pid, mk_service_lookup, mk_service_register,
+    mk_ipc_recv_req, mk_ipc_reply, mk_ipc_reply_to, mk_ipc_send, mk_ipc_send_to_pid,
+    mk_service_lookup, mk_service_register, IpcReqMeta, IPC_REQ_META_V1,
 };
 pub use local_sign::{
     mk_app_install, mk_app_install_status, mk_app_launch, mk_app_uninstall, mk_local_sign,

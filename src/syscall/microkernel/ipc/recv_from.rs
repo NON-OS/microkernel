@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::ipc::nonos_inbox;
-use crate::process::current_pid;
-use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOENT};
+use crate::syscall::microkernel::errnos::ERRNO_FAULT;
 
-use super::inbox_name::resolve_for_recv;
+use super::recv_from_deliver::Outs;
 use super::recv_from_drain::drain;
+use super::recv_open::{buffer, inbox};
 
 // `MkIpcRecvFrom`. Same drain semantics as `MkIpcRecv`, with an
 // extra `sender_pid_out` user pointer written with the caller pid
@@ -34,28 +33,18 @@ pub fn sys_ipc_recv_from(
     sender_pid_out: u64,
     enqueued_ms_out: u64,
 ) -> i64 {
-    if len == 0 {
-        return ERRNO_INVAL;
+    if let Err(e) = buffer(buf, len) {
+        return e;
     }
-    if crate::usercopy::validate_user_write(buf, len).is_err() {
-        return ERRNO_FAULT;
+    for (at, size) in [(sender_pid_out, 4), (enqueued_ms_out, 8)] {
+        if at != 0 && crate::usercopy::validate_user_write(at, size).is_err() {
+            return ERRNO_FAULT;
+        }
     }
-    if sender_pid_out != 0
-        && crate::usercopy::validate_user_write(sender_pid_out, core::mem::size_of::<u32>())
-            .is_err()
-    {
-        return ERRNO_FAULT;
+    match inbox(endpoint) {
+        Ok(name) => {
+            drain((buf, len), timeout_ms, Outs::From(sender_pid_out, enqueued_ms_out), &name)
+        }
+        Err(e) => e,
     }
-    if enqueued_ms_out != 0 && crate::usercopy::validate_user_write(enqueued_ms_out, 8).is_err() {
-        return ERRNO_FAULT;
-    }
-    let pid = current_pid().unwrap_or(0);
-    let inbox_name = match resolve_for_recv(endpoint, pid) {
-        Ok(name) => name,
-        Err(e) => return e,
-    };
-    if !nonos_inbox::exists(&inbox_name) {
-        return ERRNO_NOENT;
-    }
-    drain(buf, len, timeout_ms, (sender_pid_out, enqueued_ms_out), &inbox_name)
 }

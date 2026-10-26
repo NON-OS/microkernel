@@ -155,6 +155,8 @@ MISD = 0x4453494D
 MIRC = 0x4352494D
 MICL = 0x4C43494D
 MIRF = 0x4652494D
+MIRQ = 0x5152494D
+MIRT = 0x5452494D
 MISP = 0x5053494D
 MSVL = 0x4C56534D
 MMAP = 0x50414D4D
@@ -275,6 +277,18 @@ ret  = {type="i64"}
 nr   = 0x4652494D
 caps = ["IPC"]
 args = [{name="endpoint",type="u32",dir="in"},{name="buf",type="u8*",dir="out"},{name="cap",type="usize",dir="in"},{name="timeout_ms",type="u64",dir="in"},{name="src_pid_out",type="u32*",dir="out"},{name="enqueued_ms_out",type="u64*",dir="out"}]
+ret  = {type="i64"}
+
+[desc.MIRQ]
+nr   = 0x5152494D
+caps = ["IPC"]
+args = [{name="endpoint",type="u32",dir="in"},{name="buf",type="u8*",dir="out"},{name="cap",type="usize",dir="in"},{name="timeout_ms",type="u64",dir="in"},{name="meta_ptr",type="u8*",dir="out"},{name="meta_len",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MIRT]
+nr   = 0x5452494D
+caps = ["IPC"]
+args = [{name="request",type="u64",dir="in"},{name="buf",type="u8*",dir="in"},{name="len",type="usize",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MISP]

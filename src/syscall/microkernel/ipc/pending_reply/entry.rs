@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One call owed a reply: who made it, the inbox its reply goes to, its
-//! token, and whether the server has dequeued its request. A reply may
-//! answer only a request the server has taken (reply_rule.rs).
+//! token, the id the server knows it by, and whether the server has
+//! dequeued its request. A reply may answer only a request the server has
+//! taken (reply_rule.rs, served_rule.rs).
 
 use alloc::string::String;
 
@@ -25,12 +26,14 @@ pub(crate) struct Entry {
     pub(crate) pid: u32,
     pub(crate) inbox: String,
     pub(crate) token: u64,
+    /// The server's name for the request (request_ids.rs), never 0.
+    pub(crate) request: u64,
     /// The server's receive took this request (mark.rs).
     pub(crate) served: bool,
 }
 
 impl Entry {
-    pub(crate) fn new(pid: u32, inbox: String, token: u64) -> Self {
-        Entry { pid, inbox, token, served: false }
+    pub(crate) fn new(pid: u32, inbox: String, token: u64, request: u64) -> Self {
+        Entry { pid, inbox, token, request, served: false }
     }
 }

@@ -16,13 +16,14 @@
 
 //! A server's pending replies as the kernel keeps them: entries marked by
 //! pending_reply/served_rule.rs, taken by reply_rule.rs for a direct reply
-//! and by served_rule.rs for a redirect, as take_reply.rs and pop.rs do.
+//! and by served_rule.rs for a redirect and an MkIpcReplyTo, as
+//! take_reply.rs, pop.rs and take_named.rs do.
 
 use std::collections::VecDeque;
 
 use super::entry::Entry;
 use super::reply_rule::pick;
-use super::served_rule::{mark, redirect_at};
+use super::served_rule::{mark, named_at, redirect_at};
 
 #[derive(Default)]
 pub(super) struct Server {
@@ -30,19 +31,22 @@ pub(super) struct Server {
     pending: VecDeque<Entry>,
     /// The token of the request the server dequeued last (record_served).
     served: u64,
+    /// The last request id given out (request_ids.rs).
+    last_id: u64,
 }
 
 impl Server {
     /// A caller's mk_ipc_call: its entry, pushed.
     pub(super) fn call(&mut self, inbox: &str, token: u64) {
-        self.pending.push_back(Entry::new(0, inbox.to_string(), token));
+        self.last_id += 1;
+        self.pending.push_back(Entry::new(0, inbox.to_string(), token, self.last_id));
     }
 
     /// The server's receive took the request carrying `token`
-    /// (pending_reply/mark.rs).
-    pub(super) fn serve(&mut self, token: u64) {
+    /// (pending_reply/mark.rs): the id MkIpcRecvReq tells it, 0 for none.
+    pub(super) fn serve(&mut self, token: u64) -> u64 {
         self.served = token;
-        mark(self.pending.iter_mut(), token);
+        mark(self.pending.iter_mut(), token).unwrap_or(0)
     }
 
     /// The server's mk_ipc_reply to `inbox`: the token the reply is stamped
@@ -60,5 +64,12 @@ impl Server {
         let at = redirect_at(self.pending.iter(), self.served);
         self.served = 0;
         self.pending.remove(at?).map(|e| (e.inbox, e.token))
+    }
+
+    /// The server's MkIpcReplyTo(`request`): the caller's inbox and the
+    /// token its reply carries, or None, ENOENT.
+    pub(super) fn reply_to(&mut self, request: u64) -> Option<(String, u64)> {
+        let at = named_at(self.pending.iter(), request)?;
+        self.pending.remove(at).map(|e| (e.inbox, e.token))
     }
 }
