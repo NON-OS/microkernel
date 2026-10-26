@@ -15,24 +15,24 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod client;
-pub(crate) mod streamed;
 pub(crate) mod error;
 pub mod load;
 pub mod patience;
 pub(crate) mod status;
 pub mod store;
-mod store_header;
-pub(crate) mod store_remove;
 mod store_drop;
-mod store_toc;
-mod store_table;
-pub(crate) mod store_erase;
-pub(crate) mod store_withdraw;
-pub(crate) mod store_write;
 pub(crate) mod store_entry;
+pub(crate) mod store_erase;
 pub(crate) mod store_free;
+mod store_header;
 pub(crate) mod store_patch;
+pub(crate) mod store_remove;
 pub(crate) mod store_replace;
 mod store_room;
 pub(crate) mod store_rules;
+mod store_table;
+mod store_toc;
+pub(crate) mod store_withdraw;
+pub(crate) mod store_write;
+pub(crate) mod streamed;
 mod wire;

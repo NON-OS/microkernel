@@ -28,7 +28,7 @@ Memory per name, on x86_64 (design, from the layout):
 - **The file's bytes:** a separate allocation, rounded up by the doubling growth rule (store/fdtable/budget.rs:74-77).
 
 So the bookkeeping is roughly 150 to 200 bytes a name. 2048 names come to about 0.4 MiB, which is negligible
-against the 320 MiB heap (host-read: main.rs:34).
+against the vfs heap, 320 MiB at the least (`HEAP_BESIDE` and `for_ram`, store/fdtable/budget_size.rs).
 
 Memory is not why the count is 2048. The work is. Every lookup is a linear scan comparing whole
 strings (host-read: store/fdtable/lookup.rs:20-22 `files.iter().position(|f| f.name == path)`). `dirstat`,
