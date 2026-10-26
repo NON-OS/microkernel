@@ -18,7 +18,8 @@
 //! four-way handshake with a GTK KDE naming a chosen key index, and the
 //! handshake that drives the real `Supplicant` through them.
 
-use crate::ap_sim::{aes_wrap, AA, ANONCE, SNONCE, SPA};
+use crate::ap_sim::wrap::aes_wrap;
+use crate::ap_sim::{AA, ANONCE, SNONCE, SPA};
 use nonos_wifi_core::eapol::build::build_key_frame;
 use nonos_wifi_core::eapol::parse::{
     KEY_INFO_ACK, KEY_INFO_ENCRYPTED, KEY_INFO_INSTALL, KEY_INFO_MIC, KEY_INFO_PAIRWISE,

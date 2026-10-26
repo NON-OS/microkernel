@@ -20,7 +20,7 @@
 
 use super::super::le::u32_at;
 
-pub const LEN: usize = 20;
+pub(crate) const LEN: usize = 20;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Mapping {

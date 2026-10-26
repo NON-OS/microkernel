@@ -30,8 +30,7 @@ pub struct PcmQueue {
 }
 
 impl PcmQueue {
-    // A queue is made once, by the run loop; a Default would be unused.
-    #[allow(clippy::new_without_default)]
+    /// Made once, by the run loop; `Default` (fresh.rs) is the same.
     pub fn new() -> Self {
         Self { buf: vec![0u8; QUEUE_BYTES], head: 0, len: 0 }
     }

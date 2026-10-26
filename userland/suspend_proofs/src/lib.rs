@@ -2,8 +2,6 @@
 //! Host proofs for the powerdown idle path. `layout` is the kernel's own
 //! file; `header` and `asm` read `asm/suspend.h` and `asm/suspend.S`.
 
-#![allow(dead_code)]
-
 #[path = "../../../src/arch/aarch64/idle_states/layout.rs"]
 pub mod layout;
 

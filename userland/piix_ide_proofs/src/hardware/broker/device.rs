@@ -27,7 +27,6 @@ pub struct Bar {
     pub _pad: [u8; 2],
 }
 
-#[allow(dead_code)] // the kernel's kinds, each value as it has it
 #[repr(u8)]
 pub enum BarKind {
     None = 0,
@@ -46,8 +45,14 @@ pub struct DeviceRecord {
     pub bars: [Bar; 6],
 }
 
-#[allow(dead_code)] // the proofs read the fixed-window flag alone
 #[path = "../../../../../src/hardware/broker/device/flags.rs"]
 mod flags;
 
-pub(in crate::hardware::broker) use flags::BAR_FLAG_FIXED;
+// The kernel's record flags as its `device.rs` gives them: the device flags
+// to everyone, the BAR's own two within the broker.
+pub use flags::{
+    BAR_FLAG_FIXED, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DEPS_UNMET, DEVICE_FLAG_DISABLED,
+    DEVICE_FLAG_DMA_NONCOHERENT, DEVICE_FLAG_EXTERNAL, DEVICE_FLAG_IRQ_ACTIVE_LOW,
+    DEVICE_FLAG_IRQ_EDGE,
+};
+pub(in crate::hardware::broker) use flags::{BAR_FLAG_MEM64, BAR_FLAG_PREFETCH};

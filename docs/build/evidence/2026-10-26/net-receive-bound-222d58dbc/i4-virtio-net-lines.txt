@@ -1,0 +1,12 @@
+[SPAWN] name=driver.virtio_net0 pid=0x000000000000000D caps=0x00000000001B8138 entry=0x00000000399159E0
+[SPAWN] name=net.core pid=0x0000000000000021 caps=0x000000000000057D entry=0x0000000011507060
+[NET-CORE] capsule spawned
+[NET-CORE] registered net.tcp net.udp net.dhcp.client net.dns net.ip
+[NET-CORE] bind: interface up on driver.virtio_net0[NET-CORE] DHCP asking for a lease
+[NET-CORE] lease 10.0.2.15/24 gw 10.0.2.2
+[NET-CORE] lease dns 10.0.2.3
+[NET-CORE] lease-status state=3 ip=10.0.2.15
+[VFS] serving, store status 00[NET-CORE] rx batch: 256 calls, 0 not answered in time, bound 24 ms
+[NET-CORE] rx batch: 1024 calls, 0 not answered in time, bound 24 ms
+[NET-CORE] rx batch: 4096 calls, 3 not answered in time, bound 24 ms
+[NET-CORE] rx batch: 16384 calls, 8 not answered in time, bound 24 ms

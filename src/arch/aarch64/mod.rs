@@ -21,9 +21,7 @@
 
 pub mod abi;
 // The ACPI tables, parsed but not yet read: the UEFI boot path will hand
-// them over (`acpi/mod.rs`). The allow stays only until C wires that path;
-// remove it in the same change.
-#[allow(dead_code, unreachable_pub)]
+// them over (`acpi/mod.rs`).
 pub mod acpi;
 pub mod asm;
 pub mod boot;

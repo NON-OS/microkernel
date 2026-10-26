@@ -31,9 +31,8 @@ pub struct Scanner {
 }
 
 impl Scanner {
-    // A Default impl would change every class driver's ELF, which are
-    // signed; the scanner is only ever made this way.
-    #[allow(clippy::new_without_default)]
+    // The only way a class driver makes one; `Default` (scanner_default.rs)
+    // makes the same.
     pub fn new() -> Self {
         Self { hosts: hosts(Book::default), backoff: Backoff::new() }
     }
