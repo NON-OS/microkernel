@@ -37,6 +37,8 @@ pub(super) fn bus_master_off(device_id: u64) {
     let off = matches!(cfg.is_bus_master_enabled(), Ok(false));
     let mut l = crate::sys::serial::Line::new();
     l.str(b"[BROKER] claimed device ").hex(device_id);
-    l.str(if off { b" bus master off until its driver turns it on" } else { b" bus master STILL ON" });
+    let said: &[u8] =
+        if off { b" bus master off until its driver turns it on" } else { b" bus master STILL ON" };
+    l.str(said);
     l.end();
 }
