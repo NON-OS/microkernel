@@ -19,7 +19,7 @@
 //! files. Asked for the installer, it answers ENOENT with its own
 //! `[CAP-DENY] pid=<this pid> open-with:` line, and nothing is started.
 
-use nonos_libc::mk_ipc_call;
+use nonos_libc::mk_ipc_call_timeout;
 
 use crate::deputy_port::shell_port;
 use crate::line::{escaped, note, verdict};
@@ -29,6 +29,9 @@ const OP_OPEN_WITH: u16 = 0x0007;
 const APP: &[u8] = b"app.install";
 const PATH: &[u8] = b"/home/nonos/readme.txt";
 const WHAT: &[u8] = b"app.install through the shell's OP_OPEN_WITH";
+/// How long the shell may take: it serves the desktop while the boot is
+/// still busy, and at 5 s (the kernel's default) it answered after the call.
+const SHELL_MS: u64 = 30_000;
 /// The shell's header: magic, version, op, flags, reserved, id, length.
 const HDR: usize = 20;
 
@@ -48,7 +51,8 @@ pub fn deputy_escape() {
     tx[HDR + 2..HDR + 2 + APP.len()].copy_from_slice(APP);
     tx[HDR + 2 + APP.len()..body].copy_from_slice(PATH);
     let mut rx = [0u8; HDR + 4];
-    let rc = mk_ipc_call(u64::from(port), tx.as_ptr(), body, rx.as_mut_ptr(), rx.len());
+    let (to, back) = (u64::from(port), rx.as_mut_ptr());
+    let rc = mk_ipc_call_timeout(to, tx.as_ptr(), body, back, rx.len(), SHELL_MS);
     if rc < (HDR + 4) as i64 {
         verdict(b"deputy-escape", WHAT, rc.min(-1));
         return;
