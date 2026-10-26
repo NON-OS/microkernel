@@ -5321,6 +5321,27 @@ else
     fail_with "power button: armed before device interrupt routing, or the q35 verdict does not hold it"
 fi
 unset pbo_out
+# An AP whose stack or boot context cannot be made fails before INIT is sent;
+# that failure prints its reason ("not started: ...") instead of folding into
+# a bare false. Only ap_start/one.rs calls ap_unit::start, and nothing drops it.
+if aps_out="$(python3 scripts/check_ap_start_reasons.py --self-test 2>&1 \
+    && python3 scripts/check_ap_start_reasons.py 2>&1)"; then
+    note ok "every failed AP start says why (check_ap_start_reasons)"
+else
+    tail -n 5 <<< "${aps_out}" >&2
+    fail_with "ap start: a failed AP start is discarded without its reason"
+fi
+unset aps_out
+# The judge of the shootdown boot proof's log: a full flush reaching every
+# AP and a user-asid round reaching only the AP that holds the asid. The boot
+# is local (no lane may build the proof); its judge is held here.
+if spl_out="$(python3 scripts/check_shootdown_proof_log.py --self-test 2>&1)"; then
+    note ok "the shootdown proof's log judge rejects its bad logs"
+else
+    tail -n 5 <<< "${spl_out}" >&2
+    fail_with "check_shootdown_proof_log: the judge accepts a bad log"
+fi
+unset spl_out
 # A kernel feature that gates code and that no lane turns on is dark; the dark
 # set may only shrink (scripts/baselines/dark-features.txt). The SMP boot
 # proofs and pqc-unvetted are lit by the compile-only check-dark-features.
