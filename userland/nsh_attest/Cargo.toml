@@ -37,8 +37,3 @@ nonos_ed25519 = { path = "../nonos_ed25519" }
 nonos_hash = { path = "../nonos_hash" }
 nsh_crypto = { path = "../nsh_crypto" }
 nsh_wire = { path = "../nsh_wire" }
-
-[features]
-# For the proof crate only: the P-256 arithmetic, so the proofs can sign
-# quotes of their own with a key they hold.
-proofs = []

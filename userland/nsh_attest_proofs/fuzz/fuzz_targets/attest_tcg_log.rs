@@ -21,9 +21,10 @@
 
 #![no_main]
 
-#[allow(dead_code, unused_imports, clippy::all)]
+// The kernel's TCG module whole, as the loader builds it; public, as a
+// `no_main` target's items are, so what replay leaves unused is not dead.
 #[path = "../../../../nonos-boot-measure/src/tcg/mod.rs"]
-mod kernel_tcg;
+pub mod kernel_tcg;
 
 use libfuzzer_sys::fuzz_target;
 use nsh_attest::consts::MAX_LOG;

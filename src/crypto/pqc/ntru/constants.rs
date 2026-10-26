@@ -18,9 +18,9 @@ pub const NTRU_N: usize = 821;
 pub const NTRU_Q: u16 = 4096;
 pub const NTRU_LOG_Q: usize = 12;
 
-pub const NTRU_PUBLICKEY_BYTES: usize = (NTRU_N * NTRU_LOG_Q + 7) / 8;
+pub const NTRU_PUBLICKEY_BYTES: usize = (NTRU_N * NTRU_LOG_Q).div_ceil(8);
 pub const NTRU_SECRETKEY_BYTES: usize = NTRU_N + NTRU_PUBLICKEY_BYTES;
-pub const NTRU_CIPHERTEXT_BYTES: usize = (NTRU_N * NTRU_LOG_Q + 7) / 8;
+pub const NTRU_CIPHERTEXT_BYTES: usize = (NTRU_N * NTRU_LOG_Q).div_ceil(8);
 pub const NTRU_SHARED_SECRET_BYTES: usize = 32;
 
 pub(crate) const NTRU_WEIGHT: usize = 286;
