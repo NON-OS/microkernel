@@ -16,33 +16,18 @@
 
 use x86_64::structures::idt::InterruptStackFrame;
 
-use super::context::{log_exception, ExceptionContext};
+use super::context::ExceptionContext;
 use crate::arch::x86_64::diag::emit_fatal_notice_nolock;
 use crate::interrupts::stats;
-use crate::security::observability::redact::redact_address;
 
 pub fn handle(frame: InterruptStackFrame, error_code: u64) -> ! {
     let ctx = ExceptionContext::from_frame(&frame);
     emit_fatal_notice_nolock(b"DF", ctx.instruction_pointer);
-    log_exception("DOUBLE FAULT", &ctx);
     stats::increment_exceptions();
-
-    crate::log::logger::log_critical(&alloc::format!("Double fault error code: {:#x}", error_code));
-
-    dump_stack_info(&ctx);
-
-    crate::log::logger::log_critical("SYSTEM HALTED: Double fault is unrecoverable");
+    // Nothing allocated and no lock waited on: a double fault's stack and
+    // heap are suspect, and the panic path is all that is left.
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[PANIC DF] error code ").hex(error_code).str(b" cs=").hex(ctx.code_segment as u64);
+    l.end_fatal();
     crate::boot::panic::fatal();
-}
-
-fn dump_stack_info(ctx: &ExceptionContext) {
-    crate::log::logger::log_critical(&alloc::format!(
-        "Stack pointer: {}",
-        redact_address(ctx.stack_pointer)
-    ));
-    crate::log::logger::log_critical(&alloc::format!(
-        "Instruction pointer: {}",
-        redact_address(ctx.instruction_pointer)
-    ));
-    crate::log::logger::log_critical(&alloc::format!("Code segment: {:#x}", ctx.code_segment));
 }
