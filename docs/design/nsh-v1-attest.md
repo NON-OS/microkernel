@@ -73,7 +73,9 @@ to the user's judgement and nothing is skipped.
    `identity_devices = 0`.
 7. The registry is checked:
    - the entries fold to `registry_root` (`attest_receipt::verify_root`);
-   - `registry_complete = 1`;
+   - `registry_complete = 1`. The flag is not bound by the quote, so it is
+     no evidence; the kernel PCR 9 names quotes only when its registry is
+     complete, checked before and after the quote, and always writes 1;
    - every entry's authority is the vendor's, whether or not it holds
      Network (`not-vendor`): a release host runs vendor-root capsules
      only, for the whole boot, as step 5 holds PCR 14 to;
