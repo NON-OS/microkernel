@@ -6,7 +6,7 @@ use crate::command::builtin::audit::format::{parse, printable, Mode, FORMAT, HEA
 
 #[test]
 fn only_the_two_forms_are_accepted() {
-    assert_eq!(FORMAT, b"audit v1");
+    assert_eq!(FORMAT, b"audit v2");
     assert_eq!(parse(&[]), Ok(Mode::Table));
     assert_eq!(parse(&[b"--agent", b"acpi"]), Ok(Mode::Agent(b"acpi")));
     for bad in [&[&b"--agent"[..]][..], &[b"--agent", b""], &[b"--agent", b"a", b"b"], &[b"-x"]] {
@@ -25,8 +25,9 @@ fn printable_keeps_ascii_and_replaces_the_rest() {
     for (b, q) in all.iter().zip(&p) {
         assert_eq!(*q, if (0x20..0x7f).contains(b) { *b } else { b'?' });
     }
-    let cols = ["pid", "name", "network", "storage", "devices*", "signed by", "capabilities"];
+    let cols =
+        ["pid", "name", "network", "storage", "devices*", "launch", "signed by", "capabilities"];
     let h = String::from_utf8(HEADING[0].to_vec()).unwrap();
     let at: Vec<usize> = cols.iter().map(|c| h.find(c).unwrap()).collect();
-    assert_eq!(at, [2, 7, 29, 38, 47, 57, 68], "v1's columns");
+    assert_eq!(at, [2, 7, 29, 38, 47, 56, 65, 76], "v2's columns");
 }
