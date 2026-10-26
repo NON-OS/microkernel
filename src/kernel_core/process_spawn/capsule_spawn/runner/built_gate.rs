@@ -18,8 +18,8 @@
 //! embeds empty consts, and one built in with an empty file no longer
 //! compiles (each embed's `const _: () = assert!`, B-02); a verified spawn
 //! says FeatureDisabled for one before its cert is decoded (verified.rs).
-//! Here, a store load refuses an empty image read from the store by its own
-//! name. Generic and free of the kernel's types, so kernel_proofs runs it.
+//! A store load refuses an empty image read from the store by its own name
+//! (from_vfs/load/empty.rs). Free of the kernel's types: kernel_proofs runs it.
 
 /// `not_built` when `elf` is empty, else on.
 pub(crate) fn gate<E>(elf: &[u8], not_built: E) -> Result<(), E> {
@@ -27,16 +27,4 @@ pub(crate) fn gate<E>(elf: &[u8], not_built: E) -> Result<(), E> {
         return Err(not_built);
     }
     Ok(())
-}
-
-/// A store load's order: an empty image read from the store is refused
-/// with `empty` before anything is spawned, so "not built" is only ever
-/// said of an embedded capsule.
-pub(crate) fn stored<P, E>(
-    elf: &[u8],
-    empty: E,
-    spawn: impl FnOnce() -> Result<P, E>,
-) -> Result<P, E> {
-    gate(elf, empty)?;
-    spawn()
 }
