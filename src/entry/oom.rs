@@ -28,11 +28,9 @@ use crate::sys::serial;
 pub fn handle_oom(layout: Layout) -> ! {
     serial::println(b"");
     serial::println(b"[OOM] ALLOCATION FAILED");
-    serial::print(b"[OOM] Requested size: ");
-    serial::print_dec(layout.size() as u64);
-    serial::print(b" bytes, align: ");
-    serial::print_dec(layout.align() as u64);
-    serial::println(b"");
+    let mut l = serial::Line::new();
+    l.str(b"[OOM] Requested size: ").dec(layout.size() as u64);
+    l.str(b" bytes, align: ").dec(layout.align() as u64).end_fatal();
 
     crate::syscall::microkernel::memory::dump_mmap_accounting();
     crate::kernel_core::surface_registry::dump_surface_accounting();

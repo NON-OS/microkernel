@@ -21,20 +21,11 @@ pub(super) fn print_syscall_msrs() {
     use crate::arch::x86_64::syscall::msr::{
         read_msr, EFER_SCE, IA32_EFER, IA32_FMASK, IA32_LSTAR, IA32_STAR,
     };
-    use crate::sys::serial::print_hex as print_hex_u64;
+    let line = |name: &[u8], v: u64| serial::Line::new().str(name).hex(v).end();
     let efer = read_msr(IA32_EFER);
-    serial::print(b"[SYSCALL-MSR] EFER=");
-    print_hex_u64(efer);
-    serial::print(b" SCE=");
-    print_hex_u64(efer & EFER_SCE);
-    serial::println(b"");
-    serial::print(b"[SYSCALL-MSR] STAR=");
-    print_hex_u64(read_msr(IA32_STAR));
-    serial::println(b"");
-    serial::print(b"[SYSCALL-MSR] LSTAR=");
-    print_hex_u64(read_msr(IA32_LSTAR));
-    serial::println(b"");
-    serial::print(b"[SYSCALL-MSR] SFMASK=");
-    print_hex_u64(read_msr(IA32_FMASK));
-    serial::println(b"");
+    let mut l = serial::Line::new();
+    l.str(b"[SYSCALL-MSR] EFER=").hex(efer).str(b" SCE=").hex(efer & EFER_SCE).end();
+    line(b"[SYSCALL-MSR] STAR=", read_msr(IA32_STAR));
+    line(b"[SYSCALL-MSR] LSTAR=", read_msr(IA32_LSTAR));
+    line(b"[SYSCALL-MSR] SFMASK=", read_msr(IA32_FMASK));
 }
