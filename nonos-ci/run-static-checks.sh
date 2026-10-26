@@ -5321,6 +5321,37 @@ else
     fail_with "power button: armed before device interrupt routing, or the q35 verdict does not hold it"
 fi
 unset pbo_out
+# An AP whose stack or boot context cannot be made fails before INIT is sent;
+# that failure prints its reason ("not started: ...") instead of folding into
+# a bare false. Only ap_start/one.rs calls ap_unit::start, and nothing drops it.
+if aps_out="$(python3 scripts/check_ap_start_reasons.py --self-test 2>&1 \
+    && python3 scripts/check_ap_start_reasons.py 2>&1)"; then
+    note ok "every failed AP start says why (check_ap_start_reasons)"
+else
+    tail -n 5 <<< "${aps_out}" >&2
+    fail_with "ap start: a failed AP start is discarded without its reason"
+fi
+unset aps_out
+# The pre-push check every unit runs (tools/nonos-unit-check): rustfmt, the
+# 75-line rule, no new #[allow], no key material. Its self-test makes each
+# finding in a scratch repository and proves a clean unit passes.
+if uc_out="$(python3 tools/nonos-unit-check --self-test 2>&1)"; then
+    note ok "the unit check catches what it says (nonos-unit-check)"
+else
+    tail -n 5 <<< "${uc_out}" >&2
+    fail_with "nonos-unit-check: its self-test failed"
+fi
+unset uc_out
+# The judge of the shootdown boot proof's log: a full flush reaching every
+# AP and a user-asid round reaching only the AP that holds the asid. The boot
+# is local (no lane may build the proof); its judge is held here.
+if spl_out="$(python3 scripts/check_shootdown_proof_log.py --self-test 2>&1)"; then
+    note ok "the shootdown proof's log judge rejects its bad logs"
+else
+    tail -n 5 <<< "${spl_out}" >&2
+    fail_with "check_shootdown_proof_log: the judge accepts a bad log"
+fi
+unset spl_out
 # A kernel feature that gates code and that no lane turns on is dark; the dark
 # set may only shrink (scripts/baselines/dark-features.txt). The SMP boot
 # proofs and pqc-unvetted are lit by the compile-only check-dark-features.
@@ -5388,6 +5419,31 @@ else
     fail_with "nonos-egress-audit: a way off the machine is not listed, or a row is stale"
 fi
 unset egress_out
+# The development market catalogue (P4) is for a development
+# seal in nonos-dev-image's copy alone, signed by that copy's throwaway key:
+# no release path names it, and the seal's choice of it still holds when run.
+# The self-test first, so a scan that stopped seeing it cannot pass quietly.
+if devcat_out="$(python3 scripts/check_dev_catalogue.py --self-test 2>&1 \
+    && python3 scripts/check_dev_catalogue.py 2>&1)"; then
+    note ok "only a development seal takes the test catalogue (check_dev_catalogue)"
+else
+    tail -n 8 <<< "${devcat_out}" >&2
+    fail_with "check_dev_catalogue: a release path can take the development catalogue"
+fi
+unset devcat_out
+# The local test chain (P5) is a development capsule feature alone: no
+# release profile, capsule declaration, dependency, lane or workflow turns it
+# on (that a release never takes the development set is check_dev_capsule_set's,
+# above). The self-test first, so a scan that stopped seeing it cannot pass
+# quietly.
+if devnet_out="$(python3 scripts/check_devnet_feature.py --self-test 2>&1 \
+    && python3 scripts/check_devnet_feature.py 2>&1)"; then
+    note ok "no release can turn the local test chain on (check_devnet_feature)"
+else
+    tail -n 8 <<< "${devnet_out}" >&2
+    fail_with "check_devnet_feature: a release profile or capsule can turn the local test chain on"
+fi
+unset devnet_out
 
 if [ "${fail}" -ne 0 ]; then
     echo

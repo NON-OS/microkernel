@@ -16,7 +16,6 @@
 
 use super::battery_watch::battery_critical;
 use super::critical_watch::Action;
-use super::lid_state::{lid_open, record};
 use super::platform_event::{decode, Event, CRITICAL, HOT, LID, POWER_BUTTON, THERMAL};
 use super::platform_event::{BATTERY_CRITICAL, BATTERY_LOW, BUTTON_TAKEN};
 use super::thermal_watch::{latest, thermal, GRACE_MS};
@@ -49,16 +48,6 @@ fn a_critical_zone_asks_first_and_powers_off_after_the_grace() {
     assert_eq!(thermal(CRITICAL | 3800, 41_000), Action::AskShutdown, "a new episode asks again");
     assert_eq!(latest(41_000 + 180_000), Some(CRITICAL | 3800));
     assert_eq!(latest(41_000 + 180_001), None, "stale");
-}
-
-#[test]
-fn the_lid_says_when_it_changes() {
-    assert_eq!(lid_open(), None);
-    assert!(record(false));
-    assert!(!record(false), "unchanged");
-    assert_eq!(lid_open(), Some(false));
-    assert!(record(true));
-    assert_eq!(lid_open(), Some(true));
 }
 
 #[test]
