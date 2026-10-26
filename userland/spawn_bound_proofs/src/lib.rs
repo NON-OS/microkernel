@@ -47,7 +47,9 @@ pub mod kernel_core {
     pub mod process_spawn {
         pub mod capsule_spawn {
             pub use crate::stand_in::{AttestedParent, SpawnError};
-            pub(crate) use from_vfs::load::bound::{installed as child_caps, missing as beyond_parent};
+            pub(crate) use from_vfs::load::bound::{
+                installed as child_caps, missing as beyond_parent,
+            };
             pub mod from_vfs {
                 pub mod error;
                 pub mod load {
@@ -59,9 +61,9 @@ pub mod kernel_core {
     }
 }
 
-#[path = "../../../src/userspace/tool_capsules/bound.rs"]
-mod tool_bound;
 #[path = "../../../src/userspace/tool_capsules/net_box.rs"]
 mod net_box;
 #[path = "../../../src/userspace/capsule_linux/term_ticket_rule.rs"]
 mod term_ticket_rule;
+#[path = "../../../src/userspace/tool_capsules/bound.rs"]
+mod tool_bound;
