@@ -17,8 +17,8 @@
 use x86_64::structures::idt::InterruptStackFrame;
 
 use super::cpl::cpl_from_cs;
-use super::print_hex::print_hex_u64;
 use crate::arch::x86_64::paging::read_cr3;
+use crate::sys::serial::Line;
 
 pub fn dump_trap(name: &[u8], frame: &InterruptStackFrame, err: Option<u64>, cr2: Option<u64>) {
     let cs = frame.code_segment as u64;
@@ -31,36 +31,21 @@ pub fn dump_trap(name: &[u8], frame: &InterruptStackFrame, err: Option<u64>, cr2
     let asid = crate::memory::paging::manager::active_asid().unwrap_or(0xFFFF_FFFF);
     let pid = crate::process::current_pid().unwrap_or(0);
 
-    crate::sys::serial::print(b"[TRAP ");
-    crate::sys::serial::print(name);
-    crate::sys::serial::print(b"] cpl=");
-    let cpl_byte = [b'0' + cpl];
-    crate::sys::serial::print(&cpl_byte);
-    crate::sys::serial::print(b" rip=");
-    print_hex_u64(rip);
-    crate::sys::serial::print(b" rsp=");
-    print_hex_u64(rsp);
-    crate::sys::serial::print(b" cs=");
-    print_hex_u64(cs);
-    crate::sys::serial::print(b" ss=");
-    print_hex_u64(ss);
-    crate::sys::serial::print(b" rflags=");
-    print_hex_u64(rflags);
-    crate::sys::serial::print(b" cr3=");
-    print_hex_u64(cr3);
-    crate::sys::serial::print(b" asid=");
-    print_hex_u64(asid as u64);
-    crate::sys::serial::print(b" pid=");
-    print_hex_u64(pid as u64);
+    // One line, through the fatal writer: a trap can come while the port's
+    // lock is held, and the line must still be written, whole.
+    let mut l = Line::new();
+    l.str(b"[TRAP ").str(name).str(b"] cpl=").str(&[b'0' + cpl]);
+    l.str(b" rip=").hex_lower(rip).str(b" rsp=").hex_lower(rsp).str(b" cs=").hex_lower(cs);
+    l.str(b" ss=").hex_lower(ss).str(b" rflags=").hex_lower(rflags);
+    l.str(b" cr3=").hex_lower(cr3).str(b" asid=").hex_lower(asid as u64);
+    l.str(b" pid=").hex_lower(pid as u64);
     if let Some(e) = err {
-        crate::sys::serial::print(b" err=");
-        print_hex_u64(e);
+        l.str(b" err=").hex_lower(e);
     }
     if let Some(c) = cr2 {
-        crate::sys::serial::print(b" cr2=");
-        print_hex_u64(c);
+        l.str(b" cr2=").hex_lower(c);
     }
-    crate::sys::serial::println(b"");
+    l.end_fatal();
     if let (3, Some(c)) = (cpl, cr2) {
         super::walk_fault::print_walk(cr3, c);
     }

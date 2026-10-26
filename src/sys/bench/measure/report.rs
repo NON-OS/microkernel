@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::sample::Sample;
-use crate::sys::serial;
+use crate::sys::serial::Line;
 
 /// Print one measurement on the same channel the boot markers use, so the
 /// benchmark harness parses both with one reader.
@@ -25,27 +25,15 @@ use crate::sys::serial;
 /// it did not, the field is absent rather than estimated: a made up nanosecond
 /// figure would be quoted later as if it had been measured.
 pub fn report(name: &[u8], sample: &Sample) {
-    serial::print(b"[BENCH] ");
-    serial::print_dec(crate::sys::timer::uptime_ms());
-    serial::print(b" micro:");
-    serial::print(name);
-    serial::print(b" iters=");
-    serial::print_dec(sample.summary.samples as u64);
-    serial::print(b" p50=");
-    serial::print_dec(sample.summary.p50);
-    serial::print(b" p95=");
-    serial::print_dec(sample.summary.p95);
-    serial::print(b" p99=");
-    serial::print_dec(sample.summary.p99);
-    serial::print(b" max=");
-    serial::print_dec(sample.summary.max);
-
+    let s = &sample.summary;
+    // One line, written once: no other CPU's line lands inside it.
+    let mut l = Line::new();
+    l.str(b"[BENCH] ").dec(crate::sys::timer::uptime_ms()).str(b" micro:").str(name);
+    l.str(b" iters=").dec(s.samples as u64).str(b" p50=").dec(s.p50).str(b" p95=").dec(s.p95);
+    l.str(b" p99=").dec(s.p99).str(b" max=").dec(s.max);
     match sample.p50_nanos() {
-        Some(ns) => {
-            serial::print(b" p50_ns=");
-            serial::print_dec(ns);
-            serial::println(b"");
-        }
-        None => serial::println(b" min_ns=uncalibrated"),
-    }
+        Some(ns) => l.str(b" p50_ns=").dec(ns),
+        None => l.str(b" min_ns=uncalibrated"),
+    };
+    l.end();
 }

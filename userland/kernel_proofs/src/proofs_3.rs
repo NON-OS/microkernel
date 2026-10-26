@@ -26,7 +26,7 @@ mod elf_section_tests;
 #[path = "elf_tests.rs"]
 mod elf_tests;
 #[path = "handover_tests.rs"]
-mod handover_tests;
+pub(crate) mod handover_tests;
 #[path = "inbox_name_tests.rs"]
 mod inbox_name_tests;
 /// An attach whose invalidation fails takes its entry out.

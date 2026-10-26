@@ -30,12 +30,17 @@ mod authority;
 mod codes;
 mod containment;
 mod deputy;
+mod deputy_port;
 mod disks;
 mod errno;
 mod line;
 mod medium;
 mod network;
+mod reply_caller;
 mod reply_escape;
+mod reply_seen;
+mod reply_take;
+mod reply_twice;
 
 /// # Safety
 /// The kernel enters here once, on a fresh stack.
@@ -47,6 +52,7 @@ pub unsafe extern "C" fn _start() -> ! {
     network::cap_escape();
     attempts::inbox_escape();
     reply_escape::reply_escape();
+    reply_twice::reply_twice();
     authority::authority_escape();
     attempts::foreign_memory();
     attempts::register_service();

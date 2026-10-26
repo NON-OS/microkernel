@@ -48,9 +48,9 @@
   "crate": "userland/kernel_proofs"
  },
  {
-  "name": "refusal-decide-does-not-stop",
+  "name": "refusal-decide-does-not-hold",
   "file": "src/memory/iommu/no_iommu.rs",
-  "old": "        crate::boot::stop(\"IOMMU\", needs.line());\n",
+  "old": "        super::no_iommu_stop::hold(needs);\n",
   "new": "        let _ = needs;\n",
   "test": "confine_posture::",
   "crate": "userland/kernel_proofs"
@@ -76,6 +76,46 @@
   "file": "tools/nix/config.nix",
   "old": "\"nonos-dev-attest\" \"nonos-agentproof\" ]",
   "new": "\"nonos-dev-attest\" ]",
+  "test": "confine_posture::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "refusal-held-never-carried-out",
+  "file": "src/kernel_core/init/entry/init_arch_framebuffer.rs",
+  "old": "    crate::memory::iommu::stop_if_no_iommu_refused();\n",
+  "new": "",
+  "test": "confine_posture::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "refusal-stop-before-the-mapping",
+  "file": "src/kernel_core/init/entry/init_arch_framebuffer.rs",
+  "old": "pub(super) fn init_arch_framebuffer(handoff: &KernelHandoff) {\n    match handoff.arch {",
+  "new": "pub(super) fn init_arch_framebuffer(handoff: &KernelHandoff) {\n    crate::memory::iommu::stop_if_no_iommu_refused();\n    match handoff.arch {",
+  "test": "confine_posture::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "refusal-stop-without-its-line",
+  "file": "src/memory/iommu/no_iommu_stop.rs",
+  "old": "crate::boot::stop(\"IOMMU\", needs.line());",
+  "new": "crate::boot::stop(\"IOMMU\", \"\");",
+  "test": "confine_posture::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "refusal-all-misses-one",
+  "file": "src/memory/iommu/no_iommu_refusal.rs",
+  "old": "[Needs::AirGapped, Needs::Hardened, Needs::AgentProof];",
+  "new": "[Needs::AirGapped, Needs::Hardened, Needs::Hardened];",
+  "test": "confine_posture::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "refusal-loader-screen-left",
+  "file": "src/sys/boot_log/notice_screen.rs",
+  "old": "    fill_rect(fb, 0, band, fb.width, fb.height - band, BLANK);\n",
+  "new": "",
   "test": "confine_posture::",
   "crate": "userland/kernel_proofs"
  }
