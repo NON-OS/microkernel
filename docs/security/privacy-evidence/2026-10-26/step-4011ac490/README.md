@@ -21,8 +21,8 @@ No QEMU or swtpm was left running after any boot.
 
 The one-CPU boot printed `ipc.call unanswered vfs_pool err=-110` at serial
 line 794, sixteen lines after vfs began serving, and the restore still
-finished (`[ZS] keeping turned on`, line 1066). Since 11ba1f1205 a late
-reply that is dropped ends a silence, so a caller had no answer at all from
-vfs_pool for five seconds: most likely vfs blocking its own loop while it
-stages the store on one CPU. The line names no caller; ksec is adding the
-caller's pid, and then the owner of the silent server fixes it.
+finished (`[ZS] keeping turned on`, line 1066). It is a call that waited the
+kernel's whole default timeout with no answer. Policy's calls to vfs wait
+at most 25 ms, so it is most likely another capsule's call, with vfs busy
+staging the store on one CPU. Kernel lines name no process; the caller is
+being found with a scratch build that names it, then its owner fixes it.
