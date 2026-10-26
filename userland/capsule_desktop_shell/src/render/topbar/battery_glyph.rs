@@ -28,7 +28,7 @@ const LOW: u32 = palette::WARN;
 
 pub(super) fn battery_glyph(ctx: &Context, x: u32, y: u32, pct: Option<u32>) {
     let s = scale();
-    let t = (3 * s + 1) / 2;
+    let t = (3 * s).div_ceil(2);
     let mut fb = surface(ctx);
 
     fb.stroke_round(x, y, 24 * s, 12 * s, 3 * s, t, SHELL);

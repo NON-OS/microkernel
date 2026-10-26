@@ -20,12 +20,12 @@ impl SceneTable {
     /// The pointer's shape over `owner_pid`'s own surface `handle`: the
     /// layer as it is now, or None when the caller has no such surface. No
     /// process sets the shape over a surface it does not own.
-    pub fn set_cursor(&mut self, owner_pid: u32, handle: u64, code: u8) -> Option<Layer> {
+    pub fn set_cursor(&mut self, owner_pid: u32, handle: u64, code: Option<u8>) -> Option<Layer> {
         let l = self
             .entries
             .iter_mut()
             .find(|l| l.in_use && l.owner_pid == owner_pid && l.surface_handle == handle)?;
-        l.cursor = Some(code);
+        l.cursor = code;
         Some(*l)
     }
 }

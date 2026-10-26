@@ -1,0 +1,35 @@
+[
+  {
+    "name": "op-nibbles-reversed",
+    "file": "userland/capsule_desktop_shell/src/bench_line.rs",
+    "old": "for shift in [12, 8, 4, 0] {",
+    "new": "for shift in [0, 4, 8, 12] {",
+    "crate": "userland/desktop_proofs",
+    "test": "shell_bench",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "every-request-named",
+    "file": "userland/capsule_desktop_shell/src/bench.rs",
+    "old": "if ANSWERED.fetch_add(1, Relaxed) >= NAMED {",
+    "new": "if ANSWERED.fetch_add(1, Relaxed) >= u32::MAX {",
+    "crate": "userland/desktop_proofs",
+    "test": "shell_bench",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "mark-not-the-kernels",
+    "file": "userland/capsule_desktop_shell/src/bench_line.rs",
+    "old": "let mut n = put(out, 0, b\"[BENCH] \");",
+    "new": "let mut n = put(out, 0, b\"[SHELL] \");",
+    "crate": "userland/desktop_proofs",
+    "test": "shell_bench",
+    "args": [
+      "--release"
+    ]
+  }
+]

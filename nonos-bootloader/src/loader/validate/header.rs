@@ -16,7 +16,7 @@
 
 use crate::loader::errors::{LoaderError, LoaderResult};
 use crate::loader::types::{
-    elf_class, elf_data, elf_machine, elf_type, Elf64Header, Elf64Phdr, ELF_MAGIC,
+    elf_class, elf_data, elf_type, Elf64Header, Elf64Phdr, ELF_MAGIC,
 };
 
 use super::context::ValidationContext;
@@ -78,8 +78,8 @@ pub fn validate_header(header: &Elf64Header) -> LoaderResult<ValidationContext> 
         _ => return Err(LoaderError::UnsupportedElf("not executable or shared object")),
     }
 
-    if header.e_machine != elf_machine::EM_X86_64 {
-        return Err(LoaderError::UnsupportedElf("not x86_64"));
+    if header.e_machine != crate::arch::cpu::ELF_MACHINE {
+        return Err(LoaderError::UnsupportedElf("not for this CPU"));
     }
     ctx.machine = header.e_machine;
 

@@ -39,5 +39,5 @@ pub fn take_refusal() -> i64 {
 pub(super) static REFUSED: AtomicI64 = AtomicI64::new(NOTHING_REFUSED);
 
 pub fn is_single_instance(service: &[u8]) -> bool {
-    SINGLE_INSTANCE.iter().any(|s| *s == service)
+    SINGLE_INSTANCE.contains(&service)
 }

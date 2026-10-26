@@ -31,10 +31,7 @@ pub fn window_open(
     request_id: u32,
     window_id: u32,
     kind: u32,
-    x: u32,
-    y: u32,
-    width: u32,
-    height: u32,
+    (x, y, width, height): (u32, u32, u32, u32),
 ) -> Result<(), &'static str> {
     let mut tx = [0u8; HDR_LEN + BODY_LEN];
     tx[0..4].copy_from_slice(&MAGIC.to_le_bytes());

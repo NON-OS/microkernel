@@ -31,6 +31,7 @@ mod paint_initial;
 mod paste;
 mod peer;
 mod peer_rule;
+mod pointer_shape;
 mod ready_to_block;
 mod reap_tray;
 mod refresh_taskbar;

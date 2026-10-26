@@ -14,16 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::arch::x86_64::{__cpuid, __cpuid_count};
-
+/// The CPU's kernel-protection features, in the handoff's three slots
+/// (arch::cpu): SMEP, SMAP and UMIP on x86_64; PXN, PAN and none on aarch64.
 pub fn detect_cpu_security_features() -> (bool, bool, bool) {
-    let max_leaf = __cpuid(0).eax;
-    if max_leaf < 7 {
-        return (false, false, false);
-    }
-    let cpuid7 = __cpuid_count(7, 0);
-    let smep = (cpuid7.ebx & (1 << 7)) != 0;
-    let smap = (cpuid7.ebx & (1 << 20)) != 0;
-    let umip = (cpuid7.ecx & (1 << 2)) != 0;
-    (smep, smap, umip)
+    crate::arch::cpu::security_features()
 }

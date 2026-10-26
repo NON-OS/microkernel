@@ -14,41 +14,44 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Handing the device tree's memory map, already in [`MemoryRegion`]s, to the
-//! physical allocator: one contiguous managed range, a below-4 GiB pool for
-//! 32-bit DMA, and the uncached block cut from that pool.
+//! Handing free RAM (`ram`: a NONOS loader's EFI map, else the device
+//! tree's) to the physical allocator: one contiguous managed range, a
+//! below-4 GiB pool for 32-bit DMA, and the uncached block cut from that pool.
 
+mod clip;
 mod dma_place;
 mod dma_size;
 mod dma_window;
+mod efi_runs;
 mod image;
+mod loader_map;
+mod ram;
 mod regions;
 mod reserve;
 mod span;
 mod uncached;
+mod usable;
 
 use super::info::BootInfo;
 use crate::hardware::broker::dma;
 use crate::memory::addr::PhysAddr;
 use crate::sys::serial;
 use dma_window::find_low_dma_region;
-use regions::largest_available;
 
 const PAGE_SIZE: u64 = 0x1000;
 
 pub(crate) fn init_boot_memory(info: &BootInfo) {
-    let Some((region_start, end)) = largest_available(info) else {
-        serial::println(b"[MEM] no usable region in device tree");
+    let ram = ram::ram(info).unwrap_or_else(|reason| super::refuse(b"boot memory", reason));
+    // The runs are held to what the direct map reaches (`ram`).
+    let Some((region_start, end)) = ram.usable.largest() else {
+        serial::println(b"[MEM] no usable RAM region");
         return;
     };
-    // A frame past the direct map faults when first zeroed: stop where it does.
-    let end = end.min(crate::arch::aarch64::mmu::direct_map_end() & !(PAGE_SIZE - 1));
-
     // The image sits inside the region firmware calls available, so the
     // allocator has to be told where it ends. A frame holding kernel text is
     // handed out as a fresh page table, zeroed, and the next call into
     // whatever lived there executes zeros.
-    let (image_start, image_end) = image::bounds();
+    let image_bounds @ (image_start, image_end) = image::bounds();
     let start = span::span_start((region_start, end), (image_start, image_end));
     if start >= end {
         serial::println(b"[MEM] nothing usable above the kernel image");
@@ -57,16 +60,13 @@ pub(crate) fn init_boot_memory(info: &BootInfo) {
 
     // The image is in no list the device tree gave, so it is named here: a
     // pool placed over it hands kernel text to a capsule as a DMA buffer.
-    let pool = find_low_dma_region(info, (start, end), (image_start, image_end));
+    let (runs, reserved) = (ram.usable.runs(), info.reserved.ranges());
+    let pool = find_low_dma_region(runs, reserved, (start, end), image_bounds);
     if crate::memory::phys::init(PhysAddr::new(start), PhysAddr::new(end)).is_err() {
         serial::println(b"[MEM] phys init failed");
         return;
     }
-    reserve::apply(info);
-    // A pool carved from the allocator's span is the pool's alone.
-    if let Some(p) = pool.as_ref().filter(|p| p.carved) {
-        crate::memory::phys::reserve(p.base, p.base + p.pages as u64 * PAGE_SIZE);
-    }
+    reserve::apply(info, &ram, pool.as_ref());
     serial::println(b"[MEM] phys init OK");
     let pool = pool.map(uncached::cut);
     dma::init_display_pool();

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The shell's half of the trusted path: its chrome surface, which band it
-//! is in, the secure attention chord's state, the power-off confirmation
-//! and the display input menu.
+//! The shell's half of the trusted path: which band its chrome is in, the
+//! secure attention chord's state, the power-off confirmation and the display
+//! input menu.
 
 use super::attention::Attention;
 use super::input_menu::InputMenu;
@@ -24,8 +24,6 @@ use super::power_off::PowerOff;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Trusted {
-    /// The chrome's shared surface, as registered at start (0 before).
-    pub chrome_handle: u64,
     /// Whether the chrome is in the trusted band now.
     pub up: bool,
     pub attention: Attention,

@@ -52,10 +52,7 @@ pub fn register_overlay(
         compositor_port,
         request_id,
         handle as u64,
-        0,
-        0,
-        overlay.width,
-        overlay.height,
+        (0, 0, overlay.width, overlay.height),
         z,
     ) {
         if mk_surface_release(handle as u64) < 0 {

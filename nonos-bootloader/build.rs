@@ -320,7 +320,7 @@ fn compile_mldsa65() {
     let mut build = cc::Build::new();
     build.compiler("clang");
     build.flag("-target");
-    build.flag("x86_64-unknown-windows");
+    build.flag(format!("{}-unknown-windows", env::var("CARGO_CFG_TARGET_ARCH").unwrap()));
     // read_dir yields entries in the filesystem's order, which differs between
     // machines; sort so the C sources are added, compiled and archived in the
     // same order everywhere and the bytes do not depend on the host.
