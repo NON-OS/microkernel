@@ -19,7 +19,8 @@
 //! the x86_64 path uses too, rather than a fixed 8 MiB on every board.
 
 use super::PAGE_SIZE;
-use crate::hardware::broker::dma::{low32_fit, low32_target_pages};
+use crate::arch::common::low32_sizing::{low32_fit, low32_target_pages};
+use crate::hardware::broker::dma::pool::sizing::LOW32_MAX_PAGES_TRACKED;
 
 const FOUR_GIB: u64 = 1 << 32;
 
@@ -35,7 +36,7 @@ pub(super) fn low_usable(available: &[(u64, u64)], floor: u64) -> u64 {
 /// The sizes to try, largest first: the target, then halves of it while a
 /// pool that size is still worth reserving.
 pub(super) fn sizes(low_usable: u64) -> impl Iterator<Item = u64> {
-    let target = low32_target_pages(low_usable);
+    let target = low32_target_pages(low_usable, LOW32_MAX_PAGES_TRACKED);
     core::iter::successors(Some(target), |pages| Some(pages / 2))
         .map(move |pages| low32_fit(target, pages))
         .take_while(|pages| *pages != 0)
