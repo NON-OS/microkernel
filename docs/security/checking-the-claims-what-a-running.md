@@ -25,9 +25,9 @@ Verify runs four checks against one read of the process table, and each can fail
 - `nothing holding keys, input or secrets can log`: no live process holds
   `Debug` together with `InputSource`, `InputConsumer`, `Keyring` or
   `DeviceSecret` (`SECRETS`, `userland/capsule_about/src/about/data/verify/held_by.rs`).
-- `admin: only init, policy, acpi, power, installers`: no process holds
-  `Admin` but `init`, `policy`, `acpi`, `power`, `app.install` and
-  `tool.install` (`ADMIN_HOLDERS`, same file).
+- `admin: only init, policy, acpi, power`: no process holds `Admin` but
+  `init`, `policy`, `acpi` and `power` (`ADMIN_HOLDERS`, same file). The
+  installers hold none: their restart is asked of `power` (S-14).
 - `every running capsule carries a capability mask`.
 - `this window holds exactly what its manifest declares`: the [capability
   word](../overview/glossary-boot-root-record.md#capability-word) About holds
