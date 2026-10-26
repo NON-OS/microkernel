@@ -12,12 +12,12 @@ with `ENOSYS`, -38, except from a [foreign
 process](../overview/glossary-dma-pool.md#foreign-process) on x86_64, whose supervisor
 answers it; see [The NONOS ABI](abi-calling-convention.md#calling-convention).
 
-`REGISTRY` holds one table per family, 174 calls in all
-(`src/syscall/abi/registry/mod.rs:27-28`):
+`REGISTRY` holds one table per family, the microkernel's in four parts, 179
+calls in all (`src/syscall/abi/registry/mod.rs:30-38`):
 
 | Family | Registry file | Calls |
 |---|---|---|
-| `mk` | `src/syscall/abi/registry/mk.rs` | 158 |
+| `mk` | `src/syscall/abi/registry/mk.rs`, `mk2.rs` to `mk4.rs` | 163 |
 | `crypto` | `src/syscall/abi/registry/crypto.rs` | 12 |
 | `admin` | `src/syscall/abi/registry/admin.rs` | 3 |
 | `graphics` | `src/syscall/abi/registry/graphics.rs` | 1 |
