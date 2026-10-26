@@ -26,8 +26,8 @@ fn keeping_on_drops_the_held_volume_and_copies_nothing() {
     assert!(flat(KEEP).contains("ifgranted&&!was{crate::fs::blockfs_volume::keeping_on();}"));
     let s = flat(SWITCH);
     let body = &s[s.find("fndrop_held()").expect("drop_held")..];
-    before(&body, "if!drop_at_arm(HELD.swap(false,", "volume.take()");
-    before(&body, "flush_held()", "ram::stop()");
+    before(body, "if!drop_at_arm(HELD.swap(false,", "volume.take()");
+    before(body, "flush_held()", "ram::stop()");
     for write in ["write_or_create", "stream_write", "import(", "write(&"] {
         assert!(!body.contains(write), "the dropped volume is not copied (`{write}`)");
     }
