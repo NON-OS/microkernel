@@ -44,7 +44,8 @@ impl<'a> Index<'a> {
         }
         ix.push(Kind::Action, "New Session", "another tab", Action::NewSession);
         ix.push(Kind::Action, "Toggle Monitor", "the telemetry rail", Action::ToggleMonitor);
-        ix.push(Kind::Action, "Change Theme", "the next palette", Action::ChangeTheme);
+        ix.push(Kind::Action, "Change Theme", "try each on the window", Action::ChangeTheme);
+        ix.push(Kind::Action, "Split Side by Side", "Ctrl+Shift+D", Action::Split);
         ix
     }
 

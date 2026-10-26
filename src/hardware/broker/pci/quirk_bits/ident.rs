@@ -20,6 +20,7 @@
 #[derive(Debug, Clone, Copy)]
 pub struct Ident {
     pub vendor: u16,
+    pub device: u16,
     pub class: u8,
     pub subclass: u8,
     /// The programming interface: which host a USB controller is.
@@ -31,4 +32,21 @@ pub struct Ident {
     pub before: [u8; 3],
     /// The PCI Express capability's offset, when the function has one.
     pub pcie_cap: Option<u16>,
+    /// For an Intel xHCI, its port routing masks and companion (xhci_route.rs).
+    pub route: Route,
+}
+
+/// What the broker read for the rule at the time of the write.
+#[derive(Debug, Clone, Copy)]
+pub struct Route {
+    /// USB2PRM: the USB 2.0 ports firmware lets the OS route.
+    pub usb2prm: u16,
+    /// USB3PRM: the ports whose SuperSpeed terminations the OS may enable.
+    pub usb3prm: u16,
+    /// An EHCI function on the xHCI's segment and bus is claimed by anyone.
+    pub ehci_claimed: bool,
+}
+
+impl Route {
+    pub const NONE: Route = Route { usb2prm: 0, usb3prm: 0, ehci_claimed: false };
 }
