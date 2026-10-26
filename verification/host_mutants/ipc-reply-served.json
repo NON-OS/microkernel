@@ -2,7 +2,7 @@
  {
   "name": "ipc-dequeue-marks-nothing",
   "file": "src/syscall/microkernel/ipc/pending_reply/served_rule.rs",
-  "old": "        e.served = true;\n",
+  "old": "    e.served = true;\n",
   "new": "",
   "test": "ipc_reply_token::",
   "crate": "userland/kernel_proofs"

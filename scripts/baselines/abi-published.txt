@@ -148,6 +148,8 @@ syscalls.numbers MIRB 1112688973
 syscalls.numbers MIRC 1129466189
 syscalls.numbers MIRF 1179797837
 syscalls.numbers MIRP 1347569997
+syscalls.numbers MIRQ 1364347213
+syscalls.numbers MIRT 1414678861
 syscalls.numbers MIRU 1431456077
 syscalls.numbers MIRW 1465010509
 syscalls.numbers MIRY 1498564941
