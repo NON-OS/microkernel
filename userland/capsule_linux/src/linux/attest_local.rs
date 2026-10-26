@@ -24,7 +24,10 @@ const GUEST_CAPS: u64 = 0;
 
 pub fn verify(image: &[u8], trailer: &[u8]) -> Result<CapsuleVerifySummary, &'static str> {
     if !mk_local_verify(image, GUEST_CAPS, trailer) {
-        return Err("no publisher, and the machine did not vouch for it");
+        // Either the machine was never let run what it installs (setup's
+        // "Also software installed here"), or the files changed since.
+        return Err("this machine does not run software installed here unless setup allows it \
+             (\"Also software installed here\"), and nothing installed may change after");
     }
     Ok(CapsuleVerifySummary::zeroed())
 }
