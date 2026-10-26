@@ -34,7 +34,6 @@ mod idle_cpu;
 mod init_cpu_features;
 mod interrupts_enabled;
 mod read_time_counter;
-#[cfg(target_arch = "x86_64")]
 mod report_ap_tsc_rate;
 
 pub use cpu_yield::cpu_yield;
@@ -47,5 +46,4 @@ pub use idle_cpu::idle_cpu;
 pub use init_cpu_features::init_cpu_features;
 pub use interrupts_enabled::interrupts_enabled;
 pub use read_time_counter::read_time_counter;
-#[cfg(target_arch = "x86_64")]
 pub use report_ap_tsc_rate::report_ap_tsc_rate;
