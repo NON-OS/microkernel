@@ -16,8 +16,10 @@
 
 mod policy_push;
 mod reboot;
+mod restart;
 mod shutdown;
 
 pub use policy_push::mk_admin_policy_push;
 pub use reboot::mk_admin_reboot;
+pub use restart::power_restart;
 pub use shutdown::mk_admin_shutdown;
