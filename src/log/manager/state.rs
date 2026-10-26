@@ -19,12 +19,14 @@ use crate::arch::read_time_counter as tsc_now;
 use crate::crypto::sha3;
 use crate::log::backend::{LogBackend, RamBufferBackend};
 use crate::log::types::{LogEntry, Severity};
+use crate::sys::sync::IrqMutex;
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, Ordering};
-use spin::Mutex;
 
-pub static LOGGER: Mutex<Option<LogManager>> = Mutex::new(None);
+/// Built in place (330 KiB: never through the boot stack), so the RAM log
+/// takes lines from the first allocation on; init only adds the backends.
+pub static LOGGER: IrqMutex<Option<LogManager>> = IrqMutex::new(Some(LogManager::new()));
 pub static PANIC_MODE: AtomicBool = AtomicBool::new(false);
 
 pub struct LogManager {
