@@ -4,7 +4,7 @@
 //! span, obeys `place`'s own rules, and exists whenever any clear run does.
 
 use crate::avoid::place_avoiding;
-use crate::iova_space::{place, IOVA_LIMIT};
+use crate::iova_space::{after_give_back, place, IOVA_LIMIT};
 
 #[test]
 fn a_grant_never_meets_a_reserved_range() {
@@ -44,4 +44,13 @@ fn a_grant_never_meets_a_reserved_range() {
         }
     }
     assert!(placed > 50_000, "hardly any placed: {placed}");
+}
+
+/// A run given back lowers the bump pointer only when it is the top one,
+/// so a run below it is never handed out a second time from the top.
+#[test]
+fn only_the_top_run_given_back_lowers_the_pointer() {
+    assert_eq!(after_give_back(0x9000, 0x8000, 0x1000), 0x8000, "the top run");
+    assert_eq!(after_give_back(0x9000, 0x4000, 0x1000), 0x9000, "a run below");
+    assert_eq!(after_give_back(0x9000, u64::MAX, 2), 0x9000, "a run past the end");
 }

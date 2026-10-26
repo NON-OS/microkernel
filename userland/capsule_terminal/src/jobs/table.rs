@@ -30,11 +30,13 @@ pub use table_record::{JobProgress, JobRecord, JobState};
 pub struct JobTable {
     jobs: Vec<JobRecord>,
     next_id: u32,
+    /// The plain `linux` run that may ask to start again with the network.
+    pub net_ask: Option<super::net_ask::NetAsk>,
 }
 
 impl JobTable {
     pub fn new() -> Self {
-        Self { jobs: Vec::new(), next_id: 1 }
+        Self { jobs: Vec::new(), next_id: 1, net_ask: None }
     }
 
     pub fn add(&mut self, cmdline: &[u8], background: bool, work: JobWork, env: JobEnv) -> u32 {
