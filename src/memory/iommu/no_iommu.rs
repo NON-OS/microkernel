@@ -19,6 +19,7 @@
 
 use core::sync::atomic::{AtomicBool, Ordering};
 
+use super::no_iommu_refusal::stops;
 use super::no_iommu_rule::{enters, reason, refusing_boot};
 use super::query::capabilities;
 use super::vendor::IommuVendor;
@@ -26,6 +27,7 @@ use crate::boot::handoff::{boot_profile, BootProfile};
 use crate::sys::serial::Line;
 
 pub(crate) const BUILT: bool = cfg!(feature = "nonos-dma-unconfined-posture");
+const AGENTPROOF: bool = cfg!(feature = "nonos-agentproof");
 
 static ACTIVE: AtomicBool = AtomicBool::new(false);
 
@@ -36,8 +38,9 @@ pub fn decide(vendor: IommuVendor) {
         return;
     }
     let profile = boot_profile();
-    let refusing =
-        refusing_boot(profile == BootProfile::Hardened, profile == BootProfile::AirGapped);
+    let (hardened, air_gapped) =
+        (profile == BootProfile::Hardened, profile == BootProfile::AirGapped);
+    let refusing = refusing_boot(hardened, air_gapped) || AGENTPROOF;
     let why = reason(vendor != IommuVendor::Absent);
     let taken = enters(BUILT, false, refusing);
     ACTIVE.store(taken, Ordering::Release);
@@ -52,6 +55,9 @@ pub fn decide(vendor: IommuVendor) {
         b"; every bus-master claim is refused"
     })
     .end();
+    if let Some(needs) = stops(false, AGENTPROOF, hardened, air_gapped) {
+        crate::boot::stop("IOMMU", needs.line());
+    }
 }
 
 /// Whether the posture is in force: claims go ahead unconfined.
