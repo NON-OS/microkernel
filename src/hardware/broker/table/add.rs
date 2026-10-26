@@ -35,6 +35,6 @@ pub(in crate::hardware::broker) fn add_pci_function(dev: &PciDevice, disabled: b
         record.flags |= crate::hardware::broker::DEVICE_FLAG_DISABLED;
     }
     table.push(record);
-    pci_index::push(handle_for(id, dev));
+    pci_index::push(handle_for(id, dev), dev.msi);
     id
 }
