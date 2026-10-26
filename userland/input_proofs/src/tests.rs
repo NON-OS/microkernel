@@ -29,12 +29,22 @@ mod gesture_tests;
 mod held_keys_tests;
 #[path = "hid_touchpad_tests.rs"]
 mod hid_touchpad_tests;
+#[path = "../../../src/services/registry/reserved.rs"]
+pub mod kernel_reserved;
+#[path = "../../../src/services/registry/system_names.rs"]
+pub mod kernel_system_names;
 #[path = "key_target_tests.rs"]
 mod key_target_tests;
 #[path = "press_frame_tests.rs"]
 mod press_frame_tests;
 #[path = "ps2_tests.rs"]
 mod ps2_tests;
+#[path = "router_grab_again_tests.rs"]
+mod router_grab_again_tests;
+#[path = "router_grab_identity_tests.rs"]
+mod router_grab_identity_tests;
+#[path = "router_grab_recency_tests.rs"]
+mod router_grab_recency_tests;
 #[path = "router_hover_first_tests.rs"]
 mod router_hover_first_tests;
 #[path = "router_hover_tests.rs"]

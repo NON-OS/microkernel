@@ -41,6 +41,7 @@ pub fn deliver_held(ctx: &mut Context, holder: u32, event: &InputEvent) -> (u32,
         ev.y = y as i32;
     }
     let n = deliver_one(holder, &ev);
+    super::recent::note(ctx, holder, ev.kind, n);
     let pressed = if super::kinds::is_pointer(ev.kind) {
         pointer::release_under_grab(ctx, holder, event, ev.x as u32, ev.y as u32)
     } else {

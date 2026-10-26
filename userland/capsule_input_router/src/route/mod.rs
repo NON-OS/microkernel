@@ -31,6 +31,7 @@ pub mod pad;
 mod pointer;
 pub mod preempt;
 mod press_kinds;
+pub mod recent;
 mod refuse;
 pub mod shell_keys;
 pub mod trusted_hold;

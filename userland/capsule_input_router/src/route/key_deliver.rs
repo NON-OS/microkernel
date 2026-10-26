@@ -37,10 +37,12 @@ pub fn deliver_key(ctx: &mut Context, pid: u32, event: &InputEvent) -> u32 {
         release_in(ctx, held, event);
     }
     if !ctx.subscriptions.allows(pid, event.kind) {
+        super::recent::note(ctx, pid, event.kind, 0);
         ctx.record(0);
         return 0;
     }
     let delivered = deliver_one(pid, event);
+    super::recent::note(ctx, pid, event.kind, delivered);
     if !is_up && delivered != 0 {
         ctx.key_targets.remember(slot, pid);
     }
