@@ -3,8 +3,6 @@
 //! top, beside each other as in the kernel, so `super::format` resolves;
 //! `arch` gives `select.rs` the `crate::arch` path it names its types by.
 
-#![allow(dead_code)]
-
 #[path = "../../../src/arch/aarch64/idle_states/format.rs"]
 pub mod format;
 #[path = "../../../src/arch/aarch64/idle_states/rules.rs"]

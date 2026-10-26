@@ -5,7 +5,7 @@
 //! driver's own framing; between messages, reports on other channels and
 //! KEEPALIVEs, which leave every message whole.
 
-use crate::ctaphid_parts::frame::{packets, Cid, CMD_CBOR, CMD_KEEPALIVE, MESSAGE_MAX, PACKET};
+use crate::ctaphid::frame::{packets, Cid, CMD_CBOR, CMD_KEEPALIVE, MESSAGE_MAX, PACKET};
 
 use super::rng::Rng;
 
@@ -28,7 +28,7 @@ pub fn stream(r: &mut Rng) -> Stream {
     let mut s = Stream { reports: Vec::new(), messages: Vec::new() };
     for m in 0..r.range(2, 5) {
         let k = r.range(0, 13);
-        let len = (r.range(0, 1 << k) as usize).min(MESSAGE_MAX);
+        let len = r.range(0, 1 << k).min(MESSAGE_MAX);
         let data: Vec<u8> = (0..len).map(|i| (i * 13 + m) as u8).collect();
         let cmd = r.one_of(&[CMD_CBOR as usize, 0x83, 0x81]) as u8;
         let start = s.reports.len();
