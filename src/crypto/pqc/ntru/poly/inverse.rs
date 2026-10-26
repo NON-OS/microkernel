@@ -30,7 +30,7 @@ fn poly_deg(p: &[i16]) -> usize {
 }
 
 fn mod_inv_3(a: i16) -> i16 {
-    let a = ((a % 3) + 3) % 3;
+    let a = a.rem_euclid(3);
     match a {
         1 => 1,
         2 => 2,
@@ -46,10 +46,10 @@ pub(crate) fn poly_inverse_mod_3(f: &Polynomial) -> Option<Polynomial> {
     let mut g = vec![0i16; NTRU_N + 1];
 
     b[0] = 1;
-    for i in 0..NTRU_N {
-        ff[i] = ((f.coeffs[i] % 3) + 3) % 3;
-        if ff[i] > 1 {
-            ff[i] -= 3;
+    for (fi, &c) in ff.iter_mut().zip(f.coeffs.iter()).take(NTRU_N) {
+        *fi = c.rem_euclid(3);
+        if *fi > 1 {
+            *fi -= 3;
         }
     }
 
@@ -96,12 +96,12 @@ pub(crate) fn poly_inverse_mod_3(f: &Polynomial) -> Option<Polynomial> {
     let f0_inv = mod_inv_3(ff[0]);
 
     let mut result = Polynomial::new();
-    for i in 0..NTRU_N {
+    for (i, &bi) in b.iter().enumerate().take(NTRU_N) {
         let mut idx = (i as i32 - k) % (NTRU_N as i32);
         if idx < 0 {
             idx += NTRU_N as i32;
         }
-        result.coeffs[idx as usize] = ((b[i] * f0_inv) % 3 + 3) % 3;
+        result.coeffs[idx as usize] = ((bi * f0_inv) % 3 + 3) % 3;
         if result.coeffs[idx as usize] > 1 {
             result.coeffs[idx as usize] -= 3;
         }

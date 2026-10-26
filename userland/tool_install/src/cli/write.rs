@@ -21,7 +21,7 @@
 
 use nonos_blk_client::scan;
 use nonos_disk::{gather, Plan, ENTROPY_BYTES};
-use nonos_libc::{crypto_random, mk_admin_reboot};
+use nonos_libc::crypto_random;
 
 use super::carry::StdVfs;
 use super::confirm::confirm;
@@ -73,8 +73,7 @@ pub fn run(word: &str, yes: bool, reboot: bool) -> i32 {
     };
     print_receipt(&receipt, verified);
     if reboot {
-        println!("restarting");
-        mk_admin_reboot();
+        return super::receipt::restart();
     }
     0
 }

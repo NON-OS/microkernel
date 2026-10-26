@@ -25,6 +25,7 @@ pub(crate) fn clear_pid(pid: u32) {
     let mut queues = PENDING.lock();
     let owed = super::death::on_death(&mut queues, pid, &caller_inbox);
     super::abandoned::record(pid, &owed);
+    super::request_ids::forget(pid);
     drop(queues);
     for (caller, _) in owed {
         crate::sched::wake_process(caller);

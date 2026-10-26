@@ -56,4 +56,6 @@ pub struct State {
     pub fetch_at_ms: i64,
     /// The order a purchase became, as the meter reports it (B9).
     pub orders: super::orders::Orders,
+    /// The proof of an installed app's run this store asks for (I-B9a).
+    pub proofs: super::proof::Proofs,
 }

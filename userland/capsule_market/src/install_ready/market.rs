@@ -21,8 +21,9 @@
 //! apply to schema 3 releases only: a schema 2 release keeps today's checks
 //! until the owner re-seals it (O5), and a free listing sells nothing to
 //! attest. The policy gate holds whatever the schema: a linux.* release
-//! fetched from an index never installs without its box, and only a vendor
-//! program ("store:") is boxed by the personality's own table.
+//! fetched from an index never installs without its box, and only a shipped
+//! tier (a linux.qwen-* listing running "store:/bin/qwenchat") is boxed by the
+//! personality's own table; another "store:" url needs its box like any package.
 
 use nonos_marketplace_abi::SettleMode;
 use nonos_marketplace_abi::{attest_verdict, binding_verdict, commerce_verdict, policy_verdict};
