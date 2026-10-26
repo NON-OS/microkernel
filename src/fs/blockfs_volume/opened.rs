@@ -18,13 +18,19 @@
 
 use super::plan_types::Plan;
 use super::say::say;
-use super::state::{VolumeState, VOLUME};
+use super::state::VolumeState;
 use crate::fs::blockfs::BlockFsMount;
 use alloc::format;
 
-/// Keep `mount` under `key` as the open volume, and say where it lies.
-pub(super) fn install(plan: &Plan, key: [u8; 32], mount: BlockFsMount) {
+/// Keep `mount` under `key` as the open volume `v`, whose write the caller
+/// holds, and say where it lies.
+pub(super) fn install(
+    v: &mut Option<VolumeState>,
+    plan: &Plan,
+    key: [u8; 32],
+    mount: BlockFsMount,
+) {
     let (n, at) = (plan.volume_sectors, plan.volume_base);
     say(&format!("[DATA] volume open: {n} sectors at LBA {at}"));
-    *crate::smp::write_responsive(&VOLUME) = Some(VolumeState { key, mount });
+    *v = Some(VolumeState { key, mount });
 }
