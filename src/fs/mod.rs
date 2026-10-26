@@ -70,8 +70,8 @@ pub use fd::{
 
 pub use path::{
     components, cstr_to_string, extension, file_name, is_absolute, is_relative, join,
-    join_normalize, join_secure, normalize_path, parent, validate_path, validate_path_secure,
-    PathError, PathResult, MAX_PATH_LEN,
+    join_normalize, join_secure, normalize_path, parent, validate_path, PathError, PathResult,
+    MAX_PATH_LEN,
 };
 
 pub use cache::{

@@ -54,9 +54,10 @@ if [ ! -s "$log" ]; then
   exit 2
 fi
 
-if grep -a -E '\[FATAL\]|\[PANIC\]' "$log" >/dev/null 2>&1; then
-  printf '{"status":"fail","reason":"fatal marker","log":"%s"}\n' "$log" > "$report"
-  printf '%s\n' "qemu boot evidence: FAIL fatal marker"
+if grep -a -E '\[FATAL\]|\[PANIC\]|\[INIT\] capsule spawn incomplete' "$log" >/dev/null 2>&1; then
+  why="fatal marker"; grep -aqF 'capsule spawn incomplete' "$log" && why="capsule spawn incomplete"
+  printf '{"status":"fail","reason":"%s","log":"%s"}\n' "$why" "$log" > "$report"
+  printf '%s\n' "qemu boot evidence: FAIL $why"
   exit 1
 fi
 
