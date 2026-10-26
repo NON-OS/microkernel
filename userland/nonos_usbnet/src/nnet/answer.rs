@@ -24,12 +24,13 @@ use super::wire::OP_TX_PACKET;
 use super::wire::{Request, DATA_AT, E_AGAIN, E_INVAL, E_MSGSIZE};
 use super::wire::{OP_HEALTHCHECK, OP_LINK_STATUS, OP_MAC_ADDRESS, OP_RX_PACKET, OP_STATS};
 use crate::nic::{Nic, ETH_FRAME_MAX, ETH_HEADER};
+use nonos_mac::resend::Kept;
 
 /// The reply to `req` in `tx`, its length returned. Before a device is
 /// bound (`nic` is `None`) the link reads down and frames are `E_AGAIN`.
 pub fn answer<N: Nic>(
     nic: Option<&mut N>,
-    stats: &mut Stats,
+    (stats, kept): (&mut Stats, &mut Kept<ETH_FRAME_MAX>),
     req: &Request,
     body: &[u8],
     tx: &mut [u8],
@@ -55,7 +56,7 @@ pub fn answer<N: Nic>(
             status(tx, req, E_INVAL)
         }
         (OP_TX_PACKET, Some(nic)) => send(nic, stats, req, body, tx),
-        (OP_RX_PACKET, Some(nic)) => recv(nic, stats, req, tx),
+        (OP_RX_PACKET, Some(nic)) => recv(nic, stats, kept, (req, body), tx),
         (OP_MAC_ADDRESS | OP_TX_PACKET | OP_RX_PACKET, None) => status(tx, req, E_AGAIN),
         _ => status(tx, req, E_INVAL),
     }
