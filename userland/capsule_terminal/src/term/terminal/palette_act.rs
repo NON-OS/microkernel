@@ -45,9 +45,10 @@ impl Terminal {
         EventOutcome::Repaint
     }
 
+    /// The theme picker, open on the theme in use (`theme` with no name).
     pub(super) fn theme_next(&mut self) -> EventOutcome {
-        self.theme = (self.theme + 1) % profiles::COUNT;
-        self.prefs_dirty = true;
+        let pick = crate::term::theme_pick::Pick::open(self.theme, profiles::COUNT);
+        self.cur().theme_pick = Some(pick);
         EventOutcome::Repaint
     }
 }

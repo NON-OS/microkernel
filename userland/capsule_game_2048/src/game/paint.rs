@@ -17,10 +17,10 @@
 use nonos_app_skeleton::PaintBuffer;
 use tools_2048::Game;
 
-use super::colors::tile_color;
+use super::colors::{text_color, tile_color, INK};
 use super::decimal::{render_u32, DIGITS};
 
-const BG: u32 = 0xFF1A1A2E;
+const BG: u32 = INK;
 const BOARD_BG: u32 = 0xFF3A3A4E;
 const TEXT: u32 = 0xFFF5F5F0;
 const ACCENT: u32 = 0xFFEDC22E;
@@ -56,11 +56,14 @@ pub fn paint(fb: &mut PaintBuffer, game: &Game<4>, over: bool) {
                 let mut tbuf = [0u8; DIGITS];
                 let digits = render_u32(v as u32, &mut tbuf);
                 let tx = x + TILE / 2 - digits.len() as u32 * 5;
-                fb.text_scaled(tx, y + TILE / 2 - 8, digits, TEXT, 2);
+                fb.text_scaled(tx, y + TILE / 2 - 8, digits, text_color(v), 2);
             }
         }
     }
     if over {
-        fb.text_scaled(ox + 64, oy + 250, b"GAME OVER", ACCENT, 4);
+        // On a band of the ground, so it reads over any tile: nine glyphs
+        // at 3 are 240 wide, centred in the 360 laid out.
+        fb.fill_rect(ox + 24, oy + 240, 312, 44, BG);
+        fb.text_scaled(ox + 60, oy + 250, b"GAME OVER", ACCENT, 3);
     }
 }

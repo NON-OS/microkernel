@@ -41,7 +41,9 @@ pub(super) fn spans_of(
             *start = Some(id);
             [one(alias, alias, true), None]
         }
-        0x04 => [start.take().and_then(|first| one(first, id, false)), None],
+        // An END below its START names no id; kept, it would take a span's
+        // room from the entries after it (the aliases drop it the same way).
+        0x04 => [start.take().filter(|&first| first <= id).and_then(|f| one(f, id, false)), None],
         0x42 => [one(id, id, true), one(alias, alias, true)],
         0x48 => [one(alias, alias, true), None],
         _ => [None, None],

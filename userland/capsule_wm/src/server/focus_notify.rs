@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Tell lifecycle subscribers which window has focus whenever it changed
-//! (focus/notice.rs), as NOTIFY_KIND_FOCUSED.
+//! (focus/notice.rs), as NOTIFY_KIND_FOCUSED, after each owner hears of its
+//! own window (keys_notify.rs).
 
 use crate::focus::model::FocusedRef;
 use crate::focus::notice::focus_notice;
@@ -23,14 +24,8 @@ use crate::state::Context;
 
 /// Broadcast the focused window when it is not `was`.
 pub fn tell_if_moved(ctx: &mut Context, was: Option<FocusedRef>) {
+    crate::server::keys_notify::tell_owners(was, ctx.focus.current());
     if let Some((pid, window_id)) = focus_notice(was, ctx.focus.current()) {
-        crate::server::notify_fanout::broadcast(
-            ctx,
-            NOTIFY_KIND_FOCUSED,
-            pid,
-            window_id,
-            0,
-            0,
-        );
+        crate::server::notify_fanout::broadcast(ctx, NOTIFY_KIND_FOCUSED, pid, window_id, 0, 0);
     }
 }

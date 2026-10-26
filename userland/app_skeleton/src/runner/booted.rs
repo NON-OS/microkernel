@@ -22,7 +22,6 @@ use crate::app::{App, AppManifest};
 use crate::setup::WindowBinding;
 
 use super::drag::DragState;
-use super::full_screen_ask::FullScreenAsk;
 use super::held::Held;
 
 pub(super) struct BootedApp<A: App> {
@@ -38,10 +37,11 @@ pub(super) struct BootedApp<A: App> {
     pub maximized: bool,
     pub minimized: bool,
     pub saved: (u32, u32, u32, u32),
-    /// Whether the app asks for full screen, and whether it took it.
-    pub full_ask: FullScreenAsk,
+    /// What the app asks of its window (full screen, a rect), and what it took.
+    pub asks: super::asks::Asks,
     pub drag: DragState,
-    /// Whether the window has the keyboard. A window opens focused.
+    /// Whether the window has the keyboard, by the WM's word (inbox/keys.rs).
+    /// A window opens with it.
     pub focused: bool,
     /* Size, frame state and maximized state of the last repaint, so a repaint
      * that changes none of them can leave the frame as it is. */

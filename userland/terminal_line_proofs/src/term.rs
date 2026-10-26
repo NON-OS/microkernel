@@ -8,6 +8,9 @@ pub mod dimensions {
     pub const HISTORY_DEPTH: usize = 32;
 }
 
+/// The themes, at the path the capsule names them by.
+pub use crate::theme;
+
 pub mod util {
     pub use crate::fmt_u64::format_u64;
     pub use crate::qwen::space::is_space;
