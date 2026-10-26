@@ -1,0 +1,39 @@
+#!/bin/bash
+# The keeping-volume boots' image, scratch only (pk-build): privacy/keeping-volume
+# at $1, profile kvproof = the full desktop with installer, capsule serial
+# debug kept, and nonos-capsule-proof-io, whose main.rs is kv_proof_main.rs
+# and whose manifest gains FileSystem and StreamImport (0x400000058).
+SP=/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad
+HEAD_SHA=${1:?head}
+P=$SP/kv; mkdir -p $P
+cd /home/user/pk-build && git reset -q --hard && git clean -qfd tools/nix mk userland/capsule_proof_io >/dev/null
+for i in 1 2 3 4; do git fetch -q origin privacy/keeping-volume && break; sleep $((2**i)); done
+git checkout -q --detach "$HEAD_SHA" || { echo "NO SUCH HEAD"; exit 1; }
+git log --oneline -1 | tee $P/head.txt
+cp $SP/kv_proof_main.rs userland/capsule_proof_io/src/main.rs
+sed -i 's/^CAPSULE_REQUIRED_CAPS      := 0x18$/CAPSULE_REQUIRED_CAPS      := 0x400000058/' userland/capsule_proof_io/Capsule.mk
+grep -q '0x400000058' userland/capsule_proof_io/Capsule.mk || { echo "CAPS EDIT FAILED"; exit 1; }
+python3 - <<'PY'
+p="tools/nix/config.nix"; s=open(p).read()
+a="    standard = {\n"
+add='''    kvproof = {
+      about = "the keeping-volume scratch proof: the full desktop with installer and proof_io writing to the data volume";
+      for = "the keeping-volume boots";
+      privacy = "none: a test image";
+      kernel = [ "microkernel-full-gui" "nonos-capsule-proof-io" ];
+      loader = "standard";
+      drop = [ ];
+    };
+'''
+assert s.count(a)==1; open(p,"w").write(s.replace(a, add+a))
+PY
+git diff --stat | tee -a $P/head.txt
+git add -A -f tools/nix userland/capsule_proof_io >/dev/null
+nix develop --command python3 tools/nix/catalogues.py > $SP/kv-cat.log 2>&1 || { echo CATALOGUE-FAILED; tail -20 $SP/kv-cat.log; exit 1; }
+git add -A -f tools/nix >/dev/null
+nix develop --command python3 tools/nix/inputs.py >> $SP/kv-cat.log 2>&1 || { echo INPUTS-FAILED; tail -20 $SP/kv-cat.log; exit 1; }
+git add -A -f tools/nix >/dev/null
+NIX_CONFIG=$'max-jobs = 4\ncores = 4' python3 tools/nonos-dev-image --profile kvproof > $SP/devimg-kv.log 2>&1 || { echo IMAGE-FAILED; tail -40 $SP/devimg-kv.log; exit 1; }
+IMG=/home/user/pk-build/target/dev/tree/target/release/kvproof-dev/nonos.img
+sha256sum $IMG | tee -a $P/head.txt
+echo BUILT
