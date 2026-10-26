@@ -6719,6 +6719,7 @@
    "userland/capsule_app_store/src/store/tab.rs",
    "userland/capsule_app_store/src/store/ui/gate_fit.rs",
    "userland/capsule_app_store/src/store/verdict.rs",
+   "userland/capsule_linux/src/linux/app/home_key.rs",
    "userland/capsule_linux/src/linux/install/why.rs",
    "userland/capsule_linux/src/linux/install/why_model.rs",
    "userland/capsule_linux/src/linux/install/why_package.rs",
