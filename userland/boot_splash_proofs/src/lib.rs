@@ -27,7 +27,6 @@ pub mod attest_lines;
 #[path = "../../capsule_boot_splash/src/canvas.rs"]
 pub mod canvas;
 #[cfg(test)]
-#[allow(clippy::too_many_arguments)] // `panel`, as the splash calls it
 #[path = "../../capsule_boot_splash/src/chrome.rs"]
 pub mod chrome;
 #[cfg(test)]
