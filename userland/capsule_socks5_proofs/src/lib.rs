@@ -26,22 +26,22 @@ pub mod manager;
 pub mod parked;
 #[path = "../../capsule_socks5/src/server/reply.rs"]
 pub mod reply;
-#[path = "../../capsule_socks5/src/server/who.rs"]
-pub mod who;
 #[path = "../../capsule_socks5/src/server/request/mod.rs"]
 pub mod request;
 #[path = "../../capsule_socks5/src/tunnel/mod.rs"]
 pub mod tunnel;
 #[path = "../../capsule_socks5/src/nym/watch.rs"]
 pub mod watch;
+#[path = "../../capsule_socks5/src/server/who.rs"]
+pub mod who;
 
+#[path = "../../nonos_route_link/src/answer.rs"]
+pub mod route_answer;
 /// The terminal's side of the conversation with this proxy, which is the
 /// shared client in nonos_route_link: the frames it sends, the answers it
 /// reads, and the rule for which network it leaves by at all.
 #[path = "../../nonos_route_link/src/frame.rs"]
 pub mod route_frame;
-#[path = "../../nonos_route_link/src/answer.rs"]
-pub mod route_answer;
 #[path = "../../nonos_route_link/src/pick.rs"]
 pub mod route_pick;
 #[path = "../../capsule_socks5/src/wire/mod.rs"]
