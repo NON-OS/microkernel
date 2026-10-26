@@ -5,7 +5,7 @@
 #[path = "../../../../src/arch/acpi_capsule/gate.rs"]
 mod acpi_gate;
 #[cfg(test)]
-pub(crate) use acpi_gate::acpi_only;
+pub(crate) use acpi_gate::{acpi_only, msi_only};
 #[cfg(test)]
 pub mod fdt;
 pub mod paging;

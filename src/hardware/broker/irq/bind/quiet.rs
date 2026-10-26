@@ -24,7 +24,7 @@
 use super::msi_program::clear as clear_msi;
 use crate::drivers::pci::config::ConfigSpace;
 use crate::drivers::pci::msi::{disable_msix, is_msi_enabled, is_msix_enabled};
-use crate::hardware::broker::pci_index::PciHandle;
+use crate::hardware::broker::pci_index::{self, PciHandle};
 
 pub(super) fn msix_off(handle: &PciHandle) {
     let Some(msix) = handle.msix else { return };
@@ -35,7 +35,7 @@ pub(super) fn msix_off(handle: &PciHandle) {
 }
 
 pub(super) fn msi_off(handle: &PciHandle) {
-    let Some(msi) = handle.msi else { return };
+    let Some(msi) = pci_index::msi_of(handle) else { return };
     let cfg = ConfigSpace::new(handle.address);
     if is_msi_enabled(&cfg, &msi) == Ok(true) && clear_msi(&handle.address, &msi).is_ok() {
         crate::log::info!("[IRQ] {} msi was on with no grant, turned off", handle.address);
