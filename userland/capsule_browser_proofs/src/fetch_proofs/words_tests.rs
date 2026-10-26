@@ -31,7 +31,7 @@ const NYM: Way = Way::Proxy { net: Network::Nym, port: 41, proxy: Proxy::Nym };
 const ANYONE: Way = Way::Proxy { net: Network::Anyone, port: 42, proxy: Proxy::Anyone };
 
 /// Every code the fetch machine stops with, by name.
-const CODES: [&str; 32] = [
+const CODES: [&str; 33] = [
     "connect failed",
     "dns failed",
     "timed out",
@@ -47,6 +47,7 @@ const CODES: [&str; 32] = [
     "socket failed",
     "net.sockets unavailable",
     "bad url",
+    "not a web address",
     "response too large",
     "tls init failed",
     "tls handshake failed",
