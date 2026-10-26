@@ -25,6 +25,8 @@ mod mapping_in_asid;
 mod protection;
 mod query;
 mod scrub;
+mod span_in_asid;
+mod span_protect_in_asid;
 mod stats;
 mod tables_asid;
 mod tlb_ops;
@@ -52,6 +54,8 @@ pub use query::{
     is_mapped, translate_address,
 };
 pub use scrub::scrub_every_user_space;
+pub use span_in_asid::unmap_span_in_asid;
+pub use span_protect_in_asid::protect_span_in_asid;
 pub use stats::{get_memory_usage, get_paging_stats};
 pub use tables_asid::lookup_asid_for_tables;
 pub use tlb_ops::{
