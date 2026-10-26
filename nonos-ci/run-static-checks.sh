@@ -2360,6 +2360,16 @@ else
     fail_with "bootloader build.rs writes outside OUT_DIR"
 fi
 unset boot_build
+# "[INIT] Capsules spawned" is printed only when no capsule failed to spawn;
+# every boot check fails the "capsule spawn incomplete" line in its place, and
+# --selftest shows each check, with that clause taken out, passing it.
+if spawn_out="$(python3 -I nonos-ci/check-spawn-incomplete.py --selftest 2>&1)"; then
+    note ok "every boot check fails a boot whose capsules did not all spawn"
+else
+    tail -n 5 <<< "${spawn_out}" >&2
+    fail_with "a boot check passes a boot whose capsules did not all spawn"
+fi
+unset spawn_out
 # The kernel embeds its trust set only through baked_trust!, so a build pointed
 # at a test set (NONOS_BAKED_TRUST_DIR) replaces every file of it; a trust file
 # included by its literal path would keep the tree's copy in that build.
@@ -5390,6 +5400,31 @@ else
     fail_with "nonos-egress-audit: a way off the machine is not listed, or a row is stale"
 fi
 unset egress_out
+# The development market catalogue (P4) is for a development
+# seal in nonos-dev-image's copy alone, signed by that copy's throwaway key:
+# no release path names it, and the seal's choice of it still holds when run.
+# The self-test first, so a scan that stopped seeing it cannot pass quietly.
+if devcat_out="$(python3 scripts/check_dev_catalogue.py --self-test 2>&1 \
+    && python3 scripts/check_dev_catalogue.py 2>&1)"; then
+    note ok "only a development seal takes the test catalogue (check_dev_catalogue)"
+else
+    tail -n 8 <<< "${devcat_out}" >&2
+    fail_with "check_dev_catalogue: a release path can take the development catalogue"
+fi
+unset devcat_out
+# The local test chain (P5) is a development capsule feature alone: no
+# release profile, capsule declaration, dependency, lane or workflow turns it
+# on (that a release never takes the development set is check_dev_capsule_set's,
+# above). The self-test first, so a scan that stopped seeing it cannot pass
+# quietly.
+if devnet_out="$(python3 scripts/check_devnet_feature.py --self-test 2>&1 \
+    && python3 scripts/check_devnet_feature.py 2>&1)"; then
+    note ok "no release can turn the local test chain on (check_devnet_feature)"
+else
+    tail -n 8 <<< "${devnet_out}" >&2
+    fail_with "check_devnet_feature: a release profile or capsule can turn the local test chain on"
+fi
+unset devnet_out
 
 if [ "${fail}" -ne 0 ]; then
     echo
