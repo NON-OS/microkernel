@@ -8049,6 +8049,7 @@
    "userland/capsule_prove/src/job/progress.rs",
    "userland/capsule_prove/src/job/seen.rs",
    "userland/capsule_prove/src/job/serve.rs",
+   "userland/capsule_prove/src/job/serve_frame.rs",
    "userland/capsule_prove/src/job/state.rs",
    "userland/capsule_prove/src/job/state_ops.rs",
    "userland/capsule_prove/src/job/status.rs",
