@@ -43,6 +43,7 @@ pub const PROVEN: &[(&str, &str)] = &[
     ("qwen3-32b", "docs/using/evidence/qwen-arch-qwen3/README.md: qwen3-0.6b answered"),
     ("qwen3.5-0.8b", "docs/using/evidence/qwen-arch-qwen35-fixed/README.md: qwen3.5-0.8b answered"),
     ("qwen3.6-27b", "docs/using/evidence/qwen-arch-qwen35-fixed/README.md: qwen3.5-0.8b answered"),
+    ("vl-2b", "docs/using/evidence/vision-vl2b/README.md: vl-2b answered an image (serial.log)"),
 ];
 
 /* Whether `tier` is proven on NONOS, so may be a default. */

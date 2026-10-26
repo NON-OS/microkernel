@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-audio")]
-pub(super) const AUDIO_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(super) const AUDIO_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_audio/target/",
     env!("NONOS_USER_TARGET"),
     "/release/audio_server"
@@ -33,6 +32,16 @@ pub(super) const AUDIO_MANIFEST_BYTES: &[u8] =
 #[cfg(feature = "nonos-capsule-audio")]
 pub(super) const AUDIO_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/audio_server.zk_trailer.bin");
+
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-audio")]
+const _: () = assert!(
+    !AUDIO_ELF.is_empty()
+        && !AUDIO_NONOS_ID_CERT_BYTES.is_empty()
+        && !AUDIO_MANIFEST_BYTES.is_empty()
+        && !AUDIO_ATTESTATION_BYTES.is_empty(),
+    "audio_capsule built in with an empty image"
+);
 
 #[cfg(not(feature = "nonos-capsule-audio"))]
 pub(super) const AUDIO_ELF: &[u8] = &[];

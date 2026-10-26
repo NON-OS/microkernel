@@ -39,8 +39,13 @@ bool chat_turn(const ChatArgs &a, Chat &c, std::string &said, Put put, void *to,
     wipe(turn);
     if (!fits(a, c, t.size() + pre.size())) return zero(t), put(to, "(too long)", 10, false), true;
     const int start = c.used;
-    bool ok = chat_feed(c, t.data(), t.size());
+    const bool fed = chat_feed(c, t.data(), t.size());
     zero(t);
+    return chat_reply(a, c, fed, start, put, to, made);
+}
+
+bool chat_reply(const ChatArgs &a, Chat &c, bool ok, int start, Put put, void *to, int &made) {
+    const std::vector<llama_token> none, &pre = c.think ? none : c.no_thought;
     const int reply_at = c.used;
     ok = ok && chat_feed(c, pre.data(), pre.size());
     /* Thinking aloud is marked; the blank lines around it are not shown. */

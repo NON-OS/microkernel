@@ -189,8 +189,10 @@ let
   # Every profile's kernel type-checks with exactly the features nonos.toml
   # resolves for it, so a profile that names a feature its code cannot build
   # with fails here and not on ek's machine. The capsule ELFs the kernel
-  # embeds are empty stand-ins, and so is the trust set of a capsule the seal
+  # embeds are one-byte stand-ins, and so is the trust set of a capsule the seal
   # has not written yet: this checks the code, `nix build` checks the image.
+  # One byte, not none: a capsule built in with an empty file fails to compile
+  # (each embed's `const _: () = assert!`), as a real build's should.
   # The files each stand-in is made at, one a line. A file, not the script:
   # written inline, one command per file, the script outgrew the 128 KiB a
   # single environment string may hold, and every profile check failed to
@@ -213,7 +215,7 @@ let
         printf 'NONOS-CI-FORK-DEV-SEED-32-BYTE!!' > $TMPDIR/build-placeholder.seed
         export NONOS_SIGNING_KEY=$TMPDIR/build-placeholder.seed
         while IFS= read -r f; do
-          [ -e "$f" ] || { mkdir -p "$(dirname "$f")"; : > "$f"; }
+          [ -e "$f" ] || { mkdir -p "$(dirname "$f")"; printf '\0' > "$f"; }
         done < ${standIns}
         cargo check --frozen --target x86_64-nonos.json -Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem \
           --no-default-features --features ${lib.concatStringsSep "," cfg.features}
@@ -247,9 +249,21 @@ let
       "scripts/check_test_lanes.py --self-test" "scripts/check_test_lanes.py"
       "-m unittest discover -s tools/nonos_selftest -p 'test_*.py'"
       "-m unittest discover -s tools/agentproof_gauntlet -t tools -p 'test_*.py'"
+      # The market catalogue tool's suite but its mutants (market-catalogue-mutants);
+      # its digests are BLAKE3, so b3sum.
+      "-m unittest discover -s tools/nonos_market_catalogue -t tools -p 'test_[!m]*.py'"
+      # The other tools' suites, each a few seconds; check_tool_suites fails
+      # on any tools/ test file no lane here or in run-static-checks.sh runs.
+      "-m unittest discover -s tools/nonos_data_plan -t tools -p 'test_*.py'"
+      "-m unittest discover -s tools/nonos_linux_pack -t tools -p 'test_*.py'"
       "-m unittest discover -s tools/nonos_qemu -t tools -p 'test_*.py'"
-      # The market catalogue tool's suite; its digests are BLAKE3, so b3sum.
-      "-m unittest discover -s tools/nonos_market_catalogue -t tools -p 'test_*.py'"
+      "-m unittest discover -s tools/nonos_qwen_tier -t tools -p 'test_*.py'"
+      "-m unittest discover -s tools/nonos_zero_state -t tools -p 'test_*.py'"
+      "scripts/check_tool_suites.py --self-test" "scripts/check_tool_suites.py"
+    ]);
+    # The catalogue's mutants: the suite once a mutant, so a lane of its own.
+    market-catalogue-mutants = static "catalogue-mutants" (scripts [
+      "-m unittest discover -s tools/nonos_market_catalogue -t tools -p 'test_mutants.py'"
     ]);
     # verify.yml, abi-contracts and syscall-reach
     static-abi = static "abi" (scripts [
@@ -273,9 +287,10 @@ let
       "tools/ratchets/linux_calls.py --self-test"
       "tools/nonos-linux-coverage --baseline scripts/baselines/linux-syscalls.txt"
       "tools/nonos-wayland-coverage --baseline scripts/baselines/wayland-globals.txt"
-      "tools/ratchets/disclosure.py" "tools/nonos-mutant --check" "nonos-ci/check-ui-copy.py --self-test" "nonos-ci/check-ui-copy.py"
+      "tools/ratchets/disclosure.py" "tools/nonos-mutant --check"
       "tools/nonos-ui-measure --self-test" "tools/nonos-unit-check --self-test"
       "scripts/check_syscall_reach.py --baseline scripts/baselines/syscall-unreachable-count.txt"
+      "nonos-ci/check-ui-copy.py --self-test" "nonos-ci/check-ui-copy.py"
     ]);
     # Every capsule a release profile ships has its sealed trust set, but for
     # those scripts/baselines/unsealed.txt names, which may only shrink.

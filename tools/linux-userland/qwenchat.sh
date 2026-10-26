@@ -38,7 +38,7 @@ for t in ar ranlib; do printf '#!/bin/sh\nexec "%s" %s "$@"\n' "$zig" "$t" >"$wo
 chmod +x "$work/zig/"*
 cpp="$root/userland/linux_guests/cpp"
 set -- "$cpp"/qwenchat*.cpp "$cpp"/qwenwl_*.cpp "$cpp"/qwenui_*.cpp \
-	"$cpp/qwenpool.cpp" "$cpp/qwenmem.cpp" "$cpp/qwenmem_file.cpp"
+	"$cpp/qwenpool.cpp" "$cpp/qwenmem.cpp" "$cpp/qwenmem_file.cpp" "$cpp/qwenvision_frame.cpp"
 for level in x86_64_v3 x86_64_v2 x86_64; do
 	b="$work/llama-$level"
 	# A cross build: without the system named, cmake on macOS adds its
@@ -54,13 +54,29 @@ for level in x86_64_v3 x86_64_v2 x86_64; do
 		-DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_TOOLS=OFF -DLLAMA_BUILD_EXAMPLES=OFF \
 		-DLLAMA_BUILD_SERVER=OFF -DLLAMA_BUILD_APP=OFF >/dev/null
 	qcmake --build "$b" -j8 --target llama >/dev/null
+	# mtmd, the vision tiers' image path, from its own sources: llama.cpp's
+	# tools are not configured (LLAMA_BUILD_TOOLS=OFF), so its library and
+	# the vendored hash it links are compiled here, nothing else of tools/.
+	m="$work/mtmd-$level"
+	mkdir -p "$m"
+	mflags="-O2 -g0 -mcpu=$level -ffile-prefix-map=$cache=/src -I$llama/include -I$llama/ggml/include -I$llama/tools/mtmd -I$llama/vendor -I$llama/vendor/hash"
+	for f in "$llama"/tools/mtmd/mtmd.cpp "$llama"/tools/mtmd/mtmd-audio.cpp "$llama"/tools/mtmd/mtmd-image.cpp \
+		"$llama"/tools/mtmd/mtmd-helper.cpp "$llama"/tools/mtmd/mtmd-helper-gen.cpp "$llama"/tools/mtmd/clip.cpp \
+		"$llama"/tools/mtmd/models/*.cpp "$llama"/vendor/hash/hash.cpp; do
+		"$work/zig/c++" -c -std=c++17 $mflags "$f" -o "$m/$(basename "$f").o"
+	done
+	"$work/zig/c++" -c -x c++ -std=c++17 -w $mflags "$llama/vendor/hash/sha1/sha1.c" -o "$m/sha1.c.o"
+	for f in "$llama/vendor/hash/xxhash/xxhash.c" "$llama/vendor/hash/sha256/sha256.c"; do
+		"$work/zig/cc" -c -w $mflags "$f" -o "$m/$(basename "$f").o"
+	done
+	"$work/zig/ar" rcs "$work/libmtmd-$level.a" "$m"/*.o
 	# The page-safe string functions every Qwen guest links (qwenlibc.c).
 	"$work/zig/cc" -c -O2 -g0 -mcpu="$level" -std=c11 -fno-builtin \
 		-ffile-prefix-map="$root=/nonos" "$cpp/qwenlibc.c" -o "$work/qwenlibc-$level.o"
 	case $level in x86_64_v3) name=qwenchat ;; *) name=qwenchat-$level ;; esac
 	"$work/zig/c++" -static -no-pie -s -O2 -g0 -mcpu="$level" -std=c++17 \
 		-ffile-prefix-map="$root=/nonos" -ffile-prefix-map="$cache=/src" \
-		-I"$llama/include" -I"$llama/ggml/include" "$@" "$work/qwenlibc-$level.o" \
-		-o "$out/$name" "$b/src/libllama.a" "$b/ggml/src/libggml.a" \
+		-I"$llama/include" -I"$llama/ggml/include" -I"$llama/tools/mtmd" "$@" "$work/qwenlibc-$level.o" \
+		-o "$out/$name" "$work/libmtmd-$level.a" "$b/src/libllama.a" "$b/ggml/src/libggml.a" \
 		"$b/ggml/src/libggml-cpu.a" "$b/ggml/src/libggml-base.a" -lpthread
 done

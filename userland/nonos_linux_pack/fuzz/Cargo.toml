@@ -1,0 +1,42 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# Fuzz target for the pack parser, whose input is a store object any
+# capsule holding the store could have written. Run with:
+# cargo +nightly-2026-01-16 fuzz run pack_parse
+# Seeds: python3 tools/nonos-pack-seeds writes them (they are not kept here).
+
+[package]
+name = "nonos_linux_pack-fuzz"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+nonos_linux_pack = { path = ".." }
+
+[[bin]]
+name = "pack_parse"
+path = "fuzz_targets/pack_parse.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]

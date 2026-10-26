@@ -25,7 +25,7 @@ use crate::drivers::pci::msi::{
 use crate::drivers::pci::types::{MsiMessage, MsixInfo};
 use crate::drivers::pci::PciError;
 use crate::hardware::broker::irq::types::IrqBindError;
-use crate::hardware::broker::pci_index::PciHandle;
+use crate::hardware::broker::pci_index::{msi_of, PciHandle};
 
 use super::msi_program;
 use super::record::MessageBind;
@@ -41,7 +41,7 @@ pub(super) fn program(
         let msix = handle.msix.ok_or(IrqBindError::NoMsixCap)?;
         run(handle, &msix, b.count as u16, messages).map_err(|_| IrqBindError::MsixProgramFailed)
     } else {
-        let msi = handle.msi.ok_or(IrqBindError::NoMsiCap)?;
+        let msi = msi_of(handle).ok_or(IrqBindError::NoMsiCap)?;
         // A 32-bit capability keeps the low address word alone, and would
         // send the message somewhere else entirely.
         if !msi.is_64bit && address > u64::from(u32::MAX) {

@@ -16,15 +16,17 @@
 
 //! Whether the shared VM layer can run on this architecture. It needs a
 //! page-descriptor backend, a direct map at `DIRECTMAP_BASE` and the root and
-//! TLB facades. x86_64 and aarch64 have all of them. riscv64 has none yet: its
-//! boot tables are Sv39, which cannot address the direct map, and its
-//! descriptors are `descriptor/unsupported.rs`. So the boot stops here and
-//! says why, rather than fault on the first write through the direct map.
+//! TLB facades. x86_64 and aarch64 have all of them. riscv64 has none: its
+//! boot tables are Sv39, which cannot address the direct map, and it has no
+//! page-descriptor backend (`descriptor/mod.rs` mounts none for it). So the boot
+//! stops here and says why, rather than fault on the first write through the
+//! direct map.
 pub fn require_vm_port() {
     #[cfg(target_arch = "riscv64")]
     {
-        crate::sys::serial::print(b"[VM] riscv64: the VM layer is not ported ");
-        crate::sys::serial::println(b"(no Sv48 direct map, no page descriptors); stopping");
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[VM] riscv64: the VM layer is not ported ");
+        l.str(b"(no Sv48 direct map, no page descriptors); stopping").end();
         crate::arch::halt_loop()
     }
 }

@@ -43,6 +43,9 @@ const EXIT_HEAP_INIT: i32 = 1;
 /// the channel, starts the protocol and scans the targets, giving
 /// everything back when a step fails; the attempts are bounded and slept
 /// between. A controller with nothing on it is given back too.
+///
+/// # Safety
+/// The kernel enters here once, on the capsule's own fresh stack.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {

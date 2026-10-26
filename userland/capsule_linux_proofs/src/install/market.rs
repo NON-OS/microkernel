@@ -22,6 +22,8 @@
 pub mod arg;
 #[path = "../../../capsule_linux/src/linux/install/market/check.rs"]
 pub mod check;
+#[path = "../../../capsule_linux/src/linux/install/market/choose.rs"]
+pub mod choose;
 #[path = "../../../capsule_linux/src/linux/install/market/minted.rs"]
 pub mod minted;
 #[path = "../../../capsule_linux/src/linux/install/market/take.rs"]

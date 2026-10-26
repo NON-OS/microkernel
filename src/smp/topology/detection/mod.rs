@@ -21,6 +21,12 @@
 //! done with it afterwards is not, so the registry and every accessor live in
 //! `state`.
 
+extern crate alloc;
+
+use alloc::vec::Vec;
+
+use super::types::CpuTopology;
+
 mod state;
 
 #[cfg(target_arch = "aarch64")]
@@ -34,10 +40,29 @@ pub use state::{
 
 /// Probe the machine and record what it says. Returns the logical CPU count.
 pub fn detect_cpus() -> usize {
+    let (topology, aps) = probe();
+    let count = topology.logical_cpus;
+    state::set_topology(topology);
+    state::set_ap_list(aps);
+    count
+}
+
+/// The topology and the secondaries to start. riscv64 starts none: its harts
+/// are not brought into SMP here, so it is one CPU, which is what it runs.
+fn probe() -> (CpuTopology, Vec<u32>) {
     #[cfg(target_arch = "x86_64")]
     return probe_x86_64::detect();
     #[cfg(target_arch = "aarch64")]
     return probe_aarch64::detect();
     #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
-    return 1;
+    return (
+        CpuTopology {
+            logical_cpus: 1,
+            physical_cores: 1,
+            numa_nodes: 1,
+            hyperthreading: false,
+            x2apic: false,
+        },
+        Vec::new(),
+    );
 }

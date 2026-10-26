@@ -16,7 +16,7 @@
 
 use std::fs;
 
-use nonos_marketplace_abi::{SettleMode, SCHEMA_V3};
+use nonos_marketplace_abi::{SettleMode, SCHEMA_V4};
 
 use crate::bootstrap_trust::{is_trusted, DEV_OPERATOR, DEV_SEED};
 use crate::ingest::{load_verified, IngestError};
@@ -40,7 +40,7 @@ fn a_development_image_takes_its_own_catalogue() {
     assert!(v.signature_verified);
     assert!(v.publisher_signature_verified.iter().all(|&signed| signed));
     assert_eq!(v.publisher_signature_verified.len(), v.index.entries.len());
-    assert_eq!(v.index.schema_version, SCHEMA_V3);
+    assert_eq!(v.index.schema_version, SCHEMA_V4);
     let modes: Vec<_> = v.index.entries.iter().filter_map(|e| e.commerce.as_ref()).collect();
     assert_eq!(modes.len(), v.index.entries.len(), "schema 3: every listing has commerce");
     assert!(modes.iter().any(|c| c.settle_mode == SettleMode::Free));

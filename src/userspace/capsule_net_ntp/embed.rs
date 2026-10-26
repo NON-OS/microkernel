@@ -20,8 +20,7 @@
 //! baked trust anchor.
 
 #[cfg(feature = "nonos-capsule-net-ntp")]
-pub(super) const NET_NTP_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(super) const NET_NTP_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_net_ntp/target/",
     env!("NONOS_USER_TARGET"),
     "/release/net_ntp"
@@ -38,6 +37,16 @@ pub(super) const NET_NTP_MANIFEST_BYTES: &[u8] =
 #[cfg(feature = "nonos-capsule-net-ntp")]
 pub(super) const NET_NTP_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/net_ntp.zk_trailer.bin");
+
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-net-ntp")]
+const _: () = assert!(
+    !NET_NTP_ELF.is_empty()
+        && !NET_NTP_NONOS_ID_CERT_BYTES.is_empty()
+        && !NET_NTP_MANIFEST_BYTES.is_empty()
+        && !NET_NTP_ATTESTATION_BYTES.is_empty(),
+    "capsule_net_ntp built in with an empty image"
+);
 
 #[cfg(not(feature = "nonos-capsule-net-ntp"))]
 pub(super) const NET_NTP_ELF: &[u8] = &[];

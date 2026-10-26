@@ -33,6 +33,16 @@ pub(super) const DRIVER_VIRTIO_INPUT_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_VIRTIO_INPUT_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/driver_virtio_input.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-virtio-input")]
+const _: () = assert!(
+    !DRIVER_VIRTIO_INPUT_ELF.is_empty()
+        && !DRIVER_VIRTIO_INPUT_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_VIRTIO_INPUT_MANIFEST_BYTES.is_empty()
+        && !DRIVER_VIRTIO_INPUT_ATTESTATION_BYTES.is_empty(),
+    "virtio_input_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-virtio-input"))]
 pub(super) const DRIVER_VIRTIO_INPUT_ELF: &[u8] = &[];
 

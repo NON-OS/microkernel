@@ -31,6 +31,8 @@ pub mod apps_qwen25;
 pub mod apps_qwen3;
 #[path = "../../../capsule_linux/src/linux/install/apps_qwen35.rs"]
 pub mod apps_qwen35;
+#[path = "../../../capsule_linux/src/linux/install/apps_vl.rs"]
+pub mod apps_vl;
 #[path = "../../../capsule_model_fetch/src/exit.rs"]
 pub mod fetch_exit;
 #[path = "../../../capsule_linux/src/linux/install/model_dep.rs"]

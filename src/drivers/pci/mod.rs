@@ -54,10 +54,9 @@ pub use manager::{
 };
 #[cfg(target_arch = "x86_64")]
 pub use msi::{
-    configure_msi, configure_msi_multi, configure_msix, configure_msix_single,
     disable_legacy_interrupt, disable_msi, disable_msix, enable_legacy_interrupt, enable_msix,
     is_msi_enabled, is_msix_enabled, mask_all_msix, mask_msi_vector, mask_msix_vector,
-    unmask_all_msix, unmask_msi_vector, unmask_msix_vector, MsiController,
+    unmask_all_msix, unmask_msi_vector, unmask_msix_vector,
 };
 pub use security::is_dma_capable;
 pub use stats::PciStats;

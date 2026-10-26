@@ -41,9 +41,11 @@ pub(super) fn route_to_press(ctx: &mut Context, event: &InputEvent, x: u32, y: u
         routed.delta_y = 0;
     }
     if !ctx.subscriptions.allows(press.pid, routed.kind) {
+        crate::route::recent::note(ctx, press.pid, routed.kind, 0);
         return 0;
     }
     let delivered = deliver_one(press.pid, &routed);
+    crate::route::recent::note(ctx, press.pid, routed.kind, delivered);
     if delivered == 0 {
         ctx.forget_pid(press.pid);
     }

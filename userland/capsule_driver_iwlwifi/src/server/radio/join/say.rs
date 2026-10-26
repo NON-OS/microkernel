@@ -26,12 +26,20 @@ pub(super) fn say_join(p: &Progress, out: &Result<Joined, JoinEnd>) {
         Ok(_) => l.text(b"join: port open"),
         Err(JoinEnd::Refused(f)) => {
             let (code, ap) = crate::server::join_wire::failure_code(*f);
-            l.text(b"join: refused, code ").num(code.unsigned_abs()).text(b" status ").num(u32::from(ap))
+            l.text(b"join: refused, code ")
+                .num(code.unsigned_abs())
+                .text(b" status ")
+                .num(u32::from(ap))
         }
         Err(JoinEnd::TimedOut) => l.text(b"join: the access point stopped answering"),
         Err(JoinEnd::NotTheNetwork) => l.text(b"join: the beacon names no usable channel"),
-        Err(JoinEnd::Setup(e)) => l.text(b"join: a firmware context did not go up: ").text(setup_text(e)),
-        Err(JoinEnd::Firmware(Some(c))) => l.text(b"join: command ").hex(u32::from(c.group) << 8 | u32::from(c.cmd)).text(b" failed"),
+        Err(JoinEnd::Setup(e)) => {
+            l.text(b"join: a firmware context did not go up: ").text(setup_text(e))
+        }
+        Err(JoinEnd::Firmware(Some(c))) => l
+            .text(b"join: command ")
+            .hex(u32::from(c.group) << 8 | u32::from(c.cmd))
+            .text(b" failed"),
         Err(JoinEnd::Firmware(None)) => l.text(b"join: the firmware raised its error cause"),
         Err(JoinEnd::Keys(_)) => l.text(b"join: a key did not go into the firmware"),
     };
@@ -42,9 +50,12 @@ pub(super) fn setup_text(e: &crate::firmware::gen3::join::bss::SetupError) -> &'
     use crate::firmware::gen3::join::bss::SetupError;
     use crate::firmware::gen3::station::session::Session;
     match e {
-        SetupError::Command(c) if c.why == crate::firmware::gen3::dev::WaitError::FirmwareError => b"firmware error",
+        SetupError::Command(c) if c.why == crate::firmware::gen3::dev::WaitError::FirmwareError => {
+            b"firmware error"
+        }
         SetupError::Command(_) => b"a command went unanswered",
         SetupError::BadQueueReply => b"a malformed queue reply",
+        SetupError::BadQueue(_) => b"a queue number the device cannot have",
         SetupError::NoSession(Some(Session::Refused)) => b"session protection refused",
         SetupError::NoSession(_) => b"never on channel",
         SetupError::Region => b"the transmit region",

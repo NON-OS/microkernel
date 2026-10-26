@@ -60,8 +60,8 @@ impl State {
         let mut to = self.doc_byte(last, self.doc.blocks[last].text.len());
         if to < self.len {
             to += 1;
-        } else if from > 0 {
-            from -= 1;
+        } else {
+            from = from.saturating_sub(1);
         }
         if !self.apply_edit(from, to.saturating_sub(from), &[]) {
             return false;

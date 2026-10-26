@@ -35,11 +35,9 @@ pub(in crate::hardware::broker::dma) fn give_back(addr: u64, pages: usize) -> bo
         }
     };
     if !freed {
-        crate::sys::serial::print(
-            b"[DMA] pool refused a free of a run it did not hand out: pages=",
-        );
-        crate::sys::serial::print_dec(pages as u64);
-        crate::sys::serial::println(b"; frames kept");
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[DMA] pool refused a free of a run it did not hand out: pages=");
+        l.dec(pages as u64).str(b"; frames kept").end();
     }
     true
 }

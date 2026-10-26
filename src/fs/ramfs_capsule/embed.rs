@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-ramfs")]
-pub(super) const RAMFS_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(super) const RAMFS_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_ramfs/target/",
     env!("NONOS_USER_TARGET"),
     "/release/ramfs"
@@ -32,6 +31,16 @@ pub(super) const RAMFS_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/ram
 #[cfg(feature = "nonos-capsule-ramfs")]
 pub(super) const RAMFS_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/ramfs.zk_trailer.bin");
+
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-ramfs")]
+const _: () = assert!(
+    !RAMFS_ELF.is_empty()
+        && !RAMFS_NONOS_ID_CERT_BYTES.is_empty()
+        && !RAMFS_MANIFEST_BYTES.is_empty()
+        && !RAMFS_ATTESTATION_BYTES.is_empty(),
+    "ramfs_capsule built in with an empty image"
+);
 
 #[cfg(not(feature = "nonos-capsule-ramfs"))]
 pub(super) const RAMFS_ELF: &[u8] = &[];

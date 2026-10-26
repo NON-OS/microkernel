@@ -124,11 +124,19 @@
  {"name": "run-holds-apk", "file": "run.py", "old": "        if pins is not None:\n            lock.bytes_held(", "new": "        if False:\n            lock.bytes_held("},
  {"name": "lock-apk-compared", "file": "lock.py", "old": "if pins[n][\"B\"] != b]", "new": "if False]"},
  {"name": "lock-pins-apk", "file": "lock_file.py", "old": "PINNED = FIELDS + (\"B\",)", "new": "PINNED = FIELDS"},
+ {"name": "program-path-unchecked", "file": "recipes.py", "old": "    if \"program\" in item and not PROGRAM.fullmatch(item[\"program\"]):", "new": "    if False:"},
+ {"name": "program-by-bytes-ignored", "file": "apk.py", "old": "    if wanted:\n        return chosen_by_bytes(entries, name, wanted)\n", "new": ""},
+ {"name": "program-other-name-first", "file": "apk.py", "old": "    if device != want:", "new": "    if False:"},
+ {"name": "program-own-name-not-first", "file": "apk.py", "old": "    device = own if own in same else same[0]", "new": "    device = same[0]"},
+ {"name": "program-first-copy", "file": "apk.py", "old": "    last = {e.name: e.body for e in entries}", "new": "    last = {e.name: e.body for e in reversed(entries)}"},
  {"name": "logo-clear", "file": "recipes.py", "old": "if not allowed(root, item[\"package\"]):", "new": "if False:"},
  {"name": "logo-unclear-unruled", "file": "logos.py", "old": "(verdict.startswith(\"UNCLEAR\") and RULING in verdict)", "new": "verdict.startswith(\"UNCLEAR\")"},
  {"name": "logo-skip-source", "file": "logos.py", "old": "if n in pins and pins[n][\"G\"] != g]", "new": "if False]"},
  {"name": "logo-skip-raster", "file": "logos.py", "old": "if n in pins and pins[n][\"R\"] != r]", "new": "if False]"},
  {"name": "logo-less-bytes", "file": "logos.py", "old": "if at.exists():", "new": "if False:"},
  {"name": "logo-outside-tree", "file": "recipes.py", "old": "if not logo.is_relative_to(root.resolve()) or not logo.is_file():", "new": "if not logo.is_file():"},
- {"name": "lock-logo-hex", "file": "lock_file.py", "old": "len(pin[f]) in (0, 64) and HEX >= set(pin[f])", "new": "True"}
+ {"name": "lock-logo-hex", "file": "lock_file.py", "old": "len(pin[f]) in (0, 64) and HEX >= set(pin[f])", "new": "True"},
+ {"name": "union-drops-release", "file": "union.py", "old": "        release[\"entries\"].append(added)", "new": "        release[\"entries\"] = [x for x in release[\"entries\"] if x[\"listing_id\"] not in have] + [added]"},
+ {"name": "union-collision", "file": "union.py", "old": "if e[\"listing_id\"] in have:", "new": "if False:"},
+ {"name": "union-key", "file": "union.py", "old": "if added.get(\"publisher_pubkey\") == PLACEHOLDER:", "new": "if False:"}
 ]

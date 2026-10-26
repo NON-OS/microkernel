@@ -33,6 +33,16 @@ pub(super) const DRIVER_UHCI_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_UHCI_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/driver_uhci.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-uhci")]
+const _: () = assert!(
+    !DRIVER_UHCI_ELF.is_empty()
+        && !DRIVER_UHCI_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_UHCI_MANIFEST_BYTES.is_empty()
+        && !DRIVER_UHCI_ATTESTATION_BYTES.is_empty(),
+    "uhci_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-uhci"))]
 pub(super) const DRIVER_UHCI_ELF: &[u8] = &[];
 

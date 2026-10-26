@@ -61,7 +61,6 @@ fn run(device_id: u64, sleeper: Option<u32>, unoffered: &[u8]) {
             unoffered
         }
     };
-    crate::sys::serial::print(b"[BROKER] device ");
-    crate::sys::serial::print_hex(device_id);
-    crate::sys::serial::println(said);
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[BROKER] device ").hex(device_id).str(said).end();
 }

@@ -16,7 +16,7 @@
 
 use crate::settings::ui::status_bar::status_h;
 
-use super::state::State;
+use super::model::State;
 
 /// How tall the scrolling pane is. The status strip only appears when it has
 /// something to report, so a healthy panel gives the whole window to content.

@@ -33,6 +33,16 @@ pub(super) const DRIVER_USB_AUDIO_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_USB_AUDIO_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/driver_usb_audio.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-usb-audio")]
+const _: () = assert!(
+    !DRIVER_USB_AUDIO_ELF.is_empty()
+        && !DRIVER_USB_AUDIO_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_USB_AUDIO_MANIFEST_BYTES.is_empty()
+        && !DRIVER_USB_AUDIO_ATTESTATION_BYTES.is_empty(),
+    "usb_audio_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-usb-audio"))]
 pub(super) const DRIVER_USB_AUDIO_ELF: &[u8] = &[];
 

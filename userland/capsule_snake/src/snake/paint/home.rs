@@ -21,7 +21,7 @@ use crate::snake::input::hover::{self, Tag};
 use crate::snake::state::{Game, Phase};
 use crate::snake::theme::{MUTED, TITLE};
 use crate::snake::ui::button::{self, Style};
-use crate::snake::ui::home_geom::{action, wordmark, ACTIONS, LABELS};
+use crate::snake::ui::home_geom::{action, wordmark, LABELS};
 use crate::snake::ui::metrics::{PX_BODY, PX_WORDMARK, RADIUS_BTN};
 use crate::snake::ui::text;
 
@@ -32,10 +32,10 @@ const TAGLINE: &[u8] = b"Steer the line, take the light, stay alive";
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
     let (w, h) = (fb.width, fb.height);
     mark(fb, w, h);
-    for index in 0..ACTIONS {
+    for (index, &label) in LABELS.iter().enumerate() {
         let r = action(w, h, index);
         let lit = hover::is(Tag::HomeAction, index);
-        button::paint(fb, r, LABELS[index], style(game, index), lit);
+        button::paint(fb, r, label, style(game, index), lit);
         if index == 0 {
             glow::bloom(fb, r, RADIUS_BTN);
         }

@@ -33,6 +33,16 @@ pub(crate) const SETUP_WIZARD_MANIFEST_BYTES: &[u8] =
 pub(crate) const SETUP_WIZARD_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/setup_wizard.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-setup-wizard")]
+const _: () = assert!(
+    !SETUP_WIZARD_ELF.is_empty()
+        && !SETUP_WIZARD_NONOS_ID_CERT_BYTES.is_empty()
+        && !SETUP_WIZARD_MANIFEST_BYTES.is_empty()
+        && !SETUP_WIZARD_ATTESTATION_BYTES.is_empty(),
+    "capsule_setup_wizard built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-setup-wizard"))]
 pub(crate) const SETUP_WIZARD_ELF: &[u8] = &[];
 

@@ -29,8 +29,7 @@ use crate::topology::{self, Role};
 /// reaches a listener that will not speak this protocol.
 pub fn directory_gateway(index: usize) -> Option<Gateway> {
     let nodes = topology::snapshot().ok()?;
-    let mut seen = 0usize;
-    for node in nodes.iter().filter(|n| n.role == Role::EntryGateway) {
+    for (seen, node) in nodes.iter().filter(|n| n.role == Role::EntryGateway).enumerate() {
         if seen == index {
             return Some(Gateway {
                 ip: node.ip,
@@ -40,7 +39,6 @@ pub fn directory_gateway(index: usize) -> Option<Gateway> {
                 identity: node.identity,
             });
         }
-        seen += 1;
     }
     None
 }

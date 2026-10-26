@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-policy")]
-pub(crate) const POLICY_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(crate) const POLICY_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_policy/target/",
     env!("NONOS_USER_TARGET"),
     "/release/policy"
@@ -32,6 +31,16 @@ pub(crate) const POLICY_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/po
 #[cfg(feature = "nonos-capsule-policy")]
 pub(crate) const POLICY_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/policy.zk_trailer.bin");
+
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-policy")]
+const _: () = assert!(
+    !POLICY_ELF.is_empty()
+        && !POLICY_NONOS_ID_CERT_BYTES.is_empty()
+        && !POLICY_MANIFEST_BYTES.is_empty()
+        && !POLICY_ATTESTATION_BYTES.is_empty(),
+    "capsule_policy built in with an empty image"
+);
 
 #[cfg(not(feature = "nonos-capsule-policy"))]
 pub(crate) const POLICY_ELF: &[u8] = &[];

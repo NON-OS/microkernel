@@ -33,6 +33,8 @@ const FAIL_POINTER: &[u8] = b"[SYSCALL-PROOF] FAIL invalid-pointer\n";
 const FAIL_SIZE: &[u8] = b"[SYSCALL-PROOF] FAIL invalid-size\n";
 const FAIL_RETIRED: &[u8] = b"[SYSCALL-PROOF] FAIL retired-enosys\n";
 
+/// # Safety
+/// The kernel enters here once, on the capsule's own fresh stack.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     for _ in 0..1024 {

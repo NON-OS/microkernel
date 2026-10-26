@@ -39,33 +39,29 @@ pub(super) fn report_kernel_sections() {
             report_fault(&fault);
         }
     }
-    serial::print(b"[KSEC] ");
-    serial::print_dec((sections.len() - faults) as u64);
-    serial::print(b"/");
-    serial::print_dec(sections.len() as u64);
-    if faults == 0 {
-        serial::println(b" sections mapped as declared");
+    let mut l = serial::Line::new();
+    l.str(b"[KSEC] ").dec((sections.len() - faults) as u64).str(b"/").dec(sections.len() as u64);
+    l.str(if faults == 0 {
+        b" sections mapped as declared"
     } else {
-        serial::println(b" sections mapped as declared, WARNING W^X not held");
-    }
+        b" sections mapped as declared, WARNING W^X not held"
+    });
+    l.end();
 }
 
 fn report_fault(fault: &SectionFault) {
-    serial::print(b"[KSEC] fault at ");
-    serial::print_hex(fault.va);
+    let mut l = serial::Line::new();
+    l.str(b"[KSEC] fault at ").hex(fault.va);
     match fault.granted {
-        None => serial::print(b" no mapping, wanted"),
+        None => l.str(b" no mapping, wanted"),
         Some(granted) => {
-            serial::print(b" got");
-            flags(granted.writable, granted.executable);
-            serial::print(b" wanted");
+            flags(l.str(b" got"), granted.writable, granted.executable).str(b" wanted")
         }
-    }
-    flags(fault.want_writable, fault.want_executable);
-    serial::println(b"");
+    };
+    flags(&mut l, fault.want_writable, fault.want_executable).end();
 }
 
-fn flags(writable: bool, executable: bool) {
-    serial::print(if writable { b" w=1" } else { b" w=0" });
-    serial::print(if executable { b" x=1" } else { b" x=0" });
+fn flags(l: &mut serial::Line, writable: bool, executable: bool) -> &mut serial::Line {
+    l.str(if writable { b" w=1" } else { b" w=0" });
+    l.str(if executable { b" x=1" } else { b" x=0" })
 }

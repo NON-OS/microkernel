@@ -6,4 +6,4 @@ mod map;
 mod say;
 
 pub use load::{load, FwLoadError};
-pub(crate) use map::map_dma_with;
+pub(crate) use map::map_dma32;

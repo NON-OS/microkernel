@@ -28,3 +28,12 @@ pub(crate) const SHIELD_VECTORS_MANIFEST_BYTES: &[u8] =
 
 pub(crate) const SHIELD_VECTORS_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/shield_vectors.zk_trailer.bin");
+
+// A capsule built in with an empty file never compiles (B-02).
+const _: () = assert!(
+    !SHIELD_VECTORS_ELF.is_empty()
+        && !SHIELD_VECTORS_NONOS_ID_CERT_BYTES.is_empty()
+        && !SHIELD_VECTORS_MANIFEST_BYTES.is_empty()
+        && !SHIELD_VECTORS_ATTESTATION_BYTES.is_empty(),
+    "capsule_shield_vectors built in with an empty image"
+);

@@ -60,10 +60,9 @@ pub(crate) fn service() {
              */
             Ok(pid) => super::boot_frame::boot(pid),
             Err(e) => {
-                crate::sys::serial::print(b"[SPAWN-INSTANCE] rejected ");
-                crate::sys::serial::print(app.name());
-                crate::sys::serial::print(b" err=");
-                crate::sys::serial::println(spawn_error_name(e));
+                let mut l = crate::sys::serial::Line::new();
+                l.str(b"[SPAWN-INSTANCE] rejected ").str(app.name()).str(b" err=");
+                l.str(spawn_error_name(e)).end();
             }
         }
     }

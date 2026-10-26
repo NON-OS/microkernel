@@ -104,7 +104,7 @@ On each tick, `tick` charges the tick to the running process or to idle and spen
 - a kernel task waits in the real-time task queue, as `has_realtime_tasks` reports (`src/process/scheduler/preemption/tick.rs:57-59`);
 - the running process was killed from another CPU, which `is_dead` reports, checked only when the tick interrupted user mode (`src/process/scheduler/preemption/tick.rs:65-71`).
 
-The switch happens only when the tick interrupted user mode, preemption is not disabled on this CPU, and `need_reschedule` is set (`src/interrupts/timer/tick.rs:50-71`). Kernel code holds plain spin locks with interrupts open, and a switch inside one could hand the CPU to a task that spins on the same lock. Kernel code gives up the CPU by calling `yield_now` (`src/process/scheduler/preemption/yield_impl.rs:22-27`). A reschedule interrupt from another CPU only sets the flag; `reschedule` does not switch inside the handler (`src/smp/ipi_dispatch/handlers.rs:35-42`).
+The switch happens only when the tick interrupted user mode, preemption is not disabled on this CPU, and `need_reschedule` is set (`src/interrupts/timer/tick.rs:50-71`). Kernel code holds plain spin locks with interrupts open, and a switch inside one could hand the CPU to a task that spins on the same lock. Kernel code gives up the CPU by calling `yield_now` (`src/process/scheduler/preemption/yield_impl.rs:22-27`). A reschedule interrupt from another CPU only sets the flag; `reschedule` does not switch inside the handler (`src/arch/interrupt_controller/ipi_dispatch/handlers.rs:35-42`).
 
 ## Sleep and wake
 

@@ -30,4 +30,4 @@ pub use address::set_address;
 pub use burst::set_dma_burst;
 pub use run::run_mac_table;
 pub use tables::MAC_INIT;
-pub use trx::{init_trx_cfg, quiesce, reset_trx_dma};
+pub use trx::{init_trx_cfg, quiesce, reset_trx_dma, RSVD_BOUNDARY};

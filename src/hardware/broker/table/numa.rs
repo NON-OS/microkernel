@@ -18,7 +18,6 @@
 
 use super::state::TABLE;
 
-#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
 pub(in crate::hardware::broker) fn set_numa_nodes(nodes: &[(u64, u8)]) {
     let mut table = TABLE.write();
     for r in table.iter_mut() {

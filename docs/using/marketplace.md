@@ -6,7 +6,7 @@ What the Marketplace and the Terminal's `market` command can install on NONOS, h
 
 | Tab | What it lists | In 0.9.2 |
 |---|---|---|
-| `Models` | The Qwen tiers | 19 tiers. Installing one puts its model files on the [data volume](../overview/glossary-claim-epoch.md#data-volume); the chat program is part of the image. See [Local AI](local-ai.md). |
+| `Models` | The Qwen tiers | 20 tiers. Installing one puts its model files on the [data volume](../overview/glossary-claim-epoch.md#data-volume); the chat program is part of the image. See [Local AI](local-ai.md). |
 | `Linux` | Alpine packages a build lists | None. The shipped list is empty, so the tab says `this build lists no Linux packages`. |
 | `NONOS` | NONOS apps | None. NONOS apps ship in the image, so the catalogue lists none and the tab says `this catalogue lists no NONOS apps`. A NONOS app from elsewhere comes as a package file; see [Install a package file](#install-a-package-file). |
 | `Community` | Apps from other publishers | None yet: `this catalogue lists no community apps yet`. |
@@ -207,7 +207,7 @@ The desktop's list also has `not found`, for an answer that no install gives in 
 The code behind each section, at the commit in the footer.
 
 - What you can install
-  - The 19 tiers: `userland/capsule_market/linux-guests.json`, and the empty Linux list: `userland/capsule_market/linux-packages.txt`.
+  - The 20 tiers: `userland/capsule_market/linux-guests.json`, and the empty Linux list: `userland/capsule_market/linux-packages.txt`.
   - The tabs: `TABS` in `userland/capsule_app_store/src/store/tab.rs:33`, and the empty-tab lines: `empty` in `userland/capsule_app_store/src/store/tab.rs:52-61`.
   - Only listings under `linux.` install: `ask` in `userland/capsule_app_store/src/store/install.rs:81-97`.
   - The signed catalogue in the build: `signedInputs` in `tools/nix/capsules.nix`, and a seal that leaves it as it is: `seal` in `tools/nonos_seal/market.py`.

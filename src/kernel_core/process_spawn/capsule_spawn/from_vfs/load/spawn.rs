@@ -42,7 +42,7 @@ pub(crate) fn load_capsule_from_vfs(
     super::names::check(service_name, reply_name, manifest.namespace_str())?;
     let requested = super::asked::within_manifest(&manifest, requested_caps, service_name)?;
     super::bound::check(&manifest, requested, on_behalf_of, service_name)?;
-
+    super::empty::refused(&artifacts.elf, service_name)?;
     /*
      * Borrowed from artifacts, which this function owns and drops on the way
      * out, on every path. It used to leak all four blobs into the kernel heap

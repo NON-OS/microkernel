@@ -47,6 +47,9 @@ const DRIVER: &[u8] = b"driver.intel_display";
 /// over on the shared bounded schedule, and running out is `EXIT_GAVE_UP`,
 /// with the display as firmware left it. Once up, the driver serves the
 /// display wire as `driver.intel_display0` until it is stopped.
+///
+/// # Safety
+/// The kernel enters here once, on the capsule's own fresh stack.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {

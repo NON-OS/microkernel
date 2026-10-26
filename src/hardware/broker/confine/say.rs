@@ -19,6 +19,6 @@
 //! in photos and bug reports.
 
 pub(super) fn say(what: &[u8]) {
-    crate::sys::serial::print(b"[VT-D] ");
-    crate::sys::serial::println(what);
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[VT-D] ").str(what).end();
 }

@@ -1,0 +1,149 @@
+[
+  {
+    "name": "recency-counts-the-shells-own-ask",
+    "file": "userland/capsule_input_router/src/route/grab_rule.rs",
+    "old": "(sender == shell && last == shell)",
+    "new": "(sender == shell && sender == shell)",
+    "crate": "userland/input_proofs",
+    "test": "grab_",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "recency-for-any-sender",
+    "file": "userland/capsule_input_router/src/route/grab_rule.rs",
+    "old": "(sender == shell && last == shell)",
+    "new": "(last == shell)",
+    "crate": "userland/input_proofs",
+    "test": "grab_",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "no-recency",
+    "file": "userland/capsule_input_router/src/route/grab_rule.rs",
+    "old": "        Some(pid) => sender == pid || (sender == shell && last == shell),",
+    "new": "        Some(pid) => sender == pid,",
+    "crate": "userland/input_proofs",
+    "test": "grab_",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "survives-a-later-window-key",
+    "file": "userland/capsule_input_router/src/route/key_deliver.rs",
+    "old": "    let delivered = deliver_one(pid, event);\n    super::recent::note(ctx, pid, event.kind, delivered);\n",
+    "new": "    let delivered = deliver_one(pid, event);\n",
+    "crate": "userland/input_proofs",
+    "test": "grab_",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "survives-a-later-window-press",
+    "file": "userland/capsule_input_router/src/route/pointer/route_to_window.rs",
+    "old": "    let delivered = deliver_one(target.owner_pid, &routed);\n    crate::route::recent::note(ctx, target.owner_pid, routed.kind, delivered);\n",
+    "new": "    let delivered = deliver_one(target.owner_pid, &routed);\n",
+    "crate": "userland/input_proofs",
+    "test": "grab_",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "shell-press-unrecorded",
+    "file": "userland/capsule_input_router/src/route/pointer/route_to_shell.rs",
+    "old": "    crate::route::recent::note(ctx, pid, routed.kind, delivered);\n",
+    "new": "",
+    "crate": "userland/input_proofs",
+    "test": "grab_",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "held-input-unrecorded",
+    "file": "userland/capsule_input_router/src/route/held.rs",
+    "old": "    super::recent::note(ctx, holder, ev.kind, n);\n",
+    "new": "",
+    "crate": "userland/input_proofs",
+    "test": "grab_",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "press-route-unrecorded",
+    "file": "userland/capsule_input_router/src/route/pointer/route_to_press.rs",
+    "old": "    let delivered = deliver_one(press.pid, &routed);\n    crate::route::recent::note(ctx, press.pid, routed.kind, delivered);\n",
+    "new": "    let delivered = deliver_one(press.pid, &routed);\n",
+    "crate": "userland/input_proofs",
+    "test": "grab_",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "lost-press-counts",
+    "file": "userland/capsule_input_router/src/route/recent.rs",
+    "old": "    if delivered != 0 {\n        pid\n    } else {\n        0\n    }",
+    "new": "    pid",
+    "crate": "userland/input_proofs",
+    "test": "grab_",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "motion-counts",
+    "file": "userland/capsule_input_router/src/route/recent.rs",
+    "old": "    if !is_press(kind) {\n        return last;\n    }\n",
+    "new": "",
+    "crate": "userland/input_proofs",
+    "test": "grab_",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "pad-button-not-a-press",
+    "file": "userland/capsule_input_router/src/route/recent.rs",
+    "old": " | INPUT_KIND_TOUCH | PAD_BUTTON_DOWN)",
+    "new": " | INPUT_KIND_TOUCH)",
+    "crate": "userland/input_proofs",
+    "test": "grab_",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "focus-never-moves",
+    "file": "userland/capsule_desktop_shell/src/state/ctx/switch/order.rs",
+    "old": "        self.recent.first() != Some(&w)",
+    "new": "        false",
+    "crate": "userland/desktop_proofs",
+    "test": "focus_",
+    "args": [
+      "--release",
+      "--test",
+      "menu_focus"
+    ]
+  },
+  {
+    "name": "focus-always-moves",
+    "file": "userland/capsule_desktop_shell/src/state/ctx/switch/order.rs",
+    "old": "        self.recent.first() != Some(&w)",
+    "new": "        true",
+    "crate": "userland/desktop_proofs",
+    "test": "focus_",
+    "args": [
+      "--release",
+      "--test",
+      "menu_focus"
+    ]
+  }
+]

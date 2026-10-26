@@ -2086,7 +2086,7 @@ unset dma_limits dma_validate dma_errno_map dma_types
 # refuses, so a wide id is never truncated to the wrong CPU (a plain
 # `as u8` would send 0x104 to CPU 4). Both the MSI and MSI-X route
 # paths take the destination from `dest_apic_id()?`.
-msi_msg='src/drivers/pci/types/msi.rs'
+msi_msg='src/drivers/pci/types/msi_message.rs'
 msi_dest='src/hardware/broker/irq/bind/message.rs'
 msix_real='src/hardware/broker/irq/msix_ops/real.rs'
 msi_route='src/hardware/broker/irq/bind/msi_route.rs'
@@ -5279,6 +5279,43 @@ else
 fi
 unset enrol_out
 
+# A capsule built into the kernel with an empty ELF, cert, manifest or trailer
+# must not compile: each embedding module asserts its consts are not empty, and
+# a spawn reads an empty embedded image as "not built" (B-02). The self-test
+# first, so a scan that stopped seeing embeds cannot pass by finding none.
+if embed_out="$(python3 scripts/check_embed_asserts.py --self-test 2>&1 \
+    && python3 scripts/check_embed_asserts.py 2>&1)"; then
+    note ok "every embedded capsule refuses to compile with an empty file (check_embed_asserts)"
+else
+    tail -n 5 <<< "${embed_out}" >&2
+    fail_with "check_embed_asserts: an embedded capsule lacks its empty-image assert"
+fi
+unset embed_out
+
+# nonos-mk-esp names the kernel it packs and warns when it is the bare
+# microkernel-core, which starts no capsules (B-02).
+if esp_out="$(python3 scripts/check_esp_profile.py --self-test 2>&1 \
+    && python3 scripts/check_esp_profile.py 2>&1)"; then
+    note ok "nonos-mk-esp names the kernel it packs and warns on a core kernel (check_esp_profile)"
+else
+    tail -n 5 <<< "${esp_out}" >&2
+    fail_with "check_esp_profile: nonos-mk-esp lost its kernel record or its warning"
+fi
+unset esp_out
+# The documented desktop path packs the desktop: under -j the default kernel
+# rule waits for a profile build on the command line and keeps its ELF, and
+# the committed image ceiling admits every capsule's own ceiling (B-02).
+if kgoal_out="$(python3 scripts/check_kernel_goals.py --self-test 2>&1 \
+    && python3 scripts/check_kernel_goals.py 2>&1 \
+    && python3 scripts/check_image_ceiling.py --self-test 2>&1 \
+    && python3 scripts/check_image_ceiling.py 2>&1)"; then
+    note ok "a profile build beside nonos-mk-esp is what gets packed, and the ceiling admits it (check_kernel_goals, check_image_ceiling)"
+else
+    tail -n 6 <<< "${kgoal_out}" >&2
+    fail_with "check_kernel_goals/check_image_ceiling: the make path can pack the wrong kernel or refuse its capsules"
+fi
+unset kgoal_out
+
 # The GPU pages in docs/hardware say what each GPU gets today; the check holds
 # them to the code they describe. The self-test first, so a check that stopped
 # reading the pages cannot pass by finding nothing.
@@ -5348,6 +5385,28 @@ else
     fail_with "ap start: a failed AP start is discarded without its reason"
 fi
 unset aps_out
+# Which architectures are ACPI platforms, and which bind MSI, is said once, by
+# acpi_only! and msi_only! in src/arch/acpi_capsule/gate.rs; modules that exist
+# only there are declared inside, and nothing but mod and use (rustfmt skips them).
+if gates_out="$(python3 scripts/check_platform_gates.py --self-test 2>&1 \
+    && python3 scripts/check_platform_gates.py 2>&1)"; then
+    note ok "the platform gates name their arches alone and hold only mod and use (check_platform_gates)"
+else
+    tail -n 5 <<< "${gates_out}" >&2
+    fail_with "platform gates: a gate names another arch, or holds code"
+fi
+unset gates_out
+# An x86_64 kernel without nonos-arch-iommu is not one: the platform init
+# reaches the IOMMU unconditionally. arch-x86_64 implies it, every kernel feature
+# set resolves to it, and src/arch/x86_64 refuses to compile without it.
+if xio_out="$(python3 scripts/check_x86_iommu_feature.py --self-test 2>&1 \
+    && python3 scripts/check_x86_iommu_feature.py 2>&1)"; then
+    note ok "no x86_64 kernel feature set lacks nonos-arch-iommu (check_x86_iommu_feature)"
+else
+    tail -n 5 <<< "${xio_out}" >&2
+    fail_with "x86_64 iommu feature: a kernel feature set can leave nonos-arch-iommu out"
+fi
+unset xio_out
 # The pre-push check every unit runs (tools/nonos-unit-check): rustfmt, the
 # 75-line rule, no new #[allow], no key material. Its self-test makes each
 # finding in a scratch repository and proves a clean unit passes.
@@ -5389,6 +5448,38 @@ else
     fail_with "check_ipc_diag_no_pid: an ipc.call diag line can format a pid"
 fi
 unset ipcpid_out
+# Guests.mk's scratch publisher pairs are minted under target/, never .keys/,
+# which holds the operator's own keys (B-03).
+if gkeys_out="$(python3 scripts/check_guest_keys.py --self-test 2>&1 \
+    && python3 scripts/check_guest_keys.py 2>&1)"; then
+    note ok "Linux guests' scratch keys are minted under target/ (check_guest_keys)"
+else
+    tail -n 6 <<< "${gkeys_out}" >&2
+    fail_with "check_guest_keys: Guests.mk mints or signs from outside target/"
+fi
+unset gkeys_out
+# The test guests' box names only services the Linux policy build takes; a
+# reserved one stopped every guest image from building (B-03).
+if gbox_out="$(python3 scripts/check_guest_box.py --self-test 2>&1 \
+    && python3 scripts/check_guest_box.py 2>&1)"; then
+    note ok "the Linux guests' box names only services the policy build takes (check_guest_box)"
+else
+    tail -n 6 <<< "${gbox_out}" >&2
+    fail_with "check_guest_box: GuestPolicies.mk names a service the policy build refuses"
+fi
+unset gbox_out
+# No kernel serial line is written in pieces: on more than one CPU another
+# CPU's line lands between them. A line is a Line, a whole literal, or a
+# process's own bytes. The self-test first, so a scan that stopped seeing
+# pieces cannot pass by finding none.
+if whole_out="$(python3 scripts/check_serial_whole_lines.py --self-test 2>&1 \
+    && python3 scripts/check_serial_whole_lines.py 2>&1)"; then
+    note ok "no kernel serial line is written in pieces (check_serial_whole_lines)"
+else
+    tail -n 5 <<< "${whole_out}" >&2
+    fail_with "check_serial_whole_lines: a kernel serial line is written in pieces"
+fi
+unset whole_out
 # A release takes the capsules as make declares them, never the development
 # set (capsules-dev): the lines that choose it are pinned, and a release seal
 # handed it refuses by what was built, not by the flag. The self-tests first,
@@ -5437,17 +5528,48 @@ else
 fi
 unset gauntlet_out
 # The market catalogue tool (tools/nonos_market_catalogue): the listings it
-# writes, the lock it seals against, its hostile-input refusals and the
-# mutants each refusal must catch. It ran in no lane once, and two failures
-# sat unseen; now a failure stops the checks.
+# writes, the lock it seals against and its hostile-input refusals. It ran in
+# no lane once, and two failures sat unseen; now a failure stops the checks.
 if catalogue_out="$(python3 -m unittest discover -s tools/nonos_market_catalogue -t tools \
-    -p 'test_*.py' 2>&1)"; then
+    -p 'test_[!m]*.py' 2>&1)"; then
     note ok "the market catalogue tool's suite passes (nonos_market_catalogue)"
 else
     tail -n 8 <<< "${catalogue_out}" >&2
     fail_with "nonos_market_catalogue: its suite fails"
 fi
 unset catalogue_out
+
+# Its mutants, each a refusal removed that the suite must then catch: the
+# suite once a mutant, so its own block, as market-catalogue-mutants is its
+# own lane in checks.nix.
+if mutants_out="$(python3 -m unittest discover -s tools/nonos_market_catalogue -t tools \
+    -p 'test_mutants.py' 2>&1)"; then
+    note ok "every catalogue mutant is caught by its suite (nonos_market_catalogue mutants)"
+else
+    tail -n 8 <<< "${mutants_out}" >&2
+    fail_with "nonos_market_catalogue: a mutant survives its suite"
+fi
+unset mutants_out
+
+# The other tools' suites, as static-hygiene runs them, and the guard that no
+# tools/ test file runs in no lane (check_tool_suites, its self-test first).
+for suite in nonos_data_plan nonos_linux_pack nonos_qemu nonos_qwen_tier nonos_zero_state; do
+    if suite_out="$(python3 -m unittest discover -s "tools/${suite}" -t tools -p 'test_*.py' 2>&1)"; then
+        note ok "tools/${suite}: its suite passes"
+    else
+        tail -n 8 <<< "${suite_out}" >&2
+        fail_with "tools/${suite}: its suite fails"
+    fi
+done
+unset suite suite_out
+if suites_out="$(python3 scripts/check_tool_suites.py --self-test 2>&1 \
+    && python3 scripts/check_tool_suites.py 2>&1)"; then
+    note ok "every tools/ test file runs in a lane (check_tool_suites)"
+else
+    tail -n 8 <<< "${suites_out}" >&2
+    fail_with "check_tool_suites: a tools/ test file runs in no lane"
+fi
+unset suites_out
 
 # A drive whose `until` step times out leaves every CPU's registers and the
 # code at each one's PC behind, read from that CPU (tools/nonos_drive).
@@ -5458,6 +5580,17 @@ else
     fail_with "nonos_drive: a timed-out step can leave no machine state behind"
 fi
 unset drive_out
+
+# A drive's type: step sends every printable character as the keys that type
+# it, and refuses one with no key instead of dropping it; each rule's mutant
+# fails the keys suite (tools/nonos_drive/mutants.json).
+if keys_out="$( (cd tools && python3 -m unittest -q nonos_drive.test_keys nonos_drive.test_mutants) 2>&1)"; then
+    note ok "a typed line reaches the guest whole, or the drive stops (nonos_drive)"
+else
+    tail -n 8 <<< "${keys_out}" >&2
+    fail_with "nonos_drive: a typed character can be dropped without a word"
+fi
+unset keys_out
 
 # Every way off the machine is listed: a capsule that gains Network, or an
 # address, host or build-time endpoint new to a networked capsule's source,
@@ -5496,6 +5629,18 @@ else
     fail_with "check_devnet_feature: a release profile or capsule can turn the local test chain on"
 fi
 unset devnet_out
+
+# Only the broker turns an MSI or MSI-X message on, through interrupt
+# remapping; the compat builders that wrote one straight to the local APIC are
+# gone. The self-test first, so a check that stopped seeing a mutant cannot pass.
+if msib_out="$(python3 scripts/check_msi_builders.py --self-test 2>&1 \
+    && python3 scripts/check_msi_builders.py 2>&1)"; then
+    note ok "no compat MSI builder in src/drivers/pci: only the broker turns a message on (check_msi_builders)"
+else
+    tail -n 6 <<< "${msib_out}" >&2
+    fail_with "check_msi_builders: a builder that writes an unremapped MSI message is back"
+fi
+unset msib_out
 
 if [ "${fail}" -ne 0 ]; then
     echo

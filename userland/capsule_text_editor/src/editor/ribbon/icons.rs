@@ -50,7 +50,7 @@ fn bar(kind: usize, row: u32, ix: u32) -> (u32, u32) {
     if kind >= 3 {
         return (ix + 5, ICON_W - 5);
     }
-    let bw = if row % 2 == 0 { ICON_W } else { ICON_W * 2 / 3 };
+    let bw = if row.is_multiple_of(2) { ICON_W } else { ICON_W * 2 / 3 };
     match kind {
         1 => (ix + (ICON_W - bw) / 2, bw),
         2 => (ix + (ICON_W - bw), bw),

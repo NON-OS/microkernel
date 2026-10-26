@@ -25,4 +25,6 @@ mod lookup;
 mod seq;
 mod table;
 
-pub use table::{Manager, MAX_CONNS};
+pub use table::Manager;
+#[cfg(test)]
+pub use table::MAX_CONNS;

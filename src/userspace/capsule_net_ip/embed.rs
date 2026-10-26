@@ -20,8 +20,7 @@
 //! shape as the `net.l2` embed.
 
 #[cfg(feature = "nonos-capsule-net-ip")]
-pub(super) const NET_IP_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(super) const NET_IP_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_net_ip/target/",
     env!("NONOS_USER_TARGET"),
     "/release/net_ip"
@@ -37,6 +36,16 @@ pub(super) const NET_IP_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/ne
 #[cfg(feature = "nonos-capsule-net-ip")]
 pub(super) const NET_IP_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/net_ip.zk_trailer.bin");
+
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-net-ip")]
+const _: () = assert!(
+    !NET_IP_ELF.is_empty()
+        && !NET_IP_NONOS_ID_CERT_BYTES.is_empty()
+        && !NET_IP_MANIFEST_BYTES.is_empty()
+        && !NET_IP_ATTESTATION_BYTES.is_empty(),
+    "capsule_net_ip built in with an empty image"
+);
 
 #[cfg(not(feature = "nonos-capsule-net-ip"))]
 pub(super) const NET_IP_ELF: &[u8] = &[];

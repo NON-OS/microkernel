@@ -5,7 +5,7 @@ use nonos_wifi_core::netif::LinkPort;
 use nonos_wifi_core::rsn::JoinPolicy;
 
 use super::drive::run_join;
-use super::rig::{FLUSH, JOIN_COMMANDS, KEY, LINK, MAC, PHY, QUEUE, STA_RM};
+use super::rig::{FLUSH, JOIN_COMMANDS, KEY, LINK, MAC, PHY, POWER, QUEUE, STA_RM};
 use crate::gen3::join::bss::Stage;
 use crate::gen3::join::link::Port;
 use crate::gen3::join::run::leave;
@@ -26,7 +26,7 @@ fn leaving_tells_the_access_point_removes_the_keys_and_takes_everything_down() {
         let deauth = ap.heard.iter().find(|f| f[0] == 0xC0).unwrap();
         assert_eq!(deauth[1] & 0x40 != 0, protected, "protected under the pairwise key with MFP");
         let tail = r.commands()[JOIN_COMMANDS.len()..].to_vec();
-        assert_eq!(tail, vec![KEY, KEY, MAC, FLUSH, QUEUE, QUEUE, STA_RM, LINK, PHY]);
+        assert_eq!(tail, vec![KEY, KEY, MAC, POWER, FLUSH, QUEUE, QUEUE, STA_RM, LINK, PHY]);
         let keys = r.command_payloads(0x5, 0x18);
         assert_eq!((keys[2][0], keys[2][8]), (3, 1), "the group key removed");
         assert_eq!((keys[3][0], keys[3][8]), (3, 0), "then the pairwise key");

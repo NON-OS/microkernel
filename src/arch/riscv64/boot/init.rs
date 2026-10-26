@@ -29,6 +29,9 @@ pub fn init(boot_info: &BootInfo) {
     if timer::init_timer().is_err() {
         stop(b"[NONOS] riscv64: the timer did not start; stopping");
     }
+    // Once the timebase is latched, as aarch64's start_clock does: elapsed
+    // time is measured from here, at the device tree's rate.
+    crate::time::anchor();
     if boot_info.hart_count > 1 {
         super::multicore::start_secondary_harts(boot_info);
     }

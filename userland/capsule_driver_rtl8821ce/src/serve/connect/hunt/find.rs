@@ -5,8 +5,10 @@
 use nonos_wifi_core::bss::Candidates;
 use nonos_wifi_core::dot11::parse::parse_beacon;
 use nonos_wifi_core::regdom::join_channel;
+use nonos_wifi_core::scan_list::signal_percent;
 
 use super::super::super::{SCAN_CHANNELS, SCAN_FRAME_MAX};
+use super::super::pace::nap;
 use super::super::probe::hunt_probe;
 use super::dwell::{BEACON_HUNT_DWELL_MS, HUNT_SWEEPS};
 use crate::fw::dma::Grant;
@@ -23,8 +25,8 @@ use crate::regs::Regs;
  * Returns the number of beacons of ANY network heard: zero means the radio
  * heard nothing on any channel (a receive-path or tuning problem), non-zero
  * means beacons arrive but the target's was not among them.
- * The chip gives no signal here yet, so candidates rank by security, then by
- * how often each was heard.
+ * Candidates rank by security, then by the signal the card measured on the
+ * frame (none, as zero), then by how often each was heard.
  */
 pub(in super::super) fn find_candidates(
     link: &mut RtlLink<Regs, Grant, Grant>,
@@ -47,7 +49,8 @@ pub(in super::super) fn find_candidates(
         }
         let leave_at = nonos_libc::mk_uptime_ms() + BEACON_HUNT_DWELL_MS;
         while nonos_libc::mk_uptime_ms() < leave_at {
-            let Some(n) = link.poll_raw(&mut frame) else {
+            let Some((n, dbm)) = link.poll_heard(&mut frame) else {
+                nap();
                 continue;
             };
             let Some(info) = parse_beacon(&frame[..n]) else {
@@ -58,7 +61,7 @@ pub(in super::super) fn find_candidates(
             // was heard on; else where it was heard. None: not one the
             // world domain allows, so not joined.
             if let Some(channel) = join_channel(ch, info.channel) {
-                found.hear(&frame[..n], channel, 0);
+                found.hear(&frame[..n], channel, dbm.map_or(0, signal_percent));
             }
         }
     }

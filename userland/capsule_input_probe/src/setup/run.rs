@@ -6,6 +6,7 @@ use nonos_libc::{
 
 use crate::clients::compositor;
 use crate::clients::display_info;
+use crate::clients::placement::Placement;
 use crate::state::Context;
 
 const PROT_READ_WRITE: i32 = 0x3;
@@ -49,16 +50,8 @@ pub fn run() -> Result<Context, &'static str> {
         return Err("surface share rejected");
     }
     fill::fill(backing_va, width, height, stride, FILL_ARGB);
-    let submit = compositor::push_scene_submit(
-        compositor_port,
-        1,
-        handle as u64,
-        0,
-        0,
-        width,
-        height,
-        OVERLAY_Z,
-    );
+    let at = Placement { x: 0, y: 0, width, height, z: OVERLAY_Z };
+    let submit = compositor::push_scene_submit(compositor_port, 1, handle as u64, &at);
     if submit.is_err() {
         let _ = mk_surface_release(handle as u64);
         return Err("compositor scene submit failed");

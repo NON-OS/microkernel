@@ -1,0 +1,4 @@
+[
+ {"name": "vision-margin-384", "file": "userland/capsule_model_fetch/src/need/shapes.rs", "old": "pub const VISION_MARGIN: u64 = 512 << 20;", "new": "pub const VISION_MARGIN: u64 = 384 << 20;", "crate": "userland/model_fetch_proofs", "test": "vl_2b_needs_at_least_its_booted_peak"},
+ {"name": "vision-margin-dropped", "file": "userland/capsule_model_fetch/src/need.rs", "old": " + shapes::vision(tier))", "new": ")", "crate": "userland/model_fetch_proofs", "test": "vl_2b_needs_at_least_its_booted_peak"}
+]

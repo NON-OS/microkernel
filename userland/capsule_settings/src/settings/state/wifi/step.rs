@@ -18,7 +18,7 @@
 
 use nonos_libc::{mk_time_millis, Look};
 
-use super::super::state::State;
+use super::super::model::State;
 use super::apply::apply;
 use super::join::join_now;
 use super::pass::clear_passphrase;

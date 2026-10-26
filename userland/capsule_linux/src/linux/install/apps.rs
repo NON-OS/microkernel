@@ -23,10 +23,9 @@
  * split names. The tables sit beside this file, one a family.
  */
 
-use super::apps_coder::CODER;
-use super::apps_qwen25::QWEN25;
-use super::apps_qwen3::QWEN3;
-use super::apps_qwen35::QWEN35;
+use super::{
+    apps_coder::CODER, apps_qwen25::QWEN25, apps_qwen3::QWEN3, apps_qwen35::QWEN35, apps_vl::VL,
+};
 
 pub struct App {
     pub name: &'static str,
@@ -102,7 +101,7 @@ macro_rules! tier {
 pub(super) use tier;
 
 /* Every table, smallest family first. */
-pub const FAMILIES: &[&[App]] = &[QWEN25, QWEN3, QWEN35, CODER];
+pub const FAMILIES: &[&[App]] = &[QWEN25, QWEN3, QWEN35, VL, CODER];
 
 /* Every shipped tier, family by family. */
 pub fn all() -> impl Iterator<Item = &'static App> {

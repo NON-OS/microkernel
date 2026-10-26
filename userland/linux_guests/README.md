@@ -12,8 +12,8 @@ personality answers otherwise. The handbook pages are
 
 Only for test images. `mk/20-build.mk` includes `Guests.mk` when `NONOS_LINUX_GUESTS=1`, and
 `Guests.mk` stops with an error unless `NONOS_DEV=1`, because it mints a scratch publisher
-pair for each guest on first use (`guest_<name>_publisher` under `.keys/`, the public halves
-under `nonos-data/trust/keys/`). No CI workflow and no flake derivation builds this directory.
+pair for each guest on first use (`guest_<name>_publisher`, seed and public half together
+under `target/linux-guest-keys/`, never `.keys/`; `scripts/check_guest_keys.py` holds it). No CI workflow and no flake derivation builds this directory.
 The guest image drops the demo and media store entries, and `Userland.mk` empties the bundled
 userland's store lists, so the guests fit the store the vfs loads.
 

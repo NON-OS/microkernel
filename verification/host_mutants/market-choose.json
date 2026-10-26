@@ -1,0 +1,8 @@
+[
+ {"name": "choose-any-bytes", "file": "userland/capsule_linux/src/linux/install/market/choose.rs", "old": "b.starts_with(ELF) && hash(b) == *want", "new": "b.starts_with(ELF)", "crate": "userland/capsule_linux_proofs", "test": "choose"},
+ {"name": "choose-first-copy", "file": "userland/capsule_linux/src/linux/install/market/choose.rs", "old": "files.iter().rev().find(|(m, _)| *m == n)", "new": "files.iter().find(|(m, _)| *m == n)", "crate": "userland/capsule_linux_proofs", "test": "choose"},
+ {"name": "choose-own-not-first", "file": "userland/capsule_linux/src/linux/install/market/choose.rs", "old": "files.iter().find(|(n, _)| own(n) && named(n))", "new": "files.iter().find(|(n, _)| false && named(n))", "crate": "userland/capsule_linux_proofs", "test": "choose"},
+ {"name": "choose-not-elf", "file": "userland/capsule_linux/src/linux/install/market/choose.rs", "old": "b.starts_with(ELF) && hash(b) == *want", "new": "hash(b) == *want", "crate": "userland/capsule_linux_proofs", "test": "choose"},
+ {"name": "choose-outside-bin", "file": "userland/capsule_linux/src/linux/install/market/choose.rs", "old": "        n.starts_with(BIN) && last(n)", "new": "        last(n)", "crate": "userland/capsule_linux_proofs", "test": "choose"},
+ {"name": "choose-policy-ignored", "file": "userland/capsule_linux/src/linux/install/market/choose.rs", "old": "    let Some(want) = want else {", "new": "    let Some(want) = None::<&[u8; 32]> else {", "crate": "userland/capsule_linux_proofs", "test": "choose"}
+]

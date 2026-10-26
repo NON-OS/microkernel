@@ -47,7 +47,10 @@ pub fn enter(state: &mut State, line: &[u8]) -> bool {
     }
     let tier = ask.tier();
     say_note(state);
-    if let Some(work) = super::start::spawn(state, tier, ask.question) {
+    let Some((question, image)) = super::image_read::take(state, tier, ask.question) else {
+        return true;
+    };
+    if let Some(work) = super::start::spawn(state, tier, question, &image) {
         let _ = submit(state, &recorded, false, work);
         state.fg_running = true;
         state.fg_started_ms = mk_time_millis();

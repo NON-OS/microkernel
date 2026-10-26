@@ -45,6 +45,7 @@ pub mod key;
 pub mod link;
 pub mod mac;
 pub mod phy;
+pub mod power;
 pub mod queue;
 pub mod rates;
 pub mod session;

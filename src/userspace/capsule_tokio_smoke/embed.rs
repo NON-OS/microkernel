@@ -33,6 +33,16 @@ pub(crate) const TOKIO_SMOKE_MANIFEST_BYTES: &[u8] =
 pub(crate) const TOKIO_SMOKE_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/tokio-smoke.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-tokio-smoke")]
+const _: () = assert!(
+    !TOKIO_SMOKE_ELF.is_empty()
+        && !TOKIO_SMOKE_NONOS_ID_CERT_BYTES.is_empty()
+        && !TOKIO_SMOKE_MANIFEST_BYTES.is_empty()
+        && !TOKIO_SMOKE_ATTESTATION_BYTES.is_empty(),
+    "capsule_tokio_smoke built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-tokio-smoke"))]
 pub(crate) const TOKIO_SMOKE_ELF: &[u8] = &[];
 

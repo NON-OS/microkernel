@@ -107,6 +107,15 @@ impl Line {
         self
     }
 
+    /// Emit text that may carry its own final newline, as `format_args!`
+    /// text does: that one newline is the line's end, not a blank line.
+    pub fn end_text(&mut self) {
+        while self.len > 0 && matches!(self.buf[self.len - 1], b'\n' | b'\r') {
+            self.len -= 1;
+        }
+        self.end();
+    }
+
     /// Emit the line, one lock acquisition, one newline.
     pub fn end(&self) {
         line(&self.buf[..self.len]);
@@ -118,5 +127,12 @@ impl Line {
     /// lock that may never be released. See `core::write_fatal_line`.
     pub fn end_fatal(&self) {
         super::core::write_fatal_line(&self.buf[..self.len]);
+    }
+}
+
+impl core::fmt::Write for Line {
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
+        self.str(s.as_bytes());
+        Ok(())
     }
 }

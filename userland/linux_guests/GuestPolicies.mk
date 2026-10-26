@@ -5,8 +5,13 @@
 # by its store path and its ELF (file=); nonos_linux_policy's build binds it
 # by BLAKE3 into the vendor table, beside policies.txt (build/table.rs).
 
+#
+# Every service but FILES_USER: nothing serves the person's files yet, and
+# nonos_linux_policy's build refuses any row that claims it (build/line.rs),
+# so naming it stopped every guest image from building. check_guest_box.py
+# holds the box to what the builder takes.
 LINUX_GUEST_POLICIES := $(TARGET_DIR)/linux-guests/policies.txt
-LINUX_GUEST_ALL := WAYLAND NET_ANON NET_LISTEN_LO FILES_HOME FILES_USER MODELS_RO EXEC JIT TTY
+LINUX_GUEST_ALL := WAYLAND NET_ANON NET_LISTEN_LO FILES_HOME MODELS_RO EXEC JIT TTY
 LINUX_GUEST_POLICY_BINS := $(foreach l,$(LINUX_GUEST_POLICY_LINES),$(lastword $(subst =, ,$(l))))
 $(LINUX_GUEST_POLICIES): $(LINUX_GUEST_POLICY_BINS) $(LINUX_GUESTS_DIR)/GuestPolicies.mk
 	@mkdir -p $(@D)

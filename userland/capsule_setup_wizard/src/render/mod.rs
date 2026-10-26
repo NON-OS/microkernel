@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod canvas;
 pub mod chrome;
 mod frame;
 pub mod ink;
@@ -23,4 +24,4 @@ pub mod screens;
 pub mod theme;
 pub mod widgets;
 
-pub use frame::{buffer, frame, layout_of};
+pub use frame::{canvas, frame, layout_of};
