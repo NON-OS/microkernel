@@ -52,6 +52,7 @@ pub const WEIGHTS: &[(&str, u64)] = &[
     ("qwen3.5-0.8b", 833_592_096),
     ("medium", 1_117_320_736),
     ("coder-1.5b", 1_117_320_768),
+    ("vl-2b", 1_552_463_168),
     ("qwen3-1.7b", 1_834_426_016),
     ("large", 2_104_932_768),
     ("qwen3-4b", 2_497_280_256),
@@ -74,7 +75,8 @@ pub const WEIGHTS: &[(&str, u64)] = &[
  * A tier's mark is added in its own commit, naming its evidence, when a
  * tier of its architecture boots to an answer. Not here: qwen3-30b-a3b
  * (qwen3moe), whose smallest published size has not run on NONOS, and
- * qwen3.5-0.8b and qwen3.6-27b (qwen35) until a tier of theirs answers.
+ * qwen3.5-0.8b and qwen3.6-27b (qwen35) until a tier of theirs answers,
+ * and vl-2b (qwen3vl), chosen by name only until it answers an image.
  */
 #[rustfmt::skip]
 pub const PROVEN: &[(&str, &str)] = &[
