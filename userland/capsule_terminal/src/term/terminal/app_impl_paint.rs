@@ -25,9 +25,11 @@ mod app_impl_paint_split;
 impl Terminal {
     pub(super) fn paint_inner(&mut self, fb: &mut PaintBuffer) {
         self.width = fb.width;
-        match self.split.filter(|&s| s < self.tabs.len() && s != self.active) {
-            Some(other) => self.paint_split(fb, other),
-            None => self.paint_pane(fb, self.active, 0),
+        if !self.paint_line_only(fb) {
+            match self.split.filter(|&s| s < self.tabs.len() && s != self.active) {
+                Some(other) => self.paint_split(fb, other),
+                None => self.paint_pane(fb, self.active, 0),
+            }
         }
         // The key that asked for this frame has reached the screen.
         if self.key_at > 0 {
