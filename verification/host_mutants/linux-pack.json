@@ -1,0 +1,58 @@
+[
+ {
+  "name": "pack-held-taken-as-gone",
+  "file": "userland/capsule_linux/src/linux/file/store/pack/swap.rs",
+  "old": "        Unlinked::Busy => Err(Held::InUse),",
+  "new": "        Unlinked::Busy => Ok(()),",
+  "crate": "userland/capsule_linux_proofs",
+  "test": "a_held_pack_is_neither_replaced_nor_removed"
+ },
+ {
+  "name": "pack-new-left-on-refusal",
+  "file": "userland/capsule_linux/src/linux/file/store/pack/swap.rs",
+  "old": "        s.unlink(&new);\n        return Err(why);",
+  "new": "        return Err(why);",
+  "crate": "userland/capsule_linux_proofs",
+  "test": "a_held_pack_is_neither_replaced_nor_removed"
+ },
+ {
+  "name": "pack-unwritten-still-swapped",
+  "file": "userland/capsule_linux/src/linux/file/store/pack/swap.rs",
+  "old": "        false => Err(Held::Unwritten),\n    };",
+  "new": "        false => gone(s, &at),\n    };",
+  "crate": "userland/capsule_linux_proofs",
+  "test": "a_pack_the_store_will_not_take_leaves_the_old_one_serving"
+ },
+ {
+  "name": "pack-trailer-left-on-take",
+  "file": "userland/capsule_linux/src/linux/file/store/pack/swap.rs",
+  "old": "    s.unlink(&trailer_path(package));\n",
+  "new": "",
+  "crate": "userland/capsule_linux_proofs",
+  "test": "taking_a_pack_out_leaves_nothing_of_it"
+ },
+ {
+  "name": "pack-digest-unchecked",
+  "file": "userland/nonos_linux_pack/src/verify.rs",
+  "old": "            && hash.as_bytes()[..DIGEST_LEN] == e.digest\n",
+  "new": "",
+  "crate": "userland/nonos_linux_pack",
+  "test": "a_byte_changed_in_a_file_is_refused_at_that_file_alone"
+ },
+ {
+  "name": "pack-gap-unchecked",
+  "file": "userland/nonos_linux_pack/src/layout.rs",
+  "old": "if e.data.start != start || !zero(gap) {",
+  "new": "if e.data.start != start {",
+  "crate": "userland/nonos_linux_pack",
+  "test": "a_byte_in_a_gap_refuses_the_pack"
+ },
+ {
+  "name": "pack-in-use-unsaid",
+  "file": "userland/market_proto/src/reason/package.rs",
+  "old": "        WHY_IN_USE => said(IN_USE_LINE, true),\n",
+  "new": "",
+  "crate": "userland/market_proofs",
+  "test": "the_clients_read_the_codes_the_personality_exits_with"
+ }
+]

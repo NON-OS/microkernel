@@ -48,6 +48,8 @@ sha1 = { version = "0.10", default-features = false }
 blake3 = { version = "1", default-features = false, features = ["pure"] }
 # The box each guest runs in, as its publisher signed it (src/linux/app).
 nonos_linux_policy = { path = "../nonos_linux_policy" }
+# A package as one store object (src/linux/file/store/pack).
+nonos_linux_pack = { path = "../nonos_linux_pack" }
 
 [profile.release]
 panic = "abort"

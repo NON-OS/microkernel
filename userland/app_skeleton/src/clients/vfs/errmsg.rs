@@ -22,6 +22,7 @@ pub fn errmsg(status: i32) -> &'static str {
         -2 => "not found",
         -9 => "bad handle",
         -13 => "access denied",
+        -16 => "busy",
         -17 => "already exists",
         -21 => "is a directory",
         -22 => "invalid request",

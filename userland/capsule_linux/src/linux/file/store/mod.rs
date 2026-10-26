@@ -18,6 +18,11 @@
 
 mod bytes;
 mod names;
+pub mod pack;
+mod packed;
+mod stream;
 
 pub use bytes::{hash, read, HashFault};
 pub use names::{list, open, stat, stat_full, write};
+pub use packed::packed_found;
+pub use stream::Stream;

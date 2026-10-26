@@ -20,7 +20,7 @@ use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
 
-use nonos_app_skeleton::clients::vfs::VfsStream;
+use crate::linux::file::Stream;
 
 pub use super::fd_kind::Kind;
 
@@ -33,7 +33,7 @@ pub struct Fd {
     /// The path the guest named, kept for stat and for the flush on close.
     pub path: Vec<u8>,
     /// The server-side handle, for a file opened to read.
-    pub stream: Option<VfsStream>,
+    pub stream: Option<Stream>,
     /// Bytes written by the guest and not yet on the server.
     pub pending: Vec<u8>,
     /// The entries of a directory, taken once at open.
