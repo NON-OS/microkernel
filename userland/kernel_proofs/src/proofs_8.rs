@@ -58,3 +58,6 @@ pub mod transport_takeover;
 pub mod usable_runs;
 #[path = "virtio_rng_ring/mod.rs"]
 pub mod virtio_rng_ring;
+/// The trip lock (L81b): rows, rule table and world model.
+#[path = "trip_lock/mod.rs"]
+pub mod trip_lock;
