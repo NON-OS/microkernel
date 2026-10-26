@@ -19,6 +19,8 @@ import json
 import socket
 import time
 NAMES = {" ": "spc", "-": "minus", ".": "dot", "/": "slash"}
+# Characters typed with shift held, by the key that carries them.
+SHIFTED = {":": "semicolon", "_": "minus", "?": "slash"}
 
 
 class Qmp:
@@ -64,6 +66,8 @@ class Qmp:
         for ch in text:
             if ch.isupper():
                 self.key("shift", ch.lower())
+            elif ch in SHIFTED:
+                self.key("shift", SHIFTED[ch])
             else:
                 self.key(NAMES.get(ch, ch))
             time.sleep(0.05)

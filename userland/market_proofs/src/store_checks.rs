@@ -16,6 +16,8 @@
 
 //! The marketplace window's proofs, gathered under one declaration.
 
+#[path = "store_prove/mod.rs"]
+mod store_prove;
 #[path = "store_step_tests/mod.rs"]
 mod store_step_tests;
 #[path = "store_suite/mod.rs"]
