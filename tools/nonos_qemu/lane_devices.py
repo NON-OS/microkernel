@@ -21,7 +21,8 @@ its model in place of one of machine.py's devices: the virtio NIC, tpm-crb
 or the virtio GPU (vmware-svga, gpu=bga, gpu=gop-only)."""
 
 PLAIN = {
-    "usb-audio": "-audiodev {audio},id=lane-usb-snd -device usb-audio,audiodev=lane-usb-snd,bus=xhci.0",
+    "usb-audio": "-audiodev {audio},id=lane-usb-snd "
+                 "-device usb-audio,id=lane-usb-audio,audiodev=lane-usb-snd,bus=xhci.0",
     "AC97": "-audiodev {audio},id=lane-ac97-snd -device AC97,audiodev=lane-ac97-snd",
     # A reader with no card in it: driver.ccid0 finds the slot empty.
     "usb-ccid": "-device usb-ccid,bus=xhci.0",
