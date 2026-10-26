@@ -50,7 +50,7 @@ fn irqs(n: &[u8], at: u32, count: u32) -> Option<Vec<Irq>> {
     e.iter().map(|e| Some(Irq { gsiv: u32_at(e, 0)?, edge: u32_at(e, 4)? & 1 != 0 })).collect()
 }
 
-pub fn smmu_v2(n: &[u8]) -> Option<Kind> {
+pub(crate) fn smmu_v2(n: &[u8]) -> Option<Kind> {
     Some(Kind::Smmuv2 {
         base: u64_at(n, 16)?,
         span: u64_at(n, 24)?,
@@ -62,7 +62,7 @@ pub fn smmu_v2(n: &[u8]) -> Option<Kind> {
     })
 }
 
-pub fn rmr(n: &[u8]) -> Option<Kind> {
+pub(crate) fn rmr(n: &[u8]) -> Option<Kind> {
     let e = entries(n, u32_at(n, 24)?, u32_at(n, 20)?, RANGE)?;
     let range = |e: &&[u8]| {
         let (base, len) = (u64_at(e, 0)?, u64_at(e, 8)?);

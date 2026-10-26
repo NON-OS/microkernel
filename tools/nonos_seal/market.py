@@ -20,95 +20,14 @@ signed model catalogue, so both are signed before any capsule is built and
 committed under nonos-data/, where the flake reads them. Without the operator
 key both stay empty, as they always have."""
 
-import json
 import os
-import shutil
-import subprocess
 
-from . import keys
+from . import dev_market, keys, market_logos
+from .market_inputs import place_userland
 from .run import say
 
 INDEX = "nonos-data/market/index.bin"
-INDEX_JSON = "nonos-data/market/index.json"
-# The logo rasters a maintainer committed and the market capsule embeds
-# (tools/nonos_market_catalogue/logos.py); the index signs each one's BLAKE3.
-LOGOS = "nonos-data/market/logos"
 CATALOGUE = "nonos-data/models/catalogue.bin"
-USERLAND = "target/linux-userland"
-
-
-def committed(*paths):
-    """Whether every path, a file or a directory of them, is tracked and the
-    same as at HEAD, with nothing untracked beside it."""
-    for path in paths:
-        tracked = subprocess.run(["git", "ls-files", "--error-unmatch", "--", path],
-                                 capture_output=True).returncode == 0
-        same = subprocess.run(["git", "diff", "--quiet", "HEAD", "--", path]).returncode == 0
-        loose = subprocess.run(["git", "ls-files", "--others", "--", path],
-                               capture_output=True, text=True).stdout.strip()
-        if not (os.path.exists(path) and tracked and same and not loose):
-            return False
-    return True
-
-
-def logos_agree():
-    """SystemExit unless every logo_hash the signed index names is the BLAKE3
-    of the raster committed for that listing: the market serves only bytes the
-    index signs, so a mismatch would show no logo. A raster the index does
-    not name yet (an index sealed before its logo) is served as none."""
-    if not os.path.isfile(INDEX_JSON):
-        return
-    with open(INDEX_JSON) as f:
-        named = {e["listing_id"]: e.get("logo_hash", "") for e in json.load(f).get("entries", [])}
-    wrong = []
-    for lid, want in named.items():
-        at = os.path.join(LOGOS, lid + ".rgba")
-        got = subprocess.run(["b3sum", "--no-names", at], capture_output=True, text=True).stdout.strip()
-        if want and got != want:
-            wrong.append(lid)
-    if wrong:
-        raise SystemExit(f"  the signed index and {LOGOS} disagree on: {' '.join(sorted(wrong))}")
-
-
-def place_userland(linux_out):
-    """The index names the Qwen runner by the BLAKE3 of the binary the store
-    carries, which the catalogue tool reads from target/linux-userland."""
-    shutil.rmtree(USERLAND, ignore_errors=True)
-    os.makedirs(USERLAND)
-    # Every file, with the data some programs keep in a directory of their
-    # own (Tcl's script library), as plain writable copies: the output's
-    # links are followed and the store's read-only modes are not kept.
-    for d, _, names in os.walk(linux_out, followlinks=True):
-        rel = os.path.relpath(d, linux_out)
-        os.makedirs(os.path.join(USERLAND, rel), exist_ok=True)
-        for name in sorted(names):
-            shutil.copyfile(os.path.join(d, name), os.path.join(USERLAND, rel, name))
-
-
-# What the market index and the model catalogue are made from. Their serial
-# is the time of the last commit that changed any of these, not of HEAD, so a
-# commit that changes none of them signs the same two files, and the capsules
-# that embed them keep their bytes and their enrollment.
-SOURCES = [
-    "userland/capsule_market", "userland/capsule_linux/src/linux/file/models",
-    "tools/nonos-market-index", "tools/nonos-market-catalogue", "tools/nonos_market_catalogue",
-    "tools/nonos-market-sign-releases", "tools/nonos-qwen-tier.py", "tools/nonos_qwen_tier",
-    "tools/nix/userland.nix", "tools/nix/sources.txt", "nonos-mk", LOGOS,
-    "HANDOFF/catalogue/logos-licences.md",
-    # The catalogue's recipes, its policy encoder, the Alpine keys it checks
-    # under and the release the device installs from.
-    "tools/nonos_linux_pack", "userland/capsule_linux/keys/alpine",
-    "userland/capsule_linux/src/linux/install/run.rs",
-]
-
-
-def serial():
-    """The commit time of the last change to SOURCES, or of HEAD when the
-    history does not reach one."""
-    def last(*paths):
-        return subprocess.run(["git", "log", "-1", "--format=%ct", "--", *paths],
-                              capture_output=True, text=True, check=True).stdout.strip()
-    return last(*[p for p in SOURCES if os.path.exists(p)]) or last()
 
 
 def seal(step, tools, linux_out, serial, mirror, package_mirror="", packages="", required=False):
@@ -117,13 +36,11 @@ def seal(step, tools, linux_out, serial, mirror, package_mirror="", packages="",
     # development image may go without; this asks only whether the key is
     # there, never what it holds.
     if not os.path.isfile(keys.OPERATOR_SEED):
-        # The operator signs deterministically from SOURCES, so the index and
-        # catalogue a seal committed are the ones it would sign again for an
-        # unchanged tree. A seal without the seed (a CI runner's) keeps those,
-        # under the operator key in the tree: it signs nothing, so it can
-        # forge nothing, and the image checks both signatures itself.
-        if committed(INDEX, CATALOGUE, keys.OPERATOR_PUB, LOGOS):
-            logos_agree()
+        # The operator signs deterministically from SOURCES, so the index and catalogue a seal
+        # committed are the ones it would sign again for an unchanged tree. A seal without the
+        # seed (a CI runner's) keeps those, and the logos they sign, under the operator key in the
+        # tree: it signs nothing, so it can forge nothing, and the image checks both signatures.
+        if market_logos.kept(INDEX, CATALOGUE, keys.OPERATOR_PUB):
             say("  no market operator key: kept the index and the model catalogue the operator signed")
             place_userland(linux_out)
             return
@@ -135,21 +52,24 @@ def seal(step, tools, linux_out, serial, mirror, package_mirror="", packages="",
     place_userland(linux_out)
     for path in (INDEX, CATALOGUE):
         os.makedirs(os.path.dirname(path), exist_ok=True)
-    step.run("python3", "tools/nonos-market-index", "--out", INDEX, "--cli", tools.market_index,
-             "--seed", keys.OPERATOR_SEED, "--pubkey", keys.OPERATOR_PUB,
-             "--linux-list", "userland/capsule_market/linux-packages.txt",
-             "--guest-list", "userland/capsule_market/linux-guests.json", "--serial", serial,
-             # The catalogue's apps: fetched from Alpine, checked under the
-             # keys the device pins, each listed with its box.
-             "--catalogue", "userland/capsule_market/linux-catalogue.json",
-             # The in-tree tools the image does not carry, listed only when it
-             # is built with a NONOS package mirror, their content written to
-             # `packages` for ek to put on it.
-             *(["--tool-list", "userland/capsule_market/linux-tools.json",
-                "--package-mirror", package_mirror, "--package-out", packages] if package_mirror else []),
-             env={"SOURCE_DATE_EPOCH": serial})
+    # A development image in nonos-dev-image's copy lists the schema 3 test
+    # catalogue instead, under the copy's throwaway key; a release never does.
+    if dev_market.chosen():
+        dev_market.seal(step, tools, INDEX, serial)
+    else:
+        step.run("python3", "tools/nonos-market-index", "--out", INDEX, "--cli", tools.market_index,
+                 "--seed", keys.OPERATOR_SEED, "--pubkey", keys.OPERATOR_PUB,
+                 "--linux-list", "userland/capsule_market/linux-packages.txt",
+                 "--guest-list", "userland/capsule_market/linux-guests.json", "--serial", serial,
+                 # The catalogue's apps: from Alpine, under the keys the device pins, each with its box.
+                 "--catalogue", "userland/capsule_market/linux-catalogue.json",
+                 # The in-tree tools the image does not carry, listed only with a NONOS
+                 # package mirror, their content written to `packages` for ek to put on it.
+                 *(["--tool-list", "userland/capsule_market/linux-tools.json",
+                    "--package-mirror", package_mirror, "--package-out", packages] if package_mirror else []),
+                 env={"SOURCE_DATE_EPOCH": serial})
     step.run("python3", "tools/nonos-qwen-tier.py", "catalogue", "--out", CATALOGUE,
              "--seed", keys.OPERATOR_SEED, "--pubkey", keys.OPERATOR_PUB, "--serial", serial,
              *(["--nonos-mirror", mirror] if mirror else []))
-    logos_agree()
+    market_logos.agree()
     keys.stage(INDEX, CATALOGUE)

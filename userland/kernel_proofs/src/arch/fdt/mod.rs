@@ -10,10 +10,8 @@ pub mod header;
 pub mod layout;
 #[path = "../../../../../src/arch/fdt/limits.rs"]
 pub mod limits;
-#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[path = "../../../../../src/arch/fdt/parser.rs"]
 pub mod parser;
-#[allow(clippy::module_inception)]
 #[path = "../../../../../src/arch/fdt/property/mod.rs"]
 pub mod property;
 #[path = "../../../../../src/arch/fdt/strings.rs"]
@@ -22,8 +20,6 @@ pub mod strings;
 pub mod tokens;
 #[path = "../../../../../src/arch/fdt/validate.rs"]
 mod validate;
-#[allow(clippy::module_inception, clippy::should_implement_trait)]
-#[allow(clippy::manual_is_multiple_of)]
 #[path = "../../../../../src/arch/fdt/walker/mod.rs"]
 pub mod walker;
 

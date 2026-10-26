@@ -36,6 +36,8 @@ mod fake;
 #[cfg(test)]
 mod answer_tests;
 #[cfg(test)]
+mod devnet_tests;
+#[cfg(test)]
 mod direct_tests;
 #[cfg(test)]
 mod frame_tests;
