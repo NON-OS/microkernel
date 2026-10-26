@@ -5401,6 +5401,17 @@ else
 fi
 unset devset_out
 
+# Every argv the kernel writes is held to one bound, the one userland reads
+# it into (src/process/core/argv_bound.rs; check_argv_bound).
+if argv_out="$(python3 scripts/check_argv_bound.py --self-test 2>&1 \
+    && python3 scripts/check_argv_bound.py 2>&1)"; then
+    note ok "every argv is held to one bound, the one userland reads (check_argv_bound)"
+else
+    tail -n 6 <<< "${argv_out}" >&2
+    fail_with "check_argv_bound: an argv can pass what userland reads"
+fi
+unset argv_out
+
 # The host relay a development image installs through serves a package the
 # market catalogue lists only as the bytes its lock pins (nonos-mirror-relay).
 if relay_out="$( (cd tools && python3 -m unittest -q nonos_mirror_relay.test_pins) 2>&1)"; then

@@ -39,6 +39,8 @@ pub mod capabilities {
 
 #[path = "../../../src/process/core/table/ambient.rs"]
 mod ambient;
+#[path = "../../../src/process/core/argv_bound.rs"]
+mod argv_bound;
 #[path = "../../../src/security/capsule_manifest/verify/caps_bits.rs"]
 mod spawn_caps;
 
@@ -47,7 +49,9 @@ pub mod kernel_core {
     pub mod process_spawn {
         pub mod capsule_spawn {
             pub use crate::stand_in::{AttestedParent, SpawnError};
-            pub(crate) use from_vfs::load::bound::{installed as child_caps, missing as beyond_parent};
+            pub(crate) use from_vfs::load::bound::{
+                installed as child_caps, missing as beyond_parent,
+            };
             pub mod from_vfs {
                 pub mod error;
                 pub mod load {
@@ -59,7 +63,7 @@ pub mod kernel_core {
     }
 }
 
-#[path = "../../../src/userspace/tool_capsules/bound.rs"]
-mod tool_bound;
 #[path = "../../../src/userspace/tool_capsules/net_box.rs"]
 mod net_box;
+#[path = "../../../src/userspace/tool_capsules/bound.rs"]
+mod tool_bound;

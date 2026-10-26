@@ -122,7 +122,7 @@ pub use local_sign::{
 pub use mem::{mk_mmap, mk_munmap};
 pub use private_write::mk_private_write;
 pub use proc_output::{mk_proc_input, mk_proc_output, mk_stdin_read};
-pub use process::{mk_args, mk_caps_of, mk_getpid, mk_kill, mk_pid_alive, mk_wait};
+pub use process::{mk_args, mk_caps_of, mk_getpid, mk_kill, mk_pid_alive, mk_wait, ARGV_BYTES_MAX};
 pub use process::{CAPS_OF_APP_INSTALL, CAPS_OF_SPAWN_WINDOW};
 pub use procstat::{mk_proc_stat, ProcStatEntry, PROC_FLAG_DEBUG_WITHHELD, PROC_NAME_LEN};
 pub use procstat_header::ProcStatHeader;

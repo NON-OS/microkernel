@@ -70,7 +70,7 @@ pub fn spawn_terminal_net(argv: Vec<String>) -> Result<u32, SpawnError> {
 
 fn spawn(role: &Role, argv: Vec<String>) -> Result<u32, SpawnError> {
     let pid = spawn_role(role)?;
-    crate::process::with_process(pid, |pcb| *pcb.argv.lock() = argv);
+    let _ = crate::process::set_argv(pid, argv);
     Ok(pid)
 }
 
