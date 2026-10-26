@@ -40,7 +40,7 @@ pub fn run_init() -> ! {
     // Last, so every service it attacks is already up and owns its name.
     #[cfg(feature = "nonos-capsule-attack")]
     crate::userspace::capsule_attack::run();
-    boot_log::ok("INIT", "Capsules spawned");
+    super::spawn_report::report();
     super::dev_attest::dump();
     super::injected::panic();
     super::injected::fault();

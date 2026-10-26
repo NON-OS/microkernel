@@ -29,7 +29,7 @@ use super::critical_watch::Action;
 use super::leave_rule::{lock_at_exit, take_gap_press};
 use super::thermal_watch::tick as thermal_tick;
 use crate::arch::power::PowerOff;
-use crate::security::zerostate::{terminate, terminate_critical};
+use crate::security::zerostate::terminate::{terminate, terminate_with};
 use crate::services::registry::lookup_service;
 use crate::sys::serial::Line;
 
@@ -62,6 +62,6 @@ pub fn serve_from_init() {
     if let Some((_, what)) = late.iter().find(|(a, _)| *a == Action::PowerOff) {
         let line = b" critical by its last reading, its grace over: powering off, _PTS(5) not run";
         Line::new().str(b"[ACPI] ").str(what).str(line).end();
-        terminate_critical(PowerOff::Shutdown)
+        terminate_with(PowerOff::Shutdown, true)
     }
 }

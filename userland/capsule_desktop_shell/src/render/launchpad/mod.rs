@@ -8,7 +8,7 @@
 
 mod cells;
 mod dots;
-mod gen_icon;
+pub(crate) mod gen_icon;
 mod grid;
 mod hit;
 mod paint;

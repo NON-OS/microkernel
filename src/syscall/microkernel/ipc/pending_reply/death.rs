@@ -21,19 +21,20 @@
 //! own entries go from every queue, since nothing will read their replies.
 
 use alloc::collections::{BTreeMap, VecDeque};
-use alloc::string::String;
 use alloc::vec::Vec;
 
-/// Each server's queue of (caller pid, caller reply inbox, token).
-pub(super) type Queues = BTreeMap<u32, VecDeque<(u32, String, u64)>>;
+use super::entry::Entry;
+
+/// Each server's queue of the calls owed a reply, oldest first.
+pub(super) type Queues = BTreeMap<u32, VecDeque<Entry>>;
 
 /// Clears `dead` from `queues` and returns the (caller pid, token) of every
 /// call it still owed, oldest first, a dead caller's own calls left out.
 pub(super) fn on_death(queues: &mut Queues, dead: u32, dead_inbox: &str) -> Vec<(u32, u64)> {
     let owed = queues.remove(&dead).unwrap_or_default();
     queues.retain(|_, queue| {
-        queue.retain(|(_, inbox, _)| inbox != dead_inbox);
+        queue.retain(|e| e.inbox != dead_inbox);
         !queue.is_empty()
     });
-    owed.into_iter().filter(|(pid, _, _)| *pid != dead).map(|(pid, _, t)| (pid, t)).collect()
+    owed.into_iter().filter(|e| e.pid != dead).map(|e| (e.pid, e.token)).collect()
 }

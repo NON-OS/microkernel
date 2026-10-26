@@ -15,39 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_libc::mk_uptime_ms;
-use nonos_toolkit::decorations::DecorationHit;
+use nonos_toolkit::decorations::{DecorationHit, FrameState};
 
-use crate::app::{App, AppManifest};
+use crate::app::App;
 use crate::discover::Peers;
-use crate::setup::{ensure_input_subscription, open_window, WindowBinding};
+use crate::setup::{ensure_input_subscription, open_window};
 
 use super::drag::DragState;
-use super::full_screen_ask::FullScreenAsk;
-use super::held::Held;
 use super::prime_frame::prime_frame;
 
-pub(super) const INITIAL_PAINT_ATTEMPTS: usize = 256;
+pub(super) use super::booted::BootedApp;
 
-pub(super) struct BootedApp<A: App> {
-    pub app: A,
-    pub manifest: AppManifest,
-    pub binding: WindowBinding,
-    pub input_ready: bool,
-    /// Uptime of the last input subscription attempt, for the heartbeat.
-    pub input_beat_ms: i64,
-    /// A message a paced wait received that no drain has handled yet.
-    pub held: Option<Held>,
-    pub primed: bool,
-    pub maximized: bool,
-    pub minimized: bool,
-    pub saved: (u32, u32, u32, u32),
-    /// Whether the app asks for full screen, and whether it took it.
-    pub full_ask: FullScreenAsk,
-    pub drag: DragState,
-    /* Size, frame hover and maximized state of the last repaint, so a repaint
-     * that changes none of them can leave the frame as it is. */
-    pub painted: (u32, u32, DecorationHit, bool),
-}
+pub(super) const INITIAL_PAINT_ATTEMPTS: usize = 256;
 
 pub(super) fn boot<A: App>(
     mut app: A,
@@ -69,8 +48,9 @@ pub(super) fn boot<A: App>(
         maximized: false,
         minimized: false,
         saved: (0, 0, 0, 0),
-        full_ask: FullScreenAsk::new(),
+        asks: super::asks::Asks::new(),
         drag: DragState::new(),
-        painted: (0, 0, DecorationHit::None, false),
+        focused: true,
+        painted: (0, 0, FrameState { hover: DecorationHit::None, focused: true }, false),
     })
 }

@@ -1,0 +1,31 @@
+#!/bin/bash
+# One boot of the installed disk alone ($1 = tag). The data volume's region of
+# install-target.img (LBA 262144 on) is hashed before and after. The proof
+# program's [KVPROOF] lines, every [DATA] and [ZS] line, then QMP quit.
+SP=/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad
+P=$SP/vg; T=${1:?tag}; WAIT=${2:-900}
+cd /home/user/privatekernel
+IMG=/home/user/pk-build/target/dev/tree/target/release/kvproof-dev/nonos.img
+vh() { python3 - <<'PY'
+import hashlib
+h=hashlib.sha256(); f=open("target/qemu/install-target.img","rb"); f.seek(262144*512)
+while True:
+    b=f.read(1<<24)
+    if not b: break
+    h.update(b)
+print(h.hexdigest())
+PY
+}
+echo "$T volume before: $(vh)"
+rm -f target/qemu/qmp.sock
+echo "$T boot at $(date -u +%T)"
+nix develop --command python3 tools/nonos-qemu --image "$IMG" --tpm --installed --headless --smp 4 --mem 6G --timeout 7000 \
+  --serial $P/$T-serial.log --lane iommu=intel --lane usb-kbd --lane usb-tablet > $P/$T-qemu.log 2>&1 &
+for i in $(seq 1 $((WAIT/5))); do grep -qa 'EXIT\] code=[0-9]* proof_io' $P/$T-serial.log 2>/dev/null && break; sleep 5; done
+sleep 20
+python3 $SP/walk-a/qmp.py shot:$P/$T-screen.png >/dev/null 2>&1
+grep -a 'KVPROOF\|\[DATA\]\|\[ZS\]\|proof_io\|POLICY\] restored\|refused' $P/$T-serial.log | grep -v BENCH | cut -c1-160
+[ "$3" = hold ] && { echo "$T held at $(date -u +%T)"; exit 0; }
+python3 -c 'import json,socket; s=socket.socket(socket.AF_UNIX); s.connect("target/qemu/qmp.sock"); f=s.makefile("rw"); f.readline(); f.write(json.dumps({"execute":"qmp_capabilities"})+"\n"); f.flush(); f.readline(); f.write(json.dumps({"execute":"quit"})+"\n"); f.flush()'
+echo "$T QMP quit $(date -u +%T)"; sleep 8
+echo "$T volume after: $(vh)"

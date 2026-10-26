@@ -37,3 +37,30 @@ fn every_display_class_code_and_no_other_maps_to_a_display() {
     }
     assert_eq!(displays, 256 * 256, "every display code met once");
 }
+
+/// Each class id is the number the broker's ABI publishes (section 4 of
+/// abi/driver_broker_abi.md): a driver matches on it, so the two never part.
+#[test]
+fn every_class_id_is_the_one_the_abi_publishes() {
+    let abi = include_str!("../../../../../abi/driver_broker_abi.md");
+    let table = [
+        ("RNG", ids::RNG),
+        ("BLOCK", ids::BLOCK),
+        ("NETWORK", ids::NETWORK),
+        ("DISPLAY", ids::DISPLAY),
+        ("INPUT", ids::INPUT),
+        ("I2C_HID", ids::I2C_HID),
+        ("AUDIO", ids::AUDIO),
+        ("SERIAL", ids::SERIAL),
+        ("USB_HOST", ids::USB_HOST),
+        ("USB_HOST_XHCI", ids::USB_HOST_XHCI),
+        ("GPIO_CTRL", ids::GPIO_CTRL),
+        ("OTHER", ids::OTHER),
+    ];
+    for (name, id) in table {
+        let row = abi.lines().find(|l| l.starts_with(&format!("CLASS_{name} "))).expect(name);
+        let value = row.split('=').nth(1).and_then(|v| v.split_whitespace().next());
+        let hex = value.and_then(|v| v.strip_prefix("0x")).expect(name);
+        assert_eq!(u32::from_str_radix(hex, 16), Ok(id), "{name}");
+    }
+}

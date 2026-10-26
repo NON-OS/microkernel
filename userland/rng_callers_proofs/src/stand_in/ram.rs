@@ -38,6 +38,11 @@ pub fn start(sectors: u64) -> Result<(), crate::hardware::block_device::BlockDev
     Ok(())
 }
 
+/// The RAM disk given back, when keeping turns on.
+pub fn stop() {
+    RAM_STARTED.set(None);
+}
+
 pub mod memory {
     pub mod phys {
         pub fn free_memory() -> u64 {

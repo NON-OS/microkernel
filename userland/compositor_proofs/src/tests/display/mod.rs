@@ -16,6 +16,10 @@
 
 //! What the compositor decides about displays: polls, sizes, scales and the cursor plane.
 
+/// The kernel's hint senders, which the compositor mounts.
+#[path = "../../../../../src/services/registry/display_hints.rs"]
+mod display_hints;
+
 mod arrange_tests;
 mod backoff_held_tests;
 mod backoff_tests;

@@ -23,8 +23,11 @@
  * name never reach a guest, so no two families can tell they share a host.
  */
 
+mod home;
 mod names;
 mod sizes;
+
+pub use home::{HOME, HOMES, HOME_NAMES};
 
 pub use names::{DOMAIN, HOSTNAME, MACHINE, OSTYPE, RELEASE, VERSION};
 pub use sizes::{

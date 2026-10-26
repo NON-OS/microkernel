@@ -33,7 +33,6 @@ static RESERVED: RwLock<Vec<Reservation>> = RwLock::new(Vec::new());
 
 /// Adds the ranges not already kept, answering how many are kept in all,
 /// or None (and nothing added) when they would not fit.
-#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
 pub fn add(ranges: &[Reservation]) -> Option<usize> {
     let mut kept = RESERVED.write();
     let new: Vec<Reservation> = ranges.iter().filter(|r| !kept.contains(r)).copied().collect();
@@ -48,13 +47,11 @@ pub fn conflict_with(space: u8, base: u64, len: u64, own_bar: bool) -> Option<Re
     judge::conflict(&RESERVED.read(), space, base, len, own_bar)
 }
 
-#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
 pub fn count() -> usize {
     RESERVED.read().len()
 }
 
 /// Whether the kept reservations cover the range, for the ECAM check.
-#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
 pub fn kept_cover(space: u8, base: u64, len: u64) -> bool {
     judge::covered(&RESERVED.read(), space, base, len)
 }

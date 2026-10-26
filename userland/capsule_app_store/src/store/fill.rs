@@ -44,6 +44,7 @@ impl State {
         let mut silent = false;
         if !l.known.described {
             l.known.detail = kept(market::get_app(port, market::next_id(), &l.id), &mut silent);
+            l.known.logo = kept(market::get_logo(port, l.source, &l.id), &mut silent).flatten();
             l.known.described = true;
         }
         if selected && !l.known.judged {

@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A key press: the reserved chord, the system keys, Ctrl's commands, the
+//! A key press: the chords (chords.rs), the system keys, Ctrl's commands, the
 //! dialogs, and an inline rename or the Launchpad's field.
 
 use crate::protocol::{read_u16, read_u32};
 use crate::server::desktop;
-use crate::server::handlers::escape_chord as escape;
 use crate::state::input_source_rule::Routed;
 use crate::state::Context;
 
@@ -29,15 +28,7 @@ const MOD_CTRL: u16 = nonos_app_skeleton::MOD_CTRL;
 pub(super) fn key(ctx: &mut Context, by: Routed, buf: &[u8], kind: u16) -> bool {
     let code = read_u32(buf, 12).unwrap_or(0);
     let flags = read_u16(buf, 10).unwrap_or(0);
-    if super::super::handlers::escape_chord::is_reserved_chord(kind, code, flags) {
-        super::super::handlers::escape_chord::bring_process_manager(ctx);
-        return true;
-    }
-    // Swallowed while a prompt holds the trusted band, never typed into it.
-    if escape::is_terminal_chord(kind, code, flags) {
-        if escape::opens_terminal(ctx.trusted.up) {
-            escape::bring_terminal(ctx);
-        }
+    if super::chords::chord(ctx, kind, code, flags) {
         return true;
     }
     // The volume and power keys come here whatever has focus, with

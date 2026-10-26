@@ -35,7 +35,7 @@ pub fn create(guest: &mut Guest, path: Vec<u8>, flags: u64, mode: u64) -> u64 {
     if resolve::key(&path).writable().is_err() {
         return errno::fail(errno::EROFS);
     }
-    if let Err(e) = room_for(Kept { bytes: 0, names: 1 }) {
+    if let Err(e) = room_for(&path, Kept { bytes: 0, names: 1 }) {
         return errno::fail(e);
     }
     if let Err(e) = cache::hold(&path, false) {

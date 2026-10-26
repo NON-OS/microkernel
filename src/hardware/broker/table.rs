@@ -38,5 +38,4 @@ pub use list::{contains, list, list_by_class, list_shown};
 pub(super) use list::{dma_coherent, flags_of, kind_of};
 #[allow(unused_imports)] // x86 alone knows domains yet
 pub(in crate::hardware::broker) use numa::set_numa_nodes;
-#[allow(unused_imports)] // the ACPI broker's alone, which only x86 builds
 pub(in crate::hardware::broker) use remove::remove;

@@ -17,18 +17,18 @@
 //! Little-endian fields at an offset, None past the end: a table's own
 //! lengths are never trusted to index with.
 
-pub fn u8_at(b: &[u8], at: usize) -> Option<u8> {
+pub(crate) fn u8_at(b: &[u8], at: usize) -> Option<u8> {
     b.get(at).copied()
 }
 
-pub fn u16_at(b: &[u8], at: usize) -> Option<u16> {
+pub(crate) fn u16_at(b: &[u8], at: usize) -> Option<u16> {
     Some(u16::from_le_bytes(b.get(at..at.checked_add(2)?)?.try_into().ok()?))
 }
 
-pub fn u32_at(b: &[u8], at: usize) -> Option<u32> {
+pub(crate) fn u32_at(b: &[u8], at: usize) -> Option<u32> {
     Some(u32::from_le_bytes(b.get(at..at.checked_add(4)?)?.try_into().ok()?))
 }
 
-pub fn u64_at(b: &[u8], at: usize) -> Option<u64> {
+pub(crate) fn u64_at(b: &[u8], at: usize) -> Option<u64> {
     Some(u64::from_le_bytes(b.get(at..at.checked_add(8)?)?.try_into().ok()?))
 }

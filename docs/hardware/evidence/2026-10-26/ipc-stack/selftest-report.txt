@@ -1,0 +1,213 @@
+nonos-attack-suite-report v1
+boots capsule
+log /tmp/claude-0/-home-user-privatekernel/0d9b5db8-715b-5a9c-b79c-b573aa1baa2a/scratchpad/ipc/selftest/capsule.log sha256 6b712647b46cc77b28b0b473dbe7aec9cda16744d6bbb8eff0f9ebd0af43241a
+dropped chainload since 2026-10-24: the loader has no chainload path to attack: its shell launcher starts no image (nonos-bootloader/src/boot/shell/launch.rs)
+dropped kernel-replay since 2026-10-24: the loader's rollback floor needs a TPM counter, and the self-test boots have none: under QEMU the floor reads Unprotected and an older signed kernel would boot (nonos-bootloader/src/boot/crypto/rollback/floor.rs). The floor rule is proven on the host instead (boot_proofs floor_rule_tests, floor_seq_tests, floor_raise_tests)
+attempt cap-escape refused: a socket through net.sockets without Network, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: a TCP connection through net.tcp without Network, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: a name lookup through net.dns without Network, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: a mixnet session through net.nym without Network, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: an onion circuit through net.anon without Network, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: a SOCKS stream through net.socks5 without Network, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: an MMIO window without Mmio, MkMmioMap EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: net.sockets' inbox by its pid without Network, MkIpcSendToPid EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: a network card's driver by name, held to the stack, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: a network card's driver by its pid, held to the stack, MkIpcSendToPid EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: a device's driver by name, held to its service, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: a device's driver by its pid, held to its service, MkIpcSendToPid EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: a device's driver by name, held to its service, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: a device's driver by its pid, held to its service, MkIpcSendToPid EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: a device's driver by name, held to its service, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: a device's driver by its pid, held to its service, MkIpcSendToPid EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: a device's driver by name, held to its service, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: a device's driver by its pid, held to its service, MkIpcSendToPid EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: a device's driver by name, held to its service, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: a device's driver by its pid, held to its service, MkIpcSendToPid EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: a device's driver by name, held to its service, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: a device's driver by its pid, held to its service, MkIpcSendToPid EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: a device's driver by name, held to its service, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: a device's driver by its pid, held to its service, MkIpcSendToPid EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: xhci's port status by its reply port, MkIpcCall EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: xhci's bulk-IN by its reply port, MkIpcCall EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt held-escape refused: usb_msc's state by its reply port, MkIpcCall EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: claim a device without Driver, MkDeviceClaim EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: map a DMA buffer without Dma, MkDmaMap EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: bind a device interrupt without Irq, MkIrqBind EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: read PCI config space without Driver, MkPciConfigRead EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: take an I/O port range without Pio, MkPioGrant EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: read every capsule's measurement without AttestRead, MkAttestEntries EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: ask the TPM to sign an attestation without AttestRead, MkAttestDoc EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: read the device secret without DeviceSecret, MkDeviceSecret EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: read the TPM identity keys without DeviceSecret, MkEnroll EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: grant itself Network without Admin, MkCapGrant EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: set the clock without TimeSet, MkTimeAdjust EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: write the capsule store without StoreWrite, MkStoreWrite EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: open another app's window without SpawnWindow, MkSpawnInstance EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: install an app without AppInstall, MkAppInstall EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: host a foreign guest without ForeignExec, MkForeignSpawn EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: copy another process's memory without ForeignExec, MkPeerCopy EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: mint a signature trailer without LocalSign, MkLocalSign EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: enrol a signing root without EnrolDevRoot, MkDevRootLocal EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: inject input events without InputSource, MkInputEventPost EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: drain every keystroke without InputConsumer, MkInputEventDrain EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: kill init without ProcessControl, MkKill EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt foreign-memory refused: a kernel address to MkDebug EFAULT (14)
+  kernel: no line; the refusal is the errno the call returned
+attempt foreign-memory refused: another address space's address to MkDebug EFAULT (14)
+  kernel: no line; the refusal is the errno the call returned
+attempt foreign-memory refused: a kernel address as an IPC message, MkIpcSend EFAULT (14)
+  kernel: no line; the refusal is the errno the call returned
+attempt foreign-memory refused: a fixed mapping at a kernel address, MkMmap EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt foreign-memory refused: a length that wraps the address space, MkDebug EINVAL (22)
+  kernel: no line; the refusal is the errno the call returned
+attempt foreign-memory refused: the process table written to a kernel address, MkProcStat EFAULT (14)
+  kernel: no line; the refusal is the errno the call returned
+attempt foreign-memory refused: the boot record written to a kernel address, MkAttestStatus EFAULT (14)
+  kernel: no line; the refusal is the errno the call returned
+attempt foreign-memory refused: a kernel page unmapped, MkMunmap EINVAL (22)
+  kernel: no line; the refusal is the errno the call returned
+attempt foreign-memory refused: a page of the DMA buffer window unmapped, MkMunmap EINVAL (22)
+  kernel: no line; the refusal is the errno the call returned
+attempt foreign-memory refused: a fixed mapping in the MMIO register window, MkMmap EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: register net.dns without RegisterService, MkServiceRegister EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: read a raw SATA sector without StoreWrite, MkIpcCall EACCES (13)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: write a raw SATA sector without StoreWrite, MkIpcCall EACCES (13)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: read a raw virtio-blk sector without StoreWrite, MkIpcCall EACCES (13)
+  kernel: no line; the refusal is the errno the call returned
+attempt cap-escape refused: write a raw virtio-blk sector without StoreWrite, MkIpcCall EACCES (13)
+  kernel: no line; the refusal is the errno the call returned
+attempt deputy-escape refused: app.install through the shell's OP_OPEN_WITH ENOENT (2)
+  kernel: [CAP-DENY] pid=56 open-with: app=app.install opens no file
+attempt service-squat refused: MkServiceRegister net.sockets EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt service-squat refused: MkServiceRegister app.file_manager EPERM (1)
+  kernel: no line; the refusal is the errno the call returned
+attempt fault-containment refused: the kernel ended pid 56 at its fault on 0x0, and 225 lines followed
+  kernel: [TRAP PF] cpl=3 rip=0x000000000e8e4675 rsp=0x00007ffffffeffe0 cs=0x0000000000000023 ss=0x000000000000001b rflags=0x0000000000010246 cr3=0x000000000c483000 asid=0x0000000000000039 pid=0x0000000000000038 err=0x0000000000000006 cr2=0x0000000000000000
+note [ATTACK-NOTE] reply-twice: its own requests were not in its inbox
+row cap-escape: Network: proven
+row cap-escape: Mmio: proven
+row cap-escape: Hardware: proven
+row cap-escape: Admin: proven
+row cap-escape: RegisterService: proven
+row cap-escape: an inbox by pid: proven
+row cap-escape: a network card: proven
+row cap-escape: a device driver: proven
+row held-escape: a reply port: proven
+row deputy: the shell's open-with: proven
+row reply: one answer per request: NOT proven
+row foreign-memory: kernel via Debug: proven
+row foreign-memory: other aspace via Debug: proven
+row foreign-memory: kernel as IPC: proven
+row foreign-memory: fixed map: proven
+row service-squat: proven
+row fault containment: proven
+FAIL reply-twice: never attempted
+FAIL matrix row reply: one answer per request: no refusal matching 'a second MkIpcReplyTo to one request ENOENT'
+FAIL matrix row reply: one answer per request: no refusal matching 'MkIpcReplyTo to a request still in the inbox ENOENT'
+attack suite: FAIL

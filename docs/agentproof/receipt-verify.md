@@ -60,4 +60,11 @@ a receipt never says the TPM's maker vouched for the key.
   `nsh_attest_proofs` builders. They cover each refusal, a flip of every byte, and 20,000
   mutated receipts. The fuzz target `napr` is in `userland/agentproof_receipt/fuzz`, and the
   mutants are in `verification/host_mutants/receipt.json` (21 of 21 killed).
+- The fuzz run, 26 October 2026: 541 s, 1,704,331 inputs grown from one fixture receipt,
+  201 new units, no crash, peak RSS 28 MB. Built without cargo-fuzz, with the flags it
+  passes: in `userland/agentproof_receipt/fuzz`, `RUSTFLAGS="-Cpasses=sancov-module
+  -Cllvm-args=-sanitizer-coverage-level=4 -Cllvm-args=-sanitizer-coverage-inline-8bit-counters
+  -Cllvm-args=-sanitizer-coverage-pc-table -Cllvm-args=-sanitizer-coverage-trace-compares
+  --cfg fuzzing -Cdebug-assertions -Coverflow-checks" cargo build --release --target
+  x86_64-unknown-linux-gnu --bin napr`, then `napr -max_total_time=540 -max_len=8192 corpus/`.
 - The slot-0 rule: `userland/capsule_linux/src/linux/seal_slot.rs`.

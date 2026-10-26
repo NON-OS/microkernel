@@ -17,8 +17,8 @@
 use crate::protocol::{
     Request, E_BAD_OP, E_INVAL, OP_HEALTHCHECK, OP_LIFECYCLE_SUBSCRIBE, OP_QUERY_FOCUS,
     OP_QUERY_TOPMOST, OP_ROUTE_FOCUS, OP_WINDOW_CLOSE, OP_WINDOW_FOCUS, OP_WINDOW_MAXIMIZE,
-    OP_WINDOW_MINIMIZE, OP_WINDOW_MOVE, OP_WINDOW_OPEN, OP_WINDOW_RAISE, OP_WINDOW_RESIZE,
-    OP_WINDOW_RESTORE,
+    OP_WINDOW_MINIMIZE, OP_WINDOW_MOVE, OP_WINDOW_OPEN, OP_WINDOW_PLACE, OP_WINDOW_RAISE,
+    OP_WINDOW_RESIZE, OP_WINDOW_RESTORE,
 };
 use crate::server::{handlers, respond};
 use crate::state::Context;
@@ -36,6 +36,7 @@ pub(super) fn dispatch(
         OP_WINDOW_CLOSE => handlers::window_close::handle(ctx, sender_pid, &req, body, tx),
         OP_WINDOW_MOVE => handlers::window_move::handle(ctx, sender_pid, &req, body, tx),
         OP_WINDOW_RESIZE => handlers::window_resize::handle(ctx, sender_pid, &req, body, tx),
+        OP_WINDOW_PLACE => handlers::window_place::handle(ctx, sender_pid, &req, body, tx),
         OP_WINDOW_MAXIMIZE => handlers::window_maximize::handle(ctx, sender_pid, &req, body, tx),
         OP_WINDOW_FOCUS => handlers::window_focus::handle(ctx, sender_pid, &req, body, tx),
         OP_WINDOW_RAISE => handlers::window_raise::handle(ctx, sender_pid, &req, body, tx),

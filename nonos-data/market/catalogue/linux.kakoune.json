@@ -1,5 +1,5 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "operator_id": "nonos.marketplace.v1",
   "published_at_ms": 1792844669000,
   "serial": 1792844669,
@@ -12,6 +12,7 @@
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "A modal editor where you select first and act second. Runs shell snippets, so it may run other programs.",
+      "logo_hash": "400ee031834435b027b5432246e4bbfb23694a672b3a1eff4d9b621211af05c3",
       "price": {
         "kind": "free",
         "amount_atomic": "0",

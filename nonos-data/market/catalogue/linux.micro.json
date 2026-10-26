@@ -1,5 +1,5 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "operator_id": "nonos.marketplace.v1",
   "published_at_ms": 1792844669000,
   "serial": 1792844669,
@@ -12,6 +12,7 @@
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "A terminal text editor with the keys people already know: Ctrl-S saves, Ctrl-Q quits.",
+      "logo_hash": "d15dc03375f11b205c0b5abf0d7dc3a19a5cbc91fa2ffa9c8dff931be9ffbfb4",
       "price": {
         "kind": "free",
         "amount_atomic": "0",

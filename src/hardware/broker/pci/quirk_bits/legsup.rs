@@ -25,9 +25,7 @@ const FLOOR: u32 = 0x40;
 const NONE: [u8; 3] = [0xFF; 3];
 
 /// `before` for Ident, 0xFF where no legacy support id may be.
-// Public for kernel_proofs, which mounts quirk_bits at its root.
-#[allow(unreachable_pub)]
-pub fn legsup_before(read: &dyn Fn(u16) -> u8, offset: u32) -> [u8; 3] {
+pub(crate) fn legsup_before(read: &dyn Fn(u16) -> u8, offset: u32) -> [u8; 3] {
     let Ok(at) = u16::try_from(offset) else { return NONE };
     if in_listed(read, at) {
         return NONE;

@@ -23,6 +23,8 @@ pub mod boxed;
 pub mod call;
 pub mod file;
 pub mod guest;
+#[path = "../../../capsule_linux/src/linux/heap_choice.rs"]
+pub mod heap_choice;
 pub mod net;
 pub mod unix;
 #[path = "../../../capsule_linux/src/linux/whole.rs"]

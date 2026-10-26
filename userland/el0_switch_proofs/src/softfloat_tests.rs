@@ -10,10 +10,16 @@ fn rust_and_c_leave_the_vector_registers_alone() {
     let features = target.lines().find(|l| l.contains("\"features\"")).unwrap();
     assert!(features.contains("-neon") && features.contains("-fp-armv8"), "{features}");
     assert!(target.contains("\"abi\": \"softfloat\""));
-    let build = raw("build.rs");
-    assert!(build.contains(
+    let flags = raw("build_c_target.rs");
+    assert!(flags.contains(
         "\"aarch64\" => Some((\"aarch64-unknown-none-elf\", &[\"-mgeneral-regs-only\"][..])),"
     ));
+    // Every C compile, the assembly and both PQClean schemes, takes its flags
+    // from there and applies all of them.
+    let build = raw("build.rs");
+    assert_eq!(build.matches("build_c_target::c_target(&arch)").count(), 3);
+    assert_eq!(build.matches("for flag in arch_flags {\n        build.flag(flag);").count(), 1);
+    assert_eq!(build.matches("for flag in c_flags {\n        build.flag(flag);").count(), 2);
 }
 
 #[test]
