@@ -19,6 +19,7 @@ use x86_64::structures::idt::InterruptStackFrame;
 use super::context::{log_exception, ExceptionContext};
 use crate::arch::x86_64::diag::emit_fatal_notice;
 use crate::interrupts::stats;
+use crate::security::observability::redact::redact_address;
 
 const VE_INFO_ADDRESS: u64 = 0;
 
@@ -34,7 +35,7 @@ pub fn handle(frame: InterruptStackFrame) {
     log_ve_details(&ve_info);
 
     if ctx.is_user_mode() {
-        handle_user_mode_ve(&ctx, &ve_info);
+        handle_user_mode_ve(&ctx);
     } else {
         handle_kernel_mode_ve(&ctx, &ve_info);
     }
@@ -81,39 +82,35 @@ fn log_ve_details(info: &VeInfo) {
     };
 
     crate::log::logger::log_error!(
-        "VE: reason={} ({}) qual={:#x} gla={:#x} gpa={:#x}",
+        "VE: reason={} ({}) qual={:#x} gla={} gpa={}",
         info.exit_reason,
         reason_name,
         info.exit_qualification,
-        info.guest_linear_address,
-        info.guest_physical_address
+        redact_address(info.guest_linear_address),
+        redact_address(info.guest_physical_address)
     );
 }
 
-fn handle_user_mode_ve(ctx: &ExceptionContext, info: &VeInfo) -> ! {
+fn handle_user_mode_ve(ctx: &ExceptionContext) -> ! {
     crate::log::logger::log_error!(
-        "User process triggered virtualization exception at {:#x}",
-        ctx.instruction_pointer
+        "User process triggered virtualization exception at {}",
+        redact_address(ctx.instruction_pointer)
     );
-
-    if info.exit_reason == 48 {
-        crate::log::logger::log_error!("EPT violation: address={:#x}", info.guest_physical_address);
-    }
 
     crate::process::exit::exit_and_yield(-7, true)
 }
 
 fn handle_kernel_mode_ve(ctx: &ExceptionContext, info: &VeInfo) {
     crate::log::logger::log_critical(&alloc::format!(
-        "KERNEL PANIC: Virtualization exception at {:#x}",
-        ctx.instruction_pointer
+        "KERNEL PANIC: Virtualization exception at {}",
+        redact_address(ctx.instruction_pointer)
     ));
 
     crate::log::logger::log_critical(&alloc::format!(
-        "VE reason={} qual={:#x} gpa={:#x}",
+        "VE reason={} qual={:#x} gpa={}",
         info.exit_reason,
         info.exit_qualification,
-        info.guest_physical_address
+        redact_address(info.guest_physical_address)
     ));
 
     crate::boot::panic::fatal();

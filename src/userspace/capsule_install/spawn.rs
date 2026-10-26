@@ -17,7 +17,8 @@
 //! Spawning the installer through the verified path every capsule takes,
 //! on demand from the launcher rather than at boot.
 //! The capability set is what the installer's Capsule.mk declares and
-//! nothing more: Admin is there for the reboot at the end, DeviceEnum for
+//! nothing more. No Admin: the restart at the end is asked of capsule_power
+//! (S-14), which lets the two installers reboot. DeviceEnum for
 //! the disk list and the running image, Crypto for the GUIDs it mints,
 //! FileSystem for what it carries, which it reads from vfs, and
 //! StoreWrite for the disk itself, since the disk drivers serve raw sectors
@@ -50,7 +51,6 @@ pub const CLI_CAPS: u64 = Capability::CoreExec.bit()
     | Capability::Memory.bit()
     | Capability::Crypto.bit()
     | Capability::FileSystem.bit()
-    | Capability::Admin.bit()
     | crate::capabilities::serial_debug_cap()
     | Capability::DeviceEnum.bit()
     | Capability::StoreWrite.bit();
@@ -58,9 +58,8 @@ pub const CLI_CAPS: u64 = Capability::CoreExec.bit()
 /// The window's set: the command line's and the two bits it draws with.
 /// AttestRead, for the window's proofs screen, is required by its manifest and
 /// installed whatever this grant says, so it is not repeated here.
-const WINDOW_CAPS: u64 = CLI_CAPS
-    | Capability::GraphicsDisplayQuery.bit()
-    | Capability::GraphicsSurfaceCreate.bit();
+const WINDOW_CAPS: u64 =
+    CLI_CAPS | Capability::GraphicsDisplayQuery.bit() | Capability::GraphicsSurfaceCreate.bit();
 
 pub(super) fn spawn_install_capsule() -> Result<u32, SpawnError> {
     let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)
