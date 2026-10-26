@@ -1,0 +1,34 @@
+[
+ {
+  "name": "rtl8139-mask-bus-master-only",
+  "file": "userland/capsule_driver_rtl8139/src/setup/pci.rs",
+  "old": "const COMMAND_MASK: u16 = MK_PCI_CMD_BUS_MASTER | MK_PCI_CMD_MEMORY_SPACE;",
+  "new": "const COMMAND_MASK: u16 = MK_PCI_CMD_BUS_MASTER;",
+  "test": "_tests::",
+  "crate": "userland/rtl8139_proofs"
+ },
+ {
+  "name": "rtl8139-on-write-keeps-memory-space",
+  "file": "userland/capsule_driver_rtl8139/src/setup/pci.rs",
+  "old": "let value = if bus_master { MK_PCI_CMD_BUS_MASTER } else { 0 };",
+  "new": "let value = if bus_master { COMMAND_MASK } else { 0 };",
+  "test": "_tests::",
+  "crate": "userland/rtl8139_proofs"
+ },
+ {
+  "name": "rtl8139-off-write-keeps-memory-space",
+  "file": "userland/capsule_driver_rtl8139/src/setup/pci.rs",
+  "old": "let value = if bus_master { MK_PCI_CMD_BUS_MASTER } else { 0 };",
+  "new": "let value = if bus_master { MK_PCI_CMD_BUS_MASTER } else { MK_PCI_CMD_MEMORY_SPACE };",
+  "test": "_tests::",
+  "crate": "userland/rtl8139_proofs"
+ },
+ {
+  "name": "rtl8139-shim-forgets-the-rule",
+  "file": "userland/rtl8139_proofs/libc_shim/src/pci.rs",
+  "old": "    if next & MK_PCI_CMD_MEMORY_SPACE != 0 {",
+  "new": "    if false {",
+  "test": "memory_space_tests::",
+  "crate": "userland/rtl8139_proofs"
+ }
+]
