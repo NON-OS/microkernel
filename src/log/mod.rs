@@ -22,8 +22,6 @@ mod macros;
 pub mod manager;
 pub mod types;
 
-#[cfg(target_arch = "x86_64")]
-pub use backend::VgaBackend;
 pub use backend::{LogBackend, RamBufferBackend, RAM_BUF_SIZE};
 pub use helpers::{debug_simple, info_simple, log_error_simple, warn_simple};
 pub use manager::{

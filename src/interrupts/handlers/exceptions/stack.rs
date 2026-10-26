@@ -18,6 +18,7 @@ use x86_64::structures::idt::InterruptStackFrame;
 
 use super::context::{log_exception_with_code, ExceptionContext};
 use crate::interrupts::stats;
+use crate::security::observability::redact::redact_address;
 
 pub fn handle(frame: InterruptStackFrame, error_code: u64) {
     let ctx = ExceptionContext::from_frame(&frame);
@@ -43,7 +44,7 @@ fn analyze_stack_fault(ctx: &ExceptionContext, error_code: u64) {
         );
     }
 
-    crate::log::logger::log_error!("Stack pointer at fault: {:#x}", ctx.stack_pointer);
+    crate::log::logger::log_error!("Stack pointer at fault: {}", redact_address(ctx.stack_pointer));
 }
 
 fn terminate_user_process(_ctx: &ExceptionContext) -> ! {

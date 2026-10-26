@@ -74,11 +74,11 @@ pub(crate) fn wots_sign(
     let mut base_w = [0u32; SPHINCS_WOTS_LEN];
     let mut csum = 0u32;
 
-    for i in 0..SPHINCS_WOTS_LEN1 {
+    for (i, w) in base_w.iter_mut().enumerate().take(SPHINCS_WOTS_LEN1) {
         let byte_idx = i / 2;
         let bit_shift = if i % 2 == 0 { 4 } else { 0 };
-        base_w[i] = ((msg[byte_idx] >> bit_shift) & 0x0F) as u32;
-        csum += (SPHINCS_W as u32 - 1) - base_w[i];
+        *w = ((msg[byte_idx] >> bit_shift) & 0x0F) as u32;
+        csum += (SPHINCS_W as u32 - 1) - *w;
     }
 
     csum <<= 4;
@@ -88,12 +88,12 @@ pub(crate) fn wots_sign(
 
     addr.set_type(ADDR_TYPE_WOTS_PRF);
 
-    for i in 0..SPHINCS_WOTS_LEN {
+    for (i, &w) in base_w.iter().enumerate() {
         addr.set_chain(i as u32);
         let sk = prf(sk_seed, pk_seed, addr);
 
         addr.set_type(ADDR_TYPE_WOTS);
-        let sig_i = wots_chain(pk_seed, addr, &sk, 0, base_w[i]);
+        let sig_i = wots_chain(pk_seed, addr, &sk, 0, w);
         sig.extend_from_slice(&sig_i);
 
         addr.set_type(ADDR_TYPE_WOTS_PRF);
@@ -113,11 +113,11 @@ pub(crate) fn wots_pk_from_sig(
     let mut base_w = [0u32; SPHINCS_WOTS_LEN];
     let mut csum = 0u32;
 
-    for i in 0..SPHINCS_WOTS_LEN1 {
+    for (i, w) in base_w.iter_mut().enumerate().take(SPHINCS_WOTS_LEN1) {
         let byte_idx = i / 2;
         let bit_shift = if i % 2 == 0 { 4 } else { 0 };
-        base_w[i] = ((msg[byte_idx] >> bit_shift) & 0x0F) as u32;
-        csum += (SPHINCS_W as u32 - 1) - base_w[i];
+        *w = ((msg[byte_idx] >> bit_shift) & 0x0F) as u32;
+        csum += (SPHINCS_W as u32 - 1) - *w;
     }
 
     csum <<= 4;

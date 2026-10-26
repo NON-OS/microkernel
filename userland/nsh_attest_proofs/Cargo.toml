@@ -32,7 +32,7 @@ publish = false
 path = "src/lib.rs"
 
 [dependencies]
-nsh_attest = { path = "../nsh_attest", features = ["proofs"] }
+nsh_attest = { path = "../nsh_attest" }
 nsh_crypto = { path = "../nsh_crypto" }
 nsh_wire = { path = "../nsh_wire" }
 nonos_hash = { path = "../nonos_hash" }

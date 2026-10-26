@@ -35,12 +35,12 @@ pub(crate) fn sample_ternary(
         positions.swap(i, j);
     }
 
-    for i in 0..num_ones {
-        p.coeffs[positions[i]] = 1;
+    for &pos in &positions[..num_ones] {
+        p.coeffs[pos] = 1;
     }
 
-    for i in num_ones..(num_ones + num_neg_ones) {
-        p.coeffs[positions[i]] = -1;
+    for &pos in &positions[num_ones..num_ones + num_neg_ones] {
+        p.coeffs[pos] = -1;
     }
 
     Ok(p)

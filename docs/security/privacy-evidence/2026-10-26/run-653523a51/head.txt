@@ -1,0 +1,4 @@
+653523a51e S-14: virtualization.rs shrinks back under its old length: the EPT line, now always [ADDR], said nothing the VE line above it did not (reason 48 by name, the redacted gpa)
+6e173989fc10a468ac8c3eacb45705e311cbe87ea4c0952cc3273d4be9d5c1cf  /home/user/pk-build/target/dev/tree/target/release/standard-dev/nonos.img
+BUILT
+rc=0
