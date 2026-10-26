@@ -29,8 +29,6 @@ mod say;
 mod server;
 mod setup;
 mod wait;
-// The whole wire as track B's crate has it, some of it for other media.
-#[allow(dead_code, unused_imports)]
 mod wire;
 
 use nonos_libc::{heap_init, mk_exit, start_driver, EXIT_ABSENT};
