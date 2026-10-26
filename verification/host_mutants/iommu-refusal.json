@@ -1,0 +1,82 @@
+[
+ {
+  "name": "refusal-air-gapped-goes-on",
+  "file": "src/memory/iommu/no_iommu_refusal.rs",
+  "old": "    } else if air_gapped {\n        Some(Needs::AirGapped)\n",
+  "new": "    } else if false {\n        Some(Needs::AirGapped)\n",
+  "test": "confine_posture::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "refusal-hardened-goes-on",
+  "file": "src/memory/iommu/no_iommu_refusal.rs",
+  "old": "    } else if hardened {\n        Some(Needs::Hardened)\n",
+  "new": "    } else if false {\n        Some(Needs::Hardened)\n",
+  "test": "confine_posture::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "refusal-agentproof-goes-on",
+  "file": "src/memory/iommu/no_iommu_refusal.rs",
+  "old": "    } else if agentproof_build {",
+  "new": "    } else if false {",
+  "test": "confine_posture::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "refusal-despite-a-unit",
+  "file": "src/memory/iommu/no_iommu_refusal.rs",
+  "old": "    if unit_in_service {\n        None\n",
+  "new": "    if false {\n        None\n",
+  "test": "confine_posture::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "refusal-standard-stops",
+  "file": "src/memory/iommu/no_iommu_refusal.rs",
+  "old": "    } else {\n        None\n    }\n}",
+  "new": "    } else {\n        Some(Needs::Hardened)\n    }\n}",
+  "test": "confine_posture::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "refusal-line-names-hardened-for-air",
+  "file": "src/memory/iommu/no_iommu_refusal.rs",
+  "old": "            Self::AirGapped => AIR_GAPPED,",
+  "new": "            Self::AirGapped => HARDENED,",
+  "test": "confine_posture::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "refusal-decide-does-not-stop",
+  "file": "src/memory/iommu/no_iommu.rs",
+  "old": "        crate::boot::stop(\"IOMMU\", needs.line());\n",
+  "new": "        let _ = needs;\n",
+  "test": "confine_posture::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "refusal-agentproof-flag-off",
+  "file": "src/memory/iommu/no_iommu.rs",
+  "old": "const AGENTPROOF: bool = cfg!(feature = \"nonos-agentproof\");",
+  "new": "const AGENTPROOF: bool = false;",
+  "test": "confine_posture::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "refusal-agentproof-takes-posture",
+  "file": "src/memory/iommu/no_iommu.rs",
+  "old": "refusing_boot(hardened, air_gapped) || AGENTPROOF",
+  "new": "refusing_boot(hardened, air_gapped)",
+  "test": "confine_posture::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "refusal-gauntlet-not-agentproof",
+  "file": "tools/nix/config.nix",
+  "old": "\"nonos-dev-attest\" \"nonos-agentproof\" ]",
+  "new": "\"nonos-dev-attest\" ]",
+  "test": "confine_posture::",
+  "crate": "userland/kernel_proofs"
+ }
+]
