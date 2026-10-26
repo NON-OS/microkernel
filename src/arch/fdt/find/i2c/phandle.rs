@@ -27,7 +27,7 @@ use super::seen::{Provider, Seen};
 pub(super) fn provider(fdt: &Fdt, phandle: u32) -> Result<Option<Provider>, FdtError> {
     let mut walker = fdt.walker();
     let mut seen: Option<Seen> = None;
-    while let Some(event) = walker.next()? {
+    while let Some(event) = walker.next_event()? {
         if let Event::Property(p) = event {
             if let Some(s) = seen.as_mut() {
                 s.see(&p);

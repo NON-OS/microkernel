@@ -16,8 +16,6 @@
 
 //! Through the RNG's own fill_bytes, with no hardware: the weak line too.
 
-#![allow(dead_code, clippy::let_unit_value)]
-
 include!("../src/mount.rs");
 
 fn said() -> String {
@@ -28,13 +26,13 @@ fn said() -> String {
 fn the_first_draw_before_seeding_names_its_caller_once() {
     stand_in::sources(true, true, true);
     let mut buf = [0u8; 8];
-    let _ = crypto::rng::fill_bytes(&mut buf);
+    crypto::rng::fill_bytes(&mut buf);
     assert_eq!(said(), "", "a seeded draw says nothing");
     stand_in::sources(false, false, false);
     let (_, at) = (crypto::rng::fill_bytes(&mut buf), line!());
     let first = format!("[RNG] pre-seed draw by {}:{at}\n", file!());
     let want = format!("{first}[RNG] fallback used: weak bytes (entropy unavailable)\n");
     assert_eq!(said(), want);
-    let _ = crypto::rng::fill_bytes(&mut buf);
+    crypto::rng::fill_bytes(&mut buf);
     assert_eq!(said(), want, "each line is said once");
 }

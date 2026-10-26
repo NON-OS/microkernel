@@ -15,12 +15,12 @@ pub mod bot;
 pub mod clock;
 #[path = "../../capsule_driver_usb_msc/src/descriptors/mod.rs"]
 pub mod descriptors;
-#[path = "../../capsule_driver_usb_msc/src/disk/mod.rs"]
 pub mod disk;
 #[path = "../../capsule_driver_usb_msc/src/protocol/mod.rs"]
 pub mod protocol;
 #[path = "../../capsule_driver_usb_msc/src/scan/mod.rs"]
 pub mod scan;
+mod scan_default;
 #[path = "../../capsule_driver_usb_msc/src/scsi/mod.rs"]
 pub mod scsi;
 #[path = "../../capsule_driver_usb_msc/src/span/mod.rs"]
@@ -30,9 +30,6 @@ pub mod state;
 /// The device behind driver.xhci0, scripted, where `disk` calls it.
 pub mod xhci;
 
-/// The driver's BOT command, mounted where the sweep reaches it.
-#[cfg(test)]
-mod bot_parts;
 /// A seeded sweep over BOT commands.
 #[cfg(test)]
 mod bot_sweep;

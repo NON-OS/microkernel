@@ -19,7 +19,7 @@
 
 use super::super::le::{u16_at, u32_at, u8_at};
 
-pub const CACHE_MIN: usize = 24;
+pub(crate) const CACHE_MIN: usize = 24;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Cache {
@@ -34,7 +34,7 @@ pub struct Cache {
     pub id: Option<u32>,
 }
 
-pub fn cache(s: &[u8], offset: u32, revision: u8) -> Option<Cache> {
+pub(crate) fn cache(s: &[u8], offset: u32, revision: u8) -> Option<Cache> {
     Some(Cache {
         offset,
         flags: u32_at(s, 4)?,

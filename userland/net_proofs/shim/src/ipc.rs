@@ -52,7 +52,13 @@ fn input<'a>(ptr: *const u8, len: usize) -> &'a [u8] {
     unsafe { core::slice::from_raw_parts(ptr, len) }
 }
 
-pub fn mk_ipc_call(endpoint: u64, req: *const u8, req_len: usize, resp: *mut u8, cap: usize) -> i64 {
+pub fn mk_ipc_call(
+    endpoint: u64,
+    req: *const u8,
+    req_len: usize,
+    resp: *mut u8,
+    cap: usize,
+) -> i64 {
     let message = input(req, req_len).to_vec();
     let reply = {
         let mut slot = RESPONDER.lock().unwrap_or_else(|e| e.into_inner());
@@ -65,17 +71,6 @@ pub fn mk_ipc_call(endpoint: u64, req: *const u8, req_len: usize, resp: *mut u8,
     // SAFETY: `resp` is the capsule's buffer of `cap` bytes and `n <= cap`.
     unsafe { core::ptr::copy_nonoverlapping(reply.as_ptr(), resp, n) };
     n as i64
-}
-
-pub fn mk_ipc_call_timeout(
-    endpoint: u64,
-    req: *const u8,
-    req_len: usize,
-    resp: *mut u8,
-    cap: usize,
-    _timeout_ms: u64,
-) -> i64 {
-    mk_ipc_call(endpoint, req, req_len, resp, cap)
 }
 
 pub fn mk_ipc_reply(pid: u32, buf: *const u8, len: usize) -> i64 {

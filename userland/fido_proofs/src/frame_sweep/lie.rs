@@ -4,7 +4,7 @@
 //! and the next when `j` never ends, since the next one opens on it; all of
 //! them for a KEEPALIVE or ERROR heard as the key's.
 
-use crate::ctaphid_parts::frame::{packets, CMD_ERROR, PACKET};
+use crate::ctaphid::frame::{packets, CMD_ERROR, PACKET};
 
 use super::build::{keepalive, stream, Stream, CID};
 pub use super::lies::{Lie, LIES};
