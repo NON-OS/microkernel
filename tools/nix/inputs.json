@@ -6205,6 +6205,7 @@
   ],
   "include": [
    ".cargo",
+   "Cargo.toml",
    "abi/driver_broker_abi.md",
    "abi/syscalls.toml",
    "nonos-bootloader/src/display/gop/refusal_word.rs",
@@ -6219,6 +6220,8 @@
    "nonos-data/trust/policy/nonos_trust_anchor.policy.bin",
    "nonos-data/trust/policy/zk_capsule_policy_root.bin",
    "src",
+   "tools/agentproof_gauntlet/run.py",
+   "tools/nix/config.nix",
    "userland/capsule_about/Capsule.mk",
    "userland/capsule_acpi/Capsule.mk",
    "userland/capsule_acpi/src/boot/first.rs",
