@@ -28,6 +28,9 @@ PLAIN = {
     "usb-tablet": "-device usb-tablet,bus=xhci.0,id=lane-usb-tablet",
     "usb-kbd": "-device usb-kbd,bus=xhci.0,id=lane-usb-kbd",
     "virtio-tablet": "-device virtio-tablet-pci",
+    # A virtio keyboard, which QEMU hands its keys to once driver.virtio_input
+    # takes it, so a key QMP sends reaches that driver rather than PS/2.
+    "virtio-kbd": "-device virtio-keyboard-pci,id=lane-virtio-kbd",
     "virtio-balloon": "-device virtio-balloon-pci",
     "vmbus": "-device vmbus-bridge -device hv-balloon",
     # Not a device: the machine stops at power-off instead of exiting, so a
