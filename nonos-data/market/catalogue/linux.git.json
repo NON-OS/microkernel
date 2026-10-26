@@ -1,5 +1,5 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "operator_id": "nonos.marketplace.v1",
   "published_at_ms": 1792844669000,
   "serial": 1792844669,
@@ -12,6 +12,7 @@
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "Version control for repositories on this machine: init, commit, branch, merge, log and diff. Remotes are not served: git's HTTP and SSH helpers have no box of their own and are refused at their installed paths.",
+      "logo_hash": "bc16e24a19a8ab164f5114841d1aab37be6d1496fa8ae469335fabbcbbf69992",
       "price": {
         "kind": "free",
         "amount_atomic": "0",

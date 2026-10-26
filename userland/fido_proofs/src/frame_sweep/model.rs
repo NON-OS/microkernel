@@ -12,11 +12,12 @@
 
 use crate::ctaphid::heard::Heard;
 
-/// A message being put together: its command, length, bytes so far and next sequence.
-type Partial = (u8, usize, Vec<u8>, u8);
+/// A message being heard: its command, its length, its bytes so far and the
+/// next sequence number.
+type Hearing = (u8, usize, Vec<u8>, u8);
 
 pub fn heard(reports: &[Vec<u8>], cid: [u8; 4]) -> Vec<Heard> {
-    let (mut out, mut msg): (Vec<Heard>, Option<Partial>) = (Vec::new(), None);
+    let (mut out, mut msg): (Vec<Heard>, Option<Hearing>) = (Vec::new(), None);
     for p in reports {
         if p.len() < 7 || p[..4] != cid {
             continue;

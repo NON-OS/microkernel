@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_toolkit::decorations::{
-    accessory_rect_at, content_rect_at, draw_frame_at, DecorationHit,
-};
+use nonos_toolkit::decorations::{accessory_rect_at, content_rect_at, draw_frame_at, FrameState};
 
 use crate::app::{App, AppManifest};
 use crate::paint::PaintBuffer;
@@ -30,7 +28,7 @@ pub(super) fn draw<A: App>(
     manifest: &AppManifest,
     binding: &WindowBinding,
     pixels: &mut [u32],
-    hover: DecorationHit,
+    frame: FrameState,
     maximized: bool,
 ) {
     let mut fb = PaintBuffer {
@@ -39,14 +37,13 @@ pub(super) fn draw<A: App>(
         width: binding.width,
         height: binding.height,
     };
-    let lit = hover != DecorationHit::None && hover != DecorationHit::Titlebar;
     let accessory_w = app.titlebar_accessory_w();
     let q = super::chrome::quarters();
-    draw_frame_at(&mut fb, maximized, manifest.title, lit, accessory_w, q);
+    draw_frame_at(&mut fb, maximized, manifest.title, frame, accessory_w, q);
     if let Some(a) = accessory_rect_at(binding.width, binding.height, maximized, accessory_w, q) {
         app.paint_accessory(&mut fb.sub(a.x, a.y, a.w, a.h));
     }
     let c = content_rect_at(binding.width, binding.height, maximized, q);
     app.paint(&mut fb.sub(c.x, c.y, c.w, c.h));
-    finish(&mut fb, maximized);
+    finish(&mut fb, maximized, frame.focused);
 }

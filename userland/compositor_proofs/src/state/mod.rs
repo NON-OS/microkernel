@@ -22,10 +22,14 @@
 pub mod attach;
 #[path = "../../../compositor/src/state/cursor.rs"]
 pub mod cursor;
+#[path = "../../../compositor/src/state/cursor_pick.rs"]
+pub mod cursor_pick;
 #[path = "../../../compositor/src/state/damage/mod.rs"]
 pub mod damage;
 #[path = "../../../compositor/src/state/damage_bound.rs"]
 pub mod damage_bound;
+#[path = "../../../compositor/src/state/display_rule.rs"]
+pub mod display_rule;
 #[path = "../../../compositor/src/state/indicator.rs"]
 pub mod indicator;
 #[path = "../../../compositor/src/state/lid_rule.rs"]
@@ -40,8 +44,6 @@ pub mod scene_raise;
 pub mod scene_remove;
 #[path = "../../../compositor/src/state/scene_submit.rs"]
 pub mod scene_submit;
-#[path = "../../../compositor/src/state/display_rule.rs"]
-pub mod display_rule;
 #[path = "../../../compositor/src/state/trusted_rule.rs"]
 pub mod trusted_rule;
 #[path = "../../../compositor/src/state/visible.rs"]
