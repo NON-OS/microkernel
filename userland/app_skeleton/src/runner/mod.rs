@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod boot;
+mod booted;
 pub mod chrome;
 mod click_focus;
 mod control;
@@ -62,6 +63,7 @@ mod run_loop;
 mod service_frame;
 mod teardown;
 pub mod teardown_steps;
+mod theme_handshake;
 
 #[cfg(feature = "runtime")]
 pub use entry::run;
