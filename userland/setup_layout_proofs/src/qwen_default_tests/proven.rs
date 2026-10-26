@@ -18,7 +18,8 @@
 //! one is taken only when it is named.
 
 use super::GIB;
-use crate::default_tier::{proven, resolve, resolve_in, Source, PROVEN, WEIGHTS};
+use crate::default_tier::proven::PROVEN;
+use crate::default_tier::{proven, resolve, resolve_in, Source, WEIGHTS};
 use crate::need::Room;
 
 /* No default is ever a tier that has not answered on NONOS, on any machine. */
