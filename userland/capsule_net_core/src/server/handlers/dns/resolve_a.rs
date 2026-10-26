@@ -29,9 +29,9 @@ use super::answer::{cancel, err};
 use super::lookups::{Lookup, PENDING, TIMEOUT_MS};
 use super::pending::Waiting;
 use crate::protocol::dns::{E_NAME_INVALID, E_NOT_DIRECT, E_NO_LEASE, E_SERVFAIL};
-use nonos_policy_proto::Field;
 use crate::server::parse_req::Request;
 use crate::state::{self, DNS_SERVERS};
+use nonos_policy_proto::Field;
 
 pub use super::lookups::waiting;
 pub use super::settle::{settle, settle_for};
@@ -63,6 +63,7 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     };
     let w = Waiting {
         pid: sender_pid,
+        ipc: crate::server::runner::received_request(),
         request_id: req.request_id,
         query: lookup,
         deadline_ms: mk_uptime_ms() + TIMEOUT_MS,

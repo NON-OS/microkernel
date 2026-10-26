@@ -26,6 +26,7 @@ pub fn name(rc: i64) -> &'static [u8] {
         -16 => b"EBUSY",
         -22 => b"EINVAL",
         -38 => b"ENOSYS",
+        -110 => b"ETIMEDOUT",
         _ => b"errno",
     }
 }

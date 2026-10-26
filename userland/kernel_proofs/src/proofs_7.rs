@@ -67,3 +67,6 @@ mod log_budget;
 /// The kernel logger is started once per boot, after the heap.
 #[path = "log_init/mod.rs"]
 mod log_init;
+/// A process's output and its requests are read from inboxes apart.
+#[path = "own_inboxes/mod.rs"]
+pub mod own_inboxes;

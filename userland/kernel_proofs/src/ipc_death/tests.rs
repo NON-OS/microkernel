@@ -24,7 +24,7 @@ use alloc::collections::VecDeque;
 use alloc::string::String;
 
 fn q(entries: &[(u32, &str, u64)]) -> VecDeque<Entry> {
-    entries.iter().map(|(p, i, t)| Entry::new(*p, String::from(*i), *t)).collect()
+    entries.iter().map(|(p, i, t)| Entry::new(*p, String::from(*i), *t, *t)).collect()
 }
 
 #[test]

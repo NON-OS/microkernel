@@ -33,7 +33,7 @@ CAP_DENY = re.compile(r"\[CAP-DENY\] pid=(\d+)")
 KERNEL = re.compile(r"\[(?:CAP-DENY|LINUX[A-Z-]*|PERSONALITY|IOMMU|SPAWN[A-Z-]*|ATTEST[A-Z-]*|TRAP [A-Z]+)\]")
 # Attacks whose line the kernel prints itself.
 KERNEL_PRINTED = ("trailer-",)
-CAPSULE = ("cap-escape", "foreign-memory", "service-squat", "held-escape", "deputy-escape")
+CAPSULE = ("cap-escape", "foreign-memory", "service-squat", "held-escape", "deputy-escape", "reply-twice")
 
 
 def kernel_line(lines, i, name, attacker):

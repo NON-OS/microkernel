@@ -38,7 +38,8 @@ def tag_hex(tag: str) -> str:
 
 
 def kernel_syscalls() -> dict[str, str]:
-    text = KERNEL_NUMBERS.read_text()
+    parts = [KERNEL_NUMBERS] + sorted(KERNEL_NUMBERS.with_suffix("").glob("*.rs"))
+    text = "\n".join(p.read_text() for p in parts)
     return {tag: name for name, tag in TAG_RE.findall(text)}
 
 
