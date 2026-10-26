@@ -51,6 +51,9 @@ pub fn spawn_driver_sdhci_capsule() -> Result<(), SpawnError> {
         // Polled with INTx off: no Irq, as the manifest asks none.
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
+            // The manifest's optional Debug, for the driver's own "driver.sdhci:" lines;
+            // 0 unless the kernel is built with capsule-serial-debug.
+            | crate::capabilities::serial_debug_cap()
             | Capability::Driver.bit()
             | Capability::DeviceEnum.bit()
             | Capability::Mmio.bit()

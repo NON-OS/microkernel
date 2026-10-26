@@ -21,6 +21,8 @@
 mod anon;
 #[path = "../../../../nonos_gfx_pool/src/pool.rs"]
 mod pool;
+#[path = "../../../../nonos_gfx_pool/src/run_state.rs"]
+mod run_state;
 /// Mounted once here; the pool's share tests reach them from beside.
 #[path = "../../../../nonos_gfx_pool/src/receiver.rs"]
 pub(super) mod receiver;

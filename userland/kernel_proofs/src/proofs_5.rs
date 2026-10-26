@@ -41,6 +41,9 @@ pub mod boot_cpu_id;
 pub mod device_shown;
 #[path = "entry_ac_tests.rs"]
 mod entry_ac_tests;
+/// The kernel heap grows past its bootstrap array; a process's mapping leaves it a floor.
+#[path = "heap_growth/mod.rs"]
+mod heap_growth;
 #[path = "holder_choice/mod.rs"]
 pub mod holder_choice;
 #[path = "hyperv_synic/mod.rs"]

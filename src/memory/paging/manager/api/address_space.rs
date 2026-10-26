@@ -31,14 +31,15 @@ pub fn switch_address_space(asid: u32) -> PagingResult<()> {
 }
 
 pub fn cleanup_address_space(asid: u32) -> PagingResult<()> {
-    lock_responsive(&PAGING_MANAGER).cleanup_address_space(asid)
+    cleanup_address_space_keeping(asid, &[])
 }
 
 pub fn cleanup_address_space_keeping(
     asid: u32,
     keep: &[crate::memory::addr::PhysAddr],
 ) -> PagingResult<()> {
-    lock_responsive(&PAGING_MANAGER).cleanup_address_space_keeping(asid, keep)
+    let cr3 = lock_responsive(&PAGING_MANAGER).take_address_space(asid)?;
+    Ok(cr3.map_or((), |cr3| super::super::address_space::free_taken(cr3, keep)))
 }
 
 pub fn lookup_asid_for_process(process_id: u32) -> Option<u32> {
