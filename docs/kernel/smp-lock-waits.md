@@ -45,6 +45,23 @@ Measured on the host, an uncontended take and release with and without the note,
 - A wait shorter than a second is not reported. A held lock that is slow but finishes, under emulation for example, can print a line and carry on.
 - The holder's site is the call site of `lock_responsive`. A helper that takes the lock for its callers names itself, not them.
 
+## The paging manager's lock
+
+Main `30a4b58c4` printed up to 80 `[LOCK]` lines a boot on four CPUs, every waiter at `api/address_space.rs:46` (`lookup_asid_for_process`) or `map_page.rs:35`, every holder at `address_space.rs:22` (`create_address_space`) or `mapping_in_asid.rs:34` (`map_page_in_asid`), and up to 44 services stopped answering ([evidence](../release-evidence/0.9.3/regression-30a4b58c4-paging-lock/README.md)). Three things together made it:
+
+- `PAGING_MANAGER` was a plain `spin::Mutex`, which goes to whichever CPU's try lands first after a release. A mapping loop lets go and takes again page by page and nearly always won that race, so a CPU spinning from further away lost it for a second and more.
+- Every system call's capability check (`Capability::resolve`) and every context switch (`switch_to_process_address_space`, `thread_asid::publish`) took that lock to look an address space up.
+- `create_address_space` and a few lookups held it with interrupts open.
+
+`0448b98c3` (MkGetPid for every capsule) only raised the traffic: the display driver's real pid made its surface paths run. Now:
+
+- `PAGING_MANAGER` is a `TicketMutex` (`src/smp/ticket.rs`): each taker draws a number and is served when it comes up, so none waits behind more than the takers that asked first. `lock_responsive` takes it as it takes a spin mutex (`src/smp/responsive_lock.rs`), with the same shootdown service and the same report.
+- Who owns which address space is also kept in a directory read without the lock (`src/memory/paging/manager/directory/`): 1024 slots, each a sequence lock whose only writer is the manager lock's holder. Switches, capability checks and the asid lookups read it; only if it ever runs out of room does a miss ask the manager.
+- Every holder of the manager lock masks interrupts. A number drawn by code an interrupt has stopped would hold up every CPU behind it.
+- A switch no longer writes a manager-wide "active table": on more than one CPU it was whichever CPU switched last. Walks of the running space read the root register.
+
+`userland/kernel_proofs/src/ticket_lock` proves the order: numbers served as drawn, a holder taking again comes after a waiter, a try never jumps the line or leaves a number behind, one holder at a time across four threads, and a waiter behind three hogs gets in within three holds. `userland/kernel_proofs/src/asid_directory` proves the directory: found by asid, pid and root until withdrawn, the lowest asid answers as the manager's table did, slots are reused, an overflow is known, and readers on three threads never see half of a writer's change across 20,000 of them.
+
 ## The static check
 
 `nonos-ci/check-lock-retake.py`, run by the static checks, reads `src/` and fails when a lock is held across its own take: taken again in the same function, or held across a call to a function that takes it, directly or through further calls. It reads by name. A lock is a `static` `Mutex` or `RwLock` whose name no other static has. A call is followed when it names, as `f(` or `a::b::f(`, a function no other function shares a name with. A guard is held as Rust 2021 holds it: a `let` of the take itself to the end of its block or its `drop`, a `match`, `if let` or `while let` on a take through its body, any other take to the end of its statement or of a plain `if` condition. Method calls, function values, trait calls and `Drop` are not followed; a re-take through one of those is left to the runtime report above. Its fixtures (`nonos-ci/lock_retake/fixtures/`) run first, and every rule in it has a fixture that fails without it. On the source before F1 it names `orphans.rs:37: GATE held across reclaim_dma()`, the deadlock above, and found one more: `fs/storage/quota.rs`'s `update_exceeded_timestamp` read the quota under its own write lock; it was decided under the one guard, and the module has since gone, as nothing called it.
