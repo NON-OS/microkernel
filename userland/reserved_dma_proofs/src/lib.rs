@@ -3,7 +3,7 @@
 //! the top, side by side so their `super::` paths resolve; `memory` and
 //! `arch` give the rest the `crate::` paths they name types by.
 
-#![allow(dead_code)]
+#![cfg(test)]
 
 #[path = "../../../src/memory/iommu/reserved/admit.rs"]
 pub mod admit;

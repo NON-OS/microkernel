@@ -43,7 +43,7 @@ impl<'a> Iterator for NodeIter<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         while !self.failed {
-            let event = match self.walker.next() {
+            let event = match self.walker.next_event() {
                 Ok(Some(event)) => event,
                 Ok(None) => return None,
                 Err(e) => {
