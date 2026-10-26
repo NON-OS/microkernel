@@ -62,6 +62,7 @@ mod sst_tests;
 mod stream_dma_tests;
 mod stream_irq_tests;
 mod stream_tests;
+mod vendor;
 mod verb_answer_tests;
 mod verb_idle_tests;
 mod verb_payload_tests;

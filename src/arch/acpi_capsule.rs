@@ -36,3 +36,13 @@ pub(crate) fn acpi_from_init() {
     #[cfg(target_arch = "x86_64")]
     crate::hardware::broker::acpi::leave::serve_from_init();
 }
+
+/// From init, right after the ACPI capsule's spawn (L55): its drivers wait
+/// for the capsule's first publish pass, bounded and said once. Elsewhere
+/// there is no capsule, and nothing waits.
+pub(crate) fn acpi_first_pass_wait(spawned: bool) {
+    #[cfg(target_arch = "x86_64")]
+    super::x86_64::acpi::first_pass_wait::wait(spawned);
+    #[cfg(not(target_arch = "x86_64"))]
+    let _ = spawned;
+}

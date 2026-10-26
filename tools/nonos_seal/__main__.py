@@ -23,7 +23,7 @@ import os
 import subprocess
 import sys
 
-from . import capsules, chain, keys, market, media, release_set, verify
+from . import capsules, chain, keys, market, market_inputs, media, release_set, verify
 from .run import Step, nix_build, nix_json, say
 
 
@@ -120,7 +120,7 @@ def main():
         sys.exit("  " + cfg["blocked"])
     if args.release and not cfg["release"]:
         sys.exit(f"  profile {cfg['profile']} uses the development loader and is never sealed for release")
-    serial = market.serial()
+    serial = market_inputs.serial()
     say(f"sealing {cfg['name']}: {cfg['about']}")
     # A development image (nonos-dev-attest): every trailer is the path alone,
     # which only that image's gates take, so it is enrolled in seconds. Its

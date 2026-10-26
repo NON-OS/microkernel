@@ -53,7 +53,8 @@ fn with_the_generator_pairs_sign_and_verify() {
     let sig = pair.sign(b"nsh").expect("signed");
     assert!(pair.verify(b"nsh", &sig) && !pair.verify(b"nsi", &sig));
     let (sk, pk) = p256::generate_keypair().expect("drawn");
-    assert_eq!(p256::public_key_from_secret(&sk), Some(pk));
+    let sig = p256::sign_message(&sk, b"nsh").expect("signed");
+    assert!(p256::verify_message(&pk, b"nsh", &sig), "the pair's public half is its secret's");
     let (a, b) = (p256::p256_ecdh_keypair().unwrap(), p256::p256_ecdh_keypair().unwrap());
     assert_ne!(a.0, b.0, "two draws differ");
     assert_eq!(p256::p256_ecdh(&a.0, &b.1), p256::p256_ecdh(&b.0, &a.1));

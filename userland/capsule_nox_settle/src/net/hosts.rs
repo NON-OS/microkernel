@@ -15,9 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The RPC hosts of each chain, the wallet's own (capsule_wallet_nonos
-//! chain.rs). One is asked at a time; a failure moves to the next.
+//! chain.rs). One is asked at a time; a failure moves to the next. A
+//! `devnet` build (development images only, P5) has the local test chain's
+//! one host in all three places, so a two-host read there asks it twice.
 
+#[cfg(feature = "devnet")]
+use nonos_nox_config::DEVNET;
 use nonos_nox_config::{MAINNET, SEPOLIA};
+#[cfg(feature = "devnet")]
+use nonos_route_link::DEVNET_RPC_HOST;
 use nonos_settle_proto::EINVAL;
 
 const MAINNET_HOSTS: [&str; 3] =
@@ -37,12 +43,19 @@ pub struct Slot {
 pub struct Slots {
     mainnet: Slot,
     sepolia: Slot,
+    #[cfg(feature = "devnet")]
+    devnet: Slot,
 }
 
 impl Slots {
     pub fn new() -> Slots {
         let slot = |hosts| Slot { hosts, checked: false };
-        Slots { mainnet: slot(MAINNET_HOSTS), sepolia: slot(SEPOLIA_HOSTS) }
+        Slots {
+            mainnet: slot(MAINNET_HOSTS),
+            sepolia: slot(SEPOLIA_HOSTS),
+            #[cfg(feature = "devnet")]
+            devnet: slot([DEVNET_RPC_HOST; 3]),
+        }
     }
 
     /// The chain's slot; EINVAL for a chain settle does not read.
@@ -50,6 +63,8 @@ impl Slots {
         match chain_id {
             MAINNET => Ok(&mut self.mainnet),
             SEPOLIA => Ok(&mut self.sepolia),
+            #[cfg(feature = "devnet")]
+            DEVNET => Ok(&mut self.devnet),
             _ => Err(EINVAL),
         }
     }

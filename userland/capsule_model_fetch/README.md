@@ -113,7 +113,7 @@ marketplace operator Ed25519 seed. Without the seed it is empty, and the
 capsule says so and exits 3. Layout: `NXQWEN01`, serial, mirror base, tiers
 (word, memory, files: name, length, SHA-256, URLs), 64-byte signature. A file's
 URLs are `NONOS_MODEL_MIRROR/TIER/FILE` when the build set it, then Hugging
-Face, both by the name the Qwen team publishes the file under. `catalogue/check.rs` verifies the signature under
+Face (the Qwen team's repository, or ggml-org's for Qwen3.5 and Qwen3.6), both by the name its publisher gives the file. `catalogue/check.rs` verifies the signature under
 `.keys/marketplace_operator_ed25519.pub`, parses strictly, and `catalogue/admit.rs`
 requires each file to be a name the data volume can keep and to equal a
 compiled-in pin (`src/pins`, the same tables by `#[path]`) in tier, length and

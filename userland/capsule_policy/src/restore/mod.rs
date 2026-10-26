@@ -17,7 +17,14 @@
 //! Restoring what first-boot setup kept on an earlier boot.
 
 mod apply;
+mod awaits;
+mod stage;
 mod tick;
 mod values;
 
 pub use tick::{settled, tick};
+
+/// True when a read of `field` must wait for the restore (`awaits`).
+pub fn awaits_restore(field: nonos_policy_proto::Field) -> bool {
+    awaits::awaits(field, settled())
+}
