@@ -26,6 +26,7 @@ impl Context {
             press: None,
             hover: None,
             hover_tick: 0,
+            hover_owed: None,
             cursor: CursorState::new(),
             compositor_port: 0,
             wm_port: 0,

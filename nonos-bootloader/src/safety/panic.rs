@@ -63,35 +63,13 @@ pub fn clear_panic_state() {
 pub fn secure_halt() -> ! {
     clear_sensitive_memory();
 
-    loop {
-        #[cfg(target_arch = "x86_64")]
-        unsafe {
-            core::arch::asm!("cli; hlt", options(nomem, nostack));
-        }
-        #[cfg(not(target_arch = "x86_64"))]
-        {
-            core::hint::spin_loop();
-        }
-    }
+    crate::arch::cpu::halt_forever()
 }
 
 pub fn secure_reset() -> ! {
     clear_sensitive_memory();
 
-    #[cfg(target_arch = "x86_64")]
-    unsafe {
-        /* triple fault reset */
-        core::arch::asm!(
-            "lidt [rax]",
-            in("rax") 0u64,
-            options(nomem, nostack)
-        );
-        core::arch::asm!("int3", options(nomem, nostack));
-    }
-
-    loop {
-        core::hint::spin_loop();
-    }
+    crate::arch::cpu::reset()
 }
 
 fn clear_sensitive_memory() {

@@ -24,6 +24,7 @@ mod domain_id;
 mod domain_map;
 mod error;
 pub(crate) mod no_iommu;
+mod no_iommu_refusal;
 mod no_iommu_rule;
 mod posture;
 mod posture_line;

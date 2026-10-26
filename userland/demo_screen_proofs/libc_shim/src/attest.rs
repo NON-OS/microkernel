@@ -44,7 +44,7 @@ pub fn mk_attest_status(out: *mut AttestStatus) -> i64 {
         program_hash,
     };
     // SAFETY: the caller hands a writable AttestStatus, as the real call requires.
-    unsafe { out.write(s) };
+    unsafe { crate::user_mem::put(out as usize, s) };
     0
 }
 

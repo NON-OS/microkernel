@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::{elf_class, elf_data, elf_machine, elf_type, ELF_MAGIC};
+use super::constants::{elf_class, elf_data, elf_type, ELF_MAGIC};
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
@@ -46,8 +46,9 @@ impl Elf64Header {
         self.e_type == elf_type::ET_EXEC || self.e_type == elf_type::ET_DYN
     }
 
-    pub fn is_x86_64(&self) -> bool {
-        self.e_machine == elf_machine::EM_X86_64
+    /// Whether the image is for the CPU this loader runs on (arch::cpu).
+    pub fn is_native_machine(&self) -> bool {
+        self.e_machine == crate::arch::cpu::ELF_MACHINE
     }
 
     pub fn is_pie(&self) -> bool {

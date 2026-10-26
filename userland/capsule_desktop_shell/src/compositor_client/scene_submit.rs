@@ -23,10 +23,7 @@ pub fn push_scene_submit(
     compositor_port: u32,
     request_id: u32,
     surface_handle: u64,
-    x: u32,
-    y: u32,
-    width: u32,
-    height: u32,
+    (x, y, width, height): (u32, u32, u32, u32),
     z: u32,
 ) -> Result<(), &'static str> {
     let mut body = [0u8; BODY_LEN];

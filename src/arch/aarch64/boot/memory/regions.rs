@@ -15,16 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::PAGE_SIZE;
-use crate::arch::aarch64::boot::info::{BootInfo, MemoryRegion, MemoryType};
-
-/// The widest `Available` region the device tree reported, page aligned inward.
-pub(super) fn largest_available(info: &BootInfo) -> Option<(u64, u64)> {
-    info.memory_map()
-        .iter()
-        .filter(|r| r.region_type == MemoryType::Available)
-        .filter_map(|r| bounds(r))
-        .max_by_key(|(start, end)| end - start)
-}
+use crate::arch::aarch64::boot::info::MemoryRegion;
 
 /// Page-aligned `[start, end)` for a region, or `None` if nothing is left of
 /// it once both ends are aligned inward.

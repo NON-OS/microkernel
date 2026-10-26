@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::entry::{TrayEntry, MAX_TRAY_ITEMS, PER_OWNER};
-use crate::protocol::TRAY_LABEL_MAX;
 
 /// An entry the tray would not take: the same owner and id again, its owner's
 /// share already held, or no free slot.
@@ -25,17 +24,15 @@ pub struct TrayTable {
     pub(super) entries: [TrayEntry; MAX_TRAY_ITEMS],
 }
 
+impl Default for TrayTable {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TrayTable {
     pub const fn new() -> Self {
-        Self {
-            entries: [TrayEntry {
-                owner_pid: 0,
-                tray_id: 0,
-                label_len: 0,
-                label: [0; TRAY_LABEL_MAX],
-                in_use: false,
-            }; MAX_TRAY_ITEMS],
-        }
+        Self { entries: [TrayEntry::EMPTY; MAX_TRAY_ITEMS] }
     }
     pub fn insert(&mut self, entry: TrayEntry) -> Result<(), Refused> {
         if self.find(entry.owner_pid, entry.tray_id).is_some() {

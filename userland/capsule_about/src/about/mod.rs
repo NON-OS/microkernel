@@ -19,6 +19,7 @@ mod data;
 mod event;
 mod format;
 mod format_hex;
+mod log_words;
 mod manifest;
 mod scroll_wheel;
 mod section;

@@ -27,6 +27,7 @@ use crate::state::Context;
 
 pub fn run(mut ctx: Context) -> ! {
     crate::server::paint_initial::paint_initial(&mut ctx);
+    crate::bench::mark(b"serving");
     let mut rx = vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
     let mut tx = vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
     let mut last_tick_ms: i64 = mk_uptime_ms();
@@ -40,6 +41,7 @@ pub fn run(mut ctx: Context) -> ! {
         // A full-screen window shown or gone, or the pointer at the bottom
         // edge: the dock drawn or cleared, its window opened or closed.
         crate::server::dock_sync::sync(&mut ctx);
+        crate::server::pointer_shape::sync(&mut ctx);
         /*
          * The tick is timed on the uptime clock. The wall clock can step back
          * when NTP corrects it, or read as an error before it is set, and a

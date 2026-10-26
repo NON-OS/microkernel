@@ -99,14 +99,7 @@ pub fn check_stage_timeout(max_cycles: u64) -> bool {
 }
 
 fn read_tsc() -> u64 {
-    #[cfg(target_arch = "x86_64")]
-    unsafe {
-        core::arch::x86_64::_rdtsc()
-    }
-    #[cfg(not(target_arch = "x86_64"))]
-    {
-        0
-    }
+    crate::arch::cpu::cycles()
 }
 
 pub struct StageGuard {
