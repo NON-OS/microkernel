@@ -40,19 +40,17 @@ pub fn draw(ctx: &Context) {
         b"The account name the Terminal shows as name@host.",
         b"TYPE A NAME  ENTER NEXT  ESC BACK",
     );
-    let spx = ctx.stride as usize / 4;
-    let (w, h) = (ctx.width, ctx.height);
     let l = render::layout_of(ctx);
-    let (buf, x) = (render::buffer(ctx), l.col_x);
+    let (cv, x) = (&mut render::canvas(ctx), l.col_x);
     let n = &ctx.name;
     let mut shown = [0u8; NAME_MAX + 1];
     let typed = cat(&mut shown, &[n.typed(), b"_"]);
-    let y = rows::list(buf, spx, w, h, x, l.body_y, &[typed], 0);
-    let y = lines::text(buf, spx, w, h, x, y + l.gap, RULES, HINT);
+    let y = rows::list(cv, x, l.body_y, &[typed], 0);
+    let y = lines::text(cv, x, y + l.gap, RULES, HINT);
     if let Some((byte, why)) = n.refused {
         let mut line = [0u8; 64];
         let said = cat(&mut line, &[b"Refused \"", &[byte], b"\": ", why.text()]);
-        lines::text(buf, spx, w, h, x, y + l.gap, &[said], FG);
+        lines::text(cv, x, y + l.gap, &[said], FG);
     }
 }
 

@@ -32,13 +32,11 @@ pub fn draw(ctx: &Context) {
         b"Hours from UTC, used by the menu bar clock. j adds an hour, k takes one off.",
         b"ENTER NEXT  ESC BACK",
     );
-    let spx = ctx.stride as usize / 4;
-    let (w, h) = (ctx.width, ctx.height);
-    let buf = render::buffer(ctx);
+    let cv = &mut render::canvas(ctx);
     let mut text = [0u8; 6];
     let n = label(ctx.tz_off, &mut text);
     let l = render::layout_of(ctx);
-    rows::list(buf, spx, w, h, l.col_x, l.body_y, &[&text[..n]], 0);
+    rows::list(cv, l.col_x, l.body_y, &[&text[..n]], 0);
 }
 
 pub fn on_key(ctx: &mut Context, code: u32) -> Outcome {
