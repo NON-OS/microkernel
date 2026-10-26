@@ -55,5 +55,6 @@ pub fn init_sized(bytes: usize) -> Result<(), HeapError> {
     unsafe {
         ALLOCATOR.init(base, bytes);
     }
+    super::stats::sized(bytes);
     Ok(())
 }
