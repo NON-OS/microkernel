@@ -42,7 +42,7 @@ pub fn give_back(ctx: &mut Context) {
 /// The plane hidden on every output, the plane kept: the magnifier draws
 /// the arrow into the canvas, and the next sync after it shows it again.
 pub fn hide(ctx: &mut Context) {
-    let off = message((0, 0), false, false, (0, 0));
+    let off = message((0, 0), false, false, (0, 0), (0, 0));
     let _ = ops::cursor(ctx.gfx_port, 0, &off);
     for h in ctx.heads.iter().filter(|h| h.shaped) {
         let _ = ops::cursor(ctx.gfx_port, h.output, &off);
