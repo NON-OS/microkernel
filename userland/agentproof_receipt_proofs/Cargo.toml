@@ -33,7 +33,7 @@ agentproof_receipt = { path = "../agentproof_receipt" }
 agentproof_policy = { path = "../agentproof_policy" }
 nonos_linux_policy = { path = "../nonos_linux_policy" }
 nonos_proof_abi = { path = "../nonos_proof_abi" }
-nsh_attest = { path = "../nsh_attest", features = ["proofs"] }
+nsh_attest = { path = "../nsh_attest" }
 nsh_crypto = { path = "../nsh_crypto" }
 nsh_wire = { path = "../nsh_wire" }
 nonos_hash = { path = "../nonos_hash" }

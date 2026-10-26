@@ -28,7 +28,7 @@ use alloc::vec::Vec;
 fn compute_syndrome_poly(ct: &[u8], goppa: &[u16], support: &[u16]) -> Vec<u16> {
     let mut syndrome = vec![0u16; MCELIECE_T];
 
-    for i in 0..MCELIECE_N {
+    for (i, &alpha) in support.iter().enumerate().take(MCELIECE_N) {
         let byte_idx = i / 8;
         let bit_idx = i % 8;
         if byte_idx >= ct.len() {
@@ -38,7 +38,6 @@ fn compute_syndrome_poly(ct: &[u8], goppa: &[u16], support: &[u16]) -> Vec<u16> 
             continue;
         }
 
-        let alpha = support[i];
         let g_alpha = poly_eval(goppa, alpha);
         if g_alpha == 0 {
             continue;
@@ -46,8 +45,8 @@ fn compute_syndrome_poly(ct: &[u8], goppa: &[u16], support: &[u16]) -> Vec<u16> 
         let g_alpha_inv = GF2m::inv(g_alpha);
 
         let mut power = g_alpha_inv;
-        for j in 0..MCELIECE_T {
-            syndrome[j] = GF2m::add(syndrome[j], power);
+        for s in syndrome.iter_mut() {
+            *s = GF2m::add(*s, power);
             power = GF2m::mul(power, alpha);
         }
     }
