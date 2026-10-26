@@ -85,9 +85,9 @@ fn validate_elf_arch(elf: &Elf) -> LoaderResult<()> {
         log_error("loader", "ELF is not 64-bit.");
         return Err(LoaderError::UnsupportedElf("not 64-bit"));
     }
-    if elf.header.e_machine != header::EM_X86_64 {
-        log_error("loader", "ELF machine is not x86_64.");
-        return Err(LoaderError::UnsupportedElf("non-x86_64"));
+    if elf.header.e_machine != crate::arch::cpu::ELF_MACHINE {
+        log_error("loader", "ELF machine is not this CPU's.");
+        return Err(LoaderError::UnsupportedElf("not for this CPU"));
     }
     Ok(())
 }

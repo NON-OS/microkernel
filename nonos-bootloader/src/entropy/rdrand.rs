@@ -14,104 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[inline]
-fn has_rdseed() -> bool {
-    #[cfg(target_arch = "x86_64")]
-    unsafe {
-        let ebx: u32;
-        core::arch::asm!(
-            "push rbx",
-            "mov eax, 7",
-            "xor ecx, ecx",
-            "cpuid",
-            "mov {ebx:e}, ebx",
-            "pop rbx",
-            ebx = out(reg) ebx,
-            out("eax") _,
-            out("ecx") _,
-            out("edx") _,
-            options(nostack)
-        );
-        (ebx & (1 << 18)) != 0
-    }
-    #[cfg(not(target_arch = "x86_64"))]
-    false
-}
+// The CPU's own generator, as `arch::cpu` reaches it: RDSEED and RDRAND on
+// x86_64, RNDRRS and RNDR on aarch64, each only where the CPU reports it.
 
+/// A seed-grade word from the CPU, or None where it has none or it failed.
 #[inline(always)]
 pub fn rdseed64() -> Option<u64> {
-    #[cfg(target_arch = "x86_64")]
-    {
-        if !has_rdseed() {
-            return None;
-        }
-        unsafe {
-            let mut x: u64 = 0;
-            let ok = core::arch::x86_64::_rdseed64_step(&mut x);
-            if ok == 1 {
-                Some(x)
-            } else {
-                None
-            }
-        }
-    }
-
-    #[cfg(not(target_arch = "x86_64"))]
-    {
-        None
-    }
+    crate::arch::cpu::hw_seed()
 }
 
-#[inline]
-fn has_rdrand() -> bool {
-    #[cfg(target_arch = "x86_64")]
-    unsafe {
-        let ecx: u32;
-        core::arch::asm!(
-            "push rbx",
-            "mov eax, 1",
-            "cpuid",
-            "mov {ecx:e}, ecx",
-            "pop rbx",
-            ecx = out(reg) ecx,
-            out("eax") _,
-            out("ecx") _,
-            out("edx") _,
-            options(nostack)
-        );
-        (ecx & (1 << 30)) != 0
-    }
-    #[cfg(not(target_arch = "x86_64"))]
-    false
-}
-
+/// A word from the CPU's generator, or None where it has none or it failed.
 #[inline(always)]
 pub fn rdrand64() -> Option<u64> {
-    #[cfg(target_arch = "x86_64")]
-    {
-        if !has_rdrand() {
-            return None;
-        }
-        unsafe {
-            let mut x: u64;
-            let ok: u8;
-            core::arch::asm!(
-                "rdrand {x}",
-                "setc {ok}",
-                x = out(reg) x,
-                ok = out(reg_byte) ok,
-                options(nostack, nomem)
-            );
-            if ok != 0 {
-                Some(x)
-            } else {
-                None
-            }
-        }
-    }
-
-    #[cfg(not(target_arch = "x86_64"))]
-    {
-        None
-    }
+    crate::arch::cpu::hw_random()
 }

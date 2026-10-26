@@ -24,7 +24,20 @@ pub fn detect_memory_protection() -> MemoryProtection {
     unsafe {
         detect_x86(&mut prot);
     }
+    #[cfg(target_arch = "aarch64")]
+    detect_arm(&mut prot);
     prot
+}
+
+/// Execute-never is architectural; the address sizes are ID register
+/// fields. Arm has no memory encryption the loader would report.
+#[cfg(target_arch = "aarch64")]
+fn detect_arm(p: &mut MemoryProtection) {
+    let id = crate::arch::aarch64::cpu::id_regs();
+    p.dep_enabled = true;
+    p.aslr_supported = true;
+    p.physical_bits = id.physical_bits();
+    p.linear_bits = id.virtual_bits();
 }
 
 #[cfg(target_arch = "x86_64")]
