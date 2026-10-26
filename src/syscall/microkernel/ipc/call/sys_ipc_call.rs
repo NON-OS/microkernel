@@ -20,7 +20,6 @@ use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL, 
 use crate::syscall::microkernel::narrow::u32_arg;
 
 use super::super::pending_reply;
-use super::super::recv_reply::recv_reply_correlated;
 use super::super::reply_inbox;
 use super::super::send::send_with_correlation;
 use super::settle::settle;
@@ -68,7 +67,8 @@ pub fn sys_ipc_call(
     accounting::bump_total(accounting::Total::IpcMessages);
     let timeout = wait_ms(timeout_ms, DEFAULT_MS);
     let start = crate::time::timestamp_millis();
-    let recv_result = recv_reply_correlated(pid, &inbox, resp, resp_len, timeout, token);
+    let recv_result =
+        super::given_up::receive((endpoint_pid, pid, token), &inbox, (resp, resp_len), timeout);
     let waited = (timeout_ms, crate::time::timestamp_millis().saturating_sub(start));
     settle(endpoint.as_ref(), (pid, token), (req, req_len, resp), recv_result, waited);
     recv_result
