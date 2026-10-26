@@ -45,7 +45,7 @@ pub(super) fn keep(
             super::super::place_links::unrecord(&kept.links);
         }
         super::undo::undo(&kept.files, "its install record");
-        return Err(Why::Partial);
+        return Err(Why::PARTIAL);
     }
     // Nothing persists unless asked, and never in plaintext. The store at
     // rest is not encrypted, so an install lives until the next reboot.

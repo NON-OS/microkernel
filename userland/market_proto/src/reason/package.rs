@@ -37,9 +37,14 @@ pub const WHY_PARTIAL: u8 = 21;
 /// The install role could not check or vouch for a market program's policy
 /// (plan/30). Nothing produces it before I-C5.
 pub const WHY_POLICY: u8 = 36;
+/// A package would not fit in free memory to unpack; nothing of it landed.
+pub const WHY_UNPACK_MEMORY: u8 = 37;
 
 const POLICY_LINE: &str =
     "The market's policy for this program could not be checked or vouched for; nothing was installed.";
+
+const UNPACK_LINE: &str =
+    "Too little free memory to unpack one of its packages; close other apps, then retry";
 
 pub(super) fn package_reason(code: u8) -> Option<Reason> {
     Some(match code {
@@ -51,6 +56,7 @@ pub(super) fn package_reason(code: u8) -> Option<Reason> {
         WHY_NO_KEYRING => said("This system holds no key to check it with", false),
         WHY_PARTIAL => said("Not every file could be written, so none of it was kept", true),
         WHY_POLICY => said(POLICY_LINE, false),
+        WHY_UNPACK_MEMORY => said(UNPACK_LINE, true),
         _ => return None,
     })
 }

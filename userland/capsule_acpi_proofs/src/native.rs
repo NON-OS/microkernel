@@ -25,10 +25,8 @@ pub mod read;
 pub mod regs;
 #[path = "../../capsule_acpi/src/hotplug/native/slot.rs"]
 pub mod slot;
-#[allow(dead_code)]
 #[path = "../../../src/hardware/broker/acpi/slot_rule.rs"]
 pub mod slot_rule;
-#[allow(dead_code)]
 #[path = "../../../src/hardware/broker/acpi/slot_wire.rs"]
 pub mod slot_wire;
 #[path = "../../capsule_acpi/src/hotplug/native/step.rs"]
