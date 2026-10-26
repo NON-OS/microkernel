@@ -37,10 +37,12 @@ REF itself, is the comparison, so a unit that has not merged the newest main
 is judged on its own commits alone. Exit 1 when anything is found.
 
 --reached lists, proof crates first, every userland crate whose tests a unit
-must run: one that holds a changed file; one with a file that mounts
-(#[path], include_str!, include_bytes!) a changed file, or a directory or
-mounted file that leads to one; or one naming such a crate as a path
-dependency.
+must run, nested ones (a shim, a fuzz crate, a layout_tests lane) included:
+one that holds a changed file; one with a file that mounts (#[path],
+include_str!, include_bytes!) a changed file, or a directory or mounted file
+that leads to one; or one naming such a crate as a path dependency. The
+vendored and upstream crates are read for changed files and dependencies,
+not for mounts: they mount nothing of ours.
 """
 
 import argparse
@@ -104,6 +106,7 @@ def findings(root, base):
 
 MOUNT = re.compile(r'#\[path\s*=\s*"([^"]+)"\]|include_(?:str|bytes)!\(\s*"([^"]+)"')
 DEP = re.compile(r'path\s*=\s*"([^"]+)"')
+THIRD_PARTY = ("userland/vendor/", "userland/upstream-src/")
 
 
 def reached(root, base):
@@ -127,10 +130,13 @@ def reached(root, base):
             return any(under(c, f) for c in changed) or any(touches(g, depth + 1) for g in files)
         return f.suffix == ".rs" and any(touches(d, depth + 1) for d in mounts(f))
 
-    crates = sorted(p.parent.resolve() for p in (root / "userland").glob("*/Cargo.toml"))
+    manifests = [p for p in git(root, "ls-files", "userland/*Cargo.toml").split()
+                 if p.endswith("/Cargo.toml")]
+    ours = {(root / p).parent.resolve(): not p.startswith(THIRD_PARTY) for p in manifests}
+    crates = sorted(ours)
     found = set()
     for crate in crates:
-        own = (r for r in crate.rglob("*.rs") if "/target/" not in str(r))
+        own = [r for r in crate.rglob("*.rs") if "/target/" not in str(r)] if ours[crate] else []
         if any(under(c, crate) for c in changed) or any(touches(d) for r in own for d in mounts(r)):
             found.add(crate)
     deps = {c: {(c / m.group(1)).resolve() for m in DEP.finditer((c / "Cargo.toml").read_text())}
@@ -211,17 +217,23 @@ def reached_self_test():
             ("by_chain_proofs", "", '#[path = "../../lib_b/src/lib.rs"]\nmod b;\n'),
             ("unrelated_proofs", "", '#[path = "../../lib_c/src/lib.rs"]\nmod c;\n'),
             ("lib_c", "", "pub fn c() {}\n"),
+            ("lib_a/layout_tests", "", '#[path = "../../src/lib.rs"]\nmod a;\n'),
+            ("vendor/v", '\n[dependencies]\nlib_a = { path = "../../lib_a" }\n', ""),
+            ("lib_e", "", "pub fn e() {}\n"),
         ]:
             (root / "userland" / name / "src").mkdir(parents=True)
-            (root / "userland" / name / "Cargo.toml").write_text(f'[package]\nname = "{name}"\n{toml_extra}')
+            (root / "userland" / name / "Cargo.toml").write_text(
+                f'[package]\nname = "{name.split("/")[-1]}"\n{toml_extra}')
             (root / "userland" / name / "src/lib.rs").write_text(src)
         git(root, "add", "-A")
         git(root, "commit", "-q", "-m", "base")
         (root / "userland/lib_a/src/lib.rs").write_text("pub fn a() -> u8 { 1 }\n")
+        (root / "userland/lib_e/src/lib.rs").write_text("pub fn e() -> u8 { 1 }\n")
         git(root, "commit", "-q", "-am", "unit")
         got = reached(root, "main~1")
         want = ["userland/by_chain_proofs", "userland/by_dep_proofs", "userland/by_path_proofs",
-                "userland/by_text_proofs", "userland/lib_a", "userland/lib_b"]
+                "userland/by_text_proofs", "userland/lib_a/layout_tests", "userland/lib_a",
+                "userland/lib_b", "userland/lib_e", "userland/vendor/v"]
         if got != want:
             print(f"unit-check: --reached self-test failed\n  got  {got}\n  want {want}")
             return False
