@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Settings' "Qwen model" row is a choice among the 17 pinned tiers: stepping
+//! Settings' "Qwen model" row is a choice among the 19 pinned tiers: stepping
 //! visits each once and wraps, nothing set reads as the first (the one the
 //! Terminal's qwen runs then), and a value is always a tier word the
 //! Terminal and the policy record take.
@@ -27,15 +27,15 @@ use crate::qwen_tier::{shown, step};
 fn stepping_visits_every_tier_once_and_wraps() {
     let mut seen = Vec::new();
     let mut at: &[u8] = b"small";
-    for _ in 0..17 {
+    for _ in 0..19 {
         seen.push(at);
         at = step(at, 1);
     }
-    assert_eq!(at, b"small", "seventeen steps come back round");
+    assert_eq!(at, b"small", "nineteen steps come back round");
     seen.sort();
     seen.dedup();
-    assert_eq!(seen.len(), 17);
-    for tier in [&b"small"[..], b"qwen3-0.6b", b"qwen3-4b", b"coder-32b"] {
+    assert_eq!(seen.len(), 19);
+    for tier in [&b"small"[..], b"qwen3-0.6b", b"qwen3-4b", b"qwen3.5-0.8b", b"coder-32b"] {
         assert!(seen.contains(&tier), "{tier:?}");
         assert_eq!(step(step(tier, 1), -1), tier);
     }
@@ -55,7 +55,7 @@ fn nothing_set_reads_as_the_default_never_as_a_tier() {
 #[test]
 fn every_tier_fits_the_policy_store() {
     let mut at: &[u8] = b"small";
-    for _ in 0..17 {
+    for _ in 0..19 {
         assert!(tier_ok(at), "{at:?}");
         assert!(at.len() <= TIER_MAX);
         at = step(at, 1);
