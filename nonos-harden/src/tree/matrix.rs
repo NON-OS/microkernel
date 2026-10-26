@@ -62,7 +62,7 @@ fn row(ctx: &mut Ctx, id: &'static str, row: &str, limit: Duration) -> Check {
         Ok(d) => d,
         Err(e) => return Check::not_run(id, e),
     };
-    let summary = scratch.0.join("docs/build/evidence/matrix").join(LABEL).join("summary.json");
+    let summary = scratch.0.join("HANDOFF/evidence").join(LABEL).join("summary.json");
     match read_regular(&summary, 16 << 20).and_then(|b| steps(&b, row)) {
         Ok(steps) => judge_row(id, row, &steps, done.code),
         Err(e) => {

@@ -13,12 +13,12 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""The boot session's verdict on the catalogue (docs/market/catalogue-boot-plan.md):
+"""The boot session's verdict on the catalogue:
 
     PYTHONPATH=tools python3 -m nonos_market_catalogue.verdict [--write] APP=LOG ...
 
-An app passes when each of its logs (one per debug run of
-docs/market/catalogue-boot-plan.md; several unite) shows the install start in its release's box, no policy
+An app passes when each of its logs (one per debug run of the design notes/
+05; several unite) shows the install start in its release's box, no policy
 refusal, the workload ending well (a process exiting status 0, none exiting
 otherwise or on a signal), and exactly one measured set, the app's own.
 --write puts each passing set into its recipe. Exit 0 when every app passes."""

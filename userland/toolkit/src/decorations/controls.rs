@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The frame's measures at one to one (docs/design/ui-identity.md, Window
+//! The frame's measures at one to one (the design notes, Window
 //! The window controls: a line glyph each, no colour at rest. The hovered
 //! one takes a wash, and close a red fill, so its meaning is said by its
 //! glyph and by its colour, never by colour alone.

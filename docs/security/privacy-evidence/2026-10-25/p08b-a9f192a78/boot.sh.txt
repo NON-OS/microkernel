@@ -1,11 +1,10 @@
 #!/bin/bash
-# P-08's boots, scratch only (pk-build): privacy/p08-power-off-owner at $1,
 # with capsule_acpi built in (profile p08acpi: the standard kernel features,
 # serial debug kept, nonos-capsule-acpi; its Capsule.mk included for the
 # build). Boot B: the shell's Power key -> confirm -> power.off, which only
 # capsule_power holds -> capsule_acpi prepares soft-off -> AdminShutdown.
 # Boot A: QMP system_powerdown -> capsule_acpi's own button path.
-SP=/tmp/nonos-run/scratchpad
+SP=/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad
 PK=/home/user/privatekernel
 HEAD_SHA=${1:?the P-08 head}
 P=$SP/p08; rm -rf $P; mkdir -p $P

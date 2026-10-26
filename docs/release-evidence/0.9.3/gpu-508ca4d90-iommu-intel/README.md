@@ -1,7 +1,7 @@
 # gpu: boot of 508ca4d90 on the Intel IOMMU lane, 25 October 2026
 
 The wallpaper's unanswered call, the honest attestation panel and the
-splash with no firmware logo.
+splash with no firmware logo (letter the design notes).
 
 ## How it ran
 

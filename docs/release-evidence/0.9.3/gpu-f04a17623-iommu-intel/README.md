@@ -1,5 +1,6 @@
 # gpu: gate boot of f04a17623, the band's glyphs and Settings' address row
 
+Letter the design notes.
 
 ## How it ran
 

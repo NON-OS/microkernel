@@ -17,7 +17,7 @@
 //! A layer that never asked for a shape has no say in it. The shell's chrome
 //! covers the whole display over every window and asks for none; it used to
 //! give the arrow everywhere, so no window's resize arrows were ever seen
-//! (booted, docs/design/evidence/switch-17abb88b7e).
+//! (booted, the design notes).
 
 use super::frame_util::layer;
 use crate::frame_pacer::cursor_shapes::{ARROW_CODE, EW_CODE};

@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The frame's measures at one to one (docs/design/ui-identity.md, Window
+//! The frame's measures at one to one (the design notes, Window
 //! A line cut to a width with an ellipsis, never through a character.
 
 use alloc::string::String;
