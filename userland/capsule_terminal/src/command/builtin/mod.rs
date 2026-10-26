@@ -52,7 +52,7 @@ pub mod theme;
 pub mod tool;
 mod tool_busy;
 mod tool_list;
-mod tool_refused;
+pub(crate) mod tool_refused;
 pub mod version;
 pub mod which;
 pub mod whoami;
