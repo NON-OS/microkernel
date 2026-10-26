@@ -25,6 +25,8 @@ const B: u32 = 41;
 const KERNEL: u32 = 0;
 const MIB: usize = 1 << 20;
 
+mod installs;
+
 fn file(s: &mut Store, path: &str, pid: u32) -> u32 {
     s.open(path, pid, true, false, false, true).expect("opens")
 }
@@ -148,15 +150,4 @@ fn a_tree_copy_past_the_name_share_adds_nothing() {
     let before = s.usage().0;
     assert_eq!(s.copy("/src", "/dst", true, A), Err(StoreError::Full));
     assert_eq!(s.usage().0, before);
-}
-
-#[test]
-fn installing_bytes_is_held_to_the_budget_too() {
-    let mut s = Store::new();
-    for i in 0..2 {
-        assert_eq!(fill(&mut s, &format!("/tmp/i{i}"), A, 8 * MIB), 64 * MIB);
-    }
-    let big = vec![7u8; 40 * MIB];
-    assert_eq!(s.install_bytes("/pkg/x", 0, &big, A), Err(StoreError::Full));
-    assert!(s.install_bytes("/pkg/y", 0, b"small", A).is_ok());
 }
