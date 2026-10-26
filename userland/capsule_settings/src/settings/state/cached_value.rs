@@ -17,8 +17,8 @@
 use nonos_policy_proto::Field;
 
 use super::cache::FieldValue;
+use super::model::State;
 use super::slot_of::slot_of;
-use super::state::State;
 
 pub fn cached_value(state: &State, field: Field) -> FieldValue {
     match slot_of(field) {

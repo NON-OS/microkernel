@@ -18,7 +18,7 @@ use super::cache::FieldValue;
 use super::cached_value::cached_value;
 use super::current_field::current_field;
 use super::edit_buffer::EditBuffer;
-use super::state::State;
+use super::model::State;
 
 pub fn edit_start(state: &mut State) {
     let field = match current_field(state) {
