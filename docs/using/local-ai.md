@@ -79,6 +79,21 @@ On a live boot the model files are held in memory too, so a tier fits only when 
 
 As an example of a pin, `qwen3-0.6b` is the single file `Qwen3-0.6B-Q8_0.gguf`, 639,446,688 bytes, SHA-256 `9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031`.
 
+## Show it an image
+
+`vl-2b` is Qwen3-VL 2B: it reads a picture as well as text. In the Terminal, end the question with `< FILE`:
+
+```
+qwen vl-2b What colour is this picture? Answer in one word. < red.png
+```
+
+- FILE is one PNG or JPEG, named by its ending (`.png`, `.jpg`, `.jpeg`), at most 1 MiB with the question, and 4096 pixels on a side at most. Anything else is refused before a model loads, with a sentence saying why.
+- One image a question, and only in the Terminal: opened from the dock or the Store, `vl-2b` is a text chat in its window (not booted in this release).
+- The image is read from your files, handed to the model on its stdin, and kept nowhere: it goes when the chat ends. The model, like every tier, has no network.
+- Only `vl-2b` reads images. A `<` in any other tier's question is part of the question.
+
+Booted under QEMU without KVM ([evidence](evidence/vision-vl2b/README.md)): a not-an-image refused, a missing file refused, and `red` for a red 64x64 PNG. That boot loaded the model in 81 minutes and took 237 seconds to the first word, on QEMU's software CPU: no speed is claimed for real hardware. Not tested on real hardware.
+
 ## Install a model
 
 You can install a tier three ways:
