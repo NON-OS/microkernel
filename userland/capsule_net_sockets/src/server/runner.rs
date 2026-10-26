@@ -15,15 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::vec;
-use nonos_libc::mk_ipc_recv_from;
 
 use crate::protocol::E_BAD_OP;
 use crate::server::handlers;
 use crate::server::handlers::recv_cap::RECV_MAX;
 use crate::server::parse_req::{parse, refused, HDR_LEN};
+use crate::server::request::receive;
 use crate::server::respond::respond;
 
-const SERVICE_INBOX: u64 = 0;
 const BUF_LEN: usize = HDR_LEN + RECV_MAX;
 /*
  * How long to wait for a request while a connect is waiting on its handshake.
@@ -38,7 +37,7 @@ pub fn run() -> ! {
     loop {
         let mut sender = 0u32;
         let wait = if handlers::connects_waiting() { PENDING_POLL_MS } else { 0 };
-        let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), wait, &mut sender);
+        let n = receive(&mut rx, wait, &mut sender);
         handlers::advance_connects(&mut tx);
         handlers::reap_if_due();
         if n <= 0 || sender == 0 {
