@@ -61,7 +61,5 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
     if pressed.restacked() {
         crate::server::tell_compositor::lift(ctx, owner_pid);
     }
-    if respond::status(sender_pid, req, 0, tx) < 0 {
-        return;
-    }
+    let _ = respond::status(sender_pid, req, 0, tx);
 }

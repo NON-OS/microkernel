@@ -16,10 +16,10 @@
 
 pub mod full_screen;
 pub mod kind;
+pub mod record;
 pub mod reopen;
 pub mod table;
-pub mod window;
 
 pub use kind::{from_u32 as kind_from_u32, Kind};
+pub use record::{Visibility, Window};
 pub use table::WindowTable;
-pub use window::{Visibility, Window};
