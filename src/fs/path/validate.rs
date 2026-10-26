@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::error::{PathError, PathResult};
-use super::normalize::normalize_path;
 use super::types::{MAX_COMPONENT_LEN, MAX_PATH_LEN, PATH_SEPARATOR};
 
 pub fn validate_path(path: &str) -> PathResult<()> {
@@ -35,17 +34,6 @@ pub fn validate_path(path: &str) -> PathResult<()> {
         if component.len() > MAX_COMPONENT_LEN {
             return Err(PathError::ComponentTooLong);
         }
-    }
-
-    Ok(())
-}
-
-pub fn validate_path_secure(path: &str) -> PathResult<()> {
-    validate_path(path)?;
-
-    let normalized = normalize_path(path);
-    if normalized.starts_with("../") || normalized == ".." {
-        return Err(PathError::TraversalAttempt);
     }
 
     Ok(())

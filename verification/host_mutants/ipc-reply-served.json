@@ -1,0 +1,42 @@
+[
+ {
+  "name": "ipc-dequeue-marks-nothing",
+  "file": "src/syscall/microkernel/ipc/pending_reply/served_rule.rs",
+  "old": "        e.served = true;\n",
+  "new": "",
+  "test": "ipc_reply_token::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "ipc-reply-takes-an-undequeued-call",
+  "file": "src/syscall/microkernel/ipc/pending_reply/reply_rule.rs",
+  "old": "entries.position(|(i, _, s)| s && i == inbox)",
+  "new": "entries.position(|(i, _, _)| i == inbox)",
+  "test": "ipc_reply_token::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "ipc-reply-ignores-the-last-served",
+  "file": "src/syscall/microkernel/ipc/pending_reply/reply_rule.rs",
+  "old": "    if served != 0 {\n",
+  "new": "    if served == u64::MAX {\n",
+  "test": "ipc_reply_token::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "ipc-redirect-takes-the-front",
+  "file": "src/syscall/microkernel/ipc/pending_reply/served_rule.rs",
+  "old": "queue.position(|e| e.token == want)",
+  "new": "queue.position(|_| true)",
+  "test": "ipc_reply_token::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "ipc-redirect-answers-a-kernel-request",
+  "file": "src/syscall/microkernel/ipc/pending_reply/served_rule.rs",
+  "old": "    if want == 0 {\n        return None;\n    }\n    queue.position(|e| e.token == want)",
+  "new": "    if want == 0 {\n        return queue.position(|_| true);\n    }\n    queue.position(|e| e.token == want)",
+  "test": "ipc_reply_token::",
+  "crate": "userland/kernel_proofs"
+ }
+]

@@ -16,8 +16,6 @@
 
 //! Through get_random_bytes, with no hardware: the weak line too.
 
-#![allow(dead_code, clippy::let_unit_value)]
-
 include!("../src/mount.rs");
 
 fn said() -> String {

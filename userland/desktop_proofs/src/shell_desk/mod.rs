@@ -18,14 +18,13 @@
 //! `crate::` paths its files use.
 
 // The desktop shell's tray table, under the `crate::protocol` path its files
-// name the label size by. The real code's own style is allowed on the
-// include rather than restyled here.
+// name the label size by, and its `Default` (tray_default.rs).
 #[path = "../../../capsule_desktop_shell/src/protocol/limits.rs"]
 pub mod protocol;
 
-#[allow(clippy::new_without_default, clippy::result_unit_err)]
 #[path = "../../../capsule_desktop_shell/src/state/tray/mod.rs"]
 pub mod tray;
+mod tray_default;
 
 // The desktop shell's scale: the brand's rule by the canvas, and its type and
 // geometry sizes taken through it.

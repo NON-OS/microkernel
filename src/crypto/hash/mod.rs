@@ -24,6 +24,7 @@ pub use blake3::{blake3_derive_key, blake3_hash, blake3_hash_xof, blake3_keyed_h
 pub use sha3::{keccak256, sha3_256, sha3_512, shake128, shake256};
 pub use sha3::{Keccak256, Sha3_256, Sha3_512, Shake128, Shake256};
 pub use sha512::{sha512, sha512_hash, Hash512};
+pub(crate) use unified::tpm_bank_sha1;
 pub use unified::{hkdf_expand, hmac_sha256, hmac_verify, ripemd160, sha256, Hash256};
 pub use unified::{hkdf_expand_sha384, hkdf_extract_sha384, hmac_sha384};
 

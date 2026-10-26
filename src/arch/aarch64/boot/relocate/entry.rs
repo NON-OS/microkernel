@@ -17,14 +17,14 @@
 use super::apply::apply;
 use super::rela::{Placement, Rela};
 
-/// The entry stub's call: relocate the image linked at `link_base` and loaded
+/// The entry code's call: relocate the image linked at `link_base` and loaded
 /// at `load_base`, `len` bytes long, from the `.rela.dyn` between `start` and
-/// `end`. Returns 0, or the `Refused` code the stub stops on.
+/// `end`. Returns 0, or the `Refused` code the entry code stops on.
 ///
 /// # Safety
 ///
 /// Boot CPU, MMU off, before any other Rust; the arguments are the linker's
-/// symbols as the stub found them.
+/// symbols as the entry code found them.
 #[no_mangle]
 unsafe extern "C" fn aarch64_relocate(
     start: *const Rela,

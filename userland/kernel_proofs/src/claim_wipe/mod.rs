@@ -22,8 +22,6 @@
  * undone to show the proofs would catch it.
  */
 
-#![allow(dead_code)]
-
 #[path = "../../../../src/hardware/broker/claim/wipe/admit_rule.rs"]
 mod admit_rule;
 mod admit_tests;

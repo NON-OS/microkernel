@@ -29,9 +29,9 @@ pub(in crate::syscall::microkernel::ipc) fn take_for_reply(
     let served = last_served(server_pid);
     let mut map = PENDING.lock();
     let queue = map.get_mut(&server_pid)?;
-    let entries = queue.iter().map(|(_, i, t)| (i.as_str(), *t));
+    let entries = queue.iter().map(|e| (e.inbox.as_str(), e.token, e.served));
     let at = pick(entries, caller_inbox, served)?;
-    let (_, _, token) = queue.remove(at)?;
+    let token = queue.remove(at)?.token;
     if queue.is_empty() {
         map.remove(&server_pid);
     }

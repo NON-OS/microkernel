@@ -26,6 +26,7 @@ pub mod avoid;
 pub mod holes;
 mod holes_model_tests;
 mod holes_tests;
+mod place_clear;
 #[path = "../../../../src/hardware/broker/confine/reserved_rule.rs"]
 pub mod reserved_rule;
 mod reserved_tests;
