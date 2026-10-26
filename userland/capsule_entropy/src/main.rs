@@ -23,7 +23,7 @@ mod pool;
 mod protocol;
 mod server;
 
-use nonos_libc::{mk_exit, heap_init};
+use nonos_libc::{heap_init, mk_exit};
 
 /// # Safety
 /// The kernel enters here once, on the capsule's own fresh stack.
