@@ -32,6 +32,7 @@ mod fetch_check;
 mod fetch_words;
 mod help;
 mod image;
+mod image_read;
 /* What a tier needs, and whether it fits, for the default. */
 #[path = "../../../../../capsule_model_fetch/src/need.rs"]
 mod need;
