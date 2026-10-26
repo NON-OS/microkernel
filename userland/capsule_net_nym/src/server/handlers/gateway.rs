@@ -53,10 +53,7 @@ pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
 fn parse_gateway(body: &[u8]) -> Result<Gateway, u16> {
     let ip = ip4_at(body, 0)?;
     let port = u16_at(body, 4)?;
-    let mode = match body.get(6).copied() {
-        Some(mode) => mode,
-        None => 1,
-    };
+    let mode = body.get(6).copied().unwrap_or(1);
     let transport = match mode {
         0 => Transport::RawTcp,
         1 => Transport::WebSocket,
