@@ -63,3 +63,5 @@ pub mod virtio_rng_ring;
 pub mod pending_run;
 #[path = "trip_lock/mod.rs"]
 pub mod trip_lock;
+#[path = "volume_kill/mod.rs"]
+pub mod volume_kill;

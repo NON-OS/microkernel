@@ -29,7 +29,7 @@ impl VirtualFileSystem {
     pub fn copy(&self, src: &str, dst: &str) -> VfsResult<()> {
         validate_path(src)?;
         validate_path(dst)?;
-        let _lock = VFS_OP_LOCK.lock();
+        let _lock = (VFS_OP_LOCK.lock(), crate::services::lifecycle::quiet());
         let data: Vec<u8> = crate::fs::ramfs::NONOS_FILESYSTEM.read_file(src)?;
         crate::fs::ramfs::NONOS_FILESYSTEM.create_file(dst, &data)?;
         self.inner.lock().vfs_stats.copy_ops += 1;
@@ -39,7 +39,7 @@ impl VirtualFileSystem {
     pub fn rename(&self, old_path: &str, new_path: &str) -> VfsResult<()> {
         validate_path(old_path)?;
         validate_path(new_path)?;
-        let _lock = VFS_OP_LOCK.lock();
+        let _lock = (VFS_OP_LOCK.lock(), crate::services::lifecycle::quiet());
         crate::fs::ramfs::NONOS_FILESYSTEM.atomic_rename(old_path, new_path)?;
         self.inner.lock().vfs_stats.rename_ops += 1;
         Ok(())
@@ -60,11 +60,11 @@ impl VirtualFileSystem {
 
     pub fn write_file(&self, path: &str, data: &[u8]) -> VfsResult<()> {
         validate_path(path)?;
-        let _lock = VFS_OP_LOCK.lock();
         if let Some(rel) = super::data_rel::data_rel(path) {
             return crate::fs::blockfs_volume::write_or_create(rel, data)
                 .map_err(super::map_volume_err::map_volume_err);
         }
+        let _lock = (VFS_OP_LOCK.lock(), crate::services::lifecycle::quiet());
         self.ensure_parent_dirs(path)?;
         crate::fs::ramfs::NONOS_FILESYSTEM.write_or_create(path, data)?;
         Ok(())
@@ -72,10 +72,10 @@ impl VirtualFileSystem {
 
     pub fn stat(&self, path: &str) -> VfsResult<FileMetadata> {
         validate_path(path)?;
-        let _lock = VFS_OP_LOCK.lock();
         if let Some(rel) = super::data_rel::data_rel(path) {
             return super::data_stat::data_stat(path, rel);
         }
+        let _lock = (VFS_OP_LOCK.lock(), crate::services::lifecycle::quiet());
         let is_dir = path.ends_with('/') || path.ends_with("/.dir");
         let size = if is_dir {
             0
