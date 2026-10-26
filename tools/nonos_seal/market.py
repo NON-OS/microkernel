@@ -22,8 +22,8 @@ key both stay empty, as they always have."""
 
 import os
 
-from . import dev_market, keys
-from .market_inputs import committed, place_userland
+from . import dev_market, keys, market_logos
+from .market_inputs import place_userland
 from .run import say
 
 INDEX = "nonos-data/market/index.bin"
@@ -36,12 +36,11 @@ def seal(step, tools, linux_out, serial, mirror, package_mirror="", packages="",
     # development image may go without; this asks only whether the key is
     # there, never what it holds.
     if not os.path.isfile(keys.OPERATOR_SEED):
-        # The operator signs deterministically from SOURCES, so the index and
-        # catalogue a seal committed are the ones it would sign again for an
-        # unchanged tree. A seal without the seed (a CI runner's) keeps those,
-        # under the operator key in the tree: it signs nothing, so it can
-        # forge nothing, and the image checks both signatures itself.
-        if committed(INDEX, CATALOGUE, keys.OPERATOR_PUB):
+        # The operator signs deterministically from SOURCES, so the index and catalogue a seal
+        # committed are the ones it would sign again for an unchanged tree. A seal without the
+        # seed (a CI runner's) keeps those, and the logos they sign, under the operator key in the
+        # tree: it signs nothing, so it can forge nothing, and the image checks both signatures.
+        if market_logos.kept(INDEX, CATALOGUE, keys.OPERATOR_PUB):
             say("  no market operator key: kept the index and the model catalogue the operator signed")
             place_userland(linux_out)
             return
@@ -72,4 +71,5 @@ def seal(step, tools, linux_out, serial, mirror, package_mirror="", packages="",
     step.run("python3", "tools/nonos-qwen-tier.py", "catalogue", "--out", CATALOGUE,
              "--seed", keys.OPERATOR_SEED, "--pubkey", keys.OPERATOR_PUB, "--serial", serial,
              *(["--nonos-mirror", mirror] if mirror else []))
+    market_logos.agree()
     keys.stage(INDEX, CATALOGUE)

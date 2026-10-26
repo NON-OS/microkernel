@@ -18,7 +18,7 @@ mod attest;
 mod attest_fixture;
 mod baseline;
 mod binding;
-mod blobs;
+pub(crate) mod blobs;
 mod bond;
 mod bond_gate;
 mod commerce;

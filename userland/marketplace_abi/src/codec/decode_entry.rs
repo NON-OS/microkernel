@@ -20,7 +20,7 @@ use alloc::vec::Vec;
 
 use super::error::DecodeError;
 use super::reader::Reader;
-use super::schema::SCHEMA_V3;
+use super::schema::{SCHEMA_V3, SCHEMA_V4};
 use super::strings::{bounded_count, bounded_string};
 use super::{decode_commerce, decode_price, decode_release, decode_token};
 use crate::limits::{MAX_DESCRIPTION, MAX_NAME, MAX_PUBLISHER, MAX_RELEASES};
@@ -34,6 +34,7 @@ pub(super) fn read(r: &mut Reader<'_>, schema: u32) -> Result<MarketplaceEntry, 
     let publisher_pubkey = r.fixed::<32>()?;
     let publisher_eth_address = r.fixed::<20>()?;
     let description = bounded_string(r, MAX_DESCRIPTION)?;
+    let logo_hash = if schema >= SCHEMA_V4 { r.fixed::<32>()? } else { [0; 32] };
 
     let price = decode_price::read(r)?;
     let token = decode_token::read(r)?;
@@ -64,6 +65,7 @@ pub(super) fn read(r: &mut Reader<'_>, schema: u32) -> Result<MarketplaceEntry, 
         publisher_pubkey,
         publisher_eth_address,
         description,
+        logo_hash,
         price,
         token,
         commerce,

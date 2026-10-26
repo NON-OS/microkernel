@@ -30,8 +30,8 @@ from .names import listing
 
 def split(index: dict) -> dict:
     """listing_id -> a one-entry index with the same header."""
-    if not isinstance(index, dict) or index.get("schema_version") != 3:
-        raise ValueError("not a schema-3 index")
+    if not isinstance(index, dict) or index.get("schema_version") != 4:
+        raise ValueError("not a schema-4 index")
     if not isinstance(index.get("entries"), list):
         raise TypeError("the index has no entries list")
     head = {k: v for k, v in index.items() if k != "entries"}
