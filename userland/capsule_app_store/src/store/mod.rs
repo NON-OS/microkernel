@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The marketplace window: the catalogue the market capsule serves, the three
-//! namespaces it carries, and why any one listing can or cannot be installed
-//! on this machine.
+//! The marketplace window: the catalogue the market capsule serves, its three
+//! namespaces, and why any one listing can or cannot be installed on this machine.
 
 mod app;
 mod asked;
@@ -53,6 +52,7 @@ mod poll;
 pub mod price;
 mod progress;
 mod progress_text;
+mod proof;
 mod purchase;
 mod purchase_said;
 mod reasons;
