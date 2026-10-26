@@ -33,6 +33,10 @@ mod keep_status_tests;
 mod keep_tests;
 #[path = "kept_names_tests.rs"]
 mod kept_names_tests;
+#[path = "key_gate_bound_tests.rs"]
+mod key_gate_bound_tests;
+#[path = "key_gate_tests.rs"]
+mod key_gate_tests;
 #[path = "keyring_bond_tests.rs"]
 mod keyring_bond_tests;
 #[path = "keyring_ended_tests.rs"]

@@ -17,16 +17,19 @@
 //! The ops the keyring retired. 11 signed receipts and 12 built an approve,
 //! both for the retired, upgradeable ReceiptSettlement proxy, which the OS no
 //! longer controls: an allowance handed to it could be taken by whoever
-//! upgrades it. Both answer EINVAL, and their numbers stay taken so no new op
-//! reuses them.
+//! upgrades it. 13 and 18 signed a plain ETH and a NOX transfer for any
+//! caller, and nothing in the OS asked for either. All four answer EINVAL,
+//! and their numbers stay taken so no new op reuses them.
 
 use alloc::vec::Vec;
 
 use super::encode::encode_response;
 use super::errno::EINVAL;
-use super::types::{Request, OP_SIGN_NOX_APPROVE, OP_SIGN_NOX_RECEIPT};
+use super::types::{Request, OP_SIGN_ETH_TRANSFER, OP_SIGN_NOX_TRANSFER};
+use super::types::{OP_SIGN_NOX_APPROVE, OP_SIGN_NOX_RECEIPT};
 
-pub const RETIRED: [u16; 2] = [OP_SIGN_NOX_RECEIPT, OP_SIGN_NOX_APPROVE];
+pub const RETIRED: [u16; 4] =
+    [OP_SIGN_NOX_RECEIPT, OP_SIGN_NOX_APPROVE, OP_SIGN_ETH_TRANSFER, OP_SIGN_NOX_TRANSFER];
 
 /// The answer to a retired op, or None for any other.
 pub fn retired(req: &Request<'_>) -> Option<Vec<u8>> {

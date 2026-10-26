@@ -5,7 +5,7 @@
 //! not kept, and only a join the access point ended moves on to the next.
 
 use nonos_wifi_core::bss::{moves_on, Candidates, FRAME_MAX, MAX_CANDIDATES, MAX_TRIES};
-use nonos_wifi_core::mlme::MlmeFailure;
+use nonos_wifi_core::mlme::{MlmeFailure, MlmeState};
 use nonos_wifi_core::rsn::JoinPolicy;
 use nonos_wifi_core::sae::SaeFailure;
 use nonos_wifi_core::wpa::supplicant::Failure;
@@ -62,6 +62,7 @@ fn only_a_join_the_access_point_ended_moves_on() {
         MlmeFailure::Sae(SaeFailure::BadConfirm),
         MlmeFailure::Left(15),
         MlmeFailure::Handshake(Failure::IeMismatch),
+        MlmeFailure::Timeout(MlmeState::Associating),
     ] {
         assert!(moves_on(Some(f)), "{f:?}");
     }
