@@ -28,10 +28,9 @@
 //! wants `arch::wall_clock`, which reads the RTC.
 
 mod boot;
-// Only x86 calls in: its TSC rate can be unknown at the anchor and is then
-// measured against the ACPI PM timer. aarch64 reads CNTFRQ_EL0 at the anchor.
-#[allow(dead_code)]
-pub(crate) mod late_rate;
+// Only ACPI platforms call in: a TSC's rate can be unknown at the anchor and
+// is then measured against the ACPI PM timer. aarch64 reads CNTFRQ_EL0.
+crate::arch::acpi_only! { pub(crate) mod late_rate; }
 mod now;
 mod units;
 

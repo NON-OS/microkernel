@@ -30,7 +30,7 @@ const POLL_EVERY: u32 = 300;
 /// due, and start the next job. Nothing here waits on the catalog.
 pub fn tick(ctx: &mut Context) {
     settle(ctx);
-    if ctx.subscriber_ticks % POLL_EVERY == 0 {
+    if ctx.subscriber_ticks.is_multiple_of(POLL_EVERY) {
         poll_policy(ctx);
     }
     ctx.subscriber_ticks = ctx.subscriber_ticks.wrapping_add(1);

@@ -17,32 +17,43 @@
 //! The rest of start-up on a powered MAC: the firmware, the transmit and
 //! receive engines, and the MAC tables.
 
+use crate::fw::dma::DmaMem;
 use crate::serve::Stage;
 use crate::setup::Mapped;
-use crate::{fwload, mac, setup, status};
+use crate::{fwload, link, mac, setup, status};
 
 /// Load the firmware and bring the MAC up on `mapped`, reporting how far it
 /// got.
-pub fn up_to_ready(mapped: Mapped) -> (Option<Mapped>, Stage) {
+pub fn up_to_ready(mut mapped: Mapped) -> (Option<Mapped>, Stage) {
     // With the MAC powered, load the 8051 firmware. On real silicon this runs the
     // reserved-page staging and DDMA; off-silicon the whole path bar the DMA
     // mapping and the card's own execution is proven in rtl8821ce_proofs.
-    if fwload::load(&mapped.regs, mapped.device_id, mapped.claim_epoch).is_err() {
-        status::line(b"[rtl8821ce] firmware download failed\n");
-        setup::stopped(&mapped);
-        return (Some(mapped), Stage::FirmwareFailed);
+    match fwload::load(&mapped.regs, mapped.device_id, mapped.claim_epoch) {
+        Ok(beacon) => mapped.beacon = Some(beacon),
+        Err(_) => {
+            status::line(b"[rtl8821ce] firmware download failed\n");
+            setup::stopped(&mapped);
+            return (Some(mapped), Stage::FirmwareFailed);
+        }
     }
     status::line(b"[rtl8821ce] firmware loaded and ready\n");
-    // Switch the transmit and receive engines on: queue mapping, the reserved
-    // page boundaries and link-list table, and the H2C queue. Without this the
-    // register table below configures the receiver but it never runs, so the
-    // radio comes up yet hears nothing.
-    if !mac::init_trx_cfg(&mapped.regs) {
+    let Some(rings) = setup::map_rings(mapped.device_id, mapped.claim_epoch) else {
+        status::line(b"[rtl8821ce] dma ring mapping failed\n");
+        setup::stopped(&mapped);
+        return (Some(mapped), Stage::NoDma);
+    };
+    // Point the card at the rings, then switch the transmit and receive
+    // engines on: queue mapping, the reserved page boundaries and link-list
+    // table, and the H2C queue. Without this the register table below
+    // configures the receiver but it never runs, so the radio hears nothing.
+    let (tx_ring, _, rx_ring, rx_buffers) = &rings;
+    if !link::engines_on(&mapped.regs, tx_ring, rx_ring, rx_buffers.device_addr()) {
         status::line(b"[rtl8821ce] trx engine enable failed\n");
         setup::stopped(&mapped);
         return (Some(mapped), Stage::FirmwareFailed);
     }
     status::line(b"[rtl8821ce] trx engines enabled\n");
+    mapped.rings = Some(rings);
     // Register work only: protocol, EDCA, beacon and WMAC configuration.
     mac::run_mac_table(&mapped.regs, mac::MAC_INIT);
     status::line(b"[rtl8821ce] mac initialised\n");

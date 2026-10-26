@@ -21,9 +21,7 @@ mod life;
 mod names;
 mod rule;
 
-pub use home::{
-    erase as erase_home, open as open_home, root as home_root, root_of as home_root_of, HOMES,
-};
+pub use home::{erase as erase_home, open as open_home, root as home_root, HOMES};
 
 pub use life::{clear, prepare};
 pub use names::{allow_shared_writes, in_home, is_private, root, shared_writes_allowed};

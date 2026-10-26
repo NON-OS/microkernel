@@ -1,3 +1,5 @@
+pub use super::viewport::Placement;
+
 pub struct Dst<'a> {
     pub px: &'a mut [u32],
     pub stride: u32,
@@ -5,7 +7,8 @@ pub struct Dst<'a> {
     pub h: u32,
 }
 
-pub fn draw_nn(dst: &mut Dst, src: &[u32], sw: u32, sh: u32, dx: i32, dy: i32, dw: u32, dh: u32) {
+pub fn draw_nn(dst: &mut Dst, src: &[u32], sw: u32, sh: u32, at: &Placement) {
+    let &Placement { dx, dy, dw, dh } = at;
     if sw == 0 || sh == 0 || dw == 0 || dh == 0 {
         return;
     }
@@ -28,16 +31,8 @@ pub fn draw_nn(dst: &mut Dst, src: &[u32], sw: u32, sh: u32, dx: i32, dy: i32, d
     }
 }
 
-pub fn draw_bilinear(
-    dst: &mut Dst,
-    src: &[u32],
-    sw: u32,
-    sh: u32,
-    dx: i32,
-    dy: i32,
-    dw: u32,
-    dh: u32,
-) {
+pub fn draw_bilinear(dst: &mut Dst, src: &[u32], sw: u32, sh: u32, at: &Placement) {
+    let &Placement { dx, dy, dw, dh } = at;
     if sw == 0 || sh == 0 || dw == 0 || dh == 0 {
         return;
     }

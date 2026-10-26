@@ -43,8 +43,8 @@ pub(in crate::hardware::broker) fn port_only_quietly(device_id: u64) {
         let _ = cfg.set_command(at_claim(cmd, true));
     }
     if !matches!(cfg.command(), Ok(c) if c & (BUS_MASTER | MEMORY_SPACE) == 0) {
-        crate::sys::serial::print(b"[BROKER] device ");
-        crate::sys::serial::print_hex(device_id);
-        crate::sys::serial::println(b" port-only claim: memory space or bus master STILL ON");
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[BROKER] device ").hex(device_id);
+        l.str(b" port-only claim: memory space or bus master STILL ON").end();
     }
 }

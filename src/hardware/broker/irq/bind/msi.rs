@@ -34,7 +34,7 @@ pub(super) fn bind_msi(
     epoch: u64,
 ) -> Result<IrqBindResult, IrqBindError> {
     let handle = pci_index::lookup(req.device_id);
-    let msi = handle.as_ref().and_then(|h| h.msi);
+    let msi = handle.as_ref().and_then(pci_index::msi_of);
     let present = handle.as_ref().map(|_| msi.is_some());
     validate_msi_request(&req, present, records::has_message_grant(req.device_id))?;
     let handle = handle.ok_or(IrqBindError::NoDeviceHandle)?;

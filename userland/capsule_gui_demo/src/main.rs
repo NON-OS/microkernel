@@ -23,6 +23,8 @@ mod gui_demo;
 
 use nonos_app_skeleton::run;
 
+/// # Safety
+/// The kernel enters here once, on the capsule's own fresh stack.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     run(gui_demo::GuiDemo::new)

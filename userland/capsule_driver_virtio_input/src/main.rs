@@ -42,6 +42,9 @@ const EXIT_HEAP_INIT: i32 = 1;
 /// Every virtio-input function is brought up on its own bounded schedule;
 /// one that never comes up costs only itself. With none at all the driver
 /// says so and leaves before claiming anything, and with none up it gives up.
+///
+/// # Safety
+/// The kernel enters here once, on the capsule's own fresh stack.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {

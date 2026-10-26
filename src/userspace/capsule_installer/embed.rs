@@ -33,6 +33,16 @@ pub(crate) const INSTALLER_MANIFEST_BYTES: &[u8] =
 pub(crate) const INSTALLER_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/installer.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-installer")]
+const _: () = assert!(
+    !INSTALLER_ELF.is_empty()
+        && !INSTALLER_NONOS_ID_CERT_BYTES.is_empty()
+        && !INSTALLER_MANIFEST_BYTES.is_empty()
+        && !INSTALLER_ATTESTATION_BYTES.is_empty(),
+    "capsule_installer built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-installer"))]
 pub(crate) const INSTALLER_ELF: &[u8] = &[];
 

@@ -36,6 +36,16 @@ pub(super) const DRIVER_IGB_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_IGB_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/driver_igb.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-igb")]
+const _: () = assert!(
+    !DRIVER_IGB_ELF.is_empty()
+        && !DRIVER_IGB_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_IGB_MANIFEST_BYTES.is_empty()
+        && !DRIVER_IGB_ATTESTATION_BYTES.is_empty(),
+    "igb_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-igb"))]
 pub(super) const DRIVER_IGB_ELF: &[u8] = &[];
 

@@ -27,8 +27,8 @@ pub fn sys_dev_root_local() -> i64 {
     match request_local_build_root(caps) {
         Ok(()) => 0,
         Err(e) => {
-            crate::sys::serial::print(b"[DEV-ROOT] local request refused: ");
-            crate::sys::serial::println(e.as_str().as_bytes());
+            let mut l = crate::sys::serial::Line::new();
+            l.str(b"[DEV-ROOT] local request refused: ").str(e.as_str().as_bytes()).end();
             e.to_errno()
         }
     }

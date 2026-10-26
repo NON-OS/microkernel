@@ -15,14 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The IOMMU backend for every build but x86_64 with its IOMMU feature,
-//! mounted by `memory::iommu::backend` as its `inner` module.
+//! mounted by `memory::iommu::backend` as its `inner` module. riscv64 has no
+//! IOMMU backend, nor has x86_64 without that feature: there `absent` answers
+//! that nothing translates, and the posture line says `none present`.
 
+#[cfg(not(target_arch = "aarch64"))]
+mod absent;
 #[cfg(target_arch = "aarch64")]
 mod smmu;
-#[cfg(not(target_arch = "aarch64"))]
-mod unsupported;
 
+#[cfg(not(target_arch = "aarch64"))]
+pub(in crate::memory::iommu) use absent::*;
 #[cfg(target_arch = "aarch64")]
 pub(in crate::memory::iommu) use smmu::*;
-#[cfg(not(target_arch = "aarch64"))]
-pub(in crate::memory::iommu) use unsupported::*;
