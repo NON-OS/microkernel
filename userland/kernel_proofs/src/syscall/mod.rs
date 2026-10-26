@@ -10,3 +10,6 @@ pub mod caps;
 pub mod contract;
 
 pub mod microkernel;
+
+#[cfg(test)]
+mod tables_tests;
