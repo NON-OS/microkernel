@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Who may power the machine off through this capsule, pure. The desktop
-//! shell alone: `power.off` is its request for the wiped power-off, and the
+//! shell: `power.off` is its request for the wiped power-off, and the
 //! `power` port's reboot and shutdown are the same act by another frame.
-//! Anyone may ask for a health check.
+//! The two installers may reboot, their last step (S-14). Anyone may ask
+//! for a health check.
 
 /// The kernel's EPERM and EINVAL, as a refusal carries them.
 pub const EPERM: i32 = -1;
@@ -42,11 +43,24 @@ pub fn verdict(well_formed: bool, from_shell: bool) -> Verdict {
     }
 }
 
-/// Whether a `power` op may run for this sender: the health check for
-/// anyone, reboot (2) and shutdown (3) for the shell alone.
-pub fn op_allowed(op: u16, from_shell: bool) -> bool {
+/// Who sent a `power` request, told by the service its process owns.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Caller {
+    Shell,
+    Installer,
+    Other,
+}
+
+/// The installer window's service and the command line installer's.
+pub const INSTALLERS: [&[u8]; 2] = [b"app.install", b"tool.install"];
+
+/// Whether a `power` op may run for this caller: the health check for
+/// anyone, reboot (2) for the shell and the installers, shutdown (3) for
+/// the shell alone.
+pub fn op_allowed(op: u16, from: Caller) -> bool {
     match op {
-        2 | 3 => from_shell,
+        2 => matches!(from, Caller::Shell | Caller::Installer),
+        3 => from == Caller::Shell,
         _ => true,
     }
 }
