@@ -1,0 +1,7 @@
+[
+ {"name": "no-less-than", "file": "userland/capsule_install/e2e/qmp.py", "old": "\"<\": \"comma\", ", "new": ""},
+ {"name": "drop-unknown", "file": "userland/capsule_install/e2e/qmp.py", "old": "    raise ValueError(f\"cannot type {ch!r}: no key for it on a US keyboard\")", "new": "    return (ch,)"},
+ {"name": "ignore-refusal", "file": "userland/capsule_install/e2e/qmp.py", "old": "            if \"error\" in reply:", "new": "            if False:"},
+ {"name": "send-as-checked", "file": "userland/capsule_install/e2e/qmp.py", "old": "        keys = [keys_for(ch) for ch in text]\n        for k in keys:\n", "new": "        for k in (keys_for(ch) for ch in text):\n"},
+ {"name": "capital-unshifted", "file": "userland/capsule_install/e2e/qmp.py", "old": "return (\"shift\", ch.lower()) if ch.isupper() else (ch,)", "new": "return (ch.lower(),)"}
+]
