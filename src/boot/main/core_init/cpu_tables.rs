@@ -42,6 +42,9 @@ pub(super) fn init_cpu_tables() {
     serial::println(b"[NONOS] Early IDT configured");
     crate::memory::heap::manager::init_bootstrap();
     serial::println(b"[NONOS] Global allocator initialized");
+    // The first point a log line can be made: every log macro formats into
+    // the heap. Before aa4d73213 removed init_early, no line reached a sink.
+    crate::log::init();
     interrupts::init_idt();
     serial::println(b"[NONOS] Full IDT loaded");
     crate::sys::bench::mark(b"kernel_idt_ready");
