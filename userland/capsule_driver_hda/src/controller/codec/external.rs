@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The external amplifier behind the codec: EAPD on every pin that has it
-//! (`alc_auto_setup_eapd`), and on HP machines the GPIOs Linux's Realtek
-//! fixups drive.
+//! (`alc_auto_setup_eapd`), and the GPIOs `vendor_gpio` names for the
+//! codec's vendor and machine.
 
-use super::program::hp_gpio;
+use super::vendor_gpio::gpio;
 use super::widget::Codec;
 use crate::constants::{
     EAPD_ENABLE, PINCAP_EAPD, VERB_SET_EAPD_BTLENABLE, VERB_SET_GPIO_DATA, VERB_SET_GPIO_DIRECTION,
@@ -28,7 +28,7 @@ use crate::controller::compose_verb;
 use crate::controller::verb::Link;
 use crate::error::HdaResult;
 
-/// EAPD on every pin that has it, then the HP GPIOs: mask, direction, and
+/// EAPD on every pin that has it, then the GPIOs: mask, direction, and
 /// the data a millisecond later, as Linux writes them.
 pub(super) fn enable(link: &mut Link, codec: &Codec) -> HdaResult<()> {
     let cad = codec.cad;
@@ -37,7 +37,7 @@ pub(super) fn enable(link: &mut Link, codec: &Codec) -> HdaResult<()> {
             link.send(compose_verb(cad, w.nid, VERB_SET_EAPD_BTLENABLE, EAPD_ENABLE as u16))?;
         }
     }
-    if let Some(bits) = hp_gpio(codec.subsystem_id, codec.gpio_count) {
+    if let Some(bits) = gpio(codec.vendor_id, codec.subsystem_id, codec.gpio_count) {
         let afg = codec.afg;
         link.send(compose_verb(cad, afg, VERB_SET_GPIO_MASK, bits as u16))?;
         link.send(compose_verb(cad, afg, VERB_SET_GPIO_DIRECTION, bits as u16))?;
