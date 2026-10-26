@@ -16,10 +16,16 @@
 
 extern crate alloc;
 
+use alloc::string::String;
+
 use nonos_app_skeleton::clients::vfs::dirstat;
 
 use super::screen::Screen;
 use super::state::State;
+
+/// A cached `dirstat` walk keyed by the path it describes; `None` inside is a
+/// cached failure.
+pub type DirWalk = (String, Option<(u32, u32, u64, bool)>);
 
 /// Bring `state.dir_info` in line with what the cursor is on, at most one vfs
 /// round-trip per distinct directory. Runs before paint, never inside it: the
