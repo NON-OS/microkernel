@@ -19,11 +19,11 @@ pub(crate) mod command;
 mod dcbaa_slot;
 pub(crate) mod drain_events;
 mod interrupt_out;
-mod isoch;
+pub(crate) mod isoch;
 pub(crate) mod park;
 mod port;
 pub(crate) mod ring_doorbell;
-mod transfer;
+pub(crate) mod transfer;
 pub use ack_irq::ack_irq;
 pub use bringup::*;
 pub use command::*;
@@ -35,9 +35,4 @@ pub use port::{power_all_ports, reset_port};
 // Reached by the host proofs (userland/xhci_proofs), not by the capsule.
 #[allow(unused_imports)]
 pub use port::{port_action, PortAction};
-// Reached by the host proofs (userland/xhci_proofs), not by the capsule.
-#[allow(unused_imports)]
-pub use isoch::{batch_fits, burst_fields, in_batch_fits, lengths, pack, td_bytes};
 pub use transfer::*;
-#[allow(unused_imports)]
-pub use transfer::{complete, moved, short_on, stopped_early};

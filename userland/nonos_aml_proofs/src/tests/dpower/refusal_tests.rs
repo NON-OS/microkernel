@@ -31,7 +31,7 @@ fn refusals_and_d3hot() {
     let mut ev = evaluator(&mut probe);
     assert!(matches!(
         dp.set(&mut pool, &mut aml, &mut ev, d3, DState::D0, DState::D1),
-        Err(MoveError::Unsupported)
+        Err(MoveError::NoSuchState)
     ));
     dp.set(&mut pool, &mut aml, &mut ev, d2, DState::D0, DState::D3Hot).unwrap();
     assert!(matches!(

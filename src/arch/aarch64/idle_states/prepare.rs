@@ -48,7 +48,7 @@ pub fn prepare() {
             line.str(if extended { b" format=extended" } else { b" format=original" });
             match resume {
                 Ok(()) => _ = line.str(b" powerdown=resumable"),
-                Err(why) => _ = line.str(b" powerdown=no (resume stub ").str(why).str(b")"),
+                Err(why) => _ = line.str(b" powerdown=no (resume entry ").str(why).str(b")"),
             }
             match (frame, broadcast::owner()) {
                 (Ok(number), Some(cpu)) => {

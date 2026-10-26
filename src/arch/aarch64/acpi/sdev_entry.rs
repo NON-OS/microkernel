@@ -44,7 +44,7 @@ pub struct SdevEntry {
 
 /// `e` is the entry, cut to its own length. None for an unknown type or an
 /// offset that leaves it.
-pub fn entry(e: &[u8]) -> Option<SdevEntry> {
+pub(crate) fn entry(e: &[u8]) -> Option<SdevEntry> {
     let field = |at: usize| u16_at(e, at).map(usize::from);
     let slice = |at: usize, len: usize| e.get(at..at.checked_add(len)?).filter(|_| at >= 12);
     let device = match u8_at(e, 0)? {

@@ -33,11 +33,9 @@ mod unserved;
 mod wire_identity_parse;
 
 #[path = "../../../capsule_driver_sdhci/src/protocol/mod.rs"]
-#[allow(dead_code, unused_imports)]
-mod sdhci;
+pub mod sdhci;
 #[path = "../../../capsule_driver_ufs/src/platform/hosts.rs"]
-#[allow(dead_code)]
-mod ufs_hosts;
+pub mod ufs_hosts;
 
 // Mounted once each, by the tests that hold them on their own.
 use crate::blk_pci_tests::{identity_parse, pci};

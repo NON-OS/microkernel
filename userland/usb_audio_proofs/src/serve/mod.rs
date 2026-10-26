@@ -3,6 +3,8 @@
 
 #[path = "../../../capsule_driver_usb_audio/src/serve/answer.rs"]
 pub mod answer;
+#[path = "../../../capsule_driver_usb_audio/src/serve/fresh.rs"]
+mod fresh;
 #[path = "../../../capsule_driver_usb_audio/src/serve/look.rs"]
 pub mod look;
 #[path = "../../../capsule_driver_usb_audio/src/serve/loss.rs"]

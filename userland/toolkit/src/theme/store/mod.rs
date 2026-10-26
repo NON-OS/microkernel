@@ -20,4 +20,5 @@ mod theme;
 
 pub use replace::replace;
 pub use snapshot::snapshot;
+pub use state::{START, START_MUTED, START_QUIET};
 pub use theme::Theme;
