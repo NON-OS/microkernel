@@ -158,7 +158,8 @@ pub fn resolve_in(
     memory: Option<u64>,
     room: Room,
 ) -> (&'static str, Source) {
-    let word_byte = |c: &u8| c.is_ascii_lowercase() || c.is_ascii_digit() || *c == b'.' || *c == b'-';
+    let word_byte =
+        |c: &u8| c.is_ascii_lowercase() || c.is_ascii_digit() || *c == b'.' || *c == b'-';
     let word = &chosen[..chosen.iter().position(|c| !word_byte(c)).unwrap_or(chosen.len())];
     if let Some(&(t, _)) = weights.iter().find(|(t, _)| t.as_bytes() == word && !word.is_empty()) {
         return (t, Source::Chosen);
@@ -169,6 +170,8 @@ pub fn resolve_in(
     }
     match weights.iter().rev().find(|w| proven(w.0) && fits(w) == Some(true)) {
         Some(&(t, _)) => (t, Source::Largest),
-        None => (weights.iter().find(|w| proven(w.0)).map_or(STICK_TIER, |w| w.0), Source::Smallest),
+        None => {
+            (weights.iter().find(|w| proven(w.0)).map_or(STICK_TIER, |w| w.0), Source::Smallest)
+        }
     }
 }
