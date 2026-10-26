@@ -24,7 +24,7 @@ Every rate is sent at one power index, 0x24 in 0.5 dB steps (about 18 dBm): the 
 
 A connect runs the whole join inside the request (`userland/capsule_driver_rtl8821ce/src/serve/connect.rs:17-29`, `JoinPolicy`). The policy is WPA3-SAE whenever offered and WPA2 otherwise, and only SAE for a network saved as WPA3 (`userland/capsule_driver_rtl8821ce/src/serve/connect.rs:139-143`, `JoinPolicy::WPA3_ONLY`). The negotiation itself is described on the [Wi-Fi overview](../overview/security.md#security-a-join-accepts).
 
-- The join gets 8 s (`userland/capsule_driver_rtl8821ce/src/serve/connect.rs:61-68`, `JOIN_BUDGET_MS`).
+- The join gets 8 s (`userland/capsule_driver_rtl8821ce/src/serve/connect.rs:61-68`, `JOIN_BUDGET_MS`). The join and the hunt for the network sleep a millisecond each time the receive ring is empty, so a connect does not spin a core for seconds (`userland/capsule_driver_rtl8821ce/src/serve/connect/pace.rs`, `Uptime`, `nap`).
 - On a network that offers both, a WPA3 join that did not finish is tried again once with WPA2, with its own 8 s (`userland/capsule_driver_rtl8821ce/src/serve/connect.rs:69-72`, `PSK_BUDGET_MS`). That second try is skipped when the network was saved as WPA3 and when the access point's SAE confirm said the password is wrong (`userland/capsule_driver_rtl8821ce/src/serve/connect.rs:250-257`, `retry_with_psk`).
 - The pairwise and group keys go into the chip's key table, with 4 entries for group keys by key index (`userland/capsule_driver_rtl8821ce/src/serve/connect.rs:57-74`, `GROUP_KEY_SLOTS`).
 - The reply carries a status code and the AKM that ran: 2 for WPA2-PSK, 6 for PSK-SHA256, 8 for WPA3-SAE (`userland/capsule_driver_rtl8821ce/src/serve/connect/result.rs:51-68`, `ConnectResult`).
@@ -50,7 +50,13 @@ The one service inbox takes two request families: `net.core`'s link protocol, ha
 
 While joined, a new group key from the access point is installed and a deauthentication ends the session, so the link reads down and the background scan resumes (`userland/capsule_driver_rtl8821ce/src/serve/mod.rs:137-150`, `after_receive`). The driver does not rejoin by itself; see [autojoin](../overview/stages.md#autojoin-and-losing-the-link).
 
+A card that reads back all ones has left the bus, as after a surprise removal. Each pass of the serve loop checks for it; the radio then goes down for good and the panel reads `DeadMmio` (`userland/capsule_driver_rtl8821ce/src/serve/gone.rs`, `check_gone`). The receive path reads no slot off an all-ones index.
+
 Frames queued while the card's transmit read index stands still for 5 s, the Linux netdev watchdog's timeout, mean a wedged DMA engine. Both rings are then reprogrammed and the DMA interface reset as at bring-up, the queued frames dropped and the reset counted (`userland/capsule_driver_rtl8821ce/src/link/stall.rs`, `watch_tx`, `reset_rings`).
+
+## Power save
+
+Leisure power save and ASPM L1 are built, following rtw88, and switched off by one constant, `LPS` (`userland/capsule_driver_rtl8821ce/src/ps/switch.rs`). With it off the driver does none of what follows. On association the firmware is told the station connected and is given PS-Poll, QoS Null and Null frames in the reserved pages, their places, the AID and the DTIM period (`userland/capsule_driver_rtl8821ce/src/ps/join.rs`, `tell_joined`). Every two seconds a joined link with at most 50 frames either way, and no probe or SA Query from its watch, is put to sleep: Bluetooth's scoreboard told, the firmware's power mode set, then L1 and CLKREQ enabled as far as the host enabled them on the link (`userland/capsule_driver_rtl8821ce/src/ps/enter.rs`). Busy traffic, a quiet access point or a disconnect wakes it in the reverse order, waiting up to 100 ms for the firmware to clear the power management bit. Turning the switch on needs a run on a real RTL8821CE: the link held through sleep, no received frame lost across it, and a group rekey and an SA Query answered while asleep.
 
 ## Firmware
 
