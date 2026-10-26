@@ -39,7 +39,7 @@ pub fn answer(job: Option<&mut Job>, sender: u32, h: &Header, body: &[u8]) -> Ve
         {
             match (h.op, job_of(body)) {
                 (STATUS, Some((_, None))) => {
-                    j.answered |= j.stage == Stage::Failed;
+                    j.answered = j.stage == Stage::Failed;
                     (j.status, status_body(j.stage, j.total()).to_vec())
                 }
                 (GET, Some((_, Some(at)))) if j.stage == Stage::Done => slice(j, at as usize),
