@@ -49,7 +49,10 @@ pub fn on_key(state: &mut State, code: u32) -> EventOutcome {
             state.search.open();
             true
         }
-        c => return act(state, c),
+        c => match state.proof_key(c) {
+            Some(changed) => changed,
+            None => return act(state, c),
+        },
     };
     match changed {
         true => EventOutcome::Repaint,

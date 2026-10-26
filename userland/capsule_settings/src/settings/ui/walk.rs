@@ -43,8 +43,8 @@ pub fn walk<F: FnMut(u32, u32, Item)>(state: &State, mut f: F) {
     for (bi, b) in blocks_for(state.section).iter().enumerate() {
         let bh = block_h(state, b);
         f(y, bh, Item::Card);
-        f(y, head_h(b), Item::CardHead(bi));
-        let mut ry = y + head_h(b);
+        f(y, head_h(state, b), Item::CardHead(bi));
+        let mut ry = y + head_h(state, b);
         for (ri, r) in b.rows.iter().enumerate() {
             let Some((n, item, h)) = list_of(state, r) else {
                 f(ry, row_h(r), Item::Row(bi, ri));
