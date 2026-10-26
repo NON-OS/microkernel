@@ -52,8 +52,9 @@ Inside `capsule_linux`:
 - The personality holds `Debug` on every build, hardened and air-gapped
   included, because `LINUX_CAPS` names it
   (`src/userspace/capsule_linux/spawn.rs:39-43`). `sys_mk_debug` writes its
-  lines to the serial console, except during a Terminal's private run, which
-  `is_private_run` recognises and whose lines go only to the Terminal
+  lines to the serial console, except during a Terminal's run (its `linux`
+  command, with or without Network, or a Qwen tier), which `is_private_run`
+  recognises and whose lines go only to the Terminal
   (`src/syscall/microkernel/debug.rs:61-65`).
 
 ## Host tests
