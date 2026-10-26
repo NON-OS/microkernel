@@ -21,7 +21,7 @@ use crate::snake::theme::TITLE;
 use crate::snake::ui::button::{self, Style};
 use crate::snake::ui::card;
 use crate::snake::ui::metrics::{PX_TITLE, RADIUS_PANEL};
-use crate::snake::ui::pause_geom::{action, modal, title, ACTIONS, LABELS};
+use crate::snake::ui::pause_geom::{action, modal, title, LABELS};
 use crate::snake::ui::text;
 
 use super::glow;
@@ -38,9 +38,9 @@ pub fn paint(fb: &mut PaintBuffer) {
     card::panel(fb, m, RADIUS_PANEL);
     let t = title(w, h);
     text::left(fb, t.0, t.1, HEADING, TITLE, PX_TITLE);
-    for index in 0..ACTIONS {
+    for (index, &label) in LABELS.iter().enumerate() {
         let lit = hover::is(Tag::PauseAction, index);
-        button::paint(fb, action(w, h, index), LABELS[index], style(index), lit);
+        button::paint(fb, action(w, h, index), label, style(index), lit);
     }
 }
 

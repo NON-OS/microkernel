@@ -30,9 +30,9 @@ const EMPTY: &[u8] = b"No runs stored yet";
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
     let (w, h) = (fb.width, fb.height);
     let band = head(w, h);
-    for index in 0..COLUMNS {
+    for (index, &heading) in HEADS.iter().enumerate() {
         let c = cell(band, w, h, index);
-        text::left(fb, c.0, text::centred_top(c.1, c.3, PX_LABEL), HEADS[index], MUTED, PX_LABEL);
+        text::left(fb, c.0, text::centred_top(c.1, c.3, PX_LABEL), heading, MUTED, PX_LABEL);
     }
     fb.blend_rect(band.0, band.1 + band.3, band.2, 1, RULE_SOFT);
     if game.runs.is_empty() {
@@ -59,8 +59,8 @@ fn entry(fb: &mut PaintBuffer, w: u32, h: u32, index: usize, run: &RunRecord) {
     let ink = if index == 0 { TITLE } else { LABEL };
     let columns: [&[u8]; COLUMNS] =
         [place.as_bytes(), score.as_bytes(), run.mode.name(), length.as_bytes()];
-    for column in 0..COLUMNS {
+    for (column, &label) in columns.iter().enumerate() {
         let c = cell(band, w, h, column);
-        text::left(fb, c.0, top, text::fit(columns[column], PX_BODY, c.2), ink, PX_BODY);
+        text::left(fb, c.0, top, text::fit(label, PX_BODY, c.2), ink, PX_BODY);
     }
 }
