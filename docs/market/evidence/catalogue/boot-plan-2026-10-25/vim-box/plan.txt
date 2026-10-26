@@ -1,4 +1,0 @@
-run:market install linux.vim:30
-raw:until:[LINUX] installed:1800
-raw:shot:installed
-run:linux vim --version:60

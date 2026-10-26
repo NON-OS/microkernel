@@ -35,7 +35,7 @@ def nic(model, forbid=()):
 # ACS between them, as an Intel PCH puts HDA (1f.3) beside its I219 (1f.6): one
 # isolation group, which the broker gives to one capsule. The NICs claim
 # before hda, so the network wins and hda is refused naming its holder (the
-# Lead's ruling, docs/hardware/platform-rulings.md). The port's bus is 01.
+# Lead's ruling, HANDOFF/hardware/platform.md). The port's bus is 01.
 SIBLINGS = ("-device pcie-root-port,id=cellsib,chassis=1,slot=1",
             "-audiodev none,id=cellsnd",
             "-device intel-hda,bus=cellsib,addr=0.0,multifunction=on",

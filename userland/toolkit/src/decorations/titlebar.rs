@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The frame's measures at one to one (docs/design/ui-identity.md, Window
+//! The frame's measures at one to one (HANDOFF/ui/identity.md, Window
 use super::controls::draw_controls_at;
 use super::frame_rect::{frame_rect_at, margin_at, radius_at, titlebar_h_at};
 use super::hit_test::DecorationHit;
