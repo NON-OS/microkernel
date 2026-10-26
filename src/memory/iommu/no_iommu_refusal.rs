@@ -34,6 +34,9 @@ pub(crate) enum Needs {
     AgentProof,
 }
 
+/// Every promise, in the order a held refusal is numbered (no_iommu_stop.rs).
+pub(crate) const ALL: [Needs; 3] = [Needs::AirGapped, Needs::Hardened, Needs::AgentProof];
+
 impl Needs {
     /// The line on the panel and on serial.
     pub(crate) const fn line(self) -> &'static str {
