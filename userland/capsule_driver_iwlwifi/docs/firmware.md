@@ -27,9 +27,15 @@ image's PNVM file is in the tree (`firmware::gen3_pnvm`): after ALIVE, if the
 part reports a SKU id, the section whose SKU and HW type match is laid out
 after the image loader as fragmented payloads with a descriptor array (every
 bundled image has `FRAGMENTED_PNVM_IMG`), the peripheral scratch's `pnvm_cfg`
-names it, and the doorbell rings (`gen3::pnvm`). No PNVM file is committed
-yet, so the doorbell rings with none and the firmware runs on its defaults,
-as Linux's does when the file is missing.
+names it, and the doorbell rings (`gen3::pnvm`). The AX211's file
+(`nonos-bootloader/firmware/intel/iwlwifi-so-a0-gf-a0.pnvm`) is linux-firmware's
+at commit bf992df7a95b5e19bb8f8546eb4d7c53ab2598d0, pinned by sha256 in
+`scripts/baselines/upstream.sha256`; `iwlwifi_proofs` reads every SKU section
+of it against a walk of its TLVs (`gen3_pnvm_real_tests.rs`). An HR radio has
+no PNVM, and the TY and MA files are not carried, so those firmwares run on
+their defaults, as Linux's does when the file is missing. Every parser of
+what the firmware writes, what the air brings and these two files is fuzzed
+(`userland/iwlwifi_proofs/src/gen3_fuzz_tests`).
 
 ## Authority
 

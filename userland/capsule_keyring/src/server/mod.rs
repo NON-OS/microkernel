@@ -23,6 +23,7 @@ mod ethaddr;
 mod field32;
 mod handlers;
 mod hd;
+mod key_gate;
 mod reap;
 mod registry;
 mod rlp;

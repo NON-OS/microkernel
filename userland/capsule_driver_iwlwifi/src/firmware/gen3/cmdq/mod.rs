@@ -34,4 +34,4 @@ mod sizes;
 mod write;
 
 pub use queue::CmdQueue;
-pub use sizes::FIRST_TB;
+pub use sizes::{FIRST_TB, QUEUE as CMD_QUEUE};
