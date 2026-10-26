@@ -59,12 +59,3 @@ pub fn handle_interrupt() -> u8 {
 
     status_c_val
 }
-
-pub fn check_interrupt_source() -> (bool, bool, bool) {
-    let status_c_val = cmos_read(Register::StatusC as u8);
-    (
-        (status_c_val & status_c::UF) != 0,
-        (status_c_val & status_c::AF) != 0,
-        (status_c_val & status_c::PF) != 0,
-    )
-}

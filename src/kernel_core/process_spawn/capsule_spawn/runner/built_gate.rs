@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whether an embedded capsule is in this kernel at all, asked before its
-//! cert is decoded. A capsule whose feature is off embeds empty consts, and
-//! one built in with an empty file no longer compiles (each embed's
-//! `const _: () = assert!`), so an empty ELF here means "not built". It was
-//! asked only at install, after preflight, and a core kernel's every spawn
-//! read as "NØNOS ID cert decode failed (UnexpectedEof)" (B-02). Generic and
-//! free of the kernel's types, so kernel_proofs runs this very order.
+//! Whether a capsule image is there at all. A capsule whose feature is off
+//! embeds empty consts, and one built in with an empty file no longer
+//! compiles (each embed's `const _: () = assert!`, B-02); a verified spawn
+//! says FeatureDisabled for one before its cert is decoded (verified.rs).
+//! Here, a store load refuses an empty image read from the store by its own
+//! name. Generic and free of the kernel's types, so kernel_proofs runs it.
 
 /// `not_built` when `elf` is empty, else on.
 pub(crate) fn gate<E>(elf: &[u8], not_built: E) -> Result<(), E> {
@@ -28,19 +27,6 @@ pub(crate) fn gate<E>(elf: &[u8], not_built: E) -> Result<(), E> {
         return Err(not_built);
     }
     Ok(())
-}
-
-/// A verified spawn's checks in their order: the boot profile, then the
-/// gate, and only then the preflight that decodes the cert and manifest.
-pub(crate) fn checked<P, E>(
-    elf: &[u8],
-    not_built: E,
-    profile: impl FnOnce() -> Result<(), E>,
-    preflight: impl FnOnce() -> Result<P, E>,
-) -> Result<P, E> {
-    profile()?;
-    gate(elf, not_built)?;
-    preflight()
 }
 
 /// A store load's order: an empty image read from the store is refused
