@@ -37,7 +37,7 @@ fn a_shape_is_asked_for_well_formed_and_set_by_its_surfaces_owner_alone() {
     let mut scene = SceneTable::new();
     scene.submit(layer(40, 0, 0, 400, 300, 2)).unwrap();
     assert!(scene.set_cursor(41, 40, EW_CODE).is_none(), "another pid's surface");
-    assert_eq!(scene.set_cursor(40, 40, EW_CODE).map(|l| l.cursor), Some(EW_CODE));
+    assert_eq!(scene.set_cursor(40, 40, EW_CODE).map(|l| l.cursor), Some(Some(EW_CODE)));
     scene.submit(layer(40, 10, 10, 500, 300, 2)).unwrap();
     let (kept, n) = scene.z_sorted_snapshot();
     assert_eq!(shape_at(kept[..n].iter(), 20, 20), EW_CODE, "kept when submitted again");
