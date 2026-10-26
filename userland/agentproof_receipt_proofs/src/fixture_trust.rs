@@ -28,7 +28,7 @@ impl Fixture {
         let d = Doc::parse(&doc).unwrap();
         let pcr = |i| *d.pcr(i).unwrap();
         let release =
-            Release { version: "0.9.3-test".into(), pcr8: pcr(8), pcr9: pcr(9), pcr14: pcr(14) };
+            Release { version: "0.9.3-test".into(), pcr8: pcr(8), pcr9: pcr(9) };
         let ak = Key::new(self.spec.doc_key).public();
         Trust {
             releases: vec![release],
