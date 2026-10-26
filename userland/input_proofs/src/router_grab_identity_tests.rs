@@ -10,12 +10,12 @@
 use nonos_libc::{INPUT_KIND_BUTTON_DOWN, INPUT_KIND_KEY_DOWN, INPUT_KIND_POINTER_REL};
 use nonos_libc::{INPUT_KIND_KEY_UP, INPUT_KIND_TOUCH};
 
-use crate::tests::kernel_reserved::{is_reserved_service, is_runtime_registrable};
-use crate::tests::kernel_system_names::{is_reserved_form, is_system_name};
 use crate::route::grab_rule::{may_grab, GRABBERS};
 use crate::route::pad::PAD_BUTTON_DOWN;
 use crate::route::recent::{after, is_press};
 use crate::router_desk::SHELL;
+use crate::tests::kernel_reserved::{is_reserved_service, is_runtime_registrable};
+use crate::tests::kernel_system_names::{is_reserved_form, is_system_name};
 
 const A: u32 = 20;
 const B: u32 = 21;
@@ -49,6 +49,9 @@ fn every_grabber_name_is_the_images_and_none_is_taken_at_run_time() {
         let name = core::str::from_utf8(name).expect("ascii");
         assert!(is_system_name(name), "{name}: a publisher's capsule may not take it");
         assert!(!is_runtime_registrable(name), "{name}: nor any capsule at run time");
-        assert!(!is_reserved_service(name, 1) && !is_reserved_form(name), "{name}: by its own list");
+        assert!(
+            !is_reserved_service(name, 1) && !is_reserved_form(name),
+            "{name}: by its own list"
+        );
     }
 }
