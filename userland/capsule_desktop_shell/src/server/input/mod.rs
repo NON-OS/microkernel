@@ -16,6 +16,7 @@
 
 //! The shell's input: each frame from the router, by what it is.
 
+mod chords;
 mod desk;
 mod drag;
 mod frame;

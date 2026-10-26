@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The critical leave (a thermal zone or the battery past its grace,
-//! zerostate terminate_critical): the same schedule within CRITICAL_TOTAL_MS,
+//! zerostate terminate_with(off, true)): the same schedule within CRITICAL_TOTAL_MS,
 //! so a disk that never answers holds the machine up 6 s, not 15.
 
 use std::cell::Cell;
@@ -38,3 +38,15 @@ fn a_critical_leave_ends_every_leg_by_its_shorter_total() {
 // Shorter than the ordinary total, and still room for a drive's typical
 // normal shutdown and a working disk's flush.
 const _: () = assert!(CRITICAL_TOTAL_MS < TOTAL_MS && CRITICAL_TOTAL_MS >= 5_000);
+
+/// The two critical ways out, a report past its grace and the clock past it,
+/// ask for the shorter leave; nothing else does.
+#[test]
+fn only_the_critical_watch_asks_for_the_critical_leave() {
+    let act = include_str!("../../../../src/syscall/microkernel/acpi/event_act.rs");
+    let late = include_str!("../../../../src/hardware/broker/acpi/leave.rs");
+    for src in [act, late] {
+        assert_eq!(src.matches("terminate_with(PowerOff::Shutdown, true)").count(), 1);
+        assert!(!src.contains("terminate_with(PowerOff::Shutdown, false)"));
+    }
+}

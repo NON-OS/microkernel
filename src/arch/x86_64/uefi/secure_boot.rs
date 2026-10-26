@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::secure_boot_ops::{
-    authorize_hash, authorize_signature, get_authorized_hashes, get_revoked_hashes, get_status,
-    is_enabled, is_hash_authorized, is_hash_revoked, is_setup_mode, revoke_hash, revoke_signature,
-    verify_binary, verify_hash, verify_with_result,
+    authorize_hash, get_authorized_hashes, get_revoked_hashes, get_status, is_enabled,
+    is_setup_mode, revoke_hash, revoke_signature, verify_hash,
 };
-pub use super::secure_boot_status::{SecureBootStatus, VerificationResult};
+pub use super::secure_boot_status::SecureBootStatus;

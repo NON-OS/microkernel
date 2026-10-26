@@ -33,7 +33,7 @@ mod fallback;
 mod get;
 mod i2c;
 mod one_report;
-mod port;
+pub(crate) mod port;
 mod set;
 mod set_bits;
 

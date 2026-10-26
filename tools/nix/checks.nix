@@ -62,25 +62,32 @@ let
   ];
   lintNone = [ "boot_slots_proofs" "editor_proofs" "input_proofs" ];
   clippy =
-    dir:
+    dir: features:
     let
       name = builtins.baseNameOf dir;
     in
     if builtins.elem name lintNone then ""
-    else if builtins.elem name lintLib then "cargo clippy --frozen --release -- -D warnings"
-    else "cargo clippy --frozen --release --all-targets -- -D warnings";
+    else if builtins.elem name lintLib then "cargo clippy --frozen --release ${features} -- -D warnings"
+    else "cargo clippy --frozen --release --all-targets ${features} -- -D warnings";
 
   # What a marked crate's manifest adds to cargo test, as nonos-sign's does.
-  testArgs = dir: lanes.${dir} or "";
+  testArgs = key: lanes.${key} or "";
+
+  # A feature lane is <dir>+<feature> (feature-lanes in the manifest): the
+  # crate's tests and its lint again with that feature on.
+  laneParts = key: lib.splitString "+" key;
+  laneName = key: "proofs-${builtins.replaceStrings [ "+" ] [ "-" ] (builtins.baseNameOf key)}";
 
   proof =
-    dir:
+    key:
     let
+      dir = builtins.head (laneParts key);
+      features = lib.concatMapStrings (f: "--features ${f}") (builtins.tail (laneParts key));
       tpm = builtins.elem dir needsTpm;
       cache = builtins.elem dir needsPeriodic;
     in
     rustBuild {
-      name = "proofs-${builtins.baseNameOf dir}";
+      name = laneName key;
       # Its crate, the crates it reaches and the sources it mounts by #[path].
       src = src.crate dir [ ];
       lockFiles = [ (src.root + "/${dir}/Cargo.lock") ];
@@ -93,7 +100,7 @@ let
         export RUST_TEST_THREADS=1
         ${lib.optionalString cache "export NONOS_PERIODIC_CACHE=${periodic}/periodic.top"}
         cd ${dir}
-        cargo test --frozen --release --config profile.release.overflow-checks=true ${testArgs dir} 2>&1 | tee $TMPDIR/test.log
+        cargo test --frozen --release --config profile.release.overflow-checks=true ${testArgs key} 2>&1 | tee $TMPDIR/test.log
         ${lib.optionalString tpm ''
           if grep -E "live test skipped|certificate test skipped|live derivation not exercised" $TMPDIR/test.log; then
             echo "a live TPM test was skipped" >&2; exit 1
@@ -104,14 +111,14 @@ let
             echo "a real periodic cache test was skipped" >&2; exit 1
           fi
         ''}
-        ${clippy dir}
+        ${clippy dir features}
         mkdir -p $out && cp $TMPDIR/test.log $out/
       '';
     };
 
   # The live TPM suites need tpm2-tools, which nixpkgs builds only for Linux,
   # so they run on every Linux machine and in CI, and not on a Mac.
-  proofChecks = lib.listToAttrs (map (d: lib.nameValuePair "proofs-${builtins.baseNameOf d}" (proof d))
+  proofChecks = lib.listToAttrs (map (d: lib.nameValuePair (laneName d) (proof d))
     (builtins.filter (d: pkgs.stdenv.hostPlatform.isLinux || !(builtins.elem d needsTpm)) proofDirs));
 
   # A cargo build or test of one crate against its lock, as a check.
@@ -219,7 +226,7 @@ let
     name: script:
     pkgs.runCommand "static-${name}" {
       src = root;
-      nativeBuildInputs = [ python pkgs.git pkgs.jq pkgs.gnugrep pkgs.gawk pkgs.findutils pkgs.diffutils pkgs.bash pkgs.which pins.rust ];
+      nativeBuildInputs = [ python pkgs.git pkgs.jq pkgs.gnugrep pkgs.gawk pkgs.findutils pkgs.diffutils pkgs.bash pkgs.which pkgs.b3sum pins.rust ];
     } ''
       cp -r $src tree && chmod -R u+w tree && cd tree
       ${gitTree}
@@ -241,6 +248,8 @@ let
       "-m unittest discover -s tools/nonos_selftest -p 'test_*.py'"
       "-m unittest discover -s tools/agentproof_gauntlet -t tools -p 'test_*.py'"
       "-m unittest discover -s tools/nonos_qemu -t tools -p 'test_*.py'"
+      # The market catalogue tool's suite; its digests are BLAKE3, so b3sum.
+      "-m unittest discover -s tools/nonos_market_catalogue -t tools -p 'test_*.py'"
     ]);
     # verify.yml, abi-contracts and syscall-reach
     static-abi = static "abi" (scripts [
@@ -256,12 +265,15 @@ let
       "tools/nonos-cap-audit --self-test" "tools/nonos-cap-audit"
       "tools/nonos-pcap-egress --self-test" "tools/nonos_egress/mutants.py" "tools/nonos-efi-vars --self-test" "scripts/check_sealed_caps.py --self-test"
       "scripts/check_kernel_wait.py --self-test" "scripts/check_kernel_wait.py"
+      "scripts/check_volume_io.py --self-test" "scripts/check_volume_io.py"
+      "scripts/check_pending_order.py --self-test" "scripts/check_pending_order.py"
       "scripts/check_attest_params.py" "tools/nonos-assumptions"
       "scripts/check_unenforced.py" "scripts/check_unenforced.py --self-test"
       "tools/ratchets/linux_calls.py --self-test"
       "tools/nonos-linux-coverage --baseline scripts/baselines/linux-syscalls.txt"
       "tools/nonos-wayland-coverage --baseline scripts/baselines/wayland-globals.txt"
       "tools/ratchets/disclosure.py" "tools/nonos-mutant --check" "nonos-ci/check-ui-copy.py --self-test" "nonos-ci/check-ui-copy.py"
+      "tools/nonos-ui-measure --self-test" "tools/nonos-unit-check --self-test"
       "scripts/check_syscall_reach.py --baseline scripts/baselines/syscall-unreachable-count.txt"
     ]);
     # Every capsule a release profile ships has its sealed trust set, but for
@@ -483,5 +495,8 @@ let
         '';
       };
     };
+
+  # No release capsule carries the local test chain's names (P5).
+  releaseChecks.release-names = import ./release_names.nix { inherit pkgs lib capsules; };
 in
-proofChecks // cargoChecks // profileChecks // staticChecks // driftChecks // reproChecks
+proofChecks // cargoChecks // profileChecks // staticChecks // driftChecks // reproChecks // releaseChecks
