@@ -42,7 +42,7 @@ fn a_mirrored_output_gets_the_point_inside_its_fitted_box() {
 
 #[test]
 fn cursor_says_shown_and_new_shape_only_when_they_are() {
-    let c = message((10, 20), true, true, (11, 19));
+    let c = message((10, 20), true, true, (11, 19), (0, 0));
     let want = Cursor {
         flags: VISIBLE | NEW_SHAPE,
         x: 10,
@@ -53,10 +53,12 @@ fn cursor_says_shown_and_new_shape_only_when_they_are() {
         height: 19,
     };
     assert_eq!(c, want);
-    assert_eq!(message((10, 20), true, false, (11, 19)).flags, VISIBLE);
-    assert_eq!(message((0, 0), false, false, (0, 0)).flags, 0, "hidden");
+    let shaped = message((10, 20), true, true, (21, 9), (10, 4));
+    assert_eq!((shaped.hot_x, shaped.hot_y), (10, 4), "a resize arrow's hot spot is its middle");
+    assert_eq!(message((10, 20), true, false, (11, 19), (0, 0)).flags, VISIBLE);
+    assert_eq!(message((0, 0), false, false, (0, 0), (0, 0)).flags, 0, "hidden");
     assert_eq!(
-        Cursor::decode(&message((0, 0), false, false, (0, 0)).encode()).map(|c| c.flags),
+        Cursor::decode(&message((0, 0), false, false, (0, 0), (0, 0)).encode()).map(|c| c.flags),
         Ok(0)
     );
 }

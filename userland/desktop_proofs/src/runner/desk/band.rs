@@ -35,6 +35,7 @@ impl Desk {
             stack: 0,
             in_use: true,
             miss_count: 0,
+            cursor: None,
         };
         for r in
             submit_layer(&mut self.scene, layer).expect("room for the layer").into_iter().flatten()
