@@ -32,8 +32,9 @@ fn table(pa: u64) -> *mut [u64; PAGE_TABLE_ENTRIES] {
 impl PagingManager {
     pub(super) fn leaf_for(&self, va: VirtAddr) -> PagingResult<Leaf> {
         let v = va.as_u64();
-        let cr3 = self.active_page_table.ok_or(PagingError::NoActivePageTable)?;
-        let cr3 = PhysAddr::new(crate::arch::paging::root_in(cr3.as_u64(), v));
+        // The running root, not a manager-wide field (address_space/switch.rs).
+        self.active_page_table.ok_or(PagingError::NoActivePageTable)?;
+        let cr3 = PhysAddr::new(crate::arch::paging::root_for(v) & !0xFFF);
         /*
          * SAFETY: eK@nonos.systems - cr3 is the running root, and every
          * level is checked present before the next is dereferenced.
