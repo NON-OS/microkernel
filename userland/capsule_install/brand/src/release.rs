@@ -21,7 +21,7 @@ use alloc::string::String;
 
 const VERSION: &str = include_str!("../../../../VERSION");
 
-/// NØNOS and the release in capitals, such as NØNOS 0.9.2 BETA.
+/// NØNOS and the release in capitals, such as NØNOS 0.9.3 BETA.
 pub fn release() -> String {
     format!("N\u{d8}NOS {} BETA", VERSION.trim())
 }
