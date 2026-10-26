@@ -18,8 +18,8 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 use super::types::{File, Store, MAX_FILES};
-use crate::blk::streamed::Extent;
 use crate::blk::store::StoreEntry;
+use crate::blk::streamed::Extent;
 
 // A package entry served from the device: read-only, as the device copy is.
 const MODE_STREAMED: u16 = 0o444;

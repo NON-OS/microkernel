@@ -88,7 +88,11 @@ impl PackageSeeder {
         }
         if self.said != Some(*e) {
             self.said = Some(*e);
-            let why = if not_yet(e) { "no disk with the store answers yet" } else { "the store did not load" };
+            let why = if not_yet(e) {
+                "no disk with the store answers yet"
+            } else {
+                "the store did not load"
+            };
             let line = alloc::format!(
                 "[VFSD] store read, attempt {} at {} ms: {:?}; {}, asked again\n",
                 self.attempts,

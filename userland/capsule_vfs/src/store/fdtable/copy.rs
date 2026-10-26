@@ -50,7 +50,11 @@ impl Store {
         }
         if recursive {
             let prefix = format!("{src}/");
-            if self.files.iter().any(|f| f.streamed.is_some() && f.name.starts_with(prefix.as_str())) {
+            if self
+                .files
+                .iter()
+                .any(|f| f.streamed.is_some() && f.name.starts_with(prefix.as_str()))
+            {
                 return Err(StoreError::Inval);
             }
         }
@@ -71,7 +75,8 @@ impl Store {
                 additions.push(File::new(new_name, data, f.is_dir, owner));
             }
         }
-        if self.files.len() + additions.len() > MAX_FILES || !self.may_name(owner, additions.len()) {
+        if self.files.len() + additions.len() > MAX_FILES || !self.may_name(owner, additions.len())
+        {
             return Err(StoreError::Full);
         }
         let count = additions.len() as u32;

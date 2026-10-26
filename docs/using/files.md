@@ -77,7 +77,7 @@ The file store refuses a write with "no room" (`ENOSPC`) past these limits, inst
 
 - 2048 names in all, and one program may create at most a quarter of them.
 - 64 MiB for one file.
-- 160 MiB for all files together.
+- An eighth of the machine's memory for all programs' files together, at least 160 MiB and at most 512 MiB. The packages NØNOS itself staged at boot do not count against it.
 
 ## What is kept after power off
 
@@ -165,7 +165,7 @@ The code behind each section, at the commit in the footer.
   - Content search skips files over 1 MiB and binary files: `SEARCH_MAX_FILE_BYTES` in `userland/capsule_vfs/src/store/fdtable/search.rs:24`, applied in `userland/capsule_vfs/src/store/fdtable/search.rs:65-69`.
 - Limits of the file store
   - 2048 names and 64 MiB for one file: `MAX_FILES` and `MAX_FILE_BYTES` in `userland/capsule_vfs/src/store/fdtable/types.rs:20-25`.
-  - A quarter of the names for one program, 160 MiB in all, and a refusal the store survives: `DATA_BYTES_MAX` and `NAMES_PER_OWNER` in `userland/capsule_vfs/src/store/fdtable/budget.rs:26-42`.
+  - A quarter of the names for one program, the memory share, and a refusal the store survives: `NAMES_PER_OWNER` in `userland/capsule_vfs/src/store/fdtable/budget.rs:26-42`, `for_ram` in `userland/capsule_vfs/src/store/fdtable/budget_size.rs`, and the heap sized from it in `userland/capsule_vfs/src/main.rs`.
 - What is kept after power off
   - The keep gate: `require_persistent` in `userland/capsule_vfs/src/server/handlers/persist_gate.rs:40-47`.
   - An installed disk turns the field back on: `apply` in `userland/capsule_policy/src/restore/apply.rs:30-32`.

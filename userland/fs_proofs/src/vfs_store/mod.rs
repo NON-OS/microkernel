@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// The vfs store's logic from the capsule source (#[path]), with a host clock;
-// seeding needs baked-in signed artifacts, so proofs make their own fixtures.
-
+// The vfs store's logic from the capsule source (#[path]), a host clock and own fixtures.
 mod time;
 
 #[path = "../../../capsule_vfs/src/store/fdtable/budget.rs"]
 mod budget;
+#[path = "../../../capsule_vfs/src/store/fdtable/budget_size.rs"]
+mod budget_size;
 #[path = "../../../capsule_vfs/src/store/fdtable/chmod.rs"]
 mod chmod;
 #[path = "../../../capsule_vfs/src/store/fdtable/close.rs"]

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * What the store may hold: every file lives in this capsule's 320 MiB heap.
+ * What the store may hold: every file lives in this capsule's heap.
  *
  * A write grew its file with an infallible resize, and a copy cloned a file
  * whole, so any client that could write could ask for more than the heap
@@ -23,9 +23,8 @@
  * the machine. The 2048 names were shared with no limit per client either,
  * so one client could leave nobody able to create a file.
  *
- * Now every byte a request adds is reserved fallibly and counted against
- * DATA_BYTES_MAX, all files' allocations together, which leaves the rest of
- * the heap for names, handles, the journal and the request buffers; past it,
+ * Now every byte a request adds is reserved fallibly and counted against the
+ * machine's budget (budget_size.rs), leaving the heap's rest to the server; past it,
  * or when the heap refuses, the request is Full (ENOSPC) and the store goes
  * on. One owner creates at most NAMES_PER_OWNER names. Owner 0's files (the
  * kernel's, the seed, the packages staged from disk at boot) are held to
@@ -34,9 +33,10 @@
 
 use alloc::vec::Vec;
 
+use super::budget_size::limit;
 use super::types::{Store, StoreError, StoreResult, MAX_FILES, MAX_FILE_BYTES};
 
-/// Every file's allocation together.
+/// The least every machine gives every client file together.
 pub const DATA_BYTES_MAX: usize = 160 << 20;
 /// The names one owner may hold.
 pub const NAMES_PER_OWNER: usize = MAX_FILES / 4;
@@ -76,7 +76,7 @@ pub(super) fn grow(data: &mut Vec<u8>, new_len: usize, others: usize) -> StoreRe
     }
     let doubled = data.capacity().saturating_mul(2).clamp(new_len, MAX_FILE_BYTES);
     for want in [doubled, new_len] {
-        let fits = others.checked_add(want).is_some_and(|total| total <= DATA_BYTES_MAX);
+        let fits = others.checked_add(want).is_some_and(|total| total <= limit());
         if fits && data.try_reserve_exact(want - data.len()).is_ok() {
             return Ok(());
         }

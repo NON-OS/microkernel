@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod budget;
+pub(crate) mod budget_size;
 mod chmod;
 mod close;
 mod copy;

@@ -43,7 +43,8 @@ impl Table {
         let count = entry_count(&head)?;
         let mut toc = vec![0u8; sector_span(HEADER_LEN + ENTRY_LEN * count)];
         read_span(STORE_BASE_LBA, &mut toc)?;
-        let capacity_bytes = capacity()?.checked_mul(SECTOR_SIZE as u64).ok_or(BlkError::BadLength)?;
+        let capacity_bytes =
+            capacity()?.checked_mul(SECTOR_SIZE as u64).ok_or(BlkError::BadLength)?;
         let base = STORE_BASE_LBA * SECTOR_SIZE as u64;
         /*
          * Payloads go past a full table, so nothing this writes is ever in the
