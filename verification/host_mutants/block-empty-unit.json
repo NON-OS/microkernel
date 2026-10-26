@@ -1,0 +1,34 @@
+[
+ {
+  "name": "block-empty-unit-always-said",
+  "file": "src/hardware/block_device/wire/slow_rule.rs",
+  "old": "(status != 0 && status != NO_UNIT) || answered_ms >= SLOW_MS",
+  "new": "status != 0 || answered_ms >= SLOW_MS",
+  "test": "block_slow::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "block-empty-unit-never-said",
+  "file": "src/hardware/block_device/wire/slow_rule.rs",
+  "old": "(status != 0 && status != NO_UNIT) || answered_ms >= SLOW_MS",
+  "new": "(status != 0 && status != NO_UNIT)",
+  "test": "block_slow::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "block-empty-unit-swallows-failures",
+  "file": "src/hardware/block_device/wire/slow_rule.rs",
+  "old": "(status != 0 && status != NO_UNIT) || answered_ms >= SLOW_MS",
+  "new": "(status != 0 && status > -7) || answered_ms >= SLOW_MS",
+  "test": "block_slow::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "block-empty-unit-wrong-code",
+  "file": "src/hardware/block_device/wire/slow_rule.rs",
+  "old": "pub(crate) const NO_UNIT: i32 = -6;",
+  "new": "pub(crate) const NO_UNIT: i32 = -19;",
+  "test": "block_slow::",
+  "crate": "userland/kernel_proofs"
+ }
+]
