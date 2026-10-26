@@ -38,6 +38,6 @@ pub struct RtcTime {
 pub fn mk_time_rtc(out: *mut RtcTime) -> i64 {
     let t = RtcTime { year: 2026, month: 10, day: 24, hour: 10, minute: 0, second: 0, _pad: 0 };
     // SAFETY: the caller hands a writable RtcTime, as the real call requires.
-    unsafe { out.write(t) };
+    unsafe { crate::user_mem::put(out as usize, t) };
     0
 }
