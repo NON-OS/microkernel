@@ -14,16 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#[cfg(target_arch = "x86_64")]
 mod entry;
 mod mmap;
 mod mmap_copy;
 mod settle;
 mod types;
+#[cfg(target_arch = "x86_64")]
 mod validate;
 
+#[cfg(target_arch = "x86_64")]
 pub use entry::jump_to_kernel;
 pub use mmap::{copy_memory_map, finalize_mmap};
 pub use mmap_copy::{mmap_capacity, mmap_pages};
 pub use settle::settle_delay;
 pub use types::MemoryMapEntry;
+#[cfg(target_arch = "x86_64")]
 pub use validate::{validate_entry_address, validate_handoff_address, validate_stack_address};

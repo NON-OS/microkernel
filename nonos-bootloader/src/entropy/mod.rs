@@ -19,6 +19,8 @@ mod core;
 mod getrandom;
 mod rdrand;
 mod sources;
+mod strong;
+mod strong_rule;
 mod types;
 mod util;
 mod wipe;
@@ -36,6 +38,7 @@ pub use core::{collect_boot_entropy_64, collect_entropy_no_st, get_rtc_timestamp
 pub use getrandom::getrandom;
 
 pub use sources::{rdrand64, rdseed64, rdtsc_serialized};
+pub use strong::efi_rng_word;
 
 pub use util::{is_weak_entropy, scrub};
 pub use wipe::wipe_entropy_state;
