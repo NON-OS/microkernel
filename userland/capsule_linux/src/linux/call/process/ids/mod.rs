@@ -29,5 +29,5 @@ mod creds;
 mod nice;
 mod who;
 
-pub use creds::{getgroups, getres, personality, setgroups, setres};
+pub use creds::{getgroups, getres, personality, setfs, setgroups, setres};
 pub use nice::{getpriority, nice_of, setpriority};
