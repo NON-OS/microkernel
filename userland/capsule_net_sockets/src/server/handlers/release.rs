@@ -27,10 +27,11 @@ use crate::state;
 /// caller to keep, as a close that could not reach its transport does.
 pub fn release(sock: &Socket) -> Result<(), u16> {
     let key = sock.key;
-    if sock.kind == Kind::Stream && sock.transport_handle != 0 {
-        if tcp::close(state::tcp(), sock.transport_handle).is_err() {
-            return Err(E_NO_TRANSPORT);
-        }
+    if sock.kind == Kind::Stream
+        && sock.transport_handle != 0
+        && tcp::close(state::tcp(), sock.transport_handle).is_err()
+    {
+        return Err(E_NO_TRANSPORT);
     }
     if sock.kind == Kind::Datagram {
         if let Some(local) = sock.local {

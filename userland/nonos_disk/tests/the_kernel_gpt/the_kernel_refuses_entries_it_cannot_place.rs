@@ -19,25 +19,9 @@
 //! the usable range, or ending before it starts, is skipped; partitions
 //! that overlap make the table name nothing.
 
-extern crate alloc;
-
-#[path = "common/entropy.rs"]
-mod entropy;
-#[path = "common/files.rs"]
-mod files;
-#[path = "common/gpt_damage.rs"]
-mod gpt_damage;
-#[path = "common/kernel_gpt/mod.rs"]
-#[allow(dead_code, unused_imports)]
-mod kernel_gpt;
-#[path = "common/mem_disk.rs"]
-mod mem_disk;
-#[path = "common/written.rs"]
-mod written;
-
-use gpt_damage::{put, seal, table, T};
-use kernel_gpt::{entries, header, places};
-use kernel_gpt::Which;
+use crate::gpt_damage::{put, seal, table, T};
+use crate::kernel_gpt::Which;
+use crate::kernel_gpt::{entries, header, places};
 
 #[test]
 fn a_damaged_array_or_an_entry_out_of_range_names_nothing_wrong() {

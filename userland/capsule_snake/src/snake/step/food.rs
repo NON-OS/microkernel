@@ -38,7 +38,7 @@ pub fn drop_power(
     walls: &[(i16, i16)],
     food: (i16, i16),
 ) -> Option<(i16, i16)> {
-    if streak == 0 || streak % POWER_EVERY != 0 {
+    if streak == 0 || !streak.is_multiple_of(POWER_EVERY) {
         return None;
     }
     for _ in 0..TRIES {

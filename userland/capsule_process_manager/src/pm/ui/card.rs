@@ -47,15 +47,14 @@ pub fn head(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, icon: IconId, caption:
 // caller drawing a sparkline into it never re-derives this stack.
 pub fn paint(
     fb: &mut PaintBuffer,
-    x: u32,
-    y: u32,
-    w: u32,
+    at: (u32, u32, u32),
     icon: IconId,
     caption: &[u8],
     value: &[u8],
     unit: &[u8],
     sub: &[u8],
 ) -> u32 {
+    let (x, y, w) = at;
     let value_top = head(fb, x, y, w, icon, caption);
     let left = x + CARD_PAD;
     let body_h = line_height(BODY_PX).max(1) as u32;

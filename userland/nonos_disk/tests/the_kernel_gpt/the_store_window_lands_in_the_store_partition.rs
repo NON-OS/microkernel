@@ -19,13 +19,7 @@
 //! store partition sector for sector and the plan and key header its first
 //! two; a table placing them elsewhere moves them, and none spills out.
 
-extern crate alloc;
-
-#[path = "common/kernel_gpt/mod.rs"]
-#[allow(dead_code, unused_imports)]
-mod kernel_gpt;
-
-use kernel_gpt::{plan_at, store_at, Extent, Places, FIXED};
+use crate::kernel_gpt::{plan_at, store_at, Extent, Places, FIXED};
 use nonos_disk_map::{KEY_LBA, PLAN_LBA, STORE_BASE_LBA, STORE_END_LBA};
 
 const WINDOW: u64 = STORE_END_LBA - STORE_BASE_LBA;

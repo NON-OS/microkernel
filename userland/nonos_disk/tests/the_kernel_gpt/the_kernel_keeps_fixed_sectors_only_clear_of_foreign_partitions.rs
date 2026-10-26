@@ -20,18 +20,9 @@
 //! them, for a disk with no GPT and for one whose two headers failed;
 //! moved when the table names NONOS's own.
 
-extern crate alloc;
-
-#[path = "common/fixed_sweep.rs"]
-mod fixed_sweep;
-#[path = "common/fixed_tables.rs"]
-mod fixed_tables;
-#[path = "common/kernel_gpt/mod.rs"]
-#[allow(dead_code, unused_imports)]
-mod kernel_gpt;
-
-use fixed_sweep::{kernel, rule, EDGES, ESP, FIXED_HI, FIXED_LO};
-use kernel_gpt::{layout, Layout, Shown, Table};
+use crate::fixed_sweep::{kernel, rule, EDGES, ESP, FIXED_HI, FIXED_LO};
+use crate::fixed_tables;
+use crate::kernel_gpt::{layout, Layout, Shown, Table};
 
 #[test]
 fn a_foreign_partition_anywhere_over_the_fixed_sectors_refuses_them() {

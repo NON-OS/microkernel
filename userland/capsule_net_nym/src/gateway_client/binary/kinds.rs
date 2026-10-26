@@ -16,7 +16,6 @@
 
 /// Forward a Sphinx packet to the mixnet.
 pub const KIND_FORWARD_SPHINX: u8 = 1;
-pub const KIND_FORWARD_SPHINX_V2: u8 = 2;
 
 /// Kind byte and encrypted flag, ahead of the nonce.
 pub const HEADER_BYTES: usize = 2;

@@ -14,20 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::mac_into_left::mac_into_left;
-use super::stream_into_right::stream_into_right;
-use super::types::{BlockTooShort, Lioness, MAC_BYTES};
+//! The stream bytes of a request, which only the proofs ask for.
 
-impl Lioness {
-    pub fn decrypt_block(&self, block: &mut [u8]) -> Result<(), BlockTooShort> {
-        if block.len() <= MAC_BYTES {
-            return Err(BlockTooShort);
-        }
-        let (left, right) = block.split_at_mut(MAC_BYTES);
-        mac_into_left(left, right, &self.k4);
-        stream_into_right(left, right, &self.k3);
-        mac_into_left(left, right, &self.k2);
-        stream_into_right(left, right, &self.k1);
-        Ok(())
+use super::ask::{ask, Ask};
+
+/// The stream bytes of a request, for callers that only handle that shape.
+pub fn stream_bytes(request: &[u8]) -> Option<&[u8]> {
+    match ask(request)? {
+        Ask::Stream(bytes) | Ask::Numbered(_, bytes) | Ask::NumberedOn(_, _, bytes) => Some(bytes),
+        Ask::Reset | Ask::ResetOn(_) | Ask::Status => None,
     }
 }

@@ -26,7 +26,6 @@ mod https_stage;
 mod keep;
 mod lease;
 mod live;
-mod pinned;
 mod requesters;
 mod roles;
 mod source;
