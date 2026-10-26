@@ -13,11 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-#[cfg(target_arch = "x86_64")]
-pub mod acpi;
-#[cfg(not(target_arch = "x86_64"))]
-#[path = "acpi_absent.rs"]
-pub mod acpi;
+crate::arch::acpi_only! { pub mod acpi; }
+crate::arch::acpi_only! { else #[path = "acpi_absent.rs"] pub mod acpi; }
 pub mod app_install;
 pub mod app_install_status;
 pub mod app_launch;
