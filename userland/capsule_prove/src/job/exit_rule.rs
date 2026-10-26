@@ -26,24 +26,14 @@
 
 use nonos_proof_abi::wire::Stage;
 
+pub use super::seen::Seen;
+
 /// No PROVE within this long of starting, or no request this long after
 /// the last: the job was abandoned.
 pub const QUIET_MS: u64 = 10 * 60 * 1000;
 /// A failed job waits this long after the failure, or after its asker's
 /// last frame, for the asker to read it.
 pub const FAILED_QUIET_MS: u64 = 30 * 1000;
-
-/// What the loop knows of its job.
-#[derive(Clone, Copy, Debug)]
-pub struct Seen {
-    pub stage: Stage,
-    /// GET has handed out the container's last byte.
-    pub fetched: bool,
-    /// A STATUS from the asker has been answered with the failure.
-    pub told: bool,
-    /// When it failed, or the asker last sent a frame, whichever is later.
-    pub asker_ms: u64,
-}
 
 /// Whether the job exits now; `last` is when any request last came.
 pub fn exits(job: Option<Seen>, now: u64, last: u64) -> bool {
