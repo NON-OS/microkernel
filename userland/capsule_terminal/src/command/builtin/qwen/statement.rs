@@ -46,7 +46,7 @@ pub fn from_args(state: &mut State, args: &[&[u8]]) -> Option<JobWork> {
     };
     super::enter::say_note(state);
     match tier {
-        Some(tier) => super::start::spawn(state, tier, b""),
+        Some(tier) => super::start::spawn(state, tier, b"", b""),
         None => {
             misplaced(state);
             None

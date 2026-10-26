@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <cstring>
 
-/* -m model -t threads -c context -n reply_limit -temp t -rp p -seed s -ui window */
+/* -m model -t threads -c context -n reply_limit -temp t -rp p -seed s -ui window -mmproj file */
 bool chat_args(int argc, char **argv, ChatArgs &a) {
     for (int i = 1; i + 1 < argc; i += 2) {
         const char *k = argv[i], *v = argv[i + 1];
@@ -17,6 +17,7 @@ bool chat_args(int argc, char **argv, ChatArgs &a) {
         else if (!strcmp(k, "-rp")) a.repeat = (float)atof(v);
         else if (!strcmp(k, "-seed")) a.seed = (unsigned)strtoul(v, nullptr, 10);
         else if (!strcmp(k, "-ui")) a.window = !strcmp(v, "window");
+        else if (!strcmp(k, "-mmproj")) a.mmproj = v;
         else return false;
     }
     const bool ctx_ok = a.n_ctx == 0 || (a.n_ctx >= 256 && a.n_ctx <= 32768 && a.n_reply <= a.n_ctx / 2);
@@ -28,9 +29,10 @@ int main(int argc, char **argv) {
     ChatArgs a;
     if (!chat_args(argc, argv, a)) {
         fputs("usage: qwenchat [-m model] [-t threads] [-c ctx] [-n reply] [-temp t] [-rp penalty]"
-              " [-seed s] [-ui window]\n", stdout);
+              " [-seed s] [-ui window] [-mmproj file]\n", stdout);
         fflush(stdout);
         return 2;
     }
+    /* A vision tier's window is a text chat: an image comes only on the terminal. */
     return a.window ? chat_window(a) : chat_terminal(a);
 }
