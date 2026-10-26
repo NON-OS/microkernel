@@ -30,7 +30,7 @@ pub fn install_source(
     intent: BootIntent,
     evidence: [Module; 3],
 ) -> InstallHandoff {
-    let loader = match load_file_from_esp(st, uefi::cstr16!("\\EFI\\BOOT\\BOOTX64.EFI")) {
+    let loader = match load_file_from_esp(st, super::loader_path::LOADER_PATH) {
         Ok(bytes) => region(Vec::leak(bytes), MODULE_KIND_LOADER_IMAGE),
         Err(_) => Module::default(),
     };
