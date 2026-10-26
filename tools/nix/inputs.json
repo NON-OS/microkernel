@@ -9676,6 +9676,7 @@
    "userland/capsule_terminal/src/mixnet/exchange/wait_settle.rs",
    "userland/capsule_terminal/src/paint/fetch.rs",
    "userland/capsule_terminal/src/paint/fetch_arch.rs",
+   "userland/capsule_terminal/src/paint/fetch_banner.rs",
    "userland/capsule_terminal/src/paint/fetch_emblem.rs",
    "userland/capsule_terminal/src/paint/fetch_palette.rs",
    "userland/capsule_terminal/src/paint/fetch_row.rs",
