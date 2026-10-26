@@ -26,7 +26,7 @@ use crate::watch::OWNER_SILENCE_MS;
 use nonos_gfx_wire::body::state::LOST;
 use nonos_gfx_wire::{ops, Cursor, State, Surface};
 
-fn shown() -> (Server<Vram, Pool>, Surface) {
+pub(super) fn shown() -> (Server<Vram, Pool>, Surface) {
     let mut s = Server::new(Vram::new(true, true), Pool::new(8192));
     let sf = Surface::decode(&ask(&mut s, COMPOSITOR, ops::SURFACE, 0, &[]).1).unwrap();
     s.heard(COMPOSITOR, 0);

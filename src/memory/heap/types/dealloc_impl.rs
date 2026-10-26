@@ -17,7 +17,7 @@
 use super::super::constants::MIN_ALIGNMENT;
 use super::allocator::SecureHeapAllocator;
 use super::header::{data_offset, AllocationHeader};
-use core::alloc::{GlobalAlloc, Layout};
+use core::alloc::Layout;
 use core::mem;
 use core::ptr;
 use core::sync::atomic::Ordering;
@@ -71,9 +71,7 @@ pub(super) unsafe fn dealloc_impl(allocator: &SecureHeapAllocator, ptr: *mut u8,
         let total_size = offset + layout.size() + mem::size_of::<u64>();
         if let Ok(adjusted_layout) = Layout::from_size_align(total_size, align) {
             super::super::manager::HEAP_STATS.record_deallocation(layout.size());
-            crate::arch::run_without_interrupts(|| {
-                allocator.inner.dealloc(raw_ptr, adjusted_layout)
-            });
+            crate::arch::run_without_interrupts(|| allocator.raw_dealloc(raw_ptr, adjusted_layout));
         }
     }
 }

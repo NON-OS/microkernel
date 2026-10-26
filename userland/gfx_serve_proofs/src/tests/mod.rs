@@ -25,6 +25,8 @@ mod output_retire_tests;
 mod output_tests;
 mod silence_tests;
 mod size_tests;
+mod starved_rule_tests;
+mod starved_tests;
 mod surface_tests;
 mod sweep_tests;
 mod tell_tests;
