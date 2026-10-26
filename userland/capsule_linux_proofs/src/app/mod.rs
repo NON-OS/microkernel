@@ -17,6 +17,9 @@
 //! The personality's policy files that decide without a syscall, mounted
 //! as they ship.
 
+/* Which home a program's /home and /root are kept in. */
+#[path = "../../../capsule_linux/src/linux/app/home_key.rs"]
+pub mod home_key;
 /* Which policy binds a proved program, and the box it runs in after exec. */
 #[path = "../../../capsule_linux/src/linux/app/choose.rs"]
 pub mod choose;

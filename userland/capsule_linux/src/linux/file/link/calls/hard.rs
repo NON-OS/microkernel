@@ -59,7 +59,7 @@ pub fn linkat(guest: &Guest, olddir: u64, old: u64, newdir: u64, new: u64) -> u6
         Ok((_, true)) => return errno::fail(errno::EPERM),
         Err(_) => return errno::fail(errno::ENOENT),
     };
-    if let Err(e) = room_for(Kept { bytes: size, names: 1 }) {
+    if let Err(e) = room_for(&at, Kept { bytes: size, names: 1 }) {
         return errno::fail(e);
     }
     let Ok(bytes) = store_read(&key(&from), MAX_LINKED) else {
