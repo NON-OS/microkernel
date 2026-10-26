@@ -16,6 +16,7 @@
 
 pub mod column;
 pub mod core;
+pub mod fatal;
 pub mod line;
 pub mod print;
 
