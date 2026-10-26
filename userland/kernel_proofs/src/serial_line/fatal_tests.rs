@@ -18,6 +18,7 @@
 //! (a CPU that faulted holding it), within its bound; and when the lock is
 //! free it is held for the whole line, so no other writer lands inside it.
 
+use std::sync::atomic::AtomicBool;
 use std::sync::Mutex;
 use std::time::Duration;
 
@@ -30,7 +31,9 @@ fn a_held_lock_never_stops_the_fatal_line() {
     let (done, line) = std::sync::mpsc::channel();
     std::thread::spawn(move || {
         let mut out = Vec::new();
-        write_bounded(1 << 16, || PORT.try_lock().ok(), |b| out.push(b), &[b"[TRAP PF] cpl=0"]);
+        let lost = AtomicBool::new(false);
+        let parts: [&[u8]; 1] = [b"[TRAP PF] cpl=0"];
+        write_bounded(1 << 16, &lost, || PORT.try_lock().ok(), |b| out.push(b), &parts);
         let _ = done.send(out);
     });
     let out = line.recv_timeout(Duration::from_secs(10)).expect("the fatal line never hangs");
@@ -42,7 +45,9 @@ fn a_free_lock_is_held_for_the_whole_fatal_line() {
     let port = Mutex::new(());
     let mut held = Vec::new();
     let parts: [&[u8]; 2] = [b"\r\n", b"[PANIC] x"];
-    write_bounded(8, || port.try_lock().ok(), |_| held.push(port.try_lock().is_err()), &parts);
+    let lost = AtomicBool::new(false);
+    let write = |_| held.push(port.try_lock().is_err());
+    write_bounded(8, &lost, || port.try_lock().ok(), write, &parts);
     assert_eq!(held.len(), 2 + 9 + 2, "the opening, the line and its newline");
     assert!(held.iter().all(|&h| h), "every byte under the lock");
     assert!(port.try_lock().is_ok(), "and the lock is given back");

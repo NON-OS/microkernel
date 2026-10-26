@@ -44,8 +44,8 @@ pub(crate) enum KernelStackError {
 pub(crate) fn allocate_kernel_stack(pid: Pid) -> Result<u64, KernelStackError> {
     let pages = (KERNEL_STACK_SIZE + PAGE_SIZE - 1) / PAGE_SIZE;
     let base = allocate_pages(pages).map_err(|e| {
-        crate::sys::serial::print(b"[KSTACK] alloc err: ");
-        crate::sys::serial::println(page_alloc_err_name(e).as_bytes());
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[KSTACK] alloc err: ").str(page_alloc_err_name(e).as_bytes()).end();
         KernelStackError::Allocation
     })?;
     let top = base.as_u64() + (pages as u64) * (PAGE_SIZE as u64);

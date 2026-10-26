@@ -23,7 +23,7 @@ use crate::arch::x86_64::idt::constants::{
     VEC_SEGMENT_NOT_PRESENT, VEC_SIMD_FP, VEC_STACK_SEGMENT, VEC_VIRTUALIZATION, VEC_X87_FP,
 };
 use crate::arch::x86_64::idt::entry::InterruptFrame;
-use crate::sys::serial::{print_hex, print_str};
+use crate::sys::serial::Line;
 
 impl TrapFrame for InterruptFrame {
     fn instruction_pointer(&self) -> u64 {
@@ -57,16 +57,12 @@ pub(crate) fn dispatch_via_contract(frame: &mut InterruptFrame) {
 }
 
 fn recover_from_debug(frame: &mut InterruptFrame) {
-    print_str("[DEBUG] trap at RIP=");
-    print_hex(frame.rip);
-    print_str("\n");
+    Line::new().str(b"[DEBUG] trap at RIP=").hex(frame.rip).end();
     frame.rflags &= !(1u64 << 8);
 }
 
 fn log_breakpoint(frame: &InterruptFrame) {
-    print_str("[BKPT] at RIP=");
-    print_hex(frame.rip);
-    print_str("\n");
+    Line::new().str(b"[BKPT] at RIP=").hex(frame.rip).end();
 }
 
 fn project_cause(frame: &InterruptFrame) -> TrapCause {
