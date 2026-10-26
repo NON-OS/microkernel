@@ -18,7 +18,7 @@
 //! or as stars, and what is typed; and closing it, which wipes the text.
 
 use super::super::edit_buffer::EditBuffer;
-use super::super::state::State;
+use super::super::model::State;
 use nonos_wifi_client::wipe;
 
 pub struct WifiPass {

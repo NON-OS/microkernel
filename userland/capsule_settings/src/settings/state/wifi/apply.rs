@@ -18,7 +18,7 @@
 //! with the cursor kept on the list; or a join's result, and the saved list
 //! and status refreshed after it.
 
-use super::super::state::{State, WifiConnect, WifiScan};
+use super::super::model::{State, WifiConnect, WifiScan};
 use super::saved::refresh_saved;
 use super::status::refresh_wifi_status;
 use super::worker_msg::Answer;
