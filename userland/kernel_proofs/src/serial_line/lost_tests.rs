@@ -57,3 +57,9 @@ fn no_tries_at_all_never_marks_the_lock_lost() {
     assert!(!lost.load(Ordering::Relaxed));
     assert_eq!(out, b"x\r\n");
 }
+
+#[test]
+fn the_kernels_bound_is_the_one_its_comment_names() {
+    // 2^20 tries with `pause`: about 50 ms on a current core (fatal.rs).
+    assert_eq!(super::fatal::TRIES, 1 << 20);
+}

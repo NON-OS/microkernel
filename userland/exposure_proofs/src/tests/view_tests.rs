@@ -7,6 +7,7 @@ use super::model::{entry, kernel_bits, masks};
 use crate::command::builtin::audit::agent::agent;
 use crate::command::builtin::audit::format::HEADING;
 use crate::command::builtin::audit::join::join;
+use crate::command::builtin::audit::names::names;
 use crate::command::builtin::audit::reach::{reaches, AREAS, DEVICES_NOTE};
 use crate::command::builtin::audit::table::line;
 
@@ -16,7 +17,7 @@ fn text(b: &[u8]) -> String {
 
 #[test]
 fn each_column_says_its_verdict() {
-    let at: Vec<usize> = ["network", "storage", "devices*"]
+    let at: Vec<usize> = ["network", "storage", "devices*", "launch"]
         .iter()
         .map(|h| text(HEADING[0]).find(h).unwrap())
         .collect();
@@ -27,7 +28,11 @@ fn each_column_says_its_verdict() {
             let cell = &l[at[i]..at[i] + 3];
             assert_eq!(cell == "YES", reaches(m, area), "{m:#x}: {l}");
         }
-        assert!(l.contains("publisher"));
+        let h = text(HEADING[0]);
+        let (signed, caps) = (h.find("signed by").unwrap(), h.find("capabilities").unwrap());
+        assert!(l[signed..].starts_with("publisher "), "{l}");
+        let first = names(m).first().map(|n| text(n)).unwrap_or_default();
+        assert!(l[caps..].starts_with(&first), "{m:#x}: {l}");
     }
     let unsigned = join(&[], &[(4, b"init", false)]).unwrap();
     assert!(text(&line(&unsigned[0])).contains("no signed ceiling"));

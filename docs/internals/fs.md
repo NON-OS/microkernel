@@ -21,6 +21,8 @@ flowchart TB
 
 A file operation enters through the VFS. The data volume (`blockfs_volume`) mounts a `blockfs` filesystem — superblocks, directories, file streams — which stores its blocks through `cryptoblock`, the layer that AEAD-seals each sector with a key. The volume layer derives and seals that key: to a passphrase, or to the TPM machine key. `cryptofs` is a separate path-keyed encrypted-file API over the same crypto.
 
+The open volume sits behind a trip lock, `VOLUME` (`src/fs/blockfs_volume/state.rs`): one writer or any number of readers, held across the disk's round trips. A caller waiting for it rests rather than spins, and a holder killed asleep in a round trip is swept by the next caller. As a writer leaves, given or swept, what it left held for the device is dropped unsent (`cryptoblock::drop_held`). Every disk operation moves the in-memory mount before it writes, and writes a block before anything points at it, so a writer swept at any request leaves a volume the next writer and a reboot go on from (`userland/kernel_proofs/src/volume_kill/`). An open takes the write hold from its last check to its install, and `write_or_create` is one hold. The VFS sends a `/data` path to the volume before it takes its own `VFS_OP_LOCK`, which is then held over the in-kernel ramfs only (`src/fs/vfs/vfs_file.rs`). The volume goes back to empty only when keeping turns on and the volume held in memory is dropped (`src/fs/blockfs_volume/keep_switch.rs`).
+
 ## The subtree
 
 ```

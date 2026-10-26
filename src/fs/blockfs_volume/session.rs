@@ -38,7 +38,7 @@ const LEAST: u64 = 256 << 20;
 
 /// `held`: in place of an installed disk's volume, on a boot that keeps nothing yet.
 pub(super) fn open_session_volume(held: bool) -> Result<(), VolumeError> {
-    let mut volume = crate::smp::write_responsive(&VOLUME);
+    let mut volume = VOLUME.write();
     if volume.is_some() {
         return Ok(());
     }

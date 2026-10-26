@@ -68,3 +68,5 @@ pub mod trip_lock;
 pub mod usable_runs;
 #[path = "virtio_rng_ring/mod.rs"]
 pub mod virtio_rng_ring;
+#[path = "volume_kill/mod.rs"]
+pub mod volume_kill;
