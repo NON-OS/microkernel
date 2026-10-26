@@ -27,31 +27,31 @@ use super::text;
 
 pub const HEIGHT: u32 = TILE_H;
 
+/// What one tile reads: its label, the value in the ring, the provenance
+/// line under it, and the fraction `num/den` the ring fills.
+pub struct Reading<'a> {
+    pub label: &'a [u8],
+    pub value: &'a [u8],
+    pub sub: &'a [u8],
+    pub num: u64,
+    pub den: u64,
+}
+
 // A ring, the value it stands for, and one line of provenance under it. The
 // arc and the track share a centre and a radius, so the filled sweep is always
 // exactly the fraction `num/den` of the ring the eye compares it against.
-pub fn tile(
-    fb: &mut PaintBuffer,
-    x: u32,
-    y: u32,
-    w: u32,
-    label: &[u8],
-    value: &[u8],
-    sub: &[u8],
-    num: u64,
-    den: u64,
-) {
+pub fn tile(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, r: &Reading) {
     card::panel(fb, x, y as i32, w, TILE_H);
     let cx = x + w / 2;
     let cy = y + TILE_RING_TOP + TILE_RING_R;
     fb.ring(cx, cy, TILE_RING_R, TILE_RING_T, TRACK_BG);
-    fb.ring_arc(cx, cy, TILE_RING_R, TILE_RING_T, num, den.max(1), ACCENT);
-    super::gauge_value::paint(fb, cx, cy, value);
+    fb.ring_arc(cx, cy, TILE_RING_R, TILE_RING_T, r.num, r.den.max(1), ACCENT);
+    super::gauge_value::paint(fb, cx, cy, r.value);
     let inner = card::inner(w);
     let label_y = cy + TILE_RING_R + CARD_PAD;
-    label_line(fb, x, label_y, inner, label, LABEL);
+    label_line(fb, x, label_y, inner, r.label, LABEL);
     let step = line_height(BODY_PX).max(1) as u32 + TILE_SUB_GAP;
-    label_line(fb, x, label_y + step, inner, sub, MUTED);
+    label_line(fb, x, label_y + step, inner, r.sub, MUTED);
 }
 
 // Both lines under the ring are centred on the card, which means measuring the

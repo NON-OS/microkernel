@@ -34,6 +34,10 @@ mod sub_word;
 mod types;
 mod xtime;
 
-pub use aes256::{Aes256, KEY_BYTES as KEY_BYTES_256};
+pub use aes256::Aes256;
+#[cfg(test)]
+pub use aes256::KEY_BYTES as KEY_BYTES_256;
 pub use ctr::Ctr64Be;
-pub use types::{Aes128, BLOCK_BYTES, KEY_BYTES};
+#[cfg(test)]
+pub use types::BLOCK_BYTES;
+pub use types::{Aes128, KEY_BYTES};
