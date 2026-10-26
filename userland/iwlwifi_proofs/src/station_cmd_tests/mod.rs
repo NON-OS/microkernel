@@ -13,4 +13,5 @@ mod fixtures;
 mod keys;
 mod layouts;
 mod link;
+mod power;
 mod session;

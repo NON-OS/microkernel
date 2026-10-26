@@ -24,8 +24,11 @@ pub enum Stage {
     Ready = 0,
     /// The device could not be claimed or its registers mapped.
     NotClaimed = 1,
-    // 2 and 3 (power failed, dead registers) are not served: such a chip is
-    // given back and the driver leaves (`start::bring_up`).
+    // 2 (power failed) is not served: such a chip is given back and the
+    // driver leaves (`start::bring_up`), as is one dead at bring-up.
+    /// The card read back all ones while serving: it left the bus. The radio
+    /// is down from then on.
+    DeadMmio = 3,
     /// The firmware download did not complete.
     FirmwareFailed = 4,
     /// Bring-up succeeded but the transmit/receive DMA could not be mapped.
