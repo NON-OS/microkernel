@@ -29,7 +29,7 @@ pub fn find(fdt: &Fdt) -> Result<Option<PlicInfo>, FdtError> {
     let mut address_cells: u32 = 2;
     let mut size_cells: u32 = 1;
 
-    while let Some(event) = walker.next()? {
+    while let Some(event) = walker.next_event()? {
         match event {
             Event::BeginNode { .. } => {
                 depth += 1;
