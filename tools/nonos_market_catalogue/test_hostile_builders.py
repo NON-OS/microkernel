@@ -49,8 +49,9 @@ class Builders(unittest.TestCase):
         for entries in ([{"listing_id": "linux../../x"}], [{"listing_id": "/etc/x"}], ["x"],
                         [{"listing_id": "linux.a"}, {"listing_id": "linux.a"}]):
             with self.assertRaises(ValueError, msg=entries):
-                split({"schema_version": 3, "entries": entries})
-        for index in ({"entries": []}, {"schema_version": 2, "entries": []}, [], {"schema_version": 3}):
+                split({"schema_version": 4, "entries": entries})
+        for index in ({"entries": []}, {"schema_version": 2, "entries": []}, {"schema_version": 3, "entries": []},
+                      [], {"schema_version": 4}):
             with self.assertRaises((ValueError, TypeError), msg=index):
                 split(index)
 

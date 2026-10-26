@@ -43,7 +43,7 @@ pub fn mknodat(guest: &Guest, dirfd: u64, path: u64, mode: u64) -> u64 {
         return errno::fail(errno::EROFS);
     }
     /* A new name, which the private directories' quota counts. */
-    if let Err(e) = super::space::room_for(super::space::Kept { bytes: 0, names: 1 }) {
+    if let Err(e) = super::space::room_for(&at, super::space::Kept { bytes: 0, names: 1 }) {
         return errno::fail(e);
     }
     match super::store_write(&key(&at), &[]) {
