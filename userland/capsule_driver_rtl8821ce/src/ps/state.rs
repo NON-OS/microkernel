@@ -18,6 +18,9 @@ pub struct Ps {
     pub(super) ready: bool,
     pub(super) h2c: H2c,
     watch: Watch,
+    /// For the proofs: power save on whatever the switch says.
+    #[cfg(test)]
+    pub(super) forced: bool,
 }
 
 impl Ps {
@@ -25,22 +28,19 @@ impl Ps {
         Self { aspm, h2c: H2c::new(), ..Self::default() }
     }
 
-    /// For the proofs: as if the firmware had been told of the association.
-    #[cfg(test)]
-    pub fn assume_ready(&mut self) {
-        self.ready = true;
-    }
-
-    /// For the proofs: whether the firmware was put to sleep.
-    #[cfg(test)]
-    pub fn asleep(&self) -> bool {
-        self.asleep
+    /// Whether power save acts at all: the switch, or the proofs' override.
+    pub(super) fn on(&self) -> bool {
+        #[cfg(test)]
+        if self.forced {
+            return true;
+        }
+        LPS
     }
 
     /// The link's clock: at each watch period, sleep or wake as it says.
     /// Nothing at all while the switch is off.
     pub fn tick<M: Mmio>(&mut self, mmio: &M, now_ms: u64, seen: Seen, may_sleep: bool) {
-        if LPS {
+        if self.on() {
             self.step(mmio, now_ms, seen, may_sleep);
         }
     }
