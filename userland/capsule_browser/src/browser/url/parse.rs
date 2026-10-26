@@ -30,3 +30,16 @@ pub fn parse(input: &str) -> Option<Url> {
     let (host, port) = host_port(authority, scheme)?;
     Some(Url { scheme, host, port, path: normalize_path(path) })
 }
+
+/// Why `input` cannot be loaded: an address of another scheme (file://,
+/// ftp://) is not a web address, which this browser does not fetch; any
+/// other text it could not read at all (fetch/words.rs says each).
+pub fn refusal(input: &str) -> &'static str {
+    let s = input.trim();
+    let other = s.find("://").is_some_and(|i| i > 0 && scheme_rest(s).is_none());
+    if other {
+        "not a web address"
+    } else {
+        "bad url"
+    }
+}
