@@ -46,5 +46,5 @@ fn the_ack_names_the_records_own_seal_number() {
     assert_eq!(wire::ack_seal_no(body), Some(rec.seal_no));
     let renamed = [&b"NAPX"[..], &napr[4..]].concat();
     let v1 = [&napr[..5], &[1], &napr[6..]].concat();
-    assert_eq!([&napr[..60], &renamed, &v1].map(|b| t::seal_no(b)), [None; 3]);
+    assert_eq!([&napr[..60], &renamed, &v1].map(t::seal_no), [None; 3]);
 }
