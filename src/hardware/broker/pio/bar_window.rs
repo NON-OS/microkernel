@@ -22,7 +22,7 @@
 use super::power_ports::clear;
 use super::types::PioError;
 use super::window::{window, Refused};
-use crate::hardware::broker::device::BAR_KIND_PIO;
+use crate::hardware::broker::device::bar::BAR_KIND_PIO;
 use crate::hardware::broker::Bar;
 
 pub(super) fn port_window(bar: Bar) -> Result<(u16, u16), PioError> {
