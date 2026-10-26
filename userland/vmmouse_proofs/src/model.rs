@@ -26,7 +26,6 @@ use std::rc::Rc;
 use nonos_libc::set_host;
 
 const MAGIC: u32 = 0x564D_5868;
-const PORT: u32 = 0x5658;
 const VERSION_ID: u32 = 0x3442_554A;
 const QUEUE_SIZE: usize = 1024;
 
@@ -71,7 +70,7 @@ impl Host {
     /// Behind the backdoor of a host CPUID names by `vendor`.
     pub fn install(&self, vendor: u8) {
         let me = self.0.clone();
-        set_host(vendor, Box::new(move |cmd, arg| me.borrow_mut().call(cmd, arg)));
+        set_host(vendor, Box::new(move |regs| me.borrow_mut().call(regs)));
     }
 
     /// The host's mouse, in QEMU's absolute range (0 to 0x7FFF), its
@@ -107,8 +106,8 @@ impl Default for Host {
 }
 
 impl Vmmouse {
-    fn call(&mut self, cmd: u32, arg: u32) -> [u32; 4] {
-        let mut regs = [MAGIC, arg, cmd, PORT];
+    fn call(&mut self, mut regs: [u32; 4]) -> [u32; 4] {
+        let (cmd, arg) = (regs[2], regs[1]);
         match cmd {
             10 => {
                 regs[0] = self.version;
