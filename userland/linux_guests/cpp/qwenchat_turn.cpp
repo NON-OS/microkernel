@@ -64,13 +64,20 @@ bool chat_turn(const ChatArgs &a, Chat &c, std::string &said, Put put, void *to,
     }
     memset(piece, 0, sizeof piece);
     /* Stopped: what this turn put in the cache comes back out, the turns before stay. */
-    if (c.stopped) return zero(kept), chat_rewind(c, start, {});
+    if (c.stopped) {
+        zero(kept);
+        /* A cache with recurrent layers cannot take back a turn: the whole conversation goes. */
+        if (!c.rewinds) return chat_reset(c), put(to, "(the conversation is forgotten)", 31, false), true;
+        return chat_rewind(c, start, {});
+    }
     /*
      * Qwen3's template keeps no thinking in the turns before the last, and
      * a model shown its old thoughts loses its way in the next: the reply
-     * is taken back out of the cache and the answer alone put in.
+     * is taken back out of the cache and the answer alone put in. A model
+     * with recurrent layers (Qwen3.5, Qwen3.6) cannot take back the end of
+     * its cache, so its turn stays as it was said, thought markers and all.
      */
-    if (ok && rethink) ok = chat_rewind(c, reply_at, kept);
+    if (ok && rethink && c.rewinds) ok = chat_rewind(c, reply_at, kept);
     zero(kept);
     /* The turn is closed in the cache as the template closes it. */
     std::vector<llama_token> end = chat_tokens(c, c.close);
