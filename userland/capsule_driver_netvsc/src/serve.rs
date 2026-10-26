@@ -56,7 +56,9 @@ pub fn run(net: &mut Net) {
         if n > 0 && from != 0 && from != me {
             let n = (n as usize).min(rx.len());
             let len = match decode(&rx[..n]) {
-                Some(req) => answer(Some(net), (&mut stats, &mut kept), &req, &rx[HDR_LEN..n], &mut tx),
+                Some(req) => {
+                    answer(Some(net), (&mut stats, &mut kept), &req, &rx[HDR_LEN..n], &mut tx)
+                }
                 None => {
                     let none = Request { op: 0, flags: 0, request_id: 0, payload_len: 0 };
                     status(&mut tx, &none, E_INVAL)
