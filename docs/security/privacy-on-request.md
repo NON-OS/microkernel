@@ -20,6 +20,7 @@ choice](../using/privacy-network.md), except where a row says otherwise.
 | `rpc.flashbots.net`, `sepolia.rpc.thirdweb.com` | Shield | The same | The same |
 | `huggingface.co` | Model fetch | You download a Qwen model; Anyone unless you ask for Direct | Do not download |
 | `dl-cdn.alpinelinux.org` | Linux installer | You install a Linux package; Anyone, or direct to a private address | Do not install |
+| `tool.linux.net` | Terminal | You run, in the Terminal, a Linux program whose signed market policy grants NET_ANON. The personality asks the kernel for that program's network ticket and exits; the Terminal starts the same command once more as this role, whose traffic goes over Anyone only and only where the program's policy lets it reach. No other program, and no run started any other way, can ask for it | Do not run that program, or uninstall it |
 
 The browser and the terminal go wherever you point them; this list covers only
 the places their code names. The model catalogue carries the Qwen file URLs as
