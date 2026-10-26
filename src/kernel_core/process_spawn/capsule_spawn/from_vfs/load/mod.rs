@@ -19,11 +19,11 @@ mod asked;
 mod baked_apps;
 mod baked_names;
 mod bound;
+mod empty;
 mod endpoint;
 mod name_rule;
 mod names;
 mod spawn;
-mod spawn_from;
 mod trust;
 
 pub(crate) use bound::{installed as child_caps, missing as beyond_parent};

@@ -14,14 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use std::cell::Cell;
-
-use super::rule::{gate, stored};
+use super::rule::gate;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum E {
     NotBuilt,
-    EmptyInStore,
 }
 
 #[test]
@@ -30,16 +27,17 @@ fn an_empty_image_is_not_built_and_any_other_is_let_through() {
     assert_eq!(gate(&[0x7F], E::NotBuilt), Ok(()));
 }
 
+/// The store load asks `refused` (empty.rs, the gate above) after the bound
+/// and before it spawns, so an empty stored image never reaches preflight.
 #[test]
-fn an_empty_image_in_the_store_is_refused_by_its_own_name() {
-    let spawned = Cell::new(false);
-    let load = |elf: &[u8]| {
-        stored(elf, E::EmptyInStore, || {
-            spawned.set(true);
-            gate(elf, E::NotBuilt).map(|()| 7)
-        })
-    };
-    assert_eq!(load(&[]), Err(E::EmptyInStore), "never \"not built\"");
-    assert!(!spawned.get());
-    assert_eq!(load(&[1]), Ok(7));
+fn the_store_load_refuses_an_empty_image_before_it_spawns() {
+    let src = std::fs::read_to_string(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/spawn.rs"
+    ))
+    .expect("the store load's source");
+    let at = |s: &str| src.find(s).unwrap_or_else(|| panic!("the store load lost `{s}`"));
+    let bound = at("super::bound::check(");
+    let refused = at("super::empty::refused(&artifacts.elf, service_name)?;");
+    assert!(bound < refused && refused < at("spawn_verified_as("));
 }
