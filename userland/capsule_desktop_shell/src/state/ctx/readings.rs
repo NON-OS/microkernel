@@ -34,6 +34,12 @@ pub struct Readings {
     pub lid: crate::state::lid::LidTold,
 }
 
+impl Default for Readings {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Readings {
     pub fn new() -> Self {
         Readings {

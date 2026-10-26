@@ -1,0 +1,7 @@
+      1 [ATTACK-NOTE] reply-twice: its own requests were not in its inbox
+     28 [ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+      1 [ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91[HDA] path cad=0 pin=03 dac=02 hops=2
+      1 [ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91[SOCKS5] connect, destination bytes 39
+      1 [ATTACK-NOTE] reply-twice: passed over a message of 8 bytes[DIAG] ipc.drain proc.20=0x0000000000000014
+      1 [ATTACK-NOTE] reply-twice: passed over a message of 8 bytes[USER-FIRST] pid=0x000000000000003B rip=0x00000000240F4C20
+      1 [ATTACK] deputy-escape refused: app.install through the shell's OP_OPEN_WITH ETIMEDOUT (110)

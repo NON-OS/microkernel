@@ -32,6 +32,10 @@ use super::super::text::{line, top_of};
 use super::proofs_verdict::of_route;
 use super::verify_row::{row, MARK_W};
 
+#[path = "proofs_route_text.rs"]
+mod text;
+use text::{join3, set_to, silent};
+
 const PER_TRANSPORT: u32 = 3;
 
 pub const HEIGHT: u32 = card::OVERHEAD + ROW_H + ROW_H * PER_TRANSPORT * 2 + 4;
@@ -39,7 +43,15 @@ pub const HEIGHT: u32 = card::OVERHEAD + ROW_H + ROW_H * PER_TRANSPORT * 2 + 4;
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, s: &Snapshot) {
     let inner = card::inner(w);
     let top = titled(fb, 0, y, w, HEIGHT, b"Route");
-    row(fb, CARD_PAD, top, inner, of_route(s.route), set_to(s.chosen), words::route_evidence(s.route));
+    row(
+        fb,
+        CARD_PAD,
+        top,
+        inner,
+        of_route(s.route),
+        set_to(s.chosen),
+        words::route_evidence(s.route),
+    );
     let (nym, anyone) = match s.board {
         Some((n, a)) => (n, a),
         None => (None, None),
@@ -50,15 +62,6 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, s: &Snapshot) {
     transport(fb, second, inner, Network::Anyone, anyone, s.board.is_some());
 }
 
-fn set_to(chosen: Option<u8>) -> &'static [u8] {
-    match chosen {
-        Some(nonos_route_proof::ROUTE_NYM) => b"this system's traffic is set to the Nym mixnet",
-        Some(nonos_route_proof::ROUTE_ANYONE) => b"this system's traffic is set to the Anyone network",
-        Some(nonos_route_proof::ROUTE_DIRECT) => b"this system's traffic is set to go direct",
-        _ => b"the route this system is set to could not be read",
-    }
-}
-
 fn transport(fb: &mut PaintBuffer, y: i32, w: u32, n: Network, latest: Latest, board: bool) {
     let as_chosen = match n {
         Network::Nym => ROUTE_NYM,
@@ -66,13 +69,18 @@ fn transport(fb: &mut PaintBuffer, y: i32, w: u32, n: Network, latest: Latest, b
     };
     let v = route_verdict(Some(as_chosen), latest);
     let mut claim = [0u8; 64];
-    let c = join(&mut claim, words::network(n), b": ", latest.map_or(silent(board), |(r, _)| words::stage(r.stage)));
+    let c = join3(
+        &mut claim,
+        words::network(n),
+        b": ",
+        latest.map_or(silent(board), |(r, _)| words::stage(r.stage)),
+    );
     let mut age = [0u8; 48];
     let ev: &[u8] = match latest {
         Some((_, ms)) => words::duration(ms, &mut age),
         None => b"",
     };
-    row(fb, 0 + CARD_PAD, y, w, of_route(v), &claim[..c], ev);
+    row(fb, CARD_PAD, y, w, of_route(v), &claim[..c], ev);
     let Some((r, ms)) = latest else {
         return;
     };
@@ -87,35 +95,9 @@ fn transport(fb: &mut PaintBuffer, y: i32, w: u32, n: Network, latest: Latest, b
     let mut line2 = [0u8; 96];
     let hops = words::hops(&r, &mut h);
     let n2 = match n {
-        Network::Nym if r.cover_traffic => join(&mut line2, hops, b", ", b"cover traffic on"),
-        Network::Nym => join(&mut line2, hops, b", ", b"cover traffic off"),
-        Network::Anyone => join(&mut line2, hops, b"", b""),
+        Network::Nym if r.cover_traffic => join3(&mut line2, hops, b", ", b"cover traffic on"),
+        Network::Nym => join3(&mut line2, hops, b", ", b"cover traffic off"),
+        Network::Anyone => join3(&mut line2, hops, b"", b""),
     };
     line(fb, x, top_of(y + 2 * ROW_H as i32, ROW_H, BODY_PX), &line2[..n2], MUTED, BODY_PX);
-}
-
-fn silent(board: bool) -> &'static [u8] {
-    if board {
-        b"has not reported"
-    } else {
-        b"route board not reachable"
-    }
-}
-
-fn join<const N: usize>(out: &mut [u8; N], a: &[u8], b: &[u8], c: &[u8]) -> usize {
-    join3(out, a, b, c)
-}
-
-fn join3<const N: usize>(out: &mut [u8; N], a: &[u8], b: &[u8], c: &[u8]) -> usize {
-    let mut n = 0;
-    for part in [a, b, c] {
-        for &x in part {
-            if n == N {
-                return n;
-            }
-            out[n] = x;
-            n += 1;
-        }
-    }
-    n
 }

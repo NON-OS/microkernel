@@ -43,6 +43,7 @@ pub(super) fn pointer(ctx: &mut Context, by: Routed, buf: &[u8], kind: u16) -> b
         return true;
     }
     if kind == INPUT_KIND_POINTER_ABS {
+        ctx.pointer_shape.at = Some((x as u32, y as u32));
         return super::motion::motion(ctx, x, y);
     }
     if kind == INPUT_KIND_BUTTON_UP {

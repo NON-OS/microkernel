@@ -27,6 +27,12 @@ pub struct LaunchpadUi {
     pub launchpad_view: alloc::vec::Vec<crate::render::launchpad::Target>,
 }
 
+impl Default for LaunchpadUi {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl LaunchpadUi {
     pub fn new() -> Self {
         LaunchpadUi {

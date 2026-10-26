@@ -18,7 +18,6 @@
 //! Terminal's palette proof measures its colours; and the game-over line,
 //! gold on its band of the ground, reads as well.
 
-#[allow(dead_code)]
 #[path = "../../../capsule_game_2048/src/game/colors.rs"]
 mod colors;
 

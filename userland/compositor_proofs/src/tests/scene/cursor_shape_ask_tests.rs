@@ -30,14 +30,14 @@ fn a_shape_is_asked_for_well_formed_and_set_by_its_surfaces_owner_alone() {
     let body = |code: u32, pad: u32| {
         [7u32, 0, code, pad].iter().flat_map(|w| w.to_le_bytes()).collect::<Vec<u8>>()
     };
-    assert_eq!(cursor_shape(&body(3, 0)), Some((7, NWSE_CODE)));
+    assert_eq!(cursor_shape(&body(3, 0)), Some((7, Some(NWSE_CODE))));
     assert_eq!(cursor_shape(&body(5, 0)), None, "a shape the compositor does not draw");
     assert_eq!(cursor_shape(&body(1, 1)), None, "the reserved word not zero");
     assert_eq!(cursor_shape(&body(1, 0)[..12]), None, "short");
     let mut scene = SceneTable::new();
     scene.submit(layer(40, 0, 0, 400, 300, 2)).unwrap();
-    assert!(scene.set_cursor(41, 40, EW_CODE).is_none(), "another pid's surface");
-    assert_eq!(scene.set_cursor(40, 40, EW_CODE).map(|l| l.cursor), Some(Some(EW_CODE)));
+    assert!(scene.set_cursor(41, 40, Some(EW_CODE)).is_none(), "another pid's surface");
+    assert_eq!(scene.set_cursor(40, 40, Some(EW_CODE)).map(|l| l.cursor), Some(Some(EW_CODE)));
     scene.submit(layer(40, 10, 10, 500, 300, 2)).unwrap();
     let (kept, n) = scene.z_sorted_snapshot();
     assert_eq!(shape_at(kept[..n].iter(), 20, 20), EW_CODE, "kept when submitted again");

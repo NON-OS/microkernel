@@ -18,7 +18,7 @@
 //! `crate::` paths its files use.
 
 // The desktop shell's tray table, under the `crate::protocol` path its files
-// name the label size by, and its `Default` (tray_default.rs).
+// name the label size by, and the proof of its `Default` (tray_default.rs).
 #[path = "../../../capsule_desktop_shell/src/protocol/limits.rs"]
 pub mod protocol;
 

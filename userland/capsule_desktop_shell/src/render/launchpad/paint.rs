@@ -17,20 +17,14 @@ use crate::render::ui_font::{line_h, TITLE_PX, UI_PX};
 use crate::state::says::launchpad_empty;
 use crate::state::Context;
 
-const OVERLAY_BG: u32 = 0xF2_0A0E_15;
+const OVERLAY_BG: u32 = 0xF20A_0E15;
 const TITLE_FG: u32 = 0xFFF2_F6FC;
 const TITLE: &[u8] = b"Applications";
 
 pub fn paint_launchpad(ctx: &Context) {
     fill_rect(
-        ctx.backing_va,
-        ctx.stride,
-        ctx.width,
-        ctx.height,
-        0,
-        0,
-        ctx.width,
-        ctx.height,
+        (ctx.backing_va, ctx.stride, ctx.width, ctx.height),
+        (0, 0, ctx.width, ctx.height),
         OVERLAY_BG,
     );
     let title_x = ctx.width.saturating_sub(measure_aa_bytes(TITLE, TITLE_PX)) / 2;

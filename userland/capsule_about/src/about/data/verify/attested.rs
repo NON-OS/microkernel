@@ -46,7 +46,7 @@ pub struct Attested {
 pub fn attested() -> Option<Vec<Attested>> {
     let mut buf = vec![0u8; MAX_ENTRIES * ATTEST_ENTRY_LEN];
     let rc = mk_attest_entries(&mut buf);
-    if rc < 0 || rc as usize > buf.len() || rc as usize % ATTEST_ENTRY_LEN != 0 {
+    if rc < 0 || rc as usize > buf.len() || !(rc as usize).is_multiple_of(ATTEST_ENTRY_LEN) {
         return None;
     }
     let names = Names::read();

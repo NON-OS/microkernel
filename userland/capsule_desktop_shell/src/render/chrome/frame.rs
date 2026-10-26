@@ -24,7 +24,7 @@ pub fn paint_chrome(ctx: &mut Context) {
     let frame_start = crate::frametime::begin();
     let row_words = (ctx.stride / 4) as usize;
     let words = row_words * ctx.height as usize;
-    let (desk, chrome) = (ctx.desk_va, ctx.chrome_va);
+    let (desk, chrome) = (ctx.desk.next_va(), ctx.chrome.next_va());
     // Every painter draws on `backing_va`; it points at the off-screen frame
     // for each pass, and at the chrome again after them.
     let mut back = core::mem::take(&mut ctx.back);
@@ -37,7 +37,8 @@ pub fn paint_chrome(ctx: &mut Context) {
         super::paint_over_windows(ctx);
     });
     ctx.back = back;
-    ctx.backing_va = chrome;
+    super::show::show(ctx);
+    ctx.backing_va = ctx.chrome.shown_va();
     crate::frametime::end(frame_start);
 }
 

@@ -45,8 +45,12 @@ fn a_policy_for_a_release_that_is_not_ready_is_refused() {
 #[test]
 fn a_vendor_program_or_a_listing_not_linux_sends_no_policy() {
     for p in [vec![], policy([0; 32], [0; 32])] {
-        let (e, rel) = linux(p, "store:/bin/qwenchat");
+        let (mut e, rel) = linux(p.clone(), "store:/bin/qwenchat");
+        e.listing_id = "linux.qwen-small".into();
         assert_eq!(read(encode(&e, &rel, true, true)), LinuxPolicy::NoPolicy);
+        /* The same program under any other listing is not the vendor's. */
+        let (e, rel) = linux(p, "store:/bin/qwenchat");
+        assert_eq!(read(encode(&e, &rel, true, true)), LinuxPolicy::Refused);
     }
     let (mut e, rel) = linux(vec![], "https://pkg");
     e.listing_id = "nonos.app.calculator".into();

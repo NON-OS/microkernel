@@ -17,6 +17,7 @@
 // `asm` carries the real .S files via global_asm!; the higher
 // modules are pure-Rust wrappers that extern-C into those symbols.
 mod asm;
+pub mod cpu;
 pub mod handoff;
 pub mod paging;
 pub mod serial;

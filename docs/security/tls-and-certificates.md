@@ -172,7 +172,7 @@ What callers do when the clock cannot be read:
 - The browser runs the walk with zero and shows the refusal with `the clock could not be read` in place of the clock reading (`clock` in `userland/capsule_browser/src/browser/fetch/tls_reason.rs:79-82`).
 - The Terminal, the model download, the audio player and `net.nym` pass zero to the walk, which refuses every chain.
 
-Python's dates come from the clock the personality answers for Linux programs, `mk_time_millis` (`now_ms` in `userland/capsule_linux/src/linux/call/clock.rs:37-46`). The kernel anchors that clock at boot to the time in the [boot handoff](../overview/glossary-amnesic-boot.md#boot-handoff), or to the hardware clock when the handoff carries none (`resolve_epoch_ms` in `src/sys/clock/core/init.rs:39-47`). The loader fills the handoff from the firmware's `GetTime`, read as UTC (`get_uefi_time_epoch` in `nonos-bootloader/src/handoff/timing.rs:25-49`). On the desktop image, with no network time, a wrong firmware clock breaks Python's certificate checks too.
+Python's dates come from the clock the personality answers for Linux programs, `mk_time_millis` (`now_ms` in `userland/capsule_linux/src/linux/call/clock.rs:37-46`). The kernel anchors that clock at boot to the time in the [boot handoff](../overview/glossary-amnesic-boot.md#boot-handoff), or to the hardware clock when the handoff carries none (`resolve_epoch_ms` in `src/sys/clock/core/init.rs:39-47`). The loader fills the handoff from the firmware's `GetTime`, read as UTC (`get_uefi_time_epoch` in `nonos-bootloader/src/handoff/timing.rs:24-48`). On the desktop image, with no network time, a wrong firmware clock breaks Python's certificate checks too.
 
 ## The unauthenticated path
 

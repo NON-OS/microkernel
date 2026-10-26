@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod discover;
-mod prime;
+pub(crate) mod prime;
 
 pub use discover::try_wallpaper;
-pub use prime::{run, subscribe_input, subscribe_wm};
 pub(crate) use prime::wallpaper_policy;
+pub use prime::{run, subscribe_input, subscribe_wm};

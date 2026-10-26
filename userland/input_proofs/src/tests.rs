@@ -35,6 +35,8 @@ mod key_target_tests;
 mod press_frame_tests;
 #[path = "ps2_tests.rs"]
 mod ps2_tests;
+#[path = "router_hover_first_tests.rs"]
+mod router_hover_first_tests;
 #[path = "router_hover_tests.rs"]
 mod router_hover_tests;
 #[path = "router_key_tests.rs"]
