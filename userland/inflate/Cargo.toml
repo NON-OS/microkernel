@@ -6,6 +6,9 @@ authors = ["NONOS Contributors"]
 license = "AGPL-3.0"
 description = "Shared DEFLATE/gzip/zlib inflate for NONOS userland"
 
+[package.metadata.nonos]
+test-lane = true
+
 [lib]
 name = "nonos_inflate"
 path = "src/lib.rs"
