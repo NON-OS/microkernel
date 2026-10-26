@@ -15,7 +15,7 @@
 
 GuestPolicies.mk gave every guest FILES_USER, which the build refuses as
 reserved (build/line.rs), so no NONOS_LINUX_GUESTS=1 image built. Every name
-in LINUX_GUEST_ALL is one the build knows (build/mask_names.rs) and none is
+in LINUX_GUEST_ALL is one the build knows (src/mask.rs NAMES) and none is
 one it refuses.
 """
 
@@ -25,7 +25,7 @@ import sys
 from pathlib import Path
 
 MK = "userland/linux_guests/GuestPolicies.mk"
-NAMES = "userland/nonos_linux_policy/build/mask_names.rs"
+NAMES = "userland/nonos_linux_policy/src/mask.rs"
 LINE = "userland/nonos_linux_policy/build/line.rs"
 
 
