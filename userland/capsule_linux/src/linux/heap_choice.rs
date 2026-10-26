@@ -19,9 +19,6 @@
 //! nothing and returns the length, so an install that read only that
 //! length ran in the run heap. Pure, so the host proofs hold it.
 
-/// Room for any argv init writes: an install's is about 720 bytes.
-pub const ARGS_MAX: usize = 4096;
-
 /// The first word of the arguments, when `n` bytes of them were copied
 /// into `buf`; None when they were not (too long, or an error).
 pub fn first_word(buf: &[u8], n: i64) -> Option<&[u8]> {

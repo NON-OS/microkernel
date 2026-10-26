@@ -16,9 +16,9 @@
 //! Transfers on a device's endpoints: control, interrupt-IN and bulk.
 pub(super) mod bulk;
 mod get_device_descriptor;
-mod issue_control_transfer;
+pub(crate) mod issue_control_transfer;
 mod poll_interrupt_in;
-mod transfer_event;
+pub(crate) mod transfer_event;
 pub(crate) mod wait_transfer_completion;
 pub use bulk::{
     bulk_transfer, poll_bulk_in, reset_bulk_endpoint, stream_transfer, write_bulk_input,
@@ -29,8 +29,3 @@ pub use get_device_descriptor::{
 };
 pub use issue_control_transfer::{issue_control_transfer, ControlRequest};
 pub use poll_interrupt_in::{poll_interrupt_in, IntrPoll};
-// Reached by the host proofs (userland/xhci_proofs), not by the capsule.
-#[allow(unused_imports)]
-pub use issue_control_transfer::moved;
-#[allow(unused_imports)]
-pub use transfer_event::{complete, short_on, stopped_early};

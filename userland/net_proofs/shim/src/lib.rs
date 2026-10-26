@@ -31,10 +31,12 @@ mod process;
 mod random;
 mod serial;
 mod time;
+mod timeout;
 
-pub use ipc::{mk_ipc_call, mk_ipc_call_timeout, mk_ipc_recv_from, mk_ipc_reply};
+pub use ipc::{mk_ipc_call, mk_ipc_recv_from, mk_ipc_reply};
 pub use ipc::{mk_service_lookup, set_responder, take_replies, Reply};
 pub use process::{end_pid, heap_init, mk_debug, mk_exit, mk_pid_alive, revive_all};
 pub use random::crypto_random;
 pub use serial::serial;
 pub use time::{advance, mk_time_adjust, mk_time_millis, mk_uptime_ms, mk_yield, set_time};
+pub use timeout::{last_timeout_ms, mk_ipc_call_timeout};

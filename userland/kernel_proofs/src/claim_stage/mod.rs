@@ -20,17 +20,16 @@
  * path: no grant whose check passed outlives the release's drain.
  */
 
-#![allow(dead_code)]
-
 mod exit_steps;
 mod exit_world;
+mod making_tests;
 mod model_exit_tests;
 mod model_reclaim_tests;
 mod model_tests;
 mod over_tests;
 mod reclaim_world;
 #[path = "../../../../src/hardware/broker/claim/stage_rule.rs"]
-mod stage_rule;
+pub mod stage_rule;
 mod tests;
 #[path = "../../../../src/hardware/broker/claim/types.rs"]
-mod types;
+pub mod types;
