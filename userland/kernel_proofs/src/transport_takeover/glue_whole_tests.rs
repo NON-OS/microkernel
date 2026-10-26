@@ -28,21 +28,22 @@ use super::text::{between, code};
 #[test]
 fn the_rule_is_asked_with_the_holders_own_end_and_cpu() {
     let rule = concat!(
-        "pub(super) fn never_runs_again(pid: u32) -> bool {",
+        "pub(crate) fn never_runs_again(pid: u32) -> bool {",
         " use crate::process::core::{ProcessState, PROCESS_TABLE}; let dead =",
         " |s: &ProcessState| matches!(s, ProcessState::Zombie(_) | ProcessState::Terminated(_));",
         " let ended = PROCESS_TABLE.find_by_pid(pid).is_none_or(|p| dead(&p.state.lock()));",
         " let on_cpu = crate::process::scheduler::selection::cpu_on_tables(pid).is_some();",
         " super::transport_rule::takes_over(pid, ended, on_cpu) }",
     );
-    let got = between(HOLDER, "pub(super) fn never_runs_again(", "pub(crate) fn forget(");
+    let got = between(HOLDER, "pub(crate) fn never_runs_again(", "pub(crate) fn forget(");
     assert_eq!(got, code(rule), "the rule asked with another end or CPU");
 }
 
 #[test]
 fn a_reused_pid_unlocks_its_old_holders_lock_before_its_rows_go() {
     let forget = concat!(
-        "pub(crate) fn forget(pid: u32) { let mut holders = HOLDERS.lock();",
+        "pub(crate) fn forget(pid: u32) { let _quiet = super::rest_mark::quiet();",
+        " let mut holders = HOLDERS.lock();",
         " for &(key, _) in holders.iter().filter(|h| h.1 == pid) {",
         " let lock = unsafe { &*(key as *const Mutex<()>) };",
         " if lock.is_locked() { unsafe { lock.force_unlock() }; } }",

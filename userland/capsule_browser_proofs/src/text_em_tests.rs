@@ -7,10 +7,17 @@
 use crate::browser::fonts::measure_text;
 use crate::render::{render, texts};
 
+/// Page text with no font of its own is drawn in the system face, as the
+/// Terminal is: Geist (toolkit font/ttf/face.rs). Its em is 1000 units and
+/// its ascent to descent 1300, so at a 1000 px em the word is its own
+/// advances, 3708 units less 68 of kerning; scaled by the ascent-to-descent
+/// height instead, it would be 1000/1300 of that, 2800, and 47 px at 17.
 #[test]
 fn a_17px_word_measures_at_its_true_em() {
+    let em = measure_text(0, false, false, "Nothing", 1000.0, 0.0);
+    assert!((3638..=3642).contains(&em), "'Nothing' at a 1000px em is {em}px wide");
     let w = measure_text(0, false, false, "Nothing", 17.0, 0.0);
-    assert!((64..=66).contains(&w), "'Nothing' at 17px is {w}px wide");
+    assert!((61..=62).contains(&w), "'Nothing' at 17px is {w}px wide");
 }
 
 #[test]

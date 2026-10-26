@@ -41,6 +41,7 @@ pub fn entry() -> MarketplaceEntry {
         publisher_pubkey: [0x22; 32],
         publisher_eth_address: [0; 20],
         description: String::new(),
+        logo_hash: [0; 32],
         price,
         token,
         commerce: Some(commerce),
