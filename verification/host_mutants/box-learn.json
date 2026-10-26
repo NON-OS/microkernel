@@ -1,0 +1,15 @@
+[
+ {"name": "learn-from-prefix", "file": "userland/capsule_linux/src/linux/boxed/preset.rs", "old": "b\"learn\" => (Preset::Learn,", "new": "w if w.starts_with(b\"learn\") => (Preset::Learn,", "crate": "userland/capsule_linux_proofs", "test": "boxed::"},
+ {"name": "learn-hash-as-offline", "file": "userland/capsule_linux/src/linux/boxed/hash.rs", "old": "Preset::Learn => 4,", "new": "Preset::Learn => 2,", "crate": "userland/capsule_linux_proofs", "test": "learn_tests"},
+ {"name": "learn-mode-line-dropped", "file": "userland/capsule_linux/src/linux/boxed/learn_report.rs", "old": "(b.preset == Preset::Learn).then_some(MODE)", "new": "None", "crate": "userland/capsule_linux_proofs", "test": "learn_tests"},
+ {"name": "learn-enforced-dropped", "file": "userland/capsule_linux/src/linux/boxed/learn_report.rs", "old": "if b.preset == Preset::Learn { \" enforced=no\" } else { \"\" }", "new": "\"\"", "crate": "userland/capsule_linux_proofs", "test": "learn_tests"},
+ {"name": "learn-mode-everywhere", "file": "userland/capsule_linux/src/linux/boxed/learn_report.rs", "old": "(b.preset == Preset::Learn).then_some(MODE)", "new": "Some(MODE)", "crate": "userland/capsule_linux_proofs", "test": "learn_tests"},
+ {"name": "learn-file-everywhere", "file": "userland/capsule_linux/src/linux/boxed/learn_report.rs", "old": "    if b.preset != Preset::Learn {\n        return None;\n    }\n", "new": "", "crate": "userland/capsule_linux_proofs", "test": "learn_tests"},
+ {"name": "learn-whole-root", "file": "userland/capsule_linux/src/linux/boxed/learn_folders.rs", "old": "        true => path.to_vec(),", "new": "        true => root.to_vec(),", "crate": "userland/agentproof_proofs", "test": "learn_"},
+ {"name": "learn-parent-only", "file": "userland/capsule_linux/src/linux/boxed/learn_folders.rs", "old": "        false => parent.to_vec(),", "new": "        false => parent[..parent.len() - 1].to_vec(),", "crate": "userland/agentproof_proofs", "test": "learn_"},
+ {"name": "learn-no-collapse", "file": "userland/capsule_linux/src/linux/boxed/learn_folders.rs", "old": "!all.iter().any(|o| o != *f && under(f, o))", "new": "true", "crate": "userland/agentproof_proofs", "test": "learn_"},
+ {"name": "learn-unbounded", "file": "userland/capsule_linux/src/linux/boxed/learn_folders.rs", "old": "f.len() > WRITES_MAX || size(f) > room", "new": "f.len() > WRITES_MAX", "crate": "userland/agentproof_proofs", "test": "learn_"},
+ {"name": "learn-no-connects", "file": "userland/capsule_linux/src/linux/boxed/learned_text.rs", "old": "false => ok_c.iter().for_each(|d| s.push_str(&alloc::format!(\"connect {}\\n\", named(d)))),", "new": "false => {}", "crate": "userland/agentproof_proofs", "test": "learn_"},
+ {"name": "learn-unchecked-folder", "file": "userland/capsule_linux/src/linux/boxed/learned_text.rs", "old": ".partition(|w| folder(w).is_ok())", "new": ".partition(|_| true)", "crate": "userland/agentproof_proofs", "test": "learn_"},
+ {"name": "learn-long-word-unsaid", "file": "userland/capsule_linux/src/linux/boxed/learned_text.rs", "old": "if word > WORD_MAX + 1 {", "new": "if false {", "crate": "userland/agentproof_proofs", "test": "learn_"}
+]

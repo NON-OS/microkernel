@@ -14,9 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const MAX_ARGS: usize = 8;
+/// Words a line may hold. It was 8, and a ninth was dropped without a word:
+/// `echo` and eight words printed seven.
+pub const MAX_ARGS: usize = 64;
+
+/// What a line with more words than that says; it runs nothing.
+pub const TOO_MANY: &[u8] = b"too many words on one line, 64 at most, so nothing ran";
 
 pub struct Argv<'a> {
     pub argv: [&'a [u8]; MAX_ARGS],
     pub argc: usize,
+    /// The line held more than `MAX_ARGS` words.
+    pub cut: bool,
 }
