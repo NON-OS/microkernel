@@ -35,6 +35,11 @@ pub fn avx_usable() -> bool {
 }
 
 /// 16 registers of 32 bytes each, back from ymm0..ymm15.
+///
+/// # Safety
+///
+/// The CPU must run AVX with its state enabled: call only once
+/// `avx_usable` has said so, or the first `vmovdqu` faults.
 #[target_feature(enable = "avx")]
 pub unsafe fn round_ymm(pattern: &[u8; 32], out: &mut [u8; 512]) {
     // SAFETY: `pattern` is 32 readable bytes, `out` 512 writable ones; r12
