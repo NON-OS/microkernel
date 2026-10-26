@@ -110,5 +110,13 @@
   "new": "[Needs::AirGapped, Needs::Hardened, Needs::Hardened];",
   "test": "confine_posture::",
   "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "refusal-loader-screen-left",
+  "file": "src/sys/boot_log/notice_screen.rs",
+  "old": "    fill_rect(fb, 0, band, fb.width, fb.height - band, BLANK);\n",
+  "new": "",
+  "test": "confine_posture::",
+  "crate": "userland/kernel_proofs"
  }
 ]
