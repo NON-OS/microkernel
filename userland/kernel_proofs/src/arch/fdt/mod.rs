@@ -3,7 +3,6 @@
 pub mod endian;
 #[path = "../../../../../src/arch/fdt/error.rs"]
 pub mod error;
-pub mod find;
 #[path = "../../../../../src/arch/fdt/header.rs"]
 pub mod header;
 #[path = "../../../../../src/arch/fdt/layout.rs"]
@@ -22,6 +21,3 @@ pub mod tokens;
 mod validate;
 #[path = "../../../../../src/arch/fdt/walker/mod.rs"]
 pub mod walker;
-
-pub(crate) mod blob;
-mod i2c_describe_tests;

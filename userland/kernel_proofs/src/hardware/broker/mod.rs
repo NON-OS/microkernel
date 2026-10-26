@@ -23,8 +23,6 @@ pub mod class;
 pub mod device;
 #[path = "../../../../../src/hardware/broker/external_range.rs"]
 pub mod external_range;
-#[cfg(test)]
-mod fdt_i2c;
 #[path = "../../../../../src/hardware/broker/irq/gone.rs"]
 pub mod irq_gone;
 pub mod mmio;
