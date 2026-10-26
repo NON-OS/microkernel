@@ -29,11 +29,12 @@ The prompt reads `nonos@nonos ~/workspace/project main 1 job %`: who and where y
 
 - The window opens at 1240 by 720 pixels, centred between the menu bar and the dock on a 1920 by 1080 screen: about 130 columns and 30 rows. On a smaller screen it opens as large as fits, centred. The prompt sits on the line under the last output and moves down with it until the window is full.
 - `Ctrl+Alt+T` brings the Terminal forward from anywhere on the desktop, or opens it.
+- `F12` drops the window down under the menu bar, the full width of the screen and 45% of its height, drawn whole before it shows; `F12` again, or `Esc` on an empty line with nothing else open, puts it back where it was. `F12` is the drop-down's even while a program runs.
 - A new tab opens on a splash: the NONOS banner, the system's facts with a `start` row naming `help`, `Tab`, `Ctrl+R` and `Ctrl+K`, and, when the window is wide enough, the same slashed zero drawn at the screen's own resolution.
 - A window holds up to nine tabs. `Ctrl+Shift+T` opens one, `Ctrl+Shift+W` closes one, `Ctrl+PgUp` and `Ctrl+PgDn` switch, and `Ctrl+1` to `Ctrl+9` jump to a tab.
 - `Ctrl+Shift+D` splits the window: a new tab opens beside the one you were in, each pane with its own size, so a program in it sees its own rows and columns. The pane with the keys has a line of the accent along its top; `Ctrl+Shift+Left` and `Ctrl+Shift+Right`, or a click, give the keys to the other. `Ctrl+Shift+D` again shows one tab; closing a pane's tab leaves the other in front.
 - Closing a tab, or the window, sends SIGTERM to every program that tab started. Closing the last tab closes the window.
-- `Ctrl+B` shows or hides the side rail. `Ctrl+K` opens a palette that filters, as you type, twelve common commands, the last twelve lines run in this tab, the open tabs, and a few actions such as a new tab or the next theme. `Enter` picks, `Esc` closes it.
+- `Ctrl+B` shows or hides the side rail. `Ctrl+K` opens a palette that filters, as you type, twelve common commands, the last twelve lines run in this tab, the open tabs, and a few actions: a new tab, the side rail, the theme picker, and split side by side. `Enter` picks, `Esc` closes it.
 - `Ctrl+=` and `Ctrl+-` change the font size, from scale 1 to 6.
 - `theme` switches the colours: `dark`, `dim`, `light` or `abyss`. `theme` alone opens a picker beside the prompt, each theme with swatches of its colours: `Up` and `Down` put each one on the window as you reach it, `Enter` keeps it, and `Esc` goes back to the one you had. On every theme all text, the dimmed hints and times included, is at least 4.5 to 1 against what it is drawn on, the WCAG AA level.
 
@@ -73,6 +74,8 @@ History expansion works as in other shells: `!!` is the last command, `!n` the n
 | `a && b`, `a \|\| b`, `a ; b` | Run `b` on success, on failure, or always. |
 | `a &` | Run `a` in the background. |
 | `$name`, `$?` | A shell variable set with `set`, or the last exit status. |
+
+A line holds up to 64 words; a longer one runs nothing and says so, rather than running with its last words dropped.
 
 After a `|`, only ten built-ins read the piped lines: `grep`, `sort`, `uniq`, `cut`, `nl`, `wc`, `head`, `tail`, `tac` and `rev`. Any other command after a `|` stops the pipeline and says so. Redirects also work for Linux programs and the installed tools.
 
@@ -147,7 +150,7 @@ The built-ins that wait on the network or on an install run as jobs even in the 
 | `whoami`, `id` | Your name, then this capsule and who the kernel says signed it. |
 | `date` | The real-time clock, as year-month-day hour:minute:second UTC. |
 | `uptime` | How long the system has run, from the monotonic clock. |
-| `latency` | How long the last keys typed in this tab took to reach the screen, from the key's arrival to the frame it changed being painted: the middle, the 95th percentile and the worst, in milliseconds, over up to 64 keys. |
+| `latency` | How long the last keys typed in this tab took to reach the screen, from the key's arrival to the frame it changed being painted: the middle, the 95th percentile and the worst, in milliseconds, over up to 64 keys. A key that changes only the line repaints the input row alone. |
 
 | Network | What it does |
 |---|---|
@@ -245,6 +248,7 @@ The source behind the facts above, at the commit in the footer.
 - The prompt
   - The branch and the job count, and which fit: `branch`, `heads` and `fit` in `userland/capsule_terminal/src/term/prompt_bits.rs`; read after each line by `probe` in `userland/capsule_terminal/src/term/git_probe.rs`.
 - Tabs and windows
+  - The drop-down: `key` and `rect` in `userland/capsule_terminal/src/term/drop.rs`; the window placed by `RectAsk::step` in `userland/app_skeleton/src/runner/rect_ask.rs`.
   - The split: `halves`, `sides`, `retarget` and `after_close` in `userland/capsule_terminal/src/term/split.rs`.
   - The size and place it opens at: `manifest` in `userland/capsule_terminal/src/term/manifest.rs`.
   - The prompt under the last output: `follow` in `userland/capsule_terminal/src/layout/follow.rs`.

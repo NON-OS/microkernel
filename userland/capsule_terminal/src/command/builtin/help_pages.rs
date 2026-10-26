@@ -30,7 +30,7 @@ pub const KEYS: [(&[u8], &[u8]); 15] = [
     (b"tabs", b"Ctrl+Shift+T new   Ctrl+Shift+W close   Ctrl+PgUp/PgDn switch"),
     (b"split", b"Ctrl+Shift+D two tabs side by side   Ctrl+Shift+Left/Right the other"),
     (b"commands", b"Ctrl+K commands, recent lines, tabs and actions; type to filter"),
-    (b"view", b"Ctrl+B side rail   Ctrl+= / Ctrl+- font size   Ctrl+L clear"),
+    (b"view", b"F12 drop down   Ctrl+B rail   Ctrl+= / Ctrl+- size   Ctrl+L clear"),
     (b"theme", b"theme or profile to change colours"),
 ];
 
