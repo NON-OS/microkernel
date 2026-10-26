@@ -17,6 +17,7 @@
 //! What stands in for the kernel around the mounted files. Each keeps what
 //! it saw per thread, so a test reads only what its own calls did.
 
+pub mod block_io;
 pub mod devices;
 pub mod kernel;
 pub mod keygen;
