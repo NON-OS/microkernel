@@ -16,20 +16,18 @@ pub fn draw(ctx: &Context) {
         b"ENTER NEXT OR JOIN  S LOOK AGAIN  ESC BACK"
     };
     render::frame(ctx, b"Network", b"No network is the private choice", footer);
-    let spx = ctx.stride as usize / 4;
-    let (w, h) = (ctx.width, ctx.height);
     let l = render::layout_of(ctx);
-    let (buf, x) = (render::buffer(ctx), l.col_x);
+    let (cv, x) = (&mut render::canvas(ctx), l.col_x);
     let n = &ctx.net;
     let mut items: [&[u8]; 1 + NETS_MAX] = [b""; 1 + NETS_MAX];
     items[0] = NO_NETWORK;
     for (slot, net) in items[1..].iter_mut().zip(n.nets[..n.count].iter()) {
         *slot = net.ssid();
     }
-    let listed = rows::list(buf, spx, w, h, x, l.body_y, &items[..1 + n.count], n.sel as usize);
+    let listed = rows::list(cv, x, l.body_y, &items[..1 + n.count], n.sel as usize);
     let mut y = listed + l.gap;
     let mut say = |text: &[u8], color: u32| {
-        y = lines::text(buf, spx, w, h, x, y, &[text], color);
+        y = lines::text(cv, x, y, &[text], color);
     };
     network_lines::describe(ctx, &mut say);
 }

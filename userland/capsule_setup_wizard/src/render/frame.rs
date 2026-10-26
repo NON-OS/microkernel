@@ -22,6 +22,7 @@ use alloc::format;
 
 use crate::render::ink::{draw_label, draw_marker, draw_text, draw_title};
 
+use crate::render::canvas::Canvas;
 use crate::render::chrome;
 use crate::render::layout::{layout, Layout};
 use crate::render::paint::fill_rect;
@@ -38,21 +39,26 @@ pub fn layout_of(ctx: &Context) -> Layout {
     layout(ctx.width, ctx.height)
 }
 
-pub fn frame(ctx: &Context, title: &[u8], sub: &[u8], footer: &[u8]) {
+/// This setup's canvas, over the buffer above.
+pub fn canvas(ctx: &Context) -> Canvas<'static> {
     let spx = ctx.stride as usize / 4;
-    let (w, h) = (ctx.width, ctx.height);
+    Canvas { buf: buffer(ctx), spx, w: ctx.width, h: ctx.height }
+}
+
+pub fn frame(ctx: &Context, title: &[u8], sub: &[u8], footer: &[u8]) {
+    let w = ctx.width;
     let l = layout_of(ctx);
-    let buf = buffer(ctx);
-    for p in buf.iter_mut() {
+    let cv = &mut canvas(ctx);
+    for p in cv.buf.iter_mut() {
         *p = BACKDROP;
     }
-    chrome::panel(buf, spx, &l, ctx);
+    chrome::panel(cv.buf, cv.spx, &l, ctx);
     let x = l.col_x;
     let step = format!("STEP {:02} OF {:02}", ctx.step + 1, theme::STEP_LABELS.len());
-    draw_marker(buf, spx, w, h, x, l.marker_y, &step, ACCENT, HINT);
-    draw_title(buf, spx, w, h, x, l.title_y, title, FG, l.title_px);
-    draw_text(buf, spx, w, h, x, l.sub_y, sub, theme::SUB);
+    draw_marker(cv, x, l.marker_y, &step, ACCENT, HINT);
+    draw_title(cv, x, l.title_y, title, FG, l.title_px);
+    draw_text(cv, x, l.sub_y, sub, theme::SUB);
     let hair = l.scale.px(1).max(1);
-    fill_rect(buf, spx, w, h, l.panel_w + 1, l.foot_y, w, hair, theme::RULE);
-    draw_label(buf, spx, w, h, x, l.keys_y, footer, HINT);
+    fill_rect(cv, l.panel_w + 1, l.foot_y, w, hair, theme::RULE);
+    draw_label(cv, x, l.keys_y, footer, HINT);
 }

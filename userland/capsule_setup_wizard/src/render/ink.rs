@@ -24,70 +24,42 @@ use alloc::string::String;
 use nonos_app_skeleton::PaintBuffer;
 use nonos_brand::{label, line_h, marker, text, Face};
 
+use super::canvas::Canvas;
 use super::layout::layout;
 
 fn latin1(s: &[u8]) -> String {
     s.iter().map(|&b| b as char).collect()
 }
 
-fn surface(buf: &mut [u32], spx: usize, w: u32, h: u32) -> PaintBuffer<'_> {
-    PaintBuffer { pixels: buf, stride_words: spx as u32, width: w, height: h }
+fn surface<'a>(cv: &'a mut Canvas) -> PaintBuffer<'a> {
+    PaintBuffer { pixels: cv.buf, stride_words: cv.spx as u32, width: cv.w, height: cv.h }
 }
 
 /// Body text with its line box's top at `y`.
-pub fn draw_text(buf: &mut [u32], spx: usize, w: u32, h: u32, x: u32, y: u32, s: &[u8], c: u32) {
-    let px = layout(w, h).body_px;
-    let mut fb = surface(buf, spx, w, h);
+pub fn draw_text(cv: &mut Canvas, x: u32, y: u32, s: &[u8], c: u32) {
+    let px = layout(cv.w, cv.h).body_px;
+    let mut fb = surface(cv);
     text(&mut fb, x, y, &latin1(s), Face::Body, c, px);
 }
 
 /// A title: Geist at 500, `px` high.
-pub fn draw_title(
-    buf: &mut [u32],
-    spx: usize,
-    w: u32,
-    h: u32,
-    x: u32,
-    y: u32,
-    s: &[u8],
-    c: u32,
-    px: f32,
-) {
-    let mut fb = surface(buf, spx, w, h);
+pub fn draw_title(cv: &mut Canvas, x: u32, y: u32, s: &[u8], c: u32, px: f32) {
+    let mut fb = surface(cv);
     text(&mut fb, x, y, &latin1(s), Face::Headline, c, px);
 }
 
 /// A mono label in capitals, tracked, at caption size; returns its right edge.
-pub fn draw_label(
-    buf: &mut [u32],
-    spx: usize,
-    w: u32,
-    h: u32,
-    x: u32,
-    y: u32,
-    s: &[u8],
-    c: u32,
-) -> u32 {
-    let px = layout(w, h).caption_px;
-    let mut fb = surface(buf, spx, w, h);
+pub fn draw_label(cv: &mut Canvas, x: u32, y: u32, s: &[u8], c: u32) -> u32 {
+    let px = layout(cv.w, cv.h).caption_px;
+    let mut fb = surface(cv);
     let caps: String = s.iter().map(|&b| (b as char).to_ascii_uppercase()).collect();
     label(&mut fb, x, y, &caps, c, px)
 }
 
 /// The brand's section marker: a dot in `lamp`, then a caption-size label.
-pub fn draw_marker(
-    buf: &mut [u32],
-    spx: usize,
-    w: u32,
-    h: u32,
-    x: u32,
-    y: u32,
-    s: &str,
-    lamp: u32,
-    c: u32,
-) {
-    let px = layout(w, h).caption_px;
-    let mut fb = surface(buf, spx, w, h);
+pub fn draw_marker(cv: &mut Canvas, x: u32, y: u32, s: &str, lamp: u32, c: u32) {
+    let px = layout(cv.w, cv.h).caption_px;
+    let mut fb = surface(cv);
     marker(&mut fb, x, y, s, lamp, c, px);
 }
 
