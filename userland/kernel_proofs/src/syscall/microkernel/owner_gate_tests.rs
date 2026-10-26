@@ -23,7 +23,16 @@ use super::owner_gate::{owner_only, OWNER_ONLY, SHARED};
 
 pub(super) const DISPATCH: &str =
     include_str!("../../../../../src/syscall/microkernel/acpi/dispatch.rs");
-pub(super) const NUMBERS: &str = include_str!("../../../../../src/syscall/microkernel/numbers.rs");
+/// The SYS_* constants, kept in parts under numbers/.
+pub(super) const NUMBERS: &str = concat!(
+    include_str!("../../../../../src/syscall/microkernel/numbers/acpi.rs"),
+    include_str!("../../../../../src/syscall/microkernel/numbers/data.rs"),
+    include_str!("../../../../../src/syscall/microkernel/numbers/foreign.rs"),
+    include_str!("../../../../../src/syscall/microkernel/numbers/hardware.rs"),
+    include_str!("../../../../../src/syscall/microkernel/numbers/ipc_process.rs"),
+    include_str!("../../../../../src/syscall/microkernel/numbers/session.rs"),
+    include_str!("../../../../../src/syscall/microkernel/numbers/trust.rs"),
+);
 
 pub(super) fn tag_of(name: &str) -> [u8; 4] {
     let line = NUMBERS.lines().find(|l| l.contains(&format!("const {name}: u64"))).expect(name);

@@ -95,6 +95,14 @@ def read_tree(root, path):
     return "\n".join(p.read_text() for p in sorted((root / path).rglob("*.rs")))
 
 
+def read_split(root, path):
+    """A file and the modules it keeps in its own directory, concatenated:
+    numbers.rs and microkernel_ops.rs hold their tables in parts."""
+    sub = (root / path).with_suffix("")
+    parts = sorted(sub.rglob("*.rs")) if sub.is_dir() else []
+    return "\n".join([read_text(root, path)] + [p.read_text() for p in parts])
+
+
 def variants_in(text, known):
     """Variant names mentioned in a blob. `use SyscallNumber::*` means arms are
     written bare, so match identifiers against the enum rather than the path."""
@@ -104,7 +112,7 @@ def variants_in(text, known):
 def read_kernel(root):
     enum = {tag: name for name, tag in ENUM_RE.findall(read_text(root, ENUM))}
     registry = dict(REGISTRY_RE.findall(read_tree(root, REGISTRY)))
-    mk_consts = {tag: name for name, tag in MK_CONST_RE.findall(read_text(root, MK_NUMBERS))}
+    mk_consts = {tag: name for name, tag in MK_CONST_RE.findall(read_split(root, MK_NUMBERS))}
     names = set(enum.values())
     return {
         "enum": enum,
@@ -112,7 +120,7 @@ def read_kernel(root):
         "mk_consts": mk_consts,
         "capped": variants_in(read_tree(root, CAP_TABLE), names),
         "routed": variants_in(read_tree(root, ROUTER), names),
-        "mk_routed": variants_in(read_text(root, MK_ROUTER), names),
+        "mk_routed": variants_in(read_split(root, MK_ROUTER), names),
         "mk_arms": mk_arms(root, MK_DISPATCH, MK_ARM_RE),
         "mk_retired": mk_retired(root, MK_DISPATCH),
     }

@@ -59,7 +59,8 @@ def syscalls(root: Path) -> int:
         )
     }
     mk = {d for d in defs if d.startswith("Mk")}
-    reg = set(re.findall(r"SyscallNumber::(\w+),", read(root, "src/syscall/abi/registry/mk.rs")))
+    mk_tables = sorted((root / "src/syscall/abi/registry").glob("mk*.rs"))
+    reg = set(re.findall(r"SyscallNumber::(\w+),", "".join(p.read_text() for p in mk_tables)))
     table = "".join(p.read_text() for p in sorted((root / "src/syscall/contract/cap_table").glob("*.rs")))
     gated = set(re.findall(r"SyscallNumber::(Mk\w+)", table))
 
