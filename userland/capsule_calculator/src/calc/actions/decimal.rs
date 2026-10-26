@@ -23,6 +23,7 @@ pub fn run(state: &mut State) {
     if state.new_input {
         state.display = 0;
         state.new_input = false;
+        state.decimal_digits_typed = 0;
     }
     if state.decimal_digits_typed == 0 {
         state.decimal_digits_typed = 1;

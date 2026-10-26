@@ -45,15 +45,17 @@ pub fn run(state: &mut State, digit: u8) {
             .saturating_mul(FRAC)
             .saturating_add(frac_part)
     } else {
-        if state.decimal_digits_typed >= MAX_FRACTION_DIGITS as u8 {
+        // The count holds the point and each digit after it, so the first
+        // digit after the point is the tenths.
+        if state.decimal_digits_typed > MAX_FRACTION_DIGITS as u8 {
             return;
         }
-        let shift = MAX_FRACTION_DIGITS - 1 - state.decimal_digits_typed as u32;
+        let shift = MAX_FRACTION_DIGITS - state.decimal_digits_typed as u32;
         let increment = (digit as Fixed) * pow10(shift);
         magnitude.saturating_add(increment)
     };
     state.display = sign * next;
-    if state.decimal_digits_typed >= 1 && state.decimal_digits_typed < MAX_FRACTION_DIGITS as u8 {
+    if state.decimal_digits_typed >= 1 && state.decimal_digits_typed <= MAX_FRACTION_DIGITS as u8 {
         state.decimal_digits_typed += 1;
     }
 }
