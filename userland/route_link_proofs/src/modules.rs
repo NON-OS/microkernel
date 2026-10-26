@@ -24,6 +24,8 @@ pub mod bounds;
 pub mod carrier;
 #[path = "../../nonos_route_link/src/describe.rs"]
 pub mod describe;
+#[path = "../../nonos_route_link/src/devnet.rs"]
+pub mod devnet;
 #[path = "../../nonos_route_link/src/direct_only.rs"]
 pub mod direct_only;
 #[path = "../../nonos_route_link/src/frame.rs"]

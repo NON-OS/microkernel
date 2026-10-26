@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::{mainnet, sepolia};
-use crate::chain::Chain;
-use crate::contract::Contract;
+use crate::{chain::Chain, contract::Contract};
 
 /// One contract on one chain: its address, and the block it was deployed in,
 /// where a log read starts. A block of 0 means not known, and settle refuses
@@ -70,5 +69,7 @@ pub const fn deployment(chain: Chain) -> &'static Deployment {
     match chain {
         Chain::Mainnet => &mainnet::MAINNET,
         Chain::Sepolia => &sepolia::SEPOLIA,
+        #[cfg(feature = "devnet")]
+        Chain::Devnet => &super::devnet::DEVNET,
     }
 }

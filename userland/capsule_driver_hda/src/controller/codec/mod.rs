@@ -20,17 +20,20 @@
 //! everything after that (`plan`, `assign`, `out_pins`, `path`, `search`,
 //! `deepen`, `hop`, `conn`, `pincfg`, `format`) is pure and runs on the
 //! host proofs against descriptions of real codecs. `program` sends the
-//! verbs, through `power`, `realtek`, `beep`, `route`, `amp`, `jack`,
-//! `external` and `stream`.
+//! verbs, through `power`, `vendor` (`realtek`, `cirrus`, `idt`), `beep`,
+//! `route`, `amp`, `jack`, `external` (with `vendor_gpio`) and `stream`.
 
 pub mod amp;
 pub mod assign;
 pub mod beep;
+pub mod cirrus;
+pub mod cirrus_verbs;
 pub mod conn;
 pub mod deepen;
 pub mod external;
 pub mod format;
 pub mod hop;
+pub mod idt;
 pub mod jack;
 pub mod out_pins;
 pub mod path;
@@ -45,6 +48,8 @@ pub mod realtek_eapd;
 pub mod route;
 pub mod search;
 pub mod stream;
+pub mod vendor;
+pub mod vendor_gpio;
 pub mod walk;
 pub mod walk_afg;
 pub mod walk_widget;

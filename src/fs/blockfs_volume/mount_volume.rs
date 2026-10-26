@@ -15,7 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::error::VolumeError;
-use super::key_to_array::key_to_array;
+use key_to_array::key_to_array;
+
+#[path = "key_to_array.rs"]
+mod key_to_array;
 use super::state::{VolumeState, VOLUME};
 use crate::fs::blockfs;
 use crate::security::keyring_capsule::retrieve;
