@@ -43,3 +43,13 @@ fn the_compositor_is_asked_once_a_change() {
     assert!(TELL.contains("if want == told {\n        return;\n    }"), "nothing when unchanged");
     assert!(TELL.contains("booted.drag.cursor.1 = want;"), "remembered once asked");
 }
+
+/// A window states its own shape at the first hover, the arrow too: a window
+/// that never asked has no say, and one under it would show through.
+#[test]
+fn the_first_hover_tells_even_the_arrow() {
+    let mut s = DragState::new();
+    let (want, told) = (over(&mut s, W as i32 / 2, H as i32 / 2), s.cursor.1);
+    assert_eq!(want, ARROW_CURSOR);
+    assert_ne!(want, told, "the arrow is a change from nothing told");
+}
