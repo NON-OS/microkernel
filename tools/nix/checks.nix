@@ -262,6 +262,7 @@ let
       "tools/nonos-cap-audit --self-test" "tools/nonos-cap-audit"
       "tools/nonos-pcap-egress --self-test" "tools/nonos_egress/mutants.py" "tools/nonos-efi-vars --self-test" "scripts/check_sealed_caps.py --self-test"
       "scripts/check_kernel_wait.py --self-test" "scripts/check_kernel_wait.py"
+      "scripts/check_redacted_addresses.py --self-test" "scripts/check_redacted_addresses.py"
       "scripts/check_attest_params.py" "tools/nonos-assumptions"
       "scripts/check_unenforced.py" "scripts/check_unenforced.py --self-test"
       "tools/ratchets/linux_calls.py --self-test"

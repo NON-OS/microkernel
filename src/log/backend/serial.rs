@@ -14,27 +14,55 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The kernel's warnings on the serial line, for the attack suite's boot
-//! only (nonos-capsule-attack): its report sets each refusal beside the
-//! kernel's own line for it, [CAP-DENY] and the rest, which otherwise reach
-//! only the screen and the RAM log. No other image echoes them.
+//! The kernel's warnings on the serial line, [CAP-DENY], [IPC-DENY] and the
+//! rest, which otherwise reach only the screen and the RAM log: on the
+//! attack suite's boot, whose report sets each refusal beside the kernel's
+//! own line for it, and on the images that show capsule output on serial
+//! (`capsule-serial-debug`, which no release loader carries: config.nix
+//! and checks.nix `profile-serial`). Each tag's echo is budgeted
+//! (serial_budget.rs); the RAM log keeps every line. Two lines are also
+//! written to serial by their sites, block_device/kept.rs and data/errno.rs:
+//! on a dev image they show twice, and on a release image that println is
+//! their only serial line, so neither copy is to be removed.
+
+#[path = "serial_budget.rs"]
+mod serial_budget;
 
 use super::traits::LogBackend;
 use crate::log::types::LogEntry;
 use crate::sys::serial::Line;
+use serial_budget::{tag, Budget, Echo};
 
-pub struct SerialBackend;
+pub struct SerialBackend {
+    budget: Budget,
+}
+
+impl SerialBackend {
+    pub const fn new() -> Self {
+        SerialBackend { budget: Budget::new() }
+    }
+}
 
 impl LogBackend for SerialBackend {
     /// One line, handed to the port in one call: with SMP on, a line written
     /// in pieces is spliced with other CPUs' lines, and the checker reads
     /// lines whole (src/sys/serial/line.rs).
     fn write(&mut self, entry: &LogEntry) {
-        Line::new()
-            .str(b"[KLOG ")
-            .str(entry.sev.as_str().as_bytes())
-            .str(b"] ")
-            .str(entry.msg.as_bytes())
-            .end();
+        let msg = entry.msg.as_bytes();
+        match self.budget.admit(msg, crate::time::timestamp_millis()) {
+            Echo::Not => return,
+            Echo::After(n) => {
+                let named = if tag(msg).is_empty() { &b"untagged"[..] } else { tag(msg) };
+                Line::new()
+                    .str(b"[LOG] ")
+                    .dec(u64::from(n))
+                    .str(b" lines of ")
+                    .str(named)
+                    .str(b" not echoed")
+                    .end();
+            }
+            Echo::Line => {}
+        }
+        Line::new().str(b"[KLOG ").str(entry.sev.as_str().as_bytes()).str(b"] ").str(msg).end();
     }
 }

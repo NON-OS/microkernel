@@ -19,6 +19,7 @@ use x86_64::structures::idt::InterruptStackFrame;
 use super::context::{log_exception, ExceptionContext};
 use crate::arch::x86_64::diag::emit_fatal_notice;
 use crate::interrupts::stats;
+use crate::security::observability::redact::redact_address;
 
 pub fn handle(frame: InterruptStackFrame) {
     let ctx = ExceptionContext::from_frame(&frame);
@@ -37,13 +38,16 @@ pub fn handle(frame: InterruptStackFrame) {
 
 fn handle_user_alignment(_ctx: &ExceptionContext) -> ! {
     crate::log::logger::log_warning!(
-        "User process alignment check at {:#x}",
-        _ctx.instruction_pointer
+        "User process alignment check at {}",
+        redact_address(_ctx.instruction_pointer)
     );
     crate::process::exit::exit_and_yield(-7, true)
 }
 
 fn handle_kernel_alignment(_ctx: &ExceptionContext) -> ! {
-    crate::log::logger::log_error!("Kernel alignment check at {:#x}", _ctx.instruction_pointer);
+    crate::log::logger::log_error!(
+        "Kernel alignment check at {}",
+        redact_address(_ctx.instruction_pointer)
+    );
     crate::boot::panic::fatal();
 }
