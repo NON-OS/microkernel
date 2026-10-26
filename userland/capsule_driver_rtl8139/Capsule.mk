@@ -17,5 +17,10 @@ CAPSULE_REPLY_ENDPOINT   := reply:4213:endpoint.4294967309
 # is drawn rather than read out of the IDR, and that draw fails closed, so
 # without this the card never comes up. No Irq: the driver polls.
 CAPSULE_REQUIRED_CAPS    := 0x198038
+# Debug, granted only by a build that compiles `capsule-serial-debug` (the
+# development images): the kernel mirror folds it in through
+# serial_debug_cap(), so the driver's own lines, its bring-up failure
+# among them, reach the console there and nowhere else.
+CAPSULE_OPTIONAL_CAPS    := 0x100
 
 include nonos-mk/capsule.mk
