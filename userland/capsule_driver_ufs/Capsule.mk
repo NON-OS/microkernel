@@ -17,6 +17,11 @@ CAPSULE_REPLY_ENDPOINT   := reply:4239:endpoint.4294967325
 # IPC|Memory|Driver|DeviceEnum|Mmio|Dma = 0xB8018, the set driver.sdhci0
 # holds. Driver covers MkPciConfigWrite. No Irq: completions are polled.
 CAPSULE_REQUIRED_CAPS    := 0xB8018
+# Debug, granted only by a build that compiles `capsule-serial-debug` (the
+# development images): the kernel mirror folds it in through
+# serial_debug_cap(), so the driver's own lines, its bring-up failure
+# among them, reach the console there and nowhere else.
+CAPSULE_OPTIONAL_CAPS    := 0x100
 CAPSULE_KERNEL_MIRROR    := src/hardware/ufs_capsule
 
 include nonos-mk/capsule.mk

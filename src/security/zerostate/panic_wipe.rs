@@ -49,7 +49,7 @@ pub(crate) fn panic_wipe_and_off() -> ! {
     let off = crate::arch::power::prepare();
     let _ = crate::log::wipe_ram_log();
 
-    if let Some((start, size)) = crate::memory::heap::get_allocator().extent() {
+    for (start, size) in crate::memory::heap::get_allocator().extents().into_iter().flatten() {
         let heap = Span { start: start as u64, end: (start as u64).saturating_add(size as u64) };
         let sp = crate::arch::stack_pointer();
         let stack = stack_keep(sp, KSTACK_SIZE as u64);
