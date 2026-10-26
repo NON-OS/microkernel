@@ -24,8 +24,9 @@ use alloc::vec::Vec;
 use crate::{trust_file, verify};
 
 pub const USAGE: &str = "usage: agentproof-receipt verify <receipt> <trust>
-  checks a NAPR v0 receipt offline against a nonos-receipt-trust 1 file
-  (docs/agentproof/receipt.md)";
+       agentproof-receipt pin <receipt>
+  verify checks a NAPR v0 receipt offline against a nonos-receipt-trust 1 file;
+  pin writes the one it verifies under, pinned on first use (docs/agentproof/receipt.md)";
 
 pub struct Answer {
     pub code: u8,
@@ -54,6 +55,10 @@ pub fn answer(receipt: &[u8], trust: &str) -> Answer {
         out.push("mode     LEARN, not enforced: this run was held to no policy of yours".into());
     }
     out.push(format!("sealed   by {} as family {:016x}", hex(&v.supervisor), v.seal_no));
+    out.push(match v.launcher == [0; 32] {
+        true => "asked    by a capsule the receipt does not name".into(),
+        false => format!("asked    by the capsule measured {}", hex(&v.launcher)),
+    });
     out.push("counts   not carried in v0".into());
     Answer { code: 0, out, err: vec![] }
 }

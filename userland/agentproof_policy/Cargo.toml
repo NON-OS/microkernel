@@ -23,4 +23,4 @@ path = "src/bin/agentproof.rs"
 # What the mounted box hash folds with.
 blake3 = { version = "1", default-features = false, features = ["pure"] }
 # The services mask and the destination list the mounted box files read.
-nonos_linux_policy = { path = "../nonos_linux_policy" }
+nonos_linux_policy = { path = "../nonos_linux_policy", default-features = false }

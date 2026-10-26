@@ -5356,6 +5356,19 @@ else
 fi
 unset relay_out
 
+# The Gauntlet's verdict and its receipt check, with no image: a run passes
+# only when its report came whole and its receipt verified, and a receipt
+# with one byte flipped was refused (tools/agentproof_gauntlet).
+if gauntlet_out="$( (cd tools && python3 -m unittest -q agentproof_gauntlet.test_verdict \
+    agentproof_gauntlet.test_verdict_edges agentproof_gauntlet.test_receipt \
+    agentproof_gauntlet.test_receipt_rule) 2>&1)"; then
+    note ok "the Gauntlet judges a run by its report and a receipt that verifies (agentproof_gauntlet)"
+else
+    tail -n 8 <<< "${gauntlet_out}" >&2
+    fail_with "agentproof_gauntlet: the verdict or the receipt check is wrong"
+fi
+unset gauntlet_out
+
 # Every way off the machine is listed: a capsule that gains Network, or an
 # address, host or build-time endpoint new to a networked capsule's source,
 # fails until docs/security/privacy.md names it with why and how to turn it

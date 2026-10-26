@@ -42,8 +42,6 @@ pub enum Refusal {
     Unsigned,
     /// The IOMMU was not enforcing with 0 unconfined grants.
     Dma,
-    /// The capsule registry was not complete.
-    Registry,
     /// PCR 9 names no trusted release, or PCR 8 or 14 is not that release's.
     Release,
     /// The doc's AK is not the one pinned.
@@ -64,7 +62,6 @@ impl Refusal {
             Self::Challenge => "challenge",
             Self::Unsigned => "unsigned",
             Self::Dma => "dma",
-            Self::Registry => "registry",
             Self::Release => "release",
             Self::Ak => "ak",
         }

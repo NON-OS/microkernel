@@ -18,6 +18,7 @@ mod cli;
 mod doc_clear_tests;
 mod doc_refusals;
 mod encoding;
+mod pin;
 mod refusals;
 mod says;
 mod sweep;

@@ -40,21 +40,34 @@ All of these, read from the serial log:
 - the kernel reported the IOMMU enforcing with 0 unconfined grants;
 - exactly one `[BOX]` line and no `[BOX-MISSING]`, so the box's report arrived whole;
 - the program started;
-- the box refused no more than `--max-refused` actions (0 by default).
+- the box refused no more than `--max-refused` actions (0 by default);
+- the run's [receipt](receipt.md) came whole, `agentproof-receipt verify` took it, and a
+  copy with one byte flipped was refused;
+- on the machine, the receipt job's rule held: asked again, the same receipt; asked
+  anything else, EBUSY; after the acknowledgement, the record gone.
+
+With no `--trust`, the trust is pinned from that receipt on first use (`trust.pinned`).
+That shows the receipt is whole and signed by the AK it carries, not that anyone vouched
+for that AK or that release. Pass `--trust` with a file you keep to check later runs
+against the first. A development image extends no PCR 14, so today its receipts are
+refused at `release` and the run fails with that reason (letter server/14).
 
 The lines it judges are written by the image, never by the agent. `[BOX]` comes from the
 Terminal, out of the box's keyed report frames. `[AGENTPROOF]` comes from the headless
 Terminal, and the IOMMU line from the kernel. The agent's own output reaches the log only as
 `[AGENTPROOF-OUT] ` rows, which are never read as anything else. A run that prints its own
-`[BOX]` or `[AGENTPROOF]` line changes nothing.
+`[BOX]`, `[AGENTPROOF]` or `[AGENTPROOF-RECEIPT]` line changes nothing.
 
 ## What you get
 
-`--out` gets `serial.log` and `result.json`. `result.json` holds:
+`--out` gets `serial.log`, `result.json`, the receipt as `receipt.napr` and, when pinned,
+`trust.pinned`. `result.json` holds:
 
 - the verdict (`passed`, `why`);
 - the fields of the `[BOX]` and `[AGENTPROOF]` lines;
 - the agent's output rows;
+- `receipt`: what the Terminal said of it, the rule as the machine showed it, whether it
+  verified and what the verifier printed, and whether the flipped copy was refused;
 - `job_sha256`: SHA-256 over each file's name, length and bytes, in name order;
 - `image_commit` and `source_commit`;
 - `keys`, which reads `test keys (development copy)`.
@@ -62,7 +75,7 @@ Terminal, and the IOMMU line from the kernel. The agent's own output reaches the
 ## What this does and does not prove
 
 - It is a development image, signed with throwaway keys made for the copy it was built
-  from. It is not a release image, and a pass is not a signed receipt.
+  from. It is not a release image, and its receipt names a release only you pinned.
 - The counts are `capsule_linux`'s enforcement, the same as the box's report, not the
   kernel's sealed histogram.
 - It runs under QEMU. It says what the box let the agent do there, not what the agent would

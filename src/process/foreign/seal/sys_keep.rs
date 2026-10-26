@@ -19,8 +19,11 @@
 //! delivered drops exactly that record. A failure anywhere between loses
 //! nothing. The invariant is one record, one consume: MkSealRead's take or
 //! MkSealDrop, never both, and never twice. Both are nonos.prove's alone,
-//! by the gate MkSealRead has, and nonos.prove serves one op at a time on
-//! one thread, so a take never runs between a receipt's peek and its drop.
+//! by the gate MkSealRead has, and one nonos.prove runs at a time, the
+//! window or one job: init's one loop spawns each, and refuses either while
+//! the other lives (kernel_proofs prove_job/exclusion_tests.rs). A RECEIPT
+//! job serves its one op on one thread, so no take runs between its peek
+//! and its drop.
 
 use super::table::SEALED;
 use crate::syscall::microkernel::device_secret_caller;

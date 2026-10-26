@@ -126,7 +126,7 @@ pub use process::{mk_args, mk_caps_of, mk_getpid, mk_kill, mk_pid_alive, mk_wait
 pub use process::{CAPS_OF_APP_INSTALL, CAPS_OF_SPAWN_WINDOW};
 pub use procstat::{mk_proc_stat, ProcStatEntry, PROC_FLAG_DEBUG_WITHHELD, PROC_NAME_LEN};
 pub use procstat_header::ProcStatHeader;
-pub use prove::{mk_prove_job, PROVE_JOB_DELIVER, PROVE_JOB_PROVE};
+pub use prove::{mk_prove_job, PROVE_JOB_DELIVER, PROVE_JOB_PROVE, PROVE_JOB_RECEIPT};
 pub use seal::{mk_seal_drop, mk_seal_note, mk_seal_peek, mk_seal_read, mk_seal_read_live};
 pub use seal::{SEAL_APP_ID, SEAL_DIAG};
 pub use spawn_instance::mk_spawn_instance;

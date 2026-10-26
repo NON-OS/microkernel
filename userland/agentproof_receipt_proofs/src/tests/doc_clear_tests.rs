@@ -18,8 +18,9 @@
 //! the verifier's reader (napr/doc_form.rs) does, for docs with and without
 //! a log, and nothing for a doc that is not v5.
 
-use agentproof_receipt::napr::doc_clear::{clear, LOG_AT, PCRS};
+use agentproof_receipt::napr::doc_clear::{clear, COUNT_AT, LOG_AT, PCRS};
 use agentproof_receipt::napr::doc_form::receipt_doc;
+use agentproof_receipt::verify;
 use nsh_attest::consts::PCR_COUNT;
 
 use crate::fixture::Fixture;
@@ -39,4 +40,23 @@ fn the_layout_clear_is_the_readers_clear() {
     let mut v4 = doc.clone();
     v4[11] = 4;
     assert!(clear(&v4).is_none(), "another version");
+}
+
+/// The registry's complete flag is not under the quote (nsh_attest doc/mod.rs):
+/// a receipt carries it clear, a doc that sets it is refused, and a flip of
+/// it in a receipt is refused too, so a receipt claims nothing of it.
+#[test]
+fn the_complete_flag_is_cleared_and_never_taken() {
+    let mut f = Fixture::new(b"strict");
+    let doc = f.spec.doc_bytes();
+    let flag = COUNT_AT + 4;
+    assert_eq!(
+        (doc[flag], clear(&doc).unwrap()[flag]),
+        (1, 0),
+        "the kernel's set, the receipt's clear"
+    );
+    let (mut bytes, trust) = (f.bytes(), f.trust());
+    let at = bytes.len() - clear(&doc).unwrap().len() + flag;
+    bytes[at] = 1;
+    assert_eq!(verify(&bytes, &trust).unwrap_err().name(), "unsigned");
 }

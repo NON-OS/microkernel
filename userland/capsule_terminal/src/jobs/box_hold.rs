@@ -20,6 +20,7 @@
 //! the same channel but is never told the key, so nothing it prints is
 //! taken for the report, and the report is drawn only once it has ended.
 
+use super::box_app::{APP_LINE, NET_LINE};
 use alloc::vec::Vec;
 
 /// nonos_libc::TAG_BOX; the terminal holds the two equal at build time.
@@ -27,10 +28,9 @@ pub const TAG: u8 = 3;
 pub const KEY_LEN: usize = 16;
 /// The most of a report kept: a report is a few hundred bytes.
 pub const HELD_MAX: usize = 64 * 1024;
-const NET_LINE: &[u8] = b"[BOX-NET] ";
 pub struct BoxHold {
     key: [u8; KEY_LEN],
-    held: Vec<u8>,
+    pub(super) held: Vec<u8>,
     /// The run's exit status, once it ended with the screen another's.
     pub ended: Option<i32>,
 }
@@ -61,7 +61,7 @@ impl BoxHold {
         for l in self.held.split(|b| *b == b'\n').filter(|l| !l.is_empty()) {
             match l {
                 l if l.starts_with(b"[BOX] ") => line = Some(l),
-                l if l.starts_with(NET_LINE) => {}
+                l if l.starts_with(NET_LINE) || l.starts_with(APP_LINE) => {}
                 l => shown.push(l),
             }
         }

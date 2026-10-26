@@ -24,6 +24,8 @@ extern crate alloc;
 
 #[cfg(feature = "verify")]
 pub mod cli;
+#[cfg(feature = "verify")]
+pub mod cli_pin;
 pub mod napr;
 #[cfg(feature = "verify")]
 pub mod trust;

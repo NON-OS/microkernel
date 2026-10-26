@@ -40,9 +40,6 @@ pub fn doc<'a, 't>(r: &Receipt<'a>, trust: &'t Trust) -> Result<(Doc<'a>, &'t Re
     if !doc.iommu_enforcing || doc.unconfined_grants != 0 {
         return Err(Refusal::Dma);
     }
-    if !doc.registry_complete {
-        return Err(Refusal::Registry);
-    }
     Ok((doc, release))
 }
 

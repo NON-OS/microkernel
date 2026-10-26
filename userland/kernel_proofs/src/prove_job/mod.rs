@@ -27,6 +27,8 @@ mod ask;
 mod ask_tests;
 #[path = "../../../../src/userspace/capsule_prove/job_argv.rs"]
 mod job_argv;
+mod exclusion_loop_tests;
+mod exclusion_tests;
 mod receipt_tests;
 #[path = "../../../../src/userspace/init/prove_job/rate.rs"]
 mod rate;

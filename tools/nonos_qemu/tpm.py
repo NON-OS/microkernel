@@ -23,11 +23,20 @@ from RAM alone. --fresh makes a new one with the new data disk."""
 import os
 import shutil
 import subprocess
+import tempfile
 import time
 
 
 # What swtpm keeps a TPM 2.0's persistent state in.
 PERMALL = "tpm2-00.permall"
+# A unix socket's path is at most 107 bytes; a deep checkout's state dir is longer.
+SOCK_MAX = 107
+
+
+def sock_path(state, short=lambda: tempfile.mkdtemp(prefix="nonos-tpm-", dir="/tmp")):
+    """The control socket: in the state dir, or a short dir of its own when that is too deep."""
+    sock = os.path.join(state, "swtpm-sock")
+    return sock if len(os.fsencode(sock)) <= SOCK_MAX else os.path.join(short(), "swtpm-sock")
 
 
 def start(state, fresh=False):
@@ -41,7 +50,7 @@ def start(state, fresh=False):
         # a CA nobody has here, so that step may fail and the key is what matters.
         subprocess.run(["swtpm_setup", "--tpm2", "--tpmstate", state, "--create-ek-cert", "--overwrite",
                         "--config", "/dev/null"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    sock = os.path.join(state, "swtpm-sock")
+    sock = sock_path(state)
     # A socket left by a boot that ended badly would read as this one's.
     if os.path.exists(sock):
         os.remove(sock)

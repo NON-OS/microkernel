@@ -22,23 +22,29 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 use agentproof_receipt::napr::{challenge, doc_clear, write, DOC_MAX};
-use nonos_libc::{mk_attest_doc, mk_seal_peek};
+use nonos_libc::{mk_attest_doc, mk_attest_entries, mk_seal_peek};
 use nonos_proof_abi::wire::ReceiptRequest;
 use nonos_proof_abi::{decode_record, FLAG_FINAL, FLAG_OVERFLOW, FLAG_SATURATED, RECORD_BYTES};
 
+use super::receipt_entry::{measure_of, ENTRIES_MAX, ENTRY_LEN};
 use crate::assemble::wipe_bytes;
 use crate::market::WITNESS_BYTES;
 
 const EINVAL: i32 = -22;
 const LIST_MAX: usize = 4096;
+const _: () = assert!(nonos_libc::ATTEST_ENTRY_LEN == ENTRY_LEN);
 
+/// `asked`: the RECEIPT body it was made for, the one it is answered again for.
 pub struct Receipt {
     pub napr: Vec<u8>,
+    pub asked: Vec<u8>,
     pub slot: [u8; 32],
     pub seal_no: u64,
 }
 
-pub fn make(req: &ReceiptRequest<'_>) -> Result<Receipt, i32> {
+/// The receipt a RECEIPT body asks for, its launcher `asker`, who asked.
+pub fn make(body: &[u8], asker: u32) -> Result<Receipt, i32> {
+    let req = &ReceiptRequest::decode(body).ok_or(EINVAL)?;
     let slot = super::receipt_slot::slot_of(req).ok_or(EINVAL)?;
     let mut buf = vec![0u8; RECORD_BYTES + WITNESS_BYTES + 32 * LIST_MAX];
     let n = mk_seal_peek(&slot, &mut buf);
@@ -54,10 +60,16 @@ pub fn make(req: &ReceiptRequest<'_>) -> Result<Receipt, i32> {
     if !finished || rec.authority != 0 {
         return Err(EINVAL);
     }
-    let bound = write::bound(&record, req.box_word, req.policy, &[0; 32]);
+    let bound = write::bound(&record, req.box_word, req.policy, &launcher(asker)?);
     let mut doc = vec![0u8; DOC_MAX];
     let n = mk_attest_doc(&challenge(&bound), &mut doc);
     let doc = usize::try_from(n).ok().and_then(|n| doc_clear::clear(doc.get(..n)?));
     let napr = write::finish(bound, &doc.ok_or(if n < 0 { n as i32 } else { EINVAL })?);
-    Ok(Receipt { napr, slot, seal_no: rec.seal_no })
+    Ok(Receipt { napr, asked: body.to_vec(), slot, seal_no: rec.seal_no })
+}
+
+fn launcher(asker: u32) -> Result<[u8; 32], i32> {
+    let mut regs = vec![0u8; ENTRY_LEN * ENTRIES_MAX];
+    let n = usize::try_from(mk_attest_entries(&mut regs)).map_err(|_| EINVAL)?;
+    measure_of(regs.get(..n).ok_or(EINVAL)?, asker).ok_or(EINVAL)
 }
