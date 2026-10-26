@@ -50,3 +50,8 @@ pub fn ran(entries: &[u8]) -> Vec<Ran> {
         })
         .collect()
 }
+
+/// A launcher named is one of the capsules the signed registry lists.
+pub fn launched(launcher: &[u8; 32], ran: &[Ran]) -> bool {
+    *launcher == [0; 32] || ran.iter().any(|c| c.measurement == *launcher)
+}

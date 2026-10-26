@@ -24,5 +24,6 @@ extern crate alloc;
 #[path = "../../nsh_attest_proofs/src/build/mod.rs"]
 pub mod build;
 mod fixture;
+mod fixture_bytes;
 mod fixture_trust;
 mod tests;

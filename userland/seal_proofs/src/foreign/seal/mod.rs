@@ -40,6 +40,12 @@ pub mod table;
 #[path = "../../../../../src/process/foreign/seal/snapshot.rs"]
 mod snapshot;
 #[cfg(test)]
+#[path = "../../../../../src/process/foreign/seal/sys_keep.rs"]
+pub mod sys_keep;
+#[cfg(test)]
+#[path = "../../../../../src/process/foreign/seal/sys_read.rs"]
+pub mod sys_read;
+#[cfg(test)]
 mod tests;
 #[path = "../../../../../src/process/foreign/seal/trace.rs"]
 pub mod trace;
