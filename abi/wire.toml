@@ -65,3 +65,17 @@ y            = {offset = 12, type = "i32"}
 delta_x      = {offset = 16, type = "i32"}
 delta_y      = {offset = 20, type = "i32"}
 timestamp_ns = {offset = 24, type = "u64"}
+
+# MkIpcRecvReq (MIRQ) writes this beside a request's bytes; meta_len must be
+# size_bytes or the call is EINVAL. request is the id MkIpcReplyTo (MIRT)
+# answers, per server, from 1, never reused while the server lives; 0 when
+# no reply is owed (a kernel sender). sender is 0 for a kernel sender too.
+# Kernel: src/syscall/microkernel/ipc/recv_meta.rs.
+[ipc.recv_meta_v1]
+size_bytes = 24
+align = 8
+version      = {offset = 0,  type = "u16", value = 1}
+reserved     = {offset = 2,  type = "u16", value = 0}
+sender       = {offset = 4,  type = "u32"}
+enqueued_ms  = {offset = 8,  type = "u64"}
+request      = {offset = 16, type = "u64"}

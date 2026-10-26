@@ -14,20 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which pending entry a dequeue marks, and which one a redirect reply
-//! answers. Pure, so the host runs both (kernel_proofs::ipc_reply_token).
+//! Which pending entry a dequeue marks, and which one a redirect reply or
+//! an MkIpcReplyTo answers. Pure, so the host runs them
+//! (kernel_proofs::ipc_reply_token).
 
 use super::entry::Entry;
 
 /// Mark the call carrying `token` as dequeued: from here a reply may
-/// answer it. A token no entry carries marks nothing.
-pub(crate) fn mark<'a, I>(mut queue: I, token: u64)
+/// answer it. Its request id, for the server; None when no entry carries
+/// the token, and nothing is marked.
+pub(crate) fn mark<'a, I>(mut queue: I, token: u64) -> Option<u64>
 where
     I: Iterator<Item = &'a mut Entry>,
 {
-    if let Some(e) = queue.find(|e| e.token == token) {
-        e.served = true;
-    }
+    let e = queue.find(|e| e.token == token)?;
+    e.served = true;
+    Some(e.request)
 }
 
 /// The position of the entry a redirect reply answers: the call carrying
@@ -42,4 +44,14 @@ where
         return None;
     }
     queue.position(|e| e.token == want)
+}
+
+/// The position of the entry MkIpcReplyTo answers: the dequeued call the
+/// server knows as `request`. None for a request it has not dequeued, one
+/// already answered, or one it never had.
+pub(crate) fn named_at<'a, I>(mut queue: I, request: u64) -> Option<usize>
+where
+    I: Iterator<Item = &'a Entry>,
+{
+    queue.position(|e| e.served && e.request == request)
 }
