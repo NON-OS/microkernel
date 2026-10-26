@@ -39,16 +39,16 @@ pub(super) fn pinned(app: &App, pin: &[u8; 32]) -> Result<(), Why> {
                     "[LINUX] the store did not load on this boot: {store} (status {code})\n"
                 ));
             }
-            return Err(Why::ProgramMissing);
+            return Err(Why::PROGRAM_MISSING);
         }
         Err(HashFault::Unread(why)) => {
             say(&format!("[LINUX] {}: its program {path} could not be read: {why}\n", app.name));
-            return Err(Why::ProgramUnreadable);
+            return Err(Why::PROGRAM_UNREADABLE);
         }
     };
     if &hash != pin {
         say(&format!("[LINUX] {}: the program is not the one the market listed\n", app.name));
-        return Err(Why::Package);
+        return Err(Why::PACKAGE);
     }
     Ok(())
 }

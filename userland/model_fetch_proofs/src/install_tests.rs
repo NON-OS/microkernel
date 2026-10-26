@@ -53,24 +53,24 @@ const EBADMSG: i64 = 74;
 
 /* Every reason a model dependency can stop an install with. */
 const MODEL_WHYS: [Why; 18] = [
-    Why::NoVolume,
-    Why::BootOffline,
-    Why::NoMemory,
-    Why::VolumeFailed,
-    Why::VolumeLocked,
-    Why::NoNetwork,
-    Why::ModelUnknown,
-    Why::ModelMismatch,
-    Why::ModelFetch,
-    Why::NoRoom,
-    Why::ModelBusy,
-    Why::ModelUnkept,
-    Why::ModelTooLarge,
-    Why::NymUnreachable,
-    Why::AnyoneUnreachable,
-    Why::MirrorUnreachable,
-    Why::NymNoExit,
-    Why::AnyoneNoExit,
+    Why::NO_VOLUME,
+    Why::BOOT_OFFLINE,
+    Why::NO_MEMORY,
+    Why::VOLUME_FAILED,
+    Why::VOLUME_LOCKED,
+    Why::NO_NETWORK,
+    Why::MODEL_UNKNOWN,
+    Why::MODEL_MISMATCH,
+    Why::MODEL_FETCH,
+    Why::NO_ROOM,
+    Why::MODEL_BUSY,
+    Why::MODEL_UNKEPT,
+    Why::MODEL_TOO_LARGE,
+    Why::NYM_UNREACHABLE,
+    Why::ANYONE_UNREACHABLE,
+    Why::MIRROR_UNREACHABLE,
+    Why::NYM_NO_EXIT,
+    Why::ANYONE_NO_EXIT,
 ];
 
 /* The tail and program of each listing in the market's guest list. */
@@ -135,12 +135,12 @@ fn a_tier_no_one_ships_is_refused_by_name() {
     assert!(matches!(wanted("qwen-giant"), Wanted::UnknownTier));
     assert!(matches!(wanted("qwen-"), Wanted::UnknownTier));
     /* A tier the signed catalogue does not list, or no catalogue at all. */
-    assert_eq!(fetched(i64::from(USAGE)), Err(Why::ModelUnknown));
-    assert_eq!(fetched(i64::from(NO_CATALOGUE)), Err(Why::ModelUnknown));
+    assert_eq!(fetched(i64::from(USAGE)), Err(Why::MODEL_UNKNOWN));
+    assert_eq!(fetched(i64::from(NO_CATALOGUE)), Err(Why::MODEL_UNKNOWN));
     /* A system built without the fetcher: MkToolRun answers ENOENT. */
-    assert_eq!(not_started(-2), Why::ModelUnknown);
-    assert_ne!(said(Why::ModelUnknown), said(Why::NotProvided));
-    assert_ne!(said(Why::ModelUnknown), unnamed());
+    assert_eq!(not_started(-2), Why::MODEL_UNKNOWN);
+    assert_ne!(said(Why::MODEL_UNKNOWN), said(Why::NOT_PROVIDED));
+    assert_ne!(said(Why::MODEL_UNKNOWN), unnamed());
 }
 
 #[test]
@@ -155,11 +155,11 @@ fn a_model_held_to_its_pin_is_not_fetched_again() {
 fn a_missing_model_is_fetched_and_never_in_no_index() {
     assert_eq!(needs_fetch(&[Err(ENOENT)]), Ok(true));
     for e in 0..=200 {
-        assert_ne!(needs_fetch(&[Err(e)]), Err(Why::NotProvided), "errno {e}");
-        assert_ne!(not_started(-e), Why::NotProvided, "errno {e}");
+        assert_ne!(needs_fetch(&[Err(e)]), Err(Why::NOT_PROVIDED), "errno {e}");
+        assert_ne!(not_started(-e), Why::NOT_PROVIDED, "errno {e}");
     }
     for status in -300..=300 {
-        assert_ne!(fetched(status), Err(Why::NotProvided), "status {status}");
+        assert_ne!(fetched(status), Err(Why::NOT_PROVIDED), "status {status}");
     }
 }
 
@@ -168,11 +168,11 @@ fn a_model_that_is_not_its_pin_is_never_installed() {
     /* The kernel discarded the bytes at the finish: the fetcher ends on it. */
     assert_eq!(of_errno(-EBADMSG), MISMATCH);
     assert_eq!(of_errno(-EEXIST), MISMATCH);
-    assert_eq!(fetched(i64::from(MISMATCH)), Err(Why::ModelMismatch));
+    assert_eq!(fetched(i64::from(MISMATCH)), Err(Why::MODEL_MISMATCH));
     /* A fetcher that says it is done is held to each file's record. */
-    assert_eq!(settle(i64::from(DONE), &[Err(EBADMSG)]), Err(Why::ModelMismatch));
-    assert_eq!(settle(i64::from(DONE), &[Ok(1), Err(EEXIST)]), Err(Why::ModelMismatch));
-    assert_eq!(settle(i64::from(DONE), &[Ok(1), Err(ENOENT)]), Err(Why::ModelFetch));
+    assert_eq!(settle(i64::from(DONE), &[Err(EBADMSG)]), Err(Why::MODEL_MISMATCH));
+    assert_eq!(settle(i64::from(DONE), &[Ok(1), Err(EEXIST)]), Err(Why::MODEL_MISMATCH));
+    assert_eq!(settle(i64::from(DONE), &[Ok(1), Err(ENOENT)]), Err(Why::MODEL_FETCH));
     assert_eq!(settle(i64::from(DONE), &[Ok(1), Ok(2)]), Ok(()));
     /* Nothing but the fetcher's word that it is done, and every file whole, installs. */
     for status in -300..=300 {
@@ -180,7 +180,7 @@ fn a_model_that_is_not_its_pin_is_never_installed() {
             assert!(settle(status, &[Ok(1)]).is_err(), "status {status}");
         }
     }
-    assert_ne!(said(Why::ModelMismatch), unnamed());
+    assert_ne!(said(Why::MODEL_MISMATCH), unnamed());
 }
 
 #[test]
@@ -189,58 +189,58 @@ fn no_data_volume_and_no_network_are_told_apart() {
      * A live system with no data volume: the kernel answers ENODEV for a
      * disk with no plan. Said before any fetch, and never offered a retry.
      */
-    assert_eq!(needs_fetch(&[Err(ENODEV)]), Err(Why::NoVolume));
+    assert_eq!(needs_fetch(&[Err(ENODEV)]), Err(Why::NO_VOLUME));
     assert_eq!(of_errno(-ENODEV), NO_VOLUME);
-    assert_eq!(fetched(i64::from(NO_VOLUME)), Err(Why::NoVolume));
+    assert_eq!(fetched(i64::from(NO_VOLUME)), Err(Why::NO_VOLUME));
     /*
      * A volume that is there and failed (EIO), or a disk not ready yet
      * (EAGAIN), is not a live boot: a retry may get past it.
      */
     for e in [EIO, EAGAIN] {
-        assert_eq!(needs_fetch(&[Err(e)]), Err(Why::VolumeFailed), "errno {e}");
+        assert_eq!(needs_fetch(&[Err(e)]), Err(Why::VOLUME_FAILED), "errno {e}");
         assert_eq!(of_errno(-e), VOLUME_FAILED, "errno {e}");
     }
-    assert_eq!(fetched(i64::from(VOLUME_FAILED)), Err(Why::VolumeFailed));
-    assert_ne!(said(Why::VolumeFailed), said(Why::NoVolume));
-    assert!(Progress::Failed(Why::VolumeFailed.code() as u8).retryable());
-    assert!(!Progress::Failed(Why::NoVolume.code() as u8).retryable());
-    assert_eq!(needs_fetch(&[Err(EACCES)]), Err(Why::VolumeLocked));
-    assert_eq!(fetched(i64::from(LOCKED)), Err(Why::VolumeLocked));
-    assert_eq!(needs_fetch(&[Err(ENOSPC)]), Err(Why::NoRoom));
+    assert_eq!(fetched(i64::from(VOLUME_FAILED)), Err(Why::VOLUME_FAILED));
+    assert_ne!(said(Why::VOLUME_FAILED), said(Why::NO_VOLUME));
+    assert!(Progress::Failed(Why::VOLUME_FAILED.code() as u8).retryable());
+    assert!(!Progress::Failed(Why::NO_VOLUME.code() as u8).retryable());
+    assert_eq!(needs_fetch(&[Err(EACCES)]), Err(Why::VOLUME_LOCKED));
+    assert_eq!(fetched(i64::from(LOCKED)), Err(Why::VOLUME_LOCKED));
+    assert_eq!(needs_fetch(&[Err(ENOSPC)]), Err(Why::NO_ROOM));
     /* Too little memory for a live session's volume at all: its own reason, no retry. */
-    assert_eq!(needs_fetch(&[Err(ENOMEM)]), Err(Why::NoMemory));
+    assert_eq!(needs_fetch(&[Err(ENOMEM)]), Err(Why::NO_MEMORY));
     assert_eq!(of_errno(-ENOMEM), NO_MEMORY);
-    assert_eq!(fetched(i64::from(NO_MEMORY)), Err(Why::NoMemory));
-    assert!(!Progress::Failed(Why::NoMemory.code() as u8).retryable());
-    assert!(Progress::Failed(Why::NoRoom.code() as u8).retryable());
-    assert_eq!(fetched(i64::from(NO_ROOM)), Err(Why::NoRoom));
+    assert_eq!(fetched(i64::from(NO_MEMORY)), Err(Why::NO_MEMORY));
+    assert!(!Progress::Failed(Why::NO_MEMORY.code() as u8).retryable());
+    assert!(Progress::Failed(Why::NO_ROOM.code() as u8).retryable());
+    assert_eq!(fetched(i64::from(NO_ROOM)), Err(Why::NO_ROOM));
     /*
      * No network: the boot runs none (ENETDOWN), which no retry on it
      * mends, or the chosen one is down, which a retry once it runs does.
      */
-    assert_eq!(not_started(-100), Why::BootOffline);
-    assert!(!Progress::Failed(Why::BootOffline.code() as u8).retryable());
-    assert_eq!(fetched(i64::from(NO_NETWORK)), Err(Why::NoNetwork));
-    assert!(Progress::Failed(Why::NoNetwork.code() as u8).retryable());
-    assert_ne!(said(Why::BootOffline), said(Why::NoNetwork));
-    assert_ne!(Why::NoVolume.code(), Why::NoNetwork.code());
-    assert_ne!(said(Why::NoVolume), said(Why::NoNetwork));
-    for why in [Why::NoVolume, Why::NoNetwork] {
-        assert_ne!(said(why), said(Why::NotProvided));
+    assert_eq!(not_started(-100), Why::BOOT_OFFLINE);
+    assert!(!Progress::Failed(Why::BOOT_OFFLINE.code() as u8).retryable());
+    assert_eq!(fetched(i64::from(NO_NETWORK)), Err(Why::NO_NETWORK));
+    assert!(Progress::Failed(Why::NO_NETWORK.code() as u8).retryable());
+    assert_ne!(said(Why::BOOT_OFFLINE), said(Why::NO_NETWORK));
+    assert_ne!(Why::NO_VOLUME.code(), Why::NO_NETWORK.code());
+    assert_ne!(said(Why::NO_VOLUME), said(Why::NO_NETWORK));
+    for why in [Why::NO_VOLUME, Why::NO_NETWORK] {
+        assert_ne!(said(why), said(Why::NOT_PROVIDED));
         assert_ne!(said(why), unnamed());
     }
     /* A download that broke, or a mirror that never answered, is neither. */
-    assert_eq!(fetched(i64::from(REFUSED)), Err(Why::ModelFetch));
+    assert_eq!(fetched(i64::from(REFUSED)), Err(Why::MODEL_FETCH));
     /* Nor is another download holding the fetcher or the volume's stream. */
-    assert_eq!(not_started(-EBUSY), Why::ModelBusy);
+    assert_eq!(not_started(-EBUSY), Why::MODEL_BUSY);
     assert_eq!(of_errno(-EBUSY), BUSY);
-    assert_eq!(fetched(i64::from(BUSY)), Err(Why::ModelBusy));
+    assert_eq!(fetched(i64::from(BUSY)), Err(Why::MODEL_BUSY));
 }
 
 #[test]
 fn every_model_reason_reads_as_its_own_sentence() {
-    let package = [Why::Index, Why::NotProvided, Why::TooLarge, Why::Package, Why::NoMirror];
-    let package: Vec<_> = package.into_iter().chain([Why::NoKeyring]).map(said).collect();
+    let package = [Why::INDEX, Why::NOT_PROVIDED, Why::TOO_LARGE, Why::PACKAGE, Why::NO_MIRROR];
+    let package: Vec<_> = package.into_iter().chain([Why::NO_KEYRING]).map(said).collect();
     for (i, why) in MODEL_WHYS.iter().enumerate() {
         let line = said(*why);
         assert_ne!(line, unnamed(), "{why:?}");
@@ -260,10 +260,10 @@ fn every_model_reason_reads_as_its_own_sentence() {
  */
 #[test]
 fn a_model_the_volume_cannot_keep_is_not_offered_a_retry() {
-    assert_eq!(fetched(i64::from(UNKEPT)), Err(Why::ModelUnkept));
-    let line = String::from_utf8_lossy(said(Why::ModelUnkept)).to_lowercase();
+    assert_eq!(fetched(i64::from(UNKEPT)), Err(Why::MODEL_UNKEPT));
+    let line = String::from_utf8_lossy(said(Why::MODEL_UNKEPT)).to_lowercase();
     assert!(!line.contains("retry"), "{line}");
-    assert_ne!(said(Why::ModelUnkept), said(Why::ModelFetch));
+    assert_ne!(said(Why::MODEL_UNKEPT), said(Why::MODEL_FETCH));
 }
 
 /*
@@ -273,7 +273,7 @@ fn a_model_the_volume_cannot_keep_is_not_offered_a_retry() {
  */
 #[test]
 fn a_live_boot_points_to_the_installer_and_offers_no_retry() {
-    let stopped = Progress::Failed(Why::NoVolume.code() as u8);
+    let stopped = Progress::Failed(Why::NO_VOLUME.code() as u8);
     assert!(stopped.needs_installed_system());
     let (line, tone) = stopped.sentence().expect("a stopped install is news");
     let text = String::from_utf8_lossy(line);
@@ -283,8 +283,8 @@ fn a_live_boot_points_to_the_installer_and_offers_no_retry() {
     assert_ne!(tone, crate::store::theme::DANGER);
     assert_eq!(stopped.button(true), b"Live boot");
     /* Every other stop still offers a retry. */
-    assert_eq!(Progress::Failed(Why::ModelFetch.code() as u8).button(true), b"Retry");
-    assert!(!Progress::Failed(Why::NoNetwork.code() as u8).needs_installed_system());
+    assert_eq!(Progress::Failed(Why::MODEL_FETCH.code() as u8).button(true), b"Retry");
+    assert!(!Progress::Failed(Why::NO_NETWORK.code() as u8).needs_installed_system());
 }
 
 /*
@@ -295,12 +295,15 @@ fn a_live_boot_points_to_the_installer_and_offers_no_retry() {
 #[test]
 fn an_unreachable_network_is_named_and_not_a_cut_download() {
     let cases = [
-        (NYM_UNREACHABLE, Why::NymUnreachable, "Nym is not reachable from this machine"),
-        (ANYONE_UNREACHABLE, Why::AnyoneUnreachable, "Anyone is not reachable from this machine"),
-        (MIRROR_UNREACHABLE, Why::MirrorUnreachable, "The model mirror is not reachable"),
+        (NYM_UNREACHABLE, Why::NYM_UNREACHABLE, "Nym is not reachable from this machine"),
+        (ANYONE_UNREACHABLE, Why::ANYONE_UNREACHABLE, "Anyone is not reachable from this machine"),
+        (MIRROR_UNREACHABLE, Why::MIRROR_UNREACHABLE, "The model mirror is not reachable"),
     ];
-    let cut = String::from_utf8_lossy(said(Why::ModelFetch)).into_owned();
-    assert!(cut.contains("did not finish downloading") && cut.contains("go on from there"), "{cut}");
+    let cut = String::from_utf8_lossy(said(Why::MODEL_FETCH)).into_owned();
+    assert!(
+        cut.contains("did not finish downloading") && cut.contains("go on from there"),
+        "{cut}"
+    );
     for (status, why, start) in cases {
         assert_eq!(fetched(i64::from(status)), Err(why));
         let line = String::from_utf8_lossy(said(why)).into_owned();
@@ -319,17 +322,21 @@ fn an_unreachable_network_is_named_and_not_a_cut_download() {
 #[test]
 fn no_exit_answering_is_its_own_reason_and_offers_direct() {
     for (status, why, start) in [
-        (NYM_NO_EXIT, Why::NymNoExit, "No Nym exit answered; try again, or press d to download direct"),
-        (ANYONE_NO_EXIT, Why::AnyoneNoExit, "No Anyone circuit reached the mirror; try again"),
+        (
+            NYM_NO_EXIT,
+            Why::NYM_NO_EXIT,
+            "No Nym exit answered; try again, or press d to download direct",
+        ),
+        (ANYONE_NO_EXIT, Why::ANYONE_NO_EXIT, "No Anyone circuit reached the mirror; try again"),
     ] {
         assert_eq!(fetched(i64::from(status)), Err(why));
         let line = String::from_utf8_lossy(said(why)).into_owned();
         assert!(line.starts_with(start), "{line}");
         assert!(line.contains("the mirror sees this machine's address"), "{line}");
         assert!(Progress::Failed(why.code() as u8).retryable());
-        assert_ne!(said(why), said(Why::NymUnreachable));
-        assert_ne!(said(why), said(Why::ModelFetch));
+        assert_ne!(said(why), said(Why::NYM_UNREACHABLE));
+        assert_ne!(said(why), said(Why::MODEL_FETCH));
     }
-    assert!(crate::store::route_offer::ROUTE_REASONS.contains(&(Why::NymNoExit.code() as u8)));
-    assert!(crate::store::route_offer::ROUTE_REASONS.contains(&(Why::NymUnreachable.code() as u8)));
+    assert!(crate::store::route_offer::ROUTE_REASONS.contains(&(Why::NYM_NO_EXIT.code() as u8)));
+    assert!(crate::store::route_offer::ROUTE_REASONS.contains(&(Why::NYM_UNREACHABLE.code() as u8)));
 }

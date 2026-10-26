@@ -20,45 +20,44 @@
 
 use super::Why;
 
-#[allow(non_upper_case_globals)]
 impl Why {
     /// No data volume to keep a model on: no disk carries NONOS at all
     /// (ENODEV). A live stick's session volume is in memory, so this is a
     /// machine with no NONOS disk. No retry mends it.
-    pub const NoVolume: Self = Self(10);
+    pub const NO_VOLUME: Self = Self(10);
     /// The data volume is locked until its passphrase is given.
-    pub const VolumeLocked: Self = Self(11);
+    pub const VOLUME_LOCKED: Self = Self(11);
     /// No network to fetch a model over: the network the download must
     /// leave through is not running. A retry once it runs gets past it.
-    pub const NoNetwork: Self = Self(12);
+    pub const NO_NETWORK: Self = Self(12);
     /// No signed model catalogue lists the tier, or the name is in the
     /// tiers' namespace and is no shipped tier.
-    pub const ModelUnknown: Self = Self(13);
+    pub const MODEL_UNKNOWN: Self = Self(13);
     /// A model's bytes were not its signed pin; none of them was kept.
-    pub const ModelMismatch: Self = Self(14);
+    pub const MODEL_MISMATCH: Self = Self(14);
     /// A model did not finish downloading; what came is kept for next time.
-    pub const ModelFetch: Self = Self(15);
+    pub const MODEL_FETCH: Self = Self(15);
     /// The data volume has no room for the model (ENOSPC). On a live session
     /// the volume is in memory: freeing memory, then a retry, gets past it.
-    pub const NoRoom: Self = Self(16);
+    pub const NO_ROOM: Self = Self(16);
     /// Another model download is running; one feeds the volume at a time.
-    pub const ModelBusy: Self = Self(17);
+    pub const MODEL_BUSY: Self = Self(17);
     /// A model file's name is too long for the data volume to keep, so this
     /// system cannot install the tier at all; trying again changes nothing.
-    pub const ModelUnkept: Self = Self(18);
+    pub const MODEL_UNKEPT: Self = Self(18);
     /// The tier needs more memory to run than this machine has in all, so
     /// its model was not downloaded; a smaller tier fits.
-    pub const ModelTooLarge: Self = Self(19);
+    pub const MODEL_TOO_LARGE: Self = Self(19);
     /// The data volume could not be reached: the disk failed (EIO), is not
     /// ready yet (EAGAIN), or refused otherwise. A retry may get past it.
-    pub const VolumeFailed: Self = Self(20);
+    pub const VOLUME_FAILED: Self = Self(20);
     /// A shipped tier whose model nothing on this system can take off the
     /// data volume: it was built without the model fetcher.
-    pub const ModelKept: Self = Self(23);
+    pub const MODEL_KEPT: Self = Self(23);
     /// Too little free memory to hold a live session's data volume at all
     /// (ENOMEM). A retry does not make memory.
-    pub const NoMemory: Self = Self(25);
+    pub const NO_MEMORY: Self = Self(25);
     /// A file of a tier being uninstalled is still downloading; the kernel
     /// takes nothing away under a stream being fed. A paused one is removed.
-    pub const ModelDownloading: Self = Self(26);
+    pub const MODEL_DOWNLOADING: Self = Self(26);
 }

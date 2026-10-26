@@ -27,9 +27,9 @@
  */
 
 use super::fetch_exit::{
-    of_errno, ANYONE_NOT_UP, ANYONE_NO_EXIT, ANYONE_UNREACHABLE, BUSY, DONE, LOCKED, MIRROR_UNREACHABLE, MISMATCH,
-    NO_CATALOGUE, NO_MEMORY, NO_NETWORK, NO_ROOM, NO_VOLUME, NYM_NO_EXIT, NYM_UNREACHABLE, REFUSED,
-    TOO_LITTLE_MEMORY, UNKEPT, USAGE, VOLUME_FAILED,
+    of_errno, ANYONE_NOT_UP, ANYONE_NO_EXIT, ANYONE_UNREACHABLE, BUSY, DONE, LOCKED,
+    MIRROR_UNREACHABLE, MISMATCH, NO_CATALOGUE, NO_MEMORY, NO_NETWORK, NO_ROOM, NO_VOLUME,
+    NYM_NO_EXIT, NYM_UNREACHABLE, REFUSED, TOO_LITTLE_MEMORY, UNKEPT, USAGE, VOLUME_FAILED,
 };
 use super::why::Why;
 
@@ -67,13 +67,13 @@ pub fn not_started(rc: i64) -> Why {
          * the chosen network being down, which a retry may get past: nothing
          * on this boot will start the fetcher.
          */
-        NETDOWN => Why::BootOffline,
+        NETDOWN => Why::BOOT_OFFLINE,
         /* Built without the fetcher, so with no catalogue to list a tier. */
-        NOT_BUILT => Why::ModelUnknown,
+        NOT_BUILT => Why::MODEL_UNKNOWN,
         /* One fetcher runs at a time: a `qwen get`, or another tier's install. */
-        RUNNING => Why::ModelBusy,
+        RUNNING => Why::MODEL_BUSY,
         /* Its signed artifacts did not verify, or there was no room to start it. */
-        _ => Why::ModelFetch,
+        _ => Why::MODEL_FETCH,
     }
 }
 
@@ -86,38 +86,38 @@ pub fn not_started(rc: i64) -> Why {
 pub fn settle(status: i64, again: &[Result<u64, i64>]) -> Result<(), Why> {
     fetched(status)?;
     if needs_fetch(again)? {
-        return Err(Why::ModelFetch);
+        return Err(Why::MODEL_FETCH);
     }
     Ok(())
 }
 
 /* The fetcher's exit status as the installer's reason. */
 pub fn fetched(status: i64) -> Result<(), Why> {
-    let Ok(status) = i32::try_from(status) else { return Err(Why::ModelFetch) };
+    let Ok(status) = i32::try_from(status) else { return Err(Why::MODEL_FETCH) };
     match status {
         DONE => Ok(()),
-        USAGE | NO_CATALOGUE => Err(Why::ModelUnknown),
-        NO_NETWORK => Err(Why::NoNetwork),
-        NO_VOLUME => Err(Why::NoVolume),
-        VOLUME_FAILED => Err(Why::VolumeFailed),
-        NO_MEMORY => Err(Why::NoMemory),
-        LOCKED => Err(Why::VolumeLocked),
-        MISMATCH => Err(Why::ModelMismatch),
-        NO_ROOM => Err(Why::NoRoom),
-        BUSY => Err(Why::ModelBusy),
-        UNKEPT => Err(Why::ModelUnkept),
-        TOO_LITTLE_MEMORY => Err(Why::ModelTooLarge),
+        USAGE | NO_CATALOGUE => Err(Why::MODEL_UNKNOWN),
+        NO_NETWORK => Err(Why::NO_NETWORK),
+        NO_VOLUME => Err(Why::NO_VOLUME),
+        VOLUME_FAILED => Err(Why::VOLUME_FAILED),
+        NO_MEMORY => Err(Why::NO_MEMORY),
+        LOCKED => Err(Why::VOLUME_LOCKED),
+        MISMATCH => Err(Why::MODEL_MISMATCH),
+        NO_ROOM => Err(Why::NO_ROOM),
+        BUSY => Err(Why::MODEL_BUSY),
+        UNKEPT => Err(Why::MODEL_UNKEPT),
+        TOO_LITTLE_MEMORY => Err(Why::MODEL_TOO_LARGE),
         /* The network runs and reached no mirror: said as unreachable, not as a cut download. */
-        NYM_UNREACHABLE => Err(Why::NymUnreachable),
-        ANYONE_UNREACHABLE => Err(Why::AnyoneUnreachable),
-        MIRROR_UNREACHABLE => Err(Why::MirrorUnreachable),
+        NYM_UNREACHABLE => Err(Why::NYM_UNREACHABLE),
+        ANYONE_UNREACHABLE => Err(Why::ANYONE_UNREACHABLE),
+        MIRROR_UNREACHABLE => Err(Why::MIRROR_UNREACHABLE),
         /* Exits that did not answer: not a cut download, and direct is offered. */
-        NYM_NO_EXIT => Err(Why::NymNoExit),
-        ANYONE_NO_EXIT => Err(Why::AnyoneNoExit),
-        ANYONE_NOT_UP => Err(Why::AnyoneNotUp),
+        NYM_NO_EXIT => Err(Why::NYM_NO_EXIT),
+        ANYONE_NO_EXIT => Err(Why::ANYONE_NO_EXIT),
+        ANYONE_NOT_UP => Err(Why::ANYONE_NOT_UP),
         /* No mirror served it, or it was stopped before it ended. */
-        REFUSED => Err(Why::ModelFetch),
-        _ => Err(Why::ModelFetch),
+        REFUSED => Err(Why::MODEL_FETCH),
+        _ => Err(Why::MODEL_FETCH),
     }
 }
 
@@ -128,12 +128,12 @@ pub fn fetched(status: i64) -> Result<(), Why> {
  */
 fn volume(e: i64) -> Why {
     match of_errno(e.saturating_neg()) {
-        NO_VOLUME => Why::NoVolume,
-        NO_MEMORY => Why::NoMemory,
-        LOCKED => Why::VolumeLocked,
-        NO_ROOM => Why::NoRoom,
-        MISMATCH => Why::ModelMismatch,
-        BUSY => Why::ModelBusy,
-        _ => Why::VolumeFailed,
+        NO_VOLUME => Why::NO_VOLUME,
+        NO_MEMORY => Why::NO_MEMORY,
+        LOCKED => Why::VOLUME_LOCKED,
+        NO_ROOM => Why::NO_ROOM,
+        MISMATCH => Why::MODEL_MISMATCH,
+        BUSY => Why::MODEL_BUSY,
+        _ => Why::VOLUME_FAILED,
     }
 }
