@@ -221,6 +221,10 @@ getresuid | 0, 0, 0 | a fixed identity, the same on every install
 getresgid | 0, 0, 0 | a fixed identity, the same on every install
 setresuid | success only for the identity already held | the identity cannot change
 setresgid | success only for the identity already held | the identity cannot change
+setreuid | success only for the identity already held | the identity cannot change
+setregid | success only for the identity already held | the identity cannot change
+setfsuid | 0, the id already held | a fixed identity, the same on every install
+setfsgid | 0, the id already held | a fixed identity, the same on every install
 getpriority | the nice value set for a process of the family | its own state; no process outside the family is named
 setpriority | success or refusal of a nice value for a process of the family | its own state; no process outside the family is named
 personality | PER_LINUX, the only persona served | the same on every install
