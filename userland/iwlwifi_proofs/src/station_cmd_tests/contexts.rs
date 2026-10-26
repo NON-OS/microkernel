@@ -1,10 +1,12 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! The PHY, RLC and MAC contexts.
 
+use super::fixtures::{image, ADDR};
 use crate::gen3::cmds::mac_config_add;
 use crate::gen3::station::mac::mac_config;
-use crate::gen3::station::phy::{phy_context, rlc_config, ACTION_ADD, ACTION_MODIFY, ACTION_REMOVE};
-use super::fixtures::{ADDR, image};
+use crate::gen3::station::phy::{
+    phy_context, rlc_config, ACTION_ADD, ACTION_MODIFY, ACTION_REMOVE,
+};
 
 #[test]
 fn the_phy_context_names_the_channel_band_and_width() {
@@ -18,8 +20,9 @@ fn the_phy_context_names_the_channel_band_and_width() {
 
 #[test]
 fn the_rlc_config_carries_the_receive_chains() {
-    // Two antennas: valid 0b11 at bit 1, two idle and two active chains.
-    assert_eq!(rlc_config(3).to_vec(), image(&[0, 0, 0, 0, 0x06, 0x28, 0, 0], 32));
+    // Two antennas: valid 0b11 at bit 1, one idle and one active chain (no
+    // diversity outside the CAM scheme).
+    assert_eq!(rlc_config(3).to_vec(), image(&[0, 0, 0, 0, 0x06, 0x14, 0, 0], 32));
     // One antenna: one chain of each.
     assert_eq!(rlc_config(1).to_vec(), image(&[0, 0, 0, 0, 0x02, 0x14, 0, 0], 32));
 }

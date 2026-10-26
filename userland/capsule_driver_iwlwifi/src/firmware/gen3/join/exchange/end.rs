@@ -25,9 +25,12 @@ pub enum ExchangeEnd {
     Firmware(Option<CommandFailed>),
 }
 
-/// The exchange's time is spent: an SAE exchange says why it never finished
-/// (a confirm that did not verify reads as a wrong password), any other
-/// stopped answering.
+/// The exchange's time, or a step's own (`Mlme::deadline`), is spent: an
+/// SAE exchange says why it never finished (a confirm that did not verify
+/// reads as a wrong password), any other stopped answering.
 pub fn timed_out(mlme: &Mlme) -> ExchangeEnd {
-    mlme.failure().map_or(ExchangeEnd::TimedOut, ExchangeEnd::Refused)
+    match mlme.failure() {
+        None | Some(MlmeFailure::Timeout(_)) => ExchangeEnd::TimedOut,
+        Some(f) => ExchangeEnd::Refused(f),
+    }
 }

@@ -26,6 +26,7 @@ use crate::status;
 
 use super::consts::*;
 use super::entropy::draw_entropy;
+use super::pace::Uptime;
 use super::progress::log_progress;
 use super::request::ConnectRequest;
 use super::result::{ConnectResult, CODE_NO_ENTROPY};
@@ -45,14 +46,13 @@ pub(super) fn run(
     let policy = req.policy();
     let join = JoinRequest { our_mac, ssid: req.ssid, passphrase: req.pass, policy, entropy };
     status::debug(b"[rtl8821ce] connect: joining\n");
-    let mut now_ms = || nonos_libc::mk_uptime_ms() as u64;
     /*
      * A network that offers WPA3 and WPA2 side by side is joined with WPA3,
      * and a WPA3 join that does not finish is not tried again with WPA2:
      * anyone who can jam the SAE exchange would otherwise get a WPA2
      * handshake to guess the passphrase from offline.
      */
-    let report = assoc::run_join(link, &join, beacon, JOIN_BUDGET_MS, &mut now_ms);
+    let report = assoc::run_join(link, &join, beacon, JOIN_BUDGET_MS, &mut Uptime);
     log_progress(&report);
     Ok(report)
 }
