@@ -50,7 +50,7 @@ fn the_host_tool_writes_what_the_fetcher_takes() {
     forged[30] ^= 1;
     assert!(!verify(&pubkey_from_secret(&[7u8; 32]), &forged, &sig));
     let cat = parse(body).expect("the fetcher reads it");
-    assert_eq!((cat.serial, cat.base.as_str(), cat.tiers.len()), (5, BASE, 17));
+    assert_eq!((cat.serial, cat.base.as_str(), cat.tiers.len()), (5, BASE, 19));
     let row = |t: &Tier, f: &File| (t.word.clone(), f.volume_name(), f.bytes, f.sha256);
     let listed: Vec<_> =
         cat.tiers.iter().flat_map(|t| t.files.iter().map(move |f| row(t, f))).collect();
@@ -62,7 +62,14 @@ fn the_host_tool_writes_what_the_fetcher_takes() {
         for f in &t.files {
             let published = published(&f.name);
             assert_eq!(f.mirrors[0], format!("{BASE}/{}/{published}", t.word));
-            assert!(f.mirrors[1].starts_with("https://huggingface.co/Qwen/"));
+            /* Qwen3.5 and Qwen3.6 are ggml-org's GGUF files; the rest are the Qwen team's. */
+            let ggml = ["qwen3.5-0.8b", "qwen3.6-27b"].contains(&t.word.as_str());
+            let owner = if ggml { "ggml-org" } else { "Qwen" };
+            assert!(
+                f.mirrors[1].starts_with(&format!("https://huggingface.co/{owner}/")),
+                "{}",
+                f.mirrors[1]
+            );
             assert!(f.mirrors[1].ends_with(&format!("/resolve/main/{published}")));
             assert!(pin_of(&f.volume_name()).is_some());
         }

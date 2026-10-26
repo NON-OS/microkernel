@@ -25,7 +25,7 @@
 use std::collections::BTreeMap;
 
 use crate::qwen_default::{default_row, offered, For};
-use crate::default_tier::{resolve, Source};
+use crate::default_tier::{proven, resolve, resolve_in, Source, PROVEN, WEIGHTS};
 use crate::need::{memory, session_keep, tier_fits, Room, STICK_TIER};
 use crate::qwen_pins::all;
 
@@ -55,7 +55,7 @@ fn chosen(t: &[(&'static [u8], u64)], offered: &[u8], total: u64, who: For) -> O
 #[test]
 fn the_smallest_tiers_lead_the_list() {
     let t = tiers();
-    assert_eq!(t.len(), 17);
+    assert_eq!(t.len(), 19);
     assert_eq!(core::str::from_utf8(t[0].0).unwrap(), "small");
     assert_eq!(core::str::from_utf8(t[1].0).unwrap(), "qwen3-0.6b");
 }
@@ -179,4 +179,34 @@ fn the_default_weighs_the_pinned_files() {
     for ((word, bytes), (tier, sum)) in w.iter().zip(&t) {
         assert_eq!((word.as_bytes(), *bytes), (*tier, *sum));
     }
+}
+
+/* No default is ever a tier that has not answered on NONOS, on any machine. */
+#[test]
+fn a_default_is_always_a_proven_tier() {
+    for room in [Room::Disk, Room::Memory] {
+        for total in (0..=512u64).map(|g| Some(g * GIB / 2)).chain([None]) {
+            let (t, why) = resolve(b"", total, room);
+            assert!(proven(t), "{t} as {why:?} for {total:?} {room:?}");
+        }
+    }
+    assert!(!proven("qwen3-30b-a3b"), "qwen3moe has not answered on NONOS");
+    assert!(PROVEN.iter().all(|(t, _)| WEIGHTS.iter().any(|w| w.0 == *t)), "a mark names no tier");
+}
+
+/* An unproven tier can be chosen, but never wins as the largest that fits. */
+#[test]
+fn an_unproven_tier_is_chosen_only_by_name() {
+    static TWO: [(&str, u64); 2] = [("small", 491_400_032), ("qwen3-30b-a3b", 18_556_685_824)];
+    let only_small = |t: &str| t == "small";
+    let big = Some(64 * GIB);
+    assert_eq!(resolve_in(&TWO, only_small, b"", big, Room::Disk), ("small", Source::Largest));
+    assert_eq!(resolve_in(&TWO, |_| true, b"", big, Room::Disk), ("qwen3-30b-a3b", Source::Largest));
+    assert_eq!(
+        resolve_in(&TWO, only_small, b"qwen3-30b-a3b", big, Room::Disk),
+        ("qwen3-30b-a3b", Source::Chosen)
+    );
+    static UNPROVEN_FIRST: [(&str, u64); 2] = [("qwen3-30b-a3b", 1), ("small", 491_400_032)];
+    assert_eq!(resolve_in(&UNPROVEN_FIRST, only_small, b"", Some(1), Room::Disk), ("small", Source::Smallest));
+    assert_eq!(resolve(b"qwen3-30b-a3b", Some(GIB), Room::Disk), ("qwen3-30b-a3b", Source::Chosen));
 }
