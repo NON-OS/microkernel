@@ -2,12 +2,11 @@
 //! Host proofs for the riscv64 kernel. `kernel` is the kernel's own file; it
 //! assembles only for riscv64, where the tests run under qemu-riscv64.
 
-#![allow(dead_code)]
-
 #[cfg(target_arch = "riscv64")]
 #[path = "../../../src/arch/riscv64/context/kernel.rs"]
 pub mod kernel;
 
+#[cfg(test)]
 #[path = "../../../src/arch/riscv64/boot/memory_span.rs"]
 pub mod memory_span;
 

@@ -35,7 +35,7 @@ pub(crate) fn detail(base: u64, w: u32, h: u32, stride: u32, att: &AttestStatus)
     let buf = unsafe { core::slice::from_raw_parts_mut(base as *mut u32, spx * h as usize) };
     crate::vignette::fill(buf, spx, w, h);
     let (px, py, pw) = (40u32, 60u32, w.saturating_sub(80));
-    crate::chrome::panel(buf, spx, w, h, px, py, pw, 220, b"boot-chain attestation");
+    crate::chrome::panel(buf, spx, (w, h), (px, py, pw, 220), b"boot-chain attestation");
     let mut hx = [0u8; 64];
     hex32(&att.kernel_blake3, &mut hx);
     draw_text(buf, spx, w, h, px + 10, py + 40, b"kernel blake3", DIM);

@@ -19,11 +19,12 @@
 
 use super::abandoned::{forget, gone, record, take};
 use super::death::{on_death, Queues};
+use super::entry::Entry;
 use alloc::collections::VecDeque;
 use alloc::string::String;
 
-fn q(entries: &[(u32, &str, u64)]) -> VecDeque<(u32, String, u64)> {
-    entries.iter().map(|(p, i, t)| (*p, String::from(*i), *t)).collect()
+fn q(entries: &[(u32, &str, u64)]) -> VecDeque<Entry> {
+    entries.iter().map(|(p, i, t)| Entry::new(*p, String::from(*i), *t)).collect()
 }
 
 #[test]

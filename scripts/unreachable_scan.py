@@ -32,9 +32,19 @@ code does not compile into anything, so "nothing calls it" says nothing about
 it. Their calls still count: a shared function that only the aarch64 DMA
 backend calls is called, on aarch64, and moving that backend under src/arch
 must not make it read as dead.
+
+Three more limits, each a site read wrongly. An import is every line of it:
+the names on the continuation lines of a multi-line `pub use` were counted as
+calls, so a function only ever re-exported through one read as live. A `use`
+that renames carries the call: `brightness as brightness_key` is called where
+brightness_key is. And a crate outside src/ that mounts a kernel file with
+#[path] calls what it names (unreachable_mounts.py): libc and the proofs call
+dgon_parse that way, and nothing in src/ does.
 """
 
 import re
+
+from unreachable_mounts import mounted
 
 DEFINITION = re.compile(
     r"^\s*pub(?:\(crate\))?\s+(?:const\s+|async\s+|unsafe\s+|extern\s+\"C\"\s+)*fn\s+([a-z_][A-Za-z0-9_]*)"
@@ -42,6 +52,7 @@ DEFINITION = re.compile(
 IMPORT = re.compile(r"^\s*(pub\s+)?use\s")
 COMMENT = re.compile(r"^\s*(//|/\*|\*)")
 WORD = re.compile(r"\b([a-z_][A-Za-z0-9_]*)\b")
+RENAME = re.compile(r"\b([a-z_][A-Za-z0-9_]*)\s+as\s+([a-z_][A-Za-z0-9_]*)\b")
 # Reached from assembly or from the linker, never by name from Rust.
 EXPORTED_TO_LINKER = re.compile(r"#\[(no_mangle|export_name)")
 INACTIVE = ("src/arch/aarch64/", "src/arch/riscv64/")
@@ -70,19 +81,53 @@ def definitions(root, roots=("src",)):
     return found
 
 
-def called(root, roots=("src",)):
-    """Every name mentioned somewhere that is not an import or a definition,
-    the inactive architectures' call sites included."""
-    seen = set()
-    for _, lines in sources(root, roots, skip=()):
-        for line in lines:
-            if IMPORT.match(line) or COMMENT.match(line) or DEFINITION.match(line):
-                continue
-            seen.update(WORD.findall(line))
+def kinds(lines):
+    """Each line with what it is: "import" for every line of a `use`, from
+    its first through the one that ends it; "skip" for a comment or a
+    definition; "code" for the rest."""
+    inside = False
+    for line in lines:
+        if inside or IMPORT.match(line):
+            inside = ";" not in line
+            yield "import", line
+        elif COMMENT.match(line) or DEFINITION.match(line):
+            yield "skip", line
+        else:
+            yield "code", line
+
+
+def mentions(files):
+    """Every name the code lines of `files` mention, and every name a `use`
+    renames to one of those, through any chain of renames."""
+    seen, renames = set(), []
+    for lines in files:
+        for kind, line in kinds(lines):
+            if kind == "code":
+                seen.update(WORD.findall(line))
+            elif kind == "import":
+                renames.extend(RENAME.findall(line))
+    grew = True
+    while grew:
+        grew = False
+        for name, alias in renames:
+            if alias in seen and name not in seen:
+                seen.add(name)
+                grew = True
     return seen
 
 
+def called(root, roots=("src",)):
+    """Every name mentioned somewhere that is not an import or a definition,
+    the inactive architectures' call sites included."""
+    return mentions(lines for _, lines in sources(root, roots, skip=()))
+
+
 def unreachable(root, roots=("src",)):
-    """Exported functions whose name appears at no call site in the tree."""
-    live = called(root, roots)
-    return sorted(f"{site} {name}" for name, site in definitions(root, roots) if name not in live)
+    """Exported functions whose name appears at no call site in the tree, nor
+    in any crate that mounts their file."""
+    live, mounts = called(root, roots), mounted(root, roots, mentions)
+    return sorted(
+        f"{site} {name}"
+        for name, site in definitions(root, roots)
+        if name not in live and name not in mounts.get(site.rsplit(":", 1)[0], ())
+    )

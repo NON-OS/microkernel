@@ -19,11 +19,15 @@ fail, each of which must give exactly the problems it names."""
 import tempfile
 from pathlib import Path
 
-from .fixture import BL, LISTED, LJ, TEST, build, skipping, workspace
+from .fixture import BL, LISTED, LJ, MARK, PKG, TEST, build, skipping, workspace
 from .tree import Tree
 from .verdict import verdict
 
 LOST = "userland/x_proofs/src/lost.rs"
+# The marked crate asking for its tests again with a feature on.
+FEATURED = PKG.format("marked") + MARK + 'feature-lanes = ["devnet"]\n'
+DECLARED = FEATURED + "\n[features]\ndevnet = []\n"
+WITH = '{\n "marked": "",\n "marked+devnet": "--features devnet"\n}\n'
 # (case, edits, the text each expected problem holds; none for a pass)
 CASES = [
     ("the fixture as built", {}, []),
@@ -49,6 +53,9 @@ CASES = [
     ("a malformed line", {BL: "unmarked z lead x\n"}, ["class 'z'", "unmarked has tests in no lane"]),
     ("a member its root runs", workspace("--workspace"), []),
     ("a member its root leaves out", workspace(""), ["ws/core has tests in no lane"]),
+    ("a feature lane", {"marked/Cargo.toml": DECLARED, LJ: WITH}, []),
+    ("a feature lane test-lanes.json lacks", {"marked/Cargo.toml": DECLARED}, ["test-lanes.json lacks marked+devnet"]),
+    ("an undeclared feature's lane", {"marked/Cargo.toml": FEATURED, LJ: WITH}, ["which [features] does not declare"]),
 ]
 
 

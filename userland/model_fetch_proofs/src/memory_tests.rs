@@ -77,8 +77,9 @@ fn a_live_boot_holds_the_file_beside_the_run() {
 
 #[test]
 fn the_refusal_names_the_tier_what_it_needs_and_what_there_is() {
-    let line = too_large("qwen3-32b", 19_000_000_000, 21_500_000_000, Some(8_000_000_000), Room::Disk)
-        .unwrap();
+    let line =
+        too_large("qwen3-32b", 19_000_000_000, 21_500_000_000, Some(8_000_000_000), Room::Disk)
+            .unwrap();
     assert!(line.starts_with("qwen3-32b needs 21.50 GB of memory to run;"), "{line}");
     assert!(line.contains("this machine has 8.00 GB in all, 1.07 GB of it kept"), "{line}");
     assert!(line.contains("not downloaded") && line.contains("qwen tiers"), "{line}");
@@ -93,31 +94,8 @@ fn exactly_enough_fits_and_unknown_memory_refuses_nothing() {
 
 #[test]
 fn the_installer_reads_it_as_too_little_memory() {
-    assert_eq!(fetched(i64::from(TOO_LITTLE_MEMORY)), Err(Why::ModelTooLarge));
-    assert_eq!(Why::ModelTooLarge.code(), 19);
+    assert_eq!(fetched(i64::from(TOO_LITTLE_MEMORY)), Err(Why::MODEL_TOO_LARGE));
+    assert_eq!(Why::MODEL_TOO_LARGE.code(), 19);
 }
 
-/* The Terminal's `help qwen`, as it ships. */
-#[path = "../../capsule_terminal/src/command/builtin/qwen/help.rs"]
-mod qwen_help;
-
-/*
- * What `help qwen` says a tier needs beyond its file is what need.rs, the
- * rule the fetcher and the Store hold a download to, adds for the tier that
- * needs most: never a figure larger or smaller than the one in force.
- */
-#[test]
-fn help_says_what_a_tier_needs_beyond_its_file() {
-    let pinned = |tier: &str| -> u64 {
-        crate::pins::all().filter(|p| p.tier == tier).map(|p| p.bytes).sum()
-    };
-    let beyond = |s: &(&str, u64, u64, u64, u64)| {
-        crate::need::memory(s.0, pinned(s.0)).unwrap() - pinned(s.0)
-    };
-    let most = crate::need::SHAPES.iter().map(beyond).max().unwrap();
-    assert!(most <= 800_000_000 && most > 700_000_000, "the most beyond a file is {most}");
-    let help: Vec<String> =
-        qwen_help::HELP.iter().map(|l| String::from_utf8_lossy(l).into_owned()).collect();
-    assert!(help.iter().any(|l| l.contains("plus up to 0.8 GB")), "{help:?}");
-    assert!(!help.iter().any(|l| l.contains("1-2 GB")), "{help:?}");
-}
+mod help;

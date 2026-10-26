@@ -8,8 +8,8 @@
 use super::events::{port_change, transfer, CC_SUCCESS};
 use super::fixture::{Fixture, INT_DCI, SLOT, TRB};
 use crate::constants::CC_SHORT_PACKET;
-use crate::controller::complete;
 use crate::controller::drain_events;
+use crate::controller::transfer::transfer_event::complete;
 use crate::rings::event::IssuedTransfer;
 
 #[test]

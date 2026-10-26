@@ -18,7 +18,7 @@
 //! built from each CPU's plan. One word serves every CPU, so it carries the
 //! union of what any CPU needs: a CPU that needs less pays for the others,
 //! which on a mixed big.LITTLE part is the cost of never running a core
-//! without its mitigation. CLRBHB is a hint, a NOP where not implemented.
+//! without its mitigation. CLRBHB is a hint, a NOP on a core without it.
 
 use super::plan::{Bhb, Plan, V2};
 

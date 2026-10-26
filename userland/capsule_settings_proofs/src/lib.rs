@@ -72,4 +72,4 @@ pub mod qwen_tier;
 #[cfg(test)]
 mod bt_tests;
 #[cfg(test)]
-mod tests;
+pub mod tests;

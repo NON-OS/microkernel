@@ -38,15 +38,18 @@ mod log;
 mod mmio;
 mod ordered;
 mod pci_command;
+mod pci_config;
+mod pci_config_write;
 mod process;
+mod said;
 mod unmap;
 /// libc's own park policy, run against the stand-ins here.
 #[path = "../../../libc/src/wait/mod.rs"]
 pub mod wait;
 
 pub use broker::{
-    mk_debug, mk_device_claim, mk_device_release, mk_pci_config_write, MK_PCI_CFG_COMMAND,
-    MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_INTX_DISABLE, MK_PCI_CMD_MEMORY_SPACE,
+    mk_device_claim, mk_device_release, mk_pci_config_read, mk_pci_config_write,
+    MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_INTX_DISABLE, MK_PCI_CMD_MEMORY_SPACE,
 };
 pub use clock::{mk_idle_ms, mk_yield, slept_ms, yields, Deadline};
 pub use device_dma::{device_read64, DmaFault};
@@ -60,5 +63,7 @@ pub use log::{start_log, take_log, Call, Logged};
 pub use mmio::{mk_mmio_map, mk_mmio_unmap, offer_mmio, MmioMapOut, MMIO_GRANT};
 pub use ordered::*;
 pub use pci_command::{pci_command_reg, PciCommandReg};
+pub use pci_config::{config_value, offer_config};
 pub use process::{mk_pid_alive, pid_exits};
+pub use said::{mk_debug, take_said};
 pub use unmap::mk_dma_unmap;

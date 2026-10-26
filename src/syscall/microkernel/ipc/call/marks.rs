@@ -19,7 +19,7 @@
 //! is an NVGP frame (magic 0x4E56_4750) and whose reply says 0. The legacy
 //! virtio-gpu ops keep their names; FLUSH (0x14) is the wire's own.
 
-use crate::services::registry::displays::is_display;
+use crate::services::registry::displays::DISPLAYS;
 use core::sync::atomic::AtomicBool;
 
 static GPU_TRANSFER: AtomicBool = AtomicBool::new(false);
@@ -32,7 +32,7 @@ const NVGP: u32 = 0x4E56_4750;
 /// After a call to `name` of `req_len` bytes at `req` that got
 /// `recv_result` bytes back at `resp`.
 pub(super) fn display_marks(name: &str, req: u64, req_len: usize, resp: u64, recv_result: i64) {
-    if recv_result < 24 || req_len < 20 || !is_display(name) {
+    if recv_result < 24 || req_len < 20 || !DISPLAYS.contains(&name) {
         return;
     }
     let (mut hdr, mut status) = ([0u8; 20], [0u8; 4]);

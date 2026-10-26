@@ -76,6 +76,7 @@ bool chat_open(const ChatArgs &a, Chat &c) {
     c.model = llama_model_load_from_file(a.model.c_str(), mp);
     if (!c.model) return c.err = c.stopped ? ECANCELED : errno ? errno : EINVAL, false;
     c.vocab = llama_model_get_vocab(c.model);
+    c.rewinds = !llama_model_is_recurrent(c.model) && !llama_model_is_hybrid(c.model);
     const int trained = llama_model_n_ctx_train(c.model);
     c.n_ctx = a.n_ctx ? a.n_ctx : c.mem.n_ctx ? c.mem.n_ctx : trained > 0 && trained < 4096 ? trained : 4096;
     if (a.n_reply > c.n_ctx / 2) return c.err = EINVAL, false;

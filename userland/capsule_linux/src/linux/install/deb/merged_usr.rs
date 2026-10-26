@@ -50,7 +50,7 @@ pub fn lay_out() -> Result<usize, Why> {
     added.map(|a| a.len()).ok_or_else(|| {
         let line = b"[LINUX] the link table would not take merged /usr; nothing installed\n";
         let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
-        Why::Partial
+        Why::PARTIAL
     })
 }
 
