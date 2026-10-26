@@ -46,3 +46,20 @@ fn verify_rejects_non_hex_char() {
     let bad = b"g3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
     assert!(verify::parse_sha256_hex(bad).is_none());
 }
+
+const EMPTY: &[u8] = b"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n";
+
+#[test]
+fn verify_judge_passes_only_the_sidecars_digest() {
+    let want = verify::parse_sha256_hex(EMPTY).expect("parsed");
+    assert_eq!(verify::judge(EMPTY, Some(want)), Ok(()));
+    let mut off = want;
+    off[31] ^= 1;
+    assert_eq!(verify::judge(EMPTY, Some(off)), Err("verify: checksum mismatch"));
+}
+
+#[test]
+fn verify_judge_says_why_it_cannot_judge() {
+    assert_eq!(verify::judge(b"deadbeef", Some([0; 32])), Err("verify: bad .sha256 sidecar"));
+    assert_eq!(verify::judge(EMPTY, None), Err("verify: hash failed"));
+}

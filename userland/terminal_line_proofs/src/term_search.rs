@@ -4,8 +4,8 @@
 
 #[path = "../../capsule_terminal/src/term/history/mod.rs"]
 pub mod history;
-#[path = "../../capsule_terminal/src/term/line/mod.rs"]
-pub mod line;
+// The line, mounted once by input_line; the search reaches it as `super::line`.
+pub use crate::line;
 #[path = "../../capsule_terminal/src/term/search.rs"]
 pub mod search;
 #[path = "../../capsule_terminal/src/paint/search_head.rs"]
