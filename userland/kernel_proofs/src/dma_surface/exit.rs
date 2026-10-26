@@ -14,55 +14,59 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The owner exits: keep_at_exit orphans the surface first, then the DMA
-//! release finds the orphan.
+//! The owner exits: keep_at_exit orphans its surfaces first (exit_owned.rs),
+//! then the teardown of its grants finds the orphan holding the run.
 
-use super::common::{grant_frames, Registry, COMPOSITOR, FB, GPU, LEN, START};
-use super::dma_rule::{overlaps, strip, PageOrphan};
+use super::common::{grant_frames, slot, Registry, COMPOSITOR, FB, GPU, HEAP, LEN, RUN, START};
+use super::dma_rule::strip;
 
-/// exit_owned::orphan_owned for a surface over the grant and one heap page.
-fn orphaned_at_exit(r: &mut Registry) {
-    let mut frames = grant_frames();
-    frames.push(0x80_0000);
-    let mut free = frames.clone();
-    strip(&mut free, |f| *f, START, LEN);
-    assert_eq!(free, vec![0x80_0000], "only the heap page is freed per page");
-    r.orphans.push(PageOrphan { owner: GPU, handle: FB, frames, free });
+const GPU_GRANTS: [(u32, u64, u64); 1] = [(GPU, START, LEN)];
+
+fn exited(slot_grant: Option<(u64, u64)>, frames: Vec<u64>) -> Registry {
+    let slots = vec![slot(FB, GPU, frames, slot_grant)];
+    let mut r = Registry { slots, attaches: vec![(FB, COMPOSITOR)], ..Default::default() };
+    r.exit(GPU, &GPU_GRANTS, |h| h == GPU);
+    r
 }
 
 #[test]
 fn an_exit_holds_the_grant_for_the_compositor() {
-    let mut r = Registry { attaches: vec![(FB, COMPOSITOR)], ..Default::default() };
-    orphaned_at_exit(&mut r);
-    assert!(r.release(GPU, Vec::new()), "the orphan's holder keeps the grant");
+    let mut r = exited(Some(RUN), grant_frames());
+    assert!(r.orphans[0].free.is_empty(), "a run's orphan lists nothing to free per page");
+    assert!(r.release(RUN), "the orphan's holder keeps the run");
     assert!(r.given_back.is_empty());
-    r.detach(COMPOSITOR, FB);
-    assert_eq!(r.given_back, vec![(START, LEN)], "freed once, on the detach");
+    r.drop_attach(COMPOSITOR, FB);
+    assert_eq!(r.given_back, vec![RUN], "freed once, on the detach");
+    assert!(r.pages_freed.is_empty());
 }
 
 #[test]
-fn the_release_takes_its_pages_off_any_orphans_free_list() {
-    // An orphan made before K15, or by a thread's exit, lists every page.
-    let mut r = Registry { attaches: vec![(FB, COMPOSITOR)], ..Default::default() };
-    let mut free = grant_frames();
-    free.push(0x80_0000);
-    r.orphans.push(PageOrphan { owner: GPU, handle: FB, frames: free.clone(), free });
-    assert!(r.release(GPU, Vec::new()));
-    assert_eq!(r.orphans[0].free, vec![0x80_0000], "the grant's pages are the broker's");
+fn an_exits_orphan_never_lists_a_page_of_its_groups_grants() {
+    // A page-backed surface over the grant's pages and a heap page.
+    let mut frames = grant_frames();
+    frames.push(HEAP);
+    let mut r = exited(None, frames);
+    assert_eq!(r.orphans[0].free, vec![HEAP], "the grant's pages are the broker's");
+    r.drop_attach(COMPOSITOR, FB);
+    assert_eq!(r.pages_freed, vec![HEAP], "only the heap page is freed per page");
 }
 
 #[test]
 fn a_holder_gone_before_the_release_lets_it_free_at_once() {
-    let mut r = Registry::default();
-    orphaned_at_exit(&mut r);
-    assert!(!r.release(GPU, Vec::new()));
-    assert_eq!(r.given_back, vec![(START, LEN)]);
-    assert_eq!(r.orphans[0].free, vec![0x80_0000], "never a grant page per page");
+    let mut r = exited(Some(RUN), grant_frames());
+    r.drop_attach(COMPOSITOR, FB);
+    assert!(r.orphans.is_empty() && r.given_back.is_empty(), "no run was held yet");
+    assert!(!r.release(RUN));
+    assert_eq!(r.given_back, vec![RUN]);
+    assert!(r.pages_freed.is_empty(), "never a grant page per page");
 }
 
 #[test]
 fn a_grant_is_a_half_open_range() {
-    assert!(overlaps([START], START, LEN) && overlaps([START + LEN - 1], START, LEN));
-    assert!(!overlaps([START + LEN], START, LEN) && !overlaps([START - 1], START, LEN));
-    assert!(!overlaps([u64::MAX], u64::MAX - 1, 4), "an end past the top saturates");
+    let mut free = vec![START - 1, START, START + LEN - 1, START + LEN];
+    strip(&mut free, |f| *f, START, LEN);
+    assert_eq!(free, vec![START - 1, START + LEN]);
+    let mut top = vec![u64::MAX - 1, u64::MAX];
+    strip(&mut top, |f| *f, u64::MAX - 1, 4);
+    assert_eq!(top, vec![u64::MAX], "an end past the top saturates");
 }

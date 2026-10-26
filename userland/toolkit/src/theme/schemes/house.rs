@@ -26,15 +26,6 @@ use super::Scheme;
  */
 
 /// The default, and the values `palette` has always compiled against.
-pub const AURORA: Scheme = Scheme {
-    bg: 0xFF0B_1319,
-    surface: 0xFF13_1C24,
-    accent: 0xFF35_C4E2,
-    text: 0xFFE4_ECF5,
-    border: 0xFF23_3243,
-};
-
-/// Neutral blue-grey for anyone who finds the cyan loud.
 pub const SLATE: Scheme = Scheme {
     bg: 0xFF0F_172A,
     surface: 0xFF1E_293B,

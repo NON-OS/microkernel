@@ -15,6 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub const PANEL: u32 = 0xE610_1A22;
+/// PANEL with nothing showing through, for a panel drawn over windows whose
+/// text would read through its tiles (the window switcher's strip).
+pub const PANEL_SOLID: u32 = 0xFF10_1A22;
 pub const BAR: u32 = 0xE004_080C;
 pub const DOCK: u32 = 0xB810_1A22;
 

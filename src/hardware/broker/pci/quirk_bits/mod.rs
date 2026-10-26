@@ -59,11 +59,7 @@ mod span;
 mod writable;
 mod xhci_route;
 
-// Public for kernel_proofs, which mounts this module at its root; the
-// kernel itself holds it crate-private.
-#[allow(unreachable_pub)]
-pub use ident::{Ident, Route};
-#[allow(unreachable_pub)]
-pub use legsup::legsup_before;
+pub(crate) use ident::{Ident, Route};
+pub(crate) use legsup::legsup_before;
 pub(crate) use writable::{only, writable};
 pub(crate) use xhci_route::blocks;
