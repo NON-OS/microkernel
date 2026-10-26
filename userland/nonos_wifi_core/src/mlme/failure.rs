@@ -18,6 +18,7 @@
 //! more than "it failed": the refusal's own status or reason code where the
 //! access point gave one, and which step refused otherwise.
 
+use super::MlmeState;
 use crate::rsn::SelectError;
 use crate::sae::SaeFailure;
 use crate::wpa::supplicant::Failure;
@@ -55,4 +56,7 @@ pub enum MlmeFailure {
     Left(u16),
     /// The four-way handshake failed on an authentic message.
     Handshake(Failure),
+    /// The step named ran out of its own time with nothing from the access
+    /// point to end it (`Mlme::deadline`).
+    Timeout(MlmeState),
 }
