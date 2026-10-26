@@ -30,7 +30,8 @@ HEAD, is held to:
   ALLOW  no #[allow] or #![allow] added (scripts/check_allows.py says why);
 
 and the unit's added lines may carry no private key material (KEY). Files
-written by a tool that say not to edit them are skipped. The merge base, not
+written by a tool that say not to edit them, and the extraction crates
+tools/extraction/closure_crate.py writes, are skipped. The merge base, not
 REF itself, is the comparison, so a unit that has not merged the newest main
 is judged on its own commits alone. Exit 1 when anything is found.
 """
@@ -45,6 +46,8 @@ from pathlib import Path
 
 LIMIT = 75
 GENERATED = re.compile(r"Written by tools/.*do not|do not\s*\n//\s*edit\.", re.I)
+# The extraction crates tools/extraction/closure_crate.py writes, as it writes them.
+GENERATED_TREES = ("verification/extraction/tree/",)
 ALLOW = re.compile(r"^\+.*#!?\[\s*allow\s*\(")
 # Built from parts, so this file's own lines are not key material to itself.
 KEY = re.compile(r"^\+.*(BEGIN (EC |OPENSSH |)PRIVATE KEY|NONOS_SIGNING_" + r"KEY=)", re.I)
@@ -75,7 +78,7 @@ def findings(root, base):
     changed = git(root, "diff", "--name-only", "--diff-filter=AM", since, "HEAD", "--", "*.rs")
     for path in changed.split():
         text = (root / path).read_text(errors="replace") if (root / path).exists() else None
-        if text is None or GENERATED.search(text):
+        if text is None or GENERATED.search(text) or path.startswith(GENERATED_TREES):
             continue
         if not formatted(root, path):
             out.append(f"FMT {path}")
@@ -112,6 +115,8 @@ def self_test():
         (root / "off.rs").write_text("pub fn o( ) -> u8 {1}\n")
         (root / "allowed.rs").write_text("#[allow(dead_code)]\nfn a() {}\n")
         (root / "gen.rs").write_text("// Written by tools/x.py; do not edit.\npub fn g( ) {}\n")
+        (root / "verification/extraction/tree/x").mkdir(parents=True)
+        (root / "verification/extraction/tree/x/mod.rs").write_text("pub use a::{b,c};\n")
         (root / "notes.txt").write_text("-----BEGIN " + "PRIVATE KEY-----\n")
         git(root, "add", "-A")
         git(root, "commit", "-q", "-m", "unit")
