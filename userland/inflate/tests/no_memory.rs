@@ -17,32 +17,15 @@
 //! When the allocator cannot give the output room, a decode stops and says
 //! so, never aborts: the install role inflated a 29.5 MB package member in
 //! a heap that could not hold one more block that size, and the process
-//! ended (code 134) with no reason given. This binary's allocator refuses
-//! any block above LIMIT, so the refusal can be made on purpose.
+//! ended (code 134) with no reason given. This binary's allocator
+//! (refusing/mod.rs) refuses any block above LIMIT, on purpose.
 
-use std::alloc::{GlobalAlloc, Layout, System};
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::Ordering;
 
 use nonos_inflate::{gunzip_partial, members_checked, End, Refused};
 
-static LIMIT: AtomicUsize = AtomicUsize::new(usize::MAX);
-
-struct Refusing;
-
-unsafe impl GlobalAlloc for Refusing {
-    unsafe fn alloc(&self, l: Layout) -> *mut u8 {
-        if l.size() > LIMIT.load(Ordering::Relaxed) {
-            return core::ptr::null_mut();
-        }
-        unsafe { System.alloc(l) }
-    }
-    unsafe fn dealloc(&self, p: *mut u8, l: Layout) {
-        unsafe { System.dealloc(p, l) }
-    }
-}
-
-#[global_allocator]
-static A: Refusing = Refusing;
+mod refusing;
+use refusing::LIMIT;
 
 const BIG: &[u8] = include_bytes!("vectors/big.gz");
 const APK: &[u8] = include_bytes!("vectors/apk_shape.gz");
