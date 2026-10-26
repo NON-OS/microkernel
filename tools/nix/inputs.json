@@ -5920,6 +5920,15 @@
   "md": [],
   "signed": []
  },
+ "userland/inflate": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/inflate"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/input_proofs": {
   "exclude": [],
   "include": [
@@ -6792,6 +6801,7 @@
    "src/process/scheduler/policy_types.rs",
    "src/security/capsule_manifest/verify/caps_bits.rs",
    "userland/compositor/src/sw_blitter/row.rs",
+   "userland/libc/src/heap/stats.rs",
    "userland/libc/src/heap/zero_on_free.rs",
    "userland/mechanism_proofs"
   ],
