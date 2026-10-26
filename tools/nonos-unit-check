@@ -19,6 +19,7 @@
 
     tools/nonos-unit-check                 against private/main (or origin/main)
     tools/nonos-unit-check --base REF      against REF
+    tools/nonos-unit-check --reached       the userland crates the unit reaches
     tools/nonos-unit-check --self-test     the checks on a made repository
 
 Every .rs file the unit adds or changes, from the merge base with REF to
@@ -34,6 +35,12 @@ written by a tool that say not to edit them, and the extraction crates
 tools/extraction/closure_crate.py writes, are skipped. The merge base, not
 REF itself, is the comparison, so a unit that has not merged the newest main
 is judged on its own commits alone. Exit 1 when anything is found.
+
+--reached lists, proof crates first, every userland crate whose tests a unit
+must run: one that holds a changed file; one with a file that mounts
+(#[path], include_str!, include_bytes!) a changed file, or a directory or
+mounted file that leads to one; or one naming such a crate as a path
+dependency.
 """
 
 import argparse
@@ -42,6 +49,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from functools import lru_cache
 from pathlib import Path
 
 LIMIT = 75
@@ -94,6 +102,50 @@ def findings(root, base):
     return out
 
 
+MOUNT = re.compile(r'#\[path\s*=\s*"([^"]+)"\]|include_(?:str|bytes)!\(\s*"([^"]+)"')
+DEP = re.compile(r'path\s*=\s*"([^"]+)"')
+
+
+def reached(root, base):
+    since = git(root, "merge-base", base, "HEAD").strip()
+    changed = {(root / p).resolve() for p in git(root, "diff", "--name-only", since, "HEAD").split()}
+    under = lambda p, d: str(p).startswith(str(d) + "/")
+
+    def mounts(f):
+        try:
+            text = f.read_text(errors="replace")
+        except OSError:
+            return []
+        return [(f.parent / (m.group(1) or m.group(2))).resolve() for m in MOUNT.finditer(text)]
+
+    @lru_cache(maxsize=None)
+    def touches(f, depth=0):
+        if f in changed or depth > 12:
+            return f in changed
+        if f.is_dir():
+            files = [g for g in f.rglob("*.rs") if "/target/" not in str(g)]
+            return any(under(c, f) for c in changed) or any(touches(g, depth + 1) for g in files)
+        return f.suffix == ".rs" and any(touches(d, depth + 1) for d in mounts(f))
+
+    crates = sorted(p.parent.resolve() for p in (root / "userland").glob("*/Cargo.toml"))
+    found = set()
+    for crate in crates:
+        own = (r for r in crate.rglob("*.rs") if "/target/" not in str(r))
+        if any(under(c, crate) for c in changed) or any(touches(d) for r in own for d in mounts(r)):
+            found.add(crate)
+    deps = {c: {(c / m.group(1)).resolve() for m in DEP.finditer((c / "Cargo.toml").read_text())}
+            for c in crates}
+    grew = True
+    while grew:
+        grew = False
+        for crate in crates:
+            if crate not in found and deps[crate] & found:
+                found.add(crate)
+                grew = True
+    order = sorted(found, key=lambda c: (not c.name.endswith("_proofs"), c.name))
+    return [str(c.relative_to(root.resolve())) for c in order]
+
+
 def self_test():
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
@@ -139,19 +191,56 @@ def self_test():
         if findings(root, "main"):
             print(f"unit-check: self-test failed, a clean unit was refused: {findings(root, 'main')}")
             return 1
-    print("unit-check: self-test passed, 5 findings made and caught, a clean unit passed")
+    if not reached_self_test():
+        return 1
+    print("unit-check: self-test passed, 5 findings made and caught, a clean unit passed,")
+    print("unit-check: and --reached found each crate a change reaches and no other")
     return 0
+
+
+def reached_self_test():
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        git(root, "init", "-q", "-b", "main")
+        for name, toml_extra, src in [
+            ("lib_a", "", "pub fn a() {}\n"),
+            ("by_path_proofs", "", '#[path = "../../lib_a/src/lib.rs"]\nmod a;\n'),
+            ("by_text_proofs", "", 'const A: &str = include_str!("../../lib_a/src/lib.rs");\n'),
+            ("by_dep_proofs", '\n[dependencies]\nlib_a = { path = "../lib_a" }\n', ""),
+            ("lib_b", "", '#[path = "../../lib_a/src/lib.rs"]\nmod a;\npub fn b() {}\n'),
+            ("by_chain_proofs", "", '#[path = "../../lib_b/src/lib.rs"]\nmod b;\n'),
+            ("unrelated_proofs", "", '#[path = "../../lib_c/src/lib.rs"]\nmod c;\n'),
+            ("lib_c", "", "pub fn c() {}\n"),
+        ]:
+            (root / "userland" / name / "src").mkdir(parents=True)
+            (root / "userland" / name / "Cargo.toml").write_text(f'[package]\nname = "{name}"\n{toml_extra}')
+            (root / "userland" / name / "src/lib.rs").write_text(src)
+        git(root, "add", "-A")
+        git(root, "commit", "-q", "-m", "base")
+        (root / "userland/lib_a/src/lib.rs").write_text("pub fn a() -> u8 { 1 }\n")
+        git(root, "commit", "-q", "-am", "unit")
+        got = reached(root, "main~1")
+        want = ["userland/by_chain_proofs", "userland/by_dep_proofs", "userland/by_path_proofs",
+                "userland/by_text_proofs", "userland/lib_a", "userland/lib_b"]
+        if got != want:
+            print(f"unit-check: --reached self-test failed\n  got  {got}\n  want {want}")
+            return False
+    return True
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--base", help="the branch the unit lands on")
+    ap.add_argument("--reached", action="store_true", help="list the crates whose tests to run")
     ap.add_argument("--self-test", action="store_true")
     args = ap.parse_args()
     if args.self_test:
         return self_test()
     root = Path(git(Path.cwd(), "rev-parse", "--show-toplevel").strip())
     base = args.base or default_base(root)
+    if args.reached:
+        print("\n".join(reached(root, base)))
+        return 0
     found = findings(root, base)
     for f in found:
         print(f"unit-check: {f}")
