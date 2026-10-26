@@ -16,6 +16,11 @@ CAPSULE_REPLY_ENDPOINT   := reply:4209:endpoint.4294967306
 # IPC|Memory|DeviceEnum|Driver|Irq|Pio|InputSource
 # = 0x08|0x10|0x8000|0x10000|0x40000|0x100000|0x200000 = 0x358018
 CAPSULE_REQUIRED_CAPS    := 0x358018
+# Debug, granted only by a build that compiles `capsule-serial-debug` (the
+# development images): the kernel mirror folds it in through
+# serial_debug_cap(), so the driver's own lines reach the console there
+# and nowhere else.
+CAPSULE_OPTIONAL_CAPS    := 0x100
 CAPSULE_KERNEL_MIRROR    := src/hardware/ps2_kbd_capsule
 
 include nonos-mk/capsule.mk
