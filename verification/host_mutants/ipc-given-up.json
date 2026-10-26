@@ -1,0 +1,50 @@
+[
+ {
+  "name": "ipc-give-up-a-taken-entry",
+  "file": "src/syscall/microkernel/ipc/pending_reply/give_up_rule.rs",
+  "old": "        Some(e) if e.taken => GiveUp::Delivering,\n",
+  "new": "",
+  "test": "ipc_reply_token::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "ipc-answer-a-call-that-gave-up",
+  "file": "src/syscall/microkernel/ipc/pending_reply/give_up_rule.rs",
+  "old": "    if e.given_up {\n        return false;\n    }\n",
+  "new": "",
+  "test": "ipc_reply_token::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "ipc-done-keeps-the-entry",
+  "file": "src/syscall/microkernel/ipc/pending_reply/give_up_rule.rs",
+  "old": "queue.retain(|e| !(e.taken && e.request == request));",
+  "new": "queue.retain(|_| true);",
+  "test": "ipc_reply_token::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "ipc-reply-takes-a-taken-entry",
+  "file": "src/syscall/microkernel/ipc/pending_reply/served_rule.rs",
+  "old": "    e.served && !e.taken\n",
+  "new": "    e.served\n",
+  "test": "ipc_reply_token::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "ipc-redirect-takes-a-taken-entry",
+  "file": "src/syscall/microkernel/ipc/pending_reply/served_rule.rs",
+  "old": "queue.position(|e| !e.taken && e.token == want)",
+  "new": "queue.position(|e| e.token == want)",
+  "test": "ipc_reply_token::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "ipc-reply-to-a-taken-entry",
+  "file": "src/syscall/microkernel/ipc/pending_reply/served_rule.rs",
+  "old": "queue.position(|e| e.served && !e.taken && e.request == request)",
+  "new": "queue.position(|e| e.served && e.request == request)",
+  "test": "ipc_reply_token::",
+  "crate": "userland/kernel_proofs"
+ }
+]
