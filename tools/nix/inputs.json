@@ -8232,6 +8232,7 @@
    "userland/capsule_prove/src/job/receipt_slot.rs",
    "userland/capsule_prove/src/job/receipt_step.rs",
    "userland/capsule_prove/src/job/serve.rs",
+   "userland/capsule_prove/src/job/serve_frame.rs",
    "userland/capsule_prove/src/job/state.rs",
    "userland/capsule_prove/src/job/status.rs",
    "userland/capsule_prove/src/market/buckets.rs",

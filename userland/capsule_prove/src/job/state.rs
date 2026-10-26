@@ -31,9 +31,10 @@ pub struct Job {
     pub out: Vec<u8>,
     /// GET has handed out the container's last byte.
     pub fetched: bool,
-    /// A STATUS from the owner has been answered with the failure.
+    /// The answer being sent is a STATUS carrying the failure (answer.rs).
     pub answered: bool,
-    /// The owner sent a frame after that answer: it has read the failure.
+    /// the call took an answer that carried the failure: its
+    /// MkIpcReplyTo returned 0 (state_ops.rs replied).
     pub told: bool,
     /// The worker thread is on its proofs (worker.rs).
     pub working: bool,
