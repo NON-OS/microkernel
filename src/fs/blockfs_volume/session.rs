@@ -28,11 +28,16 @@ use super::state::{VolumeState, VOLUME};
 use crate::fs::blockfs;
 use crate::fs::cryptoblock::{ram, set_window};
 
+#[path = "keep_switch.rs"]
+pub(super) mod keep_switch;
+pub use keep_switch::keeping_on;
+
 /// The least a session volume is made with: below it, nothing worth
 /// fetching would fit.
 const LEAST: u64 = 256 << 20;
 
-pub(super) fn open_session_volume() -> Result<(), VolumeError> {
+/// `held`: in place of an installed disk's volume, on a boot that keeps nothing yet.
+pub(super) fn open_session_volume(held: bool) -> Result<(), VolumeError> {
     let mut volume = crate::smp::write_responsive(&VOLUME);
     if volume.is_some() {
         return Ok(());
@@ -57,10 +62,13 @@ pub(super) fn open_session_volume() -> Result<(), VolumeError> {
     ram::start(sectors).map_err(VolumeError::Device)?;
     set_window(0, sectors).map_err(VolumeError::Window)?;
     let mount = blockfs::format(&key, uuid).map_err(VolumeError::BlockFs)?;
+    let why = if held { "this boot keeps nothing yet" } else { "live boot" };
     say(&format!(
-        "[DATA] live boot: this session's volume is in memory, up to {} MiB, gone at power off",
+        "[DATA] {}: this session's volume is in memory, up to {} MiB, gone at power off",
+        why,
         room >> 20
     ));
     *volume = Some(VolumeState { key, mount });
+    keep_switch::HELD.store(held, core::sync::atomic::Ordering::Release);
     Ok(())
 }
