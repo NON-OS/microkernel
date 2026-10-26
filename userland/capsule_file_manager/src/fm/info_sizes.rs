@@ -26,7 +26,8 @@ pub const SEC_GAP: u32 = 8;
 pub const QUICK_H: u32 = 32;
 
 // Em sizes: the panel title, the location line under it, and every section
-// heading. `MIN_UI_PX` clamps all three, draw and measure alike.
+// heading. None is below `ttf::MIN_UI_PX` (14), which clamps draw and measure
+// alike.
 pub const TITLE_PX: f32 = 18.0;
 pub const SUB_PX: f32 = 14.0;
 pub const SEC_PX: f32 = 14.0;

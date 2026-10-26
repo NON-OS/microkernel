@@ -16,7 +16,6 @@
 
 //! MkServiceRegister's rule, mounted as shipped, and its proofs.
 
-#[allow(dead_code)] // `allowed` is reached only from the proofs here
 #[path = "../../../../../../src/syscall/microkernel/ipc/register_allowed.rs"]
 mod register_allowed;
 

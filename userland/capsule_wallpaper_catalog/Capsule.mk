@@ -1,5 +1,5 @@
 # NONOS capsule_wallpaper_catalog
-# Read-only asset vendor for the 63 Full-HD wallpaper JPEGs.
+# Read-only asset vendor for the Full-HD wallpaper JPEGs the catalog lists (nonos-data/wallpapers/catalog.txt).
 
 CAPSULE_SLUG             := wallpaper_catalog
 CAPSULE_HANDLE           := wallpaper_catalog

@@ -50,7 +50,7 @@ pub fn open_machine_volume() -> Result<(), VolumeError> {
      * a disk not ready among them, is said as it is.
      */
     let plan = match read_plan() {
-        Err(VolumeError::Plan(PlanError::NoPlan)) => return open_session_volume(),
+        Err(VolumeError::Plan(PlanError::NoPlan)) => return open_session_volume(false),
         /*
          * No disk the kernel drives, on a boot the loader read the store for:
          * a live stick no driver of the kernel's brought up. Its volume is
@@ -59,12 +59,12 @@ pub fn open_machine_volume() -> Result<(), VolumeError> {
         Err(VolumeError::Device(BlockDeviceError::Dead))
             if crate::hardware::block_device::store_copy::present() =>
         {
-            return open_session_volume();
+            return open_session_volume(false);
         }
         other => other?,
     };
-    if plan.is_live() {
-        return open_session_volume();
+    if let Some(opened) = super::session::keep_switch::in_memory(plan.is_live()) {
+        return opened;
     }
     crate::fs::cryptoblock::set_window(plan.volume_base, plan.volume_sectors)
         .map_err(VolumeError::Window)?;

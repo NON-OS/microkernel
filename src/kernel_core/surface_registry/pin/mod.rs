@@ -18,14 +18,6 @@ pub mod busy;
 mod claim_owned;
 pub mod closing;
 mod closing_rule;
-/*
- * the plan for a released grant, proven in kernel_proofs::dma_surface. The
- * kernel holds a grant's run through grant_run.rs (L35), which also waits for
- * an exited group's tables (L49), and takes only its strip rule from here.
- */
-#[allow(dead_code)]
-mod dma_plan;
-#[allow(dead_code)] // `due` is the proofs': grant_run.rs gives the runs back
 mod dma_rule;
 pub mod drop_attach;
 pub mod exit;

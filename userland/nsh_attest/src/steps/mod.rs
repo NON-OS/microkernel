@@ -22,10 +22,10 @@
 #[path = "../../../../src/security/attest_doc/binding.rs"]
 pub mod binding;
 /// The registry's fold domain and entry width, from the kernel's file.
-#[allow(dead_code)]
 #[path = "../../../../src/security/attest_registry/format.rs"]
 mod format;
 
+mod capsules;
 mod challenge;
 mod dma;
 mod enrol;
@@ -35,6 +35,7 @@ mod quote;
 mod registry;
 mod release;
 
+pub use capsules::{capsules, not_vendor};
 pub use challenge::challenge;
 pub use dma::dma;
 pub use enrol::enrol;

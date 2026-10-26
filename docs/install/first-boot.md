@@ -54,7 +54,7 @@ There is no login and no password. The `login` service starts with nothing on sc
    - The e1000, RTL8169 and RTL8821CE drivers send from a random MAC address drawn at each start. So do the RTL8139, virtio-net and iwlwifi drivers, which the screen does not name.
    - Shutdown and reboot wipe process memory, kernel stacks and held keys. The [data volume](../overview/glossary-claim-epoch.md#data-volume) key and a few other kernel statics stay, and in this release only the installer's restart runs that wipe ([Device secrets and keys](../security/device-secrets-and-keys.md#wiped-at-shutdown-and-reboot)).
    - NONOS has no telemetry.
-8. Appearance. Which wallpapers this machine keeps, and which one is the desktop's. Space keeps or drops the highlighted one, `a` keeps them all, `n` keeps only the desktop's, and Enter makes the highlighted one the desktop's and goes on.
+8. Appearance. Which of the four wallpapers this machine keeps, and which one is the desktop's: `Canyon neon` until you pick another. Space keeps or drops the highlighted one, `a` keeps them all, `n` keeps only the desktop's, and Enter makes the highlighted one the desktop's and goes on.
 9. Qwen model. Which Qwen tier the Terminal's `qwen` runs when you name none. The list starts with `None for now`, then the tiers that fit this machine's memory, smallest first. The step starts on Qwen3 0.6B, the tier the stick carries, when it fits, and otherwise on the largest tier that fits. On an amnesic stick the model is held in memory and is gone at power off. With no NONOS disk at all, no tier is offered. See [Local AI](../using/local-ai.md).
 10. Apps. Each optional app is on until you turn it off with Space. An app turned off is not started, and its dock icon does not open it. With Linux and Qwen off, `qwen` and Linux packages do not run. Required apps are listed without a switch. On a Safe Mode boot no optional app starts, whatever this step says.
 11. Installed software. `Only NONOS software`, the default, or `Also software installed here`, which lets programs from the Marketplace run. The screen notes that this machine proves them.
@@ -118,7 +118,7 @@ Amnesic starts the desktop. Install keeps the answers, then hands the whole scre
   - Downloads over Anyone: `for_installs`, `userland/nonos_route_link/src/chosen.rs:50-52`.
   - The privacy statements: `FACTS`, `userland/capsule_setup_wizard/src/render/screens/privacy.rs:10-18`.
   - Random MAC addresses: `draw`, `userland/capsule_driver_e1000/src/init/station_address.rs:24-26`; `program`, `userland/capsule_driver_rtl8169/src/init/mac.rs:27-29`; `draw`, `userland/capsule_driver_rtl8821ce/src/station.rs:24-26`; for the drivers the screen does not name, `apply`, `userland/nonos_mac/src/local.rs:53`.
-  - The Qwen step's starting row: `default_row`, `userland/capsule_setup_wizard/src/qwen/default.rs:78-86`, and `STICK_TIER`, `userland/capsule_model_fetch/src/default_tier.rs:84-88`.
+  - The Qwen step's starting row: `default_row`, `userland/capsule_setup_wizard/src/qwen/default.rs:78-86`, and `STICK_TIER`, `userland/capsule_model_fetch/src/need.rs:95`.
   - Installed software: `MODES`, `userland/capsule_setup_wizard/src/render/screens/local_software.rs:24-30`.
   - A refused answer named once on Review: `unsaved_told`, `userland/capsule_setup_wizard/src/render/screens/review.rs:69-80`.
 - What is kept, and where

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! A grant's teardown and a held run's free, pinned whole (whole): a kept
 //! run is entered before the registry is asked and is not counted released
 //! (L78, L80); an unconfined one not kept is counted released once, at its
@@ -31,7 +30,7 @@ use super::whole::whole;
 const TEARDOWN: &str = include_str!("../../../../../src/hardware/broker/dma/teardown.rs");
 const HELD: &str = include_str!("../../../../../src/hardware/broker/dma/held_run.rs");
 
-const TEARS: [&str; 18] = [
+const TEARS: [&str; 19] = [
     "pub(super) fn teardown(g: &DmaGrant, unmap_pages: bool, released: bool) {",
     "if super::super::holder_space::unmap_from_holder(g.pid, g.user_va, g.length) {",
     "super::va::release(g.pid, g.user_va, g.length); } else if unmap_pages {",
@@ -40,7 +39,8 @@ const TEARS: [&str; 18] = [
     r#"crate::sys::serial::println( b"[DMA] grant still reachable by its device; frames"#,
     r#"quarantined", ); return; }"#,
     "let pci = crate::hardware::broker::pci_index::lookup(g.device_id).is_some();",
-    "let host = crate::hardware::broker::vmbus::host_may_reach(g.device_id);",
+    "let host = crate::hardware::broker::vmbus::host_may_reach(g.device_id)",
+    "|| (released && super::sd_hosts::running(g.device_id));",
     "if super::kept_rule::keeps(pci, g.confined, released) || host {",
     "super::scrub::scrub(g.physical_start, g.length);",
     "super::kept::keep(g.device_id, g.claim_epoch, g.physical_start, g.length);",
