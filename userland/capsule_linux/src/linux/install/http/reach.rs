@@ -34,7 +34,7 @@ pub fn reachable(at: &str) -> Result<(), Why> {
         Some(why) => {
             let line = format!("[LINUX] mirror {at}: not reachable now: {why}\n");
             let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
-            Err(Why::NoNetwork)
+            Err(Why::NO_NETWORK)
         }
     }
 }
