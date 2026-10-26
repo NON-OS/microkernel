@@ -17,36 +17,16 @@
 use nonos_libc::mk_uptime_ms;
 use nonos_toolkit::decorations::DecorationHit;
 
-use crate::app::{App, AppManifest};
+use crate::app::App;
 use crate::discover::Peers;
-use crate::setup::{ensure_input_subscription, open_window, WindowBinding};
+use crate::setup::{ensure_input_subscription, open_window};
 
 use super::drag::DragState;
-use super::held::Held;
 use super::prime_frame::prime_frame;
 
-pub(super) const INITIAL_PAINT_ATTEMPTS: usize = 256;
+pub(super) use super::booted::BootedApp;
 
-pub(super) struct BootedApp<A: App> {
-    pub app: A,
-    pub manifest: AppManifest,
-    pub binding: WindowBinding,
-    pub input_ready: bool,
-    /// Uptime of the last input subscription attempt, for the heartbeat.
-    pub input_beat_ms: i64,
-    /// A message a paced wait received that no drain has handled yet.
-    pub held: Option<Held>,
-    pub primed: bool,
-    pub maximized: bool,
-    pub minimized: bool,
-    pub saved: (u32, u32, u32, u32),
-    /// What the app asks of its window (full screen, a rect), and what it took.
-    pub asks: super::asks::Asks,
-    pub drag: DragState,
-    /* Size, frame hover and maximized state of the last repaint, so a repaint
-     * that changes none of them can leave the frame as it is. */
-    pub painted: (u32, u32, DecorationHit, bool),
-}
+pub(super) const INITIAL_PAINT_ATTEMPTS: usize = 256;
 
 pub(super) fn boot<A: App>(
     mut app: A,
@@ -70,6 +50,7 @@ pub(super) fn boot<A: App>(
         saved: (0, 0, 0, 0),
         asks: super::asks::Asks::new(),
         drag: DragState::new(),
+        focused: true,
         painted: (0, 0, DecorationHit::None, false),
     })
 }
