@@ -16,18 +16,17 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """Write the catalogue the market capsule embeds as its baseline.
 
-With the operator seed present this runs the whole chain: the catalogue
-generator reads what the tree built and the Linux packages it is asked to
-list, every operator release is signed, the index is signed and then
-verified under the operator key the capsule trusts, so an image never
-ships an index its own market would refuse. Without the seed the output is
-empty, which the capsule reads as "no baseline", and a build says so
-rather than quietly embedding a stale catalogue.
-"""
+With the operator seed this runs the whole chain: the generator reads what
+the tree built and the Linux packages it is asked to list, every release is
+signed, and the index is signed and verified under the key the capsule
+trusts, so an image never ships an index its own market would refuse.
+Without the seed the output is empty, read as "no baseline", and said so."""
 import argparse
 import subprocess
 import sys
 from pathlib import Path
+
+from nonos_market_catalogue import union
 
 
 def run(*argv):
@@ -47,11 +46,11 @@ def main():
     ap.add_argument("--package-mirror", default="")
     ap.add_argument("--package-out", type=Path)
     ap.add_argument("--serial", type=int, required=True)
+    ap.add_argument("--extra", type=Path, help="a catalogue whose entries are added, for a development image")
     a = ap.parse_args()
     a.out.parent.mkdir(parents=True, exist_ok=True)
     if not a.seed.exists():
-        print(f"market index: no operator seed at {a.seed}; the image has no baseline catalogue",
-              file=sys.stderr)
+        print(f"market index: no operator seed at {a.seed}; no baseline catalogue", file=sys.stderr)
         a.out.write_bytes(b"")
         return 0
     key = a.pubkey.read_bytes().hex()
@@ -59,16 +58,17 @@ def main():
         sys.exit(f"{a.pubkey}: an operator key is 32 bytes")
     tools = Path(__file__).parent
     catalogue = a.out.with_suffix(".json")
-    # --no-nonos: every capsule this tree builds is already in the image, so
-    # the baseline lists only what a user can install, and does not depend on
-    # which capsules happened to be signed before this ran.
+    # --no-nonos: the tree's capsules are in the image already, so the baseline
+    # lists only what a user can install, whichever were signed before this ran.
     guests = ["--guest-list", a.guest_list] if a.guest_list else []
     guests += ["--catalogue", a.catalogue] if a.catalogue else []
     if a.tool_list and a.package_mirror:
-        guests += ["--tool-list", a.tool_list, "--package-mirror", a.package_mirror]
-        guests += ["--package-out", a.package_out] if a.package_out else []
+        guests += ["--tool-list", a.tool_list, "--package-mirror", a.package_mirror,
+                   *(["--package-out", a.package_out] if a.package_out else [])]
     run(sys.executable, tools / "nonos-market-catalogue", "--out", catalogue, "--no-nonos",
         "--operator-pubkey", key, "--linux-list", a.linux_list, "--serial", a.serial, *guests)
+    if a.extra:
+        union.add(catalogue, a.extra, key)
     run(sys.executable, tools / "nonos-market-sign-releases", "--cli", a.cli,
         "--index", catalogue, "--key-file", a.seed, "--operator-pubkey", key)
     run(a.cli, "sign", "--in", catalogue, "--key-file", a.seed, "--pubkey", key, "--out", a.out)
