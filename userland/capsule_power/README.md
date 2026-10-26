@@ -17,6 +17,7 @@ CPU. The handbook page is
 The kernel spawns it before the drivers (`src/userspace/capsule_power`,
 `spawn_plan/platform_acpi.rs`) and registers its second name, `power.off`,
 beside `power`: the desktop shell's request for the wiped power-off. It is
+the one owner of that name, and the shell its one sender.
 
 ```text
 desktop shell (alone: HELD, and the sender checked here)
@@ -58,9 +59,12 @@ arch::x86_64::acpi::power_sleep::shutdown() (S5 from the \_S5 package)
 | `OP_HEALTHCHECK` | 0x0001 | liveness ping |
 | `OP_REBOOT` | 0x0002 | invoke `AdminReboot`; the system reboots |
 | `OP_SHUTDOWN` | 0x0003 | prepare firmware through `capsule_acpi`, then invoke `AdminShutdown`; the system powers off |
+| `power.off` POFF | op 1 | the shell's confirmed power-off, G-53's frame (`capsule_acpi/src/power/off/wire.rs`): as `OP_SHUTDOWN`; only a refusal is answered |
 
-Reboot, shutdown and `power.off` run for the desktop shell's process alone
-(`off/rule.rs`); anyone else gets EPERM, a malformed `power.off` EINVAL.
+Shutdown and `power.off` run for the desktop shell's process alone, reboot
+for the shell and the two installers, `app.install` and `tool.install`,
+whose last step it is and which hold no Admin of their own (S-14,
+`off/rule.rs`); anyone else gets EPERM, a malformed `power.off` EINVAL.
 
 The rest is in two parts: [authority and lifecycle](docs/authority-and-lifecycle.md)
 and [wire, state and release](docs/wire-and-release.md).
