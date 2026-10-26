@@ -18,6 +18,10 @@
 // it would look for them beside it, so shell_apps_off.rs declares them.
 #[path = "shell_apps_off.rs"]
 pub mod apps_off;
+#[path = "../../capsule_desktop_shell/src/bench.rs"]
+pub mod bench;
+#[path = "../../capsule_desktop_shell/src/bench_line.rs"]
+pub mod bench_line;
 #[path = "../../capsule_desktop_shell/src/compositor_client/mod.rs"]
 pub mod compositor_client;
 #[path = "../../capsule_desktop_shell/src/frametime.rs"]
