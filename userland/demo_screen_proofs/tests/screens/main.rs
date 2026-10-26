@@ -27,7 +27,6 @@ mod app_windows;
 #[path = "../../../capsule_wm/src/server/handlers/window_open/cascade.rs"]
 mod cascade;
 mod compose;
-#[allow(dead_code)] // the window manager's other placement constants
 #[path = "../../../capsule_wm/src/server/handlers/window_open/constants.rs"]
 mod constants;
 mod desktop_shots;

@@ -40,6 +40,7 @@ pub fn run(mut ctx: Context) -> ! {
         // A full-screen window shown or gone, or the pointer at the bottom
         // edge: the dock drawn or cleared, its window opened or closed.
         crate::server::dock_sync::sync(&mut ctx);
+        crate::server::pointer_shape::sync(&mut ctx);
         /*
          * The tick is timed on the uptime clock. The wall clock can step back
          * when NTP corrects it, or read as an error before it is set, and a
