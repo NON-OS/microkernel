@@ -15,11 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! S-14: the installers restart through capsule_power and hold no Admin.
-//! The runner tells an installer by the service its process owns, from
-//! INSTALLERS and nowhere else; the shell is asked first, so it stays the
-//! shell. The request the installers send is the `power` port's reboot.
+//! The request they send is the `power` port's reboot (who_tests.rs says
+//! how the capsule tells them from the shell).
 
-const RUNNER: &str = include_str!("../../capsule_power/src/server/runner.rs");
 const OPS: &str = include_str!("../../capsule_power/src/protocol/ops.rs");
 const HEADER: &str = include_str!("../../capsule_power/src/protocol/header.rs");
 const RESTART: &str = include_str!("../../libc/src/admin/restart.rs");
@@ -38,20 +36,6 @@ fn flat(s: &str) -> String {
 }
 
 #[test]
-fn an_installer_is_one_of_the_two_services_and_the_shell_is_asked_first() {
-    let r = flat(RUNNER);
-    let shell = r.find("ifsuper::caller::runs(sender_pid,SHELL){Caller::Shell}").expect("shell");
-    let inst = r.find(
-        "elseifINSTALLERS.iter().any(|s|super::caller::runs(sender_pid,s)){Caller::Installer}",
-    );
-    assert!(
-        inst.is_some_and(|i| shell < i),
-        "the installers come from INSTALLERS, after the shell"
-    );
-    assert_eq!(r.matches("Caller::Installer").count(), 1, "no other arm makes an installer");
-}
-
-#[test]
 fn the_installers_send_the_power_ports_reboot() {
     let r = flat(RESTART);
     assert!(r.contains("constREQUEST:[u8;20]=[b'R',b'W',b'O',b'P',1,0,2,0,"));
@@ -62,6 +46,9 @@ fn the_installers_send_the_power_ports_reboot() {
     for src in [WINDOW, CLI] {
         assert!(flat(src).contains("power_restart()") && !src.contains("mk_admin_reboot"));
     }
+    // A refusal is said, never dropped: the window's Done line, the CLI's error.
+    assert!(flat(WINDOW).contains("letrc=power_restart();state.notice=Some(alloc::format!("));
+    assert!(flat(CLI).contains("letrc=nonos_libc::power_restart();eprintln!("));
 }
 
 #[test]

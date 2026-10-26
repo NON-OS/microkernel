@@ -58,8 +58,11 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     // devices' GpioInt names them; more holders join as their drivers do.
     ("driver.gpio0", &["driver.i2c_pci0", "driver.spi0"]),
     ("acpi", &["power", "desktop_shell", "driver.i2c_pci0", "driver.i2c_hid0", "driver.gpio0"]),
-    // The wiped power-off: only the shell asks for it (F-88).
-    ("power.off", &["desktop_shell"]),
+    // The wiped power-off: only the shell asks for it (F-88). `power` shares
+    // capsule_power's inbox, so this line gates both: the installers are on
+    // it for their restart (S-14), and the capsule, by the sender's pid,
+    // keeps the power-off and shutdown the shell's (off/who.rs, rule.rs).
+    ("power.off", &["desktop_shell", "app.install", "tool.install"]),
 ];
 
 /// A display driver shows whatever it is given over the whole screen: only

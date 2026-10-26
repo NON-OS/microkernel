@@ -35,8 +35,11 @@ pub fn on_after_key(state: &mut State, code: u32) -> EventOutcome {
             KEY_ESC if active() => EventOutcome::Idle,
             KEY_ESC => EventOutcome::Close,
             KEY_ENTER => {
-                let _ = power_restart();
-                EventOutcome::Idle
+                // A restart that runs never returns: anything back is a refusal.
+                let rc = power_restart();
+                state.notice =
+                    Some(alloc::format!("restart refused ({rc}); restart from the power button"));
+                EventOutcome::Repaint
             }
             _ => EventOutcome::Idle,
         },

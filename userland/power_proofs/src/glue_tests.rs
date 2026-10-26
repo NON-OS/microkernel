@@ -30,7 +30,6 @@ fn at(text: &str, needle: &str) -> usize {
 
 #[test]
 fn a_poff_frame_goes_to_power_off_with_the_senders_standing() {
-    assert!(RUNNER.contains("const SHELL: &[u8] = b\"desktop_shell\";"));
     assert!(RUNNER.contains("let from_shell = from == Caller::Shell;"));
     let poff = at(RUNNER, "if crate::off::wire::is_poff(req) {");
     assert!(poff < at(RUNNER, "crate::off::requested(req, from_shell, &mut out_buf)"));
