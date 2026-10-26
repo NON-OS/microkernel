@@ -17,8 +17,9 @@
 use crate::calc::fixed::MAX_FRACTION_DIGITS;
 
 pub fn effective_fraction_digits(frac_part: u128, typed: u8) -> u32 {
+    // While typing: the point counts as one, then each digit after it.
     if typed > 0 {
-        return typed as u32;
+        return typed as u32 - 1;
     }
     if frac_part == 0 {
         return 0;
