@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The keyring's wire types, and the ops it retired, from capsule source.
+//! The keyring's wire types, the ops it retired and who may ask which, from
+//! capsule source.
 
+#[path = "../../../capsule_keyring/src/protocol/callers.rs"]
+pub mod callers;
 #[path = "../../../capsule_keyring/src/protocol/encode.rs"]
 pub mod encode;
 #[path = "../../../capsule_keyring/src/protocol/errno.rs"]

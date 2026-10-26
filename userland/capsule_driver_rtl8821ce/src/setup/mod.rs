@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod link_cfg;
 mod mapped;
 mod master;
+mod rings;
 mod run;
 
+pub use link_cfg::host_aspm;
 pub use mapped::Mapped;
 pub use master::{command, release, stopped};
+pub use rings::*;
 pub use run::run;
