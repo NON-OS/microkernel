@@ -51,13 +51,9 @@ def same_key(dev_market, top, tree):
             f.write(bytes(32))
     with inside(tree):
         try:
-            dev_market.seal(None, None, os.path.join(tree, "index.bin"), "1")
+            dev_market.extra()
         except SystemExit:
             return []
-        # Past the guard the seal reaches its step or its files, which this
-        # test gives it none of: that end means the guard let it through.
-        except (AttributeError, TypeError, OSError):
-            pass
     return ["the development catalogue was signed with the checkout's operator key"]
 
 

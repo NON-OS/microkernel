@@ -17,18 +17,16 @@
 // Class IDs surfaced through `MkDeviceList`. These match
 // `abi/driver_broker_abi.md`.
 
-#[allow(non_upper_case_globals)]
+crate::arch::acpi_only! { #[path = "class/ids_acpi.rs"] mod ids_acpi; }
+
 pub(in crate::hardware::broker) mod ids {
     pub(in crate::hardware::broker) const RNG: u32 = 0x0001;
     pub(in crate::hardware::broker) const BLOCK: u32 = 0x0010;
     pub(in crate::hardware::broker) const NETWORK: u32 = 0x0020;
     pub(in crate::hardware::broker) const DISPLAY: u32 = 0x0030;
     pub(in crate::hardware::broker) const INPUT: u32 = 0x0040;
-    /// Subset of INPUT: an ACPI-declared I2C-HID touchpad, carrying its I2C
-    /// slave address and HID descriptor register for the HID driver to bind
-    /// without probing.
-    #[allow(dead_code)] // ABI id on every arch; only x86's ACPI enumerator records it
-    pub(in crate::hardware::broker) const I2C_HID: u32 = 0x0041;
+    // I2C_HID (0x0041): recorded by the ACPI enumerator alone.
+    crate::arch::acpi_only! { pub(in crate::hardware::broker) use super::ids_acpi::I2C_HID; }
     pub(in crate::hardware::broker) const AUDIO: u32 = 0x0050;
     pub(in crate::hardware::broker) const SERIAL: u32 = 0x0060;
     pub(in crate::hardware::broker) const USB_HOST: u32 = 0x0070;

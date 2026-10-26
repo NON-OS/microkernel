@@ -58,5 +58,7 @@ mod slot_call_tests;
 mod span_tests;
 #[path = "transport_tests.rs"]
 mod transport_tests;
+#[path = "step_window_tests.rs"]
+mod step_window_tests;
 #[path = "window_tests.rs"]
 mod window_tests;

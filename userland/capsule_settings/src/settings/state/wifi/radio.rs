@@ -21,7 +21,7 @@
 
 use super::super::cache::FieldValue;
 use super::super::cached_value::cached_value;
-use super::super::state::{State, WifiConnect, WifiScan};
+use super::super::model::{State, WifiConnect, WifiScan};
 use super::answer::refuse_while_out;
 use super::status::refresh_wifi_status;
 use nonos_policy_proto::Field;

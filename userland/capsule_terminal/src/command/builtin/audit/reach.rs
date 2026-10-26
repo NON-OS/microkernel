@@ -18,9 +18,10 @@
 //! (`src/syscall/caps/checks`, `src/capabilities/token/types`): the network
 //! through `Network`; storage through `FileSystem`, `StoreWrite` and
 //! `StreamImport`; devices through `Driver`, `Mmio`, `Irq`, `Dma` and `Pio`.
-//! `Admin` stands in for none of them, and `Hardware` and `DeviceEnum`
-//! reach no device. The device column is capability bits, not live grants:
-//! what the kernel would let the capsule claim, not what it holds now.
+//! `Admin` stands in for none of them; `Hardware` and `DeviceEnum` reach no
+//! device. Launch: starting a capsule whose manifest grants more than the
+//! caller holds, through `SpawnWindow` or `Admin` (`from_vfs/load/bound.rs`).
+//! Devices are capability bits, not the grants held now.
 
 use alloc::vec::Vec;
 
@@ -46,7 +47,12 @@ pub const DEVICES: Area = Area {
     said: b"can drive devices*",
     caps: &[b"Driver", b"Mmio", b"Irq", b"Dma", b"Pio"],
 };
-pub const AREAS: [Area; 3] = [NETWORK, STORAGE, DEVICES];
+pub const LAUNCH: Area = Area {
+    label: b"launch",
+    said: b"can start capsules beyond their own capabilities",
+    caps: &[b"SpawnWindow", b"Admin"],
+};
+pub const AREAS: [Area; 4] = [NETWORK, STORAGE, DEVICES, LAUNCH];
 
 /// Said under every table that has a device column.
 pub const DEVICES_NOTE: &[u8] = b"* devices: capability bits the kernel would honour, not devices \

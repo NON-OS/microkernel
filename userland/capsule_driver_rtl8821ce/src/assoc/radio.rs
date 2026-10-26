@@ -30,4 +30,7 @@ pub(super) struct Counters {
     pub(super) deauth: u32,
     /// Data frames addressed (receiver address) to our own MAC.
     pub(super) to_us: u32,
+    /// The AID the access point granted, and its DTIM period.
+    pub(super) aid: u16,
+    pub(super) dtim: u8,
 }

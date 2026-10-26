@@ -46,9 +46,8 @@ pub fn paint(fb: &mut PaintBuffer, game: &Game<4>, over: bool) {
     fb.text_scaled(ox + 210, oy + 58, render_u32(game.score() as u32, &mut sbuf), TEXT, 2);
     fb.fill_rect(ox + ORIGIN_X - 9, oy + ORIGIN_Y - 9, STEP * 4, STEP * 4, BOARD_BG);
     let board = game.board();
-    for r in 0..4 {
-        for c in 0..4 {
-            let v = board[r][c];
+    for (r, row) in board.iter().enumerate() {
+        for (c, &v) in row.iter().enumerate() {
             let x = ox + ORIGIN_X + c as u32 * STEP;
             let y = oy + ORIGIN_Y + r as u32 * STEP;
             fb.fill_rect(x, y, TILE, TILE, tile_color(v));

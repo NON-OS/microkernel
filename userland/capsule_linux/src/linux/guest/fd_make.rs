@@ -19,7 +19,7 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use nonos_app_skeleton::clients::vfs::VfsStream;
+use crate::linux::file::Stream;
 
 use super::fd::{Fd, Kind};
 
@@ -28,7 +28,7 @@ impl Fd {
         Fd::empty(kind)
     }
 
-    pub fn file(path: Vec<u8>, size: u64, stream: Option<VfsStream>, writable: bool) -> Fd {
+    pub fn file(path: Vec<u8>, size: u64, stream: Option<Stream>, writable: bool) -> Fd {
         let mut fd = Fd::empty(Kind::File);
         fd.path = path;
         fd.size = size;

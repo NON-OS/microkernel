@@ -31,11 +31,12 @@ pub enum Probe {
     /// A CD or DVD drive: it speaks SCSI commands in packets, which this
     /// driver does not.
     Packet,
-    Ata([u16; IDENTIFY_WORDS]),
+    /// An ATA disk; its IDENTIFY DEVICE data is in the caller's buffer.
+    Ata,
 }
 
 impl Channel {
-    pub fn probe(&self, drive: u8) -> Probe {
+    pub fn probe(&self, drive: u8, words: &mut [u16; IDENTIFY_WORDS]) -> Probe {
         if !self.ready(drive) {
             return Probe::Absent;
         }
@@ -61,11 +62,10 @@ impl Channel {
         if status & ST_ERR != 0 || status & ST_DRQ == 0 {
             return Probe::Absent;
         }
-        let mut words = [0u16; IDENTIFY_WORDS];
         for w in words.iter_mut() {
             *w = self.cmd.read16(REG_DATA);
         }
         let _ = self.status();
-        Probe::Ata(words)
+        Probe::Ata
     }
 }

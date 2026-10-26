@@ -23,24 +23,18 @@
 //! keys it is left for `passphrase_volume`; the TPM is not asked.
 
 use super::error::VolumeError;
-use super::key_header::Keyed;
-use super::key_header_io::read_key_header;
-use super::mount_or_format::mount_or_format;
-use super::opened::install;
+#[path = "open_into.rs"]
+mod open_into;
 use super::plan_read::read_plan;
 use super::plan_types::PlanError;
 use super::session::open_session_volume;
 use super::state::VOLUME;
 use crate::hardware::block_device::BlockDeviceError;
-use crate::security::tpm::machine_key::derive_for_kernel;
-
-/// The kernel label the volume key is derived under.
-const KEY_LABEL: &[u8] = b"blockfs.data.v1";
 
 /// Open the data volume if it is not open yet. Every refusal is logged
 /// with its reason and returned; nothing is formatted over data.
 pub fn open_machine_volume() -> Result<(), VolumeError> {
-    if crate::smp::read_responsive(&VOLUME).is_some() {
+    if VOLUME.read().is_some() {
         return Ok(());
     }
     /*
@@ -66,17 +60,15 @@ pub fn open_machine_volume() -> Result<(), VolumeError> {
     if let Some(opened) = super::session::keep_switch::in_memory(plan.is_live()) {
         return opened;
     }
-    crate::fs::cryptoblock::set_window(plan.volume_base, plan.volume_sectors)
-        .map_err(VolumeError::Window)?;
-    if let Some(Keyed::Passphrase(_)) = read_key_header()? {
-        crate::log::warn!("[DATA] the volume is keyed by a passphrase; it waits for one");
-        return Err(VolumeError::NeedsPassphrase);
+    /*
+     * One write hold from the check to the install: two callers cannot both
+     * open, and a holder killed part-way is swept with nothing installed.
+     * Taken only here, after the in-memory decision, which takes the stream
+     * lock and the volume itself (keep_switch).
+     */
+    let mut v = VOLUME.write();
+    if v.is_some() {
+        return Ok(());
     }
-    let key = derive_for_kernel(KEY_LABEL).map_err(|e| {
-        crate::log::warn!("[DATA] no machine key ({:?}); the data volume stays closed", e);
-        VolumeError::MachineKey(e)
-    })?;
-    let mount = mount_or_format(&key, &plan, &Keyed::Tpm)?;
-    install(&plan, key, mount);
-    Ok(())
+    open_into::open_into(&mut v, &plan)
 }

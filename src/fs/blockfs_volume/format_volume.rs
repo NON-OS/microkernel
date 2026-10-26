@@ -24,7 +24,9 @@ pub fn format_volume(uuid: [u8; 16]) -> Result<u32, VolumeError> {
     crate::crypto::rng::fill_random_bytes_secure(&mut key)
         .map_err(|_| VolumeError::NoRandomness)?;
     let key_id = store(KeyType::MasterKey, &key, 0).map_err(VolumeError::Keyring)?;
+    // The keyring's round trip is done; the format and the install are one hold.
+    let mut v = VOLUME.write();
     let mount = blockfs::format(&key, uuid).map_err(VolumeError::BlockFs)?;
-    *crate::smp::write_responsive(&VOLUME) = Some(VolumeState { key, mount });
+    *v = Some(VolumeState { key, mount });
     Ok(key_id)
 }

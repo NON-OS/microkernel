@@ -65,17 +65,15 @@ pub fn count(ctx: &Context) -> u32 {
 pub fn draw(ctx: &Context) {
     let sub = b"SPACE keeps or drops one. ENTER makes it the desktop's and goes on.";
     render::frame(ctx, b"Appearance", sub, b"SPACE KEEP  ENTER DESKTOP  ESC BACK");
-    let spx = ctx.stride as usize / 4;
-    let (w, h) = (ctx.width, ctx.height);
     let l = render::layout_of(ctx);
-    let (buf, x) = (render::buffer(ctx), l.col_x);
+    let (cv, x) = (&mut render::canvas(ctx), l.col_x);
     let room = l.line_rows(WALL_AFTER_LINES, 2);
-    let y = appearance_rows::draw(buf, spx, w, h, x, l.body_y, ctx, room);
+    let y = appearance_rows::draw(cv, x, l.body_y, ctx, room);
     let total = WALLPAPER_LABELS.len();
     let kept_line =
         format!("{} of {total} kept; the desktop's is {}.", count(ctx), shown(name(ctx)));
-    let y = lines::text(buf, spx, w, h, x, y + l.gap, &[kept_line.as_bytes()], FG);
-    lines::text(buf, spx, w, h, x, y + l.gap, KEEPING, HINT);
+    let y = lines::text(cv, x, y + l.gap, &[kept_line.as_bytes()], FG);
+    lines::text(cv, x, y + l.gap, KEEPING, HINT);
 }
 
 fn shown(name: &[u8]) -> &str {

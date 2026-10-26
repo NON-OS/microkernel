@@ -66,7 +66,7 @@ fn spec<'a>(cert: &'a [u8], manifest: &'a [u8], trailer: &'a [u8], caps: u64) ->
 
 /* The harness reads these lines: "as expected" for each case, or the case is a failure. */
 fn say(case: &[u8], as_expected: bool) {
-    crate::sys::serial::print(b"[ATTEST-PROBE] ");
-    crate::sys::serial::print(case);
-    crate::sys::serial::print(if as_expected { b" as expected\n" } else { b" UNEXPECTED\n" });
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[ATTEST-PROBE] ").str(case);
+    l.str(if as_expected { b" as expected" } else { b" UNEXPECTED" }).end();
 }

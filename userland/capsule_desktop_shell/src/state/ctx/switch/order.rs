@@ -43,6 +43,12 @@ impl SwitchOrder {
         self.recent.truncate(ORDER_MAX);
     }
 
+    /// Whether `w` taking focus moves it off the window that had it, as
+    /// against the window manager saying again which one has it.
+    pub fn moves(&self, w: Win) -> bool {
+        self.recent.first() != Some(&w)
+    }
+
     /// A new window is not the focused one until the window manager says so.
     pub fn opened(&mut self, w: Win) {
         if !self.recent.contains(&w) {

@@ -28,4 +28,5 @@ impl FpContext {
     }
 }
 
-pub const FP_CONTEXT_BYTES: usize = core::mem::size_of::<FpContext>();
+// fpu_save.S and fpu_restore.S store f0..f31 from offset 0 and fcsr at 256.
+const _: () = assert!(core::mem::offset_of!(FpContext, fcsr) == 256);

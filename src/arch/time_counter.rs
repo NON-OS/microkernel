@@ -47,6 +47,9 @@ pub(crate) fn time_counter_hz() -> u64 {
     }
     #[cfg(target_arch = "aarch64")]
     return crate::arch::aarch64::timer::frequency();
-    #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
+    // The device tree's timebase-frequency, set by the dtb adapter.
+    #[cfg(target_arch = "riscv64")]
+    return crate::arch::riscv64::timer::frequency_hz().unwrap_or(0);
+    #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64", target_arch = "riscv64")))]
     return 0;
 }

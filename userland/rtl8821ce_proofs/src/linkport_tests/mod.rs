@@ -22,6 +22,7 @@ pub(crate) mod card;
 mod checks;
 mod clear;
 mod deauth;
+mod gone;
 mod group;
 mod krack;
 pub(crate) mod krack_rig;

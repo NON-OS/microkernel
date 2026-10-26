@@ -27,8 +27,9 @@ pub fn allocate(pcb: &Arc<ProcessControlBlock>) -> Result<(), &'static str> {
     crate::memory::paging::manager::create_address_space(pcb.pid).map_err(|e| {
         // Surface the exact PagingError so the boot fatal path names
         // the precondition that failed instead of swallowing it.
-        crate::sys::serial::print(b"[PAGING-ERR] create_address_space failed: ");
-        crate::sys::serial::println(paging_error_name(e).as_bytes());
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[PAGING-ERR] create_address_space failed: ");
+        l.str(paging_error_name(e).as_bytes()).end();
         match e {
             crate::memory::paging::error::PagingError::FrameAllocationFailed => {
                 "create_address_space: frame allocator returned None"

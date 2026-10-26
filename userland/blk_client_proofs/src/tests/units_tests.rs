@@ -58,9 +58,9 @@ fn a_unit_with_no_disk_is_not_a_fault_where_there_are_several() {
         );
     }
     let nxio: Result<u8, BlkError> = Err(BlkError::Status(E_NXIO));
-    assert_eq!(held(Driver::Scsi, nxio.clone()), Ok(None));
-    assert_eq!(held(Driver::Ide, nxio.clone()), Ok(None));
-    assert_eq!(held(Driver::Wire, nxio.clone()), nxio.map(Some), "eMMC's only unit missing");
+    assert_eq!(held(Driver::Scsi, nxio), Ok(None));
+    assert_eq!(held(Driver::Ide, nxio), Ok(None));
+    assert_eq!(held(Driver::Wire, nxio), nxio.map(Some), "eMMC's only unit missing");
     assert_eq!(held(Driver::Rtsx, Err::<u8, _>(BlkError::Status(E_NOMEDIUM))), Ok(None));
     assert_eq!(held(Driver::Scsi, Ok(7u8)), Ok(Some(7)));
 }

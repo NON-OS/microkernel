@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Ops 11 and 12 signed for the retired ReceiptSettlement proxy. The keyring
-//! answers both EINVAL before any handler, and keeps their numbers.
+//! Ops 11 and 12 signed for the retired ReceiptSettlement proxy; 13 and 18
+//! signed plain transfers no caller asked for. The keyring answers all four
+//! EINVAL before any handler, and keeps their numbers.
 
 use crate::server::protocol::retired::{retired, RETIRED};
-use crate::server::protocol::types::{Request, OP_SIGN_NOX_APPROVE, OP_SIGN_NOX_RECEIPT};
+use crate::server::protocol::types::{Request, OP_SIGN_ETH_TRANSFER, OP_SIGN_NOX_TRANSFER};
+use crate::server::protocol::types::{OP_SIGN_NOX_APPROVE, OP_SIGN_NOX_RECEIPT};
 
 const DISPATCH: &str = include_str!("../../capsule_keyring/src/server/dispatch.rs");
 
@@ -28,13 +30,14 @@ fn status(frame: &[u8]) -> i32 {
 }
 
 #[test]
-fn receipt_and_approve_answer_einval() {
-    for op in [OP_SIGN_NOX_RECEIPT, OP_SIGN_NOX_APPROVE] {
+fn the_retired_ops_answer_einval() {
+    for op in [OP_SIGN_NOX_RECEIPT, OP_SIGN_NOX_APPROVE, OP_SIGN_ETH_TRANSFER, OP_SIGN_NOX_TRANSFER]
+    {
         let req = Request { seq: 7, op, payload: &[1; 200] };
         let frame = retired(&req).expect("retired");
         assert_eq!((&frame[..4], status(&frame), frame.len()), (&7u32.to_le_bytes()[..], -22, 8));
     }
-    assert_eq!(RETIRED, [11, 12]);
+    assert_eq!(RETIRED, [11, 12, 13, 18]);
 }
 
 #[test]
@@ -44,5 +47,7 @@ fn every_other_op_reaches_its_handler() {
     }
     let first = DISPATCH.find("protocol::retired(&req)").expect("dispatch asks first");
     assert!(first < DISPATCH.find("match req.op").unwrap());
-    assert!(!DISPATCH.contains("sign_receipt") && !DISPATCH.contains("sign_approve"));
+    for gone in ["sign_receipt", "sign_approve", "sign_eth_transfer", "sign_nox_transfer"] {
+        assert!(!DISPATCH.contains(gone), "{gone} has no handler");
+    }
 }

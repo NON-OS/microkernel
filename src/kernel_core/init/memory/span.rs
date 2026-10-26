@@ -38,11 +38,7 @@ pub(super) fn reserve_gaps(handoff: &BootHandoffV1) {
 /// `[MEM] 3967 MiB free to allocate, in a span of 0x100000..0x180000000`.
 pub(super) fn say_managed(span_start: u64, span_end: u64) {
     let free = crate::memory::phys::total_free_frames() as u64 * 4096;
-    serial::print(b"[MEM] ");
-    serial::print_dec(free >> 20);
-    serial::print(b" MiB free to allocate, in a span of ");
-    serial::print_hex(span_start);
-    serial::print(b"..");
-    serial::print_hex(span_end);
-    serial::println(b"");
+    let mut l = serial::Line::new();
+    l.str(b"[MEM] ").dec(free >> 20).str(b" MiB free to allocate, in a span of ");
+    l.hex(span_start).str(b"..").hex(span_end).end();
 }

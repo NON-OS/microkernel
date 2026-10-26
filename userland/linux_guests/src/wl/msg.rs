@@ -39,7 +39,7 @@ impl Msg {
         self.buf.extend_from_slice(&(s.len() as u32 + 1).to_le_bytes());
         self.buf.extend_from_slice(s);
         self.buf.push(0);
-        while self.buf.len() % 4 != 0 {
+        while !self.buf.len().is_multiple_of(4) {
             self.buf.push(0);
         }
         self

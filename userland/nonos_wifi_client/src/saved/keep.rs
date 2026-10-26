@@ -9,6 +9,7 @@
 use nonos_libc::crypto_random;
 use nonos_seal::NONCE_LEN;
 
+use super::closed::SavedFlags;
 use super::error::SavedError;
 use super::file::{seal_file, FILE_LEN};
 use super::key::with_key;
@@ -16,16 +17,11 @@ use super::list::SavedList;
 use super::pin::pin_in;
 use super::store::load;
 use super::write::put;
-use crate::join_wire::JoinFlags;
 
-/// The flags the saved list holds for `ssid`: none for a network not saved,
-/// or when the list cannot be opened on this boot (then the passphrase is
-/// not at hand either, and the person typing it decides).
-pub fn saved_flags(ssid: &[u8]) -> JoinFlags {
-    let Ok(list) = load() else {
-        return JoinFlags::default();
-    };
-    list.find(ssid).map(|i| list.join_flags(i)).unwrap_or_default()
+/// The flags the saved list holds for `ssid`: none for a network not saved
+/// or a boot with no store, WPA3-only when the list cannot be opened.
+pub fn saved_flags(ssid: &[u8]) -> SavedFlags {
+    SavedFlags::from_load(&load(), ssid)
 }
 
 /// Pin the saved network `ssid` to WPA3, which only `forget` undoes. True

@@ -32,7 +32,15 @@ use crate::security::zerostate::volume_rule::{place, Place};
 /// Create a passphrase-keyed volume over a blank header ring (`create`),
 /// or open the one the key header names. The caller wipes `passphrase`.
 pub fn passphrase_volume(create: bool, passphrase: &[u8]) -> Result<(), VolumeError> {
-    if crate::smp::read_responsive(&VOLUME).is_some() {
+    if VOLUME.read().is_some() {
+        return Err(VolumeError::AlreadyOpen);
+    }
+    /*
+     * One write hold from the check to the install: two callers cannot both
+     * open, and a holder killed part-way is swept with nothing installed.
+     */
+    let mut v = VOLUME.write();
+    if v.is_some() {
         return Err(VolumeError::AlreadyOpen);
     }
     let plan = read_plan()?;
@@ -47,8 +55,8 @@ pub fn passphrase_volume(create: bool, passphrase: &[u8]) -> Result<(), VolumeEr
     crate::fs::cryptoblock::set_window(plan.volume_base, plan.volume_sectors)
         .map_err(VolumeError::Window)?;
     if create {
-        create_keyed(passphrase, &plan)
+        create_keyed(&mut v, passphrase, &plan)
     } else {
-        open_keyed(passphrase, &plan)
+        open_keyed(&mut v, passphrase, &plan)
     }
 }

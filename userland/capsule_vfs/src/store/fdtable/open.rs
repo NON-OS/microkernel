@@ -44,12 +44,12 @@ impl Store {
             return Err(StoreError::IsDir);
         }
         /*
-         * The handle is writable only if the caller was allowed to write and the
-         * file's own permissions permit it. Truncating a read-only file is
-         * rejected rather than silently clearing it.
+         * The handle is writable only if the caller was allowed to write, the
+         * file's own permissions permit it, and no other process holds it as
+         * a pack (held.rs). Truncating a read-only file is refused.
          */
         let mode_writable = self.files[file_idx].mode & MODE_WRITE != 0;
-        let writable = writable && mode_writable;
+        let writable = writable && mode_writable && !self.held_by_another(path, owner_pid);
         if truncate {
             if !writable {
                 return Err(StoreError::AccessDenied);

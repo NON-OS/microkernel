@@ -38,7 +38,4 @@ pub const UNSTAKE_POSITION_SELECTOR: [u8; 4] = [0x4a, 0x23, 0x5e, 0xb6];
 // contract names are accepted.
 pub const STAKE_LOCKED_SELECTOR: [u8; 4] = [0x17, 0xb1, 0x8c, 0x89];
 
-// ERC-20 transfer(address,uint256) selector, for sending NOX.
-pub const TRANSFER_SELECTOR: [u8; 4] = [0xa9, 0x05, 0x9c, 0xbb];
-
 pub const CHAIN_ID: u8 = 1;

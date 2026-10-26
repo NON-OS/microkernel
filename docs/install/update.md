@@ -39,7 +39,7 @@ Without a TPM the loader keeps no floor. Hardened and Air-Gapped then refuse to 
 
 The data volume's key and the key that seals remembered Wi-Fi networks are derived by the TPM under the boot [PCRs](../overview/glossary-linux-personality.md#pcr) 0, 4, 7 and 9: the firmware code, the boot manager the firmware measured, the Secure Boot policy, and the kernel the loader measured. Nothing of the key is stored, so a change to any of these gives another key:
 
-- after a firmware update, or after turning Secure Boot on or off, the installed data volume stays closed and remembered networks read `Sealed under a different boot state`;
+- after a firmware update, or after turning Secure Boot on or off, the installed data volume stays closed and remembered networks read `Sealed before a kernel, firmware or Secure Boot change`;
 - a newer kernel opens no volume an older one made, by design.
 
 The kernel never formats over a volume it cannot open: it leaves it, and a program that asks for it gets EIO while the serial console says `[DATA] refused with EIO: Unopenable`. The kernel's own line for this goes to its structured log, which nothing installs in this release, so it does not print. Putting the firmware and the Secure Boot setting back the way they were gives the old key back. Clearing the TPM changes the seed these keys come from, and every such key with it, for good.

@@ -28,9 +28,6 @@ mod prepare;
 mod repliable;
 mod types;
 
-pub use fragment::{Fragment, MAX_FRAGMENTS, UNLINKED_HEADER_LEN};
 pub use fragment_parse::parse;
-pub use plaintext::{FRAGMENT_PER_PACKET, PLAINTEXT_PER_PACKET};
-pub use prepare::{prepare, prepare_built, Prepared};
-pub use repliable::{pad_to_packets, repliable_additional_surbs, repliable_data, unpad};
-pub use types::{SENDER_TAG_SIZE, TAG_ADDITIONAL_SURBS, TAG_DATA, TYPE_REPLIABLE};
+pub use prepare::prepare_built;
+pub use repliable::{repliable_additional_surbs, repliable_data, unpad};

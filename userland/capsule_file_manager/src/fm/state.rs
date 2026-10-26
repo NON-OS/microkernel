@@ -108,7 +108,7 @@ pub struct State {
     // The vfs walk behind the info panel's directory rows, keyed by the path it
     // describes. Paint must never block on IPC, so the walk runs once per cursor
     // path and a refresh drops it; `None` inside the pair is a cached failure.
-    pub dir_info: Option<(String, Option<(u32, u32, u64, bool)>)>,
+    pub dir_info: Option<super::info_cache::DirWalk>,
     // Store occupancy as the vfs reports it: (files, bytes_used, max_files).
     // Read once per refresh, like `dir_info`, because the sidebar's drive card
     // draws every frame and paint must never block on IPC.
@@ -140,5 +140,5 @@ pub struct State {
     // for, keyed by that prefix. Taken while Home is showing and dropped by a
     // refresh, because paint must never block on IPC; `None` inside the pair is
     // a cached failure and is reported as one rather than shown as zero.
-    pub place_stats: Vec<(String, Option<(u32, u32, u64, bool)>)>,
+    pub place_stats: Vec<super::info_cache::DirWalk>,
 }

@@ -36,7 +36,7 @@ pub fn run(mut ctx: Context) -> ! {
     let mut sweep_ticks = 0u32;
     loop {
         sweep_ticks = sweep_ticks.wrapping_add(1);
-        if sweep_ticks % SWEEP_INTERVAL_TICKS == 0 {
+        if sweep_ticks.is_multiple_of(SWEEP_INTERVAL_TICKS) {
             let was = ctx.focus.current();
             sweep_dead(&mut ctx);
             tell_if_moved(&mut ctx, was);

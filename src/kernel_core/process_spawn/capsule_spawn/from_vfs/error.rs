@@ -25,6 +25,8 @@ pub enum LoadError {
     TrustAnchor,
     /// An endpoint name the image reserves, or outside the publisher's own.
     ReservedName,
+    /// The ELF read from the store is empty: never a missing feature (B-02).
+    EmptyImage,
     Spawn(SpawnError),
     /// The capsule would hold capabilities its parent lacks, and the parent
     /// is no launcher.

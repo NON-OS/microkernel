@@ -26,6 +26,12 @@ pub fn print(s: &[u8]) {
     with_serial_lock(|| emit(s));
 }
 
+/// A process's own bytes (MkDebug, stdout), in one write as it gave them; a
+/// line it splits across calls is its own (column.rs keeps the kernel's whole).
+pub fn passthrough(s: &[u8]) {
+    print(s);
+}
+
 pub fn print_str(s: &str) {
     print(s.as_bytes());
 }

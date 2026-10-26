@@ -38,6 +38,8 @@ impl Conn {
         Self { phase: Phase::Greeting, acc: [0u8; ACC_MAX], len: 0 }
     }
 
+    /// Only the proofs ask it.
+    #[cfg(test)]
     pub fn is_relaying(&self) -> bool {
         self.phase == Phase::Relaying
     }
@@ -68,13 +70,5 @@ impl Conn {
             Phase::Request => self.request(),
             Phase::Relaying | Phase::Closed => Event::Close,
         }
-    }
-
-    // Keep bytes belonging to the next phase: a client may pipeline the
-    // request behind the greeting.
-    pub(super) fn drain(&mut self, n: usize) {
-        let n = n.min(self.len);
-        self.acc.copy_within(n..self.len, 0);
-        self.len -= n;
     }
 }

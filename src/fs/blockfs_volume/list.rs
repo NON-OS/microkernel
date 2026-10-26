@@ -29,7 +29,7 @@ use crate::fs::blockfs;
 /// An empty path is the volume root, which is how a caller asks what the
 /// machine kept without knowing any name in advance.
 pub fn list(path: &[u8]) -> Result<Vec<Vec<u8>>, VolumeError> {
-    let guard = crate::smp::read_responsive(&VOLUME);
+    let guard = VOLUME.read();
     let state = guard.as_ref().ok_or(VolumeError::NotMounted)?;
     Ok(entries(state, path)?.into_iter().map(|e| e.name).collect())
 }

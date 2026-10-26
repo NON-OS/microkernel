@@ -22,19 +22,24 @@ use crate::state::{set_ip_port, set_local_ip, TABLE};
 const IP_NAME: &str = "net.ip";
 
 #[derive(Clone, Copy, PartialEq, Eq)]
+/// What setup found missing.
 pub enum SetupError {
-    IpMissing,
-    ConfigMissing,
-    EntropyMissing,
+    /// No `net.ip` service to look up.
+    Ip,
+    /// The IP service gave no address.
+    Config,
+    /// Too little entropy to key the ISS.
+    Entropy,
 }
 
 fn seed_iss_key() -> Result<(), SetupError> {
     let mut raw = [0u8; 16];
     if crypto_random(raw.as_mut_ptr(), raw.len()) != raw.len() as i64 {
-        return Err(SetupError::EntropyMissing);
+        return Err(SetupError::Entropy);
     }
     let k0 = u64::from_le_bytes([raw[0], raw[1], raw[2], raw[3], raw[4], raw[5], raw[6], raw[7]]);
-    let k1 = u64::from_le_bytes([raw[8], raw[9], raw[10], raw[11], raw[12], raw[13], raw[14], raw[15]]);
+    let k1 =
+        u64::from_le_bytes([raw[8], raw[9], raw[10], raw[11], raw[12], raw[13], raw[14], raw[15]]);
     TABLE.lock().seed_iss([k0, k1]);
     Ok(())
 }
@@ -45,11 +50,11 @@ pub fn run() -> Result<(), SetupError> {
     let mut pid = 0u32;
     let rc = mk_service_lookup(IP_NAME.as_ptr(), IP_NAME.len(), &mut port, &mut pid);
     if rc != 0 || port == 0 {
-        return Err(SetupError::IpMissing);
+        return Err(SetupError::Ip);
     }
-    let ip = read_ipv4(port).map_err(|_| SetupError::ConfigMissing)?;
+    let ip = read_ipv4(port).map_err(|_| SetupError::Config)?;
     if ip == [0, 0, 0, 0] {
-        return Err(SetupError::ConfigMissing);
+        return Err(SetupError::Config);
     }
     set_ip_port(port);
     set_local_ip(ip);

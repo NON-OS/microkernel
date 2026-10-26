@@ -28,11 +28,10 @@ mod plan;
 use alloc::vec::Vec;
 
 use super::super::types::CpuTopology;
-use super::state::{set_ap_list, set_topology};
 use crate::smp::MAX_CPUS;
 use leaves::{cpuid, via_leaf_04, via_leaf_0b};
 
-pub(super) fn detect() -> usize {
+pub(super) fn detect() -> (CpuTopology, Vec<u32>) {
     let mut topology = CpuTopology {
         logical_cpus: 1,
         physical_cores: 1,
@@ -63,9 +62,7 @@ pub(super) fn detect() -> usize {
     let aps = secondaries(topology.logical_cpus);
     topology.logical_cpus = (aps.len() + 1).min(MAX_CPUS);
 
-    set_topology(topology);
-    set_ap_list(aps);
-    topology.logical_cpus
+    (topology, aps)
 }
 
 /// Every processor the MADT says to start, by APIC id, except this one.

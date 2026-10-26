@@ -2,7 +2,7 @@
 
 //! Each way a join ends has its code, with the meanings the client shows.
 
-use nonos_wifi_core::mlme::MlmeFailure;
+use nonos_wifi_core::mlme::{MlmeFailure, MlmeState};
 use nonos_wifi_core::rsn::SelectError;
 use nonos_wifi_core::sae::SaeFailure;
 use nonos_wifi_core::wpa::supplicant::Failure;
@@ -28,6 +28,7 @@ fn each_way_a_join_ends_has_its_own_code() {
         (MlmeFailure::Left(15), (CODE_TIMED_OUT, 15)),
         (MlmeFailure::Handshake(Failure::IeMismatch), (CODE_IE_MISMATCH, 0)),
         (MlmeFailure::Handshake(Failure::BadKeyData), (CODE_TIMED_OUT, 0)),
+        (MlmeFailure::Timeout(MlmeState::Associating), (CODE_TIMED_OUT, 0)),
     ];
     for (f, want) in cases {
         assert_eq!(failure_code(f), want);

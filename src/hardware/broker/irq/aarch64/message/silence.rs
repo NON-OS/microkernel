@@ -20,7 +20,7 @@
 
 use crate::drivers::pci::config::ConfigSpace;
 use crate::drivers::pci::msi::{disable_msix, mask_all_msix, mask_msix_vector, zero_msix_vector};
-use crate::hardware::broker::pci_index::PciHandle;
+use crate::hardware::broker::pci_index::{msi_of, PciHandle};
 
 use super::msi_program::clear;
 use super::record::MessageBind;
@@ -31,7 +31,7 @@ pub(super) fn vector(b: &MessageBind, handle: Option<&PciHandle>, i: usize) {
         return;
     };
     if !b.msix {
-        if let Some(msi) = h.msi {
+        if let Some(msi) = msi_of(h) {
             let _ = clear(&h.address, &msi);
         }
     } else if let Some(msix) = h.msix {

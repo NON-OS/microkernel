@@ -25,9 +25,10 @@ pub(crate) fn init_memory_encryption() {
             serial::println(b"[NONOS] memory encryption: none");
         }
         Ok(MemEncryption::Pending(c_bit)) => {
-            serial::print(b"[NONOS] memory encryption: SME C-bit=");
-            serial::print(&[b'0' + (c_bit / 10), b'0' + (c_bit % 10)]);
-            serial::println(b" (walk queued, live conversion deferred)");
+            let mut l = serial::Line::new();
+            l.str(b"[NONOS] memory encryption: SME C-bit=");
+            l.str(&[b'0' + (c_bit / 10), b'0' + (c_bit % 10)]);
+            l.str(b" (walk queued, live conversion deferred)").end();
         }
         Ok(MemEncryption::AmdSme) | Ok(MemEncryption::AmdSev) => {
             serial::println(b"[NONOS] memory encryption: AMD SME active");

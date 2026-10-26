@@ -19,6 +19,7 @@ mod asked;
 mod baked_apps;
 mod baked_names;
 mod bound;
+mod empty;
 mod endpoint;
 mod name_rule;
 mod names;

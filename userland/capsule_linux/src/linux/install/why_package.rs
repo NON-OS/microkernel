@@ -55,4 +55,6 @@ impl Why {
     pub const POLICY: Self = Self(36);
     /// A package would not fit in free memory to unpack; nothing of it landed.
     pub const UNPACK_MEMORY: Self = Self(37);
+    /// A run holds the package's pack open (EBUSY); nothing of it changed.
+    pub const IN_USE: Self = Self(38);
 }

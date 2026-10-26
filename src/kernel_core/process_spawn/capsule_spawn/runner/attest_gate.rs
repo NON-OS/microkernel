@@ -27,38 +27,33 @@ pub(crate) fn attest_gate(
     let trailer = spec.attestation_trailer;
     if trailer.is_empty() {
         crate::sys::bench::mark_named(b"capsule_attest_none", spec.name.as_bytes());
-        crate::sys::serial::print(b"[ZK-ATTEST] none ");
-        crate::sys::serial::print(spec.name.as_bytes());
-        crate::sys::serial::print(b"\n");
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[ZK-ATTEST] none ").str(spec.name.as_bytes()).end();
         return Err(SpawnError::AttestationRejected);
     }
     match verify_capsule_attestation(trailer, spec.elf, install_caps) {
         Ok(proved) => {
             crate::sys::bench::mark_named(b"capsule_attest_ok", spec.name.as_bytes());
-            crate::sys::serial::print(b"[ZK-ATTEST] ok ");
-            crate::sys::serial::print(spec.name.as_bytes());
             /*
              * The authority is on the line: a reader of the boot log should be
              * able to tell shipped capsules from ones built on this machine.
              */
-            crate::sys::serial::print(b" ");
-            crate::sys::serial::print(proved.authority.as_str().as_bytes());
-            crate::sys::serial::print(b"\n");
+            let mut l = crate::sys::serial::Line::new();
+            l.str(b"[ZK-ATTEST] ok ").str(spec.name.as_bytes());
+            l.str(b" ").str(proved.authority.as_str().as_bytes()).end();
             let cert = spec.nonos_id_cert_bytes;
             crate::security::capsule_measure::admit(cert, trailer, proved.is_vendor());
             Ok(Some(proved))
         }
         Err(e) => {
             crate::sys::bench::mark_named(b"capsule_attest_fail", spec.name.as_bytes());
-            crate::sys::serial::print(b"[ZK-ATTEST] FAIL ");
-            crate::sys::serial::print(spec.name.as_bytes());
-            crate::sys::serial::print(b": ");
-            crate::sys::serial::print(e.as_str().as_bytes());
+            let mut l = crate::sys::serial::Line::new();
+            l.str(b"[ZK-ATTEST] FAIL ").str(spec.name.as_bytes());
+            l.str(b": ").str(e.as_str().as_bytes());
             if let crate::security::capsule_attest::AttestError::ProofRefused(code) = e {
-                crate::sys::serial::print(b" code ");
-                crate::sys::serial::print_dec(u64::from(code));
+                l.str(b" code ").dec(u64::from(code));
             }
-            crate::sys::serial::print(b"\n");
+            l.end();
             Err(SpawnError::AttestationRejected)
         }
     }

@@ -38,7 +38,7 @@ fn a_handoff_claiming_both_is_refused_before_anything_reads_the_framebuffer() {
 fn the_kernel_keeps_the_reason_and_says_it_once() {
     assert!(NO_FB.contains("REFUSAL.call_once(|| why.why_word());"));
     assert_eq!(NO_FB.matches("log_no_framebuffer(why);").count(), 1);
-    assert!(NO_FB.contains("print(b\"[GOP] no framebuffer handed over\");"));
+    assert!(NO_FB.contains("l.str(b\"[GOP] no framebuffer handed over\").str(why.says()"));
 }
 
 #[test]

@@ -46,9 +46,9 @@ fn block(h: &mut [u32; 5], c: &[u8]) {
         w[i] = (w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16]).rotate_left(1);
     }
     let (mut a, mut b, mut c0, mut d, mut e) = (h[0], h[1], h[2], h[3], h[4]);
-    for i in 0..80 {
+    for (i, wi) in w.iter().enumerate() {
         let (f, k) = round(i, b, c0, d);
-        let t = a.rotate_left(5).wrapping_add(f).wrapping_add(e).wrapping_add(k).wrapping_add(w[i]);
+        let t = a.rotate_left(5).wrapping_add(f).wrapping_add(e).wrapping_add(k).wrapping_add(*wi);
         e = d;
         d = c0;
         c0 = b.rotate_left(30);

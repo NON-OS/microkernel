@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod driver;
+mod finish;
+mod grants;
 mod sequence;
 
 pub use sequence::run;

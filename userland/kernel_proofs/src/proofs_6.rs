@@ -24,6 +24,9 @@ pub mod block_wire;
 /// The GOP present refused while a claimed device holds the boot framebuffer.
 #[path = "boot_fb/mod.rs"]
 mod boot_fb;
+/// Debug optional for the drivers a development image should hear.
+#[path = "debug_grants/mod.rs"]
+mod debug_grants;
 #[path = "described/mod.rs"]
 pub mod described;
 /// Disk controllers before the bus drivers.

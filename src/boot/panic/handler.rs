@@ -17,17 +17,29 @@
 use core::fmt::Write;
 use core::panic::PanicInfo;
 
-struct SerialWriter;
+/* The panic's text, formatted whole into the stack and written once through
+ * the fatal writer (sys/serial/fatal.rs): longer than a Line holds, never
+ * waiting on a lock the panicking CPU may itself hold. Past 1 KiB it is cut. */
+struct PanicText {
+    buf: [u8; 1024],
+    len: usize,
+}
 
-impl core::fmt::Write for SerialWriter {
+impl core::fmt::Write for PanicText {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
-        crate::sys::serial::print(s.as_bytes());
+        let room = self.buf.len() - self.len;
+        let take = s.len().min(room);
+        self.buf[self.len..self.len + take].copy_from_slice(&s.as_bytes()[..take]);
+        self.len += take;
         Ok(())
     }
 }
 
 fn serial_print(args: core::fmt::Arguments<'_>) {
-    let _ = SerialWriter.write_fmt(args);
+    let mut t = PanicText { buf: [0; 1024], len: 0 };
+    let _ = t.write_fmt(args);
+    let text = t.buf[..t.len].strip_suffix(b"\n").unwrap_or(&t.buf[..t.len]);
+    crate::sys::serial::core::write_fatal_line(text);
 }
 
 // Panic path: serial trace and the GOP band, then `end`: stop every other
@@ -35,7 +47,7 @@ fn serial_print(args: core::fmt::Arguments<'_>) {
 // without a lock and power off (`zerostate::panic_wipe_and_off`, which
 // says the order). `end` is taken before anything is printed, so a fault or
 // a second panic in the printing goes straight to the wipe. The receiving
-// side is the IPI vector itself (`smp::ipi_dispatch::handlers::panic`),
+// side is the IPI vector itself (`arch::interrupt_controller::ipi_dispatch::handlers::panic`),
 // which halts without returning; on a single-CPU runtime the broadcast
 // targets nobody and the local halt is the whole story. No VGA text banner:
 // 0xB8000 is in no process's address space, so writing it from a panic in

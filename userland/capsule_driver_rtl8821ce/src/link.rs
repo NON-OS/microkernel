@@ -28,6 +28,8 @@ mod dead;
 mod ends;
 #[path = "link/frames.rs"]
 mod frames;
+#[path = "link/gone.rs"]
+mod gone;
 #[path = "link/held.rs"]
 mod held;
 #[path = "link/history.rs"]
@@ -44,10 +46,14 @@ mod new;
 mod radio;
 #[path = "link/receive.rs"]
 mod receive;
+#[path = "link/rings.rs"]
+mod rings;
 #[path = "link/send.rs"]
 mod send;
 #[path = "link/session.rs"]
 mod session;
+#[path = "link/sleep.rs"]
+mod sleep;
 #[path = "link/stall.rs"]
 mod stall;
 #[path = "link/state.rs"]
@@ -62,4 +68,5 @@ pub use buffers::RxBuffers;
 pub use counts::LinkStats;
 pub use dead::DeadLink;
 pub use keys::RtlKeys;
+pub use rings::engines_on;
 pub use state::RtlLink;

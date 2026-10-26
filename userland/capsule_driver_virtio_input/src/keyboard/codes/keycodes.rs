@@ -46,6 +46,10 @@ pub const KEYCODE_PGUP: u32 = 0x1207;
 pub const KEYCODE_PGDN: u32 = 0x1208;
 pub const KEYCODE_INS: u32 = 0x1209;
 pub const KEYCODE_DEL: u32 = 0x120A;
+// Print Screen (KEY_SYSRQ, which a Linux device sends for it) and Pause, as
+// the PS/2 driver posts them.
+pub const KEYCODE_PRINT: u32 = 0x120B;
+pub const KEYCODE_PAUSE: u32 = 0x120C;
 // The system keys: the laptop's Fn volume keys and the power button. The
 // router hands them to the desktop shell whatever window has focus.
 pub const KEYCODE_MUTE: u32 = 0x1301;

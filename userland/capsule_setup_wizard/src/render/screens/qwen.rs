@@ -69,14 +69,12 @@ const TCG: &[u8] = b"QEMU's software CPU is slow: the smallest Qwen3 answers soo
 
 pub fn draw(ctx: &Context) {
     render::frame(ctx, b"Qwen model", b"Up and Down to choose a tier", b"ENTER NEXT  ESC BACK");
-    let spx = ctx.stride as usize / 4;
-    let (w, h) = (ctx.width, ctx.height);
     let l = render::layout_of(ctx);
-    let (buf, x) = (render::buffer(ctx), l.col_x);
+    let (cv, x) = (&mut render::canvas(ctx), l.col_x);
     let room = l.line_rows(QWEN_AFTER_LINES, 2);
     let install = mode::keeps(ctx);
     let who = ctx.qwen.who(install);
-    let y = qwen_rows::draw(buf, spx, w, h, x, l.body_y, &ctx.qwen, install, room);
+    let y = qwen_rows::draw(cv, x, l.body_y, &ctx.qwen, install, room);
     let (mut line, mut s) = ([0u8; 96], [0u8; 24]);
     let (head, rest): (&[u8], &[u8]) = match who {
         For::Installed => (
@@ -95,7 +93,7 @@ pub fn draw(ctx: &Context) {
     };
     let rule: &[&[u8]] = &[memory, rest];
     let rule = if ctx.qwen.memory.is_some() && !rest.is_empty() { rule } else { &rule[..1] };
-    let y = lines::text(buf, spx, w, h, x, y + l.gap, rule, HINT);
+    let y = lines::text(cv, x, y + l.gap, rule, HINT);
     let said: &[&[u8]] = match who {
         For::Installed if ctx.qwen.tcg => &[WHERE[0], WHERE[1], WHERE[2], TCG],
         For::Installed => WHERE,
@@ -103,7 +101,7 @@ pub fn draw(ctx: &Context) {
         For::NoDisk if ctx.qwen.pending => FINDING,
         For::NoDisk => NO_DISK,
     };
-    lines::text(buf, spx, w, h, x, y + l.gap, said, FG);
+    lines::text(cv, x, y + l.gap, said, FG);
 }
 
 pub fn on_key(ctx: &mut Context, code: u32) -> Outcome {

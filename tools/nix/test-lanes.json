@@ -30,6 +30,7 @@
  "userland/nonos_http": "",
  "userland/nonos_i2cmodel": "",
  "userland/nonos_keymap": "",
+ "userland/nonos_linux_pack": "",
  "userland/nonos_linux_policy": "",
  "userland/nonos_mac": "",
  "userland/nonos_nox_broker": "",

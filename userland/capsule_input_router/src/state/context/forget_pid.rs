@@ -36,5 +36,8 @@ impl Context {
         if self.last_focus_pid == pid {
             self.last_focus_pid = 0;
         }
+        if self.last_input == pid {
+            self.last_input = 0;
+        }
     }
 }

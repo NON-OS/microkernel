@@ -128,7 +128,7 @@ The host tests of this path pass on this commit: `route_link_proofs` (73 tests),
   - The shield: `anonymous_route` in `userland/shield_core/src/net/tor/stream.rs`; installs over Anyone: `for_installs` and `install_route` in `userland/nonos_route_link/src/pick.rs:58-63`.
   - Mirrors on a private address: `is_local` in `userland/capsule_linux/src/linux/net/route.rs`; the older comment on installs: `userland/policy_proto/src/route.rs`.
 - How names are looked up
-  - The `.anyone` addresses: `for_host` in `userland/nonos_route_link/src/pick.rs:117-123`; the pinned directory address: `PINNED` in `userland/capsule_net_nym/src/directory_sync/pinned.rs:27`.
+  - The `.anyone` addresses: `for_host` in `userland/nonos_route_link/src/pick.rs:117-123`; the pinned directory address: `API_HOST` and `API_ADDRESSES` in `userland/capsule_net_nym/src/directory_sync/live.rs:24-30`.
 - What each network protects, and what it does not
   - Three hops: `HOPS` in `userland/capsule_net_anon/src/protocol/limits.rs:61`; four of seven signatures: `REQUIRED_SIGNATURES` in `userland/capsule_net_anon/src/directory/authority/types.rs:29`; one guard: `GUARD_ATTEMPTS` in `userland/capsule_net_anon/src/manager/guard.rs:27`.
   - Nym and Anyone run under every choice: `spawn` in `src/userspace/init/spawn_plan/network/spawn.rs`, `idle` in `userland/capsule_net_anon/src/server/idle.rs`; the longer read waits: `patience_ms` in `userland/nonos_route_link/src/describe.rs:54-60`.

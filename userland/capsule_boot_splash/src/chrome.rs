@@ -16,6 +16,8 @@
 
 use nonos_toolkit::font::render::draw_text;
 
+use crate::layout::Area;
+
 const ACCENT: u32 = 0xFF00_D4AA;
 const BORDER: u32 = 0xFF13_4237;
 
@@ -30,12 +32,11 @@ pub(crate) fn rect(buf: &mut [u32], spx: usize, x: u32, y: u32, w: u32, h: u32, 
     }
 }
 
-/// A titled panel at `(px, py)`, `pw` by `ph`, on a `w` by `h` screen.
 pub(crate) fn panel(
     buf: &mut [u32],
     spx: usize,
     (w, h): (u32, u32),
-    (px, py, pw, ph): (u32, u32, u32, u32),
+    (px, py, pw, ph): Area,
     title: &[u8],
 ) {
     rect(buf, spx, px, py, pw, ph, BORDER);

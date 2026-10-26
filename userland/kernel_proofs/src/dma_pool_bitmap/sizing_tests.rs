@@ -14,19 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::sizing::{low32_fit, low32_floor, low32_target_pages, pressure_quarter};
+use super::low32_sizing::{low32_fit, low32_target_pages};
+use super::sizing::{low32_floor, pressure_quarter, LOW32_MAX_PAGES_TRACKED as MAX};
 
 const MIB: u64 = 1 << 20;
 
 #[test]
 fn the_pool_grows_with_low_memory_between_8_and_32_mib() {
-    assert_eq!(low32_target_pages(0), 2048);
-    assert_eq!(low32_target_pages(512 * MIB), 2048);
-    assert_eq!(low32_target_pages(1024 * MIB), 2048);
-    assert_eq!(low32_target_pages(2048 * MIB), 4096);
-    assert_eq!(low32_target_pages(3 * 1024 * MIB), 6144);
-    assert_eq!(low32_target_pages(4096 * MIB), 8192);
-    assert_eq!(low32_target_pages(u64::MAX), 8192);
+    assert_eq!(low32_target_pages(0, MAX), 2048);
+    assert_eq!(low32_target_pages(512 * MIB, MAX), 2048);
+    assert_eq!(low32_target_pages(1024 * MIB, MAX), 2048);
+    assert_eq!(low32_target_pages(2048 * MIB, MAX), 4096);
+    assert_eq!(low32_target_pages(3 * 1024 * MIB, MAX), 6144);
+    assert_eq!(low32_target_pages(4096 * MIB, MAX), 8192);
+    assert_eq!(low32_target_pages(u64::MAX, MAX), 8192);
 }
 
 #[test]

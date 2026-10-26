@@ -48,10 +48,7 @@ pub fn init_local_apic() {
     let raw_id = unsafe { lapic_read_raw(LAPIC_ID) };
     let x2 = super::x2apic::is_x2(Ordering::Acquire);
     let id = if x2 { raw_id } else { raw_id >> 24 };
-    serial::print(b"[APIC] Local APIC enabled, ID=");
-    serial::print_dec(id as u64);
-    serial::print(b" Version=0x");
-    serial::print_hex((version & 0xFF) as u64);
-    serial::print(if x2 { b" mode=x2APIC" } else { b" mode=xAPIC" });
-    serial::println(b"");
+    let mut l = serial::Line::new();
+    l.str(b"[APIC] Local APIC enabled, ID=").dec(id as u64).str(b" Version=0x");
+    l.hex((version & 0xFF) as u64).str(if x2 { b" mode=x2APIC" } else { b" mode=xAPIC" }).end();
 }

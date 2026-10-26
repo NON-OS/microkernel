@@ -59,7 +59,7 @@ impl<T, const WHOLE: bool> Drop for TripGuard<'_, T, WHOLE> {
         if WHOLE {
             self.lock.left(false);
         }
-        let (had, woken) = self.lock.rows.lock().give(self.me, WHOLE);
+        let (had, woken) = crate::smp::lock_responsive(&self.lock.rows).give(self.me, WHOLE);
         super::trip_back::gave(self.me, had);
         woken.into_iter().for_each(crate::sched::wake_process);
     }

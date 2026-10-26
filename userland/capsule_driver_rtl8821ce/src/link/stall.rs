@@ -4,12 +4,11 @@
 //! reading it.
 
 use super::buffers::RxBuffers;
+use super::rings::program_rings;
 use super::state::RtlLink;
 use crate::fw::dma::DmaMem;
 use crate::regs::Mmio;
-use crate::rx::program as rx_program;
 use crate::rx::ring::{RxState, RX_DESC_COUNT};
-use crate::tx::program as tx_program;
 use crate::tx::regs::{REG_TXBD_IDX_BEQ, TRX_BD_HW_IDX_MASK, TRX_BD_HW_IDX_SHIFT};
 use crate::tx::ring::{TxState, TX_DESC_COUNT};
 use crate::tx::stall::TxWatch;
@@ -30,9 +29,7 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
     /// (`new`), their indices from zero. The frames still queued are dropped:
     /// the card would never have sent them.
     pub(super) fn reset_rings(&mut self) {
-        tx_program(&self.mmio, self.tx_ring.device_addr());
-        rx_program(&self.mmio, &self.rx_ring, self.rx_buffers.device_addr());
-        crate::mac::reset_trx_dma(&self.mmio);
+        program_rings(&self.mmio, &self.tx_ring, &self.rx_ring, self.rx_buffers.device_addr());
         self.tx_state = TxState::new(TX_DESC_COUNT);
         self.rx_state = RxState::new(RX_DESC_COUNT);
         self.tx_watch = TxWatch::default();

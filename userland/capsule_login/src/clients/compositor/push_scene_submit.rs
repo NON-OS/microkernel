@@ -21,15 +21,20 @@ use nonos_libc::mk_ipc_call;
 use super::constants::{HDR_LEN, MAGIC, OP_SCENE_SUBMIT, SCENE_REQ_LEN, VERSION};
 use super::status;
 
+/// Where a surface sits in the scene: its rect and its band.
+pub struct Placement {
+    pub x: u32,
+    pub y: u32,
+    pub width: u32,
+    pub height: u32,
+    pub z: u32,
+}
+
 pub fn push_scene_submit(
     port: u32,
     request_id: u32,
     surface_handle: u64,
-    x: u32,
-    y: u32,
-    width: u32,
-    height: u32,
-    z: u32,
+    at: &Placement,
 ) -> Result<(), i32> {
     let mut tx = Vec::with_capacity(HDR_LEN + SCENE_REQ_LEN);
     tx.extend_from_slice(&MAGIC.to_le_bytes());
@@ -40,11 +45,11 @@ pub fn push_scene_submit(
     tx.extend_from_slice(&request_id.to_le_bytes());
     tx.extend_from_slice(&(SCENE_REQ_LEN as u32).to_le_bytes());
     tx.extend_from_slice(&surface_handle.to_le_bytes());
-    tx.extend_from_slice(&x.to_le_bytes());
-    tx.extend_from_slice(&y.to_le_bytes());
-    tx.extend_from_slice(&width.to_le_bytes());
-    tx.extend_from_slice(&height.to_le_bytes());
-    tx.extend_from_slice(&z.to_le_bytes());
+    tx.extend_from_slice(&at.x.to_le_bytes());
+    tx.extend_from_slice(&at.y.to_le_bytes());
+    tx.extend_from_slice(&at.width.to_le_bytes());
+    tx.extend_from_slice(&at.height.to_le_bytes());
+    tx.extend_from_slice(&at.z.to_le_bytes());
     tx.extend_from_slice(&0u32.to_le_bytes());
 
     let mut rx = vec![0u8; HDR_LEN + 4];

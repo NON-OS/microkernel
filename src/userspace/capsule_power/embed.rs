@@ -32,6 +32,16 @@ pub(crate) const POWER_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/pow
 pub(crate) const POWER_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/power.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-power")]
+const _: () = assert!(
+    !POWER_ELF.is_empty()
+        && !POWER_NONOS_ID_CERT_BYTES.is_empty()
+        && !POWER_MANIFEST_BYTES.is_empty()
+        && !POWER_ATTESTATION_BYTES.is_empty(),
+    "capsule_power built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-power"))]
 pub(crate) const POWER_ELF: &[u8] = &[];
 

@@ -27,7 +27,7 @@ mod low32_alloc;
 mod low32_free;
 mod pressure;
 mod run_taken;
-mod sizing;
+pub(crate) mod sizing;
 mod uncached;
 
 pub(super) use display::alloc;
@@ -36,6 +36,5 @@ pub(super) use give_back::give_back;
 pub(crate) use low32::init_low32_pool;
 pub(super) use low32_alloc::low32_alloc;
 pub(super) use pressure::say_low32;
-pub(crate) use sizing::{low32_fit, low32_target_pages};
 pub use uncached::init_uncached_pool;
 pub(super) use uncached::uncached_alloc;

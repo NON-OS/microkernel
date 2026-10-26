@@ -10,10 +10,10 @@ use crate::scan::Medium;
 use crate::server::respond::{sent, Reply};
 use crate::server::serve::Server;
 
-/// The longest a step may take: its window (server/serve.rs STEP_MS), a
-/// reset after a failed command (disk/recover.rs RECOVERY_MS), and a slot
-/// given back (xhci/slot.rs RELEASE_MS).
-pub const STEP_BOUND_MS: u64 = 6_000 + 8_000 + 6_000;
+/// The longest a step may take: its window, the longer with no device served
+/// (scan/step_window.rs), a reset after a failed command (disk/recover.rs
+/// RECOVERY_MS), and a slot given back (xhci/slot.rs RELEASE_MS).
+pub const STEP_BOUND_MS: u64 = crate::scan::SEARCH_STEP_MS + 8_000 + 6_000;
 
 /// The one reply to a request of `op` with `body` from `sender`, and no step
 /// yet: for a test that changes the device before the step that follows.

@@ -25,8 +25,8 @@ impl Blake2b {
         let block = self.buf;
         self.compress(&block, true);
         let n = core::cmp::min(out.len(), self.out_len);
-        for i in 0..n {
-            out[i] = (self.h[i / 8] >> (8 * (i % 8))) as u8;
+        for (i, byte) in out.iter_mut().take(n).enumerate() {
+            *byte = (self.h[i / 8] >> (8 * (i % 8))) as u8;
         }
     }
 }

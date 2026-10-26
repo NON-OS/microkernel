@@ -33,6 +33,16 @@ pub(crate) const PROCESS_MANAGER_MANIFEST_BYTES: &[u8] =
 pub(crate) const PROCESS_MANAGER_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/process_manager.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-process-manager")]
+const _: () = assert!(
+    !PROCESS_MANAGER_ELF.is_empty()
+        && !PROCESS_MANAGER_NONOS_ID_CERT_BYTES.is_empty()
+        && !PROCESS_MANAGER_MANIFEST_BYTES.is_empty()
+        && !PROCESS_MANAGER_ATTESTATION_BYTES.is_empty(),
+    "capsule_process_manager built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-process-manager"))]
 pub(crate) const PROCESS_MANAGER_ELF: &[u8] = &[];
 

@@ -33,6 +33,16 @@ pub(crate) const AUDIO_PLAYER_MANIFEST_BYTES: &[u8] =
 pub(crate) const AUDIO_PLAYER_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/audio_player.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-audio-player")]
+const _: () = assert!(
+    !AUDIO_PLAYER_ELF.is_empty()
+        && !AUDIO_PLAYER_NONOS_ID_CERT_BYTES.is_empty()
+        && !AUDIO_PLAYER_MANIFEST_BYTES.is_empty()
+        && !AUDIO_PLAYER_ATTESTATION_BYTES.is_empty(),
+    "capsule_audio_player built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-audio-player"))]
 pub(crate) const AUDIO_PLAYER_ELF: &[u8] = &[];
 

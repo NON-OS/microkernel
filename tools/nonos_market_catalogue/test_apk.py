@@ -60,5 +60,33 @@ class Program(unittest.TestCase):
         self.assertIsNone(program(b"", "doc"))
 
 
+class ByBytes(unittest.TestCase):
+    """A recipe's `program`: install/market/choose.rs records the usr/bin
+    name whose last copy is the policy's bytes, its own name first."""
+
+    def test_the_wallet_among_the_daemon_and_tools(self):
+        files = tar([("usr/bin/monero-blockchain-ancestry", ELF + b"a"),
+                     ("usr/bin/monero-wallet-cli", ELF + b"w"), ("usr/bin/monerod", ELF + b"d")])
+        self.assertEqual(program(files, "monero", "usr/bin/monero-wallet-cli"),
+                         ("usr/bin/monero-wallet-cli", ELF + b"w"))
+
+    def test_missing_scripts_and_paths_outside_usr_bin_are_refused(self):
+        files = tar([("usr/bin/s", b"#!/bin/sh\n"), ("usr/lib/w", ELF + b"w")])
+        for wanted in ("usr/bin/absent", "usr/bin/s", "usr/lib/w"):
+            with self.assertRaises(ValueError, msg=wanted):
+                program(files, "p", wanted)
+
+    def test_bytes_the_device_would_find_under_another_name_first_are_refused(self):
+        files = tar([("usr/bin/a", ELF + b"x"), ("usr/bin/b", ELF + b"x")])
+        with self.assertRaises(ValueError):
+            program(files, "p", "usr/bin/b")
+        self.assertEqual(program(files, "p", "usr/bin/a")[0], "usr/bin/a")
+        self.assertEqual(program(files, "b", "usr/bin/b")[0], "usr/bin/b", "the own name wins on the device too")
+
+    def test_the_last_copy_is_the_one_named(self):
+        files = tar([("usr/bin/w", ELF + b"old"), ("usr/bin/w", ELF + b"new")])
+        self.assertEqual(program(files, "p", "usr/bin/w")[1], ELF + b"new")
+
+
 if __name__ == "__main__":
     unittest.main()
