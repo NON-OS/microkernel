@@ -20,13 +20,16 @@
 //! measurement to the enrolled set, and the publisher signature covers it.
 //! 3: every entry carries a commerce block and every release the fields that
 //! sell it, all under the publisher's v3 signature.
+//! 4: every entry carries its logo's BLAKE3 after its description, zero
+//! for none, under the operator's index signature.
 
 pub const SCHEMA_V2: u32 = 2;
 pub const SCHEMA_V3: u32 = 3;
+pub const SCHEMA_V4: u32 = 4;
 
 /// The only schema the encoder writes.
-pub const CURRENT_SCHEMA: u32 = SCHEMA_V3;
+pub const CURRENT_SCHEMA: u32 = SCHEMA_V4;
 
 pub fn readable(schema: u32) -> bool {
-    schema == SCHEMA_V2 || schema == SCHEMA_V3
+    (SCHEMA_V2..=SCHEMA_V4).contains(&schema)
 }

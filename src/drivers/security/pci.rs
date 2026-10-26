@@ -42,30 +42,6 @@ pub fn validate_pci_access(
     Ok(())
 }
 
-pub fn validate_pci_extended_access(
-    bus: u8,
-    device: u8,
-    function: u8,
-    offset: u16,
-) -> Result<(), DriverError> {
-    // `bus` is u8, so `bus > PCI_MAX_BUS` (= u8::MAX) is unreachable.
-    let _ = bus;
-
-    if device > PCI_MAX_DEVICE {
-        return Err(DriverError::InvalidPciAccess);
-    }
-
-    if function > PCI_MAX_FUNCTION {
-        return Err(DriverError::InvalidPciAccess);
-    }
-
-    if offset >= PCI_EXTENDED_CONFIG_SIZE {
-        return Err(DriverError::InvalidPciAccess);
-    }
-
-    Ok(())
-}
-
 pub fn is_config_write_allowed(offset: u8) -> bool {
     !PROTECTED_CONFIG_OFFSETS.contains(&offset)
 }

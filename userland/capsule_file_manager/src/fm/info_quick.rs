@@ -21,7 +21,7 @@ use alloc::vec::Vec;
 use super::icon_path::Icon;
 
 // The strip is 236px inside its padding, which is under two measured labels
-// wide at the 17px floor `MIN_UI_PX` clamps to, so the tiles carry glyphs only
+// wide at the size labels are drawn at, so the tiles carry glyphs only
 // and every one of them names itself in the status line when it fires.
 const TILE_GAP: u32 = 4;
 

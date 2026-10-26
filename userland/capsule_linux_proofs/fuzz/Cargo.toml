@@ -30,6 +30,7 @@ cargo-fuzz = true
 [dependencies]
 libfuzzer-sys = "0.4"
 nonos_capsule_linux_proofs = { path = ".." }
+nonos_inflate = { path = "../../inflate" }
 
 [[bin]]
 name = "linux_inputs"
