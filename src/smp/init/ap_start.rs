@@ -20,6 +20,7 @@ use crate::smp::topology;
 use core::sync::atomic::Ordering;
 
 mod one;
+mod report;
 
 pub(super) fn start_aps() -> Result<usize, &'static str> {
     ensure_smp_ready()?;
@@ -78,19 +79,10 @@ pub(super) fn start_aps() -> Result<usize, &'static str> {
      * nobody invalidates and the boot looks healthy while doing it.
      */
     let online = crate::smp::cpus_online();
-    let mut l = crate::sys::serial::Line::new();
-    l.str(b"[SMP] answered=").dec(started as u64);
-    l.str(b" online=").dec(online as u64);
-    l.end();
-    #[cfg(feature = "nonos-smp-shootdown-proof")]
-    crate::memory::paging::manager::shootdown::run_proof();
+    report::answered(started, online);
     Ok(online.saturating_sub(1))
 }
 
 fn ensure_smp_ready() -> Result<(), &'static str> {
-    if SMP_INITIALIZED.load(Ordering::Acquire) {
-        Ok(())
-    } else {
-        Err("SMP not initialized")
-    }
+    SMP_INITIALIZED.load(Ordering::Acquire).then_some(()).ok_or("SMP not initialized")
 }
