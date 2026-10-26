@@ -18,6 +18,8 @@
 //! the TPM and the store), mounted as the client crate mounts it so its
 //! `super::` references resolve.
 
+#[path = "../../../nonos_wifi_client/src/saved/closed.rs"]
+mod closed;
 #[path = "../../../nonos_wifi_client/src/saved/dropped.rs"]
 mod dropped;
 // The mounted source names items the store path (not mounted here) uses.
@@ -38,6 +40,8 @@ mod pass;
 #[path = "../../../nonos_wifi_client/src/saved/pin.rs"]
 mod pin;
 
+#[cfg(test)]
+mod closed_tests;
 #[cfg(test)]
 mod evict_tests;
 #[cfg(test)]
