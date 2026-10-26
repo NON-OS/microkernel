@@ -15,6 +15,7 @@ path = "src/lib.rs"
 
 [dependencies]
 nonos_libc = { package = "rtl8821ce_proofs_libc_shim", path = "libc_shim" }
+nonos_mac = { path = "../nonos_mac" }
 nonos_wifi_core = { path = "../nonos_wifi_core" }
 
 [lints.rust]
