@@ -44,7 +44,7 @@ pub fn release(pcb: &Arc<ProcessControlBlock>) {
      * own CPU, so no CPU being on these tables does not mean nobody is using
      * them. They are freed with no such copy in progress (`peer_lock.rs`).
      */
-    let cleaned = crate::process::foreign::without_peer_calls(|| {
+    let cleaned = crate::process::foreign::without_peer_calls(asid, || {
         crate::memory::paging::manager::cleanup_address_space_keeping(asid, &keep)
     });
     if cleaned.is_err() {

@@ -20,6 +20,9 @@
 /// Which process owns which address space, read without the paging lock.
 #[path = "asid_directory/mod.rs"]
 pub mod asid_directory;
+/// A guest's peer calls hold its own lock, not one over every guest.
+#[path = "peer_stripe/mod.rs"]
+pub mod peer_stripe;
 /// The paging manager's lock, handed over in the order it was asked for.
 #[path = "ticket_lock/mod.rs"]
 pub mod ticket_lock;
