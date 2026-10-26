@@ -38,7 +38,8 @@ fn the_ack_names_the_records_own_seal_number() {
         n_meas: 7,
         app_id: [8; 32],
     };
-    let napr = write::finish(write::bound(&rec.encode(), b"strict", &[0; 256], &[0; 32]), b"d");
+    let bound = write::bound(&rec.encode(), b"strict", &[0; 256], &[0; 32]);
+    let napr = write::finish(bound, b"d", &[0; 45], &[]);
     assert_eq!(t::seal_no(&napr), Some(rec.seal_no));
     let ack = t::request(RECEIPT_ACK, 1, &rec.seal_no.to_le_bytes());
     let (_, body) = Header::parse(&ack, PROVE_MAGIC).unwrap();

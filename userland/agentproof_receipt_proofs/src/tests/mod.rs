@@ -22,6 +22,7 @@ mod pin;
 mod refusals;
 mod release;
 mod release_walk;
+mod release_bodies;
 mod registry;
 mod says;
 mod sweep;

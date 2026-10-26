@@ -26,7 +26,7 @@
 //! and its drop.
 
 use super::table::SEALED;
-use crate::syscall::microkernel::device_secret_caller;
+use crate::syscall::microkernel::device_proof::gate::device_secret_caller;
 use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_NOENT, ERRNO_NOMEM, ERRNO_PERM};
 
 /// `MkSealPeek(app_id, buf, len)`: record | witness | list of the newest

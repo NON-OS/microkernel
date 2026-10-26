@@ -3273,6 +3273,7 @@
    "src/userspace/capsule_linux/terminal/tier.rs",
    "src/userspace/init/app_choice/bits.rs",
    "tools/nix/store.json",
+   "userland/capsule_linux/Cargo.toml",
    "userland/capsule_linux/build",
    "userland/capsule_linux/guests/busybox.elf",
    "userland/capsule_linux/keys",

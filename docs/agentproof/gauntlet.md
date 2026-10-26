@@ -49,8 +49,9 @@ All of these, read from the serial log:
 With no `--trust`, the trust is pinned from that receipt on first use (`trust.pinned`).
 That shows the receipt is whole and signed by the AK it carries, not that anyone vouched
 for that AK or that release. Pass `--trust` with a file you keep to check later runs
-against the first. A development image extends no PCR 14, so today its receipts are
-refused at `release` and the run fails with that reason (letter server/14).
+against the first. A Gauntlet image is a development image: its receipt verifies, and the
+verifier's `kind` line says it is not a release (every capsule path-only). The pass is on
+verification; that line is in the output and in `result.json`.
 
 The lines it judges are written by the image, never by the agent. `[BOX]` comes from the
 Terminal, out of the box's keyed report frames. `[AGENTPROOF]` comes from the headless
