@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// The real vfs store logic, assembled from the capsule source via #[path] with
-// a host clock shim in place of the syscall one. Seeding (`seed`, `packages`)
-// is left out because it needs baked-in signed artifacts; proofs build their
-// own fixtures on an empty store.
+// The vfs store's logic from the capsule source (#[path]), with a host clock;
+// seeding needs baked-in signed artifacts, so proofs make their own fixtures.
 
 mod time;
 
@@ -31,6 +29,8 @@ mod close;
 mod copy;
 #[path = "../../../capsule_vfs/src/store/fdtable/dirstat.rs"]
 mod dirstat;
+#[path = "../../../capsule_vfs/src/store/fdtable/held.rs"]
+mod held;
 #[path = "../../../capsule_vfs/src/store/fdtable/install.rs"]
 mod install;
 #[path = "../../../capsule_vfs/src/store/fdtable/journal.rs"]
@@ -39,12 +39,12 @@ mod journal;
 mod lookup;
 #[path = "../../../capsule_vfs/src/store/fdtable/mkdir.rs"]
 mod mkdir;
-#[path = "../../../capsule_vfs/src/store/fdtable/persist.rs"]
-mod persist;
 #[path = "../../../capsule_vfs/src/store/fdtable/new.rs"]
 mod new;
 #[path = "../../../capsule_vfs/src/store/fdtable/open.rs"]
 mod open;
+#[path = "../../../capsule_vfs/src/store/fdtable/persist.rs"]
+mod persist;
 #[path = "../../../capsule_vfs/src/store/fdtable/query.rs"]
 mod query;
 #[path = "../../../capsule_vfs/src/store/fdtable/read.rs"]

@@ -22,7 +22,7 @@ use nonos_market_proto::reason::*;
 use crate::linux_why::why::Why;
 
 /// Every reason the personality exits with, beside the code the clients read.
-const PAIRS: [(Why, u8); 34] = [
+const PAIRS: [(Why, u8); 35] = [
     (Why::INDEX, WHY_INDEX),
     (Why::NOT_PROVIDED, WHY_NOT_PROVIDED),
     (Why::TOO_LARGE, WHY_TOO_LARGE),
@@ -57,6 +57,7 @@ const PAIRS: [(Why, u8); 34] = [
     (Why::PROGRAM_UNREADABLE, WHY_PROGRAM_UNREADABLE),
     (Why::POLICY, WHY_POLICY),
     (Why::UNPACK_MEMORY, WHY_UNPACK_MEMORY),
+    (Why::IN_USE, WHY_IN_USE),
 ];
 
 #[test]

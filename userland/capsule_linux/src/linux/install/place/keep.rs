@@ -44,7 +44,7 @@ pub(super) fn keep(
         if !kept.links.is_empty() {
             super::super::place_links::unrecord(&kept.links);
         }
-        super::undo::undo(&kept.files, "its install record");
+        super::undo::undo(name, &kept.files, "its install record");
         return Err(Why::PARTIAL);
     }
     // Nothing persists unless asked, and never in plaintext. The store at

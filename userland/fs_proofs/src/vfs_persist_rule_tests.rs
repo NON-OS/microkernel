@@ -45,3 +45,7 @@ fn an_amnesic_boot_takes_zeros_and_an_empty_payload_only_as_a_withdrawal() {
         assert_eq!(keep(false, &vec![0u8; len]), Some(Keep::Withdraw), "{len} zeros");
     }
 }
+
+/* A pack a run holds open is never replaced or removed by another process. */
+#[path = "vfs_held_pack_tests.rs"]
+mod held_pack;

@@ -19,9 +19,10 @@ use super::super::auth::Verified;
 use alloc::vec::Vec;
 
 use super::super::manifest::Manifest;
+use super::super::market::hold::held;
 use super::super::tar::{walk, Kind};
 use super::super::Why;
-use super::entry::{allowed, one, Placed};
+use super::entry::allowed;
 use crate::linux::file::visible;
 
 /// Unpack a package's authenticated files into the store and report how
@@ -37,16 +38,11 @@ use crate::linux::file::visible;
 pub fn unpack(files: &Verified, name: &str, chosen: bool, merged: bool) -> Result<usize, Why> {
     let archive = walk(files.files());
     super::check::check(&archive.entries, name)?;
-    let mut landed: Vec<Vec<u8>> = Vec::new();
-    let mut failed = 0usize;
+    let put = super::packed::place(&archive.entries, name, chosen && held())?;
+    let (landed, failed) = (put.landed, put.failed);
     let mut links: Vec<(Vec<u8>, Vec<u8>)> = Vec::new();
     for entry in &archive.entries {
         match &entry.kind {
-            Kind::File => match one(entry, chosen && super::super::market::hold::held()) {
-                Placed::Landed(at) => landed.push(at),
-                Placed::Failed => failed += 1,
-                Placed::Refused => {}
-            },
             Kind::Symlink(to) if allowed(&entry.name) => {
                 links.push((visible(b"/", &entry.name), to.clone()));
             }
@@ -54,7 +50,8 @@ pub fn unpack(files: &Verified, name: &str, chosen: bool, merged: bool) -> Resul
             Kind::Hardlink(to) if allowed(&entry.name) => {
                 links.push((visible(b"/", &entry.name), visible(b"/", to)));
             }
-            // Directories are implied by the paths under them.
+            // Files are in the pack; directories are implied by the paths
+            // under them.
             _ => {}
         }
     }
@@ -69,7 +66,7 @@ pub fn unpack(files: &Verified, name: &str, chosen: bool, merged: bool) -> Resul
     let count = linked.as_ref().map(Vec::len);
     super::report::say(landed.len(), links.len(), count, archive.dropped);
     let Some(linked) = linked.filter(|_| failed == 0) else {
-        return Err(super::undo::partial(&landed, failed));
+        return Err(super::undo::partial(name, &landed, failed));
     };
     super::keep::keep(files, name, chosen, Manifest { files: landed, links: linked })
 }
