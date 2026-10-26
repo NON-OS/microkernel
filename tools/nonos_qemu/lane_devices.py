@@ -40,9 +40,9 @@ PLAIN = {
     "hold-at-off": "-action shutdown=pause",
 }
 
-# The screen sizes a gpu=virtio- lane offers: a small laptop panel, a common
-# one, Full HD, and one that takes the 1.5x scale (gpu=1024x768 is the smallest).
-SCREENS = ((1280, 800), (1366, 768), (1920, 1080), (2560, 1440))
+# The screen sizes a gpu=virtio- lane offers: the splash's smallest (no logo),
+# a small laptop panel, a common one, Full HD, and one that takes the 1.5x scale.
+SCREENS = ((640, 480), (1280, 800), (1366, 768), (1920, 1080), (2560, 1440))
 
 NICS = ("e1000", "e1000e", "igb", "rtl8139", "pcnet", "vmxnet3", "tulip")
 

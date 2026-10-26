@@ -65,7 +65,9 @@ pub fn keep(hold: &BoxHold) {
     unsafe { *LAST.0.get() = policy(hold) }
 }
 
-/// The policy of the last whole report drawn, if it named one.
+/// The policy of the last whole report drawn, if it named one; read only by
+/// the headless AgentProof run's receipt and terminal_line_proofs.
+#[cfg(any(feature = "agentproof-headless", feature = "line-proofs"))]
 pub fn last() -> Option<[u8; POLICY_LEN]> {
     unsafe { *LAST.0.get() }
 }

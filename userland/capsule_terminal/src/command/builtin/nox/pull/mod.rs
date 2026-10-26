@@ -31,6 +31,7 @@ pub mod scan;
 pub mod store;
 pub mod target;
 pub mod verify;
+pub mod verify_check;
 mod walk;
 
 pub use run::run;
