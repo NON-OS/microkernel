@@ -14,34 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A first PROVE or DELIVER: answered at once with its job id, then made,
-//! with STATUS and GET answered between the stages. EINVAL for a body that
-//! does not decode; ENOMEM, and exit, when the heap was not had.
+//! A first PROVE or DELIVER: answered at once with its job id; what its
+//! proofs need gathered, with STATUS and GET answered between the stages;
+//! then the worker started on them (worker.rs). EINVAL for a body that does
+//! not decode; ENOMEM, and exit, when the heap was not had.
 
 use nonos_libc::{mk_exit, mk_ipc_reply};
-use nonos_proof_abi::wire::{reply, DeliverRequest, Header, ProveRequest, Stage};
-use nonos_proof_abi::wire::{DELIVER, PROVE, PROVE_MAGIC};
+use nonos_proof_abi::wire::{reply, Header, Stage, PROVE_MAGIC};
 
+use super::ask::{ask, Ask};
 use super::drain::drain;
+use super::finish::Finish;
 use super::state::Job;
 
 const EINVAL: i32 = -22;
 const ENOMEM: i32 = -12;
 
-enum Ask<'a> {
-    Prove(ProveRequest<'a>),
-    Deliver(DeliverRequest<'a>),
-}
-
-fn ask<'a>(op: u16, body: &'a [u8]) -> Option<Ask<'a>> {
-    match op {
-        PROVE => ProveRequest::decode(body).map(Ask::Prove),
-        DELIVER => DeliverRequest::decode(body).map(Ask::Deliver),
-        _ => None,
-    }
-}
-
-pub fn start(h: &Header, body: &[u8], sender: u32, held: bool, buf: &mut [u8]) -> Option<Job> {
+/// The job, and what the serving thread keeps while the worker proves; no
+/// Finish when the job failed before the worker started.
+pub fn start(
+    h: &Header,
+    body: &[u8],
+    sender: u32,
+    held: bool,
+    buf: &mut [u8],
+) -> Option<(Job, Option<Finish>)> {
     let say = |status: i32, out: &[u8]| {
         let tx = reply(PROVE_MAGIC, h, status, out);
         let _ = mk_ipc_reply(sender, tx.as_ptr(), tx.len());
@@ -66,9 +63,10 @@ pub fn start(h: &Header, body: &[u8], sender: u32, held: bool, buf: &mut [u8]) -
             Ask::Deliver(r) => super::deliver::deliver(&r, sender, &mut stage),
         }
     };
-    match made {
-        Ok(out) => (j.stage, j.out) = (Stage::Done, out),
-        Err(status) => (j.stage, j.status) = (Stage::Failed, status),
+    let started = made.and_then(|(work, finish)| super::worker::start(work).map(|()| finish));
+    match &started {
+        Ok(_) => (j.stage, j.working) = (Stage::Device, true),
+        Err(status) => (j.stage, j.status) = (Stage::Failed, *status),
     }
-    Some(j)
+    Some((j, started.ok()))
 }
