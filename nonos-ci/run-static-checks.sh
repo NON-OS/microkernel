@@ -5332,6 +5332,16 @@ else
     fail_with "ap start: a failed AP start is discarded without its reason"
 fi
 unset aps_out
+# The pre-push check every unit runs (tools/nonos-unit-check): rustfmt, the
+# 75-line rule, no new #[allow], no key material. Its self-test makes each
+# finding in a scratch repository and proves a clean unit passes.
+if uc_out="$(python3 tools/nonos-unit-check --self-test 2>&1)"; then
+    note ok "the unit check catches what it says (nonos-unit-check)"
+else
+    tail -n 5 <<< "${uc_out}" >&2
+    fail_with "nonos-unit-check: its self-test failed"
+fi
+unset uc_out
 # The judge of the shootdown boot proof's log: a full flush reaching every
 # AP and a user-asid round reaching only the AP that holds the asid. The boot
 # is local (no lane may build the proof); its judge is held here.
