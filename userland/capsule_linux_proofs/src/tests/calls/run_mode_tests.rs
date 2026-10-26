@@ -18,8 +18,8 @@
 //! exact third word "cli" runs on the terminal, and there the chat keeps
 //! its model and loses its window.
 
-use crate::models::apps::all;
 use crate::console::run_mode::{parse, Mode};
+use crate::models::apps::all;
 
 #[test]
 fn a_run_request_names_its_package_and_mode() {

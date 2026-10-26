@@ -17,15 +17,11 @@
 //! A line that begins with `qwen`: a window asked for, tiers to download or
 //! list, help, or a chat on this terminal.
 
-use alloc::vec::Vec;
-
-use nonos_app_skeleton::clients::vfs::read_file;
 use nonos_libc::mk_time_millis;
 
 use super::ask::parse;
 use crate::command::output::Output;
-use crate::jobs::{submit, StdinQueue};
-use crate::term::cwd::resolve;
+use crate::jobs::submit;
 use crate::term::state::State;
 
 /// Run `line` when it is a `qwen` line. False, with nothing done, when not.
@@ -51,18 +47,8 @@ pub fn enter(state: &mut State, line: &[u8]) -> bool {
     }
     let tier = ask.tier();
     say_note(state);
-    /* A vision tier's ` < FILE` is its image, read here and never kept. */
-    let (question, file) = super::image::split(tier, ask.question);
-    let image = match file {
-        Some(path) => match read_image(state, path, question) {
-            Ok(bytes) => bytes,
-            Err(line) => {
-                state.scrollback.push_line(&line);
-                state.last_status = 1;
-                return true;
-            }
-        },
-        None => Vec::new(),
+    let Some((question, image)) = super::image_read::take(state, tier, ask.question) else {
+        return true;
     };
     if let Some(work) = super::start::spawn(state, tier, question, &image) {
         let _ = submit(state, &recorded, false, work);
@@ -70,19 +56,6 @@ pub fn enter(state: &mut State, line: &[u8]) -> bool {
         state.fg_started_ms = mk_time_millis();
     }
     true
-}
-
-/// The image `path` names, whole, or the line saying why not: what the
-/// terminal holds for a program, less the frame and the question.
-fn read_image(state: &State, path: &[u8], question: &[u8]) -> Result<Vec<u8>, Vec<u8>> {
-    let full = resolve(state.cwd.as_bytes(), path);
-    let most = super::image::image_max(StdinQueue::FILE_MAX + 1, question);
-    let at = |why: &[u8]| [&b"qwen: "[..], &full[..], b": ", why].concat();
-    match read_file(state.owner_pid, &full, most as u32 + 1) {
-        Ok(bytes) if bytes.len() > most => Err(at(b"larger than an image a model is handed (1 MiB with the question)")),
-        Ok(bytes) => Ok(bytes),
-        Err(e) => Err(at(e.as_bytes())),
-    }
 }
 
 /// The line `chosen` left when it ran another tier than the one chosen.
