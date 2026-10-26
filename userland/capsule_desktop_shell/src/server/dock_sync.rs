@@ -49,10 +49,7 @@ pub fn sync(ctx: &mut Context) {
                 rid,
                 TASKBAR_WINDOW_ID,
                 WINDOW_KIND_POPUP,
-                r.x,
-                r.y,
-                r.width,
-                r.height,
+                r,
             );
             if opened.is_ok() {
                 ctx.taskbar.window_open = true;

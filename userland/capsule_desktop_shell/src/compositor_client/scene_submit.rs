@@ -19,23 +19,28 @@ use super::wire::call;
 const OP: u16 = 0x0002;
 const BODY_LEN: usize = 32;
 
+/// Where a surface sits in the scene: its rect and its band.
+pub struct Placement {
+    pub x: u32,
+    pub y: u32,
+    pub width: u32,
+    pub height: u32,
+    pub z: u32,
+}
+
 pub fn push_scene_submit(
     compositor_port: u32,
     request_id: u32,
     surface_handle: u64,
-    x: u32,
-    y: u32,
-    width: u32,
-    height: u32,
-    z: u32,
+    place: &Placement,
 ) -> Result<(), &'static str> {
     let mut body = [0u8; BODY_LEN];
     body[0..8].copy_from_slice(&surface_handle.to_le_bytes());
-    body[8..12].copy_from_slice(&x.to_le_bytes());
-    body[12..16].copy_from_slice(&y.to_le_bytes());
-    body[16..20].copy_from_slice(&width.to_le_bytes());
-    body[20..24].copy_from_slice(&height.to_le_bytes());
-    body[24..28].copy_from_slice(&z.to_le_bytes());
+    body[8..12].copy_from_slice(&place.x.to_le_bytes());
+    body[12..16].copy_from_slice(&place.y.to_le_bytes());
+    body[16..20].copy_from_slice(&place.width.to_le_bytes());
+    body[20..24].copy_from_slice(&place.height.to_le_bytes());
+    body[24..28].copy_from_slice(&place.z.to_le_bytes());
     let status = call(compositor_port, OP, request_id, &body)?;
     if status != 0 {
         return Err("compositor rejected scene_submit");
