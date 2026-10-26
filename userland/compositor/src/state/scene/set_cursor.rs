@@ -25,7 +25,7 @@ impl SceneTable {
             .entries
             .iter_mut()
             .find(|l| l.in_use && l.owner_pid == owner_pid && l.surface_handle == handle)?;
-        l.cursor = code;
+        l.cursor = Some(code);
         Some(*l)
     }
 }

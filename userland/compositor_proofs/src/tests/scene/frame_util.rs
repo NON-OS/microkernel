@@ -32,7 +32,7 @@ pub fn layer(owner: u32, x: u32, y: u32, w: u32, h: u32, z: u32) -> Layer {
         stack: 0,
         in_use: true,
         miss_count: 0,
-        cursor: 0,
+        cursor: None,
     }
 }
 
