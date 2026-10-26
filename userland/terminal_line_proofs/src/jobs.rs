@@ -33,18 +33,6 @@ pub mod tool_argv;
 #[path = "../../capsule_terminal/src/command/builtin/tool_service.rs"]
 pub mod tool_service;
 
-/* A plain `linux` run asking to start again with the network: once, and
- * handed its input again from the start. */
-#[cfg(test)]
-#[path = "../../capsule_terminal/src/jobs/net_ask.rs"]
-pub mod net_ask;
-#[cfg(test)]
-#[path = "../../capsule_terminal/src/jobs/stdin_kept.rs"]
-pub mod stdin_kept;
-#[cfg(test)]
-#[path = "../../libc/src/linux_ask_net.rs"]
-pub mod linux_ask_net;
-
 #[cfg(test)]
 mod agentproof_job_sweep_tests;
 #[cfg(test)]
@@ -77,8 +65,6 @@ mod box_wait_tests;
 mod install_follow_tests;
 #[cfg(test)]
 mod kill_target_tests;
-#[cfg(test)]
-mod net_ask_tests;
 #[cfg(test)]
 mod pkg_handoff_tests;
 #[cfg(test)]

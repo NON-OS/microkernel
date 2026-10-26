@@ -7,7 +7,7 @@
 use super::net_ask::{ended, NetAsk, NET_TOOL, PLAIN_TOOL};
 use super::stdin_kept::{Kept, KEPT_MAX};
 
-const ASK: i32 = super::linux_ask_net::LINUX_ASK_NET;
+const ASK: i32 = super::foreign_frame::LINUX_ASK_NET;
 
 fn held() -> Option<NetAsk> {
     NetAsk::of(PLAIN_TOOL, 7, b"linux\0profanity", 3)

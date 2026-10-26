@@ -42,7 +42,6 @@ pub mod graphics;
 pub mod heap;
 pub mod install_source;
 pub mod ipc;
-pub mod linux_ask_net;
 mod local_sign;
 pub mod mem;
 #[cfg(feature = "panic-handler")]
@@ -99,8 +98,7 @@ pub use foreign::{
     mk_foreign_thread, mk_foreign_wait, mk_linux_run_net,
 };
 pub use foreign_fork::{mk_foreign_fork, mk_foreign_fork_at};
-pub use linux_ask_net::LINUX_ASK_NET;
-pub use foreign_frame::{ForeignFrame, FOREIGN_NR_DIED, FOREIGN_NR_INTERRUPTED};
+pub use foreign_frame::{ForeignFrame, FOREIGN_NR_DIED, FOREIGN_NR_INTERRUPTED, LINUX_ASK_NET};
 pub use foreign_signal::{
     mk_foreign_context, mk_foreign_interrupt, mk_foreign_signal, ForeignRegs, SIGNAL_DELIVER,
     SIGNAL_RETURN,

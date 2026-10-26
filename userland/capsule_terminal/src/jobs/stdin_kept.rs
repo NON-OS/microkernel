@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! What a program was handed of its input before it was heard from, kept
 //! so that a run started again (net_again.rs) is handed it again. A run
 //! asks to start again before its program runs, so nothing kept was read.

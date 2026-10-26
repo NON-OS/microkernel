@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! A plain `linux` run whose program's policy grants NET_ANON: the
 //! personality asks the kernel for a ticket and exits with LINUX_ASK_NET,
 //! and the terminal starts the same argv once more as `tool.linux.net`.

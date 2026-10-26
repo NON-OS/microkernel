@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Starting a plain `linux` run again with the network, once, when it
 //! ended asking for it (net_ask.rs): the same job, block and streams, a new
 //! pid, and its input handed to it again from the start.

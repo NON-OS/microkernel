@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The one ticket into app.linux.term.net for a run its box does not
 //! widen: a market program whose policy grants NET_ANON, started from the
 //! Terminal. The terminal role binds the policy, asks by MkLinuxRunNet for
@@ -61,5 +60,7 @@ pub fn end_tickets_of(pid: u32) {
 /// The process `pid` is a thread of, as the Terminal is one process however
 /// many threads it asks from.
 fn group_of(pid: u32) -> u32 {
-    crate::process::with_process(pid, |pcb| pcb.thread_group_id()).filter(|&g| g != 0).unwrap_or(pid)
+    crate::process::with_process(pid, |pcb| pcb.thread_group_id())
+        .filter(|&g| g != 0)
+        .unwrap_or(pid)
 }
