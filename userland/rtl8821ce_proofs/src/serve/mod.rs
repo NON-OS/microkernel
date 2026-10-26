@@ -3,8 +3,6 @@
 //! The driver's serve stage, mounted file by file as src/serve/mod.rs lays it
 //! out, so the proofs can sit inside it and reach its `pub(super)` items.
 
-#![allow(dead_code)] // what the proofs do not call of the mounted files
-
 #[path = "../../../capsule_driver_rtl8821ce/src/serve/after.rs"]
 mod after;
 #[path = "../../../capsule_driver_rtl8821ce/src/serve/answer.rs"]

@@ -1,10 +1,12 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! The PHY, RLC and MAC contexts.
 
+use super::fixtures::{image, ADDR};
 use crate::gen3::cmds::mac_config_add;
 use crate::gen3::station::mac::mac_config;
-use crate::gen3::station::phy::{phy_context, rlc_config, ACTION_ADD, ACTION_MODIFY, ACTION_REMOVE};
-use super::fixtures::{ADDR, image};
+use crate::gen3::station::phy::{
+    phy_context, rlc_config, ACTION_ADD, ACTION_MODIFY, ACTION_REMOVE,
+};
 
 #[test]
 fn the_phy_context_names_the_channel_band_and_width() {
