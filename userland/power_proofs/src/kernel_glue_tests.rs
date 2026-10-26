@@ -46,8 +46,10 @@ fn the_kernel_registers_power_off_at_spawn_on_the_declared_port() {
 }
 
 #[test]
-fn held_lets_the_shell_alone_address_power_off() {
-    assert!(HELD.contains("(\"power.off\", &[\"desktop_shell\"]),"));
+fn held_lets_the_shell_and_the_installers_address_power_off() {
+    assert!(
+        HELD.contains("(\"power.off\", &[\"desktop_shell\", \"app.install\", \"tool.install\"]),")
+    );
     assert_eq!(HELD.matches("\"power.off\"").count(), 1);
 }
 

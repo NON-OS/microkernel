@@ -96,8 +96,8 @@ pub(super) fn embedded_tools() -> Vec<ToolCapsule> {
          * First-party, hand-registered: the command-line installer. Not a
          * crates.io tool and not in apps.list, so it sits outside the
          * generated block, and it declares the authority the window version
-         * has: disks, the boot image, entropy, the attestation verdict, and
-         * the reboot at the end.
+         * has: disks, the boot image, entropy and the attestation verdict;
+         * its restart is asked of capsule_power.
          */
         #[cfg(feature = "nonos-capsule-install-cli")]
         tool_capsule!(

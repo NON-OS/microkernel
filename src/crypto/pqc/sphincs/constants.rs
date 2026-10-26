@@ -26,7 +26,7 @@ pub const SPHINCS_WOTS_LEN2: usize = 3;
 pub const SPHINCS_WOTS_LEN: usize = SPHINCS_WOTS_LEN1 + SPHINCS_WOTS_LEN2;
 pub const SPHINCS_WOTS_SIG_BYTES: usize = SPHINCS_WOTS_LEN * SPHINCS_N;
 
-pub const SPHINCS_FORS_MSG_BYTES: usize = (SPHINCS_K * SPHINCS_A + 7) / 8;
+pub const SPHINCS_FORS_MSG_BYTES: usize = (SPHINCS_K * SPHINCS_A).div_ceil(8);
 pub const SPHINCS_FORS_SIG_BYTES: usize = SPHINCS_K * (SPHINCS_A + 1) * SPHINCS_N;
 
 pub const SPHINCS_SK_SEED_BYTES: usize = SPHINCS_N;
