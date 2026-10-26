@@ -20,11 +20,9 @@ const FACTS: &[&[u8]] = &[
 
 pub fn draw(ctx: &Context) {
     render::frame(ctx, b"Privacy", b"What NONOS does without being asked", b"ENTER NEXT  ESC BACK");
-    let spx = ctx.stride as usize / 4;
-    let (w, h) = (ctx.width, ctx.height);
-    let buf = render::buffer(ctx);
+    let cv = &mut render::canvas(ctx);
     let l = render::layout_of(ctx);
-    lines::text(buf, spx, w, h, l.col_x, l.body_y, FACTS, FG);
+    lines::text(cv, l.col_x, l.body_y, FACTS, FG);
 }
 
 pub fn on_key(_ctx: &mut Context, code: u32) -> Outcome {
