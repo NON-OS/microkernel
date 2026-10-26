@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::reserved_rule::{place_clear, verdict, Held, Verdict};
-use super::space::{IOVA_BASE, IOVA_LIMIT, INTERRUPT_WINDOW_END, INTERRUPT_WINDOW_START};
+use super::place_clear::place_clear;
+use super::reserved_rule::{verdict, Held, Verdict};
+use super::space::{INTERRUPT_WINDOW_END, INTERRUPT_WINDOW_START, IOVA_BASE, IOVA_LIMIT};
 
 const STOLEN: (u64, u64) = (0x7B80_0000, 0x7F80_0000);
 

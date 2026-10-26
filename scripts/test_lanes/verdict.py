@@ -17,7 +17,8 @@
 still names a test no lane runs."""
 
 from .baseline import BASELINE, drift, read
-from .lanes import marked, misuse
+from .feature_lanes import feature_misuse, table
+from .lanes import misuse
 from .unrun import bearing, unrun
 
 SAY = {
@@ -51,7 +52,7 @@ def verdict(tree):
     """Every problem with the tree's tests, its markers and its list."""
     lane, found = unrun(tree)
     listed, problems = read(tree.root)
-    problems += list(misuse(tree)) + drift(tree.root, marked(tree))
+    problems += list(misuse(tree)) + list(feature_misuse(tree)) + drift(tree.root, table(tree))
     for path, (kind, crate, files) in sorted(found.items()):
         cls = listed.get(path, ("",))[0]
         if not cls:

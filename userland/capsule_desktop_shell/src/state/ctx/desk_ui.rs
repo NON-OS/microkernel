@@ -38,6 +38,12 @@ pub struct DeskUi {
     pub drag_y: u32,
 }
 
+impl Default for DeskUi {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DeskUi {
     pub fn new() -> Self {
         DeskUi {

@@ -31,8 +31,10 @@ pub use super::dmar_tables::dmar_scope::{translated_by_some, Cover, UnitScope};
 pub use super::dmar_tables::dmar_source_store::{
     hpet_source, ioapic_unit_source, source_scopes_dropped,
 };
-pub use super::dmar_tables::dmar_units::{remap_unit_bases, units_left_off, with_remap_unit_scopes};
-pub use super::hmat_load::{hmat_attached_initiator, hmat_value, parse_hmat};
+pub use super::dmar_tables::dmar_units::{
+    remap_unit_bases, units_left_off, with_remap_unit_scopes,
+};
+pub use super::hmat_load::{hmat_value, parse_hmat};
 pub use super::hpet::parse_hpet;
 pub use super::ivhd_alias_store::{amd_iommu_aliased, amd_iommu_special};
 pub use super::ivhd_special_table::amd_ioapic_requester;
@@ -44,9 +46,8 @@ pub use super::lpit_load::{lpit_state, parse_lpit};
 pub use super::mcfg::parse_mcfg;
 pub use super::numa_extra::{numa_distance, numa_initiators, parse_slit};
 pub use super::parse_all::parse_other_tables;
-pub use super::pcct_load::{parse_pcct, pcct_table};
+pub use super::pcct_load::parse_pcct;
 pub use super::sdev_load::{parse_sdev, sdev_entries};
-pub use super::serial_console_choice::{spcr_console_port, CONSOLE_FROM_SPCR};
-pub use super::serial_console_load::{debug_ports, parse_serial_console, serial_console};
+pub use super::serial_console_load::parse_serial_console;
 pub use super::srat::parse_srat;
 pub use super::wdat_load::{parse_wdat, wdat_action, wdat_table};
