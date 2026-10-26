@@ -226,7 +226,7 @@ let
     name: script:
     pkgs.runCommand "static-${name}" {
       src = root;
-      nativeBuildInputs = [ python pkgs.git pkgs.jq pkgs.gnugrep pkgs.gawk pkgs.findutils pkgs.diffutils pkgs.bash pkgs.which pins.rust ];
+      nativeBuildInputs = [ python pkgs.git pkgs.jq pkgs.gnugrep pkgs.gawk pkgs.findutils pkgs.diffutils pkgs.bash pkgs.which pkgs.b3sum pins.rust ];
     } ''
       cp -r $src tree && chmod -R u+w tree && cd tree
       ${gitTree}
@@ -247,6 +247,8 @@ let
       "scripts/check_test_lanes.py --self-test" "scripts/check_test_lanes.py"
       "-m unittest discover -s tools/nonos_selftest -p 'test_*.py'"
       "-m unittest discover -s tools/agentproof_gauntlet -t tools -p 'test_*.py'"
+      # The market catalogue tool's suite; its digests are BLAKE3, so b3sum.
+      "-m unittest discover -s tools/nonos_market_catalogue -t tools -p 'test_*.py'"
     ]);
     # verify.yml, abi-contracts and syscall-reach
     static-abi = static "abi" (scripts [
