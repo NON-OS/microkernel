@@ -4,9 +4,10 @@
  */
 
 //! One saved network, by name. With none, one row says so or says why the
-//! record could not be read.
+//! record could not be read, and then offers to forget it all.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_wifi_client::SavedError;
 
 use crate::settings::state::State;
 
@@ -17,6 +18,10 @@ use super::row_focus;
 use super::row_label;
 use super::text;
 use super::theme::OK;
+
+/// Beside a record that cannot be opened: what holds meanwhile, and the way
+/// out.
+const FORGET_ALL: &str = "Joins WPA3 only; F forgets all to save again";
 
 pub fn paint(
     fb: &mut PaintBuffer,
@@ -30,7 +35,8 @@ pub fn paint(
     let w = &state.wifi;
     if w.saved_count == 0 {
         let why = w.saved_err.map_or("None saved", |e| e.text());
-        row_label::paint(fb, card_x, screen_y, row_h, why, None);
+        let note = w.saved_err.is_some_and(SavedError::fails_closed).then_some(FORGET_ALL);
+        row_label::paint(fb, card_x, screen_y, row_h, why, note);
         return;
     }
     let i = index.min(w.saved_count - 1);

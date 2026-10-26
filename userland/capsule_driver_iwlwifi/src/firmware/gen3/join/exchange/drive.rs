@@ -45,6 +45,9 @@ pub fn run<M: Mmio, R: Region + ?Sized, C: Clock>(
             bss.protect(fw).map_err(|c| ExchangeEnd::Firmware(Some(c)))?;
         }
         let now = fw.clock.now_ms();
+        if mlme.expire(now) {
+            return Err(timed_out(mlme));
+        }
         if now.saturating_sub(start) >= EXCHANGE_MS || silent >= SILENT_WAITS_MAX {
             return Err(timed_out(mlme));
         }

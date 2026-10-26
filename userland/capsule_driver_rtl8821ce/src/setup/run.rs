@@ -55,5 +55,7 @@ pub fn run(dev: Found) -> Result<Mapped, &'static str> {
         device_id: dev.device_id,
         claim_epoch: epoch as u64,
         efuse: None,
+        rings: None,
+        beacon: None,
     })
 }

@@ -1,18 +1,4 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// NONOS Operating System (AGPL-3.0-or-later)
 
 //! The things the included driver files take from `nonos_libc`.
 
@@ -32,3 +18,11 @@ pub use mmio_access::{
 pub fn mk_debug(_buf: *const u8, _len: usize) -> i64 {
     0
 }
+
+mod broker;
+mod services;
+mod time;
+pub mod types;
+pub use broker::*;
+pub use services::*;
+pub use time::*;
