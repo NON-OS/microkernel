@@ -29,17 +29,14 @@ mod tests;
 pub mod crypto {
     pub use crate::stand_in as rng;
 
-    #[allow(clippy::all)]
     #[path = "util/constant_time/mod.rs"]
     pub mod constant_time;
 
-    #[allow(clippy::all)]
     pub mod hash {
         pub mod sha3;
     }
     pub use hash::sha3;
 
-    #[allow(clippy::all)]
     pub mod pqc {
         pub mod mceliece;
         pub mod ntru;
