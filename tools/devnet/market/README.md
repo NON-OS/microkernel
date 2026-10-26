@@ -40,9 +40,13 @@ None of these values is real, and nobody holds a key for any of them:
 
 Only `tools/nonos_seal/dev_market.py`, and only when the seal is a
 development seal (not `cfg.release`) running in nonos-dev-image's copy at
-`target/dev/tree`. That copy signs the catalogue with the throwaway operator
-key nonos-dev-image made there, and refuses to sign it if that key is the
-one the checkout holds. A release market trusts only the operator key the
+`target/dev/tree`. There the index lists the release catalogue first and
+these entries after it (`tools/nonos-market-index --extra`,
+`tools/nonos_market_catalogue/union.py`), so a development image installs
+real apps and walks the paid paths; an id in both is refused at seal time.
+That copy signs the whole index with the throwaway operator key
+nonos-dev-image made there, and refuses to sign if that key is the one the
+checkout holds. A release market trusts only the operator key the
 checkout tracks (`userland/capsule_market/src/bootstrap_trust/keys.rs`), so
 it refuses this catalogue even if the bytes were copied into a release
 image. `nonos-mk/tests/dev_catalogue_*.rs` proves both cases against the

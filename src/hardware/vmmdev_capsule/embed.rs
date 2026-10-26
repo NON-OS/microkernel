@@ -33,6 +33,16 @@ pub(super) const DRIVER_VMMDEV_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_VMMDEV_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/driver_vmmdev.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-vmmdev")]
+const _: () = assert!(
+    !DRIVER_VMMDEV_ELF.is_empty()
+        && !DRIVER_VMMDEV_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_VMMDEV_MANIFEST_BYTES.is_empty()
+        && !DRIVER_VMMDEV_ATTESTATION_BYTES.is_empty(),
+    "vmmdev_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-vmmdev"))]
 pub(super) const DRIVER_VMMDEV_ELF: &[u8] = &[];
 

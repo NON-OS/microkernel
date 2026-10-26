@@ -29,6 +29,16 @@ pub(crate) const WALLET_NONOS_MANIFEST_BYTES: &[u8] =
 #[cfg(feature = "nonos-capsule-wallet-nonos")]
 pub(crate) const WALLET_NONOS_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/wallet_nonos.zk_trailer.bin");
+
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-wallet-nonos")]
+const _: () = assert!(
+    !WALLET_NONOS_ELF.is_empty()
+        && !WALLET_NONOS_NONOS_ID_CERT_BYTES.is_empty()
+        && !WALLET_NONOS_MANIFEST_BYTES.is_empty()
+        && !WALLET_NONOS_ATTESTATION_BYTES.is_empty(),
+    "capsule_wallet_nonos built in with an empty image"
+);
 #[cfg(not(feature = "nonos-capsule-wallet-nonos"))]
 pub(crate) const WALLET_NONOS_ELF: &[u8] = &[];
 #[cfg(not(feature = "nonos-capsule-wallet-nonos"))]

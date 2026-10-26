@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod advance;
 pub mod award;
 pub mod collide;
 pub mod death;
 pub mod eat;
 pub mod food;
 pub mod pace;
-pub mod step;
 pub mod walls;
 
-pub use step::step;
+pub use advance::step;

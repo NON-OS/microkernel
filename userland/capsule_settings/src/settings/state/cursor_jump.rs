@@ -20,7 +20,7 @@
 use crate::settings::ui::metrics::ROW_H;
 
 use super::focused_count::focused_count;
-use super::state::State;
+use super::model::State;
 use super::track_scroll::track_scroll;
 use super::view_h::view_h;
 

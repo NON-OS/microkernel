@@ -24,6 +24,8 @@ use nonos_libc::mk_getpid;
 
 use super::super::root::Key;
 use super::bytes::Fail;
+use super::packed::{packed, packed_stat};
+use super::stream::Stream;
 
 pub fn write(at: &Key, data: &[u8]) -> Result<(), Fail> {
     at.writable()?;
@@ -36,12 +38,16 @@ pub fn write(at: &Key, data: &[u8]) -> Result<(), Fail> {
  * answered as a directory, or `ls /bin` finds nothing to list.
  */
 pub fn stat(at: &Key) -> Result<(u64, bool), Fail> {
-    vfs::stat(mk_getpid(), at.as_bytes()).or_else(|e| implicit_dir(at).map(|_| (0, true)).ok_or(e))
+    vfs::stat(mk_getpid(), at.as_bytes())
+        .or_else(|e| packed_stat(at).or_else(|| implicit_dir(at).map(|_| (0, true))).ok_or(e))
 }
 
+/// A packed file is read-only and as old as the epoch: its pack keeps no time.
 pub fn stat_full(at: &Key) -> Result<(u64, bool, u64, bool), Fail> {
-    vfs::stat_full(mk_getpid(), at.as_bytes())
-        .or_else(|e| implicit_dir(at).map(|_| (0, true, 0, false)).ok_or(e))
+    vfs::stat_full(mk_getpid(), at.as_bytes()).or_else(|e| {
+        let found = packed_stat(at).or_else(|| implicit_dir(at).map(|_| (0, true)));
+        found.map(|(size, dir)| (size, dir, 0, false)).ok_or(e)
+    })
 }
 
 fn implicit_dir(at: &Key) -> Option<()> {
@@ -50,10 +56,20 @@ fn implicit_dir(at: &Key) -> Option<()> {
     below.iter().any(|k| k.as_bytes().get(prefix.len()) == Some(&b'/')).then_some(())
 }
 
+/// The store's keys below `at`, and the packs' in the shared tree, as keys.
 pub fn list(at: &Key) -> Result<Vec<String>, Fail> {
-    vfs::list_paths(mk_getpid(), at.as_bytes())
+    let mut keys = vfs::list_paths(mk_getpid(), at.as_bytes());
+    if let (Some(v), Ok(keys)) = (packed(at), keys.as_mut()) {
+        let root = &at.0[..at.2];
+        let packed = super::pack::list(v).into_iter().map(|p| [root, &p].concat());
+        keys.extend(packed.filter_map(|k| String::from_utf8(k).ok()));
+    }
+    keys
 }
 
-pub fn open(at: &Key) -> Result<VfsStream, Fail> {
-    VfsStream::open(mk_getpid(), at.as_bytes())
+pub fn open(at: &Key) -> Result<Stream, Fail> {
+    VfsStream::open(mk_getpid(), at.as_bytes()).map(Stream::Store).or_else(|e| {
+        let read = packed(at).and_then(|v| super::pack::read(v, u32::MAX));
+        read.unwrap_or(Err(e)).map(Stream::Packed)
+    })
 }

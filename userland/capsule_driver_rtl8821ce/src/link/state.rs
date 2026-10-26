@@ -66,4 +66,10 @@ pub struct RtlLink<M: Mmio, D: DmaMem, RB: RxBuffers> {
     pub(super) history: LinkHistory,
     /// This boot's address key, drawn at the first join.
     pub(super) address: Option<Addresses>,
+    pub(super) ps: crate::ps::Ps,
+    /// The firmware download's staging buffer and beacon ring, kept for the
+    /// reserved pages power save writes.
+    pub(super) beacon: Option<(D, D)>,
+    /// The board's RF front-end option, which picks the CCK gain table.
+    pub(super) rfe: u8,
 }

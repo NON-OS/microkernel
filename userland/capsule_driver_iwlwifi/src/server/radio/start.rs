@@ -36,7 +36,7 @@ impl Radio {
         let state = match bring_up(d, &mut seen) {
             Ok(up) => {
                 Line::new().text(b"radio up; passive scanning").send();
-                State::Up(up)
+                State::Up(alloc::boxed::Box::new(up))
             }
             Err(f) => {
                 // A card the bring-up touched is stopped; one it never touched

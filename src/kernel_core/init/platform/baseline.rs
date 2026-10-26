@@ -45,9 +45,8 @@ pub fn init_platform_baseline() {
     // nothing to do here.
     let assigned = crate::bus::pci::assign_unassigned();
     if assigned > 0 {
-        crate::sys::serial::print(b"[NONOS] PCI BARs assigned for ");
-        crate::sys::serial::print_dec(assigned as u64);
-        crate::sys::serial::println(b" devices");
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[NONOS] PCI BARs assigned for ").dec(assigned as u64).str(b" devices").end();
     }
     // After the BARs are assigned, so the device table records the addresses
     // each device actually decodes at rather than the zeros it booted with.

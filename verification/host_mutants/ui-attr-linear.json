@@ -1,0 +1,14 @@
+[
+  {
+    "name": "window-by-window-search",
+    "file": "userland/capsule_browser/src/browser/css/selector/attr_match.rs",
+    "old": "    if ci {\n        have.to_ascii_lowercase().contains(value.to_ascii_lowercase().as_str())\n    } else {\n        have.contains(value)\n    }",
+    "new": "    have.as_bytes().windows(value.len()).any(|w| same(w, value.as_bytes(), ci))",
+    "crate": "userland/capsule_browser_proofs",
+    "test": "near_miss",
+    "args": [
+      "--test",
+      "selector_attr_linear"
+    ]
+  }
+]

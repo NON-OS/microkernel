@@ -41,7 +41,7 @@ fn build_idt() -> InterruptDescriptorTable {
     // this table, an AP among them, and it loads it before the boot CPU has
     // finished starting the others; while the table is being built is the only
     // point at which these vectors are certain to be present for all of them.
-    crate::smp::install_ipi_gates(&mut idt);
+    crate::arch::interrupt_controller::install_ipi_gates(&mut idt);
     // The local APIC's own spurious and error vectors, for the same reason:
     // an AP can take either from the moment its APIC is enabled.
     crate::arch::x86_64::interrupt::apic::install_lvt_gates(&mut idt);

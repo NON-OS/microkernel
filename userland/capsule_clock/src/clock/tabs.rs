@@ -39,7 +39,7 @@ pub fn label(t: Tab) -> &'static [u8] {
 }
 
 pub fn hit(width: i32, x: i32, y: i32) -> Option<Tab> {
-    if y < BAR_TOP || y >= BAR_TOP + BAR_H {
+    if !(BAR_TOP..BAR_TOP + BAR_H).contains(&y) {
         return None;
     }
     let w = width / 4;

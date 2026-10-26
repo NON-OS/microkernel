@@ -33,6 +33,16 @@ pub(crate) const DESKTOP_SHELL_MANIFEST_BYTES: &[u8] =
 pub(crate) const DESKTOP_SHELL_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/desktop_shell.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-desktop-shell")]
+const _: () = assert!(
+    !DESKTOP_SHELL_ELF.is_empty()
+        && !DESKTOP_SHELL_NONOS_ID_CERT_BYTES.is_empty()
+        && !DESKTOP_SHELL_MANIFEST_BYTES.is_empty()
+        && !DESKTOP_SHELL_ATTESTATION_BYTES.is_empty(),
+    "capsule_desktop_shell built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-desktop-shell"))]
 pub(crate) const DESKTOP_SHELL_ELF: &[u8] = &[];
 

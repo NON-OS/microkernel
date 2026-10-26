@@ -9,7 +9,7 @@
 
 use nonos_wifi_client::sealing_ready;
 
-use super::super::state::State;
+use super::super::model::State;
 
 /// Turn remembering on or off. It stays off on a boot that keeps nothing,
 /// and turning it on first checks there is a store and a TPM key, so the

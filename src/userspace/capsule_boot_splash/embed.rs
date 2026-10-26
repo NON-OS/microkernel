@@ -33,6 +33,16 @@ pub(crate) const BOOT_SPLASH_MANIFEST_BYTES: &[u8] =
 pub(crate) const BOOT_SPLASH_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/boot_splash.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-boot-splash")]
+const _: () = assert!(
+    !BOOT_SPLASH_ELF.is_empty()
+        && !BOOT_SPLASH_NONOS_ID_CERT_BYTES.is_empty()
+        && !BOOT_SPLASH_MANIFEST_BYTES.is_empty()
+        && !BOOT_SPLASH_ATTESTATION_BYTES.is_empty(),
+    "capsule_boot_splash built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-boot-splash"))]
 pub(crate) const BOOT_SPLASH_ELF: &[u8] = &[];
 
