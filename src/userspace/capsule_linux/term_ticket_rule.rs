@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The ticket a Terminal's `linux` run is given to start again with Network.
 //! Pure, so a host proof holds it as it ships (term_ticket.rs keeps one).
 
