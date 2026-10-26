@@ -16,25 +16,27 @@
 
 //! One PROVE, in the plan's order: the sealed run for this policy's app, the
 //! step-5 check, the device proof under the market scope, the isolation
-//! proof, the container. Each stage is reported before it starts.
+//! proof, the container. Each stage is reported before it starts. This
+//! gathers what the proofs need; the worker proves (worker.rs) and the
+//! serving thread makes the container (finish.rs).
 
 use alloc::vec;
-use alloc::vec::Vec;
 
 use nonos_libc::{mk_debug, mk_seal_read, mk_time_millis};
 use nonos_proof_abi::wire::{ProveRequest, Stage, PROVER};
 use nonos_proof_abi::{app_id, RECORD_BYTES};
 
 use crate::assemble::wipe_bytes;
-use crate::market::{
-    check, container, line, program, scope_and_context, split, Sealed, WITNESS_BYTES,
-};
+use crate::market::{check, line, program, scope_and_context, split, Sealed, WITNESS_BYTES};
+
+use super::finish::Finish;
+use super::work::Work;
 
 /// The kernel keeps at most this many measurements in a family.
 const LIST_MAX: usize = 4096;
 const DAY_MS: u64 = 86_400_000;
 
-pub fn prove(req: &ProveRequest, stage: &mut dyn FnMut(Stage)) -> Result<Vec<u8>, i32> {
+pub fn prove(req: &ProveRequest, stage: &mut dyn FnMut(Stage)) -> Result<(Work, Finish), i32> {
     stage(Stage::Reading);
     let s = sealed(req)?;
     let said = line(&s.hist);
@@ -43,10 +45,11 @@ pub fn prove(req: &ProveRequest, stage: &mut dyn FnMut(Stage)) -> Result<Vec<u8>
     check(req.policy, req.listing_id, &s.record)?;
     let day = today()?;
     stage(Stage::Device);
-    let device = super::device::proof(day, scope_and_context(req.listing_id, day, &s.raw))?;
-    stage(Stage::Isolation);
-    let (isolation, st) = super::isolation::proof(&s, req.policy)?;
-    container(day, &s, &device, &isolation, &st, req.policy).ok_or(PROVER)
+    let device = super::device::inputs(day, scope_and_context(req.listing_id, day, &s.raw))?;
+    let isolation = super::isolation::inputs(&s, req.policy)?;
+    let st = isolation.st;
+    let finish = Finish::Market { day, s, st, policy: *req.policy };
+    Ok((Work { device, isolation: Some(isolation) }, finish))
 }
 
 /// The newest final record sealed for the policy's app, taken from the
