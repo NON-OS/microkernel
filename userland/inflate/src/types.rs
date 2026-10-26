@@ -29,6 +29,9 @@ pub enum End {
     Capped,
     /// The input stops being a valid stream at some point.
     Corrupt,
+    /// The allocator could not give the output room; the rest was not
+    /// decoded. `Inflated::short` says how much was asked.
+    NoMemory,
 }
 
 /// The output so far, how the decode ended, and the input bytes it read.
@@ -36,6 +39,8 @@ pub struct Inflated {
     pub out: Vec<u8>,
     pub end: End,
     pub used: usize,
+    /// The allocation that failed, when the end is NoMemory.
+    pub short: Option<usize>,
 }
 
 impl Inflated {

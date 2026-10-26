@@ -25,8 +25,9 @@
 The tiers, their files, lengths and SHA-256 digests are read from the
 signed personality's tables (pinned.rs and the pinned_*.rs beside it, one
 a family), so this tool and the system can never disagree on what a tier
-is. Each file comes from the Qwen team's Hugging Face repository for its
-model. fetch resumes a cut download; plan checks every file against its pin
+is. Each file comes from the Hugging Face repository that publishes it:
+the Qwen team's, or ggml-org's for a model the Qwen team publishes in
+safetensors only (download.py). fetch resumes a cut download; plan checks every file against its pin
 and hands the layout to nonos-data-plan.py, and the first boot seals the
 files into the encrypted volume. catalogue writes the model repository's
 catalogue, every tier and every part, signed with the marketplace operator
