@@ -24,8 +24,6 @@ use alloc::boxed::Box;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, Ordering};
 
-/// Built in place (330 KiB: never through the boot stack), so the RAM log
-/// takes lines from the first allocation on; init only adds the backends.
 pub static LOGGER: IrqMutex<Option<LogManager>> = IrqMutex::new(Some(LogManager::new()));
 pub static PANIC_MODE: AtomicBool = AtomicBool::new(false);
 
