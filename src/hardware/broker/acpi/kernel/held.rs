@@ -18,7 +18,7 @@
 //! the ACPI windows another pid was granted.
 
 use super::super::super::claim;
-use super::super::super::device::{BAR_KIND_MMIO, BAR_KIND_PIO};
+use super::super::super::device::{bar::BAR_KIND_PIO, BAR_KIND_MMIO};
 use super::super::super::{pci_index, table};
 use super::records::{other_holds, Space};
 

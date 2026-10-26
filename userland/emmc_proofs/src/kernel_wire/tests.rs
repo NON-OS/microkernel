@@ -37,6 +37,7 @@ fn both_ends_frame_the_same_wire() {
     assert_eq!(c::HDR_LEN, 20);
     let ops = [c::OP_HEALTHCHECK, c::OP_GEOMETRY, c::OP_READ, c::OP_WRITE, c::OP_FLUSH];
     assert_eq!(ops, [k::OP_HEALTHCHECK, k::OP_GEOMETRY, k::OP_READ, k::OP_WRITE, k::OP_FLUSH]);
+    assert_eq!(c::OP_IDENTIFY, k::OP_IDENTIFY);
     assert_eq!(c::RW_HEADER_LEN, k::RW_HEADER_LEN);
     assert_eq!(c::GEOMETRY_LEN, k::GEOMETRY_LEN);
 }

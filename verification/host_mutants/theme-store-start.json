@@ -1,0 +1,5 @@
+[
+ {"name": "store-starts-on-scheme-1", "file": "userland/toolkit/src/theme/store/state.rs", "old": "pub const START: Scheme = SCHEMES[0];", "new": "pub const START: Scheme = SCHEMES[1];", "crate": "userland/theme_proofs", "test": "the_store_starts_on_the_default_scheme_ink", "args": ["--release"]},
+ {"name": "start-muted-stale", "file": "userland/toolkit/src/theme/store/state.rs", "old": "pub const START_MUTED: u32 = 0xFFA4_A5A8;", "new": "pub const START_MUTED: u32 = 0xFF9B_B0C7;", "crate": "userland/theme_proofs", "test": "the_starting_secondary_text_is_what_replace_derives", "args": ["--release"]},
+ {"name": "start-quiet-stale", "file": "userland/toolkit/src/theme/store/state.rs", "old": "pub const START_QUIET: u32 = 0xFF7E_7F82;", "new": "pub const START_QUIET: u32 = 0xFF3C_4C60;", "crate": "userland/theme_proofs", "test": "the_starting_secondary_text_is_what_replace_derives", "args": ["--release"]}
+]

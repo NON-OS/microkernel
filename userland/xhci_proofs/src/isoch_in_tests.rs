@@ -18,8 +18,8 @@
 //! may ask for, each TD's bytes from its event, and the packets packed.
 
 use crate::constants::{CC_MISSED_SERVICE, CC_SHORT_PACKET, CC_SUCCESS, CC_USB_TRANSACTION};
-use crate::controller::{in_batch_fits, isoch_endpoint, lengths, pack, td_bytes};
-use crate::controller::{write_isoch_input, IsochEndpoint};
+use crate::controller::isoch::{inbound::in_batch_fits, received};
+use crate::controller::{isoch_endpoint, write_isoch_input, IsochEndpoint};
 use crate::dma::{DmaPool, DmaRegion};
 
 fn dw(r: &DmaRegion, context: usize, dword: usize) -> u32 {
@@ -53,23 +53,23 @@ fn an_in_batch_fits_one_reply() {
 
 #[test]
 fn each_td_brings_its_length_or_none() {
-    assert_eq!(td_bytes(CC_SUCCESS, 0, 192), Some(192));
-    assert_eq!(td_bytes(CC_SHORT_PACKET, 16, 192), Some(176));
-    assert_eq!(td_bytes(CC_SHORT_PACKET, 500, 192), Some(0), "residual clamped");
-    assert_eq!(td_bytes(CC_MISSED_SERVICE, 192, 192), Some(0));
-    assert_eq!(td_bytes(CC_USB_TRANSACTION, 0, 192), Some(0));
-    assert_eq!(td_bytes(6, 0, 192), None, "a stall fails the endpoint");
+    assert_eq!(received::td_bytes(CC_SUCCESS, 0, 192), Some(192));
+    assert_eq!(received::td_bytes(CC_SHORT_PACKET, 16, 192), Some(176));
+    assert_eq!(received::td_bytes(CC_SHORT_PACKET, 500, 192), Some(0), "residual clamped");
+    assert_eq!(received::td_bytes(CC_MISSED_SERVICE, 192, 192), Some(0));
+    assert_eq!(received::td_bytes(CC_USB_TRANSACTION, 0, 192), Some(0));
+    assert_eq!(received::td_bytes(6, 0, 192), None, "a stall fails the endpoint");
 }
 
 #[test]
 fn lengths_and_packing_keep_packet_order() {
     let got = [(CC_SUCCESS, 0), (CC_MISSED_SERVICE, 4), (CC_SHORT_PACKET, 1)];
     let mut lens = [0u16; 3];
-    assert_eq!(lengths(&got, 4, &mut lens), Ok(CC_MISSED_SERVICE));
+    assert_eq!(received::lengths(&got, 4, &mut lens), Ok(CC_MISSED_SERVICE));
     assert_eq!(lens, [4, 0, 3]);
     let half = [1, 2, 3, 4, 9, 9, 9, 9, 5, 6, 7, 0];
     let mut out = [0u8; 12];
-    assert_eq!(pack(&half, 4, &lens, &mut out), 7);
+    assert_eq!(received::pack(&half, 4, &lens, &mut out), 7);
     assert_eq!(&out[..7], &[1, 2, 3, 4, 5, 6, 7]);
-    assert_eq!(lengths(&[(CC_SUCCESS, 0), (6, 0)], 4, &mut lens), Err(6));
+    assert_eq!(received::lengths(&[(CC_SUCCESS, 0), (6, 0)], 4, &mut lens), Err(6));
 }

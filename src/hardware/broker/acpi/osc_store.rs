@@ -53,7 +53,6 @@ pub fn publish(g: OscGrant) -> bool {
 /// What firmware left to NONOS for the function at `segment:bus`; None
 /// when no root bridge holding that bus was published, which means
 /// firmware keeps every control.
-#[allow(dead_code)] // A's AER and hot plug are its readers
 pub fn osc_grant(segment: u16, bus: u8) -> Option<OscGrant> {
     grant_for(&GRANTS.lock(), segment, bus)
 }

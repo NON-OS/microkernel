@@ -21,7 +21,7 @@
 use super::rig::{ints, said};
 use super::wake_gone_tests::armed;
 use super::wake_rig::Switches;
-use super::wake_sweep::departed;
+use super::wake_sweep::{departed, owns};
 use crate::device_power::{DState, PowerPool, RuntimeWake};
 use crate::probe::Probe;
 use crate::tests::platform::run::evaluator;
@@ -42,4 +42,14 @@ fn a_departed_device_is_forgotten_with_nothing_run_on_it() {
     drop(ev);
     assert_eq!((sw.log, pool.holders(prw1)), (vec![(0x6D, true), (0x6D, false)], 0));
     assert_eq!(said(&probe), ints(&[0xC1, 1, 0, 3, 1, 0xC0]), "no _DSW(0) or _PSW(0)");
+}
+
+/// A wake count is read only by the sender that armed the device.
+#[test]
+fn only_the_sender_that_armed_a_device_reads_its_wake_count() {
+    let (_, _, owners) = armed();
+    let other = owners.iter().map(|o| o.1).max().expect("an arm") + 1;
+    assert!(owners
+        .iter()
+        .all(|&(dev, by, _)| owns(&owners, dev, by) && !owns(&owners, dev, other)));
 }

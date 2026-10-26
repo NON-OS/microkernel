@@ -39,7 +39,7 @@ pub fn parse(code: u8, r: &[u8; REPLY_LEN]) -> Result<Reading, DdcError> {
     }
     if r[1] == 0x80 {
         return match xor(REPLY_SEED, &r[..3]) {
-            0 => Err(DdcError::Unsupported),
+            0 => Err(DdcError::NotOffered),
             _ => Err(DdcError::Checksum),
         };
     }
@@ -57,7 +57,7 @@ pub fn parse(code: u8, r: &[u8; REPLY_LEN]) -> Result<Reading, DdcError> {
             max: u16::from_be_bytes([r[6], r[7]]),
             present: u16::from_be_bytes([r[8], r[9]]),
         }),
-        1 => Err(DdcError::Unsupported),
+        1 => Err(DdcError::NotOffered),
         _ => Err(DdcError::Reply),
     }
 }

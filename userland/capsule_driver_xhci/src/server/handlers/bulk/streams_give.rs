@@ -29,16 +29,16 @@ pub(super) fn give(
 ) -> XhciResult<u16> {
     let (cs, max_slots) = (ctx.driver.layout.context_size, ctx.driver.layout.max_slots);
     let pipe = StreamPipe::new(&ctx.driver.dma_pool, log2)?;
-    let unsupported = XhciError::ControllerUnsupported;
-    let res = ctx.driver.slots.resources_mut(slot, max_slots).ok_or(unsupported)?;
+    let refused = XhciError::ControllerUnsupported;
+    let res = ctx.driver.slots.resources_mut(slot, max_slots).ok_or(refused)?;
     let superspeed = is_superspeed(res.speed, res.usb3);
-    let p = res.pair_mut(second).ok_or(unsupported)?;
+    let p = res.pair_mut(second).ok_or(refused)?;
     let (dci, free) = match dir_in {
         true => (p.dci_in, p.in_streams.is_none() && p.armed.is_none()),
         false => (p.dci_out, p.out_streams.is_none()),
     };
     if !superspeed || !free {
-        return Err(unsupported);
+        return Err(refused);
     }
     write_stream_input(&res.input_context, &res.output_context, cs, dci, &pipe);
     let input = res.input_context.phys();
@@ -48,9 +48,9 @@ pub(super) fn give(
     let usable = pipe.usable();
     let p = d.slots.resources_mut(slot, max_slots).and_then(|r| r.pair_mut(second));
     *(if dir_in {
-        &mut p.ok_or(unsupported)?.in_streams
+        &mut p.ok_or(refused)?.in_streams
     } else {
-        &mut p.ok_or(unsupported)?.out_streams
+        &mut p.ok_or(refused)?.out_streams
     }) = Some(pipe);
     Ok(usable)
 }

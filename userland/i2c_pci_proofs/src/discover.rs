@@ -27,16 +27,20 @@ mod found;
 #[path = "../../capsule_driver_i2c_pci/src/discover/classify.rs"]
 mod classify;
 #[cfg(test)]
-#[allow(dead_code)] // classify reads only some of the capsule's constants
 #[path = "../../capsule_driver_i2c_pci/src/discover/defs.rs"]
 mod defs;
+#[cfg(test)]
+#[path = "../../capsule_driver_i2c_pci/src/discover/find_touchpad_addrs.rs"]
+mod find_touchpad_addrs;
+#[cfg(test)]
+mod host_gate_tests;
 #[cfg(test)]
 #[path = "../../../src/hardware/inventory/i2c_host.rs"]
 mod kernel_i2c_host;
 #[cfg(test)]
-mod host_gate_tests;
-#[cfg(test)]
 mod spawn_glue_tests;
+#[cfg(test)]
+mod touchpad_tests;
 
 pub use acpi_touchpad::{AcpiTouchpad, MAX_TARGETS};
 pub use found::{Found, MAX_CONTROLLERS};

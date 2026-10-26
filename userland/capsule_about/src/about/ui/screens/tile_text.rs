@@ -63,12 +63,3 @@ pub fn ratio(num: u64, den: u64, dst: &mut [u8; 24]) -> &[u8] {
     n = push(dst, n, u64_decimal(den, &mut buf));
     &dst[..n]
 }
-
-// The uptime's provenance under its ring: the clock's own count, with its unit,
-// so a bare seven-digit number never reads as anything else.
-pub fn millis(ms: u64, dst: &mut [u8; 24]) -> &[u8] {
-    let mut buf = [0u8; 20];
-    let n = push(dst, 0, u64_decimal(ms, &mut buf));
-    let n = push(dst, n, b" ms");
-    &dst[..n]
-}

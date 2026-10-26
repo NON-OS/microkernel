@@ -1,8 +1,7 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! Host proofs for non-coherent DMA.
 
-#![allow(dead_code)]
-
+#[cfg(test)]
 #[path = "../../../src/arch/cache_span.rs"]
 pub mod cache_span;
 #[path = "../../../src/arch/aarch64/dma/carve.rs"]
