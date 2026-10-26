@@ -44,7 +44,8 @@ impl<D: Display, P: Platform> Server<D, P> {
     /// At `now_ms`: an owner silent too long has the outputs blanked, once
     /// for each silence the devices took whole; true when it ran now.
     pub fn watch(&mut self, now_ms: u64) -> bool {
-        let silent = now_ms.saturating_sub(self.heard_ms) >= OWNER_SILENCE_MS;
+        let quiet_ms = now_ms.saturating_sub(self.heard_ms);
+        let silent = quiet_ms >= OWNER_SILENCE_MS && !self.starved(quiet_ms);
         if self.owner.is_none() || self.quiet || !silent {
             return false;
         }
