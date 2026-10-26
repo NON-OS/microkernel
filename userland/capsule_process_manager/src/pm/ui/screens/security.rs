@@ -51,6 +51,6 @@ fn posture(state: &State, fb: &mut PaintBuffer, r: &Rect) {
         let mut buf = [0u8; 12];
         let len = u32_decimal(*value, &mut buf);
         let x = r.x + i as u32 * (w + CARD_GAP);
-        card::paint(fb, x, r.y, w, *icon, caption, &buf[..len], b"", sub);
+        card::paint(fb, (x, r.y, w), *icon, caption, &buf[..len], b"", sub);
     }
 }

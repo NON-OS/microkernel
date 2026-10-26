@@ -25,7 +25,7 @@ use super::super::metrics::{
     BAR_H, BAR_ROW_H, BODY_PX, NUM_PX, PANEL_HEAD_H, PANEL_PAD, PANEL_RADIUS,
 };
 use super::super::tint::state_tint;
-use super::super::{bars, text};
+use super::super::{bars, chrome::Rect, text};
 
 const NAME_W: u32 = 214;
 const VALUE_W: u32 = 96;
@@ -69,6 +69,6 @@ fn entry(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, row: (&Row, u64), ram_kb:
     text::mono_right(fb, right.saturating_sub(VALUE_W * 2), top, &buf[..n], MUTED, NUM_PX);
     let bx = x + PANEL_PAD + NAME_W + BAR_GAP;
     let bw = right.saturating_sub(VALUE_W * 3 + BAR_GAP).saturating_sub(bx);
-    let by = y + (BAR_ROW_H - BAR_H) / 2;
-    bars::hbar(fb, bx, by, bw, BAR_H, row.mem_kb, den, state_tint(row.state));
+    let bar = Rect { x: bx, y: y + (BAR_ROW_H - BAR_H) / 2, w: bw, h: BAR_H };
+    bars::hbar(fb, &bar, row.mem_kb, den, state_tint(row.state));
 }

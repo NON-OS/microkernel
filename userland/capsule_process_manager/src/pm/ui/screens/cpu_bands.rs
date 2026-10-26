@@ -45,7 +45,7 @@ pub(super) fn states(state: &State, fb: &mut PaintBuffer, r: &Rect) {
         let mut buf = [0u8; 12];
         let len = u32_decimal(n as u32, &mut buf);
         let label = state_label(code);
-        bars::labelled(fb, x, y, w, label, &buf[..len], n, total, state_tint(code));
+        bars::labelled(fb, (x, y, w), label, &buf[..len], n, total, state_tint(code));
         y += BAR_ROW_H;
     }
 }
@@ -63,7 +63,7 @@ pub(super) fn consumers(state: &State, fb: &mut PaintBuffer, r: &Rect) {
         let mut buf = [0u8; 12];
         let len = percent(row.cpu_pct, &mut buf);
         let tint = load_tint(row.cpu_pct as u32);
-        bars::labelled(fb, x, y, w, row.name(), &buf[..len], row.cpu_pct as u64, top, tint);
+        bars::labelled(fb, (x, y, w), row.name(), &buf[..len], row.cpu_pct as u64, top, tint);
         y += BAR_ROW_H;
     }
 }

@@ -36,7 +36,8 @@ pub(super) fn cpu(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32) {
     let mut s = sub_n(&mut sub, b"user ", state.sys.user_pct as u32, b"%");
     s = sub_n(&mut sub[s..], b"  sys ", state.sys.kernel_pct as u32, b"%") + s;
     s = sub_n(&mut sub[s..], b"  idle ", state.sys.idle_pct as u32, b"%") + s;
-    let band = card::paint(fb, x, y, w, IconId::PmCpu, b"PROCESSOR", &buf[..n], b"busy", &sub[..s]);
+    let band =
+        card::paint(fb, (x, y, w), IconId::PmCpu, b"PROCESSOR", &buf[..n], b"busy", &sub[..s]);
     meter(fb, (x, y, w), band, pct as u64, 100, load_tint(pct as u32));
 }
 
@@ -49,6 +50,7 @@ pub(super) fn memory(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32
     sub[..s].copy_from_slice(b"of ");
     s += mem_human(total, &mut sub[s..]);
     let pct = (used.saturating_mul(100) / total).min(100) as u32;
-    let band = card::paint(fb, x, y, w, IconId::PmMemory, b"MEMORY", &buf[..n], b"used", &sub[..s]);
+    let band =
+        card::paint(fb, (x, y, w), IconId::PmMemory, b"MEMORY", &buf[..n], b"used", &sub[..s]);
     meter(fb, (x, y, w), band, used, total, load_tint(pct));
 }
