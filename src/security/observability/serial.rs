@@ -30,18 +30,17 @@ pub fn serial_log(msg: &str) {
     if !should_emit_serial() {
         return;
     }
-    serial::print_str(msg);
-    serial::println(b"");
+    serial::line(msg.as_bytes());
 }
 
 pub fn serial_log_redacted(msg: &str) {
     if !should_emit_serial() {
         return;
     }
+    // Whole, in one write: a panic message may be longer than a Line holds.
     if is_production_mode() {
-        serial::print_str(&redact_panic_message(msg));
+        serial::line(redact_panic_message(msg).as_bytes());
     } else {
-        serial::print_str(msg);
+        serial::line(msg.as_bytes());
     }
-    serial::println(b"");
 }

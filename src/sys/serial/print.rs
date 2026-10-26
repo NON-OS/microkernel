@@ -30,6 +30,15 @@ pub fn print_str(s: &str) {
     print(s.as_bytes());
 }
 
+/// A whole line, begun at column 0 (column.rs), in one write under the lock.
+pub fn line(s: &[u8]) {
+    with_serial_lock(|| {
+        emit(super::column::opening());
+        emit(s);
+        emit(b"\r\n");
+    });
+}
+
 pub fn println(s: &[u8]) {
     with_serial_lock(|| {
         emit(s);
