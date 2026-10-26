@@ -1,0 +1,8 @@
+wait:10
+key:4
+wait:2
+shot:menu
+key:ret
+until:Capsules spawned:1500
+wait:90
+shot:airgapped-iommu

@@ -1,0 +1,9 @@
+wait:10
+key:4
+wait:2
+shot:menu
+key:ret
+wait:120
+shot:refusal
+wait:30
+shot:refusal2
