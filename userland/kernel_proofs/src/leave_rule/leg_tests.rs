@@ -66,3 +66,10 @@ fn requests_go_in_turn_and_the_first_failure_is_the_answer() {
     assert_eq!(leg.poll(), Poll::Answered(-5));
     assert_eq!(posted(), [7u32.to_le_bytes().to_vec(), 8u32.to_le_bytes().to_vec()]);
 }
+
+/// The leave lines name each leg's driver and its budget (leave/run.rs).
+#[test]
+fn a_leg_carries_the_name_and_budget_its_lines_say() {
+    let l = leg(&driver(), &[1]);
+    assert_eq!((l.name, l.budget_ms), ("driver.test0", 1_000));
+}

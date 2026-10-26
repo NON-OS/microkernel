@@ -21,8 +21,6 @@
 pub mod asks;
 #[path = "../../../../gfx_serve_proofs/src/sweep/check.rs"]
 pub mod check;
-#[allow(unused_imports)] // the names a driver's own sweep uses beside these
-#[path = "../../../../bga_proofs/src/tests/wire_sweep/kit.rs"]
 pub mod kit;
 #[path = "../../../../gfx_serve_proofs/src/sweep/payload.rs"]
 pub mod payload;

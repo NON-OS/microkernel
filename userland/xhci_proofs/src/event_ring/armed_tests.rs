@@ -25,7 +25,7 @@ use super::fixture::{Fixture, BULK_IN_DCI, INT_DCI, SLOT};
 use super::fixture_slots::interrupt_slot;
 use crate::controller::{bulk_transfer, poll_interrupt_in, IntrPoll};
 use crate::error::XhciError;
-use crate::rings::event::ARMED;
+use crate::rings::event::state::ARMED;
 
 #[test]
 fn reports_that_land_during_one_bulk_wait_each_reach_their_own_poll() {

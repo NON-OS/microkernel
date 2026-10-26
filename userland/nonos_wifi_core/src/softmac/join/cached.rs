@@ -37,15 +37,14 @@ pub fn retry_with_sae(report: &Report) -> bool {
     report.used_pmksa && !matches!(report.outcome, Outcome::Joined { .. })
 }
 
-#[allow(clippy::too_many_arguments)]
+/// `rules` are the regulatory domain and the join policy, `ap` the AP's
+/// beacon and BSSID.
 pub(crate) fn first_attempt<R: Radio, E: Env>(
     r: &mut R,
     env: &mut E,
-    domain: Domain,
+    (domain, policy): (Domain, JoinPolicy),
     req: &ConnectRequest,
-    policy: JoinPolicy,
-    beacon: &[u8],
-    bssid: [u8; 6],
+    (beacon, bssid): (&[u8], [u8; 6]),
     cache: &mut PmksaCache,
     j: &Joining,
 ) -> Result<Report, JoinError> {

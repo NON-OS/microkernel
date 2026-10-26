@@ -34,6 +34,7 @@ struct Chat {
     llama_token think_on = LLAMA_TOKEN_NULL, think_off = LLAMA_TOKEN_NULL;
     std::vector<llama_token> no_thought; /* the empty thought that skips it */
     bool can_think = false; /* the template can ask for no thinking (Qwen3) */
+    bool rewinds = true;    /* the cache can take back its end: no recurrent layers */
     bool think = false;     /* think aloud before answering; off at first */
     int threads = 0; /* what the context runs with */
     int n_ctx = 0;   /* positions the KV cache has */

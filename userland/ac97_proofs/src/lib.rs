@@ -41,7 +41,6 @@ pub mod setup;
 #[path = "../../capsule_driver_ac97/src/wait.rs"]
 pub mod wait;
 // The audio server's side of the same wire, which this driver must answer.
-#[allow(dead_code)]
 #[path = "../../capsule_audio/src/sink/wire.rs"]
 pub mod sink_wire;
 

@@ -3,8 +3,6 @@
 //! `thread_regs` and `libc_entry` are their own files; `enter` and `leave`
 //! stand in for the kernel's side, and `unistd` for libc's exit.
 
-#![allow(dead_code)]
-
 #[path = "../../../toolchain/nonos-std/sys/pal/nonos/thread_regs.rs"]
 pub mod thread_regs;
 

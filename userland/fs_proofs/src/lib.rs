@@ -131,11 +131,9 @@ mod blk_pci_tests;
 #[cfg(test)]
 mod blk_span_tests;
 #[cfg(test)]
-mod blk_wire;
+pub mod blk_wire;
 #[cfg(test)]
 mod blk_word_tests;
-#[cfg(test)]
-mod stream_hash;
 #[cfg(test)]
 mod desktop_tests;
 #[cfg(test)]
@@ -147,9 +145,9 @@ mod files_fixture;
 #[cfg(test)]
 mod files_tests;
 #[cfg(test)]
-mod fm_tests;
-#[cfg(test)]
 mod fm_paste_tests;
+#[cfg(test)]
+mod fm_tests;
 #[cfg(test)]
 mod fm_text_tests;
 #[cfg(test)]
@@ -191,6 +189,8 @@ mod store_owner_tests;
 #[cfg(test)]
 mod store_tests;
 #[cfg(test)]
+mod stream_hash;
+#[cfg(test)]
 mod tags_blob_tests;
 #[cfg(test)]
 mod tags_tests;
@@ -201,11 +201,11 @@ mod vfs_budget_tests;
 #[cfg(test)]
 mod vfs_fd_share_tests;
 #[cfg(test)]
-mod vfs_private_reap_tests;
-#[cfg(test)]
 mod vfs_gate_tests;
 #[cfg(test)]
 mod vfs_path_tests;
+#[cfg(test)]
+mod vfs_private_reap_tests;
 
 // The kernel directory-record layout: entry offsets, name matching, chaining.
 pub mod blockfs_dir;

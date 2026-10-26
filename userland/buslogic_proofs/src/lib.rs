@@ -42,7 +42,6 @@ pub mod say;
 pub mod server;
 #[path = "../../nonos_scsi_serve/src/units.rs"]
 pub mod units;
-#[allow(dead_code, unused_imports)]
 #[path = "../../nonos_scsi_serve/src/wire/mod.rs"]
 pub mod wire;
 

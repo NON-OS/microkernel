@@ -1,0 +1,47 @@
+169:[INIT] Starting
+170:[INIT] boot profile: Standard
+171:[BENCH] 4011 capsule_spawn_start:ramfs
+179:[BENCH] 4078 capsule_spawn_start:keyring
+188:[BENCH] 4131 capsule_spawn_start:entropy_pool
+206:[BENCH] 4290 capsule_spawn_start:policy
+214:[BENCH] 4402 capsule_spawn_start:input_router
+223:[BENCH] 4493 capsule_spawn_start:compositor
+230:[BENCH] 4568 capsule_spawn_start:app.boot_splash
+238:[BENCH] 4649 capsule_spawn_start:driver.virtio_rng
+246:[BENCH] 4727 capsule_spawn_start:driver.virtio_blk0
+255:[BENCH] 4830 capsule_spawn_start:driver.virtio_gpu0
+272:[BENCH] 4992 capsule_spawn_start:driver.virtio_net0
+299:[BENCH] 5133 capsule_spawn_start:power
+330:[BENCH] 5266 capsule_spawn_start:acpi
+342:[ACPI] capsule spawned
+396:[ACPI] first publish pass done
+397:[ACPI] first publish pass done[ACPI] region io base=0x0000000000000600 len=0x0000000000000004 granted
+405:[ACPI] already in ACPI mode[ACPI] first publish pass in after 324 ms
+408:[BENCH] 5715 capsule_spawn_start:driver.ahci0
+422:[BENCH] 5787 capsule_spawn_start:driver.xhci0
+442:[BENCH] 5854 capsule_spawn_start:driver.ps2_kbd0
+457:[BENCH] 5913 capsule_spawn_start:driver.vmmouse0
+465:[BENCH] 6003 capsule_spawn_start:driver.e1000_0
+477:[BENCH] 6086 capsule_spawn_start:driver.rtl8139_0
+486:[BENCH] 6233 capsule_spawn_start:driver.rtl8169_0
+499:[BENCH] 6342 capsule_spawn_start:driver.usb_hub0
+509:[BENCH] 6531 capsule_spawn_start:driver.usb_hid0
+517:[BENCH] 6646 capsule_spawn_start:driver.usb_msc0
+525:[BENCH] 6749 capsule_spawn_start:driver.uvc0
+533:[BENCH] 6842 capsule_spawn_start:driver.ccid0
+543:[BENCH] 6899 capsule_spawn_start:driver.fido0
+550:[BENCH] 6960 capsule_spawn_start:driver.cdc_ecm0
+560:[BENCH] 7040 capsule_spawn_start:driver.hda0
+579:[BENCH] 7122 capsule_spawn_start:driver.usb_audio0
+594:[BENCH] 7176 capsule_spawn_start:audio.server
+606:[BENCH] 7243 capsule_spawn_start:vfs_pool
+621:[BENCH] 7325 capsule_spawn_start:net.core
+629:[BENCH] 7464 capsule_spawn_start:net.nym
+638:[BENCH] 7602 capsule_spawn_start:net.anon
+650:[BENCH] 7750 capsule_spawn_start:net.sockets
+658:[BENCH] 7840 capsule_spawn_start:net.socks5
+668:[BENCH] 7950 capsule_spawn_start:nonos.prove.fetch
+676:[BENCH] 8146 capsule_spawn_start:[USER-FIRST] pid=app.setup_wizard
+688:[BENCH] 8342 capsule_spawn_start:nonos.shield
+706:[INIT] Capsules spawned
+1026:[BENCH] 9754 capsule_spawn_start:proof_io

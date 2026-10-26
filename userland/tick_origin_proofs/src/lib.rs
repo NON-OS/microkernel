@@ -2,8 +2,6 @@
 //! Host proofs for where a tick came from. The riscv64 trap frame and its
 //! sstatus bits are the kernel's own files.
 
-#![allow(dead_code)]
-
 #[path = "../../../src/arch/riscv64/cpu/csr/status.rs"]
 pub mod csr_status;
 #[path = "../../../src/arch/riscv64/interrupts/frame/fields.rs"]
