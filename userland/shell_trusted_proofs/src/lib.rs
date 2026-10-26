@@ -21,18 +21,15 @@ pub mod state;
 
 #[cfg(test)]
 #[path = "../../compositor/src/display/arrange_wire.rs"]
-#[allow(dead_code)]
-mod arrange_wire;
+pub mod arrange_wire;
 /// What the compositor writes for INPUT_SOURCES, which the shell reads.
 #[cfg(test)]
 #[path = "../../compositor/src/display/input_list.rs"]
-#[allow(dead_code)]
-mod input_list;
+pub mod input_list;
 /// The compositor's ops and the arrangement's answer, which the table names.
 #[cfg(test)]
 #[path = "../../compositor/src/protocol/ops.rs"]
-#[allow(dead_code)]
-mod ncmp;
+pub mod ncmp;
 /// The power-off request and how its answer is read.
 #[path = "../../capsule_desktop_shell/src/power_off_client/frame.rs"]
 pub mod power_off_frame;
