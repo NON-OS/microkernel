@@ -5423,17 +5423,48 @@ fi
 unset relay_out
 
 # The market catalogue tool (tools/nonos_market_catalogue): the listings it
-# writes, the lock it seals against, its hostile-input refusals and the
-# mutants each refusal must catch. It ran in no lane once, and two failures
-# sat unseen; now a failure stops the checks.
+# writes, the lock it seals against and its hostile-input refusals. It ran in
+# no lane once, and two failures sat unseen; now a failure stops the checks.
 if catalogue_out="$(python3 -m unittest discover -s tools/nonos_market_catalogue -t tools \
-    -p 'test_*.py' 2>&1)"; then
+    -p 'test_[!m]*.py' 2>&1)"; then
     note ok "the market catalogue tool's suite passes (nonos_market_catalogue)"
 else
     tail -n 8 <<< "${catalogue_out}" >&2
     fail_with "nonos_market_catalogue: its suite fails"
 fi
 unset catalogue_out
+
+# Its mutants, each a refusal removed that the suite must then catch: the
+# suite once a mutant, so its own block, as market-catalogue-mutants is its
+# own lane in checks.nix.
+if mutants_out="$(python3 -m unittest discover -s tools/nonos_market_catalogue -t tools \
+    -p 'test_mutants.py' 2>&1)"; then
+    note ok "every catalogue mutant is caught by its suite (nonos_market_catalogue mutants)"
+else
+    tail -n 8 <<< "${mutants_out}" >&2
+    fail_with "nonos_market_catalogue: a mutant survives its suite"
+fi
+unset mutants_out
+
+# The other tools' suites, as static-hygiene runs them, and the guard that no
+# tools/ test file runs in no lane (check_tool_suites, its self-test first).
+for suite in nonos_data_plan nonos_linux_pack nonos_qemu nonos_qwen_tier nonos_zero_state; do
+    if suite_out="$(python3 -m unittest discover -s "tools/${suite}" -t tools -p 'test_*.py' 2>&1)"; then
+        note ok "tools/${suite}: its suite passes"
+    else
+        tail -n 8 <<< "${suite_out}" >&2
+        fail_with "tools/${suite}: its suite fails"
+    fi
+done
+unset suite suite_out
+if suites_out="$(python3 scripts/check_tool_suites.py --self-test 2>&1 \
+    && python3 scripts/check_tool_suites.py 2>&1)"; then
+    note ok "every tools/ test file runs in a lane (check_tool_suites)"
+else
+    tail -n 8 <<< "${suites_out}" >&2
+    fail_with "check_tool_suites: a tools/ test file runs in no lane"
+fi
+unset suites_out
 
 # A drive whose `until` step times out leaves every CPU's registers and the
 # code at each one's PC behind, read from that CPU (tools/nonos_drive).
