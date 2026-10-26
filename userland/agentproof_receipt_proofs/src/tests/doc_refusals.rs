@@ -38,7 +38,7 @@ fn the_doc_must_be_signed_for_this_receipt_by_the_pinned_ak_and_release() {
     t.ak[0] ^= 1;
     assert_eq!(verify(&bytes, &t).unwrap_err().name(), "ak");
     let mut t = trust.clone();
-    t.releases[0].pcr14[0] ^= 1;
+    t.releases[0].pcr8[0] ^= 1;
     assert_eq!(verify(&bytes, &t).unwrap_err().name(), "release");
     let mut t = trust.clone();
     t.releases[0].pcr9[0] ^= 1;
@@ -57,7 +57,7 @@ fn the_machine_must_have_had_its_iommu_enforcing_and_its_registry_whole() {
 }
 
 #[test]
-fn a_doc_carrying_its_unsigned_count_or_log_is_refused() {
+fn a_doc_carrying_its_unsigned_count_or_flag_is_refused() {
     use agentproof_receipt::napr::{challenge, write};
     let mut f = Fixture::new(b"strict");
     let trust = f.trust();
@@ -65,6 +65,6 @@ fn a_doc_carrying_its_unsigned_count_or_log_is_refused() {
     let bound = write::bound(&rec, &f.box_word, &f.policy, &f.launcher);
     f.spec.challenge = Some(challenge(&bound));
     let kernel_doc = f.spec.doc_bytes();
-    let whole = write::finish(bound, &kernel_doc, &f.spec.entries.concat());
+    let whole = write::finish(bound, &kernel_doc, &f.spec.entries.concat(), &[]);
     assert!(matches!(verify(&whole, &trust), Err(Refusal::Unsigned)), "as the kernel wrote it");
 }

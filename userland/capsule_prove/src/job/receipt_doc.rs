@@ -24,6 +24,7 @@
 use alloc::vec;
 use alloc::vec::Vec;
 
+use agentproof_receipt::napr::capsules::capsules_of;
 use agentproof_receipt::napr::{challenge, doc_clear, DOC_MAX, ENTRIES_MAX};
 use nonos_libc::{mk_attest_doc, mk_attest_entries};
 
@@ -39,14 +40,16 @@ pub fn registry() -> Result<Vec<u8>, i32> {
 }
 
 /// The cleared doc for `bound`'s challenge, made while the registry stayed
-/// `entries`.
-pub fn doc_for(bound: &[u8], entries: &[u8]) -> Result<Vec<u8>, i32> {
+/// `entries`, and the capsules its log's PCR 14 events record.
+pub fn doc_for(bound: &[u8], entries: &[u8]) -> Result<(Vec<u8>, Vec<u8>), i32> {
     let mut doc = vec![0u8; DOC_MAX];
     let n = mk_attest_doc(&challenge(bound), &mut doc);
-    let doc = usize::try_from(n).ok().and_then(|n| doc_clear::clear(doc.get(..n)?));
-    let doc = doc.ok_or(if n < 0 { n as i32 } else { EINVAL })?;
+    let failed = if n < 0 { n as i32 } else { EINVAL };
+    let kernel = usize::try_from(n).ok().and_then(|n| doc.get(..n)).ok_or(failed)?;
+    let capsules = doc_clear::log_of(kernel).and_then(capsules_of).ok_or(EINVAL)?;
+    let doc = doc_clear::clear(kernel).ok_or(EINVAL)?;
     match registry()? == entries {
-        true => Ok(doc),
+        true => Ok((doc, capsules)),
         false => Err(EAGAIN),
     }
 }
