@@ -16,10 +16,9 @@
 
 use uefi::prelude::*;
 
-/// Read CPU timestamp counter. Always available on x86_64.
+/// The CPU's counter (arch::cpu): the TSC on x86_64, CNTVCT_EL0 on aarch64.
 pub fn read_tsc() -> u64 {
-    // SAFETY: RDTSC is always available on x86_64
-    unsafe { core::arch::x86_64::_rdtsc() }
+    crate::arch::cpu::cycles()
 }
 
 /// Convert UEFI time to Unix epoch milliseconds. Returns 0 on RTC failure.
