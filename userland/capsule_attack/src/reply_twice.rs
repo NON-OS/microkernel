@@ -15,10 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A server answers one request twice. The capsule calls its own service
-//! port, so it is caller and server both: each call times out with its
-//! request still queued, it takes two of three with MkIpcRecvReq and answers
-//! the first twice. The second answer must reach no one, nor one to the
-//! third, still in the inbox (once a second reply took the next call).
+//! port, caller and server both: each call times out, request queued; it
+//! takes two of three with MkIpcRecvReq and answers the first twice. The
+//! second answer must reach no one, nor one to the third, still queued.
 
 use nonos_libc::ipc::{mk_ipc_recv_req, mk_ipc_reply_to, IpcReqMeta};
 use nonos_libc::{mk_getpid, mk_ipc_call_timeout};
@@ -44,11 +43,12 @@ fn take(body: u8) -> Option<u64> {
     for _ in 0..16 {
         let (mut buf, mut meta) = ([0u8; 8], IpcReqMeta::default());
         let rc = mk_ipc_recv_req(0, buf.as_mut_ptr(), buf.len(), NO_WAIT, &mut meta);
-        if rc < 0 {
-            return None;
-        }
         if rc == 1 && buf[0] == body && meta.sender == me && meta.request != 0 {
             return Some(meta.request);
+        }
+        crate::reply_seen::seen(rc, buf[0], &meta);
+        if rc < 0 {
+            return None;
         }
     }
     None
