@@ -21,9 +21,12 @@ use nonos_libc::mk_surface_release;
 
 pub fn run() -> Result<Context, &'static str> {
     let peers = peers::resolve()?;
+    crate::bench::mark(b"peers");
     super::healthcheck_peers::healthcheck_peers(&peers)?;
+    crate::bench::mark(b"peers_healthy");
     let wallpaper_policy_sent = crate::setup::wallpaper_policy::send(peers.wallpaper_port);
     let [c0, c1, d0, d1] = allocate_four(peers.compositor_port)?;
+    crate::bench::mark(b"backings");
     let (chrome, desk) = ([c0, c1], [d0, d1]);
     // Every surface registered so far. A step that fails after the backings
     // are mapped gives them all back before setup goes round again: each
