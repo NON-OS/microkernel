@@ -15,13 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The waiting DNS lookups: a full table refuses at once, a caller who calls
-//! again is answered for the lookup it gave up on first, and no lookup waits
-//! past its deadline whatever its socket says.
+//! again has the lookup it gave up on ended first, and none outlives its deadline.
 
 use crate::dns_pending::{Look, Table, Waiting, PENDING_MAX};
 
 fn w(pid: u32, request_id: u32, query: u16, deadline_ms: i64) -> Waiting<u16> {
-    Waiting { pid, request_id, query, deadline_ms }
+    Waiting { pid, ipc: u64::from(pid), request_id, query, deadline_ms }
 }
 
 #[test]
@@ -31,11 +30,13 @@ fn an_answer_frees_the_slot_and_a_pending_lookup_stays() {
     t.add(w(11, 2, 101, 3_000)).unwrap();
     let mut looked = Vec::new();
     t.sweep(5, |q, expired| {
-        assert!(!expired);
-        looked.push(q.query);
-        if q.query == 100 { Look::Answered } else { Look::Pending }
+        looked.push((q.query, expired));
+        match q.query {
+            100 => Look::Answered,
+            _ => Look::Pending,
+        }
     });
-    assert_eq!(looked, [100, 101]);
+    assert_eq!(looked, [(100, false), (101, false)]);
     assert_eq!(t.take_for(10), None, "answered and gone");
     assert_eq!(t.take_for(11), Some(w(11, 2, 101, 3_000)), "still waiting");
     assert!(!t.any());
@@ -68,9 +69,8 @@ fn a_full_table_hands_the_lookup_back_to_be_refused() {
     assert!(t.add(extra).is_ok(), "a freed slot takes the next one");
 }
 
-// A caller that gave up on a lookup and calls again: the kernel delivers a
-// caller's replies to its calls in order, so the loop takes the old lookup out
-// (and answers it) before dispatching the new call, and only that caller's.
+// A caller that gave up on a lookup and calls again: the loop ends the old
+// lookup, which frees its slot, before it serves the new call; no one else's.
 #[test]
 fn a_caller_calling_again_is_answered_for_the_old_lookup_first() {
     let mut t = Table::new();
