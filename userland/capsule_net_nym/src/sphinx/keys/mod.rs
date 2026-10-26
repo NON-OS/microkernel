@@ -27,7 +27,6 @@ mod integrity_mac_key;
 mod legacy_payload_key;
 mod offsets;
 mod payload_key_seed;
-mod replay_tag;
 mod stream_cipher_key;
 mod types;
 

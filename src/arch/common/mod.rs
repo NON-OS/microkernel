@@ -25,5 +25,7 @@ pub(crate) mod boot_seed;
 #[cfg(any(target_arch = "aarch64", target_arch = "riscv64"))]
 pub(in crate::arch) mod console_uart;
 pub(crate) mod dma_sync;
+#[cfg(any(target_arch = "x86_64", target_arch = "aarch64"))]
+pub(crate) mod low32_sizing;
 pub(crate) mod mmio_order;
 pub(in crate::arch) mod own_core_kind;

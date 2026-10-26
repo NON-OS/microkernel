@@ -27,14 +27,13 @@ extern crate alloc;
 use alloc::vec::Vec;
 use spin::RwLock;
 
-use crate::drivers::pci::types::{MsiInfo, MsixInfo, PciAddress, PciBar};
+use crate::drivers::pci::types::{MsixInfo, PciAddress, PciBar};
 
 #[derive(Clone, Copy, Debug)]
 pub(in crate::hardware::broker) struct PciHandle {
     pub(in crate::hardware::broker) device_id: u64,
     pub(in crate::hardware::broker) address: PciAddress,
     pub(in crate::hardware::broker) bars: [PciBar; 6],
-    pub(in crate::hardware::broker) msi: Option<MsiInfo>,
     pub(in crate::hardware::broker) msix: Option<MsixInfo>,
     /// A type 0 header and no Intel VMD: no function whose Bus Master Enable
     /// or BARs gate others', whose claim the broker refuses (L58, L61).
@@ -59,17 +58,15 @@ pub(in crate::hardware::broker) fn all() -> Vec<PciHandle> {
     INDEX.read().clone()
 }
 
-/// One function added after the boot scan (`table::add_pci_function`).
-#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
-pub(in crate::hardware::broker) fn push(handle: PciHandle) {
-    INDEX.write().push(handle);
+crate::arch::msi_only! {
+    #[path = "pci_index/msi.rs"]
+    mod msi;
+    pub(in crate::hardware::broker) use msi::msi_of;
 }
+crate::arch::msi_only! { else #[path = "pci_index/msi_absent.rs"] mod msi; }
+pub(in crate::hardware::broker) use msi::install as install_msi;
 
-/// A function that left (`acpi::depart`): its handle goes with it, so a
-/// later arrival at the same address is read afresh.
-#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
-pub(in crate::hardware::broker) fn take(device_id: u64) -> Option<PciHandle> {
-    let mut index = INDEX.write();
-    let at = index.iter().position(|h| h.device_id == device_id)?;
-    Some(index.remove(at))
+crate::arch::acpi_only! {
+    mod late;
+    pub(in crate::hardware::broker) use late::{push, take};
 }

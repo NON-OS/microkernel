@@ -23,9 +23,7 @@ mod open;
 mod reassemble;
 mod types;
 
-pub use message::{reply_body, reply_message, Reply};
+pub use message::{reply_message, Reply};
 pub use open::open_reply;
 pub use reassemble::{Collected, Reassembly};
-pub use types::{
-    DIGEST_BYTES, RECIPIENT_BYTES, TAG_REPLY_DATA, TAG_REPLY_SURB_REQUEST, TYPE_REPLY,
-};
+pub use types::RECIPIENT_BYTES;

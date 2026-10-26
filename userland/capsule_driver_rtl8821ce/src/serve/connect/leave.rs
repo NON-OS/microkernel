@@ -26,14 +26,15 @@ use super::consts::*;
 use super::media::set_media_no_link;
 use super::session::Session;
 
-/// Tell the AP the station is leaving, drop the association, unbind the MAC
-/// from the BSS and clear the keys it installed.
+/// Wake the radio, tell the AP the station is leaving, drop the association,
+/// unbind the MAC from the BSS and clear the keys it installed.
 pub(in crate::serve) fn disconnect(
     link: &mut RtlLink<Regs, Grant, Grant>,
     keys: &mut RtlKeys<Regs>,
     regs: &Regs,
     session: &mut Option<Session>,
 ) -> i32 {
+    link.left_ps();
     link.send_deauth();
     link.deassociate();
     set_media_no_link(regs);

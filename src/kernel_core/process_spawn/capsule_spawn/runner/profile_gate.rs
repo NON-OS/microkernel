@@ -31,15 +31,9 @@ use super::profile_refuse::refused;
 pub(in super::super) fn check(name: &str) -> Result<(), SpawnError> {
     let profile = boot_profile();
     if refused(profile, name) {
-        for part in [
-            b"[PROFILE] ".as_slice(),
-            profile.name().as_bytes(),
-            b": not started: ",
-            name.as_bytes(),
-            b"\n",
-        ] {
-            crate::sys::serial::print(part);
-        }
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[PROFILE] ").str(profile.name().as_bytes());
+        l.str(b": not started: ").str(name.as_bytes()).end();
         return Err(SpawnError::ProfileRefused);
     }
     Ok(())

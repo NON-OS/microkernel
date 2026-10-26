@@ -57,17 +57,17 @@ pub fn handle(frame: InterruptStackFrame, error_code: u64) {
     let gpf_error = GpfErrorCode::from_bits(error_code);
     if !ctx.is_user_mode() {
         emit_fatal_notice(&gpf_error);
+        // Straight to the panic path: nothing between the fatal line and it
+        // allocates or takes a lock, since the fault may have come while this
+        // CPU held one (the heap's, the serial port's).
+        crate::boot::panic::fatal();
     }
     log_exception_with_code("GENERAL PROTECTION FAULT", &ctx, error_code);
     stats::increment_exceptions();
 
     analyze_gpf(&ctx, &gpf_error);
 
-    if ctx.is_user_mode() {
-        terminate_user_process();
-    } else {
-        kernel_panic(&ctx);
-    }
+    terminate_user_process();
 }
 
 fn emit_fatal_notice(error: &GpfErrorCode) {
@@ -137,9 +137,4 @@ fn log_instruction_context(ctx: &ExceptionContext) {
 fn terminate_user_process() -> ! {
     crate::log::logger::log_error!("Terminating user process: general protection fault");
     crate::process::exit::exit_and_yield(0x8000_0000u32 as i32, true)
-}
-
-fn kernel_panic(_ctx: &ExceptionContext) {
-    crate::log::logger::log_critical("KERNEL PANIC: General protection fault in kernel mode");
-    crate::boot::panic::fatal();
 }

@@ -25,7 +25,7 @@ const RSVD_PG_NUM: u32 = RSVD_DRV_PG_NUM
 const ACQ_PG_NUM: u32 = TXFF_PG_NUM - RSVD_PG_NUM;
 
 // The reserved-page boundary the beacon and public queues are bounded against.
-pub(super) const RSVD_BOUNDARY: u16 = (TXFF_PG_NUM - RSVD_PG_NUM) as u16;
+pub const RSVD_BOUNDARY: u16 = (TXFF_PG_NUM - RSVD_PG_NUM) as u16;
 
 // The public queue takes whatever pages the per-priority queues do not.
 pub(super) const PUBQ_NUM: u16 = ACQ_PG_NUM as u16 - HQ_NUM - LQ_NUM - NQ_NUM - EXQ_NUM - GAPQ_NUM;

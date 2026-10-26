@@ -19,10 +19,14 @@ use super::serialize::serialize;
 use super::{BlockFsError, BlockFsMount};
 
 pub fn commit(key: &[u8; 32], mount: &mut BlockFsMount) -> Result<(), BlockFsError> {
+    /*
+     * The mount moves first, then the disk: a writer swept asleep in the
+     * write leaves a mount whose generation and header slot are past
+     * anything the disk holds, so the next commit goes to a fresh slot.
+     */
     mount.superblock.generation += 1;
     let lba = header_lba(mount.superblock.generation);
-    let payload = serialize(&mount.superblock);
-    crate::fs::cryptoblock::write(key, lba, &payload).map_err(BlockFsError::CryptoBlock)?;
     mount.header_lba = lba;
-    Ok(())
+    let payload = serialize(&mount.superblock);
+    crate::fs::cryptoblock::write(key, lba, &payload).map_err(BlockFsError::CryptoBlock)
 }

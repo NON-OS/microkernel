@@ -43,11 +43,18 @@ pub(crate) fn detail(base: u64, w: u32, h: u32, stride: u32, att: &AttestStatus)
     hex32(&att.program_hash, &mut hx);
     draw_text(buf, spx, w, h, px + 10, py + 96, b"zk program hash", DIM);
     draw_text(buf, spx, w, h, px + 10, py + 114, &hx, FG);
-    flag(buf, spx, w, h, px + 10, py + 152, b"secure_boot", att.secure_boot == 1);
-    flag(buf, spx, w, h, px + 200, py + 152, b"attested", att.zk_verified == 1);
+    flag(buf, spx, (w, h), (px + 10, py + 152), b"secure_boot", att.secure_boot == 1);
+    flag(buf, spx, (w, h), (px + 200, py + 152), b"attested", att.zk_verified == 1);
     draw_text(buf, spx, w, h, px + 10, h - 40, b"press any key to return", DIM);
 }
 
-fn flag(buf: &mut [u32], spx: usize, w: u32, h: u32, x: u32, y: u32, label: &[u8], ok: bool) {
+fn flag(
+    buf: &mut [u32],
+    spx: usize,
+    (w, h): (u32, u32),
+    (x, y): (u32, u32),
+    label: &[u8],
+    ok: bool,
+) {
     draw_text(buf, spx, w, h, x, y, label, if ok { OK } else { WARN });
 }

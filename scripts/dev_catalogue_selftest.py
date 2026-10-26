@@ -43,6 +43,7 @@ ALLOWED = [  # host proofs and file lists read nothing into an image
     ("nonos-mk/tests/dev_catalogue/signed.rs", 'include_str!("../../../tools/devnet/market/index.json")'),
     ("userland/market_proofs/src/x.rs", '"tools/devnet/market"'),
     ("tools/nix/inputs.json", '"tools/devnet/market/index.json",'),
+    ("tools/nonos_market_catalogue/test_union.py", '(ROOT / "tools/devnet/market/index.json")'),
     (SEAL, 'SOURCE = "tools/devnet/market/index.json"'),
 ]
 

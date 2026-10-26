@@ -45,19 +45,17 @@ pub fn run_selftest() -> bool {
     for (name, check) in CHECKS.iter() {
         if check() != AlgorithmStatus::Pass {
             failed += 1;
-            crate::sys::serial::print(b"[CRYPTO-POST] FAIL ");
-            crate::sys::serial::println(name);
+            let mut l = crate::sys::serial::Line::new();
+            l.str(b"[CRYPTO-POST] FAIL ").str(name).end();
         }
     }
     CRYPTO_STATE.overall_checks_run.store(true, Ordering::SeqCst);
-    crate::sys::serial::print(b"[CRYPTO-POST] ");
-    crate::sys::serial::print_dec((CHECKS.len() - failed) as u64);
-    crate::sys::serial::print(b"/");
-    crate::sys::serial::print_dec(CHECKS.len() as u64);
-    if failed == 0 {
-        crate::sys::serial::println(b" known-answer tests passed");
-    } else {
-        crate::sys::serial::println(b" known-answer tests passed, WARNING crypto is not itself");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[CRYPTO-POST] ").dec((CHECKS.len() - failed) as u64).str(b"/");
+    l.dec(CHECKS.len() as u64).str(b" known-answer tests passed");
+    if failed != 0 {
+        l.str(b", WARNING crypto is not itself");
     }
+    l.end();
     failed == 0
 }

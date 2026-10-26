@@ -22,18 +22,22 @@ use crate::ps2::{set1, set1_e0};
 
 #[test]
 fn the_first_88_codes_post_what_ps2_posts() {
-    for code in 0..=0x58u16 {
+    // But 84, which Linux leaves unassigned: scan code 54 is SysRq, which
+    // Linux sends as KEY_SYSRQ, 99, and the extended test holds.
+    for code in (0..=0x58u16).filter(|&c| c != 84) {
         assert_eq!(keycode_for(code), set1::keycode_for(code as u8), "key {code}");
     }
+    assert_eq!(keycode_for(84), None);
 }
 
 // Linux atkbd's mapping of the E0-prefixed scan codes.
 #[test]
 fn the_extended_codes_post_what_their_e0_scan_codes_post() {
-    let pairs: [(u16, u8); 20] = [
+    let pairs: [(u16, u8); 22] = [
         (96, 0x1C),
         (97, 0x1D),
         (98, 0x35),
+        (99, 0x37),
         (100, 0x38),
         (102, 0x47),
         (103, 0x48),
@@ -49,6 +53,7 @@ fn the_extended_codes_post_what_their_e0_scan_codes_post() {
         (114, 0x2E),
         (115, 0x30),
         (116, 0x5E),
+        (119, 0x46),
         (125, 0x5B),
         (126, 0x5C),
     ];
@@ -56,7 +61,7 @@ fn the_extended_codes_post_what_their_e0_scan_codes_post() {
         assert_eq!(keycode_for(linux), set1_e0::keycode_for(scan), "key {linux}");
         assert!(set1_e0::keycode_for(scan).is_some());
     }
-    for code in [89u16, 95, 99, 101, 112, 117, 124, 127, 255] {
+    for code in [89u16, 95, 101, 112, 117, 124, 127, 255] {
         assert_eq!(keycode_for(code), None, "key {code}");
     }
 }

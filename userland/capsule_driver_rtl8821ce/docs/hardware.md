@@ -35,10 +35,19 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
  past the AP's group rekey interval: the rekey count rises and traffic continues.
 - Leave: disconnect, or deauthenticate from the AP; the link reads down and the
  background scan resumes.
+- DMA: on a machine with more than 4 GiB of memory, bring-up still reaches Ready
+ and data flows; no `DMA map above 4 GiB refused` line.
+- A join does not hold a core busy: the system stays responsive through a connect.
+- Card gone: removing or disabling the card while serving gives one `reads back all
+ ones` line and the panel shows `The card's registers read back dead`.
+- Power save, with `ps::switch::LPS` turned on in a test build only: the link held
+ through sleep, no received frame lost across it, a group rekey and an SA Query
+ answered while asleep. Until that run, the switch stays off.
 
 ## Explicit non-goals today
 
 No 5 GHz channels, no HT/VHT rates, no open or TKIP networks, no WPA2-Enterprise or 802.1X,
 no access point or mesh mode, no monitor mode, no Bluetooth function of the combo chip, no
-802.11ac rate tuning beyond the init tables, no power-save or roaming policy, no stored Wi-Fi
+802.11ac rate tuning beyond the init tables, power save built but off until the run above, no
+roaming policy, no stored Wi-Fi
 profiles, and no IP, DHCP, DNS or socket logic in this capsule.

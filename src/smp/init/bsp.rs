@@ -44,8 +44,7 @@ pub fn init_bsp() -> Result<(), &'static str> {
      * table that has them. Binding them here was the old shape, and what it
      * bound them into was a second descriptor table the kernel never loads.
      */
-    #[cfg(target_arch = "aarch64")]
-    super::super::ipi_dispatch::register_ipi_handlers();
+    crate::arch::interrupt_controller::register_ipi_handlers();
 
     crate::log_info!("[SMP] BSP initialized: APIC ID={}, {} CPUs detected", bsp_apic, cpu_count);
 

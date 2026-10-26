@@ -24,6 +24,8 @@
 #[path = "../../../../src/hardware/broker/dma/pool/bitmap.rs"]
 pub mod bitmap;
 mod free_tests;
+#[path = "../../../../src/arch/common/low32_sizing.rs"]
+pub mod low32_sizing;
 #[path = "../../../../src/hardware/broker/dma/pool/run_taken.rs"]
 pub mod run_taken;
 #[path = "../../../../src/hardware/broker/dma/pool/sizing.rs"]
