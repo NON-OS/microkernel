@@ -39,6 +39,8 @@ mod eligible;
 mod flush;
 mod handle;
 mod nudge;
+#[cfg(feature = "nonos-smp-shootdown-proof")]
+mod proof;
 mod report;
 mod report_cpu;
 mod request;
@@ -53,4 +55,6 @@ mod wait;
 
 pub use flush::{flush_tlb_all_smp, flush_tlb_one_smp, flush_tlb_range_smp};
 pub use handle::{handle_shootdown_ipi, shootdown_in_flight};
+#[cfg(feature = "nonos-smp-shootdown-proof")]
+pub use proof::run as run_proof;
 pub use request::ASID_KERNEL;

@@ -41,7 +41,7 @@ fn a_foreign_partition_anywhere_over_the_fixed_sectors_refuses_them() {
         let (kind, a, b, entries) = fixed_tables::table(&mut r);
         let want = rule(&entries);
         assert_eq!(kernel(entries.clone()), want, "seed {seed}: {entries:?}");
-        let at = |s: u64| s >= FIXED_LO && s < FIXED_HI;
+        let at = |s: u64| (FIXED_LO..FIXED_HI).contains(&s);
         let crosses = at(a.min(b)) || at(a.max(b)) || (a.min(b) < FIXED_LO && a.max(b) >= FIXED_HI);
         seen[match want {
             None => 0,

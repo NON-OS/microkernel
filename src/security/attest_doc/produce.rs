@@ -46,6 +46,10 @@ pub(super) fn produce(
         Ok::<_, AttestDocError>((tcg_log(events)?, quote_pcrs(ak_handle, &qualifying)?))
     });
     let (log, quoted) = taken.ok_or(AttestDocError::MeasureFailed)??;
+    // Complete never turns back, so this covers every spawn up to the quote.
+    if !registry_complete() {
+        return Err(AttestDocError::RegistryIncomplete);
+    }
 
     // Kept when the key was loaded; a handle without it is a driver fault.
     let ak_public = ak_public().ok_or(AttestDocError::Tpm(TpmError::InvalidResponse))?;
