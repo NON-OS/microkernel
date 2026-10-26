@@ -10593,6 +10593,9 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/pci/change.rs",
+   "src/hardware/broker/pci/command_bits.rs",
+   "src/hardware/broker/pci/command_rule.rs",
    "userland/capsule_driver_uhci/src/devices",
    "userland/capsule_driver_uhci/src/env",
    "userland/capsule_driver_uhci/src/facts",

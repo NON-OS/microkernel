@@ -24,6 +24,7 @@ mod op_tests;
 mod output_retire_tests;
 mod output_tests;
 mod silence_tests;
+mod serial_restart_tests;
 mod size_tests;
 mod starved_rule_tests;
 mod starved_tests;

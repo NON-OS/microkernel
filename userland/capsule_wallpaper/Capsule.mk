@@ -10,6 +10,11 @@ CAPSULE_REPLY_ENDPOINT   := reply:4341:endpoint.wallpaper.reply
 # IPC | Memory | GraphicsDisplayQuery | GraphicsSurfaceCreate
 # = 0x08 | 0x10 | 0x800 | 0x1000 = 0x1818
 CAPSULE_REQUIRED_CAPS    := 0x1818
+# Debug, granted only by a build that compiles `capsule-serial-debug` (the
+# development images): the kernel mirror folds it in through
+# serial_debug_cap(), so the wallpaper's own lines reach the console there
+# and nowhere else.
+CAPSULE_OPTIONAL_CAPS    := 0x100
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_wallpaper
 
 include nonos-mk/capsule.mk
