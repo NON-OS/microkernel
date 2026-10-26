@@ -25,6 +25,7 @@ mod device_secret_tests;
 mod dir;
 mod ek_tests;
 mod floor_tests;
+mod pcr_extend_tests;
 mod pcrs_quote_tests;
 mod pcrs_tests;
 mod quote_tests;
