@@ -126,5 +126,8 @@
  {"name": "logo-skip-raster", "file": "logos.py", "old": "if n in pins and pins[n][\"R\"] != r]", "new": "if False]"},
  {"name": "logo-less-bytes", "file": "logos.py", "old": "if at.exists():", "new": "if False:"},
  {"name": "logo-outside-tree", "file": "recipes.py", "old": "if not logo.is_relative_to(root.resolve()) or not logo.is_file():", "new": "if not logo.is_file():"},
- {"name": "lock-logo-hex", "file": "lock_file.py", "old": "len(pin[f]) in (0, 64) and HEX >= set(pin[f])", "new": "True"}
+ {"name": "lock-logo-hex", "file": "lock_file.py", "old": "len(pin[f]) in (0, 64) and HEX >= set(pin[f])", "new": "True"},
+ {"name": "union-drops-release", "file": "union.py", "old": "        release[\"entries\"].append(added)", "new": "        release[\"entries\"] = [x for x in release[\"entries\"] if x[\"listing_id\"] not in have] + [added]"},
+ {"name": "union-collision", "file": "union.py", "old": "if e[\"listing_id\"] in have:", "new": "if False:"},
+ {"name": "union-key", "file": "union.py", "old": "if added.get(\"publisher_pubkey\") == PLACEHOLDER:", "new": "if False:"}
 ]
