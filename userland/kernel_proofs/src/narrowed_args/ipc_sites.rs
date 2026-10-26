@@ -24,6 +24,11 @@ pub(super) fn ipc_sites() -> Vec<(&'static str, &'static str, Vec<&'static str>)
             vec![],
         ),
         (
+            "ipc/send_caps_inbox.rs",
+            include_str!("../../../../src/syscall/microkernel/ipc/send_caps_inbox.rs"),
+            vec![],
+        ),
+        (
             "ipc/inbox_name.rs",
             include_str!("../../../../src/syscall/microkernel/ipc/inbox_name.rs"),
             vec![],

@@ -16,7 +16,7 @@
 
 use alloc::vec::Vec;
 
-use crate::browser::manifest::HEIGHT;
+use crate::browser::css::calc::viewport;
 
 use super::media_value::{compare, feature, length, ratio};
 
@@ -38,7 +38,7 @@ pub(super) fn range(body: &str, viewport_w: u32) -> Option<bool> {
         rest = &rest[at + len..];
     }
     terms.push(rest.trim());
-    let (w, h) = (viewport_w as f32, HEIGHT as f32);
+    let (w, h) = (viewport_w as f32, viewport::height() as f32);
     let Some(at) = terms.iter().position(|t| feature(t, w, h).is_some()) else {
         return Some(false);
     };
