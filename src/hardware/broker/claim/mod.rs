@@ -36,6 +36,7 @@ mod pending;
 mod port_only;
 mod quiesce;
 mod quiesce_all;
+mod quiesce_other;
 mod refusal;
 mod release;
 mod reset;
