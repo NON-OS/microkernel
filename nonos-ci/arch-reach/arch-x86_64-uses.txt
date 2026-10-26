@@ -160,9 +160,6 @@ src/smp/init/ap_unit/abandon.rs 1
     parks a failed AP with an INIT through the LAPIC. Elsewhere: nothing: ap_unit is x86-gated;
     aarch64 starts its cores through PSCI in src/arch
 
-src/smp/ipi_dispatch/x86_64/install.rs 1
-    GAP: IPI IDT gates. Elsewhere: riscv64 no IPIs; aarch64 SGI handlers
-
 src/smp/topology/detection/probe_x86_64/mod.rs 1
     GAP: ACPI MADT processors. Elsewhere: riscv64 reports 1 CPU; aarch64 probe
 
