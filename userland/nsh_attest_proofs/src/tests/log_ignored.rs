@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What the replay leaves alone: events of different PCRs may interleave,
-//! and `EV_NO_ACTION` events and the PCRs NONOS extends are not replayed.
+//! and `EV_NO_ACTION` events and PCR 8, which the loader extends outside the
+//! log, are not replayed.
 
 use super::passes;
 use crate::build::tcg::{EV_APP, EV_NO_ACTION};
@@ -36,15 +37,14 @@ fn events_of_different_pcrs_may_interleave() {
     m.ext(0, 1, digest(b"c")).ext(7, 1, digest(b"a")).ext(4, EV_APP, boot());
     m.ext(4, EV_APP, loader()).ext(7, 1, digest(b"b"));
     assert_eq!(l.pcrs, m.pcrs);
-    passes(Spec { log: Log { bytes: m.bytes, pcrs: l.pcrs }, ..Spec::default() });
+    passes(Spec { log: Log { bytes: m.bytes, pcrs: l.pcrs }.with_capsules(), ..Spec::default() });
 }
 
 #[test]
-fn no_action_events_and_nonos_pcrs_in_the_log_are_not_replayed() {
+fn no_action_events_and_the_loader_s_pcr_in_the_log_are_not_replayed() {
     let mut s = Spec::default();
     let zeros = vec![(0x0004, vec![0; 20]), (0x000B, vec![0; 32])];
     s.log.bytes.extend(event(4, EV_NO_ACTION, &zeros, b"a note"));
     s.log.ext(8, 0x0D, digest(b"loader's own measurement"));
-    s.log.ext(14, 0x0D, digest(b"a capsule"));
     passes(s);
 }

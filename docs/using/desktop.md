@@ -15,11 +15,11 @@ The bar runs across the top of the screen and stays there, even over a full-scre
 
 | Menu | Rows |
 |---|---|
-| App name, or `Desktop` | `Focus Window` (or `Refresh Desktop`), `Show All Apps`, `About This System` |
+| App name, or `Desktop` | `Focus Window` (or `Refresh Desktop`), `Show all apps`, `About this system` |
 | `File` | `New Folder`, `New File`, `Open Files` |
 | `View` | `Show Launchpad`, `Show Dock`, `Refresh Desktop` |
 | `Go` | `Terminal`, `Browser`, `Settings` |
-| `Help` | `About This System`, `Processes` |
+| `Help` | `About this system`, `Processes` |
 
 - A menu row that opens an app brings that app's window forward if it has one, and opens a window only when it has none.
 - The status area at the right end holds, in order, the battery label, a network mark that dims while there is no DHCP lease, the magnifier, and the date and time.
@@ -178,7 +178,7 @@ Three capsules make the desktop, and every pixel reaches the display through the
 - The window manager keeps each window's place, size, stacking order and focus. It never sees pixels.
 - The desktop shell owns two full-screen layers: the desk under every window, with the desktop icons, and the chrome over every window, with the menu bar, the dock, the Launchpad, menus and notices.
 
-The compositor keeps a band at the top right of the screen that no window can cover: marks for the camera, the microphone, a screenshot just taken and the trusted prompt. When the machine runs without an IOMMU, so device DMA is not confined by hardware, the band's bottom edge is red for the whole session, and the boot splash says `device DMA not confined by hardware` in red under its attestation panel. Both read the kernel's `BOOT_DMA_UNCONFINED` flag (`userland/compositor/src/frame_pacer/indicator_band.rs`, `userland/capsule_boot_splash/src/warning.rs`).
+The compositor keeps a band at the top right of the screen, inside the menu bar and in its colour, that no window can cover or imitate. It holds four small glyphs: a camera (green while the camera is on), a microphone (amber), a screen (blue just after a screenshot) and a lock (white while a system prompt or the lock screen holds the trusted band). Each is dim grey while off, so the band is always there to look at. When the machine runs without an IOMMU, so device DMA is not confined by hardware, the band's bottom edge is red for the whole session, and the boot splash says `device DMA not confined by hardware` in red under its attestation panel. Both read the kernel's `BOOT_DMA_UNCONFINED` flag (`userland/compositor/src/frame_pacer/indicator_band.rs`, `userland/capsule_boot_splash/src/warning.rs`).
 
 The keyboard and pointer drivers send their events to the input router. A window gets the keys while it has focus. A small set of reserved keys never reaches a window and always goes to the desktop shell: they are listed under [Keys the desktop answers](#keys-the-desktop-answers). The app tells the window manager its geometry, and the window manager keeps the stacking the compositor draws.
 

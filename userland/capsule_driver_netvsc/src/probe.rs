@@ -102,6 +102,18 @@ pub enum Verdict {
     Unanswered,
 }
 
+impl Verdict {
+    /// The source as the NNET STATS reply carries it in word 9 (nonos_usbnet
+    /// nnet::STATION_*), for Settings' network page.
+    pub const fn station(self) -> u32 {
+        match self {
+            Verdict::Drawn => 1,
+            Verdict::Unanswered => 2,
+            Verdict::Refused => 3,
+        }
+    }
+}
+
 /// The probe's state: how many DISCOVERs were sent and when the last went.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Probe {
