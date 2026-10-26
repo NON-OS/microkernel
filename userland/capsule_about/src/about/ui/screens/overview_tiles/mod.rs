@@ -14,15 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::constants::{BLINDING_FACTOR_SIZE, REPLAY_TAG_SIZE};
-use super::offsets::BLINDING_FACTOR_AT;
-use super::types::ExpandedSharedSecret;
+//! The overview's row of three tiles: uptime (row.rs), then capabilities and
+//! display (caps.rs).
 
-impl ExpandedSharedSecret {
-    pub fn replay_tag(&self) -> [u8; REPLAY_TAG_SIZE] {
-        let at = BLINDING_FACTOR_AT + BLINDING_FACTOR_SIZE;
-        let mut tag = [0u8; REPLAY_TAG_SIZE];
-        tag.copy_from_slice(&self.0[at..at + REPLAY_TAG_SIZE]);
-        tag
-    }
-}
+mod caps;
+mod row;
+
+pub use row::paint;

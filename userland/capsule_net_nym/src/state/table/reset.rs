@@ -22,6 +22,5 @@ impl Table {
             session.zeroize();
         }
         self.sessions.clear();
-        self.stream_rx.clear();
     }
 }

@@ -20,12 +20,9 @@ mod build;
 mod built;
 mod derive_keys;
 mod final_block;
-mod from_bytes;
 mod to_bytes;
 mod types;
 mod wrap_hops;
 
 pub use build::build_header;
-pub use built::BuiltHeader;
-pub use derive_keys::derive_hop_keys;
 pub use types::SphinxHeader;

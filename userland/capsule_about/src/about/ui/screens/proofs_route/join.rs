@@ -14,22 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::SphinxHeader;
-use crate::sphinx::constants::{
-    ENCRYPTED_ROUTING_INFO_SIZE, HEADER_INTEGRITY_MAC_SIZE, HEADER_SIZE,
-};
+//! Byte strings run together into a fixed buffer, cut where it fills.
 
-impl SphinxHeader {
-    pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
-        if bytes.len() != HEADER_SIZE {
-            return None;
+pub fn join<const N: usize>(out: &mut [u8; N], a: &[u8], b: &[u8], c: &[u8]) -> usize {
+    join3(out, a, b, c)
+}
+
+pub fn join3<const N: usize>(out: &mut [u8; N], a: &[u8], b: &[u8], c: &[u8]) -> usize {
+    let mut n = 0;
+    for part in [a, b, c] {
+        for &x in part {
+            if n == N {
+                return n;
+            }
+            out[n] = x;
+            n += 1;
         }
-        let mut ephemeral_pubkey = [0u8; 32];
-        let mut integrity_mac = [0u8; HEADER_INTEGRITY_MAC_SIZE];
-        let mut routing_info = [0u8; ENCRYPTED_ROUTING_INFO_SIZE];
-        ephemeral_pubkey.copy_from_slice(&bytes[..32]);
-        integrity_mac.copy_from_slice(&bytes[32..32 + HEADER_INTEGRITY_MAC_SIZE]);
-        routing_info.copy_from_slice(&bytes[32 + HEADER_INTEGRITY_MAC_SIZE..]);
-        Some(Self { ephemeral_pubkey, integrity_mac, routing_info })
     }
+    n
 }
