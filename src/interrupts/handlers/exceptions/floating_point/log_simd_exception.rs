@@ -15,11 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::interrupts::handlers::exceptions::context::ExceptionContext;
+use crate::security::observability::redact::redact_address;
 
 pub(crate) fn log_simd_exception(ctx: &ExceptionContext, mxcsr: u32) {
     crate::log::logger::log_warning!(
-        "SIMD FP Exception at {:#x}: MXCSR={:#x}",
-        ctx.instruction_pointer,
+        "SIMD FP Exception at {}: MXCSR={:#x}",
+        redact_address(ctx.instruction_pointer),
         mxcsr
     );
 }
