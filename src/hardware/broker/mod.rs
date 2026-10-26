@@ -15,12 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 // GPIO and I2C controllers only firmware knows of. ACPI describes them in AML, an x86 firmware
 // interface; the same parts on an ARM board come out of the device tree, through `arch::fdt`.
-#[cfg(target_arch = "x86_64")]
-pub mod acpi;
-#[cfg(target_arch = "x86_64")]
-mod acpi_gpio;
-#[cfg(target_arch = "x86_64")]
-mod acpi_i2c;
+crate::arch::acpi_only! {
+    pub mod acpi;
+    mod acpi_gpio;
+    mod acpi_i2c;
+}
 mod api;
 mod bootfb;
 mod brief;

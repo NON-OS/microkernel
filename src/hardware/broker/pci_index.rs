@@ -59,17 +59,7 @@ pub(in crate::hardware::broker) fn all() -> Vec<PciHandle> {
     INDEX.read().clone()
 }
 
-/// One function added after the boot scan (`table::add_pci_function`).
-#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
-pub(in crate::hardware::broker) fn push(handle: PciHandle) {
-    INDEX.write().push(handle);
-}
-
-/// A function that left (`acpi::depart`): its handle goes with it, so a
-/// later arrival at the same address is read afresh.
-#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
-pub(in crate::hardware::broker) fn take(device_id: u64) -> Option<PciHandle> {
-    let mut index = INDEX.write();
-    let at = index.iter().position(|h| h.device_id == device_id)?;
-    Some(index.remove(at))
+crate::arch::acpi_only! {
+    mod late;
+    pub(in crate::hardware::broker) use late::{push, take};
 }
