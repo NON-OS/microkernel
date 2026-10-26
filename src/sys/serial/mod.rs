@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod column;
 pub mod core;
+pub mod fatal;
 pub mod line;
 pub mod print;
 
@@ -22,4 +24,4 @@ pub mod tail;
 
 pub use core::init;
 pub use line::Line;
-pub use print::{print, print_dec, print_dec as print_u64, print_hex, print_str, println};
+pub use print::{line, print, print_dec, print_dec as print_u64, print_hex, print_str, println};
