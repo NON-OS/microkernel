@@ -19,3 +19,16 @@
 /// The descriptor table page.
 pub const DESC_TABLE_BYTES: u64 = 4096;
 pub(super) const PAGE: u64 = 4096;
+
+/// The bytes of a slot BAR of `size` the driver maps. The broker maps whole
+/// pages and hands back the first byte asked for, so a BAR of a page or more
+/// is mapped in whole pages, and one under a page as it is: QEMU's sdhci-pci
+/// BAR is 0x100, one slot's registers and no more. None below one slot.
+pub(super) const fn slot_length(size: u64, slot_window: u64) -> Option<u64> {
+    let length = if size >= PAGE { size & !(PAGE - 1) } else { size };
+    if length < slot_window {
+        None
+    } else {
+        Some(length)
+    }
+}
