@@ -15,13 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! After the install: restart, close, or go back and pick another disk.
-//! Restart is the kernel's reboot, which needs the Admin bit this capsule
-//! carries for exactly this one call. Going back looks at the disks again:
+//! Restart is asked of capsule_power, which lets the installers reboot and
+//! wipes as a power-off does; this capsule holds no Admin (S-14). Going back looks at the disks again:
 //! a stopped write can follow a driver that went away, and the list it
 //! left is not the machine any more.
 
 use nonos_app_skeleton::{EventOutcome, KEY_ENTER, KEY_ESC};
-use nonos_libc::mk_admin_reboot;
+use nonos_libc::power_restart;
 
 use super::router::back;
 use crate::install::full::active;
@@ -35,8 +35,11 @@ pub fn on_after_key(state: &mut State, code: u32) -> EventOutcome {
             KEY_ESC if active() => EventOutcome::Idle,
             KEY_ESC => EventOutcome::Close,
             KEY_ENTER => {
-                mk_admin_reboot();
-                EventOutcome::Idle
+                // A restart that runs never returns: anything back is a refusal.
+                let rc = power_restart();
+                state.notice =
+                    Some(alloc::format!("restart refused ({rc}); restart from the power button"));
+                EventOutcome::Repaint
             }
             _ => EventOutcome::Idle,
         },
