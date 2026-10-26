@@ -22,7 +22,7 @@
  * The parts of 7B, 14B and 32B are kept under shorter names than the Qwen
  * team publishes them under, without "-instruct": theirs are 52 to 54
  * bytes, and the data volume keeps a name of at most 48 (see
- * `pinned::keepable`), so under their own names they could never be
+ * `pinned::keep::keepable`), so under their own names they could never be
  * fetched or imported. The bytes and digests are the published ones; the
  * name they are downloaded by is kept in tools/nonos_qwen_tier/upstream.py.
  * Each short name still ends in "-0000N-of-0000M.gguf", which is how the

@@ -17,7 +17,7 @@
 //! Each pin the published file, renamed files kept whole, published names kept.
 
 use super::super::pinned_published::{kept_as, KEPT_AS, PUBLISHED};
-use crate::models::pinned::{all, keepable, pin_of};
+use crate::models::pinned::{all, keep::keepable, pin_of};
 
 #[test]
 fn every_pin_is_the_published_file_byte_for_byte() {
