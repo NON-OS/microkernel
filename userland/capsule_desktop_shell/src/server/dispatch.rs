@@ -22,6 +22,11 @@ use crate::server::{handlers, respond};
 use crate::state::Context;
 
 pub fn dispatch(ctx: &mut Context, sender_pid: u32, req: Request, body: &[u8], tx: &mut [u8]) {
+    route(ctx, sender_pid, req, body, tx);
+    crate::bench::answered(req.op);
+}
+
+fn route(ctx: &mut Context, sender_pid: u32, req: Request, body: &[u8], tx: &mut [u8]) {
     if handlers::settings_relay::relay(ctx, sender_pid, &req, body, tx) {
         return;
     }
