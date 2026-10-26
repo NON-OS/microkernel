@@ -72,11 +72,10 @@ pub unsafe fn return_to_usermode(frame: *const InterruptFrame) -> ! {
         use core::sync::atomic::{AtomicU32, Ordering};
         static FIRST_ENTRY_SHOWN: AtomicU32 = AtomicU32::new(0);
         if FIRST_ENTRY_SHOWN.fetch_add(1, Ordering::Relaxed) < 64 {
-            crate::sys::serial::print(b"[USER-FIRST] pid=");
-            crate::sys::serial::print_hex(crate::process::current_pid().unwrap_or(0) as u64);
-            crate::sys::serial::print(b" rip=");
-            crate::sys::serial::print_hex(f.rip);
-            crate::sys::serial::println(b"");
+            // One write, so another CPU's line never lands inside it.
+            let pid = crate::process::current_pid().unwrap_or(0) as u64;
+            let mut l = crate::sys::serial::Line::new();
+            l.str(b"[USER-FIRST] pid=").hex(pid).str(b" rip=").hex(f.rip).end();
         }
     }
 

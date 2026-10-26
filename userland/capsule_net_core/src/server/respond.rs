@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_libc::ipc::mk_ipc_reply_to;
 use nonos_libc::mk_ipc_reply;
 
 use super::parse_req::HDR_LEN;
 
+/// Answer the request `sender_pid` sent last, as it is being handled.
 pub fn reply(
     sender_pid: u32,
     magic: u32,
@@ -27,6 +29,26 @@ pub fn reply(
     body: &[u8],
     tx: &mut [u8],
 ) -> i64 {
+    let n = frame(magic, op, errno, request_id, body, tx);
+    mk_ipc_reply(sender_pid, tx.as_ptr(), n)
+}
+
+/// Answer a request held past its turn by the kernel's id for it, `ipc`
+/// (receive.rs): that call and no other. A call that gave up meanwhile
+/// is ETIMEDOUT and gets nothing; an `ipc` of 0 names none.
+pub fn reply_to(
+    ipc: u64,
+    (magic, op): (u32, u16),
+    errno: u16,
+    request_id: u32,
+    body: &[u8],
+    tx: &mut [u8],
+) -> i64 {
+    let n = frame(magic, op, errno, request_id, body, tx);
+    mk_ipc_reply_to(ipc, tx.as_ptr(), n)
+}
+
+fn frame(magic: u32, op: u16, errno: u16, request_id: u32, body: &[u8], tx: &mut [u8]) -> usize {
     tx[0..4].copy_from_slice(&magic.to_le_bytes());
     tx[4..6].copy_from_slice(&1u16.to_le_bytes());
     tx[6..8].copy_from_slice(&op.to_le_bytes());
@@ -35,5 +57,5 @@ pub fn reply(
     tx[12..16].copy_from_slice(&request_id.to_le_bytes());
     tx[16..20].copy_from_slice(&(body.len() as u32).to_le_bytes());
     tx[HDR_LEN..HDR_LEN + body.len()].copy_from_slice(body);
-    mk_ipc_reply(sender_pid, tx.as_ptr(), HDR_LEN + body.len())
+    HDR_LEN + body.len()
 }

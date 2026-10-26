@@ -20,19 +20,19 @@
 //! reading what setup asked for) must not lose its answer to that waiter.
 //! Pure, with no kernel imports, so the host proofs mount it.
 
-pub const KEPT_SLOTS: usize = 4;
+pub(crate) const KEPT_SLOTS: usize = 4;
 
-pub struct Kept {
+pub(crate) struct Kept {
     slots: [(u32, Option<i32>); KEPT_SLOTS],
 }
 
 impl Kept {
-    pub const fn new() -> Self {
+    pub(crate) const fn new() -> Self {
         Self { slots: [(0, None); KEPT_SLOTS] }
     }
 
     /// Ask for `pid`'s status to be kept; false when every slot is taken.
-    pub fn watch(&mut self, pid: u32) -> bool {
+    pub(crate) fn watch(&mut self, pid: u32) -> bool {
         if pid == 0 {
             return false;
         }
@@ -49,7 +49,7 @@ impl Kept {
     }
 
     /// `pid` ended with `code`; kept only when it was asked for.
-    pub fn note(&mut self, pid: u32, code: i32) {
+    pub(crate) fn note(&mut self, pid: u32, code: i32) {
         if let Some(slot) = self.slots.iter_mut().find(|s| s.0 == pid) {
             slot.1 = Some(code);
         }
@@ -57,7 +57,7 @@ impl Kept {
 
     /// The status kept for `pid`, read as often as asked; never one for pid 0,
     /// the free slots' pid.
-    pub fn status(&self, pid: u32) -> Option<i32> {
+    pub(crate) fn status(&self, pid: u32) -> Option<i32> {
         self.slots.iter().find(|s| pid != 0 && s.0 == pid).and_then(|s| s.1)
     }
 }
