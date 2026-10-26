@@ -247,8 +247,13 @@ let
       "scripts/check_test_lanes.py --self-test" "scripts/check_test_lanes.py"
       "-m unittest discover -s tools/nonos_selftest -p 'test_*.py'"
       "-m unittest discover -s tools/agentproof_gauntlet -t tools -p 'test_*.py'"
-      # The market catalogue tool's suite; its digests are BLAKE3, so b3sum.
-      "-m unittest discover -s tools/nonos_market_catalogue -t tools -p 'test_*.py'"
+      # The market catalogue tool's suite but its mutants (market-catalogue-mutants);
+      # its digests are BLAKE3, so b3sum.
+      "-m unittest discover -s tools/nonos_market_catalogue -t tools -p 'test_[!m]*.py'"
+    ]);
+    # The catalogue's mutants: the suite once a mutant, so a lane of its own.
+    market-catalogue-mutants = static "catalogue-mutants" (scripts [
+      "-m unittest discover -s tools/nonos_market_catalogue -t tools -p 'test_mutants.py'"
     ]);
     # verify.yml, abi-contracts and syscall-reach
     static-abi = static "abi" (scripts [
