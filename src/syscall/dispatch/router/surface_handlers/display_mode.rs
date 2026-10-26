@@ -35,8 +35,8 @@ pub(super) fn log_display_mode(desc: &SurfaceDescriptor) {
     n += fmt_u32(desc.height, &mut buf[n..]);
     // serial::print, not trace: the mode must land in every boot log, not only
     // debug-enabled ones, so a wrong resolution is visible immediately.
-    crate::sys::serial::print(b"[DISPLAY] mode ");
-    crate::sys::serial::println(&buf[..n]);
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[DISPLAY] mode ").str(&buf[..n]).end();
 }
 
 fn fmt_u32(mut v: u32, out: &mut [u8]) -> usize {

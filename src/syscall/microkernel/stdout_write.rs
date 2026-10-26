@@ -46,7 +46,7 @@ pub fn sys_stdout_write(user_ptr: u64, len: u64) -> i64 {
         return ERRNO_FAULT;
     }
     if crate::syscall::caps::current_caps_or_default().can_debug() {
-        crate::sys::serial::print(&buf[..len]);
+        crate::sys::serial::passthrough(&buf[..len]);
     }
     super::debug::mirror_to_proc_inbox(&buf[..len]);
     len as i64
