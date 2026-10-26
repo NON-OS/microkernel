@@ -23,6 +23,7 @@ use crate::store::reasons::mark;
 use crate::store::theme::{DANGER, MUTED, OK};
 use crate::store::verdict::Verdict;
 
+use super::gate_fit::shown;
 use super::metrics::{GATE_ROW_H, SMALL_PX};
 use super::text;
 
@@ -30,18 +31,28 @@ use super::text;
 /// enough that the longest label above still clears it.
 const MARK_X: u32 = 190;
 
-/// Paints and returns the y just below the last gate. The verdict itself is
-/// the sentence above and the card's button, so it is not repeated here.
-pub fn paint(fb: &mut PaintBuffer, x: u32, mut top: i32, r: &Readiness) -> i32 {
+/// Paints and returns the y just below the last gate, drawing no row below
+/// `bottom`. The verdict itself is the sentence above and the card's
+/// button, so it is not repeated here.
+pub fn paint(fb: &mut PaintBuffer, x: u32, mut top: i32, r: &Readiness, bottom: i32) -> i32 {
     if Verdict::of(r) == Verdict::Installed {
         // The package gate below will read as a failure.
         text::line(fb, x, top, b"in this image; nothing to fetch", MUTED, SMALL_PX);
         top += 24;
     }
-    for (i, (label, pass)) in GATES.iter().zip(r.gates.iter()).enumerate() {
-        let (mark, hue): (&[u8], u32) = (mark(i, *pass, r.bond), if *pass { OK } else { DANGER });
-        text::line(fb, x, top, label, MUTED, SMALL_PX);
+    let n = GATES.len().min(r.gates.len());
+    let room = (bottom - top).max(0) as usize / GATE_ROW_H as usize;
+    let (rows, more) = shown(&r.gates[..n], room);
+    for i in rows {
+        let pass = r.gates[i];
+        let (mark, hue): (&[u8], u32) = (mark(i, pass, r.bond), if pass { OK } else { DANGER });
+        text::line(fb, x, top, GATES[i], MUTED, SMALL_PX);
         text::line(fb, x + MARK_X, top, mark, hue, SMALL_PX);
+        top += GATE_ROW_H as i32;
+    }
+    if more > 0 {
+        let line = alloc::format!("and {more} more checks");
+        text::line(fb, x, top, line.as_bytes(), MUTED, SMALL_PX);
         top += GATE_ROW_H as i32;
     }
     top
