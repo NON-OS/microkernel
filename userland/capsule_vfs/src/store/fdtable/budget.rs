@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * What the store may hold: every file lives in this capsule's 192 MiB heap.
+ * What the store may hold: every file lives in this capsule's 320 MiB heap.
  *
  * A write grew its file with an infallible resize, and a copy cloned a file
  * whole, so any client that could write could ask for more than the heap
@@ -27,9 +27,9 @@
  * DATA_BYTES_MAX, all files' allocations together, which leaves the rest of
  * the heap for names, handles, the journal and the request buffers; past it,
  * or when the heap refuses, the request is Full (ENOSPC) and the store goes
- * on. One owner creates at most NAMES_PER_OWNER names. The kernel's own
- * files, the seed and the packages staged from disk (owner 0) are not held to
- * either: they come in at boot, before any client asks for room.
+ * on. One owner creates at most NAMES_PER_OWNER names. Owner 0's files (the
+ * kernel's, the seed, the packages staged from disk at boot) are held to
+ * neither and not counted: clients share the whole budget beside them.
  */
 
 use alloc::vec::Vec;
@@ -43,12 +43,12 @@ pub const NAMES_PER_OWNER: usize = MAX_FILES / 4;
 const KERNEL: u32 = 0;
 
 impl Store {
-    /// Bytes every file but `except` holds allocated.
+    /// Bytes every client file but `except` holds allocated.
     pub fn held_except(&self, except: Option<usize>) -> usize {
         self.files
             .iter()
             .enumerate()
-            .filter(|(i, _)| Some(*i) != except)
+            .filter(|(i, f)| Some(*i) != except && f.owner != KERNEL)
             .fold(0usize, |sum, (_, f)| sum.saturating_add(f.data.capacity()))
     }
 
