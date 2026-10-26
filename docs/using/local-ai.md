@@ -47,7 +47,7 @@ The local Qwen model, running offline: Works on an x86_64 laptop (Intel Gemini L
 
 ## The tiers
 
-There are 17 tiers. Every file is a GGUF file the Qwen team publishes on Hugging Face, pinned by name, length and SHA-256 inside the signed personality.
+There are 19 tiers. Every file is a GGUF file published on Hugging Face, pinned by name, length and SHA-256 inside the signed personality. The Qwen team publishes most of them. It publishes Qwen3.5 and Qwen3.6 in safetensors only, so those two tiers are the GGUF files ggml-org, the llama.cpp project, converts and publishes: `ggml-org/Qwen3.5-0.8B-GGUF` and `ggml-org/Qwen3.6-27B-GGUF`, each Apache-2.0 on its own model card.
 
 Sizes are in GiB (2^30 bytes). "Files" is the pinned lengths summed. "To run" is what the model fetcher's rule says a chat needs: the files, a key and value cache for 2048 positions, a 512-token batch and a 64 MiB margin. "Installed" is the smallest total memory that fits on an installed NONOS: the run plus 1 GiB kept for the system. These figures come from that rule; they were not measured on a machine.
 
@@ -66,10 +66,14 @@ Sizes are in GiB (2^30 bytes). "Files" is the pinned lengths summed. "To run" is
 | `qwen3-14b` | Qwen3 14B, Q4_K_M | 8.38 | 8.91 | 9.91 |
 | `qwen3-30b-a3b` | Qwen3 30B-A3B, mixture of experts, 3B active, Q4_K_M | 17.28 | 17.59 | 18.59 |
 | `qwen3-32b` | Qwen3 32B, Q4_K_M | 18.40 | 19.12 | 20.12 |
+| `qwen3.5-0.8b` | Qwen3.5 0.8B, Q8_0 | 0.78 | 0.97 | 1.97 |
+| `qwen3.6-27b` | Qwen3.6 27B, Q4_K_M | 17.78 | 18.50 | 19.50 |
 | `coder-1.5b` | Qwen2.5-Coder 1.5B Instruct, Q4_K_M | 1.04 | 1.20 | 2.20 |
 | `coder-7b` | Qwen2.5-Coder 7B Instruct, Q4_K_M, 2 files | 4.36 | 4.64 | 5.64 |
 | `coder-14b` | Qwen2.5-Coder 14B Instruct, Q4_K_M, 2 files | 8.37 | 8.96 | 9.96 |
 | `coder-32b` | Qwen2.5-Coder 32B Instruct, Q4_K_M, 3 files | 18.49 | 19.21 | 20.21 |
+
+Qwen3.5 and Qwen3.6 are hybrid models: one layer in four keeps a key and value cache, and the other three keep a small fixed state instead. The rule counts a cache for every layer, as `qwenchat` does before it loads, so for these two tiers "To run" is more than the cache they hold.
 
 On a live boot the model files are held in memory too, so a tier fits only when its files and its run together stay within what the kernel leaves free: total memory less the larger of 1 GiB and a quarter of memory. `qwen tiers` prints, for this machine, each tier's download, the memory it needs, and whether it is here.
 
@@ -98,7 +102,7 @@ What a download needs:
 - A network. Downloads go over the Anyone network whatever the default network is, and wait up to three minutes for Anyone to build its first circuit. `qwen get --direct` takes one download directly instead, faster, and the mirror then sees this machine's address. See [Privacy networks](privacy-network.md).
 - A boot that runs a network. Air-Gapped, Safe Mode and Recovery boots run none.
 
-The files come from the NONOS model repository when the build named one, else from the Qwen team's Hugging Face files.
+The files come from the NONOS model repository when the build named one, else from each file's own Hugging Face repository: the Qwen team's, or ggml-org's for Qwen3.5 and Qwen3.6.
 
 `market uninstall linux.qwen-TIER` takes a tier's model off the machine again.
 
@@ -141,7 +145,7 @@ The code behind each section, at the commit in the footer.
   - No internet socket once a model is open: `refuse_inet` in `userland/capsule_linux/src/linux/net/offline.rs:37-39`.
   - Console output kept off the serial log: `held` in `userland/capsule_linux/src/linux/file/models/held.rs:31-33`.
 - The tiers
-  - Name, length and SHA-256 pins: `Pinned` in `userland/capsule_linux/src/linux/file/models/pinned.rs:32-37`, with the pins in `userland/capsule_linux/src/linux/file/models/pinned_qwen25.rs`, `userland/capsule_linux/src/linux/file/models/pinned_qwen25_big.rs`, `userland/capsule_linux/src/linux/file/models/pinned_qwen3.rs` and `userland/capsule_linux/src/linux/file/models/pinned_coder.rs`.
+  - Name, length and SHA-256 pins: `Pinned` in `userland/capsule_linux/src/linux/file/models/pinned.rs:32-37`, with the pins in `userland/capsule_linux/src/linux/file/models/pinned_qwen25.rs`, `userland/capsule_linux/src/linux/file/models/pinned_qwen25_big.rs`, `userland/capsule_linux/src/linux/file/models/pinned_qwen3.rs`, `userland/capsule_linux/src/linux/file/models/pinned_qwen35.rs` and `userland/capsule_linux/src/linux/file/models/pinned_coder.rs`.
   - The "To run" rule: `memory` in `userland/capsule_model_fetch/src/need.rs:60-64`.
   - The live-boot fit: `fits` in `userland/capsule_model_fetch/src/need.rs:98-103`.
 - Install a model
