@@ -27,12 +27,12 @@ use crate::sockets::SocketKey;
  * A connect used to hold the serve loop until its handshake resolved, polling
  * the state and yielding for up to eight seconds, so every other caller of
  * this service waited behind one slow peer. It is now recorded here and the
- * loop goes back to serving; the reply goes out when the handshake resolves.
- * The kernel matches a reply to its caller by pid, so answering later is
- * answering the same call.
+ * loop goes back to serving; the reply goes out when the handshake resolves,
+ * by the kernel's id for the connect's own call, so it reaches that call and
+ * never a later one from the same caller.
  */
 pub(super) struct Pending {
-    pub pid: u32,
+    pub ipc: u64,
     pub op: u16,
     pub request_id: u32,
     pub key: SocketKey,

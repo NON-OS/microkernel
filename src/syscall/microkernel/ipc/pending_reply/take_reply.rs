@@ -17,6 +17,7 @@
 //! The pending entry a direct reply answers, taken out (reply_rule.rs).
 
 use super::reply_rule::pick;
+use super::served_rule::eligible;
 use super::state::{last_served, PENDING};
 
 /// Remove the entry a direct reply from `server_pid` to `caller_inbox`
@@ -29,7 +30,7 @@ pub(in crate::syscall::microkernel::ipc) fn take_for_reply(
     let served = last_served(server_pid);
     let mut map = PENDING.lock();
     let queue = map.get_mut(&server_pid)?;
-    let entries = queue.iter().map(|e| (e.inbox.as_str(), e.token, e.served));
+    let entries = queue.iter().map(|e| (e.inbox.as_str(), e.token, eligible(e)));
     let at = pick(entries, caller_inbox, served)?;
     let token = queue.remove(at)?.token;
     if queue.is_empty() {
