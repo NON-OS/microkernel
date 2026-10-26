@@ -55,8 +55,7 @@ impl State {
         let changed = run.phase != before;
         if run.phase == Phase::Held {
             let container = run.container().unwrap_or_default();
-            let (listing, release) = (run.listing.clone(), run.release.clone());
-            let proof = Held { listing, release, listing_key: run.listing_key, container };
+            let proof = Held { listing: run.listing.clone(), container };
             if !run.cancelled {
                 held(&proof.listing, proof.container.len());
                 self.proofs.held = Some(proof);
