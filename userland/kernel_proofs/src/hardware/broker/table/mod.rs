@@ -22,10 +22,8 @@
  */
 
 #[path = "../../../../../../src/hardware/broker/table/remove.rs"]
-#[allow(dead_code)] // the proofs call it from the test module alone
 mod remove;
 #[path = "../../../../../../src/hardware/broker/table/state.rs"]
-#[allow(dead_code)]
 mod state;
 
 #[cfg(test)]

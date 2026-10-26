@@ -52,6 +52,7 @@ pub fn entry(mode: SettleMode) -> MarketplaceEntry {
         publisher_pubkey: KEY,
         publisher_eth_address: [0; 20],
         description: String::new(),
+        logo_hash: [0; 32],
         price: PriceModel { kind: PriceKind::OneTime, amount_atomic: 1_000, period_seconds: 0 },
         token: TokenInfo {
             symbol: "NOX".into(),

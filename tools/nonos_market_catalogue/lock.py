@@ -14,8 +14,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """The catalogue's lock: the version, checksum and size of each package the
-recipes resolved to, and the BLAKE3 of its whole .apk, which its listing
-signs, committed beside them, so a seal of a tree signs the same bytes
+recipes resolved to, the BLAKE3 of its whole .apk, which its listing
+signs, and the BLAKE3s of its logo's source and raster (logos.py),
+committed beside them, so a seal of a tree signs the same bytes
 every time or stops. A fresh signed index that has moved past
 the lock stops the seal by name, and only `--update-lock`, a maintainer's
 deliberate run, moves the lock. A file of any other format, shape or
@@ -53,8 +54,10 @@ def bytes_held(pins: dict, found: list) -> None:
         raise ValueError("the lock does not hold; review, then --update-lock: " + "; ".join(moved))
 
 
-def write(path: Path, known: dict, names: list, found: list) -> None:
+def write(path: Path, known: dict, names: list, found: list, marks: dict) -> None:
+    """`marks` is {package: (G, R)}, as logos.digests gives them."""
     signed = dict(map(apk, found))
-    pins = {n: {**{f: known[n][f] for f in FIELDS}, "B": signed[n]} for n in sorted(names)}
+    pins = {n: {**{f: known[n][f] for f in FIELDS}, "B": signed[n], "G": marks[n][0], "R": marks[n][1]}
+            for n in sorted(names)}
     rows = ",\n".join(f"  {json.dumps(n)}: {json.dumps(p)}" for n, p in pins.items())
     path.write_text('{"format": ' + json.dumps(FORMAT) + ', "packages": {\n' + rows + "\n}}\n")
