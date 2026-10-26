@@ -20,7 +20,9 @@ use super::BlockFsError;
 pub(crate) fn validate_geometry() -> Result<u64, BlockFsError> {
     /* A volume in RAM has no disk under it to ask. */
     if !crate::fs::cryptoblock::ram::on() {
-        let geometry = crate::hardware::block_device::geometry().map_err(BlockFsError::BlockDevice)?;
+        let _io = crate::fs::cryptoblock::volume_scope();
+        let geometry =
+            crate::hardware::block_device::geometry().map_err(BlockFsError::BlockDevice)?;
         if geometry.sector_size != crate::fs::cryptoblock::SECTOR_BYTES as u32 {
             return Err(BlockFsError::InvalidGeometry);
         }
