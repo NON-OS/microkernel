@@ -23,6 +23,7 @@ use crate::settings::state::State;
 use super::card_pill::block_pill;
 use super::clip::visible;
 use super::metrics::{CARD_HEAD_H, CARD_PAD_X, CARD_RADIUS, CARD_TITLE_PX, NOTE_PX, PILL_H};
+use super::note_wrap::{lines, note_w};
 use super::pill;
 use super::text;
 use super::theme::{CARD_BG, CARD_BORDER, CARD_NOTE_FG, CARD_TITLE_FG};
@@ -37,8 +38,11 @@ pub fn paint_head(fb: &mut PaintBuffer, state: &State, b: &Block, x: u32, screen
     let title_top = screen_y + 14;
     text::left(fb, x + CARD_PAD_X, title_top, b.title, CARD_TITLE_FG, CARD_TITLE_PX);
     if let Some(note) = b.note {
-        let note_top = title_top + line_height(CARD_TITLE_PX) + 2;
-        text::left(fb, x + CARD_PAD_X, note_top, note, CARD_NOTE_FG, NOTE_PX);
+        let mut top = title_top + line_height(CARD_TITLE_PX) + 2;
+        lines(note, note_w(state.win_w), |line| {
+            text::left(fb, x + CARD_PAD_X, top, line, CARD_NOTE_FG, NOTE_PX);
+            top += line_height(NOTE_PX);
+        });
     }
     let Some((label, tone)) = block_pill(state, b) else { return };
     let pill_y = screen_y + ((CARD_HEAD_H - PILL_H) / 2) as i32;

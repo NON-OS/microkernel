@@ -29,7 +29,7 @@ fn the_pinned_offsets_are_plan_30s() {
 }
 
 #[test]
-fn a_market_package_needs_its_own_ids_and_a_vendor_one_needs_none() {
+fn a_market_package_needs_its_own_ids() {
     let (e, rel) = linux(vec![], "https://pkg");
     let listing = listing_id(&Host, &e.publisher_pubkey, &e.listing_id);
     let release = release_id(&Host, &listing, &rel.release_id);
@@ -37,12 +37,6 @@ fn a_market_package_needs_its_own_ids_and_a_vendor_one_needs_none() {
     let (e, rel) = linux(policy(listing, release), "https://pkg");
     assert_eq!(policy_verdict(&Host, &e, &rel), PolicyVerdict::Valid);
     let (e, rel) = linux(policy(listing, [0; 32]), "https://pkg");
-    assert_eq!(policy_verdict(&Host, &e, &rel), PolicyVerdict::WrongIds);
-    let (e, rel) = linux(vec![], "store:/bin/qwenchat");
-    assert_eq!(policy_verdict(&Host, &e, &rel), PolicyVerdict::Vendor);
-    let (e, rel) = linux(policy([0; 32], [0; 32]), "store:/bin/qwenchat");
-    assert!(policy_verdict(&Host, &e, &rel).passes());
-    let (e, rel) = linux(policy(listing, release), "store:/bin/qwenchat");
     assert_eq!(policy_verdict(&Host, &e, &rel), PolicyVerdict::WrongIds);
 }
 

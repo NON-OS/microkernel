@@ -44,6 +44,8 @@ pub mod bluetooth;
 #[path = "../../capsule_settings/src/settings/ui/field_note_user.rs"]
 pub mod field_note_user;
 
+pub mod card_text;
+
 /// The text buffers the panel's fields type into, a character at a time.
 pub mod text;
 
