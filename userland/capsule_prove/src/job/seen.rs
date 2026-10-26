@@ -24,8 +24,7 @@ pub struct Seen {
     pub stage: Stage,
     /// GET has handed out the container's last byte.
     pub fetched: bool,
-    /// The asker has read the failure: it sent a frame after a STATUS that
-    /// carried it was answered (state.rs).
+    /// The asker's call took an answer that carried the failure (state.rs).
     pub told: bool,
     /// When it failed, or the asker last sent a frame, whichever is later.
     pub asker_ms: u64,
