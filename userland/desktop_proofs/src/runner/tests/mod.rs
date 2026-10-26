@@ -22,6 +22,7 @@ mod drag_tests;
 mod finish_band_tests;
 mod frame_scale_tests;
 mod full_screen_desk_tests;
+mod rect_ask_tests;
 mod off_screen_tests;
 mod one_press_tests;
 mod open_peers_tests;
