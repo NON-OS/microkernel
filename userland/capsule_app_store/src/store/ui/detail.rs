@@ -58,6 +58,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32
         top += 10;
     }
 
+    top = super::proof_pane::paint(fb, state, left, room, top);
     let bottom = (y + h) as i32 - DETAIL_PAD as i32;
     top = super::standing::paint(fb, state, left, room, (top, bottom));
     super::detail_foot::paint(fb, listing, left, room, top, (y + h) as i32);
