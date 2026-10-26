@@ -14,37 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A failed job answers its asker's next STATUS with the code and exits, or
-//! exits after 30 s of silence; a Done job exits once fetched, as before.
+//! A failed job exits once its asker has read the code (job_told_tests.rs),
+//! or after 30 s of silence; a Done job exits once fetched, as before.
 
 use crate::job::answer::answer;
 use crate::job::exit_rule::{exits, FAILED_QUIET_MS};
 use crate::job::state::Job;
 use nonos_proof_abi::wire::{reply_body, request, Header, ReplyError, Stage, PROVE_MAGIC, STATUS};
 
-const OWNER: u32 = 40;
-const T: u64 = 1_000_000;
+pub(super) const OWNER: u32 = 40;
+pub(super) const T: u64 = 1_000_000;
 
-fn failed(code: i32) -> Job {
+pub(super) fn failed(code: i32) -> Job {
     let mut j = Job::new(7, OWNER);
     (j.stage, j.status, j.asker_ms) = (Stage::Failed, code, T);
     j
 }
 
 /// `sender`'s STATUS for job 7, answered by the shipped `answer`.
-fn status(j: &mut Job, sender: u32) -> Result<Vec<u8>, ReplyError> {
+pub(super) fn status(j: &mut Job, sender: u32) -> Result<Vec<u8>, ReplyError> {
     let rx = request(PROVE_MAGIC, STATUS, 1, &7u32.to_le_bytes());
     let (h, body) = Header::parse(&rx, PROVE_MAGIC).expect("a STATUS frame");
     let tx = answer(Some(j), sender, &h, body);
     reply_body(&tx, PROVE_MAGIC, STATUS, 1).map(<[u8]>::to_vec)
-}
-
-#[test]
-fn a_failed_job_tells_its_asker_the_code_then_exits() {
-    let mut j = failed(-1102);
-    assert!(!exits(Some(j.seen()), T + 1, T + 1), "it waits to be read");
-    assert_eq!(status(&mut j, OWNER), Err(ReplyError::Status(-1102)));
-    assert!(exits(Some(j.seen()), T + 2, T + 2), "told, it exits");
 }
 
 #[test]
