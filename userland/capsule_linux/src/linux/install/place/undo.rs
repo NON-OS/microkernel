@@ -30,10 +30,12 @@ use nonos_libc::mk_debug;
 
 use super::super::market::take::take_out;
 use super::super::Why;
-use crate::linux::file::{key, store_found, store_unlink};
+use crate::linux::file::{key, pack, store_found, store_unlink};
 
-/// `why` says what was not written: files, or the link table.
-pub(super) fn undo(landed: &[Vec<u8>], why: &str) {
+/// `why` says what was not written: files, or the link table. The pack
+/// goes first: until it is out, its files are still found.
+pub(super) fn undo(name: &str, landed: &[Vec<u8>], why: &str) {
+    let _ = pack::remove(name);
     let mut unlink = |p: &[u8]| {
         let _ = store_unlink(&key(p));
     };
@@ -49,11 +51,11 @@ pub(super) fn undo(landed: &[Vec<u8>], why: &str) {
 
 /// The install's failure once `failed` files, or the link table, would not
 /// go: what landed is taken out, and the package is Partial.
-pub(super) fn partial(landed: &[Vec<u8>], failed: usize) -> Why {
+pub(super) fn partial(name: &str, landed: &[Vec<u8>], failed: usize) -> Why {
     let what = match failed {
         0 => alloc::string::String::from("the link table"),
         n => format!("{n} file(s)"),
     };
-    undo(landed, &what);
+    undo(name, landed, &what);
     Why::PARTIAL
 }

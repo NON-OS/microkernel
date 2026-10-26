@@ -50,6 +50,7 @@ pub use super::slot::{install, MAX_FDS};
 pub use super::store::{
     hash as store_hash, read as store_read, stat as store_stat, write as store_write, HashFault,
 };
+pub use super::store::{pack, Stream};
 pub use super::store_found::found as store_found;
 pub use super::store_name::unlink as store_unlink;
 pub use super::timerfd::get::timerfd_gettime;
