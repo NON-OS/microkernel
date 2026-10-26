@@ -49,8 +49,22 @@ impl StdinQueue {
             if mk_proc_input(pid as u64, msg.as_ptr(), msg.len() as u64) <= 0 {
                 return;
             }
+            self.kept.handed(msg);
             self.bytes -= msg.len();
             self.pending.pop_front();
+        }
+    }
+
+    /// The program wrote: what it was handed is no longer kept.
+    pub fn heard(&mut self) {
+        self.kept.heard();
+    }
+
+    /// A run started again (net_again.rs) is handed its input from the start.
+    pub fn again(&mut self) {
+        for msg in self.kept.take().into_iter().rev() {
+            self.bytes += msg.len();
+            self.pending.push_front(msg);
         }
     }
 }

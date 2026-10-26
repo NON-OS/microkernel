@@ -191,11 +191,6 @@ impl ConfigSpace {
         self.set_command(cmd | CMD_BUS_MASTER)
     }
 
-    pub fn disable_bus_master(&self) -> Result<()> {
-        let cmd = self.command()?;
-        self.set_command(cmd & !CMD_BUS_MASTER)
-    }
-
     pub fn is_bus_master_enabled(&self) -> Result<bool> {
         let cmd = self.command()?;
         Ok((cmd & CMD_BUS_MASTER) != 0)

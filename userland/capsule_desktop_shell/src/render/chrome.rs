@@ -21,6 +21,7 @@ use crate::state::Context;
 mod clear_overlay;
 mod constants;
 mod frame;
+mod show;
 
 pub use frame::paint_chrome;
 
@@ -48,6 +49,8 @@ pub(super) fn paint_over_windows(ctx: &mut Context) {
     // The right-click menu floats above everything else, dock included.
     super::desktop_menu::paint(ctx);
     super::menubar_menu::paint(ctx);
+    // The switcher's strip, over the menus it closed and under every prompt.
+    super::switch::paint_switcher(ctx);
     // The consent modal draws last so it sits above every other layer.
     super::consent::paint_consent(ctx);
     super::pkg_consent::paint_pkg_consent(ctx);
