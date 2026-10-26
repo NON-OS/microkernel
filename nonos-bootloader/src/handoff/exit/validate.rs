@@ -54,18 +54,10 @@ pub fn halt_map_overflow() -> ! {
 }
 
 fn com1_byte(b: u8) {
-    unsafe {
-        core::arch::asm!("out dx, al", in("dx") 0x3F8u16, in("al") b, options(nomem, nostack, preserves_flags));
-    }
+    crate::arch::cpu::post_byte(b)
 }
 
-/// Output POST code to port 0x80 and halt. Visible on POST card or debug hardware.
+/// Output the POST code (port 0x80 on x86_64) and halt.
 fn halt_with_code(code: u8) -> ! {
-    // SAFETY: port 0x80 is the standard POST debug port, write-only
-    unsafe {
-        core::arch::asm!("out 0x80, al", in("al") code, options(nomem, nostack));
-    }
-    loop {
-        core::hint::spin_loop();
-    }
+    crate::arch::cpu::halt_with_code(code)
 }
