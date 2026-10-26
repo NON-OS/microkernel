@@ -61,3 +61,6 @@ mod irq_bind_rollback_tests;
 /// Every linker symbol the kernel declares is one its image defines.
 #[path = "link_symbols/mod.rs"]
 pub mod link_symbols;
+/// The kernel log's serial echo: its budget and the images it is on.
+#[path = "log_budget/mod.rs"]
+mod log_budget;
