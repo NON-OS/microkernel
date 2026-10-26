@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The neofetch composer, logo and palette, mounted by path.
+//! The neofetch composer, emblem and palette, mounted by path.
 
 #[path = "../../../capsule_terminal/src/command/builtin/neofetch"]
 pub mod neofetch {
     pub mod compose;
-    pub mod logo;
+    pub mod emblem;
+    pub mod emblem_cell;
+    pub mod emblem_light;
+    pub mod emblem_shape;
     pub mod palette;
 }

@@ -18,7 +18,7 @@
 
 use super::super::conn::Conn;
 use super::super::ctx::Ctx;
-use super::super::{progress, verify};
+use super::super::{progress, verify_check};
 use crate::term::state::State;
 
 /// Whether `body` matches; a mismatch is said and counted as a failure.
@@ -32,7 +32,8 @@ pub(super) fn verified(
     tally: &mut progress::Tally,
 ) -> bool {
     let (ip, a) = (ctx.ip, ctx.args);
-    if let Err(e) = verify::check(conn, ip, a.target.port, &a.target.host, path, extra, body) {
+    let (port, host) = (a.target.port, &a.target.host);
+    if let Err(e) = verify_check::check(conn, ip, port, host, path, extra, body) {
         state.scrollback.push_error(e.as_bytes());
         tally.failed += 1;
         return false;
