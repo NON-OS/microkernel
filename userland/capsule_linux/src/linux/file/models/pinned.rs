@@ -18,9 +18,11 @@
  * The models this personality vouches for, by tier: a name, its length and
  * the SHA-256 the file must have. The tables are part of the signed
  * personality, so its measurement covers every digest in them; the disk
- * only says where the bytes wait. Every file is one the Qwen team
- * publishes in its GGUF repositories on Hugging Face, each digest the one
- * its LFS pointer names. The tables sit beside this file, one a family,
+ * only says where the bytes wait. Every file is one published on Hugging
+ * Face, each digest the one its LFS pointer names: by the Qwen team in its
+ * GGUF repositories, or, for a model the Qwen team publishes in
+ * safetensors only, by ggml-org, the llama.cpp project; each family's
+ * table names its repositories. The tables sit beside this file, one a family,
  * and nothing is pinned anywhere else.
  */
 
@@ -28,6 +30,7 @@ use super::pinned_coder::CODER;
 use super::pinned_qwen25::QWEN25;
 use super::pinned_qwen25_big::QWEN25_BIG;
 use super::pinned_qwen3::QWEN3;
+use super::pinned_qwen35::QWEN35;
 
 pub struct Pinned {
     pub tier: &'static str,
@@ -37,7 +40,7 @@ pub struct Pinned {
 }
 
 /* Every table, smallest family first. */
-const FAMILIES: &[&[Pinned]] = &[QWEN25, QWEN25_BIG, QWEN3, CODER];
+const FAMILIES: &[&[Pinned]] = &[QWEN25, QWEN25_BIG, QWEN3, QWEN35, CODER];
 
 /*
  * The tables as the code reads them. A static, not the const: a const is
