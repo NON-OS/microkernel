@@ -26,6 +26,8 @@ pub(in crate::runner) struct DrainResult {
     pub restore: bool,
     pub move_to: Option<(u32, u32)>,
     pub resize_to: Option<(u32, u32)>,
+    /// A drag of the left or top edge: origin and size together.
+    pub place: Option<nonos_toolkit::decorations::Placed>,
     /// The WM said the window took (true) or lost (false) the keyboard.
     pub focused: Option<bool>,
 }

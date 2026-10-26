@@ -52,9 +52,10 @@ pub(super) fn input<A: App>(
         }
         Route::Window(event) => event,
     };
-    match drag::handle(drag_state, f.width, f.height, f.win_x, f.win_y, f.maximized, &event) {
+    match drag::handle(drag_state, (f.width, f.height), (f.win_x, f.win_y), f.maximized, &event) {
         PointerAction::MoveTo(mx, my) => out.move_to = Some((mx, my)),
         PointerAction::ResizeTo(rw, rh) => out.resize_to = Some((rw, rh)),
+        PointerAction::Place(p) => out.place = Some(p),
         PointerAction::HoverChanged => out.repaint = true,
         PointerAction::None => {
             let event = decorations::to_content(f.width, f.height, f.maximized, event);
