@@ -43,7 +43,8 @@ pub enum Refusal {
     /// No IOMMU, one not enforcing, a grant around it, or a device in a
     /// domain that reaches all of memory (nsh_attest::steps::dma).
     Dma,
-    /// The capsule registry was not complete.
+    /// The capsule registry was not complete, or its entries do not fold to
+    /// the root the quote signed.
     Registry,
     /// PCR 9 names no trusted release, or PCR 8 or 14 is not that release's.
     Release,
