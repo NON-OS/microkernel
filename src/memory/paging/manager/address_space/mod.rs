@@ -22,3 +22,5 @@ mod leaf_release;
 mod scrub;
 mod switch;
 mod teardown;
+
+pub(in crate::memory::paging::manager) use cleanup::free_taken;

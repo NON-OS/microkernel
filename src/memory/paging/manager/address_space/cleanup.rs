@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::core::PagingManager;
+use crate::memory::addr::PhysAddr;
 use super::teardown::teardown_user_half;
 use crate::memory::frame_alloc;
 use crate::memory::paging::constants::KERNEL_ASID;
@@ -30,17 +31,35 @@ impl PagingManager {
     pub fn cleanup_address_space_keeping(
         &mut self,
         asid: u32,
-        keep: &[crate::memory::addr::PhysAddr],
+        keep: &[PhysAddr],
     ) -> PagingResult<()> {
-        if asid == KERNEL_ASID {
-            return Err(PagingError::KernelSpaceViolation);
-        }
-        if let Some(address_space) = self.address_spaces.remove(&asid) {
-            teardown_user_half(address_space.cr3_value, keep);
-            // Its TLB tag goes first: freed, the frame can be the next root.
-            crate::arch::paging::retire_root(address_space.cr3_value.as_u64());
-            let _ = frame_alloc::deallocate_frame(address_space.cr3_value);
+        if let Some(cr3) = self.take_address_space(asid)? {
+            free_taken(cr3, keep);
         }
         Ok(())
     }
+
+    /// Take `asid` out of the table: from here no CPU can switch to it or map
+    /// into it, so its tables are this caller's alone (`free_taken`).
+    pub(in crate::memory::paging::manager) fn take_address_space(
+        &mut self,
+        asid: u32,
+    ) -> PagingResult<Option<PhysAddr>> {
+        if asid == KERNEL_ASID {
+            return Err(PagingError::KernelSpaceViolation);
+        }
+        Ok(self.address_spaces.remove(&asid).map(|space| space.cr3_value))
+    }
+}
+
+/// Zero and free a taken address space's frames and tables, then its root.
+/// Called without the manager lock (api/address_space.rs): a gigabyte is
+/// 262144 pages zeroed one by one, and under the lock every other CPU's map,
+/// fault and switch waited the whole walk, a second and more, long enough for
+/// a driver's call to time out.
+pub(in crate::memory::paging::manager) fn free_taken(cr3: PhysAddr, keep: &[PhysAddr]) {
+    teardown_user_half(cr3, keep);
+    // Its TLB tag goes first: freed, the frame can be the next root.
+    crate::arch::paging::retire_root(cr3.as_u64());
+    let _ = frame_alloc::deallocate_frame(cr3);
 }
