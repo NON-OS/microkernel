@@ -48,15 +48,6 @@ pub(in super::super) fn insert_live(record: MmioGrant) -> Option<Result<(), quot
     Some(push(&mut grants, record))
 }
 
-// The one grant no claim stands behind: an ACPI SystemMemory window the
-// ACPI capsule maps (`acpi::memory_record`). Its device id names no device,
-// so no release takes it; MkMmioUnmap and the capsule's exit find it like
-// any other. It counts against the same quota.
-#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
-pub(in super::super) fn insert_unclaimed(record: MmioGrant) -> Result<(), quota::Spent> {
-    push(&mut GRANTS.lock(), record)
-}
-
 fn push(grants: &mut Vec<MmioGrant>, record: MmioGrant) -> Result<(), quota::Spent> {
     let held = grants.iter().filter(|g| g.pid == record.pid).count();
     if let Some(spent) = quota::spent(held, 0, 0, quota::MAX_MMIO_GRANTS, u64::MAX) {
@@ -70,4 +61,9 @@ fn push(grants: &mut Vec<MmioGrant>, record: MmioGrant) -> Result<(), quota::Spe
 // stamp the id into the record before insertion.
 pub(in super::super) fn allocate_id() -> u64 {
     next_grant_id()
+}
+
+crate::arch::acpi_only! {
+    mod unclaimed;
+    pub(in crate::hardware::broker) use unclaimed::insert_unclaimed;
 }
