@@ -1,7 +1,7 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! Every way a join ends maps to the code the panels name.
 
-use nonos_wifi_core::mlme::MlmeFailure;
+use nonos_wifi_core::mlme::{MlmeFailure, MlmeState};
 use nonos_wifi_core::rsn::SelectError;
 use nonos_wifi_core::sae::SaeFailure;
 use nonos_wifi_core::wpa::supplicant::Failure;
@@ -35,6 +35,7 @@ fn every_end_maps_to_the_code_the_panels_name() {
         (JoinEnd::Refused(MlmeFailure::Sae(SaeFailure::BadConfirm)), (CODE_WRONG_PASSWORD, 0)),
         (JoinEnd::Refused(MlmeFailure::Sae(SaeFailure::Rejected(77))), (CODE_REFUSED, 77)),
         (JoinEnd::Refused(MlmeFailure::Handshake(Failure::IeMismatch)), (CODE_IE_MISMATCH, 0)),
+        (JoinEnd::Refused(MlmeFailure::Timeout(MlmeState::FourWay)), (CODE_TIMED_OUT, 0)),
     ];
     for (end, want) in cases {
         assert_eq!(end_code(end), want, "{end:?}");

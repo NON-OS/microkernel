@@ -60,6 +60,8 @@ impl Mlme {
             verifies_beacons: false,
             supplicant: None,
             failure: None,
+            step_since: None,
+            expired: false,
         };
         m.secret[..secret_len].copy_from_slice(&req.passphrase[..secret_len]);
         m
