@@ -13,6 +13,9 @@
 //! - its frames are freed only when that read-back was seen; a host still
 //!   resetting at 100 ms, or unreachable, keeps them, and the wait ends
 //!   even on a clock that never moves.
+//!
+//! The kernel runs that stop for an ACPI SD host at every stop of its claim,
+//! before its grants go (wiring_tests).
 
 #[path = "../../../../../src/hardware/broker/dma/acpi_stop.rs"]
 pub mod acpi_stop;
@@ -22,3 +25,5 @@ pub mod sdhci_stop;
 mod host;
 mod reset_tests;
 mod table_tests;
+mod wiring_tests;
+mod wiring_text;
