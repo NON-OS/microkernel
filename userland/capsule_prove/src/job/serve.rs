@@ -15,18 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The headless prover: one PROVE, answered at once with its job,
-//! then proven; STATUS and GET between stages and after; exit when
-//! exit_rule.rs says: the container fetched, a failure told or left unread,
-//! or a quiet spell. Exit zeroizes its RAM.
+//! then proven on the worker thread (worker.rs) while this one answers
+//! STATUS and GET; exit when exit_rule.rs says: the container fetched, a
+//! failure told or left unread, or a quiet spell. Exit zeroizes its RAM.
 
 use alloc::vec;
 
-use nonos_libc::{mk_exit, mk_ipc_recv_from, mk_ipc_reply, mk_time_millis, mk_yield};
-use nonos_proof_abi::wire::{Header, FRAME_MAX, PROVE_MAGIC};
+use nonos_libc::{mk_exit, mk_ipc_recv_from, mk_time_millis, mk_yield};
+use nonos_proof_abi::wire::FRAME_MAX;
 
-use super::answer::answer;
 use super::exit_rule::{exits, wait_ms};
+use super::finish::Finish;
+use super::poll::poll;
 use super::state::Job;
+
+/// What the loop holds: the job, what the worker's result becomes, and
+/// when a request last came.
+pub struct Served {
+    pub job: Option<Job>,
+    pub finish: Option<Finish>,
+    pub last: u64,
+}
 
 /// `held`: the prover's heap was had. Without it every PROVE is ENOMEM, and
 /// the job exits at once rather than fail halfway through a proof. `bound`:
@@ -36,40 +45,28 @@ pub fn serve(held: bool, bound: Option<(u16, u32)>) -> ! {
         mk_exit(1);
     }
     let mut buf = vec![0u8; FRAME_MAX];
-    let mut job: Option<Job> = None;
-    let mut last = now();
+    let mut s = Served { job: None, finish: None, last: now() };
     loop {
-        let seen = job.as_ref().map(Job::seen);
-        if exits(seen, now(), last) {
+        // A job that ends now starts its quiet spell now, as if asked.
+        if poll(s.job.as_mut(), &mut s.finish, now()) {
+            s.last = now();
+        }
+        let seen = s.job.as_ref().map(Job::seen);
+        if exits(seen, now(), s.last) {
             mk_exit(0);
         }
         let mut sender = 0u32;
-        let wait = wait_ms(seen, now(), last);
+        let wait = wait_ms(seen, now(), s.last);
         let n = mk_ipc_recv_from(0, buf.as_mut_ptr(), buf.len(), wait, &mut sender);
-        let Some(n) = usize::try_from(n).ok().filter(|&n| n > 0 && sender != 0) else {
-            mk_yield();
-            continue;
-        };
-        last = now();
-        if let Some(j) = job.as_mut().filter(|j| j.owner == sender) {
-            j.asker_ms = last;
+        match usize::try_from(n).ok().filter(|&n| n > 0 && sender != 0) {
+            Some(n) => super::serve_frame::frame(&mut s, (&mut buf, n), sender, (held, bound)),
+            None => {
+                mk_yield();
+            }
         }
-        let Some((h, body)) = Header::parse(&buf[..n], PROVE_MAGIC) else {
-            continue;
-        };
-        if job.is_some() || Some((h.op, sender)) != bound {
-            let tx = answer(job.as_mut(), sender, &h, body);
-            let _ = mk_ipc_reply(sender, tx.as_ptr(), tx.len());
-            continue;
-        }
-        let body = body.to_vec();
-        // The failure's 30 s run from when it failed (exit_rule.rs).
-        job = super::start::start(&h, &body, sender, held, &mut buf)
-            .map(|j| Job { asker_ms: now(), ..j });
-        last = now();
     }
 }
 
-fn now() -> u64 {
+pub fn now() -> u64 {
     u64::try_from(mk_time_millis()).unwrap_or(0)
 }
