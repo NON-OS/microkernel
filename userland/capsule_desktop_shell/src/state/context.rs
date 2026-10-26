@@ -66,4 +66,6 @@ pub struct Context {
     pub dialog_focus: crate::state::dialog_keys::DialogFocus,
     /// The window switcher's order and run (`ctx/switch`).
     pub switch: crate::state::ctx::switch::SwitchOrder,
+    /// The pointer's shape over the chrome (`ctx/pointer_shape.rs`).
+    pub pointer_shape: crate::state::ctx::pointer_shape::PointerShape,
 }
