@@ -50,7 +50,7 @@ mod ring_blank;
 mod say;
 mod session;
 mod stat;
-mod state;
+pub(crate) mod state;
 mod write;
 mod write_or_create;
 
