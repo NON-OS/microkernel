@@ -57,4 +57,8 @@ mod column_tests;
 #[cfg(test)]
 mod fatal_tests;
 #[cfg(test)]
+mod fault_order_tests;
+#[cfg(test)]
+mod lost_tests;
+#[cfg(test)]
 mod tests;
