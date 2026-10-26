@@ -31,9 +31,6 @@ pub mod doc;
 mod evidence;
 mod evidence_verify;
 pub mod log;
-#[cfg(not(feature = "proofs"))]
-mod p256;
-#[cfg(feature = "proofs")]
 pub mod p256;
 pub mod policy;
 pub mod quote;
