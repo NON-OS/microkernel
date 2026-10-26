@@ -18,6 +18,7 @@
 //! with or without the i flag: a value that almost matches at every offset
 //! costs no more than one that never starts to.
 
+use std::hint::black_box;
 use std::time::{Duration, Instant};
 
 use capsule_browser_proofs::browser::css::selector::{AttrOp, AttrTest};
@@ -26,22 +27,36 @@ fn test(value: &str, ci: bool) -> AttrTest {
     AttrTest { op: AttrOp::Contains, value: value.into(), case_insensitive: ci }
 }
 
-/* 1 MB of 'a' (the longest value an attribute keeps) against 8,000 'a'
- * then 'b' (a value the 8 KiB selector cap still admits): a window by
- * window search compares 8,001 bytes at each of 992,000 offsets. */
-fn timed(ci: bool) -> Duration {
-    let have = "a".repeat(1_000_000);
-    let t = test(&format!("{}b", "a".repeat(8_000)), ci);
-    let start = Instant::now();
-    assert!(!t.matches(&have));
-    start.elapsed()
+/* The best of five: a pause the machine takes elsewhere counts for neither. */
+fn best(mut run: impl FnMut()) -> Duration {
+    (0..5)
+        .map(|_| {
+            let start = Instant::now();
+            run();
+            start.elapsed()
+        })
+        .min()
+        .unwrap_or_default()
 }
 
+/* 1 MB of 'a' (the longest value an attribute keeps) against 8,000 'a'
+ * then 'b' (a value the 8 KiB selector cap still admits): a window by
+ * window search compares 8,001 bytes at each of 992,000 offsets, about a
+ * thousand times one pass over the attribute. The search is core's, so its
+ * steps cannot be counted here; it is timed against one pass over the same
+ * megabyte in the same run instead, which a loaded machine slows alike. */
 #[test]
 fn a_near_miss_at_every_offset_stays_linear() {
-    let took = [timed(false), timed(true)];
-    println!("[attr*=v] near miss over 1 MB: {:?}, with i: {:?}", took[0], took[1]);
-    assert!(took.iter().all(|t| *t < Duration::from_millis(20)), "took {took:?}");
+    let have = "a".repeat(1_000_000);
+    let value = format!("{}b", "a".repeat(8_000));
+    let pass = best(|| _ = black_box(black_box(&have).bytes().filter(|b| *b == b'b').count()));
+    for ci in [false, true] {
+        let t = test(&value, ci);
+        let took = best(|| assert!(!t.matches(black_box(&have))));
+        println!("[attr*=v] near miss over 1 MB, i {ci}: {took:?}, one pass {pass:?}");
+        let bound = pass * 50 + Duration::from_millis(2);
+        assert!(took < bound, "i {ci}: {took:?} against {bound:?}");
+    }
 }
 
 #[test]
