@@ -57,7 +57,9 @@ fn the_table_is_replaced_by_the_scan_alone_and_otherwise_only_grows() {
     assert_eq!(writers, WRITERS, "the table written elsewhere");
     let src = file("init.rs");
     let init = body(&src, "pubfninit_from_pci(devices:&[PciDevice]){");
-    assert!(init.ends_with("*TABLE.write()=records;pci_index::install(handles);"));
+    assert!(init.ends_with(
+        "*TABLE.write()=records;pci_index::install(handles);pci_index::install_msi(msi);"
+    ));
     let head = "fnregister_platform_device(mutrecord:DeviceRecord)->u64{";
     assert_eq!(body(&src, head), JOIN, "a platform record does more than join the table");
     let add = file("add.rs");
