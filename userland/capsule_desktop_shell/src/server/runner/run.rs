@@ -27,6 +27,7 @@ use crate::state::Context;
 
 pub fn run(mut ctx: Context) -> ! {
     crate::server::paint_initial::paint_initial(&mut ctx);
+    crate::bench::mark(b"serving");
     let mut rx = vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
     let mut tx = vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
     let mut last_tick_ms: i64 = mk_uptime_ms();

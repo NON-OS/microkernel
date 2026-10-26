@@ -35,6 +35,7 @@ pub(super) fn finish(
     let mut ctx = build_context(peers, &chrome[0], &desk[0], wallpaper_policy_sent);
     crate::render::ui_font::set_scale(ctx.scale);
     paint_chrome(&mut ctx);
+    crate::bench::mark(b"painted");
     // Each surface's second backing first, then the painted one, so the one
     // submitted last and shown is the painted one; the desk before the
     // chrome, so the compositor never shows the chrome without the desktop.
@@ -43,6 +44,7 @@ pub(super) fn finish(
     for (slot, (o, z)) in held.iter_mut().zip(order) {
         *slot = Some(super::register_overlay::register_overlay(&mut ctx, o, z)?);
     }
+    crate::bench::mark(b"registered");
     let h = held.map(|h| h.unwrap_or(0));
     ctx.desk =
         Flip { va: [desk[0].backing_va, desk[1].backing_va], handle: [h[1], h[0]], shown: 0 };
@@ -51,9 +53,12 @@ pub(super) fn finish(
     // The first frame is asked for once; the runner's first repaint asks
     // again, so a busy compositor here does not send setup round.
     super::commit_overlay::commit_overlay(&mut ctx);
+    crate::bench::mark(b"committed");
     open_chrome_windows::open_chrome_windows(&mut ctx)?;
+    crate::bench::mark(b"windows");
     super::subscribe_wm::subscribe_wm(&mut ctx, peers.wm_port);
     super::subscribe_input::subscribe_input(&mut ctx, peers.input_router_port);
+    crate::bench::mark(b"subscribed");
     // Last, and only where a context is returned: the desktop is committed,
     // painted and listening, which is what finished booting looks like.
     crate::sound::chime();
