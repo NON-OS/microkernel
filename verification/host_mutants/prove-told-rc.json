@@ -1,0 +1,34 @@
+[
+ {
+  "name": "prove-told-without-rc",
+  "file": "userland/capsule_prove/src/job/state_ops.rs",
+  "old": "        self.told |= self.answered && rc == 0;\n",
+  "new": "        self.told |= self.answered;\n",
+  "test": "job_",
+  "crate": "userland/prove_proofs"
+ },
+ {
+  "name": "prove-answered-outlives-its-reply",
+  "file": "userland/capsule_prove/src/job/state_ops.rs",
+  "old": "        self.answered = false;\n",
+  "new": "",
+  "test": "job_",
+  "crate": "userland/prove_proofs"
+ },
+ {
+  "name": "prove-any-status-carries-the-failure",
+  "file": "userland/capsule_prove/src/job/answer.rs",
+  "old": "                    j.answered = j.stage == Stage::Failed;\n",
+  "new": "                    j.answered = true;\n",
+  "test": "job_",
+  "crate": "userland/prove_proofs"
+ },
+ {
+  "name": "prove-frame-drops-the-rc",
+  "file": "userland/capsule_prove/src/job/serve_frame.rs",
+  "old": "            j.replied(rc);\n",
+  "new": "            j.replied(-110);\n",
+  "test": "job_",
+  "crate": "userland/prove_proofs"
+ }
+]

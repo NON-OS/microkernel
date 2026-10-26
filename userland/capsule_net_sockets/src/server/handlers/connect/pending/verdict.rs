@@ -44,3 +44,10 @@ pub fn decide(state: Result<u8, u16>, now: i64, deadline: i64) -> Verdict {
         Ok(_) => Verdict::Waiting,
     }
 }
+
+/// Whether an established connect's socket keeps the connection: only when
+/// it took it and the caller heard so. Otherwise the caller believes the
+/// socket unconnected, and a connection left on it would never be closed.
+pub fn kept(installed: bool, heard: bool) -> bool {
+    installed && heard
+}
