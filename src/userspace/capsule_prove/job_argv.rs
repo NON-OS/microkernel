@@ -28,13 +28,27 @@ pub const JOB_ARG: &str = "--nonos-prove-job";
 pub enum JobKind {
     Prove,
     Deliver,
+    Receipt,
 }
 
-/// `--nonos-prove-job`, then `prove` or `deliver`, then the pid in decimal.
+/// `--nonos-prove-job`, then `prove`, `deliver` or `receipt`, then the pid.
 pub(super) fn job_argv(kind: JobKind, pid: u32) -> Vec<String> {
     let k = match kind {
         JobKind::Prove => "prove",
         JobKind::Deliver => "deliver",
+        JobKind::Receipt => "receipt",
     };
     alloc::vec![String::from(JOB_ARG), String::from(k), pid.to_string()]
+}
+
+/// The caps a job asks for: the prover's own, and for a RECEIPT, AttestRead
+/// too, for the one MkAttestDoc a receipt makes (letter agent-02). AttestRead
+/// also opens MkAttestEntries, MkAcpiMeasured, MkLogTail (the kernel log) and
+/// other processes' masks in MkProcStat; only a RECEIPT job holds it, never
+/// the window and never a PROVE or DELIVER job.
+pub fn job_caps(kind: JobKind, prove: u64, attest_read: u64) -> u64 {
+    match kind {
+        JobKind::Receipt => prove | attest_read,
+        JobKind::Prove | JobKind::Deliver => prove,
+    }
 }
