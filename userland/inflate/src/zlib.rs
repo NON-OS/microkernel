@@ -31,7 +31,7 @@ pub fn zlib(data: &[u8]) -> Option<Vec<u8>> {
 /// Decodes as much as it can, stopping at `cap` output bytes. A preset
 /// dictionary (FDICT) or a window over 32 KiB is not a stream this decodes.
 pub fn zlib_partial(data: &[u8], cap: usize) -> Inflated {
-    let stop = |end| Inflated { out: Vec::new(), end, used: 0 };
+    let stop = |end| Inflated { out: Vec::new(), end, used: 0, short: None };
     let (Some(&cmf), Some(&flg)) = (data.first(), data.get(1)) else {
         let bad = data.first().is_some_and(|&c| c & 0x0f != 8 || c >> 4 > 7);
         return stop(if bad { End::Corrupt } else { End::Truncated });
