@@ -55,8 +55,11 @@ pub fn rule(entries: &[Entry]) -> Option<(u64, u64, bool)> {
 }
 
 pub fn kernel(entries: Vec<Entry>) -> Option<(u64, u64, bool)> {
-    match layout(Table::Named(entries, Held::Primary)) {
-        Layout::At { places, named, .. } => Some((places.store.first, places.plan.first, named)),
+    match layout(Table::Named(entries.clone(), Held::Primary)) {
+        Layout::At { places, entries: kept, named, .. } => {
+            assert_eq!(kept, entries, "every partition named, kept for the loader's");
+            Some((places.store.first, places.plan.first, named))
+        }
         Layout::Crossed => None,
     }
 }
