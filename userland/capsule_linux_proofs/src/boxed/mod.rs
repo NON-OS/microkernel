@@ -54,6 +54,8 @@ pub mod net_report;
 pub mod preset;
 #[path = "../../../capsule_linux/src/linux/boxed/report.rs"]
 pub mod report;
+#[path = "../../../capsule_linux/src/linux/boxed/run_line.rs"]
+pub mod run_line;
 #[path = "../../../capsule_linux/src/linux/boxed/tally.rs"]
 pub mod tally;
 #[path = "../../../capsule_linux/src/linux/boxed/terminal_run.rs"]

@@ -75,34 +75,3 @@ impl Default for EntryOptions {
         Self::new()
     }
 }
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum EntryError {
-    InvalidIstIndex,
-    HandlerNotPresent,
-}
-
-impl EntryError {
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            Self::InvalidIstIndex => "IST index must be 0-6",
-            Self::HandlerNotPresent => "Handler address is null",
-        }
-    }
-}
-
-pub fn validate_ist_index(index: u8) -> Result<(), EntryError> {
-    if index > 6 {
-        Err(EntryError::InvalidIstIndex)
-    } else {
-        Ok(())
-    }
-}
-
-pub fn validate_handler_address(addr: u64) -> Result<(), EntryError> {
-    if addr == 0 {
-        Err(EntryError::HandlerNotPresent)
-    } else {
-        Ok(())
-    }
-}

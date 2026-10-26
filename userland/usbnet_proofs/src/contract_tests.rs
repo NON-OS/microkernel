@@ -6,6 +6,7 @@
 use crate::fake_nic::Fake;
 use crate::nnet::{answer, decode, Request, Stats, DATA_AT, MAGIC, STATS_LEN, VERSION};
 use crate::nnet::{OP_LINK_STATUS, OP_MAC_ADDRESS, OP_RX_PACKET, OP_STATS, OP_TX_PACKET};
+use nonos_mac::resend::Kept;
 
 /// net.core's numbers, its DHCP lease ops included.
 #[path = "../../capsule_net_core/src/protocol/ops.rs"]
@@ -15,7 +16,7 @@ fn ask(op: u16, body: &[u8]) -> (i32, Vec<u8>) {
     let mut nic = Fake { sent: vec![], frames: vec![Ok(None)] };
     let req = Request { op, flags: 0, request_id: 3, payload_len: body.len() as u32 };
     let mut tx = vec![0u8; 2048];
-    let n = answer(Some(&mut nic), &mut Stats::default(), &req, body, &mut tx);
+    let n = answer(Some(&mut nic), (&mut Stats::default(), &mut Kept::new()), &req, body, &mut tx);
     (i32::from_le_bytes(tx[20..24].try_into().unwrap()), tx[DATA_AT..n].to_vec())
 }
 
@@ -57,7 +58,9 @@ fn a_lease_query_under_net_core_s_other_magic_is_never_read_as_ours() {
 
 #[test]
 fn the_station_addresss_source_is_word_nine_and_every_usb_driver_leaves_it_unreported() {
-    use crate::nnet::{STATION_DRAWN, STATION_HOST_REFUSED, STATION_HOST_UNANSWERED, STATION_UNREPORTED};
+    use crate::nnet::{
+        STATION_DRAWN, STATION_HOST_REFUSED, STATION_HOST_UNANSWERED, STATION_UNREPORTED,
+    };
     let (_, data) = ask(OP_STATS, &[]);
     assert_eq!(&data[36..40], &STATION_UNREPORTED.to_le_bytes(), "a USB driver says nothing");
     let codes = [STATION_UNREPORTED, STATION_DRAWN, STATION_HOST_UNANSWERED, STATION_HOST_REFUSED];

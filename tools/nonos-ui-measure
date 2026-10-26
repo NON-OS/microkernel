@@ -1,0 +1,142 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+"""Measure UI screendumps against HANDOFF/ui/identity.md.
+
+    tools/nonos-ui-measure SHOT.png ...       one line a shot
+    tools/nonos-ui-measure --self-test        the measure on made images
+
+For each shot: its size, its distinct colours (a boot screendump of one colour
+is a dead display, not a desktop), and the accent share, the pixels within
+ACCENT_DISTANCE of either NØNOS accent (#66FFFF on Ink, #007C82 on Paper) over
+all pixels. identity.md's rule is under 2% on any screen; the wallpaper is
+measured with the rest, so a shot of the desktop shows what a person sees.
+--budget PCT exits 1 when any shot is over it. PNG only, 8-bit RGB or RGBA,
+not interlaced, read with the standard library alone.
+"""
+
+import argparse
+import struct
+import sys
+import zlib
+
+ACCENTS = ((0x66, 0xFF, 0xFF), (0x00, 0x7C, 0x82))
+ACCENT_DISTANCE = 24
+
+
+def png_pixels(data):
+    """(width, height, rows of (r, g, b)) of a PNG, or ValueError."""
+    if data[:8] != b"\x89PNG\r\n\x1a\n":
+        raise ValueError("not a PNG")
+    at, idat, w = 8, b"", None
+    while at < len(data):
+        n, kind = struct.unpack(">I4s", data[at:at + 8])
+        body = data[at + 8:at + 8 + n]
+        at += 12 + n
+        if kind == b"IHDR":
+            w, h, depth, colour, _, _, interlace = struct.unpack(">IIBBBBB", body)
+            if depth != 8 or colour not in (2, 6) or interlace:
+                raise ValueError(f"unsupported PNG: depth {depth} colour {colour} interlace {interlace}")
+            bpp = 3 if colour == 2 else 4
+        elif kind == b"IDAT":
+            idat += body
+    if w is None:
+        raise ValueError("no IHDR")
+    raw, stride, prev, rows, pos = zlib.decompress(idat), w * bpp, bytearray(w * bpp), [], 0
+    for _ in range(h):
+        f, line = raw[pos], bytearray(raw[pos + 1:pos + 1 + stride])
+        pos += 1 + stride
+        for i in range(stride):
+            a = line[i - bpp] if i >= bpp else 0
+            b, c = prev[i], prev[i - bpp] if i >= bpp else 0
+            if f == 1:
+                line[i] = (line[i] + a) & 0xFF
+            elif f == 2:
+                line[i] = (line[i] + b) & 0xFF
+            elif f == 3:
+                line[i] = (line[i] + (a + b) // 2) & 0xFF
+            elif f == 4:
+                p = a + b - c
+                pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
+                line[i] = (line[i] + (a if pa <= pb and pa <= pc else b if pb <= pc else c)) & 0xFF
+        rows.append([tuple(line[x * bpp:x * bpp + 3]) for x in range(w)])
+        prev = line
+    return w, h, rows
+
+
+def measure(w, h, rows):
+    """(distinct colours, accent share in percent)."""
+    seen, accent = set(), 0
+    for row in rows:
+        for px in row:
+            seen.add(px)
+            if any(sum(abs(p - q) for p, q in zip(px, a)) <= ACCENT_DISTANCE for a in ACCENTS):
+                accent += 1
+    return len(seen), 100.0 * accent / (w * h)
+
+
+def png(w, h, px):
+    """A PNG of `px(x, y) -> (r, g, b)`, for the self-test."""
+    raw = b"".join(b"\0" + bytes(c for x in range(w) for c in px(x, y)) for y in range(h))
+    chunk = lambda k, d: struct.pack(">I", len(d)) + k + d + struct.pack(">I", zlib.crc32(k + d))
+    head = struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0)
+    return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", head) + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b"")
+
+
+def self_test():
+    ink, cyan, near, decoy = (10, 11, 13), (0x66, 0xFF, 0xFF), (0x60, 0xF8, 0xFF), (0x35, 0xC4, 0xE2)
+    cases = [
+        ("one colour", png(10, 10, lambda x, y: ink), 1, 0.0),
+        ("1% cyan", png(10, 10, lambda x, y: cyan if (x, y) == (0, 0) else ink), 2, 1.0),
+        ("near cyan counts", png(10, 10, lambda x, y: near if x < 5 else ink), 2, 50.0),
+        ("the old teal does not", png(10, 10, lambda x, y: decoy if x < 5 else ink), 2, 0.0),
+        ("paper accent", png(4, 1, lambda x, y: (0, 0x7C, 0x82) if x == 0 else (0xF2, 0xF3, 0xF7)), 2, 25.0),
+    ]
+    for name, data, colours, share in cases:
+        got = measure(*png_pixels(data))
+        if got != (colours, share):
+            sys.exit(f"nonos-ui-measure self-test: {name}: {got}, want {(colours, share)}")
+    try:
+        png_pixels(b"GIF89a")
+        sys.exit("nonos-ui-measure self-test: a GIF was read as a PNG")
+    except ValueError:
+        pass
+    print(f"nonos-ui-measure self-test: {len(cases) + 1} cases")
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
+    ap.add_argument("shots", nargs="*")
+    ap.add_argument("--budget", type=float, help="exit 1 when a shot's accent share is over this percent")
+    ap.add_argument("--self-test", action="store_true")
+    a = ap.parse_args()
+    if a.self_test:
+        return self_test()
+    over = False
+    for path in a.shots:
+        try:
+            w, h, rows = png_pixels(open(path, "rb").read())
+        except (OSError, ValueError) as e:
+            sys.exit(f"nonos-ui-measure: {path}: {e}")
+        colours, share = measure(w, h, rows)
+        over |= a.budget is not None and share > a.budget
+        print(f"{path}: {w}x{h}, {colours} colours, accent {share:.2f}%")
+    sys.exit(1 if over else 0)
+
+
+if __name__ == "__main__":
+    main()

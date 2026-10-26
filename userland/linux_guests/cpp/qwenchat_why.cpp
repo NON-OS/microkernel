@@ -109,6 +109,8 @@ static const struct { const char *prefix, *label, *word; } TIERS[] = {
     {"Qwen3-14B-", "Qwen3 14B", "qwen3-14b"},
     {"Qwen3-30B-A3B-", "Qwen3 30B-A3B", "qwen3-30b-a3b"},
     {"Qwen3-32B-", "Qwen3 32B", "qwen3-32b"},
+    {"Qwen3.5-0.8B-", "Qwen3.5 0.8B", "qwen3.5-0.8b"},
+    {"Qwen3.6-27B-", "Qwen3.6 27B", "qwen3.6-27b"},
     {"qwen2.5-coder-1.5b-", "Qwen2.5 Coder 1.5B", "coder-1.5b"},
     {"qwen2.5-coder-7b-", "Qwen2.5 Coder 7B", "coder-7b"},
     {"qwen2.5-coder-14b-", "Qwen2.5 Coder 14B", "coder-14b"},

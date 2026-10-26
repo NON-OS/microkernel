@@ -2,8 +2,6 @@
 //! Host proofs for the aarch64 roster index. `roster_order` is the kernel's
 //! own file.
 
-#![allow(dead_code)]
-
 #[path = "../../../src/arch/aarch64/boot/multicore/roster_order.rs"]
 pub mod roster_order;
 

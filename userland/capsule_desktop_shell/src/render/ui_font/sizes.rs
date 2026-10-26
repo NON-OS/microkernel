@@ -14,27 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The desktop's type sizes, in logical points.
+//! The desktop's type sizes, in logical points, on the brand's ramp
+//! (HANDOFF/ui/identity.md, Type). The toolkit draws no proportional text
+//! under `ttf::MIN_UI_PX`, 14, so none is asked for here.
 
-use nonos_toolkit::font::ttf;
+/// Body text: dialogs and the Launchpad's labels. `type.body`.
+pub const UI_PX: f32 = 17.0;
 
-/// Body text: menu bar, status cluster, labels, dialogs.
-pub const UI_PX: f32 = ttf::MIN_UI_PX;
-
-/// Headings: the launcher title.
+/// Headings: the launcher title. `type.heading`.
 pub const TITLE_PX: f32 = 20.0;
 
-/// The brand wordmark, set in the bold face.
+/// The brand wordmark, set in the bold face. `type.caption`.
 pub const BRAND_PX: f32 = 14.0;
 
-/// Menu bar titles.
-pub const MENU_PX: f32 = 13.5;
+/// Menu bar titles. `type.caption`.
+pub const MENU_PX: f32 = 14.0;
 
-/// The right-hand status cluster and its clock.
-pub const STATUS_PX: f32 = 13.0;
+/// The right-hand status cluster and its clock. `type.caption`.
+pub const STATUS_PX: f32 = 14.0;
 
-/// Desktop icon names.
-pub const LABEL_PX: f32 = 12.5;
+/// Desktop icon names. `type.caption`.
+pub const LABEL_PX: f32 = 14.0;
 
-/// Captions: the second, dimmer line under a desktop icon name.
-pub const META_PX: f32 = 11.0;
+/// The second, dimmer line under a desktop icon name: a caption, told from
+/// the name by its colour.
+pub const META_PX: f32 = 14.0;

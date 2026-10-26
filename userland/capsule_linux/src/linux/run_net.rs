@@ -18,10 +18,12 @@
 //! (plan/32). Once the program's policy is bound, a run whose box has
 //! NET_ANON asks the kernel to start it again as app.linux.run.net, which
 //! holds Network, and ends here; that role binds the policy again and runs
-//! only a program whose box has NET_ANON. A run the kernel will not start
-//! again, a terminal's among them, goes on without the network.
+//! only a program whose box has NET_ANON. The Terminal's run asks the same
+//! way and exits with LINUX_ASK_NET: its Terminal starts it once more in
+//! the terminal role that holds Network (app.linux.term.net). A run the
+//! kernel will not start again goes on without the network.
 
-use nonos_libc::{mk_cap_check, mk_exit, mk_getpid, mk_linux_run_net};
+use nonos_libc::{mk_cap_check, mk_exit, mk_getpid, mk_linux_run_net, LINUX_ASK_NET};
 
 use super::app::{net_step, NetStep};
 use super::say::say;
@@ -40,7 +42,7 @@ pub(super) fn settle(mask: u64) -> Result<(), &'static [u8]> {
         NetStep::AskAgain if mk_linux_run_net(me) == 0 => {
             routine(b"[LINUX] starting again with the network\n");
             super::file::clear_private();
-            mk_exit(0)
+            mk_exit(if super::terminal::started() { LINUX_ASK_NET } else { 0 })
         }
         NetStep::AskAgain => {
             say(b"[LINUX] its policy grants NET_ANON; this run has no network\n");
