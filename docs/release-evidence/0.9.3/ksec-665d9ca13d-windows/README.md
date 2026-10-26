@@ -22,9 +22,18 @@
 - No `ipc.call unanswered` line in either serial log: not for the installer
   during std_proof's or any load, not for attest.
 
+- Boot 3, the same image at 1080p: Files opened from the dock and "?" pressed;
+  the help's "any key to close" sits at the foot of the window it is painted
+  into, inside the frame (file_manager_help_1080p.png). No unanswered line.
+
 ## Not shown by these boots
 
 - The Launchpad's refusal toast (host-proved, desktop_proofs launch_tests).
-- hello, prove, gui_proof, clock, file_manager help and the browser's text
-  pages: not in the dev store or not opened; host-proved by
-  demo_screen_proofs app_windows and app_census.
+- clock and hello: their kernel features (nonos-capsule-clock,
+  nonos-capsule-hello) are in no desktop feature set, so no desktop image
+  carries them; gui_proof is parked (no Capsule.mk); the prove window has no
+  Launchpad tile, and the shell opens instances only for its tiles. All are
+  host-proved by demo_screen_proofs app_windows and app_census.
+- The browser's text and error pages: in this sandbox the Nym route never
+  connects, and the home page's search bar turns a typed address into a
+  search, so no text page loaded in 120 s. Host-proved by app_census.
