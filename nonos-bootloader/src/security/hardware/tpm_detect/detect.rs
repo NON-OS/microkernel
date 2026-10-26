@@ -32,6 +32,9 @@ pub fn detect_tpm_capabilities() -> TpmCapabilities {
 }
 
 fn probe_presence() -> bool {
+    if !crate::arch::cpu::PC_TPM_WINDOW {
+        return false;
+    }
     let did_vid = unsafe { read_mmio_u32(TPM_BASE_ADDR + TPM_DID_VID_OFFSET) };
     did_vid != 0xFFFF_FFFF && did_vid != 0
 }
