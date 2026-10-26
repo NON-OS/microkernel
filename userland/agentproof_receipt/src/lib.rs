@@ -28,6 +28,8 @@ pub mod cli;
 pub mod cli_pin;
 #[cfg(feature = "verify")]
 pub mod cli_ran;
+#[cfg(feature = "verify")]
+pub mod cli_says;
 pub mod napr;
 #[cfg(feature = "verify")]
 pub mod trust;

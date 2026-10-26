@@ -44,8 +44,7 @@ pub fn text(t: &Trust) -> String {
     s += "# here says the TPM's maker, or anyone, vouched for this AK, release or\n";
     s += "# supervisor: check them before you rely on this file. No EK chain.\n";
     for r in &t.releases {
-        s +=
-            &format!("release {} {} {} {}\n", r.version, hex(&r.pcr8), hex(&r.pcr9), hex(&r.pcr14));
+        s += &format!("release {} {} {}\n", r.version, hex(&r.pcr8), hex(&r.pcr9));
     }
     for v in &t.supervisors {
         s += &format!("supervisor {} {:x}\n", hex(&v.meas), v.caps);

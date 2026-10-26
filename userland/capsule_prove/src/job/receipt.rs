@@ -64,8 +64,8 @@ pub fn make(body: &[u8], asker: u32) -> Result<Receipt, i32> {
     let entries = super::receipt_doc::registry()?;
     let launcher = measure_of(&entries, asker).ok_or(EINVAL)?;
     let bound = write::bound(&record, req.box_word, req.policy, &launcher);
-    let doc = super::receipt_doc::doc_for(&bound, &entries)?;
-    let napr = write::finish(bound, &doc, &entries);
+    let (doc, capsules) = super::receipt_doc::doc_for(&bound, &entries)?;
+    let napr = write::finish(bound, &doc, &entries, &capsules);
     // One reply frame carries it, or nothing does.
     if napr.len() > GET_MAX {
         return Err(E2BIG);

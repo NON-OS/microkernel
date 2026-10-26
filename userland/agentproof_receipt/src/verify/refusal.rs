@@ -20,37 +20,35 @@ use crate::napr::read::Fault;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Refusal {
-    /// The receipt's own bytes (napr/read.rs).
+    /// The receipt's own bytes (napr/read.rs), or not one NFSR v1 record.
     Format(Fault),
-    /// Not one NFSR v1 record.
     Record,
-    /// The record is not final, or a count saturated, or M overflowed.
+    /// Not final, a count saturated, or M overflowed.
     Unfinished,
     /// Not sealed under the vendor authority, or by a supervisor not trusted.
     Supervisor,
-    /// The box word is not one capsule_linux takes.
+    /// The box word is not one capsule_linux takes, or the policy no NLXPOL01.
     Box,
-    /// The app policy is not one NLXPOL01 policy.
     Policy,
     /// Slot 0 is not this app in this box (capsule_linux seal_slot.rs).
     Binding,
     /// The attestation document, as nsh_attest reads and checks it.
     Doc(nsh_attest::Refusal),
-    /// The doc answers another challenge than this receipt's.
+    /// The doc answers another receipt's challenge.
     Challenge,
     /// The doc carries a part its quote does not sign (napr/doc_form.rs).
     Unsigned,
-    /// No IOMMU, one not enforcing, a grant around it, or a device in a
-    /// domain that reaches all of memory (nsh_attest::steps::dma).
+    /// The DMA posture fails nsh_attest::steps::dma.
     Dma,
+    /// The capsules do not replay to the PCR 14 the quote signed.
+    Capsules,
     /// The entries do not fold to the registry root the quote signed.
     Registry,
-    /// The launcher named is no capsule the signed registry lists.
+    /// The launcher is no capsule the signed registry lists.
     Launcher,
-    /// PCR 9 names no trusted release, or PCR 8 or 14 is not that release's.
+    /// PCR 9 names no trusted release, or PCR 8 is not that release's.
     Release,
-    /// The doc's AK is not the one pinned.
-    Ak,
+    Ak, // the doc's AK is not the one pinned
 }
 
 impl Refusal {
@@ -67,6 +65,7 @@ impl Refusal {
             Self::Challenge => "challenge",
             Self::Unsigned => "unsigned",
             Self::Dma => "dma",
+            Self::Capsules => "capsules",
             Self::Registry => "registry",
             Self::Launcher => "launcher",
             Self::Release => "release",

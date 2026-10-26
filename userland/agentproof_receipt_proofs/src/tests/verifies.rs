@@ -38,7 +38,10 @@ fn the_capsule_that_asked_is_said_when_the_receipt_names_it() {
     let t = f.trust();
     let said = |f: &mut Fixture| answer(&f.bytes(), &written(&t)).out.join("\n");
     assert!(said(&mut f).contains("asked    by a capsule the receipt does not name"));
-    f.launcher = [4; 32];
-    assert_eq!(verify(&f.bytes(), &t).unwrap().launcher, [4; 32]);
-    assert!(said(&mut f).contains(&format!("asked    by the capsule measured {}", "04".repeat(32))));
+    f.launcher = [0xF0; 32]; // the fixture registry's pid 5
+    assert_eq!(verify(&f.bytes(), &t).unwrap().launcher, [0xF0; 32]);
+    let named = format!("asked    by the capsule measured {}", "f0".repeat(32));
+    assert!(said(&mut f).contains(&named));
+    f.launcher = [4; 32]; // no capsule the signed registry lists
+    assert_eq!(verify(&f.bytes(), &t).unwrap_err().name(), "launcher");
 }

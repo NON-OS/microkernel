@@ -56,7 +56,8 @@ fn the_complete_flag_is_cleared_and_never_taken() {
         "the kernel's set, the receipt's clear"
     );
     let (mut bytes, trust) = (f.bytes(), f.trust());
-    let at = bytes.len() - clear(&doc).unwrap().len() + flag;
+    let r = agentproof_receipt::napr::read::parse(&bytes).unwrap();
+    let at = r.doc.as_ptr() as usize - bytes.as_ptr() as usize + flag;
     bytes[at] = 1;
     assert_eq!(verify(&bytes, &trust).unwrap_err().name(), "unsigned");
 }

@@ -22,13 +22,13 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 /// One accepted release, by nsh_attest's rule: PCR 9 names the admitted
-/// kernel and so picks the release; PCR 8 and 14 must then be its own.
+/// kernel and so picks the release; PCR 8 must then be its own. PCR 14 is
+/// not pinned: it is replayed from the log, capsule by capsule.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Release {
     pub version: String,
     pub pcr8: [u8; 32],
     pub pcr9: [u8; 32],
-    pub pcr14: [u8; 32],
 }
 
 /// A supervisor whose sealed records are taken: the Linux personality's

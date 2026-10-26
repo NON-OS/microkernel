@@ -18,14 +18,15 @@
 
 use std::process::ExitCode;
 
-use agentproof_receipt::cli::{answer, Answer, USAGE};
+use agentproof_receipt::cli::{answer_in, Answer, USAGE};
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let a = match args.iter().map(String::as_str).collect::<Vec<_>>().as_slice() {
-        ["verify", receipt, trust] => {
+        ["verify", receipt, trust] | ["verify", "--release", receipt, trust] => {
+            let release = args[1] == "--release";
             match (std::fs::read(receipt), std::fs::read_to_string(trust)) {
-                (Ok(r), Ok(t)) => answer(&r, &t),
+                (Ok(r), Ok(t)) => answer_in(&r, &t, release),
                 (Err(e), _) | (_, Err(e)) => {
                     Answer { code: 2, out: vec![], err: vec![format!("agentproof-receipt: {e}")] }
                 }

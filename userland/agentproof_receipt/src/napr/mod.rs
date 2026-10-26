@@ -21,36 +21,25 @@
 //! | record | 240 | NFSR v1, the kernel's sealed record of the run |
 //! | box | 1..=255 | the box's `--box` word; its hash is recomputed |
 //! | app policy | 256 | the program's NLXPOL01 policy; its app_id is recomputed |
-//! | launcher | 32 | the capsule that asked for the run; zero until named (gap 5) |
+//! | launcher | 32 | the measurement of the capsule that asked; one of the entries |
 //! | doc | ..=DOC_MAX | NONOSATT v5 for this receipt's challenge, its unsigned parts cleared |
 //! | entries | 45 each, 1..=4096 | MkAttestEntries: what ran; they fold to the doc's signed root |
+//! | capsules | 65 each, 0..=4096 | PCR 14's events from the doc's log; they replay to its PCR 14 |
 //!
 //! One receipt has one encoding: a reader refuses another version, a short or
-//! long field, and any byte past the entries.
+//! long field, and any byte past the capsules.
 
+pub mod capsules;
 mod cursor;
+mod layout;
+mod le;
 #[cfg(feature = "verify")]
 pub mod doc_form;
 pub mod doc_clear;
 pub mod read;
 pub mod write;
 
-pub const MAGIC: &[u8; 4] = b"NAPR";
-pub const VERSION: u16 = 0;
-pub const HEAD: usize = 6;
-pub const RECORD: usize = 240;
-pub const BOX_MAX: usize = 255;
-pub const POLICY: usize = 256;
-pub const LAUNCHER: usize = 32;
-/// nsh's cap on a version 5 document (docs/design/nsh-v1-wire.md).
-pub const DOC_MAX: usize = 1088 * 1024;
-/// One MkAttestEntries entry (src/security/attest_registry/format.rs).
-pub const ENTRY: usize = 45;
-pub const ENTRIES_MAX: usize = 4096 * ENTRY;
-
-/// The challenge the doc answers: BLAKE3 over this domain and every byte of
-/// the receipt before the doc's length.
-pub const CHALLENGE_DOMAIN: &[u8] = b"NONOS-AGENTPROOF-RECEIPT-v0";
+pub use layout::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Receipt<'a> {
@@ -61,6 +50,8 @@ pub struct Receipt<'a> {
     pub doc: &'a [u8],
     /// Every capsule the machine ran, as the doc's registry root folds them.
     pub entries: &'a [u8],
+    /// Every capsule PCR 14 records, as the doc's quote signed it.
+    pub capsules: &'a [u8],
     /// The bytes the challenge covers.
     pub bound: &'a [u8],
 }

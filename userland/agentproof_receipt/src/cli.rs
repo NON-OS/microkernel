@@ -23,10 +23,11 @@ use alloc::vec::Vec;
 
 use crate::{trust_file, verify};
 
-pub const USAGE: &str = "usage: agentproof-receipt verify <receipt> <trust>
+pub const USAGE: &str = "usage: agentproof-receipt verify [--release] <receipt> <trust>
        agentproof-receipt pin <receipt>
-  verify checks a NAPR v0 receipt offline against a nonos-receipt-trust 1 file;
-  pin writes the one it verifies under, pinned on first use (docs/agentproof/receipt.md)";
+  verify checks a NAPR v0 receipt offline against a nonos-receipt-trust 1 file and says
+  whether it is from a release; --release refuses one that is not. pin writes the file
+  it verifies under, pinned on first use (docs/agentproof/receipt-verify.md)";
 
 pub struct Answer {
     pub code: u8,
@@ -35,6 +36,11 @@ pub struct Answer {
 }
 
 pub fn answer(receipt: &[u8], trust: &str) -> Answer {
+    answer_in(receipt, trust, false)
+}
+
+/// With `release`, a receipt that verified but is not from a release exits 1.
+pub fn answer_in(receipt: &[u8], trust: &str, release: bool) -> Answer {
     let trust = match trust_file::read(trust) {
         Ok(t) => t,
         Err((line, why)) => return fail(2, format!("trust file line {line}: {why}")),
@@ -43,25 +49,15 @@ pub fn answer(receipt: &[u8], trust: &str) -> Answer {
         Ok(v) => v,
         Err(r) => return fail(1, format!("refused: {} ({r:?})", r.name())),
     };
-    let mut out =
-        vec![format!("receipt  verified: NAPR v0; the AK is the one pinned, with no EK chain")];
-    out.push(format!("release  {} pcr9 {}", v.release, hex(&v.pcr9)));
-    match v.program {
-        Some(p) => out.push(format!("program  {} app {}", hex(&p), hex(&v.app_id))),
-        None => out.push("program  the personality's own BusyBox, which names no program".into()),
+    let out = crate::cli_says::lines(&v);
+    match (release, &v.is_release) {
+        (true, verify::Release::NotRelease(_)) => Answer {
+            code: 1,
+            out,
+            err: vec![format!("agentproof-receipt: {}", v.is_release.said())],
+        },
+        _ => Answer { code: 0, out, err: vec![] },
     }
-    out.push(format!("box      {} {}", v.box_word, hex(&v.box_hash)));
-    if !v.enforced {
-        out.push("mode     LEARN, not enforced: this run was held to no policy of yours".into());
-    }
-    out.push(format!("sealed   by {} as family {:016x}", hex(&v.supervisor), v.seal_no));
-    out.push(match v.launcher == [0; 32] {
-        true => "asked    by a capsule the receipt does not name".into(),
-        false => format!("asked    by the capsule measured {}", hex(&v.launcher)),
-    });
-    out.extend(crate::cli_ran::lines(&v.ran));
-    out.push("counts   not carried in v0".into());
-    Answer { code: 0, out, err: vec![] }
 }
 
 fn fail(code: u8, why: String) -> Answer {
