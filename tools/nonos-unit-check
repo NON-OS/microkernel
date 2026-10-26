@@ -1,0 +1,320 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+"""Check a unit's commits against the tree's rules before it is pushed.
+
+    tools/nonos-unit-check                 against private/main (or origin/main)
+    tools/nonos-unit-check --base REF      against REF
+    tools/nonos-unit-check --reached       the userland crates the unit reaches
+    tools/nonos-unit-check --self-test     the checks on a made repository
+
+Every .rs file the unit adds or changes, from the merge base with REF to
+HEAD, is held to:
+
+  FMT    rustfmt --check, with the repository's rustfmt.toml and
+         skip_children, as the lead's gate runs it;
+  OVER   at most 75 lines, and a file already over 75 may only shrink;
+  ALLOW  no #[allow] or #![allow] added (scripts/check_allows.py says why);
+
+and the unit's added lines may carry no private key material (KEY). Files
+written by a tool that say not to edit them, and the extraction crates
+tools/extraction/closure_crate.py writes, are skipped. The merge base, not
+REF itself, is the comparison, so a unit that has not merged the newest main
+is judged on its own commits alone. Exit 1 when anything is found.
+
+--reached lists, proof crates first, every userland crate whose tests a unit
+must run, nested ones (a shim, a fuzz crate, a layout_tests lane) included:
+one that holds a changed file; one whose targets or build script compile a
+changed file, walked as rustc walks modules (scripts/test_lanes/modules.py:
+`mod x;`, #[path], inline modules, include!), or read one by include_str! or
+include_bytes!, or name its path whole in a string of three parts or more, as
+the pin macros do, or build one by concat! around a single argument; or one
+naming such a crate as a path dependency. The
+vendored and upstream crates count for changed files and dependencies only.
+"""
+
+import argparse
+import fnmatch
+import os
+import re
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+LIMIT = 75
+GENERATED = re.compile(r"Written by tools/.*do not|do not\s*\n//\s*edit\.", re.I)
+# The extraction crates tools/extraction/closure_crate.py writes, as it writes them.
+GENERATED_TREES = ("verification/extraction/tree/",)
+ALLOW = re.compile(r"^\+.*#!?\[\s*allow\s*\(")
+# Built from parts, so this file's own lines are not key material to itself.
+KEY = re.compile(r"^\+.*(BEGIN (EC |OPENSSH |)PRIVATE KEY|NONOS_SIGNING_" + r"KEY=)", re.I)
+
+
+def git(root, *args, check=True):
+    r = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True)
+    if check and r.returncode != 0:
+        raise SystemExit(f"unit-check: git {' '.join(args)}: {r.stderr.strip()}")
+    return r.stdout
+
+
+def default_base(root):
+    for ref in ("refs/remotes/private/main", "refs/remotes/origin/main", "refs/heads/main"):
+        if git(root, "rev-parse", "--verify", "-q", ref, check=False).strip():
+            return ref
+    raise SystemExit("unit-check: no private/main, origin/main or main; pass --base")
+
+
+def formatted(root, path):
+    cmd = ["rustfmt", "--edition", "2021", "--check", "--config", "skip_children=true", path]
+    return subprocess.run(cmd, cwd=root, capture_output=True).returncode == 0
+
+
+def findings(root, base):
+    since = git(root, "merge-base", base, "HEAD").strip()
+    out = []
+    changed = git(root, "diff", "--name-only", "--diff-filter=AM", since, "HEAD", "--", "*.rs")
+    for path in changed.split():
+        text = (root / path).read_text(errors="replace") if (root / path).exists() else None
+        if text is None or GENERATED.search(text) or path.startswith(GENERATED_TREES):
+            continue
+        if not formatted(root, path):
+            out.append(f"FMT {path}")
+        now = text.count("\n")
+        was = git(root, "show", f"{since}:{path}", check=False).count("\n")
+        if now > LIMIT and now > was:
+            out.append(f"OVER {was}->{now} {path}")
+        diff = git(root, "diff", since, "HEAD", "--", path)
+        if any(ALLOW.match(line) for line in diff.splitlines()):
+            out.append(f"ALLOW {path}")
+    if any(KEY.match(line) for line in git(root, "diff", since, "HEAD").splitlines()):
+        out.append("KEY private key material in the unit's lines")
+    return out
+
+
+TEXT = re.compile(r'include_(?:str|bytes)!\(\s*"([^"]+)"')
+# A path written whole in a string, as the src!-style pin macros take them:
+# three parts or more once any leading ../ is gone, so "src/lib.rs" alone
+# names no one file.
+LITERAL = re.compile(r'"/?((?:[\w.-]+/)+[\w.-]+\.\w+)"')
+# A path built by concat! around one argument, as a pin macro over many
+# files does: concat!("../src/userspace/capsule_", $a, "/spawn.rs").
+CONCAT = re.compile(r'concat!\(\s*"([^"]+)"\s*,\s*[^,()"]+,\s*"([^"]+)"\s*\)')
+DEP = re.compile(r'path\s*=\s*"([^"]+)"')
+THIRD_PARTY = ("userland/vendor/", "userland/upstream-src/")
+
+
+def walker(root):
+    """scripts/test_lanes, the module walk the lane check uses, from the tree
+    under check or else from this tool's own."""
+    for scripts in (root / "scripts", Path(__file__).resolve().parents[1] / "scripts"):
+        if (scripts / "test_lanes" / "modules.py").exists():
+            sys.path.insert(0, str(scripts))
+            from test_lanes.modules import reach
+            from test_lanes.targets import targets
+            from test_lanes.tree import Tree
+            return Tree(root), reach, targets
+    raise SystemExit("unit-check: no scripts/test_lanes to walk modules with")
+
+
+def reached(root, base):
+    since = git(root, "merge-base", base, "HEAD").strip()
+    changed = set(git(root, "diff", "--name-only", since, "HEAD").split())
+    tree, reach, targets = walker(root)
+    under = lambda p, d: p.startswith(d + "/")
+    norm = lambda d, p: os.path.normpath(os.path.join(d, p))
+
+    def compiles(crate):
+        """Every file the crate's targets and build script compile, and every
+        file they read as text or name whole in a string."""
+        roots = [t.path for t in targets(tree, crate)]
+        build = tree.manifests[crate].get("package", {}).get("build", "build.rs")
+        if isinstance(build, str) and norm(crate, build) in tree.files:
+            roots.append(norm(crate, build))
+        files = reach(tree, roots)
+        out = set(files)
+        for f in files:
+            text = tree.text(f)
+            out |= {norm(os.path.dirname(f), m) for m in TEXT.findall(text)}
+            whole = (m.lstrip("./") for m in LITERAL.findall(text))
+            out |= {"\0" + w for w in whole if w.count("/") >= 2}
+            here = os.path.dirname(f)
+            out |= {"\1" + norm(here, a) + "*" + b for a, b in CONCAT.findall(text)}
+        return out
+
+    crates = [c for c in tree.crates if c.startswith("userland/")]
+    ours = {c: not (c + "/").startswith(THIRD_PARTY) for c in crates}
+    found = set()
+    for crate in crates:
+        if any(under(c, crate) for c in changed):
+            found.add(crate)
+            continue
+        if not ours[crate]:
+            continue
+        seen = compiles(crate)
+        whole = {p[1:] for p in seen if p.startswith("\0")}
+        globs = [p[1:] for p in seen if p.startswith("\1")]
+        if (seen & changed or any(c.endswith("/" + w) or c == w for c in changed for w in whole)
+                or any(fnmatch.fnmatchcase(c, g) for c in changed for g in globs)):
+            found.add(crate)
+    deps = {c: {norm(c, m.group(1)) for m in DEP.finditer(tree.text(c + "/Cargo.toml"))}
+            for c in crates}
+    grew = True
+    while grew:
+        grew = False
+        for crate in crates:
+            if crate not in found and deps[crate] & found:
+                found.add(crate)
+                grew = True
+    return sorted(found, key=lambda c: (not c.rsplit("/", 1)[-1].endswith("_proofs"),
+                                        c.rsplit("/", 1)[-1]))
+
+
+def self_test():
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        env = {"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t",
+               "GIT_COMMITTER_EMAIL": "t@t"}
+        os.environ.update(env)
+        git(root, "init", "-q", "-b", "main")
+        (root / "rustfmt.toml").write_text('edition = "2021"\nuse_small_heuristics = "Max"\n')
+        body = lambda n: "".join(f"    let _v{i} = {i};\n" for i in range(n))
+        long_fn = body(80)
+        (root / "grown.rs").write_text(f"pub fn f() {{\n{long_fn}}}\n")
+        (root / "kept.rs").write_text(f"pub fn k() {{\n{body(88)}}}\n")
+        git(root, "add", "-A")
+        git(root, "commit", "-q", "-m", "base")
+        git(root, "checkout", "-q", "-b", "unit")
+        (root / "grown.rs").write_text(f"pub fn f() {{\n{long_fn}    let _w = 1;\n}}\n")
+        (root / "kept.rs").write_text(f"pub fn k() {{\n{body(83)}}}\n")
+        (root / "new_long.rs").write_text(f"pub fn n() {{\n{long_fn}}}\n")
+        (root / "off.rs").write_text("pub fn o( ) -> u8 {1}\n")
+        (root / "allowed.rs").write_text("#[allow(dead_code)]\nfn a() {}\n")
+        (root / "gen.rs").write_text("// Written by tools/x.py; do not edit.\npub fn g( ) {}\n")
+        (root / "verification/extraction/tree/x").mkdir(parents=True)
+        (root / "verification/extraction/tree/x/mod.rs").write_text("pub use a::{b,c};\n")
+        (root / "notes.txt").write_text("-----BEGIN " + "PRIVATE KEY-----\n")
+        git(root, "add", "-A")
+        git(root, "commit", "-q", "-m", "unit")
+        got = sorted(findings(root, "main"))
+        want = sorted(["OVER 82->83 grown.rs", "OVER 0->82 new_long.rs", "FMT off.rs",
+                       "ALLOW allowed.rs", "KEY private key material in the unit's lines"])
+        if got != want:
+            print(f"unit-check: self-test failed\n  got  {got}\n  want {want}")
+            return 1
+        git(root, "checkout", "-q", "main")
+        git(root, "checkout", "-q", "-b", "clean")
+        (root / "kept.rs").write_text(f"pub fn k() {{\n{body(83)}}}\n")
+        git(root, "commit", "-q", "-am", "shrink")
+        git(root, "checkout", "-q", "main")
+        (root / "later.rs").write_text("pub fn l( ) {}\n")
+        (root / "grown.rs").write_text(f"pub fn f() {{\n{body(79)}}}\n")
+        git(root, "add", "-A")
+        git(root, "commit", "-q", "-m", "main moves on: a file off rustfmt, one shrunk")
+        git(root, "checkout", "-q", "clean")
+        if findings(root, "main"):
+            print(f"unit-check: self-test failed, a clean unit was refused: {findings(root, 'main')}")
+            return 1
+    if not reached_self_test():
+        return 1
+    print("unit-check: self-test passed, 5 findings made and caught, a clean unit passed,")
+    print("unit-check: and --reached found each crate a change reaches and no other")
+    return 0
+
+
+def reached_self_test():
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        git(root, "init", "-q", "-b", "main")
+        for name, toml_extra, src in [
+            ("lib_a", "", "pub fn a() {}\n"),
+            ("by_path_proofs", "", '#[path = "../../lib_a/src/lib.rs"]\nmod a;\n'),
+            ("by_text_proofs", "", 'const A: &str = include_str!("../../lib_a/notes.txt");\n'),
+            ("by_dep_proofs", '\n[dependencies]\nlib_a = { path = "../lib_a" }\n', ""),
+            ("lib_b", "", '#[path = "../../lib_a/src/lib.rs"]\nmod a;\npub fn b() {}\n'),
+            ("by_chain_proofs", "", '#[path = "../../lib_b/src/lib.rs"]\nmod b;\n'),
+            ("unrelated_proofs", "", '#[path = "../../lib_c/src/lib.rs"]\nmod c;\n'),
+            ("lib_c", "", "pub fn c() {}\n"),
+            ("lib_a/layout_tests", "", '#[path = "../../src/lib.rs"]\nmod a;\n'),
+            ("vendor/v", '\n[dependencies]\nlib_a = { path = "../../lib_a" }\n', ""),
+            ("lib_e", "", "pub fn e() {}\n"),
+            ("lib_f", "", "pub mod state;\n"),
+            ("by_mod_proofs", "", '#[path = "../../lib_f/src/state/mod.rs"]\nmod state;\n'),
+            ("by_inline_proofs", "", '#[path = "../../lib_f/src"]\nmod f {\n    mod state;\n}\n'),
+            ("by_pin_proofs", "", 'const P: &str = src!("lib_e/src/lib.rs");\n'),
+            ("two_part_proofs", "", 'const P: &str = src!("src/lib.rs");\n'),
+            ("by_build_proofs", "", ""),
+            ("by_concat_proofs", "",
+             'macro_rules! n {\n    ($a:literal) => {\n        include_str!(concat!("../../lib_", $a, "/notes.txt"))\n'
+             '    };\n}\nconst N: &str = n!("a");\n'),
+            ("by_rooted_proofs", "", 'const P: &str = concat!(env!("D"), "/../lib_f/src/state/tray.rs");\n'),
+            ("vendor/w", "", "pub fn w() {}\n"),
+        ]:
+            (root / "userland" / name / "src").mkdir(parents=True)
+            (root / "userland" / name / "Cargo.toml").write_text(
+                f'[package]\nname = "{name.split("/")[-1]}"\n{toml_extra}')
+            (root / "userland" / name / "src/lib.rs").write_text(src)
+        (root / "userland/lib_a/notes.txt").write_text("a\n")
+        (root / "userland/lib_f/src/state").mkdir()
+        (root / "userland/lib_f/src/state/mod.rs").write_text("mod tray;\n")
+        (root / "userland/lib_f/src/state/tray.rs").write_text("pub fn t() {}\n")
+        (root / "userland/by_build_proofs/build.rs").write_text(
+            'const A: &str = include_str!("../lib_c/src/lib.rs");\nfn main() {}\n')
+        git(root, "add", "-A")
+        git(root, "commit", "-q", "-m", "base")
+        (root / "userland/lib_a/src/lib.rs").write_text("pub fn a() -> u8 { 1 }\n")
+        (root / "userland/lib_e/src/lib.rs").write_text("pub fn e() -> u8 { 1 }\n")
+        (root / "userland/lib_f/src/state/tray.rs").write_text("pub fn t() -> u8 { 1 }\n")
+        (root / "userland/lib_c/src/lib.rs").write_text("pub fn c() -> u8 { 1 }\n")
+        (root / "userland/lib_a/notes.txt").write_text("b\n")
+        (root / "userland/vendor/w/src/lib.rs").write_text("pub fn w() -> u8 { 1 }\n")
+        git(root, "commit", "-q", "-am", "unit")
+        got = reached(root, "main~1")
+        want = ["userland/by_build_proofs", "userland/by_chain_proofs", "userland/by_concat_proofs",
+                "userland/by_dep_proofs", "userland/by_inline_proofs", "userland/by_mod_proofs",
+                "userland/by_path_proofs", "userland/by_pin_proofs", "userland/by_rooted_proofs",
+                "userland/by_text_proofs", "userland/unrelated_proofs",
+                "userland/lib_a/layout_tests", "userland/lib_a", "userland/lib_b", "userland/lib_c",
+                "userland/lib_e", "userland/lib_f", "userland/vendor/v", "userland/vendor/w"]
+        if got != want:
+            print(f"unit-check: --reached self-test failed\n  got  {got}\n  want {want}")
+            return False
+    return True
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--base", help="the branch the unit lands on")
+    ap.add_argument("--reached", action="store_true", help="list the crates whose tests to run")
+    ap.add_argument("--self-test", action="store_true")
+    args = ap.parse_args()
+    if args.self_test:
+        return self_test()
+    root = Path(git(Path.cwd(), "rev-parse", "--show-toplevel").strip())
+    base = args.base or default_base(root)
+    if args.reached:
+        print("\n".join(reached(root, base)))
+        return 0
+    found = findings(root, base)
+    for f in found:
+        print(f"unit-check: {f}")
+    print(f"unit-check: {len(found)} found against {base}" if found else "unit-check: clean")
+    return 1 if found else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -26,6 +26,8 @@ use super::passphrase_open::open_keyed;
 use super::plan_read::read_plan;
 use super::plan_types::PlanError;
 use super::state::VOLUME;
+use crate::hardware::block_device::BlockDeviceError;
+use crate::security::zerostate::volume_rule::{place, Place};
 
 /// Create a passphrase-keyed volume over a blank header ring (`create`),
 /// or open the one the key header names. The caller wipes `passphrase`.
@@ -37,6 +39,10 @@ pub fn passphrase_volume(create: bool, passphrase: &[u8]) -> Result<(), VolumeEr
     /* A live stick keeps no volume on the disk to key. */
     if plan.is_live() {
         return Err(VolumeError::Plan(PlanError::NoPlan));
+    }
+    /* Nor does a boot that keeps nothing yet open the disk's (volume_rule.rs). */
+    if place(true, crate::security::zerostate::keeping()) == Place::Ram {
+        return Err(VolumeError::Device(BlockDeviceError::AccessDenied));
     }
     crate::fs::cryptoblock::set_window(plan.volume_base, plan.volume_sectors)
         .map_err(VolumeError::Window)?;

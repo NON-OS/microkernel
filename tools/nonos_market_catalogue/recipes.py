@@ -15,8 +15,9 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """One recipe, one app (recipes_file.py reads the file): the Alpine
 package, the licence the index must still give it, the services its box
-grants, optionally a dests file (one plan/33 item a line) and a measured
-set, and the store's text. Every field is checked before any is used."""
+grants, optionally a dests file (one plan/33 item a line), a measured
+set and a logo (logos.py), and the store's text. Every field is checked
+before any is used."""
 
 from pathlib import Path
 
@@ -24,6 +25,7 @@ from nonos_linux_pack.dests import dests_list
 from nonos_linux_pack.policy import market_ready, mask_of
 
 from .licences import redistributable
+from .logos import allowed
 from .names import package
 
 # No set measured yet: every Linux call may complete, and bucket 512, the
@@ -33,7 +35,7 @@ UNMEASURED = b"\xff" * 64 + b"\x00"
 # linux.blackarch.* as pacman, qwen- and nonos- are the image's own tiers and tools.
 NAMESPACES = ("kali.", "blackarch.", "qwen-", "nonos-")
 KEYS = frozenset(("package", "licence", "mask", "dests", "calls", "name", "text",
-                  "index_licence", "licence_source"))
+                  "index_licence", "licence_source", "logo"))
 
 
 def calls_of(item: dict) -> bytes:
@@ -73,6 +75,13 @@ def checked(item: dict, root: Path) -> dict:
         dests = dests_list([x.strip() for x in lines if x.strip()])
         if not mask & 2:
             raise ValueError(f"{item['package']}: a dests list needs NET_ANON")
+    if item.get("logo"):
+        logo = (root / item["logo"]).resolve()
+        if not logo.is_relative_to(root.resolve()) or not logo.is_file():
+            raise ValueError(f"{item['package']}: its logo is not a file in the tree")
+        # The record (logos.py, RECORD) says whose logo may be shown.
+        if not allowed(root, item["package"]):
+            raise ValueError(f"{item['package']}: the logo record does not let it show a logo")
     calls = calls_of(item)
     # market_ready also refuses FILES_USER, which is reserved (plan/32).
     if calls[-1] & 0xFE or not market_ready(calls, mask):
