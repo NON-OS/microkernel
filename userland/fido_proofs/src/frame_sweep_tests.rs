@@ -3,8 +3,8 @@
 //! told one lie: it hears exactly what the rule in frame_sweep/model.rs
 //! hears, and exactly the honest messages the lie leaves, each whole.
 
-use crate::ctaphid_parts::assemble::Assembler;
-use crate::ctaphid_parts::heard::Heard;
+use crate::ctaphid::assemble::Assembler;
+use crate::ctaphid::heard::Heard;
 use crate::frame_sweep::build::{stream, CID};
 use crate::frame_sweep::lie::{tell, LIES};
 use crate::frame_sweep::model::heard;

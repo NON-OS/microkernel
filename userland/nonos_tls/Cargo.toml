@@ -8,6 +8,11 @@ license = "AGPL-3.0"
 [lib]
 crate-type = ["rlib"]
 
+[features]
+# The local test chain's throwaway root (P5, src/roots/dev.rs). Only the
+# development capsule set turns it on, through settle's own devnet feature.
+devnet = []
+
 # The key schedule, the transcript hash and the record AEAD run in the caller.
 # The secrets they touch (traffic secrets, record keys, the X25519 private key)
 # already live in the caller's memory, so doing the arithmetic next to them

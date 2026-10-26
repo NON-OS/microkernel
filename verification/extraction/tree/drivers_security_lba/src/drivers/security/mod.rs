@@ -7,4 +7,4 @@ pub mod error;
 pub mod lba;
 
 pub use error::DriverError;
-pub use lba::{is_lba_in_partition, validate_lba_in_partition, validate_lba_range, validate_lba_range_with_size};
+pub use lba::{is_lba_in_partition, validate_lba_in_partition, validate_lba_range};

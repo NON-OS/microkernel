@@ -17,6 +17,10 @@
 use super::entry::{TrayEntry, MAX_TRAY_ITEMS, PER_OWNER};
 use crate::protocol::TRAY_LABEL_MAX;
 
+/// An entry the tray would not take: the same owner and id again, its owner's
+/// share already held, or no free slot.
+pub struct Refused;
+
 pub struct TrayTable {
     pub(super) entries: [TrayEntry; MAX_TRAY_ITEMS],
 }
@@ -33,12 +37,12 @@ impl TrayTable {
             }; MAX_TRAY_ITEMS],
         }
     }
-    pub fn insert(&mut self, entry: TrayEntry) -> Result<(), ()> {
+    pub fn insert(&mut self, entry: TrayEntry) -> Result<(), Refused> {
         if self.find(entry.owner_pid, entry.tray_id).is_some() {
-            return Err(());
+            return Err(Refused);
         }
         if self.held_by(entry.owner_pid) >= PER_OWNER {
-            return Err(());
+            return Err(Refused);
         }
         for slot in self.entries.iter_mut() {
             if !slot.in_use {
@@ -46,7 +50,7 @@ impl TrayTable {
                 return Ok(());
             }
         }
-        Err(())
+        Err(Refused)
     }
     pub fn find(&self, owner_pid: u32, tray_id: u32) -> Option<&TrayEntry> {
         self.entries.iter().find(|e| e.in_use && e.owner_pid == owner_pid && e.tray_id == tray_id)

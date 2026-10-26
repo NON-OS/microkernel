@@ -50,11 +50,3 @@ impl Default for SecureBootStatus {
         }
     }
 }
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum VerificationResult {
-    Allowed,
-    NotInDatabase,
-    Revoked,
-    SecureBootDisabled,
-}

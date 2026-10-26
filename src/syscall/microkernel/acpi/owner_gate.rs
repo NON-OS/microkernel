@@ -18,7 +18,8 @@
 //! The Admin bit alone let any Admin capsule map firmware memory, write
 //! configuration space, report a critical battery or a pressed power
 //! button, or add a table to the attested list. Every number the ACPI
-//! dispatch routes is in one of the two lists; a proof holds it so. Pure.
+//! dispatch routes is either here or in the shared list the proofs keep
+//! (kernel_proofs, owner_gate_tests), which hold it so. Pure.
 
 /// The capsule's own calls: tables, regions, ports, configuration, events,
 /// and everything it publishes or asks about another process.
@@ -27,13 +28,6 @@ pub(crate) const OWNER_ONLY: [[u8; 4]; 25] = [
     *b"MAHO", *b"MPPF", *b"MPDP", *b"MAFO", *b"MAHE", *b"MAPD", *b"MAUP", *b"MAXP", *b"MAMR",
     *b"MAPX", *b"MAOG", *b"MALP", *b"MAFP", *b"MRSL", *b"MALD", *b"MATL",
 ];
-
-/// Read by others, each under its own gate: device names by enumerators
-/// (a holder question only for the owner, see `asker`), USB port and NUMA
-/// facts by drivers, the measured tables by attestation readers.
-#[allow(dead_code)] // the proofs hold every routed number to one list
-pub(crate) const SHARED: [[u8; 4]; 7] =
-    [*b"MADN", *b"MUPF", *b"MNNO", *b"MNDS", *b"MDNN", *b"MNHM", *b"MAMT"];
 
 pub(crate) fn owner_only(nr: u64) -> bool {
     OWNER_ONLY.iter().any(|t| u64::from(u32::from_le_bytes(*t)) == nr)

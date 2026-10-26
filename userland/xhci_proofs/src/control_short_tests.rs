@@ -7,7 +7,8 @@ use crate::constants::{CC_SHORT_PACKET, CC_SUCCESS, TRB_ISP, TRB_TYPE_TRANSFER_E
 
 /// A STALL (xHCI 6.4.5), as recalled, unverified.
 const CC_STALL: u8 = 6;
-use crate::controller::{moved, short_on, stopped_early};
+use crate::controller::transfer::issue_control_transfer::moved;
+use crate::controller::transfer::transfer_event::{short_on, stopped_early};
 use crate::rings::event::IssuedTransfer;
 use crate::trb::builders::data_stage::data_stage_in;
 use crate::trb::Trb;

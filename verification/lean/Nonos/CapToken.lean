@@ -10,11 +10,13 @@ later version. See <https://www.gnu.org/licenses/>.
 Capability-token admission (`src/capabilities/token/validate.rs`). A token is
 honoured only when three independent gates all pass: its signature verifies, it
 has not expired, and it has not been revoked. The boolean `is_token_valid` and
-the `validate_token_full` result path both encode this, the latter in a fixed
-priority order so a caller gets a definite reason. The theorems below fix that a
-valid token clears all three gates, that failing any one gate rejects the token,
-and that the boolean and the result path agree, so the two entry points can
-never disagree about whether a token is admissible.
+the result path of the syscall resolver's `check_token`
+(`src/syscall/contract/resolver/check_token.rs`), which every syscall runs, both
+encode this, the latter in a fixed priority order so a caller gets a definite
+reason. The theorems below fix that a valid token clears all three gates, that
+failing any one gate rejects the token, and that the boolean and the result path
+agree, so the two entry points can never disagree about whether a token is
+admissible.
 -/
 
 namespace Nonos.CapToken
@@ -29,7 +31,7 @@ structure Token where
 /-- `is_token_valid`: signature valid and not expired and not revoked. -/
 def isValid (t : Token) : Bool := t.sigValid && t.notExpired && !t.revoked
 
-/-- The result of `validate_token_full`, in the code's priority order. -/
+/-- The result of `check_token`, in the code's priority order. -/
 inductive Verdict where
   | ok
   | badSig
@@ -37,7 +39,7 @@ inductive Verdict where
   | revoked
   deriving DecidableEq
 
-/-- `validate_token_full`, branch for branch. -/
+/-- `check_token`, branch for branch. -/
 def validateFull (t : Token) : Verdict :=
   if t.sigValid = false then .badSig
   else if t.notExpired = false then .expired
@@ -77,7 +79,7 @@ theorem expired_invalid (t : Token) (h : t.notExpired = false) : isValid t = fal
 theorem bad_sig_invalid (t : Token) (h : t.sigValid = false) : isValid t = false := by
   unfold isValid; rw [h]; simp
 
-/-- The boolean gate and the result path agree: `validate_token_full` returns ok
+/-- The boolean gate and the result path agree: `check_token` returns ok
     exactly when `is_token_valid` is true, so the two entry points never
     disagree about a token's admissibility. -/
 theorem full_ok_iff_valid (t : Token) : validateFull t = .ok ↔ isValid t = true := by
