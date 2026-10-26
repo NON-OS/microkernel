@@ -52,10 +52,7 @@ impl State {
         let start = line_start(&self.buf[..self.len], self.caret);
         let end = line_end(&self.buf[..self.len], self.caret);
         let old = prefix_len(&self.buf[start..end]);
-        let mut ins: Vec<u8> = Vec::new();
-        for _ in 0..level.min(6) {
-            ins.push(b'#');
-        }
+        let mut ins: Vec<u8> = alloc::vec![b'#'; level.min(6) as usize];
         if level > 0 {
             ins.push(b' ');
         }
