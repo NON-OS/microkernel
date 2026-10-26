@@ -20,15 +20,17 @@
 //! container for the caller alone. No isolation proof is made.
 
 use alloc::vec;
-use alloc::vec::Vec;
 
 use nonos_libc::mk_seal_read_live;
 use nonos_proof_abi::wire::{DeliverRequest, Stage, PROVER};
 use nonos_proof_abi::RECORD_BYTES;
 
 use crate::assemble::wipe_bytes;
-use crate::market::{body_of, check, container2, delivery_bound, live_check, split, witness};
+use crate::market::{body_of, check, delivery_bound, live_check, split, witness};
 use crate::market::{Sealed, WITNESS_BYTES};
+
+use super::finish::Finish;
+use super::work::Work;
 
 const LIST_MAX: usize = 4096;
 
@@ -36,18 +38,18 @@ pub fn deliver(
     req: &DeliverRequest,
     sender: u32,
     stage: &mut dyn FnMut(Stage),
-) -> Result<Vec<u8>, i32> {
+) -> Result<(Work, Finish), i32> {
     stage(Stage::Reading);
     let s = live(sender)?;
     live_check(&s.record)?;
     check(req.policy, req.listing_id, &s.record)?;
     let (mut w, _) = witness(&s, req.policy)?;
-    super::isolation::clear(&mut w);
+    super::isolation_wipe::clear(&mut w);
     let day = super::run::today()?;
     let body = body_of(&s, req);
     stage(Stage::Device);
-    let device = super::device::proof(day, delivery_bound(req.listing_id, day, &s, &body))?;
-    container2(day, &s, &device, &body).ok_or(PROVER)
+    let device = super::device::inputs(day, delivery_bound(req.listing_id, day, &s, &body))?;
+    Ok((Work { device, isolation: None }, Finish::Delivery { day, s, body }))
 }
 
 /// The live record, witness and list of `pid`'s family: ESRCH when it

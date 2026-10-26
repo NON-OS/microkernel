@@ -16,44 +16,58 @@
 
 //! The isolation proof: the witness the sealed run and the policy's set make,
 //! proven blinded and certified, again with fresh entropy when the rank
-//! certificate is not reached (at most three tries), and wiped after.
+//! certificate is not reached (at most three tries), and wiped after. The
+//! witness and every try's entropy are made on the serving thread; the tries
+//! run on the worker (worker.rs).
 
 use alloc::vec::Vec;
 
-use isolation_stark::{prove, Error, Statement, Witness};
+use isolation_stark::{prove as stark, Error, Statement, Witness};
 use nonos_proof_abi::wire::PROVER;
 
 use crate::assemble::wipe_bytes;
 use crate::market::{witness, Sealed};
 
+use super::isolation_wipe::clear;
+
 const TRIES: usize = 3;
 
-pub fn proof(s: &Sealed, policy: &[u8; 256]) -> Result<(Vec<u8>, Statement), i32> {
-    let (mut w, st) = witness(s, policy)?;
-    let out = tries(&w, &st);
-    clear(&mut w);
-    out.map(|p| (p, st))
+/// What the worker proves: the witness, its statement, a draw per try; the
+/// witness and the draws wiped when it drops, proven or not.
+pub struct Isolation {
+    w: Witness,
+    pub st: Statement,
+    entropy: [[u8; 64]; TRIES],
 }
 
-fn tries(w: &Witness, st: &Statement) -> Result<Vec<u8>, i32> {
-    for _ in 0..TRIES {
-        let mut entropy = [0u8; 64];
-        if nonos_libc::crypto_random(entropy.as_mut_ptr(), entropy.len()) < 0 {
-            return Err(PROVER);
-        }
-        let made = prove(w, &entropy);
-        wipe_bytes(&mut entropy);
-        match made {
+impl Drop for Isolation {
+    fn drop(&mut self) {
+        clear(&mut self.w);
+        self.entropy.iter_mut().for_each(|e| wipe_bytes(e));
+    }
+}
+
+pub fn inputs(s: &Sealed, policy: &[u8; 256]) -> Result<Isolation, i32> {
+    let (w, st) = witness(s, policy)?;
+    let mut i = Isolation { w, st, entropy: [[0; 64]; TRIES] };
+    for e in i.entropy.iter_mut() {
+        *e = super::entropy::drawn().ok_or(PROVER)?;
+    }
+    Ok(i)
+}
+
+/// Worker: the proof.
+pub fn prove(i: Isolation) -> Result<Vec<u8>, i32> {
+    tries(&i.w, &i.st, &i.entropy)
+}
+
+fn tries(w: &Witness, st: &Statement, entropy: &[[u8; 64]; TRIES]) -> Result<Vec<u8>, i32> {
+    for e in entropy {
+        match stark(w, e) {
             Ok((got, proof)) if got == *st => return Ok(proof),
             Err(Error::Rank(_)) => continue,
             _ => return Err(PROVER),
         }
     }
     Err(PROVER)
-}
-
-pub(super) fn clear(w: &mut Witness) {
-    // SAFETY: valid, aligned fields of `w`, borrowed mutably.
-    w.hist.iter_mut().for_each(|h| unsafe { core::ptr::write_volatile(h, 0) });
-    w.salt.iter_mut().for_each(|x| unsafe { core::ptr::write_volatile(x, 0) });
 }

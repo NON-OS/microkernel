@@ -17,13 +17,16 @@
 //! When the headless job exits, and how long its receive may wait. Pure, so the host runs it
 //! (prove_proofs::job_exit).
 //!
+//! - Working: never; the worker is on its proofs (worker.rs).
 //! - Done: once its container's last byte is fetched.
-//! - Failed: once its asker's STATUS has carried the failure, or after
+//! - Failed: once its asker has read the failure (state.rs), or after
 //!   FAILED_QUIET_MS with nothing from the asker, so a failure never holds
 //!   the prover from the next ask.
 //! - Any job, or none: after QUIET_MS with no request at all.
 
 use nonos_proof_abi::wire::Stage;
+
+pub use super::seen::Seen;
 
 /// No PROVE within this long of starting, or no request this long after
 /// the last: the job was abandoned.
@@ -31,21 +34,15 @@ pub const QUIET_MS: u64 = 10 * 60 * 1000;
 /// A failed job waits this long after the failure, or after its asker's
 /// last frame, for the asker to read it.
 pub const FAILED_QUIET_MS: u64 = 30 * 1000;
-
-/// What the loop knows of its job.
-#[derive(Clone, Copy, Debug)]
-pub struct Seen {
-    pub stage: Stage,
-    /// GET has handed out the container's last byte.
-    pub fetched: bool,
-    /// A STATUS from the asker has been answered with the failure.
-    pub told: bool,
-    /// When it failed, or the asker last sent a frame, whichever is later.
-    pub asker_ms: u64,
-}
+/// While the worker is on its proofs, the loop looks this often whether
+/// it has finished; a frame wakes the receive sooner.
+pub const POLL_MS: u64 = 100;
 
 /// Whether the job exits now; `last` is when any request last came.
 pub fn exits(job: Option<Seen>, now: u64, last: u64) -> bool {
+    if job.is_some_and(|j| j.working) {
+        return false;
+    }
     if now.saturating_sub(last) > QUIET_MS {
         return true;
     }
@@ -59,10 +56,12 @@ pub fn exits(job: Option<Seen>, now: u64, last: u64) -> bool {
 }
 
 /// How long the receive may wait before `exits` should be asked again: up
-/// to the nearer deadline, at least 1 ms, since 0 would wait for ever.
+/// to the nearer deadline, or POLL_MS while working, at least 1 ms, since 0
+/// would wait for ever.
 pub fn wait_ms(job: Option<Seen>, now: u64, last: u64) -> u64 {
     let quiet = (last.saturating_add(QUIET_MS + 1)).saturating_sub(now);
     let failed = match job {
+        Some(j) if j.working => POLL_MS,
         Some(j) if j.stage == Stage::Failed => {
             (j.asker_ms.saturating_add(FAILED_QUIET_MS + 1)).saturating_sub(now)
         }
