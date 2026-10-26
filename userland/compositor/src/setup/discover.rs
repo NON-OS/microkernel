@@ -23,7 +23,8 @@ use crate::say::say;
 
 // The display drivers, best first, from the kernel's own table: the names
 // the compositor tries are the names the kernel holds to it.
-#[allow(dead_code)] // the kernel's helpers this capsule does not call
+#[path = "../../../../src/services/registry/display_hints.rs"]
+pub mod display_hints;
 #[path = "../../../../src/services/registry/displays.rs"]
 pub mod displays;
 mod order;

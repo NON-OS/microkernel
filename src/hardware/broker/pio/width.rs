@@ -25,15 +25,6 @@ pub enum PioWidth {
 }
 
 impl PioWidth {
-    pub fn from_byte(b: u8) -> Option<Self> {
-        match b {
-            1 => Some(Self::U8),
-            2 => Some(Self::U16),
-            4 => Some(Self::U32),
-            _ => None,
-        }
-    }
-
     pub fn bytes(self) -> u16 {
         self as u16
     }

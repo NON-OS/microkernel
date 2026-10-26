@@ -59,7 +59,7 @@ fn smmu_v3(n: &[u8]) -> Option<Kind> {
     })
 }
 
-pub fn kind(n: &[u8], ty: u8, revision: u8) -> Option<Kind> {
+pub(crate) fn kind(n: &[u8], ty: u8, revision: u8) -> Option<Kind> {
     match ty {
         ITS_GROUP => its_group(n),
         NAMED_COMPONENT => named(n),

@@ -2,8 +2,7 @@
 //! Host proofs for the aarch64 loader handoff. `place` is the kernel's own
 //! file.
 
-#![allow(dead_code)]
-
+#[cfg(test)]
 #[path = "../../../src/arch/aarch64/boot/loader/place.rs"]
 pub mod place;
 
