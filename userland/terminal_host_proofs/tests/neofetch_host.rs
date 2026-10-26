@@ -25,8 +25,8 @@ extern crate alloc;
 
 #[path = "neofetch_host/columns.rs"]
 mod columns;
-#[path = "neofetch_host/logo.rs"]
-mod logo;
+#[path = "neofetch_host/emblem.rs"]
+mod emblem;
 #[path = "neofetch_host/mounts.rs"]
 mod mounts;
 #[path = "neofetch_host/padding.rs"]
@@ -37,3 +37,13 @@ mod strips;
 mod support;
 
 use mounts::neofetch;
+
+// The emblem's colour escapes print numbers with the terminal's own helper,
+// at the path the capsule names it by.
+#[path = "../../capsule_terminal/src/term/util/format_u64.rs"]
+mod fmt_u64;
+mod term {
+    pub mod util {
+        pub use crate::fmt_u64::format_u64;
+    }
+}
