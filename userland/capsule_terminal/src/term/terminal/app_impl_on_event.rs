@@ -28,6 +28,9 @@ impl Terminal {
         if let Some(outcome) = self.palette_key(event) {
             return outcome;
         }
+        if let Some(outcome) = self.drop_key(event) {
+            return outcome;
+        }
         if let Some(outcome) = self.split_command(event) {
             return outcome;
         }
