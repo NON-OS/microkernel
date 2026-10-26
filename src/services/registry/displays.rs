@@ -18,7 +18,9 @@
 //! the compositor tries them in this order and drives the first that
 //! answers, the kernel holds each to the compositor, and its traces and
 //! bench marks name them. Data only: the kernel uses it, and capsules
-//! mount this file by path, so every reader sees one list.
+//! mount this file by path, so every reader sees one list. Whether a name
+//! is a display driver is whether this list contains it. The hint senders
+//! are display_hints.rs, the compositor's alone.
 //!
 //! Native engines go before the boot framebuffer, which comes last: it is
 //! the fallback for any machine whose GPU no other driver takes.
@@ -35,14 +37,3 @@ pub(crate) const DISPLAYS: &[&str] = &[
     // driver here takes.
     "driver.bootfb0",
 ];
-
-/// Services whose display size hints the compositor takes (NCMP 0x0009):
-/// none until the owner accepts display hints (Decision 15). Read by the
-/// compositor, which mounts this file; the kernel has no use for it.
-#[allow(dead_code)]
-pub(crate) const HINT_SOURCES: &[&str] = &[];
-
-/// Whether `name` is one of the display drivers.
-pub(crate) fn is_display(name: &str) -> bool {
-    DISPLAYS.contains(&name)
-}
