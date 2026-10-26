@@ -37,6 +37,8 @@ mod bounds;
 mod carrier;
 mod chosen;
 mod describe;
+#[cfg(feature = "devnet")]
+mod devnet;
 mod direct_only;
 mod frame;
 mod ipc;
@@ -44,6 +46,8 @@ mod opening;
 mod patience;
 mod pick;
 mod refusal;
+#[cfg(feature = "devnet")]
+mod rpc_route;
 mod slice;
 mod socks;
 mod stream;
@@ -51,6 +55,8 @@ mod tunnel;
 mod tunnel_io;
 
 pub use chosen::{default_route, direct_refusal};
+#[cfg(feature = "devnet")]
+pub use devnet::{DEVNET_RPC_AT, DEVNET_RPC_HOST};
 pub use direct_only::direct_refused;
 pub use pick::{
     for_host, install_route, is_anyone, is_short_anyone, pick, private_only, Route, ANYONE_DOWN,

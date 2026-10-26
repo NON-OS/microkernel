@@ -21,6 +21,7 @@ use super::key_header::{parse_key_header, Keyed, KEY_LBA};
 use super::key_seal::encode_key_header;
 use super::plan_types::PLAN_LBA;
 use crate::hardware::block_device::{self, BlockDeviceError};
+use crate::security::zerostate::volume_rule::may_write;
 
 /// The key header's sector in the plan partition: the one after the plan.
 const KEY_INDEX: u64 = KEY_LBA - PLAN_LBA;
@@ -42,6 +43,10 @@ pub(super) fn read_key_header() -> Result<Option<Keyed>, VolumeError> {
 /// formatted.
 pub(super) fn write_key_header(keyed: &Keyed) -> Result<(), VolumeError> {
     let _io = crate::fs::cryptoblock::volume_scope().map_err(VolumeError::Device)?;
+    // A key header is a disk write: only on a boot that keeps (volume_rule.rs).
+    if !may_write(false, crate::security::zerostate::keeping()) {
+        return Err(VolumeError::Device(BlockDeviceError::AccessDenied));
+    }
     let before = plan_sector()?;
     block_device::write_plan_sector(KEY_INDEX, &encode_key_header(keyed))
         .map_err(VolumeError::Device)?;

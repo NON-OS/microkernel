@@ -69,6 +69,12 @@ pub fn cert_problem(body: &[u8], host: &[u8], now: u64) -> Option<CertProblem> {
     let Some(top) = super::cert_at::cert_at(body, n - 1) else {
         return Some(CertProblem::Unreadable);
     };
+    // The throwaway root (P5) is held to the leaf's signature here too: its
+    // key is public, so a name match alone would call anyone's leaf trusted.
+    #[cfg(feature = "devnet")]
+    if super::roots::dev_anchors(top, leaf, host, n) == Ok(true) {
+        return None;
+    }
     if anchored(top) {
         None
     } else {

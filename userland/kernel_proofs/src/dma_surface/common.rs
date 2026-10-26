@@ -14,57 +14,62 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A registry for the tests: attach records, and the held grants.
-
-use super::dma_plan::hold_in;
-use super::dma_rule::{due, DmaOrphan, PageOrphan};
+//! The registry as the L35 path sees it: slots naming the run they were
+//! registered over, attach records, orphans, and the runs held for them.
+//! model.rs and exit_model.rs step it as the kernel does.
 
 pub const GPU: u32 = 7;
 pub const COMPOSITOR: u32 = 3;
 pub const FB: u32 = 0x11;
-/// The GPU's framebuffer grant: four pages at 1 MiB.
+/// The GPU's framebuffer grant: four pages at 1 MiB, one run.
 pub const START: u64 = 0x10_0000;
 pub const LEN: u64 = 0x4000;
+pub const RUN: (u64, u64) = (START, LEN);
+/// A page no grant holds.
+pub const HEAP: u64 = 0x80_0000;
 
 pub fn grant_frames() -> Vec<u64> {
     (0..4).map(|i| START + i * 0x1000).collect()
 }
 
-#[derive(Default)]
-pub struct Registry {
-    pub attaches: Vec<(u32, u32)>,
-    /// (thread, process) for threads that are not their own process.
-    pub threads: Vec<(u32, u32)>,
-    pub orphans: Vec<PageOrphan<u32, u64>>,
-    pub held: Vec<DmaOrphan<u32>>,
-    pub given_back: Vec<(u64, u64)>,
+/// A surface's slot; `grant` is the run register_grant.rs recorded.
+pub struct Slot {
+    pub handle: u32,
+    pub owner: u32,
+    pub frames: Vec<u64>,
+    pub grant: Option<(u64, u64)>,
 }
 
-impl Registry {
-    /// dma_hold::hold_dma by `grant`'s pid; `live`: (handle, owner, frames)
-    /// of the process's surfaces over the grant.
-    pub fn release(&mut self, grant: u32, live: Vec<(u32, u32, Vec<u64>)>) -> bool {
-        let attaches = self.attaches.clone();
-        let threads = self.threads.clone();
-        let group = |t: u32| threads.iter().find(|x| x.0 == t).map_or(t, |x| x.1);
-        let foreign = |h, o| attaches.iter().any(|&(a, p): &(u32, u32)| a == h && p != o);
-        let rules = (foreign, |a, b| group(a) == group(b));
-        let kept = hold_in((grant, START, LEN), live, &mut self.orphans, rules, |f| *f);
-        let held = kept.is_some();
-        self.held.extend(kept);
-        if !held {
-            self.given_back.push((START, LEN));
-        }
-        held
-    }
+/// orphans.rs `Orphan`. Its `tables` is 0 here: no exited group's tables
+/// still map the frames (L49).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Orphan {
+    pub owner: u32,
+    pub handle: u32,
+    pub frames: Vec<u64>,
+    pub free: Vec<u64>,
+    pub grant: Option<(u64, u64)>,
+}
 
-    /// drop_attach, then dma_held::reclaim_dma.
-    pub fn detach(&mut self, pid: u32, handle: u32) {
-        self.attaches.retain(|&(h, p)| !(h == handle && p == pid));
-        let attaches = self.attaches.clone();
-        let foreign = |h, o| attaches.iter().any(|&(a, p): &(u32, u32)| a == h && p != o);
-        for h in due(&mut self.held, foreign) {
-            self.given_back.push((h.start, h.len));
-        }
-    }
+#[derive(Default)]
+pub struct Registry {
+    pub slots: Vec<Slot>,
+    /// (handle, pid)
+    pub attaches: Vec<(u32, u32)>,
+    pub orphans: Vec<Orphan>,
+    /// grant_run.rs `RUNS`.
+    pub runs: Vec<(u64, u64)>,
+    /// Runs back with the broker, in order.
+    pub given_back: Vec<(u64, u64)>,
+    /// Frames freed one by one, as orphans_free.rs frees an orphan's list.
+    pub pages_freed: Vec<u64>,
+}
+
+pub fn slot(handle: u32, owner: u32, frames: Vec<u64>, grant: Option<(u64, u64)>) -> Slot {
+    Slot { handle, owner, frames, grant }
+}
+
+/// snapshot.rs `has_foreign_holder`: a record of `handle` by another pid.
+pub fn foreign(attaches: &[(u32, u32)], handle: u32, owner: u32) -> bool {
+    attaches.iter().any(|&(h, p)| h == handle && p != owner)
 }
