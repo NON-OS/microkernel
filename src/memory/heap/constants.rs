@@ -30,6 +30,20 @@ pub const FREED_MAGIC: u32 = 0xFEEDFACE;
 pub const BOOTSTRAP_HEAP_SIZE: usize = 64 * 1024 * 1024;
 pub const BOOTSTRAP_HEAP_ALIGN: usize = 4096;
 
+// The heap's second region, carved once at boot from physically contiguous
+// RAM and reached through the directmap: an eighth of the machine's RAM, at
+// least SECOND_REGION_MIN and at most SECOND_REGION_MAX. On the bootstrap heap
+// alone, the record the paging manager keeps of every page a process maps
+// filled the kernel heap at about 3.5 GiB mapped across the machine, and the
+// next kernel allocation took the panic path.
+pub const SECOND_REGION_MIN: usize = 32 * 1024 * 1024;
+pub const SECOND_REGION_MAX: usize = 256 * 1024 * 1024;
+
+// Free kernel heap a process's mapping must leave behind: a page asked for
+// below it is refused as out of memory, so the kernel's own allocations never
+// find the heap empty because of what processes mapped.
+pub const USER_MAP_FLOOR: usize = 16 * 1024 * 1024;
+
 pub const MIN_ALIGNMENT: usize = 8;
 pub const MAX_ALIGNMENT: usize = 4096;
 pub const DEFAULT_ALIGNMENT: usize = 16;

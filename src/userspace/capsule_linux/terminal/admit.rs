@@ -42,14 +42,23 @@ pub fn admit_terminal_run(name: &str, pid: u32) {
 
 /// Whether `pid` belongs to a terminal run, whose every byte of output is
 /// private: the run itself, a thread of it, or a guest it hosts (or a
-/// thread of one).
+/// thread of one). A run is a held tier slot, or the `linux` command's own
+/// personality, with or without Network: what a program shows a person is
+/// theirs, and never the serial console's.
 pub fn is_private_run(pid: u32) -> bool {
-    let run = |p: u32| super::held::holds(p) || super::held::holds(group_of(p));
+    let one = |p: u32| super::held::holds(p) || linux_command(p);
+    let run = |p: u32| one(p) || one(group_of(p));
     run(pid)
         || [pid, group_of(pid)]
             .into_iter()
             .filter_map(crate::process::foreign::supervisor_of)
             .any(run)
+}
+
+fn linux_command(pid: u32) -> bool {
+    let named =
+        [super::super::roles::TERMINAL.name, super::super::role_term_net::TERMINAL_NET.name];
+    crate::process::with_process(pid, |pcb| named.contains(&pcb.name().as_str())).unwrap_or(false)
 }
 
 fn group_of(pid: u32) -> u32 {

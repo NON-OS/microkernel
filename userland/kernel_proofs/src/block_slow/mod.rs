@@ -22,14 +22,14 @@ mod slow_rule;
 
 #[cfg(test)]
 mod tests {
-    use super::slow_rule::{lost_said, said, SLOW_MS};
+    use super::slow_rule::{lost_said, said, NO_UNIT, SLOW_MS};
 
     // Said before a driver's own 30 s budget runs out.
     const _: () = assert!(SLOW_MS < 30_000);
 
     #[test]
     fn a_failed_request_is_always_said() {
-        for status in [-110, -5, -1, 1, i32::MIN, i32::MAX] {
+        for status in [-110, -19, -7, -5, -1, 1, i32::MIN, i32::MAX] {
             for ms in [0, 1, SLOW_MS - 1, SLOW_MS, 35_000] {
                 assert!(said(status, ms), "{status} {ms}");
             }
@@ -50,5 +50,12 @@ mod tests {
     fn a_good_answer_is_said_only_once_slow() {
         assert!(!said(0, 0) && !said(0, SLOW_MS - 1));
         assert!(said(0, SLOW_MS) && said(0, 33_000));
+    }
+
+    #[test]
+    fn an_empty_unit_is_said_only_when_slow() {
+        assert_eq!(NO_UNIT, -6, "ENXIO, as the drivers answer it");
+        assert!(!said(NO_UNIT, 0) && !said(NO_UNIT, SLOW_MS - 1));
+        assert!(said(NO_UNIT, SLOW_MS) && said(NO_UNIT, 35_000));
     }
 }
