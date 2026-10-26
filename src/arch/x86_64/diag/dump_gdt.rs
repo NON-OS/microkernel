@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::print_hex::print_hex_u64;
+use crate::sys::serial::Line;
 
 #[repr(C, packed)]
 struct GdtPtrRaw {
@@ -36,11 +36,8 @@ pub fn dump_gdt() {
     let base = p.base;
     let limit = p.limit;
 
-    crate::sys::serial::print(b"[GDT] base=");
-    print_hex_u64(base);
-    crate::sys::serial::print(b" limit=");
-    print_hex_u64(limit as u64);
-    crate::sys::serial::println(b"");
+    let mut l = Line::new();
+    l.str(b"[GDT] base=").hex_lower(base).str(b" limit=").hex_lower(limit as u64).end();
 
     let dump_descriptor = |idx: usize| {
         let off = idx * 8;
@@ -50,11 +47,8 @@ pub fn dump_gdt() {
         // SAFETY: eK@nonos.systems — base is the live GDT, idx*8 is in
         // range, descriptor is 8 bytes.
         let raw = unsafe { core::ptr::read_volatile((base + off as u64) as *const u64) };
-        crate::sys::serial::print(b"[GDT] entry[");
-        print_hex_u64(idx as u64);
-        crate::sys::serial::print(b"] = ");
-        print_hex_u64(raw);
-        crate::sys::serial::println(b"");
+        let mut l = Line::new();
+        l.str(b"[GDT] entry[").hex_lower(idx as u64).str(b"] = ").hex_lower(raw).end();
     };
 
     dump_descriptor(0);

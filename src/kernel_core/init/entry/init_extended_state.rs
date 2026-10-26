@@ -30,14 +30,9 @@ pub(super) fn init_extended_state() {
     if let Err(e) = unsafe { crate::arch::x86_64::boot::validation::enable_sse_avx() } {
         super::fatal::fatal("cpu: SSE bring-up failed", e.as_str());
     }
-    let serial = crate::sys::serial::print;
-    serial(b"[CPU-FPU] xsave=");
-    serial(if xstate::uses_xsave() { b"1" } else { b"0" });
-    serial(b" xcr0=");
-    crate::sys::serial::print_hex(xstate::enabled());
-    serial(b" area=");
-    crate::sys::serial::print_dec(xstate::needed() as u64);
-    crate::sys::serial::println(b"");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[CPU-FPU] xsave=").str(if xstate::uses_xsave() { b"1" } else { b"0" });
+    l.str(b" xcr0=").hex(xstate::enabled()).str(b" area=").dec(xstate::needed() as u64).end();
 }
 
 #[cfg(not(target_arch = "x86_64"))]

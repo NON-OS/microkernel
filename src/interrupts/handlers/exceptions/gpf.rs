@@ -18,7 +18,6 @@ use x86_64::structures::idt::InterruptStackFrame;
 
 use super::context::{log_exception_with_code, ExceptionContext};
 use super::rip_probe::rip_byte_range_mapped;
-use crate::arch::x86_64::diag::print_hex_u64;
 use crate::interrupts::stats;
 
 #[derive(Debug, Clone, Copy)]
@@ -72,16 +71,13 @@ pub fn handle(frame: InterruptStackFrame, error_code: u64) {
 }
 
 fn emit_fatal_notice(error: &GpfErrorCode) {
-    crate::sys::serial::print(b"[PANIC GP] fatal general protection fault in kernel mode");
-    crate::sys::serial::print(b" selector=");
-    print_hex_u64(error.selector_index() as u64);
-    crate::sys::serial::print(b" external=");
-    crate::sys::serial::print(&[b'0' + error.is_external() as u8]);
-    crate::sys::serial::print(b" idt=");
-    crate::sys::serial::print(&[b'0' + error.is_idt() as u8]);
-    crate::sys::serial::print(b" ldt=");
-    crate::sys::serial::print(&[b'0' + error.is_ldt() as u8]);
-    crate::sys::serial::println(b" -- to the panic path: wipe, power off");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[PANIC GP] fatal general protection fault in kernel mode");
+    l.str(b" selector=").hex_lower(error.selector_index() as u64);
+    l.str(b" external=").str(&[b'0' + error.is_external() as u8]);
+    l.str(b" idt=").str(&[b'0' + error.is_idt() as u8]);
+    l.str(b" ldt=").str(&[b'0' + error.is_ldt() as u8]);
+    l.str(b" -- to the panic path: wipe, power off").end_fatal();
 }
 
 fn analyze_gpf(ctx: &ExceptionContext, error: &GpfErrorCode) {

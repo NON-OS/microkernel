@@ -15,13 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub(super) fn emit(name: &str, pid: u32, caps: u64, entry: u64) {
-    crate::sys::serial::print(b"[SPAWN] name=");
-    crate::sys::serial::print(name.as_bytes());
-    crate::sys::serial::print(b" pid=");
-    crate::sys::serial::print_hex(pid as u64);
-    crate::sys::serial::print(b" caps=");
-    crate::sys::serial::print_hex(caps);
-    crate::sys::serial::print(b" entry=");
-    crate::sys::serial::print_hex(entry);
-    crate::sys::serial::println(b"");
+    // One write: boot judges parse this line, so no other CPU's lands inside.
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[SPAWN] name=").str(name.as_bytes()).str(b" pid=").hex(pid as u64);
+    l.str(b" caps=").hex(caps).str(b" entry=").hex(entry).end();
 }

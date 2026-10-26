@@ -16,8 +16,6 @@
 
 mod clear_low_half;
 mod count_pml4_entries;
-mod print_dec;
-mod print_hex;
 mod run;
 mod state;
 
