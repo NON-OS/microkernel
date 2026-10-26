@@ -30,16 +30,14 @@ pub const HEIGHT: u32 = TILE_H;
 // A ring, the value it stands for, and one line of provenance under it. The
 // arc and the track share a centre and a radius, so the filled sweep is always
 // exactly the fraction `num/den` of the ring the eye compares it against.
+/// At `(x, y)`, `w` wide; the ring filled `num` of `den`.
 pub fn tile(
     fb: &mut PaintBuffer,
-    x: u32,
-    y: u32,
-    w: u32,
+    (x, y, w): (u32, u32, u32),
     label: &[u8],
     value: &[u8],
     sub: &[u8],
-    num: u64,
-    den: u64,
+    (num, den): (u64, u64),
 ) {
     card::panel(fb, x, y as i32, w, TILE_H);
     let cx = x + w / 2;
