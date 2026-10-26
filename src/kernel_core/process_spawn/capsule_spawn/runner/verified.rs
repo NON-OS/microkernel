@@ -41,6 +41,11 @@ pub(crate) fn spawn_verified_as(
     on_behalf_of: Option<AttestedParent>,
 ) -> Result<u32, SpawnError> {
     crate::sys::bench::mark_named(b"capsule_spawn_start", spec.name.as_bytes());
+    // No binary, certificate or manifest: an image built without this capsule.
+    let embedded = [spec.elf, spec.nonos_id_cert_bytes, spec.manifest_bytes];
+    if embedded.iter().all(|b| b.is_empty()) {
+        return Err(SpawnError::FeatureDisabled);
+    }
     super::profile_gate::check(spec.name)?;
     let preflighted = match preflight::run(spec, trust_anchor, now_ms) {
         Ok(preflighted) => preflighted,

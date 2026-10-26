@@ -26,7 +26,7 @@ use crate::sw_blitter::Surface;
 const W: u32 = 120;
 const H: u32 = 40;
 const WINDOW: u32 = 0xFFE0_E0E0;
-const RED: u32 = 0xFFFF_3B3B;
+const RED: u32 = 0xFFE4_574F;
 
 fn drawn(clip: Rect, dma: bool) -> Vec<u32> {
     let mut px = vec![WINDOW; (W * H) as usize];

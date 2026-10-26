@@ -20,6 +20,7 @@ pub mod context;
 pub mod complete_list;
 pub mod cwd;
 pub mod dimensions;
+pub mod drop;
 pub mod dur;
 pub mod git_probe;
 pub mod handed;
