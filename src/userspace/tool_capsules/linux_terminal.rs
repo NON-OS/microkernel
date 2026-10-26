@@ -48,7 +48,9 @@ pub(super) fn run_net(argv: &[u8]) -> Result<u32, i64> {
         .collect();
     let caller = crate::process::current_pid().unwrap_or(0);
     if !boxed && !crate::userspace::capsule_linux::take_term_ticket(caller, &argv) {
-        crate::sys::serial::print(b"[LINUX-TERM-NET] refused: no box names a destination, no ticket\n");
+        crate::sys::serial::print(
+            b"[LINUX-TERM-NET] refused: no box names a destination, no ticket\n",
+        );
         return Err(crate::syscall::microkernel::errnos::ERRNO_INVAL);
     }
     crate::userspace::capsule_linux::spawn_terminal_net(argv).map_err(|e| spawn_errno(&e))
