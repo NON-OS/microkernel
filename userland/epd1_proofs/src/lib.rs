@@ -2,13 +2,15 @@
 //! Host proofs for the EPD1 trampoline. `arch` and `spectre` mirror the
 //! kernel's modules so the `super::` paths inside the mounted files resolve.
 
-#![allow(dead_code)]
+#![cfg(test)]
 
 pub mod arch;
 pub mod spectre;
 #[path = "../../../src/arch/aarch64/security/epd1/step.rs"]
 pub mod step;
 
+#[cfg(test)]
+mod answer_tests;
 #[cfg(test)]
 mod asm;
 #[cfg(test)]

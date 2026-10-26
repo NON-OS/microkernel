@@ -44,6 +44,7 @@ pub mod pkg_consent;
 mod power_off;
 pub mod shadow_reach;
 pub mod surface;
+mod switch;
 pub mod text_aa;
 pub mod toasts;
 pub mod topbar;

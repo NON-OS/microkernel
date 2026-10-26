@@ -28,7 +28,4 @@ pub use types::{
     AttestationReport, BootMeasurements, SecureBootError, SecureBootPolicy, SecureBootResult,
     SecureBootStats, TrustedBootKeys, TrustedKey,
 };
-pub use verify::{
-    is_boot_chain_verified, record_boot_measurements, verify_boot_chain, verify_code_signature,
-    verify_kernel,
-};
+pub use verify::{is_boot_chain_verified, record_boot_measurements};

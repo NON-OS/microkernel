@@ -1,0 +1,211 @@
+[
+  {
+    "name": "switch-chord-under-ctrl",
+    "file": "userland/capsule_input_router/src/route/chord.rs",
+    "old": "flags & MOD_ALT != 0 && flags & MOD_CTRL == 0",
+    "new": "flags & MOD_ALT != 0",
+    "crate": "userland/input_proofs",
+    "test": "switch_chord",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "switch-chord-on-release",
+    "file": "userland/capsule_input_router/src/route/chord.rs",
+    "old": "kind == KEY_DOWN && code == KEY_TAB",
+    "new": "code == KEY_TAB",
+    "crate": "userland/input_proofs",
+    "test": "switch_chord",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "switch-chord-not-routed",
+    "file": "userland/capsule_input_router/src/route/keyboard.rs",
+    "old": "\n        || super::chord::is_switch_chord(kind, code, flags);",
+    "new": ";",
+    "crate": "userland/input_proofs",
+    "test": "switch_chord",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "focus-copies-not-moves",
+    "file": "userland/capsule_desktop_shell/src/state/ctx/switch/order.rs",
+    "old": "    pub fn focused(&mut self, w: Win) {\n        self.recent.retain(|&r| r != w);",
+    "new": "    pub fn focused(&mut self, w: Win) {",
+    "crate": "userland/desktop_proofs",
+    "test": "switch_order",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "opened-goes-first",
+    "file": "userland/capsule_desktop_shell/src/state/ctx/switch/order.rs",
+    "old": "self.recent.insert(self.recent.len().min(1), w);",
+    "new": "self.recent.insert(0, w);",
+    "crate": "userland/desktop_proofs",
+    "test": "switch_order",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "open-past-the-cap",
+    "file": "userland/capsule_desktop_shell/src/state/ctx/switch/order.rs",
+    "old": "self.recent.insert(self.recent.len().min(1), w);\n            self.recent.truncate(ORDER_MAX);",
+    "new": "self.recent.insert(self.recent.len().min(1), w);",
+    "crate": "userland/desktop_proofs",
+    "test": "switch_order",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "close-leaves-the-run",
+    "file": "userland/capsule_desktop_shell/src/state/ctx/switch/order.rs",
+    "old": "s.forget(w);",
+    "new": "let _ = s;",
+    "crate": "userland/desktop_proofs",
+    "test": "switch_gone",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "every-press-a-new-run",
+    "file": "userland/capsule_desktop_shell/src/state/ctx/switch/walk.rs",
+    "old": "if !walking {",
+    "new": "if true {",
+    "crate": "userland/desktop_proofs",
+    "test": "switch_run",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "press-does-not-hold",
+    "file": "userland/capsule_desktop_shell/src/state/ctx/switch/session.rs",
+    "old": "        self.back = back;\n        self.until_ms = now_ms.saturating_add(SWITCH_HOLD_MS);",
+    "new": "        self.back = back;",
+    "crate": "userland/desktop_proofs",
+    "test": "switch_run",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "hold-one-ms-long",
+    "file": "userland/capsule_desktop_shell/src/state/ctx/switch/session.rs",
+    "old": "now_ms < self.until_ms",
+    "new": "now_ms <= self.until_ms",
+    "crate": "userland/desktop_proofs",
+    "test": "switch_run",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "shift-ignored",
+    "file": "userland/capsule_desktop_shell/src/state/ctx/switch/session.rs",
+    "old": "if back { (at + n - 1) % n }",
+    "new": "if false { (at + n - 1) % n }",
+    "crate": "userland/desktop_proofs",
+    "test": "switch_run",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "one-window-switches",
+    "file": "userland/capsule_desktop_shell/src/state/ctx/switch/session.rs",
+    "old": "if n < 2 {",
+    "new": "if n < 1 {",
+    "crate": "userland/desktop_proofs",
+    "test": "switch_run",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "gone-ignores-direction",
+    "file": "userland/capsule_desktop_shell/src/state/ctx/switch/forget.rs",
+    "old": "if i < at || (i == at && !self.back) {",
+    "new": "if i <= at {",
+    "crate": "userland/desktop_proofs",
+    "test": "switch_gone",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "gone-at-start-no-wrap",
+    "file": "userland/capsule_desktop_shell/src/state/ctx/switch/forget.rs",
+    "old": "if at == 0 { n.saturating_sub(1) }",
+    "new": "if at == 0 { 0 }",
+    "crate": "userland/desktop_proofs",
+    "test": "switch_gone",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "row-loses-the-run",
+    "file": "userland/capsule_desktop_shell/src/render/switch/geometry.rs",
+    "old": "at.saturating_sub(shown.saturating_sub(1))",
+    "new": "at.saturating_sub(shown)",
+    "crate": "userland/desktop_proofs",
+    "test": "switch_strip",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "strip-not-centred",
+    "file": "userland/capsule_desktop_shell/src/render/switch/geometry.rs",
+    "old": "Rect { x: w.saturating_sub(pw) / 2, y,",
+    "new": "Rect { x: 0, y,",
+    "crate": "userland/desktop_proofs",
+    "test": "switch_strip",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "narrow-screen-shows-none",
+    "file": "userland/capsule_desktop_shell/src/render/switch/geometry.rs",
+    "old": "n.min(room.max(1) as usize)",
+    "new": "n.min(room as usize)",
+    "crate": "userland/desktop_proofs",
+    "test": "switch_strip",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "strip-see-through",
+    "file": "userland/capsule_desktop_shell/src/render/palette.rs",
+    "old": "pub const PANEL_SOLID: u32 = 0xFF10_1A22;",
+    "new": "pub const PANEL_SOLID: u32 = 0xE610_1A22;",
+    "crate": "userland/desktop_proofs",
+    "test": "switch_strip",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "strip-on-the-old-panel",
+    "file": "userland/capsule_desktop_shell/src/render/switch/paint.rs",
+    "old": "palette::PANEL_SOLID",
+    "new": "palette::PANEL",
+    "crate": "userland/desktop_proofs",
+    "test": "switch_strip",
+    "args": [
+      "--release"
+    ]
+  }
+]

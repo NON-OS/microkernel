@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::error::VolumeError;
+use super::super::error::VolumeError;
 
 pub(super) fn key_to_array(bytes: &[u8]) -> Result<[u8; 32], VolumeError> {
     if bytes.len() != 32 {

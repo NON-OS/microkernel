@@ -27,6 +27,7 @@
  * bytes, which Linux reports as no blocks.
  */
 
+mod home_room;
 pub mod quota;
 mod room;
 mod used;

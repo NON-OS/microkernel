@@ -18,7 +18,6 @@
 //! what the proofs reach as `crate::...` though it lives in a group.
 
 /// The broker's DMA flags, here so their `pub(super)` reaches every group.
-#[allow(dead_code)]
 #[path = "../../../src/hardware/broker/dma/flags.rs"]
 pub mod dma_flags;
 

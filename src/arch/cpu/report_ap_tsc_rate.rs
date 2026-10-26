@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::x86_64::cpu;
-
 /// Say on the log which source gave the APs their TSC rate. Called by the
-/// boot CPU once the APs are started.
+/// boot CPU once the APs are started. Only x86_64 calibrates a TSC per CPU;
+/// elsewhere every CPU reads the one system counter, and there is nothing to say.
 pub fn report_ap_tsc_rate() {
-    cpu::report_ap_tsc_rate();
+    #[cfg(target_arch = "x86_64")]
+    crate::arch::x86_64::cpu::report_ap_tsc_rate();
 }
