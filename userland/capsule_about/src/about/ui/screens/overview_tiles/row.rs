@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! The row itself, its three columns laid out, and its uptime tile.
+
 use nonos_app_skeleton::PaintBuffer;
 
-use super::super::gauge;
-use super::super::metrics::TILE_GAP;
-use super::tile_text::{dims, millis, ratio, uptime};
-use crate::about::data::caps::{granted, ALL_CAPS};
-use crate::about::data::display::primary_dimensions;
 use crate::about::data::uptime::read_millis;
+use crate::about::ui::gauge::{self, Reading};
+use crate::about::ui::metrics::TILE_GAP;
+
+use super::super::tile_text::{millis, uptime};
+use super::caps::{caps_tile, display_tile};
 
 const DAY_S: u64 = 86_400;
 
@@ -44,38 +46,19 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, held: Option<u64>) {
 fn uptime_tile(fb: &mut PaintBuffer, x: u32, y: u32, w: u32) {
     let mut value = [0u8; 24];
     let mut raw = [0u8; 24];
-    match read_millis() {
+    let r = match read_millis() {
         Some(ms) => {
             let v = uptime(ms, &mut value);
             let sub = millis(ms, &mut raw);
-            gauge::tile(fb, x, y, w, b"Uptime", v, sub, (ms / 1000) % DAY_S, DAY_S);
+            Reading { label: b"Uptime", value: v, sub, num: (ms / 1000) % DAY_S, den: DAY_S }
         }
-        None => gauge::tile(fb, x, y, w, b"Uptime", b"unavailable", b"monotonic clock", 0, 1),
-    }
-}
-
-// The word the kernel recorded for this pid, counted against every named
-// capability. A table that did not answer says so rather than counting the
-// bits the build declared.
-fn caps_tile(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, held: Option<u64>) {
-    let total = ALL_CAPS.len() as u64;
-    let Some(mask) = held else {
-        gauge::tile(fb, x, y, w, b"Capabilities", b"unavailable", b"process table", 0, 1);
-        return;
+        None => Reading {
+            label: b"Uptime",
+            value: b"unavailable",
+            sub: b"monotonic clock",
+            num: 0,
+            den: 1,
+        },
     };
-    let count = granted(mask);
-    let mut value = [0u8; 24];
-    let v = ratio(count, total, &mut value);
-    gauge::tile(fb, x, y, w, b"Capabilities", v, b"held by this window", count, total);
-}
-
-fn display_tile(fb: &mut PaintBuffer, x: u32, y: u32, w: u32) {
-    let mut value = [0u8; 24];
-    match primary_dimensions() {
-        Some((dw, dh)) => {
-            let v = dims(dw, dh, &mut value);
-            gauge::tile(fb, x, y, w, b"Display", v, b"primary display", 1, 1);
-        }
-        None => gauge::tile(fb, x, y, w, b"Display", b"unavailable", b"primary display", 0, 1),
-    }
+    gauge::tile(fb, x, y, w, &r);
 }

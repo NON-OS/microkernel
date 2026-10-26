@@ -27,7 +27,7 @@ mod request;
 
 pub use greeting::{method_reply, offers_no_auth};
 pub use reply::{reply, REPLY_LEN};
-pub use request::{parse_connect, Connect, Host, Parsed};
+pub use request::{parse_connect, Host, Parsed};
 
 /// Protocol version. Only 5 is spoken.
 pub const VER: u8 = 0x05;

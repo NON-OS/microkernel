@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::lioness::Lioness;
-use crate::sphinx::constants::PAYLOAD_KEY_SIZE;
+//! The route card (route.rs) and each transport's rows on it (transport.rs).
 
-/// Remove one hop's layer.
-pub fn open_layer(payload: &mut [u8], key: &[u8; PAYLOAD_KEY_SIZE]) -> Option<()> {
-    Lioness::new(key).decrypt_block(payload).ok()
-}
+mod join;
+mod route;
+mod transport;
+
+pub use route::{paint, HEIGHT};

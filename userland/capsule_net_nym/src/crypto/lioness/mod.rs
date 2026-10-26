@@ -20,7 +20,6 @@
 //! bit scrambles the whole plaintext. That is what stops a mix from tagging a
 //! packet by flipping a payload bit and recognising it downstream.
 
-mod decrypt_block;
 mod encrypt_block;
 mod mac_into_left;
 mod new;
@@ -28,4 +27,4 @@ mod stream_into_right;
 mod types;
 mod wipe;
 
-pub use types::{BlockTooShort, Lioness, KEY_BYTES, MAC_BYTES, MAC_KEY_BYTES};
+pub use types::Lioness;

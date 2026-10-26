@@ -28,7 +28,7 @@ pub mod parked;
 pub mod reply;
 #[path = "../../capsule_socks5/src/server/who.rs"]
 pub mod who;
-#[path = "../../capsule_socks5/src/server/request.rs"]
+#[path = "../../capsule_socks5/src/server/request/mod.rs"]
 pub mod request;
 #[path = "../../capsule_socks5/src/tunnel/mod.rs"]
 pub mod tunnel;

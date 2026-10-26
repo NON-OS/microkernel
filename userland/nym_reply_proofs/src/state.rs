@@ -26,14 +26,14 @@ pub mod gateway;
 #[allow(clippy::new_without_default)]
 #[path = "../../capsule_net_nym/src/state/replay.rs"]
 pub mod replay;
-#[path = "../../capsule_net_nym/src/state/session.rs"]
+#[path = "../../capsule_net_nym/src/state/session/mod.rs"]
 pub mod session;
 
 /// The session table, file by file, so a proof can hold a table of its own
 /// rather than the capsule's one shared `TABLE`. The capsule's own style is
-/// kept on the include: ops.rs names `crate::state` without using it, and the
-/// table carries lookups its handlers call and these proofs do not.
-#[allow(unused_imports, dead_code, clippy::new_without_default)]
+/// kept on the include: the table carries lookups its handlers call and
+/// these proofs do not.
+#[allow(dead_code, clippy::new_without_default)]
 #[path = "session_table.rs"]
 pub mod table;
 

@@ -17,7 +17,5 @@
 //! The MAC that authenticates a header's routing info at each hop.
 
 mod compute;
-mod verify;
 
 pub use compute::compute_mac;
-pub use verify::verify_mac;

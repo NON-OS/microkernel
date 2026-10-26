@@ -29,8 +29,6 @@ mod owner;
 mod reset;
 #[path = "../../capsule_net_nym/src/state/table/sphinx.rs"]
 mod sphinx;
-#[path = "../../capsule_net_nym/src/state/table/stream.rs"]
-mod stream;
 #[path = "../../capsule_net_nym/src/state/table/topology_gate.rs"]
 mod topology_gate;
 #[path = "../../capsule_net_nym/src/state/table/types.rs"]

@@ -18,27 +18,11 @@ use alloc::vec::Vec;
 
 use super::fragment::{Fragment, MAX_FRAGMENTS};
 use super::plaintext::PLAINTEXT_PER_PACKET;
-use super::repliable::{pad_to_packets, repliable_data};
-use super::types::SENDER_TAG_SIZE;
+use super::repliable::pad_to_packets;
 
 /// A message split into the pieces each packet will carry.
 pub struct Prepared {
     pub fragments: Vec<Vec<u8>>,
-}
-
-/// Turn a request into the fragments that will be sent.
-///
-/// The reply blocks travel with the request rather than being asked for
-/// later, because the recipient has no way to ask: it never learns who sent
-/// this. Padding happens before splitting so that the number of packets, and
-/// each one's width, says nothing beyond how much was sent.
-pub fn prepare(
-    sender_tag: &[u8; SENDER_TAG_SIZE],
-    reply_surbs: &[Vec<u8>],
-    request: &[u8],
-    set_id: i32,
-) -> Option<Prepared> {
-    prepare_built(repliable_data(sender_tag, reply_surbs, request), set_id)
 }
 
 /// Split a message that is already built.

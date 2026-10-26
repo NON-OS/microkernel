@@ -20,7 +20,5 @@
 
 #[path = "../../capsule_net_nym/src/server/parse_req.rs"]
 pub mod parse_req;
-// The capsule's own style, allowed on the include rather than restyled.
-#[allow(clippy::needless_return)]
 #[path = "../../capsule_net_nym/src/server/respond.rs"]
 pub mod respond;
