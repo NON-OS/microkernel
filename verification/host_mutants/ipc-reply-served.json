@@ -26,7 +26,7 @@
  {
   "name": "ipc-redirect-takes-the-front",
   "file": "src/syscall/microkernel/ipc/pending_reply/served_rule.rs",
-  "old": "queue.position(|e| e.token == want)",
+  "old": "queue.position(|e| !e.taken && e.token == want)",
   "new": "queue.position(|_| true)",
   "test": "ipc_reply_token::",
   "crate": "userland/kernel_proofs"
@@ -34,8 +34,8 @@
  {
   "name": "ipc-redirect-answers-a-kernel-request",
   "file": "src/syscall/microkernel/ipc/pending_reply/served_rule.rs",
-  "old": "    if want == 0 {\n        return None;\n    }\n    queue.position(|e| e.token == want)",
-  "new": "    if want == 0 {\n        return queue.position(|_| true);\n    }\n    queue.position(|e| e.token == want)",
+  "old": "    if want == 0 {\n        return None;\n    }\n    queue.position(|e| !e.taken && e.token == want)",
+  "new": "    if want == 0 {\n        return queue.position(|_| true);\n    }\n    queue.position(|e| !e.taken && e.token == want)",
   "test": "ipc_reply_token::",
   "crate": "userland/kernel_proofs"
  }

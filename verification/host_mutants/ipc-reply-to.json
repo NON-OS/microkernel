@@ -2,16 +2,16 @@
  {
   "name": "ipc-reply-to-takes-an-undequeued-call",
   "file": "src/syscall/microkernel/ipc/pending_reply/served_rule.rs",
-  "old": "queue.position(|e| e.served && e.request == request)",
-  "new": "queue.position(|e| e.request == request)",
+  "old": "queue.position(|e| e.served && !e.taken && e.request == request)",
+  "new": "queue.position(|e| !e.taken && e.request == request)",
   "test": "ipc_reply_token::",
   "crate": "userland/kernel_proofs"
  },
  {
   "name": "ipc-reply-to-ignores-the-name",
   "file": "src/syscall/microkernel/ipc/pending_reply/served_rule.rs",
-  "old": "queue.position(|e| e.served && e.request == request)",
-  "new": "queue.position(|e| e.served)",
+  "old": "queue.position(|e| e.served && !e.taken && e.request == request)",
+  "new": "queue.position(|e| e.served && !e.taken)",
   "test": "ipc_reply_token::",
   "crate": "userland/kernel_proofs"
  },
