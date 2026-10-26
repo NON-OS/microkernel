@@ -77,8 +77,9 @@ fn a_live_boot_holds_the_file_beside_the_run() {
 
 #[test]
 fn the_refusal_names_the_tier_what_it_needs_and_what_there_is() {
-    let line = too_large("qwen3-32b", 19_000_000_000, 21_500_000_000, Some(8_000_000_000), Room::Disk)
-        .unwrap();
+    let line =
+        too_large("qwen3-32b", 19_000_000_000, 21_500_000_000, Some(8_000_000_000), Room::Disk)
+            .unwrap();
     assert!(line.starts_with("qwen3-32b needs 21.50 GB of memory to run;"), "{line}");
     assert!(line.contains("this machine has 8.00 GB in all, 1.07 GB of it kept"), "{line}");
     assert!(line.contains("not downloaded") && line.contains("qwen tiers"), "{line}");
@@ -93,8 +94,8 @@ fn exactly_enough_fits_and_unknown_memory_refuses_nothing() {
 
 #[test]
 fn the_installer_reads_it_as_too_little_memory() {
-    assert_eq!(fetched(i64::from(TOO_LITTLE_MEMORY)), Err(Why::ModelTooLarge));
-    assert_eq!(Why::ModelTooLarge.code(), 19);
+    assert_eq!(fetched(i64::from(TOO_LITTLE_MEMORY)), Err(Why::MODEL_TOO_LARGE));
+    assert_eq!(Why::MODEL_TOO_LARGE.code(), 19);
 }
 
 /* The Terminal's `help qwen`, as it ships. */
