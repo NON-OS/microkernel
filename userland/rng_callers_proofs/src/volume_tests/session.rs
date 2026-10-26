@@ -30,7 +30,7 @@ fn no_session_volume_is_started_when_either_draw_refuses() {
     let window = window_sectors();
     for (from, only) in rng::cases(2) {
         rng::fail_at(Some(from), only);
-        assert_eq!(open_session_volume(), Err(VolumeError::NoRandomness));
+        assert_eq!(open_session_volume(false), Err(VolumeError::NoRandomness));
         assert_eq!(ram::ram_started(), None);
         assert_eq!(window_sectors(), window);
         assert!(volume::formats().is_empty());
@@ -43,7 +43,7 @@ fn no_session_volume_is_started_when_either_draw_refuses() {
 fn the_session_volume_is_made_under_its_drawn_key_and_uuid() {
     let _turn = turn();
     rng::fail_from(None);
-    assert_eq!(open_session_volume(), Ok(()));
+    assert_eq!(open_session_volume(false), Ok(()));
     let given = rng::given();
     let (key, uuid) = volume::formats()[0];
     assert_eq!((key.to_vec(), uuid.to_vec()), (given[0].clone(), given[1].clone()));
@@ -51,7 +51,7 @@ fn the_session_volume_is_made_under_its_drawn_key_and_uuid() {
     let sectors = ram::ram_started().expect("RAM disk started");
     assert_eq!(window_sectors(), Some(sectors));
     *super::VOLUME.write() = None;
-    open_session_volume().expect("opened");
+    open_session_volume(false).expect("opened");
     assert_ne!(volume::formats()[1].0, key);
     assert_eq!(rng::weak(), 0);
 }
