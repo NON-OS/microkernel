@@ -32,7 +32,7 @@ pub fn build_context(
             policy_port: 0,
         },
         links: crate::state::ctx::links::Links {
-            wallpaper_policy_sent: wallpaper_policy_sent,
+            wallpaper_policy_sent,
             input_kind_mask: super::input_mask::SHELL_INPUT_MASK,
             input_ready: false,
             wm_notify_ready: false,

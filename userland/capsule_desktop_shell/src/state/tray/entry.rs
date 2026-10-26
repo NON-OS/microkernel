@@ -30,8 +30,14 @@ pub struct TrayEntry {
     pub in_use: bool,
 }
 
+impl TrayEntry {
+    /// A free slot.
+    pub const EMPTY: Self =
+        Self { owner_pid: 0, tray_id: 0, label_len: 0, label: [0; TRAY_LABEL_MAX], in_use: false };
+}
+
 impl Default for TrayEntry {
     fn default() -> Self {
-        Self { owner_pid: 0, tray_id: 0, label_len: 0, label: [0; TRAY_LABEL_MAX], in_use: false }
+        Self::EMPTY
     }
 }

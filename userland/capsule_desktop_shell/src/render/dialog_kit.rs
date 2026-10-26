@@ -50,14 +50,18 @@ pub(super) fn button(ctx: &Context, r: Rect, bg: u32, label: &str, focused: bool
 }
 
 pub(super) fn fill(ctx: &Context, r: Rect, argb: u32) {
-    fill_rect(ctx.backing_va, ctx.stride, ctx.width, ctx.height, r.x, r.y, r.width, r.height, argb);
+    fill_rect(
+        (ctx.backing_va, ctx.stride, ctx.width, ctx.height),
+        (r.x, r.y, r.width, r.height),
+        argb,
+    );
 }
 
 pub(super) fn border(ctx: &Context, r: Rect, argb: u32) {
     let (va, st, w, h) = (ctx.backing_va, ctx.stride, ctx.width, ctx.height);
     let s = ui_font::scale();
-    fill_rect(va, st, w, h, r.x, r.y, r.width, s, argb);
-    fill_rect(va, st, w, h, r.x, r.y + r.height.saturating_sub(s), r.width, s, argb);
-    fill_rect(va, st, w, h, r.x, r.y, s, r.height, argb);
-    fill_rect(va, st, w, h, r.x + r.width.saturating_sub(s), r.y, s, r.height, argb);
+    fill_rect((va, st, w, h), (r.x, r.y, r.width, s), argb);
+    fill_rect((va, st, w, h), (r.x, r.y + r.height.saturating_sub(s), r.width, s), argb);
+    fill_rect((va, st, w, h), (r.x, r.y, s, r.height), argb);
+    fill_rect((va, st, w, h), (r.x + r.width.saturating_sub(s), r.y, s, r.height), argb);
 }

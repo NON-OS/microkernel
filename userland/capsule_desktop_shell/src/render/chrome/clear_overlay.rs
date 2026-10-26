@@ -19,14 +19,8 @@ use crate::state::Context;
 
 pub fn clear_overlay(ctx: &Context) {
     fill_rect(
-        ctx.backing_va,
-        ctx.stride,
-        ctx.width,
-        ctx.height,
-        0,
-        0,
-        ctx.width,
-        ctx.height,
+        (ctx.backing_va, ctx.stride, ctx.width, ctx.height),
+        (0, 0, ctx.width, ctx.height),
         super::constants::TRANSPARENT,
     );
 }
