@@ -32,7 +32,7 @@ pub(super) enum Job {
     Run(String, super::run::How),
 }
 
-static PENDING: Mutex<Vec<Job>> = Mutex::new(Vec::new());
+pub(super) static PENDING: Mutex<Vec<Job>> = Mutex::new(Vec::new());
 
 /// Queue an install. False when full or already queued, or when the stage
 /// table is full of installs still moving, which the caller reports as busy:

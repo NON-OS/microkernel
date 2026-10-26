@@ -34,7 +34,7 @@ pub fn sys_app_launch(listing_ptr: u64, listing_len: u64) -> i64 {
     else {
         return ERRNO_INVAL;
     };
-    if crate::userspace::capsule_linux::run_busy() {
+    if crate::userspace::capsule_linux::run_busy() || crate::userspace::init::run_waiting() {
         return ERRNO_BUSY;
     }
     match crate::userspace::init::request_run(name) {

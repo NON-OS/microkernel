@@ -50,14 +50,14 @@ pub(super) fn start(guest: &mut Guest, launch: Launch) -> Result<(), &'static [u
     super::run_net::settle(guest.app.mask)?;
     super::app::grant(guest.app.mask);
     let (listing, program) = (&guest.app.policy.listing_id, &guest.app.policy.program_blake3);
-    if super::app::home() && !super::file::open_home(super::app::home_key(listing, program)) {
-        return Err(&b"[LINUX] its home could not be opened\n"[..]);
-    }
+    let key = super::app::home_key(listing, program);
+    super::start_home::open(guest, key)?;
     let (image, entry, interp_base) = image::program(guest, bytes).map_err(|e| e.why())?;
     guest.map(STACK_TOP - STACK_SIZE, STACK_SIZE, true, false);
     let mut argv = alloc::vec![launch.argv0.clone().unwrap_or_else(|| path.to_vec())];
     argv.extend(launch.args.iter().cloned());
-    let rsp = image::build(guest, STACK_TOP, &image, interp_base, &argv, &super::env::default())
+    let env = super::env::with_pwd(&guest.cwd);
+    let rsp = image::build(guest, STACK_TOP, &image, interp_base, &argv, &env)
         .ok_or(&b"[LINUX] stack refused\n"[..])?;
     match mk_foreign_start(guest.pid, entry, rsp) {
         n if n < 0 => Err(&b"[LINUX] start refused\n"[..]),
