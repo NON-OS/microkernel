@@ -25,7 +25,7 @@ from pathlib import Path
 from . import lock
 
 INDEX = {"V": "1.0-r0", "C": "Q1abc=", "S": "3"}
-PIN = dict(INDEX, B="ab" * 32)
+PIN = dict(INDEX, B="ab" * 32, G="", R="")
 KNOWN = {"x": dict(INDEX, P="x", base="b"), "y": dict(INDEX, P="y", base="b")}
 
 
@@ -41,6 +41,7 @@ class Lock(unittest.TestCase):
             self.assertEqual(lock.read(at), {"x": PIN})
             for bad in (doc({"x": PIN}, fmt="v0"), doc({"x": PIN}, extra=1), doc({"X": PIN}),
                         doc({"x": dict(PIN, V="../1")}), doc({"x": dict(PIN, S=3)}), doc({"x": {"V": "1"}}), doc({"x": INDEX}),
+                        doc({"x": dict(PIN, G="ab")}), doc({"x": dict(PIN, R="AB" * 32)}), doc({"x": dict(PIN, R=0)}),
                         "{", "\xff"):
                 at.write_bytes(bad.encode("latin-1"))
                 with self.assertRaises(ValueError, msg=bad):
