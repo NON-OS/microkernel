@@ -18,6 +18,9 @@ pub struct RxInfo {
     pub enc_type: u8,
     /// The chip left decryption to software.
     pub swdec: bool,
+    /// The first four words of the PHY status that follows the descriptor,
+    /// where the card wrote one and the slot holds it.
+    pub phy: Option<[u32; 4]>,
 }
 
 impl RxInfo {

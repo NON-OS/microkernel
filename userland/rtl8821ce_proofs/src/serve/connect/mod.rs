@@ -33,6 +33,8 @@ mod media;
 mod pace;
 #[path = "../../../../capsule_driver_rtl8821ce/src/serve/connect/progress.rs"]
 mod progress;
+#[cfg(test)]
+mod rank_tests;
 #[path = "../../../../capsule_driver_rtl8821ce/src/serve/connect/ready.rs"]
 mod ready;
 #[path = "../../../../capsule_driver_rtl8821ce/src/serve/connect/run.rs"]
