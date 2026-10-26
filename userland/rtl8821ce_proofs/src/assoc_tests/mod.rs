@@ -8,6 +8,7 @@
 
 mod beacons;
 mod budget;
+mod deadline;
 mod dedup;
 mod facts;
 mod frames;
