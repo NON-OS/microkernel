@@ -46,10 +46,10 @@ pub(crate) fn berlekamp_massey(syndrome: &[u16]) -> Vec<u16> {
         } else if 2 * l <= i {
             let t = c.clone();
             let d_bb_inv = GF2m::mul(d, GF2m::inv(bb));
-            for j in 0..b.len() {
+            for (j, &bj) in b.iter().enumerate() {
                 let shift = j as i32 + m;
                 if shift >= 0 && (shift as usize) < c.len() {
-                    c[shift as usize] = GF2m::add(c[shift as usize], GF2m::mul(d_bb_inv, b[j]));
+                    c[shift as usize] = GF2m::add(c[shift as usize], GF2m::mul(d_bb_inv, bj));
                 }
             }
             l = i + 1 - l;
@@ -58,10 +58,10 @@ pub(crate) fn berlekamp_massey(syndrome: &[u16]) -> Vec<u16> {
             m = 1;
         } else {
             let d_bb_inv = GF2m::mul(d, GF2m::inv(bb));
-            for j in 0..b.len() {
+            for (j, &bj) in b.iter().enumerate() {
                 let shift = j as i32 + m;
                 if shift >= 0 && (shift as usize) < c.len() {
-                    c[shift as usize] = GF2m::add(c[shift as usize], GF2m::mul(d_bb_inv, b[j]));
+                    c[shift as usize] = GF2m::add(c[shift as usize], GF2m::mul(d_bb_inv, bj));
                 }
             }
             m += 1;
@@ -75,8 +75,7 @@ pub(crate) fn berlekamp_massey(syndrome: &[u16]) -> Vec<u16> {
 pub(crate) fn chien_search(locator: &[u16], support: &[u16]) -> Vec<usize> {
     let mut error_positions = Vec::new();
 
-    for i in 0..MCELIECE_N {
-        let alpha = support[i];
+    for (i, &alpha) in support.iter().enumerate().take(MCELIECE_N) {
         let val = poly_eval(locator, alpha);
         if val == 0 {
             error_positions.push(i);
