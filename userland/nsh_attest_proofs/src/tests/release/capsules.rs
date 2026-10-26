@@ -23,6 +23,7 @@ use nsh_attest::{CapsuleFault, Refusal};
 
 use super::super::{passes, refused};
 
+mod agree;
 mod log;
 mod routes;
 use crate::build::tcg_capsule::{path_only_tag, PATH_ONLY, PROOF_VERIFIED};

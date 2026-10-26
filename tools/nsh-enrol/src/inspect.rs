@@ -41,14 +41,17 @@ pub fn inspect(bytes: &[u8], challenge: Option<[u8; 32]>) -> Result<String, Erro
         line("capsule", format!("{kind} cert {cert} verifier {verifier}"));
     }
     let release = nsh_attest::steps::capsules(&log).is_ok();
-    line("capsules", format!("{}, release ok {release}", log.capsules.len()));
+    line("capsules", format!("{}, pcr 14 ok {release}", log.capsules.len()));
+    for (at, kind) in nsh_attest::steps::not_vendor(&log) {
+        line("refused", format!("capsule {at}, {}", kind.name()));
+    }
     let dma = (doc.iommu_vendor, doc.iommu_enforcing, doc.unconfined_grants, doc.identity_devices);
     line(
         "dma",
         format!("vendor {} enforcing {} unconfined {} identity {}", dma.0, dma.1, dma.2, dma.3),
     );
     line("dma held", (nsh_attest::steps::dma(&doc).is_ok()).to_string());
-    line("registry", format!("{} capsules, complete {}", doc.capsule_count, doc.registry_complete));
+    line("registry", format!("{} capsules", doc.capsule_count));
     line("root", of(doc.registry_root));
     line("log", format!("{} bytes", doc.log.len()));
     Ok(out)
