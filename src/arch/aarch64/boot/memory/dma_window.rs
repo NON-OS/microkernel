@@ -16,9 +16,7 @@
 
 use super::dma_place::place;
 use super::dma_size::{low_usable, sizes};
-use super::regions::bounds;
 use super::PAGE_SIZE;
-use crate::arch::aarch64::boot::info::{BootInfo, MemoryType};
 
 /// Off the first 16 MiB, where a board whose RAM starts at zero keeps
 /// firmware and the secondary-CPU trampoline.
@@ -34,23 +32,17 @@ pub(super) struct LowPool {
     pub(super) carved: bool,
 }
 
-/// A pool clear of the allocator's span `main`, the kernel `image` and every
-/// range the tree reserved, or, failing that, one carved from inside `main`
-/// clear of the image and the reservations, at the largest size `dma_size`
-/// offers that fits. `None` when RAM below 4 GiB has no room either way.
+/// A pool inside the free RAM `available`, clear of the allocator's span
+/// `main`, the kernel `image` and every `reserved` range, or, failing that,
+/// one carved from inside `main` (which lies in one free run) clear of the
+/// image and the reservations, at the largest size `dma_size` offers that
+/// fits. `None` when RAM below 4 GiB has no room either way.
 pub(super) fn find_low_dma_region(
-    info: &BootInfo,
+    available: &[(u64, u64)],
+    reserved: &[(u64, u64)],
     main: (u64, u64),
     image: (u64, u64),
 ) -> Option<LowPool> {
-    let mut available = [(0u64, 0u64); 8];
-    let mut n = 0;
-    let usable = info.memory_map().iter().filter(|r| r.region_type == MemoryType::Available);
-    for (slot, range) in available.iter_mut().zip(usable.filter_map(bounds)) {
-        *slot = range;
-        n += 1;
-    }
-    let reserved = info.reserved.ranges();
     let mut avoid = [(0u64, 0u64); MAX_AVOID];
     if reserved.len() + 2 > MAX_AVOID {
         return None;
@@ -59,9 +51,9 @@ pub(super) fn find_low_dma_region(
     avoid[1] = image;
     avoid[2..2 + reserved.len()].copy_from_slice(reserved);
     let avoid = &avoid[..2 + reserved.len()];
-    for want in sizes(low_usable(&available[..n], FLOOR)) {
+    for want in sizes(low_usable(available, FLOOR)) {
         let pages = (want / PAGE_SIZE) as usize;
-        if let Some(base) = place(&available[..n], avoid, FLOOR, want) {
+        if let Some(base) = place(available, avoid, FLOOR, want) {
             return Some(LowPool { base, pages, carved: false });
         }
         if let Some(base) = place(&[main], &avoid[1..], FLOOR, want) {

@@ -18,9 +18,11 @@ use uefi::prelude::*;
 
 use super::dynamic::load_dyn_kernel;
 use super::elf_validate::validate_elf;
+use super::exec::image_rules::{route, Route};
 use super::exec::load_exec_kernel;
 use crate::loader::errors::{LoaderError, LoaderResult};
 use crate::loader::image::KernelImage;
+use crate::loader::types::memory;
 use crate::log::logger::{log_error, log_info};
 
 pub fn load_kernel(
@@ -32,12 +34,16 @@ pub fn load_kernel(
     let validation = validate_elf(payload)?;
     let bs = system_table.boot_services();
 
-    if validation.is_exec {
-        load_exec_kernel(bs, payload, &validation)
-    } else if validation.is_dyn {
-        load_dyn_kernel(bs, payload, &validation)
-    } else {
-        log_error("loader", "ELF is neither ET_EXEC nor ET_DYN");
-        Err(LoaderError::UnsupportedElf("unsupported ELF type"))
+    // A self-relocating ET_DYN (aarch64) is placed like an ET_EXEC and
+    // left for its own relocator, which writes every slot afresh.
+    let upper_half = memory::is_upper_half(validation.min_addr);
+    let relocating = crate::arch::cpu::IMAGE_ALIGN.is_some();
+    match route(validation.is_exec, validation.is_dyn, upper_half, relocating) {
+        Route::Exec | Route::Block => load_exec_kernel(bs, payload, &validation),
+        Route::Dyn => load_dyn_kernel(bs, payload, &validation),
+        Route::Refuse(why) => {
+            log_error("loader", why);
+            Err(LoaderError::UnsupportedElf(why))
+        }
     }
 }

@@ -19,6 +19,12 @@ nonos_policy_proto = { path = "../policy_proto" }
 nonos_bt_proto = { path = "../bt_proto" }
 # The apps' shared text input, which the panel's fields edit by.
 nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
+# The font the cards are measured and drawn in.
+nonos_toolkit = { path = "../toolkit", default-features = false }
+
+# The font measures every note at every window width; build it optimised.
+[profile.dev.package."*"]
+opt-level = 3
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

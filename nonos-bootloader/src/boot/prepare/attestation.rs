@@ -21,7 +21,7 @@ use crate::security::{generate_attestation_quote, AttestationQuote};
 pub fn generate_boot_attestation(rng_seed: &[u8; 32], gop: bool) -> AttestationQuote {
     let mut nonce = [0u8; 32];
     nonce.copy_from_slice(rng_seed);
-    let timestamp = unsafe { core::arch::x86_64::_rdtsc() } as u64;
+    let timestamp = crate::arch::cpu::cycles();
     let quote = generate_attestation_quote(nonce, timestamp);
     log_info("attestation", "boot attestation quote generated");
     if gop {

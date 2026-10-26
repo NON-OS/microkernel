@@ -35,7 +35,10 @@ fn over(dst: u32, src: u32) -> u32 {
 pub fn placed(shot: &Shot, w: u32, h: u32) -> Rect {
     let at = shot.at;
     let asked = Rect { x: at.initial_x, y: at.initial_y, width: at.width, height: at.height };
-    crate::cascade::cascade(w, h, 0, clamp_to_display(asked, w, h))
+    let r = crate::cascade::cascade(w, h, 0, clamp_to_display(asked, w, h));
+    let display = Rect { x: 0, y: 0, width: w, height: h };
+    assert!(display.contains(r.x, r.y), "placed with its corner on the display");
+    r
 }
 
 /// The screen, and the window's rectangle on it.

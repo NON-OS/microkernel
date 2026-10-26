@@ -20,11 +20,10 @@ use uefi::table::boot::BootServices;
 use crate::handoff::ZeroStateBootInfo;
 
 use super::sources::{collect_hw_rng_bytes, rdtsc_serialized};
+use super::strong::collect_efi_rng;
+use super::strong_rule::{strong_enough, Strong};
 use super::types::{DS_ENTROPY_ACCUM, DS_ENTROPY_OUTPUT, HW_RNG_ITERATIONS, TSC_JITTER_ROUNDS};
 use super::util::{is_weak_entropy, scrub};
-
-#[cfg(feature = "efi-rng")]
-use uefi::proto::rng::Rng;
 
 pub fn collect_boot_entropy_64_with_st(st: &SystemTable<Boot>) -> Result<[u8; 64], &'static str> {
     let bt = st.boot_services();
@@ -79,11 +78,10 @@ pub fn get_rtc_timestamp_with_st(st: &SystemTable<Boot>) -> [u8; 8] {
 pub fn collect_boot_entropy(bs: &BootServices) -> Result<[u8; 64], &'static str> {
     let mut h = blake3::Hasher::new_derive_key(DS_ENTROPY_ACCUM);
 
-    #[cfg(feature = "efi-rng")]
-    collect_efi_rng(bs, &mut h);
+    let firmware = collect_efi_rng(bs, &mut h);
 
     let mut hw = [0u8; 64];
-    collect_hw_rng_bytes(&mut hw, HW_RNG_ITERATIONS);
+    let cpu_draws = collect_hw_rng_bytes(&mut hw, HW_RNG_ITERATIONS);
     h.update(&hw);
     scrub(&mut hw);
 
@@ -100,21 +98,12 @@ pub fn collect_boot_entropy(bs: &BootServices) -> Result<[u8; 64], &'static str>
     if is_weak_entropy(&out) {
         return Err("Entropy collection failed: insufficient randomness");
     }
+    if !strong_enough(crate::arch::cpu::REQUIRE_STRONG_ENTROPY, Strong { firmware, cpu_draws }) {
+        scrub(&mut out);
+        return Err("no firmware or CPU random source answered, and this platform needs one");
+    }
 
     Ok(out)
-}
-
-#[cfg(feature = "efi-rng")]
-fn collect_efi_rng(bs: &BootServices, h: &mut blake3::Hasher) {
-    if let Ok(handle) = bs.locate_protocol::<Rng>() {
-        // SAFETY: UEFI protocol obtained from BootServices
-        let rng = unsafe { &mut *handle.get() };
-        let mut buf = [0u8; 64];
-        if rng.get_rng(None, &mut buf).is_ok() {
-            h.update(&buf);
-            scrub(&mut buf);
-        }
-    }
 }
 
 fn collect_tsc_jitter(bs: &BootServices, h: &mut blake3::Hasher) {
