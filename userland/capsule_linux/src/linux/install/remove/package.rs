@@ -40,16 +40,16 @@ use super::tier::{say, tier};
 pub fn uninstall(pkg: &str) -> Result<(), Why> {
     match wanted(pkg) {
         Wanted::Tier(app) => return tier(pkg, app.tier()),
-        Wanted::UnknownTier => return Err(Why::ModelUnknown),
+        Wanted::UnknownTier => return Err(Why::MODEL_UNKNOWN),
         Wanted::Package => {}
     }
     let Some(mine) = super::super::package_record::read(pkg) else {
         say(&format!("[LINUX] {pkg}: no install of it is recorded on this system\n"));
-        return Err(Why::NotInstalled);
+        return Err(Why::NOT_INSTALLED);
     };
     let Some(others) = super::super::package_record::others(pkg) else {
         say(&format!("[LINUX] {pkg}: another package's record is unreadable; nothing taken out\n"));
-        return Err(Why::RemovePartial);
+        return Err(Why::REMOVE_PARTIAL);
     };
     let files = only_mine(&mine.files, &others, |m| &m.files);
     let links = only_mine(&mine.links, &others, |m| &m.links);
@@ -68,6 +68,6 @@ pub fn uninstall(pkg: &str) -> Result<(), Why> {
     ));
     match left.files.is_empty() && left.links.is_empty() && forgot && settled {
         true => Ok(()),
-        false => Err(Why::RemovePartial),
+        false => Err(Why::REMOVE_PARTIAL),
     }
 }
