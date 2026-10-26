@@ -53,6 +53,8 @@ fn the_context_is_the_path_leafs_layout() {
     assert_eq!(&ctx[..32], blake3::hash(ELF).as_bytes());
     assert_eq!(&ctx[32..40], &caps.to_be_bytes());
     assert_eq!(&ctx[40..48], &super::super::capsule_attest::layout::POLICY_EPOCH.to_be_bytes());
+    /* published.rs hands the policy tree's depth on as one byte; it must fit. */
+    assert!(u8::try_from(super::super::capsule_attest::layout::POLICY_TREE_DEPTH).is_ok());
 }
 
 #[test]
