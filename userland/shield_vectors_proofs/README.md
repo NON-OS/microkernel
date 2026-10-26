@@ -35,14 +35,12 @@ are mounted by `#[path]` and run unchanged: `serial.rs`, `vectors.rs`,
 `tools/nix/periodic.nix`'s `periodic.top`, 8,388,660 bytes, never
 committed. With the variable set at build time the tests pin its sha256
 (`b2d95883f63dd439ac7bc5ea92b6c6e621aa37d2a67707b8342cce05b0bcd96f`,
-measured on stable 1.97.0; the owner re-confirms it against the
 derivation's `periodic.top.sha256`), run the capsule's `shipped_cache`
 (taken whole, refused with one root bit changed) and `built_is_shipped`.
 
 Without it each such test writes
 `<test>: NONOS_PERIODIC_CACHE not set, real cache test skipped` to stderr,
 past the harness's capture, as the TPM suites do; the lane exports the
-variable and fails on that line.
 
 ## The full proving run: the binary, not the tests
 
@@ -55,7 +53,7 @@ cache byte for byte, then the other three from the shipped cache, each proof
 and its format 7 form held to the pinned bytes. Exit 0 only when no line
 failed and all four held; without the variable it fails, naming it.
 `cargo test` builds the binary and runs its tests, never its `main`, so the
-test lane does not prove.
+test lane does not prove. Its own check:
 
 ## Lanes
 

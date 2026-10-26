@@ -44,4 +44,3 @@ with it off. That second boot is the no-IOMMU posture: the boot log must carry
 
 Put the checklist, the report file and the photos in one folder per machine, named by the
 numbers, MAC addresses, network names, passwords or anything from your own files; the
-report, and each one becomes matrix rows and fixes.

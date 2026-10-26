@@ -25,7 +25,6 @@ A market release's policy names one program, the one its listing starts. Every o
 - **A copy:** a held ELF copied to another path along with its trailer.
 - **The loader:** `/lib/ld-musl-x86_64.so.1 <program>`, because the loader's gate checks only the trailer.
 
-The fix is to tie a policy to the program's hash, not its path, so that a copy or a loader exec keeps its box.
 
 Nothing is listed until the generator has authenticated it as the device does, under the Alpine keys the device pins: [Catalogue authentication](marketplace-catalogue-authentication.md).
 
@@ -87,7 +86,6 @@ Every run fetches the signed indexes fresh, then holds them to the lock. A run s
 2. Add its recipe with the narrowest mask it works in.
 3. Run the generator and the documents step, and commit the new document.
 4. Run once with `--update-lock` and commit the lock with the recipe.
-5. After the boot session's runs (docs/market/catalogue-boot-plan.md), run `python3 -m nonos_market_catalogue.verdict --write APP=LOG ...`. It checks each log, one per run:
    - the app installed in its box;
    - no policy refusal;
    - the workload ended well, with a process exiting status 0 and none exiting otherwise or on a signal;

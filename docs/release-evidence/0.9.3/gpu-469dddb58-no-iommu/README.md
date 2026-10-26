@@ -1,6 +1,6 @@
 # gpu: boot of 469dddb58 without an IOMMU, 25 October 2026
 
-The no-IOMMU marking and the splash that follows the canvas, booted where device DMA is
+The no-IOMMU marking and the splash that follows the canvas (letter
 not confined by hardware.
 
 ## How it ran
