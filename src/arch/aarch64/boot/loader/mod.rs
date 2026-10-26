@@ -24,4 +24,5 @@ mod place;
 mod take;
 
 pub(super) use install::install;
-pub(super) use take::take;
+pub(super) use place::placed;
+pub(super) use take::{take, taken};

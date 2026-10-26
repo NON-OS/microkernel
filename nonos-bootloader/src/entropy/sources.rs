@@ -16,34 +16,17 @@
 
 pub use super::rdrand::{rdrand64, rdseed64};
 
+/// The CPU's counter, fenced on both sides (arch::cpu).
 #[inline(always)]
 pub fn rdtsc_serialized() -> u64 {
-    #[cfg(target_arch = "x86_64")]
-    unsafe {
-        core::arch::asm!("lfence", options(nostack, nomem));
-
-        let mut hi: u32;
-        let mut lo: u32;
-        core::arch::asm!(
-            "rdtsc",
-            out("eax") lo,
-            out("edx") hi,
-            options(nomem, nostack, preserves_flags)
-        );
-
-        core::arch::asm!("lfence", options(nostack, nomem));
-
-        ((hi as u64) << 32) | (lo as u64)
-    }
-
-    #[cfg(not(target_arch = "x86_64"))]
-    {
-        0
-    }
+    crate::arch::cpu::cycles_serialized()
 }
 
-pub fn collect_hw_rng_bytes(buf: &mut [u8; 64], iterations: usize) {
+/// Mixes the CPU's generator and counter jitter into `buf`; how many words
+/// the generator gave.
+pub fn collect_hw_rng_bytes(buf: &mut [u8; 64], iterations: usize) -> usize {
     let mut off = 0usize;
+    let mut draws = 0usize;
 
     for i in 0..iterations {
         if let Some(x) = rdseed64() {
@@ -52,6 +35,7 @@ pub fn collect_hw_rng_bytes(buf: &mut [u8; 64], iterations: usize) {
                 buf[(off + j) % 64] ^= b[j];
             }
             off += 8;
+            draws += 1;
         } else {
             for _ in 0..10 {
                 if let Some(x) = rdrand64() {
@@ -60,6 +44,7 @@ pub fn collect_hw_rng_bytes(buf: &mut [u8; 64], iterations: usize) {
                         buf[(off + j) % 64] ^= b[j];
                     }
                     off += 8;
+                    draws += 1;
                     break;
                 }
                 for _ in 0..50 {
@@ -85,4 +70,5 @@ pub fn collect_hw_rng_bytes(buf: &mut [u8; 64], iterations: usize) {
         }
         buf[i] ^= (t >> ((i % 8) * 8)) as u8;
     }
+    draws
 }

@@ -60,3 +60,8 @@ pub(in crate::arch::aarch64::boot) fn take(
     COPY.call_once(|| handoff);
     Ok(())
 }
+
+/// The handoff taken at entry, if a NONOS loader left one.
+pub(in crate::arch::aarch64::boot) fn taken() -> Option<&'static BootHandoffV1> {
+    COPY.get()
+}

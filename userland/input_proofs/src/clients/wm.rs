@@ -31,7 +31,17 @@ pub fn query_focus(_port_slot: &mut u32, _request_id: u32) -> Option<u32> {
     Some(with(|world| world.focus))
 }
 
+thread_local! {
+    static ASKS: std::cell::Cell<u32> = const { std::cell::Cell::new(0) };
+}
+
+/// How many times the router has asked what is on top, on this thread.
+pub fn topmost_asks() -> u32 {
+    ASKS.with(|a| a.get())
+}
+
 pub fn query_topmost(_port_slot: &mut u32, _request_id: u32, x: u32, y: u32) -> Option<Target> {
+    ASKS.with(|a| a.set(a.get() + 1));
     with(|world| {
         let win = world.windows.iter().find(|win| win.contains(x, y))?;
         Some(Target {
