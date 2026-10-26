@@ -59,11 +59,3 @@ pub fn reply_message(reassembled: &[u8]) -> Option<Reply<'_>> {
         _ => None,
     }
 }
-
-/// The data of a reply, for callers that only handle that.
-pub fn reply_body(reassembled: &[u8]) -> Option<&[u8]> {
-    match reply_message(reassembled)? {
-        Reply::Data(body) => Some(body),
-        Reply::SurbRequest { .. } => None,
-    }
-}
