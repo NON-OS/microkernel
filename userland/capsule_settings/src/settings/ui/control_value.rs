@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_policy_proto::wallpaper_labels::WALLPAPER_LABELS;
 use nonos_policy_proto::{enum_label, max_of, Field};
 
 use crate::settings::state::{FieldValue, State};
@@ -56,5 +57,15 @@ pub fn string_text<'a>(state: &'a State, value: &'a FieldValue, editing: bool) -
     match value {
         FieldValue::Str { bytes, len } => Some(&bytes[..*len]),
         _ => None,
+    }
+}
+
+/// What the wallpapers kept row says: "3 of 4", or "--" before the read.
+pub fn kept_text(value: FieldValue) -> alloc::string::String {
+    match value {
+        FieldValue::U64(set) => {
+            alloc::format!("{} of {}", set.count_ones(), WALLPAPER_LABELS.len())
+        }
+        _ => alloc::string::String::from("--"),
     }
 }
