@@ -34,7 +34,7 @@ impl Pair {
         let on = |c: bool, bit: u16| if c { bit } else { 0 };
         if master {
             let gone = self.slave_seen && !self.slave;
-            let room = self.input.ready.len() < MOST;
+            let room = self.input.ready.len() < MOST && self.output.len() < OUT_MOST;
             return on(!self.output.is_empty(), POLLIN) | on(room, POLLOUT) | on(gone, POLLHUP);
         }
         if self.hung {

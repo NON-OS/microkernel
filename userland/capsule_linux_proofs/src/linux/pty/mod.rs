@@ -49,6 +49,8 @@ pub mod table_io;
 #[cfg(test)]
 mod discipline_tests;
 #[cfg(test)]
+mod flood_tests;
+#[cfg(test)]
 mod hangup_tests;
 #[cfg(test)]
 mod naming_tests;
