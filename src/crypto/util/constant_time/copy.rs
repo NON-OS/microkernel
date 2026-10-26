@@ -90,12 +90,10 @@ pub fn secure_erase(data: &mut [u8]) {
 #[inline(never)]
 pub fn ct_copy(dst: &mut [u8], src: &[u8]) {
     let len = dst.len().min(src.len());
-    for i in 0..len {
-        dst[i] = src[i];
-    }
-    for i in len..dst.len() {
-        let val = dst[i];
-        volatile_write(&mut dst[i], val);
+    dst[..len].copy_from_slice(&src[..len]);
+    for byte in &mut dst[len..] {
+        let val = *byte;
+        volatile_write(byte, val);
     }
     compiler_fence();
 }

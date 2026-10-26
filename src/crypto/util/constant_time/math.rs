@@ -89,13 +89,13 @@ pub fn ct_clz_u64(x: u64) -> u32 {
 pub fn ct_bswap_u64(x: u64) -> u64 {
     let x = ((x >> 8) & 0x00FF00FF00FF00FF) | ((x & 0x00FF00FF00FF00FF) << 8);
     let x = ((x >> 16) & 0x0000FFFF0000FFFF) | ((x & 0x0000FFFF0000FFFF) << 16);
-    (x >> 32) | (x << 32)
+    x.rotate_left(32)
 }
 
 #[inline(always)]
 pub fn ct_bswap_u32(x: u32) -> u32 {
     let x = ((x >> 8) & 0x00FF00FF) | ((x & 0x00FF00FF) << 8);
-    (x >> 16) | (x << 16)
+    x.rotate_left(16)
 }
 
 /// Subtract `m` once if `a` is at least `m`, without branching.
