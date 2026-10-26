@@ -20,6 +20,7 @@
 //! `handshake::replay_tests`, `handshake::refusal_tests` and
 //! `handshake::group_tests`.
 
+use crate::ap_sim::wrap::pad;
 use crate::ap_sim::*;
 use crate::handshake::sim::{configured, psk, ptk_for};
 use nonos_wifi_core::eapol::mic::verify_mic_kind;

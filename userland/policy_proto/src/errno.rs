@@ -20,3 +20,6 @@ pub const E_BAD_LEN: u16 = 90;
 pub const E_NOT_FOUND: u16 = 91;
 pub const E_WRONG_KIND: u16 = 92;
 pub const E_ACCES: u16 = 93;
+/// A kept setting asked for before the restore has put it back: no answer
+/// yet, rather than a default that would pass for the kept value.
+pub const E_NOT_READY: u16 = 94;

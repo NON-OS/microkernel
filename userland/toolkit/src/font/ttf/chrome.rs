@@ -39,19 +39,19 @@ pub(super) fn draw_cached(
 ) -> i32 {
     let baseline = (at.1 as f32 + f.as_scaled(PxScale::from(px)).ascent()) as i32;
     let mut pen = at.0 as f32;
-    let mut prev: Option<(bool, GlyphId)> = None;
+    let mut prev: Option<(*const FontRef<'static>, GlyphId)> = None;
     let mut store = cache::lock();
     for ch in text.chars() {
         /* Drawn from whichever built-in face has the glyph, cached under it. */
-        let (m, gf) = super::fallback::face_for(f, mono, ch);
+        let gf = super::fallback::face_for(f, mono, ch);
         let sf = gf.as_scaled(PxScale::from(px));
         let (face, len) = face_id(gf);
         let g = sf.scaled_glyph(ch);
-        if let Some((_, p)) = prev.filter(|(pm, _)| *pm == m) {
+        if let Some((_, p)) = prev.filter(|(pf, _)| core::ptr::eq(*pf, gf)) {
             pen += super::gpos::kern::kern_px(&sf, p, g.id);
         }
         let adv = sf.h_advance(g.id);
-        prev = Some((m, g.id));
+        prev = Some((gf, g.id));
         let key = Key { face, len, glyph: g.id.0, px: px.to_bits(), phase: ORIGIN };
         let place = Place { x: pen as i32, y: baseline, argb, bias: 0.0 };
         draw_glyph(&mut store, t, key, || sf.outline_glyph(g), place);
