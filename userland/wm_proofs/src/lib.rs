@@ -18,6 +18,8 @@
 //! in the real production source so the tests pin the shipping hit-testing and
 //! clamping used by click-to-raise and window placement.
 
+extern crate alloc;
+
 // The geometry module includes rect and constrain once; the tests reach them
 // at the crate root through these names.
 pub use geometry::{constrain, rect};
@@ -32,8 +34,11 @@ pub mod window;
 #[path = "../../capsule_wm/src/z_order/mod.rs"]
 pub mod z_order;
 
+// The tiling layout (letter gpu 09, step 1), not yet in the capsule.
 #[path = "../../capsule_wm/src/focus/mod.rs"]
 pub mod focus;
+#[path = "../../capsule_wm/src/tile/mod.rs"]
+pub mod tile;
 
 // The wire every request arrives on: the header decode the loop runs before
 // dispatch, and the encoders a refusal is answered with.
@@ -48,21 +53,4 @@ pub mod server;
 pub mod restack;
 
 #[cfg(test)]
-mod restack_tests;
-
-#[cfg(test)]
-mod full_screen_tests;
-#[cfg(test)]
-mod geometry_tests;
-#[cfg(test)]
-mod hand_off_tests;
-#[cfg(test)]
-mod notify_send_tests;
-#[cfg(test)]
-mod parse_tests;
-#[cfg(test)]
-mod press_tests;
-#[cfg(test)]
-mod reopen_tests;
-#[cfg(test)]
-mod window_share_tests;
+mod tests;

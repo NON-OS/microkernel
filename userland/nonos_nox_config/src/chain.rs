@@ -19,6 +19,10 @@
 
 pub const MAINNET: u64 = 1;
 pub const SEPOLIA: u64 = 11_155_111;
+/// A local test chain on the development machine's host (P5). Only a build
+/// with the `devnet` feature knows it, and only development images have one.
+#[cfg(feature = "devnet")]
+pub const DEVNET: u64 = 31_337;
 
 // The time between blocks on each chain, in ms: both are proof of stake at
 // 12 s slots. settle's log reads stop at 20 years of these blocks past a
@@ -30,6 +34,8 @@ pub const SEPOLIA_BLOCK_MS: u64 = 12_000;
 pub enum Chain {
     Mainnet,
     Sepolia,
+    #[cfg(feature = "devnet")]
+    Devnet,
 }
 
 impl Chain {
@@ -37,6 +43,8 @@ impl Chain {
         match self {
             Chain::Mainnet => MAINNET,
             Chain::Sepolia => SEPOLIA,
+            #[cfg(feature = "devnet")]
+            Chain::Devnet => DEVNET,
         }
     }
 
@@ -44,6 +52,8 @@ impl Chain {
         match self {
             Chain::Mainnet => MAINNET_BLOCK_MS,
             Chain::Sepolia => SEPOLIA_BLOCK_MS,
+            #[cfg(feature = "devnet")]
+            Chain::Devnet => SEPOLIA_BLOCK_MS,
         }
     }
 
@@ -51,6 +61,8 @@ impl Chain {
         match id {
             MAINNET => Some(Chain::Mainnet),
             SEPOLIA => Some(Chain::Sepolia),
+            #[cfg(feature = "devnet")]
+            DEVNET => Some(Chain::Devnet),
             _ => None,
         }
     }

@@ -23,6 +23,8 @@ pub const OP_LIST_INSTALLED: u16 = 5;
 pub const OP_PKG_QUERY: u16 = 6;
 pub const OP_PKG_COMMIT: u16 = 7;
 pub const OP_PKG_REMOVE: u16 = 8;
+/// How the sender's last load of a name ended (`server/outcomes.rs`).
+pub const OP_LOAD_OUTCOME: u16 = 9;
 
 // 0x1_0000_001A; must stay unique across every capsule's reply inbox
 // (0x1_0000_0011 collided with the NVMe driver on full-gui, then
@@ -33,6 +35,8 @@ pub const KERNEL_REPLY_ENDPOINT: u64 = 0x1_0000_001A;
 pub(super) const HDR_LEN: usize = 8;
 
 pub const EINVAL: i32 = -22;
+/// No outcome kept for that load.
+pub const ENOENT: i32 = -2;
 /// A sender without the right an op needs (`server/gate.rs`).
 pub const EPERM: i32 = -1;
 

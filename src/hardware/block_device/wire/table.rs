@@ -28,6 +28,16 @@ static DRIVERS: &[&Endpoint] = &[
     &crate::hardware::ufs_capsule::ENDPOINT,
     #[cfg(feature = "nonos-capsule-driver-storvsc")]
     &crate::hardware::storvsc_capsule::ENDPOINT,
+    #[cfg(feature = "nonos-capsule-driver-piix-ide")]
+    &crate::hardware::piix_ide_capsule::ENDPOINT,
+    #[cfg(feature = "nonos-capsule-driver-virtio-scsi")]
+    &crate::hardware::virtio_scsi_capsule::ENDPOINT,
+    #[cfg(feature = "nonos-capsule-driver-pvscsi")]
+    &crate::hardware::pvscsi_capsule::ENDPOINT,
+    #[cfg(feature = "nonos-capsule-driver-buslogic")]
+    &crate::hardware::buslogic_capsule::ENDPOINT,
+    #[cfg(feature = "nonos-capsule-driver-mpt")]
+    &crate::hardware::mpt_capsule::ENDPOINT,
 ];
 
 /// How many endpoints this kernel carries.

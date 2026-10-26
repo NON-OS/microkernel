@@ -23,7 +23,7 @@ use crate::constants::layout::{REPLY_BYTES, REPLY_FRAMES, REPLY_OFF, REQUEST_BYT
 use crate::constants::msg::{
     FACTS_DWORDS, FACTS_MAX_BUSES, FACTS_MAX_DEVICES, FACTS_REQUEST_FRAME_SIZE,
     HANDSHAKE_REPLY_MAX, INIT_DWORDS, INIT_HEADER_VERSION, INIT_MAX_BUSES, INIT_MAX_DEVICES,
-    INIT_MSG_VERSION, INIT_REPLY_FRAME_SIZE, INIT_WHO, IO_SGL, MPI_HEADER_VERSION, MPI_VERSION,
+    INIT_MSG_VERSION, INIT_REPLY_FRAME_SIZE, INIT_WHO, MPI_HEADER_VERSION, MPI_VERSION,
     MSG_CONTEXT, MSG_FUNCTION, PORT_ENABLE_DWORDS, REPLY_IOC_STATUS, WHOINIT_HOST_DRIVER,
 };
 use crate::constants::regs::{
@@ -80,13 +80,8 @@ pub fn facts<R: Regs>(r: &R) -> Result<Facts, &'static str> {
     {
         return Err("IOC facts refused");
     }
-    let frame =
-        u16::from_le_bytes([reply[FACTS_REQUEST_FRAME_SIZE], reply[FACTS_REQUEST_FRAME_SIZE + 1]])
-            as usize
-            * 4;
-    // The SCSI request with its one SGE must fit the IOC's frames, and its
-    // frames must fit the driver's.
-    if !(IO_SGL + 8..=REQUEST_BYTES * 2).contains(&frame) {
+    let frame = [reply[FACTS_REQUEST_FRAME_SIZE], reply[FACTS_REQUEST_FRAME_SIZE + 1]];
+    if !crate::frame::served(u16::from_le_bytes(frame)) {
         return Err("IOC request frames not served");
     }
     let f = Facts { max_devices: reply[FACTS_MAX_DEVICES], max_buses: reply[FACTS_MAX_BUSES] };
