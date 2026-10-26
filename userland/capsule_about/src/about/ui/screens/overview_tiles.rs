@@ -34,46 +34,46 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, held: Option<u64>) {
     let y = y as u32;
     let col = (w.saturating_sub(TILE_GAP * 2)) / 3;
     let last = w.saturating_sub((col + TILE_GAP) * 2);
-    uptime_tile(fb, 0, y, col);
-    caps_tile(fb, col + TILE_GAP, y, col, held);
-    display_tile(fb, (col + TILE_GAP) * 2, y, last);
+    uptime_tile(fb, (0, y, col));
+    caps_tile(fb, (col + TILE_GAP, y, col), held);
+    display_tile(fb, ((col + TILE_GAP) * 2, y, last));
 }
 
 // The ring is the position inside the current day, which is the only fraction the
 // clock can honestly offer: there is no total to divide an uptime by.
-fn uptime_tile(fb: &mut PaintBuffer, x: u32, y: u32, w: u32) {
+fn uptime_tile(fb: &mut PaintBuffer, at: (u32, u32, u32)) {
     let mut value = [0u8; 24];
     match read_millis() {
         Some(ms) => {
             let v = uptime(ms, &mut value);
-            gauge::tile(fb, x, y, w, b"Uptime", v, b"since this boot", (ms / 1000) % DAY_S, DAY_S);
+            gauge::tile(fb, at, b"Uptime", v, b"since this boot", ((ms / 1000) % DAY_S, DAY_S));
         }
-        None => gauge::tile(fb, x, y, w, b"Uptime", b"unavailable", b"monotonic clock", 0, 1),
+        None => gauge::tile(fb, at, b"Uptime", b"unavailable", b"monotonic clock", (0, 1)),
     }
 }
 
 // The word the kernel recorded for this pid, counted against every named
 // capability. A table that did not answer says so rather than counting the
 // bits the build declared.
-fn caps_tile(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, held: Option<u64>) {
+fn caps_tile(fb: &mut PaintBuffer, at: (u32, u32, u32), held: Option<u64>) {
     let total = ALL_CAPS.len() as u64;
     let Some(mask) = held else {
-        gauge::tile(fb, x, y, w, b"Capabilities", b"unavailable", b"process table", 0, 1);
+        gauge::tile(fb, at, b"Capabilities", b"unavailable", b"process table", (0, 1));
         return;
     };
     let count = granted(mask);
     let mut value = [0u8; 24];
     let v = ratio(count, total, &mut value);
-    gauge::tile(fb, x, y, w, b"Capabilities", v, b"held by this window", count, total);
+    gauge::tile(fb, at, b"Capabilities", v, b"held by this window", (count, total));
 }
 
-fn display_tile(fb: &mut PaintBuffer, x: u32, y: u32, w: u32) {
+fn display_tile(fb: &mut PaintBuffer, at: (u32, u32, u32)) {
     let mut value = [0u8; 24];
     match primary_dimensions() {
         Some((dw, dh)) => {
             let v = dims(dw, dh, &mut value);
-            gauge::tile(fb, x, y, w, b"Display", v, b"primary display", 1, 1);
+            gauge::tile(fb, at, b"Display", v, b"primary display", (1, 1));
         }
-        None => gauge::tile(fb, x, y, w, b"Display", b"unavailable", b"primary display", 0, 1),
+        None => gauge::tile(fb, at, b"Display", b"unavailable", b"primary display", (0, 1)),
     }
 }

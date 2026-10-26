@@ -38,6 +38,12 @@ pub struct StoreApps {
     pub launch: Option<crate::state::launch::Launch>,
 }
 
+impl Default for StoreApps {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl StoreApps {
     pub fn new() -> Self {
         StoreApps {
