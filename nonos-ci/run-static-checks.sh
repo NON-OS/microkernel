@@ -2360,6 +2360,16 @@ else
     fail_with "bootloader build.rs writes outside OUT_DIR"
 fi
 unset boot_build
+# "[INIT] Capsules spawned" is printed only when no capsule failed to spawn;
+# every boot check fails the "capsule spawn incomplete" line in its place, and
+# --selftest shows each check, with that clause taken out, passing it.
+if spawn_out="$(python3 -I nonos-ci/check-spawn-incomplete.py --selftest 2>&1)"; then
+    note ok "every boot check fails a boot whose capsules did not all spawn"
+else
+    tail -n 5 <<< "${spawn_out}" >&2
+    fail_with "a boot check passes a boot whose capsules did not all spawn"
+fi
+unset spawn_out
 # The kernel embeds its trust set only through baked_trust!, so a build pointed
 # at a test set (NONOS_BAKED_TRUST_DIR) replaces every file of it; a trust file
 # included by its literal path would keep the tree's copy in that build.

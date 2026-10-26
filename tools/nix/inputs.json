@@ -9238,6 +9238,18 @@
   "md": [],
   "signed": []
  },
+ "userland/spawn_report_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/kernel_core/process_spawn/capsule_spawn/spawn_error.rs",
+   "src/userspace/init/capsule_boot/failures.rs",
+   "src/userspace/init/spawn_report.rs",
+   "userland/spawn_report_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/spectre_proofs": {
   "exclude": [],
   "include": [
