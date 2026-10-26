@@ -19,6 +19,10 @@ use nonos_toolkit::decorations::{DecorationHit, Edges, Placed};
 
 use super::super::press_part::PressGrab;
 
+/// The shape last told before any was: the first hover tells the arrow, so a
+/// window states its own shape and never shows one of a window under it.
+const NOT_TOLD: u8 = u8::MAX;
+
 pub(in crate::runner) struct DragState {
     pub active: bool,
     pub hover: DecorationHit,
@@ -45,7 +49,7 @@ impl DragState {
             base_x: 0,
             base_y: 0,
             resizing: None,
-            cursor: (0, 0),
+            cursor: (0, NOT_TOLD),
         }
     }
 }
