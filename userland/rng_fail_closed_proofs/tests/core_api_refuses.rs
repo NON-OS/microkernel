@@ -18,8 +18,6 @@
 //! they refuse, whatever the hardware answers, and never reach the fallback,
 //! so neither boot line is said; once seeded, they answer from the RNG.
 
-#![allow(dead_code)]
-
 include!("../src/mount.rs");
 
 use crypto::core_random::{fill_random, secure_random_u32, secure_random_u64, secure_random_u8};

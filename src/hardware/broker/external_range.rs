@@ -33,7 +33,6 @@ pub struct ExternalRange {
 /// The secondary and subordinate buses, from the header type (offset 0x0E)
 /// and dword 0x18: None for a function that is no PCI-to-PCI bridge, or
 /// whose numbers are not a range below it.
-#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
 pub fn bridge_buses(header_type: u8, dword_18: u32, port_bus: u8) -> Option<(u8, u8)> {
     let [primary, secondary, subordinate, _] = dword_18.to_le_bytes();
     let bridge = header_type & 0x7F == 1;

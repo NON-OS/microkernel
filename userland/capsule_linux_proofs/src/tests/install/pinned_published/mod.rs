@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The model files the Qwen team publishes, written out here from the
-//! LFS pointers of its Hugging Face GGUF repositories, independently of
-//! the personality's tables, so a digest changed there fails a proof here.
-//! In table order: Qwen2.5, its 14B and 32B, Qwen3, then Coder.
+//! The model files their publishers give, written out here from the LFS
+//! pointers of the Hugging Face GGUF repositories (the Qwen team's, and
+//! ggml-org's for Qwen3.5 and Qwen3.6), independently of the personality's
+//! tables, so a digest changed there fails a proof here. In table order:
+//! Qwen2.5, its 14B and 32B, Qwen3, Qwen3.5 and Qwen3.6, then Coder.
 
 mod kept;
 mod published;

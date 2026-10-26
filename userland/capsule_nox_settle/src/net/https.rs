@@ -37,6 +37,9 @@ const HEAD_MAX: usize = 16 * 1024;
 
 pub(super) fn https(host: &str, req: &[u8], limit: usize, ms: u64) -> Result<Vec<u8>, i32> {
     let route = Route::for_wallet();
+    // A devnet build dials the local test chain's one name directly (P5).
+    #[cfg(feature = "devnet")]
+    let route = route.for_rpc(host);
     if matches!(route, Route::Down(_)) {
         return Err(ENETDOWN);
     }

@@ -33,7 +33,6 @@ mod firmware_tests;
 /// a layout the kernel writes and the parser does not read fails here instead
 /// of on the machine.
 #[cfg(test)]
-#[allow(dead_code)]
 #[path = "../../../src/security/attest_doc/document.rs"]
 mod kernel_document;
 
