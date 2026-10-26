@@ -21,7 +21,7 @@
 use nonos_app_skeleton::runner::chrome::quarters_for;
 use nonos_app_skeleton::runner::fit_rule::fit_manifest;
 use nonos_app_skeleton::{App, AppManifest, PaintBuffer};
-use nonos_toolkit::decorations::{content_rect_at, draw_frame_at};
+use nonos_toolkit::decorations::{content_rect_at, draw_frame_at, DecorationHit, FrameState};
 
 pub struct Shot {
     pub at: AppManifest,
@@ -39,7 +39,8 @@ pub fn shoot<A: App>(app: &mut A, w: u32, h: u32) -> Shot {
         width: at.width,
         height: at.height,
     };
-    draw_frame_at(&mut fb, false, at.title, false, 0, q);
+    let state = FrameState { hover: DecorationHit::None, focused: true };
+    draw_frame_at(&mut fb, false, at.title, state, 0, q);
     let c = content_rect_at(at.width, at.height, false, q);
     let framed = fb.pixels.to_vec();
     app.paint(&mut fb.sub(c.x, c.y, c.w, c.h));
