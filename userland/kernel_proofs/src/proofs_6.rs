@@ -26,6 +26,9 @@ pub mod block_wire;
 mod boot_fb;
 #[path = "described/mod.rs"]
 pub mod described;
+/// Debug optional for the drivers a development image should hear.
+#[path = "debug_grants/mod.rs"]
+mod debug_grants;
 /// Disk controllers before the bus drivers.
 #[path = "disks_first/mod.rs"]
 mod disks_first;
