@@ -32,7 +32,9 @@ static SAID: AtomicBool = AtomicBool::new(false);
 pub(in crate::fs) fn volume_scope() -> Result<VolumeScope, BlockDeviceError> {
     crate::hardware::block_device::volume_scope(&VolumeIo(())).ok_or_else(|| {
         if !SAID.swap(true, Ordering::Relaxed) {
-            crate::sys::serial::print(b"[DATA] volume I/O refused: every volume scope is taken; try again\n");
+            crate::sys::serial::print(
+                b"[DATA] volume I/O refused: every volume scope is taken; try again\n",
+            );
         }
         BlockDeviceError::NotReady
     })
