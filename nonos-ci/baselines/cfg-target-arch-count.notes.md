@@ -113,7 +113,7 @@ under `src/arch`, as the paragraph above says they must to leave the count.
 
 `acpi_only!` (`src/arch/acpi_capsule/gate.rs`) declares the modules that exist
 only on an ACPI platform, so the list of those arches lives under `src/arch`
-(`scripts/check_acpi_only.py` holds it to x86_64 alone). Counted lines gone:
+(`scripts/check_platform_gates.py` holds it to x86_64 alone). Counted lines gone:
 - `hardware/broker/mod.rs`: `acpi`, `acpi_gpio`, `acpi_i2c` (−3);
 - `syscall/microkernel/mod.rs`: the `acpi` and `acpi_absent` pair (−1; its
   `cfg(not(...))` line was never counted);

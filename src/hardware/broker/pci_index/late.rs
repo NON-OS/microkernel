@@ -17,16 +17,21 @@
 //! The ACPI broker's changes to the index: a function added after the boot
 //! scan, and one that departed.
 
+use super::msi::{set::set, MSI};
 use super::{PciHandle, INDEX};
+use crate::drivers::pci::types::MsiInfo;
 
-/// One function added after the boot scan (`table::add_pci_function`).
-pub(in crate::hardware::broker) fn push(handle: PciHandle) {
+/// One function added after the boot scan (`table::add_pci_function`), with
+/// its MSI capability if it has one.
+pub(in crate::hardware::broker) fn push(handle: PciHandle, msi: Option<MsiInfo>) {
+    set(&mut MSI.write(), handle.device_id, msi);
     INDEX.write().push(handle);
 }
 
-/// A function that left (`acpi::depart`): its handle goes with it, so a
-/// later arrival at the same address is read afresh.
+/// A function that left (`acpi::depart`): its handle goes with it, and its
+/// MSI entry, so a later arrival at the same address is read afresh.
 pub(in crate::hardware::broker) fn take(device_id: u64) -> Option<PciHandle> {
+    set::<MsiInfo>(&mut MSI.write(), device_id, None);
     let mut index = INDEX.write();
     let at = index.iter().position(|h| h.device_id == device_id)?;
     Some(index.remove(at))

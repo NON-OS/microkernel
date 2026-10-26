@@ -5346,17 +5346,17 @@ else
     fail_with "ap start: a failed AP start is discarded without its reason"
 fi
 unset aps_out
-# Which architectures are ACPI platforms is said once, by acpi_only! in
-# src/arch/acpi_capsule/gate.rs; modules that exist only there are declared
-# inside it, and nothing but mod and use goes inside (rustfmt skips a macro body).
-if acpi_out="$(python3 scripts/check_acpi_only.py --self-test 2>&1 \
-    && python3 scripts/check_acpi_only.py 2>&1)"; then
-    note ok "acpi_only! gates on the ACPI arches alone and holds only mod and use (check_acpi_only)"
+# Which architectures are ACPI platforms, and which bind MSI, is said once, by
+# acpi_only! and msi_only! in src/arch/acpi_capsule/gate.rs; modules that exist
+# only there are declared inside, and nothing but mod and use (rustfmt skips them).
+if gates_out="$(python3 scripts/check_platform_gates.py --self-test 2>&1 \
+    && python3 scripts/check_platform_gates.py 2>&1)"; then
+    note ok "the platform gates name their arches alone and hold only mod and use (check_platform_gates)"
 else
-    tail -n 5 <<< "${acpi_out}" >&2
-    fail_with "acpi_only!: the gate names another arch, or holds code"
+    tail -n 5 <<< "${gates_out}" >&2
+    fail_with "platform gates: a gate names another arch, or holds code"
 fi
-unset acpi_out
+unset gates_out
 # An x86_64 kernel without nonos-arch-iommu is not one: the platform init
 # reaches the IOMMU unconditionally. arch-x86_64 implies it, every kernel feature
 # set resolves to it, and src/arch/x86_64 refuses to compile without it.

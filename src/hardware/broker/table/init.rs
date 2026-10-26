@@ -33,10 +33,12 @@ pub fn init_from_pci(devices: &[PciDevice]) {
         records.push(record_from_pci(idx as u64, dev));
         handles.push(handle_for(idx as u64, dev));
     }
+    let msi = devices.iter().enumerate().filter_map(|(i, d)| Some((i as u64, d.msi?))).collect();
     let ways: Vec<_> = handles.iter().map(|h| (h.address, h.reset)).collect();
     say_reset_ways(&ways);
     *TABLE.write() = records;
     pci_index::install(handles);
+    pci_index::install_msi(msi);
 }
 
 pub(in crate::hardware::broker) fn register_platform_device(mut record: DeviceRecord) -> u64 {
@@ -54,7 +56,6 @@ pub(super) fn handle_for(device_id: u64, dev: &PciDevice) -> PciHandle {
         device_id,
         address: dev.address,
         bars: dev.bars,
-        msi: dev.msi,
         msix: dev.msix,
         // An Intel VMD gates its drives' DMA and config as a bridge does (L61).
         standard: matches!(dev.header_type, HeaderType::Standard)

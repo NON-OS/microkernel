@@ -27,14 +27,13 @@ extern crate alloc;
 use alloc::vec::Vec;
 use spin::RwLock;
 
-use crate::drivers::pci::types::{MsiInfo, MsixInfo, PciAddress, PciBar};
+use crate::drivers::pci::types::{MsixInfo, PciAddress, PciBar};
 
 #[derive(Clone, Copy, Debug)]
 pub(in crate::hardware::broker) struct PciHandle {
     pub(in crate::hardware::broker) device_id: u64,
     pub(in crate::hardware::broker) address: PciAddress,
     pub(in crate::hardware::broker) bars: [PciBar; 6],
-    pub(in crate::hardware::broker) msi: Option<MsiInfo>,
     pub(in crate::hardware::broker) msix: Option<MsixInfo>,
     /// A type 0 header and no Intel VMD: no function whose Bus Master Enable
     /// or BARs gate others', whose claim the broker refuses (L58, L61).
@@ -58,6 +57,14 @@ pub(in crate::hardware::broker) fn lookup(device_id: u64) -> Option<PciHandle> {
 pub(in crate::hardware::broker) fn all() -> Vec<PciHandle> {
     INDEX.read().clone()
 }
+
+crate::arch::msi_only! {
+    #[path = "pci_index/msi.rs"]
+    mod msi;
+    pub(in crate::hardware::broker) use msi::msi_of;
+}
+crate::arch::msi_only! { else #[path = "pci_index/msi_absent.rs"] mod msi; }
+pub(in crate::hardware::broker) use msi::install as install_msi;
 
 crate::arch::acpi_only! {
     mod late;
