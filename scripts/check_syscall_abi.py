@@ -70,7 +70,7 @@ MK_NUMBERS = Path("src/syscall/microkernel/numbers.rs")
 MK_DISPATCH = Path("src/syscall/microkernel/dispatch")
 MK_ROUTER = ROUTER / "microkernel_ops.rs"
 
-ENUM_RE = re.compile(r"(\w+)\s*=\s*tag4\(b\"(\w{4})\"\)")
+ENUM_RE = re.compile(r"(\w+)\s*=\s*(?:[\w:]+::)?tag4\(b\"(\w{4})\"\)")
 # Families spell the constructor `e` or `r`, so match the call shape and not
 # whichever letter a file happens to have picked.
 REGISTRY_RE = re.compile(r"\b[a-z]\(b\"(\w{4})\"\s*,\s*SyscallNumber::(\w+)")

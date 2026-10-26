@@ -18,5 +18,6 @@
 
 mod convert;
 mod defs;
+mod defs_traits;
 
 pub use defs::SyscallNumber;
