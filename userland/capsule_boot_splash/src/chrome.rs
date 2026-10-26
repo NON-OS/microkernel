@@ -30,15 +30,12 @@ pub(crate) fn rect(buf: &mut [u32], spx: usize, x: u32, y: u32, w: u32, h: u32, 
     }
 }
 
+/// A titled panel at `(px, py)`, `pw` by `ph`, on a `w` by `h` screen.
 pub(crate) fn panel(
     buf: &mut [u32],
     spx: usize,
-    w: u32,
-    h: u32,
-    px: u32,
-    py: u32,
-    pw: u32,
-    ph: u32,
+    (w, h): (u32, u32),
+    (px, py, pw, ph): (u32, u32, u32, u32),
     title: &[u8],
 ) {
     rect(buf, spx, px, py, pw, ph, BORDER);

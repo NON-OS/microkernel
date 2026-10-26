@@ -19,4 +19,18 @@ else
   printf '%s\n' "PASS: no tracked PEM private keys found"
 fi
 
+# DER keys carry no PEM armour, so they are held by name. The devnet's two
+# throwaway TLS keys are the only ones the tree may track: public on purpose
+# (tools/devnet/tls/README.md), and their root is trusted by no release
+# (scripts/check_devnet_feature.py, tools/nix/release_names.nix).
+allowed='^tools/devnet/tls/(root|leaf)-key\.throwaway\.der$'
+if git ls-files | grep -E -- '(^|[/_-])key[^/]*\.der$' | grep -v -E "$allowed" >/dev/null 2>&1; then
+  git ls-files | grep -E -- '(^|[/_-])key[^/]*\.der$' | grep -v -E "$allowed"
+  fail=1
+  printf '%s\n' "FAIL: tracked DER key files outside the devnet's two throwaway keys"
+else
+  printf '%s\n' "PASS: the only tracked DER keys are the devnet's throwaway pair:"
+  git ls-files | grep -E "$allowed" || true
+fi
+
 exit "$fail"

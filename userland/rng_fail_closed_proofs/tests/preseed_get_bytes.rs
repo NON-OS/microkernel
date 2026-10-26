@@ -16,8 +16,6 @@
 
 //! Through the byte API's three layers, with the hardware answering.
 
-#![allow(dead_code, clippy::let_unit_value)]
-
 include!("../src/mount.rs");
 
 fn said() -> String {

@@ -35,10 +35,11 @@ mod owner;
 mod pause;
 mod reread;
 mod resume;
+mod stream_lock;
 mod write;
 
 pub use begin::{stream_begin, Begun};
 pub use error::StreamError;
 pub use finish::stream_finish;
+pub(super) use stream_lock::{with_streams, without_stream};
 pub use write::stream_write;
-pub(super) use live::without_stream;

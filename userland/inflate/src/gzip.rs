@@ -41,7 +41,7 @@ pub fn gunzip_within(data: &[u8], limit: usize) -> Option<Vec<u8>> {
 /// Decodes members until the input ends, a member fails, or the output
 /// reaches `cap`. A corrupt member after the first is trailing garbage.
 pub fn gunzip_partial(data: &[u8], cap: usize) -> Inflated {
-    let mut all = Inflated { out: Vec::new(), end: End::Complete, used: 0 };
+    let mut all = Inflated { out: Vec::new(), end: End::Complete, used: 0, short: None };
     for n in 0..MAX_MEMBERS {
         let rest = &data[all.used..];
         if n > 0 && rest.is_empty() {
@@ -53,9 +53,14 @@ pub fn gunzip_partial(data: &[u8], cap: usize) -> Inflated {
         }
         if all.out.is_empty() {
             all.out = m.out;
+        } else if all.out.try_reserve_exact(m.out.len()).is_err() {
+            all.end = End::NoMemory;
+            all.short = Some(all.out.len() + m.out.len());
+            return all;
         } else {
             all.out.extend_from_slice(&m.out);
         }
+        all.short = m.short;
         all.used += m.used;
         if m.end != End::Complete {
             all.end = m.end;

@@ -43,9 +43,11 @@ pub(super) fn run(src: &[u8], cap: usize, hint: usize) -> Inflated {
     let mut out = Out::new(cap, hint);
     let end = match blocks(&mut b, &mut out) {
         Ok(()) => End::Complete,
+        Err(_) if out.short.is_some() => End::NoMemory,
         Err(e) => e,
     };
-    Inflated { out: out.finish(), end, used: b.consumed() }
+    let short = out.short;
+    Inflated { out: out.finish(), end, used: b.consumed(), short }
 }
 
 fn blocks(b: &mut Bits, out: &mut Out) -> Result<(), End> {

@@ -1,0 +1,6 @@
+a2e2648922 Merge remote-tracking branch 'origin/privacy/volume-gate' into scratch/kv-vg
+ tools/nix/config.nix                  |   8 ++
+ userland/capsule_proof_io/Capsule.mk  |   2 +-
+ userland/capsule_proof_io/src/main.rs | 142 ++++++++++++++++++++++------------
+ 3 files changed, 100 insertions(+), 52 deletions(-)
+54a8c0d6a2c2270aea1ee3538e2e17271c28d15b44722492b4eba966b692f9d1  /home/user/pk-build/target/dev/tree/target/release/kvproof-dev/nonos.img

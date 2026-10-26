@@ -19,7 +19,6 @@
 
 pub mod acpi;
 #[path = "../../../../../src/hardware/broker/class.rs"]
-#[allow(dead_code)] // the proofs read only the ids a platform device takes
 pub mod class;
 pub mod device;
 #[path = "../../../../../src/hardware/broker/external_range.rs"]
@@ -32,7 +31,6 @@ pub mod mmio;
 pub mod reserved;
 pub mod table;
 
-#[allow(unused_imports)] // the table's and the inventory's files name them at this path
 pub use device::{Bar, BarKind, DeviceRecord, BAR_FLAG_FIXED};
 
 #[cfg(test)]

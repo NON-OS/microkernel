@@ -41,7 +41,7 @@ mod unprimed;
 mod upgrade;
 
 pub use canvas::fit_canvas;
-pub use discover::{displays, lookup};
+pub use discover::{display_hints, lookup};
 pub use layout::relayout;
 pub use poll::poll;
 pub use prime::run_display;

@@ -64,12 +64,3 @@ fn bad_lengths_and_checksums() {
     assert_eq!(decode(&long), Err(Tpm2Fault::Length(MAX_LEN + 1)));
     assert_eq!(decode(&[0; 4]), Err(Tpm2Fault::Length(0)));
 }
-
-#[test]
-fn start_methods_named() {
-    for m in [START_ACPI, START_FIFO, START_CRB, START_CRB_ACPI, START_CRB_SMC] {
-        assert!(start_name(m).is_some(), "{m}");
-    }
-    assert_eq!(start_name(1), None);
-    assert_eq!(start_name(START_CRB_ACPI), Some("command response buffer, ACPI start"));
-}

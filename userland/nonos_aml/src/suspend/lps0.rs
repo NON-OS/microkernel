@@ -28,7 +28,7 @@ use alloc::vec;
 pub struct Lps0 {
     pub dev: Id,
     /// Function 0's answer for each UUID: bit n set when function n is
-    /// there; 0 when the UUID is not supported at all.
+    /// there; 0 when the firmware answers nothing for the UUID.
     pub microsoft: u64,
     pub intel: u64,
 }

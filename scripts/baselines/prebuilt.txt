@@ -22,3 +22,6 @@ fixture userland/tls_proofs/src/*
 fixture userland/relocate_proofs/fixtures/*
 generated nonos-data/market/index.bin
 generated nonos-data/models/catalogue.bin
+# The local test chain's throwaway TLS root and leaves, from tools/devnet/tls/generate.py;
+# only a devnet development build embeds the root, and no release compiles it.
+generated tools/devnet/tls/*

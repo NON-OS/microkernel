@@ -28,3 +28,6 @@ sha3 = { version = "=0.10.9", default-features = false }
 [dev-dependencies]
 # The request settle sends, built by its own encoder.
 nonos_settle_proto = { path = "../userland/settle_proto" }
+# The market capsule's own ed25519 check, mounted by the development
+# catalogue proofs (tests/dev_catalogue_*.rs).
+nonos_ed25519 = { path = "../userland/nonos_ed25519" }

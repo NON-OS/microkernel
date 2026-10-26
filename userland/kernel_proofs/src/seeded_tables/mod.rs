@@ -22,11 +22,9 @@
 //! them.
 
 #[path = "../../../../src/arch/x86_64/acpi/hw/fadt_decode.rs"]
-#[allow(dead_code)]
-pub(crate) mod fadt_decode;
+pub mod fadt_decode;
 #[path = "../../../../src/arch/x86_64/acpi/hw/gas.rs"]
-#[allow(dead_code)] // the FADT's registers, written only by `leave_events` here
-pub(crate) mod gas;
+pub mod gas;
 #[path = "../../../../src/arch/x86_64/acpi/parser/other/hpet_decode.rs"]
 mod hpet_decode;
 #[path = "../../../../src/arch/x86_64/acpi/parser/madt/walk.rs"]
@@ -37,8 +35,7 @@ mod mcfg_decode;
 #[path = "../../../../src/arch/x86_64/acpi/hw/leave_events.rs"]
 pub(crate) mod leave_events;
 #[path = "../../../../src/arch/x86_64/acpi/hw/sleep.rs"]
-#[allow(dead_code)]
-pub(crate) mod sleep;
+pub mod sleep;
 
 mod admit;
 mod dmar_gen;

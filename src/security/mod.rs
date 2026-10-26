@@ -50,9 +50,8 @@ pub use boot::{firmware, secure_boot};
 pub use boot::{
     firmware_init, generate_attestation_report, get_boot_measurements, get_policy,
     is_boot_chain_verified, is_enforcing, record_boot_measurements, secure_boot_init, set_policy,
-    verify_boot_chain, verify_code_signature, verify_kernel, AttestationReport, BootMeasurements,
-    FirmwareDB, SecureBootError, SecureBootPolicy, SecureBootResult, SecureBootStats,
-    TrustedBootKeys,
+    AttestationReport, BootMeasurements, FirmwareDB, SecureBootError, SecureBootPolicy,
+    SecureBootResult, SecureBootStats, TrustedBootKeys,
 };
 
 pub use crypto::constant_time;

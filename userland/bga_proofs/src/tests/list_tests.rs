@@ -18,11 +18,11 @@
 //! handle its Capsule.mk declares and after virtio-gpu's, and the kernel
 //! holds it to the compositor because it is there.
 
-use crate::displays::{is_display, DISPLAYS};
+use crate::displays::DISPLAYS;
 
 #[test]
 fn the_service_bga_serves_is_a_display() {
-    assert!(is_display("driver.bga0"));
+    assert!(DISPLAYS.contains(&"driver.bga0"));
 }
 
 #[test]
