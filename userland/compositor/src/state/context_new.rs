@@ -48,6 +48,7 @@ impl Context {
             wire: None,
             heads: alloc::vec::Vec::new(),
             cursor_sent: None,
+            cursor_code: 0,
             resize: crate::display::resize_rule::Resize::default(),
             indicators: super::indicator::Indicators::default(),
             want_extend: false,
