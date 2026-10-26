@@ -22,7 +22,7 @@
 
 /// 3, 4, 6 and 7 name 9600, 19200, 57600 and 115200; 0 means the rate the
 /// firmware left the port at; anything else is reserved.
-pub fn baud(code: u8) -> Option<u32> {
+pub(crate) fn baud(code: u8) -> Option<u32> {
     match code {
         3 => Some(9600),
         4 => Some(19_200),
@@ -45,7 +45,7 @@ pub enum Interface {
     Other(u8),
 }
 
-pub fn interface(code: u8) -> Interface {
+pub(crate) fn interface(code: u8) -> Interface {
     match code {
         0x00 => Interface::Ns16550,
         0x01 => Interface::Ns16550Subset,
