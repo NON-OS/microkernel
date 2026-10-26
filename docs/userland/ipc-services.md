@@ -102,7 +102,7 @@ Operations: health check 1, copy 2, paste 3, history list 4, history get 5, clea
 
 The three desktop services share the common header.
 
-- `compositor` (magic `NCMP`): health check, scene submit, damage commit, focus set, input subscribe, cursor update, scene remove and display info, 1 to 8 (`userland/compositor/src/protocol/ops.rs:17-24`, `OP_DISPLAY_INFO`). Its receive buffer holds a payload of at most 256 bytes (`userland/compositor/src/protocol/limits.rs:17`, `IPC_PAYLOAD_MAX`), and the frame length must match the header exactly (`userland/compositor/src/protocol/decode.rs:48-55`, `payload_len`).
+- `compositor` (magic `NCMP`): health check, scene submit, damage commit, focus set, input subscribe, cursor update, scene remove and display info, 1 to 8, then the display, capture and accessibility ops to 23, and cursor shape, 24: the pointer's shape over one of the caller's own surfaces, a resize arrow over a window's edge (`userland/compositor/src/protocol/ops.rs`, `OP_CURSOR_SHAPE`). Its receive buffer holds a payload of at most 256 bytes (`userland/compositor/src/protocol/limits.rs:17`, `IPC_PAYLOAD_MAX`), and the frame length must match the header exactly (`userland/compositor/src/protocol/decode.rs:48-55`, `payload_len`).
 - `input_router` (magic `NIRS`): health check, subscribe, grab request and grab release (`userland/capsule_input_router/src/protocol/ops.rs:17-20`, `OP_GRAB_RELEASE`), and two one-way notices it takes from the compositor alone: the trusted band's holder (`OP_TRUSTED_HOLD`) and the display size (`OP_DISPLAY_SIZE`), on which it places the pointer. Input it delivers carries the magic `NINP` (`userland/capsule_input_router/src/protocol/delivery.rs:23`, `DELIVERY_MAGIC`).
 
 ### net.core
