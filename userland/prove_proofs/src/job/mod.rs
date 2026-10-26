@@ -21,7 +21,13 @@
 pub mod answer;
 #[path = "../../../capsule_prove/src/job/exit_rule.rs"]
 pub mod exit_rule;
+#[path = "../../../capsule_prove/src/job/poll_rule.rs"]
+pub mod poll_rule;
+#[path = "../../../capsule_prove/src/job/progress.rs"]
+pub mod progress;
 #[path = "../../../capsule_prove/src/job/seen.rs"]
 pub mod seen;
 #[path = "../../../capsule_prove/src/job/state.rs"]
 pub mod state;
+#[path = "../../../capsule_prove/src/job/state_ops.rs"]
+mod state_ops;

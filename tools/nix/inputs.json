@@ -8042,6 +8042,7 @@
    "userland/capsule_prove/src/job/bound.rs",
    "userland/capsule_prove/src/job/drain.rs",
    "userland/capsule_prove/src/job/exit_rule.rs",
+   "userland/capsule_prove/src/job/seen.rs",
    "userland/capsule_prove/src/job/serve.rs",
    "userland/capsule_prove/src/job/state.rs",
    "userland/capsule_prove/src/job/status.rs",
