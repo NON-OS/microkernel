@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::render::write_line;
-use crate::sys::serial;
+use crate::sys::serial::Line;
 
 const TAG_OK: u32 = 0x0000FF00;
 const TAG_WARN: u32 = 0x0000AAFF;
@@ -23,41 +23,33 @@ const TAG_ERR: u32 = 0x000000FF;
 const TAG_INFO: u32 = 0x00FFCC00;
 const TAG_STAGE: u32 = 0x00AAAAAA;
 
+/* "[tag] msg" to the serial port as one write under its lock, so another
+ * CPU's line never lands between the tag and the message (serial/line.rs). */
+fn serial_line(tag: &str, msg: &str) {
+    Line::new().str(b"[").str(tag.as_bytes()).str(b"] ").str(msg.as_bytes()).end();
+}
+
 pub fn info(msg: &str) {
-    serial::print(b"[INFO] ");
-    serial::print_str(msg);
-    serial::print(b"\r\n");
+    serial_line("INFO", msg);
     write_line("INFO", msg, TAG_INFO);
 }
 
 pub fn ok(tag: &str, msg: &str) {
-    serial::print(b"[");
-    serial::print_str(tag);
-    serial::print(b"] ");
-    serial::print_str(msg);
-    serial::print(b"\r\n");
+    serial_line(tag, msg);
     write_line(tag, msg, TAG_OK);
 }
 
 pub fn warn(msg: &str) {
-    serial::print(b"[WARN] ");
-    serial::print_str(msg);
-    serial::print(b"\r\n");
+    serial_line("WARN", msg);
     write_line("WARN", msg, TAG_WARN);
 }
 
 pub fn error(msg: &str) {
-    serial::print(b"[ERROR] ");
-    serial::print_str(msg);
-    serial::print(b"\r\n");
+    serial_line("ERROR", msg);
     write_line("ERROR", msg, TAG_ERR);
 }
 
 pub fn stage(tag: &str, msg: &str) {
-    serial::print(b"[");
-    serial::print_str(tag);
-    serial::print(b"] ");
-    serial::print_str(msg);
-    serial::print(b"\r\n");
+    serial_line(tag, msg);
     write_line(tag, msg, TAG_STAGE);
 }
