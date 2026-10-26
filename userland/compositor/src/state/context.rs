@@ -50,6 +50,8 @@ pub struct Context {
     /// The pointer as the device's cursor plane last showed it; None owes
     /// the primary a drawn slot and NEW_SHAPE.
     pub cursor_sent: Option<super::cursor::CursorState>,
+    /// The shape the cursor plane holds now (frame_pacer/cursor_shapes.rs).
+    pub cursor_code: u8,
     /// The host's wanted size and what was asked for (G 6).
     pub resize: crate::display::resize_rule::Resize,
     /// Who has the camera or the microphone on (the capture indicator).

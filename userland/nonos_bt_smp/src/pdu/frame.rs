@@ -23,7 +23,7 @@ use alloc::vec::Vec;
 use nonos_bt_wire::WireError;
 
 /// The code and its parameters; `Reserved` for an unknown code (answered
-/// with Pairing Failed, Command Not Supported, by the caller).
+/// with Pairing Failed, reason 07h (COMMAND_NOT_SUPPORTED), by the caller).
 pub fn parse(pdu: &[u8]) -> Result<(u8, &[u8]), WireError> {
     let (&code, params) = pdu.split_first().ok_or(WireError::Short)?;
     match params_len(code) {

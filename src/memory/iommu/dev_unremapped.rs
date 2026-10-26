@@ -32,10 +32,6 @@ compile_error!(
 
 pub(crate) const OPT_IN: bool = cfg!(feature = "nonos-dev-unremapped-interrupts");
 
-pub(crate) const fn holds() -> bool {
-    OPT_IN && !super::dev_unconfined::PRODUCTION
-}
-
 pub(crate) const fn posture_tail() -> &'static [u8] {
     if OPT_IN {
         b", dev-unremapped-interrupts=1"

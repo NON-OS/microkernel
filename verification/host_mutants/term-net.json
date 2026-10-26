@@ -1,0 +1,66 @@
+[
+ {
+  "name": "ticket-any-caller",
+  "file": "src/userspace/capsule_linux/term_ticket_rule.rs",
+  "old": "t.terminal == caller && t.argv == argv",
+  "new": "t.argv == argv",
+  "crate": "userland/spawn_bound_proofs",
+  "test": "linux_net_ticket"
+ },
+ {
+  "name": "ticket-any-argv",
+  "file": "src/userspace/capsule_linux/term_ticket_rule.rs",
+  "old": "t.terminal == caller && t.argv == argv",
+  "new": "t.terminal == caller",
+  "crate": "userland/spawn_bound_proofs",
+  "test": "linux_net_ticket"
+ },
+ {
+  "name": "ticket-not-spent",
+  "file": "src/userspace/capsule_linux/term_ticket_rule.rs",
+  "old": "slot.take().is_some_and(",
+  "new": "slot.clone().is_some_and(",
+  "crate": "userland/spawn_bound_proofs",
+  "test": "linux_net_ticket"
+ },
+ {
+  "name": "net-role-runs-without-net-anon",
+  "file": "userland/capsule_linux/src/linux/app/rules.rs",
+  "old": "        (false, true) => NetStep::Refuse,",
+  "new": "        (false, true) => NetStep::Run,",
+  "crate": "userland/capsule_linux_proofs",
+  "test": "app_net_step"
+ },
+ {
+  "name": "box-widens-with-no-destinations",
+  "file": "userland/capsule_linux/src/linux/boxed/terminal_run.rs",
+  "old": "        (true, true) => Err(NO_LIST),",
+  "new": "        (true, true) => Ok(policy),",
+  "crate": "userland/capsule_linux_proofs",
+  "test": "terminal_run"
+ },
+ {
+  "name": "restart-on-any-status",
+  "file": "userland/capsule_terminal/src/jobs/net_ask.rs",
+  "old": "held.take().filter(|_| status == ask_net)",
+  "new": "held.take()",
+  "crate": "userland/terminal_line_proofs",
+  "test": "net_ask"
+ },
+ {
+  "name": "restart-twice",
+  "file": "userland/capsule_terminal/src/jobs/net_ask.rs",
+  "old": "    held.take().filter(|_| status == ask_net)",
+  "new": "    held.clone().filter(|_| status == ask_net)",
+  "crate": "userland/terminal_line_proofs",
+  "test": "net_ask"
+ },
+ {
+  "name": "kept-stdin-dropped",
+  "file": "userland/capsule_terminal/src/jobs/stdin_kept.rs",
+  "old": "        self.msgs.push(msg.to_vec());",
+  "new": "",
+  "crate": "userland/terminal_line_proofs",
+  "test": "net_ask"
+ }
+]

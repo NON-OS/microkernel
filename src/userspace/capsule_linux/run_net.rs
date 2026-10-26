@@ -43,6 +43,6 @@ pub(super) const RUN_NET: Role = Role {
 pub fn spawn_run_net(package: &str) -> Result<u32, SpawnError> {
     let pid = spawn_role(&RUN_NET)?;
     let argv = vec![String::from("run"), String::from(package)];
-    crate::process::with_process(pid, |pcb| *pcb.argv.lock() = argv);
+    let _ = crate::process::set_argv(pid, argv);
     Ok(pid)
 }

@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bar;
+pub(super) mod bar;
 mod bus;
 mod flags;
 mod record;
 
 pub(super) use bar::BAR_KIND_MMIO;
-#[allow(unused_imports)] // the ACPI broker's alone, which only x86 builds
-pub(super) use bar::BAR_KIND_PIO;
 pub use bar::{Bar, BarKind};
 pub use bus::BusKind;
 pub use flags::{

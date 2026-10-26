@@ -19,16 +19,20 @@
 use super::roles::Role;
 use crate::capabilities::Capability;
 
-/// The terminal's run of a `--box` naming destinations: the one terminal
-/// role with Network, spawned only for such a box (tool_capsules/net_box.rs).
-/// The personality refuses to run in it without a destination list, and a
-/// guest's streams go only to that list, over the route the person chose.
+/// The terminal's run of a `--box` naming destinations, or of a program
+/// whose own policy grants NET_ANON: the one terminal role with Network,
+/// spawned only for such a box (tool_capsules/net_box.rs) or on the ticket
+/// the terminal role was given for that program's argv (term_ticket.rs).
+/// A boxed guest's streams go only to the box's list; a ticketed one's to
+/// its policy's, anywhere when it names none; either over the route the
+/// person chose, never Direct.
 ///
 /// The tool bound (tool_capsules/bound.rs) refuses this role to a caller
 /// without Network, but the Terminal passes it as a launcher (SpawnWindow).
-/// For a Terminal user the gate is the box rule: the kernel's argv check,
-/// then the personality's (boxed/terminal_run.rs), NET_ANON only for a
-/// program with no policy of its own, narrowed by the box (app/identity_box.rs).
+/// For a Terminal user the gate is the kernel's argv check or its ticket,
+/// then the personality's: a box narrows (app/identity_box.rs) and widens
+/// NET_ANON only for a program with no policy of its own, and with no box
+/// app::net_step runs only a program its policy grants NET_ANON.
 pub(super) const TERMINAL_NET: Role = Role {
     name: "app.linux.term.net",
     port: 5188,

@@ -22,7 +22,7 @@ use crate::about::data::uptime::read_millis;
 use crate::about::ui::gauge::{self, Reading};
 use crate::about::ui::metrics::TILE_GAP;
 
-use super::super::tile_text::{millis, uptime};
+use super::super::tile_text::uptime;
 use super::caps::{caps_tile, display_tile};
 
 const DAY_S: u64 = 86_400;
@@ -45,12 +45,10 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, held: Option<u64>) {
 // clock can honestly offer: there is no total to divide an uptime by.
 fn uptime_tile(fb: &mut PaintBuffer, x: u32, y: u32, w: u32) {
     let mut value = [0u8; 24];
-    let mut raw = [0u8; 24];
     let r = match read_millis() {
         Some(ms) => {
             let v = uptime(ms, &mut value);
-            let sub = millis(ms, &mut raw);
-            Reading { label: b"Uptime", value: v, sub, num: (ms / 1000) % DAY_S, den: DAY_S }
+            Reading { label: b"Uptime", value: v, sub: b"since this boot", num: (ms / 1000) % DAY_S, den: DAY_S }
         }
         None => Reading {
             label: b"Uptime",

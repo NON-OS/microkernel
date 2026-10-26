@@ -69,12 +69,14 @@ The icons on the desk are the entries of the home folder, `/home/nonos`.
 
 ## Windows
 
-Every app window has a title bar with three round buttons at its left end: close, minimise, and the green button.
+Every app window has a title bar with its name at the left and three controls at its right end: minimise (a line), full screen (a square) and close (a cross).
 
+- The controls have no colour until the pointer is over one. Then it is shaded, and close turns red, because closing is the one that can lose work.
+- A name too long for the bar ends in `…` before the controls.
 - Drag the title bar to move the window. A window cannot be dragged under the menu bar.
-- Drag the right or bottom border to resize. The new size is applied when you let go.
-- The green button makes the window full screen: the whole width, from the foot of the menu bar to the bottom edge, over the dock's band. Press it again to get the old size back.
-- A click in a window raises it and gives it the keyboard in one step.
+- Drag any edge or corner to resize: the pointer becomes a two-headed arrow over each, and the edge you hold follows it while the opposite one stays. The top edge is the thin band above the controls. The new size and place are applied together when you let go, never as a move and then a resize. A window cannot be made smaller than its app allows, or dragged above the menu bar.
+- Full screen makes the window the whole width, from the foot of the menu bar to the bottom edge, over the dock's band. Press it again to get the old size back.
+- A click in a window raises it and gives it the keyboard in one step. `Alt+Tab` does the same from the keyboard (see [Keys the desktop answers](#keys-the-desktop-answers)).
 - The first new window opens in the middle of the work area, between the menu bar and the dock. Each later one, in runs of five, steps down and to the right so its title bar stays reachable.
 
 A window that hangs, or takes every key, can always be ended: press `Ctrl+Alt+Esc` to bring Processes forward and end it there.
@@ -114,6 +116,7 @@ These keys go to the desktop shell whatever window has focus:
 |---|---|
 | `Ctrl+Alt+Esc` | Closes the Launchpad and menus, and brings Processes forward, opening it if needed. No window ever sees this chord. |
 | `Ctrl+Alt+T` | Brings the Terminal forward, opening it if it is not running. The focused window never sees it; a window that grabs the keyboard keeps it, and while a prompt is up the shell ignores it. |
+| `Alt+Tab` | Raises the window you used before this one and gives it the keyboard, and shows a strip of the open windows with that one ringed. Each press while the strip is up goes on to the next window, in the order they last had focus; `Shift+Alt+Tab` goes back. The strip leaves 1.2 seconds after the last press. The focused window never sees the chord, and `Tab` and `Ctrl+Tab` stay the window's; a window that grabs the keyboard keeps it, and while a prompt is up the shell ignores it. |
 | Volume Up, Volume Down | Steps the master volume by 5 out of 100 and shows a notice such as `Volume 45%`. See [Sound and media](audio.md). |
 | Mute | Mutes or unmutes, and shows `Muted` or the level. |
 | Power | Asks `Power off and wipe memory?`; Power Off wipes memory and turns the machine off. |
@@ -233,7 +236,7 @@ The code behind each section, at the commit in the footer.
 - Windows
   - The three title bar buttons: `DecorationHit` in `userland/toolkit/src/decorations/hit_test.rs:22-31`.
   - A resize applied on release: `ResizeTo` in `userland/app_skeleton/src/runner/drag.rs:133-140`.
-  - The green button's full-screen frame: `full_screen` in `userland/app_skeleton/src/runner/chrome.rs:110-121`.
+  - The full-screen control's frame: `full_screen` in `userland/app_skeleton/src/runner/chrome.rs:110-121`.
   - New windows centred, then stepped in runs of five: `cascade` and `CASCADE_WRAP` in `userland/capsule_wm/src/server/handlers/window_open/cascade.rs:21-29`.
 - Apps that ship
   - Labels, services and dock order: `LAUNCHER_APPS` in `userland/capsule_desktop_shell/src/state/apps.rs:47-132`.
@@ -242,7 +245,7 @@ The code behind each section, at the commit in the footer.
   - The seven tools, `grex` first: `userland/apps.list:4-10`.
 - Keys the desktop answers
   - `Ctrl+Alt+T` to the shell over focus: `is_terminal_chord` in `userland/capsule_input_router/src/route/chord.rs`; never over a prompt: `opens_terminal` in `userland/capsule_desktop_shell/src/state/trusted_rule.rs`.
-  - `Ctrl+Alt+Esc` held back from every window: `is_reserved_chord` in `userland/capsule_input_router/src/route/chord.rs:34-36`.
+  - `Ctrl+Alt+Esc` held back from every window: `is_reserved_chord` in `userland/capsule_input_router/src/route/chord.rs:48-50`.
   - Mute, volume and power keys sent to the shell: `is_shell_key` in `userland/capsule_input_router/src/route/shell_keys.rs:26-34`.
   - The ACPI power button posted as the Power key: `KEYCODE_POWER` in `src/arch/x86_64/acpi/power_button/deliver.rs`.
   - The Power key's confirmation and its request: `ask` in `userland/capsule_desktop_shell/src/server/handlers/power_off.rs:36`, served by `power.off` in `userland/capsule_power/src/off/mod.rs:38`.

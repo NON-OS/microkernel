@@ -19,6 +19,7 @@
 
 mod access_page_tests;
 mod connect_request_tests;
+mod fit_tests;
 mod handoff_race_tests;
 mod handoff_rig;
 mod handoff_tests;
@@ -40,6 +41,8 @@ mod section_tests;
 mod security_tests;
 mod slot_tests;
 mod sound_note_tests;
+pub mod station_tests;
+mod station_words_tests;
 mod text_format_tests;
 mod text_rig;
 mod text_tests;
@@ -48,5 +51,3 @@ mod wifi_key_tests;
 mod wire_rig;
 mod wire_ssid_tests;
 mod wire_tests;
-mod station_tests;
-mod station_words_tests;

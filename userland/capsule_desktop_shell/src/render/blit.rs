@@ -26,20 +26,12 @@ use super::blit_over::over;
 /// Alpha-blit an RGBA8 source (bytes R,G,B,A, row-major), area-averaged into the
 /// destination rect and composited over the surface. Lets the dock render a real
 /// anti-aliased icon asset instead of a 1-bit bitmap. Mirrors the app-skeleton
-/// blit but writes the raw surface directly.
-#[allow(clippy::too_many_arguments)]
+/// blit but writes the raw surface directly: the surface's base, stride in bytes,
+/// width and height; the destination rect; the source and its width and height.
 pub fn blit_rgba8_scaled(
-    base_va: u64,
-    stride_bytes: u32,
-    surface_width: u32,
-    surface_height: u32,
-    dx: u32,
-    dy: u32,
-    dw: u32,
-    dh: u32,
-    rgba: &[u8],
-    sw: u32,
-    sh: u32,
+    (base_va, stride_bytes, surface_width, surface_height): (u64, u32, u32, u32),
+    (dx, dy, dw, dh): (u32, u32, u32, u32),
+    (rgba, sw, sh): (&[u8], u32, u32),
 ) {
     if dw == 0 || dh == 0 || sw == 0 || sh == 0 {
         return;

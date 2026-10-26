@@ -39,7 +39,7 @@ const INSTALL_HEAP: usize = 320 << 20;
 const RUN_HEAP: usize = 64 << 20;
 
 pub fn init() {
-    let mut buf = [0u8; super::heap_choice::ARGS_MAX];
+    let mut buf = [0u8; nonos_libc::ARGV_BYTES_MAX];
     let n = mk_args(buf.as_mut_ptr(), buf.len());
     if super::heap_choice::first_word(&buf, n).is_none() && n > 0 {
         let line = b"[LINUX] arguments longer than 4 KiB: taking the run heap\n";

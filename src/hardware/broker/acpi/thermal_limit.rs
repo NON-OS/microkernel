@@ -40,7 +40,6 @@ pub fn set(uid: u64, pct: u64) -> Placed {
 
 /// The processor's ceiling, in percent of full performance: 100 unless
 /// passive cooling has lowered it.
-#[allow(dead_code)] // track A's frequency control reads it when it resumes
 pub fn ceiling(uid: u64) -> u8 {
     rule::ceiling(&LIMITS.lock(), uid)
 }

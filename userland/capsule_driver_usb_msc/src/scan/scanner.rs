@@ -52,12 +52,6 @@ pub struct Scanner {
     pub report: Report,
 }
 
-impl Default for Scanner {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl Scanner {
     pub fn new() -> Self {
         let wait = Deadline::after_ms(XHCI_WAIT_MS);

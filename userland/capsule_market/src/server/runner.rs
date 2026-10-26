@@ -22,7 +22,7 @@ use crate::bonds::Bonds;
 use crate::clock::now_ms;
 use crate::protocol::{decode_request, E_INVAL, E_MSGSIZE, HDR_LEN, RX_BUF_LEN, TX_BUF_LEN};
 use crate::protocol::{OP_GET_APP, OP_GET_COMMERCE, OP_GET_LINUX_POLICY, OP_GET_RELEASE};
-use crate::protocol::{OP_HEALTHCHECK, OP_INSTALL_READY, OP_LIST_APPS, OP_LOAD_INDEX};
+use crate::protocol::{OP_GET_LOGO, OP_HEALTHCHECK, OP_INSTALL_READY, OP_LIST_APPS, OP_LOAD_INDEX};
 use crate::server::error::{reply_decode_failed, reply_status};
 use crate::server::handlers;
 use crate::store::Store;
@@ -48,11 +48,10 @@ pub fn run<V: Verifier>(store: &mut Store, verifier: &V) -> ! {
             reply_decode_failed(&mut tx, E_INVAL);
             continue;
         };
-        let body_start = HDR_LEN;
         let body = usize::try_from(req.payload_len)
             .ok()
-            .and_then(|len| body_start.checked_add(len))
-            .and_then(|end| frame.get(body_start..end));
+            .and_then(|len| HDR_LEN.checked_add(len))
+            .and_then(|end| frame.get(HDR_LEN..end));
         let Some(body) = body else {
             reply_status(&mut tx, &req, E_MSGSIZE);
             continue;
@@ -69,6 +68,7 @@ pub fn run<V: Verifier>(store: &mut Store, verifier: &V) -> ! {
             }
             OP_GET_COMMERCE => handlers::get_commerce::handle(store, body, &req, &mut tx),
             OP_GET_LINUX_POLICY => handlers::get_linux_policy::handle(store, body, &req, &mut tx),
+            OP_GET_LOGO => handlers::get_logo::handle(store, body, &req, &mut tx),
             _ => reply_status(&mut tx, &req, E_INVAL),
         }
     }

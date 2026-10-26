@@ -31,7 +31,7 @@ pub(crate) const R_AARCH64_RELATIVE: u64 = 1027;
 /// own 2 MiB block, which only a 2 MiB aligned bias preserves.
 pub(crate) const LOAD_ALIGN: u64 = 2 << 20;
 
-/// Why an image was not relocated. The value is what the entry stub sees.
+/// Why an image was not relocated. The value is what the entry code sees.
 #[repr(u64)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum Refused {

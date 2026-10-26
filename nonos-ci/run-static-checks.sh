@@ -5250,6 +5250,18 @@ else
     fail_with "check_gate_reentry: a GATE holder reaches a function that takes GATE again"
 fi
 unset gate_out
+# The IPC pending-reply table's PENDING is a spin lock the served mark takes at
+# every dequeue: a holder that calls out (the inbox, the scheduler, delivery) or
+# back into PENDING, a mark under another lock, or a dequeue never marked, and
+# replies wait forever or answer a request still in the inbox. Self-test first.
+if pending_out="$(python3 scripts/check_pending_order.py --self-test 2>&1 \
+    && python3 scripts/check_pending_order.py 2>&1)"; then
+    note ok "PENDING is taken in one order and every dequeue marks (check_pending_order)"
+else
+    tail -n 5 <<< "${pending_out}" >&2
+    fail_with "check_pending_order: a PENDING holder calls out, or a dequeue skips the served mark"
+fi
+unset pending_out
 
 # nonos-stark-enroll writes the policy roots. A crate it builds that compiles
 # one in is rebuilt by every enrolment, and the stamps made with the old
@@ -5389,6 +5401,17 @@ else
 fi
 unset devset_out
 
+# Every argv the kernel writes is held to one bound, the one userland reads
+# it into (src/process/core/argv_bound.rs; check_argv_bound).
+if argv_out="$(python3 scripts/check_argv_bound.py --self-test 2>&1 \
+    && python3 scripts/check_argv_bound.py 2>&1)"; then
+    note ok "every argv is held to one bound, the one userland reads (check_argv_bound)"
+else
+    tail -n 6 <<< "${argv_out}" >&2
+    fail_with "check_argv_bound: an argv can pass what userland reads"
+fi
+unset argv_out
+
 # The host relay a development image installs through serves a package the
 # market catalogue lists only as the bytes its lock pins (nonos-mirror-relay).
 if relay_out="$( (cd tools && python3 -m unittest -q nonos_mirror_relay.test_pins) 2>&1)"; then
@@ -5398,6 +5421,19 @@ else
     fail_with "nonos_mirror_relay: the relay can serve a locked package as other bytes"
 fi
 unset relay_out
+
+# The market catalogue tool (tools/nonos_market_catalogue): the listings it
+# writes, the lock it seals against, its hostile-input refusals and the
+# mutants each refusal must catch. It ran in no lane once, and two failures
+# sat unseen; now a failure stops the checks.
+if catalogue_out="$(python3 -m unittest discover -s tools/nonos_market_catalogue -t tools \
+    -p 'test_*.py' 2>&1)"; then
+    note ok "the market catalogue tool's suite passes (nonos_market_catalogue)"
+else
+    tail -n 8 <<< "${catalogue_out}" >&2
+    fail_with "nonos_market_catalogue: its suite fails"
+fi
+unset catalogue_out
 
 # A drive whose `until` step times out leaves every CPU's registers and the
 # code at each one's PC behind, read from that CPU (tools/nonos_drive).

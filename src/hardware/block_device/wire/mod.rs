@@ -42,15 +42,12 @@ mod target;
 mod transport;
 mod write;
 
-// The sector-to-block map NVMe's client already proves; it moves to
-// block_device/lba_map/ (A14) and this line follows it.
-#[allow(dead_code)]
-#[path = "../../nvme_capsule/client/lba_map.rs"]
-mod lba_map;
-
+// The sector-to-block map NVMe's client already proves, read from there; it
+// moves to block_device/lba_map/ (A14) and this line follows it.
+use crate::hardware::nvme_capsule::client::lba_map;
 pub use endpoint::{Endpoint, Slot, MAX_UNITS};
-pub(in crate::hardware::block_device) use leave::leave_legs;
 pub use error::WireError;
 pub use identity::Identity;
+pub(in crate::hardware::block_device) use leave::leave_legs;
 pub use ops::{healthcheck, identify};
 pub(super) use row::{endpoint_of, rows};

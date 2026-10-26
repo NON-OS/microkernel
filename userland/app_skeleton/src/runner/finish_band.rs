@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_toolkit::decorations::{border_at, frame_rect_at, radius_at, FRAME_BORDER, TRANSPARENT};
+use nonos_toolkit::decorations::{border_at, frame_edge, frame_rect_at, radius_at, TRANSPARENT};
 use nonos_toolkit::paint::radius::{clamp_radius, coverage};
 
 use crate::paint::PaintBuffer;
@@ -37,7 +37,8 @@ pub(super) fn finish_band(fb: &mut PaintBuffer, maximized: bool, y0: u32, y1: u3
     }
     let (iw, ih) = (f.w - t * 2, f.h - t * 2);
     let ir = clamp_radius(iw, ih, r.saturating_sub(t));
-    let (a, rgb) = ((FRAME_BORDER >> 24) & 0xFF, FRAME_BORDER & 0x00FF_FFFF);
+    let edge = frame_edge();
+    let (a, rgb) = ((edge >> 24) & 0xFF, edge & 0x00FF_FFFF);
     let len = fb.pixels.len();
     for row in f.h - r..f.h {
         let py = f.y + row;

@@ -4,7 +4,6 @@
 
 extern crate alloc;
 
-#[path = "../../capsule_driver_fido/src/ctaphid/mod.rs"]
 pub mod ctaphid;
 
 /// A key's side of the wire: its configuration and its reports, written

@@ -28,6 +28,7 @@ const KEY_INDEX: u64 = KEY_LBA - PLAN_LBA;
 
 /// How the volume is keyed, `None` for a disk without a key header.
 pub(super) fn read_key_header() -> Result<Option<Keyed>, VolumeError> {
+    let _io = crate::fs::cryptoblock::volume_scope().map_err(VolumeError::Device)?;
     let mut sector = [0u8; 512];
     block_device::read_plan_sector(KEY_INDEX, &mut sector).map_err(VolumeError::Device)?;
     parse_key_header(&sector).map_err(|way| {
@@ -41,6 +42,7 @@ pub(super) fn read_key_header() -> Result<Option<Keyed>, VolumeError> {
 /// the write rewrites both: the plan must read back as it was, or nothing is
 /// formatted.
 pub(super) fn write_key_header(keyed: &Keyed) -> Result<(), VolumeError> {
+    let _io = crate::fs::cryptoblock::volume_scope().map_err(VolumeError::Device)?;
     // A key header is a disk write: only on a boot that keeps (volume_rule.rs).
     if !may_write(false, crate::security::zerostate::keeping()) {
         return Err(VolumeError::Device(BlockDeviceError::AccessDenied));

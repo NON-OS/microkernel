@@ -35,7 +35,7 @@ pub fn flush(path: &[u8], keep: bool) -> Result<(), i64> {
         /* Growing the store, or giving it a new name, is within the quota. */
         if len > stored || !all[i].in_store {
             drop(all);
-            super::super::super::space::within()?;
+            super::super::super::space::within(path)?;
             all = CACHE.0.borrow_mut();
         }
         store::write(&resolve::key(path), &all[i].data)
