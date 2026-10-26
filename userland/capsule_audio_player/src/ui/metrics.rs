@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The section-08 type scale and the space and radius ramps. Every size here
-//! already clears the 17 px readable floor the toolkit clamps draw and measure
-//! to, so a run measured at one of these sizes is the run that gets painted.
+//! already clears the readable floor the toolkit clamps draw and measure to
+//! (`ttf::MIN_UI_PX`, 14), so a run measured at one of these sizes is the run
+//! that gets painted.
 
 pub const LABEL: f32 = 17.0;
 pub const SECONDARY: f32 = 17.0;

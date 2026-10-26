@@ -30,7 +30,7 @@ const TITLE_DY: u32 = 4;
 const SUB_DY: u32 = 26;
 
 // The two em sizes a row's text lines are drawn at, and the line box between
-// them. `MIN_UI_PX` clamps both draw and measure, so anything measuring against
+// them. The toolkit clamps draw and measure alike, so anything measuring against
 // these gets the same advance the painter did.
 pub const TITLE_PX: f32 = 18.0;
 pub const SUB_PX: f32 = 14.0;

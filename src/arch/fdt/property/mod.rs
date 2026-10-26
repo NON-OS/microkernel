@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod property;
+mod prop;
 mod reg_iter;
 mod string_list;
 
-pub use property::Property;
+pub use prop::Property;
 pub use reg_iter::RegIter;
 pub use string_list::StringList;
