@@ -17,6 +17,7 @@
 mod constants;
 mod event_kinds;
 mod hit_route;
+mod hover_deliver;
 mod hover_motion;
 mod mirror_shell_pointer;
 mod press_path;
@@ -29,6 +30,7 @@ mod route_to_window;
 mod shell_pid;
 mod topmost_target;
 
+pub use hover_motion::settle_hover;
 pub(super) use release_under_grab::release_under_grab;
 pub use route_pointer::route_pointer;
 pub(super) use shell_pid::shell_pid;
