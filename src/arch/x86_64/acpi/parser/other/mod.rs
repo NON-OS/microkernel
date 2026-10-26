@@ -14,11 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod bgrt_copy;
-pub mod bgrt_entry;
-mod bgrt_load;
-mod bgrt_mode;
-pub mod bmp_check;
 pub mod dmar_tables;
 mod exports;
 mod hmat_decode;

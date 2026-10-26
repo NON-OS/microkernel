@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The late replies the correlation check has discarded since boot: the
-//! direct count behind a "late" line, so a late call is evidence, not an
-//! inference.
+//! The late replies the correlation check has discarded since boot, said
+//! beside a silence (silence_table.rs): how many answers came too late. Each
+//! is an answer all the same, so it ends the silence of the call it answers.
 
 use core::sync::atomic::{AtomicU64, Ordering};
 
@@ -24,10 +24,12 @@ use super::verdict::stale_reply;
 
 static DROPPED: AtomicU64 = AtomicU64::new(0);
 
-/// Counts a message the reply receive discarded, if it was a late reply.
-pub(crate) fn note_drop(correlation: u64, want: u64) {
+/// Counts a message `caller`'s reply receive discarded, if it was a late
+/// reply: the server answered that call after all.
+pub(crate) fn note_drop(caller: u32, correlation: u64, want: u64) {
     if stale_reply(correlation, want) {
         DROPPED.fetch_add(1, Ordering::Relaxed);
+        super::silence_table::replied(caller, correlation);
     }
 }
 

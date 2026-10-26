@@ -17,21 +17,21 @@
 //! The kernel's one silence table (silence.rs), under a spin lock: a few
 //! word compares on a late call or an answer, nothing allocated.
 
+use super::late_drops::dropped;
 use super::silence::{Pair, Silence};
 use super::verdict::DEFAULT_MS;
 use crate::sys::diag::Site;
-use crate::syscall::microkernel::errnos::ERRNO_TIMEDOUT;
 use spin::Mutex;
 
 static TABLE: Mutex<Silence> = Mutex::new(Silence::new(DEFAULT_MS));
 
-/// After a late call of `pair` to `name`: unanswered on `site` when it ends
-/// a silence of the default's length, and any pair it evicted, by port.
-pub(super) fn report(site: &Site, pair: Pair, name: &str, waited_ms: u64) {
+/// After the late call `token` of `pair` to `name`: unanswered on `site` when
+/// it ends a silence of the default's length, and any pair it evicted, by port.
+pub(super) fn report(site: &Site, (pair, token): (Pair, u64), name: &str, waited_ms: u64) {
     let now = crate::time::timestamp_millis();
-    let [this, evicted] = TABLE.lock().late(pair, now.saturating_sub(waited_ms), now);
+    let [this, evicted] = TABLE.lock().late(pair, now.saturating_sub(waited_ms), now, token);
     if this.is_some() {
-        site.starved(name, ERRNO_TIMEDOUT);
+        site.silent_for(name, dropped());
     }
     if let Some(other) = evicted {
         site.silent(other.port);
@@ -41,4 +41,9 @@ pub(super) fn report(site: &Site, pair: Pair, name: &str, waited_ms: u64) {
 /// An answer in time ends the pair's silence.
 pub(super) fn answered(pair: Pair) {
     TABLE.lock().answered(pair);
+}
+
+/// A late reply found by `caller` to its call `token` ends that call's silence.
+pub(super) fn replied(caller: u32, token: u64) {
+    TABLE.lock().replied(caller, token);
 }

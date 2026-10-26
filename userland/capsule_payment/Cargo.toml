@@ -19,6 +19,11 @@ description = "NONOS meter: NOX vouchers on prefunded channels"
 name = "payment"
 path = "src/main.rs"
 
+[features]
+# An offer on the local test chain (P5) passes the chain check, as settle
+# reads it. Only the development capsule set turns it on.
+devnet = ["nonos_nox_config/devnet"]
+
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_market_proto = { path = "../market_proto" }

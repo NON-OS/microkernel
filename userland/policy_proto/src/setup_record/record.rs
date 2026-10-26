@@ -11,7 +11,7 @@
 use super::answers::Answers;
 use super::kept::Host;
 use super::layout::{ANSWERS_LEN, ANSWERS_V2_LEN, ANSWERS_V3_LEN, ANSWERS_V4_LEN, ANSWERS_V5_LEN};
-use super::layout::{APPS_AT, HOST_AT, MAGIC_V5, MAGIC_V6, ROUTE_AT, WALLPAPERS_AT};
+use super::layout::{APPS_AT, HOST_AT, MAGIC_V5, MAGIC_V7, ROUTE_AT, WALLPAPERS_AT};
 use super::layout::{MAGIC_V3, MAGIC_V4};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -25,7 +25,8 @@ pub struct Record {
      * has it: the Nym mixnet in a record older than version 5. */
     pub route: u8,
     /* The wallpapers kept, as crate::wallpapers_kept has them: every one in
-     * a record older than version 6. */
+     * a record older than version 7, whose indices name the first catalog
+     * era's pictures. */
     pub wallpapers_kept: u64,
 }
 
@@ -33,7 +34,7 @@ impl Record {
     pub fn encode(&self) -> [u8; ANSWERS_LEN] {
         let mut out = [0u8; ANSWERS_LEN];
         out[..ANSWERS_V5_LEN].copy_from_slice(&self.encode_v5());
-        out[..4].copy_from_slice(&MAGIC_V6);
+        out[..4].copy_from_slice(&MAGIC_V7);
         out[WALLPAPERS_AT..].copy_from_slice(&self.wallpapers_kept.to_le_bytes());
         out
     }

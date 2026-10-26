@@ -12,8 +12,8 @@
 use nonos_policy_proto::route::{known, ANYONE, DIRECT, NYM, ROUTE_LABELS};
 use nonos_policy_proto::setup_record::{check_record, Answers, Host, Name, Record, Refused, Tier};
 use nonos_policy_proto::setup_record::{ANSWERS_LEN, ANSWERS_V4_LEN, ANSWERS_V5_LEN};
-use nonos_policy_proto::{enum_table, Field};
 use nonos_policy_proto::wallpapers_kept::ALL;
+use nonos_policy_proto::{enum_table, Field};
 
 fn record(route: u8) -> Record {
     let answers = Answers {
@@ -23,7 +23,13 @@ fn record(route: u8) -> Record {
         username: Name::new(b"ada").unwrap(),
         qwen_tier: Tier::new(b"qwen3-0.6b").unwrap(),
     };
-    Record { answers, apps_off: 2, hostname: Host::new(b"ada-laptop").unwrap(), route, wallpapers_kept: ALL }
+    Record {
+        answers,
+        apps_off: 2,
+        hostname: Host::new(b"ada-laptop").unwrap(),
+        route,
+        wallpapers_kept: ALL,
+    }
 }
 
 #[test]
@@ -31,7 +37,7 @@ fn every_network_round_trips_in_the_current_version() {
     for route in [NYM, ANYONE, DIRECT] {
         let r = record(route);
         let raw = r.encode();
-        assert_eq!((raw.len(), &raw[..4]), (ANSWERS_LEN, &b"NSA6"[..]));
+        assert_eq!((raw.len(), &raw[..4]), (ANSWERS_LEN, &b"NSA7"[..]));
         assert_eq!(Record::decode(&raw), Some(r));
         assert_eq!(check_record(&raw).unwrap().route, route);
     }

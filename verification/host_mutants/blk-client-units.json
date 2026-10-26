@@ -1,0 +1,66 @@
+[
+ {
+  "name": "blk-unit-not-sent",
+  "file": "userland/nonos_blk_client/src/wire/encode.rs",
+  "old": "out.extend_from_slice(&unit.to_le_bytes());",
+  "new": "out.extend_from_slice(&0u16.to_le_bytes());",
+  "test": "tests::",
+  "crate": "userland/blk_client_proofs"
+ },
+ {
+  "name": "blk-ide-one-unit",
+  "file": "userland/nonos_blk_client/src/driver/names.rs",
+  "old": "            Driver::Ide => 4,\n",
+  "new": "",
+  "test": "tests::",
+  "crate": "userland/blk_client_proofs"
+ },
+ {
+  "name": "blk-scsi-eight-units",
+  "file": "userland/nonos_blk_client/src/driver/names.rs",
+  "old": "Driver::Scsi => 16,",
+  "new": "Driver::Scsi => 8,",
+  "test": "tests::",
+  "crate": "userland/blk_client_proofs"
+ },
+ {
+  "name": "blk-nxio-a-fault",
+  "file": "userland/nonos_blk_client/src/device/medium.rs",
+  "old": "if driver.units() > 1 => Ok(None)",
+  "new": "if false => Ok(None)",
+  "test": "tests::",
+  "crate": "userland/blk_client_proofs"
+ },
+ {
+  "name": "blk-nxio-everywhere",
+  "file": "userland/nonos_blk_client/src/device/medium.rs",
+  "old": "if driver.units() > 1 => Ok(None)",
+  "new": "=> Ok(None)",
+  "test": "tests::",
+  "crate": "userland/blk_client_proofs"
+ },
+ {
+  "name": "blk-stop-at-gap",
+  "file": "userland/nonos_blk_client/src/device/units.rs",
+  "old": "            Ok(None) => {}",
+  "new": "            Ok(None) => break,",
+  "test": "tests::",
+  "crate": "userland/blk_client_proofs"
+ },
+ {
+  "name": "blk-wait-every-unit",
+  "file": "userland/nonos_blk_client/src/device/units.rs",
+  "old": "                out.push((unit, Err(e)));\n                break;",
+  "new": "                out.push((unit, Err(e)));",
+  "test": "tests::",
+  "crate": "userland/blk_client_proofs"
+ },
+ {
+  "name": "blk-word-no-unit",
+  "file": "userland/nonos_blk_client/src/disks/word.rs",
+  "old": "    if unit > 0 {",
+  "new": "    if unit > 99 {",
+  "test": "tests::",
+  "crate": "userland/blk_client_proofs"
+ }
+]

@@ -19,8 +19,8 @@
 use alloc::vec::Vec;
 
 use super::consts::{CHAIN_ID, STAKING_PROXY};
-use super::fields::tx_fields;
 use super::stake_data::{stake_locked_calldata, unstake_position_calldata};
+use super::tx_fields::{tx_fields, TxFields};
 
 // stake(amount) on the staking proxy.
 pub fn nox_stake_locked_fields(
@@ -31,16 +31,16 @@ pub fn nox_stake_locked_fields(
     amount: &[u8; 32],
     lock: &[u8; 32],
 ) -> Vec<Vec<u8>> {
-    tx_fields(
-        &[CHAIN_ID],
+    tx_fields(&TxFields {
+        chain_id: &[CHAIN_ID],
         nonce,
         max_priority,
         max_fee,
         gas,
-        &STAKING_PROXY,
-        &[0u8; 32],
-        &stake_locked_calldata(amount, lock),
-    )
+        to: &STAKING_PROXY,
+        value: &[0u8; 32],
+        data: &stake_locked_calldata(amount, lock),
+    })
 }
 
 pub fn nox_unstake_fields(
@@ -50,14 +50,14 @@ pub fn nox_unstake_fields(
     gas: &[u8; 32],
     index: &[u8; 32],
 ) -> Vec<Vec<u8>> {
-    tx_fields(
-        &[CHAIN_ID],
+    tx_fields(&TxFields {
+        chain_id: &[CHAIN_ID],
         nonce,
         max_priority,
         max_fee,
         gas,
-        &STAKING_PROXY,
-        &[0u8; 32],
-        &unstake_position_calldata(index),
-    )
+        to: &STAKING_PROXY,
+        value: &[0u8; 32],
+        data: &unstake_position_calldata(index),
+    })
 }

@@ -18,4 +18,6 @@ pub mod suggest;
 #[cfg(test)]
 mod redirect_tests;
 #[cfg(test)]
+mod words_tests;
+#[cfg(test)]
 mod suggest_tests;

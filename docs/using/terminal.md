@@ -21,15 +21,22 @@ flowchart LR
 - A store tool is one of `sd`, `tokio-smoke` and `std_proof`, loaded from the package store when the store holds it.
 - Everything else is a built-in command, listed below.
 
+## The prompt
+
+The prompt reads `nonos@nonos ~/workspace/project main 1 job %`: who and where you are, then the git branch when the working directory or one up to four levels above it holds a `.git` (the first seven characters of the commit when no branch is checked out), then how many jobs run in the background, when any do. Each part shows only when it says something; on a narrow window the job count goes first, then the branch, and the path keeps its room. The `%` is green after a command that worked and red after one that failed. The branch is read again after every line you run.
+
 ## Tabs and windows
 
 - The window opens at 1240 by 720 pixels, centred between the menu bar and the dock on a 1920 by 1080 screen: about 130 columns and 30 rows. On a smaller screen it opens as large as fits, centred. The prompt sits on the line under the last output and moves down with it until the window is full.
 - `Ctrl+Alt+T` brings the Terminal forward from anywhere on the desktop, or opens it.
+- `F12` drops the window down under the menu bar, the full width of the screen and 45% of its height, drawn whole before it shows; `F12` again, or `Esc` on an empty line with nothing else open, puts it back where it was. `F12` is the drop-down's even while a program runs.
+- A new tab opens on a splash: the NONOS banner, the system's facts with a `start` row naming `help`, `Tab`, `Ctrl+R` and `Ctrl+K`, and, when the window is wide enough, the same slashed zero drawn at the screen's own resolution.
 - A window holds up to nine tabs. `Ctrl+Shift+T` opens one, `Ctrl+Shift+W` closes one, `Ctrl+PgUp` and `Ctrl+PgDn` switch, and `Ctrl+1` to `Ctrl+9` jump to a tab.
+- `Ctrl+Shift+D` splits the window: a new tab opens beside the one you were in, each pane with its own size, so a program in it sees its own rows and columns. The pane with the keys has a line of the accent along its top; `Ctrl+Shift+Left` and `Ctrl+Shift+Right`, or a click, give the keys to the other. `Ctrl+Shift+D` again shows one tab; closing a pane's tab leaves the other in front.
 - Closing a tab, or the window, sends SIGTERM to every program that tab started. Closing the last tab closes the window.
-- `Ctrl+B` shows or hides the side rail. `Ctrl+K` opens a palette that filters, as you type, twelve common commands, the last twelve lines run in this tab, the open tabs, and a few actions such as a new tab or the next theme. `Enter` picks, `Esc` closes it.
+- `Ctrl+B` shows or hides the side rail. `Ctrl+K` opens a palette that filters, as you type, twelve common commands, the last twelve lines run in this tab, the open tabs, and a few actions: a new tab, the side rail, the theme picker, and split side by side. `Enter` picks, `Esc` closes it.
 - `Ctrl+=` and `Ctrl+-` change the font size, from scale 1 to 6.
-- `theme` switches the colours: `dark`, `dim`, `light` or `abyss`.
+- `theme` switches the colours: `dark`, `dim`, `light` or `abyss`. `theme` alone opens a picker beside the prompt, each theme with swatches of its colours: `Up` and `Down` put each one on the window as you reach it, `Enter` keeps it, and `Esc` goes back to the one you had. On every theme all text, the dimmed hints and times included, is at least 4.5 to 1 against what it is drawn on, the WCAG AA level.
 
 ## Editing a line
 
@@ -42,7 +49,7 @@ flowchart LR
 | `Ctrl+W`, `Alt+D`, `Ctrl+Shift+K`, `Ctrl+U` | Cut a word back, a word forward, to the end of the line, or the whole line. |
 | `Ctrl+Y` | Put back what the last cut took. |
 | `Ctrl+D`, `Ctrl+H` | Delete the character under the cursor, or the one before it. |
-| `Tab` | Complete a command or a path. |
+| `Tab` | Complete a command or a path. When several fit and none can be filled in further, they are listed in columns beside the prompt, a path by its last part, up to eight rows with a count of the rest; the next key clears the list, and nothing is written into the scrollback. |
 | `Up`, `Down`, `Ctrl+P`, `Ctrl+N` | Walk the history. |
 | `Ctrl+R` | Search the history. Press it again for the next match. The prompt says `history` and what you typed, or `no match` when nothing holds it; then `Enter` runs nothing. `Esc` or `Ctrl+C` leaves the search and puts back the line you had. |
 | `Ctrl+L` | Empty the scrollback. |
@@ -68,6 +75,8 @@ History expansion works as in other shells: `!!` is the last command, `!n` the n
 | `a &` | Run `a` in the background. |
 | `$name`, `$?` | A shell variable set with `set`, or the last exit status. |
 
+A line holds up to 64 words; a longer one runs nothing and says so, rather than running with its last words dropped.
+
 After a `|`, only ten built-ins read the piped lines: `grep`, `sort`, `uniq`, `cut`, `nl`, `wc`, `head`, `tail`, `tac` and `rev`. Any other command after a `|` stops the pipeline and says so. Redirects also work for Linux programs and the installed tools.
 
 ## Background jobs
@@ -92,7 +101,7 @@ The built-ins that wait on the network or on an install run as jobs even in the 
 
 ## Built-in commands
 
-`help` lists the commands in groups, and `help <command>` shows one command's usage. These are the 69 commands it documents, grouped here much as `help` groups them.
+`help` lists the commands in groups, and `help <command>` shows one command's usage. These are the 70 commands it documents, grouped here much as `help` groups them.
 
 | Files | What it does |
 |---|---|
@@ -141,6 +150,7 @@ The built-ins that wait on the network or on an install run as jobs even in the 
 | `whoami`, `id` | Your name, then this capsule and who the kernel says signed it. |
 | `date` | The real-time clock, as year-month-day hour:minute:second UTC. |
 | `uptime` | How long the system has run, from the monotonic clock. |
+| `latency` | How long the last keys typed in this tab took to reach the screen, from the key's arrival to the frame it changed being painted: the middle, the 95th percentile and the worst, in milliseconds, over up to 64 keys. A key that changes only the line repaints the input row alone. |
 
 | Network | What it does |
 |---|---|
@@ -175,6 +185,10 @@ The built-ins that wait on the network or on an install run as jobs even in the 
 | `exit` | Close this terminal. `quit` is the same. |
 
 The shell also answers to names `help` does not list: `dir` (`ls`), `del` (`rm`), `caps` (`capsules`), `svc` (`service`), `host` (`nslookup`), `ip` (`ifconfig`), `bat` (`battery`), `profile` (`theme`), `commands` (`help`), and the nox names `where`, `in`, `read`, `copy`, `mk` and `move`. It also has `write <file> <text>`, `keep <path>` (see [Files](files.md)), `basename`, `dirname`, `apps`, `display`, `motd`, `neofetch`, and `pull` and `push`, which copy a file from or to a host over plain TCP.
+
+## neofetch
+
+`neofetch` prints the NONOS emblem, the logo's slashed zero in three dimensions, drawn in 24-bit colour two pixels to a cell, its face lit from the upper left and its side falling to the lower right, beside what the system reports: who and where, the release, the architecture, who signed this terminal, uptime, memory in use against the machine's, the number of processes and the load from the kernel's process table, the shell, this terminal's size in cells and its theme, then the sixteen colours. A figure the kernel did not give says `unknown`. Sent to a file, it writes the emblem as plain blocks and no colour codes.
 
 ## Linux programs
 
@@ -231,7 +245,11 @@ The source behind the facts above, at the commit in the footer.
   - History keeps only `qwen` and the tier: `recorded` in `userland/capsule_terminal/src/command/builtin/qwen/ask.rs:41`.
   - The eight installed tools: `TOOLS` in `userland/capsule_terminal/src/command/builtin/tool.rs:25-34`.
   - The three store tools: `STORE_TOOLS` in `userland/capsule_terminal/src/jobs/classify.rs:173`.
+- The prompt
+  - The branch and the job count, and which fit: `branch`, `heads` and `fit` in `userland/capsule_terminal/src/term/prompt_bits.rs`; read after each line by `probe` in `userland/capsule_terminal/src/term/git_probe.rs`.
 - Tabs and windows
+  - The drop-down: `key` and `rect` in `userland/capsule_terminal/src/term/drop.rs`; the window placed by `RectAsk::step` in `userland/app_skeleton/src/runner/rect_ask.rs`.
+  - The split: `halves`, `sides`, `retarget` and `after_close` in `userland/capsule_terminal/src/term/split.rs`.
   - The size and place it opens at: `manifest` in `userland/capsule_terminal/src/term/manifest.rs`.
   - The prompt under the last output: `follow` in `userland/capsule_terminal/src/layout/follow.rs`.
   - Nine tabs at most: `MAX_TABS` in `userland/capsule_terminal/src/term/terminal/tabs.rs:25`.
@@ -244,6 +262,8 @@ The source behind the facts above, at the commit in the footer.
   - The keys list: `KEYS` in `userland/capsule_terminal/src/command/builtin/help_pages.rs`.
   - The keys the bar names in each state: `hints` in `userland/capsule_terminal/src/paint/hint_sets.rs`.
   - `Ctrl+K` opens the palette, `Ctrl+Shift+K` cuts: `opens` in `userland/capsule_terminal/src/term/terminal/palette_key.rs:67-70`.
+- Tab's list
+  - Its columns, rows and place: `grid`, `cell`, `label` and `top` in `userland/capsule_terminal/src/term/complete_list.rs`.
 - Pipes, redirects and chains
   - The ten built-ins that read a pipe, `grep` and the rest: `userland/capsule_terminal/README.md:52-57`.
 - Background jobs
@@ -251,8 +271,11 @@ The source behind the facts above, at the commit in the footer.
 - What Ctrl+C does
   - Each case in the table: `interrupt` in `userland/capsule_terminal/src/event/interrupt.rs:25-35`.
 - Built-in commands
-  - The 69 documented commands: `USAGE` in `userland/capsule_terminal/src/command/builtin/help_one.rs:35`.
+  - The 70 documented commands: `USAGE` in `userland/capsule_terminal/src/command/builtin/help_one.rs:35`.
   - The other names, `write`, `keep`, `pull` and `push`: `dispatch` in `userland/capsule_terminal/src/command/builtin/nox/dispatch.rs:27-59`.
+- neofetch
+  - The splash's emblem: `beside` in `userland/capsule_terminal/src/paint/fetch_emblem.rs`.
+  - The emblem: `emblem_shape.rs`, `emblem_light.rs`, `emblem.rs` and `emblem_cell.rs` in `userland/capsule_terminal/src/command/builtin/neofetch/`; the figures: `facts.rs` and `gather.rs` there.
 - Git
   - A client written for NONOS: `nonos_git` in `userland/nonos_git/README.md:3-5`.
   - The subcommands: `usage` in `userland/capsule_terminal/src/command/builtin/git/dispatch.rs:54-56`.
@@ -260,6 +283,9 @@ The source behind the facts above, at the commit in the footer.
   - The credentials message: `say_failure` in `userland/capsule_terminal/src/command/builtin/git/clone/fail.rs:40-51`.
 - The network a command uses
   - The refusal that ends `so nothing was sent`: `refusal_line` in `userland/capsule_terminal/src/command/builtin/direct_gate.rs:46-54`.
+- Colour
+  - The picker's keys: `Pick::key` in `userland/capsule_terminal/src/term/theme_pick.rs`.
+  - Every theme's text at 4.5 to 1 or more: `contrast_tests.rs` in `userland/terminal_line_proofs/src/paint/`.
 - What is kept
   - The kept preferences: `load` and `save` in `userland/capsule_terminal/src/term/prefs/store.rs:32-49`.
 

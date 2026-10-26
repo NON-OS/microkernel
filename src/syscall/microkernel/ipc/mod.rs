@@ -39,6 +39,7 @@ mod reply_inbox;
 mod send;
 mod send_address;
 mod send_caps;
+mod send_caps_inbox;
 mod send_redirect;
 mod send_reply;
 mod send_reply_inbox;

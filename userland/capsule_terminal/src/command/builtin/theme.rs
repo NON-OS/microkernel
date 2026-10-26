@@ -21,6 +21,7 @@
 use crate::command::output::Output;
 use crate::term::state::State;
 use crate::term::theme::profiles;
+use crate::term::theme_pick::Pick;
 
 const NAMES: &[&[u8]] = &[b"dark", b"dim", b"light", b"abyss"];
 
@@ -33,7 +34,13 @@ pub fn run(state: &mut State, argv: &[&[u8]]) {
                 list(state);
             }
         },
-        None => list(state),
+        None => {
+            // The picker: Up and Down try each theme on the window itself.
+            let now = state.scrollback.theme_of.unwrap_or(0);
+            state.theme_pick = Some(Pick::open(now, profiles::COUNT));
+            let tip = b"theme: Up and Down try each one, Enter keeps it, Esc goes back";
+            Output::new(&mut state.scrollback).writeln(tip);
+        }
     }
 }
 

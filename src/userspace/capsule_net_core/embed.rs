@@ -24,15 +24,15 @@ pub(super) const NET_CORE_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-net-core")]
 pub(super) const NET_CORE_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_core.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/net_core.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-net-core")]
 pub(super) const NET_CORE_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_core.manifest.bin");
+    crate::baked_trust!("capsules/net_core.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-net-core")]
 pub(super) const NET_CORE_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_core.zk_trailer.bin");
+    crate::baked_trust!("capsules/net_core.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-net-core"))]
 pub(super) const NET_CORE_ELF: &[u8] = &[];

@@ -32,7 +32,7 @@ fn probes_to_a_silent_server_report_once_the_window_is_spanned() {
     let mut reports = Vec::new();
     for i in 0..30u64 {
         let start = i * 500;
-        if let [Some(x), None] = s.late(p(7), start, start + 20) {
+        if let [Some(x), None] = s.late(p(7), start, start + 20, 1) {
             reports.push((x, start + 20));
         }
     }
@@ -42,27 +42,27 @@ fn probes_to_a_silent_server_report_once_the_window_is_spanned() {
 #[test]
 fn an_answer_in_time_ends_the_silence() {
     let mut s = Silence::new(W);
-    assert_eq!(s.late(p(7), 0, 100), [None, None]);
+    assert_eq!(s.late(p(7), 0, 100, 1), [None, None]);
     s.answered(p(7));
-    assert_eq!(s.late(p(7), 4000, 5100), [None, None], "the silence began again");
-    assert_eq!(s.late(p(7), 9000, 9100), [Some(p(7)), None]);
+    assert_eq!(s.late(p(7), 4000, 5100, 1), [None, None], "the silence began again");
+    assert_eq!(s.late(p(7), 9000, 9100, 1), [Some(p(7)), None]);
 }
 
 #[test]
 fn a_full_table_evicts_the_longest_silent_and_reports_it() {
     let mut s = Silence::new(W);
     for c in 0..SLOTS as u32 {
-        assert_eq!(s.late(p(100 + c), u64::from(c), u64::from(c) + 1), [None, None]);
+        assert_eq!(s.late(p(100 + c), u64::from(c), u64::from(c) + 1, 1), [None, None]);
     }
-    assert_eq!(s.late(p(1), 50, 60), [None, Some(p(100))], "the oldest goes, reported");
-    assert_eq!(s.late(p(2), 51, 61), [None, Some(p(101))]);
+    assert_eq!(s.late(p(1), 50, 60, 1), [None, Some(p(100))], "the oldest goes, reported");
+    assert_eq!(s.late(p(2), 51, 61, 1), [None, Some(p(101))]);
 }
 
 #[test]
-fn settle_answers_on_a_reply_and_reports_after_the_late_line() {
+fn settle_answers_on_a_reply_and_a_late_call_alone_says_nothing() {
     let code: String = SETTLE.split_whitespace().collect();
     assert!(code.contains("ifrc>=0{silence_table::answered(pair);}"));
-    let late = code.find("LATE.late(&endpoint.name,waited.1,dropped());").unwrap();
-    let report = code.find("silence_table::report(&STARVED,pair,&endpoint.name,waited.1);");
-    assert!(late < report.expect("the silence is asked on every late call"));
+    let late = "NoAnswer::Late=>silence_table::report(&STARVED,(pair,token),&endpoint.name,";
+    assert!(code.contains(late), "the silence is asked on every late call");
+    assert!(!code.contains(".late("), "no late line of its own");
 }

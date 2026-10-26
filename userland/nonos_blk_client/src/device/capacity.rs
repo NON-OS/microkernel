@@ -18,8 +18,8 @@
 //! size in bytes the list shows.
 
 use super::handle::BlockDevice;
-use crate::error::BlkError;
 use crate::driver::CAPACITY_BODY_MAX;
+use crate::error::BlkError;
 use crate::wire::{call, decode_reply, HDR_LEN, STATUS_LEN};
 
 impl BlockDevice {
@@ -28,7 +28,7 @@ impl BlockDevice {
         let ops = self.driver.ops();
         // Sized for the longest reply; decode_reply cuts it to what came.
         let mut rx = [0u8; HDR_LEN + STATUS_LEN + CAPACITY_BODY_MAX];
-        let (n, id) = call(self.port, self.driver.magic(), ops.capacity, &[], &mut rx)?;
+        let (n, id) = call(self.port, self.driver.magic(), ops.capacity, self.unit, &[], &mut rx)?;
         let body = decode_reply(&rx, n, self.driver.magic(), ops.capacity, id)?;
         if body.len() < 8 {
             return Err(BlkError::BadLength);
