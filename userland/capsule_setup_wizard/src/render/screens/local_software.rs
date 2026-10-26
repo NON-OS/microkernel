@@ -30,11 +30,9 @@ pub fn draw(ctx: &Context) {
         b"Programs the store installs are proved by this machine. Allow them to run?",
         b"ENTER NEXT  ESC BACK",
     );
-    let spx = ctx.stride as usize / 4;
-    let (w, h) = (ctx.width, ctx.height);
-    let buf = render::buffer(ctx);
+    let cv = &mut render::canvas(ctx);
     let l = render::layout_of(ctx);
-    rows::list(buf, spx, w, h, l.col_x, l.body_y, MODES, ctx.local_sel as usize);
+    rows::list(cv, l.col_x, l.body_y, MODES, ctx.local_sel as usize);
 }
 
 pub fn on_key(ctx: &mut Context, code: u32) -> Outcome {

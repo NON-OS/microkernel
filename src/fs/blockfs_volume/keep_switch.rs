@@ -55,7 +55,7 @@ pub fn keeping_on() {
 }
 
 fn drop_held() -> bool {
-    let mut volume = crate::smp::write_responsive(&VOLUME);
+    let mut volume = VOLUME.write();
     if !drop_at_arm(HELD.swap(false, Ordering::AcqRel)) {
         return false;
     }

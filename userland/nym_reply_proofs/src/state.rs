@@ -26,7 +26,7 @@ pub mod gateway;
 #[allow(clippy::new_without_default)]
 #[path = "../../capsule_net_nym/src/state/replay.rs"]
 pub mod replay;
-#[path = "../../capsule_net_nym/src/state/session.rs"]
+#[path = "../../capsule_net_nym/src/state/session/mod.rs"]
 pub mod session;
 
 /// The session table, file by file, so a proof can hold a table of its own

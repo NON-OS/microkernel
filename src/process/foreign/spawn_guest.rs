@@ -43,11 +43,9 @@ pub(in crate::process::foreign) fn empty_guest(supervisor: u32, name: &[u8]) -> 
         return Err(unborn(pid, ERRNO_PERM));
     }
     // Read back rather than assumed, so the log states what the guest holds.
-    crate::sys::serial::print(b"[FOREIGN] guest pid=");
-    crate::sys::serial::print_hex(pid as u64);
-    crate::sys::serial::print(b" caps=");
-    crate::sys::serial::print_hex(crate::process::caps::bits(pid).unwrap_or(u64::MAX));
-    crate::sys::serial::println(b"");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[FOREIGN] guest pid=").hex(pid as u64).str(b" caps=");
+    l.hex(crate::process::caps::bits(pid).unwrap_or(u64::MAX)).end();
     if !super::enrol::enrol(pid, supervisor) {
         return Err(unborn(pid, ERRNO_EXIST));
     }

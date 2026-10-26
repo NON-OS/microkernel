@@ -27,7 +27,6 @@ mod cpu;
 mod cpu_id;
 mod cpu_unregistered;
 mod init;
-mod ipi_dispatch;
 mod ipi_handler;
 mod panic_ipi;
 mod preempt;
@@ -52,18 +51,11 @@ pub mod topology;
 #[cfg(target_arch = "x86_64")]
 pub mod trampoline;
 
+#[cfg(target_arch = "x86_64")]
+pub use ap::*;
 pub use constants::*;
 pub use cpu::*;
 pub use cpu_id::{cpu_id, current_cpu_id};
-pub use sole_cpu::sole_cpu_apic_id;
-pub(crate) use state::{cpu_count, cpu_is_offline, cpu_is_online, cpu_is_starting, cpus_online};
-/// Called by the IDT builder, which is the only point early enough that every
-/// CPU is guaranteed to load a table carrying these vectors.
-#[cfg(target_arch = "x86_64")]
-pub(crate) use ipi_dispatch::install_gates as install_ipi_gates;
-pub use types::*;
-#[cfg(target_arch = "x86_64")]
-pub use ap::*;
 pub use init::*;
 pub use ipi_handler::*;
 pub use panic_ipi::{others_halted, send_panic_ipi};
@@ -72,4 +64,7 @@ pub use register_secondary::register_secondary;
 pub use responsive::lock_responsive;
 pub use responsive_rw::{read_responsive, write_responsive};
 pub use serve::{in_serve_units, serve_shootdowns, SERVE_UNIT};
+pub use sole_cpu::sole_cpu_apic_id;
+pub(crate) use state::{cpu_count, cpu_is_offline, cpu_is_online, cpu_is_starting, cpus_online};
 pub use stats::*;
+pub use types::*;

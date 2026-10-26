@@ -25,7 +25,29 @@ and the router keeps at most 64 subscriptions (`MAX_SUBSCRIBERS`,
 services may grab chosen kinds of event, so that those events go to them alone:
 the boot splash, the setup wizard, the input probe, `desktop_shell` and the
 installer. Any other sender is refused (`GRABBERS`,
-`userland/capsule_input_router/src/server/handlers/grab_request.rs:28-29`).
+`userland/capsule_input_router/src/route/grab_rule.rs`). Each is known by the
+pid the registry gives its name, and those names are the image's own: no
+capsule may register one at run time (`is_runtime_registrable`,
+`src/services/registry/reserved.rs`).
+
+A grab is decided in this order (`may_grab`, same file):
+
+1. While the trusted band is up, only its holder may grab.
+2. A grabber may grab while its window has focus, and `desktop_shell` while no
+   window has focus. With no window manager answering, the name alone decides.
+3. Over a focused window, `desktop_shell` may also grab while the user's last
+   key-down or press went to it. The router keeps that record itself, from what
+   it delivered (`route/recent.rs`). A capsule can't report input of its own
+   into it.
+   - The rule covers a menu the shell opens on a click over a focused app: the
+     menu takes Esc and the click that closes it, and the app keeps focus.
+   - The next key or press delivered to a window ends that. A press that is not
+     delivered counts for nobody. Motion doesn't count.
+   - It is checked when the grab is asked for. A grab already held lasts until
+     the shell releases it.
+
+The shell closes its menus on Esc, on the next click, and when focus moves to
+another window.
 
 Four groups of keys never reach the focused window:
 

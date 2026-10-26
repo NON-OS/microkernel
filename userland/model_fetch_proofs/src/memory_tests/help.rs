@@ -34,9 +34,9 @@ fn help_says_what_a_tier_needs_beyond_its_file() {
         crate::need::memory(s.0, pinned(s.0)).unwrap() - pinned(s.0)
     };
     let most = crate::need::SHAPES.iter().map(beyond).max().unwrap();
-    assert!(most <= 800_000_000 && most > 700_000_000, "the most beyond a file is {most}");
+    assert!(most <= 910_000_000 && most > 900_000_000, "the most beyond a file is {most}");
     let help: Vec<String> =
         qwen_help::HELP.iter().map(|l| String::from_utf8_lossy(l).into_owned()).collect();
-    assert!(help.iter().any(|l| l.contains("plus up to 0.8 GB")), "{help:?}");
+    assert!(help.iter().any(|l| l.contains("plus up to 0.91 GB")), "{help:?}");
     assert!(!help.iter().any(|l| l.contains("1-2 GB")), "{help:?}");
 }

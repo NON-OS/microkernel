@@ -19,10 +19,8 @@ pub(super) fn trace(name: &str, label: &[u8]) {
     if !traced && !crate::services::registry::displays::DISPLAYS.contains(&name) {
         return;
     }
-    crate::sys::serial::print(b"[SPAWN] ");
-    crate::sys::serial::print(name.as_bytes());
-    crate::sys::serial::print(b" ");
-    crate::sys::serial::println(label);
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[SPAWN] ").str(name.as_bytes()).str(b" ").str(label).end();
 }
 
 /// Mark that `name`'s endpoint collided with one already registered.

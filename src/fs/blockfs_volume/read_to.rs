@@ -26,7 +26,8 @@ use crate::fs::blockfs;
 /// Up to `len` bytes of the file at `path` from `offset`, each stage of
 /// them given to `hand` with how many went before it. Stops at the file's
 /// end or when `hand` says false; returns the bytes `hand` took. `hand`
-/// runs under the volume's read lock and must not fault or sleep.
+/// runs under the volume's read hold: it may sleep, but must not fault or
+/// take the volume again.
 pub fn read_to(
     path: &[u8],
     offset: u64,
@@ -34,7 +35,7 @@ pub fn read_to(
     stage: &mut [u8],
     mut hand: impl FnMut(usize, &[u8]) -> bool,
 ) -> Result<usize, VolumeError> {
-    let guard = crate::smp::read_responsive(&VOLUME);
+    let guard = VOLUME.read();
     let state = guard.as_ref().ok_or(VolumeError::NotMounted)?;
     let lba = blockfs::resolve(&state.key, &state.mount, path).map_err(VolumeError::BlockFs)?;
     let node = blockfs::read_node(&state.key, lba).map_err(VolumeError::BlockFs)?;

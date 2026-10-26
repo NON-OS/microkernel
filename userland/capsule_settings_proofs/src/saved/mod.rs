@@ -12,6 +12,7 @@ mod dropped_tests;
 mod error;
 #[path = "../../../nonos_wifi_client/src/saved/file.rs"]
 mod file;
+mod forget_all_tests;
 #[path = "../../../nonos_wifi_client/src/saved/list.rs"]
 mod list;
 #[path = "../../../nonos_wifi_client/src/saved/list_codec.rs"]

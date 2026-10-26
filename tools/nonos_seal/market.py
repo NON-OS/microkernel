@@ -53,22 +53,22 @@ def seal(step, tools, linux_out, serial, mirror, package_mirror="", packages="",
     place_userland(linux_out)
     for path in (INDEX, CATALOGUE):
         os.makedirs(os.path.dirname(path), exist_ok=True)
-    # A development image in nonos-dev-image's copy lists the schema 3 test
-    # catalogue instead, under the copy's throwaway key; a release never does.
+    # A development image in nonos-dev-image's copy also lists the test
+    # catalogue's entries, under the copy's throwaway key; a release never does.
+    extra = []
     if dev_market.chosen():
-        dev_market.seal(step, tools, INDEX, serial)
-    else:
-        step.run("python3", "tools/nonos-market-index", "--out", INDEX, "--cli", tools.market_index,
-                 "--seed", keys.OPERATOR_SEED, "--pubkey", keys.OPERATOR_PUB,
-                 "--linux-list", "userland/capsule_market/linux-packages.txt",
-                 "--guest-list", "userland/capsule_market/linux-guests.json", "--serial", serial,
-                 # The catalogue's apps: from Alpine, under the keys the device pins, each with its box.
-                 "--catalogue", "userland/capsule_market/linux-catalogue.json",
-                 # The in-tree tools the image does not carry, listed only with a NONOS
-                 # package mirror, their content written to `packages` for ek to put on it.
-                 *(["--tool-list", "userland/capsule_market/linux-tools.json",
-                    "--package-mirror", package_mirror, "--package-out", packages] if package_mirror else []),
-                 env={"SOURCE_DATE_EPOCH": serial})
+        extra = dev_market.extra()
+    step.run("python3", "tools/nonos-market-index", "--out", INDEX, "--cli", tools.market_index,
+             "--seed", keys.OPERATOR_SEED, "--pubkey", keys.OPERATOR_PUB,
+             "--linux-list", "userland/capsule_market/linux-packages.txt",
+             "--guest-list", "userland/capsule_market/linux-guests.json", "--serial", serial,
+             # The catalogue's apps: from Alpine, under the keys the device pins, each with its box.
+             "--catalogue", "userland/capsule_market/linux-catalogue.json",
+             # The in-tree tools the image does not carry, listed only with a NONOS
+             # package mirror, their content written to `packages` for ek to put on it.
+             *(["--tool-list", "userland/capsule_market/linux-tools.json",
+                "--package-mirror", package_mirror, "--package-out", packages] if package_mirror else []),
+             *extra, env={"SOURCE_DATE_EPOCH": serial})
     step.run("python3", "tools/nonos-qwen-tier.py", "catalogue", "--out", CATALOGUE,
              "--seed", keys.OPERATOR_SEED, "--pubkey", keys.OPERATOR_PUB, "--serial", serial,
              *(["--nonos-mirror", mirror] if mirror else []))

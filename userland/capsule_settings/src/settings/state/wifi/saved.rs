@@ -7,7 +7,7 @@
 
 use nonos_wifi_client::{forget, forget_all, load, SavedError, ScanNetwork};
 
-use super::super::state::State;
+use super::super::model::State;
 
 /// Read the saved networks' names. Opening the record asks the TPM for the
 /// key, so this runs on entering the tab and after a change, not every frame.
@@ -27,14 +27,10 @@ pub fn refresh_saved(state: &mut State) {
 }
 
 /// Forget the highlighted saved network, or the highlighted scanned one if it
-/// is saved. A record this machine can no longer open is withdrawn whole.
+/// is saved. A record this machine cannot open, which holds every join to
+/// WPA3, is withdrawn whole.
 pub fn forget_selected(state: &mut State) {
-    let w = &state.wifi;
-    let unreadable = matches!(
-        w.saved_err,
-        Some(SavedError::Unreadable | SavedError::Damaged | SavedError::BootChanged)
-    );
-    let result = if unreadable {
+    let result = if state.wifi.saved_err.is_some_and(SavedError::fails_closed) {
         Some(forget_all())
     } else {
         selected_name(state).map(|n| forget(n.ssid()))

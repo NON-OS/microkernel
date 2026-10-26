@@ -22,6 +22,7 @@ mod apps_qwen25;
 mod apps_qwen3;
 mod apps_qwen35;
 mod apps_run;
+mod apps_vl;
 mod auth;
 mod chat_build;
 mod chat_pick;

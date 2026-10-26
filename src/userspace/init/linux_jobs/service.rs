@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::sys::serial::{print, println};
+use crate::sys::serial::{println, Line};
 use crate::userspace::capsule_linux::{package_arg, spawn_uninstall};
 
 use super::queue::{hold, take, Job};
@@ -50,8 +50,9 @@ fn uninstall(listing: &str) {
     }
     let Some(name) = listing.strip_prefix("linux.").and_then(package_arg) else {
         super::status::set(listing, Stage::Refused);
-        print(b"[LINUX-UNINSTALL] no package name the personality takes, refused ");
-        return println(listing.as_bytes());
+        let mut l = Line::new();
+        l.str(b"[LINUX-UNINSTALL] no package name the personality takes, refused ");
+        return l.str(listing.as_bytes()).end();
     };
     let said: &[u8] = match spawn_uninstall(&name) {
         Ok(pid) => {
@@ -64,6 +65,5 @@ fn uninstall(listing: &str) {
             b"[LINUX-UNINSTALL] refused "
         }
     };
-    print(said);
-    println(listing.as_bytes());
+    Line::new().str(said).str(listing.as_bytes()).end();
 }

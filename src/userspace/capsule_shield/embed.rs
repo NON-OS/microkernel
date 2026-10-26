@@ -32,6 +32,16 @@ pub(crate) const SHIELD_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/sh
 pub(crate) const SHIELD_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/shield.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-shield")]
+const _: () = assert!(
+    !SHIELD_ELF.is_empty()
+        && !SHIELD_NONOS_ID_CERT_BYTES.is_empty()
+        && !SHIELD_MANIFEST_BYTES.is_empty()
+        && !SHIELD_ATTESTATION_BYTES.is_empty(),
+    "capsule_shield built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-shield"))]
 pub(crate) const SHIELD_ELF: &[u8] = &[];
 
