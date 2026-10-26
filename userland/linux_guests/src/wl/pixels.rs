@@ -21,7 +21,7 @@ use crate::sys::{call, MMAP, PROT_RW};
 
 // A memfd sized and mapped shared, painted, and handed back as the fd.
 pub fn pixels(w: u32, h: u32) -> Option<i32> {
-    let fd = call(319, [b"window\0".as_ptr() as u64, 0, 0, 0, 0, 0]);
+    let fd = call(319, [c"window".as_ptr() as u64, 0, 0, 0, 0, 0]);
     let size = (w * h * 4) as u64;
     if fd < 0 || call(77, [fd as u64, size, 0, 0, 0, 0]) != 0 {
         return None;
