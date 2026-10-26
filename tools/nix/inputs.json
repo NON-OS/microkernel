@@ -10877,6 +10877,7 @@
    "userland/assets/fonts/Geist-Regular.ttf",
    "userland/assets/fonts/JetBrainsMono-Regular.ttf",
    "userland/assets/icons/nonos_logo.rgba",
+   "userland/capsule_keyring/src/protocol/callers.rs",
    "userland/capsule_keyring/src/protocol/encode.rs",
    "userland/capsule_keyring/src/protocol/errno.rs",
    "userland/capsule_keyring/src/protocol/gated.rs",

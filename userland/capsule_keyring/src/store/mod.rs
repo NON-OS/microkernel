@@ -34,4 +34,4 @@ mod wipe;
 
 pub use eth_valid::eth_secret_valid;
 pub use shield_seed::{Words, MAX_WORDS as SHIELD_MAX_WORDS};
-pub use types::{KeyMetadata, KeyType, Store, StoreError};
+pub use types::{KeyMetadata, KeyType, Store, StoreError, MAX_KEYS, MAX_KEYS_PER_OWNER};

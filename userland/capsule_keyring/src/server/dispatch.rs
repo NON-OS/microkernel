@@ -36,6 +36,9 @@ pub fn dispatch(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8>
     if crate::protocol::wallet_only(req.op) && !super::vault_gate::allowed(sender_pid) {
         return encode_response(req.seq, EACCES, &[]);
     }
+    if !super::key_gate::allowed(req.op, sender_pid) {
+        return encode_response(req.seq, EACCES, &[]);
+    }
     match req.op {
         OP_STORE => handlers::store(store, req, sender_pid),
         OP_RETRIEVE => handlers::retrieve(store, req, sender_pid),
