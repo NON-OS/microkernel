@@ -409,7 +409,6 @@ src/drivers/pci/manager/device.rs:85 find_ahci_controllers
 src/drivers/pci/manager/device.rs:89 find_network_controllers
 src/drivers/pci/manager/device.rs:93 find_display_controllers
 src/drivers/pci/manager/device.rs:97 find_bridges
-src/drivers/pci/msi/controller.rs:43 configure_single_vector
 src/drivers/pci/security/validation.rs:83 verify_bar_not_protected
 src/drivers/pci/stats/device_class.rs:65 record_device
 src/drivers/pci/stats/pci_stats.rs:76 average_enumeration_time_us
@@ -423,7 +422,7 @@ src/drivers/pci/types/class_code.rs:40 is_storage
 src/drivers/pci/types/device_bars.rs:23 get_bar
 src/drivers/pci/types/device_bars.rs:27 get_memory_bar
 src/drivers/pci/types/device_bars.rs:31 get_io_bar
-src/drivers/pci/types/msi.rs:34 allocated_vectors
+src/drivers/pci/types/msi.rs:28 allocated_vectors
 src/drivers/pci/types/pcie.rs:35 link_speed_str
 src/drivers/pci/types/pcie.rs:39 bandwidth_gbps
 src/drivers/pci/types/power.rs:34 supports_d1
