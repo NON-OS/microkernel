@@ -37,7 +37,7 @@ pub fn request(msg: &[u8]) -> Vec<u8> {
 /// A Get VCP reply, read whole or refused for the first thing wrong.
 pub fn vcp(code: u8, r: &[u8]) -> Result<Reading, DdcError> {
     match (r[0], r[1]) {
-        (0x6E, 0x80) if xor(0x50, &r[..3]) == 0 => return Err(DdcError::Unsupported),
+        (0x6E, 0x80) if xor(0x50, &r[..3]) == 0 => return Err(DdcError::NotOffered),
         (0x6E, 0x80) => return Err(DdcError::Checksum),
         (0x6E, 0x88) => {}
         (0x6E, _) => return Err(DdcError::Length),
@@ -49,7 +49,7 @@ pub fn vcp(code: u8, r: &[u8]) -> Result<Reading, DdcError> {
             max: u16::from_be_bytes([r[6], r[7]]),
             present: u16::from_be_bytes([r[8], r[9]]),
         }),
-        (0, 0x02, 1, c) if c == code => Err(DdcError::Unsupported),
+        (0, 0x02, 1, c) if c == code => Err(DdcError::NotOffered),
         _ => Err(DdcError::Reply),
     }
 }

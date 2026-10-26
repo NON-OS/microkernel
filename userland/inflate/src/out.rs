@@ -16,9 +16,8 @@
 
 //! The output window: bytes `..pos` of `buf` are the output so far. `buf`
 //! is never longer than `cap`; while it has `SLACK` bytes past `pos`, any
-//! literal or match fits, and a match may copy in whole 16-byte words.
+//! `short` says how much was asked and the decode stops, never aborts.
 
-use alloc::vec;
 use alloc::vec::Vec;
 
 /// The longest match plus one word of overshoot.
@@ -28,12 +27,20 @@ pub struct Out {
     pub buf: Vec<u8>,
     pub pos: usize,
     pub cap: usize,
+    /// The size the allocator refused, when it refused one.
+    pub short: Option<usize>,
 }
 
 impl Out {
-    /// An empty output with room for about `hint` bytes.
+    /// An empty output with room for about `hint` bytes, or less when the
+    /// allocator cannot give that much now; growing asks again.
     pub fn new(cap: usize, hint: usize) -> Self {
-        Out { buf: vec![0; hint.saturating_add(SLACK).min(cap)], pos: 0, cap }
+        let mut out = Out { buf: Vec::new(), pos: 0, cap, short: None };
+        if !out.resize(hint.saturating_add(SLACK).min(cap)) {
+            out.short = None;
+            out.resize((4096 + SLACK).min(cap));
+        }
+        out
     }
 
     /// True when a literal or a whole match fits without further checks.
@@ -48,8 +55,7 @@ impl Out {
             return false;
         }
         let want = self.buf.len().saturating_mul(2).max(self.pos + SLACK + 4096);
-        self.buf.resize(want.min(self.cap), 0);
-        self.pos + SLACK <= self.buf.len()
+        self.resize(want.min(self.cap)) && self.pos + SLACK <= self.buf.len()
     }
 
     /// Appends as much of `data` as the cap allows; returns how much.
@@ -57,15 +63,12 @@ impl Out {
         let n = data.len().min(self.cap - self.pos);
         if self.pos + n > self.buf.len() {
             let want = self.buf.len().saturating_mul(2).max(self.pos + n + SLACK);
-            self.buf.resize(want.min(self.cap), 0);
+            if !self.resize(want.min(self.cap)) {
+                return 0;
+            }
         }
         self.buf[self.pos..self.pos + n].copy_from_slice(&data[..n]);
         self.pos += n;
         n
-    }
-
-    pub fn finish(mut self) -> Vec<u8> {
-        self.buf.truncate(self.pos);
-        self.buf
     }
 }

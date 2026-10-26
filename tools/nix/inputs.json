@@ -12,6 +12,7 @@
    "abi/manifest.toml",
    "build.rs",
    "build_baked_trust.rs",
+   "build_baked_trust_rule.rs",
    "build_branch_protection.rs",
    "build_c_target.rs",
    "build_info.rs",
@@ -1293,6 +1294,7 @@
   "include": [
    ".cargo",
    "build_baked_trust.rs",
+   "build_baked_trust_rule.rs",
    "nonos-data/trust/policy",
    "userland/baked_trust_proofs"
   ],
@@ -4438,6 +4440,7 @@
   "include": [
    ".cargo",
    "src/hardware/broker/acpi/dgon_wire.rs",
+   "src/services/registry/display_hints.rs",
    "src/services/registry/displays.rs",
    "userland/compositor",
    "userland/libc",
@@ -4452,6 +4455,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/services/registry/display_hints.rs",
    "src/services/registry/displays.rs",
    "userland/capsule_boot_splash/src/warning.rs",
    "userland/capsule_desktop_shell/src/render/palette.rs",
@@ -5292,7 +5296,16 @@
    "src/services/registry/usb_hosts.rs",
    "userland/capsule_driver_cdc_ecm/Capsule.mk",
    "userland/capsule_driver_cdc_ncm/Capsule.mk",
-   "userland/capsule_driver_fido/src/ctaphid",
+   "userland/capsule_driver_fido/src/ctaphid/assemble.rs",
+   "userland/capsule_driver_fido/src/ctaphid/assembled.rs",
+   "userland/capsule_driver_fido/src/ctaphid/frame.rs",
+   "userland/capsule_driver_fido/src/ctaphid/heard.rs",
+   "userland/capsule_driver_fido/src/ctaphid/init.rs",
+   "userland/capsule_driver_fido/src/ctaphid/job.rs",
+   "userland/capsule_driver_fido/src/ctaphid/job_end.rs",
+   "userland/capsule_driver_fido/src/ctaphid/key.rs",
+   "userland/capsule_driver_fido/src/ctaphid/opening.rs",
+   "userland/capsule_driver_fido/src/ctaphid/talk.rs",
    "userland/capsule_driver_rndis/Capsule.mk",
    "userland/capsule_net_core/src/protocol/ops.rs",
    "userland/fido_proofs",
@@ -5505,7 +5518,6 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "userland/bga_proofs/src/tests/wire_sweep/kit.rs",
    "userland/gfx_pool_proofs",
    "userland/gfx_serve_proofs/src/sweep/asks.rs",
    "userland/gfx_serve_proofs/src/sweep/check.rs",
@@ -5729,6 +5741,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "abi/driver_broker_abi.md",
    "src/hardware/inventory/i2c_host.rs",
    "src/hardware/inventory/i2c_present.rs",
    "src/userspace/init/spawn_plan/drivers_bus/i2c.rs",
@@ -5736,6 +5749,7 @@
    "userland/capsule_driver_i2c_pci/src/discover/acpi_touchpad.rs",
    "userland/capsule_driver_i2c_pci/src/discover/classify.rs",
    "userland/capsule_driver_i2c_pci/src/discover/defs.rs",
+   "userland/capsule_driver_i2c_pci/src/discover/find_touchpad_addrs.rs",
    "userland/capsule_driver_i2c_pci/src/discover/found.rs",
    "userland/capsule_driver_i2c_pci/src/driver.rs",
    "userland/capsule_driver_i2c_pci/src/gpio0/wire.rs",
@@ -5753,7 +5767,9 @@
    "userland/libc/src/broker/types/device.rs",
    "userland/nonos_devmodel"
   ],
-  "md": [],
+  "md": [
+   "abi/driver_broker_abi.md"
+  ],
   "signed": []
  },
  "userland/i2c_transfer_proofs": {
@@ -5923,6 +5939,15 @@
    "userland/libc",
    "userland/nonos_brotli",
    "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/inflate": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/inflate"
   ],
   "md": [],
   "signed": []
@@ -6154,6 +6179,7 @@
   ],
   "include": [
    ".cargo",
+   "abi/driver_broker_abi.md",
    "abi/syscalls.toml",
    "nonos-bootloader/src/display/gop/refusal_word.rs",
    "nonos-bootloader/src/display/gop/state.rs",
@@ -6339,11 +6365,17 @@
    "userland/libc/src/broker/dma.rs",
    "userland/libc/src/broker/dma_lines.rs",
    "userland/libc/src/broker/mmio.rs",
+   "userland/libc/src/broker/types/bar.rs",
+   "userland/libc/src/broker/types/device.rs",
    "userland/nonos_blk_client/src/disks/in_use.rs",
+   "userland/nonos_blk_wire/src/limits.rs",
+   "userland/nonos_blk_wire/src/ops.rs",
    "userland/tool_install/Capsule.mk",
    "userland/toolkit/Capsule.mk"
   ],
-  "md": [],
+  "md": [
+   "abi/driver_broker_abi.md"
+  ],
   "signed": [
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
@@ -6693,6 +6725,9 @@
    "userland/capsule_app_store/src/store/tab.rs",
    "userland/capsule_app_store/src/store/verdict.rs",
    "userland/capsule_linux/src/linux/install/why.rs",
+   "userland/capsule_linux/src/linux/install/why_model.rs",
+   "userland/capsule_linux/src/linux/install/why_package.rs",
+   "userland/capsule_linux/src/linux/install/why_route.rs",
    "userland/capsule_market/src/bonds/cache.rs",
    "userland/capsule_market/src/bonds/late.rs",
    "userland/capsule_market/src/bonds/refresh.rs",
@@ -6796,6 +6831,7 @@
    "src/process/scheduler/policy_types.rs",
    "src/security/capsule_manifest/verify/caps_bits.rs",
    "userland/compositor/src/sw_blitter/row.rs",
+   "userland/libc/src/heap/stats.rs",
    "userland/libc/src/heap/zero_on_free.rs",
    "userland/mechanism_proofs"
   ],
@@ -6854,6 +6890,9 @@
    "userland/capsule_linux/src/linux/install/model_dep.rs",
    "userland/capsule_linux/src/linux/install/model_remove.rs",
    "userland/capsule_linux/src/linux/install/why.rs",
+   "userland/capsule_linux/src/linux/install/why_model.rs",
+   "userland/capsule_linux/src/linux/install/why_package.rs",
+   "userland/capsule_linux/src/linux/install/why_route.rs",
    "userland/capsule_market/linux-guests.json",
    "userland/capsule_model_fetch/src/catalogue",
    "userland/capsule_model_fetch/src/errno.rs",
@@ -6954,7 +6993,11 @@
    "userland/capsule_net_core/src/device/batch_call.rs",
    "userland/capsule_net_core/src/device/batch_frames.rs",
    "userland/capsule_net_core/src/device/batch_served.rs",
+   "userland/capsule_net_core/src/device/learned_bound.rs",
+   "userland/capsule_net_core/src/device/rx.rs",
+   "userland/capsule_net_core/src/device/rx_learned.rs",
    "userland/capsule_net_core/src/device/rx_seq.rs",
+   "userland/capsule_net_core/src/device/rx_summary.rs",
    "userland/capsule_net_core/src/iface/dhcp/create.rs",
    "userland/capsule_net_core/src/iface/dhcp/deconfigured_line.rs",
    "userland/capsule_net_core/src/iface/dhcp/handle_deconfigured.rs",
@@ -10180,6 +10223,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "nonos-boot-measure/src/tcg/consts.rs",
    "nonos-bootloader/src/security/tpm_nv/consts.rs",
    "nonos-bootloader/src/security/tpm_nv/floor_cmd.rs",
    "nonos-bootloader/src/security/tpm_nv/floor_seq.rs",
@@ -10459,6 +10503,7 @@
    "userland/capsule_driver_hda/src/protocol/output.rs",
    "userland/capsule_driver_rndis/Capsule.mk",
    "userland/capsule_driver_usb_audio/src/serve/answer.rs",
+   "userland/capsule_driver_usb_audio/src/serve/fresh.rs",
    "userland/capsule_driver_usb_audio/src/serve/gone.rs",
    "userland/capsule_driver_usb_audio/src/serve/look.rs",
    "userland/capsule_driver_usb_audio/src/serve/loss.rs",
@@ -10563,7 +10608,24 @@
    "userland/capsule_driver_usb_msc/src/bot",
    "userland/capsule_driver_usb_msc/src/clock/deadline.rs",
    "userland/capsule_driver_usb_msc/src/descriptors",
-   "userland/capsule_driver_usb_msc/src/disk",
+   "userland/capsule_driver_usb_msc/src/disk/bot.rs",
+   "userland/capsule_driver_usb_msc/src/disk/capacity.rs",
+   "userland/capsule_driver_usb_msc/src/disk/csw.rs",
+   "userland/capsule_driver_usb_msc/src/disk/data.rs",
+   "userland/capsule_driver_usb_msc/src/disk/data_phase.rs",
+   "userland/capsule_driver_usb_msc/src/disk/digest.rs",
+   "userland/capsule_driver_usb_msc/src/disk/inquiry.rs",
+   "userland/capsule_driver_usb_msc/src/disk/lun.rs",
+   "userland/capsule_driver_usb_msc/src/disk/ready.rs",
+   "userland/capsule_driver_usb_msc/src/disk/recover.rs",
+   "userland/capsule_driver_usb_msc/src/disk/scsi_io.rs",
+   "userland/capsule_driver_usb_msc/src/disk/sense.rs",
+   "userland/capsule_driver_usb_msc/src/disk/serial.rs",
+   "userland/capsule_driver_usb_msc/src/disk/transport.rs",
+   "userland/capsule_driver_usb_msc/src/disk/types.rs",
+   "userland/capsule_driver_usb_msc/src/disk/uas.rs",
+   "userland/capsule_driver_usb_msc/src/disk/uas_cmd.rs",
+   "userland/capsule_driver_usb_msc/src/disk/uas_data.rs",
    "userland/capsule_driver_usb_msc/src/protocol",
    "userland/capsule_driver_usb_msc/src/scan",
    "userland/capsule_driver_usb_msc/src/scsi",
