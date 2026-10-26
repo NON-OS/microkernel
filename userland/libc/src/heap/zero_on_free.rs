@@ -55,8 +55,8 @@ impl ZeroOnFree {
 // re-enters the free list, so no live allocation is touched.
 unsafe impl GlobalAlloc for ZeroOnFree {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        // SAFETY: forwarded unchanged.
-        unsafe { self.inner.alloc(layout) }
+        // SAFETY: forwarded unchanged; the stats count only a block given.
+        super::stats::took(unsafe { self.inner.alloc(layout) }, layout.size())
     }
 
     unsafe fn dealloc(&self, block: *mut u8, layout: Layout) {
@@ -64,13 +64,13 @@ unsafe impl GlobalAlloc for ZeroOnFree {
             // Volatile, because the block is dead as far as the compiler is
             // concerned: a plain `write_bytes` here is a store to memory
             // nothing reads again, which it is free to drop entirely.
-            let len = layout.size();
-            for i in 0..len {
-                // SAFETY: `i < len` and the caller states the block is `len`
-                // bytes it owns and is releasing, so every byte is in bounds
-                // and unaliased.
+            for i in 0..layout.size() {
+                // SAFETY: `i < layout.size()` and the caller states the block
+                // is that many bytes it owns and is releasing, so every byte
+                // is in bounds and unaliased.
                 unsafe { ptr::write_volatile(block.add(i), 0) };
             }
+            super::stats::gave(layout.size());
         }
         // SAFETY: forwarded unchanged, after the block was cleared in place.
         unsafe { self.inner.dealloc(block, layout) }
