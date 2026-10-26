@@ -11,9 +11,9 @@ counter that only rises makes every older copy stale.
 
 ## The index
 
-- `0x01000022`, in the owner range beside the rollback counter `0x01000020`,
-  its base `0x01000021` and the legacy `0x01000010`. It is listed with them
-  in [rollback protection](../security/rollback-protection.md).
+- `0x01000022`, beside the rollback counter `0x01000020`, its base
+  `0x01000021` and the legacy `0x01000010`, and listed with them in
+  [rollback protection](../security/rollback-protection.md).
 - The loader's own template (`DEFINE_COUNTER_CMD`) with only the index
   changed: `TPM_NT_COUNTER`, 8 bytes, SHA-256, AUTHREAD | AUTHWRITE |
   NO_DA, empty authValue.
@@ -21,8 +21,7 @@ counter that only rises makes every older copy stale.
   with an empty password. If the owner has a password (another OS took
   ownership), the define is refused and the call answers ENODEV, as with no
   TPM.
-- There is no base index. Only "below the counter" matters, so a counter
-  starting high on a used TPM changes nothing.
+- No base index: only "below the counter" matters, so a high start is fine.
 
 ## Auth and wear
 
@@ -41,16 +40,13 @@ counter that only rises makes every older copy stale.
   - `*out_ptr` receives the u64. An index never defined reads 0.
   - Returns 0, EINVAL (other op), EFAULT, ENODEV (no TPM or no owner), or
     EIO (any other TPM answer).
-  - Only `0x01000022`: no argument names an index. No DIAG line names a
-    pid.
+  - Only `0x01000022` (no argument names an index); no DIAG line, no pid.
 - Capability: a new bit `SavedState`, for net.core (autojoin reads) and
-  settings (saves and forgets). Crypto is too broad, since every capsule that
-  hashes or draws randomness holds it. The two manifests are re-signed.
+  settings (saves, forgets); Crypto is too broad. Both manifests re-signed.
 
 ## The record, NWF2
 
-- Sealed as today: ChaCha20-Poly1305 under `machine_key("wifi/saved-
-  networks")`.
+- Sealed as today (ChaCha20-Poly1305, `machine_key("wifi/saved-networks")`).
 - Plaintext: `"NWF2"` ‖ version 1 ‖ generation u64 LE ‖ the NWF1 slots. The
   generation is inside the seal.
 - Save: increment, then seal with the new value and write (your order). A
@@ -61,8 +57,7 @@ counter that only rises makes every older copy stale.
   `Stale`.
 - NWF1 is migrated once, and only while the counter reads 0. An NWF1 that
   appears later is stale.
-- No TPM: nothing is sealed or saved, as now (`NoTpm`). The docs say so
-  plainly.
+- No TPM: nothing is sealed or saved, as now (`NoTpm`), said plainly.
 
 ## Failing closed
 
@@ -77,5 +72,4 @@ counter that only rises makes every older copy stale.
 - Kernel host tests: each op and each refusal; the fixed index.
 - Client: stale refused, equal and newer accepted, increment before seal,
   NWF1 only at 0, and every load error failing closed except no store.
-- Swtpm in `tpm_enroll_proofs`: define, increment and read back, including
-  a TPM that started high.
+- Swtpm (`tpm_enroll_proofs`): define, increment, read; a high start.
