@@ -53,6 +53,10 @@ fn main() {
     for var in ["NONOS_LINUX_USERLAND", "NONOS_LINUX_GUEST_POLICIES", "NONOS_IN_FLAKE"] {
         println!("cargo:rerun-if-env-changed={var}");
     }
+    // Without the vendor table there is nothing to build, and nothing to guard.
+    if env::var_os("CARGO_FEATURE_VENDOR").is_none() {
+        return;
+    }
     let out =
         Path::new(&env::var_os("OUT_DIR").expect("cargo sets OUT_DIR")).join("vendor_table.rs");
     let rows = table::write(Path::new(POLICIES), &out).unwrap_or_else(|why| fail(&why));

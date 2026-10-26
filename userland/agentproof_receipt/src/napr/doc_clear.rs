@@ -16,9 +16,10 @@
 //! NAPR v0, the receipt of one boxed run (letter agent-02). Big-endian; after
 //! The doc as a receipt carries it, cleared by layout alone, for the writer
 //! in a capsule that does not carry nsh_attest: the kernel's NONOSATT v5
-//! document with its capsule count zero and its event log empty, the two
-//! parts its quote does not sign. The verifier's own reader (doc_form.rs)
-//! checks the result, and a proof holds the two to the same bytes.
+//! document with its capsule count zero, its registry's complete flag clear
+//! and its event log empty, the three parts its quote does not sign. The
+//! verifier's own reader (doc_form.rs) checks the result, and a proof holds
+//! the two to the same bytes.
 
 use alloc::vec::Vec;
 
@@ -42,6 +43,7 @@ pub fn clear(kernel_doc: &[u8]) -> Option<Vec<u8>> {
     let rest = kernel_doc.get(LOG_AT.checked_add(4)?.checked_add(log)?..)?;
     let mut out = kernel_doc[..LOG_AT].to_vec();
     out[COUNT_AT..COUNT_AT + 4].fill(0);
+    out[COUNT_AT + 4] = 0;
     out.extend_from_slice(&0u32.to_be_bytes());
     out.extend_from_slice(rest);
     Some(out)
