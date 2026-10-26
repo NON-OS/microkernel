@@ -15,12 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod from_router;
+mod from_wm;
 mod lookup;
 mod lookup_service;
 mod peers;
 mod require;
 
 pub use from_router::from_router;
+pub use from_wm::from_wm;
 pub use lookup::lookup_port;
 pub use lookup_service::lookup_service;
 pub use peers::{Peers, ServicePeer};
