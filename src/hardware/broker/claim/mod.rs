@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod claim;
+mod claimed;
 mod enter;
 mod exit;
 mod firmware;
@@ -56,6 +57,7 @@ mod types;
 mod wipe;
 
 pub use claim::claim;
+pub(crate) use claimed::claimed;
 pub use exit::{exit_begin, exit_end};
 pub(in crate::hardware::broker) use hold_rule::FIRMWARE_BOOT_FRAMEBUFFER;
 pub(crate) use leave::retire;

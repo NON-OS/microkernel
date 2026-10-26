@@ -45,7 +45,7 @@ pub fn sys_ipc_send_to_pid(dest_pid: u64, buf: u64, len: usize) -> i64 {
         return crate::syscall::microkernel::errnos::ERRNO_PERM;
     }
     // The inbox is the one every endpoint `dest` serves is read from.
-    if !super::send_caps::caller_satisfies_inbox(dest_pid as u32) {
+    if !super::send_caps_inbox::caller_satisfies_inbox(dest_pid as u32) {
         return crate::syscall::microkernel::errnos::ERRNO_PERM;
     }
     let dest = alloc::format!("proc.{}", dest_pid as u32);
