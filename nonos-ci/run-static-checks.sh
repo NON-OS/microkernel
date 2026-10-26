@@ -5328,6 +5328,18 @@ else
 fi
 unset gpu_doc_out
 
+# Setup, Settings, About and the Terminal show the release; each reads it from
+# VERSION, so bumping that file is the whole bump. The self-test first, so a
+# scan that stopped reading the sources cannot pass by finding nothing.
+if release_out="$(python3 scripts/check_release_string.py --self-test 2>&1 \
+    && python3 scripts/check_release_string.py 2>&1)"; then
+    note ok "every screen's release comes from VERSION (check_release_string)"
+else
+    tail -n 5 <<< "${release_out}" >&2
+    fail_with "check_release_string: a screen spells the release instead of reading VERSION"
+fi
+unset release_out
+
 # nonos-harden reads GO over a nonos-verify gap only when the gap is on
 # scripts/baselines/declared-limits.txt; the list follows the source and may
 # only shrink. The self-test first, so a parser that stopped seeing gaps
