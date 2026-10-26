@@ -48,8 +48,14 @@ pub fn on_head(p: (i32, i32), screen: (u32, u32), head: (u32, u32)) -> (i32, i32
 
 /// CURSOR for the arrow `side` big at `p`; `new_shape` when its slot was
 /// just drawn.
-pub fn message(p: (i32, i32), visible: bool, new_shape: bool, side: (u16, u16)) -> Cursor {
+pub fn message(
+    p: (i32, i32),
+    visible: bool,
+    new_shape: bool,
+    side: (u16, u16),
+    hot: (u16, u16),
+) -> Cursor {
     let flags = if visible { VISIBLE } else { 0 } | if new_shape { NEW_SHAPE } else { 0 };
     let (x, y, width, height) = (p.0, p.1, side.0, side.1);
-    Cursor { flags, x, y, hot_x: 0, hot_y: 0, width, height }
+    Cursor { flags, x, y, hot_x: hot.0, hot_y: hot.1, width, height }
 }
