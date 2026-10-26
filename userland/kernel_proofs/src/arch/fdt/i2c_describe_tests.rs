@@ -27,7 +27,7 @@ fn tree(props: impl Fn(&mut Tree)) -> Vec<u8> {
 /// The node `i2c`'s own properties, as the finder's node gives them.
 fn own<'a>(fdt: &Fdt<'a>) -> Vec<Property<'a>> {
     let (mut w, mut inside, mut out) = (fdt.walker(), false, Vec::new());
-    while let Some(e) = w.next().unwrap() {
+    while let Some(e) = w.next_event().unwrap() {
         match e {
             Event::BeginNode { name, .. } => inside = name == b"i2c",
             Event::Property(p) if inside => out.push(p),

@@ -24,10 +24,12 @@
 
 use std::collections::BTreeMap;
 
-use crate::qwen_default::{default_row, offered, For};
-use crate::default_tier::{resolve, Source};
 use crate::need::{memory, session_keep, tier_fits, Room, STICK_TIER};
+use crate::qwen_default::{default_row, offered, For};
 use crate::qwen_pins::all;
+
+mod defaults;
+mod proven;
 
 const GIB: u64 = 1 << 30;
 
@@ -37,7 +39,8 @@ fn tiers() -> Vec<(&'static [u8], u64)> {
     for p in all() {
         *sum.entry(p.tier).or_default() += p.bytes;
     }
-    let mut out: Vec<(&'static [u8], u64)> = sum.into_iter().map(|(t, b)| (t.as_bytes(), b)).collect();
+    let mut out: Vec<(&'static [u8], u64)> =
+        sum.into_iter().map(|(t, b)| (t.as_bytes(), b)).collect();
     out.sort_by(|a, b| a.1.cmp(&b.1).then_with(|| a.0.cmp(b.0)));
     out
 }
@@ -46,7 +49,12 @@ fn names(t: &[(&'static [u8], u64)], offered: &[u8]) -> Vec<&'static str> {
     offered.iter().map(|&i| core::str::from_utf8(t[i as usize].0).unwrap()).collect()
 }
 
-fn chosen(t: &[(&'static [u8], u64)], offered: &[u8], total: u64, who: For) -> Option<&'static str> {
+fn chosen(
+    t: &[(&'static [u8], u64)],
+    offered: &[u8],
+    total: u64,
+    who: For,
+) -> Option<&'static str> {
     let row = default_row(t, offered, Some(total), who) as usize;
     let i = *offered.get(row.checked_sub(1)?)?;
     Some(core::str::from_utf8(t[i as usize].0).unwrap())
@@ -55,7 +63,7 @@ fn chosen(t: &[(&'static [u8], u64)], offered: &[u8], total: u64, who: For) -> O
 #[test]
 fn the_smallest_tiers_lead_the_list() {
     let t = tiers();
-    assert_eq!(t.len(), 17);
+    assert_eq!(t.len(), 19);
     assert_eq!(core::str::from_utf8(t[0].0).unwrap(), "small");
     assert_eq!(core::str::from_utf8(t[1].0).unwrap(), "qwen3-0.6b");
 }
@@ -92,7 +100,8 @@ fn the_session_keeps_the_larger_of_1_gib_and_a_quarter() {
 fn a_session_never_offers_more_than_an_install() {
     let t = tiers();
     for total in [2 * GIB, 3 * GIB, 4 * GIB, 8 * GIB, 16 * GIB, 64 * GIB] {
-        let (disk, mem) = (offered(&t, Some(total), For::Installed), offered(&t, Some(total), For::Session));
+        let (disk, mem) =
+            (offered(&t, Some(total), For::Installed), offered(&t, Some(total), For::Session));
         assert!(mem.iter().all(|i| disk.contains(i)), "{total}");
     }
 }
@@ -112,7 +121,10 @@ fn the_stick_tier_is_offered_where_it_fits_and_starts_the_step() {
     assert_eq!(chosen(&t, &two, 2 * GIB, For::Installed), Some(STICK_TIER));
     let live_two = offered(&t, Some(2 * GIB), For::Session);
     assert!(!names(&t, &live_two).contains(&STICK_TIER), "{:?}", names(&t, &live_two));
-    assert_eq!(chosen(&t, &live_two, 2 * GIB, For::Session), live_two.last().map(|&i| core::str::from_utf8(t[i as usize].0).unwrap()));
+    assert_eq!(
+        chosen(&t, &live_two, 2 * GIB, For::Session),
+        live_two.last().map(|&i| core::str::from_utf8(t[i as usize].0).unwrap())
+    );
     for total in [3 * GIB, 4 * GIB, 8 * GIB, 64 * GIB] {
         for who in [For::Installed, For::Session] {
             let o = offered(&t, Some(total), who);
@@ -124,7 +136,10 @@ fn the_stick_tier_is_offered_where_it_fits_and_starts_the_step() {
 #[test]
 fn no_disk_or_nothing_fitting_starts_on_none() {
     let t = tiers();
-    assert_eq!(default_row(&t, &offered(&t, Some(64 * GIB), For::NoDisk), Some(64 * GIB), For::NoDisk), 0);
+    assert_eq!(
+        default_row(&t, &offered(&t, Some(64 * GIB), For::NoDisk), Some(64 * GIB), For::NoDisk),
+        0
+    );
     assert_eq!(default_row(&t, &[], Some(GIB), For::Installed), 0);
     /* Where only Qwen2.5 0.5B fits an install, the stick tier does not: the largest that fits starts. */
     let small = offered(&t, Some(1_800_000_000), For::Installed);
@@ -144,39 +159,4 @@ fn an_eight_gigabyte_machine_lists_up_to_8b_and_counts_the_rest() {
     assert!(!n.contains(&"qwen3-14b") && !n.contains(&"qwen3-32b"), "{n:?}");
     let hidden = t.len() - o.len();
     assert!(hidden > 0 && hidden < t.len(), "{hidden}");
-}
-
-/*
- * The one rule the dock, the Terminal and setup share: the person's choice;
- * else the stick tier when it fits; else the largest that fits; else the
- * smallest, said as not fitting. Never a coder tier no one chose.
- */
-#[test]
-fn the_default_is_the_choice_then_the_stick_then_the_largest_that_fits() {
-    use crate::need::Room;
-    assert_eq!(resolve(b"coder-1.5b", Some(64 * GIB), Room::Disk), ("coder-1.5b", Source::Chosen));
-    assert_eq!(resolve(b"qwen3-4b\0\0", Some(GIB), Room::Memory), ("qwen3-4b", Source::Chosen));
-    for total in [Some(2 * GIB), Some(8 * GIB), Some(128 * GIB), None] {
-        assert_eq!(resolve(b"", total, Room::Disk), (STICK_TIER, Source::Stick), "{total:?}");
-        assert_eq!(resolve(b"not-a-tier", total, Room::Disk).0, STICK_TIER);
-    }
-    assert_eq!(resolve(b"", Some(1_800_000_000), Room::Disk), ("small", Source::Largest));
-    assert_eq!(resolve(b"", Some(GIB), Room::Disk), ("small", Source::Smallest));
-    assert_eq!(resolve(b"", Some(2 * GIB), Room::Memory), ("small", Source::Smallest));
-    for total in [GIB, 2 * GIB, 3 * GIB, 64 * GIB] {
-        for room in [Room::Disk, Room::Memory] {
-            assert!(!resolve(b"", Some(total), room).0.starts_with("coder-"), "{total} {room:?}");
-        }
-    }
-}
-
-/* The weights the default is weighed by are the pins' own sums, smallest first. */
-#[test]
-fn the_default_weighs_the_pinned_files() {
-    let t = tiers();
-    let w = crate::default_tier::WEIGHTS;
-    assert_eq!(w.len(), t.len());
-    for ((word, bytes), (tier, sum)) in w.iter().zip(&t) {
-        assert_eq!((word.as_bytes(), *bytes), (*tier, *sum));
-    }
 }

@@ -19,3 +19,6 @@ fn the_line_a_bind_writes_says_how_the_address_was_taken_and_not_what_it_is() {
         assert_eq!(String::from_utf8_lossy(&line), format!("[usbnet cdc-ecm] port 3 up, {how}\n"));
     }
 }
+
+#[path = "resend_tests.rs"]
+mod resend;

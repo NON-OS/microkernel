@@ -14,19 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The watchdog firmware describes in WDAT, beside the TCO one: what it is
-//! and what it reads now, for the kernel. Queries run whenever asked;
-//! every action that writes (RESET, the kick, and SET_COUNTDOWN among
-//! them) sits behind `WRITES`, off until the owner says NONOS arms a
-//! firmware watchdog, so nothing here can start or stop one.
+//! and what it reads now, for the kernel. Queries run whenever asked; no
+//! action that writes (RESET, SET_COUNTDOWN) is offered, so nothing here
+//! can start or stop one.
 
 use crate::arch::x86_64::acpi::parser::other::wdat_action as act;
-use crate::arch::x86_64::acpi::parser::other::wdat_run::RunError;
 use crate::arch::x86_64::acpi::parser::other::{wdat_action, wdat_table};
-
-/// The owner's switch for every WDAT action that writes.
-pub const WRITES: bool = false;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct WdatStatus {
@@ -56,17 +50,4 @@ pub fn wdat_status() -> Option<WdatStatus> {
         instructions: w.entries.len(),
         malformed: w.malformed,
     })
-}
-
-/// Restart the countdown. Switched off with `WRITES`.
-pub fn wdat_kick() -> Result<(), RunError> {
-    wdat_action(act::RESET, 0, WRITES).map(|_| ())
-}
-
-/// Set the countdown, in milliseconds, clamped to the table's counts.
-pub fn wdat_set_countdown(ms: u64) -> Result<(), RunError> {
-    let w = wdat_table().ok_or(RunError::NoAction)?;
-    let count = ms / u64::from(w.period_ms.max(1));
-    let count = count.clamp(u64::from(w.min_count), u64::from(w.max_count.max(w.min_count)));
-    wdat_action(act::SET_COUNTDOWN, count as u32, WRITES).map(|_| ())
 }
