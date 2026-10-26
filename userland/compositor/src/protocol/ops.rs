@@ -50,3 +50,6 @@ pub const OP_BRIGHTNESS_STEP: u16 = 0x0014;
 pub const OP_SET_VCP: u16 = 0x0015;
 pub const OP_BRIGHTNESS_GET: u16 = 0x0016;
 pub const OP_INPUT_SOURCES: u16 = 0x0017;
+/// The pointer's shape over one of the caller's own surfaces (a resize
+/// arrow over a window's edge), drawn while the pointer is over it.
+pub const OP_CURSOR_SHAPE: u16 = 0x0018;

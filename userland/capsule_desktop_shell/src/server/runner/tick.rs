@@ -28,12 +28,12 @@ pub fn tick_due(now_ms: i64, last_ms: i64) -> bool {
 }
 
 /// The uptime by which the serve loop must run again: the next tick, or the
-/// next toast's expiry when that comes first. A toast's time being up is a
-/// reason to wake on its own, so it leaves the screen on time with the
-/// pointer still and nothing else arriving.
-pub fn wake_at(last_tick_ms: i64, toast_due_ms: Option<i64>) -> i64 {
+/// next toast's expiry or the switcher strip's end when that comes first
+/// (`timed.rs`). Either being due is a reason to wake on its own, so it
+/// leaves the screen on time with the pointer still and nothing else arriving.
+pub fn wake_at(last_tick_ms: i64, due_ms: Option<i64>) -> i64 {
     let tick = last_tick_ms.saturating_add(TICK_MS);
-    toast_due_ms.map_or(tick, |due| due.min(tick))
+    due_ms.map_or(tick, |due| due.min(tick))
 }
 
 /// How long to wait on the inbox at uptime `now_ms` for a wake at `wake_ms`:

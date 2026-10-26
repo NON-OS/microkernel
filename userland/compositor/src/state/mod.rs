@@ -20,6 +20,7 @@ pub mod context;
 pub mod context_ask;
 pub mod context_new;
 pub mod cursor;
+pub mod cursor_pick;
 pub mod damage;
 pub mod damage_bound;
 pub mod display_rule;

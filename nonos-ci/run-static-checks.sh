@@ -5459,6 +5459,19 @@ else
 fi
 unset relay_out
 
+# The market catalogue tool (tools/nonos_market_catalogue): the listings it
+# writes, the lock it seals against, its hostile-input refusals and the
+# mutants each refusal must catch. It ran in no lane once, and two failures
+# sat unseen; now a failure stops the checks.
+if catalogue_out="$(python3 -m unittest discover -s tools/nonos_market_catalogue -t tools \
+    -p 'test_*.py' 2>&1)"; then
+    note ok "the market catalogue tool's suite passes (nonos_market_catalogue)"
+else
+    tail -n 8 <<< "${catalogue_out}" >&2
+    fail_with "nonos_market_catalogue: its suite fails"
+fi
+unset catalogue_out
+
 # A drive whose `until` step times out leaves every CPU's registers and the
 # code at each one's PC behind, read from that CPU (tools/nonos_drive).
 if drive_out="$( (cd tools && python3 -m unittest -q nonos_drive.test_drive) 2>&1)"; then

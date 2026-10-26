@@ -14,28 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::app::App;
-use crate::clients::compositor;
-use crate::discover::Peers;
+//! The window switcher, Alt+Tab: the windows in the order they last had
+//! focus, and the walk a run of presses takes through them.
 
-use super::boot::BootedApp;
-use super::repaint::repaint;
-use super::request_id::next;
+mod forget;
+mod order;
+mod session;
+mod walk;
 
-const APP_LAYER_Z: u32 = 2;
-
-/// Put a minimized window back in the scene where it was and repaint it.
-pub(super) fn restore<A: App>(booted: &mut BootedApp<A>, peers: &Peers, request_id: &mut u32) {
-    let _ = compositor::scene_submit(
-        peers.compositor,
-        next(request_id),
-        booted.binding.surface_handle,
-        booted.binding.x,
-        booted.binding.y,
-        booted.binding.width,
-        booted.binding.height,
-        APP_LAYER_Z,
-    );
-    booted.minimized = false;
-    repaint(booted, peers, request_id);
-}
+pub use order::{SwitchOrder, Win, ORDER_MAX};
