@@ -1,0 +1,7 @@
+[
+ {"name": "qwen-image-any-tier", "file": "userland/capsule_terminal/src/command/builtin/qwen/image.rs", "old": "    VISION.contains(&tier)", "new": "    let _ = tier; true", "crate": "userland/terminal_line_proofs", "test": "image"},
+ {"name": "qwen-image-any-file", "file": "userland/capsule_terminal/src/command/builtin/qwen/image.rs", "old": " || !spaced || !image_name(path) {", "new": " || !spaced {", "crate": "userland/terminal_line_proofs", "test": "image"},
+ {"name": "qwen-image-unspaced", "file": "userland/capsule_terminal/src/command/builtin/qwen/image.rs", "old": " || !spaced || !image_name(path) {", "new": " || !image_name(path) {", "crate": "userland/terminal_line_proofs", "test": "image"},
+ {"name": "qwen-image-length-be", "file": "userland/capsule_terminal/src/command/builtin/qwen/image.rs", "old": "(image.len() as u32).to_le_bytes()", "new": "(image.len() as u32).to_be_bytes()", "crate": "userland/terminal_line_proofs", "test": "image"},
+ {"name": "qwen-image-max-no-question", "file": "userland/capsule_terminal/src/command/builtin/qwen/image.rs", "old": "MAGIC.len() + 4 + question.len() + 1", "new": "MAGIC.len() + 4 + 1", "crate": "userland/terminal_line_proofs", "test": "image"}
+]
