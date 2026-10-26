@@ -36,6 +36,14 @@ fn every_tier_needs_only_pinned_files_and_opens_its_first() {
         let model = [&b"/models"[..], app.models[0]].concat();
         assert_eq!(app.args[at + 1], &model[..], "{}", app.name);
         assert!(app.args.windows(2).any(|w| w == [&b"-ui"[..], &b"window"[..]]));
+        /* A vision tier's second file is its projector, named by -mmproj. */
+        if let Some(at) = app.args.iter().position(|a| *a == b"-mmproj") {
+            assert_eq!(app.models.len(), 2, "{}", app.name);
+            let mmproj = [&b"/models"[..], app.models[1]].concat();
+            assert_eq!(app.args[at + 1], &mmproj[..], "{}", app.name);
+            assert!(app.models[1].starts_with(b"/mmproj-"), "{}", app.name);
+            continue;
+        }
         /*
          * Parts in order, all of them, so the first finds the rest.
          */

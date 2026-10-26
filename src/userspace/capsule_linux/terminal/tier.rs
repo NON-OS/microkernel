@@ -24,8 +24,8 @@ use alloc::vec::Vec;
 /// names the personality knows the tiers by are these with `qwen-` before
 /// them, and those it checks against the table its measurement covers:
 /// Qwen2.5 from 0.5B to 32B, Qwen3 from 0.6B to 32B, Qwen3.5 0.8B, Qwen3.6
-/// 27B, and Qwen2.5-Coder.
-const TIERS: [&str; 19] = [
+/// 27B, Qwen3-VL 2B, and Qwen2.5-Coder.
+const TIERS: [&str; 20] = [
     "small",
     "medium",
     "large",
@@ -41,6 +41,7 @@ const TIERS: [&str; 19] = [
     "qwen3-32b",
     "qwen3.5-0.8b",
     "qwen3.6-27b",
+    "vl-2b",
     "coder-1.5b",
     "coder-7b",
     "coder-14b",

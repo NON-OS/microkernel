@@ -71,6 +71,7 @@ int main() {
         {"/models/Qwen3-30B-A3B-Q4_K_M.gguf", "Qwen3 30B-A3B", "qwen3-30b-a3b"},
         {"/models/Qwen3.5-0.8B-Q8_0.gguf", "Qwen3.5 0.8B", "qwen3.5-0.8b"},
         {"/models/Qwen3.6-27B-Q4_K_M.gguf", "Qwen3.6 27B", "qwen3.6-27b"},
+        {"/models/Qwen3VL-2B-Instruct-Q4_K_M.gguf", "Qwen3-VL 2B", "vl-2b"},
     };
     for (const auto &t : tiers) {
         std::string label, word;
