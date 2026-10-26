@@ -69,11 +69,13 @@ The icons on the desk are the entries of the home folder, `/home/nonos`.
 
 ## Windows
 
-Every app window has a title bar with three round buttons at its left end: close, minimise, and the green button.
+Every app window has a title bar with its name at the left and three controls at its right end: minimise (a line), full screen (a square) and close (a cross).
 
+- The controls have no colour until the pointer is over one. Then it is shaded, and close turns red, because closing is the one that can lose work.
+- A name too long for the bar ends in `…` before the controls.
 - Drag the title bar to move the window. A window cannot be dragged under the menu bar.
 - Drag the right or bottom border to resize. The new size is applied when you let go.
-- The green button makes the window full screen: the whole width, from the foot of the menu bar to the bottom edge, over the dock's band. Press it again to get the old size back.
+- Full screen makes the window the whole width, from the foot of the menu bar to the bottom edge, over the dock's band. Press it again to get the old size back.
 - A click in a window raises it and gives it the keyboard in one step.
 - The first new window opens in the middle of the work area, between the menu bar and the dock. Each later one, in runs of five, steps down and to the right so its title bar stays reachable.
 
@@ -219,7 +221,7 @@ The code behind each section, at the commit in the footer.
 - Windows
   - The three title bar buttons: `DecorationHit` in `userland/toolkit/src/decorations/hit_test.rs:22-31`.
   - A resize applied on release: `ResizeTo` in `userland/app_skeleton/src/runner/drag.rs:133-140`.
-  - The green button's full-screen frame: `full_screen` in `userland/app_skeleton/src/runner/chrome.rs:110-121`.
+  - The full-screen control's frame: `full_screen` in `userland/app_skeleton/src/runner/chrome.rs:110-121`.
   - New windows centred, then stepped in runs of five: `cascade` and `CASCADE_WRAP` in `userland/capsule_wm/src/server/handlers/window_open/cascade.rs:21-29`.
 - Apps that ship
   - Labels, services and dock order: `LAUNCHER_APPS` in `userland/capsule_desktop_shell/src/state/apps.rs:47-132`.
