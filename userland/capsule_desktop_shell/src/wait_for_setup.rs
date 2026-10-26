@@ -28,7 +28,7 @@ pub fn wait_for_setup() -> crate::state::Context {
             Err(step) => {
                 // A silent retry here reads as an empty desktop from outside.
                 // Say what failed, once per change and then every 64 rounds.
-                if step != last || rounds % 64 == 0 {
+                if step != last || rounds.is_multiple_of(64) {
                     let mut line = [0u8; 96];
                     let tag = b"[SHELL] setup stuck: ";
                     let n = tag.len().min(line.len());

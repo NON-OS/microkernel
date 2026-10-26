@@ -18,15 +18,12 @@ use crate::settings::schema::rows::{Block, Live, Row};
 use crate::settings::state::State;
 
 use super::field_note::note_of;
-use super::metrics::{CARD_HEAD_H, CARD_HEAD_NOTE_H, ROW_H, ROW_NOTE_H};
+use super::metrics::{CARD_HEAD_H, ROW_H, ROW_NOTE_H};
+use super::note_wrap;
 use super::walk_list::list_of;
 
-pub fn head_h(b: &Block) -> u32 {
-    if b.note.is_some() {
-        CARD_HEAD_NOTE_H
-    } else {
-        CARD_HEAD_H
-    }
+pub fn head_h(state: &State, b: &Block) -> u32 {
+    b.note.map_or(CARD_HEAD_H, |n| note_wrap::head_h(n, state.win_w))
 }
 
 pub fn row_h(r: &Row) -> u32 {
@@ -55,5 +52,5 @@ pub fn bt_rows(state: &State) -> usize {
 
 pub fn block_h(state: &State, b: &Block) -> u32 {
     let rows = b.rows.iter().map(|r| list_of(state, r).map_or(row_h(r), |l| l.2 * l.0 as u32));
-    head_h(b) + rows.sum::<u32>()
+    head_h(state, b) + rows.sum::<u32>()
 }
