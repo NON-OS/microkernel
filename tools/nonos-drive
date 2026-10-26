@@ -30,6 +30,8 @@ Each step is one of:
     type:TEXT           type text
     move:DX,DY          move the mouse by DX, DY
     click[:right]       press and release a mouse button
+    unplug:ID           pull device ID out of the machine (a lane's devices:
+                        lane-usb-audio); the run fails if QEMU refuses
 
 It runs nix run .#qemu with --headless and --tpm, talks to QEMU's monitor
 socket, and stops the machine at the end. The serial log is DIR/serial.log.
