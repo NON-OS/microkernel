@@ -35,6 +35,8 @@ mod pass_tests;
 #[cfg(test)]
 mod volume_gate_glue;
 #[cfg(test)]
+mod volume_gate_openers;
+#[cfg(test)]
 mod volume_gate_tests;
 #[cfg(test)]
 #[path = "../../../../../src/hardware/block_device/volume_rule.rs"]
