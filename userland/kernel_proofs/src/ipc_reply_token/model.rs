@@ -16,21 +16,21 @@
 
 //! A server's pending replies as the kernel keeps them: entries marked by
 //! pending_reply/served_rule.rs, taken by reply_rule.rs for a direct reply
-//! and by served_rule.rs for a redirect and an MkIpcReplyTo, as
-//! take_reply.rs, pop.rs and take_named.rs do.
+//! and by served_rule.rs for a redirect, as take_reply.rs and pop.rs do;
+//! MkIpcReplyTo and a caller giving up in model_answer.rs.
 
 use std::collections::VecDeque;
 
 use super::entry::Entry;
 use super::reply_rule::pick;
-use super::served_rule::{mark, named_at, redirect_at};
+use super::served_rule::{eligible, mark, redirect_at};
 
 #[derive(Default)]
 pub(super) struct Server {
     /// Each owed call, oldest first.
-    pending: VecDeque<Entry>,
+    pub(super) pending: VecDeque<Entry>,
     /// The token of the request the server dequeued last (record_served).
-    served: u64,
+    pub(super) served: u64,
     /// The last request id given out (request_ids.rs).
     last_id: u64,
 }
@@ -52,7 +52,7 @@ impl Server {
     /// The server's mk_ipc_reply to `inbox`: the token the reply is stamped
     /// with, or None when it is dropped.
     pub(super) fn reply(&mut self, inbox: &str) -> Option<u64> {
-        let entries = self.pending.iter().map(|e| (e.inbox.as_str(), e.token, e.served));
+        let entries = self.pending.iter().map(|e| (e.inbox.as_str(), e.token, eligible(e)));
         let at = pick(entries, inbox, self.served)?;
         self.pending.remove(at).map(|e| e.token)
     }
@@ -64,12 +64,5 @@ impl Server {
         let at = redirect_at(self.pending.iter(), self.served);
         self.served = 0;
         self.pending.remove(at?).map(|e| (e.inbox, e.token))
-    }
-
-    /// The server's MkIpcReplyTo(`request`): the caller's inbox and the
-    /// token its reply carries, or None, ENOENT.
-    pub(super) fn reply_to(&mut self, request: u64) -> Option<(String, u64)> {
-        let at = named_at(self.pending.iter(), request)?;
-        self.pending.remove(at).map(|e| (e.inbox, e.token))
     }
 }

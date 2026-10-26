@@ -20,6 +20,12 @@
 
 use super::entry::Entry;
 
+/// Whether a direct reply may answer `e`: dequeued, and no MkIpcReplyTo
+/// is delivering its answer (reply_rule.rs).
+pub(crate) fn eligible(e: &Entry) -> bool {
+    e.served && !e.taken
+}
+
 /// Mark the call carrying `token` as dequeued: from here a reply may
 /// answer it. Its request id, for the server; None when no entry carries
 /// the token, and nothing is marked.
@@ -43,15 +49,15 @@ where
     if want == 0 {
         return None;
     }
-    queue.position(|e| e.token == want)
+    queue.position(|e| !e.taken && e.token == want)
 }
 
 /// The position of the entry MkIpcReplyTo answers: the dequeued call the
 /// server knows as `request`. None for a request it has not dequeued, one
-/// already answered, or one it never had.
+/// answered or being answered, or one it never had.
 pub(crate) fn named_at<'a, I>(mut queue: I, request: u64) -> Option<usize>
 where
     I: Iterator<Item = &'a Entry>,
 {
-    queue.position(|e| e.served && e.request == request)
+    queue.position(|e| e.served && !e.taken && e.request == request)
 }

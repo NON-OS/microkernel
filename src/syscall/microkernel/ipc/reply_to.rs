@@ -18,18 +18,20 @@ extern crate alloc;
 
 use crate::ipc::nonos_channel::IpcMessage;
 use crate::process::current_pid;
-use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_NOENT, ERRNO_NOMEM};
+use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_NOENT, ERRNO_NOMEM, ERRNO_TIMEDOUT};
 
 use super::payload_in::copy_in;
-use super::pending_reply;
+use super::pending_reply::{self, Named};
 use super::reply_deliver::deliver;
 
 /// `MkIpcReplyTo`: answer the request MkIpcRecvReq named `request`, and
 /// only that one. EINVAL for request 0 (nothing owed) or a bad length;
 /// EFAULT for an unreadable buffer, with the request still owed; ENOENT
 /// when the server has no such request dequeued and unanswered: never
-/// queued here, still in the inbox, or already answered. The request is
-/// spent once found, as delivery's own errors (EBUSY, ENOENT) also say.
+/// queued here, still in the inbox, or already answered; ETIMEDOUT when
+/// its call stopped waiting, so no one has the answer. 0 only when the
+/// caller has it (pending_reply/give_up_rule.rs). The request is spent
+/// once found, as delivery's own errors (EBUSY, ENOENT) also say.
 pub fn sys_ipc_reply_to(request: u64, buf: u64, len: usize) -> i64 {
     if request == 0 || len == 0 || len > crate::ipc::channel::MAX_MESSAGE_SIZE {
         return ERRNO_INVAL;
@@ -39,14 +41,20 @@ pub fn sys_ipc_reply_to(request: u64, buf: u64, len: usize) -> i64 {
         Err(e) => return e,
     };
     let server = current_pid().unwrap_or(0);
-    let Some((caller, inbox, token)) = pending_reply::take_named(server, request) else {
-        return ERRNO_NOENT;
+    let (caller, inbox, token) = match pending_reply::take_named(server, request) {
+        Some(Named::Owed(caller, inbox, token)) => (caller, inbox, token),
+        Some(Named::GivenUp) => return ERRNO_TIMEDOUT,
+        None => return ERRNO_NOENT,
     };
     let from = alloc::format!("proc.{}", server);
-    let mut msg = match IpcMessage::new(&from, &inbox, &data) {
-        Ok(msg) => msg,
-        Err(_) => return ERRNO_NOMEM,
+    let rc = match IpcMessage::new(&from, &inbox, &data) {
+        Ok(mut msg) => {
+            msg.correlation = token;
+            deliver(server, caller as u64, &inbox, msg)
+        }
+        Err(_) => ERRNO_NOMEM,
     };
-    msg.correlation = token;
-    deliver(server, caller as u64, &inbox, msg)
+    // Delivered or not, the entry goes; a caller waiting on it looks once more.
+    pending_reply::delivered(server, request);
+    rc
 }

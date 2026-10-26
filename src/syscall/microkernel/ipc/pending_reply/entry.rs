@@ -30,10 +30,14 @@ pub(crate) struct Entry {
     pub(crate) request: u64,
     /// The server's receive took this request (mark.rs).
     pub(crate) served: bool,
+    /// An MkIpcReplyTo is delivering its answer (take_named.rs).
+    pub(crate) taken: bool,
+    /// Its call stopped waiting (given_up.rs): an answer reaches no one.
+    pub(crate) given_up: bool,
 }
 
 impl Entry {
     pub(crate) fn new(pid: u32, inbox: String, token: u64, request: u64) -> Self {
-        Entry { pid, inbox, token, request, served: false }
+        Entry { pid, inbox, token, request, served: false, taken: false, given_up: false }
     }
 }
