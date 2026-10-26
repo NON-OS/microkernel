@@ -29,11 +29,7 @@ mod send;
 mod session;
 mod watch;
 
-pub use address::parse_address;
-pub use bootstrap::{bootstrap_exit, BOOTSTRAP_EXITS};
-pub use exit::{
-    exit, note_answered, note_delivered, rotate_if_silent, rotations, set_exit, trying_another, Exit,
-};
+pub use exit::{note_answered, note_delivered, rotate_if_silent, rotations, trying_another};
 pub use recv::{recv_batch, Delivery, E_NO_SESSION};
 pub use send::{connect_request, send_through_mixnet, SendError};
 pub use session::{open_session, reset_session, session};
