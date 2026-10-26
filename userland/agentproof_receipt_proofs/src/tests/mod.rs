@@ -18,6 +18,7 @@ mod cli;
 mod doc_refusals;
 mod encoding;
 mod refusals;
+mod registry;
 mod says;
 mod sweep;
 mod vectors;
