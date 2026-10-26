@@ -14,15 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The tables a PC server shares with an Arm one (SPCR, DBG2, PCCT, SDEV): the
+//! The tables a PC server shares with an Arm one (SPCR, PCCT, SDEV): the
 //! one parser of each, mounted from the aarch64 tables by path (byte
 //! parsers with nothing Arm in them), with the header check and field
 //! readers they share, mounted once.
 
-#[path = "../../../../aarch64/acpi/dbg2.rs"]
-pub mod dbg2;
-#[path = "../../../../aarch64/acpi/dbg2_device.rs"]
-pub mod dbg2_device;
 #[path = "../../../../aarch64/acpi/le.rs"]
 pub mod le;
 #[path = "../../../../aarch64/acpi/pcct.rs"]
