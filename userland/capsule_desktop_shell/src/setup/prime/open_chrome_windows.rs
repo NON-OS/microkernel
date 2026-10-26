@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::render::layout::bottom_dock_rect;
+use crate::render::layout::{bottom_dock_rect, Rect};
 use crate::state::{Context, TASKBAR_WINDOW_ID};
 use crate::wm_client;
 use nonos_libc::mk_idle_ms;
@@ -30,30 +30,14 @@ const REST_MS: u64 = nonos_app_skeleton::setup::patience::WINDOW_OPEN.rest_ms;
 
 pub fn open_chrome_windows(ctx: &mut Context) -> Result<(), &'static str> {
     let bottom = bottom_dock_rect(ctx.width, ctx.height);
-    open_retry(ctx, TASKBAR_WINDOW_ID, bottom.x, bottom.y, bottom.width, bottom.height)
-        .map_err(|_| "wm rejected taskbar window_open")
+    open_retry(ctx, TASKBAR_WINDOW_ID, bottom).map_err(|_| "wm rejected taskbar window_open")
 }
 
-fn open_retry(
-    ctx: &mut Context,
-    window_id: u32,
-    x: u32,
-    y: u32,
-    width: u32,
-    height: u32,
-) -> Result<(), &'static str> {
+fn open_retry(ctx: &mut Context, window_id: u32, frame: Rect) -> Result<(), &'static str> {
     for attempt in 0..OPEN_RETRIES {
-        if wm_client::window_open(
-            ctx.ports.wm_port,
-            ctx.issue_request_id(),
-            window_id,
-            WINDOW_KIND_POPUP,
-            x,
-            y,
-            width,
-            height,
-        )
-        .is_ok()
+        let rid = ctx.issue_request_id();
+        if wm_client::window_open(ctx.ports.wm_port, rid, window_id, WINDOW_KIND_POPUP, frame)
+            .is_ok()
         {
             return Ok(());
         }
