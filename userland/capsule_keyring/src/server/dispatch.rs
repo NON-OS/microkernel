@@ -20,10 +20,10 @@ use super::handlers;
 use crate::protocol::{
     encode_response, Request, EACCES, EINVAL, OP_COUNT, OP_DELETE, OP_LIST, OP_LIST_WALLET_RAILS,
     OP_LOCK, OP_METADATA, OP_RETRIEVE, OP_SHIELD_MATERIAL, OP_SHIELD_OPEN, OP_SHIELD_SEAL,
-    OP_SIGN_ETH_TRANSFER, OP_SIGN_NOX_STAKE, OP_SIGN_NOX_STAKE_APPROVE, OP_SIGN_NOX_STAKE_LOCKED,
-    OP_SIGN_NOX_TRANSFER, OP_SIGN_NOX_UNSTAKE, OP_SIGN_TX, OP_SIGN_TYPED_DATA, OP_STORE, OP_UNLOCK,
-    OP_VAULT_OPEN, OP_VAULT_SEAL, OP_WALLET_ADDRESS, OP_WALLET_DERIVE, OP_WALLET_EXPORT,
-    OP_WALLET_GENERATE, OP_WALLET_GENERATE_HD, OP_WALLET_IMPORT, OP_WALLET_RECOVER,
+    OP_SIGN_NOX_STAKE, OP_SIGN_NOX_STAKE_APPROVE, OP_SIGN_NOX_STAKE_LOCKED, OP_SIGN_NOX_UNSTAKE,
+    OP_SIGN_TX, OP_SIGN_TYPED_DATA, OP_STORE, OP_UNLOCK, OP_VAULT_OPEN, OP_VAULT_SEAL,
+    OP_WALLET_ADDRESS, OP_WALLET_DERIVE, OP_WALLET_EXPORT, OP_WALLET_GENERATE,
+    OP_WALLET_GENERATE_HD, OP_WALLET_IMPORT, OP_WALLET_RECOVER,
 };
 use crate::store::Store;
 
@@ -34,6 +34,9 @@ pub fn dispatch(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8>
         return refused;
     }
     if crate::protocol::wallet_only(req.op) && !super::vault_gate::allowed(sender_pid) {
+        return encode_response(req.seq, EACCES, &[]);
+    }
+    if !super::key_gate::allowed(req.op, sender_pid) {
         return encode_response(req.seq, EACCES, &[]);
     }
     match req.op {
@@ -56,8 +59,6 @@ pub fn dispatch(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8>
         OP_SIGN_NOX_STAKE => handlers::sign_stake(store, req, sender_pid),
         OP_SIGN_NOX_UNSTAKE => handlers::sign_unstake(store, req, sender_pid),
         OP_SIGN_NOX_STAKE_LOCKED => handlers::sign_stake_locked(store, req, sender_pid),
-        OP_SIGN_NOX_TRANSFER => handlers::sign_nox_transfer(store, req, sender_pid),
-        OP_SIGN_ETH_TRANSFER => handlers::sign_eth_transfer(store, req, sender_pid),
         OP_SIGN_TX => handlers::sign_tx(store, req, sender_pid),
         OP_SIGN_TYPED_DATA => handlers::sign_typed(store, req, sender_pid),
         OP_VAULT_SEAL => handlers::vault_seal(store, req, sender_pid),

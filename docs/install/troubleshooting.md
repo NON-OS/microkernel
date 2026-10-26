@@ -127,7 +127,7 @@ A Wi-Fi join ends with one of these lines:
 | `This driver cannot join networks yet` | the iwlwifi driver cannot join on this card |
 | `The driver did not answer` | the driver stopped answering; collect the log |
 
-Remembering a network can fail with `No NONOS store on this boot's disk`, `This boot keeps nothing across reboots` (Amnesic chosen), `No TPM to seal the passphrase with`, or, after a firmware or kernel change, `Sealed under a different boot state`.
+Remembering a network can fail with `No NONOS store on this boot's disk`, `This boot keeps nothing across reboots` (Amnesic chosen), `No TPM to seal the passphrase with`, or, after a firmware or kernel change, `Sealed before a kernel, firmware or Secure Boot change`.
 
 ## The installer
 

@@ -31,7 +31,8 @@ The [manifest](../../overview/glossary-linux-personality.md#manifest) asks for t
 
 - 5 GHz channels: the scan list has channels 1 to 13 only.
 - Open, TKIP and Enterprise networks, and access points that admit only 802.11n stations.
-- Access point, mesh and monitor mode, roaming, power save, and stored profiles inside the driver. The driver has no code for them.
+- Access point, mesh and monitor mode, roaming, and stored profiles inside the driver. The driver has no code for them.
+- Power save: built and proven on the host, switched off until a run on the hardware; see [running](rtl8821ce/running.md#power-save).
 - The Bluetooth half of the card.
 
 ## See also
