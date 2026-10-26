@@ -32,10 +32,15 @@ pub mod job;
 #[path = "../../capsule_prove/src/job/bound.rs"]
 pub mod job_bound;
 /// The headless job's failure status from a kernel return, the file that ships.
+#[path = "../../capsule_prove/src/job/receipt_entry.rs"]
+pub mod job_receipt_entry;
 #[path = "../../capsule_prove/src/job/receipt_slot.rs"]
 pub mod job_receipt_slot;
 #[path = "../../capsule_prove/src/job/receipt_step.rs"]
 pub mod job_receipt_step;
+/* The Terminal's side of the same frames, held to the prover's bytes. */
+#[path = "../../capsule_terminal/src/term/terminal/agentproof/receipt_frame.rs"]
+pub mod terminal_receipt_frame;
 #[path = "../../capsule_prove/src/job/status.rs"]
 pub mod job_status;
 /// The kernel's `MkBootSlots` slot and record encoders, unchanged.

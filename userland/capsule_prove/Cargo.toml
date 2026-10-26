@@ -32,7 +32,7 @@ nonos_proof_abi = { path = "../nonos_proof_abi" }
 # rule capsule_linux holds, and the policy an app_id is made from.
 agentproof_receipt = { path = "../agentproof_receipt", default-features = false }
 agentproof_policy = { path = "../agentproof_policy" }
-nonos_linux_policy = { path = "../nonos_linux_policy" }
+nonos_linux_policy = { path = "../nonos_linux_policy", default-features = false }
 isolation_stark = { path = "../isolation_stark" }
 nonos-stark = { git = "https://github.com/NON-OS/STARKs.git", branch = "main", features = ["fri8"] }
 

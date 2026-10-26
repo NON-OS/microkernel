@@ -17,9 +17,11 @@
 //! signed for this receipt's bytes, then the run's half those bytes carry.
 
 mod doc;
+mod pin;
 mod refusal;
 mod run;
 
+pub use pin::{pin, FIRST_USE};
 pub use refusal::Refusal;
 
 use alloc::string::String;
@@ -44,6 +46,9 @@ pub struct Verdict {
     pub built_in: bool,
     pub supervisor: [u8; 32],
     pub seal_no: u64,
+    /// The measurement of the capsule that asked, as nonos.prove read it
+    /// from the kernel's registry; zero in a receipt that names none.
+    pub launcher: [u8; 32],
 }
 
 pub fn verify(bytes: &[u8], trust: &Trust) -> Result<Verdict, Refusal> {
@@ -61,5 +66,6 @@ pub fn verify(bytes: &[u8], trust: &Trust) -> Result<Verdict, Refusal> {
         built_in: run.built_in,
         supervisor: run.record.sup_meas,
         seal_no: run.record.seal_no,
+        launcher: *r.launcher,
     })
 }

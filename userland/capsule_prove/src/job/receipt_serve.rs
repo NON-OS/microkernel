@@ -20,10 +20,10 @@
 use alloc::vec;
 
 use nonos_libc::{mk_debug, mk_exit, mk_ipc_recv_from, mk_ipc_reply, mk_seal_drop, mk_yield};
-use nonos_proof_abi::wire::{reply, Header, ReceiptRequest, FRAME_MAX, PROVE_MAGIC};
+use nonos_proof_abi::wire::{reply, Header, FRAME_MAX, PROVE_MAGIC};
 
 use super::receipt::{make, Receipt};
-use super::receipt_step::{step, Step, EINVAL};
+use super::receipt_step::{step, Made, Step};
 
 const QUIET_MS: u64 = 5 * 60 * 1000;
 const BROKEN: &[u8] = b"[PROVE-JOB] receipt: the record was gone at its ack: one consume broken\n";
@@ -48,13 +48,12 @@ pub fn serve(pid: u32, held: bool) -> ! {
             let tx = reply(PROVE_MAGIC, &h, status, out);
             let _ = mk_ipc_reply(sender, tx.as_ptr(), tx.len());
         };
-        match step(sender == pid, h.op, body, held, made.as_ref().map(|r| r.seal_no)) {
+        let m = made.as_ref().map(|r| Made { seal_no: r.seal_no, asked: &r.asked });
+        match step(sender == pid, h.op, body, held, m) {
             Step::Refuse(e) => say(e, &[]),
-            Step::Make => match ReceiptRequest::decode(body).ok_or(EINVAL).and_then(|r| make(&r)) {
-                Ok(r) => {
-                    say(0, &r.napr);
-                    made = Some(r);
-                }
+            Step::Again => say(0, &made.as_ref().expect("again follows a made receipt").napr),
+            Step::Make => match make(body, pid) {
+                Ok(r) => made = Some(r).inspect(|r| say(0, &r.napr)),
                 Err(e) => say(e, &[]),
             },
             Step::Drop => {

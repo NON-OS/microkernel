@@ -17,7 +17,11 @@
 mod device_tests;
 mod ek_tests;
 mod job_bound_tests;
+mod job_receipt_argv_tests;
 mod receipt_job_tests;
+mod receipt_once_tests;
+mod receipt_terminal_ack_tests;
+mod receipt_terminal_tests;
 mod job_exit_tests;
 mod job_status_tests;
 mod job_wait_tests;

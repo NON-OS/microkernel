@@ -15,7 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! A whole receipt verifies, and says what it carries.
 
+use agentproof_receipt::cli::answer;
 use agentproof_receipt::verify;
+
+use super::cli::written;
 
 use crate::fixture::Fixture;
 
@@ -27,4 +30,15 @@ fn a_whole_receipt_verifies() {
     assert_eq!((v.release.as_str(), v.box_word.as_str()), ("0.9.3-test", "strict"));
     assert!(v.enforced && !v.built_in);
     assert_eq!((v.program, v.supervisor, v.seal_no), (Some([7; 32]), [5; 32], 9));
+}
+
+#[test]
+fn the_capsule_that_asked_is_said_when_the_receipt_names_it() {
+    let mut f = Fixture::new(b"strict");
+    let t = f.trust();
+    let said = |f: &mut Fixture| answer(&f.bytes(), &written(&t)).out.join("\n");
+    assert!(said(&mut f).contains("asked    by a capsule the receipt does not name"));
+    f.launcher = [4; 32];
+    assert_eq!(verify(&f.bytes(), &t).unwrap().launcher, [4; 32]);
+    assert!(said(&mut f).contains(&format!("asked    by the capsule measured {}", "04".repeat(32))));
 }
