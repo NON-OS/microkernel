@@ -34,8 +34,10 @@ mod disks;
 mod errno;
 mod line;
 mod medium;
+mod reply_caller;
 mod reply_escape;
 mod reply_seen;
+mod reply_take;
 mod reply_twice;
 
 /// # Safety
