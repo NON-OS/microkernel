@@ -8905,6 +8905,7 @@
    "src/process/foreign_absent_seal.rs",
    "src/syscall/microkernel/errnos.rs",
    "userland/libc/src/foreign_frame.rs",
+   "userland/libc/src/linux_ask_net.rs",
    "userland/nonos_proof_abi",
    "userland/seal_proofs"
   ],
@@ -9793,6 +9794,8 @@
    "userland/capsule_terminal/src/jobs/external_io.rs",
    "userland/capsule_terminal/src/jobs/external_route.rs",
    "userland/capsule_terminal/src/jobs/external_stop.rs",
+   "userland/capsule_terminal/src/jobs/net_ask.rs",
+   "userland/capsule_terminal/src/jobs/stdin_kept.rs",
    "userland/capsule_terminal/src/jobs/work_step.rs",
    "userland/capsule_terminal/src/mixnet/exchange/wait.rs",
    "userland/capsule_terminal/src/mixnet/exchange/wait_clock.rs",

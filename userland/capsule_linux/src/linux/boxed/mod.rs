@@ -48,4 +48,4 @@ pub use kind::{of_needs, Kind};
 pub use notes::{armed_hash, call_begins, connected, learning, may_write, note, tried, wrote};
 pub use run_tally::report as run_report;
 pub use state::{arm, exec_program, narrow};
-pub use terminal_run::{for_terminal, NO_LIST};
+pub use terminal_run::for_terminal;

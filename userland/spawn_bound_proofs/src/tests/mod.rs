@@ -21,6 +21,7 @@ mod broker;
 mod check;
 mod instance;
 mod linux_net_role;
+mod linux_net_ticket;
 mod linux_net_tool;
 mod linux_roles;
 mod source;
