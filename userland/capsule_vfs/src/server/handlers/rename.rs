@@ -19,11 +19,11 @@ use core::str;
 
 use super::path::{is_read_only, normalize};
 use super::util::{map_store_err, split_caller};
-use crate::protocol::{encode_response, Request, EACCES, EINVAL, MAX_PATH_BYTES, OP_RENAME};
+use crate::protocol::{encode_response, Request, EACCES, EBUSY, EINVAL, MAX_PATH_BYTES, OP_RENAME};
 use crate::store::Store;
 
 pub fn rename(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
-    let (_pid, rest) = match split_caller(req.payload, sender_pid) {
+    let (pid, rest) = match split_caller(req.payload, sender_pid) {
         Ok(v) => v,
         Err(s) => return encode_response(OP_RENAME, req.flags, req.request_id, s, &[]),
     };
@@ -55,6 +55,9 @@ pub fn rename(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
     };
     if is_read_only(&old) || is_read_only(&new) {
         return encode_response(OP_RENAME, req.flags, req.request_id, EACCES, &[]);
+    }
+    if store.held_by_another(&old, pid) || store.held_by_another(&new, pid) {
+        return encode_response(OP_RENAME, req.flags, req.request_id, EBUSY, &[]);
     }
     match store.rename(&old, &new) {
         Ok(()) => encode_response(OP_RENAME, req.flags, req.request_id, 0, &[]),
