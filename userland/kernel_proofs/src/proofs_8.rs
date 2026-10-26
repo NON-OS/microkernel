@@ -17,6 +17,9 @@
 //! Host proofs, group 8 of 8: test modules mounted by path
 //! from proofs.rs, each at its own file.
 
+/// The IPC receives check what they write to before they wait.
+#[path = "handover_ipc_tests.rs"]
+mod handover_ipc_tests;
 /// Late versus starved for an ipc.call with no answer (B-04).
 #[path = "ipc_death/mod.rs"]
 pub mod ipc_death;
