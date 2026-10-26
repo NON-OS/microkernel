@@ -11460,6 +11460,7 @@
    "nonos-data/trust/capsules/hello.zk_trailer.bin",
    "src/fs/blockfs_volume/keep_switch.rs",
    "src/fs/blockfs_volume/key_header_io.rs",
+   "src/fs/blockfs_volume/open_into.rs",
    "src/fs/blockfs_volume/open_machine.rs",
    "src/fs/blockfs_volume/passphrase.rs",
    "src/fs/blockfs_volume/session.rs",
