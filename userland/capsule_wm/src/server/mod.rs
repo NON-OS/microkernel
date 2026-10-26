@@ -18,6 +18,7 @@ pub mod focus_notify;
 pub mod full_screen_notify;
 pub mod hand_off_focus;
 pub mod handlers;
+pub mod keys_notify;
 pub mod notify_fanout;
 pub mod respond;
 pub mod respond_window_opened;

@@ -1,5 +1,5 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "operator_id": "nonos.marketplace.v1",
   "published_at_ms": 1792844669000,
   "serial": 1792844669,
@@ -12,6 +12,7 @@
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "Simple, modern file encryption, offline, to a passphrase or to a recipient key made elsewhere. The age-keygen in its package has no box of its own and is refused at its installed path.",
+      "logo_hash": "",
       "price": {
         "kind": "free",
         "amount_atomic": "0",

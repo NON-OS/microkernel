@@ -28,7 +28,7 @@ use super::pcct_extended::extended;
 use super::pcct_types::{reg, Subspace};
 
 /// None for a type this parser does not know or a structure too short.
-pub fn subspace(s: &[u8]) -> Option<Subspace> {
+pub(crate) fn subspace(s: &[u8]) -> Option<Subspace> {
     let kind = u8_at(s, 0)?;
     let need = match kind {
         0 | 1 => 62,

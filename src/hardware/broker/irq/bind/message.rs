@@ -24,7 +24,7 @@ use super::super::types::IrqBindError;
 use super::remap_rule::{outcome, Outcome};
 use super::sentinels::NO_IRTE;
 use crate::drivers::pci::types::{MsiMessage, PciAddress};
-use crate::memory::iommu::dev_unremapped::holds;
+use crate::memory::iommu::{dev_unconfined::PRODUCTION, dev_unremapped::OPT_IN};
 
 /// A message to program and the remapping entry behind it, `NO_IRTE` for a
 /// compatibility format message.
@@ -45,7 +45,10 @@ pub(super) fn dest_apic_id() -> Result<u8, IrqBindError> {
 
 pub(super) fn route(address: &PciAddress, vector: u8, dest: u8) -> Result<Routed, IrqBindError> {
     let (attempt, routed) = super::remap_vendor::attempt(address, vector, dest);
-    match outcome(attempt, holds() || crate::memory::iommu::no_iommu::holds()) {
+    // Compatibility format is allowed under the development opt-in (x86 alone
+    // composes it) or the no-IOMMU posture.
+    let dev = OPT_IN && !PRODUCTION;
+    match outcome(attempt, dev || crate::memory::iommu::no_iommu::holds()) {
         Outcome::Remapped => routed.ok_or(IrqBindError::PlatformError),
         Outcome::Compat => {
             Ok(Routed { msg: MsiMessage::for_local_apic(vector, dest), irte: NO_IRTE })

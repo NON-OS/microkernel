@@ -16,37 +16,26 @@
 
 use crate::state::damage::Rect;
 
+pub use super::cursor_arrow::ARROW;
+
 pub const FILL: u32 = 0xFFFF_FFFF;
 pub const OUTLINE: u32 = 0xFF00_0000;
 
 // A classic left pointer, one byte per pixel: 'X' is the black outline, 'o' the
 // white interior, a space is transparent. The tip sits at the top-left so the
 // hotspot lands on the reported pointer position.
-pub const ARROW: [&[u8]; 19] = [
-    b"X",
-    b"XX",
-    b"XoX",
-    b"XooX",
-    b"XoooX",
-    b"XooooX",
-    b"XoooooX",
-    b"XooooooX",
-    b"XoooooooX",
-    b"XooooooooX",
-    b"XoooooooooX",
-    b"XooooXXXXXX",
-    b"XoooXoX",
-    b"XooX XoX",
-    b"XoX  XoX",
-    b"XX   XoX",
-    b"X     XoX",
-    b"      XoX",
-    b"      XXX",
-];
 
-pub fn blit(base_va: u64, stride: u32, sw: u32, sh: u32, cx: u32, cy: u32, clip: Rect) {
-    let clip_x1 = clip.x + clip.width;
-    let clip_y1 = clip.y + clip.height;
+/// The shape `code` names, its hot spot at (cx, cy), inside `clip`.
+pub fn blit_shape(
+    base_va: u64,
+    stride: u32,
+    (sw, sh): (u32, u32),
+    (cx, cy): (u32, u32),
+    code: u8,
+    clip: Rect,
+) {
+    let shape = super::cursor_shapes::shape(code);
+    let (clip_x1, clip_y1) = (clip.x + clip.width, clip.y + clip.height);
     let put = |px: u32, py: u32, argb: u32| {
         if px >= sw || py >= sh || px < clip.x || px >= clip_x1 || py < clip.y || py >= clip_y1 {
             return;
@@ -54,14 +43,20 @@ pub fn blit(base_va: u64, stride: u32, sw: u32, sh: u32, cx: u32, cy: u32, clip:
         let va = base_va as usize + py as usize * stride as usize + px as usize * 4;
         unsafe { core::ptr::write_volatile(va as *mut u32, argb) };
     };
-    for (row, line) in ARROW.iter().enumerate() {
+    for (row, line) in shape.rows.iter().enumerate() {
         for (col, &pixel) in line.iter().enumerate() {
             let argb = match pixel {
                 b'X' => OUTLINE,
                 b'o' => FILL,
                 _ => continue,
             };
-            put(cx + col as u32, cy + row as u32, argb);
+            let (x, y) = (
+                (cx + col as u32).checked_sub(shape.hot.0),
+                (cy + row as u32).checked_sub(shape.hot.1),
+            );
+            if let (Some(x), Some(y)) = (x, y) {
+                put(x, y, argb);
+            }
         }
     }
 }
