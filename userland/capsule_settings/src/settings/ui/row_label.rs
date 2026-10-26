@@ -22,7 +22,14 @@ use super::text;
 use super::theme::{LABEL_FG, SUBLABEL_FG};
 
 /// Lays out a row's title and optional sub-label, kept inside the card.
-pub fn paint(fb: &mut PaintBuffer, x: u32, screen_y: i32, row_h: u32, title: &str, note: Option<&str>) {
+pub fn paint(
+    fb: &mut PaintBuffer,
+    x: u32,
+    screen_y: i32,
+    row_h: u32,
+    title: &str,
+    note: Option<&str>,
+) {
     paint_within(fb, x, screen_y, row_h, title, note, u32::MAX);
 }
 
