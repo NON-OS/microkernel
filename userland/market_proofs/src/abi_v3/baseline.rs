@@ -30,6 +30,7 @@ fn the_shipped_schema_2_catalogue_still_decodes() {
     assert!(!d.index.entries.is_empty());
     for e in &d.index.entries {
         assert!(e.commerce.is_none(), "{}", e.listing_id);
+        assert_eq!(e.logo_hash, [0; 32], "a schema 2 entry names no logo");
         for r in &e.releases {
             assert!(r.ext.is_none());
             let signed = release_signing_bytes(r);

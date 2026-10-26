@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_marketplace_abi::{SettleMode, SCHEMA_V3};
+use nonos_marketplace_abi::{SettleMode, CURRENT_SCHEMA, SCHEMA_V4};
 
 use super::blobs::{blob, decode};
 use super::fixtures::sold;
 
 #[test]
-fn every_schema_3_field_reads_back_as_written() {
-    let written = sold();
+fn every_schema_3_and_4_field_reads_back_as_written() {
+    let mut written = sold();
+    written.entries[0].logo_hash = [0x5a; 32];
     let read = decode(&blob(written.clone())).expect("decodes");
-    assert_eq!(read.schema_version, SCHEMA_V3);
+    assert_eq!(read.schema_version, SCHEMA_V4);
     let (w, r) = (&written.entries[0], &read.entries[0]);
+    assert_eq!((r.logo_hash, &r.description), (w.logo_hash, &w.description));
     assert_eq!(r.commerce, w.commerce);
     assert_eq!(r.commerce.as_ref().map(|c| c.settle_mode), Some(SettleMode::Escrow));
     for (wr, rr) in w.releases.iter().zip(&r.releases) {
@@ -34,8 +36,8 @@ fn every_schema_3_field_reads_back_as_written() {
 }
 
 #[test]
-fn the_encoder_writes_schema_3_whatever_the_index_claims() {
+fn the_encoder_writes_schema_4_whatever_the_index_claims() {
     let mut index = sold();
     index.schema_version = 2;
-    assert_eq!(decode(&blob(index)).expect("decodes").schema_version, SCHEMA_V3);
+    assert_eq!(decode(&blob(index)).expect("decodes").schema_version, CURRENT_SCHEMA);
 }
