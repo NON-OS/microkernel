@@ -1,0 +1,20 @@
+[
+  {
+    "name": "empty-log-counted",
+    "file": "userland/capsule_about/src/about/log_words.rs",
+    "old": "    if len == 0 {\n        return put(out, 0, b\"no event log\");",
+    "new": "    if len == u32::MAX {\n        return put(out, 0, b\"no event log\");",
+    "crate": "userland/apps_proofs",
+    "test": "about_log",
+    "args": ["--release"]
+  },
+  {
+    "name": "one-bytes",
+    "file": "userland/capsule_about/src/about/log_words.rs",
+    "old": "if len == 1 { b\" byte\" } else { b\" bytes\" }",
+    "new": "if len == 0 { b\" byte\" } else { b\" bytes\" }",
+    "crate": "userland/apps_proofs",
+    "test": "about_log",
+    "args": ["--release"]
+  }
+]
