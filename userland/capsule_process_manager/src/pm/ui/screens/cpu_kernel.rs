@@ -55,16 +55,8 @@ pub(super) fn kernel(state: &State, fb: &mut PaintBuffer, r: &Rect) {
         text::mono_right(fb, right, top, &buf[..n], ACCENT, NUM_PX);
         let sx = x + LABEL_W + GAP;
         let sw = right.saturating_sub(VALUE_W + GAP).saturating_sub(sx);
-        spark::rate(
-            fb,
-            sx,
-            y + (TRACE_ROW_H - SPARK_H) / 2,
-            sw,
-            SPARK_H,
-            ring,
-            ring.peak() + ring.peak() / 4 + 1,
-            ACCENT,
-        );
+        let at = Rect { x: sx, y: y + (TRACE_ROW_H - SPARK_H) / 2, w: sw, h: SPARK_H };
+        spark::rate(fb, &at, ring, ring.peak() + ring.peak() / 4 + 1, ACCENT);
         y += TRACE_ROW_H;
     }
 }
