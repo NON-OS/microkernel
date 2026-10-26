@@ -73,8 +73,7 @@ pub const WEIGHTS: &[(&str, u64)] = &[
  * architecture (as llama.cpp names it) answered a question on that boot.
  * A tier's mark is added in its own commit, naming its evidence, when a
  * tier of its architecture boots to an answer. Not here: qwen3-30b-a3b
- * (qwen3moe), whose smallest published size has not run on NONOS, and
- * qwen3.5-0.8b and qwen3.6-27b (qwen35) until a tier of theirs answers.
+ * (qwen3moe), whose smallest published size has not run on NONOS.
  */
 #[rustfmt::skip]
 pub const PROVEN: &[(&str, &str)] = &[
@@ -94,6 +93,8 @@ pub const PROVEN: &[(&str, &str)] = &[
     ("qwen3-8b", "docs/using/evidence/qwen-arch-qwen3/README.md: qwen3-0.6b answered"),
     ("qwen3-14b", "docs/using/evidence/qwen-arch-qwen3/README.md: qwen3-0.6b answered"),
     ("qwen3-32b", "docs/using/evidence/qwen-arch-qwen3/README.md: qwen3-0.6b answered"),
+    ("qwen3.5-0.8b", "docs/using/evidence/qwen-arch-qwen35-fixed/README.md: qwen3.5-0.8b answered"),
+    ("qwen3.6-27b", "docs/using/evidence/qwen-arch-qwen35-fixed/README.md: qwen3.5-0.8b answered"),
 ];
 
 /* Whether `tier` is proven on NONOS, so may be a default. */
