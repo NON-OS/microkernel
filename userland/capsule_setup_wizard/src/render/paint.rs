@@ -14,17 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn fill_rect(
-    buf: &mut [u32],
-    spx: usize,
-    w: u32,
-    h: u32,
-    x: u32,
-    y: u32,
-    rw: u32,
-    rh: u32,
-    argb: u32,
-) {
+use super::canvas::Canvas;
+
+pub fn fill_rect(cv: &mut Canvas, x: u32, y: u32, rw: u32, rh: u32, argb: u32) {
+    let (buf, spx, w, h) = (&mut *cv.buf, cv.spx, cv.w, cv.h);
     let x1 = (x + rw).min(w);
     for yy in y..(y + rh).min(h) {
         let row = yy as usize * spx;
