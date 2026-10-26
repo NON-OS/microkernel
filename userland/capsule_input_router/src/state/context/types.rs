@@ -23,6 +23,8 @@ pub struct Context {
     pub press: Option<Press>,
     pub hover: Option<Hover>,
     pub hover_tick: u32,
+    /// A motion the hover count skipped, asked about when the input stops.
+    pub hover_owed: Option<(nonos_libc::InputEvent, u32, u32)>,
     pub cursor: CursorState,
     pub compositor_port: u32,
     pub wm_port: u32,

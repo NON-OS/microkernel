@@ -322,6 +322,10 @@ nonos-dev-unremapped-interrupts = []
 # airgapped profiles can take it out (tools/nix/config.nix) without opening
 # microkernel-core into members that are not kernel features.
 nonos-dma-unconfined-posture = []
+# An AgentProof build (the gauntlet profile, tools/nix/config.nix): with no
+# IOMMU in service the boot stops before any driver starts, as Hardened and
+# Air-Gapped boots do (src/memory/iommu/no_iommu_refusal.rs).
+nonos-agentproof = []
 # Every image the seal may seal for release: tools/nix/config.nix turns it on
 # for each profile whose loader is not the development one. A kernel built
 # with it refuses to compile nonos-dev-attest (src/lib.rs).

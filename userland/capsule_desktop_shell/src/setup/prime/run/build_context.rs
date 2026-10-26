@@ -32,7 +32,7 @@ pub fn build_context(
             policy_port: 0,
         },
         links: crate::state::ctx::links::Links {
-            wallpaper_policy_sent: wallpaper_policy_sent,
+            wallpaper_policy_sent,
             input_kind_mask: super::input_mask::SHELL_INPUT_MASK,
             input_ready: false,
             wm_notify_ready: false,
@@ -43,8 +43,8 @@ pub fn build_context(
         scale: crate::state::scale::quarters_for(overlay.width, overlay.height),
         stride: overlay.stride,
         backing_va: overlay.backing_va,
-        desk_va: desk.backing_va,
-        chrome_va: overlay.backing_va,
+        desk: crate::state::ctx::flip::Flip::single(desk.backing_va),
+        chrome: crate::state::ctx::flip::Flip::single(overlay.backing_va),
         back: alloc::vec::Vec::new(),
         tray: TrayTable::new(),
         taskbar: new_taskbar_state(),
@@ -61,5 +61,6 @@ pub fn build_context(
         trusted: crate::state::trusted::Trusted::default(),
         dialog_focus: crate::state::dialog_keys::DialogFocus::new(),
         switch: crate::state::ctx::switch::SwitchOrder::default(),
+        pointer_shape: Default::default(),
     }
 }
