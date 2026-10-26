@@ -14,20 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::entropy::rdrand64;
+use uefi::table::boot::BootServices;
+
+use crate::entropy::{efi_rng_word, rdrand64};
 use crate::security::{audit, init_canaries, AuditEvent};
 
-pub fn init_security_primitives() {
-    let entropy = match rdrand64() {
-        Some(v) => v,
-        None => {
-            let (lo, hi): (u32, u32);
-            unsafe {
-                core::arch::asm!("rdtsc", out("eax") lo, out("edx") hi, options(nomem, nostack, preserves_flags));
-            }
-            (((hi as u64) << 32) | lo as u64).rotate_left(17) ^ 0x9E37_79B9_7F4A_7C15
-        }
-    };
+/// The canary seed: the CPU's generator, else the firmware's (which an
+/// aarch64 core without RNDR has), else the counter.
+pub fn init_security_primitives(bs: &BootServices) {
+    let entropy = rdrand64()
+        .or_else(|| efi_rng_word(bs))
+        .unwrap_or_else(|| crate::arch::cpu::cycles().rotate_left(17) ^ 0x9E37_79B9_7F4A_7C15);
     init_canaries(entropy);
     audit(AuditEvent::BootStart, 0, b"security init");
 }

@@ -14,11 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod allocate_block;
 mod allocate_image;
+pub mod block_layout;
 mod copy_payload;
 mod entry_in_range;
+mod footprint;
+mod image_record;
+pub mod image_rules;
 mod load_exec_kernel;
 mod load_segments;
+mod placement;
 mod zero_tail;
 
 pub use load_exec_kernel::load_exec_kernel;
