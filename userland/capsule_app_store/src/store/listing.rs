@@ -50,6 +50,8 @@ pub struct Known {
     /// search can match descriptions.
     pub detail: Option<Detail>,
     pub described: bool,
+    /// A Linux listing's logo, asked with the description (OP_GET_LOGO).
+    pub logo: Option<super::market::Logo>,
     /// The default release and the install gates, asked when the listing
     /// is first selected.
     pub release: Option<Release>,

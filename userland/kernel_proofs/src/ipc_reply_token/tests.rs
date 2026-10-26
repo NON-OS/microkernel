@@ -16,32 +16,37 @@
 
 use super::reply_rule::pick;
 
-fn at(entries: &[(&'static str, u64)], inbox: &str, served: u64) -> Option<usize> {
+/// Each entry is (inbox, token, dequeued).
+fn at(entries: &[(&'static str, u64, bool)], inbox: &str, served: u64) -> Option<usize> {
     pick(entries.iter().copied(), inbox, served)
 }
 
 #[test]
 fn the_served_entry_wins_over_an_older_one_of_the_same_caller() {
-    // Call 7 was never answered and keeps its entry; the server serves 9.
-    let q = [("c", 7), ("d", 8), ("c", 9)];
+    // Call 7 was taken and never answered; the server serves 9.
+    let q = [("c", 7, true), ("d", 8, false), ("c", 9, true)];
     assert_eq!(at(&q, "c", 9), Some(2));
 }
 
 #[test]
-fn a_served_token_of_another_caller_leaves_this_one_its_oldest() {
+fn a_served_token_of_another_caller_leaves_this_one_its_oldest_dequeued() {
     // A server took c's 7, then d's 8, and answers c first, in order.
-    let q = [("c", 7), ("d", 8)];
+    let q = [("c", 7, true), ("d", 8, true)];
     assert_eq!(at(&q, "c", 8), Some(0));
     assert_eq!(at(&q, "d", 8), Some(1));
 }
 
 #[test]
-fn with_nothing_served_the_oldest_answers() {
-    assert_eq!(at(&[("c", 7), ("c", 9)], "c", 0), Some(0));
+fn a_request_still_in_the_inbox_is_never_answered() {
+    // c's 9 was not dequeued: a reply to c answers nothing, whatever was served.
+    let q = [("c", 9, false)];
+    assert_eq!(at(&q, "c", 0), None);
+    assert_eq!(at(&q, "c", 9), None, "the served token must also be dequeued");
+    assert_eq!(at(&[("c", 7, false), ("c", 9, true)], "c", 0), Some(1));
 }
 
 #[test]
 fn a_reply_no_call_is_owed_is_dropped() {
-    assert_eq!(at(&[("d", 8)], "c", 8), None);
+    assert_eq!(at(&[("d", 8, true)], "c", 8), None);
     assert_eq!(at(&[], "c", 0), None);
 }

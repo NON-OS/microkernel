@@ -36,7 +36,8 @@ impl Key {
     pub(super) fn under_root(visible: &[u8]) -> Key {
         // An install has no family, and writes only the shared tree.
         if !super::private::shared_writes_allowed() && super::private::is_private(visible) {
-            let mut out = super::private::root();
+            let home = super::private::in_home(visible).then(super::private::home_root).flatten();
+            let mut out = home.unwrap_or_else(super::private::root);
             let at = out.len();
             out.extend_from_slice(visible);
             return Key(out, false, at);

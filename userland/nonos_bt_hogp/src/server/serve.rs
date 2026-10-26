@@ -16,8 +16,8 @@
 //! Answering a request from the peripheral (Vol 3, Part F, 3.4) from the
 //! fixed database. Each request gets its response or an Error Response
 //! (3.4.1.1). A request this server does not take, such as Read Blob or
-//! Prepare Write, gets Request Not Supported. No value is longer than a
-//! Read Response holds, so none needs Read Blob.
+//! Prepare Write, gets the error code 06h (REQUEST_NOT_SUPPORTED). No value
+//! is longer than a Read Response holds, so none needs Read Blob.
 
 use alloc::vec::Vec;
 

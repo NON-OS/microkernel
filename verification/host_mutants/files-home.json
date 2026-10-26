@@ -1,0 +1,58 @@
+[
+ {
+  "name": "home-key-drops-listing",
+  "file": "userland/capsule_linux/src/linux/app/home_key.rs",
+  "old": "false => h.update(LISTED).update(listing_key),",
+  "new": "false => h.update(LISTED),",
+  "crate": "userland/capsule_linux_proofs",
+  "test": "home"
+ },
+ {
+  "name": "home-key-from-program",
+  "file": "userland/capsule_linux/src/linux/app/home_key.rs",
+  "old": "false => h.update(LISTED).update(listing_key),",
+  "new": "false => h.update(LISTED).update(program),",
+  "crate": "userland/capsule_linux_proofs",
+  "test": "home"
+ },
+ {
+  "name": "home-key-zero-listing-shared",
+  "file": "userland/capsule_linux/src/linux/app/home_key.rs",
+  "old": "true => h.update(UNLISTED).update(program),",
+  "new": "true => h.update(UNLISTED),",
+  "crate": "userland/capsule_linux_proofs",
+  "test": "home"
+ },
+ {
+  "name": "home-without-files-home",
+  "file": "userland/capsule_linux/src/linux/file/private/rule.rs",
+  "old": "    home && HOMES\n",
+  "new": "    HOMES\n",
+  "crate": "userland/capsule_linux_proofs",
+  "test": "home"
+ },
+ {
+  "name": "home-quota-dropped",
+  "file": "userland/capsule_linux/src/linux/file/system/space/quota/allow.rs",
+  "old": "    held_to(now, then, HOME, HOME_NAMES)?;\n",
+  "new": "",
+  "crate": "userland/capsule_linux_proofs",
+  "test": "home"
+ },
+ {
+  "name": "all-homes-quota-dropped",
+  "file": "userland/capsule_linux/src/linux/file/system/space/quota/allow.rs",
+  "old": "    held_to(Kept { bytes: all.0, names: 0 }, Kept { bytes: all.1, names: 0 }, HOMES, 0)",
+  "new": "    Ok(())",
+  "crate": "userland/capsule_linux_proofs",
+  "test": "home"
+ },
+ {
+  "name": "two-publishers-one-home",
+  "file": "userland/capsule_linux/src/linux/app/home_key.rs",
+  "old": "    match *listing_key == [0; 32] {",
+  "new": "    match *listing_key == [0; 32] || listing_key[0] != 0 {",
+  "crate": "userland/market_proofs",
+  "test": "home_key"
+ }
+]

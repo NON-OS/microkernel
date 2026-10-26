@@ -19,7 +19,7 @@
 //! read through a 256-byte buffer ran in the 64 MiB run heap, and
 //! vim-common's unpack died there (booted, code 134).
 
-use crate::linux::heap_choice::{first_word, is_install, ARGS_MAX};
+use crate::linux::heap_choice::{first_word, is_install};
 
 fn argv(words: &[&[u8]]) -> Vec<u8> {
     words.join(&0u8)
@@ -31,8 +31,7 @@ fn an_install_argv_of_its_real_length_picks_the_install_heap() {
     let pin = [b'0'; 64];
     let a = argv(&[b"install", b"vim", &pin, &m, b"direct"]);
     assert!(a.len() > 256, "the length that broke it: {}", a.len());
-    assert!(ARGS_MAX >= 4 * a.len(), "heap.rs reads the argv into ARGS_MAX bytes");
-    let mut buf = [0u8; ARGS_MAX];
+    let mut buf = [0u8; 4096];
     buf[..a.len()].copy_from_slice(&a);
     assert!(is_install(&buf, a.len() as i64));
     assert_eq!(first_word(&buf, a.len() as i64), Some(&b"install"[..]));

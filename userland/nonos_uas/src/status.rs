@@ -37,7 +37,7 @@ pub enum StatusIu<'a> {
         status: u8,
         sense: &'a [u8],
     },
-    /// 00h task management complete, 02h invalid IU, 04h not supported,
+    /// 00h task management complete, 02h invalid IU, 04h TMF_NOT_SUPPORTED,
     /// 05h failed, 08h succeeded, 09h incorrect LUN, 0Ah overlapped tag.
     Response {
         tag: u16,

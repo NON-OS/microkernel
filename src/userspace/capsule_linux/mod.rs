@@ -27,6 +27,8 @@ mod run_net;
 mod run_owner;
 mod spawn;
 mod state;
+mod term_ticket;
+mod term_ticket_rule;
 mod terminal;
 
 pub use family::package_arg;
@@ -35,10 +37,11 @@ pub use run_net::spawn_run_net;
 /// What the terminal's network role asks beyond LINUX_CAPS: the tool bound
 /// checks the caller against exactly what that role's spawn installs.
 pub const TERMINAL_NET_EXTRA: u64 = role_term_net::TERMINAL_NET.extra_caps;
-pub use run_owner::{run_busy, run_net_busy, run_package_of};
 pub(crate) use embed::LINUX_MANIFEST_BYTES;
+pub use run_owner::{run_busy, run_net_busy, run_package_of};
 pub use spawn::{spawn_linux_capsule, LINUX_CAPS};
 pub use state::shared_state;
+pub use term_ticket::{asked_by_terminal_role, end_tickets_of, take_term_ticket};
 pub use terminal::{
     admit_terminal_run, end_terminal_runs_of, is_private_run, run_qwen_for_caller,
     terminal_run_gone,

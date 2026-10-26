@@ -30,7 +30,7 @@ use crate::display::follow::FOLLOW_HOST;
 use crate::display::hint_rule::{allowed, Hint};
 use crate::protocol::{Request, E_INVAL, E_PERM};
 use crate::server::respond;
-use crate::setup::{displays::HINT_SOURCES, lookup};
+use crate::setup::{display_hints::HINT_SOURCES, lookup};
 use crate::state::Context;
 
 pub fn handle(

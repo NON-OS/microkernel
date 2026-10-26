@@ -110,9 +110,7 @@ pub fn spawn_next(app: &InstanceSpawn) -> Result<u32, SpawnError> {
     // teardown, RAM zeroized) when its window closes, instead of lingering
     // idle, so a closed tab leaves no resident capsule and a relaunch is a
     // fresh spawn. Set before the app is scheduled far enough to read argv.
-    crate::process::with_process(pid, |pcb| {
-        *pcb.argv.lock() = alloc::vec![alloc::string::String::from(INSTANCE_ARG)];
-    });
+    let _ = crate::process::set_argv(pid, alloc::vec![alloc::string::String::from(INSTANCE_ARG)]);
     Ok(pid)
 }
 

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Where the leave phase runs: in terminate() and terminate_critical(),
+//! Where the leave phase runs: in terminate() and terminate_with(),
 //! after the once-guard and before the other CPUs stop and before the wipe,
 //! since the capsules that make the disks safe must still be running; never
 //! on the panic path.
@@ -33,8 +33,10 @@ fn body_of(name: &str) -> &'static str {
 
 #[test]
 fn both_ways_out_go_through_the_one_end() {
-    assert!(body_of("terminate").contains("end(off, TOTAL_MS)"));
-    assert!(body_of("terminate_critical").contains("end(off, CRITICAL_TOTAL_MS)"));
+    assert!(body_of("terminate").contains("terminate_with(off, false)"));
+    let with = body_of("terminate_with");
+    let pick = "end(off, if critical { CRITICAL_TOTAL_MS } else { TOTAL_MS })";
+    assert!(with.contains(pick), "{with}");
 }
 
 #[test]

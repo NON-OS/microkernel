@@ -21,8 +21,7 @@ use crate::stand_in::{next, CPU, CPU_TAG};
 
 pub mod entropy {
     use crate::stand_in::{next, ENTROPY, ENTROPY_TAG};
-    #[allow(clippy::result_unit_err)]
-    pub fn get_entropy64_secure() -> Result<u64, ()> {
+    pub(crate) fn get_entropy64_secure() -> Result<u64, ()> {
         ENTROPY.get().then(|| next(ENTROPY_TAG)).ok_or(())
     }
 }

@@ -2,7 +2,7 @@
 //! A release kernel refuses a trust set or a policy key named at build time;
 //! any other build may take either.
 
-use crate::build_baked_trust::{refusal, TEST_TRUST};
+use crate::rule::{refusal, TEST_TRUST};
 
 const DIR: &str = "NONOS_BAKED_TRUST_DIR";
 const KEY: &str = "NONOS_DEVICE_POLICY_PUBKEY";

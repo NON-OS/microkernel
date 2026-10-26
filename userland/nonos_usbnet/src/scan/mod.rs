@@ -25,6 +25,7 @@ mod net;
 mod port;
 mod probe;
 mod scanner;
+mod scanner_default;
 mod search;
 mod shared;
 

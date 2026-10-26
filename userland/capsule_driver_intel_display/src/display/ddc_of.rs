@@ -66,7 +66,7 @@ pub(super) fn errno(e: DdcError) -> Errno {
     match e {
         DdcError::NotAllowed => EPERM,
         DdcError::Value => EINVAL,
-        DdcError::Unsupported | DdcError::Absent | DdcError::NoCapabilities => ENOSYS,
+        DdcError::NotOffered | DdcError::Absent | DdcError::NoCapabilities => ENOSYS,
         DdcError::NoClock => ETIMEDOUT,
         DdcError::Bus | DdcError::Length | DdcError::Checksum | DdcError::Reply => EIO,
     }
