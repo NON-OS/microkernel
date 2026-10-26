@@ -44,7 +44,7 @@ fn each_shape_is_drawn_from_its_hot_spot_inside_the_damaged_box() {
 #[test]
 fn the_topmost_window_under_the_pointer_chooses_and_elsewhere_is_the_arrow() {
     let (mut low, mut high) = (layer(40, 0, 0, 400, 300, 2), layer(41, 200, 100, 400, 300, 2));
-    (low.cursor, high.cursor) = (EW_CODE, NS_CODE);
+    (low.cursor, high.cursor) = (Some(EW_CODE), Some(NS_CODE));
     let stack = [low, high];
     assert_eq!(shape_at(stack.iter(), 250, 150), NS_CODE, "the window on top, where both are");
     assert_eq!(shape_at(stack.iter(), 50, 50), EW_CODE, "the one below, where it shows");
