@@ -44,7 +44,7 @@ pub fn parse(b: &[u8], sent: &[u8; 32]) -> Option<Doc> {
         return None;
     }
 
-    let (attest_len_at, log_len) = pcrs_and_log(b, PCRS_AT)?;
+    let (attest_len_at, _log_len) = pcrs_and_log(b, PCRS_AT)?;
     let attest_len = be32(b, attest_len_at)?;
     let sig_len_at = attest_len_at.checked_add(4)?.checked_add(attest_len as usize)?;
     let signature_len = be32(b, sig_len_at)?;
@@ -65,7 +65,8 @@ pub fn parse(b: &[u8], sent: &[u8; 32]) -> Option<Doc> {
         iommu_enforcing: *b.get(ENFORCING_AT)? == 1,
         unconfined_grants: be32(b, UNCONFINED_AT)?,
         identity_devices: be32(b, IDENTITY_AT)?,
-        log_len,
+        #[cfg(test)]
+        log_len: _log_len,
         challenge_echoed,
         attest_len,
         signature_len,
