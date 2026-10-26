@@ -16,11 +16,17 @@
 
 /*
  * A kept setup record reads back as written, in either version, so a record
- * an earlier build kept still restores after an update.
+ * an earlier build kept still restores after an update. Its wallpaper alone
+ * reads as the default: versions before 7 named the first catalog era's.
  */
 
 use nonos_policy_proto::setup_record::{Answers, Name, Tier};
 use nonos_policy_proto::setup_record::{ANSWERS_V1_LEN, ANSWERS_V2_LEN};
+use nonos_policy_proto::wallpaper_labels::WALLPAPER_DEFAULT;
+
+fn read(a: Answers) -> Option<Answers> {
+    Some(Answers { wallpaper: WALLPAPER_DEFAULT, ..a })
+}
 
 fn kept(name: &[u8], tier: &[u8]) -> Answers {
     Answers {
@@ -38,7 +44,7 @@ fn version_2_keeps_name_and_tier() {
     let raw = a.encode();
     assert_eq!(raw.len(), ANSWERS_V2_LEN);
     assert_eq!(&raw[..4], b"NSA2");
-    assert_eq!(Answers::decode(&raw), Some(a));
+    assert_eq!(Answers::decode(&raw), read(a));
     assert_eq!(Answers::decode(&raw).unwrap().username.as_bytes(), b"ada_l-1");
     assert_eq!(Answers::decode(&raw).unwrap().qwen_tier.as_bytes(), b"qwen3-1.7b");
 }
@@ -46,18 +52,18 @@ fn version_2_keeps_name_and_tier() {
 #[test]
 fn empty_name_and_tier_round_trip() {
     let a = kept(b"", b"");
-    assert_eq!(Answers::decode(&a.encode()), Some(a));
+    assert_eq!(Answers::decode(&a.encode()), read(a));
 }
 
 #[test]
 fn the_longest_name_and_tier_fit() {
     let a = kept(&[b'a'; 32], &[b'x'; 24]);
-    assert_eq!(Answers::decode(&a.encode()), Some(a));
+    assert_eq!(Answers::decode(&a.encode()), read(a));
 }
 
 #[test]
 fn an_old_record_still_loads_without_name_or_tier() {
     let raw: [u8; ANSWERS_V1_LEN] = *b"NSA1\x02\xfb\x03";
-    assert_eq!(Answers::decode(&raw), Some(kept(b"", b"")));
+    assert_eq!(Answers::decode(&raw), read(kept(b"", b"")));
     assert_eq!(kept(b"ada", b"max").encode_v1(), raw);
 }
