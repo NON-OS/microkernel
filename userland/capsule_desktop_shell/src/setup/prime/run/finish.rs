@@ -19,26 +19,35 @@
 //! so a failure can give them back), the first frame, the windows, the
 //! subscriptions, and the chime.
 
+use super::build_context::build_context;
 use crate::render::paint_chrome;
 use crate::setup::prime::bands::{CHROME_Z, DESK_Z};
 use crate::setup::prime::{open_chrome_windows, overlay, peers};
+use crate::state::ctx::flip::Flip;
 use crate::state::Context;
 
 pub(super) fn finish(
     peers: &peers::Peers,
-    overlay: &overlay::Overlay,
-    desk: &overlay::Overlay,
+    [chrome, desk]: [&[overlay::Overlay; 2]; 2],
     wallpaper_policy_sent: bool,
-    held: &mut [Option<u64>; 2],
+    held: &mut [Option<u64>; 4],
 ) -> Result<Context, &'static str> {
-    let mut ctx = super::build_context::build_context(peers, overlay, desk, wallpaper_policy_sent);
+    let mut ctx = build_context(peers, &chrome[0], &desk[0], wallpaper_policy_sent);
     crate::render::ui_font::set_scale(ctx.scale);
     paint_chrome(&mut ctx);
-    // The desk first, so the compositor never shows the chrome without the
-    // desktop under it.
-    held[0] = Some(super::register_overlay::register_overlay(&mut ctx, desk, DESK_Z)?);
-    held[1] = Some(super::register_overlay::register_overlay(&mut ctx, overlay, CHROME_Z)?);
-    ctx.trusted.chrome_handle = held[1].unwrap_or(0);
+    // Each surface's second backing first, then the painted one, so the one
+    // submitted last and shown is the painted one; the desk before the
+    // chrome, so the compositor never shows the chrome without the desktop.
+    let order =
+        [(&desk[1], DESK_Z), (&desk[0], DESK_Z), (&chrome[1], CHROME_Z), (&chrome[0], CHROME_Z)];
+    for (slot, (o, z)) in held.iter_mut().zip(order) {
+        *slot = Some(super::register_overlay::register_overlay(&mut ctx, o, z)?);
+    }
+    let h = held.map(|h| h.unwrap_or(0));
+    ctx.desk =
+        Flip { va: [desk[0].backing_va, desk[1].backing_va], handle: [h[1], h[0]], shown: 0 };
+    let chrome_va = [chrome[0].backing_va, chrome[1].backing_va];
+    ctx.chrome = Flip { va: chrome_va, handle: [h[3], h[2]], shown: 0 };
     // The first frame is asked for once; the runner's first repaint asks
     // again, so a busy compositor here does not send setup round.
     super::commit_overlay::commit_overlay(&mut ctx);
