@@ -20,7 +20,7 @@
 use alloc::vec;
 
 /// The first entry from which `next` loops back onto its own path.
-pub fn looping(len: usize, next: impl Fn(usize) -> Option<usize>) -> Option<usize> {
+pub(crate) fn looping(len: usize, next: impl Fn(usize) -> Option<usize>) -> Option<usize> {
     let mut state = vec![0u8; len]; // 0 unseen, 1 on the current path, 2 known to end
     for start in 0..len {
         let (mut path, mut at) = (vec![], Some(start));

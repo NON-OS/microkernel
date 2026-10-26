@@ -23,7 +23,7 @@ pub(super) fn taken(pid: u32, msg: &IpcMessage, buf: u64, len: usize) -> i64 {
     // The reply redirect pairs by this token, not by queue position:
     // the entry popped for the server's next reply is the one whose
     // token names the request it just picked up.
-    super::pending_reply::record_served(pid, msg.correlation);
+    super::pending_reply::mark_served(pid, msg.correlation);
     let copy_len = msg.data.len().min(len);
     if crate::usercopy::copy_to_user(buf, &msg.data[..copy_len]).is_err() {
         return ERRNO_FAULT;
