@@ -24,6 +24,7 @@
 //! never returns.
 
 pub mod rule;
+pub mod who;
 /// G-53's frame, defined here, with the name's one owner.
 pub mod wire;
 
