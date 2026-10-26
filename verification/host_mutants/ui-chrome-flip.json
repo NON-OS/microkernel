@@ -1,0 +1,68 @@
+[
+  {
+    "name": "drawn-on-the-shown",
+    "file": "userland/capsule_desktop_shell/src/state/ctx/flip.rs",
+    "old": "self.va[if self.flips() { 1 - self.shown } else { self.shown }]",
+    "new": "self.va[self.shown]",
+    "crate": "userland/desktop_proofs",
+    "test": "surface_flip",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "never-flipped",
+    "file": "userland/capsule_desktop_shell/src/state/ctx/flip.rs",
+    "old": "        self.shown = 1 - self.shown;",
+    "new": "        self.shown = 0;",
+    "crate": "userland/desktop_proofs",
+    "test": "surface_flip",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "one-backing-flips",
+    "file": "userland/capsule_desktop_shell/src/state/ctx/flip.rs",
+    "old": " && self.va[0] != self.va[1]",
+    "new": "",
+    "crate": "userland/desktop_proofs",
+    "test": "surface_flip",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "frame-on-the-shown",
+    "file": "userland/capsule_desktop_shell/src/render/chrome/frame.rs",
+    "old": "(ctx.desk.next_va(), ctx.chrome.next_va())",
+    "new": "(ctx.desk.shown_va(), ctx.chrome.shown_va())",
+    "crate": "userland/desktop_proofs",
+    "test": "surface_flip",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "flipped-though-refused",
+    "file": "userland/capsule_desktop_shell/src/render/chrome/show.rs",
+    "old": "if ctx.chrome.flips() && submit(ctx, ctx.chrome.next_handle(), chrome_z) {",
+    "new": "if ctx.chrome.flips() {\n        let _ = submit(ctx, ctx.chrome.next_handle(), chrome_z);",
+    "crate": "userland/desktop_proofs",
+    "test": "surface_flip",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "flip-adds-a-layer",
+    "file": "userland/compositor/src/state/scene/submit.rs",
+    "old": "if slot.in_use && slot.owner_pid == layer.owner_pid && slot.z == layer.z {",
+    "new": "if slot.in_use && slot.owner_pid == layer.owner_pid && slot.z == layer.z && slot.surface_handle == layer.surface_handle {",
+    "crate": "userland/compositor_proofs",
+    "test": "flip_submit",
+    "args": [
+      "--release"
+    ]
+  }
+]

@@ -48,10 +48,7 @@ fn open_retry(
             ctx.issue_request_id(),
             window_id,
             WINDOW_KIND_POPUP,
-            x,
-            y,
-            width,
-            height,
+            (x, y, width, height),
         )
         .is_ok()
         {

@@ -1,0 +1,19 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host proofs for the aarch64 UEFI loader: the shipped set/way walk run on
+# aarch64 under qemu-user with stand-ins for the system registers, and the
+# pure rules (device tree header, Image header, block placement, handed-over
+# regions, the entropy rule) against the specifications. Every file under
+# test is the shipped source, included via `#[path]`.
+[package]
+name = "loader_arm_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
