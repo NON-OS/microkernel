@@ -30,12 +30,17 @@ pub(super) fn menu_key(ctx: &mut Context, code: u32) -> bool {
         return false;
     }
     if code == KEY_ESC {
-        ctx.menubar.open = None;
-        ctx.menubar.hover = None;
-        ctx.desk_ui.desktop_menu = None;
-        ctx.desk_ui.menu_hover = None;
-        ctx.desk_ui.menu_target = None;
-        repaint(ctx);
+        close_menus(ctx);
     }
     true
+}
+
+/// Close the menu bar's menu and the desktop's, and repaint.
+pub(crate) fn close_menus(ctx: &mut Context) {
+    ctx.menubar.open = None;
+    ctx.menubar.hover = None;
+    ctx.desk_ui.desktop_menu = None;
+    ctx.desk_ui.menu_hover = None;
+    ctx.desk_ui.menu_target = None;
+    repaint(ctx);
 }
