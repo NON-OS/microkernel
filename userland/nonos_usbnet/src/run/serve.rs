@@ -29,6 +29,7 @@ use crate::nnet::{Stats, DATA_AT, HDR_LEN};
 use crate::say::{say, say_up};
 use crate::scan::{Bound, NetScanner};
 use crate::xhci::disable_slot;
+use nonos_mac::resend::Kept;
 
 /// How long a receive waits before the next pass while no device is bound.
 const SEARCH_POLL_MS: u64 = 1_000;
@@ -42,11 +43,12 @@ pub fn run<N: Nic>(tag: &'static [u8], service: &str, bind: BindFn<N>) -> ! {
     let mut tx = vec![0u8; DATA_AT + 4 + ETH_FRAME_MAX + 64];
     say(tag, &[b"started, looking for a device"]);
     let (mut stats, mut scanner) = (Stats::default(), NetScanner::new(tag));
-    let mut bound: Option<Bound<N>> = None;
+    let (mut bound, mut kept): (Option<Bound<N>>, _) = (None, Kept::<ETH_FRAME_MAX>::new());
     let (me, mut next_pass) = (own_pid(service), Deadline::after_ms(0));
     loop {
         let wait = if bound.is_some() { 0 } else { SEARCH_POLL_MS };
-        serve_one(&mut rx, &mut tx, wait, me, bound.as_mut().map(|b| &mut b.nic), &mut stats);
+        let nic = bound.as_mut().map(|b| &mut b.nic);
+        serve_one(&mut rx, &mut tx, wait, me, nic, (&mut stats, &mut kept));
         if let Some(b) = bound.as_mut() {
             stats.ticked(b.nic.tick());
         }
@@ -56,6 +58,7 @@ pub fn run<N: Nic>(tag: &'static [u8], service: &str, bind: BindFn<N>) -> ! {
                 disable_slot(b.xhci, b.slot);
                 scanner.lost(b.xhci, b.port);
                 (stats.losses, stats.failing) = (stats.losses.saturating_add(1), 0);
+                kept = Kept::new(); // its kept frame goes with the device
             }
         }
         // net.core asks for the link every second whether or not a device

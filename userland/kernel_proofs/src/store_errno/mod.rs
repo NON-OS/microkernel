@@ -20,7 +20,7 @@
  * device error and errno values.
  */
 
-#[allow(dead_code)]
+#[cfg(test)]
 #[path = "../../../../src/syscall/microkernel/store_errno.rs"]
 mod table;
 
@@ -47,7 +47,13 @@ mod tests {
         for e in [B::OutOfRange, B::InvalidArgument] {
             assert_eq!(store_errno(e), ERRNO_INVAL, "{e:?}");
         }
-        for e in [B::OversizedRequest, B::DeviceFailure, B::Unsupported, B::ProtocolMismatch, B::BlockSize] {
+        for e in [
+            B::OversizedRequest,
+            B::DeviceFailure,
+            B::Unsupported,
+            B::ProtocolMismatch,
+            B::BlockSize,
+        ] {
             assert_eq!(store_errno(e), ERRNO_FAULT, "{e:?}");
         }
     }

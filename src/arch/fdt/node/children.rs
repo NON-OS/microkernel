@@ -32,7 +32,7 @@ impl<'a> Fdt<'a> {
         let mut done = false;
         Ok(core::iter::from_fn(move || {
             while !done {
-                match walker.next() {
+                match walker.next_event() {
                     Ok(Some(Event::BeginNode { name, body })) if walker.depth() == 2 => {
                         return Some(Ok(NodeRef { name, body, depth, cells }));
                     }

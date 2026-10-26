@@ -18,7 +18,7 @@ use ab_glyph::Font;
 
 use super::chrome::draw_cached;
 use super::face::face;
-use super::readable::readable_px;
+use super::readable::readable_px_for;
 use super::target::Target;
 
 /* Render `text` with its top-left at (x, top_y) and return the pen x after
@@ -36,7 +36,7 @@ pub fn draw_text(
     px: f32,
     mono: bool,
 ) -> i32 {
-    let px = readable_px(px);
+    let px = readable_px_for(px, mono);
     let Some(f) = face(mono) else { return x };
     let mut t = Target { buf, stride, w, h, clip: [0, 0, w as i64, h as i64] };
     draw_cached(f, mono, &mut t, (x, top_y), text, argb, px)

@@ -17,7 +17,6 @@
 use nonos_libc::{mk_service_lookup, nonos_display_dimensions};
 
 // The kernel's list of display drivers, which the compositor tries in order.
-#[allow(dead_code)] // the kernel's helpers this capsule does not call
 #[path = "../../../../../src/services/registry/displays.rs"]
 mod displays;
 
