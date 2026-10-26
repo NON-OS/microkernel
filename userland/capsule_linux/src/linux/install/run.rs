@@ -35,7 +35,7 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
     super::http::reach::reachable(super::mirror::mirror().0)?;
     let Some(index) = load_index() else {
         say(b"[LINUX] no package index\n");
-        return Err(super::Why::Index);
+        return Err(super::Why::INDEX);
     };
     let max = super::limit::max_packages();
     let mut wanted: Vec<String> = vec![String::from(name)];
@@ -44,7 +44,7 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
         // The listed package itself, pinned; its needs by name or provider.
         let Some(pkg) = index.resolve(&next, done.is_empty()) else {
             say(b"[LINUX] nothing provides it\n");
-            return Err(super::Why::NotProvided);
+            return Err(super::Why::NOT_PROVIDED);
         };
         if done.contains(&pkg.name) {
             continue;
@@ -52,11 +52,9 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
         if done.len() == max {
             let line = alloc::format!("[LINUX] refused: closure passes {max} packages\n");
             say(line.as_bytes());
-            return Err(super::Why::TooLarge);
+            return Err(super::Why::TOO_LARGE);
         }
-        let Some(files) = fetch(pkg, (pkg.name == name).then_some(pin)) else {
-            return Err(super::Why::Package);
-        };
+        let files = fetch(pkg, (pkg.name == name).then_some(pin))?;
         say(b"[LINUX] provenance Verified: index signature and checksums match\n");
         unpack(&files, &pkg.name, pkg.name == name, false)?;
         done.push(pkg.name.clone());
