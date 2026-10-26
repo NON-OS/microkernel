@@ -58,15 +58,13 @@ pub fn perform(run: &mut Run, c: Call, market: u32) -> Option<Event> {
             run.late_ms = now.saturating_add(QUIET_MS);
             Event::Proved(id.map(|id| run.job = id))
         }
-        Call::Status => {
-            match call(run.port, STATUS, &job, CALL_MS) {
-                Err(ETIMEDOUT) => Event::StatusLate,
-                got => {
-                    run.late_ms = mk_uptime_ms().saturating_add(QUIET_MS);
-                    Event::Status(got.and_then(|b| status(&b)))
-                }
+        Call::Status => match call(run.port, STATUS, &job, CALL_MS) {
+            Err(ETIMEDOUT) => Event::StatusLate,
+            got => {
+                run.late_ms = mk_uptime_ms().saturating_add(QUIET_MS);
+                Event::Status(got.and_then(|b| status(&b)))
             }
-        }
+        },
         Call::Get(at) => {
             let got = call(run.port, GET, &[job, at.to_le_bytes()].concat(), CALL_MS);
             Event::Got(got.map(|chunk| run.take(chunk)))

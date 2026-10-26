@@ -16,8 +16,7 @@
 
 //! STATUS, one at a time (ruling 3): one that times out is given up and the
 //! next tick asks again, since the kernel drops a reply whose call gave up;
-//! the job's quiet spell ends it. And the GETs: in order, to exactly the
-//! total, nothing past it.
+//! the quiet spell ends it. The GETs: in order, to exactly the total.
 
 use super::proof_event::{Call, Event};
 use super::proof_fail::Fail;
@@ -33,7 +32,10 @@ fn a_timed_out_status_is_given_up_and_asked_again() {
         (Phase::Proving { stage: DEVICE, out: true }, &[Call::Status][..])
     );
     let (late, calls) = walk(held, &[Event::StatusLate]);
-    assert_eq!((late, &calls[..]), (Phase::Proving { stage: DEVICE, out: false }, &[Call::None][..]));
+    assert_eq!(
+        (late, &calls[..]),
+        (Phase::Proving { stage: DEVICE, out: false }, &[Call::None][..])
+    );
     let (again, calls) = walk(late, &[Event::Tick, Event::Tick]);
     assert_eq!(again, held, "one STATUS outstanding again");
     assert_eq!(calls, [Call::Status, Call::None], "never two at once");
