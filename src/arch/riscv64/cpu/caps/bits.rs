@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const CAP_F: u16 = 1 << 0;
-pub const CAP_D: u16 = 1 << 1;
-pub const CAP_V: u16 = 1 << 2;
-pub const CAP_A: u16 = 1 << 3;
-pub const CAP_C: u16 = 1 << 4;
-pub const CAP_CONFIGURED: u16 = 1 << 15;
+pub(super) const CAP_F: u16 = 1 << 0;
+pub(super) const CAP_D: u16 = 1 << 1;
+pub(super) const CAP_V: u16 = 1 << 2;
+pub(super) const CAP_A: u16 = 1 << 3;
+pub(super) const CAP_C: u16 = 1 << 4;
+pub(super) const CAP_CONFIGURED: u16 = 1 << 15;
