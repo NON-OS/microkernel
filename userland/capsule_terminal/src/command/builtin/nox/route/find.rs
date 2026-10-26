@@ -46,8 +46,9 @@ pub(crate) fn route(name: &[u8]) -> Option<Nox> {
 }
 
 /// Every name and alias nox answers to, group by group.
-/// Only host tests that mount this module call it; the shell itself routes.
-#[cfg(test)]
+/// Only terminal_line_proofs reads it, under its `line-proofs` feature; the
+/// shell itself routes.
+#[cfg(feature = "line-proofs")]
 pub(crate) fn names() -> impl Iterator<Item = &'static [u8]> {
     let files = FILES.iter().map(|&(n, _)| n);
     let net = NET.iter().map(|&(n, _)| n);
