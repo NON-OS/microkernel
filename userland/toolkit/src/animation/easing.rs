@@ -6,6 +6,11 @@ pub enum Curve {
     EaseIn,
     EaseOut,
     EaseInOut,
+    /* NØNOS motion: anything arriving settles, a cubic ease-out with no
+     * overshoot; anything going leaves on the mirror ease-in. One family, and
+     * the only two curves the desktop's own transitions use. */
+    Settle,
+    Leave,
 }
 
 pub fn apply(curve: Curve, t: u16) -> u16 {
@@ -14,6 +19,11 @@ pub fn apply(curve: Curve, t: u16) -> u16 {
     match curve {
         Curve::Linear => t as u16,
         Curve::EaseIn => ((t * t) / u) as u16,
+        Curve::Settle => {
+            let d = (u - t) as u64;
+            (u as u64 - (d * d * d) / (u as u64 * u as u64)) as u16
+        }
+        Curve::Leave => ((t as u64 * t as u64 * t as u64) / (u as u64 * u as u64)) as u16,
         Curve::EaseOut => (u - (((u - t) * (u - t)) / u)) as u16,
         Curve::EaseInOut => {
             if t <= (u / 2) {

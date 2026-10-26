@@ -18,7 +18,7 @@
 
 use alloc::vec::Vec;
 
-use super::constants::{HDR_LEN, OP_LOAD_BY_NAME, REQUESTED_CAPS, SEQ};
+use super::constants::{HDR_LEN, REQUESTED_CAPS, SEQ};
 
 /// Reply is seq(4) | status(4) | pid(4); nothing past the pid is read.
 pub(super) const PID_END: usize = HDR_LEN + 4;
@@ -42,10 +42,11 @@ pub enum Issued {
 
 /// Body after the header is requested_caps(8) | name_len(1) | name | args, with
 /// no args: the Launchpad launches an app plainly, as a dock click does.
-pub(super) fn request(name: &[u8]) -> Vec<u8> {
+/// OP_LOAD_OUTCOME takes the same body, to ask how that load ended.
+pub(super) fn request(op: u16, name: &[u8]) -> Vec<u8> {
     let mut tx = Vec::with_capacity(HDR_LEN + 9 + name.len());
     tx.extend_from_slice(&SEQ.to_le_bytes());
-    tx.extend_from_slice(&OP_LOAD_BY_NAME.to_le_bytes());
+    tx.extend_from_slice(&op.to_le_bytes());
     tx.extend_from_slice(&[0u8, 0u8]);
     tx.extend_from_slice(&REQUESTED_CAPS.to_le_bytes());
     tx.push(name.len() as u8);

@@ -64,12 +64,12 @@ impl Terminal {
 
     fn switch(&mut self, delta: i32) {
         let n = self.tabs.len() as i32;
-        self.active = (((self.active as i32 + delta) % n + n) % n) as usize;
+        self.go((((self.active as i32 + delta) % n + n) % n) as usize);
     }
 
     fn jump(&mut self, i: usize) {
         if i < self.tabs.len() {
-            self.active = i;
+            self.go(i);
         }
     }
 }

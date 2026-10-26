@@ -73,10 +73,14 @@ nonos-trap-proof-kernel-abort = []
 # shootdown target and the next kernel shootdown fails closed.
 # `nonos-smp-pge-proof` sets CR4.PGE on the boot CPU alone before the kernel
 # sets it, as firmware may, so a boot shows every CPU ending with the same pge.
+# `nonos-smp-shootdown-proof` runs, once the APs are up, a full-flush round and
+# a user-asid round that must reach only the AP holding that asid; built with
+# `nonos-shootdown-trace` so each round's line is printed too.
 nonos-shootdown-trace = []
 nonos-smp-park-proof = []
 nonos-smp-stuck-proof = []
 nonos-smp-pge-proof = []
+nonos-smp-shootdown-proof = []
 
 # Bootstrap. `kernel` switches malloc/free to Rust `alloc`; `standalone`
 # brings in the panic handler and global allocator.
@@ -223,6 +227,7 @@ nonos-capsule-driver-vmmdev     = []
 nonos-capsule-driver-vmmouse    = []
 nonos-capsule-driver-vmbus      = []
 nonos-capsule-driver-storvsc    = []
+nonos-capsule-driver-netvsc     = []
 nonos-capsule-driver-piix-ide   = []
 nonos-capsule-driver-virtio-scsi = []
 nonos-capsule-driver-pvscsi = []
@@ -790,6 +795,13 @@ microkernel-driver-storvsc = [
   "nonos-production",
   "nonos-capsule-proof-io",
   "nonos-capsule-driver-storvsc",
+]
+
+microkernel-driver-netvsc = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-netvsc",
 ]
 
 microkernel-driver-piix-ide = [

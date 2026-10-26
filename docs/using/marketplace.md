@@ -46,7 +46,7 @@ market uninstall linux.qwen-small
 
 Not tested in this release.
 
-`market` asks the same market service as the window, `market.index`, and takes these four forms. `market install` refuses any id that does not start with `linux.`: `NONOS capsules come with the image`. When the market says a listing cannot install, it prints each gate that fails. After `install`, `market info <id>` shows how the install goes.
+`market list` prints as pacman prints a search: a `:: 12 listings` heading, then a row a listing, `linux/htop  htop  [installed]`, the names lined up and the standing in brackets, green when installed, cyan when ready to install, yellow while installing or uninstalling, red when the last try failed and dim when it cannot install here; sent to a file it is the same words with no colour (`row` in `userland/capsule_terminal/src/command/builtin/market/list_row.rs`). `market` asks the same market service as the window, `market.index`, and takes these four forms. `market install` refuses any id that does not start with `linux.`: `NONOS capsules come with the image`. When the market says a listing cannot install, it prints each gate that fails. After `install`, `market info <id>` shows how the install goes.
 
 ## How a listing is checked before it installs
 
