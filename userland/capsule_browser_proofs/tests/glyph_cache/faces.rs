@@ -71,5 +71,5 @@ fn a_page_face_loaded_where_a_freed_one_was_draws_its_own_glyphs() {
     let bold = page_draw(BOLD, len);
     fonts::clear();
     assert_ne!(regular, bold);
-    assert_eq!(bold, draw(builtin_face(false, true).unwrap()));
+    assert_eq!(bold, draw(&FontRef::try_from_slice(BOLD).unwrap()), "its cut, not the system's");
 }
