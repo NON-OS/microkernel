@@ -39,6 +39,8 @@ mod tags;
 mod typed;
 mod units;
 
+#[cfg(feature = "devnet")]
+pub use chain::DEVNET;
 pub use chain::{Chain, MAINNET, MAINNET_BLOCK_MS, SEPOLIA, SEPOLIA_BLOCK_MS};
 pub use contract::{Contract, CONTRACTS};
 pub use deploy::{deployment, Deployed, Deployment};

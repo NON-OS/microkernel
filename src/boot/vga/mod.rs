@@ -22,4 +22,4 @@ pub use output::{
     buffer_size, clear_screen, fill_row, read_char, scroll_up, visual_delay, write_at, write_char,
     write_string, VGA_BUFFER, VGA_HEIGHT, VGA_WIDTH,
 };
-pub use splash::{show_boot_splash, show_panic, show_progress, show_status_line};
+pub use splash::{show_boot_splash, show_progress, show_status_line};

@@ -18,6 +18,12 @@
 // through. `nonos_alloc` carries a copy of the same wrapper for the capsules
 // that link it instead; the test here covers this one, and the two are kept
 // identical deliberately.
-#[allow(dead_code)]
+#[cfg(test)]
 #[path = "../../../../userland/libc/src/heap/zero_on_free.rs"]
 pub mod zero_on_free;
+// The counters the wrapper bumps on each alloc and free.
+#[cfg(test)]
+#[path = "../../../../userland/libc/src/heap/stats.rs"]
+pub mod stats;
+#[cfg(test)]
+mod stats_tests;

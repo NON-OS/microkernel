@@ -41,7 +41,7 @@ fn a_build_that_is_not_for_release_may_take_a_test_set() {
 #[test]
 fn the_build_asks_before_it_reads_the_set() {
     let src = std::fs::read_to_string("../../build_baked_trust.rs").unwrap();
-    let decl = &src[src.find("pub fn declare_baked_trust").expect("declare")..];
+    let decl = &src[src.find("fn declare_baked_trust()").expect("declare")..];
     let at = |s: &str| decl.find(s).unwrap_or_else(|| panic!("no {s}"));
     assert!(at("CARGO_FEATURE_NONOS_RELEASE") < at("refusal(release, &named)"));
     assert!(at("refusal(release, &named)") < at("panic!(\"{why}\")"));

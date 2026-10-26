@@ -18,3 +18,15 @@
 
 #[path = "../../toolkit/src/design/color.rs"]
 pub mod color;
+#[path = "../../toolkit/src/animation/easing.rs"]
+pub mod easing;
+#[path = "../../toolkit/src/design/motion.rs"]
+pub mod motion;
+#[path = "../../toolkit/src/design/roles.rs"]
+pub mod roles;
+#[path = "../../toolkit/src/design/roles_set.rs"]
+mod roles_set;
+#[path = "../../toolkit/src/design/spacing.rs"]
+pub mod spacing;
+#[path = "../../toolkit/src/design/typography.rs"]
+pub mod typography;

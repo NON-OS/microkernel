@@ -30,15 +30,16 @@ use super::pincfg::OutKind;
 use super::plan::Plan;
 use super::route::route;
 use super::widget::Codec;
-use super::{beep, external, jack, power, realtek, stream};
+use super::{beep, external, jack, power, stream, vendor};
 use crate::controller::verb::Link;
 use crate::error::HdaResult;
 
 /// HP's PCI subsystem vendor, as the codec's GET_SUBSYSTEM_ID reports it.
 pub const SUBSYSTEM_HP: u16 = 0x103c;
 
-/// The GPIO mask, direction and data for codec `subsystem_id` with
-/// `count` GPIOs, or none. On HP machines Linux's Realtek fixups drive
+/// The GPIO mask, direction and data for a Realtek codec on machine
+/// `subsystem_id` with `count` GPIOs, or none (`vendor_gpio` asks it for
+/// Realtek codecs alone). On HP machines Linux's Realtek fixups drive
 /// their GPIOs as outputs, high (`alc_setup_gpio`): an amplifier enable is
 /// on when high (`alc_fixup_gpio1` to `4`) and the mute and mic-mute LEDs
 /// are off when high (`alc_update_gpio_led`). Driving every GPIO the codec
@@ -56,7 +57,7 @@ pub fn program(link: &mut Link, codec: &Codec, plan: &Plan, tag: u8) -> HdaResul
     power::up(link, codec)?;
     let plugged = jack::plugged(link, codec, plan)?;
     let hp = plan.iter().find(|o| o.kind == OutKind::Headphone);
-    realtek::init(link, codec, hp.map(|o| o.pin()).unwrap_or(0x21), plugged)?;
+    vendor::init(link, codec, hp.map(|o| o.pin()).unwrap_or(0x21), plugged)?;
     beep::silence(link, codec)?;
     for o in plan.iter() {
         // Every hop but the DAC passes the path on.
