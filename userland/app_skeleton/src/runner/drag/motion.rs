@@ -37,7 +37,7 @@ pub(in crate::runner) fn motion(
     if let Some((edges, base, _)) = state.resizing {
         let now = reshaped(base, edges, travel, (MIN_W, MIN_H), top);
         state.resizing = Some((edges, base, now));
-        return PointerAction::None;
+        return PointerAction::Held;
     }
     if state.active {
         let nx = state.base_x as i64 + travel.0;

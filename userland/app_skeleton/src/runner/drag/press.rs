@@ -40,6 +40,7 @@ pub(in crate::runner) fn press(
         let base = Placed { x: win_x, y: win_y, w: width, h: height };
         state.resizing = Some((edges, base, base));
         state.active = false;
+        return PointerAction::Held;
     } else if hit_test_at(width, height, maximized, x, y, quarters) == DecorationHit::Titlebar {
         state.active = true;
         state.resizing = None;
@@ -48,14 +49,15 @@ pub(in crate::runner) fn press(
     PointerAction::None
 }
 
-/// The resize a drag ended on: none when it moved nothing.
+/// The resize a drag ended on: held, and nothing applied, when it moved
+/// nothing.
 pub(in crate::runner) fn release(state: &mut DragState) -> PointerAction {
     state.active = false;
     let Some((edges, base, now)) = state.resizing.take() else {
         return PointerAction::None;
     };
     if now == base {
-        PointerAction::None
+        PointerAction::Held
     } else if edges.left || edges.top {
         PointerAction::Place(now)
     } else {

@@ -17,6 +17,7 @@
 //! The frame's own pieces: the drag state machine, the press routing inside a
 //! window, and the router's press grab, each driven directly.
 
+mod held;
 mod owner;
 mod rig;
 mod right_end;
