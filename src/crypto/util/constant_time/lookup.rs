@@ -33,10 +33,10 @@ fn ct_eq_usize(a: usize, b: usize) -> u32 {
 #[inline(never)]
 pub fn ct_lookup_u8(table: &[u8; 256], index: u8) -> u8 {
     let mut result: u8 = 0;
-    for i in 0..256 {
+    for (i, &entry) in table.iter().enumerate() {
         let eq = ct_eq_u8(i as u8, index);
         let mask = (-(eq as i8)) as u8;
-        result |= mask & table[i];
+        result |= mask & entry;
     }
     compiler_fence();
     result
@@ -45,10 +45,10 @@ pub fn ct_lookup_u8(table: &[u8; 256], index: u8) -> u8 {
 #[inline(never)]
 pub fn ct_lookup_u8_16(table: &[u8; 16], index: u8) -> u8 {
     let mut result: u8 = 0;
-    for i in 0..16 {
+    for (i, &entry) in table.iter().enumerate() {
         let eq = ct_eq_u8(i as u8, index);
         let mask = (-(eq as i8)) as u8;
-        result |= mask & table[i];
+        result |= mask & entry;
     }
     compiler_fence();
     result
@@ -57,10 +57,10 @@ pub fn ct_lookup_u8_16(table: &[u8; 16], index: u8) -> u8 {
 #[inline(never)]
 pub fn ct_lookup_u32(table: &[u32], index: usize) -> u32 {
     let mut result: u32 = 0;
-    for i in 0..table.len() {
+    for (i, &entry) in table.iter().enumerate() {
         let eq = ct_eq_usize(i, index);
         let mask = 0u32.wrapping_sub(eq);
-        result |= mask & table[i];
+        result |= mask & entry;
     }
     compiler_fence();
     result
