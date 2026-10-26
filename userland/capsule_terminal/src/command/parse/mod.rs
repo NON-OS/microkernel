@@ -18,4 +18,4 @@ mod split;
 mod types;
 
 pub use split::parse;
-pub use types::Argv;
+pub use types::{Argv, TOO_MANY};
