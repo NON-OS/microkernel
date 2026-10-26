@@ -28,6 +28,7 @@ use nonos_app_skeleton::PaintBuffer;
 use crate::about::data::dma_words::words;
 use crate::about::data::doc_parse::Doc;
 use crate::about::data::verify::Verdict;
+use crate::about::log_words::log_words;
 
 use super::super::kv::ROW_H;
 use super::super::metrics::CARD_PAD;
@@ -35,6 +36,8 @@ use super::verify_dma_evidence::dma_evidence;
 use super::verify_row::row;
 
 pub(super) fn rows(fb: &mut PaintBuffer, rows_y: i32, inner: u32, doc: &Doc) {
+    let mut log = [0u8; 40];
+    let log_n = log_words(doc.log_len, &mut log);
     row(
         fb,
         CARD_PAD,
@@ -51,7 +54,7 @@ pub(super) fn rows(fb: &mut PaintBuffer, rows_y: i32, inner: u32, doc: &Doc) {
         inner,
         Verdict::from_bool(doc.registry_complete),
         b"machine recorded everything it runs",
-        b"",
+        &log[..log_n],
     );
     let mut ev = [0u8; 40];
     let n = dma_evidence(&mut ev, doc);
