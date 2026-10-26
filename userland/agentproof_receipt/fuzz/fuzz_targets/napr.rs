@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! AgentProof receipt v0: the NAPR format (`napr`), what a verifier trusts
 //! Any bytes as an AgentProof receipt: read or refused, then verified or
 //! refused, and never a panic. The trust names an all-zero AK, which no
 //! quote's key is, so nothing may verify.
