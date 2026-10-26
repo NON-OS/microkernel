@@ -59,11 +59,9 @@ pub(super) fn charge(pid: u32) -> bool {
             // serial log instead of silently exhausting memory.
             if c.pages == MAX_DEMAND_PAGES {
                 c.pages = c.pages.saturating_add(1);
-                crate::sys::serial::print(
-                    b"[DEMAND-CAP] per-process page budget hit, killing pid=",
-                );
-                crate::sys::serial::print_hex(pid as u64);
-                crate::sys::serial::println(b"");
+                let mut l = crate::sys::serial::Line::new();
+                l.str(b"[DEMAND-CAP] per-process page budget hit, killing pid=");
+                l.hex(pid as u64).end();
             }
             return false;
         }
@@ -85,11 +83,9 @@ pub(super) fn charge(pid: u32) -> bool {
     }
     if budget.overflow == MAX_DEMAND_PAGES {
         budget.overflow = budget.overflow.saturating_add(1);
-        crate::sys::serial::print(
-            b"[DEMAND-CAP] tracking table saturated, overflow budget spent, killing pid=",
-        );
-        crate::sys::serial::print_hex(pid as u64);
-        crate::sys::serial::println(b"");
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[DEMAND-CAP] tracking table saturated, overflow budget spent, killing pid=");
+        l.hex(pid as u64).end();
         return false;
     }
     budget.overflow = budget.overflow.saturating_add(1);

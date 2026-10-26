@@ -25,28 +25,25 @@ pub const fn admits(requested: u64) -> bool {
     excess(requested) == 0
 }
 
-fn name_the_excess(requested: u64) {
-    crate::sys::serial::print(b": image forbids");
+fn name_the_excess(l: &mut crate::sys::serial::Line, requested: u64) {
+    l.str(b": image forbids");
     for cap in crate::capabilities::Capability::all() {
         if excess(requested) & cap.bit() != 0 {
-            crate::sys::serial::print(b" ");
-            crate::sys::serial::print(cap.as_str().as_bytes());
+            l.str(b" ").str(cap.as_str().as_bytes());
         }
     }
-    crate::sys::serial::println(b"");
+    l.end();
 }
 
 /// Names the bits, because a capsule refused here was correctly signed and
 /// that has to be distinguishable from a broken signature.
 pub fn report(name: &str, requested: u64) {
-    crate::sys::serial::print(b"[CEILING] refused ");
-    crate::sys::serial::print(name.as_bytes());
-    name_the_excess(requested);
+    let mut l = crate::sys::serial::Line::new();
+    name_the_excess(l.str(b"[CEILING] refused ").str(name.as_bytes()), requested);
 }
 
 /// The mint path has a pid and no name.
 pub fn report_pid(pid: u32, requested: u64) {
-    crate::sys::serial::print(b"[CEILING] refused pid ");
-    crate::sys::serial::print_dec(pid as u64);
-    name_the_excess(requested);
+    let mut l = crate::sys::serial::Line::new();
+    name_the_excess(l.str(b"[CEILING] refused pid ").dec(pid as u64), requested);
 }

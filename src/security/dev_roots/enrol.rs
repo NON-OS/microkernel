@@ -69,8 +69,8 @@ pub fn confirm_dev_root(caller_caps: u64, answer: u32) -> Result<Authority, Enro
     }
     let root = consent::redeem(answer).ok_or(EnrolError::NotConfirmed)?;
     let slot = TABLE.lock().insert(root).ok_or(EnrolError::NoSlots)?;
-    crate::sys::serial::print(b"[DEV-ROOT] enrolled slot=");
-    crate::sys::serial::print_hex(slot as u64);
-    crate::sys::serial::println(b"; locally built capsules may now run");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[DEV-ROOT] enrolled slot=").hex(slot as u64);
+    l.str(b"; locally built capsules may now run").end();
     Ok(Authority::Developer(slot))
 }

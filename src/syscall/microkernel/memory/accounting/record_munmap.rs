@@ -34,21 +34,12 @@ pub(crate) fn record_munmap(pid: u32, size: usize, va: u64) {
     }
     let idx = EVENT_CURSOR.fetch_add(1, Ordering::Relaxed) % EVENT_CAP;
     EVENTS.lock()[idx] = Event { pid, kind: b'U', size, va, owner: total, system };
-    crate::sys::serial::print(b"[MUNMAP] pid=");
-    crate::sys::serial::print_hex(pid as u64);
-    crate::sys::serial::print(b" name=");
-    if let Some(pcb) = crate::process::core::PROCESS_TABLE.find_by_pid(pid) {
-        crate::sys::serial::print(pcb.name.lock().as_bytes());
-    } else {
-        crate::sys::serial::print(b"unknown");
-    }
-    crate::sys::serial::print(b" size=");
-    crate::sys::serial::print_hex(size);
-    crate::sys::serial::print(b" va=");
-    crate::sys::serial::print_hex(va);
-    crate::sys::serial::print(b" total_pid=");
-    crate::sys::serial::print_hex(total);
-    crate::sys::serial::print(b" total_system=");
-    crate::sys::serial::print_hex(system);
-    crate::sys::serial::println(b"");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[MUNMAP] pid=").hex(pid as u64).str(b" name=");
+    match crate::process::core::PROCESS_TABLE.find_by_pid(pid) {
+        Some(pcb) => l.str(pcb.name.lock().as_bytes()),
+        None => l.str(b"unknown"),
+    };
+    l.str(b" size=").hex(size).str(b" va=").hex(va).str(b" total_pid=").hex(total);
+    l.str(b" total_system=").hex(system).end();
 }

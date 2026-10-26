@@ -23,8 +23,8 @@ pub(super) fn init_token_signing_key() {
         crate::arch::halt_loop();
     }
     if let Err(msg) = crate::capabilities::token::set_signing_key(&key) {
-        serial::print(b"[FATAL] token signing key init failed: ");
-        serial::println(msg.as_bytes());
+        let mut l = serial::Line::new();
+        l.str(b"[FATAL] token signing key init failed: ").str(msg.as_bytes()).end();
         crate::arch::halt_loop();
     }
     crate::crypto::util::constant_time::secure_zero(&mut key);

@@ -32,8 +32,9 @@ use crate::sys::serial;
 pub(super) fn init_boot_entropy() {
     match kaslr::seed_boot_nonce() {
         Ok(hardware) => {
-            serial::print(b"[BOOT-ENTROPY] nonce drawn, hardware generator ");
-            serial::println(if hardware { b"present" } else { b"absent" });
+            let mut l = serial::Line::new();
+            l.str(b"[BOOT-ENTROPY] nonce drawn, hardware generator ");
+            l.str(if hardware { b"present" } else { b"absent" }).end();
         }
         Err(_) => {
             /*

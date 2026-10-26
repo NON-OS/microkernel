@@ -61,7 +61,7 @@ pub fn sys_mk_debug(user_ptr: u64, len: u64) -> i64 {
     let private =
         crate::process::current_pid().is_some_and(crate::userspace::capsule_linux::is_private_run);
     if !private {
-        crate::sys::serial::print(&buf[..len]);
+        crate::sys::serial::passthrough(&buf[..len]);
     }
     proc_mirror::mirror_to_proc_inbox(&buf[..len]);
     buf[..len].fill(0);

@@ -20,7 +20,7 @@
 use super::state::REFUSAL;
 use crate::boot::handoff::types::{refusal, FbRefusal};
 use crate::boot::handoff::BootHandoffV1;
-use crate::sys::serial::{print, print_dec, print_hex, println};
+use crate::sys::serial::Line;
 
 pub(super) fn no_framebuffer(handoff: &BootHandoffV1) {
     // A handoff claiming a framebuffer and a refusal both was refused before
@@ -33,16 +33,12 @@ pub(super) fn no_framebuffer(handoff: &BootHandoffV1) {
 
 /// The loader handed over no framebuffer, and why, once at boot.
 pub(super) fn log_no_framebuffer(why: FbRefusal) {
-    print(b"[GOP] no framebuffer handed over");
-    print(why.says().as_bytes());
+    let mut l = Line::new();
+    l.str(b"[GOP] no framebuffer handed over").str(why.says().as_bytes());
     match why {
-        FbRefusal::Bitmask { bpp } => print_dec(bpp as u64),
-        FbRefusal::Unknown(word) => print_hex(word as u64),
-        _ => {}
-    }
-    println(if matches!(why, FbRefusal::Bitmask { .. } | FbRefusal::Unknown(_)) {
-        b")"
-    } else {
-        b""
-    });
+        FbRefusal::Bitmask { bpp } => l.dec(bpp as u64).str(b")"),
+        FbRefusal::Unknown(word) => l.hex(word as u64).str(b")"),
+        _ => &mut l,
+    };
+    l.end();
 }

@@ -47,9 +47,9 @@ fn calibrate_against_pm_timer() {
         Ok(hz) => {
             crate::time::late_rate::set_counter_hz_if_unknown(hz);
             crate::sys::timer::tsc::TSC_FREQ_HZ.store(hz, core::sync::atomic::Ordering::SeqCst);
-            serial::print(b"[TIMER] TSC measured against the ACPI PM timer: ");
-            serial::print_dec(hz / 1_000_000);
-            serial::println(b" MHz");
+            let mut l = serial::Line::new();
+            l.str(b"[TIMER] TSC measured against the ACPI PM timer: ").dec(hz / 1_000_000);
+            l.str(b" MHz").end();
         }
         Err(_) => {
             serial::println(b"[TIMER] no TSC reference (CPUID, PIT, PM timer); rate is a guess")

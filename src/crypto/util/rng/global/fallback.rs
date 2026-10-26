@@ -53,8 +53,7 @@ pub(super) fn say_pre_seed(at: &Location<'_>) {
     let tail = &digits[i - 1..];
     line[len..len + tail.len()].copy_from_slice(tail);
     len += tail.len();
-    line[len] = b'\n';
-    crate::sys::serial::print(&line[..=len]);
+    crate::sys::serial::line(&line[..len]);
 }
 
 /// A weak value: the time counter and a count. Said once per boot.

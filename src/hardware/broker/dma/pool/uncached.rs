@@ -42,9 +42,8 @@ pub fn init_uncached_pool(base: u64) {
     if pool.base == 0 && base != 0 {
         pool.base = base;
         drop(pool);
-        crate::sys::serial::print(b"[DMA] uncached pool base=");
-        crate::sys::serial::print_hex(base);
-        crate::sys::serial::println(b" pages=512");
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[DMA] uncached pool base=").hex(base).str(b" pages=512").end();
     }
 }
 
