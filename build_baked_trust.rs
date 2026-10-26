@@ -47,12 +47,12 @@ pub(crate) fn declare_baked_trust() -> PathBuf {
 }
 
 /// What may stand in for the release's trust: a test set and a test policy key.
-const TEST_TRUST: [&str; 2] = ["NONOS_BAKED_TRUST_DIR", "NONOS_DEVICE_POLICY_PUBKEY"];
+pub(super) const TEST_TRUST: [&str; 2] = ["NONOS_BAKED_TRUST_DIR", "NONOS_DEVICE_POLICY_PUBKEY"];
 
 /// Why a build may not go on: a kernel the seal may seal for release
 /// (nonos-release) embeds only the tree's trust, never a set or key named at
 /// build time.
-fn refusal(release: bool, named: &[(&str, bool)]) -> Option<String> {
+pub(super) fn refusal(release: bool, named: &[(&str, bool)]) -> Option<String> {
     let set: Vec<&str> = named.iter().filter(|(_, on)| *on).map(|(v, _)| *v).collect();
     (release && !set.is_empty()).then(|| {
         format!("a nonos-release kernel embeds only the tree's trust; unset {}", set.join(", "))
