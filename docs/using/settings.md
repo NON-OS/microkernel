@@ -8,6 +8,8 @@ Settings (`app.settings`) is an editor for the [policy store](../overview/glossa
 
 A row only exists when some code acts on its value. Settings keeps a list of the fields it shows, each with the code that reads it, and the build fails if a row names a field outside that list, or if a listed field has no row.
 
+A card's note breaks across as many lines as the window's width needs, and the card grows to hold them, so no note runs past its card's edge.
+
 ## Moving around
 
 | Key | What it does |

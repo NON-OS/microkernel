@@ -52,6 +52,12 @@ CAPSULE_REQUIRED_CAPS := 0xC00001879
 That is CoreExec, IPC, Memory, Crypto, FileSystem, GraphicsDisplayQuery, GraphicsSurfaceCreate,
 StreamImport and DeviceSecret. The comment above it gives each bit's use.
 
+AttestRead (bit 31) is optional in `Capsule.mk` (`CAPSULE_OPTIONAL_CAPS := 0x80000100`, with
+Debug), and only a RECEIPT job asks for it (`src/userspace/capsule_prove/job_argv.rs`
+`job_caps`), for the one MkAttestDoc a receipt makes. It also opens MkAttestEntries,
+MkAcpiMeasured, MkLogTail (the kernel log) and other processes' capability masks in
+MkProcStat. The window and the PROVE and DELIVER jobs never hold it.
+
 The capsule holds no Network capability. The person places the request and the transcript on the
 data volume; `nonos.prove.fetch`, the capsule meant to fetch them, does not exist yet. It also
 holds no Debug capability.

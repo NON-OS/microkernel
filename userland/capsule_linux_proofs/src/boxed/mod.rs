@@ -20,6 +20,8 @@
 
 #[path = "../../../capsule_linux/src/linux/boxed/allowed.rs"]
 pub mod allowed;
+#[path = "../../../capsule_linux/src/linux/boxed/app_line.rs"]
+pub mod app_line;
 #[path = "../../../capsule_linux/src/linux/boxed/connected.rs"]
 pub mod connected;
 #[path = "../../../capsule_linux/src/linux/boxed/dests.rs"]

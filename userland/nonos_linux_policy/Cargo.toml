@@ -16,6 +16,13 @@ description = "LinuxAppPolicy: the signed least-privilege box of one Linux progr
 [lib]
 crate-type = ["rlib"]
 
+# The vendor table (src/vendor), which only capsule_linux reads: a crate
+# that needs the codec alone (nonos.prove, the receipt) turns it off, and so
+# builds without the Linux userland its table is made from (build.rs).
+[features]
+default = ["vendor"]
+vendor = []
+
 [dependencies]
 blake3 = { version = "1", default-features = false, features = ["pure"] }
 
