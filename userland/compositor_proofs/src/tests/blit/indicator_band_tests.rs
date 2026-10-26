@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The indicator's reserved band painted over whatever a frame composed
-//! beneath it, a window covering the whole canvas included: black, a green
-//! mark for the camera and an amber one for the microphone when on, dim
-//! marks when off; nothing outside the band or the damaged rectangle.
+//! beneath it, a window covering the whole canvas included: the bar's
+//! colour, the camera green when on, the microphone dim when off; nothing
+//! outside the band or the damaged rectangle.
 
 use crate::damage::Rect;
 use crate::frame_pacer::indicator_band::*;
@@ -49,7 +49,7 @@ fn the_band_covers_a_window_and_shows_what_captures() {
     assert_eq!((b.x, b.width, b.height), (W - BAND_W, BAND_W, BAND_H));
     assert_eq!(at(b.x, 0), BAND_ARGB, "the window does not show through");
     assert_eq!(at(b.x + 8, 5), CAMERA_ON);
-    assert_eq!(at(b.x + 28, 5), MARK_OFF, "the microphone is off");
+    assert_eq!(at(b.x + 31, 5), MARK_OFF, "the microphone is off");
     assert_eq!((at(b.x - 1, 0), at(b.x, BAND_H)), (WINDOW, WINDOW), "nothing outside it");
 }
 

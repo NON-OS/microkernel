@@ -36,6 +36,10 @@ PLAIN = {
     "hold-at-off": "-action shutdown=pause",
 }
 
+# The screen sizes a gpu=virtio- lane offers: a small laptop panel, a common
+# one, Full HD, and one that takes the 1.5x scale (gpu=1024x768 is the smallest).
+SCREENS = ((1280, 800), (1366, 768), (1920, 1080), (2560, 1440))
+
 NICS = ("e1000", "e1000e", "igb", "rtl8139", "pcnet", "vmxnet3", "tulip")
 
 # lane: (the device it takes the place of, its model)
@@ -49,8 +53,14 @@ SWAPS = {
     "nic=usb-net": ("nic", "usb-net,bus=xhci.0"),
     # QEMU's -vga std: the Bochs display (1234:1111) driver.bga is for.
     "gpu=bga": ("gpu", "VGA"),
+    # The virtio GPU on a 1024x768 panel, the smallest display mode windows
+    # are fitted to (demo_screen_proofs app_windows.rs).
+    "gpu=1024x768": ("gpu", "virtio-vga,vectors=0,edid=on,xres=1024,yres=768"),
     # No PCI display at all: OVMF's GOP over ramfb, the boot framebuffer alone.
     "gpu=gop-only": ("gpu", "ramfb"),
+    # The same virtio GPU with another preferred mode in its EDID, so a UI
+    # change can be booted and screendumped at more than one screen size.
+    **{f"gpu=virtio-{w}x{h}": ("gpu", f"virtio-vga,vectors=0,edid=on,xres={w},yres={h}") for w, h in SCREENS},
     # Not a device in place of another: iommu.py rewrites the machine for it.
     "iommu=intel": ("iommu", "intel"),
     "iommu=amd": ("iommu", "amd"),

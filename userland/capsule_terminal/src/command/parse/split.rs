@@ -29,7 +29,7 @@ const fn ends_word(byte: u8) -> bool {
 }
 
 pub fn parse(input: &[u8]) -> Argv<'_> {
-    let mut out = Argv { argv: [b""; MAX_ARGS], argc: 0 };
+    let mut out = Argv { argv: [b""; MAX_ARGS], argc: 0, cut: false };
     let mut i = 0;
     while i < input.len() && out.argc < MAX_ARGS {
         while i < input.len() && is_space(input[i]) {
@@ -64,5 +64,7 @@ pub fn parse(input: &[u8]) -> Argv<'_> {
         }
         out.argc += 1;
     }
+    // Words left over are never dropped quietly: the caller refuses the line.
+    out.cut = input[i.min(input.len())..].iter().any(|&b| !is_space(b));
     out
 }

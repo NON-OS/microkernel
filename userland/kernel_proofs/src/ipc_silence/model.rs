@@ -44,7 +44,7 @@ fn the_table_never_reports_later_than_an_unbounded_model() {
             continue;
         }
         let start = now.saturating_sub(next(100));
-        for r in table.late(pair, start, now).into_iter().flatten() {
+        for r in table.late(pair, start, now, now + 1).into_iter().flatten() {
             told.insert(r.caller, now);
         }
         let s = *since.entry(caller).or_insert(start);
