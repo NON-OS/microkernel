@@ -69,6 +69,7 @@ impl Fixture {
         let rec = self.record.encode();
         let bound = write::bound(&rec, &self.box_word, &self.policy, &self.launcher);
         self.spec.challenge = Some(challenge(&bound));
-        write::finish(bound, &receipt_doc(&self.spec.doc_bytes()).unwrap())
+        let doc = receipt_doc(&self.spec.doc_bytes()).unwrap();
+        write::finish(bound, &doc, &self.spec.entries.concat())
     }
 }

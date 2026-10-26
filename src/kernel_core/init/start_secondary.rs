@@ -19,7 +19,7 @@ pub(super) fn start_secondary_cpus() {
     // the live mode and base from the boot-time init before the first ICR
     // write, or the SIPI dereferences a null register base.
     #[cfg(feature = "nonos-smp")]
-    if crate::arch::x86_64::interrupt::apic::adopt_bsp_state().is_err() {
+    if !crate::arch::interrupt_controller::adopt_boot_state() {
         crate::sys::serial::println(b"[SMP-PROOF] FAIL lapic state not adoptable");
         return;
     }
