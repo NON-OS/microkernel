@@ -42,6 +42,7 @@ pub(super) fn line(backend: Backend, seen: &Seen) -> String {
         Seen::NoSize(BlockDeviceError::NotReady) => {
             String::from("its driver is still looking for its device")
         }
+        Seen::NoSize(BlockDeviceError::OutOfRange) => String::from("no disk at this unit"),
         Seen::NoSize(e) => format!("no size given ({e:?})"),
         Seen::TooSmall(n) => format!("{n} sectors, too small to hold the store"),
         Seen::NotFiveTwelve(n) => format!("{n} sectors whose blocks are not 512 bytes; not used"),

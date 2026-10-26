@@ -54,7 +54,7 @@ The Lead's rule (K5): a driver QEMU can exercise goes in once a boot shows it wo
 | e1000e | A: `nic=e1000e ehci ufs usb-audio` | carried every frame of the boot: 2313 frames, egress PASS, MAC `02:75:03:de:83:9a` | booted, working |
 | igb | B: `nic=igb uhci ohci` | carried every frame: 2307 frames, egress PASS, MAC `32:c8:c4:83:14:a0` | booted, working |
 | ehci | A | up, with the lane's USB stick behind it | booted, up |
-| uhci | C: `uhci` | up beside AHCI, with no refusal in the run (egress PASS, 2278 frames) | booted, up |
+| uhci | C: `uhci` | up beside AHCI, with no refusal in the run (egress PASS, 2278 frames), on a tree before H-02; under H-02 its Command write was refused until 62097ede06, then booted on 30a4b58c46: `8086:7020 started, serving driver.uhci0` | booted, up |
 | | A | as the EHCI's companion, refused: `00:1d.7 reaches it through 00:1d.0 without ACS; driver.ehci0 holds it`, then status 6. The group is not split across capsules (the Lead's H-02 ruling), so this is the rule working | booted, refused as designed |
 | ohci | E: `nic=usb-net bochs-display usb-ccid ohci` | up, with AHCI up beside it and no refusal in the run | booted, up |
 | | B, before the fix | status 6: it asked for its 256-byte BAR rounded up to a page, which the broker refuses as past the BAR (`[MMIO] err` EINVAL). Its retries took AHCI down with it. Fixed in the driver (`register_grant`, `facts/pci.rs`); EHCI had the same rounding, which QEMU's 4 KiB BAR hid and an Intel 1 KiB BAR would not. `ohci_proofs` and `ehci_proofs` check the grant against the broker's own window rule, and the old rounding is caught | host-tested |
