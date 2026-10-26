@@ -3,7 +3,7 @@
 //! the spawn error are the kernel's own files; the console is a stand-in that
 //! keeps what was written.
 
-#![allow(dead_code)]
+#![cfg(test)]
 
 pub mod console;
 

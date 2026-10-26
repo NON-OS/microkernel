@@ -20,11 +20,8 @@
 
 #[path = "../../../nonos_wifi_client/src/saved/dropped.rs"]
 mod dropped;
-// The mounted source names items the store path (not mounted here) uses.
-#[allow(dead_code)]
 #[path = "../../../nonos_wifi_client/src/saved/error.rs"]
 pub mod error;
-#[allow(dead_code)]
 #[path = "../../../nonos_wifi_client/src/saved/file.rs"]
 mod file;
 #[path = "../../../nonos_wifi_client/src/saved/list.rs"]
@@ -48,3 +45,5 @@ mod pass_tests;
 mod pin_tests;
 #[cfg(test)]
 mod saved_tests;
+#[cfg(test)]
+mod words_tests;

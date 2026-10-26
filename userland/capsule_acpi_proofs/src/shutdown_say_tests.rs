@@ -23,7 +23,6 @@
 
 #[path = "shutdown_kit.rs"]
 mod kit;
-#[allow(dead_code)]
 #[path = "../../../src/hardware/broker/acpi/s5_choice.rs"]
 mod s5_choice;
 
@@ -60,6 +59,8 @@ fn the_line_says_the_path_the_write_takes() {
                 let wrote = s5_choice::choose(scan, taken);
                 let fits = |p: &(u8, u8)| p.0 <= 7 && p.1 <= 7;
                 assert_eq!(wrote.map(|w| w.0), scan.filter(fits).or(taken), "{types:?} {scan:?}");
+                let said = s5_choice::posture(wrote.map(|w| w.1));
+                assert_eq!(said.ends_with(b"=none"), wrote.is_none(), "the posture says none");
                 if let Some((_, s5_choice::Source::Interpreter)) = wrote {
                     assert!(line.contains(" handed "), "the capsule's pair written: it said so");
                     via_capsule += 1;

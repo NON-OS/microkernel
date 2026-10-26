@@ -5,8 +5,8 @@
 
 use std::{cell::RefCell, collections::BTreeMap};
 
-use crate::feature::configure_reporting;
-use crate::feature::port::{FeaturePort, REPORT_MAX};
+use crate::hid::configure_reporting;
+use crate::hid::input_mode::port::{FeaturePort, REPORT_MAX};
 use crate::hid::{Field, TouchLayout};
 
 #[derive(Default)]

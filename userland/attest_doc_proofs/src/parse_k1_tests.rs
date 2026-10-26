@@ -5,7 +5,7 @@
 
 use crate::doc_build::{encoded, CHALLENGE, LOG, LOG_AT, PCRS_AT};
 use crate::doc_parse::parse;
-use crate::kernel_document::{IOMMU_INTEL_VTD, MAX_LOG, QUOTED_PCRS};
+use crate::kernel_document::{log_fits, IOMMU_INTEL_VTD, MAX_LOG, QUOTED_PCRS};
 
 fn good() -> Vec<u8> {
     encoded(&CHALLENGE, &[1, 2, 3], &[9; 72], 4, IOMMU_INTEL_VTD, true, 0)
@@ -54,4 +54,11 @@ fn a_whole_log_one_byte_over_the_cap_is_refused() {
         d.extend(&v[LOG_AT + 4 + LOG.len()..]);
         assert_eq!(parse(&d, &CHALLENGE).is_some(), ok, "a log of {}", log.len());
     }
+}
+
+/// The kernel refuses, rather than cuts, a log over the cap (`log_fits`), so
+/// every document it writes carries a log whose length About accepts.
+#[test]
+fn the_kernel_attests_a_log_up_to_the_cap_and_no_longer() {
+    assert!(log_fits(&vec![0; MAX_LOG]) && !log_fits(&vec![0; MAX_LOG + 1]));
 }
