@@ -28,7 +28,7 @@ pub fn supervisor_of(_pid: u32) -> Option<u32> {
 }
 
 /// No peer call can be in flight, so there is nothing to hold off.
-pub fn without_peer_calls<R>(f: impl FnOnce() -> R) -> R {
+pub fn without_peer_calls<R>(_asid: u32, f: impl FnOnce() -> R) -> R {
     f()
 }
 
