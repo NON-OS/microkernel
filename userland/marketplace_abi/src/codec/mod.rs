@@ -65,4 +65,4 @@ pub use release_document::decode_release_document;
 #[cfg(feature = "canonical-encode")]
 pub use release_document::encode_release_document;
 pub use release_signing::release_signing_bytes;
-pub use schema::{CURRENT_SCHEMA, SCHEMA_V2, SCHEMA_V3};
+pub use schema::{CURRENT_SCHEMA, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4};
