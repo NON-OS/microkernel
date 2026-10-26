@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One source of truth for desktop type sizes and where a line of text sits inside
-//! a box. `ttf` clamps every draw and measure to `MIN_UI_PX`, so `UI_PX` is that
-//! floor rather than a smaller size that would be silently ignored.
+//! a box. `ttf` clamps every draw and measure to its floor, so every size here
+//! is at or above it rather than a smaller size that would be silently raised.
 
 mod lines;
 mod scale;

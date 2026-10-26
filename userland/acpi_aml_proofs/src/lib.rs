@@ -14,38 +14,44 @@ pub mod arch;
 pub mod sdt_entry_count;
 
 #[cfg(test)]
-mod fixtures;
+mod bus_fake;
 #[cfg(test)]
 mod crs_tests;
 #[cfg(test)]
+mod dsm_aml;
+#[cfg(test)]
+mod dsm_gen;
+#[cfg(test)]
+mod dsm_sweep_tests;
+#[cfg(test)]
 mod entry_count_tests;
-#[cfg(test)]
-mod i2c_hid_enum_tests;
-#[cfg(test)]
-mod i2c_firmware_ids_tests;
-#[cfg(test)]
-mod pci_host_enum_tests;
-#[cfg(test)]
-mod scan_tests;
-#[cfg(test)]
-mod bus_fake;
-#[cfg(test)]
-mod gas_tests;
 #[cfg(test)]
 mod fadt_tests;
 #[cfg(test)]
-mod sleep_tests;
+mod fixtures;
 #[cfg(test)]
-mod power_button_tests;
+mod gas_tests;
+#[cfg(test)]
+mod i2c_firmware_ids_tests;
+#[cfg(test)]
+mod i2c_hid_enum_tests;
+#[cfg(test)]
+mod madt_cpu_tests;
+#[cfg(test)]
+mod pci_host_enum_tests;
 #[cfg(test)]
 mod power_button_arm_model;
 #[cfg(test)]
 mod power_button_arm_tests;
 #[cfg(test)]
+mod power_button_tests;
+#[cfg(test)]
+mod power_devices_tests;
+#[cfg(test)]
 mod reset_tests;
 #[cfg(test)]
-mod madt_cpu_tests;
+mod scan_tests;
 #[cfg(test)]
 mod sleep_obj_tests;
 #[cfg(test)]
-mod power_devices_tests;
+mod sleep_tests;
