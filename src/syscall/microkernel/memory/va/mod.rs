@@ -16,6 +16,8 @@
 
 mod any_mapped;
 mod map_fresh;
+mod map_kernel;
+mod map_loop;
 mod release_va;
 mod reserve_va;
 mod rollback_mapped_pages;

@@ -95,20 +95,20 @@ def sealed_image(profile):
 
 
 def watch(proc, serial, timeout, expect):
-    """Waits for every pattern on the serial console. With none, a boot that
-    is still running at the timeout passes; one that stopped did not."""
+    """Waits for every pattern on the serial console. With none, a boot still running at the
+    timeout passes; one that stopped did not, nor one whose capsules did not all spawn."""
     deadline = time.time() + timeout
     pending = [re.compile(p) for p in expect]
     while time.time() < deadline:
         time.sleep(2)
-        with open(serial, errors="replace") if os.path.exists(serial) else open(os.devnull) as f:
-            text = f.read()
+        text = open(serial, errors="replace").read() if os.path.exists(serial) else ""
+        if "[INIT] capsule spawn incomplete" in text:
+            return print("the serial console says [INIT] capsule spawn incomplete") or 1
         pending = [p for p in pending if not p.search(text)]
         if expect and not pending:
             return 0
         if proc.poll() is not None:
-            print(f"QEMU stopped (exit {proc.returncode}) before the boot finished")
-            return 1
+            return print(f"QEMU stopped (exit {proc.returncode}) before the boot finished") or 1
     if pending:
         print("not on the serial console after %ds: %s" % (timeout, ", ".join(p.pattern for p in pending)))
         return 1
