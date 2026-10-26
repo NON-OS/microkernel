@@ -17,6 +17,7 @@
 //! The groups of the shell's context (`state/context.rs`).
 
 pub mod desk_ui;
+pub mod flip;
 pub mod launchpad_ui;
 pub mod links;
 pub mod pending;
