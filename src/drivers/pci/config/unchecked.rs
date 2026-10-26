@@ -17,7 +17,7 @@
 //! The scan path's accesses, which skip validation because the caller already
 //! bounded the offset to a byte.
 
-use super::{counters, transport};
+use super::transport;
 
 /// An absent function reads as all-ones, which is how the bus reports one and
 /// what the scan is looking for, so an unreachable config space collapses
@@ -30,7 +30,6 @@ use super::{counters, transport};
 /// both transports.
 #[inline]
 pub fn read32_unchecked(bus: u8, device: u8, function: u8, offset: u8) -> u32 {
-    counters::read();
     transport::read32(bus, device, function, dword(offset)).unwrap_or(!0)
 }
 
@@ -38,7 +37,6 @@ pub fn read32_unchecked(bus: u8, device: u8, function: u8, offset: u8) -> u32 {
 /// function is on the bus.
 #[inline]
 pub fn write32_unchecked(bus: u8, device: u8, function: u8, offset: u8, value: u32) {
-    counters::wrote();
     let _ = transport::write32(bus, device, function, dword(offset), value);
 }
 

@@ -98,3 +98,15 @@ fn an_answer_to_another_transaction_or_address_does_not_count() {
     unicast[..6].copy_from_slice(&DRAWN);
     assert!(answers(&unicast, &DRAWN, XID), "any frame sent to the drawn address");
 }
+
+#[test]
+fn each_verdict_is_said_in_the_stats_reply_as_settings_reads_it() {
+    // nonos_usbnet nnet::STATION_*: 1 drawn, 2 host-assigned for want of an
+    // answer, 3 host-assigned by refusal; 0 is every other driver's.
+    assert_eq!(
+        [Verdict::Drawn.station(), Verdict::Unanswered.station(), Verdict::Refused.station()],
+        [1, 2, 3]
+    );
+    let (_, v, _) = settled(false, true, DRAWN);
+    assert_eq!(v.station(), 2);
+}

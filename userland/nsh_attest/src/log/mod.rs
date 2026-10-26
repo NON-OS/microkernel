@@ -21,21 +21,24 @@
 //! that differ between machines. It is untrusted until its replay equals
 //! the PCR values the quote signed.
 
+mod admitted;
 mod banks;
 mod event;
 mod header;
 mod le;
 mod locality;
+mod pcr14;
 mod pcr4;
 mod replay;
 mod replayed;
 
+pub use admitted::Admitted;
 pub use banks::Banks;
 pub use event::{event, Event};
 pub use header::header;
 pub use pcr4::{EV_EFI_ACTION, EV_SEPARATOR};
 pub use replay::replay;
-pub use replayed::Replayed;
+pub use replayed::{Capsule, Replayed};
 
 /// Logged and never extended. The Spec ID header is one.
 pub const EV_NO_ACTION: u32 = 0x0000_0003;
@@ -47,6 +50,9 @@ pub const TPM_ALG_SHA256: u16 = 0x000B;
 pub const PCRS: usize = 24;
 /// The boot manager's PCR.
 pub const PCR_BOOT_MANAGER: usize = 4;
+/// The capsules' PCR, which only the kernel extends, one event a capsule.
+pub const PCR_CAPSULE: usize = 14;
+pub const EV_NONOS_CAPSULE: u32 = 0x4E4F_4E01;
 /// Events after the header. A boot logs about a hundred.
 pub const MAX_EVENTS: usize = 4096;
 /// One event's body. A Secure Boot variable event may carry tens of KB.
