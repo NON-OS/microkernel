@@ -34,12 +34,18 @@ pub const BATCH: u64 = 512;
 pub const MARGIN: u64 = 64 << 20;
 /*
  * A vision tier encodes its image in buffers of its own beside the model's:
- * 384 MiB more. Measured: qwenchat on Qwen3-VL 2B shown a 124 KB JPEG peaked
- * at 2143 MB on the host, against 1832 MB by the rule without it. qwenchat
- * adds the same (qwenvision.h, VISION_MARGIN).
+ * 512 MiB more. Measured: qwenchat on Qwen3-VL 2B shown a 64x64 PNG on a
+ * NONOS boot peaked at 2,421,972,992 bytes resident (docs/using/evidence/
+ * vision-vl2b/vl-exit.png), 500 MB over the rule without it. qwenchat adds
+ * the same (qwenvision.h, VISION_MARGIN).
  */
-pub const VISION_MARGIN: u64 = 384 << 20;
+pub const VISION_MARGIN: u64 = 512 << 20;
 pub const VISION: &[&str] = &["vl-2b"];
+
+/* What `tier` needs beyond the rule to encode an image: VISION_MARGIN, or none. */
+pub fn vision(tier: &str) -> u64 {
+    u64::from(VISION.contains(&tier)) * VISION_MARGIN
+}
 
 #[rustfmt::skip]
 pub const SHAPES: &[(&str, u64, u64, u64, u64)] = &[
