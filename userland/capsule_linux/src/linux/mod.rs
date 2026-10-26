@@ -57,6 +57,7 @@ mod source_named;
 mod source_run;
 mod start;
 mod start_guest;
+mod start_home;
 mod start_install;
 mod start_say;
 mod start_stop;
