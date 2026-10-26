@@ -1,0 +1,58 @@
+[
+ {
+  "name": "stdout-is-the-request-inbox",
+  "file": "src/ipc/nonos_inbox/own_names.rs",
+  "old": "    format!(\"stdout.{}\", pid)\n",
+  "new": "    format!(\"proc.{}\", pid)\n",
+  "test": "own_inboxes::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "mkdebug-mirrors-into-requests",
+  "file": "src/syscall/microkernel/debug/proc_mirror.rs",
+  "old": "own_names::stdout(pid)",
+  "new": "own_names::requests(pid)",
+  "test": "own_inboxes::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "private-write-into-requests",
+  "file": "src/syscall/microkernel/private_write.rs",
+  "old": "own_names::stdout(pid)",
+  "new": "own_names::requests(pid)",
+  "test": "own_inboxes::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "proc-output-drains-requests",
+  "file": "src/syscall/microkernel/proc_output.rs",
+  "old": "own_names::stdout(target)",
+  "new": "own_names::requests(target)",
+  "test": "own_inboxes::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "spawn-registers-no-stdout",
+  "file": "src/kernel_core/process_spawn/capsule_spawn/runner/install/own_inboxes.rs",
+  "old": "    nonos_inbox::register_inbox(&own_names::stdout(pid), pid)\n        .map_err(|_| SpawnError::ProcessCreation)?;\n",
+  "new": "",
+  "test": "own_inboxes::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "teardown-leaves-stdout",
+  "file": "src/ipc/nonos_inbox/drop_pid.rs",
+  "old": "    let _ = remove_zeroed(&own_names::stdout(pid));\n",
+  "new": "",
+  "test": "own_inboxes::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "retained-exit-keeps-requests",
+  "file": "src/ipc/nonos_inbox/drop_pid.rs",
+  "old": "    remove_zeroed(&own_names::requests(pid))\n}",
+  "new": "    None\n}",
+  "test": "own_inboxes::",
+  "crate": "userland/kernel_proofs"
+ }
+]

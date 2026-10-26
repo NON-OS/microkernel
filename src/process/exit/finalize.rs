@@ -31,9 +31,10 @@ pub(super) fn finalize_teardown(pid: Pid) {
         let _ = crate::ipc::nonos_inbox::unregister_for_pid(pid);
     } else {
         /*
-         * Output is kept for the parent to drain; input has no reader left.
+         * Output is kept for the parent to drain; requests and input have
+         * no reader left.
          */
-        let _ = crate::ipc::nonos_inbox::unregister_stdin_for_pid(pid);
+        let _ = crate::ipc::nonos_inbox::unregister_all_but_stdout(pid);
     }
 
     crate::syscall::microkernel::tty_table::forget(pid);
