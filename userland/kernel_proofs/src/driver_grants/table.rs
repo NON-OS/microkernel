@@ -17,7 +17,7 @@
 //! The kernel's driver-grant surface as it stands (A10): each call, the cap
 //! the contract layer checks (not Admin, since K6), what the broker checks of
 //! the hold, and what it hands out. The cap column is tested against the
-//! real cap table; the rest is read.
+//! real cap table; the rest is read, sites in HANDOFF/contracts/driver-*.
 
 use crate::capabilities::Capability;
 use crate::syscall::numbers::SyscallNumber as N;

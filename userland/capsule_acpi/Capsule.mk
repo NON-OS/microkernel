@@ -3,7 +3,7 @@
 # MkAcpiPort, MkAcpiPci); claims the SCI record and nothing else; no DMA.
 # IPC|Memory|Admin|DeviceEnum|Driver|Irq
 # = 0x08|0x10|0x200|0x8000|0x10000|0x40000 = 0x58218
-# Admin stands in for a proposed Firmware capability bit.
+# Admin stands in for the Firmware bit HANDOFF/letters/f/08 proposes.
 
 CAPSULE_SLUG             := acpi
 CAPSULE_HANDLE           := acpi
