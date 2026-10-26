@@ -49,6 +49,8 @@ pub struct MarketplaceEntry {
     pub publisher_eth_address: [u8; 20],
     /// Free-form description; UTF-8, capped at `MAX_DESCRIPTION`.
     pub description: String,
+    /// BLAKE3 of the listing's logo raster, zero for none (schema 4).
+    pub logo_hash: [u8; 32],
     /// Price contract for the listing.
     pub price: PriceModel,
     /// Token the price is denominated in.

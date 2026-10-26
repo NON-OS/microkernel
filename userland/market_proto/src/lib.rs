@@ -42,6 +42,7 @@ pub mod header;
 pub mod install;
 pub mod linux_policy;
 pub mod listing;
+pub mod logo;
 mod lp;
 pub mod ops;
 pub mod readiness;

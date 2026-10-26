@@ -42,6 +42,7 @@ pub fn serve(guest: Guest) -> i32 {
         family.settle_waits();
         if let Some(code) = family.done() {
             super::tally::report();
+            crate::linux::boxed::run_report();
             crate::linux::boxed::finish(code);
             return code;
         }

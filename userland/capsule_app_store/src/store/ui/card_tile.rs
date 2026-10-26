@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A card's tile: a square tinted by the listing's source, holding its initial.
+//! A card's tile: a square tinted by the listing's source, holding its
+//! logo at its own pixels when the market served one, else a NONOS icon for
+//! its kind, else its initial.
 
 use nonos_app_skeleton::PaintBuffer;
 
@@ -24,9 +26,27 @@ use crate::store::theme::{TILE_COMMUNITY, TILE_LINUX, TILE_NONOS, TITLE};
 use super::super::metrics::{CARD_H, CARD_PAD, NAME_PX, TILE};
 use super::super::text;
 
+#[path = "card_icon.rs"]
+mod card_icon;
+
+/// Inset of a NONOS icon inside the tile.
+const ICON_INSET: u32 = 6;
+
 pub(super) fn tile(fb: &mut PaintBuffer, l: &Listing, x: u32, y: u32) {
     let tile_y = y + (CARD_H - TILE) / 2;
     fb.fill_rect(x + CARD_PAD, tile_y, TILE, TILE, tint(l.source));
+    if let Some(logo) = &l.known.logo {
+        // Centred on the tile; a card is tall enough for the market's largest.
+        let (s, half) = (logo.side, logo.side / 2);
+        let lx = (x + CARD_PAD + TILE / 2).saturating_sub(half);
+        let ly = (tile_y + TILE / 2).saturating_sub(half);
+        return fb.blit_rgba8_scaled(lx, ly, s, s, &logo.rgba, s, s);
+    }
+    if let Some(icon) = card_icon::of(&l.id) {
+        let (ix, iy, side) =
+            (x + CARD_PAD + ICON_INSET, tile_y + ICON_INSET, TILE - 2 * ICON_INSET);
+        return nonos_toolkit::icons::draw(fb, icon, ix, iy, side, TITLE);
+    }
     let initial = [l.name.first().copied().unwrap_or(b'?').to_ascii_uppercase()];
     let ix = x + CARD_PAD + (TILE - text::width_of(&initial, NAME_PX)) / 2;
     text::line(fb, ix, text::top_of(tile_y as i32, TILE, NAME_PX), &initial, TITLE, NAME_PX);

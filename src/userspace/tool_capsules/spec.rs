@@ -74,7 +74,7 @@ impl ToolCapsule {
                 .filter(|s| !s.is_empty())
                 .map(|s| alloc::string::String::from_utf8_lossy(s).into_owned())
                 .collect();
-            crate::process::with_process(pid, |pcb| *pcb.argv.lock() = vec);
+            let _ = crate::process::set_argv(pid, vec);
         }
         Ok(pid)
     }

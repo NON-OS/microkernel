@@ -29,7 +29,7 @@ pub fn admit_terminal_run(name: &str, pid: u32) {
     };
     match super::slots::hold(i, pid) {
         Some(argv) => {
-            crate::process::with_process(pid, |pcb| *pcb.argv.lock() = argv);
+            let _ = crate::process::set_argv(pid, argv);
         }
         /*
          * Only `run_tier_for_caller` spawns these roles, always into a slot

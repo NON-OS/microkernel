@@ -43,5 +43,6 @@ pub fn prepare(state: &mut State, args: &[&[u8]], streams: u64) -> Option<(u32, 
         return None;
     }
     crate::jobs::tty::attach_streams(state, rc as u32, streams);
+    state.jobs.net_ask = crate::jobs::net_ask::NetAsk::of(&service, rc as u32, &argv, streams);
     Some((rc as u32, key.map(BoxHold::new)))
 }
