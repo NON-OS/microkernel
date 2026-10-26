@@ -1,0 +1,5 @@
+[IOMMU] no DMAR remapping unit and no IVRS table; IOMMU domains refused; DMA is unrestricted
+[IOMMU] posture=refused reason=no-remapping-hardware-described profile=Air-Gapped built=1; every bus-master claim is refused
+[IOMMU] none present, enforcing=0, unconfined grants=0, identity devices=0
+[IOMMU] capabilities aw=0 ir=0 snoop=0 pages=0x0000000000000000 domains=0
+[FATAL] IOMMU: air-gapped needs an IOMMU to confine device DMA; this machine has none

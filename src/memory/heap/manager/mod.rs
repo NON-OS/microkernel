@@ -18,6 +18,7 @@ mod api;
 mod bootstrap;
 mod globals;
 mod init;
+pub(crate) mod sizing;
 mod verify;
 
 pub use api::get_allocator;

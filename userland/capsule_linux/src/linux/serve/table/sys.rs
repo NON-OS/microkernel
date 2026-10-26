@@ -35,6 +35,8 @@ pub fn sys_ops(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Option<u64>
         np::SETGROUPS => call::setgroups(),
         np::GETRESUID | np::GETRESGID => call::getres(guest, [a[0], a[1], a[2]]),
         np::SETRESUID | np::SETRESGID => call::setres([a[0], a[1], a[2]]),
+        np::SETREUID | np::SETREGID => call::setres([a[0], a[1], u64::MAX]),
+        np::SETFSUID | np::SETFSGID => call::setfs(),
         np::GETPRIORITY => call::getpriority(guest, a[0], a[1]),
         np::SETPRIORITY => call::setpriority(guest, a[0], a[1], a[2]),
         np::PERSONALITY => call::personality(a[0]),

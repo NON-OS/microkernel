@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::helpers::get_timestamp;
 use super::page_size::PageSize;
 use super::permissions::PagePermissions;
 use crate::memory::addr::{PhysAddr, VirtAddr};
 
+// One per page mapped through the paging manager, in the kernel heap, so its
+// size is paid per page: a gigabyte mapped is 262144 of them. It keeps what a
+// lookup or an unmap needs and nothing the page tables already say.
 #[derive(Debug, Clone)]
 pub struct PageMapping {
     pub virtual_addr: VirtAddr,
@@ -27,8 +29,6 @@ pub struct PageMapping {
     pub permissions: PagePermissions,
     pub process_id: Option<u32>,
     pub reference_count: u32,
-    pub creation_time: u64,
-    pub last_accessed: u64,
 }
 
 impl PageMapping {
@@ -45,8 +45,6 @@ impl PageMapping {
             permissions,
             process_id: None,
             reference_count: 1,
-            creation_time: get_timestamp(),
-            last_accessed: get_timestamp(),
         }
     }
 
@@ -62,8 +60,6 @@ impl PageMapping {
             permissions,
             process_id: None,
             reference_count: 1,
-            creation_time: get_timestamp(),
-            last_accessed: get_timestamp(),
         }
     }
 
@@ -80,8 +76,6 @@ impl PageMapping {
             permissions,
             process_id: Some(process_id),
             reference_count: 1,
-            creation_time: get_timestamp(),
-            last_accessed: get_timestamp(),
         }
     }
 
@@ -96,8 +90,5 @@ impl PageMapping {
     }
     pub const fn is_shared(&self) -> bool {
         self.reference_count > 1 || self.permissions.contains(PagePermissions::SHARED)
-    }
-    pub fn touch(&mut self) {
-        self.last_accessed = get_timestamp();
     }
 }

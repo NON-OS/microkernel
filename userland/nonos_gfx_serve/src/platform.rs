@@ -45,4 +45,10 @@ pub trait Platform {
     fn scrub(&mut self, r: Region);
     /// This driver's pid, the high half of its serials.
     fn pid(&self) -> u32;
+    /// True while `pid`, unheard for `quiet_ms`, lives and is the process
+    /// last heard: not gone, stopped or ended. A platform that cannot tell
+    /// says no.
+    fn lives(&self, _pid: u32, _quiet_ms: u64) -> bool {
+        false
+    }
 }

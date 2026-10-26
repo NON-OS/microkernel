@@ -55,6 +55,8 @@ mod finish_tests;
 #[cfg(test)]
 mod ipc_tests;
 #[cfg(test)]
+mod memory_space_tests;
+#[cfg(test)]
 mod order;
 #[cfg(test)]
 mod part;

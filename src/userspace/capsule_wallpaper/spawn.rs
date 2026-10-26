@@ -49,6 +49,9 @@ pub fn spawn_wallpaper_capsule() -> Result<(), SpawnError> {
         target_triple: TARGET_TRIPLE,
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
+            // The manifest's optional Debug, for the wallpaper's own status
+            // lines; 0 unless the kernel is built with capsule-serial-debug.
+            | crate::capabilities::serial_debug_cap()
             | Capability::GraphicsDisplayQuery.bit()
             | Capability::GraphicsSurfaceCreate.bit(),
         debug_tag: b"",

@@ -28,7 +28,7 @@ pub(super) fn init_vm_and_protection() {
     if let Err(e) = crate::memory::unified::init_unified_vm() {
         fatal("memory: init_unified_vm failed", e);
     }
-    crate::sys::bench::mark(b"vm_ready");
+    super::init_heap_region::init_heap_region();
 
     // Here rather than earlier: CR0.WP starts enforcing read-only kernel
     // mappings, so the tables have to be the ones the kernel will keep. SMAP

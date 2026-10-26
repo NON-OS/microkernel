@@ -30,6 +30,8 @@ pub struct Pool {
     pub next_handle: u64,
     pub released: Vec<u64>,
     pub pid: u32,
+    /// The pids the kernel would show alive, and for how long.
+    pub alive: Vec<(u32, u64)>,
 }
 
 impl Pool {
@@ -43,6 +45,7 @@ impl Pool {
             next_handle: 1,
             released: Vec::new(),
             pid: 0x42,
+            alive: Vec::new(),
         }
     }
 }

@@ -20,6 +20,9 @@ mod bootstrap;
 mod dealloc_impl;
 mod global_alloc;
 mod header;
+mod region_alloc;
+mod region_extent;
+mod regions;
 mod statistics;
 mod stats;
 
