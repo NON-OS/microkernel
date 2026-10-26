@@ -21,6 +21,7 @@ use crate::state::Context;
 mod clear_overlay;
 mod constants;
 mod frame;
+mod show;
 
 pub use frame::paint_chrome;
 
