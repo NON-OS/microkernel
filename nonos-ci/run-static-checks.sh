@@ -5446,6 +5446,26 @@ else
 fi
 unset mutants_out
 
+# The other tools' suites, as static-hygiene runs them, and the guard that no
+# tools/ test file runs in no lane (check_tool_suites, its self-test first).
+for suite in nonos_data_plan nonos_linux_pack nonos_qemu nonos_qwen_tier nonos_zero_state; do
+    if suite_out="$(python3 -m unittest discover -s "tools/${suite}" -t tools -p 'test_*.py' 2>&1)"; then
+        note ok "tools/${suite}: its suite passes"
+    else
+        tail -n 8 <<< "${suite_out}" >&2
+        fail_with "tools/${suite}: its suite fails"
+    fi
+done
+unset suite suite_out
+if suites_out="$(python3 scripts/check_tool_suites.py --self-test 2>&1 \
+    && python3 scripts/check_tool_suites.py 2>&1)"; then
+    note ok "every tools/ test file runs in a lane (check_tool_suites)"
+else
+    tail -n 8 <<< "${suites_out}" >&2
+    fail_with "check_tool_suites: a tools/ test file runs in no lane"
+fi
+unset suites_out
+
 # A drive whose `until` step times out leaves every CPU's registers and the
 # code at each one's PC behind, read from that CPU (tools/nonos_drive).
 if drive_out="$( (cd tools && python3 -m unittest -q nonos_drive.test_drive) 2>&1)"; then
