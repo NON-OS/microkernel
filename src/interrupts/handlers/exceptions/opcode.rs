@@ -26,17 +26,17 @@ pub fn handle(frame: InterruptStackFrame) {
     let ctx = ExceptionContext::from_frame(&frame);
     if !ctx.is_user_mode() {
         emit_fatal_notice(b"UD", ctx.instruction_pointer);
+        // Straight to the panic path: nothing between the fatal line and it
+        // allocates or takes a lock, since the fault may have come while this
+        // CPU held one (the heap's, the serial port's).
+        crate::boot::panic::fatal();
     }
     log_exception("INVALID OPCODE", &ctx);
     stats::increment_exceptions();
 
     log_instruction_bytes(&ctx);
 
-    if ctx.is_user_mode() {
-        terminate_user_process(&ctx);
-    } else {
-        kernel_panic(&ctx);
-    }
+    terminate_user_process(&ctx);
 }
 
 fn log_instruction_bytes(ctx: &ExceptionContext) {
@@ -76,9 +76,4 @@ fn log_instruction_bytes(ctx: &ExceptionContext) {
 fn terminate_user_process(_ctx: &ExceptionContext) -> ! {
     crate::log::logger::log_error!("Terminating user process: invalid instruction");
     crate::process::exit::exit_and_yield(-4, true)
-}
-
-fn kernel_panic(_ctx: &ExceptionContext) {
-    crate::log::logger::log_critical("KERNEL PANIC: Invalid opcode in kernel mode");
-    crate::boot::panic::fatal();
 }
