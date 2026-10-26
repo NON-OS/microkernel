@@ -23,15 +23,15 @@ pub(super) const INPUT_ROUTER_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-input-router")]
 pub(super) const INPUT_ROUTER_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/input_router.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/input_router.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-input-router")]
 pub(super) const INPUT_ROUTER_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/input_router.manifest.bin");
+    crate::baked_trust!("capsules/input_router.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-input-router")]
 pub(super) const INPUT_ROUTER_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/input_router.zk_trailer.bin");
+    crate::baked_trust!("capsules/input_router.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-input-router"))]
 pub(super) const INPUT_ROUTER_ELF: &[u8] = &[];

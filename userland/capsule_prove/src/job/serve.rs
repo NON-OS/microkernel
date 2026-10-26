@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The headless prover (plan/14): one PROVE, answered at once with its job,
-//! then proven; STATUS and GET between stages and after; exit once the
-//! container is fetched, or after a quiet spell. Exit zeroizes its RAM.
+//! then proven; STATUS and GET between stages and after; exit when
+//! exit_rule.rs says: the container fetched, a failure told or left unread,
+//! or a quiet spell. Exit zeroizes its RAM.
 
 use alloc::vec;
 
@@ -24,11 +25,8 @@ use nonos_libc::{mk_exit, mk_ipc_recv_from, mk_ipc_reply, mk_time_millis, mk_yie
 use nonos_proof_abi::wire::{Header, FRAME_MAX, PROVE_MAGIC};
 
 use super::answer::answer;
+use super::exit_rule::{exits, wait_ms};
 use super::state::Job;
-
-/// No PROVE within this long of starting, or no request this long after the
-/// last: the job was abandoned.
-const QUIET_MS: u64 = 10 * 60 * 1000;
 
 /// `held`: the prover's heap was had. Without it every PROVE is ENOMEM, and
 /// the job exits at once rather than fail halfway through a proof. `bound`:
@@ -41,16 +39,21 @@ pub fn serve(held: bool, bound: Option<(u16, u32)>) -> ! {
     let mut job: Option<Job> = None;
     let mut last = now();
     loop {
-        if job.as_ref().is_some_and(|j| j.fetched) || now().saturating_sub(last) > QUIET_MS {
+        let seen = job.as_ref().map(Job::seen);
+        if exits(seen, now(), last) {
             mk_exit(0);
         }
         let mut sender = 0u32;
-        let n = mk_ipc_recv_from(0, buf.as_mut_ptr(), buf.len(), 0, &mut sender);
+        let wait = wait_ms(seen, now(), last);
+        let n = mk_ipc_recv_from(0, buf.as_mut_ptr(), buf.len(), wait, &mut sender);
         let Some(n) = usize::try_from(n).ok().filter(|&n| n > 0 && sender != 0) else {
             mk_yield();
             continue;
         };
         last = now();
+        if let Some(j) = job.as_mut().filter(|j| j.owner == sender) {
+            j.asker_ms = last;
+        }
         let Some((h, body)) = Header::parse(&buf[..n], PROVE_MAGIC) else {
             continue;
         };
@@ -60,7 +63,9 @@ pub fn serve(held: bool, bound: Option<(u16, u32)>) -> ! {
             continue;
         }
         let body = body.to_vec();
-        job = super::start::start(&h, &body, sender, held, &mut buf);
+        // The failure's 30 s run from when it failed (exit_rule.rs).
+        job = super::start::start(&h, &body, sender, held, &mut buf)
+            .map(|j| Job { asker_ms: now(), ..j });
         last = now();
     }
 }

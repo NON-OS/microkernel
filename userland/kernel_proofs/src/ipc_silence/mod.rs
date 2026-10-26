@@ -23,4 +23,8 @@ mod silence;
 #[cfg(test)]
 mod model;
 #[cfg(test)]
+mod polls;
+#[cfg(test)]
+mod replies;
+#[cfg(test)]
 mod tests;
