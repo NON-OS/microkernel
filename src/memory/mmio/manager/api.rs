@@ -63,14 +63,6 @@ pub fn get_stats() -> MmioStatsSnapshot {
     MMIO_STATS.snapshot()
 }
 
-pub fn validate_mmio_access(va: VirtAddr, size: usize) -> bool {
-    MMIO_MANAGER
-        .lock()
-        .find_region(va)
-        .map(|r| va.as_u64() + size as u64 <= r.va.as_u64() + r.size as u64)
-        .unwrap_or(false)
-}
-
 pub fn is_mmio_region(va: VirtAddr) -> bool {
     MMIO_MANAGER.lock().find_region(va).is_some()
 }

@@ -32,6 +32,7 @@ pub mod fs {
         mod seal;
         mod sector_open;
         mod window;
+        pub use crate::stand_in::block_io::{flush_held, volume_scope};
         pub use crate::stand_in::ram;
         pub use constants::{PLAIN_BLOCK_BYTES, SECTOR_BYTES};
         pub use error::CryptoBlockError;
@@ -54,22 +55,6 @@ pub mod fs {
         }
     }
 
-    pub mod blockfs_volume {
-        pub mod error;
-        pub mod format_volume;
-        mod key_header;
-        mod key_header_io;
-        mod key_seal;
-        mod mount_or_format;
-        mod opened;
-        mod passphrase_create;
-        mod passphrase_key;
-        pub mod plan_types;
-        mod ring_blank;
-        mod say;
-        mod session;
-        mod state;
-        #[path = "../../../userland/rng_callers_proofs/src/volume_tests/mod.rs"]
-        mod tests;
-    }
+    #[path = "../../userland/rng_callers_proofs/src/mount_volume.rs"]
+    pub mod blockfs_volume;
 }

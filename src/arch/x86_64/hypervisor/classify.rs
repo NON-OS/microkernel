@@ -41,7 +41,7 @@ pub fn classify(l: &Leaves) -> Guest {
     if !l.present {
         return Guest { vendor: Hypervisor::None, hyperv_abi: false };
     }
-    // A max below the base means the range is not implemented at all; the
+    // A max below the base means the hypervisor answers no range at all; the
     // leaf then echoes the highest basic leaf and its words mean nothing.
     if l.max < LEAF_BASE {
         return Guest { vendor: Hypervisor::Unknown, hyperv_abi: false };

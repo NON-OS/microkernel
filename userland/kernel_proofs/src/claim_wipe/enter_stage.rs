@@ -18,15 +18,8 @@
 //! for the enter model (L78): how an entry standing answers a claimant, what
 //! a release and an exit move it to, and when it goes.
 
-// claim_stage mounts both too, privately, so their re-export cannot be had
-// from here: a second mount, allowed here alone (lifting claim_stage's to
-// pub(crate) and using them would make this file a pair of uses).
-#[allow(clippy::duplicate_mod)]
-#[path = "../../../../src/hardware/broker/claim/stage_rule.rs"]
-mod stage_rule;
-#[allow(clippy::duplicate_mod)]
-#[path = "../../../../src/hardware/broker/claim/types.rs"]
-mod types;
+// Mounted once, in claim_stage.
+use crate::proofs_7::claim_stage::{stage_rule, types};
 
 pub(super) use stage_rule::{exited, gone, over, retired};
 pub(super) use types::{ClaimError, Stage};

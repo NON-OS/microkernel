@@ -81,27 +81,27 @@ fn only_a_whole_removal_reads_as_removed() {
 
 #[test]
 fn each_way_a_removal_stops_is_its_own_reason() {
-    assert_eq!(removed(i64::from(BUSY)), Err(Why::ModelDownloading));
-    assert_eq!(removed(i64::from(LOCKED)), Err(Why::VolumeLocked));
-    assert_eq!(removed(i64::from(VOLUME_FAILED)), Err(Why::VolumeFailed));
-    assert_eq!(removed(i64::from(NO_MEMORY)), Err(Why::NoMemory));
-    assert_eq!(removed(i64::from(USAGE)), Err(Why::ModelUnknown));
-    assert_eq!(removed(i64::from(REFUSED)), Err(Why::RemovePartial));
+    assert_eq!(removed(i64::from(BUSY)), Err(Why::MODEL_DOWNLOADING));
+    assert_eq!(removed(i64::from(LOCKED)), Err(Why::VOLUME_LOCKED));
+    assert_eq!(removed(i64::from(VOLUME_FAILED)), Err(Why::VOLUME_FAILED));
+    assert_eq!(removed(i64::from(NO_MEMORY)), Err(Why::NO_MEMORY));
+    assert_eq!(removed(i64::from(USAGE)), Err(Why::MODEL_UNKNOWN));
+    assert_eq!(removed(i64::from(REFUSED)), Err(Why::REMOVE_PARTIAL));
     // Built without the fetcher: nothing can take the model off the volume.
-    assert_eq!(remove_not_started(-2), Why::ModelKept);
-    assert_eq!(remove_not_started(-16), Why::ModelBusy);
-    assert_eq!(remove_not_started(-12), Why::RemovePartial);
+    assert_eq!(remove_not_started(-2), Why::MODEL_KEPT);
+    assert_eq!(remove_not_started(-16), Why::MODEL_BUSY);
+    assert_eq!(remove_not_started(-12), Why::REMOVE_PARTIAL);
     /*
      * A boot with no network never starts the fetcher: nothing was tried,
      * so it is not "some files would not go", and no retry is offered.
      */
-    assert_eq!(remove_not_started(-100), Why::BootOffline);
-    assert!(!Progress::Failed(Why::BootOffline.code() as u8).retryable());
+    assert_eq!(remove_not_started(-100), Why::BOOT_OFFLINE);
+    assert!(!Progress::Failed(Why::BOOT_OFFLINE.code() as u8).retryable());
 }
 
 #[test]
 fn a_removal_that_can_finish_offers_a_retry_and_one_that_cannot_does_not() {
     let retry = |why: Why| Progress::Failed(why.code() as u8).retryable();
-    assert!(retry(Why::ModelDownloading) && retry(Why::RemovePartial));
-    assert!(!retry(Why::ModelKept) && !retry(Why::NotInstalled));
+    assert!(retry(Why::MODEL_DOWNLOADING) && retry(Why::REMOVE_PARTIAL));
+    assert!(!retry(Why::MODEL_KEPT) && !retry(Why::NOT_INSTALLED));
 }

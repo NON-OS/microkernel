@@ -41,6 +41,19 @@ pub const TTY: u64 = 1 << 8;
 pub const KNOWN: u64 =
     WAYLAND | NET_ANON | NET_LISTEN_LO | FILES_HOME | FILES_USER | MODELS_RO | EXEC | JIT | TTY;
 
+/// Each bit by the word policies.txt and the serial log name it with.
+pub const NAMES: [(&str, u64); 9] = [
+    ("WAYLAND", WAYLAND),
+    ("NET_ANON", NET_ANON),
+    ("NET_LISTEN_LO", NET_LISTEN_LO),
+    ("FILES_HOME", FILES_HOME),
+    ("FILES_USER", FILES_USER),
+    ("MODELS_RO", MODELS_RO),
+    ("EXEC", EXEC),
+    ("JIT", JIT),
+    ("TTY", TTY),
+];
+
 /// Whether `mask` holds every bit of `want`.
 pub const fn grants(mask: u64, want: u64) -> bool {
     mask & want == want
