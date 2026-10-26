@@ -12,6 +12,7 @@
    "abi/manifest.toml",
    "build.rs",
    "build_baked_trust.rs",
+   "build_baked_trust_rule.rs",
    "build_branch_protection.rs",
    "build_c_target.rs",
    "build_info.rs",
@@ -1293,6 +1294,7 @@
   "include": [
    ".cargo",
    "build_baked_trust.rs",
+   "build_baked_trust_rule.rs",
    "nonos-data/trust/policy",
    "userland/baked_trust_proofs"
   ],
