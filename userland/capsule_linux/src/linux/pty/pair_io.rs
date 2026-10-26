@@ -27,11 +27,11 @@ use super::pair::Pair;
 impl Pair {
     /// The master writes `bytes`: how many the discipline took, and the
     /// signals they raised, in order. It stops once the slave has a full
-    /// buffer unread; a line being edited past it loses all but its end.
+    /// buffer unread, or the master's own has no room for what is echoed.
     pub fn typed(&mut self, bytes: &[u8]) -> (usize, Vec<u8>) {
         let (t, mut signals, mut n) = (self.termios, Vec::new(), 0);
         for &c in bytes {
-            if self.input.ready.len() >= MOST {
+            if self.input.ready.len() >= MOST || self.output.len() >= OUT_MOST {
                 break;
             }
             signals.extend(super::disc::receive(&t, &mut self.input, &mut self.output, c));
