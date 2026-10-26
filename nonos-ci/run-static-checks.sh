@@ -5572,12 +5572,14 @@ fi
 unset suites_out
 
 # A drive whose `until` step times out leaves every CPU's registers and the
-# code at each one's PC behind, read from that CPU (tools/nonos_drive).
-if drive_out="$( (cd tools && python3 -m unittest -q nonos_drive.test_drive) 2>&1)"; then
-    note ok "a drive that stops at a step leaves every CPU's state (nonos_drive)"
+# code at each one's PC behind, read from that CPU; an unplug step pulls a
+# device out or fails the run (tools/nonos_drive).
+if drive_out="$( (cd tools && python3 -m unittest -q nonos_drive.test_drive \
+    nonos_drive.test_plug) 2>&1)"; then
+    note ok "a drive that stops at a step leaves every CPU's state, and unplugs (nonos_drive)"
 else
     tail -n 8 <<< "${drive_out}" >&2
-    fail_with "nonos_drive: a timed-out step can leave no machine state behind"
+    fail_with "nonos_drive: a timed-out step leaves no state, or an unplug step lies"
 fi
 unset drive_out
 
