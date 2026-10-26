@@ -32,17 +32,6 @@ pub fn paint(ctx: &Context, x: u32, y: u32, size: u32, _color: u32) {
     let dh = size;
     let dw = (size * ICON_W / ICON_H).max(1);
     let dx = x + size.saturating_sub(dw) / 2;
-    blit_rgba8_scaled(
-        ctx.backing_va,
-        ctx.stride,
-        ctx.width,
-        ctx.height,
-        dx,
-        y,
-        dw,
-        dh,
-        ICON,
-        ICON_W,
-        ICON_H,
-    );
+    let surface = (ctx.backing_va, ctx.stride, ctx.width, ctx.height);
+    blit_rgba8_scaled(surface, (dx, y, dw, dh), (ICON, ICON_W, ICON_H));
 }

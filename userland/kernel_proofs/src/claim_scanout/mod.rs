@@ -21,8 +21,6 @@
  * draw, each design step undone in the model, and the glue read as text.
  */
 
-#![allow(dead_code)]
-
 mod admit_table_tests;
 mod control_tests;
 mod drawer;
@@ -51,10 +49,6 @@ mod rule_tests;
 mod scanout_rule;
 mod search;
 mod sibling;
-// Mounted in claim_stage too: this module keeps its own copy.
-#[allow(clippy::duplicate_mod)]
-#[path = "../../../../src/hardware/broker/claim/stage_rule.rs"]
-mod stage_rule;
 mod start_sets;
 mod starts;
 mod steps;
@@ -63,13 +57,12 @@ mod take_order;
 mod taker;
 mod taker_admit;
 mod taker_peek;
-// Mounted in claim_stage too: this module keeps its own copy.
-#[allow(clippy::duplicate_mod)]
-#[path = "../../../../src/hardware/broker/claim/types.rs"]
-mod types;
 mod world;
 mod world_ask;
 mod world_check;
 mod world_edit;
 mod world_names;
 mod world_state;
+
+// The claims' stage rule and types, mounted once, in claim_stage.
+use crate::proofs_7::claim_stage::{stage_rule, types};
