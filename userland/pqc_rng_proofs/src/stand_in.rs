@@ -21,7 +21,7 @@
 use std::cell::Cell;
 
 mod derived;
-pub use derived::{random_range_secure, random_u32_secure};
+pub(crate) use derived::{random_range_secure, random_u32_secure};
 
 thread_local! {
     static STATE: Cell<u64> = const { Cell::new(0x9e37_79b9_7f4a_7c15) };
@@ -31,7 +31,6 @@ thread_local! {
 }
 
 /// Draws from the `n`th on (counting from 1) fail; `None` makes all work.
-#[allow(clippy::result_unit_err)]
 pub fn fail_from(n: Option<u64>) {
     DRAWS.set(0);
     FAIL_FROM.set(n);
@@ -39,14 +38,12 @@ pub fn fail_from(n: Option<u64>) {
 }
 
 /// Only the `n`th draw fails; the ones after it work again.
-#[allow(clippy::result_unit_err)]
 pub fn fail_only(n: u64) {
     fail_from(Some(n));
     ONLY.set(true);
 }
 
 /// How many secure draws this thread has asked for since `fail_from`.
-#[allow(clippy::result_unit_err)]
 pub fn draws() -> u64 {
     DRAWS.get()
 }
@@ -64,8 +61,7 @@ pub(crate) fn next() -> Result<u64, ()> {
     Ok(z ^ (z >> 31))
 }
 
-#[allow(clippy::result_unit_err)]
-pub fn fill_random_bytes_secure(buf: &mut [u8]) -> Result<(), ()> {
+pub(crate) fn fill_random_bytes_secure(buf: &mut [u8]) -> Result<(), ()> {
     for chunk in buf.chunks_mut(8) {
         chunk.copy_from_slice(&next()?.to_le_bytes()[..chunk.len()]);
     }

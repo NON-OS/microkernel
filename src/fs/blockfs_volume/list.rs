@@ -19,7 +19,7 @@
 use alloc::vec::Vec;
 
 use super::error::VolumeError;
-use super::state::VOLUME;
+use super::state::{VolumeState, VOLUME};
 use crate::fs::blockfs;
 
 /// Names only. The addresses `blockfs::list` also returns are volume
@@ -31,9 +31,17 @@ use crate::fs::blockfs;
 pub fn list(path: &[u8]) -> Result<Vec<Vec<u8>>, VolumeError> {
     let guard = crate::smp::read_responsive(&VOLUME);
     let state = guard.as_ref().ok_or(VolumeError::NotMounted)?;
+    Ok(entries(state, path)?.into_iter().map(|e| e.name).collect())
+}
+
+/// How many names `path` holds, for a caller already holding the volume.
+pub(super) fn names_in(state: &VolumeState, path: &[u8]) -> Result<usize, VolumeError> {
+    Ok(entries(state, path)?.len())
+}
+
+fn entries(state: &VolumeState, path: &[u8]) -> Result<Vec<blockfs::DirEntry>, VolumeError> {
     let node_lba =
         blockfs::resolve(&state.key, &state.mount, path).map_err(VolumeError::BlockFs)?;
     let node = blockfs::read_node(&state.key, node_lba).map_err(VolumeError::BlockFs)?;
-    let entries = blockfs::list(&state.key, &node).map_err(VolumeError::BlockFs)?;
-    Ok(entries.into_iter().map(|e| e.name).collect())
+    blockfs::list(&state.key, &node).map_err(VolumeError::BlockFs)
 }
