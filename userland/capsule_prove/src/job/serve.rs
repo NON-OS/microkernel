@@ -43,7 +43,9 @@ pub struct Served {
 /// the op and the pid init spawned it for; no other first frame starts it.
 pub fn serve(held: bool, bound: Option<(u16, u32)>) -> ! {
     let Some((op, pid)) = bound else { mk_exit(1) };
-    if op == nonos_proof_abi::wire::RECEIPT { super::receipt_serve::serve(pid, held) }
+    if op == nonos_proof_abi::wire::RECEIPT {
+        super::receipt_serve::serve(pid, held)
+    }
     let mut buf = vec![0u8; FRAME_MAX];
     let mut s = Served { job: None, finish: None, last: now() };
     loop {
