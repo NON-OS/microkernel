@@ -2818,7 +2818,7 @@ elif ! grep -rq 'paint_chrome' "${desktop_shell_prime}"; then
 elif ! grep -q 'super::topbar::paint(ctx)' "${desktop_shell_render}" ||
      ! grep -q 'super::background::background(ctx)' userland/capsule_desktop_shell/src/render/topbar/paint.rs ||
      ! grep -q 'let bar = menubar_rect(ctx.width)' userland/capsule_desktop_shell/src/render/topbar/background.rs ||
-     ! grep -q 'fill_rect(.*bar\.x, bar\.y, bar\.width, bar\.height' userland/capsule_desktop_shell/src/render/topbar/background.rs; then
+     ! grep -q 'fill_rect(ctx, bar, ' userland/capsule_desktop_shell/src/render/topbar/background.rs; then
     fail_with "${desktop_shell_render} must own menubar chrome rendering"
 elif ! grep -A2 'super::panel::shadow_panel($' "${desktop_shell_render}" | grep '^[[:space:]]*bottom_dock_rect(ctx.width, ctx.height),$' >/dev/null; then
     fail_with "${desktop_shell_render} must own dock chrome rendering"
