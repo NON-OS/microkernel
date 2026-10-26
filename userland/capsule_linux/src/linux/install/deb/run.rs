@@ -34,14 +34,14 @@ use crate::linux::install::Why;
 
 pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
     let Some(src) = source() else {
-        return say(b"[LINUX] this image was built without a Debian mirror\n", Why::NoMirror);
+        return say(b"[LINUX] this image was built without a Debian mirror\n", Why::NO_MIRROR);
     };
     let Some(ring) = pinned() else {
-        return say(b"[LINUX] this image pins no Debian archive key\n", Why::NoKeyring);
+        return say(b"[LINUX] this image pins no Debian archive key\n", Why::NO_KEYRING);
     };
     super::super::http::reachable(src.at())?;
     let Some(index) = load(&src, &ring) else {
-        return say(b"[LINUX] no verified Debian index\n", Why::Index);
+        return say(b"[LINUX] no verified Debian index\n", Why::INDEX);
     };
     super::merged_usr::lay_out()?;
     let (max, mut done): (usize, Vec<String>) = (max_packages(), Vec::new());
@@ -50,7 +50,7 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
         let Some(rec): Option<&Record> =
             group.iter().find_map(|n| find(&index, n, done.is_empty()))
         else {
-            return say(b"[LINUX] nothing provides it\n", Why::NotProvided);
+            return say(b"[LINUX] nothing provides it\n", Why::NOT_PROVIDED);
         };
         if done.contains(&rec.name) {
             continue;
@@ -58,12 +58,12 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
         if done.len() == max {
             return say(
                 alloc::format!("[LINUX] refused: closure passes {max} packages\n").as_bytes(),
-                Why::TooLarge,
+                Why::TOO_LARGE,
             );
         }
         let chosen = rec.name == name;
         let Some(files) = fetch(&src, rec, chosen.then_some(pin)) else {
-            return Err(Why::Package);
+            return Err(Why::PACKAGE);
         };
         unpack(&files, &rec.name, chosen, true)?;
         done.push(rec.name.clone());

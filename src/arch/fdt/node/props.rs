@@ -34,7 +34,7 @@ impl<'a> Fdt<'a> {
             if done {
                 return None;
             }
-            match walker.next() {
+            match walker.next_event() {
                 Ok(Some(Event::Property(prop))) => Some(Ok(prop)),
                 Ok(_) => {
                     done = true;

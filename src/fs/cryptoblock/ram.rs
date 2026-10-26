@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The session volume's sectors, held in RAM, on a boot whose disk carries
 //! the NONOS store but no data plan: a live stick. Nothing of it reaches a
 //! disk, and it is gone at power off. What it holds is sealed like any
@@ -52,29 +51,22 @@ pub fn on() -> bool {
     ON.load(Ordering::SeqCst)
 }
 
-/// What the rest of the machine keeps: the larger of 1 GiB and a quarter
-/// of its memory. The volume grows only while more than this is free.
-pub fn reserve() -> u64 {
-    (crate::memory::phys::total_memory() / 4).max(1 << 30)
-}
+#[path = "ram_room.rs"]
+mod room;
+#[path = "ram_stop.rs"]
+mod stop;
+pub use room::{reserve, room, ROOM_EVERY};
+pub use stop::stop;
 
-/// Whether the volume may take more memory now. Asked once per 2 MiB of new
-/// blocks, since counting what is free walks the whole frame map.
-pub fn room() -> bool {
-    crate::memory::phys::free_memory() > reserve()
-}
-
-/// Sectors per check of `room`.
-pub const ROOM_EVERY: u64 = PER_LEAF;
-
-/// Hold `sectors` in RAM from now on. Once a boot: the volume it backs is
+/// Hold `sectors` in RAM from now on, until `stop`: the volume it backs is
 /// the one this boot has.
 pub fn start(sectors: u64) -> Result<(), BlockDeviceError> {
     let mut ram = RAM.lock();
     if ram.is_some() {
         return Err(BlockDeviceError::InvalidArgument);
     }
-    let count = usize::try_from(sectors.div_ceil(PER_LEAF)).map_err(|_| BlockDeviceError::OutOfRange)?;
+    let count =
+        usize::try_from(sectors.div_ceil(PER_LEAF)).map_err(|_| BlockDeviceError::OutOfRange)?;
     let mut leaves = Vec::new();
     leaves.try_reserve_exact(count).map_err(|_| BlockDeviceError::OversizedRequest)?;
     leaves.resize(count, 0);
@@ -147,7 +139,8 @@ impl Ram {
 /// A zeroed frame the direct map reaches, or a refusal when the machine has
 /// none to give.
 fn take() -> Result<u64, BlockDeviceError> {
-    let frame = crate::memory::phys::alloc(AllocFlags::ZERO).ok_or(BlockDeviceError::DeviceFailure)?;
+    let frame =
+        crate::memory::phys::alloc(AllocFlags::ZERO).ok_or(BlockDeviceError::DeviceFailure)?;
     if base(frame.0).is_none() {
         let _ = crate::memory::phys::free(frame);
         return Err(BlockDeviceError::DeviceFailure);
@@ -162,8 +155,8 @@ fn base(frame: u64) -> Option<*mut u8> {
 
 /*
  * SAFETY for every access below: eK@nonos.systems - each frame was taken by
- * this module, checked to be in the direct map, is never given back, and is
- * touched only under the RAM lock; every offset stays inside its 4 KiB.
+ * this module, checked to be in the direct map, is given back only by `stop`
+ * once zeroed, and is touched only under the RAM lock; offsets stay in 4 KiB.
  */
 
 fn slot(leaf: u64, i: usize) -> u64 {

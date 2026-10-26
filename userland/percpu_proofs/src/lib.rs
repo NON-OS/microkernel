@@ -3,11 +3,8 @@
 //! so the `super::` paths inside the mounted files resolve; `operations`
 //! is a stand-in holding a few blocks, as the kernel's static array does.
 
-#![allow(dead_code)]
-
-// The kernel's block has a const `new` and no `Default`: statics need the
-// former, and nothing in the kernel wants the latter.
-#[allow(clippy::new_without_default)]
+// The kernel's block has a const `new` and no `Default`; the proofs give it
+// one (percpu/default.rs).
 pub mod percpu;
 
 #[cfg(test)]

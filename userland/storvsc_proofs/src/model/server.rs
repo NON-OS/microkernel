@@ -27,6 +27,7 @@ use std::collections::{HashMap, VecDeque};
 
 use nonos_vmbus::model::HostRing;
 
+use super::pages::{gather, scatter};
 use super::sim::{Unit, CHECK, GOOD};
 use super::{Grant, BASE_PFN, PAGE};
 
@@ -187,7 +188,9 @@ impl Server {
         let a = match op {
             // storvsp:955-965, 1022: SUCCESS, or INVALID_DEVICE_STATE out of
             // order (a refusal here).
-            BEGIN_INIT | END_INIT => complete(if refused { INVALID_DEVICE_STATE } else { 0 }, request),
+            BEGIN_INIT | END_INIT => {
+                complete(if refused { INVALID_DEVICE_STATE } else { 0 }, request)
+            }
             QUERY_PROTOCOL_VERSION => {
                 let v = u16::from_le_bytes([p[12], p[13]]);
                 assert_eq!(&p[14..16], &[0, 0], "Linux sends revision 0");
@@ -220,7 +223,11 @@ impl Server {
         // Linux sends (storvsc_queuecommand): the request's own size, sense
         // of 20 bytes, untagged simple queueing, synchronous transfer off,
         // 60 seconds, the direction in data_in and srb_flags alike.
-        assert_eq!(u16::from_le_bytes([p[12], p[13]]), 52, "sizeof(struct vmscsi_request), proto:143");
+        assert_eq!(
+            u16::from_le_bytes([p[12], p[13]]),
+            52,
+            "sizeof(struct vmscsi_request), proto:143"
+        );
         assert_eq!(p[21], 20, "sense of STORVSC_SENSE_BUFFER_SIZE");
         assert_eq!((p[50], p[51]), (0xFF, 0x20), "untagged, simple");
         assert_eq!(u32_at(p, 56), 60, "60 seconds");
@@ -253,7 +260,7 @@ impl Server {
         let r = if cdb[0] == REPORT_LUNS {
             self.report_luns(g, &pages, target, len)
         } else if self.units.contains_key(&(target, lun)) {
-            self.present(g, &pages, target, lun, &cdb, data_in, len)
+            self.present(g, &pages, (target, lun), &cdb, data_in, len)
         } else if cdb[0] == INQUIRY {
             absent_inquiry(g, &pages, &cdb, data_in, len, lun)
         } else {
@@ -288,19 +295,17 @@ impl Server {
     /// a CHECK CONDITION with its sense and nothing moved, INVALID_REQUEST
     /// for an illegal request and ERROR otherwise; another status (BUSY, as
     /// RESERVATION CONFLICT at scsidisk:1100) as ERROR with no sense.
-    #[allow(clippy::too_many_arguments)]
     fn present(
         &mut self,
         g: Grant,
         pages: &[u64],
-        target: u8,
-        lun: u8,
+        unit: (u8, u8),
         cdb: &[u8],
         data_in: u8,
         len: u32,
     ) -> Result {
         let out = if data_in == 0 { gather(g, pages, len as usize) } else { Vec::new() };
-        let ans = self.units.get_mut(&(target, lun)).unwrap().execute(cdb, &out);
+        let ans = self.units.get_mut(&unit).unwrap().execute(cdb, &out);
         match ans.status {
             GOOD => {
                 let tx = if data_in == 1 {
@@ -350,7 +355,12 @@ fn absent_inquiry(g: Grant, pages: &[u64], cdb: &[u8], data_in: u8, len: u32, lu
     let alloc = u16::from_be_bytes([cdb[3], cdb[4]]) as usize;
     let vpd = cdb[1] & 1 != 0 || cdb[2] != 0;
     if (len as usize) < alloc || data_in != 1 || alloc < 5 || vpd {
-        return Result { srb: SRB_INVALID_REQUEST, scsi: CHECK, tx: 0, sense: Some(illegal_request()) };
+        return Result {
+            srb: SRB_INVALID_REQUEST,
+            scsi: CHECK,
+            tx: 0,
+            sense: Some(illegal_request()),
+        };
     }
     let mut data = [0u8; 36];
     (data[0], data[2], data[3], data[4]) = (0x7F, 0x06, 0x02, 31);
@@ -413,20 +423,4 @@ fn gpa_range(desc: &[u8]) -> (u32, u32, Vec<u64>) {
     assert_eq!(u32_at(desc, 4), 1, "one range");
     let pfns = desc[16..].chunks(8).map(|c| u64::from_le_bytes(c.try_into().unwrap())).collect();
     (u32_at(desc, 8), u32_at(desc, 12), pfns)
-}
-
-fn gather(g: Grant, pfns: &[u64], len: usize) -> Vec<u8> {
-    let mut v = vec![0u8; len];
-    for (i, chunk) in v.chunks_mut(PAGE).enumerate() {
-        // SAFETY: a page of the grant (Grant::at_pfn checks).
-        unsafe { std::ptr::copy_nonoverlapping(g.at_pfn(pfns[i]), chunk.as_mut_ptr(), chunk.len()) };
-    }
-    v
-}
-
-fn scatter(g: Grant, pfns: &[u64], data: &[u8]) {
-    for (i, chunk) in data.chunks(PAGE).enumerate() {
-        // SAFETY: as above.
-        unsafe { std::ptr::copy_nonoverlapping(chunk.as_ptr(), g.at_pfn(pfns[i]), chunk.len()) };
-    }
 }

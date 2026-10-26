@@ -31,7 +31,6 @@ pub mod say;
 pub mod server;
 mod units;
 // The whole wire as track B's crate has it, some of it for other media.
-#[allow(dead_code, unused_imports)]
 pub mod wire;
 
 pub use units::{Units, MAX_LUNS, MAX_UNITS};

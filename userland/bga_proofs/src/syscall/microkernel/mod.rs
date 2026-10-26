@@ -16,7 +16,6 @@
 
 //! The microkernel calls' errnos and the IPC registration rule.
 
-#[allow(dead_code)] // the errnos other calls answer
 #[path = "../../../../../src/syscall/microkernel/errnos.rs"]
 pub mod errnos;
 pub mod ipc;

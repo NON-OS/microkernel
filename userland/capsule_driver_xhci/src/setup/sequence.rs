@@ -16,6 +16,7 @@
 use nonos_libc::mk_device_release;
 
 use super::bring_up::{program, start_checked};
+use super::intel_ports::switch;
 use super::{
     assemble::assemble, claim::claim, driver::Driver, irq_bind::irq_bind, layout::read_layout,
     mmio_map::mmio_map, pci::enable_bus_master, pci::enable_decode, take_over::take_over,
@@ -55,6 +56,8 @@ pub fn run(dev: Found) -> XhciResult<Driver> {
     let mut driver = assemble(handles, layout, claim_epoch)?;
     if dev.on_pci {
         enable_bus_master(dev.device_id, claim_epoch)?;
+        // After the legacy handoff (take_over), before the ports are powered.
+        driver.ports = switch(dev.device_id, claim_epoch, dev.vendor);
     }
     program(&mut driver);
     start_checked(&mut driver)?;

@@ -25,7 +25,11 @@ mod wire;
 
 pub use answer::answer;
 pub use encode::{reply, status};
-pub use stats::{Stats, STATION_DRAWN, STATION_HOST_REFUSED, STATION_HOST_UNANSWERED, STATION_UNREPORTED};
+/// The single frame kept for net.core's number, a driver's own to hold.
+pub use nonos_mac::resend::Kept;
+pub use stats::{
+    Stats, STATION_DRAWN, STATION_HOST_REFUSED, STATION_HOST_UNANSWERED, STATION_UNREPORTED,
+};
 pub use wire::OP_TX_PACKET;
 pub use wire::{decode, Request, DATA_AT, HDR_LEN, RX_PREFIX_LEN, STATS_LEN, STATUS_LEN};
 pub use wire::{E_AGAIN, E_INVAL, E_IO, E_MSGSIZE, MAGIC, VERSION};

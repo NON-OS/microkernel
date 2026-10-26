@@ -44,7 +44,6 @@ mod parse_all;
 mod pcct_load;
 mod raw_table;
 mod sdev_load;
-mod serial_console_choice;
 mod serial_console_load;
 pub mod shared_tables;
 pub mod slit_matrix;
