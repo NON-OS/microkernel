@@ -30,7 +30,7 @@ pub fn find_boot_hart(fdt: &Fdt) -> Result<Option<IsaFlags>, FdtError> {
     let mut in_cpus = false;
     let mut at_cpu = false;
 
-    while let Some(event) = walker.next()? {
+    while let Some(event) = walker.next_event()? {
         match event {
             Event::BeginNode { name, .. } => {
                 depth += 1;

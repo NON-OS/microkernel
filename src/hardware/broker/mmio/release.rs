@@ -52,7 +52,6 @@ pub fn release_all_for_pid(pid: u32, unmap_pages: bool) -> usize {
 
 /// A device that left while `pid` held it: its grants are dropped without an
 /// unmap, each window fenced until the holder's space goes.
-#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
 pub fn revoke_for_device(pid: u32, device_id: u64, epoch: u64) -> usize {
     let drained = grant::drain_for_device(pid, device_id, epoch);
     for g in &drained {
