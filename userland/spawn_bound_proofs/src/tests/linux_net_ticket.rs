@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! `tool.linux.net` on a ticket: the terminal role's run of a program whose
 //! policy grants NET_ANON asked for it, and only its own Terminal, with the
 //! argv the kernel set, starts it, once.
