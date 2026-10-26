@@ -23,6 +23,7 @@ const DECIDE: &str = include_str!("../../../../src/memory/iommu/no_iommu.rs");
 const INIT: &str = include_str!("../../../../src/kernel_core/init/entry/microkernel_init.rs");
 const FB: &str = include_str!("../../../../src/kernel_core/init/entry/init_arch_framebuffer.rs");
 const STOP: &str = include_str!("../../../../src/memory/iommu/no_iommu_stop.rs");
+const NOTICE: &str = include_str!("../../../../src/sys/boot_log/notice_screen.rs");
 const CARGO: &str = include_str!("../../../../Cargo.toml");
 const CONFIG: &str = include_str!("../../../../tools/nix/config.nix");
 const GAUNTLET: &str = include_str!("../../../../tools/agentproof_gauntlet/run.py");
@@ -61,4 +62,12 @@ fn the_gauntlet_is_the_agentproof_build_and_runs_with_an_iommu() {
     let kernel = &g[g.find("kernel = [").unwrap()..g.find("];").unwrap()];
     assert!(kernel.contains("\"nonos-agentproof\""));
     assert!(GAUNTLET.contains("\"--lane\", \"iommu=intel\""));
+}
+
+#[test]
+fn the_stop_is_the_only_thing_on_the_panel() {
+    let band = NOTICE.find("fill_rect(fb, 0, 0, fb.width, band, BAND_COLOR);").expect("band");
+    let blank = NOTICE.find("fill_rect(fb, 0, band, fb.width, fb.height - band, BLANK);");
+    assert!(blank.is_some_and(|b| b > band), "what the loader drew is cleared under the band");
+    assert!(NOTICE.contains(".min(fb.height);"), "the band never runs past the panel");
 }

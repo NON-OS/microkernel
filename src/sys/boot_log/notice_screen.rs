@@ -30,6 +30,7 @@ const PITCH: u32 = 28;
 const BAND_COLOR: u32 = 0x0024_2C48;
 const TITLE_COLOR: u32 = 0x00FF_E08A;
 const TEXT_COLOR: u32 = 0x00FF_FFFF;
+const BLANK: u32 = 0x0000_0000;
 
 pub fn show_notice(title: &[u8], lines: &[&[u8]]) {
     let Some(fb) = screen() else {
@@ -38,8 +39,11 @@ pub fn show_notice(title: &[u8], lines: &[&[u8]]) {
     let fb = &fb;
     let s = scale(fb);
     let (top, pitch) = (TOP * s, PITCH * s);
-    let band = top * 2 + pitch * (lines.len() as u32 + 1);
-    fill_rect(fb, 0, 0, fb.width, band.min(fb.height), BAND_COLOR);
+    let band = (top * 2 + pitch * (lines.len() as u32 + 1)).min(fb.height);
+    fill_rect(fb, 0, 0, fb.width, band, BAND_COLOR);
+    // The rest of the panel goes blank: a stopped boot left under the loader's
+    // "Starting" and its ticks would say two things at once.
+    fill_rect(fb, 0, band, fb.width, fb.height - band, BLANK);
     draw_text(fb, 24 * s, top, title, TITLE_COLOR);
     for (i, line) in lines.iter().enumerate() {
         draw_text(fb, 24 * s, top + pitch * (i as u32 + 1), line, TEXT_COLOR);

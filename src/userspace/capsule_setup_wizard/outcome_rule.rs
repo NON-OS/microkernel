@@ -34,7 +34,12 @@ pub enum Ended {
 }
 
 /// Setup has ended: its pid, and the status each place holds for it.
-pub fn read(pid: u32, kept: Option<i32>, pcb: Option<i32>, logged: Option<i32>) -> (Ended, u8) {
+pub(super) fn read(
+    pid: u32,
+    kept: Option<i32>,
+    pcb: Option<i32>,
+    logged: Option<i32>,
+) -> (Ended, u8) {
     match kept.or(pcb).or(logged).filter(|_| pid != 0).and_then(parts) {
         Some((EXIT_INSTALLER, off)) => (Ended::Installer, off),
         Some((EXIT_DESKTOP, off)) => (Ended::Desktop, off),
