@@ -19,13 +19,13 @@ use alloc::vec;
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply};
 
 use super::handlers::route;
+use crate::off::rule::Caller;
+use crate::off::who::classify;
 use crate::protocol::IPC_PAYLOAD_MAX;
 use crate::state::PowerState;
 
 const SERVICE_PORT: u64 = 4448;
 const RECV_TIMEOUT_MS: u64 = 0;
-/// The one service whose process may power the machine off through this capsule.
-const SHELL: &[u8] = b"desktop_shell";
 
 pub fn run() -> ! {
     let mut in_buf = vec![0u8; IPC_PAYLOAD_MAX];
@@ -44,13 +44,15 @@ pub fn run() -> ! {
             continue;
         }
         let req = &in_buf[..received as usize];
-        let from_shell = super::caller::runs(sender_pid, SHELL);
+        // The sender is the pid the kernel stamped; the request is not read.
+        let from = classify(|s| super::caller::runs(sender_pid, s));
+        let from_shell = from == Caller::Shell;
         // `power` and `power.off` share this inbox: a POFF frame is the
         // shell's power-off, anything else is the `power` protocol.
         let n = if crate::off::wire::is_poff(req) {
             crate::off::requested(req, from_shell, &mut out_buf)
         } else {
-            route(&mut state, req, from_shell, &mut out_buf)
+            route(&mut state, req, from, &mut out_buf)
         };
         if n > 0 {
             let _ = mk_ipc_reply(sender_pid, out_buf.as_ptr(), n);

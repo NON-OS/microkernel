@@ -16,12 +16,10 @@
 //! One boxed run's receipt, whole: a finished record by a trusted
 //! supervisor whose slot 0 binds this app to this box, and a v5 document
 //! signed by the fixture's AK for this receipt's challenge, in the form a
-//! receipt carries it (its unsigned count and log cleared).
+//! receipt carries it (fixture_bytes.rs).
 
 use agentproof_policy::boxed::hash::box_hash;
 use agentproof_policy::boxed::preset::parse;
-use agentproof_receipt::napr::doc_form::receipt_doc;
-use agentproof_receipt::napr::{challenge, write};
 use agentproof_receipt::seal_slot::slot0;
 use nonos_linux_policy::{app_id, policy_hash, unlisted};
 use nonos_proof_abi::{Record, FLAG_FINAL};
@@ -63,13 +61,5 @@ impl Fixture {
             launcher: [0; 32],
             spec: Spec::default(),
         }
-    }
-
-    pub fn bytes(&mut self) -> Vec<u8> {
-        let rec = self.record.encode();
-        let bound = write::bound(&rec, &self.box_word, &self.policy, &self.launcher);
-        self.spec.challenge = Some(challenge(&bound));
-        let doc = receipt_doc(&self.spec.doc_bytes()).unwrap();
-        write::finish(bound, &doc, &self.spec.entries.concat())
     }
 }

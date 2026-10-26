@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod box_app;
 pub mod box_draw;
 pub mod box_hold;
 pub mod box_log;

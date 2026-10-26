@@ -17,7 +17,7 @@
 //! A supervisor family's seal: noting in it while it lives, and taking it
 //! once the kernel has sealed it, when its last guest left.
 
-use crate::syscall::{call_raw, N_MK_SEAL_NOTE, N_MK_SEAL_READ};
+use crate::syscall::{call_raw, N_MK_SEAL_DROP, N_MK_SEAL_NOTE, N_MK_SEAL_PEEK, N_MK_SEAL_READ};
 
 /// The app a family runs, noted once before its first guest starts.
 pub const SEAL_APP_ID: u64 = 0;
@@ -43,4 +43,16 @@ pub fn mk_seal_read_live(pid: u32, out: &mut [u8]) -> i64 {
 
 pub fn mk_seal_note(slot: u64, word: &[u8; 32]) -> i64 {
     call_raw(N_MK_SEAL_NOTE, [slot, word.as_ptr() as u64, 0, 0, 0, 0])
+}
+
+/// For a receipt: the newest final record sealed for `app_id`, as
+/// mk_seal_read gives it, left sealed until mk_seal_drop takes it.
+pub fn mk_seal_peek(app_id: &[u8; 32], out: &mut [u8]) -> i64 {
+    let args = [app_id.as_ptr() as u64, out.as_mut_ptr() as u64, out.len() as u64, 0, 0, 0];
+    call_raw(N_MK_SEAL_PEEK, args)
+}
+
+/// Drop the one record sealed for `app_id` as `seal_no`: 0, or ENOENT.
+pub fn mk_seal_drop(app_id: &[u8; 32], seal_no: u64) -> i64 {
+    call_raw(N_MK_SEAL_DROP, [app_id.as_ptr() as u64, seal_no, 0, 0, 0, 0])
 }

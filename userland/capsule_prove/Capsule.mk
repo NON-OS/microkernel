@@ -35,7 +35,10 @@ CAPSULE_INSTANCE_ENDPOINTS := service:4952:app.prove.1 reply:4953:endpoint.app.p
 CAPSULE_REQUIRED_CAPS    := 0xC00001879
 # Debug, granted only by a build that compiles `capsule-serial-debug`: the
 # kernel mirror folds it in through serial_debug_cap(), for its [APP] log lines.
-CAPSULE_OPTIONAL_CAPS    := 0x100
+# AttestRead (bit 31), asked for only by a RECEIPT job (job_argv.rs job_caps),
+# for its MkAttestDoc; it also opens MkAttestEntries, MkAcpiMeasured,
+# MkLogTail and other processes' masks in MkProcStat.
+CAPSULE_OPTIONAL_CAPS    := 0x80000100
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_prove
 
 include nonos-mk/capsule.mk

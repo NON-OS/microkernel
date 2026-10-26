@@ -26,7 +26,7 @@
 //! The state here is process wide, as the capsule's own statics are, so a
 //! proof holds `serial()` for its whole run.
 
-mod ipc;
+pub mod ipc;
 mod process;
 mod random;
 mod serial;

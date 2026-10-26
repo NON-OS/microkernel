@@ -18,13 +18,13 @@
 
 use nonos_libc::mk_uptime_ms;
 
-use super::answer::{cancel, err, read};
+use super::answer::{cancel, read};
 use super::lookups::PENDING;
 use super::pending::Look;
 use super::unanswered::say_unanswered;
 use super::verdict::{failure_errno, Found};
 use crate::protocol::dns::{E_OK, E_SERVFAIL, E_TIMEOUT, MAGIC_NDNS, OP_RESOLVE_A};
-use crate::server::respond::reply;
+use crate::server::respond::reply_to;
 use crate::state;
 
 /// Answer every waiting lookup whose answer is in, failed on every server,
@@ -42,7 +42,7 @@ pub fn settle(tx: &mut [u8]) {
         cancel(&mut w.query);
         match found {
             Some(Found::Address(ip)) => {
-                let _ = reply(w.pid, MAGIC_NDNS, OP_RESOLVE_A, E_OK, w.request_id, &ip, tx);
+                let _ = reply_to(w.ipc, (MAGIC_NDNS, OP_RESOLVE_A), E_OK, w.request_id, &ip, tx);
             }
             // A socket set replaced since the lookup started counts as a
             // server that failed it.
@@ -51,17 +51,23 @@ pub fn settle(tx: &mut [u8]) {
                 if errno == E_TIMEOUT {
                     say_unanswered(now);
                 }
-                err(w.pid, w.request_id, errno, tx)
+                err_to(w.ipc, w.request_id, errno, tx)
             }
         }
         Look::Answered
     });
 }
 
-/// Answer the lookup `pid` gave up waiting on before anything answers its new
-/// call: the kernel hands a caller's replies to its calls in order.
+/// End the lookup `pid` gave up waiting on before its new call is served:
+/// its slot is freed, and the answer goes by its own id, which the kernel
+/// refuses (ETIMEDOUT) as that call gave up, so the new call never gets it.
 pub fn settle_for(pid: u32, tx: &mut [u8]) {
     let Some(mut w) = PENDING.lock().take_for(pid) else { return };
     cancel(&mut w.query);
-    err(w.pid, w.request_id, E_SERVFAIL, tx);
+    err_to(w.ipc, w.request_id, E_SERVFAIL, tx);
+}
+
+/// A failed lookup's answer, by its own call's id.
+fn err_to(ipc: u64, request_id: u32, errno: u16, tx: &mut [u8]) {
+    let _ = reply_to(ipc, (MAGIC_NDNS, OP_RESOLVE_A), errno, request_id, &[], tx);
 }

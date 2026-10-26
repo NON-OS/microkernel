@@ -11,14 +11,16 @@ the ports.
 
 | Tag | Number | Name | Capability | Gate | Meaning |
 |---|---|---|---|---|---|
-| `MISD` | `0x4453494D` | `MkIpcSend` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:46` | Send a message to the endpoint a port number names. |
-| `MIRC` | `0x4352494D` | `MkIpcRecv` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:46` | Receive from the caller's own inbox (endpoint 0) or an endpoint it owns; a timeout of 0 waits for ever. |
-| `MICL` | `0x4C43494D` | `MkIpcCall` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:46` | Send a request and wait for the reply that carries its correlation token. |
-| `MIRF` | `0x4652494D` | `MkIpcRecvFrom` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:46` | Receive as `MIRC` does, and also write the sender's pid. |
-| `MIRY` | `0x5952494D` | `MkIpcReply` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:46` | Answer a caller whose `MICL` this server took. |
-| `MISP` | `0x5053494D` | `MkIpcSendToPid` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:46` | Send straight to a process's own `proc.<pid>` inbox. |
-| `MSVL` | `0x4C56534D` | `MkServiceLookup` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:46` | Resolve a service name to its port and owning pid. |
-| `MSVR` | `0x5256534D` | `MkServiceRegister` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:46` | Register a service name on a port; few names may be claimed at run time. |
+| `MISD` | `0x4453494D` | `MkIpcSend` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:48` | Send a message to the endpoint a port number names. |
+| `MIRC` | `0x4352494D` | `MkIpcRecv` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:48` | Receive from the caller's own inbox (endpoint 0) or an endpoint it owns; a timeout of 0 waits for ever. |
+| `MICL` | `0x4C43494D` | `MkIpcCall` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:48` | Send a request and wait for the reply that carries its correlation token. |
+| `MIRF` | `0x4652494D` | `MkIpcRecvFrom` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:48` | Receive as `MIRC` does, and also write the sender's pid. |
+| `MIRY` | `0x5952494D` | `MkIpcReply` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:48` | Answer a caller whose `MICL` this server took. |
+| `MIRQ` | `0x5152494D` | `MkIpcRecvReq` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:48` | Receive as `MIRF` does, and write the request's meta v1: sender, when queued, and the id `MIRT` answers it by. |
+| `MIRT` | `0x5452494D` | `MkIpcReplyTo` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:48` | Answer the request `MIRQ` named, and only that one; a second answer is `ENOENT`. |
+| `MISP` | `0x5053494D` | `MkIpcSendToPid` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:48` | Send straight to a process's own `proc.<pid>` inbox. |
+| `MSVL` | `0x4C56534D` | `MkServiceLookup` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:48` | Resolve a service name to its port and owning pid. |
+| `MSVR` | `0x5256534D` | `MkServiceRegister` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:48` | Register a service name on a port; few names may be claimed at run time. |
 
 ### Processes, memory and time
 
@@ -53,11 +55,11 @@ the ports.
 | Tag | Number | Name | Capability | Gate | Meaning |
 |---|---|---|---|---|---|
 | `MPST` | `0x5453504D` | `MkProcStat` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | Read the process table; redacted unless the caller holds AttestRead or ProcessControl. |
-| `MOUT` | `0x54554F4D` | `MkProcOutput` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:32` | Drain one line a child wrote to its `proc.<pid>` inbox. |
+| `MOUT` | `0x54554F4D` | `MkProcOutput` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:32` | Drain one line a child wrote to its `stdout.<pid>` inbox. |
 | `MPIN` | `0x4E49504D` | `MkProcInput` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:33` | Feed one message to a child's `stdin.<pid>` inbox. |
 | `MSRD` | `0x4452534D` | `MkStdinRead` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:34` | Read the caller's own stdin. |
-| `MSOW` | `0x574F534D` | `MkStdoutWrite` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_device.rs:41` | Program stdout, to the caller's own `proc.<pid>` inbox. |
+| `MSOW` | `0x574F534D` | `MkStdoutWrite` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_device.rs:41` | Program stdout, to the caller's own `stdout.<pid>` inbox. |
 | `MPVW` | `0x5756504D` | `MkPrivateWrite` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_device.rs:41` | Output only the caller's launcher reads, never the serial line. |
 | `MTTY` | `0x5954544D` | `MkTtySet` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_surface.rs:50` | Say which of a child's streams reach a terminal, and its size. |
 | `MTTQ` | `0x5154544D` | `MkTtyQuery` | none | `true` `src/syscall/contract/cap_table/mk_surface.rs:51` | Ask whether stdin, stdout or stderr is on a terminal, and its size; else `ENOTTY`. |
-| `MDBG` | `0x4742444D` | `MkDebug` | Debug | `can_debug` `src/syscall/contract/cap_table/mk_device.rs:40` | Write one diagnostic line of up to 256 bytes to the boot serial. |
+| `MDBG` | `0x4742444D` | `MkDebug` | Debug | `can_debug` `src/syscall/contract/cap_table/mk_device.rs:40` | Write one diagnostic line of up to 256 bytes to the boot serial, and to the caller's own `stdout.<pid>` inbox. |

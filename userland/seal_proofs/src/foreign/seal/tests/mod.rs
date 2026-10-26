@@ -16,6 +16,8 @@
 
 mod calls_tests;
 mod commit_tests;
+mod drop_tests;
+mod keep_tests;
 mod family_tests;
 mod fixture;
 mod live_tests;

@@ -37,6 +37,7 @@ pub mod mask;
 mod policy;
 mod syscall_set;
 mod unlisted;
+#[cfg(feature = "vendor")]
 pub mod vendor;
 
 pub use bucket::{bucket, BUCKETS};

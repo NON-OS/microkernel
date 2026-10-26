@@ -17,14 +17,15 @@
 //! A headless AgentProof run: no window. Once vfs answers, it reads the job
 //! the image holds, runs it as the Terminal runs a typed line, copies what
 //! the screen showed to the serial log, and exits. The box's own `[BOX]` or
-//! `[BOX-MISSING]` line is written by the Terminal's code, as at any run.
+//! `[BOX-MISSING]` line is written by the Terminal's code, as at any run, and
+//! the run's receipt is asked for and logged (receipt.rs).
 //! Built only with `agentproof-headless`, which only a Gauntlet image turns
 //! on (scripts/check_copy_only_features.py).
 
 use nonos_app_skeleton::clients::vfs::read_file;
-use nonos_libc::{heap_init, mk_exit, mk_uptime_ms, mk_yield, HeapError};
+use nonos_libc::{heap_init, mk_uptime_ms, mk_yield, HeapError};
 
-use super::dump::{dump, say};
+use super::dump::{done, dump, lossy, say};
 use super::job::{line_of, JOB_MAX, JOB_PATH};
 use crate::jobs::{self, JobState};
 use crate::term::state::State;
@@ -50,13 +51,9 @@ pub fn main() -> ! {
             Err(_) => done(b"[AGENTPROOF] v=1 status=error why=no-job\n", 2),
         }
     };
-    let line = match line_of(&job) {
-        Ok(line) => line,
-        Err(why) => {
-            say(&alloc::format!("[AGENTPROOF] v=1 status=refused why={why}\n"));
-            mk_exit(2)
-        }
-    };
+    let line = line_of(&job).unwrap_or_else(|why| {
+        done(alloc::format!("[AGENTPROOF] v=1 status=refused why={why}\n").as_bytes(), 2)
+    });
     say(&alloc::format!("[AGENTPROOF] v=1 status=running line={}\n", lossy(&line)));
     state.line.replace(&line);
     let _ = crate::event::on_enter(&mut state);
@@ -70,16 +67,7 @@ pub fn main() -> ! {
         let _ = mk_yield();
     }
     dump(&mut state);
-    let line = alloc::format!("[AGENTPROOF] v=1 status=done exit={}\n", state.last_status);
-    say(&line);
-    mk_exit(0)
-}
-
-fn lossy(b: &[u8]) -> alloc::string::String {
-    alloc::string::String::from_utf8_lossy(b).into_owned()
-}
-
-fn done(line: &[u8], code: i32) -> ! {
-    say(&lossy(line));
-    mk_exit(code)
+    // `linux --box <box> ...`: the receipt is of the run in that box.
+    say(&super::receipt::said(line.split(|b| *b == b' ').nth(2).unwrap_or_default()));
+    done(alloc::format!("[AGENTPROOF] v=1 status=done exit={}\n", state.last_status).as_bytes(), 0)
 }
