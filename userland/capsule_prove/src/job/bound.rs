@@ -36,3 +36,10 @@ pub fn parse(a: &[Vec<u8>]) -> Option<(u16, u32)> {
     let pid = core::str::from_utf8(a.get(at + 2)?).ok()?.parse::<u32>().ok()?;
     (pid != 0).then_some((op, pid))
 }
+
+/// Whether argv, NUL separated as the kernel hands it over, names a receipt
+/// job: the word after the first JOB_ARG, as parse reads it, without a heap.
+pub fn receipt(argv: &[u8]) -> bool {
+    let mut words = argv.split(|&b| b == 0).skip_while(|w| *w != JOB_ARG).skip(1);
+    words.next() == Some(b"receipt".as_slice())
+}

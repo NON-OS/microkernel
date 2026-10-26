@@ -22,6 +22,8 @@ use crate::syscall::{call_raw, N_MK_PROVE_JOB};
 pub const PROVE_JOB_PROVE: u64 = 1;
 /// DELIVER, a vendor supervisor's: one served request, attested.
 pub const PROVE_JOB_DELIVER: u64 = 2;
+/// RECEIPT, a launcher's: the receipt of a boxed run it started (letter agent-02).
+pub const PROVE_JOB_RECEIPT: u64 = 3;
 
 /// Ask init for nonos.prove on app.prove.job, bound to this caller: 0, or
 /// EBUSY while one is asked for, a prover runs, or the DELIVER rate holds,
