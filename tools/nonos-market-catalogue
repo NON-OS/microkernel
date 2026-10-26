@@ -75,7 +75,9 @@ KALI_SUITE = "kali-rolling"
 KALI_KEY = Path("userland/capsule_linux/keys/kali/archive-key-2025.asc")
 # 3: every entry carries a commerce block and every release the fields
 # that sell it, all under the publisher's v3 signature.
-SCHEMA = 3
+# 4: every entry also carries its logo's BLAKE3, zero for none, under the
+# operator's index signature (HANDOFF/catalogue/logos-design.md).
+SCHEMA = 4
 
 # Capsules that are not applications. A driver or a transport is part of
 # the system, cannot be installed or removed by a user, and listing one

@@ -19,6 +19,7 @@ let
     "scripts/check_unenforced.py"
     "scripts/gate.py"
     "scripts/unenforced_scan.py"
+    "scripts/unreachable_mounts.py"
     "scripts/unreachable_scan.py"
   ];
 

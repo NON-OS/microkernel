@@ -14,62 +14,86 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """The files a target compiles: its root and every file a `mod x;`, a
-#[path] or an include! reaches from it, as rustc resolves them."""
+#[path] or an include! reaches from it, as rustc resolves them.
+
+A file is read with the module directory it sits in: `dir`, and `stem` for
+a plain x.rs, whose children live in x/ (rustc's relative offset). An inline
+`mod m { .. }` moves its body to dir/stem/m, or, under #[path = "p"], to
+dir/p with the offset dropped; a #[path] on `mod x;` is taken from dir.
+rustc reads a #[path] file, and an include!d one whatever module includes
+it, as a mod.rs in its own directory. A `mod x;` with a #[cfg_attr(.., path
+= ..)] reaches each file it names, and its own x.rs too when no plain
+#[path] overrides that: the walk does not judge cfgs."""
 
 import posixpath
 import re
 
 from .tree import join
 
-DECL = re.compile(r"[ \t]*((?:#\[[^\]]*\][ \t]*)*)(?:pub(?:\([^)]*\))?[ \t]+)?mod[ \t]+(?:r#)?(\w+)[ \t]*;")
-PATH = re.compile(r'#\[[ \t]*(?:cfg_attr[ \t]*\(.*?,[ \t]*)?path[ \t]*=[ \t]*"([^"]+)"')
-INCLUDE = re.compile(r'\binclude!\s*\(\s*"([^"]+\.rs)"\s*\)')
+# Comments and literals first, so a brace or a `mod` inside one is skipped.
+# A comment between attributes ends at its newline, so matching stays linear.
+TOKEN = re.compile(
+    r"//[^\n]*|/\*.*?\*/|\bb?r(#*)\".*?\"\1|\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\\n])'"
+    r'|\binclude!\s*\(\s*"(?P<inc>[^"]+\.rs)"\s*\)'
+    r"|(?P<attrs>(?:#\[[^\]]*\]\s*(?://[^\n]*\n\s*)*)*)(?:\bpub(?:\([^)]*\))?\s+)?\bmod\s+(?:r#)?"
+    r"(?P<name>\w+)\s*(?P<end>[;{])|(?P<open>\{)|(?P<close>\})", re.S)
+PATH = re.compile(r'#\[[ \t]*(cfg_attr[ \t]*\(.*?,[ \t]*)?path[ \t]*=[ \t]*"([^"]+)"')
 
 
-def declared(text):
-    """(#[path] or None, name) for each `mod name;`. Its attributes are those on
-    its own line and on the attribute lines straight above it, comments between."""
-    lines = text.split("\n")
-    out = []
-    for n, line in enumerate(lines):
-        m = DECL.match(line) if "mod" in line else None
-        if not m:
-            continue
-        attrs, k = m[1], n
-        while k > 0 and lines[k - 1].lstrip().startswith(("#[", "//")):
-            k -= 1
-            attrs += "" if lines[k].lstrip().startswith("//") else lines[k]
-        p = PATH.search(attrs)
-        out.append((p[1] if p else None, m[2]))
-    return out
+def alone(f):
+    """f, read as a mod.rs in its own directory."""
+    return (f, (posixpath.dirname(f) or ".", None))
 
 
-def children(tree, f, owns):
-    """The files f's declarations name. A crate root, a mod.rs or a #[path]
-    file holds its children beside it; any other x.rs holds them in x/."""
-    if (f, owns) not in tree.edges:
-        here = posixpath.dirname(f) or "."
-        base = here if owns else join(here, posixpath.splitext(posixpath.basename(f))[0])
-        kids = []
-        text = tree.text(f)
-        for path, name in declared(text):
-            if path:
-                kids.append((join(here, path), True))
-                continue
-            flat = join(base, f"{name}.rs")
-            kids.append((flat, False) if flat in tree.files else (join(base, f"{name}/mod.rs"), True))
-        kids += [(join(here, p), owns) for p in ("include!" in text and INCLUDE.findall(text) or [])]
-        tree.edges[(f, owns)] = kids
-    return tree.edges[(f, owns)]
+def inside(at, name, path):
+    """The module directory of an inline `mod name { .. }` read at `at`."""
+    d, stem = at
+    if path:
+        return (join(d, path), None)
+    return (join(join(d, stem) if stem else d, name), None)
+
+
+def beside(tree, at, name):
+    """The file of a `mod name;` with no #[path]: name.rs, else name/mod.rs."""
+    d, stem = at
+    base = join(d, stem) if stem else d
+    flat = join(base, f"{name}.rs")
+    if flat in tree.files:
+        return (flat, (base, name))
+    return (join(base, f"{name}/mod.rs"), (join(base, name), None))
+
+
+def children(tree, f, at):
+    """(file, directory) for each file f's declarations and include!s reach."""
+    if (f, at) not in tree.edges:
+        here, kids, stack = posixpath.dirname(f) or ".", [], [at]
+        for m in TOKEN.finditer(tree.text(f)):
+            cur = stack[-1]
+            if m["inc"]:
+                kids.append(alone(join(here, m["inc"])))
+            elif m["open"]:
+                stack.append(cur)
+            elif m["close"]:
+                stack.pop() if len(stack) > 1 else None
+            elif m["end"]:
+                paths = PATH.findall(m["attrs"])
+                plain = [p for cfg, p in paths if not cfg]
+                if m["end"] == "{":
+                    stack.append(inside(cur, m["name"], plain[0] if plain else None))
+                    continue
+                kids += [alone(join(cur[0], p)) for _, p in paths]
+                kids += [] if plain else [beside(tree, cur, m["name"])]
+        tree.edges[(f, at)] = kids
+    return tree.edges[(f, at)]
 
 
 def reach(tree, roots):
     """Every file in the tree the roots' module trees reach."""
-    seen, queue = set(), [(r, True) for r in roots]
+    seen, queue = set(), [alone(r) for r in roots]
     while queue:
-        f, owns = queue.pop()
-        if (f, owns) in seen or f not in tree.files:
+        f, at = queue.pop()
+        if (f, at) in seen or f not in tree.files:
             continue
-        seen.add((f, owns))
-        queue.extend(children(tree, f, owns))
+        seen.add((f, at))
+        queue.extend(children(tree, f, at))
     return {f for f, _ in seen}
