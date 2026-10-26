@@ -18,15 +18,6 @@ use super::keygen::generate_keypair;
 use super::{AffinePoint, PublicKey, Scalar, SecretKey, Signature};
 use crate::crypto::error::CryptoResult;
 
-pub fn public_key_from_secret(sk: &SecretKey) -> Option<PublicKey> {
-    let scalar = Scalar::from_bytes(sk)?;
-    if scalar.is_zero() {
-        return None;
-    }
-    let point = AffinePoint::generator().to_projective().mul(&scalar).to_affine();
-    Some(point.to_uncompressed())
-}
-
 fn rfc6979_generate_k(sk: &[u8; 32], message_hash: &[u8; 32]) -> Option<Scalar> {
     let mut v = [0x01u8; 32];
     let mut k = [0x00u8; 32];

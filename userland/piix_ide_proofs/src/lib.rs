@@ -44,12 +44,12 @@ pub mod server;
 pub mod setup;
 #[path = "../../capsule_driver_piix_ide/src/wait.rs"]
 pub mod wait;
-#[allow(dead_code, unused_imports)]
 #[path = "../../capsule_driver_piix_ide/src/wire/mod.rs"]
 pub mod wire;
 
 /// The kernel's listing of compatibility-mode channels, with the broker
-/// types it names.
+/// types it names: the tests' alone.
+#[cfg(test)]
 pub mod hardware;
 pub mod model;
 

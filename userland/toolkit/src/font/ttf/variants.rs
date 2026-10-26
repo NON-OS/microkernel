@@ -18,7 +18,7 @@ use ab_glyph::Font;
 
 use super::draw::draw_text_tracked;
 use super::face::face;
-use super::readable::readable_px;
+use super::readable::readable_px_for;
 
 /* Same rendering with a caller-provided face, so text can draw in a font
  * loaded at runtime, such as a page's web font. */
@@ -52,7 +52,7 @@ pub fn draw_text_spaced(
     mono: bool,
     spacing: f32,
 ) -> i32 {
-    let px = readable_px(px);
+    let px = readable_px_for(px, mono);
     let Some(f) = face(mono) else { return x };
     draw_text_tracked(f, buf, stride, w, h, x, top_y, text, argb, px, spacing)
 }
