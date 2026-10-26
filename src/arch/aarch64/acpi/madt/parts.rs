@@ -39,18 +39,18 @@ pub struct Its {
     pub base: u64,
 }
 
-pub const GICD_LEN: usize = 24;
-pub const GICR_LEN: usize = 16;
-pub const ITS_LEN: usize = 20;
+pub(crate) const GICD_LEN: usize = 24;
+pub(crate) const GICR_LEN: usize = 16;
+pub(crate) const ITS_LEN: usize = 20;
 
-pub fn gicd(s: &[u8]) -> Option<Gicd> {
+pub(crate) fn gicd(s: &[u8]) -> Option<Gicd> {
     Some(Gicd { id: u32_at(s, 4)?, base: u64_at(s, 8)?, version: u8_at(s, 20)? })
 }
 
-pub fn gicr(s: &[u8]) -> Option<Gicr> {
+pub(crate) fn gicr(s: &[u8]) -> Option<Gicr> {
     Some(Gicr { base: u64_at(s, 4)?, length: u32_at(s, 12)? })
 }
 
-pub fn its(s: &[u8]) -> Option<Its> {
+pub(crate) fn its(s: &[u8]) -> Option<Its> {
     Some(Its { id: u32_at(s, 4)?, base: u64_at(s, 8)? })
 }

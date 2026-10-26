@@ -173,6 +173,16 @@ The Proofs headline is one of six sentences:
 
 A part that could not be read is shown as unknown, never as a pass. About writes nothing and asks no network anything.
 
+## Type
+
+The desktop sets text in the brand's two faces, from nonos.software/brand. Both are under the SIL Open Font License 1.1.
+
+- Geist for everything people read, and Geist Medium for titles and the focused app's name.
+- JetBrains Mono for data: hashes, addresses, versions, sizes and paths.
+- A character Geist lacks, such as the wider Latin or Greek, is drawn from Noto Sans. A sign or arrow neither of those has comes from JetBrains Mono, not as a box.
+- Nothing is drawn smaller than 14 px, except mono labels, which may go down to 12. Text asked for at a smaller size is drawn at that floor. The text-size setting scales every size together, the floor included. Settings has no row for it yet.
+- The Terminal draws through the same faces and floor.
+
 ## What draws the screen
 
 Three capsules make the desktop, and every pixel reaches the display through the compositor.
@@ -218,6 +228,10 @@ The code behind each section, at the commit in the footer.
 - Desktop icons
   - The desk lists the home folder: `HOME` in `userland/capsule_desktop_shell/src/server/desktop/home.rs:28`.
   - A folder goes with everything in it: `RECURSIVE` in `userland/capsule_desktop_shell/src/vfs_client/remove.rs:29-31`.
+- Type
+  - The faces: `BODY`, `BOLD`, `MONO` and `WIDE` in `userland/toolkit/src/font/ttf/face.rs`.
+  - The order a missing character is looked for in: `face_for` in `userland/toolkit/src/font/ttf/fallback.rs`.
+  - The floors: `MIN_UI_PX` and `MIN_MONO_PX` in `userland/toolkit/src/font/ttf/readable.rs`.
 - Windows
   - The three title bar buttons: `DecorationHit` in `userland/toolkit/src/decorations/hit_test.rs:22-31`.
   - A resize applied on release: `ResizeTo` in `userland/app_skeleton/src/runner/drag.rs:133-140`.

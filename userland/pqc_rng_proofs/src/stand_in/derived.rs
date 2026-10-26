@@ -19,13 +19,11 @@
 
 use super::next;
 
-#[allow(clippy::result_unit_err)]
-pub fn random_u32_secure() -> Result<u32, ()> {
+pub(crate) fn random_u32_secure() -> Result<u32, ()> {
     Ok(next()? as u32)
 }
 
-#[allow(clippy::result_unit_err)]
-pub fn random_range_secure(n: u32) -> Result<u32, ()> {
+pub(crate) fn random_range_secure(n: u32) -> Result<u32, ()> {
     if n <= 1 {
         return Ok(0);
     }

@@ -21,7 +21,8 @@
 use crate::contexts::{isoch_interval, SPEED_HIGH};
 
 const SPEED_FULL: u8 = 1;
-use crate::controller::{burst_fields, isoch_endpoint};
+use crate::controller::isoch::burst::burst_fields;
+use crate::controller::isoch_endpoint;
 
 #[test]
 fn below_superspeed_a_td_counts_packets_not_bursts() {

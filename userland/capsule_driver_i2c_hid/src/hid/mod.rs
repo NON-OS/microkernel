@@ -16,7 +16,7 @@
 
 mod descriptor;
 mod input_len;
-mod input_mode;
+pub(crate) mod input_mode;
 mod input_register;
 mod power;
 mod probe;

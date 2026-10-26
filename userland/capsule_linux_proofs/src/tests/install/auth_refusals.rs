@@ -48,10 +48,10 @@ fn an_index_signed_under_a_key_not_trusted_here_is_refused() {
 #[test]
 fn a_package_is_refused_on_any_mismatch() {
     let sum = record();
-    assert!(verified(APK, &flipped(&sum, 0).try_into().unwrap()).is_none());
-    assert!(verified(&flipped(APK, APK.len() - 12), &sum).is_none());
+    assert!(verified(APK, &flipped(&sum, 0).try_into().unwrap()).is_err());
+    assert!(verified(&flipped(APK, APK.len() - 12), &sum).is_err());
     // Honest control, other data: only the datahash can catch this one.
-    assert!(verified(SWAPPED, &sum).is_none());
+    assert!(verified(SWAPPED, &sum).is_err());
 }
 
 #[test]

@@ -31,15 +31,21 @@ pub mod driver_grants;
 pub mod elf;
 pub mod fb_frame;
 pub mod fs;
+#[cfg(test)]
 pub mod hardware;
 #[cfg(test)]
 pub mod idt_vectors;
 #[cfg(test)]
 pub mod iommu_command;
+#[cfg(kani)]
+mod kani_proofs;
 pub mod memory;
 pub mod pci_quirk_bits;
 #[cfg(test)]
 pub mod process;
+/// The test groups, named at the root with what they share (proofs.rs).
+#[cfg(test)]
+mod proofs;
 pub mod security;
 /// Which registered services take Network to reach.
 #[path = "../../../src/services/registry/policy.rs"]
@@ -49,16 +55,11 @@ pub mod services;
 pub mod setup_outcome;
 pub mod store_copy_span;
 pub mod store_errno;
-#[cfg(kani)]
-mod kani_proofs;
-/// The test groups, named at the root with what they share (proofs.rs).
-#[cfg(test)]
-mod proofs;
 #[cfg(test)]
 pub use proofs::*;
+mod mmap_masked;
 #[cfg(test)]
 mod registry_support;
-mod mmap_masked;
 pub mod spec;
 pub mod sys;
 pub mod syscall;

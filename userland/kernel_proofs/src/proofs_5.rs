@@ -32,7 +32,6 @@ pub mod acpi_sleep;
 #[path = "acpi_tables/mod.rs"]
 pub mod acpi_tables;
 #[path = "../../../src/arch/aarch64/acpi/mod.rs"]
-#[allow(dead_code)] // the proofs read what an Arm machine's tables give
 pub mod arm_acpi;
 #[path = "arm_acpi_tests/mod.rs"]
 pub mod arm_acpi_tests;

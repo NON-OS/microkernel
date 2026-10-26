@@ -31,7 +31,7 @@ const TRAILER: usize = 8;
 pub(super) fn member(d: &[u8], cap: usize) -> Inflated {
     let start = match body_at(d) {
         Ok(s) => s,
-        Err(end) => return Inflated { out: Vec::new(), end, used: 0 },
+        Err(end) => return Inflated { out: Vec::new(), end, used: 0, short: None },
     };
     let mut r = run(&d[start..], cap, size_hint(d));
     r.used += start;
