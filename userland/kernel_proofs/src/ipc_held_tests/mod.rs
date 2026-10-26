@@ -20,6 +20,8 @@
 //! `a_send_by_pid_takes_the_network_gate` and `a_card_refuses_an_app` fail
 //! there.
 
+#[path = "../../../../src/services/registry/display_hints.rs"]
+mod display_hints;
 #[path = "../../../../src/services/registry/held.rs"]
 mod held;
 #[path = "../../../../src/services/registry/addressed.rs"]

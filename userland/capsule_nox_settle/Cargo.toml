@@ -4,7 +4,8 @@
 # The chain's reader and broadcaster (plan/26): views from a fixed table,
 # intents checked against a fixed kind table and quoted, release bytes
 # fetched and verified, signed transactions sent. No key. Every connection
-# goes over Route::for_wallet(), never Direct.
+# goes over Route::for_wallet(), never Direct; a devnet build, below, dials
+# the local test chain alone directly.
 
 [package]
 name = "nonos_capsule_nox_settle"
@@ -18,6 +19,12 @@ description = "NONOS nox_settle: reads the chain and broadcasts for the meter an
 [[bin]]
 name = "nox_settle"
 path = "src/main.rs"
+
+[features]
+# The local test chain (P5): its id, its RPC dialled directly, and the
+# throwaway root its TLS proxy's certificate chains to. Only the development
+# capsule set turns it on (CAPSULE_DEV_CARGO_FEATURES).
+devnet = ["nonos_nox_config/devnet", "nonos_route_link/devnet", "nonos_tls/devnet"]
 
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
