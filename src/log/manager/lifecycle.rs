@@ -28,11 +28,12 @@ pub fn init() {
         mgr.add_backend(alloc::boxed::Box::new(crate::log::backend::VgaBackend));
         mgr
     };
-    // The attack suite's boot reads the kernel's refusals off the serial line.
-    #[cfg(feature = "nonos-capsule-attack")]
+    // The attack suite's boot, and every image that shows capsule output on
+    // serial, read the kernel's refusals there, budgeted (backend/serial.rs).
+    #[cfg(any(feature = "nonos-capsule-attack", feature = "capsule-serial-debug"))]
     let mgr = {
         let mut mgr = mgr;
-        mgr.add_backend(alloc::boxed::Box::new(crate::log::backend::SerialBackend));
+        mgr.add_backend(alloc::boxed::Box::new(crate::log::backend::SerialBackend::new()));
         mgr
     };
     *l = Some(mgr);

@@ -16,6 +16,7 @@
 
 use super::types::DebugInfo;
 use crate::interrupts::handlers::exceptions::context::ExceptionContext;
+use crate::security::observability::redact::redact_address;
 
 pub(crate) fn handle_hardware_breakpoint(ctx: &ExceptionContext, info: &DebugInfo) {
     let bp_num = if info.breakpoint_0 {
@@ -28,8 +29,8 @@ pub(crate) fn handle_hardware_breakpoint(ctx: &ExceptionContext, info: &DebugInf
         3
     };
     crate::log::logger::log_debug!(
-        "Hardware breakpoint {} at rip={:#x}",
+        "Hardware breakpoint {} at rip={}",
         bp_num,
-        ctx.instruction_pointer
+        redact_address(ctx.instruction_pointer)
     );
 }
