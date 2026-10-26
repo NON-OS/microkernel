@@ -24,11 +24,9 @@ impl Table {
         F: FnOnce(&mut Socket) -> R,
     {
         let mut g = self.inner.lock();
-        for slot in g.iter_mut() {
-            if let Some(s) = slot {
-                if s.key.handle == key.handle && s.key.pid == key.pid {
-                    return Some(f(s));
-                }
+        for s in g.iter_mut().flatten() {
+            if s.key.handle == key.handle && s.key.pid == key.pid {
+                return Some(f(s));
             }
         }
         None
