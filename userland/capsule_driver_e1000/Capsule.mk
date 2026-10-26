@@ -21,6 +21,11 @@ CAPSULE_REPLY_ENDPOINT   := reply:4211:endpoint.4294967308
 # is drawn rather than read out of the EEPROM, and that draw fails closed, so
 # without this the card has no address to transmit under.
 CAPSULE_REQUIRED_CAPS    := 0xB8038
+# Debug, granted only by a build that compiles `capsule-serial-debug` (the
+# development images): the kernel mirror folds it in through
+# serial_debug_cap(), so the driver's own lines reach the console there and
+# nowhere else.
+CAPSULE_OPTIONAL_CAPS    := 0x100
 CAPSULE_KERNEL_MIRROR    := src/hardware/e1000_capsule
 
 include nonos-mk/capsule.mk
