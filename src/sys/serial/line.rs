@@ -97,13 +97,22 @@ impl Line {
         self
     }
 
+    /// As `hex`, in lower case, for the lines that have always printed so.
+    pub fn hex_lower(&mut self, val: u64) -> &mut Self {
+        const HEX: &[u8] = b"0123456789abcdef";
+        self.str(b"0x");
+        for i in (0..16).rev() {
+            self.push(HEX[((val >> (i * 4)) & 0xF) as usize]);
+        }
+        self
+    }
+
     /// Emit the line, one lock acquisition, one newline.
     pub fn end(&self) {
         line(&self.buf[..self.len]);
     }
 }
 
-#[cfg(target_arch = "aarch64")]
 impl Line {
     /// Emit the line from a path that will never return, without waiting on a
     /// lock that may never be released. See `core::write_fatal_line`.

@@ -26,13 +26,12 @@ const TITLE: &[u8] = b"NONOS BOOT STOPPED";
 const HINT: &[u8] = b"Photograph this screen. The serial log has the rest.";
 
 pub fn stop(step: &str, detail: &str) -> ! {
-    serial::print(b"[FATAL] ");
-    serial::print_str(step);
+    let mut l = serial::Line::new();
+    l.str(b"[FATAL] ").str(step.as_bytes());
     if !detail.is_empty() {
-        serial::print(b": ");
-        serial::print_str(detail);
+        l.str(b": ").str(detail.as_bytes());
     }
-    serial::println(b"");
+    l.end_fatal();
     if detail.is_empty() {
         boot_log::show_notice(TITLE, &[step.as_bytes(), HINT]);
     } else {

@@ -30,6 +30,15 @@ mod print {
     }
 }
 
+/// The fatal writer's port side, which line.rs's end_fatal hands to; its
+/// rule is fatal.rs's, proved in fatal_tests.rs.
+#[cfg(test)]
+mod core {
+    pub fn write_fatal_line(s: &[u8]) {
+        super::print::line(s);
+    }
+}
+
 #[cfg(test)]
 #[allow(dead_code)]
 #[path = "../../../../src/sys/serial/line.rs"]
@@ -40,6 +49,12 @@ mod line;
 mod column;
 
 #[cfg(test)]
+#[path = "../../../../src/sys/serial/fatal.rs"]
+mod fatal;
+
+#[cfg(test)]
 mod column_tests;
+#[cfg(test)]
+mod fatal_tests;
 #[cfg(test)]
 mod tests;
