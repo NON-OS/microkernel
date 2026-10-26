@@ -15,16 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::globals::{PAGING_MANAGER, PAGING_STATS};
+use crate::arch::run_without_interrupts as without_interrupts;
 use crate::memory::addr::VirtAddr;
 use crate::memory::paging::error::PagingResult;
 use crate::smp::lock_responsive;
 
 pub fn handle_page_fault(virtual_addr: VirtAddr, error_code: u64) -> PagingResult<()> {
-    let flush = lock_responsive(&PAGING_MANAGER).handle_page_fault(
-        virtual_addr,
-        error_code,
-        &PAGING_STATS,
-    )?;
+    let flush = without_interrupts(|| {
+        let mut manager = lock_responsive(&PAGING_MANAGER);
+        manager.handle_page_fault(virtual_addr, error_code, &PAGING_STATS)
+    })?;
     /*
      * After the lock: a copy-on-write resolution replaces a present entry and
      * owes a remote flush; a demand fill owes none.

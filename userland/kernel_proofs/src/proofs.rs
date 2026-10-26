@@ -37,6 +37,8 @@ pub mod proofs_6;
 pub mod proofs_7;
 #[path = "proofs_8.rs"]
 pub mod proofs_8;
+#[path = "proofs_9.rs"]
+pub mod proofs_9;
 
 pub use proofs_1::amd_vi;
 pub use proofs_2::{iommu_window, mmio_window};

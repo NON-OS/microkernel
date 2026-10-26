@@ -24,3 +24,4 @@ mod switch;
 mod teardown;
 
 pub(in crate::memory::paging::manager) use cleanup::free_taken;
+pub(in crate::memory::paging::manager) use switch::load_root;
