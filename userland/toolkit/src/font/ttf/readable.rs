@@ -14,12 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// The smallest em size the built-in UI faces are ever drawn or measured at. No
-// chrome text should be smaller than this, so nothing renders unreadable on a
-// high-resolution panel. Draw and measure clamp through the same function, so a
-// clamped size stays self-consistent and layout never drifts from what is drawn.
-// Web/page fonts pass their own faces and are deliberately not clamped here.
-pub const MIN_UI_PX: f32 = 17.0;
+/*
+ * The least the built-in faces are drawn or measured at (HANDOFF/ui/identity.md,
+ * Type): nothing under 12, and only the mono face, which `type.label` is set
+ * in, under 14. Below that a face renders unreadable on a high-resolution
+ * panel. Draw and measure clamp through the same function, so a clamped size
+ * stays self-consistent and layout never drifts from what is drawn. Web and
+ * page fonts pass their own faces and are deliberately not clamped here.
+ */
+pub const MIN_UI_PX: f32 = 14.0;
+pub const MIN_MONO_PX: f32 = 12.0;
 
 /*
  * The floor is applied first and then the whole thing is scaled, so the chosen
@@ -31,7 +35,12 @@ pub const MIN_UI_PX: f32 = 17.0;
  * so nothing is unreadable by accident, and someone who picks Tiny has not
  * chosen it by accident.
  */
+pub fn readable_px_for(px: f32, mono: bool) -> f32 {
+    let floor = if mono { MIN_MONO_PX } else { MIN_UI_PX };
+    super::text_scale::apply(if px < floor { floor } else { px })
+}
+
+/// The proportional face's size: for line metrics, which are the text face's.
 pub fn readable_px(px: f32) -> f32 {
-    let floored = if px < MIN_UI_PX { MIN_UI_PX } else { px };
-    super::text_scale::apply(floored)
+    readable_px_for(px, false)
 }
