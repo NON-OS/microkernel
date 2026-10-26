@@ -35,7 +35,8 @@ from pathlib import Path
 LANES = ("tools/nix/checks.nix", "nonos-ci/run-static-checks.sh")
 DISCOVER = re.compile(r"-m unittest discover\s+-s\s+(\S+)((?:\s+-[tp]\s+\S+)*)")
 OPTION = re.compile(r"-([tp])\s+(\S+)")
-MODULE = re.compile(r"cd tools && python3 -m unittest(?:\s+-q)?\s+([\w.]+)")
+# One run may name several modules; each is reached.
+MODULE = re.compile(r"cd tools && python3 -m unittest(?:\s+-q)?((?:\s+[\w.]+)+)")
 
 
 def commands(text):
@@ -46,8 +47,9 @@ def commands(text):
         opts = dict(OPTION.findall(m.group(2)))
         out.append((m.group(1).strip("'\""), opts.get("p", "test*.py").strip("'\"")))
     for m in MODULE.finditer(text):
-        *pkg, mod = m.group(1).split(".")
-        out.append(("tools/" + "/".join(pkg), mod + ".py"))
+        for name in m.group(1).split():
+            *pkg, mod = name.split(".")
+            out.append(("tools/" + "/".join(pkg), mod + ".py"))
     return out
 
 
