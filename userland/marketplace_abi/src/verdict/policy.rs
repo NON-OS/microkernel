@@ -30,7 +30,12 @@ pub const AT_LISTING: usize = 56;
 pub const AT_RELEASE: usize = 88;
 
 const LINUX: &str = "linux.";
-const VENDOR_URL: &str = "store:";
+/// The listings a Qwen tier the personality ships is sold under, a namespace
+/// no package of the catalogue may use, and the one program each installs:
+/// the image's own chat window, never a download. A release is the vendor's
+/// only with both; a package_url merely starting with "store:" is not.
+pub const TIER_LISTING: &str = "linux.qwen-";
+pub const TIER_PACKAGE: &str = "store:/bin/qwenchat";
 
 pub fn policy_verdict(
     k: &impl Keccak,
@@ -40,7 +45,7 @@ pub fn policy_verdict(
     if !entry.listing_id.starts_with(LINUX) {
         return PolicyVerdict::NotLinux;
     }
-    let vendor = rel.package_url.starts_with(VENDOR_URL);
+    let vendor = entry.listing_id.starts_with(TIER_LISTING) && rel.package_url == TIER_PACKAGE;
     let p = rel.ext.as_ref().map(|x| x.guest_policy.as_slice()).unwrap_or(&[]);
     if p.is_empty() {
         return if vendor { PolicyVerdict::Vendor } else { PolicyVerdict::Missing };
