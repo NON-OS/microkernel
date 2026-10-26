@@ -29,7 +29,14 @@ fn settle_asks_the_rule_once_with_whether_the_receive_timed_out() {
 
 #[test]
 fn the_call_hands_settle_its_own_bound_and_the_time_it_waited() {
-    let waited = "let waited = (timeout_ms, crate::time::timestamp_millis().saturating_sub(start));";
+    let waited = concat!(
+        "let waited = ",
+        "(timeout_ms, crate::time::timestamp_millis().saturating_sub(start));"
+    );
     assert!(CALL.contains(waited));
-    assert!(CALL.contains("settle(endpoint.as_ref(), pid, (req, req_len, resp), recv_result, waited);"));
+    let handed = concat!(
+        "settle(endpoint.as_ref(), (pid, token), (req, req_len, resp), ",
+        "recv_result, waited);"
+    );
+    assert!(CALL.contains(handed));
 }

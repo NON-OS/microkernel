@@ -16,18 +16,14 @@
 
 //! Putting back what Settings changed after setup (settings_record).
 
-use nonos_app_skeleton::clients::vfs;
-use nonos_policy_proto::kept_values::{kept_values, VALUES_ASK};
-use nonos_policy_proto::settings_record::{Value, VALUES_PATH};
+use nonos_policy_proto::kept_values::kept_values;
+use nonos_policy_proto::settings_record::Value;
 
 use crate::push;
 use crate::store::{set_bool, set_i8, set_str, set_u64, set_u8};
 
-pub(super) fn restore(pid: u32) {
-    let Ok(raw) = vfs::read_file(pid, VALUES_PATH, VALUES_ASK as u32) else {
-        return;
-    };
-    let Some(values) = kept_values(&raw) else {
+pub(super) fn apply(raw: &[u8]) {
+    let Some(values) = kept_values(raw) else {
         return super::apply::say(b"[POLICY] kept settings refused: not one whole record\n");
     };
     // Each value goes through the setter Settings' own change went through,

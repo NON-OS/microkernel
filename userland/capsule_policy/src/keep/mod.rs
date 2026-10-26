@@ -24,7 +24,10 @@
 //! changes have been quiet for a moment, and restore puts them back after the
 //! answers. An amnesic boot keeps nothing, so writes nothing.
 
+mod attempt;
+mod live;
 mod snapshot;
 mod tick;
+mod write_steps;
 
 pub use tick::{tick, written_now};
