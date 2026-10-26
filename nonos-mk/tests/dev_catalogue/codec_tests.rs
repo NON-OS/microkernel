@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_marketplace_abi::{bond_id, decode_index, encode_index, Commerce, Keccak, SCHEMA_V3};
+use nonos_marketplace_abi::{bond_id, decode_index, encode_index, Commerce, Keccak, SCHEMA_V4};
 use nonos_nox_config::UNITS;
 use serde_json::Value;
 use sha3::{Digest, Keccak256};
@@ -53,7 +53,7 @@ fn the_catalogue_round_trips_with_its_commerce() {
     let source: Value = serde_json::from_str(SOURCE).expect("parses");
     let blob = dev_signed("codec-round-trip");
     let index = decode_index(&blob).expect("decodes").index;
-    assert_eq!(index.schema_version, SCHEMA_V3);
+    assert_eq!(index.schema_version, SCHEMA_V4);
     let listed = source["entries"].as_array().expect("entries");
     assert_eq!(index.entries.len(), listed.len());
     for (e, s) in index.entries.iter().zip(listed) {
