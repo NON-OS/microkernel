@@ -16,9 +16,11 @@
 
 //! How a kernel caller waits for a capsule's reply.
 
+use super::reply_rest::rest_since;
+
 /// Rounds of plain yielding first: a capsule that outranks the caller runs
 /// on the first of them, so the common case costs no sleep.
-const FAST_ROUNDS: u32 = 64;
+pub(super) const FAST_ROUNDS: u32 = 64;
 
 /// How long a caller that has fallen back to sleeping keeps waiting: longer
 /// than any driver's own wait for its device (our NVMe driver's 30 s per I/O
@@ -57,23 +59,4 @@ pub(super) fn pause(round: u32, started_ms: u64, mark: u64) -> bool {
 /// the look, a reply the look missed always ends the sleep.
 pub(super) fn wake_mark() -> u64 {
     crate::process::current_pid().map_or(0, crate::sched::wake_token)
-}
-
-/// Give the CPU away for one round, by sleeping a tick once plain yields
-/// have had their chance. A caller with no process can only yield.
-pub fn rest(round: u32) {
-    rest_since(round, wake_mark());
-}
-
-fn rest_since(round: u32, mark: u64) {
-    let pid = match crate::process::current_pid() {
-        Some(pid) if round >= FAST_ROUNDS => pid,
-        _ => {
-            crate::sched::yield_now();
-            return;
-        }
-    };
-    let wake = crate::time::timestamp_millis().saturating_add(1);
-    crate::sched::sleep_until_unless_woken(pid, wake, mark);
-    crate::sched::yield_now();
 }

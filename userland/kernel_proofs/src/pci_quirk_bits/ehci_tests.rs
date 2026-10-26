@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! EHCI's legacy support, at the offset its id says, and nowhere else.
 
-use super::quirk_bits::{only, writable, Ident};
+use super::quirk_bits::{only, writable, Ident, Route};
 
 /// An EHCI with USBLEGSUP at 0x68: the bytes below an offset are 0x01 only
 /// where 0x68 lies 2, 4 or 6 below it.
@@ -28,6 +28,8 @@ fn at(offset: u32) -> Ident {
         prog_if: 0x20,
         pcie_cap: None,
         before: [byte(2), byte(4), byte(6)],
+        device: 0,
+        route: Route::NONE,
     }
 }
 

@@ -47,6 +47,7 @@ pub enum Action {
     NewSession,
     ToggleMonitor,
     ChangeTheme,
+    Split,
 }
 
 #[derive(Clone, Copy)]
