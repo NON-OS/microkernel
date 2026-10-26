@@ -45,8 +45,8 @@ pub fn port_status(
         return Err(XhciClientError::BadResponse);
     }
     let mut o = base + REPLY_HDR;
-    for i in 0..count {
-        out[i] = PortSnapshot {
+    for slot in out.iter_mut().take(count) {
+        *slot = PortSnapshot {
             port_id: resp[o],
             owner: resp[o + 1],
             portsc_raw: u32::from_le_bytes([resp[o + 4], resp[o + 5], resp[o + 6], resp[o + 7]]),
