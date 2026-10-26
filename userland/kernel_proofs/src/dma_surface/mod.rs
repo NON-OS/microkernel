@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! a DMA grant's frames that back a shared surface are held, not
-//! freed, until no other process maps the surface; then given back once.
-//! Before K15 the broker freed them under the compositor's mapping.
+//! K15, by run since L35: a DMA run under a shared surface is held, never
+//! freed, while another process maps a surface over it, and given back once
+//! the last holder lets go. The kernel's pure rules are included by path;
+//! the L35 path around them is modelled (common, model, let_go,
+//! exit_model) and its code pinned whole (pin_run, pin_detach, pin_exit),
+//! so the model cannot drift from it unseen.
 
-#[path = "../../../../src/kernel_core/surface_registry/pin/dma_plan.rs"]
-mod dma_plan;
 #[path = "../../../../src/kernel_core/surface_registry/pin/dma_rule.rs"]
 mod dma_rule;
 #[path = "../../../../src/kernel_core/surface_registry/pin/reclaim_rule.rs"]
@@ -27,7 +28,13 @@ mod reclaim_rule;
 
 mod common;
 mod exit;
-mod owner_attach;
+mod exit_model;
+mod let_go;
+mod model;
+mod pin_detach;
+mod pin_exit;
+mod pin_run;
+mod pin_text;
 mod reclaim;
 mod release;
 mod threads;
