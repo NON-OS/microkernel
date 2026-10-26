@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod callers;
 mod decode;
 mod distinct;
 mod encode;
@@ -24,6 +25,7 @@ mod retired;
 mod types;
 mod types_guard;
 
+pub use callers::{may_ask, CREATORS};
 pub use decode::decode_request;
 
 pub use encode::encode_response;
