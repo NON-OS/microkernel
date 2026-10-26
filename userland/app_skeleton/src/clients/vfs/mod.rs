@@ -17,6 +17,7 @@
 mod call;
 mod chmod;
 mod copy;
+mod deadline;
 mod dirstat;
 mod errmsg;
 mod journal_list;
@@ -47,6 +48,7 @@ mod writer;
 
 pub use chmod::chmod;
 pub use copy::copy;
+pub use deadline::{set_deadline_ms, TIMEOUT};
 pub use dirstat::dirstat;
 pub use journal_list::journal_list;
 pub use journal_touch::journal_touch;

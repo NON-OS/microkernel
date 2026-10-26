@@ -52,9 +52,8 @@ pub fn run(root: &str) -> std::io::Result<Status> {
     let handoff = joined.contains("[NONOS] Handoff OK") || joined.contains("Handoff OK");
     rpt.check("boot-handoff", st(handoff), "boot handoff marker observed");
 
-    let capsules =
-        joined.contains("[INIT] Capsules spawned") || joined.contains("Capsules spawned");
-    rpt.check("capsules-spawned", st(capsules), "capsule spawn readiness marker observed");
+    let capsules = joined.contains("Capsules spawned") && !joined.contains("spawn incomplete");
+    rpt.check("capsules-spawned", st(capsules), "every capsule spawned, none incomplete");
 
     // The kernel's boot log prints these uppercase; the lowercase forms are
     // kept for older serial logs so the check reads both eras.
