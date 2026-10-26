@@ -5483,6 +5483,18 @@ else
 fi
 unset devnet_out
 
+# Only the broker turns an MSI or MSI-X message on, through interrupt
+# remapping; the compat builders that wrote one straight to the local APIC are
+# gone. The self-test first, so a check that stopped seeing a mutant cannot pass.
+if msib_out="$(python3 scripts/check_msi_builders.py --self-test 2>&1 \
+    && python3 scripts/check_msi_builders.py 2>&1)"; then
+    note ok "no compat MSI builder in src/drivers/pci: only the broker turns a message on (check_msi_builders)"
+else
+    tail -n 6 <<< "${msib_out}" >&2
+    fail_with "check_msi_builders: a builder that writes an unremapped MSI message is back"
+fi
+unset msib_out
+
 if [ "${fail}" -ne 0 ]; then
     echo
     echo "static-checks: FAIL"
