@@ -14,12 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The TPM2 table's one parser, included by path as the kernel builds it.
+//! The TPM2 table's one parser, and the rule that says a window holds a TPM,
+//! included by path as the kernel builds them.
 
+#[cfg(test)]
+#[path = "../../../../src/security/tpm/transport/ident_rule.rs"]
+mod ident_rule;
 #[path = "../../../../src/security/tpm/transport/tpm2_start.rs"]
 pub mod tpm2_start;
 #[path = "../../../../src/security/tpm/transport/tpm2_table.rs"]
 pub mod tpm2_table;
 
+#[cfg(test)]
+mod ident_tests;
 #[cfg(test)]
 mod tests;

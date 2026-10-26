@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // Every layout size the restyle uses, in real pixels at 1x. Nothing here is
-// sized below ttf::MIN_UI_PX (17.0), which clamps both draw and measure.
+// sized below ttf::MIN_UI_PX (14), which clamps both draw and measure.
 
 pub const WIN_W: u32 = 1240;
 pub const WIN_H: u32 = 780;

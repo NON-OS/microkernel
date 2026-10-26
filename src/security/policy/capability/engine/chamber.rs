@@ -124,10 +124,8 @@ impl CapabilityEngine {
 
         let particles = (0..4)
             .map(|_| {
-                let mut state_vector = [0f64; 4];
-                for i in 0..4 {
-                    state_vector[i] = (random_u64() as f64) / (u64::MAX as f64);
-                }
+                let state_vector: [f64; 4] =
+                    core::array::from_fn(|_| (random_u64() as f64) / (u64::MAX as f64));
 
                 QuantumParticle {
                     state_vector,
