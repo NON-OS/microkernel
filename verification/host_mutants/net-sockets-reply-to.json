@@ -1,0 +1,34 @@
+[
+ {
+  "name": "net-sockets-held-connect-by-no-id",
+  "file": "userland/capsule_net_sockets/src/server/respond.rs",
+  "old": "    mk_ipc_reply_to(ipc, tx.as_ptr(), n)\n",
+  "new": "    mk_ipc_reply_to(0, tx.as_ptr(), n)\n",
+  "test": "held_reply_tests::",
+  "crate": "userland/sockets_proofs"
+ },
+ {
+  "name": "net-sockets-keeps-a-stale-request-id",
+  "file": "userland/capsule_net_sockets/src/server/request.rs",
+  "old": "    REQUEST.store(if n > 0 { meta.request } else { 0 }, Ordering::Relaxed);\n",
+  "new": "    if n > 0 {\n        REQUEST.store(meta.request, Ordering::Relaxed);\n    }\n",
+  "test": "held_reply_tests::",
+  "crate": "userland/sockets_proofs"
+ },
+ {
+  "name": "net-sockets-keeps-a-connection-no-one-heard-of",
+  "file": "userland/capsule_net_sockets/src/server/handlers/connect/pending/verdict.rs",
+  "old": "    installed && heard\n",
+  "new": "    installed\n",
+  "test": "held_reply_tests::",
+  "crate": "userland/sockets_proofs"
+ },
+ {
+  "name": "net-sockets-uninstall-keeps-the-transport",
+  "file": "userland/capsule_net_sockets/src/server/handlers/connect/install_transport.rs",
+  "old": "        s.transport_handle = 0;\n",
+  "new": "",
+  "test": "held_reply_tests::",
+  "crate": "userland/sockets_proofs"
+ }
+]

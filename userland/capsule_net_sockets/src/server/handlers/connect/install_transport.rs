@@ -36,3 +36,12 @@ pub fn install_transport(
         None => E_NO_HANDLE,
     }
 }
+
+/// Take back a connection `install_transport` attached whose caller never
+/// heard of it (its call gave up first): the socket is left unconnected.
+pub fn uninstall_transport(key: SocketKey) {
+    let _ = SOCKETS.with(key, |s| {
+        s.remote = None;
+        s.transport_handle = 0;
+    });
+}

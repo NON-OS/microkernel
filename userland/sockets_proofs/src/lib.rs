@@ -37,6 +37,8 @@ pub mod server;
 #[cfg(test)]
 mod fresh_table;
 #[cfg(test)]
+mod held_reply_tests;
+#[cfg(test)]
 mod refusal_tests;
 #[cfg(test)]
 mod table_tests;
