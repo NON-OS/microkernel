@@ -20,8 +20,7 @@
 //! baked trust anchor.
 
 #[cfg(feature = "nonos-capsule-net-dhcp")]
-pub(super) const NET_DHCP_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(super) const NET_DHCP_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_net_dhcp/target/",
     env!("NONOS_USER_TARGET"),
     "/release/net_dhcp"
@@ -38,6 +37,16 @@ pub(super) const NET_DHCP_MANIFEST_BYTES: &[u8] =
 #[cfg(feature = "nonos-capsule-net-dhcp")]
 pub(super) const NET_DHCP_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/net_dhcp.zk_trailer.bin");
+
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-net-dhcp")]
+const _: () = assert!(
+    !NET_DHCP_ELF.is_empty()
+        && !NET_DHCP_NONOS_ID_CERT_BYTES.is_empty()
+        && !NET_DHCP_MANIFEST_BYTES.is_empty()
+        && !NET_DHCP_ATTESTATION_BYTES.is_empty(),
+    "capsule_net_dhcp built in with an empty image"
+);
 
 #[cfg(not(feature = "nonos-capsule-net-dhcp"))]
 pub(super) const NET_DHCP_ELF: &[u8] = &[];

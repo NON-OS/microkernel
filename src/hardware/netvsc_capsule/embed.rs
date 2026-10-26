@@ -33,6 +33,16 @@ pub(super) const DRIVER_NETVSC_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_NETVSC_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/driver_netvsc.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-netvsc")]
+const _: () = assert!(
+    !DRIVER_NETVSC_ELF.is_empty()
+        && !DRIVER_NETVSC_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_NETVSC_MANIFEST_BYTES.is_empty()
+        && !DRIVER_NETVSC_ATTESTATION_BYTES.is_empty(),
+    "netvsc_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-netvsc"))]
 pub(super) const DRIVER_NETVSC_ELF: &[u8] = &[];
 

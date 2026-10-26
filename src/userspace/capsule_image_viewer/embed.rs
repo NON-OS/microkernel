@@ -33,6 +33,16 @@ pub(crate) const IMAGE_VIEWER_MANIFEST_BYTES: &[u8] =
 pub(crate) const IMAGE_VIEWER_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/image_viewer.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-image-viewer")]
+const _: () = assert!(
+    !IMAGE_VIEWER_ELF.is_empty()
+        && !IMAGE_VIEWER_NONOS_ID_CERT_BYTES.is_empty()
+        && !IMAGE_VIEWER_MANIFEST_BYTES.is_empty()
+        && !IMAGE_VIEWER_ATTESTATION_BYTES.is_empty(),
+    "capsule_image_viewer built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-image-viewer"))]
 pub(crate) const IMAGE_VIEWER_ELF: &[u8] = &[];
 

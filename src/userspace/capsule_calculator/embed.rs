@@ -33,6 +33,16 @@ pub(crate) const CALCULATOR_MANIFEST_BYTES: &[u8] =
 pub(crate) const CALCULATOR_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/calculator.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-calculator")]
+const _: () = assert!(
+    !CALCULATOR_ELF.is_empty()
+        && !CALCULATOR_NONOS_ID_CERT_BYTES.is_empty()
+        && !CALCULATOR_MANIFEST_BYTES.is_empty()
+        && !CALCULATOR_ATTESTATION_BYTES.is_empty(),
+    "capsule_calculator built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-calculator"))]
 pub(crate) const CALCULATOR_ELF: &[u8] = &[];
 
