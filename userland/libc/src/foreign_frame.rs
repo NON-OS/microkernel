@@ -55,9 +55,7 @@ impl ForeignFrame {
     }
 }
 
-/// A Linux run the Terminal started says, by this exit status, that it must
-/// start again with the network: no guest can give it, as a guest's is one
-/// byte. The terminal role's exit once the kernel holds its ticket
-/// (`mk_linux_run_net`): its Terminal starts the same argv once as
-/// `tool.linux.net`, and any other status ends the run as ever.
-pub const LINUX_ASK_NET: i32 = 0x004E_4554;
+/* How a Linux run the Terminal started asks to start again with the network. */
+#[path = "linux_ask_net.rs"]
+mod ask_net;
+pub use ask_net::LINUX_ASK_NET;
