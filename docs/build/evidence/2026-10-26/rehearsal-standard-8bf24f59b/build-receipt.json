@@ -1,0 +1,47 @@
+{
+  "artifacts": {
+    "/home/user/rehearsal/tree/target/release/standard/nonos.img": {
+      "bytes": 1043148800,
+      "sha256": "d5bca31ba831494929be68d4531d453fd06fe9a9adb295d2574a5613cffecaf8"
+    },
+    "/home/user/rehearsal/tree/target/release/standard/nonos.iso": {
+      "bytes": 244690944,
+      "sha256": "90fba3d179c1a4f83cfb8203489d8b2e376c02f4037dd68338642f56d03d261c"
+    },
+    "/home/user/rehearsal/tree/target/release/standard/work/kernel.bin": {
+      "bytes": 99210168,
+      "sha256": "f30f5501f0f064517d7617c9e3776f57afdfcc46a61ab5d2cbf5d612a69729cd"
+    }
+  },
+  "roots": {
+    "capsule_policy": {
+      "embedded_in_kernel": true,
+      "root": "7c26f2abcf667d1125e5b5ff2ce2218c2c735e57ac378d9d43fe0dc3da256ed7"
+    },
+    "kernel_attest": {
+      "embedded_in": "bootloader",
+      "ok": true,
+      "root": "4e5c8600b5c57dbb49a7971c7df0d90dec4ed54ada48878574ac4a6800a3edd9"
+    }
+  },
+  "schema": "nonos.build.receipt.v1",
+  "source": {
+    "branch": "master",
+    "commit": "eb07b8ec1e5745bef8daa3c4f434edc11b420458",
+    "dirty": true,
+    "source_date_epoch": null
+  },
+  "toolchain": {
+    "host": "Linux-x86_64",
+    "rustc": null
+  },
+  "verification": {
+    "gates_before_receipt": [
+      "ledger",
+      "manifest_signatures",
+      "declared_caps",
+      "stark_membership"
+    ],
+    "root_embedding": "pass"
+  }
+}
