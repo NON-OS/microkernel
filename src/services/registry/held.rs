@@ -47,7 +47,7 @@ use table::{DISPLAY_CALLERS, HELD};
 /// The services that may reach `endpoint`, or None when anyone the
 /// endpoint's capabilities admit may.
 pub(crate) fn callers_of(endpoint: &str) -> Option<&'static [&'static str]> {
-    if displays::is_display(endpoint) {
+    if displays::DISPLAYS.contains(&endpoint) {
         return Some(DISPLAY_CALLERS);
     }
     card_callers(endpoint)
