@@ -18,19 +18,16 @@
 
 #[path = "../../../nonos_usbnet/src/nnet/counters.rs"]
 mod counters;
-#[allow(dead_code)]
 #[path = "../../../nonos_usbnet/src/nnet/encode.rs"]
-mod encode;
+pub mod encode;
 #[path = "../../../capsule_settings/src/wifi/station.rs"]
 pub(super) mod station;
 #[path = "../../../capsule_settings/src/wifi/station_words.rs"]
 pub(super) mod station_words;
-#[allow(dead_code)]
 #[path = "../../../nonos_usbnet/src/nnet/stats.rs"]
-mod stats;
-#[allow(dead_code)]
+pub mod stats;
 #[path = "../../../nonos_usbnet/src/nnet/wire.rs"]
-mod wire;
+pub mod wire;
 
 use station::{station_of, stats_request, REPLY_LEN};
 

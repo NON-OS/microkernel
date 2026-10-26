@@ -19,8 +19,6 @@
 //! whichever comes first, and a clock that cannot be read ends them all;
 //! and one leg's round (leg_poll.rs) on the stand-in transport.
 
-// The leave lines read `name` and `budget_ms` (leave/run.rs, not mounted).
-#[allow(dead_code)]
 #[path = "../../../../src/hardware/block_device/leave/leg.rs"]
 mod leg;
 #[path = "../../../../src/hardware/block_device/leave/leg_poll.rs"]

@@ -36,7 +36,7 @@ pub struct Watchdog {
 
 type Platform = (Vec<GtBlock>, Vec<Watchdog>);
 
-pub fn platform_timers(
+pub(crate) fn platform_timers(
     t: &[u8],
     fixed: usize,
     count: u32,
