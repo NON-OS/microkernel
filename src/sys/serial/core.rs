@@ -62,6 +62,7 @@ on machines without serial hardware.
 */
 pub fn write_byte(ch: u8) {
     super::tail::keep(ch);
+    super::column::note(ch);
     crate::arch::console::write_byte(ch);
 }
 
