@@ -18,8 +18,8 @@ use crate::security::nonos_trust_anchor::NonosTrustAnchorPolicy;
 
 use super::super::attested_parent::AttestedParent;
 use super::super::spec::{CapsuleSpecVerified, SpawnError};
-use super::install::{install, InstallParams};
 use super::built_gate::checked;
+use super::install::{install, InstallParams};
 use super::preflight;
 
 // Caps installed on the PCB come from the verified manifest, never from spec.requested_caps,
