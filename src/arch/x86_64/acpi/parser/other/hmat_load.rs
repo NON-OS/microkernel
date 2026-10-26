@@ -47,10 +47,3 @@ pub fn parse_hmat(registry: &mut TableRegistry) {
 pub fn hmat_value(hierarchy: u8, data_type: u8, initiator: u32, target: u32) -> Option<HmatValue> {
     query(&HMAT.read().as_ref()?.matrices, hierarchy, data_type, initiator, target)
 }
-
-/// The initiator domain HMAT attaches a memory domain to.
-#[allow(dead_code)] // the allocator's, when it reads NUMA facts
-pub fn hmat_attached_initiator(memory: u32) -> Option<u32> {
-    let h = HMAT.read();
-    h.as_ref()?.attributes.iter().find(|a| a.memory == memory).and_then(|a| a.initiator)
-}
