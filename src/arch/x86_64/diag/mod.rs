@@ -18,7 +18,6 @@ mod cpl;
 mod dump_gdt;
 mod dump_trap;
 mod fatal_notice;
-mod print_hex;
 #[cfg(feature = "nonos-user-entry-proof")]
 mod user_proof;
 mod walk_fault;
@@ -26,6 +25,5 @@ mod walk_fault;
 pub use dump_gdt::dump_gdt;
 pub use dump_trap::dump_trap;
 pub use fatal_notice::{emit_fatal_notice, emit_fatal_notice_nolock};
-pub use print_hex::print_hex_u64;
 #[cfg(feature = "nonos-user-entry-proof")]
 pub use user_proof::assert_user_entry;
