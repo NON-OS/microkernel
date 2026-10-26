@@ -22,7 +22,7 @@
 //! does not vouch for, or a market that cannot say, is refused, never
 //! installed without its box.
 
-use crate::sys::serial::{print, println};
+use crate::sys::serial::{println, Line};
 use crate::userspace::capsule_linux::{package_arg, spawn_install};
 
 use super::status::Stage;
@@ -46,12 +46,13 @@ pub(super) fn install(listing: &str, release: &str) {
     match spawn_install(&name, &hash, policy.as_deref(), direct) {
         Ok(pid) => {
             super::status::set(listing, Stage::Running(pid));
-            print(if policy.is_some() {
+            let mut l = Line::new();
+            l.str(if policy.is_some() {
                 b"[LINUX-INSTALL] started, in its release's box "
             } else {
                 b"[LINUX-INSTALL] started "
             });
-            println(listing.as_bytes());
+            l.str(listing.as_bytes()).end();
         }
         Err(e) => {
             // Which preflight check refused the installer, not only that one did.
@@ -63,6 +64,5 @@ pub(super) fn install(listing: &str, release: &str) {
 
 fn refuse(listing: &str, said: &[u8]) {
     super::status::set(listing, Stage::Refused);
-    print(said);
-    println(listing.as_bytes());
+    Line::new().str(said).str(listing.as_bytes()).end();
 }

@@ -18,7 +18,7 @@
 //! or ggml-org's for Qwen3.5 and Qwen3.6, each its LFS pointer's.
 
 #[rustfmt::skip]
-pub const PUBLISHED: [(&str, &str, u64, &str); 30] = [
+pub const PUBLISHED: [(&str, &str, u64, &str); 32] = [
     ("small", "qwen2.5-0.5b-instruct-q4_k_m.gguf", 491_400_032, "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db"),
     ("medium", "qwen2.5-1.5b-instruct-q4_k_m.gguf", 1_117_320_736, "6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e"),
     ("large", "qwen2.5-3b-instruct-q4_k_m.gguf", 2_104_932_768, "626b4a6678b86442240e33df819e00132d3ba7dddfe1cdc4fbb18e0a9615c62d"),
@@ -41,6 +41,8 @@ pub const PUBLISHED: [(&str, &str, u64, &str); 30] = [
     ("qwen3-32b", "Qwen3-32B-Q4_K_M.gguf", 19_762_149_024, "efd971561896866f0e910cce52761ca77b1b138090c7f15fe284676d57d1f689"),
     ("qwen3.5-0.8b", "Qwen3.5-0.8B-Q8_0.gguf", 833_592_096, "37ae482d336108d23516fa35e8e0c4126688d81018b87178a18d752a1357814f"),
     ("qwen3.6-27b", "Qwen3.6-27B-Q4_K_M.gguf", 19_095_766_304, "65b753ea835627f7b511143c6ceb976525c7f21f5df8c664bc0a9c23d1c49921"),
+    ("vl-2b", "Qwen3VL-2B-Instruct-Q4_K_M.gguf", 1_107_409_952, "089d75c52f4b7ffc56ba998ffc50aae89fcafc755f9e7208aacca281dca6c2ae"),
+    ("vl-2b", "mmproj-Qwen3VL-2B-Instruct-Q8_0.gguf", 445_053_216, "f9a68fabba69c3b81e153367b2c7521030b0fa8bb0de400c9599c8e6725f9c82"),
     ("coder-1.5b", "qwen2.5-coder-1.5b-instruct-q4_k_m.gguf", 1_117_320_768, "cc324af070c2ecbfd324a30884d2f951a7ff756aba85cb811a6ec436933bb046"),
     ("coder-7b", "qwen2.5-coder-7b-instruct-q4_k_m-00001-of-00002.gguf", 3_993_201_376, "89f120544682078148c5a86117de9af3a65c339111262f2d3ff01d80d48b14be"),
     ("coder-7b", "qwen2.5-coder-7b-instruct-q4_k_m-00002-of-00002.gguf", 689_872_288, "0183b3c850cfa96c31082c3af0123115300d3f62798c4448fa8f57bd0eac05e0"),

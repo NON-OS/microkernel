@@ -47,8 +47,8 @@ pub fn start_secondary_cpus(boot_info: &BootInfo) {
         match start_one::start(boot_info, index, affinity, stack_top) {
             Ok(()) => released += 1,
             Err(reason) => {
-                serial::print(b"[SMP] a secondary did not start: ");
-                serial::println(reason);
+                let mut line_out = serial::Line::new();
+                line_out.str(b"[SMP] a secondary did not start: ").str(reason).end();
             }
         }
     }

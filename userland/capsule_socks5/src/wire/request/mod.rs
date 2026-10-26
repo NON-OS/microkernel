@@ -18,4 +18,4 @@ mod parse;
 mod types;
 
 pub use parse::parse_connect;
-pub use types::{Connect, Host, Parsed};
+pub use types::{Host, Parsed};

@@ -14,7 +14,6 @@ use super::super::stage::{Got, Stage};
 use super::super::{apply, values};
 use crate::progress::VFS_DEADLINE_MS;
 
-
 /// A file read: its bytes, absent or refused, or no answer in time.
 enum Read {
     Bytes(Vec<u8>),
@@ -56,7 +55,7 @@ fn stage_read(stage: Stage, pid: u32) -> Option<Read> {
     let (path, max) = match stage {
         Stage::Marker => (DONE_PATH, DONE.len() + 1),
         Stage::Answers => (ANSWERS_PATH, ANSWERS_LEN + 1),
-        Stage::Values => (VALUES_PATH, VALUES_ASK as usize),
+        Stage::Values => (VALUES_PATH, VALUES_ASK),
         Stage::Settle | Stage::Finished => return None,
     };
     Some(match vfs::read_file_within(pid, path, max as u32, VFS_DEADLINE_MS) {

@@ -56,11 +56,18 @@ fn a_user_fault_ends_its_process_before_any_fatal_exit() {
             let user =
                 text.find("exit_and_yield(").unwrap_or_else(|| panic!("{name}: no user branch"));
             seen += 1;
-            // The user branch's exit is written before the kernel's fatal exit,
-            // and the user branch is chosen by the frame's privilege level.
-            assert!(user < fatal, "{name}");
+            // The fatal exit follows the user exit, or is in the kernel-only block.
+            assert!(user < fatal || kernel_only(&text, fatal), "{name}");
             assert!(text.contains("is_user_mode()"), "{name}");
         }
     }
     assert_eq!(seen, 14, "the handlers with both branches: {seen}");
+}
+
+/// True when `at` lies inside an `if !ctx.is_user_mode() {` block.
+fn kernel_only(text: &str, at: usize) -> bool {
+    let Some(open) = text[..at].rfind("if !ctx.is_user_mode() {") else { return false };
+    let indent = text[..open].len() - text[..open].trim_end_matches(' ').len();
+    let close = format!("\n{}}}", " ".repeat(indent));
+    !text[open..at].contains(&close)
 }

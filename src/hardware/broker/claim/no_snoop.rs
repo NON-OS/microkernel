@@ -46,9 +46,9 @@ pub(super) fn snoop_every_request(device_id: u64) {
     }
     let _ = cfg.write16(cap + DEVCTL, ctl & !DEVCTL_NOSNOOP_EN);
     let off = matches!(cfg.read16(cap + DEVCTL), Ok(v) if v & DEVCTL_NOSNOOP_EN == 0);
-    crate::sys::serial::print(b"[DMA] device ");
-    crate::sys::serial::print_hex(device_id);
-    crate::sys::serial::println(if off { b" no-snoop off" } else { b" no-snoop STILL ON" });
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[DMA] device ").hex(device_id);
+    l.str(if off { b" no-snoop off" } else { b" no-snoop STILL ON" }).end();
 }
 
 /// The PCI Express capability's offset, walked through the function's own

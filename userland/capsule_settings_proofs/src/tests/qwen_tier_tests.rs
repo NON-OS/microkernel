@@ -23,6 +23,9 @@ use nonos_policy_proto::setup_record::{tier_ok, TIER_MAX};
 
 use crate::qwen_tier::{shown, step};
 
+#[path = "qwen_tier_tests/vision.rs"]
+mod vision;
+
 #[test]
 fn stepping_visits_every_tier_once_and_wraps() {
     let mut seen = Vec::new();

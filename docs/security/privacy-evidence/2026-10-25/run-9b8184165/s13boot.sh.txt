@@ -4,7 +4,7 @@
 # kept (init spawns proof_io only then) and nonos-capsule-proof-io, whose
 # main.rs is replaced by s13_proof_main.rs (IPC and Memory, no launcher).
 # Setup is walked with the D-13 keys and the boot is left at the desktop.
-SP=/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad
+SP=/tmp/nonos-run/scratchpad
 PK=/home/user/privatekernel
 HEAD_SHA=${1:?the S-13 head}
 P=$SP/s13; rm -rf $P; mkdir -p $P

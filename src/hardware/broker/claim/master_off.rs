@@ -35,11 +35,10 @@ pub(super) fn bus_master_off(device_id: u64) {
     // Read back: a configuration write is posted, and the line says what the
     // device holds, not what was asked.
     let off = matches!(cfg.is_bus_master_enabled(), Ok(false));
-    crate::sys::serial::print(b"[BROKER] claimed device ");
-    crate::sys::serial::print_hex(device_id);
-    crate::sys::serial::println(if off {
-        b" bus master off until its driver turns it on"
-    } else {
-        b" bus master STILL ON"
-    });
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[BROKER] claimed device ").hex(device_id);
+    let said: &[u8] =
+        if off { b" bus master off until its driver turns it on" } else { b" bus master STILL ON" };
+    l.str(said);
+    l.end();
 }

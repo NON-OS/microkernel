@@ -15,17 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The bring-up: the channel's record claimed, one DMA grant for the rings
-//! and the data buffer, the channel opened on the rings, the protocol
-//! started; then the targets scanned. Nothing is bound: the driver polls
-//! the host's ring.
+//! and the data buffer (grant.rs), the channel opened on the rings, the
+//! protocol started; then the targets scanned. Nothing is bound: the driver
+//! polls the host's ring.
 
-use nonos_libc::{mk_device_claim, mk_device_release, mk_dma_map, DmaMapOut, MK_DMA_MAP_COHERENT};
+use nonos_libc::mk_device_claim;
 use nonos_scsi_serve::Units;
 use nonos_vmbus::Pages;
 
 use super::driver::{abandon, Driver};
+use super::grant;
 use crate::constants::channel::{gpadl_id, MAX_LUN, MAX_TARGET, OPEN_USER};
-use crate::constants::layout::{DATA_OFF, GRANT_BYTES, PAGE, RINGS, RING_BYTES};
+use crate::constants::layout::{DATA_OFF, PAGE, RINGS, RING_BYTES};
 use crate::discover::Found;
 use crate::hba::VmHba;
 use crate::host::Kernel;
@@ -37,22 +38,16 @@ pub fn run(dev: Found) -> Result<Driver, &'static str> {
     if epoch < 0 {
         return Err("claim failed");
     }
-    let mut dma = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
-    if mk_dma_map(dev.device_id, epoch as u64, GRANT_BYTES, MK_DMA_MAP_COHERENT, &mut dma) < 0 {
-        let _ = mk_device_release(dev.device_id);
-        return Err("dma map failed");
-    }
-    if dma.length < GRANT_BYTES || dma.device_addr % PAGE as u64 != 0 {
-        abandon(dev.device_id, dma.grant_id);
-        return Err("dma grant short");
-    }
+    let dma = grant::map(dev.device_id, epoch as u64)?;
     let first_pfn = dma.device_addr / PAGE as u64;
     // SAFETY: the grant's first RING_BYTES, mapped for the driver's life
     // and reached by no one else but the host.
     let mut rings = unsafe { Pages::new(dma.user_va as *mut u8, RING_BYTES) };
     let mut host = Kernel::new(dev.device_id);
     let gpadl = gpadl_id(dev.relid);
-    let chan = match nonos_vmbus::open(&mut host, &mut rings, dev.relid, gpadl, first_pfn, RINGS, &OPEN_USER) {
+    let chan = match nonos_vmbus::open(
+        &mut host, &mut rings, dev.relid, gpadl, first_pfn, RINGS, &OPEN_USER,
+    ) {
         Ok(c) => c,
         Err(_) => {
             abandon(dev.device_id, dma.grant_id);

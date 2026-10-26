@@ -47,9 +47,9 @@ fn a_grab_from_a_client_without_focus_is_refused() {
 
 #[test]
 fn with_no_window_manager_the_name_alone_decides() {
-    assert!(may_grab(B, true, None, SHELL), "setup and the installer");
-    assert!(!may_grab(B, false, None, SHELL));
-    assert!(!may_grab(0, true, None, SHELL));
+    assert!(may_grab(B, true, None, SHELL, 0), "setup and the installer");
+    assert!(!may_grab(B, false, None, SHELL, 0));
+    assert!(!may_grab(0, true, None, SHELL, 0));
 }
 
 #[test]

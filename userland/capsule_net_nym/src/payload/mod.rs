@@ -20,4 +20,3 @@ mod build;
 mod shared;
 
 pub use build::build_payload;
-pub use shared::{packet_shared_key, PACKET_KEY_BYTES};
