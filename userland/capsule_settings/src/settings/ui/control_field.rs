@@ -54,7 +54,9 @@ pub fn paint_string(
     let fg = if editing { ACCENT } else { VALUE_FG };
     match string_text(state, value, editing) {
         /* The tier's name, and with nothing set the tier qwen runs then. */
-        Some(b) if field == Field::QwenTier => text::right(fb, right, top, as_str(shown(b)), fg, BODY_PX),
+        Some(b) if field == Field::QwenTier => {
+            text::right(fb, right, top, as_str(shown(b)), fg, BODY_PX)
+        }
         Some(b) => text::right(fb, right, top, as_str(b), fg, BODY_PX),
         None => text::right(fb, right, top, "--", IDLE, BODY_PX),
     }
