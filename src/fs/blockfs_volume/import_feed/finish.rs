@@ -49,7 +49,7 @@ pub fn stream_finish(pid: u32, keep: bool) -> Result<u64, StreamError> {
     drop(live);
     let name = &name[..name_len];
     let got = hash.finish();
-    let mut guard = crate::smp::write_responsive(&VOLUME);
+    let mut guard = VOLUME.write();
     let s = guard.as_mut().ok_or(VolumeError::NotMounted)?;
     if got != want {
         let (g, w) = (hex32(&got), hex32(&want));
