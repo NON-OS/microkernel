@@ -18,7 +18,7 @@
 //!
 //! These sit above the 0x20..0x30 range the legacy PICs and the IO-APIC's
 //! first redirection entries use, and below the spurious vector. The IDT gates
-//! for all of them are installed at boot, and `smp::ipi_dispatch` binds a handler to
+//! for all of them are installed at boot, and `interrupt_controller::ipi_dispatch` binds a handler to
 //! each; this table is the one place that decides which number means what.
 
 use crate::arch::interrupt_controller::Ipi;

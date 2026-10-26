@@ -14,8 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// The device-tree DesignWare I2C interface's stop routine. The platform
-// finder and the described-device record (C's) call it at integration;
-// until then nothing on this branch does.
-#[allow(dead_code)]
-pub(super) mod stop;
+//! The MSI side table written, by the ACPI broker alone (a function added
+//! after the scan, one departed): one entry per id at most, set or cleared whole.
+
+use alloc::vec::Vec;
+
+/// `id`'s entry replaced by `value`, or removed when there is none.
+pub(in crate::hardware::broker) fn set<T>(table: &mut Vec<(u64, T)>, id: u64, value: Option<T>) {
+    table.retain(|(d, _)| *d != id);
+    if let Some(v) = value {
+        table.push((id, v));
+    }
+}

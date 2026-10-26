@@ -25,20 +25,20 @@
 //! [`supports_tagged_invalidation`](super::supports_tagged_invalidation) first,
 //! because a part without the feature cannot do this at all and needs the full
 //! flush instead.
-//!
-//! [`supports_tagged_invalidation`]: super::supports_tagged_invalidation
 
 /// Invalidate every translation tagged with `asid`, on a part that supports it.
 ///
-/// Does nothing where the feature is absent, so a caller that skipped the
-/// capability check gets a no-op rather than an undefined instruction; that
-/// leaves stale entries, which is why the check is the caller's job and is
-/// documented as such rather than hidden here.
+/// Does nothing where the feature is absent (riscv64, with no VM layer and so
+/// no ASID, always), so a caller that skipped the capability check gets a
+/// no-op rather than an undefined instruction; that leaves stale entries, which
+/// is why the check is the caller's job and is documented rather than hidden.
 #[inline]
 pub fn invalidate_tagged(asid: u16) {
     if !super::supports_tagged_invalidation() {
         return;
     }
+    #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
+    let _ = asid;
     #[cfg(target_arch = "x86_64")]
     {
         // INVPCID descriptor: the id in the low 64 bits, the address in the

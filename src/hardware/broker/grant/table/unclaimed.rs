@@ -14,8 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod describe;
-mod phandle;
-mod seen;
+//! The one grant no claim stands behind: an ACPI SystemMemory window the
+//! ACPI capsule maps (`acpi::memory_record`). Its device id names no device,
+//! so no release takes it; MkMmioUnmap and the capsule's exit find it like
+//! any other. It counts against the same quota.
 
-pub use describe::{describe, I2cBus, DEFAULT_BUS_HZ, NEEDLES};
+use super::super::super::quota;
+use super::super::types::MmioGrant;
+use super::{push, GRANTS};
+
+pub(in crate::hardware::broker) fn insert_unclaimed(record: MmioGrant) -> Result<(), quota::Spent> {
+    push(&mut GRANTS.lock(), record)
+}

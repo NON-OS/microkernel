@@ -16,7 +16,7 @@
 
 use crate::arch::aarch64::gic::msi::{self, Vector, MAX_VECTORS};
 use crate::hardware::broker::irq::types::{IrqBindError, IrqBindRequest, IrqBindResult, BIND_MSIX};
-use crate::hardware::broker::pci_index;
+use crate::hardware::broker::pci_index::{self, msi_of};
 
 use super::super::validate::{validate_msi_request, validate_msix_request};
 use super::handle_view::handle_view;
@@ -38,7 +38,7 @@ pub(in super::super) fn bind(
         let view = handle.as_ref().map(handle_view);
         validate_msix_request(&req, MAX_VECTORS, view.as_ref(), held)?;
     } else {
-        validate_msi_request(&req, handle.as_ref().map(|h| h.msi.is_some()), held)?;
+        validate_msi_request(&req, handle.as_ref().map(|h| msi_of(h).is_some()), held)?;
     }
     let handle = handle.ok_or(IrqBindError::NoDeviceHandle)?;
     let slot = binds.iter().position(Option::is_none).ok_or(IrqBindError::NoVector)?;

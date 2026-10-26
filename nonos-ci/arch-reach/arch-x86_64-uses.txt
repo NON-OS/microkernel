@@ -92,8 +92,8 @@ src/interrupts/idt/table.rs 1
 src/interrupts/idt/table_ist.rs 1
     IST stacks for IDT gates. Elsewhere: nothing: no IST off x86
 
-src/interrupts/timer/clock.rs 2
-    GAP: power button + VT-d fault poll. Elsewhere: no power-button poll
+src/interrupts/timer/clock.rs 1
+    GAP: VT-d fault poll. Elsewhere: SMMU faults via its event queue
 
 src/kernel_core/init/entry/init_dma_protection.rs 3
     VT-d/AMD-Vi init. Elsewhere: aarch64 SMMU via arch facade
@@ -160,9 +160,6 @@ src/smp/init/ap_unit/abandon.rs 1
     parks a failed AP with an INIT through the LAPIC. Elsewhere: nothing: ap_unit is x86-gated;
     aarch64 starts its cores through PSCI in src/arch
 
-src/smp/ipi_dispatch/x86_64/install.rs 1
-    GAP: IPI IDT gates. Elsewhere: riscv64 no IPIs; aarch64 SGI handlers
-
 src/smp/topology/detection/probe_x86_64/mod.rs 1
     GAP: ACPI MADT processors. Elsewhere: riscv64 reports 1 CPU; aarch64 probe
 
@@ -189,6 +186,3 @@ src/sys/apic/local/x2apic.rs 3
 
 src/sys/apic/local_calibrate/accurate_tsc_hz.rs 1
     CPUID TSC freq. Elsewhere: generic timer freq in arch
-
-src/syscall/microkernel/battery.rs 1
-    GAP: ACPI battery presence. Elsewhere: ENOTSUP
