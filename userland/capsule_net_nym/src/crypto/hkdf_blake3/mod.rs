@@ -22,4 +22,5 @@ mod hmac;
 
 pub use expand::expand;
 pub use extract::extract;
+#[cfg(test)]
 pub use hmac::hmac_blake3;

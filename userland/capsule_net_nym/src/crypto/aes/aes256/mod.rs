@@ -20,4 +20,6 @@ mod encrypt_block;
 mod key_schedule;
 mod types;
 
-pub use types::{Aes256, KEY_BYTES};
+pub use types::Aes256;
+#[cfg(test)]
+pub use types::KEY_BYTES;
