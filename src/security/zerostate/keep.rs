@@ -45,11 +45,11 @@ pub(crate) fn arm(on: bool) -> bool {
     if granted && !was {
         crate::fs::blockfs_volume::keeping_on();
     }
-    crate::sys::serial::print(match (granted, was) {
-        (true, false) => b"[ZS] keeping turned on: the person chose it, the policy service says\n",
-        (true, true) => b"[ZS] keeping already on\n",
-        (false, _) if on => b"[ZS] keep refused: only the policy service turns keeping on\n",
-        (false, _) => b"[ZS] keep refused: keeping is not turned off within a boot\n",
+    crate::sys::serial::line(match (granted, was) {
+        (true, false) => b"[ZS] keeping turned on: the person chose it, the policy service says",
+        (true, true) => b"[ZS] keeping already on",
+        (false, _) if on => b"[ZS] keep refused: only the policy service turns keeping on",
+        (false, _) => b"[ZS] keep refused: keeping is not turned off within a boot",
     });
     granted
 }
@@ -66,10 +66,10 @@ pub(crate) fn store_write_allowed(lba: u64, new: &[u8]) -> bool {
     let mut old = vec![0u8; new.len()];
     let read = crate::hardware::block_device::read_store(lba, &mut old).is_ok();
     let ok = read && may_write(armed, &old, new);
-    crate::sys::serial::print(match (read, ok) {
-        (_, true) => b"[ZS] store erase on a boot that keeps nothing\n",
-        (false, _) => b"[ZS] store write refused: the sectors could not be read\n",
-        (true, false) => b"[ZS] store write refused: this boot keeps nothing\n",
+    crate::sys::serial::line(match (read, ok) {
+        (_, true) => b"[ZS] store erase on a boot that keeps nothing",
+        (false, _) => b"[ZS] store write refused: the sectors could not be read",
+        (true, false) => b"[ZS] store write refused: this boot keeps nothing",
     });
     ok
 }
