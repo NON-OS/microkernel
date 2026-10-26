@@ -15,11 +15,11 @@ The bar runs across the top of the screen and stays there, even over a full-scre
 
 | Menu | Rows |
 |---|---|
-| App name, or `Desktop` | `Focus Window` (or `Refresh Desktop`), `Show All Apps`, `About This System` |
+| App name, or `Desktop` | `Focus Window` (or `Refresh Desktop`), `Show all apps`, `About this system` |
 | `File` | `New Folder`, `New File`, `Open Files` |
 | `View` | `Show Launchpad`, `Show Dock`, `Refresh Desktop` |
 | `Go` | `Terminal`, `Browser`, `Settings` |
-| `Help` | `About This System`, `Processes` |
+| `Help` | `About this system`, `Processes` |
 
 - A menu row that opens an app brings that app's window forward if it has one, and opens a window only when it has none.
 - The status area at the right end holds, in order, the battery label, a network mark that dims while there is no DHCP lease, the magnifier, and the date and time.

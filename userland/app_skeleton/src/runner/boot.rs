@@ -22,7 +22,6 @@ use crate::discover::Peers;
 use crate::setup::{ensure_input_subscription, open_window};
 
 use super::drag::DragState;
-use super::full_screen_ask::FullScreenAsk;
 use super::prime_frame::prime_frame;
 
 pub(super) use super::booted::BootedApp;
@@ -49,7 +48,7 @@ pub(super) fn boot<A: App>(
         maximized: false,
         minimized: false,
         saved: (0, 0, 0, 0),
-        full_ask: FullScreenAsk::new(),
+        asks: super::asks::Asks::new(),
         drag: DragState::new(),
         focused: true,
         painted: (0, 0, FrameState { hover: DecorationHit::None, focused: true }, false),
