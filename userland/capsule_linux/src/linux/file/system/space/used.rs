@@ -22,41 +22,50 @@ use nonos_libc::mk_getpid;
 use super::super::super::{cache, private};
 use super::quota::{allows, Kept};
 
-/*
- * What the family keeps in its private directories: the bytes and names
- * the store has under its root, with what the family's unwritten copies
- * add to the bytes, and the files they hold that the store has no name
- * for yet added to the names.
- */
+/* What the family keeps in its scratch, its unwritten copies added. */
 pub fn kept() -> Result<Kept, i64> {
-    let (bytes, names) = under(&private::root())?;
-    Ok(Kept {
+    Ok(copies(under(&private::root())?))
+}
+
+/*
+ * Under a root, every unwritten copy added: a copy counts against each
+ * quota until it is in the store, so none is passed while it is open.
+ */
+pub(super) fn copies((bytes, names): (u64, u64)) -> Kept {
+    Kept {
         bytes: bytes.saturating_add_signed(cache::growth()),
         names: names.saturating_add(cache::unstored()),
-    })
+    }
+}
+
+/* Whether what is kept where `at` is, copies counted, is within its quota. */
+pub fn within(at: &[u8]) -> Result<(), i64> {
+    room(at, Kept { bytes: 0, names: 0 }, true)
 }
 
 /*
- * Whether what the family keeps, its unwritten copies counted, is within
- * its quota: asked before a copy grows the store or gives it a new name.
+ * Whether `more` may be added where `at` is: a new name, or a name and the
+ * bytes a hard link copies. The home (home_room.rs) has its own quota.
  */
-pub fn within() -> Result<(), i64> {
-    allows(Kept { bytes: 0, names: 0 }, kept()?)
+pub fn room_for(at: &[u8], more: Kept) -> Result<(), i64> {
+    room(at, more, false)
 }
 
-/*
- * Whether `more` may be added to what the family keeps: a new name, or a
- * name and the bytes a hard link copies under it.
- */
-pub fn room_for(more: Kept) -> Result<(), i64> {
+/* `whole`: the copies already hold `more`; otherwise it is added. */
+fn room(at: &[u8], more: Kept, whole: bool) -> Result<(), i64> {
+    if let Some(home) = private::in_home(at).then(private::home_root).flatten() {
+        return super::home_room::room(&home, more, whole);
+    }
     let now = kept()?;
-    allows(now, now.plus(more))
+    match whole {
+        true => allows(more, now),
+        false => allows(now, now.plus(more)),
+    }
 }
 
 /*
  * Bytes and entries under a store prefix. A walk the store cut short at
- * its node cap counts less than is there; under a private root the names
- * quota keeps the count far below that cap.
+ * its node cap counts less than is there; the names quotas keep it below.
  */
 pub(super) fn under(prefix: &[u8]) -> Result<(u64, u64), i64> {
     let (files, dirs, bytes, _) =

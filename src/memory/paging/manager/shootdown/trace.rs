@@ -39,7 +39,7 @@ static ROUNDS: AtomicU32 = AtomicU32::new(0);
 
 pub(super) fn report(r: &Round) {
     let n = ROUNDS.fetch_add(1, Ordering::Relaxed) + 1;
-    if n > 64 && n % 256 != 0 {
+    if n > 64 && n % 256 != 0 && !proof_round() {
         return;
     }
     let mut l = crate::sys::serial::Line::new();
@@ -57,4 +57,16 @@ pub(super) fn report(r: &Round) {
         }
     }
     l.end();
+}
+
+/// The shootdown proof's own rounds are printed whatever their number: at 16
+/// CPUs bring-up alone runs past the first 64.
+#[cfg(feature = "nonos-smp-shootdown-proof")]
+fn proof_round() -> bool {
+    super::proof::RUNNING.load(Ordering::Acquire)
+}
+
+#[cfg(not(feature = "nonos-smp-shootdown-proof"))]
+fn proof_round() -> bool {
+    false
 }

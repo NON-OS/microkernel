@@ -14,15 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! SCENE_SUBMIT and SCENE_REMOVE: a layer placed in a band, and layers
-//! taken away.
+//! SCENE_SUBMIT: a layer placed in a band. SCENE_REMOVE is remove.rs's.
 
 use super::read::{wide, words};
-use crate::protocol::{SCENE_REMOVE_REQ_LEN, SCENE_SUBMIT_REQ_LEN};
+use crate::protocol::SCENE_SUBMIT_REQ_LEN;
 use crate::state::scene::Layer;
 
-/// SCENE_REMOVE's flag: only the sender's layer in band z goes.
-pub const BAND_ONLY: u32 = 1;
+pub use super::remove::scene_remove;
 
 /// SCENE_SUBMIT's body: the surface handle u64, then x, y, width, height
 /// and z, u32 each, and a padding word that must be zero.
@@ -53,20 +51,18 @@ impl Placed {
             return None;
         }
         let (width, height) = (width.min(w - x), height.min(h - y));
-        let (stack, in_use, miss_count, surface_handle) = (0, true, 0, handle);
-        Some(Layer { owner_pid, surface_handle, x, y, width, height, z, stack, in_use, miss_count })
+        // Stamped by the scene when it is placed, the arrow until its owner asks.
+        let (surface_handle, in_use) = (handle, true);
+        Some(Layer {
+            owner_pid,
+            surface_handle,
+            x,
+            y,
+            width,
+            height,
+            z,
+            in_use,
+            ..Layer::default()
+        })
     }
-}
-
-/// SCENE_REMOVE's body: z, then flags.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Remove {
-    pub z: u32,
-    /// Only the layer in band z, not every layer the sender holds.
-    pub band_only: bool,
-}
-
-pub fn scene_remove(body: &[u8]) -> Option<Remove> {
-    let [z, flags] = words::<2, SCENE_REMOVE_REQ_LEN>(body)?;
-    Some(Remove { z, band_only: flags & BAND_ONLY != 0 })
 }

@@ -39,6 +39,17 @@ class GpuLanes(unittest.TestCase):
         with self.assertRaises(lanes.LaneError):
             lanes.plan(["gpu=bga", "vmware-svga"], "/d")
 
+    def test_a_sized_virtio_lane_is_the_virtio_gpu_at_its_size(self):
+        plain = machine.devices("nat", "/s", None)
+        swapped = machine.devices("nat", "/s", None, lanes.plan(["gpu=virtio-1280x800"], "/d").swaps)
+        self.assertEqual([a for a in swapped if a not in plain],
+                         ["virtio-vga,vectors=0,edid=on,xres=1280,yres=800"])
+        self.assertEqual(len(swapped), len(plain))
+        with self.assertRaises(lanes.LaneError):
+            lanes.plan(["gpu=virtio-1280x800", "gpu=bga"], "/d")
+        with self.assertRaises(lanes.LaneError):
+            lanes.plan(["gpu=virtio-1280x801"], "/d")
+
     def test_the_small_panel_lane_is_the_virtio_gpu_at_1024x768(self):
         swapped = machine.devices("nat", "/s", None, lanes.plan(["gpu=1024x768"], "/d").swaps)
         gpus = [a for a in swapped if a.startswith("virtio-vga")]

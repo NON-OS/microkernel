@@ -15,25 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! PCCT read once at boot through the one parser (`shared_tables::pcct`)
-//! and served read-only: the communication channels CPPC and RAS use on
-//! servers, each subspace's shared memory, doorbell and timings. Nothing
-//! in NONOS rings a doorbell or writes a channel's shared memory.
+//! and logged: the communication channels CPPC and RAS use on servers.
+//! Nothing in NONOS rings a doorbell or writes a channel's shared memory.
 
 use super::super::state::TableRegistry;
 use super::raw_table::bytes;
-use super::shared_tables::pcct::{pcct, Pcct};
-use spin::RwLock;
-
-static PCCT: RwLock<Option<Pcct>> = RwLock::new(None);
+use super::shared_tables::pcct::pcct;
 
 pub fn parse_pcct(registry: &mut TableRegistry) {
     let Some(p) = bytes(registry, b"PCCT").and_then(|t| pcct(t).ok()) else { return };
     let known = p.subspaces.iter().flatten().count();
     crate::log::info!("[ACPI] PCCT: {} subspaces, {} read", p.subspaces.len(), known);
-    *PCCT.write() = Some(p);
-}
-
-/// The channels as firmware described them, None without a PCCT.
-pub fn pcct_table() -> Option<Pcct> {
-    PCCT.read().clone()
 }

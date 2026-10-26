@@ -16,10 +16,10 @@
 
 /* The room a mount has. */
 
-use super::super::super::resolve;
-use super::super::declared::{PRIVATE, PRIVATE_NAMES};
+use super::super::super::{private, resolve};
+use super::super::declared::{HOME, HOME_NAMES, PRIVATE, PRIVATE_NAMES};
 use super::quota::names_free;
-use super::used::{kept, under};
+use super::used::{copies, kept, under};
 
 /* statfs's block size, the page size tmpfs counts in. */
 pub const BSIZE: u64 = 4096;
@@ -43,7 +43,17 @@ pub fn of(point: &str, opts: &str) -> Result<Room, i64> {
             let (bytes, entries) = under(resolve::key(b"/").as_bytes())?;
             Ok(Room { blocks: bytes.div_ceil(BSIZE), free: 0, files: entries, files_free: 0 })
         }
-        /* The private mounts share one quota, of bytes and of names. */
+        /* The home's mounts, /home and /root, have the home's quota. */
+        (p, true) if private::in_home(p.as_bytes()) => {
+            let now = copies(under(&private::home_root().unwrap_or_default())?);
+            Ok(Room {
+                blocks: HOME / BSIZE,
+                free: HOME.saturating_sub(now.bytes) / BSIZE,
+                files: HOME_NAMES,
+                files_free: HOME_NAMES.saturating_sub(now.names),
+            })
+        }
+        /* The scratch mounts share one quota, of bytes and of names. */
         (_, true) => {
             let now = kept()?;
             Ok(Room {

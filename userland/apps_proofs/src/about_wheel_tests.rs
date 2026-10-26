@@ -34,3 +34,21 @@ fn the_screen_stops_at_its_top_and_at_its_last_content() {
     assert_eq!(wheel_to(1000, 1000, -3), 1000);
     assert_eq!(wheel_to(0, 0, -1), 0, "a screen that fits its pane does not move");
 }
+
+// The firmware event log's length on About's Verify screen.
+#[path = "../../capsule_about/src/about/log_words.rs"]
+mod log_words;
+
+fn said(len: u32) -> String {
+    let mut out = [0u8; 40];
+    let n = log_words::log_words(len, &mut out);
+    String::from_utf8(out[..n].to_vec()).unwrap()
+}
+
+#[test]
+fn about_log_words_name_the_length_or_its_absence() {
+    assert_eq!(said(0), "no event log", "the loader carried none");
+    assert_eq!(said(1), "event log 1 byte");
+    assert_eq!(said(4096), "event log 4096 bytes");
+    assert_eq!(said(u32::MAX), "event log 4294967295 bytes", "the longest, 26 bytes");
+}

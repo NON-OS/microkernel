@@ -32,8 +32,9 @@ pub enum DdcError {
     Checksum,
     /// The reply is not a VCP reply to the control asked for.
     Reply,
-    /// The monitor says it has no such control, or sent the null message.
-    Unsupported,
+    /// The monitor answers that it does not offer the control (result code
+    /// 1, or the null message), or its capabilities do not name it.
+    NotOffered,
     /// No clock to pace the bus by.
     NoClock,
     /// The display has not given its capabilities string, or gave a bad one.

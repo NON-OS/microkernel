@@ -1,0 +1,1218 @@
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: failed to load Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0): Not Found
+BdsDxe: loading Boot0002 "UEFI QEMU HARDDISK QM00001 " from PciRoot(0x0)/Pci(0x1F,0x2)/Sata(0x0,0xFFFF,0x0)
+BdsDxe: starting Boot0002 "UEFI QEMU HARDDISK QM00001 " from PciRoot(0x0)/Pci(0x1F,0x2)/Sata(0x0,0xFFFF,0x0)
+[2J[01;01H[=3h[2J[01;01H[BOOT] NONOS Bootloader v1.0
+[WARN] gop: [GOP] 1280x800 firmware current pitch=1280px fmt=BGRX fb=0x80000000 panel=0x0mm
+[WARN] gop: [GOP] handle 1 of 2, console out on: 1
+=== Loading Bootloader Configuration ===
+   [INFO] Using default security policy
+   [INFO] Using default network policy
+========================================
+[ERROR] security: Cannot read SecureBoot: NOT_FOUND
+[ERROR] security: Platform Key missing: NOT_FOUND
+[ERROR] security: Signature DB missing: NOT_FOUND
+[WARN] security: PCR extend failed: no TCG2 handle
+=== Security Status ===
+Production Keys: LOADED
+SecureBoot: DISABLED
+PlatformKey: MISSING
+SignatureDB: MISSING
+HW RNG: AVAILABLE
+Measured Boot: INACTIVE
+Ed25519: PASS
+BLAKE3: PASS
+=======================
+=== HW Summary ===
+ACPI: available
+Memory: reported
+CPUs: detected
+Storage: counted
+Network: counted
+Graphics: counted
+PCI: counted
+==================
+[WARN] enforce: SecureBoot not enabled
+[WARN] enforce: TPM not available
+[SECURITY] PASSED
+[WARN] enforce: SecureBoot disabled
+[WARN] enforce: TPM not available
+[WARN] enforce: PlatformKey not verified
+  [CRYPTO] Kernel bytes: 81721176
+  [CRYPTO] Computing BLAKE3 hash...
+  [CRYPTO] BLAKE3: 25860648898473e0...
+  [CRYPTO] Extracting Ed25519 + ML-DSA-65 signatures...
+  [CRYPTO] Sig R: a61f918e4b0f88f9...
+  [CRYPTO] Sig S: 45bf251a346ca54b...
+  [CRYPTO] Verifying Ed25519 signature...
+  [CRYPTO] Ed25519 verify ....................... [PASS]
+  [CRYPTO] Signer key ID: f9355fd53b2b7771...
+  [CRYPTO] Verifying ML-DSA-65 signature...
+  [CRYPTO] ML-DSA-65 verify .................... [PASS]
+  [CRYPTO] Kernel signature state ............... [PASS]
+[WARN] proofs: TCG LOG ABSENT: no log from the firmware
+[WARN] proofs: SECURE BOOT OFF: UEFI Secure Boot disabled
+[WARN] proofs: TPM OFF: no TPM 2.0 measured boot
+[PT0]
+[PT1]
+[KTXT]
+[EBS0]
+[EBS1]
+[MMAP1]
+[CR3OK]
+V>
+NX64
+R
+[NONOS] Handoff OK
+[NONOS] Kernel entry - SSE enabled
+[TIMER] Initialized, TSC freq=2800 MHz
+[BENCH] 251 kernel_entry
+[NONOS] GDT configured
+[NONOS] SYSCALL configured
+[NONOS] Early IDT configured
+[NONOS] Global allocator initialized
+[NONOS] Full IDT loaded
+[BENCH] 256 kernel_idt_ready
+[NONOS] ACPI tables parsed
+[ACPI] power button: fixed feature, polled; a press goes to the desktop as the Power key
+[APIC] Initializing Local APIC...
+[APIC] Local APIC enabled, ID=0 Version=0x0x0000000000000014 mode=xAPIC
+[APIC] Initializing I/O APIC...
+[APIC] Disabling legacy PIC (8259A)...
+[APIC] Legacy PIC disabled
+[APIC] MADT ISOs=5
+[APIC] I/O APIC enabled, ID=0 base=0x0x00000000FEC00000 gsi_base=0 Max redirections=24
+[NONOS] APIC initialized
+[APIC] Setting up timer at 100 Hz
+[NONOS] Preemption timer armed
+[BENCH] 292 kernel_timer_ready
+[NONOS] Interrupts enabled
+[NONOS] memory encryption: none
+[PCI] Enumerating PCI devices...
+[PCI] Found 10 devices
+[PCI] <bdf> Host Bridge (0x0000000000008086:0x00000000000029C0)
+[PCI] <bdf> VGA Controller (0x0000000000001AF4:0x0000000000001050)
+[PCI] <bdf> xHCI USB 3.0 (0x0000000000001B36:0x000000000000000D)
+[PCI] <bdf> Ethernet (0x0000000000001AF4:0x0000000000001041)
+[PCI] <bdf> ISA Bridge (0x0000000000008086:0x0000000000002918)
+[PCI] <bdf> SATA AHCI (0x0000000000008086:0x0000000000002922)
+[NONOS] PCI enumerated
+[BENCH] 301 kernel_pci_ready
+[NONOS] RNG seed: AVAILABLE - applying...
+[NONOS] RNG seed: APPLIED SUCCESSFULLY
+[VMD] no Intel VMD on segment 0; disks are on the root bus
+[ACPI] sci irq=9 device=0x000000000000000C
+[NONOS] hardware broker seeded
+[PLATFORM] hypervisor=qemu-tcg
+[NONOS] Entropy: CPU RNG
+[NONOS] boot session nonce latched
+[NONOS] token signing key latched
+[BENCH] 474 kernel_core_ready
+[NONOS] === Security Status ===
+[NONOS] Kernel signature: VERIFIED
+[NONOS] Secure Boot: DISABLED
+[NONOS] ========================
+[NONOS] Microkernel boot
+[BENCH] 475 microkernel_init_start
+[BOOT-ENTROPY] nonce drawn, hardware generator present
+[MEM] 7161 MiB free to allocate, in a span of 0x0000000000100000..0x0000000280000000
+[DMA] display pool pages=8192
+[DMA] low32 pool pages=2052 floor=1026
+[fbconsole] on-screen log disabled; serial only
+[NONOS] Microkernel init
+[RNG] seeded from: cpu-entropy-instruction cpu-random-instruction firmware-seed
+[SMP] madt aps=0 disabled=0 duplicate=0 invalid=0 unaddressable=0 over_limit=0
+[VM] adopted root 0x000000007E784000
+[VM-INIT] kernel half populated entries: 256
+[VM-INIT] LAPIC rebased to UC kernel mapping
+[VM-INIT] low half cleared
+[BENCH] 512 vm_ready
+[CPU-PROT] smep=1 smap=1 umip=1 nx=1 wp=1 pge=1
+[STACK-GUARD] bsp armed 8/8
+[KSEC] 4/4 sections mapped as declared
+[CPU-FPU] xsave=1 xcr0=0x0000000000000007 area=832
+[VT-D] units=0x0000000000000001 base=0x00000000FED90000 ver=0x0000000000000010 domains=0x0000000000010000 gaw=0x0000000000000030 levels=0x0000000000000004 cm
+[VT-D] IOMMU unit base=0x00000000FED90000 firmware interrupt remapping=off
+[VT-D] IOMMU unit base=0x00000000FED90000 invalidation=queue
+[VT-D] translation enabled, levels=0x0000000000000004 devices=0x000000000000000A
+[VT-D] enumerated devices blocked until claimed; with reserved memory=0; others denied
+[VT-D] units programmed=0x0000000000000001
+[VT-D] IOMMU interrupt remapping on, entries=256, compatibility format interrupts blocked
+[VT-D] I/O APICs DMAR scopes for remapping: 1 of 1
+[IOMMU] intel-vt-d present, enforcing=1, unconfined grants=0, identity devices=0
+[IOMMU] capabilities aw=48 ir=1 snoop=0 pages=0x0000000000001000 domains=256
+[CRYPTO-POST] 4/4 known-answer tests passed
+[FB] handoff ptr=0x80000000 stride=0x1400 fmt=0x3
+[FB] mapped 1280x800 pitch=5120 BGRX write-combining scale=1
+[ACPI] power button: SCI line masked, PM1_EN=0x0000000000000100
+[NONOS] device interrupt routing ready
+[BENCH] 641 process_runtime_ready
+[SMP-PROOF] cpu_count=1 UP
+[SMP] AP TSC rate 0 MHz, none recorded: no AP reached cpu::init_ap
+[NONOS] Core ready
+[BENCH] 642 microkernel_core_ready
+[BENCH] 642 microkernel_main_start
+[TPM] interface FIFO (TIS) at 0xFED40000, locality 0 (id 0x0, no ACPI start method)
+[BOOT-ATTEST] bootloader self-reported, not measured: enrolled, epoch 1
+[NONOS] boot log held; starting userspace
+[UKERNEL] Creating init
+[BENCH] 5007 init_process_created
+[UKERNEL] Entering userspace
+[BENCH] 5011 init_enter_userspace
+[INIT] Starting
+[INIT] boot profile: Standard
+[BENCH] 5011 capsule_spawn_start:ramfs
+[ZK-ATTEST] development image: paths only, no STARK proofs, never a release
+[BENCH] 5083 capsule_attest_ok:ramfs
+[ZK-ATTEST] ok ramfs vendor
+[MEASURE] PCR 14 extend failed; attestation refused until reboot
+[BENCH] 5842 capsule_preflight_ok:ramfs
+[SPAWN] name=ramfs pid=0x0000000000000002 caps=0x0000000000000038 entry=0x00000000248ED1E0
+[BENCH] 5855 capsule_runqueue_ok:ramfs
+[RAMFS] capsule spawned
+[BENCH] 5857 capsule_spawn_start:keyring
+[BENCH] 5934 capsule_attest_ok:keyring
+[ZK-ATTEST] ok keyring vendor
+[BENCH] 5935 capsule_preflight_ok:keyring
+[SPAWN] name=keyring pid=0x0000000000000003 caps=0x0000000010000038 entry=0x000000002EAFE1B0
+[BENCH] 5957 capsule_runqueue_ok:keyring
+[KEYRING] capsule spawned
+[BENCH] 5958 capsule_spawn_start:entropy_pool
+[BENCH] 6012 capsule_attest_ok:entropy_pool
+[ZK-ATTEST] ok entropy_pool vendor
+[BENCH] 6013 capsule_preflight_ok:entropy_pool
+[SPAWN] name=entropy_pool pid=0x0000000000000004 caps=0x0000000000000038 entry=0x00000000303EC080
+[BENCH] 6035 capsule_runqueue_ok:entropy_pool
+[ENTROPY] capsule spawned
+[BENCH] 6036 capsule_spawn_start:crypto_pool
+[BENCH] 6126 capsule_attest_ok:crypto_pool
+[ZK-ATTEST] ok crypto_pool vendor
+[BENCH] 6126 capsule_preflight_ok:crypto_pool
+[SPAWN] name=crypto_pool pid=0x0000000000000005 caps=0x0000000000000018 entry=0x00000000219DD3A0
+[BENCH] 6153 capsule_runqueue_ok:crypto_pool
+[CRYPTO] capsule spawned
+[BENCH] 6154 capsule_spawn_start:policy
+[BENCH] 6205 capsule_attest_ok:policy
+[ZK-ATTEST] ok policy vendor
+[BENCH] 6205 capsule_preflight_ok:policy
+[SPAWN] name=policy pid=0x0000000000000006 caps=0x0000000000000259 entry=0x0000000012F0D980
+[BENCH] 6250 capsule_runqueue_ok:policy
+[POLICY] capsule spawned
+[BENCH] 6250 capsule_spawn_start:input_router
+[BENCH] 6302 capsule_attest_ok:input_router
+[ZK-ATTEST] ok input_router vendor
+[BENCH] 6302 capsule_preflight_ok:input_router
+[SPAWN] name=input_router pid=0x0000000000000007 caps=0x0000001000000018 entry=0x0000000030AA1280
+[BENCH] 6344 capsule_runqueue_ok:input_router
+[INPUT-ROUTER] capsule spawned
+[BENCH] 6344 capsule_spawn_start:compositor
+[BENCH] 6399 capsule_attest_ok:compositor
+[ZK-ATTEST] ok compositor vendor
+[BENCH] 6399 capsule_preflight_ok:compositor
+[SPAWN] name=compositor pid=0x0000000000000008 caps=0x0000000000007918 entry=0x000000002D116620
+[BENCH] 6455 capsule_runqueue_ok:compositor
+[COMPOSITOR] capsule spawned
+[BENCH] 6456 capsule_spawn_start:app.boot_splash
+[BENCH] 6514 capsule_attest_ok:app.boot_splash
+[ZK-ATTEST] ok app.boot_splash vendor
+[BENCH] 6515 capsule_preflight_ok:app.boot_splash
+[SPAWN] name=app.boot_splash pid=0x0000000000000009 caps=0x0000000000001118 entry=0x00000000214568E0
+[BENCH] 6549 capsule_runqueue_ok:app.boot_splash
+[BOOT-SPLASH] capsule spawned
+[BENCH] 6550 capsule_spawn_start:driver.virtio_rng
+[BENCH] 6608 capsule_attest_ok:driver.virtio_rng
+[ZK-ATTEST] ok driver.virtio_rng vendor
+[BENCH] 6609 capsule_preflight_ok:driver.virtio_rng
+[SPAWN] name=driver.virtio_rng pid=0x000000000000000A caps=0x00000000001B8018 entry=0x00000000180607D0
+[BENCH] 6649 capsule_runqueue_ok:driver.virtio_rng
+[DRIVER-VIRTIO-RNG] capsule spawned
+[BENCH] 6650 capsule_spawn_start:driver.virtio_blk0
+[BENCH] 6701 capsule_attest_ok:driver.virtio_blk0
+[ZK-ATTEST] ok driver.virtio_blk0 vendor
+[BENCH] 6701 capsule_preflight_ok:driver.virtio_blk0
+[SPAWN] name=driver.virtio_blk0 pid=0x000000000000000B caps=0x00000000001F8119 entry=0x000000003F0E3220
+[BENCH] 6748 capsule_runqueue_ok:driver.virtio_blk0
+[DRIVER-VIRTIO-BLK] capsule spawned
+[BENCH] 6748 capsule_spawn_start:driver.virtio_gpu0
+[BENCH] 6801 capsule_attest_ok:driver.virtio_gpu0
+[ZK-ATTEST] ok driver.virtio_gpu0 vendor
+[BENCH] 6801 capsule_preflight_ok:driver.virtio_gpu0
+[SPAWN] driver.virtio_gpu0 install enter
+[SPAWN] name=driver.virtio_gpu0 pid=0x000000000000000C caps=0x00000000000B9118 entry=0x0000000007101240
+[BENCH] 6824 capsule_runqueue_ok:driver.virtio_gpu0
+[SPAWN] driver.virtio_gpu0 runqueue ok
+[DRIVER-VIRTIO-GPU] capsule spawned
+[BENCH] 6825 capsule_spawn_start:driver.virtio_net0
+[BENCH] 6876 capsule_attest_ok:driver.virtio_net0
+[ZK-ATTEST] ok driver.virtio_net0 vendor
+[BENCH] 6876 capsule_preflight_ok:driver.virtio_net0
+[SPAWN] driver.virtio_net0 install enter
+[SPAWN] name=driver.virtio_net0 pid=0x000000000000000D caps=0x00000000001B8138 entry=0x00000000202539E0
+[BENCH] 6892 capsule_runqueue_ok:driver.virtio_net0
+[SPAWN] driver.virtio_net0 runqueue ok
+[DRIVER-VIRTIO-NET] capsule spawned
+[BENCH] 6893 capsule_spawn_start:power
+[BENCH] 6939 capsule_attest_ok:power
+[ZK-ATTEST] ok power vendor
+[BENCH] 6939 capsule_preflight_ok:power
+[SPAWN] name=power pid=0x000000000000000E caps=0x0000000000000218 entry=0x00000000059DACF0
+[BENCH] 6957 capsule_runqueue_ok:power
+[POWER] capsule spawned
+[BENCH] 6957 capsule_spawn_start:driver.ahci0
+[BENCH] 7006 capsule_attest_ok:driver.ahci0
+[ZK-ATTEST] ok driver.ahci0 vendor
+[BENCH] 7006 capsule_preflight_ok:driver.ahci0
+[SPAWN] name=driver.ahci0 pid=0x000000000000000F caps=0x00000000000F8018 entry=0x0000000001175C70
+[BENCH] 7022 capsule_runqueue_ok:driver.ahci0
+[DRIVER-AHCI] capsule spawned
+[DRIVER-NVME] no controller present, not spawned
+[BENCH] 7023 capsule_spawn_start:driver.xhci0
+[BENCH] 7077 capsule_attest_ok:driver.xhci0
+[ZK-ATTEST] ok driver.xhci0 vendor
+[BENCH] 7077 capsule_preflight_ok:driver.xhci0
+[SPAWN] name=driver.xhci0 pid=0x0000000000000010 caps=0x00000000000F8018 entry=0x000000003A025100
+[BENCH] 7113 capsule_runqueue_ok:driver.xhci0
+[DRIVER-XHCI] capsule spawned
+[BENCH] 7114 capsule_spawn_start:driver.ps2_kbd0
+[BENCH] 7170 capsule_attest_ok:driver.ps2_kbd0
+[ZK-ATTEST] ok driver.ps2_kbd0 vendor
+[BENCH] 7170 capsule_preflight_ok:driver.ps2_kbd0
+[SPAWN] name=driver.ps2_kbd0 pid=0x0000000000000011 caps=0x0000000000358018 entry=0x000000002B7A0610
+[BENCH] 7190 capsule_runqueue_ok:driver.ps2_kbd0
+[DRIVER-PS2-INPUT] capsule spawned
+[BENCH] 7190 capsule_spawn_start:driver.usb_hid0
+[BENCH] 7241 capsule_attest_ok:driver.usb_hid0
+[ZK-ATTEST] ok driver.usb_hid0 vendor
+[BENCH] 7241 capsule_preflight_ok:driver.usb_hid0
+[SPAWN] name=driver.usb_hid0 pid=0x0000000000000012 caps=0x0000000000200018 entry=0x0000000024E64450
+[BENCH] 7260 capsule_runqueue_ok:driver.usb_hid0
+[DRIVER-USB-HID] capsule spawned
+[BENCH] 7260 capsule_spawn_start:driver.usb_msc0
+[BENCH] 7312 capsule_attest_ok:driver.usb_msc0
+[ZK-ATTEST] ok driver.usb_msc0 vendor
+[BENCH] 7312 capsule_preflight_ok:driver.usb_msc0
+[SPAWN] name=driver.usb_msc0 pid=0x0000000000000013 caps=0x0000000000000019 entry=0x000000002632CF00
+[BENCH] 7333 capsule_runqueue_ok:driver.usb_msc0
+[DRIVER-USB-MSC] capsule spawned
+[BENCH] 7333 capsule_spawn_start:driver.hda0
+[BENCH] 7384 capsule_attest_ok:driver.hda0
+[ZK-ATTEST] ok driver.hda0 vendor
+[BENCH] 7385 capsule_preflight_ok:driver.hda0
+[SPAWN] name=driver.hda0 pid=0x0000000000000014 caps=0x00000000000F8118 entry=0x0000000015531E30
+[BENCH] 7405 capsule_runqueue_ok:driver.hda0
+[DRIVER-HDA] capsule spawned
+[DRIVER-SDHCI] no controller present, not spawned
+[BENCH] 7405 capsule_spawn_start:audio.server
+[BENCH] 7457 capsule_attest_ok:audio.server
+[ZK-ATTEST] ok audio.server vendor
+[BENCH] 7458 capsule_preflight_ok:audio.server
+[SPAWN] name=audio.server pid=0x0000000000000015 caps=0x0000000000000118 entry=0x000000002C37A9F0
+[BENCH] 7475 capsule_runqueue_ok:audio.server
+[AUDIO] capsule spawned
+[BENCH] 7475 capsule_spawn_start:vfs_pool
+[BENCH] 7543 capsule_attest_ok:vfs_pool
+[ZK-ATTEST] ok vfs_pool vendor
+[BENCH] 7544 capsule_preflight_ok:vfs_pool
+[SPAWN] name=vfs_pool pid=0x0000000000000016 caps=0x0000000004000118 entry=0x000000000B444D10
+[BENCH] 7562 capsule_runqueue_ok:vfs_pool
+[VFS] capsule spawned
+[BENCH] 7563 capsule_spawn_start:net.core
+[BENCH] 7621 capsule_attest_ok:net.core
+[ZK-ATTEST] ok net.core vendor
+[BENCH] 7621 capsule_preflight_ok:net.core
+[SPAWN] name=net.core pid=0x0000000000000017 caps=0x000000000000057D entry=0x000000001B6F8330
+[BENCH] 7647 capsule_runqueue_ok:net.core
+[NET-CORE] capsule spawned
+[BENCH] 7647 capsule_spawn_start:net.nym
+[BENCH] 7720 capsule_attest_ok:net.nym
+[ZK-ATTEST] ok net.nym vendor
+[BENCH] 7721 capsule_preflight_ok:net.nym
+[SPAWN] name=net.nym pid=0x0000000000000018 caps=0x000000000000013C entry=0x00000000262F05D0
+[BENCH] 7742 capsule_runqueue_ok:net.nym
+[NET-NYM] capsule spawned
+[BENCH] 7742 capsule_spawn_start:net.anon
+[BENCH] 7833 capsule_attest_ok:net.anon
+[ZK-ATTEST] ok net.anon vendor
+[BENCH] 7834 capsule_preflight_ok:net.anon
+[SPAWN] name=net.anon pid=0x0000000000000019 caps=0x000000000000013C entry=0x0000000016C7DA10
+[BENCH] 7880 capsule_runqueue_ok:net.anon
+[NET-ANON] capsule spawned
+[BENCH] 7880 capsule_spawn_start:net.sockets
+[BENCH] 7936 capsule_attest_ok:net.sockets
+[ZK-ATTEST] ok net.sockets vendor
+[BENCH] 7937 capsule_preflight_ok:net.sockets
+[SPAWN] name=net.sockets pid=0x000000000000001A caps=0x000000000000011C entry=0x000000000B3D0A40
+[BENCH] 7964 capsule_runqueue_ok:net.sockets
+[NET-SOCKETS] capsule spawned
+[BENCH] 7964 capsule_spawn_start:net.socks5
+[BENCH] 8042 capsule_attest_ok:net.socks5
+[ZK-ATTEST] ok net.socks5 vendor
+[BENCH] 8043 capsule_preflight_ok:net.socks5
+[SPAWN] name=net.socks5 pid=0x000000000000001B caps=0x000000000000011C entry=0x0000000033462760
+[BENCH] 8067 capsule_runqueue_ok:net.socks5
+[SOCKS5] capsule spawned
+[BENCH] 8069 capsule_spawn_start:wm
+[BENCH] 8156 capsule_attest_ok:wm
+[ZK-ATTEST] ok wm vendor
+[BENCH] 8157 capsule_preflight_ok:wm
+[SPAWN] name=wm pid=0x000000000000001C caps=0x0000000000000018 entry=0x000000002805FBD0
+[BENCH] 8182 capsule_runqueue_ok:wm
+[WM] capsule spawned
+[BENCH] 8183 capsule_spawn_start:wallpaper_catalog
+[BENCH] 8269 capsule_attest_ok:wallpaper_catalog
+[ZK-ATTEST] ok wallpaper_catalog vendor
+[BENCH] 8270 capsule_preflight_ok:wallpaper_catalog
+[SPAWN] name=wallpaper_catalog pid=0x000000000000001D caps=0x0000000000000059 entry=0x0000000010792AA0
+[BENCH] 8292 capsule_runqueue_ok:wallpaper_catalog
+[WALLPAPER-CATALOG] capsule spawned
+[BENCH] 8293 capsule_spawn_start:wallpaper
+[BENCH] 8499 capsule_attest_ok:wallpaper
+[ZK-ATTEST] ok wallpaper vendor
+[BENCH] 8500 capsule_preflight_ok:wallpaper
+[SPAWN] name=wallpaper pid=0x000000000000001E caps=0x0000000000001818 entry=0x00000000240E55A0
+[BENCH] 8532 capsule_runqueue_ok:wallpaper
+[WALLPAPER] capsule spawned
+[BENCH] 8533 capsule_spawn_start:desktop_shell
+[BENCH] 9052 capsule_attest_ok:desktop_shell
+[ZK-ATTEST] ok desktop_shell vendor
+[BENCH] 9053 capsule_preflight_ok:desktop_shell
+[SPAWN] name=desktop_shell pid=0x000000000000001F caps=0x000000000100115D entry=0x00000000183179A0
+[BENCH] 9180 capsule_runqueue_ok:desktop_shell
+[DESKTOP-SHELL] capsule spawned
+[BENCH] 9180 capsule_spawn_start:image_codec
+[BENCH] 9240 capsule_attest_ok:image_codec
+[ZK-ATTEST] ok image_codec vendor
+[BENCH] 9240 capsule_preflight_ok:image_codec
+[SPAWN] name=image_codec pid=0x0000000000000020 caps=0x0000000000003018 entry=0x000000001D3982A0
+[BENCH] 9263 capsule_runqueue_ok:image_codec
+[IMAGE-CODEC] capsule spawned
+[BENCH] 9264 capsule_spawn_start:app.video_player
+[BENCH] 9493 capsule_attest_ok:app.video_player
+[ZK-ATTEST] ok app.video_player vendor
+[BENCH] 9494 capsule_preflight_ok:app.video_player
+[SPAWN] name=app.video_player pid=0x0000000000000021 caps=0x0000000000003959 entry=0x0000000036166E70
+[BENCH] 9548 capsule_runqueue_ok:app.video_player
+[VIDEO-PLAYER] capsule spawned
+[BENCH] 9549 capsule_spawn_start:clipboard
+[BENCH] 9613 capsule_attest_ok:clipboard
+[ZK-ATTEST] ok clipboard vendor
+[BENCH] 9613 capsule_preflight_ok:clipboard
+[SPAWN] clipboard install enter
+[SPAWN] name=clipboard pid=0x0000000000000022 caps=0x0000000000000018 entry=0x000000003F7AABF0
+[BENCH] 9668 capsule_runqueue_ok:clipboard
+[SPAWN] clipboard runqueue ok
+[CLIPBOARD] capsule spawned
+[BENCH] 9669 capsule_spawn_start:attest
+[BENCH] 9717 capsule_attest_ok:attest
+[ZK-ATTEST] ok attest vendor
+[BENCH] 9717 capsule_preflight_ok:attest
+[SPAWN] name=attest pid=0x0000000000000023 caps=0x0000000080000019 entry=0x000000003417B2E0
+[BENCH] 9773 capsule_runqueue_ok:attest
+[ATTEST] capsule spawned
+[BENCH] 9773 capsule_spawn_start:installer
+[BENCH] 9839 capsule_attest_ok:installer
+[ZK-ATTEST] ok installer vendor
+[BENCH] 9839 capsule_preflight_ok:installer
+[SPAWN] name=installer pid=0x0000000000000024 caps=0x0000000000800059 entry=0x000000001B9F05F0
+[BENCH] 9869 capsule_runqueue_ok:installer
+[INSTALLER] capsule spawned
+[BENCH] 9869 capsule_spawn_start:payment
+[BENCH] 9928 capsule_attest_ok:payment
+[ZK-ATTEST] ok payment vendor
+[BENCH] 9929 capsule_preflight_ok:payment
+[SPAWN] name=payment pid=0x0000000000000025 caps=0x0000000010000079 entry=0x000000001D3DB660
+[BENCH] 9958 capsule_runqueue_ok:payment
+[PAYMENT] capsule spawned
+[BENCH] 9959 capsule_spawn_start:nox_settle
+[BENCH] 10057 capsule_attest_ok:nox_settle
+[ZK-ATTEST] ok nox_settle vendor
+[BENCH] 10058 capsule_preflight_ok:nox_settle
+[SPAWN] name=nox_settle pid=0x0000000000000026 caps=0x000000000000003C entry=0x000000002F0720A0
+[BENCH] 10087 capsule_runqueue_ok:nox_settle
+[NOX-SETTLE] capsule spawned
+[BENCH] 10107 capsule_spawn_start:login
+[BENCH] 10161 capsule_attest_ok:login
+[ZK-ATTEST] ok login vendor
+[BENCH] 10162 capsule_preflight_ok:login
+[SPAWN] login install enter
+[SPAWN] name=login pid=0x0000000000000027 caps=0x0000000010001018 entry=0x000000001BBD1B60
+[BENCH] 10183 capsule_runqueue_ok:login
+[SPAWN] login runqueue ok
+[LOGIN] capsule spawned
+[BENCH] 10184 capsule_spawn_start:toolkit
+[BENCH] 10268 capsule_attest_ok:toolkit
+[ZK-ATTEST] ok toolkit vendor
+[BENCH] 10269 capsule_preflight_ok:toolkit
+[SPAWN] toolkit install enter
+[SPAWN] name=toolkit pid=0x0000000000000028 caps=0x0000000000000019 entry=0x0000000022137EA0
+[BENCH] 10292 capsule_runqueue_ok:toolkit
+[SPAWN] toolkit runqueue ok
+[TOOLKIT] capsule spawned
+[BENCH] 10292 capsule_spawn_start:market.index
+[BENCH] 10353 capsule_attest_ok:market.index
+[ZK-ATTEST] ok market.index vendor
+[BENCH] 10354 capsule_preflight_ok:market.index
+[SPAWN] name=market.index pid=0x0000000000000029 caps=0x0000000000000059 entry=0x000000000FDCB330
+[BENCH] 10413 capsule_runqueue_ok:market.index
+[MARKET] capsule spawned
+[BENCH] 10414 capsule_spawn_start:app.about
+[BENCH] 10805 capsule_attest_ok:app.about
+[ZK-ATTEST] ok app.about vendor
+[BENCH] 10806 capsule_preflight_ok:app.about
+[SPAWN] name=app.about pid=0x000000000000002A caps=0x0000000080001919 entry=0x00000000191EFB40
+[BENCH] 10888 capsule_runqueue_ok:app.about
+[APP-ABOUT] capsule spawned
+[BENCH] 10889 capsule_spawn_start:app.store
+[BENCH] 11106 capsule_attest_ok:app.store
+[ZK-ATTEST] ok app.store vendor
+[BENCH] 11107 capsule_preflight_ok:app.store
+[SPAWN] name=app.store pid=0x000000000000002B caps=0x0000000040001919 entry=0x000000000320AF40
+[BENCH] 11127 capsule_runqueue_ok:app.store
+[APP-STORE] capsule spawned
+[BENCH] 11127 capsule_spawn_start:app.calculator
+[BENCH] 11421 capsule_attest_ok:app.calculator
+[ZK-ATTEST] ok app.calculator vendor
+[BENCH] 11422 capsule_preflight_ok:app.calculator
+[SPAWN] name=app.calculator pid=0x000000000000002C caps=0x0000000000001919 entry=0x00000000086ADF30
+[BENCH] 11533 capsule_runqueue_ok:app.calculator
+[APP-CALCULATOR] capsule spawned
+[BENCH] 11534 capsule_spawn_start:app.browser
+[BENCH] 12055 capsule_attest_ok:app.browser
+[ZK-ATTEST] ok app.browser vendor
+[BENCH] 12056 capsule_preflight_ok:app.browser
+[SPAWN] name=app.browser pid=0x000000000000002D caps=0x000000000000193D entry=0x000000000CAC3FF0
+[BENCH] 12182 capsule_runqueue_ok:app.browser
+[APP-BROWSER] capsule spawned
+[BENCH] 12182 capsule_spawn_start:app.snake
+[BENCH] 12407 capsule_attest_ok:app.snake
+[ZK-ATTEST] ok app.snake vendor
+[BENCH] 12408 capsule_preflight_ok:app.snake
+[SPAWN] name=app.snake pid=0x000000000000002E caps=0x0000000000001959 entry=0x0000000030C66270
+[BENCH] 12460 capsule_runqueue_ok:app.snake
+[APP-SNAKE] capsule spawned
+[BENCH] 12461 capsule_spawn_start:app.nonos_wallet
+[BENCH] 12779 capsule_attest_ok:app.nonos_wallet
+[ZK-ATTEST] ok app.nonos_wallet vendor
+[BENCH] 12779 capsule_preflight_ok:app.nonos_wallet
+[SPAWN] name=app.nonos_wallet pid=0x000000000000002F caps=0x000000001000197D entry=0x0000000032C19C50
+[BENCH] 12868 capsule_runqueue_ok:app.nonos_wallet
+[APP-NONOS-WALLET] capsule spawned
+[BENCH] 12869 capsule_spawn_start:app.terminal
+[BENCH] 13094 capsule_attest_ok:app.terminal
+[ZK-ATTEST] ok app.terminal vendor
+[BENCH] 13095 capsule_preflight_ok:app.terminal
+[SPAWN] name=app.terminal pid=0x0000000000000030 caps=0x00000000C100197D entry=0x000000002590EC90
+[BENCH] 13121 capsule_runqueue_ok:app.terminal
+[APP-TERMINAL] capsule spawned
+[BENCH] 13122 capsule_spawn_start:app.file_manager
+[BENCH] 13261 capsule_attest_ok:app.file_manager
+[ZK-ATTEST] ok app.file_manager vendor
+[BENCH] 13261 capsule_preflight_ok:app.file_manager
+[SPAWN] name=app.file_manager pid=0x0000000000000031 caps=0x0000000000001959 entry=0x000000003D3EB570
+[BENCH] 13276 capsule_runqueue_ok:app.file_manager
+[APP-FILE-MANAGER] capsule spawned
+[BENCH] 13276 capsule_spawn_start:app.audio_player
+[BENCH] 13482 capsule_attest_ok:app.audio_player
+[ZK-ATTEST] ok app.audio_player vendor
+[BENCH] 13482 capsule_preflight_ok:app.audio_player
+[SPAWN] name=app.audio_player pid=0x0000000000000032 caps=0x000000000000197D entry=0x000000002A9109F0
+[BENCH] 13490 capsule_runqueue_ok:app.audio_player
+[APP-AUDIO-PLAYER] capsule spawned
+[BENCH] 13491 capsule_spawn_start:app.linux
+[BENCH] 13713 capsule_attest_ok:app.linux
+[ZK-ATTEST] ok app.linux vendor
+[BENCH] 13714 capsule_preflight_ok:app.linux
+[SPAWN] name=app.linux pid=0x0000000000000033 caps=0x0000000104001979 entry=0x0000000026D7BAE0
+[BENCH] 13725 capsule_runqueue_ok:app.linux
+[APP-LINUX] capsule spawned
+[BENCH] 13726 capsule_spawn_start:app.text_editor
+[BENCH] 14030 capsule_attest_ok:app.text_editor
+[ZK-ATTEST] ok app.text_editor vendor
+[BENCH] 14031 capsule_preflight_ok:app.text_editor
+[SPAWN] name=app.text_editor pid=0x0000000000000034 caps=0x0000000000001959 entry=0x0000000024A37610
+[BENCH] 14079 capsule_runqueue_ok:app.text_editor
+[APP-TEXT-EDITOR] capsule spawned
+[BENCH] 14080 capsule_spawn_start:app.settings
+[BENCH] 14466 capsule_attest_ok:app.settings
+[ZK-ATTEST] ok app.settings vendor
+[BENCH] 14467 capsule_preflight_ok:app.settings
+[SPAWN] name=app.settings pid=0x0000000000000035 caps=0x000000000000997D entry=0x000000000F4AF8C0
+[BENCH] 14527 capsule_runqueue_ok:app.settings
+[APP-SETTINGS] capsule spawned
+[BENCH] 14528 capsule_spawn_start:app.process_manager
+[BENCH] 14889 capsule_attest_ok:app.process_manager
+[ZK-ATTEST] ok app.process_manager vendor
+[BENCH] 14890 capsule_preflight_ok:app.process_manager
+[SPAWN] name=app.process_manager pid=0x0000000000000036 caps=0x0000000002001919 entry=0x000000002B322930
+[BENCH] 14998 capsule_runqueue_ok:app.process_manager
+[APP-PROCESS-MANAGER] capsule spawned
+[BENCH] 14998 capsule_spawn_start:nonos.shield
+[BENCH] 15751 capsule_attest_ok:nonos.shield
+[ZK-ATTEST] ok nonos.shield vendor
+[BENCH] 15752 capsule_preflight_ok:nonos.shield
+[SPAWN] name=nonos.shield pid=0x0000000000000037 caps=0x000000000000017D entry=0x0000000034CF39E0
+[BENCH] 16172 capsule_runqueue_ok:nonos.shield
+[SHIELD] capsule spawned
+[BENCH] 16172 capsule_spawn_start:test.attack
+[BENCH] 16257 capsule_attest_ok:test.attack
+[ZK-ATTEST] ok test.attack vendor
+[BENCH] 16258 capsule_preflight_ok:test.attack
+[SPAWN] name=test.attack pid=0x0000000000000038 caps=0x0000000000000119 entry=0x0000000003D5B8A0
+[BENCH] 16304 capsule_runqueue_ok:test.attack
+[SELFTEST] attack capsule spawned
+[INIT] Capsules spawned
+[ATTEST-DOC] refused: tpm did not respond in time
+[SMP] cpu=0 runs user pid 7
+[USER-FIRST] pid=0x0000000000000007 rip=0x0000000030AA1280
+[USER-FIRST] pid=0x0000000000000008 rip=0x000000002D116620
+[USER-FIRST] pid=0x000000000000000B rip=0x000000003F0E3220
+[USER-FIRST] pid=0x000000000000000C rip=0x0000000007101240
+[VT-D] confined to its capsule's domain
+[BROKER] claimed device 0x0000000000000002 bus master off until its driver turns it on
+[USER-FIRST] pid=0x000000000000000D rip=0x00000000202539E0
+[net-setup] find[net-setup] claim[VT-D] confined to its capsule's domain
+[BROKER] device 0x0000000000000005 not reset at claim: no FLR
+[USER-FIRST] pid=0x000000000000000F rip=0x0000000001175C70
+[VT-D] confined to its capsule's domain
+[BROKER] device 0x0000000000000008 not reset at claim: no FLR
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[USER-FIRST] pid=0x0000000000000011 rip=0x000000002B7A0610
+[USER-FIRST] pid=0x0000000000000013 rip=0x000000002632CF00
+[USER-FIRST] pid=0x0000000000000017 rip=0x000000001B6F8330
+[DISPLAY] gfx lookup: driver.virtio_gpu0
+[BLK] step find[BLK] step claim[VT-D] confined to its capsule's domain
+[BROKER] device 0x0000000000000001 not reset at claim: no FLR
+[BLK] step transport[BLK] step modern-regs[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[BLK] step irq-bind[BLK] step negotiate[BLK] step dma[DMA] grant uncached pages=3
+[BLK] step bring-up[BLK] step ready[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[GPU-EDID] EDID read: its modes offered[GPU-3D] virgl not offered (2d scanout only)[net-setup] transport[net-setup] modern pci[net-setup] modern regmap[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[net-setup] negotiate[net-setup] dma[DMA] grant uncached pages=3
+[DMA] grant uncached pages=3
+[net-setup] queues[net-setup] done[NET-CORE] registered net.tcp net.udp net.dhcp.client net.dns net.ip
+[BENCH] 20812 surface_register_first
+[DISPLAY] mode 1920x1080
+[NET-CORE] bind: interface up on driver.virtio_net0[DISPLAY] on driver.virtio_gpu0 1920x1080, canvas 1920x1080 at scale 1.00
+[MUNMAP] release_va_failed
+[MUNMAP] pid=0x0000000000000008 name=compositor size=0x0000000000001000 va=0x00000000817E9000 total_pid=0x0000000001010000 total_system=0x00000000097F9000
+[DISPLAY] serving: first turn at 20178 ms took 11 ms
+[NET-CORE] DHCP asking for a lease
+[NET-CORE] lease 10.0.2.15/24 gw 10.0.2.2
+[NET-CORE] lease dns 10.0.2.3
+[NET-CORE] lease-status state=3 ip=10.0.2.15
+[DISPLAY] first request op 0x0006 from pid 7 at 20231 ms
+[USER-FIRST] pid=0x0000000000000002 rip=0x00000000248ED1E0
+[USER-FIRST] pid=0x0000000000000003 rip=0x000000002EAFE1B0
+[USER-FIRST] pid=0x0000000000000004 rip=0x00000000303EC080
+[DIAG] ipc.drain kernel.entropy=0x0000000000000004
+[USER-FIRST] pid=0x0000000000000005 rip=0x00000000219DD3A0
+[USER-FIRST] pid=0x0000000000000006 rip=0x0000000012F0D980
+[USER-FIRST] pid=0x0000000000000009 rip=0x00000000214568E0
+[USER-FIRST] pid=0x000000000000000A rip=0x00000000180607D0
+[VT-D] confined to its capsule's domain
+[BROKER] device 0x0000000000000004 not reset at claim: no FLR
+[USER-FIRST] pid=0x000000000000000E rip=0x00000000059DACF0
+[USER-FIRST] pid=0x0000000000000010 rip=0x000000003A025100
+[USER-FIRST] pid=0x0000000000000012 rip=0x0000000024E64450
+[USER-FIRST] pid=0x0000000000000014 rip=0x0000000015531E30
+[VT-D] confined to its capsule's domain
+[BROKER] device 0x0000000000000006 not reset at claim: no FLR
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[USER-FIRST] pid=0x0000000000000015 rip=0x000000002C37A9F0
+[AUDIO] up
+[AUDIO] output driver.hda0
+[USER-FIRST] pid=0x0000000000000016 rip=0x000000000B444D10
+[DIAG] ipc.call unanswered driver.xhci0 err=-110
+[DISPLAY] compositor silent 3 s: screen cleared
+[DISPLAY] driver.virtio_gpu0: output lost and set again; repainting
+[DISPLAY] now on driver.virtio_gpu0 1920x1080, canvas 1920x1080 at scale 1.00
+[BENCH] 27683 display_flush_first
+[DISPLAY] present 1: 1 rects, box 1920x1080 at 0,0, serial 1, lit 63 of 64 sampled, taken
+[DISPLAY] first frame let through at 26913 ms
+[DISPLAY] slow turn 3830 ms (drain 3638, upkeep 114, frame 78)
+[USER-FIRST] pid=0x0000000000000018 rip=0x00000000262F05D0
+[DISPLAY] present 2: 1 rects, box 32x32 at 959,539, serial 1, lit 55 of 64 sampled, taken
+[USER-FIRST] pid=0x0000000000000019 rip=0x0000000016C7DA10
+[ANON] starting
+[ANON] net.tcp found, serving
+[USER-FIRST] pid=0x000000000000001A rip=0x000000000B3D0A40
+[USER-FIRST] pid=0x000000000000001B rip=0x0000000033462760
+[USER-FIRST] pid=0x000000000000001C rip=0x000000002805FBD0
+[USER-FIRST] pid=0x000000000000001D rip=0x0000000010792AA0
+[USER-FIRST] pid=0x000000000000001E rip=0x00000000240E55A0
+[USER-FIRST] pid=0x000000000000001F rip=0x00000000183179A0
+[USER-FIRST] pid=0x0000000000000020 rip=0x000000001D3982A0
+[USER-FIRST] pid=0x0000000000000021 rip=0x0000000036166E70
+[USER-FIRST] pid=0x0000000000000022 rip=0x000000003F7AABF0
+[USER-FIRST] pid=0x0000000000000023 rip=0x000000003417B2E0
+[USER-FIRST] pid=0x0000000000000024 rip=0x000000001B9F05F0
+[USER-FIRST] pid=0x0000000000000025 rip=0x000000001D3DB660
+[USER-FIRST] pid=0x0000000000000026 rip=0x000000002F0720A0
+[USER-FIRST] pid=0x0000000000000027 rip=0x000000001BBD1B60
+[USER-FIRST] pid=0x0000000000000028 rip=0x0000000022137EA0
+[USER-FIRST] pid=0x0000000000000029 rip=0x000000000FDCB330
+[USER-FIRST] pid=0x000000000000002A rip=0x00000000191EFB40
+[USER-FIRST] pid=0x000000000000002B rip=0x000000000320AF40
+[USER-FIRST] pid=0x000000000000002C rip=0x00000000086ADF30
+[USER-FIRST] pid=0x000000000000002D rip=0x000000000CAC3FF0
+[USER-FIRST] pid=0x000000000000002E rip=0x0000000030C66270
+[USER-FIRST] pid=0x000000000000002F rip=0x0000000032C19C50
+[USER-FIRST] pid=0x0000000000000030 rip=0x000000002590EC90
+[USER-FIRST] pid=0x0000000000000031 rip=0x000000003D3EB570
+[USER-FIRST] pid=0x0000000000000032 rip=0x000000002A9109F0
+[USER-FIRST] pid=0x0000000000000033 rip=0x0000000026D7BAE0
+[LINUX] personality up
+[USER-FIRST] pid=0x0000000000000034 rip=0x0000000024A37610
+[USER-FIRST] pid=0x0000000000000035 rip=0x000000000F4AF8C0
+[USER-FIRST] pid=0x0000000000000036 rip=0x000000002B322930
+[USER-FIRST] pid=0x0000000000000037 rip=0x0000000034CF39E0
+[USER-FIRST] pid=0x0000000000000038 rip=0x0000000003D5B8A0
+[ATTACK-START] capsule pid 56
+[ATTACK] cap-escape refused: a socket through net.sockets without Network, MkIpcSend EPERM (1)
+[ATTACK] cap-escape refused: a TCP connection through net.tcp without Network, MkIpcSend EPERM (1)
+[ATTACK] cap-escape refused: a name lookup through net.dns without Network, MkIpcSend EPERM (1)
+[ATTACK] cap-escape refused: a mixnet session through net.nym without Network, MkIpcSend EPERM (1)
+[ATTACK] cap-escape refused: an onion circuit through net.anon without Network, MkIpcSend EPERM (1)
+[ATTACK] cap-escape refused: a SOCKS stream through net.socks5 without Network, MkIpcSend EPERM (1)
+[ATTACK] cap-escape refused: an MMIO window without Mmio, MkMmioMap EPERM (1)
+[ATTACK] cap-escape refused: net.sockets' inbox by its pid without Network, MkIpcSendToPid EPERM (1)
+[ATTACK] cap-escape refused: a network card's driver by name, held to the stack, MkIpcSend EPERM (1)
+[ATTACK] cap-escape refused: a network card's driver by its pid, held to the stack, MkIpcSendToPid EPERM (1)
+[ATTACK] cap-escape refused: a device's driver by name, held to its service, MkIpcSend EPERM (1)
+[ATTACK] cap-escape refused: a device's driver by its pid, held to its service, MkIpcSendToPid EPERM (1)
+[ATTACK] cap-escape refused: a device's driver by name, held to its service, MkIpcSend EPERM (1)
+[ATTACK] cap-escape refused: a device's driver by its pid, held to its service, MkIpcSendToPid EPERM (1)
+[ATTACK] cap-escape refused: a device's driver by name, held to its service, MkIpcSend EPERM (1)
+[ATTACK] cap-escape refused: a device's driver by its pid, held to its service, MkIpcSendToPid EPERM (1)
+[ATTACK] cap-escape refused: a device's driver by name, held to its service, MkIpcSend EPERM (1)
+[ATTACK] cap-escape refused: a device's driver by its pid, held to its service, MkIpcSendToPid EPERM (1)
+[ATTACK] cap-escape refused: a device's driver by name, held to its service, MkIpcSend EPERM (1)
+[ATTACK] cap-escape refused: a device's driver by its pid, held to its service, MkIpcSendToPid EPERM (1)
+[ATTACK] cap-escape refused: a device's driver by name, held to its service, MkIpcSend EPERM (1)
+[ATTACK] cap-escape refused: a device's driver by its pid, held to its service, MkIpcSendToPid EPERM (1)
+[ATTACK] cap-escape refused: a device's driver by name, held to its service, MkIpcSend EPERM (1)
+[ATTACK] cap-escape refused: a device's driver by its pid, held to its service, MkIpcSendToPid EPERM (1)
+[ATTACK] held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+[USER-FIRST] pid=0x0000000000000039 rip=0x000000002D12D038
+[DIAG] ipc.call unanswered vfs_pool err=-110
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[DMA] grant uncached pages=2
+[VT-D] confined to its capsule's domain
+[BROKER] device 0x0000000000000003 not reset at claim: no FLR
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[DIAG] ipc.call unanswered driver.xhci0 err=-110
+[HDA] irq msi
+[HDA] controller 8086:2668
+[VFS] serving, store status 00[ATTACK] held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+[ATTACK] held-escape refused: xhci's port status by its reply port, MkIpcCall EPERM (1)
+[ATTACK] held-escape refused: xhci's bulk-IN by its reply port, MkIpcCall EPERM (1)
+[ATTACK] held-escape refused: usb_msc's state by its reply port, MkIpcCall EPERM (1)
+[USER-FIRST] pid=0x000000000000003A rip=0x0000000034CE2D2C
+[MUNMAP] release_va_failed
+[MUNMAP] pid=0x000000000000001E name=wallpaper size=0x0000000000001000 va=0x00000000817E9000 total_pid=0x00000000017F9000 total_system=0x0000000066FFF000
+[shield 31007 ms] prover pool: 1 of 1 cores
+[MUNMAP] release_va_failed
+[MUNMAP] pid=0x0000000000000038 name=test.attack size=0x0000000000001000 va=0x0000000080000000 total_pid=0x0000000000010000 total_system=0x00000000677F8000
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes[USER-FIRST] pid=0x000000000000003B rip=0x00000000240F4C20
+[USER-FIRST] pid=0x000000000000003C rip=0x0000000003D5BA80
+[HDA] codecs mask=0001
+[NYM] directory: fetching
+[DISPLAY] present 3: 1 rects, box 1920x1080 at 0,0, serial 1, lit 63 of 64 sampled, taken
+ first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91[HDA] path cad=0 pin=03 dac=02 hops=2
+[HDA] ready: outputs muted, no stream until a player opens one
+[NYM] fetch: connecting
+ sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91[SOCKS5] connect, destination bytes 39
+ sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: passed over a message of 8 bytes[DIAG] ipc.drain proc.20=0x0000000000000014
+[DIAG] ipc.drain proc.20=0x0000000000000014
+[DIAG] ipc.drain proc.20=0x0000000000000014
+[DIAG] ipc.drain proc.20=0x0000000000000014
+[DIAG] ipc.drain proc.20=0x0000000000000014
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261026061209
+ first byte 91 sender 56 request 0
+[ATTACK-NOTE] reply-twice: its own requests were not in its inbox
+[ATTACK] cap-escape refused: claim a device without Driver, MkDeviceClaim EPERM (1)
+[ATTACK] cap-escape refused: map a DMA buffer without Dma, MkDmaMap EPERM (1)
+[ATTACK] cap-escape refused: bind a device interrupt without Irq, MkIrqBind EPERM (1)
+[ATTACK] cap-escape refused: read PCI config space without Driver, MkPciConfigRead EPERM (1)
+[ATTACK] cap-escape refused: take an I/O port range without Pio, MkPioGrant EPERM (1)
+[ATTACK] cap-escape refused: read every capsule's measurement without AttestRead, MkAttestEntries EPERM (1)
+[ATTACK] cap-escape refused: ask the TPM to sign an attestation without AttestRead, MkAttestDoc EPERM (1)
+[ATTACK] cap-escape refused: read the device secret without DeviceSecret, MkDeviceSecret EPERM (1)
+[ATTACK] cap-escape refused: read the TPM identity keys without DeviceSecret, MkEnroll EPERM (1)
+[ATTACK] cap-escape refused: grant itself Network without Admin, MkCapGrant EPERM (1)
+[ATTACK] cap-escape refused: set the clock without TimeSet, MkTimeAdjust EPERM (1)
+[ATTACK] cap-escape refused: write the capsule store without StoreWrite, MkStoreWrite EPERM (1)
+[ATTACK] cap-escape refused: open another app's window without SpawnWindow, MkSpawnInstance EPERM (1)
+[ATTACK] cap-escape refused: install an app without AppInstall, MkAppInstall EPERM (1)
+[ATTACK] cap-escape refused: host a foreign guest without ForeignExec, MkForeignSpawn EPERM (1)
+[ATTACK] cap-escape refused: copy another process's memory without ForeignExec, MkPeerCopy EPERM (1)
+[ATTACK] cap-escape refused: mint a signature trailer without LocalSign, MkLocalSign EPERM (1)
+[ATTACK] cap-escape refused: enrol a signing root without EnrolDevRoot, MkDevRootLocal EPERM (1)
+[ATTACK] cap-escape refused: inject input events without InputSource, MkInputEventPost EPERM (1)
+[ATTACK] cap-escape refused: drain every keystroke without InputConsumer, MkInputEventDrain EPERM (1)
+[ATTACK] cap-escape refused: kill init without ProcessControl, MkKill EPERM (1)
+[DIAG] ipc.drain kernel.entropy=0x0000000000000004
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[STORE] the loader's copy of the store: 82909696 bytes
+[PKG] vfy ok /capsules/std_proof.elf
+[PKG] vfy ok /capsules/std_proof.nonos_id_cert.bin
+[PKG] vfy ok /capsules/std_proof.manifest.bin
+[PKG] vfy ok /capsules/std_proof.zk_trailer.bin
+[ATTACK] foreign-memory refused: a kernel address to MkDebug EFAULT (14)
+[ATTACK] foreign-memory refused: another address space's address to MkDebug EFAULT (14)
+[ATTACK] foreign-memory refused: a kernel address as an IPC message, MkIpcSend EFAULT (14)
+[ATTACK] foreign-memory refused: a fixed mapping at a kernel address, MkMmap EPERM (1)
+[ATTACK] foreign-memory refused: a length that wraps the address space, MkDebug EINVAL (22)
+[ATTACK] foreign-memory refused: the process table written to a kernel address, MkProcStat EFAULT (14)
+[ATTACK] foreign-memory refused: the boot record written to a kernel address, MkAttestStatus EFAULT (14)
+[ATTACK] foreign-memory refused: a kernel page unmapped, MkMunmap EINVAL (22)
+[ATTACK] foreign-memory refused: a page of the DMA buffer window unmapped, MkMunmap EINVAL (22)
+[ATTACK] foreign-memory refused: a fixed mapping in the MMIO register window, MkMmap EPERM (1)
+[ATTACK] cap-escape refused: register net.dns without RegisterService, MkServiceRegister EPERM (1)
+[DIAG] ipc.drain kernel.entropy=0x0000000000000004
+[ATTACK] cap-escape refused: read a raw SATA sector without StoreWrite, MkIpcCall EACCES (13)
+[PKG] vfy ok /capsules/gui_demo.elf
+[ATTACK] cap-escape refused: write a raw SATA sector without StoreWrite, MkIpcCall EACCES (13)
+[SPLASH] up 1920x1080 at 32111 ms
+[ATTACK] cap-escape refused: read a raw virtio-blk sector without StoreWrite, MkIpcCall EACCES (13)
+[PKG] vfy ok /capsules/gui_demo.nonos_id_cert.bin
+[PKG] vfy ok /capsules/gui_demo.manifest.bin
+[PKG] vfy ok /capsules/gui_demo.zk_trailer.bin
+[ATTACK] cap-escape refused: write a raw virtio-blk sector without StoreWrite, MkIpcCall EACCES (13)
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[PKG] vfy ok /capsules/game_2048.elf
+[PKG] vfy ok /capsules/game_2048.nonos_id_cert.bin
+[DIAG] ipc.drain proc.24=0x0000000000000005
+[PKG] vfy ok /capsules/game_2048.manifest.bin
+[PKG] vfy ok /capsules/game_2048.zk_trailer.bin
+[DIAG] ipc.drain proc.24=0x0000000000000005
+[NYM] fetch: ok-len-or-err 4 0
+[NYM] directory sync failed, code 20
+[NYM] no directory gateways yet, dialling a compiled one
+[DIAG] ipc.drain kernel.entropy=0x0000000000000004
+[SPLASH] stepped aside at 33470 ms: the desktop is up
+[MUNMAP] pid=0x0000000000000009 name=app.boot_splash size=0x00000000007E9000 va=0x0000000081000000 total_pid=0x0000000001000000 total_system=0x0000000067FE1000
+[PKG] vfy ok /capsules/egui_proof.elf
+[PKG] vfy ok /capsules/egui_proof.nonos_id_cert.bin
+[PKG] vfy ok /capsules/egui_proof.manifest.bin
+[PKG] vfy ok /capsules/egui_proof.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/python3
+[PKG] vfy ok /linux/usr/bin/python3.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/python3.manifest.bin
+[PKG] vfy ok /linux/usr/bin/python3.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/lua
+[PKG] vfy ok /linux/usr/bin/lua.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/lua.manifest.bin
+[PKG] vfy ok /linux/usr/bin/lua.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/zstd
+[DIAG] ipc.call unanswered test.attack err=-110
+[PKG] vfy ok /linux/usr/bin/zstd.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/zstd.manifest.bin
+[PKG] vfy ok /linux/usr/bin/zstd.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/john
+[PKG] vfy ok /linux/usr/bin/john.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/john.manifest.bin
+[PKG] vfy ok /linux/usr/bin/john.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/sqlite3
+[PKG] vfy ok /linux/usr/bin/sqlite3.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/sqlite3.manifest.bin
+[PKG] vfy ok /linux/usr/bin/sqlite3.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/qjs
+[PKG] vfy ok /linux/usr/bin/qjs.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/qjs.manifest.bin
+[PKG] vfy ok /linux/usr/bin/qjs.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/jq
+[PKG] vfy ok /linux/usr/bin/jq.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/jq.manifest.bin
+[PKG] vfy ok /linux/usr/bin/jq.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/tclsh
+[PKG] vfy ok /linux/usr/bin/tclsh.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/tclsh.manifest.bin
+[PKG] vfy ok /linux/usr/bin/tclsh.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/mruby
+[PKG] vfy ok /linux/usr/bin/mruby.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/mruby.manifest.bin
+[PKG] vfy ok /linux/usr/bin/mruby.zk_trailer.bin
+[DIAG] ipc.call unanswered desktop_shell err=-110
+[ATTACK] deputy-escape refused: app.install through the shell's OP_OPEN_WITH ETIMEDOUT (110)
+[ATTACK] service-squat refused: MkServiceRegister net.sockets EPERM (1)
+[ATTACK] service-squat refused: MkServiceRegister app.file_manager EPERM (1)
+[ATTACK-DONE] capsule
+[PKG] vfy ok /linux/usr/bin/rg
+[PKG] vfy ok /linux/usr/bin/rg.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/rg.manifest.bin
+[PKG] vfy ok /linux/usr/bin/rg.zk_trailer.bin
+[NET-NYM] gateway connect 6
+[NYM] exit lookup: the directory lists none
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[DIAG] ipc.drain kernel.entropy=0x0000000000000004
+[PKG] vfy ok /linux/usr/bin/fd
+[PKG] vfy ok /linux/usr/bin/fd.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/fd.manifest.bin
+[PKG] vfy ok /linux/usr/bin/fd.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/gojq
+[NYM] directory: fetching
+[PKG] vfy ok /linux/usr/bin/gojq.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/gojq.manifest.bin
+[PKG] vfy ok /linux/usr/bin/gojq.zk_trailer.bin
+[NYM] fetch: connecting
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261026061216
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain proc.24=0x0000000000000005
+[DIAG] ipc.drain proc.24=0x0000000000000005
+[NYM] fetch: ok-len-or-err 4 0
+[NYM] directory sync failed, code 20
+[SOCKS5] connect, destination bytes 39
+[ANON] dir never established  49. 13. 145. 234: 9230
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[PKG] vfy ok /linux/usr/bin/perl
+[PKG] vfy ok /linux/usr/bin/perl.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/perl.manifest.bin
+[PKG] vfy ok /linux/usr/bin/perl.zk_trailer.bin
+[PKG] vfy ok /linux/usr/lib/perl5/strict.pm
+[PKG] vfy ok /linux/usr/lib/perl5/warnings.pm
+[PKG] vfy ok /linux/usr/lib/perl5/warnings/register.pm
+[PKG] vfy ok /linux/usr/lib/perl5/feature.pm
+[PKG] vfy ok /linux/usr/lib/perl5/utf8.pm
+[PKG] vfy ok /linux/usr/lib/perl5/vars.pm
+[PKG] vfy ok /linux/usr/lib/perl5/constant.pm
+[PKG] vfy ok /linux/usr/lib/perl5/lib.pm
+[PKG] vfy ok /linux/usr/lib/perl5/integer.pm
+[PKG] vfy ok /linux/usr/lib/perl5/bytes.pm
+[NYM] no directory gateways yet, dialling a compiled one
+[PKG] vfy ok /linux/usr/lib/perl5/overload.pm
+[PKG] vfy ok /linux/usr/lib/perl5/overloading.pm
+[PKG] vfy ok /linux/usr/lib/perl5/parent.pm
+[PKG] vfy ok /linux/usr/lib/perl5/base.pm
+[PKG] vfy ok /linux/usr/lib/perl5/fields.pm
+[PKG] vfy ok /linux/usr/lib/perl5/subs.pm
+[PKG] vfy ok /linux/usr/lib/perl5/builtin.pm
+[PKG] vfy ok /linux/usr/lib/perl5/experimental.pm
+[PKG] vfy ok /linux/usr/lib/perl5/version.pm
+[PKG] vfy ok /linux/usr/lib/perl5/version/regex.pm
+[PKG] vfy ok /linux/usr/lib/perl5/attributes.pm
+[PKG] vfy ok /linux/usr/lib/perl5/mro.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Carp.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Carp/Heavy.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Exporter.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Exporter/Heavy.pm
+[PKG] vfy ok /linux/usr/lib/perl5/XSLoader.pm
+[PKG] vfy ok /linux/usr/lib/perl5/DynaLoader.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Config.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Errno.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Scalar/Util.pm
+[PKG] vfy ok /linux/usr/lib/perl5/List/Util.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Sub/Util.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Hash/Util.pm
+[PKG] vfy ok /linux/usr/lib/perl5/POSIX.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Fcntl.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Symbol.pm
+[PKG] vfy ok /linux/usr/lib/perl5/SelectSaver.pm
+[PKG] vfy ok /linux/usr/lib/perl5/English.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Env.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/Handle.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/File.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/Seekable.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/Select.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/Socket.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/Socket/INET.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/Socket/UNIX.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/Socket/IP.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Socket.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Basename.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Spec.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Spec/Unix.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Path.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Temp.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Find.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Copy.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/stat.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Glob.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Cwd.pm
+[PKG] vfy ok /linux/usr/lib/perl5/FindBin.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Getopt/Long.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Getopt/Std.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Data/Dumper.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Storable.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Text/Tabs.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Text/ParseWords.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Text/Abbrev.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Time/Local.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Time/HiRes.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Time/Piece.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Time/Seconds.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Time/localtime.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Time/tm.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Class/Struct.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Digest/MD5.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Digest/SHA.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Digest/base.pm
+[PKG] vfy ok /linux/usr/lib/perl5/MIME/Base64.pm
+[PKG] vfy ok /linux/usr/lib/perl5/MIME/QuotedPrint.pm
+[PKG] vfy ok /linux/usr/lib/perl5/JSON/PP.pm
+[PKG] vfy ok /linux/usr/lib/perl5/JSON/PP/Boolean.pm
+[PKG] vfy ok /linux/usr/lib/perl5/HTTP/Tiny.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Term/ANSIColor.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Tie/Hash.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Tie/Array.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Tie/Scalar.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Tie/Handle.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Tie/StdHandle.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Benchmark.pm
+[PKG] vfy ok /linux/usr/lib/perl5/PerlIO.pm
+[PKG] vfy ok /linux/usr/lib/perl5/PerlIO/encoding.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Encode.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Encode/Alias.pm
+[SOCKS5] connect, destination bytes 39
+[PKG] vfy ok /linux/usr/lib/perl5/Encode/Config.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Encode/Encoding.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Encode/MIME/Name.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Config_heavy.pl
+[PKG] vfy ok /linux/usr/lib/perl5/Config_git.pl
+[PKG] vfy ok /linux/usr/bin/nano
+[ATTACK] fault-containment refused: a loop that never yields held no CPU for 3000 ms, the others made 7008 syscalls meanwhile
+[ATTACK-FAULT] pid 56 writes address 0x0
+[TRAP PF] cpl=3 rip=0x0000000003d59965 rsp=0x00007ffffffeffe0 cs=0x0000000000000023 ss=0x000000000000001b rflags=0x0000000000010246 cr3=0x000000000c483000 asid=0x0000000000000039 pid=0x0000000000000038 err=0x0000000000000006 cr2=0x0000000000000000
+[TRAP WALK] l4=0x000000000c485027 l3=0x000000000c486027 l2=0x0000000000000000
+[PKG] vfy ok /linux/usr/bin/nano.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/nano.manifest.bin
+[PKG] vfy ok /linux/usr/bin/nano.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/make
+[PKG] vfy ok /linux/usr/bin/make.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/make.manifest.bin
+[PKG] vfy ok /linux/usr/bin/make.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/openssl
+[PKG] vfy ok /linux/usr/bin/openssl.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/openssl.manifest.bin
+[PKG] vfy ok /linux/usr/bin/openssl.zk_trailer.bin
+[CAP-DENY] pid=56 open-with: app=app.install opens no file
+[PKG] vfy ok /linux/bin/qwenchat
+[PKG] vfy ok /linux/bin/qwenchat.nonos_id_cert.bin
+[PKG] vfy ok /linux/bin/qwenchat.manifest.bin
+[PKG] vfy ok /linux/bin/qwenchat.zk_trailer.bin
+[PKG] vfy ok /linux/bin/qwenchat-x86_64_v2
+[PKG] vfy ok /linux/bin/qwenchat-x86_64_v2.nonos_id_cert.bin
+[PKG] vfy ok /linux/bin/qwenchat-x86_64_v2.manifest.bin
+[PKG] vfy ok /linux/bin/qwenchat-x86_64_v2.zk_trailer.bin
+[PKG] vfy ok /linux/bin/qwenchat-x86_64
+[PKG] vfy ok /linux/bin/qwenchat-x86_64.nonos_id_cert.bin
+[PKG] vfy ok /linux/bin/qwenchat-x86_64.manifest.bin
+[PKG] vfy ok /linux/bin/qwenchat-x86_64.zk_trailer.bin
+[PKG] vfy ok /linux/usr/lib/python312.zip
+[PKG] vfy ok /linux/usr/lib/python3.12/lib-dynload/README
+[PKG] vfy ok /linux/etc/ssl/cert.pem
+[PKG] vfy ok /linux/usr/share/john/john.conf
+[PKG] vfy ok /linux/usr/share/john/password.lst
+[PKG] vfy ok /linux/usr/lib/tcl8.6/init.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/tclIndex
+[PKG] vfy ok /linux/usr/lib/tcl8.6/auto.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/package.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/tm.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/history.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/parray.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/word.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/clock.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/msgcat/msgcat.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/msgcat/pkgIndex.tcl
+[PKG] vfy ok /linux/etc/passwd
+[PKG] vfy ok /linux/usr/share/nonos/tour/README
+[PKG] vfy ok /linux/usr/share/nonos/tour/mandelbrot.py
+[PKG] vfy ok /linux/usr/share/nonos/keymap.xkb
+[PKG] vfy ok /linux/etc/nonos-links
+[VFSD] packages staged
+[LINUX] store settled after 11576 ms
+[LINUX] personality ready, nothing asked to run
+[BENCH] 44600 capsule_spawn_start:proof_io
+[BENCH] 44683 capsule_attest_ok:proof_io
+[ZK-ATTEST] ok proof_io vendor
+[BENCH] 44684 capsule_preflight_ok:proof_io
+[SPAWN] name=proof_io pid=0x000000000000003D caps=0x0000000000000118 entry=0x000000000B9AA330
+[BENCH] 44688 capsule_runqueue_ok:proof_io
+[USER-FIRST] pid=0x000000000000003D rip=0x000000000B9AA330
+[SYSCALL-PROOF] PASS time-loop invalid-number invalid-pointer invalid-size retired-enosys
+[SHELL] live session: offering the installer
+[NET-NYM] gateway connect 6
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[NYM] directory: fetching
+[NYM] fetch: connecting
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261026061223
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain proc.24=0x0000000000000005
+[DIAG] ipc.drain proc.24=0x0000000000000005
+[NYM] fetch: ok-len-or-err 4 0
+[NYM] directory sync failed, code 20
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[NYM] no directory gateways yet, dialling a compiled one
+[SOCKS5] connect, destination bytes 39
+[ANON] dir never established  5. 161. 108. 187: 9230
+[MUNMAP] release_va_failed
+[MUNMAP] pid=0x000000000000001E name=wallpaper size=0x0000000000001000 va=0x00000000817FA000 total_pid=0x0000000001809000 total_system=0x0000000067FF1000
+[USER-FIRST] pid=0x000000000000003E rip=0x00000000240F4C20
+[NET-NYM] gateway connect 6
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[NYM] directory: fetching
+[NYM] fetch: connecting
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261026061230
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain proc.24=0x0000000000000005
+[DIAG] ipc.drain proc.24=0x0000000000000005
+[NYM] fetch: ok-len-or-err 4 0
+[NYM] directory sync failed, code 20
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[NYM] no directory gateways yet, dialling a compiled one
+[SOCKS5] connect, destination bytes 39
+[ANON] dir never established  5. 78. 90. 106: 9230
+[NET-NYM] gateway connect 6
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[NYM] directory: fetching
+[NYM] fetch: connecting
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261026061238
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain proc.24=0x0000000000000005
+[DIAG] ipc.drain proc.24=0x0000000000000005
+[NYM] fetch: ok-len-or-err 4 0
+[NYM] directory sync failed, code 20
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[ANON] dir never established  5. 161. 228. 187: 9230
+[NYM] no directory gateways yet, dialling a compiled one
+[SOCKS5] connect, destination bytes 39
+[NET-NYM] gateway connect 6
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[NYM] directory: fetching
+[NYM] fetch: connecting
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261026061248
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain proc.24=0x0000000000000005
+[DIAG] ipc.drain proc.24=0x0000000000000005
+[NYM] fetch: ok-len-or-err 4 0
+[NYM] directory sync failed, code 20
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session

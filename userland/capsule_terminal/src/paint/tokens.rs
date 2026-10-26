@@ -17,7 +17,10 @@
 pub const TAB_ACTIVE: u32 = 0xB0_12_30_3A;
 pub const TAB_ACTIVE_EDGE: u32 = 0xFF_1D_4A_5A;
 pub const TAB_HOVER: u32 = 0xFF_0D_1B_23;
-pub const TAB_IDLE: u32 = 0x00_00_00_00;
+// An inactive tab is a faint pill with a faint edge, so its close mark sits
+// inside a shape as the active tab's does, not floating off its label.
+pub const TAB_IDLE: u32 = 0x60_0D_1B_23;
+pub const TAB_IDLE_EDGE: u32 = 0xFF_16_26_2E;
 
 pub const DOT_OK: u32 = 0xFF_35_D0_7A;
 pub const DOT_IDLE: u32 = 0xFF_5B_71_80;

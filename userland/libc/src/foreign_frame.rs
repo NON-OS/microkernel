@@ -54,3 +54,8 @@ impl ForeignFrame {
         [self.arg0, self.arg1, self.arg2, self.arg3, self.arg4, self.arg5]
     }
 }
+
+/* How a Linux run the Terminal started asks to start again with the network. */
+#[path = "linux_ask_net.rs"]
+mod ask_net;
+pub use ask_net::LINUX_ASK_NET;

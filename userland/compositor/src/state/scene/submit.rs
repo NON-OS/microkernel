@@ -34,8 +34,8 @@ impl SceneTable {
     pub fn submit(&mut self, layer: Layer) -> Result<(), ()> {
         for slot in self.entries.iter_mut() {
             if slot.in_use && slot.owner_pid == layer.owner_pid && slot.z == layer.z {
-                let stack = slot.stack;
-                *slot = Layer { stack, ..layer };
+                let (stack, cursor) = (slot.stack, slot.cursor);
+                *slot = Layer { stack, cursor, ..layer };
                 return Ok(());
             }
         }

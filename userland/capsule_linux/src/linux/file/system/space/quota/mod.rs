@@ -23,5 +23,5 @@
 mod allow;
 mod kept;
 
-pub use allow::{allows, copies_allow};
+pub use allow::{allows, copies_allow, home_allows};
 pub use kept::{names_free, Kept};

@@ -37,15 +37,15 @@ class Catalogue(unittest.TestCase):
 
     def test_every_pin_byte_for_byte(self):
         serial, base, tiers, _, _ = decode(body(self.table, BASE, 7) + bytes(64))
-        self.assertEqual((serial, base, len(tiers)), (7, BASE, 17))
+        self.assertEqual((serial, base, len(tiers)), (7, BASE, 19))
         self.assertTrue(agree(tiers, self.table))
-        self.assertEqual(sum(len(f) for _, _, f in tiers), 28)
+        self.assertEqual(sum(len(f) for _, _, f in tiers), 30)
         for word, memory, files in tiers:
             self.assertGreater(memory, sum(length for _, length, _, _ in files))
             for name, _, _, urls in files:
                 self.assertTrue(keepable(name), name)
                 self.assertEqual(urls[0], f"{BASE}/{word}/{upstream(name)}")
-                self.assertTrue(urls[1].startswith("https://huggingface.co/Qwen/"))
+                self.assertTrue(urls[1].startswith(("https://huggingface.co/Qwen/", "https://huggingface.co/ggml-org/")))
                 self.assertTrue(urls[1].endswith("/resolve/main/" + upstream(name)))
 
     def test_upstream_only_without_a_base(self):

@@ -17,26 +17,26 @@
 //! Which pending entry a direct `mk_ipc_reply` answers. Pure, so the host
 //! runs it (kernel_proofs::ipc_reply_token).
 //!
-//! The request the server dequeued last names its call outright: its entry
-//! wins whenever it is the replied-to caller's. Only when the server has
-//! dequeued someone else's request since does the caller's oldest entry
-//! answer, as a server pipelining requests and replying in order needs.
-//! Never the oldest by default: a timed-out call keeps its entry
-//! (call/settle.rs), so a request the server never answered would stamp
-//! every later reply to that caller with the call before it.
+//! Only a request the server has dequeued can be answered: one still in
+//! its inbox has no reply owed yet, and one already answered has no entry.
+//! Of those, the request the server dequeued last names its call outright:
+//! its entry wins whenever it is the replied-to caller's. Otherwise the
+//! caller's oldest dequeued entry answers, as a server that takes several
+//! requests and answers them in order needs. Never an undequeued entry: a
+//! second reply to an answered request would take the caller's next call.
 
 /// The position of the entry a reply to `inbox` answers among `entries`
-/// (each reply inbox and token, oldest first). `served` is the token the
-/// server dequeued last, 0 for none.
+/// (each reply inbox, token and whether its request was dequeued, oldest
+/// first). `served` is the token the server dequeued last, 0 for none.
 pub(crate) fn pick<'a, I>(mut entries: I, inbox: &str, served: u64) -> Option<usize>
 where
-    I: Iterator<Item = (&'a str, u64)> + Clone,
+    I: Iterator<Item = (&'a str, u64, bool)> + Clone,
 {
     if served != 0 {
         let mut all = entries.clone();
-        if let Some(at) = all.position(|(i, t)| t == served && i == inbox) {
+        if let Some(at) = all.position(|(i, t, s)| s && t == served && i == inbox) {
             return Some(at);
         }
     }
-    entries.position(|(i, _)| i == inbox)
+    entries.position(|(i, _, s)| s && i == inbox)
 }

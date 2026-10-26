@@ -60,3 +60,6 @@ nonos_policy_client = { package = "demo_screen_proofs_policy_shim", path = "poli
 nonos-autorun-selftest = []
 # The shell's frame timing log; never on here.
 shell-frametime = []
+# The terminal's headless agent build (capsule_terminal Cargo.toml); never on
+# here, declared so its cfg is a known one.
+agentproof-headless = []

@@ -17,10 +17,13 @@
 //! The groups of the shell's context (`state/context.rs`).
 
 pub mod desk_ui;
+pub mod flip;
 pub mod launchpad_ui;
 pub mod links;
 pub mod pending;
+pub mod pointer_shape;
 pub mod ports;
 pub mod readings;
 pub mod store_apps;
+pub mod switch;
 pub mod toast_view;

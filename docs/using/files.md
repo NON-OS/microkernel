@@ -117,6 +117,7 @@ These are not kept, even on an installed disk:
 - Music downloads in `/home/nonos/music`.
 - Terminal history, scrollback, variables and aliases.
 - Linux packages installed from the store. Each is held in memory until restart.
+- A Linux app's home. See [A Linux app's home](#a-linux-apps-home).
 
 To keep a file, make it in the Terminal and keep it there:
 
@@ -132,6 +133,16 @@ Not tested in this release.
 - Only the process that created a file may keep it, so a file made in Files, or in another Terminal window, cannot be kept from this one.
 - Once a path is kept, `keep` can replace its copy on disk only with contents of exactly the same length. Any other change is refused, and removing a kept file frees no disk space.
 - The disk store holds at most 512 entries and 96 MiB of loaded files, the signed programs it already carries included. A kept path is at most 96 printable ASCII characters.
+
+## A Linux app's home
+
+A Linux app whose box grants FILES_HOME gets a home: its `/root`, which is its `HOME`, and its `/home`. What it writes there is still there the next time it runs, until you restart. Its `/tmp` and other scratch folders are emptied after every run.
+
+- Each listing has its own home. A new release of an app keeps the home, and two apps never see each other's home, even if two publishers use the same listing name.
+- A home lives in memory and never reaches the disk. It is gone after a restart, on every kind of boot.
+- Uninstalling an app erases its home, so if you install it again it starts with an empty one.
+- A home holds at most 16 MiB and 128 files and folders, and all homes together hold at most 64 MiB. A write past either limit fails with "No space left on device", and the Terminal says once per run that the app's home is full. Removing files always works.
+- Moving a file into or out of the home is a copy, as moving between two disks is.
 
 ## Where this comes from
 
@@ -165,6 +176,9 @@ The code behind each section, at the commit in the footer.
   - Packages kept only on a boot that keeps data: `may_persist` in `userland/capsule_vfs/src/server/handlers/store_install.rs:62`.
   - Kept files written to the store as they are: `append` in `userland/capsule_vfs/src/blk/store_write.rs:39-84`.
   - Linux packages held in memory until restart: `installed_line` in `userland/market_proto/src/reason.rs:106-113`.
+  - A Linux app's home, keyed by its listing: `home_key` in `userland/capsule_linux/src/linux/app/home_key.rs`, kept under `/linux-home` by `userland/capsule_linux/src/linux/file/private/home.rs`.
+  - The home's limits: `HOME`, `HOME_NAMES` and `HOMES` in `userland/capsule_linux/src/linux/file/system/declared/home.rs`, held by `home_allows` in `userland/capsule_linux/src/linux/file/system/space/quota/allow.rs`.
+  - A home erased on uninstall: `userland/capsule_linux/src/linux/install/remove/home.rs`.
   - Only the creating process may keep a file: `persistable` in `userland/capsule_vfs/src/store/fdtable/persist.rs:27`.
   - A kept path replaced only at the same length: `store_replace` in `userland/capsule_vfs/src/blk/store_write.rs:86-90`.
   - A changed length refused with `EEXIST`, and no space freed by a removal: `userland/capsule_vfs/README.md:114-116`.

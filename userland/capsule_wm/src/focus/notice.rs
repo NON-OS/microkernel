@@ -26,3 +26,18 @@ use super::model::FocusedRef;
 pub fn focus_notice(was: Option<FocusedRef>, now: Option<FocusedRef>) -> Option<(u32, u32)> {
     (was != now).then(|| now.map_or((0, 0), |f| (f.owner_pid, f.window_id)))
 }
+
+/// What each owner is told of its own window when focus moves, as
+/// (owner pid, window id, has the keyboard now): the window that lost it
+/// first, then the one that took it. Nothing when focus did not move, and
+/// nothing for a side with no window.
+pub fn keys_notices(
+    was: Option<FocusedRef>,
+    now: Option<FocusedRef>,
+) -> [Option<(u32, u32, bool)>; 2] {
+    if was == now {
+        return [None, None];
+    }
+    let told = |f: Option<FocusedRef>, has: bool| f.map(|f| (f.owner_pid, f.window_id, has));
+    [told(was, false), told(now, true)]
+}

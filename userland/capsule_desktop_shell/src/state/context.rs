@@ -30,12 +30,13 @@ pub struct Context {
     /// the windows, except while the desktop's icons are painted onto the
     /// desk surface under them (render/chrome.rs paint_desk).
     pub backing_va: u64,
-    /// The shell's two surfaces, both the size of the display: the desk in
-    /// the compositor's band under every application window, with the
-    /// desktop's icons, and the chrome in the band over every window, with
-    /// the menubar, the dock, menus, the Launchpad, toasts and dialogs.
-    pub desk_va: u64,
-    pub chrome_va: u64,
+    /// The shell's two surfaces, both the size of the display, each kept as
+    /// two to flip between (`ctx/flip.rs`): the desk in the compositor's band
+    /// under every application window, with the desktop's icons, and the
+    /// chrome in the band over every window, with the menubar, the dock,
+    /// menus, the Launchpad, toasts and dialogs.
+    pub desk: crate::state::ctx::flip::Flip,
+    pub chrome: crate::state::ctx::flip::Flip,
     /// The off-screen frame each surface's paint is drawn in before it is
     /// copied over the surface (render/whole_frame.rs), kept between paints.
     pub back: alloc::vec::Vec<u32>,
@@ -64,4 +65,8 @@ pub struct Context {
     pub trusted: crate::state::trusted::Trusted,
     /// Which of the open dialog's two buttons the keyboard is on.
     pub dialog_focus: crate::state::dialog_keys::DialogFocus,
+    /// The window switcher's order and run (`ctx/switch`).
+    pub switch: crate::state::ctx::switch::SwitchOrder,
+    /// The pointer's shape over the chrome (`ctx/pointer_shape.rs`).
+    pub pointer_shape: crate::state::ctx::pointer_shape::PointerShape,
 }
