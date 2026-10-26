@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The machine's half: a NONOSATT v5 document, read and its quote checked
 //! by nsh_attest, that answers this receipt's challenge, from a trusted
-//! release, with the IOMMU enforcing, the registry complete and the pinned AK.
+//! release, with the IOMMU enforcing, the registry's entries and the pinned AK.
 
 use nsh_attest::{steps, Doc};
 
@@ -37,8 +37,13 @@ pub fn doc<'a, 't>(r: &Receipt<'a>, trust: &'t Trust) -> Result<(Doc<'a>, &'t Re
         return Err(Refusal::Ak);
     }
     let release = release(&doc, trust).ok_or(Refusal::Release)?;
-    if !doc.iommu_enforcing || doc.unconfined_grants != 0 {
-        return Err(Refusal::Dma);
+    // nsh_attest's own rule: an IOMMU present and enforcing, no grant
+    // around it, and no device left in a domain that reaches all of memory.
+    steps::dma(&doc).map_err(|_| Refusal::Dma)?;
+    // The entries are what ran only if they fold to the root the quote bound.
+    // The complete flag is not under the quote, and is cleared (doc_form.rs).
+    if steps::fold(r.entries) != *doc.registry_root {
+        return Err(Refusal::Registry);
     }
     Ok((doc, release))
 }

@@ -23,6 +23,7 @@ mod drain;
 mod exit_rule;
 mod isolation;
 mod receipt;
+mod receipt_doc;
 mod receipt_entry;
 mod receipt_serve;
 mod receipt_slot;
