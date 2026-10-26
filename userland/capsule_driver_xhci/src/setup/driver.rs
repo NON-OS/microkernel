@@ -36,4 +36,6 @@ pub struct Driver {
     pub generation: u32,
     /// Revivals tried so far, bounded by `MAX_REVIVALS`.
     pub revivals: u8,
+    /// The Intel PCH ports this controller took from EHCI, handed back on drop.
+    pub ports: Option<super::intel_ports::Switched>,
 }

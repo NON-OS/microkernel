@@ -59,6 +59,7 @@ pub fn answer(receipt: &[u8], trust: &str) -> Answer {
         true => "asked    by a capsule the receipt does not name".into(),
         false => format!("asked    by the capsule measured {}", hex(&v.launcher)),
     });
+    out.extend(crate::cli_ran::lines(&v.ran));
     out.push("counts   not carried in v0".into());
     Answer { code: 0, out, err: vec![] }
 }

@@ -10,3 +10,4 @@ that check lives.
 - [Errors, panics and admissions; Architecture
   boundaries](code-style-errors-panics-and.md)
 - [Dependencies; See also](code-style-dependencies.md)
+- [UI copy](code-style-ui-copy.md)

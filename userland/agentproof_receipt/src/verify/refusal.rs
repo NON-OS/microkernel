@@ -40,8 +40,13 @@ pub enum Refusal {
     Challenge,
     /// The doc carries a part its quote does not sign (napr/doc_form.rs).
     Unsigned,
-    /// The IOMMU was not enforcing with 0 unconfined grants.
+    /// No IOMMU, one not enforcing, a grant around it, or a device in a
+    /// domain that reaches all of memory (nsh_attest::steps::dma).
     Dma,
+    /// The entries do not fold to the registry root the quote signed.
+    Registry,
+    /// The launcher named is no capsule the signed registry lists.
+    Launcher,
     /// PCR 9 names no trusted release, or PCR 8 or 14 is not that release's.
     Release,
     /// The doc's AK is not the one pinned.
@@ -62,6 +67,8 @@ impl Refusal {
             Self::Challenge => "challenge",
             Self::Unsigned => "unsigned",
             Self::Dma => "dma",
+            Self::Registry => "registry",
+            Self::Launcher => "launcher",
             Self::Release => "release",
             Self::Ak => "ak",
         }

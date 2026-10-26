@@ -38,7 +38,7 @@ use crate::wallpaper_decode::decode_jpeg;
 
 const WALLPAPER_PID: u32 = 31;
 const CATALOG_PORT: u32 = 4110;
-const PEPE: u8 = 62;
+const LAST: u8 = 3; // the last wallpaper, packed after every other
 
 /// One call the wallpaper service made: its op, the offset it asked for,
 /// and the budget it gave the call.
@@ -104,11 +104,11 @@ fn every_wallpaper_comes_over_whole_and_decodes_at_full_size() {
 fn a_try_that_loses_a_reply_goes_on_from_where_it_stopped() {
     let _turn = TURN.lock().unwrap_or_else(|e| e.into_inner());
     reset();
-    let file = &files()[PEPE as usize].1;
+    let file = &files()[LAST as usize].1;
     // Call 0 is the size and call 1 the first chunk; call 6 is the chunk at
     // 5 * CHUNK_MAX, whose reply comes too late.
     let log = link(&[6]);
-    let mut d = Download::start(CATALOG_PORT, PEPE).unwrap();
+    let mut d = Download::start(CATALOG_PORT, LAST).unwrap();
     assert!(!d.resume(CATALOG_PORT), "the try ends at the lost reply");
     let first_try = log.borrow().len();
     assert_eq!(first_try, 7);
@@ -130,16 +130,16 @@ fn a_try_that_loses_a_reply_goes_on_from_where_it_stopped() {
 fn the_first_call_of_a_try_has_time_for_a_read_whatever_its_offset() {
     let _turn = TURN.lock().unwrap_or_else(|e| e.into_inner());
     reset();
-    let file = &files()[PEPE as usize].1;
+    let file = &files()[LAST as usize].1;
     let last_call = chunks(file.len());
     // The last chunk's reply is lost; the catalog served it and so let the
     // wallpaper go.
     let log = link(&[last_call]);
-    let mut d = Download::start(CATALOG_PORT, PEPE).unwrap();
+    let mut d = Download::start(CATALOG_PORT, LAST).unwrap();
     assert!(!d.resume(CATALOG_PORT));
     // The catalog no longer holds it: with a byte of it changed on the
     // device, the next ask of that last chunk reads the store and is refused.
-    let at: usize = files()[..PEPE as usize].iter().map(|(_, b)| b.len()).sum::<usize>() + 3;
+    let at: usize = files()[..LAST as usize].iter().map(|(_, b)| b.len()).sum::<usize>() + 3;
     flip(at);
     assert!(!d.resume(CATALOG_PORT), "a read from the store, at a non-zero offset");
     reset();

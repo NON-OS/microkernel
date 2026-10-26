@@ -18,13 +18,16 @@
 
 mod doc;
 mod pin;
+mod ran;
 mod refusal;
 mod run;
 
 pub use pin::{pin, FIRST_USE};
+pub use ran::Ran;
 pub use refusal::Refusal;
 
 use alloc::string::String;
+use alloc::vec::Vec;
 
 use agentproof_policy::boxed::preset::Preset;
 
@@ -47,14 +50,18 @@ pub struct Verdict {
     pub supervisor: [u8; 32],
     pub seal_no: u64,
     /// The measurement of the capsule that asked, as nonos.prove read it
-    /// from the kernel's registry; zero in a receipt that names none.
+    /// from the kernel's registry and one of `ran`; zero if none is named.
     pub launcher: [u8; 32],
+    /// Every capsule the machine ran when the doc was made.
+    pub ran: Vec<Ran>,
 }
 
 pub fn verify(bytes: &[u8], trust: &Trust) -> Result<Verdict, Refusal> {
     let r = parse(bytes).map_err(Refusal::Format)?;
     let (d, release) = doc::doc(&r, trust)?;
     let run = run::run(&r, trust)?;
+    let ran = ran::ran(r.entries);
+    ran::launched(r.launcher, &ran).then_some(()).ok_or(Refusal::Launcher)?;
     Ok(Verdict {
         release: release.version.clone(),
         pcr9: *d.pcr(9).ok_or(Refusal::Release)?,
@@ -67,5 +74,6 @@ pub fn verify(bytes: &[u8], trust: &Trust) -> Result<Verdict, Refusal> {
         supervisor: run.record.sup_meas,
         seal_no: run.record.seal_no,
         launcher: *r.launcher,
+        ran,
     })
 }

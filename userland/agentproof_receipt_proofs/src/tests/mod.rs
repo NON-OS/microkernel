@@ -20,6 +20,7 @@ mod doc_refusals;
 mod encoding;
 mod pin;
 mod refusals;
+mod registry;
 mod says;
 mod sweep;
 mod vectors;

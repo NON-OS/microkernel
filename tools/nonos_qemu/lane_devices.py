@@ -49,6 +49,9 @@ SWAPS = {
     "nic=usb-net": ("nic", "usb-net,bus=xhci.0"),
     # QEMU's -vga std: the Bochs display (1234:1111) driver.bga is for.
     "gpu=bga": ("gpu", "VGA"),
+    # The virtio GPU on a 1024x768 panel, the smallest display mode windows
+    # are fitted to (demo_screen_proofs app_windows.rs).
+    "gpu=1024x768": ("gpu", "virtio-vga,vectors=0,edid=on,xres=1024,yres=768"),
     # No PCI display at all: OVMF's GOP over ramfb, the boot framebuffer alone.
     "gpu=gop-only": ("gpu", "ramfb"),
     # Not a device in place of another: iommu.py rewrites the machine for it.
