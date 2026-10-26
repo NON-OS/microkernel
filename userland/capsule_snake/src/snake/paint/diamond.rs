@@ -21,7 +21,7 @@ use nonos_app_skeleton::PaintBuffer;
 pub fn fill(fb: &mut PaintBuffer, cx: u32, cy: u32, r: u32, argb: u32) {
     let r = r.max(1);
     for dy in 0..=(r * 2) {
-        let offset = if dy > r { dy - r } else { r - dy };
+        let offset = dy.abs_diff(r);
         let half = r - offset;
         let y = (cy + dy).saturating_sub(r);
         fb.blend_rect(cx.saturating_sub(half), y, half * 2 + 1, 1, argb);
