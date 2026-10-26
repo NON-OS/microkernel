@@ -28,6 +28,7 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
     if window_id == TASKBAR_WINDOW_ID || window_id == TOAST_WINDOW_ID {
         return true;
     }
+    super::wm_notify_switch::note(ctx, owner_pid, window_id, notice.event);
     // A full-screen window shown or gone hides or brings back the dock, for
     // any app's window, in the launcher table or not; the dock's sync after
     // this batch draws it and opens or closes its window.

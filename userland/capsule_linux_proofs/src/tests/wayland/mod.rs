@@ -18,6 +18,7 @@
 
 mod conn_tests;
 mod frame_tests;
+mod inbox_take_tests;
 mod popup_bounds_tests;
 mod popup_grab_tests;
 mod popup_place_tests;

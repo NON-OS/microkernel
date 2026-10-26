@@ -15,14 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Caller-side gate: the block surface of driver.usb_msc0 is reached only by
-//! callers holding `CAP_DRIVER` or `CAP_STORAGE`, as the other block clients.
+//! callers holding `CAP_DRIVER` or `CAP_STORAGE`, or by the data volume's own
+//! I/O (block_device::volume_rule), as the other block clients.
 
 use super::error::DriverUsbMscError;
-use crate::services::caps::{has_capability, CAP_DRIVER, CAP_STORAGE};
 
 pub(super) fn gate_call() -> Result<u32, DriverUsbMscError> {
     let pid = crate::process::current_pid().ok_or(DriverUsbMscError::NoCallerPid)?;
-    if !has_capability(pid, CAP_DRIVER) && !has_capability(pid, CAP_STORAGE) {
+    if !crate::hardware::block_device::disk_caller_admitted(pid) {
         return Err(DriverUsbMscError::AccessDenied);
     }
     Ok(pid)

@@ -21,6 +21,7 @@ use alloc::vec::Vec;
 use crate::linux::attest_paths::beside;
 use crate::linux::file::{key, store_found, store_read};
 
+use super::bound_line::{bound_line, Vouched};
 use super::choose::choose;
 use super::identity::AppIdentity;
 use nonos_linux_policy::vendor::{by_program, TABLE};
@@ -40,8 +41,13 @@ const GUEST_CAPS: u64 = 0;
 pub fn bind(path: &[u8], image: &[u8]) -> Result<AppIdentity, &'static str> {
     let file = vouched(path)?;
     let program = *blake3::hash(image).as_bytes();
-    let list = by_program(&program).map(|row| row.dests);
-    choose(&program, TABLE, file.as_deref()).map(|policy| AppIdentity::bound(policy, list))
+    let row = by_program(&program);
+    let from = Vouched::of(row.is_some(), file.is_some());
+    let policy = choose(&program, TABLE, file.as_deref())?;
+    let app = AppIdentity::bound(policy, row.map(|r| r.dests));
+    let line = bound_line(from, &policy.listing_id, policy.mask, app.mask);
+    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+    Ok(app)
 }
 
 /// A program out of this capsule's own image. No file stands beside it and

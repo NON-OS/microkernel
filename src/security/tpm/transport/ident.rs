@@ -16,24 +16,15 @@
 
 //! What the part itself says it is.
 
+use super::ident_rule::classify;
+pub(super) use super::ident_rule::Interface;
 use crate::security::tpm::error::TpmError;
 use crate::security::tpm::mmio::{init_window, read32, read8, tpm_mmio_base};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(super) enum Interface {
-    Fifo,
-    Crb,
-}
-
 /// TPM_INTERFACE_ID_0, at the same offset in both register files.
 const INTERFACE_ID: u32 = 0x30;
-const TYPE_FIFO: u32 = 0x0;
-const TYPE_CRB: u32 = 0x1;
-/// A TIS 1.3 part has no identity register and reads back all ones.
-const TYPE_TIS13: u32 = 0xF;
-/// TPM_ACCESS_0 and its tpmRegValidSts bit, which a present FIFO part sets.
+/// TPM_ACCESS_0, which a FIFO part answers (ident_rule.rs says how).
 const ACCESS: u32 = 0x00;
-const ACCESS_VALID: u8 = 0x80;
 
 /// Map the window and read the interface identity. Returns the raw
 /// register for the log line, and the interface when one answers.
@@ -47,18 +38,5 @@ pub(super) fn identify() -> Result<(u32, Option<Interface>), TpmError> {
         return Err(TpmError::NotPresent);
     }
     let id = read32(INTERFACE_ID)?;
-    let found = match id & 0xF {
-        TYPE_FIFO => Some(Interface::Fifo),
-        TYPE_CRB => Some(Interface::Crb),
-        TYPE_TIS13 if fifo_answers()? => Some(Interface::Fifo),
-        _ => None,
-    };
-    Ok((id, found))
-}
-
-/// Whether a FIFO part is decoding the access register: an empty bus reads
-/// all ones, a present part reads with tpmRegValidSts set.
-fn fifo_answers() -> Result<bool, TpmError> {
-    let access = read8(ACCESS)?;
-    Ok(access != u8::MAX && access & ACCESS_VALID != 0)
+    Ok((id, classify(id, read8(ACCESS)?)))
 }

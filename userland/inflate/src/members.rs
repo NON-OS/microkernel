@@ -19,10 +19,7 @@
 
 use alloc::vec::Vec;
 
-use super::gzip::MAX_MEMBERS;
-use super::gzip_member::member;
 use super::tables::MAX_OUT;
-use super::types::End;
 
 /// One member: where its compressed bytes sit, and what they inflate to.
 pub struct Member {
@@ -40,20 +37,5 @@ pub fn members(data: &[u8]) -> Option<Vec<Member>> {
 
 /// The same, with the caller's bound on all members' output together.
 pub fn members_within(data: &[u8], limit: usize) -> Option<Vec<Member>> {
-    let mut out: Vec<Member> = Vec::new();
-    let (mut at, mut total) = (0usize, 0usize);
-    while at < data.len() {
-        if out.len() == MAX_MEMBERS {
-            return None;
-        }
-        let m = member(data.get(at..)?, limit - total);
-        if m.end != End::Complete {
-            return None;
-        }
-        total = total.checked_add(m.out.len())?;
-        let end = at.checked_add(m.used)?;
-        out.push(Member { start: at, end, body: m.out });
-        at = end;
-    }
-    (!out.is_empty()).then_some(out)
+    super::members_checked::members_checked(data, limit).ok()
 }

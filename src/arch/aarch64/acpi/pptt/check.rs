@@ -25,7 +25,7 @@ use super::super::sdt::TableError;
 use super::looping::looping;
 use super::walk::Pptt;
 
-pub fn references(p: &Pptt, others: &[u32]) -> Result<(), TableError> {
+pub(crate) fn references(p: &Pptt, others: &[u32]) -> Result<(), TableError> {
     let node = |at: u32| p.nodes.binary_search_by_key(&at, |n| n.offset).ok();
     let cache = |at: u32| p.caches.binary_search_by_key(&at, |c| c.offset).ok();
     for n in &p.nodes {

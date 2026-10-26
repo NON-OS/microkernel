@@ -35,7 +35,7 @@ impl Mmio {
     }
 
     fn at(&self, off: usize) -> Option<*mut u32> {
-        (off % 4 == 0 && off.checked_add(4)? <= self.len)
+        (off.is_multiple_of(4) && off.checked_add(4)? <= self.len)
             .then(|| (self.base as usize + off) as *mut u32)
     }
 }

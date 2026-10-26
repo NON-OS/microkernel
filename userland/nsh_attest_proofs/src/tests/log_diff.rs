@@ -18,9 +18,8 @@
 //! (nonos-boot-measure). Its replay, compiled from its source, and this
 //! one give the same PCR 4 and the same last application.
 
-#[allow(dead_code, unused_imports, clippy::all)]
 #[path = "../../../../nonos-boot-measure/src/tcg/mod.rs"]
-mod kernel_tcg;
+pub mod kernel_tcg;
 
 use nsh_attest::log::replay;
 

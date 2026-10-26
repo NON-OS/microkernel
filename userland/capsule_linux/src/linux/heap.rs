@@ -39,9 +39,13 @@ const INSTALL_HEAP: usize = 320 << 20;
 const RUN_HEAP: usize = 64 << 20;
 
 pub fn init() {
-    let mut buf = [0u8; 256];
+    let mut buf = [0u8; nonos_libc::ARGV_BYTES_MAX];
     let n = mk_args(buf.as_mut_ptr(), buf.len());
-    if n > 0 && buf.starts_with(b"install\0") {
+    if super::heap_choice::first_word(&buf, n).is_none() && n > 0 {
+        let line = b"[LINUX] arguments longer than 4 KiB: taking the run heap\n";
+        let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+    }
+    if super::heap_choice::is_install(&buf, n) {
         if heap_init_sized(INSTALL_HEAP).is_ok() {
             return;
         }

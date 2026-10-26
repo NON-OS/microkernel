@@ -62,7 +62,7 @@ pub fn join<R: Radio, E: Env>(
     let (policy, psk) = (first.with_ciphers(ciphers), JoinPolicy::PSK_ONLY.with_ciphers(ciphers));
     let (tag, beacon) = (cache.tag(req.ssid, req.pass), &found.beacon);
     let j = Joining { tag: tag.as_ref(), ..Joining::default() };
-    let mut report = first_attempt(r, env, domain, req, policy, beacon, bssid, cache, &j)?;
+    let mut report = first_attempt(r, env, (domain, policy), req, (beacon, bssid), cache, &j)?;
     if retry_with_psk(&report, req.wpa3_only) {
         report = attempt(r, env, domain, req, psk, beacon, Extra::default())?;
     }

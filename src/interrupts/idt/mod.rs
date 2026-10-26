@@ -28,7 +28,7 @@ pub use constants::{
     DOUBLE_FAULT_IST_INDEX, KEYBOARD_INTERRUPT_ID, MACHINE_CHECK_IST_INDEX, MOUSE_INTERRUPT_ID,
     NMI_IST_INDEX, PAGE_FAULT_IST_INDEX, SYSCALL_INTERRUPT_ID, TIMER_INTERRUPT_ID,
 };
-pub use entry::{validate_handler_address, validate_ist_index, EntryError, EntryOptions, GateType};
+pub use entry::{EntryOptions, GateType};
 pub use init::init;
 pub use load::{
     are_interrupts_enabled, disable_interrupts, enable_interrupts, halt, halt_loop, is_loaded,

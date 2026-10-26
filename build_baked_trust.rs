@@ -19,6 +19,10 @@
 use std::env;
 use std::path::PathBuf;
 
+#[path = "build_baked_trust_rule.rs"]
+mod rule;
+use rule::{refusal, TEST_TRUST};
+
 // The trust set is nonos-data/trust, or the directory NONOS_BAKED_TRUST_DIR
 // names: a test set signed with keys made outside the tree, so a test build
 // never writes the tree's. The kernel reads it as NONOS_BAKED_TRUST through
@@ -44,17 +48,4 @@ pub(crate) fn declare_baked_trust() -> PathBuf {
     }
     println!("cargo:rustc-env=NONOS_BAKED_TRUST={}", dir.display());
     dir
-}
-
-/// What may stand in for the release's trust: a test set and a test policy key.
-const TEST_TRUST: [&str; 2] = ["NONOS_BAKED_TRUST_DIR", "NONOS_DEVICE_POLICY_PUBKEY"];
-
-/// Why a build may not go on: a kernel the seal may seal for release
-/// (nonos-release) embeds only the tree's trust, never a set or key named at
-/// build time.
-fn refusal(release: bool, named: &[(&str, bool)]) -> Option<String> {
-    let set: Vec<&str> = named.iter().filter(|(_, on)| *on).map(|(v, _)| *v).collect();
-    (release && !set.is_empty()).then(|| {
-        format!("a nonos-release kernel embeds only the tree's trust; unset {}", set.join(", "))
-    })
 }

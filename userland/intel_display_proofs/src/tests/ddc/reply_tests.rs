@@ -54,10 +54,10 @@ fn each_refusal_is_the_one_it_should_be() {
     let mut long = good;
     (long[1], long[10]) = (0x89, long[10] ^ 0x88 ^ 0x89);
     assert_eq!(parse(0x10, &long), Err(DdcError::Length));
-    assert_eq!(parse(0x10, &reply(&[], 0x10)), Err(DdcError::Unsupported), "result 1");
+    assert_eq!(parse(0x10, &reply(&[], 0x10)), Err(DdcError::NotOffered), "result 1");
     let mut null = [0u8; REPLY_LEN];
     null[..3].copy_from_slice(&[0x6E, 0x80, 0x50 ^ 0x6E ^ 0x80]);
-    assert_eq!(parse(0x10, &null), Err(DdcError::Unsupported), "the null message");
+    assert_eq!(parse(0x10, &null), Err(DdcError::NotOffered), "the null message");
     null[2] ^= 1;
     assert_eq!(parse(0x10, &null), Err(DdcError::Checksum));
     let mut other = good;

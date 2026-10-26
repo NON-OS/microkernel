@@ -18,7 +18,7 @@
 //! back by field as the controller reads it (xHCI 1.2 6.2.3, as recalled),
 //! the Isoch TRB's bits, and the batches an isoch OUT request is refused.
 
-use crate::controller::{batch_fits, isoch_endpoint, write_isoch_input, IsochEndpoint};
+use crate::controller::{isoch::batch, isoch_endpoint, write_isoch_input, IsochEndpoint};
 use crate::dma::{DmaPool, DmaRegion};
 use crate::trb::builders::isoch::isoch;
 
@@ -52,13 +52,13 @@ fn the_endpoint_context_is_an_isoch_out_one_that_never_retries() {
 #[test]
 fn a_batch_the_endpoint_cannot_carry_is_refused() {
     let esit = 192;
-    assert!(batch_fits(&[192, 96], &[0; 288], esit));
-    assert!(!batch_fits(&[], &[], esit), "no packet");
-    assert!(!batch_fits(&[192; 32], &[0; 192 * 32], 4096), "past 31 packets");
-    assert!(!batch_fits(&[0, 192], &[0; 192], esit), "an empty packet");
-    assert!(!batch_fits(&[193], &[0; 193], esit), "past one interval's payload");
-    assert!(!batch_fits(&[192], &[0; 191], esit), "lengths and bytes disagree");
-    assert!(!batch_fits(&[4096, 1], &[0; 4097], 8192), "past the half");
+    assert!(batch::batch_fits(&[192, 96], &[0; 288], esit));
+    assert!(!batch::batch_fits(&[], &[], esit), "no packet");
+    assert!(!batch::batch_fits(&[192; 32], &[0; 192 * 32], 4096), "past 31 packets");
+    assert!(!batch::batch_fits(&[0, 192], &[0; 192], esit), "an empty packet");
+    assert!(!batch::batch_fits(&[193], &[0; 193], esit), "past one interval's payload");
+    assert!(!batch::batch_fits(&[192], &[0; 191], esit), "lengths and bytes disagree");
+    assert!(!batch::batch_fits(&[4096, 1], &[0; 4097], 8192), "past the half");
 }
 
 #[test]

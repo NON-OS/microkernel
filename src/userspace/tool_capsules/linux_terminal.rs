@@ -34,18 +34,25 @@ pub(super) fn run(_argv: &[u8]) -> Result<u32, i64> {
 }
 
 /// The personality in its terminal role with Network, for a `--box` that
-/// names destinations, and only for one: any other argv is EINVAL before
-/// anything is spawned. The personality holds the run to the box's list.
+/// names destinations, or for the argv a ticket names: the terminal role's
+/// run of a program whose policy grants NET_ANON asked for it, and its
+/// Terminal asks again with that argv (capsule_linux/term_ticket.rs). Any
+/// other argv is EINVAL before anything is spawned. The personality holds
+/// a boxed run to the box's list, and a ticketed one to its policy's.
 #[cfg(feature = "nonos-capsule-linux")]
 pub(super) fn run_net(argv: &[u8]) -> Result<u32, i64> {
-    if !super::net_box::names_destinations(argv) {
-        crate::sys::serial::print(b"[LINUX-TERM-NET] refused: no box names a destination\n");
-        return Err(crate::syscall::microkernel::errnos::ERRNO_INVAL);
-    }
-    let argv = argv
+    let boxed = super::net_box::names_destinations(argv);
+    let argv: alloc::vec::Vec<_> = argv
         .split(|&b| b == 0)
         .map(|s| alloc::string::String::from_utf8_lossy(s).into_owned())
         .collect();
+    let caller = crate::process::current_pid().unwrap_or(0);
+    if !boxed && !crate::userspace::capsule_linux::take_term_ticket(caller, &argv) {
+        crate::sys::serial::print(
+            b"[LINUX-TERM-NET] refused: no box names a destination, no ticket\n",
+        );
+        return Err(crate::syscall::microkernel::errnos::ERRNO_INVAL);
+    }
     crate::userspace::capsule_linux::spawn_terminal_net(argv).map_err(|e| spawn_errno(&e))
 }
 

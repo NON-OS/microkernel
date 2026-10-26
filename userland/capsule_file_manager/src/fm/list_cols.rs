@@ -47,8 +47,8 @@ pub struct Cols {
 }
 
 /// A trailing column's width: its header label measured off the free function
-/// -- so the hit-test sizes it exactly as the painter did, at the size
-/// `MIN_UI_PX` clamps to -- padded, then floored at what its values need.
+/// -- so the hit-test sizes it exactly as the painter did, at the size the
+/// toolkit draws it -- padded, then floored at what its values need.
 fn col_w(label: &str, min: u32) -> u32 {
     (measure_ttf(label, HEAD_PX).max(0) as u32 + COL_PAD * 2).max(min)
 }

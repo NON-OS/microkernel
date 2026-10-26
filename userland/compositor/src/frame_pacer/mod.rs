@@ -14,24 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod band_rule;
 pub mod band_glyph_art;
 pub mod band_glyphs;
 pub mod band_meet;
+pub mod band_rule;
 pub mod band_watch;
 pub mod canvas_copy;
 pub mod clip;
 pub mod compose;
 pub mod composite;
 pub mod cursor;
+pub mod cursor_arrow;
+pub mod cursor_diagonals;
 pub mod cursor_shape;
+pub mod cursor_shapes;
 pub mod cursor_slot;
+pub mod cursor_straights;
 pub mod drain_batch;
 pub mod drain_damage;
 pub mod extend;
 pub mod first_frame;
 pub mod hw_cursor;
 pub mod hw_cursor_back;
+pub mod hw_cursor_send;
 pub mod indicator_band;
 pub mod lens;
 pub mod look;

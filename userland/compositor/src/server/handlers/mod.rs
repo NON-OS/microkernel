@@ -19,6 +19,7 @@ pub mod accessibility_get;
 pub mod attach_argb;
 pub mod brightness_get;
 pub mod brightness_step;
+pub mod cursor_shape;
 pub mod cursor_update;
 pub mod damage_commit;
 pub mod display_hint;

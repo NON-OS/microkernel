@@ -19,7 +19,6 @@
 //! still takes any of them away (`ports::io` asks), and none overlaps
 //! `LEGACY_PORTS`; `kernel_proofs` holds both.
 
-#[allow(dead_code)] // the record the proofs and the letters read
 pub const AML_PORTS: [(u64, u64, &str); 9] = [
     (0x60, 0x61, "8042 data: firmware polls the keyboard controller"),
     (0x61, 0x62, "NMI status: firmware times delays by its refresh bit; kernel calibrates once"),
