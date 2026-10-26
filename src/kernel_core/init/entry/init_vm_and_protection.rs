@@ -61,15 +61,12 @@ fn arm_stack_guards() {
     use crate::arch::x86_64::gdt;
     let armed = gdt::arm_bsp_guards();
     let want = gdt::guards_per_cpu();
-    crate::sys::serial::print(b"[STACK-GUARD] bsp armed ");
-    crate::sys::serial::print_dec(armed as u64);
-    crate::sys::serial::print(b"/");
-    crate::sys::serial::print_dec(want as u64);
-    if armed == want {
-        crate::sys::serial::println(b"");
-    } else {
-        crate::sys::serial::println(b" WARNING overflow can still reach the next stack");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[STACK-GUARD] bsp armed ").dec(armed as u64).str(b"/").dec(want as u64);
+    if armed != want {
+        l.str(b" WARNING overflow can still reach the next stack");
     }
+    l.end();
 }
 
 #[cfg(not(target_arch = "x86_64"))]
@@ -86,8 +83,6 @@ fn arm_stack_guards() {}
 fn report_el1_protection() {
     use crate::arch::aarch64::cpu::{has_feature, CpuFeature};
     let pan: &[u8] = if has_feature(CpuFeature::Pan) { b"on" } else { b"absent" };
-    crate::sys::serial::print(
-        b"[CPU-PROT] aarch64 pxn=descriptor uxn=descriptor ro=descriptor pan=",
-    );
-    crate::sys::serial::println(pan);
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[CPU-PROT] aarch64 pxn=descriptor uxn=descriptor ro=descriptor pan=").str(pan).end();
 }
