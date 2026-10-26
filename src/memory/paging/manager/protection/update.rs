@@ -21,7 +21,7 @@ use super::super::pending_flush::PendingFlush;
 use crate::memory::paging::constants::page_align_down;
 use crate::memory::paging::error::{PagingError, PagingResult};
 use crate::memory::paging::stats::PagingStatistics;
-use crate::memory::paging::types::{get_timestamp, PagePermissions};
+use crate::memory::paging::types::PagePermissions;
 
 impl PagingManager {
     pub(in crate::memory::paging::manager) fn update_page_flags(
@@ -47,7 +47,6 @@ impl PagingManager {
         let kept = PagePermissions::from_bits(mapping.permissions.bits() & memory.bits());
         let new_permissions = new_permissions.remove(memory).union(kept);
         mapping.permissions = new_permissions;
-        mapping.last_accessed = get_timestamp();
 
         let pte_flags = new_permissions.to_pte_flags();
         let flush = self.update_pte(virtual_addr, pte_flags)?;
