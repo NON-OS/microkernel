@@ -19,6 +19,7 @@
 //! market is asked in, and install progress.
 
 pub mod market {
+    pub use nonos_market_proto::logo::Logo;
     pub use nonos_market_proto::{App as Detail, Readiness, Release};
 }
 
