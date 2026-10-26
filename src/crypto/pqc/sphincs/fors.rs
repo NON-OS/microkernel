@@ -27,7 +27,7 @@ fn extract_fors_index(msg: &[u8], tree: usize) -> u32 {
     let bit_shift = bit_offset % 8;
 
     let mut idx = 0u32;
-    for i in 0..((SPHINCS_A + 7) / 8) {
+    for i in 0..SPHINCS_A.div_ceil(8) {
         if byte_offset + i < msg.len() {
             idx |= (msg[byte_offset + i] as u32) << (8 * i);
         }
@@ -129,7 +129,7 @@ pub(crate) fn fors_pk_from_sig(
             addr.set_tree_index(parent_idx + (i as u32) * (1 << (SPHINCS_A - j - 1)));
 
             let mut concat = [0u8; 2 * SPHINCS_N];
-            if cur_idx % 2 == 0 {
+            if cur_idx.is_multiple_of(2) {
                 concat[..SPHINCS_N].copy_from_slice(&node);
                 concat[SPHINCS_N..].copy_from_slice(&auth_node);
             } else {
