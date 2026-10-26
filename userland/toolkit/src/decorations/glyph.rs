@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The frame's measures at one to one (the design notes, Window
+//! The frame's measures at one to one (docs/design/ui-identity.md, Window
 //! The controls' line glyphs: a 1.5 px stroke in a 16 px box at one to one,
 //! growing with the display scale. A stroke that is not a whole number of
 //! pixels draws its last row or column at the remaining coverage, so 1.5 px

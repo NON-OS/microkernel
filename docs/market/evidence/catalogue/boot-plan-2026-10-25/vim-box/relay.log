@@ -1,0 +1,9 @@
+relay on 127.0.0.1:8080 for deb.debian.org, dl-cdn.alpinelinux.org, geo.mirror.pkgbuild.com, kali.download, www.blackarch.org, 17 locked apps
+200    473606 dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/APKINDEX.tar.gz
+200   1848333 dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/APKINDEX.tar.gz
+200   1476729 dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/vim-9.1.0707-r0.apk pinned
+200    158639 dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/libncursesw-6.4_p20240420-r2.apk
+200    408411 dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/musl-1.2.5-r4.apk
+200     22314 dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/ncurses-terminfo-base-6.4_p20240420-r2.apk
+200      9241 dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/xxd-9.1.0707-r0.apk
+200   8049032 dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/vim-common-9.1.0707-r0.apk
