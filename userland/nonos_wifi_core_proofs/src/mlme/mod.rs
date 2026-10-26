@@ -20,6 +20,7 @@
 mod address_kind;
 mod candidates;
 mod candidates_bound;
+mod deadline_tests;
 mod entropy;
 pub mod frames;
 mod fuzz_judge;

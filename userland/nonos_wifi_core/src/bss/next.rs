@@ -5,7 +5,8 @@
 use crate::mlme::MlmeFailure;
 
 /// Whether a join that failed with `failure` (`None`: the access point went
-/// quiet) was ended by the access point: it refused, went quiet, left, or
+/// quiet) was ended by the access point: it refused, went quiet (here, or
+/// within a step's own deadline), left, or
 /// could not prove it holds the password, as an impostor cannot. Another
 /// access point of the network may still be joined. A failure on this side
 /// (a passphrase that cannot be used, SAE that could not start) would fail
@@ -15,7 +16,10 @@ pub fn moves_on(failure: Option<MlmeFailure>) -> bool {
     match failure {
         None => true,
         Some(f) => {
-            matches!(f, AuthRejected(_) | AssocRejected(_) | Sae(_) | Left(_) | Handshake(_))
+            matches!(
+                f,
+                AuthRejected(_) | AssocRejected(_) | Sae(_) | Left(_) | Handshake(_) | Timeout(_)
+            )
         }
     }
 }

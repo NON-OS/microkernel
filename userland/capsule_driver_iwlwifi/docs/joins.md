@@ -20,7 +20,9 @@ request, as on the RTL8821CE, in this order:
    hunting and pecking) authentication, association, then the four-way
    handshake, an unanswered frame resent at each 300 ms of silence up to six
    times within twenty-five waits (7.5 s, so the hunt and the exchange fit the
-   client's 20 s connect timeout). On association the MAC context, station entry
+   client's 20 s connect timeout), and within each step's own time: 1 s for
+   Open System authentication or association, 6 s for SAE, 5 s for the
+   handshake (`Mlme::deadline`). On association the MAC context, station entry
    and link take the AID and ERP state; a session that ends early is asked
    for again.
 6. Install the pairwise key (index 0, with MFP when negotiated) and the group
