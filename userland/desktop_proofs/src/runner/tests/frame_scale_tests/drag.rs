@@ -20,7 +20,7 @@ use super::super::super::desk::event;
 use super::super::super::drag::{handle_at, DragState, PointerAction};
 use super::rig::{px, H, SCALES, W};
 use crate::input::InputKind;
-use nonos_toolkit::decorations::{light_rect_at, titlebar_rect_at};
+use nonos_toolkit::decorations::{control_rect_at, titlebar_rect_at};
 
 #[test]
 fn the_title_bar_drags_and_the_border_below_it_resizes_at_every_scale() {
@@ -49,7 +49,7 @@ fn the_title_bar_drags_and_the_border_below_it_resizes_at_every_scale() {
         assert!(matches!(done, PointerAction::ResizeTo(w, 600) if w == want), "resize at {q}");
 
         // A press on the close button neither drags nor resizes.
-        let close = light_rect_at(0, W, H, false, q);
+        let close = control_rect_at(2, W, H, false, q);
         let mut s = DragState::new();
         let at = event(InputKind::ButtonDown, (close.x + 1) as i32, (close.y + 1) as i32);
         handle_at(&mut s, (W, H), (100, 100), false, &at, q);

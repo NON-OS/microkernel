@@ -98,14 +98,14 @@ pub use foreign::{
     mk_foreign_thread, mk_foreign_wait, mk_linux_run_net,
 };
 pub use foreign_fork::{mk_foreign_fork, mk_foreign_fork_at};
-pub use foreign_frame::{ForeignFrame, FOREIGN_NR_DIED, FOREIGN_NR_INTERRUPTED};
+pub use foreign_frame::{ForeignFrame, FOREIGN_NR_DIED, FOREIGN_NR_INTERRUPTED, LINUX_ASK_NET};
 pub use foreign_signal::{
     mk_foreign_context, mk_foreign_interrupt, mk_foreign_signal, ForeignRegs, SIGNAL_DELIVER,
     SIGNAL_RETURN,
 };
 pub use graphics::{nonos_display_dimensions, nonos_display_physical_mm, nonos_display_refusal};
 #[cfg(feature = "heap")]
-pub use heap::{init as heap_init, init_sized as heap_init_sized, HeapError};
+pub use heap::exports::*;
 pub use install_source::{
     mk_install_source, mk_install_source_size, INSTALL_SOURCE_BOOT_ROOT_RECORD,
     INSTALL_SOURCE_BOOT_TRAILER, INSTALL_SOURCE_KERNEL_APPROVAL, INSTALL_SOURCE_KERNEL_IMAGE,
@@ -122,7 +122,7 @@ pub use local_sign::{
 pub use mem::{mk_mmap, mk_munmap};
 pub use private_write::mk_private_write;
 pub use proc_output::{mk_proc_input, mk_proc_output, mk_stdin_read};
-pub use process::{mk_args, mk_caps_of, mk_getpid, mk_kill, mk_pid_alive, mk_wait};
+pub use process::{mk_args, mk_caps_of, mk_getpid, mk_kill, mk_pid_alive, mk_wait, ARGV_BYTES_MAX};
 pub use process::{CAPS_OF_APP_INSTALL, CAPS_OF_SPAWN_WINDOW};
 pub use procstat::{mk_proc_stat, ProcStatEntry, PROC_FLAG_DEBUG_WITHHELD, PROC_NAME_LEN};
 pub use procstat_header::ProcStatHeader;

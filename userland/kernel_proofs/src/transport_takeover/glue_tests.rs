@@ -26,7 +26,7 @@ fn at(text: &str, needle: &str) -> usize {
 #[test]
 fn the_lock_is_taken_and_taken_over_inside_one_hold() {
     let hold = &LOCK[at(LOCK, "let mut holders = HOLDERS.lock();")..];
-    let hold = &hold[..at(hold, "super::reply_wait::rest(round);")];
+    let hold = &hold[..at(hold, "super::reply_rest::rest(round);")];
     let (take, over) = (at(hold, "lock.try_lock()"), at(hold, "lock.force_unlock()"));
     let flat: String = hold[take..].split_whitespace().collect();
     let cond = ".any(|&(k,pid)|k==key&&super::transport_holder::never_runs_again(pid)){//SAFETY";

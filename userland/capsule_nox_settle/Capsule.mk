@@ -21,4 +21,7 @@ CAPSULE_REPLY_ENDPOINT   := reply:5201:endpoint.4294967332
 CAPSULE_REQUIRED_CAPS    := 0x3C
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_nox_settle
 
+# The development capsule set alone knows the local test chain (P5).
+CAPSULE_DEV_CARGO_FEATURES := devnet
+
 include nonos-mk/capsule.mk
