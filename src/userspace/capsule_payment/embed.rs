@@ -33,6 +33,16 @@ pub(crate) const PAYMENT_MANIFEST_BYTES: &[u8] =
 pub(crate) const PAYMENT_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/payment.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-payment")]
+const _: () = assert!(
+    !PAYMENT_ELF.is_empty()
+        && !PAYMENT_NONOS_ID_CERT_BYTES.is_empty()
+        && !PAYMENT_MANIFEST_BYTES.is_empty()
+        && !PAYMENT_ATTESTATION_BYTES.is_empty(),
+    "capsule_payment built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-payment"))]
 pub(crate) const PAYMENT_ELF: &[u8] = &[];
 

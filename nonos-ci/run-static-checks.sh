@@ -5279,6 +5279,43 @@ else
 fi
 unset enrol_out
 
+# A capsule built into the kernel with an empty ELF, cert, manifest or trailer
+# must not compile: each embedding module asserts its consts are not empty, and
+# a spawn reads an empty embedded image as "not built" (B-02). The self-test
+# first, so a scan that stopped seeing embeds cannot pass by finding none.
+if embed_out="$(python3 scripts/check_embed_asserts.py --self-test 2>&1 \
+    && python3 scripts/check_embed_asserts.py 2>&1)"; then
+    note ok "every embedded capsule refuses to compile with an empty file (check_embed_asserts)"
+else
+    tail -n 5 <<< "${embed_out}" >&2
+    fail_with "check_embed_asserts: an embedded capsule lacks its empty-image assert"
+fi
+unset embed_out
+
+# nonos-mk-esp names the kernel it packs and warns when it is the bare
+# microkernel-core, which starts no capsules (B-02).
+if esp_out="$(python3 scripts/check_esp_profile.py --self-test 2>&1 \
+    && python3 scripts/check_esp_profile.py 2>&1)"; then
+    note ok "nonos-mk-esp names the kernel it packs and warns on a core kernel (check_esp_profile)"
+else
+    tail -n 5 <<< "${esp_out}" >&2
+    fail_with "check_esp_profile: nonos-mk-esp lost its kernel record or its warning"
+fi
+unset esp_out
+# The documented desktop path packs the desktop: under -j the default kernel
+# rule waits for a profile build on the command line and keeps its ELF, and
+# the committed image ceiling admits every capsule's own ceiling (B-02).
+if kgoal_out="$(python3 scripts/check_kernel_goals.py --self-test 2>&1 \
+    && python3 scripts/check_kernel_goals.py 2>&1 \
+    && python3 scripts/check_image_ceiling.py --self-test 2>&1 \
+    && python3 scripts/check_image_ceiling.py 2>&1)"; then
+    note ok "a profile build beside nonos-mk-esp is what gets packed, and the ceiling admits it (check_kernel_goals, check_image_ceiling)"
+else
+    tail -n 6 <<< "${kgoal_out}" >&2
+    fail_with "check_kernel_goals/check_image_ceiling: the make path can pack the wrong kernel or refuse its capsules"
+fi
+unset kgoal_out
+
 # The GPU pages in docs/hardware say what each GPU gets today; the check holds
 # them to the code they describe. The self-test first, so a check that stopped
 # reading the pages cannot pass by finding nothing.
@@ -5411,6 +5448,26 @@ else
     fail_with "check_ipc_diag_no_pid: an ipc.call diag line can format a pid"
 fi
 unset ipcpid_out
+# Guests.mk's scratch publisher pairs are minted under target/, never .keys/,
+# which holds the operator's own keys (B-03).
+if gkeys_out="$(python3 scripts/check_guest_keys.py --self-test 2>&1 \
+    && python3 scripts/check_guest_keys.py 2>&1)"; then
+    note ok "Linux guests' scratch keys are minted under target/ (check_guest_keys)"
+else
+    tail -n 6 <<< "${gkeys_out}" >&2
+    fail_with "check_guest_keys: Guests.mk mints or signs from outside target/"
+fi
+unset gkeys_out
+# The test guests' box names only services the Linux policy build takes; a
+# reserved one stopped every guest image from building (B-03).
+if gbox_out="$(python3 scripts/check_guest_box.py --self-test 2>&1 \
+    && python3 scripts/check_guest_box.py 2>&1)"; then
+    note ok "the Linux guests' box names only services the policy build takes (check_guest_box)"
+else
+    tail -n 6 <<< "${gbox_out}" >&2
+    fail_with "check_guest_box: GuestPolicies.mk names a service the policy build refuses"
+fi
+unset gbox_out
 # A release takes the capsules as make declares them, never the development
 # set (capsules-dev): the lines that choose it are pinned, and a release seal
 # handed it refuses by what was built, not by the flag. The self-tests first,

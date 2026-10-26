@@ -33,6 +33,16 @@ pub(super) const DRIVER_USB_MSC_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_USB_MSC_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/driver_usb_msc.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-usb-msc")]
+const _: () = assert!(
+    !DRIVER_USB_MSC_ELF.is_empty()
+        && !DRIVER_USB_MSC_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_USB_MSC_MANIFEST_BYTES.is_empty()
+        && !DRIVER_USB_MSC_ATTESTATION_BYTES.is_empty(),
+    "capsule_driver_usb_msc built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-usb-msc"))]
 pub(super) const DRIVER_USB_MSC_ELF: &[u8] = &[];
 
