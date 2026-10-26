@@ -30,11 +30,15 @@ mod stage;
 mod tuning;
 
 #[cfg(test)]
+mod busy_tests;
+#[cfg(test)]
 mod gone_tests;
 #[cfg(test)]
 mod host_radio;
 #[cfg(test)]
 mod hostile_tests;
+#[cfg(test)]
+mod sleep_tests;
 
 pub use run::run;
 pub use stage::Stage;

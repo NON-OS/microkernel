@@ -7,7 +7,6 @@
 use super::download::download;
 use super::pages::{sta_pages, NULL_PAGE, PS_POLL_PAGE, QOS_NULL_PAGE};
 use super::state::Ps;
-use super::switch::LPS;
 use crate::fw::dma::DmaMem;
 use crate::h2c::cmds::{media_status, rsvd_page};
 use crate::regs::Mmio;
@@ -29,7 +28,7 @@ pub struct Bss {
 impl Ps {
     /// Nothing while the switch is off.
     pub fn joined<M: Mmio, B: DmaMem>(&mut self, mmio: &M, beacon: Option<(&B, &B)>, bss: Bss) {
-        if LPS {
+        if self.on() {
             self.tell_joined(mmio, beacon, bss);
         }
     }
