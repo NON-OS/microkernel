@@ -31,8 +31,6 @@ mod confine;
 pub mod described;
 mod device;
 pub mod dma;
-#[cfg(any(target_arch = "aarch64", target_arch = "riscv64"))]
-mod fdt_i2c;
 pub mod firmware_flash;
 mod give_back;
 // What the broker gives the rest of the kernel, kept beside it (and api.rs).
