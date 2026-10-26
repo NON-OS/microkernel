@@ -16,7 +16,7 @@
 
 pub(super) fn trace(name: &str, label: &[u8]) {
     let traced = matches!(name, "clipboard" | "login" | "toolkit" | "driver.virtio_net0");
-    if !traced && !crate::services::registry::displays::is_display(name) {
+    if !traced && !crate::services::registry::displays::DISPLAYS.contains(&name) {
         return;
     }
     crate::sys::serial::print(b"[SPAWN] ");
