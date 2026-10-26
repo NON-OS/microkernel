@@ -15,19 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::app::App;
-use crate::clients::{compositor, wm};
 use crate::discover::Peers;
 
+use super::apply_drain::apply;
 use super::boot::BootedApp;
-use super::drain_ipc::drain;
 use super::ensure_primed::ensure_primed;
-use super::maximize;
-use super::move_window::apply_move;
+use super::inbox::{drain, Frame};
 use super::refresh_input::refresh_input;
-use super::repaint::repaint;
-use super::request_id::next;
-use super::restore::restore;
-use super::teardown::close;
 
 pub(super) fn service_frame<A: App>(
     booted: &mut BootedApp<A>,
@@ -41,51 +35,18 @@ pub(super) fn service_frame<A: App>(
     }
     // A window whose app asks for full screen takes it from its first frame
     // on, and gives it back when the app stops asking.
-    maximize::follow_ask(booted, peers, request_id);
+    super::asks::follow(booted, peers, request_id);
+    let frame = Frame::of(&booted.binding, booted.maximized);
+    let (window_id, wm) = (booted.manifest.window_id, peers.wm);
     let result = drain(
         &mut booted.app,
         &mut booted.drag,
         &mut booted.held,
         rx,
-        booted.binding.width,
-        booted.binding.height,
-        booted.binding.x,
-        booted.binding.y,
-        peers.wm,
-        booted.manifest.window_id,
+        frame,
+        wm,
+        window_id,
         request_id,
-        booted.maximized,
     );
-    if let Some((rw, rh)) = result.resize_to {
-        super::resize_window::apply_resize(booted, peers, request_id, rw, rh);
-    }
-    if let Some((mx, my)) = result.move_to {
-        apply_move(booted, peers, request_id, mx, my);
-    }
-    if result.close {
-        // Once the user closes the window we must leave the frame loop no matter
-        // what: close() releases and unmaps the surface, so continuing would
-        // repaint into freed memory and fault every frame. Break unconditionally
-        // and let the outer loop idle until the app is launched again.
-        close(peers, booted.manifest.window_id, &booted.binding, request_id);
-        return true;
-    }
-    if result.minimize {
-        let _ = wm::window_minimize(peers.wm, next(request_id), booted.manifest.window_id);
-        let _ = compositor::scene_remove(peers.compositor, next(request_id), 0);
-        booted.minimized = true;
-        return false;
-    }
-    if result.restore && booted.minimized {
-        restore(booted, peers, request_id);
-    }
-    if result.maximize {
-        booted.full_ask.person_chose();
-        maximize::toggle(booted, peers, request_id);
-        return false;
-    }
-    if result.repaint {
-        repaint(booted, peers, request_id);
-    }
-    false
+    apply(booted, peers, request_id, result)
 }

@@ -16,23 +16,23 @@
 
 //! F-98: seeded hostile tables over the kernel's pure ACPI parsers (MADT
 //! on both architectures, SRAT, HMAT, SLIT, MCFG, HPET, FADT, SPCR, DBG2,
-//! PCCT, and the run-time loaded-table check): every one
+//! PCCT, DMAR, IVRS, and the run-time loaded-table check): every one
 //! loads or is refused, never panics or indexes out, and never holds more
 //! than its cap. The x86 decoders are mounted by path as the kernel builds
 //! them.
 
+#[path = "../../../../src/arch/x86_64/acpi/hw/fadt_decode.rs"]
+#[allow(dead_code)]
+pub(crate) mod fadt_decode;
+#[path = "../../../../src/arch/x86_64/acpi/hw/gas.rs"]
+#[allow(dead_code)] // the FADT's registers, written only by `leave_events` here
+pub(crate) mod gas;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/hpet_decode.rs"]
+mod hpet_decode;
 #[path = "../../../../src/arch/x86_64/acpi/parser/madt/walk.rs"]
 mod madt_walk;
 #[path = "../../../../src/arch/x86_64/acpi/parser/other/mcfg_decode.rs"]
 mod mcfg_decode;
-#[path = "../../../../src/arch/x86_64/acpi/parser/other/hpet_decode.rs"]
-mod hpet_decode;
-#[path = "../../../../src/arch/x86_64/acpi/hw/gas.rs"]
-#[allow(dead_code)] // the FADT's registers, written only by `leave_events` here
-pub(crate) mod gas;
-#[path = "../../../../src/arch/x86_64/acpi/hw/fadt_decode.rs"]
-#[allow(dead_code)]
-pub(crate) mod fadt_decode;
 // F-107's exit writes, beside the two files they build on (`acpi_leave`).
 #[path = "../../../../src/arch/x86_64/acpi/hw/leave_events.rs"]
 pub(crate) mod leave_events;
@@ -40,15 +40,24 @@ pub(crate) mod leave_events;
 #[allow(dead_code)]
 pub(crate) mod sleep;
 
+mod admit;
+mod dmar_gen;
+mod dmar_read;
 mod gen;
 mod hmat_gen;
+mod ivrs_entry;
+mod ivrs_gen;
+mod ivrs_read;
 mod rng;
 mod sweep;
 
 mod arm_tests;
 mod debug_tests;
+mod dmar_tests;
 mod fixed_tests;
 mod hmat_tests;
+mod ivrs_cap_tests;
+mod ivrs_tests;
 mod mcfg_tests;
 mod numa_tests;
 mod x86_tests;
