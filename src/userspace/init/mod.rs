@@ -24,6 +24,7 @@ mod linux_jobs;
 mod prove_job;
 use instance_spawn::set_drain_priority as set_init_priority;
 mod spawn_plan;
+mod spawn_report;
 mod supervisor;
 
 pub use entry::run_init;

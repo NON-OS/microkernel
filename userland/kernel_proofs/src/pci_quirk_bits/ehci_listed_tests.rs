@@ -18,7 +18,7 @@
 //! by its id only outside the standard capability list, so the Power
 //! Management capability (also id 01h) and its PMCSR stay closed.
 
-use super::quirk_bits::{legsup_before, writable, Ident};
+use super::quirk_bits::{legsup_before, writable, Ident, Route};
 
 /// A config space with the capability list present and `caps` as
 /// (offset, id, next) entries, then `bytes` written over it.
@@ -40,7 +40,11 @@ pub(super) fn allows(c: &[u8; 256], offset: u32) -> Option<u16> {
     let read = |o: u16| c.get(o as usize).copied().unwrap_or(0xFF);
     let (vendor, class, subclass, prog_if) = (0x8086, 0x0C, 0x03, 0x20);
     let before = legsup_before(&read, offset);
-    writable(&Ident { vendor, class, subclass, prog_if, pcie_cap: None, before }, offset)
+    let route = Route::NONE;
+    writable(
+        &Ident { vendor, device: 0, class, subclass, prog_if, pcie_cap: None, before, route },
+        offset,
+    )
 }
 
 #[test]

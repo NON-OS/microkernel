@@ -28,6 +28,8 @@ prove layout and rendering only, never the values shown.
 - it holds the terminal centred and roomy at 1920x1080, centred where the
   fit rule shrinks it, and its prompt under the last output
   (`terminal_geometry.rs`);
+- it holds a key that changes only the input line to repainting that row,
+  pixel for pixel what a whole repaint draws (`terminal_damage.rs`);
 - it composes whole screens as the compositor stacks them (wallpaper, desk,
   window, chrome), checking the menubar and dock are drawn and that no
   chrome pixel lands on the window;
