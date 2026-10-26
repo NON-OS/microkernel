@@ -23,17 +23,14 @@
 #[path = "../../../../src/hardware/block_device/wire/decode.rs"]
 mod decode;
 #[path = "../../../../src/hardware/block_device/wire/error.rs"]
-#[allow(dead_code)]
-mod error;
+pub mod error;
 #[path = "../../../../src/hardware/block_device/wire/frame.rs"]
 mod frame;
 #[path = "../../../../src/hardware/block_device/wire/header.rs"]
-#[allow(dead_code)]
 mod header;
 #[path = "../../../../src/hardware/block_device/wire/identity.rs"]
 mod identity;
 #[path = "../../../../src/hardware/nvme_capsule/client/lba_map.rs"]
-#[allow(dead_code)]
 mod lba_map;
 #[path = "../../../../src/hardware/block_device/wire/span.rs"]
 mod span;
@@ -43,6 +40,8 @@ mod status;
 mod frame_tests;
 mod geometry_tests;
 mod identity_tests;
+mod lba_map_tests;
 mod span_tests;
 mod status_tests;
 mod table_tests;
+mod wire_agree_tests;

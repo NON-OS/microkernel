@@ -1,6 +1,7 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 #[path = "../../../../src/smp/percpu/by_base.rs"]
 pub mod by_base;
+mod default;
 #[path = "../../../../src/smp/percpu/layout.rs"]
 pub mod layout;
 pub mod operations;
