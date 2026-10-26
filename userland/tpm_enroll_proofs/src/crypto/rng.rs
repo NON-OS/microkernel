@@ -36,8 +36,7 @@ pub fn refuse_draws(on: bool) {
 }
 
 /// The kernel's refusing draw: the host's generator, unless a test refused it.
-#[allow(clippy::result_unit_err)]
-pub fn fill_random_bytes_secure(buf: &mut [u8]) -> Result<(), ()> {
+pub(crate) fn fill_random_bytes_secure(buf: &mut [u8]) -> Result<(), ()> {
     if REFUSE.with(|r| r.get()) {
         return Err(());
     }
