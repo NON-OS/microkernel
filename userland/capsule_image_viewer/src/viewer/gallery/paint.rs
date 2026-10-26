@@ -2,7 +2,7 @@ extern crate alloc;
 use crate::viewer::gallery::layout::{cell_rect, grid, Grid, HEADER_H, THUMB_H, THUMB_W};
 use crate::viewer::gallery::state::GalleryState;
 use crate::viewer::says::{gallery_next, gallery_note};
-use crate::viewer::scale::{draw_nn, Dst};
+use crate::viewer::scale::{draw_nn, Dst, Placement};
 use nonos_app_skeleton::PaintBuffer;
 
 const BG: u32 = 0xFF10_1418;
@@ -74,7 +74,7 @@ fn blit_thumbs(fb: &mut PaintBuffer, g: &GalleryState, gr: &Grid, n: usize) {
             let (tw, th) = (g.entries[i].tw, g.entries[i].th);
             let ox = x + ((THUMB_W - tw) / 2) as i32;
             let oy = y + ((THUMB_H - th) / 2) as i32;
-            draw_nn(&mut dst, thumb, tw, th, ox, oy, tw, th);
+            draw_nn(&mut dst, thumb, tw, th, &Placement { dx: ox, dy: oy, dw: tw, dh: th });
         }
     }
 }
