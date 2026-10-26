@@ -32,13 +32,14 @@ mod budget;
 mod drop_pid;
 mod error;
 mod inbox;
+pub mod own_names;
 mod owner_of;
 mod registry;
 mod stats;
 mod take;
 mod waiter;
 
-pub use drop_pid::{unregister_for_pid, unregister_stdin_for_pid};
+pub use drop_pid::{unregister_all_but_stdout, unregister_for_pid};
 pub use error::{InboxError, StrictEnqueueError};
 pub use owner_of::owner_of;
 pub use registry::{

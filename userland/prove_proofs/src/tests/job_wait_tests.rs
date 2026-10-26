@@ -48,9 +48,9 @@ fn the_wait_reaches_the_nearer_deadline_and_is_never_0() {
 fn no_receive_of_the_job_waits_for_ever() {
     let drain = include_str!("../../../capsule_prove/src/job/drain.rs");
     let serve = include_str!("../../../capsule_prove/src/job/serve.rs");
-    assert!(drain.contains("buf.len(), MK_IPC_NO_WAIT, &mut sender)"));
-    assert!(serve.contains("buf.len(), wait, &mut sender)"));
+    assert!(drain.contains("buf.len(), MK_IPC_NO_WAIT, &mut m)"));
+    assert!(serve.contains("buf.len(), wait, &mut m)"));
     for text in [drain, serve] {
-        assert!(!text.contains("buf.len(), 0, &mut sender)"), "a receive waits for ever");
+        assert!(!text.contains("buf.len(), 0, &mut m)"), "a receive waits for ever");
     }
 }
