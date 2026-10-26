@@ -13,7 +13,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""One debug run's log, as the boot session keeps it:
+"""One debug run's log, as the boot session keeps it (docs/market/catalogue-boot-plan.md):
 whether it shows the app installed in its release's box, its workload
 ending well, exactly one measured set, the app's own family's, and the
 store holding that run's proof (I-B9a: the verdict needs Done)."""

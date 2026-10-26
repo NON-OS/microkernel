@@ -1,0 +1,57 @@
+until:Capsules spawned:900
+until:[SPLASH] stepped aside:300
+wait:4
+key:ret
+wait:4
+type:ek
+wait:2
+key:ret
+wait:4
+key:ret
+wait:4
+key:ret
+wait:4
+key:ret
+wait:4
+key:ret
+wait:4
+key:ret
+wait:4
+key:ret
+wait:4
+key:ret
+wait:4
+key:ret
+wait:4
+shot:installed0
+key:down
+wait:2
+shot:installed
+key:ret
+wait:4
+key:ret
+wait:4
+shot:review
+key:ret
+key:ret
+wait:60
+key:esc
+wait:3
+shot:d1
+move:-514,472
+wait:2
+shot:d2
+wait:15
+click
+wait:12
+shot:d3
+type:market install linux.vim
+key:ret
+wait:30
+shot:s01
+until:[LINUX] installed:1800
+shot:installed
+type:linux vim --version
+key:ret
+wait:60
+shot:s02

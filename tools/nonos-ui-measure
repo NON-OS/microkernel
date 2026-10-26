@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-"""Measure UI screendumps against the design notes.
+"""Measure UI screendumps against docs/design/ui-identity.md.
 
     tools/nonos-ui-measure SHOT.png ...       one line a shot
     tools/nonos-ui-measure --self-test        the measure on made images

@@ -22,7 +22,7 @@ from pathlib import Path
 from check_display_profiles import enabled, features
 
 PAGES = ["gpu.md", "gpu-intel.md", "gpu-amd.md", "gpu-nvidia.md"]
-ROOTS = ("src/", "userland/", "scripts/", "nonos-bootloader/", "mk/", "docs/", "notes/")
+ROOTS = ("src/", "userland/", "scripts/", "nonos-bootloader/", "mk/", "docs/")
 IDS = "userland/capsule_driver_intel_display/data"
 FAMILY = "userland/capsule_driver_intel_display/src/family.rs"
 SUPPORT = "src/hardware/inventory/support.rs"
