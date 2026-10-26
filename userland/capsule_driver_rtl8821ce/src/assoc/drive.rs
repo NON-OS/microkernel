@@ -33,13 +33,13 @@ pub(super) fn drive<R: Radio>(
     // access point starts the four-way handshake), so resending would churn.
     let mut pending = open(radio, &mut mlme, beacon, &mut seq, &mut c);
 
-    let mut frame = [0u8; 2048];
-    let mut eth = Vec::new();
+    let (mut frame, mut eth) = ([0u8; 2048], Vec::new());
     loop {
+        let now = clock.now_ms();
+        mlme.expire(now);
         if let Some(outcome) = ended(&mlme) {
             return report(&mlme, outcome, c);
         }
-        let now = clock.now_ms();
         if now.wrapping_sub(start) >= budget_ms {
             break;
         }
