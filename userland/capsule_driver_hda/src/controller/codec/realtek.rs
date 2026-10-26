@@ -27,8 +27,8 @@
 //! nodes 0x53 and 0x57) through SET_COEF_INDEX and GET/SET_PROC_COEF.
 //!
 //! Per-machine fixups (a GPIO for a particular board's amplifier, pin
-//! overrides) are not here; `program::hp_gpio` covers the one generic HP
-//! case.
+//! overrides) are not here; `program::hp_gpio`, through `vendor_gpio`,
+//! covers the one generic HP case.
 
 use super::realtek_alc256::{alc256_init, uses_alc256_init};
 use super::realtek_coef::{read_coef, update, COEF_NID};

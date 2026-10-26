@@ -77,17 +77,6 @@ pub fn mk_ipc_call(
     n as i64
 }
 
-pub fn mk_ipc_call_timeout(
-    endpoint: u64,
-    req: *const u8,
-    req_len: usize,
-    resp: *mut u8,
-    cap: usize,
-    _timeout_ms: u64,
-) -> i64 {
-    mk_ipc_call(endpoint, req, req_len, resp, cap)
-}
-
 pub fn mk_ipc_reply(pid: u32, buf: *const u8, len: usize) -> i64 {
     let bytes = input(buf, len).to_vec();
     REPLIES.lock().unwrap_or_else(|e| e.into_inner()).push(Reply { pid, request: 0, bytes });

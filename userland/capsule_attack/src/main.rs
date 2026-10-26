@@ -35,6 +35,7 @@ mod disks;
 mod errno;
 mod line;
 mod medium;
+mod network;
 mod reply_caller;
 mod reply_escape;
 mod reply_seen;
@@ -48,7 +49,7 @@ pub unsafe extern "C" fn _start() -> ! {
     // First, so the checker pairs each refusal with the kernel's own
     // [CAP-DENY] line for this pid and no other's.
     line::marker(b"[ATTACK-START] capsule pid ", u64::from(nonos_libc::mk_getpid()), b"\n");
-    attempts::cap_escape();
+    network::cap_escape();
     attempts::inbox_escape();
     reply_escape::reply_escape();
     reply_twice::reply_twice();
