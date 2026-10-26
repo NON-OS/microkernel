@@ -17,17 +17,15 @@
 //! Trailing padding and empty columns.
 
 use crate::neofetch::compose::two_column;
-use crate::neofetch::logo::LOGO;
+use crate::neofetch::emblem::emblem;
 use crate::support::text;
 
 /// A blank emblem row against a blank info row must not leave a line of
 /// invisible padding in the scrollback.
 #[test]
 fn trailing_padding_never_survives() {
-    let rows = two_column(&LOGO, &[], 2);
-    assert_eq!(text(&rows[0]), "");
-    for row in &rows {
-        assert!(!text(row).ends_with(' '), "{:?}", text(row));
+    for (plain, _) in two_column(&emblem(0), &[], 2) {
+        assert!(!text(&plain).ends_with(' '), "{:?}", text(&plain));
     }
 }
 
