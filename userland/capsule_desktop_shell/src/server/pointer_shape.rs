@@ -24,13 +24,13 @@ use crate::state::Context;
 
 pub fn sync(ctx: &mut Context) {
     let Some((x, y)) = ctx.pointer_shape.at else { return };
-    let handle = ctx.trusted.chrome_handle;
-    if handle == 0 || ctx.chrome_va == 0 || x >= ctx.width || y >= ctx.height {
+    let (handle, va) = (ctx.chrome.shown_handle(), ctx.chrome.shown_va());
+    if handle == 0 || va == 0 || x >= ctx.width || y >= ctx.height {
         return;
     }
-    let at = ctx.chrome_va + u64::from(y) * u64::from(ctx.stride) + u64::from(x) * 4;
+    let at = va + u64::from(y) * u64::from(ctx.stride) + u64::from(x) * 4;
     // SAFETY: (x, y) is on the chrome surface, which is mapped for the
-    // shell's life at chrome_va, `stride` bytes a row.
+    // shell's life, `stride` bytes a row.
     let pixel = unsafe { core::ptr::read_volatile(at as *const u32) };
     let Some(over) = ctx.pointer_shape.change(pixel) else { return };
     let rid = ctx.issue_request_id();
