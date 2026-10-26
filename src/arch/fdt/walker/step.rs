@@ -20,14 +20,14 @@ use crate::arch::fdt::limits::MAX_DEPTH;
 use crate::arch::fdt::tokens::{FDT_BEGIN_NODE, FDT_END, FDT_END_NODE, FDT_NOP, FDT_PROP};
 
 use super::event::Event;
+use super::pass::Walker;
 use super::read::{node_name, property};
-use super::walker::Walker;
 
 impl<'a> Walker<'a> {
     /// The next node boundary or property, `None` once FDT_END closes a
     /// balanced tree. Running off the block without FDT_END is an error, not
     /// an end: a truncated blob must not read as a complete one.
-    pub fn next(&mut self) -> Result<Option<Event<'a>>, FdtError> {
+    pub fn next_event(&mut self) -> Result<Option<Event<'a>>, FdtError> {
         while !self.done {
             if self.cursor >= self.structure.len() {
                 return Err(FdtError::MissingEnd);

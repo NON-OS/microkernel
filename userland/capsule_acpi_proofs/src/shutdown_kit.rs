@@ -20,7 +20,6 @@
 
 #[path = "../../capsule_acpi/src/sleep/shutdown_say.rs"]
 pub mod say;
-#[allow(dead_code)]
 #[path = "../../../src/hardware/broker/acpi/sleep_request.rs"]
 pub mod sleep_request;
 
@@ -55,4 +54,14 @@ fn each_method_line_says_how_it_went() {
         };
         assert_eq!(lines, (want("_TTS", tts), want("_PTS", pts)));
     }
+}
+
+/// The constant reader's pair against the interpreter's, as MkAcpiSleep's
+/// line reports it: none read, the same pair, or the one it had.
+#[test]
+fn the_readers_pair_is_compared_with_the_interpreters() {
+    use sleep_request::{compare, Before};
+    assert_eq!(compare(None, (5, 5)), Before::None);
+    assert_eq!(compare(Some((5, 5)), (5, 5)), Before::Same);
+    assert_eq!(compare(Some((7, 0)), (5, 5)), Before::Differed(7, 0));
 }
