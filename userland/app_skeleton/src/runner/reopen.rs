@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::decorations::FrameState;
+
 use crate::app::App;
 use crate::clients::wm::WindowPlacement;
 use crate::discover::Peers;
@@ -34,17 +36,17 @@ pub(super) fn reopen<A: App>(
     placement: WindowPlacement,
     maximized: bool,
 ) -> bool {
-    let hover = booted.drag.hover;
+    let state = FrameState { hover: booted.drag.hover, focused: booted.focused };
     let (app, manifest) = (&mut booted.app, &booted.manifest);
     let frame_rid = next(request_id);
     let toolkit = peers.toolkit;
     let opened = reopen_surface(peers, &booted.binding, placement, request_id, |b| {
-        paint(app, manifest, b, hover, maximized, toolkit, frame_rid)
+        paint(app, manifest, b, state, maximized, toolkit, frame_rid)
     });
     let Ok(binding) = opened else { return false };
     booted.binding = binding;
     booted.maximized = maximized;
-    booted.painted = (placement.width, placement.height, hover, maximized);
+    booted.painted = (placement.width, placement.height, state, maximized);
     // The whole window was just drawn: what the app had marked is on it.
     let _ = booted.app.take_damage();
     true

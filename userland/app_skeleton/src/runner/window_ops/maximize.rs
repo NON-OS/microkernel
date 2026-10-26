@@ -19,24 +19,28 @@ use crate::clients::wm::WindowPlacement;
 use crate::clients::{compositor, wm};
 use crate::discover::Peers;
 
-use super::boot::BootedApp;
-use super::full_screen_ask::Turn;
-use super::reopen::reopen;
-use super::repaint::repaint;
-use super::request_id::next;
+use super::super::boot::BootedApp;
+use super::super::full_screen_ask::Turn;
+use super::super::reopen::reopen;
+use super::super::repaint::repaint;
+use super::super::request_id::next;
 
 /// The green button: full screen (chrome::full_screen, down to the bottom
 /// edge, the dock hidden by the shell while it shows) and back to the rect
 /// the window had. Every app goes through here, by green or by asking
 /// (full_screen_ask.rs), and is drawn whole at its new size before it is
 /// shown: the app paints to `fb.width` by `fb.height` (reopen.rs).
-pub(super) fn toggle<A: App>(booted: &mut BootedApp<A>, peers: &Peers, request_id: &mut u32) {
+pub(in crate::runner) fn toggle<A: App>(
+    booted: &mut BootedApp<A>,
+    peers: &Peers,
+    request_id: &mut u32,
+) {
     let (rect, full) = if booted.maximized {
         (booted.saved, false)
     } else if let Ok(di) = compositor::display_info(peers.compositor, next(request_id)) {
         booted.saved =
             (booted.binding.x, booted.binding.y, booted.binding.width, booted.binding.height);
-        (super::chrome::full_screen(di.width, di.height), true)
+        (super::super::chrome::full_screen(di.width, di.height), true)
     } else {
         repaint(booted, peers, request_id);
         return;
@@ -53,7 +57,11 @@ pub(super) fn toggle<A: App>(booted: &mut BootedApp<A>, peers: &Peers, request_i
 
 /// Follow the app's ask for full screen (`App::wants_full_screen`). A
 /// minimised window waits: the ask is taken when it is shown again.
-pub(super) fn follow_ask<A: App>(booted: &mut BootedApp<A>, peers: &Peers, request_id: &mut u32) {
+pub(in crate::runner) fn follow_ask<A: App>(
+    booted: &mut BootedApp<A>,
+    peers: &Peers,
+    request_id: &mut u32,
+) {
     if booted.minimized {
         return;
     }

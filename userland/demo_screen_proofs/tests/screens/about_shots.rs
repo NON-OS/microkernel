@@ -18,9 +18,10 @@
 //! screen and between the menubar and the dock, each section painted, and
 //! the Display tile's mode inside its ring, never across it.
 
-use nonos_app_skeleton::runner::chrome::{dock_for, menubar_for};
+use nonos_app_skeleton::runner::chrome::{dock_for, menubar_for, quarters_for};
 use nonos_app_skeleton::{App, InputEvent, InputKind, KEY_TAB};
 use nonos_libc::show;
+use nonos_toolkit::decorations::content_rect_at;
 
 use super::frame::shoot;
 use super::modes::{tag, DRIVERS, MODES};
@@ -58,7 +59,9 @@ fn about_opens_whole_on_every_demo_mode_and_paints_every_section() {
                 assert!(at.initial_y + at.height <= h - dock_for(w, h), "{w}x{h}: under the dock");
                 save(&format!("about-{}-{w}x{h}-{name}", tag(driver)), &shot.pixels, at.width);
                 if name == "overview" {
-                    let whole = whole_per_mille(&shot.pixels, at.width).expect("the display ring");
+                    let top = content_rect_at(at.width, at.height, false, quarters_for(w, h)).y;
+                    let whole =
+                        whole_per_mille(&shot.pixels, at.width, top).expect("the display ring");
                     assert!(
                         whole >= 995,
                         "{w}x{h}: the mode is written across its ring ({whole}/1000)"

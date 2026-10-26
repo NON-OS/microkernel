@@ -15,9 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::protocol::Request;
-use crate::state::{damage::Rect, Context};
-
-const CURSOR_SIDE: u32 = 32;
+use crate::state::cursor_pick::reach;
+use crate::state::Context;
 
 pub fn handle(
     ctx: &mut Context,
@@ -38,15 +37,12 @@ pub fn handle(
         // The next frame moves the device's plane; no pixel changed.
         return Ok(());
     }
+    // Each shape is drawn from its hot spot, so the box reaches back from it.
     if prev.visible {
-        let w = core::cmp::min(CURSOR_SIDE, ctx.width.saturating_sub(prev.x));
-        let h = core::cmp::min(CURSOR_SIDE, ctx.height.saturating_sub(prev.y));
-        ctx.damage.accumulate(Rect { x: prev.x, y: prev.y, width: w, height: h });
+        ctx.damage.accumulate(reach(prev.x, prev.y, ctx.width, ctx.height));
     }
     if visible {
-        let w = core::cmp::min(CURSOR_SIDE, ctx.width.saturating_sub(x));
-        let h = core::cmp::min(CURSOR_SIDE, ctx.height.saturating_sub(y));
-        ctx.damage.accumulate(Rect { x, y, width: w, height: h });
+        ctx.damage.accumulate(reach(x, y, ctx.width, ctx.height));
     }
     Ok(())
 }

@@ -19,7 +19,6 @@
 
 use super::foreign_desk::*;
 use super::foreign_kernel::*;
-use crate::damage::Rect;
 use crate::frame_pacer::compose::{compose, Scene};
 use crate::scene::Layer;
 use crate::scene_submit::submit_layer;
@@ -37,6 +36,7 @@ impl Desk {
             stack: 0,
             in_use: true,
             miss_count: 0,
+            cursor: None,
         };
         for rect in submit_layer(&mut self.scene, l).expect("room").into_iter().flatten() {
             self.damage.accumulate(rect);
@@ -61,10 +61,9 @@ impl Desk {
     /// The pointer moves, damaging where it was and where it is, as the
     /// cursor-update handler does.
     pub(crate) fn move_cursor(&mut self, x: u32, y: u32) {
+        // As cursor_update damages it: the box every shape fits from its hot spot.
         for (cx, cy) in [self.cursor, (x, y)] {
-            let w = CURSOR_SIDE.min(W - cx);
-            let h = CURSOR_SIDE.min(H - cy);
-            self.damage.accumulate(Rect { x: cx, y: cy, width: w, height: h });
+            self.damage.accumulate(crate::state::cursor_pick::reach(cx, cy, W, H));
         }
         self.cursor = (x, y);
     }

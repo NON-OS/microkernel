@@ -28,3 +28,6 @@ pub const OP_QUERY_TOPMOST: u16 = 0x000B;
 pub const OP_ROUTE_FOCUS: u16 = 0x000C;
 pub const OP_QUERY_FOCUS: u16 = 0x000D;
 pub const OP_WINDOW_MAXIMIZE: u16 = 0x000E;
+/// A window's origin and size in one request: a drag of its left or top edge
+/// moves and resizes it at once, never as two rects one after the other.
+pub const OP_WINDOW_PLACE: u16 = 0x000F;

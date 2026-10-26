@@ -23,14 +23,15 @@
 const ACCENT: u32 = 0xFF35_C4E2;
 
 /// Of the pixels well inside the stroke of the accent ring in the right
-/// third of a frame `w` wide, the share that are still the accent, in
-/// thousandths. None when no ring is found.
-pub fn whole_per_mille(pixels: &[u32], w: u32) -> Option<u32> {
+/// third of a frame `w` wide, below row `top` (the window's content, so the
+/// frame's own accent rule is not read as ring), the share that are still
+/// the accent, in thousandths. None when no ring is found.
+pub fn whole_per_mille(pixels: &[u32], w: u32, top: u32) -> Option<u32> {
     let (x0, mut lo, mut hi) = (w * 2 / 3, (u32::MAX, u32::MAX), (0u32, 0u32));
     let at = |i: usize| ((i as u32) % w, (i as u32) / w);
     for (i, _) in pixels.iter().enumerate().filter(|(_, &p)| p == ACCENT) {
         let (x, y) = at(i);
-        if x >= x0 {
+        if x >= x0 && y >= top {
             (lo, hi) = ((lo.0.min(x), lo.1.min(y)), (hi.0.max(x), hi.1.max(y)));
         }
     }
