@@ -43,10 +43,10 @@ fn every_slot_changes_only_as_a_whole_notice_of_its_own_says() {
                 Lie::Sound => {}
             }
             told[lie as usize] += 1;
-            for s in 0..=max_slot as usize {
+            for (s, w) in want.iter_mut().enumerate().take(max_slot as usize + 1) {
                 let bit = 2 * s + 1;
                 let set = n.get(1 + bit / 8).is_some_and(|b| b >> (bit % 8) & 1 == 1);
-                want[s] |= n.first() == Some(&0x50) && set && s < 64;
+                *w |= n.first() == Some(&0x50) && set && s < 64;
             }
             slots.seen(&n, max_slot);
         }

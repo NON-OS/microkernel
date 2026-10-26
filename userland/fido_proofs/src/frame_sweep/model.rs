@@ -10,10 +10,13 @@
 //! carrying the next sequence number adds its bytes; any other breaks. A
 //! message is heard once it holds its length, the bytes past it dropped.
 
-use crate::ctaphid_parts::heard::Heard;
+use crate::ctaphid::heard::Heard;
+
+/// A message being put together: its command, length, bytes so far and next sequence.
+type Partial = (u8, usize, Vec<u8>, u8);
 
 pub fn heard(reports: &[Vec<u8>], cid: [u8; 4]) -> Vec<Heard> {
-    let (mut out, mut msg): (Vec<Heard>, Option<(u8, usize, Vec<u8>, u8)>) = (Vec::new(), None);
+    let (mut out, mut msg): (Vec<Heard>, Option<Partial>) = (Vec::new(), None);
     for p in reports {
         if p.len() < 7 || p[..4] != cid {
             continue;
