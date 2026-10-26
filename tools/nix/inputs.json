@@ -3230,6 +3230,7 @@
  },
  "userland/capsule_linux": {
   "exclude": [
+   "userland/nonos_linux_pack/fuzz",
    "userland/toolkit/image_tests"
   ],
   "include": [
@@ -3249,6 +3250,7 @@
    "userland/libc",
    "userland/nonos_ed25519",
    "userland/nonos_hash",
+   "userland/nonos_linux_pack",
    "userland/nonos_linux_policy",
    "userland/nonos_route_link",
    "userland/nonos_socket",

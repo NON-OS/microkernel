@@ -23,8 +23,10 @@ use nonos_libc::mk_getpid;
 
 use super::root::Key;
 
-/// Ok(true) when the file is there, Ok(false) only when the store says it
-/// is not, and the store's reason otherwise.
+/// Ok(true) when the file is there, in the store's tree or a pack (a pack
+/// holds no proof name: install/proof_names.rs), Ok(false) only when the
+/// store says it is not, and the store's reason otherwise.
 pub fn found(at: &Key) -> Result<bool, &'static str> {
-    vfs::lookup(mk_getpid(), at.as_bytes()).map(|got| got.is_some())
+    let got = vfs::lookup(mk_getpid(), at.as_bytes())?;
+    Ok(got.is_some() || super::store::packed_found(at))
 }
