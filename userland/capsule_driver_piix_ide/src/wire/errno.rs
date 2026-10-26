@@ -24,5 +24,3 @@ pub const E_ACCES: i32 = -13;
 pub const E_NODEV: i32 = -19;
 pub const E_INVAL: i32 = -22;
 pub const E_MSGSIZE: i32 = -90;
-/// The medium may not be written.
-pub const E_ROFS: i32 = -30;

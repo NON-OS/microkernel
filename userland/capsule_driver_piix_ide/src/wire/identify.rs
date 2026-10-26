@@ -30,8 +30,6 @@
 pub const IDENTIFY_LEN: usize = 64;
 /// An ATA disk behind an IDE controller.
 pub const MEDIUM_ATA: u8 = 5;
-/// A SCSI disk behind any SCSI host.
-pub const MEDIUM_SCSI: u8 = 6;
 const MODEL_MAX: usize = 40;
 const SERIAL_MAX: usize = 20;
 const MODEL_AT: usize = 4;
