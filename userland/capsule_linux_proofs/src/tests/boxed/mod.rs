@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod allow_fuzz_tests;
+mod bound_line_tests;
 mod connected_tests;
 mod frames_tests;
 mod fuzz_tests;
