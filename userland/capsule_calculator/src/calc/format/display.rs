@@ -33,7 +33,7 @@ pub fn format(value: Fixed, decimal_digits_typed: u8, out: &mut [u8]) -> usize {
     }
     n += write_u128(int_part, &mut buf[n..]);
     let frac_digits = effective_fraction_digits(frac_part, decimal_digits_typed);
-    if frac_digits > 0 {
+    if frac_digits > 0 || decimal_digits_typed > 0 {
         if n < buf.len() {
             buf[n] = b'.';
             n += 1;
