@@ -39,6 +39,7 @@ pub fn lock_yielding(lock: &'static Mutex<()>) -> MutexGuard<'static, ()> {
     let mut round = 0u32;
     loop {
         {
+            let _quiet = super::rest_mark::quiet();
             let mut holders = HOLDERS.lock();
             if let Some(guard) = lock.try_lock() {
                 match holders.iter_mut().find(|h| h.0 == key) {
@@ -57,7 +58,7 @@ pub fn lock_yielding(lock: &'static Mutex<()>) -> MutexGuard<'static, ()> {
                 continue;
             }
         }
-        super::reply_wait::rest(round);
+        super::reply_rest::rest(round);
         round = round.saturating_add(1);
     }
 }

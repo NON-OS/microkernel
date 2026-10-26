@@ -14,48 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::quirk_bits::{only, writable, Ident};
-
-const HDA: Ident = Ident {
-    vendor: 0x8086,
-    class: 0x04,
-    subclass: 0x03,
-    prog_if: 0,
-    pcie_cap: None,
-    before: [0xFF; 3],
-};
-const DSP: Ident = Ident {
-    vendor: 0x8086,
-    class: 0x04,
-    subclass: 0x01,
-    prog_if: 0,
-    pcie_cap: None,
-    before: [0xFF; 3],
-};
-const AMD_HDA: Ident = Ident {
-    vendor: 0x1022,
-    class: 0x04,
-    subclass: 0x03,
-    prog_if: 0,
-    pcie_cap: None,
-    before: [0xFF; 3],
-};
-const WIFI: Ident = Ident {
-    vendor: 0x10EC,
-    class: 0x02,
-    subclass: 0x80,
-    prog_if: 0,
-    pcie_cap: Some(0x70),
-    before: [0xFF; 3],
-};
-const NVME: Ident = Ident {
-    vendor: 0x8086,
-    class: 0x01,
-    subclass: 0x08,
-    prog_if: 0,
-    pcie_cap: Some(0x70),
-    before: [0xFF; 3],
-};
+use super::idents::{AMD_HDA, DSP, HDA, NVME, WIFI};
+use super::quirk_bits::{only, writable, Ident, Route};
 
 #[test]
 fn intel_audio_gets_exactly_tcsel_cgctl_and_devc_bits() {
@@ -97,6 +57,8 @@ fn every_other_class_and_register_stays_refused() {
         prog_if: 0,
         pcie_cap: None,
         before: [0xFF; 3],
+        device: 0,
+        route: Route::NONE,
     };
     assert_eq!(writable(&gpu, 0x48), None);
 }
