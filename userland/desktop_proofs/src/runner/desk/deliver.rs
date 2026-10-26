@@ -63,10 +63,11 @@ impl Desk {
             }
             Route::Window(ev) => ev,
         };
-        let action = drag::handle(&mut app.drag, app.w, app.h, app.x, app.y, false, &ev);
+        let action = drag::handle(&mut app.drag, (app.w, app.h), (app.x, app.y), false, &ev);
         match action {
             PointerAction::MoveTo(nx, ny) => self.apply_move(i, nx, ny),
             PointerAction::ResizeTo(nw, nh) => self.apply_resize(i, nw, nh),
+            PointerAction::Place(p) => self.apply_place(i, p),
             _ => {}
         }
     }

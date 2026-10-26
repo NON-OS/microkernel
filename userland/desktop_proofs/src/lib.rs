@@ -50,3 +50,9 @@ pub mod shell_peer_rule;
 
 #[cfg(test)]
 mod peer_rule_tests;
+
+// The window switcher's order and run, and where its strip sits.
+#[path = "../../capsule_desktop_shell/src/state/ctx/switch/mod.rs"]
+pub mod shell_switch;
+#[path = "../../capsule_desktop_shell/src/render/switch/geometry.rs"]
+pub mod switch_geometry;

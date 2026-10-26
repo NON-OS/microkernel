@@ -27,14 +27,18 @@ the boot splash, the setup wizard, the input probe, `desktop_shell` and the
 installer. Any other sender is refused (`GRABBERS`,
 `userland/capsule_input_router/src/server/handlers/grab_request.rs:28-29`).
 
-Three groups of keys never reach the focused window:
+Four groups of keys never reach the focused window:
 
 - Ctrl+Alt+Esc goes to `desktop_shell`, which brings Process Manager forward to
   end a window that misbehaves (`is_reserved_chord`,
-  `userland/capsule_input_router/src/route/chord.rs:34-36`).
+  `userland/capsule_input_router/src/route/chord.rs:48-50`).
 - Ctrl+Alt+T goes to `desktop_shell` over focus, which brings the Terminal
   forward or opens it (`is_terminal_chord` in the same file). It is not
   reserved: a grab or the trusted hold takes it like any key.
+- Alt+Tab, and Shift+Alt+Tab, go to `desktop_shell` over focus the same way,
+  which moves focus to the next or the previous window and shows the switcher
+  (`is_switch_chord` in the same file). Tab alone and Ctrl+Tab stay the
+  window's.
 - Mute, Volume Down, Volume Up and Power go to `desktop_shell` whatever has
   focus (`is_shell_key`,
   `userland/capsule_input_router/src/route/shell_keys.rs:32-34`).

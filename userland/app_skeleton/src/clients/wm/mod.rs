@@ -20,6 +20,7 @@ mod maximize;
 mod minimize;
 mod move_window;
 mod open;
+mod place;
 mod raise;
 mod resize;
 
@@ -29,5 +30,6 @@ pub use maximize::window_maximize;
 pub use minimize::{window_minimize, window_restore};
 pub use move_window::window_move;
 pub use open::{window_open, WindowPlacement};
+pub use place::window_place;
 pub use raise::window_raise;
 pub use resize::window_resize;

@@ -23,5 +23,6 @@ pub mod capture;
 pub mod place;
 pub mod pointer;
 pub mod read;
+pub mod remove;
 pub mod toggles;
 pub mod vcp;
