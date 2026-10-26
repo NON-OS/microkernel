@@ -20,8 +20,7 @@
 //! baked trust anchor.
 
 #[cfg(feature = "nonos-capsule-net-dhcp")]
-pub(super) const NET_DHCP_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(super) const NET_DHCP_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_net_dhcp/target/",
     env!("NONOS_USER_TARGET"),
     "/release/net_dhcp"

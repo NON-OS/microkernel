@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-keyring")]
-pub(super) const KEYRING_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(super) const KEYRING_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_keyring/target/",
     env!("NONOS_USER_TARGET"),
     "/release/keyring"

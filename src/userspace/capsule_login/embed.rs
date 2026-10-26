@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-login")]
-pub(crate) const LOGIN_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(crate) const LOGIN_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_login/target/",
     env!("NONOS_USER_TARGET"),
     "/release/login"

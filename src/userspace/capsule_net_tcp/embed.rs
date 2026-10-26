@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-net-tcp")]
-pub(super) const NET_TCP_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(super) const NET_TCP_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_net_tcp/target/",
     env!("NONOS_USER_TARGET"),
     "/release/net_tcp"

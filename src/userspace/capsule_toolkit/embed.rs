@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-toolkit")]
-pub(crate) const TOOLKIT_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(crate) const TOOLKIT_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/toolkit/target/",
     env!("NONOS_USER_TARGET"),
     "/release/toolkit"
