@@ -16,12 +16,20 @@
 
 mod answer;
 mod argv;
+mod ask;
 mod bound;
 mod deliver;
 mod device;
+mod device_found;
 mod drain;
+mod entropy;
 mod exit_rule;
+mod finish;
 mod isolation;
+mod isolation_wipe;
+mod poll;
+mod poll_rule;
+mod progress;
 mod receipt;
 mod receipt_doc;
 mod receipt_entry;
@@ -29,10 +37,15 @@ mod receipt_serve;
 mod receipt_slot;
 mod receipt_step;
 mod run;
+mod seen;
 mod serve;
+mod serve_frame;
 mod start;
 mod state;
+mod state_ops;
 mod status;
+mod work;
+mod worker;
 
 pub use argv::{bound, is_job, is_receipt};
 pub use serve::serve;

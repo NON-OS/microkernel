@@ -21,8 +21,6 @@ use alloc::vec::Vec;
 
 use nonos_proof_abi::wire::Stage;
 
-use super::exit_rule::Seen;
-
 pub struct Job {
     pub id: u32,
     /// The pid whose PROVE made it; STATUS and GET answer no one else.
@@ -33,8 +31,12 @@ pub struct Job {
     pub out: Vec<u8>,
     /// GET has handed out the container's last byte.
     pub fetched: bool,
-    /// The owner's STATUS has been answered with the failure.
+    /// A STATUS from the owner has been answered with the failure.
+    pub answered: bool,
+    /// The owner sent a frame after that answer: it has read the failure.
     pub told: bool,
+    /// The worker thread is on its proofs (worker.rs).
+    pub working: bool,
     /// When it failed or its owner last sent a frame, whichever is later.
     pub asker_ms: u64,
 }
@@ -49,22 +51,10 @@ impl Job {
             status: 0,
             out: Vec::new(),
             fetched: false,
+            answered: false,
             told: false,
+            working: false,
             asker_ms: 0,
-        }
-    }
-
-    /// What the exit rule reads of it.
-    pub fn seen(&self) -> Seen {
-        let (stage, fetched, told, asker_ms) = (self.stage, self.fetched, self.told, self.asker_ms);
-        Seen { stage, fetched, told, asker_ms }
-    }
-
-    pub fn total(&self) -> u32 {
-        if self.stage == Stage::Done {
-            self.out.len() as u32
-        } else {
-            0
         }
     }
 }
