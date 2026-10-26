@@ -4,13 +4,15 @@ A receipt says: this NONOS kernel, measured into this TPM's PCR 9, sealed this r
 program in this box, and the TPM signed it. It trusts the kernel, the TPM and the release.
 It does not trust whoever hands the receipt over.
 
-**Status in 0.9.3.** Built, and booted once on a development image under QEMU with a
-software TPM and test keys. A headless Gauntlet run of `linux --box strict python3 ...` got
-its receipt from `nonos.prove`'s RECEIPT job, logged it and acknowledged it, and the record
-was dropped. On that boot the job's rule held: asked again, the same bytes; asked anything
-else, EBUSY; after the ack, the record gone. The release verdict and the capsules field
-came after that boot and are proven on the host only: not booted yet. Nothing has been run
-on hardware, and no release image has made a receipt.
+**Status in 0.9.3.** Built, and booted on a development image under QEMU with a software
+TPM and test keys (26 October, main 1241a4bd6a). A headless Gauntlet run of `linux --box
+strict python3 ...` got a 7246-byte receipt from `nonos.prove`'s RECEIPT job, logged it and
+acknowledged it, and the record was dropped. The job's rule held: asked again, the same
+bytes; asked anything else, EBUSY; after the ack, the record gone. On the host the receipt
+verified by every check, under a trust pinned from it on first use, and said `kind not a
+release: 56 path-only capsules`, as a development image's must; `--release` refused it.
+Each of its 7246 bytes flipped alone was refused. Nothing has been run on hardware, and no
+release image has made a receipt.
 
 ## What is sealed today
 

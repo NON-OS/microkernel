@@ -6,9 +6,9 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-//! Retention of a dead capsule's `proc.<pid>` stdout inbox.
+//! Retention of a dead capsule's `stdout.<pid>` inbox.
 //!
-//! A capsule's mirrored stdout lands in its own `proc.<pid>` inbox, but the
+//! A capsule's mirrored stdout lands in its own `stdout.<pid>` inbox, but the
 //! only consumer is the parent that launched it, which polls. `finalize`
 //! removes the PCB and every inbox the instant the exit is drained, which is
 //! within a scheduler tick of the exit, so a tool that runs for less than one
@@ -31,11 +31,7 @@ const RETAINED_CAP: usize = 64;
 pub(crate) fn retain(pid: Pid, parent: Pid) {
     let evicted = {
         let mut map = RETAINED.lock();
-        let evicted = if map.len() >= RETAINED_CAP {
-            map.keys().next().copied()
-        } else {
-            None
-        };
+        let evicted = if map.len() >= RETAINED_CAP { map.keys().next().copied() } else { None };
         if let Some(old) = evicted {
             map.remove(&old);
         }

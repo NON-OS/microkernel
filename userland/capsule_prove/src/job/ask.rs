@@ -14,17 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Format `value` as `0xHHHHHHHHHHHHHHHH` and write it to the
-// serial port. Used by VM-init diagnostics; alloc-free so it can
-// run before the heap exists.
+//! What a first frame asks for: a PROVE or a DELIVER, decoded; None for any
+//! other op or a body that does not decode (start.rs).
 
-pub(super) fn print_hex_u64(value: u64) {
-    let mut buf = [0u8; 18];
-    buf[0] = b'0';
-    buf[1] = b'x';
-    for i in 0..16 {
-        let nib = ((value >> ((15 - i) * 4)) & 0xF) as u8;
-        buf[2 + i] = if nib < 10 { b'0' + nib } else { b'a' + (nib - 10) };
+use nonos_proof_abi::wire::{DeliverRequest, ProveRequest, DELIVER, PROVE};
+
+pub enum Ask<'a> {
+    Prove(ProveRequest<'a>),
+    Deliver(DeliverRequest<'a>),
+}
+
+pub fn ask<'a>(op: u16, body: &'a [u8]) -> Option<Ask<'a>> {
+    match op {
+        PROVE => ProveRequest::decode(body).map(Ask::Prove),
+        DELIVER => DeliverRequest::decode(body).map(Ask::Deliver),
+        _ => None,
     }
-    crate::sys::serial::print(&buf);
 }
