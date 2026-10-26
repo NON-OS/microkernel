@@ -18,9 +18,9 @@
 //! of its own, and one step of the search for the device, or of its check,
 //! in another. Every call to driver.xhci0 in either waits at most what its
 //! window has left, so a request is answered within REQUEST_MS, and a
-//! request that comes during a step waits for that step alone: STEP_MS, and
-//! the reset after a command that failed and the slot given back after a
-//! probe that did (disk/recover.rs, xhci/slot.rs).
+//! request that comes during a step waits for that step alone: its window
+//! (scan/step_window.rs), and the reset after a command that failed and the
+//! slot given back after a probe that did (disk/recover.rs, xhci/slot.rs).
 
 use super::dispatch::dispatch;
 use super::respond;
@@ -34,9 +34,6 @@ use crate::xhci::Window;
 /// sent as the check starts is answered 3 s inside the kernel's 35 s wait
 /// for a reply (services/lifecycle/reply_wait.rs); at 20 s it was 1 s.
 const REQUEST_MS: u64 = 18_000;
-/// One step's: longer than driver.xhci0's own 5 s wait for a transfer, so
-/// the controller says why one failed.
-const STEP_MS: u64 = 6_000;
 
 pub struct Server {
     /// The bound device's transport: tags, counters, its residue quirk.
@@ -64,7 +61,7 @@ impl Server {
 
     /// One step of the search for the device, or of its check.
     pub fn step(&mut self) {
-        let _window = Window::open(STEP_MS);
+        let _window = Window::open(self.scanner.step_ms());
         self.scanner.step(&mut self.state);
     }
 }

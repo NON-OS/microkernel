@@ -63,8 +63,8 @@ pub(super) fn boot(instance_pid: u32) {
     // listed in the process table, and simply never draws. One line names the
     // instance so the next boot says which app lost its frame rather than
     // leaving the desktop to look broken for no stated reason.
-    crate::sys::serial::print(b"[SPAWN-INSTANCE] no boot frame delivered to ");
-    crate::sys::serial::println(to.as_bytes());
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[SPAWN-INSTANCE] no boot frame delivered to ").str(to.as_bytes()).end();
 }
 
 // Deliver the focus frame once. Returns true only when the shell is registered,

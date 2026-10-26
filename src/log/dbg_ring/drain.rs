@@ -16,7 +16,7 @@
 
 use core::sync::atomic::Ordering;
 
-use crate::sys::serial::{print, print_hex};
+use crate::sys::serial::Line;
 
 use super::storage::ring_ref;
 use super::types::{DbgEntry, MAGIC, RING_LEN, RING_MASK};
@@ -29,34 +29,21 @@ pub fn dbg_drain_to_serial() {
     let head = ring.head.load(Ordering::Acquire);
     let count = head.min(RING_LEN as u32);
     let start = head - count;
-    print(b"\r\n[DBG-RING] drain begin head=");
-    print_hex(head as u64);
-    print(b"\r\n");
+    // From the panic path: each line whole, through the fatal writer.
+    Line::new().str(b"[DBG-RING] drain begin head=").hex(head as u64).end_fatal();
     for i in start..head {
         emit_one(&ring.entries[(i & RING_MASK) as usize]);
     }
-    print(b"[DBG-RING] drain end\r\n");
+    Line::new().str(b"[DBG-RING] drain end").end_fatal();
 }
 
 fn emit_one(entry: &DbgEntry) {
-    print(b"DBG ");
-    print_hex(entry.tag as u64);
-    print(b" ts=");
-    print_hex(entry.ts as u64);
-    print(b" cpu=");
-    print_hex(entry.cpu as u64);
-    print(b" pid=");
-    print_hex(entry.pid as u64);
-    print(b" pl=");
-    for byte in entry.payload.iter() {
-        print_hex_byte(*byte);
-    }
-    print(b"\r\n");
-}
-
-fn print_hex_byte(b: u8) {
     const HEX: &[u8] = b"0123456789ABCDEF";
-    let hi = HEX[(b >> 4) as usize];
-    let lo = HEX[(b & 0x0F) as usize];
-    print(&[hi, lo]);
+    let mut l = Line::new();
+    l.str(b"DBG ").hex(entry.tag as u64).str(b" ts=").hex(entry.ts as u64);
+    l.str(b" cpu=").hex(entry.cpu as u64).str(b" pid=").hex(entry.pid as u64).str(b" pl=");
+    for &b in entry.payload.iter() {
+        l.str(&[HEX[(b >> 4) as usize], HEX[(b & 0x0F) as usize]]);
+    }
+    l.end_fatal();
 }

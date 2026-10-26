@@ -35,9 +35,9 @@ pub(in crate::hardware::broker) fn stop(device_id: u64) -> bool {
         Interface::Ahci => reset_ahci(regs),
     };
     if !stopped {
-        crate::sys::serial::print(b"[BROKER] described device ");
-        crate::sys::serial::print_hex(device_id);
-        crate::sys::serial::println(b" did not stop before its frames are freed");
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[BROKER] described device ").hex(device_id);
+        l.str(b" did not stop before its frames are freed").end();
     }
     true
 }

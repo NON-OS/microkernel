@@ -39,13 +39,12 @@ pub(super) fn adopt_madt_ioapic_base() {
     IOAPIC_BASE.store(primary.address, Ordering::SeqCst);
     IOAPIC_GSI_BASE.store(primary.gsi_base, Ordering::SeqCst);
     if discovered.ioapics.len() > 1 {
-        serial::print(b"[APIC] MADT reports ");
-        serial::print_dec(discovered.ioapics.len() as u64);
-        serial::println(b" IOAPICs; only primary is driven");
+        let mut l = serial::Line::new();
+        l.str(b"[APIC] MADT reports ").dec(discovered.ioapics.len() as u64);
+        l.str(b" IOAPICs; only primary is driven").end();
     }
     if !discovered.isos.is_empty() {
-        serial::print(b"[APIC] MADT ISOs=");
-        serial::print_dec(discovered.isos.len() as u64);
-        serial::println(b"");
+        let mut l = serial::Line::new();
+        l.str(b"[APIC] MADT ISOs=").dec(discovered.isos.len() as u64).end();
     }
 }

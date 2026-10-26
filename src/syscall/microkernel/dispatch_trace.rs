@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub fn trace_syscall(tag: u32) {
-    crate::sys::serial::print(b"[SC ");
-    crate::sys::serial::print_hex(tag as u64);
-    crate::sys::serial::println(b"]");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[SC ").hex(tag as u64).str(b"]").end();
 }

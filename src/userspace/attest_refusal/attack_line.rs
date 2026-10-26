@@ -21,7 +21,7 @@
 
 use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 use crate::security::capsule_attest::{verify_capsule_attestation, AttestError};
-use crate::sys::serial::{print, print_dec};
+use crate::sys::serial::Line;
 
 pub(super) fn attack_name(case: &[u8]) -> &'static [u8] {
     match case {
@@ -43,13 +43,12 @@ pub(super) fn attack_line<T>(case: &[u8], spawned: &Result<T, SpawnError>, trail
         },
         Err(_) => (true, "spawn, before the attestation gate", None),
     };
-    print(b"[ATTACK] ");
-    print(attack_name(case));
-    print(if refused { b" refused: " } else { b" ESCAPED: " });
-    print(how.as_bytes());
+    // One line: the attack suite's judge reads it (nonos-ci/attack_suite).
+    let mut l = Line::new();
+    l.str(b"[ATTACK] ").str(attack_name(case));
+    l.str(if refused { b" refused: " } else { b" ESCAPED: " }).str(how.as_bytes());
     if let Some(c) = code {
-        print(b" code ");
-        print_dec(u64::from(c));
+        l.str(b" code ").dec(u64::from(c));
     }
-    print(b"\n");
+    l.end();
 }

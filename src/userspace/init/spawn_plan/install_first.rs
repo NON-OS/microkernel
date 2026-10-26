@@ -28,11 +28,11 @@
 pub(in crate::userspace::init) fn spawn_installer_first() -> bool {
     let started = spawn();
     let line: &[u8] = if started {
-        b"[INIT] install boot: the installer has the screen; no desktop until it ends\n"
+        b"[INIT] install boot: the installer has the screen; no desktop until it ends"
     } else {
-        b"[INIT] install boot: the installer did not start; starting the desktop\n"
+        b"[INIT] install boot: the installer did not start; starting the desktop"
     };
-    crate::sys::serial::print(line);
+    crate::sys::serial::line(line);
     started
 }
 

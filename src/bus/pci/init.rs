@@ -57,9 +57,8 @@ pub fn init() {
     }
     DEVICE_COUNT.store(count, Ordering::SeqCst);
     PCI_INIT.store(true, Ordering::SeqCst);
-    serial::print(b"[PCI] Found ");
-    serial::print_dec(count as u64);
-    serial::println(b" devices");
+    let mut l = serial::Line::new();
+    l.str(b"[PCI] Found ").dec(count as u64).str(b" devices").end();
     for i in 0..count as usize {
         let dev = unsafe { DEVICES[i] };
         if dev.is_valid() {
@@ -84,18 +83,9 @@ fn log_device(dev: &super::types::PciDevice) {
         _ => "",
     };
     if !name.is_empty() {
-        serial::print(b"[PCI] ");
-        serial::print_dec(dev.bus as u64);
-        serial::print(b":");
-        serial::print_dec(dev.device as u64);
-        serial::print(b".");
-        serial::print_dec(dev.function as u64);
-        serial::print(b" ");
-        serial::print(name.as_bytes());
-        serial::print(b" (");
-        serial::print_hex(dev.vendor_id as u64);
-        serial::print(b":");
-        serial::print_hex(dev.device_id as u64);
-        serial::println(b")");
+        let mut l = serial::Line::new();
+        l.str(b"[PCI] ").dec(dev.bus as u64).str(b":").dec(dev.device as u64).str(b".");
+        l.dec(dev.function as u64).str(b" ").str(name.as_bytes()).str(b" (");
+        l.hex(dev.vendor_id as u64).str(b":").hex(dev.device_id as u64).str(b")").end();
     }
 }

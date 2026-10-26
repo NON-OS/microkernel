@@ -16,19 +16,16 @@
 
 use crate::arch::trap::contract::cause::TrapCause;
 use crate::arch::trap::contract::frame::TrapFrame;
-use crate::sys::serial::{print_hex, print_str};
+use crate::sys::serial::Line;
 
 use super::{detail, label};
 
 pub(in crate::arch::trap::contract) fn report_fatal<F: TrapFrame>(frame: &F, cause: &TrapCause) {
-    print_str("\n!!! KERNEL FATAL TRAP: ");
-    print_str(label::for_cause(cause));
-    print_str(" !!!\n  sepc=");
-    print_hex(frame.instruction_pointer());
-    print_str("  sp=");
-    print_hex(frame.stack_pointer());
-    print_str("  origin=");
-    print_str(if frame.from_user() { "U-mode" } else { "S-mode" });
-    print_str("\n");
+    let mut l = Line::new();
+    l.str(b"!!! KERNEL FATAL TRAP: ").str(label::for_cause(cause).as_bytes()).str(b" !!!");
+    l.end_fatal();
+    let mut l = Line::new();
+    l.str(b"  sepc=").hex(frame.instruction_pointer()).str(b"  sp=").hex(frame.stack_pointer());
+    l.str(b"  origin=").str(if frame.from_user() { b"U-mode" } else { b"S-mode" }).end_fatal();
     detail::report(cause);
 }

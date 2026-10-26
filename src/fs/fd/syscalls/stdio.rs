@@ -16,7 +16,6 @@
 
 extern crate alloc;
 
-use alloc::format;
 
 use crate::fs::fd::error::{FdError, FdResult};
 
@@ -28,14 +27,14 @@ pub(crate) fn write_stdout(buf: *const u8, count: usize) -> FdResult<usize> {
     // SAFETY: Caller guarantees buf is valid for count bytes
     unsafe {
         let slice = core::slice::from_raw_parts(buf, count);
-        for &byte in slice {
-            if byte == b'\n' {
-                crate::sys::serial::print_str("\n");
-            } else if byte.is_ascii_graphic() || byte == b' ' {
-                let ch = byte as char;
-                crate::sys::serial::print_str(&format!("{}", ch));
-            }
-        }
+        // A process's bytes, as MkDebug passes them: printable ones and line
+        // ends, in one write rather than one per byte.
+        let kept: alloc::vec::Vec<u8> = slice
+            .iter()
+            .copied()
+            .filter(|&b| b == b'\n' || b == b' ' || b.is_ascii_graphic())
+            .collect();
+        crate::sys::serial::passthrough(&kept);
     }
     Ok(count)
 }

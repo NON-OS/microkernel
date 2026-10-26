@@ -43,9 +43,8 @@ pub(super) fn arm_challenge(root: [u8; 32]) -> Option<u32> {
     crate::sys::serial::println(b"  == DEVELOPER ROOT ENROLMENT REQUESTED ==");
     crate::sys::serial::println(b"  Software built on this machine wants permission to run here.");
     crate::sys::serial::println(b"  Anything proved under this root will be allowed to start.");
-    crate::sys::serial::print(b"  Confirmation code: ");
-    crate::sys::serial::print_dec(challenge as u64);
-    crate::sys::serial::println(b"");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"  Confirmation code: ").dec(challenge as u64).end();
     crate::sys::serial::println(b"  Type this code to approve. Ignore it if you did not ask.");
     crate::sys::serial::println(b"");
     Some(challenge)

@@ -78,9 +78,8 @@ extern "C" fn kernel_entry(handoff_ptr: u64) -> ! {
         }
         Err(err) => {
             serial::println(b"[NONOS] Handoff FAIL");
-            serial::print(b"[NONOS] Handoff ERR: ");
-            serial::print_str(err.as_str());
-            serial::println(b"");
+            let mut l = serial::Line::new();
+            l.str(b"[NONOS] Handoff ERR: ").str(err.as_str().as_bytes()).end();
             let raw =
                 unsafe { &*(handoff_ptr as *const nonos_kernel::boot::handoff::BootHandoffV1) };
             nonos_kernel::boot::entry_marker::paint(raw, 0, 0xFFFF_0000);

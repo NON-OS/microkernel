@@ -46,9 +46,9 @@ pub fn sys_spawn_instance(name_ptr: u64, name_len: u64) -> i64 {
     };
     let result = queue_by_name(name);
     // Land every request in the boot log so the on-demand path is observable.
-    crate::sys::serial::print(b"[SPAWN-INSTANCE] queued ");
-    crate::sys::serial::print(name.as_bytes());
-    crate::sys::serial::print(if result >= 0 { b" -> ok\n" } else { b" -> fail\n" });
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[SPAWN-INSTANCE] queued ").str(name.as_bytes());
+    l.str(if result >= 0 { b" -> ok" } else { b" -> fail" }).end();
     result
 }
 

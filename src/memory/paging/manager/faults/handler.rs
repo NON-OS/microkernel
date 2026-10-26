@@ -60,11 +60,7 @@ impl PagingManager {
 // visible at the moment it happens, not only at the fault it causes later.
 fn log_demand_fill(virtual_addr: VirtAddr, error_code: u64) {
     let pid = crate::process::current_pid().unwrap_or(0);
-    crate::sys::serial::print(b"[PF] demand fill pid=");
-    crate::sys::serial::print_hex(pid as u64);
-    crate::sys::serial::print(b" va=");
-    crate::sys::serial::print_hex(virtual_addr.as_u64());
-    crate::sys::serial::print(b" err=");
-    crate::sys::serial::print_hex(error_code);
-    crate::sys::serial::println(b"");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[PF] demand fill pid=").hex(pid as u64).str(b" va=").hex(virtual_addr.as_u64());
+    l.str(b" err=").hex(error_code).end();
 }
