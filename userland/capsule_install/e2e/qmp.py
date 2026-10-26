@@ -18,7 +18,27 @@
 import json
 import socket
 import time
-NAMES = {" ": "spc", "-": "minus", ".": "dot", "/": "slash"}
+# A US keyboard: each printable character as the qcode that types it, and the
+# characters typed with shift. A character in neither is refused, never sent
+# as a qcode QEMU does not know and so dropped without a word.
+NAMES = {" ": "spc", "-": "minus", ".": "dot", "/": "slash", ",": "comma", ";": "semicolon",
+         "'": "apostrophe", "[": "bracket_left", "]": "bracket_right", "\\": "backslash",
+         "=": "equal", "`": "grave_accent", "\t": "tab", "\n": "ret"}
+SHIFTED = {"!": "1", "@": "2", "#": "3", "$": "4", "%": "5", "^": "6", "&": "7", "*": "8",
+           "(": "9", ")": "0", "_": "minus", "+": "equal", "{": "bracket_left",
+           "}": "bracket_right", "|": "backslash", ":": "semicolon", '"': "apostrophe",
+           "<": "comma", ">": "dot", "?": "slash", "~": "grave_accent"}
+
+
+def keys_for(ch):
+    """The qcodes, pressed together, that type `ch` on a US keyboard."""
+    if ch.isascii() and ch.isalnum():
+        return ("shift", ch.lower()) if ch.isupper() else (ch,)
+    if ch in NAMES:
+        return (NAMES[ch],)
+    if ch in SHIFTED:
+        return ("shift", SHIFTED[ch])
+    raise ValueError(f"cannot type {ch!r}: no key for it on a US keyboard")
 
 
 class Qmp:
@@ -61,11 +81,11 @@ class Qmp:
         return self.cmd("send-key", keys=keys, **{"hold-time": hold_ms})
 
     def type_text(self, text):
-        for ch in text:
-            if ch.isupper():
-                self.key("shift", ch.lower())
-            else:
-                self.key(NAMES.get(ch, ch))
+        keys = [keys_for(ch) for ch in text]
+        for k in keys:
+            reply = self.key(*k)
+            if "error" in reply:
+                raise RuntimeError(f"QEMU refused {k}: {reply['error']}")
             time.sleep(0.05)
 
     def quit(self):
