@@ -25,6 +25,7 @@ use nonos_app_skeleton::discover::{from_router, lookup_port};
 use nonos_app_skeleton::input::InputEvent;
 use nonos_libc::mk_ipc_recv_from;
 
+use super::took::{took, Took};
 use crate::linux::guest::Guest;
 
 /// Key down and up, absolute pointer, wheel, button down and up: one bit
@@ -49,8 +50,10 @@ pub fn pump(guest: &mut Guest) {
     for _ in 0..BATCH {
         let mut sender = 0u32;
         let n = mk_ipc_recv_from(OWN_INBOX, rx.as_mut_ptr(), rx.len(), NOWAIT, &mut sender);
-        if n < rx.len() as i64 {
-            return;
+        match took(n, rx.len()) {
+            Took::Done => return,
+            Took::Skip => continue,
+            Took::Frame => {}
         }
         if u32::from_le_bytes([rx[0], rx[1], rx[2], rx[3]]) != NINP_MAGIC || !from_router(sender) {
             continue;
