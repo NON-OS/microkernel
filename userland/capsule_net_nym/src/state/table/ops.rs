@@ -18,7 +18,6 @@ use super::super::{Gateway, Session};
 use super::topology_gate;
 use super::types::{Table, TableError, PER_OWNER, TABLE_CAP};
 use crate::crypto::Key;
-use crate::state;
 
 impl Table {
     pub fn open(&mut self, owner: u32, key: Key) -> Result<u32, TableError> {
@@ -41,10 +40,6 @@ impl Table {
         self.sessions.iter_mut().find(|s| s.owner == owner && s.id == id).map(f)
     }
 
-    pub fn with_id_mut<R>(&mut self, id: u32, f: impl FnOnce(&mut Session) -> R) -> Option<R> {
-        self.sessions.iter_mut().find(|s| s.id == id).map(f)
-    }
-
     pub fn close(&mut self, owner: u32, id: u32) -> bool {
         let Some(pos) = self.sessions.iter().position(|s| s.owner == owner && s.id == id) else {
             return false;
@@ -54,9 +49,10 @@ impl Table {
         true
     }
 
-    /// Whether no session is open. Nothing calls it: the directory tick
-    /// fetches whenever a fetch is due (topology/refresh.rs), whether or not
-    /// a client holds a session.
+    /// Whether no session is open. Only the proofs call it: the directory
+    /// tick fetches whenever a fetch is due (topology/refresh.rs), whether or
+    /// not a client holds a session.
+    #[cfg(test)]
     pub fn idle(&self) -> bool {
         self.sessions.is_empty()
     }

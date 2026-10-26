@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{crypto_decrypt, crypto_encrypt};
+use nonos_libc::crypto_encrypt;
 
 use super::types::{CryptoError, Key, Nonce, TAG_BYTES};
 
@@ -41,29 +41,5 @@ pub fn seal(
         Ok(n as usize)
     } else {
         Err(CryptoError::Seal)
-    }
-}
-
-pub fn open(
-    key: &Key,
-    nonce: &Nonce,
-    ciphertext: &[u8],
-    out: &mut [u8],
-) -> Result<usize, CryptoError> {
-    if ciphertext.len() < TAG_BYTES || out.len() + TAG_BYTES < ciphertext.len() {
-        return Err(CryptoError::OutputSmall);
-    }
-    let n = crypto_decrypt(
-        ALGO_CHACHA20_POLY1305,
-        key.as_ptr(),
-        nonce.as_ptr(),
-        ciphertext.as_ptr(),
-        ciphertext.len() as u64,
-        out.as_mut_ptr(),
-    );
-    if n >= 0 {
-        Ok(n as usize)
-    } else {
-        Err(CryptoError::Open)
     }
 }

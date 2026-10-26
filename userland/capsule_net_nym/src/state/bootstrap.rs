@@ -16,6 +16,9 @@
 
 use super::gateway::{Gateway, Transport};
 
+/// A gateway's IPv4 address and the port it takes client sessions on.
+type Endpoint = ([u8; 4], u16);
+
 /// Entry gateways to try before a directory is available.
 ///
 /// The same pattern Tor uses for fallback directories: a client with no
@@ -26,7 +29,7 @@ use super::gateway::{Gateway, Transport};
 /// impersonate a gateway; the worst it can do is fail to answer.
 ///
 /// Replace with the directory client once it lands.
-pub const BOOTSTRAP_GATEWAYS: [(([u8; 4], u16), [u8; 32]); 5] = [
+pub const BOOTSTRAP_GATEWAYS: [(Endpoint, [u8; 32]); 5] = [
     (([188, 172, 228, 15], 9000), [
         219, 112, 40, 128, 37, 198, 11, 235, 220, 12, 95, 179, 91, 171, 93, 58, 171, 138, 81, 0,
         87, 128, 223, 189, 68, 255, 51, 42, 131, 120, 34, 26,

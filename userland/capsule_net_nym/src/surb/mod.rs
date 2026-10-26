@@ -26,8 +26,5 @@ mod supply;
 mod types;
 
 pub use budget::Budget;
-pub use build::build_surb;
-pub use bytes::surb_bytes;
-pub use keys::{held as keys_held, remember, take as take_key};
+pub use keys::{held as keys_held, take as take_key};
 pub use supply::build_supply;
-pub use types::ReplySurb;

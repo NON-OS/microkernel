@@ -20,7 +20,6 @@ mod ops;
 mod owner;
 mod reset;
 mod sphinx;
-mod stream;
 mod topology_gate;
 mod types;
 

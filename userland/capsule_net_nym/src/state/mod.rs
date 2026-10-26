@@ -23,10 +23,10 @@ mod directory;
 mod directory_gateway;
 mod gateway;
 mod identity;
+mod key_slot;
 mod replay;
 mod rx_queue;
 mod session;
-mod key_slot;
 mod shared_key;
 mod surb;
 mod surb_id;
@@ -36,7 +36,6 @@ mod table;
 mod timing;
 
 pub use ack_key::ack_key;
-pub use replay::ReplayWindow;
 pub use authority::{install as install_authority, trusted as trusted_authority};
 pub use bootstrap::{bootstrap_gateway, BOOTSTRAP_GATEWAYS};
 pub use bootstrap_mix::{bootstrap_route, BOOTSTRAP_MIXNODES, PER_LAYER};
@@ -44,9 +43,10 @@ pub use credential::{
     install as install_credential, material as credential_material, CredentialError,
 };
 pub use directory::{get as directory_source, install as install_directory_source};
-pub use directory_gateway::{directory_gateway, directory_gateway_count, directory_exit_count};
+pub use directory_gateway::{directory_exit_count, directory_gateway, directory_gateway_count};
 pub use gateway::{Gateway, Transport};
-pub use identity::{client_identity, set_client_identity, Identity as ClientIdentity};
+pub use identity::{client_identity, set_client_identity};
+pub use replay::ReplayWindow;
 pub use rx_queue::RX_DEPTH;
 pub use session::Session;
 pub use shared_key::{

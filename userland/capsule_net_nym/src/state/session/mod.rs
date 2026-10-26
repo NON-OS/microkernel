@@ -14,20 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+//! A client's session (types.rs), how one opens (new.rs), and what waits
+//! for its reader (queue.rs).
 
-use crate::protocol::MIX_PAYLOAD_MAX;
-use crate::state::Session;
+mod new;
+mod queue;
+mod types;
 
-pub fn queue(s: &mut Session, plain: &[u8]) {
-    if plain.len() < 2 {
-        return;
-    }
-    let len = u16::from_le_bytes([plain[0], plain[1]]) as usize;
-    if len > MIX_PAYLOAD_MAX || 2 + len > plain.len() {
-        return;
-    }
-    let mut body = Vec::with_capacity(len);
-    body.extend_from_slice(&plain[2..2 + len]);
-    s.push(body);
-}
+pub use types::Session;

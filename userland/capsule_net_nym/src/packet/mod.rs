@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod decode;
 mod encode;
 mod header;
 mod plain;
 mod tag;
 mod types;
 
-pub use decode::decode;
 pub use encode::encode;
 pub use header::OFF_HEADER_RANDOM;
 pub use types::{PacketError, FLAG_COVER, FLAG_REPLY, HEADER_LEN, REPLAY_TAG_LEN};
