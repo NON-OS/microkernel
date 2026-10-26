@@ -30,7 +30,7 @@ pub mod variable;
 
 pub use api::{
     get_firmware_info, get_time, get_uefi_stats, get_variable, init, is_secure_boot_enabled,
-    is_setup_mode, reset_system, set_variable, verify_boot_services, verify_runtime_services,
+    is_setup_mode, reset_system, set_variable,
 };
 pub use constants::status;
 pub use crc::{compute as crc32_compute, Crc32};
