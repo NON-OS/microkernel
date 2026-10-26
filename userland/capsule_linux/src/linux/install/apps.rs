@@ -101,14 +101,10 @@ macro_rules! tier {
 }
 pub(super) use tier;
 
-/*
- * Every table, smallest family first.
- */
+/* Every table, smallest family first. */
 pub const FAMILIES: &[&[App]] = &[QWEN25, QWEN3, QWEN35, CODER];
 
-/*
- * Every shipped tier, family by family.
- */
+/* Every shipped tier, family by family. */
 pub fn all() -> impl Iterator<Item = &'static App> {
     FAMILIES.iter().flat_map(|f| f.iter())
 }

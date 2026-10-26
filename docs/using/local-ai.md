@@ -137,7 +137,7 @@ The code behind each section, at the commit in the footer.
 - Start a chat
   - The `qwen` rules: `HELP` in `userland/capsule_terminal/src/command/builtin/qwen/help.rs:20-53`.
   - The dock and Launchpad window: `open` in `userland/capsule_desktop_shell/src/apps_off/qwen.rs`.
-  - The default tier order: `resolve` in `userland/capsule_model_fetch/src/default_tier.rs:78-92`.
+  - The default tier order: `resolve` in `userland/capsule_model_fetch/src/default_tier.rs:68-70`, the rule itself `resolve_in` in `userland/capsule_model_fetch/src/default_tier/rule.rs:23-46`.
 - How it runs, and why it is offline
   - The three `qwenchat` builds: `userland/linux_userland/Userland.mk`.
   - The two Terminal slots and their capabilities: `TERMINAL` in `src/userspace/capsule_linux/terminal/roles.rs:25-42`.
@@ -145,9 +145,9 @@ The code behind each section, at the commit in the footer.
   - No internet socket once a model is open: `refuse_inet` in `userland/capsule_linux/src/linux/net/offline.rs:37-39`.
   - Console output kept off the serial log: `held` in `userland/capsule_linux/src/linux/file/models/held.rs:31-33`.
 - The tiers
-  - Name, length and SHA-256 pins: `Pinned` in `userland/capsule_linux/src/linux/file/models/pinned.rs:32-37`, with the pins in `userland/capsule_linux/src/linux/file/models/pinned_qwen25.rs`, `userland/capsule_linux/src/linux/file/models/pinned_qwen25_big.rs`, `userland/capsule_linux/src/linux/file/models/pinned_qwen3.rs`, `userland/capsule_linux/src/linux/file/models/pinned_qwen35.rs` and `userland/capsule_linux/src/linux/file/models/pinned_coder.rs`.
-  - The "To run" rule: `memory` in `userland/capsule_model_fetch/src/need.rs:60-64`.
-  - The live-boot fit: `fits` in `userland/capsule_model_fetch/src/need.rs:98-103`.
+  - Name, length and SHA-256 pins: `Pinned` in `userland/capsule_linux/src/linux/file/models/pinned.rs:35-40`, with the pins in `userland/capsule_linux/src/linux/file/models/pinned_qwen25.rs`, `userland/capsule_linux/src/linux/file/models/pinned_qwen25_big.rs`, `userland/capsule_linux/src/linux/file/models/pinned_qwen3.rs`, `userland/capsule_linux/src/linux/file/models/pinned_qwen35.rs` and `userland/capsule_linux/src/linux/file/models/pinned_coder.rs`.
+  - The "To run" rule: `memory` in `userland/capsule_model_fetch/src/need.rs:37-41`, with each tier's shape in `userland/capsule_model_fetch/src/need/shapes.rs`.
+  - The live-boot fit: `fits` in `userland/capsule_model_fetch/src/need.rs:75-80`.
 - Install a model
   - The signed model catalogue and the mirror: `NONOS_MODEL_MIRROR` in `mk/22-models.mk`.
   - Exit status 3: `NO_CATALOGUE` in `userland/capsule_model_fetch/src/exit.rs:35`, with its message in `userland/capsule_model_fetch/src/catalogue/embed.rs`.
