@@ -18,10 +18,6 @@ use crate::capabilities::{Capability, CapabilityToken};
 
 impl CapabilityToken {
     #[inline]
-    pub fn can_network(&self) -> bool {
-        self.grants(Capability::Network) && self.is_valid()
-    }
-    #[inline]
     pub fn can_ipc(&self) -> bool {
         self.grants(Capability::IPC) && self.is_valid()
     }

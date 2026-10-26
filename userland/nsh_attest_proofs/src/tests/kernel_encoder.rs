@@ -25,7 +25,9 @@ use nsh_attest::Doc;
 
 use super::passes;
 
+mod capsules;
 mod large;
+mod log_cap;
 use crate::build::Spec;
 use crate::kernel_document::{AttestationDoc, DOC_VERSION, MAX_LOG, QUOTED_PCRS};
 

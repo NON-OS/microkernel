@@ -16,7 +16,7 @@
 
 use super::priority_vm::{INTERACTIVE_VM, STORAGE_PATH_VM};
 use crate::process::core::Priority;
-use crate::services::registry::displays::is_display;
+use crate::services::registry::displays::DISPLAYS;
 use crate::services::registry::nics;
 
 /// Capsules on the pointer/keyboard -> compositor -> scanout path; the
@@ -66,7 +66,7 @@ pub(super) fn for_capsule(name: &str) -> Priority {
     let bands: [&[&str]; 5] =
         [&INTERACTIVE, &INTERACTIVE_VM, &PACKET_PATH, &STORAGE_PATH, &STORAGE_PATH_VM];
     let banded = bands.iter().any(|band| band.contains(&name));
-    if is_display(name) || banded || nics::NICS.iter().any(|(card, _)| *card == name) {
+    if DISPLAYS.contains(&name) || banded || nics::NICS.iter().any(|(card, _)| *card == name) {
         Priority::High
     } else {
         Priority::Normal

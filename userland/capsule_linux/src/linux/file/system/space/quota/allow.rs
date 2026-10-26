@@ -16,7 +16,7 @@
 
 /* Which changes the quota takes, to the store and to the family's copies. */
 
-use super::super::super::declared::{PRIVATE, PRIVATE_NAMES};
+use super::super::super::declared::{HOME, HOMES, HOME_NAMES, PRIVATE, PRIVATE_NAMES};
 use super::kept::Kept;
 use crate::linux::abi::errno;
 
@@ -28,10 +28,21 @@ use crate::linux::abi::errno;
  * or remove a name.
  */
 pub fn allows(now: Kept, then: Kept) -> Result<(), i64> {
+    held_to(now, then, PRIVATE, PRIVATE_NAMES)
+}
+
+/*
+ * The same for the family's home, `all` the bytes every home keeps before
+ * and after: past its own ceiling, or past what all homes may keep.
+ */
+pub fn home_allows(now: Kept, then: Kept, all: (u64, u64)) -> Result<(), i64> {
+    held_to(now, then, HOME, HOME_NAMES)?;
+    held_to(Kept { bytes: all.0, names: 0 }, Kept { bytes: all.1, names: 0 }, HOMES, 0)
+}
+
+fn held_to(now: Kept, then: Kept, bytes: u64, names: u64) -> Result<(), i64> {
     let grows_past = |was: u64, will: u64, most: u64| will > most && will > was;
-    if grows_past(now.bytes, then.bytes, PRIVATE)
-        || grows_past(now.names, then.names, PRIVATE_NAMES)
-    {
+    if grows_past(now.bytes, then.bytes, bytes) || grows_past(now.names, then.names, names) {
         return Err(errno::ENOSPC);
     }
     Ok(())

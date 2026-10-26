@@ -31,8 +31,7 @@ pub const fn store() -> Store {
         wifi_autoconnect: true,
         animations_enabled: true,
         cursor_size: 1,
-        // special-variant-9: catalog index 13 + 14 + 18 + 10.
-        wallpaper: 55,
+        wallpaper: nonos_policy_proto::wallpaper_labels::WALLPAPER_DEFAULT,
         clock_format24: true,
         prefer_ipv6: false,
         metered_connection: false,

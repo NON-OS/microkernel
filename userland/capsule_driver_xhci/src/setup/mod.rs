@@ -17,6 +17,8 @@ mod assemble;
 mod bring_up;
 mod claim;
 mod driver;
+mod intel_ports;
+pub(crate) mod intel_ports_plan;
 mod irq_bind;
 pub(crate) mod layout;
 mod marker;

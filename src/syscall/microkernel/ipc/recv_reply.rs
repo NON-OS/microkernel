@@ -52,7 +52,7 @@ pub(super) fn recv_reply_correlated(
                 }
                 return copy_len as i64;
             }
-            super::call::note_drop(msg.correlation, want);
+            super::call::note_drop(pid, msg.correlation, want);
         }
         // The server died owing this reply (pending_reply::abandoned).
         if super::pending_reply::abandoned(pid, want) {
