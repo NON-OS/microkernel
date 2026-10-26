@@ -21,7 +21,7 @@ use crate::fs::blockfs::HEADER_RING_SECTORS;
 
 /// True when every sector of the header ring at device LBA `base` is zero.
 pub(super) fn ring_blank(base: u64) -> Result<bool, VolumeError> {
-    let _io = crate::fs::cryptoblock::volume_scope();
+    let _io = crate::fs::cryptoblock::volume_scope().map_err(VolumeError::Device)?;
     let mut sector = [0u8; 512];
     for lba in base..base + HEADER_RING_SECTORS {
         crate::hardware::block_device::read(lba, &mut sector).map_err(VolumeError::Device)?;
