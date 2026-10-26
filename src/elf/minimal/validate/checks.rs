@@ -16,7 +16,6 @@
 
 use crate::elf::errors::ElfResult;
 use crate::elf::loader::validate_elf as validate_header;
-use crate::elf::types::{elf_machine, elf_type};
 
 use super::parse::parse_header;
 
@@ -27,16 +26,4 @@ pub fn validate_elf(bytes: &[u8]) -> bool {
 pub fn validate_elf_detailed(bytes: &[u8]) -> ElfResult<()> {
     let header = parse_header(bytes)?;
     validate_header(&header)
-}
-
-pub fn validate_elf_x86_64(bytes: &[u8]) -> ElfResult<()> {
-    let header = parse_header(bytes)?;
-    validate_header(&header)?;
-    if header.e_machine != elf_machine::EM_NATIVE {
-        return Err(crate::elf::errors::ElfError::InvalidMachine);
-    }
-    if header.e_type != elf_type::ET_EXEC && header.e_type != elf_type::ET_DYN {
-        return Err(crate::elf::errors::ElfError::InvalidType);
-    }
-    Ok(())
 }

@@ -55,7 +55,7 @@ pub use jobs::{
 pub use jobs::{linux_frames, pkg_handoff, tool_argv, tool_busy, tool_service};
 pub use neighbours::{cadence, goto_line, quick_open};
 pub use network::{direct_gate, direct_only, exchange_wait, git_ask, offline_gate};
-pub use paint::{ansi, box_arms, fetch_arch, shade};
+pub use paint::{ansi, box_arms, fetch_arch, fetch_banner, shade};
 pub use shell::{parse, redirect, statements, suggest, tool_admit};
 
 #[cfg(test)]
