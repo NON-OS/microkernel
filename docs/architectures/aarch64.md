@@ -4,7 +4,7 @@ What exists of the aarch64 port of NONOS, how to build it and boot it under QEMU
 
 ## Status
 
-aarch64 is a preview. The kernel builds only with the `nonos-arch-preview` feature, which `compile_error!` demands for every architecture but x86_64 (`src/lib.rs:28-35`). It targets QEMU's `virt` board; there is no loader for it and no release image, and it has not been tested on real hardware in this release. CI builds it and boot-tests it on every pull request: `ci.yml` runs on each `pull_request` and calls both aarch64 workflows (`.github/workflows/ci.yml:7-35`). Whether those jobs pass at this commit is not recorded here.
+aarch64 is a preview. The kernel builds only with the `nonos-arch-preview` feature, which `compile_error!` demands for every architecture but x86_64 (`src/lib.rs:28-35`). It targets QEMU's `virt` board. The NONOS UEFI loader builds for it (below), but no release image carries it, and it has not been tested on real hardware in this release. CI builds it and boot-tests it on every pull request: `ci.yml` runs on each `pull_request` and calls both aarch64 workflows (`.github/workflows/ci.yml:7-35`). Whether those jobs pass at this commit is not recorded here.
 
 The missing pieces below are read from the code. No page here gives a date for them.
 
@@ -112,19 +112,35 @@ A boot started without a NONOS loader, as QEMU's `-kernel` starts it, comes up t
 
 The check is never skipped on aarch64. A boot reaches userspace only when a loader hands the kernel its evidence.
 
-The kernel side of that is in place, written and tested on the host:
-- The kernel takes a NONOS loader's handoff in `x1`, beside the device tree in `x0` (`src/arch/aarch64/boot/loader/`). The handoff is the same `BootHandoffV1` as x86_64's. It is copied while the MMU is off and installed through the same checks, so the bootloader check reads its modules as it does on x86_64. A non-zero `x1` that is not a whole, current handoff refuses the boot.
-- The kernel's TPM driver reads its register window from the device tree's `tcg,tpm-tis-mmio` node (`src/arch/fdt/find/tpm/`), not the PC's fixed address.
+## Booting from the NONOS loader
 
-None of this has been booted.
+`nonos-bootloader` builds for `aarch64-unknown-uefi`. The loader verifies the kernel as it does on x86_64, then leaves UEFI by the arm64 boot protocol:
+- It takes the device tree from the UEFI configuration table (`device_tree`, `nonos-bootloader/src/arch/aarch64/dtb.rs`). Firmware that publishes ACPI and no tree, as AAVMF does on `virt` unless started with `acpi=off`, is refused: the loader says why on the console and halts, since the kernel takes its platform from the tree (`refuse_no_tree`, `nonos-bootloader/src/handoff/exit/no_tree.rs`).
+- It places the kernel, a self-relocating ET_DYN, in a 2 MiB aligned block at its link offset, across the size its arm64 Image header claims, so the boot stack past the last segment is the kernel's (`place_image`, `nonos-bootloader/src/loader/core/exec/placement.rs`; `footprint`, `footprint.rs`). Anything else, an ET_EXEC or an image linked high, and an image with no Image header, is refused rather than moved (`route` and `footprint_rule`, `image_rules.rs`).
+- After `ExitBootServices` it cleans its own allocations and the tree to the point of coherency by address (`clean_handed_over`, `nonos-bootloader/src/arch/aarch64/exit/clean.rs`), then masks interrupts, turns the data cache off, cleans every cache level by set and way with a barrier after each level, turns the MMU and instruction cache off and branches with `x0` the tree and `x1` the handoff (`nonos-bootloader/src/arch/aarch64/asm/`).
+- Its entropy needs the UEFI RNG protocol or RNDR, or it refuses the boot (`strong_enough`, `nonos-bootloader/src/entropy/strong_rule.rs`).
+
+The kernel takes the handoff in `x1` beside the tree in `x0` (`src/arch/aarch64/boot/loader/`). The handoff is the same `BootHandoffV1` as x86_64's; it is copied while the MMU is off and installed through the same checks, and a non-zero `x1` that is not a whole, current handoff refuses the boot. With a handoff, free RAM comes from the loader's EFI map: Conventional memory only, as on x86_64, and of that only write-back memory not set aside for a specific purpose. The tree calls RAM available that the handoff, the map and the runtime services still hold. Each free run is then held inside the tree's RAM, which is what the direct map covers, and below where the direct map stops (`ram`, `src/arch/aarch64/boot/memory/ram.rs`; `within`, `clip.rs`). The kernel's TPM driver reads its register window from the tree's `tcg,tpm-tis-mmio` node (`src/arch/fdt/find/tpm/`), and the loader uses only the firmware's TCG2 protocol on Arm.
+
+Under QEMU with AAVMF (`-M virt,gic-version=3,acpi=off -cpu max`), with throwaway keys, the serial log reads:
+
+```
+  [CRYPTO] Ed25519 verify ....................... [PASS]
+  [CRYPTO] ML-DSA-65 verify .................... [PASS]
+[NONOS] dtb at 0x0000000047EF6000
+[BOOT] NONOS loader handoff taken: kernel verified=1 secure boot=0
+[MEM] phys init OK
+[NONOS] Core ready
+[BOOT-ATTEST] bootloader not checked: no boot-root record or trailer
+[ERROR] bootloader not admitted by the kernel's check; stopping
+```
+
+That boot had no boot-root record, which only a policy key signs, so it stops at the same check.
 
 ## What is missing
 
-- A loader. `nonos-bootloader` is built for one target, `x86_64-unknown-uefi` (`targets`, `nonos-bootloader/rust-toolchain.toml:4`). Without one, a boot stops at the bootloader check (above). The loader must:
-  - pass its handoff in `x1`, cleaned to the point of coherency;
-  - pass its modules as on x86_64;
-  - reserve the handoff and the modules in the device tree it hands over (a memory reservation or `/reserved-memory`), because the aarch64 kernel takes its free RAM from the tree, not from an EFI memory map.
-- A sealed image and a runner for it. The Nix image build makes the x86_64 kernel and loader only (`tools/nix/image.nix`), the profiles carry no architecture (`tools/nix/config.nix`), and `tools/nonos_qemu` starts only x86_64 machines. So `make dev-image` has no aarch64 profile.
+- A sealed image and a runner for it. The loader builds for aarch64 (above), but the Nix image build makes the x86_64 kernel and loader only (`tools/nix/image.nix`), the profiles carry no architecture (`tools/nix/config.nix`), and `tools/nonos_qemu` starts only x86_64 machines. So `make dev-image` has no aarch64 profile, and nothing signs a boot-root record for an aarch64 loader.
+- Booting from ACPI alone. Servers built to SBSA publish ACPI and no device tree, and the kernel reads its platform only from a tree.
 - Kernel stack guard pages. `arm_stack_guards` exists only on x86_64 (`src/kernel_core/init/entry/init_vm_and_protection.rs`).
 - The capsules that link the std platform layer in the desktop (`DESKTOP_STD_TOOL_ARTIFACTS`, `mk/20-build.mk`). They build for `aarch64-nonos-user`: the layer reaches the kernel through one file per architecture's registers (`toolchain/nonos-std/sys/pal/nonos/trap.rs`). The arm desktop does not carry them yet, and none has run on aarch64.
 - Checks for every profile. The flake's `profileChecks` type-check each profile against `x86_64-nonos.json` only (`tools/nix/checks.nix`).
