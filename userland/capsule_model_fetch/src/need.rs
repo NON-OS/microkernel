@@ -39,6 +39,14 @@
 pub const POSITIONS: u64 = 2048;
 pub const BATCH: u64 = 512;
 pub const MARGIN: u64 = 64 << 20;
+/*
+ * A vision tier encodes its image in buffers of its own beside the model's:
+ * 384 MiB more. Measured: qwenchat on Qwen3-VL 2B shown a 124 KB JPEG peaked
+ * at 2143 MB on the host, against 1832 MB by the rule without it. qwenchat
+ * adds the same (qwenvision.h, VISION_MARGIN).
+ */
+pub const VISION_MARGIN: u64 = 384 << 20;
+pub const VISION: &[&str] = &["vl-2b"];
 
 #[rustfmt::skip]
 pub const SHAPES: &[(&str, u64, u64, u64, u64)] = &[
@@ -57,6 +65,7 @@ pub const SHAPES: &[(&str, u64, u64, u64, u64)] = &[
     ("qwen3-32b", 64, 8, 128, 5120),       // Qwen3-32B
     ("qwen3.5-0.8b", 25, 2, 256, 1024),    // Qwen3.5-0.8B, from its GGUF
     ("qwen3.6-27b", 64, 4, 256, 5120),     // Qwen3.6-27B, from its GGUF
+    ("vl-2b", 28, 8, 128, 2048),           // Qwen3-VL-2B-Instruct, from its GGUF
     ("coder-1.5b", 28, 2, 128, 1536),      // Qwen2.5-Coder-1.5B-Instruct
     ("coder-7b", 28, 4, 128, 3584),        // Qwen2.5-Coder-7B-Instruct
     ("coder-14b", 48, 8, 128, 5120),       // Qwen2.5-Coder-14B-Instruct
@@ -67,7 +76,8 @@ pub const SHAPES: &[(&str, u64, u64, u64, u64)] = &[
 pub fn memory(tier: &str, weights: u64) -> Option<u64> {
     let &(_, layers, kv_heads, head, embd) = SHAPES.iter().find(|s| s.0 == tier)?;
     let kv = layers * kv_heads * 2 * head * 2 * POSITIONS;
-    Some(weights + kv + MARGIN + BATCH * embd * 64)
+    let vision = if VISION.contains(&tier) { VISION_MARGIN } else { 0 };
+    Some(weights + kv + MARGIN + BATCH * embd * 64 + vision)
 }
 
 /*

@@ -142,7 +142,7 @@ fn every_screen_fits_above_the_keys() {
     }
 }
 
-/// The Qwen list is twenty rows: on a short canvas it shows a run of them
+/// The Qwen list is twenty-one rows: on a short canvas it shows a run of them
 /// around the chosen row, and what it shows still fits.
 #[test]
 fn the_qwen_list_shows_what_fits_and_keeps_the_choice_in_view() {
@@ -154,7 +154,7 @@ fn the_qwen_list_shows_what_fits_and_keeps_the_choice_in_view() {
         let need = shown * l.line_h + QWEN_AFTER_LINES * l.line_h + 2 * l.gap;
         assert!(need <= l.body_end - l.body_y, "{}x{}: Qwen needs {need}", c.width, c.height);
     }
-    assert_eq!(rows, 20);
+    assert_eq!(rows, 21);
     for room in 1..=20 {
         for sel in 0..rows {
             let (first, shown) = window(rows, room, sel);

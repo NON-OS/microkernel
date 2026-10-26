@@ -37,9 +37,9 @@ class Catalogue(unittest.TestCase):
 
     def test_every_pin_byte_for_byte(self):
         serial, base, tiers, _, _ = decode(body(self.table, BASE, 7) + bytes(64))
-        self.assertEqual((serial, base, len(tiers)), (7, BASE, 19))
+        self.assertEqual((serial, base, len(tiers)), (7, BASE, 20))
         self.assertTrue(agree(tiers, self.table))
-        self.assertEqual(sum(len(f) for _, _, f in tiers), 30)
+        self.assertEqual(sum(len(f) for _, _, f in tiers), 32)
         for word, memory, files in tiers:
             self.assertGreater(memory, sum(length for _, length, _, _ in files))
             for name, _, _, urls in files:

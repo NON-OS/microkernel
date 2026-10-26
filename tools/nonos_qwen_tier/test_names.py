@@ -74,6 +74,13 @@ class Names(unittest.TestCase):
             self.assertEqual(repo(name), at)
             self.assertEqual(url(name), f"https://huggingface.co/{at}/resolve/main/{name}")
 
+    def test_the_vision_model_and_its_projector_are_the_qwen_teams(self):
+        for name in ("Qwen3VL-2B-Instruct-Q4_K_M.gguf", "mmproj-Qwen3VL-2B-Instruct-Q8_0.gguf"):
+            self.assertEqual(repo(name), "Qwen/Qwen3-VL-2B-Instruct-GGUF")
+        for name in ("Qwen3VL-2B-Q4_K_M.gguf", "mmproj-Qwen3VL-2B-Instruct.gguf", "xmmproj-Qwen3VL-2B-Instruct-Q8_0.gguf"):
+            with self.assertRaises(SystemExit, msg=name):
+                repo(name)
+
     def test_the_qwen_teams_own_files_stay_theirs(self):
         self.assertEqual(repo("Qwen3-30B-A3B-Q4_K_M.gguf"), "Qwen/Qwen3-30B-A3B-GGUF")
         self.assertEqual(repo("qwen2.5-0.5b-instruct-q4_k_m.gguf"), "Qwen/Qwen2.5-0.5B-Instruct-GGUF")
