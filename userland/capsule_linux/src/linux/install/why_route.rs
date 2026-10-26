@@ -19,22 +19,21 @@
 
 use super::Why;
 
-#[allow(non_upper_case_globals)]
 impl Why {
     /// This boot runs no network at all (Air-Gapped, Safe Mode or
     /// Recovery), and the model fetcher, which brings a model onto the data
     /// volume and takes one off it, starts only on a boot that does. No
     /// retry on this boot changes that; an install's or an uninstall's.
-    pub const BootOffline: Self = Self(27);
+    pub const BOOT_OFFLINE: Self = Self(27);
     /// The chosen network runs and no connection through it reached a
     /// model mirror before a byte came: Nym, Anyone, or the mirror itself
     /// over a direct connection is not reachable from this machine.
-    pub const NymUnreachable: Self = Self(28);
-    pub const AnyoneUnreachable: Self = Self(29);
-    pub const MirrorUnreachable: Self = Self(30);
+    pub const NYM_UNREACHABLE: Self = Self(28);
+    pub const ANYONE_UNREACHABLE: Self = Self(29);
+    pub const MIRROR_UNREACHABLE: Self = Self(30);
     /// Through Nym, or Anyone, every try in a row found no exit that answered.
-    pub const NymNoExit: Self = Self(31);
-    pub const AnyoneNoExit: Self = Self(32);
+    pub const NYM_NO_EXIT: Self = Self(31);
+    pub const ANYONE_NO_EXIT: Self = Self(32);
     /// The Anyone network, which downloads installs, did not come up in time.
-    pub const AnyoneNotUp: Self = Self(33);
+    pub const ANYONE_NOT_UP: Self = Self(33);
 }
