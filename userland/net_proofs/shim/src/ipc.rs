@@ -18,17 +18,21 @@
 
 use std::sync::Mutex;
 
+mod req;
+pub use req::*;
+
 type Responder = Box<dyn FnMut(u64, &[u8]) -> Vec<u8> + Send>;
 
 static RESPONDER: Mutex<Option<Responder>> = Mutex::new(None);
-static REPLIES: Mutex<Vec<Reply>> = Mutex::new(Vec::new());
+pub(crate) static REPLIES: Mutex<Vec<Reply>> = Mutex::new(Vec::new());
 
-const ENOENT: i64 = -2;
+pub(crate) const ENOENT: i64 = -2;
 
-/// One reply the capsule sent to one of its own callers.
+/// One reply the capsule sent: to a pid, or by request id (MkIpcReplyTo), the other 0.
 #[derive(Clone, Debug)]
 pub struct Reply {
     pub pid: u32,
+    pub request: u64,
     pub bytes: Vec<u8>,
 }
 
@@ -44,7 +48,7 @@ pub fn take_replies() -> Vec<Reply> {
     core::mem::take(&mut *REPLIES.lock().unwrap_or_else(|e| e.into_inner()))
 }
 
-fn input<'a>(ptr: *const u8, len: usize) -> &'a [u8] {
+pub(crate) fn input<'a>(ptr: *const u8, len: usize) -> &'a [u8] {
     if ptr.is_null() || len == 0 {
         return &[];
     }
@@ -52,7 +56,13 @@ fn input<'a>(ptr: *const u8, len: usize) -> &'a [u8] {
     unsafe { core::slice::from_raw_parts(ptr, len) }
 }
 
-pub fn mk_ipc_call(endpoint: u64, req: *const u8, req_len: usize, resp: *mut u8, cap: usize) -> i64 {
+pub fn mk_ipc_call(
+    endpoint: u64,
+    req: *const u8,
+    req_len: usize,
+    resp: *mut u8,
+    cap: usize,
+) -> i64 {
     let message = input(req, req_len).to_vec();
     let reply = {
         let mut slot = RESPONDER.lock().unwrap_or_else(|e| e.into_inner());
@@ -80,16 +90,6 @@ pub fn mk_ipc_call_timeout(
 
 pub fn mk_ipc_reply(pid: u32, buf: *const u8, len: usize) -> i64 {
     let bytes = input(buf, len).to_vec();
-    REPLIES.lock().unwrap_or_else(|e| e.into_inner()).push(Reply { pid, bytes });
+    REPLIES.lock().unwrap_or_else(|e| e.into_inner()).push(Reply { pid, request: 0, bytes });
     len as i64
-}
-
-/// Nothing arrives at the capsule's own inbox on the host; proofs call its
-/// handlers directly.
-pub fn mk_ipc_recv_from(_ep: u64, _buf: *mut u8, _len: usize, _ms: u64, _pid: *mut u32) -> i64 {
-    0
-}
-
-pub fn mk_service_lookup(_name: *const u8, _len: usize, _port: *mut u32, _pid: *mut u32) -> i64 {
-    ENOENT
 }

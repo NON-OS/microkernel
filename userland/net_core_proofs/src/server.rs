@@ -28,7 +28,11 @@ pub mod respond;
 // The serve loop's turn: a poll or the once-a-second probes, never both.
 #[path = "../../capsule_net_core/src/server/runner/turn.rs"]
 pub mod turn;
+// The receive half of the loop, and the request id it keeps.
 #[cfg(test)]
-mod turn_tests;
+mod reply_to_tests;
+pub mod runner;
 #[cfg(test)]
 mod turn_glue_tests;
+#[cfg(test)]
+mod turn_tests;

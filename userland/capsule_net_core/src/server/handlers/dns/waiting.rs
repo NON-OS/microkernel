@@ -18,10 +18,10 @@
 //! looked at it. Kept free of smoltcp and the kernel, as `pending` is.
 //!
 //! A caller is blocked in its call until it is answered, so it has at most one
-//! lookup waiting. One that gave up and calls again still has a reply owed to
-//! the call it gave up on, and the kernel hands a caller's replies to its
-//! calls in order; so that owed reply is sent first (`take_for`), before
-//! anything that answers the new call.
+//! lookup waiting. One that gave up and calls again still holds a slot for
+//! the call it gave up on; that slot is answered and freed first
+//! (`take_for`). Each answer names its own call (`ipc`, MkIpcReplyTo), so
+//! it can never land on the caller's new one.
 
 /// Lookups that may wait at once; one more is refused at once.
 pub const PENDING_MAX: usize = 8;
@@ -30,6 +30,8 @@ pub const PENDING_MAX: usize = 8;
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Waiting<Q> {
     pub pid: u32,
+    /// The kernel's id for the call (MkIpcRecvReq), which its answer names.
+    pub ipc: u64,
     pub request_id: u32,
     pub query: Q,
     /// Uptime at which the caller is told the lookup failed.

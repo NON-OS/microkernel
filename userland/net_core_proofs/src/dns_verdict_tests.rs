@@ -53,7 +53,7 @@ fn no_server_asked_fails_the_lookup() {
 fn what_a_sweep_notes_in_a_lookup_is_kept() {
     let mut t = Table::new();
     let unread = [true, true, true];
-    t.add(Waiting { pid: 9, request_id: 1, query: unread, deadline_ms: 3_000 }).unwrap();
+    t.add(Waiting { pid: 9, ipc: 1, request_id: 1, query: unread, deadline_ms: 3_000 }).unwrap();
     t.sweep(0, |w, _| {
         w.query[0] = false;
         Look::Pending
