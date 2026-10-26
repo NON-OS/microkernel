@@ -23,12 +23,12 @@ pub mod context;
 pub mod core;
 pub mod exit;
 pub mod fd_table;
+pub mod fd_types;
 #[cfg(target_arch = "x86_64")]
 pub mod foreign;
 #[cfg(not(target_arch = "x86_64"))]
 #[path = "foreign_absent.rs"]
 pub mod foreign;
-pub mod fd_types;
 pub mod manager;
 pub mod mmap_va;
 pub mod operations_exec;
