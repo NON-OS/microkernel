@@ -15,10 +15,10 @@ The ACPI capsule's row on a standard image, as its spawn site requests it
 (`src/userspace/capsule_acpi/spawn.rs`); its pid differs per boot:
 
 ```
-audit v1
-  pid  name                  network  storage  devices*  signed by  capabilities
-  ---  --------------------  -------  -------  --------  ---------  ------------
-    7  acpi                  no       no       YES       vendor     IPC, Memory, Debug, Admin, DeviceEnum, Driver, Irq
+audit v2
+  pid  name                  network  storage  devices* launch   signed by  capabilities
+  ---  --------------------  -------  -------  -------- ------   ---------  ------------
+    7  acpi                  no       no       YES      YES      vendor     IPC, Memory, Debug, Admin, DeviceEnum, Driver, Irq
 ```
 
 - `network`: `YES` when the capsule holds `Network`, the only capability the
@@ -28,8 +28,12 @@ audit v1
   column is capability bits, what the kernel would let the capsule claim, not
   devices it has claimed now. Live DMA, MMIO and IRQ grants come in a later
   release.
-- `Admin`, `Hardware` and `DeviceEnum` open none of the three: the kernel's
-  checks take their own capability and nothing stands in for it.
+- `launch`: `YES` when it holds `SpawnWindow` or `Admin`, the two rights the
+  kernel accepts for starting a capsule whose manifest grants more than the
+  starter holds (`src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/bound.rs`).
+  `SpawnBroker` does not open it.
+- `Admin` opens `launch` and nothing else; `Hardware` and `DeviceEnum` open
+  none of the four: the kernel's checks take their own capability.
 - `signed by`: who signed the ceiling the kernel recorded when the spawn gate
   admitted the capsule: `vendor`, `publisher`, or `developer` for a key enrolled
   on this machine.
@@ -54,12 +58,13 @@ its name.
 The same capsule; the measurement is the first six bytes of its own, in hex:
 
 ```
-audit v1
+audit v2
 acpi, pid 7
   authority  its signed manifest's ceiling, signed by vendor, measurement <12 hex digits>
   network    no
   storage    no
   devices*   YES, through Driver, Irq
+  launch     YES, through Admin
   holds      IPC, Memory, Debug, Admin, DeviceEnum, Driver, Irq
 ```
 
@@ -67,24 +72,25 @@ Each area names the capabilities that open it. A capsule whose `Debug` the
 kernel withheld has one more line, `debug      withheld by the kernel, as it
 holds <capabilities>`. A name running more than once gets one block per pid.
 
-## The v1 format
+## The v2 format
 
-The first line is always `audit v1`. A script that reads the table should check
-it and refuse any other. In v1:
+The first line is always `audit v2` (v1, without the `launch` column, was
+never released). A script that reads the table should check
+it and refuse any other. In v2:
 
 - the heading's columns start at character 2 (`pid`), 7 (`name`), 29
-  (`network`), 38 (`storage`), 47 (`devices*`), 57 (`signed by`) and 68
-  (`capabilities`); `pid` is right-aligned in five places; a name longer than 20
+  (`network`), 38 (`storage`), 47 (`devices*`), 56 (`launch`), 65 (`signed
+  by`) and 76 (`capabilities`); `pid` is right-aligned in five places; a name longer than 20
   characters is cut;
 - a reach cell is `YES` or `no`; capabilities are the kernel's names, joined by
   `, `, in bit order, and a bit this build has no name for prints as `unknown
   bit N`, never dropped (so do `receipt` and `capsules`);
 - a row the gate withheld `Debug` from ends `; debug withheld (holds <names>)`;
 - the agent block is a `<name>, pid <pid>` line, then the `authority`,
-  `network`, `storage`, `devices*` and `holds` lines, and `debug` when withheld,
+  `network`, `storage`, `devices*`, `launch` and `holds` lines, and `debug` when withheld,
   two spaces in, the value at character 13.
 
-A change to any of these is v2.
+A change to any of these is v3.
 
 ## When it refuses
 
@@ -107,6 +113,6 @@ A change to any of these is v2.
 
 `exposure_proofs` runs the shipping sources on the host: every verdict against
 the kernel's own capability bits, the join over seeded and hostile tables
-(registries of any length, names of any bytes), the v1 heading and refusals, and
+(registries of any length, names of any bytes), the v2 heading and refusals, and
 the About and attest holder checks ([What a running machine shows about
 itself](../security/checking-the-claims-what-a-running.md)).
