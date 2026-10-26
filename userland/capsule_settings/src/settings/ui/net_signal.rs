@@ -24,7 +24,7 @@ use super::theme::{ACCENT, TRACK_BG};
 pub fn draw_bars(fb: &mut PaintBuffer, right_x: u32, cy: i32, signal: u8) {
     let bar_w = 3u32;
     let gap = 3u32;
-    let lit = (signal as u32 * 4 + 99) / 100;
+    let lit = (signal as u32 * 4).div_ceil(100);
     for i in 0..4u32 {
         let h = 4 + i * 3;
         let x = right_x - (4 - i) * (bar_w + gap);

@@ -40,7 +40,7 @@ pub fn tag_names(tags: &TagMap) -> Vec<&str> {
     let mut out: Vec<&str> = Vec::new();
     for (_, names) in tags.entries.iter() {
         for name in names {
-            if !out.iter().any(|t| *t == name.as_str()) {
+            if !out.contains(&name.as_str()) {
                 out.push(name.as_str());
             }
         }

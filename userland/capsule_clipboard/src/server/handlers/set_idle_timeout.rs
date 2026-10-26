@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::protocol::{
-    Request, E_INVAL, E_RANGE, MAX_IDLE_TIMEOUT_MS, MIN_IDLE_TIMEOUT_MS,
-};
+use crate::protocol::{Request, E_INVAL, E_RANGE, MAX_IDLE_TIMEOUT_MS, MIN_IDLE_TIMEOUT_MS};
 use crate::server::respond;
 use crate::state::Clipboard;
 
@@ -25,10 +23,10 @@ pub fn run(clipboard: &mut Clipboard, req: &Request, payload: &[u8], out: &mut [
         return respond::status(out, req, E_INVAL);
     }
     let raw = u64::from_le_bytes([
-        payload[0], payload[1], payload[2], payload[3],
-        payload[4], payload[5], payload[6], payload[7],
+        payload[0], payload[1], payload[2], payload[3], payload[4], payload[5], payload[6],
+        payload[7],
     ]);
-    if raw != 0 && (raw < MIN_IDLE_TIMEOUT_MS || raw > MAX_IDLE_TIMEOUT_MS) {
+    if raw != 0 && !(MIN_IDLE_TIMEOUT_MS..=MAX_IDLE_TIMEOUT_MS).contains(&raw) {
         return respond::status(out, req, E_RANGE);
     }
     clipboard.set_idle_timeout_ms(raw);

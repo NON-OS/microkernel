@@ -25,14 +25,11 @@ const TTL_MAX_MS: u64 = 86_400_000;
 impl Cache {
     pub fn lookup(&self, name: &str, now_ms: u64) -> Option<[u8; 4]> {
         let h = hash(name);
-        self.entries
-            .iter()
-            .flatten()
-            .find_map(|e| {
-                let n = e.name_len as usize;
-                let same = n == name.len() && e.name[..n] == *name.as_bytes();
-                (e.name_hash == h && same && now_ms < e.expires_ms).then_some(e.ipv4)
-            })
+        self.entries.iter().flatten().find_map(|e| {
+            let n = e.name_len as usize;
+            let same = n == name.len() && e.name[..n] == *name.as_bytes();
+            (e.name_hash == h && same && now_ms < e.expires_ms).then_some(e.ipv4)
+        })
     }
 
     /// Keep `ipv4` for `name` for its TTL, and never longer than a day: a
@@ -58,7 +55,7 @@ impl Cache {
 
     fn find_slot(&mut self, entry: &CacheEntry) -> Option<&mut Option<CacheEntry>> {
         self.entries.iter_mut().find(|e| {
-            e.as_ref().map_or(true, |x| x.name_hash == entry.name_hash && x.name == entry.name)
+            e.as_ref().is_none_or(|x| x.name_hash == entry.name_hash && x.name == entry.name)
         })
     }
 }

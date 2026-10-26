@@ -63,8 +63,7 @@ pub fn load_into(game: &mut Game) {
 // The vfs server rejects a claimed owner pid that differs from the real sender
 // pid, so the pid is always this window's own and never a service lookup.
 fn read(pid: u32, path: &[u8]) -> Result<Vec<u8>, &'static str> {
-    vfs::read_file(pid, path, paths::MAX_FILE_BYTES).map_err(|err| {
+    vfs::read_file(pid, path, paths::MAX_FILE_BYTES).inspect_err(|err| {
         gate::note(err);
-        err
     })
 }
