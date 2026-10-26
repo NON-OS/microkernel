@@ -1,3 +1,19 @@
+# NØNOS wallpapers, by the NØNOS team, AGPL-3.0. Shipped: the build's whole
+# collection since 0.9.3, in catalog order (nonos-data/wallpapers/catalog.txt).
+# The JPEG is the file the build ships; the PNG beside it is the master it was
+# exported from.
+# NØNOS
+nonos/nonos-canyon-neon.jpg
+nonos/nonos-canyon-neon.png
+nonos/nonos-canyon-real.jpg
+nonos/nonos-canyon-real.png
+nonos/nonos-canyon-real-soft.jpg
+nonos/nonos-canyon-real-soft.png
+nonos/nonos-neon-sign.jpg
+nonos/nonos-neon-sign.png
+
+# The earlier collection, by Eric Jordan, AGPL-3.0: shipped until 0.9.2, kept
+# here and in nonos-data/wallpapers, not packed into the build since 0.9.3.
 
 # Field Focus
 field-focus/field-focus-1.jpg

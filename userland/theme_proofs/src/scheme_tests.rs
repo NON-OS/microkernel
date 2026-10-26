@@ -48,3 +48,7 @@ fn an_unknown_theme_index_falls_back_rather_than_failing() {
     assert_eq!(fallback.background_argb, default.background_argb);
     assert_eq!(fallback.text_argb, default.text_argb);
 }
+
+// The store's start, a scheme of its own: mounted here to keep lib.rs short.
+#[path = "store_start_tests.rs"]
+mod store_start_tests;

@@ -16,6 +16,7 @@
 
 mod linkport;
 mod mac_response;
+mod rx_response;
 mod status;
 use super::wire::{
     parse_request, write_response_header, HDR_LEN, MAX_FRAME, OP_LINK_STATUS, OP_MAC_ADDRESS,
@@ -23,4 +24,5 @@ use super::wire::{
 };
 pub use linkport::*;
 pub use mac_response::*;
+use rx_response::rx_response;
 use status::*;

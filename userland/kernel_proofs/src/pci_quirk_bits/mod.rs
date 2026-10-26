@@ -30,8 +30,14 @@ mod ehci_tests;
 #[cfg(test)]
 mod ehci_walk_tests;
 #[cfg(test)]
+mod idents;
+#[cfg(test)]
 mod smbus_tests;
 #[cfg(test)]
 mod tests;
 #[cfg(test)]
 mod uhci_tests;
+#[cfg(test)]
+mod xhci_route_glue_tests;
+#[cfg(test)]
+mod xhci_route_tests;

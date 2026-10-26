@@ -107,3 +107,69 @@ adds two fields after `identity_devices`.
   carries the values, so the boot shows them directly.
 - **The expected-value tool must not need the signing keys.** It reads the
   signed image and its trailer and nothing else.
+
+## PCR 14: one extend per admitted capsule
+
+Nothing extended PCR 14 on any boot. The loader's two extenders,
+`extend_boot_measurements` and `measure_boot_components`, have no caller,
+and `kernel_gate` extends PCR 9 only. A version 5 document therefore
+carried a PCR 14 of zeros. The kernel now extends it itself, once for each
+distinct capsule it admits this boot, at admission, before the capsule
+runs. A capsule spawned again with the same body adds nothing.
+
+- **The event.** Type `0x4E4F4E01`.
+  - Table 27 "Events" of the TCG PC Client Platform Firmware Profile
+    (Version 1.06 Revision 52, section 10.4.1, page 114) assigns
+    `0x00000000` to `0x00000012`, and UEFI types in `0x80000000` to
+    `0x800000FF`.
+  - It says: "Any event type value not defined in this table SHALL NOT be
+    used by PC Client Platform Firmware and is reserved for application
+    and OS usage." The value lies outside both ranges.
+- **The body**, 65 bytes:
+  - the capsule's certificate digest (32);
+  - the digest of what verified it (32): the trailer's, or SHA-256 of the
+    fixed tag `nonos capsule path-only` for a path-only capsule, and for
+    no other;
+  - a kind byte, from what admitted it:
+    - 1, its STARK proof under the vendor's root;
+    - 2, its Merkle path alone, on a development image;
+    - 3, its STARK proof under a root a person enrolled;
+    - 4, this machine's local-build tag, with no proof.
+- **The digests.** For every bank the firmware log's header declares, the
+  digest is that bank's hash of the same 65 bytes, SHA-1 included when the
+  header declares it. The extend carries exactly those banks.
+- **One log.** After ExitBootServices the firmware cannot log, so the
+  kernel keeps its events and appends them, as `TCG_PCR_EVENT2`, to the
+  log copy the document carries. The extend and the append are taken
+  under one lock, so the PCR and the log cannot drift. A capsule admitted
+  after boot, an install, extends then, and the next document carries
+  it.
+- **A cap.** At 1024 distinct capsules the kernel stops, as for a failed
+  extend: a client replays 4096 events, the firmware's among them.
+- **A failed extend** sets a sticky flag. Every later document is refused;
+  the boot is not. Only a machine whose TPM was never found skips the
+  extend; a command that fails on a TPM that is there is a failure. The reason is `kernel_gate`'s for PCR 9: a TPM fault
+  must not stop a machine running, but it must stop the machine from
+  claiming what it cannot show.
+- **The client** (`nsh_attest`) replays PCR 14 from the log as well. It
+  reports each capsule's kind, and the release check requires at least
+  one PCR 14 event and every one kind 1, not just a nonzero value. The
+  first that is not is named: `path-only`, `developer` or `local-build`;
+  `steps::not_vendor` lists them all, and `nsh-enrol inspect` prints
+  them. The registry step holds every entry to the vendor's authority in
+  the same way: a release host runs vendor-root capsules only, for the
+  whole boot.
+  A capsule names the path-only tag exactly when it is kind 2, or the
+  log is refused.
+
+What PCR 14 does not say:
+
+- A capsule is measured when the gate admits it, so one refused later in
+  its spawn is still recorded. That over-reports; it never hides one.
+- An image a supervisor checks through `MkLocalVerify` or
+  `MkCapsuleVerify` and runs as a foreign guest is not a capsule, and is
+  not in PCR 14.
+- The client does not tie PCR 14's capsules to the registry's entries, by
+  count or by identity.
+- A firmware that logs anything of its own in PCR 14 cannot pass: the
+  client takes capsule events alone there.
