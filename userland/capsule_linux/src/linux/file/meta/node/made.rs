@@ -62,6 +62,11 @@ pub(super) fn named(to: &[u8], path: &[u8]) -> Meta {
  * device (major 136, minor 0) that its owner reads and writes.
  */
 pub(super) fn tty() -> Meta {
-    let rdev = 136 << 8;
-    Meta { rdev, ..at(b"/dev/pts/0", S_IFCHR | 0o620, 0, now()) }
+    pty(b"/dev/pts/0", 0)
+}
+
+/* A pseudo-terminal side by its handle (linux::pty): /dev/ptmx is 5:2. */
+pub(super) fn pty(path: &[u8], handle: u32) -> Meta {
+    let rdev = if handle & 1 != 0 { 5 << 8 | 2 } else { 136 << 8 | u64::from(handle >> 1) };
+    Meta { rdev, ..at(path, S_IFCHR | 0o620, 0, now()) }
 }

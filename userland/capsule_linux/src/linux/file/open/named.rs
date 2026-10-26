@@ -31,6 +31,9 @@ pub fn open_named(guest: &mut Guest, named: Vec<u8>, flags: u64, mode: u64) -> u
         return errno::fail(errno::ELOOP);
     }
     let full = walk::follow(guest, named, true);
+    if let Some(got) = crate::linux::pty::open(guest, &full, flags) {
+        return got;
+    }
     /* /dev/null and its kin are descriptors this capsule answers itself. */
     if dev::device_of(&full).is_some() {
         return dev::open_path(guest, &full, flags);

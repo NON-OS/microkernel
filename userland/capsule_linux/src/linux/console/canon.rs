@@ -33,3 +33,8 @@ pub fn set_termios(raw: &[u8]) {
         say(seq);
     }
 }
+
+/// The settings as they stand.
+pub fn termios() -> Termios {
+    with(|c| c.termios)
+}
