@@ -53,10 +53,7 @@ pub(super) fn claim_presses(ctx: &mut Context, panel: Option<Rect>) {
             rid,
             TOAST_WINDOW_ID,
             WINDOW_KIND_POPUP,
-            p.x,
-            p.y,
-            p.width,
-            p.height,
+            (p.x, p.y, p.width, p.height),
         );
     }
 }
