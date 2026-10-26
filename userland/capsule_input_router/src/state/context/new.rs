@@ -35,6 +35,7 @@ impl Context {
             display_checked_ms: 0,
             shell_pid: 0,
             last_focus_pid: 0,
+            last_input: 0,
             next_request_id: 1,
             delivered_count: 0,
             dropped_count: 0,
