@@ -20,7 +20,6 @@
 mod anon_backend_tests;
 mod anon_reply_tests;
 mod anon_rx_tests;
-mod app_bound_line_tests;
 mod app_choose_tests;
 mod app_identity_tests;
 mod app_net_step_tests;

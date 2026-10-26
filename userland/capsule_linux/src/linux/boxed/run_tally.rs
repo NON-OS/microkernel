@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! What an unboxed run was refused, counted as a box counts it (tally.rs)
 //! and said once when the family is done (run_line.rs). Only the serve loop
 //! reaches it, as with the box itself (state.rs).
