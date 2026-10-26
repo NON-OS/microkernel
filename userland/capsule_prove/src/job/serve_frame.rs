@@ -16,11 +16,12 @@
 
 //! One frame the serving loop received (serve.rs): the worker looked at
 //! first, so a STATUS reads its stage of now; the owner heard; then an
-//! answer, or the job started by the frame init spawned the prover for.
+//! answer by the frame's request id, which says whether the owner's call
+//! took it, or the job started by the frame init spawned the prover for.
 
 use alloc::vec::Vec;
 
-use nonos_libc::mk_ipc_reply;
+use nonos_libc::ipc::{mk_ipc_reply_to, IpcReqMeta};
 use nonos_proof_abi::wire::{Header, PROVE_MAGIC};
 
 use super::answer::answer;
@@ -31,9 +32,10 @@ use super::state::Job;
 pub fn frame(
     s: &mut Served,
     (buf, n): (&mut Vec<u8>, usize),
-    sender: u32,
+    m: IpcReqMeta,
     (held, bound): (bool, Option<(u16, u32)>),
 ) {
+    let sender = m.sender;
     s.last = now();
     poll(s.job.as_mut(), &mut s.finish, s.last);
     if let Some(j) = s.job.as_mut().filter(|j| j.owner == sender) {
@@ -44,7 +46,10 @@ pub fn frame(
     };
     if s.job.is_some() || Some((h.op, sender)) != bound {
         let tx = answer(s.job.as_mut(), sender, &h, body);
-        let _ = mk_ipc_reply(sender, tx.as_ptr(), tx.len());
+        let rc = mk_ipc_reply_to(m.request, tx.as_ptr(), tx.len());
+        if let Some(j) = s.job.as_mut() {
+            j.replied(rc);
+        }
         return;
     }
     let body = body.to_vec();
