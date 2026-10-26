@@ -18,12 +18,12 @@ use crate::app::App;
 use crate::clients::{compositor, wm};
 use crate::discover::Peers;
 
-use super::boot::BootedApp;
-use super::request_id::next;
+use super::super::boot::BootedApp;
+use super::super::request_id::next;
 
 const APP_LAYER_Z: u32 = 2;
 
-pub(super) fn apply_move<A: App>(
+pub(in crate::runner) fn apply_move<A: App>(
     booted: &mut BootedApp<A>,
     peers: &Peers,
     request_id: &mut u32,

@@ -17,14 +17,13 @@
 use super::error::WireError;
 use super::table::endpoint;
 use super::target::{units, Target};
-use crate::services::caps::{has_capability, CAP_DRIVER, CAP_STORAGE};
 
 /// Unit `unit` behind endpoint `index`, for a caller with the authority the
 /// other disk clients ask: a driver, or the holder of the store (vfs
-/// persisting packages, the data volume's readers).
+/// persisting packages), or the data volume's own I/O (volume_rule.rs).
 pub(super) fn gate(index: u8, unit: u16) -> Result<Target, WireError> {
     let pid = crate::process::current_pid().ok_or(WireError::NoCallerPid)?;
-    if !has_capability(pid, CAP_DRIVER) && !has_capability(pid, CAP_STORAGE) {
+    if !crate::hardware::block_device::disk_caller_admitted(pid) {
         return Err(WireError::AccessDenied);
     }
     let e = endpoint(index).ok_or(WireError::Dead)?;
