@@ -26,6 +26,9 @@ pub mod acs_groups;
 pub mod boot_bus_master;
 #[path = "boot_framebuffer/mod.rs"]
 pub mod boot_framebuffer;
+/// An empty image read from the store is refused by its own name (B-02).
+#[path = "built_gate/mod.rs"]
+mod built_gate;
 #[path = "claim_holders/mod.rs"]
 pub mod claim_holders;
 #[path = "claim_holds/mod.rs"]

@@ -21,9 +21,8 @@
 extern crate alloc;
 
 /// nsh_attest_proofs' builders, unchanged: a P-256 AK, quotes and documents.
-#[allow(dead_code)]
 #[path = "../../nsh_attest_proofs/src/build/mod.rs"]
-mod build;
+pub mod build;
 mod fixture;
 mod fixture_trust;
 mod tests;

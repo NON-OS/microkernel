@@ -20,13 +20,10 @@
 #[path = "acpi_span/mod.rs"]
 pub mod acpi_span;
 #[path = "block_wire/mod.rs"]
-mod block_wire;
+pub mod block_wire;
 /// The GOP present refused while a claimed device holds the boot framebuffer.
 #[path = "boot_fb/mod.rs"]
 mod boot_fb;
-/// An empty embedded image is "not built", asked before its cert (B-02).
-#[path = "built_gate/mod.rs"]
-mod built_gate;
 #[path = "described/mod.rs"]
 pub mod described;
 /// Disk controllers before the bus drivers (H-02).
@@ -38,7 +35,7 @@ mod firmware_flash;
 #[path = "firmware_message/mod.rs"]
 pub mod firmware_message;
 #[path = "inventory_ids/mod.rs"]
-pub(crate) mod inventory_ids;
+pub mod inventory_ids;
 /// The power-off's leave phase: every disk driver asked, each bounded.
 #[path = "leave_rule/mod.rs"]
 mod leave_rule;

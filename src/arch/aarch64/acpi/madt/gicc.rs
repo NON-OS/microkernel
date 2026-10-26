@@ -21,7 +21,7 @@
 
 use super::super::le::{u16_at, u32_at, u64_at, u8_at};
 
-pub const MIN: usize = 76;
+pub(crate) const MIN: usize = 76;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Gicc {
