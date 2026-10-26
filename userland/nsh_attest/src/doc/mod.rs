@@ -25,8 +25,12 @@ use crate::consts::{AK_LEN, PCR_COUNT, PCR_LEN};
 /// A version 5 document, borrowed from the bytes it was read from.
 ///
 /// `challenge`, `registry_root` and the DMA posture are authenticated only
-/// through the quote's `extraData`; `capsule_count` and `registry_complete`
-/// are not bound at all and are checked against the entries instead.
+/// through the quote's `extraData`. `capsule_count` is not bound, and is
+/// checked against the entries, which are. `registry_complete` is not bound
+/// either and is no evidence: anyone on the way can set it. What says the
+/// registry is complete is that the kernel PCR 9 names quotes only when it
+/// is, checked before and after the quote (`attest_doc::produce`), and so
+/// always writes 1.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Doc<'a> {
     pub challenge: &'a [u8; 32],
