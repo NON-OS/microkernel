@@ -53,13 +53,8 @@ pub fn init_ioapic() {
     let base = IOAPIC_BASE.load(Ordering::Relaxed);
     let gsi_base = IOAPIC_GSI_BASE.load(Ordering::Relaxed);
 
-    serial::print(b"[APIC] I/O APIC enabled, ID=");
-    serial::print_dec(id as u64);
-    serial::print(b" base=0x");
-    serial::print_hex(base);
-    serial::print(b" gsi_base=");
-    serial::print_dec(gsi_base as u64);
-    serial::print(b" Max redirections=");
-    serial::print_dec(max_redir as u64);
-    serial::println(b"");
+    let mut l = serial::Line::new();
+    l.str(b"[APIC] I/O APIC enabled, ID=").dec(id as u64).str(b" base=0x").hex(base);
+    l.str(b" gsi_base=").dec(gsi_base as u64).str(b" Max redirections=").dec(max_redir as u64);
+    l.end();
 }

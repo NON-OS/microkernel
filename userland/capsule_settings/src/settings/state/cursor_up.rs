@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::focused_count::focused_count;
-use super::state::State;
+use super::model::State;
 use super::track_scroll::track_scroll;
 
 pub fn cursor_up(state: &mut State) {

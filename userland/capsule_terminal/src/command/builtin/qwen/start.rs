@@ -16,7 +16,8 @@
 
 //! Starting Qwen on this terminal. The question travels on the program's
 //! stdin as its first line; it is never an argument, never the job's name
-//! and never history, which keep only `qwen` and the tier.
+//! and never history, which keep only `qwen` and the tier. A vision tier is
+//! sent its image frame first, empty with no image (image.rs).
 
 use alloc::vec::Vec;
 
@@ -26,9 +27,14 @@ use crate::jobs::{JobWork, StdinQueue};
 use crate::term::state::State;
 
 /// Start `tier` as this terminal's child, attached to its screen, with
-/// `question` (if any) queued as its first line. `None`, with the reason on
-/// screen, when the kernel refuses.
-pub fn spawn(state: &mut State, tier: &'static [u8], question: &[u8]) -> Option<JobWork> {
+/// `question` (if any) queued as its first line, after a vision tier's
+/// `image` frame. `None`, with the reason on screen, when the kernel refuses.
+pub fn spawn(
+    state: &mut State,
+    tier: &'static [u8],
+    question: &[u8],
+    image: &[u8],
+) -> Option<JobWork> {
     let rc = mk_tool_run(b"tool.qwen", tier);
     let pid = match u32::try_from(rc) {
         Ok(pid) if pid != 0 => pid,
@@ -39,6 +45,9 @@ pub fn spawn(state: &mut State, tier: &'static [u8], question: &[u8]) -> Option<
     };
     crate::jobs::tty::attach(state, pid);
     let mut stdin = StdinQueue::new(true);
+    if super::image::is_vision(tier) {
+        let _ = stdin.push(&super::image::frame(image));
+    }
     if !question.is_empty() {
         let mut first = Vec::with_capacity(question.len() + 1);
         first.extend_from_slice(question);

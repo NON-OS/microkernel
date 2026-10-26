@@ -27,8 +27,7 @@ pub(super) fn report() {
         boot_log::ok("INIT", "Capsules spawned");
         return;
     }
-    serial::print(b"[INIT] capsule spawn incomplete: ");
-    serial::print_dec(u64::from(failed));
-    serial::println(b" failed");
+    let mut l = serial::Line::new();
+    l.str(b"[INIT] capsule spawn incomplete: ").dec(u64::from(failed)).str(b" failed").end();
     boot_log::error("capsule spawn incomplete; the failures are above");
 }

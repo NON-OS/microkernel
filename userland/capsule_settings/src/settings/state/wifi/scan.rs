@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::state::{State, WifiScan};
+use super::super::model::{State, WifiScan};
 use super::answer::refuse_while_out;
 use super::pending::{Pending, Work};
 use super::radio::radio_on;

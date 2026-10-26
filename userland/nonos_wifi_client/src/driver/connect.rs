@@ -3,7 +3,6 @@
  * Copyright (C) 2026 NONOS Contributors (AGPL-3.0-or-later)
  */
 
-
 //! The join op: WPA3-Personal (SAE), WPA2-Personal or open association with a
 //! passphrase.
 //!
@@ -30,10 +29,13 @@ const _: () = assert!(JOIN_PASS_MAX == PASS_MAX);
 
 impl Driver {
     /// Join `ssid` with `pass` (empty for an open network), under the flags
-    /// the saved list holds for it (none for a network not saved). The body
-    /// holding the passphrase is wiped before this returns.
+    /// the saved list holds for it (none for a network not saved, WPA3-only
+    /// when the list cannot be opened). The body holding the passphrase is
+    /// wiped before this returns.
     pub fn connect(&self, ssid: &[u8], pass: &[u8]) -> ConnectResult {
-        self.connect_with(ssid, pass, saved_flags(ssid))
+        let saved = saved_flags(ssid);
+        let r = self.connect_with(ssid, pass, saved.flags);
+        ConnectResult { code: saved.code(r.code), ..r }
     }
 
     /// Join `ssid` with `pass` under `flags`, for a caller that already holds

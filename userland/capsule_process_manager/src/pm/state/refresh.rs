@@ -59,11 +59,7 @@ impl State {
         let warmed = self.last_total_ticks != 0 && dt >= MIN_TICKS;
         let ms = header.uptime_ms.saturating_sub(self.sys.uptime_ms);
         let (mut rows, prev) = super::refresh_rows::build(self, &buf, count, (dt, ms, warmed));
-        if warmed {
-            self.sys.update(&header);
-            self.prev = prev;
-            self.last_total_ticks = header.total_ticks;
-        } else if self.last_total_ticks == 0 {
+        if warmed || self.last_total_ticks == 0 {
             self.sys.update(&header);
             self.prev = prev;
             self.last_total_ticks = header.total_ticks;

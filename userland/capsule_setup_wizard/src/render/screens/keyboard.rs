@@ -31,15 +31,13 @@ pub fn draw(ctx: &Context) {
         b"Up and Down or 1-6 to choose. Ctrl+Alt+Space cycles layouts at any time.",
         b"ENTER NEXT",
     );
-    let spx = ctx.stride as usize / 4;
-    let (w, h) = (ctx.width, ctx.height);
-    let buf = render::buffer(ctx);
+    let cv = &mut render::canvas(ctx);
     let mut items: [&[u8]; COUNT] = [b""; COUNT];
     for (i, item) in items.iter_mut().enumerate() {
         *item = label(i as u8);
     }
     let l = render::layout_of(ctx);
-    rows::list(buf, spx, w, h, l.col_x, l.body_y, &items, ctx.kbd_sel as usize);
+    rows::list(cv, l.col_x, l.body_y, &items, ctx.kbd_sel as usize);
 }
 
 pub fn on_key(ctx: &mut Context, code: u32) -> Outcome {

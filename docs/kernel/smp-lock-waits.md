@@ -41,7 +41,7 @@ Measured on the host, an uncontended take and release with and without the note,
 
 ## Limits
 
-- Only locks taken through `lock_responsive`, `read_responsive` and `write_responsive` are watched. The /data volume's `VOLUME`, the cryptoblock's `PENDING` and the import stream's `LIVE` are among them, so the one-CPU hang in which a program ended in the middle of /data I/O keeps the volume's lock for good is named on serial. A plain `.lock()` or `RwLock::write()` that never ends is still silent.
+- Only locks taken through `lock_responsive`, `read_responsive` and `write_responsive` are watched. The cryptoblock's `PENDING` and the import stream's `LIVE` are among them. The /data volume's `VOLUME` is not a spin lock any more: it is a trip lock (`src/services/lifecycle/trip_lock.rs`), which a holder may keep across the disk's round trips, whose waiters rest instead of spinning, and whose holder, killed asleep, is swept by the next caller (`src/fs/blockfs_volume/state.rs`). A plain `.lock()` or `RwLock::write()` that never ends is still silent.
 - A wait shorter than a second is not reported. A held lock that is slow but finishes, under emulation for example, can print a line and carry on.
 - The holder's site is the call site of `lock_responsive`. A helper that takes the lock for its callers names itself, not them.
 

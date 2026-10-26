@@ -39,12 +39,17 @@ pub const WHY_PARTIAL: u8 = 21;
 pub const WHY_POLICY: u8 = 36;
 /// A package would not fit in free memory to unpack; nothing of it landed.
 pub const WHY_UNPACK_MEMORY: u8 = 37;
+/// A run holds the package's files open; nothing of it was changed.
+pub const WHY_IN_USE: u8 = 38;
 
 const POLICY_LINE: &str =
     "The market's policy for this program could not be checked or vouched for; nothing was installed.";
 
 const UNPACK_LINE: &str =
     "Too little free memory to unpack one of its packages; close other apps, then retry";
+
+const IN_USE_LINE: &str =
+    "It is open in a running app; close the app to update or remove it, then retry";
 
 pub(super) fn package_reason(code: u8) -> Option<Reason> {
     Some(match code {
@@ -57,6 +62,7 @@ pub(super) fn package_reason(code: u8) -> Option<Reason> {
         WHY_PARTIAL => said("Not every file could be written, so none of it was kept", true),
         WHY_POLICY => said(POLICY_LINE, false),
         WHY_UNPACK_MEMORY => said(UNPACK_LINE, true),
+        WHY_IN_USE => said(IN_USE_LINE, true),
         _ => return None,
     })
 }

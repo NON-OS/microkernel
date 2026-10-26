@@ -35,6 +35,16 @@ pub(super) const NET_ANON_MANIFEST_BYTES: &[u8] =
 pub(super) const NET_ANON_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/net_anon.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-net-anon")]
+const _: () = assert!(
+    !NET_ANON_ELF.is_empty()
+        && !NET_ANON_NONOS_ID_CERT_BYTES.is_empty()
+        && !NET_ANON_MANIFEST_BYTES.is_empty()
+        && !NET_ANON_ATTESTATION_BYTES.is_empty(),
+    "capsule_net_anon built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-net-anon"))]
 pub(super) const NET_ANON_ELF: &[u8] = &[];
 

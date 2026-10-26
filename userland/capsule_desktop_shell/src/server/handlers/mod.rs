@@ -42,7 +42,7 @@ pub mod launchpad_key;
 mod launchpad_launch;
 pub mod lid;
 pub mod live_prompt;
-mod menu_key;
+pub(crate) mod menu_key;
 pub mod menubar_action;
 pub mod menubar_click;
 pub mod notify;

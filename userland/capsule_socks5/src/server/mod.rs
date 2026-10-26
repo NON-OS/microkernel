@@ -35,7 +35,4 @@ pub use parked::parked;
 pub use run::run;
 pub use trace::open_failed as trace_open;
 pub use trace::step as trace_step;
-pub use trace::{
-    destination as trace_destination, reply_bytes as trace_reply_bytes,
-    reply_kind as trace_reply_kind,
-};
+pub use trace::{reply_bytes as trace_reply_bytes, reply_kind as trace_reply_kind};

@@ -25,15 +25,15 @@ pub enum Outcome {
     /// The association was refused or the handshake broke; the report's
     /// `failure` says where.
     Refused,
-    /// The AP stopped responding before the join completed.
+    /// The AP stopped responding: a step's own time, or the budget, ran out.
     TimedOut,
 }
 
-/// How the join ended, if it has: connected (with what it installed) or
-/// refused.
+/// How the join ended, if it has: connected, refused, or out of a step's time.
 pub(super) fn ended(mlme: &Mlme) -> Option<Outcome> {
     match mlme.state() {
         MlmeState::Connected => Some(finish(mlme)),
+        MlmeState::Failed if mlme.expired() => Some(Outcome::TimedOut),
         MlmeState::Failed => Some(Outcome::Refused),
         _ => None,
     }

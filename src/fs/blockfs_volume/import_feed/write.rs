@@ -53,7 +53,7 @@ pub fn stream_write(pid: u32, chunk: &[u8]) -> Result<u64, StreamError> {
 fn feed(l: &mut Live, chunk: &[u8]) -> Result<u64, StreamError> {
     let before = l.stream.size();
     {
-        let mut guard = crate::smp::write_responsive(&VOLUME);
+        let mut guard = VOLUME.write();
         let s = guard.as_mut().ok_or(VolumeError::NotMounted)?;
         l.stream.append(&s.key, &mut s.mount, chunk).map_err(VolumeError::BlockFs)?;
         /*

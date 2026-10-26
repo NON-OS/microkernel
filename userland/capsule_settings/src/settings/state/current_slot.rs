@@ -16,7 +16,7 @@
 
 use crate::settings::schema::{slot_at, Slot};
 
-use super::state::State;
+use super::model::State;
 
 /// The row the cursor is on: a field, or one wallpaper of the collection.
 pub fn current_slot(state: &State) -> Option<Slot> {

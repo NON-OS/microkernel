@@ -17,7 +17,7 @@
 const TABLE: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 pub fn encode(input: &[u8], out: &mut [u8]) -> Option<usize> {
-    let need = ((input.len() + 2) / 3) * 4;
+    let need = input.len().div_ceil(3) * 4;
     if out.len() < need {
         return None;
     }

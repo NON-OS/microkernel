@@ -33,6 +33,16 @@ pub(super) const DRIVER_AC97_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_AC97_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/driver_ac97.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-ac97")]
+const _: () = assert!(
+    !DRIVER_AC97_ELF.is_empty()
+        && !DRIVER_AC97_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_AC97_MANIFEST_BYTES.is_empty()
+        && !DRIVER_AC97_ATTESTATION_BYTES.is_empty(),
+    "ac97_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-ac97"))]
 pub(super) const DRIVER_AC97_ELF: &[u8] = &[];
 
