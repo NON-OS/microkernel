@@ -18,7 +18,7 @@
 //! written and taken out in, so that a market program is never startable
 //! outside its box at its installed path: not half-way through its install,
 //! not after a crash, not when an uninstall only partly succeeds. A copy or
-//! a loader exec is not held by path (HANDOFF/letters/m/10). The store is reached through the
+//! a loader exec is not held by path. The store is reached through the
 //! closures, so the rules are proved on the host.
 
 use alloc::vec::Vec;
