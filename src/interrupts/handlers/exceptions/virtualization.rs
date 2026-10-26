@@ -35,7 +35,7 @@ pub fn handle(frame: InterruptStackFrame) {
     log_ve_details(&ve_info);
 
     if ctx.is_user_mode() {
-        handle_user_mode_ve(&ctx, &ve_info);
+        handle_user_mode_ve(&ctx);
     } else {
         handle_kernel_mode_ve(&ctx, &ve_info);
     }
@@ -91,18 +91,11 @@ fn log_ve_details(info: &VeInfo) {
     );
 }
 
-fn handle_user_mode_ve(ctx: &ExceptionContext, info: &VeInfo) -> ! {
+fn handle_user_mode_ve(ctx: &ExceptionContext) -> ! {
     crate::log::logger::log_error!(
         "User process triggered virtualization exception at {}",
         redact_address(ctx.instruction_pointer)
     );
-
-    if info.exit_reason == 48 {
-        crate::log::logger::log_error!(
-            "EPT violation: address={}",
-            redact_address(info.guest_physical_address)
-        );
-    }
 
     crate::process::exit::exit_and_yield(-7, true)
 }
