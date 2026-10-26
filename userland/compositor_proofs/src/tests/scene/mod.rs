@@ -34,6 +34,7 @@ mod cursor_shape_tests;
 mod damage_cover;
 mod damage_full_tests;
 mod damage_tests;
+mod flip_submit_tests;
 mod foreign_attach;
 mod foreign_cursor_tests;
 mod foreign_desk;
