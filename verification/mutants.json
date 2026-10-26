@@ -57,7 +57,7 @@
  },
  {
   "name": "ipc-inbox-gate",
-  "file": "src/syscall/microkernel/ipc/send_caps.rs",
+  "file": "src/syscall/microkernel/ipc/send_caps_inbox.rs",
   "old": "    if caller_may_write_inbox(dest, held) {",
   "new": "    if true {",
   "escapes": "[ATTACK] cap-escape ESCAPED: net.sockets' inbox by its pid without Network, MkIpcSendToPid returned"
