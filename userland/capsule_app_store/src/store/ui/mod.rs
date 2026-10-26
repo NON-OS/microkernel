@@ -29,6 +29,7 @@ mod headline;
 mod hex;
 pub mod metrics;
 mod price_lines;
+mod proof_pane;
 mod rows;
 mod scrollbar;
 mod searchbar;

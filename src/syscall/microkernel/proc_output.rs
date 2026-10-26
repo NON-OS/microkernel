@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Drain one stdout line a child capsule mirrored into its `proc.<pid>`
+//! Drain one stdout line a child capsule mirrored into its `stdout.<pid>`
 //! inbox (see the MkDebug handler). A launcher polls this to show a
 //! loaded capsule's output in its own window. Returns the number of
 //! bytes copied, 0 when the inbox is empty, or a negative errno.
@@ -38,7 +38,7 @@ pub fn sys_proc_output(pid: u64, buf_ptr: u64, buf_len: usize) -> i64 {
     if crate::usercopy::validate_user_write(buf_ptr, buf_len).is_err() {
         return ERRNO_FAULT;
     }
-    let name = alloc::format!("proc.{}", target);
+    let name = crate::ipc::nonos_inbox::own_names::stdout(target);
     let Some(msg) = crate::ipc::nonos_inbox::try_dequeue_existing(&name) else {
         crate::process::exit::postmortem::release(target);
         return 0;
