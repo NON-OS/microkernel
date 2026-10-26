@@ -18,7 +18,8 @@
 //! from any thread of its thread group, as F-33 compares owners. No
 //! owner, or anyone else, may not. And whether init waits for it at all:
 //! only on a boot with ACPI whose capsule was spawned, and only until it
-//! is done, so a device-tree boot, an image without the capsule, or a
+//! is done, and never past FIRST_PASS_WAIT_MS, so a device-tree boot, an
+//! image without the capsule, or a
 //! capsule that never started costs nothing. Pure: `kernel_proofs`
 //! mounts it.
 
@@ -35,7 +36,27 @@ pub fn admits(
 
 /// `acpi_boot`: the firmware tables are ACPI and the capsule is built in;
 /// `owner_spawned`: the `acpi` service was spawned; `done`: the flag.
-#[allow(dead_code)] // the spawn plan's wait (the maintainers' half) asks it
 pub fn wait_needed(acpi_boot: bool, owner_spawned: bool, done: bool) -> bool {
     acpi_boot && owner_spawned && !done
+}
+
+/// How long init waits for the pass: the capsule's own reveal budget
+/// (FIRST_PASS_MS, 2 s) and its platform publish, with room for an
+/// emulated machine. Past it the drivers start without the pass.
+pub const FIRST_PASS_WAIT_MS: u64 = 5_000;
+
+/// What init's wait does at one look: the flag, and how long it has waited.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Look {
+    Wait,
+    Done,
+    GaveUp,
+}
+
+pub fn look(done: bool, waited_ms: u64) -> Look {
+    match (done, waited_ms < FIRST_PASS_WAIT_MS) {
+        (true, _) => Look::Done,
+        (false, true) => Look::Wait,
+        (false, false) => Look::GaveUp,
+    }
 }
