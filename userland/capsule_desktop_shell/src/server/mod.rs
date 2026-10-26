@@ -45,6 +45,7 @@ pub mod toast_clock;
 mod trusted_band;
 pub mod wallpaper_policy;
 mod wm_notify;
+mod wm_notify_switch;
 mod wm_notify_toast;
 mod wm_notify_track;
 
