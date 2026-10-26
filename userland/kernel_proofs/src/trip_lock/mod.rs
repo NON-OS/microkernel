@@ -28,6 +28,8 @@ mod trip_rows;
 mod trip_turn;
 
 #[cfg(test)]
+mod glue_forget_tests;
+#[cfg(test)]
 mod glue_marks_tests;
 #[cfg(test)]
 mod glue_tests;
