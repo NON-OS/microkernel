@@ -50,7 +50,7 @@ pub fn step(phase: Phase, event: Event) -> (Phase, Call) {
         (Proving { stage, out: false }, Event::Tick) => {
             (Proving { stage, out: true }, Call::Status)
         }
-        (Proving { stage, .. }, Event::StatusLate) => (Proving { stage, out: true }, Call::None),
+        (Proving { stage, .. }, Event::StatusLate) => (Proving { stage, out: false }, Call::None),
         (Proving { .. }, Event::Status(Ok((DONE, total)))) if fits(total) => {
             (Fetching { at: 0, total }, Call::Get(0))
         }
