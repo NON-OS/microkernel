@@ -23,8 +23,9 @@
 pub fn require_vm_port() {
     #[cfg(target_arch = "riscv64")]
     {
-        crate::sys::serial::print(b"[VM] riscv64: the VM layer is not ported ");
-        crate::sys::serial::println(b"(no Sv48 direct map, no page descriptors); stopping");
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[VM] riscv64: the VM layer is not ported ");
+        l.str(b"(no Sv48 direct map, no page descriptors); stopping").end();
         crate::arch::halt_loop()
     }
 }

@@ -44,8 +44,8 @@ pub fn sys_attest_doc(challenge_ptr: u64, out_ptr: u64, out_len: u64) -> i64 {
         // distinguish "no TPM" from "registry incomplete" learns about the
         // machine's state without being entitled to an attestation of it.
         Err(e) => {
-            crate::sys::serial::print(b"[ATTEST] refused: ");
-            crate::sys::serial::println(e.as_str().as_bytes());
+            let mut l = crate::sys::serial::Line::new();
+            l.str(b"[ATTEST] refused: ").str(e.as_str().as_bytes()).end();
             return ERRNO_PERM;
         }
     };

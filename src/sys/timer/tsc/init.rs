@@ -42,9 +42,8 @@ pub fn init(tsc_hz: u64, boot_epoch_ms: u64) {
 
     TIMER_INIT.store(true, Ordering::SeqCst);
 
-    serial::print(COUNTER_LABEL);
-    serial::print_dec(hz / 1_000_000);
-    serial::println(b" MHz");
+    let mut l = serial::Line::new();
+    l.str(COUNTER_LABEL).dec(hz / 1_000_000).str(b" MHz").end();
 }
 
 pub fn init_default() {
