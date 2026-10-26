@@ -63,3 +63,6 @@ shell-frametime = []
 # The terminal's headless agent build (capsule_terminal Cargo.toml); never on
 # here, declared so its cfg is a known one.
 agentproof-headless = []
+# What only terminal_line_proofs reads (capsule_terminal Cargo.toml); never
+# on here.
+line-proofs = []

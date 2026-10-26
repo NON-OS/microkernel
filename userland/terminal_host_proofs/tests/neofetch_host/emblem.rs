@@ -14,24 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The emblem rows and their declared width.
+//! The emblem's rows and their declared width.
 
-use crate::neofetch::logo::{LOGO, LOGO_W};
+use crate::neofetch::emblem::emblem;
+use crate::neofetch::emblem_shape::{EMBLEM_H, EMBLEM_W};
+use crate::support::text;
 
 /// The emblem is a grid, not a picture: one short row slides every info line
-/// under it out of the column.
+/// beside it out of the column.
 #[test]
-fn every_logo_row_is_exactly_the_declared_width() {
-    for (index, art) in LOGO.iter().enumerate() {
-        assert_eq!(art.chars().count(), LOGO_W, "row {index}: {art:?}");
+fn every_row_is_exactly_the_declared_width() {
+    let rows = emblem(0x07090B);
+    assert_eq!(rows.len(), EMBLEM_H / 2);
+    for (index, (plain, _)) in rows.iter().enumerate() {
+        assert_eq!(text(plain).chars().count(), EMBLEM_W, "row {index}");
     }
 }
 
-/// The rows are box drawing glyphs, so the byte length is far past the column
+/// The rows are half blocks, so the byte length is far past the column
 /// count. Anything measuring with `len()` would indent the info column by
 /// three times the intended amount.
 #[test]
 fn the_declared_width_is_columns_and_not_bytes() {
-    assert!(LOGO.iter().any(|art| art.len() > LOGO_W));
-    assert_eq!(LOGO[0].len(), LOGO_W);
+    assert!(emblem(0x07090B).iter().any(|(plain, _)| plain.len() > EMBLEM_W));
 }

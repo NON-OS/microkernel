@@ -50,8 +50,9 @@ pub(crate) fn route(name: &[u8]) -> Option<Shell> {
 }
 
 /// Every name and alias the shell answers to itself, group by group.
-/// Only host tests that mount this module call it; the shell itself routes.
-#[cfg(test)]
+/// Only terminal_line_proofs reads it, under its `line-proofs` feature; the
+/// shell itself routes.
+#[cfg(feature = "line-proofs")]
 pub(crate) fn names() -> impl Iterator<Item = &'static [u8]> {
     let info = INFO.iter().map(|&(n, _)| n);
     let session = SESSION.iter().map(|&(n, _)| n);

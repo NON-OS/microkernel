@@ -28,6 +28,9 @@ nonos-autorun-selftest = []
 # image turns it on, in its own copy of the tree; scripts/check_copy_only_features.py
 # fails any committed build that names it.
 agentproof-headless = []
+# What only terminal_line_proofs reads (the route tables' name lists, the
+# last box report's policy); never on in the capsule.
+line-proofs = []
 
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }

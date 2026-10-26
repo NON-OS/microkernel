@@ -17,38 +17,42 @@
 //! Composing the emblem beside the info column.
 
 use crate::neofetch::compose::two_column;
-use crate::neofetch::logo::{LOGO, LOGO_W};
+use crate::neofetch::emblem::emblem;
+use crate::neofetch::emblem_shape::EMBLEM_W;
 use crate::support::{info, text};
 
 #[test]
 fn the_info_column_starts_at_the_same_offset_on_every_row() {
-    let rows = two_column(&LOGO, &info(&["alpha", "beta", "gamma"]), 2);
-    for (row, want) in rows.iter().zip(["alpha", "beta", "gamma"]) {
-        let line = text(row);
-        let at = line.char_indices().find(|(_, c)| *c == want.as_bytes()[0] as char);
-        assert_eq!(line.chars().count() - want.chars().count(), LOGO_W + 2, "{line:?}");
-        assert!(at.is_some());
+    let rows = two_column(&emblem(0), &info(&["alpha", "beta", "gamma"]), 2);
+    for ((plain, _), want) in rows.iter().zip(["alpha", "beta", "gamma"]) {
+        let line = text(plain);
+        assert_eq!(line.chars().count() - want.len(), EMBLEM_W + 2, "{line:?}");
         assert!(line.ends_with(want), "{line:?}");
     }
 }
 
-/// More info rows than emblem rows is the normal case: the strip has to keep
-/// running with blank art on the left.
+/// More info rows than emblem rows: the column keeps its indent with blank
+/// art on the left.
 #[test]
 fn a_longer_right_column_keeps_its_indent_past_the_emblem() {
-    let right = info(&["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]);
-    let rows = two_column(&LOGO, &right, 2);
+    let art = emblem(0);
+    let words: Vec<String> = (0..art.len() + 3).map(|i| format!("{}", i % 10)).collect();
+    let right = info(&words.iter().map(String::as_str).collect::<Vec<_>>());
+    let rows = two_column(&art, &right, 2);
     assert_eq!(rows.len(), right.len());
-    for row in &rows {
-        assert_eq!(text(row).chars().count(), LOGO_W + 2 + 1);
+    for (plain, styled) in &rows[art.len()..] {
+        assert_eq!(text(plain).chars().count(), EMBLEM_W + 2 + 1);
+        assert_eq!(text(styled).trim_start().len(), 1);
     }
-    assert!(!text(&rows[9]).contains('│'));
 }
 
 #[test]
 fn a_longer_left_column_emits_the_art_alone() {
-    let rows = two_column(&LOGO, &info(&["only"]), 2);
-    assert_eq!(rows.len(), LOGO.len());
-    assert_eq!(text(&rows[0]), format!("{}  only", LOGO[0]));
-    assert_eq!(text(&rows[1]), LOGO[1].trim_end());
+    let art = emblem(0);
+    let rows = two_column(&art, &info(&["only"]), 2);
+    assert_eq!(rows.len(), art.len());
+    let first = text(&art[0].0);
+    let pad = " ".repeat(2 + EMBLEM_W - first.chars().count());
+    assert_eq!(text(&rows[0].0), format!("{first}{pad}only"));
+    assert_eq!(text(&rows[1].0), text(&art[1].0).trim_end());
 }
