@@ -45,7 +45,7 @@ pub fn count_of(
         return Err("snake store short");
     }
     if bytes[..4] != magic[..] {
-        return Err("snake store magic");
+        return Err("snake store is not a scores file");
     }
     if u16::from_le_bytes([bytes[4], bytes[5]]) != VERSION {
         return Err("snake store version");
