@@ -37,10 +37,7 @@ pub use dma::{validate_dma_buffer, validate_prp_list, validate_sg_list};
 
 pub use error::DriverError;
 
-pub use lba::{
-    is_lba_in_partition, validate_lba_in_partition, validate_lba_range,
-    validate_lba_range_with_size,
-};
+pub use lba::{is_lba_in_partition, validate_lba_in_partition, validate_lba_range};
 
 pub use limiters::{
     admin_rate_limiter, default_multi_rate_limiter, dma_rate_limiter, io_rate_limiter,
@@ -52,7 +49,6 @@ pub use mmio::{
 
 pub use pci::{
     build_config_address, is_config_write_allowed, is_sensitive_config_read, validate_pci_access,
-    validate_pci_extended_access,
 };
 
 pub use rate_limiter::{DriverOpType, MultiRateLimiter, RateLimiter};
