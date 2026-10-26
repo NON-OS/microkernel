@@ -13,29 +13,9 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! The frame's measures at one to one (HANDOFF/ui/identity.md, Window
+//! Text laid into a width it may not fit.
 
-use crate::app::App;
-use crate::clients::compositor;
-use crate::discover::Peers;
+mod fit;
 
-use super::boot::BootedApp;
-use super::repaint::repaint;
-use super::request_id::next;
-
-const APP_LAYER_Z: u32 = 2;
-
-/// Put a minimized window back in the scene where it was and repaint it.
-pub(super) fn restore<A: App>(booted: &mut BootedApp<A>, peers: &Peers, request_id: &mut u32) {
-    let _ = compositor::scene_submit(
-        peers.compositor,
-        next(request_id),
-        booted.binding.surface_handle,
-        booted.binding.x,
-        booted.binding.y,
-        booted.binding.width,
-        booted.binding.height,
-        APP_LAYER_Z,
-    );
-    booted.minimized = false;
-    repaint(booted, peers, request_id);
-}
+pub use fit::{fit_end, ELLIPSIS};

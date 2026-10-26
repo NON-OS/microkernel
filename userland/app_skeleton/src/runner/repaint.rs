@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::decorations::FrameState;
+
 use crate::app::App;
 use crate::clients::compositor;
 use crate::discover::Peers;
@@ -28,7 +30,8 @@ use super::request_id::next;
  * part of its content moved, and only that part is painted and committed. */
 pub(super) fn repaint<A: App>(booted: &mut BootedApp<A>, peers: &Peers, request_id: &mut u32) {
     let b = &booted.binding;
-    let frame = (b.width, b.height, booted.drag.hover, booted.maximized);
+    let state = FrameState { hover: booted.drag.hover, focused: booted.focused };
+    let frame = (b.width, b.height, state, booted.maximized);
     let damage = if frame == booted.painted { booted.app.take_damage() } else { None };
     booted.painted = frame;
     if let Some(rect) = damage {
@@ -39,7 +42,7 @@ pub(super) fn repaint<A: App>(booted: &mut BootedApp<A>, peers: &Peers, request_
         &mut booted.app,
         &booted.manifest,
         &booted.binding,
-        booted.drag.hover,
+        state,
         booted.maximized,
         peers.toolkit,
         next(request_id),
