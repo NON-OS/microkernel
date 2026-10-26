@@ -19,6 +19,8 @@ use crate::smp::state::{BSP_APIC_ID, CPU_COUNT, SMP_INITIALIZED};
 use crate::smp::topology;
 use core::sync::atomic::Ordering;
 
+mod one;
+
 pub(super) fn start_aps() -> Result<usize, &'static str> {
     ensure_smp_ready()?;
 
@@ -56,7 +58,7 @@ pub(super) fn start_aps() -> Result<usize, &'static str> {
         }
         next_cpu_id += 1;
 
-        if super::ap_unit::start(cpu_id, apic_id, &boot).unwrap_or(false) {
+        if one::start_one(cpu_id, apic_id, &boot) {
             started += 1;
         }
     }
@@ -80,6 +82,8 @@ pub(super) fn start_aps() -> Result<usize, &'static str> {
     l.str(b"[SMP] answered=").dec(started as u64);
     l.str(b" online=").dec(online as u64);
     l.end();
+    #[cfg(feature = "nonos-smp-shootdown-proof")]
+    crate::memory::paging::manager::shootdown::run_proof();
     Ok(online.saturating_sub(1))
 }
 
