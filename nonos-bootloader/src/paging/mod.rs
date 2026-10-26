@@ -26,6 +26,7 @@ mod mapper;
 mod page1g;
 mod phys_to_directmap;
 mod seg_flags;
+#[cfg(target_arch = "x86_64")]
 mod switch;
 mod table;
 mod verify;
@@ -34,4 +35,5 @@ pub use build::build_kernel_pml4;
 pub use fb_window::{framebuffer_identity_reachable, framebuffer_tail, IDENTITY_FB_LIMIT};
 pub use page1g::supports_1gib_pages;
 pub use phys_to_directmap::phys_to_directmap_virt;
+#[cfg(target_arch = "x86_64")]
 pub use switch::switch_to_kernel_pml4;
