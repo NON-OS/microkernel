@@ -22,7 +22,8 @@ key both stay empty, as they always have."""
 
 import os
 
-from . import dev_market, keys, market_logos
+from . import dev_market, keys
+from . import market_logos
 from .market_inputs import place_userland
 from .run import say
 
