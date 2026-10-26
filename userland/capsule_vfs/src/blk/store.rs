@@ -23,9 +23,9 @@ use alloc::vec::Vec;
 use nonos_disk_map::digest16;
 use nonos_libc::mk_debug;
 
-use super::streamed::Extent;
 use super::error::BlkError;
 use super::store_toc::TocEntry;
+use super::streamed::Extent;
 use super::wire::SECTOR_SIZE;
 
 pub struct StoreEntry {

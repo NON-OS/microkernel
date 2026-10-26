@@ -52,7 +52,11 @@ impl Store {
             return Vec::new();
         }
         let fold = |s: &str| -> String {
-            if flags & FLAG_CASE != 0 { String::from(s) } else { s.to_ascii_lowercase() }
+            if flags & FLAG_CASE != 0 {
+                String::from(s)
+            } else {
+                s.to_ascii_lowercase()
+            }
         };
         let mut names = Vec::new();
         let mut content = Vec::new();

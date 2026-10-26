@@ -37,8 +37,8 @@
 use nonos_disk_map::digest16;
 
 use super::error::BlkError;
-use super::store_free::free_extent;
 use super::store_entry::patch_entry;
+use super::store_free::free_extent;
 use super::store_rules::permitted;
 use super::store_toc::{room_for, TocEntry};
 use super::store_write::{commit_entry, write_payload};
