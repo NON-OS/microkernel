@@ -46,11 +46,29 @@ Listing `linux.profanity`, package `profanity 0.14.0-r1`, licence GPL-3.0-or-lat
 4. Before you trust a contact: compare fingerprints over another channel, then `/omemo trust <contact> <fingerprint>`.
 5. Optional: `/privacy os off`, `/states off`, `/receipts send off`, `/privacy logging off`.
 
+## Monero wallet: monero-wallet-cli
+
+Listing `linux.monero`, package `monero 0.18.3.3-r1`, licence BSD-3-Clause. Box: TTY FILES_HOME NET_ANON, any destination over Nym or Anyone, system calls not yet measured. The program is `/usr/bin/monero-wallet-cli`, BLAKE3 `2073f1b6…cc669c83`, named by the recipe's `program`: the package has 14 programs and no `usr/bin/monero`, and the installer records the one whose bytes the policy names (`install/market/choose.rs`). *host-tested* (the policy, from the package the catalogue authenticated)
+
+Not booted yet: install and run wait on a boot, and the package (24.7 MB) is large enough that the install's memory limit on big packages may stop it until that is fixed.
+
+### What it protects
+
+- **Your address from the node.** The wallet talks to a remote node you name with `--daemon-address host:port`, over Nym or Anyone, never direct, so the node sees an exit, not this machine. *design*
+- **Your keys from the network.** The wallet's keys and its files stay in its own home; nothing else on the machine reads them. *design*
+
+### What it does not protect
+
+- **What the node learns from your wallet.** A remote node sees which blocks and outputs your wallet asks for and when, and can try to link them to your wallet. Running your own node is the stronger choice, and it is not possible here: the box runs only the wallet, and `monerod` is refused.
+- **Nothing it keeps lasts past one run, today.** The home is removed when the wallet exits, so a wallet file made in a run is gone with it, and with it the keys. Write down the seed phrase the wallet shows, on paper, and restore from it with `--restore-deterministic-wallet`; until homes are kept, every start is a restore. Never type a seed into anything you have not checked. *design*
+- **The other programs in its package.** `monerod`, `monero-wallet-rpc` and the blockchain tools have no box of their own and are refused at their installed paths.
+- **Name lookups for OpenAlias.** A Monero address written as a name is looked up with DNS TXT records, which are not answered here (see above). Use the full address.
+- **The network from the Terminal.** As for Profanity: started from the Terminal it runs without the network today, so it cannot reach a node from there. *booted* for Profanity, the same rule (`run_net.rs`)
+
 ## Not here yet, and why
 
 | App | What blocks it |
 |---|---|
-| Monero wallet (`monero-wallet-cli`) | The `monero` package has 14 programs and no `usr/bin/monero`, so the installer would box the first one in the archive, not the wallet. A release has no way yet to name which program it boxes. |
 | GnuPG, `pass` | `gpg` runs `gpg-agent` for every secret-key operation, and a release can box only one program (M-09). |
 | KeePassXC, Feather | Need Qt and a display path the Linux personality does not have yet (G9). |
 | OnionShare | Its job is serving files to others: an inbound service, which a guest is never given. |

@@ -52,6 +52,14 @@ class Recipes(unittest.TestCase):
             with self.assertRaises(ValueError, msg=item):
                 checked(item, ROOT)
 
+    def test_a_program_is_a_path_under_usr_bin(self):
+        self.assertEqual(checked(dict(BASE, program="usr/bin/monero-wallet-cli"), ROOT)["program"],
+                         "usr/bin/monero-wallet-cli")
+        for bad in ("monero-wallet-cli", "/usr/bin/x", "usr/bin/../sbin/x", "usr/bin/", "usr/lib/x",
+                    "usr/bin/X", "usr/bin/a/b", "usr/bin/" + "a" * 65):
+            with self.assertRaises(ValueError, msg=bad):
+                checked(dict(BASE, program=bad), ROOT)
+
     def test_a_measured_set_is_kept_and_a_dests_list_needs_net_anon(self):
         calls = "calls=" + "ff" * 64 + "00"
         self.assertEqual(checked(dict(BASE, calls=calls), ROOT)["calls"], UNMEASURED)
