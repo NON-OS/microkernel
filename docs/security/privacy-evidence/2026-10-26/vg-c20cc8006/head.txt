@@ -1,0 +1,6 @@
+c20cc8006b Merge remote-tracking branch 'origin/main' into privacy/volume-gate
+ tools/nix/config.nix                  |   8 ++
+ userland/capsule_proof_io/Capsule.mk  |   2 +-
+ userland/capsule_proof_io/src/main.rs | 142 ++++++++++++++++++++++------------
+ 3 files changed, 100 insertions(+), 52 deletions(-)
+1871271ac0dfc17823633705aafbdd04e1de84d7074794531852bd89efac8347  /home/user/pk-build/target/dev/tree/target/release/kvproof-dev/nonos.img
