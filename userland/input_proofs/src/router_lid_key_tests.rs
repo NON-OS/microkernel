@@ -27,9 +27,8 @@ use crate::router_desk::*;
 const A: u32 = 20;
 
 /// app_skeleton's key table, unchanged, for the lid's and brightness's codes.
-#[allow(dead_code)]
 #[path = "../../app_skeleton/src/input/keys.rs"]
-pub(crate) mod skeleton;
+pub mod skeleton;
 
 #[test]
 fn the_lid_codes_follow_the_power_key_and_agree_with_app_skeleton() {

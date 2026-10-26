@@ -29,7 +29,7 @@ pub(super) fn structure(structure: &[u8], strings: &[u8]) -> Result<(), FdtError
     let mut roots = 0usize;
     // Whether the node open at each depth has shown a subnode yet.
     let mut child_seen = [false; MAX_DEPTH + 1];
-    while let Some(event) = walker.next()? {
+    while let Some(event) = walker.next_event()? {
         let depth = walker.depth();
         match event {
             Event::BeginNode { name, .. } => {
