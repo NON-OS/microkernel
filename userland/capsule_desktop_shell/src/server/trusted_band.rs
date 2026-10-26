@@ -35,11 +35,12 @@ fn prompt_up(ctx: &Context) -> bool {
 pub fn sync(ctx: &mut Context) {
     let t = ctx.trusted;
     let want = in_band(prompt_up(ctx), t.attention);
-    let Some((place, take)) = moves(t.up, want).filter(|_| t.chrome_handle != 0) else {
+    let handle = ctx.chrome.shown_handle();
+    let Some((place, take)) = moves(t.up, want).filter(|_| handle != 0) else {
         return;
     };
     let rid = ctx.issue_request_id();
-    let (port, handle, w, h) = (ctx.ports.compositor_port, t.chrome_handle, ctx.width, ctx.height);
+    let (port, w, h) = (ctx.ports.compositor_port, ctx.width, ctx.height);
     if push_scene_submit(port, rid, handle, (0, 0, w, h), place).is_err() {
         return;
     }
