@@ -8,6 +8,7 @@ mod fw_card;
 mod host;
 mod join;
 mod join_card;
+mod link;
 mod order;
 mod pages;
 mod sleep;
