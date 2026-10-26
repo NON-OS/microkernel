@@ -17,7 +17,10 @@ use crate::state::Context;
 
 /// An event the user aims at something: a key or button going down, a touch.
 pub fn is_press(kind: u16) -> bool {
-    matches!(kind, INPUT_KIND_KEY_DOWN | INPUT_KIND_BUTTON_DOWN | INPUT_KIND_TOUCH | PAD_BUTTON_DOWN)
+    matches!(
+        kind,
+        INPUT_KIND_KEY_DOWN | INPUT_KIND_BUTTON_DOWN | INPUT_KIND_TOUCH | PAD_BUTTON_DOWN
+    )
 }
 
 /// The record after the router handed `kind` to `pid`: a press that arrived
