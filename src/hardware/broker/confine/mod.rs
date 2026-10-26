@@ -29,7 +29,6 @@ mod detach;
 mod detach_all;
 mod gates;
 mod held;
-mod held_by;
 mod interrupts;
 mod iova;
 mod iova_holes;
@@ -65,8 +64,10 @@ pub use acs_span::Port;
 pub(super) use attach::{attach, untranslated};
 pub(super) use detach::detach;
 pub(super) use detach_all::detach_all;
-#[allow(unused_imports)] // read by the ACPI broker's SDEV posture, which only x86 builds
-pub(super) use held_by::held_by;
+crate::arch::acpi_only! {
+    mod held_by;
+    pub(super) use held_by::held_by;
+}
 pub(super) use map::{map, NoAddress};
 pub(super) use refuse::Refusal;
 pub(super) use unmap::unmap;

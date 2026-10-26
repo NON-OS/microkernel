@@ -5346,6 +5346,17 @@ else
     fail_with "ap start: a failed AP start is discarded without its reason"
 fi
 unset aps_out
+# Which architectures are ACPI platforms is said once, by acpi_only! in
+# src/arch/acpi_capsule/gate.rs; modules that exist only there are declared
+# inside it, and nothing but mod and use goes inside (rustfmt skips a macro body).
+if acpi_out="$(python3 scripts/check_acpi_only.py --self-test 2>&1 \
+    && python3 scripts/check_acpi_only.py 2>&1)"; then
+    note ok "acpi_only! gates on the ACPI arches alone and holds only mod and use (check_acpi_only)"
+else
+    tail -n 5 <<< "${acpi_out}" >&2
+    fail_with "acpi_only!: the gate names another arch, or holds code"
+fi
+unset acpi_out
 # The pre-push check every unit runs (tools/nonos-unit-check): rustfmt, the
 # 75-line rule, no new #[allow], no key material. Its self-test makes each
 # finding in a scratch repository and proves a clean unit passes.

@@ -24,7 +24,6 @@ use crate::hardware::broker::pci_index;
 
 /// A PCI function that answered only after firmware powered it up (`_PS0`),
 /// added after the boot scan under the next free id, with its index handle.
-#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
 /// `disabled` marks a function no driver may claim (its BARs unassigned).
 pub(in crate::hardware::broker) fn add_pci_function(dev: &PciDevice, disabled: bool) -> u64 {
     let external = super::external::flag_for(&dev.address);
