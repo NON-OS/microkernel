@@ -25,8 +25,6 @@
 //! counts up, wrapping only at u32::MAX, past every pid still in use).
 
 pub const ENTRY_LEN: usize = 45;
-/// Room for the whole registry: a buffer too small is refused outright.
-pub const ENTRIES_MAX: usize = 256;
 
 /// The measurement of `pid`'s entry, if the registry lists exactly one.
 pub fn measure_of(entries: &[u8], pid: u32) -> Option<[u8; 32]> {
