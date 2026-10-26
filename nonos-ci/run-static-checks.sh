@@ -2144,9 +2144,11 @@ unset gsi_owners gsi_state gsi_claim ioapic_bind broker_release
 # virtio, IOMMU unit probe, TPM register window, aarch64 PCI windows, and
 # the broker's stop for a device-tree device, which maps its registers for
 # the kernel alone so it can halt the device's DMA when its capsule lets go,
-# the Raspberry Pi firmware mailbox, which only the kernel talks to, and the
-# aarch64 broadcast timer frame, which keeps sleeping CPUs' deadlines).
-device_map_external="$( { grep -rn 'map_device_memory' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/memory/mmio/' || true; } | { grep -v '^src/memory/unified/' || true; } | { grep -v '^src/drivers/' || true; } | { grep -v '^src/arch/x86_64/apic/' || true; } | { grep -v '^src/arch/x86_64/interrupt/' || true; } | { grep -v '^src/interrupts/' || true; } | { grep -v '^src/sys/serial' || true; } | { grep -vE '^src/arch/[a-z0-9_]+/iommu/' || true; } | { grep -v '^src/security/tpm/mmio/map\.rs:' || true; } | { grep -v '^src/arch/aarch64/boot/pci_windows\.rs:' || true; } | { grep -v '^src/hardware/broker/described/register\.rs:' || true; } | { grep -v '^src/arch/aarch64/firmware/state\.rs:' || true; } | { grep -v '^src/arch/x86_64/acpi/hw/port_bus\.rs:' || true; } | { grep -v '^src/arch/x86_64/time/hpet\.rs:' || true; } | { grep -v '^src/arch/aarch64/timer/broadcast/start\.rs:' || true; } )"
+# the Raspberry Pi firmware mailbox, which only the kernel talks to, the
+# aarch64 broadcast timer frame, which keeps sleeping CPUs' deadlines, and an
+# ACPI SD host's first register page, which the kernel maps for itself alone
+# so a claim's stop can reset the host before its DMA grants go (F-128)).
+device_map_external="$( { grep -rn 'map_device_memory' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/memory/mmio/' || true; } | { grep -v '^src/memory/unified/' || true; } | { grep -v '^src/drivers/' || true; } | { grep -v '^src/arch/x86_64/apic/' || true; } | { grep -v '^src/arch/x86_64/interrupt/' || true; } | { grep -v '^src/interrupts/' || true; } | { grep -v '^src/sys/serial' || true; } | { grep -vE '^src/arch/[a-z0-9_]+/iommu/' || true; } | { grep -v '^src/security/tpm/mmio/map\.rs:' || true; } | { grep -v '^src/arch/aarch64/boot/pci_windows\.rs:' || true; } | { grep -v '^src/hardware/broker/described/register\.rs:' || true; } | { grep -v '^src/arch/aarch64/firmware/state\.rs:' || true; } | { grep -v '^src/arch/x86_64/acpi/hw/port_bus\.rs:' || true; } | { grep -v '^src/arch/x86_64/time/hpet\.rs:' || true; } | { grep -v '^src/arch/aarch64/timer/broadcast/start\.rs:' || true; } | { grep -v '^src/hardware/broker/dma/sd_hosts\.rs:' || true; } )"
 if [ -n "${device_map_external}" ]; then
     fail_with "map_device_memory called from outside the kernel TCB; user-facing MMIO must go through the broker"
     printf '%s\n' "${device_map_external}" >&2

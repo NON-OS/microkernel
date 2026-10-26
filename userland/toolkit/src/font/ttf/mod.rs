@@ -29,6 +29,7 @@ mod face;
 mod fallback;
 mod glyph;
 mod gpos;
+mod line_metrics;
 mod metrics;
 mod raster;
 mod rasterize;
@@ -45,14 +46,12 @@ pub use cache::{clear_glyph_cache, glyph_cache_bytes};
 pub use clipped::draw_text_clipped;
 pub use face::builtin_face;
 pub use raster::MAX_GLYPH_AREA;
-pub use readable::MIN_UI_PX;
+pub use readable::{MIN_MONO_PX, MIN_UI_PX};
 pub use slant::{draw_text_sheared, OBLIQUE};
 pub use store::GLYPH_CACHE_BUDGET;
 
 pub use ab_glyph::{FontRef, VariableFont};
 pub use draw::{draw_text, draw_text_tracked};
-pub use metrics::{
-    ascent, ascent_with, line_height, line_height_with, measure, measure_spaced, measure_tracked,
-    measure_with,
-};
+pub use line_metrics::{ascent, ascent_with, line_height, line_height_with};
+pub use metrics::{measure, measure_spaced, measure_tracked, measure_with};
 pub use variants::{draw_text_spaced, draw_text_with};

@@ -35,7 +35,7 @@ pub(super) fn install(asked: Install) -> ! {
     // An m this capsule cannot read never installs the program in another box.
     let done = match asked.market {
         Ok(market) => install_from(pkg, &asked.pin, market.as_ref()),
-        Err(_) => Err(Why::Policy),
+        Err(_) => Err(Why::POLICY),
     };
     say(if done.is_ok() { b"[LINUX] installed\n" } else { b"[LINUX] install failed\n" });
     mk_exit(done.map_or_else(|why| why.code(), |()| 0))
