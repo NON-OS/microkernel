@@ -6631,6 +6631,7 @@
    "userland/capsule_app_store/src/store/source.rs",
    "userland/capsule_app_store/src/store/tab.rs",
    "userland/capsule_app_store/src/store/verdict.rs",
+   "userland/capsule_linux/src/linux/app/home_key.rs",
    "userland/capsule_linux/src/linux/install/why.rs",
    "userland/capsule_market/src/bonds/cache.rs",
    "userland/capsule_market/src/bonds/late.rs",
