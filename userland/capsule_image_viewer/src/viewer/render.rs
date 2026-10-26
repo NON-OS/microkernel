@@ -20,9 +20,9 @@ pub fn paint(st: &mut ViewerState, fb: &mut PaintBuffer) {
         let (w, h, stride) = (fb.width, fb.height, fb.stride_words);
         let mut dst = Dst { px: fb.pixels, stride, w, h };
         if st.fit_mode == FitMode::Actual && st.view.zoom == 1.0 {
-            draw_nn(&mut dst, &img.px, img.w, img.h, p.dx, p.dy, p.dw, p.dh);
+            draw_nn(&mut dst, &img.px, img.w, img.h, &p);
         } else {
-            draw_bilinear(&mut dst, &img.px, img.w, img.h, p.dx, p.dy, p.dw, p.dh);
+            draw_bilinear(&mut dst, &img.px, img.w, img.h, &p);
         }
     }
     if !st.status.is_empty() {
