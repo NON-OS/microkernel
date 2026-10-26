@@ -27,7 +27,7 @@ use crate::state::{Context, LAUNCHER_APPS};
 mod chord;
 
 pub use crate::state::trusted_rule::opens_terminal;
-pub use chord::{is_reserved_chord, is_secure_attention, is_terminal_chord};
+pub use chord::{is_reserved_chord, is_secure_attention, is_switch_chord, is_terminal_chord};
 
 const PROCESS_MANAGER: &[u8] = b"app.process_manager";
 const TERMINAL: &[u8] = b"app.terminal";

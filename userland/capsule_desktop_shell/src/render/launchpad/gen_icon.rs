@@ -14,7 +14,7 @@ use crate::render::ui_font;
 use crate::render::ui_font::{top_y_centered, TITLE_PX};
 use crate::state::Context;
 
-pub(super) fn draw(ctx: &Context, x: u32, y: u32, size: u32, label: &[u8]) {
+pub(crate) fn draw(ctx: &Context, x: u32, y: u32, size: u32, label: &[u8]) {
     {
         let mut buf = surface(ctx);
         let r = (size * 10 / 46).max(2);
