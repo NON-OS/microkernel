@@ -48,4 +48,6 @@ pub enum Kind {
     Device,
     /// A signalfd: signals of a mask, read as records.
     Signal,
+    /// One side of a pseudo-terminal this capsule holds (linux::pty).
+    Pty,
 }
