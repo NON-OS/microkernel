@@ -1,0 +1,10 @@
+exec timeout 7000 qemu-system-x86_64 $M \
+  -m 6G -smp 4 -accel tcg,thread=multi,tb-size=1024 -cpu max \
+  -drive if=pflash,format=raw,unit=0,readonly=on,file=$OVMF -drive if=pflash,format=raw,unit=1,file=target/b02boot/vars.fd \
+  -drive format=raw,file=fat:rw:target/esp \
+  -drive file=target/b02boot/blk.img,if=none,id=vd0,format=raw -device virtio-blk-pci,disable-legacy=on$IO,drive=vd0 \
+  -device virtio-vga,disable-legacy=on$IO,vectors=0,edid=on,xres=1920,yres=1080 \
+  -device qemu-xhci,id=xhci -device virtio-rng-pci,disable-legacy=on$IO \
+  -device virtio-net-pci,disable-legacy=on$IO,netdev=net0 -netdev user,id=net0 \
+  -qmp unix:target/qemu/qmp.sock,server,nowait \
+  -serial file:$SER -display none -no-reboot

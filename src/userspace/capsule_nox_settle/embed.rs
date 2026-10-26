@@ -33,6 +33,16 @@ pub(crate) const NOX_SETTLE_MANIFEST_BYTES: &[u8] =
 pub(crate) const NOX_SETTLE_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/nox_settle.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-nox-settle")]
+const _: () = assert!(
+    !NOX_SETTLE_ELF.is_empty()
+        && !NOX_SETTLE_NONOS_ID_CERT_BYTES.is_empty()
+        && !NOX_SETTLE_MANIFEST_BYTES.is_empty()
+        && !NOX_SETTLE_ATTESTATION_BYTES.is_empty(),
+    "capsule_nox_settle built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-nox-settle"))]
 pub(crate) const NOX_SETTLE_ELF: &[u8] = &[];
 
