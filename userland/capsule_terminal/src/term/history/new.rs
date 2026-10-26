@@ -27,3 +27,9 @@ impl History {
         }
     }
 }
+
+impl Default for History {
+    fn default() -> Self {
+        Self::new()
+    }
+}

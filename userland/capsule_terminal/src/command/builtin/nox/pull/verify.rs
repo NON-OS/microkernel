@@ -41,27 +41,11 @@ fn nibble(c: u8) -> Option<u8> {
     }
 }
 
-#[cfg(not(test))]
-pub fn hash_sha256(data: &[u8]) -> Option<[u8; 32]> {
-    let mut out = [0u8; 32];
-    let n = nonos_libc::crypto_hash(1, data.as_ptr(), data.len(), out.as_mut_ptr(), 32);
-    (n == 32).then_some(out)
-}
-
-#[cfg(not(test))]
-pub fn check(
-    conn: &mut Option<super::conn::Conn>,
-    ip: [u8; 4],
-    port: u16,
-    host: &[u8],
-    path: &[u8],
-    extra: &[u8],
-    body: &[u8],
-) -> Result<(), &'static str> {
-    let sidecar = sidecar_path(path);
-    let raw = super::fetch::get_reuse(conn, ip, port, host, &sidecar, extra)?;
-    let expected = parse_sha256_hex(&raw).ok_or("verify: bad .sha256 sidecar")?;
-    let got = hash_sha256(body).ok_or("verify: hash failed")?;
+/// The verdict on a body whose hash is `got`, against the `.sha256` sidecar
+/// `raw` the server keeps beside it.
+pub fn judge(raw: &[u8], got: Option<[u8; 32]>) -> Result<(), &'static str> {
+    let expected = parse_sha256_hex(raw).ok_or("verify: bad .sha256 sidecar")?;
+    let got = got.ok_or("verify: hash failed")?;
     if got == expected {
         Ok(())
     } else {

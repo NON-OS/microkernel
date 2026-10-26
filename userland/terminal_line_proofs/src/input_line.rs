@@ -11,8 +11,9 @@ pub mod line_chars;
 #[path = "../../capsule_terminal/src/paint/line_window.rs"]
 pub mod line_window;
 
-#[path = "../../capsule_terminal/src/term/history/expand.rs"]
-pub mod expand;
+// History expansion, from the history the search mounts, so the file is
+// mounted once.
+pub use crate::term_search::history::expand;
 
 // The line editing a foreground program gets, and the pointer selection.
 #[path = "../../capsule_terminal/src/event/cooked.rs"]

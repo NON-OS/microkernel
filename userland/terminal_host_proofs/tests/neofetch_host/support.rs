@@ -32,6 +32,7 @@ pub fn strip(row: &[u8]) -> String {
     text(&out)
 }
 
-pub fn info(lines: &[&str]) -> Vec<Vec<u8>> {
-    lines.iter().map(|l| l.as_bytes().to_vec()).collect()
+/// Info rows, each the same text plain and styled.
+pub fn info(lines: &[&str]) -> Vec<(Vec<u8>, Vec<u8>)> {
+    lines.iter().map(|l| (l.as_bytes().to_vec(), l.as_bytes().to_vec())).collect()
 }
