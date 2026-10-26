@@ -24,15 +24,14 @@
 use super::served_rule::mark;
 use super::state::{record_served, PENDING};
 
-/// `server_pid` dequeued the request carrying `token`. A message no call
-/// is owed (a kernel sender's, token 0) is recorded and marks nothing,
-/// without taking PENDING.
-pub(crate) fn mark_served(server_pid: u32, token: u64) {
+/// `server_pid` dequeued the request carrying `token`: its request id,
+/// or 0 when no call is owed a reply. A message no call is owed (a kernel
+/// sender's, token 0) is recorded and marks nothing, without taking PENDING.
+pub(crate) fn mark_served(server_pid: u32, token: u64) -> u64 {
     record_served(server_pid, token);
     if token == 0 {
-        return;
+        return 0;
     }
-    if let Some(q) = PENDING.lock().get_mut(&server_pid) {
-        mark(q.iter_mut(), token);
-    }
+    let mut map = PENDING.lock();
+    map.get_mut(&server_pid).and_then(|q| mark(q.iter_mut(), token)).unwrap_or(0)
 }

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU32, Ordering};
-use nonos_libc::mk_ipc_recv_from;
+use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
+use nonos_libc::ipc::{mk_ipc_recv_req, IpcReqMeta};
 
 use super::cadence::{next_wait, note_idle, note_work};
 
@@ -23,6 +23,14 @@ const SERVICE_INBOX: u64 = 0;
 
 /// Ticks of quiet left before the loop goes back to waiting patiently.
 static BUSY: AtomicU32 = AtomicU32::new(0);
+/// The kernel's id for the request received last, 0 when none is owed a
+/// reply: what a lookup held past its turn answers by (MkIpcReplyTo).
+static REQUEST: AtomicU64 = AtomicU64::new(0);
+
+/// The id of the request received last (MkIpcRecvReq's meta).
+pub fn request() -> u64 {
+    REQUEST.load(Ordering::Relaxed)
+}
 
 /// Wait for a request, for as long as the connection can afford.
 ///
@@ -42,7 +50,10 @@ pub fn attentive() -> bool {
 
 pub fn receive(rx: &mut [u8], sender_pid: &mut u32) -> i64 {
     let wait = next_wait(&BUSY);
-    let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), wait, sender_pid);
+    let mut meta = IpcReqMeta::default();
+    let n = mk_ipc_recv_req(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), wait, &mut meta);
+    *sender_pid = meta.sender;
+    REQUEST.store(if n > 0 { meta.request } else { 0 }, Ordering::Relaxed);
     if n > 0 {
         note_work(&BUSY);
     } else {

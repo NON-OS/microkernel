@@ -1,0 +1,18 @@
+[
+ {
+  "name": "net-core-held-answer-by-no-id",
+  "file": "userland/capsule_net_core/src/server/respond.rs",
+  "old": "    mk_ipc_reply_to(ipc, tx.as_ptr(), n)\n",
+  "new": "    mk_ipc_reply_to(0, tx.as_ptr(), n)\n",
+  "test": "server::",
+  "crate": "userland/net_core_proofs"
+ },
+ {
+  "name": "net-core-keeps-a-stale-request-id",
+  "file": "userland/capsule_net_core/src/server/runner/receive.rs",
+  "old": "    REQUEST.store(if n > 0 { meta.request } else { 0 }, Ordering::Relaxed);\n",
+  "new": "    if n > 0 {\n        REQUEST.store(meta.request, Ordering::Relaxed);\n    }\n",
+  "test": "server::",
+  "crate": "userland/net_core_proofs"
+ }
+]
