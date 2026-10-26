@@ -150,6 +150,8 @@ pub enum SyscallNumber {
     MkForeignExec = tag4(b"MFEX"),
     MkLinuxRunNet = tag4(b"MLRN"),
     MkSealRead = tag4(b"MSLR"),
+    MkSealPeek = tag4(b"MSLP"),
+    MkSealDrop = tag4(b"MSLD"),
     MkSealNote = tag4(b"MSNT"),
     MkProveJob = tag4(b"MPJB"),
     MkLocalSign = tag4(b"MLSG"),
