@@ -34,7 +34,7 @@ pub(in crate::linux::install) fn fetch(pkg: &Pkg, pin: Option<&[u8; 32]>) -> Res
     heap("fetched", &pkg.name);
     if pin.is_some_and(|want| blake3::hash(&apk).as_bytes() != want) {
         say(b"[LINUX] package is not the one the market listed\n");
-        return Err(Why::Package);
+        return Err(Why::PACKAGE);
     }
     let files = pkg.checksum.ok_or(Refused::Bad).and_then(|sum| verified(&apk, &sum));
     drop(apk);
@@ -46,11 +46,11 @@ pub(in crate::linux::install) fn fetch(pkg: &Pkg, pin: Option<&[u8; 32]>) -> Res
                 "[LINUX] install failed: not enough memory to unpack {name} ({n} bytes)\n"
             )
             .as_bytes());
-            Why::UnpackMemory
+            Why::UNPACK_MEMORY
         }
         Refused::Bad => {
             say(b"[LINUX] package did not download, or does not match its index record\n");
-            Why::Package
+            Why::PACKAGE
         }
     })
 }

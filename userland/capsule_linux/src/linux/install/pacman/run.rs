@@ -32,32 +32,32 @@ use crate::linux::install::Why;
 
 pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
     let Some(src) = source() else {
-        return say(b"[LINUX] this image was built without a pacman mirror\n", Why::NoMirror);
+        return say(b"[LINUX] this image was built without a pacman mirror\n", Why::NO_MIRROR);
     };
     let Some(ring) = pinned() else {
-        return say(b"[LINUX] this image pins no pacman keyring\n", Why::NoKeyring);
+        return say(b"[LINUX] this image pins no pacman keyring\n", Why::NO_KEYRING);
     };
     super::super::http::reachable(src.at())?;
     let Some(db) = load(&src, &ring) else {
-        return say(b"[LINUX] no verified pacman database\n", Why::Index);
+        return say(b"[LINUX] no verified pacman database\n", Why::INDEX);
     };
     let max = max_packages();
     let mut wanted: Vec<String> = vec![String::from(name)];
     let mut done: Vec<String> = Vec::new();
     while let Some(next) = wanted.pop() {
         let Some((rec, repo)) = find(&db.records, &next, done.is_empty()) else {
-            return say(b"[LINUX] nothing provides it\n", Why::NotProvided);
+            return say(b"[LINUX] nothing provides it\n", Why::NOT_PROVIDED);
         };
         if done.contains(&rec.name) {
             continue;
         }
         if done.len() == max {
             let line = alloc::format!("[LINUX] refused: closure passes {max} packages\n");
-            return say(line.as_bytes(), Why::TooLarge);
+            return say(line.as_bytes(), Why::TOO_LARGE);
         }
         let chosen = rec.name == name;
         let Some(files) = fetch(&src, &ring, repo, rec, chosen.then_some(pin)) else {
-            return Err(Why::Package);
+            return Err(Why::PACKAGE);
         };
         unpack(&files, &rec.name, chosen, false)?;
         done.push(rec.name.clone());
