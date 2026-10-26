@@ -32,11 +32,14 @@ mod compose;
 mod constants;
 mod desktop_shots;
 mod frame;
+mod game_2048_palette;
 #[path = "geometry_mount.rs"]
 mod geometry;
 mod modes;
 mod png;
 mod ring;
+mod terminal_damage;
 mod terminal_geometry;
 mod terminal_shots;
+mod terminal_tabs;
 mod wallpaper_mount;
