@@ -46,7 +46,8 @@ from pathlib import Path
 LIMIT = 75
 GENERATED = re.compile(r"Written by tools/.*do not|do not\s*\n//\s*edit\.", re.I)
 ALLOW = re.compile(r"^\+.*#!?\[\s*allow\s*\(")
-KEY = re.compile(r"^\+.*(BEGIN (EC |OPENSSH |)PRIVATE KEY|NONOS_SIGNING_KEY=)", re.I)
+# Built from parts, so this file's own lines are not key material to itself.
+KEY = re.compile(r"^\+.*(BEGIN (EC |OPENSSH |)PRIVATE KEY|NONOS_SIGNING_" + r"KEY=)", re.I)
 
 
 def git(root, *args, check=True):
@@ -111,7 +112,7 @@ def self_test():
         (root / "off.rs").write_text("pub fn o( ) -> u8 {1}\n")
         (root / "allowed.rs").write_text("#[allow(dead_code)]\nfn a() {}\n")
         (root / "gen.rs").write_text("// Written by tools/x.py; do not edit.\npub fn g( ) {}\n")
-        (root / "notes.txt").write_text("-----BEGIN PRIVATE KEY-----\n")
+        (root / "notes.txt").write_text("-----BEGIN " + "PRIVATE KEY-----\n")
         git(root, "add", "-A")
         git(root, "commit", "-q", "-m", "unit")
         got = sorted(findings(root, "main"))
