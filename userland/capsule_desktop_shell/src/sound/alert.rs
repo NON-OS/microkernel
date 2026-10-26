@@ -53,7 +53,7 @@ pub fn service(policy_ok: bool) {
 }
 
 fn follow() {
-    if TICKS.fetch_add(1, Ordering::Relaxed) % EVERY != 0 {
+    if !TICKS.fetch_add(1, Ordering::Relaxed).is_multiple_of(EVERY) {
         return;
     }
     let mut port = PORT.load(Ordering::Relaxed);
