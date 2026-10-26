@@ -9,8 +9,8 @@ stateDiagram-v2
   Power --> DeadMmio
   Power --> Firmware
   Firmware --> FirmwareFailed
+  Firmware --> NoDma
   Firmware --> Radio
-  Radio --> NoDma
   Radio --> EfuseFailed
   Radio --> NoStationAddress
   Radio --> Ready
@@ -20,11 +20,13 @@ The driver goes as far as it can and then serves whatever stage it reached, so t
 
 1. Claim: `start_driver` finds the chip, claims it and maps its registers (`userland/capsule_driver_rtl8821ce/src/main.rs:87-95`, `start_driver`). With no chip the capsule exits with `EXIT_ABSENT` (2). A refused claim is retried on the shared bring-up schedule in `nonos_libc`: 7 attempts, the sleep between them starting at 100 ms and doubling up to 3.2 s (`userland/libc/src/bringup/policy.rs:30-35`, `BRINGUP_ATTEMPTS`, `BRINGUP_MAX_DELAY_MS`). Running out leaves the driver serving `NotClaimed`.
 2. Power: the power-on sequence runs and the chip is read back (`userland/capsule_driver_rtl8821ce/src/main.rs:96-106`, `probe`). Failure stops at `PowerFailed` or `DeadMmio`.
-3. The PCIe link is held out of L1, which gates clocks inside the chip. A DBI read or write that never completes is named on the console (`userland/capsule_driver_rtl8821ce/src/start_board.rs`, `link_and_board`; `userland/capsule_driver_rtl8821ce/src/pcie/mod.rs`, `hold_link_awake`). The PCIe completion timeout is left on, unlike rtw88, so a completion that never comes ends in an error rather than a DMA engine waiting for good.
+3. The PCIe link is held out of L1, which gates clocks inside the chip. A DBI read or write that never completes is named on the console (`userland/capsule_driver_rtl8821ce/src/start_board.rs`, `link_and_board`; `userland/capsule_driver_rtl8821ce/src/pcie/awake.rs`, `hold_link_awake`). The PCIe completion timeout is left on, unlike rtw88, so a completion that never comes ends in an error rather than a DMA engine waiting for good.
 4. The efuse is read on the freshly powered MAC (`userland/capsule_driver_rtl8821ce/src/start_board.rs`, `link_and_board`; `userland/capsule_driver_rtl8821ce/src/efuse/info.rs`, `read`).
-5. Firmware: the 8051 firmware is downloaded through reserved-page staging and DDMA (`userland/capsule_driver_rtl8821ce/src/main.rs:132-139`, `fwload::load`). Failure stops at `FirmwareFailed`.
-6. The transmit and receive engines are enabled and the MAC table runs (`userland/capsule_driver_rtl8821ce/src/main.rs:140-152`, `init_trx_cfg`, `run_mac_table`). An engine that does not start also stops at `FirmwareFailed`.
-7. Radio: `build_radio` maps the DMA rings, configures the PHY from the efuse and draws the station address (`userland/capsule_driver_rtl8821ce/src/serve/radio/up.rs`, `build_radio`). Failures stop at `NoDma`, at `EfuseFailed` for an efuse that still does not read or an RF front-end with no register table, or at `NoStationAddress` (`userland/capsule_driver_rtl8821ce/src/serve/radio/phy.rs`, `phy_setup`).
+5. Firmware: the 8051 firmware is downloaded through reserved-page staging and DDMA (`userland/capsule_driver_rtl8821ce/src/fwload/load.rs`, `load`). Failure stops at `FirmwareFailed`. The staging buffer and beacon ring are kept for power save's reserved pages.
+6. The data path's four DMA regions are mapped, and the card is pointed at both rings before the transmit and receive engines are enabled, as rtw88 sets the rings up before `rtw_mac_init`; then the MAC table runs (`userland/capsule_driver_rtl8821ce/src/start_ready.rs`, `up_to_ready`; `userland/capsule_driver_rtl8821ce/src/link/rings.rs`, `engines_on`). A region that does not map stops at `NoDma`; an engine that does not start stops at `FirmwareFailed`.
+7. Radio: `build_radio` configures the PHY from the efuse and draws the station address (`userland/capsule_driver_rtl8821ce/src/serve/radio/up.rs`, `build_radio`). Failures stop at `EfuseFailed` for an efuse that still does not read or an RF front-end with no register table, or at `NoStationAddress` (`userland/capsule_driver_rtl8821ce/src/serve/radio/phy.rs`, `phy_setup`).
+
+Every DMA region, the firmware's staging buffer and beacon ring among them, is mapped uncached and below 4 GiB, since the buffer descriptors carry 32-bit addresses. A grant that still ends above 4 GiB is given back and the map refused (`userland/capsule_driver_rtl8821ce/src/fwload/map.rs`, `map_dma32`).
 
 A bring-up that passes every phase ends at `Ready`. The stage numbers are listed in `Stage` (`userland/capsule_driver_rtl8821ce/src/serve/stage.rs:19-43`) and their panel texts on the [Wi-Fi overview](../overview/stages.md#bring-up-stages).
 

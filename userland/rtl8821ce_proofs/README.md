@@ -8,7 +8,7 @@ same way.
 
 ## What it proves
 
-152 `#[test]` functions, among them:
+256 `#[test]` functions, among them:
 
 - the power sequence, efuse read, firmware header, sections, staging and
   download over DDMA and H2C (`pwr_tests`, `efuse_tests`, `fw_tests`,
@@ -22,7 +22,15 @@ same way.
 - association, the link and the link port net_core drives (`assoc_tests`,
   `link_tests`, `linkport_tests`);
 - the hardware security engine key install (`sec_tests`);
-- the answer to a frame neither request family takes (`serve_refuse_tests`).
+- the answer to a frame neither request family takes (`serve_refuse_tests`);
+- every DMA region within 32-bit reach and the rings set before the engines
+  run (`dma_tests`), and a card that left the bus (`linkport_tests::gone`);
+- power save: the host's Link Control, the chip's L1 enables, the watch, the
+  firmware commands and reserved pages, on the link and the serving radio
+  (`ps_tests`, `serve::busy_tests`, `serve::sleep_tests`);
+- the whole serve stage, mounted file by file with a libc shim for its kernel
+  calls, fed hostile requests from net_core and strangers, and a hunt fed
+  hostile frames (`serve::hostile_tests`, `serve::connect::hunt_tests`).
 
 The crate includes `firmware/rtw8821c_fw.bin` with `include_bytes!`; without
 that file it does not compile.
