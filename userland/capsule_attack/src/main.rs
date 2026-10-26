@@ -35,6 +35,7 @@ mod errno;
 mod line;
 mod medium;
 mod reply_escape;
+mod reply_seen;
 mod reply_twice;
 
 /// # Safety
