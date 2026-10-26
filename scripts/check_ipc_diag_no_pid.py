@@ -48,7 +48,7 @@ def problems(diag: str, sources: dict) -> list:
 
 SETTLE = "src/syscall/microkernel/ipc/call/settle.rs"
 CASES = [("as built", lambda d, s: (d, s), 0),
-         ("unanswered prints caller", lambda d, s: (d.replace('b" unanswered ");', 'b" unanswered ");\n        serial::print(b" caller=");'), s), 2),
+         ("unanswered prints caller", lambda d, s: (d.replace('.str(b" unanswered ")', '.str(b" unanswered caller=")'), s), 2),
          ("silent_for takes a pid", lambda d, s: (d.replace("pub fn silent_for(&self, what: &str,", "pub fn silent_for(&self, what: &str, pid: u32,"), s), 1),
          ("site calls refused", lambda d, s: (d, {**s, SETTLE: s[SETTLE].replace("STARVED.starved(&endpoint.name, rc)", "STARVED.refused(&endpoint.name, pid, 0, 0)")}), 1),
          ("label renamed", lambda d, s: (d, {p: t.replace(LABEL, 'Site::new(b"ipc.cal")') for p, t in s.items()}), 1)]
