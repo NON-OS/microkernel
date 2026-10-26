@@ -19,6 +19,7 @@
 
 mod access_page_tests;
 mod connect_request_tests;
+mod fit_tests;
 mod handoff_race_tests;
 mod handoff_rig;
 mod handoff_tests;
