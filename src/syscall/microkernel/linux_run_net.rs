@@ -23,19 +23,26 @@
 //! app.linux.run may ask, only for itself, and only for the package init
 //! started it for, so a capsule that holds ForeignExec gains nothing by
 //! asking, and the network role re-binds the policy and exits without
-//! NET_ANON.
+//! NET_ANON. The process registered as app.linux.term may ask too, for
+//! itself: its Terminal is then given one start of the same argv in the
+//! terminal's network role (capsule_linux/term_ticket.rs).
 
 use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_PERM};
-use crate::userspace::capsule_linux::{run_net_busy, run_package_of};
+use crate::userspace::capsule_linux::{asked_by_terminal_role, run_net_busy, run_package_of};
 
-/// `MkLinuxRunNet(pid)`. 0 once the run is queued for init; EPERM when `pid`
-/// is not the caller, or the caller is not the run role started by init for
-/// a package; EBUSY when a run already holds the network role or init's
-/// queue is full or already holds this run.
+/// `MkLinuxRunNet(pid)`. 0 once the run is queued for init, or a terminal
+/// run's ticket written; EPERM when `pid` is not the caller, or the caller
+/// is neither the run role started by init for a package nor the terminal
+/// role; EBUSY when a run already holds the network role, a ticket waits,
+/// or init's queue is full or already holds this run.
 pub fn sys_linux_run_net(pid: u64) -> i64 {
     let Some(caller) = caller_group() else { return ERRNO_PERM };
     if pid != u64::from(caller) {
         return ERRNO_PERM;
+    }
+    // The Terminal's own `linux` run: a ticket for its Terminal (term_ticket.rs).
+    if let Some(rc) = asked_by_terminal_role(caller) {
+        return rc;
     }
     let Some(package) = run_package_of(caller) else { return ERRNO_PERM };
     if run_net_busy() {

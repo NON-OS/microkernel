@@ -22,23 +22,19 @@ mod modifier;
 // keyboard's do: the same layout, the same codes, the same repeat. So the
 // USB HID driver's own files are compiled here, not copied: one change
 // there changes both.
-#[allow(dead_code)]
 #[path = "../../../capsule_driver_usb_hid/src/hid/active.rs"]
 mod active;
-#[allow(dead_code)]
 #[path = "../../../capsule_driver_usb_hid/src/hid/key_event.rs"]
 mod key_event;
-#[allow(dead_code)]
-#[path = "../../../capsule_driver_usb_hid/src/hid/keymap/mod.rs"]
-mod keymap;
 #[path = "../../../capsule_driver_usb_hid/src/hid/key_post.rs"]
 mod key_post;
+#[path = "../../../capsule_driver_usb_hid/src/hid/keymap/mod.rs"]
+mod keymap;
 #[path = "../../../capsule_driver_usb_hid/src/hid/post_key.rs"]
 mod post_key;
 #[allow(dead_code)]
 #[path = "../../../capsule_driver_usb_hid/src/hid/post_wire.rs"]
 mod post_wire;
-#[allow(dead_code)]
 #[path = "../../../capsule_driver_usb_hid/src/hid/keyboard/repeat/mod.rs"]
 mod repeat;
 #[path = "../../../capsule_driver_usb_hid/src/hid/usage_keycode/mod.rs"]

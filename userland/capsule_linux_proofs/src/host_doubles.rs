@@ -31,6 +31,12 @@ pub mod private {
     pub fn root() -> Vec<u8> {
         Vec::new()
     }
+    pub fn in_home(_visible: &[u8]) -> bool {
+        false
+    }
+    pub fn home_root() -> Option<Vec<u8>> {
+        None
+    }
 }
 
 pub mod clamp {
