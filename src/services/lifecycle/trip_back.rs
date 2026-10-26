@@ -37,7 +37,7 @@ impl<T> TripLock<T> {
     /// waiting one too, so the new process is never taken for it.
     pub fn forget(&self, pid: u32) {
         let _quiet = super::rest_mark::quiet();
-        let mut rows = self.rows.lock();
+        let mut rows = crate::smp::lock_responsive(&self.rows);
         if rows.sweep(|p| p == pid) {
             self.left(true);
         }
