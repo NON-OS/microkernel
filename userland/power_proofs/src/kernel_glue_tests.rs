@@ -40,7 +40,9 @@ fn the_kernel_registers_power_off_at_spawn_on_the_declared_port() {
     assert!(PLAN.contains("c::spawn_power_capsule"));
     // First, so the name is the power service's even with an ACPI capsule
     // built in, whose mirror would register it too.
-    assert!(PLAN.contains("pub(super) fn spawn() {\n    spawn_power();\n    spawn_acpi();\n}"));
+    assert!(PLAN.contains(
+        "pub(super) fn spawn() {\n    spawn_power();\n    crate::arch::acpi_first_pass_wait(spawn_acpi());\n}"
+    ));
 }
 
 #[test]
