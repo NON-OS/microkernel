@@ -1,0 +1,29 @@
+run:echo hello from the person > notes.txt:15
+run:market install linux.age:30
+raw:until:[LINUX] installed:900
+raw:shot:installed
+# fail-closed 3a: a program of the package the policy does not name
+run:linux /usr/bin/age-keygen:60
+run:linux age --version:60
+# can: encrypt and decrypt in its own home
+run:linux age -p -a -o /home/age/a.age /etc/passwd:40
+say:pw
+say:pw
+raw:wait:90
+raw:shot:enc
+run:linux age -d /home/age/a.age:40
+say:pw
+raw:wait:90
+raw:shot:dec
+# refused: writing outside its home
+run:linux age -p -o /tmp/x.age /etc/passwd:40
+say:pw
+say:pw
+raw:wait:60
+raw:shot:out_tmp
+# refused: the person's files
+run:linux age -p -a /home/nonos/notes.txt:40
+say:pw
+say:pw
+raw:wait:60
+raw:shot:person

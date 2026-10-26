@@ -3,8 +3,8 @@
 Which parts that PCs, laptops and servers shipped from 2017 to 2026 NONOS can drive, which it
 cannot, and who closes each gap. It is the list of what to write and what to boot next; the
 [support matrix](MATRIX.md) is the list of what has been shown to work. The engineering
-view, with each driver's blockers and the procedures per driver, is the hardware-breadth
-session's [HANDOFF/hardware](../../HANDOFF/hardware/README.md); the owners here match it.
+view, with each driver's blockers and the procedures per driver, is
+[what "booted" means](booted.md); the owners here match it.
 
 ## How to read it
 

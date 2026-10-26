@@ -16,7 +16,7 @@
 
 //! Spawning the ACPI capsule.
 //!
-//! Its capabilities, each for one thing it does (HANDOFF/letters/f/08):
+//! Its capabilities, each for one thing it does:
 //! IPC to serve port 4530; Memory for its heap and the interpreter's
 //! objects; DeviceEnum to find the kernel's SCI record and Driver to claim
 //! it; Irq to bind the SCI; Admin for MkAcpiTable, MkAcpiRegion, MkAcpiPort

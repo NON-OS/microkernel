@@ -14,7 +14,7 @@ pub struct TextStyle {
 }
 
 /*
- * The NØNOS type roles (HANDOFF/ui/identity.md): the brand's ramp of 1.2 a step
+ * The NØNOS type roles (docs/design/ui-identity.md): the brand's ramp of 1.2 a step
  * from a 17 px body, in logical pixels at 1x, each with the line it sits on.
  * Labels are the only role under 14, and they are drawn in mono capitals.
  */
