@@ -19,7 +19,8 @@
 use super::state::LOGGER;
 
 /// Start the logger's backends, once, from boot as soon as the heap is up
-/// (every log macro formats into the heap). The RAM log needs no start.
+/// (every log macro formats into the heap). The RAM log needs no start:
+/// LOGGER is built in place (330 KiB, never through the boot stack).
 /// There is no screen backend: the kernel's one x86 entry is the NONOS
 /// loader's UEFI handoff, whose console is the GOP framebuffer, so no VGA
 /// text console exists to mirror the log onto. The serial echo is the
