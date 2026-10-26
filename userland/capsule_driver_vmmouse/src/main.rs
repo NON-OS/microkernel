@@ -39,6 +39,9 @@ const DRIVER: &[u8] = b"driver.vmmouse";
 
 /// With no backdoor the driver says so and leaves. With one, enabling the
 /// pointer is tried on the shared bounded schedule.
+///
+/// # Safety
+/// The kernel enters here once, on the capsule's own fresh stack.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     let Some(version) = setup::version() else {

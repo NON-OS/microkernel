@@ -47,6 +47,9 @@ const EXIT_CHANNEL_BROKEN: i32 = 2;
 /// everything back when a step fails; the attempts are bounded and slept
 /// between. Then it serves frames until the host breaks the channel, and
 /// gives everything back.
+///
+/// # Safety
+/// The kernel enters here once, on the capsule's own fresh stack.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
