@@ -23,6 +23,8 @@ extern crate alloc;
 mod abandoned;
 #[path = "../../../../src/syscall/microkernel/ipc/pending_reply/death.rs"]
 mod death;
+#[path = "../../../../src/syscall/microkernel/ipc/pending_reply/entry.rs"]
+pub(crate) mod entry;
 
 #[cfg(test)]
 mod order;

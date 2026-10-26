@@ -107,10 +107,6 @@ src/kernel_core/init/entry/init_vm_and_protection.rs 1
 src/kernel_core/init/framebuffer/init.rs 1
     GAP: PAT program for WC. Elsewhere: uncached framebuffer (no WC)
 
-src/kernel_core/init/start_secondary.rs 1
-    adopt LAPIC state before SIPI. Elsewhere: NOTE: gated by nonos-smp only, no arch cfg; arch boots
-    CPUs
-
 src/log/backend/vga.rs 5
     VGA text writes. Elsewhere: nothing: absent
 
