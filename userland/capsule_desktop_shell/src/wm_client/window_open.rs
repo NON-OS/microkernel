@@ -17,6 +17,7 @@
 use nonos_libc::mk_ipc_call_timeout;
 
 use crate::protocol::read_i32;
+use crate::render::layout::Rect;
 
 const MAGIC: u32 = 0x4E57_4D50;
 const VERSION: u16 = 1;
@@ -31,11 +32,9 @@ pub fn window_open(
     request_id: u32,
     window_id: u32,
     kind: u32,
-    x: u32,
-    y: u32,
-    width: u32,
-    height: u32,
+    frame: Rect,
 ) -> Result<(), &'static str> {
+    let Rect { x, y, width, height } = frame;
     let mut tx = [0u8; HDR_LEN + BODY_LEN];
     tx[0..4].copy_from_slice(&MAGIC.to_le_bytes());
     tx[4..6].copy_from_slice(&VERSION.to_le_bytes());

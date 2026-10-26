@@ -48,16 +48,8 @@ pub(super) fn claim_presses(ctx: &mut Context, panel: Option<Rect>) {
     let _ = wm_client::window_close(ctx.ports.wm_port, rid, TOAST_WINDOW_ID);
     if let Some(p) = panel {
         let rid = ctx.issue_request_id();
-        let _ = wm_client::window_open(
-            ctx.ports.wm_port,
-            rid,
-            TOAST_WINDOW_ID,
-            WINDOW_KIND_POPUP,
-            p.x,
-            p.y,
-            p.width,
-            p.height,
-        );
+        let _ =
+            wm_client::window_open(ctx.ports.wm_port, rid, TOAST_WINDOW_ID, WINDOW_KIND_POPUP, p);
     }
 }
 

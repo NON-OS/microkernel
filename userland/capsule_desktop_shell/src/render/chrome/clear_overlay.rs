@@ -15,18 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::render::fill::fill_rect;
+use crate::render::layout::Rect;
 use crate::state::Context;
 
 pub fn clear_overlay(ctx: &Context) {
-    fill_rect(
-        ctx.backing_va,
-        ctx.stride,
-        ctx.width,
-        ctx.height,
-        0,
-        0,
-        ctx.width,
-        ctx.height,
-        super::constants::TRANSPARENT,
-    );
+    let whole = Rect { x: 0, y: 0, width: ctx.width, height: ctx.height };
+    fill_rect(ctx, whole, super::constants::TRANSPARENT);
 }

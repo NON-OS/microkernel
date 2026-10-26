@@ -16,17 +16,14 @@
 
 //! A rectangle filled with one colour, clipped to the surface.
 
-pub fn fill_rect(
-    base_va: u64,
-    stride_bytes: u32,
-    surface_width: u32,
-    surface_height: u32,
-    rect_x: u32,
-    rect_y: u32,
-    rect_w: u32,
-    rect_h: u32,
-    argb: u32,
-) {
+use crate::render::layout::Rect;
+use crate::state::Context;
+
+/// Fill `r` on the context's overlay backing.
+pub fn fill_rect(ctx: &Context, r: Rect, argb: u32) {
+    let (base_va, stride_bytes) = (ctx.backing_va, ctx.stride);
+    let (surface_width, surface_height) = (ctx.width, ctx.height);
+    let (rect_x, rect_y, rect_w, rect_h) = (r.x, r.y, r.width, r.height);
     if rect_w == 0 || rect_h == 0 || rect_x >= surface_width || rect_y >= surface_height {
         return;
     }

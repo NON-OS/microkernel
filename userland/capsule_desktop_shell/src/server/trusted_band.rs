@@ -19,7 +19,7 @@
 //! old, so the compositor never shows the chrome in neither. A refusal
 //! leaves `up` as it was, and the next repaint tries again.
 
-use crate::compositor_client::{push_scene_submit, scene_remove_band::remove_band};
+use crate::compositor_client::{push_scene_submit, scene_remove_band::remove_band, Placement};
 use crate::state::trusted_rule::{in_band, moves};
 use crate::state::Context;
 
@@ -40,7 +40,8 @@ pub fn sync(ctx: &mut Context) {
     };
     let rid = ctx.issue_request_id();
     let (port, handle, w, h) = (ctx.ports.compositor_port, t.chrome_handle, ctx.width, ctx.height);
-    if push_scene_submit(port, rid, handle, 0, 0, w, h, place).is_err() {
+    let at = Placement { x: 0, y: 0, width: w, height: h, z: place };
+    if push_scene_submit(port, rid, handle, &at).is_err() {
         return;
     }
     let rid = ctx.issue_request_id();
