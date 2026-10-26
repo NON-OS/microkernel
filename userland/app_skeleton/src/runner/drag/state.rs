@@ -51,7 +51,12 @@ impl DragState {
 }
 
 pub(in crate::runner) enum PointerAction {
+    /// Not the frame's: the event goes on to the app.
     None,
+    /// The frame's, with nothing to apply: a press on an edge, the motion of
+    /// a resize, its release where it began. The app never sees it, so the
+    /// row under an edge is not clicked by the press that resizes.
+    Held,
     MoveTo(u32, u32),
     /// A drag of the right or bottom edge: the origin stays.
     ResizeTo(u32, u32),
