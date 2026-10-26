@@ -24,13 +24,16 @@ mod bar;
 #[path = "../../../../../../src/hardware/broker/device/bus.rs"]
 mod bus;
 #[path = "../../../../../../src/hardware/broker/device/flags.rs"]
-#[allow(dead_code)] // the proofs read only the flags the platform record sets
 mod flags;
+#[cfg(test)]
+mod libc_tests;
+#[cfg(test)]
+pub mod libc_types;
 #[path = "../../../../../../src/hardware/broker/device/record.rs"]
 mod record;
 
-pub use bar::{Bar, BarKind};
 pub(super) use bar::BAR_KIND_MMIO;
+pub use bar::{Bar, BarKind};
 pub use bus::BusKind;
 pub use flags::{
     BAR_FLAG_FIXED, DEVICE_FLAG_DEPS_UNMET, DEVICE_FLAG_IRQ_ACTIVE_LOW, DEVICE_FLAG_IRQ_EDGE,

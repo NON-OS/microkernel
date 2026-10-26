@@ -16,25 +16,21 @@
 
 //! The kernel's block wire client (src/hardware/block_device/wire), the
 //! parts the capsule must agree with: the header constants, the GEOMETRY
-//! decoder and the status names.
+//! decoder and the status names. Only the tests read it.
+
+#![cfg(test)]
 
 #[path = "../../../../src/hardware/block_device/wire/decode.rs"]
-#[allow(dead_code)]
 pub mod decode;
 #[path = "../../../../src/hardware/block_device/wire/error.rs"]
-#[allow(dead_code)]
 pub mod error;
 #[path = "../../../../src/hardware/block_device/wire/frame.rs"]
-#[allow(dead_code)]
 pub mod frame;
 #[path = "../../../../src/hardware/block_device/wire/header.rs"]
-#[allow(dead_code)]
 pub mod header;
 #[path = "../../../../src/hardware/block_device/wire/identity.rs"]
-#[allow(dead_code)]
 pub mod identity;
 #[path = "../../../../src/hardware/block_device/wire/status.rs"]
-#[allow(dead_code)]
 pub mod status;
 
 #[cfg(test)]

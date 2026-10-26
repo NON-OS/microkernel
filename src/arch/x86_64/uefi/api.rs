@@ -70,16 +70,6 @@ pub fn get_uefi_stats() -> UefiStats {
 }
 
 #[inline]
-pub fn verify_runtime_services() -> bool {
-    is_initialized() && UEFI_MANAGER.get_firmware_info().runtime_services_supported
-}
-
-#[inline]
-pub fn verify_boot_services() -> bool {
-    true
-}
-
-#[inline]
 pub fn get_time() -> Result<EfiTime, UefiError> {
     UEFI_MANAGER.get_time()
 }

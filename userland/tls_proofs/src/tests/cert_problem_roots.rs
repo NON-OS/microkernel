@@ -41,3 +41,13 @@ fn an_unreadable_list_says_so() {
     assert_eq!(cert_problem(&message(&[]), b"example.com", INSIDE), Some(CertProblem::Unreadable));
     assert_eq!(cert_problem(&[], b"example.com", INSIDE), Some(CertProblem::Unreadable));
 }
+
+/* The local test chain's throwaway root, which only a devnet build knows. */
+#[path = "dev_root.rs"]
+mod dev_root;
+#[path = "dev_root_path.rs"]
+mod dev_root_path;
+#[path = "dev_root_refusals.rs"]
+mod dev_root_refusals;
+#[path = "dev_root_trust.rs"]
+mod dev_root_trust;

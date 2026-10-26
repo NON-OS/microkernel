@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Encoders for the replies net_core reads: MAC address and received
-//! frames.
+//! Encoders for the replies net_core reads: the MAC address (received
+//! frames are rx_response.rs).
 
 use super::*;
 
@@ -30,26 +30,6 @@ pub(super) fn mac_response(out: &mut [u8], rid: u32, mac: Option<[u8; 6]>) -> Op
     put_i32(out, n, status)?;
     out.get_mut(n + 4..n + 10)?.copy_from_slice(&addr);
     Some(n + 10)
-}
-
-// Response: header + i32 status + u32 frame_len + frame. An empty poll is a
-// retry status with no frame, exactly what net_core drains against.
-pub(super) fn rx_response<L: LinkPort>(out: &mut [u8], rid: u32, link: &mut L) -> Option<usize> {
-    let mut frame = [0u8; MAX_FRAME];
-    match link.poll_rx(&mut frame) {
-        Some(len) if len <= MAX_FRAME => {
-            let n = write_response_header(out, OP_RX_PACKET, rid, (4 + 4 + len) as u32)?;
-            put_i32(out, n, 0)?;
-            out.get_mut(n + 4..n + 8)?.copy_from_slice(&(len as u32).to_le_bytes());
-            out.get_mut(n + 8..n + 8 + len)?.copy_from_slice(&frame[..len]);
-            Some(n + 8 + len)
-        }
-        _ => {
-            let n = write_response_header(out, OP_RX_PACKET, rid, 4)?;
-            put_i32(out, n, STATUS_AGAIN)?;
-            Some(n + 4)
-        }
-    }
 }
 
 pub(super) fn put_i32(out: &mut [u8], at: usize, val: i32) -> Option<()> {
