@@ -24,20 +24,15 @@ extern crate alloc;
 use alloc::collections::VecDeque;
 use spin::Mutex;
 
-const KEPT: usize = 256;
-
 static GONE: Mutex<VecDeque<(u32, u64)>> = Mutex::new(VecDeque::new());
-
-#[allow(dead_code)] // marked by the x86 release path alone, for now
-pub(super) fn mark(pid: u32, grant_id: u64) {
-    let mut g = GONE.lock();
-    if g.len() == KEPT {
-        g.pop_front();
-    }
-    g.push_back((pid, grant_id));
-}
 
 /// Whether `grant_id` was `pid`'s and a depart took it.
 pub fn departed(pid: u32, grant_id: u64) -> bool {
     GONE.lock().iter().any(|&(p, id)| p == pid && id == grant_id)
+}
+
+crate::arch::acpi_only! {
+    #[path = "gone/mark.rs"]
+    mod mark;
+    pub(super) use mark::mark;
 }
