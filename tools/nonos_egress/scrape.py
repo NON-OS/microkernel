@@ -17,7 +17,7 @@
 committed allowlist.json: a pinned address or port that changes in the
 source fails the run until a reviewer commits the new list.
 
-  - names: the TLS names Nym's directory client pins (pinned.rs)
+  - names: the TLS name Nym's directory client pins (live.rs)
   - Nym's directory API: its addresses (live.rs), on HTTPS_PORT (fetch_at.rs)
   - Nym's bootstrap gateways, each with its port (state/bootstrap.rs)
   - Anyone's directory authorities, each with its dir_port (authority/list.rs);
@@ -39,7 +39,7 @@ def _ip(m, at=1):
 
 def scrape(root=Path(".")):
     read = lambda p: (root / p).read_text()
-    names = re.findall(r'\("([a-z0-9.-]+)", ' + QUAD + r"\)", read(NYM / "directory_sync/pinned.rs"))
+    names = re.findall(r'API_HOST: &str = "([a-z0-9.-]+)";', read(NYM / "directory_sync/live.rs"))
     https = re.search(r"const HTTPS_PORT: u16 = (\d+);", read(NYM / "directory_sync/fetch_at.rs"))
     api = re.search(r"API_ADDRESSES: &\[\[u8; 4\]\] = &\[(.*?)\];", read(NYM / "directory_sync/live.rs"), re.S)
     if not (names and https and api):
@@ -54,4 +54,4 @@ def scrape(root=Path(".")):
     if not any(p.get("authority") for p in peers) or len(peers) < 3:
         raise ValueError("the gateways or the authorities moved in the source")
     peers.sort(key=lambda p: (p["what"], tuple(int(x) for x in p["ip"].split(".")), p["port"]))
-    return {"format": FORMAT, "names": sorted({n[0] for n in names}), "peers": peers}
+    return {"format": FORMAT, "names": sorted(set(names)), "peers": peers}

@@ -14,22 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::compute::compute_mac;
-use crate::crypto::types::CryptoError;
-use crate::sphinx::constants::{HEADER_INTEGRITY_MAC_SIZE, INTEGRITY_MAC_KEY_SIZE};
+//! Telling a lost conversation from a new one.
 
-/// Recompute and compare without an early exit. A comparison that returned on
-/// the first differing byte would leak, through timing, how much of a forged
-/// MAC was right, which is enough to build the rest of it a byte at a time.
-pub fn verify_mac(
-    key: &[u8; INTEGRITY_MAC_KEY_SIZE],
-    data: &[u8],
-    expected: &[u8; HEADER_INTEGRITY_MAC_SIZE],
-) -> Result<bool, CryptoError> {
-    let got = compute_mac(key, data)?;
-    let mut diff = 0u8;
-    for (a, b) in got.iter().zip(expected.iter()) {
-        diff |= a ^ b;
-    }
-    Ok(diff == 0)
+/// The first number of a conversation, after its reset.
+pub const FIRST_SEQ: u32 = 1;
+
+/// Whether exchange `seq` asks for a conversation this proxy lost: not the
+/// first of one, while no conversation is `held` for its stream and no
+/// answer is `kept` for that number.
+pub fn lost(seq: u32, held: bool, kept: bool) -> bool {
+    seq != FIRST_SEQ && !held && !kept
 }
