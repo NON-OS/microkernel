@@ -17,7 +17,6 @@
 pub mod cpus;
 pub mod framebuffer;
 pub mod gic;
-pub mod i2c;
 pub mod idle;
 pub mod iommus;
 pub mod isa;
