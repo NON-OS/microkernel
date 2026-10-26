@@ -1,0 +1,11 @@
+#!/bin/bash
+# S-14's image, scratch only: privacy/s14-installer-admin at $1, the standard
+# profile's development twin (installer and install-cli included).
+SP=/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad
+P=$SP/s14; mkdir -p $P
+cd /home/user/pk-build && git reset -q --hard && git clean -qfd tools/nix mk userland/capsule_proof_io >/dev/null
+git checkout -q --detach "${1:?head}" || exit 1
+git log --oneline -1 | tee $P/head.txt
+NIX_CONFIG=$'max-jobs = 4\ncores = 4' python3 tools/nonos-dev-image --profile standard > $SP/devimg-s14.log 2>&1 || { echo IMAGE-FAILED; tail -30 $SP/devimg-s14.log; exit 1; }
+sha256sum /home/user/pk-build/target/dev/tree/target/release/standard-dev/nonos.img | tee -a $P/head.txt
+echo BUILT
