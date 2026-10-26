@@ -115,8 +115,8 @@ pub fn zerostate_shutdown_wipe() {
     // claims the heap first and init returns early once it is initialized. The
     // wipe was erasing an unmapped range while every heap-resident secret, IPC
     // payloads and loader scratch among them, stayed in DRAM.
-    if let Some((heap_start, heap_size)) = crate::memory::heap::get_allocator().extent() {
-        dod_5220_erase(heap_start, heap_size);
+    for (start, size) in crate::memory::heap::get_allocator().extents().into_iter().flatten() {
+        dod_5220_erase(start, size);
     }
 }
 
