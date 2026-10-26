@@ -20,6 +20,9 @@ pub mod prompt_bits;
 // Keystroke to screen, as `latency` reports it.
 #[path = "../../capsule_terminal/src/term/latency.rs"]
 pub mod latency;
+// F12's drop-down: its rect and its keys.
+#[path = "../../capsule_terminal/src/term/drop.rs"]
+pub mod drop;
 // Two tabs side by side: the panes, their sides, and the split as tabs move.
 #[path = "../../capsule_terminal/src/term/split.rs"]
 pub mod split;
@@ -29,6 +32,8 @@ pub mod complete_list;
 
 #[cfg(test)]
 mod complete_tests;
+#[cfg(test)]
+mod drop_tests;
 #[cfg(test)]
 mod head_tests;
 #[cfg(test)]
