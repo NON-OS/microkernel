@@ -24,10 +24,14 @@ mod full_screen_tests;
 mod geometry_tests;
 #[path = "hand_off_tests.rs"]
 mod hand_off_tests;
+#[path = "keys_notice_tests.rs"]
+mod keys_notice_tests;
 #[path = "notify_send_tests.rs"]
 mod notify_send_tests;
 #[path = "parse_tests.rs"]
 mod parse_tests;
+#[path = "place_tests.rs"]
+mod place_tests;
 #[path = "press_tests.rs"]
 mod press_tests;
 #[path = "reopen_tests.rs"]
@@ -46,3 +50,5 @@ mod tile_tree_tests;
 mod tile_workspace_tests;
 #[path = "window_share_tests.rs"]
 mod window_share_tests;
+#[path = "wire_pin_tests.rs"]
+mod wire_pin_tests;
