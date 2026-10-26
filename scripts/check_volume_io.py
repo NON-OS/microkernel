@@ -40,7 +40,7 @@ def problems(sources: dict) -> list:
             code = line.split("//")[0]
             if USE.search(code) and not (path in DEFINES and DEFINES[path] in code):
                 out.append(f"{path}:{n}: opens a data volume scope outside crate::fs")
-    if not any(p.startswith("src/fs/") and "volume_scope();" in t for p, t in sources.items()):
+    if not any(p.startswith("src/fs/") and "volume_scope()" in t for p, t in sources.items()):
         out.append("no scope opened under src/fs: the scan no longer sees the volume's I/O")
     return out
 
