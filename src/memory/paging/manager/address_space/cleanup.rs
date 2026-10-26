@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::core::PagingManager;
-use crate::memory::addr::PhysAddr;
 use super::teardown::teardown_user_half;
+use crate::memory::addr::PhysAddr;
 use crate::memory::frame_alloc;
 use crate::memory::paging::constants::KERNEL_ASID;
 use crate::memory::paging::error::{PagingError, PagingResult};
