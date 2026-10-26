@@ -26,21 +26,6 @@ const OPEN: u8 = 2;
 
 static LID: AtomicU8 = AtomicU8::new(UNKNOWN);
 
-/// Records the lid; true when that changed what was known.
-pub fn record(open: bool) -> bool {
-    let now = if open { OPEN } else { CLOSED };
-    LID.swap(now, Ordering::AcqRel) != now
-}
-
-/// True when open; None before the capsule has said.
-pub fn lid_open() -> Option<bool> {
-    match LID.load(Ordering::Acquire) {
-        OPEN => Some(true),
-        CLOSED => Some(false),
-        _ => None,
-    }
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Report {
     /// The same as known: nothing to tell.

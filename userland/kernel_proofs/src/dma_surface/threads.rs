@@ -14,60 +14,62 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! a grant mapped by one thread, a surface registered by another
-//! thread of the same process, are matched by process.
+//! the threads under L35: a run is matched by the run its surface was
+//! registered over, whichever thread tears it down; an exit strips the
+//! grants of its own process alone; holders count against the owner.
 
-use super::common::{grant_frames, Registry, COMPOSITOR, FB, GPU, LEN, START};
-use super::dma_rule::PageOrphan;
+use super::common::START;
+use super::common::{grant_frames, slot, Orphan, Registry, COMPOSITOR, FB, GPU, HEAP, LEN, RUN};
 
 /// The GPU capsule's worker thread, which maps the framebuffer grant.
 const WORKER: u32 = 8;
 
-fn two_threads() -> Registry {
-    Registry {
-        attaches: vec![(FB, COMPOSITOR)],
-        threads: vec![(WORKER, GPU)],
-        ..Default::default()
-    }
-}
-
 #[test]
 fn a_workers_grant_under_the_main_threads_surface_is_held() {
-    let mut r = two_threads();
-    assert!(r.release(WORKER, vec![(FB, GPU, grant_frames())]), "found by process");
-    assert!(r.given_back.is_empty(), "nothing freed under the compositor");
+    let slots = vec![slot(FB, GPU, grant_frames(), Some(RUN))];
+    let mut r = Registry { slots, attaches: vec![(FB, COMPOSITOR)], ..Default::default() };
+    assert!(r.release(RUN), "found by its run, the worker's");
     assert_eq!(r.orphans[0].owner, GPU, "the orphan keeps its owner thread");
-    r.detach(COMPOSITOR, FB);
-    assert_eq!(r.given_back, vec![(START, LEN)], "given back once, on the detach");
+    r.drop_attach(COMPOSITOR, FB);
+    assert_eq!(r.given_back, vec![RUN], "given back once, on the detach");
 }
 
 #[test]
-fn the_main_threads_orphan_loses_the_workers_pages() {
-    let mut r = two_threads();
-    let mut free = grant_frames();
-    free.push(0x80_0000);
-    r.orphans.push(PageOrphan { owner: GPU, handle: FB, frames: free.clone(), free });
-    assert!(r.release(WORKER, Vec::new()));
-    assert_eq!(r.orphans[0].free, vec![0x80_0000]);
-}
-
-#[test]
-fn the_owners_own_attach_is_no_holder_whichever_thread_maps() {
-    let mut r =
-        Registry { attaches: vec![(FB, GPU)], threads: vec![(WORKER, GPU)], ..Default::default() };
-    assert!(!r.release(WORKER, vec![(FB, GPU, grant_frames())]));
-    assert_eq!(r.given_back, vec![(START, LEN)]);
+fn the_main_threads_orphan_loses_the_workers_pages_and_no_other_process() {
+    let frames = || [grant_frames(), vec![HEAP]].concat();
+    for (holder, want) in [(WORKER, vec![HEAP]), (12, frames())] {
+        let slots = vec![slot(FB, GPU, frames(), None)];
+        let mut r = Registry { slots, attaches: vec![(FB, COMPOSITOR)], ..Default::default() };
+        r.exit(GPU, &[(holder, START, LEN)], |h| h == GPU || h == WORKER);
+        assert_eq!(r.orphans[0].free, want, "grant of pid {holder}");
+    }
 }
 
 #[test]
 fn another_process_is_never_matched() {
     let mut r = Registry { attaches: vec![(FB, COMPOSITOR)], ..Default::default() };
-    r.orphans.push(PageOrphan {
+    let theirs =
+        Orphan { owner: 12, handle: FB, frames: grant_frames(), free: grant_frames(), grant: None };
+    r.orphans.push(theirs.clone());
+    assert!(!r.release(RUN), "pid 12's surface is not this run's");
+    assert_eq!(r.orphans, vec![theirs], "its free list untouched");
+}
+
+#[test]
+fn the_owners_record_on_its_orphan_is_no_foreign_holder() {
+    let mut r = Registry { attaches: vec![(FB, GPU)], ..Default::default() };
+    let free = Vec::new();
+    r.orphans.push(Orphan {
         owner: GPU,
         handle: FB,
         frames: grant_frames(),
-        free: grant_frames(),
+        free,
+        grant: Some(RUN),
     });
-    assert!(!r.release(WORKER, Vec::new()), "pid 8 is not a thread of pid 7 here");
-    assert_eq!(r.orphans[0].free.len(), 4, "pid 7's orphan untouched");
+    // Still listed, it holds the run until the reclaim every let-go runs.
+    assert!(r.release(RUN));
+    r.free_orphans();
+    r.free_unheld();
+    assert!(r.orphans.is_empty(), "only its owner maps it");
+    assert_eq!(r.given_back, vec![RUN], "given back once");
 }

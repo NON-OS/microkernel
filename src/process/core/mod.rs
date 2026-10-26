@@ -15,22 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod api;
+mod argv;
+pub mod argv_bound;
 mod entered;
 pub mod inbox_name;
 pub mod init;
 pub mod isolation;
 pub mod pcb;
-pub(crate) mod spawn_tier;
 mod pcb_memory_share;
 mod pcb_ops;
 mod pcb_reserve_unmapped;
 mod pcb_vmas;
+pub(crate) mod spawn_tier;
 pub mod suspend;
 pub mod table;
 pub mod thread_group;
 pub mod types;
 
 pub use api::*;
+pub use argv::set_argv;
 pub use isolation::*;
 pub use pcb::ProcessControlBlock;
 pub use suspend::*;

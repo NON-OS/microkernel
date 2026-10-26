@@ -23,6 +23,6 @@ pub(super) fn set_argv(pid: u32, args: &[u8]) {
             .filter(|s| !s.is_empty())
             .map(|s| alloc::string::String::from_utf8_lossy(s).into_owned())
             .collect();
-        crate::process::with_process(pid, |pcb| *pcb.argv.lock() = argv);
+        let _ = crate::process::set_argv(pid, argv);
     }
 }
