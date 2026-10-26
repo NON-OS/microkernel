@@ -24,6 +24,7 @@ mod auth_refusals;
 mod auth_refusals_more;
 mod auth_tests;
 mod chat_pick_tests;
+mod choose_tests;
 pub(super) mod deb_chain_tests;
 mod deb_file_tests;
 mod deb_path_tests;
