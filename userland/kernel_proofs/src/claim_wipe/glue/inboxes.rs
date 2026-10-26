@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The most a claimant's inboxes hold before it reads them, read from the
 //! kernel (L80): a capsule owns `proc.<pid>` at the default capacity and
 //! `stdin.<pid>` at its own from its first moment, each registration pinned
-//! whole (whole), and the default the constant itself.
+//! whole (whole), and the default the constant itself. Its `stdout.<pid>`
+//! is not counted: only the claimant itself writes it, so no delivery there
+//! ends its sleep early.
 
 use super::code::flat;
 use super::whole::{num, whole};
@@ -28,11 +29,13 @@ const OWN: &str = include_str!(
     "../../../../../src/kernel_core/process_spawn/capsule_spawn/runner/install/own_inboxes.rs"
 );
 
-const OWNS: [&str; 5] = [
+const OWNS: [&str; 7] = [
     "pub(super) fn register(pid: u32) -> Result<(), SpawnError> {",
-    r#"nonos_inbox::register_inbox(&format!("proc.{}", pid), pid)"#,
+    "nonos_inbox::register_inbox(&own_names::requests(pid), pid)",
     ".map_err(|_| SpawnError::ProcessCreation)?;",
-    r#"nonos_inbox::register_inbox_with_capacity(&format!("stdin.{}", pid), pid, STDIN_CAPACITY)"#,
+    "nonos_inbox::register_inbox(&own_names::stdout(pid), pid)",
+    ".map_err(|_| SpawnError::ProcessCreation)?;",
+    "nonos_inbox::register_inbox_with_capacity(&own_names::stdin(pid), pid, STDIN_CAPACITY)",
     ".map_err(|_| SpawnError::ProcessCreation) }",
 ];
 
