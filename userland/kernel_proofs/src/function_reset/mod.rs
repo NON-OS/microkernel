@@ -22,14 +22,14 @@ pub mod gate;
 #[cfg(test)]
 mod gate_tests;
 pub mod leaving;
+#[cfg(test)]
+mod record_tests;
 #[path = "../../../../src/hardware/broker/claim/reset_rule.rs"]
 pub mod reset_rule;
 #[path = "../../../../src/hardware/broker/claim/reset_run.rs"]
 pub mod reset_run;
 #[path = "../../../../src/hardware/broker/claim/reset_wait.rs"]
 pub mod reset_wait;
-#[cfg(test)]
-mod record_tests;
 pub mod retire;
 #[cfg(test)]
 mod retire_fake;
@@ -37,13 +37,11 @@ mod retire_fake;
 mod retire_holder;
 #[cfg(test)]
 mod retire_tests;
-#[cfg(test)]
-mod tests;
 pub mod state;
 pub mod still_held;
-// Mounted in claim_stage too; the lifecycle fields go unread in this copy.
-#[allow(clippy::duplicate_mod, dead_code)]
-#[path = "../../../../src/hardware/broker/claim/types.rs"]
-pub mod types;
+#[cfg(test)]
+mod tests;
+// Mounted once, in claim_stage.
+pub(crate) use crate::proofs_7::claim_stage::types;
 #[cfg(test)]
 mod wait_tests;

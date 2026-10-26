@@ -21,7 +21,6 @@
 use super::state::{retire, TABLE};
 use crate::hardware::broker::DeviceRecord;
 
-#[allow(dead_code)] // the ACPI broker (x86 only) and the VMBus channels
 pub(in crate::hardware::broker) fn remove(device_id: u64) -> Option<DeviceRecord> {
     let mut table = TABLE.write();
     let at = table.iter().position(|r| r.device_id == device_id)?;

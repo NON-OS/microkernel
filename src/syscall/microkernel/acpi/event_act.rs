@@ -21,7 +21,7 @@
 use crate::arch::power::PowerOff;
 use crate::hardware::broker::acpi::critical_watch::Action;
 use crate::hardware::broker::acpi::power_key::press;
-use crate::security::zerostate::terminate_critical;
+use crate::security::zerostate::terminate::terminate_with;
 use crate::syscall::microkernel::errnos::ERRNO_AGAIN;
 
 pub(super) fn say(line: &[u8]) {
@@ -47,7 +47,7 @@ pub(super) fn act(action: Action, what: &[u8]) -> i64 {
         Action::PowerOff => {
             say(what);
             say(b"[ACPI] still critical: powering off");
-            terminate_critical(PowerOff::Shutdown)
+            terminate_with(PowerOff::Shutdown, true)
         }
     }
 }
