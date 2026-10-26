@@ -20,13 +20,13 @@
 /// The IPC receives check what they write to before they wait.
 #[path = "handover_ipc_tests.rs"]
 mod handover_ipc_tests;
+#[path = "ipc_call_verdict/mod.rs"]
+pub mod ipc_call_verdict;
 /// Late versus starved for an ipc.call with no answer (B-04).
 #[path = "ipc_death/mod.rs"]
 pub mod ipc_death;
 #[path = "ipc_silence/mod.rs"]
 pub mod ipc_silence;
-#[path = "ipc_call_verdict/mod.rs"]
-pub mod ipc_call_verdict;
 #[path = "legacy_ports/mod.rs"]
 pub mod legacy_ports;
 #[path = "load_average/mod.rs"]
@@ -57,10 +57,10 @@ pub mod surface_shares;
 pub mod syscall_fmask;
 #[path = "transport_takeover/mod.rs"]
 pub mod transport_takeover;
+/// The trip lock (L81b): rows, rule table and world model.
+#[path = "trip_lock/mod.rs"]
+pub mod trip_lock;
 #[path = "usable_runs/mod.rs"]
 pub mod usable_runs;
 #[path = "virtio_rng_ring/mod.rs"]
 pub mod virtio_rng_ring;
-/// The trip lock (L81b): rows, rule table and world model.
-#[path = "trip_lock/mod.rs"]
-pub mod trip_lock;

@@ -16,12 +16,12 @@
 
 //! A server answers one request twice. The capsule calls its own service
 //! port, so it is caller and server both: each call times out with its
-//! request still queued, it takes two of three with MkIpcRecvReq and
-//! answers the first twice. The second answer must reach no one, nor may
-//! an answer to the third, still in the inbox: before MkIpcReplyTo a
-//! second MkIpcReply took the caller's next call and answered it.
+//! request still queued, it takes two of three with MkIpcRecvReq and answers
+//! the first twice. The second answer must reach no one, nor one to the
+//! third, still in the inbox (once a second reply took the next call).
 
-use nonos_libc::{mk_getpid, mk_ipc_call_timeout, mk_ipc_recv_req, mk_ipc_reply_to, IpcReqMeta};
+use nonos_libc::ipc::{mk_ipc_recv_req, mk_ipc_reply_to, IpcReqMeta};
+use nonos_libc::{mk_getpid, mk_ipc_call_timeout};
 
 use crate::line::{note, verdict};
 
