@@ -26,6 +26,7 @@ pub(super) fn enter(info: &BootInfo) -> ! {
     // share; without it the first allocation is the frame allocator's bitmap
     // and it fails with the heap reporting no memory at all.
     crate::memory::heap::manager::init_bootstrap();
+    crate::log::init();
 
     let handoff = KernelHandoff::from_aarch64(info);
     crate::kernel_core::microkernel_init(&handoff);
