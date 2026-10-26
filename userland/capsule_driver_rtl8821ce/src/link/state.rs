@@ -70,4 +70,6 @@ pub struct RtlLink<M: Mmio, D: DmaMem, RB: RxBuffers> {
     /// The firmware download's staging buffer and beacon ring, kept for the
     /// reserved pages power save writes.
     pub(super) beacon: Option<(D, D)>,
+    /// The board's RF front-end option, which picks the CCK gain table.
+    pub(super) rfe: u8,
 }

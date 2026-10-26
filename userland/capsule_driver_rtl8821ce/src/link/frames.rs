@@ -20,8 +20,10 @@ use super::buffers::RxBuffers;
 use super::state::RtlLink;
 use crate::fw::dma::DmaMem;
 use crate::regs::Mmio;
+use crate::rx::desc::RxInfo;
 use crate::rx::fcs::without_fcs;
 use crate::rx::poll_one_info;
+use crate::rx::signal::signal_dbm;
 
 impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
     /// Pull the next received 802.11 frame off the ring unparsed, for the scan to
@@ -31,8 +33,24 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
         self.poll_frame(out).map(|(n, _)| n)
     }
 
+    /// As `poll_raw`, with the frame's signal in dBm where the card measured
+    /// one, for the scan and the hunt to rank networks by.
+    pub fn poll_heard(&mut self, out: &mut [u8]) -> Option<(usize, Option<i8>)> {
+        let (n, info) = self.poll_info(out)?;
+        Some((n, info.phy.and_then(|p| signal_dbm(p, self.rfe))))
+    }
+
+    /// The board's RF front-end option, from the efuse.
+    pub fn set_rfe(&mut self, rfe: u8) {
+        self.rfe = rfe;
+    }
+
     // The next received frame without its FCS, and whether the chip decrypted it.
     pub(super) fn poll_frame(&mut self, out: &mut [u8]) -> Option<(usize, bool)> {
+        self.poll_info(out).map(|(n, info)| (n, info.decrypted()))
+    }
+
+    fn poll_info(&mut self, out: &mut [u8]) -> Option<(usize, RxInfo)> {
         let (n, info) = poll_one_info(
             &self.mmio,
             &self.rx_ring,
@@ -40,6 +58,6 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
             &mut self.rx_state,
             out,
         )?;
-        Some((without_fcs(n)?, info.decrypted()))
+        Some((without_fcs(n)?, info))
     }
 }

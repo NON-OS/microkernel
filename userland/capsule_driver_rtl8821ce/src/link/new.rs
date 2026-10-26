@@ -67,6 +67,7 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
             address: None,
             ps: crate::ps::Ps::default(),
             beacon: None,
+            rfe: 0,
         }
     }
 }

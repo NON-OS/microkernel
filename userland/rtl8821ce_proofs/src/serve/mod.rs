@@ -38,6 +38,8 @@ mod host_radio;
 #[cfg(test)]
 mod hostile_tests;
 #[cfg(test)]
+mod scan_signal_tests;
+#[cfg(test)]
 mod sleep_tests;
 
 pub use run::run;

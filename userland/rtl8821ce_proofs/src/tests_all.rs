@@ -32,6 +32,7 @@ mod scan_tests;
 mod sec_tests;
 mod sections_tests;
 mod serve_refuse_tests;
+mod signal_tests;
 mod staging_tests;
 mod status_tests;
 mod tables_tests;
