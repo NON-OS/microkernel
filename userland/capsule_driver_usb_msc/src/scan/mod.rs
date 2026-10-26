@@ -41,9 +41,11 @@ mod search;
 mod searching;
 mod sized;
 mod step;
+mod step_window;
 mod uas_bind;
 mod uas_setup;
 mod units;
 
 pub use medium::Medium;
 pub use scanner::Scanner;
+pub use step_window::{SEARCH_STEP_MS, STEP_MS};
