@@ -21,13 +21,11 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-
 use nonos_gfx_serve::{Platform, Region};
 use nonos_gfx_wire::errno::EINVAL;
 use nonos_gfx_wire::Errno;
-use nonos_libc::mk_getpid;
 
-use super::{anon, receiver, surface};
+use super::{anon, receiver, run_state, surface};
 
 #[derive(Default)]
 pub struct Pool {
@@ -68,6 +66,10 @@ impl Platform for Pool {
     }
 
     fn pid(&self) -> u32 {
-        mk_getpid()
+        nonos_libc::mk_getpid()
+    }
+
+    fn lives(&self, pid: u32, quiet_ms: u64) -> bool {
+        run_state::lives(pid, quiet_ms)
     }
 }

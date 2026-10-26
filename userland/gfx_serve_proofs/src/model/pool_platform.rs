@@ -61,4 +61,8 @@ impl Platform for Pool {
     fn pid(&self) -> u32 {
         self.pid
     }
+    fn lives(&self, pid: u32, quiet_ms: u64) -> bool {
+        let row = self.alive.iter().find(|r| r.0 == pid);
+        row.is_some_and(|&(_, alive)| crate::watch_starved::lives(3, alive, quiet_ms))
+    }
 }
