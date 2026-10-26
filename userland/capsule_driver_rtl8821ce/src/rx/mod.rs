@@ -26,6 +26,7 @@ mod poll;
 pub mod regs;
 pub mod ring;
 mod setup;
+pub mod signal;
 
 #[cfg(test)]
 pub use poll::poll_one;

@@ -15,6 +15,11 @@ pub struct FirmwareBlob {
 
 const SO_GF: &[u8] =
     include_bytes!("../../../../nonos-bootloader/firmware/intel/iwlwifi-so-a0-gf-a0-86.ucode");
+/// linux-firmware bf992df7a95b5e19bb8f8546eb4d7c53ab2598d0,
+/// intel/iwlwifi/iwlwifi-so-a0-gf-a0.pnvm (pinned in
+/// scripts/baselines/upstream.sha256).
+const SO_GF_PNVM: &[u8] =
+    include_bytes!("../../../../nonos-bootloader/firmware/intel/iwlwifi-so-a0-gf-a0.pnvm");
 const SO_HR: &[u8] =
     include_bytes!("../../../../nonos-bootloader/firmware/intel/iwlwifi-so-a0-hr-b0-84.ucode");
 
@@ -33,11 +38,12 @@ pub fn gen3_blob(image: Image) -> Option<FirmwareBlob> {
 
 /// The platform NVM (PNVM) file for a gen3 image, when the tree carries it.
 /// Linux loads it from the filesystem for an Intel-SKU GF radio of the AX210
-/// family (`iwl_select_pnvm_source`); an HR radio has none. None is committed
-/// yet, so the firmware runs on its built-in defaults, as Linux's does when the
-/// file is missing.
+/// family (`iwl_select_pnvm_source`); an HR radio has none. The SO GF file
+/// (the AX211) is linux-firmware's; the TY and MA images are not bundled, so
+/// neither is their PNVM.
 pub fn gen3_pnvm(image: Image) -> Option<&'static [u8]> {
     match image {
-        Image::SoGf | Image::SoHr | Image::TyGf | Image::MaGf => None,
+        Image::SoGf => Some(SO_GF_PNVM),
+        Image::SoHr | Image::TyGf | Image::MaGf => None,
     }
 }

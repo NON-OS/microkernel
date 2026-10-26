@@ -12,10 +12,11 @@
 
 use nonos_wifi_core::rsn::JoinPolicy;
 
-use crate::gen3::join::exchange::limits::{EXCHANGE_MS, IDLE_TRIES};
+use crate::gen3::join::exchange::limits::{EXCHANGE_MS, RETX_MS};
 use crate::gen3::join::exchange::Progress;
 use crate::gen3::join::run::{join, JoinEnd};
 use crate::join_rig::*;
+use nonos_wifi_core::mlme::AUTH_MS;
 
 // A beacon from another BSS on the same channel, at every restock.
 fn flood(r: &Rig) {
@@ -55,6 +56,7 @@ fn a_silent_access_point_on_a_busy_channel_is_resent_to_then_given_up_on_the_clo
     let (end, ms) = run(&r);
     assert_eq!(end, Err(JoinEnd::TimedOut));
     let auths = r.sent().iter().filter(|s| s.frame[0] == 0xB0).count() as u32;
-    assert_eq!(auths, 1 + IDLE_TRIES, "every resend went out despite the beacons");
+    let resends = (AUTH_MS / u64::from(RETX_MS)) as u32;
+    assert_eq!(auths, 1 + resends, "every resend in the step's time went out despite the beacons");
     assert!(ms < EXCHANGE_MS + 1000, "ended on the clock, not after it: {ms} ms");
 }

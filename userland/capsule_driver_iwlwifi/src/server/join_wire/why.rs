@@ -49,6 +49,8 @@ pub fn failure_code(f: MlmeFailure) -> (i32, u16) {
         MlmeFailure::Left(reason) => (CODE_TIMED_OUT, reason),
         MlmeFailure::Handshake(Failure::IeMismatch) => (CODE_IE_MISMATCH, 0),
         MlmeFailure::Handshake(_) => (CODE_TIMED_OUT, 0),
+        // A step the access point never answered within its own time.
+        MlmeFailure::Timeout(_) => (CODE_TIMED_OUT, 0),
     }
 }
 

@@ -30,12 +30,19 @@ pub enum SavedError {
 }
 
 impl SavedError {
+    /// True for every load error but `NoStore`: the list may hold a network
+    /// pinned to WPA3, so joins are held to WPA3 and the panel offers to
+    /// forget the whole record.
+    pub fn fails_closed(self) -> bool {
+        self != SavedError::NoStore
+    }
+
     pub fn text(self) -> &'static str {
         match self {
             SavedError::NoStore => "No NONOS store on this boot's disk",
             SavedError::NotKept => "This boot keeps nothing across reboots",
             SavedError::NoTpm => "No TPM to seal the passphrase with",
-            SavedError::BootChanged => "Sealed under a different boot state",
+            SavedError::BootChanged => "Sealed before a kernel, firmware or Secure Boot change",
             SavedError::KeyFailed => "The TPM did not give the sealing key",
             SavedError::Unreadable => "Sealed elsewhere or altered on disk",
             SavedError::Damaged => "The saved-networks record is damaged",

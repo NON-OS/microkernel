@@ -9,6 +9,9 @@ use super::super::regs::{
 };
 use super::super::txdesc::{self, TXDESC_LEN};
 use super::valid::wait_bcn_valid;
+
+/// The page head's field in REG_FIFOPAGE_CTRL_2 (BIT_MASK_BCN_HEAD_1_V1).
+const BCN_HEAD_MASK: u16 = 0x0FFF;
 use crate::regs::Mmio;
 
 /// Stage `chunk` at reserved-page 0 and return the DDMA source address for it, or
@@ -21,11 +24,23 @@ where
     B: DmaMem,
     R: DmaMem,
 {
+    stage_at(mmio, stage_buf, ring, 0, chunk).then_some(OCPBASE_TXBUF + TX_DESC_SIZE)
+}
+
+/// Stage `chunk` at reserved page `head`, the reserved-page head left there
+/// afterwards; true once the card reports the page valid (rtw88
+/// `rtw_fw_write_data_rsvd_page`, which takes the head at every write).
+pub fn stage_at<M, B, R>(mmio: &M, stage_buf: &B, ring: &R, head: u16, chunk: &[u8]) -> bool
+where
+    M: Mmio,
+    B: DmaMem,
+    R: DmaMem,
+{
     if chunk.is_empty()
         || chunk.len() + TXDESC_LEN > stage_buf.capacity()
         || TX_BUF_DESC_SIZE > ring.capacity()
     {
-        return None;
+        return false;
     }
 
     // Lay [TX descriptor | payload] into the staging buffer and publish the
@@ -36,9 +51,9 @@ where
     let bd = crate::ring::bufdesc::pair(stage_buf.device_addr(), TXDESC_LEN, chunk.len(), true);
     ring.write_bytes(0, &bd);
 
-    // Arm the beacon-valid status (write-1-to-clear). The reserved-page head is
-    // 0 throughout download, so only the valid bit is written.
-    mmio.write16(REG_FIFOPAGE_CTRL_2, BCN_VALID_V1);
+    // Arm the beacon-valid status (write-1-to-clear) with the page head.
+    let head = (head & BCN_HEAD_MASK) | BCN_VALID_V1;
+    mmio.write16(REG_FIFOPAGE_CTRL_2, head);
     // Enable the software beacon path and hold off the beacon-queue auto
     // download while the page is staged; both are restored afterwards.
     let cr1 = mmio.read8(REG_CR + 1);
@@ -51,14 +66,10 @@ where
 
     let landed = wait_bcn_valid(mmio);
 
-    // Restore the beacon path whether or not the page landed. During download
-    // the reserved-page head stays at 0.
-    mmio.write16(REG_FIFOPAGE_CTRL_2, BCN_VALID_V1);
+    // Restore the beacon path whether or not the page landed.
+    mmio.write16(REG_FIFOPAGE_CTRL_2, head);
     mmio.write8(REG_FWHW_TXQ_CTRL + 2, txq2);
     mmio.write8(REG_CR + 1, cr1);
 
-    if !landed {
-        return None;
-    }
-    Some(OCPBASE_TXBUF + TX_DESC_SIZE)
+    landed
 }

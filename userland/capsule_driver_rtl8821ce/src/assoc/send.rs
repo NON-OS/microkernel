@@ -2,6 +2,7 @@
 
 //! Sending a join's frames.
 
+use super::facts::dtim_period;
 use super::radio::{Counters, Radio};
 use alloc::vec::Vec;
 use nonos_wifi_core::dot11::header::{seq_control, MAC_HEADER_LEN};
@@ -23,6 +24,7 @@ pub(super) fn open<R: Radio>(
     c: &mut Counters,
 ) -> Vec<u8> {
     let mut pending: Vec<u8> = Vec::new();
+    c.dtim = dtim_period(beacon);
     let out = mlme.on_mgmt(beacon);
     if let Some(mut tx) = out.tx {
         transmit(radio, &mut tx, seq, c);

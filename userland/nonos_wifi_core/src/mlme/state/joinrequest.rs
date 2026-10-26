@@ -68,4 +68,8 @@ pub struct Mlme {
     pub(in crate::mlme) verifies_beacons: bool,
     pub(in crate::mlme) supplicant: Option<Supplicant>,
     pub(in crate::mlme) failure: Option<MlmeFailure>,
+    /// The step the deadline clock last saw, and when it began; whether one
+    /// ran out of its time.
+    pub(in crate::mlme) step_since: Option<(MlmeState, u64)>,
+    pub(in crate::mlme) expired: bool,
 }

@@ -1,18 +1,4 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// NONOS Operating System (AGPL-3.0-or-later)
 
 //! Run the association state machine against the radio until it connects,
 //! fails, or the budget runs out, resending what the air lost (`send`).
@@ -35,21 +21,22 @@ pub fn drive<R: Radio, E: Env>(
     budget_ms: u64,
     seq_start: u16,
 ) -> Report {
-    let mut c = Counters::default();
+    let (mut c, mut buf) = (Counters::default(), [0u8; 2400]);
     let (start, mut seq) = (env.now_ms(), seq_start & 0x0FFF); // random start (E-70)
     let mut quiet_since = start;
     let mut pending: Vec<u8> = m.on_mgmt(beacon).tx.unwrap_or_default();
     if !pending.is_empty() {
         transmit(r, &mut pending, &mut seq, &mut c);
     }
-    let mut buf = [0u8; 2400];
     loop {
+        let now = env.now_ms();
+        m.expire(now);
         match m.state() {
             MlmeState::Connected => return report(&m, finish(&m), c),
+            MlmeState::Failed if m.expired() => return report(&m, Outcome::TimedOut, c),
             MlmeState::Failed => return report(&m, Outcome::Refused, c),
             _ => {}
         }
-        let now = env.now_ms();
         if now.saturating_sub(start) >= budget_ms {
             return report(&m, Outcome::TimedOut, c);
         }

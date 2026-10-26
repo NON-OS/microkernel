@@ -32,6 +32,7 @@ mod install;
 mod join;
 mod leave;
 mod media;
+mod pace;
 mod probe;
 mod progress;
 mod ready;

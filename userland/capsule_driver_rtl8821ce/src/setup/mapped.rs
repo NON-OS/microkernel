@@ -28,4 +28,8 @@ pub struct Mapped {
     /// the efuse registers answering zero on real silicon, so it is taken here,
     /// while the chip is still in the state the reference driver reads it in.
     pub efuse: Option<crate::efuse::EfuseInfo>,
+    /// The data path's rings, mapped and pointed at before the engines run.
+    pub rings: Option<super::Rings>,
+    /// The firmware download's staging buffer and beacon ring.
+    pub beacon: Option<(crate::fw::dma::Grant, crate::fw::dma::Grant)>,
 }

@@ -44,6 +44,9 @@ mod ap_sim;
 #[allow(dead_code, unused_imports)]
 #[path = "../../nonos_wifi_client/src/join_wire/mod.rs"]
 mod client_join_wire;
+#[cfg(test)]
+#[path = "../../nonos_wifi_core_proofs/src/sweep/fuzz.rs"]
+mod fuzz;
 /// The client's side of the same messages, to read the driver's replies
 /// with. Shared whole: the proofs use its parsers, not all of it.
 #[cfg(test)]

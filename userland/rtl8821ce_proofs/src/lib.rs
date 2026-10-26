@@ -8,9 +8,8 @@ extern crate alloc;
 mod mounts;
 pub use mounts::*;
 
-// The connect stage's answer to a finished join, at the module path its
-// `pub(in crate::serve)` items name (src/serve/connect/mod.rs).
-#[cfg(test)]
+// The serve stage, mirrored file by file at the module path its
+// `pub(in crate::serve)` items name, with the libc shim for its kernel calls.
 pub mod serve;
 
 #[cfg(test)]
@@ -26,3 +25,7 @@ mod tests_all;
 mod ap_sim;
 #[cfg(test)]
 mod pwr_mock;
+// The Wi-Fi core proofs' seeded generator, for the hostile-input proofs.
+#[cfg(test)]
+#[path = "../../nonos_wifi_core_proofs/src/sweep/fuzz.rs"]
+mod fuzz;
