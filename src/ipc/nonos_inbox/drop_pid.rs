@@ -18,24 +18,28 @@
 
 use core::sync::atomic::Ordering;
 
+use super::own_names;
 use super::registry::{GLOBAL_STATS, REGISTRY};
 
-/// Drop the canonical per-process inboxes `proc.{pid}` and `stdin.{pid}`
-/// for a dying capsule, zeroing what is still queued in them: a child's
-/// output and its input can be someone's private text. Called from
-/// `process::exit::teardown`. Returns the count dropped from `proc.{pid}`.
+/// Drop the per-process inboxes `proc.{pid}`, `stdin.{pid}` and
+/// `stdout.{pid}` (own_names.rs) for a dying capsule, zeroing what is still
+/// queued in them: a child's output and its input can be someone's private
+/// text. Called from `process::exit::teardown`. Returns the count dropped
+/// from `proc.{pid}`.
 /// Reply inboxes (`endpoint.<u64>`) are kernel-owned and intentionally left
 /// alone so a respawn reuses them; stale replies are filtered by the
 /// transport's generation re-check.
 pub fn unregister_for_pid(pid: u32) -> Option<usize> {
-    let _ = unregister_stdin_for_pid(pid);
-    remove_zeroed(&alloc::format!("proc.{}", pid))
+    let _ = remove_zeroed(&own_names::stdout(pid));
+    unregister_all_but_stdout(pid)
 }
 
-/// Drop `stdin.{pid}` alone, zeroing what is queued in it. Nothing reads a
-/// dead process's input, even while its output is kept for its parent.
-pub fn unregister_stdin_for_pid(pid: u32) -> Option<usize> {
-    remove_zeroed(&alloc::format!("stdin.{}", pid))
+/// Drop `proc.{pid}` and `stdin.{pid}`, zeroing what is queued in them, and
+/// keep `stdout.{pid}`: nothing serves or reads a dead process's requests
+/// or input, while its output is kept for its parent (postmortem.rs).
+pub fn unregister_all_but_stdout(pid: u32) -> Option<usize> {
+    let _ = remove_zeroed(&own_names::stdin(pid));
+    remove_zeroed(&own_names::requests(pid))
 }
 
 fn remove_zeroed(module: &str) -> Option<usize> {
