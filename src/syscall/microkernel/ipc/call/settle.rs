@@ -48,7 +48,7 @@ static STARVED: crate::sys::diag::Site = crate::sys::diag::Site::new(b"ipc.call"
 /// `waited` the caller's timeout (0: the default) and the time it waited.
 pub(super) fn settle(
     to: Option<&ServiceEndpoint>,
-    pid: u32,
+    (pid, token): (u32, u64),
     call: (u64, usize, u64),
     rc: i64,
     waited: (u64, u64),
@@ -64,7 +64,7 @@ pub(super) fn settle(
         match no_answer(rc == ERRNO_TIMEDOUT, waited.0, DEFAULT_MS, waited.1) {
             // A late call alone says nothing: a poll may miss. Only a pair
             // silent the default's length is reported (silence.rs).
-            NoAnswer::Late => silence_table::report(&STARVED, pair, &endpoint.name, waited.1),
+            NoAnswer::Late => silence_table::report(&STARVED, (pair, token), &endpoint.name, waited.1),
             NoAnswer::Starved => STARVED.starved(&endpoint.name, rc),
         }
     }

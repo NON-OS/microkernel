@@ -22,7 +22,6 @@ use crate::discover::Peers;
 use crate::setup::{ensure_input_subscription, open_window, WindowBinding};
 
 use super::drag::DragState;
-use super::full_screen_ask::FullScreenAsk;
 use super::held::Held;
 use super::prime_frame::prime_frame;
 
@@ -41,8 +40,8 @@ pub(super) struct BootedApp<A: App> {
     pub maximized: bool,
     pub minimized: bool,
     pub saved: (u32, u32, u32, u32),
-    /// Whether the app asks for full screen, and whether it took it.
-    pub full_ask: FullScreenAsk,
+    /// What the app asks of its window (full screen, a rect), and what it took.
+    pub asks: super::asks::Asks,
     pub drag: DragState,
     /* Size, frame hover and maximized state of the last repaint, so a repaint
      * that changes none of them can leave the frame as it is. */
@@ -69,7 +68,7 @@ pub(super) fn boot<A: App>(
         maximized: false,
         minimized: false,
         saved: (0, 0, 0, 0),
-        full_ask: FullScreenAsk::new(),
+        asks: super::asks::Asks::new(),
         drag: DragState::new(),
         painted: (0, 0, DecorationHit::None, false),
     })

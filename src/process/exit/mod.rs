@@ -20,6 +20,10 @@ pub mod end_rule;
 mod exit_and_yield;
 mod finalize;
 mod forget;
+#[cfg(feature = "microkernel-setup-wizard")]
+mod kept;
+#[cfg(feature = "microkernel-setup-wizard")]
+mod kept_table;
 mod off_cpu;
 mod park;
 mod pending;
@@ -32,6 +36,8 @@ mod surfaces;
 mod teardown;
 
 pub use exit_and_yield::exit_and_yield;
+#[cfg(feature = "microkernel-setup-wizard")]
+pub(crate) use kept::{keep_status_of, kept_status};
 pub(crate) use park::park as park_dead;
 pub(crate) use pending::drain as drain_pending_teardowns;
 pub(crate) use purge::purge_for_new_pid;

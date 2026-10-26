@@ -20,14 +20,20 @@ use super::follow::Launch;
 use super::timing::{Step, DEADLINE_MS, PROBE_GAP_MAX_MS};
 use crate::state::Uptime;
 
+/// The installer kept no outcome for the load (its ENOENT).
+const NO_OUTCOME: i32 = -2;
+
 impl Launch {
     /// The next step, given the app's pid if it has appeared.
     pub fn step(&self, now: Uptime, found: Option<u32>) -> Step {
         if let Some(pid) = found {
             return Step::Started(pid);
         }
-        if self.served || self.elapsed_ms(now) >= DEADLINE_MS {
-            return Step::Failed;
+        match self.served {
+            Some(status) if status < 0 && status != NO_OUTCOME => return Step::Refused(status),
+            Some(_) => return Step::Failed,
+            None if self.elapsed_ms(now) >= DEADLINE_MS => return Step::Failed,
+            None => {}
         }
         if now.0 >= self.next_probe_ms {
             return Step::Probe;
@@ -35,12 +41,12 @@ impl Launch {
         Step::Wait
     }
 
-    /// What a probe found. Answered, the load is over and the next step
-    /// settles it; unanswered, the next probe waits twice as long.
-    pub fn probed(&mut self, now: Uptime, answered: bool) {
+    /// What a probe found. Answered, the load is over and its status
+    /// settles the next step; unanswered, the next probe waits twice as long.
+    pub fn probed(&mut self, now: Uptime, answer: Option<i32>) {
         let now_ms = now.0;
-        if answered {
-            self.served = true;
+        if answer.is_some() {
+            self.served = answer;
             return;
         }
         self.probe_gap_ms = self.probe_gap_ms.saturating_mul(2).min(PROBE_GAP_MAX_MS);
@@ -49,7 +55,7 @@ impl Launch {
 
     /// Whether the installer is known to have finished the load.
     pub fn served(&self) -> bool {
-        self.served
+        self.served.is_some()
     }
 
     /// How long the launch has run, which bounds the age of a child it made.

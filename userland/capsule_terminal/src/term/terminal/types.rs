@@ -25,11 +25,13 @@ use crate::term::state::State;
 pub struct Terminal {
     pub(crate) tabs: Vec<State>,
     pub(crate) active: usize,
-    // Window width from the last paint, so the titlebar accessory can ask for a
-    // width that stays clear of the traffic lights.
+    pub(crate) split: Option<usize>, // the tab shown beside the active one
+    pub(crate) dropped: bool, // F12: the window stands under the menubar, full width
+    pub(crate) line_only: bool, // the last key changed the input line and nothing else
+    pub(crate) partial: bool, // this frame repaints the input row alone (damage.rs)
+    // Window width from the last paint, so the accessory clears the lights.
     pub(crate) width: u32,
-    // Accessory width the frame actually granted, recorded when it hands over
-    // the sub-buffer so the painter and the hit-test share one geometry.
+    // Accessory width the frame granted, shared by the painter and hit-test.
     pub(crate) acc_w: u32,
     // Window level, so a new tab inherits the look instead of resetting it.
     pub(crate) theme: u16,
@@ -44,13 +46,11 @@ pub struct Terminal {
     // Live system telemetry for the rail, polled on its own tick budget
     // so the table never re-reads the kernel once per frame.
     pub(crate) rail: Rail,
-    // How far the rail column has been scrolled, in pixels. Clamped against the
-    // content height by whichever of the painter or the hit-test reads it, both
-    // through `rail_scroll::clamp`, so the two never disagree.
+    // How far the rail column has been scrolled, in pixels, clamped to the
+    // content by the painter and the hit-test alike (`rail_scroll::clamp`).
     pub(crate) rail_scroll: u32,
-    // The band solve from the last paint. The event path needs the rail rects
-    // and cannot re-solve them: `Metrics` reads the frame buffer, which only
-    // exists during paint.
+    // The band solve from the last paint: the event path needs the rail rects
+    // and cannot re-solve them, since `Metrics` reads the frame buffer.
     pub(crate) layout: Option<Layout>,
     // The command overlay. It gates the whole key path while open, so it is
     // read before the tab bindings rather than beside them.
@@ -58,6 +58,7 @@ pub struct Terminal {
     /// Where the body's cells were drawn, and what the pointer is doing.
     pub(crate) cells: Option<super::pointer::CellGeom>,
     pub(crate) ptr: super::pointer::Pointer,
+    pub(crate) key_at: i64, // when the last key came, until its frame is painted
     /// When the window started, and when it next asks the shell for a
     /// handed command (take_handed.rs, handed::cadence).
     pub(crate) started_ms: i64,

@@ -17,6 +17,8 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
+use crate::browser::html::flow::Flow;
+
 pub const LINE_H: u32 = 20;
 
 pub struct Span {
@@ -39,9 +41,19 @@ pub struct RenderLine {
 pub struct RenderDocument {
     pub lines: Vec<RenderLine>,
     pub content_h: u32,
+    /// The width it was laid out at, and what from, so it can be laid out
+    /// again at the width of the window it is shown in (app/paint.rs).
+    pub width: u32,
+    pub source: Vec<Flow>,
 }
 
 impl RenderDocument {
+    /// Laid out again at `width`, from the flows it was built from.
+    pub fn reflow(&mut self, width: u32, advance: u32) {
+        let source = core::mem::take(&mut self.source);
+        *self = super::build::build(&source, width, advance);
+    }
+
     pub fn link_at(&self, x: i32, y: i32) -> Option<&str> {
         for line in &self.lines {
             let sy = line.y as i32;

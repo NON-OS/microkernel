@@ -1,0 +1,74 @@
+[
+ {
+  "name": "setup-kept-not-noted",
+  "file": "src/process/exit/reap_log.rs",
+  "old": "    super::kept::note(pid, code);\n",
+  "new": "",
+  "test": "setup_outcome::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "setup-pid-not-kept",
+  "file": "src/userspace/capsule_setup_wizard/state.rs",
+  "old": "    crate::process::exit::keep_status_of(pid);\n",
+  "new": "",
+  "test": "setup_outcome::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "setup-kept-not-read",
+  "file": "src/userspace/capsule_setup_wizard/outcome.rs",
+  "old": "read(pid, crate::process::exit::kept_status(pid), pcb, logged)",
+  "new": "read(pid, None, pcb, logged)",
+  "test": "setup_outcome::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "setup-rule-drops-kept",
+  "file": "src/userspace/capsule_setup_wizard/outcome_rule.rs",
+  "old": "kept.or(pcb).or(logged)",
+  "new": "pcb.or(logged)",
+  "test": "setup_outcome::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "setup-rule-kept-last",
+  "file": "src/userspace/capsule_setup_wizard/outcome_rule.rs",
+  "old": "kept.or(pcb).or(logged)",
+  "new": "pcb.or(logged).or(kept)",
+  "test": "setup_outcome::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "setup-watch-refuses",
+  "file": "src/process/exit/kept_table.rs",
+  "old": "                *slot = (pid, None);\n                true",
+  "new": "                *slot = (pid, None);\n                false",
+  "test": "setup_outcome::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "setup-note-dropped",
+  "file": "src/process/exit/kept_table.rs",
+  "old": "            slot.1 = Some(code);\n",
+  "new": "",
+  "test": "setup_outcome::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "setup-watch-overwrites",
+  "file": "src/process/exit/kept_table.rs",
+  "old": "        if self.slots.iter().any(|s| s.0 == pid) {\n            return true;\n        }\n",
+  "new": "",
+  "test": "setup_outcome::",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "setup-status-of-a-free-slot",
+  "file": "src/process/exit/kept_table.rs",
+  "old": "self.slots.iter().find(|s| pid != 0 && s.0 == pid)",
+  "new": "self.slots.iter().find(|s| s.0 == pid)",
+  "test": "setup_outcome::",
+  "crate": "userland/kernel_proofs"
+ }
+]

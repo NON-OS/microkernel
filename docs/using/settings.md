@@ -56,6 +56,7 @@ The panels, in sidebar order:
 |---|---|
 | `Default network` | The route the [Browser](browser.md) starts on, and the one Music downloads and the Terminal's `curl` and `git` take: `Nym mixnet`, `Anyone network` or `Direct`. A route never falls back to another. |
 | `Connection`, `IP address`, `Gateway`, `DNS` | What the DHCP client holds, read live. |
+| `Network address` | Where the wired card's address came from, as its driver says. On Hyper-V: `Private, new each boot`, or `Assigned by Hyper-V` with the line under it: Hyper-V drops a chosen address unless MAC spoofing is on for this VM's adapter. Empty for a card that always uses the address it drew for the boot. |
 | `Wireless adapter` | The name of the first wireless controller on the PCI bus, or `None detected`. It names the adapter only; it does not say NONOS drives it. |
 
 The note under `Default network` says Qwen downloads take it. They do not in this release: model downloads take the Anyone network whatever this row says, unless you ask for one download to go direct, and the wallet turns a `Direct` choice into Nym or Anyone. See [Privacy networks](privacy-network.md) for what each route hides and costs.
@@ -102,6 +103,10 @@ The panel also notes that SMEP, SMAP, UMIP, NX and WP are set at boot when the C
 | `Wallpaper` | The desktop's wallpaper. |
 | `Wallpapers kept` and the list under it | Which wallpapers are read from the disk at all. The desktop's own wallpaper is always kept. |
 | `Pointer speed` | How far the pointer moves. It scales mouse movement only. |
+
+Four wallpapers ship, by the NØNOS team: `Canyon neon`, the default, then `Canyon real`, `Canyon real soft` and `Neon sign` (`nonos-data/wallpapers/catalog.txt`, `userland/policy_proto/src/wallpaper_labels.rs`). Each is served only if its bytes match its SHA-256 pin (`userland/nonos_wallpapers/src/pins.rs`). The 62 wallpapers of 0.9.2 and earlier stay in the source tree and are not in the build.
+
+A wallpaper picked in 0.9.2 or earlier was kept by its place in the old list of 63, and that place now names another picture or none. So after an update, a kept choice reads as `Canyon neon` with all four kept, and everything else kept with it, such as the name, keyboard and network, is restored as it was. Pick again in `Wallpaper` to change it. The setup record says this with its version, 7 (`userland/policy_proto/src/setup_record/era.rs`); the settings record says it with an entry naming the list's era (`userland/policy_proto/src/settings_record/era.rs`).
 
 ### Privacy
 
