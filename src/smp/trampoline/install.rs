@@ -60,59 +60,55 @@ pub fn install_trampoline_at(addr: PhysAddr) -> Result<(), TrampolineError> {
 }
 
 // The trampoline fields are emitted after `.balign 8` in tables.S and the
-// image is installed at a page-aligned address, so every field offset is
-// naturally aligned for its width; the volatile pointer casts below are sound.
-#[allow(clippy::cast_ptr_alignment)]
+// image is installed at a page-aligned address, so every field is naturally
+// aligned for its width; `field_at` refuses one that is not.
 pub fn write_per_ap_context(addr: PhysAddr, ctx: &PerApBootContext) -> Result<(), TrampolineError> {
     if ctx.pml4_phys > u32::MAX as u64 {
         return Err(TrampolineError::Pml4Above4G);
     }
 
-    let base_virt = phys_to_virt_checked(addr).ok_or(TrampolineError::DirectmapMiss)?;
-    let base = base_virt.as_u64() as *mut u8;
+    let base = phys_to_virt_checked(addr).ok_or(TrampolineError::DirectmapMiss)?.as_u64();
+    let pml4 = field_at(base, &raw const nonos_ap_trampoline_pml4, 8)?;
+    let stack = field_at(base, &raw const nonos_ap_trampoline_stack, 8)?;
+    let entry = field_at(base, &raw const nonos_ap_trampoline_entry, 8)?;
+    let cpu_id = field_at(base, &raw const nonos_ap_trampoline_cpu_id, 4)?;
+    let ready = field_at(base, &raw const nonos_ap_trampoline_ready, 4)?;
 
-    let off_pml4 = field_offset(&raw const nonos_ap_trampoline_pml4);
-    let off_stack = field_offset(&raw const nonos_ap_trampoline_stack);
-    let off_entry = field_offset(&raw const nonos_ap_trampoline_entry);
-    let off_cpuid = field_offset(&raw const nonos_ap_trampoline_cpu_id);
-    let off_ready = field_offset(&raw const nonos_ap_trampoline_ready);
-
-    // SAFETY: All four fields live inside the trampoline image whose
-    // length is bounded by `trampoline_image`. The destination is the
-    // freshly installed trampoline page at `addr`.
+    // SAFETY: All five fields live inside the trampoline image whose length is
+    // bounded by `trampoline_image`, each aligned for its width (`field_at`).
+    // The destination is the freshly installed trampoline page at `addr`.
     unsafe {
-        core::ptr::write_volatile(base.add(off_pml4) as *mut u64, ctx.pml4_phys);
-        core::ptr::write_volatile(base.add(off_stack) as *mut u64, ctx.stack_top);
-        core::ptr::write_volatile(base.add(off_entry) as *mut u64, ctx.entry_ptr);
-        core::ptr::write_volatile(base.add(off_cpuid) as *mut u32, ctx.cpu_id);
-        core::ptr::write_volatile(base.add(off_ready) as *mut u32, 0);
+        core::ptr::write_volatile(pml4 as *mut u64, ctx.pml4_phys);
+        core::ptr::write_volatile(stack as *mut u64, ctx.stack_top);
+        core::ptr::write_volatile(entry as *mut u64, ctx.entry_ptr);
+        core::ptr::write_volatile(cpu_id as *mut u32, ctx.cpu_id);
+        core::ptr::write_volatile(ready as *mut u32, 0);
     }
 
     Ok(())
 }
 
-// `ready` sits at a 4-aligned offset (see tables.S) in the page-aligned
-// trampoline image, so the volatile u32 read is correctly aligned.
-#[allow(clippy::cast_ptr_alignment)]
 pub fn ap_signaled_ready(addr: PhysAddr) -> bool {
-    let Some(base_virt) = phys_to_virt_checked(addr) else { return false };
-    let off_ready = field_offset(&raw const nonos_ap_trampoline_ready);
-    // SAFETY: trampoline page is mapped read-write through the directmap.
-    unsafe {
-        let p = base_virt.as_u64() as *const u8;
-        core::ptr::read_volatile(p.add(off_ready) as *const u32) != 0
-    }
+    let Some(base) = phys_to_virt_checked(addr) else { return false };
+    let Ok(ready) = field_at(base.as_u64(), &raw const nonos_ap_trampoline_ready, 4) else {
+        return false;
+    };
+    // SAFETY: trampoline page is mapped read-write through the directmap, and
+    // `ready` is 4-aligned (`field_at`).
+    unsafe { core::ptr::read_volatile(ready as *const u32) != 0 }
 }
 
 fn trampoline_image() -> (*const u8, usize) {
-    let start = &raw const nonos_ap_trampoline_start as *const u8;
-    let end = &raw const nonos_ap_trampoline_end as *const u8;
+    let start = &raw const nonos_ap_trampoline_start;
+    let end = &raw const nonos_ap_trampoline_end;
     // SAFETY: both symbols are defined in the same rodata blob and end > start.
     let len = unsafe { end.offset_from(start) } as usize;
     (start, len)
 }
 
-fn field_offset(field: *const u8) -> usize {
-    let start = &raw const nonos_ap_trampoline_start as usize;
-    field as usize - start
+/// Where `field` of the image installed at `base` lies, refused unless it is
+/// aligned for its `width`.
+fn field_at(base: u64, field: *const u8, width: u64) -> Result<u64, TrampolineError> {
+    let at = base + (field as u64 - &raw const nonos_ap_trampoline_start as u64);
+    at.is_multiple_of(width).then_some(at).ok_or(TrampolineError::AddressMisaligned)
 }
