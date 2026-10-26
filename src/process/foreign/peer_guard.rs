@@ -47,7 +47,6 @@ pub(super) const PROT_EXEC: u64 = 1 << 1;
  */
 pub(super) const PROT_NONE: u64 = 1 << 2;
 
-
 /// The pid a syscall argument names. Refused rather than truncated: `as u32`
 /// on 2^32 + n would name process n, a real one the caller never asked for.
 pub(super) fn pid_arg(raw: u64) -> Result<u32, i64> {
@@ -57,17 +56,20 @@ pub(super) fn pid_arg(raw: u64) -> Result<u32, i64> {
 /// The guest's address space and the lock over it, or the errno the
 /// caller gets instead.
 ///
-/// The lock is taken before the guest is looked up, so the check and every
-/// use of the address space after it are one step: a guest's teardown
-/// drops its row first and frees its tables only under this lock
-/// (`without_peer_calls`), so a call that finds the row finds the tables
-/// alive until it returns.
+/// The row is checked again once the guest's lock is held, so the check and
+/// every use of the address space after it are one step: a guest's teardown
+/// drops its row first and frees its tables only under that lock
+/// (`without_peer_calls`), so a call that finds the row under it finds the
+/// tables alive until it returns.
 pub(super) fn supervised_asid(caller: u32, pid: u64) -> Result<(u32, Held), i64> {
     let pid = pid_arg(pid)?;
-    let held = super::peer_lock::take();
-    if super::registry::supervisor_of(pid) != Some(caller) {
+    let supervised = || super::registry::supervisor_of(pid) == Some(caller);
+    if !supervised() {
         return Err(ERRNO_PERM);
     }
-    let asid = crate::memory::paging::manager::lookup_asid_for_process(pid).ok_or(ERRNO_INVAL)?;
+    let (asid, held) = super::peer_lock::hold(pid).ok_or(ERRNO_INVAL)?;
+    if !supervised() {
+        return Err(ERRNO_PERM);
+    }
     Ok((asid, held))
 }
