@@ -36,7 +36,7 @@ checks it instead.
 | 0 | `0x1` | `CoreExec` | `CORE_EXEC` | Run as a process; asked for by the pid and argument calls, and with IPC and Memory by capsule loading. | `MCLD`, `MGPD`, `MKAR`, `MCVF` |
 | 1 | `0x2` | `IO` | `IO` | Enforces nothing. | none |
 | 2 | `0x4` | `Network` | `NETWORK` | Reach the network services. Removed from every capsule on a boot profile that runs no network. | none |
-| 3 | `0x8` | `IPC` | `IPC` | Send and receive messages, and start and drive child processes. | `MISD`, `MIRC`, `MICL`, `MIRF`, `MIRY`, `MISP`, `MSVL`, `MSVR`, `MCLD`, `MWAT`, `MKIL`, `MTSP`, `MOUT`, `MPIN`, `MSRD`, `MTRN`, `MTTY`, `MSOW`, `MPVW`, `MCVF`, `MPJB` |
+| 3 | `0x8` | `IPC` | `IPC` | Send and receive messages, and start and drive child processes. | `MISD`, `MIRC`, `MICL`, `MIRF`, `MIRY`, `MIRQ`, `MIRT`, `MISP`, `MSVL`, `MSVR`, `MCLD`, `MWAT`, `MKIL`, `MTSP`, `MOUT`, `MPIN`, `MSRD`, `MTRN`, `MTTY`, `MSOW`, `MPVW`, `MCVF`, `MPJB` |
 | 4 | `0x10` | `Memory` | `MEMORY` | Map and unmap pages. | `MMAP`, `MUMP`, `MCLD`, `MCVF` |
 | 5 | `0x20` | `Crypto` | `CRYPTO` | Use the crypto calls. | `CRND`, `CHSH`, `CENC`, `CDEC`, `CEAD`, `CDAD`, `CXPK`, `CXSH`, `CHMC`, `CHKF`, `CKEC`, `CMKY` |
 | 6 | `0x40` | `FileSystem` | `FILE_SYSTEM` | Read the data volume, and reach the VFS service. | `MDIM`, `MDST`, `MDRD`, `MDPW` |
