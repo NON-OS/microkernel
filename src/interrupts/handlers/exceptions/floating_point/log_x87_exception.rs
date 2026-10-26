@@ -16,11 +16,12 @@
 
 use super::status::X87Status;
 use crate::interrupts::handlers::exceptions::context::ExceptionContext;
+use crate::security::observability::redact::redact_address;
 
 pub(crate) fn log_x87_exception(ctx: &ExceptionContext, status: &X87Status) {
     crate::log::logger::log_warning!(
-        "x87 FP Exception at {:#x}: IE={} DE={} ZE={} OE={} UE={} PE={} SF={}",
-        ctx.instruction_pointer,
+        "x87 FP Exception at {}: IE={} DE={} ZE={} OE={} UE={} PE={} SF={}",
+        redact_address(ctx.instruction_pointer),
         (status.bits & 0x01) != 0,
         (status.bits & 0x02) != 0,
         (status.bits & 0x04) != 0,

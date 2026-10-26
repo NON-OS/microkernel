@@ -1,0 +1,1946 @@
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI QEMU NVMe Ctrl NONOS-TARGET 1" from PciRoot(0x0)/Pci(0x1,0x0)/NVMe(0x1,00-00-00-00-00-00-00-00)
+BdsDxe: starting Boot0001 "UEFI QEMU NVMe Ctrl NONOS-TARGET 1" from PciRoot(0x0)/Pci(0x1,0x0)/NVMe(0x1,00-00-00-00-00-00-00-00)
+[2J[01;01H[=3h[2J[01;01H[BOOT] NONOS Bootloader v1.0
+[WARN] gop: [GOP] 1280x800 firmware current pitch=1280px fmt=BGRX fb=0x80000000 panel=0x0mm
+[WARN] gop: [GOP] handle 1 of 2, console out on: 1
+=== Loading Bootloader Configuration ===
+   [INFO] Using default security policy
+   [INFO] Using default network policy
+========================================
+[ERROR] security: Cannot read SecureBoot: NOT_FOUND
+[ERROR] security: Platform Key missing: NOT_FOUND
+[ERROR] security: Signature DB missing: NOT_FOUND
+=== Security Status ===
+Production Keys: LOADED
+SecureBoot: DISABLED
+PlatformKey: MISSING
+SignatureDB: MISSING
+HW RNG: AVAILABLE
+Measured Boot: ACTIVE
+Ed25519: PASS
+BLAKE3: PASS
+=======================
+=== HW Summary ===
+ACPI: available
+Memory: reported
+CPUs: detected
+Storage: counted
+Network: counted
+Graphics: counted
+PCI: counted
+==================
+[WARN] enforce: SecureBoot not enabled
+[SECURITY] PASSED
+[WARN] enforce: SecureBoot disabled
+[WARN] enforce: PlatformKey not verified
+  [CRYPTO] Kernel bytes: 86783712
+  [CRYPTO] Computing BLAKE3 hash...
+  [CRYPTO] BLAKE3: f1de2f42f60b2851...
+  [CRYPTO] Extracting Ed25519 + ML-DSA-65 signatures...
+  [CRYPTO] Sig R: 19be18b2952cb36d...
+  [CRYPTO] Sig S: 9140b608766eeedd...
+  [CRYPTO] Verifying Ed25519 signature...
+  [CRYPTO] Ed25519 verify ....................... [PASS]
+  [CRYPTO] Signer key ID: f9355fd53b2b7771...
+  [CRYPTO] Verifying ML-DSA-65 signature...
+  [CRYPTO] ML-DSA-65 verify .................... [PASS]
+  [CRYPTO] Kernel signature state ............... [PASS]
+[WARN] proofs: SECURE BOOT OFF: UEFI Secure Boot disabled
+[PT0]
+[PT1]
+[KTXT]
+[EBS0]
+[EBS1]
+[MMAP1]
+[CR3OK]
+V>
+NX64
+R
+[NONOS] Handoff OK
+[NONOS] Kernel entry - SSE enabled
+[TIMER] Initialized, TSC freq=2099 MHz
+[BENCH] 251 kernel_entry
+[NONOS] GDT configured
+[NONOS] SYSCALL configured
+[NONOS] Early IDT configured
+[NONOS] Global allocator initialized
+[NONOS] Full IDT loaded
+[BENCH] 256 kernel_idt_ready
+[NONOS] ACPI tables parsed
+[ACPI] power button: fixed feature, polled; a press goes to the desktop as the Power key
+[APIC] Initializing Local APIC...
+[APIC] Local APIC enabled, ID=0 Version=0x0x0000000000000014 mode=xAPIC
+[APIC] Initializing I/O APIC...
+[APIC] Disabling legacy PIC (8259A)...
+[APIC] Legacy PIC disabled
+[APIC] MADT ISOs=5
+[APIC] I/O APIC enabled, ID=0 base=0x0x00000000FEC00000 gsi_base=0 Max redirections=24
+[NONOS] APIC initialized
+[APIC] Setting up timer at 100 Hz
+[NONOS] Preemption timer armed
+[BENCH] 293 kernel_timer_ready
+[NONOS] Interrupts enabled
+[NONOS] memory encryption: none
+[PCI] Enumerating PCI devices...
+[PCI] Found 10 devices
+[PCI] 0:0.0 Host Bridge (0x0000000000008086:0x00000000000029C0)
+[PCI] 0:1.0 NVMe (0x0000000000001B36:0x0000000000000010)
+[PCI] 0:2.0 VGA Controller (0x0000000000001AF4:0x0000000000001050)
+[PCI] 0:3.0 xHCI USB 3.0 (0x0000000000001B36:0x000000000000000D)
+[PCI] 0:5.0 Ethernet (0x0000000000001AF4:0x0000000000001041)
+[PCI] 0:31.0 ISA Bridge (0x0000000000008086:0x0000000000002918)
+[PCI] 0:31.2 SATA AHCI (0x0000000000008086:0x0000000000002922)
+[NONOS] PCI enumerated
+[BENCH] 320 kernel_pci_ready
+[NONOS] RNG seed: AVAILABLE - applying...
+[NONOS] RNG seed: APPLIED SUCCESSFULLY
+[VMD] no Intel VMD on segment 0; disks are on the root bus
+[ACPI] sci irq=9 device=0x000000000000000C
+[NONOS] hardware broker seeded
+[PLATFORM] hypervisor=qemu-tcg
+[NONOS] Entropy: CPU RNG
+[NONOS] boot session nonce latched
+[NONOS] token signing key latched
+[BENCH] 507 kernel_core_ready
+[NONOS] === Security Status ===
+[NONOS] Kernel signature: VERIFIED
+[NONOS] Secure Boot: DISABLED
+[NONOS] ========================
+[NONOS] Microkernel boot
+[BENCH] 509 microkernel_init_start
+[BOOT-ENTROPY] nonce drawn, hardware generator present
+[MEM] 5716 MiB free to allocate, in a span of 0x0000000000100000..0x0000000200000000
+[DMA] display pool pages=8192
+[DMA] low32 pool pages=3256 floor=1628
+[fbconsole] on-screen log disabled; serial only
+[NONOS] Microkernel init
+[RNG] seeded from: cpu-entropy-instruction cpu-random-instruction firmware-seed
+[SMP] madt aps=3 disabled=0 duplicate=0 invalid=0 unaddressable=0 over_limit=0
+[VM] adopted root 0x000000007E728000
+[VM-INIT] kernel half populated entries: 256
+[VM-INIT] LAPIC rebased to UC kernel mapping
+[VM-INIT] low half cleared
+[BENCH] 545 vm_ready
+[CPU-PROT] smep=1 smap=1 umip=1 nx=1 wp=1 pge=1
+[STACK-GUARD] bsp armed 8/8
+[KSEC] 4/4 sections mapped as declared
+[CPU-FPU] xsave=1 xcr0=0x0000000000000007 area=832
+[VT-D] units=0x0000000000000001 base=0x00000000FED90000 ver=0x0000000000000010 domains=0x0000000000010000 gaw=0x0000000000000030 levels=0x0000000000000004 cm
+[VT-D] IOMMU unit base=0x00000000FED90000 firmware interrupt remapping=off
+[VT-D] IOMMU unit base=0x00000000FED90000 invalidation=queue
+[VT-D] translation enabled, levels=0x0000000000000004 devices=0x000000000000000A
+[VT-D] enumerated devices blocked until claimed; with reserved memory=0; others denied
+[VT-D] units programmed=0x0000000000000001
+[VT-D] IOMMU interrupt remapping on, entries=256, compatibility format interrupts blocked
+[VT-D] I/O APICs DMAR scopes for remapping: 1 of 1
+[IOMMU] intel-vt-d present, enforcing=1, unconfined grants=0, identity devices=0
+[IOMMU] capabilities aw=48 ir=1 snoop=0 pages=0x0000000000001000 domains=256
+[CRYPTO-POST] 4/4 known-answer tests passed
+[FB] handoff ptr=0x80000000 stride=0x1400 fmt=0x3
+[FB] mapped 1280x800 pitch=5120 BGRX write-combining scale=1
+[ACPI] power button: SCI line masked, PM1_EN=0x0000000000000100
+[NONOS] device interrupt routing ready
+[BENCH] 719 process_runtime_ready
+[APIC] Setting up timer at 100 Hz
+[SMP] ap=1 apic=1 online
+[SMP-AP] cpu=1 svr=0x00000000000001FF lvt_timer=0x0000000000020020 init=600000 counting=1 ppr=0x0000000000000000 in_service=none
+[CPU-PROT] cpu=1 smep=1 smap=1 umip=1 nx=1 wp=1 pge=1
+[APIC] Setting up timer at 100 Hz
+[SMP] ap=2 apic=2 online
+[SMP-AP] cpu=2 svr=0x00000000000001FF lvt_timer=0x0000000000020020 init=600000 counting=1 ppr=0x0000000000000000 in_service=none
+[CPU-PROT] cpu=2 smep=1 smap=1 umip=1 nx=1 wp=1 pge=1
+[APIC] Setting up timer at 100 Hz
+[SMP] ap=3 apic=3 online
+[SMP-AP] cpu=3 svr=0x00000000000001FF lvt_timer=0x0000000000020020 init=600000 counting=1 ppr=0x0000000000000000 in_service=none
+[CPU-PROT] cpu=3 smep=1 smap=1 umip=1 nx=1 wp=1 pge=1
+[SMP] answered=3 online=4
+[SMP-PROOF] cpu_count=4 PASS
+[SMP] AP TSC rate 2099 MHz, the boot CPU's
+[NONOS] Core ready
+[BENCH] 764 microkernel_core_ready
+[BENCH] 764 microkernel_main_start
+[TPM] interface CRB at 0xFED40000, locality 0 (id 0x25C11, ACPI agrees)
+[BOOT-ATTEST] bootloader measured and enrolled, epoch 1
+[NONOS] boot log held; starting userspace
+[UKERNEL] Creating init
+[BENCH] 3004 init_process_created
+[UKERNEL] Entering userspace
+[BENCH] 3007 init_enter_userspace
+[INIT] Starting
+[INIT] boot profile: Standard
+[BENCH] 3007 capsule_spawn_start:ramfs
+[ZK-ATTEST] development image: paths only, no STARK proofs, never a release
+[BENCH] 3103 capsule_attest_ok:ramfs
+[ZK-ATTEST] ok ramfs vendor
+[BENCH] 3109 capsule_preflight_ok:ramfs
+[SPAWN] name=ramfs pid=0x0000000000000002 caps=0x0000000000000038 entry=0x00000000358FF1E0
+[BENCH] 3120 capsule_runqueue_ok:ramfs
+[RAMFS] capsule spawned
+[BENCH] 3121 capsule_spawn_start:keyring
+[SMP] cpu=1 runs user pid 2
+[USER-FIRST] pid=0x0000000000000002 rip=0x00000000358FF1E0
+[BENCH] 3209 capsule_attest_ok:keyring
+[ZK-ATTEST] ok keyring vendor
+[BENCH] 3211 capsule_preflight_ok:keyring
+[SPAWN] name=keyring pid=0x0000000000000003 caps=0x0000000010000038 entry=0x00000000241351B0
+[BENCH] 3230 capsule_runqueue_ok:keyring
+[KEYRING] capsule spawned
+[SMP] cpu=2 runs user pid 3
+[USER-FIRST] pid=0x0000000000000003 rip=0x00000000241351B0
+[BENCH] 3231 capsule_spawn_start:entropy_pool
+[BENCH] 3285 capsule_attest_ok:entropy_pool
+[ZK-ATTEST] ok entropy_pool vendor
+[BENCH] 3286 capsule_preflight_ok:entropy_pool
+[SPAWN] name=entropy_pool pid=0x0000000000000004 caps=0x0000000000000038 entry=0x000000003F28A080
+[BENCH] 3297 capsule_runqueue_ok:entropy_pool
+[ENTROPY] capsule spawned
+[USER-FIRST] pid=0x0000000000000004 rip=[BENCH] 3297 capsule_spawn_start:crypto_pool
+0x000000003F28A080
+[BENCH] 3351 capsule_attest_ok:crypto_pool
+[ZK-ATTEST] ok crypto_pool vendor
+[BENCH] 3352 capsule_preflight_ok:crypto_pool
+[SPAWN] name=crypto_pool pid=0x0000000000000005 caps=0x0000000000000018 entry=0x0000000010ED43A0
+[BENCH] 3363 capsule_runqueue_ok:crypto_pool
+[CRYPTO] capsule spawned
+[USER-FIRST] pid=0x0000000000000005 rip=0x0000000010ED43A0
+[BENCH] 3363 capsule_spawn_start:policy
+[BENCH] 3403 capsule_attest_ok:policy
+[ZK-ATTEST] ok policy vendor
+[BENCH] 3405 capsule_preflight_ok:policy
+[SPAWN] name=policy pid=0x0000000000000006 caps=0x0000000000000259 entry=0x000000000856C980
+[BENCH] 3416 capsule_runqueue_ok:policy
+[POLICY] capsule spawned
+[USER-FIRST] pid=0x0000000000000006 rip=0x000000000856C980
+[BENCH] 3416 capsule_spawn_start:input_router
+[BENCH] 3457 capsule_attest_ok:input_router
+[ZK-ATTEST] ok input_router vendor
+[BENCH] 3458 capsule_preflight_ok:input_router
+[SPAWN] name=input_router pid=0x0000000000000007 caps=0x0000001000000018 entry=0x000000003DD8B280
+[BENCH] 3469 capsule_runqueue_ok:input_router
+[INPUT-ROUTER] capsule spawned
+[SMP] cpu=3 runs user pid 7
+[BENCH] [USER-FIRST] pid=0x0000000000000007 rip=3469 capsule_spawn_start:compositor
+0x000000003DD8B280
+[BENCH] 3514 capsule_attest_ok:compositor
+[ZK-ATTEST] ok compositor vendor
+[BENCH] 3516 capsule_preflight_ok:compositor
+[SPAWN] name=compositor pid=0x0000000000000008 caps=0x0000000000007918 entry=0x000000001F3C3620
+[BENCH] 3527 capsule_runqueue_ok:compositor
+[COMPOSITOR] capsule spawned
+[USER-FIRST] pid=0x0000000000000008 rip=0x000000001F3C3620
+[BENCH] 3527 capsule_spawn_start:app.boot_splash
+[BENCH] 3568 capsule_attest_ok:app.boot_splash
+[ZK-ATTEST] ok app.boot_splash vendor
+[BENCH] 3569 capsule_preflight_ok:app.boot_splash
+[SPAWN] name=app.boot_splash pid=0x0000000000000009 caps=0x0000000000001118 entry=0x0000000017009690
+[BENCH] 3579 capsule_runqueue_ok:app.boot_splash
+[USER-FIRST] pid=0x0000000000000009 rip=0x0000000017009690
+[BOOT-SPLASH] capsule spawned
+[BENCH] 3580 capsule_spawn_start:driver.virtio_rng
+[BENCH] 3621 capsule_attest_ok:driver.virtio_rng
+[ZK-ATTEST] ok driver.virtio_rng vendor
+[BENCH] 3622 capsule_preflight_ok:driver.virtio_rng
+[SPAWN] name=driver.virtio_rng pid=0x000000000000000A caps=0x00000000001B8018 entry=0x000000000AE827D0
+[BENCH] 3632 capsule_runqueue_ok:driver.virtio_rng
+[USER-FIRST] pid=0x000000000000000A rip=0x000000000AE827D0
+[DRIVER-VIRTIO-RNG] capsule spawned
+[DRIVER-VIRTIO-BLK] no controller present, not spawned
+[BENCH] 3633 capsule_spawn_start:driver.virtio_gpu0
+[BENCH] 3675 capsule_attest_ok:driver.virtio_gpu0
+[ZK-ATTEST] ok driver.virtio_gpu0 vendor
+[BENCH] 3675 capsule_preflight_ok:driver.virtio_gpu0
+[SPAWN] driver.virtio_gpu0 install enter
+[SPAWN] name=driver.virtio_gpu0 pid=0x000000000000000B caps=0x00000000000B9118 entry=0x00000000223F5240
+[BENCH] 3687 capsule_runqueue_ok:driver.virtio_gpu0
+[USER-FIRST] pid=[SPAWN] driver.virtio_gpu0 runqueue ok
+0x000000000000000B rip=0x00000000223F5240
+[DRIVER-VIRTIO-GPU] capsule spawned
+[BENCH] 3687 capsule_spawn_start:driver.virtio_net0
+[DISPLAY] gfx lookup: driver.virtio_gpu0
+[BENCH] 3728 capsule_attest_ok:driver.virtio_net0
+[ZK-ATTEST] ok driver.virtio_net0 vendor
+[BENCH] 3729 capsule_preflight_ok:driver.virtio_net0
+[SPAWN] driver.virtio_net0 install enter
+[VT-D] confined to its capsule's domain
+[BROKER] device 0x0000000000000004 not reset at claim: no FLR
+[SPAWN] name=driver.virtio_net0 pid=0x000000000000000C caps=0x00000000001B8138 entry=0x000000000E25D9E0
+[BENCH] 3739 capsule_runqueue_ok:driver.virtio_net0
+[SPAWN] driver.virtio_net0 runqueue ok
+[USER-FIRST] pid=0x000000000000000C rip=0x000000000E25D9E0[DRIVER-VIRTIO-NET] capsule spawned
+
+[BENCH] 3740 capsule_spawn_start:power
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[DMA] grant uncached pages=2
+[BENCH] 3780 capsule_attest_ok:power
+[ZK-ATTEST] ok power vendor
+[BENCH] 3780 capsule_preflight_ok:power
+[SPAWN] name=power pid=0x000000000000000D caps=0x0000000000000218 entry=0x0000000007E15E90
+[BENCH] 3781 capsule_runqueue_ok:power
+[POWER] capsule spawned
+[DRIVER-VMBUS] no Hyper-V SynIC, not spawned
+[DRIVER-VMWARE-SVGA] no controller present, not spawned
+[BENCH] 3782 capsule_spawn_start:driver.ahci0
+[USER-FIRST] pid=0x000000000000000D rip=0x0000000007E15E90
+[VT-D] confined to its capsule's domain
+[BROKER] claimed device 0x0000000000000002 bus master off until its driver turns it on
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[GPU-EDID] EDID read: its modes offered[GPU-3D] virgl not offered (2d scanout only)[BENCH] 3824 capsule_attest_ok:driver.ahci0
+[ZK-ATTEST] ok driver.ahci0 vendor
+[BENCH] 3826 capsule_preflight_ok:driver.ahci0
+[SPAWN] name=driver.ahci0 pid=0x000000000000000E caps=0x00000000000F8018 entry=0x0000000028A2CC70
+[BENCH] 3827 capsule_runqueue_ok:driver.ahci0
+[DRIVER-AHCI] capsule spawned
+[BENCH] 3828 capsule_spawn_start:driver.nvme0
+[USER-FIRST] pid=0x000000000000000E rip=0x0000000028A2CC70
+[BENCH] 3871 capsule_attest_ok:driver.nvme0
+[ZK-ATTEST] ok driver.nvme0 vendor
+[BENCH] 3872 capsule_preflight_ok:driver.nvme0
+[net-setup] find[net-setup] claim[VT-D] confined to its capsule's domain
+[BROKER] device 0x0000000000000005 not reset at claim: no FLR
+[net-setup] transport[SPAWN] name=driver.nvme0 pid=0x000000000000000F caps=0x00000000000F8118 entry=0x0000000032BCC2E0
+[BENCH] 3890 capsule_runqueue_ok:driver.nvme0
+[DRIVER-NVME] capsule spawned
+[BENCH] 3891 capsule_spawn_start:driver.xhci0
+[net-setup] modern pci[net-setup] modern regmap[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[net-setup] negotiate[net-setup] dma[DMA] grant uncached pages=3
+[DMA] grant uncached pages=3
+[net-setup] queues[net-setup] done[USER-FIRST] pid=0x000000000000000F rip=0x0000000032BCC2E0
+[BENCH] 3935 capsule_attest_ok:driver.xhci0
+[ZK-ATTEST] ok driver.xhci0 vendor
+[BENCH] 3936 capsule_preflight_ok:driver.xhci0
+[SPAWN] name=driver.xhci0 pid=0x0000000000000010 caps=0x00000000000F8018 entry=0x0000000030A3E100
+[BENCH] 3946 capsule_runqueue_ok:driver.xhci0
+[DRIVER-XHCI] capsule spawned
+[DRIVER-EHCI] no controller present, not spawned
+[DRIVER-OHCI] no controller present, not spawned
+[DRIVER-UHCI] no controller present, not spawned
+[DRIVER-IWLWIFI] no controller present, not spawned
+[DRIVER-RTL8821CE] no controller present, not spawned
+[DRIVER-I2C-PCI] no controller present, not spawned
+[DRIVER-I2C-HID] no I2C host to ask, not spawned
+[BENCH] 3949 capsule_spawn_start:driver.ps2_kbd0
+[VT-D] confined to its capsule's domain
+[BROKER] device 0x0000000000000008 not reset at claim: no FLR
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[USER-FIRST] pid=0x0000000000000010 rip=0x0000000030A3E100
+[BENCH] 3991 capsule_attest_ok:driver.ps2_kbd0
+[ZK-ATTEST] ok driver.ps2_kbd0 vendor
+[BENCH] 3992 capsule_preflight_ok:driver.ps2_kbd0
+[SPAWN] name=driver.ps2_kbd0 pid=0x0000000000000011 caps=0x0000000000358018 entry=0x000000000A390610
+[BENCH] 4013 capsule_runqueue_ok:driver.ps2_kbd0
+[DRIVER-PS2-INPUT] capsule spawned
+[DRIVER-VIRTIO-INPUT] no controller present, not spawned
+[DRIVER-VMMDEV] no controller present, not spawned
+[BENCH] 4014 capsule_spawn_start:driver.vmmouse0
+[BENCH] 4014 surface_register_first
+[DISPLAY] mode 1920x1080
+[USER-FIRST] pid=0x0000000000000011 rip=0x000000000A390610
+[BENCH] 4054 capsule_attest_ok:driver.vmmouse0
+[ZK-ATTEST] ok driver.vmmouse0 vendor
+[BENCH] 4060 capsule_preflight_ok:driver.vmmouse0
+[SPAWN] name=driver.vmmouse0 pid=0x0000000000000012 caps=0x0000000000300118 entry=0x0000000010EC4FE0
+[BENCH] 4090 capsule_runqueue_ok:driver.vmmouse0
+[DRIVER-VMMOUSE] capsule spawned
+[BENCH] 4090 capsule_spawn_start:driver.e1000_0
+nvme: controller 1b36:0010 device 1 BAR0 16384 bytes
+[VT-D] confined to its capsule's domain
+[USER-FIRST] pid=0x0000000000000012 rip=0x0000000010EC4FE0
+[BENCH] 4155 capsule_attest_ok:driver.e1000_0
+[ZK-ATTEST] ok driver.e1000_0 vendor
+driver.vmmouse: up, backdoor version 6, absolute pointer on
+[BENCH] 4158 capsule_preflight_ok:driver.e1000_0
+[SPAWN] name=driver.e1000_0 pid=0x0000000000000013 caps=0x00000000000B8038 entry=0x000000000C29E400
+[BENCH] 4175 capsule_runqueue_ok:driver.e1000_0
+[DRIVER-E1000] capsule spawned
+[DRIVER-E1000E] no controller present, not spawned
+[DRIVER-IGB] no controller present, not spawned
+[BENCH] 4177 capsule_spawn_start:driver.rtl8139_0
+[DISPLAY] on driver.virtio_gpu0 1920x1080, canvas 1920x1080 at scale 1.00
+[MUNMAP] release_va_failed
+[MUNMAP] pid=0x0000000000000008 name=compositor size=0x0000000000001000 va=0x00000000817E9000 total_pid=0x0000000001010000 total_system=0x00000000107F9000
+[USER-FIRST] pid=0x0000000000000013 rip=0x000000000C29E400
+[DISPLAY] serving: first turn at 3659 ms took 13 ms
+[DISPLAY] first request op 0x0001 from pid 9 at 3671 ms
+[USER-FIRST] pid=0x0000000000000014 rip=0x000000001F3DA038
+[DIAG] ipc.drain kernel.entropy=0x0000000000000004
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[BENCH] 4239 capsule_attest_ok:driver.rtl8139_0
+[ZK-ATTEST] ok driver.rtl8139_0 vendor
+[BENCH] 4243 capsule_preflight_ok:driver.rtl8139_0
+[SPAWN] name=driver.rtl8139_0 pid=0x0000000000000015 caps=0x0000000000198038 entry=0x000000003BB5FE60
+[BENCH] 4249 capsule_runqueue_ok:driver.rtl8139_0
+[DRIVER-RTL8139] capsule spawned
+[BENCH] 4249 capsule_spawn_start:driver.rtl8169_0
+nvme: queue count set: one I/O queue pair
+nvme: nsid 1: 16777216 LBAs of 512 bytes, 64 per command
+[VT-D] confined to its capsule's domain
+[BROKER] device 0x0000000000000003 not reset at claim: no FLR
+[USER-FIRST] pid=0x0000000000000015 rip=0x000000003BB5FE60
+nvme: serving controller 1b36 model QEMU NVMe Ctrl, block I/O up
+[BENCH] 4294 capsule_attest_ok:driver.rtl8169_0
+[ZK-ATTEST] ok driver.rtl8169_0 vendor
+[BENCH] 4295 capsule_preflight_ok:driver.rtl8169_0
+[SPAWN] name=driver.rtl8169_0 pid=0x0000000000000016 caps=0x00000000000B8038 entry=0x00000000279BCCC0
+[BENCH] 4306 capsule_runqueue_ok:driver.rtl8169_0
+[DRIVER-RTL8169] capsule spawned
+[DRIVER-PCNET] no controller present, not spawned
+[DRIVER-VMXNET3] no controller present, not spawned
+[DRIVER-TULIP] no controller present, not spawned
+[BENCH] 4307 capsule_spawn_start:driver.usb_hub0
+[EXIT] code=2 driver.e1000_0
+[EXIT] driver.e1000_0 status 2: no device present, not started
+[BENCH] 4349 capsule_attest_ok:driver.usb_hub0
+[ZK-ATTEST] ok driver.usb_hub0 vendor
+[BENCH] 4350 capsule_preflight_ok:driver.usb_hub0
+[SPAWN] name=driver.usb_hub0 pid=0x0000000000000017 caps=0x0000000000000118 entry=0x000000003A4F9CD0
+[BENCH] 4365 capsule_runqueue_ok:driver.usb_hub0
+[DRIVER-USB-HUB] capsule spawned
+[BENCH] 4366 capsule_spawn_start:driver.usb_hid0
+[EXIT] code=2 driver.rtl8139_0
+[EXIT] driver.rtl8139_0 status 2: no device present, not started
+[USER-FIRST] pid=0x0000000000000016 rip=0x00000000279BCCC0
+[BENCH] 4415 capsule_attest_ok:driver.usb_hid0
+[ZK-ATTEST] ok driver.usb_hid0 vendor
+[BENCH] 4417 capsule_preflight_ok:driver.usb_hid0
+[SPAWN] name=driver.usb_hid0 pid=0x0000000000000018 caps=0x0000000000200018 entry=0x00000000317E4450
+[BENCH] 4432 capsule_runqueue_ok:driver.usb_hid0
+[DRIVER-USB-HID] capsule spawned
+[BENCH] 4432 capsule_spawn_start:driver.usb_msc0
+[USER-FIRST] pid=0x0000000000000017 rip=0x000000003A4F9CD0
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[USER-FIRST] pid=0x0000000000000018 rip=0x00000000317E4450
+[BENCH] 4477 capsule_attest_ok:driver.usb_msc0
+[ZK-ATTEST] ok driver.usb_msc0 vendor
+[BENCH] 4483 capsule_preflight_ok:driver.usb_msc0
+[SPAWN] name=driver.usb_msc0 pid=0x0000000000000019 caps=0x0000000000000019 entry=0x0000000010B66F00
+[BENCH] 4493 capsule_runqueue_ok:driver.usb_msc0
+[DRIVER-USB-MSC] capsule spawned
+[BENCH] 4494 capsule_spawn_start:driver.uvc0
+[EXIT] code=2 driver.rtl8169_0
+[EXIT] driver.rtl8169_0 status 2: no device present, not started
+[USER-FIRST] pid=0x0000000000000019 rip=0x0000000010B66F00
+[BENCH] 4536 capsule_attest_ok:driver.uvc0
+[ZK-ATTEST] ok driver.uvc0 vendor
+[BENCH] 4538 capsule_preflight_ok:driver.uvc0
+[SPAWN] name=driver.uvc0 pid=0x000000000000001A caps=0x0000000000000118 entry=0x000000002F7CE030
+[BENCH] 4585 capsule_runqueue_ok:driver.uvc0
+[DRIVER-UVC] capsule spawned
+[BENCH] 4586 capsule_spawn_start:driver.ccid0
+[USER-FIRST] pid=0x000000000000001A rip=0x000000002F7CE030
+[BENCH] 4630 capsule_attest_ok:driver.ccid0
+[ZK-ATTEST] ok driver.ccid0 vendor
+[BENCH] 4631 capsule_preflight_ok:driver.ccid0
+[SPAWN] name=driver.ccid0 pid=0x000000000000001B caps=0x0000000000000118 entry=0x000000003B396E80
+[BENCH] 4645 capsule_runqueue_ok:driver.ccid0
+[DRIVER-CCID] capsule spawned
+[BENCH] 4646 capsule_spawn_start:driver.fido0
+[USER-FIRST] pid=0x000000000000001B rip=0x000000003B396E80
+[BENCH] 4686 capsule_attest_ok:driver.fido0
+[ZK-ATTEST] ok driver.fido0 vendor
+[BENCH] 4687 capsule_preflight_ok:driver.fido0
+[SPAWN] name=driver.fido0 pid=0x000000000000001C caps=0x0000000000000118 entry=0x000000002098E9C0
+[BENCH] 4697 capsule_runqueue_ok:driver.fido0
+[DRIVER-FIDO] capsule spawned
+[BENCH] 4697 capsule_spawn_start:driver.hda0
+[USER-FIRST] pid=0x000000000000001C rip=0x000000002098E9C0
+[usbnet uvc] started, looking for a camera
+[BENCH] 4741 capsule_attest_ok:driver.hda0
+[ZK-ATTEST] ok driver.hda0 vendor
+[BENCH] 4744 capsule_preflight_ok:driver.hda0
+[SPAWN] name=driver.hda0 pid=0x000000000000001D caps=0x00000000000F8118 entry=0x0000000016D098E0
+[BENCH] 4745 capsule_runqueue_ok:driver.hda0
+[DRIVER-HDA] capsule spawned
+[DRIVER-SDHCI] no controller present, not spawned
+[DRIVER-UFS] no controller present, not spawned
+[DRIVER-PIIX-IDE] no controller present, not spawned
+[DRIVER-VIRTIO-SCSI] no controller present, not spawned
+[DRIVER-PVSCSI] no controller present, not spawned
+[DRIVER-BUSLOGIC] no controller present, not spawned
+[DRIVER-MPT] no controller present, not spawned
+[DRIVER-AC97] no controller present, not spawned
+[BENCH] 4747 capsule_spawn_start:driver.usb_audio0
+[USER-FIRST] pid=0x000000000000001D rip=0x0000000016D098E0
+[usbnet ccid] started, looking for a reader; held to no client yet
+[BENCH] 4792 capsule_attest_ok:driver.usb_audio0
+[ZK-ATTEST] ok driver.usb_audio0 vendor
+[BENCH] 4793 capsule_preflight_ok:driver.usb_audio0
+[SPAWN] name=driver.usb_audio0 pid=0x000000000000001E caps=0x0000000000000118 entry=0x00000000302064E0
+[BENCH] 4805 capsule_runqueue_ok:driver.usb_audio0
+[DRIVER-USB-AUDIO] capsule spawned
+[BENCH] 4805 capsule_spawn_start:audio.server
+[usbnet fido] started, looking for a security key; held to no client yet
+[USER-FIRST] pid=0x000000000000001E rip=0x00000000302064E0
+[BENCH] 4854 capsule_attest_ok:audio.server
+[ZK-ATTEST] ok audio.server vendor
+[BENCH] 4859 capsule_preflight_ok:audio.server
+[SPAWN] name=audio.server pid=0x000000000000001F caps=0x0000000000000118 entry=0x00000000130A79F0
+[BENCH] 4872 capsule_runqueue_ok:audio.server
+[AUDIO] capsule spawned
+[BENCH] 4872 capsule_spawn_start:vfs_pool
+[BENCH] 4873 display_flush_first
+[DISPLAY] present 1: 1 rects, box 1920x1080 at 0,0, serial 1, lit 62 of 64 sampled, taken
+[DISPLAY] first frame let through at 4323 ms
+[USER-FIRST] pid=0x000000000000001F rip=0x00000000130A79F0
+[VT-D] confined to its capsule's domain
+[BROKER] device 0x0000000000000006 not reset at claim: no FLR
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[usbnet usb-audio] started, looking for a device
+[SPLASH] up 1920x1080 at 4351 ms
+[HDA] irq msi
+[HDA] controller 8086:2668
+[AUDIO] up
+[AUDIO] output driver.hda0
+[HDA] codecs mask=0001
+[HDA] path cad=0 pin=03 dac=02 hops=2
+[BENCH] 4934 capsule_attest_ok:vfs_pool
+[ZK-ATTEST] ok vfs_pool vendor
+[BENCH] 4935 capsule_preflight_ok:vfs_pool
+[HDA] ready: outputs muted, no stream until a player opens one
+[SPAWN] name=vfs_pool pid=0x0000000000000020 caps=0x0000000004000118 entry=0x0000000036E6BD10
+[BENCH] 4945 capsule_runqueue_ok:vfs_pool
+[USER-FIRST] pid=0x0000000000000020 rip=0x0000000036E6BD10[VFS] 
+capsule spawned
+[BENCH] 4946 capsule_spawn_start:net.core
+[DISPLAY] present 2: 1 rects, box 1920x16 at 0,672, serial 1, lit 64 of 64 sampled, taken
+[DIAG] ipc.drain proc.29=0x000000000000001D
+[DIAG] ipc.drain proc.29=0x000000000000001D
+[DIAG] ipc.drain proc.29=0x000000000000001D
+[DIAG] ipc.drain proc.29=0x000000000000001D
+[DIAG] ipc.drain proc.29=0x000000000000001D
+[BENCH] 4993 capsule_attest_ok:net.core
+[ZK-ATTEST] ok net.core vendor
+[BENCH] 4993 capsule_preflight_ok:net.core
+[SPAWN] name=net.core pid=0x0000000000000021 caps=0x000000000000057D entry=0x000000003A2A3060
+[BENCH] 5004 capsule_runqueue_ok:net.core
+[USER-FIRST] pid=0x0000000000000021 rip=0x000000003A2A3060
+[NET-CORE] capsule spawned
+[BENCH] 5005 capsule_spawn_start:net.nym
+[BENCH] 5080 capsule_attest_ok:net.nym
+[ZK-ATTEST] ok net.nym vendor
+[BENCH] 5081 capsule_preflight_ok:net.nym
+[SPAWN] name=net.nym pid=0x0000000000000022 caps=0x000000000000013C entry=0x000000002086D5D0
+[BENCH] 5101 capsule_runqueue_ok:net.nym
+[USER-FIRST] pid=0x0000000000000022 rip=0x000000002086D5D0
+[NET-NYM] capsule spawned
+[BENCH] 5102 capsule_spawn_start:net.anon
+[NET-CORE] registered net.tcp net.udp net.dhcp.client net.dns net.ip
+[BENCH] 5160 capsule_attest_ok:net.anon
+[ZK-ATTEST] ok net.anon vendor
+[BENCH] 5161 capsule_preflight_ok:net.anon
+[SPAWN] name=net.anon pid=0x0000000000000023 caps=0x000000000000013C entry=0x0000000031A6BA00
+[BENCH] 5172 capsule_runqueue_ok:net.anon
+[NET-ANON] capsule spawned
+[NET-CORE] bind: interface up on driver.virtio_net0[BENCH] 5173 capsule_spawn_start:net.sockets
+[NET-CORE] DHCP asking for a lease
+[USER-FIRST] pid=0x0000000000000023 rip=0x0000000031A6BA00
+[NET-CORE] lease 10.0.2.15/24 gw 10.0.2.2
+[NET-CORE] lease dns 10.0.2.3
+[NET-CORE] lease-status state=3 ip=10.0.2.15
+[DIAG] ipc.drain kernel.entropy=0x0000000000000004
+[DISPLAY] present 3: 1 rects, box 1920x16 at 0,672, serial 1, lit 64 of 64 sampled, taken
+[BENCH] 5214 capsule_attest_ok:net.sockets
+[ZK-ATTEST] ok net.sockets vendor
+[BENCH] 5215 capsule_preflight_ok:net.sockets
+[SPAWN] name=net.sockets pid=0x0000000000000024 caps=0x000000000000011C entry=0x0000000003A43910
+[BENCH] 5226 capsule_runqueue_ok:net.sockets
+[NET-SOCKETS] capsule spawned
+[BENCH] 5226 capsule_spawn_start:net.socks5
+[USER-FIRST] pid=0x0000000000000024 rip=0x0000000003A43910
+[BENCH] 5268 capsule_attest_ok:net.socks5
+[ZK-ATTEST] ok net.socks5 vendor
+[BENCH] 5269 capsule_preflight_ok:net.socks5
+[SPAWN] name=net.socks5 pid=0x0000000000000025 caps=0x000000000000011C entry=0x0000000012F80760
+[BENCH] 5280 capsule_runqueue_ok:net.socks5
+[SOCKS5] capsule spawned
+[BENCH] 5280 capsule_spawn_start:nonos.prove.fetch
+[USER-FIRST] pid=0x0000000000000025 rip=0x0000000012F80760
+[ANON] starting
+[ANON] net.tcp found, serving
+[BENCH] 5321 capsule_attest_ok:nonos.prove.fetch
+[ZK-ATTEST] ok nonos.prove.fetch vendor
+[BENCH] 5323 capsule_preflight_ok:nonos.prove.fetch
+[SPAWN] name=nonos.prove.fetch pid=0x0000000000000026 caps=0x000000000000013D entry=0x0000000032352B60
+[BENCH] 5334 capsule_runqueue_ok:nonos.prove.fetch
+[PROVE-FETCH] capsule spawned
+[BENCH] 5334 capsule_spawn_start:app.setup_wizard
+[USER-FIRST] pid=0x0000000000000026 rip=0x0000000032352B60
+[BROKER] released device 0x0000000000000008 bus master off
+[VT-D] released and denied
+[BENCH] 5406 capsule_attest_ok:app.setup_wizard
+[ZK-ATTEST] ok app.setup_wizard vendor
+[BENCH] 5407 capsule_preflight_ok:app.setup_wizard
+[SPAWN] name=app.setup_wizard pid=0x0000000000000027 caps=0x0000000008001979 entry=0x0000000036CD3760
+[BENCH] 5410 capsule_runqueue_ok:app.setup_wizard
+[SETUP-WIZARD] capsule spawned
+[BENCH] 5411 capsule_spawn_start:nonos.shield
+[USER-FIRST] pid=0x0000000000000027 rip=0x0000000036CD3760
+[usbnet ccid] port 6: not this driver's device
+[usbnet fido] port 5: shared device unread errno -22
+[VT-D] confined to its capsule's domain
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[NYM] directory: fetching
+[NYM] fetch: connecting
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261026084654
+[DIAG] ipc.drain kernel.entropy=0x0000000000000004
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.entropy=0x0000000000000004
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[NYM] fetch: ok-len-or-err 4 0
+[NYM] directory sync failed, code 20
+[NYM] no directory gateways yet, dialling a compiled one
+[DIAG] ipc.drain kernel.entropy=0x0000000000000004
+[BENCH] 5840 capsule_attest_ok:nonos.shield
+[ZK-ATTEST] ok nonos.shield vendor
+[BENCH] 5841 capsule_preflight_ok:nonos.shield
+[SPAWN] name=nonos.shield pid=0x0000000000000028 caps=0x000000000000017D entry=0x000000002B7D39E0
+[BENCH] 5943 capsule_runqueue_ok:nonos.shield
+[USER-FIRST] pid=0x0000000000000028 rip=0x000000002B7D39E0[SHIELD] capsule spawned
+
+[INIT] Capsules spawned
+[ATTEST-DOC] begin 19492
+[ATTEST-DOC] 4e4f4e4f53415454000000056e6f6e6f7320646576206174746573743a20626f6f742065766964656e63652e0d64213fc62850267d587c3a8ab24052c3d3d605
+[ATTEST-DOC] 92f7c46d56655462ad552f7100000023010101000000000000000008001dc5c72501e65fd8166213e3d9be55b0ed30680f0d95ae2dd2b04038ac5afa5e01706a
+[ATTEST-DOC] ddcb33057ad8fbe38269674da234373e216b4ad143b347582e046e2242e8020c086a8ba21bf3cbeee845770a92c2131a00e79a981b035cb65407e97f5a870c04
+[ATTEST-DOC] 882d9b510ad35726ba978e34cb6aebbef421df6aed46dd62d667b5bda9b5326507b5710bf57d25623e4019027da116821fa99f5c81e9e38b87671cc574f92814
+[ATTEST-DOC] 39081bc2f69564fcc4e3ed51d9da939a213a34775589d92e4dbab0546d84a52b28e2096871ea61455546466ccceed040999ae6e37599f8b036d48d7320b58ce1
+[ATTEST-DOC] 05670f0ef891a6bf888800d8c412ffda5d7d03eb32bd10f21ab14cad3f3382c961e8312300004997000000000300000000000000000000000000000000000000
+[ATTEST-DOC] 000000002d00000053706563204944204576656e74303300000000000002000204000000040014000b0020000c0030000d004000000000000008000000040000
+[ATTEST-DOC] 000400313c3c173594474afefa245278eb9ef1f57fd4d90b006bac431513477a2adf6b10af98ee5854a7c79dff9ec876a16ff0c8da7d0b32260c00807bd55835
+[ATTEST-DOC] 18b68d352a8da214d5db209328e7efebea17b4155f66d921f7cf724014a4b48e028f807d1707f9f9cbe6fe0d00234ce9ceeabcaa08736aee4997137892e9cc52
+[ATTEST-DOC] f51c40469a7a402f5c843fa8bd4f607797d049445ecb57f74e67de95d6246b44eaefe6e3b87db7a6a9e95ae97b48000000650064006b0032002d007300740061
+[ATTEST-DOC] 0062006c0065003200300032003400300038002d007000720065006200750069006c0074002e00710065006d0075002e006f0072006700000000000000080000
+[ATTEST-DOC] 8004000000040017712e068ecab66b5351192994281e1c4b3007bf0b00e2461527fbdfc44116cff25b04d669ab7cf0c04f504e49f897f5bf28114410200c007f
+[ATTEST-DOC] 886a9888db9496c45b56bc70713577bc4bba326ef279d8192a14c82c0fdfa14d33072211e102eeb6f0f1c172c9d5190d00416d82bd78747002faaf253492c61d
+[ATTEST-DOC] e253691313b0cef4ba27523ed1d4638094032cab2854a71fc9223e1de8dd3d9574612c27329a0bff3fd5603620943d96bd10000000000082000000000000000e
+[ATTEST-DOC] 00000000000000000008000080040000000400c4fff7a4fc90b437e0fdf2064332fcfd81c1c9940b000e07ff6cf32623286547c794ef3d644e76d5c03d183be2
+[ATTEST-DOC] 9ac47b9d1233bb69460c0038007e7f5a93d9da2f0bb0e9c4895c5964084319a1676705df9bf242ce69d5b539433fe06eb1764cfd165dc6a721f2800d009ac050
+[ATTEST-DOC] 188c700d5b45d99318ea27709012bad0450ec0403bc929290a544bd13f41d45fdfa0790a53915d8e7776f2f9f82fb657854337f0adfc579707840d0d69100000
+[ATTEST-DOC] 0000009000000000000000e8000000000007000000010000800400000004002f20112a3f55398b208e0c42681389b4cb5b18230b00ce9ce386b52e099f3019e5
+[ATTEST-DOC] 12a0d6062d6b560efe4ff3e5661c7525e2f9c263df0c009dc3a1f80bcec915391dcda5ffbb15e7419f77eab462bbf72b42166fb70d50325e37b36f93537a8637
+[ATTEST-DOC] 69bcf9bedae6fb0d0005e7b660ec585cf0f1d6573147f71dd4d648cc553c61d5fa15d0db26f335cbe4e5b109c8a0dbb039727c2d423c1bf45b2d450108a608e2
+[ATTEST-DOC] 0c6b705eac64dac0a23400000061dfe48bca93d211aa0d00e098032b8c0a00000000000000000000000000000053006500630075007200650042006f006f0074
+[ATTEST-DOC] 0007000000010000800400000004009b1387306ebb7ff8e795e7be77563666bbf4516e0b00dea7b80ab53a3daaa24d5cc46c64e1fa9ffd03739f90aadbd8c086
+[ATTEST-DOC] 7c4a5b48900c006f2e3cbc14f9def86980f5f66fd85e99d63e69a73014ed8a5633ce56eca5b64b692108c56110e22acadcef58c3250f1b0d00a102c0fdb43102
+[ATTEST-DOC] c5546fb04758a70acc5f5e798597d62bd2376cdeab37dddfb3b0ca67febc8c4e6069800449baebf9e0bbe7f063a7304a45652392f8c8bc7d172400000061dfe4
+[ATTEST-DOC] 8bca93d211aa0d00e098032b8c0200000000000000000000000000000050004b0007000000010000800400000004009afa86c507419b8570c62167cb9486d9fc
+[ATTEST-DOC] 8097580b00e670e121fcebd473b8bc41bb801301fc1d9afa33904f06f7149b74f12c47a68f0c00d607c0efb41c0d757d69bca0615c3a9ac0b1db06c557d992e9
+[ATTEST-DOC] 06c6b7dee40e0e031640c7bfd7bcd35844ef9edeadc6f90d0090bd5dac05d43171be2f1a705d7fc1937a566aab71031baab64ae6106160a148a8110d3326f5e2
+[ATTEST-DOC] 2854a1823ad2131dea3556026601f8dd7628b37152ae97a68e2600000061dfe48bca93d211aa0d00e098032b8c030000000000000000000000000000004b0045
+[ATTEST-DOC] 004b0007000000010000800400000004005bf8faa078d40ffbd03317c93398b01229a0e1e00b00baf89a3ccace52750c5f0128351e0422a41597a1adfd50822a
+[ATTEST-DOC] a363b9d124ea7c0c0008a74f8963b337acb6c93682f934496373679dd26af1089cb4eaf0c30cf260a12e814856385ab8843e56a9acea19e1270d0012152f5b59
+[ATTEST-DOC] 70582242a7ef7087f2a728b87eb9e58db8ca48b0921951a574e29e60887bf45bc00c15f6b96016a835b541bb80122a0409d37dbe6143c56207ed5a24000000cb
+[ATTEST-DOC] b219d73a3d9645a3bcdad00e67656f02000000000000000000000000000000640062000700000001000080040000000400734424c9fe8fc71716c42096f4b74c
+[ATTEST-DOC] 88733b175e0b009f75b6823bff6af1024a4e2036719cdd548d3cbc2bf1de8e7ef4d0ed01f94bf90c0018cc6e01f0c6ea99aa23f8a280423e94ad81d96d0aeb51
+[ATTEST-DOC] 80504fc0f7a40cb3619dd39bd6a95ec1680a86ed6ab0f9828d0d00621bc3ee7b43730d1a34c7e9508b537204a1ce1fe5910dd77b5aada7e7a5f335de760b18cd
+[ATTEST-DOC] d41dbf96c2588fa4652e35e2c1ca619646cae4f8aad51c953e77bd26000000cbb219d73a3d9645a3bcdad00e67656f0300000000000000000000000000000064
+[ATTEST-DOC] 006200780007000000040000000400000004009069ca78e7450a285173431b3e52c5c25299e4730b00df3f619804a92fdb4057192dc43dd748ea778adc52bc49
+[ATTEST-DOC] 8ce80524c014b811190c00394341b7182cd227c5c6b07ef8000cdfd86136c4292b8e576573ad7ed9ae41019f5818b4b971c9effc60e1ad9f1289f00d00ec2d57
+[ATTEST-DOC] 691d9b2d40182ac565032054b7d784ba96b18bcb5be0bb4e70e3fb041eff582c8af66ee50256539f2181d7f9e53627c0189da7e75a4d5ef10ea93b20b3040000
+[ATTEST-DOC] 0000000000010000000a0000000400000004002714d7b50173e89c18bd738c52320548c67412ac0b00f05c64e46a1c6c9c924ad4e21cd36de2ddeb36a06352a4
+[ATTEST-DOC] 082eb6fef833ed85d50c0000b3c8ca9e84ebd7fab18355f1e7da20bfd08b839cd4ba2ee8d6756ec3623fd74aac7893bd7bc882f7cd68be3b96b9b70d004c635e
+[ATTEST-DOC] 9f1f925ac20aeaaf820cb530c1899984e3931179f1be04d1d47050c1e156f05435974381902434fe9dcb1db253751d39bf0795162e509d2d2f66f0328b090000
+[ATTEST-DOC] 00414350492044415441010000000a000000040000000400eefb0110b71a4afe7e646790bb589ec1d49ab6b90b00b4fd1df61f8e2c51f33054c98e0af9b8e771
+[ATTEST-DOC] b83875ca8c563176c6f11d1503210c000d84ecfd0b498c2abea578f1863d643128c1b2e59a7b3e383a3dbd51c1513c8835ac4d64e90d47058e3dd1ea674adcd2
+[ATTEST-DOC] 0d00a6b13d0649208f76d2d2c8c0b23f4e92bb1ca9b03f11d1bc516f8337053f6389f49bb26c68e8ac42f7b45c3ecb58e612569040838ec4a4113b6992449829
+[ATTEST-DOC] 414609000000414350492044415441010000000a0000000400000004001adc95bebe9eea8c112d40cd04ab7a8d75c4f9610b00de2f256064a0af797747c2b975
+[ATTEST-DOC] 05dc0b9f3df0de4f489eac731c23ae9ca9cc310c0069fca46943118a952e4f165e122a47f2b7b5336fa8fa1674a26437d183a7e947f15a4a0afabece6d6b28e3
+[ATTEST-DOC] c84f60fac20d0073e4153936dab198397b74ee9efc26093dda721eaab2f8d92786891153b45b04265a161b169c988edb0db2c53124607b6eaaa816559c5ce54f
+[ATTEST-DOC] 3dbc9fa6a7a4b209000000414350492044415441010000000a00000004000000040044eaac918cf7cc4550cf986dc826113514f9ad0a0b0078de9fb803682f8d
+[ATTEST-DOC] 3433865eed590d5969d6a26d391bce44f7b08cb83588fc5e0c006a313b1cc71cb2f174f58c3dd2842a3b93f6955fdb91336e2c563bda48893c8ae71f8c89742b
+[ATTEST-DOC] dff4b49e38df3cb3f6a90d009cabababf186b8d7a68e1bf3cdc7f1897de2f0e11d9d0cb1e75ddd230be803ce1a762f91d3a654860cd9f28ae709e738060daa7c
+[ATTEST-DOC] c6a0a9bced9dcc4e723d1bd0090000004143504920444154410200000004000080040000000400c48916b2b554d6811b0c31f0920d5752fa2c7c860b004019aa
+[ATTEST-DOC] bdc583879c8a95b2c00c15142911ac6fba9925aacde7b51b925ac23f520c00cba8a92ad8737f2a6570aa078873b992c9487eeb3f04cc57bdc14186d770efac7d
+[ATTEST-DOC] 21e021b7bf103150088bee0ba9a40b0d0050273208dc0aaf291b6fd4eab4ef1acf1c3cfbff4961c6c19970b6ebd1bf2f38b993154a398dd1f72a98d18dae021e
+[ATTEST-DOC] 532f23cf9190d2f537b24e23dd53ca3a1e4e00000018e0707e00000000a05b02000000000000000000000000002e0000000000000002010c00d041030a000000
+[ATTEST-DOC] 000101060000050408180000000000000e010000000000ff730200000000007fff04000100000002000080040000000400a3000a9f35a7b6fe7723b630bdd6f9
+[ATTEST-DOC] e9cbf3a67f0b00aab9ab6716b55ed7e91249bdddb2ec1cf10305f552c1ea1f42674b7c022b8fa60c0003bb04711245d93fc9a9de002512f45901dfd802daadaa
+[ATTEST-DOC] 99e9bde312c06eab316d4a2ab9018982348d21b3b8ed6ce3e20d0096bec49c5d81e215ff07fc6eefc4364edd137d027501b5b45e05ecc5c6d8aae62f4831ae16
+[ATTEST-DOC] 7927ff04a88738a4fca3ee66e56b556bdad3ba2e2b24d296e05d694000000061dfe48bca93d211aa0d00e098032b8c09000000000000000e0000000000000042
+[ATTEST-DOC] 006f006f0074004f0072006400650072000000010002000300040005000600010000000200008004000000040022a4f6ee9af6dba01d3528deb64b74b582fc18
+[ATTEST-DOC] 2b0b003197be1e300fa1600d1884c3a4bd4a90a15405bfb546cf2e6cf6095f8c362a930c0023ada07f5261f12f34a0bd8e46760962d6b4d576a416f1fea1c64b
+[ATTEST-DOC] c656b1d28eacf7047ae6e967c58fd2a98bfa74c2980d00f9835b0e5b71f28305803af6a6c9df5b55406f0bb03bb13e6af731e13113c1fcde8c8c2404de714591
+[ATTEST-DOC] 97a774fbca7296f26da039b8da7aaf27579198dd999cb06e00000061dfe48bca93d211aa0d00e098032b8c08000000000000003e0000000000000042006f006f
+[ATTEST-DOC] 0074003000300030003000090100002c0055006900410070007000000004071400c9bdb87cebf8344faaea3ee4af6516a10406140021aa2c4614760345836e8a
+[ATTEST-DOC] b6f46623317fff0400010000000200008004000000040087ddf9e7ba7f0d9f93e7502b365aa61e9eeddb240b00079317380f2692937441115fa10408ed687d77
+[ATTEST-DOC] 3fe35c8998cc46179ab50c42e90c007c7be87f9e48be0e83c7915531c3d3ab3e2e67eb24c2b54f241a6e33f36a1601731d492571d1664ee60324738e7ba91e0d
+[ATTEST-DOC] 001746852b26a4115893aa83ac5b11f65c01a9287161444b0152fd3982741c86c14e3c0063605aa7bc20368fef954e5d204943ac6ab1a6d19280f8d047280ed9
+[ATTEST-DOC] 2fb200000061dfe48bca93d211aa0d00e098032b8c0800000000000000820000000000000042006f006f00740030003000300031000100000026005500450046
+[ATTEST-DOC] 0049002000510045004d00550020004e0056004d00650020004300740072006c0020004e004f004e004f0053002d005400410052004700450054002000310000
+[ATTEST-DOC] 0002010c00d041030a00000000010106000001031710000100000000000000000000007fff04004eac0881119f594d850ee21a522c59b2010000000200008004
+[ATTEST-DOC] 0000000400934c71a4dc6c4317c2762ca0cdbca4f5e5485a470b0098655c0b3de94cf55748365d6b847100dd0afab61e466e518bce111311e0a5df0c00d18668
+[ATTEST-DOC] c41e0755dafa62b115cc71a7167333913b4b37d56e769b1cec57c54b6fb8dd006c43a03f35114c83a83fbaf31e0d00125b6bab189e09a73c61f8b62b6be6f8bc
+[ATTEST-DOC] 3361c8453518d402492bfe6bede3dc199b1180f69a35418089a2ac27e66f1a4ffae9f0983ebbd589eb3c85c3d78794d800000061dfe48bca93d211aa0d00e098
+[ATTEST-DOC] 032b8c0800000000000000a80000000000000042006f006f00740030003000300032000100000056005500450046004900200050005800450076003400200028
+[ATTEST-DOC] 004d00410043003a003500320035003400300030003100320033003400350036002900000002010c00d041030a00000000010106000005030b25005254001234
+[ATTEST-DOC] 56000000000000000000000000000000000000000000000000000001030c1b0000000000000000000000000000000000000000000000007fff04004eac088111
+[ATTEST-DOC] 9f594d850ee21a522c59b2010000000200008004000000040063756404d191c71dd597d6570a0458917f1cad1d0b0013e1d92f63c1ae6a40ca563dbf6a64358e
+[ATTEST-DOC] c5aea055d7b642902e6dbab60a1cdc0c007e758eb57b5e51d6ab2906dcddadde8928098d9cae7a63908d8fd6db420d44600a8952735306ec593be14705560bc4
+[ATTEST-DOC] 0f0d003d61af9806edbe9a04b72b8f1dbefab421f4ad6b9ae6bfc018f975e1f719ae7b2481030a31fc286b4ffe3340f7874507568e365441d4e1c51afdb94d1c
+[ATTEST-DOC] d4fe32f900000061dfe48bca93d211aa0d00e098032b8c0800000000000000c90000000000000042006f006f0074003000300030003300010000007700550045
+[ATTEST-DOC] 0046004900200050005800450076003600200028004d00410043003a003500320035003400300030003100320033003400350036002900000002010c00d04103
+[ATTEST-DOC] 0a00000000010106000005030b2500525400123456000000000000000000000000000000000000000000000000000001030d3c00000000000000000000000000
+[ATTEST-DOC] 00000000000000000000000000000000000000000000000000000040000000000000000000000000000000007fff04004eac0881119f594d850ee21a522c59b2
+[ATTEST-DOC] 0100000002000080040000000400d03f1b95c7c75ea28f6d2dc1cb1ddfe6989079140b00c802c4a7c1ae98894fc5b074b44906301d86bfce221e604ac8377609
+[ATTEST-DOC] aa62ca610c00eae37fdd64147cdf17ad4fd4931bfec2880ab7ea759082d8dccde4bd266fea725cc9c043d2b29f74c007dbd679bb934a0d00ecf6b2cb788e4dea
+[ATTEST-DOC] f7fcb85327368f2c3e7c3c7a1dea2bbe2471d9624686fc96575f1bc917e4baa71f327b099c52c5daec93b995d225b32bece71375d96dae9cde00000061dfe48b
+[ATTEST-DOC] ca93d211aa0d00e098032b8c0800000000000000ae0000000000000042006f006f0074003000300030003400010000005a005500450046004900200048005400
+[ATTEST-DOC] 5400500076003400200028004d00410043003a003500320035003400300030003100320033003400350036002900000002010c00d041030a0000000001010600
+[ATTEST-DOC] 0005030b2500525400123456000000000000000000000000000000000000000000000000000001030c1b00000000000000000000000000000000000000000000
+[ATTEST-DOC] 0000031804007fff04004eac0881119f594d850ee21a522c59b20100000002000080040000000400ee115668128b9fae0e460f59794aa3ff2c2d4f260b005d49
+[ATTEST-DOC] c81fac4a13245c74d6105bf1e7bc54287750797cb66c932d4fd6991c0f9d0c00594c8ac78c2f3f1dd2d4584af0d12b3f661efec2e0a972806e06519509dc532f
+[ATTEST-DOC] c0fbaaed637f6f5b46ed60dd92e5e9a20d00172003c534f9e49f756d87cabe950251558e4a4c3b6eef73cd3356a566861382ab83e5e1bd9288f2fd185e006d09
+[ATTEST-DOC] 1946d584e9ad4545075f704930fa14e989a2ff00000061dfe48bca93d211aa0d00e098032b8c0800000000000000cf0000000000000042006f006f0074003000
+[ATTEST-DOC] 300030003500010000007b0055004500460049002000480054005400500076003600200028004d00410043003a00350032003500340030003000310032003300
+[ATTEST-DOC] 3400350036002900000002010c00d041030a00000000010106000005030b25005254001234560000000000000000000000000000000000000000000000000000
+[ATTEST-DOC] 01030d3c000000000000000000000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000031804
+[ATTEST-DOC] 007fff04004eac0881119f594d850ee21a522c59b20100000002000080040000000400df5d6605cb8f4366d745a8464cfb26c1efdc305c0b004d387b02d63b2f
+[ATTEST-DOC] 4cd7f667feb0a387fe47a10a3e26bf3533ddd001c605f3dec50c00f0fb2cdcc47bf204b41a858f6878b5809c3a9bf6acbd5c4a130f666937a710070c5cf959d3
+[ATTEST-DOC] b59c8007b6e63018097d9a0d009d91c16bd75c79b33221e46d4fa55c09715b9936f769f83783231a9b49bd00d0d06df047e600d56c5a01442f8272e96e90be32
+[ATTEST-DOC] 11ef5e904de08d03edf00969a18800000061dfe48bca93d211aa0d00e098032b8c0800000000000000580000000000000042006f006f00740030003000300036
+[ATTEST-DOC] 00010000002c00450046004900200049006e007400650072006e0061006c0020005300680065006c006c00000004071400c9bdb87cebf8344faaea3ee4af6516
+[ATTEST-DOC] a10406140083a5047c3e9e1c4fad65e05268d0b4d17fff04000400000007000080040000000400cd0fdb4531a6ec41be2753ba042637d6e5f7f2560b003d6772
+[ATTEST-DOC] b4f84ed47595d72a2c4c5ffd15f5bb72c7507fe26f2aaee2c69d5633ba0c0077a0dab2312b4e1e57a84d865a21e5b2ee8d677a21012ada819d0a98988078d3d7
+[ATTEST-DOC] 40f6346bfe0abaa938ca20439a8d710d0003020279c5ea3676d6630c82a9931343225e8eab81529b65c786aeb6a445d3852a34dd193178f938b6b47345a72d4b
+[ATTEST-DOC] 647df309c971f7c02f0ede296a136a10862800000043616c6c696e6720454649204170706c69636174696f6e2066726f6d20426f6f74204f7074696f6e000000
+[ATTEST-DOC] 00040000000400000004009069ca78e7450a285173431b3e52c5c25299e4730b00df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b811
+[ATTEST-DOC] 190c00394341b7182cd227c5c6b07ef8000cdfd86136c4292b8e576573ad7ed9ae41019f5818b4b971c9effc60e1ad9f1289f00d00ec2d57691d9b2d40182ac5
+[ATTEST-DOC] 65032054b7d784ba96b18bcb5be0bb4e70e3fb041eff582c8af66ee50256539f2181d7f9e53627c0189da7e75a4d5ef10ea93b20b30400000000000000010000
+[ATTEST-DOC] 00040000000400000004009069ca78e7450a285173431b3e52c5c25299e4730b00df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b811
+[ATTEST-DOC] 190c00394341b7182cd227c5c6b07ef8000cdfd86136c4292b8e576573ad7ed9ae41019f5818b4b971c9effc60e1ad9f1289f00d00ec2d57691d9b2d40182ac5
+[ATTEST-DOC] 65032054b7d784ba96b18bcb5be0bb4e70e3fb041eff582c8af66ee50256539f2181d7f9e53627c0189da7e75a4d5ef10ea93b20b30400000000000000020000
+[ATTEST-DOC] 00040000000400000004009069ca78e7450a285173431b3e52c5c25299e4730b00df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b811
+[ATTEST-DOC] 190c00394341b7182cd227c5c6b07ef8000cdfd86136c4292b8e576573ad7ed9ae41019f5818b4b971c9effc60e1ad9f1289f00d00ec2d57691d9b2d40182ac5
+[ATTEST-DOC] 65032054b7d784ba96b18bcb5be0bb4e70e3fb041eff582c8af66ee50256539f2181d7f9e53627c0189da7e75a4d5ef10ea93b20b30400000000000000030000
+[ATTEST-DOC] 00040000000400000004009069ca78e7450a285173431b3e52c5c25299e4730b00df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b811
+[ATTEST-DOC] 190c00394341b7182cd227c5c6b07ef8000cdfd86136c4292b8e576573ad7ed9ae41019f5818b4b971c9effc60e1ad9f1289f00d00ec2d57691d9b2d40182ac5
+[ATTEST-DOC] 65032054b7d784ba96b18bcb5be0bb4e70e3fb041eff582c8af66ee50256539f2181d7f9e53627c0189da7e75a4d5ef10ea93b20b30400000000000000040000
+[ATTEST-DOC] 00040000000400000004009069ca78e7450a285173431b3e52c5c25299e4730b00df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b811
+[ATTEST-DOC] 190c00394341b7182cd227c5c6b07ef8000cdfd86136c4292b8e576573ad7ed9ae41019f5818b4b971c9effc60e1ad9f1289f00d00ec2d57691d9b2d40182ac5
+[ATTEST-DOC] 65032054b7d784ba96b18bcb5be0bb4e70e3fb041eff582c8af66ee50256539f2181d7f9e53627c0189da7e75a4d5ef10ea93b20b30400000000000000050000
+[ATTEST-DOC] 00040000000400000004009069ca78e7450a285173431b3e52c5c25299e4730b00df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b811
+[ATTEST-DOC] 190c00394341b7182cd227c5c6b07ef8000cdfd86136c4292b8e576573ad7ed9ae41019f5818b4b971c9effc60e1ad9f1289f00d00ec2d57691d9b2d40182ac5
+[ATTEST-DOC] 65032054b7d784ba96b18bcb5be0bb4e70e3fb041eff582c8af66ee50256539f2181d7f9e53627c0189da7e75a4d5ef10ea93b20b30400000000000000060000
+[ATTEST-DOC] 00040000000400000004009069ca78e7450a285173431b3e52c5c25299e4730b00df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b811
+[ATTEST-DOC] 190c00394341b7182cd227c5c6b07ef8000cdfd86136c4292b8e576573ad7ed9ae41019f5818b4b971c9effc60e1ad9f1289f00d00ec2d57691d9b2d40182ac5
+[ATTEST-DOC] 65032054b7d784ba96b18bcb5be0bb4e70e3fb041eff582c8af66ee50256539f2181d7f9e53627c0189da7e75a4d5ef10ea93b20b30400000000000000050000
+[ATTEST-DOC] 00060000800400000004004b8762ba860ecaf959a4cd551993410a1db2c3810b00dcfa889d1c27186db67e1ddd86609a7ab7afa0187ed1df68761250b51c1372
+[ATTEST-DOC] 540c00446b7b78d7bdfaef19cb0074b8224fc547a6c9295cafae0c7178eedf4bffb180522c9767200165193cd0a83c8365decb0d0028b2c739321f47ad76b049
+[ATTEST-DOC] 15af1607d46da04b4408912ffac6acbc07e49530f16b557813d30138647e365be3a492055a3f3c19435a4d2a47c31c23d11b7661056402000045464920504152
+[ATTEST-DOC] 54000001005c000000d5be34ff000000000100000000000000ffffff00000000002200000000000000deffff0000000000edacf53f645dbe49afeeec140219d4
+[ATTEST-DOC] a502000000000000008000000080000000de34de3f04000000000000001a36fb9400d59847936b06eb4685aa8fede9b4219e82024493707e9dc9ebb9c3000100
+[ATTEST-DOC] 0000000000ffbf03000000000002000000000000004e004f004e004f0053002d00530054004f0052004500000000000000000000000000000000000000000000
+[ATTEST-DOC] 0000000000000000000000000000000000000000000000000000000000d3e65a6fe58f3648ba18819e9facc900bd71a5fc091c2342b5c6b4ae9218ccd300c003
+[ATTEST-DOC] 0000000000ffff03000000000002000000000000004e004f004e004f0053002d0050004c0041004e000000000000000000000000000000000000000000000000
+[ATTEST-DOC] 00000000000000000000000000000000000000000000000000000000009e30b22f9c8ce44da9410161eb222b66ca0f9af93f136942a4e89663524b88a5000004
+[ATTEST-DOC] 0000000000fff7df000000000002000000000000004e004f004e004f0053002d0044004100540041000000000000000000000000000000000000000000000000
+[ATTEST-DOC] 000000000000000000000000000000000000000000000000000000000028732ac11ff8d211ba4b00a0c93ec93b00c26f1df5a965438758dc3f3069351d00f8df
+[ATTEST-DOC] 0000000000fff7ff000000000000000000000000004e004f004e004f0053002d0045005300500000000000000000000000000000000000000000000000000000
+[ATTEST-DOC] 0000000000000000000000000000000000000000000000000000000000040000000300008004000000040052096363a0dd98f6a02f972c166d7fcbb35d85050b
+[ATTEST-DOC] 00f79f59d9029919e3b1d3253151153d27e5f97c6476920e99e1e3dad98f89401b0c00d51e1bcc8053686bdef7bc1d7c2cd1745cc179cd6bb547c2ba6ce5685e
+[ATTEST-DOC] bb25bcdb5052c0c5e1d734eb7dcd37321889c50d00674731943c2aaf802f6f885ecaba4d3b8be0220b78e85fd5d52b82b52632d7327f9a0a468ec51bc352a28c
+[ATTEST-DOC] b84c7f25207b4a435cf461157b5e89dbe4a22d7854a00000001830fd7c000000000038e400000000000000004001000000800000000000000002010c00d04103
+[ATTEST-DOC] 0a000000000101060000010317100001000000000000000000000004012a000400000000f8df0000000000000020000000000000c26f1df5a965438758dc3f30
+[ATTEST-DOC] 69351d0202040430005c004500460049005c0042004f004f0054005c0042004f004f0054005800360034002e0045004600490000007fff040008000000010000
+[ATTEST-DOC] 0004000000040027b4116d61363dfff1dc0e550bb96bcf554265960b003eb27e76894fc9bc59d42689b83459eb063bea41bfefedfb34378e999a29d27a0c0074
+[ATTEST-DOC] 67d247feb1d6bd3e8198d596a8de013f11289d0c65fd431f5368de027d3dd52477a0632964f25fad0245f2d06671df0d009f42af3476ebc32576519e7f497271
+[ATTEST-DOC] 2d794965b1b45b697626e2720254121dcdada43a76ef174a921d6d5311f7cc801a207bc68275b9b47df0bd77df09f0c018200000009a1028e1d47ee894f73f11
+[ATTEST-DOC] 7cb0b458d2013eddc44a8c01c3af5bb9e75d47eed10900000001000000040000000400bee5e73048bd36aa7ab24d72e3b46cd9b240fef00b00fe8ae9fbc86aaa
+[ATTEST-DOC] e31b00bbefbc340376ddef931067c1a4c266f422fe5e8114180c00005fbf383d49fff5dc5adce8da9edf7ac3306527d6522f8e648bb2a31bfe2dc916358e14cc
+[ATTEST-DOC] 9fa0485c79b26ae89f05cf0d00129092d302a0c9290da6498e882016c143c1695536050ffc0ccf92d182f6849b3b9c9682854fde6c8cb8ded7a6318d7c8a9877
+[ATTEST-DOC] d602f656e10f2a6796491b8ad4200000008e2c43d27f851df5fd8c3826929dda5c7f0cf0d651ab8301acaf811aa487492f0e000000014e4f4e04000000040042
+[ATTEST-DOC] 5fcb68a02f9e7bde5a54a182d3c88b6c2d68fd0b00eda3c590717bec8a752f19321dc6e2d3cf168177b91128d177d0f80e83f49e300c0019c024724ab02e4b4c
+[ATTEST-DOC] 17cb10a317f65cb453fa5b758e26850edbd2ccd03cb0c36573adad2ef601e1f1586c2390cc3d070d0042a8f8b83a5203f81a1498b01133f9f51088c526d1a7e4
+[ATTEST-DOC] 9259a143ecd48a13d2ae482ea03c6dbbb671965483ed49b9ac50f41941b5ebfbc74160a70f5ed449d941000000e6c4af0e530a0dca6399ea2f7865e3e6d6470b
+[ATTEST-DOC] 51ed87317ecb3bf5a81b7a62a38e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e040000000400027e4be7
+[ATTEST-DOC] 4a8aec34e9ba42d19733747d28694c990b002d6924b99d96d214bc490542bb0c3ae7c5b2a978bd4e8b9b665489683fe5be220c0016c7788db39dc3c443dd9bc1
+[ATTEST-DOC] 2fc7659516263babe521da83f33b12e2549e1c85b8d34b87ec1ac9550a813004ba54afbf0d00796c4dc83207cbc73400f6b2e1ff3e20c369cc67547fd7ed4a56
+[ATTEST-DOC] a2be334c481035f80943467b2333e4d1569dc44eace1fdee35778d4458cf6e3c2e05dd72d83b4100000087e9ff2f8c33ae41138f69d610eb8bc114e63f35c87b
+[ATTEST-DOC] 34354ab2a5451688218b8e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e04000000040084f82b12304878
+[ATTEST-DOC] 4d57b1e25c153d574c07a623b30b001b5be6a252f91211d8834e7d461d380f4881c902d35139c2228adfb638081ca40c000efe6f903426cb08a6f9ba356c5338
+[ATTEST-DOC] c80a545009f81892cb51b3b56fcd80d41f4564e13dca23fa86e72f8f49c18f62900d00507e85888b1edca552579ff46d648c008cf49925108016d5d530d355c3
+[ATTEST-DOC] 15a0adfec61f627c2d4174f32645580793cb6ba13932b3c6a253502e3ec143ae04410a410000006329aa70fa5d55e26413d8456f5a1e4c48826b8c09b40094f4
+[ATTEST-DOC] be86b760e690c48e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e0400000004006787fb2cbcac39ec663c
+[ATTEST-DOC] 88dbfe144f4a1feca1fc0b008a3c92ebd9e8d5515af16e8c7266ffc539e78b6d85f043351d09e6f3b3a47e9b0c006ecffd7e34bfe8a1a76fc04a55b4755ab27c
+[ATTEST-DOC] f46f791a4956962c68b566232d8d8b16ab62170336b9d7d550ccccba51430d000a8901b7137eeed201dfdfc7a2dc2683d079ce1cd1b88a11f4bd174b57dfd756
+[ATTEST-DOC] 8925afca10488262f301a44961c51dba3cc80a5430744ada04adfafa24f2d09d41000000661fa5683d2d57ba3cee3a32cd4a78d4df7de2ded7bd7d9f6dadde99
+[ATTEST-DOC] 5bbce43c8e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e0400000004002e684ffc148fd74d05381a531c
+[ATTEST-DOC] 13cb3be18b49b60b00f0fb4208081084a0b84cda70edd4d15c20d8cd550d47ef046206fc72de124dd80c00253e133e9e290f433ff64939ac5c0be475bec1dc74
+[ATTEST-DOC] ed700421bb47db5e5d4e793355e194d4c4df0dca0618b6a5e0e7010d00314c60042a6e6c80d4fb21ad67818ebf15b6b07562225afa81823150255d7d61f5b15b
+[ATTEST-DOC] 97ba6416f7c0863834446a41fe432fb96397f8a657036b73386290a4e0410000008390eba7587e4126e166d55bca2fc18eb2c2498be67c638f97920e6c10adca
+[ATTEST-DOC] 378e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e0400000004003db35da9dae0f6209e4efa6cc6cc3c1b
+[ATTEST-DOC] d50c770d0b00b45b42d9eb076f6979744b45c0966ae518d4ffdda93087c32e14e605dfc0340e0c001052ce3577667b2c52daaf303f09f65d8fab8cafd73c689b
+[ATTEST-DOC] 8d055efb28192824739c3850b416bd1c6fd8e0c4206cfd5f0d00069ffd2a3c592f958c6064dbadc3c369783f9b9cfc318a7aebec360ad22b3da9a8102ac631f8
+[ATTEST-DOC] 175f4324a83dd63613baba9116c76452319c3a3c14cc3c981e9441000000ad292fadb0a2b8592c0f3270f1766cd84cf3a4c55195da246cfdc63127a4c3d28e00
+[ATTEST-DOC] fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e0400000004002be0d1729b508a4ac66c5c731365692ab2a1e2
+[ATTEST-DOC] e60b0018cd81580b248684bcbebd06f9f86694214da277337b15c94930b085df0b0f590c00f4a305d8a2154749c8d18a6e3f5c65ea5e9212cc265def05179b63
+[ATTEST-DOC] ae8fa988386e4a19fa5e38a7048b4bf17e94e9c6700d0009c5d1d9c924ddbc3a17088d553c1323a09c5fae963221d4f297cd348a17e1d2656a19287eca19104c
+[ATTEST-DOC] eb6f35694d37caa22d7c62acd59126390e9c196bd50fd341000000f307d4a9801f1686d4779f38b02e3e942dae120e3ea6fff9fdb292af410203798e00fcbcbf
+[ATTEST-DOC] 988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e0400000004000d2a5666ca266d035d03d263d5f4b2960f591d970b00
+[ATTEST-DOC] d1067b4b75727730d84a0df35f26b81d7c6e5dbfdab84833c9e2082bff54693c0c00aa6de789847aa928594204fdf9ddf0ab93cf1837ae368cb49c9877e62479
+[ATTEST-DOC] e62bd53a2aedf79b78d3a2c22e8371494b2f0d00509c307859fa3f83d671734b5eb2fee260682aea5cb193b4b8456104a9b9db70487216a0666a714055ab24e1
+[ATTEST-DOC] 858e8202d36ba0fbba0d8033bc3c3c5e0f878f6d410000008861f7e578517e3da6c43948170f85978b9e632aa166394ef151dd1784b82cc88e00fcbcbf988cd2
+[ATTEST-DOC] fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e04000000040060d3b99289d69c335937668aa633125acc5ca7a70b0009f807
+[ATTEST-DOC] 5d487d9dc12af8266c2510e5563485ef14a5289d62cddc67a53188b9f40c006353d1e05116898294986b94dae16227c6a34443cdb292f2206dd63717374c797f
+[ATTEST-DOC] 8144d8e874588c7f4bfec5b4a36bec0d005d929a52e5a36307c3f1b1852e9ac250e9a8548e49d67f88aa0498aa97b72cb461f2ba8b7340c568acc2065d29bad0
+[ATTEST-DOC] a876a460b9745f032d72eeca734c30b59241000000e2ca40c9f9eba1a6fc6f88e882bc2def89c6d8d1b728b8ad28f3d1ba2b5831258e00fcbcbf988cd2fc0a98
+[ATTEST-DOC] 73cf5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e04000000040049936d159f5b1502f0d86ca632b1ea5d7babcda50b004adceb861dc7
+[ATTEST-DOC] c7729e5e28ee2fe71bbd622a02137c747df8817139268de6719f0c00eb455df457b24aca38da46b934052f0679809dcffb50e766afaefe5fb9e7bbe1c04c72e9
+[ATTEST-DOC] c8068516a74f2161efe38ed90d004b8812be4793e378151bc6805e829955d8554f81966105783c378e0ba07d16cbf2211045e2b0978907d2b4a1b545b95135f2
+[ATTEST-DOC] cf5a809fa13daa4d88ecccdab6d7410000002e30cc82d1d8159698550282ce6a1c29f26ad8283528b5d1ddbeb71e063117358e00fcbcbf988cd2fc0a9873cf53
+[ATTEST-DOC] 13d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e04000000040025148fa354e53dc0b8ec7a2248c418eea369259a0b00a35120f96addc72785
+[ATTEST-DOC] d7b441956b170758b0b7140112fd289465079921c3ee540c00bcae6dba8f4234ef56bec7c0029567f1c1e40e0a38826ff8a5502edcc764764b0101c00a606c4c
+[ATTEST-DOC] ede99340f678c663970d0046909b5c89bc1876865fd719d18087b063cdb74f8894fc172d3785e5057b1e12aa577b52e3a9a5e9b4a7a689132f1b7471e31a6e79
+[ATTEST-DOC] 51ddd9b1f842476a0c566f410000002812a9b2545aeb6994db17256ebaa0ce33eafb115190820c3681be2a690c49328e00fcbcbf988cd2fc0a9873cf5313d582
+[ATTEST-DOC] 7f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e040000000400bb84381b308ccbdc0a5e3b90e2fc983e1e4dfc850b00c9763e2144a1f0dcc1872735
+[ATTEST-DOC] 125fc06b34a371145dab9a26021565cba12253060c0056a4db19ab0d747fcbfb599086fd70ff83fd8f41f863f41ba1943e234c039ce270046e30729e88865dca
+[ATTEST-DOC] d230cd8ba2910d00c386cf8f4244e78b1faba14445ebf61600a3c10c3bec4955d90bc65aa655605995a8c473218dc4d91e64fe48d64db2bd19c6144039d6336d
+[ATTEST-DOC] 1da1be3b7a09bd694100000061484370b0b66d53dba8e3a2cb17a8551b15e14408697c98092f36171277b85b8e00fcbcbf988cd2fc0a9873cf5313d5827f057c
+[ATTEST-DOC] ba8e1b221e09df7a194d2bbd020e000000014e4f4e0400000004002d1ba2c0c9764586049bb87a5ccd244575eb51ac0b002ce366b5c8fbc6efdaac0024ecdce2
+[ATTEST-DOC] 015616ee775b64138f1f73a383ff178b520c00f96615f3858873a44b3836c61d01dc31091862ef1f2b111bbffea7f4fc65de35ed77e13111596a4dc94d80c2e7
+[ATTEST-DOC] 79fc350d007fb19bcee214053c3c567a037aa0663d33d6e318a946bfa35e97e224aeb82ec17e17a113a2d2e23fa15eda77c995fb36db47e29a303fcd81d998d5
+[ATTEST-DOC] df39a9cddd4100000054f15ff83be7a729e96e3a02b761e283f81d42f92f53ff6c5f6d11550de774558e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b
+[ATTEST-DOC] 221e09df7a194d2bbd020e000000014e4f4e0400000004007235a2337f88219e64613a204bf4eb8a7504687e0b00e3d914689ebbbb0d6123bc2cdc45a1f159b0
+[ATTEST-DOC] 2108bacf9a90577479750029e5070c00db1a190ea23e7f3883f99f22c7f7e8f433e729fa8daacb995eb39ed33c3240272bee699cee60fffd516f6f631e8879f7
+[ATTEST-DOC] 0d003c4b6ae18ebd1fd29076e44609cda64bd6ba35034274660f5095f4aafb70b9a09aa84c04eb61bbbdbf92a08cb92a137ed767001868eaacbf795efa1e3913
+[ATTEST-DOC] 1a5f410000001e7fd2540101518a696d49cc84dc80bcf1c6051c6268824bd9e5ce7f1f23d5eb8e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09
+[ATTEST-DOC] df7a194d2bbd020e000000014e4f4e040000000400068cd325418659bb92a0c68df7bea234f59799ae0b00434e6d92eabbcbc115124429e97f5d25d42307ad93
+[ATTEST-DOC] ffd13ac5af1186700af1000c00961cf1c5ed99be488abae76984693a966eb46169e62674706a520aa03b4dd249654d5fcf6b99c197e5d0d4f99e16ac040d0031
+[ATTEST-DOC] 3dd891ffb76121ac80eea759d46114c7d44a8fdf5b3210b260b2dbb77818e78a4cec0f8bfa839df3cb71204ab2177328613b931e60cab127a57926bbaa3b6141
+[ATTEST-DOC] 0000009c86972821a6b7dfb659de1eadbb55559773264a1b938e89d052d1ce092226fc8e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a19
+[ATTEST-DOC] 4d2bbd020e000000014e4f4e0400000004008408e3d84ae7b0aaf8ba074b7e664afc91e89d7c0b00bd80dd68fda18da4be09e916755de647e0cc19ac877ede48
+[ATTEST-DOC] 6a7dac4f71974f5c0c00d624c8f2b21edbc49db267142cb0331c89f2ce77b268795e25249c4c7d0172e23ddcf44e01493bd45c805a87b6b489010d003f8a0c89
+[ATTEST-DOC] 81c6fc8269528c23ef4fc499c344bcb87eb9bcc3498db14f6834bb60babf91b9dc8544100d8cc05238b36c0fd73ff3019998d0230762ad09ec1dca9441000000
+[ATTEST-DOC] 52edf6de6d5b10f65bebc54924a0d3da026f438f4985b2557b8c004cfeaa8df58e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd
+[ATTEST-DOC] 020e000000014e4f4e04000000040037042c90c1486e45c65a30dcc2e5b6fee9bfee740b00838bc26b18ec4f0bd28bf68dc9282c17994f341d4d5a4dbe53eeff
+[ATTEST-DOC] a465c439800c0086ec71e9b3b484b6cec92b65620e75e2e1efdfc7dc0a76d25555749b07e2ff514e373f2651a5a48b59c3a305aedcbb230d001514ed964e4095
+[ATTEST-DOC] a9067a1a272b637b3caabb103b20fe4bceaecae3491d7232641ba58303e148ff60678dbaa9b7f8233fd903ed3c9c137cceec9090dd28c4af90410000002e1bf4
+[ATTEST-DOC] b4209a0732c3d01089af873e295d59c9e17c84406ae14c34e185b0f5598e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e00
+[ATTEST-DOC] 0000014e4f4e04000000040055ab79d3df5f77abef3744ca374c65b235fc61ee0b007ad0ad70e8749729cc0c42ae66c1e402dd8f8c9ba045919dcf3a1c93aa95
+[ATTEST-DOC] 057d0c00ef8c63381c896210be8ea669c23d43d54c3e83aaf16975f52debcc75434cb1b7f8bb5dce7696403277bf097e2c2295b70d00a2f3ce9936c298d73a95
+[ATTEST-DOC] 7f0d49d83b547c1edf3faeecc05495921e3585dc5b2d04e4a784afcd8e7a7ffeb238da72b63a43bf7a3ddda23afa578db2096b43453c41000000d94e6a08b603
+[ATTEST-DOC] ad2f2231422c00cf0b68798a7d8e8fc6f992557bd99d2f9884b98e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e00000001
+[ATTEST-DOC] 4e4f4e040000000400f34e0cb1f42fbd51d4b57228db774a0ac3450fd30b003f6082d8b3ee125d719836e04d2037e1a74d96a9b0a0d3d9f53de29f827638950c
+[ATTEST-DOC] 00f2f121d3ff984469dfe32e9e8afc75afb4a68393dfaf360e52fa6860c57e6e4989fbfd7a01eaefa8cbca6660376a7bc70d00f48d41fa84e1577665e6c6607a
+[ATTEST-DOC] 9fc6b21ec503adcac46982205a1a393199704799e3460a8ff7d2d99b38e29432457329dab8546469111537e90ae7ac4f7d9fa04100000095aaac5526517e99e0
+[ATTEST-DOC] f58a54fd0d9a9f476e2fd15531755e42f3c12a181ec4de8e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e
+[ATTEST-DOC] 0400000004009c2fd8082928042a4939a1fccba5f3bb755c406c0b002f11b676cbf0cb3415fcd72118450bf2c9f10be3cc2672357f247d4bff4d6ed70c00c87b
+[ATTEST-DOC] c7648904e217d96547fd8c2906c02c97b2447d5f079660232edb62a764f456bb58aaada5c0f8e267f674224343590d00a1da9dc02a10bc6857d5bef376a361c6
+[ATTEST-DOC] 15257342f33b2646f05eeec33fd3eacd4900f2a9eb3969902b0dfb4ddc6da814154bf5f6c8eda63dd57927277da777584100000034bc613b26962884cbd09b8f
+[ATTEST-DOC] 6df7e9615b427e98b0f91a129d68c1b92e84638c8e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e040000
+[ATTEST-DOC] 000400fdac1801b2a0e509b0d660c1ded25dca4c66aa3c0b00e5b51bb7ed5e9fcd341542291a5966a1ba6551bb5cccbf06bb82bd9d47dd825c0c0026418ceeb3
+[ATTEST-DOC] 6be75b88c7373d09866903fc3fd11eea5ff1e6518c9006db1ee52e247840ce6530caa64b6e69871622c7100d008fc09da21b73a8abc52779fdb7451e032733a2
+[ATTEST-DOC] 897589e42e0a0f8bf942ba6eb795ea0205b717e4efedd96a98418f7597f4fa863ab74adf01179a7b565189d8904100000063e7f842d804f15542a7877f1a6127
+[ATTEST-DOC] 3d9670066bba2c357e48d6fcbfb948edcc8e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e040000000400
+[ATTEST-DOC] b995ba605da552233b918d22ee57c687263be32d0b00224511b7643ca42ccffb0b2f209ed015b2dcb7c8e1586c35c3e6056486231df30c0086eba7f2730ccec4
+[ATTEST-DOC] f7bf8dd21e3b07f2333f5e94d13c7ce2bdb98e25c31d2f3dbfd54fb3ea194c3232d8c8a935d82ed70d0051298dab68bb85f88d6474b5f7f215749042c8bd0820
+[ATTEST-DOC] f681ccb34a6dca37bf35ffe0bf958d03f45702d02614b342d0a55e06b48e7e08a01ef1aed3302a2ccfe241000000a306df4c316d7130f46efaeeb6a6db45b633
+[ATTEST-DOC] 76edc45264fd6651acb7813c9f478e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e0400000004001eabe1
+[ATTEST-DOC] 3966d82f1b5554d937eeffa5c9399818eb0b00ca4bec16ab756fdb498064df178a79d8e261f5995057a340b229474e409e16080c00bae3c75366d54cddac1e89
+[ATTEST-DOC] 344586bb095d30d0f59468b770f8d1cb64255188afa634c2dbfeb5038fb30c7915c2062a9f0d00657ef8f3fa8ba64b3df4c252e87bbbf2533efcec2d85573df1
+[ATTEST-DOC] a9fa91955f1b1cddd2ef64c0e4f5faed2d11419c6a4b2da99d937d868ccf835d5412356e4bd3ad410000009269378cfddc862c57ed79781b0b55e01b33d95594
+[ATTEST-DOC] ba002628881816735280bd8e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e0400000004007ba49c6449e5
+[ATTEST-DOC] 911131683e4b4c2c329df7623f250b00e04808b2dc3290d1bbe1d94aba7cd52fd4b7b179b523ffda57c5aebcb04608e20c00901f6cdf653f2e5c8f471432c493
+[ATTEST-DOC] 51dffecb9ed5942eba1ca49429e63a38744c30222efa704b19a1d64dfa16901af32f0d00b1420b86942e1c59f1ac1aece9c4a960b32fe86d77b5465c7a2f9dd7
+[ATTEST-DOC] 4d286ae53cc55e75c1d25dc14eddb2818c6edbe55312ec1fbb9e4fef4d96615929e831e6410000004712f50ab8b1a6d8d2757aad80073567a82f7ee36e255873
+[ATTEST-DOC] 58b3626d6c8fa6d78e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e0400000004002158f64fa3d188a815
+[ATTEST-DOC] 575386b28d96cb5a5eec920b00de5d5bbeb6132a9119de5c26628ed08535b77b28cd38cfd266440725dcc933e20c000608864a09019b76b73b4d6bd5a661b3a6
+[ATTEST-DOC] 53b9ed0f53538c45f1ce74db5410bb9248ba0b4f473abb5497714a208d6c450d00f6e1d15673599f6738cb71a11f4bc0a08f5b2273c75f54777296fcfa0221d6
+[ATTEST-DOC] df40d8416ffd0a391437a915ddf1f56f113fb0138c58c60d89a0022efbdb486adc41000000e578b42a6d8be737b6cac470232ceaeaee6ca9266d30f7693cede2
+[ATTEST-DOC] 80e0ab0f038e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e0400000004003c2f50e2b7311b04ed64c819
+[ATTEST-DOC] 2f485750a1fccf890b0036b816732af89bf7b42a0b344a08504e3bd620bc3170383c3aab56a81d9c5c750c0014dfe89f803a36643675bec858fd2fb6f7d36699
+[ATTEST-DOC] ae2f7053ccf5e585ba80267d53f4f4e790f79db371331ea27766d8d40d00f9a7d41bd802eef27bd1cf4a32b163f34418d73f0104eb0a88e566cc99f803d410d1
+[ATTEST-DOC] ba3efeb3b40592974e2b1ef73a8159f38b339c5cc768b49f2e74428ee961410000009496bb1d82ccf5708353bba329bba9397bd354d5c5dddaca077a12277d4e
+[ATTEST-DOC] 7ea08e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e0400000004007f7be2e8e789a7bb117211b60ac92e
+[ATTEST-DOC] 43c353df030b00dddde9be4011ef161fbf90d1f7981b2da80fefae7cfac045ec94eab4e41724b30c00f2dca78baabf2ecf3a7226df247ac54541c0266a21bfbe
+[ATTEST-DOC] f4f613413e895b1e9b555e8a94e6a0e88f9926e4468d311bf20d00084a71954a3dce65d5c3e2f1502800776a1708944454ad8fd981b16a069c064f0830460ffe
+[ATTEST-DOC] 441db8780129411ad7a4540ba54751268366844b26791fe7a824a2410000003ca6f1a4bf727e347245d9c06e2e7fd2a2acecc6c4bbc84d04d2ed7e2b29d5e08e
+[ATTEST-DOC] 00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e0400000004005dfb6aae4095682d184ff456ed04398c0e1b
+[ATTEST-DOC] 4f9a0b004d24c5b80f768ef5ce4cec6cca7a1dfdabbc02f0c5c901192cf0435fbb72b5ef0c005c4d7db7901d722e43c0bebe7481ebe0999c56799401daaa3e32
+[ATTEST-DOC] fabc0e842b02f02e960c164998c2c93bf65647ef07ce0d00bbc152e32537c06b86ec427f99d90f79e3ec2cdefb5c83ce786b63d88792ceac7bc711940775d825
+[ATTEST-DOC] 2017c1970d6755ccb0b8420b2c239ce3bf4a0bcf9d5fbf19410000001ca3b66ed072d387eee3199a57d542e5152d18403f22446292e02919ec9cffdd8e00fcbc
+[ATTEST-DOC] bf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e0400000004001e063c2e2cfc951c83164364bed2ed2e324b949b0b
+[ATTEST-DOC] 00b30ba15db0613bce3e867d044c2c96f94cb52068ecf0429fe18f31674982e3cc0c00b272c9c7950b44e7e032f1d33a2ce8c073dc336b5dc876d7c367b87e30
+[ATTEST-DOC] 55e819be331e54b58e95e923d2706e2a34f3540d00227f898283a9c4c28d6cea7240773757588d354185cd79b1927e4d66f6714a221596bc3044d68e289bb527
+[ATTEST-DOC] 54b66e76c9041593a26470b2af7f8300fb3e271f494100000057095697a71b4a21f5dee4c4e445e7033683fe0689ad02f2f06c7a393cdd55248e00fcbcbf988c
+[ATTEST-DOC] d2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e0400000004002206f6fc2825594cd296c9346bf8b1fbe45a81b60b005ffa
+[ATTEST-DOC] 020e868e8581b692851cd3a01f34bf38554934802fbaef52f758adc20b240c0066dc6a3826ff577385da3361624d86469fc1af84c107cc06a99f69fd93c23a20
+[ATTEST-DOC] b78ce579c1554c2149c4c099ec6d257b0d00718e75a820c3d3f3c0aad9fafda52be652d8192d3f4152ad2435b394fd24f200c9f83664d6878ed41a9efe66e63b
+[ATTEST-DOC] 2d8df82afd103073a0bda1991d9ed7520a474100000003b6371da642fcaa51e5a1d491e7a2fe0802bf15b04d97bc28c004d82d1a82fa8e00fcbcbf988cd2fc0a
+[ATTEST-DOC] 9873cf5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e0400000004001c3b9efd662298b4256a49d64dc9073cbadabb040b004e1a6ae803
+[ATTEST-DOC] 48186e74bfacc704f4b2d9e8c9afc4957f0df7ebe870306dc41ede0c0009dcf069bf69515e0625ca84ccc1fb6687524a86efbfb1e305aa9b879fbffc89915438
+[ATTEST-DOC] c5a688a5fab7cca602995cec080d004bc152357400b378e99ac56c823a0dec24b40d90552a3e7bbca9e75e41398b8cae26e6151ccdb6b36081ddd3a434ef02b5
+[ATTEST-DOC] 7e4646fe35c233d9700bd27bef2735410000002662457b695e697f85fd7e72f031da0f9b4b040ea2d93363bb17c1fab25cdf768e00fcbcbf988cd2fc0a9873cf
+[ATTEST-DOC] 5313d5827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e040000000400fe1de77f6a7ade7f9a45d960975f7383cae6582a0b002363f38dc54955c0
+[ATTEST-DOC] fe8f59515c43a4db63c7069cc33e77a0cc2c4f8a82af5e990c001e735fe42eb940f129cb78eb22e5e50092e8c0753e32d0e372d7792f38944692598eeca103ca
+[ATTEST-DOC] add0f75a8fe42e59d4510d0016c3f1615b81dc0680c6177626dbaf863ab3a1d07ce352c3c2759dd5e8b4580440a1b770aa28616f248b23f3f49b08212337fee7
+[ATTEST-DOC] f505a01ecf1a5a07f26d536641000000ff63815a60d368bc6f84cd20a7eb202112918fa331378981142ebd6cf9a5e6548e00fcbcbf988cd2fc0a9873cf5313d5
+[ATTEST-DOC] 827f057cba8e1b221e09df7a194d2bbd020e000000014e4f4e040000000400bd58c81302a1cc7717fea9255d084489dd2c8f250b00e907f4ed8ed77b3046fdf6
+[ATTEST-DOC] 250f5650885a519d2c1010cea9081e4033065449f40c003ac46960c7cf72f69982a87c636df198af95329e1ba2e1b5783e93da7797250f885ca2577abedcc1a3
+[ATTEST-DOC] 013ad6e41fd6b80d00c75c1b55dd4d52d4fca19db318771ef2f40d2deb7a804538fc793bc98f7c630c86717c16295e93534f7f2d42f79302b5955fcfd2343657
+[ATTEST-DOC] 984feee988f1889c4241000000233369ffe59bdaca2bb76fc3ef7342fbdcf1eccd465f027df86372c1ab177c6d8e00fcbcbf988cd2fc0a9873cf5313d5827f05
+[ATTEST-DOC] 7cba8e1b221e09df7a194d2bbd020e000000014e4f4e0400000004001c068286846b646551cc8fd812d7fd966b34daad0b00f2399736048b629f6174032dc624
+[ATTEST-DOC] 9c2406d4e209d9eab40b20d9edf2e63c8fe00c00917edba0a6d85df136f8969413bd2c5c93f2323810818139b41fc4a1e47566b8d58b0a942dd130047347c888
+[ATTEST-DOC] c1fe92a10d00a801c41374a320b70e103e4088bb8fe4ec321b02938141aa359214d6c655ca2803c5a929712ffb42859f34a9974082002ccd9020ace6ffaec8c1
+[ATTEST-DOC] a0584f77e26041000000b26b896340b0f9b2adc1ec8ed36f27aa6bb8d8dfe1f0227569e6b071ebb44f088e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e
+[ATTEST-DOC] 1b221e09df7a194d2bbd020e000000014e4f4e040000000400a7edcb689ba99fd5eccfbfb9e5775d4163ce16380b0022088ac713dc8e972086218f6e4715ae77
+[ATTEST-DOC] 5127bf5d3e4f5b662386bf7307ebad0c00029c58318a734523cd13817920defa6bae8409f8871995abf1cbc4d923636252c2fdb352d6c779a470a64aff40d48e
+[ATTEST-DOC] 2e0d00312123775f674f767a6ba2d013dfbfd69955a5d97cae053866ad0eaee195022dbe0dbb101fef74b72470767dc2ea384d7fdf0aacebd031d4385d916469
+[ATTEST-DOC] c42a8a41000000c86767210963ab8bc13fd10d40eaf23f169dc1f9e01b8790de5c4e5db0a1e2c88e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e
+[ATTEST-DOC] 09df7a194d2bbd020e000000014e4f4e04000000040065ed3050427c62687989f79777d2eb39853a10970b00d8844fd83a6398a01dda2e7f89a6b039123410ee
+[ATTEST-DOC] fa8a0c6473f7f95205516b4a0c00c27236351c1709a94258a2fdc33211959aa9188a490b16e3f7b97685c481bcda51eff9c90cd41bb9162b8592235505890d00
+[ATTEST-DOC] 69370e074aaaba968b719b7e86bf21fb0dee5f0084512b62db303ba2fe820221242e4e2e32d8228a55cf7433eb196a88e0f2a2ce18a8c7f00c5d1471c0178d48
+[ATTEST-DOC] 410000009e28e0902ea6448c4e201c92347af324d47db9ce58750efc5468f14c4d07c9018e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a
+[ATTEST-DOC] 194d2bbd020e000000014e4f4e04000000040062538821282ba70255c49aa485fafea86a0e7a240b0092fbf2f5951ad30e39e6ba008dfccf1391e95137e20383
+[ATTEST-DOC] 48ae035239d5c38cc20c005a44ce10cf9f4149679a3dc645ea970175491cf82f00a78feda8a27c5b8d9d9a225cbbb960dc1f4170ca1c5d088e62ca0d00ebbbdb
+[ATTEST-DOC] d98448b0a784f5c1d0e38fa49273a72d812d79a85b2b5fa0d7d1c6108b94c1b1b85486d9288bdb0154cb87994719e110050acb0dc15735a66fe75b722b410000
+[ATTEST-DOC] 008a5cfaae9e74333e647b9df814a3d94c8e657bb9493f36d753cb054ddfeef1168e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2b
+[ATTEST-DOC] bd020e000000014e4f4e04000000040009bc7c9cf3bb06c089909746709dfb694a7ef9ef0b0029e62078b7440cce13a6e57f75bec57e1926fdbc9aeb05d42579
+[ATTEST-DOC] 827cc6764dc90c00a20ada500cf98829885d8a71299ad378cb5db296b957f4d4c60efb86c127056c41e2ad3688fcccd9b8a5f1d91b20d48f0d008ca21e8ee48d
+[ATTEST-DOC] 08ed0736a18fe5d165c0539086b6a9e7b59455941d86f7ffdf4a7751353aeb3ac4a4b49100a0cd1fdab4b9dfd68d96144e339140476123b223994100000048f6
+[ATTEST-DOC] 647861d904db8cbff12ed78bab8cd6e6c24cbd5877fafe0fad44db0554908e00fcbcbf988cd2fc0a9873cf5313d5827f057cba8e1b221e09df7a194d2bbd0200
+[ATTEST-DOC] 000091ff54434780180022000bde395d9068c511ad4d4c962ba0182917200774d5167534582c099723a70406060020e769c328a81da78d3c07fac723f2017de0
+[ATTEST-DOC] 953909ff1d2a86c2f6bbe868ac08c300000000000cf1a0000000010000000301201910230016363600000001000b0397430000206f12bb35bff4b9ce928defc6
+[ATTEST-DOC] 9c995e155563be81ffd3532d9e2cfcc133e77b1b000000480018000b00209e17bee275499fefbf555aafb3ee5c78b0b7e2692bcf31a81c51011ad094c6250020
+[ATTEST-DOC] 237d60b1bcebc75aac34a84c9b4ef9fd8fd28e1ed83124c9d943acdf4cc4d802000000404eeb5a0d836e828f4e6fc30f9a753af3dc19aea6f419fad5c84737af
+[ATTEST-DOC] a6f10131d46f5329cb0beee52dc859e3476f3f27a5f23788ba566f443a4e5ac4ad0a72c1
+[ATTEST-DOC] end
+[SMP] cpu=0 runs user pid 14
+[USER-FIRST] pid=0x0000000000000029 rip=0x000000002B7C2D2C
+[USER-FIRST] pid=0x000000000000002A rip=0x000000002B7C2D2C
+[USER-FIRST] pid=0x000000000000002B rip=0x000000002B7C2D2C
+[USER-FIRST] pid=0x000000000000002C rip=0x000000002B7C2D2C
+[shield 5636 ms] prover pool: 4 of 4 cores
+[BENCH] 6255 capsule_spawn_start:proof_io
+[BENCH] 6305 capsule_attest_ok:proof_io
+[ZK-ATTEST] ok proof_io vendor
+[BENCH] 6307 capsule_preflight_ok:proof_io
+[SPAWN] name=proof_io pid=0x000000000000002D caps=0x0000000000000118 entry=0x000000002A8FB330
+[BENCH] 6317 capsule_runqueue_ok:proof_io
+[USER-FIRST] pid=0x000000000000002D rip=0x000000002A8FB330
+[NET-CORE] rx batch: 256 calls, 0 not answered in time, bound 24 ms
+[SYSCALL-PROOF] PASS time-loop invalid-number invalid-pointer invalid-size retired-enosys
+[usbnet fido] port 5: shared device unread errno -22
+[usbnet fido] port 6: shared device unread errno -22
+[BROKER] released device 0x0000000000000008 bus master off
+[VT-D] released and denied
+[VT-D] confined to its capsule's domain
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[VFS] serving, store status 00[usbnet fido] port 5: shared device unread errno -22
+[usbnet fido] port 6: shared device unread errno -22
+[NET-CORE] rx batch: 1024 calls, 0 not answered in time, bound 24 ms
+[BROKER] released device 0x0000000000000008 bus master off
+[VT-D] released and denied
+[STORE] the loader's copy of the store: 80205824 bytes
+[PKG] vfy ok /nonos/setup/answers
+[PKG] vfy ok /nonos/setup/done
+[PKG] vfy ok /linux/bin/qwenchat-x86_64
+[PKG] vfy ok /linux/bin/qwenchat-x86_64.nonos_id_cert.bin
+[PKG] vfy ok /linux/bin/qwenchat-x86_64.manifest.bin
+[PKG] vfy ok /linux/bin/qwenchat-x86_64.zk_trailer.bin
+[PKG] vfy ok /linux/bin/qwenchat-x86_64_v2
+[PKG] vfy ok /linux/bin/qwenchat-x86_64_v2.nonos_id_cert.bin
+[PKG] vfy ok /linux/bin/qwenchat-x86_64_v2.manifest.bin
+[PKG] vfy ok /linux/bin/qwenchat-x86_64_v2.zk_trailer.bin
+[PKG] vfy ok /linux/bin/qwenchat
+[PKG] vfy ok /linux/bin/qwenchat.nonos_id_cert.bin
+[PKG] vfy ok /linux/bin/qwenchat.manifest.bin
+[PKG] vfy ok /linux/bin/qwenchat.zk_trailer.bin
+[VT-D] confined to its capsule's domain
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[PKG] vfy ok /linux/usr/bin/fd
+[PKG] vfy ok /linux/usr/bin/fd.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/fd.manifest.bin
+[PKG] vfy ok /linux/usr/bin/fd.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/gojq
+[PKG] vfy ok /linux/usr/bin/gojq.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/gojq.manifest.bin
+[PKG] vfy ok /linux/usr/bin/gojq.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/john
+[PKG] vfy ok /linux/usr/bin/john.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/john.manifest.bin
+[PKG] vfy ok /linux/usr/bin/john.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/jq
+[PKG] vfy ok /linux/usr/bin/jq.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/jq.manifest.bin
+[PKG] vfy ok /linux/usr/bin/jq.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/lua
+[PKG] vfy ok /linux/usr/bin/lua.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/lua.manifest.bin
+[PKG] vfy ok /linux/usr/bin/lua.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/make
+[PKG] vfy ok /linux/usr/bin/make.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/make.manifest.bin
+[PKG] vfy ok /linux/usr/bin/make.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/mruby
+[PKG] vfy ok /linux/usr/bin/mruby.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/mruby.manifest.bin
+[PKG] vfy ok /linux/usr/bin/mruby.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/nano
+[PKG] vfy ok /linux/usr/bin/nano.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/nano.manifest.bin
+[PKG] vfy ok /linux/usr/bin/nano.zk_trailer.bin
+[usbnet fido] port 6: shared device unread errno -22
+[PKG] vfy ok /linux/usr/bin/openssl
+[PKG] vfy ok /linux/usr/bin/openssl.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/openssl.manifest.bin
+[PKG] vfy ok /linux/usr/bin/openssl.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/perl
+[PKG] vfy ok /linux/usr/bin/perl.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/perl.manifest.bin
+[PKG] vfy ok /linux/usr/bin/perl.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/python3
+[PKG] vfy ok /linux/usr/bin/python3.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/python3.manifest.bin
+[PKG] vfy ok /linux/usr/bin/python3.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/qjs
+[PKG] vfy ok /linux/usr/bin/qjs.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/qjs.manifest.bin
+[PKG] vfy ok /linux/usr/bin/qjs.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/rg
+[PKG] vfy ok /linux/usr/bin/rg.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/rg.manifest.bin
+[PKG] vfy ok /linux/usr/bin/rg.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/sqlite3
+[PKG] vfy ok /linux/usr/bin/sqlite3.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/sqlite3.manifest.bin
+[PKG] vfy ok /linux/usr/bin/sqlite3.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/tclsh
+[PKG] vfy ok /linux/usr/bin/tclsh.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/tclsh.manifest.bin
+[PKG] vfy ok /linux/usr/bin/tclsh.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/zstd
+[PKG] vfy ok /linux/usr/bin/zstd.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/zstd.manifest.bin
+[PKG] vfy ok /linux/usr/bin/zstd.zk_trailer.bin
+[PKG] vfy ok /capsules/egui_proof.elf
+[PKG] vfy ok /capsules/egui_proof.nonos_id_cert.bin
+[PKG] vfy ok /capsules/egui_proof.manifest.bin
+[PKG] vfy ok /capsules/egui_proof.zk_trailer.bin
+[PKG] vfy ok /capsules/game_2048.elf
+[PKG] vfy ok /capsules/game_2048.nonos_id_cert.bin
+[PKG] vfy ok /capsules/game_2048.manifest.bin
+[PKG] vfy ok /capsules/game_2048.zk_trailer.bin
+[PKG] vfy ok /capsules/gui_demo.elf
+[PKG] vfy ok /capsules/gui_demo.nonos_id_cert.bin
+[PKG] vfy ok /capsules/gui_demo.manifest.bin
+[PKG] vfy ok /capsules/gui_demo.zk_trailer.bin
+[PKG] vfy ok /capsules/std_proof.elf
+[PKG] vfy ok /capsules/std_proof.nonos_id_cert.bin
+[PKG] vfy ok /capsules/std_proof.manifest.bin
+[PKG] vfy ok /capsules/std_proof.zk_trailer.bin
+[PKG] vfy ok /linux/usr/lib/perl5/strict.pm
+[PKG] vfy ok /linux/usr/lib/perl5/warnings.pm
+[PKG] vfy ok /linux/usr/lib/perl5/warnings/register.pm
+[PKG] vfy ok /linux/usr/lib/perl5/feature.pm
+[PKG] vfy ok /linux/usr/lib/perl5/utf8.pm
+[PKG] vfy ok /linux/usr/lib/perl5/vars.pm
+[PKG] vfy ok /linux/usr/lib/perl5/constant.pm
+[PKG] vfy ok /linux/usr/lib/perl5/lib.pm
+[PKG] vfy ok /linux/usr/lib/perl5/integer.pm
+[PKG] vfy ok /linux/usr/lib/perl5/bytes.pm
+[PKG] vfy ok /linux/usr/lib/perl5/overload.pm
+[PKG] vfy ok /linux/usr/lib/perl5/overloading.pm
+[PKG] vfy ok /linux/usr/lib/perl5/parent.pm
+[PKG] vfy ok /linux/usr/lib/perl5/base.pm
+[PKG] vfy ok /linux/usr/lib/perl5/fields.pm
+[PKG] vfy ok /linux/usr/lib/perl5/subs.pm
+[PKG] vfy ok /linux/usr/lib/perl5/builtin.pm
+[PKG] vfy ok /linux/usr/lib/perl5/experimental.pm
+[PKG] vfy ok /linux/usr/lib/perl5/version.pm
+[PKG] vfy ok /linux/usr/lib/perl5/version/regex.pm
+[PKG] vfy ok /linux/usr/lib/perl5/attributes.pm
+[PKG] vfy ok /linux/usr/lib/perl5/mro.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Carp.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Carp/Heavy.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Exporter.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Exporter/Heavy.pm
+[PKG] vfy ok /linux/usr/lib/perl5/XSLoader.pm
+[PKG] vfy ok /linux/usr/lib/perl5/DynaLoader.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Config.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Errno.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Scalar/Util.pm
+[PKG] vfy ok /linux/usr/lib/perl5/List/Util.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Sub/Util.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Hash/Util.pm
+[PKG] vfy ok /linux/usr/lib/perl5/POSIX.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Fcntl.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Symbol.pm
+[PKG] vfy ok /linux/usr/lib/perl5/SelectSaver.pm
+[PKG] vfy ok /linux/usr/lib/perl5/English.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Env.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/Handle.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/File.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/Seekable.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/Select.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/Socket.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/Socket/INET.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/Socket/UNIX.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/Socket/IP.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Socket.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Basename.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Spec.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Spec/Unix.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Path.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Temp.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Find.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Copy.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/stat.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Glob.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Cwd.pm
+[PKG] vfy ok /linux/usr/lib/perl5/FindBin.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Getopt/Long.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Getopt/Std.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Data/Dumper.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Storable.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Text/Tabs.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Text/ParseWords.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Text/Abbrev.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Time/Local.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Time/HiRes.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Time/Piece.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Time/Seconds.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Time/localtime.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Time/tm.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Class/Struct.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Digest/MD5.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Digest/SHA.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Digest/base.pm
+[PKG] vfy ok /linux/usr/lib/perl5/MIME/Base64.pm
+[PKG] vfy ok /linux/usr/lib/perl5/MIME/QuotedPrint.pm
+[PKG] vfy ok /linux/usr/lib/perl5/JSON/PP.pm
+[PKG] vfy ok /linux/usr/lib/perl5/JSON/PP/Boolean.pm
+[PKG] vfy ok /linux/usr/lib/perl5/HTTP/Tiny.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Term/ANSIColor.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Tie/Hash.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Tie/Array.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Tie/Scalar.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Tie/Handle.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Tie/StdHandle.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Benchmark.pm
+[PKG] vfy ok /linux/usr/lib/perl5/PerlIO.pm
+[PKG] vfy ok /linux/usr/lib/perl5/PerlIO/encoding.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Encode.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Encode/Alias.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Encode/Config.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Encode/Encoding.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Encode/MIME/Name.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Config_heavy.pl
+[PKG] vfy ok /linux/usr/lib/perl5/Config_git.pl
+[PKG] vfy ok /linux/usr/lib/python312.zip
+[PKG] vfy ok /linux/usr/lib/python3.12/lib-dynload/README
+[PKG] vfy ok /linux/etc/ssl/cert.pem
+[PKG] vfy ok /linux/usr/share/john/john.conf
+[PKG] vfy ok /linux/usr/share/john/password.lst
+[PKG] vfy ok /linux/usr/lib/tcl8.6/init.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/tclIndex
+[PKG] vfy ok /linux/usr/lib/tcl8.6/auto.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/package.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/tm.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/history.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/parray.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/word.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/clock.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/msgcat/msgcat.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/msgcat/pkgIndex.tcl
+[PKG] vfy ok /linux/etc/passwd
+[PKG] vfy ok /linux/usr/share/nonos/tour/README
+[PKG] vfy ok /linux/usr/share/nonos/tour/mandelbrot.py
+[PKG] vfy ok /linux/usr/share/nonos/keymap.xkb
+[PKG] vfy ok /linux/etc/nonos-links
+[VFSD] packages staged
+[BROKER] released device 0x0000000000000008 bus master off
+[VT-D] released and denied
+[ZS] keeping turned on: the person chose it, the policy service says
+[SETUP] kept from an earlier boot; starting the desktop
+[VT-D] confined to its capsule's domain
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[BENCH] 10193 capsule_spawn_start:wm
+[BENCH] 10252 capsule_attest_ok:wm
+[ZK-ATTEST] ok wm vendor
+[BENCH] 10254 capsule_preflight_ok:wm
+[SPAWN] name=wm pid=0x000000000000002E caps=0x0000000000000018 entry=0x0000000015EE0BD0
+[BENCH] 10258 capsule_runqueue_ok:wm
+[WM] capsule spawned
+[USER-FIRST] pid=0x000000000000002E rip=0x0000000015EE0BD0
+[BENCH] 10259 capsule_spawn_start:wallpaper_catalog
+[BENCH] 10330 capsule_attest_ok:wallpaper_catalog
+[ZK-ATTEST] ok wallpaper_catalog vendor
+[BENCH] 10332 capsule_preflight_ok:wallpaper_catalog
+[SPAWN] name=wallpaper_catalog pid=0x000000000000002F caps=0x0000000000000059 entry=0x000000002455AAA0
+[BENCH] 10347 capsule_runqueue_ok:wallpaper_catalog
+[WALLPAPER-CATALOG] capsule spawned
+[USER-FIRST] pid=0x000000000000002F rip=0x000000002455AAA0
+[BENCH] 10348 capsule_spawn_start:wallpaper
+[BENCH] 10444 capsule_attest_ok:wallpaper
+[ZK-ATTEST] ok wallpaper vendor
+[BENCH] 10446 capsule_preflight_ok:wallpaper
+[SPAWN] name=wallpaper pid=0x0000000000000030 caps=0x0000000000001818 entry=0x0000000012E6E5C0
+[BENCH] 10449 capsule_runqueue_ok:[USER-FIRST] pid=wallpaper
+0x0000000000000030 rip=0x0000000012E6E5C0
+[WALLPAPER] capsule spawned
+[BENCH] 10450 capsule_spawn_start:desktop_shell
+[MUNMAP] release_va_failed
+[MUNMAP] pid=0x0000000000000030 name=wallpaper size=0x0000000000001000 va=0x00000000817E9000 total_pid=0x00000000017F9000 total_system=0x000000003D835000
+[USER-FIRST] pid=0x0000000000000031 rip=0x0000000012E7DDFC
+[BENCH] 10695 capsule_attest_ok:desktop_shell
+[ZK-ATTEST] ok desktop_shell vendor
+[BENCH] 10697 capsule_preflight_ok:desktop_shell
+[SPAWN] name=desktop_shell pid=0x0000000000000032 caps=0x000000000100115D entry=0x0000000010ED9A90
+[BENCH] 10722 capsule_runqueue_ok:desktop_shell
+[DESKTOP-SHELL] capsule spawned
+[USER-FIRST] pid=[BENCH] 10723 capsule_spawn_start0x0000000000000032 rip=0x0000000010ED9A90
+:image_codec
+[BENCH] 10773 capsule_attest_ok:image_codec
+[ZK-ATTEST] ok image_codec vendor
+[BENCH] 10777 capsule_preflight_ok:image_codec
+[SPAWN] name=image_codec pid=0x0000000000000033 caps=0x0000000000003018 entry=0x00000000231EB2B0
+[BENCH] 10789 capsule_runqueue_ok:image_codec
+[IMAGE-CODEC] capsule spawned
+[BENCH] 10789 capsule_spawn_start:app.video_player
+[USER-FIRST] pid=0x0000000000000033 rip=0x00000000231EB2B0
+[NET-NYM] gateway connect 6
+[BENCH] 10918 capsule_attest_ok:app.video_player
+[ZK-ATTEST] ok app.video_player vendor
+[BENCH] 10920 capsule_preflight_ok:app.video_player
+[SPAWN] name=app.video_player pid=0x0000000000000034 caps=0x0000000000003959 entry=0x0000000033D585B0
+[BENCH] 10924 capsule_runqueue_ok:app.video_player
+[VIDEO-PLAYER] capsule spawned
+[BENCH] 10925 capsule_spawn_start:clipboard
+[USER-FIRST] pid=0x0000000000000034 rip=0x0000000033D585B0
+[BENCH] 10978 capsule_attest_ok:clipboard
+[ZK-ATTEST] ok clipboard vendor
+[BENCH] 10980 capsule_preflight_ok:clipboard
+[SPAWN] clipboard install enter
+[SPAWN] name=clipboard pid=0x0000000000000035 caps=0x0000000000000018 entry=0x000000000067FBF0
+[BENCH] 10982 capsule_runqueue_ok:clipboard
+[SPAWN] clipboard runqueue ok
+[CLIPBOARD] capsule spawned
+[BENCH] 10982 capsule_spawn_start:attest
+[BENCH] 11049 capsule_attest_ok:attest
+[ZK-ATTEST] ok attest vendor
+[BENCH] 11050 capsule_preflight_ok:attest
+[SPAWN] name=attest pid=0x0000000000000036 caps=0x0000000080000019 entry=0x000000000CA0A2A0
+[BENCH] 11064 capsule_runqueue_ok:attest
+[ATTEST] capsule spawned
+[BENCH] 11065 capsule_spawn_start:installer
+[USER-FIRST] pid=0x0000000000000035 rip=0x000000000067FBF0
+[BENCH] 11112 capsule_attest_ok:installer
+[ZK-ATTEST] ok installer vendor
+[BENCH] 11114 capsule_preflight_ok:installer
+[SPAWN] name=installer pid=0x0000000000000037 caps=0x0000000000800059 entry=0x00000000390A95F0
+[BENCH] 11115 capsule_runqueue_ok:installer
+[INSTALLER] capsule spawned
+[BENCH] 11116 capsule_spawn_start:payment
+[BENCH] 11169 capsule_attest_ok:payment
+[ZK-ATTEST] ok payment vendor
+[BENCH] 11171 capsule_preflight_ok:payment
+[SPAWN] name=payment pid=0x0000000000000038 caps=0x0000000010000079 entry=0x000000000C922660
+[BENCH] 11175 capsule_runqueue_ok:payment
+[PAYMENT] capsule spawned
+[BENCH] 11175 capsule_spawn_start:nox_settle
+[USER-FIRST] pid=0x0000000000000036 rip=0x000000000CA0A2A0
+[BENCH] 11283 capsule_attest_ok:nox_settle
+[ZK-ATTEST] ok nox_settle vendor
+[BENCH] 11285 capsule_preflight_ok:nox_settle
+[SPAWN] name=nox_settle pid=0x0000000000000039 caps=0x000000000000003C entry=0x000000003C3170A0
+[BENCH] 11303 capsule_runqueue_ok:nox_settle
+[NOX-SETTLE] capsule spawned
+[BENCH] 11304 capsule_spawn_start:login
+[BROKER] released device 0x0000000000000008 bus master off
+[VT-D] released and denied
+[USER-FIRST] pid=0x0000000000000037 rip=0x00000000390A95F0
+[BENCH] 11382 capsule_attest_ok:login
+[ZK-ATTEST] ok login vendor
+[BENCH] 11384 capsule_preflight_ok:login
+[SPAWN] login install enter
+[SPAWN] name=login pid=0x000000000000003A caps=0x0000000010001018 entry=0x0000000004BFFB60
+[BENCH] 11388 capsule_runqueue_ok:login
+[SPAWN] login runqueue ok
+[LOGIN] capsule spawned
+[BENCH] 11389 capsule_spawn_start:toolkit
+[BENCH] 11462 capsule_attest_ok:toolkit
+[ZK-ATTEST] ok toolkit vendor
+[BENCH] 11464 capsule_preflight_ok:toolkit
+[SPAWN] toolkit install enter
+[SPAWN] name=toolkit pid=0x000000000000003B caps=0x0000000000000019 entry=0x00000000394CEEA0
+[BENCH] 11467 capsule_runqueue_ok:toolkit
+[SPAWN] toolkit runqueue ok
+[TOOLKIT] capsule spawned
+[BENCH] 11467 capsule_spawn_start:market.index
+[USER-FIRST] pid=0x0000000000000038 rip=0x000000000C922660
+[USER-FIRST] pid=0x0000000000000039 rip=0x000000003C3170A0
+[BENCH] 11560 capsule_attest_ok:market.index
+[ZK-ATTEST] ok market.index vendor
+[BENCH] 11563 capsule_preflight_ok:market.index
+[SPAWN] name=market.index pid=0x000000000000003C caps=0x0000000000000059 entry=0x0000000012A63B10
+[BENCH] 11578 capsule_runqueue_ok:market.index
+[MARKET] capsule spawned
+[BENCH] 11579 capsule_spawn_start:app.about
+[USER-FIRST] pid=0x000000000000003A rip=0x0000000004BFFB60
+[USER-FIRST] pid=0x000000000000003B rip=0x00000000394CEEA0
+[USER-FIRST] pid=0x000000000000003C rip=0x0000000012A63B10
+[NYM] directory: fetching
+[NYM] fetch: connecting
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261026084701
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[BENCH] 11858 capsule_attest_ok:app.about
+[ZK-ATTEST] ok app.about vendor
+[BENCH] 11860 capsule_preflight_ok:app.about
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[SOCKS5] connect, destination bytes 39
+[SPLASH] stepped aside at 11348 ms: the desktop is up
+[SPAWN] name=app.about pid=0x000000000000003D caps=0x0000000080001919 entry=0x0000000025EFB2C0
+[BENCH] 11931 capsule_runqueue_ok:app.about
+[APP-ABOUT] capsule spawned
+[BENCH] 11932 capsule_spawn_start:app.store
+[USER-FIRST] pid=0x000000000000003D rip=0x0000000025EFB2C0
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[NYM] fetch: ok-len-or-err 4 0
+[MUNMAP] pid=0x0000000000000009 name=app.boot_splash size=0x00000000007E9000 va=0x0000000081000000 total_pid=0x0000000001000000 total_system=0x0000000054807000
+[NYM] directory sync failed, code 20
+[NYM] exit lookup: the directory lists none
+[BENCH] 12098 capsule_attest_ok:app.store
+[ZK-ATTEST] ok app.store vendor
+[BENCH] 12099 capsule_preflight_ok:app.store
+[SPAWN] name=app.store pid=0x000000000000003E caps=0x0000000040001919 entry=0x000000000D8872D0
+[BENCH] 12162 capsule_runqueue_ok:app.store
+[APP-STORE] capsule spawned
+[BENCH] 12162 capsule_spawn_start:app.calculator
+[BLOCK] asked USB stick (driver.usb_msc0): no disk behind this driver
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[USER-FIRST] pid=0x000000000000003E rip=0x000000000D8872D0
+[USB-MSC] port 6: not a USB stick: interface class 03, subclass 00, protocol 00 (a stick is 08 06 50); 2 port(s) connected, 1 given up
+[BLOCK] asked NVMe (driver.nvme0): 16777216 sectors; its table's store at LBA 256 holds "NONOSTR1"; the loader's disk
+[BLOCK] NONOS disk on NVMe (driver.nvme0): store at LBA 256, plan at LBA 245760
+[STORE] the kept disk carries the store the loader read
+[STORE-WR] ok
+[BENCH] 12322 capsule_attest_ok:app.calculator
+[ZK-ATTEST] ok app.calculator vendor
+[BENCH] 12323 capsule_preflight_ok:app.calculator
+[STORE-WR] ok
+[STORE-WR] ok
+[SPAWN] name=app.calculator pid=0x000000000000003F caps=0x0000000000001919 entry=0x000000000E97D630
+[STORE-WR] ok
+[BENCH] 12337 capsule_runqueue_ok:app.calculator
+[APP-CALCULATOR] capsule spawned
+[BENCH] 12338 capsule_spawn_start:app.browser
+[USER-FIRST] pid=0x000000000000003F rip=0x000000000E97D630
+[STORE-WR] ok
+[STORE-WR] ok
+[NYM] no directory gateways yet, dialling a compiled one
+[BENCH] 12576 capsule_attest_ok:app.browser
+[ZK-ATTEST] ok app.browser vendor
+[BENCH] 12577 capsule_preflight_ok:app.browser
+[SPAWN] name=app.browser pid=0x0000000000000040 caps=0x000000000000193D entry=0x000000002C5230F0
+[BENCH] 12603 capsule_runqueue_ok:app.browser
+[APP-BROWSER] capsule spawned
+[BENCH] 12603 capsule_spawn_start:app.snake
+[USER-FIRST] pid=0x0000000000000040 rip=0x000000002C5230F0
+[MUNMAP] release_va_failed
+[MUNMAP] pid=0x0000000000000030 name=wallpaper size=0x0000000000001000 va=0x00000000817FA000 total_pid=0x0000000001809000 total_system=0x0000000057817000
+[USER-FIRST] pid=0x0000000000000041 rip=0x0000000012E7DDFC
+[BENCH] 12774 capsule_attest_ok:app.snake
+[ZK-ATTEST] ok app.snake vendor
+[BENCH] 12775 capsule_preflight_ok:app.snake
+[SPAWN] name=app.snake pid=0x0000000000000042 caps=0x0000000000001959 entry=0x000000003A66F990
+[BENCH] 12803 capsule_runqueue_ok:app.snake
+[APP-SNAKE] capsule spawned
+[BENCH] 12804 capsule_spawn_start:app.nonos_wallet
+[VT-D] confined to its capsule's domain
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[BENCH] 13130 capsule_attest_ok:app.nonos_wallet
+[ZK-ATTEST] ok app.nonos_wallet vendor
+[BENCH] 13132 capsule_preflight_ok:app.nonos_wallet
+[SPAWN] name=app.nonos_wallet pid=0x0000000000000043 caps=0x000000001000197D entry=0x0000000024EEBE30
+[BENCH] 13172 capsule_runqueue_ok:app.nonos_wallet
+[APP-NONOS-WALLET] capsule spawned
+[BENCH] 13172 capsule_spawn_start:app.terminal
+[SOCKS5] connect, destination bytes 39
+[BENCH] 13413 capsule_attest_ok:app.terminal
+[ZK-ATTEST] ok app.terminal vendor
+[BENCH] 13416 capsule_preflight_ok:app.terminal
+[SPAWN] name=app.terminal pid=0x0000000000000044 caps=0x00000000C100197D entry=0x0000000007F80A50
+[BENCH] 13437 capsule_runqueue_ok:app.terminal
+[APP-TERMINAL] capsule spawned
+[BENCH] 13438 capsule_spawn_start:app.file_manager
+[ANON] dir never established  49. 13. 145. 234: 9230
+[BENCH] 13615 capsule_attest_ok:app.file_manager
+[ZK-ATTEST] ok app.file_manager vendor
+[BENCH] 13617 capsule_preflight_ok:app.file_manager
+[SPAWN] name=app.file_manager pid=0x0000000000000045 caps=0x0000000000001959 entry=0x0000000018C1FC90
+[BENCH] 13636 capsule_runqueue_ok:app.file_manager
+[APP-FILE-MANAGER] capsule spawned
+[BENCH] 13637 capsule_spawn_start:app.audio_player
+[BENCH] 13841 capsule_attest_ok:app.audio_player
+[ZK-ATTEST] ok app.audio_player vendor
+[BENCH] 13842 capsule_preflight_ok:app.audio_player
+[SPAWN] name=app.audio_player pid=0x0000000000000046 caps=0x000000000000197D entry=0x000000003ACDE150
+[BENCH] 13861 capsule_runqueue_ok:app.audio_player
+[APP-AUDIO-PLAYER] capsule spawned
+[BENCH] 13862 capsule_spawn_start:app.linux
+[BROKER] released device 0x0000000000000008 bus master off
+[VT-D] released and denied
+[EXIT] code=3 driver.ahci0
+[EXIT] driver.ahci0 status 3: controller present, nothing behind it to serve
+[BENCH] 14086 capsule_attest_ok:app.linux
+[ZK-ATTEST] ok app.linux vendor
+[BENCH] 14089 capsule_preflight_ok:app.linux
+[SPAWN] name=app.linux pid=0x0000000000000047 caps=0x0000000104001979 entry=0x000000003E826BE0
+[BENCH] 14175 capsule_runqueue_ok:app.linux
+[APP-LINUX] capsule spawned
+[BENCH] 14176 capsule_spawn_start:app.text_editor
+[BENCH] 14366 capsule_attest_ok:app.text_editor
+[ZK-ATTEST] ok app.text_editor vendor
+[BENCH] 14368 capsule_preflight_ok:app.text_editor
+[SPAWN] name=app.text_editor pid=0x0000000000000048 caps=0x0000000000001959 entry=0x0000000032475E60
+[BENCH] 14388 capsule_runqueue_ok:app.text_editor
+[APP-TEXT-EDITOR] capsule spawned
+[BENCH] 14388 capsule_spawn_start:app.settings
+[LINUX] personality up
+[LINUX] store settled after 14 ms
+[LINUX] personality ready, nothing asked to run
+[BENCH] 14615 capsule_attest_ok:app.settings
+[ZK-ATTEST] ok app.settings vendor
+[BENCH] 14617 capsule_preflight_ok:app.settings
+[SPAWN] name=app.settings pid=0x0000000000000049 caps=0x000000000000997D entry=0x0000000005579AB0
+[BENCH] 14722 capsule_runqueue_ok:app.settings
+[APP-SETTINGS] capsule spawned
+[BENCH] 14722 capsule_spawn_start:app.process_manager
+[BENCH] 14883 capsule_attest_ok:app.process_manager
+[ZK-ATTEST] ok app.process_manager vendor
+[BENCH] 14884 capsule_preflight_ok:app.process_manager
+[SPAWN] name=app.process_manager pid=0x000000000000004A caps=0x0000000002001919 entry=0x000000000757C050
+[BENCH] 14909 capsule_runqueue_ok:app.process_manager
+[APP-PROCESS-MANAGER] capsule spawned
+[NET-CORE] rx batch: 4096 calls, 1 not answered in time, bound 24 ms
+[NET-NYM] gateway connect 6
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[NYM] directory: fetching
+[NYM] fetch: connecting
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261026084707
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[NYM] fetch: ok-len-or-err 4 0
+[NYM] directory sync failed, code 20
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[NYM] no directory gateways yet, dialling a compiled one
+[SOCKS5] connect, destination bytes 39
+[ANON] dir never established  5. 161. 108. 187: 9230
+[NET-NYM] gateway connect 6
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[NYM] directory: fetching
+[NYM] fetch: connecting
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261026084713
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[NYM] fetch: ok-len-or-err 4 0
+[NYM] directory sync failed, code 20
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[NYM] no directory gateways yet, dialling a compiled one
+[SOCKS5] connect, destination bytes 39
+[ANON] dir never established  5. 78. 90. 106: 9230
+[NET-NYM] gateway connect 6
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[NYM] directory: fetching
+[NYM] fetch: connecting
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261026084721
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[NYM] fetch: ok-len-or-err 4 0
+[NYM] directory sync failed, code 20
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[NYM] no directory gateways yet, dialling a compiled one
+[SOCKS5] connect, destination bytes 39
+[ANON] dir never established  5. 161. 228. 187: 9230
+[NET-NYM] gateway connect 6
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[NYM] directory: fetching
+[NYM] fetch: connecting
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261026084730
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[NYM] fetch: ok-len-or-err 4 0
+[NYM] directory sync failed, code 20
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[ANON] dir never established  5. 78. 94. 15: 9230
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[NYM] no directory gateways yet, dialling a compiled one
+[SOCKS5] connect, destination bytes 39
+[NET-CORE] rx batch: 16384 calls, 3 not answered in time, bound 24 ms
+[NET-NYM] gateway connect 6
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[ANON] dir never established  95. 216. 32. 105: 9230
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 39
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[NYM] directory: fetching
+[NYM] fetch: connecting
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261026084747
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[NYM] fetch: ok-len-or-err 4 0
+[NYM] directory sync failed, code 20
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[ANON] dir never established  176. 9. 29. 53: 9230
+[ANON] authority certs 0 7
+[ANON] no authority answered
+[ANON] directory waits seconds 1
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[NYM] no directory gateways yet, dialling a compiled one
+[SOCKS5] connect, destination bytes 31
+[ANON] dir never established  49. 13. 145. 234: 9230
+[NET-NYM] gateway connect 6
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[ANON] dir never established  5. 161. 108. 187: 9230
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[NYM] directory: fetching
+[NYM] fetch: connecting
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261026084817
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[NYM] fetch: ok-len-or-err 4 0
+[NYM] directory sync failed, code 20
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[ANON] dir never established  5. 78. 90. 106: 9230
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[ANON] dir never established  5. 161. 228. 187: 9230
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 31
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[ANON] dir never established  5. 78. 94. 15: 9230
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[NYM] no directory gateways yet, dialling a compiled one
+[SOCKS5] connect, destination bytes 30
+[NET-NYM] gateway connect 6
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[ANON] dir never established  95. 216. 32. 105: 9230
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[NYM] directory: fetching
+[NYM] fetch: connecting
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261026084848
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[NYM] fetch: ok-len-or-err 4 0
+[NYM] directory sync failed, code 20
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[ANON] dir never established  176. 9. 29. 53: 9230
+[ANON] authority certs 0 7
+[ANON] no authority answered
+[ANON] directory waits seconds 2
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[ANON] dir never established  49. 13. 145. 234: 9230
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[ANON] dir never established  5. 161. 108. 187: 9230
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[SOCKS5] connect, destination bytes 30
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[NYM] no directory gateways yet, dialling a compiled one
+[SOCKS5] connect, destination bytes 30
+[ANON] dir never established  5. 78. 90. 106: 9230
+[NET-NYM] gateway connect 6
+[SOCKS5] open refused: session refused 6
+[SOCKS5] open refused: no session
+[NYM] directory: fetching
+[NYM] fetch: connecting
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261026084921
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[NYM] fetch: ok-len-or-err 4 0
+[NYM] directory sync failed, code 20
+[ANON] dir never established  5. 161. 228. 187: 9230
+[ANON] dir never established  5. 78. 94. 15: 9230
+[ANON] dir never established  95. 216. 32. 105: 9230
+[NYM] no directory gateways yet, dialling a compiled one
+[NET-NYM] gateway connect 6
+[ANON] dir never established  176. 9. 29. 53: 9230
+[ANON] authority certs 0 7
+[ANON] no authority answered
+[ANON] directory waits seconds 4
+[NYM] directory: fetching
+[NYM] fetch: connecting
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261026084953
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[NYM] fetch: ok-len-or-err 4 0
+[NYM] directory sync failed, code 20
+[ANON] dir never established  49. 13. 145. 234: 9230
+[ANON] dir never established  5. 161. 108. 187: 9230
+[NYM] no directory gateways yet, dialling a compiled one
+[ANON] dir never established  5. 78. 90. 106: 9230
+[NET-NYM] gateway connect 6
+[NYM] directory: fetching
+[NYM] fetch: connecting
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261026085024
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[NYM] fetch: ok-len-or-err 4 0
+[NYM] directory sync failed, code 20
+[ANON] dir never established  5. 161. 228. 187: 9230
+[ANON] dir never established  5. 78. 94. 15: 9230
+[ANON] dir never established  95. 216. 32. 105: 9230
+[NYM] no directory gateways yet, dialling a compiled one
+[ANON] dir never established  176. 9. 29. 53: 9230
+[ANON] authority certs 0 7
+[ANON] no authority answered
+[ANON] directory waits seconds 8
+[NET-NYM] gateway connect 6
+[NYM] directory: fetching
+[NYM] fetch: connecting
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261026085056
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[NYM] fetch: ok-len-or-err 4 0
+[NYM] directory sync failed, code 20
