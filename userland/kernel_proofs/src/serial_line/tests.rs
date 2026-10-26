@@ -27,10 +27,13 @@ const DIAG: [&str; 3] = [
     include_str!("../../../../src/sys/diag/reply.rs"),
 ];
 const BOOT_LOG: &str = include_str!("../../../../src/sys/boot_log/output.rs");
-const BENCH: [&str; 3] = [
+const BENCH: [&str; 4] = [
     include_str!("../../../../src/sys/bench/mark.rs"),
     include_str!("../../../../src/sys/bench/mark_named.rs"),
     include_str!("../../../../src/sys/bench/measure/report.rs"),
+    include_str!(
+        "../../../../src/kernel_core/process_spawn/capsule_spawn/runner/install/spawn_log.rs"
+    ),
 ];
 const USER: &str = include_str!("../../../../src/process/userspace/asm.rs");
 
