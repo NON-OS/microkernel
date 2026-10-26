@@ -16,7 +16,6 @@ driver, serving the display wire (NVGP v1, PLAN-coverage section 12) on
 the compositor asks for another, so it no longer destroys the firmware
 scanout that kept `DisplayBga` undispatched
 (`src/hardware/inventory/driver.rs`). Its trust artifacts (`Capsule.mk`)
-are sealed with the 0.9.3 batch. The adapter
 scans out its video memory and has no DMA, so the compositor draws in
 primaries of ordinary memory the driver shares, and each flush copies the
 damaged rectangles into video memory.

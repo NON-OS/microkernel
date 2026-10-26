@@ -1,6 +1,0 @@
-relay on 127.0.0.1:8080 for deb.debian.org, dl-cdn.alpinelinux.org, geo.mirror.pkgbuild.com, kali.download, www.blackarch.org, 17 locked apps
-200    473606 dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/APKINDEX.tar.gz
-200   1848333 dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/APKINDEX.tar.gz
-404 dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/age-1.2.1-r0.apk
-200   2528568 dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/age-1.2.1-r0.apk pinned
-200    408411 dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/musl-1.2.5-r4.apk

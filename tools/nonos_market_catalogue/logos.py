@@ -13,7 +13,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""A listing's logo (docs/design/market-logos.md): the upstream file,
+"""A listing's logo: the upstream file,
 vendored byte for byte where its recipe's `logo` names it, and the raster
 the device gets, made once by a developer and committed at
 nonos-data/market/logos/linux.<package>.rgba. A recipe may name a logo only
@@ -34,7 +34,7 @@ from pathlib import Path
 
 from .digest import blake3
 
-RECORD = "docs/market/logos-licences.md"
+RECORD = "notes/catalogue/logos-licences.md"
 RASTERS = "nonos-data/market/logos"
 # the ruling on the UNCLEAR rows, as the record writes it in the row.
 RULING = 'owner 2026-10-25: "Use them anyway"'

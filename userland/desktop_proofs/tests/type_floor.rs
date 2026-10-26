@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The type floor (docs/design/ui-identity.md, Type): nothing is drawn under 12,
+//! The type floor (the design notes, Type): nothing is drawn under 12,
 //! and only the mono face, which `type.label` is set in, under 14. Draw
 //! and measure share the clamp, so the measure is the drawn size. One
 //! process of its own, because the text-size setting is the process's.

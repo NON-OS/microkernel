@@ -10,7 +10,7 @@ QEMU 11.1.1 with OVMF, booted with `--tpm --fresh --headless --mem 6G
 --lane iommu=intel --lane usb-kbd --lane usb-tablet` (`walk-qemu.txt`).
 
 First-boot setup was driven by keys over QMP, using the sequence from
-the D-13 walk: Amnesic, no
+build-and-boot's D-13 walk (): Amnesic, no
 network, the name "nonos". It reached the review screen and then the
 desktop (`13-review.png`, `20-desktop.png`). The serial log shows
 `[SPAWN] name=power … caps=0x…218` and `[POWER] capsule spawned`.

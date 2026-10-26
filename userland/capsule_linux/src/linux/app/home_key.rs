@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Which home a program's /home and /root are kept in, as the developers ruled
-//! (docs/design/files-home.md): a pure function of the
+//!: a pure function of the
 //! listing it was sold under, so a new release keeps the home and two
 //! listings never share one. Pure, so the host proofs hold it.
 //!

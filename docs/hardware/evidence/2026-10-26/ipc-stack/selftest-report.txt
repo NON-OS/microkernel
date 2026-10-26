@@ -1,6 +1,6 @@
 nonos-attack-suite-report v1
 boots capsule
-log /tmp/nonos-run/scratchpad/ipc/selftest/capsule.log sha256 6b712647b46cc77b28b0b473dbe7aec9cda16744d6bbb8eff0f9ebd0af43241a
+log /tmp/claude-0/-home-user-privatekernel/0d9b5db8-715b-5a9c-b79c-b573aa1baa2a/scratchpad/ipc/selftest/capsule.log sha256 6b712647b46cc77b28b0b473dbe7aec9cda16744d6bbb8eff0f9ebd0af43241a
 dropped chainload since 2026-10-24: the loader has no chainload path to attack: its shell launcher starts no image (nonos-bootloader/src/boot/shell/launch.rs)
 dropped kernel-replay since 2026-10-24: the loader's rollback floor needs a TPM counter, and the self-test boots have none: under QEMU the floor reads Unprotected and an older signed kernel would boot (nonos-bootloader/src/boot/crypto/rollback/floor.rs). The floor rule is proven on the host instead (boot_proofs floor_rule_tests, floor_seq_tests, floor_raise_tests)
 attempt cap-escape refused: a socket through net.sockets without Network, MkIpcSend EPERM (1)

@@ -43,7 +43,7 @@ def main():
     ap.add_argument("row", nargs="+", choices=sorted(rows.ROWS))
     a = ap.parse_args()
     tree = os.path.abspath(a.tree)
-    out = os.path.join("docs", "build", "evidence", "matrix", a.label)
+    out = os.path.join("HANDOFF", "evidence", a.label)
     os.makedirs(out, exist_ok=True)
     commit = subprocess.run(["git", "-C", tree, "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
     summary = {"tree": commit, "label": a.label, "rows": {}}

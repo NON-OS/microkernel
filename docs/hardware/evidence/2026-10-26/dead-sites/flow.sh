@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Scratch: boot the dev tree's image on lane $2 as $1, walk setup, save a file in the Text Editor, quit.
-S=/tmp/nonos-run/scratchpad
+S=/tmp/claude-0/-home-user-privatekernel/0d9b5db8-715b-5a9c-b79c-b573aa1baa2a/scratchpad
 n=$1; lane=$2; O=$S/ld/boot; rm -f $S/$n.serial
 (BOOT_TIMEOUT=900 $S/boot.sh $n --fresh --lane $lane --lane usb-tablet > $O/qemu-$n.out 2>&1 &)
 for i in $(seq 1 400); do grep -aq "first frame let through" $S/$n.serial 2>/dev/null && break; sleep 3; done

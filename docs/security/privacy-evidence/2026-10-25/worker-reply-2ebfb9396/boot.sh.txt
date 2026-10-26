@@ -5,7 +5,7 @@
 # installer and crypto_pool from its main thread, then from a worker). Setup
 # walked; then the Terminal runs `pkg` jobs on its worker, each timed by the
 # serial log. Evidence only.
-SP=/tmp/nonos-run/scratchpad
+SP=/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad
 PK=/home/user/privatekernel
 HEAD_SHA=${1:?the worker-reply head}
 TAG=${2:-wr}

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! OP_GET_LOGO's reply (docs/design/market-logos.md): one byte, the
+//! OP_GET_LOGO's reply: one byte, the
 //! side of a square RGBA raster, then its side * side * 4 bytes, nothing
 //! after. A side of 0 and no bytes is a listing with no logo to show.
 
