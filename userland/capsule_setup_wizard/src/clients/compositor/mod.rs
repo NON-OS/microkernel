@@ -25,4 +25,4 @@ mod push_scene_submit;
 pub use damage_commit::damage_commit;
 pub use healthcheck::healthcheck;
 pub use push_scene_remove::push_scene_remove;
-pub use push_scene_submit::push_scene_submit;
+pub use push_scene_submit::{push_scene_submit, Placement};

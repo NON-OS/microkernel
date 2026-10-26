@@ -29,10 +29,9 @@ const OFF_MEANS: &[&[u8]] = &[
 pub fn draw(ctx: &Context) {
     let sub = b"Up and Down to move, SPACE turns the app on or off";
     render::frame(ctx, b"Apps", sub, b"SPACE ON/OFF  ENTER NEXT  ESC BACK");
-    let spx = ctx.stride as usize / 4;
     let (w, h) = (ctx.width, ctx.height);
     let l = render::layout_of(ctx);
-    let (buf, x) = (render::buffer(ctx), l.col_x);
+    let (cv, x) = (&mut render::canvas(ctx), l.col_x);
     let (mut text, mut items) = ([[0u8; 32]; 8], [&b""[..]; 8]);
     let mut n = 0;
     for (app, out) in crate::apps::listed(ctx.apps_present).zip(text.iter_mut()) {
@@ -40,30 +39,21 @@ pub fn draw(ctx: &Context) {
         items[n] = cat(out, &[mark, app.name]);
         n += 1;
     }
-    let mut y = rows::list(buf, spx, w, h, x, l.body_y, &items[..n], ctx.apps_sel as usize);
+    let mut y = rows::list(cv, x, l.body_y, &items[..n], ctx.apps_sel as usize);
     // Each app's purpose in its own row, drawn after the rows so the lit row's
     // fill is under it rather than over it.
     let text_dy = l.row_h.saturating_sub(body_line(w, h)) / 2;
     for (i, app) in crate::apps::listed(ctx.apps_present).take(n).enumerate() {
         let top = l.body_y + l.row_h * i as u32 + text_dy;
-        draw_text(buf, spx, w, h, x + APPS_PURPOSE_AT * l.unit, top, app.purpose, HINT);
+        draw_text(cv, x + APPS_PURPOSE_AT * l.unit, top, app.purpose, HINT);
     }
     y += l.gap;
     if n == 0 {
-        y = lines::text(
-            buf,
-            spx,
-            w,
-            h,
-            x,
-            y,
-            &[b"This image carries no app that can be turned off."],
-            FG,
-        );
+        y = lines::text(cv, x, y, &[b"This image carries no app that can be turned off."], FG);
     }
-    y = lines::text(buf, spx, w, h, x, y, &[b"Required, always on:"], FG);
-    y = lines::text(buf, spx, w, h, x + 2 * l.unit, y, &REQUIRED, HINT);
-    lines::text(buf, spx, w, h, x, y + l.gap, OFF_MEANS, HINT);
+    y = lines::text(cv, x, y, &[b"Required, always on:"], FG);
+    y = lines::text(cv, x + 2 * l.unit, y, &REQUIRED, HINT);
+    lines::text(cv, x, y + l.gap, OFF_MEANS, HINT);
 }
 
 pub fn on_key(ctx: &mut Context, code: u32) -> Outcome {

@@ -56,14 +56,12 @@ pub fn draw(ctx: &Context) {
         b"Where this machine keeps what you do"
     };
     render::frame(ctx, b"Mode", sub, b"ENTER NEXT  ESC BACK");
-    let spx = ctx.stride as usize / 4;
-    let (w, h) = (ctx.width, ctx.height);
     let l = render::layout_of(ctx);
-    let (buf, x) = (render::buffer(ctx), l.col_x);
-    let y = rows::list(buf, spx, w, h, x, l.body_y, MODES, ctx.mode_sel as usize);
+    let (cv, x) = (&mut render::canvas(ctx), l.col_x);
+    let y = rows::list(cv, x, l.body_y, MODES, ctx.mode_sel as usize);
     let why = WHY[ctx.mode_sel as usize % WHY.len()];
     let color = if ctx.mode_sel == USB_LIVE { HINT } else { FG };
-    lines::text(buf, spx, w, h, x, y + l.gap, why, color);
+    lines::text(cv, x, y + l.gap, why, color);
 }
 
 pub fn on_key(ctx: &mut Context, code: u32) -> Outcome {

@@ -32,21 +32,19 @@ pub fn draw(ctx: &Context) {
         b"What this machine calls itself: the host in name@host.",
         b"TYPE A NAME  ENTER NEXT  ESC BACK",
     );
-    let spx = ctx.stride as usize / 4;
-    let (w, h) = (ctx.width, ctx.height);
     let l = render::layout_of(ctx);
-    let (buf, x) = (render::buffer(ctx), l.col_x);
+    let (cv, x) = (&mut render::canvas(ctx), l.col_x);
     let mut shown = [0u8; HOST_MAX + 1];
     let typed = cat(&mut shown, &[ctx.host.typed(), b"_"]);
-    let y = rows::list(buf, spx, w, h, x, l.body_y, &[typed], 0);
-    let y = lines::text(buf, spx, w, h, x, y + l.gap, RULES, HINT);
+    let y = rows::list(cv, x, l.body_y, &[typed], 0);
+    let y = lines::text(cv, x, y + l.gap, RULES, HINT);
     let mut line = [0u8; 80];
     let said = match ctx.host.refused {
         Some((_, Refused::DashLast)) => cat(&mut line, &[b"Not yet: ", Refused::DashLast.text()]),
         Some((byte, why)) => cat(&mut line, &[b"Refused \"", &[byte], b"\": ", why.text()]),
         None => return,
     };
-    lines::text(buf, spx, w, h, x, y + l.gap, &[said], FG);
+    lines::text(cv, x, y + l.gap, &[said], FG);
 }
 
 pub fn on_key(ctx: &mut Context, code: u32) -> Outcome {

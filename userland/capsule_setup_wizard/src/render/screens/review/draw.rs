@@ -15,10 +15,8 @@ pub fn draw(ctx: &Context) {
         b"ENTER applies these and starts the desktop"
     };
     render::frame(ctx, b"Review", then, b"ENTER FINISH  ESC BACK");
-    let spx = ctx.stride as usize / 4;
-    let (w, h) = (ctx.width, ctx.height);
     let l = render::layout_of(ctx);
-    let (buf, x) = (render::buffer(ctx), l.col_x);
+    let (cv, x) = (&mut render::canvas(ctx), l.col_x);
     let mut tz = [0u8; 6];
     let tz_len = timezone::label(ctx.tz_off, &mut tz);
     let net: &[u8] = ctx.net.joined.as_ref().map_or(b"None", |n| n.ssid());
@@ -31,21 +29,14 @@ pub fn draw(ctx: &Context) {
     };
     let kept = alloc::format!(", {} kept", appearance::count(ctx));
     let wall = cat(&mut wall, &[appearance::name(ctx), kept.as_bytes()]);
-    let names: [&[u8]; 7] = [
-        keyboard::label(ctx.kbd_sel),
-        name,
-        ctx.host.shown(),
-        &tz[..tz_len],
-        net,
-        wall,
-        qwen,
-    ];
+    let names: [&[u8]; 7] =
+        [keyboard::label(ctx.kbd_sel), name, ctx.host.shown(), &tz[..tz_len], net, wall, qwen];
     let heads: [&[u8]; 7] =
         [b"Keyboard", b"Name", b"Computer", b"Time zone", b"Network", b"Wallpaper", b"Qwen model"];
     let mut y = l.body_y;
     for (head, name) in heads.iter().zip(names.iter()) {
-        lines::text(buf, spx, w, h, x, y, &[head], HINT);
-        y = lines::text(buf, spx, w, h, x + REVIEW_VALUE_AT * l.unit, y, &[name], FG);
+        lines::text(cv, x, y, &[head], HINT);
+        y = lines::text(cv, x + REVIEW_VALUE_AT * l.unit, y, &[name], FG);
     }
     let mut apps = [0u8; 96];
     let said = [
@@ -56,19 +47,19 @@ pub fn draw(ctx: &Context) {
         name_line(ctx),
         crate::apps::said(ctx, &mut apps),
     ];
-    let mut y = lines::text(buf, spx, w, h, x, y + l.gap, &said, FG);
+    let mut y = lines::text(cv, x, y + l.gap, &said, FG);
     let (mut first, mut rest) = ([0u8; 96], [0u8; 96]);
     let (a, b) = super::super::unsaved::said(ctx.unsaved, &mut first, &mut rest);
     if ctx.unsaved_told && a > 0 {
         let told: [&[u8]; 3] = [&first[..a], &rest[..b], super::super::unsaved::THEN];
         let shown: &[&[u8]] = if b == 0 { &[told[0], told[2]] } else { &told };
-        y = lines::text(buf, spx, w, h, x, y + l.gap, shown, FG);
+        y = lines::text(cv, x, y + l.gap, shown, FG);
     }
     // The saved network dropped to make room: named here and nowhere else.
     if let (true, Some(gone)) = (ctx.unsaved_told, ctx.net.dropped.as_ref()) {
         let mut line = [0u8; 96];
         let line = cat(&mut line, &[b"Forgot ", gone.ssid(), b" to make room for this network"]);
         let then: &[u8] = if a == 0 { b"ENTER goes on" } else { b"" };
-        lines::text(buf, spx, w, h, x, y + l.gap, &[line, then], FG);
+        lines::text(cv, x, y + l.gap, &[line, then], FG);
     }
 }

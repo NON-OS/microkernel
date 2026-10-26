@@ -28,6 +28,7 @@
 
 use alloc::format;
 
+use crate::render::canvas::Canvas;
 use crate::render::ink::{draw_label, draw_text};
 
 use crate::qwen::{label, need_of, For, QwenState, STICK_TIER};
@@ -37,18 +38,8 @@ use crate::render::theme::{ACCENT, FG, HINT, ROW_SEL_BG};
 use crate::render::widgets::text::{cat, size};
 
 /* Draws at most `room` rows from `y`; returns the y below them. */
-pub fn draw(
-    buf: &mut [u32],
-    spx: usize,
-    w: u32,
-    h: u32,
-    x: u32,
-    y: u32,
-    q: &QwenState,
-    install: bool,
-    room: u32,
-) -> u32 {
-    let l = layout(w, h);
+pub fn draw(cv: &mut Canvas, x: u32, y: u32, q: &QwenState, install: bool, room: u32) -> u32 {
+    let l = layout(cv.w, cv.h);
     let rows = q.open(install) as u32 + 1;
     let sel = q.row(install);
     let (first, shown) = window(rows, room, sel as u32);
@@ -56,11 +47,11 @@ pub fn draw(
         let Some(at) = (i as u32).checked_sub(first).filter(|&at| at < shown) else { return };
         let top = y + l.line_h * at;
         if sel as usize == i {
-            fill_rect(buf, spx, w, h, x, top, l.list_w, l.line_h, ROW_SEL_BG);
-            draw_text(buf, spx, w, h, x + l.unit, top, b">", ACCENT);
+            fill_rect(cv, x, top, l.list_w, l.line_h, ROW_SEL_BG);
+            draw_text(cv, x + l.unit, top, b">", ACCENT);
         }
         for (cell, at) in cells.iter().zip(QWEN_CELLS) {
-            draw_text(buf, spx, w, h, x + at * l.unit, top, cell, FG);
+            draw_text(cv, x + at * l.unit, top, cell, FG);
         }
     };
     put(0, [b"None for now", b"", b""]);
@@ -75,11 +66,11 @@ pub fn draw(
     let mut end = y + l.line_h * shown;
     if shown < rows {
         let s = format!("rows {} to {} of {rows}, Up and Down scroll", first + 1, first + shown);
-        draw_label(buf, spx, w, h, x, end + l.unit / 2, s.as_bytes(), HINT);
+        draw_label(cv, x, end + l.unit / 2, s.as_bytes(), HINT);
         end += l.line_h;
     }
     if let Some(line) = hidden_line(q, install) {
-        draw_label(buf, spx, w, h, x, end + l.unit / 2, line.as_bytes(), HINT);
+        draw_label(cv, x, end + l.unit / 2, line.as_bytes(), HINT);
         end += l.line_h;
     }
     end
@@ -93,7 +84,9 @@ fn hidden_line(q: &QwenState, install: bool) -> Option<alloc::string::String> {
     }
     Some(match (n, q.memory) {
         (_, None) => format!("{n} tiers not listed: this machine's memory could not be read"),
-        (1, _) => alloc::string::String::from("1 larger tier needs more memory than this machine has"),
+        (1, _) => {
+            alloc::string::String::from("1 larger tier needs more memory than this machine has")
+        }
         (n, _) => format!("{n} larger tiers need more memory than this machine has"),
     })
 }
