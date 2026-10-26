@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Four CPUs' worth of writers at once: every write the port takes is one
-//! whole line, never two lines' pieces; and no diag or boot_log line, nor
-//! [USER-FIRST], is written in pieces any more.
+//! whole line, never two lines' pieces; and no diag, bench or boot_log line,
+//! nor [USER-FIRST], is written in pieces any more.
 
 use super::line::Line;
 use super::print::WRITES;
@@ -27,6 +27,11 @@ const DIAG: [&str; 3] = [
     include_str!("../../../../src/sys/diag/reply.rs"),
 ];
 const BOOT_LOG: &str = include_str!("../../../../src/sys/boot_log/output.rs");
+const BENCH: [&str; 3] = [
+    include_str!("../../../../src/sys/bench/mark.rs"),
+    include_str!("../../../../src/sys/bench/mark_named.rs"),
+    include_str!("../../../../src/sys/bench/measure/report.rs"),
+];
 const USER: &str = include_str!("../../../../src/process/userspace/asm.rs");
 
 #[test]
@@ -55,7 +60,7 @@ fn concurrent_lines_reach_the_port_whole() {
 
 #[test]
 fn no_diag_or_boot_log_line_is_written_in_pieces() {
-    for src in DIAG.iter().chain([&BOOT_LOG]) {
+    for src in DIAG.iter().chain(&BENCH).chain([&BOOT_LOG]) {
         assert!(!src.contains("serial::print"), "a line printed in pieces");
     }
     assert!(DIAG[0].contains("fn trail(l: &mut Line, n: u32) {"), "every diag line ends in trail");

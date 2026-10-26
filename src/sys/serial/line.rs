@@ -32,7 +32,7 @@
 //! inside the held region would take it again. So the line is built in a
 //! caller-owned buffer and handed to the port in one call.
 
-use super::print::println;
+use super::print::line;
 
 /// Bytes a single diagnostic line may carry. Longer lines are truncated
 /// rather than split, because half a line that looks whole is what this
@@ -99,7 +99,7 @@ impl Line {
 
     /// Emit the line, one lock acquisition, one newline.
     pub fn end(&self) {
-        println(&self.buf[..self.len]);
+        line(&self.buf[..self.len]);
     }
 }
 

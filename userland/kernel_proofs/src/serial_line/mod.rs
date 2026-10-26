@@ -25,7 +25,7 @@ mod print {
     /// Every write the port took, in order, each under the one lock.
     pub static WRITES: Mutex<Vec<Vec<u8>>> = Mutex::new(Vec::new());
 
-    pub fn println(s: &[u8]) {
+    pub fn line(s: &[u8]) {
         WRITES.lock().unwrap().push(s.to_vec());
     }
 }
@@ -35,5 +35,11 @@ mod print {
 #[path = "../../../../src/sys/serial/line.rs"]
 mod line;
 
+#[cfg(test)]
+#[path = "../../../../src/sys/serial/column.rs"]
+mod column;
+
+#[cfg(test)]
+mod column_tests;
 #[cfg(test)]
 mod tests;
