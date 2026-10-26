@@ -5920,6 +5920,15 @@
   "md": [],
   "signed": []
  },
+ "userland/inflate": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/inflate"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/input_proofs": {
   "exclude": [],
   "include": [
@@ -6686,6 +6695,9 @@
    "userland/capsule_app_store/src/store/tab.rs",
    "userland/capsule_app_store/src/store/verdict.rs",
    "userland/capsule_linux/src/linux/install/why.rs",
+   "userland/capsule_linux/src/linux/install/why_model.rs",
+   "userland/capsule_linux/src/linux/install/why_package.rs",
+   "userland/capsule_linux/src/linux/install/why_route.rs",
    "userland/capsule_market/src/bonds/cache.rs",
    "userland/capsule_market/src/bonds/late.rs",
    "userland/capsule_market/src/bonds/refresh.rs",
@@ -6789,6 +6801,7 @@
    "src/process/scheduler/policy_types.rs",
    "src/security/capsule_manifest/verify/caps_bits.rs",
    "userland/compositor/src/sw_blitter/row.rs",
+   "userland/libc/src/heap/stats.rs",
    "userland/libc/src/heap/zero_on_free.rs",
    "userland/mechanism_proofs"
   ],
@@ -6847,6 +6860,9 @@
    "userland/capsule_linux/src/linux/install/model_dep.rs",
    "userland/capsule_linux/src/linux/install/model_remove.rs",
    "userland/capsule_linux/src/linux/install/why.rs",
+   "userland/capsule_linux/src/linux/install/why_model.rs",
+   "userland/capsule_linux/src/linux/install/why_package.rs",
+   "userland/capsule_linux/src/linux/install/why_route.rs",
    "userland/capsule_market/linux-guests.json",
    "userland/capsule_model_fetch/src/catalogue",
    "userland/capsule_model_fetch/src/errno.rs",
@@ -6947,7 +6963,11 @@
    "userland/capsule_net_core/src/device/batch_call.rs",
    "userland/capsule_net_core/src/device/batch_frames.rs",
    "userland/capsule_net_core/src/device/batch_served.rs",
+   "userland/capsule_net_core/src/device/learned_bound.rs",
+   "userland/capsule_net_core/src/device/rx.rs",
+   "userland/capsule_net_core/src/device/rx_learned.rs",
    "userland/capsule_net_core/src/device/rx_seq.rs",
+   "userland/capsule_net_core/src/device/rx_summary.rs",
    "userland/capsule_net_core/src/iface/dhcp/create.rs",
    "userland/capsule_net_core/src/iface/dhcp/deconfigured_line.rs",
    "userland/capsule_net_core/src/iface/dhcp/handle_deconfigured.rs",
