@@ -36,6 +36,7 @@ pub const LABELS: &[(&[u8], &[u8])] = &[
     (b"qwen3-32b", b"Qwen3 32B"),
     (b"qwen3.5-0.8b", b"Qwen3.5 0.8B"),
     (b"qwen3.6-27b", b"Qwen3.6 27B"),
+    (b"vl-2b", b"Qwen3-VL 2B (vision)"),
     (b"coder-1.5b", b"Qwen2.5 Coder 1.5B"),
     (b"coder-7b", b"Qwen2.5 Coder 7B"),
     (b"coder-14b", b"Qwen2.5 Coder 14B"),

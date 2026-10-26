@@ -1,0 +1,3 @@
+[
+ {"name": "settings-offers-vision", "file": "userland/capsule_settings/src/settings/qwen_tier/mod.rs", "old": ".filter(|t| !VISION.contains(t))", "new": "", "crate": "userland/capsule_settings_proofs", "test": "qwen_tier"}
+]

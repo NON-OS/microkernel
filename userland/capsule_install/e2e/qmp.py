@@ -18,7 +18,27 @@
 import json
 import socket
 import time
-NAMES = {" ": "spc", "-": "minus", ".": "dot", "/": "slash"}
+# A US keyboard: each printable character as the qcode that types it, and the
+# characters typed with shift. A character in neither is refused, never sent
+# as a qcode QEMU does not know and so dropped without a word.
+NAMES = {" ": "spc", "-": "minus", ".": "dot", "/": "slash", ",": "comma", ";": "semicolon",
+         "'": "apostrophe", "[": "bracket_left", "]": "bracket_right", "\\": "backslash",
+         "=": "equal", "`": "grave_accent", "\t": "tab", "\n": "ret"}
+SHIFTED = {"!": "1", "@": "2", "#": "3", "$": "4", "%": "5", "^": "6", "&": "7", "*": "8",
+           "(": "9", ")": "0", "_": "minus", "+": "equal", "{": "bracket_left",
+           "}": "bracket_right", "|": "backslash", ":": "semicolon", '"': "apostrophe",
+           "<": "comma", ">": "dot", "?": "slash", "~": "grave_accent"}
+
+
+def keys_for(ch):
+    """The qcodes, pressed together, that type `ch` on a US keyboard."""
+    if ch.isascii() and ch.isalnum():
+        return ("shift", ch.lower()) if ch.isupper() else (ch,)
+    if ch in NAMES:
+        return (NAMES[ch],)
+    if ch in SHIFTED:
+        return ("shift", SHIFTED[ch])
+    raise ValueError(f"cannot type {ch!r}: no key for it on a US keyboard")
 
 
 class Qmp:
@@ -60,13 +80,27 @@ class Qmp:
         keys = [{"type": "qcode", "data": n} for n in names]
         return self.cmd("send-key", keys=keys, **{"hold-time": hold_ms})
 
-    def type_text(self, text):
-        for ch in text:
-            if ch.isupper():
-                self.key("shift", ch.lower())
-            else:
-                self.key(NAMES.get(ch, ch))
-            time.sleep(0.05)
+    def _event(self, name, down):
+        event = {"type": "key", "data": {"down": down, "key": {"type": "qcode", "data": name}}}
+        reply = self.cmd("input-send-event", events=[event])
+        if "error" in reply:
+            raise RuntimeError(f"QEMU refused {name}: {reply['error']}")
+
+    def type_text(self, text, gap=0.04):
+        """Type `text`: each character's keys pressed in order and released in
+        reverse, one event at a time with a gap between, so a guest busy under
+        TCG sees shift go down before the key and up after it, every time
+        (send-key's chords left shift held in the guest after a run of
+        capitals)."""
+        keys = [keys_for(ch) for ch in text]
+        for chord in keys:
+            for name in chord:
+                self._event(name, True)
+                time.sleep(gap)
+            for name in reversed(chord):
+                self._event(name, False)
+                time.sleep(gap)
+            time.sleep(2 * gap)
 
     def quit(self):
         try:
