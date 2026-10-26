@@ -16,13 +16,12 @@
 
 //! `uninstall <name>`: take out what a package's install put in.
 //!
-//! Its manifest (`package_record`) says which files it wrote and which link
-//! lines it added. Each file goes, with what the machine wrote beside it, unless
-//! another installed package lists it too; its link lines go from the table;
-//! its program record goes, so `run` no longer finds it. What would not go
-//! stays in the manifest, so asking again finishes the job rather than
-//! failing on what is already gone. The packages it pulled in stay: each is
-//! a package of its own, and another install may need it.
+//! Its pack goes first, or nothing does while a run holds it (files.rs). Its manifest
+//! (`package_record`) says which files it wrote and which link lines it added. Each file
+//! goes, with what the machine wrote beside it, unless another installed package lists it
+//! too; its link lines go from the table; its program record goes, so `run` no longer
+//! finds it. What would not go stays in the manifest, so asking again finishes the job
+//! rather than failing on what is already gone. Packages it pulled in stay; another may need them.
 //!
 //! A shipped Qwen tier keeps its program, which is part of the image; its
 //! model files go off the data volume through the model fetcher, which holds
@@ -51,6 +50,7 @@ pub fn uninstall(pkg: &str) -> Result<(), Why> {
         say(&format!("[LINUX] {pkg}: another package's record is unreadable; nothing taken out\n"));
         return Err(Why::REMOVE_PARTIAL);
     };
+    super::files::take_pack(pkg)?;
     let files = only_mine(&mine.files, &others, |m| &m.files);
     let links = only_mine(&mine.links, &others, |m| &m.links);
     let mut left = Manifest { files: take_out(&files), ..Manifest::default() };
