@@ -35,6 +35,8 @@ nonos_marketplace_abi = { path = "../marketplace_abi" }
 # The chain INSTALL_READY reads a sold listing's bond on (v1.4.23).
 nonos_nox_config = { path = "../nonos_nox_config" }
 nonos_payment_proto = { path = "../payment_proto" }
+# NPRV frames to app.prove.job, for the proof of an app's run (I-B9a).
+nonos_proof_abi = { path = "../nonos_proof_abi" }
 # Whether this boot is live, for which Qwen tiers fit (Persistent).
 nonos_policy_client = { path = "../policy_client" }
 nonos_policy_proto = { path = "../policy_proto" }
@@ -42,6 +44,8 @@ nonos_policy_proto = { path = "../policy_proto" }
 nonos_route_link = { path = "../nonos_route_link" }
 # keccak for a payee's EIP-55 line, in process: public bytes need no Crypto.
 sha3 = { version = "=0.10.9", default-features = false }
+# A held proof is wiped through zeroize's volatile writes, as the wallet's secrets.
+zeroize = { version = "=1.9.0", default-features = false, features = ["alloc"] }
 
 [profile.release]
 panic = "abort"
