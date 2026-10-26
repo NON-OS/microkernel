@@ -46,6 +46,7 @@ mod desk;
 // An app's ask for full screen, followed the way the green button goes.
 #[cfg(test)]
 pub use nonos_app_skeleton::runner::full_screen_ask;
+pub use nonos_app_skeleton::runner::{rect_ask, work_rect};
 
 #[cfg(test)]
 #[path = "../../../app_skeleton/src/runner/teardown_steps.rs"]

@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """Every pinned name is one the data volume keeps, with its record and its
-mark, and each is downloaded by the name the Qwen team publishes it under."""
+mark, and each is downloaded by the name its publisher gives it."""
 
 import unittest
 
@@ -49,7 +49,7 @@ class Names(unittest.TestCase):
             self.assertFalse(keepable(published), published)
             self.assertEqual(kept[-SPLIT:], published[-SPLIT:])
             self.assertEqual(published.replace("-instruct", ""), kept)
-            self.assertTrue(repo(published).startswith("Qwen2.5-Coder-"))
+            self.assertTrue(repo(published).startswith("Qwen/Qwen2.5-Coder-"))
 
     def test_downloads_ask_for_the_published_name(self):
         name = "qwen2.5-coder-14b-q4_k_m-00002-of-00002.gguf"
@@ -67,6 +67,28 @@ class Names(unittest.TestCase):
             self.assertEqual([n for n, _, _ in table[tier]], [name])
             self.assertEqual(upstream(name), name)
             self.assertTrue(url(name).endswith("/resolve/main/" + name))
+
+    def test_a_safetensors_only_model_is_fetched_from_ggml_org(self):
+        for name, at in (("Qwen3.5-0.8B-Q8_0.gguf", "ggml-org/Qwen3.5-0.8B-GGUF"),
+                         ("Qwen3.6-27B-Q4_K_M.gguf", "ggml-org/Qwen3.6-27B-GGUF")):
+            self.assertEqual(repo(name), at)
+            self.assertEqual(url(name), f"https://huggingface.co/{at}/resolve/main/{name}")
+
+    def test_the_qwen_teams_own_files_stay_theirs(self):
+        self.assertEqual(repo("Qwen3-30B-A3B-Q4_K_M.gguf"), "Qwen/Qwen3-30B-A3B-GGUF")
+        self.assertEqual(repo("qwen2.5-0.5b-instruct-q4_k_m.gguf"), "Qwen/Qwen2.5-0.5B-Instruct-GGUF")
+
+    def test_a_file_no_known_repository_publishes_is_refused(self):
+        for name in ("Qwen3.6-27B.gguf", "Qwen3.6-35B-A3B-Q4_K_M.gguf", "Qwen3.5-9B-Q4_K_M.gguf",
+                     "Qwen3.5-0.9B-Q8_0.gguf",
+                     "Qwen3.7-27B-Q4_K_M.gguf", "evil/Qwen3.6-27B-Q4_K_M.gguf"):
+            with self.assertRaises(SystemExit, msg=name):
+                repo(name)
+
+    def test_every_pin_has_a_repository(self):
+        for files in pins().values():
+            for name, _, _ in files:
+                self.assertIn(repo(upstream(name)).split("/")[0], ("Qwen", "ggml-org"), name)
 
 
 if __name__ == "__main__":
