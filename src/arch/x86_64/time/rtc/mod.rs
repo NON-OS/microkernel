@@ -47,7 +47,7 @@ pub use conversion::{
 };
 pub use error::{RtcError, RtcResult};
 pub use interrupt::{
-    check_interrupt_source, disable_update_interrupt, enable_update_interrupt, handle_interrupt,
+    disable_update_interrupt, enable_update_interrupt, handle_interrupt,
     is_update_interrupt_enabled,
 };
 pub use ops::{
