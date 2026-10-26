@@ -16,6 +16,7 @@ The `Last join` row shows the driver's answer:
 | `WPA3: the access point did not accept the password` | -10 | A wrong WPA3 password. |
 | `The handshake did not match the network's beacon; not joined` | -11 | The access point's security changed during the handshake, a possible downgrade attempt. |
 | `No randomness for the handshake; not joined` | -12 | The kernel gave the driver no random bytes. |
+| `Saved networks not opened, so WPA3 only; this one offers WPA2` | -16 | The saved list could not be opened (below), so every join is held to WPA3, and this network offers only WPA2. |
 | `This driver cannot join networks yet` | -38 | The Intel driver cannot run a join on this card, or has no randomness for one. |
 | `The driver did not answer` | | No reply came from the driver. |
 
@@ -26,4 +27,6 @@ The panel also says why it did not act:
 - `C joins a network from the scan list; Enter scans`
 - `Still waiting for the driver's last answer; try again when it comes`
 
-When a network cannot be remembered, the reason is one of: `This boot keeps nothing across reboots`, `No TPM to seal the passphrase with`, `Sealed under a different boot state`, `The TPM did not give the sealing key`, `Sealed elsewhere or altered on disk`, `The saved-networks record is damaged` or `No NONOS store on this boot's disk`.
+When a network cannot be remembered, the reason is one of: `This boot keeps nothing across reboots`, `No TPM to seal the passphrase with`, `Sealed before a kernel, firmware or Secure Boot change`, `The TPM did not give the sealing key`, `Sealed elsewhere or altered on disk`, `The saved-networks record is damaged` or `No NONOS store on this boot's disk`.
+
+If the saved list cannot be opened, for any reason but `No NONOS store on this boot's disk`, it may hold a network saved as WPA3, so it fails closed. No saved network is joined automatically, and every join, from any panel, is WPA3-only until the list is forgotten. The saved row gives the reason, with `Joins WPA3 only; F forgets all to save again`. `F` withdraws the whole record. You then join and remember each network again.
