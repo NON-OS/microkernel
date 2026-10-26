@@ -33,6 +33,16 @@ pub(crate) const VIDEO_PLAYER_MANIFEST_BYTES: &[u8] =
 pub(crate) const VIDEO_PLAYER_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/video_player.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-video-player")]
+const _: () = assert!(
+    !VIDEO_PLAYER_ELF.is_empty()
+        && !VIDEO_PLAYER_NONOS_ID_CERT_BYTES.is_empty()
+        && !VIDEO_PLAYER_MANIFEST_BYTES.is_empty()
+        && !VIDEO_PLAYER_ATTESTATION_BYTES.is_empty(),
+    "capsule_video_player built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-video-player"))]
 pub(crate) const VIDEO_PLAYER_ELF: &[u8] = &[];
 

@@ -33,6 +33,16 @@ pub(super) const DRIVER_RTL8821CE_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_RTL8821CE_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/driver_rtl8821ce.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-rtl8821ce")]
+const _: () = assert!(
+    !DRIVER_RTL8821CE_ELF.is_empty()
+        && !DRIVER_RTL8821CE_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_RTL8821CE_MANIFEST_BYTES.is_empty()
+        && !DRIVER_RTL8821CE_ATTESTATION_BYTES.is_empty(),
+    "rtl8821ce_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-rtl8821ce"))]
 pub(super) const DRIVER_RTL8821CE_ELF: &[u8] = &[];
 

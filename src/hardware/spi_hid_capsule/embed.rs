@@ -33,6 +33,16 @@ pub(super) const DRIVER_SPI_HID_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_SPI_HID_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/driver_spi_hid.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-spi-hid")]
+const _: () = assert!(
+    !DRIVER_SPI_HID_ELF.is_empty()
+        && !DRIVER_SPI_HID_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_SPI_HID_MANIFEST_BYTES.is_empty()
+        && !DRIVER_SPI_HID_ATTESTATION_BYTES.is_empty(),
+    "spi_hid_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-spi-hid"))]
 pub(super) const DRIVER_SPI_HID_ELF: &[u8] = &[];
 

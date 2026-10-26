@@ -33,6 +33,16 @@ pub(super) const DRIVER_BUSLOGIC_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_BUSLOGIC_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/driver_buslogic.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-buslogic")]
+const _: () = assert!(
+    !DRIVER_BUSLOGIC_ELF.is_empty()
+        && !DRIVER_BUSLOGIC_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_BUSLOGIC_MANIFEST_BYTES.is_empty()
+        && !DRIVER_BUSLOGIC_ATTESTATION_BYTES.is_empty(),
+    "buslogic_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-buslogic"))]
 pub(super) const DRIVER_BUSLOGIC_ELF: &[u8] = &[];
 

@@ -33,6 +33,16 @@ pub(super) const DRIVER_UVC_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_UVC_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/driver_uvc.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-uvc")]
+const _: () = assert!(
+    !DRIVER_UVC_ELF.is_empty()
+        && !DRIVER_UVC_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_UVC_MANIFEST_BYTES.is_empty()
+        && !DRIVER_UVC_ATTESTATION_BYTES.is_empty(),
+    "uvc_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-uvc"))]
 pub(super) const DRIVER_UVC_ELF: &[u8] = &[];
 

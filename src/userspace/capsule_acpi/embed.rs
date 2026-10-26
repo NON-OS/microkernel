@@ -31,3 +31,12 @@ pub(super) const ACPI_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/acpi
 
 pub(super) const ACPI_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/acpi.zk_trailer.bin");
+
+// A capsule built in with an empty file never compiles (B-02).
+const _: () = assert!(
+    !ACPI_ELF.is_empty()
+        && !ACPI_NONOS_ID_CERT_BYTES.is_empty()
+        && !ACPI_MANIFEST_BYTES.is_empty()
+        && !ACPI_ATTESTATION_BYTES.is_empty(),
+    "capsule_acpi built in with an empty image"
+);

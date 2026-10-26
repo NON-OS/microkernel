@@ -33,6 +33,16 @@ pub(super) const DRIVER_VMXNET3_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_VMXNET3_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/driver_vmxnet3.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-vmxnet3")]
+const _: () = assert!(
+    !DRIVER_VMXNET3_ELF.is_empty()
+        && !DRIVER_VMXNET3_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_VMXNET3_MANIFEST_BYTES.is_empty()
+        && !DRIVER_VMXNET3_ATTESTATION_BYTES.is_empty(),
+    "vmxnet3_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-vmxnet3"))]
 pub(super) const DRIVER_VMXNET3_ELF: &[u8] = &[];
 
