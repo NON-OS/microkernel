@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The call a step asks for, made, and the event it came to; None when
-//! nothing came. A STATUS waits up to the job's quiet spell: the kernel
-//! drops a reply that comes after its call gave up (recv_reply.rs), so a
-//! short wait would leave the one outstanding STATUS (ruling 3) unanswered.
+//! nothing came. A STATUS waits CALL_MS: the job answers it at once while
+//! its worker thread proves (capsule_prove worker.rs). One that still times
+//! out is given up and the next tick asks again; the kernel drops the first's
+//! late reply where it lands (recv_reply.rs), so the two never cross.
 
 use nonos_libc::{mk_prove_job, mk_service_lookup, mk_uptime_ms, PROVE_JOB_PROVE};
 use nonos_proof_abi::wire::{ProveRequest, GET, PROVE, STATUS};
@@ -31,7 +32,7 @@ const SERVICE: &[u8] = b"app.prove.job";
 const ASK_MS: i64 = 10_000;
 /// The job's QUIET_MS (capsule_prove/src/job/exit_rule.rs).
 const QUIET_MS: i64 = 10 * 60 * 1000;
-/// PROVE is answered at once, and GET from a finished job.
+/// PROVE and STATUS are answered at once, and GET from a finished job.
 const CALL_MS: u64 = 2_000;
 
 pub fn perform(run: &mut Run, c: Call, market: u32) -> Option<Event> {
@@ -58,7 +59,7 @@ pub fn perform(run: &mut Run, c: Call, market: u32) -> Option<Event> {
             Event::Proved(id.map(|id| run.job = id))
         }
         Call::Status => {
-            match call(run.port, STATUS, &job, run.late_ms.saturating_sub(now).max(1) as u64) {
+            match call(run.port, STATUS, &job, CALL_MS) {
                 Err(ETIMEDOUT) => Event::StatusLate,
                 got => {
                     run.late_ms = mk_uptime_ms().saturating_add(QUIET_MS);
