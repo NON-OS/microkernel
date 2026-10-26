@@ -1,0 +1,156 @@
+[
+  {
+    "name": "hot-spot-ignored",
+    "file": "userland/compositor/src/frame_pacer/cursor.rs",
+    "old": "checked_sub(shape.hot.0)",
+    "new": "checked_sub(0)",
+    "crate": "userland/compositor_proofs",
+    "test": "cursor_shape",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "damage-without-reach",
+    "file": "userland/compositor/src/state/cursor_pick.rs",
+    "old": "pub const HOT_REACH: u32 = 10;",
+    "new": "pub const HOT_REACH: u32 = 0;",
+    "crate": "userland/compositor_proofs",
+    "test": "cursor_shape",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "bottom-window-chooses",
+    "file": "userland/compositor/src/state/cursor_pick.rs",
+    "old": "layers.rev().filter(holds)",
+    "new": "layers.filter(holds)",
+    "crate": "userland/compositor_proofs",
+    "test": "cursor_shape",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "any-pid-sets-a-shape",
+    "file": "userland/compositor/src/state/scene/set_cursor.rs",
+    "old": "l.in_use && l.owner_pid == owner_pid && l.surface_handle == handle",
+    "new": "l.in_use && l.surface_handle == handle",
+    "crate": "userland/compositor_proofs",
+    "test": "cursor_shape",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "shape-lost-on-resubmit",
+    "file": "userland/compositor/src/state/scene/submit.rs",
+    "old": "let (stack, cursor) = (slot.stack, slot.cursor);",
+    "new": "let (stack, cursor) = (slot.stack, 0);",
+    "crate": "userland/compositor_proofs",
+    "test": "cursor_shape",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "unknown-shape-taken",
+    "file": "userland/compositor/src/requests/pointer.rs",
+    "old": "let known = code <= crate::frame_pacer::cursor_shapes::NESW_CODE as u32;",
+    "new": "let known = code <= 255;",
+    "crate": "userland/compositor_proofs",
+    "test": "cursor_shape",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "plane-not-told-of-a-new-shape",
+    "file": "userland/compositor/src/frame_pacer/hw_cursor.rs",
+    "old": "        ctx.cursor_sent = None;\n",
+    "new": "",
+    "crate": "userland/compositor_proofs",
+    "test": "cursor_shape",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "plane-hot-spot-dropped",
+    "file": "userland/compositor/src/display/cursor_rule.rs",
+    "old": "hot_x: hot.0, hot_y: hot.1",
+    "new": "hot_x: 0, hot_y: 0",
+    "crate": "userland/compositor_proofs",
+    "test": "cursor_says_shown",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "corner-shows-a-straight-arrow",
+    "file": "userland/toolkit/src/decorations/edges_cursor.rs",
+    "old": "(true, _, true, _) | (_, true, _, true) => NWSE_CURSOR,",
+    "new": "(true, _, true, _) | (_, true, _, true) => EW_CURSOR,",
+    "crate": "userland/desktop_proofs",
+    "test": "each_edge_and_corner_shows",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "numbers-disagree",
+    "file": "userland/toolkit/src/decorations/edges_cursor.rs",
+    "old": "pub const EW_CURSOR: u8 = 1;",
+    "new": "pub const EW_CURSOR: u8 = 2;",
+    "crate": "userland/desktop_proofs",
+    "test": "each_shape_is_the_compositors",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "drag-forgets-the-shape",
+    "file": "userland/app_skeleton/src/runner/drag/motion.rs",
+    "old": "    state.cursor.0 = edges.cursor();\n",
+    "new": "    let _ = edges;\n",
+    "crate": "userland/desktop_proofs",
+    "test": "the_shape_follows",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "told-every-move",
+    "file": "userland/app_skeleton/src/runner/window_ops/tell_cursor.rs",
+    "old": "    if want == told {\n        return;\n    }\n",
+    "new": "",
+    "crate": "userland/desktop_proofs",
+    "test": "the_compositor_is_asked_once",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "overlay-without-say-decides",
+    "file": "userland/compositor/src/state/cursor_pick.rs",
+    "old": ".filter(holds).find_map(|l| l.cursor)",
+    "new": ".find(holds).and_then(|l| l.cursor)",
+    "crate": "userland/compositor_proofs",
+    "test": "cursor_overlay",
+    "args": [
+      "--release"
+    ]
+  },
+  {
+    "name": "first-hover-silent",
+    "file": "userland/app_skeleton/src/runner/drag/state.rs",
+    "old": "cursor: (0, NOT_TOLD),",
+    "new": "cursor: (0, 0),",
+    "crate": "userland/desktop_proofs",
+    "test": "first_hover",
+    "args": [
+      "--release"
+    ]
+  }
+]
