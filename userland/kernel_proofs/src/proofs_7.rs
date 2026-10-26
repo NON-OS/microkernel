@@ -61,3 +61,6 @@ mod irq_bind_rollback_tests;
 /// Every linker symbol the kernel declares is one its image defines.
 #[path = "link_symbols/mod.rs"]
 pub mod link_symbols;
+/// A process's output and its requests are read from inboxes apart.
+#[path = "own_inboxes/mod.rs"]
+pub mod own_inboxes;

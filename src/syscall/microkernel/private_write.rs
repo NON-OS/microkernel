@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! `MkPrivateWrite`: output that only the caller's launcher reads.
 //!
-//! The bytes go to the caller's own `proc.<pid>` inbox and nowhere else:
+//! The bytes go to the caller's own `stdout.<pid>` inbox and nowhere else:
 //! never the boot serial, never the framebuffer console, whatever the
 //! caller holds. A program whose output is someone's private text writes
 //! it here. Nothing is dropped quietly: with no inbox the call is ENODEV,
@@ -37,7 +37,7 @@ pub fn sys_private_write(user_ptr: u64, len: u64) -> i64 {
     let Some(pid) = crate::process::current_pid() else {
         return ERRNO_NODEV;
     };
-    let name = alloc::format!("proc.{}", pid);
+    let name = crate::ipc::nonos_inbox::own_names::stdout(pid);
     if !crate::ipc::nonos_inbox::exists(&name) {
         return ERRNO_NODEV;
     }

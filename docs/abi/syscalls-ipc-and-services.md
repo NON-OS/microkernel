@@ -55,11 +55,11 @@ the ports.
 | Tag | Number | Name | Capability | Gate | Meaning |
 |---|---|---|---|---|---|
 | `MPST` | `0x5453504D` | `MkProcStat` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | Read the process table; redacted unless the caller holds AttestRead or ProcessControl. |
-| `MOUT` | `0x54554F4D` | `MkProcOutput` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:32` | Drain one line a child wrote to its `proc.<pid>` inbox. |
+| `MOUT` | `0x54554F4D` | `MkProcOutput` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:32` | Drain one line a child wrote to its `stdout.<pid>` inbox. |
 | `MPIN` | `0x4E49504D` | `MkProcInput` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:33` | Feed one message to a child's `stdin.<pid>` inbox. |
 | `MSRD` | `0x4452534D` | `MkStdinRead` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:34` | Read the caller's own stdin. |
-| `MSOW` | `0x574F534D` | `MkStdoutWrite` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_device.rs:41` | Program stdout, to the caller's own `proc.<pid>` inbox. |
+| `MSOW` | `0x574F534D` | `MkStdoutWrite` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_device.rs:41` | Program stdout, to the caller's own `stdout.<pid>` inbox. |
 | `MPVW` | `0x5756504D` | `MkPrivateWrite` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_device.rs:41` | Output only the caller's launcher reads, never the serial line. |
 | `MTTY` | `0x5954544D` | `MkTtySet` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_surface.rs:50` | Say which of a child's streams reach a terminal, and its size. |
 | `MTTQ` | `0x5154544D` | `MkTtyQuery` | none | `true` `src/syscall/contract/cap_table/mk_surface.rs:51` | Ask whether stdin, stdout or stderr is on a terminal, and its size; else `ENOTTY`. |
-| `MDBG` | `0x4742444D` | `MkDebug` | Debug | `can_debug` `src/syscall/contract/cap_table/mk_device.rs:40` | Write one diagnostic line of up to 256 bytes to the boot serial. |
+| `MDBG` | `0x4742444D` | `MkDebug` | Debug | `can_debug` `src/syscall/contract/cap_table/mk_device.rs:40` | Write one diagnostic line of up to 256 bytes to the boot serial, and to the caller's own `stdout.<pid>` inbox. |
