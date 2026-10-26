@@ -4024,7 +4024,7 @@
    "userland/capsule_socks5/src/server/kept.rs",
    "userland/capsule_socks5/src/server/parked.rs",
    "userland/capsule_socks5/src/server/reply.rs",
-   "userland/capsule_socks5/src/server/request.rs",
+   "userland/capsule_socks5/src/server/request",
    "userland/capsule_socks5/src/server/who.rs",
    "userland/capsule_socks5/src/tunnel",
    "userland/capsule_socks5/src/wire",
