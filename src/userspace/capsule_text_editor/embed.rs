@@ -33,6 +33,16 @@ pub(crate) const TEXT_EDITOR_MANIFEST_BYTES: &[u8] =
 pub(crate) const TEXT_EDITOR_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/text_editor.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-text-editor")]
+const _: () = assert!(
+    !TEXT_EDITOR_ELF.is_empty()
+        && !TEXT_EDITOR_NONOS_ID_CERT_BYTES.is_empty()
+        && !TEXT_EDITOR_MANIFEST_BYTES.is_empty()
+        && !TEXT_EDITOR_ATTESTATION_BYTES.is_empty(),
+    "capsule_text_editor built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-text-editor"))]
 pub(crate) const TEXT_EDITOR_ELF: &[u8] = &[];
 

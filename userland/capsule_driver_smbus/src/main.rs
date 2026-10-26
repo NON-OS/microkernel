@@ -38,6 +38,9 @@ const DRIVER: &[u8] = b"driver.smbus";
 /// before claiming anything. A host that is there is brought up on the shared
 /// bounded schedule, its memory modules' SPD looked at once, and then its
 /// transfers served on driver.smbus0.
+///
+/// # Safety
+/// The kernel enters here once, on the capsule's own fresh stack.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     match start_driver(DRIVER, discover::find_smbus(), |dev| setup::run(*dev)) {

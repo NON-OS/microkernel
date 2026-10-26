@@ -33,6 +33,16 @@ pub(super) const DRIVER_HDA_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_HDA_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/driver_hda.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-hda")]
+const _: () = assert!(
+    !DRIVER_HDA_ELF.is_empty()
+        && !DRIVER_HDA_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_HDA_MANIFEST_BYTES.is_empty()
+        && !DRIVER_HDA_ATTESTATION_BYTES.is_empty(),
+    "hda_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-hda"))]
 pub(super) const DRIVER_HDA_ELF: &[u8] = &[];
 

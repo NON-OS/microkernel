@@ -17,8 +17,7 @@
 // Build-time embed of the marketplace window.
 
 #[cfg(feature = "nonos-capsule-app-store")]
-pub(crate) const APP_STORE_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(crate) const APP_STORE_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_app_store/target/",
     env!("NONOS_USER_TARGET"),
     "/release/app_store"
@@ -35,6 +34,16 @@ pub(crate) const APP_STORE_MANIFEST_BYTES: &[u8] =
 #[cfg(feature = "nonos-capsule-app-store")]
 pub(crate) const APP_STORE_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/app_store.zk_trailer.bin");
+
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-app-store")]
+const _: () = assert!(
+    !APP_STORE_ELF.is_empty()
+        && !APP_STORE_NONOS_ID_CERT_BYTES.is_empty()
+        && !APP_STORE_MANIFEST_BYTES.is_empty()
+        && !APP_STORE_ATTESTATION_BYTES.is_empty(),
+    "capsule_app_store built in with an empty image"
+);
 
 #[cfg(not(feature = "nonos-capsule-app-store"))]
 pub(crate) const APP_STORE_ELF: &[u8] = &[];

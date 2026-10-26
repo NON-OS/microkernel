@@ -33,6 +33,16 @@ pub(super) const DRIVER_VMWARE_SVGA_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_VMWARE_SVGA_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/driver_vmware_svga.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-vmware-svga")]
+const _: () = assert!(
+    !DRIVER_VMWARE_SVGA_ELF.is_empty()
+        && !DRIVER_VMWARE_SVGA_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_VMWARE_SVGA_MANIFEST_BYTES.is_empty()
+        && !DRIVER_VMWARE_SVGA_ATTESTATION_BYTES.is_empty(),
+    "vmware_svga_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-vmware-svga"))]
 pub(super) const DRIVER_VMWARE_SVGA_ELF: &[u8] = &[];
 

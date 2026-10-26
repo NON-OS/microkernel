@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_service_lookup;
+use nonos_libc::{mk_service_lookup, mk_yield};
 
 use crate::state::{set_udp_port, LOCAL_PORT};
 use crate::udp_client;
@@ -37,4 +37,16 @@ pub fn run() -> Result<(), SetupError> {
     udp_client::bind(port, LOCAL_PORT).map_err(|_| SetupError::BindFailed)?;
     set_udp_port(port);
     Ok(())
+}
+
+/// Retries setup, yielding between tries, until the UDP port is bound.
+pub fn wait() {
+    loop {
+        if run().is_ok() {
+            return;
+        }
+        for _ in 0..64 {
+            mk_yield();
+        }
+    }
 }

@@ -1,0 +1,23 @@
+# NØNOS userland: nonos_linux_pack
+#
+# A Linux package as one read-only store object: a versioned header, a
+# sorted index, the names and the bytes. The installer builds it from a
+# package it has verified; capsule_linux serves a guest's files out of it.
+# The parser holds untrusted bytes to its bounds and refuses anything else.
+
+[package]
+name = "nonos_linux_pack"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "The pack: a Linux package as one store object, parsed and built, no_std"
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+blake3 = { version = "1", default-features = false, features = ["pure"] }
+
+[package.metadata.nonos]
+test-lane = true

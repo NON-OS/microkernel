@@ -33,6 +33,16 @@ pub(super) const DRIVER_VMBUS_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_VMBUS_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/driver_vmbus.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-vmbus")]
+const _: () = assert!(
+    !DRIVER_VMBUS_ELF.is_empty()
+        && !DRIVER_VMBUS_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_VMBUS_MANIFEST_BYTES.is_empty()
+        && !DRIVER_VMBUS_ATTESTATION_BYTES.is_empty(),
+    "vmbus_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-vmbus"))]
 pub(super) const DRIVER_VMBUS_ELF: &[u8] = &[];
 

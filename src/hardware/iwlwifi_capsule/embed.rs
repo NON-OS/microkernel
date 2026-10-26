@@ -33,6 +33,16 @@ pub(super) const DRIVER_IWLWIFI_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_IWLWIFI_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/driver_iwlwifi.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-iwlwifi")]
+const _: () = assert!(
+    !DRIVER_IWLWIFI_ELF.is_empty()
+        && !DRIVER_IWLWIFI_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_IWLWIFI_MANIFEST_BYTES.is_empty()
+        && !DRIVER_IWLWIFI_ATTESTATION_BYTES.is_empty(),
+    "iwlwifi_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-iwlwifi"))]
 pub(super) const DRIVER_IWLWIFI_ELF: &[u8] = &[];
 

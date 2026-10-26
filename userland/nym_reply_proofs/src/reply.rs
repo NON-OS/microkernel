@@ -27,10 +27,18 @@ mod reassemble;
 #[path = "../../capsule_net_nym/src/reply/types.rs"]
 mod types;
 
-pub use message::{reply_body, reply_message, Reply};
+pub use message::{reply_message, Reply};
 pub use reassemble::{
     Collected, Reassembly, MAX_PENDING, MESSAGE_MAX, PENDING_BYTES_MAX, RECENT_DONE, STALE_MS,
 };
 pub use types::{
     DIGEST_BYTES, RECIPIENT_BYTES, TAG_REPLY_DATA, TAG_REPLY_SURB_REQUEST, TYPE_REPLY,
 };
+
+/// The data of a reply, for proofs that only handle that.
+pub fn reply_body(reassembled: &[u8]) -> Option<&[u8]> {
+    match reply_message(reassembled)? {
+        Reply::Data(body) => Some(body),
+        Reply::SurbRequest { .. } => None,
+    }
+}

@@ -16,9 +16,6 @@
 //! The words a fixed-shape transaction is signed over, named once for the
 //! signed and unsigned builders that take them.
 
-/// nonce, tip, fee cap, gas, recipient, amount.
-pub type TransferParts<'a> =
-    (&'a [u8; 32], &'a [u8; 32], &'a [u8; 32], &'a [u8; 32], &'a [u8; 20], &'a [u8; 32]);
 /// nonce, tip, fee cap, gas, amount.
 pub type StakeParts<'a> = (&'a [u8; 32], &'a [u8; 32], &'a [u8; 32], &'a [u8; 32], &'a [u8; 32]);
 /// nonce, tip, fee cap, gas, amount, lock.

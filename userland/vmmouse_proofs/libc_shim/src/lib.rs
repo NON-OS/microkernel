@@ -18,19 +18,18 @@
 //! recorded per thread; every test runs on its own thread.
 
 mod backdoor;
-#[allow(dead_code)]
 #[path = "../../../../src/arch/x86_64/hypervisor/backdoor_rule.rs"]
 mod backdoor_rule;
 mod input;
 mod ipc;
-#[allow(dead_code)]
 #[path = "../../../../src/arch/x86_64/hypervisor/vendor.rs"]
 mod vendor;
 
-pub use backdoor::{backdoor_calls, mk_hv_backdoor, set_host, Host};
+pub use backdoor::{backdoor_calls, backdoor_present, mk_hv_backdoor, set_host, Host};
 pub use input::{
     input_abs_scale, mk_input_event_post, posted, InputEvent, INPUT_ABS_MAX,
     INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL,
     INPUT_KIND_WHEEL,
 };
 pub use ipc::{idled, logged, mk_debug, mk_idle_ms};
+pub use vendor::Hypervisor;

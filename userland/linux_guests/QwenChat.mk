@@ -54,6 +54,15 @@ nonos-mk-qwenchat-why-check: $(LLAMA_CPP_DIR)/.rev
 		$(LINUX_GUESTS_DIR)/cpp/qwenwhy_check.cpp $(LINUX_GUESTS_DIR)/cpp/qwenchat_why.cpp -o $(TARGET_DIR)/qwenwhy-check
 	@$(TARGET_DIR)/qwenwhy-check
 
+# The image frame and header rules a vision tier holds an image to before any
+# decoder sees it, and a seeded fuzz sweep over both, under AddressSanitizer
+# (cpp/qwenvision_check.cpp). NONOS_FUZZ_ITERS and NONOS_FUZZ_SEED widen it.
+.PHONY: nonos-mk-qwenvision-check
+nonos-mk-qwenvision-check:
+	@$(CXX) -std=c++17 -Wall -Wextra -fsanitize=address,undefined -fno-sanitize-recover=all -g \
+		$(addprefix $(LINUX_GUESTS_DIR)/cpp/,qwenvision_check.cpp qwenvision_frame.cpp) -o $(TARGET_DIR)/qwenvision-check
+	@$(TARGET_DIR)/qwenvision-check
+
 # qwenchat's window checks, over a socketpair standing in for the display.
 include $(LINUX_GUESTS_DIR)/QwenWindow.mk
 
