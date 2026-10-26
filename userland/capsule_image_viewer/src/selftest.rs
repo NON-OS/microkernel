@@ -40,7 +40,7 @@ pub fn run() -> ! {
     let p = place_mode(FitMode::Fit, rw, rh, 4, 4, &view);
     {
         let mut dst = Dst { px: &mut dst_px, stride: 4, w: 4, h: 4 };
-        draw_nn(&mut dst, &rotated, rw, rh, p.dx, p.dy, p.dw, p.dh);
+        draw_nn(&mut dst, &rotated, rw, rh, &p);
     }
     let mut checksum: u64 = dst_px.iter().map(|&px| (px & 0x00FF_FFFF) as u64).sum();
 
@@ -51,7 +51,7 @@ pub fn run() -> ! {
     let bp = place_mode(FitMode::Fit, 2, 2, 4, 4, &view);
     {
         let mut bdst = Dst { px: &mut bi_px, stride: 4, w: 4, h: 4 };
-        draw_bilinear(&mut bdst, &src, 2, 2, bp.dx, bp.dy, bp.dw, bp.dh);
+        draw_bilinear(&mut bdst, &src, 2, 2, &bp);
     }
     checksum += bi_px.iter().map(|&px| (px & 0x00FF_FFFF) as u64).sum::<u64>();
 
@@ -63,7 +63,7 @@ pub fn run() -> ! {
     let bp2 = place_mode(FitMode::Fit, big_w, big_h, big_w, big_h, &bview);
     {
         let mut bd = Dst { px: &mut big_dst, stride: big_w, w: big_w, h: big_h };
-        draw_bilinear(&mut bd, &big_src, big_w, big_h, bp2.dx, bp2.dy, bp2.dw, bp2.dh);
+        draw_bilinear(&mut bd, &big_src, big_w, big_h, &bp2);
     }
     if big_dst[(big_w * big_h / 2) as usize] & 0x00FF_FFFF != 0x3366CC {
         exit_fail(b"[IMG-VIEWER] FAIL bigscale\n");

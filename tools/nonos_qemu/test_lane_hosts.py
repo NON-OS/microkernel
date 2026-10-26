@@ -45,11 +45,12 @@ class LaneHosts(unittest.TestCase):
 
     def test_track_ds_devices_are_each_a_lane(self):
         named = ["pvscsi", "lsi53c895a", "mptsas1068", "AC97", "vmware-svga", "usb-tablet", "virtio-scsi",
-                 "virtio-tablet", "virtio-balloon", "piix4-ide", "vmbus"]
+                 "virtio-tablet", "virtio-kbd", "virtio-balloon", "piix4-ide", "vmbus"]
         p = lanes.plan(named, "/d")
         args = " ".join(p.args)
         for device in ("lsi53c895a,", "mptsas1068,", "AC97,", "usb-tablet,", "virtio-scsi-pci,",
-                       "virtio-tablet-pci", "virtio-balloon-pci", "piix4-ide,", "vmbus-bridge", "hv-balloon"):
+                       "virtio-tablet-pci", "virtio-keyboard-pci", "virtio-balloon-pci", "piix4-ide,",
+                       "vmbus-bridge", "hv-balloon"):
             self.assertIn(f"-device {device}", args)
         self.assertEqual(p.swaps, {"gpu": "vmware-svga"})
         for nic in ("pcnet", "vmxnet3", "tulip"):

@@ -25,9 +25,9 @@ use super::mul_x_inv::mul_x_inv;
 pub(super) fn dot(a: &mut [u64; 2], b: &[u64; 2]) {
     let mut z = [0u64; 2];
     let mut v = *b;
-    for word in 0..2 {
+    for word in a.iter() {
         for bit in 0..64 {
-            if (a[word] >> bit) & 1 == 1 {
+            if (word >> bit) & 1 == 1 {
                 z[0] ^= v[0];
                 z[1] ^= v[1];
             }

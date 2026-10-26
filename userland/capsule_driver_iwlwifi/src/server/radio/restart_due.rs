@@ -42,7 +42,7 @@ impl Radio {
         match up {
             Ok(up) => {
                 Line::new().text(b"radio up again; passive scanning").send();
-                self.state = State::Up(up);
+                self.state = State::Up(alloc::boxed::Box::new(up));
                 self.next_ms = now;
             }
             Err(f) => {

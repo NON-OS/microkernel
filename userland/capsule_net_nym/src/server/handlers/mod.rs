@@ -29,7 +29,6 @@ mod recv_accept;
 mod recv_batch;
 mod recv_control;
 mod recv_drain;
-mod recv_plain;
 mod replay_gate;
 mod route_reply;
 mod send;

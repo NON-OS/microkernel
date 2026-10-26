@@ -44,15 +44,17 @@ pub fn route(sel: u8) -> u8 {
 }
 
 pub fn draw(ctx: &Context) {
-    render::frame(ctx, b"Network route", b"Which network this machine's own traffic leaves through",
-        b"UP DOWN TO CHOOSE  ENTER NEXT  ESC BACK");
-    let spx = ctx.stride as usize / 4;
-    let (w, h) = (ctx.width, ctx.height);
+    render::frame(
+        ctx,
+        b"Network route",
+        b"Which network this machine's own traffic leaves through",
+        b"UP DOWN TO CHOOSE  ENTER NEXT  ESC BACK",
+    );
     let l = render::layout_of(ctx);
-    let (buf, x) = (render::buffer(ctx), l.col_x);
-    let y = rows::list(buf, spx, w, h, x, l.body_y, ROUTES, ctx.route_sel as usize);
-    let y = lines::text(buf, spx, w, h, x, y + l.gap, WHY[ctx.route_sel as usize % WHY.len()], FG);
-    lines::text(buf, spx, w, h, x, y + l.line_h, AFTER, FG);
+    let (cv, x) = (&mut render::canvas(ctx), l.col_x);
+    let y = rows::list(cv, x, l.body_y, ROUTES, ctx.route_sel as usize);
+    let y = lines::text(cv, x, y + l.gap, WHY[ctx.route_sel as usize % WHY.len()], FG);
+    lines::text(cv, x, y + l.line_h, AFTER, FG);
 }
 
 pub fn on_key(ctx: &mut Context, code: u32) -> Outcome {

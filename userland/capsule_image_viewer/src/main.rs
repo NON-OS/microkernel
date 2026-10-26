@@ -32,6 +32,8 @@ pub unsafe extern "C" fn _start() -> ! {
 }
 
 #[cfg(not(feature = "nonos-image-viewer-smoketest"))]
+/// # Safety
+/// The kernel enters here once, on the capsule's own fresh stack.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     const VIEWER_HEAP: usize = 192 * 1024 * 1024;

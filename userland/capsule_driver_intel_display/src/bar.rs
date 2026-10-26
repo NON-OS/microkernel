@@ -30,7 +30,8 @@ pub struct Bar0 {
 impl Bar0 {
     fn at(&self, offset: u32, width: u64) -> Option<u64> {
         let end = offset as u64 + width;
-        (end <= self.len && offset as u64 % width == 0).then_some(self.base + offset as u64)
+        (end <= self.len && (offset as u64).is_multiple_of(width))
+            .then_some(self.base + offset as u64)
     }
 }
 

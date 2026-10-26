@@ -14,10 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::lioness::Lioness;
-use crate::sphinx::constants::PAYLOAD_KEY_SIZE;
+//! The requests a caller sends the proxy: its marker bytes, what each asks
+//! for, and when an exchange asks for a conversation this proxy lost.
 
-/// Remove one hop's layer.
-pub fn open_layer(payload: &mut [u8], key: &[u8; PAYLOAD_KEY_SIZE]) -> Option<()> {
-    Lioness::new(key).decrypt_block(payload).ok()
-}
+mod ask;
+mod lost;
+mod marks;
+#[cfg(test)]
+mod stream;
+
+pub use ask::{ask, Ask};
+pub use lost::lost;
+#[cfg(test)]
+pub use lost::FIRST_SEQ;
+#[cfg(test)]
+pub use marks::{
+    STATUS_ASK, STREAM_BYTES, STREAM_NUMBERED, STREAM_NUMBERED_ON, STREAM_RESET, STREAM_RESET_ON,
+};
+#[cfg(test)]
+pub use stream::stream_bytes;

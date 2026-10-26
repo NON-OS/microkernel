@@ -22,7 +22,7 @@ use crate::snake::theme::TITLE;
 use crate::snake::ui::button::{self, Style};
 use crate::snake::ui::card;
 use crate::snake::ui::metrics::{PX_TITLE, RADIUS_PANEL};
-use crate::snake::ui::over_geom::{action, panel, title, ACTIONS, LABELS};
+use crate::snake::ui::over_geom::{action, panel, title, LABELS};
 use crate::snake::ui::over_geom_rows::still;
 use crate::snake::ui::text;
 
@@ -40,9 +40,9 @@ pub fn paint(game: &Game, fb: &mut PaintBuffer) {
     text::left(fb, t.0, t.1, HEADING, TITLE, PX_TITLE);
     board::paint(game, fb, &board_fit::fit(still(w, h)));
     over_summary::paint(game, fb);
-    for index in 0..ACTIONS {
+    for (index, &label) in LABELS.iter().enumerate() {
         let style = if index == 0 { Style::Primary } else { Style::Ghost };
         let lit = hover::is(Tag::OverAction, index);
-        button::paint(fb, action(w, h, index), LABELS[index], style, lit);
+        button::paint(fb, action(w, h, index), label, style, lit);
     }
 }

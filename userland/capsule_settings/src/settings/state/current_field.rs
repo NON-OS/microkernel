@@ -18,7 +18,7 @@ use nonos_policy_proto::Field;
 
 use crate::settings::schema::field_at;
 
-use super::state::State;
+use super::model::State;
 
 pub fn current_field(state: &State) -> Option<Field> {
     field_at(state.section, state.cursor[state.section.index()])

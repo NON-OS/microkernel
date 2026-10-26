@@ -35,7 +35,7 @@ The mode defaults to `nat` and the capture to `target/qemu-net.pcap`; `QEMU_NET_
 
 The allow-list is a committed file, `tools/nonos_egress/allowlist.json` (format `nonos-egress-allow/1`). It lists the names, and each pinned address with its port:
 
-- Nym's directory API: `pinned.rs`, `live.rs` and `fetch_at.rs`'s `HTTPS_PORT`, in `capsule_net_nym/src/directory_sync`;
+- Nym's directory API: `live.rs` and `fetch_at.rs`'s `HTTPS_PORT`, in `capsule_net_nym/src/directory_sync`;
 - the Nym gateways it enters through, each with its port: `capsule_net_nym/src/state/bootstrap.rs` (it reaches no mix node itself);
 - Anyone's directory authorities, each with its `dir_port`: `capsule_net_anon/src/directory/authority/list.rs`. These are marked as authorities.
 

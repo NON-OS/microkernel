@@ -20,6 +20,14 @@ use super::machine::Conn;
 use crate::wire::{self, Parsed, REPLY_LEN};
 
 impl Conn {
+    // Keep bytes belonging to the next phase: a client may pipeline the
+    // request behind the greeting.
+    fn drain(&mut self, n: usize) {
+        let n = n.min(self.len);
+        self.acc.copy_within(n..self.len, 0);
+        self.len -= n;
+    }
+
     // Method selection: accept no-auth, reject anything else, both with a
     // two-byte reply. A wrong version is not SOCKS5 and just closes.
     pub(super) fn greeting(&mut self) -> Event {

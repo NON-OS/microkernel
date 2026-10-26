@@ -14,20 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+//! The exit in use (chosen.rs), what it has delivered (record.rs), and the
+//! walk away from one that stays silent (rotate.rs).
 
-use crate::protocol::MIX_PAYLOAD_MAX;
-use crate::state::Session;
+mod chosen;
+mod record;
+mod rotate;
 
-pub fn queue(s: &mut Session, plain: &[u8]) {
-    if plain.len() < 2 {
-        return;
-    }
-    let len = u16::from_le_bytes([plain[0], plain[1]]) as usize;
-    if len > MIX_PAYLOAD_MAX || 2 + len > plain.len() {
-        return;
-    }
-    let mut body = Vec::with_capacity(len);
-    body.extend_from_slice(&plain[2..2 + len]);
-    s.push(body);
-}
+pub use chosen::{exit, Exit};
+pub use record::{note_answered, note_delivered, note_sent};
+pub use rotate::{rotate_if_silent, rotations, trying_another};

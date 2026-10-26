@@ -28,7 +28,7 @@ pub fn toggle_favorite(state: &mut State) {
         return;
     };
     let path = entry.full_path.clone();
-    if state.favorites.list().iter().any(|p| *p == path.as_str()) {
+    if state.favorites.list().contains(&path.as_str()) {
         state.favorites.remove(path.as_str());
         state.status = b"unpinned";
     } else if state.favorites.add(path.as_str()) {

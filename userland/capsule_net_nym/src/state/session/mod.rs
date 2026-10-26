@@ -14,19 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::SphinxPacket;
-use crate::sphinx::constants::{HEADER_SIZE, REGULAR_PACKET_SIZE};
-use crate::sphinx::header::SphinxHeader;
-use alloc::vec::Vec;
+//! A client's session (types.rs), how one opens (new.rs), and what waits
+//! for its reader (queue.rs).
 
-impl SphinxPacket {
-    pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
-        if bytes.len() != REGULAR_PACKET_SIZE {
-            return None;
-        }
-        let header = SphinxHeader::from_bytes(&bytes[..HEADER_SIZE])?;
-        let mut payload = Vec::with_capacity(bytes.len() - HEADER_SIZE);
-        payload.extend_from_slice(&bytes[HEADER_SIZE..]);
-        Some(Self { header, payload })
-    }
-}
+mod new;
+mod queue;
+mod types;
+
+pub use types::Session;

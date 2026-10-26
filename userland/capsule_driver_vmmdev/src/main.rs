@@ -37,6 +37,9 @@ const EXIT_HEAP_INIT: i32 = 1;
 /// claiming anything. With it, each attempt takes the grants and introduces
 /// the guest, giving everything back when a step fails; the attempts are
 /// bounded and slept between.
+///
+/// # Safety
+/// The kernel enters here once, on the capsule's own fresh stack.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {

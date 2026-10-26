@@ -17,7 +17,7 @@
 //! The version, the order of the bring-up calls, and every host on which
 //! there is no pointer.
 
-use nonos_libc::{backdoor_calls, set_host};
+use nonos_libc::{backdoor_calls, backdoor_present, set_host, Hypervisor};
 
 use super::util::host;
 use crate::constants::{DISABLE, ENABLE, REQUEST_ABSOLUTE};
@@ -39,31 +39,31 @@ fn version_then_off_on_identity_and_absolute_in_order() {
 
 #[test]
 fn kvm_and_tcg_reach_qemu_s_vmport() {
-    for vendor in [1, 2] {
-        Host::new().install(vendor);
-        assert_eq!(version(), Some(6), "vendor {vendor}");
+    for vendor in [Hypervisor::Kvm, Hypervisor::QemuTcg] {
+        Host::new().install(vendor as u8);
+        assert_eq!((version(), backdoor_present()), (Some(6), true), "{}", vendor.slug());
     }
 }
 
 #[test]
 fn no_other_host_is_asked() {
     assert_eq!(version(), None, "no host at all");
-    for vendor in [0, 4, 5, 6, 7, 8, 9, 10] {
-        Host::new().install(vendor);
-        assert_eq!(version(), None, "vendor {vendor}");
-        assert_eq!(enable(), Err("pointer command refused"), "vendor {vendor}");
+    for vendor in [0, 4, 5, 6, 7, 8, 9, 10].map(Hypervisor::from_code) {
+        Host::new().install(vendor as u8);
+        assert_eq!((version(), backdoor_present()), (None, false), "{}", vendor.slug());
+        assert_eq!(enable(), Err("pointer command refused"), "{}", vendor.slug());
     }
     assert!(backdoor_calls().is_empty(), "the kernel refused every call");
 }
 
 #[test]
 fn a_port_that_does_not_answer_is_no_backdoor() {
-    set_host(VMWARE, Box::new(|_, _| [u32::MAX; 4]));
-    assert_eq!(version(), None);
-    set_host(VMWARE, Box::new(|_, _| [6, 0, 0, 0]));
-    assert_eq!(version(), None, "no magic back");
-    set_host(VMWARE, Box::new(|_, _| [u32::MAX, 0x564D_5868, 0, 0]));
-    assert_eq!(version(), None, "the magic, but no version");
+    let ones = ([u32::MAX; 4], "all ones");
+    let no_magic = ([6, 0, 0, 0], "no magic back");
+    for (regs, why) in [ones, no_magic, ([u32::MAX, 0x564D_5868, 0, 0], "the magic, no version")] {
+        set_host(VMWARE, Box::new(move |_| regs));
+        assert_eq!((version(), backdoor_present()), (None, false), "{why}: nor to the kernel");
+    }
 }
 
 #[test]
