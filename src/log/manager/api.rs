@@ -16,9 +16,9 @@
 
 use super::state::{LogManager, LOGGER, PANIC_MODE};
 use crate::log::types::{LogEntry, Severity};
+use crate::sys::sync::IrqMutex;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use spin::Mutex;
 
 pub fn log(sev: Severity, msg: &str) {
     if let Some(mgr) = LOGGER.lock().as_mut() {
@@ -34,7 +34,7 @@ pub fn log_critical(msg: &str) {
     log(Severity::Fatal, msg);
 }
 
-pub fn try_get_logger() -> Option<&'static Mutex<Option<LogManager>>> {
+pub fn try_get_logger() -> Option<&'static IrqMutex<Option<LogManager>>> {
     Some(&LOGGER)
 }
 

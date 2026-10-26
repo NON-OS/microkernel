@@ -64,3 +64,6 @@ pub mod link_symbols;
 /// The kernel log's serial echo: its budget and the images it is on.
 #[path = "log_budget/mod.rs"]
 mod log_budget;
+/// The kernel logger is started once per boot, after the heap.
+#[path = "log_init/mod.rs"]
+mod log_init;
