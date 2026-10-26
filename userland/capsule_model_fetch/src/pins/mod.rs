@@ -37,4 +37,4 @@ mod pinned_qwen35;
 #[path = "../../../capsule_linux/src/linux/file/models/pinned_vl.rs"]
 mod pinned_vl;
 
-pub use pinned::{all, keepable, pin_of};
+pub use pinned::{all, keep::keepable, pin_of};

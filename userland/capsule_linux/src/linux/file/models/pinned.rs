@@ -48,7 +48,7 @@ const FAMILIES: &[&[Pinned]] = &[QWEN25, QWEN25_BIG, QWEN3, QWEN35, VL, CODER];
  * copied into each place that names it, and two copies of a table hand out
  * two addresses for one pin, so an entry found by name would not be the
  * entry the list holds. The const is named only here and in the build-time
- * check below.
+ * check in pinned/keep.rs.
  */
 static TABLES: &[&[Pinned]] = FAMILIES;
 
@@ -61,47 +61,6 @@ pub fn pin_of(name: &[u8]) -> Option<&'static Pinned> {
     all().find(|p| p.name == name)
 }
 
-/*
- * What the data volume can keep. A directory entry holds 56 bytes of name
- * (src/fs/blockfs/dir_consts.rs, NAME_BYTES), and beside every file the
- * import path writes `<name>.sha256`, its record, and while a download is
- * coming `<name>.partial`, its mark (src/fs/blockfs_volume/import_guard/
- * name.rs). The kernel refuses to stream a name longer than 49 bytes with
- * its slash, the most that leaves room for the mark
- * (src/fs/blockfs_volume/import_feed/live.rs, NAME_MAX = 1 + 56 - 8). A
- * pin under a longer name could be listed but never fetched or imported.
- */
-pub const ENTRY_BYTES: usize = 56;
-pub const STREAM_NAME_MAX: usize = 1 + ENTRY_BYTES - b".partial".len();
-
-/* Whether the volume can keep `name` ("/file"), its record and its mark. */
-pub const fn keepable(name: &[u8]) -> bool {
-    if name.len() < 2 || name[0] != b'/' {
-        return false;
-    }
-    let file = name.len() - 1;
-    name.len() <= STREAM_NAME_MAX
-        && file + b".sha256".len() <= ENTRY_BYTES
-        && file + b".partial".len() <= ENTRY_BYTES
-}
-
-const fn every_one_keepable(tables: &[&[Pinned]]) -> bool {
-    let mut t = 0;
-    while t < tables.len() {
-        let mut i = 0;
-        while i < tables[t].len() {
-            if !keepable(tables[t][i].name) {
-                return false;
-            }
-            i += 1;
-        }
-        t += 1;
-    }
-    true
-}
-
-/* The build stops on a pin the volume could not keep, so none ships. */
-const _: () = assert!(
-    every_one_keepable(FAMILIES),
-    "a pinned model name is too long for the data volume to keep"
-);
+/* What the data volume can keep, which every pin is held to at build time. */
+#[path = "pinned/keep.rs"]
+pub mod keep;

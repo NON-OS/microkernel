@@ -47,7 +47,8 @@ fn a_card_is_shown_exactly_when_the_fetcher_would_download_it() {
             for &(tier, bytes) in &w {
                 let id = format!("linux.qwen-{tier}");
                 let fetches = too_large(tier, bytes, need(tier), Some(total), room).is_none();
-                assert_eq!(shown(id.as_bytes(), &w, Some(total), room), fetches, "{tier} {total} {room:?}");
+                let s = shown(id.as_bytes(), &w, Some(total), room);
+                assert_eq!(s, fetches, "{tier} {total} {room:?}");
             }
         }
     }
@@ -67,9 +68,10 @@ fn other_listings_and_unknown_memory_hide_nothing() {
 #[test]
 fn tiers_sort_smallest_first_after_everything_else() {
     let w = weights();
-    let mut ids = vec!["linux.qwen-qwen3-4b", "linux.jq", "linux.qwen-small", "linux.qwen-qwen3-0.6b"];
+    let want = ["linux.jq", "linux.qwen-small", "linux.qwen-qwen3-0.6b", "linux.qwen-qwen3-4b"];
+    let mut ids = [want[3], want[0], want[1], want[2]];
     ids.sort_by_key(|id| order(id.as_bytes(), &w));
-    assert_eq!(ids, ["linux.jq", "linux.qwen-small", "linux.qwen-qwen3-0.6b", "linux.qwen-qwen3-4b"]);
+    assert_eq!(ids, want);
 }
 
 /* The personality's installer names the stick tier the fetcher and the store name. */
@@ -86,10 +88,8 @@ fn the_stick_tier_is_a_card_where_it_fits_and_the_rest_are_counted() {
     let stick = format!("linux.qwen-{STICK_TIER}");
     assert!(shown(stick.as_bytes(), &w, Some(3 * GIB), Room::Memory));
     assert!(!shown(stick.as_bytes(), &w, Some(2 * GIB), Room::Memory));
-    let hidden = w
-        .iter()
-        .filter(|(t, _)| !shown(format!("linux.qwen-{t}").as_bytes(), &w, Some(8 * GIB), Room::Disk))
-        .count();
+    let off = |t: &str| !shown(format!("linux.qwen-{t}").as_bytes(), &w, Some(8 * GIB), Room::Disk);
+    let hidden = w.iter().filter(|(t, _)| off(t)).count();
     assert!(hidden > 0 && hidden < 20, "{hidden}");
     let line = hidden_line(hidden).unwrap();
     assert_eq!(line, format!("{hidden} larger tiers need more memory than this machine has"));

@@ -21,11 +21,8 @@ mod apps_coder;
 mod apps_qwen25;
 mod apps_qwen3;
 mod apps_qwen35;
-mod apps_vl;
 mod apps_run;
-/* Waiting for Anyone before an install downloads, the fetcher's own rule. */
-#[path = "../../../../capsule_model_fetch/src/get/anyone_wait.rs"]
-mod anyone_wait;
+mod apps_vl;
 mod auth;
 mod chat_build;
 mod chat_pick;

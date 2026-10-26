@@ -29,26 +29,13 @@ pub const VISION: &[&[u8]] = &[b"vl-2b"];
 /// The frame's head.
 pub const MAGIC: &[u8; 8] = b"NXIMG01\n";
 
+#[path = "image/split.rs"]
+mod split;
+pub use split::split;
+
 /// Whether `tier` is shown an image.
 pub fn is_vision(tier: &[u8]) -> bool {
     VISION.contains(&tier)
-}
-
-/// For a vision tier, a question that ends ` < FILE`, FILE one word naming a
-/// PNG or JPEG by its ending, as the question before it and FILE; otherwise
-/// the question whole and no file, so "is 2 < 3?" is still a question.
-pub fn split<'a>(tier: &[u8], question: &'a [u8]) -> (&'a [u8], Option<&'a [u8]>) {
-    if !is_vision(tier) {
-        return (question, None);
-    }
-    let Some(lt) = question.iter().rposition(|&b| b == b'<') else { return (question, None) };
-    let path = trim(&question[lt + 1..]);
-    let before = &question[..lt];
-    let spaced = lt == 0 || before.last().is_some_and(|&b| b == b' ' || b == b'\t');
-    if path.is_empty() || path.iter().any(|&b| b == b' ' || b == b'\t') || !spaced || !image_name(path) {
-        return (question, None);
-    }
-    (trim(before), Some(path))
 }
 
 /// The most an image may be so its frame and the question fit what the
@@ -64,16 +51,4 @@ pub fn frame(image: &[u8]) -> Vec<u8> {
     out.extend_from_slice(&(image.len() as u32).to_le_bytes());
     out.extend_from_slice(image);
     out
-}
-
-/// Whether `path` ends .png, .jpg or .jpeg, in any case.
-fn image_name(path: &[u8]) -> bool {
-    let low: Vec<u8> = path.iter().map(u8::to_ascii_lowercase).collect();
-    [&b".png"[..], b".jpg", b".jpeg"].iter().any(|e| low.len() > e.len() && low.ends_with(e))
-}
-
-fn trim(b: &[u8]) -> &[u8] {
-    let start = b.iter().position(|&c| c != b' ' && c != b'\t').unwrap_or(b.len());
-    let end = b.iter().rposition(|&c| c != b' ' && c != b'\t').map_or(start, |i| i + 1);
-    &b[start..end]
 }

@@ -102,37 +102,10 @@ macro_rules! tier {
 }
 pub(super) use tier;
 
-/*
- * A vision tier: the chat on `model`, with the projector `mmproj` beside it,
- * both needed; on the terminal it is handed an image frame first.
- */
-macro_rules! vision_tier {
-    ($name:literal, $model:literal, $mmproj:literal) => {
-        super::apps::App {
-            name: $name,
-            program: super::apps::CHAT,
-            args: &[
-                b"-ui",
-                b"window",
-                b"-m",
-                concat!("/models", $model).as_bytes(),
-                b"-mmproj",
-                concat!("/models", $mmproj).as_bytes(),
-            ],
-            models: &[$model.as_bytes(), $mmproj.as_bytes()],
-        }
-    };
-}
-pub(super) use vision_tier;
-
-/*
- * Every table, smallest family first.
- */
+/* Every table, smallest family first. */
 pub const FAMILIES: &[&[App]] = &[QWEN25, QWEN3, QWEN35, VL, CODER];
 
-/*
- * Every shipped tier, family by family.
- */
+/* Every shipped tier, family by family. */
 pub fn all() -> impl Iterator<Item = &'static App> {
     FAMILIES.iter().flat_map(|f| f.iter())
 }
