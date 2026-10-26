@@ -24,12 +24,17 @@ use super::mount_or_format::mount_or_format;
 use super::opened::install;
 use super::passphrase_key::stretch;
 use super::plan_types::Plan;
+use super::state::VolumeState;
 use super::ring_blank::ring_blank;
 use crate::crypto::constant_time::secure_zero;
 use crate::crypto::rng::fill_random_bytes_secure;
 use crate::crypto::util::argon2::RECOMMENDED;
 
-pub(super) fn create_keyed(passphrase: &[u8], plan: &Plan) -> Result<(), VolumeError> {
+pub(super) fn create_keyed(
+    v: &mut Option<VolumeState>,
+    passphrase: &[u8],
+    plan: &Plan,
+) -> Result<(), VolumeError> {
     if !ring_blank(plan.volume_base)? {
         crate::log::warn!("[DATA] a volume exists already; not creating one over it");
         return Err(VolumeError::VolumeExists);
@@ -54,7 +59,7 @@ pub(super) fn create_keyed(passphrase: &[u8], plan: &Plan) -> Result<(), VolumeE
      * an open with the same passphrase then finishes the volume.
      */
     let opened = mount_or_format(&key, plan, &Keyed::Passphrase(sealed));
-    let result = opened.map(|mount| install(plan, key, mount));
+    let result = opened.map(|mount| install(v, plan, key, mount));
     secure_zero(&mut key);
     result
 }

@@ -26,9 +26,14 @@ use super::mount_or_format::mount_or_format;
 use super::opened::install;
 use super::passphrase_key::stretch;
 use super::plan_types::Plan;
+use super::state::VolumeState;
 use crate::crypto::constant_time::secure_zero;
 
-pub(super) fn open_keyed(passphrase: &[u8], plan: &Plan) -> Result<(), VolumeError> {
+pub(super) fn open_keyed(
+    v: &mut Option<VolumeState>,
+    passphrase: &[u8],
+    plan: &Plan,
+) -> Result<(), VolumeError> {
     let sealed = match read_key_header()? {
         Some(Keyed::Passphrase(sealed)) => sealed,
         _ => return Err(VolumeError::NotPassphraseKeyed),
@@ -46,7 +51,7 @@ pub(super) fn open_keyed(passphrase: &[u8], plan: &Plan) -> Result<(), VolumeErr
      * only mounts.
      */
     let opened = mount_or_format(&key, plan, &Keyed::Passphrase(sealed));
-    let result = opened.map(|mount| install(plan, key, mount));
+    let result = opened.map(|mount| install(v, plan, key, mount));
     secure_zero(&mut key);
     result
 }
