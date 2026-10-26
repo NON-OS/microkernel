@@ -18,7 +18,7 @@
 //! Air-Gapped boot and an AgentProof build stop, each with its line; every
 //! other boot goes on, and any of them goes on with a unit in service.
 
-use super::no_iommu_refusal::{stops, Needs};
+use super::no_iommu_refusal::{stops, Needs, ALL};
 
 const B: [bool; 2] = [false, true];
 
@@ -46,6 +46,13 @@ fn the_boot_menu_choice_is_named_before_the_build() {
     assert_eq!(stops(false, true, true, true), Some(Needs::AirGapped));
     assert_eq!(stops(false, true, true, false), Some(Needs::Hardened));
     assert_eq!(stops(false, false, true, true), Some(Needs::AirGapped), "air-gapped is hardened");
+}
+
+#[test]
+fn every_promise_is_numbered_once_to_be_held() {
+    for n in [Needs::AirGapped, Needs::Hardened, Needs::AgentProof] {
+        assert_eq!(ALL.iter().filter(|&&a| a == n).count(), 1, "{n:?}");
+    }
 }
 
 #[test]

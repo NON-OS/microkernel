@@ -42,6 +42,9 @@ pub mod registry_names;
 // CPUID is x86_64's alone, so its proofs are too.
 #[path = "block_slow/mod.rs"]
 pub mod block_slow;
+/// The trip lock (L81b): rows, rule table and world model.
+#[path = "pending_run/mod.rs"]
+pub mod pending_run;
 #[cfg(target_arch = "x86_64")]
 #[path = "spectre_cpuid/mod.rs"]
 pub mod spectre_cpuid;
@@ -57,7 +60,6 @@ pub mod surface_shares;
 pub mod syscall_fmask;
 #[path = "transport_takeover/mod.rs"]
 pub mod transport_takeover;
-/// The trip lock (L81b): rows, rule table and world model.
 #[path = "trip_lock/mod.rs"]
 pub mod trip_lock;
 #[path = "usable_runs/mod.rs"]

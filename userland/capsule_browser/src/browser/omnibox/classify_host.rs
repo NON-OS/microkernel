@@ -27,20 +27,20 @@ pub enum HostKind {
     Onion,
 }
 
-/* `auth` is the text before any '/', '?' or '#'. A numeric port may follow
- * the host. A public name needs two or more labels of letters, digits and
- * inner hyphens, the last alphabetic and two or more long, or punycode. */
+/* `auth` is the text before any '/', '?' or '#'; a port may follow the host,
+ * and makes a one-label host (nas:5000) local. A public name has two or more
+ * labels of letters, digits and inner hyphens, the last 2+ letters, or xn--. */
 pub fn host_kind(auth: &str) -> Option<HostKind> {
-    let host = match auth.rsplit_once(':') {
-        Some((h, p)) if !p.is_empty() && p.bytes().all(|b| b.is_ascii_digit()) => {
-            p.parse::<u16>().ok().filter(|&n| n != 0)?;
-            h
+    let (host, port) = match auth.rsplit_once(':') {
+        Some((h, p)) if p.bytes().all(|b| b.is_ascii_digit()) && p.parse::<u16>().ok()? != 0 => {
+            (h, true)
         }
         Some(_) => return None,
-        None => auth,
+        None => (auth, false),
     };
     let lower = host.to_ascii_lowercase();
-    if lower == "localhost" || lower.ends_with(".localhost") || ipv4(host) {
+    let lan = port && !host.contains('.') && label_ok(host);
+    if lower == "localhost" || lower.ends_with(".localhost") || ipv4(host) || lan {
         return Some(HostKind::Local);
     }
     let labels: alloc::vec::Vec<&str> = host.split('.').collect();
