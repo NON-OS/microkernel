@@ -28,13 +28,17 @@ use crate::security::boot::modules::module_bytes;
 /// apart from none.
 const LOOK: u64 = 4 * 1024 * 1024;
 
-/// The log, or empty when the loader carried none: a document still
-/// answers, and a verifier that needs the log refuses it. A log over
-/// `MAX_LOG` is refused, never cut.
-pub(super) fn tcg_log() -> Result<Vec<u8>, AttestDocError> {
-    match module_bytes(MODULE_KIND_TCG_LOG, LOOK) {
-        None => Ok(Vec::new()),
-        Some(log) if !log_fits(log) => Err(AttestDocError::LogTooLarge),
-        Some(log) => Ok(Vec::from(log)),
+/// The firmware's log with the kernel's PCR 14 events after it, or empty
+/// when the loader carried none: a document still answers, and a verifier
+/// that needs the log refuses it. A log over `MAX_LOG` is refused, never
+/// cut.
+pub(super) fn tcg_log(kernel_events: &[u8]) -> Result<Vec<u8>, AttestDocError> {
+    let Some(firmware) = module_bytes(MODULE_KIND_TCG_LOG, LOOK) else {
+        return Ok(Vec::new());
+    };
+    let log = [firmware, kernel_events].concat();
+    match log_fits(&log) {
+        true => Ok(log),
+        false => Err(AttestDocError::LogTooLarge),
     }
 }

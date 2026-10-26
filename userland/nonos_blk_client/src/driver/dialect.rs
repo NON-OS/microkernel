@@ -42,6 +42,8 @@ impl Driver {
             // One arm each: scripts/check_blk_wire.py reads a row per driver.
             Driver::Wire => 0x4E42_5731,
             Driver::Ufs => 0x4E42_5731,
+            Driver::Ide => 0x4E42_5731,
+            Driver::Scsi => 0x4E42_5731,
         }
     }
 
@@ -56,6 +58,8 @@ impl Driver {
             // row by row (scripts/check_blk_wire.py).
             Driver::Wire => Ops { capacity: 2, read: 3, write: 4, flush: 5 },
             Driver::Ufs => Ops { capacity: 2, read: 3, write: 4, flush: 5 },
+            Driver::Ide => Ops { capacity: 2, read: 3, write: 4, flush: 5 },
+            Driver::Scsi => Ops { capacity: 2, read: 3, write: 4, flush: 5 },
         }
     }
 }

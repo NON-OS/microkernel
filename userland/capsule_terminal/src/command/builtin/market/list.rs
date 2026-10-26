@@ -16,14 +16,12 @@
 
 //! `market list`: one line a listing, with where it stands on this machine.
 
-use alloc::format;
-use alloc::string::String;
-
 use nonos_libc::mk_app_install_status;
 use nonos_market_proto::{parse_list, Entry, Stage, OP_LIST_APPS};
 
 use super::call::call;
 use super::failure::Failure;
+use super::list_row::{heading, row};
 use crate::command::output::Output;
 
 pub(super) fn run(out: &mut Output<'_>) {
@@ -34,20 +32,17 @@ pub(super) fn run(out: &mut Output<'_>) {
     let Some(entries) = parse_list(&body) else {
         return Failure::Malformed.say(out, "");
     };
-    out.writeln(format!("market: {} listing(s)", entries.len()).as_bytes());
+    let (plain, styled) = heading(entries.len());
+    out.writeln_styled(&plain, &styled);
+    let width = entries.iter().map(|e| e.id.len()).max().unwrap_or(0);
     for e in &entries {
-        out.writeln(line(e).as_bytes());
+        let (plain, styled) = row(&e.id, &e.name, standing(e), width);
+        out.writeln_styled(&plain, &styled);
     }
     if !entries.is_empty() {
-        out.writeln(b"  `market info <id>` for one in full, `market install <id>` to install it");
+        let hint = b"`market info <id>` for one in full, `market install <id>` to install it";
+        out.writeln_styled(hint, &[b"\x1b[2m", &hint[..], b"\x1b[0m"].concat());
     }
-}
-
-/// "  installed   htop                        linux.htop"
-fn line(e: &Entry) -> String {
-    let name = String::from_utf8_lossy(&e.name);
-    let id = String::from_utf8_lossy(&e.id);
-    format!("  {:<11} {:<28} {id}", standing(e), name)
 }
 
 /// What the machine says first, then the market's verdict. Only a Linux
