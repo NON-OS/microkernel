@@ -46,7 +46,7 @@ pub(super) fn job_argv(kind: JobKind, pid: u32) -> Vec<String> {
 /// also opens MkAttestEntries, MkAcpiMeasured, MkLogTail (the kernel log) and
 /// other processes' masks in MkProcStat; only a RECEIPT job holds it, never
 /// the window and never a PROVE or DELIVER job.
-pub fn job_caps(kind: JobKind, prove: u64, attest_read: u64) -> u64 {
+pub(super) fn job_caps(kind: JobKind, prove: u64, attest_read: u64) -> u64 {
     match kind {
         JobKind::Receipt => prove | attest_read,
         JobKind::Prove | JobKind::Deliver => prove,
