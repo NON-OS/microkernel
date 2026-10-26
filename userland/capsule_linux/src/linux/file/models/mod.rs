@@ -34,6 +34,7 @@ mod pinned_coder;
 mod pinned_qwen25;
 mod pinned_qwen25_big;
 mod pinned_qwen3;
+mod pinned_qwen35;
 mod read;
 mod size;
 mod stat;

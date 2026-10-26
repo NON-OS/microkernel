@@ -2144,9 +2144,11 @@ unset gsi_owners gsi_state gsi_claim ioapic_bind broker_release
 # virtio, IOMMU unit probe, TPM register window, aarch64 PCI windows, and
 # the broker's stop for a device-tree device, which maps its registers for
 # the kernel alone so it can halt the device's DMA when its capsule lets go,
-# the Raspberry Pi firmware mailbox, which only the kernel talks to, and the
-# aarch64 broadcast timer frame, which keeps sleeping CPUs' deadlines).
-device_map_external="$( { grep -rn 'map_device_memory' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/memory/mmio/' || true; } | { grep -v '^src/memory/unified/' || true; } | { grep -v '^src/drivers/' || true; } | { grep -v '^src/arch/x86_64/apic/' || true; } | { grep -v '^src/arch/x86_64/interrupt/' || true; } | { grep -v '^src/interrupts/' || true; } | { grep -v '^src/sys/serial' || true; } | { grep -vE '^src/arch/[a-z0-9_]+/iommu/' || true; } | { grep -v '^src/security/tpm/mmio/map\.rs:' || true; } | { grep -v '^src/arch/aarch64/boot/pci_windows\.rs:' || true; } | { grep -v '^src/hardware/broker/described/register\.rs:' || true; } | { grep -v '^src/arch/aarch64/firmware/state\.rs:' || true; } | { grep -v '^src/arch/x86_64/acpi/hw/port_bus\.rs:' || true; } | { grep -v '^src/arch/x86_64/time/hpet\.rs:' || true; } | { grep -v '^src/arch/aarch64/timer/broadcast/start\.rs:' || true; } )"
+# the Raspberry Pi firmware mailbox, which only the kernel talks to, the
+# aarch64 broadcast timer frame, which keeps sleeping CPUs' deadlines, and an
+# ACPI SD host's first register page, which the kernel maps for itself alone
+# so a claim's stop can reset the host before its DMA grants go (F-128)).
+device_map_external="$( { grep -rn 'map_device_memory' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/memory/mmio/' || true; } | { grep -v '^src/memory/unified/' || true; } | { grep -v '^src/drivers/' || true; } | { grep -v '^src/arch/x86_64/apic/' || true; } | { grep -v '^src/arch/x86_64/interrupt/' || true; } | { grep -v '^src/interrupts/' || true; } | { grep -v '^src/sys/serial' || true; } | { grep -vE '^src/arch/[a-z0-9_]+/iommu/' || true; } | { grep -v '^src/security/tpm/mmio/map\.rs:' || true; } | { grep -v '^src/arch/aarch64/boot/pci_windows\.rs:' || true; } | { grep -v '^src/hardware/broker/described/register\.rs:' || true; } | { grep -v '^src/arch/aarch64/firmware/state\.rs:' || true; } | { grep -v '^src/arch/x86_64/acpi/hw/port_bus\.rs:' || true; } | { grep -v '^src/arch/x86_64/time/hpet\.rs:' || true; } | { grep -v '^src/arch/aarch64/timer/broadcast/start\.rs:' || true; } | { grep -v '^src/hardware/broker/dma/sd_hosts\.rs:' || true; } )"
 if [ -n "${device_map_external}" ]; then
     fail_with "map_device_memory called from outside the kernel TCB; user-facing MMIO must go through the broker"
     printf '%s\n' "${device_map_external}" >&2
@@ -5248,6 +5250,18 @@ else
     fail_with "check_gate_reentry: a GATE holder reaches a function that takes GATE again"
 fi
 unset gate_out
+# The IPC pending-reply table's PENDING is a spin lock the served mark takes at
+# every dequeue: a holder that calls out (the inbox, the scheduler, delivery) or
+# back into PENDING, a mark under another lock, or a dequeue never marked, and
+# replies wait forever or answer a request still in the inbox. Self-test first.
+if pending_out="$(python3 scripts/check_pending_order.py --self-test 2>&1 \
+    && python3 scripts/check_pending_order.py 2>&1)"; then
+    note ok "PENDING is taken in one order and every dequeue marks (check_pending_order)"
+else
+    tail -n 5 <<< "${pending_out}" >&2
+    fail_with "check_pending_order: a PENDING holder calls out, or a dequeue skips the served mark"
+fi
+unset pending_out
 
 # nonos-stark-enroll writes the policy roots. A crate it builds that compiles
 # one in is rebuilt by every enrolment, and the stamps made with the old
@@ -5321,6 +5335,37 @@ else
     fail_with "power button: armed before device interrupt routing, or the q35 verdict does not hold it"
 fi
 unset pbo_out
+# An AP whose stack or boot context cannot be made fails before INIT is sent;
+# that failure prints its reason ("not started: ...") instead of folding into
+# a bare false. Only ap_start/one.rs calls ap_unit::start, and nothing drops it.
+if aps_out="$(python3 scripts/check_ap_start_reasons.py --self-test 2>&1 \
+    && python3 scripts/check_ap_start_reasons.py 2>&1)"; then
+    note ok "every failed AP start says why (check_ap_start_reasons)"
+else
+    tail -n 5 <<< "${aps_out}" >&2
+    fail_with "ap start: a failed AP start is discarded without its reason"
+fi
+unset aps_out
+# The pre-push check every unit runs (tools/nonos-unit-check): rustfmt, the
+# 75-line rule, no new #[allow], no key material. Its self-test makes each
+# finding in a scratch repository and proves a clean unit passes.
+if uc_out="$(python3 tools/nonos-unit-check --self-test 2>&1)"; then
+    note ok "the unit check catches what it says (nonos-unit-check)"
+else
+    tail -n 5 <<< "${uc_out}" >&2
+    fail_with "nonos-unit-check: its self-test failed"
+fi
+unset uc_out
+# The judge of the shootdown boot proof's log: a full flush reaching every
+# AP and a user-asid round reaching only the AP that holds the asid. The boot
+# is local (no lane may build the proof); its judge is held here.
+if spl_out="$(python3 scripts/check_shootdown_proof_log.py --self-test 2>&1)"; then
+    note ok "the shootdown proof's log judge rejects its bad logs"
+else
+    tail -n 5 <<< "${spl_out}" >&2
+    fail_with "check_shootdown_proof_log: the judge accepts a bad log"
+fi
+unset spl_out
 # A kernel feature that gates code and that no lane turns on is dark; the dark
 # set may only shrink (scripts/baselines/dark-features.txt). The SMP boot
 # proofs and pqc-unvetted are lit by the compile-only check-dark-features.
@@ -5388,6 +5433,31 @@ else
     fail_with "nonos-egress-audit: a way off the machine is not listed, or a row is stale"
 fi
 unset egress_out
+# The development market catalogue (P4) is for a development
+# seal in nonos-dev-image's copy alone, signed by that copy's throwaway key:
+# no release path names it, and the seal's choice of it still holds when run.
+# The self-test first, so a scan that stopped seeing it cannot pass quietly.
+if devcat_out="$(python3 scripts/check_dev_catalogue.py --self-test 2>&1 \
+    && python3 scripts/check_dev_catalogue.py 2>&1)"; then
+    note ok "only a development seal takes the test catalogue (check_dev_catalogue)"
+else
+    tail -n 8 <<< "${devcat_out}" >&2
+    fail_with "check_dev_catalogue: a release path can take the development catalogue"
+fi
+unset devcat_out
+# The local test chain (P5) is a development capsule feature alone: no
+# release profile, capsule declaration, dependency, lane or workflow turns it
+# on (that a release never takes the development set is check_dev_capsule_set's,
+# above). The self-test first, so a scan that stopped seeing it cannot pass
+# quietly.
+if devnet_out="$(python3 scripts/check_devnet_feature.py --self-test 2>&1 \
+    && python3 scripts/check_devnet_feature.py 2>&1)"; then
+    note ok "no release can turn the local test chain on (check_devnet_feature)"
+else
+    tail -n 8 <<< "${devnet_out}" >&2
+    fail_with "check_devnet_feature: a release profile or capsule can turn the local test chain on"
+fi
+unset devnet_out
 
 if [ "${fail}" -ne 0 ]; then
     echo

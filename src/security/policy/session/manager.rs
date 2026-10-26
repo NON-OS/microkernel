@@ -18,7 +18,7 @@ extern crate alloc;
 
 use super::account::UserAccount;
 use super::session::UserSession;
-use super::types::{PrivilegeLevel, SessionState, GID_USERS, UID_ANONYMOUS, UID_DEFAULT, UID_ROOT};
+use super::types::{PrivilegeLevel, SessionState, GID_USERS, UID_DEFAULT, UID_ROOT};
 use crate::time::current_ticks;
 use alloc::{collections::BTreeMap, string::String, vec::Vec};
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
@@ -110,16 +110,6 @@ impl SessionManager {
         self.current_session.store(session_id, Ordering::SeqCst);
 
         Ok(session_id)
-    }
-
-    /// The anonymous session's id, or 0 with no anonymous user or no token.
-    pub fn login_anonymous(&self) -> u64 {
-        let Some(user) = self.get_user(UID_ANONYMOUS) else { return 0 };
-        let session_id = self.next_session_id.fetch_add(1, Ordering::SeqCst);
-        let Ok(session) = UserSession::new(session_id, &user) else { return 0 };
-        self.sessions.write().insert(session_id, session);
-        self.current_session.store(session_id, Ordering::SeqCst);
-        session_id
     }
 
     pub fn logout(&self, session_id: u64) -> Result<(), &'static str> {

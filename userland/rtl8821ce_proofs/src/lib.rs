@@ -10,6 +10,7 @@ pub use mounts::*;
 
 // The connect stage's answer to a finished join, at the module path its
 // `pub(in crate::serve)` items name (src/serve/connect/mod.rs).
+#[cfg(test)]
 pub mod serve;
 
 #[cfg(test)]

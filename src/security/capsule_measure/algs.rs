@@ -19,7 +19,7 @@
 use alloc::vec::Vec;
 
 use crate::crypto::hash::sha384::sha384;
-use crate::crypto::hash::{sha256, sha512};
+use crate::crypto::hash::{sha256, sha512, tpm_bank_sha1};
 
 pub const ALG_SHA1: u16 = 0x0004;
 pub const ALG_SHA256: u16 = 0x000B;
@@ -30,17 +30,10 @@ pub(crate) const ALG_SHA512: u16 = 0x000D;
 /// hash: then it cannot extend that bank, and does not extend at all.
 pub fn digest(alg: u16, body: &[u8]) -> Option<Vec<u8>> {
     match alg {
-        ALG_SHA1 => Some(sha1(body).to_vec()),
+        ALG_SHA1 => Some(tpm_bank_sha1(body).to_vec()),
         ALG_SHA256 => Some(sha256(body).to_vec()),
         ALG_SHA384 => Some(sha384(body).to_vec()),
         ALG_SHA512 => Some(sha512(body).to_vec()),
         _ => None,
     }
-}
-
-/// A TPM's SHA-1 bank takes a SHA-1 digest. Nothing here rests on SHA-1's
-/// strength: a verifier replays and trusts the SHA-256 bank alone.
-#[allow(deprecated)]
-fn sha1(body: &[u8]) -> [u8; 20] {
-    crate::crypto::hash::sha1(body)
 }
