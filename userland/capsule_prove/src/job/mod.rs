@@ -23,6 +23,7 @@ mod drain;
 mod exit_rule;
 mod isolation;
 mod run;
+mod seen;
 mod serve;
 mod start;
 mod state;
