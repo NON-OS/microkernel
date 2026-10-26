@@ -3338,6 +3338,7 @@
   "include": [
    ".cargo",
    ".keys/marketplace_operator_ed25519.pub",
+   "nonos-data/market/logos",
    "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -6693,6 +6694,7 @@
   "include": [
    ".cargo",
    "nonos-data/market/index.bin",
+   "nonos-data/market/logos",
    "src/security/market_capsule/client/linux_policy_wire.rs",
    "userland/capsule_app_store/src/store/asked.rs",
    "userland/capsule_app_store/src/store/asked_label.rs",
@@ -6737,6 +6739,8 @@
    "userland/capsule_market/src/install_ready/market.rs",
    "userland/capsule_market/src/install_ready/pin.rs",
    "userland/capsule_market/src/install_ready/ready.rs",
+   "userland/capsule_market/src/logos/answer.rs",
+   "userland/capsule_market/src/logos/table.rs",
    "userland/capsule_market/src/protocol/decode.rs",
    "userland/capsule_market/src/protocol/header.rs",
    "userland/capsule_market/src/server/handlers/get_commerce/encode.rs",
