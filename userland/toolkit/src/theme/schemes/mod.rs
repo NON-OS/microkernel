@@ -18,6 +18,7 @@
 
 mod contrast;
 mod house;
+mod nonos;
 mod published;
 
 pub use contrast::HIGH_CONTRAST;
@@ -39,8 +40,8 @@ pub struct Scheme {
  * added to one without the other would paint a window in another theme's colours.
  * `schemes_match_the_labels` in the toolkit proofs fails if the two lengths part.
  */
-pub const SCHEMES: [Scheme; 8] = [
-    house::AURORA,
+pub const SCHEMES: [Scheme; 9] = [
+    nonos::INK,
     house::SLATE,
     published::NORD,
     published::DRACULA,
@@ -48,6 +49,7 @@ pub const SCHEMES: [Scheme; 8] = [
     house::MONO,
     house::FOREST,
     house::SUNSET,
+    nonos::PAPER,
 ];
 
 /// The scheme for a stored index. An index past the table falls back to the

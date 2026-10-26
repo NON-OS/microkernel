@@ -17,8 +17,8 @@
 use crate::pm::security::sensitive as sens;
 
 // The ten sensitive authorities, grouped as sensitive.rs groups them. The label
-// is the column header, abbreviated because MIN_UI_PX clamps the face at 17 px
-// and "spawnbroker" is wider than any column here; auth_legend spells them out.
+// is the column header, abbreviated because "spawnbroker" at the header's size
+// is wider than any column here; auth_legend spells them out.
 pub const MATRIX: [(u64, &[u8]); 10] = [
     (sens::ADMIN, b"ADM"),
     (sens::DEBUG, b"DBG"),
