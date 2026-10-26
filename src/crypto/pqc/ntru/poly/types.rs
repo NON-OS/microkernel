@@ -44,7 +44,7 @@ impl Polynomial {
         let q = NTRU_Q as i16;
         let half_q = q / 2;
         for c in &mut self.coeffs {
-            *c = *c % q;
+            *c %= q;
             if *c > half_q {
                 *c -= q;
             } else if *c < -half_q {
@@ -55,7 +55,7 @@ impl Polynomial {
 
     pub(crate) fn reduce_mod_3(&mut self) {
         for c in &mut self.coeffs {
-            *c = *c % 3;
+            *c %= 3;
             if *c > 1 {
                 *c -= 3;
             } else if *c < -1 {
