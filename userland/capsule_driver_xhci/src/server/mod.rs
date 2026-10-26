@@ -46,6 +46,7 @@ pub(crate) mod reply;
 mod route;
 pub(crate) mod runner;
 mod sender_holds;
+mod served;
 mod service_interrupts;
 mod sweep;
 mod vouch;

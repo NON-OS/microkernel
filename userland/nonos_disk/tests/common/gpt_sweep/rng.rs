@@ -38,7 +38,7 @@ impl Rng {
     }
 
     pub fn one_in(&mut self, n: u64) -> bool {
-        self.next() % n == 0
+        self.next().is_multiple_of(n)
     }
 
     pub fn one_of(&mut self, v: &[u64]) -> u64 {

@@ -26,7 +26,7 @@
 
 use nonos_libc::mk_ipc_call_timeout;
 
-use super::constants::{HDR_LEN, ISSUE_TIMEOUT_MS, MAX_NAME};
+use super::constants::{HDR_LEN, ISSUE_TIMEOUT_MS, MAX_NAME, OP_LOAD_BY_NAME};
 use super::load_wire::{request, Issued, ERR_INVALID, ERR_NOT_READY, ERR_TIMEDOUT, PID_END};
 use super::port::port;
 
@@ -34,7 +34,7 @@ pub fn issue_load(name: &[u8]) -> Issued {
     if name.is_empty() || name.len() > MAX_NAME {
         return Issued::Refused(ERR_INVALID);
     }
-    let tx = request(name);
+    let tx = request(OP_LOAD_BY_NAME, name);
     let mut rx = [0u8; 32];
     let Some(port) = port() else {
         return Issued::Refused(ERR_NOT_READY);

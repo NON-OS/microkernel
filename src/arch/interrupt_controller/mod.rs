@@ -27,6 +27,8 @@
 //! range, while the GIC reserves INTIDs 0 to 15 for exactly this and nothing
 //! else. Only the backend knows which number carries which meaning.
 
+#[cfg(feature = "nonos-smp")]
+mod adopt_boot_state;
 mod cache_boot_id;
 mod eoi;
 mod ipi;
@@ -34,6 +36,8 @@ mod kind;
 mod local_id;
 mod nmi;
 
+#[cfg(feature = "nonos-smp")]
+pub(crate) use adopt_boot_state::adopt_boot_state;
 pub(crate) use cache_boot_id::{cache_boot_cpu_id, latch_boot_cpu_id};
 pub(crate) use eoi::end_of_interrupt;
 pub(crate) use ipi::{broadcast_ipi, send_ipi};

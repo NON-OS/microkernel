@@ -14,18 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * Reading a kept record back, and naming what is wrong with one refused.
- */
+/* Reading a kept record back, and naming what is wrong with one refused. */
 
-use super::answers::Answers;
-use super::kept::Kept;
 use super::layout::{ANSWERS_LEN, ANSWERS_V1_LEN, ANSWERS_V2_LEN, ANSWERS_V3_LEN, ANSWERS_V4_LEN};
-use super::layout::{ANSWERS_V5_LEN, APPS_AT, HOST_AT, NAME_AT, ROUTE_AT, TIER_AT, WALLPAPERS_AT};
-use super::layout::{MAGIC_V1, MAGIC_V2, MAGIC_V3, MAGIC_V4, MAGIC_V5, MAGIC_V6};
-use super::record::Record;
-use super::refused::Refused;
+use super::layout::{ANSWERS_V5_LEN, APPS_AT, HOST_AT, NAME_AT, ROUTE_AT, TIER_AT};
+use super::layout::{MAGIC_V1, MAGIC_V2, MAGIC_V3, MAGIC_V4, MAGIC_V5, MAGIC_V6, MAGIC_V7};
 use super::rules::{host_ok, name_ok, tier_ok};
+use super::{answers::Answers, kept::Kept, record::Record, refused::Refused};
 
 /* The answers in `raw`, of any version, or why they were refused. */
 pub fn check(raw: &[u8]) -> Result<Answers, Refused> {
@@ -46,8 +41,8 @@ pub fn check_record(raw: &[u8]) -> Result<Record, Refused> {
             Kept::take(&raw[TIER_AT..ANSWERS_V2_LEN], tier_ok).ok_or(Refused::Tier)?,
         ),
     };
-    let answers =
-        Answers { keyboard_layout: raw[4], timezone, wallpaper: raw[6], username, qwen_tier };
+    let (wallpaper, wallpapers_kept) = super::era::wallpapers(version, raw)?;
+    let answers = Answers { keyboard_layout: raw[4], timezone, wallpaper, username, qwen_tier };
     let apps_off = if version >= 3 { raw[APPS_AT] } else { 0 };
     let hostname = match version {
         4.. => Kept::take(&raw[HOST_AT..ANSWERS_V4_LEN], host_ok).ok_or(Refused::Host)?,
@@ -56,19 +51,6 @@ pub fn check_record(raw: &[u8]) -> Result<Record, Refused> {
     let route = if version >= 5 { raw[ROUTE_AT] } else { crate::route::NYM };
     if !crate::route::known(route) {
         return Err(Refused::Route);
-    }
-    let wallpapers_kept = match version {
-        6 => u64::from_le_bytes(raw[WALLPAPERS_AT..ANSWERS_LEN].try_into().map_err(|_| Refused::Length)?),
-        _ => crate::wallpapers_kept::ALL,
-    };
-    // A version 6 record names the set, and its desktop wallpaper is one of
-    // those kept; an older one keeps every wallpaper and is taken as it was.
-    let wallpaper = answers.wallpaper;
-    if version == 6
-        && (!crate::wallpapers_kept::valid(wallpapers_kept)
-            || !crate::wallpapers_kept::kept(wallpapers_kept, wallpaper))
-    {
-        return Err(Refused::Wallpapers);
     }
     Ok(Record { answers, apps_off, hostname, route, wallpapers_kept })
 }
@@ -82,6 +64,7 @@ fn version(raw: &[u8]) -> Result<u8, Refused> {
         ANSWERS_V4_LEN if raw[..4] == MAGIC_V4 => Ok(4),
         ANSWERS_V5_LEN if raw[..4] == MAGIC_V5 => Ok(5),
         ANSWERS_LEN if raw[..4] == MAGIC_V6 => Ok(6),
+        ANSWERS_LEN if raw[..4] == MAGIC_V7 => Ok(7),
         ANSWERS_V1_LEN | ANSWERS_V2_LEN | ANSWERS_V3_LEN | ANSWERS_V4_LEN | ANSWERS_V5_LEN
         | ANSWERS_LEN => Err(Refused::Magic),
         _ => Err(Refused::Length),

@@ -2360,6 +2360,16 @@ else
     fail_with "bootloader build.rs writes outside OUT_DIR"
 fi
 unset boot_build
+# "[INIT] Capsules spawned" is printed only when no capsule failed to spawn;
+# every boot check fails the "capsule spawn incomplete" line in its place, and
+# --selftest shows each check, with that clause taken out, passing it.
+if spawn_out="$(python3 -I nonos-ci/check-spawn-incomplete.py --selftest 2>&1)"; then
+    note ok "every boot check fails a boot whose capsules did not all spawn"
+else
+    tail -n 5 <<< "${spawn_out}" >&2
+    fail_with "a boot check passes a boot whose capsules did not all spawn"
+fi
+unset spawn_out
 # The kernel embeds its trust set only through baked_trust!, so a build pointed
 # at a test set (NONOS_BAKED_TRUST_DIR) replaces every file of it; a trust file
 # included by its literal path would keep the tree's copy in that build.
@@ -5135,6 +5145,27 @@ else
     bash nonos-ci/check-pqc-unvetted.sh >&2 || true
     fail_with "pqc-unvetted is turned on by a build: those schemes do not ship"
 fi
+
+# Every image starts every CPU: no profile, mk lane or QEMU lane drops back to
+# the boot CPU alone, as 0.9.2's did (cpu-2).
+if smp_out="$(python3 nonos-ci/check-smp-default.py 2>&1)"; then
+    note ok "every build and QEMU lane starts every CPU (check-smp-default)"
+else
+    printf '%s\n' "${smp_out}" >&2
+    fail_with "check-smp-default: a build or QEMU lane runs on one CPU"
+fi
+unset smp_out
+
+# No kernel lock is taken again by a path that already holds it, by name across
+# src/ (lock_retake/graph.py says what is read); its fixtures run first.
+retake_check='nonos-ci/check-lock-retake.py'
+if retake_out="$(python3 "${retake_check}" --self 2>&1 && python3 "${retake_check}" 2>&1)"; then
+    note ok "no kernel lock taken again on a path that holds it (check-lock-retake)"
+else
+    printf '%s\n' "${retake_out}" >&2
+    fail_with "check-lock-retake: a lock is taken again on a path that holds it"
+fi
+unset retake_out retake_check
 # Every crate's tests run in a lane or are listed with an owner, and
 # tools/nix/test-lanes.json is what the manifests' markers say.
 if lanes_out="$(python3 scripts/check_test_lanes.py 2>&1)"; then
@@ -5345,6 +5376,16 @@ else
     fail_with "nonos_mirror_relay: the relay can serve a locked package as other bytes"
 fi
 unset relay_out
+
+# A drive whose `until` step times out leaves every CPU's registers and the
+# code at each one's PC behind, read from that CPU (tools/nonos_drive).
+if drive_out="$( (cd tools && python3 -m unittest -q nonos_drive.test_drive) 2>&1)"; then
+    note ok "a drive that stops at a step leaves every CPU's state (nonos_drive)"
+else
+    tail -n 8 <<< "${drive_out}" >&2
+    fail_with "nonos_drive: a timed-out step can leave no machine state behind"
+fi
+unset drive_out
 
 # Every way off the machine is listed: a capsule that gains Network, or an
 # address, host or build-time endpoint new to a networked capsule's source,

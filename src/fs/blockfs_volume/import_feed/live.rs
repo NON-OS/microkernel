@@ -82,7 +82,7 @@ pub(in super::super) fn without_stream<R>(
     name: &[u8],
     f: impl FnOnce() -> Result<R, super::super::error::VolumeError>,
 ) -> Result<R, super::super::error::VolumeError> {
-    let live = LIVE.lock();
+    let live = crate::smp::lock_responsive(&LIVE);
     if live.as_ref().is_some_and(|l| &l.name[..l.name_len] == name) {
         return Err(super::super::error::VolumeError::Importing);
     }

@@ -22,7 +22,7 @@ use nonos_market_proto::reason::*;
 use crate::linux_why::why::Why;
 
 /// Every reason the personality exits with, beside the code the clients read.
-const PAIRS: [(Why, u8); 33] = [
+const PAIRS: [(Why, u8); 34] = [
     (Why::Index, WHY_INDEX),
     (Why::NotProvided, WHY_NOT_PROVIDED),
     (Why::TooLarge, WHY_TOO_LARGE),
@@ -55,6 +55,7 @@ const PAIRS: [(Why, u8); 33] = [
     (Why::AnyoneNotUp, WHY_ANYONE_NOT_UP),
     (Why::ProgramMissing, WHY_PROGRAM_MISSING),
     (Why::ProgramUnreadable, WHY_PROGRAM_UNREADABLE),
+    (Why::Policy, WHY_POLICY),
     (Why::UnpackMemory, WHY_UNPACK_MEMORY),
 ];
 
@@ -63,7 +64,9 @@ fn the_clients_read_the_codes_the_personality_exits_with() {
     for (i, (why, code)) in PAIRS.iter().enumerate() {
         assert_eq!(why.code(), i32::from(*code), "{why:?}");
         assert_ne!(reason(*code).line, reason(u8::MAX).line, "code {code} has no sentence");
-        for (_, other) in &PAIRS[i + 1..] {
+        for (other_why, other) in &PAIRS[i + 1..] {
+            // Constants, not an enum's variants: nothing else keeps two apart.
+            assert_ne!(why.code(), other_why.code(), "{why:?} and {other_why:?}");
             assert_ne!(reason(*code).line, reason(*other).line, "{code} and {other}");
         }
     }

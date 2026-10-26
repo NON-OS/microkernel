@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::manifest::WIDTH;
 use super::state::{State, ViewKind};
 
 // Curated list geometry. The row count is derived from the live window height
@@ -77,7 +76,7 @@ pub fn measure(state: &mut State, win_h: u32) {
             state.view_rows = (avail / ROW_H).max(1) as usize;
         }
         ViewKind::Grid => {
-            state.grid_cols = (content_w(WIDTH) / GRID_CELL_W).max(1);
+            state.grid_cols = (content_w(state.win_w) / GRID_CELL_W).max(1);
             let avail = win_h.saturating_sub(GRID_TOP + FOOTER_H);
             let rows = (avail / GRID_CELL_H).max(1);
             state.view_rows = (rows * state.grid_cols) as usize;

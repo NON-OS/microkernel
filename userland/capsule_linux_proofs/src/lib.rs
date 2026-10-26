@@ -18,40 +18,40 @@
 
 extern crate alloc;
 
-#[path = "../../capsule_linux/src/linux/wayland/wire.rs"]
-pub mod wire;
 #[path = "../../capsule_linux/src/linux/wayland/args.rs"]
 pub mod args;
-#[path = "../../capsule_linux/src/linux/wayland/object.rs"]
-pub mod wayland_object;
 #[path = "../../capsule_linux/src/linux/wayland/frame_len.rs"]
 pub mod frame_len;
 #[path = "../../capsule_linux/src/linux/wayland/opaque.rs"]
 pub mod opaque;
+#[path = "../../capsule_linux/src/linux/wayland/object.rs"]
+pub mod wayland_object;
+#[path = "../../capsule_linux/src/linux/wayland/wire.rs"]
+pub mod wire;
 /* A key as the Linux key it came from, and the modifiers it carries. */
 #[path = "../../capsule_linux/src/linux/wayland/evdev.rs"]
 pub mod evdev;
 #[path = "../../capsule_linux/src/linux/wayland/evdev_keys.rs"]
 pub mod evdev_keys;
-#[path = "../../capsule_linux/src/linux/wayland/xkb_mods.rs"]
-pub mod xkb_mods;
-#[path = "../../capsule_linux/src/linux/wayland/pointer_codes.rs"]
-pub mod pointer_codes;
 #[path = "../../capsule_linux/src/linux/wayland/held_keys.rs"]
 pub mod held_keys;
+#[path = "../../capsule_linux/src/linux/wayland/pointer_codes.rs"]
+pub mod pointer_codes;
 #[path = "../../capsule_linux/src/linux/wayland/focus_step.rs"]
 pub mod wayland_focus_step;
 #[path = "../../capsule_linux/src/linux/wayland/window_damage.rs"]
 pub mod window_damage;
+#[path = "../../capsule_linux/src/linux/wayland/xkb_mods.rs"]
+pub mod xkb_mods;
 /* A guest window full screen and back, and taken down when it ends. */
+#[path = "../../capsule_linux/src/linux/wayland/configure.rs"]
+pub mod configure;
 #[path = "../../capsule_linux/src/linux/wayland/fit/mod.rs"]
 pub mod fit;
 #[path = "../../capsule_linux/src/linux/wayland/ops.rs"]
 pub mod ops;
 #[path = "../../capsule_linux/src/linux/wayland/out.rs"]
 pub mod out;
-#[path = "../../capsule_linux/src/linux/wayland/configure.rs"]
-pub mod configure;
 #[path = "../../capsule_linux/src/linux/wayland/reshape.rs"]
 pub mod reshape;
 #[path = "../../capsule_linux/src/linux/wayland/scene_pixels.rs"]
@@ -72,27 +72,27 @@ pub mod family;
 /* A program's pin, hashed a window at a time (`hash_windows_tests`). */
 #[path = "../../capsule_linux/src/linux/file/hash_windows.rs"]
 pub mod hash_windows;
+#[path = "../../capsule_linux/src/linux/file/dev_metrics_parse.rs"]
+pub mod metrics_parse;
+#[path = "../../capsule_linux/src/linux/file/models/name.rs"]
+pub mod model_name;
+#[path = "../../capsule_linux/src/linux/file/resolve.rs"]
+pub mod resolve;
 #[path = "../../capsule_linux/src/linux/file/root.rs"]
 pub mod root;
 #[path = "../../capsule_linux/src/linux/file/root_write.rs"]
 pub mod root_write;
-#[path = "../../capsule_linux/src/linux/file/resolve.rs"]
-pub mod resolve;
-#[path = "../../capsule_linux/src/linux/file/models/name.rs"]
-pub mod model_name;
 #[path = "../../capsule_linux/src/linux/file/models/stat_size.rs"]
 pub mod stat_size;
-#[path = "../../capsule_linux/src/linux/file/dev_metrics_parse.rs"]
-pub mod metrics_parse;
 /* What the `linux` command says when the store has nothing (`store_why_tests`). */
-#[path = "../../capsule_linux/src/linux/store_why.rs"]
-pub mod store_why;
 #[path = "../../capsule_linux/src/linux/file/dir_children.rs"]
 pub mod dir_children;
 #[path = "../../capsule_linux/src/linux/file/dirent.rs"]
 pub mod dirent;
 #[path = "../../capsule_linux/src/linux/file/meta/statbuf/mod.rs"]
 pub mod statbuf;
+#[path = "../../capsule_linux/src/linux/store_why.rs"]
+pub mod store_why;
 
 #[path = "../../capsule_linux/src/linux/net/host_body.rs"]
 pub mod host_body;
@@ -123,19 +123,17 @@ pub mod pick;
  * net.anon's own operations, statuses and END reasons, which the capsule's
  * client of its handle front is held to.
  */
-#[path = "../../capsule_net_anon/src/protocol/ops.rs"]
-pub mod anon_server_ops;
-#[path = "../../capsule_net_anon/src/protocol/errno.rs"]
-pub mod anon_server_errno;
 #[path = "../../capsule_net_anon/src/stream/end.rs"]
 pub mod anon_server_end;
+#[path = "../../capsule_net_anon/src/protocol/errno.rs"]
+pub mod anon_server_errno;
+#[path = "../../capsule_net_anon/src/protocol/ops.rs"]
+pub mod anon_server_ops;
 
 #[path = "../../capsule_linux/src/linux/applets.rs"]
 pub mod applets;
 #[path = "../../capsule_linux/src/linux/file/private/rule.rs"]
 pub mod private_rule;
-#[path = "../../capsule_linux/src/linux/heap_choice.rs"]
-pub mod heap_choice;
 
 /* The box a guest runs in: its policy, its identity, what it allows. */
 pub mod app;

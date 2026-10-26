@@ -70,6 +70,6 @@ pub fn sys_ipc_call(
     let start = crate::time::timestamp_millis();
     let recv_result = recv_reply_correlated(pid, &inbox, resp, resp_len, timeout, token);
     let waited = (timeout_ms, crate::time::timestamp_millis().saturating_sub(start));
-    settle(endpoint.as_ref(), pid, (req, req_len, resp), recv_result, waited);
+    settle(endpoint.as_ref(), (pid, token), (req, req_len, resp), recv_result, waited);
     recv_result
 }

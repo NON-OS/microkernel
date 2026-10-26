@@ -18,11 +18,16 @@
 //! The wallpaper service asks again every few seconds; before, every refusal
 //! was silent and the desktop stayed on its built in picture with nothing
 //! saying which step broke.
+//!
+//! A test binary of its own: the catalog remembers which wallpapers it has
+//! named for the life of the process (`catalog/say.rs`), and with four
+//! wallpapers the library's other tests have refused all of them by the time
+//! these would run, so in that process nothing would be left to say.
 
 use nonos_libc::take_said;
 
-use crate::catalog::{get_slug, with_bytes, Fetch};
-use crate::collection::{files, flip, installed, reset, TURN};
+use wallpaper_catalog_proofs::catalog::{get_slug, with_bytes, Fetch};
+use wallpaper_catalog_proofs::collection::{files, flip, installed, reset, TURN};
 
 fn said() -> Vec<String> {
     take_said().into_iter().map(|l| String::from_utf8(l).unwrap()).collect()
@@ -33,11 +38,11 @@ fn a_changed_byte_is_named_as_a_pin_mismatch_once() {
     let _turn = TURN.lock().unwrap_or_else(|e| e.into_inner());
     reset();
     let _ = said();
-    let at: usize = files()[..40].iter().map(|(_, b)| b.len()).sum::<usize>() + 7;
+    let at: usize = files()[..2].iter().map(|(_, b)| b.len()).sum::<usize>() + 7;
     flip(at);
-    assert_eq!(with_bytes(40, |_| ()), Err(Fetch::Unavailable));
-    assert_eq!(with_bytes(40, |_| ()), Err(Fetch::Unavailable));
-    let slug = String::from_utf8(get_slug(40).unwrap().to_vec()).unwrap();
+    assert_eq!(with_bytes(2, |_| ()), Err(Fetch::Unavailable));
+    assert_eq!(with_bytes(2, |_| ()), Err(Fetch::Unavailable));
+    let slug = String::from_utf8(get_slug(2).unwrap().to_vec()).unwrap();
     let want = format!("[WALLPAPER-CATALOG] {slug}: its bytes are not its pinned SHA-256\n");
     assert_eq!(said(), vec![want]);
     reset();
@@ -49,8 +54,8 @@ fn a_wallpaper_the_disk_does_not_carry_names_the_failed_step() {
     reset();
     let _ = said();
     installed(&[0]);
-    assert_eq!(with_bytes(50, |_| ()), Err(Fetch::Unavailable));
-    let slug = String::from_utf8(get_slug(50).unwrap().to_vec()).unwrap();
+    assert_eq!(with_bytes(3, |_| ()), Err(Fetch::Unavailable));
+    let slug = String::from_utf8(get_slug(3).unwrap().to_vec()).unwrap();
     let lines = said();
     assert_eq!(lines.len(), 1, "{lines:?}");
     assert!(lines[0].starts_with(&format!("[WALLPAPER-CATALOG] {slug}: ")), "{lines:?}");
@@ -63,6 +68,6 @@ fn a_wallpaper_served_says_nothing() {
     let _turn = TURN.lock().unwrap_or_else(|e| e.into_inner());
     reset();
     let _ = said();
-    assert_eq!(with_bytes(30, |b| b.len()), Ok(files()[30].1.len()));
+    assert_eq!(with_bytes(1, |b| b.len()), Ok(files()[1].1.len()));
     assert!(said().is_empty());
 }

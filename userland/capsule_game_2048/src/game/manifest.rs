@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::{AppManifest, WindowKind};
+use nonos_app_skeleton::{window_for, AppManifest, WindowKind};
 
+/// The content area the game is laid out for (paint.rs); the window asked
+/// for is that plus the frame around it.
 pub const WIDTH: u32 = 360;
 pub const HEIGHT: u32 = 480;
+const WINDOW: (u32, u32) = window_for(WIDTH, HEIGHT);
 
 const WINDOW_ID: u32 = 0x3230_3438;
 const INPUT_KEY_DOWN_BIT: u32 = 1 << 0;
@@ -29,8 +32,8 @@ pub fn manifest() -> AppManifest {
         kind: WindowKind::Normal,
         initial_x: 380,
         initial_y: 120,
-        width: WIDTH,
-        height: HEIGHT,
+        width: WINDOW.0,
+        height: WINDOW.1,
         input_kind_mask: INPUT_KEY_DOWN_BIT,
     }
 }

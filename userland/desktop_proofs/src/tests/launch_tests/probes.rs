@@ -36,7 +36,7 @@ fn unanswered_probes_back_off_and_hold_few_places() {
                 assert!(gap >= last_gap.min(PROBE_GAP_MAX_MS));
                 last_gap = gap;
                 last_probe = now;
-                l.probed(Uptime(now), false);
+                l.probed(Uptime(now), None);
             }
             Step::Wait => {}
             other => panic!("unexpected {other:?} at {now}"),
