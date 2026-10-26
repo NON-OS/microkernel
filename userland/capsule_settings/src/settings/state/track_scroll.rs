@@ -16,7 +16,7 @@
 
 use crate::settings::ui::scroll::ensure_visible;
 
-use super::state::State;
+use super::model::State;
 use super::view_h::view_h;
 
 pub fn track_scroll(state: &mut State) {

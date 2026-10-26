@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::edit_buffer::EditBuffer;
-use super::state::State;
+use super::model::State;
 
 pub fn edit_cancel(state: &mut State) {
     state.editing = false;
