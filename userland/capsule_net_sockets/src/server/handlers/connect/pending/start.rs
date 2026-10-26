@@ -21,6 +21,7 @@ use nonos_libc::mk_time_millis;
 use crate::clients::tcp;
 use crate::protocol::E_NO_TRANSPORT;
 use crate::server::parse_req::Request;
+use crate::server::request::current;
 use crate::server::respond::respond;
 use crate::sockets::SocketKey;
 use crate::state;
@@ -47,7 +48,15 @@ pub fn start(
         return;
     };
     let deadline_ms = mk_time_millis().wrapping_add(DEADLINE_MS);
-    let entry =
-        Pending { pid, op, request_id: req.request_id, key, transport, ip, port, deadline_ms };
+    let entry = Pending {
+        ipc: current(),
+        op,
+        request_id: req.request_id,
+        key,
+        transport,
+        ip,
+        port,
+        deadline_ms,
+    };
     PENDING.lock().push(entry);
 }

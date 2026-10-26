@@ -18,10 +18,10 @@ use crate::ipc::nonos_inbox;
 use crate::process::current_pid;
 use crate::syscall::microkernel::errnos::{ERRNO_AGAIN, ERRNO_TIMEDOUT};
 
-use super::recv_from_deliver::deliver;
+use super::recv_from_deliver::{deliver, Outs};
 use super::wait_rule::{after_empty, Next};
 
-pub(super) fn drain(buf: u64, len: usize, timeout_ms: u64, outs: (u64, u64), inbox: &str) -> i64 {
+pub(super) fn drain(buf: (u64, usize), timeout_ms: u64, outs: Outs, inbox: &str) -> i64 {
     let start = crate::time::timestamp_millis();
     let pid = current_pid().unwrap_or(0);
     loop {
@@ -31,8 +31,8 @@ pub(super) fn drain(buf: u64, len: usize, timeout_ms: u64, outs: (u64, u64), inb
         // window as recv_from_inbox; this loop is the one most servers run.
         let token = crate::sched::wake_token(pid);
         if let Some(msg) = nonos_inbox::try_dequeue_existing(inbox) {
-            super::pending_reply::mark_served(pid, msg.correlation);
-            return deliver(pid, &msg, buf, len, outs);
+            let request = super::pending_reply::mark_served(pid, msg.correlation);
+            return deliver(pid, &msg, buf, outs, request);
         }
         let elapsed = crate::time::timestamp_millis().saturating_sub(start);
         let deadline = match after_empty(timeout_ms, start, elapsed) {
@@ -42,8 +42,8 @@ pub(super) fn drain(buf: u64, len: usize, timeout_ms: u64, outs: (u64, u64), inb
         };
         crate::sched::sleep_until_unless_woken(pid, deadline, token);
         if let Some(msg) = nonos_inbox::try_dequeue_existing(inbox) {
-            super::pending_reply::mark_served(pid, msg.correlation);
-            return deliver(pid, &msg, buf, len, outs);
+            let request = super::pending_reply::mark_served(pid, msg.correlation);
+            return deliver(pid, &msg, buf, outs, request);
         }
         crate::sched::yield_now();
     }

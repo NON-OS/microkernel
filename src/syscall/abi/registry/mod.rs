@@ -18,11 +18,21 @@ mod admin;
 mod crypto;
 mod graphics;
 mod mk;
+mod mk2;
+mod mk3;
+mod mk4;
 
 use super::AbiEntry;
 
 // Source of truth for the active NØNOS syscall ABI, organized by
 // domain. The aggregator is a slice-of-slices so each domain's table
 // is owned by its own file; `lookup_id` flattens.
-pub const REGISTRY: &[&[AbiEntry]] =
-    &[mk::ENTRIES, crypto::ENTRIES, admin::ENTRIES, graphics::ENTRIES];
+pub const REGISTRY: &[&[AbiEntry]] = &[
+    mk::ENTRIES,
+    mk2::ENTRIES,
+    mk3::ENTRIES,
+    mk4::ENTRIES,
+    crypto::ENTRIES,
+    admin::ENTRIES,
+    graphics::ENTRIES,
+];

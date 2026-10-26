@@ -40,7 +40,7 @@ src/syscall/
 | `struct Capability` | `src/syscall/contract/capability.rs:30` | The per-call resolved capability. |
 | `Capability::resolve` | `src/syscall/contract/capability.rs:35` | Resolve the caller's token against the syscall. |
 | `struct SyscallArgs` | `src/syscall/contract/args.rs:21` | The raw six-register argument block. |
-| `enum SyscallNumber` | `src/syscall/numbers/defs.rs:19` | The 176 syscall numbers (FourCC tags, `:20-195`). |
+| `enum SyscallNumber` | `src/syscall/numbers/defs.rs:17` | The 179 syscall numbers (FourCC tags, `:18-196`). |
 | `from_u64` | `src/syscall/numbers/convert.rs:22` | Map a raw id to a `SyscallNumber` or none. |
 | `struct SyscallResult` | `src/syscall/types/result.rs:17` | The result: value, capability consumed, audit required. |
 | `handle_syscall_dispatch` | `src/syscall/dispatch/router/entry.rs:29` | Fan out a resolved call to its handler. |

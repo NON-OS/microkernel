@@ -18,8 +18,7 @@
 /// current-process slot and no time slice. There is no index it can be given
 /// that is not a guess, so it stops here instead of running as another CPU.
 pub(super) fn unregistered(apic_id: u32) -> ! {
-    crate::sys::serial::print(b"[SMP] FATAL unregistered CPU, APIC id ");
-    crate::sys::serial::print_dec(apic_id as u64);
-    crate::sys::serial::println(b"");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[SMP] FATAL unregistered CPU, APIC id ").dec(apic_id as u64).end_fatal();
     crate::arch::halt_loop()
 }

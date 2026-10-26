@@ -14,24 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Format `value` as a decimal string and write it to the serial
-// port. Alloc-free.
+use crate::syscall::{call_raw, N_MK_IPC_REPLY_TO};
 
-pub(super) fn print_dec_usize(mut value: usize) {
-    if value == 0 {
-        crate::sys::serial::print(b"0");
-        return;
-    }
-    let mut buf = [0u8; 20];
-    let mut len = 0usize;
-    while value > 0 {
-        buf[len] = b'0' + (value % 10) as u8;
-        len += 1;
-        value /= 10;
-    }
-    let mut out = [0u8; 20];
-    for i in 0..len {
-        out[i] = buf[len - 1 - i];
-    }
-    crate::sys::serial::print(&out[..len]);
+// Answer the request `mk_ipc_recv_req` named `request`, and only that one.
+// -ENOENT when there is no such request dequeued and unanswered: a second
+// answer to one request reaches no one.
+#[no_mangle]
+pub extern "C" fn mk_ipc_reply_to(request: u64, buf: *const u8, len: usize) -> i64 {
+    call_raw(N_MK_IPC_REPLY_TO, [request, buf as u64, len as u64, 0, 0, 0])
 }

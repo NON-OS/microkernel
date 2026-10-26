@@ -14,14 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::print_hex::print_hex_u64;
-
 pub fn emit_fatal_notice(name: &[u8], rip: u64) {
-    crate::sys::serial::print(b"[PANIC ");
-    crate::sys::serial::print(name);
-    crate::sys::serial::print(b"] fatal kernel fault, no recovery path rip=");
-    print_hex_u64(rip);
-    crate::sys::serial::println(b" -- to the panic path: wipe, power off");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[PANIC ").str(name).str(b"] fatal kernel fault, no recovery path rip=");
+    l.hex_lower(rip).str(b" -- to the panic path: wipe, power off").end_fatal();
 }
 
 /// Same notice without the COM1 spinlock, for a fault taken when the

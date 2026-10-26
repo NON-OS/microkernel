@@ -56,7 +56,7 @@ pub fn decide(vendor: IommuVendor) {
     })
     .end();
     if let Some(needs) = stops(false, AGENTPROOF, hardened, air_gapped) {
-        crate::boot::stop("IOMMU", needs.line());
+        super::no_iommu_stop::hold(needs);
     }
 }
 

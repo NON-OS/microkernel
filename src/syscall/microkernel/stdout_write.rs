@@ -16,7 +16,7 @@
 
 //! `MkStdoutWrite` handler. Program stdout for a capsule that holds no
 //! `Capability::Debug` token: the bytes are mirrored into the caller's
-//! own `proc.<pid>` inbox for its launcher to drain, and nothing is
+//! own `stdout.<pid>` inbox for its launcher to drain, and nothing is
 //! written to the boot serial or the framebuffer console.
 //!
 //! The contract layer has already verified `Capability::IPC`; this layer

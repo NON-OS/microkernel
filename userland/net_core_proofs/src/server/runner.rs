@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn print_hex_u64(v: u64) {
-    let hex = b"0123456789abcdef";
-    let mut buf = [0u8; 18];
-    buf[0] = b'0';
-    buf[1] = b'x';
-    for i in 0..16 {
-        let nib = ((v >> ((15 - i) * 4)) & 0xF) as usize;
-        buf[2 + i] = hex[nib];
-    }
-    crate::sys::serial::print(&buf);
-}
+//! The receive half of net.core's serve loop: how long it waits and what it
+//! keeps of the request it took. The dispatch and the turn stay out.
+
+#[path = "../../../capsule_net_core/src/server/runner/cadence.rs"]
+mod cadence;
+#[path = "../../../capsule_net_core/src/server/runner/receive.rs"]
+pub mod receive;
+#[cfg(test)]
+#[path = "receive_tests.rs"]
+mod receive_tests;

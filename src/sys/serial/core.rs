@@ -62,6 +62,7 @@ on machines without serial hardware.
 */
 pub fn write_byte(ch: u8) {
     super::tail::keep(ch);
+    super::column::note(ch);
     crate::arch::console::write_byte(ch);
 }
 
@@ -70,37 +71,29 @@ pub fn is_available() -> bool {
 }
 
 /*
-The fatal path's writer, aarch64 only. A CPU that traps while it holds
-SERIAL_LOCK, or while another CPU that will never run again holds it,
-would spin in with_serial_lock forever and the trap would never be
-named. So the lock is taken if it frees within a bounded number of
-tries, and the line is written either way: a line interleaved with
-another CPU's output can still be read, a line never written cannot.
-With the MMU off the lock is not touched at all. Its word is Device
-memory then, and exclusive access to Device memory is not guaranteed
-to work.
+The fatal path's line (fatal.rs): the lock if it frees in a bounded time,
+written either way. On aarch64 with the MMU off the lock is not touched at
+all: its word is Device memory then, and exclusive access to Device memory
+is not guaranteed to work.
 */
-#[cfg(target_arch = "aarch64")]
 pub fn write_fatal_line(bytes: &[u8]) {
-    const TRIES: u32 = 1 << 20;
+    let tries = if lock_usable() { super::fatal::TRIES } else { 0 };
+    let parts = [super::column::opening(), bytes];
+    super::fatal::write_bounded(tries, || SERIAL_LOCK.try_lock(), write_byte, &parts);
+}
+
+#[cfg(target_arch = "aarch64")]
+fn lock_usable() -> bool {
     const SCTLR_M: u64 = 1;
     let sctlr: u64;
     // SAFETY: reading SCTLR_EL1 at EL1 has no side effect.
     unsafe {
         ::core::arch::asm!("mrs {}, sctlr_el1", out(reg) sctlr, options(nomem, nostack, preserves_flags));
     }
-    let mut guard = None;
-    if sctlr & SCTLR_M != 0 {
-        for _ in 0..TRIES {
-            guard = SERIAL_LOCK.try_lock();
-            if guard.is_some() {
-                break;
-            }
-            ::core::hint::spin_loop();
-        }
-    }
-    for &ch in bytes.iter().chain(b"\r\n") {
-        write_byte(ch);
-    }
-    drop(guard);
+    sctlr & SCTLR_M != 0
+}
+
+#[cfg(not(target_arch = "aarch64"))]
+fn lock_usable() -> bool {
+    true
 }

@@ -17,18 +17,13 @@
 //! An answer the kernel would not hand to the call it was for
 //! (ipc/reply_dest.rs). The service's name and the reason only, no pids.
 
-use super::{serial, trail, Site};
+use super::{trail, Site};
 
 impl Site {
     /// `what` answered a call, and its answer was refused for `why`.
     pub fn reply_refused(&self, what: &str, why: &'static str) {
         let Some(n) = self.admit() else { return };
-        serial::print(b"[DIAG] ");
-        serial::print(self.label);
-        serial::print(b" reply refused ");
-        serial::print_str(what);
-        serial::print(b": ");
-        serial::print_str(why);
-        trail(n);
+        let mut l = self.head();
+        trail(l.str(b" reply refused ").str(what.as_bytes()).str(b": ").str(why.as_bytes()), n);
     }
 }

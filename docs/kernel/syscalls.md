@@ -19,7 +19,7 @@ The CPU itself overwrites `rcx` and `r11`. The entry code saves the caller's `rd
 The kernel registers and dispatches 176 system calls, and publishes 147 of them. The count was taken three ways at this commit:
 
 - `abi/syscalls.toml` lists 147 tags under `[numbers]`, starting at `APPS` (`abi/syscalls.toml:55-56`), and 147 `[desc.TAG]` blocks, one per call.
-- The kernel enum `SyscallNumber` has 176 variants (`src/syscall/numbers/defs.rs:19-196`). The 147 published tags are among them; the other 29 are dispatched but not published, all microkernel calls, and the check below names each one.
+- The kernel enum `SyscallNumber` has 179 variants (`src/syscall/numbers/defs.rs:17-197`). The 150 published tags are among them; the other 29 are dispatched but not published, all microkernel calls, and the check below names each one.
 - The kernel's `REGISTRY` joins four tables: 160 microkernel, 12 crypto, 3 admin and 1 graphics entry, 176 in all (`src/syscall/abi/registry/mod.rs:27-28`).
 
 `scripts/check_syscall_abi.py` goes further and checks that every published call reaches a handler:
@@ -66,9 +66,9 @@ flowchart TD
 
 `dispatch` is the single way into the handlers: it runs `Capability::resolve` and returns `EPERM` when the caller's token does not admit the call (`src/syscall/contract/dispatch.rs:25-40`). The five checks inside `resolve` are on [Capabilities](capabilities.md).
 
-`handle_syscall_dispatch` counts every call, successes and failures, and writes an audit record when the handler asks for one (`src/syscall/dispatch/router/entry.rs:29-52`). `dispatch_syscall` then picks the family: the 12 crypto calls, the admin calls, the 105 calls `microkernel_ops` matches, the graphics query, the 6 surface calls and the 3 input calls (`src/syscall/dispatch/router/dispatch_fn.rs:22-59`). The 105 are listed in `matches` (`src/syscall/dispatch/router/microkernel_ops.rs:18-127`).
+`handle_syscall_dispatch` counts every call, successes and failures, and writes an audit record when the handler asks for one (`src/syscall/dispatch/router/entry.rs:29-52`). `dispatch_syscall` then picks the family: the 12 crypto calls, the admin calls, the 154 calls `microkernel_ops` matches, the graphics query, the 6 surface calls and the 3 input calls (`src/syscall/dispatch/router/dispatch_fn.rs:22-59`). The 154 are listed in `matches`, in four parts (`src/syscall/dispatch/router/microkernel_ops.rs:25-27`, `src/syscall/dispatch/router/microkernel_ops/`).
 
-A microkernel call goes to `dispatch_microkernel_syscall`, whose `route` offers it to the IPC, process, capability, device and IRQ handlers, then to MMIO, DMA, PIO, debug and data, and returns -1 when none takes it (`src/syscall/microkernel/dispatch/route.rs:33-69`). Each handler group matches on the `SYS_*` constants, which repeat the tags, for example `SYS_IPC_SEND` (`src/syscall/microkernel/numbers.rs:21`).
+A microkernel call goes to `dispatch_microkernel_syscall`, whose `route` offers it to the IPC, process, capability, device and IRQ handlers, then to MMIO, DMA, PIO, debug and data, and returns -1 when none takes it (`src/syscall/microkernel/dispatch/route.rs:33-69`). Each handler group matches on the `SYS_*` constants, which repeat the tags, for example `SYS_IPC_SEND` (`src/syscall/microkernel/numbers/ipc_process.rs:21`).
 
 ## Results
 
@@ -84,7 +84,7 @@ A call is reachable only when all of these agree, which is why `scripts/check_sy
 2. The variant in `src/syscall/numbers/defs.rs`.
 3. A row in the family table under `src/syscall/abi/registry`.
 4. The gate in the cap table under `src/syscall/contract/cap_table`. A call no table claims is refused for everyone.
-5. The route in `src/syscall/dispatch/router`, and for a microkernel call its `SYS_*` constant in `src/syscall/microkernel/numbers.rs` and an arm under `src/syscall/microkernel/dispatch`.
+5. The route in `src/syscall/dispatch/router`, and for a microkernel call its `SYS_*` constant in one of the parts under `src/syscall/microkernel/numbers/` and an arm under `src/syscall/microkernel/dispatch`.
 
 Then run `scripts/check_syscall_abi.py` and `scripts/check_syscall_caps.py`; [Contributing: tests and proofs](../contributing/tests-and-proofs.md) lists the other checks.
 
