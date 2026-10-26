@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::constants::CANARY_VALUE;
+use super::regions::SecondRegion;
 use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 #[cfg(feature = "heap-track")]
 use heapless::index_set::FnvIndexSet;
@@ -38,7 +39,9 @@ pub struct SecureHeapAllocator {
     // KHEAP_BASE window from the layout constants, which the bootstrap heap
     // never occupies, so it wiped an unmapped range and left the real heap
     // intact. Recording the base at init is what lets the wipe find it.
-    heap_start: AtomicUsize,
+    pub(super) heap_start: AtomicUsize,
+    // The second region (types/regions.rs), empty until boot adds it.
+    pub(super) second: SecondRegion,
 }
 
 impl SecureHeapAllocator {
@@ -53,6 +56,7 @@ impl SecureHeapAllocator {
             initialized: AtomicBool::new(false),
             heap_size: AtomicUsize::new(0),
             heap_start: AtomicUsize::new(0),
+            second: SecondRegion::new(),
         }
     }
 
@@ -73,20 +77,5 @@ impl SecureHeapAllocator {
     #[inline]
     pub fn get_heap_size(&self) -> usize {
         self.heap_size.load(Ordering::Acquire)
-    }
-
-    /// Base and length of the memory this heap allocates from, once it has
-    /// been initialized. The shutdown wipe uses this to erase the heap the
-    /// kernel actually ran on rather than a range from the layout constants.
-    pub fn extent(&self) -> Option<(*mut u8, usize)> {
-        if !self.is_initialized() {
-            return None;
-        }
-        let start = self.heap_start.load(Ordering::Acquire);
-        let size = self.heap_size.load(Ordering::Acquire);
-        if start == 0 || size == 0 {
-            return None;
-        }
-        Some((start as *mut u8, size))
     }
 }
