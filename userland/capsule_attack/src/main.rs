@@ -30,6 +30,7 @@ mod authority;
 mod codes;
 mod containment;
 mod deputy;
+mod deputy_port;
 mod disks;
 mod errno;
 mod line;
