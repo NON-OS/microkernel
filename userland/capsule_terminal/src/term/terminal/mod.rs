@@ -22,6 +22,8 @@ mod app_impl_on_event;
 mod app_impl_on_tick;
 mod app_impl_paint;
 mod close_tab;
+mod damage;
+mod drop_key;
 #[cfg(feature = "agentproof-headless")]
 pub mod agentproof;
 mod new;

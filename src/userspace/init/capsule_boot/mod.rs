@@ -16,7 +16,9 @@
 
 mod cert_reason;
 mod error;
+mod failures;
 mod manifest_reason;
 mod run;
 
+pub(crate) use failures::failed;
 pub(crate) use run::{boot, restart};

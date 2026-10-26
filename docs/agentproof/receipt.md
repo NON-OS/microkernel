@@ -27,7 +27,7 @@ is sealed, and its receipt names no program.
 
 ## The format: NAPR v0
 
-Big-endian. The head is `NAPR` and version 0 (two bytes). Then five fields, each a `u32`
+Big-endian. The head is `NAPR` and version 0 (two bytes). Then six fields, each a `u32`
 length and its bytes:
 
 | field | bytes | what |
@@ -37,6 +37,7 @@ length and its bytes:
 | app policy | 256 | the program's NLXPOL01 policy |
 | launcher | 32 | the capsule that asked for the run; zero until it can be named |
 | doc | up to 1088 KiB | the NONOSATT v5 attestation document, with the two parts its quote does not sign cleared |
+| entries | 45 each, 1 to 4096 | what `MkAttestEntries` gave with the document: every capsule running, with its pid, measurement, capabilities and authority |
 
 - The document answers the receipt's challenge:
   `BLAKE3("NONOS-AGENTPROOF-RECEIPT-v0" | every byte before the doc's length)`.
@@ -44,6 +45,8 @@ length and its bytes:
   A receipt carries the count as 0 and the log empty. Left in, they would be bytes anyone
   could change without the receipt failing.
 - One receipt has one encoding. A reader refuses another version, a field of the wrong
-  length, and any byte after the doc.
+  length, an entries field that is not whole entries, and any byte after the entries.
+- The entries come after the doc, outside the challenge: the quote binds them through
+  the registry root they must fold to.
 
 How a receipt is checked, the trust file it is checked against, and what a pass does not prove: [the receipt verifier](receipt-verify.md).
