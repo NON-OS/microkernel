@@ -16,4 +16,5 @@
 
 mod fdtable;
 
+pub(crate) use fdtable::budget_size;
 pub use fdtable::{SeekWhence, Store, StoreError};
