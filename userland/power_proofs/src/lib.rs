@@ -23,14 +23,20 @@
 pub mod frame;
 #[path = "../../capsule_power/src/off/rule.rs"]
 pub mod rule;
+#[path = "../../capsule_power/src/off/who.rs"]
+pub mod who;
 #[path = "../../capsule_power/src/off/wire.rs"]
 pub mod wire;
 
 #[cfg(test)]
 mod glue_tests;
 #[cfg(test)]
+mod installer_glue_tests;
+#[cfg(test)]
 mod kernel_glue_tests;
 #[cfg(test)]
 mod off_wire_tests;
 #[cfg(test)]
 mod rule_tests;
+#[cfg(test)]
+mod who_tests;

@@ -118,6 +118,8 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MFEX", SyscallNumber::MkForeignExec, "MkForeignExec"),
     e(b"MLRN", SyscallNumber::MkLinuxRunNet, "MkLinuxRunNet"),
     e(b"MSLR", SyscallNumber::MkSealRead, "MkSealRead"),
+    e(b"MSLP", SyscallNumber::MkSealPeek, "MkSealPeek"),
+    e(b"MSLD", SyscallNumber::MkSealDrop, "MkSealDrop"),
     e(b"MSNT", SyscallNumber::MkSealNote, "MkSealNote"),
     e(b"MPJB", SyscallNumber::MkProveJob, "MkProveJob"),
     e(b"MLSG", SyscallNumber::MkLocalSign, "MkLocalSign"),

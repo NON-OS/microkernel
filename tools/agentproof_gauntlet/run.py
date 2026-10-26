@@ -16,9 +16,9 @@
 """tools/agentproof-gauntlet --job DIR: one agent, built into a gauntlet image,
 booted headless on the IOMMU lane, judged from its serial log.
 
-Exit 0 when the box refused nothing (or no more than --max-refused), the
-program started and the report came whole; 1 when it did not; 2 when the
-image could not be built or booted. result.json and serial.log go to --out.
+Exit 0 when the box refused nothing (or no more than --max-refused), the program
+started, the report came whole and its receipt verified (receipt.py); 1 when not;
+2 when the image could not be built or booted. Results and logs go to --out.
 """
 
 import argparse
@@ -27,6 +27,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from . import receipt
 from .identity import commit, job_hash
 from .verdict import judge, read
 
@@ -49,6 +50,7 @@ def main(argv=None) -> int:
     ap.add_argument("--max-refused", type=int, default=0)
     ap.add_argument("--timeout", type=int, default=1800, help="seconds the boot may take")
     ap.add_argument("--no-build", action="store_true", help="boot the gauntlet image already built")
+    ap.add_argument("--trust", type=Path, help="the receipt's trust file; else pinned on first use")
     a = ap.parse_args(argv)
     a.out.mkdir(parents=True, exist_ok=True)
     source = commit(ROOT)  # as the image is copied from it, not as the run ends
@@ -58,18 +60,16 @@ def main(argv=None) -> int:
         if subprocess.run(build, cwd=ROOT).returncode != 0:
             print("agentproof-gauntlet: the image did not build", file=sys.stderr)
             return 2
-    log = a.out / "serial.log"
-    log.write_text("")
+    (log := a.out / "serial.log").write_text("")
     booted = boot(log, a.timeout)
-    result = read(log.read_text(errors="replace"))
-    why = judge(result, a.max_refused)
+    result = read(text := log.read_text(errors="replace"))
+    result["receipt"] = receipt.check(text, a.out, a.trust)
+    why = judge(result, a.max_refused) + result["receipt"]["why"]
     result.update(passed=not why, why=why, booted=booted, keys="test keys (development copy)",
                   job_sha256=job_hash(a.job), image_commit=commit(IMAGE.parents[3]),
                   source_commit=source)
     (a.out / "result.json").write_text(json.dumps(result, indent=1) + "\n")
-    for line in result["out"]:
+    for line in result["out"] + result["receipt"].get("verdict", []):
         print(f"  | {line}")
     print("agentproof-gauntlet: " + ("PASS" if not why else "FAIL: " + "; ".join(why)))
-    if result["status"] is None and booted != 0:
-        return 2
-    return 0 if not why else 1
+    return 2 if result["status"] is None and booted != 0 else int(bool(why))

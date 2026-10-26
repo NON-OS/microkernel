@@ -26,7 +26,7 @@ use crate::fixture::Fixture;
 pub fn written(t: &Trust) -> String {
     let mut s = String::from("nonos-receipt-trust 1\n# the fixture's\n");
     for r in &t.releases {
-        let line = [r.version.clone(), hex(&r.pcr8), hex(&r.pcr9), hex(&r.pcr14)].join(" ");
+        let line = [r.version.clone(), hex(&r.pcr8), hex(&r.pcr9)].join(" ");
         s += &format!("release {line}\n");
     }
     t.supervisors.iter().for_each(|v| s += &format!("supervisor {} {:#x}\n", hex(&v.meas), v.caps));
