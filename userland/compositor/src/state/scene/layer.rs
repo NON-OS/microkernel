@@ -38,4 +38,9 @@ pub struct Layer {
     pub stack: u32,
     pub in_use: bool,
     pub miss_count: u16,
+    /// The pointer's shape over this layer, as its owner asked
+    /// (frame_pacer/cursor_shapes.rs); None until it asks. A layer that never
+    /// asks, as the shell's chrome over every window, leaves the pointer to
+    /// the layers under it.
+    pub cursor: Option<u8>,
 }

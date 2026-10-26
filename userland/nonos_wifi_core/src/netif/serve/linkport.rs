@@ -50,7 +50,7 @@ pub fn serve<L: LinkPort>(req: &[u8], link: &mut L, out: &mut [u8]) -> Option<us
             let status = if link.send_tx(r.payload) { 0 } else { -STATUS_NO_LINK };
             status_only(out, OP_TX_PACKET, r.request_id, status)
         }
-        OP_RX_PACKET => rx_response(out, r.request_id, link),
+        OP_RX_PACKET => rx_response(out, (r.request_id, r.payload), link),
         _ => None,
     }
 }

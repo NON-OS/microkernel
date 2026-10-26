@@ -17,8 +17,6 @@
 //! A caller's path too long for the line is cut short; the line still ends
 //! with its line number, and is no longer than its buffer.
 
-#![allow(dead_code, clippy::let_unit_value)]
-
 include!("../src/mount.rs");
 
 #[path = "long/a_source_path_long_enough_to_be_cut_short"]
