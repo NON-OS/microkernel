@@ -44,6 +44,7 @@ src/fs/
 | `seal` | `src/fs/cryptoblock/seal.rs:22` | AEAD-seal a sector. |
 | `open` / `open_into` | `src/fs/cryptoblock/open.rs:24` / `:36` | Open (decrypt) a sealed sector. |
 | `read` / `write` (sector) | `src/fs/cryptoblock/read.rs:23` / `write.rs:21` | Read/write by LBA with a key. |
+| `write_deferred` / `flush_held` / `drop_held` | `src/fs/cryptoblock/write_deferred.rs:28` / `:44` / `:54` | Seal a sector and hold it in a run of up to 64 consecutive sectors, sent as one device request; send what is held; drop, unsent, what a writer leaving the volume left held. A run is moved out of its lock before it is sent (`pending.rs`, `pending_send.rs`), so a sender asleep or killed in that round trip holds no lock. |
 | `passphrase_volume` | `src/fs/blockfs_volume/passphrase.rs:32` | Create or unlock a passphrase-keyed volume. |
 | `mount_volume` | `src/fs/blockfs_volume/mount_volume.rs:23` | Mount a volume by key id. |
 | `struct CryptoFileSystem` | `src/fs/cryptofs/core.rs:48` | The path-keyed encrypted filesystem (`init_cryptofs` at `:128`). |

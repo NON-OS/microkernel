@@ -66,7 +66,8 @@ def arms(root):
 def check(root):
     published = tomllib.loads((root / "abi/syscalls.toml").read_text()).get("desc", {})
     numbers = root / "src/syscall/microkernel/numbers.rs"
-    name_of = {tag: name for name, tag in NUMBER.findall(numbers.read_text())}
+    parts = [numbers] + sorted(numbers.with_suffix("").glob("*.rs"))
+    name_of = {tag: name for name, tag in NUMBER.findall("\n".join(p.read_text() for p in parts))}
     read = arms(root)
     problems, checked, elsewhere = [], 0, 0
     for tag, desc in sorted(published.items()):

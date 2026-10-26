@@ -34,6 +34,7 @@ pub extern "C" fn kernel_entry(dtb_ptr: u64) -> ! {
     // Into the path every architecture shares, as aarch64 does: the bootstrap
     // heap first, then the neutral handoff.
     crate::memory::heap::manager::init_bootstrap();
+    crate::log::init();
     let handoff = crate::boot::handoff::KernelHandoff::from_riscv64(&info);
     crate::kernel_core::microkernel_init(&handoff);
     crate::kernel_core::microkernel_main()
