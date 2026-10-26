@@ -25,6 +25,7 @@ mod receipt_terminal_tests;
 mod job_exit_tests;
 mod job_poll_tests;
 mod job_progress_tests;
+mod job_rc_tests;
 mod job_status_tests;
 mod job_told_tests;
 mod job_wait_tests;
