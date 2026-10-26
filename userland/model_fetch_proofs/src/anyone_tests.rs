@@ -72,20 +72,4 @@ fn the_line_says_the_step() {
     assert_eq!(line(None), "Anyone is starting");
 }
 
-/* Anyone not up in time is its own reason, with Retry and the direct choice. */
-#[test]
-fn anyone_not_up_is_its_own_reason() {
-    use crate::install::fetch_exit::ANYONE_NOT_UP;
-    use crate::install::model_dep::fetched;
-    use crate::install::why::Why;
-    use crate::store::progress::Progress;
-    assert_eq!(fetched(i64::from(ANYONE_NOT_UP)), Err(Why::ANYONE_NOT_UP));
-    let p = Progress::Failed(Why::ANYONE_NOT_UP.code() as u8);
-    assert!(p.retryable());
-    let said = String::from_utf8_lossy(p.sentence().unwrap().0).into_owned();
-    assert!(
-        said.starts_with("Anyone did not build a circuit within 3 minutes; retry, or press d"),
-        "{said}"
-    );
-    assert!(crate::store::route_offer::ROUTE_REASONS.contains(&33));
-}
+mod not_up;
