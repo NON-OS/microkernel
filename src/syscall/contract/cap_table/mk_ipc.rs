@@ -21,11 +21,7 @@ use crate::syscall::numbers::SyscallNumber;
 
 pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
     Some(match number {
-        /*
-         * A capsule may always learn its own pid: MkProcStat already shows
-         * every pid to any valid caller, and nothing else comes with it.
-         */
-        SyscallNumber::MkGetPid => caps.is_valid(),
+        SyscallNumber::MkGetPid => caps.can_getpid(),
         SyscallNumber::MkArgs => caps.can_getpid(),
         SyscallNumber::MkThreadSpawn => caps.can_ipc(),
         /*

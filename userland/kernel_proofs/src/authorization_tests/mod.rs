@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod bits_tests;
 mod gate_tests;
-mod getpid_tests;
 mod token;
 
 /// The token other proofs build theirs with.
