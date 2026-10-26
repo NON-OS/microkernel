@@ -45,7 +45,8 @@ held-escape refused: a net service by its reply port without Network, MkIpcSend 
 held-escape refused: xhci's bulk-IN by its reply port, MkIpcCall EPERM (1)
 deputy-escape refused: app.install through the shell's OP_OPEN_WITH ENOENT (2)
 reply-twice refused: a second MkIpcReplyTo to one request ENOENT (2)
-reply-twice refused: MkIpcReplyTo to a request still in the inbox ENOENT (2)"""
+reply-twice refused: MkIpcReplyTo to a request still in the inbox ENOENT (2)
+reply-twice refused: MkIpcReplyTo to a call that gave up ETIMEDOUT (110)"""
 
 FAULTED = """[ATTACK-FAULT] pid 41 writes address 0x0
 [TRAP PF] cpl=3 rip=0x0000000000402832 rsp=0x00007fffffffe000 cs=0x0000000000000033 ss=0x000000000000002b rflags=0x0000000000010246 cr3=0x0000000001234000 asid=0x0000000000000009 pid=0x0000000000000029 err=0x0000000000000006 cr2=0x0000000000000000
