@@ -1,7 +1,7 @@
 # Catalogue app logos, as upstream ships them
 
 Each file here is an upstream project's logo, vendored byte for byte from
-the URL docs/market/logos-licences.md gives for it. The recipe in
+the URL HANDOFF/catalogue/logos-licences.md gives for it. The recipe in
 ../linux-catalogue.json names it as `logo`, the lock pins its BLAKE3 as G,
 and the raster made from it once, committed at
 nonos-data/market/logos/linux.<package>.rgba, is pinned as R and signed by

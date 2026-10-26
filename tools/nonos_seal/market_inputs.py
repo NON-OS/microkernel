@@ -65,7 +65,7 @@ SOURCES = [
     "tools/nonos-market-index", "tools/nonos-market-catalogue", "tools/nonos_market_catalogue",
     "tools/nonos-market-sign-releases", "tools/nonos-qwen-tier.py", "tools/nonos_qwen_tier",
     "tools/nix/userland.nix", "tools/nix/sources.txt", "nonos-mk", LOGOS,
-    "docs/market/logos-licences.md",
+    "HANDOFF/catalogue/logos-licences.md",
     # The catalogue's recipes, its policy encoder, the Alpine keys it checks
     # under and the release the device installs from.
     "tools/nonos_linux_pack", "userland/capsule_linux/keys/alpine",

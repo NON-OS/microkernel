@@ -1,7 +1,7 @@
 # Code style: UI copy
 
 What a person reads on a NØNOS screen follows the Voice rules in
-`docs/design/ui-identity.md`, and `nonos-ci/check-ui-copy.py` holds every window's
+`HANDOFF/ui/identity.md`, and `nonos-ci/check-ui-copy.py` holds every window's
 strings to the parts of them a machine can check. It runs in the `static-abi`
 flake check, with its self-test.
 

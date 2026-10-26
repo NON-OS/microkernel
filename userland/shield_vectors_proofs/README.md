@@ -42,7 +42,7 @@ derivation's `periodic.top.sha256`), run the capsule's `shipped_cache`
 Without it each such test writes
 `<test>: NONOS_PERIODIC_CACHE not set, real cache test skipped` to stderr,
 past the harness's capture, as the TPM suites do; the lane exports the
-variable and fails on that line.
+variable and fails on that line (`HANDOFF/patches/b-shield-vectors-cache-checks.patch`).
 
 ## The full proving run: the binary, not the tests
 
@@ -55,7 +55,8 @@ cache byte for byte, then the other three from the shipped cache, each proof
 and its format 7 form held to the pinned bytes. Exit 0 only when no line
 failed and all four held; without the variable it fails, naming it.
 `cargo test` builds the binary and runs its tests, never its `main`, so the
-test lane does not prove.
+test lane does not prove. Its own check:
+`HANDOFF/patches/b-shield-vectors-prove-checks.patch`.
 
 ## Lanes
 

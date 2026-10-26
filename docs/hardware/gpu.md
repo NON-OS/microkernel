@@ -64,7 +64,7 @@ On aarch64 the kernel takes a device-tree `simple-framebuffer` node
 
 ## Where this goes next
 
-The GPU breadth work takes them as the documents allow:
+The GPU breadth letters (`HANDOFF/letters/gpu/`) take them as the documents allow:
 
 - Intel Gen11 and Gen12 mode setting from the public Tiger Lake and Ice Lake PRMs;
 - AMD only once the owner rules how a register source may be used, since AMD has

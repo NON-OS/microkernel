@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The NONOS icon a catalogue app shows when the market serves no logo for
-//! it (docs/market/logos-licences.md): one of the desktop's own
+//! it (HANDOFF/catalogue/logos-licences.md): one of the desktop's own
 //! glyphs, chosen by what the app is for. Drawn without asking the market,
 //! so no logo ever holds up a row.
 

@@ -48,4 +48,4 @@ Put the checklist, the report file and the photos in one folder per machine, nam
 machine's number above and the date, and send it to the maintainers. Never include serial
 numbers, MAC addresses, network names, passwords or anything from your own files; the
 [report rules](report.md#what-not-to-include) say what to leave out. The maintainers file each
-report, and each one becomes matrix rows and fixes.
+report under `HANDOFF/received/`, and this session turns it into matrix rows and fixes.
