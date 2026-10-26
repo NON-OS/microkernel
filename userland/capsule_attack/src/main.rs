@@ -35,6 +35,7 @@ mod errno;
 mod line;
 mod medium;
 mod reply_escape;
+mod reply_twice;
 
 /// # Safety
 /// The kernel enters here once, on a fresh stack.
@@ -46,6 +47,7 @@ pub unsafe extern "C" fn _start() -> ! {
     attempts::cap_escape();
     attempts::inbox_escape();
     reply_escape::reply_escape();
+    reply_twice::reply_twice();
     authority::authority_escape();
     attempts::foreign_memory();
     attempts::register_service();

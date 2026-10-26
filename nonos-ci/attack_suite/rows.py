@@ -47,6 +47,10 @@ ROWS = (
       r"xhci's bulk-IN by its reply port, .* EPERM")),
     ("deputy: the shell's open-with", "deputy-escape",
      (r"app\.install through the shell's OP_OPEN_WITH ENOENT",)),
+    # A request answers once: a second answer, or one to a request still in
+    # the inbox, reaches no one (MkIpcReplyTo).
+    ("reply: one answer per request", "reply-twice",
+     (r"a second MkIpcReplyTo to one request ENOENT", r"MkIpcReplyTo to a request still in the inbox ENOENT")),
     ("foreign-memory: kernel via Debug", "foreign-memory", (r"a kernel address to MkDebug EFAULT",)),
     ("foreign-memory: other aspace via Debug", "foreign-memory",
      (r"another address space's address to MkDebug EFAULT",)),
