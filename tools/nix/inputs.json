@@ -4596,7 +4596,9 @@
    "userland/capsule_desktop_shell/src/wm_client",
    "userland/capsule_egui_proof/src/egui_proof/manifest.rs",
    "userland/capsule_file_manager/src/fm",
+   "userland/capsule_game_2048/src/game/colors.rs",
    "userland/capsule_game_2048/src/game/manifest.rs",
+   "userland/capsule_game_2048/src/game/paint.rs",
    "userland/capsule_gui_demo/src/gui_demo/manifest.rs",
    "userland/capsule_gui_proof/src/manifest.rs",
    "userland/capsule_hello/src/hello/manifest.rs",
@@ -7881,7 +7883,12 @@
   "include": [
    ".cargo",
    "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton/src/clients/vfs/deadline.rs",
+   "userland/capsule_policy/src/keep/write_steps.rs",
+   "userland/capsule_policy/src/progress.rs",
    "userland/capsule_policy/src/push",
+   "userland/capsule_policy/src/restore/awaits.rs",
+   "userland/capsule_policy/src/restore/stage.rs",
    "userland/capsule_policy/src/server/handle_get.rs",
    "userland/capsule_policy/src/server/handle_set.rs",
    "userland/capsule_policy/src/server/handlers",
@@ -9231,6 +9238,18 @@
   "md": [],
   "signed": []
  },
+ "userland/spawn_report_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/kernel_core/process_spawn/capsule_spawn/spawn_error.rs",
+   "src/userspace/init/capsule_boot/failures.rs",
+   "src/userspace/init/spawn_report.rs",
+   "userland/spawn_report_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/spectre_proofs": {
   "exclude": [],
   "include": [
@@ -9662,6 +9681,7 @@
    "userland/capsule_terminal/src/mixnet/exchange/wait_settle.rs",
    "userland/capsule_terminal/src/paint/fetch.rs",
    "userland/capsule_terminal/src/paint/fetch_arch.rs",
+   "userland/capsule_terminal/src/paint/fetch_banner.rs",
    "userland/capsule_terminal/src/paint/fetch_emblem.rs",
    "userland/capsule_terminal/src/paint/fetch_palette.rs",
    "userland/capsule_terminal/src/paint/fetch_row.rs",

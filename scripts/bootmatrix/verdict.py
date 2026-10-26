@@ -15,14 +15,13 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """What a serial log has to say for the boot to count.
 
-The markers are the kernel's own lines, the same ones nonos-verify reads. A
-cell with more than one CPU must hear from every one of them. Every cell must
-carry the [IOMMU] lines its QEMU device calls for (iommu.py). A cell with
-its store on a USB stick must hear driver.usb_msc0 bind it at the block length the stick has and
-the block layer settle on it. Every cell must see the ring-0
-restrictions read back on: SMEP, SMAP, NX and WP, from the kernel's own
-[CPU-PROT] line rather than from what the code asked the part for. A q35
-cell must hear the power button armed, PWRBTN_EN set (power.py).
+The markers are the kernel's own lines, the same ones nonos-verify reads. A cell with more
+than one CPU must hear from every one of them. Every cell must carry the [IOMMU] lines its
+QEMU device calls for (iommu.py). A cell with its store on a USB stick must hear
+driver.usb_msc0 bind it at the block length the stick has and the block layer settle on it.
+Every cell must see the ring-0 restrictions read back on: SMEP, SMAP, NX and WP, from the
+kernel's own [CPU-PROT] line rather than from what the code asked the part for. A q35 cell
+must hear the power button armed, PWRBTN_EN set (power.py).
 """
 
 import re
@@ -32,7 +31,8 @@ from . import devices, iommu, power, virtio
 STORE_SERVING = "[VFS] serving, store status "
 DESKTOP = ("[COMPOSITOR] capsule spawned", "[WM] capsule spawned", "[desktop_shell]", "[compositor]")
 READY = ["Handoff OK", "Capsules spawned", STORE_SERVING]
-FATAL = ("[FATAL]", "[PANIC]", "[TRAP GP]", "[TRAP UD]", "[ZK-ATTEST] FAIL", "[SMP-PROOF] FAIL")
+FATAL = ("[FATAL]", "[PANIC]", "[TRAP GP]", "[TRAP UD]", "[ZK-ATTEST] FAIL", "[SMP-PROOF] FAIL",
+         "[INIT] capsule spawn incomplete")
 SMP_PROOF = re.compile(r"\[SMP-PROOF\] cpu_count=(\d+) (PASS|UP)")
 STORE_STATUS = re.compile(r"\[VFS\] serving, store status ([0-9a-f]{2})")
 CPU_PROT = re.compile(r"\[CPU-PROT\] smep=(\d) smap=(\d) umip=(\d) nx=(\d) wp=(\d)")

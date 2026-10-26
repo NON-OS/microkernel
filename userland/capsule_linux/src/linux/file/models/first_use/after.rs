@@ -57,7 +57,7 @@ pub(in super::super) fn after(done: i64, tier: &str) {
             ("EIO", "the volume could not be read or written; check the disk and try again")
         }
         errno::EAGAIN => ("EAGAIN", "the disk is not ready yet; try again"),
-        errno::EACCES => ("EACCES", "the volume is locked; unlock it with its passphrase"),
+        errno::EACCES => ("EACCES", "the volume is locked; open it with its passphrase"),
         errno::ENODEV => {
             ("ENODEV", "no disk carries NONOS, so there is no data volume: install NONOS")
         }

@@ -37,9 +37,11 @@ pub fn bound(
     out
 }
 
-/// The whole receipt: `bound` and the doc asked with its challenge.
-pub fn finish(mut bound: Vec<u8>, doc: &[u8]) -> Vec<u8> {
+/// The whole receipt: `bound`, the doc asked with its challenge, and the
+/// MkAttestEntries entries read with it.
+pub fn finish(mut bound: Vec<u8>, doc: &[u8], entries: &[u8]) -> Vec<u8> {
     put(&mut bound, doc);
+    put(&mut bound, entries);
     bound
 }
 

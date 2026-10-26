@@ -28,6 +28,8 @@ pub fn call(
     call_within(port, op, request_id, body, rx, 0)
 }
 
+/// One request and its reply, waiting at most `timeout_ms` (0: this
+/// process's deadline, `set_deadline_ms`).
 pub fn call_within(
     port: u32,
     op: u16,
@@ -43,10 +45,10 @@ pub fn call_within(
         tx.len(),
         rx.as_mut_ptr(),
         rx.len(),
-        timeout_ms,
+        super::deadline::effective(timeout_ms),
     );
     if rc <= 0 || (rc as usize) < HDR_LEN + 4 {
-        return Err("vfs ipc failed");
+        return Err(super::deadline::TIMEOUT);
     }
     Ok((read_i32(rx, HDR_LEN)?, rc as usize))
 }
