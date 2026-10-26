@@ -24,7 +24,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from . import lock
+from . import lock, logos
 from .catalogue import catalogue_entries
 from .names import cache_safe
 from .recipes_file import load
@@ -41,10 +41,14 @@ def catalogue_run(path: Path, cache: Path, mirror: str, release: str, arch: str,
     try:
         recipes = load(path, Path("."))
         names = [r["package"] for r in recipes]
+        marks = {r["package"]: logos.digests(r, Path(".")) for r in recipes}
+        # The listing signs the raster's BLAKE3 as its logo_hash.
+        recipes = [dict(r, logo_hash=marks[r["package"]][1]) for r in recipes]
         known = table(mirror, cache, names)
         pins = None if update_lock else lock.read(pinned)
         if pins is not None:
             lock.held(known, pins, names)
+            logos.held(marks, pins)
         found = catalogue_entries(recipes, known, lambda rec: apk_of(cache, rec), key, when_ms)
         if pins is not None:
             lock.bytes_held(pins, found)
@@ -60,5 +64,5 @@ def catalogue_run(path: Path, cache: Path, mirror: str, release: str, arch: str,
     if len(found) != len(recipes):
         sys.exit("catalogue: a recipe was not listed; a seal lists every recipe or none")
     if update_lock:
-        lock.write(pinned, known, names, found)
+        lock.write(pinned, known, names, found, marks)
     return found

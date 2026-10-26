@@ -18,7 +18,8 @@
 //! every display driver the kernel spawns is one of those names.
 
 use super::common::owner;
-use super::held::displays::{is_display, DISPLAYS, HINT_SOURCES};
+use super::display_hints::HINT_SOURCES;
+use super::held::displays::DISPLAYS;
 use super::held::{callers_of, endpoint_admits};
 
 #[test]
@@ -31,7 +32,9 @@ fn every_display_is_held_to_the_compositor_alone() {
             assert!(!endpoint_admits(ep, owner(one)), "{ep} took {other}");
         }
     }
-    assert!(!is_display("driver.virtio_net0") && callers_of("driver.virtio_net0").is_some());
+    assert!(
+        !DISPLAYS.contains(&"driver.virtio_net0") && callers_of("driver.virtio_net0").is_some()
+    );
 }
 
 /// The boot framebuffer is the fallback and goes last whenever it is listed;
@@ -54,6 +57,6 @@ fn every_spawned_display_name_is_listed() {
     for src in spawns {
         let line = src.lines().find(|l| l.contains("const SERVICE_NAME")).expect("a name");
         let name = line.split('"').nth(1).expect("a quoted name");
-        assert!(is_display(name), "{name} is spawned but not in displays.rs");
+        assert!(DISPLAYS.contains(&name), "{name} is spawned but not in displays.rs");
     }
 }

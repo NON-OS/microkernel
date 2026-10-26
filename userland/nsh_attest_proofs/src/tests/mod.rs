@@ -35,7 +35,7 @@ mod happy;
 mod host_proof;
 mod kernel_encoder;
 mod log_caps;
-mod log_diff;
+pub mod log_diff;
 mod log_doc;
 mod log_event;
 mod log_header;

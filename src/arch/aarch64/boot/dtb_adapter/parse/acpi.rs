@@ -22,8 +22,9 @@ use crate::sys::serial::Line;
 
 /// The RSDP the loader named, kept whichever description the kernel boots
 /// from: the arch-neutral table readers want it on a
-/// tree boot too. Runs first, because a stub tree has no memory nodes and
-/// would otherwise be refused for those, which says nothing useful.
+/// tree boot too. Runs first, because the bare tree an ACPI boot is handed
+/// has no memory nodes and would otherwise be refused for those, which says
+/// nothing useful.
 ///
 /// An ACPI-only machine is refused by name. Booting it on the tree's path
 /// would drive QEMU virt's addresses on a server; this kernel does not read
