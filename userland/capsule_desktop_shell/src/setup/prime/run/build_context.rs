@@ -61,5 +61,6 @@ pub fn build_context(
         trusted: crate::state::trusted::Trusted::default(),
         dialog_focus: crate::state::dialog_keys::DialogFocus::new(),
         switch: crate::state::ctx::switch::SwitchOrder::default(),
+        pointer_shape: Default::default(),
     }
 }
