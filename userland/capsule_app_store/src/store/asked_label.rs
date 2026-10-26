@@ -22,8 +22,10 @@ impl Asked {
     pub fn label(self) -> &'static [u8] {
         match self {
             Asked::Queued => b"install requested",
-            // The exec gate has the last word, after this window has asked.
-            Asked::Opening => b"asked to start it; the system checks it first",
+            // The exec gate has the last word, after this window has asked. A
+            // run started here has no terminal, so a program for one is shown
+            // where it runs: the Terminal's `linux` command.
+            Asked::Opening => b"starting it; a terminal app runs in the Terminal",
             // EBUSY: the queue is full, or holds this very request already.
             Asked::Busy => b"the system is busy with it or with others; ask again soon",
             Asked::Refused(errno) => super::refused::refused(errno),
