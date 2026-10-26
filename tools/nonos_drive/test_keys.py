@@ -58,16 +58,19 @@ class Keys(unittest.TestCase):
 
 
 class Sent:
-    """Takes send-key as QEMU does: a qcode it knows, or an error."""
+    """Takes input-send-event as QEMU does: a qcode it knows, or an error;
+    `events` is every key event in order, as (key, down)."""
 
     def __init__(self, known=None):
-        self.known, self.keys = known, []
+        self.known, self.events = known, []
 
     def cmd(self, name, **args):
-        names = [k["data"] for k in args["keys"]]
-        if self.known is not None and any(n not in self.known for n in names):
-            return {"error": {"desc": "invalid parameter"}}
-        self.keys.append(tuple(names))
+        assert name == "input-send-event", name
+        for e in args["events"]:
+            key = e["data"]["key"]["data"]
+            if self.known is not None and key not in self.known:
+                return {"error": {"desc": "invalid parameter"}}
+            self.events.append((key, e["data"]["down"]))
         return {"return": {}}
 
 
@@ -75,24 +78,40 @@ def typed(text, known=None, sent=None):
     q = Qmp.__new__(Qmp)
     sent = sent or Sent(known)
     q.cmd = sent.cmd
-    q.type_text(text)
-    return sent.keys
+    q.type_text(text, gap=0)
+    return sent.events
+
+
+def tap(*keys):
+    return [(k, True) for k in keys] + [(k, False) for k in reversed(keys)]
 
 
 class Typing(unittest.TestCase):
     def test_a_redirect_is_typed_whole(self):
-        self.assertEqual(typed("a < b.png"), [("a",), ("spc",), ("shift", "comma"), ("spc",),
-                                              ("b",), ("dot",), ("p",), ("n",), ("g",)])
+        want = tap("a") + tap("spc") + tap("shift", "comma") + tap("spc") + tap("b")
+        self.assertEqual(typed("a < b"), want)
+
+    def test_shift_goes_down_first_and_up_last_for_every_capital(self):
+        want = tap("shift", "p") + tap("shift", "n") + tap("shift", "g")
+        self.assertEqual(typed("PNG"), want)
+
+    def test_every_key_pressed_is_released(self):
+        events = typed('import zlib;print("A<B>C?") | x')
+        downs = sorted(k for k, d in events if d)
+        ups = sorted(k for k, d in events if not d)
+        self.assertEqual(downs, ups)
 
     def test_a_line_with_no_key_sends_nothing(self):
         sent = Sent()
         with self.assertRaises(ValueError):
             typed("ok é", sent=sent)
-        self.assertEqual(sent.keys, [], "a line is checked whole before a key is sent")
+        self.assertEqual(sent.events, [], "a line is checked whole before a key is sent")
 
     def test_a_key_qemu_refuses_stops_the_run(self):
+        sent = Sent(known={"a"})
         with self.assertRaises(RuntimeError):
-            typed("ab", known={"a"})
+            typed("ab", sent=sent)
+        self.assertEqual(sent.events, tap("a"))
 
 
 if __name__ == "__main__":
