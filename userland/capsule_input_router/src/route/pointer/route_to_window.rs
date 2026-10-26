@@ -38,9 +38,11 @@ pub(super) fn route_to_window(ctx: &mut Context, event: &InputEvent, target: wm:
     routed.x = target.local_x as i32;
     routed.y = target.local_y as i32;
     if !ctx.subscriptions.allows(target.owner_pid, routed.kind) {
+        crate::route::recent::note(ctx, target.owner_pid, routed.kind, 0);
         return 0;
     }
     let delivered = deliver_one(target.owner_pid, &routed);
+    crate::route::recent::note(ctx, target.owner_pid, routed.kind, delivered);
     if delivered == 0 {
         ctx.forget_pid(target.owner_pid);
     }

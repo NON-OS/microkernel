@@ -33,6 +33,7 @@ pub(super) fn route_to_shell(ctx: &mut Context, event: &InputEvent, x: u32, y: u
     routed.y = y as i32;
     let pid = ctx.shell_pid;
     let delivered = deliver_one(pid, &routed);
+    crate::route::recent::note(ctx, pid, routed.kind, delivered);
     if delivered == 0 {
         ctx.forget_pid(pid);
     }
