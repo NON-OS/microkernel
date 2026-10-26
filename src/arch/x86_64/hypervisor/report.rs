@@ -28,10 +28,10 @@ pub fn report() {
     let devices = crate::hardware::broker::list();
     let g = refine(state::guest(), devices.iter().map(|r| (r.vendor, r.device)));
     state::store(g);
-    serial::print(b"[PLATFORM] hypervisor=");
-    serial::print(g.vendor.slug().as_bytes());
+    let mut l = serial::Line::new();
+    l.str(b"[PLATFORM] hypervisor=").str(g.vendor.slug().as_bytes());
     if g.hyperv_abi {
-        serial::print(b" abi=hyperv");
+        l.str(b" abi=hyperv");
     }
     // The SynIC is set up wherever the Hyper-V interface offers it, and the
     // VMBus root recorded for the core to claim; nothing talks to the host
@@ -40,17 +40,15 @@ pub fn report() {
         match super::hv::init() {
             Ok(()) => {
                 crate::hardware::broker::register_vmbus();
-                serial::print(b" synic=on");
+                l.str(b" synic=on");
             }
             Err(e) => {
-                serial::print(b" synic=off (");
-                serial::print(e.as_bytes());
-                serial::print(b")");
+                l.str(b" synic=off (").str(e.as_bytes()).str(b")");
             }
         }
     }
     if balloon_offered(devices.iter().map(|r| (r.vendor, r.device))) {
-        serial::print(b" balloon=off");
+        l.str(b" balloon=off");
     }
-    serial::println(b"");
+    l.end();
 }

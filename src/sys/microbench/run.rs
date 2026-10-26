@@ -27,11 +27,9 @@ const LARGE: usize = 1024;
 /// before a channel key can be derived.
 pub fn run() {
     let overhead = counter_overhead::measure(ROUNDS);
-    crate::sys::serial::print(b"[UBENCH] counter_overhead ticks=");
-    crate::sys::serial::print_dec(overhead);
-    crate::sys::serial::print(b" hz=");
-    crate::sys::serial::print_dec(crate::arch::time_counter_hz());
-    crate::sys::serial::println(b"");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[UBENCH] counter_overhead ticks=").dec(overhead).str(b" hz=");
+    l.dec(crate::arch::time_counter_hz()).end();
 
     let small = [0x5Au8; SMALL];
     let large = [0xA5u8; LARGE];

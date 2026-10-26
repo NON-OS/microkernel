@@ -20,7 +20,7 @@
 use nonos_boot_measure::gate::Admitted;
 
 use super::verdict::Verdict;
-use crate::sys::serial::{print, print_dec, println};
+use crate::sys::serial::{println, Line};
 
 pub(super) fn say(v: Verdict) {
     match v {
@@ -31,9 +31,7 @@ pub(super) fn say(v: Verdict) {
             admitted(b"[BOOT-ATTEST] bootloader self-reported, not measured: enrolled, epoch ", a)
         }
         Verdict::Refused(code) => {
-            print(b"[BOOT-ATTEST] bootloader refused, code ");
-            print_dec(u64::from(code));
-            println(b"");
+            Line::new().str(b"[BOOT-ATTEST] bootloader refused, code ").dec(u64::from(code)).end();
         }
         Verdict::NoEvidence => {
             println(b"[BOOT-ATTEST] bootloader not checked: no boot-root record or trailer")
@@ -42,7 +40,5 @@ pub(super) fn say(v: Verdict) {
 }
 
 fn admitted(line: &[u8], a: Admitted) {
-    print(line);
-    print_dec(a.epoch);
-    println(b"");
+    Line::new().str(line).dec(a.epoch).end();
 }

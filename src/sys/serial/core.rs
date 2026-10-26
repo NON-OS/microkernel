@@ -26,6 +26,7 @@ on these systems, so we timeout the transmit wait to avoid hanging
 the boot process. Output is simply dropped if no UART is present.
 */
 
+use ::core::sync::atomic::AtomicBool;
 use spin::Mutex;
 
 pub const SERIAL_PORT: u16 = 0x3F8;
@@ -77,9 +78,11 @@ all: its word is Device memory then, and exclusive access to Device memory
 is not guaranteed to work.
 */
 pub fn write_fatal_line(bytes: &[u8]) {
+    static LOST: AtomicBool = AtomicBool::new(false);
     let tries = if lock_usable() { super::fatal::TRIES } else { 0 };
     let parts = [super::column::opening(), bytes];
-    super::fatal::write_bounded(tries, || SERIAL_LOCK.try_lock(), write_byte, &parts);
+    let lock = || SERIAL_LOCK.try_lock();
+    super::fatal::write_bounded(tries, &LOST, lock, write_byte, &parts);
 }
 
 #[cfg(target_arch = "aarch64")]
