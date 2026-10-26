@@ -7,7 +7,6 @@
 //! writes a pair whatever its scan found: its own when that fits, else the
 //! capsule's.
 
-#[allow(dead_code)]
 #[path = "../../../../../../src/hardware/broker/acpi/s5_choice.rs"]
 mod s5_choice;
 
@@ -54,8 +53,10 @@ fn every_cut_shutdown_says_its_path_and_reaches_a_write() {
             let line = text(|o| s5_line(Some(t), Ok(()), o));
             assert_eq!(line, format!("\\_S5 {}/{} handed to the kernel's soft-off", t.0, t.1));
             for scan in [None, Some((7, 7)), Some((9, 9))] {
-                let wrote = s5_choice::choose(scan, Some(t)).map(|w| w.0);
-                assert_eq!(wrote, Some(scan.filter(|s| s.0 <= 7).unwrap_or(t)), "{what}");
+                let chose = s5_choice::choose(scan, Some(t));
+                assert_eq!(chose.map(|w| w.0), Some(scan.filter(|s| s.0 <= 7).unwrap_or(t)));
+                let from: &[u8] = if scan == Some((7, 7)) { b"=scan" } else { b"=interpreter" };
+                assert!(s5_choice::posture(chose.map(|w| w.1)).ends_with(from), "{what}");
             }
             cuts += 1;
         }

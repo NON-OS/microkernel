@@ -31,14 +31,14 @@ mod router_bond_wire_tests;
 mod router_brightness_key_tests;
 #[path = "router_display_tests.rs"]
 mod router_display_tests;
-#[path = "router_mode_tests.rs"]
-mod router_mode_tests;
 #[path = "router_focus_tests.rs"]
 mod router_focus_tests;
 #[path = "router_hold_end_tests.rs"]
 mod router_hold_end_tests;
 #[path = "router_lid_key_tests.rs"]
-pub(crate) mod router_lid_key_tests;
+pub mod router_lid_key_tests;
+#[path = "router_mode_tests.rs"]
+mod router_mode_tests;
 #[path = "router_pad_hold_tests.rs"]
 mod router_pad_hold_tests;
 #[path = "router_pad_tests.rs"]
