@@ -27,7 +27,12 @@ use libfuzzer_sys::fuzz_target;
 fuzz_target!(|data: &[u8]| {
     let _ = parse(data);
     let trust = Trust {
-        releases: vec![Release { version: "x".into(), pcr8: [1; 32], pcr9: [1; 32], pcr14: [1; 32] }],
+        releases: vec![Release {
+            version: "x".into(),
+            pcr8: [1; 32],
+            pcr9: [1; 32],
+            pcr14: [1; 32],
+        }],
         supervisors: vec![Supervisor { meas: [0; 32], caps: 0 }],
         ak: [0; 64],
     };
