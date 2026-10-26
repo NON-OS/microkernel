@@ -2,7 +2,7 @@
 # One boot of the installed disk alone ($1 = tag). The data volume's region of
 # install-target.img (LBA 262144 on) is hashed before and after. The proof
 # program's [KVPROOF] lines, every [DATA] and [ZS] line, then QMP quit.
-SP=/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad
+SP=/tmp/nonos-run/scratchpad
 P=$SP/kv; T=${1:?tag}; WAIT=${2:-900}
 cd /home/user/privatekernel
 IMG=/home/user/pk-build/target/dev/tree/target/release/kvproof-dev/nonos.img
