@@ -18,13 +18,17 @@
 
 use core::sync::atomic::AtomicU32;
 
-use super::super::palette;
+use super::super::schemes::{Scheme, SCHEMES};
 
-pub static BG: AtomicU32 = AtomicU32::new(palette::BACKGROUND);
-pub static SURFACE: AtomicU32 = AtomicU32::new(palette::SURFACE);
-pub static ACCENT: AtomicU32 = AtomicU32::new(palette::ACCENT);
-pub static TEXT: AtomicU32 = AtomicU32::new(palette::TEXT);
-pub static BORDER: AtomicU32 = AtomicU32::new(palette::BORDER);
+/// The theme a process paints with before it hears the system's: the
+/// default, Ink (stored index 0), so a first frame is never another scheme.
+pub const START: Scheme = SCHEMES[0];
+
+pub static BG: AtomicU32 = AtomicU32::new(START.bg);
+pub static SURFACE: AtomicU32 = AtomicU32::new(START.surface);
+pub static ACCENT: AtomicU32 = AtomicU32::new(START.accent);
+pub static TEXT: AtomicU32 = AtomicU32::new(START.text);
+pub static BORDER: AtomicU32 = AtomicU32::new(START.border);
 pub static REVISION: AtomicU32 = AtomicU32::new(1);
 
 /*
@@ -34,9 +38,11 @@ pub static REVISION: AtomicU32 = AtomicU32::new(1);
  * contrast search inside the paint path for a value that only changes when the
  * theme does.
  *
- * The defaults match what `replace` would compute for the palette above, so a
- * capsule that never reaches the settings store still gets a legible secondary
- * label rather than a zero.
+ * The defaults are what `replace` computes for START (theme_proofs holds them
+ * to it), so a capsule that never reaches the settings store still gets a
+ * legible secondary label rather than a zero.
  */
-pub static MUTED: AtomicU32 = AtomicU32::new(palette::MUTED);
-pub static QUIET: AtomicU32 = AtomicU32::new(palette::DISABLED);
+pub const START_MUTED: u32 = 0xFFA4_A5A8;
+pub const START_QUIET: u32 = 0xFF7E_7F82;
+pub static MUTED: AtomicU32 = AtomicU32::new(START_MUTED);
+pub static QUIET: AtomicU32 = AtomicU32::new(START_QUIET);
