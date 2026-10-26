@@ -3,6 +3,8 @@
 mod download;
 mod enter;
 pub mod frames;
+#[cfg(test)]
+mod hooks;
 mod join;
 pub mod pages;
 mod regs;
