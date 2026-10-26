@@ -36,3 +36,4 @@ pub mod shell_keys;
 pub mod trusted_hold;
 
 pub use dispatch::route_event;
+pub use pointer::settle_hover;
