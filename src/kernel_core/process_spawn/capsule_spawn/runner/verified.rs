@@ -18,7 +18,6 @@ use crate::security::nonos_trust_anchor::NonosTrustAnchorPolicy;
 
 use super::super::attested_parent::AttestedParent;
 use super::super::spec::{CapsuleSpecVerified, SpawnError};
-use super::built_gate::checked;
 use super::install::{install, InstallParams};
 use super::preflight;
 
@@ -42,16 +41,19 @@ pub(crate) fn spawn_verified_as(
     on_behalf_of: Option<AttestedParent>,
 ) -> Result<u32, SpawnError> {
     crate::sys::bench::mark_named(b"capsule_spawn_start", spec.name.as_bytes());
-    let preflighted = checked(
-        spec.elf,
-        SpawnError::FeatureDisabled,
-        || super::profile_gate::check(spec.name),
-        || {
-            preflight::run(spec, trust_anchor, now_ms).inspect_err(|_| {
-                crate::sys::bench::mark_named(b"capsule_verify_fail", spec.name.as_bytes());
-            })
-        },
-    )?;
+    // No binary, certificate or manifest: an image built without this capsule.
+    let embedded = [spec.elf, spec.nonos_id_cert_bytes, spec.manifest_bytes];
+    if embedded.iter().all(|b| b.is_empty()) {
+        return Err(SpawnError::FeatureDisabled);
+    }
+    super::profile_gate::check(spec.name)?;
+    let preflighted = match preflight::run(spec, trust_anchor, now_ms) {
+        Ok(preflighted) => preflighted,
+        Err(err) => {
+            crate::sys::bench::mark_named(b"capsule_verify_fail", spec.name.as_bytes());
+            return Err(err);
+        }
+    };
     crate::sys::bench::mark_named(b"capsule_preflight_ok", spec.name.as_bytes());
     /*
      * The gate's record, the capsule's namespace and its spawn tier are

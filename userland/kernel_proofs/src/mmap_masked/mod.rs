@@ -20,6 +20,7 @@
 //! WINDOW_PAGES pages and never more than that apart, and every failure
 //! undone (cpu-6).
 
+#[cfg(test)]
 #[path = "../../../../src/syscall/microkernel/memory/va/map_loop.rs"]
 mod map_loop;
 

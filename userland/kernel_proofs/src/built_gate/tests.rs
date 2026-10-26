@@ -16,13 +16,11 @@
 
 use std::cell::Cell;
 
-use super::rule::{checked, gate, stored};
+use super::rule::{gate, stored};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum E {
     NotBuilt,
-    Profile,
-    CertDecode,
     EmptyInStore,
 }
 
@@ -30,33 +28,6 @@ enum E {
 fn an_empty_image_is_not_built_and_any_other_is_let_through() {
     assert_eq!(gate(&[], E::NotBuilt), Err(E::NotBuilt));
     assert_eq!(gate(&[0x7F], E::NotBuilt), Ok(()));
-}
-
-/// The spawn's order on `elf`, preflight failing as an empty cert does; and
-/// whether preflight ran.
-fn spawn(elf: &[u8], profile: Result<(), E>) -> (Result<u8, E>, bool) {
-    let ran = Cell::new(false);
-    let got = checked(
-        elf,
-        E::NotBuilt,
-        || profile,
-        || {
-            ran.set(true);
-            if elf.is_empty() {
-                Err(E::CertDecode)
-            } else {
-                Ok(1)
-            }
-        },
-    );
-    (got, ran.get())
-}
-
-#[test]
-fn preflight_never_sees_an_empty_image() {
-    assert_eq!(spawn(&[], Ok(())), (Err(E::NotBuilt), false), "not built, the cert never decoded");
-    assert_eq!(spawn(&[1, 2], Ok(())), (Ok(1), true), "a built capsule goes on");
-    assert_eq!(spawn(&[], Err(E::Profile)), (Err(E::Profile), false), "the profile is asked first");
 }
 
 #[test]

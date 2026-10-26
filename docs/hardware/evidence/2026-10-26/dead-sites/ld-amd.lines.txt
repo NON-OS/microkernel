@@ -1,0 +1,10 @@
+      1 [AMD-VI] IOMMU translation enabled, units=1 reserved=0
+      1 [AMD-VI] IVRS present; the AMD-Vi units are brought up next
+      1 [AMD-VI] every other requester id blocked, its interrupts refused
+      1 [DMA] display pool pages
+      4 [DMA] grant uncached pages
+      1 [DMA] low
+      1 [EXIT] driver.e1000_0 status 2: no device present, not started
+      1 [EXIT] driver.rtl8139_0 status 2: no device present, not started
+      1 [EXIT] driver.rtl8169_0 status 2: no device present, not started
+      8 [VT-D] confined to its capsule's domain
