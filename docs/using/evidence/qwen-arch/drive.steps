@@ -1,0 +1,82 @@
+until:Capsules spawned:900
+until:[SPLASH] stepped aside:300
+wait:4
+key:ret
+wait:4
+type:ek
+wait:2
+key:ret
+wait:4
+key:ret
+wait:4
+key:ret
+wait:4
+key:ret
+wait:4
+key:ret
+wait:4
+key:ret
+wait:4
+key:ret
+wait:4
+key:ret
+wait:4
+key:ret
+wait:4
+shot:installed0
+key:down
+wait:2
+shot:installed
+key:ret
+wait:4
+key:ret
+wait:4
+shot:review
+key:ret
+key:ret
+wait:60
+key:esc
+wait:3
+shot:d1
+move:-514,472
+wait:2
+shot:d2
+wait:15
+click
+wait:12
+shot:d3
+type:qwen tiers
+key:ret
+wait:20
+shot:tiers
+type:qwen get qwen9-1b
+key:ret
+wait:10
+shot:refused-word
+type:market install linux.qwen-qwen3.6-27b
+key:ret
+wait:90
+shot:install-27b
+type:market info linux.qwen-qwen3.6-27b
+key:ret
+wait:10
+shot:info-27b
+type:qwen small What is the capital of France? Answer in one word.
+key:ret
+wait:900
+shot:small-answer
+key:ctrl+d
+wait:20
+type:qwen qwen3-0.6b What is the capital of France? Answer in one word.
+key:ret
+wait:900
+shot:qwen3-answer
+key:ctrl+d
+wait:20
+type:qwen qwen3.5-0.8b What is the capital of France? Answer in one word.
+key:ret
+wait:1200
+shot:qwen35-answer
+key:ctrl+d
+wait:20
+shot:end
