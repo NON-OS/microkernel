@@ -34,7 +34,7 @@ pub enum Sink {
 const H_FIELD: u64 = 1 << 14;
 const V_FIELD: u64 = 1 << 13;
 const SRC_WIDTH: u64 = 1 << 13;
-/// Source heights above 4320 lines are not supported (PIPE_SRCSZ, p. 705).
+/// Source heights above 4320 lines are refused: PIPE_SRCSZ takes no more (p. 705).
 const SRC_HEIGHT_MAX: u64 = 4320;
 
 /// `Ok` when every limit below holds for `t` on `sink`.
