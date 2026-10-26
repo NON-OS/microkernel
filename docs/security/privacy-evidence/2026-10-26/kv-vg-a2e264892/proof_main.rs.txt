@@ -1,0 +1,106 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+//! SCRATCH ONLY, for the keeping-volume boots: capsule_proof_io (here with
+//! FileSystem and StreamImport) writes to the data volume on a boot that
+//! keeps nothing yet, waits for keeping, and looks again. Every step is said
+//! on serial as [KVPROOF] lines.
+
+#![no_std]
+#![no_main]
+
+use nonos_libc::data::{mk_data_feed, mk_data_feed_begin, mk_data_feed_end};
+use nonos_libc::{mk_data_read, mk_data_stat, mk_debug, mk_exit, mk_idle_ms, mk_keeping};
+
+const BODY: &[u8] = b"keeping-volume proof\n";
+const SHA: [u8; 32] = [0x20, 0xca, 0x2b, 0x0b, 0x5e, 0xde, 0xb6, 0x7e, 0x78, 0xdb, 0x45, 0xa9, 0x13, 0x03, 0xe2, 0xa0, 0x0d, 0xa5, 0x3e, 0xfb, 0x07, 0xb8, 0x91, 0x85, 0xfa, 0xec, 0x13, 0xef, 0xf6, 0xb6, 0xdc, 0xe4];
+const RAM: &[u8] = b"/kv-ram";
+const DISK: &[u8] = b"/kv-disk";
+
+fn say(parts: &[&[u8]], n: i64) {
+    let mut line = [0u8; 160];
+    let mut k = 0;
+    for p in parts.iter().chain([&b" ="[..]].iter()) {
+        let m = p.len().min(line.len() - k - 24);
+        line[k..k + m].copy_from_slice(&p[..m]);
+        k += m;
+    }
+    line[k] = b' ';
+    k += 1;
+    if n < 0 {
+        line[k] = b'-';
+        k += 1;
+    }
+    let mut digits = [0u8; 20];
+    let (mut v, mut d) = (n.unsigned_abs(), 0);
+    loop {
+        digits[d] = b'0' + (v % 10) as u8;
+        d += 1;
+        v /= 10;
+        if v == 0 {
+            break;
+        }
+    }
+    for i in (0..d).rev() {
+        line[k] = digits[i];
+        k += 1;
+    }
+    line[k] = b'\n';
+    let _ = mk_debug(line.as_ptr(), k + 1);
+}
+
+/// Write BODY as name; its size on success, else the first errno.
+fn put(name: &[u8]) -> i64 {
+    let rc = mk_data_feed_begin(name, &SHA, BODY.len() as u64, false);
+    if rc < 0 {
+        return rc;
+    }
+    let rc = mk_data_feed(BODY);
+    if rc < 0 {
+        let _ = mk_data_feed_end(true);
+        return rc;
+    }
+    mk_data_feed_end(false)
+}
+
+/// 1 when name reads back as BODY, 0 when it differs, else the errno.
+fn check(name: &[u8]) -> i64 {
+    let mut buf = [0u8; 64];
+    let n = mk_data_read(name, 0, &mut buf);
+    if n < 0 {
+        return n;
+    }
+    (&buf[..n as usize] == BODY) as i64
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn _start() -> ! {
+    let at_start = mk_keeping();
+    say(&[b"[KVPROOF] keeping at start"], at_start as i64);
+    if !at_start {
+        say(&[b"[KVPROOF] window: put /kv-ram"], put(RAM));
+        say(&[b"[KVPROOF] window: /kv-ram reads back"], check(RAM));
+        say(&[b"[KVPROOF] window: stat /kv-disk"], mk_data_stat(DISK));
+    }
+    let mut waited = 0;
+    while !mk_keeping() && waited < 900 {
+        mk_idle_ms(1000);
+        waited += 1;
+    }
+    if !mk_keeping() {
+        say(&[b"[KVPROOF] keeping stayed off for s"], waited);
+        say(&[b"[KVPROOF] off: /kv-ram reads back"], check(RAM));
+        say(&[b"[KVPROOF] off: stat /kv-disk"], mk_data_stat(DISK));
+        mk_exit(43);
+    }
+    say(&[b"[KVPROOF] keeping on after s"], waited);
+    say(&[b"[KVPROOF] kept: stat /kv-ram"], mk_data_stat(RAM));
+    let had = check(DISK);
+    say(&[b"[KVPROOF] kept: /kv-disk reads back"], had);
+    if had != 1 {
+        say(&[b"[KVPROOF] kept: put /kv-disk"], put(DISK));
+        say(&[b"[KVPROOF] kept: /kv-disk reads back now"], check(DISK));
+    }
+    mk_exit(42)
+}
