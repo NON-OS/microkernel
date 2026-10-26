@@ -152,7 +152,7 @@ The panel shows no "signed" badge: Settings cannot check the image's signature i
 The policy store keeps its values in memory.
 
 - On an amnesic boot, the default, every change is gone at power off.
-- On a machine where `Keep data across reboots` is on, the policy store writes the values it keeps to `/nonos/settings/values` about a second after your last change, and puts them back at the next boot after setup's answers.
+- On a machine where `Keep data across reboots` is on, the policy store writes the values it keeps to `/nonos/settings/values` about a second after your last change, and puts them back at the next boot after setup's answers. Until they are back, a program asking for one of them gets no answer yet, rather than the default.
 
 ## Where this comes from
 
