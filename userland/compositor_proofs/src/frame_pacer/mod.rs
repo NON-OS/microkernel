@@ -18,6 +18,12 @@
 //! pixels with the arrow cursor drawn last, a screenshot's capture, the band,
 //! the looks, and how damage is drained in batches.
 
+#[path = "../../../compositor/src/frame_pacer/band_glyph_art.rs"]
+pub mod band_glyph_art;
+#[path = "../../../compositor/src/frame_pacer/band_glyphs.rs"]
+pub mod band_glyphs;
+#[path = "../../../compositor/src/frame_pacer/band_meet.rs"]
+pub mod band_meet;
 #[path = "../../../compositor/src/frame_pacer/band_rule.rs"]
 pub mod band_rule;
 #[path = "../../../compositor/src/frame_pacer/canvas_copy.rs"]
@@ -26,18 +32,20 @@ pub mod canvas_copy;
 pub mod compose;
 #[path = "../../../compositor/src/frame_pacer/cursor.rs"]
 pub mod cursor;
+#[path = "../../../compositor/src/frame_pacer/cursor_arrow.rs"]
+pub mod cursor_arrow;
+#[path = "../../../compositor/src/frame_pacer/cursor_diagonals.rs"]
+pub mod cursor_diagonals;
 #[path = "../../../compositor/src/frame_pacer/cursor_shape.rs"]
 pub mod cursor_shape;
+#[path = "../../../compositor/src/frame_pacer/cursor_shapes.rs"]
+pub mod cursor_shapes;
+#[path = "../../../compositor/src/frame_pacer/cursor_straights.rs"]
+pub mod cursor_straights;
 #[path = "../../../compositor/src/frame_pacer/drain_batch.rs"]
 pub mod drain_batch;
 #[path = "../../../compositor/src/frame_pacer/drain_damage.rs"]
 pub mod drain_damage;
-#[path = "../../../compositor/src/frame_pacer/band_glyph_art.rs"]
-pub mod band_glyph_art;
-#[path = "../../../compositor/src/frame_pacer/band_glyphs.rs"]
-pub mod band_glyphs;
-#[path = "../../../compositor/src/frame_pacer/band_meet.rs"]
-pub mod band_meet;
 #[path = "../../../compositor/src/frame_pacer/indicator_band.rs"]
 pub mod indicator_band;
 #[path = "../../../compositor/src/frame_pacer/look.rs"]

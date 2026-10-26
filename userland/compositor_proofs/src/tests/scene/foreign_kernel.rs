@@ -22,7 +22,6 @@ use std::collections::HashMap;
 
 pub(crate) const W: u32 = 96;
 pub(crate) const H: u32 = 64;
-pub(crate) const CURSOR_SIDE: u32 = 32;
 pub(crate) const WALL: u32 = 0xFF20_6070;
 pub(crate) const WINDOW: u32 = 0xFFE0_E0E0;
 pub(crate) const OTHER: u32 = 0xFF30_A040;

@@ -27,14 +27,16 @@ pub fn may_write(path: &[u8]) -> bool {
 }
 
 pub fn call_begins() {
-    if let Some(a) = BOX.0.borrow_mut().as_mut() {
-        a.tally.call_begins();
+    match BOX.0.borrow_mut().as_mut() {
+        Some(a) => a.tally.call_begins(),
+        None => super::run_tally::call_begins(),
     }
 }
 
 pub fn note(kind: Kind, example: &[u8]) {
-    if let Some(a) = BOX.0.borrow_mut().as_mut() {
-        a.tally.note(kind, example);
+    match BOX.0.borrow_mut().as_mut() {
+        Some(a) => a.tally.note(kind, example),
+        None => super::run_tally::note(kind, example),
     }
 }
 

@@ -16,6 +16,7 @@
 
 use alloc::string::String;
 
+use super::entry::Entry;
 use super::share::admits;
 use super::state::PENDING;
 
@@ -38,9 +39,9 @@ pub(in crate::syscall::microkernel::ipc) fn push(
         return Err(Refused::Gone);
     }
     let queue = map.entry(server_pid).or_default();
-    let mine = queue.iter().filter(|(pid, _, _)| *pid == caller_pid).count();
+    let mine = queue.iter().filter(|e| e.pid == caller_pid).count();
     if admits(queue.len(), mine) {
-        queue.push_back((caller_pid, caller_inbox, token));
+        queue.push_back(Entry::new(caller_pid, caller_inbox, token));
         Ok(())
     } else {
         Err(Refused::Busy)

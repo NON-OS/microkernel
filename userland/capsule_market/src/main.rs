@@ -34,6 +34,7 @@ mod chain_hosts;
 mod clock;
 mod ingest;
 mod install_ready;
+mod logos;
 mod protocol;
 mod server;
 mod store;
