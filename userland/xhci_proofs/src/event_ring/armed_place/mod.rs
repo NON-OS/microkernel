@@ -23,7 +23,8 @@ mod bulk_tests;
 mod isoch_tests;
 
 use super::fixture::{Fixture, INT_DCI};
-use crate::rings::event::{IssuedTransfer, ARMED};
+use crate::rings::event::state::ARMED;
+use crate::rings::event::IssuedTransfer;
 
 /// Every place for an armed TRB's event taken, by interrupt endpoints of
 /// other slots, two on each.

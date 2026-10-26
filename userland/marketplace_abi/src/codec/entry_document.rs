@@ -15,19 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One listing as a document of its own (plan/31, v1.4.16): the bytes of
-//! one schema 3 entry exactly as an index carries them, nothing after. The
-//! wallet's publisher screen reads it to sign PublisherBinding (entry 2) and
-//! each release's ReleaseAttest (entry 3); marketplace-index writes it.
+//! one entry of the current schema exactly as an index carries it, nothing
+//! after. The wallet's publisher screen reads it to sign PublisherBinding
+//! (entry 2) and each release's ReleaseAttest (entry 3); marketplace-index
+//! writes it.
 
 use super::decode_entry;
 use super::error::DecodeError;
 use super::reader::Reader;
-use super::schema::SCHEMA_V3;
+use super::schema::CURRENT_SCHEMA;
 use crate::types::MarketplaceEntry;
 
 pub fn decode_entry_document(buf: &[u8]) -> Result<MarketplaceEntry, DecodeError> {
     let mut r = Reader::new(buf);
-    let entry = decode_entry::read(&mut r, SCHEMA_V3)?;
+    let entry = decode_entry::read(&mut r, CURRENT_SCHEMA)?;
     if r.remaining() != 0 {
         return Err(DecodeError::Trailing);
     }
