@@ -37,7 +37,11 @@ pub fn handle(frame: InterruptStackFrame, error_code: u64) {
 
     let ctx = PageFaultContext { exception, accessed_address, error_code: error };
 
-    log_page_fault(&ctx);
+    // dump_trap has the frame. The entry allocates and locks, so a kernel
+    // fault, which may hold the heap or the logger, skips it.
+    if exception.is_user_mode() {
+        log_page_fault(&ctx);
+    }
     stats::increment_page_faults();
 
     if try_handle_fault(&ctx, error_code) {
@@ -55,7 +59,7 @@ fn try_handle_fault(ctx: &PageFaultContext, error_code: u64) -> bool {
     let virt_addr = VirtAddr::new(ctx.accessed_address);
 
     if hardening::check_guard_page_access(virt_addr) {
-        crate::log::logger::log_critical("Guard page violation detected");
+        crate::sys::serial::Line::new().str(b"[PF] guard page violation").end_fatal();
         return false;
     }
 
@@ -77,18 +81,15 @@ fn terminate_user_process(ctx: &PageFaultContext) -> ! {
 
 fn kernel_panic(ctx: &PageFaultContext) {
     emit_fatal_notice(b"PF", ctx.exception.instruction_pointer);
-    crate::log::logger::log_critical(&alloc::format!(
-        "KERNEL PANIC: Page fault at address {}",
-        redact_address(ctx.accessed_address)
-    ));
-
-    if ctx.error_code.is_instruction_fetch() {
-        crate::log::logger::log_critical("Attempted to execute from non-executable page");
+    // What was attempted, as one fatal line with nothing allocated: the fault
+    // may have come while this CPU held the heap's or the port's lock.
+    let what: &[u8] = if ctx.error_code.is_instruction_fetch() {
+        b"[PANIC PF] attempted to execute from a non-executable page"
     } else if ctx.error_code.is_write() {
-        crate::log::logger::log_critical("Attempted to write to read-only page");
+        b"[PANIC PF] attempted to write to a read-only page"
     } else {
-        crate::log::logger::log_critical("Attempted to read from non-present page");
-    }
-
+        b"[PANIC PF] attempted to read from a non-present page"
+    };
+    crate::sys::serial::Line::new().str(what).end_fatal();
     crate::boot::panic::fatal();
 }

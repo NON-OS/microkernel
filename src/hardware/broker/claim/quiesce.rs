@@ -38,9 +38,9 @@ pub(super) fn stop_bus_master(device_id: u64) {
     // device holds.
     let done = cfg.update_command(|c| c & !CMD_BUS_MASTER).is_ok();
     let off = done && matches!(cfg.is_bus_master_enabled(), Ok(false));
-    crate::sys::serial::print(b"[BROKER] released device ");
-    crate::sys::serial::print_hex(device_id);
-    crate::sys::serial::println(if off { b" bus master off" } else { b" bus master STILL ON" });
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[BROKER] released device ").hex(device_id);
+    l.str(if off { b" bus master off" } else { b" bus master STILL ON" }).end();
 }
 
 /*
@@ -67,8 +67,8 @@ pub(in crate::hardware::broker) fn stop_bus_master_quietly(device_id: u64) {
      * 2.4.1, ordering rules), so once it returns they have landed.
      */
     if !matches!(cfg.is_bus_master_enabled(), Ok(false)) {
-        crate::sys::serial::print(b"[BROKER] device ");
-        crate::sys::serial::print_hex(device_id);
-        crate::sys::serial::println(b" bus master STILL ON before its frames are freed");
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[BROKER] device ").hex(device_id);
+        l.str(b" bus master STILL ON before its frames are freed").end();
     }
 }
