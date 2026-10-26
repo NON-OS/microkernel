@@ -18,7 +18,7 @@ use crate::settings::section::Section;
 
 use super::audio_output_probe::probe_audio_output;
 use super::machine_key_probe::probe_machine_key;
-use super::state::State;
+use super::model::State;
 use super::track_scroll::track_scroll;
 use super::wifi::enter::enter_wifi;
 

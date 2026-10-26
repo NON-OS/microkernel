@@ -21,7 +21,6 @@ mod encrypt;
 mod truncate;
 mod types;
 
-pub use concat::concatenate;
 pub use encrypt::encrypt_routing_info;
 pub use truncate::truncate;
 pub use types::RoutingInformation;

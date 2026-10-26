@@ -14,25 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::render::canvas::Canvas;
 use crate::render::ink::draw_text;
 use crate::render::layout::layout;
 
 /// `lines` one under another from (x, y), a body line apart; returns the y
 /// below the last.
-pub fn text(
-    buf: &mut [u32],
-    spx: usize,
-    w: u32,
-    h: u32,
-    x: u32,
-    y: u32,
-    lines: &[&[u8]],
-    color: u32,
-) -> u32 {
-    let step = layout(w, h).line_h;
+pub fn text(cv: &mut Canvas, x: u32, y: u32, lines: &[&[u8]], color: u32) -> u32 {
+    let step = layout(cv.w, cv.h).line_h;
     let mut yy = y;
     for line in lines {
-        draw_text(buf, spx, w, h, x, yy, line, color);
+        draw_text(cv, x, yy, line, color);
         yy += step;
     }
     yy

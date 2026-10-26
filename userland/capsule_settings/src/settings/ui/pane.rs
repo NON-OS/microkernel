@@ -44,7 +44,10 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, scroll: u32, view_w: u32, view
             if offscreen {
                 return;
             }
-            row::paint(fb, state, r, card_x, card_w, sy, h, selected);
+            if selected {
+                super::row_focus::paint(fb, card_x, card_w, sy, h);
+            }
+            row::paint(fb, state, r, card_x, card_w, sy, h);
             if ri + 1 < blocks[bi].rows.len() {
                 row::hairline(fb, card_x, card_w, sy, h);
             }
