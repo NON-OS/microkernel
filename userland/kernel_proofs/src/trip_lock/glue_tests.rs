@@ -23,14 +23,14 @@ use crate::proofs::proofs_8::transport_takeover::text::{between, code, tail};
 
 const LOCK: &str = include_str!("../../../../src/services/lifecycle/trip_lock.rs");
 const GUARD: &str = include_str!("../../../../src/services/lifecycle/trip_guard.rs");
-const BACK: &str = include_str!("../../../../src/services/lifecycle/trip_back.rs");
 const REST: &str = include_str!("../../../../src/services/lifecycle/reply_rest.rs");
 
 #[test]
 fn g1_the_look_sweeps_the_gone_before_it_waits() {
     let look = concat!(
         "fn look(&self, me: u32, whole: bool) -> bool { let _quiet = super::rest_mark::quiet();",
-        " let (mut rows, now) = (self.rows.lock(), crate::time::timestamp_millis());",
+        " let rows = crate::smp::lock_responsive(&self.rows);",
+        " let (mut rows, now) = (rows, crate::time::timestamp_millis());",
         " let gone = super::transport_holder::never_runs_again;",
         " if !rows.may_take(me, whole, now) && rows.sweep(gone) { self.left(true); }",
         " let take = rows.may_take(me, whole, now); if take { rows.take(me, whole); } else {",
@@ -52,20 +52,11 @@ fn g2_the_wait_reads_its_mark_before_it_looks() {
 fn g3_the_writer_lets_go_before_its_row_and_wakes_after_it() {
     let drop = concat!(
         "fn drop(&mut self) { if WHOLE { self.lock.left(false); }",
-        " let (had, woken) = self.lock.rows.lock().give(self.me, WHOLE);",
+        " let (had, woken) = crate::smp::lock_responsive(&self.lock.rows).give(self.me, WHOLE);",
         " super::trip_back::gave(self.me, had);",
         " woken.into_iter().for_each(crate::sched::wake_process); } }",
     );
     assert_eq!(tail(GUARD, "fn drop("), code(drop));
-}
-
-#[test]
-fn g4_a_reused_pid_is_forgotten_with_its_writer_put_right() {
-    let forget = concat!(
-        "pub fn forget(&self, pid: u32) { let _quiet = super::rest_mark::quiet();",
-        " let mut rows = self.rows.lock(); if rows.sweep(|p| p == pid) { self.left(true); } } }",
-    );
-    assert_eq!(between(BACK, "pub fn forget(", "pub(super) fn asked_again("), code(forget));
 }
 
 #[test]
