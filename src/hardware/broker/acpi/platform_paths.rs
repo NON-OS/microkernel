@@ -50,11 +50,6 @@ pub fn named(device_id: u64) -> Option<([u8; 8], u64, Vec<u8>)> {
     Some((n.hid, n.uid, n.path.clone()))
 }
 
-/// The path of a platform device the capsule described.
-pub fn path_of(device_id: u64) -> Option<Vec<u8>> {
-    NAMES.lock().iter().find(|n| n.device_id == device_id).map(|n| n.path.clone())
-}
-
 /// A platform device that left (`depart_record`): its name goes with it.
 pub fn forget(device_id: u64) {
     NAMES.lock().retain(|n| n.device_id != device_id);
