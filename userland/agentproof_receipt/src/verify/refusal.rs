@@ -40,9 +40,11 @@ pub enum Refusal {
     Challenge,
     /// The doc carries a part its quote does not sign (napr/doc_form.rs).
     Unsigned,
-    /// The IOMMU was not enforcing with 0 unconfined grants.
+    /// No IOMMU, one not enforcing, a grant around it, or a device in a
+    /// domain that reaches all of memory (nsh_attest::steps::dma).
     Dma,
-    /// The capsule registry was not complete.
+    /// The capsule registry was not complete, or its entries do not fold to
+    /// the root the quote signed.
     Registry,
     /// PCR 9 names no trusted release, or PCR 8 or 14 is not that release's.
     Release,

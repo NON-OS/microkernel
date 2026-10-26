@@ -18,11 +18,10 @@
 
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 
-use nonos_app_skeleton::clients::vfs;
-use nonos_libc::{mk_getpid, mk_uptime_ms};
-use nonos_policy_proto::settings_record::{SETTINGS_DIR, VALUES_PATH};
+use nonos_libc::mk_uptime_ms;
 use nonos_policy_proto::Field;
 
+use super::write_steps::written_after;
 use crate::store::get_bool;
 use crate::store::state::CHANGES;
 
@@ -31,7 +30,6 @@ use crate::store::state::CHANGES;
 const QUIET_MS: u64 = 1_000;
 /// How long a write that failed waits before the next try.
 const RETRY_MS: u64 = 5_000;
-
 /// The change count the record on disk holds.
 static WRITTEN: AtomicU32 = AtomicU32::new(0);
 /// The change count last seen, and when it was first seen.
@@ -69,21 +67,9 @@ pub fn tick() {
         WRITTEN.store(c, Ordering::Relaxed);
         return;
     }
-    match write() {
-        Ok(()) => WRITTEN.store(c, Ordering::Relaxed),
-        Err(_) => NOT_BEFORE.store(now.saturating_add(RETRY_MS), Ordering::Relaxed),
+    let kept = super::attempt::once();
+    WRITTEN.store(written_after(WRITTEN.load(Ordering::Relaxed), c, kept), Ordering::Relaxed);
+    if !kept {
+        NOT_BEFORE.store(now.saturating_add(RETRY_MS), Ordering::Relaxed);
     }
-}
-
-/// The record, written afresh and kept: a kept file is replaced only by one
-/// of the same length, and one an earlier boot kept belongs to nobody, so it
-/// is unlinked first, as setup does with its answers.
-fn write() -> Result<(), &'static str> {
-    let pid = mk_getpid();
-    let bytes = super::snapshot::record();
-    let _ = vfs::mkdir(pid, b"/nonos");
-    let _ = vfs::mkdir(pid, SETTINGS_DIR);
-    let _ = vfs::unlink(pid, VALUES_PATH);
-    vfs::write_file(pid, VALUES_PATH, &bytes)?;
-    vfs::persist(pid, VALUES_PATH)
 }

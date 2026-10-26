@@ -42,19 +42,28 @@
 //!   as recalled, unverified). Never inside a capability on the standard
 //!   list: the Power Management capability shares the id 01h (listed.rs).
 //!
-//! Anything else stays refused: these registers hold no address, no BAR, no
-//! routing, and change nothing about what the device may reach.
+//! - The Intel 7, 8 and 9 series PCH xHCI (8086, 0C/03/30, the ids
+//!   xhci_route.rs cites): XUSB2PR and USB3_PSSEN, within the masks firmware
+//!   sets in USB2PRM and USB3PRM, while no EHCI on its bus is claimed. That
+//!   moves ports between the two host controllers on one PCH and gives no
+//!   device new memory reach: a port routed to the xHCI is reached only
+//!   through the claimed xHCI's own rings and IOMMU domain.
+//!
+//! Anything else stays refused: these registers hold no address and no BAR,
+//! and change nothing about what the device may reach.
 
 mod ident;
 mod legsup;
 mod listed;
 mod span;
 mod writable;
+mod xhci_route;
 
 // Public for kernel_proofs, which mounts this module at its root; the
 // kernel itself holds it crate-private.
 #[allow(unreachable_pub)]
-pub use ident::Ident;
+pub use ident::{Ident, Route};
 #[allow(unreachable_pub)]
 pub use legsup::legsup_before;
 pub(crate) use writable::{only, writable};
+pub(crate) use xhci_route::blocks;

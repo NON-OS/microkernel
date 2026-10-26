@@ -31,6 +31,7 @@ extern crate self as nonos_libc;
 #[path = "../../capsule_installer/src/server/handlers"]
 mod handlers {
     pub mod load_by_name;
+    pub mod load_outcome;
     pub mod pkg_body;
     pub mod pkg_commit;
     pub mod pkg_paths;
@@ -70,5 +71,5 @@ mod protocol_tests;
 use mounts::{alloc_watch, clients, fixtures, frame, packages, pkg_frame};
 pub use mounts::{mk_capsule_load, mk_capsule_verify, mk_getpid, mk_service_lookup};
 pub use mounts::{mk_caps_of, CAPS_OF_APP_INSTALL, CAPS_OF_SPAWN_WINDOW};
-use mounts::{process, services, syscall, verify};
+use mounts::{process, server, services, syscall, verify};
 pub use mounts::{CapsuleLoadRequest, CapsuleVerifyRequest, CapsuleVerifySummary};

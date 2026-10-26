@@ -48,3 +48,5 @@ mod wifi_key_tests;
 mod wire_rig;
 mod wire_ssid_tests;
 mod wire_tests;
+mod station_tests;
+mod station_words_tests;

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod asks;
 mod boot;
 pub mod chrome;
 mod click_focus;
@@ -52,6 +53,8 @@ mod paint_once;
 mod paint_partial;
 mod press_part;
 mod prime_frame;
+pub mod rect_ask;
+mod rect_follow;
 mod refresh_input;
 mod reopen;
 mod repaint;
@@ -62,6 +65,7 @@ mod run_loop;
 mod service_frame;
 mod teardown;
 pub mod teardown_steps;
+pub mod work_rect;
 
 #[cfg(feature = "runtime")]
 pub use entry::run;

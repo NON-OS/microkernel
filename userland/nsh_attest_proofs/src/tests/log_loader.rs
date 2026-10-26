@@ -70,5 +70,5 @@ fn listed_applications_in_any_order_pass() {
     passes(s);
     let mut l = Log::empty();
     l.ext(4, EV_APP, loader());
-    passes(Spec { log: l, boot_apps: vec![], ..Spec::default() });
+    passes(Spec { log: l.with_capsules(), boot_apps: vec![], ..Spec::default() });
 }

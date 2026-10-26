@@ -18,10 +18,11 @@
 //!
 //! vfs loads the store from disk after this service has started, and until it
 //! has, a missing file proves nothing. So the server loop calls in here between
-//! requests, at most every quarter second, and it stops asking once vfs has
+//! requests, at most every quarter second, one ask each time, each bounded so
+//! the loop is never held past a client's wait, and it stops once vfs has
 //! settled: the answers are restored, or there were none to restore.
 
-mod answers;
+mod ask;
 mod wait;
 
 pub use wait::{settled, tick};
