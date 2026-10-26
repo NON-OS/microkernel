@@ -17,6 +17,7 @@
 mod accessory;
 mod control_rect;
 mod controls;
+mod edges;
 mod frame_rect;
 mod glyph;
 mod hit_test;
@@ -24,6 +25,7 @@ mod inner_rect;
 mod metrics;
 mod palette;
 mod rect;
+mod reshape;
 mod scale;
 mod title;
 mod titlebar;
@@ -32,6 +34,7 @@ mod window_for;
 pub use accessory::{accessory_rect, accessory_rect_at};
 pub use control_rect::{control_rect, control_rect_at, controls_left_at, CONTROLS};
 pub use controls::draw_controls_at;
+pub use edges::{edges_at, Edges, EDGE_PX, TOP_EDGE_PX};
 pub use frame_rect::{
     border_at, frame_rect, frame_rect_at, margin, margin_at, radius, radius_at, titlebar_h_at,
 };
@@ -48,6 +51,7 @@ pub use palette::{
     CLOSE_HOVER, ON_CLOSE_HOVER, SHADOW, TRANSPARENT,
 };
 pub use rect::Rect;
+pub use reshape::{keep_far_edges, reshaped, Placed};
 pub use scale::{at as scaled, px_at as scaled_px, ONE as SCALE_ONE};
 pub use titlebar::{draw_focus_rule_at, draw_frame, draw_frame_at, FrameState};
 pub use window_for::window_for;

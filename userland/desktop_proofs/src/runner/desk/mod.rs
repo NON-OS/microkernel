@@ -31,6 +31,7 @@ mod full_screen;
 mod open;
 mod open_app;
 mod paint;
+mod place;
 mod press;
 mod resize;
 mod shell_sync;

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What one drain asked of the frame loop, in order: the keyboard's state, a
-//! resize, a move, then a close, minimise or maximise, or a restore and repaint.
+//! What one drain asked of the frame loop, in order: keyboard, place, resize,
+//! move, then close, minimise or maximise, or restore and repaint.
 
 use crate::app::App;
 use crate::clients::{compositor, wm};
@@ -23,12 +23,8 @@ use crate::discover::Peers;
 
 use super::boot::BootedApp;
 use super::inbox::DrainResult;
-use super::maximize;
-use super::move_window::apply_move;
-use super::repaint::repaint;
-use super::request_id::next;
-use super::restore::restore;
-use super::teardown::close;
+use super::window_ops::{apply_move, apply_place, apply_resize, restore, toggle};
+use super::{repaint::repaint, request_id::next, teardown::close};
 
 /// True when the window closed and the frame loop must end.
 pub(super) fn apply<A: App>(
@@ -40,8 +36,11 @@ pub(super) fn apply<A: App>(
     if let Some(has) = result.focused {
         booted.focused = has;
     }
+    if let Some(p) = result.place {
+        apply_place(booted, peers, request_id, p);
+    }
     if let Some((rw, rh)) = result.resize_to {
-        super::resize_window::apply_resize(booted, peers, request_id, rw, rh);
+        apply_resize(booted, peers, request_id, rw, rh);
     }
     if let Some((mx, my)) = result.move_to {
         apply_move(booted, peers, request_id, mx, my);
@@ -65,7 +64,7 @@ pub(super) fn apply<A: App>(
     }
     if result.maximize {
         booted.asks.full.person_chose();
-        maximize::toggle(booted, peers, request_id);
+        toggle(booted, peers, request_id);
         return false;
     }
     if result.repaint {

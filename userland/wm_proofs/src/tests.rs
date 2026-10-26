@@ -30,6 +30,8 @@ mod keys_notice_tests;
 mod notify_send_tests;
 #[path = "parse_tests.rs"]
 mod parse_tests;
+#[path = "place_tests.rs"]
+mod place_tests;
 #[path = "press_tests.rs"]
 mod press_tests;
 #[path = "reopen_tests.rs"]

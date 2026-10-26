@@ -49,3 +49,9 @@ pub fn resized(current: Rect, w: u32, h: u32, display_w: u32, display_h: u32) ->
     let height = h.clamp(MIN_WINDOW_DIM, room_h);
     Rect { x: current.x, y: current.y, width, height }
 }
+
+/// A window placed at (x, y) with size w by h: the size the display leaves it
+/// at that origin, as `resized` gives a window that kept its origin.
+pub fn placed(x: u32, y: u32, w: u32, h: u32, display_w: u32, display_h: u32) -> Rect {
+    resized(Rect { x, y, width: w, height: h }, w, h, display_w, display_h)
+}

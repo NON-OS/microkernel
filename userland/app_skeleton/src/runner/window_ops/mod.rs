@@ -13,29 +13,17 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! What changes the window itself: a move, a resize from the right or
+//! bottom, a placing from the left or top, full screen, and a restore.
 
-use crate::app::App;
-use crate::clients::compositor;
-use crate::discover::Peers;
+mod maximize;
+mod move_window;
+mod place_window;
+mod resize_window;
+mod restore;
 
-use super::boot::BootedApp;
-use super::repaint::repaint;
-use super::request_id::next;
-
-const APP_LAYER_Z: u32 = 2;
-
-/// Put a minimized window back in the scene where it was and repaint it.
-pub(super) fn restore<A: App>(booted: &mut BootedApp<A>, peers: &Peers, request_id: &mut u32) {
-    let _ = compositor::scene_submit(
-        peers.compositor,
-        next(request_id),
-        booted.binding.surface_handle,
-        booted.binding.x,
-        booted.binding.y,
-        booted.binding.width,
-        booted.binding.height,
-        APP_LAYER_Z,
-    );
-    booted.minimized = false;
-    repaint(booted, peers, request_id);
-}
+pub(in crate::runner) use maximize::{follow_ask, toggle};
+pub(in crate::runner) use move_window::apply_move;
+pub(in crate::runner) use place_window::apply_place;
+pub(in crate::runner) use resize_window::apply_resize;
+pub(in crate::runner) use restore::restore;
