@@ -30,7 +30,10 @@ pub(crate) fn boot(
             lifecycle::register(lifecycle::Capsule { name, state: state_fn() });
             super::super::supervisor::watch(prefix, name, spawn_fn, state_fn);
         }
-        Err(e) => boot_log::error(super::error::message(prefix, e).as_str()),
+        Err(e) => {
+            super::failures::note(e);
+            boot_log::error(super::error::message(prefix, e).as_str());
+        }
     }
 }
 

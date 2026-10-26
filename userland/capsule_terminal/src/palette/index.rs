@@ -19,7 +19,7 @@ use super::verbs::VERBS;
 use crate::term::prefs::types::Project;
 use crate::term::state::State;
 
-/// Rows the index can hold: the verb table, a slice of history, every session
+/// Rows the index can hold: the verb table, a slice of history, every run
 /// and project, and the actions, with room to spare. Fixed so building an
 /// index costs no allocation on the query path.
 pub const CAP: usize = 48;
@@ -44,7 +44,8 @@ impl<'a> Index<'a> {
         }
         ix.push(Kind::Action, "New Session", "another tab", Action::NewSession);
         ix.push(Kind::Action, "Toggle Monitor", "the telemetry rail", Action::ToggleMonitor);
-        ix.push(Kind::Action, "Change Theme", "the next palette", Action::ChangeTheme);
+        ix.push(Kind::Action, "Change Theme", "try each on the window", Action::ChangeTheme);
+        ix.push(Kind::Action, "Split Side by Side", "Ctrl+Shift+D", Action::Split);
         ix
     }
 

@@ -21,12 +21,15 @@
  */
 
 mod glue_locks_tests;
+mod glue_store_tests;
 mod glue_tests;
 mod glue_whole_tests;
 mod tests;
-mod text;
+/// The code reader the glue checks share, futex_waiters' among them.
+pub(crate) mod text;
+/// The kernel's takeover rule, shared with trip_lock: a file is mounted once.
 #[path = "../../../../src/services/lifecycle/transport_rule.rs"]
-mod transport_rule;
+pub(crate) mod transport_rule;
 mod world;
 mod world_c;
 mod world_h;
