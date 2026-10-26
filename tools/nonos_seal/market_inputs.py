@@ -22,15 +22,21 @@ import shutil
 import subprocess
 
 USERLAND = "target/linux-userland"
+# The logo rasters a maintainer committed (tools/nonos_market_catalogue/logos.py),
+# which the market capsule embeds and the index signs (market_logos.py).
+LOGOS = "nonos-data/market/logos"
 
 
 def committed(*paths):
-    """Whether every path is tracked and the same as at HEAD."""
+    """Whether every path, a file or a directory of them, is tracked and the
+    same as at HEAD, with nothing untracked beside it."""
     for path in paths:
         tracked = subprocess.run(["git", "ls-files", "--error-unmatch", "--", path],
                                  capture_output=True).returncode == 0
         same = subprocess.run(["git", "diff", "--quiet", "HEAD", "--", path]).returncode == 0
-        if not (os.path.isfile(path) and tracked and same):
+        loose = subprocess.run(["git", "ls-files", "--others", "--", path],
+                               capture_output=True, text=True).stdout.strip()
+        if not (os.path.exists(path) and tracked and same and not loose):
             return False
     return True
 
@@ -58,7 +64,8 @@ SOURCES = [
     "userland/capsule_market", "userland/capsule_linux/src/linux/file/models",
     "tools/nonos-market-index", "tools/nonos-market-catalogue", "tools/nonos_market_catalogue",
     "tools/nonos-market-sign-releases", "tools/nonos-qwen-tier.py", "tools/nonos_qwen_tier",
-    "tools/nix/userland.nix", "tools/nix/sources.txt", "nonos-mk",
+    "tools/nix/userland.nix", "tools/nix/sources.txt", "nonos-mk", LOGOS,
+    "HANDOFF/catalogue/logos-licences.md",
     # The catalogue's recipes, its policy encoder, the Alpine keys it checks
     # under and the release the device installs from.
     "tools/nonos_linux_pack", "userland/capsule_linux/keys/alpine",

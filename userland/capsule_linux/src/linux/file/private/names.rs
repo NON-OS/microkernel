@@ -42,6 +42,11 @@ pub fn choose() -> bool {
     true
 }
 
+/// True when `visible` is in the family's home (home.rs), once it is open.
+pub fn in_home(visible: &[u8]) -> bool {
+    super::rule::home_for(visible, crate::linux::app::home()) && super::home::root().is_some()
+}
+
 /// The store root this family's private prefixes live under.
 pub fn root() -> Vec<u8> {
     let mut out = Vec::from(BASE);
