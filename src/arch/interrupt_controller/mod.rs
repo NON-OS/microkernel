@@ -30,8 +30,11 @@
 #[cfg(feature = "nonos-smp")]
 mod adopt_boot_state;
 mod cache_boot_id;
+// Only where IPIs are delivered (`ipi_dispatch`): riscv64 has none.
+#[cfg(any(target_arch = "x86_64", target_arch = "aarch64"))]
 mod eoi;
 mod ipi;
+mod ipi_dispatch;
 mod kind;
 mod local_id;
 mod nmi;
@@ -39,8 +42,14 @@ mod nmi;
 #[cfg(feature = "nonos-smp")]
 pub(crate) use adopt_boot_state::adopt_boot_state;
 pub(crate) use cache_boot_id::{cache_boot_cpu_id, latch_boot_cpu_id};
+#[cfg(any(target_arch = "x86_64", target_arch = "aarch64"))]
 pub(crate) use eoi::end_of_interrupt;
 pub(crate) use ipi::{broadcast_ipi, send_ipi};
+/// Called by the IDT builder, which is the only point early enough that every
+/// CPU is guaranteed to load a table carrying these vectors.
+#[cfg(target_arch = "x86_64")]
+pub(crate) use ipi_dispatch::install_gates as install_ipi_gates;
+pub(crate) use ipi_dispatch::register_ipi_handlers;
 pub use kind::Ipi;
 pub(crate) use local_id::local_id;
 pub(crate) use nmi::{nmi_one, nmi_others};
