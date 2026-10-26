@@ -23,6 +23,7 @@
 extern crate alloc;
 
 pub mod cli;
+pub mod cli_ran;
 pub mod napr;
 pub mod trust;
 pub mod trust_file;
