@@ -38,20 +38,22 @@ is judged on its own commits alone. Exit 1 when anything is found.
 
 --reached lists, proof crates first, every userland crate whose tests a unit
 must run, nested ones (a shim, a fuzz crate, a layout_tests lane) included:
-one that holds a changed file; one with a file that mounts (#[path],
-include_str!, include_bytes!) a changed file, or a directory or mounted file
-that leads to one; or one naming such a crate as a path dependency. The
-vendored and upstream crates are read for changed files and dependencies,
-not for mounts: they mount nothing of ours.
+one that holds a changed file; one whose targets or build script compile a
+changed file, walked as rustc walks modules (scripts/test_lanes/modules.py:
+`mod x;`, #[path], inline modules, include!), or read one by include_str! or
+include_bytes!, or name its path whole in a string of three parts or more, as
+the pin macros do, or build one by concat! around a single argument; or one
+naming such a crate as a path dependency. The
+vendored and upstream crates count for changed files and dependencies only.
 """
 
 import argparse
+import fnmatch
 import os
 import re
 import subprocess
 import sys
 import tempfile
-from functools import lru_cache
 from pathlib import Path
 
 LIMIT = 75
@@ -104,42 +106,72 @@ def findings(root, base):
     return out
 
 
-MOUNT = re.compile(r'#\[path\s*=\s*"([^"]+)"\]|include_(?:str|bytes)!\(\s*"([^"]+)"')
+TEXT = re.compile(r'include_(?:str|bytes)!\(\s*"([^"]+)"')
+# A path written whole in a string, as the src!-style pin macros take them:
+# three parts or more once any leading ../ is gone, so "src/lib.rs" alone
+# names no one file.
+LITERAL = re.compile(r'"/?((?:[\w.-]+/)+[\w.-]+\.\w+)"')
+# A path built by concat! around one argument, as a pin macro over many
+# files does: concat!("../src/userspace/capsule_", $a, "/spawn.rs").
+CONCAT = re.compile(r'concat!\(\s*"([^"]+)"\s*,\s*[^,()"]+,\s*"([^"]+)"\s*\)')
 DEP = re.compile(r'path\s*=\s*"([^"]+)"')
 THIRD_PARTY = ("userland/vendor/", "userland/upstream-src/")
 
 
+def walker(root):
+    """scripts/test_lanes, the module walk the lane check uses, from the tree
+    under check or else from this tool's own."""
+    for scripts in (root / "scripts", Path(__file__).resolve().parents[1] / "scripts"):
+        if (scripts / "test_lanes" / "modules.py").exists():
+            sys.path.insert(0, str(scripts))
+            from test_lanes.modules import reach
+            from test_lanes.targets import targets
+            from test_lanes.tree import Tree
+            return Tree(root), reach, targets
+    raise SystemExit("unit-check: no scripts/test_lanes to walk modules with")
+
+
 def reached(root, base):
     since = git(root, "merge-base", base, "HEAD").strip()
-    changed = {(root / p).resolve() for p in git(root, "diff", "--name-only", since, "HEAD").split()}
-    under = lambda p, d: str(p).startswith(str(d) + "/")
+    changed = set(git(root, "diff", "--name-only", since, "HEAD").split())
+    tree, reach, targets = walker(root)
+    under = lambda p, d: p.startswith(d + "/")
+    norm = lambda d, p: os.path.normpath(os.path.join(d, p))
 
-    def mounts(f):
-        try:
-            text = f.read_text(errors="replace")
-        except OSError:
-            return []
-        return [(f.parent / (m.group(1) or m.group(2))).resolve() for m in MOUNT.finditer(text)]
+    def compiles(crate):
+        """Every file the crate's targets and build script compile, and every
+        file they read as text or name whole in a string."""
+        roots = [t.path for t in targets(tree, crate)]
+        build = tree.manifests[crate].get("package", {}).get("build", "build.rs")
+        if isinstance(build, str) and norm(crate, build) in tree.files:
+            roots.append(norm(crate, build))
+        files = reach(tree, roots)
+        out = set(files)
+        for f in files:
+            text = tree.text(f)
+            out |= {norm(os.path.dirname(f), m) for m in TEXT.findall(text)}
+            whole = (m.lstrip("./") for m in LITERAL.findall(text))
+            out |= {"\0" + w for w in whole if w.count("/") >= 2}
+            here = os.path.dirname(f)
+            out |= {"\1" + norm(here, a) + "*" + b for a, b in CONCAT.findall(text)}
+        return out
 
-    @lru_cache(maxsize=None)
-    def touches(f, depth=0):
-        if f in changed or depth > 12:
-            return f in changed
-        if f.is_dir():
-            files = [g for g in f.rglob("*.rs") if "/target/" not in str(g)]
-            return any(under(c, f) for c in changed) or any(touches(g, depth + 1) for g in files)
-        return f.suffix == ".rs" and any(touches(d, depth + 1) for d in mounts(f))
-
-    manifests = [p for p in git(root, "ls-files", "userland/*Cargo.toml").split()
-                 if p.endswith("/Cargo.toml")]
-    ours = {(root / p).parent.resolve(): not p.startswith(THIRD_PARTY) for p in manifests}
-    crates = sorted(ours)
+    crates = [c for c in tree.crates if c.startswith("userland/")]
+    ours = {c: not (c + "/").startswith(THIRD_PARTY) for c in crates}
     found = set()
     for crate in crates:
-        own = [r for r in crate.rglob("*.rs") if "/target/" not in str(r)] if ours[crate] else []
-        if any(under(c, crate) for c in changed) or any(touches(d) for r in own for d in mounts(r)):
+        if any(under(c, crate) for c in changed):
             found.add(crate)
-    deps = {c: {(c / m.group(1)).resolve() for m in DEP.finditer((c / "Cargo.toml").read_text())}
+            continue
+        if not ours[crate]:
+            continue
+        seen = compiles(crate)
+        whole = {p[1:] for p in seen if p.startswith("\0")}
+        globs = [p[1:] for p in seen if p.startswith("\1")]
+        if (seen & changed or any(c.endswith("/" + w) or c == w for c in changed for w in whole)
+                or any(fnmatch.fnmatchcase(c, g) for c in changed for g in globs)):
+            found.add(crate)
+    deps = {c: {norm(c, m.group(1)) for m in DEP.finditer(tree.text(c + "/Cargo.toml"))}
             for c in crates}
     grew = True
     while grew:
@@ -148,8 +180,8 @@ def reached(root, base):
             if crate not in found and deps[crate] & found:
                 found.add(crate)
                 grew = True
-    order = sorted(found, key=lambda c: (not c.name.endswith("_proofs"), c.name))
-    return [str(c.relative_to(root.resolve())) for c in order]
+    return sorted(found, key=lambda c: (not c.rsplit("/", 1)[-1].endswith("_proofs"),
+                                        c.rsplit("/", 1)[-1]))
 
 
 def self_test():
@@ -211,7 +243,7 @@ def reached_self_test():
         for name, toml_extra, src in [
             ("lib_a", "", "pub fn a() {}\n"),
             ("by_path_proofs", "", '#[path = "../../lib_a/src/lib.rs"]\nmod a;\n'),
-            ("by_text_proofs", "", 'const A: &str = include_str!("../../lib_a/src/lib.rs");\n'),
+            ("by_text_proofs", "", 'const A: &str = include_str!("../../lib_a/notes.txt");\n'),
             ("by_dep_proofs", '\n[dependencies]\nlib_a = { path = "../lib_a" }\n', ""),
             ("lib_b", "", '#[path = "../../lib_a/src/lib.rs"]\nmod a;\npub fn b() {}\n'),
             ("by_chain_proofs", "", '#[path = "../../lib_b/src/lib.rs"]\nmod b;\n'),
@@ -220,20 +252,44 @@ def reached_self_test():
             ("lib_a/layout_tests", "", '#[path = "../../src/lib.rs"]\nmod a;\n'),
             ("vendor/v", '\n[dependencies]\nlib_a = { path = "../../lib_a" }\n', ""),
             ("lib_e", "", "pub fn e() {}\n"),
+            ("lib_f", "", "pub mod state;\n"),
+            ("by_mod_proofs", "", '#[path = "../../lib_f/src/state/mod.rs"]\nmod state;\n'),
+            ("by_inline_proofs", "", '#[path = "../../lib_f/src"]\nmod f {\n    mod state;\n}\n'),
+            ("by_pin_proofs", "", 'const P: &str = src!("lib_e/src/lib.rs");\n'),
+            ("two_part_proofs", "", 'const P: &str = src!("src/lib.rs");\n'),
+            ("by_build_proofs", "", ""),
+            ("by_concat_proofs", "",
+             'macro_rules! n {\n    ($a:literal) => {\n        include_str!(concat!("../../lib_", $a, "/notes.txt"))\n'
+             '    };\n}\nconst N: &str = n!("a");\n'),
+            ("by_rooted_proofs", "", 'const P: &str = concat!(env!("D"), "/../lib_f/src/state/tray.rs");\n'),
+            ("vendor/w", "", "pub fn w() {}\n"),
         ]:
             (root / "userland" / name / "src").mkdir(parents=True)
             (root / "userland" / name / "Cargo.toml").write_text(
                 f'[package]\nname = "{name.split("/")[-1]}"\n{toml_extra}')
             (root / "userland" / name / "src/lib.rs").write_text(src)
+        (root / "userland/lib_a/notes.txt").write_text("a\n")
+        (root / "userland/lib_f/src/state").mkdir()
+        (root / "userland/lib_f/src/state/mod.rs").write_text("mod tray;\n")
+        (root / "userland/lib_f/src/state/tray.rs").write_text("pub fn t() {}\n")
+        (root / "userland/by_build_proofs/build.rs").write_text(
+            'const A: &str = include_str!("../lib_c/src/lib.rs");\nfn main() {}\n')
         git(root, "add", "-A")
         git(root, "commit", "-q", "-m", "base")
         (root / "userland/lib_a/src/lib.rs").write_text("pub fn a() -> u8 { 1 }\n")
         (root / "userland/lib_e/src/lib.rs").write_text("pub fn e() -> u8 { 1 }\n")
+        (root / "userland/lib_f/src/state/tray.rs").write_text("pub fn t() -> u8 { 1 }\n")
+        (root / "userland/lib_c/src/lib.rs").write_text("pub fn c() -> u8 { 1 }\n")
+        (root / "userland/lib_a/notes.txt").write_text("b\n")
+        (root / "userland/vendor/w/src/lib.rs").write_text("pub fn w() -> u8 { 1 }\n")
         git(root, "commit", "-q", "-am", "unit")
         got = reached(root, "main~1")
-        want = ["userland/by_chain_proofs", "userland/by_dep_proofs", "userland/by_path_proofs",
-                "userland/by_text_proofs", "userland/lib_a/layout_tests", "userland/lib_a",
-                "userland/lib_b", "userland/lib_e", "userland/vendor/v"]
+        want = ["userland/by_build_proofs", "userland/by_chain_proofs", "userland/by_concat_proofs",
+                "userland/by_dep_proofs", "userland/by_inline_proofs", "userland/by_mod_proofs",
+                "userland/by_path_proofs", "userland/by_pin_proofs", "userland/by_rooted_proofs",
+                "userland/by_text_proofs", "userland/unrelated_proofs",
+                "userland/lib_a/layout_tests", "userland/lib_a", "userland/lib_b", "userland/lib_c",
+                "userland/lib_e", "userland/lib_f", "userland/vendor/v", "userland/vendor/w"]
         if got != want:
             print(f"unit-check: --reached self-test failed\n  got  {got}\n  want {want}")
             return False
