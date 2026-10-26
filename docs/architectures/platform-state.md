@@ -115,16 +115,19 @@ Usercopy does not run inside a STAC and CLAC window. It walks the user page tabl
 | Kernel stack guard pages | absent; `arm_stack_guards` exists only on x86_64 |
 | Power, reboot, sleep | PSCI `SYSTEM_OFF` and `SYSTEM_RESET` only; no ACPI power-button equivalent |
 
-### The four dead-code warnings
+### Dead-code warnings
 
-Each item's only consumer is x86_64-only code:
+None: `--features nonos-arch-preview` and `--no-default-features --features
+microkernel-core,nonos-arch-preview` check with 0 warnings. The items whose only
+consumer was x86_64 code were answered without `allow`:
 
-- `release_as` (`src/hardware/broker/claim/mod.rs:43`)
-- `boot_ram_ranges` (`src/hardware/broker/mmio/mod.rs:35`)
-- `device_secret_caller` (`src/syscall/microkernel/mod.rs:97`)
-- `dev_unremapped::holds` (`src/memory/iommu/dev_unremapped.rs:35`)
-
-Each goes away by giving the consumer an aarch64 meaning or by gating the item, not by `allow`.
+- `zerostate::terminate_critical` and `CRITICAL_TOTAL_MS`: one `terminate_with(off, critical)`
+  (`src/security/zerostate/terminate.rs`), which `terminate` calls with `false`; only the
+  ACPI broker's critical watch passes `true`, as only ACPI reports a critical zone or battery.
+- `device_secret_caller`: its re-export is gone; the x86 seal read imports it from
+  `device_proof::gate`.
+- `dev_unremapped::holds`: gone; the x86 MSI composer (`src/hardware/broker/irq/bind/message.rs`)
+  reads the opt-in itself, as only x86 composes a compatibility format message.
 
 ### What a real board needs
 
