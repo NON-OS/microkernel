@@ -142,18 +142,6 @@ src/kernel_core/init/platform/hardware_broker.rs 2
 src/lib.rs 1
     build guard: non-x86 needs preview feature. Elsewhere: compile_error unless nonos-arch-preview
 
-src/log/backend/mod.rs 2
-    VGA text log backend. Elsewhere: nothing: absent; RAM buffer + serial only
-
-src/log/compat.rs 1
-    VgaBackend re-export. Elsewhere: nothing: absent
-
-src/log/manager/lifecycle.rs 1
-    adds VGA backend to logger. Elsewhere: nothing: logger has no VGA backend
-
-src/log/mod.rs 1
-    VgaBackend re-export. Elsewhere: nothing: absent
-
 src/log/types/severity.rs 2
     VGA colour per severity. Elsewhere: nothing: method absent, callers also x86-gated
 
