@@ -27,7 +27,7 @@
 use super::super::mmio::fence::fenced_by;
 use super::super::{pci_index, table};
 use super::late_bars::unassigned;
-use crate::drivers::pci::manager::probe_function;
+use crate::drivers::pci::manager::probe::probe_device;
 use alloc::vec::Vec;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -47,7 +47,7 @@ pub fn probe_late(bus: u8, dev: u8, func: u8) -> Result<u64, ProbeError> {
     if known {
         return Err(ProbeError::Present);
     }
-    let found = probe_function(bus, dev, func).ok_or(ProbeError::Absent)?;
+    let found = probe_device(bus, dev, func).ok_or(ProbeError::Absent)?;
     let bars: Vec<(u64, u64)> = found
         .bars
         .iter()

@@ -45,6 +45,8 @@ pub mod store;
 
 pub mod linux_why;
 #[cfg(test)]
+mod logo_tests;
+#[cfg(test)]
 mod proto_hostile;
 #[cfg(test)]
 mod reason_tests;
@@ -61,6 +63,8 @@ mod request_tests;
 #[cfg(test)]
 mod store_checks;
 
+#[cfg(test)]
+mod gate_fit_tests;
 #[cfg(test)]
 mod readiness_wire_tests;
 #[cfg(test)]

@@ -19,7 +19,7 @@ mod block_meta;
 mod compose;
 mod constants;
 mod draw_cursor;
-mod draw_input_line;
+pub mod draw_input_line;
 pub mod fetch;
 pub mod fetch_arch;
 pub(crate) mod fetch_banner;

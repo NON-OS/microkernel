@@ -22,7 +22,6 @@
 #[path = "../../../../src/security/attest_doc/binding.rs"]
 pub mod binding;
 /// The registry's fold domain and entry width, from the kernel's file.
-#[allow(dead_code)]
 #[path = "../../../../src/security/attest_registry/format.rs"]
 mod format;
 
