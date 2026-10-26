@@ -46,9 +46,13 @@ pub(super) fn sized(bytes: usize) {
     SIZE.store(bytes, Ordering::Relaxed);
 }
 
-pub(super) fn took(bytes: usize) {
-    let now = USED.fetch_add(bytes, Ordering::Relaxed) + bytes;
-    PEAK.fetch_max(now, Ordering::Relaxed);
+/// `block` as the allocator gave it, counted when it is one.
+pub(super) fn took(block: *mut u8, bytes: usize) -> *mut u8 {
+    if !block.is_null() {
+        let now = USED.fetch_add(bytes, Ordering::Relaxed) + bytes;
+        PEAK.fetch_max(now, Ordering::Relaxed);
+    }
+    block
 }
 
 pub(super) fn gave(bytes: usize) {
