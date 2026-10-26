@@ -31,6 +31,7 @@ use super::pinned_qwen25::QWEN25;
 use super::pinned_qwen25_big::QWEN25_BIG;
 use super::pinned_qwen3::QWEN3;
 use super::pinned_qwen35::QWEN35;
+use super::pinned_vl::VL;
 
 pub struct Pinned {
     pub tier: &'static str,
@@ -40,7 +41,7 @@ pub struct Pinned {
 }
 
 /* Every table, smallest family first. */
-const FAMILIES: &[&[Pinned]] = &[QWEN25, QWEN25_BIG, QWEN3, QWEN35, CODER];
+const FAMILIES: &[&[Pinned]] = &[QWEN25, QWEN25_BIG, QWEN3, QWEN35, VL, CODER];
 
 /*
  * The tables as the code reads them. A static, not the const: a const is

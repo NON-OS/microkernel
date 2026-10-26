@@ -2,6 +2,7 @@
 #include "qwenchat.h"
 #include "qwenmem_file.h"
 #include "qwenpool.h"
+#include "qwenvision.h"
 
 #include <cerrno>
 #include <cstdio>
@@ -64,6 +65,11 @@ bool chat_open(const ChatArgs &a, Chat &c) {
     /* A refused part stops here, before the plan or the loader open it again. */
     if (!chat_import(c, a.model)) return false;
     if (!mem_plan(a.model.c_str(), a.n_ctx, UBATCH, c.mem)) return c.err = ENOMEM, false;
+    /* A vision tier needs its projector and its image's buffers too (qwenvision.h). */
+    if (!a.mmproj.empty()) {
+        c.mem.need += model_bytes(a.mmproj.c_str()) + VISION_MARGIN;
+        if (c.mem.free >= 0 && c.mem.need > c.mem.free) return c.err = ENOMEM, false;
+    }
     llama_backend_init();
     llama_model_params mp = llama_model_default_params();
     mp.n_gpu_layers = 0;

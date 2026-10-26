@@ -27,6 +27,7 @@ use super::apps_coder::CODER;
 use super::apps_qwen25::QWEN25;
 use super::apps_qwen3::QWEN3;
 use super::apps_qwen35::QWEN35;
+use super::apps_vl::VL;
 
 pub struct App {
     pub name: &'static str,
@@ -102,9 +103,32 @@ macro_rules! tier {
 pub(super) use tier;
 
 /*
+ * A vision tier: the chat on `model`, with the projector `mmproj` beside it,
+ * both needed; on the terminal it is handed an image frame first.
+ */
+macro_rules! vision_tier {
+    ($name:literal, $model:literal, $mmproj:literal) => {
+        super::apps::App {
+            name: $name,
+            program: super::apps::CHAT,
+            args: &[
+                b"-ui",
+                b"window",
+                b"-m",
+                concat!("/models", $model).as_bytes(),
+                b"-mmproj",
+                concat!("/models", $mmproj).as_bytes(),
+            ],
+            models: &[$model.as_bytes(), $mmproj.as_bytes()],
+        }
+    };
+}
+pub(super) use vision_tier;
+
+/*
  * Every table, smallest family first.
  */
-pub const FAMILIES: &[&[App]] = &[QWEN25, QWEN3, QWEN35, CODER];
+pub const FAMILIES: &[&[App]] = &[QWEN25, QWEN3, QWEN35, VL, CODER];
 
 /*
  * Every shipped tier, family by family.

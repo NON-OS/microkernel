@@ -90,7 +90,7 @@ fn the_stick_tier_is_a_card_where_it_fits_and_the_rest_are_counted() {
         .iter()
         .filter(|(t, _)| !shown(format!("linux.qwen-{t}").as_bytes(), &w, Some(8 * GIB), Room::Disk))
         .count();
-    assert!(hidden > 0 && hidden < 19, "{hidden}");
+    assert!(hidden > 0 && hidden < 20, "{hidden}");
     let line = hidden_line(hidden).unwrap();
     assert_eq!(line, format!("{hidden} larger tiers need more memory than this machine has"));
     assert_eq!(hidden_line(0), None);

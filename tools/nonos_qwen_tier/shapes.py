@@ -30,20 +30,22 @@ import sys
 NEED = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
                     "userland/capsule_model_fetch/src/need.rs")
 ROW = re.compile(r'\("([\w.-]+)", (\d+), (\d+), (\d+), (\d+)\),')
-CONST = re.compile(r"pub const (POSITIONS|BATCH|MARGIN): u64 = (\d+)(?: << (\d+))?;")
+CONST = re.compile(r"pub const (POSITIONS|BATCH|MARGIN|VISION_MARGIN): u64 = (\d+)(?: << (\d+))?;")
+VISION_LIST = re.compile(r'pub const VISION: &\[&str\] = &\[([^\]]*)\];')
 
 
 def _read():
     text = open(NEED).read()
     shapes = {t: tuple(int(x) for x in rest) for t, *rest in ROW.findall(text)}
     consts = {k: int(v) << int(s or 0) for k, v, s in CONST.findall(text)}
-    if not shapes or sorted(consts) != ["BATCH", "MARGIN", "POSITIONS"]:
+    vision = VISION_LIST.search(text)
+    if not shapes or sorted(consts) != ["BATCH", "MARGIN", "POSITIONS", "VISION_MARGIN"] or not vision:
         sys.exit(f"{NEED}: no shapes or constants read")
-    return shapes, consts
+    return shapes, consts, re.findall(r'"([\w.-]+)"', vision.group(1))
 
 
-SHAPES, _C = _read()
-POSITIONS, BATCH, MARGIN = _C["POSITIONS"], _C["BATCH"], _C["MARGIN"]
+SHAPES, _C, VISION = _read()
+POSITIONS, BATCH, MARGIN, VISION_MARGIN = _C["POSITIONS"], _C["BATCH"], _C["MARGIN"], _C["VISION_MARGIN"]
 
 
 def memory(tier, weights):
@@ -52,4 +54,4 @@ def memory(tier, weights):
         sys.exit(f"{tier}: no shape known, so no memory need; add it to {NEED}")
     layers, kv_heads, head, embd = SHAPES[tier]
     kv = layers * kv_heads * 2 * head * 2 * POSITIONS
-    return weights + kv + MARGIN + BATCH * embd * 64
+    return weights + kv + MARGIN + BATCH * embd * 64 + (VISION_MARGIN if tier in VISION else 0)

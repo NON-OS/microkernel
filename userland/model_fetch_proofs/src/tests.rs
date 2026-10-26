@@ -50,7 +50,7 @@ fn the_host_tool_writes_what_the_fetcher_takes() {
     forged[30] ^= 1;
     assert!(!verify(&pubkey_from_secret(&[7u8; 32]), &forged, &sig));
     let cat = parse(body).expect("the fetcher reads it");
-    assert_eq!((cat.serial, cat.base.as_str(), cat.tiers.len()), (5, BASE, 19));
+    assert_eq!((cat.serial, cat.base.as_str(), cat.tiers.len()), (5, BASE, 20));
     let row = |t: &Tier, f: &File| (t.word.clone(), f.volume_name(), f.bytes, f.sha256);
     let listed: Vec<_> =
         cat.tiers.iter().flat_map(|t| t.files.iter().map(move |f| row(t, f))).collect();

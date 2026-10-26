@@ -9,6 +9,9 @@
 #include "qwenchat.h"
 #include "qwenvision_frame.h"
 
+/* What encoding an image takes beside the model; need.rs's VISION_MARGIN. */
+static const long long VISION_MARGIN = 384LL << 20;
+
 /* The frame from stdin: Ok with img empty for none, else the refusal. */
 ImgWhy vision_frame(std::vector<unsigned char> &img);
 /* The projector named by a.mmproj, once the model is open; false with c.err. */

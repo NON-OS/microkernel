@@ -30,6 +30,8 @@ pub mod pinned_qwen25_big;
 pub mod pinned_qwen3;
 #[path = "../../../capsule_linux/src/linux/file/models/pinned_qwen35.rs"]
 pub mod pinned_qwen35;
+#[path = "../../../capsule_linux/src/linux/file/models/pinned_vl.rs"]
+pub mod pinned_vl;
 #[path = "../../../capsule_linux/src/linux/file/models/pinned_coder.rs"]
 pub mod pinned_coder;
 #[path = "../../../capsule_linux/src/linux/install/apps_qwen25.rs"]
@@ -38,6 +40,8 @@ pub mod apps_qwen25;
 pub mod apps_qwen3;
 #[path = "../../../capsule_linux/src/linux/install/apps_qwen35.rs"]
 pub mod apps_qwen35;
+#[path = "../../../capsule_linux/src/linux/install/apps_vl.rs"]
+pub mod apps_vl;
 #[path = "../../../capsule_linux/src/linux/install/apps_coder.rs"]
 pub mod apps_coder;
 #[path = "../../../capsule_linux/src/linux/install/chat_pick.rs"]

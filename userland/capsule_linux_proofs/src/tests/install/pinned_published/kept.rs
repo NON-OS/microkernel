@@ -36,7 +36,7 @@ pub fn kept_as(published: &str) -> &str {
 }
 
 /// Every tier the tables ship, in the same order.
-pub const TIERS: [&str; 19] = [
+pub const TIERS: [&str; 20] = [
     "small",
     "medium",
     "large",
@@ -52,6 +52,7 @@ pub const TIERS: [&str; 19] = [
     "qwen3-32b",
     "qwen3.5-0.8b",
     "qwen3.6-27b",
+    "vl-2b",
     "coder-1.5b",
     "coder-7b",
     "coder-14b",

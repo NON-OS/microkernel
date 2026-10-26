@@ -35,6 +35,7 @@ mod pinned_qwen25;
 mod pinned_qwen25_big;
 mod pinned_qwen3;
 mod pinned_qwen35;
+mod pinned_vl;
 mod read;
 mod size;
 mod stat;

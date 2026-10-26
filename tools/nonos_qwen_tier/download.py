@@ -31,6 +31,8 @@ QWEN3 = re.compile(r"Qwen3-(\d+(?:\.\d+)?B(?:-A\d+B)?)-Q[\w-]+\.gguf")
 # Models the Qwen team publishes in safetensors only: the GGUF files are
 # ggml-org's, the llama.cpp project's, each pinned by its LFS digest.
 GGML = re.compile(r"(Qwen3\.5-0\.8B|Qwen3\.6-27B)-Q[\w-]+\.gguf")
+# Qwen3-VL: the model and its projector, both in the Qwen team's repository.
+VL = re.compile(r"(?:mmproj-)?Qwen3VL-(\d+B)-Instruct-(?:Q[\w-]+|F16)\.gguf")
 
 
 def repo(name):
@@ -43,6 +45,8 @@ def repo(name):
         return f"Qwen/Qwen3-{m.group(1)}-GGUF"
     if m := GGML.fullmatch(name):
         return f"ggml-org/{m.group(1)}-GGUF"
+    if m := VL.fullmatch(name):
+        return f"Qwen/Qwen3-VL-{m.group(1)}-Instruct-GGUF"
     sys.exit(f"{name}: no known repository publishes this file")
 
 
