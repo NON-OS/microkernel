@@ -24,9 +24,11 @@
 //! was. A composite runs for every cursor move, and the shell repaints on the
 //! clock each second, on dock and menu hover and on every step of an icon
 //! drag, so the dock and the icons blinked in squares around the pointer.
-//! Each frame is drawn off screen now and copied over its surface after, so
-//! the compositor only ever reads a whole frame, old or new. Only rows that
-//! changed are written: a clock tick touches the menubar's rows alone.
+//! Each frame is drawn off screen now and copied over a backing after. The
+//! copy goes row by row, so a composite during it would still read part of a
+//! frame; the backing copied to is the one the compositor is not reading,
+//! shown once it is whole (state/ctx/flip.rs). Only rows that changed are
+//! written: a clock tick touches the menubar's rows alone.
 
 use alloc::vec::Vec;
 

@@ -31,6 +31,12 @@ impl About {
     }
 }
 
+impl Default for About {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl App for About {
     fn manifest(&self) -> AppManifest {
         manifest()

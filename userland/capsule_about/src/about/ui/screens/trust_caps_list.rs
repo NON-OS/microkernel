@@ -42,7 +42,7 @@ pub fn names(dst: &mut [&'static [u8]; CAP_SLOTS], mask: u64, granted: bool) -> 
 
 // "Granted 6 of 22   mask 0x80001819", assembled from the table's own arithmetic
 // so the count and the mask cannot drift apart.
-pub fn summary<'a>(dst: &'a mut [u8; 48], mask: u64, granted: bool, show: bool) -> &'a [u8] {
+pub fn summary(dst: &mut [u8; 48], mask: u64, granted: bool, show: bool) -> &[u8] {
     let mut slots: [&'static [u8]; CAP_SLOTS] = [b""; CAP_SLOTS];
     let count = names(&mut slots, mask, granted) as u64;
     let mut a = [0u8; 20];

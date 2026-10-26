@@ -24,7 +24,25 @@ pub fn detect_cpu_security_features() -> CpuSecurityFeatures {
     unsafe {
         detect_x86(&mut f);
     }
+    #[cfg(target_arch = "aarch64")]
+    detect_arm(&mut f);
     f
+}
+
+/// Execute-never and PXN are in every AArch64 translation regime, so the
+/// NX and SMEP answers are the architecture's; PAN, RNDR, AES and SHA-256
+/// are each an ID register field.
+#[cfg(target_arch = "aarch64")]
+fn detect_arm(f: &mut CpuSecurityFeatures) {
+    let id = crate::arch::aarch64::cpu::id_regs();
+    f.nx_bit = true;
+    f.smep = true;
+    f.smap = id.pan();
+    f.rdrand = id.rndr();
+    f.rdseed = id.rndr();
+    f.aes_ni = id.aes();
+    f.sha_ext = id.sha2();
+    f.tpm_support = true;
 }
 
 #[cfg(target_arch = "x86_64")]

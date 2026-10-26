@@ -7,7 +7,13 @@ event gets to the ring is in [Input drivers](README.md).
 ## Routing
 
 For a pointer event the router moves the cursor, sends the compositor the new
-position, and asks the window manager `wm` which window is under the pointer. A
+position, and asks the window manager `wm` which window is under the pointer.
+Motion inside a window it already hovers is sent there without asking, for up
+to 100 ms. Over no window it asks on every fourth motion only, which caps the
+asks while the pointer crosses the desktop; the motion that leaves a window
+asks at once, and a motion the count skipped is asked once the input stops,
+so the window the pointer comes to rest over always gets it
+(`userland/capsule_input_router/src/route/pointer/hover_motion.rs`). A
 key press goes to the focused app, the window `wm` names as having focus. Its
 release goes to the window that got the press, so a focus change while a key is
 held cannot strand it (`route_keyboard`,

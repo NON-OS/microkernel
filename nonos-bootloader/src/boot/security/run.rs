@@ -33,7 +33,7 @@ use super::policy::verify_chain;
 pub fn run_security_checks(st: &mut SystemTable<Boot>, gop: bool) -> SecurityContext {
     update_stage(STAGE_SECURITY, StageStatus::Running);
     draw_boot_progress(2, TOTAL_BOOT_STAGES);
-    init_security_primitives();
+    init_security_primitives(st.boot_services());
     let hw_caps = verify_hardware_requirements(st, gop);
     verify_platform(&hw_caps, gop);
     let mut security = init_subsystems(st, gop);

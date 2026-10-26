@@ -16,15 +16,11 @@
 
 //! A rectangle filled with one colour, clipped to the surface.
 
+/// `surface` is its address, stride in bytes, width and height; `rect` is x,
+/// y, width and height on it.
 pub fn fill_rect(
-    base_va: u64,
-    stride_bytes: u32,
-    surface_width: u32,
-    surface_height: u32,
-    rect_x: u32,
-    rect_y: u32,
-    rect_w: u32,
-    rect_h: u32,
+    (base_va, stride_bytes, surface_width, surface_height): (u64, u32, u32, u32),
+    (rect_x, rect_y, rect_w, rect_h): (u32, u32, u32, u32),
     argb: u32,
 ) {
     if rect_w == 0 || rect_h == 0 || rect_x >= surface_width || rect_y >= surface_height {

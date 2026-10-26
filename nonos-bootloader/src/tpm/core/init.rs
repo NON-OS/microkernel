@@ -27,6 +27,9 @@ pub fn initialize_tpm() -> TmpResult<TmpDevice> {
 }
 
 fn detect_device() -> TmpResult<u64> {
+    if !crate::arch::cpu::PC_TPM_WINDOW {
+        return Err(TmpError::DeviceNotFound);
+    }
     let addrs = [0xFED40000, 0xFED41000, 0xFED42000, 0xFED43000, 0xFED44000];
     for &addr in &addrs {
         let did_vid = unsafe { core::ptr::read_volatile((addr + 0xF00) as *const u32) };

@@ -29,8 +29,7 @@ pub(crate) fn call_payload_within(
 ) -> Result<i32, &'static str> {
     let mut tx = Vec::with_capacity(NCMP_HDR_LEN + payload.len());
     build_request(&mut tx, op, request_id, payload);
-    let mut rx = Vec::with_capacity(NCMP_HDR_LEN + 4 + body.len());
-    rx.resize(NCMP_HDR_LEN + 4 + body.len(), 0);
+    let mut rx = alloc::vec![0u8; NCMP_HDR_LEN + 4 + body.len()];
     let rc = mk_ipc_call_timeout(
         compositor_port as u64,
         tx.as_ptr(),
