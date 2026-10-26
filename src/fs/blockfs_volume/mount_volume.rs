@@ -26,7 +26,9 @@ use crate::security::keyring_capsule::retrieve;
 pub fn mount_volume(key_id: u32) -> Result<(), VolumeError> {
     let bytes = retrieve(key_id).map_err(VolumeError::Keyring)?;
     let key = key_to_array(&bytes)?;
+    // The keyring's round trip is done; the mount and the install are one hold.
+    let mut v = VOLUME.write();
     let mount = blockfs::mount(&key).map_err(VolumeError::BlockFs)?;
-    *crate::smp::write_responsive(&VOLUME) = Some(VolumeState { key, mount });
+    *v = Some(VolumeState { key, mount });
     Ok(())
 }

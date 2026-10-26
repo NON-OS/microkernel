@@ -40,7 +40,7 @@ pub(super) fn resume(
     want: &[u8; 32],
     bytes: u64,
 ) -> Result<(PinHash, FileStream), StreamError> {
-    let guard = crate::smp::read_responsive(&VOLUME);
+    let guard = VOLUME.read();
     let s = guard.as_ref().ok_or(VolumeError::NotMounted)?;
     match blockfs::resolve(&s.key, &s.mount, name) {
         Err(BlockFsError::NotFound) => {}

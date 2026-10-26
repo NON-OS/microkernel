@@ -17,14 +17,14 @@
 //! G7 (L81b): every listed spin lock is marked where it is taken, so a rest
 //! taken while one is held is said. Listed so far: the transport lock's
 //! HOLDERS and the trip locks' rows; later steps add theirs with their fix.
-//! The drop's `rows.lock().give(..)` is exempt: a temporary held for one
-//! call that never rests.
+//! The drop's `lock_responsive(&self.lock.rows).give(..)` is exempt: a
+//! temporary held for one call that never rests.
 
 use std::path::Path;
 
 use crate::proofs::proofs_8::transport_takeover::text::code;
 
-const LISTED: [&str; 2] = ["HOLDERS.lock()", "self.rows.lock()"];
+const LISTED: [&str; 2] = ["HOLDERS.lock()", "lock_responsive(&self.rows)"];
 
 fn walk(dir: &Path, out: &mut Vec<(String, String)>) {
     for entry in std::fs::read_dir(dir).expect("src readable") {
