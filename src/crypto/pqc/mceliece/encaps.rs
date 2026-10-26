@@ -43,9 +43,7 @@ pub fn mceliece_encaps(
     let r = MCELIECE_N - MCELIECE_K;
     let mut syndrome = vec![0u8; r / 8];
 
-    for i in 0..r / 8 {
-        syndrome[i] = error[i];
-    }
+    syndrome.copy_from_slice(&error[..r / 8]);
 
     let t_row_bytes = MCELIECE_K / 8;
     for row in 0..r {

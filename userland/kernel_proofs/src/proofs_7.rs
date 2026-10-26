@@ -53,6 +53,9 @@ mod input_authority_tests;
 pub mod iommu_own_id;
 #[path = "iommu_release/mod.rs"]
 pub mod iommu_release;
+/// A process's output and its requests are read from inboxes apart.
+#[path = "own_inboxes/mod.rs"]
+pub mod own_inboxes;
 /// A direct reply carries the token of the call it answers.
 #[path = "ipc_reply_token/mod.rs"]
 pub mod ipc_reply_token;
@@ -61,6 +64,9 @@ mod irq_bind_rollback_tests;
 /// Every linker symbol the kernel declares is one its image defines.
 #[path = "link_symbols/mod.rs"]
 pub mod link_symbols;
-/// A process's output and its requests are read from inboxes apart.
-#[path = "own_inboxes/mod.rs"]
-pub mod own_inboxes;
+/// The kernel log's serial echo: its budget and the images it is on.
+#[path = "log_budget/mod.rs"]
+mod log_budget;
+/// The kernel logger is started once per boot, after the heap.
+#[path = "log_init/mod.rs"]
+mod log_init;

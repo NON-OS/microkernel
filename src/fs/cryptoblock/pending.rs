@@ -13,58 +13,63 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! Deferred writes gathered into runs, so a large file costs one device
 //! request per run instead of one per sector.
 //!
 //! A run is up to RUN_SECTORS sealed sectors at consecutive device LBAs.
 //! It goes to the device when the next sector does not follow it, when it
 //! is full, and before any flushing write or any read, so nothing can read
-//! or commit past a sector still held here.
+//! or commit past a sector still held here. The run is moved out before it
+//! is sent, so a sender asleep or killed in its round trip holds no lock.
 
 use alloc::vec::Vec;
 use spin::Mutex;
 
 use super::constants::SECTOR_BYTES;
-use super::map_block::map_block_error;
+use super::pending_rule::must_send;
+use super::pending_send::{send, take};
 use super::CryptoBlockError;
+use crate::services::lifecycle::quiet;
+use crate::smp::lock_responsive;
 
 /// The most every block driver takes in one request.
 pub(super) const RUN_SECTORS: usize = 64;
 
-struct Run {
+pub(super) struct Run {
     /// Device LBA of the first sector held.
-    start: u64,
-    bytes: Vec<u8>,
+    pub(super) start: u64,
+    pub(super) bytes: Vec<u8>,
 }
 
-static PENDING: Mutex<Run> = Mutex::new(Run { start: 0, bytes: Vec::new() });
+pub(super) static PENDING: Mutex<Run> = Mutex::new(Run { start: 0, bytes: Vec::new() });
 
-/// Hold one sealed sector for the device LBA `at`.
+/// Hold one sealed sector for device LBA `at`, sending first the run it cannot join.
 pub(super) fn hold(at: u64, sector: &[u8; SECTOR_BYTES]) -> Result<(), CryptoBlockError> {
-    let mut run = crate::smp::lock_responsive(&PENDING);
-    let held = (run.bytes.len() / SECTOR_BYTES) as u64;
-    if held > 0 && (run.start.checked_add(held) != Some(at) || held as usize == RUN_SECTORS) {
-        send(&mut run)?;
+    loop {
+        let full = {
+            let _quiet = quiet();
+            let mut run = lock_responsive(&PENDING);
+            let held = (run.bytes.len() / SECTOR_BYTES) as u64;
+            if !must_send(run.start, held, at, RUN_SECTORS as u64) {
+                if run.bytes.is_empty() {
+                    run.start = at;
+                    run.bytes.reserve_exact(RUN_SECTORS * SECTOR_BYTES);
+                }
+                run.bytes.extend_from_slice(sector);
+                return Ok(());
+            }
+            take(&mut run)
+        };
+        send(full)?;
     }
-    if run.bytes.is_empty() {
-        run.start = at;
-        run.bytes.reserve_exact(RUN_SECTORS * SECTOR_BYTES);
-    }
-    run.bytes.extend_from_slice(sector);
-    Ok(())
 }
 
 /// Send whatever is held. Called before every read and every flush.
 pub(super) fn drain() -> Result<(), CryptoBlockError> {
-    send(&mut crate::smp::lock_responsive(&PENDING))
-}
-
-fn send(run: &mut Run) -> Result<(), CryptoBlockError> {
-    if run.bytes.is_empty() {
-        return Ok(());
-    }
-    /* Held or not, a run that failed is not retried from here. */
-    let sent = super::device::write(run.start, &run.bytes);
-    run.bytes.clear();
-    sent.map_err(map_block_error)
+    let full = {
+        let _quiet = quiet();
+        take(&mut lock_responsive(&PENDING))
+    };
+    send(full)
 }

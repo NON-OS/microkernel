@@ -18,26 +18,21 @@
 //! compiled from the kernel source unchanged (the same arithmetic the
 //! kernel checks its boot-root record with), and an ECDSA verification
 //! made over it here. Everything verified is public, so nothing here needs
-//! to run in constant time.
+//! to run in constant time. The arithmetic is exported whole: the proof
+//! crates sign quotes of their own with it.
 
-#[allow(dead_code, clippy::all)]
 #[path = "../../../../src/crypto/asymmetric/p256/constants.rs"]
-mod constants;
-#[allow(dead_code, clippy::all)]
+pub mod constants;
 #[path = "../../../../src/crypto/asymmetric/p256/field/mod.rs"]
-mod field;
-#[allow(dead_code, clippy::all)]
+pub mod field;
 #[path = "../../../../src/crypto/asymmetric/p256/point/mod.rs"]
-mod point;
-#[allow(dead_code, clippy::all)]
+pub mod point;
 #[path = "../../../../src/crypto/asymmetric/p256/scalar/mod.rs"]
-mod scalar;
+pub mod scalar;
 mod verify;
 
-#[allow(unused_imports)]
-use constants::{P256_A, P256_B, P256_GX, P256_GY, P256_N, P256_P};
+pub(crate) use constants::{P256_A, P256_B, P256_GX, P256_GY, P256_N, P256_P};
 pub use field::FieldElement;
-#[allow(unused_imports)]
 pub use point::{AffinePoint, ProjectivePoint};
 pub use scalar::Scalar;
 pub use verify::verify;
