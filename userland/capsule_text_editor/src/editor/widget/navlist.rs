@@ -52,7 +52,7 @@ pub(in crate::editor) fn paint_navlist(
         let ry = y + i as u32 * rh;
         if i == selected && w > cap {
             let a = (st.accent >> 24) & 0xFF;
-            let mid = (a * (w - cap) as u32 / w) << 24 | (st.accent & 0x00FF_FFFF);
+            let mid = (a * (w - cap) / w) << 24 | (st.accent & 0x00FF_FFFF);
             fb.fill_round(x, ry, cap, rh, st.radius, st.accent);
             fb.gradient_h(x + cap, ry, w - cap, rh, mid, st.accent & 0x00FF_FFFF);
             fb.stroke_round(x, ry, w, rh, st.radius, 1, st.ring);
