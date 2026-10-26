@@ -33,6 +33,9 @@ pub struct Context {
     pub display_checked_ms: i64,
     pub shell_pid: u32,
     pub last_focus_pid: u32,
+    /// The pid the router last delivered a key-down or a press to, 0 when
+    /// the last one reached nobody (route/recent.rs).
+    pub last_input: u32,
     pub next_request_id: u32,
     pub delivered_count: u64,
     pub dropped_count: u64,
