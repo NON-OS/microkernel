@@ -60,5 +60,6 @@ pub fn build_context(
         pending: crate::state::ctx::pending::Pending::new(),
         trusted: crate::state::trusted::Trusted::default(),
         dialog_focus: crate::state::dialog_keys::DialogFocus::new(),
+        switch: crate::state::ctx::switch::SwitchOrder::default(),
     }
 }
