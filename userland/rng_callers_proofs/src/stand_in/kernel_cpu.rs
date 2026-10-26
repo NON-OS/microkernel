@@ -20,6 +20,10 @@ pub mod smp {
     pub fn serve_shootdowns() {
         super::SHOOTDOWNS.set(super::SHOOTDOWNS.get() + 1);
     }
+    /// smp/responsive_rw.rs's writer take: one thread here, so a plain write.
+    pub fn write_responsive<T>(lock: &spin::RwLock<T>) -> spin::RwLockWriteGuard<'_, T> {
+        lock.write()
+    }
 }
 
 pub mod sys {
