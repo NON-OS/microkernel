@@ -19,6 +19,8 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
+use crate::store::asked::Asked;
+use crate::store::listing::Listing;
 use crate::store::progress::Progress;
 use crate::store::state::State;
 use crate::store::theme::{ACCENT, MUTED, RULE, STATUS_BG};
@@ -56,9 +58,17 @@ pub fn paint(fb: &mut PaintBuffer, state: &State) {
     // The answer to the last request sits opposite the keys.
     let right = state.fb_w.saturating_sub(STATUS_PAD_X);
     if let Some(asked) = state.asked {
-        text::right(fb, right, top, asked.label(), ACCENT, SMALL_PX);
+        let said = opening(asked, current).unwrap_or_else(|| asked.label().to_vec());
+        text::right(fb, right, top, &said, ACCENT, SMALL_PX);
     } else if let Some(line) = hidden_line(state.hidden()) {
         /* The tiers that do not fit are counted, not shown (`tier_fit`). */
         text::right(fb, right, top, line.as_bytes(), MUTED, SMALL_PX);
     }
+}
+
+/// Open's answer with the command that runs the app in the Terminal.
+fn opening(asked: Asked, current: Option<&Listing>) -> Option<alloc::vec::Vec<u8>> {
+    let name = current?.id.strip_prefix(b"linux.")?;
+    let said = b"starting it; a terminal app runs in the Terminal: linux ";
+    (asked == Asked::Opening).then(|| [&said[..], name].concat())
 }
