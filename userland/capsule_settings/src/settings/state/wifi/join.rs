@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::state::State;
+use super::super::model::State;
 use super::answer::{hand_off, refuse_while_out};
 use super::pass::clear_passphrase;
 use super::pending::{Pending, Work};

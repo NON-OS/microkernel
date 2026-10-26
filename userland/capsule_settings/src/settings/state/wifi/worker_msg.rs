@@ -17,7 +17,7 @@
 //! What the worker is asked to do, what it answers, and what came of
 //! handing it a request.
 
-use super::super::state::WIFI_NET_MAX;
+use super::super::model::WIFI_NET_MAX;
 use super::secret::Secret;
 use crate::wifi::{ConnectResult, ScanNetwork, ScanOutcome, ScanStats};
 use alloc::boxed::Box;
@@ -35,10 +35,10 @@ pub(super) enum Ask {
     },
 }
 
-/// The driver's answer.
+/// The driver's answer. The scan's networks are boxed: they dwarf a join's.
 pub(super) enum Answer {
     Scanned {
-        nets: [ScanNetwork; WIFI_NET_MAX],
+        nets: Box<[ScanNetwork; WIFI_NET_MAX]>,
         count: usize,
         outcome: ScanOutcome,
         stats: ScanStats,

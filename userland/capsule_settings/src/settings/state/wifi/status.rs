@@ -18,7 +18,7 @@
 //! the radio: which driver runs, its stage and link, whether this boot keeps
 //! state, the data path's counts and net_core's lease.
 
-use super::super::state::State;
+use super::super::model::State;
 use crate::wifi::{driver_datapath, net_poll_due, net_status, station_source};
 use nonos_libc::mk_uptime_ms;
 use nonos_wifi_client::{find, keeps_state};

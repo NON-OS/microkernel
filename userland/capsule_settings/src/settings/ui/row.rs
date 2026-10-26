@@ -28,8 +28,9 @@ use super::live_value::{note, resolve};
 use super::metrics::BODY_PX;
 use super::pill::tone_argb;
 use super::theme::ROW_LINE;
-use super::{row_focus, row_label, text};
+use super::{row_label, text};
 
+/// The row's label and value; its focus, when selected, is the caller's.
 pub fn paint(
     fb: &mut PaintBuffer,
     state: &State,
@@ -38,11 +39,7 @@ pub fn paint(
     card_w: u32,
     screen_y: i32,
     row_h: u32,
-    selected: bool,
 ) {
-    if selected {
-        row_focus::paint(fb, card_x, card_w, screen_y, row_h);
-    }
     match row {
         Row::Field(f) => {
             row_label::paint(fb, card_x, screen_y, row_h, as_str(label_of(*f)), note_of(*f));

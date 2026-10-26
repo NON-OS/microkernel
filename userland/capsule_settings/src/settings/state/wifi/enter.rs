@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::state::State;
+use super::super::model::State;
 use super::saved::refresh_saved;
 use super::status::refresh_wifi_status;
 use crate::wifi::scan_adapters;
