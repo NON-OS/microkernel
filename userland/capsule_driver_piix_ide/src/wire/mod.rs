@@ -36,9 +36,9 @@ mod ops;
 
 pub use decode::decode_request;
 pub use encode::{encode_response_header, write_status};
-pub use errno::{E_ACCES, E_INVAL, E_MSGSIZE, E_NODEV, E_NXIO, E_ROFS};
-pub use geometry::{encode_geometry, MEDIA_PRESENT, READ_ONLY, REMOVABLE};
+pub use errno::{E_ACCES, E_INVAL, E_MSGSIZE, E_NODEV, E_NXIO};
+pub use geometry::{encode_geometry, MEDIA_PRESENT};
 pub use header::{Request, HDR_LEN, RESP_HDR_LEN};
-pub use identify::{encode_identify, IDENTIFY_LEN, MEDIUM_ATA, MEDIUM_SCSI};
+pub use identify::{encode_identify, IDENTIFY_LEN, MEDIUM_ATA};
 pub use limits::{GEOMETRY_LEN, RW_HEADER_LEN, STATUS_LEN};
 pub use ops::{OP_FLUSH, OP_GEOMETRY, OP_HEALTHCHECK, OP_IDENTIFY, OP_READ, OP_WRITE};
