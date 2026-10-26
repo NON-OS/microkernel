@@ -7883,7 +7883,12 @@
   "include": [
    ".cargo",
    "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton/src/clients/vfs/deadline.rs",
+   "userland/capsule_policy/src/keep/write_steps.rs",
+   "userland/capsule_policy/src/progress.rs",
    "userland/capsule_policy/src/push",
+   "userland/capsule_policy/src/restore/awaits.rs",
+   "userland/capsule_policy/src/restore/stage.rs",
    "userland/capsule_policy/src/server/handle_get.rs",
    "userland/capsule_policy/src/server/handle_set.rs",
    "userland/capsule_policy/src/server/handlers",
