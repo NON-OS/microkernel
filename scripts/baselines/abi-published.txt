@@ -188,6 +188,8 @@ syscalls.numbers MPUN 1314213965
 syscalls.numbers MPVW 1465274445
 syscalls.numbers MPWR 1381453901
 syscalls.numbers MSAT 1413567309
+syscalls.numbers MSLD 1145852749
+syscalls.numbers MSLP 1347179341
 syscalls.numbers MSLR 1380733773
 syscalls.numbers MSNT 1414419277
 syscalls.numbers MSOW 1464816461

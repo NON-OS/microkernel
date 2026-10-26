@@ -46,3 +46,15 @@ pub fn is_job() -> bool {
 pub fn bound() -> Option<(u16, u32)> {
     super::bound::parse(&args())
 }
+
+/// Whether init spawned this job for a receipt, read into the stack before any
+/// allocation, so a receipt job never holds the prover's floor. Init's argv
+/// is three short words; a longer one is no receipt job's.
+pub fn is_receipt() -> bool {
+    let mut buf = [0u8; 128];
+    let n = mk_args(buf.as_mut_ptr(), buf.len());
+    usize::try_from(n)
+        .ok()
+        .filter(|&n| n <= buf.len())
+        .is_some_and(|n| super::bound::receipt(&buf[..n]))
+}

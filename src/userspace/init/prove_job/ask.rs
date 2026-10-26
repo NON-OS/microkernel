@@ -17,16 +17,20 @@
 //! Who may ask for which job, decided from facts the handler
 //! looked up, so the rule is tested on its own. Kind 1 PROVE: the caller
 //! owns app.store. Kind 2 DELIVER: the caller is at Vendor authority and
-//! supervises a live family. Anything else is no ask at all.
+//! supervises a live family. Kind 3 RECEIPT: the caller is a launcher, the
+//! Terminal or the shell, holding SpawnWindow (letter agent-02). Anything
+//! else is no ask at all.
 
 pub(crate) const PROVE: u64 = 1;
 pub(crate) const DELIVER: u64 = 2;
+pub(crate) const RECEIPT: u64 = 3;
 
 /// The store's pid; or the supervisor's pid and its measurement.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub(crate) enum ProveAsk {
     Prove(u32),
     Deliver(u32, [u8; 32]),
+    Receipt(u32),
 }
 
 /// What the kernel knows of the caller when it asks.
@@ -36,12 +40,15 @@ pub(crate) struct Caller {
     /// Its measurement, when the spawn gate proved it at Vendor authority.
     pub(crate) vendor: Option<[u8; 32]>,
     pub(crate) supervises_live: bool,
+    /// It holds SpawnWindow: the Terminal or the shell.
+    pub(crate) launcher: bool,
 }
 
 pub(crate) fn ask_for(kind: u64, c: &Caller) -> Option<ProveAsk> {
     match kind {
         PROVE if c.owns_store => Some(ProveAsk::Prove(c.pid)),
         DELIVER if c.supervises_live => c.vendor.map(|m| ProveAsk::Deliver(c.pid, m)),
+        RECEIPT if c.launcher => Some(ProveAsk::Receipt(c.pid)),
         _ => None,
     }
 }

@@ -38,6 +38,7 @@ mod linux_policy_wire;
 mod pinning;
 mod policy;
 mod policy_fixture;
+mod policy_vendor;
 mod price;
 mod qwen_vector;
 mod refusals;

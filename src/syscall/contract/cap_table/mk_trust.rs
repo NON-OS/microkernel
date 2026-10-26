@@ -37,6 +37,8 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
          */
         SyscallNumber::MkSealNote => caps.can_foreign_exec(),
         SyscallNumber::MkSealRead => caps.can_device_secret(),
+        /* A receipt's peek and its one drop, by the same gate (seal/sys_keep.rs). */
+        SyscallNumber::MkSealPeek | SyscallNumber::MkSealDrop => caps.can_device_secret(),
 
         /* The right to ask, which is not the right to host. */
         SyscallNumber::MkAppInstall

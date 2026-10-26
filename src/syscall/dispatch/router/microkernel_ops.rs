@@ -155,6 +155,8 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkForeignExec
             | MkLinuxRunNet
             | MkSealRead
+            | MkSealPeek
+            | MkSealDrop
             | MkSealNote
             | MkProveJob
             | MkLocalSign

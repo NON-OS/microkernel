@@ -20,7 +20,7 @@ use alloc::vec::Vec;
 use super::constants::{PI_LANE, RHO_OFFSETS, ROUND_CONSTANTS};
 
 pub(crate) fn keccak_f(state: &mut [u64; 25]) {
-    for round in 0..24 {
+    for round_constant in ROUND_CONSTANTS {
         let mut c = [0u64; 5];
         for x in 0..5 {
             c[x] = state[x] ^ state[x + 5] ^ state[x + 10] ^ state[x + 15] ^ state[x + 20];
@@ -47,7 +47,7 @@ pub(crate) fn keccak_f(state: &mut [u64; 25]) {
 
         for y in 0..5 {
             let t = [
-                state[y * 5 + 0],
+                state[y * 5],
                 state[y * 5 + 1],
                 state[y * 5 + 2],
                 state[y * 5 + 3],
@@ -58,7 +58,7 @@ pub(crate) fn keccak_f(state: &mut [u64; 25]) {
             }
         }
 
-        state[0] ^= ROUND_CONSTANTS[round];
+        state[0] ^= round_constant;
     }
 }
 
@@ -73,7 +73,7 @@ pub struct Keccak {
 impl Keccak {
     pub fn new(capacity: usize, output_len: usize, suffix: u8) -> Self {
         assert!(capacity <= 1600);
-        assert!(capacity % 8 == 0);
+        assert!(capacity.is_multiple_of(8));
 
         Self {
             state: [0u64; 25],
@@ -91,7 +91,7 @@ impl Keccak {
     fn absorb(&mut self) {
         self.buffer.push(self.suffix);
 
-        while self.buffer.len() % self.rate != 0 {
+        while !self.buffer.len().is_multiple_of(self.rate) {
             self.buffer.push(0);
         }
 

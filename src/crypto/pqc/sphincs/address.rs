@@ -35,7 +35,7 @@ pub(crate) struct Address {
 }
 
 impl Address {
-    pub(crate) fn to_bytes(&self) -> [u8; 32] {
+    pub(crate) fn to_bytes(self) -> [u8; 32] {
         let mut out = [0u8; 32];
         out[0..4].copy_from_slice(&self.layer.to_be_bytes());
         out[4..12].copy_from_slice(&self.tree.to_be_bytes());

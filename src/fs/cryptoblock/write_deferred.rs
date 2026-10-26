@@ -14,9 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use core::sync::atomic::{AtomicBool, Ordering};
+
 use super::seal::seal;
 use super::window::device_lba;
 use super::CryptoBlockError;
+
+static SAID: AtomicBool = AtomicBool::new(false);
 
 /// Seal one block and hold it for the device, unflushed. A caller writing
 /// many blocks flushes once after the last, before anything points at them;
@@ -39,4 +43,20 @@ pub fn write_deferred(key: &[u8; 32], lba: u64, plain: &[u8]) -> Result<(), Cryp
  */
 pub fn flush_held() -> Result<(), CryptoBlockError> {
     super::pending::drain()
+}
+
+/*
+ * A writer is leaving the volume, `swept` when it never runs again. What it
+ * left held is dropped unsent, so no reader's drain or later writer sends a
+ * sector its own caller never sealed; the count moves, since the disk may
+ * hold part of what a dead writer sent.
+ */
+pub fn drop_held(swept: bool) {
+    let dropped = super::pending_send::drop_held();
+    if dropped && !SAID.swap(true, Ordering::Relaxed) {
+        crate::log::error!("[CRYPTOBLOCK] a writer left sectors held; dropped unsent");
+    }
+    if dropped || swept {
+        super::epoch::advance();
+    }
 }

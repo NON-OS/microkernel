@@ -63,12 +63,10 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
         theme::FOREGROUND,
         m.body_px,
     );
-    text::line(
-        fb,
-        b.x,
-        y + m.line_h,
-        "The computer boots NØNOS from its own disk from now on.",
-        theme::MUTED,
-        m.body_px,
-    );
+    // A refused restart says so here (event/after.rs), never silently.
+    let (said, tone) = match state.notice.as_deref() {
+        Some(why) => (why, theme::WARN),
+        None => ("The computer boots NØNOS from its own disk from now on.", theme::MUTED),
+    };
+    text::line(fb, b.x, y + m.line_h, said, tone, m.body_px);
 }

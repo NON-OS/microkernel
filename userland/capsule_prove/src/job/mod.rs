@@ -22,11 +22,17 @@ mod device;
 mod drain;
 mod exit_rule;
 mod isolation;
+mod receipt;
+mod receipt_doc;
+mod receipt_entry;
+mod receipt_serve;
+mod receipt_slot;
+mod receipt_step;
 mod run;
 mod serve;
 mod start;
 mod state;
 mod status;
 
-pub use argv::{bound, is_job};
+pub use argv::{bound, is_job, is_receipt};
 pub use serve::serve;

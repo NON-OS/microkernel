@@ -57,15 +57,7 @@ pub(crate) fn to_systematic_form(h: &[Vec<u8>]) -> Option<Vec<u8>> {
     let mut matrix = h.to_vec();
 
     for i in 0..r {
-        let mut pivot = None;
-        for j in i..MCELIECE_N {
-            if matrix[i][j] == 1 {
-                pivot = Some(j);
-                break;
-            }
-        }
-
-        let pivot_col = pivot?;
+        let pivot_col = (i..MCELIECE_N).find(|&j| matrix[i][j] == 1)?;
 
         if pivot_col != i {
             for row in &mut matrix {
@@ -73,10 +65,11 @@ pub(crate) fn to_systematic_form(h: &[Vec<u8>]) -> Option<Vec<u8>> {
             }
         }
 
-        for j in 0..r {
-            if j != i && matrix[j][i] == 1 {
-                for k in 0..MCELIECE_N {
-                    matrix[j][k] ^= matrix[i][k];
+        let pivot_row = matrix[i].clone();
+        for (j, row) in matrix.iter_mut().enumerate().take(r) {
+            if j != i && row[i] == 1 {
+                for (x, &p) in row.iter_mut().zip(&pivot_row).take(MCELIECE_N) {
+                    *x ^= p;
                 }
             }
         }
@@ -84,12 +77,12 @@ pub(crate) fn to_systematic_form(h: &[Vec<u8>]) -> Option<Vec<u8>> {
 
     let mut t_matrix = Vec::with_capacity(r * MCELIECE_K / 8);
 
-    for row in 0..r {
+    for row_bits in matrix.iter().take(r) {
         let mut byte = 0u8;
         let mut bit_pos = 0;
 
-        for col in r..MCELIECE_N {
-            byte |= matrix[row][col] << bit_pos;
+        for &bit in &row_bits[r..MCELIECE_N] {
+            byte |= bit << bit_pos;
             bit_pos += 1;
 
             if bit_pos == 8 {
