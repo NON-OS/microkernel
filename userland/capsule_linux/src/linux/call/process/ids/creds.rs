@@ -32,12 +32,17 @@ pub fn getres(guest: &Guest, ids: [u64; 3]) -> u64 {
     errno::ok(0)
 }
 
-/* setresuid and setresgid: -1 keeps an id, 0 is the one it has. */
+/* setresuid, setresgid, setreuid, setregid: -1 keeps an id, 0 is the one it has. */
 pub fn setres(ids: [u64; 3]) -> u64 {
     match ids.iter().all(|id| *id as u32 == u32::MAX || *id as u32 == 0) {
         true => errno::ok(0),
         false => errno::fail(errno::EPERM),
     }
+}
+
+/* setfsuid and setfsgid answer the previous id, 0, which stays 0. */
+pub fn setfs() -> u64 {
+    errno::ok(0)
 }
 
 /* No supplementary groups. */
