@@ -20,7 +20,7 @@ mod io;
 
 pub use api::{
     get_mapped_regions, get_region_info, get_stats, init, is_mmio_region, list_regions,
-    map_device_memory, map_framebuffer, map_mmio, unmap_mmio, validate_mmio_access,
+    map_device_memory, map_framebuffer, map_mmio, unmap_mmio,
 };
 pub use core::MmioManager;
 pub use io::{read16, read32, read64, read8, write16, write32, write64, write8};
