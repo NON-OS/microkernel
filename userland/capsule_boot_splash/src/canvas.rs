@@ -47,8 +47,8 @@ pub fn draw(buf: &mut [u32], spx: usize, w: u32, h: u32, c: &Canvas) {
 
 /// Each line says what this boot recorded (attest_lines.rs), 20 px apart.
 fn attest_panel(buf: &mut [u32], spx: usize, (w, h): (u32, u32), at: Area, chain: Option<Chain>) {
-    let (px, py, pw, ph) = at;
-    panel(buf, spx, w, h, px, py, pw, ph, b"boot-chain attestation");
+    let (px, py, _, _) = at;
+    panel(buf, spx, (w, h), at, b"boot-chain attestation");
     for (i, (text, colour)) in lines(chain).into_iter().enumerate() {
         draw_text(buf, spx, w, h, px + 14, py + 32 + 20 * i as u32, text, colour);
     }
