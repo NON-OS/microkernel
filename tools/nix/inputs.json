@@ -5978,6 +5978,9 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/services/registry/reserved.rs",
+   "src/services/registry/system_names.rs",
+   "src/services/registry/system_names.txt",
    "userland/app_skeleton/src/input/keys.rs",
    "userland/capsule_desktop_shell/src/state/router_notice.rs",
    "userland/capsule_driver_i2c_hid/src/hid/report_desc",
