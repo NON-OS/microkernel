@@ -68,9 +68,8 @@ pub fn sys_mmio_map(
     let result = match broker::map_for_caller(pid, req) {
         Ok(r) => r,
         Err(e) => {
-            crate::sys::serial::print(b"[MMIO] err=");
-            crate::sys::serial::print_dec(errno_for(e) as u64);
-            crate::sys::serial::println(b"");
+            let mut l = crate::sys::serial::Line::new();
+            l.str(b"[MMIO] err=").dec(errno_for(e) as u64).end();
             return errno_for(e);
         }
     };

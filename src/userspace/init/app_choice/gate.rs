@@ -29,9 +29,8 @@ pub(crate) fn choose(off: u8) {
     let off = off as u32 & super::PRESENT;
     OFF.fetch_or(off, Ordering::SeqCst);
     if off != 0 {
-        crate::sys::serial::print(b"[INIT] apps turned off at setup, mask ");
-        crate::sys::serial::print_hex(off as u64);
-        crate::sys::serial::println(b"");
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[INIT] apps turned off at setup, mask ").hex(off as u64).end();
     }
 }
 

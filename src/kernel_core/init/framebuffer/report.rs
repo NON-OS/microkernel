@@ -16,26 +16,18 @@
 
 //! The lines `log FB` shows for the framebuffer the desktop is drawn on.
 
-use crate::sys::serial::{print, print_dec, println};
+use crate::sys::serial::Line;
 
 /// Nothing to map: the desktop will have no display on this machine.
 pub(super) fn log_refused(why: &[u8]) {
-    print(b"[FB] not mapped: ");
-    print(why);
-    println(b"; the desktop has no display");
+    Line::new().str(b"[FB] not mapped: ").str(why).str(b"; the desktop has no display").end();
 }
 
 /// What the desktop scans out through, once mapped.
 pub(super) fn log_mapped(w: u32, h: u32, pitch: u32, bgr: bool, wc: bool, scale: u32) {
-    print(b"[FB] mapped ");
-    print_dec(w as u64);
-    print(b"x");
-    print_dec(h as u64);
-    print(b" pitch=");
-    print_dec(pitch as u64);
-    print(if bgr { b" BGRX" } else { b" RGBX" });
-    print(if wc { b" write-combining" } else { b" uncached" });
-    print(b" scale=");
-    print_dec(scale as u64);
-    println(b"");
+    let mut l = Line::new();
+    l.str(b"[FB] mapped ").dec(w as u64).str(b"x").dec(h as u64).str(b" pitch=").dec(pitch as u64);
+    l.str(if bgr { b" BGRX" } else { b" RGBX" });
+    l.str(if wc { b" write-combining" } else { b" uncached" });
+    l.str(b" scale=").dec(scale as u64).end();
 }

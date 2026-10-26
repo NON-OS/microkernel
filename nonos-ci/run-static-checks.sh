@@ -5468,6 +5468,18 @@ else
     fail_with "check_guest_box: GuestPolicies.mk names a service the policy build refuses"
 fi
 unset gbox_out
+# No kernel serial line is written in pieces: on more than one CPU another
+# CPU's line lands between them. A line is a Line, a whole literal, or a
+# process's own bytes. The self-test first, so a scan that stopped seeing
+# pieces cannot pass by finding none.
+if whole_out="$(python3 scripts/check_serial_whole_lines.py --self-test 2>&1 \
+    && python3 scripts/check_serial_whole_lines.py 2>&1)"; then
+    note ok "no kernel serial line is written in pieces (check_serial_whole_lines)"
+else
+    tail -n 5 <<< "${whole_out}" >&2
+    fail_with "check_serial_whole_lines: a kernel serial line is written in pieces"
+fi
+unset whole_out
 # A release takes the capsules as make declares them, never the development
 # set (capsules-dev): the lines that choose it are pinned, and a release seal
 # handed it refuses by what was built, not by the flag. The self-tests first,

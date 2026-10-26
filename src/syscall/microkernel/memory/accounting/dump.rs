@@ -21,15 +21,11 @@ use super::state::{EVENTS, EVENT_CAP, EVENT_CURSOR, OWNERS, SYSTEM_BYTES};
 pub fn dump_mmap_accounting() {
     crate::sys::serial::println(b"[OOM] mmap owners");
     for owner in OWNERS.lock().iter().copied().filter(|o| o.pid != 0 && o.bytes != 0) {
-        crate::sys::serial::print(b"[OOM] mmap pid=");
-        crate::sys::serial::print_hex(owner.pid as u64);
-        crate::sys::serial::print(b" bytes=");
-        crate::sys::serial::print_hex(owner.bytes);
-        crate::sys::serial::println(b"");
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[OOM] mmap pid=").hex(owner.pid as u64).str(b" bytes=").hex(owner.bytes).end();
     }
-    crate::sys::serial::print(b"[OOM] mmap total_system=");
-    crate::sys::serial::print_hex(SYSTEM_BYTES.load(Ordering::Relaxed));
-    crate::sys::serial::println(b"");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[OOM] mmap total_system=").hex(SYSTEM_BYTES.load(Ordering::Relaxed)).end();
     let events = EVENTS.lock();
     let start = EVENT_CURSOR.load(Ordering::Relaxed).saturating_sub(EVENT_CAP);
     for n in 0..EVENT_CAP {
@@ -37,18 +33,9 @@ pub fn dump_mmap_accounting() {
         if event.pid == 0 {
             continue;
         }
-        crate::sys::serial::print(b"[OOM] mmap_event kind=");
-        crate::sys::serial::print_hex(event.kind as u64);
-        crate::sys::serial::print(b" pid=");
-        crate::sys::serial::print_hex(event.pid as u64);
-        crate::sys::serial::print(b" size=");
-        crate::sys::serial::print_hex(event.size);
-        crate::sys::serial::print(b" va=");
-        crate::sys::serial::print_hex(event.va);
-        crate::sys::serial::print(b" owner=");
-        crate::sys::serial::print_hex(event.owner);
-        crate::sys::serial::print(b" system=");
-        crate::sys::serial::print_hex(event.system);
-        crate::sys::serial::println(b"");
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[OOM] mmap_event kind=").hex(event.kind as u64).str(b" pid=");
+        l.hex(event.pid as u64).str(b" size=").hex(event.size).str(b" va=").hex(event.va);
+        l.str(b" owner=").hex(event.owner).str(b" system=").hex(event.system).end();
     }
 }
