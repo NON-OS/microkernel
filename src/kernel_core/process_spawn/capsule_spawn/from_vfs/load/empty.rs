@@ -23,8 +23,8 @@ use crate::kernel_core::process_spawn::capsule_spawn::runner::built_gate::gate;
 
 pub(super) fn refused(elf: &[u8], name: &str) -> Result<(), LoadError> {
     gate(elf, LoadError::EmptyImage).inspect_err(|_| {
-        crate::sys::serial::print(b"[RUNTIME-LOAD] ");
-        crate::sys::serial::print(name.as_bytes());
-        crate::sys::serial::print(b": its image in the store is empty\n");
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[RUNTIME-LOAD] ").str(name.as_bytes());
+        l.str(b": its image in the store is empty").end();
     })
 }
