@@ -23,12 +23,12 @@ import re
 NAMES = re.compile(r"devnet\W{1,6}market|\bdev_market\b")
 
 # What an image, a release seal or a release capsule build reads. The host
-# proofs (userland/*_proofs, nonos-mk/tests) build no image, and the crate
+# proofs (userland/*_proofs, nonos-mk/tests) and the catalogue tool's tests build no image, and the crate
 # input table lists their files without reading them.
 PLACES = ("Makefile", "nonos.toml", "flake.nix", "mk/", "nonos-mk/", "nonos-ci/", ".github/",
           "tools/nix/", "tools/nonos_seal/", "tools/nonos-market-", "tools/nonos_market_catalogue/",
           "tools/nonos-qwen-tier.py", "tools/nonos_qwen_tier/", "userland/", "nonos-data/")
-UNREAD = ("nonos-mk/tests/", "tools/nix/inputs.json")
+UNREAD = ("nonos-mk/tests/", "tools/nix/inputs.json", "tools/nonos_market_catalogue/test_")
 PROOFS = re.compile(r"^userland/[^/]+_proofs/")
 # The seal's one gate, and the module behind it.
 GATE = "tools/nonos_seal/market.py"
@@ -36,7 +36,7 @@ READER = "tools/nonos_seal/dev_market.py"
 
 # Each place a release could take the development catalogue still refuses it.
 PINS = [
-    (GATE, "    if dev_market.chosen():\n        dev_market.seal(step, tools, INDEX, serial)\n    else:\n"),
+    (GATE, "    extra = []\n    if dev_market.chosen():\n        extra = dev_market.extra()\n"),
     (READER, "    return capsules.DEVELOPMENT and in_dev_tree()\n"),
     (READER, 'endswith(os.sep + DEV_TREE) and os.path.isdir(".git")'),
     (READER, 'if os.path.isfile(checkout) and open(checkout, "rb").read() == key:'),
@@ -64,7 +64,7 @@ def named(path, text):
     for n, line in enumerate(text.split("\n"), 1):
         allowed = path == GATE and line.strip() in (
             "from . import dev_market, keys", "if dev_market.chosen():",
-            "dev_market.seal(step, tools, INDEX, serial)")
+            "extra = dev_market.extra()")
         if NAMES.search(line) and not allowed:
             out.append(f"{path}:{n}: names the development catalogue")
     return out
