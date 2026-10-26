@@ -4,7 +4,7 @@ use crate::viewer::decode::decode;
 use crate::viewer::gallery::layout::{grid, kept, visible};
 use crate::viewer::gallery::state::{Entry, GalleryState, THUMB_H, THUMB_W};
 use crate::viewer::says::{decoder_trouble, SILENT, THUMB_QUIET_MS};
-use crate::viewer::scale::{draw_bilinear, Dst};
+use crate::viewer::scale::{draw_bilinear, Dst, Placement};
 use alloc::vec;
 use nonos_app_skeleton::clients::vfs::read_file;
 
@@ -82,7 +82,7 @@ fn make_thumb(e: &mut Entry, owner_pid: u32) -> Thumb {
     let (tw, th) = fit_thumb(d.w, d.h);
     let mut thumb = vec![0u32; (tw * th) as usize];
     let mut dst = Dst { px: &mut thumb, stride: tw, w: tw, h: th };
-    draw_bilinear(&mut dst, &d.px, d.w, d.h, 0, 0, tw, th);
+    draw_bilinear(&mut dst, &d.px, d.w, d.h, &Placement { dx: 0, dy: 0, dw: tw, dh: th });
     e.tw = tw;
     e.th = th;
     e.thumb = Some(thumb);
