@@ -32,10 +32,16 @@ use nonos_app_skeleton::run;
 /// this capsule has run.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
+    /* A receipt takes a few KiB: the default heap, never the prover's floor. */
+    if job::is_receipt() {
+        job::serve(nonos_libc::heap_init().is_ok(), job::bound());
+    }
     /* The floor is held, or refused, before the first allocation. */
     let memory = app::claim();
-    // The store's headless job serves one PROVE and exits; no window.
+    // The store's headless job serves one PROVE and exits; no window. Short
+    // of the floor it still answers, ENOMEM, from the default heap.
     if job::is_job() {
+        let _ = nonos_libc::heap_init();
         job::serve(memory == app::Memory::Held, job::bound());
     }
     run(move || app::Prove::new(memory))

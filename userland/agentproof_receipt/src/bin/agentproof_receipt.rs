@@ -31,6 +31,12 @@ fn main() -> ExitCode {
                 }
             }
         }
+        ["pin", receipt] => match std::fs::read(receipt) {
+            Ok(r) => agentproof_receipt::cli_pin::pinned(&r),
+            Err(e) => {
+                Answer { code: 2, out: vec![], err: vec![format!("agentproof-receipt: {e}")] }
+            }
+        },
         _ => Answer { code: 2, out: vec![], err: vec![USAGE.into()] },
     };
     a.out.iter().for_each(|l| println!("{l}"));

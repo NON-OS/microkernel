@@ -26,7 +26,7 @@ use nonos_proof_abi::wire::{ReceiptRequest, RECEIPT, RECEIPT_ACK};
 
 use crate::job_bound::parse;
 use crate::job_receipt_slot::slot_of;
-use crate::job_receipt_step::{step, Step, EINVAL, ENOMEM, EPERM};
+use crate::job_receipt_step::{step, Made, Step, EINVAL, ENOMEM, EPERM};
 
 #[test]
 fn the_record_named_is_this_app_in_this_box() {
@@ -48,20 +48,20 @@ fn the_record_named_is_this_app_in_this_box() {
 #[test]
 fn only_an_ack_for_the_made_receipt_drops_its_record() {
     let ack = |n: u64| n.to_le_bytes();
-    assert_eq!(step(true, RECEIPT, b"", true, None), Step::Make);
-    assert_eq!(step(true, RECEIPT, b"", true, Some(9)), Step::Make, "asked again, made again");
-    assert_eq!(step(true, RECEIPT_ACK, &ack(9), true, Some(9)), Step::Drop);
-    assert_eq!(step(true, RECEIPT_ACK, &ack(8), true, Some(9)), Step::Refuse(EINVAL), "wrong seal");
-    assert_eq!(step(true, RECEIPT_ACK, &ack(9), true, None), Step::Refuse(EINVAL), "nothing made");
-    assert_eq!(step(true, RECEIPT_ACK, &ack(9)[..7], true, Some(9)), Step::Refuse(EINVAL));
+    let made = Some(Made { seal_no: 9, asked: b"ask" });
+    assert_eq!(step(true, RECEIPT, b"ask", true, None), Step::Make);
+    assert_eq!(step(true, RECEIPT_ACK, &ack(9), true, made), Step::Drop);
+    assert_eq!(step(true, RECEIPT_ACK, &ack(8), true, made), Step::Refuse(EINVAL), "wrong seal");
+    assert_eq!(step(true, RECEIPT_ACK, &ack(9), true, None), Step::Refuse(EINVAL), "none made");
+    assert_eq!(step(true, RECEIPT_ACK, &ack(9)[..7], true, made), Step::Refuse(EINVAL));
     assert_eq!(
-        step(false, RECEIPT_ACK, &ack(9), true, Some(9)),
+        step(false, RECEIPT_ACK, &ack(9), true, made),
         Step::Refuse(EPERM),
         "not the caller"
     );
-    assert_eq!(step(false, RECEIPT, b"", true, None), Step::Refuse(EPERM));
-    assert_eq!(step(true, RECEIPT, b"", false, None), Step::Refuse(ENOMEM));
-    assert_eq!(step(true, 1, b"", true, Some(9)), Step::Refuse(EINVAL), "no other op");
+    assert_eq!(step(false, RECEIPT, b"ask", true, None), Step::Refuse(EPERM));
+    assert_eq!(step(true, RECEIPT, b"ask", false, None), Step::Refuse(ENOMEM));
+    assert_eq!(step(true, 1, b"", true, made), Step::Refuse(EINVAL), "no other op");
 }
 
 #[test]
