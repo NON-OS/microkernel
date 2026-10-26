@@ -26,10 +26,9 @@ mod handlers;
 mod medium;
 #[path = "../../capsule_driver_piix_ide/src/server/reply.rs"]
 mod reply;
-#[allow(dead_code)]
 #[path = "../../capsule_driver_piix_ide/src/server/runner.rs"]
 mod runner;
 #[path = "../../capsule_driver_piix_ide/src/server/rw.rs"]
 pub mod rw;
 
-pub use runner::{serve, RX_LEN, TX_LEN};
+pub use runner::{run, serve, RX_LEN, TX_LEN};

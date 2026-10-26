@@ -24,12 +24,13 @@ pub struct Component {
     pub license: &'static [u8],
 }
 
-pub const COMPONENTS: [Component; 7] = [
+pub const COMPONENTS: [Component; 8] = [
     Component { name: b"PQClean ML-DSA-65", role: b"capsule signatures", license: b"CC0-1.0" },
     Component { name: b"PQClean ML-KEM", role: b"key encapsulation", license: b"CC0-1.0" },
     Component { name: b"ab_glyph", role: b"glyph rasteriser", license: b"Apache-2.0" },
-    Component { name: b"Noto Sans", role: b"interface typeface", license: b"OFL-1.1" },
-    Component { name: b"Noto Sans Mono", role: b"data typeface", license: b"OFL-1.1" },
+    Component { name: b"Geist", role: b"interface typeface", license: b"OFL-1.1" },
+    Component { name: b"JetBrains Mono", role: b"data typeface", license: b"OFL-1.1" },
+    Component { name: b"Noto Sans", role: b"wider Latin, Greek", license: b"OFL-1.1" },
     Component { name: b"minimp3", role: b"audio decode", license: b"CC0-1.0" },
     Component {
         name: b"Noto Sans scripts",

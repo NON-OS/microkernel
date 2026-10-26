@@ -68,8 +68,8 @@ pub fn mk_foreign_reply(pid: u32, value: u64) -> i64 {
     call_raw(N_MK_FOREIGN_REPLY, [pid as u64, value, 0, 0, 0, 0])
 }
 
-/// Ask init to start this Linux run again with Network. Only the run role
-/// may, naming its own pid (`MkLinuxRunNet`).
+/// Ask to start this Linux run again with Network, naming its own pid: the
+/// run role through init, the terminal role through its Terminal (ASK_NET).
 pub fn mk_linux_run_net(pid: u32) -> i64 {
     call_raw(N_MK_LINUX_RUN_NET, [pid as u64, 0, 0, 0, 0, 0])
 }

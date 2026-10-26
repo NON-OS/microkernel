@@ -18,10 +18,8 @@
 //! verdict on a quote, mounted at their module path so the live tests reach
 //! what `produce` keeps private.
 
-#[allow(dead_code)]
 #[path = "../../../../src/security/attest_doc/document.rs"]
 pub mod document;
-#[allow(dead_code)]
 #[path = "../../../../src/security/attest_doc/error.rs"]
 pub mod error;
 #[path = "../../../../src/security/attest_doc/produce_judge.rs"]
@@ -32,4 +30,5 @@ pub mod produce_quote;
 pub mod quote_shape;
 
 mod judge_tests;
+mod log_cap_tests;
 mod tests;

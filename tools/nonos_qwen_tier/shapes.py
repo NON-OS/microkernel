@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """What a tier needs in memory, read from the fetcher's own table
-(userland/capsule_model_fetch/src/need.rs), the one source: the fetcher
+(userland/capsule_model_fetch/src/need/shapes.rs), the one source: the fetcher
 admits a catalogue only when each tier's memory is what that table gives,
 and the store shows it on the tier's card. The rule is qwenchat's before it
 loads (userland/linux_guests/cpp/qwenmem.cpp): the weights; a key and a
@@ -28,7 +28,7 @@ import re
 import sys
 
 NEED = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-                    "userland/capsule_model_fetch/src/need.rs")
+                    "userland/capsule_model_fetch/src/need/shapes.rs")
 ROW = re.compile(r'\("([\w.-]+)", (\d+), (\d+), (\d+), (\d+)\),')
 CONST = re.compile(r"pub const (POSITIONS|BATCH|MARGIN): u64 = (\d+)(?: << (\d+))?;")
 
