@@ -52,9 +52,3 @@ pub(super) static ORPHANS: Mutex<Vec<Orphan>> = Mutex::new(Vec::new());
 pub fn reclaim() {
     reclaim_in(|| lock_responsive(&GATE), |_| free_orphans(), super::grant_run::free_unheld);
 }
-
-/* `pid` exits. Its orphans stay listed: the other holders' attach records
- * outlive the owner, so `reclaim` frees each when its last holder lets go. */
-pub fn abandon_owner(_pid: u32) {
-    reclaim();
-}
