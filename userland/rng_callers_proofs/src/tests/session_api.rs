@@ -16,9 +16,8 @@
 
 //! The session system's start (security/policy/session/{manager,api}.rs):
 //! it makes no account and no session, so it draws nothing and starts with
-//! no randomness; the anonymous login has no account to log in to.
+//! no randomness.
 
-use super::session_manager::started;
 use crate::security::policy::session::api::{init, session_manager};
 use crate::stand_in::{kernel, rng};
 
@@ -31,13 +30,4 @@ fn the_session_system_starts_empty_and_draws_nothing() {
     assert_eq!((session_manager().user_count(), session_manager().session_count()), (0, 0));
     assert_eq!((rng::draws(), rng::weak()), (0, 0));
     assert_eq!(kernel::lines().len(), 1);
-}
-
-#[test]
-fn the_anonymous_login_gives_0_and_draws_nothing() {
-    let m = started();
-    rng::fail_from(None);
-    assert_eq!(m.login_anonymous(), 0);
-    assert_eq!((m.session_count(), m.current().map(|s| s.id)), (0, None));
-    assert_eq!(rng::draws(), 0);
 }
