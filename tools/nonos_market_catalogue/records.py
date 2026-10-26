@@ -54,7 +54,8 @@ def release(rid, manifest, package, url, arches, caps, note, validator,
     }
 
 
-def entry(listing, capsule_id, name, publisher, pubkey, text, releases):
+def entry(listing, capsule_id, name, publisher, pubkey, text, releases, logo=""):
+    """`logo` is the BLAKE3 of the listing's logo raster, "" for none."""
     return {
         "listing_id": listing,
         "capsule_id": capsule_id,
@@ -63,6 +64,7 @@ def entry(listing, capsule_id, name, publisher, pubkey, text, releases):
         "publisher_pubkey": pubkey,
         "publisher_eth_address": "00" * 20,
         "description": text,
+        "logo_hash": logo,
         "price": FREE,
         "token": NOX,
         "commerce": dict(FREE_COMMERCE),

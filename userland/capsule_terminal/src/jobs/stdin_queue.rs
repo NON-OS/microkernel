@@ -23,6 +23,8 @@ use alloc::vec::Vec;
 
 #[path = "stdin_feed.rs"]
 mod stdin_feed;
+#[path = "stdin_kept.rs"]
+mod stdin_kept;
 
 /// End of transmission: sent alone, the program's input is over.
 pub const EOT: u8 = 0x04;
@@ -37,11 +39,14 @@ pub struct StdinQueue {
     /// Its input came whole from a file (`< f`) and is over: the keyboard
     /// is not its input, so nothing more is taken.
     sealed: bool,
+    /// What was handed over before the program was heard from.
+    kept: stdin_kept::Kept,
 }
 
 impl StdinQueue {
     pub fn new(hears_eot: bool) -> Self {
-        Self { pending: VecDeque::new(), bytes: 0, hears_eot, sealed: false }
+        let kept = stdin_kept::Kept::new();
+        Self { pending: VecDeque::new(), bytes: 0, hears_eot, sealed: false, kept }
     }
 
     /// The most a file given as input (`< f`) may hold: what the queue

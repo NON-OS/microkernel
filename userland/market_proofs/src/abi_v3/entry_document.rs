@@ -23,12 +23,13 @@ use super::fixtures::sold;
 
 #[test]
 fn an_entry_document_reads_back_whole_and_canonical() {
-    let entry = sold().entries[0].clone();
+    let mut entry = sold().entries[0].clone();
+    entry.logo_hash = [0x3c; 32];
     let doc = encode_entry_document(&entry);
     let back = decode_entry_document(&doc).expect("decodes");
     assert_eq!(
-        (back.listing_id.as_str(), back.publisher_pubkey),
-        (entry.listing_id.as_str(), entry.publisher_pubkey)
+        (back.listing_id.as_str(), back.publisher_pubkey, back.logo_hash),
+        (entry.listing_id.as_str(), entry.publisher_pubkey, entry.logo_hash)
     );
     assert_eq!(encode_entry_document(&back), doc, "canonical");
     let mut tail = doc.clone();

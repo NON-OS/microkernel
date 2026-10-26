@@ -45,12 +45,12 @@ static ENDING: AtomicBool = AtomicBool::new(false);
 /// is to wipe what this core can reach rather than to stay up holding
 /// everything. A refusal costs coverage; refusing to shut down costs the lot.
 pub(crate) fn terminate(off: PowerOff) -> ! {
-    end(off, TOTAL_MS)
+    terminate_with(off, false)
 }
 
-/// terminate() for a critical thermal zone or battery: leave within 6 s.
-pub(crate) fn terminate_critical(off: PowerOff) -> ! {
-    end(off, CRITICAL_TOTAL_MS)
+/// terminate(), within 6 s when `critical`: a thermal zone or battery (ACPI's).
+pub(crate) fn terminate_with(off: PowerOff, critical: bool) -> ! {
+    end(off, if critical { CRITICAL_TOTAL_MS } else { TOTAL_MS })
 }
 
 fn end(off: PowerOff, leave_ms: u64) -> ! {
