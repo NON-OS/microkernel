@@ -19,11 +19,9 @@ use nonos_libc::mk_time_millis;
 use crate::command;
 use crate::jobs;
 use crate::term::state::State;
-
 use super::print_started::print_started;
 
-/// Run each statement of `line` in turn, gated by `&&` and `||`, until one
-/// starts a foreground job or asks the terminal to exit.
+/// Run each statement of `line`, gated by `&&` and `||`, until a foreground job or exit.
 pub(super) fn run_line(state: &mut State, line: &[u8]) -> command::Outcome {
     let mut outcome = command::Outcome::Repaint;
     let mut prev_status: i32 = state.last_status;
@@ -40,6 +38,11 @@ pub(super) fn run_line(state: &mut State, line: &[u8]) -> command::Outcome {
         let expanded = command::expand(&aliased, &state.vars, prev_status);
         state.last_status = 0;
         let argv = command::parse(&expanded);
+        if argv.cut {
+            state.scrollback.push_error(command::parse::TOO_MANY);
+            (state.last_status, prev_status) = (1, 1);
+            continue;
+        }
         let args = &argv.argv[..argv.argc];
         match jobs::is_job_command(state, args) {
             jobs::Verdict::Job(work) => {

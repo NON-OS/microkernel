@@ -53,6 +53,7 @@ impl Terminal {
             }
             Some(Action::ToggleMonitor) => self.monitor_flip(),
             Some(Action::ChangeTheme) => self.theme_next(),
+            Some(Action::Split) => self.split_toggle(),
         }
     }
 }

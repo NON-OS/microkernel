@@ -26,6 +26,10 @@ description = "NONOS chosen network route: the pick, the policy read, and a stre
 [lib]
 path = "src/lib.rs"
 
+[features]
+# The local test chain's RPC, dialled directly (P5): development images only.
+devnet = []
+
 [dependencies]
 # Three syscalls: an IPC call with a bound, the uptime clock and a timed
 # sleep. The heap and the panic handler are the capsule's own business.
