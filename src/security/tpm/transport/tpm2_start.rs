@@ -23,16 +23,3 @@ pub const START_ACPI: u32 = 2;
 pub const START_FIFO: u32 = 6;
 pub const START_CRB: u32 = 7;
 pub const START_CRB_ACPI: u32 = 8;
-pub const START_CRB_SMC: u32 = 11;
-
-/// A start method by name; None for one this list does not know.
-pub fn start_name(method: u32) -> Option<&'static str> {
-    Some(match method {
-        START_ACPI => "ACPI start",
-        START_FIFO => "FIFO (TIS) over MMIO",
-        START_CRB => "command response buffer",
-        START_CRB_ACPI => "command response buffer, ACPI start",
-        START_CRB_SMC => "command response buffer, Arm SMC start",
-        _ => return None,
-    })
-}
