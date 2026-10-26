@@ -16,7 +16,6 @@ Each claim is marked with how far it has been checked:
 - **Any destination, not a list.** These releases carry a zero `net_dests` hash, so the box allows any destination, but only over Nym or Anyone. A market release cannot yet carry a destination list; until it can, a list would only refuse every connection. *host-tested* (the policy bytes)
 - **What the exit sees.** The exit relay or mixnet exit sees the server's name and port, and, unless the app's own protocol encrypts, what is sent. Every app below uses TLS to its server.
 - **One program per box.** A release's box names one program. Any other program in the same package is refused at its installed path ([The marketplace catalogue](../userland/marketplace-catalogue.md)). *host-tested*
-- **Home is the app's own, and today it does not last.** FILES_HOME gives the app its own home directory and nothing of the person's other files. Today that home is made for each run and removed when the program exits ([Linux programs](linux-programs.md)); a home kept between runs is not in yet. *design*
 
 ## Profanity: XMPP chat with OMEMO
 
@@ -32,7 +31,7 @@ Listing `linux.profanity`, package `profanity 0.14.0-r1`, licence GPL-3.0-or-lat
 
 - **Who you talk to, and when.** Your server knows your account, your contact list, your presence, and the time and size of every message. Federated servers see the same for the contacts they host. OMEMO hides none of this.
 - **OMEMO is not on for a new conversation.** Profanity's default OMEMO policy is `automatic`: it encrypts a chat only once OMEMO has been started in it. Type `/omemo policy always` once to make it the default, or `/omemo start` in each chat. Its trust mode is `manual`: a contact's device is used only after you have checked its fingerprint (`/omemo fingerprint`) and run `/omemo trust`. *design* (Profanity 0.14.0's `src/config/preferences.c`)
-- **Nothing it keeps lasts past one run, today.** Because the home is removed when Profanity exits, its account settings, its OMEMO identity keys and its history are gone at every exit. Each start is a new OMEMO device that your contacts must trust again, and nothing written during a run survives it. Until homes are kept, use it for a session at a time. *design*
+- **Nothing it keeps lasts past power off, today.** Its account settings, its OMEMO identity keys and its history stay in its home from one run to the next, but are gone when the machine powers off. Each boot is a new OMEMO device that your contacts must trust again. *design* (the home itself is booted; Profanity's use of it is not)
 - **Your history on this machine.** By default Profanity keeps every message in its database and chat logs in its home while it runs, including OMEMO messages after decryption. `/privacy logging off` stops that, at the cost Profanity's help names: later OMEMO messages fetched from the server's archive may not decrypt. *design*
 - **What it says about itself.** By default it tells anyone who asks its name and version, and the operating system it runs on (XEP-0092). It also sends typing notifications, read receipts and message carbons. `/privacy os off`, `/states off` and `/receipts send off` turn those off. *design*
 - **Server discovery.** Profanity looks up the server's SRV record, which goes unanswered here (see above). It then connects to the domain itself on port 5222. If your provider hosts XMPP on another host or port, give it with `/account set <account> server <host>` and `/account set <account> port <port>`. *design*
@@ -42,7 +41,7 @@ Listing `linux.profanity`, package `profanity 0.14.0-r1`, licence GPL-3.0-or-lat
 ### Using it
 
 2. `/connect you@example.org`. Give the password at the prompt.
-3. `/omemo gen`, then `/omemo policy always`. Until homes are kept between runs, do this at every start.
+3. `/omemo gen`, then `/omemo policy always`. Until homes are kept across a reboot, do this once per boot.
 4. Before you trust a contact: compare fingerprints over another channel, then `/omemo trust <contact> <fingerprint>`.
 5. Optional: `/privacy os off`, `/states off`, `/receipts send off`, `/privacy logging off`.
 
