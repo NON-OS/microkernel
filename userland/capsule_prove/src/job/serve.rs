@@ -21,7 +21,8 @@
 
 use alloc::vec;
 
-use nonos_libc::{mk_exit, mk_ipc_recv_from, mk_time_millis, mk_yield};
+use nonos_libc::ipc::{mk_ipc_recv_req, IpcReqMeta};
+use nonos_libc::{mk_exit, mk_time_millis, mk_yield};
 use nonos_proof_abi::wire::FRAME_MAX;
 
 use super::exit_rule::{exits, wait_ms};
@@ -55,11 +56,11 @@ pub fn serve(held: bool, bound: Option<(u16, u32)>) -> ! {
         if exits(seen, now(), s.last) {
             mk_exit(0);
         }
-        let mut sender = 0u32;
+        let mut m = IpcReqMeta::default();
         let wait = wait_ms(seen, now(), s.last);
-        let n = mk_ipc_recv_from(0, buf.as_mut_ptr(), buf.len(), wait, &mut sender);
-        match usize::try_from(n).ok().filter(|&n| n > 0 && sender != 0) {
-            Some(n) => super::serve_frame::frame(&mut s, (&mut buf, n), sender, (held, bound)),
+        let n = mk_ipc_recv_req(0, buf.as_mut_ptr(), buf.len(), wait, &mut m);
+        match usize::try_from(n).ok().filter(|&n| n > 0 && m.sender != 0) {
+            Some(n) => super::serve_frame::frame(&mut s, (&mut buf, n), m, (held, bound)),
             None => {
                 mk_yield();
             }
