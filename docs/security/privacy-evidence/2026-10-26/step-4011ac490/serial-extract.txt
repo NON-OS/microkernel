@@ -1,0 +1,16 @@
+== install: 1477 serial lines, late policy 0, unanswered policy 0
+631:[VFS] serving, store status 00[DISPLAY] slow turn 1302 ms (drain 1289, upkeep 13, frame 0)
+1151:[ZS] keeping turned on: the person chose it, the policy service says
+== keepA: 2191 serial lines, late policy 0, unanswered policy 0
+775:[VFS] serving, store status 00[DISPLAY] present 2: 1 rects, box 1920x16 at 0,672, serial 1, lit 64 of 64 s
+1319:[ZS] keeping turned on: the person chose it, the policy service says
+2190:[POWER] leave: driver.ahci0 done
+2191:[POWER] leave: driver.usb_msc0 answered -19
+== keepA2: 1802 serial lines, late policy 0, unanswered policy 0
+776:[VFS] serving, store status 00[usbnet fido] port 5: shared device unread errno -22
+1001:[ZS] keeping turned on: the person chose it, the policy service says
+== cpu1: 2059 serial lines, late policy 0, unanswered policy 0
+778:[VFS] serving, store status 00[BENCH] 14532 display_flush_first
+794:[DIAG] ipc.call unanswered vfs_pool err=-110
+1066:[ZS] keeping turned on: the person chose it, the policy service says
+1289:[DIAG] ipc.call unanswered driver.xhci0 err=-110
