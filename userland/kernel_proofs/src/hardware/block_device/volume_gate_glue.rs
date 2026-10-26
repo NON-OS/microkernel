@@ -68,5 +68,5 @@ fn only_crate_fs_opens_a_scope_and_a_full_table_is_refused() {
     assert!(t.contains("pubstructVolumeIo(());"), "a private field: made in volume_io.rs alone");
     assert!(t.contains("pub(incrate::fs)fnvolume_scope()->Result<VolumeScope,BlockDeviceError>{"));
     assert!(t.contains(".ok_or_else(||{") && t.contains("BlockDeviceError::NotReady"), "EAGAIN");
-    assert!(t.contains("[DATA]volumeI/Orefused:everyvolumescopeistaken;tryagain"));
+    assert!(t.contains("[DATA]volumebusy:16callersinside;tryagain"));
 }
