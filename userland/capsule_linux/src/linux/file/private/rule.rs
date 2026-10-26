@@ -25,6 +25,14 @@ pub const PRIVATE: &[&[u8]] = &[b"/tmp", b"/dev/shm", b"/home", b"/root", b"/run
 /// The private prefixes that are a home.
 const HOMES: &[&[u8]] = &[b"/home", b"/root"];
 
+/// True when `visible` is a home, /home or /root or below one, and `home`
+/// is granted: kept in the family's home (home.rs), not its scratch.
+pub fn home_for(visible: &[u8], home: bool) -> bool {
+    home && HOMES
+        .iter()
+        .any(|p| visible.starts_with(p) && matches!(visible.get(p.len()), None | Some(b'/')))
+}
+
 /// True when `visible` is one of the private prefixes or below one, a home
 /// counting only when `home` is granted.
 pub fn private_for(visible: &[u8], home: bool) -> bool {

@@ -36,15 +36,15 @@ mod mem_disk;
 mod written;
 
 use gpt_damage::{put, seal, table, T};
-use kernel_gpt::header;
-use kernel_gpt::Which;
+use kernel_gpt::{header, Which};
+type Field = (usize, u64, usize); // offset, value, width in bytes
 
 #[test]
 fn each_header_field_off_by_itself_is_refused() {
     let (h0, a) = table();
     assert!(header::parse_as(&h0, T, Which::Primary).is_some(), "as written");
     // (field, value, width, and a field set first so this check alone fails)
-    let cases: [(usize, u64, usize, Option<(usize, u64, usize)>, &str); 13] = [
+    let cases: [(usize, u64, usize, Option<Field>, &str); 13] = [
         (0, 0x5452_4150_2049_4646, 8, None, "signature not EFI PART"),
         (12, 91, 4, None, "HeaderSize under its 92 bytes of fields"),
         (12, 513, 4, None, "HeaderSize past the 512-byte block"),
@@ -71,5 +71,5 @@ fn each_header_field_off_by_itself_is_refused() {
     let mut h = h0.clone();
     h[60] ^= 1;
     assert!(header::parse_as(&h, T, Which::Primary).is_none(), "the header CRC");
-    assert!(header::parse_as(&h0, 2000, Which::Primary).is_none(), "a disk smaller than the table says");
+    assert!(header::parse_as(&h0, 2000, Which::Primary).is_none(), "a disk smaller than its table");
 }
