@@ -40,7 +40,7 @@ pub const AVAIL_F_NO_INTERRUPT: u16 = 1;
 
 const Q: usize = QUEUE_MAX as usize;
 const _: () = assert!(DESC_OFF + Q * 16 <= AVAIL_OFF);
-const _: () = assert!(AVAIL_OFF + 6 + Q * 2 <= USED_OFF && USED_OFF % 4 == 0);
+const _: () = assert!(AVAIL_OFF + 6 + Q * 2 <= USED_OFF && USED_OFF.is_multiple_of(4));
 const _: () = assert!(USED_OFF + 6 + Q * 8 <= REQ_OFF);
 const _: () = assert!(REQ_OFF + super::scsi::REQ_LEN <= RESP_OFF);
 const _: () = assert!(RESP_OFF + super::scsi::RESP_LEN <= DATA_OFF);

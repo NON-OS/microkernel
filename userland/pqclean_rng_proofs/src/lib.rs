@@ -19,7 +19,6 @@
 //! source, the time counter and the serial line stand in (`stand_in`).
 
 #![cfg(test)]
-#![allow(dead_code)]
 
 mod stand_in;
 mod stand_in_hw;
@@ -31,7 +30,8 @@ pub use stand_in_hw::{arch, sys};
 #[path = "../../../src/crypto"]
 pub mod crypto {
     pub mod rng {
-        pub use crate::stand_in::{fill_random_bytes, fill_random_bytes_secure};
+        pub use crate::stand_in::fill_random_bytes;
+        pub(crate) use crate::stand_in::fill_random_bytes_secure;
     }
 
     pub mod pqclean_support {
@@ -42,7 +42,7 @@ pub mod crypto {
     pub mod util {
         pub mod rng {
             pub mod entropy {
-                pub use crate::stand_in::get_entropy64_secure;
+                pub(crate) use crate::stand_in::get_entropy64_secure;
             }
             pub mod global {
                 mod fallback;
@@ -62,8 +62,8 @@ pub mod crypto {
         pub mod kyber;
 
         pub mod ml_dsa_65 {
-            mod api;
-            mod constants;
+            pub mod api;
+            pub mod constants;
             mod drawn;
             mod ffi;
             pub mod types;

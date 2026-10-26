@@ -42,8 +42,8 @@ pub mod dgon;
 use dgon::dgon_parse;
 
 /// The kernel's display list, which the compositor walks to find bga.
+#[cfg(test)]
 #[path = "../../../src/services/registry/displays.rs"]
-#[allow(dead_code)]
 mod displays;
 
 /// One bring-up attempt end to end (`tests::setup_tests` and the rest),
@@ -70,6 +70,6 @@ mod services;
 #[cfg(test)]
 use kernel_ids::{hardware, process};
 #[cfg(test)]
-mod syscall;
+pub mod syscall;
 #[cfg(test)]
 mod tests;
