@@ -4091,7 +4091,7 @@ sys_dir='src/syscall/microkernel/numbers'
 libc_numbers='userland/libc/src/syscall/numbers'
 
 defs_non_tag="$(awk '/^pub enum SyscallNumber/{f=1; next} f && /^}/{exit} f && /=/' "${defs_src}" \
-    | grep -vE '=[[:space:]]*tag4\(b"[A-Z0-9]{4}"\)' || true)"
+    | grep -vE '=[[:space:]]*(crate::syscall::abi::)?tag4\(b"[A-Z0-9]{4}"\)' || true)"
 if [ -n "${defs_non_tag}" ]; then
     fail_with "${defs_src} has SyscallNumber discriminants that are not tag4(b\"....\")"
     printf '%s\n' "${defs_non_tag}" >&2
@@ -4154,7 +4154,7 @@ elif ! grep -qE '^[[:space:]]+abi::lookup_id\(' "${convert_src}"; then
 elif grep -qE '^[[:space:]]+[0-9]+[[:space:]]*=>[[:space:]]*Some\(Self::' "${convert_src}"; then
     fail_with "${convert_src} carries a parallel numeric match table; route through the registry"
 else
-    enum_variants="$(sed -n '/^pub enum SyscallNumber/,/^}/p' "${syscall_defs}" | grep -oE '[A-Z][A-Za-z0-9]+ *= *tag4' | awk '{print $1}' | sort -u)"
+    enum_variants="$(sed -n '/^pub enum SyscallNumber/,/^}/p' "${syscall_defs}" | grep -oE '[A-Z][A-Za-z0-9]+ *= *(crate::syscall::abi::)?tag4' | awk '{print $1}' | sort -u)"
     registry_variants="$(cat ${abi_registry_files} | grep -oE 'SyscallNumber::[A-Za-z0-9]+' | sed 's/.*:://' | sort)"
     registry_unique="$(printf '%s\n' "${registry_variants}" | sort -u)"
     if [ "${registry_variants}" != "${registry_unique}" ]; then
@@ -4245,11 +4245,11 @@ for f in ${ipc_primitives} ${ipc_libc}; do
 done
 if [ -n "${ipc_missing}" ]; then
     fail_with "missing IPC primitives:${ipc_missing}"
-elif ! grep -qE 'MkIpcRecvFrom = tag4' "${ipc_defs}"; then
+elif ! grep -qE 'MkIpcRecvFrom = (crate::syscall::abi::)?tag4' "${ipc_defs}"; then
     fail_with "${ipc_defs} must declare MkIpcRecvFrom"
-elif ! grep -qE 'MkIpcSendToPid = tag4' "${ipc_defs}"; then
+elif ! grep -qE 'MkIpcSendToPid = (crate::syscall::abi::)?tag4' "${ipc_defs}"; then
     fail_with "${ipc_defs} must declare MkIpcSendToPid"
-elif ! grep -qE 'MkServiceLookup = tag4' "${ipc_defs}"; then
+elif ! grep -qE 'MkServiceLookup = (crate::syscall::abi::)?tag4' "${ipc_defs}"; then
     fail_with "${ipc_defs} must declare MkServiceLookup"
 elif ! grep -qE 'SYS_IPC_RECV_FROM => sys_ipc_recv_from' "${ipc_dispatch}"; then
     fail_with "${ipc_dispatch} must dispatch SYS_IPC_RECV_FROM"

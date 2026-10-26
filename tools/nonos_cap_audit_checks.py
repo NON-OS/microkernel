@@ -55,7 +55,7 @@ def syscalls(root: Path) -> int:
     """Every Mk number must be gated, named, routed and dispatched."""
     defs = {
         n for n, _ in re.findall(
-            r"(\w+) = tag4\(b\"(\w{4})\"\)", read(root, "src/syscall/numbers/defs.rs")
+            r"(\w+) = (?:[\w:]+::)?tag4\(b\"(\w{4})\"\)", read(root, "src/syscall/numbers/defs.rs")
         )
     }
     mk = {d for d in defs if d.startswith("Mk")}
