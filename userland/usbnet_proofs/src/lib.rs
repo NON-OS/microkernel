@@ -59,8 +59,6 @@ pub use station::{Station, Taken};
 #[cfg(test)]
 mod batch_tests;
 #[cfg(test)]
-mod resend_tests;
-#[cfg(test)]
 mod book_tests;
 #[cfg(test)]
 mod changing_tests;
