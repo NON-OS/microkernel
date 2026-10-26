@@ -24,6 +24,7 @@
 mod cues;
 mod mem;
 mod mem_read;
+pub mod proc_stat;
 mod registry;
 mod service;
 mod share;
@@ -32,6 +33,7 @@ pub mod surface_registry;
 pub use cues::{live, refuse_registers, refuse_shares, registered_dirty, reset};
 pub use mem::{mk_mmap, mk_munmap, POISON};
 pub use mem_read::{maps, refuse_maps, unmapped_wrong};
+pub use proc_stat::{mk_proc_stat, ProcStatEntry, ProcStatHeader};
 pub use registry::{mk_surface_register, mk_surface_release, Entry};
 pub use service::{mk_getpid, mk_service_lookup, set_compositor, OWN_PID};
 pub use share::mk_surface_share;
