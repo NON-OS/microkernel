@@ -1,3 +1,6 @@
 [
- {"name": "settings-label-not-cut", "file": "userland/capsule_settings/src/settings/ui/text/fit.rs", "old": "    if measure(s) <= max_w {", "new": "    if true {", "crate": "userland/capsule_settings_proofs", "test": "fit_tests", "args": ["--release"]}
+ {"name": "settings-label-not-cut", "file": "userland/capsule_settings/src/settings/ui/text/fit.rs", "old": "    if measure(s) <= max_w {", "new": "    if true {", "crate": "userland/capsule_settings_proofs", "test": "fit_tests", "args": ["--release"]},
+ {"name": "gate-fit-fails-not-first", "file": "userland/capsule_app_store/src/store/ui/gate_fit.rs", "old": "    let order: Vec<usize> = fails.chain((0..passes.len()).filter(|&i| passes[i])).collect();", "new": "    let order: Vec<usize> = (0..passes.len()).filter(|&i| passes[i]).chain(fails).collect();", "crate": "userland/market_proofs", "test": "gate_fit", "args": ["--release"]},
+ {"name": "gate-fit-no-row-for-the-rest", "file": "userland/capsule_app_store/src/store/ui/gate_fit.rs", "old": "    let take = room.saturating_sub(1).min(order.len());", "new": "    let take = room.min(order.len());", "crate": "userland/market_proofs", "test": "gate_fit", "args": ["--release"]},
+ {"name": "gate-fit-all-fit-off-by-one", "file": "userland/capsule_app_store/src/store/ui/gate_fit.rs", "old": "    if passes.len() <= room {", "new": "    if passes.len() < room {", "crate": "userland/market_proofs", "test": "gate_fit", "args": ["--release"]}
 ]
