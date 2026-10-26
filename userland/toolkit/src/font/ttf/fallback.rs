@@ -15,31 +15,31 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * One built-in face standing in for the other. Noto Sans has no arrows,
- * no triangles and no not-equal sign; its mono cut has them. A character
- * the chosen face lacks is drawn from the other rather than as a box,
- * which reads as a bug in whatever app printed it.
+ * A character the chosen face lacks is drawn from another built-in face
+ * rather than as a box, which reads as a bug in whatever app printed it:
+ * first Noto Sans, which carries the wider Latin, Greek and Cyrillic Geist
+ * lacks, then the other of Geist and JetBrains Mono, which between them
+ * carry the arrows, triangles and signs.
  */
 
 use ab_glyph::{Font, FontRef, GlyphId, PxScale, ScaleFont};
 
-use super::face::face;
-use super::readable::readable_px;
+use super::face::{face, wide};
+use super::readable::readable_px_for;
 
-/// The face that draws `ch`, as (is it the mono face, the face): the one
-/// asked for when it has the glyph, the other when only that one does.
+/// The face that draws `ch`: the one asked for when it has the glyph, else
+/// the first of Noto Sans and the other built-in face that has it, else the
+/// one asked for, which draws its own box.
 pub(super) fn face_for(
     f: &'static FontRef<'static>,
     mono: bool,
     ch: char,
-) -> (bool, &'static FontRef<'static>) {
-    if f.glyph_id(ch).0 != 0 {
-        return (mono, f);
+) -> &'static FontRef<'static> {
+    let has = |g: &FontRef| g.glyph_id(ch).0 != 0;
+    if has(f) {
+        return f;
     }
-    match face(!mono) {
-        Some(other) if other.glyph_id(ch).0 != 0 => (!mono, other),
-        _ => (mono, f),
-    }
+    [wide(), face(!mono)].into_iter().flatten().find(|g| has(g)).unwrap_or(f)
 }
 
 /*
@@ -47,19 +47,19 @@ pub(super) fn face_for(
  * face that will draw it. Kerning only pairs glyphs of one face.
  */
 pub fn measure(text: &str, px: f32, mono: bool) -> i32 {
-    let px = readable_px(px);
+    let px = readable_px_for(px, mono);
     let Some(f) = face(mono) else { return 0 };
     let mut pen = 0.0f32;
-    let mut prev: Option<(bool, GlyphId)> = None;
+    let mut prev: Option<(*const FontRef<'static>, GlyphId)> = None;
     for ch in text.chars() {
-        let (m, gf) = face_for(f, mono, ch);
+        let gf = face_for(f, mono, ch);
         let sf = gf.as_scaled(PxScale::from(px));
         let g = sf.glyph_id(ch);
-        if let Some((_, p)) = prev.filter(|(pm, _)| *pm == m) {
+        if let Some((_, p)) = prev.filter(|(pf, _)| core::ptr::eq(*pf, gf)) {
             pen += super::gpos::kern::kern_px(&sf, p, g);
         }
         pen += sf.h_advance(g);
-        prev = Some((m, g));
+        prev = Some((gf, g));
     }
     pen as i32
 }
