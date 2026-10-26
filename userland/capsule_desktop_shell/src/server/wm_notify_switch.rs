@@ -30,7 +30,15 @@ pub(super) fn note(ctx: &mut Context, owner_pid: u32, window_id: u32, event: WmE
     }
     let w = (owner_pid, window_id);
     match event {
-        WmEvent::Focused => ctx.switch.focused(w),
+        WmEvent::Focused => {
+            // A menu belongs to the moment it opened in: focus moving to
+            // another window (one opening, Alt+Tab) closes it.
+            let open = ctx.menubar.open.is_some() || ctx.desk_ui.desktop_menu.is_some();
+            if open && ctx.switch.moves(w) {
+                super::handlers::menu_key::close_menus(ctx);
+            }
+            ctx.switch.focused(w)
+        }
         WmEvent::Opened => ctx.switch.opened(w),
         WmEvent::Closed => {
             ctx.switch.closed(w);
