@@ -62,6 +62,8 @@ mod request_tests;
 mod store_checks;
 
 #[cfg(test)]
+mod gate_fit_tests;
+#[cfg(test)]
 mod readiness_wire_tests;
 #[cfg(test)]
 mod release_escrow_tests;

@@ -22,6 +22,7 @@ mod counter;
 mod detail;
 mod detail_foot;
 mod frame;
+mod gate_fit;
 mod gates;
 pub mod geometry;
 mod headline;
