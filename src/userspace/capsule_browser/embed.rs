@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-browser")]
-pub(crate) const BROWSER_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(crate) const BROWSER_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_browser/target/",
     env!("NONOS_USER_TARGET"),
     "/release/browser"

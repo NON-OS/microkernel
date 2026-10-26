@@ -46,7 +46,11 @@ pub(crate) fn checked<P, E>(
 /// A store load's order: an empty image read from the store is refused
 /// with `empty` before anything is spawned, so "not built" is only ever
 /// said of an embedded capsule.
-pub(crate) fn stored<P, E>(elf: &[u8], empty: E, spawn: impl FnOnce() -> Result<P, E>) -> Result<P, E> {
+pub(crate) fn stored<P, E>(
+    elf: &[u8],
+    empty: E,
+    spawn: impl FnOnce() -> Result<P, E>,
+) -> Result<P, E> {
     gate(elf, empty)?;
     spawn()
 }

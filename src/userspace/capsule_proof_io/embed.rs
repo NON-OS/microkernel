@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-proof-io")]
-pub(crate) const PROOF_IO_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(crate) const PROOF_IO_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_proof_io/target/",
     env!("NONOS_USER_TARGET"),
     "/release/proof_io"

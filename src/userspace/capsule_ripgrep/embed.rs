@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-ripgrep")]
-pub(crate) const RIPGREP_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(crate) const RIPGREP_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_ripgrep/target/",
     env!("NONOS_USER_TARGET"),
     "/release/rg"

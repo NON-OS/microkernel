@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-net-nym")]
-pub(super) const NET_NYM_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(super) const NET_NYM_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_net_nym/target/",
     env!("NONOS_USER_TARGET"),
     "/release/net_nym"

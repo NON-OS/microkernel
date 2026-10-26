@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-vfs")]
-pub(super) const VFS_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(super) const VFS_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_vfs/target/",
     env!("NONOS_USER_TARGET"),
     "/release/vfs"

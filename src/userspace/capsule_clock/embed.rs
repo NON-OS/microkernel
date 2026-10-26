@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-clock")]
-pub(crate) const CLOCK_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(crate) const CLOCK_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_clock/target/",
     env!("NONOS_USER_TARGET"),
     "/release/clock"

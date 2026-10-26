@@ -20,8 +20,7 @@
 //! baked trust anchor.
 
 #[cfg(feature = "nonos-capsule-net-ntp")]
-pub(super) const NET_NTP_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(super) const NET_NTP_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_net_ntp/target/",
     env!("NONOS_USER_TARGET"),
     "/release/net_ntp"

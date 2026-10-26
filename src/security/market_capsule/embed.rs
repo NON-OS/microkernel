@@ -21,8 +21,7 @@
 //! empty slice (no marketplace capsule available).
 
 #[cfg(feature = "nonos-capsule-market")]
-pub(super) const MARKET_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(super) const MARKET_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_market/target/",
     env!("NONOS_USER_TARGET"),
     "/release/market"

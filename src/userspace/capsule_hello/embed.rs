@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-hello")]
-pub(crate) const HELLO_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(crate) const HELLO_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_hello/target/",
     env!("NONOS_USER_TARGET"),
     "/release/hello"

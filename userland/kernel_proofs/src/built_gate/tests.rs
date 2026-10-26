@@ -36,10 +36,19 @@ fn an_empty_image_is_not_built_and_any_other_is_let_through() {
 /// whether preflight ran.
 fn spawn(elf: &[u8], profile: Result<(), E>) -> (Result<u8, E>, bool) {
     let ran = Cell::new(false);
-    let got = checked(elf, E::NotBuilt, || profile, || {
-        ran.set(true);
-        if elf.is_empty() { Err(E::CertDecode) } else { Ok(1) }
-    });
+    let got = checked(
+        elf,
+        E::NotBuilt,
+        || profile,
+        || {
+            ran.set(true);
+            if elf.is_empty() {
+                Err(E::CertDecode)
+            } else {
+                Ok(1)
+            }
+        },
+    );
     (got, ran.get())
 }
 

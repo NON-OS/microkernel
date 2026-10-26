@@ -915,12 +915,16 @@ $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel: | $(SIGNING_KEY) $(filter $(KER
 	@# One shell: an exit in a line of its own would end only that line.
 	@if [ -e $@ ]; then \
 		echo "Kernel already built as: $$(head -n1 $(KERNEL_PROFILE_RECORD) 2>/dev/null); kept"; \
-	else \
-		echo "Building kernel (default = microkernel-core)..." && \
-		NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-			$(CARGO) build $(KERNEL_BUILD_FLAGS) && \
-		printf '%s\n' 'microkernel-core (default)' 'microkernel-core' > $(KERNEL_PROFILE_RECORD); \
-	fi
+	else $(MAKE) --no-print-directory nonos-mk-kernel-default; fi
+
+# The default kernel itself, reached only through the rule above.
+.PHONY: nonos-mk-kernel-default
+nonos-mk-kernel-default: | $(SIGNING_KEY)
+	@echo "Building kernel (default = microkernel-core)..."
+	@NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS)
+	@printf '%s\n' 'microkernel-core (default)' 'microkernel-core' > $(KERNEL_PROFILE_RECORD)
 
 nonos-mk-check: nonos-mk-check-deps nonos-mk-ensure-signing-key
 	@echo "cargo check (microkernel-core)..."

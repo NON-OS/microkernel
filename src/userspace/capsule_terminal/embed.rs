@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-terminal")]
-pub(crate) const TERMINAL_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(crate) const TERMINAL_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_terminal/target/",
     env!("NONOS_USER_TARGET"),
     "/release/terminal"

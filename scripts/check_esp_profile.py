@@ -39,7 +39,7 @@ def problems(text: str) -> list:
     out = []
     if WRITE not in block(text, "define nonos_kernel_build"):
         out.append("nonos_kernel_build does not record the profile it built")
-    default = block(text, "$(TARGET_DIR)/x86_64-nonos/release/nonos-kernel: |")
+    default = block(text, "nonos-mk-kernel-default: |")
     if not re.search(r"'microkernel-core' " + re.escape(WRITE), default):
         out.append("the default kernel rule does not record microkernel-core")
     esp = text[text.find("\nnonos-mk-esp:") :]

@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-ramfs")]
-pub(super) const RAMFS_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(super) const RAMFS_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_ramfs/target/",
     env!("NONOS_USER_TARGET"),
     "/release/ramfs"
