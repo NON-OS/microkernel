@@ -41,7 +41,7 @@ pub mod neofetch;
 mod net_again;
 mod network;
 mod paint;
-pub mod search;
+pub mod term_search;
 mod shell;
 pub mod theme;
 
@@ -50,7 +50,7 @@ pub use handed::{handed_cadence, handed_parse, handed_pick};
 pub use help::{help_layout, help_pages, hint_sets, receipt_own, tool_list};
 pub use input_line::{cooked, cooked_kill, expand, line, line_chars, line_window, select};
 pub use jobs::{
-    agentproof_job, box_hold, box_log, box_missing, box_screen, install_follow, kill_target,
+    agentproof_job, box_app, box_hold, box_log, box_missing, box_screen, install_follow, kill_target,
 };
 pub use jobs::{linux_frames, pkg_handoff, tool_argv, tool_busy, tool_service};
 pub use neighbours::{cadence, goto_line, quick_open};
