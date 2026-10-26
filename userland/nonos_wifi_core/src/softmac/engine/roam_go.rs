@@ -51,7 +51,7 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
         r.set_bss(Some(h.bssid));
         let j = Joining { tag: kit.tag.as_ref(), kept: Some(&kit.secret), from: Some(from) };
         let (env, cache, beacon, d) = (&mut self.env, &mut self.pmksa, &h.beacon, self.domain);
-        let tried = first_attempt(r, env, d, &req, kit.policy, beacon, h.bssid, cache, &j);
+        let tried = first_attempt(r, env, (d, kit.policy), &req, (beacon, h.bssid), cache, &j);
         let Ok(report) = tried else { return self.stay() };
         keep(cache, env, r.mac(), &req, kit.tag.as_ref(), &report);
         if !matches!(report.outcome, Outcome::Joined { .. }) {

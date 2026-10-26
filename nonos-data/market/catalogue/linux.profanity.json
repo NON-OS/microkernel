@@ -1,5 +1,5 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "operator_id": "nonos.marketplace.v1",
   "published_at_ms": 1792844669000,
   "serial": 1792844669,
@@ -12,6 +12,7 @@
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "A terminal XMPP chat client with OMEMO end-to-end encryption. Every connection leaves over Nym or Anyone, never direct, so your server never learns your address, but it still sees your account, your contacts and when you talk. Its box allows any server: a market release cannot carry a list of servers yet.",
+      "logo_hash": "d5d76d9a39dc3f0299317890e34f0f2712911486579069abb25cec2fc26da166",
       "price": {
         "kind": "free",
         "amount_atomic": "0",

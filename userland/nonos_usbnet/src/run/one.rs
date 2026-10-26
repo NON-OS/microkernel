@@ -19,8 +19,9 @@
 
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply};
 
-use crate::nic::Nic;
+use crate::nic::{Nic, ETH_FRAME_MAX};
 use crate::nnet::{answer, decode, status, Request, Stats, E_INVAL, HDR_LEN};
+use nonos_mac::resend::Kept;
 
 const SERVICE_INBOX: u64 = 0;
 
@@ -30,7 +31,7 @@ pub(super) fn serve_one<N: Nic>(
     wait_ms: u64,
     me: u32,
     nic: Option<&mut N>,
-    stats: &mut Stats,
+    state: (&mut Stats, &mut Kept<ETH_FRAME_MAX>),
 ) {
     let mut from = 0u32;
     let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), wait_ms, &mut from);
@@ -43,7 +44,7 @@ pub(super) fn serve_one<N: Nic>(
     }
     let n = (n as usize).min(rx.len());
     let len = match decode(&rx[..n]) {
-        Some(req) => answer(nic, stats, &req, &rx[HDR_LEN..n], tx),
+        Some(req) => answer(nic, state, &req, &rx[HDR_LEN..n], tx),
         None => {
             let none = Request { op: 0, flags: 0, request_id: 0, payload_len: 0 };
             status(tx, &none, E_INVAL)

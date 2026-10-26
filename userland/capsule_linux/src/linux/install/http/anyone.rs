@@ -18,9 +18,9 @@
 //! minutes for a circuit, each step said once (the fetcher's own rule,
 //! `anyone_wait`).
 
-use nonos_libc::{mk_idle_ms, mk_uptime_ms};
+use nonos_libc::{mk_idle_ms, mk_ipc_call_timeout, mk_uptime_ms};
 
-use super::super::anyone_wait::{decide, line, read, Heard, Wait, GAP_MS, STATUS_ASK};
+use super::anyone_wait::{decide, line, read, Heard, Wait, GAP_MS, STATUS_ASK};
 
 /// Why an install cannot download now, or None once Anyone has a circuit;
 /// waited for up to three minutes.
@@ -62,8 +62,8 @@ fn anon_port() -> u32 {
 
 /* How far net.anon has got, and whether it answered the ask at all. */
 fn ask(port: u32) -> (Option<Heard>, bool) {
-    let mut rx = [0u8; 16];
-    let n = nonos_libc::mk_ipc_call_timeout(port as u64, [STATUS_ASK].as_ptr(), 1, rx.as_mut_ptr(), rx.len(), 2_000);
+    let (tx, mut rx) = ([STATUS_ASK], [0u8; 16]);
+    let n = mk_ipc_call_timeout(port as u64, tx.as_ptr(), 1, rx.as_mut_ptr(), rx.len(), 2_000);
     match usize::try_from(n) {
         Ok(n) if n > 0 => (read(&rx[..n.min(rx.len())]), true),
         _ => (None, false),

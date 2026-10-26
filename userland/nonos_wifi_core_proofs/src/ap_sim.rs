@@ -25,12 +25,10 @@
 mod elements;
 #[path = "ap_sim/frames.rs"]
 mod frames;
+// Key data wrapping, by its own path: the driver proofs that include this
+// file build frames with `frames` and never wrap key data themselves.
 #[path = "ap_sim/wrap.rs"]
-mod wrap;
+pub mod wrap;
 
 pub use elements::*;
 pub use frames::*;
-// The driver proofs that include this file build frames with `frames` and
-// never wrap key data themselves; this crate does.
-#[allow(unused_imports)]
-pub use wrap::*;

@@ -42,6 +42,10 @@ pub extern "C" fn mk_getpid() -> u32 {
     }
 }
 
+/// The most bytes an argv joins to, the kernel's ARGV_BYTES_MAX (pinned equal
+/// by scripts/check_argv_bound.py): a buffer this size holds any argv.
+pub const ARGV_BYTES_MAX: usize = 4096;
+
 pub extern "C" fn mk_args(buf: *mut u8, len: usize) -> i64 {
     call_raw(N_MK_ARGS, [buf as u64, len as u64, 0, 0, 0, 0])
 }

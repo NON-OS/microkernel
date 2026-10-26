@@ -25,6 +25,10 @@ pub mod keep_rule;
 #[cfg(test)]
 #[path = "../../capsule_policy/src/store/keep_once.rs"]
 pub mod keep_once;
+// Where the data volume's sectors may go: RAM, or a disk once the boot keeps.
+#[cfg(test)]
+#[path = "../../../src/security/zerostate/volume_rule.rs"]
+pub mod volume_rule;
 
 // A dying address space's leaf frames, and the names the wipe clears.
 #[cfg(test)]
@@ -52,3 +56,9 @@ mod once_tests;
 mod rule_tests;
 #[cfg(test)]
 mod scrub_tests;
+#[cfg(test)]
+mod volume_glue;
+#[cfg(test)]
+mod volume_switch_glue;
+#[cfg(test)]
+mod volume_tests;

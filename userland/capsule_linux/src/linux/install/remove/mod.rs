@@ -17,5 +17,6 @@
 //! Uninstalling: the package's files, then its tier.
 
 pub(super) mod files;
+mod home;
 pub(super) mod package;
 pub(super) mod tier;

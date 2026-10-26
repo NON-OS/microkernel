@@ -32,7 +32,6 @@ mod classify_serial_bus;
 #[path = "../../../../src/hardware/inventory/classify_storage.rs"]
 mod classify_storage;
 #[path = "../../../../src/hardware/inventory/family.rs"]
-#[allow(dead_code)]
 mod family;
 #[path = "../../../../src/hardware/inventory/intel_ethernet_ids.rs"]
 mod intel_ethernet_ids;
@@ -41,31 +40,24 @@ mod realtek_ids;
 // Mounted once, by the VMD proofs; classify_storage reaches it here.
 use crate::proofs_3::vmd_domain::inventory_vmd as vmd;
 // Likewise the SD host lists, which `classify` reads, and the platform rule.
-use crate::proofs_1::emmc_hosts::{emmc, sd_host};
 use crate::hardware::platform_sd;
+use crate::proofs_1::emmc_hosts::{emmc, sd_host};
 
 pub(crate) use classify_device::classify_device;
-pub(crate) use family::HardwareFamily;
+pub use family::HardwareFamily;
 
 #[path = "../../../capsule_driver_e1000/src/constants/pci.rs"]
-#[allow(dead_code)]
-mod e1000;
+pub mod e1000;
 #[path = "../../../capsule_driver_e1000e/src/constants/ids.rs"]
-#[allow(dead_code)]
-mod e1000e;
-#[allow(dead_code)]
-mod igb;
+pub mod e1000e;
+pub mod igb;
 #[path = "../../../capsule_driver_igc/src/constants/pci.rs"]
-#[allow(dead_code)]
-mod igc;
-#[allow(dead_code)]
-mod ixgbe;
+pub mod igc;
+pub mod ixgbe;
 #[path = "../../../capsule_driver_rtl8139/src/constants/pci.rs"]
-#[allow(dead_code)]
-mod rtl8139;
+pub mod rtl8139;
 #[path = "../../../capsule_driver_rtl8169/src/constants/pci.rs"]
-#[allow(dead_code)]
-mod rtl8169;
+pub mod rtl8169;
 
 mod classify_tests;
 mod serial_bus_tests;

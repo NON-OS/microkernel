@@ -4,11 +4,12 @@
 use crate::fake_nic::Fake;
 use crate::nnet::{answer, decode, Request, Stats, DATA_AT, E_AGAIN, E_INVAL, E_MSGSIZE};
 use crate::nnet::{OP_HEALTHCHECK, OP_LINK_STATUS, OP_MAC_ADDRESS, OP_RX_PACKET, OP_TX_PACKET};
+use nonos_mac::resend::Kept;
 
 fn ask(nic: Option<&mut Fake>, op: u16, body: &[u8]) -> (i32, Vec<u8>) {
     let req = Request { op, flags: 0, request_id: 9, payload_len: body.len() as u32 };
     let mut tx = vec![0u8; 2048];
-    let n = answer(nic, &mut Stats::default(), &req, body, &mut tx);
+    let n = answer(nic, (&mut Stats::default(), &mut Kept::new()), &req, body, &mut tx);
     assert_eq!(decode(&tx[..n]).map(|r| (r.op, r.request_id)), Some((op, 9)));
     (i32::from_le_bytes(tx[20..24].try_into().unwrap()), tx[DATA_AT..n].to_vec())
 }
@@ -42,7 +43,7 @@ fn frames_of_a_wrong_size_never_reach_the_device() {
     assert_eq!(ask(Some(&mut nic), OP_TX_PACKET, &[0; 1515]).0, E_INVAL);
     let req = Request { op: OP_TX_PACKET, flags: 0, request_id: 1, payload_len: 99 };
     let mut tx = vec![0u8; 64];
-    answer(Some(&mut nic), &mut Stats::default(), &req, &[0; 60], &mut tx);
+    answer(Some(&mut nic), (&mut Stats::default(), &mut Kept::new()), &req, &[0; 60], &mut tx);
     assert_eq!(i32::from_le_bytes(tx[20..24].try_into().unwrap()), E_MSGSIZE);
     assert!(nic.sent.is_empty());
 }

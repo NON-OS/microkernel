@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // Every layout size the rebuild uses, in real pixels at 1x. No type size here
-// sits below ttf::MIN_UI_PX (17.0), which clamps both draw and measure.
+// sits below ttf::MIN_UI_PX (14), which clamps both draw and measure.
 
 pub const PAD: u32 = 20;
 pub const PAD_TIGHT: u32 = 12;

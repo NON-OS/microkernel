@@ -42,7 +42,7 @@ fn an_index_or_package_of_the_wrong_shape_is_refused() {
     assert!(signed_index(one, &yes).is_none(), "a signature with no index");
     assert!(signed_index(&three, &yes).is_none(), "a third member rode along");
     let apk_first = &members_within(APK, 1 << 24).unwrap()[0];
-    assert!(verified(&APK[apk_first.start..apk_first.end], &[0; 20]).is_none());
+    assert!(verified(&APK[apk_first.start..apk_first.end], &[0; 20]).is_err());
 }
 
 #[test]

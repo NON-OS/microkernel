@@ -38,7 +38,9 @@ pub mod crypto {
         mod basic;
         mod entropy_check;
         mod hardware_mix;
-        pub use basic::{fill_bytes, get_bytes, get_bytes_checked, get_bytes_secure, get_vec_secure};
+        pub use basic::{
+            fill_bytes, get_bytes, get_bytes_checked, get_bytes_secure, get_vec_secure,
+        };
     }
 
     pub mod util {
@@ -61,10 +63,6 @@ pub mod crypto {
         }
     }
 }
-
-// The capability tokens' nonces; only the crypto paths they use matter.
-#[path = "../../../src/capabilities/token/nonce.rs"]
-pub mod nonce;
 
 #[path = "../../../src/elf"]
 pub mod elf {

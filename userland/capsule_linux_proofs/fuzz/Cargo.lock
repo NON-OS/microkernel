@@ -42,6 +42,7 @@ version = "0.0.0"
 dependencies = [
  "libfuzzer-sys",
  "nonos_capsule_linux_proofs",
+ "nonos_inflate",
 ]
 
 [[package]]

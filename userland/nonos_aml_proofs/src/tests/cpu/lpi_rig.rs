@@ -21,7 +21,6 @@
 use super::build::reg;
 use crate::enc::*;
 
-#[allow(clippy::too_many_arguments)]
 pub fn state(res: u64, lat: u64, flags: u64, parent: u64, entry: Vec<u8>, ctr: Vec<u8>) -> Vec<u8> {
     let rest = [int(0), int(0), int(parent), entry, ctr, int(0), string("S")];
     package(10, &[&[int(res), int(lat), int(flags)][..], &rest].concat())
