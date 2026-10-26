@@ -38,22 +38,24 @@ disk before Confirm (`src/install/job/prepare.rs`, `src/install/job/start.rs`).
 From `Capsule.mk`:
 
 ```make
-CAPSULE_REQUIRED_CAPS    := 0x84009A79
+CAPSULE_REQUIRED_CAPS    := 0x84009879
 CAPSULE_OPTIONAL_CAPS    := 0x100
 ```
 
 The comment above it reads
-`CoreExec|IPC|Memory|Crypto|FileSystem|Admin|GraphicsDisplayQuery|GraphicsSurfaceCreate|`
+`CoreExec|IPC|Memory|Crypto|FileSystem|GraphicsDisplayQuery|GraphicsSurfaceCreate|`
 `DeviceEnum|StoreWrite|AttestRead`, which matches the bits set; the optional bit is Debug.
 FileSystem is for what it carries, which it reads from vfs, and vfs serves only a holder of FileSystem.
 
 The header comment gives the reasons: the graphics pair for a window, DeviceEnum to list disks
 and read the boot image, Crypto for the GUIDs it mints (`crypto_random` in `prepare.rs`),
 StoreWrite for the disk itself (the disk drivers serve raw sectors to the kernel and to
-StoreWrite holders alone), Admin for the reboot (`mk_admin_reboot` in
-`src/install/event/after.rs`), and AttestRead for
+StoreWrite holders alone), and AttestRead for
 the capsule census (`mk_attest_entries` in `src/install/source/census.rs`). Debug is used by
 `mk_debug` in `src/install/full/start.rs`; only a `capsule-serial-debug` build grants it.
+It holds no Admin: Restart (`src/install/event/after.rs`) asks capsule_power's `power`
+service to reboot (`power_restart` in libc), which admits the two installers by the
+service their process owns, and wipes as a power-off does.
 
 ## Interface
 
