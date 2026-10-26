@@ -37,7 +37,7 @@ pub use shapes::{BATCH, MARGIN, POSITIONS, SHAPES};
 pub fn memory(tier: &str, weights: u64) -> Option<u64> {
     let &(_, layers, kv_heads, head, embd) = SHAPES.iter().find(|s| s.0 == tier)?;
     let kv = layers * kv_heads * 2 * head * 2 * POSITIONS;
-    Some(weights + kv + MARGIN + BATCH * embd * 64)
+    Some(weights + kv + MARGIN + BATCH * embd * 64 + shapes::vision(tier))
 }
 
 /*

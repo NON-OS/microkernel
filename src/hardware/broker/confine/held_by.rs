@@ -22,7 +22,6 @@ use super::table::CAPSULES;
 use crate::memory::iommu::DeviceAddress;
 
 /// The pid whose domain holds `address`, None when no domain does.
-#[allow(dead_code)] // x86's SDEV posture is the one reader so far
 pub(in crate::hardware::broker) fn held_by(address: DeviceAddress) -> Option<u32> {
     let all = CAPSULES.lock();
     all.iter().find(|c| c.devices.iter().any(|(_, a)| *a == address)).map(|c| c.pid)

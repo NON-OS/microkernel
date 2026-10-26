@@ -25,8 +25,5 @@ mod route_home;
 mod route_to;
 pub mod seal;
 
-pub use address::routing_address;
 pub use encode_message::{encode_built, encode_fragment, encode_message, Addressed, Encoded};
-pub use mix_packet::frame_mix_packet;
 pub use route_home::route_home;
-pub use route_to::route_to;

@@ -15,6 +15,8 @@ The status operation returns a stage byte, and the panel shows its text (`userla
 | `NoAirPath` | 8 | `card not supported yet; use Ethernet or USB Wi-Fi` |
 | any other | | `The driver reported an unknown stage` |
 
+The RTL8821CE also serves `DeadMmio` once its card reads back all ones while serving; its radio is down from then on.
+
 Neither suggestion in the `NoAirPath` line helps on real hardware in 0.9.2: there is no driver for a USB Wi-Fi adapter, and read from the code no wired driver in the image receives frames from a real card ([the receive fault](../../ethernet/README.md#the-receive-fault)). See [what to use instead](../not-supported.md#what-to-use-instead).
 
 When no Wi-Fi driver answers at all, the panel names the chip by its PCI ids and says whether NONOS has a driver for it (`userland/capsule_settings/src/settings/ui/live_wifi.rs:115-130`, `no_driver`). The lines it can show are listed under [how to tell](../not-supported.md#how-to-tell).

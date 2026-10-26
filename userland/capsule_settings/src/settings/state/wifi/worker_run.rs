@@ -18,7 +18,7 @@
 //! joined network remembered while the passphrase is still held, and the
 //! answer left where a tick picks it up.
 
-use super::super::state::WIFI_NET_MAX;
+use super::super::model::WIFI_NET_MAX;
 use super::worker::ANSWER;
 use super::worker_msg::{Answer, Ask, REMEMBERED};
 use crate::wifi::ScanNetwork;
@@ -39,8 +39,8 @@ pub(super) fn work(arg: usize) {
 pub(super) fn perform(ask: &Ask) -> Answer {
     match ask {
         Ask::Scan(driver) => {
-            let mut nets = [ScanNetwork::EMPTY; WIFI_NET_MAX];
-            let (count, outcome, stats) = driver.scan(&mut nets);
+            let mut nets = Box::new([ScanNetwork::EMPTY; WIFI_NET_MAX]);
+            let (count, outcome, stats) = driver.scan(&mut nets[..]);
             Answer::Scanned { nets, count, outcome, stats }
         }
         Ask::Join { driver, net, pass, remember: keep } => {

@@ -18,45 +18,18 @@
 // message address names an APIC ID and the message data carries an
 // interrupt vector. An arm64 machine routes the same PCI messages through
 // the GIC's ITS, addressed by device ID and translated through tables the
-// interrupt controller owns, so none of this transfers. These four stay
-// with the architecture whose message format they encode.
+// interrupt controller owns, so none of this transfers. These two stay
+// with the architecture whose message format they encode. They turn a
+// function's MSI or MSI-X off; turning one on, with a message naming the
+// local APIC, is the broker's alone (irq/bind), through interrupt
+// remapping.
 #[cfg(target_arch = "x86_64")]
 impl super::device::PciDevice {
-    pub fn configure_msix(
-        &mut self,
-        irq_vector: u8,
-        dest_apic_id: u8,
-    ) -> Result<(), crate::drivers::pci::error::PciError> {
-        let msix =
-            self.msix.as_ref().ok_or(crate::drivers::pci::error::PciError::MsixNotSupported)?;
-        let config = crate::drivers::pci::config::ConfigSpace::new(self.address);
-        crate::drivers::pci::msi::configure_msix(
-            &config,
-            msix,
-            &self.bars,
-            0,
-            irq_vector,
-            dest_apic_id,
-        )?;
-        crate::drivers::pci::msi::enable_msix(&config, msix)?;
-        Ok(())
-    }
-
     pub fn disable_msix(&mut self) -> Result<(), crate::drivers::pci::error::PciError> {
         let msix =
             self.msix.as_ref().ok_or(crate::drivers::pci::error::PciError::MsixNotSupported)?;
         let config = crate::drivers::pci::config::ConfigSpace::new(self.address);
         crate::drivers::pci::msi::disable_msix(&config, msix)
-    }
-
-    pub fn configure_msi(
-        &mut self,
-        irq_vector: u8,
-        dest_apic_id: u8,
-    ) -> Result<(), crate::drivers::pci::error::PciError> {
-        let msi = self.msi.as_ref().ok_or(crate::drivers::pci::error::PciError::MsiNotSupported)?;
-        let config = crate::drivers::pci::config::ConfigSpace::new(self.address);
-        crate::drivers::pci::msi::configure_msi(&config, msi, irq_vector, dest_apic_id)
     }
 
     pub fn disable_msi(&mut self) -> Result<(), crate::drivers::pci::error::PciError> {

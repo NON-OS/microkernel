@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-toolkit")]
-pub(crate) const TOOLKIT_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(crate) const TOOLKIT_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/toolkit/target/",
     env!("NONOS_USER_TARGET"),
     "/release/toolkit"
@@ -33,6 +32,16 @@ pub(crate) const TOOLKIT_MANIFEST_BYTES: &[u8] =
 #[cfg(feature = "nonos-capsule-toolkit")]
 pub(crate) const TOOLKIT_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/toolkit.zk_trailer.bin");
+
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-toolkit")]
+const _: () = assert!(
+    !TOOLKIT_ELF.is_empty()
+        && !TOOLKIT_NONOS_ID_CERT_BYTES.is_empty()
+        && !TOOLKIT_MANIFEST_BYTES.is_empty()
+        && !TOOLKIT_ATTESTATION_BYTES.is_empty(),
+    "capsule_toolkit built in with an empty image"
+);
 
 #[cfg(not(feature = "nonos-capsule-toolkit"))]
 pub(crate) const TOOLKIT_ELF: &[u8] = &[];

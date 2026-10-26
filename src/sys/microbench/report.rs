@@ -33,19 +33,9 @@ pub fn report(name: &[u8], sample: &mut Sample, overhead: u64) {
         }
     };
 
-    crate::sys::serial::print(b"[UBENCH] ");
-    crate::sys::serial::print(name);
-    crate::sys::serial::print(b" n=");
-    crate::sys::serial::print_dec(sample.len() as u64);
-    crate::sys::serial::print(b" min=");
-    crate::sys::serial::print_dec(net(sample.min()));
-    crate::sys::serial::print(b" p50=");
-    crate::sys::serial::print_dec(net(sample.quantile(1, 2)));
-    crate::sys::serial::print(b" p95=");
-    crate::sys::serial::print_dec(net(sample.quantile(95, 100)));
-    crate::sys::serial::print(b" max=");
-    crate::sys::serial::print_dec(net(sample.max()));
-    crate::sys::serial::print(b" ticks p50_ns=");
-    crate::sys::serial::print_dec(ns(sample.quantile(1, 2)));
-    crate::sys::serial::println(b"");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[UBENCH] ").str(name).str(b" n=").dec(sample.len() as u64).str(b" min=");
+    l.dec(net(sample.min())).str(b" p50=").dec(net(sample.quantile(1, 2))).str(b" p95=");
+    l.dec(net(sample.quantile(95, 100))).str(b" max=").dec(net(sample.max()));
+    l.str(b" ticks p50_ns=").dec(ns(sample.quantile(1, 2))).end();
 }

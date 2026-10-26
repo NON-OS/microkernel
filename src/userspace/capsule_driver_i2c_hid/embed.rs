@@ -25,6 +25,16 @@ pub(super) const DRIVER_I2C_HID_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_I2C_HID_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/driver_i2c_hid.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-i2c-hid")]
+const _: () = assert!(
+    !DRIVER_I2C_HID_ELF.is_empty()
+        && !DRIVER_I2C_HID_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_I2C_HID_MANIFEST_BYTES.is_empty()
+        && !DRIVER_I2C_HID_ATTESTATION_BYTES.is_empty(),
+    "capsule_driver_i2c_hid built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-i2c-hid"))]
 pub(super) const DRIVER_I2C_HID_ELF: &[u8] = &[];
 

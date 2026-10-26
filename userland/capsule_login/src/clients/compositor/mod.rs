@@ -23,4 +23,4 @@ mod status;
 pub use display_info::display_info;
 pub use healthcheck::healthcheck;
 pub use ping_damage::ping_damage;
-pub use push_scene_submit::push_scene_submit;
+pub use push_scene_submit::{push_scene_submit, Placement};

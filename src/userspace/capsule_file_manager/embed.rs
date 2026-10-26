@@ -33,6 +33,16 @@ pub(crate) const FILE_MANAGER_MANIFEST_BYTES: &[u8] =
 pub(crate) const FILE_MANAGER_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/file_manager.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-file-manager")]
+const _: () = assert!(
+    !FILE_MANAGER_ELF.is_empty()
+        && !FILE_MANAGER_NONOS_ID_CERT_BYTES.is_empty()
+        && !FILE_MANAGER_MANIFEST_BYTES.is_empty()
+        && !FILE_MANAGER_ATTESTATION_BYTES.is_empty(),
+    "capsule_file_manager built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-file-manager"))]
 pub(crate) const FILE_MANAGER_ELF: &[u8] = &[];
 

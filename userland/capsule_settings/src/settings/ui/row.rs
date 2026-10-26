@@ -28,11 +28,12 @@ use super::live_value::{note, resolve};
 use super::metrics::BODY_PX;
 use super::pill::tone_argb;
 use super::theme::ROW_LINE;
-use super::{row_focus, row_label, text};
+use super::{row_label, text};
 
 /// Room kept between a row's label and its value.
 const GAP: u32 = 16;
 
+/// The row's label and value; its focus, when selected, is the caller's.
 pub fn paint(
     fb: &mut PaintBuffer,
     state: &State,
@@ -41,11 +42,7 @@ pub fn paint(
     card_w: u32,
     screen_y: i32,
     row_h: u32,
-    selected: bool,
 ) {
-    if selected {
-        row_focus::paint(fb, card_x, card_w, screen_y, row_h);
-    }
     let (at, title, note) = match row {
         Row::Field(f) => {
             let at = control::paint(fb, state, *f, card_x, card_w, screen_y, row_h);

@@ -11,6 +11,8 @@ pub mod complete;
 pub mod fetch_check;
 #[path = "../../capsule_terminal/src/command/builtin/qwen/fetch_words.rs"]
 pub mod fetch_words;
+#[path = "../../capsule_terminal/src/command/builtin/qwen/image.rs"]
+pub mod image;
 #[path = "../../capsule_terminal/src/command/builtin/qwen/tiers.rs"]
 pub mod tiers;
 #[path = "../../capsule_terminal/src/command/builtin/qwen/window.rs"]
@@ -54,3 +56,7 @@ mod fetch_tests;
 #[cfg(test)]
 #[path = "qwen_pick_tests.rs"]
 mod pick_tests;
+
+#[cfg(test)]
+#[path = "qwen_image_tests.rs"]
+mod image_tests;

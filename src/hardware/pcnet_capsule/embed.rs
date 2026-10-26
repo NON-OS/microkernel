@@ -33,6 +33,16 @@ pub(super) const DRIVER_PCNET_MANIFEST_BYTES: &[u8] =
 pub(super) const DRIVER_PCNET_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/driver_pcnet.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-driver-pcnet")]
+const _: () = assert!(
+    !DRIVER_PCNET_ELF.is_empty()
+        && !DRIVER_PCNET_NONOS_ID_CERT_BYTES.is_empty()
+        && !DRIVER_PCNET_MANIFEST_BYTES.is_empty()
+        && !DRIVER_PCNET_ATTESTATION_BYTES.is_empty(),
+    "pcnet_capsule built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-driver-pcnet"))]
 pub(super) const DRIVER_PCNET_ELF: &[u8] = &[];
 

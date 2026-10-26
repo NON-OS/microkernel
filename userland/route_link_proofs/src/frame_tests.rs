@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The frames on the wire, byte for byte as both proxies parse them
-//! (capsule_socks5 server/request.rs, capsule_net_anon server/socks/frame.rs).
+//! (capsule_socks5 server/request/, capsule_net_anon server/socks/frame.rs).
 
 use crate::frame::{next_seq, numbered, reset, CARRY_MAX, FIRST_SEQ, HEAD, NUMBERED, RESET};
 

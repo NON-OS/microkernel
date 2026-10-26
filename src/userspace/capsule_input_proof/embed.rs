@@ -33,6 +33,16 @@ pub(crate) const INPUT_PROOF_MANIFEST_BYTES: &[u8] =
 pub(crate) const INPUT_PROOF_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/input_proof.zk_trailer.bin");
 
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-input-proof")]
+const _: () = assert!(
+    !INPUT_PROOF_ELF.is_empty()
+        && !INPUT_PROOF_NONOS_ID_CERT_BYTES.is_empty()
+        && !INPUT_PROOF_MANIFEST_BYTES.is_empty()
+        && !INPUT_PROOF_ATTESTATION_BYTES.is_empty(),
+    "capsule_input_proof built in with an empty image"
+);
+
 #[cfg(not(feature = "nonos-capsule-input-proof"))]
 pub(crate) const INPUT_PROOF_ELF: &[u8] = &[];
 

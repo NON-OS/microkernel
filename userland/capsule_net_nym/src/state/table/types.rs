@@ -30,7 +30,6 @@ pub struct Table {
     pub(super) gateway: Option<Gateway>,
     pub(super) next_id: u32,
     pub(super) sessions: Vec<Session>,
-    pub(super) stream_rx: Vec<u8>,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -38,12 +37,11 @@ pub enum TableError {
     NoGateway,
     NoTopology,
     StaleTopology,
-    NoCredential,
     Full,
 }
 
 impl Table {
     pub const fn new() -> Self {
-        Self { gateway: None, next_id: 1, sessions: Vec::new(), stream_rx: Vec::new() }
+        Self { gateway: None, next_id: 1, sessions: Vec::new() }
     }
 }

@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-snake")]
-pub(crate) const SNAKE_ELF: &[u8] =
-    include_bytes!(concat!(
+pub(crate) const SNAKE_ELF: &[u8] = include_bytes!(concat!(
     "../../../userland/capsule_snake/target/",
     env!("NONOS_USER_TARGET"),
     "/release/snake"
@@ -32,6 +31,16 @@ pub(crate) const SNAKE_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/sna
 #[cfg(feature = "nonos-capsule-snake")]
 pub(crate) const SNAKE_ATTESTATION_BYTES: &[u8] =
     crate::baked_trust!("capsules/snake.zk_trailer.bin");
+
+// A capsule built in with an empty file never compiles (B-02).
+#[cfg(feature = "nonos-capsule-snake")]
+const _: () = assert!(
+    !SNAKE_ELF.is_empty()
+        && !SNAKE_NONOS_ID_CERT_BYTES.is_empty()
+        && !SNAKE_MANIFEST_BYTES.is_empty()
+        && !SNAKE_ATTESTATION_BYTES.is_empty(),
+    "capsule_snake built in with an empty image"
+);
 
 #[cfg(not(feature = "nonos-capsule-snake"))]
 pub(crate) const SNAKE_ELF: &[u8] = &[];

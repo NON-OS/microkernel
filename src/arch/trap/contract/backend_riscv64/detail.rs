@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::arch::trap::contract::cause::{FaultAccess, PageFaultInfo, TrapCause};
-use crate::sys::serial::{print_hex, print_str};
+use crate::sys::serial::Line;
 
 pub(super) fn report(cause: &TrapCause) {
     match cause {
@@ -26,25 +26,19 @@ pub(super) fn report(cause: &TrapCause) {
         | TrapCause::InvalidTss { error_code }
         | TrapCause::ControlProtection { error_code }
         | TrapCause::DoubleFault { error_code } => {
-            print_str("  stval=");
-            print_hex(*error_code);
-            print_str("\n");
+            Line::new().str(b"  stval=").hex(*error_code).end_fatal();
         }
         TrapCause::OtherException(code) => {
-            print_str("  scause-code=");
-            print_hex(*code as u64);
-            print_str("\n");
+            Line::new().str(b"  scause-code=").hex(*code as u64).end_fatal();
         }
         _ => {}
     }
 }
 
 fn page_fault(info: &PageFaultInfo) {
-    print_str("  stval=");
-    print_hex(info.fault_address);
-    print_str(access_label(info.access));
-    print_str(if info.user { " U-mode" } else { " S-mode" });
-    print_str("\n");
+    let mut l = Line::new();
+    l.str(b"  stval=").hex(info.fault_address).str(access_label(info.access).as_bytes());
+    l.str(if info.user { b" U-mode" } else { b" S-mode" }).end_fatal();
 }
 
 fn access_label(access: FaultAccess) -> &'static str {

@@ -20,10 +20,10 @@
 //! /proc keeps of each image; and the strings and paths read out of a
 //! guest, with the errno each refusal is.
 
-#[path = "../../../../capsule_linux/src/linux/file/cstr.rs"]
-pub mod cstr;
 #[path = "../../../../capsule_linux/src/linux/file/calls/create_flags.rs"]
 pub mod create_flags;
+#[path = "../../../../capsule_linux/src/linux/file/cstr.rs"]
+pub mod cstr;
 #[path = "../../../../capsule_linux/src/linux/file/calls/dup3_args.rs"]
 pub mod dup3_args;
 #[path = "../../../../capsule_linux/src/linux/file/epoll_rules/mod.rs"]
@@ -33,6 +33,7 @@ pub mod link;
 pub mod lock;
 #[path = "../../../../capsule_linux/src/linux/file/made/proc/mounts/table.rs"]
 pub mod mounts;
+pub mod pack;
 #[path = "../../../../capsule_linux/src/linux/file/path.rs"]
 pub mod path;
 #[path = "../../../../capsule_linux/src/linux/file/calls/falloc/punch.rs"]
