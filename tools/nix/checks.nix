@@ -250,6 +250,14 @@ let
       # The market catalogue tool's suite but its mutants (market-catalogue-mutants);
       # its digests are BLAKE3, so b3sum.
       "-m unittest discover -s tools/nonos_market_catalogue -t tools -p 'test_[!m]*.py'"
+      # The other tools' suites, each a few seconds; check_tool_suites fails
+      # on any tools/ test file no lane here or in run-static-checks.sh runs.
+      "-m unittest discover -s tools/nonos_data_plan -t tools -p 'test_*.py'"
+      "-m unittest discover -s tools/nonos_linux_pack -t tools -p 'test_*.py'"
+      "-m unittest discover -s tools/nonos_qemu -t tools -p 'test_*.py'"
+      "-m unittest discover -s tools/nonos_qwen_tier -t tools -p 'test_*.py'"
+      "-m unittest discover -s tools/nonos_zero_state -t tools -p 'test_*.py'"
+      "scripts/check_tool_suites.py --self-test" "scripts/check_tool_suites.py"
     ]);
     # The catalogue's mutants: the suite once a mutant, so a lane of its own.
     market-catalogue-mutants = static "catalogue-mutants" (scripts [
