@@ -54,6 +54,7 @@ pub mod relay_table;
 pub mod settings_relay;
 pub mod spotlight_open;
 pub mod spotlight_toggle;
+pub mod switch_key;
 pub mod system_keys;
 pub mod take_open_arg;
 pub mod tray_register;
