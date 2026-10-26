@@ -25,7 +25,7 @@
 //! holding an unfinished interrupt at that priority will not deliver anything
 //! to it again.
 
-use crate::arch::interrupt_controller::{end_of_interrupt, Ipi};
+use super::super::{end_of_interrupt, Ipi};
 
 pub(super) fn tlb_shootdown() {
     crate::memory::paging::manager::handle_shootdown_ipi();
@@ -42,21 +42,21 @@ pub(super) fn reschedule() {
 }
 
 pub(super) fn call_function() {
-    super::super::ipi::handle_call_function_ipi();
+    crate::smp::ipi::handle_call_function_ipi();
     end_of_interrupt(Ipi::CallFunction);
 }
 
 pub(super) fn barrier() {
-    super::super::ipi::handle_barrier_ipi();
+    crate::smp::ipi::handle_barrier_ipi();
     end_of_interrupt(Ipi::Barrier);
 }
 
 pub(super) fn panic() -> ! {
     end_of_interrupt(Ipi::Panic);
-    super::super::ipi_handler::handle_panic_ipi()
+    crate::smp::handle_panic_ipi()
 }
 
 pub(super) fn stop() -> ! {
     end_of_interrupt(Ipi::Stop);
-    super::super::ipi_handler::handle_stop_ipi()
+    crate::smp::handle_stop_ipi()
 }
