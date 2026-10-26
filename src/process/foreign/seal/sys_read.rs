@@ -24,7 +24,7 @@ use alloc::vec::Vec;
 
 use super::sealed::Sealed;
 use super::table::SEALED;
-use crate::syscall::microkernel::device_secret_caller;
+use crate::syscall::microkernel::device_proof::gate::device_secret_caller;
 use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_NOENT, ERRNO_NOMEM, ERRNO_PERM};
 
 fn take(app_id: &[u8; 32], room: u64) -> Result<Sealed, i64> {

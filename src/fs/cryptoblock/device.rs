@@ -24,6 +24,7 @@ use crate::security::zerostate::volume_rule::may_write;
 static REFUSED: AtomicBool = AtomicBool::new(false);
 
 pub(super) fn read(lba: u64, out: &mut [u8]) -> Result<(), BlockDeviceError> {
+    let _io = super::volume_scope()?;
     if super::ram::on() {
         return super::ram::read(lba, out);
     }
@@ -36,6 +37,7 @@ pub(super) fn read(lba: u64, out: &mut [u8]) -> Result<(), BlockDeviceError> {
  * that switch failing closed, said once.
  */
 pub(super) fn write(lba: u64, bytes: &[u8]) -> Result<(), BlockDeviceError> {
+    let _io = super::volume_scope()?;
     let ram = super::ram::on();
     if !may_write(ram, crate::security::zerostate::keeping()) {
         if !REFUSED.swap(true, Ordering::Relaxed) {
@@ -51,6 +53,7 @@ pub(super) fn write(lba: u64, bytes: &[u8]) -> Result<(), BlockDeviceError> {
 
 /// RAM keeps what it is given at once; only a disk has a cache to empty.
 pub(super) fn flush() -> Result<(), BlockDeviceError> {
+    let _io = super::volume_scope()?;
     if super::ram::on() {
         return Ok(());
     }

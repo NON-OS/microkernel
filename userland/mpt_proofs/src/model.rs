@@ -271,7 +271,7 @@ impl State {
         let context: u32 = rd(mfa + 8);
         if function == 0x06 {
             if self.port_enable_address_reply {
-                return self.address_reply(context, 0x06, 0, 0, 0, 0, 0);
+                return self.address_reply(context, 0x06, 0, (0, 0), 0, 0);
             }
             return self.post.push_back(context);
         }
@@ -296,7 +296,7 @@ impl State {
         let context =
             if std::mem::take(&mut self.wrong_context) { context ^ 0x10 } else { context };
         if let Some(s) = self.iocstatus.take() {
-            return self.address_reply(context, 0, s, 0, 0, 0, 0);
+            return self.address_reply(context, 0, s, (0, 0), 0, 0);
         }
         assert_eq!(io.bus, 0);
         assert!(
@@ -310,7 +310,7 @@ impl State {
         assert_eq!(io.sge_flags_len & 0xFF_FFFF, io.data_len, "the SGE carries the data length");
         let (t, l) = (io.target as u16, io.lun[1] as u16);
         if !self.units.keys().any(|k| k.0 == t) {
-            return self.address_reply(context, 0, 0x43, 0, 0, 0, 0);
+            return self.address_reply(context, 0, 0x43, (0, 0), 0, 0);
         }
         let out: Vec<u8> =
             if dir == 1 { (0..io.data_len).map(|i| rd(io.sge_addr + i)).collect() } else { vec![] };
@@ -340,17 +340,15 @@ impl State {
         }
         let status = if moved < io.data_len { 0x45 } else { 0 };
         let state = if a.sense.is_empty() || self.sense_unflagged { 0 } else { 0x01 };
-        self.address_reply(context, 0, status, a.status, state, moved, a.sense.len() as u32);
+        self.address_reply(context, 0, status, (a.status, state), moved, a.sense.len() as u32);
     }
 
-    #[allow(clippy::too_many_arguments)]
     fn address_reply(
         &mut self,
         context: u32,
         function: u8,
         status: u16,
-        scsi: u8,
-        state: u8,
+        (scsi, state): (u8, u8),
         moved: u32,
         sense: u32,
     ) {

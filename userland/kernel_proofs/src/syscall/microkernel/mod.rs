@@ -17,7 +17,9 @@
 #[allow(dead_code)]
 #[path = "../../../../../src/syscall/microkernel/errnos.rs"]
 pub mod errnos;
-#[allow(dead_code)]
+#[cfg(test)]
+mod no_bgrt_tests;
+#[cfg(test)]
 #[path = "../../../../../src/syscall/microkernel/acpi/owner_gate.rs"]
 pub mod owner_gate;
 #[cfg(test)]
@@ -28,8 +30,6 @@ mod owner_gate_tests;
 pub mod retired;
 #[cfg(test)]
 mod retired_tests;
-#[cfg(test)]
-mod no_bgrt_tests;
 
 pub mod caps_of;
 pub mod enqueued_at;

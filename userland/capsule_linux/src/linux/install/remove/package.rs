@@ -51,6 +51,7 @@ pub fn uninstall(pkg: &str) -> Result<(), Why> {
         return Err(Why::REMOVE_PARTIAL);
     };
     super::files::take_pack(pkg)?;
+    let home = super::home::home_of(pkg);
     let files = only_mine(&mine.files, &others, |m| &m.files);
     let links = only_mine(&mine.links, &others, |m| &m.links);
     let mut left = Manifest { files: take_out(&files), ..Manifest::default() };
@@ -59,6 +60,7 @@ pub fn uninstall(pkg: &str) -> Result<(), Why> {
     }
     let forgot = super::super::record::program::forget(pkg);
     let settled = super::super::package_record::settle(pkg, &left);
+    let homeless = super::home::erase(home);
     say(&format!(
         "[LINUX] {pkg}: took out {} of {} file(s) and {} link(s); {} shared with another package stay\n",
         files.len() - left.files.len(),
@@ -66,7 +68,7 @@ pub fn uninstall(pkg: &str) -> Result<(), Why> {
         links.len() - left.links.len(),
         mine.files.len() - files.len(),
     ));
-    match left.files.is_empty() && left.links.is_empty() && forgot && settled {
+    match left.files.is_empty() && left.links.is_empty() && forgot && settled && homeless {
         true => Ok(()),
         false => Err(Why::REMOVE_PARTIAL),
     }

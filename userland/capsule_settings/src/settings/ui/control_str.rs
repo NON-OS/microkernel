@@ -25,9 +25,10 @@ use super::metrics::BODY_PX;
 use super::text;
 use super::theme::{IDLE, VALUE_FG};
 
-pub fn paint_plain(fb: &mut PaintBuffer, s: &str, right: u32, screen_y: i32, row_h: u32) {
+/// Each painter returns where its value starts, so the label can stop short.
+pub fn paint_plain(fb: &mut PaintBuffer, s: &str, right: u32, screen_y: i32, row_h: u32) -> u32 {
     let top = text::centred_top(0, row_h, BODY_PX) + screen_y;
-    text::right(fb, right, top, s, VALUE_FG, BODY_PX);
+    text::right(fb, right, top, s, VALUE_FG, BODY_PX)
 }
 
 pub fn paint_bool_text(
@@ -36,13 +37,13 @@ pub fn paint_bool_text(
     right: u32,
     screen_y: i32,
     row_h: u32,
-) {
+) -> u32 {
     let label = match value {
         FieldValue::Bool(true) => "Yes",
         FieldValue::Bool(false) => "No",
         _ => "Unknown",
     };
-    paint_plain(fb, label, right, screen_y, row_h);
+    paint_plain(fb, label, right, screen_y, row_h)
 }
 
 pub fn paint_choice(
@@ -52,7 +53,7 @@ pub fn paint_choice(
     right: u32,
     screen_y: i32,
     row_h: u32,
-) {
+) -> u32 {
     let cy = screen_y + (row_h / 2) as i32;
     chevron::draw(fb, right, cy, IDLE);
     match choice_text(field, value) {

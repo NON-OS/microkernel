@@ -16,21 +16,7 @@
 
 //! The services policies.txt names, by the word it uses for each.
 
-use crate::mask::{
-    EXEC, FILES_HOME, FILES_USER, JIT, MODELS_RO, NET_ANON, NET_LISTEN_LO, TTY, WAYLAND,
-};
-
-const NAMES: [(&str, u64); 9] = [
-    ("WAYLAND", WAYLAND),
-    ("NET_ANON", NET_ANON),
-    ("NET_LISTEN_LO", NET_LISTEN_LO),
-    ("FILES_HOME", FILES_HOME),
-    ("FILES_USER", FILES_USER),
-    ("MODELS_RO", MODELS_RO),
-    ("EXEC", EXEC),
-    ("JIT", JIT),
-    ("TTY", TTY),
-];
+use crate::mask::NAMES;
 
 /// The mask bit `word` names, if it names one.
 pub fn bit_named(word: &str) -> Option<u64> {

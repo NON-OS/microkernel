@@ -1,0 +1,16 @@
+[SPAWN] name=driver.cdc_ecm0 pid=0x000000000000001D caps=0x0000000000000138 entry=0x00000000383CCCC0
+[usbnet cdc-ecm] started, looking for a device
+[SPAWN] name=net.core pid=0x0000000000000022 caps=0x000000000000057D entry=0x0000000034FE5060
+[NET-CORE] capsule spawned
+[NET-CORE] registered net.tcp net.udp net.dhcp.client net.dns net.ip
+[NET-CORE] link probe driver.cdc_ecm0 no-answer[USER-FIRST] pid=0x0000000000000026 rip=0x00000000120D9760
+[usbnet cdc-ecm] port 5: bound
+[usbnet cdc-ecm] port 5 up, drawn station address, device filter opened
+[NET-CORE] bind: interface up on driver.cdc_ecm0[NET-CORE] DHCP asking for a lease
+[NET-CORE] lease 10.0.2.15/24 gw 10.0.2.2
+[NET-CORE] lease dns 10.0.2.3
+[NET-CORE] lease-status state=3 ip=10.0.2.15
+[NET-CORE] rx single: 256 calls, 0 not answered in time, bound 18 ms
+[NET-CORE] rx single: 1024 calls, 0 not answered in time, bound 16 ms
+[NET-CORE] rx single: 4096 calls, 0 not answered in time, bound 16 ms
+[NET-CORE] rx single: 16384 calls, 5 not answered in time, bound 16 ms
