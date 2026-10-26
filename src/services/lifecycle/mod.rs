@@ -28,7 +28,9 @@
 // generation, even if the request_id happens to match.
 
 mod registry;
+mod reply_rest;
 mod reply_wait;
+mod rest_mark;
 mod state;
 pub mod supervisor;
 pub mod transport;
@@ -36,10 +38,17 @@ mod transport_holder;
 mod transport_lock;
 pub mod transport_nowait;
 mod transport_rule;
+mod trip_back;
+mod trip_guard;
+mod trip_lock;
+mod trip_rows;
+mod trip_turn;
 mod waiting;
 
 pub use registry::{register, tick, Capsule};
-pub use reply_wait::rest;
+pub use reply_rest::rest;
 pub use state::CapsuleState;
 pub use supervisor::{tick as supervisor_tick, Supervised};
 pub(crate) use transport_holder::forget as forget_transport_holder;
+pub use trip_guard::{TripGuard, TripRead, TripWrite};
+pub use trip_lock::TripLock;
