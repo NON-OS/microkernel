@@ -37,6 +37,8 @@ pub const TIERS: &[&[u8]] = &[
     b"qwen3-14b",
     b"qwen3-30b-a3b",
     b"qwen3-32b",
+    b"qwen3.5-0.8b",
+    b"qwen3.6-27b",
     b"coder-1.5b",
     b"coder-7b",
     b"coder-14b",

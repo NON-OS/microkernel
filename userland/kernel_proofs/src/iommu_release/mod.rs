@@ -24,6 +24,5 @@ mod amd_tests;
 #[path = "../../../../src/arch/x86_64/iommu/tables/release_walk.rs"]
 pub mod release_walk;
 #[path = "../../../../src/arch/x86_64/iommu/tables/sl_pte.rs"]
-#[allow(dead_code)]
 pub mod sl_pte;
 mod tests;
