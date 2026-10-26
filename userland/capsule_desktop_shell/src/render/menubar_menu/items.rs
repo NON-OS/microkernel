@@ -27,15 +27,15 @@ const APPS: &[LauncherApp] = &LAUNCHER_APPS;
 
 // Power Off is last in the first menu, which is there whatever has focus.
 const APP_ITEMS: [&str; 5] =
-    ["Focus Window", "Show All Apps", "About This System", INPUT, POWER_OFF];
+    ["Focus Window", "Show all apps", "About this system", INPUT, POWER_OFF];
 const DESKTOP_ITEMS: [&str; 5] =
-    ["Refresh Desktop", "Show All Apps", "About This System", INPUT, POWER_OFF];
+    ["Refresh Desktop", "Show all apps", "About this system", INPUT, POWER_OFF];
 const INPUT: &str = "Display Input";
 const POWER_OFF: &str = "Power Off";
 const FILE_ITEMS: [&str; 3] = ["New Folder", "New File", "Open Files"];
 const VIEW_ITEMS: [&str; 3] = ["Show Launchpad", "Show Dock", "Refresh Desktop"];
 const GO_ITEMS: [&str; 3] = ["Terminal", "Browser", "Settings"];
-const HELP_ITEMS: [&str; 2] = ["About This System", "Processes"];
+const HELP_ITEMS: [&str; 2] = ["About this system", "Processes"];
 
 pub fn focused(ctx: &Context) -> Option<usize> {
     if ctx.taskbar.active == TASKBAR_NO_ACTIVE {
