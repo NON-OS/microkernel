@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The proof a run made, held in this store's memory for I-B9b (ruling 7):
-//! the listing and release it proves, the listing key it was asked with,
-//! and the container. Wiped when dropped, as the wallet wipes its secrets,
+//! the listing it proves and the container. I-B9b, which sends it, adds the
+//! release and listing key it reads. Wiped when dropped, as the wallet wipes its secrets,
 //! through zeroize's volatile writes: by a newer proof, or at once when `n`
 //! was pressed while it was made.
 
@@ -24,13 +24,9 @@ use alloc::vec::Vec;
 
 use zeroize::Zeroize;
 
-/// The container a run made, for the listing and release it proves. Only
-/// I-B9b reads the release and key, to send it.
-#[allow(dead_code)]
+/// The container a run made, for the listing it proves.
 pub struct Held {
     pub listing: Vec<u8>,
-    pub release: Vec<u8>,
-    pub listing_key: [u8; 32],
     pub container: Vec<u8>,
 }
 
