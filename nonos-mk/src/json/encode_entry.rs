@@ -40,10 +40,6 @@ pub(super) fn to_entry(e: &EntryJson) -> Result<MarketplaceEntry, CliError> {
         price: to_price(&e.price)?,
         token: to_token(&e.token)?,
         commerce,
-        releases: e
-            .releases
-            .iter()
-            .map(to_release)
-            .collect::<Result<_, _>>()?,
+        releases: e.releases.iter().map(to_release).collect::<Result<_, _>>()?,
     })
 }
