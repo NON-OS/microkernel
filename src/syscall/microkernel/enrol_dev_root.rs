@@ -46,8 +46,8 @@ pub fn sys_dev_root_request(root_ptr: u64) -> i64 {
     match request_dev_root(caps, root) {
         Ok(()) => 0,
         Err(e) => {
-            crate::sys::serial::print(b"[DEV-ROOT] request refused: ");
-            crate::sys::serial::println(e.as_str().as_bytes());
+            let mut l = crate::sys::serial::Line::new();
+            l.str(b"[DEV-ROOT] request refused: ").str(e.as_str().as_bytes()).end();
             e.to_errno()
         }
     }
@@ -69,8 +69,8 @@ pub fn sys_dev_root_confirm(answer: u64) -> i64 {
          */
         Ok(Authority::Vendor) | Ok(Authority::Publisher) => ERRNO_FAULT,
         Err(e) => {
-            crate::sys::serial::print(b"[DEV-ROOT] confirm refused: ");
-            crate::sys::serial::println(e.as_str().as_bytes());
+            let mut l = crate::sys::serial::Line::new();
+            l.str(b"[DEV-ROOT] confirm refused: ").str(e.as_str().as_bytes()).end();
             e.to_errno()
         }
     }

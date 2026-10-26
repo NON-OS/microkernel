@@ -18,18 +18,16 @@ use core::arch::asm;
 
 use super::cause::{FaultAccess, PageFaultInfo, TrapCause};
 use super::frame::TrapFrame;
-use crate::sys::serial::{print_hex, print_str};
+use crate::sys::serial::Line;
 
 pub(super) fn report_fatal<F: TrapFrame>(frame: &F, cause: &TrapCause) {
-    print_str("\n!!! KERNEL FATAL TRAP: ");
-    print_str(label_for(cause));
-    print_str(" !!!\n  RIP=");
-    print_hex(frame.instruction_pointer());
-    print_str("  RSP=");
-    print_hex(frame.stack_pointer());
-    print_str("  origin=");
-    print_str(if frame.from_user() { "user" } else { "kernel" });
-    print_str("\n");
+    // Each line whole, through the fatal writer: the trap may have come while
+    // the port's lock was held.
+    let mut l = Line::new();
+    l.str(b"!!! KERNEL FATAL TRAP: ").str(label_for(cause).as_bytes()).str(b" !!!").end_fatal();
+    let mut l = Line::new();
+    l.str(b"  RIP=").hex(frame.instruction_pointer()).str(b"  RSP=").hex(frame.stack_pointer());
+    l.str(b"  origin=").str(if frame.from_user() { b"user" } else { b"kernel" }).end_fatal();
     report_cause_detail(cause);
 }
 
@@ -80,26 +78,20 @@ fn report_cause_detail(cause: &TrapCause) {
         | TrapCause::InvalidTss { error_code }
         | TrapCause::ControlProtection { error_code }
         | TrapCause::DoubleFault { error_code } => {
-            print_str("  err=");
-            print_hex(*error_code);
-            print_str("\n");
+            Line::new().str(b"  err=").hex(*error_code).end_fatal();
         }
         TrapCause::OtherException(vec) => {
-            print_str("  vec=");
-            print_hex(*vec as u64);
-            print_str("\n");
+            Line::new().str(b"  vec=").hex(*vec as u64).end_fatal();
         }
         _ => {}
     }
 }
 
 fn report_page_fault(info: &PageFaultInfo) {
-    print_str("  CR2=");
-    print_hex(info.fault_address);
-    print_str(access_label(info.access));
-    print_str(if info.present { " present" } else { " not-present" });
-    print_str(if info.user { " user" } else { " supervisor" });
-    print_str("\n");
+    let mut l = Line::new();
+    l.str(b"  CR2=").hex(info.fault_address).str(access_label(info.access).as_bytes());
+    l.str(if info.present { b" present" } else { b" not-present" });
+    l.str(if info.user { b" user" } else { b" supervisor" }).end_fatal();
 }
 
 fn access_label(access: FaultAccess) -> &'static str {

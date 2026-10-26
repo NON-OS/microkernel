@@ -31,11 +31,7 @@ pub(super) fn flush_range(phys: u64, len: u64) {
 pub(super) fn say_mapped(phys: u64, pages: u64, asked_wc: bool) {
     let wc = asked_wc && crate::arch::write_combining::write_combining_ready();
     let _ = phys;
-    crate::sys::serial::print(if wc {
-        b"[DMA] grant write-combining pages="
-    } else {
-        b"[DMA] grant uncached pages="
-    });
-    crate::sys::serial::print_dec(pages);
-    crate::sys::serial::println(b"");
+    let mut l = crate::sys::serial::Line::new();
+    l.str(if wc { b"[DMA] grant write-combining pages=" } else { b"[DMA] grant uncached pages=" });
+    l.dec(pages).end();
 }

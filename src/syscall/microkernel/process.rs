@@ -31,12 +31,12 @@ pub fn sys_exit(code: i32) -> i64 {
     };
     // A non-zero code is the one trace a silent capsule leaves: name it.
     if code != 0 {
-        use crate::sys::serial::{print, print_dec, println};
-        print(b"[EXIT] code=");
-        print_dec(code as u64);
-        print(b" ");
-        let _ = crate::process::with_process(pid, |pcb| print(pcb.name.lock().as_bytes()));
-        println(b"");
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[EXIT] code=").dec(code as u64).str(b" ");
+        let _ = crate::process::with_process(pid, |pcb| {
+            l.str(pcb.name.lock().as_bytes());
+        });
+        l.end();
     }
     crate::process::exit::exit_and_yield(code, false)
 }
