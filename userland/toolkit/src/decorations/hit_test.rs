@@ -13,12 +13,13 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! The frame's measures at one to one (the design notes, Window
+use super::control_rect::{control_rect_at, CONTROLS};
+use super::frame_rect::frame_rect_at;
+use super::inner_rect::titlebar_rect_at;
+use super::scale::ONE;
 
-use super::frame_rect::{frame_rect_at, light_rect_at, titlebar_rect_at};
-use super::metrics::LIGHT_HIT_PAD;
-use super::scale::{at, ONE};
-
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum DecorationHit {
     None,
     Titlebar,
@@ -27,15 +28,13 @@ pub enum DecorationHit {
     MaximizeButton,
 }
 
-const LIGHT_HITS: [DecorationHit; 3] =
-    [DecorationHit::CloseButton, DecorationHit::MinimizeButton, DecorationHit::MaximizeButton];
-
 pub fn hit_test(w: u32, h: u32, maximized: bool, x: u32, y: u32) -> DecorationHit {
     hit_test_at(w, h, maximized, x, y, ONE)
 }
 
 /// What a press at `x`, `y` lands on, with the frame drawn at `quarters` of
-/// display scale. The buttons' targets grow with the buttons.
+/// display scale. Each control's target is the whole rectangle it washes on
+/// hover, so what lights up is what a press takes.
 pub fn hit_test_at(
     w: u32,
     h: u32,
@@ -50,9 +49,8 @@ pub fn hit_test_at(
     if !titlebar_rect_at(w, h, maximized, quarters).contains(x, y) {
         return DecorationHit::None;
     }
-    let pad = at(LIGHT_HIT_PAD, quarters);
-    for (i, hit) in LIGHT_HITS.iter().enumerate() {
-        if light_rect_at(i as u32, w, h, maximized, quarters).inflate(pad).contains(x, y) {
+    for (i, hit) in CONTROLS.iter().enumerate() {
+        if control_rect_at(i as u32, w, h, maximized, quarters).contains(x, y) {
             return *hit;
         }
     }

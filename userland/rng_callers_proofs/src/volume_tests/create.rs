@@ -16,8 +16,8 @@
 
 //! A passphrase-keyed volume (passphrase_create.rs): its salt, nonce and
 //! key are drawn before the passphrase is stretched, so with any refused,
-//! no key header is written and nothing is formatted. Its real Argon2id
-//! and ChaCha20-Poly1305 seal the key; the test opens it again.
+//! or while the boot keeps nothing (key_header_io.rs), no key header is
+//! written. Its real Argon2id and ChaCha20-Poly1305 seal the key.
 
 use super::super::error::VolumeError;
 use super::super::key_header::{parse_key_header, Keyed, KEY_LBA};
@@ -26,7 +26,8 @@ use super::super::passphrase_create::create_keyed;
 use super::super::passphrase_key::stretch;
 use super::super::plan_types::{Plan, MAX_IMPORTS, PLAN_LBA};
 use super::{open_key, turn};
-use crate::stand_in::{devices, kernel, rng, volume};
+use crate::hardware::block_device::BlockDeviceError::AccessDenied;
+use crate::stand_in::{block_io::set_keeping, devices, kernel, rng, volume};
 
 const PLAN: Plan =
     Plan { volume_base: 300_000, volume_sectors: 4096, imports: [(0, 0); MAX_IMPORTS], count: 0 };
@@ -44,12 +45,21 @@ fn no_keyed_volume_is_made_when_any_draw_refuses() {
     assert_eq!((kernel::shootdowns(), rng::weak()), (0, 0));
 }
 
+#[test]
+fn no_key_header_is_written_while_the_boot_keeps_nothing() {
+    let _turn = turn();
+    rng::fail_from(None);
+    assert_eq!(create_keyed(b"pass", &PLAN), Err(VolumeError::Device(AccessDenied)));
+    assert!(devices::plan_written().is_empty() && volume::formats().is_empty());
+}
+
 /// Finding: the format inside (mount_or_format.rs) draws the volume's uuid
 /// by the weak fill, the one weak call here. The uuid is no secret.
 #[test]
 fn the_keyed_volume_seals_its_drawn_key_under_the_drawn_salt_and_nonce() {
     let _turn = turn();
     rng::fail_from(None);
+    set_keeping(true);
     assert_eq!(create_keyed(b"pass", &PLAN), Ok(()));
     let given = rng::given();
     let header = devices::plan_written()[&(KEY_LBA - PLAN_LBA)];
