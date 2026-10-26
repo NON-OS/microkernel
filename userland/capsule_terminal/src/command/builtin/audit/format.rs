@@ -15,19 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The interface `audit` keeps: its first line names the format, so a
-//! script that reads the table can refuse one it was not written for. v1
+//! script that reads the table can refuse one it was not written for. It
 //! is set down in docs/using/audit.md; a change to a column, a word a
 //! reader matches, or the agent block's lines is a new version.
 
 use alloc::vec::Vec;
 
-pub const FORMAT: &[u8] = b"audit v1";
+pub const FORMAT: &[u8] = b"audit v2";
 pub const USAGE: &[u8] = b"usage: audit [--agent <name>]";
 
 /// The table's heading, the column a reader finds each field by.
 pub const HEADING: [&[u8]; 2] = [
-    b"  pid  name                  network  storage  devices*  signed by  capabilities",
-    b"  ---  --------------------  -------  -------  --------  ---------  ------------",
+    b"  pid  name                  network  storage  devices* launch   signed by  capabilities",
+    b"  ---  --------------------  -------  -------  -------- ------   ---------  ------------",
 ];
 /// The name column's width, its heading included.
 pub const NAME_W: usize = 22;

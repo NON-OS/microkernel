@@ -22,6 +22,7 @@ import time
 from steps import until
 
 from .dump import dump
+from .plug import unplug
 
 
 def rel(q, dx, dy):
@@ -64,6 +65,8 @@ def run(q, s, out, serial):
         time.sleep(0.1)
     elif kind == "click":
         click(q, arg or "left")
+    elif kind == "unplug":
+        return unplug(q, arg)
     else:
         sys.exit(f"nonos-drive: unknown step {s!r}")
     return True
