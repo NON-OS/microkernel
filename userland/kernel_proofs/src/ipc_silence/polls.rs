@@ -30,7 +30,7 @@ fn run(answer_every: Option<u64>, polls: u64) -> Vec<u64> {
         let start = i * 10;
         if answer_every.is_some_and(|k| i % k == 0) {
             s.answered(POLL);
-        } else if s.late(POLL, start, start + 8)[0].is_some() {
+        } else if s.late(POLL, start, start + 8, i + 1)[0].is_some() {
             reported.push(start + 8);
         }
     }

@@ -28,9 +28,7 @@ use crate::constants::layout::{
     STATE_OFF,
 };
 use crate::constants::regs::{
-    BT_ABORTQUEUE, BT_BUSFREE, BT_BUSRESET, BT_DATA_UNDERRUN, BT_HATIMEOUT,
-    BT_LINKED_COMMAND_COMPLETED, BT_LINKED_COMMAND_COMPLETED_WITH_FLAG, BT_RECVRST, BT_SELTIMEO,
-    BT_SENTRST, BT_SUCCESS, CDB_MAX, CMP_BYTES, CMP_CONTEXT, CMP_DATA_LEN, CMP_HOST_STATUS,
+    CDB_MAX, CMP_BYTES, CMP_CONTEXT, CMP_DATA_LEN, CMP_HOST_STATUS,
     CMP_SCSI_STATUS, CMP_SENSE_LEN, FLAG_DIR_NONE, FLAG_DIR_TODEVICE, FLAG_DIR_TOHOST,
     REG_KICK_NON_RW_IO, REG_KICK_RW_IO, REQ_BUS, REQ_BYTES, REQ_CDB, REQ_CDB_LEN, REQ_CONTEXT,
     REQ_DATA_ADDR, REQ_DATA_LEN, REQ_FLAGS, REQ_LUN, REQ_SENSE_ADDR, REQ_SENSE_LEN, REQ_TARGET,
@@ -114,6 +112,10 @@ impl<R: Regs> Hba for PvHba<R> {
         let d = REQ_RING_OFF + (prod & ((1 << REQ_LOG2) - 1)) as usize * REQ_BYTES;
         // SAFETY: one descriptor slot of the request ring page.
         unsafe { core::ptr::write_bytes(self.at::<u8>(d), 0, REQ_BYTES) };
+        if matches!(dir, Dir::In) && !is_rw(cdb[0]) {
+            // SAFETY: `len` is within the data buffer (checked above).
+            unsafe { core::ptr::write_bytes(self.at::<u8>(DATA_OFF), 0, len) };
+        }
         let flags = match dir {
             Dir::None => FLAG_DIR_NONE,
             Dir::In => FLAG_DIR_TOHOST,
@@ -156,20 +158,10 @@ impl<R: Regs> Hba for PvHba<R> {
         if context != id {
             return Err(Fault::Failed);
         }
-        match host {
-            BT_SUCCESS
-            | BT_LINKED_COMMAND_COMPLETED
-            | BT_LINKED_COMMAND_COMPLETED_WITH_FLAG
-            | BT_DATA_UNDERRUN => {}
-            BT_SELTIMEO => return Err(Fault::NoTarget),
-            BT_BUSFREE | BT_SENTRST | BT_RECVRST | BT_BUSRESET | BT_ABORTQUEUE | BT_HATIMEOUT => {
-                return Err(Fault::Reset)
-            }
-            _ => return Err(Fault::Failed),
-        }
+        let residual = crate::moved::completed(host, len, moved, is_rw(cdb[0]))?;
         let mut o = Outcome::good();
         o.status = scsi as u8;
-        o.residual = (len as u64).saturating_sub(moved) as u32;
+        o.residual = residual;
         o.sense_len = (sense_len as usize).min(SENSE_BYTES as usize).min(SENSE_MAX);
         for i in 0..o.sense_len {
             o.sense[i] = self.get(SENSE_OFF + i);

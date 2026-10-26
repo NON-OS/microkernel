@@ -58,7 +58,7 @@ pub(super) fn follow_ask<A: App>(booted: &mut BootedApp<A>, peers: &Peers, reque
         return;
     }
     let want = booted.app.wants_full_screen();
-    let turn = booted.full_ask.step(want, booted.maximized);
+    let turn = booted.asks.full.step(want, booted.maximized);
     if turn != Turn::Stay {
         toggle(booted, peers, request_id);
     }

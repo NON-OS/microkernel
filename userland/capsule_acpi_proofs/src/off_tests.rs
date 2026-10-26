@@ -19,16 +19,14 @@
 
 use crate::off_rule::*;
 
-#[path = "off_levels_tests.rs"]
-mod levels;
-#[path = "off_restart_tests.rs"]
-mod restart;
-#[path = "../../capsule_acpi/src/power/off/wire.rs"]
-mod off_wire;
-#[path = "off_wire_tests.rs"]
-mod wire;
 #[path = "../../capsule_acpi/src/backlight/engine_rule.rs"]
 mod engine_rule;
+#[path = "off_levels_tests.rs"]
+mod levels;
+#[path = "off_owner_tests.rs"]
+mod owner;
+#[path = "off_restart_tests.rs"]
+mod restart;
 
 /// F-96: firmware's _BCM drives a panel only when the broker says nobody
 /// holds its GPU; an engine that holds it, or a GPU that cannot be told,

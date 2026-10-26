@@ -31,6 +31,7 @@ use crate::build::Built;
 mod authority;
 mod body;
 mod expect;
+mod inspect;
 mod refusals;
 mod sign;
 mod whole;
