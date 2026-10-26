@@ -45,6 +45,7 @@ pub mod nav_geom;
 pub mod net_empty;
 pub mod net_rows;
 pub mod net_signal;
+pub mod note_wrap;
 pub mod page_head;
 pub mod pane;
 pub mod pane_items;
