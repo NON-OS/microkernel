@@ -19,7 +19,7 @@
 use crate::hardware::block_device::{self, BlockDeviceError};
 
 pub(super) fn read(lba: u64, out: &mut [u8]) -> Result<(), BlockDeviceError> {
-    let _io = super::volume_scope();
+    let _io = super::volume_scope()?;
     if super::ram::on() {
         return super::ram::read(lba, out);
     }
@@ -27,7 +27,7 @@ pub(super) fn read(lba: u64, out: &mut [u8]) -> Result<(), BlockDeviceError> {
 }
 
 pub(super) fn write(lba: u64, bytes: &[u8]) -> Result<(), BlockDeviceError> {
-    let _io = super::volume_scope();
+    let _io = super::volume_scope()?;
     if super::ram::on() {
         return super::ram::write(lba, bytes);
     }
@@ -36,7 +36,7 @@ pub(super) fn write(lba: u64, bytes: &[u8]) -> Result<(), BlockDeviceError> {
 
 /// RAM keeps what it is given at once; only a disk has a cache to empty.
 pub(super) fn flush() -> Result<(), BlockDeviceError> {
-    let _io = super::volume_scope();
+    let _io = super::volume_scope()?;
     if super::ram::on() {
         return Ok(());
     }
