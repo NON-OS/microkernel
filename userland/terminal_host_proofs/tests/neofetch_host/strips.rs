@@ -22,30 +22,35 @@ use crate::support::{strip, text};
 /// The whole point of the (plain, styled) pair: a redirected `neofetch` must
 /// write glyphs to the file, never terminal control codes.
 #[test]
-fn the_plain_strip_carries_no_escape_at_all() {
-    let (plain, _) = palette();
-    assert!(!plain.contains(&0x1b));
-    assert_eq!(text(&plain).chars().count(), 16);
-}
-
-#[test]
-fn the_styled_strip_carries_one_escape_per_block() {
-    let (plain, styled) = palette();
-    assert_eq!(styled.iter().filter(|b| **b == 0x1b).count(), 8);
-    assert_eq!(strip(&styled), text(&plain));
-}
-
-/// The strip is the point of reference for every other colour the terminal
-/// prints, so the codes are the standard eight and stay in order.
-#[test]
-fn the_styled_strip_names_the_standard_colours_in_order() {
-    let (_, styled) = palette();
-    let line = text(&styled);
-    for code in [
-        "\x1b[31m", "\x1b[32m", "\x1b[33m", "\x1b[34m", "\x1b[35m", "\x1b[36m", "\x1b[37m",
-        "\x1b[90m",
-    ] {
-        assert!(line.contains(code), "{code:?}");
+fn the_plain_strips_carry_no_escape_at_all() {
+    for row in 0..2 {
+        let (plain, _) = palette(row);
+        assert!(!plain.contains(&0x1b));
+        assert_eq!(text(&plain).chars().count(), 16);
     }
-    assert!(line.find("\x1b[31m") < line.find("\x1b[90m"));
+}
+
+/// One colour escape per block, then one reset.
+#[test]
+fn the_styled_strips_carry_one_escape_per_block_and_a_reset() {
+    for row in 0..2 {
+        let (plain, styled) = palette(row);
+        assert_eq!(styled.iter().filter(|b| **b == 0x1b).count(), 9);
+        assert!(styled.ends_with(b"\x1b[0m"));
+        assert_eq!(strip(&styled), text(&plain));
+    }
+}
+
+/// The standard eight, in order, then their bright forms; a row past the
+/// last is the bright one.
+#[test]
+fn the_strips_name_the_standard_colours_in_order() {
+    let codes = |row| text(&palette(row).1);
+    for (row, base) in [(0usize, 30), (1, 90)] {
+        let line = codes(row);
+        let at: Vec<_> = (0..8).map(|i| line.find(&format!("\x1b[{}m", base + i))).collect();
+        assert!(at.iter().all(Option::is_some), "{line:?}");
+        assert!(at.windows(2).all(|w| w[0] < w[1]), "{line:?}");
+    }
+    assert_eq!(codes(5), codes(1));
 }
