@@ -25,10 +25,11 @@ use nonos_libc::mk_getpid;
 
 use crate::line::{note, verdict};
 use crate::reply_caller;
-use crate::reply_take::{take, unanswered};
+use crate::reply_take::{drain_lines, take, unanswered};
 
 pub fn reply_twice() {
     let me = mk_getpid();
+    drain_lines();
     if !unanswered(b"x") {
         return note(b"[ATTACK-NOTE] reply-twice: a call to itself did not time out queued\n");
     }
