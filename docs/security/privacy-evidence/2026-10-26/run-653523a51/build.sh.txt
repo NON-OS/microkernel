@@ -1,7 +1,7 @@
 #!/bin/bash
 # S-14's image, scratch only: privacy/s14-installer-admin at $1, the standard
 # profile's development twin (installer and install-cli included).
-SP=/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad
+SP=/tmp/nonos-run/scratchpad
 P=$SP/s14; mkdir -p $P
 cd /home/user/pk-build && git reset -q --hard && git clean -qfd tools/nix mk userland/capsule_proof_io >/dev/null
 git checkout -q --detach "${1:?head}" || exit 1
