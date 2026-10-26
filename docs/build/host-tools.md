@@ -60,7 +60,7 @@ A Linux program reaches a disk image in one of two ways. The build compiles the 
 | `move:DX,DY` | moves the mouse by `DX`, `DY` |
 | `click` or `click:right` | presses and releases a mouse button |
 
-`--steps FILE` reads more steps from a file, one per line, and skips blank lines and lines that start with `#` (`steps`, `tools/nonos-drive:104-106`). A wait that does not see its text stops the run, and the tool exits 1. Init writes `Capsules spawned` once it has started the [capsules](../overview/glossary-boot-root-record.md#capsule) (`boot_log`, `src/userspace/init/entry.rs:42`), so this boots the development image, waits for that line and takes a screenshot:
+`--steps FILE` reads more steps from a file, one per line, and skips blank lines and lines that start with `#` (`steps`, `tools/nonos-drive:104-106`). A wait that does not see its text stops the run, and the tool exits 1. Init writes `Capsules spawned` once it has started the [capsules](../overview/glossary-boot-root-record.md#capsule), and only when none failed to spawn; otherwise it writes `[INIT] capsule spawn incomplete: N failed` and the wait never ends (`report`, `src/userspace/init/spawn_report.rs`). So this boots the development image, waits for that line and takes a screenshot:
 
 ```
 python3 tools/nonos-drive --image target/dev/tree/target/release/qemu-dev/nonos.img \
