@@ -14,13 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The store copy and the disk mirror, as the modules the kernel reads.
-//!
-//! The store module says, in its `reserved` field, whether the copy came
-//! from the disk this loader was read from. A kernel that cannot drive that
-//! disk then keeps no other: another NONOS disk, an installed one, would
-//! give a stick's boot that disk's store, setup marker and data volume.
-
 use nonos_boot::handoff::types::{
     Module, MODULE_KIND_DISK_MIRROR, MODULE_KIND_STORE, STORE_FROM_BOOT_DISK,
 };

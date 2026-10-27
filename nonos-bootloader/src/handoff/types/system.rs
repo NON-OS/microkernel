@@ -49,7 +49,10 @@ pub const MODULE_KIND_BOOT_MEDIA: u32 = 3;
  * driver so the kernel has it whatever disk drivers of its own come up. */
 pub const MODULE_KIND_STORE: u32 = 7;
 /* Set in the store module's `reserved` when the copy was read from the disk
- * this loader came from. The kernel's flag of the same name reads it. */
+ * this loader came from (entry/boot_disk.rs). The kernel's flag of the same
+ * name reads it: a kernel that cannot drive that disk then keeps no other,
+ * since an installed NONOS disk would give a stick's boot its store, setup
+ * marker and data volume. */
 pub const STORE_FROM_BOOT_DISK: u32 = 1;
 
 /// Boot modules the loader leaves for the kernel: today the two images the
