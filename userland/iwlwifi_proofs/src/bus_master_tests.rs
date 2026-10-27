@@ -53,6 +53,6 @@ fn setup_wakes_the_chip_and_never_turns_bus_master_on() {
     let before = given_back().len();
     // SAFETY: the window's own 0x100 bytes, alive for the call.
     let regs = unsafe { Regs::new(window.as_mut_ptr() as u64, 0x100) };
-    assert!(init_or_release(regs, &mut grants()).is_ok());
+    assert!(init_or_release(regs, crate::gen3::csr::CsrLayout::V1, &mut grants()).is_ok());
     assert!(since(before).is_empty(), "no command write: Bus Master waits for the stop");
 }

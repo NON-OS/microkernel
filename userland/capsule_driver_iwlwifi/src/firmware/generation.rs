@@ -32,6 +32,10 @@ const fn n(what: &'static str, linux_fw: &'static str) -> Option<Named> {
 }
 
 pub fn name(device: u16) -> Option<Named> {
+    if runs(device) && family_for_device(device) == Some(Family::Bz) {
+        let what = "BE200 or BE201 (BZ family, Wi-Fi 7), gen3 context info, v2 CSR";
+        return Some(Named { what, linux_fw: "iwlwifi-gl-c0/bz-b0-fm-c0-92.ucode", boots: true });
+    }
     if runs(device) {
         let what = "AX210 family (AX211 or AX201 on an SO platform), gen3 context info";
         return Some(Named { what, linux_fw: "iwlwifi-so-a0-*.ucode", boots: true });
@@ -62,7 +66,6 @@ pub fn name(device: u16) -> Option<Named> {
             "AX201 or 9560 CNVi (22000 family, Qu/QuZ MAC)",
             "iwlwifi-Qu/QuZ-*-hr-b0 or -jf-b0-77.ucode",
         ),
-        0x272B | 0xA840 => n("BE200 or BE201 (BZ family, Wi-Fi 7)", "iwlwifi-gl/bz-*-fm-*.ucode"),
         _ if family_for_device(device) == Some(Family::Ax210) => {
             n("AX210 family id without transport values", "iwlwifi-so/ty/ma-*.ucode")
         }

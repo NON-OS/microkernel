@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! What the inbox holds, and the access point's transmit queues.
 
+use super::super::super::csr::CsrLayout;
 use super::super::super::rx_data::RxMpdu;
 use super::super::super::station::session::Session;
 use super::super::super::txq::TxQueue;
@@ -26,6 +27,13 @@ pub const INBOX_FRAMES: usize = 64;
 pub struct Queues {
     pub mgmt: TxQueue,
     pub data: TxQueue,
+}
+
+impl Queues {
+    /// Both queues, unstarted, in a transmit region of the family's layout.
+    pub const fn fresh(csr: CsrLayout) -> Self {
+        Self { mgmt: TxQueue::nth(0, csr), data: TxQueue::nth(1, csr) }
+    }
 }
 
 #[derive(Default)]

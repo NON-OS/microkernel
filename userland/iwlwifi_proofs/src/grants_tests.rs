@@ -35,7 +35,7 @@ impl Window {
 fn a_chip_whose_clock_never_comes_up_gives_back_every_grant_and_the_claim() {
     let mut w = Window::new();
     let before = given_back().len();
-    let got = init_or_release(w.regs(), &mut grants());
+    let got = init_or_release(w.regs(), crate::gen3::csr::CsrLayout::V1, &mut grants());
     assert_eq!(got.err(), Some("iwlwifi: mac clock not ready"));
     assert_eq!(given_back()[before..], EVERYTHING);
 }
@@ -45,7 +45,7 @@ fn a_chip_that_wakes_keeps_every_grant() {
     let mut w = Window::new();
     w.0[CSR_GP_CNTRL / 4] = GP_CNTRL_MAC_CLOCK_READY;
     let before = given_back().len();
-    assert!(init_or_release(w.regs(), &mut grants()).is_ok());
+    assert!(init_or_release(w.regs(), crate::gen3::csr::CsrLayout::V1, &mut grants()).is_ok());
     assert_eq!(given_back()[before..], [], "nothing released, and Bus Master still off");
 }
 

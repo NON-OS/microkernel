@@ -22,6 +22,9 @@
 //! mirror the Linux iwlwifi CSR map (iwl-context-info-gen3.h, iwl-csr.h),
 //! reimplemented here as plain constants.
 
+mod layout;
+pub use layout::*;
+
 /// Physical address of the `iwl_context_info_gen3` structure. Written as a
 /// 64-bit value (low dword at this offset, high dword four bytes on).
 pub const CSR_CTXT_INFO_ADDR: usize = 0x118;
