@@ -19,8 +19,9 @@ It is a port of Linux v6.12's `drivers/net/wireless/realtek/rtw89/` for
 this one chip, run as a 20 MHz legacy (802.11a/b/g rate) station. The
 station above the frames is the shared `nonos_wifi_core` soft-MAC station
 (`SoftStation`): scanning, authentication (open and WPA3-SAE),
-association, the WPA2 and WPA3 handshakes, CCMP in software and the
-receive checks. IP, DHCP, DNS and sockets stay in the upper network
+association, the WPA2 and WPA3 handshakes and the receive checks;
+CCMP-128 runs in the chip on keys the station installs, as rtw89 installs
+them (the station writes each data frame's CCMP header). IP, DHCP, DNS and sockets stay in the upper network
 capsules. The link protocol, which puts raw frames on the air, is served
 only to the process that owns `net.core` (`src/serve.rs`,
 `nonos_wifi_core::netif::gate`).

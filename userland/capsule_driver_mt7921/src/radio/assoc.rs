@@ -8,7 +8,8 @@
 //! the AP's record in the associated state with the rates the response
 //! named, and the interface's own entry; then the join's channel request
 //! is given back (`mt7921_mgd_complete_tx`), the BSS's context holding the
-//! channel from here. Ended: the record removed, the BSS disconnected.
+//! channel from here. Ended: the record removed and the own entry reset,
+//! the keys with them; the BSS disconnected.
 
 use nonos_wifi_core::regdom::Band;
 use nonos_wifi_core::softmac::Association;
@@ -46,6 +47,8 @@ impl Mt7921 {
             nonht_basic_phy,
         };
         let antennas = self.caps.antennas;
+        // The entries are reset: the keys go with them, and come after.
+        self.card.keyed = false;
         let ok = associate(&mut self.card, &Joined { peer, basic, channel, antennas });
         self.note(ok);
         self.peer = Some(peer);
