@@ -93,7 +93,9 @@ interrupt QHs; control takes them from each qTD.
 
 Every port goes to this controller (CONFIGFLAG) before any is decided.
 A slot given back takes its bulk QHs back at DATA0 and parks its
-interrupt QHs. A port that turns out not high speed is the companion's.
+interrupt QHs: a frame is let pass before a QH is emptied, and a
+controller whose frames stop is stopped as a dead one is, its QH emptied
+only once it reads halted; the give-back then answers E_IO. A port that turns out not high speed is the companion's.
 
 ## Privacy and persistence
 
