@@ -24,6 +24,7 @@ mod calls;
 mod heap_choice_tests;
 mod install;
 mod install_timing_tests;
+mod keep_alive_tests;
 mod rlimit_same_tests;
 mod wayland;
 mod whole;

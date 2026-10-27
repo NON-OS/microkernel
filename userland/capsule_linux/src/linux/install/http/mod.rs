@@ -17,12 +17,14 @@
 //! HTTP to a mirror, over the network the person chose.
 
 pub(super) mod anyone;
+mod ask;
 /* Waiting for Anyone before an install downloads, the fetcher's own rule. */
 #[path = "../../../../../capsule_model_fetch/src/get/anyone_wait.rs"]
 mod anyone_wait;
 #[cfg(feature = "dev-mirror")]
 pub(super) mod direct;
 pub(super) mod get;
+mod keep;
 pub(super) mod reach;
 pub(super) mod route;
 pub(super) mod stream;
