@@ -18,7 +18,7 @@
 //! crash does: what it serves then is the old pack, nothing, or the new.
 //! And each family's packs, apart from every other family's (family.rs).
 
-use super::paths::{is_packs_of, pack_path, trailer_of};
+use super::paths::{pack_path, package_of, trailer_of};
 use super::shelf::Held;
 use super::swap::{new_path, swap, take};
 use crate::family::Family;
@@ -29,6 +29,11 @@ mod model;
 /// The pack the order is proved on: Alpine's vim.
 fn vim() -> Vec<u8> {
     pack_path(Family::Alpine, "vim")
+}
+
+/// Whether `at` is one of `family`'s packs.
+fn is_packs_of(family: Family, at: &[u8]) -> bool {
+    package_of(family, at).is_some()
 }
 
 fn minted(pack: &[u8]) -> Vec<u8> {
@@ -52,5 +57,6 @@ fn with_old() -> Model {
     m
 }
 
+mod closure;
 mod family;
 mod order;
