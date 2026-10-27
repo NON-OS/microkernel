@@ -27,6 +27,9 @@ pub const REPLY_RX_MPDU_CMD: u8 = 0xC1;
 
 /// Capability and API bits this path reads (fw/file.h).
 pub const CAPA_LAR_SUPPORT: u32 = 1;
+/// `IWL_UCODE_TLV_CAPA_LAR_MULTI_MCC` and `IWL_UCODE_TLV_API_WIFI_MCC_UPDATE`.
+pub const CAPA_LAR_MULTI_MCC: u32 = 29;
+pub const API_WIFI_MCC_UPDATE: u32 = 9;
 pub const CAPA_UMAC_SCAN: u32 = 2;
 pub const CAPA_SOC_LATENCY_SUPPORT: u32 = 37;
 /// Two LMACs: a 5 GHz PHY context names LMAC 1 (`iwl_mvm_get_lmac_id`).
