@@ -16,18 +16,18 @@
 """The source recipes' lock, linux-catalogue.sources.lock.json beside the
 Alpine one (lock.py): per recipe the commit it was built from, the BLAKE3
 and size of its bundled content tar, which its listing signs, and its
-logo's BLAKE3s. A rebuild that does not give the pinned bytes stops the
-seal by name, as a moved Alpine package does; only --update-lock moves it.
-No file pins nothing, so every source recipe is then said unpinned."""
+logo's BLAKE3s; for an upstream release asset, in place of the commit, its
+URL, sha256, BLAKE3 (A) and checksum file (source_pins.py). A rebuild that
+does not give the pinned bytes stops the seal by name, as a moved Alpine
+package does; only --update-lock moves it. No file pins nothing."""
 
 import json
 from pathlib import Path
 
-from . import logos
-from .lock_file import HEX, MAX_BYTES
+from . import logos, source_pins
+from .lock_file import MAX_BYTES
 
 FORMAT = "nonos.linux-catalogue-sources-lock.v1"
-PINNED = ("commit", "B", "S", "G", "R")
 
 
 def path_of(recipes: Path) -> Path:
@@ -35,7 +35,7 @@ def path_of(recipes: Path) -> Path:
 
 
 def read(path: Path) -> dict:
-    """{package: {commit, B, S, G, R}}, {} with no file, or ValueError."""
+    """{package: its pin, source_pins.py}, {} with no file, or ValueError."""
     if not path.is_file():
         return {}
     raw = path.read_bytes()
@@ -47,19 +47,18 @@ def read(path: Path) -> dict:
             or not isinstance(doc["sources"], dict):
         raise ValueError(f"{path}: not a {FORMAT} file")
     for name, pin in doc["sources"].items():
-        if not isinstance(pin, dict) or set(pin) != set(PINNED) or not all(isinstance(v, str) for v in pin.values()):
-            raise ValueError(f"{path}: {name!r} is not pinned by {', '.join(PINNED)}")
-        wide = {"commit": (40,), "B": (64,), "G": (0, 64), "R": (0, 64)}
-        if not all(len(pin[f]) in n and HEX >= set(pin[f]) for f, n in wide.items()) or not pin["S"].isdigit():
-            raise ValueError(f"{path}: {name}: a pin is not a commit, BLAKE3 and size")
+        try:
+            source_pins.checked(name, pin)
+        except ValueError as why:
+            raise ValueError(f"{path}: {why}") from None
     return doc["sources"]
 
 
 def held(pins: dict, built: dict, marks: dict) -> None:
     """ValueError naming every recipe whose commit or content is not the
-    one locked; `built` is {package: {commit, B, S}} from this run."""
-    moved = [f"{n}: {f} is {b[f]}, locked {pins[n][f]}" for n, b in sorted(built.items()) if n in pins
-             for f in ("commit", "B", "S") if b[f] != pins[n][f]]
+    one locked; `built` is {package: source_asset.row} from this run."""
+    moved = [f"{n}: {f} is {b.get(f)}, locked {pins[n].get(f)}" for n, b in sorted(built.items()) if n in pins
+             for f in sorted(set(b) | set(pins[n]) - {"G", "R"}) if b.get(f) != pins[n].get(f)]
     said = moved + [f"{n}: not in the lock" for n in sorted(set(built) - set(pins))]
     said += [f"{n}: locked, no recipe" for n in sorted(set(pins) - set(built))]
     if said:
