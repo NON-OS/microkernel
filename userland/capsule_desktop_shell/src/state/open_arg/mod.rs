@@ -33,9 +33,11 @@
 //! argument, can only leave a path.
 
 pub mod command;
+pub mod linux;
 pub mod opener;
 pub mod pending;
 
 pub use command::tool_command;
+pub use linux::linux_command;
 pub use opener::opens_files;
 pub use pending::{is_path, still_wanted, PendingCommand, TERMINAL};

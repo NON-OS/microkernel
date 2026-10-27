@@ -18,5 +18,6 @@
 //! usage bare and typed for its arguments otherwise, in a form no path takes.
 
 mod commands;
+mod linux;
 mod openers;
 mod refusals;
