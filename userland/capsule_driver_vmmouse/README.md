@@ -85,6 +85,13 @@ number of packets, has lost the pointer. The driver:
 A bring-up that never takes ends the driver with `EXIT_GAVE_UP` after the
 shared schedule; the PS/2 mouse keeps working throughout.
 
+If the capsule dies once absolute positions are requested, they stay
+requested: the backdoor pointer is no claimed device, so the broker has no
+release to run for it, and the kernel has no hook that undoes a device's
+mode at a capsule's death. The host queues positions nobody reads and no
+longer moves the PS/2 pointer, which stays still until the VM is reset or
+the driver comes up again. This is a known limitation.
+
 ## Current implemented surface
 
 - Absolute position, three buttons and the wheel from the host.
