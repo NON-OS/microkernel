@@ -66,7 +66,9 @@ let
 
   # Lets a machine with no IOMMU in service boot with its devices unconfined,
   # said everywhere; a hardened image must refuse those claims instead.
-  postureFeatures = [ "nonos-dma-unconfined-posture" ];
+  # Lets a standard boot share an isolation group between two vendor drivers
+  # when only a port without ACS joins them; a hardened image refuses.
+  postureFeatures = [ "nonos-dma-unconfined-posture" "nonos-shared-group-posture" ];
 
   # The marketplace's payment path, for development images only (the lead's
   # P3): the meter, which no release seal has re-signed since its caps were
