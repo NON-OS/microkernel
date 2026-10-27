@@ -21,6 +21,7 @@ The states are the [support matrix](../../hardware/MATRIX.md#how-to-read-it)'s:
 | virtio network device | 1af4:1000, 1af4:1041 | `driver.virtio_net0` | yes | Works: the QEMU run targets attach it | this page |
 | USB CDC-ECM, CDC-NCM, RNDIS | USB class | three capsules | no | Not supported: built, embedded and spawned where a USB host is, but no owner certificate yet | [usb-net.md](usb-net.md) |
 | ASIX AX88179, AX88178A and rebrands | 13 USB ids, 0b95:1790 among them | `driver.ax88179_0` | held | Not in Standard: held from Standard until the owner rules on Decision 10 (its register programming was read from Linux; HANDOFF/letters/b/84); host-proven, not booted | [usb-net.md](usb-net.md#asix-ax88179) |
+| Realtek RTL8153, RTL8153B (USB) | 0bda:8153 and 15 rebrands | `driver.rtl8153_0` | held | Not in Standard: held from Standard until the owner rules on Decision 10 (its register programming was read from Linux; HANDOFF/letters/b/83); host-proven, not booted | [usb-net.md](usb-net.md) |
 
 No Ethernet driver has a hardware report in 0.9.2. Read from the code on this commit, `net.core` takes received frames from the e1000, RTL8139 and RTL8169 drivers in batches with operation 6, past [the receive fault](#the-receive-fault), but only virtio-net, in a virtual machine, has a run that shows a frame received. For a machine that needs a network now, read [what to use instead](../wifi/not-supported.md#what-to-use-instead).
 
