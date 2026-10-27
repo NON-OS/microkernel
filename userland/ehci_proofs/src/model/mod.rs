@@ -38,5 +38,5 @@ mod world;
 pub use device::{Device, Reply};
 pub use handles::{rig, Cx, ModelClock, ModelMem, ModelRegs, Shared};
 pub use steps::{addressed, bulk_ready, high};
-pub use wire::{call, call_host, Answer};
+pub use wire::{call, call_as, call_host, Answer, CLIENT};
 pub use world::{Speed, World, BUS, CAPLEN, PORTS};
