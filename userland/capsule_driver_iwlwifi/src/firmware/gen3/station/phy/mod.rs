@@ -7,7 +7,11 @@
 //! version 2 form (`iwl_fw_channel_info`: `channel` u32 at 8, `band` 12,
 //! `width` 13, `ctrl_pos` 14, reserved 15; this firmware sets
 //! `IWL_UCODE_TLV_CAPA_ULTRA_HB_CHANNELS`), `lmac_id` 16, the receive chain
-//! word 20, `dsp_cfg_flags` 24, reserved 28. Filled as Linux v6.12
+//! word 20, `dsp_cfg_flags` 24, reserved 28. Version 5 (the BZ firmware) is
+//! the same 32 bytes with `sbb_bandwidth` 20 and `sbb_ctrl_channel_loc` 21 in
+//! place of the chain word; Linux fills them only from an AP chandef
+//! (`iwl_mvm_phy_ctxt_apply`, an EHT link narrower than its AP), and this
+//! driver's links are legacy, so they stay zero: the same bytes as version 4. Filled as Linux v6.12
 //! mvm/phy-ctxt.c `iwl_mvm_phy_ctxt_cmd_hdr` and `iwl_mvm_phy_ctxt_cmd_data`
 //! fill it for a 20 MHz channel: PHY 0 with color 0, the band (`PHY_BAND_24`
 //! 1, `PHY_BAND_5` 0), `IWL_PHY_CHANNEL_MODE20` 0, control position 0 (no
