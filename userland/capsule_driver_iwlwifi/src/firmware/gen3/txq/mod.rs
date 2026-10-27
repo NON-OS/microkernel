@@ -20,7 +20,8 @@
 //!
 //! The firmware owns the queue's number and scheduling (TVQM); the host owns
 //! its memory: a ring of 256-byte TFH descriptors, a byte count table of
-//! 1024 `iwl_gen3_bc_tbl_entry` words (`TFD_QUEUE_BC_SIZE_GEN3_AX210`), a
+//! 1024 `iwl_gen3_bc_tbl_entry` words (`TFD_QUEUE_BC_SIZE_GEN3_AX210`; 4096
+//! on BZ, `TFD_QUEUE_BC_SIZE_GEN3_BZ`, the area one page longer), a
 //! 64-byte first-buffer slot per descriptor, and the frames themselves. A
 //! frame goes out as the device command `[iwl_cmd_header][iwl_tx_cmd_gen3]
 //! [802.11 header]` then its body: the first buffer is that command's first
@@ -41,10 +42,12 @@
 //! may still read it.
 
 pub mod answered;
+pub mod area;
 mod layout;
 mod queue;
 mod send;
 mod write;
 
+pub use area::tx_region;
 pub use layout::*;
 pub use queue::TxQueue;

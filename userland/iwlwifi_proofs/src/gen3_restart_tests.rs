@@ -40,6 +40,9 @@ fn a_failed_firmware_boots_again_in_the_same_regions() {
         // The firmware asserts: the cause latches until the next boot clears it.
         *model.s.borrow_mut().regs.entry(CSR_INT).or_insert(0) |= INT_BIT_SW_ERR;
         assert!(dev.error_cause(), "the firmware raised its error cause");
-        assert!(stop_device(&model, &mut c), "stopped and seen stopped before the next boot");
+        assert!(
+            stop_device(&model, &mut c, crate::gen3::csr::CsrLayout::V1),
+            "stopped and seen stopped before the next boot"
+        );
     }
 }

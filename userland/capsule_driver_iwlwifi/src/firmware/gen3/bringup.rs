@@ -27,25 +27,22 @@
 //! anyway and the firmware runs on its defaults, which Linux also tolerates.
 
 use super::alive::{parse as parse_alive, Alive, UCODE_ALIVE_NTFY};
-use super::cmds::{LEGACY_GROUP, LONG_GROUP, PNVM_INIT_COMPLETE_NTFY, REGULATORY_AND_NVM_GROUP};
+use super::cmds::{LEGACY_GROUP, LONG_GROUP};
 use super::dev::{Dev, Flow, WaitError};
 use super::layout::{lay_out, Board, LayoutError, Memory};
 use super::packet::Packet;
-use super::plan::{pnvm_off, CTXT_INFO, IML, PRPH_SCRATCH};
-use super::pnvm;
-use super::prph::write_umac;
+use super::plan::{CTXT_INFO, IML};
 use super::region::{Clock, Region};
-use super::regs::{
-    CSR_INT, CSR_MSIX_HW_INT_CAUSES_AD, INT_BIT_ALIVE, MSIX_HW_ALIVE, UREG_DOORBELL_TO_ISR6,
-    UREG_DOORBELL_TO_ISR6_PNVM,
-};
-use super::select::{mac_type, rf_type};
+use super::regs::{CSR_INT, CSR_MSIX_HW_INT_CAUSES_AD, INT_BIT_ALIVE, MSIX_HW_ALIVE};
 use super::start::{
     after_kick, before_kick, enable_alive_int, mask_interrupts, start_hw, StartError,
 };
 use super::ucode::Ucode;
 use super::{kick, FwLayout};
 use crate::regs::Mmio;
+use pnvm_step::pnvm_step;
+
+mod pnvm_step;
 
 pub const ALIVE_MS: u32 = 2000;
 pub const PNVM_MS: u32 = 250;
@@ -71,21 +68,6 @@ pub fn is_legacy(p: &Packet<'_>, cmd: u8) -> bool {
     p.cmd == cmd && (p.group == LEGACY_GROUP || p.group == LONG_GROUP)
 }
 
-// Lay this SKU's platform NVM section out after the image loader and point
-// the peripheral scratch at it; its version, or `None` when the file has no
-// section for this adapter or it does not fit the reserved space.
-fn place_pnvm<R: Region + ?Sized>(
-    ctrl: &R,
-    file: &[u8],
-    sku: [u32; 3],
-    board: &Board,
-    iml_len: usize,
-) -> Option<u32> {
-    let p = pnvm::parse(file, sku, mac_type(board.hw_rev), rf_type(board.rf_id))?;
-    let placed = pnvm::lay_out(ctrl, pnvm_off(iml_len)?, &p)?;
-    pnvm::point_scratch(ctrl, PRPH_SCRATCH, placed).then_some(p.version)
-}
-
 /// Boot the firmware and return its ALIVE.
 pub fn boot<M: Mmio, R: Region + ?Sized, C: Clock>(
     dev: &mut Dev<'_, M, R>,
@@ -95,14 +77,14 @@ pub fn boot<M: Mmio, R: Region + ?Sized, C: Clock>(
     ucode: &Ucode<'_>,
     board: &Board,
 ) -> Result<Alive, BootError> {
-    let m = dev.m;
-    start_hw(m, c).map_err(BootError::Start)?;
-    before_kick(m, c).map_err(BootError::Start)?;
+    let (m, csr) = (dev.m, dev.csr);
+    start_hw(m, c, csr).map_err(BootError::Start)?;
+    before_kick(m, c, csr).map_err(BootError::Start)?;
     lay_out(mem, fw, ucode.iml, board, &mut dev.rxq, &mut dev.cmdq).map_err(BootError::Layout)?;
     enable_alive_int(m);
     let base = mem.ctrl.dev();
     kick(m, base + CTXT_INFO as u64, base + IML as u64, ucode.iml.len() as u32);
-    after_kick(m, c).map_err(BootError::Start)?;
+    after_kick(m, c, csr).map_err(BootError::Start)?;
 
     let mut cause = || {
         m.read32(CSR_INT) & INT_BIT_ALIVE != 0
@@ -134,24 +116,7 @@ pub fn boot<M: Mmio, R: Region + ?Sized, C: Clock>(
     }
 
     if alive.sku_id != [0; 3] {
-        // `iwl_pnvm_load_pnvm_to_trans`: give the firmware this SKU's section
-        // when the tree carries the file. Without it, or with no matching
-        // section, the doorbell still rings and the firmware runs on its
-        // defaults, as Linux's does.
-        if let Some(file) = board.pnvm {
-            dev.pnvm = place_pnvm(mem.ctrl, file, alive.sku_id, board, ucode.iml.len());
-        }
-        if !write_umac(m, c, UREG_DOORBELL_TO_ISR6, UREG_DOORBELL_TO_ISR6_PNVM) {
-            return Err(BootError::NoNicAccess);
-        }
-        dev.wait(c, PNVM_MS, &mut |p| {
-            if p.group == REGULATORY_AND_NVM_GROUP && p.cmd == PNVM_INIT_COMPLETE_NTFY {
-                Flow::Done
-            } else {
-                Flow::Continue
-            }
-        })
-        .map_err(BootError::Pnvm)?;
+        pnvm_step(dev, c, mem.ctrl, board, ucode.iml.len(), alive.sku_id)?;
     }
     Ok(alive)
 }

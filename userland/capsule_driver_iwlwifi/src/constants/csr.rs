@@ -16,7 +16,7 @@ pub const CSR_GP_CNTRL: usize = 0x024;
 // The CSR_GP_CNTRL layout of Linux iwl_csr_v1, which covers every family
 // probed here up to AX210. Bit 1 is undefined there: polling it for the MAC
 // clock timed out on every card, so setup never got past this register.
-// Bz-family parts (BE200, 0x272B) use the v2 layout, so probe refuses them.
+// BZ-family parts (BE200, BE201) use the v2 layout (`gen3::csr::CsrLayout`).
 pub const GP_CNTRL_MAC_CLOCK_READY: u32 = 0x0000_0001;
 pub const GP_CNTRL_INIT_DONE: u32 = 0x0000_0004;
 pub const GP_CNTRL_MAC_ACCESS_REQ: u32 = 0x0000_0008;
