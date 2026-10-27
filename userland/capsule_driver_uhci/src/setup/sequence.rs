@@ -23,6 +23,7 @@ use nonos_libc::{MK_DMA_MAP_COHERENT, MK_DMA_MAP_DMA32};
 use super::claim::Claim;
 use super::discover::Found;
 use super::pci;
+use crate::env::Mem;
 use crate::facts::pci::IO_BAR;
 use crate::hc::start::start;
 use crate::platform::{Ports, Region, Uptime};
@@ -52,5 +53,6 @@ pub fn run(dev: Found) -> Result<Driver, &'static str> {
     let region = Region::new(&map).ok_or("uhci: schedule region not below 4 GiB")?;
     let mut cx = Ctx::new(Ports::new(pio.grant_id), Uptime, region);
     start(&mut cx.io, &cx.clock, &cx.mem)?;
+    cx.mem.fault().map_err(|_| "uhci: the schedule reached outside its region")?;
     Ok(Driver { cx, found: dev, claim })
 }
