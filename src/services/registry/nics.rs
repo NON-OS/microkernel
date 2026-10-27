@@ -59,4 +59,5 @@ pub(crate) const NICS: &[(&str, Link)] = &[
     ("driver.rtl8153_0", Link::Wired),
     ("driver.iwlwifi0", Link::Wifi),
     ("driver.rtl8821ce0", Link::Wifi),
+    ("driver.mt7921e0", Link::Wifi),
 ];

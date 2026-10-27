@@ -14,16 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The scope rows (scope.rs): each driver the kernel spawns, by the service name its
-//! spawn.rs registers, and what it may claim. The USB function drivers, i2c_hid and
-//! spi_hid claim nothing: they reach their devices through a host's driver, so they
-//! have no row; nor has vmmouse0, which speaks only the backdoor. The ACPI capsule
-//! claims the SCI record alone (acpi/sci.rs).
+//! The scope rows (scope.rs): each spawned driver, by its spawn.rs service name, and what it
+//! may claim. USB function drivers, i2c_hid and spi_hid reach devices through a host's driver
+//! and have no row; nor has vmmouse0 (backdoor only). ACPI claims the SCI alone (acpi/sci.rs).
 
 use super::hosts::{SDHCI, SPI, XHCI};
 use super::ids_nic::{E1000, E1000E, IGB, IGC, IWLWIFI, IXGBE, RTL8169};
 use super::rows::{
-    AHCI, ANY, HDA, I2C_PCI, INTEL, INTEL_GFX, PS2, REALTEK, SVGA, VBOX, VIRTIO, VMWARE,
+    AHCI, ANY, HDA, I2C_PCI, INTEL, INTEL_GFX, MT7921, PS2, REALTEK, SVGA, VBOX, VIRTIO, VMWARE,
 };
 use super::rule::Match::{self, Acpi, Class, Ids, Virt};
 
@@ -38,6 +36,7 @@ pub(super) const SCOPE: &[(&str, &[Match])] = &[
     ("driver.virtio_net0", &[Ids(VIRTIO, &[0x1000, 0x1000, 0x1041, 0x1041])]),
     ("driver.iwlwifi0", &[Ids(INTEL, IWLWIFI)]),
     ("driver.rtl8821ce0", &[Ids(REALTEK, &[0xB821, 0xB821, 0xC821, 0xC821])]),
+    ("driver.mt7921e0", MT7921),
     // Storage, SD and USB hosts bind by class, as their capsules do (ufs0's takes listed hosts).
     ("driver.nvme0", &[Class { vendor: ANY, class: 0x01, sub: 0x08, progif: Some(0x02) }]),
     ("driver.ahci0", AHCI),
