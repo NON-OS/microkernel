@@ -26,6 +26,9 @@ pub mod heap_bins;
 /// MkLocalSign and MkLocalVerify hash an image a bounded chunk at a time.
 #[path = "image_digest/mod.rs"]
 pub mod image_digest;
+/// A Linux app's kept home and installs, read only by ForeignExec.
+#[path = "kept_name/mod.rs"]
+pub mod kept_name;
 /// A guest's peer calls hold its own lock, not one over every guest.
 #[path = "peer_stripe/mod.rs"]
 pub mod peer_stripe;

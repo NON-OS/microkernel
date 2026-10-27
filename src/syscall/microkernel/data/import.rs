@@ -20,6 +20,7 @@
 
 use super::super::errnos::{ERRNO_FAULT, ERRNO_PERM};
 use super::errno::errno;
+use super::kept_name::may_reach;
 use super::name::copy_name;
 
 pub fn sys_data_import(name_ptr: u64, name_len: u64, digest_ptr: u64, bytes: u64) -> i64 {
@@ -31,6 +32,10 @@ pub fn sys_data_import(name_ptr: u64, name_len: u64, digest_ptr: u64, bytes: u64
         Ok(n) => n,
         Err(e) => return e,
     };
+    // A kept home's or install's name is the Linux personality's alone.
+    if !may_reach(&name[..len], || caps.can_foreign_exec()) {
+        return ERRNO_PERM;
+    }
     let mut want = [0u8; 32];
     if digest_ptr == 0 || crate::usercopy::copy_from_user(digest_ptr, &mut want).is_err() {
         return ERRNO_FAULT;

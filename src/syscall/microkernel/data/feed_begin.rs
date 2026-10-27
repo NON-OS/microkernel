@@ -25,6 +25,7 @@
 
 use super::super::errnos::{ERRNO_ALREADY, ERRNO_FAULT, ERRNO_INVAL, ERRNO_PERM};
 use super::feed_errno::feed_errno;
+use super::kept_name::may_reach;
 use super::name::copy_name;
 use crate::fs::blockfs_volume::{stream_begin, Begun};
 
@@ -37,6 +38,10 @@ pub fn sys_data_feed_begin(name_ptr: u64, name_len: u64, sha: u64, bytes: u64, p
         Ok(n) => n,
         Err(e) => return e,
     };
+    // A kept home's or install's name is the Linux personality's alone.
+    if !may_reach(&name[..len], || caps.can_foreign_exec()) {
+        return ERRNO_PERM;
+    }
     if bytes == 0 || probe > 1 {
         return ERRNO_INVAL;
     }

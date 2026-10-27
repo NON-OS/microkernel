@@ -44,7 +44,9 @@ pub fn search(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
         Err(_) => return encode_response(OP_SEARCH, req.flags, req.request_id, EINVAL, &[]),
     };
     let hits = store.search(query, flags, max_hits.min(SEARCH_MAX_HITS));
-    let sendable: Vec<_> = hits.iter().filter(|(_, _, p)| p.len() <= MAX_WIRE_NAME).collect();
+    // A Linux app's files are never a hit, whoever asks (guard.rs).
+    let shown = |p: &&str| p.len() <= MAX_WIRE_NAME && !super::guard::guarded(p);
+    let sendable: Vec<_> = hits.iter().filter(|(_, _, p)| shown(p)).collect();
     let mut body = Vec::new();
     body.extend_from_slice(&(sendable.len() as u32).to_le_bytes());
     for (kind, line, path) in sendable {
