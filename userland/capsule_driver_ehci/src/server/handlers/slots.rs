@@ -36,10 +36,10 @@ pub fn disable<R: Regs, C: Clock, M: Mem>(
     let Some(dev) = body.first().and_then(|&s| cx.table.dev(s)).copied() else {
         return status(tx, req, E_INVAL);
     };
-    let (slot, op) = (body[0], cx.table.op);
+    let (slot, op, mut dead) = (body[0], cx.table.op, false);
     for (i, e) in cx.table.intr.iter_mut().enumerate() {
         if e.is_some_and(|(s, _)| s == slot) {
-            stop((&cx.mem, &mut cx.io, &cx.clock), op, i);
+            dead |= stop((&cx.mem, &mut cx.io, &cx.clock), op, i).is_err();
             *e = None;
         }
     }
@@ -53,7 +53,7 @@ pub fn disable<R: Regs, C: Clock, M: Mem>(
         port_off(&mut cx.io, offset(op, dev.port));
     }
     cx.table.devs[slot as usize - 1] = None;
-    status(tx, req, 0)
+    status(tx, req, if dead { E_IO } else { 0 })
 }
 
 pub fn address<R: Regs, C: Clock, M: Mem>(
