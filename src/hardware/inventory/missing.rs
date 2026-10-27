@@ -18,7 +18,7 @@ use super::family::HardwareFamily::{self, *};
 
 pub fn missing_path(family: HardwareFamily) -> Option<&'static str> {
     Some(match family {
-        NetworkRealtekWifi => "no driver for this Realtek Wi-Fi part (RTL8822CE, RTL8852 and kin)",
+        NetworkRealtekWifi => "no driver for this Realtek Wi-Fi part (RTL8852 and kin)",
         DisplayNativeAmd | DisplayNativeNvidia => {
             "native display driver: firmware framebuffer only"
         }

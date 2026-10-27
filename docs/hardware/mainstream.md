@@ -39,7 +39,8 @@ Sources: [trnb], [trdt]. NONOS covers, host-proven, the parts behind about 26% o
 | Intel BE201/BE202 CNVi (Arrow and Lunar Lake) | 8086:7740, a840 | no Trends row yet; the ASUS NUC 15 Pro's | In progress, refused until it lands |
 | MediaTek MT7922 / RZ616, MT7921 / RZ608 | 14c3:0616, 7922, 7961, 0608 | 1.71% and 1.45% of notebooks | None. Firmware licence forbids building it into a GPL-covered work: needs a separate firmware package |
 | Realtek RTL8821CE | 10ec:c821 | 1.75% of notebooks | Booted on one real laptop (scan, join, DHCP, browser) |
-| Realtek RTL8822CE, RTL8852BE/CE | 10ec:c822, b852, c852 | 1.57% and 1.27% of notebooks | None |
+| Realtek RTL8822CE | 10ec:c822, c82f | 1.57% of notebooks | Driver built, host-proven only; never run on the card |
+| Realtek RTL8852BE/CE | 10ec:b852, c852 | 1.27% of notebooks | None |
 | Qualcomm QCA6174, QCA9377, WCN6855, WCN7850 | 168c:003e, 0042, 17cb:1103, 1107 | about 1% each | None |
 
 Sources: [trnb], [trdt], Linux's iwlwifi device table ([iwldrv]). NONOS drives the Wi-Fi of roughly 5% of notebooks today, counted generously.
