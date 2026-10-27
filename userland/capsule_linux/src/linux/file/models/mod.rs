@@ -44,6 +44,7 @@ mod verified;
 
 pub use direct::read_into;
 pub use held::held;
+pub use name::owns;
 pub use open::open;
 pub use read::read;
 pub use size::size_of as ensure;

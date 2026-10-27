@@ -28,6 +28,9 @@ pub const TRAILER: &[u8] = b".zk_trailer.bin";
 /// A market program's policy, and the trailer that vouches for it.
 pub const POLICY: &[u8] = b".nonos_linux_policy.bin";
 pub const POLICY_TRAILER: &[u8] = b".nonos_linux_policy.zk_trailer.bin";
+/// Its listed arguments, and the trailer over its policy and them together.
+pub const ARGS: &[u8] = b".nonos_linux_policy.args.bin";
+pub const ARGS_TRAILER: &[u8] = b".nonos_linux_policy.args.zk_trailer.bin";
 /// What stands beside a held program until its own policy is bound. Nothing
 /// vouches for it, and app/bind.rs refuses a program whose policy is there
 /// and not vouched for.

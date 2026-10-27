@@ -18,10 +18,9 @@
 
 use alloc::vec::Vec;
 
-use crate::linux::abi::errno;
-
-use super::super::super::{resolve, store};
-use super::table::{held, now, with, Entry, CACHE, MAX_FILE};
+use super::super::super::resolve;
+use super::stored::stored;
+use super::table::{held, now, with, Entry, CACHE};
 
 /* Hold `path`: its bytes from the store, or none for a file being made. */
 pub fn hold(path: &[u8], exists: bool) -> Result<(), i64> {
@@ -30,10 +29,7 @@ pub fn hold(path: &[u8], exists: bool) -> Result<(), i64> {
     }
     let key = resolve::key(path);
     let (data, mtime_ms) = match exists {
-        true => {
-            let at = store::stat_full(&key).map(|s| s.2).unwrap_or_else(|_| now());
-            (store::read(&key, MAX_FILE as u32).map_err(|_| errno::EIO)?, at)
-        }
+        true => stored(&key)?,
         false => (Vec::new(), now()),
     };
     let stored = data.len() as u64;
@@ -54,7 +50,7 @@ pub fn hold(path: &[u8], exists: bool) -> Result<(), i64> {
  */
 pub fn hold_emptied(path: &[u8], stored: u64) -> Result<(), i64> {
     if held(path) {
-        return super::change::resize(path, 0);
+        return super::seen::resize(path, 0);
     }
     CACHE.0.borrow_mut().push(Entry {
         path: path.to_vec(),
@@ -64,7 +60,7 @@ pub fn hold_emptied(path: &[u8], stored: u64) -> Result<(), i64> {
         in_store: true,
         mtime_ms: now(),
     });
-    Ok(())
+    super::seen::emptied(path, stored)
 }
 
 pub fn read(path: &[u8], at: u64, len: usize) -> Option<Vec<u8>> {
