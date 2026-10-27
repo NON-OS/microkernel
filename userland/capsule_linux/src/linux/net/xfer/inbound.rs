@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Bytes into a guest from a family socket, or a stream net.sockets or
+//! Bytes into a guest from a family socket, or a stream routed/ or
 //! net.anon holds.
 
 use crate::linux::abi::errno;
@@ -46,13 +46,11 @@ pub fn recv(guest: &Guest, id: u32, iov: &Iov, skip: usize, flags: u64) -> Resul
     };
     let want = iov::total(iov).saturating_sub(skip);
     let peek = flags & MSG_PEEK != 0;
-    if let Some(Via::Sockets(h)) = svc {
-        let bytes = super::super::stream::recv_bytes(h, want)?;
-        iov::scatter(guest, iov, skip, &bytes)?;
-        return Ok(In { n: bytes.len(), whole: bytes.len(), from: None });
-    }
-    if let Some(Via::Anon) = svc {
-        let bytes = super::super::anon_stream::take(id, want, peek)?;
+    if let Some(via) = svc {
+        let bytes = match via {
+            Via::Routed(_) => super::super::routed::take(id, want, peek)?,
+            Via::Anon => super::super::anon_stream::take(id, want, peek)?,
+        };
         /* A stream's MSG_TRUNC discards what it would have read. */
         if flags & MSG_TRUNC == 0 {
             iov::scatter(guest, iov, skip, &bytes)?;
