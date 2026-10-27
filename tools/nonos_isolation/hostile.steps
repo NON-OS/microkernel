@@ -41,7 +41,7 @@ key:ctrl+alt+t
 wait:40
 shot:terminal
 # calls
-type:linux perl -e 'for$t([ptrace,101,16,1,0,0],[vm_readv,310,1,0,0,0,0,0],[init_mod,175,0,0,0],[finit_mod,313,0,0,0],[kexec,246,0,0,0,0],[reboot,169,4276215469,672274793,0,0],[mount,165,0,0,0,0,0],[bpf,321,0,0,0],[perf,298,0,0,-1,-1,0],[nonos,1280,0,0,0],[mmap_x,9,0,4096,7,34,-1,0],[huge,9,0,2**40,3,34,-1,0]){($n,@a)=@$t;$!=0;$r=syscall(@a);printf"P %-9s %d %s\n",$n,$r,$!}$p=syscall(9,0,4096,3,34,-1,0);$!=0;printf"P mprot_x  %d %s\n",syscall(10,$p,4096,5),$!'
+type:linux perl -e '$b="\0"x64;$l=pack("QQ",unpack("J",pack("p",$b)),64);$v=pack("QQ",4194304,64);$m="NONOS-GUEST-PROBE";for$t([ptrace,101,16,1,0,0],[vm_readv,310,1,$l,1,$v,1,0],[init_mod,175,0,0,0],[finit_mod,313,0,0,0],[kexec,246,0,0,0,0],[reboot,169,4276215469,672274793,0,0],[mount,165,0,0,0,0,0],[bpf,321,0,0,0],[perf,298,0,0,-1,-1,0],[nonos,1280,0,0,0],[mk_debug,1195525197,$m,17],[mk_kept,1414548301,"/li.a",5,0,$m,17,17],[mmap_x,9,0,4096,7,34,-1,0],[huge,9,0,2**40,3,34,-1,0]){($n,$c,@a)=@$t;$!=0;$r=syscall($c,@a);printf"P %-9s %d %s\n",$n,$r,$!}$q=syscall(9,805306368,4096,3,1048610,-1,0);$!=0;printf"P mprot_x  %d %d %s\n",$q,syscall(10,805306368,4096,5),$!'
 key:ret
 wait:240
 shot:calls
