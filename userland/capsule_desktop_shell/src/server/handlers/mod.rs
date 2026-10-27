@@ -51,6 +51,7 @@ pub mod pkg_consent;
 pub mod pkg_install;
 pub mod power_off;
 pub mod relay_table;
+pub mod run_linux;
 pub mod settings_relay;
 pub mod spotlight_open;
 pub mod spotlight_toggle;

@@ -20,6 +20,7 @@ python3 -m unittest discover -s tools/nonos_market_catalogue -t tools"""
 import http.client
 import tempfile
 import unittest
+import urllib.error
 from pathlib import Path
 from unittest import mock
 
@@ -43,6 +44,7 @@ class Body:
         return part
 
 
+@mock.patch.object(fetch.time, "sleep", lambda s: None)
 class Fetch(unittest.TestCase):
     def test_a_download_is_capped_atomic_and_named_when_it_fails(self):
         with tempfile.TemporaryDirectory() as d:
@@ -63,6 +65,36 @@ class Fetch(unittest.TestCase):
                 with mock.patch.object(fetch.urllib.request, "urlopen", return_value=Body(error=error)), \
                         self.assertRaises(ValueError):
                     fetch.fetch("https://e.org/g", Path(d) / "g", 9)
+
+
+    def test_a_transient_failure_is_tried_again_and_a_refusal_is_not(self):
+        cut = http.client.IncompleteRead(b"1")
+        refused = urllib.error.HTTPError("https://e.org/h", 404, "Not Found", {}, None)
+        busy = urllib.error.HTTPError("https://e.org/h", 503, "Busy", {}, None)
+        with tempfile.TemporaryDirectory() as d:
+            to = Path(d) / "h"
+            tries = [Body(error=cut), busy, Body(b"ok")]
+            waits = []
+
+            def answer(*a, **k):
+                got = tries.pop(0)
+                if isinstance(got, Exception):
+                    raise got
+                return got
+            with mock.patch.object(fetch.urllib.request, "urlopen", side_effect=answer), \
+                    mock.patch.object(fetch.time, "sleep", waits.append):
+                self.assertEqual(fetch.fetch("https://e.org/h", to, 9), b"ok")
+            self.assertEqual(waits, [2, 8])
+            calls = mock.Mock(side_effect=refused)
+            with mock.patch.object(fetch.urllib.request, "urlopen", calls), self.assertRaises(ValueError):
+                fetch.fetch("https://e.org/h", to, 9, fresh=True)
+            self.assertEqual(calls.call_count, 1)
+            calls = mock.Mock(side_effect=OSError("reset"))
+            with mock.patch.object(fetch.urllib.request, "urlopen", calls), \
+                    self.assertRaisesRegex(ValueError, "try 3 of 3"):
+                fetch.fetch("https://e.org/h", to, 9, fresh=True)
+            self.assertEqual(calls.call_count, fetch.TRIES)
+            self.assertEqual(to.read_bytes(), b"ok")
 
 
 if __name__ == "__main__":
