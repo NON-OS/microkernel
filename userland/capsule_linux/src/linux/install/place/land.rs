@@ -25,6 +25,7 @@ use nonos_linux_pack::{build, Index, Source, HEADER_LEN};
 use super::super::record::vouch::mint;
 use super::super::Why;
 use super::land_said::{landed, names, refused, say};
+use crate::linux::file::family::chosen;
 use crate::linux::file::pack::{put, remove, Held};
 
 pub(super) fn land(name: &str, sources: Vec<Source>) -> Result<(), Why> {
@@ -36,14 +37,14 @@ pub(super) fn land(name: &str, sources: Vec<Source>) -> Result<(), Why> {
         return Err(Why::PARTIAL);
     };
     let before = names();
-    match put(name, &bytes, &trailer) {
+    match put(chosen(), name, &bytes, &trailer) {
         Ok(()) => Ok(landed(name, files, bytes.len(), before)),
         Err(Held::InUse) => {
             say(name, "a running app holds it open; close the app to update it");
             Err(Why::IN_USE)
         }
         Err(Held::Unwritten) => {
-            let _ = remove(name);
+            let _ = remove(chosen(), name);
             say(name, "the store would not take its pack");
             Err(Why::PARTIAL)
         }

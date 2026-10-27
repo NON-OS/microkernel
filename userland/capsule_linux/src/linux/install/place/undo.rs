@@ -30,12 +30,13 @@ use nonos_libc::mk_debug;
 
 use super::super::market::take::take_out;
 use super::super::Why;
+use crate::linux::file::family::chosen;
 use crate::linux::file::{key, pack, store_found, store_unlink};
 
 /// `why` says what was not written: files, or the link table. The pack
 /// goes first: until it is out, its files are still found.
 pub(super) fn undo(name: &str, landed: &[Vec<u8>], why: &str) {
-    let _ = pack::remove(name);
+    let _ = pack::remove(chosen(), name);
     let mut unlink = |p: &[u8]| {
         let _ = store_unlink(&key(p));
     };
