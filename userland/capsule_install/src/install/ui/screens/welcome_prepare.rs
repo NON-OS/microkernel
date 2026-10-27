@@ -29,7 +29,7 @@ use crate::install::ui::wrap::{paragraph, Ink};
 use crate::install::ui::{text, theme};
 
 const ROW: &str = "Prepare this computer for an update";
-const WHY: &str = "So an update from a new NØNOS stick can keep your data.";
+const WHY: &str = "So an update from a new NØNOS stick can keep your data volume.";
 
 /// Paints the row from `y` across `w`.
 pub fn prepare_row(state: &State, fb: &mut PaintBuffer, m: &Metrics, x: u32, y: u32, w: u32) {
