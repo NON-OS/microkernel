@@ -15,12 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Bringing the controller up: taken from firmware, every interrupt off
-//! (the driver polls), the frame interval kept, the schedule built, a host
+//! (the driver polls), the frame interval kept (interval.rs), the schedule built, a host
 //! reset seen to clear, then within the 2 ms the suspended controller
 //! allows (spec, as recalled): the HCCA and list heads given, the frame
 //! interval, periodic start and low-speed threshold set, every status
 //! cleared, and the controller made operational with all lists on.
 
+use super::interval::{frame_interval, largest_packet};
 use super::own::take;
 use crate::env::{until, Clock, Mem, Regs};
 use crate::facts::bounds::HCR_MS;
@@ -39,10 +40,7 @@ pub fn start<R: Regs, C: Clock, M: Mem>(
 ) -> Result<(), &'static str> {
     take(r, c, mapped)?;
     r.w32(HC_INTERRUPT_DISABLE, INT_ALL);
-    let fi = match r.r32(HC_FM_INTERVAL) & FI_MASK {
-        0 => FI_DEFAULT,
-        fi => fi,
-    };
+    let fi = frame_interval(r.r32(HC_FM_INTERVAL));
     build(m);
     r.w32(HC_COMMAND_STATUS, CS_HCR);
     if !until(c, HCR_MS, || r.r32(HC_COMMAND_STATUS) & CS_HCR == 0) {
@@ -53,9 +51,7 @@ pub fn start<R: Regs, C: Clock, M: Mem>(
     r.w32(HC_CONTROL_CURRENT_ED, 0);
     r.w32(HC_BULK_HEAD_ED, m.bus(bulk_ed(0)));
     r.w32(HC_BULK_CURRENT_ED, 0);
-    // The largest data packet: the frame less the bit-stuffing and SOF
-    // overhead (6/7 of FI - 210, spec, as recalled).
-    let fsmps = (6 * (fi - 210)) / 7;
+    let fsmps = largest_packet(fi);
     let fit = (r.r32(HC_FM_INTERVAL) & FIT) ^ FIT;
     r.w32(HC_FM_INTERVAL, fit | fsmps << FSMPS_SHIFT | fi);
     r.w32(HC_PERIODIC_START, fi * 9 / 10);
