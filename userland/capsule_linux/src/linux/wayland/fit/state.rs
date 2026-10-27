@@ -33,6 +33,11 @@ pub struct Fit {
 }
 
 impl Fit {
+    /// The mode the window is in now.
+    pub fn now(&self) -> Mode {
+        self.mode
+    }
+
     /// The mode the window is on its way to: the last one told, else its own.
     pub fn heading(&self) -> Mode {
         self.sent.or(self.acked).map_or(self.mode, |c| c.mode)

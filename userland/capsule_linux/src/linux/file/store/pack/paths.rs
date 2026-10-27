@@ -44,10 +44,11 @@ pub fn pack_path(family: Family, package: &str) -> Vec<u8> {
     [family_dir(family).as_slice(), package.as_bytes(), PACK].concat()
 }
 
-/// Whether the store name `path` is one of `family`'s packs, which a run of
-/// that family loads; a trailer, a `.new` or another family's pack is not.
-pub fn is_packs_of(family: Family, path: &[u8]) -> bool {
-    path.strip_prefix(family_dir(family).as_slice()).is_some_and(|name| name.ends_with(PACK))
+/// The package whose pack the store name `path` is, when it is one of
+/// `family`'s packs, which a run of that family may load; a trailer, a `.new`
+/// or another family's pack is none.
+pub fn package_of(family: Family, path: &[u8]) -> Option<&[u8]> {
+    path.strip_prefix(family_dir(family).as_slice())?.strip_suffix(PACK)
 }
 
 /// The trailer this machine minted over the pack at `pack`: over its index
