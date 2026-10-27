@@ -23,7 +23,7 @@
 //! what the client asked for, bounded by what is really mapped there, and
 //! every commit checks its buffer against it (frame_len.rs).
 
-use crate::linux::file::mapped_at;
+use crate::linux::file::{mapped_at, mapped_now};
 use crate::linux::guest::Guest;
 
 use super::args::Args;
@@ -31,7 +31,8 @@ use super::args::Args;
 pub fn resize(guest: &mut Guest, pool: u32, args: &mut Args<'_>) {
     let Some(asked) = args.u32() else { return };
     let Some(p) = guest.scene.pools.iter().find(|p| p.id == pool) else { return };
-    let at = mapped_at(guest, u64::from(p.fd)).map_or(p.at, |(at, _)| at);
+    let now = mapped_now(guest, p.memfd).or_else(|| mapped_at(guest, u64::from(p.fd)));
+    let at = now.map_or(p.at, |(at, _)| at);
     let size = u64::from(asked).min(guest.mapped_from(at));
     if size == 0 {
         return;
