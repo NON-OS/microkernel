@@ -16,13 +16,18 @@
 
 //! The network a guest's stream leaves through follows the person's choice.
 //!
-//! It always went to the mixnet, so under the Anyone network every guest
-//! connection failed and a guest's traffic left on a network nobody chose.
-//! Held here over every default the policy store could hold, or none, with
-//! each network up or down, through nonos_route_link's own pick: Anyone goes
-//! to net.anon or nowhere, Nym and an unreadable default go to the mixnet,
-//! and Direct goes to the mixnet too, since a guest never reaches the
-//! network directly.
+//! A guest's stream on Nym went to net.sockets' mixnet socket, whose frames
+//! carry an address, so every name a guest looked up was refused and the
+//! Monero wallet reached no node. Held here over every default the policy
+//! store could hold, or none, with each network up or down, through
+//! nonos_route_link's own pick: Anyone goes to net.anon, Nym and Direct go
+//! by name to net.socks5, and a default that cannot be read, or a network
+//! whose service has not registered, is waited for and never becomes Nym.
+//! With it, the SOCKS endpoint (socks/) and a stream that did not open:
+//! the retry rule, its errno and the line a person reads (routed/).
 
+mod by_name;
 mod pick;
+mod routed;
+mod socks;
 mod table;
