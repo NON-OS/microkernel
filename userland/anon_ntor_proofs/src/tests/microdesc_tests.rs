@@ -56,3 +56,7 @@ fn the_exit_summary_respects_its_verb() {
     assert!(microdesc::policy::exits_web(b"accept 79-444"));
     assert!(!microdesc::policy::exits_web(b"nonsense 80,443"));
 }
+
+/* The rest of the line, which the exit for a port is chosen by. */
+#[path = "exit_ports/mod.rs"]
+mod exit_ports;
