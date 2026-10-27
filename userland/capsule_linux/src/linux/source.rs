@@ -22,7 +22,7 @@ use super::launch::Launch;
 use super::source_named::named;
 use super::source_run::run;
 
-pub(super) const MAX_IMAGE: u32 = 64 << 20;
+pub(super) const MAX_IMAGE: u32 = crate::linux::program_max::PROGRAM_MAX;
 
 /// The program, where it came from, and what it is given. A run starts a
 /// shipped tier, or an installed package's recorded program, or nothing:

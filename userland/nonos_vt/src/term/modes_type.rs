@@ -30,10 +30,8 @@ pub struct Modes {
     pub newline: bool,
     /// DECOM: cursor positions count from the scroll region.
     pub origin: bool,
-    /// DECAWM: printing past the last column wraps.
-    pub autowrap: bool,
-    /// DECSCNM: the whole screen is drawn inverted.
-    pub reverse_video: bool,
+    pub autowrap: bool,      // DECAWM: printing past the last column wraps
+    pub reverse_video: bool, // DECSCNM: the whole screen is drawn inverted
     pub cursor_visible: bool, // DECTCEM
     pub cursor_blink: bool,
     pub mouse: MouseMode,
@@ -49,6 +47,7 @@ pub struct Modes {
     pub alt_scroll: bool,
     /// ?7727 (NONOS): the program's tty is not canonical; keys go to it raw.
     pub raw_input: bool,
+    pub no_echo: bool, // ?7728 (NONOS): its tty does not echo what is typed
 }
 
 impl Default for Modes {
@@ -70,6 +69,7 @@ impl Default for Modes {
             sync: false,
             alt_scroll: true,
             raw_input: false,
+            no_echo: false,
         }
     }
 }
