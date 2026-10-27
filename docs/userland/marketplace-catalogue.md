@@ -64,7 +64,7 @@ For each recipe, the generator:
 3. checks the licence against the recipe;
 4. writes the release.
 
-Downloads are capped before they are read and written to the cache only whole (`fetch.py`). Each package is cached under the branch that served it, so a warm cache never names another branch in a release's `package_url` (`sources.py`, `cached`).
+Downloads are capped before they are read and written to the cache only whole (`fetch.py`). A failed download is tried again up to three times in all, after 2 and then 8 seconds, so one dropped connection does not stop a seal. A 4xx answer other than 408 or 429 is not tried again (`fetch.py`, `transient`). Each package is cached under the branch that served it, so a warm cache never names another branch in a release's `package_url` (`sources.py`, `cached`).
 
 Any fault stops the run with a message, so a seal lists every recipe or none. That covers a missing or malformed recipes file or lock, a bad publisher key, an index that fails its signature or has moved past the lock, and a package that fails any check. A failed package's cached copy is dropped, so the next run fetches it again (`tools/nonos_market_catalogue/run.py`, `catalogue_run`). A recipe inside another family's namespace (`kali.`, `blackarch.`, `qwen-`, `nonos-`) is refused. `python3 -m nonos_market_catalogue.documents OUT.json DIR`, run from `tools/`, splits the index into one unsigned document per listing, as committed under `nonos-data/market/catalogue/`. The publisher then signs each one with `marketplace-index sign-release`.
 
@@ -100,4 +100,4 @@ Every run fetches the signed indexes fresh, then holds them to the lock. A run s
 - **A real package:** `vectors/` holds one real Alpine package (CC0-1.0) and its signed index record. RSA verification and the package chain are tested against Alpine's own signature, and a test key covers the padding and length rules.
 - **Hostile inputs:** tests for every refusal: gzip, tar, pax, the chain, the index, names, recipes, documents, fetches and the run.
 - **A seeded fuzz sweep:** `test_fuzz.py`, over every parser of untrusted input. Use NONOS_FUZZ_ITERS and NONOS_FUZZ_SEED for a long run.
-- **Mutants:** `test_mutants.py` applies each of the 126 mutants in `tools/nonos_market_catalogue/mutants.json` to a copy of the tree. The suite must fail on every one and pass on the unmutated copy. A mutant that hangs the suite counts as killed after 120 s.
+- **Mutants:** `test_mutants.py` applies each of the 142 mutants in `tools/nonos_market_catalogue/mutants.json` to a copy of the tree. The suite must fail on every one and pass on the unmutated copy. A mutant that hangs the suite counts as killed after 120 s.
