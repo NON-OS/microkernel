@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A connection's sends, and its reads without blocking, so one loop can
-//! serve several (fetch/window.rs).
+//! serve several (get/window.rs).
 
 use alloc::vec::Vec;
 
