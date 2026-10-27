@@ -7220,6 +7220,7 @@
    "userland/capsule_driver_netvsc/src/rndis.rs",
    "userland/capsule_driver_netvsc/src/start.rs",
    "userland/capsule_driver_netvsc/src/station.rs",
+   "userland/libc/src/bringup/policy.rs",
    "userland/netvsc_proofs",
    "userland/nonos_vmbus"
   ],
@@ -9634,7 +9635,10 @@
    "userland/capsule_driver_spi_hid/src/acpi/parse.rs",
    "userland/capsule_driver_spi_hid/src/acpi/pick.rs",
    "userland/capsule_driver_spi_hid/src/acpi/wire.rs",
+   "userland/capsule_driver_spi_hid/src/retry.rs",
+   "userland/capsule_driver_spi_hid/src/run.rs",
    "userland/capsule_driver_spi_hid/src/shape.rs",
+   "userland/capsule_driver_spi_hid/src/spi/wire.rs",
    "userland/nonos_spi_hid",
    "userland/spi_hid_proofs"
   ],
@@ -9645,8 +9649,14 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/inventory/spi_host.rs",
+   "src/hardware/inventory/spi_present.rs",
+   "src/userspace/init/spawn_plan/drivers_spi.rs",
+   "userland/capsule_driver_i2c_pci/src/constants/lpss.rs",
    "userland/capsule_driver_spi/src/core",
+   "userland/capsule_driver_spi/src/discover.rs",
    "userland/capsule_driver_spi/src/facts",
+   "userland/capsule_driver_spi/src/ids.rs",
    "userland/capsule_driver_spi/src/setup/prove.rs",
    "userland/spi_proofs"
   ],
@@ -10796,6 +10806,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "userland/capsule_driver_usb_hub/src/wire.rs",
    "userland/nonos_usb_hub",
    "userland/nonos_usb_virt",
    "userland/usb_hub_proofs"
@@ -11079,6 +11090,7 @@
    "userland/capsule_driver_virtio_input/src/keyboard/state.rs",
    "userland/capsule_driver_virtio_input/src/post.rs",
    "userland/capsule_driver_virtio_input/src/queue",
+   "userland/capsule_driver_virtio_input/src/setup/dma.rs",
    "userland/capsule_driver_virtio_input/src/setup/pci.rs",
    "userland/capsule_driver_virtio_input/src/setup/sequence.rs",
    "userland/libc/src/surface_registry/abs.rs",
