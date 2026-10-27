@@ -37,7 +37,7 @@ every proof expects none unless it is the point.
 
 ## What it proves
 
-`cargo test --release`: 53 tests. Bring-up to Ready with no violation, and
+`cargo test --release`: 55 tests. Bring-up to Ready with no violation, and
 every stage on its fault (`stage_tests`, `give_back_tests`); the firmware
 download byte for byte, five tries, two per boot (`fw_tests`); the efuse
 fields and the PHY capabilities (`efuse_tests`); H2C numbering, acks and
@@ -50,7 +50,8 @@ both ways under CCMP (`data_tests`); ring reuse, full rings and hostile
 receive buffers (`ring_tests`, `rx_tests`); size bounds at their edges
 (`limit_tests`); every wait's timeout (`bound_tests`); and that no
 console line carries an address or network name, and the efuse MAC
-reaches nothing (`privacy_tests`).
+reaches nothing (`privacy_tests`); and that each stage reads as the
+Wi-Fi client's (`client_stage_tests`).
 
-The mutants that each of these kills are listed in the capsule's
-`docs/verification.md`.
+The host mutants these kill, one per rule or bound, are
+`verification/host_mutants/rtl8852be.json` (`tools/nonos-host-mutants`).
