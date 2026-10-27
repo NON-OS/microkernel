@@ -3,11 +3,12 @@
 //! A received frame's descriptor, walked as `mt7921_mac_fill_rx` walks
 //! it: the groups the second word announces, in their order and sizes,
 //! the header offset's pad, the best chain's signal; and the refusals:
-//! errors, band 1, a translated header, a frame the chip decrypted.
+//! errors, band 1, a translated header. What the chip decrypted is
+//! `sec_tests`'.
 
 use crate::mac::rxd::{parse, RxFrame};
 use crate::mac::{kind, Kind};
-use crate::model::data::rx_buffer;
+use crate::model::rxd::rx_buffer;
 
 fn with(d1: u32, d2: u32, groups: usize, frame_len: usize) -> Vec<u8> {
     let mut b = vec![0u8; 24 + 4 * groups + frame_len];
@@ -21,7 +22,7 @@ fn with(d1: u32, d2: u32, groups: usize, frame_len: usize) -> Vec<u8> {
 #[test]
 fn the_models_frame_is_found_after_group_3_with_its_signal() {
     let b = rx_buffer(&[0x80u8; 40], -61);
-    assert_eq!(parse(&b, 0x3), Some(RxFrame { start: 32, len: 40, rssi: -61 }));
+    assert_eq!(parse(&b, 0x3), Some(RxFrame { start: 32, len: 40, rssi: -61, sec: None }));
     assert_eq!(kind(&b), Kind::Frame);
 }
 
@@ -36,15 +37,13 @@ fn every_group_and_the_pad_move_the_start() {
 }
 
 #[test]
-fn errors_band_1_translation_and_decryption_are_refused() {
-    for d1 in [1 << 25, 1 << 26, 1 << 27, 1 << 28, 5 << 16] {
+fn errors_band_1_and_translation_are_refused() {
+    for d1 in [1 << 25, 1 << 26, 1 << 27, 1 << 28] {
         assert!(parse(&with(d1, 0, 0, 40), 0x3).is_none(), "{d1:#x}");
     }
     for d2 in [1 << 13, 1 << 23, 1 << 24] {
         assert!(parse(&with(0, d2, 0, 40), 0x3).is_none(), "{d2:#x}");
     }
-    let mismatch = 5 << 16 | 1 << 23;
-    assert!(parse(&with(mismatch, 0, 0, 40), 0x3).is_some(), "a cipher mismatch is not decrypted");
 }
 
 #[test]

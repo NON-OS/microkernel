@@ -53,6 +53,16 @@ impl Ring {
         Some(i)
     }
 
+    /// The slot the next `push` fills.
+    pub fn head(&self) -> u16 {
+        self.head
+    }
+
+    /// Slot `i`'s buffer zeroed, once the chip has read what it held.
+    pub fn wipe(&mut self, i: u16) {
+        self.bufs.fill(i as usize * self.stride, self.stride, 0);
+    }
+
     /// Wait up to `ms` for a free slot, reclaiming as the WFDMA reads.
     pub fn wait_room(&mut self, regs: &Regs, ms: u64) -> bool {
         crate::clock::until_ms(ms, || {

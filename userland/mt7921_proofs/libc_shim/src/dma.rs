@@ -61,3 +61,14 @@ pub fn dma_at(dev: u32, len: usize) -> Option<*mut u8> {
         })
     })
 }
+
+/// Whether any grant still holds `needle`: a key left behind in DMA memory.
+pub fn dma_holds(needle: &[u8]) -> bool {
+    REGIONS.with(|r| {
+        r.borrow().iter().any(|&(_, va, size)| {
+            // SAFETY: a live grant of `size` bytes at `va`.
+            let s = unsafe { std::slice::from_raw_parts(va as *const u8, size) };
+            s.windows(needle.len()).any(|w| w == needle)
+        })
+    })
+}

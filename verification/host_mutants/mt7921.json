@@ -319,17 +319,6 @@
   "crate": "userland/mt7921_proofs"
  },
  {
-  "name": "mt7921-rx-decrypted-taken",
-  "file": "userland/capsule_driver_mt7921/src/mac/rxd.rs",
-  "old": "d2 & BAD2 != 0 || decrypted {",
-  "new": "d2 & BAD2 != 0 {",
-  "test": "_tests::",
-  "args": [
-   "--release"
-  ],
-  "crate": "userland/mt7921_proofs"
- },
- {
   "name": "mt7921-rx-group2-size",
   "file": "userland/capsule_driver_mt7921/src/mac/rxd.rs",
   "old": "(G2, 2), (G3, 2)]",
@@ -770,6 +759,336 @@
   "old": "Err(Stage::PackageMissing)",
   "new": "Err(Stage::PackageMismatch)",
   "test": "client_stage_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-key-protect-frame-unset",
+  "file": "userland/capsule_driver_mt7921/src/mac/txd.rs",
+  "old": "let w3 = w3 | u32::from(s.protect) << 1; // PROTECT_FRAME",
+  "new": "let w3 = w3; // PROTECT_FRAME",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-key-frame-sent-unkeyed",
+  "file": "userland/capsule_driver_mt7921/src/radio/send.rs",
+  "old": "if protect && !(to_ap && self.card.keyed) {",
+  "new": "if protect && !to_ap {",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-key-refused-taken-as-held",
+  "file": "userland/capsule_driver_mt7921/src/radio/keys.rs",
+  "old": "self.card.keyed = ok;",
+  "new": "self.card.keyed = true;",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-key-kept-across-association",
+  "file": "userland/capsule_driver_mt7921/src/radio/assoc.rs",
+  "old": "        self.card.keyed = false;\n",
+  "new": "",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-key-tlv-tag",
+  "file": "userland/capsule_driver_mt7921/src/vif/key.rs",
+  "old": "const KEY_V2: u16 = 0x11;",
+  "new": "const KEY_V2: u16 = 0x10;",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-key-tlv-length-uncut",
+  "file": "userland/capsule_driver_mt7921/src/vif/key.rs",
+  "old": "let len = (8 + KEY_LEN * keys.len()) as u16;",
+  "new": "let len = SEC_LEN as u16;",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-key-pairwise-under-own-entry",
+  "file": "userland/capsule_driver_mt7921/src/vif/key.rs",
+  "old": "body(AP_WCID, OMAC_IDX, &[(CIPHER_CCMP, 0, tk)])",
+  "new": "body(OWN_WCID, OMAC_IDX, &[(CIPHER_CCMP, 0, tk)])",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-key-group-under-station-muar",
+  "file": "userland/capsule_driver_mt7921/src/vif/key.rs",
+  "old": "None => body(OWN_WCID, 0xe, &[(CIPHER_CCMP, id, gtk)]),",
+  "new": "None => body(OWN_WCID, 0, &[(CIPHER_CCMP, id, gtk)]),",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-key-group-index-lost",
+  "file": "userland/capsule_driver_mt7921/src/vif/key.rs",
+  "old": "(CIPHER_CCMP, id, gtk), (CIPHER_BIP_CMAC, 0, i)",
+  "new": "(CIPHER_CCMP, 0, gtk), (CIPHER_BIP_CMAC, 0, i)",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-key-igtk-cipher",
+  "file": "userland/capsule_driver_mt7921/src/vif/key.rs",
+  "old": "pub const CIPHER_BIP_CMAC: u8 = 10;",
+  "new": "pub const CIPHER_BIP_CMAC: u8 = 11;",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-key-ring-slot-kept",
+  "file": "userland/capsule_driver_mt7921/src/card.rs",
+  "old": "self.dma.tx_wm.wipe(slot);",
+  "new": "let _ = slot;",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-key-body-kept",
+  "file": "userland/capsule_driver_mt7921/src/card.rs",
+  "old": "        nonos_wifi_core::vault::wipe(body);\n",
+  "new": "",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-key-group-outlives-leave",
+  "file": "userland/capsule_driver_mt7921/src/vif/own.rs",
+  "old": "let reset = c.cmd(STA_REC_UPDATE, &own_body(basic_was.bssid, false), true);",
+  "new": "let reset = true;",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rx-icv-error-taken",
+  "file": "userland/capsule_driver_mt7921/src/mac/rxd.rs",
+  "old": "const BAD1: u32 = 1 << 25 | 1 << 26 |",
+  "new": "const BAD1: u32 = 1 << 26 |",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rx-cipher-mismatch-decrypted",
+  "file": "userland/capsule_driver_mt7921/src/mac/sec.rs",
+  "old": "if !protected || mode == 0 || d1 & CM_CLM != 0 {",
+  "new": "if !protected || mode == 0 {",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rx-unprotected-decrypted",
+  "file": "userland/capsule_driver_mt7921/src/mac/sec.rs",
+  "old": "if !protected || mode == 0 || d1 & CM_CLM != 0 {",
+  "new": "if mode == 0 || d1 & CM_CLM != 0 {",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rx-other-cipher-taken",
+  "file": "userland/capsule_driver_mt7921/src/mac/sec.rs",
+  "old": "} else if mode == AES_CCMP {",
+  "new": "} else if mode != 0 {",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rx-key-index-lost",
+  "file": "userland/capsule_driver_mt7921/src/mac/sec.rs",
+  "old": "0x20 | key_id << 6",
+  "new": "0x20",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rx-pn-order",
+  "file": "userland/capsule_driver_mt7921/src/mac/sec.rs",
+  "old": ".take(6).rev()",
+  "new": ".take(6)",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rx-mic-room-missing",
+  "file": "userland/capsule_driver_mt7921/src/mac/sec.rs",
+  "old": "let n = frame.len().checked_add(16)?;",
+  "new": "let n = frame.len().checked_add(8)?;",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rx-decrypted-without-pn",
+  "file": "userland/capsule_driver_mt7921/src/mac/rxd.rs",
+  "old": "pn(&b[g1?..])",
+  "new": "pn(&b[g1.unwrap_or(4)..])",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rx-decrypted-word-lost",
+  "file": "userland/capsule_driver_mt7921/src/radio/data.rs",
+  "old": "f.rssi, true));",
+  "new": "f.rssi, false));",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "wifi-core-offload-unprotected",
+  "file": "userland/nonos_wifi_core/src/station/offload.rs",
+  "old": "out[1] |= (FC_PROTECTED >> 8) as u8;",
+  "new": "let _ = FC_PROTECTED;",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "wifi-core-offload-sent-plain",
+  "file": "userland/nonos_wifi_core/src/softmac/session/chip.rs",
+  "old": "if self.station.offloaded() && protected {",
+  "new": "if false && protected {",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "wifi-core-offload-never-taken",
+  "file": "userland/nonos_wifi_core/src/softmac/session/chip.rs",
+  "old": "station.offload(crypto == Crypto::HostIv);",
+  "new": "let _ = Crypto::HostIv;",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "wifi-core-join-group-key-not-installed",
+  "file": "userland/nonos_wifi_core/src/softmac/session/chip.rs",
+  "old": "station.chip_group(id)) {\n        r.set_key(&g);",
+  "new": "station.chip_group(id)) {\n        let _ = g;",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "wifi-core-rekey-group-key-not-installed",
+  "file": "userland/nonos_wifi_core/src/softmac/session/chip.rs",
+  "old": "self.station.chip_group(id)) {\n            r.set_key(&g);",
+  "new": "self.station.chip_group(id)) {\n            let _ = g;",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "wifi-core-rekey-pairwise-refusal-kept",
+  "file": "userland/nonos_wifi_core/src/softmac/session/chip.rs",
+  "old": "!pairwise || self.station.chip_pairwise().is_some_and(|p| r.set_key(&p))",
+  "new": "!pairwise || self.station.chip_pairwise().is_some_and(|p| r.set_key(&p) || true)",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "wifi-core-rekey-pairwise-not-installed",
+  "file": "userland/nonos_wifi_core/src/softmac/session/chip.rs",
+  "old": "!pairwise || self.station.chip_pairwise().is_some_and(|p| r.set_key(&p))",
+  "new": "true",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "wifi-core-offload-mgmt-sealed-in-software",
+  "file": "userland/nonos_wifi_core/src/station/keys.rs",
+  "old": "return self.chip_frame(frame, host_iv);",
+  "new": "let _ = host_iv;",
+  "test": "_tests::",
   "args": [
    "--release"
   ],

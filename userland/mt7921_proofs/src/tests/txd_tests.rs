@@ -20,7 +20,8 @@ fn frame(fc: [u8; 2], a1: [u8; 6], len: usize) -> Vec<u8> {
     f
 }
 
-const SPEC: TxSpec = TxSpec { wcid: 1, token: 0x2a, frame_dev: 0x1234_5000, rate: 0x4b };
+const SPEC: TxSpec =
+    TxSpec { wcid: 1, token: 0x2a, frame_dev: 0x1234_5000, rate: 0x4b, protect: false };
 
 #[test]
 fn an_authentication_goes_to_altx0_at_a_fixed_rate_under_its_sequence() {
@@ -28,11 +29,7 @@ fn an_authentication_goes_to_altx0_at_a_fixed_rate_under_its_sequence() {
     assert_eq!(w(&t, 0), (30 + 32) | 0x10 << 25, "bytes with the TXD, CT format, ALTX0");
     assert_eq!(w(&t, 1), 1 << 31 | 1 | 2 << 16 | 12 << 11, "long, wcid, 802.11, 24-byte header");
     assert_eq!(w(&t, 2), 0xb | 1 << 13 | 1 << 31, "subtype, type 0, HTC_VLD, FIX_RATE");
-    assert_eq!(
-        w(&t, 3),
-        15 << 11 | 0x123 << 16 | 1 << 28 | 1 << 31,
-        "retries, seq, no BA, SN_VALID"
-    );
+    assert_eq!(w(&t, 3), 15 << 11 | 0x123 << 16 | 1 << 28 | 1 << 31, "no BA, SN_VALID");
     assert_eq!((w(&t, 6), w(&t, 7)), (1 << 2 | 0x4b << 16, 0xb << 16));
     assert_eq!(u16::from_le_bytes([t[32], t[33]]), 0x2a | 1 << 15, "the token, valid");
     assert_eq!((w(&t, 10), u16::from_le_bytes([t[44], t[45]])), (0x1234_5000, 30 | 1 << 15));

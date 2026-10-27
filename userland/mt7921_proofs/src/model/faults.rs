@@ -35,4 +35,8 @@ pub struct Faults {
     pub doze: bool,
     /// The WFDMA stays busy until its logic reset (a warm reboot).
     pub stuck_busy: bool,
+    /// A protected frame no key matches comes up as it was heard.
+    pub pass_unkeyed: bool,
+    /// Every key command is answered with a failed status.
+    pub refuse_keys: bool,
 }

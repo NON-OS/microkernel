@@ -4,8 +4,9 @@
 //! (`UNI_ROC_ACQUIRE`, tag 0) moves the radio to its channel and is granted
 //! unasked with its token; an abort (tag 1) leaves the channel. A BSS's
 //! RLM TLV (tag 2) gives the BSS's channel to its context; its basic TLV
-//! disconnected (state 1) takes it away. Every device, BSS and station
-//! command is answered with the status the faults name.
+//! disconnected (state 1) takes it away. A station record goes to the key
+//! table (`keys`). Every device, BSS and station command is answered with
+//! the status the faults name, a key the table refused with a failure.
 
 use super::chip::Chip;
 use super::reply;
@@ -32,6 +33,12 @@ impl Chip {
             (0x02, 0) if body.get(16) == Some(&1) => {
                 self.mcu.bss = None;
                 Some(reply::uni(seq, cid, self.faults.uni_status))
+            }
+            (0x03, _) => {
+                let key = body.get(8..10) == Some(&[0x11, 0]);
+                let ok = body.len() >= 8 && !(key && self.faults.refuse_keys);
+                let ok = ok && self.keys.sta_rec(body);
+                Some(reply::uni(seq, cid, if ok { self.faults.uni_status } else { 1 }))
             }
             _ => Some(reply::uni(seq, cid, self.faults.uni_status)),
         }

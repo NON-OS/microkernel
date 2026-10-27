@@ -9,11 +9,14 @@
 //! firmware download, and an access point on the air.
 
 pub mod air;
+pub mod ap_tx;
 pub mod chip;
+mod crypt;
 pub mod data;
 pub mod doze;
 pub mod faults;
 pub mod images;
+pub mod keys;
 mod l1;
 pub mod mcu;
 mod mcu_cmds;
@@ -27,6 +30,7 @@ pub mod reply;
 pub mod rig;
 pub mod rings;
 mod rx;
+pub mod rxd;
 pub mod wire;
 pub mod wpa3;
 

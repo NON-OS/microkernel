@@ -25,5 +25,5 @@ pub mod session;
 pub mod stats;
 pub use assoc::Association;
 pub use engine::SoftStation;
-pub use radio::{Env, Radio, RxInfo};
+pub use radio::{ChipKey, Crypto, Env, Radio, RxInfo};
 pub use stats::LinkStats;

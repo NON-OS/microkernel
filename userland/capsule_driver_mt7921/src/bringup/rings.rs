@@ -36,7 +36,7 @@ pub fn up(m: &Mapped, regs: Regs) -> Result<Card, Stage> {
     }
     wfdma::enable(&regs);
     line("stage rings: WFDMA on, six rings armed");
-    Ok(Card { regs, dma, mcu: Mcu::default(), tokens: Tokens::default(), woken: 0 })
+    Ok(Card { regs, dma, mcu: Mcu::default(), tokens: Tokens::default(), woken: 0, keyed: false })
 }
 
 /// The engine stopped and Bus Master off, for a card that is not served.

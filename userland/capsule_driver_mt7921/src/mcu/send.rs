@@ -12,6 +12,8 @@
 
 use alloc::vec::Vec;
 
+use nonos_wifi_core::vault::wipe;
+
 use super::cmd::Cmd;
 use super::frame::frame;
 use super::reply::Reply;
@@ -38,10 +40,13 @@ impl Mcu {
         let seq = self.next_seq();
         let mut buf = [0u8; CMD_MAX];
         let n = frame(cmd, seq, body, &mut buf).ok_or(McuError::TooLong)?;
-        if !dma.tx_wm.wait_room(regs, ROOM_MS) {
-            return Err(McuError::NoRoom);
+        let room = dma.tx_wm.wait_room(regs, ROOM_MS);
+        let pushed = room && dma.tx_wm.push(&buf[..n]).is_some();
+        // A command may carry a key: its framing goes once it is on the ring.
+        wipe(&mut buf[..n]);
+        if !pushed {
+            return Err(if room { McuError::TooLong } else { McuError::NoRoom });
         }
-        dma.tx_wm.push(&buf[..n]).ok_or(McuError::TooLong)?;
         dma.tx_wm.kick(regs);
         if !wait {
             return Ok(Reply { event: Vec::new() });

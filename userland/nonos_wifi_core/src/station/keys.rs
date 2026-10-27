@@ -1,18 +1,4 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// NONOS Operating System (AGPL-3.0-or-later)
 
 //! The link's keys and its view of the association: what the join handed
 //! over, what a group rekey replaced, and what the driver may ask about.
@@ -52,8 +38,12 @@ impl LinkStation {
 
     /// Protect a robust management frame to the AP (a deauthentication, with
     /// management frame protection on) under the pairwise key, advancing the
-    /// packet number data frames share. `None` without a software key.
+    /// packet number data frames share; with the keys in the chip, marked for
+    /// it to protect (`chip_frame`). `None` without a pairwise key.
     pub fn protect_mgmt(&mut self, frame: &[u8]) -> Option<alloc::vec::Vec<u8>> {
+        if let Ccmp::Offload { host_iv, .. } = self.ccmp {
+            return self.chip_frame(frame, host_iv);
+        }
         let tk = self.pairwise_key()?;
         let pn = self.pn.wrapping_add(1);
         let out = seal(frame, pn, &tk)?;
@@ -64,7 +54,9 @@ impl LinkStation {
     pub(super) fn pairwise_key(&self) -> Option<TemporalKey> {
         match &self.ccmp {
             Ccmp::Hardware => None,
-            Ccmp::Software { tk } | Ccmp::SoftwareTxHwRx { tk } => Some(TemporalKey::Ccmp128(*tk)),
+            Ccmp::Software { tk } | Ccmp::SoftwareTxHwRx { tk } | Ccmp::Offload { tk, .. } => {
+                Some(TemporalKey::Ccmp128(*tk))
+            }
             Ccmp::Gcmp256 { tk } => Some(TemporalKey::Gcmp256(*tk)),
         }
     }
