@@ -17,12 +17,18 @@
 //! `Line::who`: a process's name, as a console may show it (who.rs).
 
 use super::line::Line;
-use super::who::shown;
+use super::who::{app_shown, shown};
 
 impl Line {
     /// Append the process name `name`, a Linux guest's left out unless the
     /// build has capsule serial output.
     pub fn who(&mut self, name: &[u8]) -> &mut Self {
         self.str(shown(name, cfg!(feature = "capsule-serial-debug")))
+    }
+
+    /// Append an app's listing or package name, left out unless the build
+    /// has capsule serial output.
+    pub fn app(&mut self, name: &[u8]) -> &mut Self {
+        self.str(app_shown(name, cfg!(feature = "capsule-serial-debug")))
     }
 }
