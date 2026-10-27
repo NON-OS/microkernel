@@ -26,6 +26,7 @@ pub(super) const SCOPE: &[(&str, &[Match])] = &[
     ("driver.rtl8821ce0", &[Ids(REALTEK, &[0xB821, 0xB821, 0xC821, 0xC821])]),
     ("driver.rtl8822ce0", &[Ids(REALTEK, &[0xC822, 0xC822, 0xC82F, 0xC82F])]),
     ("driver.mt7921e0", MT7921),
+    ("driver.rtl8852be0", &[Ids(REALTEK, &[0xB852, 0xB852, 0xB85B, 0xB85B])]),
     // Storage, SD and USB hosts bind by class, as their capsules do (ufs0's takes listed hosts).
     ("driver.nvme0", &[Class { vendor: ANY, class: 0x01, sub: 0x08, progif: Some(0x02) }]),
     ("driver.ahci0", AHCI),

@@ -30,7 +30,8 @@ import gate
 
 BASELINE = Path("scripts/baselines/unproved_drivers.txt")
 # Proof crates whose name is not <driver>_proofs.
-ALIASES = {"usb_hid": "usb_proofs", "ahci": "ahci_link_proofs", "sdhci": "emmc_proofs"}
+ALIASES = {"usb_hid": "usb_proofs", "ahci": "ahci_link_proofs", "sdhci": "emmc_proofs",
+           "rtl8852be": "rtl8852_proofs"}
 
 
 def drivers(root):

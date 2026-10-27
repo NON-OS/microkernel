@@ -28,8 +28,7 @@ pub enum HardwareFamily {
     StorageSdhci,
     /// A UFS host controller, class 01h subclass 09h: driver.ufs0's.
     StorageUfs,
-    /// Intel PIIX3/PIIX4 IDE (8086:7010, 8086:7111): QEMU's pc machine,
-    /// VirtualBox's default, Hyper-V Generation 1.
+    /// Intel PIIX3/PIIX4 IDE (8086:7010, 8086:7111): QEMU pc, VirtualBox, Hyper-V Gen 1.
     StorageIde,
     NetworkVirtio,
     /// The 8254x parts the e1000 capsule takes.
@@ -52,8 +51,9 @@ pub enum HardwareFamily {
     NetworkTulip,
     NetworkRtl8821ce,
     NetworkRtl8822ce,
+    NetworkRtl8852be,
     NetworkIwlwifi,
-    /// A Realtek wireless part other than the RTL8821CE and RTL8822CE.
+    /// A Realtek wireless part no driver here takes (the RTL8852CE among them).
     NetworkRealtekWifi,
     NetworkMt7921,
     DisplayGopFramebuffer,

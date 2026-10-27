@@ -337,3 +337,55 @@ DPK yet, so a weaker signal than under Linux is expected, not a fault.
       above if any, the laptop model, the signal notes, and the first
       `[rtl8822ce]` line that differs from this list. No line from this
       driver carries a MAC address, an SSID or a serial number.
+
+## Realtek RTL8852BE Wi-Fi
+
+The RTL8852BE driver (`driver.rtl8852be0`) is host-proven only: QEMU has
+no RTL8852BE and it has never run on one. A first boot with the card is
+its test. The `[rtl8852be]` lines print on a development image (`Debug`
+granted to the capsule); on another image read the same facts from the
+Settings Wi-Fi panel's status (the stage). It
+runs the card as a 20 MHz station with 802.11a/b/g rates and no TSSI or
+DPK, so slower links and a weaker signal than under Linux are expected,
+not a fault.
+
+- [ ] What to boot: a `standard-dev` image at or after the RTL8852BE
+      commit, on a laptop with an RTL8852BE (10ec:b852, or 10ec:b85b).
+      Wi-Fi on in the firmware settings; the RF-kill switch on. Leave any
+      wired cable out so a lease can only come over Wi-Fi.
+- [ ] Before: if the machine runs Linux, save `lspci -nn -vv -d 10ec:`
+      (the memory BAR's size, expected 1M) and `dmesg | grep -i rtw89`
+      (the `Firmware version 0.29.29.15` line, the `chip rfe_type` line,
+      and any `failed to` line).
+- [ ] Inventory: `log HW` shows `[HW] 10ec:b852 02/80 driven by
+      driver_rtl8852be` (or `b85b`).
+- [ ] Bring-up, in the Terminal `log rtl8852be`. Expected, in order:
+      `[rtl8852be] firmware up, efuse and phy capabilities read`,
+      `[rtl8852be] station interface ready; tx power open loop, no TSSI or DPK`,
+      `[rtl8852be] serving`. The panel's stage reads Ready.
+- [ ] A refusal names its step; keep the line and the panel's stage:
+      `claim or map refused, step N errno M`, `bus master refused`,
+      `ring mapping failed` (stage 5), `probe stopped` (stage 2 power, 4
+      firmware or mailbox, 6 efuse, 12 a PCIe or MAC step),
+      `one-antenna board not supported` (stage 8: note the laptop model),
+      `start stopped` (stage 12: a MAC, PHY or calibration step), `no
+      entropy for an address` (stage 7), `station interface set-up
+      failed` (stage 12). `firmware did not take every rf register page`
+      and `mac: BA CAM reset did not finish` are not fatal: note them and
+      go on.
+- [ ] Scan: within about ten seconds the Settings panel lists the networks
+      in range on 2.4 and 5 GHz, adapter `Realtek RTL8852BE`. The signal
+      shown is not a measurement on this driver (RSSI is not read yet).
+- [ ] Join (WPA2, then WPA3 if an access point offers it, once on a
+      2.4 GHz and once on a 5 GHz network): the panel reads Joined;
+      `[NET-CORE] bind: interface up on driver.rtl8852be0`, then a lease
+      (`[NET-CORE] lease-status state=...`); a page loads in the browser.
+      A download of a hundred megabytes completes; note how long, and the
+      distance to the access point.
+- [ ] Leave: disconnect from the panel; the link reads down and the scan
+      resumes. Join again: it comes back.
+- [ ] Send back: `log rtl8852be net-core > rtl8852be.txt`, the boot log
+      (`log > boot-log.txt`), `log HW > devices.txt`, the Linux lines
+      above if any, the laptop model, the download notes, and the first
+      `[rtl8852be]` line that differs from this list. No line from this
+      driver carries a MAC address, an SSID or a serial number.

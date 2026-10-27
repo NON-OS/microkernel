@@ -70,5 +70,6 @@ pub mod rtl8822ce;
 mod classify_tests;
 mod mediatek_tests;
 mod report_tests;
+mod rtl8852be_tests;
 mod serial_bus_tests;
 mod table_tests;

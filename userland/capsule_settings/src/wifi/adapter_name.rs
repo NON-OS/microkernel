@@ -28,6 +28,7 @@ pub fn adapter_label(vendor: u16, device: u16) -> &'static str {
     match (vendor, device) {
         (REALTEK, 0xB821 | 0xC821) => "Realtek RTL8821CE",
         (REALTEK, 0xC822 | 0xC82F) => "Realtek RTL8822CE",
+        (REALTEK, 0xB852 | 0xB85B) => "Realtek RTL8852BE",
         (MEDIATEK, 0x7961 | 0x0608) => "MediaTek MT7921",
         (MEDIATEK | 0x0B48, 0x7922) | (MEDIATEK, 0x0616) => "MediaTek MT7922",
         (MEDIATEK, 0x7920) => "MediaTek MT7920",

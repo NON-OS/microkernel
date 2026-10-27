@@ -19,7 +19,8 @@ wifi	Intel AX210/AX211/AX411/BE200	2021-2026	1	8086:2725 8086:51f0 8086:51f1 808
 wifi	Intel 8265/8260/7265	2015-2019	2	8086:24fd 8086:24f3 8086:095a	userland/capsule_driver_iwlwifi/src/firmware/gen3/select	nonos-capsule-driver-iwlwifi	E	P2	recognised, never claimed
 wifi	Realtek RTL8821CE	2017-2022	2	10ec:c821 10ec:b821	userland/capsule_driver_rtl8821ce/src/constants	nonos-capsule-driver-rtl8821ce	E	-	works on the bench laptop (6 Oct report)
 wifi	Realtek RTL8822CE	2019-2026	1	10ec:c822 10ec:c82f	userland/capsule_driver_rtl8822ce/src/constants/pci.rs	nonos-capsule-driver-rtl8822ce	E	P1	host-proven only; never run on the card
-wifi	Realtek RTL8852AE/BE	2019-2026	1	10ec:8852 10ec:b852	-	-	E	P1	no driver
+wifi	Realtek RTL8852BE	2021-2026	1	10ec:b852 10ec:b85b	userland/capsule_driver_rtl8852be/src/ids.rs	nonos-capsule-driver-rtl8852be	E	P1	host-proven only (WPA2 and WPA3 join and data in the model); 20 MHz legacy rates, TX power open loop; never run on the card
+wifi	Realtek RTL8852AE/CE	2019-2026	1	10ec:8852 10ec:c852	-	-	E	P1	no driver
 wifi	MediaTek MT7921/MT7922	2021-2026	1	14c3:7961 14c3:0616	userland/capsule_driver_mt7921/src/ids.rs	nonos-capsule-driver-mt7921	E	P1	host-proven only (WPA2 join and data in the model); firmware from the package beside the image; never run on a card
 wifi	Qualcomm QCA6174, WCN685x	2016-2026	2	168c:003e 17cb:1103	-	-	E	P2	no driver
 storage	AHCI SATA, any vendor (Intel PCH, AMD FCH and Promontory, ASMedia)	2017-2026	1	class:01/06	-	nonos-capsule-driver-ahci	B	P1	class match; booted in QEMU only on main

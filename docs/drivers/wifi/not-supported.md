@@ -41,10 +41,11 @@ The Settings tests hold these ids to `has_driver` returning false (`userland/cap
 | Qualcomm, ath10k family | 168c:003e | none |
 | Qualcomm, ath11k family | 17cb:1103 | none |
 | Realtek RTL8822BE | 10ec:b822 | none |
+| Realtek RTL8852CE | 10ec:c852 | none |
 
 The MediaTek MT7921 and MT7922 (14c3:7961, 7922, 0608, 0616, 7920 and 0b48:7922) have a driver since October 2026, host-proven only ([mt7921.md](mt7921.md)).
 
-The same Realtek rule covers every other Realtek Wi-Fi chip, the RTL8852 family included: for vendor 10ec, only devices b821 and c821 (RTL8821CE) and c822 and c82f ([RTL8822CE](rtl8822ce.md), host-proven only) have a driver. Intel BE200 and BE201 (8086:272b, a840, 7740, 4d40) are taken by the iwlwifi driver since its BZ-family work, host-proven only ([iwlwifi.md](iwlwifi.md#be200-and-be201)).
+The same Realtek rule covers every other Realtek Wi-Fi chip, the RTL8852AE and RTL8852CE included: for vendor 10ec, only devices b821 and c821 (RTL8821CE), c822 and c82f ([RTL8822CE](rtl8822ce.md), host-proven only) and b852 and b85b ([RTL8852BE](rtl8852be.md), host-proven only) have a driver. Intel BE200 and BE201 (8086:272b, a840, 7740, 4d40) are taken by the iwlwifi driver since its BZ-family work, host-proven only ([iwlwifi.md](iwlwifi.md#be200-and-be201)).
 
 No driver [capsule](../../overview/glossary-boot-root-record.md#capsule) for any of these chips exists in the tree.
 
@@ -54,7 +55,7 @@ The tree carries vendor firmware for several of these chips, and their presence 
 
 - The bootloader embeds firmware for the RTL8822B, RTL8822C, RTL8723D, RTL8851B and RTL8852A, B and C, and hands it to the kernel (`nonos-bootloader/src/firmware/loader.rs:33-47`, `FIRMWARE_TABLE`).
 - The kernel's lookup for Realtek Wi-Fi firmware has no caller, and no capsule reads those files through it (`src/boot/firmware.rs:85-104`, `get_realtek_wifi_firmware`).
-- The Realtek files a driver links are `rtw8821c_fw.bin` (`userland/capsule_driver_rtl8821ce/src/fwload.rs:38`, `include_bytes`) and `rtw8822c_fw.bin` (`userland/capsule_driver_rtl8822ce/src/fwload/image.rs`, `FW`).
+- The Realtek files a driver links are `rtw8821c_fw.bin` (`userland/capsule_driver_rtl8821ce/src/fwload.rs:38`, `include_bytes`) `rtw8822c_fw.bin` (`userland/capsule_driver_rtl8822ce/src/fwload/image.rs`, `FW`) and `rtw8852b_fw-1.bin` (`userland/capsule_driver_rtl8852be/src/fw/mod.rs`, `IMAGE`).
 - `nonos-bootloader/firmware/mediatek/mt7921e_fw.bin` and `mt7922_fw.bin` are empty files and stay so (`scripts/check_mediatek_firmware.py` fails otherwise); the MT7921 driver's firmware is a package on the boot medium ([mt7921.md](mt7921.md#the-firmware-package)), and `nonos-bootloader/firmware/qualcomm/qca6174a-wifi.bin` is 57 bytes. No code reads any of them.
 
 ## What to use instead
