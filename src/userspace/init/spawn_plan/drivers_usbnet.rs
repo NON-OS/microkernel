@@ -18,12 +18,15 @@
 //! adapter or a tethered phone is plugged in is known only once each driver
 //! searches the ports, and each keeps searching while it has no device.
 
+mod ax88179;
+
 pub(super) fn spawn() {
     // Said only by a build that carries one of them.
     #[cfg(any(
         feature = "nonos-capsule-driver-cdc-ecm",
         feature = "nonos-capsule-driver-cdc-ncm",
-        feature = "nonos-capsule-driver-rndis"
+        feature = "nonos-capsule-driver-rndis",
+        feature = "nonos-capsule-driver-ax88179"
     ))]
     if !super::usb_host::usb_host() {
         crate::sys::boot_log::ok("DRIVER-USBNET", "no USB host, not spawned");
@@ -32,6 +35,7 @@ pub(super) fn spawn() {
     spawn_cdc_ecm();
     spawn_cdc_ncm();
     spawn_rndis();
+    ax88179::spawn();
 }
 
 #[cfg(feature = "nonos-capsule-driver-cdc-ecm")]
