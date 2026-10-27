@@ -15,34 +15,31 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! An open stream through net.socks5: what the guest sent and the proxy
-//! has not taken, what came back and the guest has not read, and how it
-//! ended. It is carried in slices (pump.rs).
+//! has not taken (queue.rs), what came back and the guest has not read, and
+//! how it ended. It is carried in slices (pump.rs).
 
 use alloc::vec::Vec;
 
 use nonos_route_link::RouteStream;
 
 use super::super::sock::End;
+use super::queue::Queue;
 
-/// The most a guest's bytes queue here before a send waits.
-pub const TX_MAX: usize = 64 << 10;
+pub use super::queue::TX_MAX;
 
 pub struct Link {
     pub stream: u32,
     pub(super) route: RouteStream,
-    pub tx: Vec<u8>,
-    /// How many of `tx` the frame still unanswered carries, 0 for none.
-    pub(super) offered: usize,
+    /// What the guest wrote; once a write fails nothing more is sent, and
+    /// what came is still read.
+    pub queue: Queue,
     /// What came back and the guest has not read; filled only when empty.
     pub rx: Vec<u8>,
     pub end: Option<End>,
-    /// A write failed: nothing more is sent, and what came is still read.
-    pub broken: bool,
 }
 
 impl Link {
     pub fn new(stream: u32, route: RouteStream) -> Link {
-        let (tx, rx) = (Vec::new(), Vec::new());
-        Link { stream, route, tx, offered: 0, rx, end: None, broken: false }
+        Link { stream, route, queue: Queue::default(), rx: Vec::new(), end: None }
     }
 }
