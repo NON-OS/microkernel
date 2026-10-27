@@ -2,7 +2,11 @@
 
 First draft (S3, 2026-10-27). SimpleX Chat is a messenger with no user identifiers: no phone number, no account name and no ID that a server can tie your contacts together by. On NØNOS it comes in two parts:
 
-- **SimpleX Chat core** is the Marketplace listing `linux.kali.nonos-simplex-chat`. It is SimpleX's own `simplex-chat` program, the release binary SimpleX publishes, not one built here. It runs in a Linux box with no window, and the app drives it over its local API.
+- **SimpleX Chat core** is SimpleX's own `simplex-chat` v7.0.3 program. It runs in a Linux box with no window, and the app drives it over its local API.
+
+The core is listed in one of two ways:
+
+- **Fallback.** `linux.kali.nonos-simplex-chat`: the glibc release binary SimpleX publishes, with the Debian libraries it needs. The rest of the "What you install" section describes this one.
 
 Each claim is marked with how far it has been checked, as in [Privacy apps](privacy-apps.md): **booted**, **host-tested** or **design**. Nothing on this page is booted yet.
 
