@@ -75,3 +75,39 @@ Settings Wi-Fi panel's status (stage, step, detail).
       drivers.txt`, the Linux lines above if any, which card and laptop
       model, and the first `[iwlwifi]` line that differs from this list.
       The logs never carry a MAC address, SSID or BSSID from this driver.
+
+## Realtek RTL8153 USB Ethernet adapter
+
+The RTL8153 driver (`capsule_driver_rtl8153`) is host-proven only: it has
+never driven a real adapter. A first plug-in is its test. The `[usbnet
+rtl8153]` lines print on a development image (`Debug` granted to the
+capsule). Use a machine whose built-in Ethernet NONOS does not drive, or
+leave its cable out, so the lease can only come through the adapter.
+
+- [ ] What to plug: an RTL8153 or RTL8153B adapter (Realtek 0bda:8153, or a
+      Lenovo, Microsoft, TP-Link, Linksys, Samsung or Nvidia rebrand; the
+      ids are in `userland/capsule_driver_rtl8153/BINDING.md`), with a
+      cable to a network that serves DHCP. If the machine also runs Linux,
+      save `lsusb` and `dmesg | grep r8152` (its `Detected version` line).
+- [ ] Boot a `standard-dev` image at or after the RTL8153 commit, then plug
+      the adapter into a USB 3 port on the machine (not a hub) once the
+      desktop is up; then try it again plugged in before boot.
+- [ ] In the Terminal: `log rtl8153 net-core`. Expected, in order:
+      `[usbnet rtl8153] started, looking for a device`,
+      `[usbnet rtl8153] port N: bound`,
+      `[usbnet rtl8153] port N up, drawn station address programmed`,
+      `[NET-CORE] bind: interface up on driver.rtl8153_0`, then the lease
+      line (`[NET-CORE] lease <address>/<prefix> gw <gateway>`), and a page
+      loads in the browser.
+- [ ] A refusal names its step: `chip is an RTL8156, not this driver's
+      errno -19` (another chip under a listed id), `chip never finished
+      loading its settings errno -110`, `PHY never came on errno -110`,
+      `MAC reset never finished errno -110`, `buffer link list never ready
+      errno -110`. Keep that line and the vendor:product it names.
+- [ ] Unplug the cable, then plug it back: the link reads down, then up,
+      and the lease comes back. Unplug the adapter: `device stopped
+      answering, given back`; plug it in again: bound again.
+- [ ] Send back: `log rtl8153 net-core > rtl8153.txt`, the boot log
+      (`log > boot-log.txt`), the Linux lines above if any, the adapter's
+      make and model. No line from this driver carries a MAC address or a
+      serial number.

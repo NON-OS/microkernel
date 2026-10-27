@@ -19,6 +19,7 @@ The states are the [support matrix](../../hardware/MATRIX.md#how-to-read-it)'s:
 | Realtek RTL8169, RTL8168, RTL8111, RTL810x, RTL8125 | 10 ids, vendor 10ec | `driver.rtl8169_0` | yes | Partial: no run shows a frame received, receive batches not yet booted, flake check fails on a lint | [realtek-rtl8169.md](realtek-rtl8169.md) |
 | Realtek RTL8126A, RTL8127A | 10ec:8126, 10ec:8127 | none | no | Not supported: left out of the id table | [realtek-rtl8169.md](realtek-rtl8169.md) |
 | virtio network device | 1af4:1000, 1af4:1041 | `driver.virtio_net0` | yes | Works: the QEMU run targets attach it | this page |
+| Realtek RTL8153, RTL8153B (USB) | 0bda:8153 and 15 rebrands | `driver.rtl8153_0` | no | Integrated, host-proven, not booted on hardware: in Standard, waiting on the release seal | [usb-net.md](usb-net.md) |
 
 No Ethernet driver has a hardware report in 0.9.2. Read from the code on this commit, `net.core` takes received frames from the e1000, RTL8139 and RTL8169 drivers in batches with operation 6, past [the receive fault](#the-receive-fault), but only virtio-net, in a virtual machine, has a run that shows a frame received. For a machine that needs a network now, read [what to use instead](../wifi/not-supported.md#what-to-use-instead).
 
