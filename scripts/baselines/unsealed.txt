@@ -14,6 +14,7 @@ driver-ohci
 driver-pcnet
 driver-piix-ide
 driver-pvscsi
+driver-rtl8153
 driver-sdhci
 driver-tulip
 driver-ufs

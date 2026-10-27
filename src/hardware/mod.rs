@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 pub mod ac97_capsule;
 pub mod ahci_capsule;
 pub mod audio_capsule;
@@ -29,8 +28,8 @@ pub mod e1000_capsule;
 pub mod e1000e_capsule;
 pub mod ehci_capsule;
 pub mod fido_capsule;
-pub mod hda_capsule;
 pub mod gpio_capsule;
+pub mod hda_capsule;
 pub mod i2c_pci_capsule;
 pub mod igb_capsule;
 pub mod igc_capsule;
@@ -39,6 +38,7 @@ pub mod inventory;
 pub mod iwlwifi_capsule;
 pub mod ixgbe_capsule;
 pub mod mpt_capsule;
+pub mod netvsc_capsule;
 pub mod nvme_capsule;
 pub mod ohci_capsule;
 pub mod pcnet_capsule;
@@ -47,12 +47,14 @@ pub mod ps2_kbd_capsule;
 pub mod pvscsi_capsule;
 pub mod rndis_capsule;
 pub mod rtl8139_capsule;
+pub mod rtl8153_capsule;
 pub mod rtl8169_capsule;
 pub mod rtl8821ce_capsule;
 pub mod sdhci_capsule;
 pub mod smbus_capsule;
 pub mod spi_capsule;
 pub mod spi_hid_capsule;
+pub mod storvsc_capsule;
 pub mod tulip_capsule;
 pub mod ufs_capsule;
 pub mod uhci_capsule;
@@ -67,10 +69,8 @@ pub mod virtio_input_capsule;
 pub mod virtio_net_capsule;
 pub mod virtio_rng_capsule;
 pub mod virtio_scsi_capsule;
-pub mod vmmdev_capsule;
 pub mod vmbus_capsule;
-pub mod storvsc_capsule;
-pub mod netvsc_capsule;
+pub mod vmmdev_capsule;
 pub mod vmmouse_capsule;
 pub mod vmware_svga_capsule;
 pub mod vmxnet3_capsule;
