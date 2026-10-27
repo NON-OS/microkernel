@@ -70,7 +70,7 @@ All of it on the host, none on hardware or under QEMU:
 - In each host's proof crate, `nonos_usb_hub`'s own walk runs over that driver's own request dispatch against its model controller, with a model hub on root port 1 (`userland/uhci_proofs/src/hub_lane.rs`, shared by the three).
   - The model halts any transaction whose speed, TT, completion mask or low-speed mark does not match where the device sits (`userland/ehci_proofs/src/model/reach.rs`, `userland/uhci_proofs/src/model/bus.rs`).
   - In `uhci_proofs`, usb_hub0's own walk and root-port pass run over the real host front. Children are parked, listed and claimed, and their bulk data reaches them; detaches and give-backs follow the table, and another client's requests on a slot are refused (`userland/uhci_proofs/src/owner_tests.rs`).
-  - Counts: `uhci_proofs` 55, `ehci_proofs` 52, `ohci_proofs` 50, `xhci_proofs` 152.
+  - Counts: `uhci_proofs` 57, `ehci_proofs` 54, `ohci_proofs` 52, `xhci_proofs` 152.
 
 ## See also
 

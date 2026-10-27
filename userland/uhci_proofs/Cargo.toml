@@ -17,5 +17,8 @@ path = "src/lib.rs"
 nonos_usb_hub = { path = "../nonos_usb_hub" }
 nonos_usb_virt = { path = "../nonos_usb_virt" }
 
+[dev-dependencies]
+nonos_libc = { package = "uhci_proofs_libc_shim", path = "libc_shim" }
+
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

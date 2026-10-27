@@ -1,7 +1,6 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! Host-runnable proofs for the EHCI host. The shipped modules are mounted
-//! at the paths the driver names them by (`crate::facts`, ...); only the
-//! capsule's platform, setup and loop, which call the kernel, are left out.
+//! Host-runnable proofs for the EHCI host: the shipped modules at the driver's
+//! own paths; of its kernel-facing ones, the schedule region alone (region_tests).
 
 #[path = "../../capsule_driver_ehci/src/devices/mod.rs"]
 pub mod devices;
@@ -69,6 +68,7 @@ mod poll_tests;
 mod port_tests;
 #[cfg(test)]
 mod recover_tests;
+mod region_tests;
 #[cfg(test)]
 mod start_tests;
 #[cfg(test)]
