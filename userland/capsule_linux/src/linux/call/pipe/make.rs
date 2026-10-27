@@ -17,40 +17,23 @@
 //! `pipe2`.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::slots::pick;
-use crate::linux::guest::{Fd, Guest};
+use crate::linux::guest::Guest;
 
 use crate::linux::file::flags::{O_CLOEXEC, O_NONBLOCK};
-use crate::linux::file::install;
-
-/// ENFILE: no slot left in the family's table of pipes.
-const ENFILE: i64 = 23;
 
 /// In Linux's order: an unknown flag is EINVAL (O_DIRECT's packet pipes and
 /// notification pipes are not offered, so they are refused rather than
 /// served as byte pipes); both descriptors are taken before either is
-/// given out, so EMFILE leaves neither behind; and a pair that cannot be
-/// written back is EFAULT with both closed again, as do_pipe2 does.
+/// given out, so EMFILE leaves neither behind (pair.rs); and a pair that
+/// cannot be written back is EFAULT with both closed again, as do_pipe2
+/// does.
 pub fn pipe2(guest: &mut Guest, out: u64, flags: u64) -> u64 {
     if flags & !(O_CLOEXEC | O_NONBLOCK) != 0 {
         return errno::fail(errno::EINVAL);
     }
-    /*
-     * A buffer no end names anywhere in the family is taken again before the
-     * table grows; without that, every pipe2 a guest made, and every one it
-     * was refused, grew this capsule's memory for good.
-     */
-    let lent = guest.pipe_ends.len() == guest.pipes.len();
-    let free = |i: usize| lent && guest.pipe_ends.get(i) == Some(&(false, false));
-    let Some(buffer) = pick(guest.pipes.len(), free) else {
-        return errno::fail(ENFILE);
-    };
-    let Some(read_end) = install(guest, Fd::pipe(buffer as u32, false)) else {
-        return errno::fail(errno::EMFILE);
-    };
-    let Some(write_end) = install(guest, Fd::pipe(buffer as u32, true)) else {
-        super::ends::release(guest, read_end);
-        return errno::fail(errno::EMFILE);
+    let (buffer, read_end, write_end) = match super::pair::take(guest) {
+        Ok(taken) => taken,
+        Err(e) => return errno::fail(e),
     };
     let mut pair = [0u8; 8];
     pair[..4].copy_from_slice(&(read_end as u32).to_le_bytes());
