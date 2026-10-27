@@ -30,6 +30,7 @@ DISCOVER = [
     ("driver.rtl8821ce0", "rtl8821ce/src/constants/pci.rs", "RTL8821CE_DEVICE_IDS"),
     ("driver.rtl8822ce0", "rtl8822ce/src/constants/pci.rs", "RTL8822CE_DEVICE_IDS"),
     ("driver.mt7921e0", "mt7921/src/ids.rs", "PCI_IDS"),
+    ("driver.rtl8852be0", "rtl8852be/src/ids.rs", "RTL8852BE_DEVICE_IDS"),
     ("driver.sdhci0", "sdhci/src/emmc/pci/ids.rs", "INTEL_EMMC"),
     ("driver.virtio_blk0", "virtio_blk/src/constants/pci.rs", "VIRTIO_BLK_TRANSITIONAL VIRTIO_BLK_MODERN"),
     ("driver.i2c_pci0", "i2c_pci/src/constants/device_info.rs", "device_info"),

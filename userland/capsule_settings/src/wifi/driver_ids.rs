@@ -26,7 +26,7 @@
 /// start. Anything else (Broadcom, ath10k/ath11k, other Realtek) has none.
 pub fn has_driver(vendor: u16, device: u16) -> bool {
     match vendor {
-        0x10EC => matches!(device, 0xB821 | 0xC821 | 0xC822 | 0xC82F),
+        0x10EC => matches!(device, 0xB821 | 0xC821 | 0xC822 | 0xC82F | 0xB852 | 0xB85B),
         0x14C3 => matches!(device, 0x7961 | 0x7922 | 0x0608 | 0x0616 | 0x7920),
         0x0B48 => device == 0x7922,
         0x8086 => matches!(

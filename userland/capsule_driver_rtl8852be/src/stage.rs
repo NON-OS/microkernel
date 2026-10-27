@@ -2,8 +2,8 @@
 
 //! The stage byte the status op reports: `nonos_wifi_client`'s
 //! `DriverStage` codes, each naming the step that stopped bring-up, and
-//! code 10 for a MAC, PHY or calibration step that failed after the
-//! firmware came up (no older code names that step; reporting one would
+//! code 12 for a PCIe, MAC, PHY or calibration step the chip did not
+//! finish (no older code names that step; reporting one would
 //! send whoever reads it to the wrong part of the chip).
 
 use crate::bring::Stop;
@@ -19,7 +19,7 @@ pub enum Stage {
     NoStationAddress = 7,
     /// A board this driver takes but cannot run: a single-antenna variant.
     NoAirPath = 8,
-    ChipInit = 10,
+    ChipInit = 12,
 }
 
 pub fn stage_of(stop: Stop) -> Stage {
