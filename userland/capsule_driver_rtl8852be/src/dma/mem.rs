@@ -17,13 +17,6 @@ pub trait DmaMem {
     /// returns false.
     fn read(&self, offset: usize, dst: &mut [u8]) -> bool;
 
-    fn write_u32(&self, offset: usize, v: u32) {
-        self.write(offset, &v.to_le_bytes());
-    }
-    fn read_u32(&self, offset: usize) -> Option<u32> {
-        let mut b = [0u8; 4];
-        self.read(offset, &mut b).then_some(u32::from_le_bytes(b))
-    }
     /// The bus address of `offset`, when it lies inside the region.
     fn bus_at(&self, offset: usize) -> Option<u32> {
         let a = self.device_addr().checked_add(offset as u64)?;

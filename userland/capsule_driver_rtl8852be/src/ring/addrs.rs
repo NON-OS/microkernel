@@ -33,8 +33,6 @@ pub const CH8: ChAddrs = tx(8, 0x1034, 0x1078, 0x1220, 0x1150, (20, 4, 1));
 pub const CH9: ChAddrs = tx(9, 0x1036, 0x107c, 0x1224, 0x1158, (24, 4, 1));
 /// The firmware command queue (`RTW89_TXCH_CH12`).
 pub const CH12: ChAddrs = tx(12, 0x1038, 0x1080, 0x1228, 0x1160, (28, 4, 1));
-/// Every transmit channel the 8852B uses, in rtw89's order.
-pub const TX_CHANNELS: [ChAddrs; 7] = [ACH0, ACH1, ACH2, ACH3, CH8, CH9, CH12];
 
 /// The receive queue and the release-report queue: (num, idx, desa_l).
 pub const RXQ: (u32, u32, u32) = (0x1020, 0x1050, 0x1100);

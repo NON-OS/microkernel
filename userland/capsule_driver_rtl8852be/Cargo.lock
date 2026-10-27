@@ -171,6 +171,7 @@ version = "0.1.0"
 name = "nonos_capsule_driver_rtl8852be"
 version = "0.3.0"
 dependencies = [
+ "nonos_mac",
  "nonos_userland_libc",
  "nonos_wifi_core",
 ]

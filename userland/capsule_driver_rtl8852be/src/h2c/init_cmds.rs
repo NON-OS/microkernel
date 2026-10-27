@@ -17,9 +17,9 @@ pub const OFLD_CFG_BODY: [u8; 8] = [0x09, 0, 0, 0, 0x5e, 0, 0, 0];
 pub const LOG_CFG: Cmd = Cmd { cat: 1, class: 0, func: 0 };
 /// Level LOUD (4), path C2H (bit 1), no components.
 pub const LOG_CFG_OFF: [u8; 12] = [4, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-/// `RTW89_H2C_RF_PAGE_SIZE` words, `RTW89_H2C_RF_PAGE_NUM` pages.
+/// `RTW89_H2C_RF_PAGE_SIZE` words a page (`init_rf::FW_WORDS_MAX` caps
+/// the pages at `RTW89_H2C_RF_PAGE_NUM`, 3).
 pub const RF_PAGE_WORDS: usize = 500;
-pub const RF_PAGES: usize = 3;
 
 pub fn ofld_cfg<M: DmaMem>(r: &impl Mmio, q: &mut TxRing<M>, fw: &mut Fw) -> Result<(), SendFail> {
     h2c(r, q, fw, OFLD_CFG, &OFLD_CFG_BODY, true)

@@ -1,23 +1,15 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 
-//! Putting a packet on the firmware command queue (`rtw89_h2c_tx` over
-//! `rtw89_pci_fwcmd_submit`, Linux v6.12 rtw89 `core.c`, `pci.c`). rtw89
-//! frees a command's buffer only once eight more have been taken after it
-//! (`rtw89_pci_release_fwcmd`, `RTW89_PCI_MULTITAG`): with eight DMA tags
-//! the engine may still be reading it. Here each descriptor owns its
-//! buffer, so a packet waits until more than eight descriptors are free.
+//! A firmware command: `rtw89_h2c_pkt_set_hdr` and `rtw89_h2c_tx`
+//! (Linux v6.12 rtw89 `fw.c`, `core.c`), queued by `post`.
 
-use super::packet::{fwcmd_wd, h2c_hdr, Cmd, H2C_HDR, WD_BODY};
+use super::packet::{h2c_hdr, Cmd, H2C_HDR, WD_BODY};
+pub use super::post::post;
 use super::Fw;
 use crate::dma::DmaMem;
 use crate::regs::Mmio;
 use crate::ring::tx::{TxRing, SLOT};
-use crate::wait::until_ms;
 
-/// `RTW89_PCI_MULTITAG`.
-pub const MULTITAG: u32 = 8;
-/// How long a command waits for the queue to drain far enough.
-pub const ROOM_MS: u64 = 500;
 /// The largest command body after its H2C header.
 pub const BODY_MAX: usize = SLOT - WD_BODY - H2C_HDR;
 
@@ -28,31 +20,8 @@ pub enum SendFail {
     NoRoom,
 }
 
-/// Queue `pkt` (an H2C header and body, or a download chunk) and kick.
-pub fn post<M: DmaMem>(
-    r: &impl Mmio,
-    ring: &mut TxRing<M>,
-    pkt: &[u8],
-    fw_dl: bool,
-) -> Result<(), SendFail> {
-    if pkt.len() > SLOT - WD_BODY {
-        return Err(SendFail::TooLong);
-    }
-    if !until_ms(ROOM_MS, || ring.reclaim(r) && ring.avail() > MULTITAG) {
-        return Err(SendFail::NoRoom);
-    }
-    let at = ring.slot_off(ring.wp);
-    ring.mem.write(at, &fwcmd_wd(pkt, fw_dl));
-    ring.mem.write(at + WD_BODY, pkt);
-    if !ring.post((WD_BODY + pkt.len()) as u16) {
-        return Err(SendFail::NoRoom);
-    }
-    ring.kick(r);
-    Ok(())
-}
-
-/// Send command `cmd` with `body`: the sequence stamped and stepped, and a
-/// receive acknowledgement asked of every fourth, as rtw89 asks.
+/// Send command `cmd` with `body`, asking a done acknowledgement when
+/// `dack`; a receive acknowledgement is asked of every fourth.
 pub fn h2c<M: DmaMem>(
     r: &impl Mmio,
     ring: &mut TxRing<M>,
@@ -61,10 +30,24 @@ pub fn h2c<M: DmaMem>(
     body: &[u8],
     dack: bool,
 ) -> Result<(), SendFail> {
+    h2c_acks(r, ring, fw, cmd, body, false, dack)
+}
+
+/// `rtw89_h2c_pkt_set_hdr` then `rtw89_h2c_tx`: the sequence stamped and
+/// stepped, `rack` forced on every fourth, as rtw89 forces it.
+pub fn h2c_acks<M: DmaMem>(
+    r: &impl Mmio,
+    ring: &mut TxRing<M>,
+    fw: &mut Fw,
+    cmd: Cmd,
+    body: &[u8],
+    rack: bool,
+    dack: bool,
+) -> Result<(), SendFail> {
     if body.len() > BODY_MAX {
         return Err(SendFail::TooLong);
     }
-    let rack = fw.h2c_seq % 4 == 0;
+    let rack = rack || fw.h2c_seq % 4 == 0;
     let mut pkt = [0u8; SLOT - WD_BODY];
     pkt[..H2C_HDR].copy_from_slice(&h2c_hdr(cmd, fw.h2c_seq, body.len(), rack, dack));
     pkt[H2C_HDR..H2C_HDR + body.len()].copy_from_slice(body);

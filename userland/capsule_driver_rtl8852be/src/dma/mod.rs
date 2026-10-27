@@ -7,4 +7,4 @@ mod grant;
 mod mem;
 
 pub use grant::{map_dma32, Grant};
-pub use mem::{inside, DmaMem};
+pub use mem::DmaMem;

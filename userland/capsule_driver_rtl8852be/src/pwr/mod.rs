@@ -10,9 +10,6 @@ mod on_rails;
 pub mod regs;
 pub mod xtal;
 
-pub use off::DOWN_SEQ;
-pub use on_rails::{CMAC_FUNC, DMAC_FUNC, RAIL_SEQ};
-
 use crate::regs::{get, Mmio};
 use regs::*;
 

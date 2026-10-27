@@ -22,13 +22,12 @@ from pathlib import Path
 
 TABLE_SHA256 = "ebc6840d2e15c7a9f12fb7d7121ca19bb8acff93524d3902a7ce892e0714fc21"
 RFK_SHA256 = "c2916c132407b47e83336956938a53d654f497753cf67fe7df34057968e8afcd"
+# rtw89 runs _check_dadc on path B only, so path A's two lists are not taken.
 LISTS = [
     ("rtw8852b_afe_init_defs", "table"),
     ("rtw8852b_check_addc_defs_a", "table"),
     ("rtw8852b_check_addc_defs_b", "table"),
-    ("rtw8852b_check_dadc_en_defs_a", "table"),
     ("rtw8852b_check_dadc_en_defs_b", "table"),
-    ("rtw8852b_check_dadc_dis_defs_a", "table"),
     ("rtw8852b_check_dadc_dis_defs_b", "table"),
     ("rtw8852b_dack_s0_1_defs", "table"),
     ("rtw8852b_dack_s0_2_defs", "table"),

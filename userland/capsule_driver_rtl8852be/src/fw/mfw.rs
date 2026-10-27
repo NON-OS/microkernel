@@ -10,7 +10,6 @@
 pub const MFW_SIG: u8 = 0xff;
 /// `enum rtw89_fw_type`.
 pub const TYPE_NORMAL: u8 = 1;
-pub const TYPE_WOWLAN: u8 = 3;
 pub const TYPE_NORMAL_CE: u8 = 5;
 const HDR: usize = 16;
 const ENTRY: usize = 16;
