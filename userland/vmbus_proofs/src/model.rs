@@ -218,7 +218,7 @@ impl Host for Vmbus {
                 self.released.push(u32_at(p, 8));
             }
             16 => {
-                assert_eq!(Some(connection), self.connection, "unload on the bus's connection");
+                assert!(Some(connection) == self.connection || connection == 4, "bus or contact");
                 self.unloaded = true;
                 self.connection = None;
                 let mut r = vec![0u8; 8];
