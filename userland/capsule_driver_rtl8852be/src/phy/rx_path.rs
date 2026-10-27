@@ -33,7 +33,8 @@ pub fn btg_bt_rx(bb: &Bb<'_, impl Mmio>, on: bool) {
     }
 }
 
-pub fn cfg_txrx_path(r: &impl Mmio, p: &Phy, c: Chan) {
+/// `rx_nss` is what the firmware reported (`hal.rx_nss`), 1 or 2.
+pub fn cfg_txrx_path(r: &impl Mmio, p: &Phy, c: Chan, rx_nss: u8) {
     let bb = Bb(r);
     bb.mask(0x49c4, 0xf, 3); // R_CHBW_MOD_V1 B_ANT_RX_SEG0
     bb.mask(0x49c0, 0x3_c000, 3); // B_ANT_RX_1RCCA_SEG0
@@ -51,14 +52,14 @@ pub fn cfg_txrx_path(r: &impl Mmio, p: &Phy, c: Chan) {
         bb.mask(mode, 0xffff_fff0, 0x1233312); // RFMODE_ORI_TXRX_FTM_TX
         bb.mask(ftm, 0xfff, 0x333); // RFMODE_FTM_RX
     }
-    nss(&bb);
+    nss(&bb, (rx_nss > 1) as u32);
     bb.mask(0x9a4, 0x1c, 0); // R_MAC_SEL B_MAC_SEL_MOD
 }
 
-/// Two spatial streams: HT, VHT, HE and HE TB limits at 1 (= 2 SS).
-fn nss(bb: &Bb<'_, impl Mmio>) {
-    bb.mask(0xd18, 0x300, 1); // R_RXHT_MCS_LIMIT
-    bb.mask(0xd18, 0x60_0000, 1); // R_RXVHT_MCS_LIMIT
-    bb.mask(0xd80, 0x1_c000, 1); // R_RXHE B_RXHE_MAX_NSS
-    bb.mask(0xd80, 0x380_0000, 1); // B_RXHETB_MAX_NSS
+/// The HT, VHT, HE and HE TB stream limits: 1 for two streams, 0 for one.
+fn nss(bb: &Bb<'_, impl Mmio>, v: u32) {
+    bb.mask(0xd18, 0x300, v); // R_RXHT_MCS_LIMIT
+    bb.mask(0xd18, 0x60_0000, v); // R_RXVHT_MCS_LIMIT
+    bb.mask(0xd80, 0x1_c000, v); // R_RXHE B_RXHE_MAX_NSS
+    bb.mask(0xd80, 0x380_0000, v); // B_RXHETB_MAX_NSS
 }
