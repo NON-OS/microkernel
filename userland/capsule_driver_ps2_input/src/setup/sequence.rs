@@ -48,7 +48,7 @@ pub fn run() -> Result<Driver, &'static str> {
         release(dev.device_id, aux);
         return Err(e);
     }
-    let (mouse_enabled, mouse_wheel) = if aux_irq_grant_id != 0 {
+    let (mouse_enabled, mouse_wheel) = if aux.is_some() {
         let outcome = enable_mouse(pio_grant_id);
         say_aux(outcome);
         match outcome {
