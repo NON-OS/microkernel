@@ -21,9 +21,11 @@
 use nonos_app_skeleton::clients::vfs;
 use nonos_libc::mk_getpid;
 
+use super::paths::pack_path;
 use super::shelf::{Held, Shelf, Unlinked};
 use super::swap::{swap, take};
 use super::table::forget;
+use crate::linux::file::family::Family;
 
 /// The store as vfs answers this process.
 struct Store(u32);
@@ -46,16 +48,17 @@ impl Shelf for Store {
     }
 }
 
-pub fn put(package: &str, pack: &[u8], trailer: &[u8]) -> Result<(), Held> {
+pub fn put(family: Family, package: &str, pack: &[u8], trailer: &[u8]) -> Result<(), Held> {
     forget();
-    let put = swap(&mut Store(mk_getpid()), package, pack, trailer);
+    let put = swap(&mut Store(mk_getpid()), &pack_path(family, package), pack, trailer);
     forget();
     put
 }
 
-pub fn remove(package: &str) -> Result<(), Held> {
+/// `family`'s pack of `package` out; another family's of the same name stays.
+pub fn remove(family: Family, package: &str) -> Result<(), Held> {
     forget();
-    let out = take(&mut Store(mk_getpid()), package);
+    let out = take(&mut Store(mk_getpid()), &pack_path(family, package));
     forget();
     out
 }
