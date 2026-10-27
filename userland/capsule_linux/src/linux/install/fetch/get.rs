@@ -23,6 +23,7 @@ use nonos_inflate::Refused;
 use super::super::auth::{verified, Verified};
 use super::super::get::package::download;
 use super::super::index::Pkg;
+use super::super::timing;
 use super::super::Why;
 
 /// The package's files, if its bytes authenticate. `pin` is the market's hash
@@ -36,7 +37,8 @@ pub(in crate::linux::install) fn fetch(pkg: &Pkg, pin: Option<&[u8; 32]>) -> Res
         say(b"[LINUX] package is not the one the market listed\n");
         return Err(Why::PACKAGE);
     }
-    let files = pkg.checksum.ok_or(Refused::Bad).and_then(|sum| verified(&apk, &sum));
+    let files =
+        timing::verifying(|| pkg.checksum.ok_or(Refused::Bad).and_then(|s| verified(&apk, &s)));
     drop(apk);
     heap("unpacked", &pkg.name);
     files.map_err(|why| match why {
