@@ -66,3 +66,9 @@ pub(super) fn cnp() -> Vec<Part> {
 pub(super) fn pre_spt() -> Vec<Part> {
     laptop([0x8C10, 0x8C18], || None)
 }
+
+/// Gemini Lake (8086:31D6-31DB): Linux has no ACS quirk for its root ports,
+/// and the bench HP's Wi-Fi worked beside its NVMe disk before K11.
+pub(super) fn glk() -> Vec<Part> {
+    laptop([0x31D8, 0x31DA], || None)
+}

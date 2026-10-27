@@ -25,6 +25,7 @@
 
 #![cfg_attr(not(test), no_std)]
 
+pub mod args;
 mod bucket;
 mod decode;
 pub mod dests;

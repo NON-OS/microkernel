@@ -29,6 +29,12 @@ pub mod image_digest;
 /// A Linux app's kept home and installs, read only by ForeignExec.
 #[path = "kept_name/mod.rs"]
 pub mod kept_name;
+/// The kernel's console lines kept for `log`, never on a hardened image.
+#[path = "log_tail/mod.rs"]
+pub mod log_tail;
+/// A family's syscall set, said for the owner's measuring on a debug build.
+#[path = "measure_line/mod.rs"]
+pub mod measure_line;
 /// A guest's peer calls hold its own lock, not one over every guest.
 #[path = "peer_stripe/mod.rs"]
 pub mod peer_stripe;

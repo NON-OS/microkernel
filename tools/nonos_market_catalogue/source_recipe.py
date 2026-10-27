@@ -20,11 +20,13 @@ nix recipe that builds it offline (`build`, under tools/nix/sources/), and
 the program its listing sells (`program`, required). The rest is checked as
 an Alpine recipe's is (recipes.py). Its listing is `linux.nonos-<package>`,
 the namespace the device installs from the NONOS package mirror
-(install/tools.rs), so the generator adds the prefix and a recipe may not."""
+(install/tools.rs), so the generator adds the prefix and a recipe may not.
+One listing upstream's release binary has an `asset` instead (asset_recipe.py)."""
 
 import re
 from pathlib import Path
 
+from . import asset_recipe
 from .recipes import checked as common
 
 KIND = "source"
@@ -50,16 +52,19 @@ def checked(item: dict, root: Path) -> dict:
     if not all(isinstance(v, str) for v in item.values()):
         raise ValueError("a recipe is an object of strings")
     name = item.get("package", "?")
-    extra = set(item) - KEYS
-    if extra or not NEEDED <= set(item):
-        raise ValueError(f"{name}: keys {sorted(extra) or sorted(NEEDED - set(item))} for a source recipe")
+    own, keys, needed = asset_recipe.shape(item, OWN, KEYS, NEEDED)
+    extra = set(item) - keys
+    if extra or not needed <= set(item):
+        raise ValueError(f"{name}: keys {sorted(extra) or sorted(needed - set(item))} for a source recipe")
     if not NAME.fullmatch(name):
         raise ValueError(f"{name}: not a name a NONOS mirror package may have")
     if not URL.fullmatch(item["source"]) or "/." in item["source"]:
         raise ValueError(f"{name}: its source is not an https git URL")
-    if not COMMIT.fullmatch(item["commit"]):
+    if asset_recipe.is_asset(item):
+        asset_recipe.checked(item, name, URL)
+    elif not COMMIT.fullmatch(item["commit"]):
         raise ValueError(f"{name}: its commit is not a full 40-hex commit")
-    if not BUILD.fullmatch(item["build"]):
+    elif not BUILD.fullmatch(item["build"]):
         raise ValueError(f"{name}: its build is not a nix recipe name")
-    recipe = common({k: v for k, v in item.items() if k not in OWN}, root)
-    return dict(recipe, **{k: item[k] for k in OWN})
+    recipe = common({k: v for k, v in item.items() if k not in own}, root)
+    return dict(recipe, **{k: item[k] for k in own})

@@ -37,6 +37,7 @@ mod linux_policy_pin;
 mod linux_policy_wire;
 mod pinning;
 mod policy;
+mod policy_args;
 mod policy_fixture;
 mod policy_vendor;
 mod price;
