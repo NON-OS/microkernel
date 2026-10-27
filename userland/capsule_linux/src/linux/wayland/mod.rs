@@ -20,6 +20,7 @@
 mod args;
 mod bind;
 mod buffer;
+mod clip;
 mod close;
 mod commit;
 mod configure;
@@ -71,5 +72,4 @@ mod serve;
 mod unserved;
 mod wire;
 mod xkb_mods;
-
 pub use exports::*;

@@ -61,6 +61,7 @@ pub fn close_window(scene: &mut Scene) {
 /// The client closed its connection: its window goes, and so does every
 /// object it made, so a new connection starts from nothing.
 pub fn disconnect(guest: &mut Guest) {
+    super::super::clip::desk_read::stop(guest);
     close_window(&mut guest.scene);
     let subscribed = guest.scene.subscribed;
     guest.scene = Scene::new();

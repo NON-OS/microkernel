@@ -16,6 +16,8 @@
 mod bits_tests;
 mod gate_tests;
 mod getpid_tests;
+mod launch_tests;
+mod shell_name_tests;
 mod token;
 
 /// The token other proofs build theirs with.

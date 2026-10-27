@@ -27,6 +27,8 @@ pub struct Pool {
     /// The client's descriptor it was made over, which a resize looks at
     /// again: the client may have mapped it anew at another address.
     pub fd: u32,
+    /// The memfd behind it, found again wherever it is mapped (memfd_map.rs).
+    pub memfd: u32,
 }
 
 pub struct Buffer {

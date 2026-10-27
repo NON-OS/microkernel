@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `zxdg_decoration_manager_v1`: who draws a window's frame. Always the
-//! server: a guest's window is framed by the NONOS window manager like any
-//! other, so a client is told server-side and draws none of its own. The
+//! `zxdg_decoration_manager_v1`: who draws a window's frame. The server,
+//! unless the client asks to draw its own: a guest's window is framed like
+//! every native one (present/frame/). The
 //! first answer is a configure sequence, ended by its xdg_surface's
 //! configure, whose serial the client acks.
 
@@ -37,10 +37,15 @@ pub fn route(
 ) -> bool {
     match (object, op) {
         (Some(Object::DecorationManager), MANAGER_GET_TOPLEVEL_DECORATION) => get(guest, args),
-        /* The mode never changes, so it is said again with no new serial;
-         * the next xdg_surface configure ends the sequence it joins. */
+        /* A client that draws its own frame (libadwaita) is let draw it,
+         * and gets no NØNOS frame; any other is framed by the personality
+         * (present/frame/). Said again with no new serial; the next
+         * xdg_surface configure ends the sequence it joins. */
         (Some(Object::Decoration), DECORATION_SET_MODE | DECORATION_UNSET_MODE) => {
-            Event::new(id, DECORATION_CONFIGURE).u32(SERVER_SIDE).send(&mut guest.display.to_client)
+            let own = op == DECORATION_SET_MODE && args.u32() == Some(CLIENT_SIDE);
+            guest.scene.frame.own_frame = own;
+            let mode = if own { CLIENT_SIDE } else { SERVER_SIDE };
+            Event::new(id, DECORATION_CONFIGURE).u32(mode).send(&mut guest.display.to_client)
         }
         (Some(Object::DecorationManager), MANAGER_DESTROY)
         | (Some(Object::Decoration), DECORATION_DESTROY) => {

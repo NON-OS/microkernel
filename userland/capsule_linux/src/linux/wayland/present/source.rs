@@ -19,8 +19,6 @@
 use super::super::frame_len::frame_len;
 use super::super::reshape::Shape;
 use super::super::scene::Scene;
-use super::super::scene_pixels::Pixels;
-use super::surface::say;
 
 const NO_POOL: &[u8] = b"[WAYLAND] commit of a buffer with no pool behind it, not shown\n";
 const NO_FRAME: &[u8] =
@@ -55,15 +53,4 @@ pub fn take(pid: u32, src: &Source, frame: &mut [u8]) -> bool {
         super::super::opaque::make_opaque(frame, width, height, stride);
     }
     true
-}
-
-/// `src` read out of the guest into pixels of its own, or None, said when
-/// there is no room for them.
-pub(super) fn taken(pid: u32, src: &Source) -> Option<Pixels> {
-    let bytes = src.bytes;
-    let Some(mut fresh) = Pixels::with_room(bytes) else {
-        say(alloc::format!("[WAYLAND] no room for a {bytes} byte frame, not shown\n"));
-        return None;
-    };
-    take(pid, src, fresh.frame(bytes)?).then_some(fresh)
 }

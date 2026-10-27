@@ -29,42 +29,41 @@ use nonos_app_skeleton::discover::lookup_port;
 use crate::linux::guest::Guest;
 
 use super::super::fit::origin;
-use super::super::subsurface::compose::compose;
 use super::adopt::{adopt, Placed};
+use super::frame::fresh::fresh;
 use super::open::open_once;
 use super::place::place;
 use super::refit::tell_wm;
-use super::source::{taken, Source};
+use super::source::Source;
 use super::surface::{register, say};
 
 /// Native app windows' layer; 0 is the wallpaper's, under the desktop.
 pub(super) const APP_LAYER_Z: u32 = 2;
 
-/// Show the `shape` buffer at `src` in the guest, `bytes` long, committed
-/// on `surface`, on a new surface of its shape: opened, raised and focused
-/// the first time, at the acked configure's corner when one is due, else
-/// where the window was, else centred below the top bar.
+/// Show `src`, committed on `surface`, on a new surface of the window's
+/// shape: opened, raised and focused the first time, at an acked
+/// configure's corner, else where it was, else centred below the top bar.
 pub fn show(guest: &mut Guest, surface: u32, src: &Source) {
     let shape = src.shape;
     let (Some(comp), Some(wm)) = (lookup_port(b"compositor"), lookup_port(b"wm")) else {
         say("[WAYLAND] no compositor or window manager for a window\n".into());
         return;
     };
-    let Some(mut fresh) = taken(guest.pid, src) else { return };
-    if let Some(frame) = fresh.frame(src.bytes) {
-        compose(&mut guest.scene.subs, surface, frame, shape);
-    }
-    let Some(handle) = register(&fresh, shape) else { return };
+    super::frame::now::note_scale(&mut guest.scene);
+    let a = super::frame::now::around_shape(&guest.scene, shape);
+    let Some((fresh, outer)) = fresh(&mut guest.scene, (guest.pid, surface), src, a) else {
+        return;
+    };
+    let Some(handle) = register(&fresh, outer) else { return };
     let scene = &mut guest.scene;
-    let (w, h, _) = shape;
     let due = scene.fit.due();
-    let mut at = origin(due, scene.at, w, h);
-    let Ok(opened) = open_once(scene, wm, handle, &mut at, due.is_some(), (w, h)) else {
+    let mut at = origin(due, scene.at, a.w, a.h);
+    let Ok(opened) = open_once(scene, wm, handle, &mut at, due.is_some(), (a.w, a.h)) else {
         return;
     };
     let Some(id) = scene.window.or(opened) else { return };
     let opened = opened.is_some();
-    if !place(scene, (comp, wm), handle, at, (w, h), id, opened) {
+    if !place(scene, (comp, wm), handle, at, (a.w, a.h), id, opened) {
         return;
     }
     adopt(scene, wm, Placed { surface, fresh, handle, shape, at, id, opened });

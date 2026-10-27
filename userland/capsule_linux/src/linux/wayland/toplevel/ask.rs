@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A mode asked for: the configure that tells the guest its new size, with
-//! the display's fill rect when the mode fills it.
+//! the display's fill rect when the mode fills it: the window's whole, so a
+//! maximised guest is told the content its frame leaves of it.
 
 use nonos_app_skeleton::clients::compositor::display_info;
 use nonos_app_skeleton::discover::lookup_port;
@@ -29,13 +30,15 @@ use super::super::present::surface::say;
 
 pub(super) fn ask(guest: &mut Guest, toplevel: u32, want: Mode) {
     super::super::popup::ends::end_all(guest);
-    let Some(xdg) = guest.scene.surfaces.iter().find(|s| s.toplevel == Some(toplevel)).and_then(|s| s.xdg)
+    let Some(xdg) =
+        guest.scene.surfaces.iter().find(|s| s.toplevel == Some(toplevel)).and_then(|s| s.xdg)
     else {
         return;
     };
     let fill = match want.fills() {
         true => match fill() {
-            Some(rect) => rect,
+            Some(rect) if want.bare() => rect,
+            Some(rect) => super::super::present::frame::now::inset(&guest.scene, rect),
             None => {
                 say("[WAYLAND] full screen refused: the compositor gave no display size\n".into());
                 return;

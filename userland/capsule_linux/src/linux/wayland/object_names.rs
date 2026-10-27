@@ -42,6 +42,7 @@ pub fn name(what: Object) -> &'static [u8] {
         Object::DataDeviceManager => b"wl_data_device_manager",
         Object::DataSource => b"wl_data_source",
         Object::DataDevice => b"wl_data_device",
+        Object::DataOffer => b"wl_data_offer",
         Object::DecorationManager => b"zxdg_decoration_manager_v1",
         Object::Decoration => b"zxdg_toplevel_decoration_v1",
         Object::Positioner => b"xdg_positioner",
@@ -57,6 +58,7 @@ pub fn name(what: Object) -> &'static [u8] {
         Object::PrimaryManager => b"zwp_primary_selection_device_manager_v1",
         Object::PrimaryDevice => b"zwp_primary_selection_device_v1",
         Object::PrimarySource => b"zwp_primary_selection_source_v1",
+        Object::PrimaryOffer => b"zwp_primary_selection_offer_v1",
         Object::CursorManager => b"wp_cursor_shape_manager_v1",
         Object::CursorDevice => b"wp_cursor_shape_device_v1",
     }

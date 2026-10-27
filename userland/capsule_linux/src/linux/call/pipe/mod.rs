@@ -21,5 +21,6 @@ pub(super) mod end;
 pub(super) mod ends;
 pub(super) mod io;
 pub(super) mod make;
+pub(super) mod pair;
 pub(super) mod poll;
 pub(super) mod read;

@@ -57,6 +57,12 @@ class Stuck(unittest.TestCase):
             self.assertIsNone(dump.dump(Machine(gone=True), Path(d)))
             self.assertFalse((Path(d) / dump.FILE).exists())
 
+    def test_a_regs_step_names_its_file_and_the_run_goes_on(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.assertTrue(step.run(Machine(), "regs:kpx1", Path(d), Path(d) / "serial.log"))
+            self.assertIn("info registers -a", (Path(d) / "regs-kpx1.txt").read_text())
+            self.assertFalse((Path(d) / dump.FILE).exists())
+
     def test_only_a_step_that_timed_out_leaves_it(self):
         for seen in (True, False):
             with tempfile.TemporaryDirectory() as d, unittest.mock.patch.object(
