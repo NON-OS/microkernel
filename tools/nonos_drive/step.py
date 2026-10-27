@@ -101,6 +101,8 @@ def run(q, s, out, serial):
         time.sleep(0.1)
     elif kind == "click":
         click(q, arg or "left")
+    elif kind == "regs":
+        dump(q, out, f"regs-{arg or 'now'}.txt")
     elif kind == "unplug":
         return unplug(q, arg)
     else:
