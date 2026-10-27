@@ -398,8 +398,8 @@
  {
   "name": "mt7921-roc-any-token-grants",
   "file": "userland/capsule_driver_mt7921/src/radio/roc.rs",
-  "old": "card.mcu.grant.is_some_and(|g| g.token == token)",
-  "new": "card.mcu.grant.is_some()",
+  "old": "self.card.mcu.grant.is_some_and(|g| g.token == token || g.channel == ch)",
+  "new": "self.card.mcu.grant.is_some()",
   "test": "_tests::",
   "args": [
    "--release"
@@ -500,6 +500,105 @@
   "old": "&RATES[4..]",
   "new": "&RATES",
   "test": "wpa3_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-roc-token-only",
+  "file": "userland/capsule_driver_mt7921/src/radio/roc.rs",
+  "old": "g.token == token || g.channel == ch",
+  "new": "g.token == token",
+  "test": "grant_path_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-roc-wait-skips-data-ring",
+  "file": "userland/capsule_driver_mt7921/src/radio/roc.rs",
+  "old": "            self.reap();\n",
+  "new": "",
+  "test": "grant_path_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rx-event-on-data-dropped",
+  "file": "userland/capsule_driver_mt7921/src/radio/data.rs",
+  "old": "Kind::Event => c.mcu.note_unasked(b),",
+  "new": "Kind::Event => {}",
+  "test": "grant_path_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rx-later-layout-dropped",
+  "file": "userland/capsule_driver_mt7921/src/dma/desc.rs",
+  "old": "(true, _) => ctrl & CTL_PN_CHK_FAIL != 0,",
+  "new": "(true, _) => true,",
+  "test": "grant_path_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rate-ap-at-band-lowest",
+  "file": "userland/capsule_driver_mt7921/src/mac/pick.rs",
+  "old": "bss.filter(|_| to_ap).unwrap_or(band)",
+  "new": "band",
+  "test": "rate_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rate-beacon-not-learned",
+  "file": "userland/capsule_driver_mt7921/src/radio/learn.rs",
+  "old": "self.aps.put(bssid.try_into().unwrap_or([0; 6]), r);",
+  "new": "let _ = (bssid, r);",
+  "test": "rate_tests::an_access_point_without_cck",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rate-eapol-at-data-rate",
+  "file": "userland/capsule_driver_mt7921/src/mac/pick.rs",
+  "old": "!eapol(mpdu, fc)",
+  "new": "true",
+  "test": "rate_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rate-data-at-lowest",
+  "file": "userland/capsule_driver_mt7921/src/mac/pick.rs",
+  "old": "if data { fast } else { low }",
+  "new": "low",
+  "test": "rate_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rate-basic-any-band",
+  "file": "userland/capsule_driver_mt7921/src/mac/rate.rs",
+  "old": "marked.filter(|&r| table(ghz5).iter().any(|t| t.0 == r))",
+  "new": "marked",
+  "test": "txd_tests::",
   "args": [
    "--release"
   ],
