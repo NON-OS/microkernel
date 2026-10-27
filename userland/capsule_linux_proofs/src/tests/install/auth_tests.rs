@@ -45,7 +45,8 @@ pub(super) fn rsa(key: &[u8], sig: &[u8], hashid: u8, digest: &[u8]) -> bool {
 pub(super) fn record() -> [u8; 20] {
     let tar = signed_index(INDEX, &rsa).expect("the index must verify");
     let body = entries(&tar).into_iter().find(|e| e.name == b"APKINDEX").expect("APKINDEX");
-    let index = Index::parse(&body.body);
+    let mut index = Index::default();
+    index.add(&body.body, 0);
     index.by_name("hello").and_then(|p| p.checksum).expect("a checksum for hello")
 }
 

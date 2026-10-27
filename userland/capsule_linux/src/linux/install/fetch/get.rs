@@ -30,7 +30,7 @@ use super::super::Why;
 /// index alone, which names every one of them by checksum.
 pub(in crate::linux::install) fn fetch(pkg: &Pkg, pin: Option<&[u8; 32]>) -> Result<Verified, Why> {
     nonos_libc::heap_reset_peak();
-    let apk = download(&pkg.name, &pkg.version);
+    let apk = download(pkg);
     heap("fetched", &pkg.name);
     if pin.is_some_and(|want| blake3::hash(&apk).as_bytes() != want) {
         say(b"[LINUX] package is not the one the market listed\n");
