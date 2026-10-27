@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The last 64 KiB written to the serial console, kept in memory for a
-//! machine with no serial port to show it (`MkLogTail`), on the images that
-//! let capsules write to the console (`capsule-serial-debug`), never on a
-//! hardened or air-gapped one. Every byte the
+//! machine with no serial port (`MkLogTail`): on a standard image, whose
+//! console has only the kernel's lines (`nonos-log-tail`), and a development
+//! one (`capsule-serial-debug`), never a hardened one. Every byte the
 //! console takes is kept here first, whether or not a UART answers. A byte
 //! arriving while the tail is being read is dropped from the tail, never
 //! waited for: the writer can be an interrupt or a fault.
@@ -46,10 +46,10 @@ struct Tail {
 
 static TAIL: Mutex<Tail> = Mutex::new(Tail { bytes: [0; CAPACITY], next: 0, wrapped: false });
 
-/// A hardened image keeps nothing: it is built without capsule serial output,
-/// and its console's lines stay on the console.
+/// A hardened image keeps nothing: it is built without either feature, and
+/// its console's lines stay on the console.
 pub(super) fn keep(b: u8) {
-    if !cfg!(feature = "capsule-serial-debug") {
+    if !cfg!(any(feature = "nonos-log-tail", feature = "capsule-serial-debug")) {
         return;
     }
     if let Some(mut h) = FIRST.try_lock() {
