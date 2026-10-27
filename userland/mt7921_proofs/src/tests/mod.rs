@@ -23,6 +23,7 @@ mod own_tests;
 mod package_tests;
 mod power_tests;
 mod rate_tests;
+mod real_package_tests;
 mod regs_tests;
 mod report_tests;
 mod ring_tests;
