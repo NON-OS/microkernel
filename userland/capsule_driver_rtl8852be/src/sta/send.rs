@@ -6,7 +6,9 @@
 //! choosing the rate. A management frame to the AP once one is chosen goes
 //! at its lowest basic rate (mac80211's `basic_rates`, read here from the
 //! AP's beacons); any other at the band's lowest rate. A data frame's
-//! lowest retry rate is the lowest rate the AP supports.
+//! lowest retry rate is the lowest rate the AP supports. A frame for the
+//! chip to encrypt is data to the AP, sent only under the pairwise key's
+//! security CAM entry while the address CAM entry points at it.
 
 use super::chip::Chip;
 use crate::dma::DmaMem;
@@ -25,10 +27,14 @@ pub enum NotSent {
 }
 
 impl<R: Mmio, M: DmaMem> Chip<R, M> {
-    pub fn send(&mut self, mpdu: &[u8]) -> Result<(), NotSent> {
+    pub fn send(&mut self, mpdu: &[u8], keyed: bool) -> Result<(), NotSent> {
         let mut d = classify(mpdu).ok_or(NotSent::Refused)?;
         let five = self.chan.ok_or(NotSent::NoChannel)?.five;
         let to_ap = self.vif.bssid != [0; 6] && mpdu.get(4..10) == Some(&self.vif.bssid[..]);
+        if keyed && (d.mgmt || !to_ap || !self.vif.keys.has(0)) {
+            return Err(NotSent::Refused);
+        }
+        d.sec = keyed.then_some(0);
         let (supp, basic) = bitmaps(self.vif.rates(), five);
         d.rate = match (d.mgmt, to_ap) {
             (true, true) => pick(basic, five),

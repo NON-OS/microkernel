@@ -61,7 +61,7 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
             Outcome::Joined { bssid, channel, tk, akm, supplicant } => {
                 let at = (j.band, if channel != 0 { channel } else { j.channel });
                 let net = (req.ssid, bssid, akm.suite_type());
-                let mut s = Session::start(r.mac(), net, at, Keys { tk, supplicant }, now);
+                let mut s = Session::start(r, net, at, Keys { tk, supplicant }, now);
                 s.kit = kit.flatten();
                 self.session = Some(s);
             }

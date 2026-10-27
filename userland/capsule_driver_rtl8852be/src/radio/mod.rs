@@ -5,6 +5,7 @@
 
 mod counts;
 mod frames;
+mod keys;
 mod learn;
 mod link;
 mod radio_impl;

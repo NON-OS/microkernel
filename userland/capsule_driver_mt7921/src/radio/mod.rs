@@ -6,13 +6,15 @@
 //! The card as the shared station's radio (`nonos_wifi_core::softmac::
 //! Radio`): the station builds and seals every frame and runs the scan,
 //! the join, WPA2 and WPA3 and the data path; the card tunes by remain-on-
-//! channel grants, carries frames on rings 0 and 2, and is told of the
-//! access point and the association the way mac80211 tells Linux's driver.
+//! channel grants, carries frames on rings 0 and 2, holds the link's keys
+//! and runs CCMP-128 on them, and is told of the access point and the
+//! association the way mac80211 tells Linux's driver.
 
 mod assoc;
 mod bss;
 mod data;
 mod diag;
+mod keys;
 mod learn;
 mod port;
 mod recv;
@@ -48,8 +50,9 @@ pub struct Mt7921 {
     pub joined: Option<(Basic, (u8, u8))>,
     /// The access points heard, by their basic rates.
     pub aps: learn::Heard,
-    /// Frames read while making room for a send, delivered first.
-    pub inbox: VecDeque<(Vec<u8>, i8)>,
+    /// Frames read while making room for a send, delivered first, with
+    /// their signal and whether the chip decrypted them.
+    pub inbox: VecDeque<(Vec<u8>, i8, bool)>,
     pub count: diag::Counts,
     /// The card stopped answering: nothing is sent to it again.
     pub dead: bool,

@@ -19,6 +19,8 @@ pub struct Card {
     pub tokens: Tokens,
     /// Times the card was found in its firmware's hands (`power::wake`).
     pub woken: u32,
+    /// The access point's WTBL entry holds the pairwise key.
+    pub keyed: bool,
 }
 
 impl Card {
@@ -33,6 +35,16 @@ impl Card {
     /// `send`, with only whether it went through.
     pub fn cmd(&mut self, cmd: Cmd, body: &[u8], wait: bool) -> bool {
         self.send(cmd, body, wait).is_ok()
+    }
+
+    /// A command carrying key material, its reply waited on; then the ring
+    /// slot it went in and `body` are wiped, whatever came back.
+    pub fn secret(&mut self, cmd: Cmd, body: &mut [u8]) -> bool {
+        let slot = self.dma.tx_wm.head();
+        let ok = self.cmd(cmd, body, true);
+        self.dma.tx_wm.wipe(slot);
+        nonos_wifi_core::vault::wipe(body);
+        ok
     }
 
     /// Read the event rings, noting what came unasked (ROC grants).

@@ -1,10 +1,9 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! The PCI transmit engine: for each channel the host kicked, the card walks
-//! descriptors from its own read pointer up to the host's write index, and
-//! moves its pointer on. Nothing moves while the HCI's TX is off, PCIe I/O
-//! is stopped, or the channel's stop bit is set; the WD-page channels also
-//! wait on the WP DMA (`B_AX_STOP_WPDMA`). Read pointer resets come from
-//! `R_AX_TXBD_RWPTR_CLR1` and `R_AX_RXBD_RWPTR_CLR` alone.
+//! The PCI transmit engine: for each channel kicked, the card walks
+//! descriptors from its read pointer up to the host's write index and moves
+//! its pointer on; not while the HCI's TX is off, PCIe I/O is stopped or the
+//! channel's stop bit set; the WD-page channels also wait on the WP DMA.
+//! Read pointer resets come from `R_AX_TXBD_RWPTR_CLR1` and `..._RXBD_...`.
 
 use super::chans::{Ch, ACH0, CH12, CH8};
 use super::state::State;
@@ -17,6 +16,8 @@ pub struct Sent {
     pub ch: u8,
     pub wd: [u32; 12],
     pub frame: Vec<u8>,
+    /// What went on the air: `None` when the chip had no key to seal it.
+    pub air: Option<Vec<u8>>,
 }
 
 fn runs(s: &State, c: Ch) -> bool {
@@ -49,7 +50,13 @@ fn walk(s: &mut State, c: Ch) {
         };
         let n = u16::from_le_bytes([bd[0], bd[1]]) as usize;
         let addr = u32::from_le_bytes([bd[4], bd[5], bd[6], bd[7]]) as u64;
-        match bus::read(&s.bus, addr, n) {
+        let data = bus::read(&s.bus, addr, n);
+        // A security CAM command (category 1, class 0xa, function 1) held.
+        if c.id == 12 && s.faults.sec_stall && data.as_ref().is_some_and(|d| d[24..26] == [0x29, 1])
+        {
+            break;
+        }
+        match data {
             Some(data) if c.id == 12 => frames::fwcmd(s, &data),
             Some(data) => frames::wd_page(s, c, &data),
             None => s.violations.push(format!("ch{} buffer off the bus", c.id)),
