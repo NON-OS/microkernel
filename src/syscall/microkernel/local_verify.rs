@@ -16,10 +16,10 @@
 
 //! `MkLocalVerify`: is this image one the machine agreed to run?
 
-use crate::security::capsule_attest::verify_capsule_attestation;
+use crate::security::capsule_attest::verify_capsule_digest;
 use crate::syscall::microkernel::errnos::ERRNO_PERM;
 
-use super::local_image::{copy_in, within_own_authority, MAX_ELF};
+use super::local_image::{copy_in, digest_in, within_own_authority};
 
 /// A trailer is a proof, not a payload. Anything larger is malformed.
 const MAX_TRAILER: usize = 1 << 20;
@@ -32,8 +32,8 @@ pub fn sys_local_verify(
     trailer_ptr: u64,
     trailer_len: u64,
 ) -> i64 {
-    let elf = match copy_in(elf_ptr, elf_len, MAX_ELF) {
-        Ok(bytes) => bytes,
+    let digest = match digest_in(elf_ptr, elf_len) {
+        Ok(digest) => digest,
         Err(e) => return e,
     };
     let trailer = match copy_in(trailer_ptr, trailer_len, MAX_TRAILER) {
@@ -47,7 +47,7 @@ pub fn sys_local_verify(
     if !within_own_authority(caps) {
         return ERRNO_PERM;
     }
-    match verify_capsule_attestation(&trailer, &elf, caps) {
+    match verify_capsule_digest(&trailer, &digest, caps) {
         Ok(p) => {
             crate::process::foreign::seal::measured(&p.measurement);
             0
