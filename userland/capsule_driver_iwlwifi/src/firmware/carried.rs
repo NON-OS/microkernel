@@ -17,8 +17,8 @@
 //! image the tree carries. Every other Intel Wi-Fi function is announced and
 //! left unclaimed, so it never gets an interrupt line or DMA from this
 //! capsule. The AX200, AX201, 9260, 9560, 8265 and 7265 have no gen3
-//! platform; the discrete AX210 (TY) and Meteor Lake (MA) have one whose
-//! firmware is not committed. The BE200 (Gl) and BE201 (Bz) run theirs.
+//! platform. The discrete AX210 (TY), Meteor Lake (MA), the BE200 (Gl) and
+//! the BE201 (Bz) run theirs.
 
 use super::blob::gen3_blob;
 use super::gen3::select::{transport, Image};
@@ -29,7 +29,7 @@ use super::gen3::select::{transport, Image};
 fn images(pci_device: u16) -> &'static [Image] {
     match pci_device {
         0x2725 => &[Image::TyGf],
-        0x2729 | 0x7E40 => &[Image::MaGf],
+        0x2729 | 0x7E40 => &[Image::MaGf, Image::MaGf4],
         0x272B => &[Image::GlFm],
         0xA840 | 0x7740 | 0x4D40 => &[Image::BzFm],
         _ if transport(pci_device).is_some() => &[Image::SoGf, Image::SoHr],

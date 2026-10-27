@@ -13,7 +13,8 @@ use crate::gen3::select::{transport, Transport};
 use crate::gen3::ucode::Ucode;
 use crate::gen3_model::{Mem, Model, Polls};
 
-pub(super) static SO_GF: &[u8] = include_bytes!("../../../../nonos-bootloader/firmware/intel/iwlwifi-so-a0-gf-a0-86.ucode");
+pub(super) static SO_GF: &[u8] =
+    include_bytes!("../../../../nonos-bootloader/firmware/intel/iwlwifi-so-a0-gf-a0-86.ucode");
 
 pub(super) struct Rig {
     pub(super) model: Model,
@@ -26,12 +27,22 @@ pub(super) fn rig() -> Rig {
     let rbs = Mem::new(RB_REGION, 0x2000_0000);
     let layout = classify(SO_GF);
     let sizes = firmware_region_sizes(&layout).unwrap();
-    let fw = sizes.iter().enumerate().map(|(i, &n)| Mem::new(n, 0x4000_0000 + (i as u64) * 0x10_0000)).collect();
+    let fw = sizes
+        .iter()
+        .enumerate()
+        .map(|(i, &n)| Mem::new(n, 0x4000_0000 + (i as u64) * 0x10_0000))
+        .collect();
     Rig { model: Model::new(ctrl, rbs), fw }
 }
 
 pub(super) fn board() -> Board {
-    Board { hw_rev: 0x0000_0370, imr_enabled: false, rf_id: 0x0010_D000, pnvm: None }
+    Board {
+        hw_rev: 0x0000_0370,
+        imr_enabled: false,
+        rf_id: 0x0010_D000,
+        pnvm: None,
+        discrete: false,
+    }
 }
 
 pub(super) fn so() -> Transport {

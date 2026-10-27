@@ -27,13 +27,15 @@ pub fn band(channel: u8) -> u8 {
     }
 }
 
-/// `iwl_phy_context_cmd` for PHY 0 on `channel` at 20 MHz.
-pub fn phy_context(action: u32, channel: u8) -> [u8; PHY_CONTEXT_LEN] {
+/// `iwl_phy_context_cmd` for PHY 0 on `channel` at 20 MHz. With two LMACs
+/// (`cdb`) a 5 GHz channel runs on LMAC 1 (`iwl_mvm_get_lmac_id`).
+pub fn phy_context(action: u32, channel: u8, cdb: bool) -> [u8; PHY_CONTEXT_LEN] {
     let mut c = [0u8; PHY_CONTEXT_LEN];
     c[0..4].copy_from_slice(&PHY_ID.to_le_bytes());
     c[4..8].copy_from_slice(&action.to_le_bytes());
     c[8..12].copy_from_slice(&u32::from(channel).to_le_bytes());
     c[12] = band(channel);
     c[13] = PHY_CHANNEL_MODE20;
+    c[16] = u8::from(cdb && band(channel) == PHY_BAND_5);
     c
 }

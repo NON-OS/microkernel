@@ -10,11 +10,11 @@ use crate::gen3::station::phy::{
 
 #[test]
 fn the_phy_context_names_the_channel_band_and_width() {
-    let add = phy_context(ACTION_ADD, 6);
+    let add = phy_context(ACTION_ADD, 6, false);
     assert_eq!(add.to_vec(), image(&[0, 0, 0, 0, 1, 0, 0, 0, 6, 0, 0, 0, 1, 0, 0, 0], 32));
-    let five = phy_context(ACTION_ADD, 149);
+    let five = phy_context(ACTION_ADD, 149, false);
     assert_eq!(five.to_vec(), image(&[0, 0, 0, 0, 1, 0, 0, 0, 149, 0, 0, 0, 0, 0, 0, 0], 32));
-    let remove = phy_context(ACTION_REMOVE, 6);
+    let remove = phy_context(ACTION_REMOVE, 6, false);
     assert_eq!(remove.to_vec(), image(&[0, 0, 0, 0, 3, 0, 0, 0, 6, 0, 0, 0, 1, 0, 0, 0], 32));
 }
 

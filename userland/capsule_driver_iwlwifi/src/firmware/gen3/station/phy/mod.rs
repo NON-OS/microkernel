@@ -15,8 +15,9 @@
 //! mvm/phy-ctxt.c `iwl_mvm_phy_ctxt_cmd_hdr` and `iwl_mvm_phy_ctxt_cmd_data`
 //! fill it for a 20 MHz channel: PHY 0 with color 0, the band (`PHY_BAND_24`
 //! 1, `PHY_BAND_5` 0), `IWL_PHY_CHANNEL_MODE20` 0, control position 0 (no
-//! secondary channel), LMAC 0 (`iwl_mvm_get_lmac_id` without the CDB
-//! capability, which this firmware lacks), and the receive chain word zero,
+//! secondary channel), LMAC 0, or 1 for a 5 GHz channel on a firmware with
+//! the CDB capability (`iwl_mvm_get_lmac_id`; the dual-radio GF4 images
+//! have it), and the receive chain word zero,
 //! because with RLC_CONFIG_CMD version 2 the chains go in that command.
 //! A removal carries the same channel, as `iwl_mvm_phy_ctxt_unref` sends it.
 //!

@@ -65,8 +65,8 @@ pub fn bring_up(d: &Driver, ids: &mut Seen) -> Result<Up, Failure> {
     let fw_refs: &'static [&'static Grant] = Vec::leak(fw_grants.iter().collect());
     let regs: &'static Regs = Box::leak(Box::new(d.regs));
     let mem = Memory { ctrl, rbs, fw: fw_refs };
-    let board =
-        Board { hw_rev: ids.hw_rev, imr_enabled: transport.imr_enabled, rf_id: ids.rf_id, pnvm };
+    let (hw_rev, rf_id, discrete) = (ids.hw_rev, ids.rf_id, !transport.integrated);
+    let board = Board { hw_rev, imr_enabled: transport.imr_enabled, rf_id, pnvm, discrete };
     let rig: &'static Rig = Box::leak(Box::new(Rig { regs, mem, fw, ucode, board, transport }));
     let bus_master = || command(d.device_id, d.claim_epoch, true);
     master_on(rig.regs, &mut Uptime, rig.transport.csr, bus_master)?;
