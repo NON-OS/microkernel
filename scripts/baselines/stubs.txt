@@ -112,6 +112,7 @@ userland/capsule_driver_rtl8169/src/chip/error.rs:43
 userland/capsule_driver_rtl8169/src/chip/say.rs:48
 userland/capsule_driver_rtl8169/src/chip/say.rs:52
 userland/capsule_driver_rtl8821ce/src/serve/radio.rs:140
+userland/capsule_driver_rtl8822ce/src/serve/radio/phy.rs:22
 userland/capsule_driver_virtio_blk/src/setup/registers.rs:32
 userland/capsule_driver_virtio_net/src/setup/registers/map.rs:30
 userland/capsule_driver_virtio_rng/src/setup/registers/grant.rs:29
