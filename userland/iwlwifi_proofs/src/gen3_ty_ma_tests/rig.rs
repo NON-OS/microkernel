@@ -12,6 +12,7 @@ use crate::gen3::dram_map::classify;
 use crate::gen3::layout::{firmware_region_sizes, Board, Memory};
 use crate::gen3::plan::{control_len_pnvm, RB_REGION};
 use crate::gen3::pnvm::reserve;
+use crate::gen3::region::Clock;
 use crate::gen3::select::{mac_type, rf_type};
 use crate::gen3::ucode::Ucode;
 use crate::gen3_model::{Mem, Model, Polls};
@@ -62,7 +63,7 @@ pub(super) fn polls() -> Polls {
 }
 
 /// Boot the rig's image to ALIVE; the device's PNVM version comes back too.
-pub(super) fn run(r: &Rig, c: &mut Polls) -> (Result<Alive, BootError>, Option<u32>) {
+pub(super) fn run(r: &Rig, c: &mut impl Clock) -> (Result<Alive, BootError>, Option<u32>) {
     let ucode = Ucode::parse(r.blob).unwrap();
     let layout = classify(r.blob);
     let fw: Vec<&Mem> = r.fw.iter().map(|m| m.as_ref()).collect();

@@ -62,6 +62,10 @@ impl Clock for Polls {
         self.delays_us += if met { 1000 } else { u64::from(ms) * 1000 };
         met
     }
+    // The model has no CPU to keep busy: a sleepless wait is the same wait.
+    fn spin_for(&mut self, ms: u32, ready: &mut dyn FnMut() -> bool) -> bool {
+        self.poll_for(ms, ready)
+    }
     fn delay_us(&mut self, us: u32) {
         self.delays_us += us as u64;
     }

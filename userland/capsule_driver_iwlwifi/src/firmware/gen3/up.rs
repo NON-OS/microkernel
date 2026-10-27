@@ -20,11 +20,9 @@
 //! `iwl_mvm_up` a scan rests on (TX antennas, BT coexistence, SoC latency,
 //! device power, the regulatory domain, scan config), and the interface add
 //! (`iwl_mvm_mld_mac_add_interface`: MAC_CONFIG and LINK_CONFIG, this
-//! firmware being MLD-API), at the station address the caller drew.
-//! Optional platform tables Linux reads from the BIOS (SAR, PPAG, TAS, LARI)
-//! are absent here, as on a machine without them. A
-//! command the firmware rejects or does not answer stops the sequence and
-//! names itself.
+//! firmware being MLD-API), at the station address the caller drew. No BIOS
+//! table is read (SAR, PPAG, TAS, LARI): Linux sends none of their commands
+//! on a machine without them. A command that fails stops the sequence.
 
 use super::bringup::is_legacy;
 use super::cmds::*;
@@ -135,7 +133,8 @@ pub fn up<M: Mmio, R: Region + ?Sized, C: Clock>(
         let ax = ucode.capa(CAPA_MCC_UPDATE_11AX_SUPPORT);
         let mut parsed = None;
         let mut reply = |r: &[u8]| parsed = mcc_update_reply(r, ver, ax);
-        s.with((LONG_GROUP, MCC_UPDATE_CMD), &mcc_update_world(), &mut reply)?;
+        let zz = mcc_update_zz(ucode.api(API_WIFI_MCC_UPDATE) || ucode.capa(CAPA_LAR_MULTI_MCC));
+        s.with((LONG_GROUP, MCC_UPDATE_CMD), &zz, &mut reply)?;
         mcc = Some(parsed.ok_or(UpError::BadMcc)?.1);
     }
     if ucode.capa(CAPA_UMAC_SCAN) {

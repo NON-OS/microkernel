@@ -16,6 +16,7 @@ use crate::firmware::family_for_device;
 use crate::firmware::gen3::csr::CsrLayout;
 use crate::firmware::gen3::select::transport;
 use crate::regs::Regs;
+use crate::server::Uptime;
 
 /// One bring-up attempt on the adapter discovery found. Each broker step
 /// rolls back the ones before it when it fails, and a chip that will not
@@ -35,7 +36,7 @@ pub fn run(dev: Found) -> Result<Driver, &'static str> {
     // SAFETY: the broker mapped `mmio.length` bytes of BAR0 at `user_va`
     // for this process, and they stay mapped while the claim is held.
     let regs = unsafe { Regs::new(mmio.user_va, mmio.length) };
-    init_or_release(regs, csr, &mut grants)?;
+    init_or_release(regs, csr, &mut Uptime, &mut grants)?;
     let _ = mk_irq_ack(irq.grant_id);
     Ok(Driver {
         device_id: dev.device_id,

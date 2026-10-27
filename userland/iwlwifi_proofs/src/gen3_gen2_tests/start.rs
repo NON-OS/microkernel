@@ -17,6 +17,9 @@ impl Clock for Waits {
     fn poll_for(&mut self, ms: u32, ready: &mut dyn FnMut() -> bool) -> bool {
         self.0.poll_for(ms, ready)
     }
+    fn spin_for(&mut self, ms: u32, ready: &mut dyn FnMut() -> bool) -> bool {
+        self.0.spin_for(ms, ready)
+    }
     fn delay_us(&mut self, us: u32) {
         self.1.push(us);
         self.0.delay_us(us)
