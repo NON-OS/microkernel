@@ -47,6 +47,7 @@ pub use super::read::read;
 pub use super::rename::renameat2;
 pub use super::resolve::{key, visible};
 pub use super::seek::lseek;
+pub use super::shm_object::{into_memfd, is_shm_object};
 pub use super::slot::{install, MAX_FDS};
 pub use super::store::{
     hash as store_hash, read as store_read, stat as store_stat, write as store_write, HashFault,

@@ -111,6 +111,7 @@ let
       files = [ "tools/linux-userland/lib/terminal.sh" ];
     };
     make.pins = [ "make" ];
+    fonts.pins = [ "dejavu-fonts" ];
     openssl.pins = [ "openssl" ];
     qwenchat = {
       pins = [ "llama.cpp" ];

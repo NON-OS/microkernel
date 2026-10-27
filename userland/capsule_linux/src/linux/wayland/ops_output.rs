@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! zxdg_output_manager_v1 and zxdg_output_v1 (xdg-output-unstable-v1.xml,
+//! wl_output's one request (wayland.xml, version 3), zxdg_output_manager_v1 and zxdg_output_v1 (xdg-output-unstable-v1.xml,
 //! version 2), and wp_viewporter and wp_viewport (viewporter.xml).
 
+pub const OUTPUT_RELEASE: u16 = 0;
 pub const XDG_OUTPUT_MANAGER_DESTROY: u16 = 0;
 pub const XDG_OUTPUT_MANAGER_GET: u16 = 1;
 pub const XDG_OUTPUT_DESTROY: u16 = 0;
