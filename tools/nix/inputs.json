@@ -2500,6 +2500,21 @@
   "md": [],
   "signed": []
  },
+ "userland/capsule_driver_mt7921": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
+   "userland/capsule_driver_mt7921",
+   "userland/libc",
+   "userland/nonos_aes",
+   "userland/nonos_mac",
+   "userland/nonos_p256",
+   "userland/nonos_wifi_core"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/capsule_driver_netvsc": {
   "exclude": [],
   "include": [
@@ -6433,6 +6448,7 @@
    "userland/capsule_driver_ixgbe/src/facts/ids.rs",
    "userland/capsule_driver_ixgbe/src/facts/parts.rs",
    "userland/capsule_driver_mpt/Capsule.mk",
+   "userland/capsule_driver_mt7921/src/ids.rs",
    "userland/capsule_driver_netvsc/Capsule.mk",
    "userland/capsule_driver_nvme/Capsule.mk",
    "userland/capsule_driver_ohci/Capsule.mk",
@@ -7207,6 +7223,53 @@
    "userland/nonos_scsi_serve/src/server",
    "userland/nonos_scsi_serve/src/units.rs",
    "userland/nonos_scsi_serve/src/wire"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/mt7921_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_mt7921/src/bringup",
+   "userland/capsule_driver_mt7921/src/card.rs",
+   "userland/capsule_driver_mt7921/src/clock.rs",
+   "userland/capsule_driver_mt7921/src/dma",
+   "userland/capsule_driver_mt7921/src/fw",
+   "userland/capsule_driver_mt7921/src/hw",
+   "userland/capsule_driver_mt7921/src/ids.rs",
+   "userland/capsule_driver_mt7921/src/init",
+   "userland/capsule_driver_mt7921/src/mac",
+   "userland/capsule_driver_mt7921/src/mcu",
+   "userland/capsule_driver_mt7921/src/power",
+   "userland/capsule_driver_mt7921/src/radio",
+   "userland/capsule_driver_mt7921/src/say.rs",
+   "userland/capsule_driver_mt7921/src/serve",
+   "userland/capsule_driver_mt7921/src/setup",
+   "userland/capsule_driver_mt7921/src/stage.rs",
+   "userland/capsule_driver_mt7921/src/vif",
+   "userland/libc/src/broker/types/bar.rs",
+   "userland/libc/src/broker/types/bus.rs",
+   "userland/libc/src/broker/types/device.rs",
+   "userland/libc/src/broker/types/dma.rs",
+   "userland/libc/src/broker/types/mmio.rs",
+   "userland/mt7921_proofs",
+   "userland/nonos_aes",
+   "userland/nonos_mac",
+   "userland/nonos_p256",
+   "userland/nonos_wifi_core",
+   "userland/nonos_wifi_core_proofs/src/ap_sim",
+   "userland/nonos_wifi_core_proofs/src/ap_sim.rs",
+   "userland/nonos_wifi_core_proofs/src/cipher_sim.rs",
+   "userland/nonos_wifi_core_proofs/src/pmf_sim.rs",
+   "userland/nonos_wifi_core_proofs/src/soft/ap.rs",
+   "userland/nonos_wifi_core_proofs/src/soft/ap_eapol.rs",
+   "userland/nonos_wifi_core_proofs/src/soft/ap_rx.rs",
+   "userland/nonos_wifi_core_proofs/src/soft/chatter.rs",
+   "userland/nonos_wifi_core_proofs/src/soft/data_frames.rs",
+   "userland/nonos_wifi_core_proofs/src/soft/frames.rs",
+   "userland/nonos_wifi_core_proofs/src/soft/protect.rs",
+   "userland/nonos_wifi_core_proofs/src/soft/quirks.rs"
   ],
   "md": [],
   "signed": []

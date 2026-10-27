@@ -5,6 +5,7 @@
 mod air_tests;
 mod bringup_tests;
 mod bss_tests;
+mod client_stage_tests;
 mod download_tests;
 mod frame_tests;
 mod frames_tests;

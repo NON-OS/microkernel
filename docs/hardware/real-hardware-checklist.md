@@ -76,6 +76,59 @@ Settings Wi-Fi panel's status (stage, step, detail).
       model, and the first `[iwlwifi]` line that differs from this list.
       The logs never carry a MAC address, SSID or BSSID from this driver.
 
+## MediaTek MT7921 and MT7922
+
+The mt7921e driver (14c3:7961 MT7921E/RZ608, 14c3:0616 and 14c3:7922
+MT7922/RZ616, 14c3:0608, 14c3:7920, 0b48:7922) is host-proven only: it has
+never run on a card. A first boot is its test. The `[mt7921]` lines print on
+a development image (`Debug` granted to the capsule); on another image the
+Settings Wi-Fi panel shows the stage. A ThinkPad T14 Gen 4 AMD carries the
+MT7922.
+
+- [ ] What to boot: a `standard-dev` image at or after the mt7921e wiring
+      commit, written with `make nonos-mk-usb-img` so the firmware package is
+      on the stick: `EFI/nonos/firmware/mediatek/` holds six `WIFI_*` files
+      and `LICENCE.mediatek` (check with `mdir` or by mounting the stick).
+      Wi-Fi on in the firmware settings.
+- [ ] Before: if the machine runs Linux, save `lspci -nn -d 14c3:` and
+      `dmesg | grep -i mt79` (the `HW/SW Version` and `WM Firmware Version`
+      lines).
+- [ ] Power and identity: `[mt7921] stage power: driver owns the card`, then
+      `[mt7921] chip 0x00007961 rev 0x000000NN` (or `0x00007922`, or
+      `0x00007920`). `stopped at stage 2` or `stage 3` here: keep the line.
+- [ ] Package: `[mt7921] package: WIFI_MT7922_patch_mcu_1_1_hdr.bin verified`
+      and `... WIFI_RAM_CODE_MT7922_1.bin verified` (the MT7961 or 1a names
+      on the other chips). `missing` is stage 10: the stick has no package;
+      `does not match its sha256` is stage 11: the files are another
+      release's. Neither touches the card past its ownership.
+- [ ] Rings and firmware: `[mt7921] stage rings: WFDMA on, six rings
+      armed`, `[mt7921] stage firmware: patch and RAM code running`,
+      `[mt7921] stage mac: up, bands 1,1`. On a failure, `firmware failed at
+      step N` (1 a bad patch, 2 the semaphore, 3 a piece's announcement,
+      4 its bytes, 5 the patch finish, 6 a bad RAM image, 7 the start,
+      8 never ready, 9 the MCU's ownership) or `mac init failed at step N` (1 capabilities to 5 RX
+      path), then `attempt N failed; resetting`; after three, `card quiet:
+      WFDMA off, bus master off` and `stopped at stage 4`.
+- [ ] Interface: `[mt7921] stage interface: station added`, `[mt7921] stage
+      ready: scanning`, `[mt7921] serving driver.mt7921e0`. `stopped at
+      stage 7` means the kernel gave no randomness.
+- [ ] Scan: within about ten seconds the Settings panel lists the networks
+      in range, 2.4 and 5 GHz. If it lists none, the status reply's
+      diagnostic words (chip, channel grants, grants missed, bad frames,
+      refused commands) say whether the firmware ever granted a channel;
+      keep the log.
+- [ ] Join (WPA2, then WPA3 if an access point offers it): the panel reads
+      Joined. WPA3 through this driver is unproven even on the host; say
+      which security the access point ran.
+- [ ] DHCP: `[NET-CORE] bind: interface up on driver.mt7921e0`, then a
+      lease (`[NET-CORE] lease-status state=...`); a page loads in the
+      browser. Leave it a few minutes: a `card stopped answering: radio off`
+      line ends the session and is the thing to report.
+- [ ] Send back: the boot log (`log > boot-log.txt`), `log driver- exit >
+      drivers.txt`, the Linux lines above if any, the laptop model and
+      card, and the first `[mt7921]` line that differs from this list. The
+      driver's lines never carry a MAC address, SSID or BSSID.
+
 ## USB Ethernet: ASIX AX88179
 
 The AX88179 driver (`driver.ax88179_0`) is host-proven only: QEMU has no
