@@ -9,6 +9,7 @@ Each Wi-Fi driver is a [capsule](../../overview/glossary-boot-root-record.md#cap
 | Chip | PCI vendor:device | Capsule | State in 0.9.2 | Page |
 |---|---|---|---|---|
 | Realtek RTL8821CE | 10ec:b821, 10ec:c821 | `driver.rtl8821ce0` | Works: see the hardware report below the table | [rtl8821ce.md](rtl8821ce.md) |
+| Realtek RTL8822CE | 10ec:c822, 10ec:c82f | `driver.rtl8822ce0` | Partial: host-proven only, never run on the card; 2.4 GHz, no IQK | [rtl8822ce.md](rtl8822ce.md) |
 | Intel AX211, and AX201 modules on the same platforms | 8086:51f0, 51f1, 54f0, 7a70, 7af0, 7f70 | `driver.iwlwifi0` | Partial: boots, scans and joins against a modelled device only | [iwlwifi.md](iwlwifi.md) |
 | Intel BE200 and BE201 (Wi-Fi 7) | 8086:272b, a840, 7740, 4d40 | `driver.iwlwifi0` | Partial: boots, scans and joins against a modelled device only; never booted on the card | [iwlwifi.md](iwlwifi.md) |
 | Intel AX210 discrete, Intel Meteor Lake Wi-Fi | 8086:2725, 2729, 7e40 | `driver.iwlwifi0` | Refused: firmware file not in the tree | [iwlwifi.md](iwlwifi.md) |
@@ -36,6 +37,7 @@ That is the only hardware report for Wi-Fi in this release. Every other statemen
 ## See also
 
 - [Realtek RTL8821CE](rtl8821ce.md)
+- [Realtek RTL8822CE](rtl8822ce.md)
 - [Intel iwlwifi](iwlwifi.md)
 - [Wi-Fi chips with no driver](not-supported.md)
 - [Ethernet drivers](../ethernet/README.md)
