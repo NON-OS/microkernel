@@ -33,6 +33,7 @@ Host-tested on 2026-10-24: the closure has every production capsule below and le
 - first-boot setup and the installer;
 - every production hardware driver:
   - NICs: virtio, e1000, e1000e, igb, rtl8139, rtl8169, pcnet, vmxnet3, tulip, iwlwifi and rtl8821ce;
+    and the ASIX AX88179 USB adapter, host-proved, not booted (QEMU has no AX88179);
   - storage: virtio-blk, virtio-scsi, NVMe, AHCI, PIIX IDE, pvscsi, MPT, SDHCI, UFS and USB mass
     storage, and BusLogic, host-proved, not booted (QEMU has no BusLogic device);
   - USB host controllers: xHCI, EHCI, OHCI and UHCI, and USB hubs;
@@ -81,6 +82,7 @@ The kernel embeds each capsule's certificate, manifest and STARK trailer from `n
 - The 13 capsules this change adds have no trust set either: the 11 drivers, plus nox-settle and prove-fetch.
 - On 2026-10-27 S4 added `driver-ixgbe`, `driver-cdc-ecm`, `driver-cdc-ncm`, `driver-rndis`, `driver-smbus` and `driver-bga`, and took `driver-ccid`, `driver-fido` and `driver-uvc` out of the profile (no client in this release can use them; their reasons are in docs/hardware/MATRIX.md).
 - On 2026-10-27 S4 added `driver-igc` (Intel I225 and I226, the 2.5 GbE of most mini PCs and many boards since 2020) to `microkernel-full-gui`; it has no trust set either.
+- `driver-ax88179` (ASIX AX88179, AX88178A) is built by its own `microkernel-driver-ax88179` profile and is not in `microkernel-full-gui`: its register programming was read from Linux, which Decision 10 (HANDOFF/letters/b/84) leaves to the owner.
 - A trust set that exists can still be stale. `nix build` also refuses a kernel when a shipped capsule's sealed manifest grants other caps than its `Capsule.mk` now says (`scripts/check_sealed_caps.py`, called from `tools/nix/image.nix`). On 2026-10-24, nine sealed manifests were stale this way. Five follow from this change's narrowing: keyring, login, payment, wallet-nonos and virtio-gpu. Four come from changes on main since the last seal: input-router, linux, boot-splash and i2c-pci. The next seal rewrites all nine. Host-tested: the script's `--self-test`, run by the flake's `static-abi` check.
 
 So `nix build` of the default image waits for the next release seal, which writes all 32 trust sets in one step. A development image (`make dev-image`, `tools/nonos-dev-image`) is sealed with throwaway keys and builds and boots now.
