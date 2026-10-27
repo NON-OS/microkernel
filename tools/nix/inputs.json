@@ -5565,6 +5565,7 @@
    "userland/nonos_blk_client/src/driver/dialect.rs",
    "userland/nonos_blk_client/src/driver/names.rs",
    "userland/nonos_blk_client/src/driver/pci.rs",
+   "userland/nonos_blk_client/src/driver/pci_ids.rs",
    "userland/nonos_blk_client/src/driver/table.rs",
    "userland/nonos_blk_client/src/status_text",
    "userland/nonos_blk_client/src/status_text.rs",
