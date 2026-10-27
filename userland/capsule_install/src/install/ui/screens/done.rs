@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The receipt: what was written, what was read back, and the identifiers
-//! a firmware boot menu will show for this disk. Then the one instruction
-//! that matters: take the stick out before restarting.
+//! a firmware boot menu will show for this disk, after an update the ones
+//! it already had. Then the one instruction that matters: take the stick
+//! out before restarting.
 
 use nonos_app_skeleton::PaintBuffer;
 
@@ -32,14 +33,12 @@ pub const RECEIPT_LINES: u32 = 7;
 pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
     let Some(o) = state.outcome.as_ref() else { return };
     let m = &b.m;
-    text::line(
-        fb,
-        b.x,
-        b.y,
-        "NØNOS is on the disk, and every sector read back as written.",
-        theme::OK,
-        m.body_px,
-    );
+    let said = if state.updating() {
+        "NØNOS is updated, your data is as it was, and every sector read back."
+    } else {
+        "NØNOS is on the disk, and every sector read back as written."
+    };
+    text::line(fb, b.x, b.y, said, theme::OK, m.body_px);
 
     let card_y = b.y + m.line_h + m.gap;
     let inner = card(fb, m, b.x, card_y, b.w, m.card_h(RECEIPT_LINES), "receipt");
