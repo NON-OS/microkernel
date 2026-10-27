@@ -47,7 +47,7 @@ mod locks;
 mod made;
 mod memfd;
 mod memfd_map;
-mod shm_object;
+mod shared_read;
 mod meta;
 mod mknod;
 pub mod models;
