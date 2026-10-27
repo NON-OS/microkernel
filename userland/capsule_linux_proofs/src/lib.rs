@@ -56,6 +56,7 @@ pub mod out;
 pub mod reshape;
 #[path = "../../capsule_linux/src/linux/wayland/scene_pixels.rs"]
 pub mod scene_pixels;
+pub mod wayland_clip;
 pub mod wayland_popup;
 pub mod wayland_sub;
 /* The NØNOS frame around a guest window: where its content sits, and how it
@@ -66,7 +67,6 @@ pub mod window_life;
 
 mod host_doubles;
 pub use host_doubles::{clamp, private};
-
 #[path = "../../../src/userspace/capsule_linux/family.rs"]
 pub mod listing_family;
 
