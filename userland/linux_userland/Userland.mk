@@ -208,6 +208,21 @@ LINUX_USERLAND_STORE_DEPS += $(addprefix $(LINUX_USERLAND_OUT)/tcl8.6/,$(LINUX_U
 LINUX_USERLAND_STORE_ENTRIES += $(foreach f,$(LINUX_USERLAND_TCL),\
 	--entry /linux/usr/lib/tcl8.6/$(f)=$(LINUX_USERLAND_OUT)/tcl8.6/$(f))
 
+# The fonts a Linux window program draws its text in (tools/linux-userland/
+# fonts.sh), where Alpine's own font-dejavu puts them, so the fontconfig a
+# program installs with it finds them. Data, with the fonts' licence beside
+# them. Without a font, swayimg drew its text from a face it never loaded and
+# ended on a null read; a GTK or Qt program would show no text at all.
+LINUX_USERLAND_FONTS := DejaVuSans.ttf DejaVuSans-Bold.ttf DejaVuSansMono.ttf DejaVuSerif.ttf LICENSE
+$(LINUX_USERLAND_OUT)/fonts/DejaVuSans.ttf: $(LINUX_USERLAND_TOOLS) $(call LINUX_USERLAND_RECIPE,fonts)
+	@echo "Fetching the Linux userland fonts from their pinned release..."
+	@tools/nonos-linux-userland-build fonts $(LINUX_USERLAND_OUT)
+$(addprefix $(LINUX_USERLAND_OUT)/fonts/,$(filter-out DejaVuSans.ttf,$(LINUX_USERLAND_FONTS))): $(LINUX_USERLAND_OUT)/fonts/DejaVuSans.ttf
+	@test -f $@
+LINUX_USERLAND_STORE_DEPS += $(addprefix $(LINUX_USERLAND_OUT)/fonts/,$(LINUX_USERLAND_FONTS))
+LINUX_USERLAND_STORE_ENTRIES += $(foreach f,$(LINUX_USERLAND_FONTS),\
+	--entry /linux/usr/share/fonts/dejavu/$(f)=$(LINUX_USERLAND_OUT)/fonts/$(f))
+
 # Who the guest is. Every guest runs as uid 0, and a program that asks for its
 # home by uid (John, through getpwuid, before HOME) needs the answer here:
 # /root, one of the family's private directories. Without it John keeps

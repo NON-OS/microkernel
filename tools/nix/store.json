@@ -838,6 +838,26 @@
    "file": "target/linux-userland/tcl8.6/msgcat/pkgIndex.tcl"
   },
   {
+   "path": "/linux/usr/share/fonts/dejavu/DejaVuSans.ttf",
+   "file": "target/linux-userland/fonts/DejaVuSans.ttf"
+  },
+  {
+   "path": "/linux/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf",
+   "file": "target/linux-userland/fonts/DejaVuSans-Bold.ttf"
+  },
+  {
+   "path": "/linux/usr/share/fonts/dejavu/DejaVuSansMono.ttf",
+   "file": "target/linux-userland/fonts/DejaVuSansMono.ttf"
+  },
+  {
+   "path": "/linux/usr/share/fonts/dejavu/DejaVuSerif.ttf",
+   "file": "target/linux-userland/fonts/DejaVuSerif.ttf"
+  },
+  {
+   "path": "/linux/usr/share/fonts/dejavu/LICENSE",
+   "file": "target/linux-userland/fonts/LICENSE"
+  },
+  {
    "path": "/linux/etc/passwd",
    "file": "userland/linux_userland/passwd"
   },
