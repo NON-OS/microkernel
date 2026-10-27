@@ -22,17 +22,21 @@ use alloc::vec::Vec;
 
 use crate::directory::consensus::Entry;
 use crate::directory::microdesc::Microdesc;
-use crate::path::Relay;
+use crate::path::{Ports, Relay};
 
-/// Build the usable relay set from both halves.
-///
-pub fn join(entries: &[Entry], found: &[([u8; 32], Microdesc)]) -> Vec<Relay> {
+/// Build the usable relay set from both halves, and the policy summaries of
+/// the exits among them.
+pub fn join(entries: &[Entry], found: &[([u8; 32], Microdesc)]) -> (Vec<Relay>, Ports) {
     let mut out = Vec::with_capacity(entries.len());
+    let mut ports = Vec::new();
     for entry in entries {
         let Ok(at) = found.binary_search_by(|(d, _)| d.cmp(&entry.microdesc_digest)) else {
             continue;
         };
         let (_, micro) = &found[at];
+        if entry.flags.exit {
+            ports.push((entry.rsa_identity, micro.ports.clone()));
+        }
         out.push(Relay {
             address: entry.address,
             or_port: entry.or_port,
@@ -44,5 +48,5 @@ pub fn join(entries: &[Entry], found: &[([u8; 32], Microdesc)]) -> Vec<Relay> {
             exits_web: micro.exits_web,
         });
     }
-    out
+    (out, Ports::new(ports))
 }
