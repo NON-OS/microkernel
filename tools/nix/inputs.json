@@ -6408,6 +6408,7 @@
    "userland/capsule_process_manager/Capsule.mk",
    "userland/capsule_proof_io/Capsule.mk",
    "userland/capsule_prove/Capsule.mk",
+   "userland/capsule_prove/src/market/buckets.rs",
    "userland/capsule_prove_fetch/Capsule.mk",
    "userland/capsule_qrgen/Capsule.mk",
    "userland/capsule_ramfs/Capsule.mk",

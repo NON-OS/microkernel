@@ -14,7 +14,7 @@ flowchart LR
     T -->|MkLogTail| L[Terminal log]
 ```
 
-The [serial console](../overview/glossary-rollback-index.md#serial-console) is the main record. Kernel code writes `[TAG]` lines to it, the `boot_log` helpers write the same lines there and, when the on-screen log is built in, to the panel, and a [capsule](../overview/glossary-boot-root-record.md#capsule) with the `Debug` [capability](../overview/glossary-boot-root-record.md#capability) can add its own. On images built with `capsule-serial-debug`, the `standard` [build profile](../overview/glossary-boot-root-record.md#build-profile) among them, the kernel also keeps a copy in memory, the serial tail, which the Terminal's `log` command reads back.
+The [serial console](../overview/glossary-rollback-index.md#serial-console) is the main record. Kernel code writes `[TAG]` lines to it, the `boot_log` helpers write the same lines there and, when the on-screen log is built in, to the panel, and a [capsule](../overview/glossary-boot-root-record.md#capsule) with the `Debug` [capability](../overview/glossary-boot-root-record.md#capability) can add its own. On images built with `nonos-log-tail`, which the `standard` [build profile](../overview/glossary-boot-root-record.md#build-profile) keeps, or with `capsule-serial-debug`, which only development images keep, the kernel also keeps a copy in memory, the serial tail, which the Terminal's `log` command reads back. On a standard image the console carries only the kernel's own lines: no capsule may write to it there, so the tail holds no app's output.
 
 ### The serial console
 
@@ -100,7 +100,7 @@ Fault lines do print addresses: the `[TRAP xx]` line from `dump_trap` carries th
 ## Limits
 
 - The structured log is not initialised in this release, so `log_info!` and its relatives write nothing.
-- The serial tail exists only on images built with `capsule-serial-debug`. Images from the `hardened` and `airgapped` build profiles keep no tail, so `log` has nothing to show there.
+- The serial tail exists only on images built with `nonos-log-tail` or `capsule-serial-debug`. The `hardened` and `airgapped` build profiles drop both (`tools/nix/config.nix`), so they keep no tail and `log` has nothing to show there.
 - The tail keeps 128 KiB: the start of the boot and the latest lines. The middle of a long run is lost.
 - The on-screen boot log is a build-time choice.
 
