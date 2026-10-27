@@ -82,6 +82,14 @@ that ended are ended with the stream reaper. A numbered frame repeated with no
 bytes, or with the same bytes, gets the kept answer; one repeated with new bytes has them
 carried, with the answer the caller missed in front (`src/server/socks/kept.rs`).
 
+A greeting that lists the private method `0x80` beside no-authentication marks
+its stream as an install's download (`src/server/socks/wire.rs`); nonos_route_link's
+`RouteStream::connect_install` sends it. The method is never chosen in reply. Once the
+network is up and another circuit is open, one general circuit is drawn ahead as the
+warm circuit for installs: only a marked stream takes it, a marked stream takes it
+first, it counts against `CIRCUIT_MAX`, and it takes no new stream after
+`CIRCUIT_DIRTY_SECONDS` or its first failure (`src/manager/warm_rule.rs`).
+
 ## Authority
 
 `CAPSULE_REQUIRED_CAPS = 0x0003c` and `CAPSULE_OPTIONAL_CAPS = 0x100` (`Capsule.mk`):
