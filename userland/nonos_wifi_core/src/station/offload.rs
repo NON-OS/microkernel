@@ -5,7 +5,7 @@
 //! driver a frame (`ieee80211_crypto_ccmp_encrypt` sets Protected; with
 //! `IEEE80211_KEY_FLAG_GENERATE_IV` `ccmp_encrypt_skb` writes the CCMP
 //! header and packet number, and without it leaves both to the chip; no
-//! MIC either way), and the keys as the chip takes them, borrowed.
+//! MIC either way). The keys as the chip takes them are `offload_keys`'.
 
 use alloc::vec::Vec;
 
@@ -13,8 +13,6 @@ use super::{Ccmp, LinkStation};
 use crate::dot11::ccmp::CCMP_HDR_LEN;
 use crate::dot11::data::ccmp_header;
 use crate::dot11::header::{header_len, FC_PROTECTED};
-use crate::key::ChipKey;
-use crate::rsn::TemporalKey;
 
 impl LinkStation {
     /// Whether the chip holds this link's keys and encrypts what it sends.
@@ -47,27 +45,13 @@ impl LinkStation {
         Some(out)
     }
 
-    /// The pairwise key, as a chip takes it.
-    pub fn chip_pairwise(&self) -> Option<ChipKey<'_>> {
-        match &self.ccmp {
-            Ccmp::Software { tk } | Ccmp::Offload { tk, .. } => Some(ChipKey::Pairwise(tk)),
-            _ => None,
-        }
-    }
-
-    /// The CCMP-128 group key at `id` with, under management frame
-    /// protection, the integrity group key; `None` for any other cipher,
-    /// which the station keeps to itself.
-    pub fn chip_group(&self, id: u8) -> Option<ChipKey<'_>> {
-        let TemporalKey::Ccmp128(gtk) = self.group_keys.get(usize::from(id))?.as_ref()? else {
-            return None;
-        };
-        let igtk = self.pmf.igtk.as_ref().map(|(k, i)| (*i as u8, k));
-        Some(ChipKey::Group { id, gtk, igtk })
-    }
-
-    /// The index of the group key the AP last gave.
-    pub fn gtk_id(&self) -> Option<u8> {
-        self.supplicant.as_ref().map(|s| s.gtk_id())
+    /// Whether `f` goes for the chip to seal: Protected on an offloaded link,
+    /// and data, or a management frame where the chip writes the header; a
+    /// station that writes it seals management frames itself, as mac80211
+    /// does under `IEEE80211_KEY_FLAG_SW_MGMT_TX`.
+    pub fn keyed(&self, f: &[u8]) -> bool {
+        let Ccmp::Offload { host_iv, .. } = self.ccmp else { return false };
+        let protected = f.get(1).is_some_and(|b| b & 0x40 != 0);
+        protected && (f[0] >> 2 & 3 == 2 || !host_iv)
     }
 }
