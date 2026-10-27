@@ -39,8 +39,10 @@ arrives with each connect request and stays in the shared station's memory.
 ## Current implemented surface
 
 Bring-up to a scanning station; passive scan of 2.4 and 5 GHz by channel
-requests; WPA2 and WPA3 joins through the shared station (WPA2 proven on the
-host); data both ways with software CCMP; fixed-rate transmit.
+requests; WPA2 and WPA3 joins through the shared station (both proven on the
+host, WPA3 by SAE hash-to-element, also in transition mode); data both ways
+with software CCMP; fixed-rate transmit at the access point's own basic
+rates; ownership kept across the firmware taking the card back.
 
 ## Wire format
 

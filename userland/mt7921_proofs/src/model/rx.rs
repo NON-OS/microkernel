@@ -43,10 +43,10 @@ impl Chip {
     /// Time on the air, and every waiting buffer written where it fits.
     pub fn tick(&mut self) {
         let tuned = self.mcu.tuned();
-        if let Some(frames) = self.air.as_mut().map(|a| a.tick(now(), tuned)) {
-            for f in frames {
-                self.receive(f);
-            }
+        let air = self.air.as_mut().map(|a| a.tick(now(), tuned)).unwrap_or_default();
+        let wpa3 = self.wpa3.as_mut().map(|a| a.tick(now(), tuned)).unwrap_or_default();
+        for f in air.into_iter().chain(wpa3) {
+            self.receive(f);
         }
         for ring in 0..self.pending.len() {
             self.flush(ring);

@@ -17,7 +17,9 @@ fn the_mac_comes_up_in_linuxs_order() {
     init(&mut k.mcu, &k.regs, &mut k.dma).unwrap();
     let ch = c.borrow();
     let order: Vec<(u16, u8)> = ch.mcu.seen[before..].iter().map(|s| (s.cid, s.ext)).collect();
-    assert_eq!(order, [(0x8a, 0), (0xed, 0x21), (0xed, 0x46), (0x0f, 0), (0xed, 0x4e)]);
+    let start = [(0x8a, 0), (0xed, 0x21), (0xed, 0x46), (0x0f, 0), (0xed, 0x4e)];
+    assert_eq!(order[..5], start);
+    assert_eq!(order[5..], [(0x5d, 0); 8], "then the power limits, 2 + 6 messages");
     let efuse = &ch.mcu.seen[before + 1].body;
     assert_eq!(efuse[..4], [0, 1, 0, 0], "EE_MODE_EFUSE, EE_FORMAT_WHOLE");
     let mac = &ch.mcu.seen[before + 2].body;

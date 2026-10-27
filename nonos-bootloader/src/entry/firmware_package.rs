@@ -9,12 +9,13 @@
 //! which the kernel serves through `MkInstallSource`. The loader checks nothing:
 //! the driver holds each file's length and sha256 and refuses any other
 //! (`capsule_driver_mt7921/src/fw/pins.rs`: the MT7961, MT7961_1a and MT7922
-//! patch and RAM code). A file not on the medium, or over 4 MiB, is no module.
+//! patch and RAM code). A file not on the medium, or over 4 MiB, is no module,
+//! and one not on the medium is passed over without a word.
 
 use alloc::vec::Vec;
 
 use nonos_boot::handoff::types::Module;
-use nonos_boot::loader::file::load_file_from_esp;
+use nonos_boot::loader::file::{file_exists, load_file_from_esp};
 use uefi::prelude::*;
 use uefi::CStr16;
 
@@ -34,6 +35,11 @@ const MAX_FILE: usize = 4 << 20;
 pub fn firmware_package(st: &SystemTable<Boot>) -> [Module; 6] {
     let mut out = [Module::default(); 6];
     for (i, path) in FILES.iter().enumerate() {
+        // Asked first, so a medium without the package (an offline build, a
+        // stick packed by hand) boots without a "File not found" line per file.
+        if !file_exists(st, path) {
+            continue;
+        }
         let Ok(bytes) = load_file_from_esp(st, path) else { continue };
         if bytes.is_empty() || bytes.len() > MAX_FILE {
             continue;

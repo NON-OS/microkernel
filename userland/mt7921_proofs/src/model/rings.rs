@@ -23,8 +23,9 @@ impl Chip {
 
     fn run_tx(&mut self, ring: usize) {
         let r = TX_BASE + 16 * ring as u32;
-        let (base, size) = (self.reg(r), self.reg(r + 4).max(1));
-        while self.reg(r + 12) != self.reg(r + 8) {
+        let (base, size) = (self.reg(r), self.reg(r + 4));
+        // A ring with no array or no size is not one the WFDMA runs.
+        while base != 0 && size != 0 && self.reg(r + 12) != self.reg(r + 8) {
             let at = self.reg(r + 12);
             let d = base + 16 * at;
             let (buf, ctrl) = (word(d), word(d + 4));

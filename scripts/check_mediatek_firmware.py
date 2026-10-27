@@ -13,6 +13,11 @@ The mt7921e driver pins each file by name, length and sha256
     other files, in another order, or another first module kind;
   - the kernel's served kinds (install_source_kinds.rs) or the driver's own
     first slot are not 0x20 and six;
+  - the loader reads a file without first asking whether it is there (a
+    medium without the package must boot without a "File not found" line);
+  - the seal's ESP (tools/nonos_seal/media.py, run here on empty stand-ins)
+    does not place the artifact tree's files where the loader reads them, or
+    the seal does not hand it the artifact tree's firmware/mediatek;
   - any tracked file is one of the pinned files (by length and sha256), a
     file under nonos-bootloader/firmware/mediatek/ other than its licence
     is not empty, or a Rust source includes a MediaTek file's bytes;
@@ -25,6 +30,7 @@ The mt7921e driver pins each file by name, length and sha256
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import random
 import re
@@ -34,9 +40,11 @@ import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from mediatek_firmware import KINDS_RS, LICENCE, LOADER_RS, PACKAGE_RS, commit, pins  # noqa: E402
+from mediatek_firmware import ESP_DIR, KINDS_RS, LICENCE, LOADER_RS, PACKAGE_RS, commit, pins  # noqa: E402
 
 NIX_JSON = "tools/nix/firmware.json"
+SEAL_MEDIA = "tools/nonos_seal/media.py"
+SEAL_MAIN = "tools/nonos_seal/__main__.py"
 PLACEHOLDERS = "nonos-bootloader/firmware/mediatek/"
 SCOPE = ("src/", "userland/", "nonos-bootloader/", "kernel_proofs/")
 NEEDLE = 32
@@ -69,7 +77,34 @@ def agreement(root: Path):
         out.append(f"{KINDS_RS}: does not serve kinds 0x20..0x25")
     if number((root / PACKAGE_RS).read_text(), "SLOT_FIRST") != 0x20:
         out.append(f"{PACKAGE_RS}: SLOT_FIRST is not 0x20")
-    return out
+    asked, read = loader.find("if !file_exists(st, path)"), loader.find("load_file_from_esp(st, path)")
+    if asked < 0 or read < asked:
+        out.append(f"{LOADER_RS}: reads a file without asking first whether it is there")
+    return out + placed(root, [n for n, _, _ in pinned])
+
+
+def placed(root: Path, names):
+    """The seal's ESP, built from empty stand-ins: every pinned file and the
+    licence at EFI/nonos/<ESP_DIR>/, which is where the loader reads them."""
+    if "firmware\\\\mediatek" not in (root / LOADER_RS).read_text() or ESP_DIR != "firmware/mediatek":
+        return [f"{LOADER_RS}: not the package's place, EFI/nonos/{ESP_DIR}"]
+    if not re.search(r'media\.esp\([^)]*\bfirmware\)', (root / SEAL_MAIN).read_text()) or \
+            '"firmware", "mediatek"' not in (root / SEAL_MAIN).read_text():
+        return [f"{SEAL_MAIN}: does not hand the ESP the artifact tree's firmware/mediatek"]
+    spec = importlib.util.spec_from_file_location("seal_media", root / SEAL_MEDIA)
+    media = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(media)
+    with tempfile.TemporaryDirectory() as d:
+        fw, out = Path(d) / "fw", Path(d) / "out"
+        fw.mkdir()
+        for n in names + ["LICENCE.mediatek"]:
+            (fw / n).write_bytes(b"")
+        stand = Path(d) / "stand-in"
+        stand.write_bytes(b"")
+        esp = Path(media.esp(str(out), *[str(stand)] * 5, str(fw)))
+        missing = [n for n in names + ["LICENCE.mediatek"]
+                   if not (esp / "EFI" / "nonos" / ESP_DIR / n).is_file()]
+    return [f"{SEAL_MEDIA}: the seal's ESP lacks {missing}"] if missing else []
 
 
 def tracked(root: Path):
@@ -132,7 +167,7 @@ def self_test() -> int:
     with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as b:
         t, blobs = Path(d), Path(b)
         for rel in ("userland/capsule_driver_mt7921/src/fw/pins.rs", PACKAGE_RS, LOADER_RS,
-                    KINDS_RS, NIX_JSON):
+                    KINDS_RS, NIX_JSON, SEAL_MEDIA, SEAL_MAIN, "scripts/mediatek_firmware.py"):
             (t / rel).parent.mkdir(parents=True, exist_ok=True)
             (t / rel).write_text((root / rel).read_text())
         if agreement(t) or no_blobs(t):
@@ -174,6 +209,15 @@ def self_test() -> int:
         (t / KINDS_RS).write_text((root / KINDS_RS).read_text())
         (t / NIX_JSON).write_text((root / NIX_JSON).read_text().replace("92192", "92193"))
         cases.append(("the nix list another length", agreement(t)))
+        (t / NIX_JSON).write_text((root / NIX_JSON).read_text())
+        (t / LOADER_RS).write_text((root / LOADER_RS).read_text().replace("if !file_exists(st, path)", "if false"))
+        cases.append(("the loader reading without asking", agreement(t)))
+        (t / LOADER_RS).write_text((root / LOADER_RS).read_text())
+        (t / SEAL_MEDIA).write_text((root / SEAL_MEDIA).read_text().replace("if firmware and", "if False and"))
+        cases.append(("the seal packing no package", agreement(t)))
+        (t / SEAL_MEDIA).write_text((root / SEAL_MEDIA).read_text())
+        (t / SEAL_MAIN).write_text((root / SEAL_MAIN).read_text().replace(", approval, firmware)", ", approval)"))
+        cases.append(("the seal handing the ESP nothing", agreement(t)))
     missed = [what for what, found in cases if not found]
     print(f"self-test: {len(cases) - len(missed)} of {len(cases)} caught; missed: {missed}")
     return 1 if missed else 0

@@ -46,7 +46,8 @@ impl Ring {
         if self.queued == 0 || ctrl & CTL_DMA_DONE == 0 {
             return None;
         }
-        let (len, more, drop) = rx_done(ctrl);
+        let (buf1, info) = (self.desc.rd32(d + BUF1), self.desc.rd32(d + INFO));
+        let (len, more, drop) = rx_done(ctrl, buf1, info);
         let piece = core::mem::replace(&mut self.skip, more);
         let whole = !piece && !more && !drop && len <= self.stride && len <= out.len();
         if whole {
