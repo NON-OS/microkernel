@@ -35,10 +35,9 @@
 //! untouched, and the cross-CPU request is still serviced.
 
 use core::panic::Location;
-use spin::{Mutex, MutexGuard};
 
+use super::responsive_lock::Responsive;
 use super::spin_holders::stack_mark;
-use super::spin_wait::take;
 
 /// Acquire `lock`, servicing TLB shootdowns while it is contended.
 ///
@@ -51,7 +50,6 @@ use super::spin_wait::take;
 /// one that took the lock (spin_report.rs): a spin that can never end, such as
 /// a holder taking its own lock again, is otherwise a CPU stopped in silence.
 #[track_caller]
-pub fn lock_responsive<T>(lock: &Mutex<T>) -> MutexGuard<'_, T> {
-    let addr = lock as *const Mutex<T> as usize;
-    take(addr, Location::caller(), stack_mark(), false, || lock.try_lock())
+pub fn lock_responsive<L: Responsive>(lock: &L) -> L::Guard<'_> {
+    lock.take_at(Location::caller(), stack_mark())
 }

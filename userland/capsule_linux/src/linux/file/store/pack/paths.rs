@@ -14,22 +14,44 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Where a package's pack and its trailer are in the store.
+//! Where a package's pack and its trailer are in the store. Each family keeps
+//! its packs in a directory of its own, so an Alpine and a Debian package of
+//! one name are two packs: installing or removing one leaves the other, and
+//! a run of one family loads none of another's.
 
 use alloc::vec::Vec;
 
-/// Outside /linux and the families' roots: no guest path reaches it.
-pub const PACKS: &[u8] = b"/linux-packs";
-pub const PACK: &[u8] = b".pack";
-/// The trailer's name, after the pack's own.
-pub const TRAILER_AFTER: &[u8] = b".zk_trailer.bin";
+use crate::linux::file::family::Family;
 
-pub fn pack_path(package: &str) -> Vec<u8> {
-    [PACKS, b"/", package.as_bytes(), PACK].concat()
+/// Outside /linux and the families' roots: no guest path reaches it.
+const PACKS: &[u8] = b"/linux-packs";
+const PACK: &[u8] = b".pack";
+/// The trailer's name, after the pack's own.
+const TRAILER_AFTER: &[u8] = b".zk_trailer.bin";
+
+/// The directory `family`'s packs are in. Each ends in `/`, so none is the
+/// start of another's.
+pub fn family_dir(family: Family) -> Vec<u8> {
+    let name: &[u8] = match family {
+        Family::Alpine => b"alpine",
+        Family::Debian => b"deb",
+        Family::Pacman => b"pacman",
+    };
+    [PACKS, b"/", name, b"/"].concat()
 }
 
-/// The trailer this machine minted over the pack's index (its first bytes,
-/// up to its data), which holds every file's digest.
-pub fn trailer_path(package: &str) -> Vec<u8> {
-    [pack_path(package).as_slice(), TRAILER_AFTER].concat()
+pub fn pack_path(family: Family, package: &str) -> Vec<u8> {
+    [family_dir(family).as_slice(), package.as_bytes(), PACK].concat()
+}
+
+/// Whether the store name `path` is one of `family`'s packs, which a run of
+/// that family loads; a trailer, a `.new` or another family's pack is not.
+pub fn is_packs_of(family: Family, path: &[u8]) -> bool {
+    path.strip_prefix(family_dir(family).as_slice()).is_some_and(|name| name.ends_with(PACK))
+}
+
+/// The trailer this machine minted over the pack at `pack`: over its index
+/// (its first bytes, up to its data), which holds every file's digest.
+pub fn trailer_of(pack: &[u8]) -> Vec<u8> {
+    [pack, TRAILER_AFTER].concat()
 }
