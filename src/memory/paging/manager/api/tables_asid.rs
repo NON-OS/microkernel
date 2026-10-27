@@ -18,12 +18,9 @@
 //! tables without owning them, and the owner changes when the first owner
 //! exits, so a lookup by pid misses for every other thread.
 
-use super::globals::PAGING_MANAGER;
-use crate::smp::lock_responsive;
+use super::lookup::entry;
 
 /// The ASID whose root is `tables` (a thread's `cr3` value), if any.
 pub fn lookup_asid_for_tables(tables: u64) -> Option<u32> {
-    let mgr = lock_responsive(&PAGING_MANAGER);
-    let mut spaces = mgr.address_spaces.iter();
-    spaces.find(|(_, space)| space.cr3_value.as_u64() == tables).map(|(asid, _)| *asid)
+    entry(|e| e.2 == tables).map(|e| e.0)
 }
