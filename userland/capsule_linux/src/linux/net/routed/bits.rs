@@ -22,7 +22,7 @@
 use super::super::sock::End;
 use super::drive::{drive, handle};
 use super::entry::Phase;
-use super::link::{Link, TX_MAX};
+use super::link::Link;
 use super::table;
 
 const POLLIN: u16 = 0x001;
@@ -50,7 +50,7 @@ pub fn bits(id: u32) -> Option<u16> {
 impl Link {
     pub fn bits(&self) -> u16 {
         let done = self.end.is_some();
-        let mut set = if self.tx.len() < TX_MAX || self.broken { POLLOUT } else { 0 };
+        let mut set = if self.queue.room() > 0 || self.queue.broken() { POLLOUT } else { 0 };
         if !self.rx.is_empty() || done {
             set |= POLLIN;
         }

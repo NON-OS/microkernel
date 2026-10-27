@@ -27,6 +27,8 @@
 //!   refuses is refused at once. Nothing falls back to another network.
 //! - A stream that did not open is said in the run's window by network and
 //!   reason, never by host or port (line.rs, said.rs).
+//! - A stream closed with written bytes queued carries them on before it
+//!   ends, for 10 s at most (linger.rs, closing.rs).
 
 mod adopt;
 mod answer;
@@ -34,6 +36,7 @@ mod anyone;
 mod apply;
 mod ask;
 mod bits;
+mod closing;
 mod connect;
 mod drive;
 mod endpoint;
@@ -41,6 +44,7 @@ mod entry;
 mod hear;
 mod io;
 mod line;
+mod linger;
 mod link;
 mod link_io;
 mod nym;
@@ -48,6 +52,8 @@ mod nym_errno;
 mod outcome;
 mod phase;
 mod pump;
+mod queue;
+mod queue_state;
 mod retry;
 mod route;
 mod said;
@@ -57,6 +63,7 @@ mod table;
 mod take;
 
 pub use bits::bits;
+pub use closing::{flush as flush_closing, settle as settle_closing, wake_ms as closing_ms};
 pub use connect::{again, dial};
 pub use endpoint::{open as socks, serves};
 pub use entry::Dest;

@@ -16,8 +16,9 @@
 
 //! The pure parts of the streams the capsule carries for a guest (its
 //! net/routed/), mounted as they ship: the SOCKS endpoint's parser and
-//! replies, the retry rule, what a refused Nym open is told, and the line
-//! a person reads. The rest makes calls to the proxies and is not here.
+//! replies, the retry rule, what a refused Nym open is told, the line a
+//! person reads, and the queue of written bytes with the linger that carries
+//! it after a close. The rest makes calls to the proxies and is not here.
 //!
 //! Host double for the table's close (the capsule's routed/io.rs), which
 //! the socket table calls when it lets a routed stream go. Each close is
@@ -27,22 +28,28 @@ use std::cell::RefCell;
 
 #[path = "../../../../../capsule_linux/src/linux/net/routed/line.rs"]
 pub mod line;
+#[path = "../../../../../capsule_linux/src/linux/net/routed/linger.rs"]
+pub mod linger;
 #[path = "../../../../../capsule_linux/src/linux/net/routed/nym_errno.rs"]
 pub mod nym_errno;
+#[path = "../../../../../capsule_linux/src/linux/net/routed/queue.rs"]
+pub mod queue;
+#[path = "../../../../../capsule_linux/src/linux/net/routed/queue_state.rs"]
+mod queue_state;
 #[path = "../../../../../capsule_linux/src/linux/net/routed/retry.rs"]
 pub mod retry;
 #[path = "../../../../../capsule_linux/src/linux/net/routed/socks/mod.rs"]
 pub mod socks;
 
 thread_local! {
-    static CLOSED: RefCell<Vec<u32>> = const { RefCell::new(Vec::new()) };
+    static CLOSED: RefCell<Vec<(u32, bool)>> = const { RefCell::new(Vec::new()) };
 }
 
-pub fn close(h: u32) {
-    CLOSED.with(|c| c.borrow_mut().push(h));
+pub fn close(h: u32, abort: bool) {
+    CLOSED.with(|c| c.borrow_mut().push((h, abort)));
 }
 
-/// The entries closed since the last look.
-pub fn closed() -> Vec<u32> {
+/// The entries closed since the last look, and whether each was aborted.
+pub fn closed() -> Vec<(u32, bool)> {
     CLOSED.with(|c| c.borrow_mut().drain(..).collect())
 }
