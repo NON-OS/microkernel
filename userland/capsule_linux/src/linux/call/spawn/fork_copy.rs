@@ -21,6 +21,13 @@ use nonos_libc::peer::{mk_peer_map, mk_peer_write};
 
 /// Every span, mapped into the child and then filled from the parent.
 pub(super) fn copy_spans(guest: &mut Guest, child: u32) -> bool {
+    /*
+     * A file mapped shared is copied as any span, so the child's copy is
+     * private: the family's table (file/held/shared_maps) keeps the
+     * parent's map alone, and no write of the file reaches the child's.
+     * LMDB, which maps its files so, forbids using an environment across a
+     * fork, and a child that execs throws the copy away.
+     */
     let spans = guest.regions.clone();
     for span in spans {
         /*
