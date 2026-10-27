@@ -11,6 +11,7 @@
 pub mod bss;
 pub mod dev;
 pub mod filter;
+pub mod key;
 pub mod own;
 pub mod roc;
 pub mod sta;

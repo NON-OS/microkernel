@@ -19,7 +19,7 @@ impl<R: Mmio, M: DmaMem> Chip<R, M> {
     /// The CAM entry for `sma` (the scan's or the station's address).
     pub fn cam_update(&mut self, sma: [u8; 6]) -> Result<(), SendFail> {
         let v = &self.vif;
-        let body = cam_body(&sma, &v.bssid, v.net, v.aid);
+        let body = cam_body(&sma, &v.bssid, v.net, v.aid, v.keys);
         cam(&self.r, &mut self.rings.ch12, &mut self.fw, &body)
     }
 
