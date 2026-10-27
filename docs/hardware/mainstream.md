@@ -24,7 +24,7 @@ Only one real machine has run NONOS 0.9.x so far, an Intel Gemini Lake laptop ([
 | Realtek RTL8111/8168 | 10ec:8168 | 15.92% of notebooks, 24.61% of desktops | Host-proven (`capsule_driver_rtl8169`); QEMU has no model |
 | Realtek RTL8125 2.5 GbE | 10ec:8125 | 10.71% of desktops | Host-proven, same driver |
 | Realtek RTL8126 5 GbE | 10ec:8126 | 1.72% of desktops | None: its start differs from the RTL8125's |
-| Intel I219 (e1000e) | 15bb/15bc, 15fb/15fc, 1a1e/1a1f, 0dc5-0dc8, 550a/550b, 57a0/57a1 | 2.02% of desktops, 1.27% of notebooks; the business-laptop NIC | Host-proven; QEMU lane `nic=e1000e` (82574) boot pending |
+| Intel I219 (e1000e) | 15bb/15bc, 15fb/15fc, 1a1e/1a1f, 0dc5-0dc8, 550a/550b, 57a0/57a1 | 2.02% of desktops, 1.27% of notebooks; the business-laptop NIC | Host-proven; booted on QEMU's 82574 with a DHCP lease ([evidence](../release-evidence/0.9.3/drivers/e1000e/)) |
 | Intel I225-V, I226-V/LM (igc) | 8086:15f3, 125c, 125b | 2.41% and 1.87% of desktops; the ASUS NUC 15 Pro's | Host-proven, in Standard since 27 October 2026; no QEMU model |
 | Realtek RTL8153 USB dongle | USB 0bda:8153 | 2.64% of notebooks | None: the driver the matrix named never existed in the tree |
 
