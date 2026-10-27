@@ -30,6 +30,7 @@
 //! range or not currently posted is refused (Linux forces an NMI there), and
 //! the closed index is masked to the ring.
 
+mod kick;
 mod queue;
 mod take;
 
