@@ -34,7 +34,7 @@ Since 27 October 2026 it serves operation 6, `OP_RX_BATCH`, as e1000, igc and vi
 
 ## Tests
 
-`e1000e_proofs` runs the driver's files against host memory and a modelled register window. The flake check `proofs-e1000e_proofs` passed with 48 tests on this commit. No QEMU run and no hardware boot exist for it.
+`e1000e_proofs` runs the driver's files against host memory and a modelled register window. The flake check `proofs-e1000e_proofs` passed with 80 tests on 27 October 2026 (`cargo test` in `userland/e1000e_proofs`). No QEMU run and no hardware boot exist for it.
 
 ## See also
 

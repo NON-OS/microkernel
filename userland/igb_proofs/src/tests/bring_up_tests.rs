@@ -56,7 +56,7 @@ fn the_part_comes_up_under_the_drawn_address_and_says_so() {
     assert_eq!(bar.wrote32(REG_TCTL) & 0x2, 0x2, "transmitter on");
     assert_eq!(bar.wrote32(REG_RDT), 31);
     assert_eq!(d.link, Some(LinkState { up: false, mbps: 10, full: false }));
-    let want = format!("igb: up 10c9 link=down\n");
+    let want = "igb: up 10c9 link=down\n".to_string();
     assert_eq!(said().last(), Some(&want));
     let tail = format!("{:02x}:{:02x}:{:02x}", mac[3], mac[4], mac[5]);
     assert!(said().iter().all(|l| !l.contains(&tail)), "no line holds the station address");
