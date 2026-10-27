@@ -40,6 +40,8 @@ mod frame_tests;
 #[cfg(test)]
 mod gate_tests;
 #[cfg(test)]
+mod heap_tests;
+#[cfg(test)]
 mod hostile_tests;
 #[cfg(test)]
 mod indicator_tests;
@@ -53,5 +55,7 @@ mod payload_sweep_tests;
 mod probe_tests;
 #[cfg(test)]
 mod short_frame_tests;
+#[cfg(test)]
+mod shown_first_tests;
 #[cfg(test)]
 mod webcam;
