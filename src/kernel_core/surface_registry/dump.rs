@@ -27,7 +27,7 @@ pub fn dump_surface_accounting() {
         let mut l = crate::sys::serial::Line::new();
         l.str(b"[OOM] surface owner_pid=").hex(slot.owner_pid as u64).str(b" name=");
         match crate::process::core::PROCESS_TABLE.find_by_pid(slot.owner_pid) {
-            Some(pcb) => l.str(pcb.name.lock().as_bytes()),
+            Some(pcb) => l.who(pcb.name.lock().as_bytes()),
             None => l.str(b"unknown"),
         };
         l.str(b" bytes=").hex(slot.byte_len).str(b" refs=").hex(slot.refcount as u64).end();
