@@ -45,12 +45,12 @@ Under the selected entry it shows one sentence, a line naming the checks the loa
 
 | Entry | What the loader requires | What the kernel starts | First-boot setup |
 |---|---|---|---|
-| Standard | a signed kernel (Ed25519 and ML-DSA-65), its STARK attestation, the rollback check, a hardware RNG | everything the image carries | runs, unless an earlier boot kept its answers |
+| Standard | a signed kernel (Ed25519 and ML-DSA-65), its STARK attestation, the rollback check, a hardware RNG | everything the image carries | runs, unless the disk keeps setup's answers, as an installed disk does |
 | Hardened | Standard, plus Secure Boot with PK and db, and a TPM 2.0 | the same as Standard | the same as Standard |
 | Safe Mode | the same as Standard | no network driver or service, no audio, no optional app | the same as Standard |
 | Air-Gapped | Standard, plus a TPM whose rollback floor it can read | no network driver or service; Browser and Marketplace stay off | the same as Standard |
 | Recovery | the same as Standard | no network; a Terminal opens, with Files and the Editor | skipped |
-| `Install NØNOS` | the same as Standard, raised to the build floor | the same as Standard, then the installer | runs, starting on Install; when an earlier boot kept its answers, the installer opens at once |
+| `Install NØNOS` | the same as Standard, raised to the build floor | the same as Standard, then the installer | runs, starting on Install; when the disk keeps setup's answers, the installer opens at once |
 | Shut down | nothing | nothing: the machine powers off | does not run |
 
 On the loader's side, every entry that boots except Hardened shows the same checks line, `ED25519 · ML-DSA-65 · STARK · ROLLBACK · RNG`. Hardened shows `STANDARD + SECURE BOOT · PK · DB · TPM 2.0`. The menu can raise the image's build floor and never lower it, so on a `hardened` or `airgapped` image every entry needs [Secure Boot](../overview/glossary-rollback-index.md#secure-boot) and a [TPM](../overview/glossary-stark-proof.md#tpm). These lines say what each entry asks for. The signature, Secure Boot and RNG checks themselves run in the loader's verification code, which these pages do not describe; see [Boot chain and signatures](../security/boot-chain-and-signatures.md) for what is known of them.

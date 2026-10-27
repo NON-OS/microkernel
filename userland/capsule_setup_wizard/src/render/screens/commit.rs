@@ -1,6 +1,7 @@
 use nonos_policy_proto::Field;
 
 use crate::clients::policy;
+use crate::keep::Answers;
 use crate::state::Context;
 
 use super::unsaved::{
@@ -13,7 +14,9 @@ use super::{appearance, keyboard, mode};
  * tells the kernel, which vfs asks on every persist, refusing one on an
  * amnesic boot. An answer
  * the store refuses, or every one with no store to ask, is recorded in
- * `ctx.unsaved` for the review screen to name.
+ * `ctx.unsaved` for the review screen to name. The answers themselves go
+ * where `keep::answers_for` says: Install holds them in memory for the
+ * installer, so the disk this boot came from starts setup afresh.
  */
 pub fn commit(ctx: &mut Context) {
     let keep = mode::keeps(ctx);
@@ -48,10 +51,9 @@ pub fn commit(ctx: &mut Context) {
     }
     ctx.unsaved = u;
     crate::consent::apply(ctx.local_sel == 1, ctx.local_was, keep);
-    if keep {
-        crate::keep::save(ctx);
-    } else {
-        crate::keep::stage(ctx);
+    match crate::keep::answers_for(ctx.mode_sel) {
+        Answers::Save => crate::keep::save(ctx),
+        Answers::Stage => crate::keep::stage(ctx),
     }
     crate::network::keep(ctx);
 }
