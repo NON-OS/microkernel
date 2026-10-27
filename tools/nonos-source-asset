@@ -1,0 +1,177 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""The content of a source recipe that lists upstream's release binary
+(tools/nonos_market_catalogue/asset_recipe.py), made on a machine that can
+reach the upstream release. Run from the tree's root:
+
+  tools/nonos-source-asset RECIPE.json [--out target/linux-sources] [--package-out target/linux-packages]
+
+RECIPE.json is one recipe object. In order, and stopping at the first fault:
+
+  1. upstream's checksum file (`sums`) and its `.asc` are fetched, and the
+     signature must be a good one by the pinned release key (asset_sums.py);
+  2. the sha256 that file gives the asset must be the recipe's;
+  3. the asset is fetched, and its sha256 must be the recipe's too;
+  4. with `family: debian`, Kali's index is fetched and verified under the
+     pinned Kali key, as the catalogue does, the recipe's needs resolved to
+     their closure as the device resolves them, each .deb fetched and held
+     to the index, and every DT_NEEDED name and the interpreter of the
+     binary must be a library one of those packages places;
+  5. OUT/<package>.tar is written: usr/bin/<program> and, for a family,
+     usr/share/nonos-debs/<package>, the closure's pins. The seal takes OUT
+     as --sources. With --package-out, the bundled content is also written
+     there as <blake3>.tar, which `nonos-mirror-relay --content` serves.
+
+It prints the lock row the catalogue will pin. Nothing it fetches is run.
+`--learn` takes the sha256 from the signed checksum file instead of the
+recipe (steps 2 and 3 then hold the bytes to it) and also writes
+OUT/<package>.recipe.json, the recipe with that sha256 filled in."""
+
+import argparse
+import hashlib
+import importlib.machinery
+import io
+import json
+import os
+import subprocess
+import sys
+import tarfile
+import tempfile
+import urllib.request
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "tools"))
+
+from nonos_market_catalogue import asset_needs, asset_sums, deb_closure, deb_files, elf_needed  # noqa: E402
+from nonos_market_catalogue.digest import blake3  # noqa: E402
+from nonos_market_catalogue.source_content import bundled  # noqa: E402
+from nonos_market_catalogue.source_recipe import checked  # noqa: E402
+
+
+def fetch(url: str, to: Path) -> bytes:
+    try:
+        return fetched(url, to)
+    except OSError as why:  # urllib's errors are OSErrors
+        sys.exit(f"{url}: {why}; nothing written")
+
+
+def fetched(url: str, to: Path) -> bytes:
+    if not to.exists():
+        to.parent.mkdir(parents=True, exist_ok=True)
+        part = to.with_name(to.name + ".part")
+        with urllib.request.urlopen(url, timeout=600) as r, open(part, "wb") as f:
+            while chunk := r.read(1 << 20):
+                f.write(chunk)
+        part.rename(to)
+    return to.read_bytes()
+
+
+def signed_by_release_key(text: Path, sig: Path) -> bool:
+    with tempfile.TemporaryDirectory() as home:
+        ring = Path(home) / "ring.gpg"
+        subprocess.run(["gpg", "--homedir", home, "--dearmor", "--output", str(ring), asset_sums.KEY],
+                       check=True, capture_output=True)
+        done = subprocess.run(["gpgv", "--homedir", home, "--status-fd", "1", "--keyring", str(ring),
+                               str(sig), str(text)], capture_output=True, text=True)
+    return done.returncode == 0 and asset_sums.signer(done.stdout) == asset_sums.FINGERPRINT
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("recipe", type=Path)
+    ap.add_argument("--out", type=Path, default=Path("target/linux-sources"))
+    ap.add_argument("--package-out", type=Path)
+    ap.add_argument("--cache", type=Path, default=Path("target/source-asset-cache"))
+    ap.add_argument("--learn", action="store_true", help="take the sha256 from the signed checksum file")
+    args = ap.parse_args()
+    os.chdir(ROOT)
+    raw = given = json.loads(args.recipe.read_text())
+    if args.learn:
+        raw = dict(raw, sha256="0" * 64)
+    try:
+        recipe = checked(raw, ROOT)
+    except ValueError as why:
+        sys.exit(f"the recipe: {why}")
+    name, cache = recipe["asset"].rsplit("/", 1)[1], args.cache / recipe["asset"].split("/")[-2]
+
+    sums_at, sig_at = cache / "sums", cache / "sums.asc"
+    fetch(recipe["sums"], sums_at)
+    fetch(recipe["sums"] + ".asc", sig_at)
+    if not signed_by_release_key(sums_at, sig_at):
+        sys.exit(f"{recipe['sums']}: not signed by {asset_sums.FINGERPRINT}; nothing written")
+    upstream = asset_sums.sum_of(sums_at.read_text(), name)
+    want = upstream if args.learn else recipe["sha256"]
+    if upstream != want:
+        sys.exit(f"{name}: upstream's signed checksum is {upstream}, the recipe pins {want}")
+    body = fetch(recipe["asset"], cache / name)
+    got = hashlib.sha256(body).hexdigest()
+    if got != want:
+        (cache / name).unlink()
+        sys.exit(f"{name}: downloaded bytes have sha256 {got}, upstream signed {want}")
+    print(f"asset   {name}: sha256 {got} (signed in {recipe['sums']}), BLAKE3 {blake3(body)}")
+
+    files = {recipe["program"]: body}
+    if "family" in recipe:
+        try:
+            files[asset_needs.DIR + recipe["package"]] = debian_pins(recipe, body, args.cache).encode()
+        except ValueError as why:
+            sys.exit(f"{recipe['package']}: {why}")
+    args.out.mkdir(parents=True, exist_ok=True)
+    tar = args.out / f"{recipe['package']}.tar"
+    with tarfile.open(tar, "w", format=tarfile.USTAR_FORMAT) as t:
+        for path, data in sorted(files.items()):
+            info = tarfile.TarInfo(path)
+            info.size, info.mode = len(data), 0o755 if data.startswith(b"\x7fELF") else 0o644
+            t.addfile(info, io.BytesIO(data))
+    content = bundled(args.out, recipe["package"])
+    if args.package_out:
+        args.package_out.mkdir(parents=True, exist_ok=True)
+        (args.package_out / f"{blake3(content)}.tar").write_bytes(content)
+    row = {"asset": recipe["asset"], "sha256": got, "A": blake3(body), "sums": recipe["sums"],
+           "B": blake3(content), "S": str(len(content))}
+    print(f"content {tar}\nlock    {json.dumps(row)}")
+    if args.learn:
+        done = args.out / f"{recipe['package']}.recipe.json"
+        done.write_text(json.dumps(dict(given, sha256=got), indent=1, ensure_ascii=False) + "\n")
+        print(f"recipe  {done}: the recipe with the sha256 upstream signed, for linux-catalogue.json")
+    return 0
+
+
+def debian_pins(recipe: dict, body: bytes, cache: Path) -> str:
+    """The closure's pins, once every library the binary asks for is in it."""
+    loader = importlib.machinery.SourceFileLoader("catalogue", str(ROOT / "tools/nonos-market-catalogue"))
+    table = loader.load_module().kali_index(cache, "amd64")
+    stanzas = deb_closure.closure(table, asset_needs.names(recipe["needs"]))
+    interp, needed = elf_needed.needed(body)
+    given = {}
+    for r in stanzas:
+        deb = fetch(f"https://kali.download/kali/{r['Filename']}", cache / "kali" / Path(r["Filename"]).name)
+        if hashlib.sha256(deb).hexdigest() != r["SHA256"]:
+            sys.exit(f"{r['Package']}: the .deb does not match the signed index")
+        for lib in deb_files.libraries(deb_files.placed(deb)):
+            given.setdefault(lib, r["Package"])
+    for lib in needed + [interp.rsplit("/", 1)[-1]] * bool(interp):
+        if lib not in given:
+            sys.exit(f"{lib}: the binary needs it and no package in the closure places it; add one to needs")
+        print(f"needs   {lib:28} {given[lib]}")
+    print(f"closure {len(stanzas)} packages: {' '.join(r['Package'] for r in stanzas)}")
+    return asset_needs.lines(deb_closure.pins(stanzas))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
