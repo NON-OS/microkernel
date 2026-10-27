@@ -38,3 +38,16 @@ fn the_client_asks_this_service_and_lets_it_join() {
     assert!(me.is_some_and(|s| s.joins && s.label == "MediaTek MT7921/MT7922"));
     assert_eq!(services::CANNOT_JOIN, -38);
 }
+
+#[test]
+fn a_medium_without_the_package_reads_missing_on_the_panel() {
+    use crate::fw::package::{for_chip, FILES};
+    use crate::model::rig::{chip, mapped, regs};
+    FILES.iter().for_each(|f| nonos_libc::set_slot(f.kind, None));
+    let c = chip();
+    let (radio, stage) = crate::bringup::run_with(regs(&c), &mapped(), for_chip);
+    assert!(radio.is_none() && stage == Stage::PackageMissing);
+    let text = DriverStage::from_code(stage as u8).text();
+    assert_eq!(text, "The firmware package is missing from the boot medium");
+    assert!(c.borrow().mcu.seen.is_empty(), "nothing was sent to the card");
+}
