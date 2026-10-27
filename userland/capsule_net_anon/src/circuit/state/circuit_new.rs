@@ -40,6 +40,7 @@ impl Circuit {
             pending: None,
             purpose: Purpose::General,
             service: None,
+            warm: false,
         }
     }
 
