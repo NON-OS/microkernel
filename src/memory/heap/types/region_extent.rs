@@ -45,4 +45,9 @@ impl SecureHeapAllocator {
     pub(super) fn in_second(&self, ptr: *mut u8) -> bool {
         self.second_extent().is_some_and(|(s, n)| (ptr as usize).wrapping_sub(s as usize) < n)
     }
+
+    /// Whether `at` lies in either region: a kept block's link must (front.rs).
+    pub(super) fn in_heap(&self, at: usize) -> bool {
+        self.extents().iter().flatten().any(|&(s, n)| at.wrapping_sub(s as usize) < n)
+    }
 }
