@@ -31,7 +31,7 @@ Nothing is listed until the generator has authenticated it as the device does, u
 
 ## The recipes file
 
-`userland/capsule_market/linux-catalogue.json` is versioned. Its shape is `{"format": "nonos.linux-catalogue.v1", "apps": [...]}`, and a file of any other format, shape, encoding, or more than 1 MiB is refused whole (`tools/nonos_market_catalogue/recipes_file.py:29`, `load`). Each app is an object of strings:
+`userland/capsule_market/linux-catalogue.json` is versioned. Its shape is `{"format": "nonos.linux-catalogue.v1", "apps": [...]}`, and a file of any other format, shape, encoding, or more than 1 MiB is refused whole (`tools/nonos_market_catalogue/recipes_file.py:29`, `load`). Each app is an object of strings, and `args` a list of them:
 
 | Key | Required | What it holds |
 |---|---|---|
@@ -42,6 +42,7 @@ Nothing is listed until the generator has authenticated it as the device does, u
 | `calls` | no | the measured set, as `nonos-linux-pack syscalls --from-log` prints it |
 | `dests` | no | a file inside the tree of the plan destinations, one a line; needs NET_ANON |
 | `program` | no | the program the listing sells, as `usr/bin/<name>`, for a package of many programs |
+| `args` | no | the long options the program starts with, before the person's own (below) |
 
 Without `calls` the set is UNMEASURED: buckets 0 to 511 set and 512 clear (`tools/nonos_market_catalogue/recipes.py:31`). That is the market-ready form of "no set yet". A recipe is refused if:
 
@@ -49,6 +50,17 @@ Without `calls` the set is UNMEASURED: buckets 0 to 511 set and 512 clear (`tool
 - it names an unknown service, or FILES_USER;
 - its set is not market ready;
 - it is listed twice.
+
+## Listed arguments
+
+A recipe's `args` are the words its program starts with, before the person's own: `monero`'s are `--daemon-address=<a public node>` and `--untrusted-daemon`. They are for a default that the program has no other way to take, not for anything the box grants: they add no service and no mask bit.
+
+- **The rule.** 1 to 16 words, each `--name` or `--name=value`: a name of lowercase letters, digits and hyphens, a value of printable ASCII with no space, no option twice. The block they make is at most 1024 bytes. No shell reads them: each is one argv word as written (`tools/nonos_market_catalogue/listed_args.py`; the device's copy of the rule is `userland/nonos_linux_policy/src/args/`, and both pin the same bytes).
+- **Where they ride.** After the 256 policy bytes in the release's `guest_policy`, as `"NLXARG01" | count | (length | word)...`. The publisher's release signature and the operator's index signature cover them with the policy. marketplace_abi bounds the field at 256 + 1024 bytes and refuses arguments after a vendor tier's policy (`verdict/policy.rs`).
+- **To the device.** The market hands them on after the policy and its keys (`OP_GET_LINUX_POLICY`, `nonos_market_proto::linux_policy`). init appends them to the install word `m` (`src/userspace/capsule_linux/install.rs`). The install role reads them whole before it fetches anything, refusing the install otherwise. It then writes them beside the program as `.nonos_linux_policy.args.bin`, before the policy, and vouches for them over the policy and the arguments together (`install/market/bind_args.rs`). An uninstall takes them out with the box (`take.rs`), and a package may not ship either name (`proof_names.rs`).
+- **At start.** The personality reads them beside the program and holds them to that trailer and to the policy the program was bound to (`app/listed.rs`). It puts each one before the person's words, except one whose option the person names themself, as `--name` or `--name=...` before any `--` (`app/args_listed.rs`). A file that is there but not vouched for refuses the start, and does not start the program without them. A program another program starts with `execve` gets only the words it is given.
+
+*host-tested* (capsule_linux_proofs, market_proofs, market_proto, nonos_linux_policy, the catalogue suite). Not booted yet.
 
 ## Generating listings
 
