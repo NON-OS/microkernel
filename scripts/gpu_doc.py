@@ -26,8 +26,10 @@ ROOTS = ("src/", "userland/", "scripts/", "nonos-bootloader/", "mk/", "docs/", "
 IDS = "userland/capsule_driver_intel_display/data"
 FAMILY = "userland/capsule_driver_intel_display/src/family.rs"
 SUPPORT = "src/hardware/inventory/support.rs"
-NATIVE = ["nonos-capsule-driver-intel-display", "nonos-capsule-driver-bga",
-          "nonos-capsule-driver-bootfb"]
+# Drivers for a real GPU, which gpu.md says the shipped image does not carry.
+# bga drives only the Bochs/QEMU virtual display and ships since 2026-10-27;
+# gpu.md names it as such.
+NATIVE = ["nonos-capsule-driver-intel-display", "nonos-capsule-driver-bootfb"]
 
 
 class Tree:
