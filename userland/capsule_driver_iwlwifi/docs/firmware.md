@@ -13,12 +13,22 @@ RF type in CSR_HW_RF_ID. The PCI id gives the transport values (cfg/ax210.c).
 | same | SO, SO-F | HR 0x10A, 0x10C | `iwlwifi-so-a0-hr-b0-84.ucode` | yes |
 | 0x2725 (discrete AX210, TY) | TY 0x42 | GF | `iwlwifi-ty-a0-gf-a0` | no |
 | 0x7E40, 0x2729 (Meteor Lake, MA) | MA 0x44, step B | GF | `iwlwifi-ma-b0-gf-a0` | no |
+| 0x272B (BE200, Gl) | Gl 0x47, step C | FM 0x112, step C | `iwlwifi-gl-c0-fm-c0-92.ucode` | yes |
+| 0xA840, 0x7740, 0x4D40 (BE201, Bz) | Bz 0x46, step B from the CNVi | FM 0x112, step C | `iwlwifi-bz-b0-fm-c0-92.ucode` | yes |
 
 A known adapter whose image is not in the tree is refused by name (step 4,
 detail 0x6000i, i the image number), as is anything else (a CDB GF module, JF,
 a blank OTP, an MA MAC of another step, an MA HR module, an unknown MAC),
 rather than started on a firmware it does not run. Committing the TY or MA
 image at API 86 and naming it in `firmware/blob.rs` is all their boot lacks.
+The BE200 and BE201 boot in the BZ family's CSR layout (`gen3::csr`, V2);
+a Bz MAC's step is read from CNVI_AUX_MISC_CHIP and ORed into hw_rev, as
+Linux's `get_crf_id` does. Their two images and two PNVM files are
+linux-firmware's at bf992df7a95b5e19bb8f8546eb4d7c53ab2598d0 (API 92;
+Redistributable, LICENCE.iwlwifi_firmware, text in
+`nonos-bootloader/firmware/intel/LICENSE`), pinned by sha256 in
+`scripts/baselines/upstream.sha256`. Host-proven only: never booted on a
+BE200 or BE201.
 The TLV file is parsed with every length checked (`gen3::ucode`); the image
 loader, capabilities, API flags and command version table come from it.
 

@@ -14,6 +14,7 @@ pub enum Family {
     F9260 = 3,
     Ax200 = 4,
     Ax210 = 5,
+    Bz = 6,
 }
 
 pub fn family_for_device(id: u16) -> Option<Family> {
@@ -34,6 +35,8 @@ pub fn family_for_device(id: u16) -> Option<Family> {
         0x7A70 | 0x7AF0 | 0x7F70 => Some(Family::Ax210),
         // Meteor Lake (cfg/ax210.c `iwl_ma_mac_cfg`); 0x2729 is its other id.
         0x7E40 => Some(Family::Ax210),
+        // The BZ family: the BE200 (Gl) and the BE201 CNVi (Bz), cfg/bz.c.
+        0x272B | 0xA840 | 0x7740 | 0x4D40 => Some(Family::Bz),
         _ => None,
     }
 }
