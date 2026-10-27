@@ -8,6 +8,7 @@ mod coex_tests;
 mod dack_codes_tests;
 mod dack_iq_tests;
 mod dack_measure_tests;
+mod dack_readback_tests;
 mod dack_run_tests;
 mod efuse_facts_tests;
 mod efuse_read_tests;

@@ -1,0 +1,762 @@
+[
+ {
+  "name": "rtl8822ce-ids-c82f-dropped",
+  "file": "userland/capsule_driver_rtl8822ce/src/constants/pci.rs",
+  "old": "[0xC822, 0xC82F]",
+  "new": "[0xC822, 0xC822]",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-discover-any-vendor",
+  "file": "userland/capsule_driver_rtl8822ce/src/discover.rs",
+  "old": "|| r.vendor != PCI_VENDOR_REALTEK",
+  "new": "|| false",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-discover-empty-bar",
+  "file": "userland/capsule_driver_rtl8822ce/src/discover.rs",
+  "old": "bar.kind == BAR_KIND_MMIO && bar.size != 0",
+  "new": "bar.kind == BAR_KIND_MMIO",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-status-shared-tag-kept",
+  "file": "userland/capsule_driver_rtl8822ce/src/status/line.rs",
+  "old": "if self.buf[..self.len].starts_with(SHARED_TAG) {",
+  "new": "if false {",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-status-line-unbounded",
+  "file": "userland/capsule_driver_rtl8822ce/src/status/line.rs",
+  "old": "if self.len < LINE_MAX - 1 {",
+  "new": "if self.len < LINE_MAX {",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-say-claim-not-renamed",
+  "file": "userland/capsule_driver_rtl8822ce/src/start_say.rs",
+  "old": "\"rtl8821ce: claim failed\" => \"rtl8822ce: claim failed\",",
+  "new": "\"rtl8821ce: claim failed\" => \"rtl8821ce: claim failed\",",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-say-refusal-untagged",
+  "file": "userland/capsule_driver_rtl8822ce/src/start_say.rs",
+  "old": "b\"[rtl8822ce] bus master refused; chip given back\\n\"",
+  "new": "b\"bus master refused; chip given back\\n\"",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-efuse-protected-area-unpacked",
+  "file": "userland/capsule_driver_rtl8822ce/src/efuse/layout.rs",
+  "old": "PHYS_SIZE - 124",
+  "new": "PHYS_SIZE",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-efuse-past-logical-map",
+  "file": "userland/capsule_driver_rtl8822ce/src/efuse/deshuffle.rs",
+  "old": "at + 1 > LOG_SIZE",
+  "new": "at > LOG_SIZE",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-efuse-past-packed-area",
+  "file": "userland/capsule_driver_rtl8822ce/src/efuse/deshuffle.rs",
+  "old": "i + 1 > PACKED_SIZE",
+  "new": "i > PACKED_SIZE",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-efuse-erased-header-read-on",
+  "file": "userland/capsule_driver_rtl8822ce/src/efuse/deshuffle.rs",
+  "old": "if hdr1 == 0xff ||",
+  "new": "if false ||",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-efuse-word-enable-inverted",
+  "file": "userland/capsule_driver_rtl8822ce/src/efuse/deshuffle.rs",
+  "old": "if word_en & (1 << w) != 0 {",
+  "new": "if word_en & (1 << w) == 0 {",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-efuse-unburned-rfe-taken",
+  "file": "userland/capsule_driver_rtl8822ce/src/efuse/facts.rs",
+  "old": "if rfe == 0xFF {",
+  "new": "if false {",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-efuse-xtal-eight-bits",
+  "file": "userland/capsule_driver_rtl8822ce/src/efuse/facts.rs",
+  "old": "log[XTAL_K] & 0x7F",
+  "new": "log[XTAL_K]",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-efuse-txpwr-stride",
+  "file": "userland/capsule_driver_rtl8822ce/src/efuse/layout.rs",
+  "old": "TXPWR_STRIDE: usize = 42",
+  "new": "TXPWR_STRIDE: usize = 41",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-efuse-ldo25-left-on",
+  "file": "userland/capsule_driver_rtl8822ce/src/efuse/dump.rs",
+  "old": "mmio.read8(REG_ANAPARLDO_POW_MAC) & !LDOE25_PON;",
+  "new": "mmio.read8(REG_ANAPARLDO_POW_MAC);",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-efuse-all-ones-taken",
+  "file": "userland/capsule_driver_rtl8822ce/src/efuse/info.rs",
+  "old": "if phys.iter().all(|&b| b == 0xFF) {",
+  "new": "if false {",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-efuse-paths-always-two",
+  "file": "userland/capsule_driver_rtl8822ce/src/efuse/info.rs",
+  "old": "{ 2 } else { 1 }",
+  "new": "{ 2 } else { 2 }",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-efuse-cut-wrong-field",
+  "file": "userland/capsule_driver_rtl8822ce/src/efuse/info.rs",
+  "old": "(cfg >> 12) & 0xF",
+  "new": "(cfg >> 8) & 0xF",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-fw-any-signature",
+  "file": "userland/capsule_driver_rtl8822ce/src/fw/header.rs",
+  "old": "self.signature == SIGNATURE_8822C && ",
+  "new": "",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-fw-imem-offset",
+  "file": "userland/capsule_driver_rtl8822ce/src/fw/header.rs",
+  "old": "imem_addr: le32(0x3C),",
+  "new": "imem_addr: le32(0x30),",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-fw-version-line",
+  "file": "userland/capsule_driver_rtl8822ce/src/fwload/image.rs",
+  "old": "put(b\".\");",
+  "new": "put(b\",\");",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-pwr-enable-no-poll",
+  "file": "userland/capsule_driver_rtl8822ce/src/pwr/tables.rs",
+  "old": "PwrCmd::poll(0x0006, 0x02, 0x02)",
+  "new": "PwrCmd::write(0x0006, 0x02, 0x02)",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-pwr-disable-no-poll",
+  "file": "userland/capsule_driver_rtl8822ce/src/pwr/cycle.rs",
+  "old": "PwrCmd::poll(0x0005, 0x02, 0x00)",
+  "new": "PwrCmd::write(0x0005, 0x02, 0x00)",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-fifo-txff-8821c",
+  "file": "userland/capsule_driver_rtl8822ce/src/mac/trx/pages.rs",
+  "old": "TXFF_SIZE: u32 = 262144",
+  "new": "TXFF_SIZE: u32 = 65536",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-fifo-no-csi",
+  "file": "userland/capsule_driver_rtl8822ce/src/mac/trx/pages.rs",
+  "old": "CSI_BUF: u32 = 50",
+  "new": "CSI_BUF: u32 = 0",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-fifo-rsvd-drv",
+  "file": "userland/capsule_driver_rtl8822ce/src/mac/trx/pages.rs",
+  "old": "RSVD_DRV_PG_NUM: u32 = 16",
+  "new": "RSVD_DRV_PG_NUM: u32 = 8",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-mac-edca-bk",
+  "file": "userland/capsule_driver_rtl8822ce/src/mac/tables/edca.rs",
+  "old": "MacOp::write32(0x050C, 0x0000_A44F),",
+  "new": "MacOp::write32(0x050C, 0x0000_A44E),",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-mac-spec-sifs",
+  "file": "userland/capsule_driver_rtl8822ce/src/mac/tables/protocol.rs",
+  "old": "MacOp::write16(0x0428, 0x100A),",
+  "new": "MacOp::write16(0x0428, 0x0A0A),",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-pcie-rfe5-wrong-board",
+  "file": "userland/capsule_driver_rtl8822ce/src/pcie/cfg.rs",
+  "old": "if rfe == 5 {",
+  "new": "if rfe == 4 {",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-pcie-cut-d-excluded",
+  "file": "userland/capsule_driver_rtl8822ce/src/pcie/cfg.rs",
+  "old": "if cut >= CUT_D {",
+  "new": "if cut > CUT_D {",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-pcie-clock-delay-kept",
+  "file": "userland/capsule_driver_rtl8822ce/src/pcie/cfg.rs",
+  "old": "dbi::write8(mmio, RTK_PCIE_CLKDLY_CTRL, 0)",
+  "new": "dbi::write8(mmio, RTK_PCIE_CLKDLY_CTRL, 1)",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-rf-read-absent-path",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/rf.rs",
+  "old": "if path >= paths() {\n        return INV_RF_DATA;",
+  "new": "if path > paths() {\n        return INV_RF_DATA;",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-rf-write-absent-path",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/rf.rs",
+  "old": "if path >= paths() {\n        return false;",
+  "new": "if path > paths() {\n        return false;",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-rf-reg0-direct",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/rf.rs",
+  "old": "if addr != 0 {",
+  "new": "if true {",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-rf-sipi-mask",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/rf.rs",
+  "old": "(data & RFREG_MASK) & 0x0FFF_FFFF",
+  "new": "data",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-rf-paths-unclamped",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/rf.rs",
+  "old": "n.clamp(1, 2)",
+  "new": "n.clamp(0, 2)",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-rf-table-order",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/apply/load.rs",
+  "old": "[(RTL8822C_RF_B, PATH_B), (RTL8822C_RF_A, PATH_A)]",
+  "new": "[(RTL8822C_RF_A, PATH_A), (RTL8822C_RF_B, PATH_B)]",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-cal-init-prelude",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/apply/load.rs",
+  "old": "write32_mask(mmio, 0x1CD0, 1 << 31, 0);",
+  "new": "write32_mask(mmio, 0x1CD0, 1 << 31, 1);",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-setup-xtal-halves",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/setup.rs",
+  "old": "cap | (cap << 7)",
+  "new": "cap | (cap << 6)",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-setup-rfe-7",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/setup.rs",
+  "old": "rfe <= 6",
+  "new": "rfe <= 7",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-setup-cut-zero",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/setup.rs",
+  "old": "{ info.cut } else { 15 }",
+  "new": "{ info.cut } else { 0 }",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-setup-cck-bounds",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/setup.rs",
+  "old": "read32_mask(mmio, 0x1A98, 0xC000) << 4",
+  "new": "read32_mask(mmio, 0x1A98, 0xC000) << 3",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-setup-paths-ignored",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/setup.rs",
+  "old": "rf::set_paths(info.paths);",
+  "new": "rf::set_paths(2);",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-setup-no-thermal",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/setup.rs",
+  "old": "trim::thermal(mmio, &info.trim, paths);",
+  "new": "",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-power-on-dpd",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/power.rs",
+  "old": "write32_mask(mmio, REG_DIS_DPD, DIS_DPD_ALL, DIS_DPD_ALL);",
+  "new": "",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-header-init-pre-inverted",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/power.rs",
+  "old": "if pre {",
+  "new": "if !pre {",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-trx-rx-ab-select",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/trx.rs",
+  "old": "BB_PATH_AB => write32_mask(mmio, 0x1A04, 0x0F00_0000, 0x1),",
+  "new": "BB_PATH_AB => write32_mask(mmio, 0x1A04, 0x0F00_0000, 0x0),",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-trx-tx-ab-antmap",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/trx.rs",
+  "old": "_ => (0x31, 0xFFFF, 0x0400),",
+  "new": "_ => (0x11, 0xFFFF, 0x0400),",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-igi-not-toggled",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/igi.rs",
+  "old": "write32_mask(mmio, REG_RXIGI, IGI_A, igi.wrapping_sub(2));",
+  "new": "write32_mask(mmio, REG_RXIGI, IGI_A, igi);",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-channel-5g-taken",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/channel/mod.rs",
+  "old": "if !(1..=14).contains(&channel) {",
+  "new": "if false {",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-channel-scotrk-11",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/channel/bb.rs",
+  "old": "11 | 12 => 0x96A,",
+  "new": "11 | 12 => 0x9AA,",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-channel-txf-14",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/channel/bb.rs",
+  "old": "if channel == 14 { ch14 } else { other }",
+  "new": "if channel == 13 { ch14 } else { other }",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-channel-txdfir-13",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/channel/bb.rs",
+  "old": "if channel == 13 { 0x3 } else { 0x1 }",
+  "new": "if channel == 14 { 0x3 } else { 0x1 }",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-channel-rf18-bw",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/channel/rf18.rs",
+  "old": "v | RF18_BW_20M",
+  "new": "v",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-channel-rf18-band",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/channel/rf18.rs",
+  "old": "if channel > 14 {",
+  "new": "if channel > 13 {",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-channel-path-b-untuned",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/channel/rf18.rs",
+  "old": "rf::write(mmio, PATH_B, 0x18, RFREG_MASK, value);",
+  "new": "",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-channel-mac-subchannel",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/channel/mac.rs",
+  "old": "mmio.write8(REG_DATA_SC, 0);",
+  "new": "",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-txpower-no-antenna-gain",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/txpower/index.rs",
+  "old": "ANTENNA_GAIN_DBI: u8 = 2",
+  "new": "ANTENNA_GAIN_DBI: u8 = 0",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-txpower-half-db-steps",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/txpower/index.rs",
+  "old": "STEPS_PER_DB: u8 = 4",
+  "new": "STEPS_PER_DB: u8 = 2",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-txpower-uncapped",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/txpower/index.rs",
+  "old": "(i16::from(base) + delta).clamp(0, i16::from(cap)) as u8",
+  "new": "(i16::from(base) + delta).clamp(0, 127) as u8",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-txpower-diff-unsigned",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/txpower/index.rs",
+  "old": "((nibble << 4) as i8) >> 4",
+  "new": "(nibble & 0xF) as i8",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-txpower-highest-group",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/txpower/index.rs",
+  "old": "GROUPS.map(f).min()",
+  "new": "GROUPS.map(f).max()",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-txpower-ref-ofdm",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/txpower/write.rs",
+  "old": "write32_mask(mmio, REG_TXREF_OFDM[p], 0x1_FC00, u32::from(i.ht));",
+  "new": "write32_mask(mmio, REG_TXREF_OFDM[p], 0x1_FC00, u32::from(i.ofdm));",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-txpower-diff-seven-bits",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/txpower/write.rs",
+  "old": "(d as u8) & 0x7F",
+  "new": "d as u8",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-trim-thermal-bits",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/trim/mod.rs",
+  "old": "((pg >> 1) & 0x7) | ((pg & 1) << 3)",
+  "new": "pg & 0xF",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-trim-thermal-continues",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/trim/mod.rs",
+  "old": "return;\n        }\n        rf::write(mmio, path, 0x43",
+  "new": "continue;\n        }\n        rf::write(mmio, path, 0x43",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-trim-pa-bias-unchecked",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/trim/mod.rs",
+  "old": "if pg == UNBURNED {\n            return;\n        }\n        rf::write(mmio, path, 0x60",
+  "new": "if false {\n            return;\n        }\n        rf::write(mmio, path, 0x60",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-trim-gains-unburned-taken",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/trim/power.rs",
+  "old": "t.tx_2g.iter().enumerate().filter(|(_, &pg)| pg != UNBURNED)",
+  "new": "t.tx_2g.iter().enumerate()",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-trim-5g-four-bits",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/trim/power.rs",
+  "old": "pg & 0x1F",
+  "new": "pg & 0xF",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-trim-entry-table",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/trim/power.rs",
+  "old": "[0, 1, 2, 2, 3,",
+  "new": "[0, 1, 2, 3, 3,",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-trim-dpd-left-on",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/trim/power.rs",
+  "old": "    write32_mask(mmio, REG_DIS_DPD, DIS_DPD_ALL, DIS_DPD_ALL);\n}",
+  "new": "}",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-trim-x2-never",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/trim/mod.rs",
+  "old": "if rf::read(mmio, PATH_A, 0xB8, 1 << 15) == 1 {",
+  "new": "if false {",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-dack-adc-rounds",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/dack/mod.rs",
+  "old": "ADCK_ROUNDS: usize = 10",
+  "new": "ADCK_ROUNDS: usize = 11",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-dack-dac-rounds",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/dack/mod.rs",
+  "old": "DACK_ROUNDS: usize = 10",
+  "new": "DACK_ROUNDS: usize = 11",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-dack-adc-no-early-stop",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/dack/adc.rs",
+  "old": "if magnitude(ic) < 5 && magnitude(qc) < 5 {",
+  "new": "if false {",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-dack-dac-no-early-stop",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/dack/mod.rs",
+  "old": "if left.ic < 5 && left.qc < 5 {",
+  "new": "if false {",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-dack-sample-reads",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/dack/search.rs",
+  "old": "SAMPLE_READS: u32 = 10_000",
+  "new": "SAMPLE_READS: u32 = 10_001",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-dack-search-rounds",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/dack/search.rs",
+  "old": "SEARCH_ROUNDS: u32 = 100",
+  "new": "SEARCH_ROUNDS: u32 = 101",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-dack-saved-list",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/dack/save.rs",
+  "old": "0x1C24, 0x1D70, 0x09B4",
+  "new": "0x1C24, 0x1D74, 0x09B4",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-dack-rf-not-restored",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/dack/save.rs",
+  "old": "rf::write(mmio, path, RF_SAVED, RFREG_MASK, s.rf_8f);",
+  "new": "",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-dack-rf-slot-path-a",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/dack/save.rs",
+  "old": "let rf_8f = rf::read(mmio, PATH_B,",
+  "new": "let rf_8f = rf::read(mmio, PATH_A,",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-dack-readback-ignored",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/dack/mod.rs",
+  "old": "ok &= left.took;",
+  "new": "",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-dack-iq-check-bound",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/dack/iq.rs",
+  "old": "(v < 0x200 && v > 0x64)",
+  "new": "(v < 0x200 && v > 0x65)",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-dack-code-offset",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/dack/codes.rs",
+  "old": "c * 2 * 6 / 5 + 0x80",
+  "new": "c * 2 * 6 / 5 + 0x7F",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-dack-left-unshifted",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/dack/codes.rs",
+  "old": "if v >= 0x10 { v - 0x10 }",
+  "new": "if v >= 0x10 { v }",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-dack-sort-sign",
+  "file": "userland/capsule_driver_rtl8822ce/src/phy/dack/sort.rs",
+  "old": "(false, true) => true,",
+  "new": "(false, true) => false,",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-signal-cck-gain-step",
+  "file": "userland/capsule_driver_rtl8822ce/src/rx/signal.rs",
+  "old": "power += ((l - gain) << 1) as i16;",
+  "new": "power += (l - gain) as i16;",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-signal-floor",
+  "file": "userland/capsule_driver_rtl8822ce/src/rx/signal.rs",
+  "old": "MIN_DBM: i16 = -120",
+  "new": "MIN_DBM: i16 = -128",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-signal-ofdm-offset",
+  "file": "userland/capsule_driver_rtl8822ce/src/rx/signal.rs",
+  "old": "((w0 >> 16) & 0xFF) as i16) - 110,",
+  "new": "((w0 >> 16) & 0xFF) as i16) - 100,",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-coex-lte-left-on",
+  "file": "userland/capsule_driver_rtl8822ce/src/coex/wl_only.rs",
+  "old": "write_field(mmio, LTE_COEX_CTRL, 1 << 7, 0)",
+  "new": "write_field(mmio, LTE_COEX_CTRL, 1 << 7, 1)",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-coex-scoreboard",
+  "file": "userland/capsule_driver_rtl8822ce/src/coex/wl_only.rs",
+  "old": "SCOREBOARD: u16 = 0x8000 | 0x0003",
+  "new": "SCOREBOARD: u16 = 0x0003",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-coex-modopt",
+  "file": "userland/capsule_driver_rtl8822ce/src/coex/init.rs",
+  "old": "RF_MODOPT, 0xF_FFFF, 0x40000",
+  "new": "RF_MODOPT, 0xF_FFFF, 0x0",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-coex-dead-window-hidden",
+  "file": "userland/capsule_driver_rtl8822ce/src/coex/wl_only.rs",
+  "old": "    ok\n}",
+  "new": "    true\n}",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ },
+ {
+  "name": "rtl8822ce-phy-unsupported-rfe-taken",
+  "file": "userland/capsule_driver_rtl8822ce/src/serve/radio/phy.rs",
+  "old": "if !rfe_is_supported(info.rfe) {",
+  "new": "if false {",
+  "test": "_tests::",
+  "crate": "userland/rtl8822ce_proofs"
+ }
+]

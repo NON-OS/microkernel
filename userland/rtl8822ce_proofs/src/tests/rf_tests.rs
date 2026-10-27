@@ -37,6 +37,8 @@ fn register_0_goes_through_the_serial_interface() {
     let c = Chip::new();
     assert!(write(&c, PATH_A, 0x0, RFREG_MASK, 0x1_0000));
     assert_eq!(c.at(0x1808), [0x1_0000]);
+    assert!(write(&c, PATH_A, 0x0, RFREG_MASK, 0xFFF0_0001));
+    assert_eq!(c.at(0x1808)[1], 0x1, "the 20 data bits alone");
     c.set32(0x4C00, 0x0003_0000);
     assert!(write(&c, PATH_B, 0x0, 0xF, 0x5));
     assert_eq!(c.at(0x4108), [0x3_0005], "a masked write keeps the rest");

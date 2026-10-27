@@ -18,6 +18,7 @@ const RF18_B: usize = 0x4C00 + (0x18 << 2);
 fn tuned(ch: u8) -> Chip {
     let c = Chip::new();
     c.set32(RF18_A, 0x0008_CC00 | 0x7_33FF); // the fields set, and bits outside them
+    c.set32(0x0480, 0xFF00_0000); // a sub-channel at 0x483 to clear
     set_rf(&c, ch, Bw::W20);
     c
 }
@@ -27,6 +28,7 @@ fn rf18_is_rtw88s() {
     let kept = 0x0008_CC00;
     assert_eq!(rf18_value(6, kept | 0x7_33FF), kept | 0x3006, "BW 13:12, band 2G, channel 6");
     assert_eq!(rf18_value(36, 0), 0x1_3124, "5 GHz band bits");
+    assert_eq!(rf18_value(14, 0), 0x300E, "channel 14 is 2.4 GHz");
     assert_eq!(rf18_value(100, 0) & 0x6_0000, 1 << 17, "100 to 144");
     assert_eq!(rf18_value(149, 0) & 0x6_0000, 1 << 18, "149 to 177");
 }

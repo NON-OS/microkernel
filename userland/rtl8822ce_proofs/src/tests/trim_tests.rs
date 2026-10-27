@@ -30,6 +30,9 @@ fn the_thermal_bits_move_and_an_untrimmed_path_stops() {
     thermal(&c, &Trim { thermal: [0b0011, 0xFF], ..trim() }, 2);
     assert_eq!(read32_mask(&c, RF_A + (0x43 << 2), 0xF_0000), 0b1001);
     assert!(c.at(RF_B + (0x43 << 2)).is_empty());
+    let c = Chip::new();
+    thermal(&c, &Trim { thermal: [0xFF, 0b0011], ..trim() }, 2);
+    assert!(c.writes.borrow().is_empty(), "path A untrimmed ends the loop");
 }
 
 #[test]
