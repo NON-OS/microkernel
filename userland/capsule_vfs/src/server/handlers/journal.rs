@@ -62,7 +62,8 @@ pub fn journal_list(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec
     }
     let max = u32::from_le_bytes([rest[0], rest[1], rest[2], rest[3]]) as usize;
     let listed = store.journal_list(max.min(JOURNAL_LIST_MAX));
-    let sendable: Vec<_> = listed.iter().filter(|(_, p)| p.len() <= MAX_WIRE_NAME).collect();
+    let shown = |p: &&str| p.len() <= MAX_WIRE_NAME && !super::guard::guarded(p);
+    let sendable: Vec<_> = listed.iter().filter(|(_, p)| shown(p)).collect();
     let mut body = Vec::new();
     body.extend_from_slice(&(sendable.len() as u32).to_le_bytes());
     for (atime, path) in sendable {

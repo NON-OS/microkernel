@@ -18,13 +18,16 @@
 //! of any range. The volume is the machine's; a capsule reaches it only
 //! with FileSystem, and brings a file in, or keys the volume with a
 //! passphrase, only with StoreWrite as well. A file fed in chunk by chunk
-//! takes StreamImport alone, which grants no read.
+//! takes StreamImport alone, which grants no read. A Linux app's kept
+//! home and installs are refused to every caller but the Linux personality
+//! (kept_name.rs).
 
 mod errno;
 mod feed;
 mod feed_begin;
 mod feed_errno;
 mod import;
+mod kept_name;
 mod name;
 mod passphrase;
 mod plan_errno;

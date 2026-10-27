@@ -1,0 +1,756 @@
+machine up
+  until 'Capsules spawned': seen
+step 1: until:Capsules spawned:1500 -> ok
+  until '[SPLASH] stepped aside': seen
+step 2: until:[SPLASH] stepped aside:600 -> ok
+step 3: wait:4 -> ok
+step 4: key:ret -> ok
+step 5: wait:4 -> ok
+step 6: type:ek -> ok
+step 7: wait:2 -> ok
+step 8: key:ret -> ok
+step 9: wait:4 -> ok
+step 10: key:ret -> ok
+step 11: wait:4 -> ok
+step 12: key:ret -> ok
+step 13: wait:4 -> ok
+step 14: key:ret -> ok
+step 15: wait:4 -> ok
+step 16: key:ret -> ok
+step 17: wait:4 -> ok
+step 18: key:ret -> ok
+step 19: wait:4 -> ok
+step 20: key:ret -> ok
+step 21: wait:4 -> ok
+step 22: key:ret -> ok
+step 23: wait:4 -> ok
+step 24: key:ret -> ok
+step 25: wait:4 -> ok
+step 26: key:down -> ok
+step 27: wait:2 -> ok
+step 28: key:ret -> ok
+step 29: wait:4 -> ok
+step 30: key:ret -> ok
+step 31: wait:4 -> ok
+step 32: key:ret -> ok
+step 33: key:ret -> ok
+step 34: wait:60 -> ok
+step 35: key:esc -> ok
+step 36: wait:3 -> ok
+  shot desk.png
+step 37: shot:desk -> ok
+step 38: key:ctrl+alt+t -> ok
+step 39: wait:20 -> ok
+  shot term.png
+step 40: shot:term -> ok
+step 41: type:market install linux.age -> ok
+step 42: key:ret -> ok
+step 43: type:linux age -p -a -o /root/a.age /etc/passwd -> ok
+step 44: key:ret -> ok
+step 45: wait:60 -> ok
+step 46: type:nonos-test-pass -> ok
+step 47: key:ret -> ok
+step 48: wait:15 -> ok
+step 49: type:nonos-test-pass -> ok
+step 50: key:ret -> ok
+step 51: wait:60 -> ok
+step 52: type:linux age -d /root/a.age -> ok
+step 53: key:ret -> ok
+step 54: wait:60 -> ok
+step 55: type:nonos-test-pass -> ok
+step 56: key:ret -> ok
+step 57: wait:60 -> ok
+  shot age.png
+step 58: shot:age -> ok
+step 59: type:market install linux.git -> ok
+step 60: key:ret -> ok
+step 61: type:linux git init /root/r -> ok
+step 62: key:ret -> ok
+step 63: wait:45 -> ok
+  shot git-1.png
+step 64: shot:git-1 -> ok
+step 65: type:linux git -C /root/r -c user.name=ek -c user.email=ek@n -> ok
+step 66: key:ret -> ok
+step 67: wait:45 -> ok
+  shot git-2.png
+step 68: shot:git-2 -> ok
+step 69: type:linux git -C /root/r log --oneline -> ok
+step 70: key:ret -> ok
+step 71: wait:45 -> ok
+  shot git-3.png
+step 72: shot:git-3 -> ok
+step 73: type:market install linux.flac -> ok
+step 74: key:ret -> ok
+step 75: type:echo nonos-flac-test-data-0123456789abcdef > in.raw -> ok
+step 76: key:ret -> ok
+step 77: wait:5 -> ok
+  shot flac-1.png
+step 78: shot:flac-1 -> ok
+step 79: type:linux flac --force-raw-format --endian=little --sign=si -> ok
+step 80: key:ret -> ok
+step 81: wait:60 -> ok
+  shot flac-2.png
+step 82: shot:flac-2 -> ok
+step 83: type:linux flac -d -f -o /root/back.raw /root/o.flac -> ok
+step 84: key:ret -> ok
+step 85: wait:60 -> ok
+  shot flac-3.png
+step 86: shot:flac-3 -> ok
+step 87: type:market install linux.lame -> ok
+step 88: key:ret -> ok
+step 89: type:linux lame -r -s 8 --bitwidth 16 -m m - /root/o.mp3 < i -> ok
+step 90: key:ret -> ok
+step 91: wait:60 -> ok
+  shot lame-1.png
+step 92: shot:lame-1 -> ok
+step 93: type:linux lame --decode /root/o.mp3 /root/back.wav -> ok
+step 94: key:ret -> ok
+step 95: wait:60 -> ok
+  shot lame-2.png
+step 96: shot:lame-2 -> ok
+step 97: type:market install linux.minisign -> ok
+step 98: key:ret -> ok
+step 99: type:linux minisign -G -W -p /root/m.pub -s /root/m.key -> ok
+step 100: key:ret -> ok
+step 101: wait:45 -> ok
+  shot minisign-1.png
+step 102: shot:minisign-1 -> ok
+step 103: type:linux minisign -S -W -s /root/m.key -m /etc/passwd -x / -> ok
+step 104: key:ret -> ok
+step 105: wait:45 -> ok
+  shot minisign-2.png
+step 106: shot:minisign-2 -> ok
+step 107: type:linux minisign -V -p /root/m.pub -m /etc/passwd -x /roo -> ok
+step 108: key:ret -> ok
+step 109: wait:45 -> ok
+  shot minisign-3.png
+step 110: shot:minisign-3 -> ok
+step 111: type:market install linux.vim -> ok
+step 112: key:ret -> ok
+step 113: type:linux vim -es -c 'put ="hello"' -c wq /root/a.txt -> ok
+step 114: key:ret -> ok
+step 115: wait:45 -> ok
+  shot vim-1.png
+step 116: shot:vim-1 -> ok
+step 117: type:linux vim --version -> ok
+step 118: key:ret -> ok
+step 119: wait:30 -> ok
+  shot vim-2.png
+step 120: shot:vim-2 -> ok
+step 121: type:market install linux.gpg -> ok
+step 122: key:ret -> ok
+step 123: type:linux gpg --batch --passphrase x --pinentry-mode loopba -> ok
+step 124: key:ret -> ok
+step 125: wait:90 -> ok
+  shot gpg-1.png
+step 126: shot:gpg-1 -> ok
+step 127: type:linux gpg --batch --passphrase x --pinentry-mode loopba -> ok
+step 128: key:ret -> ok
+step 129: wait:90 -> ok
+  shot gpg-2.png
+step 130: shot:gpg-2 -> ok
+step 131: type:linux gpg --batch --passphrase '' --quick-gen-key 'Test -> ok
+step 132: key:ret -> ok
+step 133: wait:120 -> ok
+  shot gpg-3.png
+step 134: shot:gpg-3 -> ok
+step 135: type:market install linux.curl -> ok
+step 136: key:ret -> ok
+step 137: type:linux curl --version -> ok
+step 138: key:ret -> ok
+step 139: wait:30 -> ok
+  shot curl-1.png
+step 140: shot:curl-1 -> ok
+step 141: type:linux curl -sS -o /root/e.html https://example.com/ -> ok
+step 142: key:ret -> ok
+step 143: wait:120 -> ok
+  shot curl-2.png
+step 144: shot:curl-2 -> ok
+step 145: type:market install linux.yara -> ok
+step 146: key:ret -> ok
+step 147: key:ctrl+c -> ok
+step 148: wait:20 -> ok
+  shot curl-int.png
+step 149: shot:curl-int -> ok
+step 150: type:linux curl -sS -o /root/e.html https://example.com/ -> ok
+step 151: key:ret -> ok
+step 152: wait:5 -> ok
+step 153: wait:10 -> ok
+  shot probe.png
+step 154: shot:probe -> ok
+step 155: wait:10 -> ok
+  shot probe.png
+step 156: shot:probe -> ok
+step 157: wait:10 -> ok
+  shot probe.png
+step 158: shot:probe -> ok
+step 159: wait:10 -> ok
+  shot probe.png
+step 160: shot:probe -> ok
+step 161: wait:10 -> ok
+  shot probe.png
+step 162: shot:probe -> ok
+step 163: wait:10 -> ok
+  shot probe.png
+step 164: shot:probe -> ok
+step 165: wait:10 -> ok
+  shot probe.png
+step 166: shot:probe -> ok
+step 167: wait:10 -> ok
+  shot probe.png
+step 168: shot:probe -> ok
+step 169: wait:10 -> ok
+  shot probe.png
+step 170: shot:probe -> ok
+step 171: wait:10 -> ok
+  shot probe.png
+step 172: shot:probe -> ok
+step 173: wait:10 -> ok
+  shot probe.png
+step 174: shot:probe -> ok
+step 175: wait:10 -> ok
+  shot probe.png
+step 176: shot:probe -> ok
+step 177: wait:10 -> ok
+  shot probe.png
+step 178: shot:probe -> ok
+step 179: wait:10 -> ok
+  shot probe.png
+step 180: shot:probe -> ok
+step 181: wait:10 -> ok
+  shot probe.png
+step 182: shot:probe -> ok
+step 183: wait:10 -> ok
+  shot probe.png
+step 184: shot:probe -> ok
+step 185: wait:10 -> ok
+  shot probe.png
+step 186: shot:probe -> ok
+step 187: wait:10 -> ok
+  shot probe.png
+step 188: shot:probe -> ok
+step 189: wait:10 -> ok
+  shot probe.png
+step 190: shot:probe -> ok
+  shot curl-11.png
+step 191: shot:curl-11 -> ok
+step 192: type:market install linux.yara -> ok
+step 193: key:ret -> ok
+step 194: type:echo 'rule r { strings: $s = "root" condition: $s }' >  -> ok
+step 195: key:ret -> ok
+step 196: wait:5 -> ok
+step 197: wait:10 -> ok
+  shot probe.png
+step 198: shot:probe -> ok
+  shot yara-1.png
+step 199: shot:yara-1 -> ok
+step 200: type:linux yara /dev/stdin /etc/passwd < r.yar -> ok
+step 201: key:ret -> ok
+step 202: wait:5 -> ok
+step 203: wait:10 -> ok
+  shot probe.png
+step 204: shot:probe -> ok
+step 205: wait:10 -> ok
+  shot probe.png
+step 206: shot:probe -> ok
+step 207: wait:10 -> ok
+  shot probe.png
+step 208: shot:probe -> ok
+step 209: wait:10 -> ok
+  shot probe.png
+step 210: shot:probe -> ok
+step 211: wait:10 -> ok
+  shot probe.png
+step 212: shot:probe -> ok
+step 213: wait:10 -> ok
+  shot probe.png
+step 214: shot:probe -> ok
+step 215: wait:10 -> ok
+  shot probe.png
+step 216: shot:probe -> ok
+step 217: wait:10 -> ok
+  shot probe.png
+step 218: shot:probe -> ok
+step 219: wait:10 -> ok
+  shot probe.png
+step 220: shot:probe -> ok
+step 221: wait:10 -> ok
+  shot probe.png
+step 222: shot:probe -> ok
+step 223: wait:10 -> ok
+  shot probe.png
+step 224: shot:probe -> ok
+step 225: wait:10 -> ok
+  shot probe.png
+step 226: shot:probe -> ok
+  shot yara-2.png
+step 227: shot:yara-2 -> ok
+step 228: type:market install linux.radare2 -> ok
+step 229: key:ret -> ok
+step 230: type:linux radare2 -q -c iI /bin/busybox -> ok
+step 231: key:ret -> ok
+step 232: wait:5 -> ok
+step 233: wait:10 -> ok
+  shot probe.png
+step 234: shot:probe -> ok
+step 235: wait:10 -> ok
+  shot probe.png
+step 236: shot:probe -> ok
+step 237: wait:10 -> ok
+  shot probe.png
+step 238: shot:probe -> ok
+step 239: wait:10 -> ok
+  shot probe.png
+step 240: shot:probe -> ok
+step 241: wait:10 -> ok
+  shot probe.png
+step 242: shot:probe -> ok
+step 243: wait:10 -> ok
+  shot probe.png
+step 244: shot:probe -> ok
+step 245: wait:10 -> ok
+  shot probe.png
+step 246: shot:probe -> ok
+step 247: wait:10 -> ok
+  shot probe.png
+step 248: shot:probe -> ok
+step 249: wait:10 -> ok
+  shot probe.png
+step 250: shot:probe -> ok
+step 251: wait:10 -> ok
+  shot probe.png
+step 252: shot:probe -> ok
+step 253: wait:10 -> ok
+  shot probe.png
+step 254: shot:probe -> ok
+step 255: wait:10 -> ok
+  shot probe.png
+step 256: shot:probe -> ok
+step 257: wait:10 -> ok
+  shot probe.png
+step 258: shot:probe -> ok
+  shot radare2-1.png
+step 259: shot:radare2-1 -> ok
+step 260: type:market install linux.helix -> ok
+step 261: key:ret -> ok
+step 262: type:linux hx --health -> ok
+step 263: key:ret -> ok
+step 264: wait:5 -> ok
+step 265: wait:10 -> ok
+  shot probe.png
+step 266: shot:probe -> ok
+step 267: wait:10 -> ok
+  shot probe.png
+step 268: shot:probe -> ok
+step 269: wait:10 -> ok
+  shot probe.png
+step 270: shot:probe -> ok
+step 271: wait:10 -> ok
+  shot probe.png
+step 272: shot:probe -> ok
+step 273: wait:10 -> ok
+  shot probe.png
+step 274: shot:probe -> ok
+step 275: wait:10 -> ok
+  shot probe.png
+step 276: shot:probe -> ok
+step 277: wait:10 -> ok
+  shot probe.png
+step 278: shot:probe -> ok
+step 279: wait:10 -> ok
+  shot probe.png
+step 280: shot:probe -> ok
+step 281: wait:10 -> ok
+  shot probe.png
+step 282: shot:probe -> ok
+step 283: wait:10 -> ok
+  shot probe.png
+step 284: shot:probe -> ok
+step 285: wait:10 -> ok
+  shot probe.png
+step 286: shot:probe -> ok
+step 287: wait:10 -> ok
+  shot probe.png
+step 288: shot:probe -> ok
+step 289: wait:10 -> ok
+  shot probe.png
+step 290: shot:probe -> ok
+step 291: wait:10 -> ok
+  shot probe.png
+step 292: shot:probe -> ok
+step 293: wait:10 -> ok
+  shot probe.png
+step 294: shot:probe -> ok
+  shot helix-1.png
+step 295: shot:helix-1 -> ok
+step 296: type:market install linux.micro -> ok
+step 297: key:ret -> ok
+step 298: type:linux micro --version -> ok
+step 299: key:ret -> ok
+step 300: wait:5 -> ok
+step 301: wait:10 -> ok
+  shot probe.png
+step 302: shot:probe -> ok
+step 303: wait:10 -> ok
+  shot probe.png
+step 304: shot:probe -> ok
+step 305: wait:10 -> ok
+  shot probe.png
+step 306: shot:probe -> ok
+step 307: wait:10 -> ok
+  shot probe.png
+step 308: shot:probe -> ok
+step 309: wait:10 -> ok
+  shot probe.png
+step 310: shot:probe -> ok
+step 311: wait:10 -> ok
+  shot probe.png
+step 312: shot:probe -> ok
+step 313: wait:10 -> ok
+  shot probe.png
+step 314: shot:probe -> ok
+step 315: wait:10 -> ok
+  shot probe.png
+step 316: shot:probe -> ok
+step 317: wait:10 -> ok
+  shot probe.png
+step 318: shot:probe -> ok
+step 319: wait:10 -> ok
+  shot probe.png
+step 320: shot:probe -> ok
+step 321: wait:10 -> ok
+  shot probe.png
+step 322: shot:probe -> ok
+step 323: wait:10 -> ok
+  shot probe.png
+step 324: shot:probe -> ok
+  shot micro-1.png
+step 325: shot:micro-1 -> ok
+step 326: type:market install linux.bat -> ok
+step 327: key:ret -> ok
+step 328: type:market info linux.radare2 -> ok
+step 329: key:ret -> ok
+step 330: wait:10 -> ok
+step 331: type:linux r2 -v -> ok
+step 332: key:ret -> ok
+step 333: wait:5 -> ok
+step 334: wait:10 -> ok
+  shot probe.png
+step 335: shot:probe -> ok
+step 336: wait:10 -> ok
+  shot probe.png
+step 337: shot:probe -> ok
+step 338: wait:10 -> ok
+  shot probe.png
+step 339: shot:probe -> ok
+step 340: wait:10 -> ok
+  shot probe.png
+step 341: shot:probe -> ok
+step 342: wait:10 -> ok
+  shot probe.png
+step 343: shot:probe -> ok
+step 344: wait:10 -> ok
+  shot probe.png
+step 345: shot:probe -> ok
+step 346: wait:10 -> ok
+  shot probe.png
+step 347: shot:probe -> ok
+step 348: wait:10 -> ok
+  shot probe.png
+step 349: shot:probe -> ok
+step 350: wait:10 -> ok
+  shot probe.png
+step 351: shot:probe -> ok
+step 352: wait:10 -> ok
+  shot probe.png
+step 353: shot:probe -> ok
+step 354: wait:10 -> ok
+  shot probe.png
+step 355: shot:probe -> ok
+step 356: wait:10 -> ok
+  shot probe.png
+step 357: shot:probe -> ok
+step 358: wait:10 -> ok
+  shot probe.png
+step 359: shot:probe -> ok
+step 360: wait:10 -> ok
+  shot probe.png
+step 361: shot:probe -> ok
+step 362: wait:10 -> ok
+  shot probe.png
+step 363: shot:probe -> ok
+step 364: wait:10 -> ok
+  shot probe.png
+step 365: shot:probe -> ok
+step 366: wait:10 -> ok
+  shot probe.png
+step 367: shot:probe -> ok
+step 368: wait:10 -> ok
+  shot probe.png
+step 369: shot:probe -> ok
+step 370: wait:10 -> ok
+  shot probe.png
+step 371: shot:probe -> ok
+step 372: wait:10 -> ok
+  shot probe.png
+step 373: shot:probe -> ok
+step 374: wait:10 -> ok
+  shot probe.png
+step 375: shot:probe -> ok
+step 376: wait:10 -> ok
+  shot probe.png
+step 377: shot:probe -> ok
+step 378: wait:10 -> ok
+  shot probe.png
+step 379: shot:probe -> ok
+step 380: wait:10 -> ok
+  shot probe.png
+step 381: shot:probe -> ok
+step 382: wait:10 -> ok
+  shot probe.png
+step 383: shot:probe -> ok
+step 384: wait:10 -> ok
+  shot probe.png
+step 385: shot:probe -> ok
+step 386: wait:10 -> ok
+  shot probe.png
+step 387: shot:probe -> ok
+step 388: wait:10 -> ok
+  shot probe.png
+step 389: shot:probe -> ok
+step 390: wait:10 -> ok
+  shot probe.png
+step 391: shot:probe -> ok
+step 392: wait:10 -> ok
+  shot probe.png
+step 393: shot:probe -> ok
+step 394: wait:10 -> ok
+  shot probe.png
+step 395: shot:probe -> ok
+step 396: wait:10 -> ok
+  shot probe.png
+step 397: shot:probe -> ok
+step 398: wait:10 -> ok
+  shot probe.png
+step 399: shot:probe -> ok
+step 400: wait:10 -> ok
+  shot probe.png
+step 401: shot:probe -> ok
+step 402: wait:10 -> ok
+  shot probe.png
+step 403: shot:probe -> ok
+step 404: wait:10 -> ok
+  shot probe.png
+step 405: shot:probe -> ok
+step 406: wait:10 -> ok
+  shot probe.png
+step 407: shot:probe -> ok
+step 408: wait:10 -> ok
+  shot probe.png
+step 409: shot:probe -> ok
+step 410: wait:10 -> ok
+  shot probe.png
+step 411: shot:probe -> ok
+step 412: wait:10 -> ok
+  shot probe.png
+step 413: shot:probe -> ok
+step 414: wait:10 -> ok
+  shot probe.png
+step 415: shot:probe -> ok
+step 416: wait:10 -> ok
+  shot probe.png
+step 417: shot:probe -> ok
+step 418: wait:10 -> ok
+  shot probe.png
+step 419: shot:probe -> ok
+step 420: wait:10 -> ok
+  shot probe.png
+step 421: shot:probe -> ok
+step 422: wait:10 -> ok
+  shot probe.png
+step 423: shot:probe -> ok
+step 424: wait:10 -> ok
+  shot probe.png
+step 425: shot:probe -> ok
+step 426: wait:10 -> ok
+  shot probe.png
+step 427: shot:probe -> ok
+step 428: wait:10 -> ok
+  shot probe.png
+step 429: shot:probe -> ok
+step 430: wait:10 -> ok
+  shot probe.png
+step 431: shot:probe -> ok
+step 432: wait:10 -> ok
+  shot probe.png
+step 433: shot:probe -> ok
+step 434: wait:10 -> ok
+  shot probe.png
+step 435: shot:probe -> ok
+step 436: wait:10 -> ok
+  shot probe.png
+step 437: shot:probe -> ok
+step 438: wait:10 -> ok
+  shot probe.png
+step 439: shot:probe -> ok
+step 440: wait:10 -> ok
+  shot probe.png
+step 441: shot:probe -> ok
+step 442: wait:10 -> ok
+  shot probe.png
+step 443: shot:probe -> ok
+step 444: wait:10 -> ok
+  shot probe.png
+step 445: shot:probe -> ok
+step 446: wait:10 -> ok
+  shot probe.png
+step 447: shot:probe -> ok
+step 448: wait:10 -> ok
+  shot probe.png
+step 449: shot:probe -> ok
+step 450: wait:10 -> ok
+  shot probe.png
+step 451: shot:probe -> ok
+step 452: wait:10 -> ok
+  shot probe.png
+step 453: shot:probe -> ok
+step 454: wait:10 -> ok
+  shot probe.png
+step 455: shot:probe -> ok
+step 456: wait:10 -> ok
+  shot probe.png
+step 457: shot:probe -> ok
+step 458: wait:10 -> ok
+  shot probe.png
+step 459: shot:probe -> ok
+step 460: wait:10 -> ok
+  shot probe.png
+step 461: shot:probe -> ok
+step 462: wait:10 -> ok
+  shot probe.png
+step 463: shot:probe -> ok
+step 464: wait:10 -> ok
+  shot probe.png
+step 465: shot:probe -> ok
+step 466: wait:10 -> ok
+  shot probe.png
+step 467: shot:probe -> ok
+step 468: wait:10 -> ok
+  shot probe.png
+step 469: shot:probe -> ok
+step 470: wait:10 -> ok
+  shot probe.png
+step 471: shot:probe -> ok
+step 472: wait:10 -> ok
+  shot probe.png
+step 473: shot:probe -> ok
+step 474: wait:10 -> ok
+  shot probe.png
+step 475: shot:probe -> ok
+step 476: wait:10 -> ok
+  shot probe.png
+step 477: shot:probe -> ok
+step 478: wait:10 -> ok
+  shot probe.png
+step 479: shot:probe -> ok
+step 480: wait:10 -> ok
+  shot probe.png
+step 481: shot:probe -> ok
+step 482: wait:10 -> ok
+  shot probe.png
+step 483: shot:probe -> ok
+  shot r2a.png
+step 484: shot:r2a -> ok
+step 485: type:linux /usr/bin/radare2 -v -> ok
+step 486: key:ret -> ok
+step 487: wait:5 -> ok
+step 488: wait:10 -> ok
+  shot probe.png
+step 489: shot:probe -> ok
+step 490: wait:10 -> ok
+  shot probe.png
+step 491: shot:probe -> ok
+step 492: wait:10 -> ok
+  shot probe.png
+step 493: shot:probe -> ok
+step 494: wait:10 -> ok
+  shot probe.png
+step 495: shot:probe -> ok
+step 496: wait:10 -> ok
+  shot probe.png
+step 497: shot:probe -> ok
+step 498: wait:10 -> ok
+  shot probe.png
+step 499: shot:probe -> ok
+step 500: wait:10 -> ok
+  shot probe.png
+step 501: shot:probe -> ok
+step 502: wait:10 -> ok
+  shot probe.png
+step 503: shot:probe -> ok
+step 504: wait:10 -> ok
+  shot probe.png
+step 505: shot:probe -> ok
+step 506: wait:10 -> ok
+  shot probe.png
+step 507: shot:probe -> ok
+step 508: wait:10 -> ok
+  shot probe.png
+step 509: shot:probe -> ok
+step 510: wait:10 -> ok
+  shot probe.png
+step 511: shot:probe -> ok
+step 512: wait:10 -> ok
+  shot probe.png
+step 513: shot:probe -> ok
+step 514: wait:10 -> ok
+  shot probe.png
+step 515: shot:probe -> ok
+step 516: wait:10 -> ok
+  shot probe.png
+step 517: shot:probe -> ok
+step 518: wait:10 -> ok
+  shot probe.png
+step 519: shot:probe -> ok
+step 520: wait:10 -> ok
+  shot probe.png
+step 521: shot:probe -> ok
+step 522: wait:10 -> ok
+  shot probe.png
+step 523: shot:probe -> ok
+step 524: wait:10 -> ok
+  shot probe.png
+step 525: shot:probe -> ok
+step 526: wait:10 -> ok
+  shot probe.png
+step 527: shot:probe -> ok
+step 528: wait:10 -> ok
+  shot probe.png
+step 529: shot:probe -> ok
+step 530: wait:10 -> ok
+  shot probe.png
+step 531: shot:probe -> ok
+step 532: wait:10 -> ok
+  shot probe.png
+step 533: shot:probe -> ok
+step 534: wait:10 -> ok
+  shot probe.png
+step 535: shot:probe -> ok
+step 536: wait:10 -> ok
+  shot probe.png
+step 537: shot:probe -> ok
+step 538: wait:10 -> ok
+  shot probe.png
+step 539: shot:probe -> ok
+step 540: wait:10 -> ok
+  shot probe.png
+step 541: shot:probe -> ok
+step 542: wait:10 -> ok
+  shot probe.png
+step 543: shot:probe -> ok
+step 544: wait:10 -> ok
+  shot probe.png
+step 545: shot:probe -> ok
+  shot r2b.png
+step 546: shot:r2b -> ok
+idrive: stopped

@@ -21,15 +21,15 @@
 use super::say::say;
 use super::state::with;
 use super::termios::Termios;
-use super::tty_rules::mode_switch;
+use super::tty_rules::{echo_switch, mode_switch};
 
-/// New settings, kept as given; a change of canonical mode is told.
+/// New settings, kept as given; a change of canonical mode or of echo is told.
 pub fn set_termios(raw: &[u8]) {
     let Ok(t) = <Termios>::try_from(raw) else {
         return;
     };
     let was = with(|c| core::mem::replace(&mut c.termios, t));
-    if let Some(seq) = mode_switch(&was, &t) {
+    for seq in [mode_switch(&was, &t), echo_switch(&was, &t)].into_iter().flatten() {
         say(seq);
     }
 }

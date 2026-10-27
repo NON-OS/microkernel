@@ -24,7 +24,7 @@ use nonos_linux_policy::decode;
 use super::super::market::minted::{beside, POLICY};
 use crate::linux::file::{key, store_read};
 
-const MAX_IMAGE: u32 = 64 << 20;
+const MAX_IMAGE: u32 = crate::linux::program_max::PROGRAM_MAX;
 const MAX_POLICY: u32 = nonos_linux_policy::LEN as u32 + 1;
 
 /// The key of the home `pkg`'s program runs with, if it records one.

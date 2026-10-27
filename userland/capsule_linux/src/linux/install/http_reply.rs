@@ -60,3 +60,15 @@ pub fn body(mut raw: Vec<u8>) -> Option<Vec<u8>> {
     raw.drain(..end);
     Some(raw)
 }
+
+/// Whether the stream `reply` came on may carry the next GET: the reply
+/// ends at the byte its length names, nothing came past it, and the mirror
+/// did not say it closes. Anything else and the stream is dropped.
+pub fn reusable(reply: &[u8]) -> bool {
+    let Some((end, Some(len))) = framing(reply) else { return false };
+    let closes = reply[..end].split(|b| *b == b'\n').any(|line| {
+        let line = line.to_ascii_lowercase();
+        line.starts_with(b"connection:") && line.windows(5).any(|w| w == b"close")
+    });
+    end.checked_add(len) == Some(reply.len()) && !closes
+}
