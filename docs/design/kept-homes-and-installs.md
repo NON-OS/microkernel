@@ -38,9 +38,9 @@ disk in plaintext, and the disk opens only on this machine. An amnesic boot
   parts), read (4 MiB a call, straight into a supervised guest), stat and
   remove. No general write, list or rename.
 - **The Linux personality.** Homes are `/linux-home/<key>` in vfs RAM,
-  16 MiB and 128 names each; packs `/linux-packs/<pkg>.pack` with a trailer
-  LocalSign mints; records under `/nonos/linux/apps*`. `keep.rs:50-53`
-  says, every install, that nothing is kept.
+  16 MiB and 128 names each; packs `/linux-packs/<family>/<pkg>.pack`
+  with a trailer LocalSign mints; records under `/nonos/linux/apps*`.
+  `keep.rs:50-53` says, every install, that nothing is kept.
 
 ## The gap that comes first: PCR 9
 
