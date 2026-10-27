@@ -41,6 +41,7 @@ Each host keeps a table of parked children (`userland/nonos_usb_virt`). Every ho
 - **Claiming.** A class driver claims a virtual port exactly as a root port: ENABLE_SLOT, then OP_ADDRESS_DEVICE naming it. The first claim wins; a second is answered E_BUSY. The reply is the address reply with the claimant's own slot. From then on every request for that slot goes to the parked one.
 - **Detaching.** When the child leaves, usb_hub0 gives its slot back. Unclaimed, the port goes at once. Claimed, the port reads disconnected with its connect change set, as a root port does, until the claimant gives its slot back; then both slots go.
 - **Letting go.** A claimant that lets a child go that is still there leaves it parked for the next claim.
+- **Holding.** A slot serves only the client that enabled it; any other is answered E_PERM (-1), parking included, which needs both the child's slot and its hub's. A holder that exits is replaced by the next client that asks, and once a second its slots are given back, all but a child parked below a hub (`userland/capsule_driver_uhci/src/server/many/owners.rs`), as xHCI's multiplexer does (`userland/capsule_driver_xhci/src/slots/holders.rs`).
 
 ## What each host does with op 0x20 and op 0x21
 
@@ -71,8 +72,8 @@ All of it on the host, none on hardware or under QEMU:
 - `userland/usb_hub_proofs` (24 tests) covers the descriptor, port status, route and TT rules, the walk and the parking over a modelled hub and clock, and the virtual port table.
 - In each host's proof crate, `nonos_usb_hub`'s own walk runs over that driver's own request dispatch against its model controller, with a model hub on root port 1 (`userland/uhci_proofs/src/hub_lane.rs`, shared by the three).
   - The model halts any transaction whose speed, TT, completion mask or low-speed mark does not match where the device sits (`userland/ehci_proofs/src/model/reach.rs`, `userland/uhci_proofs/src/model/bus.rs`).
-  - In `uhci_proofs`, usb_hub0's own walk and root-port pass run over the real host front. Children are parked, listed and claimed, and their bulk data reaches them; detaches and give-backs follow the table.
-  - Counts: `uhci_proofs` 48, `ehci_proofs` 41, `ohci_proofs` 43, `xhci_proofs` 152.
+  - In `uhci_proofs`, usb_hub0's own walk and root-port pass run over the real host front. Children are parked, listed and claimed, and their bulk data reaches them; detaches and give-backs follow the table, and another client's requests on a slot are refused (`userland/uhci_proofs/src/owner_tests.rs`).
+  - Counts: `uhci_proofs` 55, `ehci_proofs` 50, `ohci_proofs` 49, `xhci_proofs` 152.
 
 ## See also
 
