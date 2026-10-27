@@ -1,0 +1,160 @@
+NØNOS 0.9.3, the film: credits and evidence
+============================================
+
+Every value on screen is real. This file lists each one with where it is,
+so anyone can check it. test_film.py fails if a string an evidence card,
+box label or backdrop draws is missing here. "Line N" of a screenshot
+counts the lines visible on that screen, from the top.
+
+Branches named here: nonos/jolly-gauss-xbkfum (the evidence directories),
+film/frames-b434 at a960427a7f (the sealed image's recorded frames).
+
+
+1. FOOTAGE (the real screens; pixels untouched but for brightness)
+-----------------------------------------------------------------
+
+docs/release-evidence/0.9.3/film-frames-b434cdf175/ (film/frames-b434,
+a960427a7f); UTC times from its times.txt.
+
+  000719.png  the desktop, "This is a live session" notice
+              2026-10-27 13:35:25 UTC (times.txt frame 719)
+  003599.png  the Terminal: market info linux.monero, then
+              monero-wallet-cli with its policy lines
+              2026-10-27 14:21:51 UTC (times.txt frame 3599)
+  002159.png  the Terminal's start screen (os, kernel, signed, the Ø)
+              2026-10-27 13:51:44 UTC (times.txt frame 2159)
+
+Development image 0d0cff02d4, shared-map lane:
+  coherence.png  docs/release-evidence/0.9.3/s1-shared-maps-0d0cff02d4/
+                 (e0fda48c46, nonos/jolly-gauss-xbkfum); the lane's copy is
+                 byte-identical (sha256 0313ebf54afa0171...)
+
+
+2. EVIDENCE CARDS (each line exactly as the machine printed it)
+--------------------------------------------------------------
+
+EVIDENCE · SHARED MAP · 0d0cff02d4
+  2026-10-27 15:27:46 UTC        next-run.png: the second run's stamp
+  DEV IMAGE 0d0cff02d4 · QEMU TCG · INTEL IOMMU    README.md:9-14
+  docs/release-evidence/0.9.3/s1-shared-maps-0d0cff02d4
+  (e0fda48c46; README.md and coherence.png, next-run.png)
+    P ro ok                                   README.md:23, coherence.png
+    P seen HELLO BEYOND                       README.md:24, coherence.png
+    P over refused Function not implemented   README.md:25, coherence.png
+    P rw ok                                   README.md:26, coherence.png
+    P read WORLD                              README.md:27, coherence.png
+    P msync 0 unmap 0                         README.md:28, coherence.png
+    P exec refused Permission denied          README.md:29, coherence.png
+    P next_run HELLO WORLD BEYOND size 9006   README.md:33, next-run.png
+
+EVIDENCE · ISOLATION · 61ec29ea2
+  2026-10-27 11:03 UTC           calls.png: the desktop clock (time zone UTC)
+  DEV IMAGE 61ec29ea2 · QEMU TCG · HOSTILE GUEST   README.md:1-15
+  docs/release-evidence/0.9.3/s1-isolation-61ec29ea2
+    [LINUX] refused ptrace: a guest does not inspect or steer another
+                                              calls.png line 1; README.md:21
+    P ptrace    -1 Operation not permitted    calls.png line 2; README.md:21
+    [LINUX] refused process_vm_readv: no guest reads another's memory
+                                              calls.png line 3; README.md:22
+    P vm_readv  -1 Operation not permitted    calls.png line 4; README.md:22
+    P mmap_x    -1 Operation not permitted    calls.png line 23; README.md:31
+    [LINUX] its policy refused 11: jit=1 barred=3 unserved=7
+                                              calls.png last line; README.md:42
+  The P lines' spacing is the probe's own format, hostile.steps:44,
+  printf "P %-9s %d %s\n".
+
+EVIDENCE · KEPT HOME · 61ec29ea2
+  2026-10-27 11:51:56 UTC        read.png: the read's stamp, after power-off
+  INSTALLED DISK · AFTER POWER OFF · 8.6 GB NVMe   README.md:13-14, 23
+  docs/release-evidence/0.9.3/s1-kept-home-61ec29ea2
+    [ZS] keeping turned on: the person chose it, the policy service says
+                                              read.serial.log:1295
+    [DATA] volume open: 14415872 sectors at LBA 262144
+                                              read.serial.log:1979
+    P read kept-home-7f3a9c41                 read.png line 3; README.md:23
+    grep -c -a kept-home-7f3a9c41 install-target.img
+                                              README.md:27
+    0                                         README.md:28, "after the read
+                                              boot: 0" (the 8,589,934,592
+                                              bytes of the disk)
+
+
+3. ISOLATION BOX LABEL
+----------------------
+
+  mask=0x10a  NET_ANON FILES_HOME TTY
+  From 003599.png (sealed b434cdf175), the line:
+    [LINUX] policy bound: from=market listing=90d6997200753ea7f814a49f792a4d34f3d0f190355704c0f325882276005d4e mask=0x10a served=0x10a NET_ANON FILES_HOME TTY
+  The bits: userland/nonos_linux_policy/src/mask.rs:24 (NET_ANON, "Outbound
+  streams through nonos_route_link only; Direct is never a route"), :28
+  (FILES_HOME, "Its own /home/<app>"), :38 (TTY, "A terminal"). 0x10a is
+  those three bits.
+
+
+4. BACKDROP (boot lines, far behind and out of focus)
+-----------------------------------------------------
+
+  docs/release-evidence/0.9.3/s1-isolation-61ec29ea2/serial.log
+    [NONOS] === Security Status ===                                   :105
+    [NONOS] Kernel signature: VERIFIED                                :106
+    [NONOS] Secure Boot: DISABLED                                     :107
+    [CPU-PROT] smep=1 smap=1 umip=1 nx=1 wp=1 pge=1                   :125
+    [STACK-GUARD] bsp armed 8/8                                       :126
+    [KSEC] 4/4 sections mapped as declared                            :127
+    [VT-D] translation enabled, levels=0x0000000000000004 devices=0x000000000000000A   :132
+    [VT-D] enumerated devices blocked until claimed; with reserved memory=0; others denied   :133
+    [VT-D] IOMMU interrupt remapping on, entries=256, compatibility format interrupts blocked   :135
+    [IOMMU] intel-vt-d present, enforcing=1, unconfined grants=0, identity devices=0   :137
+    [IOMMU] capabilities aw=48 ir=1 snoop=0 pages=0x0000000000001000 domains=256   :138
+    [CRYPTO-POST] 4/4 known-answer tests passed                       :139
+    [VT-D] confined to its capsule's domain                           :267
+
+
+5. TYPE ON SCREEN (the film's own words, and what each rests on)
+----------------------------------------------------------------
+
+  Slugs name the image each shot shows: LIVE · QEMU · 0.9.3 · b434cdf175
+  (sealed), DEV IMAGE · QEMU · 0d0cff02d4, and SEALED b434cdf175 ·
+  EVIDENCE 0d0cff02d4 · 61ec29ea2 on the finale. Timecodes are the UTC
+  time of the frame shown (section 1) or the card's own (section 2).
+
+  "Private by default."   The tour's title line (tools/nonos_tutorial/
+                          STORYBOARD.md, Title, on nonos/jolly-gauss-xbkfum);
+                          the screen under it says "This is a live session.
+                          Nothing here is kept".
+  "Its own home. A terminal. No direct network."
+                          The three bits of the box label, in words, from
+                          mask.rs (section 3).
+  "A file mapped shared. Seen at once. Kept."
+                          The shared-map card: P seen HELLO BEYOND, and
+                          P next_run HELLO WORLD BEYOND size 9006 read back
+                          by a new process (README.md:24, 32-34).
+  0.9.3                   The release.
+
+
+6. BRAND, TYPE AND TOOLS
+------------------------
+
+  Wordmark: userland/assets/wallet_logos/nonos-logo-teal.svg (its letters,
+    in the file's own colours), source in that folder's SOURCES.md.
+  Palette: Ink #0A0B0D, Cyan #66FFFF, Teal #007C85, Card, Rule and the
+    text greys: userland/capsule_install/brand/src/palette.rs and
+    userland/toolkit/src/theme/schemes/nonos.rs.
+  Fonts: Geist SemiBold, Medium (userland/assets/fonts/Geist-*.ttf,
+    SIL Open Font License 1.1, Geist-OFL.txt); JetBrains Mono Regular
+    (userland/assets/fonts/JetBrainsMono-Regular.ttf, SIL Open Font
+    License 1.1, JetBrainsMono-OFL.txt).
+  Made with Python, Pillow and NumPy (the set, the camera and the type)
+    and FFmpeg with libx264 (the encode).
+
+
+7. SOUND (placeholders: the style test is silent)
+-------------------------------------------------
+
+  Music (placeholder, as on the Nil film):
+    "EDM Detection Mode" Kevin MacLeod (incompetech.com)
+    Licensed under Creative Commons: By Attribution 4.0 License
+    http://creativecommons.org/licenses/by/4.0/
+    on their Mac. Voice: [to fill]. Kokoro model licence: [to confirm,
+    Kokoro-82M is published under Apache 2.0]. Added with --narration and
+    --narration-timeline.
