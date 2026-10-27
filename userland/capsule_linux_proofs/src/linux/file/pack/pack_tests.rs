@@ -16,28 +16,41 @@
 
 //! A pack swapped in a model store that stops dead after any step, as a
 //! crash does: what it serves then is the old pack, nothing, or the new.
+//! And each family's packs, apart from every other family's (family.rs).
 
-use super::paths::{pack_path, trailer_path};
+use super::paths::{is_packs_of, pack_path, trailer_of};
 use super::shelf::Held;
 use super::swap::{new_path, swap, take};
+use crate::family::Family;
 use model::Model;
 
 mod model;
+
+/// The pack the order is proved on: Alpine's vim.
+fn vim() -> Vec<u8> {
+    pack_path(Family::Alpine, "vim")
+}
 
 fn minted(pack: &[u8]) -> Vec<u8> {
     [b"minted over ".as_slice(), pack].concat()
 }
 
-/// The pack a run would load: only one under the trailer minted over it.
+/// The pack at `at` as a run would load it: only under the trailer minted
+/// over it.
+fn served_at(m: &Model, at: &[u8]) -> Option<Vec<u8>> {
+    let pack = m.files.get(at)?;
+    (m.files.get(&trailer_of(at)) == Some(&minted(pack))).then(|| pack.clone())
+}
+
 fn served(m: &Model) -> Option<Vec<u8>> {
-    let pack = m.files.get(&pack_path("vim"))?;
-    (m.files.get(&trailer_path("vim")) == Some(&minted(pack))).then(|| pack.clone())
+    served_at(m, &vim())
 }
 
 fn with_old() -> Model {
     let mut m = Model::default();
-    assert_eq!(swap(&mut m, "vim", b"old", &minted(b"old")), Ok(()));
+    assert_eq!(swap(&mut m, &vim(), b"old", &minted(b"old")), Ok(()));
     m
 }
 
+mod family;
 mod order;

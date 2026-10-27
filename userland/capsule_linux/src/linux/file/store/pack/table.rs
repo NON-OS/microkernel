@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The packs this family reads, each loaded once: its index read and held
-//! to the format, the trailer over it verified as this machine's, and its
-//! store handle kept open for the run. The open handle is the run's hold on
-//! the pack: the store refuses to replace or remove a pack another process
-//! holds open, so an update waits until the run is done.
+//! The packs this family reads, and no other family's, each loaded once: its
+//! index read and held to the format, the trailer over it verified as this
+//! machine's, and its store handle kept open for the run. The open handle is
+//! the run's hold on the pack: the store refuses to replace or remove a pack
+//! another process holds open, so an update waits until the run is done.
 
 use alloc::vec::Vec;
 use core::cell::RefCell;
@@ -28,38 +28,41 @@ use nonos_libc::mk_getpid;
 use nonos_linux_pack::Index;
 
 use super::load::load;
-use super::paths::{PACK, PACKS};
+use super::paths::{family_dir, is_packs_of};
+use crate::linux::file::family::{chosen, Family};
 
 pub struct Loaded {
     pub index: Index<'static>,
     pub stream: VfsStream,
 }
 
-struct Table(RefCell<Option<Vec<Loaded>>>);
-
+struct Table(RefCell<Option<(Family, Vec<Loaded>)>>);
 // SAFETY: the serve loop is the only thread that reads a guest's files.
 unsafe impl Sync for Table {}
 
 static TABLE: Table = Table(RefCell::new(None));
 
-/// `f` over every pack that loaded, loading them on first use.
+/// `f` over the chosen family's packs, loaded on first use; a table loaded
+/// under another family holds that family's, so it is dropped, not served.
 pub fn with<R>(f: impl FnOnce(&mut [Loaded]) -> R) -> R {
-    let mut table = TABLE.0.borrow_mut();
-    f(table.get_or_insert_with(load_all))
+    let (mut table, family) = (TABLE.0.borrow_mut(), chosen());
+    if table.as_ref().is_some_and(|(of, _)| *of != family) {
+        *table = None;
+    }
+    f(&mut table.get_or_insert_with(|| (family, load_all(family))).1)
 }
 
-/// Drop every pack this process holds; the next read loads them again.
-/// Called before a pack is replaced or removed, so this process's own hold
-/// is never the one in its way, and after, so it reads what is there now.
-/// Each load keeps its index for the process's life: a few kilobytes a pack.
+/// Drop every pack this process holds; the next read loads them again. Called
+/// before a pack is replaced or removed, so this process's own hold is never
+/// in its way, and after, so it reads what is there now.
 pub fn forget() {
     *TABLE.0.borrow_mut() = None;
 }
 
-fn load_all() -> Vec<Loaded> {
+fn load_all(family: Family) -> Vec<Loaded> {
     let pid = mk_getpid();
-    let names = vfs::list_paths(pid, PACKS).unwrap_or_default();
-    let packs = names.iter().map(|n| n.as_bytes()).filter(|n| n.ends_with(PACK));
+    let names = vfs::list_paths(pid, &family_dir(family)).unwrap_or_default();
+    let packs = names.iter().map(|n| n.as_bytes()).filter(|n| is_packs_of(family, n));
     packs.filter_map(|path| load(pid, path).map_err(|why| say(path, why)).ok()).collect()
 }
 

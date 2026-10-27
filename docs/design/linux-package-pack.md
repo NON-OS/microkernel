@@ -159,11 +159,13 @@ length. (design)
 The installer builds the pack from the apk it has already verified: the signed index, the pin and the
 checksums (host-read: install/auth/package.rs). The machine mints a local-sign trailer (mk_local_sign, the
 vouch the installer gives every ELF) over the pack's head: the header, the index and the names, which hold
-every file's digest. It is kept beside the pack as `/linux-packs/<pkg>.pack.zk_trailer.bin`.
+every file's digest. It is kept beside the pack as `/linux-packs/<family>/<pkg>.pack.zk_trailer.bin`.
 
 At run time, capsule_linux:
-- reads the head of each pack under /linux-packs once, and loads it only if the trailer verifies over it
-  (mk_local_verify) and `Index::parse` takes it (file/store/pack/load.rs);
+- reads the head of each pack under its own family's `/linux-packs/<family>/` once, and loads it only if the
+  trailer verifies over it (mk_local_verify) and `Index::parse` takes it (file/store/pack/load.rs). The family
+  is `alpine`, `deb` or `pacman` (file/store/pack/paths.rs): an Alpine and a Debian package of one name are
+  two packs, and no run loads or serves another family's;
 - checks each file's length and 16-byte digest every time it serves it, a read or an exec alike
   (`Index::verify`, file/store/pack/serve.rs). A read that is not the digest is refused, never served cut.
 
@@ -176,7 +178,7 @@ host-tested; the load and serve booted: HANDOFF/catalogue/evidence/pack-2026-10-
 
 capsule_linux's tree (`file/root.rs`) gains a table of mounted packs, one per installed package:
 - package name;
-- its store object (`/linux-packs/<pkg>.pack`, one vfs name);
+- its store object (`/linux-packs/<family>/<pkg>.pack`, one vfs name);
 - its parsed index, kept in capsule_linux's own heap. The index is 48 bytes an entry plus names; vim-common's
   is about 90 KiB.
 
@@ -203,7 +205,8 @@ link table. (booted: HANDOFF/catalogue/evidence/pack-2026-10-26)
 ## 4. Update, uninstall, and the home
 
 - **Install** (file/store/pack/swap.rs, the order host-tested against a store that stops dead after any step):
-  1. Write the whole pack as `/linux-packs/<pkg>.pack.new`. If the store will not take it, the old pack serves on.
+  1. Write the whole pack as `/linux-packs/<family>/<pkg>.pack.new`. If the store will not take it, the old pack
+     serves on.
   2. Unlink the old pack. If a run holds it open the store answers EBUSY: the `.new` is removed, nothing of the
      package changes, and the install fails as IN_USE (code 38, "close the app to update or remove it").
   3. Rename `.new` to `.pack`. The store's rename never writes over a name, which is why step 2 comes first.
