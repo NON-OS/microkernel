@@ -84,9 +84,12 @@ A record it cannot drive is refused, never driven wrong:
 - a missing input header, body or output address, or opcode.
 
 A header without its sync byte is no report. A fragment is read and let
-go. A body larger than one spi0 transfer cannot be read. A device that
-answers no descriptor is asked again every half second. A reset the
-device announces sends it back through bring-up.
+go. A header naming a body larger than one spi0 transfer (4000 bytes,
+the frame head included) is no report, refused before any buffer is
+made for it. A device that answers no descriptor is asked again every
+half second, 20 times in a row at most (ten seconds); then the driver
+says `device never ready, given up` and exits `EXIT_GAVE_UP` (6). A reset
+the device announces sends it back through bring-up, its tries afresh.
 
 ## State ownership
 
