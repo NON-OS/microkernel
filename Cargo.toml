@@ -1049,6 +1049,7 @@ microkernel-full-gui = [
   "nonos-capsule-prove-fetch",
   "nonos-capsule-driver-igb",
   "nonos-capsule-driver-e1000e",
+  "nonos-capsule-driver-igc",
   "nonos-capsule-driver-ufs",
   "nonos-capsule-driver-uhci",
   "nonos-capsule-driver-ohci",

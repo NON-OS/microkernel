@@ -8,6 +8,7 @@ driver-e1000e
 driver-ehci
 driver-fido
 driver-igb
+driver-igc
 driver-mpt
 driver-ohci
 driver-pcnet
