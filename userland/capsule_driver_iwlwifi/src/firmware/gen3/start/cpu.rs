@@ -61,9 +61,10 @@ pub fn after_kick<M: Mmio, C: Clock>(
     if !ltr || !write_umac(m, c, csr, UREG_CPU_INIT_RUN, 1) {
         return Err(StartError::NoNicAccess);
     }
-    // `iwl_pcie_spin_for_iml`: not fatal; the ALIVE wait decides.
+    // `iwl_pcie_spin_for_iml`: back to back, never sleeping (`spin_for`);
+    // not fatal, the ALIVE wait decides.
     if spin {
-        let _ = c.poll_for(IML_POLL_MS, &mut || {
+        let _ = c.spin_for(IML_POLL_MS, &mut || {
             let _ = m.read32(CSR_LTR_LAST_MSG);
             m.read32(CSR_MSIX_HW_INT_CAUSES_AD) & MSIX_HW_IML != 0
         });
