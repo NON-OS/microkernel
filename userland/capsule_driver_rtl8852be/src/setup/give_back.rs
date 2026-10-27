@@ -7,11 +7,17 @@
 
 use super::master::release;
 use crate::pwr;
-use crate::regs::Regs;
+use crate::regs::Mmio;
 use crate::stage::Stage;
 use crate::status;
 
-pub fn give_back<T>(r: &Regs, id: u64, epoch: u64, stage: Stage, why: &[u8]) -> (Option<T>, Stage) {
+pub fn give_back<T>(
+    r: &impl Mmio,
+    id: u64,
+    epoch: u64,
+    stage: Stage,
+    why: &[u8],
+) -> (Option<T>, Stage) {
     status::line(why);
     let _ = pwr::switch(r, false, &pwr::Board::default());
     release(id, epoch);
