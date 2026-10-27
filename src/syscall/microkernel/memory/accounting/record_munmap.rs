@@ -37,7 +37,7 @@ pub(crate) fn record_munmap(pid: u32, size: usize, va: u64) {
     let mut l = crate::sys::serial::Line::new();
     l.str(b"[MUNMAP] pid=").hex(pid as u64).str(b" name=");
     match crate::process::core::PROCESS_TABLE.find_by_pid(pid) {
-        Some(pcb) => l.str(pcb.name.lock().as_bytes()),
+        Some(pcb) => l.who(pcb.name.lock().as_bytes()),
         None => l.str(b"unknown"),
     };
     l.str(b" size=").hex(size).str(b" va=").hex(va).str(b" total_pid=").hex(total);
