@@ -66,6 +66,7 @@ The firmware is a separate binary with its own licence:
 
 ## Parts
 
+- [Contract: capabilities, interface, lifecycle, release](docs/contract.md)
 - [What differs from the RTL8821CE](docs/differences.md)
 - [Real hardware: what is missing, what to look at](docs/hardware.md)
 - [Verification](docs/verification.md)
