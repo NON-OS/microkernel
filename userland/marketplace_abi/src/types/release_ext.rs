@@ -25,7 +25,8 @@ use alloc::vec::Vec;
 pub struct ReleaseExt {
     /// BLAKE3 of the commerce domain and the entry's commerce block bytes.
     pub commerce_hash: [u8; 32],
-    /// A LinuxAppPolicy (plan/30): exactly 256 bytes, or empty.
+    /// A LinuxAppPolicy (plan/30): 256 bytes, or empty. Its program's listed
+    /// arguments (nonos_linux_policy::args) may follow, up to GUEST_ARGS_MAX.
     pub guest_policy: Vec<u8>,
     /// Root of the 1024-byte chunk tree (plan/21); zero unless escrowed.
     pub chunk_root: [u8; 32],

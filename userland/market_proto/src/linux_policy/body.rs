@@ -29,11 +29,12 @@ pub fn linux_policy_body(reply: &LinuxPolicy, package_hash: &[u8; 32]) -> Vec<u8
     out.push(match reply {
         LinuxPolicy::NoPolicy => KIND_NONE,
         LinuxPolicy::Refused => KIND_REFUSED,
-        LinuxPolicy::Policy(_) => KIND_POLICY,
+        LinuxPolicy::Policy(..) => KIND_POLICY,
     });
     out.extend_from_slice(package_hash);
-    if let LinuxPolicy::Policy(m) = reply {
+    if let LinuxPolicy::Policy(m, args) = reply {
         out.extend_from_slice(m.as_slice());
+        out.extend_from_slice(args);
     }
     out
 }
