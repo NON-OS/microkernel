@@ -43,10 +43,10 @@ pub fn disable<R: Regs, C: Clock, M: Mem>(
             *e = None;
         }
     }
-    // Taken back with any polled qTD on them, DATA0 for the next slot.
+    // Taken back with any polled qTD, DATA0 next; the slot goes either way.
     if let Some((i, o)) = dev.bulk {
-        retire((&cx.mem, &mut cx.io, &cx.clock), op, &i);
-        retire((&cx.mem, &mut cx.io, &cx.clock), op, &o);
+        let _ = retire((&cx.mem, &mut cx.io, &cx.clock), op, &i);
+        let _ = retire((&cx.mem, &mut cx.io, &cx.clock), op, &o);
     }
     // A device below a hub leaves the root port, and the hub on it, alone.
     if dev.port != 0 && dev.route == 0 {
