@@ -45,7 +45,11 @@ pub fn route(
         (Some(Object::XdgSurface), req::XDG_SURFACE_DESTROY) => {
             super::super::forget::forget(guest, object, id)
         }
-        (Some(Object::XdgToplevel), req::TOPLEVEL_SET_TITLE | req::TOPLEVEL_SET_APP_ID) => {}
+        (Some(Object::XdgToplevel), req::TOPLEVEL_SET_TITLE) => {
+            let title = args.string().unwrap_or(b"");
+            super::super::present::frame::redraw::title(&mut guest.scene, title)
+        }
+        (Some(Object::XdgToplevel), req::TOPLEVEL_SET_APP_ID) => {}
         (Some(Object::XdgToplevel), req::TOPLEVEL_DESTROY) => toplevel::destroy(guest, id),
         (Some(Object::XdgToplevel), req::TOPLEVEL_SET_MAXIMIZED) => {
             toplevel::set(guest, id, Mode::Maximized, args)
