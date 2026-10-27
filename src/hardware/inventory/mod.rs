@@ -36,6 +36,10 @@ pub mod report;
 mod report_text;
 mod scan;
 mod sd_host;
+#[cfg(feature = "nonos-capsule-driver-spi")]
+mod spi_host;
+#[cfg(feature = "nonos-capsule-driver-spi")]
+mod spi_present;
 mod state;
 mod support;
 mod vmd;
@@ -60,6 +64,8 @@ pub use realtek_ids::{RTL8139_DEVICE_ID, RTL8169_DEVICE_IDS, RTL8821CE_DEVICE_ID
 pub use record::InventoryRecord;
 pub use scan::scan;
 pub use sd_host::{is_sd_host, INTEL_SDIO_DEVICE_IDS};
+#[cfg(feature = "nonos-capsule-driver-spi")]
+pub use spi_present::spi_host_present;
 pub use state::SupportState;
 pub use support::support_state;
 pub use vmd::{is_intel_vmd, INTEL_VMD_DEVICE_IDS};
