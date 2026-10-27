@@ -48,6 +48,7 @@ impl Scene {
             held: HeldKeys::new(),
             subs: Subs::default(),
             popups: Popups::default(),
+            frame: Default::default(),
         }
     }
 
