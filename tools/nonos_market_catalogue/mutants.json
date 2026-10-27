@@ -81,6 +81,8 @@
  {"name": "tar-octal-space", "file": "tarfield.py", "old": "elif b in (0x20, 0):", "new": "elif b == 0:"},
  {"name": "gz-max-inflated", "file": "gz.py", "old": "MAX_INFLATED = 128 << 20", "new": "MAX_INFLATED = 256 << 20"},
  {"name": "apk-max-image", "file": "apk.py", "old": "if len(body) > MAX_IMAGE:", "new": "if False:"},
+ {"name": "fetch-retry", "file": "fetch.py", "old": "for attempt in range(TRIES):", "new": "for attempt in range(1):"},
+ {"name": "fetch-final", "file": "fetch.py", "old": "return not (isinstance(code, int)", "new": "return (isinstance(code, int)"},
  {"name": "fetch-deadline", "file": "fetch.py", "old": "if time.monotonic() > deadline:", "new": "if False:"},
  {"name": "fetch-fresh", "file": "fetch.py", "old": "if not fresh and to.is_file()", "new": "if to.is_file()"},
  {"name": "fetch-cached-size", "file": "fetch.py", "old": "and to.stat().st_size <= cap:", "new": ":"},
