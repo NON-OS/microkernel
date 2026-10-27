@@ -64,3 +64,11 @@ Alpine's signature and the market's pin itself.
 
 `--tamper APP` serves that app's package with one byte changed, so a boot
 shows the guest refusing bytes its pin does not name.
+
+`--content DIR` also serves the NONOS package mirror that a development
+image built with `linux_packages = "10.0.2.2:8080"` fetches its
+`linux.nonos-*` listings from. The installer asks with the mirror's own
+name, `10.0.2.2`, as the Host line (`install/tools_install.rs`), and the
+relay answers `/linux/<blake3>.tar` from DIR only when the file's BLAKE3 is
+its name, else 502 (`tools/nonos_mirror_relay/content.py`). DIR is the
+generator's `--package-out`. No release profile sets `linux_packages`.

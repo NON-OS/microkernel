@@ -5518,12 +5518,13 @@ fi
 unset argv_out
 
 # The host relay a development image installs through serves a package the
-# market catalogue lists only as the bytes its lock pins (nonos-mirror-relay).
-if relay_out="$( (cd tools && python3 -m unittest -q nonos_mirror_relay.test_pins) 2>&1)"; then
-    note ok "the mirror relay serves a locked package only as its pinned bytes (nonos_mirror_relay)"
+# market catalogue lists only as the bytes its lock pins, and a NONOS mirror
+# content tar only as the bytes its name pins (nonos-mirror-relay).
+if relay_out="$( (cd tools && python3 -m unittest -q nonos_mirror_relay.test_pins nonos_mirror_relay.test_content) 2>&1)"; then
+    note ok "the mirror relay serves a locked package or a content tar only as its pinned bytes (nonos_mirror_relay)"
 else
     tail -n 8 <<< "${relay_out}" >&2
-    fail_with "nonos_mirror_relay: the relay can serve a locked package as other bytes"
+    fail_with "nonos_mirror_relay: the relay can serve a locked package or content as other bytes"
 fi
 unset relay_out
 
