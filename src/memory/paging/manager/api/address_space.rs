@@ -14,20 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Making, handing over and taking address spaces: the manager's table and
+//! its directory change together, under the lock. Lookups are in lookup.rs.
+
 use super::globals::PAGING_MANAGER;
+use crate::arch::run_without_interrupts as without_interrupts;
 use crate::memory::paging::error::PagingResult;
 use crate::smp::lock_responsive;
 
+/*
+ * Every holder of the manager lock masks interrupts: a number drawn for it
+ * is served in turn (smp/ticket.rs), and one drawn by code an interrupt has
+ * stopped holds up every CPU behind it.
+ */
 pub fn create_address_space(process_id: u32) -> PagingResult<u32> {
-    let mut mgr = lock_responsive(&PAGING_MANAGER);
-    if !mgr.is_initialized() {
-        mgr.init()?;
-    }
-    mgr.create_address_space(process_id)
-}
-
-pub fn switch_address_space(asid: u32) -> PagingResult<()> {
-    lock_responsive(&PAGING_MANAGER).switch_address_space(asid)
+    without_interrupts(|| {
+        let mut mgr = lock_responsive(&PAGING_MANAGER);
+        if !mgr.is_initialized() {
+            mgr.init()?;
+        }
+        mgr.create_address_space(process_id)
+    })
 }
 
 pub fn cleanup_address_space(asid: u32) -> PagingResult<()> {
@@ -38,38 +45,19 @@ pub fn cleanup_address_space_keeping(
     asid: u32,
     keep: &[crate::memory::addr::PhysAddr],
 ) -> PagingResult<()> {
-    let cr3 = lock_responsive(&PAGING_MANAGER).take_address_space(asid)?;
+    let cr3 = without_interrupts(|| lock_responsive(&PAGING_MANAGER).take_address_space(asid))?;
     Ok(cr3.map_or((), |cr3| super::super::address_space::free_taken(cr3, keep)))
-}
-
-pub fn lookup_asid_for_process(process_id: u32) -> Option<u32> {
-    lock_responsive(&PAGING_MANAGER).lookup_asid_for_process(process_id)
 }
 
 /// Make `process_id` the owner of the tables `asid` names, so its release is
 /// the one that frees them. False when there is no such address space.
 pub fn hand_over_address_space(asid: u32, process_id: u32) -> bool {
-    match lock_responsive(&PAGING_MANAGER).address_spaces.get_mut(&asid) {
-        Some(space) => {
-            space.process_id = process_id;
-            true
-        }
-        None => false,
-    }
-}
-
-pub fn switch_to_process_address_space(process_id: u32) -> PagingResult<()> {
-    let asid = lookup_asid_for_process(process_id)
-        .ok_or(crate::memory::paging::error::PagingError::AddressSpaceNotFound)?;
-    switch_address_space(asid)
-}
-
-pub fn get_process_cr3(process_id: u32) -> Option<u64> {
-    let mgr = lock_responsive(&PAGING_MANAGER);
-    for (_, addr_space) in mgr.address_spaces.iter() {
-        if addr_space.process_id == process_id {
-            return Some(addr_space.cr3_value.as_u64());
-        }
-    }
-    None
+    without_interrupts(|| {
+        let mut mgr = lock_responsive(&PAGING_MANAGER);
+        let Some(space) = mgr.address_spaces.get_mut(&asid) else { return false };
+        space.process_id = process_id;
+        // Absent from a directory that overflowed: lookups then ask the table.
+        super::super::directory::hand_over(asid, process_id);
+        true
+    })
 }
