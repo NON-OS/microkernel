@@ -3,9 +3,10 @@
 //! Waits by elapsed time, never by a count of reads (plan/50 C7): a read
 //! takes as long as the bus takes, which differs from machine to machine, so
 //! a count bounds nothing. Each wait's budget is rtw88's for the same step,
-//! and the caller names what did not happen in time.
+//! and the caller names what did not happen in time. Between looks the
+//! capsule idles a millisecond rather than spin a core.
 
-use crate::clock::now_ms;
+use crate::clock::{idle_ms, now_ms};
 
 /// The deadline `ms` from now. The clock ticks in whole milliseconds, so one
 /// more tick: a deadline one tick away could otherwise pass at once.
@@ -24,7 +25,7 @@ pub fn until_ms(ms: u64, mut ready: impl FnMut() -> bool) -> bool {
         if now_ms() >= end {
             return ready();
         }
-        core::hint::spin_loop();
+        idle_ms(1);
     }
 }
 
@@ -33,6 +34,6 @@ pub fn until_ms(ms: u64, mut ready: impl FnMut() -> bool) -> bool {
 pub fn delay_ms(ms: u64) {
     let end = deadline(ms.max(1));
     while now_ms() < end {
-        core::hint::spin_loop();
+        idle_ms(1);
     }
 }
