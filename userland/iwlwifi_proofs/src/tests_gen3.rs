@@ -43,6 +43,8 @@ mod gen3_sweep_uid_tests;
 #[cfg(test)]
 mod gen3_tests;
 #[cfg(test)]
+mod gen3_ty_ma_tests;
+#[cfg(test)]
 mod prph_scratch_tests;
 #[cfg(test)]
 mod restart_policy_tests;

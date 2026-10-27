@@ -84,7 +84,7 @@ pub fn boot<M: Mmio, R: Region + ?Sized, C: Clock>(
     enable_alive_int(m);
     let base = mem.ctrl.dev();
     kick(m, base + CTXT_INFO as u64, base + IML as u64, ucode.iml.len() as u32);
-    after_kick(m, c, csr).map_err(BootError::Start)?;
+    after_kick(m, c, csr, board.discrete).map_err(BootError::Start)?;
 
     let mut cause = || {
         m.read32(CSR_INT) & INT_BIT_ALIVE != 0
