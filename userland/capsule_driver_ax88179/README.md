@@ -54,6 +54,30 @@ Every bind step that fails is named on the log with its errno, and the device's 
 
 Host proofs only: `userland/ax88179_proofs` mounts `src/ax` by path and holds the bring-up to a model of its vendor requests, the receive framing to a model under 100 000 random and hostile transfers, the send header, and the link; each bound has a mutant that fails it. Not booted under QEMU (it has no AX88179) or on hardware: `docs/hardware/real-hardware-checklist.md` has the test plan.
 
+## Current implemented surface
+
+Binding to the 13 vendor:product pairs Linux v6.12 lists, only through the chip's vendor interface (class/subclass FFh, protocol 0); the bring-up as an ordered table of 21 vendor requests and two fixed waits; the drawn station address written into the chip; receive with every header offset and length checked against the bytes received, at most 64 frames a transfer; send with the 8-byte header and a padding byte at a packet boundary; link read from the PHY while down and from the status reports while up. Not in the Standard profile: held until the owner rules on Decision 10 (HANDOFF/letters/b/84).
+
+## Wire format
+
+NNET requests carry the 20-byte header `magic_le32, version_le16, op_le16, flags_le16, 0_le16, request_id_le32, len_le32`; replies repeat it and add a 4-byte signed status, then the operation's data, as `nonos_usbnet` defines them for every USB network capsule.
+
+## State ownership
+
+`driver.ax88179_0` owns the bound device's bulk pipes and interrupt endpoint, the run's drawn station address, and one receive and one send buffer. driver.xhci0 owns slots, endpoint contexts, rings and DMA; net.core owns addresses, routes and sockets.
+
+## Operating rules
+
+Keep USB transfer mechanics in driver.xhci0 and IP policy in net.core. Do not add hardware authority here. Bound every length the device sends before using it. Never read or log the chip's factory address or a serial. Log one line per bring-up step that can refuse, naming the step.
+
+## Release target
+
+`USB device -> driver.xhci0 -> driver.ax88179_0 -> net.core`: DHCP and a web page over a real AX88179 or AX88178A dongle, once Decision 10 is ruled.
+
+## Release checklist
+
+The capsule builds with zero warnings and is clippy clean; ax88179_proofs passes; the owner rules on Decision 10 and, if it ships, signs it with net.core, net.l2, the setup wizard and capsule_attack re-signed for the NIC table; on hardware, `[usbnet ax88179] port N up, drawn station address programmed` and `[NET-CORE] bind: interface up on driver.ax88179_0`, then DHCP and a page (`docs/hardware/real-hardware-checklist.md`).
+
 ## Explicit non-goals today
 
 Checksum and segmentation offload, jumbo frames, a hashed multicast list, wake-on-LAN, EEE, more than one chip per capsule.
