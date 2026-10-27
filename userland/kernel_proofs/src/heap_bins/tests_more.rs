@@ -39,3 +39,9 @@ fn a_link_overwritten_after_free_drops_the_list_instead_of_handing_it_out() {
     assert!(matches!(unsafe { front.pop(0, &ours) }, Taken::Broken));
     assert!(matches!(unsafe { front.pop(0, &ours) }, Taken::Empty), "the broken list survived");
 }
+
+#[test]
+fn a_new_front_passes_no_size_over_in_the_first_region() {
+    use core::sync::atomic::Ordering;
+    assert_eq!(Front::new().first_short.load(Ordering::Relaxed), usize::MAX);
+}
