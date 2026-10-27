@@ -20,7 +20,7 @@ An update from one release to another is not tested in this release.
 
 ## What carries over
 
-Nothing from the old disk. The installer carries what the running boot holds, and when you boot the stick that is the stick's store, because the kernel takes a USB stick that carries NONOS before any internal disk. It carries setup's answers, the wallpapers they keep, and the signed programs the stick carries. The old store, the programs you installed there from the Marketplace, anything you kept there, and the old [data volume](../overview/glossary-claim-epoch.md#data-volume) are erased with the disk.
+Nothing from the old disk. The installer carries what the running boot holds, and when you boot the stick that is the stick's store: the kernel keeps the disk the loader was read from, and never another NONOS disk in its place. It carries setup's answers, the wallpapers they keep, and the signed programs the stick carries. The old store, the programs you installed there from the Marketplace, anything you kept there, and the old [data volume](../overview/glossary-claim-epoch.md#data-volume) are erased with the disk.
 
 NONOS 0.9.2 has no way to copy files off the old disk first: the file service keeps files in memory and in the NONOS store, and mounts no other file system, and the USB storage driver serves sectors, not files.
 

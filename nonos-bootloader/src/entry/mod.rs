@@ -17,6 +17,7 @@
 mod action;
 mod approval;
 mod boot;
+mod boot_disk;
 mod boot_evidence;
 mod dev;
 mod init;
