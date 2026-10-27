@@ -38,6 +38,8 @@ pub mod pack;
 pub mod path;
 #[path = "../../../../capsule_linux/src/linux/file/calls/falloc/punch.rs"]
 pub mod punch;
+#[path = "../../../../capsule_linux/src/linux/file/open/shm_rule.rs"]
+pub mod shm_rule;
 pub mod store;
 
 pub use crate::resolve::{key, visible};
