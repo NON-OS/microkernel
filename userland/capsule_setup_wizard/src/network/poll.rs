@@ -41,8 +41,8 @@ pub fn refresh(ctx: &mut Context) {
     n.polled_ms = mk_time_millis();
     n.driver = find();
     n.stage = n.driver.and_then(|d| d.stage());
-    n.fw_step = match (n.driver, n.stage) {
-        (Some(d), Some(DriverStage::FirmwareFailed)) => d.firmware_step(),
+    n.stop = match (n.driver, n.stage) {
+        (Some(d), Some(stage)) => d.stop_why(stage),
         _ => None,
     };
     let (Some(d), Some(DriverStage::Ready)) = (n.driver, n.stage) else {
