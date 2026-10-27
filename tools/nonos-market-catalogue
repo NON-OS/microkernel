@@ -83,30 +83,9 @@ SCHEMA = 4
 # the system, cannot be installed or removed by a user, and listing one
 # would offer an install that cannot happen.
 NOT_APPS = (
-    "driver_",
-    "net_",
-    "input_",
-    "proof_",
-    "std_proof",
-    "egui_proof",
-    "tokio-smoke",
-    "hello",
-    "gui_demo",
-    "boot_splash",
-    "compositor",
-    "wm",
-    "vfs",
-    "ramfs",
-    "keyring",
-    "policy",
-    "entropy",
-    "market",
-    "login",
-    "setup_wizard",
-    "toolkit",
-    "wallpaper",
-    "wallpaper_catalog",
-    "image_codec",
+    "driver_", "net_", "input_", "proof_", "std_proof", "egui_proof", "tokio-smoke", "hello",
+    "gui_demo", "boot_splash", "compositor", "wm", "vfs", "ramfs", "keyring", "policy", "entropy",
+    "market", "login", "setup_wizard", "toolkit", "wallpaper", "wallpaper_catalog", "image_codec",
     "audio_server",
 )
 
@@ -368,7 +347,8 @@ def main() -> int:
     # Curated apps, each with the box it runs in (linux-catalogue.json).
     ap.add_argument("--catalogue", type=Path,
                     help="JSON of recipes: Alpine packages listed with a guest_policy, each at the "
-                         "version its .lock.json beside it pins; any recipe not listed stops the run")
+                         "version its .lock.json beside it pins, and source recipes, each at the content "
+                         "its .sources.lock.json pins; any recipe not listed stops the run")
     ap.add_argument("--update-lock", action="store_true",
                     help="write the catalogue's lock from this run instead of holding to it "
                          "(a maintainer's deliberate step; review its diff)")
@@ -380,9 +360,11 @@ def main() -> int:
     ap.add_argument("--tool-list", type=Path,
                     help="JSON of in-tree tools, listed as linux.nonos-<package>")
     ap.add_argument("--package-mirror", default="",
-                    help="name:port of the NONOS package mirror the tools are fetched from")
+                    help="name:port of the NONOS package mirror the tools and source recipes are fetched from")
     ap.add_argument("--package-out", type=Path, default=Path("target/linux-packages"),
                     help="where each tool's content goes, as <blake3>.tar, for the mirror")
+    ap.add_argument("--sources", type=Path,
+                    help="the built content of the catalogue's source recipes, <package>/ or <package>.tar")
     ap.add_argument("--serial", type=int, required=True)
     ap.add_argument("--no-nonos", action="store_true")
     args = ap.parse_args()
@@ -426,11 +408,8 @@ def main() -> int:
         # Loaded only when asked: the catalogue's own modules, beside this one.
         from nonos_market_catalogue.run import catalogue_run
         entries += catalogue_run(args.catalogue, args.cache, MIRROR, args.alpine_release,
-                                 args.alpine_arch, key, when_ms, args.update_lock)
-        ids = [e["listing_id"] for e in entries]
-        twice = sorted({i for i in ids if ids.count(i) > 1})
-        if twice:
-            sys.exit(f"{twice[0]}: in both the package list and the catalogue")
+                                 args.alpine_arch, key, when_ms, args.update_lock,
+                                 (args.package_mirror, args.package_out, args.sources))
 
     if args.guest_list and args.guest_list.exists():
         found = guest_entries(args.guest_list, key, when_ms)
@@ -448,6 +427,13 @@ def main() -> int:
         found = community_entries(args.community)
         print(f"community: {len(found)} submissions", file=sys.stderr)
         entries += found
+
+    # One listing id once: a package list and the catalogue, or a source
+    # recipe and an in-tree tool (both linux.nonos-<name>), may not share one.
+    ids = [e["listing_id"] for e in entries]
+    twice = sorted({i for i in ids if ids.count(i) > 1})
+    if twice:
+        sys.exit(f"{twice[0]}: listed twice")
 
     index = {
         "schema_version": SCHEMA,

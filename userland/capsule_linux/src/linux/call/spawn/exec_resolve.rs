@@ -28,7 +28,7 @@ use super::exec_rewrite::rewrite;
 use super::exec_shebang::parse;
 
 /// The same ceiling the first image is read under.
-pub const MAX_IMAGE: u32 = 64 << 20;
+pub const MAX_IMAGE: u32 = crate::linux::program_max::PROGRAM_MAX;
 
 /// Linux's own limit on how deep `#!` may point at another script.
 const MAX_DEPTH: usize = 4;
