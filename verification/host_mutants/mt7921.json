@@ -603,5 +603,71 @@
    "--release"
   ],
   "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-own-unchecked-before-command",
+  "file": "userland/capsule_driver_mt7921/src/card.rs",
+  "old": "if !self.awake() {",
+  "new": "if false {",
+  "test": "wake_tests::a_command",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-own-unchecked-on-send",
+  "file": "userland/capsule_driver_mt7921/src/radio/send.rs",
+  "old": " || !self.card.awake()",
+  "new": "",
+  "test": "wake_tests::a_joined_link",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-own-unchecked-in-upkeep",
+  "file": "userland/capsule_driver_mt7921/src/radio/diag.rs",
+  "old": "if !self.card.awake() {",
+  "new": "if false {",
+  "test": "wake_tests::a_service_pass",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-own-wfdma-not-rearmed",
+  "file": "userland/capsule_driver_mt7921/src/power/wake.rs",
+  "old": "if lost {\n            self.rearm();",
+  "new": "if false {\n            self.rearm();",
+  "test": "wake_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-own-reinit-flag-misread",
+  "file": "userland/capsule_driver_mt7921/src/power/wake.rs",
+  "old": "& WFDMA_NEED_REINIT == 0;",
+  "new": "& WFDMA_NEED_REINIT != 0;",
+  "test": "wake_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-wfdma-busy-refused-warm",
+  "file": "userland/capsule_driver_mt7921/src/dma/wfdma.rs",
+  "old": "if !idle && !force {",
+  "new": "if !idle {",
+  "test": "wake_tests::a_card_left_warm",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
  }
 ]
