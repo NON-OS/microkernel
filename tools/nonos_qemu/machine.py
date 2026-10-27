@@ -46,11 +46,26 @@ def cpus(asked):
     return max(1, min(8, os.cpu_count() or 1))
 
 
-def display(headless):
+# The window a recording films (nonos-drive --record): GTK on the X display
+# in DISPLAY, the whole screen, the guest scaled to it, and no menu bar.
+SHOWN = "gtk,zoom-to-fit=on,full-screen=on,show-menubar=off"
+
+
+def display(headless, shown=False):
+    """No display at all, the window a recording films (`shown`), or a
+    window to use."""
     if headless:
         return ["-display", "none"]
+    if shown:
+        return ["-vga", "none", "-display", SHOWN]
     ui = "cocoa" if platform.system() == "Darwin" else "gtk"
     return ["-vga", "none", "-display", f"{ui},zoom-to-fit=on"]
+
+
+def serial(path, to_file):
+    """The serial console to the file at `path`, as a drive reads it, or to
+    this terminal with the monitor beside it."""
+    return ["-serial", f"file:{path}"] if to_file else ["-serial", "mon:stdio"]
 
 
 def firmware(code, vars_copy):
