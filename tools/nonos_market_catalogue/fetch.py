@@ -16,7 +16,9 @@
 """Downloads for the catalogue: bounded in bytes and in time before they
 are read, written to the cache only whole (a `.part` renamed into place),
 and every failure, a refused connection, a cut transfer or a peer that
-trickles past the deadline, a ValueError naming the URL. Nothing here
+trickles past the deadline, a ValueError naming the URL. A failure a later
+try can clear is tried again, twice, after a wait; a 4xx refusal is not.
+Nothing here
 vouches for bytes: the caller checks them against the signed index every
 run, so a bad cached file is found and dropped, never trusted."""
 
@@ -41,15 +43,42 @@ def read_within(r, cap: int, deadline: float) -> bytes:
     return bytes(out)
 
 
+# A seal fetches dozens of files, so one dropped connection must not stop it.
+# A failure worth another try is waited out, at most TRIES times in all.
+TRIES = 3
+WAITS = (2, 8)
+# What a server says it will not serve stays refused: asking again is the same answer.
+FINAL = range(400, 500)
+AGAIN = (408, 429)
+
+
+def transient(why: Exception) -> bool:
+    """A failure that a later try can clear: anything but a 4xx refusal."""
+    code = getattr(why, "code", None)
+    return not (isinstance(code, int) and code in FINAL and code not in AGAIN)
+
+
+def download(url: str, cap: int, seconds: float) -> bytes:
+    """One try: at most cap + 1 bytes of `url`, or ValueError naming it."""
+    try:
+        with urllib.request.urlopen(url, timeout=60) as r:
+            return read_within(r, cap, time.monotonic() + seconds)
+    except (OSError, http.client.HTTPException) as why:
+        raise ValueError(f"{url}: {why}") from why
+
+
 def fetch(url: str, to: Path, cap: int, seconds: float = 600, fresh: bool = False) -> bytes:
     """At most `cap` bytes, from the cache at `to` unless `fresh`, else from `url`."""
     if not fresh and to.is_file() and to.stat().st_size <= cap:
         return to.read_bytes()
-    try:
-        with urllib.request.urlopen(url, timeout=60) as r:
-            data = read_within(r, cap, time.monotonic() + seconds)
-    except (OSError, http.client.HTTPException) as why:
-        raise ValueError(f"{url}: {why}") from None
+    for attempt in range(TRIES):
+        try:
+            data = download(url, cap, seconds)
+            break
+        except ValueError as failed:
+            if attempt + 1 == TRIES or not transient(failed.__cause__ or failed):
+                raise ValueError(f"{failed} (try {attempt + 1} of {TRIES})") from None
+            time.sleep(WAITS[min(attempt, len(WAITS) - 1)])
     if len(data) > cap:
         raise ValueError(f"{url}: larger than {cap} bytes")
     to.parent.mkdir(parents=True, exist_ok=True)
