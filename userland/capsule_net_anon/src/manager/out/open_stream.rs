@@ -25,14 +25,15 @@ use super::super::state::Manager;
 use super::pick_circuit::pick;
 use super::send_relay::{send_relay, SendError};
 
-/// Open a stream to `host` on `port` through an open circuit.
-///
+/// Open a stream to `host` on `port` through an open circuit; an `install`
+/// takes the warm circuit when one is open (pick_circuit.rs).
 pub fn open_stream(
     state: &mut Manager,
     host: &[u8],
     port: u16,
     now: u64,
     owner: u32,
+    install: bool,
 ) -> Result<u16, SendError> {
     if !may_open(&state.streams, owner, STREAM_MAX) {
         return Err(SendError::TableFull);
@@ -42,7 +43,7 @@ pub fn open_stream(
     if crate::onion::address::is_onion(host) {
         return super::super::onion::open(state, host, port, now, owner);
     }
-    let index = pick(state, now).ok_or(SendError::NoCircuit)?;
+    let index = pick(state, now, install).ok_or(SendError::NoCircuit)?;
     let body = begin_body(host, port).ok_or(SendError::TooLong)?;
     let circuit = state.circuits[index].id;
     let id = free_id(state).ok_or(SendError::TableFull)?;
@@ -57,13 +58,12 @@ pub fn open_stream(
 }
 
 /*
- * Ids are allocated unique across every open stream, not only within the
- * circuit, because the id is also the handle a caller holds: two streams
- * sharing one would each receive the other's payload through the server.
- * Relay cells are still matched by (circuit, id). The counter running on past sixty five thousand is fine
- * until the wrapped value lands on an id still open on the same circuit. Reaching
- * that needs more streams in one circuit's life than it will ever see, but the
- * consequence if it ever happened is two streams sharing an id and each receiving
+ * Ids are allocated unique across every open stream, not only within the circuit, because the id
+ * is also the handle a caller holds: two streams sharing one would each receive the other's
+ * payload through the server. Relay cells are still matched by (circuit, id). The counter
+ * running on past sixty five thousand is fine until the wrapped value lands on an id still open
+ * on the same circuit. Reaching that needs more streams in one circuit's life than it will ever
+ * see, but the consequence if it ever happened is two streams sharing an id and each receiving
  * the other's payload, which is not a thing to leave to arithmetic.
  */
 

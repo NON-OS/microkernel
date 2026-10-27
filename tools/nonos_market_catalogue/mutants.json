@@ -173,5 +173,7 @@
  {"name": "source-lock-written", "file": "source_run.py", "old": "elif built or pinned.exists():", "new": "elif False:"},
  {"name": "source-tar-out", "file": "source_run.py", "old": "(out / f\"{digest}.tar\").write_bytes(body)", "new": "(out / f\"{digest}.tar\").write_bytes(b\"\")"},
  {"name": "run-sources-apart", "file": "run.py", "old": ", [r for r in recipes if not is_source(r)]", "new": ", recipes"},
- {"name": "run-sources-listed", "file": "run.py", "old": "return found + built", "new": "return found"}
+ {"name": "run-sources-listed", "file": "run.py", "old": "return found + built", "new": "return found"},
+ {"name": "pack-held-out", "file": "pack_size.py", "old": "    kept = {n: b for n, b in kept.items() if not (held and b.startswith(b\"\\x7fELF\"))}\n", "new": ""},
+ {"name": "pack-file-bound", "file": "pack_size.py", "old": "    if big:\n", "new": "    if False:\n"}
 ]

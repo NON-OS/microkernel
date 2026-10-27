@@ -21,10 +21,10 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use crate::circuit::{destroy, CircuitStage, Purpose};
-use crate::protocol::{CIRCUIT_DIRTY_SECONDS, CIRCUIT_FAILURES_MAX};
 use crate::trace;
 
 use super::state::Manager;
+use super::warm_rule::spent;
 
 /*
  * A spent circuit has to actually go, not merely stop being chosen. While it sits
@@ -48,8 +48,9 @@ pub fn tick(state: &mut Manager, now: u64) {
          * Onion circuits still building or working belong to their lookup.
          */
         let dead = circuit.stage == CircuitStage::Dead;
+        let (warm, failures, opened_at) = (circuit.warm, circuit.failures, circuit.opened_at);
         let open_and_spent =
-            circuit.stage == CircuitStage::Open && spent(circuit.failures, circuit.opened_at, now);
+            circuit.stage == CircuitStage::Open && spent(warm, failures, opened_at, now);
         let lookup_owns = circuit.purpose == Purpose::Onion && circuit.service.is_none() && !dead;
         if !(dead || open_and_spent) || lookup_owns {
             continue;
@@ -75,8 +76,4 @@ pub fn tick(state: &mut Manager, now: u64) {
     }
     state.circuits.retain(|c| !going.contains(&c.id));
     trace::say_num(b"circuits retired", going.len() as u64);
-}
-
-fn spent(failures: u8, opened_at: u64, now: u64) -> bool {
-    failures >= CIRCUIT_FAILURES_MAX || now >= opened_at.saturating_add(CIRCUIT_DIRTY_SECONDS)
 }

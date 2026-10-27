@@ -31,6 +31,15 @@ pub mod protocol;
 #[path = "../../capsule_net_anon/src/manager/cold_wait_rule.rs"]
 pub mod cold_wait_rule;
 
+// The warm circuit kept for installs: when it is drawn, who takes it, and
+// when it goes.
+#[path = "../../capsule_net_anon/src/manager/warm_rule.rs"]
+pub mod warm_rule;
+
+// The SOCKS greeting, and the install mark it may carry.
+#[path = "../../capsule_net_anon/src/server/socks/wire.rs"]
+pub mod wire;
+
 // The header decode and the reply; not the handlers, the SOCKS front or the
 // receive loop.
 pub mod server;
@@ -39,3 +48,7 @@ pub mod server;
 mod cold_wait_tests;
 #[cfg(test)]
 mod refusal_tests;
+#[cfg(test)]
+mod warm_tests;
+#[cfg(test)]
+mod wire_tests;
