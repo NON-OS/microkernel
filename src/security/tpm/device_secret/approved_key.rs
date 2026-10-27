@@ -23,7 +23,7 @@
 //! The handover's key is the same without the bootloader: a policy over
 //! another set of PCRs makes another primary, so the two never coincide. The
 //! volume key is wrapped under one only for the first boot of the next
-//! release's bootloader (fs/blockfs_volume/handover.rs).
+//! release's bootloader (fs/blockfs_volume/handover/).
 
 use alloc::vec::Vec;
 

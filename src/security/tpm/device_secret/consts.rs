@@ -42,5 +42,5 @@ pub(super) const APPROVED_PCRS: [u8; 1] = [9];
 pub(super) const MACHINE_PCRS: [u8; 3] = [0, 4, 7];
 /// The handover's: the same without the bootloader, so a kernel the release
 /// approved opens a volume under the next release's bootloader, once
-/// (fs/blockfs_volume/handover.rs).
+/// (fs/blockfs_volume/handover/).
 pub(super) const HANDOVER_PCRS: [u8; 2] = [0, 7];
