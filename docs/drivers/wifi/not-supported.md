@@ -23,9 +23,9 @@ When no Wi-Fi driver answers, the panel takes the first Wi-Fi chip on the PCI bu
 |---|---|
 | `No Wi-Fi hardware found` | The PCI bus lists no Wi-Fi function. |
 | `Wi-Fi chip` 14c3:7961 `has no NONOS driver; use Ethernet or USB Wi-Fi` | NONOS has no driver for this chip. No wait or reboot changes that. |
-| `Wi-Fi driver did not start for` 10ec:c821 | NONOS has a driver for this chip, but none is running: it did not start, it left, or the image carries no Wi-Fi driver, as in the `qemu` and air-gapped profiles. |
+| `Wi-Fi driver did not start for` 10ec:b821 or 10ec:c821 | NONOS has a driver for this chip, but none is running: it did not start, it left, or the image carries no Wi-Fi driver, as in the `qemu` and air-gapped profiles. |
 
-`has_driver` is a fixed list, not a look at the running image: it is true for one Realtek id, 10ec:c821, and for the Intel ids the iwlwifi driver takes, and false for every other vendor and every other Realtek id (`userland/capsule_settings/src/wifi/interface.rs:70-120`, `has_driver`).
+`has_driver` is a fixed list, not a look at the running image: it is true for two Realtek ids, 10ec:b821 and 10ec:c821, and for the Intel ids the iwlwifi driver takes, and false for every other vendor and every other Realtek id (`userland/capsule_settings/src/wifi/interface.rs:70-120`, `has_driver`).
 
 NONOS 0.9.2 has no driver for any USB Wi-Fi adapter. The `USB Wi-Fi` suggestion in these texts does not apply to this release.
 
@@ -43,7 +43,7 @@ The Settings tests hold these ids to `has_driver` returning false (`userland/cap
 | Realtek RTL8822CE | 10ec:c822 | none |
 | Realtek RTL8822BE | 10ec:b822 | none |
 
-The same Realtek rule covers every other Realtek Wi-Fi chip, the RTL8852 family included: for vendor 10ec, only device c821 has a driver. Intel BE200 and BE201 (8086:272b, a840, 7740, 4d40) are taken by the iwlwifi driver since its BZ-family work, host-proven only ([iwlwifi.md](iwlwifi.md#be200-and-be201)).
+The same Realtek rule covers every other Realtek Wi-Fi chip, the RTL8852 family included: for vendor 10ec, only devices b821 and c821 have a driver. Intel BE200 and BE201 (8086:272b, a840, 7740, 4d40) are taken by the iwlwifi driver since its BZ-family work, host-proven only ([iwlwifi.md](iwlwifi.md#be200-and-be201)).
 
 No driver [capsule](../../overview/glossary-boot-root-record.md#capsule) for any of these chips exists in the tree.
 
@@ -60,7 +60,7 @@ The tree carries vendor firmware for several of these chips, and their presence 
 
 On real hardware, 0.9.2 offers little here.
 
-1. If the Wi-Fi card is a replaceable module, a Realtek RTL8821CE card (10ec:c821). It is the only Wi-Fi chip with a hardware report for 0.9.2; read its [page](rtl8821ce.md) first.
+1. If the Wi-Fi card is a replaceable module, a Realtek RTL8821CE card (10ec:c821, or 10ec:b821). It is the only Wi-Fi chip with a hardware report for 0.9.2; read its [page](rtl8821ce.md) first.
 2. In a virtual machine, the virtio network device, which the QEMU run targets attach; see [Ethernet drivers](../ethernet/README.md#virtio-net-in-a-virtual-machine).
 
 Three routes that look possible are not available in 0.9.2:
