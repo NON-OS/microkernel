@@ -5,7 +5,8 @@
 `capsule_driver_iwlwifi` is the Intel Wi-Fi PCIe hardware capsule. It owns the
 Intel wireless device claim, BAR0 mapping, interrupt grant, DMA grants,
 firmware selection and load, and, on the SO platforms (AX211, and AX201 on an
-SO platform), the firmware bring-up, passive scanning, joining WPA2 and WPA3
+SO platform) and the Wi-Fi 7 BE200 (8086:272B) and BE201 (8086:A840, 7740,
+4D40), the firmware bring-up, passive scanning, joining WPA2 and WPA3
 networks and carrying their data for `driver.iwlwifi0`.
 
 ```text
@@ -44,6 +45,14 @@ interrupt-driven operation, monitor mode, AP mode, or roaming. The 7265, 8265,
 9260/9560 and AX200 parts, and AX201 outside the SO platforms, do not get a
 radio from this driver yet; the discrete AX210 and Meteor Lake lack only their
 firmware files.
+
+The BE200 and BE201 run linux-firmware's `iwlwifi-gl-c0-fm-c0-92.ucode` and
+`iwlwifi-bz-b0-fm-c0-92.ucode` with their `.pnvm` files (commit bf992df7,
+licence: Redistributable, LICENCE.iwlwifi_firmware /
+`nonos-bootloader/firmware/intel/LICENSE`) in the BZ family's second CSR
+layout. That path is host-proven, never booted on a BE200 or BE201
+([firmware](docs/firmware.md), and the test plan in
+`docs/hardware/real-hardware-checklist.md`).
 
 ## Verification
 
