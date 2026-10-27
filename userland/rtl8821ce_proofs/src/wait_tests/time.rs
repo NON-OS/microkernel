@@ -1,20 +1,31 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! The wait itself, on the proofs' clock.
 
-use crate::clock::now_ms;
+use crate::clock::{idles, now_ms};
 use crate::wait::{delay_ms, until_ms};
 
 #[test]
-fn a_wait_that_never_holds_ends_on_its_deadline() {
-    let start = now_ms();
-    let mut asked = 0u32;
+fn a_wait_that_never_holds_ends_on_its_deadline_idling_between_looks() {
+    let (start, idled) = (now_ms(), idles());
+    let mut asked = 0u64;
     assert!(!until_ms(25, || {
         asked += 1;
         false
     }));
     let took = now_ms() - start;
     assert!((25..=27).contains(&took), "{took} ms, not a count of reads");
-    assert!(asked > 1000, "asked on and on until then: {asked}");
+    let slept = idles() - idled;
+    assert!((25..=27).contains(&slept), "a millisecond's idle between looks: {slept}");
+    assert_eq!(asked, slept + 2, "a look after each idle, the first, and one past the end");
+}
+
+#[test]
+fn a_delay_idles_through_its_time() {
+    let (start, idled) = (now_ms(), idles());
+    delay_ms(20);
+    let slept = idles() - idled;
+    assert!((20..=22).contains(&slept), "idled, never spun: {slept}");
+    assert!(now_ms() - start >= 20);
 }
 
 #[test]
