@@ -71,3 +71,5 @@ pub const BOOT_PROFILE_RECOVERY: u32 = 1 << 4;
 /* The no-IOMMU posture holds: devices are claimed unconfined and reach all
  * of memory. An older kernel never takes it, so its zero reads true. */
 pub const BOOT_DMA_UNCONFINED: u32 = 1 << 5;
+/* A claim shared its isolation group, each in its own domain (group_share.rs). */
+pub const BOOT_GROUPS_SHARED: u32 = 1 << 6;

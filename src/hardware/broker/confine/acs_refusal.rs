@@ -31,6 +31,15 @@ pub(crate) fn refusal_line(member: Bdf, hop: Bdf, holder: &str) -> String {
     format!("refused: {m} reaches it through {h} without ACS; {holder} holds it")
 }
 
+/// The same reach, shared on a standard boot (group_share.rs): each device
+/// keeps its own domain, and only their traffic to each other goes unchecked.
+pub(crate) fn shared_line(member: Bdf, hop: Bdf, holder: &str) -> String {
+    let (m, h) = (bdf(member), bdf(hop));
+    format!(
+        "shared: {m} reaches it through {h} without ACS; {holder} holds it, each in its own domain"
+    )
+}
+
 /// A requester-id alias of the device in another capsule's domain.
 pub(crate) fn alias_line(alias: Bdf, holder: &str) -> String {
     format!("refused: its requester id {} is in the domain {holder} holds", bdf(alias))
