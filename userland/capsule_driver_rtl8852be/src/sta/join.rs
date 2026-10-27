@@ -7,12 +7,14 @@
 //! part of `rtw8852b_rfk_channel` ported); on association the CMAC table,
 //! join info, CAM with the AID, rate adaptation and the port
 //! (`rtw89_core_sta_assoc`, `rtw89_ops_vif_cfg_changed`); on leaving the
-//! reverse (`rtw89_core_sta_disconnect`), and the port back to no link,
-//! which rtw89 leaves to the interface going down.
+//! reverse (`rtw89_core_sta_disconnect`), the port back to no link, which
+//! rtw89 leaves to the interface going down, and the CAM entry without
+//! its keys.
 
 use super::chip::Chip;
 use crate::bring::Stop;
 use crate::dma::DmaMem;
+use crate::h2c::cam_keys::Keys;
 use crate::h2c::cctl::{assoc_tbl, send};
 use crate::h2c::media::{join_info, Net};
 use crate::h2c::ra::ra_assoc;
@@ -57,6 +59,8 @@ impl<R: Mmio, M: DmaMem> Chip<R, M> {
         self.vif.net = Net::NoLink;
         self.vif.aid = 0;
         self.vif.bssid = [0; 6];
+        // The keys detached, as `rtw89_cam_sec_key_del` detaches each.
+        self.vif.keys = Keys::default();
         self.cam_update(self.vif.sma).map_err(Stop::Send)
     }
 }

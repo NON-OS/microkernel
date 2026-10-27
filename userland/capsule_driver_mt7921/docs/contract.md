@@ -41,7 +41,8 @@ arrives with each connect request and stays in the shared station's memory.
 Bring-up to a scanning station; passive scan of 2.4 and 5 GHz by channel
 requests; WPA2 and WPA3 joins through the shared station (both proven on the
 host, WPA3 by SAE hash-to-element, also in transition mode); data both ways
-with software CCMP; fixed-rate transmit at the access point's own basic
+with CCMP-128 run by the chip on keys the station installs (software
+CCMP if the firmware refuses the join's pairwise key); fixed-rate transmit at the access point's own basic
 rates; ownership kept across the firmware taking the card back.
 
 ## Wire format
@@ -54,7 +55,8 @@ a 48-byte header), the download on ring 16; events come back on rings 0 and
 ## State ownership
 
 The capsule owns its claim, its grants and the radio's state; the shared
-station owns the scan list, the session and the keys; net.core owns the
+station owns the scan list, the session and the keys, of which the chip
+holds a copy from install until the entry's reset; net.core owns the
 interface above the link.
 
 ## Operating rules

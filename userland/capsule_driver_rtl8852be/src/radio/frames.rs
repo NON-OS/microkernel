@@ -15,10 +15,11 @@ use crate::sta::send::NotSent;
 use nonos_wifi_core::softmac::RxInfo;
 
 impl<R: Mmio, M: DmaMem> Station<R, M> {
-    /// `send`: release reports taken first, so their slots are free.
-    pub fn push(&mut self, mpdu: &[u8]) -> bool {
+    /// `send` and `send_keyed`: release reports taken first, so their slots
+    /// are free.
+    pub fn push(&mut self, mpdu: &[u8], keyed: bool) -> bool {
         self.chip.reap(&mut self.scratch);
-        match self.chip.send(mpdu) {
+        match self.chip.send(mpdu, keyed) {
             Ok(()) => true,
             Err(NotSent::Ring(_)) => {
                 bump(&mut self.counts.tx_full);

@@ -35,6 +35,7 @@ impl State {
             air: None,
             sae: None,
             cam: None,
+            sec: Default::default(),
             faults: Faults::default(),
             violations: Vec::new(),
         };

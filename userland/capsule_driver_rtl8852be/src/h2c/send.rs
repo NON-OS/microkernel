@@ -52,5 +52,8 @@ pub fn h2c_acks<M: DmaMem>(
     pkt[..H2C_HDR].copy_from_slice(&h2c_hdr(cmd, fw.h2c_seq, body.len(), rack, dack));
     pkt[H2C_HDR..H2C_HDR + body.len()].copy_from_slice(body);
     fw.h2c_seq = fw.h2c_seq.wrapping_add(1);
-    post(r, ring, &pkt[..H2C_HDR + body.len()], false)
+    let posted = post(r, ring, &pkt[..H2C_HDR + body.len()], false);
+    // A command may carry a key: this copy goes once it is in the ring.
+    nonos_wifi_core::vault::wipe(&mut pkt[..H2C_HDR + body.len()]);
+    posted
 }

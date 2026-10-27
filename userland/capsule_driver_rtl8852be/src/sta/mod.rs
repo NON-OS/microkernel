@@ -5,6 +5,8 @@
 
 pub mod chip;
 pub mod join;
+pub mod key_cmds;
+pub mod keys;
 pub mod pump;
 pub mod scan;
 pub mod send;

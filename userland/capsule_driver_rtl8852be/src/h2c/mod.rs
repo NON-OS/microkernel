@@ -4,6 +4,7 @@
 //! register mailbox for the few commands rtw89 sends that way.
 
 pub mod cam;
+pub mod cam_keys;
 pub mod cctl;
 pub mod cctl_tbl;
 pub mod init_cmds;
@@ -12,6 +13,7 @@ pub mod packet;
 pub mod post;
 pub mod ra;
 pub mod reg;
+pub mod sec_cam;
 pub mod send;
 
 /// The firmware's per-download counters (`rtw89_fw_info`'s `h2c_seq`,

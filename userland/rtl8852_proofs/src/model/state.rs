@@ -51,6 +51,8 @@ pub struct State {
     pub sae: Option<SaeAir>,
     /// The station address and BSSID of address CAM entry 0.
     pub cam: Option<([u8; 6], [u8; 6])>,
+    /// The security CAM and address CAM entry 0's key slots.
+    pub sec: super::sec::Sec,
     pub faults: Faults,
     pub violations: Vec<String>,
 }

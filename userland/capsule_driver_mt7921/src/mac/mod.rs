@@ -9,6 +9,7 @@
 pub mod pick;
 pub mod rate;
 pub mod rxd;
+pub mod sec;
 pub mod tokens;
 pub mod txd;
 pub mod txfree;

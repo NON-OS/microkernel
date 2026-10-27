@@ -8,8 +8,8 @@
 use nonos_wifi_core::regdom::Band;
 use nonos_wifi_core::softmac::Radio;
 
-use crate::model::data::rx_buffer;
 use crate::model::rig::up;
+use crate::model::rxd::rx_buffer;
 
 const AP: [u8; 6] = [0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f];
 

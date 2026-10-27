@@ -36,7 +36,7 @@ Host proofs only. No boot on a card.
 
 ## Explicit non-goals today
 
-Interrupts, power save, hardware scan, key offload, A-MPDU, CLC and SAR
+Interrupts, power save, hardware scan, A-MPDU, CLC and SAR
 power tables, 6 GHz, the MT7925, access point and monitor modes.
 
 ## Verification

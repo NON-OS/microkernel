@@ -4,10 +4,12 @@
  */
 
 //! The shared station's view of the card. CCMP-128 alone is offered (the
-//! trait's default): the station seals and opens every frame in software.
+//! trait's default), run by the chip on keys the station installs (Linux
+//! v6.12 `mt7921_set_key` takes CCMP-128 and the IGTK into hardware); the
+//! chip writes each sent frame's CCMP header and packet number.
 
 use nonos_wifi_core::regdom::Band;
-use nonos_wifi_core::softmac::{Association, Radio, RxInfo};
+use nonos_wifi_core::softmac::{Association, ChipKey, Crypto, Radio, RxInfo};
 
 use super::Mt7921;
 
@@ -29,7 +31,19 @@ impl Radio for Mt7921 {
     }
 
     fn send(&mut self, mpdu: &[u8]) -> bool {
-        self.send_frame(mpdu)
+        self.send_frame(mpdu, false)
+    }
+
+    fn send_keyed(&mut self, mpdu: &[u8]) -> bool {
+        self.send_frame(mpdu, true)
+    }
+
+    fn crypto(&self) -> Crypto {
+        Crypto::ChipIv
+    }
+
+    fn set_key(&mut self, key: &ChipKey<'_>) -> bool {
+        self.put_key(key)
     }
 
     fn recv(&mut self, out: &mut [u8]) -> Option<RxInfo> {

@@ -7,9 +7,11 @@
 
 use super::counts::bump;
 use super::Station;
+use crate::chan::Chan;
 use crate::dma::DmaMem;
 use crate::h2c::media::Net;
 use crate::regs::Mmio;
+use nonos_wifi_core::regdom::Band;
 use nonos_wifi_core::softmac::Association;
 
 impl<R: Mmio, M: DmaMem> Station<R, M> {
@@ -27,6 +29,17 @@ impl<R: Mmio, M: DmaMem> Station<R, M> {
         if !ok {
             bump(&mut self.counts.cmd_fail);
         }
+    }
+
+    /// `tune`: no 6 GHz, and a failed switch counted.
+    pub fn retune(&mut self, band: Band, channel: u8) -> bool {
+        let five = band == Band::Ghz5;
+        let Some(c) = Chan::new(five, channel).filter(|_| band != Band::Ghz6) else { return false };
+        let ok = self.chip.tune_to(c).is_ok();
+        if !ok {
+            bump(&mut self.counts.tune_fail);
+        }
+        ok
     }
 
     /// `associated`.
