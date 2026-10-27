@@ -21,8 +21,9 @@ name, since the installer writes entries in order."""
 
 from . import tarwalk
 
-# install/market/bind.rs reads a bound program through store_read(.., MAX_IMAGE).
-MAX_IMAGE = 64 << 20
+# install/market/bind.rs reads a bound program through store_read(.., MAX_IMAGE),
+# which is capsule_linux's PROGRAM_MAX (program_max.rs).
+MAX_IMAGE = 128 << 20
 
 
 def program(files: bytes, name: str, wanted: str = ""):
