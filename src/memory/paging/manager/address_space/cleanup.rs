@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::core::PagingManager;
+use super::super::directory;
 use super::teardown::teardown_user_half;
 use crate::memory::addr::PhysAddr;
 use crate::memory::frame_alloc;
@@ -48,7 +49,9 @@ impl PagingManager {
         if asid == KERNEL_ASID {
             return Err(PagingError::KernelSpaceViolation);
         }
-        Ok(self.address_spaces.remove(&asid).map(|space| space.cr3_value))
+        let taken = self.address_spaces.remove(&asid).map(|space| space.cr3_value);
+        directory::withdraw(asid);
+        Ok(taken)
     }
 }
 

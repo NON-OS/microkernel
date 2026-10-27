@@ -48,10 +48,10 @@ pub(super) fn run(package: &str, how: How) {
         false => b"[LINUX-RUN] refused ",
     };
     let mut l = Line::new();
-    l.str(said).str(match how {
-        How::Named => package.as_bytes(),
-        How::Quiet => b"a Qwen window",
-        How::Net => b"the same run, with the network",
-    });
+    match how {
+        How::Named => l.str(said).app(package.as_bytes()),
+        How::Quiet => l.str(said).str(b"a Qwen window"),
+        How::Net => l.str(said).str(b"the same run, with the network"),
+    };
     l.end();
 }
