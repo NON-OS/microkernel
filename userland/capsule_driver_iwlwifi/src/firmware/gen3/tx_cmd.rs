@@ -14,13 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Wrap an already-built 802.11 frame in the gen3 transmit command the firmware
-//! TX queue consumes. The 28-byte header (struct iwl_tx_cmd_gen3 in
-//! fw/api/tx.h) carries the payload length, the transmit flags and the rate;
-//! the DRAM security info is left zero for the firmware to fill, and the frame
-//! follows the header. The frame handed in is the CCMP-protected 802.11 frame
-//! from the data path, so encryption is already done in software. Offsets are
-//! pinned by the gen3 proofs.
+//! Wrap an already-built 802.11 frame in the gen3 transmit command (struct
+//! iwl_tx_cmd_gen3, 28 bytes; the 22000 family's is `gen2`): the payload
+//! length, the transmit flags and the rate, the security info left zero, the
+//! frame after it, already CCMP-protected in software.
 //!
 //! The header a queued frame carries (`header`) is the one Linux v6.12
 //! mvm/tx.c `iwl_mvm_set_tx_params` writes on an AX210-family part for a frame
@@ -30,13 +27,15 @@
 //! multiple of four bytes (the transport pads it, `iwl_mvm_tx_csum`), the rate
 //! word at 16, and the security info and reserved bytes zero.
 
+mod gen2;
+pub use gen2::{header_gen2, TX_CMD_GEN2_HDR};
+
 /// Command id for a transmit (TX_CMD).
 pub const TX_CMD: u8 = 0x1C;
 
 /// Fixed size of the gen3 transmit-command header, before the 802.11 frame.
 pub const TX_CMD_GEN3_HDR: usize = 28;
 
-// Field offsets within the header.
 const OFF_LEN: usize = 0;
 const OFF_FLAGS: usize = 2;
 const OFF_OFFLOAD: usize = 4;
@@ -71,9 +70,9 @@ pub fn build(frame: &[u8], rate_n_flags: u32, out: &mut [u8]) -> Option<usize> {
 }
 
 /// The header for a `frame_len`-byte frame whose 802.11 header is
-/// `hdr_len` bytes, sent at `rate_n_flags` with no firmware key. `None` for
+/// `hdr_len` bytes, sent at `rate` (rate_n_flags) with no firmware key. `None` for
 /// a frame longer than [`FRAME_MAX`].
-pub fn header(frame_len: usize, hdr_len: usize, rate_n_flags: u32) -> Option<[u8; TX_CMD_GEN3_HDR]> {
+pub fn header(frame_len: usize, hdr_len: usize, rate: u32) -> Option<[u8; TX_CMD_GEN3_HDR]> {
     if frame_len > FRAME_MAX {
         return None;
     }
@@ -83,6 +82,6 @@ pub fn header(frame_len: usize, hdr_len: usize, rate_n_flags: u32) -> Option<[u8
     h[OFF_FLAGS..OFF_FLAGS + 2].copy_from_slice(&flags.to_le_bytes());
     let offload = if hdr_len.is_multiple_of(4) { 0 } else { TX_CMD_OFFLD_PAD };
     h[OFF_OFFLOAD..OFF_OFFLOAD + 4].copy_from_slice(&offload.to_le_bytes());
-    h[OFF_RATE_N_FLAGS..OFF_RATE_N_FLAGS + 4].copy_from_slice(&rate_n_flags.to_le_bytes());
+    h[OFF_RATE_N_FLAGS..OFF_RATE_N_FLAGS + 4].copy_from_slice(&rate.to_le_bytes());
     Some(h)
 }

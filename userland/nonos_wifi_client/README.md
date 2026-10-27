@@ -11,8 +11,9 @@ to remember, sealed under a TPM-derived key, in the NONOS store. It is
 
 `find()` returns the first registered service in `SERVICES`
 (`src/driver/services.rs`): `driver.rtl8821ce0` (Realtek RTL8821CE), then
-`driver.iwlwifi0` (Intel Wi-Fi). The RTL8821CE comes first so a machine with
-both cards keeps the radio it joined with. Both run joins; `Driver::joins` says
+`driver.iwlwifi0` (Intel Wi-Fi), then `driver.rtl8822ce0` (Realtek
+RTL8822CE, host-proven only, so asked last). The RTL8821CE comes first so a
+machine with both cards keeps the radio it joined with. All run joins; `Driver::joins` says
 so, and a driver that cannot join is never sent a passphrase. The iwlwifi
 driver answers a join with `CANNOT_JOIN` on a part it has no air path for, or
 without randomness.

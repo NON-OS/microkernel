@@ -41,6 +41,8 @@ mod describe;
 mod devnet;
 mod direct_only;
 mod frame;
+mod install;
+mod install_stream;
 mod ipc;
 mod opening;
 mod patience;
@@ -53,6 +55,7 @@ mod socks;
 mod stream;
 mod tunnel;
 mod tunnel_io;
+mod tunnel_open;
 
 pub use chosen::{default_route, direct_refusal};
 #[cfg(feature = "devnet")]
