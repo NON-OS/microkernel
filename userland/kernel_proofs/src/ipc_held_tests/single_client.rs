@@ -27,6 +27,7 @@ const XHCI_CLIENTS: &[&str] = &[
     "driver.cdc_ecm0",
     "driver.cdc_ncm0",
     "driver.rndis0",
+    "driver.ax88179_0",
 ];
 
 /// The controllers, the GPU and the sound devices take their one client.
