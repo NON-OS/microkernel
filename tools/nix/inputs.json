@@ -7087,9 +7087,11 @@
    "userland/capsule_net_anon/src/cell/geometry.rs",
    "userland/capsule_net_anon/src/circuit/window.rs",
    "userland/capsule_net_anon/src/manager/cold_wait_rule.rs",
+   "userland/capsule_net_anon/src/manager/warm_rule.rs",
    "userland/capsule_net_anon/src/protocol",
    "userland/capsule_net_anon/src/server/parse_req.rs",
    "userland/capsule_net_anon/src/server/respond.rs",
+   "userland/capsule_net_anon/src/server/socks/wire.rs",
    "userland/net_anon_proofs",
    "userland/net_proofs/shim"
   ],
@@ -8911,6 +8913,7 @@
    "userland/nonos_route_link/src/devnet.rs",
    "userland/nonos_route_link/src/direct_only.rs",
    "userland/nonos_route_link/src/frame.rs",
+   "userland/nonos_route_link/src/install.rs",
    "userland/nonos_route_link/src/opening.rs",
    "userland/nonos_route_link/src/patience.rs",
    "userland/nonos_route_link/src/pick.rs",
@@ -8919,6 +8922,7 @@
    "userland/nonos_route_link/src/socks.rs",
    "userland/nonos_route_link/src/tunnel.rs",
    "userland/nonos_route_link/src/tunnel_io.rs",
+   "userland/nonos_route_link/src/tunnel_open.rs",
    "userland/policy_proto",
    "userland/route_link_proofs",
    "userland/sdk/nonos_std/src/net/way.rs"

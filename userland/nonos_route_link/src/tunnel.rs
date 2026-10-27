@@ -30,11 +30,12 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 use crate::answer::ANSWER_BUF;
-use crate::bounds::{NOT_YET_GAP_MS, OPEN_MS, POLL_GAP_MS, RESET_WAIT_MS};
+use crate::bounds::{POLL_GAP_MS, RESET_WAIT_MS};
 use crate::carrier::Carrier;
 use crate::frame::{reset, FIRST_SEQ};
-use crate::refusal::{Proxy, BAD_HOST, REP_NOT_YET};
-use crate::socks::{connect_reply, connect_request, method_reply, Parsed, GREETING, REP_OK};
+use crate::install::greeting;
+use crate::refusal::{Proxy, REP_NOT_YET};
+use crate::socks::{connect_reply, method_reply, Parsed, REP_OK};
 
 pub struct Tunnel<C: Carrier> {
     pub(crate) carrier: C,
@@ -51,42 +52,18 @@ pub struct Tunnel<C: Carrier> {
     pub(crate) unanswered: Option<crate::slice::Unanswered>,
     /* How long the reset that ends this stream waits for its answer. */
     pub(crate) reset_wait_ms: u64,
+    /* The greeting carries the install mark (install.rs). */
+    pub(crate) install: bool,
 }
 
 /* How one attempt at opening ended, when it did not open. */
-enum Attempt {
+pub(crate) enum Attempt {
     /* The network runs but has not connected; worth asking again. */
     NotYet,
     Refused(&'static str),
 }
 
 impl<C: Carrier> Tunnel<C> {
-    /*
-     * A stream to `host` on `port` through `proxy`, or the sentence that
-     * says why there is none. Bounded by OPEN_MS whatever the proxy does.
-     */
-    pub fn open(
-        carrier: C,
-        proxy: Proxy,
-        host: &str,
-        port: u16,
-    ) -> Result<Tunnel<C>, &'static str> {
-        let ask = connect_request(host, port).ok_or(BAD_HOST)?;
-        let mut t = Tunnel::unopened(carrier, proxy);
-        let until = t.carrier.now_ms().saturating_add(OPEN_MS);
-        loop {
-            t.restart();
-            match t.handshake(&ask, until) {
-                Ok(()) => return Ok(t),
-                Err(Attempt::NotYet) if t.carrier.now_ms() < until => {
-                    t.carrier.pause(NOT_YET_GAP_MS)
-                }
-                Err(Attempt::NotYet) => return Err(proxy.refused(REP_NOT_YET)),
-                Err(Attempt::Refused(why)) => return Err(why),
-            }
-        }
-    }
-
     /* A conversation not begun yet: nothing has been sent to the proxy. */
     pub(crate) fn unopened(carrier: C, proxy: Proxy) -> Tunnel<C> {
         Tunnel {
@@ -98,6 +75,7 @@ impl<C: Carrier> Tunnel<C> {
             rx: vec![0; ANSWER_BUF],
             unanswered: None,
             reset_wait_ms: RESET_WAIT_MS,
+            install: false,
         }
     }
 
@@ -123,8 +101,8 @@ impl<C: Carrier> Tunnel<C> {
         let _ = self.carrier.call(&reset(), self.reset_wait_ms, &mut self.rx);
     }
 
-    fn handshake(&mut self, ask: &[u8], until: i64) -> Result<(), Attempt> {
-        self.exchange(&GREETING).map_err(Attempt::Refused)?;
+    pub(crate) fn handshake(&mut self, ask: &[u8], until: i64) -> Result<(), Attempt> {
+        self.exchange(greeting(self.install)).map_err(Attempt::Refused)?;
         if !self.await_reply(until, method_reply)? {
             return Err(Attempt::Refused(self.proxy.full()));
         }
