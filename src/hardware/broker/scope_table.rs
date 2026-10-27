@@ -1,18 +1,6 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! The scope rows (scope.rs): each driver the kernel spawns, by the service name its
 //! spawn.rs registers, and what it may claim. The USB function drivers, i2c_hid and
@@ -38,6 +26,7 @@ pub(super) const SCOPE: &[(&str, &[Match])] = &[
     ("driver.virtio_net0", &[Ids(VIRTIO, &[0x1000, 0x1000, 0x1041, 0x1041])]),
     ("driver.iwlwifi0", &[Ids(INTEL, IWLWIFI)]),
     ("driver.rtl8821ce0", &[Ids(REALTEK, &[0xB821, 0xB821, 0xC821, 0xC821])]),
+    ("driver.rtl8822ce0", &[Ids(REALTEK, &[0xC822, 0xC822, 0xC82F, 0xC82F])]),
     // Storage, SD and USB hosts bind by class, as their capsules do (ufs0's takes listed hosts).
     ("driver.nvme0", &[Class { vendor: ANY, class: 0x01, sub: 0x08, progif: Some(0x02) }]),
     ("driver.ahci0", AHCI),

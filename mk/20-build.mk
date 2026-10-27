@@ -543,6 +543,7 @@ include userland/capsule_driver_virtio_gpu/Capsule.mk
 include userland/capsule_driver_virtio_net/Capsule.mk
 include userland/capsule_driver_iwlwifi/Capsule.mk
 include userland/capsule_driver_rtl8821ce/Capsule.mk
+include userland/capsule_driver_rtl8822ce/Capsule.mk
 include userland/capsule_driver_i2c_pci/Capsule.mk
 include userland/capsule_driver_i2c_hid/Capsule.mk
 include userland/capsule_driver_xhci/Capsule.mk
@@ -1191,7 +1192,7 @@ nonos-mk-audio-player-smoketest-test: $(proof-io_ARTIFACTS) \
 
 # nonos-mk-desktop-gui-prod: the QEMU-bootable profile. This is NOT just a lighter
 # cut of zerostate; it deliberately excludes the real-hardware driver capsules
-# (iwlwifi, rtl8821ce, rtl8169, e1000, rtl8139, ahci, hda, nvme, usb-msc, i2c)
+# (iwlwifi, rtl8821ce, rtl8822ce, rtl8169, e1000, rtl8139, ahci, hda, nvme, usb-msc, i2c)
 # that have no counterpart under QEMU and block on spawn when their hardware is
 # absent. The runtime, debug, and benchmark boot targets use this so a QEMU boot
 # reaches the ready marker. The full hardware image is nonos-mk-zerostate, which
@@ -1319,6 +1320,7 @@ nonos-mk-arm-gui: nonos-mk-check-deps nonos-mk-ensure-signing-key
 # real-hardware drivers, for booting under QEMU.
 nonos-mk-zerostate: nonos-mk-all-capsules-attested \
 		$(driver-iwlwifi_ARTIFACTS) $(driver-rtl8821ce_ARTIFACTS) \
+		$(driver-rtl8822ce_ARTIFACTS) \
 		nonos-mk-verify-desktop-gui-capsules \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	$(call nonos_kernel_build,zerostate: microkernel-full-gui + nonos-smp,microkernel-full-gui$(_boot_comma)nonos-smp)
