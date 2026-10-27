@@ -42,9 +42,7 @@ pub fn get(path: &str) -> Option<Vec<u8>> {
 /// A GET to `at`, a mirror's name or a dotted IPv4 address, with `host` as
 /// the Host line.
 pub fn get_as(at: &str, port: u16, host: &str, path: &str) -> Option<Vec<u8>> {
-    let req = format!(
-        "GET {path} HTTP/1.1\r\nHost: {host}\r\nUser-Agent: nonos\r\nConnection: close\r\n\r\n"
-    );
+    let req = format!("GET {path} HTTP/1.1\r\nHost: {host}\r\nUser-Agent: nonos\r\n\r\n");
     let t0 = super::super::timing::now();
     #[cfg(feature = "dev-mirror")]
     let raw = match is_local(at) {
