@@ -22,11 +22,15 @@ const FW_STEP_AT: usize = WIFI_HDR + 1 + 52;
 impl Driver {
     /// Why bring-up stopped at `stage`, for the screen ([`StopWhy`]): the
     /// firmware step after `FirmwareFailed`, the refused claim step after
-    /// `NotClaimed`. `None` at any other stage, when the driver did not answer
-    /// or answers a shorter status (iwlwifi, or a driver built before it).
+    /// `NotClaimed`; for the Intel driver, its step and detail word at any
+    /// stage short of ready (`StopWhy::intel`). `None` otherwise, when the
+    /// driver did not answer or answers a shorter status.
     pub fn stop_why(&self, stage: DriverStage) -> Option<StopWhy> {
         let mut resp = [0u8; FW_STEP_AT + 1];
         let n = self.request(OP_STATUS, &[], &mut resp, STATUS_TIMEOUT_MS)?;
+        if self.is_intel() {
+            return StopWhy::intel(resp.get(WIFI_HDR..n)?);
+        }
         let word =
             |at: usize| u32::from_le_bytes([resp[at], resp[at + 1], resp[at + 2], resp[at + 3]]);
         match stage {
