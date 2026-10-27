@@ -14,20 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Fetching one package, from the branch whose signed index listed it.
+//! Where one package is fetched: the branch whose signed index listed it.
 
 use alloc::format;
-use alloc::vec::Vec;
+use alloc::string::String;
 
-use super::super::http::get::get;
 use super::super::index::Pkg;
 use super::super::run::{ARCH, BRANCHES, RELEASE};
 
-/// Asked of its own branch only: asking another first cost a 404 and a
-/// stream for every community package.
-pub(in crate::linux::install) fn download(pkg: &Pkg) -> Vec<u8> {
-    let Some(branch) = BRANCHES.get(pkg.branch) else { return Vec::new() };
+/// Where `pkg` is fetched: from its own branch only, as asking another first
+/// cost a 404 and a stream for every community package.
+pub(in crate::linux::install) fn path_of(pkg: &Pkg) -> Option<String> {
+    let branch = BRANCHES.get(pkg.branch)?;
     let (name, version) = (&pkg.name, &pkg.version);
-    let path = format!("/alpine/{RELEASE}/{branch}/{ARCH}/{name}-{version}.apk");
-    get(&path).unwrap_or_default()
+    Some(format!("/alpine/{RELEASE}/{branch}/{ARCH}/{name}-{version}.apk"))
 }
