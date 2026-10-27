@@ -19,6 +19,7 @@
 //! tried here against the shipping source, with the key header that sits
 //! beside it and the seal on the volume key it carries.
 
+mod handover;
 #[path = "../../../../src/fs/blockfs_volume/import_guard/name.rs"]
 pub mod import_name;
 #[path = "../../../../src/fs/blockfs_volume/key_header.rs"]
