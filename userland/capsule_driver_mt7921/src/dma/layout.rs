@@ -36,8 +36,9 @@ pub const TXWI_SLOT: usize = 64;
 /// The largest chunk of a firmware download (`max_len` of
 /// `mt76_connac2_load_patch` and `mt76_connac_mcu_send_ram_firmware`).
 pub const FW_CHUNK: usize = 4096;
-/// The largest command: its header and the biggest body the driver builds.
-pub const CMD_MAX: usize = 1024;
+/// The largest command: its header and the biggest body the driver builds
+/// (a transmit power message, 44 + 8 x 162 bytes).
+pub const CMD_MAX: usize = 2048;
 /// Frame buffers, each held until the chip reports the frame sent.
 pub const TOKENS: usize = 64;
 pub const TOKEN_BUF: usize = 2048;
