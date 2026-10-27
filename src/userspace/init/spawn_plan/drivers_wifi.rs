@@ -27,12 +27,14 @@ use crate::hardware::inventory::HardwareFamily;
 
 mod mediatek;
 mod rtl8822ce;
+mod rtl8852be;
 
 pub(super) fn spawn() {
     spawn_iwlwifi();
     spawn_rtl8821ce();
     rtl8822ce::spawn();
     mediatek::spawn();
+    rtl8852be::spawn();
 }
 
 #[cfg(feature = "nonos-capsule-driver-iwlwifi")]

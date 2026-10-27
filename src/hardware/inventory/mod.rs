@@ -52,6 +52,7 @@ pub use intel_ethernet_ids::{
 };
 pub use missing::missing_path;
 pub use present::present;
+pub use realtek_ids::RTL8852BE_DEVICE_IDS;
 pub use realtek_ids::{
     RTL8139_DEVICE_ID, RTL8169_DEVICE_IDS, RTL8821CE_DEVICE_IDS, RTL8822CE_DEVICE_IDS,
 };

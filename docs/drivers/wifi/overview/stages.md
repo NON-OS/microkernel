@@ -16,6 +16,7 @@ The status operation returns a stage byte, and the panel shows its text (`userla
 | `Restarting` | 9 | `The card's firmware stopped; restarting it` |
 | `PackageMissing` | 10 | `The firmware package is missing from the boot medium` |
 | `PackageMismatch` | 11 | `The firmware package does not match this build` |
+| `ChipInit` | 12 | `The card did not finish setting up its radio` |
 | any other | | `The driver reported an unknown stage` |
 
 After `NotClaimed` the RTL8821CE's status reply also carries the claim step the kernel refused (1 the claim, 2 the command register's Memory Space write, 3 the register map) and the error number, in words 9 and 10 of its body (`userland/capsule_driver_rtl8821ce/src/setup/claim_note.rs`). Settings and the setup wizard show them as `not claimed: claim refused, busy (-16)` (`userland/nonos_wifi_client/src/driver/stop.rs`, `StopWhy`).
