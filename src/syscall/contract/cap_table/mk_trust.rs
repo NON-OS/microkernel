@@ -19,7 +19,12 @@
 use crate::capabilities::CapabilityToken;
 use crate::syscall::numbers::SyscallNumber;
 
-pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
+/// `shell` says whether the caller is the desktop shell the kernel spawned.
+pub(super) fn check(
+    caps: &CapabilityToken,
+    number: SyscallNumber,
+    shell: fn() -> bool,
+) -> Option<bool> {
     Some(match number {
         /*
          * Minting a trailer is a trust operation, so it sits with the
@@ -42,9 +47,15 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
 
         /* The right to ask, which is not the right to host. */
         SyscallNumber::MkAppInstall
-        | SyscallNumber::MkAppLaunch
         | SyscallNumber::MkAppInstallStatus
         | SyscallNumber::MkAppUninstall => caps.can_app_install(),
+        /*
+         * A launch queues a run of a package already installed, whose program
+         * the exec gate holds to its trailer and its box; it installs nothing.
+         * So the desktop shell may ask for one too, known by the endpoint the
+         * kernel registered for it at spawn, never by a name it chose.
+         */
+        SyscallNumber::MkAppLaunch => caps.can_app_install() || (caps.is_valid() && shell()),
         /* Who may ask is the handler's to say, by kind. */
         SyscallNumber::MkProveJob => caps.can_ipc(),
 

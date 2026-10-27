@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! zwp_primary_selection_device_manager_v1 and its device and source
-//! (primary-selection-unstable-v1.xml), and wp_cursor_shape_manager_v1 and
+//! zwp_primary_selection_device_manager_v1 and its device, source and
+//! offer (primary-selection-unstable-v1.xml), and wp_cursor_shape_manager_v1 and
 //! its device (cursor-shape-v1.xml).
 
 pub const PRIMARY_MANAGER_CREATE_SOURCE: u16 = 0;
@@ -26,6 +26,12 @@ pub const PRIMARY_DEVICE_DESTROY: u16 = 1;
 pub const PRIMARY_SOURCE_OFFER: u16 = 0;
 pub const PRIMARY_SOURCE_DESTROY: u16 = 1;
 pub const PRIMARY_SOURCE_CANCELLED: u16 = 1;
+pub const PRIMARY_SOURCE_SEND: u16 = 0;
+pub const PRIMARY_OFFER_RECEIVE: u16 = 0;
+pub const PRIMARY_OFFER_DESTROY: u16 = 1;
+pub const PRIMARY_OFFER_OFFER: u16 = 0;
+pub const PRIMARY_DEVICE_DATA_OFFER: u16 = 0;
+pub const PRIMARY_DEVICE_SELECTION: u16 = 1;
 pub const CURSOR_MANAGER_DESTROY: u16 = 0;
 pub const CURSOR_MANAGER_GET_POINTER: u16 = 1;
 pub const CURSOR_DEVICE_DESTROY: u16 = 0;

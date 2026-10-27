@@ -46,3 +46,22 @@ pub fn set_mapped(guest: &mut Guest, fd: u64, at: u64) {
         }
     }
 }
+
+/// The memfd identity behind `fd`, which its dups share (fd_make.rs).
+pub fn memfd_id(guest: &Guest, fd: u64) -> Option<u32> {
+    match guest.fds.get(fd as usize) {
+        Some(e) if e.kind == Kind::Memfd => Some(e.handle),
+        _ => None,
+    }
+}
+
+/// Where memfd `id` is mapped now. A dup keeps the address its original had
+/// when it was made, so a client that maps again after passing the dup (as
+/// libwayland-cursor does when it grows a pool before the request leaves) is
+/// found through whichever descriptor saw the new mapping.
+pub fn mapped_now(guest: &Guest, id: u32) -> Option<(u64, u64)> {
+    let live = |e: &&crate::linux::guest::Fd| {
+        e.kind == Kind::Memfd && e.handle == id && e.offset != 0 && guest.mapped_from(e.offset) > 0
+    };
+    guest.fds.iter().filter(live).last().map(|e| (e.offset, e.size))
+}
