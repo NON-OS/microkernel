@@ -49,6 +49,7 @@ impl Term {
             2004 => m.bracketed_paste,
             2026 => m.sync,
             7727 => m.raw_input,
+            7728 => m.no_echo,
             47 | 1047 | 1049 => self.alt_active,
             _ => return None,
         })

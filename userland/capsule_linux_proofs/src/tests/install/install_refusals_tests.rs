@@ -27,7 +27,8 @@ use crate::install::pgp::spki::rsa_spki;
 #[test]
 fn an_index_names_only_whole_records_and_bare_or_so_names() {
     let raw = b"P:jq\nV:1.7\np:cmd:jq so:libjq.so.1 jqalias\n\nP:nameless-version\n\nV:2\n";
-    let index = Index::parse(raw);
+    let mut index = Index::default();
+    index.add(raw, 0);
     assert!(index.by_name("jq").is_some() && index.by_name("jqalias").is_some());
     assert!(index.by_lib("libjq.so.1").is_some());
     assert!(index.by_name("cmd:jq").is_none() && index.by_name("jq ").is_none());

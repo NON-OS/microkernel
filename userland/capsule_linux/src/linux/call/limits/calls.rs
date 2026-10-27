@@ -18,7 +18,7 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-use super::table::{limit_for, RLIMIT};
+use super::table::{limit_for, unchanged, RLIMIT};
 
 pub fn getrlimit(guest: &Guest, resource: u64, out: u64) -> u64 {
     let Some((soft, hard)) = limit_for(resource) else {
@@ -33,10 +33,18 @@ pub fn getrlimit(guest: &Guest, resource: u64, out: u64) -> u64 {
     }
 }
 
-/// `prlimit64` reads and writes in one call.
+/// `prlimit64` reads and writes in one call. A new limit is taken only when
+/// it is the limit already there: gpg sets RLIMIT_CORE to 0 before it holds
+/// a key, and refusing that stopped it. Any other change is refused, since
+/// nothing here would keep it.
 pub fn prlimit64(guest: &Guest, resource: u64, new: u64, old: u64) -> u64 {
     if new != 0 {
-        return errno::fail(errno::EPERM);
+        let Some(asked) = guest.read(new, RLIMIT) else {
+            return errno::fail(errno::EFAULT);
+        };
+        if !unchanged(resource, &asked) {
+            return errno::fail(errno::EPERM);
+        }
     }
     if old == 0 {
         return errno::ok(0);

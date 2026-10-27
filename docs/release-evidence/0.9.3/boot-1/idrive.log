@@ -1,0 +1,227 @@
+machine up
+  until 'Capsules spawned': seen
+step 1: until:Capsules spawned:1500 -> ok
+  until '[SPLASH] stepped aside': seen
+step 2: until:[SPLASH] stepped aside:600 -> ok
+step 3: wait:4 -> ok
+step 4: key:ret -> ok
+step 5: wait:4 -> ok
+step 6: type:ek -> ok
+step 7: wait:2 -> ok
+step 8: key:ret -> ok
+step 9: wait:4 -> ok
+step 10: key:ret -> ok
+step 11: wait:4 -> ok
+step 12: key:ret -> ok
+step 13: wait:4 -> ok
+step 14: key:ret -> ok
+step 15: wait:4 -> ok
+step 16: key:ret -> ok
+step 17: wait:4 -> ok
+step 18: key:ret -> ok
+step 19: wait:4 -> ok
+step 20: key:ret -> ok
+step 21: wait:4 -> ok
+step 22: key:ret -> ok
+step 23: wait:4 -> ok
+step 24: key:ret -> ok
+step 25: wait:4 -> ok
+  shot s11.png
+step 26: shot:s11 -> ok
+step 27: key:down -> ok
+step 28: wait:2 -> ok
+  shot s11b.png
+step 29: shot:s11b -> ok
+step 30: key:ret -> ok
+step 31: wait:4 -> ok
+step 32: key:ret -> ok
+step 33: wait:4 -> ok
+  shot review.png
+step 34: shot:review -> ok
+step 35: key:ret -> ok
+step 36: key:ret -> ok
+step 37: wait:60 -> ok
+step 38: key:esc -> ok
+step 39: wait:3 -> ok
+  shot desk.png
+step 40: shot:desk -> ok
+step 41: key:ctrl+alt+t -> ok
+step 42: wait:20 -> ok
+  shot term.png
+step 43: shot:term -> ok
+step 44: type:market install linux.age -> ok
+step 45: key:ret -> ok
+step 46: untiln:1:[LINUX] install:1800 -> ok
+step 47: wait:5 -> ok
+  shot age-installed.png
+step 48: shot:age-installed -> ok
+step 49: type:market install linux.age -> ok
+step 50: key:ret -> ok
+step 51: type:linux age -p -a -o /root/a.age /etc/passwd -> ok
+step 52: key:ret -> ok
+step 53: wait:60 -> ok
+  shot age1.png
+step 54: shot:age1 -> ok
+step 55: type:nonos-test-pass -> ok
+step 56: key:ret -> ok
+step 57: wait:15 -> ok
+step 58: type:nonos-test-pass -> ok
+step 59: key:ret -> ok
+step 60: wait:60 -> ok
+  shot age2.png
+step 61: shot:age2 -> ok
+step 62: type:linux age -d -o /root/back.txt /root/a.age -> ok
+step 63: key:ret -> ok
+step 64: wait:60 -> ok
+step 65: type:nonos-test-pass -> ok
+step 66: key:ret -> ok
+step 67: wait:60 -> ok
+step 68: type:linux age --version -> ok
+step 69: key:ret -> ok
+step 70: wait:40 -> ok
+  shot age3.png
+step 71: shot:age3 -> ok
+step 72: move:-108,472 -> ok
+step 73: wait:2 -> ok
+step 74: click -> ok
+step 75: wait:40 -> ok
+  shot store1.png
+step 76: shot:store1 -> ok
+step 77: move:50,60 -> ok
+step 78: move:50,60 -> ok
+step 79: move:50,60 -> ok
+step 80: move:50,60 -> ok
+step 81: move:50,60 -> ok
+step 82: move:50,60 -> ok
+step 83: move:50,60 -> ok
+step 84: move:50,60 -> ok
+step 85: move:50,60 -> ok
+step 86: move:50,60 -> ok
+step 87: move:50,60 -> ok
+step 88: move:50,60 -> ok
+step 89: move:50,60 -> ok
+step 90: move:50,60 -> ok
+step 91: move:50,60 -> ok
+step 92: move:50,60 -> ok
+step 93: move:50,60 -> ok
+step 94: move:2,0 -> ok
+step 95: wait:2 -> ok
+  shot ptr.png
+step 96: shot:ptr -> ok
+step 97: click -> ok
+step 98: wait:45 -> ok
+  shot store2.png
+step 99: shot:store2 -> ok
+step 100: type:/ -> ok
+step 101: wait:3 -> ok
+step 102: type:age -> ok
+step 103: wait:8 -> ok
+  shot store3.png
+step 104: shot:store3 -> ok
+step 105: move:-15,-55 -> ok
+step 106: move:-15,-55 -> ok
+step 107: move:-15,-55 -> ok
+step 108: move:-15,-55 -> ok
+step 109: move:-15,-55 -> ok
+step 110: move:-15,-55 -> ok
+step 111: move:-15,-55 -> ok
+step 112: wait:1 -> ok
+step 113: click -> ok
+step 114: wait:10 -> ok
+  shot store4.png
+step 115: shot:store4 -> ok
+step 116: move:48,4 -> ok
+step 117: move:48,4 -> ok
+step 118: move:48,4 -> ok
+step 119: move:48,4 -> ok
+step 120: move:48,4 -> ok
+step 121: move:48,4 -> ok
+step 122: move:48,4 -> ok
+step 123: move:48,4 -> ok
+step 124: move:48,4 -> ok
+step 125: move:48,4 -> ok
+step 126: wait:1 -> ok
+step 127: click -> ok
+step 128: wait:20 -> ok
+  shot prove1.png
+step 129: shot:prove1 -> ok
+step 130: key:esc -> ok
+step 131: wait:5 -> ok
+  shot prove2.png
+step 132: shot:prove2 -> ok
+step 133: key:down -> ok
+step 134: wait:1 -> ok
+step 135: key:down -> ok
+step 136: wait:1 -> ok
+step 137: key:down -> ok
+step 138: wait:1 -> ok
+step 139: key:down -> ok
+step 140: wait:1 -> ok
+step 141: key:down -> ok
+step 142: wait:1 -> ok
+step 143: key:down -> ok
+step 144: wait:1 -> ok
+step 145: key:down -> ok
+step 146: wait:1 -> ok
+step 147: key:down -> ok
+step 148: wait:1 -> ok
+step 149: key:down -> ok
+step 150: wait:1 -> ok
+step 151: key:down -> ok
+step 152: wait:1 -> ok
+step 153: key:down -> ok
+step 154: wait:1 -> ok
+step 155: key:down -> ok
+step 156: wait:1 -> ok
+step 157: wait:3 -> ok
+  shot prove3.png
+step 158: shot:prove3 -> ok
+step 159: key:p -> ok
+step 160: wait:3 -> ok
+step 161: key:y -> ok
+step 162: wait:30 -> ok
+  shot prove4.png
+step 163: shot:prove4 -> ok
+step 164: key:p -> ok
+step 165: wait:3 -> ok
+step 166: key:y -> ok
+step 167: wait:60 -> ok
+  shot prove5.png
+step 168: shot:prove5 -> ok
+step 169: key:esc -> ok
+step 170: wait:5 -> ok
+  shot back.png
+step 171: shot:back -> ok
+step 172: type:market install linux.jq -> ok
+step 173: key:ret -> ok
+step 174: wait:3 -> ok
+step 175: type:market install linux.openssl -> ok
+step 176: key:ret -> ok
+step 177: wait:3 -> ok
+step 178: type:market install linux.ripgrep -> ok
+step 179: key:ret -> ok
+step 180: wait:3 -> ok
+step 181: type:market install linux.sqlite -> ok
+step 182: key:ret -> ok
+step 183: wait:3 -> ok
+step 184: type:market install linux.minisign -> ok
+step 185: key:ret -> ok
+step 186: wait:3 -> ok
+step 187: type:market install linux.flac -> ok
+step 188: key:ret -> ok
+step 189: wait:3 -> ok
+step 190: type:market install linux.lame -> ok
+step 191: key:ret -> ok
+step 192: wait:3 -> ok
+step 193: type:market install linux.git -> ok
+step 194: key:ret -> ok
+step 195: wait:3 -> ok
+step 196: type:market install linux.vim -> ok
+step 197: key:ret -> ok
+step 198: wait:3 -> ok
+step 199: type:market install linux.gpg -> ok
+step 200: key:ret -> ok
+step 201: wait:3 -> ok
+  shot queued.png
+step 202: shot:queued -> ok
+idrive: stopped

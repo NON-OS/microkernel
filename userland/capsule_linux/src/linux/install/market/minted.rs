@@ -51,3 +51,13 @@ pub fn place(
     }
     write(at, body)
 }
+
+/// Why a program whose policy has no trailer beside it does not run: the
+/// policy is PENDING while its install has not bound it yet, and a program
+/// started then is told so rather than that its policy is not vouched for.
+pub fn unbound_why(policy: &[u8]) -> &'static str {
+    match policy == PENDING {
+        true => "it is still being installed: its policy is not bound yet",
+        false => "its policy is not vouched for",
+    }
+}

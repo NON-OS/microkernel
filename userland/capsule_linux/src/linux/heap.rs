@@ -19,24 +19,23 @@
 
 use nonos_libc::{heap_init, heap_init_sized, mk_args};
 
+use super::program_max::PROGRAM_MAX;
+
 /// An install holds a distribution's index while it resolves a closure.
 /// Kali's main is 21 MB fetched and 85 MB inflated, parsed into records
 /// beside it; Alpine's is a few.
 const INSTALL_HEAP: usize = 320 << 20;
 
-/// A run holds the program it loads, read whole from the store, beside the
-/// family's own state. A 6 MB Go program outgrew the 16 MiB default while it
-/// was read.
-///
-/// This is not the largest program that may run. The read buffer doubles as it
-/// fills, so a program of N bytes costs N/2 + N at the peak: 64 MiB covers a
-/// program up to about 32 MiB, not up to 64. Two ceilings sit above that and
-/// they are different numbers: a program carrying a certificate is verified by
-/// the kernel up to 16 MiB (`capsule_load/copy.rs`), one without a certificate
-/// locally up to 64 MiB (`local_image.rs`). A program between 32 and 64 MiB
-/// therefore passes verification and still ends the personality here, which
-/// wants a buffer sized from the file rather than a larger constant.
+/// A run holds the program it loads, read whole from the store into one
+/// allocation of its size (file/store/bytes.rs), beside the family's own
+/// state. 64 MiB holds a program up to about 48 MiB.
 const RUN_HEAP: usize = 64 << 20;
+
+/// With memory to spare, a run takes room for a program up to PROGRAM_MAX
+/// (simplex-chat is 79.5 MB) and 32 MiB beside it. The heap is backed when
+/// it is made, so a machine with less than 2 GiB free keeps RUN_HEAP.
+const LARGE_HEAP: usize = PROGRAM_MAX as usize + (32 << 20);
+const SPARE_KB: u64 = 2 << 20;
 
 pub fn init() {
     let mut buf = [0u8; nonos_libc::ARGV_BYTES_MAX];
@@ -53,6 +52,8 @@ pub fn init() {
         // it is read, with that reason, instead of here without one.
         let line = b"[LINUX] no room for a large index, installing in the default heap\n";
         let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+    } else if spare() && heap_init_sized(LARGE_HEAP).is_ok() {
+        return;
     } else if heap_init_sized(RUN_HEAP).is_ok() {
         return;
     }
@@ -62,4 +63,9 @@ pub fn init() {
     let line = b"[LINUX] no room for a 40 MiB heap, running in the default 16 MiB\n";
     let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
     let _ = heap_init();
+}
+
+/// Whether the machine has SPARE_KB free for the large heap.
+fn spare() -> bool {
+    super::file::free_kb().is_some_and(|kb| kb >= SPARE_KB)
 }

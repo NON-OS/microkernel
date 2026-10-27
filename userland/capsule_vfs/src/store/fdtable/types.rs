@@ -22,7 +22,8 @@ pub(super) const MAX_OPEN_FDS: usize = 256;
 /// The most handles one owner holds open at once, so no one client can take
 /// every handle from the rest.
 pub const PER_OWNER_FDS: usize = MAX_OPEN_FDS / 2;
-pub(super) const MAX_FILE_BYTES: usize = 1 << 26;
+/// The largest file: a program up to capsule_linux's PROGRAM_MAX (128 MiB).
+pub(super) const MAX_FILE_BYTES: usize = 1 << 27;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StoreError {
