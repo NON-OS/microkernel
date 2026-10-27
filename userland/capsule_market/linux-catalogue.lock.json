@@ -17,6 +17,7 @@
   "nnn": {"V": "4.9-r0", "C": "Q18erg5ybXnvWq6caIG05shJMgEYQ=", "S": "61507", "B": "099d13c03f5e3ad2a2a604dd4f0354acd931f6673b182c03de816ace2d7fe19e", "G": "614233843d2e9fa9a7e9eac0680b64985485a14566c3ccadc00b1644e31c8417", "R": "8141cb123cc5a25fc316e2aefad34ea114767994a4ea5df1cc8e8fa409a67d37"},
   "profanity": {"V": "0.14.0-r1", "C": "Q1Lpz+Dq84ad+3v4PZcoeRv+NUFvQ=", "S": "414700", "B": "aad57d028f143425a29598383104ae1a9ed624f0396774cfbe36dd7bdb1e0cf1", "G": "f8f636e0967e75c7d1ab6caf5f3d7774d1c7cb72fc2632d04cd8ddd2df3748ac", "R": "d5d76d9a39dc3f0299317890e34f0f2712911486579069abb25cec2fc26da166"},
   "swayimg": {"V": "2.2-r1", "C": "Q1WPRowh7yowyXyC2MTnCsopcs2E4=", "S": "51409", "B": "06319e6aa60c56f55f8da576d1b8695363ef2d3ba3e3f2c698281c28df360456", "G": "", "R": ""},
+  "telegram-desktop": {"V": "5.0.1-r6", "C": "Q1hGjs4BX/Ri7nRSaMZmdKdI+4hek=", "S": "38323636", "B": "70cb183d21822341506a36ef98161217a5367f899d71794ed3caf4585d80220f", "G": "", "R": ""},
   "tig": {"V": "2.5.10-r0", "C": "Q13sZq/SIGXngty0auMy+P4CCQDEg=", "S": "199250", "B": "f2543fcea8165dfde08d40fcef8440009642a6f22dcbad39a5e35933469ed3bf", "G": "", "R": ""},
   "vim": {"V": "9.1.0707-r0", "C": "Q1JH+XfzD5kVNgb92NMgeEQbUZE88=", "S": "1476729", "B": "64641cc28aa7ef9fb3211727152842e4f619bff4b346dba77a308dfc3d194a1a", "G": "3447fef5fcf8a2e4ee5a0c93b0858c7c0c865592d9192579ced873f0f1809501", "R": "621cd01f40b9dbccfd004f15863e74f75d126aa1460a20087d7e46ac59723748"}
 }}
