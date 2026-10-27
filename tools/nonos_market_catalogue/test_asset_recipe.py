@@ -48,6 +48,8 @@ class AssetRecipe(unittest.TestCase):
                          ("sums", AT[:-1] + "x/_sha256sums")):
             with self.assertRaises(ValueError, msg=bad):
                 checked(dict(ASSET, **{key: bad}), ROOT)
+        with self.assertRaises(ValueError, msg="http, both in one release"):
+            checked(dict(ASSET, asset="http://github.com/x/y/a", sums="http://github.com/x/y/b"), ROOT)
 
     def test_the_sha256_is_64_lower_hex(self):
         for bad in ("", "ab" * 31, ASSET["sha256"].upper(), "g" * 64, ASSET["sha256"] + "0"):
