@@ -35,6 +35,8 @@ mod classify_storage;
 mod family;
 #[path = "../../../../src/hardware/inventory/intel_ethernet_ids.rs"]
 mod intel_ethernet_ids;
+#[path = "../../../../src/hardware/inventory/mediatek_ids.rs"]
+mod mediatek_ids;
 #[path = "../../../../src/hardware/inventory/realtek_ids.rs"]
 mod realtek_ids;
 // Mounted once, by the VMD proofs; classify_storage reaches it here.
@@ -54,6 +56,8 @@ pub mod igb;
 #[path = "../../../capsule_driver_igc/src/constants/pci.rs"]
 pub mod igc;
 pub mod ixgbe;
+#[path = "../../../capsule_driver_mt7921/src/ids.rs"]
+pub mod mt7921;
 #[path = "../../../capsule_driver_rtl8139/src/constants/pci.rs"]
 pub mod rtl8139;
 #[path = "../../../capsule_driver_rtl8169/src/constants/pci.rs"]
@@ -62,6 +66,7 @@ pub mod rtl8169;
 pub mod rtl8821ce;
 
 mod classify_tests;
+mod mediatek_tests;
 mod report_tests;
 mod serial_bus_tests;
 mod table_tests;

@@ -56,6 +56,7 @@ let
     "nonos-capsule-driver-cdc-ecm" "nonos-capsule-driver-cdc-ncm" "nonos-capsule-driver-rndis"
     "nonos-capsule-driver-ax88179"
     "nonos-capsule-driver-rtl8153"
+    "nonos-capsule-driver-mt7921"
     "nonos-capsule-net-l2" "nonos-capsule-net-ip" "nonos-capsule-net-udp" "nonos-capsule-net-dhcp"
     "nonos-capsule-net-tcp" "nonos-capsule-net-dns" "nonos-capsule-net-ntp" "nonos-capsule-net-core"
     "nonos-capsule-net-sockets" "nonos-capsule-net-nym" "nonos-capsule-net-anon" "nonos-capsule-socks5"
