@@ -14,20 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A shared map made, and what mprotect may do with one.
+//! A shared map made.
 
 use super::super::super::{models, synth};
 use super::super::desc;
-use super::asks::{protects, refused, writers};
+use super::asks::{refused, PROT_EXEC, PROT_WRITE};
+use super::back::too_long;
 use super::entry::Entry;
 use super::rules::admits;
 use super::table::with;
 use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
-
-/// mmap's and mprotect's bits, as Linux numbers them.
-const PROT_WRITE: u64 = 0x2;
-const PROT_EXEC: u64 = 0x4;
 
 /// The map `fd` would make at `[at, at + span)` from `off`, if mmap may
 /// make it (asks.rs).
@@ -37,6 +34,9 @@ pub fn asked(g: &Guest, fd: u64, at: u64, span: u64, off: u64, prot: u64) -> Res
     let (write, exec) = (prot & PROT_WRITE != 0, prot & PROT_EXEC != 0);
     if let Some(e) = refused(stored, desc::reads(f), f.writable, write, exec) {
         return Err(e);
+    }
+    if write && too_long(&f.path) {
+        return Err(errno::ENOSYS);
     }
     /* Linux's EOVERFLOW, a file range past the largest offset, as EINVAL. */
     off.checked_add(span).ok_or(errno::EINVAL)?;
@@ -53,17 +53,4 @@ pub fn admit(new: &Entry, fixed: bool) -> Result<(), i64> {
 /// its file, and what it changes goes back.
 pub fn record(new: Entry) {
     with(|all| all.push(new));
-}
-
-/// mprotect of `[at, at + span)` of `pid` to write and exec as `prot`
-/// asks (asks.rs). A map given write is a writer from here on.
-pub fn protect(pid: u32, at: u64, span: u64, prot: u64) -> Result<(), i64> {
-    let (end, write) = (at.saturating_add(span), prot & PROT_WRITE != 0);
-    with(|all| {
-        protects(all, pid, at, end, (write, prot & PROT_EXEC != 0))?;
-        if write {
-            writers(all, pid, at, end);
-        }
-        Ok(())
-    })
 }

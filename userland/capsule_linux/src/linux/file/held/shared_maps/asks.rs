@@ -21,6 +21,10 @@ use super::entry::{overlap, Entry};
 use super::rules::conflict;
 use crate::linux::abi::errno;
 
+/// mmap's and mprotect's bits, as Linux numbers them.
+pub const PROT_WRITE: u64 = 0x2;
+pub const PROT_EXEC: u64 = 0x4;
+
 /// What mmap refuses of a descriptor mapped shared, in Linux's order:
 /// ENODEV for anything but a file the store keeps, EACCES for one not open
 /// to read, for write asked of one not open to write, and for exec.
