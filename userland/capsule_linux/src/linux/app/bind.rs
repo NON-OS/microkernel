@@ -65,7 +65,7 @@ fn vouched(path: &[u8]) -> Result<Option<Vec<u8>>, &'static str> {
     let policy = store_read(&at, MAX_POLICY).map_err(|_| "its policy could not be read")?;
     let trailer =
         store_read(&key(&beside(path, b".nonos_linux_policy.zk_trailer.bin")), MAX_TRAILER)
-            .map_err(|_| "its policy is not vouched for")?;
+            .map_err(|_| crate::linux::install::unbound_why(&policy))?;
     if !nonos_libc::mk_local_verify(&policy, GUEST_CAPS, &trailer) {
         return Err("its policy is not this machine's");
     }

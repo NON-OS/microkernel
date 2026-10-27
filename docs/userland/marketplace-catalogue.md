@@ -74,7 +74,7 @@ Any fault stops the run with a message, so a seal lists every recipe or none. Th
 
 ## The lock
 
-`userland/capsule_market/linux-catalogue.lock.json` pins the version, checksum (`C:`) and size of the package each recipe resolved to, and the BLAKE3 of its whole `.apk` (`B`), which its listing signs. `C:` covers only the control and data members, so `B` is what keeps a same-size package with another signature member out. Its shape is `{"format": "nonos.linux-catalogue-lock.v2", "packages": {...}}`, and any other format, shape or encoding is refused whole (`tools/nonos_market_catalogue/lock.py`, `read`).
+`userland/capsule_market/linux-catalogue.lock.json` pins the version, checksum (`C:`) and size of the package each recipe resolved to, and the BLAKE3 of its whole `.apk` (`B`), which its listing signs. `C:` covers only the control and data members, so `B` is what keeps a same-size package with another signature member out. Its shape is `{"format": "nonos.linux-catalogue-lock.v3", "packages": {...}}`, and any other format, shape or encoding is refused whole (`tools/nonos_market_catalogue/lock.py`, `read`).
 
 Every run fetches the signed indexes fresh, then holds them to the lock. A run stops, naming every package, if the index:
 
@@ -83,6 +83,63 @@ Every run fetches the signed indexes fresh, then holds them to the lock. A run s
 - has a recipe with no pin, or a pin with no recipe.
 
 After the fetch, every listing's `.apk` must be the one `B` pins. So two seals of one tree sign the same bytes or the second one stops. Alpine replaces a package's version in place, so a security update stops the next seal by name. `--update-lock` writes the lock from a run instead of holding it to the lock. That is a maintainer's deliberate step, and its diff is reviewed and committed like any other change.
+
+## Apps built from source
+
+Some apps are packaged by no distribution: DarkFi's drk, darkirc and darkfid, and SimpleX's static simplex-chat. A recipe of kind `source` lists one of these from a build of its upstream at a single commit (`tools/nonos_market_catalogue/source_recipe.py`, `checked`). No such recipe is in the catalogue yet.
+
+| Key | Required | What it holds |
+|---|---|---|
+| `kind` | yes | `"source"` |
+| `package` | yes | the name, of lower-case letters, digits, `-` and `.`, at most 58 long |
+| `source` | yes | the upstream's git URL: `https://`, a host by name and a path, with no user, port, query or fragment |
+| `commit` | yes | the full 40-hex commit it is built from |
+| `build` | yes | the name of the nix recipe under `tools/nix/sources/` that builds it offline |
+| `program` | yes | the program the listing sells, as `usr/bin/<name>` |
+| `licence`, `mask`, `name`, `text` | yes | as for an Alpine recipe |
+| `calls`, `dests`, `logo` | no | as for an Alpine recipe |
+
+The rest of the recipe is checked as an Alpine one is: the allowlist, the services, the set, the dests file and the logo record. `index_licence` and `licence_source` describe an index, so a source recipe may not carry them. Its listing is `linux.nonos-<package>`. That is the namespace the device installs from the NONOS package mirror (`userland/capsule_linux/src/linux/install/tools.rs`). The generator adds the prefix, so a recipe that names a reserved namespace itself (`nonos-`, `qwen-`, `kali.`, `blackarch.`) is refused.
+
+**Content.** The generator builds nothing. The seal passes the build's output as `--sources DIR`. DIR holds `<package>/`, a tree, or `<package>.tar`, a tar, but never both. Either one is bundled again by `packages.py`'s `bundle`: in path order, with no times and no owners. So a tar's own order and times never reach the listing (`tools/nonos_market_catalogue/source_content.py`, `bundled`). The content may hold only regular files, so a link, a hard link, a device, a path out of the tar, or an empty content is refused.
+
+**The listing.** For each source recipe the generator (`tools/nonos_market_catalogue/source_run.py`, `source_entries`):
+
+1. checks that the content makes one pack (`pack_size.py`);
+2. finds the program by `choose.rs`'s rule under the install's own name, `nonos-<package>`. It must be an ELF at the recipe's path, no larger than 128 MiB (`apk.py`, `MAX_IMAGE`), and no earlier name under `usr/bin` may carry the same bytes;
+3. writes the content to `--package-out` as `<blake3>.tar`, for the mirror;
+4. writes the release, `nonos-<package>@<commit>`:
+   - `package_url` is `http://<mirror>/linux/<blake3>.tar`, and `package_hash` is that BLAKE3;
+   - its `guest_policy` is built as an Alpine listing's is: the program's BLAKE3, the mask, the ids, the dests hash, and the set, UNMEASURED unless measured.
+
+On the device, `install/tools_install.rs` fetches the content from `NONOS_PACKAGE_MIRROR` and holds it to the index's pin before it is unpacked. `install/market/run.rs` then binds the policy to the program, as for any market listing. So the device needs no change for these apps.
+
+**No mirror, none listed.** Without `--package-mirror`, the source recipes are left out, and each is named on stderr. They are not checked, and their lock is neither read nor written. Every release profile's `linux_packages` is empty today, so no release lists one. With a mirror, every source recipe must be listed or the run stops and names it. That covers:
+
+- no `--sources`;
+- missing or doubled content;
+- a link;
+- no program at the recipe's path;
+- a program that is not an ELF, or is past 128 MiB;
+- a pack past its bounds;
+- the lock not holding.
+
+**The sources lock.** `userland/capsule_market/linux-catalogue.sources.lock.json` sits beside the Alpine lock. Its shape is `{"format": "nonos.linux-catalogue-sources-lock.v1", "sources": {...}}`. Each package is pinned by:
+
+- `commit`;
+- `B`, the BLAKE3 of the bundled content tar, which its listing signs;
+- `S`, the tar's size;
+- `G` and `R`, its logo's BLAKE3s.
+
+A missing file pins nothing, and any other format, shape or encoding is refused whole (`tools/nonos_market_catalogue/source_lock.py`, `read`). A run stops, naming the package and the field, when a rebuild's content, its size, the recipe's commit or a logo is not the one pinned. It also stops for a recipe with no pin, or a pin with no recipe. `--update-lock` writes the sources lock as well, but only on a run with a mirror. The design (HANDOFF/letters/2026-10-27-s3-darkfi.md) also pins the nix narHash of the source; that waits for `tools/nix/sources/`.
+
+```sh
+python3 tools/nonos-market-catalogue --out OUT.json --no-nonos --operator-pubkey <64 hex> \
+  --catalogue userland/capsule_market/linux-catalogue.json --serial N \
+  --package-mirror 10.0.2.2:8080 --package-out target/linux-packages --sources DIR
+```
+
+For a development boot, `tools/nonos-mirror-relay --content target/linux-packages` serves that directory as the mirror ([the development mirror](../build/dev-mirror.md)). A listing id may appear only once in an index, so a source recipe whose name an in-tree tool already has stops the generator.
 
 ## Adding an app
 
@@ -105,4 +162,4 @@ After the fetch, every listing's `.apk` must be the one `B` pins. So two seals o
 - **A real package:** `vectors/` holds one real Alpine package (CC0-1.0) and its signed index record. RSA verification and the package chain are tested against Alpine's own signature, and a test key covers the padding and length rules.
 - **Hostile inputs:** tests for every refusal: gzip, tar, pax, the chain, the index, names, recipes, documents, fetches and the run.
 - **A seeded fuzz sweep:** `test_fuzz.py`, over every parser of untrusted input. Use NONOS_FUZZ_ITERS and NONOS_FUZZ_SEED for a long run.
-- **Mutants:** `test_mutants.py` applies each of the 142 mutants in `tools/nonos_market_catalogue/mutants.json` to a copy of the tree. The suite must fail on every one and pass on the unmutated copy. A mutant that hangs the suite counts as killed after 120 s.
+- **Mutants:** `test_mutants.py` applies each of the 175 mutants in `tools/nonos_market_catalogue/mutants.json` to a copy of the tree. The suite must fail on every one and pass on the unmutated copy. A mutant that hangs the suite counts as killed after 120 s.

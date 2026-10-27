@@ -17,7 +17,6 @@
 //! Fetching and joining the branch indexes.
 
 use alloc::format;
-use alloc::vec::Vec;
 
 use super::super::auth::{rsa_verify, signed_index};
 use super::super::http::get::get;
@@ -26,8 +25,8 @@ use super::super::run::{ARCH, BRANCHES, RELEASE};
 use super::super::tar::entries;
 
 pub(in crate::linux::install) fn load_index() -> Option<Index> {
-    let mut all: Vec<u8> = Vec::new();
-    for branch in BRANCHES {
+    let mut index = Index::default();
+    for (at, branch) in BRANCHES.iter().enumerate() {
         let path = format!("/alpine/{RELEASE}/{branch}/{ARCH}/APKINDEX.tar.gz");
         let raw = get(&path)?;
         /*
@@ -41,11 +40,11 @@ pub(in crate::linux::install) fn load_index() -> Option<Index> {
         };
         for entry in entries(&plain) {
             if entry.name.ends_with(b"APKINDEX") {
-                all.extend_from_slice(&entry.body);
+                index.add(&entry.body, at);
             }
         }
     }
-    Some(Index::parse(&all))
+    Some(index)
 }
 
 fn say(line: &[u8]) {
