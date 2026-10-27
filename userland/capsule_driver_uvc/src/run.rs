@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The driver's loop: requests answered, the stream pumped while it runs,
-//! a camera looked for while there is none, and a camera gone from its
-//! port given back (its stream stopped first).
+//! a camera looked for while there is none, a stream whose client the
+//! kernel says is gone stopped, and a camera gone from its port given back
+//! (its stream stopped first).
 
 use alloc::vec;
 
@@ -26,7 +27,7 @@ use nonos_usbnet::scan::Scanner;
 
 use crate::bind::bind;
 use crate::device::Dev;
-use crate::gone::{give_back, gone};
+use crate::gone::{give_back, gone, reap};
 use crate::isoch::REPLY_LEN;
 use crate::ops::answer;
 use crate::stream::pump;
@@ -60,6 +61,7 @@ pub fn run() -> ! {
             continue;
         }
         next = Deadline::after_ms(SEARCH_MS);
+        reap(&mut d);
         if gone(&d) {
             give_back(&mut d, &mut scanner);
         }
