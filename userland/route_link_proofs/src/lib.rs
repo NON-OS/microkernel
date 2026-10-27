@@ -42,6 +42,8 @@ mod direct_tests;
 #[cfg(test)]
 mod frame_tests;
 #[cfg(test)]
+mod install_tests;
+#[cfg(test)]
 mod ntp_tests;
 #[cfg(test)]
 mod patience_tests;
