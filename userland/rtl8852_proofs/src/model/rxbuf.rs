@@ -21,7 +21,14 @@ pub fn wrap(kind: u8, payload: &[u8]) -> Vec<u8> {
 
 /// A received MPDU, with a frame check sequence after it.
 pub fn wifi(mpdu: &[u8]) -> Vec<u8> {
+    wifi_with(mpdu, 0)
+}
+
+/// The same, descriptor word 3 carrying `w3` (`HW_DEC`, `ICV_ERR`).
+pub fn wifi_with(mpdu: &[u8], w3: u32) -> Vec<u8> {
     let mut p = mpdu.to_vec();
     p.extend_from_slice(&[0xa5; 4]);
-    wrap(TYPE_WIFI, &p)
+    let mut b = wrap(TYPE_WIFI, &p);
+    b[16..20].copy_from_slice(&w3.to_le_bytes());
+    b
 }

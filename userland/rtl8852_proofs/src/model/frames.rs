@@ -7,7 +7,7 @@
 use super::chans::Ch;
 use super::cpu::{self, Fwdl, H2c};
 use super::state::State;
-use super::{air, bus, h2c_seen, rxq};
+use super::{air, bus, h2c_seen, rxq, sec_air};
 
 fn w(b: &[u8], i: usize) -> u32 {
     u32::from_le_bytes(b[4 * i..4 * i + 4].try_into().unwrap())
@@ -63,8 +63,12 @@ pub fn wd_page(s: &mut State, c: Ch, page: &[u8]) {
     let Some(frame) = bus::read(&s.bus, addr as u64, len as usize) else {
         return s.violations.push(format!("ch{} frame off the bus", c.id));
     };
-    air::transmit(s, &frame);
-    s.sent.push(super::txq::Sent { ch: c.id, wd, frame });
+    let sealed = wd[8] & 0x100 != 0;
+    let on_air = if sealed { sec_air::seal(s, wd[8], &frame) } else { Some(frame.clone()) };
+    if let Some(f) = &on_air {
+        air::transmit(s, f);
+    }
+    s.sent.push(super::txq::Sent { ch: c.id, wd, frame, air: on_air });
     if !s.faults.no_release {
         s.rpp.push(seq << 16 | qsel << 8);
     }

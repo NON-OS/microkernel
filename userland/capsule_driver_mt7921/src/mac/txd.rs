@@ -7,10 +7,11 @@
 //! (Linux v6.12 `mt76_connac2_mac_write_txwi` and `..._write_txwi_80211`,
 //! the MT7921 family's branches), then the 32-byte hardware TXP that
 //! points at the frame (`mt76_connac_write_hw_txp`). Every frame goes at a
-//! fixed rate with block-ack off; none is ever fragmented or keyed by the
-//! chip (the shared station seals data itself), so no `PROTECT_FRAME`.
-//! The station's own sequence number is kept (`SN_VALID`), as Linux keeps
-//! an injected frame's.
+//! fixed rate with block-ack off and none fragmented. A frame the chip is
+//! to encrypt carries `MT_TXD3_PROTECT_FRAME`, as Linux sets it for a frame
+//! with a hardware key: the WTBL entry's key, and the chip's own CCMP
+//! header and packet number. The station's own sequence number is kept
+//! (`SN_VALID`), as Linux keeps an injected frame's.
 
 use nonos_wifi_core::dot11::header::{fc_subtype, fc_type, header_len};
 
@@ -26,12 +27,13 @@ const TXD_LEN_LAST: u16 = 1 << 15;
 
 /// What the TXD carries besides the frame: the WTBL entry it is sent
 /// under, the token its buffer is held by, where the chip reads the frame,
-/// and the fixed rate (`mac::rate::value`).
+/// the fixed rate (`mac::rate::value`), and whether the chip encrypts it.
 pub struct TxSpec {
     pub wcid: u16,
     pub token: u16,
     pub frame_dev: u32,
     pub rate: u16,
+    pub protect: bool,
 }
 
 /// The TXD and TXP for `frame`, or `None` for one too short for its own
@@ -55,6 +57,7 @@ pub fn txwi(frame: &[u8], s: &TxSpec) -> Option<[u8; TXWI_LEN]> {
     let w2 = sub | ty << 4 | u32::from(group) << 10 | 1 << 13 | 1 << 31;
     let seq = u32::from(sc >> 4);
     let w3 = u32::from(group) | REM_TX_COUNT << 11 | seq << 16 | 1 << 28 | 1 << 31;
+    let w3 = w3 | u32::from(s.protect) << 1; // PROTECT_FRAME
     let w6 = 1 << 2 | u32::from(s.rate & 0x3fff) << 16; // FIXED_BW, TX_RATE
     let w7 = sub << 16 | ty << 20;
     let mut out = [0u8; TXWI_LEN];
