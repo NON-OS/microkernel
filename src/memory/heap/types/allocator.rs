@@ -15,12 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::constants::CANARY_VALUE;
-use super::regions::SecondRegion;
+use super::{regions::SecondRegion, size_class::SizeClasses};
 use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 #[cfg(feature = "heap-track")]
 use heapless::index_set::FnvIndexSet;
 use linked_list_allocator::LockedHeap;
-#[cfg(feature = "heap-track")]
 use spin::Mutex;
 
 #[cfg(feature = "heap-track")]
@@ -35,13 +34,13 @@ pub struct SecureHeapAllocator {
     pub canary_value: u64,
     pub initialized: AtomicBool,
     pub heap_size: AtomicUsize,
-    // Where the heap actually lives. The shutdown wipe used to erase the
-    // KHEAP_BASE window from the layout constants, which the bootstrap heap
-    // never occupies, so it wiped an unmapped range and left the real heap
-    // intact. Recording the base at init is what lets the wipe find it.
+    // Where the heap lives, recorded at init: the shutdown wipe once erased
+    // the KHEAP_BASE window, which the bootstrap heap never occupies.
     pub(super) heap_start: AtomicUsize,
     // The second region (types/regions.rs), empty until boot adds it.
     pub(super) second: SecondRegion,
+    // Small blocks by size class (size_class.rs), so first-fit lists stay short.
+    pub(super) small: Mutex<SizeClasses>,
 }
 
 impl SecureHeapAllocator {
@@ -57,6 +56,7 @@ impl SecureHeapAllocator {
             heap_size: AtomicUsize::new(0),
             heap_start: AtomicUsize::new(0),
             second: SecondRegion::new(),
+            small: Mutex::new(SizeClasses::new()),
         }
     }
 

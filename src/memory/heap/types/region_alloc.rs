@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Where a block comes from and goes back to, between the heap's two regions
-//! (regions.rs), and how much of both is free.
+//! (regions.rs), and how much of both is free. A small block is served by
+//! its size class (size_class.rs) and never walks a region's list.
 
 use super::allocator::SecureHeapAllocator;
+use super::size_class::class_of;
 use core::alloc::{GlobalAlloc, Layout};
 
 impl SecureHeapAllocator {
@@ -27,13 +29,23 @@ impl SecureHeapAllocator {
             let first = if self.is_initialized() { self.inner.lock().free() } else { 0 };
             let second =
                 if self.second_extent().is_some() { self.second.heap.lock().free() } else { 0 };
-            first + second
+            first + second + self.small.lock().free_bytes()
         })
+    }
+
+    /// A small block from its size class; any other from the regions.
+    pub(super) unsafe fn raw_alloc(&self, layout: Layout) -> *mut u8 {
+        unsafe {
+            match class_of(layout.size(), layout.align()) {
+                Some(class) => self.small_alloc(class),
+                None => self.list_alloc(layout),
+            }
+        }
     }
 
     /// A block from the bootstrap heap, or from the second region when the
     /// first has no room.
-    pub(super) unsafe fn raw_alloc(&self, layout: Layout) -> *mut u8 {
+    pub(super) unsafe fn list_alloc(&self, layout: Layout) -> *mut u8 {
         unsafe {
             let first = self.inner.alloc(layout);
             if first.is_null() && self.second_extent().is_some() {
@@ -44,9 +56,14 @@ impl SecureHeapAllocator {
         }
     }
 
-    /// Back to the region that handed the block out.
+    /// Back to the size class its layout chose, or to the region that handed
+    /// the block out. Slabs are never given back to a region: the classes
+    /// keep the most the kernel's small blocks ever held.
     pub(super) unsafe fn raw_dealloc(&self, ptr: *mut u8, layout: Layout) {
         unsafe {
+            if let Some(class) = class_of(layout.size(), layout.align()) {
+                return self.small_dealloc(class, ptr);
+            }
             if self.in_second(ptr) {
                 self.second.heap.dealloc(ptr, layout)
             } else {
