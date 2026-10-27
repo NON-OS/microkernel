@@ -11,6 +11,7 @@
 pub mod air;
 pub mod chip;
 pub mod data;
+pub mod doze;
 pub mod faults;
 pub mod images;
 mod l1;

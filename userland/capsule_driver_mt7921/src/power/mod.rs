@@ -7,6 +7,7 @@
 //! `mt7921_pci_probe` runs them.
 
 pub mod own;
+mod wake;
 
 use crate::hw::addr::*;
 use crate::hw::{poll, Regs};
