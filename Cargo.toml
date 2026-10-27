@@ -322,6 +322,18 @@ nonos-dev-unremapped-interrupts = []
 # airgapped profiles can take it out (tools/nix/config.nix) without opening
 # microkernel-core into members that are not kernel features.
 nonos-dma-unconfined-posture = []
+# On a standard boot, a claim whose isolation group another vendor driver
+# holds goes ahead when all that joins the two devices is a port without
+# ACS: each keeps its own IOMMU domain (src/hardware/broker/confine/
+# group_share.rs). It rides microkernel-desktop-gui, as the posture above
+# does, so the hardened and airgapped profiles drop it and refuse.
+nonos-shared-group-posture = []
+# The kernel keeps the last of its own console lines in memory
+# (src/sys/serial/tail.rs) for the Terminal's `log`, on a laptop with no
+# serial port: the lines a serial cable would show, which name no app and
+# carry no capsule's bytes. It rides microkernel-desktop-gui, as the posture
+# above does, so the hardened and airgapped profiles drop it and keep nothing.
+nonos-log-tail = []
 # An AgentProof build (the gauntlet profile, tools/nix/config.nix): with no
 # IOMMU in service the boot stops before any driver starts, as Hardened and
 # Air-Gapped boots do (src/memory/iommu/no_iommu_refusal.rs).
@@ -1021,6 +1033,8 @@ microkernel-desktop-base = [
 microkernel-desktop-gui = [
   "microkernel-desktop-base",
   "nonos-dma-unconfined-posture",
+  "nonos-shared-group-posture",
+  "nonos-log-tail",
   "nonos-tool-capsules",
 ]
 
