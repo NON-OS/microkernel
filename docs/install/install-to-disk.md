@@ -105,7 +105,7 @@ The Done screen says `Remove the USB stick, then press Enter to restart.`
 2. Press Enter. The machine restarts.
 3. If the machine does not start NONOS from the disk, choose that disk in the firmware's boot menu.
 
-The installer writes no firmware boot entry: the firmware finds the loader at the fallback path `EFI/BOOT/BOOTX64.EFI`. The installed disk shows the same boot menu as the stick, because it carries the same loader. The stick has to come out because, while a USB stick that carries NONOS is plugged in, the kernel keeps the boot's state on it before any internal disk.
+The installer writes no firmware boot entry: the firmware finds the loader at the fallback path `EFI/BOOT/BOOTX64.EFI`. The installed disk shows the same boot menu as the stick, because it carries the same loader. The stick has to come out because the firmware may start it again instead of the disk. The kernel keeps the disk the loader was read from, and never another NONOS disk in its place: a boot from the stick is a stick session, amnesic and with setup, however the internal disk is set up. When the kernel cannot drive the stick, it reads the loader's copy of the stick's store, keeps nothing, and says `[BLOCK] the disk this boot came from is not driven` once on the serial console.
 
 On its first boot, the first time a program asks for the data volume, the kernel finds the cleared key header, derives the volume key from the TPM and formats the volume, and the log says `[DATA] formatted a volume of` with its size in sectors. Without a TPM the volume stays closed: the program gets EIO, and the serial console says `[DATA] refused with EIO: MachineKey(...)`. The kernel's own `[DATA] no machine key` line goes to its structured log, which nothing installs in this release, so it does not print. Setup does not run there when setup's answers came with the store.
 
@@ -162,7 +162,7 @@ Installing to an internal NVMe disk and booting from it was reported on real har
   - The write time on Done: `seconds`, `userland/capsule_install/src/install/ui/screens/done.rs:49`.
 - After the install
   - The fallback path: `tree`, `userland/nonos_disk/src/image/nonos.rs:49-50`.
-  - A USB stick comes before internal disks: `ORDER`, `src/hardware/block_device/select.rs:48`.
+  - The disk the loader came from is kept, and no other in its place: `selected`, `src/hardware/block_device/select.rs:40-75`, and `settle`, `src/hardware/block_device/settle.rs:35-48`, by the rule `other_disk`, `src/hardware/block_device/other_disk.rs:41-49`.
   - First boot keys and formats the volume: `derive_for_kernel` and `mount_or_format`, `src/fs/blockfs_volume/open_machine.rs:75-79`, and `volume_sectors`, `src/fs/blockfs_volume/mount_or_format.rs:69`.
   - The EIO line on the serial console: `errno`, `src/syscall/microkernel/data/errno.rs:30-53`.
 - Other installers in the tree
