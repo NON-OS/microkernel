@@ -21,6 +21,7 @@ use nonos_libc::{mk_foreign_wait, ForeignFrame};
 
 use super::family::Family;
 use crate::linux::guest::Guest;
+use crate::linux::net;
 
 /// How long one wait blocks before looking at the guest again.
 const WAIT_MS: u64 = 250;
@@ -29,8 +30,9 @@ pub fn serve(guest: Guest) -> i32 {
     let mut family = Family::new(guest);
     loop {
         let mut frame = ForeignFrame::default();
-        // A sleeper or a parked wait due sooner than the usual wait shortens it.
-        let wait = family.next_wake_ms().map_or(WAIT_MS, |ms| ms.clamp(1, WAIT_MS));
+        // A sleeper, a parked wait or a closing stream due sooner shortens it.
+        let wake = [family.next_wake_ms(), net::closing_ms()].into_iter().flatten().min();
+        let wait = wake.map_or(WAIT_MS, |ms| ms.clamp(1, WAIT_MS));
         if mk_foreign_wait(&mut frame, wait) > 0 {
             family.answer(&frame);
         }
@@ -40,10 +42,14 @@ pub fn serve(guest: Guest) -> i32 {
         // After reap, so a write end that left with its process reads as end of file.
         family.reap();
         family.settle_waits();
+        /* A closed stream still carries what its guest wrote (net/routed/closing.rs). */
+        net::settle_closing();
         if let Some(code) = family.done() {
             super::tally::report();
             crate::linux::boxed::run_report();
             crate::linux::boxed::finish(code);
+            /* What the last guest wrote and closed goes before the capsule exits. */
+            net::flush_closing();
             return code;
         }
     }
