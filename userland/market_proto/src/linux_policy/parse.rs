@@ -20,6 +20,9 @@
 use alloc::boxed::Box;
 
 use super::{LinuxPolicy, KIND_NONE, KIND_POLICY, KIND_REFUSED, LINUX_POLICY_VERSION};
+use super::{MARKET_ARGS_MAX, MARKET_ARG_LEN};
+
+const MOST: usize = MARKET_ARG_LEN + MARKET_ARGS_MAX;
 
 /// The answer and the package hash of the release it was made from.
 pub fn parse_linux_policy(body: &[u8]) -> Option<(LinuxPolicy, [u8; 32])> {
@@ -28,7 +31,10 @@ pub fn parse_linux_policy(body: &[u8]) -> Option<(LinuxPolicy, [u8; 32])> {
     let reply = match (*kind, rest) {
         (KIND_NONE, []) => LinuxPolicy::NoPolicy,
         (KIND_REFUSED, []) => LinuxPolicy::Refused,
-        (KIND_POLICY, m) => LinuxPolicy::Policy(Box::new(m.try_into().ok()?)),
+        (KIND_POLICY, m) if m.len() <= MOST => {
+            let (m, args) = m.split_first_chunk::<MARKET_ARG_LEN>()?;
+            LinuxPolicy::Policy(Box::new(*m), args.to_vec())
+        }
         _ => return None,
     };
     Some((reply, *hash))
