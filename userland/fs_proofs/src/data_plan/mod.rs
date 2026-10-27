@@ -25,6 +25,8 @@ pub mod import_name;
 pub mod key_header;
 #[path = "../../../../src/fs/blockfs_volume/key_seal.rs"]
 pub mod key_seal;
+#[path = "../../../../src/fs/blockfs_volume/key_wrap.rs"]
+pub mod key_wrap;
 #[path = "../../../../src/fs/blockfs_volume/plan.rs"]
 pub mod plan;
 #[path = "../../../../src/fs/blockfs_volume/plan_types.rs"]
@@ -34,3 +36,4 @@ mod tests;
 mod tests_import_name;
 mod tests_key;
 mod tests_random;
+mod tests_wrap;
