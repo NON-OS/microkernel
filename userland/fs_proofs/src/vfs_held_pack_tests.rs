@@ -23,7 +23,8 @@ use crate::vfs_store::Store;
 
 const RUN: u32 = 40;
 const INSTALL: u32 = 41;
-const PACK: &str = "/linux-packs/vim.pack";
+/* A family's pack, in its family's directory (capsule_linux's pack/paths.rs). */
+const PACK: &str = "/linux-packs/alpine/vim.pack";
 
 fn put(s: &mut Store, path: &str, pid: u32, bytes: &[u8]) {
     let fd = s.open(path, pid, true, true, false, true).expect("opens");
@@ -38,7 +39,7 @@ fn a_held_pack_is_neither_replaced_nor_removed_nor_written() {
     let held = s.open(PACK, RUN, false, false, false, false).expect("the run opens it");
     assert!(s.held_by_another(PACK, INSTALL));
     assert!(!s.held_by_another(PACK, RUN), "its own hold does not stop the run");
-    put(&mut s, "/linux-packs/vim.pack.new", INSTALL, b"v2");
+    put(&mut s, "/linux-packs/alpine/vim.pack.new", INSTALL, b"v2");
     assert!(s.held_by_another(PACK, INSTALL), "the rename the install would make is held");
     let w = s.open(PACK, INSTALL, false, false, false, true).expect("opens to read");
     assert!(s.write(w, INSTALL, b"xx").is_err(), "a handle on a held pack cannot write");
