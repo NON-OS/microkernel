@@ -16,4 +16,3 @@ Part of [Hardware support matrix](MATRIX.md).
 | Ethernet | virtio-net 1af4:1000, 1af4:1041 | `capsule_driver_virtio_net` | Works | proof crate `virtio_net_proofs` (20); QEMU `virtio-net-pci` | 0.9.2 |
 | Ethernet | USB CDC-ECM (class 02/06), CDC-NCM (02/0d), RNDIS (02/02/ff, e0/01/03, ef/04/01) | `capsule_driver_cdc_ecm`, `capsule_driver_cdc_ncm`, `capsule_driver_rndis` | Not supported: not in the image | proof crates `cdc_ecm_proofs` (7), `cdc_ncm_proofs` (33), `rndis_proofs` (22) | 0.9.2 |
 | Ethernet | ASIX AX88179 and AX88178A, USB 0b95:1790, 0b95:178a | none | Not supported: no driver. Earlier releases listed a `capsule_driver_ax88179` that never existed in the tree | none | 0.9.3 |
-| Ethernet | Realtek RTL8153, USB 0bda:8153 | none | Not supported: no driver. Earlier releases listed a `capsule_driver_rtl8153` that never existed in the tree | none | 0.9.3 |
