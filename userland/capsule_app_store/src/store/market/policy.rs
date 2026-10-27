@@ -36,7 +36,7 @@ pub fn fetch(
     let body = pair_body(listing, release)?;
     let reply = exchange(port, OP_GET_LINUX_POLICY, request_id, &body).ok()?;
     match parse_linux_policy(&reply)?.0 {
-        LinuxPolicy::Policy(m) => Some(m),
+        LinuxPolicy::Policy(m, _) => Some(m),
         LinuxPolicy::NoPolicy | LinuxPolicy::Refused => None,
     }
 }
