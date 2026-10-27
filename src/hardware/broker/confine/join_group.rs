@@ -19,11 +19,11 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use alloc::vec::Vec;
 
 use super::acs_refusal::{alias_line, peer_alias_line, refusal_line, unreadable_line};
 use super::gates::{peer, Peer};
+use super::group_share::{holder_name, shares};
 use super::member::Member;
 use super::port_only::{blocked_by, Blocked};
 use super::say::say;
@@ -46,29 +46,25 @@ pub(super) fn group_held(
         let place =
             |e: u64| peers.iter().find(|(id, _)| *id == e).map(|(_, p)| (p.at, p.group.as_deref()));
         let ports = (claim_port_only, c.port_only);
-        if let Some(b) = blocked_by(claimed, group, &held, ports, place) {
+        // A group joined only by a port without ACS, shared on a standard boot.
+        let blocked = blocked_by(claimed, group, &held, ports, place);
+        if let Some(b) = blocked.filter(|b| !shares(all[pos].pid, c.pid, b)) {
             let line = match b {
-                Blocked::Reaches(at, hop) => refusal_line(at, hop, &holder(c.pid)),
-                Blocked::Unreadable(at) => unreadable_line(at, &holder(c.pid)),
+                Blocked::Reaches(at, hop) => refusal_line(at, hop, &holder_name(c.pid)),
+                Blocked::Unreadable(at) => unreadable_line(at, &holder_name(c.pid)),
             };
             say(line.as_bytes());
             return true;
         }
         if let Some(a) = aliases.iter().find(|a| c.devices.iter().any(|(_, d)| d == *a)) {
             let at = a.bdf().unwrap_or((0, 0, 0));
-            say(alias_line(at, &holder(c.pid)).as_bytes());
+            say(alias_line(at, &holder_name(c.pid)).as_bytes());
             return true;
         }
         if let Some((_, p)) = peers.iter().find(|(_, p)| p.aliases.contains(&address)) {
-            say(peer_alias_line(p.at, &holder(c.pid)).as_bytes());
+            say(peer_alias_line(p.at, &holder_name(c.pid)).as_bytes());
             return true;
         }
     }
     false
-}
-
-/// The holder's process name, never its pid (K10).
-fn holder(pid: u32) -> String {
-    crate::process::with_process(pid, |p| p.name.lock().clone())
-        .unwrap_or_else(|| String::from("another capsule"))
 }
