@@ -34,6 +34,13 @@ pub(super) fn map_at(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64
     if crate::linux::file::is_memfd(guest, req.fd) {
         return memfd(guest, req, at, span);
     }
+    // shm_open's object, mapped shared, is a memfd from here (shm_object.rs).
+    if req.flags & MAP_SHARED != 0 && crate::linux::file::is_shm_object(guest, req.fd, req.off) {
+        if let Err(e) = crate::linux::file::into_memfd(guest, req.fd) {
+            return errno::fail(e);
+        }
+        return memfd(guest, req, at, span);
+    }
     if req.flags & MAP_SHARED != 0 {
         /*
          * Sharing a file between processes needs frames that two address

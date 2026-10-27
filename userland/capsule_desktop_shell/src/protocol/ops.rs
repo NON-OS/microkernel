@@ -35,3 +35,6 @@ pub const OP_DISPLAY_ARRANGEMENT: u16 = 0x000D;
 pub const OP_DISPLAY_BRIGHTNESS: u16 = 0x000E;
 /// The asker's own freshly loaded app given its focus frame (focus_child.rs).
 pub const OP_FOCUS_CHILD: u16 = 0x000F;
+/// From app.linux.run only: a package whose program is for a terminal, run
+/// in the Terminal instead of with no window (run_linux.rs).
+pub const OP_RUN_LINUX: u16 = 0x0010;

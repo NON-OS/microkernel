@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Handing a descriptor back to the client in control data.
 
 use alloc::vec::Vec;
@@ -25,6 +24,7 @@ use crate::linux::guest::Guest;
 const CMSG_DATA: usize = 16;
 const SOL_SOCKET: u32 = 1;
 const SCM_RIGHTS: u32 = 1;
+const MSG_CTRUNC: u32 = 0x8;
 
 /// The control block for whatever is owed, or nothing when nothing is.
 pub fn control(guest: &mut Guest) -> Option<Vec<u8>> {
@@ -46,9 +46,14 @@ pub fn control(guest: &mut Guest) -> Option<Vec<u8>> {
     Some(out)
 }
 
-/// Write it into the guest's msghdr and say how long it was, since a
-/// client reads msg_controllen and not the block's own length.
-pub fn place(guest: &Guest, hdr: u64, block: &[u8]) -> bool {
+/// Write it into the guest's msghdr, or none, and set msg_controllen and
+/// msg_flags, as Linux does on every recvmsg: a client reads those, not the
+/// block's own length. Left as the client set them, a message carrying no
+/// descriptor read as a control block of the client's own unset bytes;
+/// libwayland walked one up its stack, closing each word it took for a
+/// descriptor, and faulted at the top (swayimg's first boot). A block with
+/// no room is dropped and said with MSG_CTRUNC, as Linux says it.
+pub fn place(guest: &Guest, hdr: u64, block: Option<&[u8]>) -> bool {
     let Some(raw) = guest.read(hdr, 56) else {
         return false;
     };
@@ -58,11 +63,11 @@ pub fn place(guest: &Guest, hdr: u64, block: &[u8]) -> bool {
     let room = u64::from_le_bytes([
         raw[40], raw[41], raw[42], raw[43], raw[44], raw[45], raw[46], raw[47],
     ]);
-    if at == 0 || room < block.len() as u64 {
-        return false;
-    }
-    if guest.write(at, block) < block.len() as i64 {
-        return false;
-    }
-    guest.write(hdr + 40, &(block.len() as u64).to_le_bytes()) >= 8
+    let block = block.unwrap_or(&[]);
+    let n = block.len();
+    let fits = n > 0 && at != 0 && room >= n as u64 && guest.write(at, block) >= n as i64;
+    let flags: u32 = if n > 0 && !fits { MSG_CTRUNC } else { 0 };
+    let len = if fits { n as u64 } else { 0 };
+    guest.write(hdr + 40, &len.to_le_bytes()) >= 8
+        && guest.write(hdr + 48, &flags.to_le_bytes()) >= 4
 }

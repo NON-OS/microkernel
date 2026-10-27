@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! zxdg_output_manager_v1 and wp_viewporter. An xdg_output says where the
+//! wl_output's release, zxdg_output_manager_v1 and wp_viewporter. An xdg_output says where the
 //! one screen is in the logical space and how large, the size wl_output gives
 //! (output.rs), at scale 1, then done (version 2). A viewport is made, but its
 //! source and destination change nothing: a guest's buffer is shown at its
@@ -40,7 +40,8 @@ pub fn route(
         (Some(XdgOutputManager), XDG_OUTPUT_MANAGER_GET) => xdg_output(guest, args),
         (Some(Viewporter), VIEWPORTER_GET_VIEWPORT) => super::rest::make(guest, args, Viewport),
         (Some(Viewport), VIEWPORT_SET_SOURCE | VIEWPORT_SET_DESTINATION) => {}
-        (Some(XdgOutputManager), XDG_OUTPUT_MANAGER_DESTROY)
+        (Some(Output), OUTPUT_RELEASE)
+        | (Some(XdgOutputManager), XDG_OUTPUT_MANAGER_DESTROY)
         | (Some(XdgOutput), XDG_OUTPUT_DESTROY)
         | (Some(Viewporter), VIEWPORTER_DESTROY)
         | (Some(Viewport), VIEWPORT_DESTROY) => super::super::forget::forget(guest, object, id),

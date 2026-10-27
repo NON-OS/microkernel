@@ -29,6 +29,9 @@ Each step is one of:
                         ctrl, alt, shift, f1, a ...)
     type:TEXT           type text
     move:DX,DY          move the mouse by DX, DY
+    abs:X,Y[,W,H]       move the pointer to pixel X,Y of a W x H screen
+                        (1920x1080), on a machine given an absolute device:
+                        --qemu-arg=--lane --qemu-arg=usb-tablet
     click[:right]       press and release a mouse button
     unplug:ID           pull device ID out of the machine (a lane's devices:
                         lane-usb-audio); the run fails if QEMU refuses

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! `recvmsg` on the display socket.
 
 use crate::linux::abi::errno;
@@ -35,9 +34,8 @@ pub fn recvmsg(guest: &mut Guest, fd: u64, at: u64) -> u64 {
         return errno::fail(errno::EFAULT);
     };
     crate::linux::wayland::pump(guest);
-    if let Some(block) = super::give::control(guest) {
-        super::give::place(guest, at, &block);
-    }
+    let block = super::give::control(guest);
+    super::give::place(guest, at, block.as_deref());
     let bytes = guest.display.drain(len as usize);
     /* Requests that waited for the client to read go on now that it has. */
     crate::linux::wayland::serve(guest);
