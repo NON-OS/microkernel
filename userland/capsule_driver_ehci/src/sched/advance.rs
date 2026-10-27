@@ -61,7 +61,7 @@ pub fn doorbell<R: Regs, C: Clock>(r: &mut R, c: &C, op: u32) -> Advance {
 
 /// The controller stopped, as Linux stops one it gives up on: true once
 /// it reads halted (a controller gone reads all ones and is not).
-fn stop<R: Regs, C: Clock>(r: &mut R, c: &C, op: u32) -> bool {
+pub(super) fn stop<R: Regs, C: Clock>(r: &mut R, c: &C, op: u32) -> bool {
     let cmd = r.r32(op + USBCMD);
     r.w32(op + USBCMD, cmd & !(CMD_RS | CMD_ASE | CMD_PSE | CMD_IAAD));
     until(c, HALT_MS, || {

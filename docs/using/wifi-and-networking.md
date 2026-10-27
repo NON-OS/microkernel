@@ -6,7 +6,7 @@ Put a NONOS machine on a network: join Wi-Fi in Settings, plug in a cable, and r
 
 You need a network card NONOS has a driver for, an image that carries that driver, and a boot that runs the network.
 
-- Wi-Fi: the Realtek RTL8821CE (PCI `10ec:c821`) and Intel cards through the iwlwifi driver. These two are the only Wi-Fi drivers the panels know. The Intel driver joins only on the parts whose firmware it boots; see [the Intel Wi-Fi page](../drivers/wifi/iwlwifi.md).
+- Wi-Fi: the Realtek RTL8821CE (PCI `10ec:b821` or `10ec:c821`) and Intel cards through the iwlwifi driver. These two are the only Wi-Fi drivers the panels know. The Intel driver joins only on the parts whose firmware it boots; see [the Intel Wi-Fi page](../drivers/wifi/iwlwifi.md).
 - Wired: `virtio_net` for QEMU, and the `e1000`, `rtl8139` and `rtl8169` driver capsules. Read from the code, only `virtio_net` gets a DHCP lease in this release: `net.core` drops every frame the other three receive (see [Ethernet](wifi-and-networking/wired.md#ethernet)). Which cards each one takes, by PCI id, is on the [Ethernet](../drivers/ethernet/README.md) pages.
 - The standard and hardened images carry all of these drivers. The `qemu` image carries only `virtio_net`, so it has no Wi-Fi. An image built with the `airgapped` profile carries no network driver, stack or online program at all.
 - The Air-Gapped, Safe Mode and Recovery boot modes start no network driver and no network service. See [boot modes](../install/boot-modes.md).

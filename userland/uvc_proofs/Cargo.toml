@@ -14,6 +14,8 @@ path = "src/lib.rs"
 
 [dependencies]
 nonos_uvc = { path = "../nonos_uvc" }
+# The bus alt.rs names; on the host, the USB network core's proofs crate.
+nonos_usbnet = { package = "usbnet_proofs", path = "../usbnet_proofs" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
