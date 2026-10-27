@@ -29,6 +29,7 @@ pins (userland/capsule_market/linux-catalogue.lock.json, B), or not at all:
 byte changed, so a development image's boot can show the guest refusing
 bytes its pin does not name. A development image (dev-mirror) dials this
 relay at 10.0.2.2:8080 (docs/build/dev-mirror.md); no release image does.
+--content DIR also serves its NONOS package mirror (nonos_mirror_relay/content.py).
 """
 
 import argparse
@@ -36,6 +37,7 @@ import hashlib
 import http.server
 import os
 import pathlib
+import shutil
 import ssl
 import sys
 import urllib.error
@@ -43,17 +45,11 @@ import urllib.request
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from nonos_market_catalogue import digest, lock_file
-from nonos_mirror_relay import pins as pinning
+from nonos_mirror_relay import content as local, pins as pinning
 
 LOCK = pathlib.Path(__file__).resolve().parent.parent / "userland/capsule_market/linux-catalogue.lock.json"
 
-HOSTS = {
-    "dl-cdn.alpinelinux.org",
-    "geo.mirror.pkgbuild.com",
-    "www.blackarch.org",
-    "deb.debian.org",
-    "kali.download",
-}
+HOSTS = {"dl-cdn.alpinelinux.org", "geo.mirror.pkgbuild.com", "www.blackarch.org", "deb.debian.org", "kali.download"}
 
 
 def fetcher(ca):
@@ -62,10 +58,17 @@ def fetcher(ca):
     return urllib.request.build_opener(proxy, urllib.request.HTTPSHandler(context=ctx))
 
 
-def handler(cache, opener, log, pins, tamper):
+def handler(cache, opener, log, pins, tamper, content=None):
     class Relay(http.server.BaseHTTPRequestHandler):
+        # HTTP/1.1, so one connection carries an install's GETs one after
+        # another, as a CDN's does; a client asking close gets close.
+        protocol_version = "HTTP/1.1"
+
         def do_GET(self):
             host = self.headers.get("Host", "").split(":")[0]
+            mine = local.answer(content, host, self.path, digest.blake3)
+            if mine:
+                return self.reply(*mine)
             if host not in HOSTS or ".." in self.path or not self.path.startswith("/"):
                 return self.reply(403, b"refused\n", f"refused {host}{self.path}")
             key = cache / hashlib.sha256(f"{host}{self.path}".encode()).hexdigest()
@@ -91,7 +94,9 @@ def handler(cache, opener, log, pins, tamper):
             print(line, file=log, flush=True)
             self.send_response(code)
             self.send_header("Content-Length", str(len(body)))
-            self.send_header("Connection", "close")
+            if self.headers.get("Connection", "").lower() == "close":
+                self.send_header("Connection", "close")
+                self.close_connection = True
             self.end_headers()
             self.wfile.write(body)
 
@@ -109,7 +114,12 @@ def main():
                     help="the CA bundle the proxy's certificates chain to")
     ap.add_argument("--tamper", action="append", default=[], metavar="APP",
                     help="serve the locked APP's package with one byte changed (repeatable)")
+    ap.add_argument("--content", type=pathlib.Path, metavar="DIR", help=f"serve DIR's <blake3>.tar files as {local.DEV}'s /linux/")
     a = ap.parse_args()
+    # A pinned package is held to its BLAKE3 by b3sum. Missing, each such
+    # request died in its own thread and the guest saw an empty reply.
+    if shutil.which("b3sum") is None:
+        sys.exit("relay: b3sum is not on the PATH (run it from nix develop)")
     try:
         pins = lock_file.read(LOCK)
     except (ValueError, TypeError, OSError) as why:
@@ -119,8 +129,9 @@ def main():
         ap.error(f"--tamper: not a locked app: {', '.join(unknown)}")
     a.cache.mkdir(parents=True, exist_ok=True)
     ca = a.ca if os.path.exists(a.ca) else None
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", a.port), handler(a.cache, fetcher(ca), sys.stdout, pins, set(a.tamper)))
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", a.port), handler(a.cache, fetcher(ca), sys.stdout, pins, set(a.tamper), a.content))
     print(f"relay on 127.0.0.1:{a.port} for {', '.join(sorted(HOSTS))}, {len(pins)} locked apps"
+          + (f", {local.DEV}'s /linux/ from {a.content}" if a.content else "")
           + (f", tampering {', '.join(a.tamper)}" if a.tamper else ""), flush=True)
     server.serve_forever()
     return 0
