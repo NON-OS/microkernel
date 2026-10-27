@@ -43,6 +43,8 @@ pub fn read_at(guest: &mut Guest, fd: u64, at: u64, len: usize) -> Result<Vec<u8
     if let Some(made) = synth_ops::read(&entry.path, at, len) {
         return made;
     }
+    /* What a shared map changed of these bytes is the file's: it goes in first. */
+    super::super::shared_maps::before_read(&entry.path, at, len as u64);
     if let Some(held) = cache::read(&entry.path, at, len) {
         return Ok(held);
     }
