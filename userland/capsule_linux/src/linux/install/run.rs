@@ -25,6 +25,7 @@ use nonos_libc::mk_debug;
 use super::fetch::get::fetch;
 use super::get::index::load_index;
 use super::place::all::unpack;
+use super::timing;
 
 pub(super) const RELEASE: &str = "v3.20";
 pub(super) const ARCH: &str = "x86_64";
@@ -32,11 +33,16 @@ pub(super) const BRANCHES: [&str; 2] = ["main", "community"];
 
 /// Alpine's install; `family::install` sends the other families elsewhere.
 pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
+    timing::timed(|| closure(name, pin))
+}
+
+fn closure(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
     super::http::reach::reachable(super::mirror::mirror().0)?;
     let Some(index) = load_index() else {
         say(b"[LINUX] no package index\n");
         return Err(super::Why::INDEX);
     };
+    timing::packages();
     let max = super::limit::max_packages();
     let mut wanted: Vec<String> = vec![String::from(name)];
     let mut done: Vec<String> = Vec::new();
@@ -56,7 +62,7 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
         }
         let files = fetch(pkg, (pkg.name == name).then_some(pin))?;
         say(b"[LINUX] provenance Verified: index signature and checksums match\n");
-        unpack(&files, &pkg.name, pkg.name == name, false)?;
+        timing::placing(|| unpack(&files, &pkg.name, pkg.name == name, false))?;
         done.push(pkg.name.clone());
         wanted.extend(pkg.depends.iter().cloned());
     }

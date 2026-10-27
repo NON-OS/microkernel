@@ -45,6 +45,7 @@ pub fn get_as(at: &str, port: u16, host: &str, path: &str) -> Option<Vec<u8>> {
     let req = format!(
         "GET {path} HTTP/1.1\r\nHost: {host}\r\nUser-Agent: nonos\r\nConnection: close\r\n\r\n"
     );
+    let t0 = super::super::timing::now();
     #[cfg(feature = "dev-mirror")]
     let raw = match is_local(at) {
         true => direct(at, port, req.as_bytes()),
@@ -52,6 +53,8 @@ pub fn get_as(at: &str, port: u16, host: &str, path: &str) -> Option<Vec<u8>> {
     };
     #[cfg(not(feature = "dev-mirror"))]
     let raw = exchange(at, port, req.as_bytes(), MAX_BODY, &complete);
+    let ms = super::super::timing::now().saturating_sub(t0);
+    super::super::timing::got(raw.as_ref().map_or(0, Vec::len), ms);
     let got = raw.and_then(body);
     let line = match &got {
         Some(b) => format!("[LINUX] mirror {at}: {path}, {} bytes\n", b.len()),
