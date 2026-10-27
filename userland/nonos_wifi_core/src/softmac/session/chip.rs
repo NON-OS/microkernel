@@ -19,8 +19,7 @@ impl Session {
     /// Send `f`: a frame for the chip to protect by `send_keyed`, any other
     /// (in the clear, or sealed by the station) as it is.
     pub(super) fn put<R: Radio>(&self, r: &mut R, f: &[u8]) -> bool {
-        let protected = f.get(1).is_some_and(|b| b & 0x40 != 0);
-        if self.station.offloaded() && protected {
+        if self.station.keyed(f) {
             r.send_keyed(f)
         } else {
             r.send(f)

@@ -1,18 +1,16 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 
-//! `Radio` for the RTL8852BE. Each method is the rtw89 path mac80211 takes
-//! for the same step: `tune` is `rtw89_set_channel`, `set_bss(None)` a
-//! software scan's start, `set_bss(Some)` the BSSID
-//! change and the AP added as a station, `associated` the association or
-//! the disconnect; `send` and `recv` the rings. No crypto runs on the chip.
+//! `Radio` for the RTL8852BE, each method the rtw89 path mac80211 takes for
+//! it: `tune` `rtw89_set_channel`, `set_bss` a scan's start or the AP added,
+//! `associated` the association or disconnect, `set_key` `rtw89_ops_set_key`
+//! (CCMP-128 in the chip, the station writing the CCMP header).
 
 use super::counts::bump;
 use super::Station;
-use crate::chan::Chan;
 use crate::dma::DmaMem;
 use crate::regs::Mmio;
 use nonos_wifi_core::regdom::Band;
-use nonos_wifi_core::softmac::{Association, Radio, RxInfo};
+use nonos_wifi_core::softmac::{Association, ChipKey, Crypto, Radio, RxInfo};
 
 impl<R: Mmio, M: DmaMem> Radio for Station<R, M> {
     fn mac(&self) -> [u8; 6] {
@@ -33,21 +31,23 @@ impl<R: Mmio, M: DmaMem> Radio for Station<R, M> {
     }
 
     fn tune(&mut self, band: Band, channel: u8) -> bool {
-        let five = match band {
-            Band::Ghz2 => false,
-            Band::Ghz5 => true,
-            Band::Ghz6 => return false,
-        };
-        let Some(c) = Chan::new(five, channel) else { return false };
-        let ok = self.chip.tune_to(c).is_ok();
-        if !ok {
-            bump(&mut self.counts.tune_fail);
-        }
-        ok
+        self.retune(band, channel)
     }
 
     fn send(&mut self, mpdu: &[u8]) -> bool {
-        self.push(mpdu)
+        self.push(mpdu, false)
+    }
+
+    fn send_keyed(&mut self, mpdu: &[u8]) -> bool {
+        self.push(mpdu, true)
+    }
+
+    fn crypto(&self) -> Crypto {
+        Crypto::HostIv
+    }
+
+    fn set_key(&mut self, key: &ChipKey<'_>) -> bool {
+        self.key(key)
     }
 
     fn recv(&mut self, out: &mut [u8]) -> Option<RxInfo> {

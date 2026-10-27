@@ -3,8 +3,11 @@
 //! A frame's WD body and WD info, `rtw89_core_fill_txdesc` with its
 //! `rtw89_build_txwd_*` helpers (Linux v6.12 rtw89 `core.c`). Every frame
 //! this driver sends has the WD info (rtw89 sets `en_wd_info` for both
-//! management and data), no hardware security (the station encrypts in
-//! software), and no aggregation.
+//! management and data) and no aggregation. A data frame the chip is to
+//! encrypt names its key in WD info word 2 (`rtw89_core_tx_update_sec_key`:
+//! `SEC_TYPE` CCMP-128, `SEC_HW_ENC`, `SEC_CAM_IDX`); its CCMP header is the
+//! station's (rtw89 sets `IEEE80211_KEY_FLAG_GENERATE_IV`, the 8852B having
+//! no `hw_sec_hdr`).
 
 use crate::regs::field;
 
@@ -31,6 +34,8 @@ pub struct Desc {
     pub rate: u16,
     /// `bk` for EAPOL (`PACKET_EAPOL`).
     pub bk: bool,
+    /// The security CAM entry the chip encrypts under.
+    pub sec: Option<u8>,
 }
 
 pub fn build(d: &Desc) -> [u8; WD_LEN] {
@@ -51,7 +56,8 @@ pub fn build(d: &Desc) -> [u8; WD_LEN] {
     };
     let info1 = if d.mgmt { 0 } else { field(0x1ff_0000, d.rate as u32) };
     let info4 = field(0x800_0000, !d.is_bmc as u32) | field(0x8000_0000, 1); // RTS, HW_RTS
-    let words = [body0, 0, body2, body3, 0, 0, info0, info1, 0, 0, info4, 0];
+    let info2 = d.sec.map_or(0, |i| field(0x1e00, 6) | field(0x100, 1) | u32::from(i));
+    let words = [body0, 0, body2, body3, 0, 0, info0, info1, info2, 0, info4, 0];
     let mut b = [0u8; WD_LEN];
     for (i, w) in words.iter().enumerate() {
         b[4 * i..4 * i + 4].copy_from_slice(&w.to_le_bytes());

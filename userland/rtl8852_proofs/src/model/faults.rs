@@ -20,6 +20,10 @@ pub struct Faults {
     pub efuse_dead: bool,
     /// Every word reads all ones: the card has left the bus.
     pub gone: bool,
+    /// A protected frame no key slot opens comes up as it was heard.
+    pub pass_unkeyed: bool,
+    /// The engine stops at a security CAM command and takes nothing more.
+    pub sec_stall: bool,
 }
 
 impl Faults {

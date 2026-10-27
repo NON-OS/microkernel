@@ -36,9 +36,10 @@ pub enum Crypto {
     /// writes each sent frame's CCMP header and packet number itself
     /// (Linux mt76 sets no `IEEE80211_KEY_FLAG_GENERATE_IV`).
     ChipIv,
-    /// As `ChipIv`, but the station writes the CCMP header with its own
-    /// packet number and the chip encrypts behind it (Linux rtw89 sets
-    /// `IEEE80211_KEY_FLAG_GENERATE_IV`).
+    /// As `ChipIv`, but the station writes each data frame's CCMP header
+    /// with its own packet number and the chip encrypts behind it, and the
+    /// station seals management frames itself (Linux rtw89 on the 8852B sets
+    /// `IEEE80211_KEY_FLAG_GENERATE_IV` and `IEEE80211_KEY_FLAG_SW_MGMT_TX`).
     HostIv,
 }
 

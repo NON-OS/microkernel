@@ -58,7 +58,9 @@ pub fn listen(s: &mut State) {
         let Some(f) = heard(s, &mut out) else { break };
         let a1 = f.get(4..10).unwrap_or(&[]);
         if a1 == sma || a1.first().is_some_and(|b| b & 1 != 0) {
-            s.rxq.push_back(super::rxq::wifi(&f));
+            if let Some((w3, f)) = super::sec_air::open(s, &f) {
+                s.rxq.push_back(super::rxbuf::wifi_with(&f, w3));
+            }
         }
     }
 }
