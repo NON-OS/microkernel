@@ -32,6 +32,49 @@ One copy per machine and boot. Part of [the real-hardware kit](real-hardware-kit
       stick; copy that file.
 - [ ] Anything that failed, in a sentence each: what you did, what you expected, what happened.
 
+## Intel Wi-Fi on a first boot: ASUS NUC 15 Pro, ThinkPad T14 (Intel)
+
+Which list below applies is read from the card, not the model name: the
+first `[iwlwifi] pci 0x0000xxxx` line, or `lspci -nn -d 8086:` under Linux.
+7740, a840, 4d40 (BE201) and 272b (BE200): the BE200 and BE201 list.
+51f0, 51f1, 54f0, 7a70, 7af0, 7f70 (AX211, or an AX201 module on an Alder
+or Raptor Lake platform, `so-a0-gf-a0-86` or `so-a0-hr-b0-84`): the BE200
+list with that image. 7e40, 2729: the Meteor Lake list. 02f0, 06f0, 34f0,
+3df0, 4df0, 43f0, a0f0 (AX201 CNVi): the 22000-family list. Then, on every
+one of them:
+
+- [ ] Cold and warm: boot once from power-off (ten seconds unplugged) and
+      once by rebooting straight from Windows or Linux with Wi-Fi in use.
+      Both reach `radio up; passive scanning`. If only the warm boot
+      fails, note its step and detail: step 3 detail 1 (`the NIC never
+      reported ready`: the previous system or the management engine still
+      holds it), or step 7 detail 0x30 (`never raised ALIVE`). Linux
+      answers the second by removing and rescanning the PCI function, which
+      this driver cannot; a cold power-off is the workaround.
+- [ ] Probe: no step 4 refusal with detail 0x30000 (an RF id of type 0). A
+      blank OTP is now named from the CRF id as Linux names it; 0x30000
+      means a CRF type Linux does not map either. Compare with Linux's
+      `Detected crf-id 0x..., cnv-id 0x..., wfpm id 0x...` line.
+- [ ] Integrated AX211, AX201 on SO, Meteor Lake: `firmware alive` comes.
+      A step 7 detail 0x30 on these parts points at the image loader, which
+      the driver now waits for back to back for up to 100 ms without
+      sleeping, as Linux does; keep the `secure boot status` line.
+- [ ] Regulatory: `up: N channels, tx ant A, regulatory 0x....`: 0x5a5a
+      ("ZZ", the world domain) when the firmware knows no country yet, else
+      the country's two letters (0x5553 "US"). In ZZ the 5 GHz channels are
+      passive: join a 5 GHz network as well as a 2.4 GHz one. A 2.4 GHz join
+      that works with a 5 GHz one that does not points here.
+- [ ] Transmit power: no SAR, geographic SAR, PPAG, TAS or LARI table is
+      sent (this driver reads no BIOS table; Linux sends none of them on a
+      machine without the tables, and the firmware then transmits at its
+      NVM and PNVM limits). Note the signal of the joined network beside
+      what Linux shows at the same spot.
+- [ ] Panel: on any failure, a photo of the Settings Wi-Fi row, which reads
+      `Intel Wi-Fi: stopped at N: <what> (0x<detail>)`; the step and detail
+      table is `docs/drivers/wifi/iwlwifi/status.md`. Step 8 detail
+      0x01ggcc0w names the command (group gg, command cc) and how it ended
+      (w: 1 timed out, 2 the firmware's error, 3 too large, 4 busy).
+
 ## Intel BE200 and BE201
 
 The iwlwifi driver's BZ-family path (BE200 8086:272b; BE201 8086:a840, 7740,

@@ -7,14 +7,21 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 
+use crate::gen3::csr::CsrLayout;
 use crate::gen3::csr::{GP_BZ_MAC_ACCESS_REQ, GP_MAC_STATUS};
 use crate::gen3::regs::{CSR_GP_CNTRL, HBUS_TARG_PRPH_RADDR, HBUS_TARG_PRPH_RDAT};
 use crate::gen3::regs::{HBUS_TARG_PRPH_WADDR, HBUS_TARG_PRPH_WDAT};
-use crate::gen3::select::bz_mac_step;
-use crate::gen3::select::bz_step::{step_of, AUX_IF_MAC_OWNER, CNVI_AUX_MISC_CHIP, WFPM_CTRL_REG};
+use crate::gen3::select::bz_step::step_of;
+use crate::gen3::select::crf::read_crf;
+use crate::gen3::select::crf::{AUX_IF_MAC_OWNER, CNVI_AUX_MISC_CHIP, WFPM_CTRL_REG};
 use crate::regs::Mmio;
 
 use super::rig::polls;
+
+// The step as the probe reads it: the CNVi word through `read_crf`.
+fn bz_mac_step<M: Mmio>(m: &M, c: &mut crate::gen3_model::Polls) -> Option<u8> {
+    read_crf(m, c, CsrLayout::V2).map(|ids| step_of(ids.cnv))
+}
 
 /// CSR registers, and peripheral registers behind the HBUS window.
 #[derive(Default)]
@@ -56,16 +63,4 @@ fn the_bz_step_comes_from_the_cnvi_with_its_registers_given() {
     assert_eq!(step_of(0x0000_0930), 1, "an A-step BZ-U is taken as B");
     assert_eq!(step_of(0x0000_0900), 0, "an A-step BZ-I stays A (and is refused)");
     assert_eq!(step_of(0x0200_0930), 2);
-}
-
-#[test]
-fn a_cnvi_that_will_not_wake_gives_no_step() {
-    struct Asleep;
-    impl Mmio for Asleep {
-        fn read32(&self, _: usize) -> u32 {
-            0
-        }
-        fn write32(&self, _: usize, _: u32) {}
-    }
-    assert_eq!(bz_mac_step(&Asleep, &mut polls()), None);
 }

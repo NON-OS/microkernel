@@ -1,30 +1,20 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// NONOS Operating System (AGPL-3.0-or-later)
 
 //! The gen3 `Clock` on the uptime clock. A wait first re-checks its condition
 //! in a short spin (register handshakes finish in microseconds), then sleeps a
 //! millisecond between checks until the deadline. The number of sleeps is
 //! capped as well, so a wait still ends if the uptime clock never advances.
+//! The image-loader wait never sleeps (`spin_for`, `spin_until`).
 
 use nonos_libc::{mk_idle_ms, mk_uptime_ms, Deadline};
 
-use crate::firmware::gen3::region::Clock;
+use crate::firmware::gen3::region::{spin_until, Clock};
 
 /// Checks made before the first sleep.
 const SPINS: u32 = 2000;
+/// The most checks a sleepless wait makes, should the clock not move: at a
+/// microsecond or two per check, a few times the 100 ms it is asked for.
+const SPIN_CAP: u32 = 500_000;
 
 pub struct Uptime;
 
@@ -54,6 +44,10 @@ impl Clock for Uptime {
             let _ = mk_idle_ms(1);
             naps += 1;
         }
+    }
+
+    fn spin_for(&mut self, ms: u32, ready: &mut dyn FnMut() -> bool) -> bool {
+        spin_until(&mut now_ms, ms, SPIN_CAP, ready)
     }
 
     // At least the asked time: whole milliseconds, plus one for the clock's

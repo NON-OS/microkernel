@@ -10,6 +10,7 @@ mod call;
 mod connect;
 mod find;
 mod fw_step;
+mod intel_step;
 mod join_text;
 mod link;
 mod reply;
