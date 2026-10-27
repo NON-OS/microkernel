@@ -50,6 +50,7 @@ pub const SURFACE_COMMIT: u16 = 6;
 pub const SURFACE_SET_BUFFER_TRANSFORM: u16 = 7;
 pub const SURFACE_SET_BUFFER_SCALE: u16 = 8;
 pub const SURFACE_DAMAGE_BUFFER: u16 = 9;
+pub const SURFACE_OFFSET: u16 = 10;
 
 pub const XDG_BASE_GET_SURFACE: u16 = 2;
 pub const XDG_BASE_PONG: u16 = 3;

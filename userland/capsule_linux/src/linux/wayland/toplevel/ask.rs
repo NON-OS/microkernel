@@ -25,7 +25,8 @@ use nonos_app_skeleton::runner::chrome::full_screen;
 use crate::linux::guest::Guest;
 
 use super::super::configure::configure;
-use super::super::fit::{Mode, Rect};
+use super::super::fit::{Configure, Mode, Rect};
+use super::super::present::scale_math::to_logical;
 use super::super::present::surface::say;
 
 pub(super) fn ask(guest: &mut Guest, toplevel: u32, want: Mode) {
@@ -49,6 +50,7 @@ pub(super) fn ask(guest: &mut Guest, toplevel: u32, want: Mode) {
     let now = guest.scene.rect();
     let serial = guest.scene.next_serial();
     if let Some(told) = guest.scene.fit.ask(want, now, fill, serial) {
+        let told = logical(told, guest.scene.frame.ratio);
         configure(toplevel, xdg, &told, &mut guest.display.to_client);
     }
 }
@@ -59,4 +61,11 @@ fn fill() -> Option<Rect> {
     let port = lookup_port(b"compositor")?;
     let d = display_info(port, 1).ok()?;
     Some(full_screen(d.width, d.height))
+}
+
+/// `told` with its size in the logical pixels the guest draws in, at the
+/// window's ratio; where it goes on screen stays in the display's pixels.
+fn logical(told: Configure, e: u32) -> Configure {
+    let size = |v: u32| to_logical(v as i32, e) as u32;
+    Configure { rect: told.rect.map(|(x, y, w, h)| (x, y, size(w), size(h))), ..told }
 }

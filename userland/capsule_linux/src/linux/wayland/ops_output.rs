@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! wl_output's one request (wayland.xml, version 3), zxdg_output_manager_v1 and zxdg_output_v1 (xdg-output-unstable-v1.xml,
-//! version 2), and wp_viewporter and wp_viewport (viewporter.xml).
+//! version 2), wp_viewporter and wp_viewport (viewporter.xml), and wp_fractional_scale_manager_v1
+//! and wp_fractional_scale_v1 (fractional-scale-v1.xml).
 
 pub const OUTPUT_RELEASE: u16 = 0;
 pub const XDG_OUTPUT_MANAGER_DESTROY: u16 = 0;
@@ -31,3 +32,7 @@ pub const VIEWPORTER_GET_VIEWPORT: u16 = 1;
 pub const VIEWPORT_DESTROY: u16 = 0;
 pub const VIEWPORT_SET_SOURCE: u16 = 1;
 pub const VIEWPORT_SET_DESTINATION: u16 = 2;
+pub const FRACTIONAL_MANAGER_DESTROY: u16 = 0;
+pub const FRACTIONAL_MANAGER_GET: u16 = 1;
+pub const FRACTIONAL_DESTROY: u16 = 0;
+pub const FRACTIONAL_PREFERRED_SCALE: u16 = 0;
