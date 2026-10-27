@@ -23,10 +23,6 @@ mod header;
 mod region_alloc;
 mod region_extent;
 mod regions;
-mod size_carve;
-mod size_class;
-mod size_lists;
-mod small_alloc;
 mod statistics;
 mod stats;
 
