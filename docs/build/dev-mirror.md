@@ -55,7 +55,7 @@ The fetch is dialled directly and logged as
 The host serves it with `tools/nonos-mirror-relay`
 ([host tools](host-tools.md#serve-package-mirrors-to-a-guest)), started before the boot:
 
-    python3 tools/nonos-mirror-relay --cache target/mirror-cache
+    nix develop --command python3 tools/nonos-mirror-relay --cache target/mirror-cache
 
 The relay fetches over HTTPS through the host's proxy. A package the market
 catalogue lists is served only as the bytes its lock pins
