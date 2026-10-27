@@ -32,7 +32,7 @@ Nothing is listed until the generator has authenticated it as the device does, u
 
 ## The recipes file
 
-`userland/capsule_market/linux-catalogue.json` is versioned. Its shape is `{"format": "nonos.linux-catalogue.v1", "apps": [...]}`, and a file of any other format, shape, encoding, or more than 1 MiB is refused whole (`tools/nonos_market_catalogue/recipes_file.py:29`, `load`). Each app is an object of strings:
+`userland/capsule_market/linux-catalogue.json` is versioned. Its shape is `{"format": "nonos.linux-catalogue.v1", "apps": [...]}`, and a file of any other format, shape, encoding, or more than 1 MiB is refused whole (`tools/nonos_market_catalogue/recipes_file.py:29`, `load`). Each app is an object of strings, and `args` a list of them:
 
 | Key | Required | What it holds |
 |---|---|---|
@@ -43,6 +43,7 @@ Nothing is listed until the generator has authenticated it as the device does, u
 | `calls` | no | the measured set, as `nonos-linux-pack syscalls --from-log` prints it |
 | `dests` | no | a file inside the tree of plan/33 destinations, one a line; needs NET_ANON |
 | `program` | no | the program the listing sells, as `usr/bin/<name>`, for a package of many programs |
+| `args` | no | the long options the program starts with, before the person's own (below) |
 
 Without `calls` the set is UNMEASURED: buckets 0 to 511 set and 512 clear (`tools/nonos_market_catalogue/recipes.py:31`). That is the market-ready form of "no set yet". A recipe is refused if:
 
@@ -50,6 +51,17 @@ Without `calls` the set is UNMEASURED: buckets 0 to 511 set and 512 clear (`tool
 - it names an unknown service, or FILES_USER;
 - its set is not market ready;
 - it is listed twice.
+
+## Listed arguments
+
+A recipe's `args` are the words its program starts with, before the person's own: `monero`'s are `--daemon-address=<a public node>` and `--untrusted-daemon`. They are for a default that the program has no other way to take, not for anything the box grants: they add no service and no mask bit.
+
+- **The rule.** 1 to 16 words, each `--name` or `--name=value`: a name of lowercase letters, digits and hyphens, a value of printable ASCII with no space, no option twice. The block they make is at most 1024 bytes. No shell reads them: each is one argv word as written (`tools/nonos_market_catalogue/listed_args.py`; the device's copy of the rule is `userland/nonos_linux_policy/src/args/`, and both pin the same bytes).
+- **Where they ride.** After the 256 policy bytes in the release's `guest_policy`, as `"NLXARG01" | count | (length | word)...`. The publisher's release signature and the operator's index signature cover them with the policy. marketplace_abi bounds the field at 256 + 1024 bytes and refuses arguments after a vendor tier's policy (`verdict/policy.rs`).
+- **To the device.** The market hands them on after the policy and its keys (`OP_GET_LINUX_POLICY`, `nonos_market_proto::linux_policy`). init appends them to the install word `m` (`src/userspace/capsule_linux/install.rs`). The install role reads them whole before it fetches anything, refusing the install otherwise. It then writes them beside the program as `.nonos_linux_policy.args.bin`, before the policy, and vouches for them over the policy and the arguments together (`install/market/bind_args.rs`). An uninstall takes them out with the box (`take.rs`), and a package may not ship either name (`proof_names.rs`).
+- **At start.** The personality reads them beside the program and holds them to that trailer and to the policy the program was bound to (`app/listed.rs`). It puts each one before the person's words, except one whose option the person names themself, as `--name` or `--name=...` before any `--` (`app/args_listed.rs`). A file that is there but not vouched for refuses the start, and does not start the program without them. A program another program starts with `execve` gets only the words it is given.
+
+*host-tested* (capsule_linux_proofs, market_proofs, market_proto, nonos_linux_policy, the catalogue suite). Not booted yet.
 
 ## Generating listings
 
@@ -86,7 +98,7 @@ After the fetch, every listing's `.apk` must be the one `B` pins. So two seals o
 
 ## Apps built from source
 
-Some apps are packaged by no distribution: DarkFi's drk, darkirc and darkfid, and SimpleX's static simplex-chat. A recipe of kind `source` lists one of these from a build of its upstream at a single commit (`tools/nonos_market_catalogue/source_recipe.py`, `checked`). No such recipe is in the catalogue yet.
+Some apps are packaged by no distribution: DarkFi's drk, darkirc and darkfid, and SimpleX's simplex-chat. A recipe of kind `source` lists one of these from a build of its upstream at a single commit, or from the binary its upstream publishes (below) (`tools/nonos_market_catalogue/source_recipe.py`, `checked`). No such recipe is in the catalogue yet.
 
 | Key | Required | What it holds |
 |---|---|---|
@@ -140,6 +152,33 @@ python3 tools/nonos-market-catalogue --out OUT.json --no-nonos --operator-pubkey
 ```
 
 For a development boot, `tools/nonos-mirror-relay --content target/linux-packages` serves that directory as the mirror ([the development mirror](../build/dev-mirror.md)). A listing id may appear only once in an index, so a source recipe whose name an in-tree tool already has stops the generator.
+
+### Upstream's own release binary
+
+A source recipe may list the binary its upstream publishes instead of a build (`tools/nonos_market_catalogue/asset_recipe.py`). In place of `commit` and `build` it names:
+
+| Key | Required | What it holds |
+|---|---|---|
+| `asset` | yes | the https URL of the one release file |
+| `sha256` | yes | its sha256, 64 lower-case hex digits |
+| `sums` | yes | upstream's checksum file, another file of the same release directory |
+| `family` | no | `"debian"`: listed as `linux.kali.nonos-<package>`, which the kernel passes as `deb:nonos-<package>`, so it installs and runs in the Debian family's tree; the name is then at most 53 long |
+| `needs` | with `family` | the Debian packages that give its shared libraries, space separated |
+
+`source` stays required: it says whose binary it is. The release is `nonos-<package>@<tag>`, the release directory the asset's URL is in.
+
+**Getting the content.** `tools/nonos-source-asset RECIPE.json --package-out target/linux-packages` runs on a machine that reaches the release. It stops at the first fault, and nothing it fetches is run:
+
+1. upstream's checksum file and its `.asc` must verify under the release key pinned at `userland/capsule_market/keys/simplex-build.asc`, fingerprint `BBDF7BDAD1548B16836AF5B9D53BDFD153C366BA` (`asset_sums.py`). The key is SimpleX's; another upstream gets its own key beside it;
+2. the sha256 that file gives the asset, and the downloaded bytes' sha256, must both be the recipe's;
+3. with a family, Kali's index is verified under the pinned Kali key, as the catalogue verifies it. The needs are resolved to their closure by the device's rule (`deb_closure.py`), and each .deb is held to the index. Every DT_NEEDED name and the interpreter of the binary must be a library one of those packages places (`elf_needed.py`, `deb_files.py`);
+4. it writes `target/linux-sources/<package>.tar`, which holds the program and, for a family, `usr/share/nonos-debs/<package>`: one line per closure package, `<name> <version> <pool file> <sha256>` (`asset_needs.py`). The seal takes that directory as `--sources`. With `--package-out` it also writes the bundled `<blake3>.tar` that `nonos-mirror-relay --content` serves, and it prints the lock row.
+
+With `--learn`, the sha256 is taken from the signed file instead of the recipe, and the filled-in recipe is written beside the tar.
+
+**The listing and its lock.** The generator holds the content as for any source recipe. It also refuses a program whose sha256 is not the recipe's, and a content whose Debian pins are malformed, missing for a family, present without one, or leave out a need (`source_asset.py`, `row`). The sources lock pins an asset by `asset`, `sha256`, `A` (the program's BLAKE3) and `sums`, in place of `commit`, beside `B`, `S`, `G` and `R` (`source_pins.py`). A run stops by name when any of them moves.
+
+**On the device.** `install/tools_install.rs` holds the content to the market's pin as before. Then `install/deb/needs.rs` reads the pins, by the same rules (`install/deb/pinned.rs`), before the program is placed. Each package is fetched from the Debian mirror by its pool file, held to its pinned SHA-256, and placed as a package of its own. The pins are part of the BLAKE3-pinned content, so no Debian index is read for them. Pins in a family other than Debian are refused. When Kali moves a pinned version out of its pool, the install fails by name until the recipe is pinned again.
 
 ## Adding an app
 
