@@ -31,11 +31,11 @@ NOTE = "fetched and hashed at {} bytes; licence {}; installs only in this releas
 
 
 def guest_policy(recipe: dict, program: bytes, publisher: bytes, app: str, rel: str) -> bytes:
-    """The 256 bytes, ids by marketplace_abi's rule under `publisher`."""
+    """The 256 bytes, ids by marketplace_abi's rule under `publisher`, then its listed args."""
     lid = listing_id(publisher, app)
     hashed = dests_hash(recipe["dests"]) if recipe["dests"] else bytes(32)
     return encode(bytes.fromhex(blake3(program)), recipe["mask"], lid, release_id(lid, rel), hashed,
-                  recipe["calls"])
+                  recipe["calls"]) + recipe.get("args", b"")
 
 
 def one(recipe: dict, rec: dict, raw: bytes, key: str, when_ms: int) -> dict:
