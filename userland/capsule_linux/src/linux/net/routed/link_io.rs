@@ -20,21 +20,20 @@
 use alloc::vec::Vec;
 
 use super::super::sock::End;
-use super::link::{Link, TX_MAX};
+use super::link::Link;
 use crate::linux::abi::errno::{EAGAIN, EPIPE};
 
 impl Link {
     /// Queue the front of `bytes`: how many were taken, EAGAIN while the
     /// queue is full, EPIPE once a write has failed.
     pub fn send(&mut self, bytes: &[u8]) -> Result<usize, i64> {
-        if self.broken {
+        if self.queue.broken() {
             return Err(EPIPE);
         }
-        let n = bytes.len().min(TX_MAX - self.tx.len());
+        let n = self.queue.push(bytes);
         if n == 0 && !bytes.is_empty() {
             return Err(EAGAIN);
         }
-        self.tx.extend_from_slice(&bytes[..n]);
         self.pump();
         Ok(n)
     }
