@@ -6,6 +6,7 @@
 
 use crate::chan::Chan;
 use crate::dma::DmaMem;
+use crate::h2c::cam_keys::Keys;
 use crate::h2c::media::Net;
 use crate::h2c::Fw;
 use crate::phy::state::Phy;
@@ -32,6 +33,8 @@ pub struct Vif {
     pub bssid: [u8; 6],
     pub net: Net,
     pub aid: u16,
+    /// The keys the address CAM entry points at.
+    pub keys: Keys,
     pub beacon_int: u16,
     /// The AP's rates as learnt from its beacons (`tx::rate::learn`).
     pub rates: [u8; 16],
@@ -48,6 +51,7 @@ impl Vif {
             bssid: [0; 6],
             net: Net::NoLink,
             aid: 0,
+            keys: Keys { valid: 0, keyid: [0; 7] },
             beacon_int: 0,
             rates: [0; 16],
             n_rates: 0,

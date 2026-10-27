@@ -24,6 +24,8 @@ mod rf;
 pub mod rig;
 pub mod rxbuf;
 pub mod rxq;
+pub mod sec;
+mod sec_air;
 pub mod state;
 mod state_new;
 pub mod txq;

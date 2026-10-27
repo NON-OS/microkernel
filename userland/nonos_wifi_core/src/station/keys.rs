@@ -38,11 +38,12 @@ impl LinkStation {
 
     /// Protect a robust management frame to the AP (a deauthentication, with
     /// management frame protection on) under the pairwise key, advancing the
-    /// packet number data frames share; with the keys in the chip, marked for
-    /// it to protect (`chip_frame`). `None` without a pairwise key.
+    /// packet number data frames share; with the keys in a chip that writes
+    /// the header itself, marked for it to protect (`chip_frame`). `None`
+    /// without a pairwise key.
     pub fn protect_mgmt(&mut self, frame: &[u8]) -> Option<alloc::vec::Vec<u8>> {
-        if let Ccmp::Offload { host_iv, .. } = self.ccmp {
-            return self.chip_frame(frame, host_iv);
+        if let Ccmp::Offload { host_iv: false, .. } = self.ccmp {
+            return self.chip_frame(frame, false);
         }
         let tk = self.pairwise_key()?;
         let pn = self.pn.wrapping_add(1);
