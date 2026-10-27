@@ -16,7 +16,7 @@
 
 //! The calls a test has the broker refuse.
 
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::mem::discriminant;
 
 use crate::calls::Call;
@@ -24,6 +24,18 @@ use crate::calls::Call;
 thread_local! {
     /// Each kind refused, with how many of its calls still go through first.
     static REFUSED: RefCell<Vec<(Call, u32)>> = const { RefCell::new(Vec::new()) };
+    static SHORT: Cell<u64> = const { Cell::new(0) };
+}
+
+/// Have every later DMA grant say it is `bytes` shorter than the memory it
+/// maps, as a broker at fault might.
+pub fn grant_short(bytes: u64) {
+    SHORT.with(|s| s.set(bytes));
+}
+
+/// The length a grant of `size` mapped bytes reports.
+pub(crate) fn short(size: usize) -> u64 {
+    (size as u64).saturating_sub(SHORT.with(Cell::get))
 }
 
 /// Refuse every later call of `call`'s kind; a `Command(bits)` refuses the
