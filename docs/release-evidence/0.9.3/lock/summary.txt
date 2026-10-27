@@ -1,0 +1,7 @@
+a1 smp=4 --lane iommu=intel desktop=1 lock=0 unanswered=0 at=[BENCH] 170999 shell_start (no dwell)
+a2 smp=4 --lane iommu=intel desktop=1 lock=0 unanswered=0 at=[BENCH] 172185 shell_start
+a3 smp=8  desktop=1 lock=0 unanswered=0 at=[BENCH] 171991 shell_start
+b1 smp=4 --lane iommu=intel desktop=1 lock=0 unanswered=0 at=[BENCH] 171181 shell_start
+b2 smp=4 --lane iommu=intel desktop=1 lock=0 unanswered=0 at=[BENCH] 172051 shell_start
+b3 smp=8  desktop=1 lock=0 unanswered=0 at=[BENCH] 171943 shell_start
+bm smp=4 --lane iommu=intel (ii) + Monero install and run: installed=1 version-run status 0 x2 lock=0 unanswered=0

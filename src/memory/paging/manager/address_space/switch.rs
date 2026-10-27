@@ -14,30 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::core::PagingManager;
-use crate::memory::paging::error::{PagingError, PagingResult};
+//! Loading an address space on this CPU.
 
-impl PagingManager {
-    pub fn switch_address_space(&mut self, asid: u32) -> PagingResult<()> {
-        let address_space =
-            self.address_spaces.get(&asid).ok_or(PagingError::AddressSpaceNotFound)?;
-        // `cr3_value` was produced by this manager's `create_address_space`
-        // and stays valid until `cleanup_address_space(asid)` removes it.
-        //
-        // It does not pack the asid, whatever the previous comment here said:
-        // `AddressSpace::new` stores the raw page-table frame, so the low bits
-        // are zero and the mask below always yields 0. The register is loaded
-        // untagged, which is correct but means tagged invalidation does
-        // nothing for the switch. The asid is still tracked on the CPU below,
-        // where the shootdown broadcaster does use it.
-        let root = address_space.cr3_value.as_u64();
-        // Recorded on this cpu before CR3 is loaded, and fenced against the
-        // broadcaster's fence: set after, a shootdown between the load and the
-        // store would skip a cpu already caching the entries it replaces.
-        crate::smp::percpu::set_active_asid(asid);
-        core::sync::atomic::fence(core::sync::atomic::Ordering::SeqCst);
-        crate::arch::paging::write_root(root, (root & 0xFFF) as u16);
-        self.active_page_table = Some(address_space.cr3_value);
-        Ok(())
-    }
+/// Run on the tables at `root`, which `asid` names. The root comes from the
+/// directory, which names an address space from `create_address_space` until
+/// `cleanup_address_space` takes it, so no lock is held for the load.
+///
+/// The root does not pack the asid: `AddressSpace::new` stores the raw
+/// page-table frame, so the low bits are zero and the register is loaded
+/// untagged, which is correct but means tagged invalidation does nothing for
+/// the switch. The asid is still tracked on the CPU below, where the
+/// shootdown broadcaster does use it.
+///
+/// No manager-wide "active table" is written any more: on more than one CPU
+/// it was whichever CPU switched last. Walks of the running space read the
+/// root register (protection/pte/descend.rs, translation/leaf.rs).
+pub(in crate::memory::paging::manager) fn load_root(asid: u32, root: u64) {
+    // Recorded on this cpu before CR3 is loaded, and fenced against the
+    // broadcaster's fence: set after, a shootdown between the load and the
+    // store would skip a cpu already caching the entries it replaces.
+    crate::smp::percpu::set_active_asid(asid);
+    core::sync::atomic::fence(core::sync::atomic::Ordering::SeqCst);
+    crate::arch::paging::write_root(root, (root & 0xFFF) as u16);
 }

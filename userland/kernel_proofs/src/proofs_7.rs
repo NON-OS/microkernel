@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs, group 7 of 8: test modules mounted by path
+//! Host proofs, group 7 of 9: test modules mounted by path
 //! from proofs.rs, each at its own file.
 
 /// L55: init waits for the ACPI capsule's first publish pass, bounded.
