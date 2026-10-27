@@ -23,5 +23,5 @@ mod pci;
 mod table;
 
 pub use dialect::CAPACITY_BODY_MAX;
-pub use pci::{classify, Controller};
+pub use pci::{classify, Controller, INTEL_VMD};
 pub use table::{Driver, ALL};
