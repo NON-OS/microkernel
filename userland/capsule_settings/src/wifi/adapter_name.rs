@@ -26,6 +26,7 @@ pub fn adapter_label(vendor: u16, device: u16) -> &'static str {
     const REALTEK: u16 = 0x10EC;
     match (vendor, device) {
         (REALTEK, 0xB821 | 0xC821) => "Realtek RTL8821CE",
+        (REALTEK, 0xC822 | 0xC82F) => "Realtek RTL8822CE",
         (INTEL, 0x2723 | 0x02F0 | 0x06F0 | 0x34F0 | 0x3DF0 | 0x4DF0 | 0x43F0) => {
             "Intel Wi-Fi 6 AX200"
         }

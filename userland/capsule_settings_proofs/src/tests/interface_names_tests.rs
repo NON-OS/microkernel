@@ -23,6 +23,7 @@ fn discover_never_overruns_the_output_buffer() {
 fn known_parts_get_specific_names() {
     assert_eq!(adapter_label(0x10EC, 0xC821), "Realtek RTL8821CE");
     assert_eq!(adapter_label(0x10EC, 0xB821), "Realtek RTL8821CE");
+    assert_eq!(adapter_label(0x10EC, 0xC82F), "Realtek RTL8822CE");
     assert_eq!(adapter_label(0x8086, 0x51F0), "Intel Wi-Fi 6E AX210");
     assert_eq!(adapter_label(0x8086, 0x2723), "Intel Wi-Fi 6 AX200");
     assert_eq!(adapter_label(0x8086, 0x1234), "Intel Wi-Fi");

@@ -28,8 +28,9 @@ pub struct Service {
 /// a machine with both cards keeps the radio it joined with. The iwlwifi
 /// driver joins WPA2 and WPA3 networks on AX211 (the SO family); on a part
 /// it has no air path for, or without randomness, it answers a join with
-/// `CANNOT_JOIN`.
+/// `CANNOT_JOIN`. The RTL8822CE, never yet run on its card, is asked last.
 pub const SERVICES: &[Service] = &[
     Service { name: b"driver.rtl8821ce0", label: "Realtek RTL8821CE", joins: true },
     Service { name: b"driver.iwlwifi0", label: "Intel Wi-Fi", joins: true },
+    Service { name: b"driver.rtl8822ce0", label: "Realtek RTL8822CE", joins: true },
 ];

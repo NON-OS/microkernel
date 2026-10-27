@@ -60,6 +60,8 @@ pub mod rtl8139;
 pub mod rtl8169;
 #[path = "../../../capsule_driver_rtl8821ce/src/constants/pci.rs"]
 pub mod rtl8821ce;
+#[path = "../../../capsule_driver_rtl8822ce/src/constants/pci.rs"]
+pub mod rtl8822ce;
 
 mod classify_tests;
 mod report_tests;
