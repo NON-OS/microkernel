@@ -18,10 +18,9 @@
 
 use alloc::vec::Vec;
 
-use crate::linux::abi::errno;
-
-use super::super::super::{resolve, store};
-use super::table::{held, now, with, Entry, CACHE, MAX_FILE};
+use super::super::super::resolve;
+use super::stored::stored;
+use super::table::{held, now, with, Entry, CACHE};
 
 /* Hold `path`: its bytes from the store, or none for a file being made. */
 pub fn hold(path: &[u8], exists: bool) -> Result<(), i64> {
@@ -30,10 +29,7 @@ pub fn hold(path: &[u8], exists: bool) -> Result<(), i64> {
     }
     let key = resolve::key(path);
     let (data, mtime_ms) = match exists {
-        true => {
-            let at = store::stat_full(&key).map(|s| s.2).unwrap_or_else(|_| now());
-            (store::read(&key, MAX_FILE as u32).map_err(|_| errno::EIO)?, at)
-        }
+        true => stored(&key)?,
         false => (Vec::new(), now()),
     };
     let stored = data.len() as u64;
