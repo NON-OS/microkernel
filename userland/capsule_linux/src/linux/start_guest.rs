@@ -19,8 +19,7 @@
 use nonos_libc::mk_foreign_start;
 
 use super::app::{bind, bind_built_in, AppIdentity};
-use super::guest::Guest;
-use super::guest::{STACK_SIZE, STACK_TOP};
+use super::guest::{Guest, STACK_SIZE, STACK_TOP};
 use super::image;
 use super::launch::Launch;
 use super::origin::Origin;
@@ -46,6 +45,7 @@ pub(super) fn start(guest: &mut Guest, launch: Launch) -> Result<(), &'static [u
         }
     };
     guest.app = super::boxed::narrow(guest.app);
+    super::terminal_hand::to_terminal(guest)?;
     super::seal_note::seal_app(&guest.app.app_id);
     super::run_net::settle(guest.app.mask)?;
     super::app::grant(guest.app.mask);
