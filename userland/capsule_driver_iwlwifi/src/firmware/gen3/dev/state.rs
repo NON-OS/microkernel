@@ -17,11 +17,11 @@
 //! The transport's state, and its error cause.
 
 use super::super::cmdq::CmdQueue;
+use super::super::csr::CsrLayout;
 use super::super::plan::RB_SIZE;
 use super::super::region::Region;
 use super::super::regs::{
     CSR_INT, CSR_MSIX_HW_INT_CAUSES_AD, INT_BIT_HW_ERR, INT_BIT_SW_ERR, MSIX_HW_HW_ERR,
-    MSIX_HW_SW_ERR,
 };
 use super::super::rxq::RxQueue;
 use crate::regs::Mmio;
@@ -37,6 +37,8 @@ pub struct Dev<'a, M: Mmio, R: Region + ?Sized> {
     pub(super) buf: [u8; RB_SIZE],
     /// The version of the platform NVM section the firmware was given, if any.
     pub pnvm: Option<u32>,
+    /// The family's CSR layout (`with_csr`; V1 unless told).
+    pub csr: CsrLayout,
 }
 
 impl<'a, M: Mmio, R: Region + ?Sized> Dev<'a, M, R> {
@@ -50,12 +52,21 @@ impl<'a, M: Mmio, R: Region + ?Sized> Dev<'a, M, R> {
             bad_ids: 0,
             buf: [0; RB_SIZE],
             pnvm: None,
+            csr: CsrLayout::V1,
         }
+    }
+
+    /// The device in the family's CSR layout, its receive queue too.
+    pub fn with_csr(mut self, csr: CsrLayout) -> Self {
+        self.csr = csr;
+        self.rxq.csr = csr;
+        self
     }
 
     /// The firmware or hardware error cause is set.
     pub fn error_cause(&self) -> bool {
         self.m.read32(CSR_INT) & (INT_BIT_SW_ERR | INT_BIT_HW_ERR) != 0
-            || self.m.read32(CSR_MSIX_HW_INT_CAUSES_AD) & (MSIX_HW_SW_ERR | MSIX_HW_HW_ERR) != 0
+            || self.m.read32(CSR_MSIX_HW_INT_CAUSES_AD) & (self.csr.msix_sw_err() | MSIX_HW_HW_ERR)
+                != 0
     }
 }
