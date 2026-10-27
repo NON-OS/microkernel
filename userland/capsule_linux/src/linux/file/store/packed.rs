@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Where the store's own tree has no file, the packs may: the shared tree's
-//! keys answered out of them (pack/).
+//! keys answered out of the family's own packs (pack/), never another's.
 
 use super::super::root::Key;
 use super::bytes::HashFault;
