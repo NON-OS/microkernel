@@ -37,6 +37,7 @@ mod elf_tests;
 mod exe_table_tests;
 mod exec_args_tests;
 mod exec_shebang_tests;
+mod rlimit_same_tests;
 mod fake_memory;
 mod family_tests;
 mod fd_flag_tests;
