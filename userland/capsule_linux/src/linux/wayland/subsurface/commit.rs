@@ -25,7 +25,8 @@ use alloc::vec::Vec;
 use crate::linux::guest::Guest;
 
 use super::super::frame_len::MAX_FRAME;
-use super::super::present::source::{source, take};
+use super::super::present::scaled::layer;
+use super::super::present::source::take;
 use super::super::present::surface::say;
 use super::blend::Plane;
 use super::state::Kept;
@@ -44,7 +45,7 @@ pub fn sub_commit(guest: &mut Guest, surface: u32) -> Option<bool> {
         true => sub.waiting = None,
         false => sub.shown = None,
     }
-    let kept = buffer.and_then(|b| capture(guest, b));
+    let kept = buffer.and_then(|b| capture(guest, surface, b));
     let sub = guest.scene.subs.of_mut(surface)?;
     match sync {
         true => sub.waiting = Some(kept),
@@ -53,9 +54,10 @@ pub fn sub_commit(guest: &mut Guest, surface: u32) -> Option<bool> {
     Some(!sync)
 }
 
-/// The pixels of `buffer`, if they fit; else said, and none.
-fn capture(guest: &Guest, buffer: u32) -> Option<Kept> {
-    let src = source(&guest.scene, buffer)
+/// The pixels of `buffer` on `surface`, at the window's ratio, if they
+/// fit; else said, and none.
+fn capture(guest: &Guest, surface: u32, buffer: u32) -> Option<Kept> {
+    let src = layer(&guest.scene, surface, buffer)
         .map_err(|why| say(String::from_utf8_lossy(why).into()))
         .ok()?;
     if guest.scene.subs.kept().saturating_add(src.bytes) > KEPT_MAX {
