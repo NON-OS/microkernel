@@ -24,6 +24,7 @@
 use nonos_libc::{mk_device_release, mk_irq_unbind, mk_mmio_unmap};
 
 use super::command::command;
+use crate::firmware::gen3::csr::CsrLayout;
 use crate::init::bring_up;
 use crate::regs::Regs;
 
@@ -61,6 +62,10 @@ impl Grants {
 /// Wake the chip on an attempt's grants, or give all of them back. Bus
 /// Master stays off: it goes on only right before the firmware boots, once
 /// the device's own master read back stopped (`gen3::outcome::master_on`).
-pub fn init_or_release(regs: Regs, grants: &mut Grants) -> Result<(), &'static str> {
-    bring_up(regs).inspect_err(|_| grants.release())
+pub fn init_or_release(
+    regs: Regs,
+    csr: CsrLayout,
+    grants: &mut Grants,
+) -> Result<(), &'static str> {
+    bring_up(regs, csr).inspect_err(|_| grants.release())
 }

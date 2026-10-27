@@ -11,6 +11,8 @@ mod gen3_boot_tests;
 #[cfg(test)]
 mod gen3_booted;
 #[cfg(test)]
+mod gen3_bz_tests;
+#[cfg(test)]
 mod gen3_cmdq_tests;
 #[cfg(test)]
 mod gen3_fetch_tests;

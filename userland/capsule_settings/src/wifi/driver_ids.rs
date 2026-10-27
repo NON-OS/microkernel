@@ -64,6 +64,10 @@ pub fn has_driver(vendor: u16, device: u16) -> bool {
                 | 0x7AF0
                 | 0x7F70
                 | 0x7E40
+                | 0x272B
+                | 0xA840
+                | 0x7740
+                | 0x4D40
         ),
         _ => false,
     }
