@@ -32,3 +32,5 @@ mod notice_tests;
 mod owner_tests;
 #[cfg(test)]
 mod rx_sweep_tests;
+#[cfg(test)]
+mod short_frame_tests;
