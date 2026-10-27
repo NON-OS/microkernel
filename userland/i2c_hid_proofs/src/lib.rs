@@ -54,6 +54,8 @@ pub mod state;
 #[cfg(test)]
 mod feature_tests;
 #[cfg(test)]
+mod received_tests;
+#[cfg(test)]
 mod request_refusal_tests;
 #[cfg(test)]
 mod tests;
