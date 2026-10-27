@@ -27,12 +27,18 @@ use super::rep::{REP_FAILURE, REP_HOST_UNREACHABLE, REP_NET_UNREACHABLE};
 ///
 /// The caller is told the network is not there yet, and the log says which
 /// part of it is missing: the directory, a path, or a link.
-pub fn open(state: &mut Manager, now: u64, host: &[u8], port: u16) -> Result<u16, u8> {
+pub fn open(
+    state: &mut Manager,
+    now: u64,
+    host: &[u8],
+    port: u16,
+    install: bool,
+) -> Result<u16, u8> {
     if let Some(why) = not_ready(state, now) {
         trace::say_num(b"socks connect refused, not ready, errno", why as u64);
         return Err(REP_NET_UNREACHABLE);
     }
-    match open_stream(state, host, port, now, FRONT) {
+    match open_stream(state, host, port, now, FRONT, install) {
         Ok(id) => Ok(id),
         Err(SendError::BadOnion) => {
             trace::say(b"socks connect refused, not a valid onion address");
