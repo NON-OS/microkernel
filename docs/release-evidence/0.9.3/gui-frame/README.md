@@ -10,5 +10,12 @@ as the Terminal's beside it.
 - swayimg-desktop.png: the whole screen, swayimg open over the Terminal.
 - swayimg-window.png: the window alone, cropped from it.
 
-The close, minimise and maximise buttons and dragging by the title bar are
-not shown here; that run is still to come.
+- swayimg-closed-by-button.png: the frame's close button clicked (an
+  absolute pointer click at the button): swayimg exits with status 0, as the
+  Terminal's lines show.
+- swayimg-maximised.png: the frame's maximise button clicked, on s2/gui at
+  c02b43d0ae: the window keeps its title bar, fills the screen below the
+  menubar, and is opaque. A few pixels of the frame's margin still show the
+  desktop at its edges.
+
+Dragging by the title bar and minimise are not shown here yet.
