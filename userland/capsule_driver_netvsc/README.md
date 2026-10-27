@@ -114,8 +114,10 @@ named in SEND_RNDIS_PACKET on the data channel; the section is the host's
 until its completion. Frames come in as transfer-pages packets naming ranges
 of the receive buffer, each an RNDIS message; the driver reads each range,
 keeps the frames, notes link indications, and completes the packet so the
-host may use the ranges again. A completion the ring has no room for is
-owed and sent first next time.
+host may use the ranges again. One service pass takes at most 64 packets
+(`PACKETS_PER_PASS`), so a host that keeps the ring full cannot hold the
+driver from its requests. A completion the ring has no room for is owed and
+sent first next time.
 
 ## Failure model
 
@@ -124,7 +126,9 @@ claim last. A range past the receive buffer, or a message that does not fit
 its own lengths, is passed over and the packet still completed. A host that
 holds every section makes a send wait one second, then fail as busy. A ring
 the host broke stops the driver: it closes the channel, takes its GPADLs
-back, gives back the grants and the claim, and exits.
+back, gives back the grants and the claim, and exits with the bring-up
+policy's EXIT_GAVE_UP (6), a device present that failed, never
+EXIT_ABSENT (2), which the kernel tells as no device present.
 
 ## State ownership
 
