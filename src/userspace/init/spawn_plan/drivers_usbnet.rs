@@ -19,6 +19,7 @@
 //! searches the ports, and each keeps searching while it has no device.
 
 mod ax88179;
+mod rtl8153;
 
 pub(super) fn spawn() {
     // Said only by a build that carries one of them.
@@ -37,7 +38,7 @@ pub(super) fn spawn() {
     spawn_cdc_ncm();
     spawn_rndis();
     ax88179::spawn();
-    spawn_rtl8153();
+    rtl8153::spawn();
 }
 
 #[cfg(feature = "nonos-capsule-driver-cdc-ecm")]
@@ -66,12 +67,3 @@ fn spawn_rndis() {
 }
 #[cfg(not(feature = "nonos-capsule-driver-rndis"))]
 fn spawn_rndis() {}
-
-#[cfg(feature = "nonos-capsule-driver-rtl8153")]
-fn spawn_rtl8153() {
-    use crate::hardware::rtl8153_capsule as c;
-    let spawn = c::spawn_driver_rtl8153_capsule;
-    super::boot::capsule("DRIVER-RTL8153", "driver_rtl8153", spawn, c::shared_state);
-}
-#[cfg(not(feature = "nonos-capsule-driver-rtl8153"))]
-fn spawn_rtl8153() {}
