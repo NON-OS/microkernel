@@ -26,8 +26,6 @@ Each step is one of:
     until:TEXT[:SECS]   wait for TEXT on the serial console (default 600 s)
     after:TEXT[:SECS]   wait for TEXT to appear once more than when this step
                         began (default 600 s): a line each install says again
-    mark                from here on, until: looks only at serial lines
-                        written after this step (a second install's line)
     wait:SECS           sleep
     pause:SECS          the same, read as a tutorial's pause
     say:TEXT            caption the recording with TEXT from the next frame;

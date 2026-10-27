@@ -23,6 +23,7 @@ import contextlib
 import io
 import sys
 import tempfile
+import threading
 import time
 import unittest
 import unittest.mock
@@ -134,17 +135,19 @@ class Say(unittest.TestCase):
                 self.assertTrue(said(s)[0])
             sleep.assert_called_once_with(2.5)
 
-    def test_after_a_mark_until_reads_only_new_lines(self):
-        with tempfile.TemporaryDirectory() as d, unittest.mock.patch.dict(step.MARKS, clear=True):
+    def test_after_waits_for_a_second_install_not_the_first(self):
+        with tempfile.TemporaryDirectory() as d:
             serial = Path(d) / "serial.log"
             serial.write_text("[LINUX] installed\n")
-            self.assertTrue(said("mark", serial_path=serial)[0])
             with contextlib.redirect_stdout(io.StringIO()):
-                self.assertFalse(step.run(Machine(gone=True), "until:[LINUX] installed:1", Path(d),
-                                          str(serial)), "the first install's line is behind the mark")
-            with serial.open("a") as f:
-                f.write("[LINUX] installed\n")
-            self.assertTrue(said("until:[LINUX] installed:1", serial_path=serial)[0])
+                self.assertFalse(step.run(Machine(gone=True), "after:[LINUX] installed:1", Path(d),
+                                          str(serial)), "the first install's line does not count")
+
+            def second():
+                with serial.open("a") as f:
+                    f.write("[LINUX] installed\n")
+            threading.Timer(0.3, second).start()
+            self.assertTrue(said("after:[LINUX] installed:5", serial_path=serial)[0])
 
     def test_an_unknown_step_still_stops_the_run(self):
         with self.assertRaises(SystemExit):
