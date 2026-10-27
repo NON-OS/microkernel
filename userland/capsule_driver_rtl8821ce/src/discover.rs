@@ -21,7 +21,7 @@
 
 use nonos_libc::{mk_device_list, DeviceRecord, BAR_KIND_MMIO, BUS_KIND_PCI};
 
-use crate::constants::{PCI_DEVICE_RTL8821CE, PCI_VENDOR_REALTEK};
+use crate::constants::{PCI_VENDOR_REALTEK, RTL8821CE_DEVICE_IDS};
 
 const MAX_DEVICES: usize = 96;
 
@@ -44,7 +44,7 @@ pub fn find() -> Option<Found> {
     for r in &buf[..core::cmp::min(n as usize, MAX_DEVICES)] {
         if r.bus_kind != BUS_KIND_PCI
             || r.vendor != PCI_VENDOR_REALTEK
-            || r.device != PCI_DEVICE_RTL8821CE
+            || !RTL8821CE_DEVICE_IDS.contains(&r.device)
         {
             continue;
         }
