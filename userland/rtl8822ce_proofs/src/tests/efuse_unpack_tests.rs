@@ -27,10 +27,11 @@ fn one_and_two_byte_headers_unpack() {
 fn a_word_left_out_is_not_written_and_an_erased_header_ends() {
     let mut p = blank();
     let next = put(&mut p, 0, 0x2, 0b1010, &[[1, 2], [5, 6]]);
-    p[next + 1] = 0x00; // after the 0xFF header, never read
+    put(&mut p, next + 1, 0x0, 0x0, &[[9, 9]; 4]); // after the 0xFF header, never read
     let (ok, log) = unpack(&p);
     assert!(ok);
     assert_eq!(&log[16..24], &[1, 2, 0xFF, 0xFF, 5, 6, 0xFF, 0xFF]);
+    assert_eq!(&log[..8], &[0xFF; 8]);
 }
 
 #[test]
@@ -54,4 +55,8 @@ fn words_past_the_packed_area_refuse() {
     let mut p = blank();
     p[..387].fill(0x10);
     assert!(unpack(&p).0);
+    // A last header at 387 with one word: rtw88 reads it only if its first
+    // byte is in the packed area, and 388 is not.
+    p[387] = 0x1E;
+    assert!(!unpack(&p).0);
 }
