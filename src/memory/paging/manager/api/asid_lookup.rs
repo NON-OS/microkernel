@@ -17,14 +17,9 @@
 //! An address space found by its page tables rather than its owner: a
 //! thread runs in its process's tables and owns no entry of its own.
 
-use super::globals::PAGING_MANAGER;
-use crate::smp::lock_responsive;
+use super::lookup::entry;
 
 /// The asid whose tables are `cr3`, if one is registered.
 pub fn lookup_asid_for_cr3(cr3: u64) -> Option<u32> {
-    let mgr = lock_responsive(&PAGING_MANAGER);
-    mgr.address_spaces
-        .iter()
-        .find(|(_, space)| space.cr3_value.as_u64() == cr3)
-        .map(|(asid, _)| *asid)
+    entry(|e| e.2 == cr3).map(|e| e.0)
 }
