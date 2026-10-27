@@ -46,6 +46,7 @@ pub const ROC: Cmd = cmd(Kind::Uni, 0x27);
 
 pub const SET_RX_FILTER: Cmd = cmd(Kind::Ce, 0x0a);
 pub const SET_CHAN_DOMAIN: Cmd = cmd(Kind::Ce, 0x0f);
+pub const SET_RATE_TX_POWER: Cmd = cmd(Kind::Ce, 0x5d);
 pub const GET_NIC_CAPAB: Cmd = cmd(Kind::Ce, 0x8a);
 
 impl Cmd {

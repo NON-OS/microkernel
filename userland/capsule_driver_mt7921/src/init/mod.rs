@@ -9,13 +9,14 @@
 //! translation and A-MSDU splitting left off (`mt7921_mac_init` turns them
 //! on; the shared station takes whole 802.11 frames), the band's DMA
 //! length with group-5 rate reports off (`mt792x_mac_init_band`), then
-//! `__mt7921_start`: the MAC enabled, the channel domain, the receive path.
-//! The CLC power tables and the SAR limits are not sent: the firmware runs
-//! on the limits the card's efuse holds.
+//! `__mt7921_start`: the MAC enabled, the channel domain, the receive path,
+//! the transmit power limits (`power`). The CLC tables and SAR limits are
+//! not sent: the firmware runs on its defaults, as Linux's `disable_clc`.
 
 pub mod caps;
 pub mod chan;
 pub mod domain;
+pub mod power;
 
 use caps::Caps;
 
@@ -38,6 +39,7 @@ pub enum InitStep {
     MacEnable = 3,
     Domain = 4,
     RxPath = 5,
+    TxPower = 6,
 }
 
 pub fn run(m: &mut Mcu, r: &Regs, d: &mut Dma) -> Result<Caps, InitStep> {
@@ -55,5 +57,8 @@ pub fn run(m: &mut Mcu, r: &Regs, d: &mut Dma) -> Result<Caps, InitStep> {
     m.send(r, d, SET_CHAN_DOMAIN, &dom, false).map_err(|_| InitStep::Domain)?;
     let path = chan::body(1, 0, caps);
     m.send(r, d, SET_RX_PATH, &path, true).map_err(|_| InitStep::RxPath)?;
+    for b in power::bodies(caps) {
+        m.send(r, d, SET_RATE_TX_POWER, &b, false).map_err(|_| InitStep::TxPower)?;
+    }
     Ok(caps)
 }
