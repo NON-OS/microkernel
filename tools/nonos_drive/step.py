@@ -32,6 +32,16 @@ def rel(q, dx, dy):
     ])
 
 
+def absolute(q, x, y, w=1920, h=1080):
+    """The pointer to pixel (x, y) of a w x h screen, for a machine with an
+    absolute device (nonos-qemu --lane usb-tablet): QEMU's axes run 0 to 0x7fff."""
+    scale = lambda v, n: max(0, min(0x7FFF, v * 0x7FFF // max(1, n - 1)))
+    q.cmd("input-send-event", events=[
+        {"type": "abs", "data": {"axis": "x", "value": scale(x, w)}},
+        {"type": "abs", "data": {"axis": "y", "value": scale(y, h)}},
+    ])
+
+
 def click(q, button="left"):
     for down in (True, False):
         event = {"type": "btn", "data": {"down": down, "button": button}}
@@ -62,6 +72,9 @@ def run(q, s, out, serial):
     elif kind == "move":
         dx, dy = (int(v) for v in arg.split(","))
         rel(q, dx, dy)
+        time.sleep(0.1)
+    elif kind == "abs":
+        absolute(q, *(int(v) for v in arg.split(",")))
         time.sleep(0.1)
     elif kind == "click":
         click(q, arg or "left")
