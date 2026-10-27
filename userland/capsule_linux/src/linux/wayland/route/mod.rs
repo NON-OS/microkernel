@@ -20,6 +20,8 @@ pub(super) mod all;
 pub(super) mod misc;
 pub(super) mod output;
 pub(super) mod rest;
+pub(super) mod scale;
+pub(super) mod scale_surface;
 pub(super) mod seat;
 pub(super) mod select;
 pub(super) mod xdg;
