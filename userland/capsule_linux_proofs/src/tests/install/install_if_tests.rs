@@ -58,3 +58,7 @@ fn what_is_installed_already_is_not_brought_again() {
     assert_eq!(next(&index, &done).as_deref(), Some("imv-wayland"), "version constraint dropped");
     assert_eq!(index.by_name("qt6-qtwayland").map(|p| p.install_if.len()), Some(2));
 }
+
+/// The closure order with virtual needs, beside install_if, which runs after it.
+#[path = "virtual_need_tests.rs"]
+mod virtual_need;
