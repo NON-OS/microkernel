@@ -24,6 +24,8 @@ pub mod bring_up;
 mod bus_master_tests;
 #[path = "../../../capsule_driver_nvme/src/setup/claim.rs"]
 pub mod claim;
+#[cfg(test)]
+mod depth_tests;
 #[path = "../../../capsule_driver_nvme/src/setup/device.rs"]
 mod device;
 #[cfg(test)]
