@@ -18,9 +18,14 @@
  * What init reads setup to have asked for. A boot with the static checks
  * running beside it once started the desktop after setup exited 3
  * (install): the status init read had gone. The rules are included by
- * path; glue_tests holds the kernel to calling them.
+ * path; glue_tests holds the kernel to calling them. And what setup leaves
+ * on the disk this boot came from: Install keeps no answers there, so a
+ * stick runs setup again after an install (keep_tests).
  */
 
+#[cfg(test)]
+#[path = "../../../capsule_setup_wizard/src/keep/choice.rs"]
+mod keep_choice;
 #[cfg(test)]
 #[path = "../../../../src/process/exit/kept_table.rs"]
 mod kept_table;
@@ -30,5 +35,7 @@ mod outcome_rule;
 
 #[cfg(test)]
 mod glue_tests;
+#[cfg(test)]
+mod keep_tests;
 #[cfg(test)]
 mod tests;
