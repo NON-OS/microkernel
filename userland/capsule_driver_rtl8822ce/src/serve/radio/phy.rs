@@ -19,7 +19,9 @@ pub(super) fn phy_setup(regs: &Regs, efuse: Option<efuse::EfuseInfo>) -> Result<
         return Err(Stage::EfuseFailed);
     };
     if !rfe_is_supported(info.rfe) {
-        status::line(b"[rtl8822ce] unsupported rf front-end, radio not configured\n");
+        status::line(
+            b"[rtl8822ce] rf front-end type has no table in this driver, radio not configured\n",
+        );
         return Err(Stage::EfuseFailed);
     }
     pcie::after_mac(regs, info.cut);

@@ -183,7 +183,7 @@ DPK yet, so a weaker signal than under Linux is expected, not a fault.
       chip given back`, `no response after power-on; chip given back`,
       `pcie clock delay: dbi write timed out`, `efuse unreadable on a
       freshly powered mac`, `firmware download failed` (with an `fw:` line
-      before it), `unsupported rf front-end, radio not configured`, `coex
+      before it), `rf front-end type has no table in this driver, radio not configured`, `coex
       window did not answer; antenna not granted`. `dac calibration did
       not read back; radio left as calibrated` is not fatal: note it and
       go on. `phy tables loaded, one rf path` on this 2x2 card is a
