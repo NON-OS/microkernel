@@ -34,8 +34,8 @@ fn each_line_reads_as_the_report_says() {
         line(rtw, Verdict::Held("no driver")),
         "[HW] 10ec:b852 02/80 known, held: no driver"
     );
-    let mt = Ids::Pci((0x14C3, 0x0616), (0x02, 0x80));
-    assert_eq!(line(mt, Verdict::Unknown), "[HW] 14c3:0616 02/80 unknown");
+    let mt = Ids::Pci((0x14C3, 0x7925), (0x02, 0x80));
+    assert_eq!(line(mt, Verdict::Unknown), "[HW] 14c3:7925 02/80 unknown");
     assert_eq!(line(Ids::Pnp(0x0C08), Verdict::Driver("acpi")), "[HW] acpi PNP0C08 driven by acpi");
     let hv = Ids::Other(b"virt", (0x0001, 0x00ab));
     assert_eq!(line(hv, Verdict::NotNeeded), "[HW] virt 0001:00ab needs no driver");

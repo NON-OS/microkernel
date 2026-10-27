@@ -1,0 +1,203 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+"""Hold the MediaTek firmware package to its one set of pins, and keep its
+bytes out of the tree.
+
+The mt7921e driver pins each file by name, length and sha256
+(userland/capsule_driver_mt7921/src/fw/pins.rs). Fails when:
+  - the nix artifact's list (tools/nix/firmware.json) names another commit,
+    file, length or hash, or another licence;
+  - the loader's paths (nonos-bootloader/src/entry/firmware_package.rs) name
+    other files, in another order, or another first module kind;
+  - the kernel's served kinds (install_source_kinds.rs) or the driver's own
+    first slot are not 0x20 and six;
+  - any tracked file is one of the pinned files (by length and sha256), a
+    file under nonos-bootloader/firmware/mediatek/ other than its licence
+    is not empty, or a Rust source includes a MediaTek file's bytes;
+  - with --blobs DIR (a directory holding the pinned files), any tracked
+    source or any --artifact (a built capsule or kernel) holds a run of a
+    pinned file's bytes, raw or as a Rust byte literal.
+
+    check_mediatek_firmware.py [--blobs DIR] [--artifact FILE ...] [--self-test]
+"""
+
+import argparse
+import hashlib
+import json
+import random
+import re
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from mediatek_firmware import KINDS_RS, LICENCE, LOADER_RS, PACKAGE_RS, commit, pins  # noqa: E402
+
+NIX_JSON = "tools/nix/firmware.json"
+PLACEHOLDERS = "nonos-bootloader/firmware/mediatek/"
+SCOPE = ("src/", "userland/", "nonos-bootloader/", "kernel_proofs/")
+NEEDLE = 32
+STRIDE = 8192
+DISTINCT = 24
+INCLUDE = re.compile(r"include_bytes!\s*\([^)]*(mediatek|WIFI_RAM_CODE|WIFI_MT79)", re.I)
+HEXRUN = re.compile(r"(?:0x[0-9a-fA-F]{1,2}\s*,\s*){32,}")
+
+
+def number(text, name):
+    found = re.search(rf"{name}\s*:\s*u\d+\s*=\s*(0x[0-9a-fA-F]+|\d+)", text)
+    return int(found.group(1), 0) if found else None
+
+
+def agreement(root: Path):
+    out, rev, pinned = [], commit(root), pins(root)
+    nix = json.loads((root / NIX_JSON).read_text())
+    want = [{"path": f"mediatek/{n}", "size": l, "sha256": h} for n, l, h in pinned]
+    want.append({"path": LICENCE[0], "sha256": LICENCE[1]})
+    if nix.get("commit") != rev or nix.get("files") != want:
+        out.append(f"{NIX_JSON}: not the driver's pins at {rev[:12]}")
+    loader = (root / LOADER_RS).read_text()
+    paths = re.findall(r'cstr16!\("\\\\EFI\\\\nonos\\\\firmware\\\\mediatek\\\\([^"]+)"\)', loader)
+    if paths != [n for n, _, _ in pinned]:
+        out.append(f"{LOADER_RS}: reads {paths}, not the pinned files in slot order")
+    if number(loader, "KIND_FIRMWARE_FIRST") != 0x20:
+        out.append(f"{LOADER_RS}: KIND_FIRMWARE_FIRST is not 0x20")
+    kinds = (root / KINDS_RS).read_text()
+    if number(kinds, "KIND_FIRMWARE_FIRST") != 0x20 or number(kinds, "FIRMWARE_FILES") != 6:
+        out.append(f"{KINDS_RS}: does not serve kinds 0x20..0x25")
+    if number((root / PACKAGE_RS).read_text(), "SLOT_FIRST") != 0x20:
+        out.append(f"{PACKAGE_RS}: SLOT_FIRST is not 0x20")
+    return out
+
+
+def tracked(root: Path):
+    try:
+        names = subprocess.run(["git", "ls-files", "-z"], cwd=root, capture_output=True,
+                               check=True).stdout.decode().split("\0")
+    except (OSError, subprocess.CalledProcessError):
+        names = [str(p.relative_to(root)) for p in root.rglob("*") if p.is_file()]
+    return [n for n in names if n and (root / n).is_file()]
+
+
+def needles(blobs: Path, pinned):
+    found = set()
+    for name, _, _ in pinned:
+        data = (blobs / name).read_bytes()
+        found |= {data[i:i + NEEDLE] for i in range(0, len(data) - NEEDLE, STRIDE)}
+    # Padding and tables (runs of one byte, short cycles) are in any file;
+    # only a needle of many distinct bytes says it came from these.
+    return {c for c in found if len(set(c)) >= DISTINCT}
+
+
+def holds(data: bytes, chunks) -> bool:
+    return any(c in data for c in chunks)
+
+
+def literal_bytes(text: str) -> bytes:
+    return b"".join(bytes(int(x, 16) for x in re.findall(r"0x([0-9a-fA-F]{1,2})", run.group(0)))
+                    for run in HEXRUN.finditer(text))
+
+
+def no_blobs(root: Path, blobs=None, artifacts=()):
+    out, pinned = [], pins(root)
+    by_len = {l: h for _, l, h in pinned}
+    chunks = needles(blobs, pinned) if blobs else set()
+    for name in tracked(root):
+        path = root / name
+        size = path.stat().st_size
+        if size in by_len and hashlib.sha256(path.read_bytes()).hexdigest() == by_len[size]:
+            out.append(f"{name}: is a pinned MediaTek file")
+        if name.startswith(PLACEHOLDERS) and size and Path(name).name != "LICENSE":
+            out.append(f"{name}: MediaTek firmware bytes in the tree")
+        if name.endswith(".rs") and INCLUDE.search(path.read_text(errors="replace")):
+            out.append(f"{name}: includes a MediaTek firmware file")
+        if chunks and name.startswith(SCOPE):
+            data = path.read_bytes()
+            lit = literal_bytes(data.decode(errors="replace")) if name.endswith(".rs") else b""
+            if holds(data, chunks) or holds(lit, chunks):
+                out.append(f"{name}: holds bytes of a pinned MediaTek file")
+    for art in artifacts:
+        if holds(Path(art).read_bytes(), chunks):
+            out.append(f"{art}: holds bytes of a pinned MediaTek file")
+    return out
+
+
+def self_test() -> int:
+    root = Path(__file__).resolve().parent.parent
+    if agreement(root):
+        print("self-test: the tree itself disagrees", agreement(root))
+        return 1
+    with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as b:
+        t, blobs = Path(d), Path(b)
+        for rel in ("userland/capsule_driver_mt7921/src/fw/pins.rs", PACKAGE_RS, LOADER_RS,
+                    KINDS_RS, NIX_JSON):
+            (t / rel).parent.mkdir(parents=True, exist_ok=True)
+            (t / rel).write_text((root / rel).read_text())
+        if agreement(t) or no_blobs(t):
+            print("self-test: a faithful copy fails")
+            return 1
+        name, length, _ = pins(t)[0]
+        blob = bytes((i * 7 + 3) & 0xff for i in range(length))
+        pins_rs = t / "userland/capsule_driver_mt7921/src/fw/pins.rs"
+        text = pins_rs.read_text()
+        pins_rs.write_text(text.replace(pins(t)[0][2], hashlib.sha256(blob).hexdigest()))
+        for i, (n, l, _) in enumerate(pins(t)):
+            (blobs / n).write_bytes(blob if n == name else random.Random(i).randbytes(l))
+        if no_blobs(t, blobs):
+            print("self-test: a clean tree is found holding the files")
+            return 1
+        cases = []
+        (t / "userland/x.bin").write_bytes(blob)
+        cases.append(("a pinned file committed", no_blobs(t)))
+        (t / "userland/x.bin").unlink()
+        lit = ", ".join(f"0x{b:02x}" for b in blob[STRIDE:STRIDE + 64])
+        (t / "userland/y.rs").write_text(f"const B: [u8; 64] = [{lit}];\n")
+        cases.append(("its bytes as a Rust literal", no_blobs(t, blobs)))
+        (t / "userland/y.rs").write_text('static F: &[u8] = include_bytes!("mediatek/a.bin");\n')
+        cases.append(("an include_bytes! of it", no_blobs(t)))
+        (t / "userland/y.rs").unlink()
+        (t / PLACEHOLDERS).mkdir(parents=True)
+        (t / PLACEHOLDERS / "mt7922_fw.bin").write_bytes(b"\x01")
+        cases.append(("a placeholder filled", no_blobs(t)))
+        (t / PLACEHOLDERS / "mt7922_fw.bin").write_bytes(b"")
+        art = t / "capsule.elf"
+        art.write_bytes(b"\0" * 100 + blob[:STRIDE + NEEDLE] + b"\0")
+        cases.append(("a built capsule holding it", no_blobs(t, blobs, [art])))
+        pins_rs.write_text(text)
+        (t / LOADER_RS).write_text((root / LOADER_RS).read_text().replace("MT7922_1.bin", "MT7922_2.bin"))
+        cases.append(("the loader reading another file", agreement(t)))
+        (t / LOADER_RS).write_text((root / LOADER_RS).read_text())
+        (t / KINDS_RS).write_text((root / KINDS_RS).read_text().replace("FIRMWARE_FILES: u32 = 6", "FIRMWARE_FILES: u32 = 5"))
+        cases.append(("the kernel serving five", agreement(t)))
+        (t / KINDS_RS).write_text((root / KINDS_RS).read_text())
+        (t / NIX_JSON).write_text((root / NIX_JSON).read_text().replace("92192", "92193"))
+        cases.append(("the nix list another length", agreement(t)))
+    missed = [what for what, found in cases if not found]
+    print(f"self-test: {len(cases) - len(missed)} of {len(cases)} caught; missed: {missed}")
+    return 1 if missed else 0
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--blobs", type=Path)
+    ap.add_argument("--artifact", action="append", default=[])
+    ap.add_argument("--self-test", action="store_true")
+    a = ap.parse_args()
+    if a.self_test:
+        return self_test()
+    if a.artifact and not a.blobs:
+        ap.error("--artifact needs --blobs")
+    root = Path(__file__).resolve().parent.parent
+    bad = agreement(root) + no_blobs(root, a.blobs, a.artifact)
+    for line in bad:
+        print(f"check_mediatek_firmware: {line}")
+    if not bad:
+        print(f"check_mediatek_firmware: six pinned files agree in driver, loader, kernel and "
+              f"build; none in the tree{', the sources or the artifacts' if a.blobs else ''}")
+    return 1 if bad else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -55,6 +55,12 @@ pub(super) const HDA: &[Match] = &[
     Class { vendor: Some(INTEL), class: 0x04, sub: 0x01, progif: None },
 ];
 
+/// MediaTek MT7921 and MT7922, and ITTIM's MT7922 module (capsule_driver_mt7921 ids.rs PCI_IDS).
+pub(super) const MT7921: &[Match] = &[
+    Ids(0x14C3, &[0x0608, 0x0608, 0x0616, 0x0616, 0x7920, 0x7920, 0x7922, 0x7922, 0x7961, 0x7961]),
+    Ids(0x0B48, &[0x7922, 0x7922]),
+];
+
 /// SVGA II as VMware lays it out, and VirtualBox's VBoxSVGA.
 pub(super) const SVGA: &[Match] = &[Ids(VMWARE, &[0x0405, 0x0405]), Ids(VBOX, &[0xBEEF, 0xBEEF])];
 

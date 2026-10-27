@@ -27,6 +27,7 @@ pub mod inventory;
 pub mod iwlwifi_capsule;
 pub mod ixgbe_capsule;
 pub mod mpt_capsule;
+pub mod mt7921_capsule;
 pub mod netvsc_capsule;
 pub mod nvme_capsule;
 pub mod ohci_capsule;
