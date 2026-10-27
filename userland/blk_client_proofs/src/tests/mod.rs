@@ -22,4 +22,5 @@ mod status_tests;
 mod table_tests;
 mod units_tests;
 mod units_walk_tests;
+mod vmd_ids_tests;
 mod wire_names_tests;

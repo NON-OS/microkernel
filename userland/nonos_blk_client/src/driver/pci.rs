@@ -53,8 +53,13 @@ const VIRTIO_BLK: [u16; 2] = [0x1001, 0x1042];
 
 /// Intel Volume Management Device functions. Some report the RAID
 /// subclass, some a system peripheral class; the id names them either way.
-pub const INTEL_VMD: [u16; 10] =
-    [0x201D, 0x28C0, 0x467F, 0x4C3D, 0x9A0B, 0xA77F, 0x7D0B, 0xAD0B, 0xB06F, 0xB60B];
+/// Every VMD the kernel brings up (src/drivers/pci/vmd/domain/ids.rs, a
+/// proof holds the two together), and 28C1, which it does not, so the disk
+/// list tells a person with one to turn VMD off rather than show nothing.
+pub const INTEL_VMD: [u16; 14] = [
+    0x201D, 0x28C0, 0x28C1, 0x467F, 0x4C3D, 0x7D0B, 0x9A0B, 0xA77F, 0xAD0B, 0xB06F, 0xB07F, 0xB60B,
+    0xD70B, 0xD73B,
+];
 
 /// Intel eMMC hosts, as the kernel's inventory lists them
 /// (src/hardware/inventory/emmc.rs); a proof holds the two lists together.

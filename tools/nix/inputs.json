@@ -1364,6 +1364,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/drivers/pci/vmd/domain/ids.rs",
    "userland/blk_client_proofs",
    "userland/capsule_driver_ahci/src/protocol/endpoint.rs",
    "userland/capsule_driver_ahci/src/protocol/header.rs",
