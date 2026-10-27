@@ -223,6 +223,10 @@ click
 pause:3
 say:Proofs asks two questions: is this boot attested, and is its traffic anonymous?
 pause:8
+# >>> dev-image
+say:A development image answers no, and the page shows which checks failed.
+pause:7
+# <<< dev-image
 key:esc
 pause:2
 
@@ -439,7 +443,13 @@ pause:3
 type:qwen what is a microkernel? Answer in one sentence.
 key:ret
 say:Qwen, a language model that runs here. No question leaves this machine.
-pause:30
+pause:8
+say:Its policy line: models read-only, a terminal, and no network at all.
+pause:8
+say:The model is checked against its signed pin before it is loaded.
+pause:20
+# The rehearsal under TCG reached "qwen: verified" and the load; the answer
+# itself is seen only on KVM. Check its timing on the first KVM run.
 say:The answer streams in as the model writes it, on this machine.
 pause:20
 type:/bye
