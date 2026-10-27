@@ -18,18 +18,23 @@
 //! package, its files served out of it. A package's pack lives beside the
 //! Linux trees, at `/linux-packs/<family>/<package>.pack` (paths.rs), with
 //! the trailer this machine minted over its index beside it. A run serves
-//! only its own family's packs.
+//! only its own family's packs, and of them only its program's closure's
+//! when the install kept one (closure.rs).
 
+mod closure;
 mod list;
 mod load;
 mod paths;
 mod put;
+mod running;
 mod serve;
 mod shelf;
 mod swap;
 mod table;
 
+pub use closure::{decode as decode_closure, encode as encode_closure, MAX_BYTES as CLOSURE_MAX};
 pub use list::list;
 pub use put::{put, remove};
+pub use running::run_closure;
 pub use serve::{read, stat};
 pub use shelf::Held;
