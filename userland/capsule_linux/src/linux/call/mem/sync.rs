@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! `msync`: write a shared file mapping back to its file.
 //!
-//! Every file mapping here is private, since MAP_SHARED of a file is refused,
-//! and a private mapping has nothing to write back: Linux answers msync on
-//! one with its argument checks alone, and so does this.
+//! A file mapped MAP_SHARED is kept in the family's table, and msync writes
+//! back the pages a writer changed in the span, then syncs each file the
+//! span maps as fsync syncs it (file/held/shared_maps/sync.rs). A private
+//! mapping has nothing to write back: Linux answers msync on one with its
+//! argument checks alone, and so does this.
 
 use crate::linux::abi::errno;
 use crate::linux::guest::{page_up, Guest, PAGE};
@@ -40,5 +42,8 @@ pub fn msync(guest: &Guest, addr: u64, len: u64, flags: u64) -> u64 {
     if end > addr && guest.mapped_from(addr) < end - addr {
         return errno::fail(errno::ENOMEM);
     }
-    errno::ok(0)
+    match crate::linux::file::shared_maps::synced(guest.pid, addr, end - addr) {
+        Ok(()) => errno::ok(0),
+        Err(e) => errno::fail(e),
+    }
 }

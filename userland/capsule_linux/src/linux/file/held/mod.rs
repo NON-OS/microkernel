@@ -16,14 +16,15 @@
 
 /*
  * What the family holds of the files it uses: one copy of each file
- * it writes, the open file descriptions, and the modes and times it
- * set.
+ * it writes, the open file descriptions, the modes and times it set,
+ * and the files its processes map shared.
  */
 
 pub(super) mod cache;
 pub(super) mod desc;
 pub(super) mod modes;
 pub(super) mod rw;
+pub mod shared_maps;
 pub(super) mod store_err;
 pub(super) mod times;
 
