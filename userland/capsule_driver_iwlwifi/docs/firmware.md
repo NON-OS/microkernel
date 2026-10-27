@@ -16,6 +16,10 @@ RF type in CSR_HW_RF_ID. The PCI id gives the transport values (cfg/ax210.c).
 | same | MA, step B | GF with CDB (GF4), step A | `iwlwifi-ma-b0-gf4-a0-86.ucode` | yes |
 | 0x272B (BE200, Gl) | Gl 0x47, step C | FM 0x112, step C | `iwlwifi-gl-c0-fm-c0-92.ucode` | yes |
 | 0xA840, 0x7740, 0x4D40 (BE201, Bz) | Bz 0x46, step B from the CNVi | FM 0x112, step C | `iwlwifi-bz-b0-fm-c0-92.ucode` | yes |
+| 0x02F0, 0x06F0 (Comet Lake), 0x34F0, 0x3DF0, 0x4DF0 (Ice, Jasper Lake), 0x43F0, 0xA0F0 (Tiger Lake): AX201 CNVi | Qu 0x33, step B | HR 0x10A, 0x10C | `iwlwifi-Qu-b0-hr-b0-77.ucode` | yes |
+| same | Qu, step C | HR | `iwlwifi-Qu-c0-hr-b0-77.ucode` | yes |
+| same | QuZ 0x35, any step | HR | `iwlwifi-QuZ-a0-hr-b0-77.ucode` | yes |
+| 0x2723 (AX200, discrete) | any | any | `iwlwifi-cc-a0-77.ucode` | yes |
 
 A known adapter whose image is not in the tree is refused by name (step 4,
 detail 0x6000i, i the image number), as is anything else (an SO CDB GF4
@@ -39,6 +43,32 @@ LICENCE.iwlwifi_firmware, text in `nonos-bootloader/firmware/intel/LICENSE`),
 pinned by sha256 in `scripts/baselines/upstream.sha256` (`firmware::blob`).
 The TY, MA and BZ-family paths are host-proven only: never booted on those
 parts.
+
+The 22000 family (the AX201 CNVi on a Qu or QuZ MAC, the discrete AX200) is
+chosen as Linux v6.12 pcie/drv.c chooses it: the AX200 runs cc-a0 whatever
+its ids say; a Qu or QuZ MAC with an HR radio runs its MAC's and step's image
+(`gen3::select::qu`, compared row by row with `iwl_dev_info_table` in
+`gen3_gen2_tests::subsystems`). A JF radio on those ids (9461, 9462, 9560)
+needs a 9000-family image, not carried, and is refused (step 4, detail
+0x30105), as is a CDB radio, a Qu MAC of a step other than B or C, and an
+unknown MAC. It boots on its own path (`gen3::gen2`, `CsrLayout::Gen2`): the
+version 1 context info (`iwl_context_info`, 1792 bytes, no image loader)
+written to CSR_CTXT_INFO_BA, UMAC peripherals at no offset under a 20-bit
+HBUS mask, a 32-entry command ring and 256-entry TFD rings, free receive
+entries of a page-aligned address with the buffer id in the low 12 bits,
+4-byte used entries, several packets to a receive buffer, the version 1
+receive descriptor, the 20-byte `iwl_tx_cmd_gen2` with byte counts in dwords,
+and `_iwl_trans_pcie_start_hw`'s persistence-bit clear and, on the
+integrated parts, forced power gating; the AX200 adds the BISR waits and its
+LTR in CSR_LTR_LONG_VAL_AD, the CNVi parts write theirs to HPM_UMAC_LTR. The
+API 77 images list the MLD API, SCAN_REQ_UMAC 15 (the band in `v2.band`),
+TX_CMD 9 and MAC_CONFIG 1 (the same bytes as 2); the driver speaks each
+(`gen3_gen2_tests::firmware` lists every version that differs from the
+AX211 image's). The Qu and QuZ images are linux-firmware's at bf992df7 and
+pinned as above; `iwlwifi-cc-a0-77.ucode` was already in the tree, an earlier
+build (core74, ad46c98b) than bf992df7's (563a6e92), which lists no
+MAC_CONFIG version (version 1 then). The 22000-family path is host-proven
+only: never booted on those parts.
 The TLV file is parsed with every length checked (`gen3::ucode`); the image
 loader, capabilities, API flags and command version table come from it.
 

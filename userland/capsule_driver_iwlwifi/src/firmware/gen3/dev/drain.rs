@@ -15,10 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Taking received packets in order, each whole one to the caller's handler.
+//! From AX210 on a buffer holds one packet; a 22000-family buffer may hold
+//! several (`gen2`).
 
+use super::super::cmdq::CmdQueue;
+use super::super::csr::CsrLayout;
 use super::super::packet::{parse as parse_packet, Packet};
 use super::super::region::Region;
 use super::super::rxq::Taken;
+use super::gen2::packets;
 use super::kinds::{Flow, PASS, TX_RESPONSE};
 use super::state::Dev;
 use crate::regs::Mmio;
@@ -33,16 +38,18 @@ impl<'a, M: Mmio, R: Region + ?Sized> Dev<'a, M, R> {
                 None => break,
                 Some(Taken::BadId) => self.bad_ids = self.bad_ids.saturating_add(1),
                 Some(Taken::Fragment) => {}
+                Some(Taken::Buffer) if self.csr == CsrLayout::Gen2 => {
+                    let cmdq = &mut self.cmdq;
+                    if packets(&self.buf, &mut |p| hand(cmdq, p, handle)) == Flow::Done {
+                        flow = Flow::Done;
+                        break;
+                    }
+                }
                 Some(Taken::Buffer) => {
-                    if let Some(p) = parse_packet(&self.buf) {
-                        // A reply, however late, retires the command it answers.
-                        if p.is_reply() && !(p.group == 0 && p.cmd == TX_RESPONSE) {
-                            self.cmdq.retire(p.sequence);
-                        }
-                        if handle(&p) == Flow::Done {
-                            flow = Flow::Done;
-                            break;
-                        }
+                    let Some(p) = parse_packet(&self.buf) else { continue };
+                    if hand(&mut self.cmdq, &p, handle) == Flow::Done {
+                        flow = Flow::Done;
+                        break;
                     }
                 }
             }
@@ -50,4 +57,12 @@ impl<'a, M: Mmio, R: Region + ?Sized> Dev<'a, M, R> {
         self.rxq.kick(self.m);
         flow
     }
+}
+
+// Hand one packet on. A reply, however late, retires the command it answers.
+fn hand(cmdq: &mut CmdQueue, p: &Packet<'_>, handle: &mut dyn FnMut(&Packet<'_>) -> Flow) -> Flow {
+    if p.is_reply() && !(p.group == 0 && p.cmd == TX_RESPONSE) {
+        cmdq.retire(p.sequence);
+    }
+    handle(p)
 }

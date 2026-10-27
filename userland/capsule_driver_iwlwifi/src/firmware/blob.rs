@@ -10,7 +10,10 @@
 //! intel/iwlwifi/ copy at bf992df7a95b5e19bb8f8546eb4d7c53ab2598d0 (WHENCE:
 //! "Licence: Redistributable. See LICENCE.iwlwifi_firmware", its text in
 //! `nonos-bootloader/firmware/intel/LICENSE`), pinned by sha256 in
-//! scripts/baselines/upstream.sha256.
+//! scripts/baselines/upstream.sha256, but for `iwlwifi-cc-a0-77.ucode`: the
+//! bootloader's copy, pinned there too, an earlier linux-firmware build of
+//! the same API (core74::ad46c98b; bf992df7 has core74::563a6e92), whose
+//! command table differs from that one's only in listing no MAC_CONFIG_CMD.
 
 use super::gen3::select::Image;
 use files::*;
@@ -35,6 +38,10 @@ const CARRIED: &[Carried] = &[
     (Image::MaGf4, "iwlwifi-ma-b0-gf4-a0-86.ucode", MA_GF4, Some(MA_GF4_PNVM)),
     (Image::GlFm, "iwlwifi-gl-c0-fm-c0-92.ucode", GL_FM, Some(GL_FM_PNVM)),
     (Image::BzFm, "iwlwifi-bz-b0-fm-c0-92.ucode", BZ_FM, Some(BZ_FM_PNVM)),
+    (Image::QuB0Hr, "iwlwifi-Qu-b0-hr-b0-77.ucode", QU_B_HR, None),
+    (Image::QuC0Hr, "iwlwifi-Qu-c0-hr-b0-77.ucode", QU_C_HR, None),
+    (Image::QuZHr, "iwlwifi-QuZ-a0-hr-b0-77.ucode", QUZ_HR, None),
+    (Image::CcHr, "iwlwifi-cc-a0-77.ucode", CC, None),
 ];
 
 fn carried(image: Image) -> Option<&'static Carried> {
