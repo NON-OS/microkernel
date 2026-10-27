@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The order a package's pack goes in and out of the store in, as it ships.
+//! The order a package's pack goes in and out of the store in, and the name
+//! each family's pack has, as they ship.
 
 #[path = "../../../../capsule_linux/src/linux/file/store/pack/paths.rs"]
 pub mod paths;
