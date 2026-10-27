@@ -21,6 +21,7 @@ mod dma;
 mod efuse;
 mod fw;
 mod h2c;
+mod ids;
 mod mac;
 mod pcie;
 mod phy;

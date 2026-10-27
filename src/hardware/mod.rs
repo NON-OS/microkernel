@@ -41,6 +41,7 @@ pub mod rtl8153_capsule;
 pub mod rtl8169_capsule;
 pub mod rtl8821ce_capsule;
 pub mod rtl8822ce_capsule;
+pub mod rtl8852be_capsule;
 pub mod sdhci_capsule;
 pub mod smbus_capsule;
 pub mod spi_capsule;

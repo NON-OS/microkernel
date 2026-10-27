@@ -41,7 +41,8 @@
     feature = "nonos-capsule-driver-iwlwifi",
     feature = "nonos-capsule-driver-rtl8821ce",
     feature = "nonos-capsule-driver-rtl8822ce",
-    feature = "nonos-capsule-driver-mt7921"
+    feature = "nonos-capsule-driver-mt7921",
+    feature = "nonos-capsule-driver-rtl8852be"
 ))]
 
 use crate::hardware::inventory::{present as has, HardwareFamily};
