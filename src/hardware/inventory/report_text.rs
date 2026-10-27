@@ -14,25 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One device's line of the hardware report: its PCI ids and class, then
-//! what NONOS does with it. Pure, so the proofs read the very text a boot
-//! prints. Nothing on it names one machine: no serial, MAC or address.
+//! One device's line of the hardware report: where it sits and its ids,
+//! then what NONOS does with it. Pure, so the proofs read the very text a
+//! boot prints. Nothing on it names one machine: no serial, MAC or address.
 
-/// The longest line `text` writes.
-pub const TEXT_MAX: usize = 120;
+use super::report_hex::{hex, upper};
+pub(super) use super::report_kinds::{Ids, Verdict, TEXT_MAX};
 
-/// What NONOS does with one device, for its line.
-pub enum Verdict<'a> {
-    /// The driver capsule that takes it.
-    Driver(&'a str),
-    /// Known, and no driver takes it, for this reason.
-    Held(&'a str),
-    /// No table names it.
-    Unknown,
-}
-
-/// `[HW] vvvv:dddd cc/ss ` and the verdict, into `out`; the length written.
-pub fn text(out: &mut [u8; TEXT_MAX], ids: (u16, u16), class: (u8, u8), v: &Verdict) -> usize {
+/// `[HW] ` and the ids, then the verdict, into `out`; the length written.
+pub(super) fn text(out: &mut [u8; TEXT_MAX], ids: &Ids, v: &Verdict) -> usize {
     let mut n = 0;
     let mut put = |bytes: &[u8]| {
         let take = bytes.len().min(TEXT_MAX - n);
@@ -40,33 +30,31 @@ pub fn text(out: &mut [u8; TEXT_MAX], ids: (u16, u16), class: (u8, u8), v: &Verd
         n += take;
     };
     put(b"[HW] ");
-    put(&hex(ids.0 as u32, 4));
-    put(b":");
-    put(&hex(ids.1 as u32, 4));
-    put(b" ");
-    put(&hex(class.0 as u32, 2)[2..]);
-    put(b"/");
-    put(&hex(class.1 as u32, 2)[2..]);
+    match ids {
+        Ids::Pci((v, d), (c, s)) => {
+            for part in [&hex(*v as u32)[..], b":", &hex(*d as u32), b" ", &hex(*c as u32)[2..]] {
+                put(part);
+            }
+            put(b"/");
+            put(&hex(*s as u32)[2..]);
+        }
+        Ids::Pnp(d) => {
+            put(b"acpi PNP");
+            put(&upper(hex(*d as u32)));
+        }
+        Ids::Other(bus, (v, d)) => {
+            for part in [*bus, b" ", &hex(*v as u32), b":", &hex(*d as u32)] {
+                put(part);
+            }
+        }
+    }
     match v {
-        Verdict::Driver(d) => {
-            put(b" driven by ");
-            put(d.as_bytes());
-        }
+        Verdict::Driver(d) => [b" driven by ".as_slice(), d.as_bytes()].iter().for_each(|p| put(p)),
         Verdict::Held(why) => {
-            put(b" known, held: ");
-            put(why.as_bytes());
+            [b" known, held: ".as_slice(), why.as_bytes()].iter().for_each(|p| put(p))
         }
+        Verdict::NotNeeded => put(b" needs no driver"),
         Verdict::Unknown => put(b" unknown"),
     }
     n
-}
-
-/// The low `digits` hex digits of `v`, right-aligned in four bytes.
-fn hex(v: u32, digits: u32) -> [u8; 4] {
-    const HEX: &[u8; 16] = b"0123456789abcdef";
-    let mut out = [b'0'; 4];
-    for i in 0..digits as usize {
-        out[3 - i] = HEX[((v >> (4 * i)) & 0xF) as usize];
-    }
-    out
 }
