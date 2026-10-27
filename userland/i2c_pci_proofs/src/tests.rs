@@ -45,6 +45,8 @@ mod scl_count_tests;
 mod scl_tests;
 #[path = "speed_tests.rs"]
 mod speed_tests;
+#[path = "kernel_list_tests.rs"]
+mod kernel_list_tests;
 #[path = "table_tests.rs"]
 mod table_tests;
 #[path = "target_tests.rs"]
