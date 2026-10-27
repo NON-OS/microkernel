@@ -29,12 +29,13 @@ fn words(parts: &[&str]) -> Vec<String> {
 #[test]
 fn the_largest_install_argv_fits() {
     /* src/userspace/capsule_linux/install.rs: install <pkg> <pin> <m> [direct],
-    m 640 hex since I-C5; a package name of 128 bytes is past any Alpine one. */
+    m 640 hex since I-C5 and up to 2048 more of listed arguments; a package
+    name of 128 bytes is past any Alpine one. */
     let name = "p".repeat(128);
-    let (pin, m) = ("0".repeat(64), "a".repeat(640));
+    let (pin, m) = ("0".repeat(64), "a".repeat(640 + 2 * 1024));
     let argv = words(&["install", &name, &pin, &m, "direct"]);
     assert!(joined_len(&argv) > 256, "the length a 256-byte read lost");
-    assert!(fits(&argv) && joined_len(&argv) * 4 <= ARGV_BYTES_MAX);
+    assert!(fits(&argv) && joined_len(&argv) + 1024 <= ARGV_BYTES_MAX);
 }
 
 #[test]

@@ -19,9 +19,10 @@
 //! the kernel reads the same, and every byte string market_proto refuses
 //! the kernel refuses, over every length a reply could take.
 
-use nonos_market_proto::{linux_policy_body, parse_linux_policy, LinuxPolicy, MARKET_ARG_LEN};
+use nonos_market_proto::linux_policy::{MARKET_ARGS_MAX, MARKET_ARG_LEN};
+use nonos_market_proto::{linux_policy_body, parse_linux_policy, LinuxPolicy};
 
-use super::kernel_linux_policy::{parse, LinuxPolicyReply, MARKET_ARG_LEN as KERNEL_LEN};
+use super::kernel_linux_policy::{self as kernel, parse, LinuxPolicyReply};
 
 type Proto = Option<(LinuxPolicy, [u8; 32])>;
 type Kernel = Option<(LinuxPolicyReply, [u8; 32])>;
@@ -32,7 +33,7 @@ fn same(proto: Proto, kernel: Kernel) -> bool {
         (Some((p, a)), Some((k, b))) if a == b => match (p, k) {
             (LinuxPolicy::NoPolicy, LinuxPolicyReply::NoPolicy) => true,
             (LinuxPolicy::Refused, LinuxPolicyReply::Refused) => true,
-            (LinuxPolicy::Policy(a), LinuxPolicyReply::Policy(b)) => a == b,
+            (LinuxPolicy::Policy(a, x), LinuxPolicyReply::Policy(b, y)) => a == b && x == y,
             _ => false,
         },
         _ => false,
@@ -43,10 +44,10 @@ const HASH: [u8; 32] = [5; 32];
 
 #[test]
 fn the_kernel_reads_every_reply_the_market_writes() {
-    assert_eq!(KERNEL_LEN, MARKET_ARG_LEN);
-    let mut m = [0u8; MARKET_ARG_LEN];
-    m.iter_mut().enumerate().for_each(|(i, b)| *b = (i * 7 % 256) as u8);
-    for reply in [LinuxPolicy::NoPolicy, LinuxPolicy::Refused, LinuxPolicy::Policy(Box::new(m))] {
+    assert!((kernel::MARKET_ARG_LEN, kernel::MARKET_ARGS_MAX) == (MARKET_ARG_LEN, MARKET_ARGS_MAX));
+    let m: [u8; MARKET_ARG_LEN] = core::array::from_fn(|i| (i * 7 % 256) as u8);
+    let p = |n| LinuxPolicy::Policy(Box::new(m), vec![3; n]);
+    for reply in [LinuxPolicy::NoPolicy, LinuxPolicy::Refused, p(0), p(1), p(MARKET_ARGS_MAX)] {
         let body = linux_policy_body(&reply, &HASH);
         let read = parse(&body);
         assert!(read.as_ref().is_some_and(|(_, h)| *h == HASH));
@@ -66,7 +67,7 @@ fn the_two_copies_agree_on_every_short_body_and_every_length() {
         assert!(same(parse_linux_policy(&[a]), parse(&[a])));
     }
     for kind in 0..=3u8 {
-        for len in 0..=(MARKET_ARG_LEN + 4) {
+        for len in 0..=(MARKET_ARG_LEN + MARKET_ARGS_MAX + 4) {
             let body = [&[2u8, kind][..], &HASH, &vec![9u8; len]].concat();
             assert!(same(parse_linux_policy(&body), parse(&body)), "kind {kind}, {len} bytes");
         }

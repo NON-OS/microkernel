@@ -43,14 +43,15 @@ pub(super) fn encode(
     match policy_verdict(&Host, entry, rel) {
         PolicyVerdict::NotLinux | PolicyVerdict::Vendor => LinuxPolicy::NoPolicy,
         PolicyVerdict::Valid if ready(index_signed, entry, rel, publisher_signed) => {
-            arg(entry, rel).map_or(LinuxPolicy::Refused, LinuxPolicy::Policy)
+            arg(entry, rel).unwrap_or(LinuxPolicy::Refused)
         }
         _ => LinuxPolicy::Refused,
     }
 }
 
-fn arg(entry: &MarketplaceEntry, rel: &CapsuleRelease) -> Option<Box<[u8; MARKET_ARG_LEN]>> {
-    let policy: &[u8; POLICY_LEN] = rel.ext.as_ref()?.guest_policy.as_slice().try_into().ok()?;
+/// argv m's bytes, and the listed arguments after the policy, if any.
+fn arg(entry: &MarketplaceEntry, rel: &CapsuleRelease) -> Option<LinuxPolicy> {
+    let (policy, args) = rel.ext.as_ref()?.guest_policy.split_first_chunk::<POLICY_LEN>()?;
     let listing = listing_id(&Host, &entry.publisher_pubkey, &entry.listing_id);
     let release = release_id(&Host, &listing, &rel.release_id);
     let mut m = Box::new([0u8; MARKET_ARG_LEN]);
@@ -59,5 +60,5 @@ fn arg(entry: &MarketplaceEntry, rel: &CapsuleRelease) -> Option<Box<[u8; MARKET
     p.copy_from_slice(policy);
     l.copy_from_slice(&listing);
     r.copy_from_slice(&release);
-    Some(m)
+    Some(LinuxPolicy::Policy(m, args.to_vec()))
 }

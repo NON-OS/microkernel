@@ -38,6 +38,16 @@ pub const MAX_SIGNATURE: u32 = 256; // canonical Ed25519 is 64; cushion for futu
 
 /// Schema 3. A guest policy is a LinuxAppPolicy or nothing.
 pub const GUEST_POLICY_LEN: u32 = 256;
+/// The most bytes of listed arguments that may follow the policy
+/// (nonos_linux_policy::args::MAX_LEN), under the same signature.
+pub const GUEST_ARGS_MAX: u32 = 1024;
+
+/// Whether a guest_policy field of `len` bytes is nothing, a policy, or a
+/// policy and up to GUEST_ARGS_MAX bytes of listed arguments.
+pub const fn guest_policy_fits(len: usize) -> bool {
+    len == 0
+        || (len >= GUEST_POLICY_LEN as usize && len <= (GUEST_POLICY_LEN + GUEST_ARGS_MAX) as usize)
+}
 pub const MAX_PROOF_REQS: u32 = 8;
 pub const MAX_PROOF_ANCHORS: u32 = 8;
 

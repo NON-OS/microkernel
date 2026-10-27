@@ -18,6 +18,13 @@
 //! only a shipped tier may have.
 
 use super::market_tests::{market, policy, ready};
+
+/* The listed arguments on the same word, and where they go after it. */
+#[path = "listed_args_tests.rs"]
+mod listed_args_tests;
+#[path = "market_args_tests.rs"]
+mod market_args_tests;
+use crate::install::market::arg::Market;
 use crate::install::market::check::{gate, without_box};
 
 /* A release with no policy ("-") is a shipped tier's; any package from an
@@ -36,9 +43,10 @@ fn only_a_shipped_tier_installs_without_a_box() {
     }
     assert_eq!(gate(tier, None), Ok(None), "a tier: its own table's box");
     let p = policy(1, 2, ready());
-    assert_eq!(gate("git", Some(&market(&p, 1, 2))), Ok(Some(p)), "a market box: admitted");
+    let sold = |head| Market { head, args: Vec::new() };
+    assert_eq!(gate("git", Some(&sold(market(&p, 1, 2)))), Ok(Some(p)), "a market box: admitted");
     assert!(
-        gate(tier, Some(&market(&p, 3, 2))).is_err(),
+        gate(tier, Some(&sold(market(&p, 3, 2)))).is_err(),
         "a box that fails admit fails even a tier"
     );
 }
