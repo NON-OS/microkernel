@@ -20,6 +20,7 @@
 
 use super::approval::Approval;
 use super::authorized::under_session;
+use super::consts::MACHINE_PCRS;
 use super::draw::draw;
 use crate::crypto::rng::fill_random_bytes_secure;
 use crate::security::tpm::machine_key::consts::NONCE_LEN;
@@ -32,21 +33,22 @@ use crate::security::tpm::machine_key::KeyError;
 /// The device secret on this machine, if this chain may have it: four field
 /// words, each drawn by rejection.
 pub fn device_secret(a: &Approval) -> Result<[u64; 4], KeyError> {
-    with_approved_key(a, draw)
+    with_approved_key(a, &MACHINE_PCRS, draw)
 }
 
-/// Run `f` with the key the approved policy authorizes and the session that
-/// satisfies it: the device secret's draw, or a kernel label's key
-/// (approved_key.rs).
+/// Run `f` with the key the approved policy over `machine` authorizes and
+/// the session that satisfies it: the device secret's draw, or a kernel
+/// label's key (approved_key.rs).
 pub(super) fn with_approved_key<R>(
     a: &Approval,
+    machine: &[u8],
     f: impl FnOnce(u32, u32) -> Result<R, KeyError>,
 ) -> Result<R, KeyError> {
     let _one = IN_PROGRESS.lock();
     let mut nonce = [0u8; NONCE_LEN];
     fill_random_bytes_secure(&mut nonce).map_err(|_| KeyError::NoRandomness)?;
     let session = parse_start(&run(&build_start(&nonce))?)?;
-    let result = under_session(session, a, f);
+    let result = under_session(session, a, machine, f);
     let _ = run(&build_flush(session));
     result
 }

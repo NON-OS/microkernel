@@ -40,3 +40,7 @@ pub(super) const APPROVED_PCRS: [u8; 1] = [9];
 /// The PCRs this machine binds as they are: firmware, the bootloader as the
 /// firmware measured it, and the Secure Boot state.
 pub(super) const MACHINE_PCRS: [u8; 3] = [0, 4, 7];
+/// The handover's: the same without the bootloader, so a kernel the release
+/// approved opens a volume under the next release's bootloader, once
+/// (fs/blockfs_volume/handover.rs).
+pub(super) const HANDOVER_PCRS: [u8; 2] = [0, 7];

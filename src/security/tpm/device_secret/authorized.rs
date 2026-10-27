@@ -16,12 +16,13 @@
 
 //! The policy the device secret's key is made under, in a session already
 //! started: PolicyAuthorize over the approved PCR 9 by the release key, then
-//! PolicyPCR over this machine's 0, 4 and 7 (mod.rs). The key it makes is
-//! handed to `f` and flushed after, whatever `f` answers.
+//! PolicyPCR over this machine's PCRs `machine`, 0, 4 and 7 (mod.rs), or the
+//! handover's 0 and 7. The key it makes is handed to `f` and flushed after,
+//! whatever `f` answers.
 
 use super::approval::{Approval, POLICY_REF};
 use super::command::{build_policy_authorize, parse_policy_authorize};
-use super::consts::{APPROVED_PCRS, MACHINE_PCRS};
+use super::consts::APPROVED_PCRS;
 use super::public::p256_name;
 use super::verify::verified;
 use crate::security::tpm::machine_key::create::{build_create, parse_create};
@@ -35,6 +36,7 @@ use crate::security::tpm::machine_key::KeyError;
 pub(super) fn under_session<R>(
     session: u32,
     a: &Approval,
+    machine: &[u8],
     f: impl FnOnce(u32, u32) -> Result<R, KeyError>,
 ) -> Result<R, KeyError> {
     parse_policy_pcr(&run(&build_policy_pcr(session, &APPROVED_PCRS))?)?;
@@ -44,7 +46,7 @@ pub(super) fn under_session<R>(
     parse_policy_authorize(&run(&build_policy_authorize(
         session, &approved, POLICY_REF, &name, &ticket,
     ))?)?;
-    parse_policy_pcr(&run(&build_policy_pcr(session, &MACHINE_PCRS))?)?;
+    parse_policy_pcr(&run(&build_policy_pcr(session, machine))?)?;
     let policy = parse_get_digest(&run(&build_get_digest(session))?)?;
     let key = parse_create(&run(&build_create(&policy))?)?;
     let result = f(key, session);
