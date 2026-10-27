@@ -35,8 +35,6 @@ const MAX_FILE: usize = 4 << 20;
 pub fn firmware_package(st: &SystemTable<Boot>) -> [Module; 6] {
     let mut out = [Module::default(); 6];
     for (i, path) in FILES.iter().enumerate() {
-        // Asked first, so a medium without the package (an offline build, a
-        // stick packed by hand) boots without a "File not found" line per file.
         if !file_exists(st, path) {
             continue;
         }
