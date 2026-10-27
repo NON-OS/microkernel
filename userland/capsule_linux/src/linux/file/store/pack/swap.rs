@@ -27,36 +27,37 @@
 
 use alloc::vec::Vec;
 
-use super::paths::{pack_path, trailer_path};
+use super::paths::trailer_of;
 use super::shelf::{Held, Shelf, Unlinked};
 
-/// Where a pack is written whole before it takes the old one's place.
-pub fn new_path(package: &str) -> Vec<u8> {
-    [pack_path(package).as_slice(), b".new"].concat()
+/// Where the pack at `at` is written whole before it takes the old one's place.
+pub fn new_path(at: &[u8]) -> Vec<u8> {
+    [at, b".new"].concat()
 }
 
-/// `pack` in as `package`'s, `trailer` the one minted over its index.
-pub fn swap(s: &mut impl Shelf, package: &str, pack: &[u8], trailer: &[u8]) -> Result<(), Held> {
-    let (at, new) = (pack_path(package), new_path(package));
+/// `pack` in at `at`, the name paths.rs gives a family's package, `trailer`
+/// the one minted over its index.
+pub fn swap(s: &mut impl Shelf, at: &[u8], pack: &[u8], trailer: &[u8]) -> Result<(), Held> {
+    let new = new_path(at);
     let old = match s.write(&new, pack) {
-        true => gone(s, &at),
+        true => gone(s, at),
         false => Err(Held::Unwritten),
     };
     if let Err(why) = old {
         s.unlink(&new);
         return Err(why);
     }
-    match s.rename(&new, &at) && s.write(&trailer_path(package), trailer) {
+    match s.rename(&new, at) && s.write(&trailer_of(at), trailer) {
         true => Ok(()),
         false => Err(Held::Unwritten),
     }
 }
 
-/// `package`'s pack out, then its trailer and any `.new` a crash left.
-pub fn take(s: &mut impl Shelf, package: &str) -> Result<(), Held> {
-    gone(s, &pack_path(package))?;
-    s.unlink(&trailer_path(package));
-    s.unlink(&new_path(package));
+/// The pack at `at` out, then its trailer and any `.new` a crash left.
+pub fn take(s: &mut impl Shelf, at: &[u8]) -> Result<(), Held> {
+    gone(s, at)?;
+    s.unlink(&trailer_of(at));
+    s.unlink(&new_path(at));
     Ok(())
 }
 
