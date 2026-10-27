@@ -53,6 +53,8 @@ mod hub_wire;
 #[cfg(test)]
 mod interrupt_tests;
 #[cfg(test)]
+mod interval_tests;
+#[cfg(test)]
 mod many_tests;
 #[cfg(test)]
 mod place_tests;
