@@ -113,14 +113,14 @@ is one or more chapters of the storyboard.
 |---|---|---:|---:|---|
 | 1. Every boot checks itself | | 0:50 | 1:20 | rehearsed |
 | 2. No account. Thirteen answers. | | 2:54 | 3:00 | rehearsed |
-| 3. Your computer forgets you; a desktop that shows its work | | 1:41 | 2:10 | rehearsed |
+| 3. Your computer forgets you; a desktop that shows its work | | 1:48 | 2:20 | rehearsed |
 | 4. Who can reach what | | 1:02 | 1:10 | rehearsed |
 | 5. Apps in a box | | 0:57 | 1:10 | rehearsed |
 | 6. A store that checks every byte | `market` | 1:22 | 3 to 7 min | rehearsed on the development image |
 | 7a. SimpleX | `simplex` | 0:31 | 2 to 5 min | needs `linux.simplex-chat` on main |
 | 7b. Telegram | `telegram` | 0:36 | 3 to 8 min | needs `linux.telegram-desktop` and a Qt display path |
 | 8. Money that stays yours | `monero` | 1:11 | 3 to 8 min | needs the SOCKS endpoint on main |
-| 9. Your own AI | `qwen` | 0:56 | 1 to 2 min | rehearsed |
+| 9. Your own AI | `qwen` | 1:12 | 1 to 2 min | rehearsed to the model's load; the answer comes only on KVM |
 | 10. Gone when you're done | | 0:30 | 0:40 | rehearsed |
 
 The whole recording runs about 15 minutes without the three blocks that
@@ -234,4 +234,8 @@ To check a changed or newly landed section, run the steps headless, with
 `shot:NAME` steps where you want to look, and no `--record`. The shots are
 1920x1080 screenshots of the guest, in `--out`. Under TCG, multiply the
 pauses by about three, and wait 30 s after opening a window. The rehearsal
-behind this tour ran that way, on the development image with the relay.
+behind this tour ran that way, on the development image with the relay:
+68 screenshots, one at the end of each caption, every one matching its
+caption, from the boot menu to the Power Off dialog. Under TCG, Qwen got
+as far as checking and loading the model; its answer needs KVM's speed,
+so check that beat's timing on the first KVM run.
