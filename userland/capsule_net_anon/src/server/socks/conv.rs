@@ -28,6 +28,8 @@ pub struct Conv {
     pub(super) stage: Stage,
     /// Bytes from the caller not yet read or not yet sent.
     pub(super) unsent: Vec<u8>,
+    /// The greeting carried the install mark (wire.rs).
+    pub(super) install: bool,
 }
 
 impl Conv {

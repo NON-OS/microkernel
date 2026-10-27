@@ -82,6 +82,14 @@ that ended are ended with the stream reaper. A numbered frame repeated with no
 bytes, or with the same bytes, gets the kept answer; one repeated with new bytes has them
 carried, with the answer the caller missed in front (`src/server/socks/kept.rs`).
 
+A greeting that lists the private method `0x80` beside no-authentication marks
+its stream as an install's download (`src/server/socks/wire.rs`); nonos_route_link's
+`RouteStream::connect_install` sends it. The method is never chosen in reply. Once the
+network is up and another circuit is open, one general circuit is drawn ahead as the
+warm circuit for installs: only a marked stream takes it, a marked stream takes it
+first, it counts against `CIRCUIT_MAX`, and it takes no new stream after
+`CIRCUIT_DIRTY_SECONDS` or its first failure (`src/manager/warm_rule.rs`).
+
 ## Authority
 
 `CAPSULE_REQUIRED_CAPS = 0x0003c` and `CAPSULE_OPTIONAL_CAPS = 0x100` (`Capsule.mk`):
@@ -128,7 +136,6 @@ or graphics bit is asked for: the capsule never touches a device, a file or a su
  in one step once all its microdescriptors are in and it draws a path
  (`src/manager/refresh_rule.rs`). No relay is used after `valid_until`.
 5. At most 3 circuits (one working, one building, one being torn down) and 32 streams, at most
- half of them per owner (`may_open`, `src/stream/owned.rs`). A circuit stops taking new
  streams after 600 s and is retired after 2 failed streams (`src/protocol/limits.rs`).
 6. Every turn also ends the streams of API callers that have ended (`src/server/reap.rs`), and
  every 5 s or on a change of stage posts a route report to the attest service
