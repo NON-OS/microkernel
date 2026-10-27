@@ -23,10 +23,15 @@ use crate::gate::CAMERA_CAPTURE;
 use crate::listing::listing;
 use crate::stream::{read_frame, stop};
 use crate::wire::*;
-use nonos_libc::mk_cap_check;
+use nonos_libc::{mk_cap_check, mk_pid_alive};
 
 pub(crate) fn holds(peer: u32) -> bool {
     mk_cap_check(peer, CAMERA_CAPTURE)
+}
+
+/// Whether the kernel says `pid` still runs.
+pub(crate) fn alive(pid: u32) -> bool {
+    mk_pid_alive(pid)
 }
 
 pub fn answer(d: &mut Dev, peer: u32, req: &Request, body: &[u8], tx: &mut [u8]) -> usize {

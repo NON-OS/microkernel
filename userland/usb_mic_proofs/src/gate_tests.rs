@@ -27,6 +27,18 @@ fn one_peers_stream_read_and_stopped_by_it_alone() {
 }
 
 #[test]
+fn a_stream_whose_peer_died_is_let_go() {
+    let mut s = Session::default();
+    assert!(!s.reap(|_| false), "no stream, nothing to stop");
+    assert_eq!(s.start(7, true), Ok(()));
+    assert!(!s.reap(|p| p == 7), "a live peer keeps its stream");
+    assert_eq!(s.start(8, true), Err(E_BUSY));
+    assert!(s.reap(|p| p != 7), "the kernel says 7 is gone: stop the stream");
+    assert_eq!((s.streamer, s.own(7)), (None, Err(E_PERM)));
+    assert_eq!(s.start(8, true), Ok(()), "the next client is not turned away");
+}
+
+#[test]
 fn a_request_reads_and_a_reply_is_framed() {
     let mut msg = vec![0u8; HDR_LEN + 2];
     msg[0..4].copy_from_slice(&MAGIC.to_le_bytes());
