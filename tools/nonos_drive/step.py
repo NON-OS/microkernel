@@ -16,13 +16,32 @@
 
 """One step of a drive: the forms nonos-drive's own help lists."""
 
+import os
 import sys
 import time
 
 from steps import until
 
+from .caption import say
 from .dump import dump
 from .plug import unplug
+
+# Where in each serial log the last `mark` step was: an until: step after it
+# reads only what the log gained since, so a line a second install prints
+# is not found in the first one's.
+MARKS = {}
+
+
+def seen_since(serial, text, secs, offset):
+    """until(), over the serial log from byte `offset` on."""
+    end = time.time() + secs
+    while time.time() < end:
+        with open(serial, "rb") as f:
+            f.seek(offset)
+            if text.encode() in f.read():
+                return True
+        time.sleep(1)
+    return False
 
 
 def rel(q, dx, dy):
@@ -64,7 +83,20 @@ def after(serial, text, secs):
     return False
 
 
-def run(q, s, out, serial):
+def subtitle(text, film):
+    """A `say:` step: the drive's log names it; a drive filmed (`film`, a
+    record.Film) draws it from the next frame on and notes when, in the
+    video, it came up."""
+    at = ""
+    if film is not None:
+        say(film.caption, text)
+        at = f" at {film.cue(text)}"
+    print((f"  say {text!r}" if text else "  say: caption cleared") + at, flush=True)
+
+
+def run(q, s, out, serial, film=None):
+    """Take step `s`; False when it did not happen. `film` is the Film of a
+    drive filmed (record.py), None for one that is not."""
     kind, _, arg = s.partition(":")
     if kind == "after":
         timed = arg.rsplit(":", 1)[-1].isdigit()
@@ -77,13 +109,21 @@ def run(q, s, out, serial):
     if kind == "until":
         timed = arg.rsplit(":", 1)[-1].isdigit()
         text, _, secs = arg.rpartition(":") if timed else (arg, "", "600")
-        ok = until(serial, text, float(secs or 600))
+        if serial in MARKS:
+            ok = seen_since(serial, text, float(secs or 600), MARKS[serial])
+        else:
+            ok = until(serial, text, float(secs or 600))
         print(f"  until {text!r}: {'seen' if ok else 'NOT SEEN'}", flush=True)
         if not ok:
             dump(q, out)
         return ok
-    if kind == "wait":
+    if kind in ("wait", "pause"):
         time.sleep(float(arg))
+    elif kind == "say":
+        subtitle(arg, film)
+    elif kind == "mark":
+        MARKS[serial] = os.path.getsize(serial)
+        print(f"  mark: until: now reads the serial log from byte {MARKS[serial]}", flush=True)
     elif kind == "shot":
         q.shot(str(out / f"{arg}.png"))
         print(f"  shot {arg}.png", flush=True)
