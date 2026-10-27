@@ -52,6 +52,28 @@ Every bind step that fails is named on the log with its errno, and the device's 
 
 Host proofs only: `userland/ax88179_proofs` mounts `src/ax` by path and holds the bring-up to a model of its vendor requests, the receive framing to a model under 100 000 random and hostile transfers, the send header, and the link; each bound has a mutant that fails it. Not booted under QEMU (it has no AX88179) or on hardware: `docs/hardware/real-hardware-checklist.md` has the test plan.
 
+## Current implemented surface
+
+
+## Wire format
+
+NNET requests carry the 20-byte header `magic_le32, version_le16, op_le16, flags_le16, 0_le16, request_id_le32, len_le32`; replies repeat it and add a 4-byte signed status, then the operation's data, as `nonos_usbnet` defines them for every USB network capsule.
+
+## State ownership
+
+`driver.ax88179_0` owns the bound device's bulk pipes and interrupt endpoint, the run's drawn station address, and one receive and one send buffer. driver.xhci0 owns slots, endpoint contexts, rings and DMA; net.core owns addresses, routes and sockets.
+
+## Operating rules
+
+Keep USB transfer mechanics in driver.xhci0 and IP policy in net.core. Do not add hardware authority here. Bound every length the device sends before using it. Never read or log the chip's factory address or a serial. Log one line per bring-up step that can refuse, naming the step.
+
+## Release target
+
+`USB device -> driver.xhci0 -> driver.ax88179_0 -> net.core`: DHCP and a web page over a real AX88179 or AX88178A dongle, once Decision 10 is ruled.
+
+## Release checklist
+
+
 ## Explicit non-goals today
 
 Checksum and segmentation offload, jumbo frames, a hashed multicast list, wake-on-LAN, EEE, more than one chip per capsule.
