@@ -67,7 +67,7 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
         done.push(pkg.name.clone());
         wanted.extend(pkg.depends.iter().cloned());
     }
-    Ok(())
+    super::record::closure::keep(name, &done)
 }
 
 fn say(line: &[u8]) {

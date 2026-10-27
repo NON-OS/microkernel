@@ -63,5 +63,5 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
         done.push(rec.name.clone());
         wanted.extend(rec.depends.iter().cloned());
     }
-    Ok(())
+    crate::linux::install::record::closure::keep(name, &done)
 }

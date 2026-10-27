@@ -37,6 +37,7 @@ pub(super) fn run(name: &str, mode: Mode) -> Option<Launch> {
         return refused(b"linux: the package store has not finished loading; try again", "");
     }
     let pkg = choose(name);
+    crate::linux::file::pack::run_closure(super::install::closure(pkg));
     match super::install::launch(pkg, mode) {
         Some(Ok((path, bytes, args))) => {
             crate::linux::file::machine::show();
