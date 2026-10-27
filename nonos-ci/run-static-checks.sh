@@ -5610,6 +5610,18 @@ else
 fi
 unset drive_out
 
+# The tour's cut: an edit's times found from the recording's captions, zooms
+# that stay 16:9 inside the frame, chapters cross-faded where their marks
+# say, cards in the desktop's colours, and an edit that names only captions
+# the tour has (tools/nonos_tutorial/post).
+if post_out="$( (cd tools && python3 -m unittest -q nonos_tutorial.post.test_post) 2>&1)"; then
+    note ok "the tour's cut keeps to its edit and the brand (nonos_tutorial/post)"
+else
+    tail -n 8 <<< "${post_out}" >&2
+    fail_with "nonos_tutorial/post: the cut breaks its edit or the brand"
+fi
+unset post_out
+
 # A drive's type: step sends every printable character as the keys that type
 # it, and refuses one with no key instead of dropping it; a say: caption is
 # renamed into place whole; each rule's mutant fails the keys or caption
