@@ -48,17 +48,6 @@ impl Line {
         self.text(&d[i..])
     }
 
-    pub fn hex32(&mut self, v: u32) -> &mut Self {
-        const DIGITS: &[u8; 16] = b"0123456789abcdef";
-        let mut d = [0u8; 10];
-        d[0] = b'0';
-        d[1] = b'x';
-        for (i, b) in d[2..].iter_mut().enumerate() {
-            *b = DIGITS[((v >> (28 - i * 4)) & 0xF) as usize];
-        }
-        self.text(&d)
-    }
-
     /// The finished line, `\n` appended.
     pub fn bytes(&mut self) -> &[u8] {
         self.buf[self.len] = b'\n';

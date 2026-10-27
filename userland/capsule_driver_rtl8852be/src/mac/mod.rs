@@ -8,6 +8,8 @@ pub mod cmac_a;
 pub mod cmac_b;
 pub mod dmac;
 pub mod imr;
+pub mod macid;
+pub mod port;
 pub mod pre;
 pub mod sch;
 pub mod sys;

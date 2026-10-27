@@ -12,8 +12,6 @@ mod download;
 pub mod header;
 pub mod mfw;
 
-pub use download::{CHUNK, FWHDR_DL, INIT_RDY};
-
 use crate::dma::DmaMem;
 use crate::h2c::send::SendFail;
 use crate::h2c::Fw;

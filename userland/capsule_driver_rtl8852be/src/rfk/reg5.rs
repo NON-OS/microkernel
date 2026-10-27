@@ -18,9 +18,7 @@ pub enum List {
     AfeInit,
     CheckAddcA,
     CheckAddcB,
-    CheckDadcEnA,
     CheckDadcEnB,
-    CheckDadcDisA,
     CheckDadcDisB,
     DackS0_1,
     DackS0_2,
@@ -31,7 +29,7 @@ pub enum List {
     IqkSetNonDbcc,
     IqkRestoreNonDbcc,
 }
-pub const LISTS: usize = 15;
+pub const LISTS: usize = 13;
 
 fn word(i: usize) -> u32 {
     u32::from_le_bytes([RFK[4 * i], RFK[4 * i + 1], RFK[4 * i + 2], RFK[4 * i + 3]])

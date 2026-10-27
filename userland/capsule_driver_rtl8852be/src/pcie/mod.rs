@@ -18,10 +18,9 @@ mod post;
 pub mod regs;
 pub mod regs_ltr;
 
-pub use dma::{clear_idx, dma_all, dma_setup};
-pub use mode::mode_op;
+pub use dma::dma_setup;
 pub use phy::phy_setup;
-pub use post::{ltr_bad, post_init};
+pub use post::post_init;
 
 /// The pre- or post-init step that did not complete.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

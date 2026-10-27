@@ -38,7 +38,6 @@ pub const SRAM_DIS: u8 = 0x02;
 pub const LDO_LPS: u8 = 0x70;
 pub const LPS_CAP: u8 = 0x0f;
 pub const RF00: u8 = 0x01;
-pub const FULL: u8 = 0xff;
 
 /// The serial interface did not finish a command in time.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
