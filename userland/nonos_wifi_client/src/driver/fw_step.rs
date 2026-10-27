@@ -9,7 +9,7 @@
 /// does not know.
 pub fn firmware_step_text(code: u8) -> Option<&'static str> {
     Some(match code {
-        1 => "the embedded image is not 8821C firmware",
+        1 => "the embedded firmware is for another chip",
         2 => "no DMA memory for the staging buffer",
         3 => "no DMA memory for the beacon ring",
         4 => "DMA memory came back above 4 GB",

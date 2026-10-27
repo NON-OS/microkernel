@@ -150,3 +150,54 @@ leave its cable out, so the lease can only come through the adapter.
       (`log > boot-log.txt`), the Linux lines above if any, the adapter's
       make and model. No line from this driver carries a MAC address or a
       serial number.
+
+## Realtek RTL8822CE Wi-Fi
+
+The RTL8822CE driver (`driver.rtl8822ce0`) is host-proven only: QEMU has
+no RTL8822CE and it has never run on one. A first boot with the card is
+its test. The `[rtl8822ce]` lines print on a development image (`Debug`
+granted to the capsule); on another image read the same facts from the
+Settings Wi-Fi panel's status (stage, step, detail). It does no IQK or
+DPK yet, so a weaker signal than under Linux is expected, not a fault.
+
+- [ ] What to boot: a `standard-dev` image at or after the RTL8822CE
+      commit, on a laptop with an RTL8822CE (10ec:c822, or 10ec:c82f).
+      Wi-Fi on in the firmware settings; the RF-kill switch on. Leave any
+      wired cable out so a lease can only come over Wi-Fi.
+- [ ] Before: if the machine runs Linux, save `lspci -nn -d 10ec:` and
+      `dmesg | grep -i rtw88` (the firmware version line, and any `failed
+      to` line).
+- [ ] Inventory: `log HW` shows `[HW] 10ec:c822 02/80 driven by
+      driver_rtl8822ce` (or `c82f`).
+- [ ] Bring-up, in the Terminal `log rtl8822ce`. Expected, in order:
+      `[rtl8822ce] chip powered and answering; bus master on`,
+      `[rtl8822ce] firmware v9.9`,
+      `[rtl8822ce] firmware loaded and ready`,
+      `[rtl8822ce] trx engines enabled`,
+      `[rtl8822ce] mac initialised`,
+      `[rtl8822ce] phy tables loaded, two rf paths`,
+      `[rtl8822ce] antenna granted to wi-fi`,
+      `[rtl8822ce] phy configured`,
+      `[rtl8822ce] serving net_core`.
+- [ ] A refusal names its stage; keep the line: `power-on sequence failed;
+      chip given back`, `no response after power-on; chip given back`,
+      `pcie clock delay: dbi write timed out`, `efuse unreadable on a
+      freshly powered mac`, `firmware download failed` (with an `fw:` line
+      before it), `unsupported rf front-end, radio not configured`, `coex
+      window did not answer; antenna not granted`. `dac calibration did
+      not read back; radio left as calibrated` is not fatal: note it and
+      go on. `phy tables loaded, one rf path` on this 2x2 card is a
+      finding: note it.
+- [ ] Scan: within about ten seconds the Settings panel lists the networks
+      in range, adapter `Realtek RTL8822CE`. Note the signal the panel
+      shows for your own access point at one metre and at five, and what a
+      phone shows at the same spots.
+- [ ] Join (WPA2, then WPA3 if an access point offers it): the panel reads
+      Joined; `[NET-CORE] bind: interface up on driver.rtl8822ce0`, then a
+      lease (`[NET-CORE] lease-status state=...`); a page loads in the
+      browser. A download of a hundred megabytes completes; note how long.
+- [ ] Send back: `log rtl8822ce net-core > rtl8822ce.txt`, the boot log
+      (`log > boot-log.txt`), `log HW > devices.txt`, the Linux lines
+      above if any, the laptop model, the signal notes, and the first
+      `[rtl8822ce]` line that differs from this list. No line from this
+      driver carries a MAC address, an SSID or a serial number.
