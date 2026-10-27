@@ -18,7 +18,8 @@
 //! (regions.rs), and how much of both is free.
 
 use super::allocator::SecureHeapAllocator;
-use core::alloc::{GlobalAlloc, Layout};
+use super::bins::{class_of, Taken};
+use core::alloc::Layout;
 
 impl SecureHeapAllocator {
     /// Bytes not handed out, over both regions.
@@ -31,27 +32,27 @@ impl SecureHeapAllocator {
         })
     }
 
-    /// A block from the bootstrap heap, or from the second region when the
-    /// first has no room.
+    /// A kept block of the request's class, else a block from the regions.
     pub(super) unsafe fn raw_alloc(&self, layout: Layout) -> *mut u8 {
-        unsafe {
-            let first = self.inner.alloc(layout);
-            if first.is_null() && self.second_extent().is_some() {
-                self.second.heap.alloc(layout)
-            } else {
-                first
+        let Some((class, made)) = class_of(layout) else {
+            return unsafe { self.from_regions(layout) };
+        };
+        match unsafe { self.second.front.pop(class, |at| self.in_heap(at)) } {
+            Taken::Block(block) => block,
+            Taken::Empty => unsafe { self.from_regions(made) },
+            Taken::Broken => {
+                crate::sys::serial::println(b"[HEAP-GUARD] a kept block's link was overwritten");
+                unsafe { self.from_regions(made) }
             }
         }
     }
 
-    /// Back to the region that handed the block out.
+    /// A small block back to its class, else to the region that handed it out.
     pub(super) unsafe fn raw_dealloc(&self, ptr: *mut u8, layout: Layout) {
-        unsafe {
-            if self.in_second(ptr) {
-                self.second.heap.dealloc(ptr, layout)
-            } else {
-                self.inner.dealloc(ptr, layout)
-            }
+        match class_of(layout) {
+            Some((class, _)) if unsafe { self.second.front.push(class, ptr) } => {}
+            Some((_, made)) => unsafe { self.to_regions(ptr, made) },
+            None => unsafe { self.to_regions(ptr, layout) },
         }
     }
 }
