@@ -35,4 +35,4 @@ mod verify;
 pub use error::AttestError;
 pub use proved::Proved;
 pub(crate) use published::published;
-pub use verify::verify_capsule_attestation;
+pub use verify::{verify_capsule_attestation, verify_capsule_digest};
