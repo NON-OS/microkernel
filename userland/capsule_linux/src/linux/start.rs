@@ -55,6 +55,7 @@ pub fn run() -> ! {
         say(b"[LINUX] no private directories, not starting\n");
         super::start_stop::stop("no private folders", 1)
     }
+    super::gtk_prep::prepare();
     let mut guest = Guest::new(pid as u32);
     guest.links = alloc::rc::Rc::new(super::guest::Links::load());
     let code = match start(&mut guest, launch) {
