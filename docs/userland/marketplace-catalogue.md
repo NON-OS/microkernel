@@ -82,7 +82,7 @@ Every run fetches the signed indexes fresh, then holds them to the lock. A run s
 
 ## Apps built from source
 
-Some apps are packaged by no distribution: DarkFi's drk, darkirc and darkfid, and SimpleX's static simplex-chat. A recipe of kind `source` lists one of these from a build of its upstream at a single commit (`tools/nonos_market_catalogue/source_recipe.py`, `checked`). No such recipe is in the catalogue yet.
+Some apps are packaged by no distribution: DarkFi's drk, darkirc and darkfid, and SimpleX's simplex-chat. A recipe of kind `source` lists one of these from a build of its upstream at a single commit, or from the binary its upstream publishes (below) (`tools/nonos_market_catalogue/source_recipe.py`, `checked`). No such recipe is in the catalogue yet.
 
 | Key | Required | What it holds |
 |---|---|---|
@@ -134,6 +134,33 @@ python3 tools/nonos-market-catalogue --out OUT.json --no-nonos --operator-pubkey
 ```
 
 For a development boot, `tools/nonos-mirror-relay --content target/linux-packages` serves that directory as the mirror ([the development mirror](../build/dev-mirror.md)). A listing id may appear only once in an index, so a source recipe whose name an in-tree tool already has stops the generator.
+
+### Upstream's own release binary
+
+A source recipe may list the binary its upstream publishes instead of a build (`tools/nonos_market_catalogue/asset_recipe.py`). In place of `commit` and `build` it names:
+
+| Key | Required | What it holds |
+|---|---|---|
+| `asset` | yes | the https URL of the one release file |
+| `sha256` | yes | its sha256, 64 lower-case hex digits |
+| `sums` | yes | upstream's checksum file, another file of the same release directory |
+| `family` | no | `"debian"`: listed as `linux.kali.nonos-<package>`, which the kernel passes as `deb:nonos-<package>`, so it installs and runs in the Debian family's tree; the name is then at most 53 long |
+| `needs` | with `family` | the Debian packages that give its shared libraries, space separated |
+
+`source` stays required: it says whose binary it is. The release is `nonos-<package>@<tag>`, the release directory the asset's URL is in.
+
+**Getting the content.** `tools/nonos-source-asset RECIPE.json --package-out target/linux-packages` runs on a machine that reaches the release. It stops at the first fault, and nothing it fetches is run:
+
+1. upstream's checksum file and its `.asc` must verify under the release key pinned at `userland/capsule_market/keys/simplex-build.asc`, fingerprint `BBDF7BDAD1548B16836AF5B9D53BDFD153C366BA` (`asset_sums.py`). The key is SimpleX's; another upstream gets its own key beside it;
+2. the sha256 that file gives the asset, and the downloaded bytes' sha256, must both be the recipe's;
+3. with a family, Kali's index is verified under the pinned Kali key, as the catalogue verifies it. The needs are resolved to their closure by the device's rule (`deb_closure.py`), and each .deb is held to the index. Every DT_NEEDED name and the interpreter of the binary must be a library one of those packages places (`elf_needed.py`, `deb_files.py`);
+4. it writes `target/linux-sources/<package>.tar`, which holds the program and, for a family, `usr/share/nonos-debs/<package>`: one line per closure package, `<name> <version> <pool file> <sha256>` (`asset_needs.py`). The seal takes that directory as `--sources`. With `--package-out` it also writes the bundled `<blake3>.tar` that `nonos-mirror-relay --content` serves, and it prints the lock row.
+
+With `--learn`, the sha256 is taken from the signed file instead of the recipe, and the filled-in recipe is written beside the tar.
+
+**The listing and its lock.** The generator holds the content as for any source recipe. It also refuses a program whose sha256 is not the recipe's, and a content whose Debian pins are malformed, missing for a family, present without one, or leave out a need (`source_asset.py`, `row`). The sources lock pins an asset by `asset`, `sha256`, `A` (the program's BLAKE3) and `sums`, in place of `commit`, beside `B`, `S`, `G` and `R` (`source_pins.py`). A run stops by name when any of them moves.
+
+**On the device.** `install/tools_install.rs` holds the content to the market's pin as before. Then `install/deb/needs.rs` reads the pins, by the same rules (`install/deb/pinned.rs`), before the program is placed. Each package is fetched from the Debian mirror by its pool file, held to its pinned SHA-256, and placed as a package of its own. The pins are part of the BLAKE3-pinned content, so no Debian index is read for them. Pins in a family other than Debian are refused. When Kali moves a pinned version out of its pool, the install fails by name until the recipe is pinned again.
 
 ## Adding an app
 
