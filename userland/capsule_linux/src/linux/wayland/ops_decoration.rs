@@ -24,4 +24,5 @@ pub const DECORATION_DESTROY: u16 = 0;
 pub const DECORATION_SET_MODE: u16 = 1;
 pub const DECORATION_UNSET_MODE: u16 = 2;
 pub const DECORATION_CONFIGURE: u16 = 0;
+pub const CLIENT_SIDE: u32 = 1;
 pub const SERVER_SIDE: u32 = 2;
