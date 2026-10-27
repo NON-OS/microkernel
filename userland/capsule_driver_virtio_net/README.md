@@ -92,7 +92,9 @@ Setup failure releases the claim, which takes every grant with it. Bring-up is
 tried a bounded number of times with a sleep between tries
 (`nonos_libc::bring_up`); the capsule exits 2 when no NIC is present and 6 when
 one is present but never comes up. A received frame longer than 1514 bytes, or
-an entry naming no buffer, is dropped and its buffer recycled. A transmit ring
+an entry naming no buffer, is dropped and its buffer recycled; it takes no
+place in an `OP_RX_BATCH` reply, and a pass that found only such entries
+answers that nothing is waiting. A transmit ring
 that stays full for two seconds with the link up is a stopped device: the
 capsule logs `transmit stalled`, resets and releases it, and brings it up again
 with the same station address (init restarts no driver); one that stalls

@@ -42,7 +42,9 @@ pub fn run(driver: Driver) -> ! {
         sync_leds(&mut ctx);
         let n = mk_ipc_recv(0, rx.as_mut_ptr(), HDR_LEN, POLL_IDLE_MS);
         if !nonos_libc::recv_ready(n) {
-            let _ = mk_irq_wait(0, wait_seq, IRQ_WAIT_MS, &mut wait_seq);
+            // A port read by polling is drained on the next pass, not in 100 ms.
+            let wait = if ctx.driver.polled() { POLL_IDLE_MS } else { IRQ_WAIT_MS };
+            let _ = mk_irq_wait(0, wait_seq, wait, &mut wait_seq);
             continue;
         }
         let len = (n as usize).min(HDR_LEN);

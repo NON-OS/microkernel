@@ -4,8 +4,9 @@
 //! header of its format (NTB32 only when the device offered it), the block
 //! no longer than the transfer or the input size; then each NDP along the
 //! next-index chain, read once, that lies wholly in the block with room for
-//! one entry and its terminator; of an NDP signed for datagrams without a
-//! CRC, its entries in order to the first that is zero, shorter than an
+//! one entry and its terminator, and is signed as an NDP (one with CRCs
+//! passed over, any other signature ending the chain); of an NDP signed for
+//! datagrams without a CRC, its entries in order to the first that is zero, shorter than an
 //! Ethernet header or not wholly in the block; forty at most in all.
 
 use super::shape::{N16, N32};
@@ -39,7 +40,11 @@ pub fn datagrams(raw: &[u8], rx_max: usize, offered32: bool) -> Vec<(usize, usiz
             break;
         }
         let next = le(b, at + s.ndp_next, w).unwrap();
-        if le(b, at, 4) == Some(s.ndp_sign as usize) {
+        let sign = le(b, at, 4);
+        if sign != Some(s.ndp_sign as usize) && sign != Some(s.ndp_crc as usize) {
+            break;
+        }
+        if sign == Some(s.ndp_sign as usize) {
             for k in 0..(len - s.ndp_header) / s.entry - 1 {
                 let e = at + s.ndp_header + k * s.entry;
                 let (i, n) = (le(b, e, w).unwrap(), le(b, e + w, w).unwrap());

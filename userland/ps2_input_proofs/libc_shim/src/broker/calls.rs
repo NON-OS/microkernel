@@ -17,6 +17,7 @@
 //! The grant calls the setup sequence makes. Grants are fixed numbers so a
 //! test can tell them apart.
 
+use super::refuse::refused;
 use super::table::{acknowledge, record_release};
 use super::types::{IrqBindOut, IrqPollOut, PioGrantOut, IRQ_GRANT_BASE, PIO_GRANT};
 
@@ -40,6 +41,9 @@ pub fn mk_irq_bind(
     _n: u32,
     out: *mut IrqBindOut,
 ) -> i64 {
+    if refused(line) {
+        return -16;
+    }
     /*
      * SAFETY: the driver passes a reference to a live IrqBindOut.
      */

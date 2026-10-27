@@ -7,10 +7,11 @@ use crate::driver_ids::has_driver;
 
 /* Settings says a chip with no NONOS driver plainly instead of waiting on a
 driver that will never answer: the inventory spawns iwlwifi for Intel wireless
-and the RTL8821CE driver for 10ec:c821, and nothing else. */
+and the RTL8821CE driver for 10ec:b821 and 10ec:c821, and nothing else. */
 #[test]
 fn only_the_chips_a_driver_is_spawned_for_have_one() {
     assert!(has_driver(0x10EC, 0xC821));
+    assert!(has_driver(0x10EC, 0xB821), "rtw88 binds both RTL8821CE ids");
     for intel in [0x095A, 0x24FD, 0x2526, 0x9DF0, 0x2723, 0x06F0, 0x2725, 0x51F0, 0x7AF0, 0x7F70] {
         assert!(has_driver(0x8086, intel), "{intel:#x}");
     }

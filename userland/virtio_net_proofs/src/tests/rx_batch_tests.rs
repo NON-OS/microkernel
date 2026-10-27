@@ -19,16 +19,15 @@
 //! longer cost the good frames taken off the ring with it.
 
 use super::drive::driver;
-use super::fuzz::{hostile_len, rounds};
 use super::harness::Dev;
-use crate::constants::{MAX_ETHERNET_FRAME, VIRTIO_NET_HDR_LEN};
-use crate::protocol::{BATCH_MAX_BYTES, BATCH_MAX_FRAMES};
+use crate::constants::VIRTIO_NET_HDR_LEN;
+use crate::protocol::BATCH_MAX_BYTES;
 use crate::server::handlers::rx_fill::fill;
 
 const HDR: u32 = VIRTIO_NET_HDR_LEN as u32;
 
 /// The frame lengths a batch body carries, checked against its own count.
-fn frames(body: &[u8]) -> Vec<usize> {
+pub(super) fn frames(body: &[u8]) -> Vec<usize> {
     let count = u32::from_le_bytes(body[..4].try_into().unwrap()) as usize;
     let (mut at, mut out) = (4, Vec::new());
     while at < body.len() {
@@ -50,26 +49,5 @@ fn oversized_entries_at_the_edge_of_the_room_check_stay_inside_the_limit() {
     }
     let body = fill(&mut d.rx).expect("frames were waiting");
     assert!(body.len() <= BATCH_MAX_BYTES, "a {}-byte batch", body.len());
-    assert_eq!(frames(&body).iter().filter(|&&l| l > 0).count(), 1, "the one real frame");
-}
-
-#[test]
-fn hostile_lengths_never_make_a_batch_too_long() {
-    let (rx, tx) = (Dev::rx(), Dev::tx());
-    let mut d = driver(&rx, &tx);
-    let mut n = 0u16;
-    for seed in 1..rounds(2_000) {
-        let mut s = seed;
-        for _ in 0..(seed % 64) {
-            rx.complete(n, u32::from(n % 64), hostile_len(&mut s));
-            n = n.wrapping_add(1);
-        }
-        while let Some(body) = fill(&mut d.rx) {
-            assert!(body.len() <= BATCH_MAX_BYTES);
-            let lens = frames(&body);
-            assert!(lens.len() <= BATCH_MAX_FRAMES);
-            assert!(lens.iter().all(|&l| l <= MAX_ETHERNET_FRAME));
-        }
-        assert_eq!(d.rx.last_used, n, "every entry was taken");
-    }
+    assert_eq!(frames(&body), [708], "the one real frame, and no dropped entry");
 }
