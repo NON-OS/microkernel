@@ -36,6 +36,7 @@ import hashlib
 import http.server
 import os
 import pathlib
+import shutil
 import ssl
 import sys
 import urllib.error
@@ -110,6 +111,10 @@ def main():
     ap.add_argument("--tamper", action="append", default=[], metavar="APP",
                     help="serve the locked APP's package with one byte changed (repeatable)")
     a = ap.parse_args()
+    # A pinned package is held to its BLAKE3 by b3sum. Missing, each such
+    # request died in its own thread and the guest saw an empty reply.
+    if shutil.which("b3sum") is None:
+        sys.exit("relay: b3sum is not on the PATH (run it from nix develop)")
     try:
         pins = lock_file.read(LOCK)
     except (ValueError, TypeError, OSError) as why:
