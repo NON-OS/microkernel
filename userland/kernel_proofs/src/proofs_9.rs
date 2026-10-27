@@ -20,6 +20,9 @@
 /// Which process owns which address space, read without the paging lock.
 #[path = "asid_directory/mod.rs"]
 pub mod asid_directory;
+/// Small blocks kept by size in front of the kernel heap's hole lists.
+#[path = "heap_bins/mod.rs"]
+pub mod heap_bins;
 /// A guest's peer calls hold its own lock, not one over every guest.
 #[path = "peer_stripe/mod.rs"]
 pub mod peer_stripe;
