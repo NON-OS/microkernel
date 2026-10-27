@@ -32,7 +32,7 @@ publishes no programming reference for the vendor mode.
 `CAPSULE_REQUIRED_CAPS = 0x38`: IPC (0x08), Memory (0x10) and Crypto (0x20), as cdc_ecm. No
 CoreExec, InputSource, Driver, DeviceEnum, Mmio, Irq, Dma or Pio: the chip's registers are reached
 through driver.xhci0's control transfers. Debug (0x100) is optional, granted only to a build that
-compiles `capsule-serial-debug`. Its own pid is read back with `MkServiceLookup`, so no CoreExec.
+compiles `capsule-serial-debug`. Its own pid is read back with `MkServiceLookup`, so no CoreExec. It receives requests with `MkIpcRecvFrom`, answers with `MkIpcReply`, and calls driver.xhci0 with `MkIpcCall`.
 
 ## Interface contract
 
@@ -67,6 +67,34 @@ Every bind step that fails is named with its errno, and the device's slot is giv
 on the chip is a bounded number of looks (`src/rtl/bounds.rs`). A chip other than an RTL8153 or
 RTL8153B is refused by name before the device is configured. Every receive length the chip gives
 is bounded against the bytes that came; a stalled pipe is reset and its halt cleared.
+
+## Current implemented surface
+
+Binding to the 16 RTL8153-family ids in Linux v6.12's r8152 table, in the adapter's vendor configuration; the chip's version read first, and an RTL8152, RTL8153C, RTL8156 or RTL8156B refused by name before configuring; the bring-up as tables of register steps, every wait bounded (a whole bind under 9.5 s); the drawn station address written into the chip; receive walking Realtek's 24-byte descriptors with every length checked against the bytes received; send with the 8-byte descriptor; the link from `PLA_PHYSTATUS`. Not in the Standard profile: held until the owner rules on Decision 10 (HANDOFF/letters/b/83).
+
+## Wire format
+
+NNET requests carry the 20-byte header `magic_le32, version_le16, op_le16, flags_le16, 0_le16, request_id_le32, len_le32`; replies repeat it and add a 4-byte signed status, then the operation's data, as `nonos_usbnet` defines them for every USB network capsule.
+
+## State ownership
+
+`driver.rtl8153_0` owns the bound device's bulk pipes and interrupt endpoint, the run's drawn station address, and one receive and one send buffer. driver.xhci0 owns slots, endpoint contexts, rings and DMA; net.core owns addresses, routes and sockets.
+
+## Operating rules
+
+Keep USB transfer mechanics in driver.xhci0 and IP policy in net.core. Do not add hardware authority here. Bound every length the device sends before using it. Never read or log the chip's factory address or a serial. Log one line per bring-up step that can refuse, naming the step.
+
+## Release target
+
+`USB device -> driver.xhci0 -> driver.rtl8153_0 -> net.core`: DHCP and a web page over a real RTL8153 or RTL8153B adapter, once Decision 10 is ruled.
+
+## Release evidence
+
+Build and host-proof evidence only (rtl8153_proofs, 55 tests on a modelled chip, a mutant for every bound; usbnet_proofs for the shared core). QEMU has no RTL8153 and no real adapter has been plugged in.
+
+## Release checklist
+
+The capsule builds with zero warnings and is clippy clean; rtl8153_proofs passes; the owner rules on Decision 10 and, if it ships, signs it with net.core, net.l2, the setup wizard and capsule_attack re-signed for the NIC table; on hardware, `[usbnet rtl8153] port N up, drawn station address programmed` and `[NET-CORE] bind: interface up on driver.rtl8153_0`, then DHCP and a page (`docs/hardware/real-hardware-checklist.md`).
 
 ## Explicit non-goals today
 
