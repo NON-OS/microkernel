@@ -26,7 +26,7 @@ mod journal;
 mod list;
 mod mkdir;
 mod open;
-mod path;
+pub(super) mod path;
 mod persist_gate;
 mod persist_rule;
 mod read;
@@ -45,6 +45,8 @@ mod unlink;
 mod usage;
 mod util;
 mod write;
+
+use super::fs_gate::guard;
 
 pub(super) use chmod::chmod;
 pub(super) use close::close;

@@ -28,3 +28,17 @@ pub(crate) use crate::vfs_util as util;
 pub mod journal;
 #[path = "../../capsule_vfs/src/server/handlers/search.rs"]
 pub mod search;
+
+// The guard the two handlers ask, and the request gate built on it.
+#[path = "../../capsule_vfs/src/server/fs_gate/guard.rs"]
+pub mod guard;
+#[cfg(test)]
+#[path = "vfs_guard_more_tests.rs"]
+mod guard_more_tests;
+#[cfg(test)]
+#[path = "vfs_guard_tests.rs"]
+mod guard_tests;
+#[path = "../../capsule_vfs/src/server/fs_gate/paths.rs"]
+pub mod paths;
+#[path = "../../capsule_vfs/src/server/fs_gate/reach.rs"]
+pub mod reach;
