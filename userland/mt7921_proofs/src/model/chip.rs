@@ -11,6 +11,7 @@ use super::air::Air;
 use super::data::TxFrame;
 use super::faults::Faults;
 use super::mcu::Mcu;
+use super::wpa3::Wpa3;
 
 pub const LPCTL: u32 = 0xe0010;
 pub const MISC: u32 = 0xe00f0;
@@ -26,6 +27,10 @@ pub struct Chip {
     pub faults: Faults,
     pub mcu: Mcu,
     pub air: Option<Air>,
+    pub wpa3: Option<Wpa3>,
+    /// The access point decodes no CCK (`phy`); frames it did not hear.
+    pub g_only: bool,
+    pub unheard: u32,
     pub pending: Vec<VecDeque<Vec<u8>>>,
     pub sent: Vec<TxFrame>,
     /// Every register write, by BAR offset, oldest first.
@@ -43,6 +48,9 @@ impl Chip {
             faults: Faults::default(),
             mcu: Mcu::default(),
             air: None,
+            wpa3: None,
+            g_only: false,
+            unheard: 0,
             pending: (0..8).map(|_| VecDeque::new()).collect(),
             sent: Vec::new(),
             writes: Vec::new(),

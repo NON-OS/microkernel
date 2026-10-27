@@ -32,10 +32,14 @@ const RST_DMASHDL_ALL: u32 = 1 << 5;
 
 /// Stop both directions and wait for the engine to go idle; with `force`,
 /// pulse the logic and scheduler resets. Whether it went idle in 100 ms.
+/// Forced, an engine still busy is reset anyway, as `mt792x_dma_cleanup`
+/// resets it whatever its poll said, and must be idle after: an engine a
+/// warm reboot left mid-transfer is not the card refusing.
 pub fn disable(regs: &Regs, force: bool) -> bool {
     let off = TX_DMA_EN | RX_DMA_EN | CSR_DISP_BASE_PTR_CHAIN_EN;
     regs.clear(GLO_CFG, off | OMIT_TX_INFO | OMIT_RX_INFO | OMIT_RX_INFO_PFET2);
-    if !poll(regs, GLO_CFG, TX_DMA_BUSY | RX_DMA_BUSY, 0, 100) {
+    let idle = poll(regs, GLO_CFG, TX_DMA_BUSY | RX_DMA_BUSY, 0, 100);
+    if !idle && !force {
         return false;
     }
     regs.clear(GLO_CFG_EXT0, TX_DMASHDL_ENABLE);
@@ -44,7 +48,7 @@ pub fn disable(regs: &Regs, force: bool) -> bool {
         regs.clear(WFDMA0_RST, RST_DMASHDL_ALL | RST_LOGIC);
         regs.set(WFDMA0_RST, RST_DMASHDL_ALL | RST_LOGIC);
     }
-    true
+    idle || poll(regs, GLO_CFG, TX_DMA_BUSY | RX_DMA_BUSY, 0, 100)
 }
 
 /// The engine on, its rings already reset and armed.
