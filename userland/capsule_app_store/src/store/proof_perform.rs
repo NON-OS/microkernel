@@ -34,6 +34,8 @@ const ASK_MS: i64 = 10_000;
 const QUIET_MS: i64 = 10 * 60 * 1000;
 /// PROVE and STATUS are answered at once, and GET from a finished job.
 const CALL_MS: u64 = 2_000;
+/// PROVE reaches a job that has only just started, slow on an emulated CPU.
+const PROVE_MS: u64 = 30_000;
 
 pub fn perform(run: &mut Run, c: Call, market: u32) -> Option<Event> {
     let now = mk_uptime_ms();
@@ -53,7 +55,7 @@ pub fn perform(run: &mut Run, c: Call, market: u32) -> Option<Event> {
         }
         Call::Prove => {
             let ask = ProveRequest { listing_id: &run.listing_key, policy: &run.policy };
-            let got = call(run.port, PROVE, &ask.encode(), CALL_MS);
+            let got = call(run.port, PROVE, &ask.encode(), PROVE_MS);
             let id = got.and_then(|b| b.try_into().map(u32::from_le_bytes).map_err(|_| -74));
             run.late_ms = now.saturating_add(QUIET_MS);
             Event::Proved(id.map(|id| run.job = id))

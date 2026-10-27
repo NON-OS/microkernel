@@ -24,9 +24,9 @@ use super::proof_fail::decimal;
 use super::proof_seq::{Phase, DEVICE, ISOLATION, READING};
 use super::proof_state::Run;
 
-/// `[STORE-PROVE] ` and the parts, as one line.
+/// `[STORE-PROVE] ` and the parts, as one whole line.
 pub fn say(parts: &[&[u8]]) {
-    let line = [&[&b"[STORE-PROVE] "[..]], parts].concat().concat();
+    let line = [&[&b"[STORE-PROVE] "[..]], parts, &[&b"\n"[..]]].concat().concat();
     let _ = mk_debug(line.as_ptr(), line.len());
 }
 
