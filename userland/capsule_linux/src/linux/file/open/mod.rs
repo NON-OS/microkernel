@@ -19,6 +19,7 @@
 mod mark;
 mod named;
 mod openat;
+pub mod shm_rule;
 
 pub(super) use mark::mark;
 pub use named::open_named;
