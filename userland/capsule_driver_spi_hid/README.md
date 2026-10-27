@@ -2,7 +2,10 @@
 
 Status: wired, not yet signed. The kernel mirror
 (`src/hardware/spi_hid_capsule`) embeds and spawns it under
+`nonos-capsule-driver-spi-hid`, after `driver.spi0`. It has no owner
+certificate yet, so no image carries it until the owner signs it. It
 cannot read the firmware's record until the held table admits it to
+capsule_acpi (the maintainers' line); until then it says so and leaves.
 
 ## Role
 
@@ -81,9 +84,12 @@ A record it cannot drive is refused, never driven wrong:
 - a missing input header, body or output address, or opcode.
 
 A header without its sync byte is no report. A fragment is read and let
-go. A body larger than one spi0 transfer cannot be read. A device that
-answers no descriptor is asked again every half second. A reset the
-device announces sends it back through bring-up.
+go. A header naming a body larger than one spi0 transfer (4000 bytes,
+the frame head included) is no report, refused before any buffer is
+made for it. A device that answers no descriptor is asked again every
+half second, 20 times in a row at most (ten seconds); then the driver
+says `device never ready, given up` and exits `EXIT_GAVE_UP` (6). A reset
+the device announces sends it back through bring-up, its tries afresh.
 
 ## State ownership
 
@@ -123,7 +129,9 @@ the address.
 
 ## Release checklist
 
+- The held table admits it to capsule_acpi (the maintainers' line).
 - driver.gpio0 admits driver.spi0 to its EVENTS (F's table).
+- Signed by the owner and added to an image's features.
 - On a machine with an SPI touchpad: the descriptors read, reports move
   the pointer, and the line rings.
 
