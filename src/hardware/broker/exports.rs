@@ -28,6 +28,7 @@ pub use super::claim::{
     release as release_device, Claim, ClaimError,
 };
 pub use super::class::{classify_pci, Class};
+pub(crate) use super::confine::group_share::held as groups_shared;
 pub use super::confine::{set_acs_groups, Port as AcsPort};
 pub use super::device::{
     Bar, BarKind, BusKind, DeviceRecord, BAR_FLAG_FIXED, DEVICE_FLAG_CLAIMED,

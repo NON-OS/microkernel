@@ -15,13 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What the install role holds a market program's policy to before it vouches
-//! for it (plan/30): exactly these four, and any failure fails the install.
+//! for it (plan/30): exactly these four, and any failure fails the install;
+//! so does a release's listed arguments that do not read whole.
 //! A release with no policy is held to `without_box`.
 
 use nonos_linux_policy::{decode, market_ready, LinuxAppPolicy};
 
 use super::super::apps::{wanted, Wanted};
-use super::arg::MARKET_LEN;
+use super::arg::{Market, MARKET_LEN};
 
 /// Everything that can be decided before the package is fetched: a canonical
 /// policy, market ready, naming the listing and release the market resolved.
@@ -46,14 +47,11 @@ pub fn names_program(p: &LinuxAppPolicy, image: &[u8]) -> bool {
 }
 
 /// The first word on an install, before anything is fetched: the policy a
-/// market release's `m` names, held to `admit`; or, for "-", none, which
-/// only a shipped tier may have (`without_box`).
-pub fn gate(
-    pkg: &str,
-    market: Option<&[u8; MARKET_LEN]>,
-) -> Result<Option<LinuxAppPolicy>, &'static str> {
+/// market release's `m` names, held to `admit`, and its listed arguments
+/// read whole; or, for "-", none, which only a shipped tier may have.
+pub fn gate(pkg: &str, market: Option<&Market>) -> Result<Option<LinuxAppPolicy>, &'static str> {
     match market {
-        Some(m) => admit(m).map(Some),
+        Some(m) => m.listed().and_then(|_| admit(&m.head)).map(Some),
         None => without_box(pkg).map(|()| None),
     }
 }
