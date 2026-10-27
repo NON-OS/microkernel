@@ -53,7 +53,9 @@ holder's alone (-1 otherwise).
 As above; every field little-endian. To the hardware (as recalled,
 unverified; see Release evidence): SSCR0 0x00, SSCR1 0x04, SSSR 0x08,
 SSDR 0x10; the LPSS private block at 0x200 with RESETS +0x04, chip-select
-control +0x24 and capabilities +0xFC.
+control +0x24 and capabilities +0xFC. RESETS is written 0, then 0x3: the
+function released and the integrated DMA (bit 2) kept in reset, as
+driver.i2c_pci0 keeps it.
 
 ## Authority
 
@@ -70,11 +72,19 @@ Nothing is logged but bring-up lines, and nothing is written anywhere.
 
 ## Runtime lifecycle
 
-Spawned once, after the I2C host. It lists Intel functions of the LPSS
-classes, skipping those driver.i2c_pci0's table names as I2C; claims each
-in turn, maps BAR 0 and reads its LPSS capabilities, keeping the first that
-says SPI and giving the rest back. A candidate another driver holds is
-tried again, three times a second apart. With none, it says so and leaves.
+Spawned once, after the I2C host, and only where the broker lists a
+function on the SPI id list (`src/hardware/inventory/spi_host.rs`; the
+kernel logs `no controller present, not spawned` for driver.spi and
+driver.spi_hid otherwise). It lists the Intel functions of the LPSS
+classes whose id is one of the SPI entries of Linux v6.12's
+intel-lpss-pci.c (`src/ids.rs`, Sunrise Point on, where the private block
+sits at 0x200), skipping those driver.i2c_pci0's table names as I2C; no
+other function of those classes, an LPSS I2C or UART or a thermal sensor,
+is ever claimed, reset or has its chip select written. It claims each
+listed one in turn, maps BAR 0 and reads its LPSS capabilities, keeping
+the first that says SPI and giving the rest back. A candidate another
+driver holds is tried again, three times a second apart. With no listed
+function it says so and leaves with EXIT_ABSENT.
 
 ## Failure model
 
@@ -108,7 +118,8 @@ The SPI bus under SPI-HID keyboards and touchpads (driver.spi_hid0).
 below what it reaches), the modes, the lock-step exchange against a
 modelled core (order, stale frames, a silent or dead core), and the SPI
 proof (a non-SPI, absent or dead capabilities register refused with no
-write; chip select read back). `kernel_proofs` covers the flash guard and
+write; chip select read back), the id list (exactly the kernel's, 86 ids,
+no LPSS I2C, UART or thermal function) and the DMA held in reset. `kernel_proofs` covers the flash guard and
 the held table. Verification rows: every register offset and bit above,
 the capabilities type values, and the 133 MHz input clock assumed are
 recalled from the PCH datasheets' LPSS chapter, unverified.
