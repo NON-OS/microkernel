@@ -23,7 +23,7 @@ use alloc::string::String;
 /// The words, and whether they say it is done.
 pub fn answer(rc: i64) -> (String, bool) {
     let said = match rc {
-        0 => "Ready. Restart from the new NØNOS stick and choose Update NØNOS (keep my data). Until you do, your data opens without the bootloader check for one start.",
+        0 => "Ready. Restart from the new NØNOS stick and choose Update NØNOS (keep my data). Until you do, your data volume opens without the bootloader check for one start.",
         -95 => "This start keeps nothing, so there is nothing to keep.",
         -11 => "Your data volume is not open yet. Try again in a moment.",
         -2 => "This disk's data was made before 0.9.3 and cannot be kept.",

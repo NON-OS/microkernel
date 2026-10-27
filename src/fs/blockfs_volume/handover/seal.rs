@@ -19,10 +19,10 @@
 //! data. A record moved under another header, or under one changed in any
 //! byte way 3 binds, does not unwrap. Way 3's own wrap, bytes 56..116, is
 //! not bound, so the record stays good while that wrap is replaced
-//! (layout.rs `moved`). Pure.
+//! (layout.rs). Pure.
 
 use super::super::key_header::AAD_END;
-use super::layout::{Record, MAGIC};
+use super::place::{Record, MAGIC};
 use crate::crypto::chacha20poly1305::{aead_decrypt_in_place, aead_encrypt_in_place};
 use crate::crypto::constant_time::secure_zero;
 

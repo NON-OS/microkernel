@@ -16,11 +16,11 @@ How a prepared volume opens under the next release is in [Measured boot and the 
 
 ## Update and keep your data
 
-1. Start your installed NØNOS, open the Install tile on the dock, and press P on the first screen, beside `Prepare this computer for an update`. The row is there only on a boot from an installed disk. When it says `Ready. Restart from the new NØNOS stick and choose Update NØNOS (keep my data). Until you do, your data opens without the bootloader check for one start.`, go on. A data volume kept by a passphrase answers `Your data is kept by a passphrase: nothing to prepare.`, and needs nothing more.
+1. Start your installed NØNOS, open the Install tile on the dock, and press P on the first screen, beside `Prepare this computer for an update`. The row is there only on a boot from an installed disk. When it says `Ready. Restart from the new NØNOS stick and choose Update NØNOS (keep my data). Until you do, your data volume opens without the bootloader check for one start.`, go on. A data volume kept by a passphrase answers `Your data is kept by a passphrase: nothing to prepare.`, and needs nothing more.
 2. Get the newer image and write it to a stick ([Get an image](get-an-image.md), [Write a USB stick](usb-stick.md)).
 3. Boot the stick and choose `Install NØNOS` in the boot menu ([Boot modes](boot-modes.md)), and answer setup ([First boot](first-boot.md)). An update carries the disk's own answers when it has them, and these when it does not.
 4. On the Disks screen choose the disk that holds the old system. Its row says `NONOS installed`.
-5. The Confirm screen, titled `Your data will be kept`, has two rows: `Update NØNOS (keep my data)`, lit, and `Erase everything and install`. Up and Down move between them, and each move clears what you typed. Leave the update row lit, type the disk's word, and press Enter.
+5. The Confirm screen, titled `Your data volume will be kept`, has two rows: `Update NØNOS (keep my data)`, lit, and `Erase everything and install`. Up and Down move between them, and each move clears what you typed. Leave the update row lit, read what the plan keeps and what it does not (its `kept` and `not kept` rows, the second saying `store apps, settings since setup, the wallet's vault, Wi-Fi`), type the disk's word, and press Enter.
 6. Let the installer write and read back. The Done screen is titled `Updated`. Remove the stick and restart.
 
 When the data volume is kept under the release-approved chain and was not prepared, the update row is muted, the title is `Your data is not ready to keep`, and the screen says `To keep your data, start your installed NØNOS, open Install NØNOS, choose Prepare this computer for an update, then start from this stick again.` Nothing can be started from that row. Down lights `Erase everything and install`, which works as on any other disk.
@@ -43,13 +43,14 @@ The writes go in this order: the boot partition's first sectors and the store's 
 
 After an update:
 
-- the data volume, its key header, the disk plan and the partition table, untouched;
+- the data volume, with what NØNOS keeps in it (downloaded models and imported files), its key header, the disk plan and the partition table, untouched;
 - setup's answers from the disk's own store, which is not encrypted, when they are there and check as setup's own reader checks them; otherwise the answers of the running boot, as an install carries them;
 - from the running boot, as an install carries them: the wallpapers those answers keep, the signed programs the stick carries, and the files the Linux programs read.
 
 Not carried by an update:
 
 - anything else the old store held: the programs you installed there from the Marketplace, files kept there through the file service, the consent to run installed software, and settings changed after setup;
+- the NØNOS wallet's account key and recovery words. They are files kept through the file service, and the keyring seals them under a key bound to the kernel, so a new kernel could not open them even if they were carried. Write the recovery words down before you update, and restore the wallet from them ([Wallet](../using/wallet.md));
 - remembered Wi-Fi networks. They are sealed under the old kernel, so enter them again;
 - nothing is wiped securely. Old store and boot partition bytes past what the update writes stay on the disk until they are written over, as the rest of an install's disk does ([Install to disk](install-to-disk.md#what-is-written)).
 
@@ -75,6 +76,8 @@ A data volume keyed by a TPM key bound to its kernel, and the key that seals rem
 - after a firmware update, or after turning Secure Boot on or off, such a data volume stays closed and remembered networks read `Sealed before a kernel, firmware or Secure Boot change`;
 - a newer kernel opens no volume an older one keyed this way, by design. Which volumes an update keeps is in [Two ways to update](#two-ways-to-update).
 
+A data volume formatted by 0.9.3 on a boot the release approved is keyed another way: its key is random, wrapped under a key the TPM gives a kernel the release approved on this machine's firmware, bootloader and Secure Boot state. A signed update keeps it, and the handover a prepare leaves carries it across a new bootloader for one boot. A firmware update or a Secure Boot change still closes it, as it closes the volumes above ([Device secrets and keys](../security/device-secrets-and-keys.md#the-handover)).
+
 The kernel never formats over a volume it cannot open: it leaves it, and a program that asks for it gets EIO while the serial console says `[DATA] refused with EIO: Unopenable`. The kernel's own line for this goes to its structured log, which nothing installs in this release, so it does not print. Putting the firmware and the Secure Boot setting back the way they were gives the old key back. Clearing the TPM changes the seed these keys come from, and every such key with it, for good.
 
 An install over the old system is not affected: the installer clears the key header and the volume's header ring, so the new system makes a new volume on its first boot. An update clears neither.
@@ -95,7 +98,8 @@ An install over the old system is not affected: the installer clears the key hea
   - What the screen says for each answer: `answer` in `userland/capsule_install/src/install/handover/answer.rs:24-38`; the call it answers: `mk_data_handover` in `userland/capsule_install/src/install/handover/call.rs:17-27`.
   - The update row lit first, and Up and Down clearing the word: `prepare` in `userland/capsule_install/src/install/job/prepare.rs:26-37`, and `on_confirm_key` in `userland/capsule_install/src/install/event/confirm.rs:40-48`.
   - The two rows: `ROWS` in `userland/capsule_install/src/install/ui/screens/confirm_choice.rs:33-36`.
-  - The titles `Your data will be kept`, `Your data is not ready to keep` and `Updated`: `kept_title` in `userland/capsule_install/src/install/state/screen.rs:48-55`, chosen by `title` in `userland/capsule_install/src/install/state/choice.rs:54-62`.
+  - The plan's `kept` and `not kept` rows: `describe_keep` in `userland/nonos_disk/src/describe/keep_rows.rs:31-41`.
+  - The titles `Your data volume will be kept`, `Your data is not ready to keep` and `Updated`: `kept_title` in `userland/capsule_install/src/install/state/screen.rs:48-55`, chosen by `title` in `userland/capsule_install/src/install/state/choice.rs:54-62`.
   - A row not ready drawn muted, its text, and nothing planned from it: `choices` in `userland/capsule_install/src/install/ui/screens/confirm_choice.rs:42-68`, `NOT_READY` in `userland/capsule_install/src/install/ui/keep_text.rs:23`, and `replan` in `userland/capsule_install/src/install/job/prepare.rs:39-47`.
   - `holds now` saying why: `disk_rows` in `userland/capsule_install/src/install/ui/screens/confirm_disk.rs:37-56`, with the reasons from `read_table` in `userland/nonos_disk/src/keep/table.rs:38-63`, `header_holds` in `userland/nonos_disk/src/keep/header.rs:33-45`, `placed` in `userland/nonos_disk/src/keep/places.rs:31-46`, `plan_inside` in `userland/nonos_disk/src/keep/volume.rs:34-52`, `key_state` in `userland/nonos_disk/src/keep/key.rs:52-68`, and `for_image` in `userland/nonos_disk/src/keep/fit.rs:29-53`.
 - Install over the old system
@@ -114,6 +118,7 @@ An install over the old system is not affected: the installer clears the key hea
   - Setup's answers, then wallpapers, then signed programs, and nothing else: `gather` in `userland/nonos_disk/src/carry/gather.rs:17-38`.
   - The new store written over the old one: `store_jobs` in `userland/nonos_disk/src/session/queue_state.rs:48-56`.
   - Remembered networks kept in the store, sealed under the boot PCRs: `PATH` in `userland/nonos_wifi_client/src/saved/file.rs:20-21` and `BOUND_PCRS` in `src/security/tpm/machine_key/pcrs.rs:21-24`; settings changed after setup kept in the store: `VALUES_PATH` in `userland/policy_proto/src/settings_record.rs:46-47`.
+  - The wallet's two records kept through the file service: `VAULT_PATH` and `WORDS_PATH` in `userland/capsule_wallet_nonos/src/wallet/vault/path.rs:23-29`, sealed under the keyring's root, a machine key: `ROOT_LABEL` in `userland/nonos_vault/src/subkey.rs:32-36`, bound with the boot PCRs above.
   - Files in memory and in the store only: `capsule_vfs` in `userland/capsule_vfs/README.md:5-9`.
   - The USB storage driver serves sectors: `capsule_driver_usb_msc` in `userland/capsule_driver_usb_msc/README.md:5-8`.
 - The rollback floor

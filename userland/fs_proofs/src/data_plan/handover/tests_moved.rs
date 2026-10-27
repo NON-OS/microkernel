@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The first boot under a new bootloader (layout.rs `moved`): of its two
 //! writes, the first holds way 3 wrapped again and the record still good,
 //! the second the new wrap alone. Whichever one the disk last took, some
@@ -23,7 +22,8 @@
 
 use super::super::key_header::{parse_key_header, Keyed};
 use super::super::key_wrap::{unwrap as unwrap3, wrap as wrap3};
-use super::layout::{moved, read};
+use super::layout::moved;
+use super::place::read;
 use super::seal::unwrap;
 use super::tests::{prepared, HAND, KEY, OWN};
 

@@ -34,7 +34,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
     let Some(o) = state.outcome.as_ref() else { return };
     let m = &b.m;
     let said = if state.updating() {
-        "NØNOS is updated, your data is as it was, and every sector read back."
+        "NØNOS is updated, its data volume is as it was, and every sector read back."
     } else {
         "NØNOS is on the disk, and every sector read back as written."
     };

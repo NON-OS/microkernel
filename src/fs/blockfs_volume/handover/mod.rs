@@ -23,7 +23,7 @@
 //! build anew, so an update alone would leave the volume closed. Before one,
 //! the person asks the installer to prepare (prepare.rs): the key is wrapped
 //! again under the handover key, the same policy without PCR 4, into the key
-//! header's sector (layout.rs). The next boot opens the volume under its own
+//! header's sector (place.rs). The next boot opens the volume under its own
 //! key if it can and clears the record; if it cannot, the record opens it,
 //! the key is wrapped under this boot's key and the record cleared
 //! (moved.rs). A handover lasts one boot either way.
@@ -37,6 +37,7 @@
 
 mod layout;
 mod moved;
+mod place;
 mod prepare;
 mod rewrap;
 mod seal;

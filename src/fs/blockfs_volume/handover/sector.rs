@@ -20,7 +20,7 @@
 use super::super::error::VolumeError;
 use super::super::key_header_io::{read_key_sector, write_key_sector};
 use super::super::say::say;
-use super::layout::{put, Record};
+use super::place::{put, Record};
 use crate::crypto::constant_time::secure_zero;
 use crate::hardware::block_device::BlockDeviceError;
 use crate::security::tpm::device_secret::{from_boot, handover_key};

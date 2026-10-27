@@ -36,7 +36,9 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
     let what = match (verifying, state.updating()) {
         (true, _) => "Reading every sector back and comparing it with what was sent.",
         (false, false) => "Writing the boot partition, the store, the disk plan and the table.",
-        (false, true) => "Writing the boot partition and the store. Your data is not touched.",
+        (false, true) => {
+            "Writing the boot partition and the store. The data volume is not touched."
+        }
     };
     text::line(fb, b.x, b.y, what, theme::FOREGROUND, m.body_px);
 

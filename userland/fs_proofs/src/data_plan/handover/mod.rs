@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The handover record (fs/blockfs_volume/handover/), its layout and its
 //! seal, mounted as they ship beside the key header they sit in.
 
 #[path = "../../../../../src/fs/blockfs_volume/handover/layout.rs"]
 mod layout;
+#[path = "../../../../../src/fs/blockfs_volume/handover/place.rs"]
+mod place;
 #[path = "../../../../../src/fs/blockfs_volume/handover/seal.rs"]
 mod seal;
 

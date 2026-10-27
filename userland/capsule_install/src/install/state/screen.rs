@@ -47,7 +47,7 @@ impl Screen {
     /// `ready` when the data a new release opens is what is kept.
     pub fn kept_title(self, ready: bool) -> &'static str {
         match self {
-            Screen::Confirm if ready => "Your data will be kept",
+            Screen::Confirm if ready => "Your data volume will be kept",
             Screen::Confirm => "Your data is not ready to keep",
             Screen::Done => "Updated",
             s => s.title(),

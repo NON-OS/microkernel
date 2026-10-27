@@ -26,7 +26,7 @@ use super::super::key_header::{Keyed, Sealed};
 use super::super::key_header_io::read_key_sector;
 use super::super::key_pick::kek;
 use super::super::key_wrap::unwrap;
-use super::layout::read;
+use super::place::read;
 use super::rewrap::moved_to;
 use super::sector::{by_record, clear};
 use crate::crypto::constant_time::secure_zero;
