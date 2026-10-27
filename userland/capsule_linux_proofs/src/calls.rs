@@ -37,6 +37,9 @@ pub mod sigtimer_rearm;
 #[path = "../../capsule_linux/src/linux/call/spawn/exec_shebang.rs"]
 pub mod exec_shebang;
 
+#[path = "../../capsule_linux/src/linux/call/limits/same.rs"]
+pub mod rlimit_same;
+
 /* The load average's arithmetic: file code, not a call, but as pure. */
 #[path = "load/mod.rs"]
 pub mod loadavg;

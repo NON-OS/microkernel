@@ -101,9 +101,11 @@ Taken as designed in `03-homes-that-last.md`, with rulings 1-6:
   (H2's MkHomePut and MkHomeDrop, named for both uses below). They take a
   ForeignExec caller only, a name of the shapes below only, and write
   through `blockfs_volume::write_or_create` only when the volume is on the
-  disk; otherwise ENOTSUP. `mk_data_read` and `mk_data_stat` refuse those
-  names to a caller without ForeignExec. A full volume is ENOSPC, not EIO
-  (`src/fs/vfs/map_volume_err.rs:47`).
+  disk; otherwise ENOTSUP. Every data call that takes a name (read, stat,
+  import, feed and remove) refuses those names to a caller without
+  ForeignExec (`src/syscall/microkernel/data/kept_name.rs`), so no other
+  capsule reads a kept home, plants one an app would load, or takes one
+  away. A full volume is ENOSPC, not EIO (`src/fs/vfs/map_volume_err.rs:47`).
 - **Bounds.** 16 MiB and 128 names a kept home for 0.9.3, the RAM home's
   ceiling; 256 MiB (ruling 3) when a home is written in parts. A SimpleX
   profile and a Monero wallet with a long cache may not fit in 16 MiB, and

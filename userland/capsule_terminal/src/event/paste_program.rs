@@ -59,7 +59,9 @@ pub(super) fn paste_to_program(state: &mut State) -> EventOutcome {
             c => state.cooked.char(c, &mut fx),
         }
     }
-    state.scrollback.feed_raw(&fx.echo);
+    if !state.scrollback.vt.modes.no_echo {
+        state.scrollback.feed_raw(&fx.echo);
+    }
     send(state, &fx.send);
     EventOutcome::Repaint
 }
