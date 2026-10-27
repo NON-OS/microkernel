@@ -67,6 +67,7 @@ mod tar_path;
 mod tar_pax;
 mod tcg;
 mod tier;
+mod timing;
 mod tools;
 mod tools_install;
 mod unpacked;

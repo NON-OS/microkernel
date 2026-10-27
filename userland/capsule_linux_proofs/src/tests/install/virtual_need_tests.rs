@@ -19,7 +19,7 @@
 //! and icu-data-full both provide, and qt5-qtbase names icu-data-full. The
 //! two hold the same file, so taking icu-data-en first failed the install.
 
-use crate::install::index::Index;
+use super::parsed;
 
 const INDEX: &[u8] = b"P:keepassxc\nV:2.7.8-r0\nD:qt5-qtbase so:libicuuc.so.74\n\n\
 P:icu-libs\nV:74.2-r1\nD:icu-data=74.2-r1\np:so:libicuuc.so.74=74.2\n\n\
@@ -30,7 +30,7 @@ P:needs-virtual\nV:1-r0\nD:icu-data\n\n";
 
 /// The closure in the order the install loop (install/run.rs) takes it.
 fn closure(name: &str) -> Vec<String> {
-    let index = Index::parse(INDEX);
+    let index = parsed(INDEX);
     let (mut wanted, mut later, mut done) = (vec![name.to_string()], Vec::new(), Vec::new());
     while let Some((next, exact)) = index.next_need((&mut wanted, &mut later), &done) {
         let pkg = index.resolve(&next, exact).expect("provided");
@@ -57,7 +57,7 @@ fn a_virtual_need_alone_still_finds_a_provider() {
 
 #[test]
 fn a_need_met_already_is_passed_over() {
-    let index = Index::parse(INDEX);
+    let index = parsed(INDEX);
     let done = vec!["icu-data-full".to_string()];
     assert!(index.provided_in("icu-data", &done));
     assert!(!index.provided_in("so:libicuuc.so.74", &done));

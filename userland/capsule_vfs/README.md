@@ -66,6 +66,13 @@ says holds FileSystem, and refuses every other request with `EACCES` before
 any handler runs (`src/server/fs_gate.rs`). the kernel is asked with
 `MkCapCheck` on each request; no verdict is kept.
 
+a Linux app's home (`/linux-home`) and each run's private files
+(`/linux-private`) are reached only by a caller the kernel says holds
+ForeignExec, which only capsule_linux holds; any path a request names is
+normalized and asked about first, and a copy or removal of the root is held
+off them too. no listing outside those trees, no search and no recent-files
+journal shows a name inside them (`src/server/fs_gate/guard.rs`).
+
 ## Privacy and persistence
 
 files are held in the capsule's 320 MiB heap and are gone at power off. a file
@@ -171,6 +178,8 @@ the store's on-disk layout and its tests. build and sign with
 
 - [ ] `CAPSULE_REQUIRED_CAPS` unchanged at `0x04000018`, `Debug` optional only.
 - [ ] the FileSystem gate refuses a sender without FileSystem that is not pid 0.
+- [ ] `/linux-home` and `/linux-private` are refused to a caller without
+      ForeignExec, and left out of listings, searches and the journal.
 - [ ] `userland/fs_proofs` passes, including budget, reaping and torn writes.
 - [ ] store append and removal leave the old or the new table on a power cut,
       never a half-written one.
