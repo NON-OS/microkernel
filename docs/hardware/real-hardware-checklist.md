@@ -211,14 +211,18 @@ a development image (`Debug` granted to the capsule); on another image the
 Settings Wi-Fi panel shows the stage. A ThinkPad T14 Gen 4 AMD carries the
 MT7922.
 
-- [ ] What to boot: a `standard-dev` image at or after the mt7921e wiring
-      commit, written with `make nonos-mk-usb-img` so the firmware package is
-      on the stick: `EFI/nonos/firmware/mediatek/` holds six `WIFI_*` files
-      and `LICENCE.mediatek` (check with `mdir` or by mounting the stick).
-      Wi-Fi on in the firmware settings.
+- [ ] What to boot: the sealed `standard` image (or a `standard-dev` from
+      `tools/nonos-dev-image`) at or after the commit whose seal places the
+      firmware package, or `make nonos-mk-usb-img`. Either way the stick's
+      `EFI/nonos/firmware/mediatek/` holds six `WIFI_*` files and
+      `LICENCE.mediatek` (check with `mdir` or by mounting the stick). A stick
+      without them boots silently past them and the panel reads "The firmware
+      package is missing from the boot medium". Boot it live: an installed
+      disk does not carry the package yet. Wi-Fi on in the firmware settings.
 - [ ] Before: if the machine runs Linux, save `lspci -nn -d 14c3:` and
       `dmesg | grep -i mt79` (the `HW/SW Version` and `WM Firmware Version`
-      lines).
+      lines). Booting straight from Windows or Linux (a warm reboot) is
+      fine and worth trying once: the driver resets a card left running.
 - [ ] Power and identity: `[mt7921] stage power: driver owns the card`, then
       `[mt7921] chip 0x00007961 rev 0x000000NN` (or `0x00007922`, or
       `0x00007920`). `stopped at stage 2` or `stage 3` here: keep the line.
@@ -232,9 +236,10 @@ MT7922.
       `[mt7921] stage mac: up, bands 1,1`. On a failure, `firmware failed at
       step N` (1 a bad patch, 2 the semaphore, 3 a piece's announcement,
       4 its bytes, 5 the patch finish, 6 a bad RAM image, 7 the start,
-      8 never ready, 9 the MCU's ownership) or `mac init failed at step N` (1 capabilities to 5 RX
-      path), then `attempt N failed; resetting`; after three, `card quiet:
-      WFDMA off, bus master off` and `stopped at stage 4`.
+      8 never ready, 9 the MCU's ownership) or `mac init failed at step N`
+      (1 capabilities, 2 efuse, 3 MAC enable, 4 channel domain, 5 RX path,
+      6 transmit power limits), then `attempt N failed; resetting`; after
+      three, `card quiet: WFDMA off, bus master off` and `stopped at stage 4`.
 - [ ] Interface: `[mt7921] stage interface: station added`, `[mt7921] stage
       ready: scanning`, `[mt7921] serving driver.mt7921e0`. `stopped at
       stage 7` means the kernel gave no randomness.
@@ -243,13 +248,19 @@ MT7922.
       diagnostic words (chip, channel grants, grants missed, bad frames,
       refused commands) say whether the firmware ever granted a channel;
       keep the log.
-- [ ] Join (WPA2, then WPA3 if an access point offers it): the panel reads
-      Joined. WPA3 through this driver is unproven even on the host; say
-      which security the access point ran.
+- [ ] Join WPA3 first if the router offers it (WPA3 or WPA2/WPA3 mixed: the
+      station picks SAE), then WPA2: the panel reads Joined. Both are proven
+      on the host only; say which security the access point ran, and whether
+      it is 2.4 or 5 GHz.
 - [ ] DHCP: `[NET-CORE] bind: interface up on driver.mt7921e0`, then a
       lease (`[NET-CORE] lease-status state=...`); a page loads in the
-      browser. Leave it a few minutes: a `card stopped answering: radio off`
-      line ends the session and is the thing to report.
+      browser. Leave it a few minutes, on battery too: a line `[mt7921]
+      ownership: taken back from the firmware, time N` means the laptop's
+      power management took the card and the driver took it back (expected
+      rarely, keep it); `ownership: the firmware holds the card and would
+      not give it back` means nothing is sent until it does, and `card
+      stopped answering: radio off` ends the session: either is the thing
+      to report.
 - [ ] Send back: the boot log (`log > boot-log.txt`), `log driver- exit >
       drivers.txt`, the Linux lines above if any, the laptop model and
       card, and the first `[mt7921]` line that differs from this list. The

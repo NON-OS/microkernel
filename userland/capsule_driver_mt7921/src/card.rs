@@ -17,10 +17,16 @@ pub struct Card {
     pub dma: Dma,
     pub mcu: Mcu,
     pub tokens: Tokens,
+    /// Times the card was found in its firmware's hands (`power::wake`).
+    pub woken: u32,
 }
 
 impl Card {
+    /// A command, once the card is the driver's (`awake`).
     pub fn send(&mut self, cmd: Cmd, body: &[u8], wait: bool) -> Result<Reply, McuError> {
+        if !self.awake() {
+            return Err(McuError::Asleep);
+        }
         self.mcu.send(&self.regs, &mut self.dma, cmd, body, wait)
     }
 
