@@ -20,6 +20,11 @@
 
 use std::cell::RefCell;
 
+mod dma;
+
+pub use dma::MK_DMA_MAP_COHERENT;
+pub use dma::{grant_length, mk_dma_map, mk_dma_unmap, unmapped, DmaMapOut, GRANT};
+
 #[path = "../../../libc/src/surface_registry/abs.rs"]
 mod abs;
 

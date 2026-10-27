@@ -21,6 +21,7 @@
 mod discover;
 mod frames;
 mod messages;
+mod pass;
 mod start;
 mod station;
 mod util;

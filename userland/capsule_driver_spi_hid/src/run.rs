@@ -15,15 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The driver's loop. A device not yet ready is brought up again every half
-//! second; one that is, is read when its interrupt line rang. Until the
+//! second, BRING_UP_TRIES times in a row at most, then given up on
+//! (EXIT_GAVE_UP); one that is, is read when its interrupt line rang. Until the
 //! line has rung once it is not trusted, and reads go by timer as they do
 //! where the firmware named no line or gpio0 cannot say.
 
-use nonos_libc::mk_idle_ms;
+use nonos_libc::{mk_exit, mk_idle_ms, EXIT_GAVE_UP};
 
 use crate::bring_up::bring_up;
 use crate::input::poll;
 use crate::link::Link;
+use crate::retry::Tries;
 use crate::spi::doorbell;
 use crate::state::State;
 
@@ -32,15 +34,22 @@ const RETRY_MS: u64 = 500;
 const LINE_MS: u64 = 2;
 /// Reads by timer: a pad reports about every 8 ms.
 const TIMER_MS: u64 = 4;
+const GAVE_UP: &str = "driver.spi_hid: device never ready, given up\n";
 
 pub fn run(l: Link, mut state: State) -> ! {
+    let mut tries = Tries::default();
     loop {
         if !state.found() {
             if let Err(why) = bring_up(&l, &mut state) {
                 say_once(&mut state, why);
+                if tries.failed() {
+                    crate::diag::line(alloc::string::String::from(GAVE_UP));
+                    mk_exit(EXIT_GAVE_UP);
+                }
                 let _ = mk_idle_ms(RETRY_MS);
                 continue;
             }
+            tries = Tries::default();
             crate::diag::line(alloc::string::String::from("driver.spi_hid: device ready\n"));
         }
         let rang = l.choice.line.and_then(|(uid, pin)| doorbell(l.port, uid, pin));

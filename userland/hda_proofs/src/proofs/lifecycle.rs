@@ -27,6 +27,7 @@ pub mod board;
 mod claim_refused_tests;
 mod claim_tests;
 mod discover_tests;
+mod dsp_class_tests;
 pub mod given_back;
 mod mark_tests;
 mod quiesce_order_tests;

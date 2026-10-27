@@ -16,11 +16,17 @@
 //! The Intel LPSS SPI host's spawn, and the HID-over-SPI driver's after it
 //! (drivers_bus.rs calls it last).
 
-/// The SPI host, after the I2C host has taken its functions; it
-/// leaves at once where no function proves to be SPI.
+/// The SPI host, after the I2C host has taken its functions, started only
+/// where the broker lists an LPSS SPI function (inventory::spi_host); it
+/// leaves at once where none proves to be SPI.
 #[cfg(feature = "nonos-capsule-driver-spi")]
 pub(super) fn spawn() {
     use crate::hardware::spi_capsule as c;
+    if !crate::hardware::inventory::spi_host_present() {
+        crate::sys::boot_log::ok("DRIVER-SPI", "no controller present, not spawned");
+        crate::sys::boot_log::ok("DRIVER-SPI-HID", "no SPI host to ask, not spawned");
+        return;
+    }
     super::boot::capsule("DRIVER-SPI", "driver_spi", c::spawn_driver_spi_capsule, c::shared_state);
     spawn_spi_hid();
 }
