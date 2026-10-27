@@ -101,6 +101,7 @@ driver.ps2_kbd0
 driver.pvscsi0
 driver.rndis0
 driver.rtl8139_0
+driver.rtl8153_0
 driver.rtl8169_0
 driver.rtl8821ce0
 driver.rtsx0
@@ -182,6 +183,7 @@ endpoint.4294967360
 endpoint.4294967361
 endpoint.4294967362
 endpoint.4294967363
+endpoint.4294967364
 endpoint.4294967365
 endpoint.4294967366
 endpoint.4294967368
