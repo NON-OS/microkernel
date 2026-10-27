@@ -39,6 +39,8 @@ pub mod pci_bar_slots;
 pub mod pci_config_change;
 #[path = "registry_names/mod.rs"]
 pub mod registry_names;
+#[path = "safe_mode/mod.rs"]
+mod safe_mode;
 #[path = "serial_line/mod.rs"]
 pub mod serial_line;
 // CPUID is x86_64's alone, so its proofs are too.
