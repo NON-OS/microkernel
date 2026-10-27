@@ -12,7 +12,7 @@ NONOS has two Realtek PCI Ethernet driver [capsules](../../overview/glossary-boo
 
 In 0.9.2 `net.core` dropped every frame either driver received, so a cable on these ports got no DHCP lease; see [the receive fault](README.md#the-receive-fault). It is fixed in code on this branch and has not been booted.
 
-The USB Realtek RTL8153's own capsule is quarantined; its adapters are bound in their ECM configuration by the CDC-ECM capsule; see [USB networking](usb-net.md).
+The USB Realtek RTL8153 and RTL8153B have their own capsule, `capsule_driver_rtl8153`, which drives them in their vendor configuration; an adapter that also offers CDC-ECM may instead be bound there by the CDC-ECM capsule. See [USB networking](usb-net.md).
 
 ## RTL8139
 

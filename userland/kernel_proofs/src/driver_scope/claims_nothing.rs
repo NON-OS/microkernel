@@ -19,7 +19,7 @@
 /// Drivers that reach their devices through another driver, or vmmouse0
 /// through the backdoor alone, and never call MkDeviceClaim: they have no
 /// row, and must not gain one unnoticed.
-pub(super) const CLAIMS_NOTHING: [&str; 16] = [
+pub(super) const CLAIMS_NOTHING: [&str; 17] = [
     "driver.usb_hid0",
     "driver.usb_msc0",
     "driver.i2c_hid0",
@@ -31,6 +31,7 @@ pub(super) const CLAIMS_NOTHING: [&str; 16] = [
     "driver.fido0",
     "driver.rndis0",
     "driver.ax88179_0",
+    "driver.rtl8153_0",
     "driver.spi_hid0",
     "driver.usb_audio0",
     "driver.usb_hub0",
