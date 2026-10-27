@@ -65,6 +65,10 @@ def fetcher(ca):
 
 def handler(cache, opener, log, pins, tamper):
     class Relay(http.server.BaseHTTPRequestHandler):
+        # HTTP/1.1, so one connection carries an install's GETs one after
+        # another, as a CDN's does; a client asking close gets close.
+        protocol_version = "HTTP/1.1"
+
         def do_GET(self):
             host = self.headers.get("Host", "").split(":")[0]
             if host not in HOSTS or ".." in self.path or not self.path.startswith("/"):
@@ -92,7 +96,9 @@ def handler(cache, opener, log, pins, tamper):
             print(line, file=log, flush=True)
             self.send_response(code)
             self.send_header("Content-Length", str(len(body)))
-            self.send_header("Connection", "close")
+            if self.headers.get("Connection", "").lower() == "close":
+                self.send_header("Connection", "close")
+                self.close_connection = True
             self.end_headers()
             self.wfile.write(body)
 
