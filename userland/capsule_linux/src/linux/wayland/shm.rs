@@ -66,7 +66,7 @@ pub fn create_pool(guest: &mut Guest, args: &mut Args<'_>) {
     guest.scene.pools.push(Pool { id, at, size, fd });
 }
 
-fn take_fd(guest: &mut Guest) -> Option<u32> {
+pub(super) fn take_fd(guest: &mut Guest) -> Option<u32> {
     match guest.display.fds.is_empty() {
         true => None,
         false => Some(guest.display.fds.remove(0)),

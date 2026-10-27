@@ -32,6 +32,7 @@ use super::send::motion;
 const KEY_F11: u32 = nonos_app_skeleton::KEY_F1 + 10;
 
 pub fn deliver(guest: &mut Guest, event: &InputEvent) {
+    super::super::clip::focus::input(guest, event.kind);
     match event.kind {
         InputKind::KeyDown if event.code == KEY_F11 && super::super::toplevel::toggle(guest) => {}
         InputKind::KeyUp
