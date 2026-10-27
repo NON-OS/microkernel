@@ -52,4 +52,6 @@ mod payload_sweep_tests;
 #[cfg(test)]
 mod probe_tests;
 #[cfg(test)]
+mod short_frame_tests;
+#[cfg(test)]
 mod webcam;
