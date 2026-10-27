@@ -31,7 +31,7 @@ pub use super::eventfd::ready::bits as event_bits;
 pub use super::fsync::{fsync, sync, syncfs};
 pub use super::link::{linkat, symlinkat};
 pub use super::memfd::{is_memfd, memfd_create};
-pub use super::memfd_map::{mapped_at, set_mapped, staged};
+pub use super::memfd_map::{mapped_at, mapped_now, memfd_id, set_mapped, staged};
 pub use super::meta::{
     access, chmod, faccessat, fchmod, fchmodat, fstat, fstatfs, look, newfstatat, readlinkat,
     statfs, statx,
