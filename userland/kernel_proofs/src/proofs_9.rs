@@ -23,6 +23,9 @@ pub mod asid_directory;
 /// Small blocks kept by size in front of the kernel heap's hole lists.
 #[path = "heap_bins/mod.rs"]
 pub mod heap_bins;
+/// MkLocalSign and MkLocalVerify hash an image a bounded chunk at a time.
+#[path = "image_digest/mod.rs"]
+pub mod image_digest;
 /// A guest's peer calls hold its own lock, not one over every guest.
 #[path = "peer_stripe/mod.rs"]
 pub mod peer_stripe;

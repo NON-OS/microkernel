@@ -19,18 +19,18 @@
 use crate::security::local_build::sign;
 use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_PERM};
 
-use super::local_image::{copy_in, within_own_authority, MAX_ELF};
+use super::local_image::{digest_in, within_own_authority};
 
 /// `MkLocalSign(elf_ptr, elf_len, caps, out_ptr, out_len)`.
 pub fn sys_local_sign(elf_ptr: u64, elf_len: u64, caps: u64, out_ptr: u64, out_len: u64) -> i64 {
-    let elf = match copy_in(elf_ptr, elf_len, MAX_ELF) {
-        Ok(bytes) => bytes,
+    let digest = match digest_in(elf_ptr, elf_len) {
+        Ok(digest) => digest,
         Err(e) => return e,
     };
     if !within_own_authority(caps) {
         return ERRNO_PERM;
     }
-    let trailer = match sign(&elf, caps) {
+    let trailer = match sign(&digest, caps) {
         Ok(t) => t,
         Err(_) => return ERRNO_PERM,
     };
