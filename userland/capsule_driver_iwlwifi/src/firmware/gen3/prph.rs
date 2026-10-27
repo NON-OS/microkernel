@@ -19,10 +19,10 @@
 //! bits) to WADDR or RADDR, then move the value through WDAT or RDAT. AX210
 //! and newer decode 24 address bits (`iwl_trans_pcie_prph_msk`); the legacy
 //! 20-bit mask the older load path uses would cut every UMAC register at
-//! 0xD0_0000 and up. UMAC registers sit `UMAC_PRPH_OFFSET` above their base.
-//! Access needs the MAC awake: `grab` raises the family's access request and
-//! waits for the clock (Linux `__iwl_trans_pcie_grab_nic_access`, 15 ms),
-//! `release` drops it. The UMAC helpers are in `umac`.
+//! 0xD0_0000 and up. UMAC registers sit the family's `umac_offset` above
+//! their base. Access needs the MAC awake: `grab` raises the family's access
+//! request and waits for the clock (Linux `__iwl_trans_pcie_grab_nic_access`,
+//! 15 ms), `release` drops it. The UMAC helpers are in `umac`.
 
 use super::csr::CsrLayout;
 use super::region::Clock;
@@ -33,8 +33,6 @@ pub use umac::{read_umac, write_umac};
 
 mod umac;
 
-/// `umac_prph_offset` of the AX210 transport configs.
-pub const UMAC_PRPH_OFFSET: u32 = 0x30_0000;
 const PRPH_MASK: u32 = 0x00FF_FFFF;
 const BYTE_ENABLE: u32 = 3 << 24;
 const GRAB_MS: u32 = 15;
