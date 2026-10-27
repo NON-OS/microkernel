@@ -55,7 +55,9 @@ pub fn send(guest: &Guest, id: u32, bytes: &[u8]) -> u64 {
     }
 }
 
-/// The socket is let go: its stream ends at the proxy as the entry drops.
-pub fn close(h: u32) {
-    drop(table::remove(h));
+/// The socket is let go: its stream ends at the proxy as the entry drops,
+/// once what was written has gone, unless SO_LINGER asked for an abortive
+/// close, which drops it as Linux's reset does (closing.rs).
+pub fn close(h: u32, abort: bool) {
+    super::closing::close(h, abort);
 }
