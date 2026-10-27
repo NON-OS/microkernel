@@ -30,6 +30,7 @@ mod change;
 mod flush;
 mod names;
 mod seen;
+mod stored;
 mod table;
 mod take;
 
