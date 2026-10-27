@@ -9,7 +9,7 @@ const REQUIRED: u64 = 0x08 | 0x10 | 0x20;
 /// Debug, 1 << 8.
 const OPTIONAL: u64 = 1 << 8;
 
-const MANIFESTS: [(&str, &str); 4] = [
+const MANIFESTS: [(&str, &str); 5] = [
     ("cdc_ecm", include_str!("../../capsule_driver_cdc_ecm/Capsule.mk")),
     ("cdc_ncm", include_str!("../../capsule_driver_cdc_ncm/Capsule.mk")),
     ("rndis", include_str!("../../capsule_driver_rndis/Capsule.mk")),
