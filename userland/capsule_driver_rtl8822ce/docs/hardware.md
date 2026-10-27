@@ -19,7 +19,7 @@ A line in place of one of these names the stage that stopped, and the
 Settings Wi-Fi panel shows the same stage. The lines that only this driver
 prints: `pcie link config: dbi read timed out` (or `write`), `pcie clock
 delay: dbi write timed out`, `efuse unreadable on a freshly powered mac`,
-`unsupported rf front-end, radio not configured` (an RFE type above 6),
+`rf front-end type has no table in this driver, radio not configured` (an RFE type above 6),
 `dac calibration did not read back; radio left as calibrated` (the radio
 still comes up), `coex window did not answer; antenna not granted`. No line
 carries the efuse MAC address, which is never read out.
