@@ -41,7 +41,7 @@
  {"name": "recipe-set-ready", "file": "recipes.py", "old": "if calls[-1] & 0xFE or not market_ready(calls, mask):", "new": "if False:"},
  {"name": "recipe-dests-outside", "file": "recipes.py", "old": "if not at.is_relative_to(root.resolve()):", "new": "if False:"},
  {"name": "recipe-dests-net-anon", "file": "recipes.py", "old": "if not mask & 2:", "new": "if False:"},
- {"name": "recipe-strings", "file": "recipes.py", "old": "if not isinstance(item, dict) or not all(isinstance(v, str) for v in item.values()):", "new": "if not isinstance(item, dict):"},
+ {"name": "recipe-strings", "file": "recipes.py", "old": "if not isinstance(item, dict) or not all(isinstance(v, str) for k, v in item.items() if k != \"args\"):", "new": "if not isinstance(item, dict):"},
  {"name": "file-format", "file": "recipes_file.py", "old": "doc.get(\"format\") != FORMAT", "new": "False"},
  {"name": "file-duplicate", "file": "recipes_file.py", "old": "if len(set(names)) != len(names):", "new": "if False:"},
  {"name": "file-size", "file": "recipes_file.py", "old": "if len(raw) > MAX_BYTES:", "new": "if False:"},
@@ -173,5 +173,15 @@
  {"name": "source-lock-written", "file": "source_run.py", "old": "elif built or pinned.exists():", "new": "elif False:"},
  {"name": "source-tar-out", "file": "source_run.py", "old": "(out / f\"{digest}.tar\").write_bytes(body)", "new": "(out / f\"{digest}.tar\").write_bytes(b\"\")"},
  {"name": "run-sources-apart", "file": "run.py", "old": ", [r for r in recipes if not is_source(r)]", "new": ", recipes"},
- {"name": "run-sources-listed", "file": "run.py", "old": "return found + built", "new": "return found"}
+ {"name": "run-sources-listed", "file": "run.py", "old": "return found + built", "new": "return found"},
+ {"name": "args-list-of-strings", "file": "listed_args.py", "old": "if not isinstance(words, list) or not all(isinstance(w, str) for w in words):", "new": "if False:"},
+ {"name": "args-count", "file": "listed_args.py", "old": "if not 1 <= len(words) <= MAX_WORDS:", "new": "if False:"},
+ {"name": "args-word", "file": "listed_args.py", "old": "if not WORD.fullmatch(w) or len(w) > 255:", "new": "if len(w) > 255:"},
+ {"name": "args-word-long", "file": "listed_args.py", "old": " or len(w) > 255:", "new": ":"},
+ {"name": "args-value-printable", "file": "listed_args.py", "old": "(=[\\x21-\\x7e]+)?", "new": "(=[\\x20-\\x7e]+)?"},
+ {"name": "args-twice", "file": "listed_args.py", "old": "if len(set(names)) != len(names):", "new": "if False:"},
+ {"name": "args-max-len", "file": "listed_args.py", "old": "if len(out) > MAX_LEN:", "new": "if False:"},
+ {"name": "args-in-listing", "file": "catalogue.py", "old": "recipe[\"calls\"]) + recipe.get(\"args\", b\"\")", "new": "recipe[\"calls\"])"},
+ {"name": "recipe-args-decoded", "file": "recipes.py", "old": ", args=listed(item))", "new": ")"},
+ {"name": "recipe-strings-args-only", "file": "recipes.py", "old": "if k != \"args\")", "new": "if k not in (\"args\", \"name\"))"}
 ]
