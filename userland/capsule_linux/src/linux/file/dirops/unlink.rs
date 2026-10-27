@@ -22,7 +22,7 @@ use crate::linux::guest::Guest;
 use super::super::at::resolve_at;
 use super::super::meta::look;
 use super::super::resolve::key;
-use super::super::{cache, modes, store_name, synth};
+use super::super::{cache, modes, shared_maps, store_name, synth};
 use super::dirs::remove_dir;
 
 pub fn unlinkat(guest: &Guest, dirfd: u64, path: u64, flags: u64) -> u64 {
@@ -54,6 +54,7 @@ pub fn unlinkat(guest: &Guest, dirfd: u64, path: u64, flags: u64) -> u64 {
         Some(_) => {}
     }
     cache::forget(&at);
+    shared_maps::unlinked(&at);
     modes::forget(&at);
     super::super::times::forget(&at);
     super::super::xattr_table::forget(&at);
