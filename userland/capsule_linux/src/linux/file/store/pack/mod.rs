@@ -16,8 +16,9 @@
 
 //! Installed packages as packs (nonos_linux_pack): one store object a
 //! package, its files served out of it. A package's pack lives beside the
-//! Linux tree, at `/linux-packs/<package>.pack`, with the trailer this
-//! machine minted over its index beside it.
+//! Linux trees, at `/linux-packs/<family>/<package>.pack` (paths.rs), with
+//! the trailer this machine minted over its index beside it. A run serves
+//! only its own family's packs.
 
 mod list;
 mod load;
