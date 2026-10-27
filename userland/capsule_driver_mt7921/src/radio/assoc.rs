@@ -49,7 +49,9 @@ impl Mt7921 {
         let ok = associate(&mut self.card, &Joined { peer, basic, channel, antennas });
         self.note(ok);
         self.peer = Some(peer);
-        self.joined = Some((basic, rate::data_rate(rates, ghz5)));
+        let low = rate::lowest(ghz5);
+        let set = rate::basic(rates, ghz5).or_else(|| self.aps.get(a.bssid));
+        self.joined = Some((basic, set.unwrap_or((low, low))));
         self.home = Some((band, channel));
         self.release();
     }

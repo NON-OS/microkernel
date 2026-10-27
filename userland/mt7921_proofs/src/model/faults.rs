@@ -21,10 +21,18 @@ pub struct Faults {
     pub never_ready: bool,
     /// Channel requests are never granted.
     pub no_grant: bool,
-    /// Grants name a token other than the request's.
+    /// Grants name another request's token and channel.
     pub stale_grant: bool,
+    /// Grants name the request's channel but no token (zero).
+    pub tokenless_grant: bool,
+    /// Grants come on the data ring (2), not the event ring.
+    pub grant_on_data: bool,
     /// The status unified commands answer with.
     pub uni_status: u32,
     /// No transmit-free report is ever sent.
     pub no_txfree: bool,
+    /// The firmware holds the card (`doze`): its registers are out of reach.
+    pub doze: bool,
+    /// The WFDMA stays busy until its logic reset (a warm reboot).
+    pub stuck_busy: bool,
 }
