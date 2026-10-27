@@ -26,7 +26,7 @@ use super::super::key_header::{parse_key_header, Keyed};
 use super::super::key_header_io::read_key_sector;
 use super::super::key_pick::opens_to;
 use super::super::state::VOLUME;
-use super::layout::put;
+use super::place::put;
 use super::sector::{handover_kek, write_checked};
 use super::{seal, HandoverRefusal as R};
 use crate::crypto::constant_time::secure_zero;

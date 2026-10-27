@@ -36,5 +36,6 @@ pub fn describe_keep(plan: &Plan<'_>, carried: &Carried) -> Vec<Row> {
     row("kept", format!("data volume ({volume}), its key, the plan and the table"));
     store_rows(plan, carried, &mut row);
     row("boot", boot_text(plan));
+    row("not kept", "store apps, settings since setup, the wallet's vault, Wi-Fi".into());
     rows
 }

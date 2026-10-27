@@ -14,14 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The kernel call that hands the data volume over for an update. It is
-//! `nonos_libc::mk_data_handover` (`userland/libc/src/data.rs`), which needs
-//! StoreWrite and FileSystem, both of which this capsule holds. Until that
-//! call is in the libc this branch builds against, this stand-in answers
-//! ENOSYS, and the screen says the system cannot prepare yet. When it is,
-//! the function below becomes `pub use nonos_libc::mk_data_handover;`.
+//! The kernel call that hands the data volume over for an update,
+//! MkDataHandover (`userland/libc/src/store.rs`). It needs StoreWrite and
+//! FileSystem, both of which this capsule holds.
 
-/// 0 when the volume is handed over; a negative errno otherwise.
-pub fn mk_data_handover() -> i64 {
-    -38
-}
+pub use nonos_libc::mk_data_handover;
