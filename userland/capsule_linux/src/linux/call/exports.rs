@@ -36,7 +36,9 @@ pub use super::limits::calls::{getrlimit, prlimit64};
 pub use super::limits::table::limit_for;
 pub use super::mem::{brk, mmap, mprotect, mremap, munmap, MapReq};
 pub use super::pipe::dup::{dup, dup2};
+pub use super::pipe::end::{end_of as pipe_end_of, other_end_open as pipe_other_end_open};
 pub use super::pipe::make::pipe2;
+pub use super::pipe::pair::pipe_pair;
 pub use super::pipe::poll::bits as pipe_bits;
 pub use super::process::*;
 pub use super::sched::{
