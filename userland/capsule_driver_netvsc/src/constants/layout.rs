@@ -32,6 +32,10 @@ pub const RECV_PAGES: usize = 64;
 pub const SEND_PAGES: usize = 64;
 /// The send buffer's sections the driver tracks: one bit each.
 pub const MAX_SECTIONS: usize = 64;
+/// Packets taken from the host's ring in one service pass, at most (as
+/// Linux's NAPI budget): a host that keeps the ring full cannot hold the
+/// driver from its requests.
+pub const PACKETS_PER_PASS: usize = 64;
 
 const _: () = assert!(RINGS.out_pages as u64 + RINGS.in_pages as u64 == RING_BYTES / PAGE as u64);
 const _: () = assert!(RECV_PAGES as u64 * PAGE as u64 == RECV_BYTES);
