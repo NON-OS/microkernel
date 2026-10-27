@@ -16,5 +16,12 @@
 
 //! What an install keeps of a program: which one a package starts as, and the machine's word for it.
 
+pub(super) mod closure;
 pub(super) mod program;
 pub(super) mod vouch;
+
+/// Forget what `name` starts as and the closure it runs with, when it is
+/// uninstalled. True when neither record is left.
+pub(super) fn forget(name: &str) -> bool {
+    program::forget(name) & closure::forget(name)
+}

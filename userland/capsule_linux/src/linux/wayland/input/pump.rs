@@ -39,6 +39,7 @@ const HEADER: usize = 8;
 const BATCH: usize = 32;
 
 pub fn pump(guest: &mut Guest) {
+    super::super::clip::desk_read::drain(guest);
     if guest.scene.pointer.is_none() && guest.scene.keyboard.is_none() {
         return;
     }

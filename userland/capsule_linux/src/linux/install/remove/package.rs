@@ -58,7 +58,7 @@ pub fn uninstall(pkg: &str) -> Result<(), Why> {
     if !links.is_empty() && !unrecord(&links) {
         left.links = links.clone();
     }
-    let forgot = super::super::record::program::forget(pkg);
+    let forgot = super::super::record::forget(pkg);
     let settled = super::super::package_record::settle(pkg, &left);
     let homeless = super::home::erase(home);
     say(&format!(
