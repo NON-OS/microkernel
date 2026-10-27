@@ -33,16 +33,20 @@ fn end_of(path: &[u8]) -> Option<u64> {
     cache::size(path).or_else(|| store::stat(&resolve::key(path)).ok().map(|(s, _)| s))
 }
 
+/// Whether `path` is longer than the family may hold. Such a file is never
+/// taken into a copy, which would be cut short and the cut stored, so no
+/// map of it may write (life.rs, protect.rs).
+pub(super) fn too_long(path: &[u8]) -> bool {
+    end_of(path).is_some_and(|end| end > cache::MAX_FILE as u64)
+}
+
 /// What writer `e` changed of its file's bytes `want`, written back;
 /// whether a page went.
 pub(super) fn back(e: &Entry, want: (u64, u64)) -> bool {
     if !e.writer || e.orphan {
         return false;
     }
-    /*
-     * A file longer than the family may hold is never taken into a copy:
-     * the copy would be cut short, and the cut written to the store.
-     */
+    /* Nothing of a file too long to hold (too_long) is written back. */
     let end = end_of(&e.path).filter(|&end| end <= cache::MAX_FILE as u64);
     let Some((lo, hi)) = end.and_then(|end| back_range(e, want, end)) else {
         return false;
