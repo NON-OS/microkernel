@@ -24,13 +24,11 @@ pub enum HardwareFamily {
     StorageVirtioScsi,
     /// BusLogic MultiMaster (104b:1040): VirtualBox's and VMware's BusLogic.
     StorageBuslogic,
-    /// LSI Fusion-MPT (1000:0030, 1000:0054): VMware's and VirtualBox's
-    /// LSI Logic Parallel and SAS, QEMU's mptsas1068.
+    /// LSI Fusion-MPT (1000:0030, 1000:0054): VMware's, VirtualBox's; QEMU's mptsas1068.
     StorageMpt,
     /// VMware PVSCSI (15ad:07c0): VMware's paravirtual SCSI, QEMU's pvscsi.
     StorageVmwarePvscsi,
-    /// An Intel VMD: a PCI domain hiding NVMe and SATA controllers behind
-    /// it (`vmd`). Listed, never spawned for.
+    /// An Intel VMD hiding NVMe and SATA controllers (`vmd`): listed, never spawned for.
     StorageVmd,
     /// An Intel eMMC host (`emmc`): the soldered disk of Atom, Celeron and
     /// Pentium Silver laptops. Served by the SD host controller capsule.
@@ -68,6 +66,7 @@ pub enum HardwareFamily {
     NetworkIwlwifi,
     /// A Realtek wireless part other than the RTL8821CE.
     NetworkRealtekWifi,
+    NetworkMt7921,
     DisplayGopFramebuffer,
     DisplayVirtioGpu,
     DisplayBga,

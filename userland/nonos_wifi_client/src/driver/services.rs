@@ -28,8 +28,10 @@ pub struct Service {
 /// a machine with both cards keeps the radio it joined with. The iwlwifi
 /// driver joins WPA2 and WPA3 networks on AX211 (the SO family); on a part
 /// it has no air path for, or without randomness, it answers a join with
-/// `CANNOT_JOIN`.
+/// `CANNOT_JOIN`. The MediaTek driver (MT7921, MT7922) joins through the
+/// same shared station; a machine has one of the three cards in practice.
 pub const SERVICES: &[Service] = &[
     Service { name: b"driver.rtl8821ce0", label: "Realtek RTL8821CE", joins: true },
     Service { name: b"driver.iwlwifi0", label: "Intel Wi-Fi", joins: true },
+    Service { name: b"driver.mt7921e0", label: "MediaTek MT7921/MT7922", joins: true },
 ];
