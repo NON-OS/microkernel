@@ -26,6 +26,8 @@ use super::queue_piece::Piece;
 const LFLAG_AT: usize = 12;
 const ISIG: u8 = 0o1;
 const ICANON: u8 = 0o2;
+/// ECHO in c_lflag: off while a program reads a password.
+const ECHO: u8 = 0o10;
 /// VINTR's offset: c_cc[0] after c_line.
 const VINTR_AT: usize = 17;
 
@@ -35,6 +37,18 @@ pub fn mode_switch(was: &[u8], now: &[u8]) -> Option<&'static [u8]> {
     match (canon(was), canon(now)) {
         (true, false) => Some(b"\x1b[?7727h"),
         (false, true) => Some(b"\x1b[?7727l"),
+        _ => None,
+    }
+}
+
+/// The sequence that tells the terminal its line editor must stop showing
+/// what is typed, or show it again: a password prompt turns ECHO off and
+/// stays canonical, so ?7727 alone left the typed password on the screen.
+pub fn echo_switch(was: &[u8], now: &[u8]) -> Option<&'static [u8]> {
+    let echo = |t: &[u8]| t.get(LFLAG_AT).is_some_and(|b| b & ECHO != 0);
+    match (echo(was), echo(now)) {
+        (true, false) => Some(b"\x1b[?7728h"),
+        (false, true) => Some(b"\x1b[?7728l"),
         _ => None,
     }
 }
