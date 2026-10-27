@@ -15,12 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::globals::PAGING_MANAGER;
+use crate::arch::run_without_interrupts as without_interrupts;
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::types::{PageMapping, PagePermissions};
 use crate::smp::lock_responsive;
 
 pub fn translate_address(virtual_addr: VirtAddr) -> Option<PhysAddr> {
-    lock_responsive(&PAGING_MANAGER).translate_address(virtual_addr).ok()
+    without_interrupts(|| lock_responsive(&PAGING_MANAGER).translate_address(virtual_addr).ok())
 }
 
 pub fn is_mapped(virtual_addr: VirtAddr) -> bool {
@@ -28,7 +29,7 @@ pub fn is_mapped(virtual_addr: VirtAddr) -> bool {
 }
 
 pub fn get_mapping_info(virtual_addr: VirtAddr) -> Option<PageMapping> {
-    lock_responsive(&PAGING_MANAGER).get_mapping_info(virtual_addr).cloned()
+    without_interrupts(|| lock_responsive(&PAGING_MANAGER).get_mapping_info(virtual_addr).cloned())
 }
 
 pub fn get_page_permissions(virtual_addr: VirtAddr) -> Option<PagePermissions> {
@@ -38,20 +39,20 @@ pub fn get_page_permissions(virtual_addr: VirtAddr) -> Option<PagePermissions> {
 // Active CR3 as recorded by the paging manager. `None` until
 // `manager::api::init()` has run.
 pub fn active_page_table() -> Option<PhysAddr> {
-    lock_responsive(&PAGING_MANAGER).active_page_table()
+    without_interrupts(|| lock_responsive(&PAGING_MANAGER).active_page_table())
 }
 
 // Number of registered address spaces. Used by boot-time validation
 // to confirm `create_kernel_address_space` ran inside `init()`.
 pub fn address_spaces_count() -> usize {
-    lock_responsive(&PAGING_MANAGER).address_spaces_count()
+    without_interrupts(|| lock_responsive(&PAGING_MANAGER).address_spaces_count())
 }
 
 // The calling cpu's asid. One manager-wide value was whichever cpu switched
 // last, so on more than one cpu a loader asked for "the active address space"
 // could be handed another cpu's and map an image into the wrong process.
 pub fn active_asid() -> Option<u32> {
-    if !lock_responsive(&PAGING_MANAGER).is_initialized() {
+    if !super::init::is_initialized() {
         return None;
     }
     Some(crate::smp::percpu::active_asid())

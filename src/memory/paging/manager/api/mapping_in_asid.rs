@@ -69,5 +69,5 @@ pub fn unmap_page_in_asid(
 }
 
 pub fn translate_in_asid(asid: u32, virtual_addr: VirtAddr) -> Option<PhysAddr> {
-    lock_responsive(&PAGING_MANAGER).translate_in_asid(asid, virtual_addr)
+    without_interrupts(|| lock_responsive(&PAGING_MANAGER).translate_in_asid(asid, virtual_addr))
 }
