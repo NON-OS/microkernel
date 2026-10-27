@@ -957,7 +957,7 @@ if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0xF8038' userland/capsule_driver_iwlwi
    ! grep -q 'mk_mmio_map' userland/capsule_driver_iwlwifi/src/setup/mmio.rs ||
    ! grep -q 'mk_irq_bind' userland/capsule_driver_iwlwifi/src/setup/irq.rs ||
    ! grep -q 'mk_dma_map' userland/capsule_driver_iwlwifi/src/server/radio/grant.rs ||
-   ! grep -q 'include_bytes!' userland/capsule_driver_iwlwifi/src/firmware/blob.rs ||
+   ! cat userland/capsule_driver_iwlwifi/src/firmware/blob.rs userland/capsule_driver_iwlwifi/src/firmware/blob/files.rs 2>/dev/null | grep -q 'include_bytes!' ||
    ! grep -q 'pub fn gen3_blob' userland/capsule_driver_iwlwifi/src/firmware/blob.rs ||
    ! grep -q 'OP_STATUS' userland/capsule_driver_iwlwifi/src/server/control/kinds.rs ||
    ! grep -rq 'spawn_driver_iwlwifi_capsule' src/userspace/init/ ||
