@@ -17,7 +17,8 @@
 //! One pass over the GETs in flight (window.rs): what each has brought, and
 //! each whole or failed one moved to `ready`, its connection kept when fit.
 //! A GET on a reused connection that the mirror has closed, nothing come,
-//! goes out once more on a fresh one of the same route.
+//! goes out once more on a fresh one of the same route, and so does, once,
+//! one whose reply did not come whole.
 
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -57,7 +58,14 @@ pub(super) fn poll_all(
             continue;
         }
         let f = flying.swap_remove(i);
-        ready.push(finish(f.at, f.conn, f.got, whole, (paths, at), (kept, mark)));
+        let (n, cap, again) = (f.at, f.cap, !f.again);
+        let done = finish(n, f.conn, f.got, whole, (paths, at), (kept, mark));
+        // A reply that did not come whole is asked once more, on a fresh
+        // connection of the same route, before the install is told.
+        match (again && done.1.is_none()).then(|| fresh(&paths[n])).flatten() {
+            Some(conn) => flying.push(Flight { again: true, ..Flight::new(n, conn, false, cap) }),
+            None => ready.push(done),
+        }
     }
     let _ = nonos_libc::mk_yield();
 }
