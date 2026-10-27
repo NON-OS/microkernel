@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod clear;
 mod copy;
 mod paste;
 mod paste_line;
 
+pub use clear::clipboard_clear;
 pub use copy::clipboard_copy;
 pub use paste::clipboard_paste;
 pub use paste_line::clipboard_paste_line;

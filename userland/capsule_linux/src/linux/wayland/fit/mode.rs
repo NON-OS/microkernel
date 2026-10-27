@@ -47,6 +47,12 @@ impl Mode {
     pub fn fills(self) -> bool {
         self != Mode::Normal
     }
+
+    /// Whether the window is drawn without the NØNOS frame: only full screen.
+    /// A maximised window keeps its title bar, as a native app's does.
+    pub fn bare(self) -> bool {
+        self == Mode::FullScreen
+    }
 }
 
 /// One configure sent to the guest. `rect` None asks the guest to pick its

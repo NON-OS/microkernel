@@ -23,6 +23,10 @@ use super::say::say;
  * its end and no Linux run is kept (I-C6).
  */
 pub(super) fn seal_app(app_id: &[u8; 32]) {
+    // A GTK preparation tool's run is not the app's: the note is the app's.
+    if super::gtk_prep::helping() {
+        return;
+    }
     let Some(note) = super::seal_slot::slot0(app_id, super::boxed::armed_hash().as_ref()) else {
         return;
     };

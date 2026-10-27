@@ -40,6 +40,9 @@ impl Capability {
                 .unwrap_or(0),
             boot_session_nonce: crate::security::boot_session::nonce(),
             capsule_revocation_epoch: proc.revocation_epoch(),
+            // The endpoint the kernel registered at spawn, which no capsule
+            // may claim for itself (register_allowed.rs), not a process name.
+            caller_is_shell: || crate::services::registry::caller_owns("desktop_shell"),
         };
         resolver_resolve(&token_arc, number, args, &ctx).ok()?;
         Some(Self { token: (*token_arc).clone() })
