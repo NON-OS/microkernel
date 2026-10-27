@@ -44,6 +44,9 @@ mod entry_ac_tests;
 /// The kernel heap grows past its bootstrap array; a process's mapping leaves it a floor.
 #[path = "heap_growth/mod.rs"]
 mod heap_growth;
+/// Small kernel heap blocks by size class, off the first-fit lists.
+#[path = "heap_classes/mod.rs"]
+mod heap_classes;
 #[path = "holder_choice/mod.rs"]
 pub mod holder_choice;
 #[path = "hyperv_synic/mod.rs"]
