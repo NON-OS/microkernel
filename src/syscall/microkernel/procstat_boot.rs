@@ -17,8 +17,8 @@
 /* How this boot was started, as `MkProcStat` reports it to programs. */
 
 use super::procstat_header::{
-    BOOT_DMA_UNCONFINED, BOOT_INSTALL_REQUESTED, BOOT_PROFILE_AIR_GAPPED, BOOT_PROFILE_HARDENED,
-    BOOT_PROFILE_RECOVERY, BOOT_PROFILE_SAFE,
+    BOOT_DMA_UNCONFINED, BOOT_GROUPS_SHARED, BOOT_INSTALL_REQUESTED, BOOT_PROFILE_AIR_GAPPED,
+    BOOT_PROFILE_HARDENED, BOOT_PROFILE_RECOVERY, BOOT_PROFILE_SAFE,
 };
 use crate::boot::handoff::{boot_profile, install_requested, BootProfile};
 
@@ -32,5 +32,6 @@ pub(super) fn flags() -> u32 {
         BootProfile::Recovery => BOOT_PROFILE_RECOVERY,
     };
     let dma = if crate::memory::iommu::no_iommu::holds() { BOOT_DMA_UNCONFINED } else { 0 };
-    install | profile | dma
+    let shared = if crate::hardware::broker::groups_shared() { BOOT_GROUPS_SHARED } else { 0 };
+    install | profile | dma | shared
 }
