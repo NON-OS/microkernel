@@ -76,6 +76,89 @@ Settings Wi-Fi panel's status (stage, step, detail).
       model, and the first `[iwlwifi]` line that differs from this list.
       The logs never carry a MAC address, SSID or BSSID from this driver.
 
+## Intel AX210 (discrete) and Meteor Lake
+
+The iwlwifi driver's TY and MA paths (the discrete AX210 8086:2725; the
+Meteor Lake CNVi 8086:7e40 and 2729 with an AX211-class module) are
+host-proven only: neither has booted. They run the AX211 path with each
+MAC's own image and PNVM file; the AX210 is discrete (its LTR in the CSR,
+no image-loader spin), a dual-radio Meteor Lake module (GF4) puts its 5 GHz
+PHY on the second LMAC. Run the BE200 list above with these changes.
+
+- [ ] What to boot: a `standard-dev` image at or after the TY and MA commit,
+      on a desktop with an AX210 card (an M.2 card, not the AX211 CNVi) or a
+      Meteor Lake (Core Ultra 1st gen) laptop with Intel Wi-Fi.
+- [ ] Before: as for the BE200 (`lspci -nn -d 8086:`, `dmesg | grep -i
+      iwlwifi`; on Meteor Lake the `loaded firmware version` line names
+      ma-b0-gf-a0 or ma-b0-gf4-a0).
+- [ ] Identity: `[iwlwifi] pci 0x00002725` then `[iwlwifi] firmware
+      iwlwifi-ty-a0-gf-a0-86.ucode`; or `pci 0x00007e40` (or `2729`) then
+      `iwlwifi-ma-b0-gf-a0-86.ucode` or `-gf4-a0-86.ucode`, the one Linux
+      loaded. A step 4 refusal: detail 0x5xxxx an MA MAC not at step B,
+      0x7xxxx an MA radio not at step A, 0x3xxxx an HR or other radio.
+- [ ] ALIVE: `firmware alive: status 0x0000cafe ...`, then `platform NVM
+      section 0x... given` (or `no platform NVM section for this SKU`). On
+      the AX210 a step 7 detail 0x30 points at the discrete LTR; keep the
+      `secure boot status` line.
+- [ ] NVM, scan, join (WPA2 and WPA3) and DHCP as for the BE200. On a GF4
+      module, join a 5 GHz network as well as a 2.4 GHz one: that is the
+      second-LMAC PHY context.
+- [ ] Send back: as for the BE200, saying AX210 card or Meteor Lake laptop.
+
+## Intel AX200 and AX201 (22000 family)
+
+The iwlwifi driver's 22000-family path (the discrete AX200 8086:2723; the
+AX201 CNVi on Ice, Comet, Tiger and Jasper Lake platforms, 8086:02f0,
+06f0, 34f0, 3df0, 4df0, 43f0 and a0f0) is
+host-proven only: it has never booted on any of them. It boots through the
+version 1 context info, not the AX210's, and its rings, packets, receive
+descriptor and transmit command are this family's; a first boot is the
+test of each.
+
+- [ ] What to boot: a `standard-dev` image at or after the 22000-family
+      commit, on a laptop with an AX201 (Ice, Comet, Tiger or Jasper Lake
+      with Intel Wi-Fi 6) or a machine with an AX200 card.
+- [ ] Before: if the machine runs Linux, save `lspci -nn -d 8086:` and
+      `dmesg | grep -i iwlwifi` (its `loaded firmware version` line names
+      Qu-b0-hr-b0, Qu-c0-hr-b0, QuZ-a0-hr-b0 or cc-a0; its subsystem id is in
+      `lspci -nnv`).
+- [ ] Identity: `[iwlwifi] pci 0x000002f0` (or the platform's id) then
+      `[iwlwifi] firmware iwlwifi-Qu-b0-hr-b0-77.ucode` (or `-Qu-c0-`,
+      `-QuZ-a0-`), the one Linux loaded; on the AX200 `pci 0x00002723` and
+      `iwlwifi-cc-a0-77.ucode`. A step 4 refusal with detail 0x30105 is a
+      9560-class JF module on that id (not run, expected); 0x5xxxx a Qu MAC
+      of another step; 0x4xxxx a CDB radio.
+- [ ] Start: no `radio not up: the device's persistence bit is set and
+      write-protected` (step 3 detail 4, or step 7 detail 0x14); if it
+      appears, a cold power-off, not a reboot, should clear it. Step 3
+      detail 3 (step 7 detail 0x13) means a peripheral write did not wake
+      the MAC.
+- [ ] ALIVE: `firmware alive: status 0x0000cafe umac 77.N sku 0x...`, no
+      PNVM line (an HR radio has none). If it never comes (step 7, detail
+      0x30), keep the `secure boot status` line before it: it says whether
+      the ROM took the context info.
+- [ ] NVM: `[iwlwifi] up: N channels, tx ant A, regulatory 0x....`, then
+      `radio up; passive scanning`, without `joining off: ...` or `scan
+      request version other than 15 or 17`.
+- [ ] Scan: `first scan complete: N networks from M beacons` within about
+      ten seconds, with networks on both bands (the version 15 request puts
+      each channel's band in another byte than the AX210's does; a scan
+      that sees 2.4 GHz only, or none, points there).
+- [ ] Join (WPA2, then WPA3): `join: port open; sent 4 ...` (WPA3: `sent
+      5`), then DHCP and a page load as for the BE200. Keep a download
+      running for a minute: the transmit rings wrap every 256 frames, and a
+      stall after a few hundred frames points at the wrap.
+- [ ] Send back: as for the BE200, with which laptop or card, the Linux
+      firmware name and the subsystem id from `lspci -nnv`.
+
+## Intel cards this driver does not run
+
+- [ ] On a machine with a 7000, 8000 or 9000-family card (7265, 8265, 9260,
+      9560 on Cannon Lake or Whiskey Lake): `[iwlwifi] pci 8086:<id> <what>:
+      present, not run by this driver; given up`, no claim, then `[EXIT]
+      <service> status 6: device present, bring-up failed and was given up`;
+      not status 2. Send back the line and `lspci -nn -d 8086:`.
+
 ## USB Ethernet: ASIX AX88179
 
 The AX88179 driver (`driver.ax88179_0`) is host-proven only: QEMU has no
