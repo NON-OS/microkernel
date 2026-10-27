@@ -32,3 +32,14 @@ pub(crate) fn shown(name: &[u8], console: bool) -> &[u8] {
     }
     name
 }
+
+/// An app a person installs or runs, as a console shows it: by name only
+/// with capsule serial output, else only "an app", since the name says
+/// what the person does.
+pub(crate) fn app_shown(name: &[u8], console: bool) -> &[u8] {
+    if console {
+        name
+    } else {
+        b"an app"
+    }
+}

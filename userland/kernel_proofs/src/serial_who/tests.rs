@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::who::{shown, GUEST};
+use super::who::{app_shown, shown, GUEST};
 
 #[test]
 fn a_guest_is_only_foreign_on_a_console_without_capsule_output() {
@@ -40,4 +40,22 @@ fn the_marker_is_the_one_guest_names_are_made_with() {
     let made = include_str!("../../../../src/process/foreign/guest_name.rs");
     let marker = core::str::from_utf8(GUEST).unwrap();
     assert!(made.contains(&format!("\"{marker}{{}}\"")), "guest_name.rs no longer writes {marker}");
+}
+
+#[test]
+fn an_app_a_person_chose_is_named_only_on_a_development_console() {
+    for name in ["linux.monero", "simplex-chat", "deb:keepassxc", ""] {
+        assert_eq!(app_shown(name.as_bytes(), false), b"an app", "{name}");
+        assert_eq!(app_shown(name.as_bytes(), true), name.as_bytes(), "{name}");
+    }
+}
+
+#[test]
+fn the_kernel_names_installs_and_runs_through_app() {
+    let install = include_str!("../../../../src/userspace/init/linux_jobs/install.rs");
+    let run = include_str!("../../../../src/userspace/init/linux_jobs/run.rs");
+    assert!(!install.contains(".str(listing"), "install.rs names a listing on serial");
+    assert_eq!(install.matches(".app(listing.as_bytes())").count(), 2);
+    assert!(run.contains("How::Named => l.str(said).app(package.as_bytes())"));
+    assert!(!run.contains("package.as_bytes(),"), "run.rs names a package on serial");
 }
