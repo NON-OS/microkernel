@@ -59,12 +59,9 @@ pub mod scene_pixels;
 pub mod wayland_clip;
 pub mod wayland_popup;
 pub mod wayland_sub;
-/* The NØNOS frame around a guest window: where its content sits, and how it
- * is painted. */
 pub mod wayland_frame;
 #[path = "../../capsule_linux/src/linux/wayland/window_life/mod.rs"]
 pub mod window_life;
-
 mod host_doubles;
 pub use host_doubles::{clamp, private};
 #[path = "../../../src/userspace/capsule_linux/family.rs"]

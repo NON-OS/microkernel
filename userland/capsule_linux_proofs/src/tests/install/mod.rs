@@ -35,7 +35,6 @@ mod host_body_tests;
 mod http_reply_tests;
 mod image_file_tests;
 mod index_tests;
-mod install_if_tests;
 mod inflate_bound_tests;
 mod install_refusals_tests;
 mod kali_anchor_tests;

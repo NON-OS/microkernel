@@ -43,3 +43,7 @@ fn the_listed_package_is_never_a_provider_of_its_name() {
     assert_eq!(name(index.resolve("ghost", false)), Some("only".into()));
     assert_eq!(name(index.resolve("ghost", true)), None, "nothing is named ghost");
 }
+
+/// Alpine's install_if, read from the same index records.
+#[path = "install_if_tests.rs"]
+mod install_if;

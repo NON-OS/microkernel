@@ -45,6 +45,7 @@ pub fn fill(
             return false;
         }
         compose(&mut scene.subs, surface, out, src.shape);
+        opaque(out, src.shape);
         return true;
     }
     let Some(client) = scene.frame.client_room(src.bytes) else { return false };
@@ -58,4 +59,17 @@ pub fn fill(
     frame.chrome = Some(key);
     let look = Look { title: &frame.title, hover: key.1, focused: key.2 };
     paint(out, a, &frame.client, src.shape, (&look, chrome), frame.quarters)
+}
+
+/// Every pixel of a window without a frame made opaque, over the frame's
+/// ground: the compositor blends what is not, so a full-screen guest that
+/// clears to transparent would show the desktop through it.
+fn opaque(out: &mut [u8], (w, h, stride): (u32, u32, u32)) {
+    let ground = nonos_toolkit::decorations::frame_bg();
+    for row in out.chunks_exact_mut(stride as usize).take(h as usize) {
+        for px in row.chunks_exact_mut(4).take(w as usize) {
+            let src = u32::from_le_bytes([px[0], px[1], px[2], px[3]]);
+            px.copy_from_slice(&super::paint::over(src, ground).to_le_bytes());
+        }
+    }
 }
