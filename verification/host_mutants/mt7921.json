@@ -669,5 +669,60 @@
    "--release"
   ],
   "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-power-limits-not-sent",
+  "file": "userland/capsule_driver_mt7921/src/init/mod.rs",
+  "old": "for b in power::bodies(caps) {",
+  "new": "for b in power::bodies(caps).into_iter().take(0) {",
+  "test": "init_run_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-power-world-limit-zero",
+  "file": "userland/capsule_driver_mt7921/src/init/power.rs",
+  "old": "const WORLD_LIMIT: u8 = 2 * 20;",
+  "new": "const WORLD_LIMIT: u8 = 0;",
+  "test": "power_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-power-last-unmarked",
+  "file": "userland/capsule_driver_mt7921/src/init/power.rs",
+  "old": "b[6] = u8::from(batch.last() == Some(&last));",
+  "new": "b[6] = 0;",
+  "test": "power_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-power-band-byte",
+  "file": "userland/capsule_driver_mt7921/src/init/power.rs",
+  "old": "1 + (band == Band::Ghz5) as u8",
+  "new": "1",
+  "test": "power_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-power-cck-limit-on-5ghz",
+  "file": "userland/capsule_driver_mt7921/src/init/power.rs",
+  "old": "s[..4].fill(NONE);",
+  "new": "s[..4].fill(target);",
+  "test": "power_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
  }
 ]

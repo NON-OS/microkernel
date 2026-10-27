@@ -21,6 +21,7 @@ mod mcu_tests;
 mod mode_tests;
 mod own_tests;
 mod package_tests;
+mod power_tests;
 mod rate_tests;
 mod regs_tests;
 mod report_tests;
