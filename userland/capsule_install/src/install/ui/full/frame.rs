@@ -40,11 +40,11 @@ pub fn paint(state: &mut State, fb: &mut PaintBuffer) {
     let (w, h) = (fb.width, fb.height);
     let l = layout(w, h);
     fb.clear(GROUND);
-    panel(fb, &l, state.screen);
+    panel(fb, &l, state);
     let x = l.col_x;
     let step = format!("STEP {:02} OF 05", state.screen.step());
     marker(fb, x, l.marker_y, &step, CYAN, TEXT_3, l.caption_px);
-    title(fb, x, l.title_y, state.screen.title(), TEXT, l.title_px);
+    title(fb, x, l.title_y, state.title(), TEXT, l.title_px);
     line(fb, x, l.sub_y, subtitle(state.screen, &state.boot), TEXT_2, l.body_px);
     screen(state, fb, Body { x, y: l.body_y, w: l.col_w, h: l.body_h, m: l.m });
     let hair = l.scale.px(1).max(1);

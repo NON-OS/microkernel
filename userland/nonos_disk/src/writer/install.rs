@@ -37,7 +37,15 @@ pub fn install<'a>(
     progress: &mut dyn FnMut(u64),
 ) -> Result<Receipt<'a>, WriteError> {
     let total = sink.capacity_sectors()?;
-    let mut session = Session::new(Plan::new(total, image, store, entropy)?);
+    drive(sink, Session::new(Plan::new(total, image, store, entropy)?), progress)
+}
+
+/// `session` driven to its receipt, `progress` told the bytes of each step.
+pub(super) fn drive<'a>(
+    sink: &mut dyn BlockSink,
+    mut session: Session<'a>,
+    progress: &mut dyn FnMut(u64),
+) -> Result<Receipt<'a>, WriteError> {
     let mut last = 0u64;
     loop {
         match session.step(sink, STEP_BYTES)? {

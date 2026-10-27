@@ -24,10 +24,10 @@ use nonos_app_skeleton::PaintBuffer;
 use super::metrics::Metrics;
 use super::text::top_of;
 use super::{text, theme};
-use crate::install::state::Screen;
+use crate::install::state::State;
 use nonos_brand::{label, label_w, mark};
 
-pub fn paint(fb: &mut PaintBuffer, m: &Metrics, screen: Screen, w: u32) {
+pub fn paint(fb: &mut PaintBuffer, m: &Metrics, state: &State, w: u32) {
     let band = m.header_h;
     fb.fill_rect(0, 0, w, band, theme::HEADER_BG);
     fb.fill_rect(0, band - 1, w, 1, theme::RULE);
@@ -35,8 +35,8 @@ pub fn paint(fb: &mut PaintBuffer, m: &Metrics, screen: Screen, w: u32) {
     mark(fb, m.pad + m.inset, band / 2, mark_h, theme::ACCENT, 140);
     let title_x = m.pad + 5 * m.unit + m.unit / 2;
     let top = top_of(0, band, m.title_px);
-    text::title(fb, title_x, top, screen.title(), theme::TITLE, m.title_px);
-    let step = format!("{:02} / 05", screen.step());
+    text::title(fb, title_x, top, state.title(), theme::TITLE, m.title_px);
+    let step = format!("{:02} / 05", state.screen.step());
     let sx = (w - m.pad).saturating_sub(label_w(&step, m.small_px));
     label(fb, sx, top_of(0, band, m.small_px), &step, theme::MUTED, m.small_px);
 }
