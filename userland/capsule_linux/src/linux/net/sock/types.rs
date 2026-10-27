@@ -54,9 +54,12 @@ pub struct Sock {
     /// SO_ERROR: reported once, by the next call that looks.
     pub error: i64,
     pub opts: Opts,
-    /// What carries a stream that reaches outside the family: a net.sockets
-    /// handle (the Nym mixnet) or a net.anon stream (the Anyone network).
+    /// What carries a stream that reaches outside the family: one routed/
+    /// carries, or a net.anon stream (the Anyone network).
     pub svc: Option<Backend>,
+    /// Its stream opened after its connect returned: the next connect
+    /// answers 0, once, as Linux's does (routed/connect.rs).
+    pub opened_late: bool,
     /// The processes that hold a descriptor naming this socket.
     pub holders: Vec<u32>,
     /// A Unix socket's own name, and its connected peer's.

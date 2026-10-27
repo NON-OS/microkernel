@@ -108,16 +108,8 @@ pub mod server;
 #[path = "../../capsule_linux/src/linux/net/route.rs"]
 pub mod route;
 
-/* The statuses the capsule reads back from net.sockets, held to the server's. */
-#[path = "../../capsule_linux/src/linux/net/ops.rs"]
-pub mod net_ops;
-
-/*
- * The network a guest's stream leaves through is nonos_route_link's pick, as
- * it ships. At the crate root, where its own `crate::pick` paths look for it.
- */
-#[path = "../../nonos_route_link/src/pick.rs"]
-pub mod pick;
+/* nonos_route_link's own files, at the crate root (route_link_files.rs). */
+include!("route_link_files.rs");
 
 /*
  * net.anon's own operations, statuses and END reasons, which the capsule's
