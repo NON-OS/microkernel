@@ -31,7 +31,7 @@ Host proofs only. No boot on a card.
 
 - [ ] A boot on an MT7922 (ThinkPad T14 Gen 4 AMD or an RZ616 card) and on
       an MT7921, by `docs/hardware/real-hardware-checklist.md`.
-- [ ] A WPA3 join through this driver.
+- [ ] A WPA3 join through this driver on a card (host-proven).
 - [ ] The seal.
 
 ## Explicit non-goals today
