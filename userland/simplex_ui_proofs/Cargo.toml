@@ -1,0 +1,15 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the SimpleX chat window's protocol, model and
+# recorded-session transport. Builds for the host so `cargo test` runs the
+# real capsule source (included via #[path]) with no compositor and no core.
+[package]
+name = "simplex_ui_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

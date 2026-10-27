@@ -6418,6 +6418,7 @@
    "userland/capsule_setup_wizard/src/network/wired.rs",
    "userland/capsule_shield/Capsule.mk",
    "userland/capsule_shield_vectors/Capsule.mk",
+   "userland/capsule_simplex_ui/Capsule.mk",
    "userland/capsule_smp_stress/Capsule.mk",
    "userland/capsule_snake/Capsule.mk",
    "userland/capsule_socks5/Capsule.mk",
@@ -9337,6 +9338,18 @@
   "include": [
    ".cargo",
    "userland/shootdown_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/simplex_ui_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_simplex_ui/src/link",
+   "userland/capsule_simplex_ui/src/model",
+   "userland/capsule_simplex_ui/src/proto",
+   "userland/simplex_ui_proofs"
   ],
   "md": [],
   "signed": []

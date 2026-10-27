@@ -1,0 +1,34 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+#![no_std]
+#![no_main]
+
+extern crate alloc;
+
+mod link;
+mod model;
+mod proto;
+mod ui;
+
+use nonos_app_skeleton::run;
+
+/// # Safety
+/// The kernel enters here once, on the capsule's own fresh stack.
+#[no_mangle]
+pub unsafe extern "C" fn _start() -> ! {
+    run(ui::SimplexUi::new)
+}
