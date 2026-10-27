@@ -28,6 +28,9 @@ pub fn mremap(guest: &mut Guest, old: u64, old_len: u64, new_len: u64, flags: u6
         Ok(lens) => lens,
         Err(e) => return errno::fail(e),
     };
+    if crate::linux::file::shared_maps::holds(guest.pid, old, old_len) {
+        return errno::fail(errno::ENOSYS);
+    }
     /*
      * Every end is checked, since both lengths are the guest's: an old span
      * that wraps would pass the one-mapping walk below having walked nothing.
