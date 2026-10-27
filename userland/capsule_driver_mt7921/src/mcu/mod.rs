@@ -29,6 +29,8 @@ pub enum McuError {
     Timeout,
     /// The reply's own outcome was not success.
     Status(u32),
+    /// The card's firmware held it and would not give it back.
+    Asleep,
 }
 
 /// The last ROC grant the MCU sent: its token, and the channel it names.

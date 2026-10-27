@@ -31,4 +31,8 @@ pub struct Faults {
     pub uni_status: u32,
     /// No transmit-free report is ever sent.
     pub no_txfree: bool,
+    /// The firmware holds the card (`doze`): its registers are out of reach.
+    pub doze: bool,
+    /// The WFDMA stays busy until its logic reset (a warm reboot).
+    pub stuck_busy: bool,
 }

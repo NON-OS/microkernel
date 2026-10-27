@@ -34,9 +34,10 @@ impl Mt7921 {
         [self.chip.number(), c.grants, c.missed, c.rx_bad, c.refused]
     }
 
-    /// The chip's upkeep between requests: the event rings read (ROC
-    /// grants and the firmware's own notices), a channel request renewed,
-    /// stale tokens taken back. A card that reads all ones is dead from
+    /// The chip's upkeep between requests: the card taken back if its
+    /// firmware holds it (`power::wake`), the event rings read (ROC grants
+    /// and the firmware's own notices), a channel request renewed, stale
+    /// tokens taken back. A card that reads all ones is dead from
     /// then on, and the station's link reads down.
     pub(super) fn upkeep(&mut self, now: u64) {
         if self.dead {
@@ -45,6 +46,9 @@ impl Mt7921 {
         if !self.card.alive() {
             self.dead = true;
             crate::say::line("card stopped answering: radio off");
+            return;
+        }
+        if !self.card.awake() {
             return;
         }
         self.card.pump();

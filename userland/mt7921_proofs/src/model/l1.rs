@@ -25,6 +25,9 @@ impl Chip {
             return u32::MAX;
         }
         self.tick();
+        if self.dozing(off) {
+            return 0;
+        }
         match off {
             LPCTL => u32::from(self.own_sync) << 2,
             MISC => u32::from(self.mcu.running && !self.faults.never_ready) * 3,
@@ -39,12 +42,12 @@ impl Chip {
                 }
                 a => self.l1.get(&a).copied().unwrap_or(0),
             },
-            _ => self.reg(off),
+            _ => self.reg(off) | self.busy(off),
         }
     }
 
     pub fn write(&mut self, off: u32, v: u32) {
-        if self.faults.dead {
+        if self.faults.dead || self.dozing(off) {
             return;
         }
         self.writes.push((off, v));
@@ -60,6 +63,7 @@ impl Chip {
                 self.l1.insert(a, v);
             }
             _ => {
+                let v = self.stored(off, v);
                 self.regs.insert(off, v);
                 self.ring_write(off);
             }
