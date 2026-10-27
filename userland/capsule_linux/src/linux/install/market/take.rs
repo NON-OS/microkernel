@@ -16,14 +16,14 @@
 //! Taking a file out with what the machine wrote beside it (minted.rs), in
 //! the order that keeps a program's box while it can still start.
 
-use super::minted::{beside, POLICY, POLICY_TRAILER, TRAILER};
+use super::minted::{beside, ARGS, ARGS_TRAILER, POLICY, POLICY_TRAILER, TRAILER};
 
 /// Take `at` out with what was written beside it, through `unlink` and
 /// `found`, the store's look. A path is gone only when the store says it is
 /// not there: a store that fails both says nothing, and so keeps the box.
 /// The policy goes only once the program cannot start, its file or its
-/// trailer gone; until then it stays and keeps the program in its box. True
-/// when the file is gone.
+/// trailer gone; until then it stays and keeps the program in its box. Its
+/// listed arguments go after it. True when the file is gone.
 pub fn take_out<E: PartialEq>(
     at: &[u8],
     unlink: &mut impl FnMut(&[u8]),
@@ -38,6 +38,8 @@ pub fn take_out<E: PartialEq>(
     if file || trailer {
         gone(&beside(at, POLICY_TRAILER));
         gone(&beside(at, POLICY));
+        gone(&beside(at, ARGS_TRAILER));
+        gone(&beside(at, ARGS));
     }
     file
 }

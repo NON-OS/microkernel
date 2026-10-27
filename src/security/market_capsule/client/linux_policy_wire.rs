@@ -21,21 +21,25 @@
 //!
 //! Body: version 2 | kind (0 none, 1 policy, 2 refused) | package_hash[32]
 //! of the release answered for | for kind 1 only, policy[256] |
-//! listing_key[32] | release_key[32]. Anything else is None.
+//! listing_key[32] | release_key[32] | listed arguments, up to
+//! MARKET_ARGS_MAX bytes. Anything else is None.
 
 extern crate alloc;
 
 use alloc::boxed::Box;
+use alloc::vec::Vec;
 
 pub(crate) const VERSION: u8 = 2;
 pub(crate) const MARKET_ARG_LEN: usize = 320;
+pub(crate) const MARKET_ARGS_MAX: usize = 1024;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub(crate) enum LinuxPolicyReply {
     /// No policy rides with the release: the install role is sent "-".
     NoPolicy,
-    /// The bytes of argv m: policy | listing_key | release_key.
-    Policy(Box<[u8; MARKET_ARG_LEN]>),
+    /// The bytes of argv m: policy | listing_key | release_key, then the
+    /// release's listed arguments, empty for none.
+    Policy(Box<[u8; MARKET_ARG_LEN]>, Vec<u8>),
     /// The market does not vouch for the policy: the install is refused.
     Refused,
 }
@@ -47,9 +51,9 @@ pub(crate) fn parse(body: &[u8]) -> Option<(LinuxPolicyReply, [u8; 32])> {
     let reply = match (*kind, rest) {
         (0, []) => LinuxPolicyReply::NoPolicy,
         (2, []) => LinuxPolicyReply::Refused,
-        (1, m) => {
-            let m: [u8; MARKET_ARG_LEN] = m.try_into().ok()?;
-            LinuxPolicyReply::Policy(Box::new(m))
+        (1, m) if m.len() <= MARKET_ARG_LEN + MARKET_ARGS_MAX => {
+            let (m, args) = m.split_first_chunk::<MARKET_ARG_LEN>()?;
+            LinuxPolicyReply::Policy(Box::new(*m), args.to_vec())
         }
         _ => return None,
     };
