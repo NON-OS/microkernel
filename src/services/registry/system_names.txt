@@ -69,6 +69,7 @@ crypto_pool
 desktop_shell
 driver.ac97_0
 driver.ahci0
+driver.ax88179_0
 driver.bga0
 driver.bootfb0
 driver.bt_usb0
@@ -180,6 +181,7 @@ endpoint.4294967359
 endpoint.4294967360
 endpoint.4294967361
 endpoint.4294967362
+endpoint.4294967363
 endpoint.4294967365
 endpoint.4294967366
 endpoint.4294967368
