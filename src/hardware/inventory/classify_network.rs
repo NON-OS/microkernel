@@ -19,6 +19,7 @@ use super::intel_ethernet_ids::{
     E1000E_DEVICE_IDS, E1000_DEVICE_IDS, IGB_DEVICE_IDS, IGC_DEVICE_IDS, IXGBE_DEVICE_IDS,
 };
 use super::mediatek_ids::MT7921_IDS;
+use super::realtek_ids::RTL8852BE_DEVICE_IDS;
 use super::realtek_ids::{
     RTL8139_DEVICE_ID, RTL8169_DEVICE_IDS, RTL8821CE_DEVICE_IDS, RTL8822CE_DEVICE_IDS,
 };
@@ -34,7 +35,8 @@ pub(super) fn classify_network(subclass: u8, vendor: u16, device: u16) -> Hardwa
         0x8086 => intel_ethernet(device),
         0x10ec if RTL8821CE_DEVICE_IDS.contains(&device) => HardwareFamily::NetworkRtl8821ce,
         0x10ec if RTL8822CE_DEVICE_IDS.contains(&device) => HardwareFamily::NetworkRtl8822ce,
-        // Realtek's other wireless parts (8852AE, 8852BE and the rest).
+        0x10ec if RTL8852BE_DEVICE_IDS.contains(&device) => HardwareFamily::NetworkRtl8852be,
+        // Realtek's other wireless parts (8852AE, 8852CE and the rest).
         0x10ec if subclass == SUBCLASS_OTHER => HardwareFamily::NetworkRealtekWifi,
         0x10ec if device == RTL8139_DEVICE_ID => HardwareFamily::NetworkRtl8139,
         0x10ec if RTL8169_DEVICE_IDS.contains(&device) => HardwareFamily::NetworkRtl8169,
