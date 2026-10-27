@@ -35,10 +35,6 @@ pub fn default() -> Vec<Vec<u8>> {
         // What gtk_prep.rs makes in this run's private /tmp, for GTK.
         b"GSETTINGS_SCHEMA_DIR=/tmp".to_vec(),
         b"GDK_PIXBUF_MODULE_FILE=/tmp/loaders.cache".to_vec(),
-        // No session bus is served. Named at a path that is never there, a
-        // connect fails at once; unnamed, libdbus and GLib start dbus-launch
-        // to make one, which the box refuses, and the program waits on it.
-        b"DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/0/bus".to_vec(),
         // A window program's toolkit is told it is on Wayland, and drawn
         // without GL, which no guest has: GTK 4 through cairo, Qt Quick in
         // software. Qt and GDK are held to Wayland, as there is no X server
