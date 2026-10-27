@@ -15,13 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::globals::{PAGING_MANAGER, PAGING_STATS};
+use crate::arch::run_without_interrupts as without_interrupts;
 use crate::memory::layout;
 use crate::memory::paging::types::PagingStats;
 use crate::smp::lock_responsive;
 
 pub fn get_paging_stats() -> PagingStats {
-    let manager = lock_responsive(&PAGING_MANAGER);
-    PAGING_STATS.snapshot(manager.mappings_count(), manager.address_spaces_count())
+    let counts = without_interrupts(|| {
+        let manager = lock_responsive(&PAGING_MANAGER);
+        (manager.mappings_count(), manager.address_spaces_count())
+    });
+    PAGING_STATS.snapshot(counts.0, counts.1)
 }
 
 pub fn get_memory_usage() -> (usize, usize) {
