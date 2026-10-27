@@ -4,7 +4,6 @@
 //! is told to switch the firmware's storage mode, never shown nothing.
 
 #[path = "../../../../src/drivers/pci/vmd/domain/ids.rs"]
-#[allow(dead_code)]
 mod kernel_vmd;
 
 use crate::driver::{classify, Controller, INTEL_VMD};
@@ -12,8 +11,10 @@ use crate::driver::{classify, Controller, INTEL_VMD};
 #[test]
 fn every_vmd_the_kernel_knows_is_named_in_the_disk_list() {
     for id in kernel_vmd::VMD_DEVICE_IDS {
+        assert!(kernel_vmd::is_intel_vmd(kernel_vmd::INTEL, id), "8086:{id:04x}");
         assert!(INTEL_VMD.contains(&id), "8086:{id:04x} brought up but not named");
     }
+    assert!(kernel_vmd::BUS_RESTRICTED.iter().all(|id| INTEL_VMD.contains(id)));
     assert!(INTEL_VMD.contains(&0x28c1), "the VMD the kernel leaves hidden");
 }
 

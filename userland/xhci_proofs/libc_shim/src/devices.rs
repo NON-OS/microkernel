@@ -6,16 +6,13 @@
 
 use std::cell::RefCell;
 
-// Mounted whole, so the kinds and flags these tests do not name are unused.
-#[allow(dead_code)]
+// Public whole: libc's own record types, as the driver names them.
 #[path = "../../../libc/src/broker/types/bar.rs"]
-mod bar;
-#[allow(dead_code)]
+pub mod bar;
 #[path = "../../../libc/src/broker/types/bus.rs"]
-mod bus;
-#[allow(dead_code)]
+pub mod bus;
 #[path = "../../../libc/src/broker/types/device.rs"]
-mod device;
+pub mod device;
 
 pub use bar::{Bar, BAR_KIND_MMIO};
 pub use bus::{BUS_KIND_FDT, BUS_KIND_PCI};

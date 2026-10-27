@@ -28,7 +28,7 @@
 mod broker;
 mod clock;
 mod device_dma;
-mod devices;
+pub mod devices;
 mod dma;
 mod dma_refuse;
 mod grants;

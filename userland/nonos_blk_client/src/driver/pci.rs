@@ -51,28 +51,14 @@ const VENDOR_VIRTIO: u16 = 0x1AF4;
 /* Legacy and modern virtio-blk. */
 const VIRTIO_BLK: [u16; 2] = [0x1001, 0x1042];
 
-/// Intel Volume Management Device functions. Some report the RAID
-/// subclass, some a system peripheral class; the id names them either way.
-/// Every VMD the kernel brings up (src/drivers/pci/vmd/domain/ids.rs, a
-/// proof holds the two together), and 28C1, which it does not, so the disk
-/// list tells a person with one to turn VMD off rather than show nothing.
-pub const INTEL_VMD: [u16; 14] = [
-    0x201D, 0x28C0, 0x28C1, 0x467F, 0x4C3D, 0x7D0B, 0x9A0B, 0xA77F, 0xAD0B, 0xB06F, 0xB07F, 0xB60B,
-    0xD70B, 0xD73B,
-];
-
-/// Intel eMMC hosts, as the kernel's inventory lists them
-/// (src/hardware/inventory/emmc.rs); a proof holds the two lists together.
-pub const INTEL_EMMC: [u16; 13] = [
-    0x0F14, 0x0F50, 0x2294, 0x0ACC, 0x1AA8, 0x5ACC, 0x31CC, 0x9D2B, 0x9DC4, 0x34C4, 0x18DB, 0x4B47,
-    0x4DC4,
-];
 const CLASS_SYSTEM: u8 = 0x08;
 const SUBCLASS_SDHCI: u8 = 0x05;
 
-/// Intel SATA controllers in RAID (RST) mode, named by id as well as by
-/// the RAID subclass they report.
-pub const INTEL_SATA_RAID: [u16; 2] = [0x2822, 0x282A];
+// The Intel ids by name, beside this file so a proof that mounts it by
+// path takes them too.
+#[path = "pci_ids.rs"]
+mod ids;
+pub use ids::{INTEL_EMMC, INTEL_SATA_RAID, INTEL_VMD};
 
 /// The controller a PCI function is, or `None` for one the disk list has
 /// nothing to say about.
