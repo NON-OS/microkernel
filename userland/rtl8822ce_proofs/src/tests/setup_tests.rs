@@ -60,3 +60,15 @@ fn the_phy_comes_up_in_rtw88s_order() {
     assert_eq!(paths(), 1, "a one-path chip");
     crate::phy::rf::set_paths(2);
 }
+
+#[test]
+fn the_trims_follow_the_calibration() {
+    let _one = super::lock();
+    let mut info = board(3, 0);
+    info.trim.thermal = [0b0011, 0b0011];
+    let c = Chip::new();
+    bring_up(&c, &info);
+    let thermal = last(&c, 0x3C00 + (0x43 << 2)); // the RF table writes it too
+    assert!(wrote(&c, 0x1C3C, 0xA_8003) < thermal, "after the DAC calibration");
+    assert_eq!(c.get32(0x3C00 + (0x43 << 2)) >> 16 & 0xF, 0b1001, "the trim");
+}
