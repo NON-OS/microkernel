@@ -20,7 +20,11 @@
 //! buffer and writes it through. A caller whose output is private (a
 //! terminal's run of the Linux personality, or a guest it hosts) is never
 //! written to serial; its line goes only to its own `stdout.<pid>` inbox,
-//! where the terminal that started it shows it.
+//! where the terminal that started it shows it. A build without capsule
+//! serial output (`capsule-serial-debug`, which no release profile keeps)
+//! writes no caller's line to serial: the Linux personality holds Debug in
+//! every build, for that inbox, and its install narration names the
+//! packages a person installs.
 //!
 //! The line is bounded to `MAX_LEN` bytes after which the syscall
 //! returns `-EINVAL`. Empty calls are also rejected. Non-printable
@@ -60,7 +64,7 @@ pub fn sys_mk_debug(user_ptr: u64, len: u64) -> i64 {
      */
     let private =
         crate::process::current_pid().is_some_and(crate::userspace::capsule_linux::is_private_run);
-    if !private {
+    if !private && cfg!(feature = "capsule-serial-debug") {
         crate::sys::serial::passthrough(&buf[..len]);
     }
     proc_mirror::mirror_to_proc_inbox(&buf[..len]);

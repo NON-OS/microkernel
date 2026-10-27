@@ -16,21 +16,25 @@
 
 //! The heap's two regions: the bootstrap array it starts on, and the second
 //! region boot adds (manager/init.rs). A block is handed out by the first
-//! that has room and goes back to the one its address lies in.
+//! that has room and goes back to the one its address lies in. Small blocks
+//! are kept by size in front of both (bins.rs, front.rs).
 
 use super::allocator::SecureHeapAllocator;
+use super::front::Front;
 use core::sync::atomic::{AtomicUsize, Ordering};
 use linked_list_allocator::LockedHeap;
 
 pub(crate) struct SecondRegion {
     pub(super) heap: LockedHeap,
+    pub(super) front: Front,
     start: AtomicUsize,
     size: AtomicUsize,
 }
 
 impl SecondRegion {
     pub(super) const fn new() -> Self {
-        Self { heap: LockedHeap::empty(), start: AtomicUsize::new(0), size: AtomicUsize::new(0) }
+        let (start, size) = (AtomicUsize::new(0), AtomicUsize::new(0));
+        Self { heap: LockedHeap::empty(), front: Front::new(), start, size }
     }
 }
 

@@ -23,6 +23,7 @@ use nonos_app_skeleton::clients::vfs::{self, VfsStream};
 use nonos_libc::mk_local_verify;
 use nonos_linux_pack::{Index, HEADER_LEN};
 
+use super::paths::trailer_of;
 use super::table::Loaded;
 
 /// The most a trailer is; anything near this is not one.
@@ -37,7 +38,7 @@ pub fn load(pid: u32, path: &[u8]) -> Result<Loaded, &'static str> {
     let first = stream.read_window(0, HEADER_LEN as u32)?;
     let head_len = Index::data_start(&first, len).map_err(|_| "not a pack")?;
     let head = stream.read_window(0, head_len as u32)?;
-    let trailer = vfs::read_file(pid, &[path, super::paths::TRAILER_AFTER].concat(), MAX_TRAILER)?;
+    let trailer = vfs::read_file(pid, &trailer_of(path), MAX_TRAILER)?;
     if !mk_local_verify(&head, 0, &trailer) {
         return Err("its index is not this machine's");
     }

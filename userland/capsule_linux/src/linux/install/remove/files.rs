@@ -25,13 +25,14 @@ use alloc::vec::Vec;
 
 use super::super::Why;
 use super::tier::say;
+use crate::linux::file::family::chosen;
 use crate::linux::file::pack::{remove, Held};
 use crate::linux::file::{key, store_found, store_unlink};
 
-/// `pkg`'s pack out, or why nothing of it is taken out: a run holding it
-/// open keeps every file of it, so the package stays whole.
+/// `pkg`'s pack out of this family's, or why nothing of it is taken out: a
+/// run holding it open keeps every file of it, so the package stays whole.
 pub(super) fn take_pack(pkg: &str) -> Result<(), Why> {
-    let why = match remove(pkg) {
+    let why = match remove(chosen(), pkg) {
         Ok(()) => return Ok(()),
         Err(Held::InUse) => {
             (Why::IN_USE, "a running app holds it open; close the app to remove it")

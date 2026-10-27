@@ -15,13 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::globals::PAGING_MANAGER;
+use crate::arch::run_without_interrupts as without_interrupts;
 use crate::memory::paging::error::PagingResult;
 use crate::smp::lock_responsive;
 
 pub fn init() -> PagingResult<()> {
-    lock_responsive(&PAGING_MANAGER).init()
+    without_interrupts(|| lock_responsive(&PAGING_MANAGER).init())
 }
 
 pub fn is_initialized() -> bool {
-    lock_responsive(&PAGING_MANAGER).is_initialized()
+    without_interrupts(|| lock_responsive(&PAGING_MANAGER).is_initialized())
 }

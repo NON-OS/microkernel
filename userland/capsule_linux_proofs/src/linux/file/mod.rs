@@ -42,5 +42,7 @@ pub mod punch;
 pub mod shm_rule;
 pub mod store;
 
+/* The family a pack's name is in (pack/paths.rs), where the capsule keeps it. */
+pub use crate::family;
 pub use crate::resolve::{key, visible};
 pub use store::{read as store_read, write as store_write};

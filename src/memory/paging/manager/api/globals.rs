@@ -16,7 +16,10 @@
 
 use super::super::core::PagingManager;
 use crate::memory::paging::stats::PagingStatistics;
-use spin::Mutex;
+use crate::smp::TicketMutex;
 
-pub(crate) static PAGING_MANAGER: Mutex<PagingManager> = Mutex::new(PagingManager::new());
+/// Taken in turn: a CPU mapping page by page takes it again the moment it
+/// lets go, and with a plain spin lock it kept winning (smp/ticket.rs).
+pub(crate) static PAGING_MANAGER: TicketMutex<PagingManager> =
+    TicketMutex::new(PagingManager::new());
 pub(crate) static PAGING_STATS: PagingStatistics = PagingStatistics::new();
