@@ -26,7 +26,8 @@ pub(super) fn spawn() {
         feature = "nonos-capsule-driver-cdc-ecm",
         feature = "nonos-capsule-driver-cdc-ncm",
         feature = "nonos-capsule-driver-rndis",
-        feature = "nonos-capsule-driver-ax88179"
+        feature = "nonos-capsule-driver-ax88179",
+        feature = "nonos-capsule-driver-rtl8153"
     ))]
     if !super::usb_host::usb_host() {
         crate::sys::boot_log::ok("DRIVER-USBNET", "no USB host, not spawned");
@@ -36,6 +37,7 @@ pub(super) fn spawn() {
     spawn_cdc_ncm();
     spawn_rndis();
     ax88179::spawn();
+    spawn_rtl8153();
 }
 
 #[cfg(feature = "nonos-capsule-driver-cdc-ecm")]
@@ -64,3 +66,12 @@ fn spawn_rndis() {
 }
 #[cfg(not(feature = "nonos-capsule-driver-rndis"))]
 fn spawn_rndis() {}
+
+#[cfg(feature = "nonos-capsule-driver-rtl8153")]
+fn spawn_rtl8153() {
+    use crate::hardware::rtl8153_capsule as c;
+    let spawn = c::spawn_driver_rtl8153_capsule;
+    super::boot::capsule("DRIVER-RTL8153", "driver_rtl8153", spawn, c::shared_state);
+}
+#[cfg(not(feature = "nonos-capsule-driver-rtl8153"))]
+fn spawn_rtl8153() {}

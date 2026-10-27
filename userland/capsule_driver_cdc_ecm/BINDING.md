@@ -28,10 +28,11 @@ another station. A device that does not filter answers the filter request
 with a STALL; the bind goes on and its line says the address is not
 confirmed.
 
-RTL8153 adapters (0bda:8153, 17ef:721e) are bound in their ECM
-configuration like any other device: the vendor-mode driver for them is
-quarantined (`quarantine/rtl8153`), and their ECM configuration is the
-class this driver is written from.
+RTL8153 adapters (0bda:8153, 17ef:721e and the other rebrands) are bound
+in their ECM configuration like any other device when this driver reaches
+the port first. capsule_driver_rtl8153 drives them in their vendor
+configuration, as Linux prefers; whichever driver configures the device
+first holds it, and the other finds the port claimed.
 
 ## Framing
 
