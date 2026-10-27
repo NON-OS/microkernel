@@ -217,6 +217,7 @@ nonos-capsule-driver-spi-hid    = []
 nonos-capsule-driver-cdc-ecm    = []
 nonos-capsule-driver-cdc-ncm    = []
 nonos-capsule-driver-rndis      = []
+nonos-capsule-driver-ax88179    = []
 nonos-capsule-driver-smbus      = []
 nonos-capsule-driver-uhci       = []
 nonos-capsule-driver-ohci       = []
@@ -647,6 +648,14 @@ microkernel-driver-rndis = [
   "nonos-capsule-driver-rndis",
 ]
 
+microkernel-driver-ax88179 = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-ax88179",
+]
+
 microkernel-driver-usb-hub = [
   "microkernel-core",
   "nonos-production",
@@ -1059,6 +1068,7 @@ microkernel-full-gui = [
   "nonos-capsule-driver-uvc",
   "nonos-capsule-driver-ccid",
   "nonos-capsule-driver-fido",
+  "nonos-capsule-driver-ax88179",
   "nonos-capsule-driver-e1000",
   "nonos-capsule-driver-rtl8139",
   "nonos-capsule-driver-rtl8169",
