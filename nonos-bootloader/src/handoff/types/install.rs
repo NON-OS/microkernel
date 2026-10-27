@@ -28,7 +28,8 @@ use super::system::Module;
  * evidence the kernel checks this loader with rides in the same module table:
  * the TCG log, the loader's trailer and the boot-root record. So does the
  * package store, read whole through the firmware's disk driver, and the
- * live plan's model files when the machine has the memory for them.
+ * live plan's model files when the machine has the memory for them, and the
+ * firmware package's files (`entry/firmware_package.rs`).
  */
 #[derive(Copy, Clone, Default)]
 pub struct InstallHandoff {
@@ -36,6 +37,7 @@ pub struct InstallHandoff {
     pub evidence: [Module; 3],
     pub store: Module,
     pub mirror: Module,
+    pub firmware: [Module; 6],
     pub requested: bool,
     pub profile: u64,
 }
