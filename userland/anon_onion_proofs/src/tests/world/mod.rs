@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The simulated Anyone network and a net.anon manager joined to it.
 
 mod blind;
@@ -79,7 +78,8 @@ pub fn net(faults: Faults, shape: impl FnOnce(&mut Vec<SimRelay>)) -> Net {
         relays.push(spare);
     }
     let service = Service::new(period(), INTRO_POINTS as usize);
-    let ids: Vec<[u8; 32]> = relays[..CONSENSUS_RELAYS as usize].iter().map(|r| r.relay.ed25519_identity).collect();
+    let ids: Vec<[u8; 32]> =
+        relays[..CONSENSUS_RELAYS as usize].iter().map(|r| r.relay.ed25519_identity).collect();
     for at in ring::responsible(&ids, &SRV_CURRENT, &service.blinded.public, period()) {
         relays[at].holds = true;
     }
@@ -159,14 +159,16 @@ impl Net {
     /// Open a stream as caller 7, the stream id or the refusal named.
     pub fn open(&mut self, host: &[u8], port: u16) -> Result<u16, &'static str> {
         use crate::manager::SendError;
-        crate::manager::open_stream(&mut self.state, host, port, self.now, 7).map_err(|e| match e {
-            SendError::BadOnion => "bad onion",
-            SendError::TableFull => "table full",
-            SendError::NoCircuit => "no circuit",
-            SendError::NamesPending => "names pending",
-            SendError::NameUnknown => "name unknown",
-            SendError::NameChanged => "name changed",
-            _ => "other",
+        crate::manager::open_stream(&mut self.state, host, port, self.now, 7, false).map_err(|e| {
+            match e {
+                SendError::BadOnion => "bad onion",
+                SendError::TableFull => "table full",
+                SendError::NoCircuit => "no circuit",
+                SendError::NamesPending => "names pending",
+                SendError::NameUnknown => "name unknown",
+                SendError::NameChanged => "name changed",
+                _ => "other",
+            }
         })
     }
 

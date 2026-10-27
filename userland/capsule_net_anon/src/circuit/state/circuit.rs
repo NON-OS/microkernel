@@ -35,12 +35,10 @@ pub struct Circuit {
     /// Counted separately from the window, not derived from it, so a window
     /// topped up early cannot suppress the next SENDME and stall the circuit.
     pub delivered_since: i32,
-    /*
-     * Open proves three relays answered a handshake. It does not prove the exit
-     * carries traffic, and an exit that acks every control message while
-     * delivering no payload is the failure the mixnet transport lost a session
-     * to. Set only when a stream hands back a non-empty body.
-     */
+    /// Open proves three relays answered a handshake. It does not prove the exit
+    /// carries traffic, and an exit that acks every control message while
+    /// delivering no payload is the failure the mixnet transport lost a session
+    /// to. Set only when a stream hands back a non-empty body.
     pub proven: bool,
     /// Streams that ended with a failure reason on a circuit that has never
     /// delivered a byte. A broken exit answers control messages and then fails
@@ -65,6 +63,8 @@ pub struct Circuit {
     /// The onion service at the far end of a finished rendezvous circuit,
     /// by identity key, so a later stream to it reuses the circuit.
     pub service: Option<[u8; 32]>,
+    /// Drawn ahead for installs, and taken by no other stream (warm_rule.rs).
+    pub warm: bool,
 }
 
 /// What a circuit was built for.

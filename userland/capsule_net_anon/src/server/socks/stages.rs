@@ -32,8 +32,9 @@ impl Conv {
         match greeting(&self.unsent) {
             None => Step::Wait,
             Some(Err(())) => Step::Over,
-            Some(Ok((no_auth, used))) => {
+            Some(Ok((no_auth, install, used))) => {
                 self.unsent.drain(..used);
+                self.install = install;
                 out.extend_from_slice(&method_reply(no_auth));
                 if !no_auth {
                     return Step::Over;
@@ -53,7 +54,7 @@ impl Conv {
             }
             Some(Ok((host, port, used))) => {
                 self.unsent.drain(..used);
-                match tunnel.open(&host, port) {
+                match tunnel.open(&host, port, self.install) {
                     Ok(id) => {
                         self.stage = Stage::Connecting(id);
                         Step::Next

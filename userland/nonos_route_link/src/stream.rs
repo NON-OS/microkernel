@@ -107,7 +107,7 @@ impl RouteStream {
  * The route a host is reached on, and which of net.anon's two ways serves
  * it: an .anyone service goes through net.anon whatever the default.
  */
-fn for_host(route: Route, host: &str) -> (Route, Proxy) {
+pub(crate) fn for_host(route: Route, host: &str) -> (Route, Proxy) {
     let service = crate::pick::is_anyone(host);
     let route = if service {
         crate::pick::for_host(route, host, nonos_socket::lookup(b"net.anon"))

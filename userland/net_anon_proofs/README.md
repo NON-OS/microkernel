@@ -9,6 +9,12 @@ the cell geometry and circuit window it names, by `#[path]`, over the stand-in
   rather than dropped. The capsule answers it under `E_BAD_OP` and request id
   0; the tests pin that.
 
+- The warm circuit (`manager/warm_rule.rs`): drawn only while the network is
+  up and another circuit serves the rest, never past `CIRCUIT_MAX`; taken by
+  install streams only; retired at its first failure or after
+  `CIRCUIT_DIRTY_SECONDS`. The SOCKS greeting (`server/socks/wire.rs`) reads
+  the install mark within the methods it counts.
+
 Not covered here: everything else in `net.anon`, which `anon_ntor_proofs` and
 `anon_link_proofs` hold.
 
