@@ -14,15 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The net.sockets opcodes this capsule uses.
+//! The net.sockets opcodes a development build's local mirror uses (raw.rs).
 
 pub const OP_SOCKET: u16 = 2;
 pub const OP_CONNECT_HOST: u16 = 12;
-pub const OP_CONNECT: u16 = 6;
 pub const OP_SEND: u16 = 7;
 pub const OP_RECV: u16 = 8;
 pub const OP_CLOSE: u16 = 9;
-pub const OP_POLL: u16 = 13;
 
 /// The socket kinds the server offers: 1 stream, 2 datagram, 3 mixnet.
 pub const KIND_MIXNET: u16 = 3;
@@ -30,22 +28,6 @@ pub const KIND_MIXNET: u16 = 3;
 #[cfg(feature = "dev-mirror")]
 pub const KIND_STREAM: u16 = 1;
 
-/// net.sockets' status for "connect had no transport to give the socket": the
-/// mixnet holds no gateway, so there is no route out, not a peer that refused.
-/// Kept in sync with E_NO_TRANSPORT in
-/// userland/capsule_net_sockets/src/protocol/errno.rs.
-pub const NET_E_NO_TRANSPORT: u16 = 6;
-
-/// net.sockets' status for a connect by name on a mixnet socket: the mixnet
-/// carries addresses, not names, and the name would have had to be resolved
-/// in the clear, so it was refused and nothing was asked. Kept in sync with
-/// E_NAME_REFUSED in userland/capsule_net_sockets/src/protocol/errno.rs.
-pub const NET_E_NAME_REFUSED: u16 = 15;
-
 /// The address family the server takes. It is not AF_INET: the number
 /// is the server's own and the two only look alike.
 pub const DOMAIN: u16 = 4;
-
-/// What OP_POLL reports: a recv would return data, a send would take it.
-pub const POLL_READABLE: u8 = 1;
-pub const POLL_WRITABLE: u8 = 2;

@@ -15,47 +15,60 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Which network a guest's stream to an address outside the family leaves
-//! through. The rule, read for every connection:
+//! through, read for every connection from the policy store's default
+//! network and which anonymity networks run, by nonos_route_link's own
+//! `pick`, so a guest and every capsule holding Network cannot disagree:
 //!
-//! - The chosen network is the system's default as nonos_route_link reads
-//!   it (`Route::chosen`: the policy store's default network and which
-//!   anonymity networks run), turned into a route by its own `pick`, so a
-//!   guest and every capsule holding Network cannot disagree about it.
-//! - Anyone chosen: the stream goes to net.anon's handle front. Anyone
-//!   chosen with net.anon not running is ENETUNREACH, said on the [LINUX]
-//!   line by name, and nothing else is tried.
-//! - Nym chosen, or a default that could not be read: net.sockets' mixnet
-//!   socket, as before. A mixnet that is down is net.sockets' own answer (no
-//!   transport), which is ENETUNREACH as before.
-//! - Direct chosen: the guest stays on the Nym mixnet. A guest never reaches
-//!   the network directly, whatever the person chose. That is deliberate:
-//!   the personality hosts programs nobody here wrote, and a direct socket
-//!   would name this machine to whatever they connect to (connect_out.rs,
-//!   design/install-network.md). It is not loosened here.
+//! - Anyone: net.anon's handle front, the host by name.
+//! - Nym: net.socks5, a SOCKS5 CONNECT naming the host unresolved, as an
+//!   install's own stream goes (routed/nym.rs). Never net.sockets' mixnet
+//!   socket, whose frames carry an address and so refuse every name.
+//! - Direct: Nym as well. A guest runs a program nobody here wrote, and a
+//!   direct socket would name this machine to whatever it reaches
+//!   (design/install-network.md). That is deliberate.
+//! - A default that cannot be read, or a network whose service has not
+//!   registered yet: not yet. The open asks again until its time is up and
+//!   is then refused (routed/retry.rs). An unread default never becomes Nym.
 //!
-//! No failure on one network is answered by trying another: `path` names one
-//! network or none, and the connect that follows goes there only.
+//! No failure on one network is answered by trying another.
 
-use super::{Route, ANYONE_DOWN};
+use super::{pick, Route, ANYONE_DOWN};
+
+/// The network a stream opens on, or waits for.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Net {
+    Anyone,
+    Nym,
+    /// The default could not be read, so no network is known.
+    Unread,
+}
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Path {
-    /// net.sockets' mixnet socket: the Nym mixnet.
-    Mixnet,
+    /// net.socks5's SOCKS front, at this port: the Nym mixnet, by name.
+    Nym(u32),
     /// net.anon's handle front, at this port: the Anyone onion network.
     Anyone(u32),
-    /// Nowhere, for this reason: the chosen network is not running.
-    Unreachable(&'static str),
+    /// Not yet, on this network, for this reason.
+    Wait(Net, &'static str),
 }
 
-pub fn path(route: Route) -> Path {
-    match route {
+pub const UNREAD: &str = "the default network could not be read from the policy store";
+pub const SOCKS_DOWN: &str = "net.socks5, which carries a program's streams, is not running";
+
+/// The path for `default`, the policy store's answer (None when it did not
+/// give one), with `nym` and `anon` the ports of net.socks5 and net.anon, 0
+/// for a service that has not registered.
+pub fn path(default: Option<u8>, nym: u32, anon: u32) -> Path {
+    let Some(chosen) = default else {
+        return Path::Wait(Net::Unread, UNREAD);
+    };
+    match pick(Some(chosen), nym, anon) {
         Route::Anon(port) => Path::Anyone(port),
-        Route::Down(why) if why == ANYONE_DOWN => Path::Unreachable(why),
-        /*
-         * The mixnet down, or no default and no mixnet: net.sockets finds no
-         * transport and says so, as it did before the route was read.
-         */
-        Route::Nym(_) | Route::Direct | Route::Down(_) => Path::Mixnet,
+        Route::Nym(port) => Path::Nym(port),
+        Route::Direct if nym != 0 => Path::Nym(nym),
+        Route::Direct => Path::Wait(Net::Nym, SOCKS_DOWN),
+        Route::Down(why) if why == ANYONE_DOWN => Path::Wait(Net::Anyone, why),
+        Route::Down(why) => Path::Wait(Net::Nym, why),
     }
 }

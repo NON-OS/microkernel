@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! shutdown on a stream outside the family. net.sockets has no half-close
-//! at all; net.anon shuts both sides or neither.
+//! shutdown on a stream outside the family. A stream routed/ carries has no
+//! half-close at all; net.anon shuts both sides or neither.
 
 use crate::linux::abi::errno;
 
@@ -24,9 +24,9 @@ use super::super::sock::{Backend, Sock, Via};
 
 /// The answer for socket `s`, when its stream is outside the family.
 pub(super) fn outside(s: &mut Sock, rd: bool, wr: bool) -> Option<u64> {
-    if let Some(Via::Sockets(_)) = s.svc.as_ref().map(Backend::via) {
+    if let Some(Via::Routed(_)) = s.svc.as_ref().map(Backend::via) {
         return Some(refuse(
-            "shutdown of a stream outside the family: net.sockets has no half-close",
+            "shutdown of a stream outside the family: its proxy has no half-close",
             errno::EOPNOTSUPP,
         ));
     }
