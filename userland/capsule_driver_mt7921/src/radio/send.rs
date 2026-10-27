@@ -6,16 +6,14 @@
 //! Sending one frame the station built (`mt7921e_tx_prepare_skb`): a
 //! token's buffer takes the frame, ring 0 takes its TXD and TXP. A frame
 //! to the access point goes under its WTBL entry, any other under the
-//! interface's own (as mt76 sends one with no station). Management and
-//! group frames go at the band's lowest rate, the association's data at
-//! its fastest basic rate.
-
-use nonos_wifi_core::dot11::header::fc_type;
+//! interface's own (as mt76 sends one with no station). Its rate is
+//! `mac::pick`'s: the access point's lowest basic rate, or its fastest for
+//! data, or the band's lowest for anything not to the access point.
 
 use super::Mt7921;
 use crate::clock::now_ms;
 use crate::dma::layout::TOKEN_BUF;
-use crate::mac::rate;
+use crate::mac::pick::pick;
 use crate::mac::txd::{txwi, TxSpec};
 use crate::vif::{AP_WCID, OWN_WCID};
 
@@ -34,14 +32,12 @@ impl Mt7921 {
             return false;
         };
         let to_ap = self.peer.is_some_and(|p| mpdu[4..10] == p.addr);
-        let data = fc_type(u16::from_le_bytes([mpdu[0], mpdu[1]])) == 2;
-        let ghz5 = self.ghz5();
-        let fast = self.joined.filter(|_| data && to_ap).map(|j| j.1);
+        let bss = self.joined.map(|j| j.1).or_else(|| self.aps.get(mpdu[4..10].try_into().ok()?));
         let spec = TxSpec {
             wcid: if to_ap { AP_WCID } else { OWN_WCID },
             token,
             frame_dev: self.card.dma.tokens.dev(token as usize * TOKEN_BUF),
-            rate: rate::value(fast.unwrap_or(rate::lowest(ghz5)), ghz5),
+            rate: pick(mpdu, to_ap, bss, self.ghz5()),
         };
         let c = &mut self.card;
         c.dma.tokens.write(token as usize * TOKEN_BUF, mpdu);
