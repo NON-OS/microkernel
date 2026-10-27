@@ -11404,6 +11404,8 @@
    "userland/nonos_wifi_client/src/driver/fw_step.rs",
    "userland/nonos_wifi_client/src/driver/reply.rs",
    "userland/nonos_wifi_client/src/driver/stage_kind.rs",
+   "userland/nonos_wifi_client/src/driver/stop.rs",
+   "userland/nonos_wifi_client/src/driver/stop_words.rs",
    "userland/nonos_wifi_client/src/join_wire",
    "userland/nonos_wifi_client/src/network.rs",
    "userland/nonos_wifi_client/src/saved/closed.rs",

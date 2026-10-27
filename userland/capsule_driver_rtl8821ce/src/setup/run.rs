@@ -20,6 +20,7 @@
 
 use nonos_libc::{mk_device_claim, mk_device_release, mk_mmio_map, MmioMapOut};
 
+use super::claim_note::{clear, note, STEP_CLAIM, STEP_MAP, STEP_MEMORY};
 use super::mapped::Mapped;
 use crate::discover::Found;
 use crate::regs::Regs;
@@ -31,13 +32,16 @@ use crate::regs::Regs;
 pub fn run(dev: Found) -> Result<Mapped, &'static str> {
     let epoch = mk_device_claim(dev.device_id);
     if epoch <= 0 {
+        note(STEP_CLAIM, epoch);
         return Err("rtl8821ce: claim failed");
     }
     // Memory Space alone, so the MMIO BAR decodes. Bus Master waits until the
     // power cycle shows the MAC was off (`pwr::power_on_then_master`): a card
     // whose last driver died without its Drop may still have its DMA engines
     // armed at memory the kernel freed.
-    if !super::master::command(dev.device_id, epoch as u64, false) {
+    let rc = super::master::command_rc(dev.device_id, epoch as u64, false);
+    if rc < 0 {
+        note(STEP_MEMORY, rc);
         let _ = mk_device_release(dev.device_id);
         return Err("rtl8821ce: memory space enable failed");
     }
@@ -45,9 +49,11 @@ pub fn run(dev: Found) -> Result<Mapped, &'static str> {
     let len = core::cmp::max(dev.bar_size, 0x1000);
     let r = mk_mmio_map(dev.device_id, epoch as u64, dev.bar_index, 0, 0, len, &mut out);
     if r < 0 {
+        note(STEP_MAP, r);
         let _ = mk_device_release(dev.device_id);
         return Err("rtl8821ce: mmio map failed");
     }
+    clear();
     Ok(Mapped {
         // SAFETY: the broker mapped `length` bytes of the BAR at `user_va` for
         // this claim, which is released only on the way out (`release`).
