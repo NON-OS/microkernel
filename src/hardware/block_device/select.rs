@@ -17,22 +17,22 @@
 //! Which disk the block layer reads and writes: the one NONOS lives on.
 //!
 //! A machine may carry the firmware's boot disk on AHCI next to the data disk
-//! on NVMe, or an installer's stick next to the disk it installed. A disk that
-//! merely answers is not the one to write, so each backend is asked in turn
-//! whether its disk carries the store header or the disk plan. With two such
-//! disks, the one whose table holds the partition the loader came from is
-//! kept; with no such partition named, the first, as before. Nothing is kept
+//! on NVMe, or an installer's stick next to the disk it installed, so each
+//! backend is asked in turn whether its disk carries the store header or the
+//! disk plan. The one whose table holds the loader's partition is kept, with
+//! none named the first, and another only as settle.rs allows. Nothing is kept
 //! while a driver is still starting or a caller lacks the rights to ask.
 
 use super::backend::Backend;
 use super::booted;
 use super::found::Found;
 use super::identify::identify;
-use super::kept::{chosen, keep, settle};
+use super::kept::{chosen, keep};
 use super::order::order;
 use super::pass::Pass;
 use super::said::say;
 use super::seen_line::line;
+use super::settle::settle;
 use super::wait::refused_now;
 use super::wire::endpoint_of;
 use super::BlockDeviceError;
