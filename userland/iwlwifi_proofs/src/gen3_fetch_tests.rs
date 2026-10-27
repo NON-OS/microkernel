@@ -51,7 +51,8 @@ fn bus_master_is_on_before_the_doorbell_that_makes_the_device_fetch() {
     let mut c = Polls { per_wait: 64, delays_us: 0 };
     let watch = Fetches(&model);
     let before = given_back().len();
-    master_on(&watch, &mut c, || command(5, EPOCH, true)).expect("stopped, then Bus Master");
+    master_on(&watch, &mut c, crate::gen3::csr::CsrLayout::V1, || command(5, EPOCH, true))
+        .expect("stopped, then Bus Master");
     let mut dev = Dev::new(&watch, model.ctrl.as_ref(), model.rbs.as_ref());
     boot(&mut dev, &mut c, &mem, &layout, &ucode, &board).expect("alive");
     let log: Vec<&str> = given_back()[before..].iter().map(|e| e.0).collect();

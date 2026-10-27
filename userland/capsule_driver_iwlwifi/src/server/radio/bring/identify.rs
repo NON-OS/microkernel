@@ -32,9 +32,9 @@ const WINDOW_MIN: u64 = (CSR_MSIX_HW_INT_MASK_AD + 4) as u64;
 
 pub(super) fn identify(d: &Driver, ids: &mut Seen) -> Result<(Image, Transport), Failure> {
     // An adapter that is not an SO platform is left exactly as setup left it.
-    if transport(d.pci_device).is_none() {
+    let Some(t) = transport(d.pci_device) else {
         return Err(Failure::Refused(Refusal::NotSoDevice(d.pci_device)));
-    }
+    };
     if d.mmio_len < WINDOW_MIN {
         return Err(Failure::Window);
     }
@@ -45,7 +45,7 @@ pub(super) fn identify(d: &Driver, ids: &mut Seen) -> Result<(Image, Transport),
     if ids.hw_rev == u32::MAX {
         return Err(Failure::DeadMmio);
     }
-    start_hw(&m, &mut c).map_err(Failure::Start)?;
+    start_hw(&m, &mut c, t.csr).map_err(Failure::Start)?;
     ids.rf_id = m.read32(CSR_HW_RF_ID);
     Line::new().text(b"pci ").hex(u32::from(d.pci_device)).send();
 

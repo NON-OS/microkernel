@@ -13,10 +13,15 @@ use crate::gen3_model::Polls;
 
 fn run(dev: &Armed) -> (Result<(), Failure>, Vec<(&'static str, u64)>) {
     let before = given_back().len();
-    let got = master_on(dev, &mut Polls { per_wait: 64, delays_us: 0 }, || {
-        assert!(!dev.armed.get(), "the engines are reset before Bus Master");
-        command(5, EPOCH, true)
-    });
+    let got = master_on(
+        dev,
+        &mut Polls { per_wait: 64, delays_us: 0 },
+        crate::gen3::csr::CsrLayout::V1,
+        || {
+            assert!(!dev.armed.get(), "the engines are reset before Bus Master");
+            command(5, EPOCH, true)
+        },
+    );
     (got, given_back()[before..].to_vec())
 }
 

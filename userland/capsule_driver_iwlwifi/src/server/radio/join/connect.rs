@@ -28,18 +28,26 @@ impl Radio {
             return hidden();
         }
         let State::Up(up) = &mut self.state else { return ConnectResult::code(CODE_BAD_REQUEST) };
-        let Some(tx) = tx_region(&mut self.join, d) else {
+        let Some(tx) = tx_region(&mut self.join, d, up.dev.csr) else {
             return ConnectResult::code(CODE_BAD_REQUEST);
         };
         let mut clock = Uptime;
         let policy = if req.wpa3_only { JoinPolicy::WPA3_ONLY } else { JoinPolicy::ANY };
         let mut found = Candidates::new(req.ssid, policy);
         let (results, beacons) = (&mut self.results, &mut self.beacons);
-        let hunted = hunt(&mut up.dev, &mut clock, &mut self.sweep, &up.channels, &mut found, &mut now_ms, &mut |f| {
-            if hear(results, f) {
-                *beacons = beacons.saturating_add(1);
-            }
-        });
+        let hunted = hunt(
+            &mut up.dev,
+            &mut clock,
+            &mut self.sweep,
+            &up.channels,
+            &mut found,
+            &mut now_ms,
+            &mut |f| {
+                if hear(results, f) {
+                    *beacons = beacons.saturating_add(1);
+                }
+            },
+        );
         // The background scan rests whatever the outcome.
         self.next_ms = now_ms().saturating_add(super::super::REST_MS);
         match (hunted, found.refusal()) {

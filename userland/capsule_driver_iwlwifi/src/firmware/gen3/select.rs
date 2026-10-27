@@ -29,6 +29,8 @@
 //! values (LTR delay, crystal latency, IMR) are cfg/ax210.c's
 //! `iwl_so*_mac_cfg`, `iwl_ty_mac_cfg` and `iwl_ma_mac_cfg`.
 
+use super::csr::CsrLayout;
+
 /// A gen3 firmware image; the status detail carries its number.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[repr(u8)]
@@ -71,6 +73,8 @@ pub struct Transport {
     pub xtal_latency: u32,
     pub low_latency_xtal: bool,
     pub imr_enabled: bool,
+    /// The family's CSR layout.
+    pub csr: CsrLayout,
 }
 
 const MAC_SO: u16 = 0x37;
@@ -90,6 +94,7 @@ const SO: Transport = Transport {
     xtal_latency: 500,
     low_latency_xtal: false,
     imr_enabled: false,
+    csr: CsrLayout::V1,
 };
 const SO_LONG: Transport = Transport {
     integrated: true,
@@ -97,6 +102,7 @@ const SO_LONG: Transport = Transport {
     xtal_latency: 12000,
     low_latency_xtal: true,
     imr_enabled: false,
+    csr: CsrLayout::V1,
 };
 const SO_LONG_IMR: Transport = Transport { imr_enabled: true, ..SO_LONG };
 /// `iwl_ty_mac_cfg`: a discrete card, no LTR delay.
@@ -106,6 +112,7 @@ const TY: Transport = Transport {
     xtal_latency: 500,
     low_latency_xtal: false,
     imr_enabled: false,
+    csr: CsrLayout::V1,
 };
 /// `iwl_ma_mac_cfg`: integrated, with no LTR delay or crystal latency set.
 const MA: Transport = Transport {
@@ -114,6 +121,7 @@ const MA: Transport = Transport {
     xtal_latency: 0,
     low_latency_xtal: false,
     imr_enabled: false,
+    csr: CsrLayout::V1,
 };
 
 /// The transport for a PCI device ID (pcie/drv.c `iwl_hw_card_ids`, the Ty/So

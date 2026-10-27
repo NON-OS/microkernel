@@ -68,7 +68,8 @@ pub fn bring_up(d: &Driver, ids: &mut Seen) -> Result<Up, Failure> {
     let board =
         Board { hw_rev: ids.hw_rev, imr_enabled: transport.imr_enabled, rf_id: ids.rf_id, pnvm };
     let rig: &'static Rig = Box::leak(Box::new(Rig { regs, mem, fw, ucode, board, transport }));
-    master_on(rig.regs, &mut Uptime, || command(d.device_id, d.claim_epoch, true))?;
+    let bus_master = || command(d.device_id, d.claim_epoch, true);
+    master_on(rig.regs, &mut Uptime, rig.transport.csr, bus_master)?;
     let dev = boot_rig(rig)?;
     finish(dev, rig, station_addr(), Restarts::NEW)
 }

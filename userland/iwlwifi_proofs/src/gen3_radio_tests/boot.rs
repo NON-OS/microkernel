@@ -2,7 +2,7 @@
 //! The device masked once ALIVE is in, stopped after a failed boot, its
 //! secure-boot status read, and every grant access bounded.
 
-
+use super::rig::{booted, polls, rig, SO_GF};
 use crate::gen3::bringup::{boot, BootError};
 use crate::gen3::dev::Dev;
 use crate::gen3::dram_map::classify;
@@ -13,7 +13,6 @@ use crate::gen3::regs::*;
 use crate::gen3::start::stop_device;
 use crate::gen3::ucode::Ucode;
 use crate::gen3_model::Mem;
-use super::rig::{SO_GF, booted, polls, rig};
 
 #[test]
 fn the_device_stops_signalling_interrupts_once_alive() {
@@ -37,7 +36,10 @@ fn a_failed_boot_leaves_the_device_stopped() {
     let board = Board { hw_rev: 0x370, imr_enabled: false, rf_id: 0x10D000, pnvm: None };
     assert_eq!(boot(&mut dev, &mut c, &mem, &layout, &ucode, &board), Err(BootError::NoAliveCause));
     let before = c.delays_us;
-    assert!(stop_device(&r.model, &mut c), "the bus master reported stopped");
+    assert!(
+        stop_device(&r.model, &mut c, crate::gen3::csr::CsrLayout::V1),
+        "the bus master reported stopped"
+    );
     let reset = r.model.reg(CSR_RESET);
     assert_eq!(reset & (RESET_STOP_MASTER | RESET_SW_RESET), RESET_STOP_MASTER | RESET_SW_RESET);
     assert_eq!(r.model.reg(CSR_INT_MASK), 0);
@@ -50,8 +52,15 @@ fn secure_boot_status_is_read_through_the_umac_window() {
     let r = rig();
     r.model.s.borrow_mut().regs.insert(HBUS_TARG_PRPH_RDAT, 0x0000_0101);
     let mut c = polls();
-    assert_eq!(read_umac(&r.model, &mut c, UMAG_SB_CPU_1_STATUS), Some(0x101));
-    assert_eq!(r.model.reg(HBUS_TARG_PRPH_RADDR), 0x00D0_38C0 | 3 << 24, "24-bit address, byte enables");
+    assert_eq!(
+        read_umac(&r.model, &mut c, crate::gen3::csr::CsrLayout::V1, UMAG_SB_CPU_1_STATUS),
+        Some(0x101)
+    );
+    assert_eq!(
+        r.model.reg(HBUS_TARG_PRPH_RADDR),
+        0x00D0_38C0 | 3 << 24,
+        "24-bit address, byte enables"
+    );
 }
 
 #[test]

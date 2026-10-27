@@ -11,12 +11,26 @@ use crate::constants::{
     CSR_INT_MASK, GP_CNTRL_INIT_DONE, GP_CNTRL_MAC_ACCESS_REQ, GP_CNTRL_MAC_CLOCK_READY,
     GP_CNTRL_XTAL_ON, INT_COALESCING_TIMEOUT, INT_MASK_DISABLED,
 };
+use crate::firmware::gen3::csr::CsrLayout;
 use crate::regs::Regs;
 
-pub fn bring_up(regs: Regs) -> Result<(), &'static str> {
-    regs.set_bits(CSR_GP_CNTRL, GP_CNTRL_XTAL_ON);
-    regs.set_bits(CSR_GP_CNTRL, GP_CNTRL_MAC_ACCESS_REQ | GP_CNTRL_INIT_DONE);
-    if !regs.poll_set(CSR_GP_CNTRL, GP_CNTRL_MAC_CLOCK_READY, CLOCK_READY_MS) {
+/// Wake the chip in its family's CSR layout: V1 as every family up to AX210,
+/// V2 (BZ) with MAC access and MAC_INIT asked and MAC_STATUS awaited, as
+/// Linux's `iwl_finish_nic_init` does there.
+pub fn bring_up(regs: Regs, csr: CsrLayout) -> Result<(), &'static str> {
+    let ready = match csr {
+        CsrLayout::V1 => {
+            regs.set_bits(CSR_GP_CNTRL, GP_CNTRL_XTAL_ON);
+            regs.set_bits(CSR_GP_CNTRL, GP_CNTRL_MAC_ACCESS_REQ | GP_CNTRL_INIT_DONE);
+            GP_CNTRL_MAC_CLOCK_READY
+        }
+        CsrLayout::V2 => {
+            let (bits, ready) = csr.init();
+            regs.set_bits(CSR_GP_CNTRL, bits);
+            ready
+        }
+    };
+    if !regs.poll_set(CSR_GP_CNTRL, ready, CLOCK_READY_MS) {
         return Err("iwlwifi: mac clock not ready");
     }
     regs.write32(CSR_INT_COALESCING, INT_COALESCING_TIMEOUT);
