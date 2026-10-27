@@ -18,7 +18,7 @@
 
 use alloc::string::String;
 
-use super::install::{market_arg, NotMarket, MARKET_LEN};
+use super::install::{market_arg, Market, NotMarket};
 use super::request::args;
 
 /// `install <name> <hash> <m> [direct]`: fetch a package rather than run a
@@ -28,7 +28,7 @@ pub struct Install {
     pub name: String,
     pub pin: [u8; 32],
     /// Err when m is no word this capsule understands: the install fails.
-    pub market: Result<Option<[u8; MARKET_LEN]>, NotMarket>,
+    pub market: Result<Option<Market>, NotMarket>,
 }
 
 pub fn install_request() -> Option<Install> {

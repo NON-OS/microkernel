@@ -55,7 +55,7 @@ pub(super) fn start(guest: &mut Guest, launch: Launch) -> Result<(), &'static [u
     let (image, entry, interp_base) = image::program(guest, bytes).map_err(|e| e.why())?;
     guest.map(STACK_TOP - STACK_SIZE, STACK_SIZE, true, false);
     let mut argv = alloc::vec![launch.argv0.clone().unwrap_or_else(|| path.to_vec())];
-    argv.extend(launch.args.iter().cloned());
+    argv.extend(super::app::start_args(&launch, &guest.app.policy)?);
     let env = super::env::with_pwd(&guest.cwd);
     let rsp = image::build(guest, STACK_TOP, &image, interp_base, &argv, &env)
         .ok_or(&b"[LINUX] stack refused\n"[..])?;
