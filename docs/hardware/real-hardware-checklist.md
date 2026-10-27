@@ -252,6 +252,15 @@ MT7922.
       station picks SAE), then WPA2: the panel reads Joined. Both are proven
       on the host only; say which security the access point ran, and whether
       it is 2.4 or 5 GHz.
+- [ ] Keys: as the join finishes, `[mt7921] pairwise key in the chip` and
+      `[mt7921] group key in the chip`. `pairwise key refused by the
+      firmware` means the station fell back to CCMP in software: report it,
+      and whether DHCP still works (that says whether the chip passes up a
+      protected frame it holds no key for). Joined with both keys in but no
+      lease: the status reply's bad-frames word rising means the chip
+      reports decrypt errors; keep the log. Leave the link up past the
+      access point's group rekey (often an hour): a second `group key in the
+      chip`, and traffic still flowing, is the rekey working.
 - [ ] DHCP: `[NET-CORE] bind: interface up on driver.mt7921e0`, then a
       lease (`[NET-CORE] lease-status state=...`); a page loads in the
       browser. Leave it a few minutes, on battery too: a line `[mt7921]
@@ -436,6 +445,15 @@ not a fault.
       (`[NET-CORE] lease-status state=...`); a page loads in the browser.
       A download of a hundred megabytes completes; note how long, and the
       distance to the access point.
+- [ ] Keys: as the join finishes, `[rtl8852be] pairwise key in the chip`
+      and `[rtl8852be] group key in the chip`. `pairwise key refused by the
+      firmware` means the DMA engine never took the command and the station
+      runs CCMP in software: report it, and whether a lease still comes
+      (whether the chip passes up a protected frame it holds no key for).
+      Joined with both keys in but no lease: keep the log and the status
+      reply's words (the third counts frames dropped for a bad CRC or ICV).
+      Stay joined past the access point's group rekey (often an hour): a
+      second `group key in the chip` and traffic still flowing.
 - [ ] Leave: disconnect from the panel; the link reads down and the scan
       resumes. Join again: it comes back.
 - [ ] Send back: `log rtl8852be net-core > rtl8852be.txt`, the boot log

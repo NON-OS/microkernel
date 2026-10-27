@@ -11,6 +11,7 @@ for Memory Space and, only once a MAC a warm reboot left on is powered off,
 Bus Master; `MkDmaMap` for coherent grants below 4 GiB (the rings and their
 slots). No `MkIrqBind`: every ring is polled. Requests arrive with
 `MkIpcRecvFrom` on the service endpoint and are answered with `MkIpcReply`;
+`MkServiceLookup` names net.core's owner for the link gate.
 
 ## Interface contract
 
@@ -41,7 +42,8 @@ stays in the shared station's memory.
 
 Bring-up to a station interface; channel switching on 2.4 GHz (1-14) and
 5 GHz (36-177) at 20 MHz; scanning, WPA2 and WPA3 joins and data with
-software CCMP through the shared station (all proven on the host);
+CCMP-128 in the chip on keys the shared station installs (software CCMP
+if the chip never takes the join's pairwise key; all proven on the host);
 management frames at a fixed basic rate, data with the firmware's rate
 adaptation over the AP's legacy rates.
 

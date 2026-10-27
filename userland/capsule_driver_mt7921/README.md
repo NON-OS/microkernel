@@ -18,10 +18,13 @@ driver.mt7921e0 (shared soft-MAC station over this radio)
 MediaTek MT7921/MT7922 PCIe device         loader: EFI/nonos/firmware/mediatek
 ```
 
-The 802.11 management, SAE and the WPA2 handshakes, CCMP and the receive
-checks run in the shared `nonos_wifi_core` crate; IP and above stay in the
-upper network capsules. This capsule drives the radio and moves frames; it
-holds no profile and no credential. Host-proven only: no card has run it.
+The 802.11 management, SAE and the WPA2 handshakes and the receive checks
+run in the shared `nonos_wifi_core` crate; CCMP-128 runs in the chip, on the
+keys the station installs once a join or a rekey is done, as Linux's
+`mt7921_set_key` installs them. IP and above stay in the upper network
+capsules. This capsule drives the radio and moves frames; it holds no
+profile and no credential, and keeps no key past the command that carries
+it. Host-proven only: no card has run it.
 
 The card's firmware is never in this capsule: the loader reads the pinned
 package from the boot medium and the driver refuses any file whose sha256 is

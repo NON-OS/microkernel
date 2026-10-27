@@ -33,6 +33,7 @@ pub struct Chip {
     pub unheard: u32,
     pub pending: Vec<VecDeque<Vec<u8>>>,
     pub sent: Vec<TxFrame>,
+    pub keys: super::keys::Keys,
     /// Every register write, by BAR offset, oldest first.
     pub writes: Vec<(u32, u32)>,
 }
@@ -53,6 +54,7 @@ impl Chip {
             unheard: 0,
             pending: (0..8).map(|_| VecDeque::new()).collect(),
             sent: Vec::new(),
+            keys: Default::default(),
             writes: Vec::new(),
         }
     }

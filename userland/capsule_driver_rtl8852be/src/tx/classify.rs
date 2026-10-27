@@ -48,5 +48,6 @@ pub fn classify(mpdu: &[u8]) -> Option<Desc> {
         hdr_len: hl as u8,
         rate: 0,
         bk: eapol,
+        sec: None,
     })
 }
