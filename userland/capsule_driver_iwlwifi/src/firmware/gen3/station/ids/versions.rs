@@ -12,7 +12,11 @@ use super::opcodes::{
 
 /// One command and the versions whose layout this driver encodes. An empty
 /// `listed` means the firmware must not list the command at all (or list it
-/// as version 1): Linux then sends the version 1 layout.
+/// as version 1): Linux then sends the version 1 layout. [`ABSENT`] in
+/// `listed` lets the firmware leave the command out (version 1 then).
+/// Not a version: the command may go unlisted.
+pub const ABSENT: u8 = 0;
+
 pub struct Api {
     pub group: u8,
     pub cmd: u8,
@@ -21,8 +25,8 @@ pub struct Api {
 
 /// Every command the join sends.
 pub const APIS: [Api; 13] = [
-    // iwl_phy_context_cmd, PHY_CONTEXT_CMD_API_VE_4.
-    Api { group: LONG_GROUP, cmd: PHY_CONTEXT_CMD, listed: &[4] },
+    // iwl_phy_context_cmd, PHY_CONTEXT_CMD_API_VE_4 and _VER_5 (BZ).
+    Api { group: LONG_GROUP, cmd: PHY_CONTEXT_CMD, listed: &[4, 5] },
     // iwl_umac_scan_abort, version 1.
     Api { group: LONG_GROUP, cmd: SCAN_ABORT_UMAC, listed: &[1] },
     // iwl_tx_cmd_gen3, TX_CMD_API_S_VER_10, with the version 2 rate format.
@@ -34,8 +38,8 @@ pub const APIS: [Api; 13] = [
     Api { group: MAC_CONF_GROUP, cmd: SESSION_PROTECTION_CMD, listed: &[1, 2] },
     // iwl_mac_config_cmd, MAC_CONTEXT_CONFIG_CMD_API_S_VER_2.
     Api { group: MAC_CONF_GROUP, cmd: MAC_CONFIG_CMD, listed: &[2] },
-    // iwl_link_config_cmd, LINK_CONTEXT_CONFIG_CMD_API_S_VER_1.
-    Api { group: MAC_CONF_GROUP, cmd: LINK_CONFIG_CMD, listed: &[] },
+    // iwl_link_config_cmd, LINK_CONTEXT_CONFIG_CMD_API_S_VER_1 and _VER_2.
+    Api { group: MAC_CONF_GROUP, cmd: LINK_CONFIG_CMD, listed: &[ABSENT, 1, 2] },
     // iwl_sta_cfg_cmd_v1, STA_CMD_API_S_VER_1.
     Api { group: MAC_CONF_GROUP, cmd: STA_CONFIG_CMD, listed: &[] },
     // iwl_remove_sta_cmd, version 1.
@@ -56,8 +60,8 @@ pub fn check(ucode: &Ucode<'_>) -> Result<(), (u8, u8)> {
     for a in &APIS {
         let ok = match ucode.cmd_version(a.group, a.cmd) {
             Some(v) if a.listed.is_empty() => v == 1,
-            Some(v) => a.listed.contains(&v),
-            None => a.listed.is_empty(),
+            Some(v) => v != ABSENT && a.listed.contains(&v),
+            None => a.listed.is_empty() || a.listed.contains(&ABSENT),
         };
         if !ok {
             return Err((a.group, a.cmd));
