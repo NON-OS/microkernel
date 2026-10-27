@@ -9215,6 +9215,7 @@
    "userland/compositor/src/setup/canvas_scale.rs",
    "userland/libc",
    "userland/nonos_disk/src/describe",
+   "userland/nonos_disk/src/keep",
    "userland/nonos_keymap",
    "userland/nonos_wifi_client/src/driver",
    "userland/nonos_wifi_client/src/saved",
