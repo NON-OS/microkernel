@@ -18,7 +18,7 @@ use super::rig::GL;
 #[test]
 fn the_phy_context_is_the_v5_layout_with_no_sbb() {
     assert_eq!(PHY_CONTEXT_LEN, 32);
-    let c = phy_context(ACTION_ADD, 36);
+    let c = phy_context(ACTION_ADD, 36, false);
     assert_eq!(&c[0..4], &[0; 4], "PHY 0, color 0");
     assert_eq!(&c[4..8], &ACTION_ADD.to_le_bytes());
     assert_eq!(&c[8..12], &36u32.to_le_bytes());
@@ -26,7 +26,7 @@ fn the_phy_context_is_the_v5_layout_with_no_sbb() {
     assert_eq!(&c[16..20], &[0; 4], "LMAC 0");
     assert_eq!((c[20], c[21]), (0, 0), "sbb_bandwidth, sbb_ctrl_channel_loc");
     assert_eq!(&c[22..32], &[0; 10], "no puncture mask, no DSP flags");
-    assert_eq!(phy_context(ACTION_ADD, 6)[12], 1, "2.4 GHz");
+    assert_eq!(phy_context(ACTION_ADD, 6, false)[12], 1, "2.4 GHz");
 }
 
 #[test]

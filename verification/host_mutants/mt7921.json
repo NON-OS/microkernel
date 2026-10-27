@@ -1,0 +1,497 @@
+[
+ {
+  "name": "mt7921-map-window-past-its-size",
+  "file": "userland/capsule_driver_mt7921/src/hw/map.rs",
+  "old": "addr - w.0 <= w.2)",
+  "new": "addr - w.0 <= w.2 + 0x10000)",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-remap-offset-cut",
+  "file": "userland/capsule_driver_mt7921/src/hw/regs.rs",
+  "old": "HIF_REMAP_BASE_L1 + (addr & 0xffff)",
+  "new": "HIF_REMAP_BASE_L1 + (addr & 0xfff)",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-ids-mt7920-lost",
+  "file": "userland/capsule_driver_mt7921/src/ids.rs",
+  "old": "(VENDOR_MEDIATEK, 0x7920),",
+  "new": "(VENDOR_MEDIATEK, 0x7921),",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-bound-bit-wrong",
+  "file": "userland/capsule_driver_mt7921/src/ids.rs",
+  "old": "bound & (1 << 7) != 0",
+  "new": "bound & (1 << 6) != 0",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-drv-own-unconfirmed",
+  "file": "userland/capsule_driver_mt7921/src/power/own.rs",
+  "old": "poll(regs, CONN_ON_LPCTL, LPCR_HOST_OWN_SYNC, 0, 50)",
+  "new": "true",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-wfsys-reset-unconfirmed",
+  "file": "userland/capsule_driver_mt7921/src/power/mod.rs",
+  "old": "poll(regs, WFSYS_SW_RST, WFSYS_SW_INIT_DONE, WFSYS_SW_INIT_DONE, 500)",
+  "new": "true",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-package-longer-file-unseen",
+  "file": "userland/capsule_driver_mt7921/src/fw/fetch.rs",
+  "old": "vec![0u8; f.len + 1]",
+  "new": "vec![0u8; f.len]",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-package-sha-unchecked",
+  "file": "userland/capsule_driver_mt7921/src/fw/fetch.rs",
+  "old": "if digest == f.sha256 {",
+  "new": "if digest != [0; 32] {",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-package-missing-as-mismatch",
+  "file": "userland/capsule_driver_mt7921/src/fw/fetch.rs",
+  "old": "n if n < 0 && at == 0 => return Fetched::Missing,",
+  "new": "n if n < 0 && at == 0 => return Fetched::Mismatch,",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-patch-sections-unbounded",
+  "file": "userland/capsule_driver_mt7921/src/fw/patch.rs",
+  "old": "n == 0 || n > MAX_SECTIONS",
+  "new": "n == 0",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-patch-section-past-image",
+  "file": "userland/capsule_driver_mt7921/src/fw/patch.rs",
+  "old": "offs.checked_add(len)? > img.len()",
+  "new": "offs.checked_add(len)? > img.len() + 64",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-ram-clc-sent",
+  "file": "userland/capsule_driver_mt7921/src/fw/load.rs",
+  "old": "if g.feature & FEATURE_NON_DL != 0 {",
+  "new": "if g.feature & FEATURE_NON_DL == 0xff {",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-ram-start-not-overridden",
+  "file": "userland/capsule_driver_mt7921/src/fw/load.rs",
+  "old": "start.map_or((0, 0), |a| (1, a))",
+  "new": "start.map_or((0, 0), |a| (0, a))",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-sem-release-unconfirmed",
+  "file": "userland/capsule_driver_mt7921/src/fw/load.rs",
+  "old": "rep.status_byte() == PATCH_REL_SEM_SUCCESS",
+  "new": "rep.status_byte() < 0xff",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-sem-not-had-goes-on",
+  "file": "userland/capsule_driver_mt7921/src/fw/load.rs",
+  "old": "        _ => return Err(Step::Semaphore),\n",
+  "new": "        _ => {}\n",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-patch-resent-when-had",
+  "file": "userland/capsule_driver_mt7921/src/fw/load.rs",
+  "old": "PATCH_IS_DL => return Ok(()),",
+  "new": "PATCH_IS_DL => {}",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-mode-aes-select-lost",
+  "file": "userland/capsule_driver_mt7921/src/fw/mode.rs",
+  "old": "0x02 => mode |= DL_MODE_ENCRYPT | DL_CONFIG_ENCRY_MODE_SEL,",
+  "new": "0x02 => mode |= DL_MODE_ENCRYPT,",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-n9-ready-unchecked",
+  "file": "userland/capsule_driver_mt7921/src/fw/mod.rs",
+  "old": "if !poll(r, CONN_ON_MISC, FW_N9_RDY, FW_N9_RDY, 1500) {",
+  "new": "if false {",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-firmware-two-attempts",
+  "file": "userland/capsule_driver_mt7921/src/bringup/start.rs",
+  "old": "const ATTEMPTS: usize = 3;",
+  "new": "const ATTEMPTS: usize = 2;",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-stop-keeps-bus-master",
+  "file": "userland/capsule_driver_mt7921/src/bringup/rings.rs",
+  "old": "let _ = command(m.device_id, m.epoch, false);",
+  "new": "let _ = m.epoch;",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-address-without-randomness",
+  "file": "userland/capsule_driver_mt7921/src/bringup/start.rs",
+  "old": "(n == mac.len() as i64).then(|| {",
+  "new": "(n == mac.len() as i64 || n < 0).then(|| {",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-address-not-local",
+  "file": "userland/capsule_driver_mt7921/src/bringup/start.rs",
+  "old": "nonos_mac::apply(&mut mac);",
+  "new": "mac[0] |= 0;",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-dead-card-index-trusted",
+  "file": "userland/capsule_driver_mt7921/src/dma/tx.rs",
+  "old": "if done >= self.n as u32 {",
+  "new": "if done > u32::MAX - 1 {",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-tx-ring-overfilled",
+  "file": "userland/capsule_driver_mt7921/src/dma/tx.rs",
+  "old": "self.queued + 1 < self.n - 1",
+  "new": "self.queued < self.n",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rx-continuation-kept",
+  "file": "userland/capsule_driver_mt7921/src/dma/rx.rs",
+  "old": "let whole = !piece && !more",
+  "new": "let whole = !more",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-tokens-never-stale",
+  "file": "userland/capsule_driver_mt7921/src/mac/tokens.rs",
+  "old": "now.saturating_sub(self.since[t]) >= STALE_MS",
+  "new": "now.saturating_sub(self.since[t]) >= STALE_MS * 100",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-token-freed-unheld",
+  "file": "userland/capsule_driver_mt7921/src/mac/tokens.rs",
+  "old": "let held = t < 64 && self.busy & (1 << t) != 0;",
+  "new": "let held = t < 64;",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-txfree-pair-as-token",
+  "file": "userland/capsule_driver_mt7921/src/mac/txfree.rs",
+  "old": "if info & PAIR != 0 {",
+  "new": "if info & PAIR == 7 {",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-txfree-count-cut",
+  "file": "userland/capsule_driver_mt7921/src/mac/txfree.rs",
+  "old": "(w0 >> 16 & 0x3ff)",
+  "new": "(w0 >> 16 & 0x3f)",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rx-decrypted-taken",
+  "file": "userland/capsule_driver_mt7921/src/mac/rxd.rs",
+  "old": "d2 & BAD2 != 0 || decrypted {",
+  "new": "d2 & BAD2 != 0 {",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rx-group2-size",
+  "file": "userland/capsule_driver_mt7921/src/mac/rxd.rs",
+  "old": "(G2, 2), (G3, 2)]",
+  "new": "(G2, 4), (G3, 2)]",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rx-pad-ignored",
+  "file": "userland/capsule_driver_mt7921/src/mac/rxd.rs",
+  "old": "4 * w + 2 * (d2 >> 14 & 3) as usize",
+  "new": "4 * w",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rx-positive-chain",
+  "file": "userland/capsule_driver_mt7921/src/mac/rxd.rs",
+  "old": ".filter(|&s| s < 0)",
+  "new": ".filter(|&s| s < 100)",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rx-error-bits",
+  "file": "userland/capsule_driver_mt7921/src/mac/rxd.rs",
+  "old": "d1 & BAD1 != 0 ||",
+  "new": "d1 & BAD1 & !(1 << 28) != 0 ||",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-txd-rate-not-fixed",
+  "file": "userland/capsule_driver_mt7921/src/mac/txd.rs",
+  "old": "u32::from(group) << 10 | 1 << 13 | 1 << 31;",
+  "new": "u32::from(group) << 10 | 1 << 13;",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-txd-fragment-sent",
+  "file": "userland/capsule_driver_mt7921/src/mac/txd.rs",
+  "old": " || sc & 0xf != 0 {",
+  "new": " {",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-roc-any-token-grants",
+  "file": "userland/capsule_driver_mt7921/src/radio/roc.rs",
+  "old": "card.mcu.grant.is_some_and(|g| g.token == token)",
+  "new": "card.mcu.grant.is_some()",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-roc-miss-not-aborted",
+  "file": "userland/capsule_driver_mt7921/src/radio/roc.rs",
+  "old": "            self.card.cmd(ROC, &abort(token), false);\n            return false;",
+  "new": "            return false;",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-roc-renewed-at-lapse",
+  "file": "userland/capsule_driver_mt7921/src/radio/tune.rs",
+  "old": "life * 7 / 10",
+  "new": "life * 2",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-tune-6ghz",
+  "file": "userland/capsule_driver_mt7921/src/radio/tune.rs",
+  "old": "Band::Ghz6 => false,",
+  "new": "Band::Ghz6 => true,",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-mac-changed-under-association",
+  "file": "userland/capsule_driver_mt7921/src/radio/bss.rs",
+  "old": "if self.joined.is_some() || !vif::remove(",
+  "new": "if !vif::remove(",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-bss-held-as-listen",
+  "file": "userland/capsule_driver_mt7921/src/radio/bss.rs",
+  "old": "            self.acquire(band, ch, true);\n",
+  "new": "            self.acquire(band, ch, false);\n",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-dma-above-4gib",
+  "file": "userland/capsule_driver_mt7921/src/dma/grant.rs",
+  "old": "<= 1 << 32).then_some",
+  "new": "<= u64::MAX).then_some",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-mcu-seq-zero",
+  "file": "userland/capsule_driver_mt7921/src/mcu/mod.rs",
+  "old": "        if self.seq == 0 {\n            self.seq = 1;\n        }\n",
+  "new": "",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-link-ungated",
+  "file": "userland/capsule_driver_mt7921/src/serve/mod.rs",
+  "old": "if is_link(req) && !link_admits(sender, net_core_pid()) {",
+  "new": "if is_link(req) && sender == 0 {",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ }
+]

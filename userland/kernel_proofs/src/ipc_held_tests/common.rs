@@ -38,7 +38,8 @@ pub(super) const WIRED: [&str; 17] = [
     "driver.ax88179_0",
     "driver.rtl8153_0",
 ];
-pub(super) const WIFI: [&str; 2] = ["driver.iwlwifi0", "driver.rtl8821ce0"];
+pub(super) const WIFI: [&str; 4] =
+    ["driver.iwlwifi0", "driver.rtl8821ce0", "driver.rtl8822ce0", "driver.mt7921e0"];
 
 /// A caller that owns exactly the endpoints `names`.
 pub(super) fn owner(names: &'static [&'static str]) -> impl Fn(&str) -> bool {

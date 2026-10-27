@@ -18,4 +18,6 @@ pub(in crate::syscall::contract) struct ResolveContext {
     pub(in crate::syscall::contract) current_asid: u32,
     pub(in crate::syscall::contract) boot_session_nonce: Option<[u8; 16]>,
     pub(in crate::syscall::contract) capsule_revocation_epoch: u64,
+    /// Whether the caller is the desktop shell the kernel spawned.
+    pub(in crate::syscall::contract) caller_is_shell: fn() -> bool,
 }

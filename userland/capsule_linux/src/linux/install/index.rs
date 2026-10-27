@@ -48,6 +48,7 @@ impl Index {
                 Some(b'S') => cur.size = rest.parse().unwrap_or(0),
                 Some(b'V') => cur.version = String::from(rest),
                 Some(b'D') => cur.read_depends(rest),
+                Some(b'i') => cur.read_install_if(rest),
                 Some(b'p') => provides = rest.split_whitespace().map(bare).collect(),
                 _ => {}
             }

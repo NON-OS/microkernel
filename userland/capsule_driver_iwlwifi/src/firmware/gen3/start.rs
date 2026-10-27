@@ -19,9 +19,8 @@
 //! (prepare the card, software reset and retake ownership, APM init), then
 //! `iwl_trans_pcie_gen2_start_fw` up to the self-load kick (prepare again,
 //! clear and mask interrupts, clear the RF-kill handshake bits, gen2 APM init,
-//! interrupt coalescing, shadow registers), and after the kick the LTR
-//! workaround, `UREG_CPU_INIT_RUN` and the wait for the image loader (V2:
-//! CSR_FUNC_SCRATCH and ROM_START, no workaround). Every wait is bounded;
+//! interrupt coalescing, shadow registers), and after the kick the CPU
+//! started (`cpu`). Every wait is bounded;
 //! the ones Linux treats as fatal are fatal here too.
 //!
 //! Interrupts stay with the cause registers: the driver polls them. Linux
@@ -29,14 +28,19 @@
 //! PCI function's interrupt was set up; this driver does not know which the
 //! broker enabled, so it programs both and polls both cause registers.
 
-use super::csr::{CsrLayout, CSR_FUNC_SCRATCH, FUNC_SCRATCH_INIT, GP_ROM_START};
-use super::prph::write_umac;
+use super::csr::CsrLayout;
 use super::region::Clock;
 use super::regs::*;
 use crate::regs::Mmio;
+pub use cpu::after_kick;
+
+#[cfg(test)]
+pub use cpu::{CSR_LTR_LONG_VAL_AD, LTR_BOOT};
 use reset::{mask_all, set, sw_reset};
 pub use reset::{mask_interrupts, stop_device};
 
+mod cpu;
+pub mod gen2;
 pub mod reset;
 
 /// Why the chip did not start.
@@ -49,13 +53,14 @@ pub enum StartError {
     ClockNotReady,
     /// The MAC would not wake for a peripheral register write.
     NoNicAccess,
+    /// A 22000-family part's persistence bit is set and write-protected.
+    Persistent,
 }
 
 const READY_POLL_MS: u32 = 1;
 const PREPARE_ROUNDS: u32 = 10;
 const PREPARE_POLL_MS: u32 = 150;
 const CLOCK_POLL_MS: u32 = 25;
-const IML_POLL_MS: u32 = 100;
 /// `IWL_HOST_INT_TIMEOUT_DEF`.
 const INT_COALESCING_DEF: u32 = 0x40;
 
@@ -149,26 +154,4 @@ pub fn enable_alive_int<M: Mmio>(m: &M) {
     m.write32(CSR_INT_MASK, INT_BIT_ALIVE | INT_BIT_FH_RX);
     m.write32(CSR_MSIX_HW_INT_MASK_AD, !MSIX_HW_ALIVE);
     m.write32(CSR_MSIX_FH_INT_MASK_AD, 0);
-}
-
-/// After the kick, starting the CPU. V1: the LTR workaround (clear the image
-/// loader cause, then keep the device busy until it is set) around
-/// UREG_CPU_INIT_RUN. V2: CSR_FUNC_SCRATCH then ROM_START; `iwl_pcie_set_ltr`
-/// has nothing to do for BZ, so there is no wait.
-pub fn after_kick<M: Mmio, C: Clock>(m: &M, c: &mut C, csr: CsrLayout) -> Result<(), StartError> {
-    if csr == CsrLayout::V2 {
-        m.write32(CSR_FUNC_SCRATCH, FUNC_SCRATCH_INIT);
-        set(m, CSR_GP_CNTRL, GP_ROM_START);
-        return Ok(());
-    }
-    m.write32(CSR_MSIX_HW_INT_CAUSES_AD, MSIX_HW_IML);
-    if !write_umac(m, c, csr, UREG_CPU_INIT_RUN, 1) {
-        return Err(StartError::NoNicAccess);
-    }
-    // `iwl_pcie_spin_for_iml`: not fatal; the ALIVE wait decides.
-    let _ = c.poll_for(IML_POLL_MS, &mut || {
-        let _ = m.read32(CSR_LTR_LAST_MSG);
-        m.read32(CSR_MSIX_HW_INT_CAUSES_AD) & MSIX_HW_IML != 0
-    });
-    Ok(())
 }
