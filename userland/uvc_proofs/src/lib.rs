@@ -56,4 +56,6 @@ mod probe_tests;
 #[cfg(test)]
 mod short_frame_tests;
 #[cfg(test)]
+mod shown_first_tests;
+#[cfg(test)]
 mod webcam;
