@@ -4,10 +4,12 @@
 //! is read where the TXP points, kept, put on the air, and its token named
 //! in a transmit-free report on ring 2 (`PKT_TYPE_TXRX_NOTIFY`, one MSDU).
 //! A frame heard is written to ring 2 behind a normal RXD with group 3,
-//! whose first chain carries the signal as an RCPI.
+//! whose first chain carries the signal as an RCPI. A frame sent at a rate
+//! the access point does not decode is not heard (`phy`).
 
 use super::chip::Chip;
-use super::mem::read_mem;
+use super::mcu_cmds::le32;
+use super::{mem::read_mem, phy};
 
 /// One frame the driver sent: its TXD words and the frame.
 #[derive(Clone, Debug)]
@@ -25,10 +27,6 @@ impl TxFrame {
     pub fn rate(&self) -> u32 {
         self.txd[6] >> 16 & 0x3fff
     }
-}
-
-fn le32(b: &[u8], at: usize) -> u32 {
-    u32::from_le_bytes([b[at], b[at + 1], b[at + 2], b[at + 3]])
 }
 
 /// A received frame as the chip writes it: RXD, group 3, the frame.
@@ -57,7 +55,12 @@ impl Chip {
             self.push_rx(2, report.iter().flat_map(|w| w.to_le_bytes()).collect());
         }
         let tuned = self.mcu.tuned();
-        let replies = self.air.as_mut().map(|a| a.on_frame(&frame, tuned)).unwrap_or_default();
+        if !phy::heard(txd[6], tuned, self.g_only) {
+            self.unheard += 1;
+            return;
+        }
+        let mut replies = self.air.as_mut().map(|a| a.on_frame(&frame, tuned)).unwrap_or_default();
+        replies.extend(self.wpa3.as_mut().map(|a| a.on_frame(&frame, tuned)).unwrap_or_default());
         for f in replies {
             self.receive(f);
         }
@@ -65,6 +68,7 @@ impl Chip {
 
     /// A frame heard on the air, onto ring 2.
     pub fn receive(&mut self, frame: Vec<u8>) {
+        let frame = if self.g_only { phy::g_only(frame) } else { frame };
         let rssi = self.air.as_ref().map_or(-50, |a| a.rssi);
         self.push_rx(2, rx_buffer(&frame, rssi));
     }

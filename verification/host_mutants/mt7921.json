@@ -493,5 +493,16 @@
    "--release"
   ],
   "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-5ghz-rates-take-cck",
+  "file": "userland/capsule_driver_mt7921/src/mac/rate.rs",
+  "old": "&RATES[4..]",
+  "new": "&RATES",
+  "test": "wpa3_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
  }
 ]
