@@ -1,7 +1,7 @@
 # USB networking
 
 Five USB network driver [capsules](../../overview/glossary-boot-root-record.md#capsule) (CDC-ECM,
-CDC-NCM, RNDIS, ASIX AX88179 and Realtek RTL8153, the last two now quarantined) sit in the tree on
+CDC-NCM, RNDIS, ASIX AX88179, written again, and Realtek RTL8153, quarantined) sit in the tree on
 one shared core, `nonos_usbnet`; none runs in 0.9.2. This page says what kept them out and where
 they stand now; [what each binds](usb-net-binding.md) has its own page.
 
@@ -40,13 +40,19 @@ flowchart LR
 
 Each class capsule holds only its binding and its framing. The shared core `nonos_usbnet` holds the client side of every USB host, the descriptor walk, the search for a device on the hosts' root ports and the NNET frame service that `net.core` speaks (`userland/nonos_usbnet/src/lib.rs`, `run`). No USB network capsule touches the controller: it holds no Driver, DeviceEnum, Mmio, Irq, Dma or Pio [capability](../../overview/glossary-boot-root-record.md#capability-word). What each capsule binds is on [its own page](usb-net-binding.md).
 
-The ASIX AX88179 and Realtek RTL8153 capsules are quarantined (branches `quarantine/ax88179` and `quarantine/rtl8153`): their register maps, values and bring-up order were taken from another driver, and no public programming reference exists to rewrite them from (Decision 10). RTL8153 adapters are bound by the CDC-ECM capsule in their ECM configuration.
+The Realtek RTL8153 capsule is quarantined (branch `quarantine/rtl8153`): its register map, values and bring-up order were taken from another driver, and no public programming reference exists to rewrite them from (Decision 10). RTL8153 adapters are bound by the CDC-ECM capsule in their ECM configuration.
+
+## ASIX AX88179
+
+The ASIX AX88179 (USB 3.0) and AX88178A (USB 2.0) gigabit chips, one of the two most common USB Ethernet dongles, are driven by `capsule_driver_ax88179` (`driver.ax88179_0`, port 4256). The first AX88179 capsule was quarantined (branch `quarantine/ax88179`) because its structure followed another system's driver. On the owner's instruction this one is written here from a reading of Linux v6.12's `ax88179_178a.c` for behaviour only: what the chip is sent, in which order and with which values, with this tree's own structure, names and bounds (`userland/capsule_driver_ax88179/BINDING.md`). It binds the 13 vendor and product pairs Linux v6.12 lists, in a configuration with the chip's vendor interface; one that offers only a class configuration is left to CDC-NCM or CDC-ECM.
+
+It is in the Standard image (`microkernel-full-gui`), spawned wherever a USB host is (`src/userspace/init/spawn_plan/drivers_usbnet/ax88179.rs`), held to `net.core` and `net.l2` through the card table, and waits on the owner's seal like the other capsules in `scripts/baselines/unsealed.txt`. It is host-proven only: QEMU has no AX88179, and no boot on the hardware exists ([the test plan](../../hardware/real-hardware-checklist.md#usb-ethernet-asix-ax88179)).
 
 ## Addresses and capabilities
 
-Like the PCI drivers, these capsules never use the adapter's own station address. Each draws one from `CryptoRandom` once a run, before the first bind, and hands the same one to every device it binds, so a device bound again after a loss keeps the address `net.core` took at the first bind; without entropy no device is bound (`userland/nonos_usbnet/src/station.rs`, `draw`; `userland/nonos_usbnet/src/scan/net.rs`, `NetScanner::new`). CDC-NCM gives it with SET_NET_ADDRESS when the device offers that, RNDIS sets OID_802_3_CURRENT_ADDRESS, and a device that cannot take it has its packet filter opened; CDC-ECM has no request for it, so its filter is always opened.
+Like the PCI drivers, these capsules never use the adapter's own station address. Each draws one from `CryptoRandom` once a run, before the first bind, and hands the same one to every device it binds, so a device bound again after a loss keeps the address `net.core` took at the first bind; without entropy no device is bound (`userland/nonos_usbnet/src/station.rs`, `draw`; `userland/nonos_usbnet/src/scan/net.rs`, `NetScanner::new`). CDC-NCM gives it with SET_NET_ADDRESS when the device offers that, RNDIS sets OID_802_3_CURRENT_ADDRESS, and a device that cannot take it has its packet filter opened; CDC-ECM has no request for it, so its filter is always opened. The AX88179 has it written into its station register before receive is started; its factory address is never read (`userland/capsule_driver_ax88179/src/ax/plan.rs`, `plan`).
 
-All three ask for the capability mask 0x38: IPC, Memory and Crypto, the bit `CryptoRandom` is gated on, with Debug (0x100) optional (`userland/capsule_driver_cdc_ecm/Capsule.mk`, `CAPSULE_REQUIRED_CAPS`; `src/capabilities/types/defs.rs`, `Crypto`). Their loop drops the messages it sent itself by its own pid, which it reads back with `MkServiceLookup` under its service name rather than `MkGetPid`, so no CoreExec is needed (`userland/nonos_usbnet/src/run/me.rs`, `own_pid`). The kernel admits `MkDebug` only with Debug (`src/syscall/contract/cap_table/mk_device.rs`, `can_debug`), so the `[usbnet ...]` lines reach the log only in a build that compiles `capsule-serial-debug`.
+All four ask for the capability mask 0x38: IPC, Memory and Crypto, the bit `CryptoRandom` is gated on, with Debug (0x100) optional (`userland/capsule_driver_cdc_ecm/Capsule.mk`, `CAPSULE_REQUIRED_CAPS`; `src/capabilities/types/defs.rs`, `Crypto`). Their loop drops the messages it sent itself by its own pid, which it reads back with `MkServiceLookup` under its service name rather than `MkGetPid`, so no CoreExec is needed (`userland/nonos_usbnet/src/run/me.rs`, `own_pid`). The kernel admits `MkDebug` only with Debug (`src/syscall/contract/cap_table/mk_device.rs`, `can_debug`), so the `[usbnet ...]` lines reach the log only in a build that compiles `capsule-serial-debug`.
 
 ## Tests on this commit
 
@@ -58,6 +64,7 @@ Each capsule has a [proof crate](../../overview/glossary-peer-list.md#proof-crat
 | `cdc_ecm_proofs` | 24 tests pass |
 | `cdc_ncm_proofs` | 46 tests pass |
 | `rndis_proofs` | 30 tests pass |
+| `ax88179_proofs` | 32 tests pass; 17 mutants, one per bound, each caught |
 
 ```sh
 cd userland/cdc_ncm_proofs && cargo test --release --config profile.release.overflow-checks=true
