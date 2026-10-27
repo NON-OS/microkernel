@@ -1,0 +1,61 @@
+{
+  "schema_version": 4,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.swayimg",
+      "capsule_id": "06319e6aa60c56f55f8da576d1b8695363ef2d3ba3e3f2c698281c28df360456",
+      "name": "swayimg",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "An image viewer that opens in its own window: PNG, JPEG, GIF, WebP, SVG and more, with zoom, pan and a slideshow. It reads only files in its own home and has no network at all. It decodes untrusted images with the usual libraries, so a hostile image is held by its box, not by the viewer.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "swayimg@2.2-r1",
+          "manifest_hash": "06319e6aa60c56f55f8da576d1b8695363ef2d3ba3e3f2c698281c28df360456",
+          "package_hash": "06319e6aa60c56f55f8da576d1b8695363ef2d3ba3e3f2c698281c28df360456",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/swayimg-2.2-r1.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c3031010000000000000089a73c4aa4a1059ce06ef264eab429504d5c019d1759cc2af8a1f44716947d0f0900000000000000685483aa333d8af8fb18062c51a0eb5f21dc4f2014700e225ac1ec2442c3d712631ff988315674cabf4161a9fd8c96e76285f81cd69d01effa1cd62eabb0d3620000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 51409 bytes; licence MIT; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}
