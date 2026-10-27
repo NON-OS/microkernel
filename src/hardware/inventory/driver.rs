@@ -42,6 +42,7 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         NetworkTulip => "driver_tulip",
         NetworkRtl8821ce => "driver_rtl8821ce",
         NetworkRtl8822ce => "driver_rtl8822ce",
+        NetworkMt7921 => "driver_mt7921",
         NetworkIwlwifi => "driver_iwlwifi",
         DisplayVirtioGpu => "driver_virtio_gpu",
         // It keeps the firmware's mode until the compositor asks for another

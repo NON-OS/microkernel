@@ -2,7 +2,8 @@
 
 //! Discovery's output: never past the buffer, each adapter's ids kept, and
 //! the friendly names for the parts we target (Realtek RTL8821CE, Intel
-//! AX200/AX210 including the Alder Lake CNVi 0x51f0) pinned.
+//! AX200/AX210 including the Alder Lake CNVi 0x51f0, MediaTek MT7921/MT7922)
+//! pinned.
 
 use super::interface_rig::*;
 use crate::adapter_name::adapter_label;
@@ -28,6 +29,10 @@ fn known_parts_get_specific_names() {
     assert_eq!(adapter_label(0x8086, 0x2723), "Intel Wi-Fi 6 AX200");
     assert_eq!(adapter_label(0x8086, 0x1234), "Intel Wi-Fi");
     assert_eq!(adapter_label(0x10EC, 0x9999), "Realtek Wi-Fi");
+    assert_eq!(adapter_label(0x14C3, 0x7961), "MediaTek MT7921");
+    assert_eq!(adapter_label(0x14C3, 0x0616), "MediaTek MT7922");
+    assert_eq!(adapter_label(0x0B48, 0x7922), "MediaTek MT7922");
+    assert_eq!(adapter_label(0x14C3, 0x7925), "Wi-Fi adapter");
     assert_eq!(adapter_label(0x1111, 0x2222), "Wi-Fi adapter");
 }
 

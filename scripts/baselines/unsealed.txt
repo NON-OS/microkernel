@@ -12,6 +12,7 @@ driver-igb
 driver-igc
 driver-ixgbe
 driver-mpt
+driver-mt7921
 driver-ohci
 driver-pcnet
 driver-piix-ide
