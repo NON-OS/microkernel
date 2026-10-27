@@ -41,6 +41,7 @@ impl<M: DmaMem> Rings<M> {
         for t in [&mut self.ach0, &mut self.ch8, &mut self.ch12] {
             t.wp = 0;
             t.rp = 0;
+            t.busy = 0;
             tx_regs(r, &t.ch, t.len, t.mem.device_addr() as u32);
         }
         for (i, ch) in IDLE.iter().enumerate() {

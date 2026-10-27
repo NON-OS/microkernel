@@ -21,15 +21,17 @@ pub struct TxRing<M: DmaMem> {
     pub len: u32,
     pub wp: u32,
     pub rp: u32,
+    /// Frame slots whose release report has not come (`tx::wd_ring`).
+    pub busy: u64,
 }
 
 impl<M: DmaMem> TxRing<M> {
     /// A ring of `len` descriptors over `mem`, which must hold the
     /// descriptors' page and `len` slots (`bytes_for`).
     pub fn new(mem: M, ch: ChAddrs, len: u32) -> Option<Self> {
-        let fits = len as usize <= SLOT / TX_BD_SIZE;
+        let fits = len as usize <= SLOT / TX_BD_SIZE && len <= 64;
         let ok = len >= 2 && fits && mem.capacity() >= bytes_for(len);
-        ok.then_some(Self { mem, ch, len, wp: 0, rp: 0 })
+        ok.then_some(Self { mem, ch, len, wp: 0, rp: 0, busy: 0 })
     }
 
     /// The slot's offset in the region.
