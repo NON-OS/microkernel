@@ -25,11 +25,17 @@ use nonos_libc::{mk_dma_map, DmaMapOut, MK_DMA_MAP_DMA32};
 use super::super::env::DmaBuf;
 use super::super::error::{EmmcError, EmmcResult};
 
+/// What a grant shorter than asked counts as: the region asked for was not
+/// given, as when the broker has no memory for it (ENOMEM).
+const SHORT_GRANT: i64 = -12;
+
 /// A zeroed, physically contiguous region of `length` bytes (a multiple of
 /// 4 KiB) the claimed device may reach until the claim is released. For a
 /// host without 64-bit addressing (`dma64` false) it is asked below 4 GiB:
 /// ADMA2 in 32-bit mode names nothing above, and the kernel may place a map
-/// that does not ask there.
+/// that does not ask there. A grant shorter than `length` is refused, and
+/// one longer is used for `length` bytes only, so the ADMA2 table and every
+/// transfer are bounded by what was asked, never by what came back.
 pub fn map(device_id: u64, claim_epoch: u64, length: u64, dma64: bool) -> EmmcResult<DmaBuf> {
     let flags = if dma64 { 0 } else { MK_DMA_MAP_DMA32 };
     let mut out = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
@@ -37,5 +43,8 @@ pub fn map(device_id: u64, claim_epoch: u64, length: u64, dma64: bool) -> EmmcRe
     if r < 0 {
         return Err(EmmcError::Broker(r));
     }
-    Ok(DmaBuf { va: out.user_va, bus: out.device_addr, len: out.length as usize })
+    if out.length < length {
+        return Err(EmmcError::Broker(SHORT_GRANT));
+    }
+    Ok(DmaBuf { va: out.user_va, bus: out.device_addr, len: length as usize })
 }
