@@ -21,10 +21,12 @@ RF type in CSR_HW_RF_ID. The PCI id gives the transport values (cfg/ax210.c).
 | same | QuZ 0x35, any step | HR | `iwlwifi-QuZ-a0-hr-b0-77.ucode` | yes |
 | 0x2723 (AX200, discrete) | any | any | `iwlwifi-cc-a0-77.ucode` | yes |
 
-A known adapter whose image is not in the tree is refused by name (step 4,
-detail 0x6000i, i the image number), as is anything else (an SO CDB GF4
-module, JF, a blank OTP, an MA MAC of another step or an MA RF of another
-step, since Linux names the MA image from both, an MA HR module, an unknown
+A blank OTP (CSR_HW_RF_ID naming no RF type) is named from the CRF id, as
+Linux's `map_crf_id` names it (`gen3::select::crf`); a CRF type Linux does
+not map leaves it blank. A known adapter whose image is not in the tree is
+refused by name (step 4, detail 0x6000i, i the image number), as is
+anything else (an SO CDB GF4 module, JF, a blank OTP with no mapped CRF
+type, an MA MAC of another step or an MA RF of another step, since Linux names the MA image from both, an MA HR module, an unknown
 MAC), rather than started on a firmware it does not run.
 The TY and MA images are the AX211 image's build (core83-73) for those MACs:
 every command and notification version the driver speaks is the AX211
