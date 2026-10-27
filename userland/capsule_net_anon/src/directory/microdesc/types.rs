@@ -16,6 +16,8 @@
 
 //! The half of a relay that only a microdescriptor carries.
 
+use super::summary::Summary;
+
 /// What a microdescriptor contributes to a usable relay.
 #[derive(Clone, Default)]
 pub struct Microdesc {
@@ -25,4 +27,7 @@ pub struct Microdesc {
     pub ed25519_identity: [u8; 32],
     /// Whether the published exit summary lets a web port out.
     pub exits_web: bool,
+    /// The summary itself, for a stream to any other port. A malformed line
+    /// leaves the default, which lets nothing out.
+    pub ports: Summary,
 }

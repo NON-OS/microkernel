@@ -54,6 +54,7 @@ impl Manager {
             circuit_cursor: 0,
             guard: None,
             given_up: alloc::vec::Vec::new(),
+            exits: Default::default(),
             refreshing: false,
             next: None,
         }
