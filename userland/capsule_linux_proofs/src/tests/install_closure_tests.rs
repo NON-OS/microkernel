@@ -19,6 +19,7 @@
 //! closure.rs).
 
 use crate::install::index::{self, Index};
+use crate::install::install_if;
 
 #[path = "../../../capsule_linux/src/linux/install/get"]
 mod get {
@@ -52,4 +53,23 @@ fn a_need_nothing_provides_or_too_many_ends_it_before_a_fetch() {
     index.add(TEXT, 0);
     assert_eq!(names(&index, "app", 3), Err(Closed::TooLarge));
     assert!(names(&index, "app", 4).is_ok());
+}
+
+/* KeePassXC's: a need named only by a provider waits for the named ones, so
+ * qt5-qtbase's icu-data-full is taken, and install_if brings the Wayland
+ * platform once its rule is met. */
+#[test]
+fn a_provider_named_later_and_install_ifs_package_are_in_the_closure() {
+    let mut index = Index::default();
+    index.add(
+        b"P:app\nV:1\nD:icu-libs qt5-qtbase\n\nP:icu-libs\nV:1\nD:icu-data\n\n\
+P:icu-data-en\nV:1\np:icu-data=1\n\nP:icu-data-full\nV:1\np:icu-data=1\n\n\
+P:qt5-qtbase\nV:1\nD:icu-data-full\n\nP:qt5-qtwayland\nV:1\ni:qt5-qtbase wayland-libs-server\n\n",
+        0,
+    );
+    let got = names(&index, "app", 10).unwrap();
+    assert!(
+        got.contains(&"icu-data-full".to_string()) && got.contains(&"qt5-qtwayland".to_string())
+    );
+    assert!(!got.contains(&"icu-data-en".to_string()), "{got:?}");
 }
