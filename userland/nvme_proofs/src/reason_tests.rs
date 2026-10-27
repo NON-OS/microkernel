@@ -34,6 +34,7 @@ fn every_failure() -> Vec<NvmeError> {
         NvmeError::AdminCommandFailed,
         NvmeError::InvalidTransfer,
         NvmeError::ShutdownTimeout,
+        NvmeError::DmaGrantShort,
     ];
     for e in all {
         match e {
@@ -47,7 +48,8 @@ fn every_failure() -> Vec<NvmeError> {
             | NvmeError::ClockFailed
             | NvmeError::AdminCommandFailed
             | NvmeError::InvalidTransfer
-            | NvmeError::ShutdownTimeout => {}
+            | NvmeError::ShutdownTimeout
+            | NvmeError::DmaGrantShort => {}
         }
     }
     all.to_vec()

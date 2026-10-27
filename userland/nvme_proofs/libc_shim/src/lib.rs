@@ -34,7 +34,7 @@ pub use debug::{logged, mk_debug};
 pub use device::{
     mk_device_claim, mk_irq_bind, mk_mmio_map, set_bar0, IrqBindOut, MmioMapOut, MK_IRQ_BIND_MSIX,
 };
-pub use dma::{mk_dma_map, mk_dma_unmap, DmaMapOut};
+pub use dma::{mk_dma_map, mk_dma_unmap, skew_grants, DmaMapOut};
 pub use grants::{mk_device_release, mk_irq_unbind, mk_mmio_unmap};
 pub use idle::{idles, mk_idle_ms};
 pub use irq::{mk_irq_wait, mk_yield, raise, MK_IRQ_WAIT_TIMED_OUT, REFUSED_GRANT};
