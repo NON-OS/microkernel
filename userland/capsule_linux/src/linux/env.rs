@@ -32,6 +32,17 @@ pub fn default() -> Vec<Vec<u8>> {
         // wayland-0 reaches the personality's compositor (unix/path.rs).
         b"XDG_RUNTIME_DIR=/run/user/0".to_vec(),
         b"WAYLAND_DISPLAY=wayland-0".to_vec(),
+        // A window program's toolkit is told it is on Wayland, and drawn
+        // without GL, which no guest has: GTK 4 through cairo, Qt Quick in
+        // software. Qt and GDK are held to Wayland, as there is no X server
+        // to fall back to, and GTK's accessibility bridge is not started,
+        // as there is no session bus for it.
+        b"XDG_SESSION_TYPE=wayland".to_vec(),
+        b"GDK_BACKEND=wayland".to_vec(),
+        b"QT_QPA_PLATFORM=wayland".to_vec(),
+        b"GSK_RENDERER=cairo".to_vec(),
+        b"QT_QUICK_BACKEND=software".to_vec(),
+        b"NO_AT_BRIDGE=1".to_vec(),
     ]
 }
 
