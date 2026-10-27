@@ -49,8 +49,31 @@ def click(q, button="left"):
         time.sleep(0.08)
 
 
+def count(serial, text):
+    with open(serial, errors="replace") as f:
+        return f.read().count(text)
+
+
+def after(serial, text, secs):
+    """TEXT once more than when the step began: a line every install says."""
+    seen, end = count(serial, text), time.time() + secs
+    while time.time() < end:
+        if count(serial, text) > seen:
+            return True
+        time.sleep(1)
+    return False
+
+
 def run(q, s, out, serial):
     kind, _, arg = s.partition(":")
+    if kind == "after":
+        timed = arg.rsplit(":", 1)[-1].isdigit()
+        text, _, secs = arg.rpartition(":") if timed else (arg, "", "600")
+        ok = after(serial, text, float(secs or 600))
+        print(f"  after {text!r}: {'seen' if ok else 'NOT SEEN'}", flush=True)
+        if not ok:
+            dump(q, out)
+        return ok
     if kind == "until":
         timed = arg.rsplit(":", 1)[-1].isdigit()
         text, _, secs = arg.rpartition(":") if timed else (arg, "", "600")
