@@ -1,0 +1,12 @@
+{
+ "commit": "bf992df7a95b5e19bb8f8546eb4d7c53ab2598d0",
+ "files": [
+  {"path": "mediatek/WIFI_MT7961_patch_mcu_1_2_hdr.bin", "size": 92192, "sha256": "a276c06c2b772adb50b86639d33c82824ff4c21d617feb78caea74c040b873f6"},
+  {"path": "mediatek/WIFI_RAM_CODE_MT7961_1.bin", "size": 792036, "sha256": "b94217a951518a9c14095765f367bc5dd7698f2dc033941d6f18fc2ebd6a2ab9"},
+  {"path": "mediatek/WIFI_MT7961_patch_mcu_1a_2_hdr.bin", "size": 100384, "sha256": "a766c4e39815e554c80ce5b1596095ff283a60db93356679fecd6494f71cee23"},
+  {"path": "mediatek/WIFI_RAM_CODE_MT7961_1a.bin", "size": 802808, "sha256": "3edec74ffe341b917e7fa4ddb2b68851411f2416555f10619a5900fa4b141e6c"},
+  {"path": "mediatek/WIFI_MT7922_patch_mcu_1_1_hdr.bin", "size": 137632, "sha256": "7fc9075d6d54b31e0539734614ca971fa52caf41b642a3000c8a4501591a4d98"},
+  {"path": "mediatek/WIFI_RAM_CODE_MT7922_1.bin", "size": 1231252, "sha256": "d100e5e04c324fc8da6302112d1e0b4fac952286447d2419eabcd8fb0a1f5b93"},
+  {"path": "LICENSES/LICENCE.mediatek", "sha256": "a90d3f66704d85889945fec5525ea77622549da83aced1aac99828383f8f1805"}
+ ]
+}

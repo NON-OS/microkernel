@@ -19,6 +19,7 @@ mod approval;
 mod boot;
 mod boot_evidence;
 mod dev;
+mod firmware_package;
 mod init;
 mod install_source;
 mod loader_path;
