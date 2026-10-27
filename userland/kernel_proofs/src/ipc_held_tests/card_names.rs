@@ -64,6 +64,7 @@ fn the_table_names_every_card_the_kernel_starts() {
         include_str!("../../../../src/hardware/rtl8153_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/iwlwifi_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/rtl8821ce_capsule/spawn.rs"),
+        include_str!("../../../../src/hardware/rtl8822ce_capsule/spawn.rs"),
     ];
     assert_eq!(spawns.len(), NICS.len(), "a card on the table has no spawn here");
     for ((card, _), spawn) in NICS.iter().zip(spawns) {
