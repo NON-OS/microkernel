@@ -33,3 +33,10 @@ pub mod cipher_sim;
 pub mod pmf_sim;
 #[cfg(test)]
 pub mod soft;
+// The RTL8852 proofs' WPA3 access point (SAE by hash-to-element, PMF
+// required), and the same access point in WPA3 transition mode.
+#[cfg(test)]
+#[path = "../../rtl8852_proofs/src/sae_air/mod.rs"]
+pub mod sae_air;
+#[cfg(test)]
+pub mod sae_mixed;
