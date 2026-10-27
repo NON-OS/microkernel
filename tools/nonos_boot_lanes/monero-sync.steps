@@ -1,0 +1,32 @@
+# Monero syncing with a node over the anonymity network (S1): after the
+# setup steps of a boot whose network reaches the internet (the host's own
+# network-enabled setup steps go first), install monero, make a wallet, and
+# refresh it through the SOCKS endpoint the Linux personality serves at
+# 127.0.0.1:9050. A pass: the wallet reports the daemon's height and starts
+# scanning; no "Failed to connect to daemon", no "spy node" prompt. The
+# serial (debug build) shows the stream opened on the network setup chose.
+key:ctrl+alt+t
+wait:40
+type:market install linux.monero
+key:ret
+until:[LINUX] installed:9000
+wait:20
+type:linux monero-wallet-cli --generate-new-wallet /root/w --password nonos-test-pass --mnemonic-language English --proxy 127.0.0.1:9050 --daemon-address node.moneroworld.com:18089 --trusted-daemon
+key:ret
+wait:240
+shot:wallet-made
+type:N
+key:ret
+wait:60
+type:status
+key:ret
+wait:90
+shot:status
+type:refresh
+key:ret
+wait:300
+shot:refresh
+type:exit
+key:ret
+wait:60
+shot:exit
