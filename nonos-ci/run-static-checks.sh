@@ -5598,9 +5598,11 @@ unset suites_out
 
 # A drive whose `until` step times out leaves every CPU's registers and the
 # code at each one's PC behind, read from that CPU; an unplug step pulls a
-# device out or fails the run (tools/nonos_drive).
+# device out or fails the run; a drive filmed (--record) stops ffmpeg, then
+# QEMU, then Xvfb, and the tutorial's steps are all steps it knows
+# (tools/nonos_drive).
 if drive_out="$( (cd tools && python3 -m unittest -q nonos_drive.test_drive \
-    nonos_drive.test_plug) 2>&1)"; then
+    nonos_drive.test_plug nonos_drive.test_record) 2>&1)"; then
     note ok "a drive that stops at a step leaves every CPU's state, and unplugs (nonos_drive)"
 else
     tail -n 8 <<< "${drive_out}" >&2
@@ -5608,10 +5610,24 @@ else
 fi
 unset drive_out
 
+# The tour's cut: an edit's times found from the recording's captions, zooms
+# that stay 16:9 inside the frame, chapters cross-faded where their marks
+# say, cards in the desktop's colours, and an edit that names only captions
+# the tour has (tools/nonos_tutorial/post).
+if post_out="$( (cd tools && python3 -m unittest -q nonos_tutorial.post.test_post) 2>&1)"; then
+    note ok "the tour's cut keeps to its edit and the brand (nonos_tutorial/post)"
+else
+    tail -n 8 <<< "${post_out}" >&2
+    fail_with "nonos_tutorial/post: the cut breaks its edit or the brand"
+fi
+unset post_out
+
 # A drive's type: step sends every printable character as the keys that type
-# it, and refuses one with no key instead of dropping it; each rule's mutant
-# fails the keys suite (tools/nonos_drive/mutants.json).
-if keys_out="$( (cd tools && python3 -m unittest -q nonos_drive.test_keys nonos_drive.test_mutants) 2>&1)"; then
+# it, and refuses one with no key instead of dropping it; a say: caption is
+# renamed into place whole; each rule's mutant fails the keys or caption
+# suite (tools/nonos_drive/mutants.json).
+if keys_out="$( (cd tools && python3 -m unittest -q nonos_drive.test_keys nonos_drive.test_caption \
+    nonos_drive.test_mutants) 2>&1)"; then
     note ok "a typed line reaches the guest whole, or the drive stops (nonos_drive)"
 else
     tail -n 8 <<< "${keys_out}" >&2
