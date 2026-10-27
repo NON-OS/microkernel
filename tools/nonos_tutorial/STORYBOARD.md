@@ -108,7 +108,10 @@ part of the recording.
 The dock and the menu bar. The status area (no battery, the network mark,
 search, the clock). The first menu, with About this system and Power Off.
 The Launchpad. Files. Settings ("never sent on a network"). About, with
-its Verified badge, and its Proofs page.
+its Verified badge, and its Proofs page. On a development image, Proofs
+answers "Not attested: a check below failed", and a dev-image caption
+says so: its boot chain is development, not release. A sealed image's
+answer has not been filmed yet, so the sealed cut says only the question.
 
 Post: a lower-third, "Settings / Names never sent on a network". A zoom
 onto About's Verified badge.
@@ -194,10 +197,14 @@ Post: a zoom onto the wallet syncing.
 
 ## 10. Your own AI
 
-*A language model that never leaves the machine.* 1:00. Needs a Qwen model.
-Both images carry Qwen3 0.6B on the stick.
+*A language model that never leaves the machine.* 1:15. Needs a Qwen model.
+Both images carry Qwen3 0.6B on the stick. Rehearsed to the model's load:
+under TCG the answer did not come in time, so check it on the first KVM
+run.
 
-Beats: `qwen what is a microkernel? ...`. The answer streams in.
+Beats: `qwen what is a microkernel? ...`. Its policy line,
+`WAYLAND MODELS_RO TTY`, with no network. The model checked against its
+signed pin ("qwen: verified") and loaded. The answer streams in.
 
 Post: a lower-third, "Qwen3 0.6B / On the stick, held in memory, offline".
 Any wait for the model to load can be sped up in the edit.
