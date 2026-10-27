@@ -22,10 +22,11 @@ use nonos_app_skeleton::discover::lookup_port;
 use crate::linux::guest::Guest;
 
 use super::super::reshape::{reshape, Reshape};
-use super::super::subsurface::compose::compose;
+use super::super::scene_pixels::Pixels;
 use super::super::window_damage::window_damage;
+use super::frame::fill::{fill, window_bytes};
 use super::refit::refit;
-use super::source::{source, take};
+use super::source::source;
 use super::window::show;
 
 const NO_ROOM: &[u8] = b"[WAYLAND] no room for the frame, not shown\n";
@@ -36,7 +37,6 @@ pub fn present(guest: &mut Guest, surface: u32, buffer: u32) {
         Ok(found) => found,
         Err(why) => return say(why),
     };
-    let (width, height, _) = src.shape;
     // Presented by the compositor, as every other app's window is; the
     // personality holds no GfxPresent and needs none. A buffer of a shape
     // the surface does not have gets one that has it (reshape.rs).
@@ -44,20 +44,23 @@ pub fn present(guest: &mut Guest, surface: u32, buffer: u32) {
         super::super::popup::ends::end_all(guest);
         return show(guest, surface, &src);
     }
-    /* Straight into the frame: a second buffer would hold the pixels twice. */
+    // Into the window's frame, painted around the guest's pixels (frame/).
+    let a = super::frame::now::around_shape(&guest.scene, src.shape);
     let pid = guest.pid;
-    let Some(frame) = guest.scene.pixels.frame(src.bytes) else {
-        return say(NO_ROOM);
+    let mut pixels = core::mem::replace(&mut guest.scene.pixels, Pixels::empty());
+    let filled = match pixels.frame(window_bytes(a, &src)) {
+        Some(out) => fill(&mut guest.scene, (pid, surface), &src, out, a),
+        None => return say(NO_ROOM),
     };
-    if !take(pid, &src, frame) {
+    guest.scene.pixels = pixels;
+    if !filled {
         return;
     }
-    compose(&mut guest.scene.subs, surface, frame, src.shape);
     if guest.scene.fit.due().is_some() {
         refit(&mut guest.scene);
     }
     // In screen coordinates, where the window is (window_damage.rs).
-    let Some((x, y, w, h)) = window_damage(guest.scene.at, width, height) else {
+    let Some((x, y, w, h)) = window_damage(guest.scene.at, a.w, a.h) else {
         return;
     };
     if let Some(port) = lookup_port(b"compositor") {

@@ -194,6 +194,8 @@ nonos-capsule-driver-gpio       = []
 nonos-capsule-driver-i2c-hid    = []
 nonos-capsule-driver-iwlwifi    = []
 nonos-capsule-driver-rtl8821ce  = []
+nonos-capsule-driver-rtl8822ce  = []
+nonos-capsule-driver-mt7921     = []
 nonos-capsule-driver-rtl8139    = []
 nonos-capsule-driver-rtl8169    = []
 nonos-capsule-driver-pcnet      = []
@@ -459,6 +461,20 @@ microkernel-driver-rtl8821ce = [
   "nonos-production",
   "nonos-capsule-proof-io",
   "nonos-capsule-driver-rtl8821ce",
+]
+
+microkernel-driver-rtl8822ce = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-rtl8822ce",
+]
+
+microkernel-driver-mt7921 = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-mt7921",
 ]
 
 microkernel-driver-i2c-pci = [
@@ -1090,6 +1106,8 @@ microkernel-full-gui = [
   "nonos-capsule-driver-vmware-svga",
   "nonos-capsule-driver-iwlwifi",
   "nonos-capsule-driver-rtl8821ce",
+  "nonos-capsule-driver-rtl8822ce",
+  "nonos-capsule-driver-mt7921",
   "nonos-capsule-driver-hda",
   "nonos-capsule-driver-ac97",
   "nonos-capsule-driver-vmmdev",

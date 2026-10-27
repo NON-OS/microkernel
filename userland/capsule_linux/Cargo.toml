@@ -34,6 +34,8 @@ dev-mirror = []
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
+# The NØNOS window frame drawn around a guest's window (src/linux/wayland/present/frame).
+nonos_toolkit = { path = "../toolkit", default-features = false }
 nonos_inflate = { path = "../inflate" }
 nonos_hash = { path = "../nonos_hash" }
 nonos_tls = { path = "../nonos_tls" }

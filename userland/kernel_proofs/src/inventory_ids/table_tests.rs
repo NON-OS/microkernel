@@ -1,26 +1,16 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! Each kernel table is its capsule's, and no part is in two.
 
 use super::intel_ethernet_ids::{
     E1000E_DEVICE_IDS, E1000_DEVICE_IDS, IGB_DEVICE_IDS, IGC_DEVICE_IDS, IXGBE_DEVICE_IDS,
 };
-use super::realtek_ids::{RTL8139_DEVICE_ID, RTL8169_DEVICE_IDS, RTL8821CE_DEVICE_IDS};
-use super::{e1000, e1000e, igb, igc, ixgbe, rtl8139, rtl8169, rtl8821ce};
+use super::realtek_ids::{
+    RTL8139_DEVICE_ID, RTL8169_DEVICE_IDS, RTL8821CE_DEVICE_IDS, RTL8822CE_DEVICE_IDS,
+};
+use super::{e1000, e1000e, igb, igc, ixgbe, rtl8139, rtl8169, rtl8821ce, rtl8822ce};
 
 fn sorted(ids: &[u16]) -> Vec<u16> {
     let mut v = ids.to_vec();
@@ -51,6 +41,7 @@ fn each_table_is_its_capsules() {
     assert_eq!(sorted(&RTL8169_DEVICE_IDS), sorted(rtl8169::RTL8169_DEVICE_IDS));
     assert_eq!(RTL8139_DEVICE_ID, rtl8139::RTL8139_DEVICE_ID);
     assert_eq!(sorted(&RTL8821CE_DEVICE_IDS), sorted(&rtl8821ce::RTL8821CE_DEVICE_IDS));
+    assert_eq!(sorted(&RTL8822CE_DEVICE_IDS), sorted(&rtl8822ce::RTL8822CE_DEVICE_IDS));
 }
 
 #[test]
@@ -67,4 +58,5 @@ fn no_part_is_in_two_tables_or_twice_in_one() {
     seen.dedup();
     assert_eq!(seen.len(), all.len());
     assert!(!RTL8169_DEVICE_IDS.contains(&RTL8139_DEVICE_ID));
+    assert!(!RTL8821CE_DEVICE_IDS.iter().any(|id| RTL8822CE_DEVICE_IDS.contains(id)));
 }
