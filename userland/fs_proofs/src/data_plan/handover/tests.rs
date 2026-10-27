@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Where the record lies and what it is bound to: it round-trips, a clear
 //! leaves every other byte of the sector, a header changed in any byte way 3
 //! binds does not open it, and its sealed bytes put in way 3's place do not
@@ -23,7 +22,7 @@
 use super::super::key_header::{parse_key_header, Keyed, Sealed};
 use super::super::key_seal::encode_key_header;
 use super::super::key_wrap::{unwrap as unwrap3, wrap as wrap3};
-use super::layout::{put, read, Record};
+use super::place::{put, read, Record};
 use super::seal::{unwrap, wrap};
 use crate::crypto::util::argon2::Params;
 
