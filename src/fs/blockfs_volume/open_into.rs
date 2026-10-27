@@ -19,9 +19,10 @@
 //! installed into the held volume. Nothing here takes the volume again.
 
 use super::super::error::VolumeError;
+use super::super::handover::opened;
 use super::super::key_header::Keyed;
 use super::super::key_header_io::read_key_header;
-use super::super::key_pick::{fresh, legacy, unwrapped};
+use super::super::key_pick::{fresh, legacy};
 use super::super::mount_or_format::mount_or_format;
 use super::super::opened::install;
 use super::super::plan_types::Plan;
@@ -41,7 +42,7 @@ pub(in super::super) fn open_into(
             crate::log::warn!("[DATA] the volume is keyed by a passphrase; it waits for one");
             return Err(VolumeError::NeedsPassphrase);
         }
-        Some(Keyed::Approved(wrapped)) => (unwrapped(&wrapped)?, Keyed::Approved(wrapped)),
+        Some(Keyed::Approved(wrapped)) => opened(&wrapped)?,
         None if ring_blank(plan.volume_base)? => fresh()?,
         Some(Keyed::Tpm) | None => (legacy()?, Keyed::Tpm),
     };

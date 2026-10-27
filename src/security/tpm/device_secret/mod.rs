@@ -48,6 +48,6 @@ mod public;
 mod verify;
 
 pub use approval::{from_boot, Approval, POLICY_REF};
-pub use approved_key::approved_key;
+pub use approved_key::{approved_key, handover_key};
 pub use derive::device_secret;
 pub use public::{p256_name, p256_public};

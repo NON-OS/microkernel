@@ -19,7 +19,8 @@
 //! left the volume unreadable. A volume formatted now has a random key wrapped
 //! (way 3, key_wrap.rs) under a key the TPM gives only a kernel the release
 //! approved on this machine's firmware (tpm/device_secret/approved_key.rs): a
-//! signed update keeps it, a firmware change does not. Way 1 opens as it did.
+//! signed update keeps it, a firmware change does not, and a new bootloader
+//! needs a handover (handover/). Way 1 opens as it did.
 
 use super::error::VolumeError;
 use super::key_header::{Keyed, Sealed};
@@ -40,21 +41,6 @@ pub(super) fn legacy() -> Result<[u8; 32], VolumeError> {
     })
 }
 
-/// The key a way-3 header wraps. One this kernel cannot unwrap is someone's
-/// volume under a chain this boot is not: it is refused, never formatted over.
-pub(super) fn unwrapped(wrapped: &Sealed) -> Result<[u8; 32], VolumeError> {
-    let Some(mut kek) = kek() else {
-        crate::log::warn!("[DATA] no approved key this boot; the data volume stays closed");
-        return Err(VolumeError::Unopenable);
-    };
-    let key = unwrap(&kek, wrapped);
-    secure_zero(&mut kek);
-    key.ok_or_else(|| {
-        crate::log::warn!("[DATA] the volume's key does not unwrap under this chain");
-        VolumeError::Unopenable
-    })
-}
-
 /// A key and header for a blank volume: a random key wrapped under the
 /// approved key, or, on a boot with no approval, way 1, said once.
 pub(super) fn fresh() -> Result<([u8; 32], Keyed), VolumeError> {
@@ -70,6 +56,20 @@ pub(super) fn fresh() -> Result<([u8; 32], Keyed), VolumeError> {
 }
 
 /// The wrapping key, when this boot's chain is one the release approved.
-fn kek() -> Option<[u8; 32]> {
+pub(super) fn kek() -> Option<[u8; 32]> {
     from_boot().and_then(|a| approved_key(&a, V2_LABEL).ok())
+}
+
+/// Whether this boot's own key opens `wrapped` to `key`.
+pub(super) fn opens_to(wrapped: &Sealed, key: &[u8; 32]) -> bool {
+    let Some(mut kek) = kek() else {
+        return false;
+    };
+    let mut opened = unwrap(&kek, wrapped);
+    secure_zero(&mut kek);
+    let same = opened.as_ref() == Some(key);
+    if let Some(k) = opened.as_mut() {
+        secure_zero(k);
+    }
+    same
 }
