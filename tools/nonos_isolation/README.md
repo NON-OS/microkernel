@@ -36,7 +36,7 @@ by the length of `@a`, which the first version of these steps did.
 | `procs` env1 | read /proc/1/environ | 0 |
 | `net` tcp, udp | connect to 1.1.1.1:443, send to 8.8.8.8:53, in a box without NET_ANON | refused |
 | `net` raw, packet | a raw internet socket, a packet socket | 0 |
-| `forks` | fork until refused, children waiting | stops at the family's ceiling, and `P alive` prints after |
+| `forks` | fork until refused, children waiting | stops at the family's ceiling, and `P alive after <n> forks` prints after |
 | `after` | `linux echo still here` | it prints |
 
 The results of a boot are in `docs/release-evidence/0.9.3/s1-isolation-*`.
