@@ -18,6 +18,7 @@
 
 use alloc::vec::Vec;
 
+use super::clip::Clip;
 use super::fit::Fit;
 use super::held_keys::HeldKeys;
 use super::popup::stack::Popups;
@@ -66,4 +67,6 @@ pub struct Scene {
     pub popups: Popups,
     /// The NØNOS frame drawn around it (present/frame/).
     pub frame: super::present::frame::Frame,
+    /// The guest's selections (clip/).
+    pub clip: Clip,
 }

@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `wl_data_device_manager`, minimal and complete. NONOS carries no
-//! clipboard or drag between guests, or to the desktop, by design: a guest
-//! cannot read what another program copied. A client is given its sources,
-//! and a device per seat, and a selection or drag it offers is cancelled at
-//! once, so it frees the source and carries nothing.
+//! `wl_data_device_manager`. A selection a client sets is kept as its
+//! guest's own and offered to every data device the guest holds (clip/);
+//! no guest is ever offered another guest's. Text is carried to and from
+//! the user's desktop clipboard, only for the window with focus
+//! (clip/desk.rs). A drag is cancelled at once, so its source is freed and
+//! carries nothing.
 
 use crate::linux::guest::Guest;
 
 use super::args::Args;
+use super::clip::{ask, which::Which};
 use super::object::Object;
 use super::ops::data::*;
 use super::out::Event;
@@ -41,11 +43,12 @@ pub fn route(
         (Some(Object::DataDeviceManager), MANAGER_GET_DATA_DEVICE) => {
             make(guest, args, Object::DataDevice)
         }
-        (Some(Object::DataSource), SOURCE_OFFER | SOURCE_SET_ACTIONS) => {}
-        (Some(Object::DataDevice), DEVICE_START_DRAG | DEVICE_SET_SELECTION) => cancel(guest, args),
-        (Some(Object::DataSource), SOURCE_DESTROY) | (Some(Object::DataDevice), DEVICE_RELEASE) => {
-            super::forget::forget(guest, object, id)
-        }
+        (Some(Object::DataSource), SOURCE_OFFER) => ask::mime(guest, id, args),
+        (Some(Object::DataSource), SOURCE_SET_ACTIONS) => {}
+        (Some(Object::DataDevice), DEVICE_SET_SELECTION) => ask::set(guest, Which::Data, args),
+        (Some(Object::DataDevice), DEVICE_START_DRAG) => cancel(guest, args),
+        (Some(Object::DataSource), SOURCE_DESTROY) => ask::source_gone(guest, Which::Data, id),
+        (Some(Object::DataDevice), DEVICE_RELEASE) => super::forget::forget(guest, object, id),
         _ => return super::decoration::route(guest, object, id, op, args),
     }
     true
@@ -62,7 +65,7 @@ fn make(guest: &mut Guest, args: &mut Args<'_>, what: Object) {
     let _ = guest.objects.put(id, what);
 }
 
-/// Both name the source first; null, 0, offers nothing.
+/// A drag names its source first; null, 0, offers nothing.
 fn cancel(guest: &mut Guest, args: &mut Args<'_>) {
     let source = args.u32().unwrap_or(0);
     if guest.objects.get(source) == Some(Object::DataSource) {
