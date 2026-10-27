@@ -19,6 +19,7 @@
 
     tools/nonos-drive --image IMG --out DIR [--qemu-arg ARG ...] STEP ...
     tools/nonos-drive --image IMG --out DIR --steps FILE
+    tools/nonos-drive --image IMG --out DIR --record OUT.mp4 --steps FILE
 
 Each step is one of:
 
@@ -26,6 +27,10 @@ Each step is one of:
     after:TEXT[:SECS]   wait for TEXT to appear once more than when this step
                         began (default 600 s): a line each install says again
     wait:SECS           sleep
+    pause:SECS          the same, read as a tutorial's pause
+    say:TEXT            caption the recording with TEXT from the next frame;
+                        say: alone clears it. Without --record only the
+                        drive's log shows it
     shot:NAME           screenshot to DIR/NAME.png
     key:A+B             press keys together, QEMU qcode names (ret, tab, esc,
                         ctrl, alt, shift, f1, a ...)
@@ -45,6 +50,12 @@ It runs nix run .#qemu with --headless and --tpm, talks to QEMU's monitor
 socket, and stops the machine at the end. The serial log is DIR/serial.log.
 A step that waits and does not see its text fails the run, and first leaves
 every CPU's registers and the code at each one's PC in DIR/stuck.txt.
+
+--record films the drive instead (nonos_drive/record.py): Xvfb, QEMU full
+screen on it (nonos-qemu --shown) and ffmpeg filming it from power-on, with
+the say: captions drawn over it, to an H.264 MP4 that plays from its start.
+Each caption's time in the video goes to DIR/cues.txt, to trim by. It needs
+Xvfb and ffmpeg on PATH. The run fails if the video is not whole.
 """
 
 import sys
@@ -53,11 +64,30 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "userland/capsule_install/e2e"))
 from qmp import Qmp  # noqa: E402
-from nonos_drive import machine  # noqa: E402
+from nonos_drive import machine, record  # noqa: E402
 from nonos_drive.args import parse  # noqa: E402
 from nonos_drive.step import run  # noqa: E402
 
 QMP = ROOT / "target/qemu/qmp.sock"
+
+
+def drive(a, steps, serial, film):
+    """Boot, take the steps, stop: whether every step happened and, filmed,
+    the video is whole. Filming stops before the machine does, so the video
+    ends on the last step, whether the steps finished or one raised."""
+    qemu = machine.start(ROOT, a.image, a.out, serial, a.qemu_arg,
+                         film.display if film else None)
+    ok = False
+    try:
+        q = Qmp(str(QMP), wait=600)
+        # all() stops at the first step that did not happen.
+        ok = all(run(q, s, a.out, str(serial), film) for s in steps)
+        ok = record.cut(film) and ok
+        q.quit()
+    finally:
+        record.cut(film)
+        machine.stop(qemu)
+    return ok
 
 
 def main():
@@ -66,15 +96,8 @@ def main():
     serial = a.out / "serial.log"
     serial.write_text("")
     QMP.unlink(missing_ok=True)
-    qemu = machine.start(ROOT, a.image, a.out, serial, a.qemu_arg)
-    ok = False
-    try:
-        q = Qmp(str(QMP), wait=600)
-        # all() stops at the first step that did not happen.
-        ok = all(run(q, s, a.out, str(serial)) for s in steps)
-        q.quit()
-    finally:
-        machine.stop(qemu)
+    with record.filming(ROOT, a.record, a.out) as film:
+        ok = drive(a, steps, serial, film)
     print(f"nonos-drive: {'done' if ok else 'stopped at a step that did not happen'}, {a.out}")
     sys.exit(0 if ok else 1)
 
