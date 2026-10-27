@@ -1436,6 +1436,11 @@ nonos-mk-esp: \
 	@cp $(TARGET_DIR)/boot_root.approval $(ESP_DIR)/EFI/nonos/boot_root.approval
 	@printf "timeout=0\ndefault=nonos\n" > $(ESP_DIR)/EFI/nonos/boot.cfg
 	@echo 'fs0:\EFI\Boot\BOOTX64.EFI' > $(ESP_DIR)/startup.nsh
+	@# The firmware package (MediaTek MT7921/MT7922): pinned files beside the
+	@# image, never inside it; the loader reads them at boot. Without them the
+	@# medium is still packed and mt7921e reports the package missing.
+	@$(if $(filter 0,$(NONOS_FIRMWARE_PACKAGE)),true,$(NONOS_PYTHON) scripts/firmware_package.py \
+		--esp $(ESP_DIR) $(NONOS_FIRMWARE_FROM) --optional)
 	@# The ELF just linked is a byte prefix of what was staged, or the pack
 	@# chain raced the link and this ESP boots an older kernel. Checked here
 	@# rather than in each boot target, so nothing that consumes an ESP can
@@ -1481,6 +1486,11 @@ nonos-mk-boot-root-record:
 # session runs its Linux tree and apps from the stick and keeps its state
 # there. mk/40-run.mk adds the store's contents as prerequisites.
 USB_ESP_MIB := 128
+# Where the firmware package comes from: a linux-firmware tree named by
+# NONOS_FIRMWARE_SOURCE, or the pinned commit fetched once into target/.
+# NONOS_FIRMWARE_PACKAGE=0 packs a medium without it.
+NONOS_FIRMWARE_PACKAGE ?= 1
+NONOS_FIRMWARE_FROM = $(if $(NONOS_FIRMWARE_SOURCE),--source $(NONOS_FIRMWARE_SOURCE),--fetch $(TARGET_DIR)/firmware/linux-firmware)
 nonos-mk-usb-img: nonos-mk-esp
 	@echo "Building GPT/FAT32 USB image $(USB_IMG) ($(USB_IMG_MB) MiB)..."
 	@dd if=/dev/zero of=$(USB_IMG) bs=1048576 count=$(USB_IMG_MB) status=none 2>/dev/null \
