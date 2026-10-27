@@ -1,0 +1,67 @@
+until:Capsules spawned:1800
+until:[SPLASH] stepped aside:900
+wait:6
+key:ret
+wait:5
+type:ek
+wait:2
+key:ret
+wait:5
+key:ret
+wait:5
+key:ret
+wait:5
+key:ret
+wait:5
+key:ret
+wait:5
+key:ret
+wait:5
+key:ret
+wait:5
+key:ret
+wait:5
+key:ret
+wait:5
+shot:setup10
+key:down
+wait:3
+shot:setup11
+key:ret
+wait:5
+key:ret
+wait:5
+shot:review
+key:ret
+key:ret
+wait:90
+key:esc
+wait:5
+shot:desktop
+key:ctrl+alt+t
+wait:30
+shot:terminal
+wait:30
+type:market install linux.swayimg
+key:ret
+until:[LINUX] installed:1800
+wait:5
+shot:installed
+type:linux swayimg /usr/share/icons/hicolor/64x64/apps/swayimg.png
+key:ret
+wait:150
+shot:sway_open
+type:=
+wait:20
+type:=
+wait:20
+shot:sway_zoom
+key:right
+wait:20
+shot:sway_pan
+click
+wait:20
+shot:sway_click
+type:q
+wait:60
+shot:sway_closed
