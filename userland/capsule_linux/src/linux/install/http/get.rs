@@ -19,6 +19,7 @@
 //! mirror on the local network directly by address, as raw.rs says.
 
 use alloc::format;
+use alloc::string::String;
 use alloc::vec::Vec;
 
 use super::super::http_reply::{body, complete};
@@ -43,7 +44,7 @@ pub fn get(path: &str) -> Option<Vec<u8>> {
 /// A GET to `at`, a mirror's name or a dotted IPv4 address, with `host` as
 /// the Host line.
 pub fn get_as(at: &str, port: u16, host: &str, path: &str) -> Option<Vec<u8>> {
-    let req = format!("GET {path} HTTP/1.1\r\nHost: {host}\r\nUser-Agent: nonos\r\n\r\n");
+    let req = request(path, host);
     let t0 = super::super::timing::now();
     #[cfg(feature = "dev-mirror")]
     let raw = match is_local(at) {
@@ -55,10 +56,20 @@ pub fn get_as(at: &str, port: u16, host: &str, path: &str) -> Option<Vec<u8>> {
     let ms = super::super::timing::now().saturating_sub(t0);
     super::super::timing::got(raw.as_ref().map_or(0, Vec::len), ms);
     let got = raw.and_then(body);
-    let line = match &got {
+    said(at, path, got.as_deref());
+    got
+}
+
+/// The GET for `path`, with `host` as the Host line, kept open (keep.rs).
+pub fn request(path: &str, host: &str) -> String {
+    format!("GET {path} HTTP/1.1\r\nHost: {host}\r\nUser-Agent: nonos\r\n\r\n")
+}
+
+/// The serial line for what a GET to `at` brought.
+pub fn said(at: &str, path: &str, got: Option<&[u8]>) {
+    let line = match got {
         Some(b) => format!("[LINUX] mirror {at}: {path}, {} bytes\n", b.len()),
         None => format!("[LINUX] mirror {at}: GET {path} gave no whole 200 reply\n"),
     };
     let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
-    got
 }
