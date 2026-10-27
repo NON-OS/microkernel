@@ -64,6 +64,7 @@ mod start_stop;
 mod store_why;
 mod terminal;
 mod terminal_box;
+mod terminal_hand;
 mod terminal_launch;
 mod terminal_path;
 mod unix;
