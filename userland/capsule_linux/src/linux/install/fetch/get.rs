@@ -21,17 +21,16 @@ use nonos_libc::mk_debug;
 use nonos_inflate::Refused;
 
 use super::super::auth::{verified, Verified};
-use super::super::get::package::download;
 use super::super::index::Pkg;
 use super::super::timing;
 use super::super::Why;
+use alloc::vec::Vec;
 
-/// The package's files, if its bytes authenticate. `pin` is the market's hash
-/// of the package the user chose; what it depends on is held to the signed
-/// index alone, which names every one of them by checksum.
-pub(in crate::linux::install) fn fetch(pkg: &Pkg, pin: Option<&[u8; 32]>) -> Result<Verified, Why> {
+/// The package's files, if `apk`, its fetched bytes, authenticate. `pin` is
+/// the market's hash of the package the user chose; what it depends on is
+/// held to the signed index alone, which names every one of them by checksum.
+pub(crate) fn fetch(pkg: &Pkg, apk: Vec<u8>, pin: Option<&[u8; 32]>) -> Result<Verified, Why> {
     nonos_libc::heap_reset_peak();
-    let apk = download(pkg);
     heap("fetched", &pkg.name);
     if pin.is_some_and(|want| blake3::hash(&apk).as_bytes() != want) {
         say(b"[LINUX] package is not the one the market listed\n");
