@@ -25,4 +25,4 @@ mod mem;
 
 pub use clock::{hold, until, Clock, Deadline};
 pub use io::Io;
-pub use mem::Mem;
+pub use mem::{Mem, OutOfRegion};
