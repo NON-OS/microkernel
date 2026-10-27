@@ -27,7 +27,7 @@
 
 use alloc::vec::Vec;
 
-use nonos_route_link::{Route, RouteStream};
+use nonos_route_link::RouteStream;
 
 use super::ask::{ask, Done};
 use super::keep;
@@ -51,7 +51,7 @@ pub(super) fn exchange(
     if let Some(got) = keep::again(host, port, request, max, done) {
         return Some(got);
     }
-    let mut stream = match RouteStream::connect(Route::for_installs(), host, port) {
+    let mut stream = match RouteStream::connect_install(host, port) {
         Ok(s) => Stream(s),
         Err(why) => return refused(host, why),
     };
