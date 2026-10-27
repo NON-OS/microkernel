@@ -34,8 +34,8 @@ const ASK_MS: i64 = 10_000;
 const QUIET_MS: i64 = 10 * 60 * 1000;
 /// PROVE and STATUS are answered at once, and GET from a finished job.
 const CALL_MS: u64 = 2_000;
-/// PROVE reaches a job that has only just started, slow on an emulated CPU.
-const PROVE_MS: u64 = 30_000;
+/// PROVE waits out a job still claiming its 2816 MiB heap (a minute on TCG).
+const PROVE_MS: u64 = 180_000;
 
 pub fn perform(run: &mut Run, c: Call, market: u32) -> Option<Event> {
     let now = mk_uptime_ms();
