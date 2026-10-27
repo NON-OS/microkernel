@@ -22,7 +22,7 @@
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 
-use crate::install::market::minted::{beside, place, PENDING, POLICY};
+use crate::install::market::minted::{beside, place, unbound_why, PENDING, POLICY};
 
 const ELF: &[u8] = b"\x7fELF a program";
 const AT: &[u8] = b"/usr/bin/age";
@@ -58,4 +58,10 @@ fn a_program_that_cannot_be_held_is_not_written() {
 fn only_a_held_package_s_programs_are_held() {
     assert_eq!(placed(ELF, false, b"").2, [AT.to_vec()]);
     assert_eq!(placed(b"text", true, b"").2, [AT.to_vec()]);
+}
+
+#[test]
+fn a_program_started_before_its_bind_is_told_it_is_still_installing() {
+    assert_eq!(unbound_why(PENDING), "it is still being installed: its policy is not bound yet");
+    assert_eq!(unbound_why(b"any other policy bytes"), "its policy is not vouched for");
 }

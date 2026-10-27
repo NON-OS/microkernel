@@ -44,5 +44,9 @@ pub fn list(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
         Err(_) => return encode_response(OP_LIST, req.flags, req.request_id, EINVAL, &[]),
     };
     let body: Vec<u8> = store.list(prefix, MAX_LIST_BYTES as usize, pid);
+    // A guarded prefix got here only from its owner (fs_gate.rs); any other
+    // listing leaves a Linux app's files out.
+    let body =
+        if super::guard::guarded(prefix) { body } else { super::guard::strip_listing(&body) };
     encode_response(OP_LIST, req.flags, req.request_id, 0, &body)
 }

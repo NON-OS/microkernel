@@ -27,8 +27,15 @@ P:zathura-doc\nV:0.5.6-r0\ni:docs zathura=0.5.6-r0\n\n\
 P:imv-wayland\nV:4.5.0-r0\ni:imv=4.5.0-r0 wayland-libs-server\n\n\
 P:plain\nV:1-r0\n\n";
 
+/// An index of one branch's records, as install/get/index.rs reads them.
+fn parsed(text: &[u8]) -> Index {
+    let mut index = Index::default();
+    index.add(text, 0);
+    index
+}
+
 fn names(done: &[&str]) -> Vec<String> {
-    let index = Index::parse(INDEX);
+    let index = parsed(INDEX);
     let done: Vec<String> = done.iter().map(|s| s.to_string()).collect();
     triggered(&index, &done).iter().map(|p| p.name.clone()).collect()
 }
@@ -53,7 +60,7 @@ fn the_systems_name_alone_brings_nothing() {
 #[test]
 fn what_is_installed_already_is_not_brought_again() {
     assert!(names(&["qt6-qtbase-x11", "qt6-qtwayland"]).is_empty());
-    let index = Index::parse(INDEX);
+    let index = parsed(INDEX);
     let done = vec!["imv".to_string()];
     assert_eq!(next(&index, &done).as_deref(), Some("imv-wayland"), "version constraint dropped");
     assert_eq!(index.by_name("qt6-qtwayland").map(|p| p.install_if.len()), Some(2));
