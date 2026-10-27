@@ -12,3 +12,28 @@ mod carried;
 mod differs;
 mod firmware;
 mod rig;
+
+use crate::gen3::cmds::*;
+
+/// What the bring-up and the scan send or read, beside the join's `APIS`.
+pub(crate) const SPOKEN: &[(u8, u8)] = &[
+    (SYSTEM_GROUP, INIT_EXTENDED_CFG_CMD),
+    (REGULATORY_AND_NVM_GROUP, NVM_ACCESS_COMPLETE),
+    (REGULATORY_AND_NVM_GROUP, NVM_GET_INFO),
+    (REGULATORY_AND_NVM_GROUP, PNVM_INIT_COMPLETE_NTFY),
+    (SYSTEM_GROUP, SOC_CONFIGURATION_CMD),
+    (LONG_GROUP, TX_ANT_CONFIGURATION_CMD),
+    (LONG_GROUP, BT_CONFIG),
+    (LONG_GROUP, POWER_TABLE_CMD),
+    (LONG_GROUP, MCC_UPDATE_CMD),
+    (LONG_GROUP, SCAN_CFG_CMD),
+    (LONG_GROUP, SCAN_REQ_UMAC),
+    (LONG_GROUP, SCAN_COMPLETE_UMAC),
+    (MAC_CONF_GROUP, MAC_CONFIG_CMD),
+    (MAC_CONF_GROUP, LINK_CONFIG_CMD),
+    (MAC_CONF_GROUP, 0xF6),
+    (MAC_CONF_GROUP, 0xFB),
+    (LEGACY_GROUP, 0x01),
+    (LEGACY_GROUP, REPLY_RX_MPDU_CMD),
+    (LEGACY_GROUP, 0x1C),
+];

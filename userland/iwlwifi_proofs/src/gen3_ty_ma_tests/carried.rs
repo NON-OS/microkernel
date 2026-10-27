@@ -7,8 +7,10 @@ use super::rig::{MA, MA4, MA4_PNVM, MA_PNVM, TY, TY_PNVM};
 use crate::firmware::blob::{gen3_blob, gen3_pnvm};
 use crate::firmware::carried::runs;
 use crate::firmware::generation::name;
+use crate::gen3::dev::Speaks;
 use crate::gen3::select::Image;
 use crate::gen3::station::phy::{phy_context, ACTION_ADD};
+use crate::gen3::ucode::Ucode;
 
 #[test]
 fn the_tree_runs_the_discrete_ax210_and_meteor_lake() {
@@ -31,6 +33,10 @@ fn the_tree_runs_the_discrete_ax210_and_meteor_lake() {
 
 #[test]
 fn a_dual_radio_firmware_runs_a_5_ghz_phy_on_lmac_1() {
+    let speaks = |b| Speaks::of(&Ucode::parse(b).unwrap());
+    assert_eq!(speaks(MA4), Ok(Speaks { cdb: true, scan: 17 }), "gf4 lists CDB_SUPPORT");
+    assert_eq!(speaks(MA), Ok(Speaks { cdb: false, scan: 17 }));
+    assert_eq!(speaks(TY), Ok(Speaks { cdb: false, scan: 17 }));
     assert_eq!(phy_context(ACTION_ADD, 36, true)[16..20], [1, 0, 0, 0], "5 GHz, CDB");
     assert_eq!(phy_context(ACTION_ADD, 6, true)[16..20], [0; 4], "2.4 GHz, CDB");
     assert_eq!(phy_context(ACTION_ADD, 36, false)[16..20], [0; 4], "5 GHz, one LMAC");

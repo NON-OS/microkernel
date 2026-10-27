@@ -20,7 +20,9 @@ detail, counters) and the Settings Wi-Fi panel.
   gives up and the gen3 path never runs).
 - Identity: `[iwlwifi] pci 0x000051f0` (or your platform's id; the card's
   revision and RF id are no longer printed), then
-  `[iwlwifi] firmware iwlwifi-so-a0-gf-a0-86.ucode` (or hr-b0-84).
+  `[iwlwifi] firmware iwlwifi-so-a0-gf-a0-86.ucode` (or hr-b0-84). The
+  per-card plans for the AX210, Meteor Lake, AX200 and AX201 paths are in
+  `docs/hardware/real-hardware-checklist.md` at the top of the tree.
 - DMA: about ten grants in the broker log, none refused (else
   `[iwlwifi] no DMA region of N bytes` and stage NoDma).
 - ALIVE: `[iwlwifi] firmware alive: status 0x0000cafe umac M.N sku 0x...`.

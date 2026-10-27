@@ -33,12 +33,14 @@ use super::region::Clock;
 use super::regs::*;
 use crate::regs::Mmio;
 pub use cpu::after_kick;
+
 #[cfg(test)]
 pub use cpu::{CSR_LTR_LONG_VAL_AD, LTR_BOOT};
 use reset::{mask_all, set, sw_reset};
 pub use reset::{mask_interrupts, stop_device};
 
 mod cpu;
+pub mod gen2;
 pub mod reset;
 
 /// Why the chip did not start.
@@ -51,6 +53,8 @@ pub enum StartError {
     ClockNotReady,
     /// The MAC would not wake for a peripheral register write.
     NoNicAccess,
+    /// A 22000-family part's persistence bit is set and write-protected.
+    Persistent,
 }
 
 const READY_POLL_MS: u32 = 1;
