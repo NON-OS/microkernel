@@ -1,0 +1,59 @@
+NØNOS 0.9.3, narration
+======================
+
+For the owner to voice with Kokoro on the Mac: one WAV per line, named as
+below, 48 kHz or any rate (the mix resamples). The 60-90 s cut for X uses
+all eight; the long cut uses them as chapter openers. Place them with a
+timeline (times in seconds, beats "4b", bars "8bar" or "m:ss"):
+
+  {"lines": [{"file": "01-checks.wav", "at": "1bar"}, ...]}
+
+and render with --narration <folder> --narration-timeline <file.json>; the
+music ducks under each line. Calm, unhurried, a breath after each full
+stop. Say only what the picture shows at that moment. Never "secure",
+"unbreakable" or "impossible".
+
+Pronunciation of NØNOS: the owner's choice; write it phonetically in
+Kokoro's input if it misreads the Ø.
+
+
+01-checks.wav       ~4 s   over: the loader's checks, the splash's boot chain
+    Before anything runs, NØNOS checks itself.
+    (Rests on: the loader measures the kernel and checks Ed25519 and
+    ML-DSA-65 before the hand-off; frames 000059, 000119 of b434cdf175.)
+
+02-forgets.wav      ~5 s   over: the live-session notice on the desktop
+    Your computer forgets you. Nothing is kept unless you choose to keep it.
+    (Rests on: "This is a live session. Nothing here is kept: files,
+    settings and models are gone when the machine stops"; 000719.png.)
+
+03-box.wav          ~5 s   over: the isolation box round the Terminal
+    Every Linux app gets a box: its own home, a terminal, no direct network.
+    (Rests on: mask=0x10a NET_ANON FILES_HOME TTY, 003599.png; the bits in
+    userland/nonos_linux_policy/src/mask.rs.)
+
+04-refused.wav      ~4 s   over: the refusals, the box edge flashing back
+    Reach into another program, and the answer is no.
+    (Rests on: P ptrace -1 Operation not permitted, P vm_readv -1 Operation
+    not permitted; s1-isolation-61ec29ea2, calls.png.)
+
+05-checked.wav      ~5 s   over: market info, the eleven pass lines lighting
+    Every install is checked first: signatures, attestation, and its box.
+    (Rests on: market info linux.monero, index signature ... bond, each
+    "pass", 002399.png of b434cdf175.)
+
+06-route.wav        ~4 s   over: the route drawn hop by hop
+    Its traffic goes out through Nym or Anyone. Never direct.
+    (Rests on: "It talks to a remote node you name, over Nym or Anyone,
+    never direct", 002399.png; mask.rs:23, "Direct is never a route".)
+
+07-kept.wav         ~6 s   over: the kept-home card after the power-off
+    Keep a file, and it is there after the reboot. On the disk, it is
+    found zero times.
+    (Rests on: P read kept-home-7f3a9c41 after power-off, read.png; grep
+    -c -a over the whole 8.6 GB disk: 0, s1-kept-home-61ec29ea2/README.md.)
+
+08-yours.wav        ~4 s   over: the finale, then the wordmark
+    Every value here is real. Check it yourself. NØNOS. Private by default.
+    (Rests on: CREDITS.txt, each value with its file and line; the verifier
+    chapter shows the check.)
