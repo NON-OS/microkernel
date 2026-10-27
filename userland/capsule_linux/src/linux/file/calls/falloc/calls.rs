@@ -21,7 +21,7 @@ use crate::linux::guest::{Guest, Kind};
 
 use super::allocate::allocate;
 
-const KEEP_SIZE: u64 = 0x01;
+pub(super) const KEEP_SIZE: u64 = 0x01;
 
 pub(super) const PUNCH_HOLE: u64 = 0x02;
 
@@ -52,6 +52,7 @@ pub fn fallocate(guest: &mut Guest, fd: u64, mode: u64, at: u64, len: u64) -> u6
         Kind::Pipe => return errno::fail(errno::ESPIPE),
         Kind::File if !entry.writable => return errno::fail(errno::EBADF),
         Kind::File if !super::super::super::synth::owns(&entry.path) => {}
+        Kind::Memfd => return super::memfd::memfd(guest, fd, mode, at, len),
         _ => return errno::fail(errno::ENODEV),
     }
     if mode & !(KEEP_SIZE | PUNCH_HOLE) != 0 {

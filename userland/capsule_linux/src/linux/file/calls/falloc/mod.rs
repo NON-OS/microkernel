@@ -18,6 +18,7 @@
 
 mod allocate;
 mod calls;
+mod memfd;
 mod punch;
 mod zero;
 
