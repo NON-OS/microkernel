@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What carries a stream that reaches outside the family: a net.sockets
-//! handle (the Nym mixnet), or a net.anon stream (the Anyone network), with
-//! the bytes taken from net.anon that the guest has not read yet.
+//! What carries a stream that reaches outside the family: a stream this
+//! capsule carries itself (routed/), or a net.anon stream (the Anyone
+//! network), with the bytes taken from net.anon the guest has not read yet.
 
 mod anon;
 mod kinds;
