@@ -18,16 +18,16 @@
 //! card has none rather than that one failed to start.
 
 /// Whether this build ships a driver that takes a Wi-Fi chip: the RTL8821CE
-/// driver for 10ec:b821 and 10ec:c821, and the iwlwifi driver for the Intel ids it matches
-/// (`capsule_driver_iwlwifi/src/firmware/family.rs` `family_for_device`). The
-/// kernel spawns iwlwifi for every Intel wireless function, but the driver
-/// leaves at once on an id outside that list (0x24F7 to 0x24FA and 0x24FC are
-/// no adapter's), so such a chip has no driver, not one that failed to start.
-/// Anything else (MediaTek MT7921/7922, Broadcom, Qualcomm ath10k/ath11k,
-/// other Realtek parts) has none either.
+/// driver for 10ec:b821 and 10ec:c821, the MediaTek driver for the MT7921 and
+/// MT7922 ids (`capsule_driver_mt7921/src/ids.rs`), and iwlwifi for the Intel
+/// ids `family_for_device` matches; it leaves at once on any other (0x24F7 to
+/// 0x24FA, 0x24FC), so such a chip has no driver, not one that failed to
+/// start. Anything else (Broadcom, ath10k/ath11k, other Realtek) has none.
 pub fn has_driver(vendor: u16, device: u16) -> bool {
     match vendor {
         0x10EC => matches!(device, 0xB821 | 0xC821),
+        0x14C3 => matches!(device, 0x7961 | 0x7922 | 0x0608 | 0x0616 | 0x7920),
+        0x0B48 => device == 0x7922,
         0x8086 => matches!(
             device,
             0x08B1..=0x08B4
