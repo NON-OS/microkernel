@@ -10,7 +10,7 @@
 //!
 //! Pure, with no imports, so host proofs can include it by path.
 
-pub const MT7921_IDS: [(u16, u16); 6] = [
+pub(super) const MT7921_IDS: [(u16, u16); 6] = [
     (0x14c3, 0x7961),
     (0x14c3, 0x7922),
     (0x0b48, 0x7922),
