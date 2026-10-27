@@ -56,7 +56,7 @@ key:ret
 wait:180
 shot:net
 # forks
-type:linux perl -e '$n=0;while($n<4096){$p=fork;last unless defined$p;if(!$p){sleep 20;exit}$n++}print"P forks $n $!\n";sleep 25;print"P alive\n"'
+type:linux perl -e '$n=0;while($n<4096){$p=fork;last unless defined$p;if(!$p){sleep 20;exit}$n++}print"P forks $n $!\n";sleep 25;print"P alive after $n forks\n"'
 key:ret
 wait:300
 shot:forks
