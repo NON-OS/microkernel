@@ -30,7 +30,8 @@
     feature = "nonos-capsule-driver-usb-audio",
     feature = "nonos-capsule-driver-cdc-ecm",
     feature = "nonos-capsule-driver-cdc-ncm",
-    feature = "nonos-capsule-driver-rndis"
+    feature = "nonos-capsule-driver-rndis",
+    feature = "nonos-capsule-driver-ax88179"
 ))]
 
 use crate::hardware::inventory::{present, HardwareFamily};

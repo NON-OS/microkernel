@@ -75,3 +75,40 @@ Settings Wi-Fi panel's status (stage, step, detail).
       drivers.txt`, the Linux lines above if any, which card and laptop
       model, and the first `[iwlwifi]` line that differs from this list.
       The logs never carry a MAC address, SSID or BSSID from this driver.
+
+## USB Ethernet: ASIX AX88179
+
+The AX88179 driver (`driver.ax88179_0`) is host-proven only: QEMU has no
+AX88179 and it has never run on one. A first boot with a dongle is its
+test. The `[usbnet ax88179]` lines print on a development image (`Debug`
+granted to the capsule); on another image, Settings' Network page says
+whether the wired interface came up.
+
+- [ ] What to boot: a `standard-dev` image at or after the AX88179 commit,
+      with an AX88179 or AX88178A dongle (ASIX 0b95:1790 or 0b95:178a, or a
+      rebrand listed in `userland/capsule_driver_ax88179/BINDING.md`) and a
+      cable to a network with DHCP. Try it in a USB 3 port, then a USB 2
+      port, then behind a hub.
+- [ ] Before: if the machine runs Linux, save `lsusb -v -d 0b95:` (the
+      vendor:product, bcdDevice and the configurations offered). An
+      AX88179A or B may offer a CDC NCM configuration: say which.
+- [ ] Bind: `[usbnet ax88179] port N: bound`, then `[usbnet ax88179] port N
+      up, drawn station address programmed`. A line `port N 0b95:1790: <step>
+      errno E` instead names the bring-up step the chip refused; keep it.
+      `not this driver's device` for the dongle means its vendor:product is
+      not listed or it showed no vendor interface.
+- [ ] Link: with the cable in, `[NET-CORE] bind: interface up on
+      driver.ax88179_0` within about ten seconds, then a lease
+      (`[NET-CORE] lease-status state=...`); a page loads in the browser.
+      Note the speed the switch or router shows for the port (10, 100 or
+      1000).
+- [ ] Unplug the cable, wait ten seconds, plug it in: the lease comes back.
+      Unplug the dongle: `[usbnet ax88179] device stopped answering, given
+      back`; plug it in again: bound and up again.
+- [ ] A download of a few hundred megabytes in the browser completes;
+      note how long it took.
+- [ ] Send back: the boot log (`log > boot-log.txt`), `log usbnet >
+      usbnet.txt`, the `lsusb` output if any, the dongle's make and model,
+      and the first `[usbnet ax88179]` line that differs from this list.
+      The logs never carry a MAC address or a serial number from this
+      driver.
