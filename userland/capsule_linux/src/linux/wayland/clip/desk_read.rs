@@ -20,8 +20,6 @@
 
 use alloc::vec::Vec;
 
-use nonos_app_skeleton::clients::clipboard::clipboard_copy;
-
 use crate::linux::call::{close, pipe_end_of, pipe_other_end_open, pipe_pair};
 use crate::linux::file::flags::O_CLOEXEC;
 use crate::linux::guest::Guest;
@@ -62,7 +60,7 @@ pub fn drain(guest: &mut Guest) {
     }
     let _ = close(guest, r.fd);
     if whole {
-        let _ = clipboard_copy(&r.bytes);
+        super::desk_copy::copied(guest, &r.bytes);
     }
 }
 
