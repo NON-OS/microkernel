@@ -23,7 +23,7 @@ use super::apps::app;
 use crate::linux::file::{key, store_read};
 use crate::linux::run_mode::Mode;
 
-const MAX_IMAGE: u32 = 64 << 20;
+const MAX_IMAGE: u32 = crate::linux::program_max::PROGRAM_MAX;
 
 /// What a shipped tier starts as: the path its program was read from, the
 /// program's bytes and its arguments.
