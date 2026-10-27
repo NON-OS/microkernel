@@ -6324,6 +6324,7 @@
    "userland/capsule_driver_iwlwifi/src/setup/give_back.rs",
    "userland/capsule_driver_iwlwifi/src/setup/grants.rs",
    "userland/capsule_driver_iwlwifi/src/setup/irq_plan.rs",
+   "userland/capsule_driver_iwlwifi/src/verdict.rs",
    "userland/iwlwifi_proofs",
    "userland/libc/src/broker/dma_order.rs",
    "userland/libc/src/broker/mmio_access.rs",
