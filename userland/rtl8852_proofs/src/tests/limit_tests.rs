@@ -33,8 +33,9 @@ fn an_h2c_body_past_its_slot_is_refused_and_nothing_posted() {
     let c = &mut sta.chip;
     let n = card.0.borrow().h2c.len();
     let cmd = crate::h2c::cam::CAM_UPD;
-    let too_long = vec![0u8; BODY_MAX + 1];
-    assert_eq!(h2c(&c.r, &mut c.rings.ch12, &mut c.fw, cmd, &too_long, false), Err(SendFail::TooLong));
+    let long = vec![0u8; BODY_MAX + 1];
+    let sent = h2c(&c.r, &mut c.rings.ch12, &mut c.fw, cmd, &long, false);
+    assert_eq!(sent, Err(SendFail::TooLong));
     assert_eq!(card.0.borrow().h2c.len(), n);
 }
 

@@ -1,6 +1,6 @@
 # Wi-Fi drivers
 
-NONOS has three Wi-Fi [driver capsules](../../overview/glossary-dma-pool.md#driver-capsule), one for the Realtek RTL8821CE, one for Intel cards and one for the MediaTek MT7921 and MT7922; this page lists the chips, follows a scan and a join from the Settings panel to the radio, and states what is refused.
+NONOS has five Wi-Fi [driver capsules](../../overview/glossary-dma-pool.md#driver-capsule): one each for the Realtek RTL8821CE, RTL8822CE and RTL8852BE, one for Intel cards and one for the MediaTek MT7921 and MT7922; this page lists the chips, follows a scan and a join from the Settings panel to the radio, and states what is refused.
 
 ## Chips at a glance
 
@@ -14,6 +14,7 @@ Each Wi-Fi driver is a [capsule](../../overview/glossary-boot-root-record.md#cap
 | Intel BE200 and BE201 (Wi-Fi 7) | 8086:272b, a840, 7740, 4d40 | `driver.iwlwifi0` | Partial: boots, scans and joins against a modelled device only; never booted on the card | [iwlwifi.md](iwlwifi.md) |
 | Intel AX210 discrete, Intel Meteor Lake Wi-Fi | 8086:2725, 2729, 7e40 | `driver.iwlwifi0` | Refused: firmware file not in the tree | [iwlwifi.md](iwlwifi.md) |
 | Intel 7260 to 9560, AX200, AX201 on Qu and QuZ platforms, two AX210 family ids without transport values | listed on the iwlwifi page | `driver.iwlwifi0` | Refused: no firmware boot path in this driver | [iwlwifi.md](iwlwifi.md) |
+| Realtek RTL8852BE | 10ec:b852, 10ec:b85b | `driver.rtl8852be0` | Partial: host-proven only, never run on the card; 20 MHz legacy rates, TX power open loop | [rtl8852be.md](rtl8852be.md) |
 | MediaTek MT7921, MT7922 (AMD RZ608, RZ616) and MT7920 | 14c3:7961, 7922, 0608, 0616, 7920; 0b48:7922 | `driver.mt7921e0` | Partial: boots, scans and joins WPA2 against a modelled chip only; never booted on a card; firmware from the boot medium's package | [mt7921.md](mt7921.md) |
 | Other MediaTek, Qualcomm, Broadcom, other Realtek Wi-Fi | listed on the page | none | Not supported | [not-supported.md](not-supported.md) |
 
@@ -40,6 +41,7 @@ That is the only hardware report for Wi-Fi in this release. Every other statemen
 
 - [Realtek RTL8821CE](rtl8821ce.md)
 - [Realtek RTL8822CE](rtl8822ce.md)
+- [Realtek RTL8852BE](rtl8852be.md)
 - [Intel iwlwifi](iwlwifi.md)
 - [MediaTek MT7921 and MT7922](mt7921.md)
 - [Wi-Fi chips with no driver](not-supported.md)

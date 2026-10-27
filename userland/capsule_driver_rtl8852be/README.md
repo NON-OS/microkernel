@@ -40,6 +40,8 @@ variant (it stops at `NoAirPath`).
 
 ## Parts
 
+- [Contract, authority, privacy and the surface](docs/contract.md)
+- [Lifecycle, failures and release](docs/lifecycle.md)
 - [The bring-up, stage by stage, with the Linux functions](docs/stages.md)
 - [Firmware and table licences](docs/licence.md)
 - [Verification: the host proofs and their mutants](docs/verification.md)

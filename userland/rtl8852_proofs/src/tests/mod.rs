@@ -3,6 +3,7 @@
 
 mod assoc_tests;
 mod bound_tests;
+mod client_stage_tests;
 mod data_tests;
 mod efuse_tests;
 mod fw_tests;

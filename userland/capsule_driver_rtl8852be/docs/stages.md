@@ -14,17 +14,17 @@ Every one of these stops is proven on the modelled chip
 | Rings in 32-bit DMA | `rtw89_pci_alloc_trx_rings` (pci.c) | `ring/map.rs` | 5 NoDma |
 | Cut, firmware suit (normal CE first) | `rtw89_chip_info_setup` (core.c:4652), `rtw89_fw_recognize` (fw.c) | `bring/probe.rs`, `fw/mfw.rs` | 4 FirmwareFailed |
 | Power on | `rtw89_mac_power_switch` (mac.c:1444), `rtw8852b_pwr_on_func` (rtw8852b.c) | `pwr/on.rs` | 2 PowerFailed |
-| HCI DMA, DMAC pre-init, PCIe pre-init, rings programmed | `rtw89_mac_partial_init` (mac.c:3916), `rtw89_pci_ops_mac_pre_init_ax` (pci.c:2813) | `bring/partial.rs`, `pcie/` | 10 ChipInit |
+| HCI DMA, DMAC pre-init, PCIe pre-init, rings programmed | `rtw89_mac_partial_init` (mac.c:3916), `rtw89_pci_ops_mac_pre_init_ax` (pci.c:2813) | `bring/partial.rs`, `pcie/` | 12 ChipInit |
 | Firmware download, five tries | `rtw89_fw_download` (fw.c:1496) | `fw/download.rs` | 4 FirmwareFailed |
 | Efuse and phycap maps (the MAC address is never read) | `rtw89_chip_efuse_info_setup` (core.c:4551), `rtw89_parse_efuse_map_ax` (efuse.c:239) | `efuse/` | 6 EfuseFailed |
 | PHY capabilities over the register mailbox | `rtw89_mac_setup_phycap` (mac.c:2920), `rtw89_fw_msg_reg` (fw.c:5805) | `bring/probe.rs`, `h2c/reg.rs` | 4 FirmwareFailed |
 | One-antenna board refused | `hal.antenna_rx` RF_B | `bring/up.rs` | 8 NoAirPath |
-| MAC init: partial init again, BB/RF on, sys, DLE and HFC, TRX, PCIe post-init | `rtw89_mac_init` (mac.c:3953), `trx_init_ax` (mac.c:3668), `rtw89_pci_ops_mac_post_init_ax` (pci.c:2971) | `bring/mac_init.rs`, `mac/`, `dle/` | 10 ChipInit |
-| BB and RF tables; RF direct words to the firmware in pages | `rtw89_phy_init_bb_reg` (phy.c:1612), `rtw89_phy_init_rf_reg` (phy.c:1640) | `bring/phy_init.rs`, `phy/` | 10 ChipInit |
-| Coexistence, Wi-Fi only | `rtw89_btc_ntfy_init` (coex.c:7063), chip part | `coex/` | 10 ChipInit |
-| DM init: DIG, CFO, EDCCA, NCTL, RCK, DACK, RX DCK, TX power reference and trims, both RX paths | `rtw89_phy_dm_init` (phy.c:5979), `rtw8852b_rfk_init` (rtw8852b.c:554) | `bring/dm_init.rs`, `rfk/` | 10 ChipInit |
+| MAC init: partial init again, BB/RF on, sys, DLE and HFC, TRX, PCIe post-init | `rtw89_mac_init` (mac.c:3953), `trx_init_ax` (mac.c:3668), `rtw89_pci_ops_mac_post_init_ax` (pci.c:2971) | `bring/mac_init.rs`, `mac/`, `dle/` | 12 ChipInit |
+| BB and RF tables; RF direct words to the firmware in pages | `rtw89_phy_init_bb_reg` (phy.c:1612), `rtw89_phy_init_rf_reg` (phy.c:1640) | `bring/phy_init.rs`, `phy/` | 12 ChipInit |
+| Coexistence, Wi-Fi only | `rtw89_btc_ntfy_init` (coex.c:7063), chip part | `coex/` | 12 ChipInit |
+| DM init: DIG, CFO, EDCCA, NCTL, RCK, DACK, RX DCK, TX power reference and trims, both RX paths | `rtw89_phy_dm_init` (phy.c:5979), `rtw8852b_rfk_init` (rtw8852b.c:554) | `bring/dm_init.rs`, `rfk/` | 12 ChipInit |
 | Station address drawn at random | (mac80211 takes the efuse's; this never does) | `station.rs` | 7 NoStationAddress |
-| Station interface: port, MAC ID tables, unpause, role, join info, CAM, CMAC table | `rtw89_mac_vif_init` (mac.c:4522) | `sta/vif.rs` | 10 ChipInit |
+| Station interface: port, MAC ID tables, unpause, role, join info, CAM, CMAC table | `rtw89_mac_vif_init` (mac.c:4522) | `sta/vif.rs` | 12 ChipInit |
 | Ready | | | 0 Ready |
 
 After Ready, the station drives the chip through `nonos_wifi_core`'s
@@ -41,5 +41,5 @@ After Ready, the station drives the chip through `nonos_wifi_core`'s
 | Release reports free the slots | `rtw89_pci_release_rpp` (pci.c:565) | `sta/pump.rs` |
 | Frames in: whole WIFI packets only, FCS stripped | `rtw89_core_rx` (core.c) | `rx/` |
 
-Code 10 (ChipInit) is this driver's: a MAC, PHY or calibration step the
+Code 12 (ChipInit) is this driver's: a MAC, PHY or calibration step the
 chip did not finish. `nonos_wifi_client` reads it with the others.

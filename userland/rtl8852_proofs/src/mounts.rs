@@ -23,6 +23,8 @@ pub mod efuse;
 pub mod fw;
 #[path = "../../capsule_driver_rtl8852be/src/h2c/mod.rs"]
 pub mod h2c;
+#[path = "../../capsule_driver_rtl8852be/src/ids.rs"]
+pub mod ids;
 #[path = "../../capsule_driver_rtl8852be/src/mac/mod.rs"]
 pub mod mac;
 #[path = "../../capsule_driver_rtl8852be/src/pcie/mod.rs"]

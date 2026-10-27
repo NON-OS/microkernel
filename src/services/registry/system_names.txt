@@ -106,6 +106,7 @@ driver.rtl8153_0
 driver.rtl8169_0
 driver.rtl8821ce0
 driver.rtl8822ce0
+driver.rtl8852be0
 driver.rtsx0
 driver.sdhci0
 driver.smbus0
@@ -191,6 +192,7 @@ endpoint.4294967366
 endpoint.4294967368
 endpoint.4294967372
 endpoint.4294967373
+endpoint.4294967374
 endpoint.4294967380
 endpoint.4294967390
 endpoint.4294967391
