@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Proofs of the calls a guest makes: memory, signals, files, sockets,
-//! processes and the box's rules.
+//! Proofs of the calls a guest makes: memory, signals, files, sockets, processes, rules.
 
 mod anon_backend_tests;
 mod anon_reply_tests;
@@ -63,6 +62,7 @@ mod resolve_tests;
 mod resolver_msg_tests;
 mod route_tests;
 mod run_mode_tests;
+mod shm_buffer_tests;
 mod sigframe_layout_tests;
 mod sigframe_mutation_tests;
 mod sigframe_tests;
