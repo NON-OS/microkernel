@@ -36,6 +36,8 @@ pub struct Clip {
     pub input_ms: u64,
     /// The bridge's read of a text selection for the desktop (desk.rs).
     pub reading: Option<Reading>,
+    /// A digest of the text last copied to the desktop (desk_copy.rs).
+    pub copied: Option<u64>,
 }
 
 /// A pipe the bridge holds the read end of, and what came through it.

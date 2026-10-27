@@ -17,7 +17,7 @@
 //! The desktop clipboard, reached only through the user's own clipboard
 //! service, and for text alone (mime.rs). A text selection a guest sets
 //! within FOCUS_MS of a key or button its window was given is read by the
-//! bridge and copied there (desk_read.rs). A guest holding no clipboard
+//! bridge and copied there (desk_copy.rs, desk_read.rs). A guest holding no clipboard
 //! selection of its own is offered the desktop's, and a receive on that
 //! offer within FOCUS_MS of such input is written the clipboard's text as
 //! it is then. The router sends input only to the window with focus, so a
@@ -52,13 +52,7 @@ pub fn fallback(which: Which) -> Option<u32> {
     (which == Which::Data && lookup_port(b"clipboard").is_some()).then_some(DESKTOP)
 }
 
-/// The guest set `source` as its clipboard selection, or none.
-pub fn copy(guest: &mut Guest, source: Option<u32>) {
-    super::desk_read::stop(guest);
-    if let Some(source) = source.filter(|_| focused(guest)) {
-        super::desk_read::start(guest, source);
-    }
-}
+pub use super::desk_copy::copy;
 
 /// A receive on the desktop's offer: its text, put into the pipe the guest
 /// passed. The bridge keeps no descriptor on it, and the client closed the

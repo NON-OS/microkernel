@@ -23,6 +23,7 @@
 
 pub(super) mod ask;
 pub(super) mod desk;
+pub(super) mod desk_copy;
 pub(super) mod desk_read;
 pub(super) mod focus;
 pub(super) mod gone;
