@@ -66,6 +66,13 @@ says holds FileSystem, and refuses every other request with `EACCES` before
 any handler runs (`src/server/fs_gate.rs`). the kernel is asked with
 `MkCapCheck` on each request; no verdict is kept.
 
+a Linux app's home (`/linux-home`) and each run's private files
+(`/linux-private`) are reached only by a caller the kernel says holds
+ForeignExec, which only capsule_linux holds; any path a request names is
+normalized and asked about first, and a copy or removal of the root is held
+off them too. no listing outside those trees, no search and no recent-files
+journal shows a name inside them (`src/server/fs_gate/guard.rs`).
+
 ## Privacy and persistence
 
 files are held in the capsule's 320 MiB heap and are gone at power off. a file
@@ -111,6 +118,7 @@ drops only the RAM half on such a boot, so the disk is left as it was found. app
 
 ## Current implemented surface
 
+the 26 ops, the FileSystem gate, the in-RAM file table with per-owner shares
 (`src/store/fdtable`), the resumable store loader and ordered store writer
 (`src/blk`), the handle reaper, the journal, search and the change-generation
 counter. a build with the `seed-audio-store` feature also seeds `/audio` with
@@ -135,7 +143,9 @@ data volume is the kernel's (`src/fs/blockfs_volume`), not this capsule's.
 
 ## Operating rules
 
+- hold one owner to `PER_OWNER_FDS` (128, half of `MAX_OPEN_FDS` 256) open
   handles, so no client can refuse every other open on the machine.
+- hold one owner to `NAMES_PER_OWNER` (512, a quarter of `MAX_FILES` 2048)
   names, one file to `MAX_FILE_BYTES` (64 MiB), and every file together to
   `DATA_BYTES_MAX` (160 MiB), reserved fallibly so a large write is refused
   with `ENOSPC` instead of aborting the store (`src/store/fdtable/budget.rs`).
@@ -143,6 +153,7 @@ data volume is the kernel's (`src/fs/blockfs_volume`), not this capsule's.
 - close the handles of a client that ended without closing them: looked for
   every two seconds while requests arrive, and at once when an open finds no
   room (`src/server/reap.rs`, `src/store/fdtable/reap.rs`), using `MkPidAlive`.
+  the kernel's own handles (owner 0) are never taken.
 - remove the `/linux-private/` files of a Linux run that ended without
   removing them, on the same sweep.
 - store writes are ordered so a power cut leaves the old table or the new one:
@@ -158,6 +169,7 @@ data volume is the kernel's (`src/fs/blockfs_volume`), not this capsule's.
 ## Release evidence
 
 `userland/fs_proofs` runs the real store, block layer, protocol and handlers on
+the host, including the per-owner shares, the budget, the FileSystem gate,
 reaping, and appends and removals cut short. `userland/nonos_disk_map` holds
 the store's on-disk layout and its tests. build and sign with
 `make nonos-mk-vfs`, `nonos-mk-vfs-sign`, `nonos-mk-vfs-verify`.
@@ -166,6 +178,8 @@ the store's on-disk layout and its tests. build and sign with
 
 - [ ] `CAPSULE_REQUIRED_CAPS` unchanged at `0x04000018`, `Debug` optional only.
 - [ ] the FileSystem gate refuses a sender without FileSystem that is not pid 0.
+- [ ] `/linux-home` and `/linux-private` are refused to a caller without
+      ForeignExec, and left out of listings, searches and the journal.
 - [ ] `userland/fs_proofs` passes, including budget, reaping and torn writes.
 - [ ] store append and removal leave the old or the new table on a power cut,
       never a half-written one.

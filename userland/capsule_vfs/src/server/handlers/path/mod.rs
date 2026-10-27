@@ -19,5 +19,5 @@ mod normalize;
 mod normalize_to_buffer;
 
 pub(super) use is_read_only::is_read_only;
-pub(super) use normalize::normalize;
+pub(crate) use normalize::normalize;
 pub(crate) use normalize_to_buffer::normalize_to_buffer;

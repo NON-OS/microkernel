@@ -24,6 +24,7 @@
 
 use super::super::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_PERM};
 use super::errno::errno;
+use super::kept_name::may_reach;
 use super::name::copy_name;
 
 const MAX_READ: u64 = 4 << 20;
@@ -36,13 +37,18 @@ pub fn sys_data_read(
     buf_len: u64,
     peer: u64,
 ) -> i64 {
-    if !crate::syscall::caps::current_caps_or_default().can_open_files() {
+    let caps = crate::syscall::caps::current_caps_or_default();
+    if !caps.can_open_files() {
         return ERRNO_PERM;
     }
     let (name, len) = match copy_name(name_ptr, name_len) {
         Ok(n) => n,
         Err(e) => return e,
     };
+    // A kept home's or install's name is the Linux personality's alone.
+    if !may_reach(&name[..len], || caps.can_foreign_exec()) {
+        return ERRNO_PERM;
+    }
     if buf == 0 || buf_len == 0 || buf_len > MAX_READ {
         return ERRNO_INVAL;
     }

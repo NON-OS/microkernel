@@ -24,21 +24,40 @@
 //! is asked on every request: a cached verdict would outlive the holder's
 //! exit and follow its pid to whatever process is handed that pid next.
 
+pub(super) mod guard;
+mod paths;
+mod reach;
 mod rule;
 
 use alloc::vec::Vec;
 
 use nonos_libc::mk_cap_check;
 
+use super::handlers::path::normalize;
 use crate::protocol::{encode_response, Request, EACCES};
 
 /// FileSystem, as abi/caps.toml numbers it.
 pub const CAP_FILE_SYSTEM: u64 = 1 << 6;
+/// ForeignExec, which only capsule_linux holds (guard.rs).
+pub const CAP_FOREIGN_EXEC: u64 = 1 << 32;
 
 /// The reply that refuses `req`, or None when its sender is served.
 pub fn refusal(req: &Request<'_>, sender_pid: u32) -> Option<Vec<u8>> {
-    if rule::allows(sender_pid, |pid| mk_cap_check(pid, CAP_FILE_SYSTEM)) {
+    if rule::allows(sender_pid, |pid| mk_cap_check(pid, CAP_FILE_SYSTEM))
+        && reaches(req, sender_pid)
+    {
         return None;
     }
     Some(encode_response(req.op, req.flags, req.request_id, EACCES, &[]))
+}
+
+/// Whether the paths `req` names are its caller's to reach (guard.rs). The
+/// caller is the sender, or for the kernel's own client the pid it sends
+/// for, as `split_caller` reads it; the kernel itself (0) reaches all.
+fn reaches(req: &Request<'_>, sender_pid: u32) -> bool {
+    let Some((pid, rest)) = req.payload.split_first_chunk::<4>() else { return true };
+    let caller = if sender_pid == 0 { u32::from_le_bytes(*pid) } else { sender_pid };
+    reach::reaches(req.op, rest, normalize, || {
+        caller == 0 || mk_cap_check(caller, CAP_FOREIGN_EXEC)
+    })
 }

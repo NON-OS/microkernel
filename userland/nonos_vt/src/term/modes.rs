@@ -67,6 +67,7 @@ impl Term {
             2004 => m.bracketed_paste = on,
             2026 => m.sync = on,
             7727 => m.raw_input = on,
+            7728 => m.no_echo = on,
             47 | 1047 | 1048 | 1049 => self.set_screen_mode(mode, on),
             _ => {}
         }

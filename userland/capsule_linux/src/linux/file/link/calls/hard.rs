@@ -27,7 +27,7 @@ use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
 /* Largest file a hard link copies; the same bound an exec image has. */
-const MAX_LINKED: u32 = 64 << 20;
+const MAX_LINKED: u32 = crate::linux::program_max::PROGRAM_MAX;
 
 pub fn linkat(guest: &Guest, olddir: u64, old: u64, newdir: u64, new: u64) -> u64 {
     let from = match resolve_at(guest, olddir, old) {

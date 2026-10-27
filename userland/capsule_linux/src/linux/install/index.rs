@@ -23,6 +23,7 @@ use alloc::vec::Vec;
 
 /// Each soname, and each name or provided name, to the package that has it.
 /// The lookups are in index_find.rs.
+#[derive(Default)]
 pub struct Index {
     pub(super) pkgs: Vec<Pkg>,
     pub(super) libs: Vec<(String, usize)>,
@@ -30,17 +31,21 @@ pub struct Index {
 }
 
 impl Index {
-    /// Records end at a blank line; `D:` and `p:` follow `V:`.
-    pub fn parse(raw: &[u8]) -> Index {
+    /// Records end at a blank line; `D:` and `p:` follow `V:`. Each is
+    /// marked as listed by `branch`.
+    pub fn add(&mut self, raw: &[u8], branch: usize) {
         let text = String::from_utf8_lossy(raw);
-        let mut index = Index { pkgs: Vec::new(), libs: Vec::new(), names: Vec::new() };
         let (mut cur, mut provides) = (Pkg::default(), Vec::new());
         for line in text.lines().chain(core::iter::once("")) {
             let rest = line.get(2..).unwrap_or("");
             match line.as_bytes().first() {
-                None => index.finish(core::mem::take(&mut cur), core::mem::take(&mut provides)),
+                None => {
+                    cur.branch = branch;
+                    self.finish(core::mem::take(&mut cur), core::mem::take(&mut provides))
+                }
                 Some(b'C') => cur.checksum = super::auth::checksum(rest),
                 Some(b'P') => cur.name = String::from(rest),
+                Some(b'S') => cur.size = rest.parse().unwrap_or(0),
                 Some(b'V') => cur.version = String::from(rest),
                 Some(b'D') => cur.read_depends(rest),
                 Some(b'i') => cur.read_install_if(rest),
@@ -48,7 +53,6 @@ impl Index {
                 _ => {}
             }
         }
-        index
     }
 
     fn finish(&mut self, pkg: Pkg, provides: Vec<String>) {

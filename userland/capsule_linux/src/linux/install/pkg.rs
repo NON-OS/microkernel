@@ -31,6 +31,11 @@ pub struct Pkg {
     /// The names whose presence brings it in, from its `i:` line
     /// (install_if.rs), version constraints dropped.
     pub install_if: Vec<String>,
+    /// Which branch's index listed it (run.rs BRANCHES), so it is fetched
+    /// from there and nowhere else.
+    pub branch: usize,
+    /// Its size in bytes, from its `S:` line: 0 when the index gives none.
+    pub size: usize,
 }
 
 impl Pkg {

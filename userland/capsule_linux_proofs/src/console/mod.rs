@@ -18,6 +18,8 @@
 //! finds the others where it does in the capsule, and the run request's
 //! parser, which decides whether a run starts on a terminal.
 
+#[cfg(test)]
+mod echo_switch_tests;
 #[path = "../../../capsule_linux/src/linux/console/intr_press.rs"]
 pub mod intr_press;
 #[cfg(test)]
@@ -28,13 +30,13 @@ pub mod queue;
 pub mod queue_piece;
 #[path = "../../../capsule_linux/src/linux/console/queue_take.rs"]
 pub mod queue_take;
+#[path = "../../../capsule_linux/src/linux/run_mode.rs"]
+pub mod run_mode;
 #[path = "../../../capsule_linux/src/linux/console/tty_rules.rs"]
 pub mod tty_rules;
 #[cfg(test)]
 mod tty_rules_tests;
-#[path = "../../../capsule_linux/src/linux/console/wipe.rs"]
-pub mod wipe;
 #[path = "../../../capsule_linux/src/linux/console/winsize.rs"]
 pub mod winsize;
-#[path = "../../../capsule_linux/src/linux/run_mode.rs"]
-pub mod run_mode;
+#[path = "../../../capsule_linux/src/linux/console/wipe.rs"]
+pub mod wipe;
