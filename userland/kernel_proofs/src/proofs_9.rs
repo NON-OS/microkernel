@@ -20,6 +20,9 @@
 /// Which process owns which address space, read without the paging lock.
 #[path = "asid_directory/mod.rs"]
 pub mod asid_directory;
+/// MkLocalSign and MkLocalVerify hash an image a bounded chunk at a time.
+#[path = "image_digest/mod.rs"]
+pub mod image_digest;
 /// A guest's peer calls hold its own lock, not one over every guest.
 #[path = "peer_stripe/mod.rs"]
 pub mod peer_stripe;
