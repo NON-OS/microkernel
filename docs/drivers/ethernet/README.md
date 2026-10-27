@@ -38,7 +38,7 @@ What a boot must show to say a card receives: the driver's own link line (`igb: 
 
 ## Behaviour every PCI driver shares
 
-- The kernel starts `driver_e1000`, `driver_rtl8139` and `driver_rtl8169` on every boot of an image that carries them (`src/userspace/init/spawn_plan/drivers_nic.rs:17-21`, `spawn`). A driver whose chip is absent exits at once with `EXIT_ABSENT` (2) and claims nothing (`userland/libc/src/bringup/policy.rs:37-41`, `EXIT_ABSENT`).
+- The kernel starts a wired card's driver only when the boot's PCI inventory found one of the ids that driver takes; otherwise the boot log says `no controller present, not spawned` for it (`src/userspace/init/spawn_plan/device_present.rs`, `present`; the spawns in `drivers_nic.rs` and `drivers_nic/`). The inventory's id tables are the drivers' own, held equal by `each_table_is_its_capsules` (`userland/kernel_proofs/src/inventory_ids/table_tests.rs`). A driver started for a chip it then cannot find exits with `EXIT_ABSENT` (2) and claims nothing (`userland/libc/src/bringup/policy.rs`, `EXIT_ABSENT`).
 - A chip that is present but fails bring-up is tried 7 times, with a sleep starting at 100 ms and doubling up to 3.2 s, then the driver exits with `EXIT_GAVE_UP` (6) (`userland/libc/src/bringup/policy.rs:30-41`, `BRINGUP_ATTEMPTS`, `EXIT_GAVE_UP`).
 - No PCI Ethernet driver binds an interrupt: they all poll, and none of their masks holds Irq (`userland/capsule_driver_e1000/src/setup/sequence.rs:24-27`, `IMS`).
 - Each draws a new locally administered station address every boot instead of the address burned into the card, and fails closed without randomness (`userland/capsule_driver_e1000/src/init/station_address.rs:22-31`, `draw`).
