@@ -16,16 +16,21 @@
 //! What the front needs of one controller.
 //! OP_PARK from driver.usb_hub0 (nonos_usb_virt's park.rs has the body):
 //! a child it addressed below a hub listed as a virtual port. The child
-//! and its hub must be addressed on one controller here.
+//! and its hub must be addressed on one controller here, and both slots
+//! the sender's, as driver.xhci0 holds them (its slots/gate.rs).
 
 use super::front::{Bind, Front};
 use super::hc::Hc;
 use crate::server::reply::status;
-use crate::wire::{Request, E_BUSY, E_INVAL};
+use crate::wire::{Request, E_BUSY, E_INVAL, E_PERM};
 use nonos_usb_virt::parse_park;
 
-pub fn park<H: Hc>(f: &mut Front<H>, req: &Request, body: &[u8], tx: &mut [u8]) -> usize {
+pub fn park<H: Hc>(f: &mut Front<H>, pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) -> usize {
     let Some(p) = parse_park(body) else { return status(tx, req, E_INVAL) };
+    // The child's slot is the sender's (serve.rs); its hub's must be too.
+    if !f.admits(p.parent, pid) {
+        return status(tx, req, E_PERM);
+    }
     let on = |s: u8| match f.bound.get((s as usize).wrapping_sub(1)) {
         Some(Bind::On(k)) => Some(*k),
         _ => None,
