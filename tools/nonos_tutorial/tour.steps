@@ -321,9 +321,6 @@ say:swayimg: an image viewer with a window of its own. No network, only its home
 pause:7
 say:Every gate must pass before it installs: signatures, pins and its policy.
 pause:7
-mark
-key:ret
-pause:2
 say:Install. The package must match the catalogue's pin, and Alpine's signature.
 pause:5
 # >>> dev-image
@@ -332,7 +329,8 @@ say:This development image downloads from a relay on the host, at 10.0.2.2.
 # >>> sealed
 say:The download goes over the Anyone network, whatever route you chose.
 # <<< sealed
-until:[LINUX] installed:1800
+key:ret
+after:[LINUX] installed:1800
 pause:2
 say:Installed, and held in memory until restart.
 pause:5
@@ -364,11 +362,10 @@ key:ctrl+l
 # ==== 7a. Talk without being watched: SimpleX ================================
 key:ctrl+alt+t
 pause:3
-mark
 type:market install linux.simplex-chat
-key:ret
 say:SimpleX Chat, from the Marketplace: no account, no phone number.
-until:[LINUX] installed:1800
+key:ret
+after:[LINUX] installed:1800
 pause:2
 type:linux simplex-chat
 key:ret
@@ -389,11 +386,10 @@ key:ctrl+l
 # ==== 7b. Talk without being watched: Telegram ===============================
 key:ctrl+alt+t
 pause:3
-mark
 type:market install linux.telegram-desktop
-key:ret
 say:Telegram Desktop, from the Marketplace, boxed like every Linux app.
-until:[LINUX] installed:1800
+key:ret
+after:[LINUX] installed:1800
 pause:2
 type:linux telegram-desktop
 key:ret
@@ -411,11 +407,10 @@ key:ctrl+l
 # ==== 8. Money that stays yours =============================================
 key:ctrl+alt+t
 pause:3
-mark
 type:market install linux.monero
-key:ret
 say:Monero's wallet, from the Marketplace. Its box allows no direct connection.
-until:[LINUX] installed:1800
+key:ret
+after:[LINUX] installed:1800
 pause:2
 type:linux monero-wallet-cli --generate-new-wallet /root/tour --password tour --mnemonic-language English --daemon-address node.sethforprivacy.com:18089 --proxy 127.0.0.1:9050
 key:ret

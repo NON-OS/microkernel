@@ -272,8 +272,7 @@ class Tour(unittest.TestCase):
         q.cmd = lambda name, **args: {"return": {}}
         with tempfile.TemporaryDirectory() as d, \
                 unittest.mock.patch.object(step, "until", return_value=True), \
-                unittest.mock.patch.object(step, "seen_since", return_value=True), \
-                unittest.mock.patch.dict(step.MARKS, clear=True), \
+                unittest.mock.patch.object(step, "after", return_value=True), \
                 unittest.mock.patch("time.sleep"), \
                 unittest.mock.patch("sys.stdout"):
             serial = Path(d) / "serial.log"
