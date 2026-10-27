@@ -22,6 +22,12 @@ mod cap_table;
 use crate::capabilities::CapabilityToken;
 use crate::syscall::numbers::SyscallNumber;
 
+/// The table as it answers any caller but the desktop shell.
 pub fn is_allowed(caps: &CapabilityToken, number: SyscallNumber) -> bool {
-    cap_table::is_allowed(caps, number)
+    cap_table::is_allowed(caps, number, || false)
+}
+
+/// The table as it answers the desktop shell the kernel spawned.
+pub fn is_allowed_as_shell(caps: &CapabilityToken, number: SyscallNumber) -> bool {
+    cap_table::is_allowed(caps, number, || true)
 }
