@@ -42,6 +42,7 @@ The development image, with throwaway keys (minutes to build):
 
 It is `target/dev/tree/target/release/standard-dev/nonos.img`. A sealed
 image looks as a release does: its loader and splash say verified where the
+development one says development. The seal needs the owner's keys:
 
     nix run .#seal        # the image is target/release/<profile>/nonos.img
 
@@ -212,10 +213,13 @@ the same recording join without encoding:
 ## Changing the tour
 
 - A step is one line. `say:TEXT` sets the caption (`say:` alone clears it),
-  `pause:SECS` holds, `until:TEXT:SECS` waits for a serial line, and `mark`
-  makes the `until:` steps after it read only new serial lines (a second
-  install's `[LINUX] installed`). `key:`, `type:`, `abs:X,Y` and `click`
-  drive the machine. `tools/nonos-drive --help` lists them all.
+  `pause:SECS` holds, `until:TEXT:SECS` waits for a serial line, and
+  `after:TEXT:SECS` waits for one more of a line than there was when it
+  began, as each install's `[LINUX] installed` is. Each install in the tour
+  sets its captions first, then presses the key, then waits with `after:`
+  at once, so a fast install cannot finish before the count is taken.
+  `key:`, `type:`, `abs:X,Y` and `click` drive the machine.
+  `tools/nonos-drive --help` lists them all.
 - Keep a caption to one line: about 80 characters fit across the screen.
   `tools/nonos_drive/test_record.py` checks every caption's length. It also
   checks that every step here is one the drive knows, that every typed
