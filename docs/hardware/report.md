@@ -42,6 +42,23 @@ Not tested in this release.
 
 The log is there only on images built with `capsule-serial-debug`: Standard, QEMU and [development images](../overview/glossary-claim-epoch.md#development-image). A Hardened or Air-Gapped image keeps nothing, and `log` answers `log: no line matches`. On such an image the kernel's lines still reach a serial port, if the machine has one. They do not reach the screen: the kernel's on-screen boot log is off unless the kernel is built with `NONOS_FBCONSOLE=1`, which no build profile sets (see [Logging](../kernel/logging.md)). Without a serial port, describe what the screen and Settings showed instead.
 
+## The device list
+
+Every boot writes one `[HW]` line for each PCI function the kernel found, before it starts any driver, and a count after them (`src/hardware/inventory/report.rs`, `say`). `log HW > devices.txt` in the Terminal keeps them. Each line is the function's vendor:device ids and its class, then one of three verdicts:
+
+```text
+[HW] 8086:125c 02/00 driven by driver_igc
+[HW] 10ec:b852 02/80 known, held: no driver for this Realtek Wi-Fi part (RTL8822CE, RTL8852 and kin)
+[HW] 14c3:0616 02/80 unknown
+[HW] 31 driven, 2 known and held, 4 unknown
+```
+
+- `driven by` names the driver capsule that takes the part. The driver's own lines say whether it came up; a driver this image does not carry also shows here, and its spawn line then says so.
+- `known, held` is a part NONOS recognises and has no driver for, with the reason.
+- `unknown` is a part no table names. Those lines are the ones worth sending: each is a driver to write.
+
+The lines hold no serial number, MAC address or other value that names one machine (`report_text.rs`, the proofs in `userland/kernel_proofs/src/inventory_ids/report_tests.rs`), so the file can be sent as written. USB devices are not in it: the USB host drivers find them after the list is written. Added on 27 October 2026; not yet seen on a real machine.
+
 ## What the lines mean
 
 | Search word | Example line | Written by |
