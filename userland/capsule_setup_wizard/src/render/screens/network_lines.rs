@@ -1,7 +1,7 @@
 //! The lines under the network list: the driver, the join, the selected row,
 //! remembering, and the wired card.
 
-use nonos_wifi_client::{firmware_step_text, join_text, DriverStage};
+use nonos_wifi_client::{join_text, DriverStage};
 
 use crate::network::{wired_present, NetState};
 use crate::render::screens::mode;
@@ -55,10 +55,9 @@ fn driver_line<'a>(n: &NetState, line: &'a mut [u8; 96]) -> &'a [u8] {
         // did not start.
         return b"No Wi-Fi driver is running: none for this chip yet, or it did not start.";
     };
-    if n.stage == Some(DriverStage::FirmwareFailed) {
-        if let Some(why) = n.fw_step.and_then(firmware_step_text) {
-            return cat(line, &[d.label().as_bytes(), b": firmware stopped: ", why.as_bytes()]);
-        }
+    let mut why = [0u8; 64];
+    if let Some(why) = n.stop.and_then(|s| s.text(&mut why)) {
+        return cat(line, &[d.label().as_bytes(), b": ", why]);
     }
     let tail: &[u8] = match n.stage {
         Some(DriverStage::Ready) if n.count == 0 => b": listening for networks",
