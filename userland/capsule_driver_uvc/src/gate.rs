@@ -36,11 +36,7 @@ pub struct Session {
 impl Session {
     /// OP_OPEN by `peer`, whose holding of CameraCapture is `holds`.
     pub fn open(&self, holds: bool) -> Result<(), i32> {
-        if holds {
-            Ok(())
-        } else {
-            Err(E_PERM)
-        }
+        holds.then_some(()).ok_or(E_PERM)
     }
 
     /// OP_START by `peer`: asked again, and refused while another peer's
@@ -60,14 +56,20 @@ impl Session {
 
     /// OP_READ_FRAME and OP_STOP: the streaming peer's alone.
     pub fn own(&self, peer: u32) -> Result<(), i32> {
-        if self.streamer == Some(peer) {
-            Ok(())
-        } else {
-            Err(E_PERM)
-        }
+        (self.streamer == Some(peer)).then_some(()).ok_or(E_PERM)
     }
 
     pub fn stop(&mut self) {
         self.streamer = None;
+    }
+
+    /// Whether the stream's peer is gone (`alive` asks the kernel), so the
+    /// stream must be stopped; it is let go here.
+    pub fn reap(&mut self, alive: impl Fn(u32) -> bool) -> bool {
+        let gone = self.streamer.is_some_and(|p| !alive(p));
+        if gone {
+            self.streamer = None;
+        }
+        gone
     }
 }
