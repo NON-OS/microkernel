@@ -64,11 +64,10 @@ LTR in CSR_LTR_LONG_VAL_AD, the CNVi parts write theirs to HPM_UMAC_LTR. The
 API 77 images list the MLD API, SCAN_REQ_UMAC 15 (the band in `v2.band`),
 TX_CMD 9 and MAC_CONFIG 1 (the same bytes as 2); the driver speaks each
 (`gen3_gen2_tests::firmware` lists every version that differs from the
-AX211 image's). The Qu and QuZ images are linux-firmware's at bf992df7 and
-pinned as above; `iwlwifi-cc-a0-77.ucode` was already in the tree, an earlier
-build (core74, ad46c98b) than bf992df7's (563a6e92), which lists no
-MAC_CONFIG version (version 1 then). The 22000-family path is host-proven
-only: never booted on those parts.
+AX211 image's). The Qu, QuZ and cc images are linux-firmware's at bf992df7
+(core74::563a6e92) and pinned as above; the cc file is also the
+bootloader's. The 22000-family path is host-proven only: never booted on
+those parts.
 The TLV file is parsed with every length checked (`gen3::ucode`); the image
 loader, capabilities, API flags and command version table come from it.
 

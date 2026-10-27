@@ -10,10 +10,8 @@
 //! intel/iwlwifi/ copy at bf992df7a95b5e19bb8f8546eb4d7c53ab2598d0 (WHENCE:
 //! "Licence: Redistributable. See LICENCE.iwlwifi_firmware", its text in
 //! `nonos-bootloader/firmware/intel/LICENSE`), pinned by sha256 in
-//! scripts/baselines/upstream.sha256, but for `iwlwifi-cc-a0-77.ucode`: the
-//! bootloader's copy, pinned there too, an earlier linux-firmware build of
-//! the same API (core74::ad46c98b; bf992df7 has core74::563a6e92), whose
-//! command table differs from that one's only in listing no MAC_CONFIG_CMD.
+//! scripts/baselines/upstream.sha256. `iwlwifi-cc-a0-77.ucode` is the
+//! bootloader's copy too.
 
 use super::gen3::select::Image;
 use files::*;
