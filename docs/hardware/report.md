@@ -44,20 +44,23 @@ The log is there only on images built with `capsule-serial-debug`: Standard, QEM
 
 ## The device list
 
-Every boot writes one `[HW]` line for each PCI function the kernel found, before it starts any driver, and a count after them (`src/hardware/inventory/report.rs`, `say`). `log HW > devices.txt` in the Terminal keeps them. Each line is the function's vendor:device ids and its class, then one of three verdicts:
+Every boot writes one `[HW]` line for each device the kernel found, before it starts any driver, and a count after them (`src/hardware/inventory/report.rs`, `say`). `log HW > devices.txt` in the Terminal keeps them. A PCI function is named by its vendor:device ids and its class, an ACPI device by its PNP id, then comes one of four verdicts:
 
 ```text
 [HW] 8086:125c 02/00 driven by driver_igc
 [HW] 10ec:b852 02/80 known, held: no driver for this Realtek Wi-Fi part (RTL8822CE, RTL8852 and kin)
+[HW] 8086:29c0 06/00 needs no driver
+[HW] acpi PNP0303 driven by driver_ps2_input
 [HW] 14c3:0616 02/80 unknown
-[HW] 31 driven, 2 known and held, 4 unknown
+[HW] 31 driven, 2 known and held, 9 need none, 1 unknown
 ```
 
 - `driven by` names the driver capsule that takes the part. The driver's own lines say whether it came up; a driver this image does not carry also shows here, and its spawn line then says so.
 - `known, held` is a part NONOS recognises and has no driver for, with the reason.
+- `needs no driver` is a bridge or platform function the firmware has already set up.
 - `unknown` is a part no table names. Those lines are the ones worth sending: each is a driver to write.
 
-The lines hold no serial number, MAC address or other value that names one machine (`report_text.rs`, the proofs in `userland/kernel_proofs/src/inventory_ids/report_tests.rs`), so the file can be sent as written. USB devices are not in it: the USB host drivers find them after the list is written. Added on 27 October 2026; not yet seen on a real machine.
+The lines hold no serial number, MAC address or other value that names one machine (`report_text.rs`, the proofs in `userland/kernel_proofs/src/inventory_ids/report_tests.rs`), so the file can be sent as written. USB devices are not in it: the USB host drivers find them after the list is written. Added on 27 October 2026; seen on QEMU (`docs/release-evidence/0.9.3/drivers/e1000e/serial.log`), not yet on a real machine.
 
 ## What the lines mean
 
