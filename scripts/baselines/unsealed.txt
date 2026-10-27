@@ -18,6 +18,7 @@ driver-piix-ide
 driver-pvscsi
 driver-rndis
 driver-rtl8822ce
+driver-rtl8852be
 driver-sdhci
 driver-smbus
 driver-tulip
