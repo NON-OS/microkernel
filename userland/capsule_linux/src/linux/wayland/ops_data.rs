@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! wl_data_device_manager, wl_data_source and wl_data_device, from
-//! wayland.xml: requests, then the one event this server sends.
+//! wl_data_device_manager, wl_data_source, wl_data_device and
+//! wl_data_offer, from wayland.xml: requests, then the events this server
+//! sends.
 
 pub const MANAGER_CREATE_DATA_SOURCE: u16 = 0;
 pub const MANAGER_GET_DATA_DEVICE: u16 = 1;
@@ -25,4 +26,13 @@ pub const SOURCE_SET_ACTIONS: u16 = 2;
 pub const DEVICE_START_DRAG: u16 = 0;
 pub const DEVICE_SET_SELECTION: u16 = 1;
 pub const DEVICE_RELEASE: u16 = 2;
+pub const OFFER_ACCEPT: u16 = 0;
+pub const OFFER_RECEIVE: u16 = 1;
+pub const OFFER_DESTROY: u16 = 2;
+pub const OFFER_FINISH: u16 = 3;
+pub const OFFER_SET_ACTIONS: u16 = 4;
+pub const SOURCE_SEND: u16 = 1;
 pub const SOURCE_CANCELLED: u16 = 2;
+pub const DEVICE_DATA_OFFER: u16 = 0;
+pub const DEVICE_SELECTION: u16 = 5;
+pub const OFFER_OFFER: u16 = 0;
