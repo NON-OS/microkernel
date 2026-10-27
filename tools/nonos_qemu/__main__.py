@@ -34,7 +34,10 @@
                                           device lanes, to boot a driver (lanes.py)
   nix run .#qemu -- --headless --timeout 300 --expect '\\[BOOT-ATTEST\\].*enrolled'
                                           a boot smoke: passes when every
-                                          pattern is on the serial console"""
+                                          pattern is on the serial console
+  DISPLAY=:99 nix run .#qemu -- --shown   full screen on that X display, with
+                                          no menu bar, the serial to --serial:
+                                          what nonos-drive --record films"""
 
 import argparse
 import os
@@ -74,9 +77,12 @@ def args():
     ap.add_argument("--installed", action="store_true", help="boot the NVMe disk the installer wrote, alone")
     ap.add_argument("--lane", action="append", default=[], metavar="LANE",
                     help="add a device lane: " + ", ".join(lanes.NAMES))
-    ap.add_argument("--headless", action="store_true", help="no window; serial to --serial")
+    shown = ap.add_mutually_exclusive_group()
+    shown.add_argument("--headless", action="store_true", help="no window; serial to --serial")
+    shown.add_argument("--shown", action="store_true",
+                       help="a full-screen window with no menu bar, for a recording; serial to --serial")
     ap.add_argument("--serial", default=f"{TARGET}/serial.log")
-    ap.add_argument("--timeout", type=int, default=0, help="seconds before a headless boot is stopped")
+    ap.add_argument("--timeout", type=int, default=0, help="seconds before a headless or shown boot is stopped")
     ap.add_argument("--expect", action="append", default=[], help="a pattern the serial console must show")
     return ap.parse_args()
 
@@ -158,18 +164,19 @@ def main():
               "deleting the install target lets the installer make a new one", flush=True)
     # The volume key is bound to the kernel the loader measured (PCR 9): an image
     # sealed since opens no volume an older one made, by design.
-    serial = ["-serial", f"file:{a.serial}"] if a.headless else ["-serial", "mon:stdio"]
+    to_file = a.headless or a.shown
     cmd = ["qemu-system-x86_64", "-machine", "q35", "-m", a.mem, "-smp", str(machine.cpus(a.smp)), *machine.accel(),
            *machine.firmware(os.environ["OVMF"], vars_copy),
            *machine.disks(boot, target if (a.install_target or a.installed) else None, a.installed, a.usb),
            *machine.devices(a.net, sock, os.path.join(TARGET, "qmp.sock"), lane.swaps), *capture, *lane.args,
            *(machine.usb_stick(stick) if a.usb else []),
-           *serial, *machine.display(a.headless), "-no-reboot", *extra.words()]
+           *machine.serial(a.serial, to_file), *machine.display(a.headless, a.shown),
+           "-no-reboot", *extra.words()]
     print(" ".join(cmd := iommu.apply(siblings.apply(cmd, lane.swaps), lane.swaps.get("iommu"))), flush=True)
     proc = None
     try:
         proc = subprocess.Popen(cmd)
-        rc = watch(proc, a.serial, a.timeout, a.expect) if a.headless and a.timeout else proc.wait()
+        rc = watch(proc, a.serial, a.timeout, a.expect) if to_file and a.timeout else proc.wait()
     finally:
         if proc and proc.poll() is None:
             proc.terminate()
