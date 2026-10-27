@@ -58,6 +58,8 @@ pub mod ixgbe;
 pub mod rtl8139;
 #[path = "../../../capsule_driver_rtl8169/src/constants/pci.rs"]
 pub mod rtl8169;
+#[path = "../../../capsule_driver_rtl8821ce/src/constants/pci.rs"]
+pub mod rtl8821ce;
 
 mod classify_tests;
 mod report_tests;
