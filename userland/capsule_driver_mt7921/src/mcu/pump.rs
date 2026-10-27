@@ -47,6 +47,13 @@ impl Mcu {
         let _ = self.pump_for(regs, dma, None);
     }
 
+    /// An unasked event that came on the data ring, noted as `pump` does.
+    pub fn note_unasked(&mut self, b: &[u8]) {
+        if let Some(ev) = Event::parse(b).filter(|e| e.unsolicited()) {
+            self.note(&ev);
+        }
+    }
+
     fn note(&mut self, ev: &Event) {
         self.events = self.events.wrapping_add(1);
         let b = ev.body();
