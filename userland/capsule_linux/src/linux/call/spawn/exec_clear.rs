@@ -22,6 +22,8 @@ use crate::linux::guest::{Guest, MAX_SPAN};
 
 /// Every span this capsule gave the guest, taken back.
 pub fn clear(guest: &mut Guest) {
+    /* Its shared file maps are written back while their pages are there. */
+    crate::linux::file::shared_maps::ended(guest.pid);
     for span in core::mem::take(&mut guest.regions) {
         let mut done = 0;
         /*

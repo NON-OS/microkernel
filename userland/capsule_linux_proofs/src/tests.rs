@@ -28,5 +28,6 @@ mod install_closure_tests;
 mod install_window_tests;
 mod keep_alive_tests;
 mod rlimit_same_tests;
+mod shared_maps;
 mod wayland;
 mod whole;
