@@ -35,16 +35,26 @@ pub fn verify_capsule_attestation(
     elf: &[u8],
     granted_caps: u64,
 ) -> Result<Proved, AttestError> {
+    verify_capsule_digest(trailer, &super::measure::measure(elf), granted_caps)
+}
+
+/// The same gate for an image already measured as `digest`, for a caller
+/// that hashed it where it lies instead of holding it whole.
+#[must_use = "a capsule must not be spawned unless its attestation verifies"]
+pub fn verify_capsule_digest(
+    trailer: &[u8],
+    digest: &[u8; 32],
+    granted_caps: u64,
+) -> Result<Proved, AttestError> {
     let vendor = super::policy_root::root().ok_or(AttestError::RootUnavailable)?;
-    let digest = super::measure::measure(elf);
-    let first = match super::against_root::vendor(trailer, &digest, granted_caps, &vendor) {
+    let first = match super::against_root::vendor(trailer, digest, granted_caps, &vendor) {
         Ok(measurement) => return Ok(Proved { measurement, authority: Authority::Vendor }),
         Err(e) => e,
     };
 
     let (roots, n) = enrolled_roots();
     for root in roots.iter().take(n) {
-        if let Ok(measurement) = super::against_root::enrolled(trailer, &digest, granted_caps, root)
+        if let Ok(measurement) = super::against_root::enrolled(trailer, digest, granted_caps, root)
         {
             /*
              * The slot is looked up rather than inferred from the loop index,
