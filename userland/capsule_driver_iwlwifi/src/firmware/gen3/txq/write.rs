@@ -19,6 +19,7 @@
 use super::super::cmdq::FIRST_TB;
 use super::super::plan::{FIRST_TB_SLOT, TFD_SIZE};
 use super::super::region::{put16, put64, zero, Region};
+use super::head::byte_count;
 use super::layout::{BC, TFDS, TXQ_FRAMES, TX_BUF};
 use super::queue::TxQueue;
 
@@ -40,8 +41,7 @@ impl TxQueue {
         let tfd = self.base + TFDS + slot * TFD_SIZE;
         let at = |off: usize| tx.dev() + off as u64;
         let buffers: u16 = if body.is_empty() { 2 } else { 3 };
-        let chunks = (2 + 10 * buffers).div_ceil(64) - 1;
-        let bc = len as u16 | chunks << 14;
+        let bc = byte_count(self.csr, len, buffers);
         // The buffer cleared first: no byte of an earlier frame stays.
         zero(tx, buf, TX_BUF)
             && tx.write(buf, head)

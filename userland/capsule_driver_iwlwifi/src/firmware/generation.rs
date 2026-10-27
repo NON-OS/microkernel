@@ -41,6 +41,13 @@ pub fn name(device: u16) -> Option<Named> {
             "AX210 family, Meteor Lake CNVi (MA MAC), gen3 context info",
             "iwlwifi-ma-b0-gf-a0 or -gf4-a0-86.ucode",
         ),
+        0x2723 => n("AX200 (22000 family, discrete), context info", "iwlwifi-cc-a0-77.ucode"),
+        // The Qu and QuZ MACs carry an HR radio (AX201, run) or a JF one
+        // (9461, 9462, 9560, whose image is not carried); the RF id says.
+        0x02F0 | 0x06F0 | 0x34F0 | 0x3DF0 | 0x43F0 | 0x4DF0 | 0xA0F0 => n(
+            "AX201 or 9560 CNVi (22000 family, Qu/QuZ MAC), context info",
+            "iwlwifi-Qu-b0/Qu-c0/QuZ-a0-hr-b0-77.ucode (JF: -jf-b0, not carried)",
+        ),
         _ if transport(device).is_some() => n(
             "AX210 family (AX211 or AX201 on an SO platform), gen3 context info",
             "iwlwifi-so-a0-*.ucode",
@@ -59,13 +66,6 @@ pub fn name(device: u16) -> Option<Named> {
         0x30DC | 0x31DC | 0x9DF0 | 0xA370 => {
             n("9461, 9462 or 9560 CNVi (9000 family)", "iwlwifi-9000-pu-b0-jf-b0-46.ucode")
         }
-        0x2723 => n("AX200 (22000 family, discrete)", "iwlwifi-cc-a0-77.ucode"),
-        // The Qu and QuZ MACs carry an HR radio (AX201) or a JF one (9461,
-        // 9462, 9560); the RF id read at bring-up says which.
-        0x02F0 | 0x06F0 | 0x34F0 | 0x3DF0 | 0x43F0 | 0x4DF0 | 0xA0F0 => n(
-            "AX201 or 9560 CNVi (22000 family, Qu/QuZ MAC)",
-            "iwlwifi-Qu/QuZ-*-hr-b0 or -jf-b0-77.ucode",
-        ),
         _ if family_for_device(device) == Some(Family::Ax210) => {
             n("AX210 family id without transport values", "iwlwifi-so/ty/ma-*.ucode")
         }

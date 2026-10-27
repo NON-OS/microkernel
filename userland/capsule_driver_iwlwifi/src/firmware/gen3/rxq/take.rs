@@ -2,8 +2,8 @@
 
 //! Filled buffers taken off the used ring and posted again.
 
-use super::super::plan::{RB_SIZE, RB_STTS, RX_BUFS, RX_FREE, RX_FREE_DESC, RX_RING};
-use super::super::region::{get16, put16, put64, zero, Region};
+use super::super::plan::{RB_SIZE, RB_STTS, RX_BUFS, RX_RING};
+use super::super::region::{get16, zero, Region};
 use super::queue::{RxQueue, Taken, CD_FRAGMENTED};
 
 impl RxQueue {
@@ -14,25 +14,23 @@ impl RxQueue {
         if closed == self.read {
             return None;
         }
-        let (id_at, flags_at) = self.used_entry(self.read);
+        let at = self.read;
         self.read = (self.read + 1) & (RX_RING - 1);
-        let vid = get16(ctrl, id_at)?;
-        let mut flags = [0u8; 1];
+        let (vid, flags) = self.used(ctrl, at)?;
         // A failed read must not pass as a clear flag: a zero there would take
         // one piece of a multi-buffer frame as a whole one (E-34).
-        if !ctrl.read(flags_at, &mut flags) {
-            return Some(Taken::BadId);
-        }
+        let Some(flags) = flags else { return Some(Taken::BadId) };
         let slot = (vid as usize).wrapping_sub(1);
         if !self.posted.get(slot).copied().unwrap_or(false) {
             return Some(Taken::BadId);
         }
         self.posted[slot] = false;
-        let fragment = flags[0] & CD_FRAGMENTED != 0 || self.next_is_fragment;
-        self.next_is_fragment = flags[0] & CD_FRAGMENTED != 0;
-        let copied = out.get_mut(..RB_SIZE).is_some_and(|o| rbs.read(slot * RB_SIZE, o));
+        let fragment = flags & CD_FRAGMENTED != 0 || self.next_is_fragment;
+        self.next_is_fragment = flags & CD_FRAGMENTED != 0;
+        let stride = self.csr.rb_stride();
+        let copied = out.get_mut(..RB_SIZE).is_some_and(|o| rbs.read(slot * stride, o));
         // Nothing of the frame stays in the buffer the device gets back.
-        if !zero(rbs, slot * RB_SIZE, RB_SIZE) || !self.post(ctrl, rbs, vid) || !copied {
+        if !zero(rbs, slot * stride, stride) || !self.post(ctrl, rbs, vid) || !copied {
             return Some(Taken::BadId);
         }
         Some(if fragment { Taken::Fragment } else { Taken::Buffer })
@@ -44,9 +42,8 @@ impl RxQueue {
         if slot >= RX_BUFS {
             return false;
         }
-        let at = RX_FREE + self.write * RX_FREE_DESC;
-        let addr = rbs.dev() + (slot * RB_SIZE) as u64;
-        if !put16(ctrl, at, vid) || !put64(ctrl, at + 8, addr) {
+        let addr = rbs.dev() + (slot * self.csr.rb_stride()) as u64;
+        if !self.free(ctrl, self.write, vid, addr) {
             return false;
         }
         self.posted[slot] = true;
@@ -54,6 +51,7 @@ impl RxQueue {
         true
     }
 }
+
 // The closed index the device last wrote, masked to the ring.
 fn closed<R: Region + ?Sized>(ctrl: &R) -> Option<usize> {
     get16(ctrl, RB_STTS).map(|v| (v & 0x0FFF) as usize & (RX_RING - 1))

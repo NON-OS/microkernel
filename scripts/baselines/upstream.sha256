@@ -26,6 +26,9 @@ d7081ea6de6b4ee2f9fe969b9d04940f6ca07a910eab16ed55ae344803282cf4 nonos-bootloade
 f6776a50107cba4f68362b5cf8455f5a0db6a4e8d1e34f4ede6f26803458e25e nonos-bootloader/firmware/intel/iwlwifi-7265D-29.ucode
 d7d84c9b6a3b1976acb97a2bec7102e24a6b5d794110c0dcbd107ab5d9877e5f nonos-bootloader/firmware/intel/iwlwifi-8265-36.ucode
 432828456433c7344a4729cc2dbdb5055f987f062839c85bb754556b4e3571f0 nonos-bootloader/firmware/intel/iwlwifi-9260-th-b0-jf-b0-46.ucode
+df005896aafdf5eb9c427033781890a58c7ab97a8dc1e1ea6b8df4eefc033a9d nonos-bootloader/firmware/intel/iwlwifi-Qu-b0-hr-b0-77.ucode
+a250e179666288396e19ff15c307edfe8f089341c8713a22b457b7304fc1a6fe nonos-bootloader/firmware/intel/iwlwifi-Qu-c0-hr-b0-77.ucode
+39d79587dd035bc84172b6bcf6de81217560088b0ceb06304d5121ba56db8d83 nonos-bootloader/firmware/intel/iwlwifi-QuZ-a0-hr-b0-77.ucode
 820f9fb78e43b424befdc2d9253e2b56f9d2bb250d8a42217d9bb1d8b6d7957d nonos-bootloader/firmware/intel/iwlwifi-bz-b0-fm-c0-92.ucode
 2da92f02418fbde8d8210eb582d9697faa222f8ee2da229e29b8a108ea5c4c5c nonos-bootloader/firmware/intel/iwlwifi-bz-b0-fm-c0.pnvm
 0a1df434d4acffa2262224d7e8dd492531aefca377da056e70ffcd3907062c61 nonos-bootloader/firmware/intel/iwlwifi-cc-a0-77.ucode

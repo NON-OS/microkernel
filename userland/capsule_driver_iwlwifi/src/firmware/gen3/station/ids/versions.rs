@@ -29,15 +29,17 @@ pub const APIS: [Api; 13] = [
     Api { group: LONG_GROUP, cmd: PHY_CONTEXT_CMD, listed: &[4, 5] },
     // iwl_umac_scan_abort, version 1.
     Api { group: LONG_GROUP, cmd: SCAN_ABORT_UMAC, listed: &[1] },
-    // iwl_tx_cmd_gen3, TX_CMD_API_S_VER_10, with the version 2 rate format.
-    Api { group: LONG_GROUP, cmd: TX_CMD, listed: &[10] },
+    // TX_CMD_API_S_VER_10 (iwl_tx_cmd_gen3) and _9 (the 22000 family's
+    // iwl_tx_cmd_gen2): the family picks the struct, both the v2 rate format.
+    Api { group: LONG_GROUP, cmd: TX_CMD, listed: &[9, 10] },
     // iwl_tx_path_flush_cmd, TX_PATH_FLUSH_CMD_API_S_VER_2.
     Api { group: LONG_GROUP, cmd: TXPATH_FLUSH, listed: &[2] },
     // iwl_mvm_session_prot_cmd, SESSION_PROTECTION_CMD_API_S_VER_1 and _2:
     // the same bytes; version 1 names MAC 0, version 2 link 0, both id 0.
     Api { group: MAC_CONF_GROUP, cmd: SESSION_PROTECTION_CMD, listed: &[1, 2] },
-    // iwl_mac_config_cmd, MAC_CONTEXT_CONFIG_CMD_API_S_VER_2.
-    Api { group: MAC_CONF_GROUP, cmd: MAC_CONFIG_CMD, listed: &[2] },
+    // iwl_mac_config_cmd, MAC_CONTEXT_CONFIG_CMD_API_S_VER_2; the 22000
+    // family's images list 1 or nothing, and Linux sends them the same bytes.
+    Api { group: MAC_CONF_GROUP, cmd: MAC_CONFIG_CMD, listed: &[ABSENT, 1, 2] },
     // iwl_link_config_cmd, LINK_CONTEXT_CONFIG_CMD_API_S_VER_1 and _VER_2.
     Api { group: MAC_CONF_GROUP, cmd: LINK_CONFIG_CMD, listed: &[ABSENT, 1, 2] },
     // iwl_sta_cfg_cmd_v1, STA_CMD_API_S_VER_1.
