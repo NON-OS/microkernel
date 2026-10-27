@@ -56,6 +56,6 @@ pub(crate) fn up_on(irq: u64) -> Up {
     assert_eq!(register(regs, REG_INTMS), masked, "INTMS after the enable, grant {irq}");
     let g =
         NamespaceGeometry { nsid: 1, capacity_sectors: 1 << 20, lba_size: 512, max_sectors: 64 };
-    let io = bring_up(7, 1, regs, 0, &mut admin, g).expect("queue 1 created");
+    let io = bring_up(7, 1, regs, info(), &mut admin, g).expect("queue 1 created");
     Up { fake, regs, device, admin, io }
 }
