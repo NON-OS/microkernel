@@ -22,8 +22,9 @@ use super::error::LocalBuildError;
 use super::identity::with_identity;
 use super::trailer::{context, decode, encode, tag};
 
-/// Tag `elf` so this machine may run it holding `granted_caps`.
-pub fn sign(elf: &[u8], granted_caps: u64) -> Result<Vec<u8>, LocalBuildError> {
+/// Tag the image measured as `digest` so this machine may run it holding
+/// `granted_caps`.
+pub fn sign(digest: &[u8; 32], granted_caps: u64) -> Result<Vec<u8>, LocalBuildError> {
     /*
      * A tag made here admits a capsule holding what it names, so it names
      * nothing beyond what every process inherits. Minting LocalSign, or any
@@ -33,8 +34,7 @@ pub fn sign(elf: &[u8], granted_caps: u64) -> Result<Vec<u8>, LocalBuildError> {
     if granted_caps & !crate::process::core::AMBIENT_CAPS != 0 {
         return Err(LocalBuildError::ScarceCapability);
     }
-    let digest = crate::security::capsule_attest::measure::measure(elf);
-    let ctx = context(&digest, granted_caps);
+    let ctx = context(digest, granted_caps);
     with_identity(|id| encode(&id.root, &tag(&id.key, &ctx))).ok_or(LocalBuildError::NoIdentity)
 }
 
@@ -44,7 +44,12 @@ pub fn sign(elf: &[u8], granted_caps: u64) -> Result<Vec<u8>, LocalBuildError> {
 /// Refused unless `root` is this machine's own: a root enrolled from
 /// elsewhere names a key this kernel does not hold, so no tag here can be
 /// checked against it.
-pub fn verify(trailer: &[u8], digest: &[u8; 32], granted_caps: u64, root: &[u8; 32]) -> Option<[u8; 32]> {
+pub fn verify(
+    trailer: &[u8],
+    digest: &[u8; 32],
+    granted_caps: u64,
+    root: &[u8; 32],
+) -> Option<[u8; 32]> {
     let (carried_root, carried_tag) = decode(trailer)?;
     if carried_root != *root {
         return None;
