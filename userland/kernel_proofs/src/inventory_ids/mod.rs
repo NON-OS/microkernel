@@ -60,5 +60,6 @@ pub mod rtl8139;
 pub mod rtl8169;
 
 mod classify_tests;
+mod report_tests;
 mod serial_bus_tests;
 mod table_tests;
