@@ -231,6 +231,7 @@
    "nonos-bootloader/src/image_format/footer.rs",
    "nonos-bootloader/src/image_format/parse",
    "nonos-bootloader/src/image_format/types.rs",
+   "nonos-bootloader/src/loader/file/device_kind.rs",
    "nonos-bootloader/src/menu/types/mode.rs",
    "nonos-bootloader/src/paging/constants.rs",
    "nonos-bootloader/src/paging/fb_window.rs",
