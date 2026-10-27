@@ -16,18 +16,20 @@
 
 //! The things the included igb driver files take from `nonos_libc`, on the
 //! host: a millisecond clock and sleep, the entropy source the station
-//! address is drawn from, the console the "igb:" lines go to, and the broker
-//! releases a failed attempt must make.
+//! address is drawn from, the console the "igb:" lines go to, the broker
+//! releases a failed attempt must make, and the IPC the server loop runs on.
 
 mod broker;
 mod clock;
 mod console;
 mod entropy;
+mod ipc;
 
 pub use broker::{given_back, mk_device_release, mk_dma_unmap, mk_mmio_unmap};
 pub use clock::{mk_idle_ms, Deadline};
 pub use console::{mk_debug, said};
 pub use entropy::{crypto_random, entropy, Entropy};
+pub use ipc::{line_up_requests, mk_ipc_recv_from, mk_ipc_reply, recv_ready, replies, SERVED};
 
 /// The PCI Command bits, as nonos_libc broker/pci.rs defines them.
 pub const MK_PCI_CMD_MEMORY_SPACE: u16 = 1 << 1;
