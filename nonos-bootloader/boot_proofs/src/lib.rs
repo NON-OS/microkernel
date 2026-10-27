@@ -24,10 +24,13 @@ extern crate alloc;
 pub mod display;
 pub mod handoff;
 pub mod image_format;
+pub mod loader;
 pub mod menu;
 pub mod paging;
 pub mod security;
 
+#[cfg(test)]
+mod boot_device_tests;
 #[cfg(test)]
 mod display_mode_tests;
 #[cfg(test)]

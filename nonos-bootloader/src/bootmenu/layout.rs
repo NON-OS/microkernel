@@ -41,7 +41,8 @@ pub(super) fn layout() -> Layout {
     let row_h = label.line + 4 * u;
     let list_h = row_h * ENTRIES.len() as u32;
     let about_h = body.line * (ABOUT_LINES + 2) + mono.line + 6 * u;
-    let s = scene(mono.line + 4 * u + list_h + 6 * u + about_h + 6 * u + mono.line * 2 + 2 * u);
+    /* The platform panel's three rows close the column. */
+    let s = scene(mono.line + 4 * u + list_h + 6 * u + about_h + 6 * u + mono.line * 3 + 4 * u);
     let list_y = s.col_y + mono.line + 4 * u;
     let about_y = list_y + list_h + 6 * u;
     Layout {
