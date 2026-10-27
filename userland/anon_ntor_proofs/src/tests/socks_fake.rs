@@ -9,6 +9,8 @@ use super::socks::tunnel::{Far, Progress, Tunnel, Unsent};
 pub struct Fake {
     pub refuse: Option<u8>,
     pub opened: Vec<(Vec<u8>, u16)>,
+    /// Whether the last open came marked as an install's.
+    pub install: Option<bool>,
     pub far: Far,
     pub blocked: bool,
     pub sent: Vec<u8>,
@@ -21,6 +23,7 @@ pub fn fake() -> Fake {
     Fake {
         refuse: None,
         opened: Vec::new(),
+        install: None,
         far: Far::Opening,
         blocked: false,
         sent: Vec::new(),
@@ -31,7 +34,8 @@ pub fn fake() -> Fake {
 }
 
 impl Tunnel for Fake {
-    fn open(&mut self, host: &[u8], port: u16) -> Result<u16, u8> {
+    fn open(&mut self, host: &[u8], port: u16, install: bool) -> Result<u16, u8> {
+        self.install = Some(install);
         self.refuse.map_or(Ok(7), Err).inspect(|_| self.opened.push((host.to_vec(), port)))
     }
     fn far(&self, _id: u16) -> Far {
