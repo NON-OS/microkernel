@@ -18,6 +18,8 @@
 //! change writes and the transmit watchdog, against the IPC calls the shim
 //! scripts.
 
+#[path = "../../../capsule_driver_e1000e/src/server/dispatch.rs"]
+pub mod dispatch;
 #[path = "../../../capsule_driver_e1000e/src/server/error.rs"]
 pub mod error;
 #[path = "../../../capsule_driver_e1000e/src/server/handlers/mod.rs"]
