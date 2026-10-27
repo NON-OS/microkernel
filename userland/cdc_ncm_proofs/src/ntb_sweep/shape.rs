@@ -3,7 +3,7 @@
 //! recalled, unverified), restated apart from the driver's format.rs.
 
 /// Lengths and offsets by format: header, NDP fixed part, where the next
-/// NDP's index sits in it, one entry, and the two signatures.
+/// NDP's index sits in it, one entry, and the signatures.
 pub struct Shape {
     pub wide: bool,
     pub nth_len: usize,
@@ -12,6 +12,8 @@ pub struct Shape {
     pub entry: usize,
     pub nth_sign: u32,
     pub ndp_sign: u32,
+    /// An NDP with CRCs: passed over, its chain followed.
+    pub ndp_crc: u32,
 }
 
 pub const N16: Shape = Shape {
@@ -22,6 +24,7 @@ pub const N16: Shape = Shape {
     entry: 4,
     nth_sign: 0x484D_434E,
     ndp_sign: 0x304D_434E,
+    ndp_crc: 0x314D_434E,
 };
 pub const N32: Shape = Shape {
     wide: true,
@@ -31,4 +34,5 @@ pub const N32: Shape = Shape {
     entry: 8,
     nth_sign: 0x686D_636E,
     ndp_sign: 0x306D_636E,
+    ndp_crc: 0x316D_636E,
 };
