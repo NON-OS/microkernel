@@ -64,8 +64,6 @@ pub(super) fn identify<M: Mmio, C: Clock, L: Log>(
             .ascii(&cid.pnm[..5])
             .s(b" mid ")
             .hex(cid.mid as u64)
-            .s(b" psn ")
-            .hex(cid.psn as u64)
             .s(b" rca ")
             .hex(rca as u64),
     );

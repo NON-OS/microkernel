@@ -32,17 +32,12 @@ impl<M: Mmio, C: Clock, L: Log> EmmcDisk<M, C, L> {
     }
 
     /// One line naming the part being served and the OCR it came up with, so
-    /// a boot log says which chip a report is about.
+    /// a boot log says which chip a report is about. Never the serial: it
+    /// names this one card, and the boot log is not the identify reply.
     pub fn say_part(&self) {
         let n = self.names();
         self.host.say(
-            Line::new()
-                .s(b"serving ")
-                .ascii(n.model())
-                .s(b", serial ")
-                .ascii(&n.serial)
-                .s(b", OCR ")
-                .hex(self.card.ocr as u64),
+            Line::new().s(b"serving ").ascii(n.model()).s(b", OCR ").hex(self.card.ocr as u64),
         );
     }
 }

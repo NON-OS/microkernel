@@ -27,7 +27,7 @@ flowchart TD
     Hosts -->|none| Retry[the attempt fails and is retried]
 ```
 
-The capsule tries the hosts in discovery order, Intel eMMC ones first, and serves the first whose card comes up, naming the part on the console (`driver.emmc: serving <maker> <product>, serial <8 hex digits>, OCR 0x...`). When none gives a disk, the attempt fails and is retried on the shared schedule (`userland/capsule_driver_sdhci/src/served/bring_up.rs`, `bring_up`). The kernel block layer reaches the disk through its block wire client, asked right after SATA (`src/hardware/block_device/wire/`, `Backend::Wire`). The installer's disk list, `nonos_blk_client`, still looks for eMMC behind `driver.ahci0`; until it speaks the block wire it does not list the eMMC disk.
+The capsule tries the hosts in discovery order, Intel eMMC ones first, and serves the first whose card comes up, naming the part on the console (`driver.emmc: serving <maker> <product>, OCR 0x...`); the card's serial number stays out of the boot log and goes only to the identify reply, which StoreWrite gates. When none gives a disk, the attempt fails and is retried on the shared schedule (`userland/capsule_driver_sdhci/src/served/bring_up.rs`, `bring_up`). The kernel block layer reaches the disk through its block wire client, asked right after SATA (`src/hardware/block_device/wire/`, `Backend::Wire`). The installer's disk list, `nonos_blk_client`, still looks for eMMC behind `driver.ahci0`; until it speaks the block wire it does not list the eMMC disk.
 
 ### Which hosts
 
