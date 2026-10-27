@@ -16,7 +16,6 @@
 
 extern crate alloc;
 
-
 use crate::fs::fd::error::{FdError, FdResult};
 
 pub(crate) fn write_stdout(buf: *const u8, count: usize) -> FdResult<usize> {
@@ -34,7 +33,10 @@ pub(crate) fn write_stdout(buf: *const u8, count: usize) -> FdResult<usize> {
             .copied()
             .filter(|&b| b == b'\n' || b == b' ' || b.is_ascii_graphic())
             .collect();
-        crate::sys::serial::passthrough(&kept);
+        // Never on serial in a build without capsule serial output.
+        if cfg!(feature = "capsule-serial-debug") {
+            crate::sys::serial::passthrough(&kept);
+        }
     }
     Ok(count)
 }
@@ -47,7 +49,7 @@ pub(crate) fn write_stderr(buf: *const u8, count: usize) -> FdResult<usize> {
     // SAFETY: Caller guarantees buf is valid for count bytes
     unsafe {
         let slice = core::slice::from_raw_parts(buf, count);
-        for &byte in slice {
+        for &byte in slice.iter().filter(|_| cfg!(feature = "capsule-serial-debug")) {
             crate::sys::serial::core::write_byte(byte);
         }
     }
