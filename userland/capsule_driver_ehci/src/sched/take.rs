@@ -18,15 +18,13 @@
 //! advance doorbell rung so the controller holds no copy of it
 //! (advance.rs), then its overlay is emptied (or its characteristics
 //! rewritten) and it is linked back; one the controller may still hold is
-//! linked back untouched. A periodic QH loses its micro-frame mask and a
-//! frame passes. A halted QH is skipped by the controller, so it is
-//! emptied at once.
+//! linked back untouched. A periodic QH is parked (park.rs). A halted QH
+//! is skipped by the controller, so it is emptied at once.
 
 use super::advance::{doorbell, Advance, Dead};
 use super::layout::{qh, ring_prev};
 use super::qh::{empty, qh_link};
-use crate::env::{until, Clock, Mem, Regs};
-use crate::facts::regs::FRINDEX;
+use crate::env::{Clock, Mem, Regs};
 
 /// Ring QH `i` taken back: emptied (the toggle kept or reset) and, when
 /// characteristics and capabilities are given, set for another endpoint.
@@ -54,15 +52,6 @@ pub fn take_back<M: Mem, R: Regs, C: Clock>(
         Advance::Seen => Ok(()),
         _ => Err(Dead),
     }
-}
-
-/// A periodic QH stopped: no micro-frame mask, a frame let pass (FRINDEX
-/// counts micro-frames), then emptied with DATA0 next.
-pub fn park<M: Mem, R: Regs, C: Clock>((m, r, c): (&M, &mut R, &C), op: u32, at: usize) {
-    m.wr(at + 8, m.rd(at + 8) & !0xFF);
-    let start = r.r32(op + FRINDEX);
-    until(c, 3, || r.r32(op + FRINDEX).wrapping_sub(start) & 0x3FFF >= 8);
-    empty(m, at, false);
 }
 
 /// A halted QH emptied, the toggle kept or reset.
