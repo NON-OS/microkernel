@@ -35,7 +35,10 @@ pub struct Station {
 
 impl Station {
     pub fn new() -> Self {
-        Self { q: Queues { mgmt: TxQueue::new(0), data: TxQueue::new(TXQ_STRIDE) }, inbox: Inbox::new() }
+        Self {
+            q: Queues { mgmt: TxQueue::new(0), data: TxQueue::new(TXQ_STRIDE) },
+            inbox: Inbox::new(),
+        }
     }
 }
 
@@ -47,8 +50,17 @@ pub fn with_fw(r: &Rig, st: &mut Station, f: impl FnOnce(&mut Fw<'_, '_, Model, 
     let mem = Memory { ctrl: r.model.ctrl.as_ref(), rbs: r.model.rbs.as_ref(), fw: &fw };
     let mut dev = Dev::new(&r.model, r.model.ctrl.as_ref(), r.model.rbs.as_ref());
     let mut c = Polls { per_wait: 64, delays_us: 0 };
-    boot(&mut dev, &mut c, &mem, &layout, &ucode, &Board { hw_rev: 0x370, imr_enabled: false, rf_id: 0x10D000, pnvm: None }).expect("alive");
+    boot(
+        &mut dev,
+        &mut c,
+        &mem,
+        &layout,
+        &ucode,
+        &Board { hw_rev: 0x370, imr_enabled: false, rf_id: 0x10D000, pnvm: None, discrete: false },
+    )
+    .expect("alive");
     r.model.s.borrow_mut().commands.clear();
-    let mut fw = Fw { dev: &mut dev, tx: r.tx.as_ref(), clock: &mut c, q: &mut st.q, inbox: &mut st.inbox };
+    let mut fw =
+        Fw { dev: &mut dev, tx: r.tx.as_ref(), clock: &mut c, q: &mut st.q, inbox: &mut st.inbox };
     f(&mut fw);
 }
