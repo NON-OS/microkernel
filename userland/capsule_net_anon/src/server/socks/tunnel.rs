@@ -51,9 +51,9 @@ pub struct Progress {
 
 /// What carries a conversation's stream.
 pub trait Tunnel {
-    /// Open a stream to `host` on `port`, or the SOCKS reply code that
-    /// says why not.
-    fn open(&mut self, host: &[u8], port: u16) -> Result<u16, u8>;
+    /// Open a stream to `host` on `port`, an `install`'s if its greeting
+    /// said so (wire.rs), or the SOCKS reply code that says why not.
+    fn open(&mut self, host: &[u8], port: u16, install: bool) -> Result<u16, u8>;
     fn far(&self, id: u16) -> Far;
     fn send(&mut self, id: u16, data: &[u8]) -> Result<usize, Unsent>;
     /// Take up to `max` bytes that have arrived on the stream.

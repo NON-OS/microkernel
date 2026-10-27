@@ -16,10 +16,10 @@
 
 //! Charging a stream failure to the exit that caused it.
 
-use crate::protocol::CIRCUIT_FAILURES_MAX;
 use crate::trace;
 
 use super::super::state::Manager;
+use super::super::warm_rule::{charged, failures_max};
 
 /*
  * Charged only for the reasons that will not improve however often the same exit
@@ -27,18 +27,18 @@ use super::super::state::Manager;
  * that has, the site is the likely cause and retiring a working path over it
  * costs three handshakes for nothing; on one that has not, an exit acking control
  * messages and refusing every request is the shape the mixnet transport lost a
- * session to.
+ * session to. The warm circuit is charged for every one (warm_rule.rs).
  */
 pub(super) fn blame(state: &mut Manager, circuit: Option<u32>) {
     let Some(id) = circuit else { return };
     let Some(c) = state.circuits.iter_mut().find(|c| c.id == id) else {
         return;
     };
-    if c.proven {
+    if !charged(c.warm, c.proven) {
         return;
     }
     c.failures = c.failures.saturating_add(1);
-    if c.failures >= CIRCUIT_FAILURES_MAX {
-        trace::say_num(b"exit failed twice, circuit retiring", id as u64);
+    if c.failures >= failures_max(c.warm) {
+        trace::say_num(b"exit failed, circuit retiring", id as u64);
     }
 }
