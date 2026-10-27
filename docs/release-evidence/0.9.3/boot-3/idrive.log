@@ -1,0 +1,448 @@
+machine up
+  until 'Capsules spawned': seen
+step 1: until:Capsules spawned:1500 -> ok
+  until '[SPLASH] stepped aside': seen
+step 2: until:[SPLASH] stepped aside:600 -> ok
+step 3: wait:4 -> ok
+step 4: key:ret -> ok
+step 5: wait:4 -> ok
+step 6: type:ek -> ok
+step 7: wait:2 -> ok
+step 8: key:ret -> ok
+step 9: wait:4 -> ok
+step 10: key:ret -> ok
+step 11: wait:4 -> ok
+step 12: key:ret -> ok
+step 13: wait:4 -> ok
+step 14: key:ret -> ok
+step 15: wait:4 -> ok
+step 16: key:ret -> ok
+step 17: wait:4 -> ok
+step 18: key:ret -> ok
+step 19: wait:4 -> ok
+step 20: key:ret -> ok
+step 21: wait:4 -> ok
+step 22: key:ret -> ok
+step 23: wait:4 -> ok
+step 24: key:ret -> ok
+step 25: wait:4 -> ok
+step 26: key:down -> ok
+step 27: wait:2 -> ok
+step 28: key:ret -> ok
+step 29: wait:4 -> ok
+step 30: key:ret -> ok
+step 31: wait:4 -> ok
+step 32: key:ret -> ok
+step 33: key:ret -> ok
+step 34: wait:60 -> ok
+step 35: key:esc -> ok
+step 36: wait:3 -> ok
+  shot desk.png
+step 37: shot:desk -> ok
+step 38: key:ctrl+alt+t -> ok
+step 39: wait:20 -> ok
+  shot term.png
+step 40: shot:term -> ok
+step 41: type:market install linux.age -> ok
+step 42: key:ret -> ok
+step 43: type:linux age -p -a -o /root/a.age /etc/passwd -> ok
+step 44: key:ret -> ok
+step 45: wait:60 -> ok
+step 46: type:nonos-test-pass -> ok
+step 47: key:ret -> ok
+step 48: wait:15 -> ok
+step 49: type:nonos-test-pass -> ok
+step 50: key:ret -> ok
+step 51: wait:10 -> ok
+  shot probe.png
+step 52: shot:probe -> ok
+step 53: wait:10 -> ok
+  shot probe.png
+step 54: shot:probe -> ok
+step 55: wait:10 -> ok
+  shot probe.png
+step 56: shot:probe -> ok
+step 57: wait:10 -> ok
+  shot probe.png
+step 58: shot:probe -> ok
+step 59: wait:10 -> ok
+  shot probe.png
+step 60: shot:probe -> ok
+step 61: wait:10 -> ok
+  shot probe.png
+step 62: shot:probe -> ok
+step 63: wait:10 -> ok
+  shot probe.png
+step 64: shot:probe -> ok
+step 65: wait:10 -> ok
+  shot probe.png
+step 66: shot:probe -> ok
+step 67: wait:10 -> ok
+  shot probe.png
+step 68: shot:probe -> ok
+step 69: wait:10 -> ok
+  shot probe.png
+step 70: shot:probe -> ok
+step 71: wait:10 -> ok
+  shot probe.png
+step 72: shot:probe -> ok
+step 73: wait:10 -> ok
+  shot probe.png
+step 74: shot:probe -> ok
+step 75: wait:10 -> ok
+  shot probe.png
+step 76: shot:probe -> ok
+step 77: wait:10 -> ok
+  shot probe.png
+step 78: shot:probe -> ok
+step 79: wait:10 -> ok
+  shot probe.png
+step 80: shot:probe -> ok
+step 81: wait:10 -> ok
+  shot probe.png
+step 82: shot:probe -> ok
+step 83: wait:10 -> ok
+  shot probe.png
+step 84: shot:probe -> ok
+step 85: wait:10 -> ok
+  shot probe.png
+step 86: shot:probe -> ok
+step 87: wait:10 -> ok
+  shot probe.png
+step 88: shot:probe -> ok
+step 89: wait:10 -> ok
+  shot probe.png
+step 90: shot:probe -> ok
+step 91: wait:10 -> ok
+  shot probe.png
+step 92: shot:probe -> ok
+step 93: wait:10 -> ok
+  shot probe.png
+step 94: shot:probe -> ok
+step 95: wait:10 -> ok
+  shot probe.png
+step 96: shot:probe -> ok
+step 97: wait:10 -> ok
+  shot probe.png
+step 98: shot:probe -> ok
+step 99: wait:10 -> ok
+  shot probe.png
+step 100: shot:probe -> ok
+step 101: wait:10 -> ok
+  shot probe.png
+step 102: shot:probe -> ok
+step 103: wait:10 -> ok
+  shot probe.png
+step 104: shot:probe -> ok
+step 105: wait:10 -> ok
+  shot probe.png
+step 106: shot:probe -> ok
+step 107: wait:10 -> ok
+  shot probe.png
+step 108: shot:probe -> ok
+step 109: wait:10 -> ok
+  shot probe.png
+step 110: shot:probe -> ok
+step 111: wait:10 -> ok
+  shot probe.png
+step 112: shot:probe -> ok
+step 113: wait:10 -> ok
+  shot probe.png
+step 114: shot:probe -> ok
+step 115: wait:10 -> ok
+  shot probe.png
+step 116: shot:probe -> ok
+step 117: wait:10 -> ok
+  shot probe.png
+step 118: shot:probe -> ok
+step 119: wait:10 -> ok
+  shot probe.png
+step 120: shot:probe -> ok
+step 121: wait:10 -> ok
+  shot probe.png
+step 122: shot:probe -> ok
+step 123: wait:10 -> ok
+  shot probe.png
+step 124: shot:probe -> ok
+step 125: wait:10 -> ok
+  shot probe.png
+step 126: shot:probe -> ok
+step 127: wait:10 -> ok
+  shot probe.png
+step 128: shot:probe -> ok
+step 129: wait:10 -> ok
+  shot probe.png
+step 130: shot:probe -> ok
+step 131: wait:10 -> ok
+  shot probe.png
+step 132: shot:probe -> ok
+step 133: wait:10 -> ok
+  shot probe.png
+step 134: shot:probe -> ok
+step 135: wait:10 -> ok
+  shot probe.png
+step 136: shot:probe -> ok
+step 137: wait:10 -> ok
+  shot probe.png
+step 138: shot:probe -> ok
+step 139: wait:10 -> ok
+  shot probe.png
+step 140: shot:probe -> ok
+step 141: wait:10 -> ok
+  shot probe.png
+step 142: shot:probe -> ok
+step 143: wait:10 -> ok
+  shot probe.png
+step 144: shot:probe -> ok
+step 145: wait:10 -> ok
+  shot probe.png
+step 146: shot:probe -> ok
+step 147: wait:10 -> ok
+  shot probe.png
+step 148: shot:probe -> ok
+step 149: wait:10 -> ok
+  shot probe.png
+step 150: shot:probe -> ok
+step 151: wait:10 -> ok
+  shot probe.png
+step 152: shot:probe -> ok
+step 153: wait:10 -> ok
+  shot probe.png
+step 154: shot:probe -> ok
+step 155: wait:10 -> ok
+  shot probe.png
+step 156: shot:probe -> ok
+step 157: wait:10 -> ok
+  shot probe.png
+step 158: shot:probe -> ok
+step 159: wait:10 -> ok
+  shot probe.png
+step 160: shot:probe -> ok
+step 161: wait:10 -> ok
+  shot probe.png
+step 162: shot:probe -> ok
+step 163: wait:10 -> ok
+  shot probe.png
+step 164: shot:probe -> ok
+step 165: wait:10 -> ok
+  shot probe.png
+step 166: shot:probe -> ok
+step 167: wait:10 -> ok
+  shot probe.png
+step 168: shot:probe -> ok
+step 169: wait:10 -> ok
+  shot probe.png
+step 170: shot:probe -> ok
+step 171: wait:10 -> ok
+  shot probe.png
+step 172: shot:probe -> ok
+step 173: wait:10 -> ok
+  shot probe.png
+step 174: shot:probe -> ok
+step 175: wait:10 -> ok
+  shot probe.png
+step 176: shot:probe -> ok
+step 177: wait:10 -> ok
+  shot probe.png
+step 178: shot:probe -> ok
+step 179: wait:10 -> ok
+  shot probe.png
+step 180: shot:probe -> ok
+step 181: wait:10 -> ok
+  shot probe.png
+step 182: shot:probe -> ok
+step 183: wait:10 -> ok
+  shot probe.png
+step 184: shot:probe -> ok
+step 185: wait:10 -> ok
+  shot probe.png
+step 186: shot:probe -> ok
+step 187: wait:10 -> ok
+  shot probe.png
+step 188: shot:probe -> ok
+step 189: wait:10 -> ok
+  shot probe.png
+step 190: shot:probe -> ok
+step 191: wait:10 -> ok
+  shot probe.png
+step 192: shot:probe -> ok
+step 193: wait:10 -> ok
+  shot probe.png
+step 194: shot:probe -> ok
+step 195: wait:10 -> ok
+  shot probe.png
+step 196: shot:probe -> ok
+step 197: wait:10 -> ok
+  shot probe.png
+step 198: shot:probe -> ok
+step 199: wait:10 -> ok
+  shot probe.png
+step 200: shot:probe -> ok
+step 201: wait:10 -> ok
+  shot probe.png
+step 202: shot:probe -> ok
+step 203: wait:10 -> ok
+  shot probe.png
+step 204: shot:probe -> ok
+step 205: wait:10 -> ok
+  shot probe.png
+step 206: shot:probe -> ok
+step 207: wait:10 -> ok
+  shot probe.png
+step 208: shot:probe -> ok
+step 209: wait:10 -> ok
+  shot probe.png
+step 210: shot:probe -> ok
+step 211: wait:10 -> ok
+  shot probe.png
+step 212: shot:probe -> ok
+step 213: wait:10 -> ok
+  shot probe.png
+step 214: shot:probe -> ok
+step 215: wait:10 -> ok
+  shot probe.png
+step 216: shot:probe -> ok
+step 217: wait:10 -> ok
+  shot probe.png
+step 218: shot:probe -> ok
+step 219: wait:10 -> ok
+  shot probe.png
+step 220: shot:probe -> ok
+step 221: wait:10 -> ok
+  shot probe.png
+step 222: shot:probe -> ok
+step 223: wait:10 -> ok
+  shot probe.png
+step 224: shot:probe -> ok
+step 225: wait:10 -> ok
+  shot probe.png
+step 226: shot:probe -> ok
+step 227: wait:10 -> ok
+  shot probe.png
+step 228: shot:probe -> ok
+step 229: wait:10 -> ok
+  shot probe.png
+step 230: shot:probe -> ok
+step 231: wait:10 -> ok
+  shot probe.png
+step 232: shot:probe -> ok
+step 233: wait:10 -> ok
+  shot probe.png
+step 234: shot:probe -> ok
+  shot age1.png
+step 235: shot:age1 -> ok
+step 236: type:help -> ok
+step 237: key:ret -> ok
+step 238: wait:5 -> ok
+step 239: type:help -> ok
+step 240: key:ret -> ok
+step 241: wait:5 -> ok
+  shot filled.png
+step 242: shot:filled -> ok
+step 243: abs:852,1020 -> ok
+step 244: wait:1 -> ok
+step 245: click -> ok
+step 246: wait:45 -> ok
+step 247: key:down -> ok
+step 248: wait:1 -> ok
+step 249: key:down -> ok
+step 250: wait:1 -> ok
+step 251: key:down -> ok
+step 252: wait:1 -> ok
+step 253: key:down -> ok
+step 254: wait:1 -> ok
+step 255: key:down -> ok
+step 256: wait:1 -> ok
+step 257: key:down -> ok
+step 258: wait:1 -> ok
+step 259: key:down -> ok
+step 260: wait:1 -> ok
+step 261: key:down -> ok
+step 262: wait:1 -> ok
+step 263: key:down -> ok
+step 264: wait:1 -> ok
+step 265: key:down -> ok
+step 266: wait:1 -> ok
+step 267: key:down -> ok
+step 268: wait:1 -> ok
+step 269: key:down -> ok
+step 270: wait:1 -> ok
+step 271: wait:3 -> ok
+  shot store-age.png
+step 272: shot:store-age -> ok
+step 273: key:p -> ok
+step 274: wait:3 -> ok
+step 275: key:y -> ok
+  shot proved-age.png
+step 276: shot:proved-age -> ok
+step 277: key:esc -> ok
+step 278: wait:5 -> ok
+step 279: type:market install linux.gpg -> ok
+step 280: key:ret -> ok
+step 281: type:linux gpg --batch --passphrase x --pinentry-mode loopba -> ok
+step 282: key:ret -> ok
+step 283: wait:5 -> ok
+step 284: wait:10 -> ok
+  shot probe.png
+step 285: shot:probe -> ok
+  shot gpg-1.png
+step 286: shot:gpg-1 -> ok
+step 287: type:linux gpg --batch --passphrase x --pinentry-mode loopba -> ok
+step 288: key:ret -> ok
+step 289: wait:5 -> ok
+step 290: wait:10 -> ok
+  shot probe.png
+step 291: shot:probe -> ok
+step 292: wait:10 -> ok
+  shot probe.png
+step 293: shot:probe -> ok
+  shot gpg-2.png
+step 294: shot:gpg-2 -> ok
+step 295: type:market install linux.monero -> ok
+step 296: key:ret -> ok
+step 297: type:linux monero-wallet-cli --version -> ok
+step 298: key:ret -> ok
+step 299: wait:5 -> ok
+step 300: wait:10 -> ok
+  shot probe.png
+step 301: shot:probe -> ok
+step 302: wait:10 -> ok
+  shot probe.png
+step 303: shot:probe -> ok
+step 304: type:linux monero-wallet-cli --version -> ok
+step 305: key:ret -> ok
+step 306: wait:5 -> ok
+step 307: wait:10 -> ok
+  shot probe.png
+step 308: shot:probe -> ok
+step 309: wait:10 -> ok
+  shot probe.png
+step 310: shot:probe -> ok
+  shot mon-1.png
+step 311: shot:mon-1 -> ok
+step 312: type:linux monero-wallet-cli --offline --generate-new-wallet -> ok
+step 313: key:ret -> ok
+step 314: wait:300 -> ok
+  shot mon-2.png
+step 315: shot:mon-2 -> ok
+step 316: type:nonos-test-pass -> ok
+step 317: key:ret -> ok
+step 318: wait:60 -> ok
+  shot mon-3.png
+step 319: shot:mon-3 -> ok
+step 320: type:nonos-test-pass -> ok
+step 321: key:ret -> ok
+step 322: wait:180 -> ok
+  shot mon-4.png
+step 323: shot:mon-4 -> ok
+step 324: type:1 -> ok
+step 325: key:ret -> ok
+step 326: wait:180 -> ok
+  shot mon-5.png
+step 327: shot:mon-5 -> ok
+step 328: type:1 -> ok
+step 329: key:ret -> ok
+step 330: wait:400 -> ok
+  shot mon-6.png
+step 331: shot:mon-6 -> ok
+idrive: stopped
