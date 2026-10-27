@@ -1,0 +1,36 @@
+# NONOS userland: capsule_simplex_ui
+#
+# simplex.ui, the native SimpleX chat window. It holds no network and no key:
+# it speaks the simplex-chat core's WebSocket JSON chat API through one
+# channel to simplex.core, which runs boxed with its own database
+# (HANDOFF/letters/2026-10-27-s2-to-s3-s1-simplex-split.md). Until that
+# channel exists it replays a recorded session.
+
+[package]
+name = "nonos_simplex_ui"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "NONOS SimpleX chat window"
+
+[[bin]]
+name = "simplex_ui"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_app_skeleton = { path = "../app_skeleton" }
+nonos_toolkit = { path = "../toolkit", default-features = false }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
+
+[profile.dev]
+panic = "abort"
+opt-level = 0
+debug = true
