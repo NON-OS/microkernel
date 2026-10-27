@@ -59,6 +59,7 @@ Every NIC driver serves a station address drawn for the run, never the
 device's own. Hyper-V's switch drops, without a word, every frame from an
 address other than the one it assigned the port, unless the VM's adapter
 has MAC spoofing on. So before the link is ever reported up (net.core reads
+the address once, when it binds), the driver settles it, as the maintainers ruled:
 
 1. It offers the drawn address to the host (RNDIS
    OID_GEN_RNDIS_CONFIG_PARAMETER "NetworkAddress", as Linux's
@@ -113,8 +114,10 @@ named in SEND_RNDIS_PACKET on the data channel; the section is the host's
 until its completion. Frames come in as transfer-pages packets naming ranges
 of the receive buffer, each an RNDIS message; the driver reads each range,
 keeps the frames, notes link indications, and completes the packet so the
-host may use the ranges again. A completion the ring has no room for is
-owed and sent first next time.
+host may use the ranges again. One service pass takes at most 64 packets
+(`PACKETS_PER_PASS`), so a host that keeps the ring full cannot hold the
+driver from its requests. A completion the ring has no room for is owed and
+sent first next time.
 
 ## Failure model
 
@@ -123,7 +126,9 @@ claim last. A range past the receive buffer, or a message that does not fit
 its own lengths, is passed over and the packet still completed. A host that
 holds every section makes a send wait one second, then fail as busy. A ring
 the host broke stops the driver: it closes the channel, takes its GPADLs
-back, gives back the grants and the claim, and exits.
+back, gives back the grants and the claim, and exits with the bring-up
+policy's EXIT_GAVE_UP (6), a device present that failed, never
+EXIT_ABSENT (2), which the kernel tells as no device present.
 
 ## State ownership
 
@@ -167,6 +172,7 @@ sections held by the host, the link indications, a broken ring, the
 messages byte by byte, the DISCOVER against the egress rules, and the
 station address: kept where the host carries it, refused at once, and
 fallen back only after the whole bounded wait. QEMU has no network VSP, so
+a boot is on Hyper-V, and the owner's.
 
 ## Release checklist
 
