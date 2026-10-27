@@ -30,6 +30,7 @@ The guide for a person who uses NONOS every day: what each part of the desktop d
 | [Local model](local-ai.md) | chat with the Qwen model on this machine, offline, and pick its tier |
 | [Privacy apps](privacy-apps.md) | install the privacy apps from the App Store, and learn what each protects and what it does not |
 | [Monero wallet](monero.md) | make or restore a Monero wallet, choose its node, and keep its seed |
+| [SimpleX Chat](simplex.md) | message with no user identifiers: a profile, a contact, where messages are kept, over Anyone (first draft) |
 | [Marketplace](marketplace.md) | install Qwen tiers and Linux packages, or a signed `.nonos` package file |
 | [Wallet](wallet.md) | hold keys and make payments |
 
