@@ -79,14 +79,15 @@ The kernel embeds each capsule's certificate, manifest and STARK trailer from `n
 
 - On 2026-10-24, before this change, 15 capsules that the default image already carried had no trust set: pcnet, vmxnet3, tulip, virtio-input, vmware-svga, ac97, vmmdev, vmmouse, vmbus, piix-ide, virtio-scsi, pvscsi, buslogic, mpt and sdhci. Host-tested: the gate's own condition, run over `tools/nix/capsules.json`.
 - The 13 capsules this change adds have no trust set either: the 11 drivers, plus nox-settle and prove-fetch.
+- On 2026-10-27 S4 added `driver-igc` (Intel I225 and I226, the 2.5 GbE of most mini PCs and many boards since 2020) to `microkernel-full-gui`; it has no trust set either.
 - A trust set that exists can still be stale. `nix build` also refuses a kernel when a shipped capsule's sealed manifest grants other caps than its `Capsule.mk` now says (`scripts/check_sealed_caps.py`, called from `tools/nix/image.nix`). On 2026-10-24, nine sealed manifests were stale this way. Five follow from this change's narrowing: keyring, login, payment, wallet-nonos and virtio-gpu. Four come from changes on main since the last seal: input-router, linux, boot-splash and i2c-pci. The next seal rewrites all nine. Host-tested: the script's `--self-test`, run by the flake's `static-abi` check.
 
-So `nix build` of the default image waits for the next release seal, which writes all 28 trust sets in one step. A development image (`make dev-image`, `tools/nonos-dev-image`) is sealed with throwaway keys and builds and boots now.
+So `nix build` of the default image waits for the next release seal, which writes all 29 trust sets in one step. A development image (`make dev-image`, `tools/nonos-dev-image`) is sealed with throwaway keys and builds and boots now.
 
-The 28, as `scripts/baselines/unsealed.txt` holds them. The flake's `static-release-trust` check fails when a release profile ships any other capsule without its trust set, when one of these is sealed and still listed, or when this list and the baseline differ:
+The 29, as `scripts/baselines/unsealed.txt` holds them. The flake's `static-release-trust` check fails when a release profile ships any other capsule without its trust set, when one of these is sealed and still listed, or when this list and the baseline differ:
 
 <!-- unsealed: begin -->
-`driver-ac97`, `driver-buslogic`, `driver-ccid`, `driver-e1000e`, `driver-ehci`, `driver-fido`, `driver-igb`, `driver-mpt`, `driver-ohci`, `driver-pcnet`, `driver-piix-ide`, `driver-pvscsi`, `driver-sdhci`, `driver-tulip`, `driver-ufs`, `driver-uhci`, `driver-usb-audio`, `driver-usb-hub`, `driver-uvc`, `driver-virtio-input`, `driver-virtio-scsi`, `driver-vmbus`, `driver-vmmdev`, `driver-vmmouse`, `driver-vmware-svga`, `driver-vmxnet3`, `nox-settle`, `prove-fetch`.
+`driver-ac97`, `driver-buslogic`, `driver-ccid`, `driver-e1000e`, `driver-ehci`, `driver-fido`, `driver-igb`, `driver-igc`, `driver-mpt`, `driver-ohci`, `driver-pcnet`, `driver-piix-ide`, `driver-pvscsi`, `driver-sdhci`, `driver-tulip`, `driver-ufs`, `driver-uhci`, `driver-usb-audio`, `driver-usb-hub`, `driver-uvc`, `driver-virtio-input`, `driver-virtio-scsi`, `driver-vmbus`, `driver-vmmdev`, `driver-vmmouse`, `driver-vmware-svga`, `driver-vmxnet3`, `nox-settle`, `prove-fetch`.
 <!-- unsealed: end -->
 
 ## Off, and why
