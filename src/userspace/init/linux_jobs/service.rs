@@ -32,7 +32,9 @@ pub(crate) fn service() {
     let mut waiting = alloc::vec::Vec::new();
     for job in take() {
         match job {
-            Job::Install(..) | Job::Uninstall(_) if super::status::one_moving() => waiting.push(job),
+            Job::Install(..) | Job::Uninstall(_) if super::status::one_moving() => {
+                waiting.push(job)
+            }
             Job::Install(listing, release) => super::install::install(&listing, &release),
             Job::Uninstall(listing) => uninstall(&listing),
             Job::Run(package, how) => super::run::run(&package, how),
@@ -52,7 +54,7 @@ fn uninstall(listing: &str) {
         super::status::set(listing, Stage::Refused);
         let mut l = Line::new();
         l.str(b"[LINUX-UNINSTALL] no package name the personality takes, refused ");
-        return l.str(listing.as_bytes()).end();
+        return l.app(listing.as_bytes()).end();
     };
     let said: &[u8] = match spawn_uninstall(&name) {
         Ok(pid) => {
@@ -65,5 +67,5 @@ fn uninstall(listing: &str) {
             b"[LINUX-UNINSTALL] refused "
         }
     };
-    Line::new().str(said).str(listing.as_bytes()).end();
+    Line::new().str(said).app(listing.as_bytes()).end();
 }
