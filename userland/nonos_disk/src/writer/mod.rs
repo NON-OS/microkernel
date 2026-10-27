@@ -20,9 +20,11 @@ mod error;
 mod error_text;
 mod install;
 mod receipt;
+mod update;
 mod verify;
 
 pub use error::WriteError;
 pub use install::install;
 pub use receipt::{FileRun, Receipt};
+pub use update::update;
 pub use verify::verify;
