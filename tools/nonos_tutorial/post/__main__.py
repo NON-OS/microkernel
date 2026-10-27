@@ -74,12 +74,11 @@ class Pieces:
         return path
 
 
-def card(p, spec, label, layout=cards.CHAPTER_CARD):
+def card(p, spec, label, seconds, layout=cards.CHAPTER_CARD):
     out = p.next()
     texts = {k: p.words(k, v) for k, v in (("label", label), ("title", spec.get("title")),
                                             ("line", spec.get("line"))) if v}
-    run(cards.command(texts, float(spec.get("seconds", 3)), out, layout, PIECE),
-        f"card {out.name}: {spec.get('title')}")
+    run(cards.command(texts, float(seconds), out, layout, PIECE), f"card {out.name}: {spec.get('title')}")
     return out
 
 
@@ -101,14 +100,16 @@ def parts(film, out):
     """Every piece drawn: [(chapter title or None, [piece, ...]), ...], the
     title first and the end last."""
     p = Pieces(out)
-    made = [(film["title"]["title"], [card(p, film["title"], film["title"].get("label"),
-                                           cards.TITLE_CARD)])]
+    title, end = film["title"], film.get("end")
+    made = [(title["title"], [card(p, title, title.get("label"), title.get("seconds", 4),
+                                   cards.TITLE_CARD)])]
     for n, chapter in enumerate(film["chapters"], 1):
-        pieces = [card(p, chapter, f"CHAPTER {n:02d}")] if chapter.get("card", 3) else []
+        seconds = chapter.get("card", 3)
+        pieces = [card(p, chapter, f"CHAPTER {n:02d}", seconds)] if seconds else []
         pieces += [clip(p, film["source"], c) for c in chapter["clips"]]
         made.append((chapter["title"], pieces))
-    if film.get("end"):
-        made.append((None, [card(p, film["end"], film["end"].get("label"), cards.TITLE_CARD)]))
+    if end:
+        made.append((None, [card(p, end, end.get("label"), end.get("seconds", 4), cards.TITLE_CARD)]))
     return made
 
 
