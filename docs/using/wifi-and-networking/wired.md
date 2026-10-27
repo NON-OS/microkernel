@@ -10,6 +10,8 @@ The `e1000e` and `igc` driver capsules are in the source tree, but no 0.9.2 imag
 
 Not available in 0.9.2 images. `net.core` lists the `cdc_ecm`, `cdc_ncm`, `rndis`, `ax88179` and `rtl8153` drivers among its candidates, and the drivers are in the source tree, but no kernel profile embeds them. A phone sharing its connection over USB, or a USB Ethernet adapter, is not used. See [USB networking](../../drivers/ethernet/usb-net.md).
 
+After 0.9.2, the Standard image carries a driver for ASIX AX88179 and AX88178A USB 3.0 gigabit dongles (and the adapters sold under other names around them), the usual wired way online for a laptop whose Wi-Fi has no driver. It waits on the owner's seal and has not yet been tried on a real dongle; see [ASIX AX88179](../../drivers/ethernet/usb-net.md#asix-ax88179).
+
 ## DHCP and DNS
 
 ```mermaid
