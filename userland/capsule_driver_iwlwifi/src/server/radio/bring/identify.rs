@@ -18,10 +18,12 @@
 //! the RF id readable) and the firmware chosen by MAC and RF type.
 
 use crate::driver::Driver;
+use crate::firmware::gen3::csr::CsrLayout;
 use crate::firmware::gen3::outcome::Failure;
 use crate::firmware::gen3::regs::{CSR_HW_REV, CSR_HW_RF_ID, CSR_MSIX_HW_INT_MASK_AD};
-use crate::firmware::gen3::select::{select, transport, Image, Refusal, Transport};
-use crate::firmware::gen3::start::start_hw;
+use crate::firmware::gen3::select::{bz_mac_step, mac_type, select, transport, MAC_BZ};
+use crate::firmware::gen3::select::{Image, Refusal, Transport};
+use crate::firmware::gen3::start::{start_hw, StartError};
 
 use super::super::clock::Uptime;
 use super::super::say::Line;
@@ -31,7 +33,7 @@ use super::seen::Seen;
 const WINDOW_MIN: u64 = (CSR_MSIX_HW_INT_MASK_AD + 4) as u64;
 
 pub(super) fn identify(d: &Driver, ids: &mut Seen) -> Result<(Image, Transport), Failure> {
-    // An adapter that is not an SO platform is left exactly as setup left it.
+    // An adapter without a platform here is left exactly as setup left it.
     let Some(t) = transport(d.pci_device) else {
         return Err(Failure::Refused(Refusal::NotSoDevice(d.pci_device)));
     };
@@ -47,6 +49,11 @@ pub(super) fn identify(d: &Driver, ids: &mut Seen) -> Result<(Image, Transport),
     }
     start_hw(&m, &mut c, t.csr).map_err(Failure::Start)?;
     ids.rf_id = m.read32(CSR_HW_RF_ID);
+    // A Bz MAC's step is the CNVi's, ORed into hw_rev as Linux does.
+    if mac_type(ids.hw_rev) == MAC_BZ && t.csr == CsrLayout::V2 {
+        let step = bz_mac_step(&m, &mut c).ok_or(Failure::Start(StartError::NoNicAccess))?;
+        ids.hw_rev |= u32::from(step);
+    }
     Line::new().text(b"pci ").hex(u32::from(d.pci_device)).send();
 
     select(d.pci_device, ids.hw_rev, ids.rf_id).map_err(Failure::Refused)
