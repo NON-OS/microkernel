@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Whether a broker record is an I2C host driver.i2c_pci may drive: an Intel
 //! PCI function in the LPSS I2C id ranges the capsule lists, or with the
 //! class LPSS functions report (serial bus or signal processing, subclass
@@ -36,6 +35,7 @@ const SIGNAL_PROCESSING: u8 = 0x11;
 const OTHER: u8 = 0x80;
 
 /// Intel LPSS I2C device ids, each range taken whole.
+#[rustfmt::skip]
 const LPSS_I2C_IDS: [(u16, u16); 41] = [
     (0x0AAC, 0x0ABA), (0x1AAC, 0x1ABA), (0x5AAC, 0x5ABA), (0x31AC, 0x31BA), (0x9D60, 0x9D65),
     (0xA160, 0xA162), (0xA2E0, 0xA2E3), (0xA3E0, 0xA3E3), (0x9DE8, 0x9DEB), (0x9DC5, 0x9DC6),
