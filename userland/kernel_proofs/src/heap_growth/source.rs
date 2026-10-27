@@ -7,7 +7,8 @@ const INIT: &str = include_str!("../../../../src/kernel_core/init/entry/microker
 const STAGE: &str = include_str!("../../../../src/kernel_core/init/entry/init_heap_region.rs");
 const ALLOC: &str = include_str!("../../../../src/memory/heap/types/alloc_impl.rs");
 const DEALLOC: &str = include_str!("../../../../src/memory/heap/types/dealloc_impl.rs");
-const ROUTE: &str = include_str!("../../../../src/memory/heap/types/region_alloc.rs");
+const ROUTE: &str = include_str!("../../../../src/memory/heap/types/region_pick.rs");
+const FRONT: &str = include_str!("../../../../src/memory/heap/types/region_alloc.rs");
 const PANIC: &str = include_str!("../../../../src/security/zerostate/panic_wipe.rs");
 const SANITIZE: &str =
     include_str!("../../../../src/security/hardening/memory_sanitization/api.rs");
@@ -44,6 +45,9 @@ fn a_block_goes_back_to_the_region_that_handed_it_out() {
     let second = ROUTE.find("self.second.heap.dealloc(ptr, layout)").unwrap();
     let first = ROUTE.find("self.inner.dealloc(ptr, layout)").unwrap();
     assert!(route < second && second < first);
+    // A small block goes to its class first; any other to its region.
+    assert!(FRONT.contains("self.second.front.push(class, ptr)"));
+    assert!(FRONT.contains("self.to_regions(ptr, layout)"));
 }
 
 #[test]
