@@ -26,6 +26,7 @@
 
 mod alive;
 pub(crate) mod answers;
+mod early;
 mod errors;
 mod fails;
 mod iface;
