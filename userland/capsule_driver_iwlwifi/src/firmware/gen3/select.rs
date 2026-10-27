@@ -19,27 +19,26 @@
 //!
 //! The PCI device ID names the platform and its transport values
 //! (`transports`); the firmware is chosen by the MAC type and step in
-//! CSR_HW_REV and the RF type and step in CSR_HW_RF_ID, as Linux's
-//! `iwl_drv_get_fwname_pre` builds the name (`<mac>-<step>0-<rf>-<step>0`).
+//! CSR_HW_REV and the RF id (`crf`), as Linux's `iwl_drv_get_fwname_pre`
+//! builds the name (`<mac>-<step>0-<rf>-<step>0`).
 //! The AX210 family's MACs share one gen3 boot: SO (AX211 and AX201 on Alder
 //! and Raptor Lake), TY (the discrete AX210) and MA (Meteor Lake, whose name
-//! takes both steps, `iwl_cfg_ma`). The BZ
-//! family boots the same way in the V2 CSR layout: Gl (the discrete BE200,
-//! gl-c0-fm-c0) and Bz (the BE201 CNVi of Lunar and Arrow Lake, bz-b0-fm-c0,
-//! its step read from the CNVi by `bz_step`), both with the FM radio.
-//! Whether an image is bundled is the blob table's answer
-//! (`firmware::gen3_blob`), so a known adapter whose image is not in the tree
-//! is refused by name rather than started on a firmware it does not run.
+//! takes both steps, `iwl_cfg_ma`). The BZ family boots the same way in the
+//! V2 CSR layout: Gl (the discrete BE200, gl-c0-fm-c0) and Bz (the BE201 CNVi
+//! of Lunar and Arrow Lake, bz-b0-fm-c0, its step from the CNVi, `bz_step`).
+//! Whether an image is bundled is `firmware::gen3_blob`'s answer: a known
+//! adapter whose image is not in the tree is refused by name, not run.
 
 use super::csr::CsrLayout;
 
 pub mod bz_step;
+pub mod crf;
 mod ids;
+pub mod probe;
 mod qu;
 mod refusal;
 mod transports;
 
-pub use bz_step::bz_mac_step;
 use ids::*;
 pub use ids::{mac_step, mac_type, rf_step, rf_type, MAC_BZ, MAC_GL};
 pub use refusal::Refusal;
@@ -97,8 +96,8 @@ fn fm(hw_rev: u32, rf_id: u32, want: u8, image: Image) -> Result<Image, Refusal>
 }
 
 /// The firmware for this adapter, or why there is none. For Bz, `hw_rev`
-/// carries the CNVi's step (`bz_mac_step`), as Linux's does. A MAC of the
-/// other family than its PCI device's is refused.
+/// carries the CNVi's step (`step_of`). A MAC of the other family than its
+/// PCI device's is refused.
 pub fn select(pci_device: u16, hw_rev: u32, rf_id: u32) -> Result<(Image, Transport), Refusal> {
     let t = transport(pci_device).ok_or(Refusal::NotSoDevice(pci_device))?;
     if t.csr == CsrLayout::Gen2 {
