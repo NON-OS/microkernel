@@ -724,5 +724,55 @@
    "--release"
   ],
   "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-loader-reads-unasked",
+  "file": "nonos-bootloader/src/entry/firmware_package.rs",
+  "old": "if !file_exists(st, path) {",
+  "new": "if false {",
+  "test": "",
+  "cmd": [
+   "python3",
+   "scripts/check_mediatek_firmware.py"
+  ],
+  "crate": ".",
+  "args": []
+ },
+ {
+  "name": "mt7921-seal-esp-without-package",
+  "file": "tools/nonos_seal/media.py",
+  "old": "if firmware and os.path.isdir(firmware):",
+  "new": "if False:",
+  "test": "",
+  "cmd": [
+   "python3",
+   "scripts/check_mediatek_firmware.py"
+  ],
+  "crate": ".",
+  "args": []
+ },
+ {
+  "name": "mt7921-seal-hands-esp-nothing",
+  "file": "tools/nonos_seal/__main__.py",
+  "old": "approval, firmware)",
+  "new": "approval)",
+  "test": "",
+  "cmd": [
+   "python3",
+   "scripts/check_mediatek_firmware.py"
+  ],
+  "crate": ".",
+  "args": []
+ },
+ {
+  "name": "mt7921-missing-package-reads-mismatch",
+  "file": "userland/capsule_driver_mt7921/src/bringup/package.rs",
+  "old": "Err(Stage::PackageMissing)",
+  "new": "Err(Stage::PackageMismatch)",
+  "test": "client_stage_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
  }
 ]
