@@ -29,6 +29,8 @@ pub const REPLY_RX_MPDU_CMD: u8 = 0xC1;
 pub const CAPA_LAR_SUPPORT: u32 = 1;
 pub const CAPA_UMAC_SCAN: u32 = 2;
 pub const CAPA_SOC_LATENCY_SUPPORT: u32 = 37;
+/// Two LMACs: a 5 GHz PHY context names LMAC 1 (`iwl_mvm_get_lmac_id`).
+pub const CAPA_CDB_SUPPORT: u32 = 40;
 pub const CAPA_BT_MPLUT_SUPPORT: u32 = 67;
 pub const CAPA_MCC_UPDATE_11AX_SUPPORT: u32 = 89;
 pub const CAPA_MLD_API_SUPPORT: u32 = 110;

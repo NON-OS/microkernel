@@ -39,6 +39,8 @@ pub struct Dev<'a, M: Mmio, R: Region + ?Sized> {
     pub pnvm: Option<u32>,
     /// The family's CSR layout (`with_csr`; V1 unless told).
     pub csr: CsrLayout,
+    /// The firmware runs two LMACs (`IWL_UCODE_TLV_CAPA_CDB_SUPPORT`).
+    pub cdb: bool,
 }
 
 impl<'a, M: Mmio, R: Region + ?Sized> Dev<'a, M, R> {
@@ -53,13 +55,13 @@ impl<'a, M: Mmio, R: Region + ?Sized> Dev<'a, M, R> {
             buf: [0; RB_SIZE],
             pnvm: None,
             csr: CsrLayout::V1,
+            cdb: false,
         }
     }
 
     /// The device in the family's CSR layout, its receive queue too.
     pub fn with_csr(mut self, csr: CsrLayout) -> Self {
-        self.csr = csr;
-        self.rxq.csr = csr;
+        (self.csr, self.rxq.csr) = (csr, csr);
         self
     }
 
