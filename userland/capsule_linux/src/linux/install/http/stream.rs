@@ -20,7 +20,7 @@ use nonos_route_link::RouteStream;
 
 use super::super::route_read::Source;
 
-pub(super) struct Stream(pub(super) RouteStream);
+pub(in crate::linux::install) struct Stream(pub(super) RouteStream);
 
 impl Source for Stream {
     fn read_wait(&mut self, into: &mut [u8], wait_ms: u64) -> Result<usize, &'static str> {

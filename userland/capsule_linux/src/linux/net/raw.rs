@@ -19,7 +19,7 @@
 use alloc::vec::Vec;
 
 use super::call::call;
-use super::ops::{DOMAIN, KIND_MIXNET, KIND_STREAM, OP_CONNECT_HOST, OP_SOCKET};
+use super::ops::{DOMAIN, KIND_MIXNET, KIND_STREAM, OP_CONNECT_HOST, OP_RECV, OP_SOCKET};
 
 /// A stream to `ip`: over the mixnet, like everything else, unless `ip` is a
 /// mirror on the local network (`route::is_local`), which is dialled directly
@@ -63,4 +63,11 @@ fn failed<T>(step: &str, to: &str, status: Option<u16>) -> Option<T> {
     };
     let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
     None
+}
+
+/// One read of what has come on `handle`, up to `max` bytes, at once: empty
+/// when nothing has, which net.core answers for a quiet socket and a closed
+/// one alike. None when the service refused the read.
+pub fn recv_now(handle: u32, max: usize) -> Option<Vec<u8>> {
+    call(OP_RECV, &handle.to_le_bytes(), max).filter(|(st, _)| *st == 0).map(|(_, b)| b)
 }
