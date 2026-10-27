@@ -63,6 +63,7 @@ pub fn keyboard_on(guest: &mut Guest, keyboard: u32) -> bool {
         Err(goes_on) => return goes_on,
     };
     guest.scene.held = super::super::held_keys::HeldKeys::new();
+    super::super::clip::focus::entered(guest);
     let serial = guest.scene.next_serial();
     Event::new(keyboard, KEYBOARD_ENTER)
         .u32(serial)

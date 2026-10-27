@@ -15,8 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The order a package's pack goes in and out of the store in, and the name
-//! each family's pack has, as they ship.
+//! each family's pack has, and the closure a run loads packs by, as they ship.
 
+#[path = "../../../../capsule_linux/src/linux/file/store/pack/closure.rs"]
+pub mod closure;
 #[path = "../../../../capsule_linux/src/linux/file/store/pack/paths.rs"]
 pub mod paths;
 #[path = "../../../../capsule_linux/src/linux/file/store/pack/shelf.rs"]

@@ -48,7 +48,7 @@ Every boot writes one `[HW]` line for each device the kernel found, before it st
 
 ```text
 [HW] 8086:125c 02/00 driven by driver_igc
-[HW] 10ec:b852 02/80 known, held: no driver for this Realtek Wi-Fi part (RTL8822CE, RTL8852 and kin)
+[HW] 10ec:b852 02/80 known, held: no driver for this Realtek Wi-Fi part (RTL8852 and kin)
 [HW] 8086:29c0 06/00 needs no driver
 [HW] acpi PNP0303 driven by driver_ps2_input
 [HW] 14c3:0616 02/80 unknown

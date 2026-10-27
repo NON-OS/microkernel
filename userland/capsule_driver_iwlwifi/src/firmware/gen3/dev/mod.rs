@@ -21,8 +21,11 @@
 
 mod command;
 mod drain;
+pub mod gen2;
 mod kinds;
+mod speaks;
 mod state;
 
 pub use kinds::{Flow, WaitError, COMMAND_MS};
+pub use speaks::Speaks;
 pub use state::Dev;
