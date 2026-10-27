@@ -68,7 +68,7 @@ Giving back a device below a hub leaves the root port, and the hub, up. A polled
 
 All of it on the host, none on hardware or under QEMU:
 
-- `userland/usb_hub_proofs` (24 tests) covers the descriptor, port status, route and TT rules, the walk and the parking over a modelled hub and clock, and the virtual port table.
+- `userland/usb_hub_proofs` (42 tests) covers the descriptor, port status, route and TT rules, the walk and the parking over a modelled hub and clock, and the virtual port table. It also covers the capsule's wire to its host: a reply whose header names more payload than arrived, or too little to hold the status, is an I/O error and nothing of it is read.
 - In each host's proof crate, `nonos_usb_hub`'s own walk runs over that driver's own request dispatch against its model controller, with a model hub on root port 1 (`userland/uhci_proofs/src/hub_lane.rs`, shared by the three).
   - The model halts any transaction whose speed, TT, completion mask or low-speed mark does not match where the device sits (`userland/ehci_proofs/src/model/reach.rs`, `userland/uhci_proofs/src/model/bus.rs`).
   - In `uhci_proofs`, usb_hub0's own walk and root-port pass run over the real host front. Children are parked, listed and claimed, and their bulk data reaches them; detaches and give-backs follow the table.
