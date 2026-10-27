@@ -48,6 +48,7 @@ mod mgmt_protected;
 mod mgmt_route;
 mod mgmt_rx;
 mod offload;
+mod offload_keys;
 mod pmf_state;
 mod receive;
 mod rekey;

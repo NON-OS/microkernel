@@ -1020,8 +1020,8 @@
  {
   "name": "wifi-core-offload-sent-plain",
   "file": "userland/nonos_wifi_core/src/softmac/session/chip.rs",
-  "old": "if self.station.offloaded() && protected {",
-  "new": "if false && protected {",
+  "old": "if self.station.keyed(f) {",
+  "new": "if false {",
   "test": "_tests::",
   "args": [
    "--release"
@@ -1086,8 +1086,8 @@
  {
   "name": "wifi-core-offload-mgmt-sealed-in-software",
   "file": "userland/nonos_wifi_core/src/station/keys.rs",
-  "old": "return self.chip_frame(frame, host_iv);",
-  "new": "let _ = host_iv;",
+  "old": "return self.chip_frame(frame, false);",
+  "new": "let _ = 0;",
   "test": "_tests::",
   "args": [
    "--release"
