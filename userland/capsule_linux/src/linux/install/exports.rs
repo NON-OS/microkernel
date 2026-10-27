@@ -18,7 +18,7 @@
 
 pub use super::apps_run::launch;
 pub use super::family::install;
-pub use super::market::arg::{market_arg, NotMarket, MARKET_LEN};
+pub use super::market::arg::{market_arg, Market, NotMarket};
 pub use super::market::install_from;
 pub use super::market::minted::unbound_why;
 pub use super::record::closure::closure;

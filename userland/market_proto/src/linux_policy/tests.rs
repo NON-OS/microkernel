@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! OP_GET_LINUX_POLICY's reply reads back exactly, and anything else, a
-//! byte short or past, another version or kind, is no reply.
+//! OP_GET_LINUX_POLICY's reply, listed arguments and all, reads back
+//! exactly; a byte short or past, another version or kind, is no reply.
 
 use alloc::boxed::Box;
 use alloc::vec::Vec;
@@ -23,28 +23,28 @@ use alloc::vec::Vec;
 use super::*;
 
 fn arg() -> [u8; MARKET_ARG_LEN] {
-    let mut m = [0u8; MARKET_ARG_LEN];
-    for (i, b) in m.iter_mut().enumerate() {
-        *b = u8::try_from(i % 251).unwrap_or(0);
-    }
-    m
+    core::array::from_fn(|i| u8::try_from(i % 251).unwrap_or(0))
+}
+
+fn p(n: usize) -> LinuxPolicy {
+    LinuxPolicy::Policy(Box::new(arg()), alloc::vec![9; n])
 }
 
 const HASH: [u8; 32] = [7; 32];
 
 #[test]
 fn every_kind_reads_back_as_written_with_its_release_s_hash() {
-    for reply in [LinuxPolicy::NoPolicy, LinuxPolicy::Refused, LinuxPolicy::Policy(Box::new(arg()))]
-    {
+    let all = [LinuxPolicy::NoPolicy, LinuxPolicy::Refused, p(0), p(1), p(MARKET_ARGS_MAX)];
+    for reply in all {
         assert_eq!(parse_linux_policy(&linux_policy_body(&reply, &HASH)), Some((reply, HASH)));
     }
 }
 
 #[test]
 fn a_cut_long_or_foreign_reply_is_refused() {
-    let full = linux_policy_body(&LinuxPolicy::Policy(Box::new(arg())), &HASH);
+    let full = linux_policy_body(&p(MARKET_ARGS_MAX), &HASH);
     let none = linux_policy_body(&LinuxPolicy::NoPolicy, &HASH);
-    let (_, cut) = full.split_last().expect("not empty");
+    let cut = full.get(..LINUX_POLICY_HEAD + MARKET_ARG_LEN - 1).expect("long enough");
     let (_, cut_none) = none.split_last().expect("not empty");
     let foreign: Vec<u8> =
         full.iter().enumerate().map(|(i, b)| if i == 0 { 1 } else { *b }).collect();
@@ -69,7 +69,7 @@ fn a_cut_long_or_foreign_reply_is_refused() {
 #[test]
 fn the_op_and_lengths_are_pinned() {
     assert_eq!(crate::ops::OP_GET_LINUX_POLICY, 8);
-    assert_eq!(linux_policy_body(&LinuxPolicy::Policy(Box::new(arg())), &HASH).len(), 354);
+    assert_eq!(linux_policy_body(&p(0), &HASH).len(), 354);
     assert_eq!(linux_policy_body(&LinuxPolicy::Refused, &HASH).len(), LINUX_POLICY_HEAD);
     assert_eq!((KIND_NONE, KIND_POLICY, KIND_REFUSED, LINUX_POLICY_VERSION), (0, 1, 2, 2));
 }

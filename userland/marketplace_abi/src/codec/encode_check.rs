@@ -20,7 +20,7 @@
 use super::decode_commerce::known_proof_kind;
 use super::encode_error::EncodeError;
 use crate::limits::MAX_RELEASES;
-use crate::limits::{GUEST_POLICY_LEN, MAX_ENTRIES, MAX_PROOF_ANCHORS, MAX_PROOF_REQS};
+use crate::limits::{guest_policy_fits, MAX_ENTRIES, MAX_PROOF_ANCHORS, MAX_PROOF_REQS};
 use crate::types::{MarketplaceEntry, MarketplaceIndex, SettleMode};
 
 pub(super) fn check(index: &MarketplaceIndex) -> Result<(), EncodeError> {
@@ -40,8 +40,7 @@ fn check_entry(e: &MarketplaceEntry) -> Result<(), EncodeError> {
     }
     for rel in &e.releases {
         let x = rel.ext.as_ref().ok_or(EncodeError::MissingReleaseExt)?;
-        let policy = x.guest_policy.len();
-        if policy != 0 && policy != GUEST_POLICY_LEN as usize {
+        if !guest_policy_fits(x.guest_policy.len()) {
             return Err(EncodeError::BadLength);
         }
         if x.proof_anchors.len() > MAX_PROOF_ANCHORS as usize {

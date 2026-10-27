@@ -20,6 +20,9 @@
 /* The line a store program's binding leaves in the serial log. */
 #[path = "../../../capsule_linux/src/linux/app/bound_line.rs"]
 pub mod bound_line;
+/* A market program's listed arguments before the person's own. */
+#[path = "../../../capsule_linux/src/linux/app/args_listed.rs"]
+pub mod args_listed;
 /* Which home a program's /home and /root are kept in. */
 #[path = "../../../capsule_linux/src/linux/app/home_key.rs"]
 pub mod home_key;
