@@ -40,6 +40,10 @@ pub(crate) fn finish(supervisor: u32) -> Option<u64> {
     };
     fam.leave_all();
     let app_id = fam.app_id?;
+    // Said only on a build with capsule serial output, never a release.
+    if cfg!(feature = "capsule-serial-debug") {
+        crate::sys::serial::println(&super::measure_line::line(&app_id, &fam.hist[..]));
+    }
     // The salt was drawn below p, so the commitment always exists.
     let hc = hist_commit(&fam.hist, &fam.salt)?;
     let mut sealed = SEALED.lock();
