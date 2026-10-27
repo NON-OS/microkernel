@@ -17,9 +17,13 @@
 //! A guest's stream that did not open: which answers are waited out and for
 //! how long (the 45 s an install allows), what the guest's connect is told,
 //! and the one line the person reads, which names the network and never
-//! the host or the port.
+//! the host or the port. And one closed with bytes still queued: they go,
+//! in order and once, before it ends, within its bound.
 
 mod errno;
+mod flush;
+mod flush_bound;
 mod line;
+mod proxy;
 mod retry;
 mod window;

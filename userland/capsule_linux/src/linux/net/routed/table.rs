@@ -35,8 +35,7 @@ unsafe impl Sync for One {}
 static TABLE: One = One(RefCell::new(Vec::new()));
 
 /// Run `f` on entry `h`, if it is there. Nothing inside `f` reaches this
-/// table again or the socket table: a call to a proxy made inside reaches
-/// neither.
+/// table again or the socket table; a call to a proxy reaches neither.
 pub fn with<R>(h: u32, f: impl FnOnce(&mut Entry) -> R) -> Option<R> {
     TABLE.0.borrow_mut().get_mut(h as usize).and_then(Option::as_mut).map(f)
 }
@@ -55,10 +54,16 @@ pub fn insert(e: Entry) -> u32 {
     }
 }
 
-/// Entry `h`, out of the table. Dropping it ends its stream at the proxy,
-/// which the caller does once the table is no longer borrowed.
+/// Entry `h`, out of the table; dropping it ends its stream at the proxy.
 pub fn remove(h: u32) -> Option<Entry> {
     TABLE.0.borrow_mut().get_mut(h as usize).and_then(Option::take)
+}
+
+/// The entries no socket holds, kept to carry what was written (closing.rs).
+pub fn closing() -> Vec<u32> {
+    let t = TABLE.0.borrow();
+    let held = |e: &Option<Entry>| e.as_ref().is_some_and(|e| e.closing.is_some());
+    (0..t.len()).filter(|&h| held(&t[h])).map(|h| h as u32).collect()
 }
 
 /// The lowest stream at net.socks5 no entry holds: 1 to 7, stream 0 being

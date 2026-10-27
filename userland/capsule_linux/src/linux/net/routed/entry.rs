@@ -36,12 +36,16 @@ pub struct Entry {
     pub until: i64,
     /// The network last opened or waited on, and why it has not opened.
     pub why: (Net, &'static str),
+    /// Its socket was let go with written bytes queued: carried on until
+    /// then at most (closing.rs).
+    pub closing: Option<i64>,
 }
 
 impl Entry {
     pub fn new(phase: Phase, until: i64) -> Entry {
         let dest = Dest { host: Vec::new(), port: 0 };
-        Entry { phase, dest, socks: None, out: Vec::new(), until, why: (Net::Unread, "") }
+        let why = (Net::Unread, "");
+        Entry { phase, dest, socks: None, out: Vec::new(), until, why, closing: None }
     }
 
     /// The SOCKS endpoint's conversation, at any stage.

@@ -120,6 +120,13 @@ opens and carries it.
   refuse every name, which left a guest with no way to reach a host by name over Nym.
 - Direct: Nym as well. A guest never reaches the network directly, whatever the default. That
   is deliberate (`net/guest_route.rs`, `design/install-network.md`).
+- A close does not lose what was written. A Nym stream closed, or left by a guest that exits,
+  with written bytes net.socks5 has not taken yet is kept, held by no socket, and carried on by
+  the serve loop until they have gone, in order and once, for 10 s at most; when the family
+  ends, the capsule carries them before it exits (`net/routed/closing.rs`, `linger.rs`,
+  `queue.rs`). What came back unread is dropped, and SO_LINGER of 0 s drops the queue too, as
+  Linux's reset does. On Anyone nothing is queued here: a write is told only what net.anon has
+  already sent as RELAY_DATA, and the close's RELAY_END follows it on the same circuit.
 - Not ready yet: a default the policy store does not give (no store yet, or the restore not
   done), a network whose service has not registered, or net.anon with no directory, link or
   circuit, is asked again each second, up to the 45 s an install's own open allows

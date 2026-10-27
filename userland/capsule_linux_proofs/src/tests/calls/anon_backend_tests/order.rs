@@ -51,8 +51,19 @@ fn a_routed_stream_is_let_go_once_and_only_there() {
     t.get_mut(id).expect("there").svc = Some(Backend::Routed(21));
     assert_eq!(t.get(id).and_then(|s| s.svc.as_ref()).map(Backend::via), Some(Via::Routed(21)));
     t.release(id, GUEST);
-    assert_eq!(routed::closed(), vec![21]);
+    assert_eq!(routed::closed(), vec![(21, false)], "carried on until what was written goes");
     assert!(anon_stream::closed().is_empty(), "net.anon is not told of a routed stream");
     t.free(id, false);
     assert!(routed::closed().is_empty());
+}
+
+#[test]
+fn an_abortive_close_drops_what_a_routed_stream_has_queued() {
+    quiet();
+    let mut t = Socks::new();
+    let id = t.open(Domain::Inet, Proto::Stream, Some(GUEST));
+    let s = t.get_mut(id).expect("there");
+    (s.svc, s.opts.linger) = (Some(Backend::Routed(4)), (1, 0));
+    t.release(id, GUEST);
+    assert_eq!(routed::closed(), vec![(4, true)], "SO_LINGER of 0 s is Linux's reset");
 }
