@@ -12,6 +12,7 @@ use crate::model::{addressed, bulk_ready, high, rig, ModelRegs, Shared, BUS, CAP
 use crate::sched::advance::Dead;
 use crate::sched::layout::{bulk_ring, qh, RING};
 use crate::sched::take::take_back;
+mod park_tests;
 
 /// The model's registers with the doorbell never passed on: USBCMD reads
 /// it set until it is cleared. `stuck` drops every USBCMD write too.

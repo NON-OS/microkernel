@@ -76,8 +76,10 @@ device answered.
 A response is taken only when its transaction type, unit, tag and (for a
 query) opcode and IDN match what was asked; the data region is zeroed
 before every read, so a device that answers GOOD without data hands back
-zeroes, not the last request's bytes; a unit whose block count times block
-size overflows 64 bits is refused.
+zeroes, not the last request's bytes; a request longer than the data
+region is refused before its PRDT is written, so the host is never handed
+memory past it; a unit whose block count times block size overflows 64
+bits is refused.
 
 ## Privacy and persistence
 
