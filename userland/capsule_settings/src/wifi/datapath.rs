@@ -37,6 +37,9 @@ pub struct DataPath {
     pub efuse_flags: u32,
     pub efuse_stalled_at: u32,
     pub efuse_bank_ldo: u32,
+    /// The claim step the broker refused (0: none) and its errno, positive.
+    pub claim_step: u32,
+    pub claim_errno: u32,
     /// Where firmware bring-up stopped (0: it did not stop), the chunks that
     /// had landed, and `REG_MCUFW_CTRL` as the stop left it. Zero from a driver
     /// built before the report.

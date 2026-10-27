@@ -15,6 +15,8 @@ The status operation returns a stage byte, and the panel shows its text (`userla
 | `NoAirPath` | 8 | `card not supported yet; use Ethernet or USB Wi-Fi` |
 | any other | | `The driver reported an unknown stage` |
 
+After `NotClaimed` the RTL8821CE's status reply also carries the claim step the kernel refused (1 the claim, 2 the command register's Memory Space write, 3 the register map) and the error number, in words 9 and 10 of its body (`userland/capsule_driver_rtl8821ce/src/setup/claim_note.rs`). Settings and the setup wizard show them as `not claimed: claim refused, busy (-16)` (`userland/nonos_wifi_client/src/driver/stop.rs`, `StopWhy`).
+
 The RTL8821CE also serves `DeadMmio` once its card reads back all ones while serving; its radio is down from then on.
 
 Neither suggestion in the `NoAirPath` line helps on real hardware in 0.9.2: there is no driver for a USB Wi-Fi adapter, and read from the code no wired driver in the image receives frames from a real card ([the receive fault](../../ethernet/README.md#the-receive-fault)). See [what to use instead](../not-supported.md#what-to-use-instead).

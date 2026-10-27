@@ -8,22 +8,34 @@
 use super::call::{OP_STATUS, WIFI_HDR};
 use super::find::Driver;
 use super::stage_kind::DriverStage;
+use super::stop::StopWhy;
 
 /// The status reply comes back at once; no scan runs.
 const STATUS_TIMEOUT_MS: u64 = 500;
 
-/// Where the RTL8821CE's status reply puts the firmware failure step: after the
-/// stage byte, the 52 bytes of counters and registers.
+/// Where the RTL8821CE's status reply puts the claim step that refused and
+/// its errno (words 9 and 10 past the stage byte), and the firmware failure
+/// step (after the stage byte and the 52 bytes of counters and registers).
+const CLAIM_AT: usize = WIFI_HDR + 1 + 36;
 const FW_STEP_AT: usize = WIFI_HDR + 1 + 52;
 
 impl Driver {
-    /// The firmware failure step an RTL8821CE reports (see
-    /// [`crate::firmware_step_text`]), or `None` when the driver did not answer
+    /// Why bring-up stopped at `stage`, for the screen ([`StopWhy`]): the
+    /// firmware step after `FirmwareFailed`, the refused claim step after
+    /// `NotClaimed`. `None` at any other stage, when the driver did not answer
     /// or answers a shorter status (iwlwifi, or a driver built before it).
-    pub fn firmware_step(&self) -> Option<u8> {
+    pub fn stop_why(&self, stage: DriverStage) -> Option<StopWhy> {
         let mut resp = [0u8; FW_STEP_AT + 1];
-        match self.request(OP_STATUS, &[], &mut resp, STATUS_TIMEOUT_MS) {
-            Some(n) if n > FW_STEP_AT => Some(resp[FW_STEP_AT]),
+        let n = self.request(OP_STATUS, &[], &mut resp, STATUS_TIMEOUT_MS)?;
+        let word =
+            |at: usize| u32::from_le_bytes([resp[at], resp[at + 1], resp[at + 2], resp[at + 3]]);
+        match stage {
+            DriverStage::FirmwareFailed if n > FW_STEP_AT => {
+                Some(StopWhy::Firmware(resp[FW_STEP_AT]))
+            }
+            DriverStage::NotClaimed if n >= CLAIM_AT + 8 && word(CLAIM_AT) != 0 => {
+                Some(StopWhy::Claim(word(CLAIM_AT), word(CLAIM_AT + 4)))
+            }
             _ => None,
         }
     }

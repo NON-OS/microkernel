@@ -17,7 +17,7 @@ fn a_stall_on_any_byte_reports_no_efuse_content() {
         assert_eq!(d.stalled_at, at as u32 + 1);
         assert_eq!(d.bank_ldo, (1 << 31) | (1 << 9) | (1 << 8), "{at}: bank and LDO only");
         let mut out = [0u8; STATUS_BODY_LEN];
-        assert_eq!(status_body(2, &LinkStats::default(), &d, &mut out), Some(STATUS_BODY_LEN));
+        assert_eq!(status_body(2, &LinkStats::default(), &d, (0, 0), &mut out), Some(STATUS_BODY_LEN));
         assert!(!carries_factory(&out), "{at}: {out:?}");
     }
 }
