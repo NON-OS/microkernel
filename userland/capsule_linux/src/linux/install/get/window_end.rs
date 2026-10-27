@@ -34,12 +34,14 @@ pub(super) struct Flight {
     pub(super) got: Vec<u8>,
     pub(super) quiet: u64,
     pub(super) cap: usize,
+    /// Asked again once already, after a reply that did not come whole.
+    pub(super) again: bool,
 }
 
 impl Flight {
     pub(super) fn new(at: usize, conn: Conn, reused: bool, cap: usize) -> Flight {
         let quiet = timing::now().saturating_add(FIRST_MS);
-        Flight { at, conn, reused, got: Vec::new(), quiet, cap }
+        Flight { at, conn, reused, got: Vec::new(), quiet, cap, again: false }
     }
 }
 

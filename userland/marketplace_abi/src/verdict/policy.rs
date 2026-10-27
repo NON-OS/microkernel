@@ -17,10 +17,12 @@
 //! Whether a Linux release's guest policy is the one it was sold under
 //!. Until the owner merges the tracks (I-B2), nonos_linux_policy is
 //! C's crate and is not linked here: this reads only the header and the two
-//! id fields, at offsets pinned by tests against the plan's layout.
+//! id fields, at offsets pinned by tests against the plan's layout. Listed
+//! arguments after the policy are bounded here and read by the install role.
 
 use super::policy_kind::PolicyVerdict;
 use crate::ids::{listing_id, release_id, Keccak};
+use crate::limits::guest_policy_fits;
 use crate::types::{CapsuleRelease, MarketplaceEntry};
 
 pub const POLICY_LEN: usize = 256;
@@ -50,7 +52,9 @@ pub fn policy_verdict(
     if p.is_empty() {
         return if vendor { PolicyVerdict::Vendor } else { PolicyVerdict::Missing };
     }
-    if p.len() != POLICY_LEN || p[..8] != POLICY_MAGIC || p[8..10] != POLICY_VERSION.to_le_bytes() {
+    // Listed arguments may follow a market policy, never a vendor tier's.
+    let sized = p.len() == POLICY_LEN || (!vendor && guest_policy_fits(p.len()));
+    if !sized || p[..8] != POLICY_MAGIC || p[8..10] != POLICY_VERSION.to_le_bytes() {
         return PolicyVerdict::BadHeader;
     }
     let (want_listing, want_release) = if vendor {
