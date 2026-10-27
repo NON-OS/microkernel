@@ -33,6 +33,8 @@ pub struct Rig {
     pub tx: Rc<Mem>,
     pub ap: Rc<RefCell<Ap>>,
     pub(super) fw_regions: Vec<Rc<Mem>>,
+    /// A 22000-family part (`rig_gen2`), not the AX211.
+    pub(super) gen2: bool,
 }
 
 pub fn rig(sec: Security, sw: Switches) -> Rig {
@@ -44,8 +46,11 @@ pub fn rig_with(sec: Security, sw: Switches, session: SessionReply) -> Rig {
     let ctrl = Mem::new(control_len(ucode.iml.len()).unwrap(), 0x1000_0000);
     let rbs = Mem::new(RB_REGION, 0x2000_0000);
     let sizes = firmware_region_sizes(&classify(SO_GF)).unwrap();
-    let fw_regions =
-        sizes.iter().enumerate().map(|(i, &n)| Mem::new(n, 0x4000_0000 + (i as u64) * 0x10_0000)).collect();
+    let fw_regions = sizes
+        .iter()
+        .enumerate()
+        .map(|(i, &n)| Mem::new(n, 0x4000_0000 + (i as u64) * 0x10_0000))
+        .collect();
     let model = Model::new(ctrl, rbs);
     let tx = Mem::new(TX_REGION, TX_DEV);
     let ap = Rc::new(RefCell::new(Ap::new(sec, sw)));
@@ -64,5 +69,5 @@ pub fn rig_with(sec: Security, sw: Switches, session: SessionReply) -> Rig {
             _ => vec![reply(c, vec![])],
         }
     }));
-    Rig { model, tx, ap, fw_regions }
+    Rig { model, tx, ap, fw_regions, gen2: false }
 }
