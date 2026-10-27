@@ -27,18 +27,24 @@ flowchart TD
    If IRQ1 cannot be bound, the driver takes the port grant again and goes on
    without the line.
 2. Claim the aux record and bind IRQ12 (`setup_aux`,
-   `userland/capsule_driver_ps2_input/src/setup/setup_aux.rs:31`).
+   `userland/capsule_driver_ps2_input/src/setup/setup_aux.rs`). If IRQ12
+   cannot be bound, the claim is kept and the mouse goes on without the line,
+   as the keyboard does without IRQ1.
 3. Empty the output buffer, then bring the keyboard up: hold its port off, read
    the configuration byte, set the IRQ1 and translation bits, enable the port
    and send Enable Scanning (0xF4). Only a keyboard that does not acknowledge
    that is reset with 0xFF, then asked again. A keyboard that answers neither is
    tolerated, so one plugged in later still works (`enable_keyboard`,
    `userland/capsule_driver_ps2_input/src/init/enable_keyboard/enable.rs:28-38`).
-4. If IRQ12 was bound, bring the mouse up: enable the aux port, set the IRQ12
+4. If the aux record was claimed, bring the mouse up: enable the aux port, set the IRQ12
    bit, set defaults, try the wheel knock (sample rates 200, 100, 80, then read
    the id, 3 means a wheel), enable reporting (`enable_mouse`,
    `userland/capsule_driver_ps2_input/src/init/enable_mouse/enable.rs:32-58`).
-   Without the aux line the mouse step is skipped. A keystroke that lands while
+   Without an aux record the mouse step is skipped. A port with no line is
+   polled: the serve loop drains the controller on every pass whatever woke
+   it, and sleeps 1 ms rather than 100 ms between passes while either port
+   is polled (`Driver::polled`,
+   `userland/capsule_driver_ps2_input/src/setup/driver.rs`). A keystroke that lands while
    the mouse's reply is awaited is dropped and counted, as nothing serves the
    keyboard yet.
 5. If the mouse step fails, turn the aux port back off and restore the keyboard,
