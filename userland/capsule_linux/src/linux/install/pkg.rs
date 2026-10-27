@@ -28,6 +28,9 @@ pub struct Pkg {
     /// What it needs installed with it, from its `D:` line: package names
     /// and `so:` libraries, version constraints dropped.
     pub depends: Vec<String>,
+    /// The names whose presence brings it in, from its `i:` line
+    /// (install_if.rs), version constraints dropped.
+    pub install_if: Vec<String>,
 }
 
 impl Pkg {
@@ -35,7 +38,6 @@ impl Pkg {
     /// file some other dependency installs; `cmd:` and `pc:` needs are met by
     /// whatever provides the libraries.
     pub fn read_depends(&mut self, line: &str) {
-        let cut = |t: &str| String::from(t.split(['<', '>', '=', '~']).next().unwrap_or(t));
         self.depends = line
             .split_whitespace()
             .filter(|t| {
@@ -44,6 +46,16 @@ impl Pkg {
             .map(cut)
             .collect();
     }
+
+    /// Read an `i:` line: every name in it must be there for it to apply.
+    pub fn read_install_if(&mut self, line: &str) {
+        self.install_if = line.split_whitespace().map(cut).collect();
+    }
+}
+
+/// A name without the version constraint after it.
+fn cut(token: &str) -> String {
+    String::from(token.split(['<', '>', '=', '~']).next().unwrap_or(token))
 }
 
 /// A provided name without the version it is provided at.

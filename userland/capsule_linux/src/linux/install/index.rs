@@ -43,6 +43,7 @@ impl Index {
                 Some(b'P') => cur.name = String::from(rest),
                 Some(b'V') => cur.version = String::from(rest),
                 Some(b'D') => cur.read_depends(rest),
+                Some(b'i') => cur.read_install_if(rest),
                 Some(b'p') => provides = rest.split_whitespace().map(bare).collect(),
                 _ => {}
             }
