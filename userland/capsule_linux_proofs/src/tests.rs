@@ -23,5 +23,6 @@ mod boxed;
 mod calls;
 mod heap_choice_tests;
 mod install;
+mod shared_maps;
 mod wayland;
 mod whole;
