@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Frames put back together from payloads (header.rs reads each one's
 //! header). A frame is handed up whole and only once; one with an error,
-//! one cut short or one past its bound is dropped.
+//! one cut short or one past its bound is dropped. Two buffers of the
+//! bound are all it ever holds: the frame being gathered and the last.
 
 use alloc::vec::Vec;
 
@@ -48,10 +49,16 @@ impl Assembler {
         &self.done
     }
 
+    /// The bytes both buffers hold: never more than twice the bound.
+    pub fn held(&self) -> usize {
+        self.buf.capacity() + self.done.capacity()
+    }
+
     pub(crate) fn finish(&mut self) -> Payload {
         let whole = !self.bad && !self.buf.is_empty();
         if whole {
-            self.done = core::mem::take(&mut self.buf);
+            // The buffers trade places, so neither is given up or grown.
+            core::mem::swap(&mut self.done, &mut self.buf);
         }
         self.buf.clear();
         (self.bad, self.lost) = (false, false);

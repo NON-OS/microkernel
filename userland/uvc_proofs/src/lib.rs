@@ -40,6 +40,8 @@ mod frame_tests;
 #[cfg(test)]
 mod gate_tests;
 #[cfg(test)]
+mod heap_tests;
+#[cfg(test)]
 mod hostile_tests;
 #[cfg(test)]
 mod indicator_tests;
