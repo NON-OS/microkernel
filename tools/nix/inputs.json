@@ -2463,6 +2463,9 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "nonos-bootloader/firmware/intel/iwlwifi-Qu-b0-hr-b0-77.ucode",
+   "nonos-bootloader/firmware/intel/iwlwifi-Qu-c0-hr-b0-77.ucode",
+   "nonos-bootloader/firmware/intel/iwlwifi-QuZ-a0-hr-b0-77.ucode",
    "nonos-bootloader/firmware/intel/iwlwifi-bz-b0-fm-c0-92.ucode",
    "nonos-bootloader/firmware/intel/iwlwifi-bz-b0-fm-c0.pnvm",
    "nonos-bootloader/firmware/intel/iwlwifi-cc-a0-77.ucode",

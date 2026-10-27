@@ -13,9 +13,9 @@ net	Broadcom BCM5720/5719 server GbE (tg3)	2017-2026	2	14e4:165f 14e4:1657	-	-	B
 net	Broadcom NetXtreme-E BCM574xx (bnxt)	2018-2026	3	14e4:16d7 14e4:16d8	-	-	hw	P3	no driver
 net	Killer E2200/E2400, Qualcomm Atheros (alx)	2016-2019	3	1969:e0a1 1969:e091	-	-	hw	P3	no driver
 net	Aquantia/Marvell AQC107/AQC113 10 GbE	2018-2026	3	1d6a:07b1 1d6a:04c0 1d6a:94c0	-	-	hw	P3	no driver
-wifi	Intel AX200	2019-2022	1	8086:2723	userland/capsule_driver_iwlwifi/src/firmware/gen3/select	nonos-capsule-driver-iwlwifi	E	P0	recognised, never claimed: no firmware path for this family
-wifi	Intel AX201 / 9560 (CNVi)	2018-2022	1	8086:a0f0 8086:02f0 8086:06f0 8086:43f0 8086:34f0 8086:9df0 8086:a370	userland/capsule_driver_iwlwifi/src/firmware/gen3/select	nonos-capsule-driver-iwlwifi	E	P0	recognised, never claimed
-wifi	Intel AX210/AX211/AX411/BE200	2021-2026	1	8086:2725 8086:51f0 8086:51f1 8086:54f0 8086:7af0 8086:7a70 8086:7f70 8086:272b	userland/capsule_driver_iwlwifi/src/firmware/gen3/select	nonos-capsule-driver-iwlwifi	E	P1	SO-family CNVi ids claimed; BE200 (272b) host-proven, never run on the card; AX210 (2725) has no firmware committed
+wifi	Intel AX200	2019-2022	1	8086:2723	userland/capsule_driver_iwlwifi/src/firmware/gen3/select	nonos-capsule-driver-iwlwifi	E	P0	host-proven on the 22000-family transport (cc-a0-77); never run on the card
+wifi	Intel AX201 / 9560 (CNVi)	2018-2022	1	8086:a0f0 8086:02f0 8086:06f0 8086:43f0 8086:34f0 8086:9df0 8086:a370	userland/capsule_driver_iwlwifi/src/firmware/gen3/select	nonos-capsule-driver-iwlwifi	E	P0	AX201 (Qu, QuZ with an HR radio) host-proven on the 22000-family transport; 9560 (JF radio, 9df0, a370) refused by name; never run on a card
+wifi	Intel AX210/AX211/AX411/BE200	2021-2026	1	8086:2725 8086:51f0 8086:51f1 8086:54f0 8086:7af0 8086:7a70 8086:7f70 8086:272b	userland/capsule_driver_iwlwifi/src/firmware/gen3/select	nonos-capsule-driver-iwlwifi	E	P1	SO-family CNVi ids claimed; AX210 (2725, ty-a0-gf-a0-86) and BE200 (272b) host-proven, never run on the card
 wifi	Intel 8265/8260/7265	2015-2019	2	8086:24fd 8086:24f3 8086:095a	userland/capsule_driver_iwlwifi/src/firmware/gen3/select	nonos-capsule-driver-iwlwifi	E	P2	recognised, never claimed
 wifi	Realtek RTL8821CE	2017-2022	2	10ec:c821 10ec:b821	userland/capsule_driver_rtl8821ce/src/constants	nonos-capsule-driver-rtl8821ce	E	-	works on the bench laptop (6 Oct report)
 wifi	Realtek RTL8822CE	2019-2026	1	10ec:c822 10ec:c82f	userland/capsule_driver_rtl8822ce/src/constants/pci.rs	nonos-capsule-driver-rtl8822ce	E	P1	host-proven only; never run on the card

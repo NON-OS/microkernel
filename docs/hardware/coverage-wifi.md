@@ -4,9 +4,9 @@ Written by `tools/hardware/coverage.py` from `coverage-parts.tsv`; edit that fil
 not this page. [How to read it](coverage.md#how-to-read-it).
 
 |---|---|---|---|---|---|---|---|---|
-| P0 | Intel AX200 | 2019-2022 | most machines | `8086:2723` | 0 of 1 | yes | E | recognised, never claimed: no firmware path for this family |
-| P0 | Intel AX201 / 9560 (CNVi) | 2018-2022 | most machines | `8086:a0f0` `8086:02f0` `8086:06f0` `8086:43f0` `8086:34f0` `8086:9df0` `8086:a370` | 0 of 7 | yes | E | recognised, never claimed |
-| P1 | Intel AX210/AX211/AX411/BE200 | 2021-2026 | most machines | `8086:2725` `8086:51f0` `8086:51f1` `8086:54f0` `8086:7af0` `8086:7a70` `8086:7f70` `8086:272b` | 8 of 8 | yes | E | SO-family CNVi ids claimed; BE200 (272b) host-proven, never run on the card; AX210 (2725) has no firmware committed |
+| P0 | Intel AX200 | 2019-2022 | most machines | `8086:2723` | 1 of 1 | yes | E | host-proven on the 22000-family transport (cc-a0-77); never run on the card |
+| P0 | Intel AX201 / 9560 (CNVi) | 2018-2022 | most machines | `8086:a0f0` `8086:02f0` `8086:06f0` `8086:43f0` `8086:34f0` `8086:9df0` `8086:a370` | 5 of 7 | yes | E | AX201 (Qu, QuZ with an HR radio) host-proven on the 22000-family transport; 9560 (JF radio, 9df0, a370) refused by name; never run on a card |
+| P1 | Intel AX210/AX211/AX411/BE200 | 2021-2026 | most machines | `8086:2725` `8086:51f0` `8086:51f1` `8086:54f0` `8086:7af0` `8086:7a70` `8086:7f70` `8086:272b` | 8 of 8 | yes | E | SO-family CNVi ids claimed; AX210 (2725, ty-a0-gf-a0-86) and BE200 (272b) host-proven, never run on the card |
 | P1 | Realtek RTL8822CE | 2019-2026 | most machines | `10ec:c822` `10ec:c82f` | 2 of 2 | listed, unsealed | E | host-proven only; never run on the card |
 | P1 | Realtek RTL8852AE/BE | 2019-2026 | most machines | `10ec:8852` `10ec:b852` | no driver | no feature | E | no driver |
 | P1 | MediaTek MT7921/MT7922 | 2021-2026 | most machines | `14c3:7961` `14c3:0616` | no driver | no feature | E | no driver; most AMD laptops since 2021 |
