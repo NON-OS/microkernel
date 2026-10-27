@@ -23,7 +23,8 @@ pub fn booted(f: impl FnOnce(&Model, &mut Dev<'_, Model, Mem>, &mut Polls)) {
     let fw: Vec<_> = sizes.iter().map(|&n| Mem::new(n, 0x4000_0000)).collect();
     let fw: Vec<&Mem> = fw.iter().map(|m| m.as_ref()).collect();
     let mem = Memory { ctrl: model.ctrl.as_ref(), rbs: model.rbs.as_ref(), fw: &fw };
-    let board = Board { hw_rev: 0x370, imr_enabled: false, rf_id: 0x10D000, pnvm: None };
+    let board =
+        Board { hw_rev: 0x370, imr_enabled: false, rf_id: 0x10D000, pnvm: None, discrete: false };
     let mut c = Polls { per_wait: 64, delays_us: 0 };
     let mut dev = Dev::new(&model, model.ctrl.as_ref(), model.rbs.as_ref());
     boot(&mut dev, &mut c, &mem, &layout, &ucode, &board).expect("alive");

@@ -64,7 +64,8 @@ pub(super) fn run<T>(
     let layout = classify(r.blob);
     let fw: Vec<&Mem> = r.fw.iter().map(|m| m.as_ref()).collect();
     let mem = Memory { ctrl: r.model.ctrl.as_ref(), rbs: r.model.rbs.as_ref(), fw: &fw };
-    let board = Board { hw_rev: GL_REV, imr_enabled: false, rf_id: FM_C, pnvm: None };
+    let board =
+        Board { hw_rev: GL_REV, imr_enabled: false, rf_id: FM_C, pnvm: None, discrete: false };
     let mut dev = Dev::new(&r.model, r.model.ctrl.as_ref(), r.model.rbs.as_ref()).with_csr(csr);
     let alive = boot(&mut dev, c, &mem, &layout, &ucode, &board);
     let after = alive.is_ok().then(|| then(&mut dev, c, &ucode));

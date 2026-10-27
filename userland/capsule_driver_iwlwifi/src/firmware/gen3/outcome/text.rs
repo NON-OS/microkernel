@@ -38,6 +38,10 @@ impl Failure {
             | Failure::Boot(BootError::NoNicAccess) => {
                 "the MAC would not wake for a register write"
             }
+            Failure::Start(StartError::Persistent)
+            | Failure::Boot(BootError::Start(StartError::Persistent)) => {
+                "the device's persistence bit is set and write-protected"
+            }
             Failure::Refused(r) => r.text(),
             Failure::Image => "the bundled firmware image did not parse",
             Failure::NoDma => "the broker refused a DMA region",

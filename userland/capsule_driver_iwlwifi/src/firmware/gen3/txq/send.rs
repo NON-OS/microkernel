@@ -21,7 +21,8 @@ use nonos_wifi_core::dot11::ccmp::view;
 use super::super::cmdq::FIRST_TB;
 use super::super::region::Region;
 use super::super::regs::HBUS_TARG_WRPTR;
-use super::super::tx_cmd::{header, TX_CMD, TX_CMD_GEN3_HDR};
+use super::super::tx_cmd::{TX_CMD, TX_CMD_GEN3_HDR};
+use super::head::tx_head;
 use super::layout::{CMD_HDR, TXQ_ENTRIES, TXQ_FRAMES, TX_BUF};
 use super::queue::TxQueue;
 use crate::regs::Mmio;
@@ -32,14 +33,22 @@ impl TxQueue {
     /// written to the device, when the queue has no firmware number or is
     /// full, the frame is malformed or too long, or a write falls outside
     /// the region.
-    pub fn send<M: Mmio, R: Region + ?Sized>(&mut self, m: &M, tx: &R, frame: &[u8], rate_n_flags: u32) -> bool {
+    pub fn send<M: Mmio, R: Region + ?Sized>(
+        &mut self,
+        m: &M,
+        tx: &R,
+        frame: &[u8],
+        rate_n_flags: u32,
+    ) -> bool {
         if !self.live || self.in_flight() >= TXQ_FRAMES {
             return false;
         }
         let Some(hdr_len) = view(frame).map(|v| v.hdr_len) else { return false };
-        let Some(txc) = header(frame.len(), hdr_len, rate_n_flags) else { return false };
+        let Some((txc, n)) = tx_head(self.csr, frame.len(), hdr_len, rate_n_flags) else {
+            return false;
+        };
         // The command and header past the first buffer, rounded to four.
-        let cmd_len = CMD_HDR + TX_CMD_GEN3_HDR + hdr_len;
+        let cmd_len = CMD_HDR + n + hdr_len;
         let tb1 = (cmd_len - FIRST_TB + 3) & !3;
         let body = &frame[hdr_len..];
         if FIRST_TB + tb1 + body.len() > TX_BUF {
@@ -50,15 +59,15 @@ impl TxQueue {
         let mut cmd = [0u8; CMD_HDR + TX_CMD_GEN3_HDR + 32 + 4];
         cmd[0] = TX_CMD;
         cmd[2..4].copy_from_slice(&sequence.to_le_bytes());
-        cmd[CMD_HDR..CMD_HDR + TX_CMD_GEN3_HDR].copy_from_slice(&txc);
-        let Some(h) = cmd.get_mut(CMD_HDR + TX_CMD_GEN3_HDR..cmd_len) else { return false };
+        cmd[CMD_HDR..CMD_HDR + n].copy_from_slice(&txc[..n]);
+        let Some(h) = cmd.get_mut(CMD_HDR + n..cmd_len) else { return false };
         h.copy_from_slice(&frame[..hdr_len]);
 
         let Some(head) = cmd.get(..FIRST_TB + tb1) else { return false };
         if !self.write_slot(tx, slot, head, body, tb1, frame.len()) {
             return false;
         }
-        self.write = self.write.wrapping_add(1);
+        self.write = self.write.wrapping_add(1) & self.csr.wrap();
         m.write32(HBUS_TARG_WRPTR, u32::from(self.write) | u32::from(self.id) << 16);
         true
     }

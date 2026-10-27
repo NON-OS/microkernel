@@ -31,7 +31,8 @@ fn a_failed_firmware_boots_again_in_the_same_regions() {
         .collect();
     let fw: Vec<&Mem> = fw.iter().map(|m| m.as_ref()).collect();
     let mem = Memory { ctrl: model.ctrl.as_ref(), rbs: model.rbs.as_ref(), fw: &fw };
-    let board = Board { hw_rev: 0x370, imr_enabled: false, rf_id: 0x10D000, pnvm: None };
+    let board =
+        Board { hw_rev: 0x370, imr_enabled: false, rf_id: 0x10D000, pnvm: None, discrete: false };
     let mut c = Polls { per_wait: 64, delays_us: 0 };
     for boot_no in 0..3 {
         let mut dev = Dev::new(&model, model.ctrl.as_ref(), model.rbs.as_ref());

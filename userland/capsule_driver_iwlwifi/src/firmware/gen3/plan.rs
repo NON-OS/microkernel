@@ -68,8 +68,7 @@ pub fn control_len(iml_len: usize) -> Option<usize> {
     control_len_pnvm(iml_len, 0)
 }
 
-/// Where the platform NVM goes in the control region: the first page after
-/// the image loader.
+/// Where the platform NVM goes: the first page after the image loader.
 pub fn pnvm_off(iml_len: usize) -> Option<usize> {
     let end = IML.checked_add(iml_len)?;
     Some(end.checked_add(PAGE - 1)? & !(PAGE - 1))
@@ -82,7 +81,8 @@ pub fn control_len_pnvm(iml_len: usize, pnvm: usize) -> Option<usize> {
     (len <= GRANT_MAX).then_some(len)
 }
 
-/// The receive buffer region's size.
+/// The receive buffer region's size from AX210 on (`CsrLayout::rb_region`).
+#[cfg(test)]
 pub const RB_REGION: usize = RX_BUFS * RB_SIZE;
 
 /// One firmware section's block: which firmware region, and where in it.

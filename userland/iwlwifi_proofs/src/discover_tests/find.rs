@@ -29,9 +29,9 @@ fn an_adapter_with_no_routed_intx_line_is_still_found() {
 
 #[test]
 fn a_part_this_driver_cannot_run_is_not_claimed() {
-    // W4: 7265, 8265, 9260, 9560, AX200, AX201, the discrete AX210 and
-    // Meteor Lake. Each is still named at discovery (`announce`).
-    for device in [0x095Au16, 0x24FD, 0x2526, 0x9DF0, 0x2723, 0xA0F0, 0x2725, 0x7E40, 0x2729] {
+    // W4: 7265, 8265, 9260 and 9560. Each is still named at discovery
+    // (`announce`), and given up on (`verdict`).
+    for device in [0x095Au16, 0x24FD, 0x2526, 0x9DF0] {
         assert!(!is_supported_adapter(&Candidate { device, ..ax210() }), "{device:#06x}");
     }
 }
@@ -55,7 +55,7 @@ fn a_non_intel_or_non_network_function_is_not_found() {
     assert!(!is_supported_adapter(&Candidate { class: 0x04, subclass: 0x03, ..ax210() }), "audio");
     assert!(!is_supported_adapter(&Candidate { subclass: 0x00, ..ax210() }), "ethernet");
     assert!(!is_supported_adapter(&Candidate { device: 0x15F3, ..ax210() }), "an Intel NIC id");
-    assert!(!is_supported_adapter(&Candidate { device: 0x2725, ..ax210() }), "AX210, not run");
+    assert!(!is_supported_adapter(&Candidate { device: 0x2526, ..ax210() }), "9260, not run");
     assert!(!is_supported_adapter(&Candidate { is_pci: false, ..ax210() }), "not on PCI");
     assert!(!is_supported_adapter(&Candidate { bar0_mmio: false, ..ax210() }), "no register BAR");
 }

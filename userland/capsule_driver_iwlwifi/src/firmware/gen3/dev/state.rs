@@ -24,6 +24,7 @@ use super::super::regs::{
     CSR_INT, CSR_MSIX_HW_INT_CAUSES_AD, INT_BIT_HW_ERR, INT_BIT_SW_ERR, MSIX_HW_HW_ERR,
 };
 use super::super::rxq::RxQueue;
+use super::speaks::Speaks;
 use crate::regs::Mmio;
 
 pub struct Dev<'a, M: Mmio, R: Region + ?Sized> {
@@ -39,6 +40,8 @@ pub struct Dev<'a, M: Mmio, R: Region + ?Sized> {
     pub pnvm: Option<u32>,
     /// The family's CSR layout (`with_csr`; V1 unless told).
     pub csr: CsrLayout,
+    /// What the image speaks beyond the layout (`up` reads it).
+    pub speaks: Speaks,
 }
 
 impl<'a, M: Mmio, R: Region + ?Sized> Dev<'a, M, R> {
@@ -53,13 +56,13 @@ impl<'a, M: Mmio, R: Region + ?Sized> Dev<'a, M, R> {
             buf: [0; RB_SIZE],
             pnvm: None,
             csr: CsrLayout::V1,
+            speaks: Speaks::DEFAULT,
         }
     }
 
     /// The device in the family's CSR layout, its receive queue too.
     pub fn with_csr(mut self, csr: CsrLayout) -> Self {
-        self.csr = csr;
-        self.rxq.csr = csr;
+        (self.csr, self.rxq.csr, self.cmdq.csr) = (csr, csr, csr);
         self
     }
 

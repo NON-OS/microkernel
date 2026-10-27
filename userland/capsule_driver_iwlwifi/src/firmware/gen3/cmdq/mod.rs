@@ -22,8 +22,9 @@
 //! device by a 256-byte TFH descriptor (`iwl_tfh_tfd`: a buffer count and up
 //! to 25 `[len u16][addr u64]` buffers): the first buffer is the command's
 //! first 20 bytes copied into the slot's own small buffer, the second the
-//! rest. The write pointer runs over 16 bits (`max_tfd_queue_size` 65536),
-//! the descriptor slot is it modulo the 128-entry ring, and the doorbell is
+//! rest. The write pointer runs over 16 bits (`max_tfd_queue_size` 65536;
+//! 8 bits on the 22000 family), the descriptor slot is it modulo the
+//! 128-entry ring (32 on the 22000 family, `csr::gen2`), and the doorbell is
 //! `HBUS_TARG_WRPTR = write_ptr | queue << 16`. The sequence (`queue << 8 |
 //! index`) is what the firmware's reply carries back. Queue 0 is the command
 //! queue (`IWL_MVM_DQA_CMD_QUEUE`).

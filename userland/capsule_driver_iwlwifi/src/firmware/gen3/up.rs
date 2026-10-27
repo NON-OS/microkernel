@@ -20,14 +20,15 @@
 //! `iwl_mvm_up` a scan rests on (TX antennas, BT coexistence, SoC latency,
 //! device power, the regulatory domain, scan config), and the interface add
 //! (`iwl_mvm_mld_mac_add_interface`: MAC_CONFIG and LINK_CONFIG, this
-//! firmware being MLD-API), at the station address the caller drew. Optional platform tables Linux reads from the BIOS
-//! (SAR, PPAG, TAS, LARI) are absent here, as on a machine without them. A
+//! firmware being MLD-API), at the station address the caller drew.
+//! Optional platform tables Linux reads from the BIOS (SAR, PPAG, TAS, LARI)
+//! are absent here, as on a machine without them. A
 //! command the firmware rejects or does not answer stops the sequence and
 //! names itself.
 
 use super::bringup::is_legacy;
 use super::cmds::*;
-use super::dev::{Dev, Flow, WaitError, COMMAND_MS};
+use super::dev::{Dev, Flow, Speaks, WaitError, COMMAND_MS};
 use super::nvm::{parse as parse_nvm, NvmInfo};
 use super::packet::Packet;
 use super::region::{Clock, Region};
@@ -63,21 +64,30 @@ pub struct UpInfo {
     pub mcc: Option<u16>,
 }
 
-// Run one command; INIT_COMPLETE arriving meanwhile is remembered.
-fn run<M: Mmio, R: Region + ?Sized, C: Clock>(
-    dev: &mut Dev<'_, M, R>,
-    c: &mut C,
-    id: (u8, u8),
-    payload: &[u8],
-    init_done: &mut bool,
-    reply: &mut dyn FnMut(&[u8]),
-) -> Result<(), UpError> {
-    let mut other = |p: &Packet<'_>| {
-        if is_legacy(p, INIT_COMPLETE_NOTIF) && !p.is_reply() {
-            *init_done = true;
-        }
-    };
-    dev.command(c, id, payload, reply, &mut other).map_err(|e| UpError::Command(id.0, id.1, e))
+type Reply<'r> = &'r mut dyn FnMut(&[u8]);
+
+// One command after another; INIT_COMPLETE arriving meanwhile is remembered.
+struct Seq<'d, 'a, M: Mmio, R: Region + ?Sized, C: Clock> {
+    dev: &'d mut Dev<'a, M, R>,
+    c: &'d mut C,
+    done: bool,
+}
+
+impl<M: Mmio, R: Region + ?Sized, C: Clock> Seq<'_, '_, M, R, C> {
+    fn with(&mut self, id: (u8, u8), payload: &[u8], reply: Reply<'_>) -> Result<(), UpError> {
+        let done = &mut self.done;
+        let mut other = |p: &Packet<'_>| {
+            if is_legacy(p, INIT_COMPLETE_NOTIF) && !p.is_reply() {
+                *done = true;
+            }
+        };
+        let e = |e| UpError::Command(id.0, id.1, e);
+        self.dev.command(self.c, id, payload, reply, &mut other).map_err(e)
+    }
+
+    fn send(&mut self, id: (u8, u8), payload: &[u8]) -> Result<(), UpError> {
+        self.with(id, payload, &mut |_| {})
+    }
 }
 
 /// Bring the firmware up to the point a scan can run, with the interface at
@@ -89,60 +99,49 @@ pub fn up<M: Mmio, R: Region + ?Sized, C: Clock>(
     transport: &Transport,
     addr: [u8; 6],
 ) -> Result<UpInfo, UpError> {
-    if !ucode.capa(CAPA_MLD_API_SUPPORT) {
-        return Err(UpError::Unsupported("firmware without the MLD API"));
-    }
-    if ucode.cmd_version(LONG_GROUP, SCAN_REQ_UMAC) != Some(17) {
-        return Err(UpError::Unsupported("scan request version other than 17"));
-    }
-    let mut init_done = false;
-    let mut ignore = |_: &[u8]| {};
-    run(dev, c, (SYSTEM_GROUP, INIT_EXTENDED_CFG_CMD), &init_extended_cfg(), &mut init_done, &mut ignore)?;
-    run(dev, c, (REGULATORY_AND_NVM_GROUP, NVM_ACCESS_COMPLETE), &reserved_word(), &mut init_done, &mut ignore)?;
-    if !init_done {
-        dev.wait(c, COMMAND_MS, &mut |p| {
-            if is_legacy(p, INIT_COMPLETE_NOTIF) && !p.is_reply() {
-                Flow::Done
-            } else {
-                Flow::Continue
-            }
-        })
-        .map_err(UpError::NoInitComplete)?;
+    dev.speaks = Speaks::of(ucode).map_err(UpError::Unsupported)?;
+    let mut s = Seq { dev, c, done: false };
+    s.send((SYSTEM_GROUP, INIT_EXTENDED_CFG_CMD), &init_extended_cfg())?;
+    s.send((REGULATORY_AND_NVM_GROUP, NVM_ACCESS_COMPLETE), &reserved_word())?;
+    if !s.done {
+        let init = |p: &Packet<'_>| match is_legacy(p, INIT_COMPLETE_NOTIF) && !p.is_reply() {
+            true => Flow::Done,
+            false => Flow::Continue,
+        };
+        s.dev.wait(s.c, COMMAND_MS, &mut { init }).map_err(UpError::NoInitComplete)?;
     }
 
     let v4 = ucode.api(API_REGULATORY_NVM_INFO);
     let mut nvm = None;
-    run(dev, c, (REGULATORY_AND_NVM_GROUP, NVM_GET_INFO), &reserved_word(), &mut init_done, &mut |r| {
+    s.with((REGULATORY_AND_NVM_GROUP, NVM_GET_INFO), &reserved_word(), &mut |r| {
         nvm = parse_nvm(r, v4)
     })?;
     let nvm = nvm.ok_or(UpError::BadNvm)?;
     let tx_ant = ucode.valid_tx_ant() & nvm.valid_tx_ant;
     let rx_ant = ucode.valid_rx_ant() & nvm.valid_rx_ant;
 
-    run(dev, c, (LONG_GROUP, TX_ANT_CONFIGURATION_CMD), &tx_ant_cfg(tx_ant), &mut init_done, &mut ignore)?;
-    let bt = bt_config(ucode.capa(CAPA_BT_MPLUT_SUPPORT));
-    run(dev, c, (LONG_GROUP, BT_CONFIG), &bt, &mut init_done, &mut ignore)?;
+    s.send((LONG_GROUP, TX_ANT_CONFIGURATION_CMD), &tx_ant_cfg(tx_ant))?;
+    s.send((LONG_GROUP, BT_CONFIG), &bt_config(ucode.capa(CAPA_BT_MPLUT_SUPPORT)))?;
     if ucode.capa(CAPA_SOC_LATENCY_SUPPORT) {
         let t = transport;
         let soc = soc_configuration(t.integrated, t.ltr_delay, t.low_latency_xtal, t.xtal_latency);
-        run(dev, c, (SYSTEM_GROUP, SOC_CONFIGURATION_CMD), &soc, &mut init_done, &mut ignore)?;
+        s.send((SYSTEM_GROUP, SOC_CONFIGURATION_CMD), &soc)?;
     }
-    run(dev, c, (LONG_GROUP, POWER_TABLE_CMD), &device_power(), &mut init_done, &mut ignore)?;
+    s.send((LONG_GROUP, POWER_TABLE_CMD), &device_power())?;
 
     let mut mcc = None;
     if nvm.lar_enabled && ucode.capa(CAPA_LAR_SUPPORT) {
         let ver = ucode.notif_version(LONG_GROUP, MCC_UPDATE_CMD).unwrap_or(0);
         let ax = ucode.capa(CAPA_MCC_UPDATE_11AX_SUPPORT);
         let mut parsed = None;
-        run(dev, c, (LONG_GROUP, MCC_UPDATE_CMD), &mcc_update_world(), &mut init_done, &mut |r| {
-            parsed = mcc_update_reply(r, ver, ax)
-        })?;
+        let mut reply = |r: &[u8]| parsed = mcc_update_reply(r, ver, ax);
+        s.with((LONG_GROUP, MCC_UPDATE_CMD), &mcc_update_world(), &mut reply)?;
         mcc = Some(parsed.ok_or(UpError::BadMcc)?.1);
     }
     if ucode.capa(CAPA_UMAC_SCAN) {
-        run(dev, c, (LONG_GROUP, SCAN_CFG_CMD), &scan_config(tx_ant, rx_ant), &mut init_done, &mut ignore)?;
+        s.send((LONG_GROUP, SCAN_CFG_CMD), &scan_config(tx_ant, rx_ant))?;
     }
-    run(dev, c, (MAC_CONF_GROUP, MAC_CONFIG_CMD), &mac_config_add(addr), &mut init_done, &mut ignore)?;
-    run(dev, c, (MAC_CONF_GROUP, LINK_CONFIG_CMD), &link_config_add(addr), &mut init_done, &mut ignore)?;
+    s.send((MAC_CONF_GROUP, MAC_CONFIG_CMD), &mac_config_add(addr))?;
+    s.send((MAC_CONF_GROUP, LINK_CONFIG_CMD), &link_config_add(addr))?;
     Ok(UpInfo { nvm, mcc })
 }
