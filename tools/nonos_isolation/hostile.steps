@@ -1,0 +1,67 @@
+# Hostile Linux guests, each of which must be refused (README.md). Setup
+# to the desktop on a fresh development image, then the Terminal.
+until:Capsules spawned:1800
+until:[SPLASH] stepped aside:900
+wait:6
+key:ret
+wait:6
+type:ek
+wait:3
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+wait:6
+key:down
+wait:3
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+key:ret
+wait:120
+key:esc
+wait:6
+shot:desktop
+key:ctrl+alt+t
+wait:40
+shot:terminal
+# calls
+type:linux perl -e 'for$t([ptrace,101,16,1,0,0],[vm_readv,310,1,0,0,0,0,0],[init_mod,175,0,0,0],[finit_mod,313,0,0,0],[kexec,246,0,0,0,0],[reboot,169,4276215469,672274793,0,0],[mount,165,0,0,0,0,0],[bpf,321,0,0,0],[perf,298,0,0,-1,-1,0],[nonos,1280,0,0,0],[mmap_x,9,0,4096,7,34,-1,0],[huge,9,0,2**40,3,34,-1,0]){($n,@a)=@$t;$!=0;$r=syscall(@a);printf"P %-9s %d %s\n",$n,$r,$!}$p=syscall(9,0,4096,3,34,-1,0);$!=0;printf"P mprot_x  %d %s\n",syscall(10,$p,4096,5),$!'
+key:ret
+wait:240
+shot:calls
+# procs
+type:linux perl -e 'opendir D,"/proc";@p=grep/^\d+$/,readdir D;print"P proc @p\n";$!=0;print"P kill1 ",kill(9,1)," $!\n";print"P killall ",kill(0,-1),"\n";print"P home ",(-e"/linux-home"?1:0),(-e"/root/../../linux-home"?1:0),(-e"/proc/kcore"?1:0),(-e"/dev/mem"?1:0),"\n";$!=0;print"P env1 ",(open F,"/proc/1/environ")?1:0," $!\n"'
+key:ret
+wait:180
+shot:procs
+# net
+type:linux perl -e 'use Socket;$!=0;socket(S,2,1,0);print"P tcp ",(connect(S,pack_sockaddr_in(443,inet_aton("1.1.1.1")))?1:0)," $!\n";$!=0;print"P raw ",(socket(R,2,3,1)?1:0)," $!\n";$!=0;print"P packet ",(socket(K,17,3,0)?1:0)," $!\n";$!=0;socket(U,2,2,0);print"P udp ",(send(U,"x",0,pack_sockaddr_in(53,inet_aton("8.8.8.8")))//-1)," $!\n"'
+key:ret
+wait:180
+shot:net
+# forks
+type:linux perl -e '$n=0;while($n<4096){$p=fork;last unless defined$p;if(!$p){sleep 20;exit}$n++}print"P forks $n $!\n";sleep 25;print"P alive\n"'
+key:ret
+wait:300
+shot:forks
+# The machine still answers after all of it.
+type:linux echo still here
+key:ret
+wait:90
+shot:after
