@@ -25,7 +25,12 @@ impl Objects {
     /// The request about to be served was sent to `id`, so what it makes
     /// takes that object's version.
     pub fn serving(&mut self, id: u32) {
-        self.on = self.slots.iter().find(|s| s.0 == id).map_or(1, |s| s.2);
+        self.on = self.version(id);
+    }
+
+    /// The version `id` was made at, or 1 for an id never made.
+    pub fn version(&self, id: u32) -> u32 {
+        self.slots.iter().find(|s| s.0 == id).map_or(1, |s| s.2)
     }
 
     /// Whether `id` was made at `version` or later, so an event that
