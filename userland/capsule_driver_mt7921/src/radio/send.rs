@@ -19,7 +19,7 @@ use crate::vif::{AP_WCID, OWN_WCID};
 
 impl Mt7921 {
     pub(super) fn send_frame(&mut self, mpdu: &[u8]) -> bool {
-        if self.dead || mpdu.len() < 24 || mpdu.len() > TOKEN_BUF {
+        if self.dead || mpdu.len() < 24 || mpdu.len() > TOKEN_BUF || !self.card.awake() {
             return false;
         }
         let now = now_ms();
