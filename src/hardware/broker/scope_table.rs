@@ -37,7 +37,7 @@ pub(super) const SCOPE: &[(&str, &[Match])] = &[
     ("driver.rtl8139_0", &[Ids(REALTEK, &[0x8139, 0x8139])]),
     ("driver.virtio_net0", &[Ids(VIRTIO, &[0x1000, 0x1000, 0x1041, 0x1041])]),
     ("driver.iwlwifi0", &[Ids(INTEL, IWLWIFI)]),
-    ("driver.rtl8821ce0", &[Ids(REALTEK, &[0xC821, 0xC821])]),
+    ("driver.rtl8821ce0", &[Ids(REALTEK, &[0xB821, 0xB821, 0xC821, 0xC821])]),
     // Storage, SD and USB hosts bind by class, as their capsules do (ufs0's takes listed hosts).
     ("driver.nvme0", &[Class { vendor: ANY, class: 0x01, sub: 0x08, progif: Some(0x02) }]),
     ("driver.ahci0", AHCI),
