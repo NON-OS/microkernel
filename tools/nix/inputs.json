@@ -2396,6 +2396,10 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "nonos-bootloader/firmware/intel/iwlwifi-bz-b0-fm-c0-92.ucode",
+   "nonos-bootloader/firmware/intel/iwlwifi-bz-b0-fm-c0.pnvm",
+   "nonos-bootloader/firmware/intel/iwlwifi-gl-c0-fm-c0-92.ucode",
+   "nonos-bootloader/firmware/intel/iwlwifi-gl-c0-fm-c0.pnvm",
    "nonos-bootloader/firmware/intel/iwlwifi-so-a0-gf-a0-86.ucode",
    "nonos-bootloader/firmware/intel/iwlwifi-so-a0-gf-a0.pnvm",
    "nonos-bootloader/firmware/intel/iwlwifi-so-a0-hr-b0-84.ucode",
@@ -6193,9 +6197,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "nonos-bootloader/firmware/intel/iwlwifi-so-a0-gf-a0-86.ucode",
-   "nonos-bootloader/firmware/intel/iwlwifi-so-a0-gf-a0.pnvm",
-   "nonos-bootloader/firmware/intel/iwlwifi-so-a0-hr-b0-84.ucode",
+   "nonos-bootloader/firmware/intel",
    "userland/capsule_driver_iwlwifi/src/constants",
    "userland/capsule_driver_iwlwifi/src/driver",
    "userland/capsule_driver_iwlwifi/src/firmware/blob.rs",
