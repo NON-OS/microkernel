@@ -33,7 +33,7 @@ Host-tested on 2026-10-24: the closure has every production capsule below and le
 - first-boot setup and the installer;
 - every production hardware driver:
   - NICs: virtio, e1000, e1000e, igb, rtl8139, rtl8169, pcnet, vmxnet3, tulip, iwlwifi and rtl8821ce;
-    and the ASIX AX88179 USB adapter, host-proved, not booted (QEMU has no AX88179);
+    and the ASIX AX88179 and Realtek RTL8153 USB adapters, host-proved, not booted (QEMU has neither), both outside the Standard profile;
   - storage: virtio-blk, virtio-scsi, NVMe, AHCI, PIIX IDE, pvscsi, MPT, SDHCI, UFS and USB mass
     storage, and BusLogic, host-proved, not booted (QEMU has no BusLogic device);
   - USB host controllers: xHCI, EHCI, OHCI and UHCI, and USB hubs;

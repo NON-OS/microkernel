@@ -14,6 +14,7 @@ const MANIFESTS: [(&str, &str); 4] = [
     ("cdc_ncm", include_str!("../../capsule_driver_cdc_ncm/Capsule.mk")),
     ("rndis", include_str!("../../capsule_driver_rndis/Capsule.mk")),
     ("ax88179", include_str!("../../capsule_driver_ax88179/Capsule.mk")),
+    ("rtl8153", include_str!("../../capsule_driver_rtl8153/Capsule.mk")),
 ];
 
 /// The value of the one `name := 0x...` line in `mk`.
