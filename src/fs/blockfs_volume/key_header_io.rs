@@ -28,10 +28,7 @@ const KEY_INDEX: u64 = KEY_LBA - PLAN_LBA;
 
 /// How the volume is keyed, `None` for a disk without a key header.
 pub(super) fn read_key_header() -> Result<Option<Keyed>, VolumeError> {
-    let _io = crate::fs::cryptoblock::volume_scope().map_err(VolumeError::Device)?;
-    let mut sector = [0u8; 512];
-    block_device::read_plan_sector(KEY_INDEX, &mut sector).map_err(VolumeError::Device)?;
-    parse_key_header(&sector).map_err(|way| {
+    parse_key_header(&read_key_sector()?).map_err(|way| {
         crate::log::warn!("[DATA] key header names way {} this kernel does not know", way);
         VolumeError::UnknownKeying
     })
@@ -42,14 +39,26 @@ pub(super) fn read_key_header() -> Result<Option<Keyed>, VolumeError> {
 /// the write rewrites both: the plan must read back as it was, or nothing is
 /// formatted.
 pub(super) fn write_key_header(keyed: &Keyed) -> Result<(), VolumeError> {
+    write_key_sector(&encode_key_header(keyed))
+}
+
+/// The key header's sector as the disk holds it, a handover's with it.
+pub(super) fn read_key_sector() -> Result<[u8; 512], VolumeError> {
+    let _io = crate::fs::cryptoblock::volume_scope().map_err(VolumeError::Device)?;
+    let mut sector = [0u8; 512];
+    block_device::read_plan_sector(KEY_INDEX, &mut sector).map_err(VolumeError::Device)?;
+    Ok(sector)
+}
+
+/// Write `sector` as the key header's, as `write_key_header` does.
+pub(super) fn write_key_sector(sector: &[u8; 512]) -> Result<(), VolumeError> {
     let _io = crate::fs::cryptoblock::volume_scope().map_err(VolumeError::Device)?;
     // A key header is a disk write: only on a boot that keeps (volume_rule.rs).
     if !may_write(false, crate::security::zerostate::keeping()) {
         return Err(VolumeError::Device(BlockDeviceError::AccessDenied));
     }
     let before = plan_sector()?;
-    block_device::write_plan_sector(KEY_INDEX, &encode_key_header(keyed))
-        .map_err(VolumeError::Device)?;
+    block_device::write_plan_sector(KEY_INDEX, sector).map_err(VolumeError::Device)?;
     block_device::flush().map_err(VolumeError::Device)?;
     if plan_sector()? != before {
         crate::log::warn!("[DATA] the disk plan changed under the key header's write");
