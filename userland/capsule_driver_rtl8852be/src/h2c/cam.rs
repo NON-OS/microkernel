@@ -3,10 +3,11 @@
 //! The address and BSSID CAM entries of the one station interface,
 //! `rtw89_fw_h2c_cam` with `rtw89_cam_fill_addr_cam_info` and
 //! `rtw89_cam_fill_bssid_cam_info` (Linux v6.12 rtw89 `fw.c`, `cam.c`):
-//! entry 0 of each, valid, no address mask, normal security mode with no
-//! keys (the station encrypts and decrypts in software), the BSSID matched
-//! on all six bytes. Body word 0 is unused, as rtw89's macros leave it.
+//! entry 0 of each, valid, no address mask, normal security mode with the
+//! keys installed (`cam_keys`), the BSSID matched on all six bytes. Body
+//! word 0 is unused, as rtw89's macros leave it.
 
+use super::cam_keys::Keys;
 use super::media::{Net, MAC_ID, PORT};
 use super::packet::Cmd;
 use super::send::{h2c, SendFail};
@@ -32,8 +33,9 @@ fn bytes_le(a: &[u8]) -> u32 {
 }
 
 /// The command body: `sma` is the address the station transmits from,
-/// `bssid` its AP's (zero before one is chosen), `aid` its association ID.
-pub fn cam_body(sma: &[u8; 6], bssid: &[u8; 6], net: Net, aid: u16) -> [u8; CAM_LEN] {
+/// `bssid` its AP's (zero before one is chosen), `aid` its association ID,
+/// `keys` the security entries.
+pub fn cam_body(sma: &[u8; 6], bssid: &[u8; 6], net: Net, aid: u16, keys: Keys) -> [u8; CAM_LEN] {
     let mut w = [0u32; 15];
     w[1] = field(0xff_0000, ADDR_CAM_ENT_SIZE); // index 0, offset 0
     w[2] =
@@ -45,7 +47,8 @@ pub fn cam_body(sma: &[u8; 6], bssid: &[u8; 6], net: Net, aid: u16) -> [u8; CAM_
     if net == Net::Infra {
         w[9] = (aid & 0xfff) as u32;
     }
-    w[9] |= field(0x3_0000, SEC_ENT_MODE_NORMAL);
+    let (k9, k10, k11) = keys.words();
+    (w[9], w[10], w[11]) = (w[9] | field(0x3_0000, SEC_ENT_MODE_NORMAL) | k9, k10, k11);
     w[12] = field(0xff_0000, BSSID_CAM_ENT_SIZE); // BSSID entry 0, offset 0
     w[13] = 1 | field(0xfc, BSSID_MATCH_ALL) | (bytes_le(&bssid[..2]) << 16);
     w[14] = bytes_le(&bssid[2..]);
