@@ -18,7 +18,8 @@ wifi	Intel AX201 / 9560 (CNVi)	2018-2022	1	8086:a0f0 8086:02f0 8086:06f0 8086:43
 wifi	Intel AX210/AX211/AX411/BE200	2021-2026	1	8086:2725 8086:51f0 8086:51f1 8086:54f0 8086:7af0 8086:7a70 8086:7f70 8086:272b	userland/capsule_driver_iwlwifi/src/firmware/gen3/select.rs	nonos-capsule-driver-iwlwifi	E	P1	SO-family CNVi ids claimed; AX210 (2725) has no firmware committed; BE200 (272b) unknown
 wifi	Intel 8265/8260/7265	2015-2019	2	8086:24fd 8086:24f3 8086:095a	userland/capsule_driver_iwlwifi/src/firmware/gen3/select.rs	nonos-capsule-driver-iwlwifi	E	P2	recognised, never claimed
 wifi	Realtek RTL8821CE	2017-2022	2	10ec:c821	userland/capsule_driver_rtl8821ce/src/constants/mod.rs	nonos-capsule-driver-rtl8821ce	E	-	works on the bench laptop (6 Oct report)
-wifi	Realtek RTL8822CE, RTL8852AE/BE	2019-2026	1	10ec:c822 10ec:8852 10ec:b852	-	-	E	P1	no driver
+wifi	Realtek RTL8822CE	2019-2026	1	10ec:c822 10ec:c82f	userland/capsule_driver_rtl8822ce/src/constants/pci.rs	nonos-capsule-driver-rtl8822ce	E	P1	host-proven only; never run on the card
+wifi	Realtek RTL8852AE/BE	2019-2026	1	10ec:8852 10ec:b852	-	-	E	P1	no driver
 wifi	MediaTek MT7921/MT7922	2021-2026	1	14c3:7961 14c3:0616	-	-	E	P1	no driver; most AMD laptops since 2021
 wifi	Qualcomm QCA6174, WCN685x	2016-2026	2	168c:003e 17cb:1103	-	-	E	P2	no driver
 storage	AHCI SATA, any vendor (Intel PCH, AMD FCH and Promontory, ASMedia)	2017-2026	1	class:01/06	-	nonos-capsule-driver-ahci	B	P1	class match; booted in QEMU only on main

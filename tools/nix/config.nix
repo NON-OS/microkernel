@@ -50,6 +50,7 @@ let
   networkFeatures = [
     "nonos-capsule-driver-virtio-net" "nonos-capsule-driver-e1000" "nonos-capsule-driver-rtl8139"
     "nonos-capsule-driver-rtl8169" "nonos-capsule-driver-iwlwifi" "nonos-capsule-driver-rtl8821ce"
+    "nonos-capsule-driver-rtl8822ce"
     "nonos-capsule-driver-pcnet" "nonos-capsule-driver-vmxnet3" "nonos-capsule-driver-tulip"
     "nonos-capsule-driver-igb" "nonos-capsule-driver-ixgbe" "nonos-capsule-driver-e1000e"
     "nonos-capsule-driver-igc" "nonos-capsule-driver-netvsc"

@@ -1,18 +1,6 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HardwareFamily {
@@ -65,8 +53,9 @@ pub enum HardwareFamily {
     /// DEC 21140/21143: Hyper-V's legacy network adapter, QEMU's tulip.
     NetworkTulip,
     NetworkRtl8821ce,
+    NetworkRtl8822ce,
     NetworkIwlwifi,
-    /// A Realtek wireless part other than the RTL8821CE.
+    /// A Realtek wireless part other than the RTL8821CE and RTL8822CE.
     NetworkRealtekWifi,
     DisplayGopFramebuffer,
     DisplayVirtioGpu,
