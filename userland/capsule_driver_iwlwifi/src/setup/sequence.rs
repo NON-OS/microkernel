@@ -13,6 +13,8 @@ use super::{claim, irq, mmio};
 use crate::discover::Found;
 use crate::driver::Driver;
 use crate::firmware::family_for_device;
+use crate::firmware::gen3::csr::CsrLayout;
+use crate::firmware::gen3::select::transport;
 use crate::regs::Regs;
 
 /// One bring-up attempt on the adapter discovery found. Each broker step
@@ -20,6 +22,7 @@ use crate::regs::Regs;
 /// wake gives every grant back, so the next attempt can claim it again.
 pub fn run(dev: Found) -> Result<Driver, &'static str> {
     family_for_device(dev.pci_device).ok_or("iwlwifi: unsupported device")?;
+    let csr = transport(dev.pci_device).map_or(CsrLayout::V1, |t| t.csr);
     let claim_epoch = claim::claim(dev.device_id)?;
     let mmio = mmio::map(dev, claim_epoch)?;
     let irq = irq::bind(dev, claim_epoch, &mmio)?;
@@ -32,10 +35,14 @@ pub fn run(dev: Found) -> Result<Driver, &'static str> {
     // SAFETY: the broker mapped `mmio.length` bytes of BAR0 at `user_va`
     // for this process, and they stay mapped while the claim is held.
     let regs = unsafe { Regs::new(mmio.user_va, mmio.length) };
-    init_or_release(regs, &mut grants)?;
+    init_or_release(regs, csr, &mut grants)?;
     let _ = mk_irq_ack(irq.grant_id);
     Ok(Driver {
-        device_id: dev.device_id, pci_device: dev.pci_device, claim_epoch,
-        mmio_len: mmio.length, grants, regs,
+        device_id: dev.device_id,
+        pci_device: dev.pci_device,
+        claim_epoch,
+        mmio_len: mmio.length,
+        grants,
+        regs,
     })
 }
