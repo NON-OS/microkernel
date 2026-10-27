@@ -3278,14 +3278,17 @@
  },
  "userland/capsule_linux_proofs": {
   "exclude": [
-   "userland/capsule_linux_proofs/fuzz"
+   "userland/capsule_linux_proofs/fuzz",
+   "userland/toolkit/image_tests"
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/capsule_linux/family.rs",
    "src/userspace/capsule_linux/terminal/tier.rs",
    "src/userspace/init/app_choice/bits.rs",
    "tools/nix/store.json",
+   "userland/assets/icons",
    "userland/capsule_linux/Cargo.toml",
    "userland/capsule_linux/build",
    "userland/capsule_linux/guests/busybox.elf",
@@ -3310,6 +3313,7 @@
    "userland/capsule_net_sockets/src/server/handlers/connect/parse_ipv4.rs",
    "userland/capsule_net_sockets/src/server/handlers/io.rs",
    "userland/inflate",
+   "userland/libc",
    "userland/linux_userland/keymap-us.xkb",
    "userland/nonos_ed25519",
    "userland/nonos_hash",
@@ -3317,6 +3321,7 @@
    "userland/nonos_route_link/src/pick.rs",
    "userland/openpgp",
    "userland/policy_proto",
+   "userland/toolkit",
    "userland/xz",
    "userland/zstd"
   ],

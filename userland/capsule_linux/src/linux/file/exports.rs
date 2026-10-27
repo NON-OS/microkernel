@@ -31,7 +31,7 @@ pub use super::eventfd::ready::bits as event_bits;
 pub use super::fsync::{fsync, sync, syncfs};
 pub use super::link::{linkat, symlinkat};
 pub use super::memfd::{is_memfd, memfd_create};
-pub use super::memfd_map::{mapped_at, set_mapped, staged};
+pub use super::memfd_map::{mapped_at, mapped_now, memfd_id, set_mapped, staged};
 pub use super::meta::{
     access, chmod, faccessat, fchmod, fchmodat, fstat, fstatfs, look, newfstatat, readlinkat,
     statfs, statx,
@@ -47,7 +47,7 @@ pub use super::read::read;
 pub use super::rename::renameat2;
 pub use super::resolve::{key, visible};
 pub use super::seek::lseek;
-pub use super::shm_object::{into_memfd, is_shm_object};
+pub use super::shared_read::is_system_file;
 pub use super::slot::{install, MAX_FDS};
 pub use super::store::{
     hash as store_hash, read as store_read, stat as store_stat, write as store_write, HashFault,

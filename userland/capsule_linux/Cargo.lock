@@ -335,6 +335,7 @@ dependencies = [
  "nonos_openpgp",
  "nonos_route_link",
  "nonos_tls",
+ "nonos_toolkit",
  "nonos_userland_libc",
  "nonos_xz",
  "nonos_zstd",

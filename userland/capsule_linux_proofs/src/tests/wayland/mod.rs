@@ -16,7 +16,14 @@
 
 //! Proofs of the Wayland server: the wire, its objects, windows and input.
 
+mod clip_ids_tests;
+mod clip_mime_tests;
+mod clip_offer_tests;
+mod clip_primary_tests;
+mod clip_replace_tests;
+mod clip_wire;
 mod conn_tests;
+mod frame_decor_tests;
 mod frame_tests;
 mod inbox_take_tests;
 mod popup_bounds_tests;

@@ -66,3 +66,7 @@ fn the_hold_is_the_packs_alone() {
     s.open("/home/nonos/a.txt", RUN, false, false, false, false).expect("opens");
     assert!(!s.held_by_another("/home/nonos/a.txt", INSTALL), "any other file is as it was");
 }
+
+/// A run that holds a large app's packs, beside the hold rule above.
+#[path = "vfs_run_hold_tests.rs"]
+mod run_hold;
