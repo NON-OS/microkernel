@@ -33,6 +33,9 @@ pub enum NvmeError {
     /// CSTS.SHST never read complete within the shutdown budget (RTD3E,
     /// capped): the power-off goes on without it.
     ShutdownTimeout,
+    /// The broker granted fewer bytes than asked, or memory not page
+    /// aligned: queues, PRPs and the host memory buffer all assume both.
+    DmaGrantShort,
 }
 
 pub type NvmeResult<T> = Result<T, NvmeError>;

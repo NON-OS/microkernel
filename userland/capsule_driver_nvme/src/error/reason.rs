@@ -35,5 +35,6 @@ pub const fn reason(e: NvmeError) -> &'static str {
         NvmeError::AdminCommandFailed => "nvme: admin command failed",
         NvmeError::InvalidTransfer => "nvme: invalid transfer",
         NvmeError::ShutdownTimeout => "nvme: shutdown did not complete in its budget",
+        NvmeError::DmaGrantShort => "nvme: DMA grant short or not page aligned",
     }
 }
