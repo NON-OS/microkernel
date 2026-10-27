@@ -63,13 +63,4 @@ impl Chan {
         let i = BASE_5G.iter().rposition(|&b| self.ch >= b).unwrap_or(0);
         (((i + 2) as u8) << 4) | (((self.ch - BASE_5G[i]) >> 1) & 0xf)
     }
-
-    /// The centre frequency in MHz.
-    pub const fn freq(self) -> u32 {
-        match self.five {
-            false if self.ch == 14 => 2484,
-            false => 2407 + 5 * self.ch as u32,
-            true => 5000 + 5 * self.ch as u32,
-        }
-    }
 }
