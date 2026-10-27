@@ -1,8 +1,12 @@
 ## Failure model
 
-Every setup phase rolls back prior broker grants on failure. With no
-supported adapter in the device list the capsule logs one line and exits
-`EXIT_ABSENT` (2) before claiming anything. An adapter that is present but
+Every setup phase rolls back prior broker grants on failure. With no Intel
+Wi-Fi function in the device list the capsule logs one line and exits
+`EXIT_ABSENT` (2) before claiming anything. With one this driver does not
+run (a generation with no boot path here, or an id it does not know) it
+names it, `[iwlwifi] pci 8086:<id> <what>: present, not run by this driver;
+given up`, and exits `EXIT_GAVE_UP` (6), nothing claimed (`verdict`). An
+adapter that is present but
 fails setup, including an APM clock that never comes up, gives back every
 grant and is retried on the shared bounded schedule (`nonos_libc::bring_up`:
 seven tries, sleeping between them); running out exits `EXIT_GAVE_UP` (6).

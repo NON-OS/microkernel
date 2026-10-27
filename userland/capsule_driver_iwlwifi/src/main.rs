@@ -30,8 +30,10 @@ mod pci_match;
 mod regs;
 mod server;
 mod setup;
+// What discovery leads to, and the line for a card that is not run.
+mod verdict;
 
-use nonos_libc::{heap_init, mk_exit, start_driver};
+use nonos_libc::{heap_init, mk_debug, mk_exit, start_driver, EXIT_GAVE_UP};
 
 const DRIVER: &[u8] = b"driver.iwlwifi";
 
@@ -39,16 +41,26 @@ const DRIVER: &[u8] = b"driver.iwlwifi";
 /// The capsule entry point. The kernel loader calls this once on a fresh stack
 /// with the capsule's heap region reserved; it must never be called from Rust.
 ///
-/// Without a supported adapter the driver says so and leaves (`EXIT_ABSENT`)
-/// before claiming anything. An adapter that is there is brought up on the
-/// shared bounded schedule, each failed attempt giving back every grant, and
-/// running out is `EXIT_GAVE_UP`.
+/// Without an Intel Wi-Fi function the driver says so and leaves
+/// (`EXIT_ABSENT`) before claiming anything. One that is there but not run
+/// here is named in one line and the driver leaves (`EXIT_GAVE_UP`), nothing
+/// claimed. An adapter it runs is brought up on the shared bounded schedule,
+/// each failed attempt giving back every grant, and running out is
+/// `EXIT_GAVE_UP`.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(1);
     }
-    let driver = match start_driver(DRIVER, discover::find_iwlwifi(), |dev| setup::run(*dev)) {
+    let found = match discover::find_iwlwifi() {
+        Ok(found) => found,
+        Err(device) => {
+            let (line, len) = verdict::not_run_line(device);
+            let _ = mk_debug(line.as_ptr(), len);
+            mk_exit(EXIT_GAVE_UP)
+        }
+    };
+    let driver = match start_driver(DRIVER, found, |dev| setup::run(*dev)) {
         Ok(driver) => driver,
         Err(code) => mk_exit(code),
     };

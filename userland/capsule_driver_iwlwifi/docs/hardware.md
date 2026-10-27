@@ -8,7 +8,10 @@ detail, counters) and the Settings Wi-Fi panel.
 
 - Absence and retry: on a machine without the device, no claim and exit
   `EXIT_ABSENT` (2), which the kernel names as `[EXIT] <service> status 2: no
-  device present, not started` (`src/process/exit/end_note.rs`). With the
+  device present, not started` (`src/process/exit/end_note.rs`). An Intel
+  Wi-Fi card this driver does not run is not absent: `[iwlwifi] pci
+  8086:<id> <what>: present, not run by this driver; given up`, no claim,
+  and status 6. With the
   device present but failing setup, at most seven claim and release rounds,
   then `EXIT_GAVE_UP` (6) and `[EXIT] <service> status 6: device present,
   bring-up failed and was given up`. The capsule holds no core while it waits.
