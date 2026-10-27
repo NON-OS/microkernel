@@ -36,5 +36,6 @@ pub const fn reason(e: NvmeError) -> &'static str {
         NvmeError::InvalidTransfer => "nvme: invalid transfer",
         NvmeError::ShutdownTimeout => "nvme: shutdown did not complete in its budget",
         NvmeError::DmaGrantShort => "nvme: DMA grant short or not page aligned",
+        NvmeError::QueueTooShallow => "nvme: CAP.MQES allows fewer than 8 I/O queue entries",
     }
 }

@@ -36,6 +36,10 @@ pub enum NvmeError {
     /// The broker granted fewer bytes than asked, or memory not page
     /// aligned: queues, PRPs and the host memory buffer all assume both.
     DmaGrantShort,
+    /// CAP.MQES allows fewer entries than the I/O queue pair has
+    /// (nvm::constants::IO_ENTRIES): the controller would be given a queue
+    /// larger than it supports.
+    QueueTooShallow,
 }
 
 pub type NvmeResult<T> = Result<T, NvmeError>;

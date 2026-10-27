@@ -19,40 +19,30 @@
 
 use crate::error::{reason, NvmeError};
 
-/// Every failure, listed through a match the compiler holds exhaustive: a new
-/// variant fails to build here until it is listed and given its words.
-fn every_failure() -> Vec<NvmeError> {
-    let all = [
-        NvmeError::ClaimFailed,
-        NvmeError::BrokerCallFailed,
-        NvmeError::UnsupportedController,
-        NvmeError::UnsupportedPageSize,
-        NvmeError::NoNvmCommandSet,
-        NvmeError::ControllerTimeout,
-        NvmeError::ControllerFatal,
-        NvmeError::ClockFailed,
-        NvmeError::AdminCommandFailed,
-        NvmeError::InvalidTransfer,
-        NvmeError::ShutdownTimeout,
-        NvmeError::DmaGrantShort,
-    ];
-    for e in all {
-        match e {
-            NvmeError::ClaimFailed
-            | NvmeError::BrokerCallFailed
-            | NvmeError::UnsupportedController
-            | NvmeError::UnsupportedPageSize
-            | NvmeError::NoNvmCommandSet
-            | NvmeError::ControllerTimeout
-            | NvmeError::ControllerFatal
-            | NvmeError::ClockFailed
-            | NvmeError::AdminCommandFailed
-            | NvmeError::InvalidTransfer
-            | NvmeError::ShutdownTimeout
-            | NvmeError::DmaGrantShort => {}
-        }
+/// The failure listed after `e`, through a match the compiler holds
+/// exhaustive: a new variant fails to build here until it is listed.
+fn after(e: NvmeError) -> Option<NvmeError> {
+    use NvmeError::*;
+    match e {
+        ClaimFailed => Some(BrokerCallFailed),
+        BrokerCallFailed => Some(UnsupportedController),
+        UnsupportedController => Some(UnsupportedPageSize),
+        UnsupportedPageSize => Some(NoNvmCommandSet),
+        NoNvmCommandSet => Some(ControllerTimeout),
+        ControllerTimeout => Some(ControllerFatal),
+        ControllerFatal => Some(ClockFailed),
+        ClockFailed => Some(AdminCommandFailed),
+        AdminCommandFailed => Some(InvalidTransfer),
+        InvalidTransfer => Some(ShutdownTimeout),
+        ShutdownTimeout => Some(DmaGrantShort),
+        DmaGrantShort => Some(QueueTooShallow),
+        QueueTooShallow => None,
     }
-    all.to_vec()
+}
+
+/// Every failure, each given its words.
+fn every_failure() -> Vec<NvmeError> {
+    core::iter::successors(Some(NvmeError::ClaimFailed), |&e| after(e)).collect()
 }
 
 #[test]
