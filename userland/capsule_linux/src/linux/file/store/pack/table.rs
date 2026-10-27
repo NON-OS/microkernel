@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The packs this family reads, each loaded once: its index read and held
-//! to the format, the trailer over it verified as this machine's, and its
-//! store handle kept open for the run. The open handle is the run's hold on
-//! the pack: the store refuses to replace or remove a pack another process
-//! holds open, so an update waits until the run is done.
+//! The packs this family reads, and no other family's, each loaded once: its
+//! index read and held to the format, the trailer over it verified as this
+//! machine's, and its store handle kept open for the run. The open handle is
+//! the run's hold on the pack: the store refuses to replace or remove a pack
+//! another process holds open, so an update waits until the run is done.
 
 use alloc::vec::Vec;
 use core::cell::RefCell;
@@ -28,7 +28,8 @@ use nonos_libc::mk_getpid;
 use nonos_linux_pack::Index;
 
 use super::load::load;
-use super::paths::{PACK, PACKS};
+use super::paths::{family_dir, is_packs_of};
+use crate::linux::file::family::chosen;
 
 pub struct Loaded {
     pub index: Index<'static>,
@@ -56,10 +57,11 @@ pub fn forget() {
     *TABLE.0.borrow_mut() = None;
 }
 
+/// The family was chosen when the process started, before any file is read.
 fn load_all() -> Vec<Loaded> {
-    let pid = mk_getpid();
-    let names = vfs::list_paths(pid, PACKS).unwrap_or_default();
-    let packs = names.iter().map(|n| n.as_bytes()).filter(|n| n.ends_with(PACK));
+    let (pid, family) = (mk_getpid(), chosen());
+    let names = vfs::list_paths(pid, &family_dir(family)).unwrap_or_default();
+    let packs = names.iter().map(|n| n.as_bytes()).filter(|n| is_packs_of(family, n));
     packs.filter_map(|path| load(pid, path).map_err(|why| say(path, why)).ok()).collect()
 }
 
