@@ -134,15 +134,15 @@ The directory fetch is not anonymous. It leaves before any mixnet exists, and th
 - `quorum` hashes the signed part of the consensus with SHA-256 inside the capsule (`userland/capsule_net_anon/src/directory/verify/consensus.rs:44-72`). `accepts` counts a signature only if it is a SHA-256 line, names a known authority, names the same signing key as the certificate the client has for that authority, and verifies (`userland/capsule_net_anon/src/directory/verify/counted.rs:27-46`).
 - RSA verification is `OP_RSA_VERIFY`, 21, sent to `crypto_pool` (`userland/capsule_net_anon/src/directory/verify/frame.rs:24-36`).
 - `REQUIRED_SIGNATURES` is a majority of the seven, four (`userland/capsule_net_anon/src/directory/authority/types.rs:27-29`).
-- `gather_one` keeps a microdescriptor only when its SHA-256 equals a digest the consensus listed for that batch (`userland/capsule_net_anon/src/manager/dir_micro.rs:38-72`), and `parse` drops one without an ntor key or an Ed25519 identity (`userland/capsule_net_anon/src/directory/microdesc/parse.rs:32-64`).
+- `gather_one` keeps a microdescriptor only when its SHA-256 equals a digest the consensus listed for that batch (`userland/capsule_net_anon/src/manager/dir_micro.rs:38-72`), and `parse` drops one without an ntor key or an Ed25519 identity (`userland/capsule_net_anon/src/directory/microdesc/parse.rs:33-70`).
 - `usable` stops circuit building and stream traffic once the consensus is past `valid_until` (`userland/capsule_net_anon/src/manager/refresh_rule.rs:52-57`).
 
 ### Path selection
 
-`draw_path` draws the exit relay, then the guard relay, then the middle relay (`userland/capsule_net_anon/src/path/build.rs:29-39`). Once a link is open, `through` keeps that guard and draws the exit and the middle around it (`userland/capsule_net_anon/src/path/through.rs:27-47`).
+`draw_path` draws the exit relay, then the guard relay, then the middle relay (`userland/capsule_net_anon/src/path/build.rs:29-39`). Once a link is open, `through` keeps that guard and draws the exit and the middle around it (`userland/capsule_net_anon/src/path/through.rs:27-48`).
 
-- `eligible` takes a guard only with the Guard, Stable and Fast flags, a middle with Fast, and an exit with Exit, Fast and an exit policy that lets out both port 80 and port 443 (`userland/capsule_net_anon/src/path/select/eligible.rs:22-37`). Authorities are never used. A stream to another port can be refused at the exit.
-- `excluded` keeps any two hops apart by RSA identity and by IPv4 /16 (`userland/capsule_net_anon/src/path/select/eligible.rs:48-62`). Declared relay families are not read.
+- `eligible` takes a guard only with the Guard, Stable and Fast flags, a middle with Fast, and an exit with Exit, Fast and an exit policy that lets out both port 80 and port 443 (`userland/capsule_net_anon/src/path/select/eligible.rs:22-47`). Authorities are never used. A circuit drawn for a stream to another port puts that port's rule in place of the web ports (see "Exits chosen by port" below).
+- `excluded` keeps any two hops apart by RSA identity and by IPv4 /16 (`userland/capsule_net_anon/src/path/select/eligible.rs:58-72`). Declared relay families are not read.
 - `weight_for` picks the consensus position weight, `Wgg`, `Wgd`, `Wee`, `Wed`, `Wmd`, `Wmg`, `Wme` or `Wmm`, by position and flags (`userland/capsule_net_anon/src/path/weights/apply.rs:29-42`), `scale` multiplies it by the relay's consensus bandwidth, and `pick` walks the cumulative weight from a 64-bit random roll (`userland/capsule_net_anon/src/path/draw.rs:19-44`).
 - `HOPS` is fixed at 3 (`userland/capsule_net_anon/src/protocol/limits.rs:59-61`).
 
@@ -188,11 +188,37 @@ All circuits share one link to one guard. The guard is replaced after `GUARD_ATT
 
 `Hop::new` splits the key material into a forward and a backward SHA-1 running digest, seeded with 20 bytes each, and a forward and a backward AES-128 counter-mode keystream, keyed with 16 bytes each (`userland/capsule_net_anon/src/circuit/hop.rs:43-69`). Each relay cell carries the first four bytes of the running digest, computed with the field zeroed, as `take_digest` and `put_digest` handle it (`userland/capsule_net_anon/src/cell/relay/integrity.rs:21-39`). Cells have a `PAYLOAD_BYTES` 509-byte payload and an 11-byte relay header (`userland/capsule_net_anon/src/cell/geometry.rs:19-28`).
 
-The windows are `CIRCUIT_START` 1000 with increments of 100, and `STREAM_START` 500 with increments of 50 (`userland/capsule_net_anon/src/circuit/window.rs:24-27`). `circuit_tick` pays each circuit-level SENDME as version 1, carrying the 20-byte digest of the cell at that boundary (`userland/capsule_net_anon/src/manager/out/sendme_tick.rs:40-63`). Stream-level SENDMEs from `stream_tick` carry no digest, as the protocol defines them (`userland/capsule_net_anon/src/manager/out/stream_sendme.rs:29-49`). A SENDME is withheld while a reader is behind by more than `STREAM_HIGH_WATER` or `CIRCUIT_HIGH_WATER` (`userland/capsule_net_anon/src/protocol/limits.rs:45-49`). In the other direction, `granted` credits a circuit-level SENDME from a relay without checking its digest, and puts no ceiling on the window it grows (`userland/capsule_net_anon/src/manager/inbound/status.rs:65-69`).
+The windows are `CIRCUIT_START` 1000 with increments of 100, and `STREAM_START` 500 with increments of 50 (`userland/capsule_net_anon/src/circuit/window.rs:24-27`). `circuit_tick` pays each circuit-level SENDME as version 1, carrying the 20-byte digest of the cell at that boundary (`userland/capsule_net_anon/src/manager/out/sendme_tick.rs:40-63`). Stream-level SENDMEs from `stream_tick` carry no digest, as the protocol defines them (`userland/capsule_net_anon/src/manager/out/stream_sendme.rs:29-49`). A SENDME is withheld while a reader is behind by more than `STREAM_HIGH_WATER` or `CIRCUIT_HIGH_WATER` (`userland/capsule_net_anon/src/protocol/limits.rs:45-49`). In the other direction, `granted` credits a circuit-level SENDME from a relay without checking its digest, and puts no ceiling on the window it grows (`userland/capsule_net_anon/src/manager/inbound/status.rs:67-71`).
 
 ### Streams with remote resolution
 
 `body` writes a RELAY_BEGIN as `host:port`, a NUL and the flags, with `FLAG_IPV6_OK` set so the exit relay may connect over either address family (`userland/capsule_net_anon/src/stream/begin.rs:23-48`). The host name is resolved by the exit; `net.anon` makes no DNS query. The capsule holds at most `CIRCUIT_MAX`, 3, circuits and `STREAM_MAX`, 32, streams; a circuit takes new streams for `CIRCUIT_DIRTY_SECONDS`, 600, and is retired after `CIRCUIT_FAILURES_MAX`, 2, failed streams (`userland/capsule_net_anon/src/protocol/limits.rs:30-57`).
+
+### Exits chosen by port
+
+An Exit flag says a relay exits somewhere, not where. Each microdescriptor's `p` line is its exit policy summary, and `parse` keeps it twice: `exits_web`, whether both port 80 and port 443 are let out, read exactly as before, and the line itself (`userland/capsule_net_anon/src/directory/microdesc/parse.rs:55-58`).
+
+- `summary` keeps the verb, accept or reject, and the port ranges in the line's order. It refuses the whole line, as Tor's `parse_short_policy` does, for any other verb, a missing list, anything after it, or an element that is not a port or a range from 1 to 65535 with its low end first (`userland/capsule_net_anon/src/directory/microdesc/summary.rs:43-67`). `RANGES_MAX`, 64, ranges are kept; Tor cuts a summary at a comma within 1000 characters, so a live line lists a few dozen (`userland/capsule_net_anon/src/directory/microdesc/summary.rs:26-29`).
+- `exits_to` lets a port out when an accept line lists it, or a reject line does not. A line cut at the bound lets out only what it is known to: a cut accept line none of the ports dropped, a cut reject line no port at all. Port 0 is never let out (`userland/capsule_net_anon/src/directory/microdesc/policy.rs:26-40`). A malformed or missing line lets out no port but by `exits_web`.
+- `join` keeps the summary of each relay with the Exit flag in `Ports`, by RSA identity, beside the relays it builds, and a refreshed consensus brings its own (`userland/capsule_net_anon/src/manager/relays.rs:27-52`). `lets_out` reads ports 80 and 443 by `exits_web` alone, so the exits install traffic is drawn from do not change, and any other port by the relay's summary (`userland/capsule_net_anon/src/path/ports.rs:49-55`).
+
+A stream to port P goes down a circuit whose exit takes P:
+
+- `pick` takes only an open general circuit the stream may take (the warm circuit for an install only, as before) whose exit lets P out and has not refused P this boot, proven ones first, from the cursor on (`userland/capsule_net_anon/src/manager/out/pick_circuit.rs:39-65`). Every circuit drawn for the web ports has an exit that lets out both, so for port 80 or 443 the choice is the one it always was.
+- With none, `wait` refuses the open as before when the stream may take no open circuit at all, or no exit in the consensus takes P. Otherwise the stream waits with no circuit, as a stream to an onion service waits for its lookup, and the caller's sends get `WouldBlock` (`userland/capsule_net_anon/src/manager/out/wait.rs:28-54`).
+- Each turn, before a circuit is drawn, `waiting` sends a waiting stream's BEGIN down a circuit that now takes it, ends one that has waited `WAIT_SECONDS`, 45, with reason 7, and says what the next circuit's exit must take: the first port still waited on, or 443 (`userland/capsule_net_anon/src/manager/out/waiting.rs:28-53`, `userland/capsule_net_anon/src/stream/held.rs:32-35`).
+- With three general circuits held and none being built for P, `make_room` tears down one that is open, is not the warm circuit and carries no live stream, with a DESTROY (`userland/capsule_net_anon/src/manager/out/room.rs:34-57`). A circuit carrying a stream is never touched.
+- `choose_exit` draws the exit from the relays `eligible` would take with P's rule in place of the web ports, with the same consensus weights and the same identity and /16 exclusions as any exit; for 443 with nothing refused it draws what `choose` always drew (`userland/capsule_net_anon/src/path/select/to_port.rs:25-39`). A circuit drawn for a waiting stream is never the warm one (`userland/capsule_net_anon/src/manager/circuit_tick.rs:29-74`).
+
+### The one retry
+
+An exit can refuse what its summary lets out: its policy changed, it cannot reach a network, or it is loaded. An END that arrives before CONNECTED with reason 4 (EXITPOLICY), 7 (TIMEOUT), 8 (NOROUTE), 9 (HIBERNATING) or 11 (RESOURCELIMIT) sends the stream's open once more, to another exit, as Tor's `connection_ap_process_end_not_open` does (`userland/capsule_net_anon/src/stream/again.rs:33-50`). Reason 3 (CONNECTREFUSED) and 2 (RESOLVEFAILED) are the destination's own answer, the same through any exit, and are passed back as before.
+
+- A stream keeps its BEGIN body until CONNECTED, and the bytes sent behind it up to `EARLY_MAX`, 8 KiB; one that sends more before it is connected lets the open go and is not sent again (`userland/capsule_net_anon/src/stream/held.rs:27-30`, `userland/capsule_net_anon/src/stream/held.rs:62-74`).
+- `again` remembers the exit as refusing P, then moves the stream to a circuit whose exit takes P, or lets it wait for one; the second END, whatever its reason, is passed back (`userland/capsule_net_anon/src/manager/out/again.rs:36-63`). `attach` sends the BEGIN and the kept bytes as a fresh stream there, with the same id and owner, so the caller holds one stream throughout (`userland/capsule_net_anon/src/manager/out/attach.rs:27-56`).
+- `Refused` holds up to `REFUSED_MAX`, 64, pairs of exit identity and port for the boot, the oldest forgotten first, and never a host (`userland/capsule_net_anon/src/path/refused.rs:23-50`). Neither `pick` nor `choose_exit` takes that exit for that port again.
+
+The serial lines this adds name a stream or circuit id and never a host or a port, and like every `[ANON]` line they reach serial only in a build with `capsule-serial-debug`. The isolation is the one there was: the port is one more condition on the circuits a stream could already take, a stream sent again is held to the same rule as its first open, and room is never made from the warm circuit.
 
 ### Onion services and short names
 
@@ -221,10 +247,10 @@ These [proof crates](../overview/glossary-peer-list.md#proof-crate) build the co
 
 | Proof crate | Tests | What it holds |
 |---|---|---|
-| `anon_ntor_proofs` | 226 | ntor against values from the fork's `ntor_ref.py`, relay cell crypto, SHA-1 and SHA-256, authority certificates, a recorded live consensus, microdescriptors, the path draw and /16 exclusion, the guard pick, the refresh rule, circuit build answers, SENDME windows, RELAY_BEGIN, the onion service parts, the SOCKS front of `net.anon` |
+| `anon_ntor_proofs` | 248 | ntor against values from the fork's `ntor_ref.py`, relay cell crypto, SHA-1 and SHA-256, authority certificates, a recorded live consensus, microdescriptors and their exit policy summaries, the path draw and /16 exclusion, the exit drawn for a port, the refusals remembered, the retry rule, the guard pick, the refresh rule, circuit build answers, SENDME windows, RELAY_BEGIN, the onion service parts, the SOCKS front of `net.anon` |
 | `anon_link_proofs` | 14 | VERSIONS, the Ed25519 certificates and `bind`, on a CERTS cell and TLS leaf recorded from a live relay |
 | `anon_tls12_proofs` | 34 | The TLS 1.2 fallback client against recorded handshakes |
-| `anon_onion_proofs` | 67 | The onion service client against a simulated network |
+| `anon_onion_proofs` | 84 | The onion service client against a simulated network, and the choice of circuit by port, the wait and the one retry against exits of chosen policies |
 | `net_anon_proofs` | 2 | Malformed requests are answered |
 | `equix_proofs` | 28 | `nonos_equix`, the Equi-X solver behind the onion proof of work |
 | `nym_topology_proofs` | 25 | The route draw, the refresh rule and the exit address readers, on answers recorded from the Nym API |
