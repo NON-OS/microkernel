@@ -28,6 +28,17 @@ pub fn link(b: &mut ValBuf, state: &State) -> Tone {
         b.push_str("Not connected");
         return Tone::Idle;
     }
+    // The Intel driver names the step it stopped at and its detail word, at
+    // most 13 + 15 + 31 + 13 = 72 bytes ("Intel Wi-Fi: stopped at 12: ...").
+    if let Some(why @ StopWhy::Intel(..)) = state.wifi_diag.stop {
+        let mut buf = [0u8; 64];
+        if let Some(t) = why.text(&mut buf) {
+            b.push_str(driver.label());
+            b.push_str(": ");
+            b.push_bytes(t);
+            return Tone::Warn;
+        }
+    }
     // A firmware failure names its step and the control register's bits in
     // place of the stage line, so a machine with no serial port still says
     // which part of the load stopped. The line holds 72 bytes: the longest
