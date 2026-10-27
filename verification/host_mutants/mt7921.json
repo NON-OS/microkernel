@@ -398,8 +398,8 @@
  {
   "name": "mt7921-roc-any-token-grants",
   "file": "userland/capsule_driver_mt7921/src/radio/roc.rs",
-  "old": "card.mcu.grant.is_some_and(|g| g.token == token)",
-  "new": "card.mcu.grant.is_some()",
+  "old": "self.card.mcu.grant.is_some_and(|g| g.token == token || g.channel == ch)",
+  "new": "self.card.mcu.grant.is_some()",
   "test": "_tests::",
   "args": [
    "--release"
@@ -489,6 +489,287 @@
   "old": "if is_link(req) && !link_admits(sender, net_core_pid()) {",
   "new": "if is_link(req) && sender == 0 {",
   "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-5ghz-rates-take-cck",
+  "file": "userland/capsule_driver_mt7921/src/mac/rate.rs",
+  "old": "&RATES[4..]",
+  "new": "&RATES",
+  "test": "wpa3_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-roc-token-only",
+  "file": "userland/capsule_driver_mt7921/src/radio/roc.rs",
+  "old": "g.token == token || g.channel == ch",
+  "new": "g.token == token",
+  "test": "grant_path_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-roc-wait-skips-data-ring",
+  "file": "userland/capsule_driver_mt7921/src/radio/roc.rs",
+  "old": "            self.reap();\n",
+  "new": "",
+  "test": "grant_path_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rx-event-on-data-dropped",
+  "file": "userland/capsule_driver_mt7921/src/radio/data.rs",
+  "old": "Kind::Event => c.mcu.note_unasked(b),",
+  "new": "Kind::Event => {}",
+  "test": "grant_path_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rx-later-layout-dropped",
+  "file": "userland/capsule_driver_mt7921/src/dma/desc.rs",
+  "old": "(true, _) => ctrl & CTL_PN_CHK_FAIL != 0,",
+  "new": "(true, _) => true,",
+  "test": "grant_path_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rate-ap-at-band-lowest",
+  "file": "userland/capsule_driver_mt7921/src/mac/pick.rs",
+  "old": "bss.filter(|_| to_ap).unwrap_or(band)",
+  "new": "band",
+  "test": "rate_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rate-beacon-not-learned",
+  "file": "userland/capsule_driver_mt7921/src/radio/learn.rs",
+  "old": "self.aps.put(bssid.try_into().unwrap_or([0; 6]), r);",
+  "new": "let _ = (bssid, r);",
+  "test": "rate_tests::an_access_point_without_cck",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rate-eapol-at-data-rate",
+  "file": "userland/capsule_driver_mt7921/src/mac/pick.rs",
+  "old": "!eapol(mpdu, fc)",
+  "new": "true",
+  "test": "rate_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rate-data-at-lowest",
+  "file": "userland/capsule_driver_mt7921/src/mac/pick.rs",
+  "old": "if data { fast } else { low }",
+  "new": "low",
+  "test": "rate_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-rate-basic-any-band",
+  "file": "userland/capsule_driver_mt7921/src/mac/rate.rs",
+  "old": "marked.filter(|&r| table(ghz5).iter().any(|t| t.0 == r))",
+  "new": "marked",
+  "test": "txd_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-own-unchecked-before-command",
+  "file": "userland/capsule_driver_mt7921/src/card.rs",
+  "old": "if !self.awake() {",
+  "new": "if false {",
+  "test": "wake_tests::a_command",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-own-unchecked-on-send",
+  "file": "userland/capsule_driver_mt7921/src/radio/send.rs",
+  "old": " || !self.card.awake()",
+  "new": "",
+  "test": "wake_tests::a_joined_link",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-own-unchecked-in-upkeep",
+  "file": "userland/capsule_driver_mt7921/src/radio/diag.rs",
+  "old": "if !self.card.awake() {",
+  "new": "if false {",
+  "test": "wake_tests::a_service_pass",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-own-wfdma-not-rearmed",
+  "file": "userland/capsule_driver_mt7921/src/power/wake.rs",
+  "old": "if lost {\n            self.rearm();",
+  "new": "if false {\n            self.rearm();",
+  "test": "wake_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-own-reinit-flag-misread",
+  "file": "userland/capsule_driver_mt7921/src/power/wake.rs",
+  "old": "& WFDMA_NEED_REINIT == 0;",
+  "new": "& WFDMA_NEED_REINIT != 0;",
+  "test": "wake_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-wfdma-busy-refused-warm",
+  "file": "userland/capsule_driver_mt7921/src/dma/wfdma.rs",
+  "old": "if !idle && !force {",
+  "new": "if !idle {",
+  "test": "wake_tests::a_card_left_warm",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-power-limits-not-sent",
+  "file": "userland/capsule_driver_mt7921/src/init/mod.rs",
+  "old": "for b in power::bodies(caps) {",
+  "new": "for b in power::bodies(caps).into_iter().take(0) {",
+  "test": "init_run_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-power-world-limit-zero",
+  "file": "userland/capsule_driver_mt7921/src/init/power.rs",
+  "old": "const WORLD_LIMIT: u8 = 2 * 20;",
+  "new": "const WORLD_LIMIT: u8 = 0;",
+  "test": "power_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-power-last-unmarked",
+  "file": "userland/capsule_driver_mt7921/src/init/power.rs",
+  "old": "b[6] = u8::from(batch.last() == Some(&last));",
+  "new": "b[6] = 0;",
+  "test": "power_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-power-band-byte",
+  "file": "userland/capsule_driver_mt7921/src/init/power.rs",
+  "old": "1 + (band == Band::Ghz5) as u8",
+  "new": "1",
+  "test": "power_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-power-cck-limit-on-5ghz",
+  "file": "userland/capsule_driver_mt7921/src/init/power.rs",
+  "old": "s[..4].fill(NONE);",
+  "new": "s[..4].fill(target);",
+  "test": "power_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/mt7921_proofs"
+ },
+ {
+  "name": "mt7921-loader-reads-unasked",
+  "file": "nonos-bootloader/src/entry/firmware_package.rs",
+  "old": "if !file_exists(st, path) {",
+  "new": "if false {",
+  "test": "",
+  "cmd": [
+   "python3",
+   "scripts/check_mediatek_firmware.py"
+  ],
+  "crate": ".",
+  "args": []
+ },
+ {
+  "name": "mt7921-seal-esp-without-package",
+  "file": "tools/nonos_seal/media.py",
+  "old": "if firmware and os.path.isdir(firmware):",
+  "new": "if False:",
+  "test": "",
+  "cmd": [
+   "python3",
+   "scripts/check_mediatek_firmware.py"
+  ],
+  "crate": ".",
+  "args": []
+ },
+ {
+  "name": "mt7921-seal-hands-esp-nothing",
+  "file": "tools/nonos_seal/__main__.py",
+  "old": "approval, firmware)",
+  "new": "approval)",
+  "test": "",
+  "cmd": [
+   "python3",
+   "scripts/check_mediatek_firmware.py"
+  ],
+  "crate": ".",
+  "args": []
+ },
+ {
+  "name": "mt7921-missing-package-reads-mismatch",
+  "file": "userland/capsule_driver_mt7921/src/bringup/package.rs",
+  "old": "Err(Stage::PackageMissing)",
+  "new": "Err(Stage::PackageMismatch)",
+  "test": "client_stage_tests::",
   "args": [
    "--release"
   ],
