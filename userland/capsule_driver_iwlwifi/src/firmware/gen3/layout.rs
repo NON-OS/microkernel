@@ -36,6 +36,9 @@ use super::rxq::RxQueue;
 use super::{
     CtxtInfoGen3, DramImage, FwLayout, PrphScratch, CTXT_INFO_GEN3_SIZE, PRPH_SCRATCH_SIZE,
 };
+pub use parts::{Board, Memory};
+
+mod parts;
 
 /// Why the memory could not be laid out.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -46,16 +49,6 @@ pub enum LayoutError {
     TooManySections,
     /// A region refused a write (shorter than planned).
     Write,
-}
-
-/// What the layout needs to know about the adapter.
-pub struct Board {
-    pub hw_rev: u32,
-    pub imr_enabled: bool,
-    /// CSR_HW_RF_ID, which picks the platform NVM section with the MAC type.
-    pub rf_id: u32,
-    /// The platform NVM file for this image, when the tree carries one.
-    pub pnvm: Option<&'static [u8]>,
 }
 
 /// The firmware regions to request: the sizes [`plan_firmware`] gives for
@@ -72,14 +65,6 @@ fn section_lens(fw: &FwLayout<'_>) -> Vec<usize> {
 /// context info carries.
 pub const MTR_SIZE: u16 = CMD_RING.trailing_zeros() as u16 - 3;
 pub const MCR_SIZE: u16 = RX_RING.trailing_zeros() as u16;
-
-/// The DMA memory of one bring-up: the control region, the receive buffers,
-/// and the firmware regions [`firmware_region_sizes`] asked for, in order.
-pub struct Memory<'r, R: Region + ?Sized> {
-    pub ctrl: &'r R,
-    pub rbs: &'r R,
-    pub fw: &'r [&'r R],
-}
 
 /// Write everything into `mem` and initialise both queues.
 pub fn lay_out<R: Region + ?Sized>(
