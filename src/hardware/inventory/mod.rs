@@ -27,6 +27,7 @@ mod i2c_host;
 #[cfg(any(feature = "nonos-capsule-driver-i2c-pci", feature = "nonos-capsule-driver-i2c-hid"))]
 mod i2c_present;
 mod intel_ethernet_ids;
+mod mediatek_ids;
 mod missing;
 mod platform_sd;
 mod present;

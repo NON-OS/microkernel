@@ -543,6 +543,7 @@ include userland/capsule_driver_virtio_gpu/Capsule.mk
 include userland/capsule_driver_virtio_net/Capsule.mk
 include userland/capsule_driver_iwlwifi/Capsule.mk
 include userland/capsule_driver_rtl8821ce/Capsule.mk
+include userland/capsule_driver_mt7921/Capsule.mk
 include userland/capsule_driver_i2c_pci/Capsule.mk
 include userland/capsule_driver_i2c_hid/Capsule.mk
 include userland/capsule_driver_xhci/Capsule.mk
