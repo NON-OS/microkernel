@@ -62,8 +62,13 @@ pub fn call(port: u32, op: u16, body: &[u8], data: &mut [u8]) -> (i32, usize) {
         return (E_IO, 0);
     }
     let payload = u32::from_le_bytes([resp[16], resp[17], resp[18], resp[19]]) as usize;
+    // The payload the header names must hold the status and have come whole.
+    let got = (n as usize).min(resp.len());
+    if payload < 4 || payload > got - HDR_LEN {
+        return (E_IO, 0);
+    }
     let status = i32::from_le_bytes([resp[20], resp[21], resp[22], resp[23]]);
-    let have = payload.saturating_sub(4).min(resp.len() - HDR_LEN - 4).min(data.len());
+    let have = (payload - 4).min(data.len());
     data[..have].copy_from_slice(&resp[HDR_LEN + 4..HDR_LEN + 4 + have]);
     (status, have)
 }
