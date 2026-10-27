@@ -23,7 +23,8 @@ use crate::linux::file::{key, store_read, store_write};
 
 pub(in super::super) const TABLE: &[u8] = b"/etc/nonos-links";
 
-pub(in super::super) const MAX_TABLE: u32 = 64 << 10;
+/// ncurses-terminfo alone links 1072 names, about 70 KiB of lines.
+pub(in super::super) const MAX_TABLE: u32 = 1 << 20;
 
 /// Take `links`' lines out of the link table: an uninstall's, or an install
 /// that could not be recorded whole. True when none is left in it.
