@@ -36,7 +36,6 @@ pub mod route_read;
 
 #[path = "../../../capsule_linux/src/linux/install/tools.rs"]
 pub mod tools;
-
 #[path = "../../../capsule_linux/src/linux/install/pkg.rs"]
 pub mod pkg;
 
@@ -46,7 +45,6 @@ pub mod index;
 pub mod index_find;
 #[path = "../../../capsule_linux/src/linux/install/install_if.rs"]
 pub mod install_if;
-
 #[path = "../../../capsule_linux/src/linux/install/hex.rs"]
 pub mod hex;
 
