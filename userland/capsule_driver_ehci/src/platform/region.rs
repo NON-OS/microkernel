@@ -13,11 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! The schedule region: one coherent DMA map below 4 GiB, as EHCI's 32-bit
-//! addresses need; every access volatile and bounded to the region.
+//! addresses need; every access volatile and bounded to the region (span.rs):
+//! one outside it reads all ones and writes nothing.
 
-use crate::env::Mem;
+use super::span::Span;
+use crate::env::{Mem, OutOfRegion};
 use crate::sched::layout::REGION;
 use core::ptr::{read_volatile, write_volatile};
 use nonos_libc::DmaMapOut;
@@ -25,6 +26,7 @@ use nonos_libc::DmaMapOut;
 pub struct Region {
     va: *mut u8,
     bus: u32,
+    span: Span,
 }
 
 impl Region {
@@ -32,44 +34,40 @@ impl Region {
     pub fn new(map: &DmaMapOut) -> Option<Self> {
         let end = map.device_addr.checked_add(REGION as u64)?;
         let fits = map.length >= REGION as u64 && end <= 1 << 32 && map.user_va != 0;
-        fits.then_some(Region { va: map.user_va as *mut u8, bus: map.device_addr as u32 })
+        let (va, bus) = (map.user_va as *mut u8, map.device_addr as u32);
+        fits.then_some(Region { va, bus, span: Span::new(REGION) })
     }
 
-    fn at(&self, off: usize, len: usize) -> *mut u8 {
-        assert!(off.checked_add(len).is_some_and(|e| e <= REGION));
+    fn at(&self, off: usize, len: usize) -> Result<*mut u8, OutOfRegion> {
+        let off = self.span.check(off, len)?;
         // SAFETY: `off + len` is within the mapped REGION bytes.
-        unsafe { self.va.add(off) }
+        Ok(unsafe { self.va.add(off) })
     }
 }
 
 impl Mem for Region {
     fn bus(&self, off: usize) -> u32 {
-        self.bus + off as u32
+        self.bus.wrapping_add(off as u32)
     }
-
     fn rd(&self, off: usize) -> u32 {
         // SAFETY: in the region, and every word the layout uses is aligned.
-        unsafe { read_volatile(self.at(off, 4) as *const u32) }
+        self.at(off, 4).map_or(!0, |p| unsafe { read_volatile(p as *const u32) })
     }
-
     fn wr(&self, off: usize, v: u32) {
         // SAFETY: as for `rd`.
-        unsafe { write_volatile(self.at(off, 4) as *mut u32, v) }
+        let _ = self.at(off, 4).map(|p| unsafe { write_volatile(p as *mut u32, v) });
     }
-
     fn read_bytes(&self, off: usize, out: &mut [u8]) {
-        let p = self.at(off, out.len());
-        for (i, b) in out.iter_mut().enumerate() {
-            // SAFETY: `at` checked the whole span.
-            *b = unsafe { read_volatile(p.add(i)) };
-        }
+        let Ok(p) = self.at(off, out.len()) else { return out.fill(!0) };
+        // SAFETY: `at` checked the whole span.
+        out.iter_mut().enumerate().for_each(|(i, b)| *b = unsafe { read_volatile(p.add(i)) });
     }
-
     fn write_bytes(&self, off: usize, src: &[u8]) {
-        let p = self.at(off, src.len());
-        for (i, &b) in src.iter().enumerate() {
-            // SAFETY: `at` checked the whole span.
-            unsafe { write_volatile(p.add(i), b) };
-        }
+        let Ok(p) = self.at(off, src.len()) else { return };
+        // SAFETY: `at` checked the whole span.
+        src.iter().enumerate().for_each(|(i, &b)| unsafe { write_volatile(p.add(i), b) });
+    }
+    fn fault(&self) -> Result<(), OutOfRegion> {
+        self.span.fault()
     }
 }

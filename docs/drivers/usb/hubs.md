@@ -69,8 +69,8 @@ All of it on the host, none on hardware or under QEMU:
 - `userland/usb_hub_proofs` (24 tests) covers the descriptor, port status, route and TT rules, the walk and the parking over a modelled hub and clock, and the virtual port table.
 - In each host's proof crate, `nonos_usb_hub`'s own walk runs over that driver's own request dispatch against its model controller, with a model hub on root port 1 (`userland/uhci_proofs/src/hub_lane.rs`, shared by the three).
   - The model halts any transaction whose speed, TT, completion mask or low-speed mark does not match where the device sits (`userland/ehci_proofs/src/model/reach.rs`, `userland/uhci_proofs/src/model/bus.rs`).
-  - In `uhci_proofs`, usb_hub0's own walk and root-port pass run over the real host front. Children are parked, listed and claimed, and their bulk data reaches them; detaches and give-backs follow the table.
-  - Counts: `uhci_proofs` 48, `ehci_proofs` 41, `ohci_proofs` 43, `xhci_proofs` 152.
+  - In `uhci_proofs`, usb_hub0's own walk and root-port pass run over the real host front. Children are parked, listed and claimed, and their bulk data reaches them; detaches and give-backs follow the table, and another client's requests on a slot are refused (`userland/uhci_proofs/src/owner_tests.rs`).
+  - Counts: `uhci_proofs` 57, `ehci_proofs` 54, `ohci_proofs` 52, `xhci_proofs` 152.
 
 ## See also
 

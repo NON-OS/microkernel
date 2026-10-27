@@ -17,14 +17,16 @@
 //! Intel ICH has up to six UHCI functions, AMD and other chipsets several
 //! OHCI. Their root ports are numbered on, controller after controller,
 //! and slots are the host's: a slot is bound to the controller whose port
-//! it is addressed on, and every later request for it goes there. Shared
-//! by driver.uhci0 and driver.ohci0.
+//! it is addressed on, and every later request for it goes there, from
+//! the client that enabled it alone (owners.rs). Shared by driver.uhci0,
+//! driver.ohci0 and driver.ehci0.
 
 mod address;
 pub mod front;
 mod give_back;
 mod hc;
 mod numbering;
+mod owners;
 mod park;
 mod ports;
 mod serve;
