@@ -25,16 +25,22 @@ use super::out::{post, OUT_MOST};
 use super::pair::Pair;
 
 impl Pair {
-    /// The master writes `bytes`: how many the discipline took, and the
-    /// signals they raised, in order. It stops once the slave has a full
-    /// buffer unread, or the master's own has no room for what is echoed.
+    /// The master writes `bytes`: how many the discipline took, and each
+    /// signal they raised, once, as a guest's pending set holds it. It stops
+    /// once the slave has a full buffer unread (bytes, or lines and ends of
+    /// file, which ^D on an empty line adds without a byte), or the master's
+    /// own has no room for what is echoed.
     pub fn typed(&mut self, bytes: &[u8]) -> (usize, Vec<u8>) {
         let (t, mut signals, mut n) = (self.termios, Vec::new(), 0);
         for &c in bytes {
-            if self.input.ready.len() >= MOST || self.output.len() >= OUT_MOST {
+            let input = &self.input;
+            if input.ready.len().max(input.ends.len()) >= MOST || self.output.len() >= OUT_MOST {
                 break;
             }
-            signals.extend(super::disc::receive(&t, &mut self.input, &mut self.output, c));
+            let raised = super::disc::receive(&t, &mut self.input, &mut self.output, c);
+            if let Some(s) = raised.filter(|s| !signals.contains(s)) {
+                signals.push(s);
+            }
             n += 1;
         }
         (n, signals)
