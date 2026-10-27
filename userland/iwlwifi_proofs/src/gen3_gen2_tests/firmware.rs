@@ -61,10 +61,6 @@ fn of_the_versions_the_driver_speaks_exactly_these_differ() {
             .collect();
         got.sort();
         got.dedup();
-        let mut want = DIFFER.to_vec();
-        if name == "cc" {
-            want[7].3 = (None, None);
-        }
-        assert_eq!(got, want, "{name}");
+        assert_eq!(got, DIFFER.to_vec(), "{name}");
     }
 }
