@@ -17,6 +17,7 @@
 //! Proofs of the Wayland server: the wire, its objects, windows and input.
 
 mod conn_tests;
+mod frame_decor_tests;
 mod frame_tests;
 mod inbox_take_tests;
 mod popup_bounds_tests;

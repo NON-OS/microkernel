@@ -64,4 +64,6 @@ pub struct Scene {
     pub subs: Subs,
     /// Menus and the like, composed on top of it (popup/).
     pub popups: Popups,
+    /// The NØNOS frame drawn around it (present/frame/).
+    pub frame: super::present::frame::Frame,
 }
