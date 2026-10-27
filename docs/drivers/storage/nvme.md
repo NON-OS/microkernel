@@ -52,6 +52,7 @@ Otherwise the controller is still served for identify and health, and read and w
 - There is one I/O submission and completion queue pair, queue id 1, with 8 entries each (`userland/capsule_driver_nvme/src/nvm/constants.rs:17-18`, `IO_QID`, `IO_ENTRIES`). Before creating it the driver asks for exactly one pair with SET FEATURES Number of Queues, and carries on when the controller refuses (`userland/capsule_driver_nvme/src/setup/hmb/queues.rs:24-43`, `number_of_queues`).
 - One command moves at most 64 sectors of 512 bytes, the 32 KiB data buffer (`userland/capsule_driver_nvme/src/nvm/constants.rs:22-24`, `MAX_SECTORS`, `DATA_BYTES`). A smaller MDTS lowers that, and MDTS 0 means the whole buffer (`userland/capsule_driver_nvme/src/nvm/geometry/transfer.rs:21-37`, `max_transfer_bytes`).
 - A transfer of more than two 4 KiB pages uses a PRP list (`userland/capsule_driver_nvme/src/nvm/prp.rs:20-35`, `build_prp`).
+- Every queue, PRP list, data buffer and host memory buffer piece is one broker DMA grant, taken only when it is as long as asked and starts on a page on both sides; any other grant is given straight back as `DmaGrantShort`, which fails the attempt for a queue or buffer and ends the host memory buffer at the pieces already mapped (`userland/capsule_driver_nvme/src/dma/region.rs`, `DmaRegion::map`).
 - The kernel's client cuts larger requests into commands of that size (`src/hardware/nvme_capsule/client/write_blocks.rs:47-52`, `chunks`).
 
 ## Host memory buffer
