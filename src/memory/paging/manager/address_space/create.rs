@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::core::PagingManager;
+use super::super::directory;
 use super::kernel_half::seed_kernel_half_pdpts;
 use crate::memory::frame_alloc;
 use crate::memory::paging::constants::KERNEL_ASID;
@@ -31,11 +32,13 @@ impl PagingManager {
         let cr3_value = self.active_page_table.ok_or(PagingError::NoActivePageTable)?;
         let kernel_space = AddressSpace::new(KERNEL_ASID, cr3_value, 0);
         self.address_spaces.insert(KERNEL_ASID, kernel_space);
+        directory::publish(KERNEL_ASID, 0, cr3_value.as_u64());
         seed_kernel_half_pdpts(cr3_value)
     }
 
     // Allocate a fresh PML4 frame, register a new asid, and clone
-    // the kernel half from KERNEL_ASID. The user half stays empty.
+    // the kernel half from KERNEL_ASID. The user half stays empty. The
+    // directory names it only once it is whole; one that failed is gone.
     pub fn create_address_space(&mut self, process_id: u32) -> PagingResult<u32> {
         let asid = self.next_asid;
         self.next_asid = self.next_asid.wrapping_add(1);
@@ -43,7 +46,12 @@ impl PagingManager {
             frame_alloc::allocate_frame().ok_or(PagingError::FrameAllocationFailed)?;
         let address_space = AddressSpace::new(asid, page_table_frame, process_id);
         self.address_spaces.insert(asid, address_space);
-        self.clone_kernel_half_into(page_table_frame)?;
+        if let Err(e) = self.clone_kernel_half_into(page_table_frame) {
+            self.address_spaces.remove(&asid);
+            let _ = frame_alloc::deallocate_frame(page_table_frame);
+            return Err(e);
+        }
+        directory::publish(asid, process_id, page_table_frame.as_u64());
         Ok(asid)
     }
 }

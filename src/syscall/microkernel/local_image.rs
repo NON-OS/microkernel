@@ -20,8 +20,24 @@ use alloc::vec::Vec;
 
 use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOMEM};
 
-/// A Linux program with its interpreter is comfortably inside this.
-pub(super) const MAX_ELF: usize = 64 << 20;
+mod digest;
+
+use digest::DigestError;
+
+/// The BLAKE3 digest of the caller's image, hashed where it lies through a
+/// bounce buffer: an image costs the kernel heap one chunk, not its size.
+pub(super) fn digest_in(ptr: u64, len: u64) -> Result<[u8; 32], i64> {
+    let read = |at: u64, chunk: &mut [u8]| -> Result<(), ()> {
+        let addr = ptr.checked_add(at).ok_or(())?;
+        crate::usercopy::copy_from_user(addr, chunk).map_err(|_| ())
+    };
+    match digest::in_chunks(len, crate::smp::SERVE_UNIT, read, crate::smp::serve_shootdowns) {
+        Ok(digest) => Ok(digest),
+        Err(DigestError::Length) => Err(ERRNO_INVAL),
+        Err(DigestError::NoMemory) => Err(ERRNO_NOMEM),
+        Err(DigestError::Unreadable) => Err(ERRNO_FAULT),
+    }
+}
 
 pub(super) fn copy_in(ptr: u64, len: u64, cap: usize) -> Result<Vec<u8>, i64> {
     if len == 0 || len as usize > cap {
@@ -29,9 +45,10 @@ pub(super) fn copy_in(ptr: u64, len: u64, cap: usize) -> Result<Vec<u8>, i64> {
     }
     let len = len as usize;
     /*
-     * Up to 64 MiB, so the range is checked before anything is allocated for
-     * it, and the buffer is taken fallibly: an image the heap cannot hold is
-     * ENOMEM, where the infallible allocation this was halted the machine.
+     * A length the caller chose, so the range is checked before anything is
+     * allocated for it, and the buffer is taken fallibly: one the heap cannot
+     * hold is ENOMEM, where the infallible allocation this was halted the
+     * machine.
      */
     if crate::usercopy::validate_user_read(ptr, len).is_err() {
         return Err(ERRNO_FAULT);

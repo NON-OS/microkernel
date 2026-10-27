@@ -18,9 +18,11 @@ pub mod column;
 pub mod core;
 pub mod fatal;
 pub mod line;
+mod line_who;
 pub mod print;
 
 pub mod tail;
+mod who;
 
 pub use core::init;
 pub use line::Line;
