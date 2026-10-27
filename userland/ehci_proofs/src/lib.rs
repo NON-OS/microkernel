@@ -27,6 +27,7 @@ pub mod model;
 #[path = "../../../src/hardware/broker/mmio/window.rs"]
 mod window;
 
+mod advance_tests;
 #[cfg(test)]
 mod bulk2_tests;
 #[cfg(test)]
