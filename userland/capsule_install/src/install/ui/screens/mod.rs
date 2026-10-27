@@ -18,6 +18,8 @@
 //! reaches nothing outside.
 
 pub mod confirm;
+mod confirm_choice;
+mod confirm_disk;
 mod confirm_rows;
 mod confirm_warn;
 mod confirm_word;
@@ -25,9 +27,11 @@ mod disk_row;
 pub mod disks;
 pub mod done;
 pub mod failed;
+mod failed_request;
 mod failed_text;
 pub mod proofs;
 mod proofs_row;
 mod proofs_tint;
 pub mod welcome;
+mod welcome_prepare;
 pub mod writing;

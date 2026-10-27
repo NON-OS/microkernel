@@ -29,13 +29,13 @@ stateDiagram-v2
 
 The screens run in a fixed order. Nothing touches the disk before you press Enter on Confirm.
 
-1. Welcome, titled `Install NØNOS on this computer`. Read what will be written: the loader and kernel sizes, the kernel measurement, the boot verdict, the firmware's [Secure Boot](../overview/glossary-rollback-index.md#secure-boot) state and the [TPM](../overview/glossary-stark-proof.md#tpm). Press Enter.
+1. Welcome, titled `Install NØNOS on this computer`. Read what will be written: the loader and kernel sizes, the kernel measurement, the boot verdict, the firmware's [Secure Boot](../overview/glossary-rollback-index.md#secure-boot) state and the [TPM](../overview/glossary-stark-proof.md#tpm). Press Enter. On a boot from an installed NØNOS, a row under them offers `Prepare this computer for an update`, which P runs ([Update](update.md#update-and-keep-your-data)).
 2. Proofs, titled `What this boot proved`. Read what each proof found. `VERIFIED` and `FAILED` are verdicts a check reached. `SELF-REPORTED` is a pass on the loader's word alone, with nothing measuring it. `NOT VERIFIED`, `NOT CHECKED` and `UNKNOWN` are not passes. Press Enter to list the disks.
 3. Disks, titled `Choose the disk`. Choose a disk with Up and Down, press `r` to look again, and press Enter.
-4. Confirm, titled `Everything on this disk will be erased`. Read what is erased and written, type the disk's word, and press Enter.
-5. Writing, titled `Writing`. Watch the bar. Escape stops the write only until the new partition table starts, and leaves a disk with no partition table.
+4. Confirm, titled `Everything on this disk will be erased`. Read what is erased and written, type the disk's word, and press Enter. On a NØNOS disk whose data an update can keep, Confirm offers `Update NØNOS (keep my data)` and `Erase everything and install` instead, and on the update row it is titled `Your data will be kept` ([Update](update.md#update-and-keep-your-data)).
+5. Writing, titled `Writing`. Watch the bar. Escape stops the write only until the new partition table starts, and leaves a disk with no partition table. An update writes no table: Escape stops it until its last write, and leaves the data as it was.
 6. Verifying, titled `Reading back`. Every sector written is read back and compared. This cannot be stopped.
-7. Done, titled `Installed`. Remove the USB stick, then press Enter to restart.
+7. Done, titled `Installed`, or `Updated` after an update. Remove the USB stick, then press Enter to restart.
 
 The Failed screen, titled `Stopped`, says what happened and what to do. Enter there looks at the disks again and goes back to them.
 
@@ -93,6 +93,12 @@ The data volume is the encrypted part. The installer clears its key header and z
 
 The installer is not a secure wipe. It first wipes the old partition tables and the kernel's markers, then writes the ESP, the zeroed header ring and key header, the store, the disk plan and the new tables, in that order. The rest of the data region is not overwritten: what the disk held there stays on it until the new volume writes over it. NONOS never reads those old bytes, but they are not destroyed.
 
+### What an update writes
+
+An update, `Update NØNOS (keep my data)` on the Confirm screen, writes less. It lays the same ESP over the `NONOS-ESP` the disk already has, and the new store over `NONOS-STORE`, and writes nothing to sectors 0 to 33, `NONOS-PLAN`, `NONOS-DATA` or the backup GPT: the table, its GUIDs, the disk plan, the key header and the data volume stay as they are. It first clears the ESP's first sectors and the store's header, then writes the ESP's tables, directories and files, then the store with its header last, and the ESP's first sectors last of all, so no firmware finds a volume to boot there until the update is whole. Its store carries what an install's does, but setup's answers come from the disk's own store when they are there and check. Nothing else the old store held carries over, and neither the old store's bytes nor the old ESP's past what the update writes are destroyed. [Update](update.md) has the steps.
+
+The installer offers an update only on a disk whose table, extents and plan are the ones above, and whose key header says a new release opens the data volume: a passphrase, or a TPM key wrapped under the release-approved chain with the handover the installed system leaves when it is prepared. The new release's ESP files must fit the `NONOS-ESP` there.
+
 ## How long it takes
 
 The write and the read-back move 2 MiB per step. The screen shows the percentage, the bytes and the rate the disk acknowledged, and the Done screen gives the write time in seconds. This release records no typical duration.
@@ -120,46 +126,55 @@ Installing to an internal NVMe disk and booting from it was reported on real har
 ## Where this comes from
 
 - Start the installer
-  - What the installer writes: `INTRO`, `userland/capsule_install/src/install/ui/screens/welcome.rs:30-31`.
+  - What the installer writes: `INTRO`, `userland/capsule_install/src/install/ui/screens/welcome.rs:32-33`.
   - Mode starts on Install on an install boot: `mode_sel`, `userland/capsule_setup_wizard/src/state.rs:70`.
   - Kept answers open the installer at once: `install_boot`, `userland/capsule_setup_wizard/src/main.rs:37-39`.
   - Install on the Mode step hands over the screen on any boot: `Ended::Installer`, `src/userspace/init/supervisor/after_setup.rs:37-44`.
-  - The Install tile on the dock: `LauncherIcon::Install`, `userland/capsule_desktop_shell/src/state/apps.rs:119-123`.
+  - The Install tile on the dock: `tile(LauncherIcon::Install, ...)`, `userland/capsule_desktop_shell/src/state/apps/table.rs:39`.
   - Leaving the installer starts the desktop: `spawn_post_wizard`, `src/userspace/init/supervisor/after_install.rs:41-46`.
   - A kernel without the installer stops: `refuse_install_without_installer`, `src/kernel_core/init/entry/install_refusal.rs:34-39`.
 - The screens
-  - Screen order and titles: `Screen` and `title`, `userland/capsule_install/src/install/state/screen.rs:21-43`.
+  - Screen order and titles: `Screen` and `title`, `userland/capsule_install/src/install/state/screen.rs:21-43`; the update row's titles: `kept_title`, `userland/capsule_install/src/install/state/screen.rs:48-55`, chosen by `title`, `userland/capsule_install/src/install/state/choice.rs:54-62`.
+  - The prepare row on a boot from an installed NØNOS, and P: `prepare_row`, `userland/capsule_install/src/install/ui/screens/welcome_prepare.rs:31-46`, and `on_start_key`, `userland/capsule_install/src/install/event/start.rs:35-38`.
+  - The update's two rows: `ROWS`, `userland/capsule_install/src/install/ui/screens/confirm_choice.rs:33-36`.
   - Proof marks: `Mark`, `userland/capsule_install/src/install/proofs/mark.rs:19-31`.
-  - Nothing touches the disk before Confirm: `prepare`, `userland/capsule_install/src/install/job/prepare.rs:32-33`, and `start`, `userland/capsule_install/src/install/job/start.rs:30-38`.
-  - Escape on Welcome: `on_start_key`, `userland/capsule_install/src/install/event/start.rs:27-29`.
-  - Escape while writing, no key while reading back: `stoppable`, `userland/capsule_install/src/install/event/router.rs:66-67`, and `cancel`, `userland/capsule_install/src/install/event/cancel.rs:26-34`.
+  - Nothing touches the disk before Confirm: `prepare`, `userland/capsule_install/src/install/job/prepare.rs:26-47`, which reads and plans only (`plan_for`, `userland/capsule_install/src/install/job/plan.rs:34-62`), and `start`, `userland/capsule_install/src/install/job/start.rs:30-38`.
+  - Escape on Welcome: `on_start_key`, `userland/capsule_install/src/install/event/start.rs:32-34`.
+  - Escape while writing, no key while reading back: `stoppable`, `userland/capsule_install/src/install/event/router.rs:66-67`, and `stoppable`, `userland/capsule_install/src/install/event/cancel.rs:26-32`; an update until its last write: `stoppable`, `userland/nonos_disk/src/session/start.rs:56-61`, and `keep_queue`, `userland/nonos_disk/src/session/queue_keep.rs:64-71`.
   - Escape and Enter on Done and Stopped: `on_after_key`, `userland/capsule_install/src/install/event/after.rs:31-47`.
 - Which disks are offered
-  - What a row says the disk holds: `Contents`, `userland/nonos_blk_client/src/disks/probe.rs:33-41`.
-  - The boot stick left off, a loader copy withheld: `By::Partition` and `withheld`, `userland/nonos_blk_client/src/disks/scan.rs:100-102`, `userland/nonos_blk_client/src/disks/scan.rs:139-149`.
-  - A driver that did not come up: `fault`, `userland/nonos_blk_client/src/disks/scan.rs:154-162`.
-  - First sectors that did not read: `unread`, `userland/nonos_blk_client/src/disks/probe.rs:46-55`.
+  - What a row says the disk holds: `Contents`, `userland/nonos_blk_client/src/disks/probe.rs:43-52`.
+  - The boot stick left off, a loader copy withheld: `By::Partition` and `withheld`, `userland/nonos_blk_client/src/disks/scan.rs:49-50`, `userland/nonos_blk_client/src/disks/rows.rs:45-59`.
+  - A driver that did not come up: `fault`, `userland/nonos_blk_client/src/disks/fault.rs:27-41`.
+  - First sectors that did not read: `unread`, `userland/nonos_blk_client/src/disks/probe.rs:55-69`.
   - The drivers asked: `ALL` and `serves`, `userland/nonos_blk_client/src/driver/table.rs`; the capsules an image carries: `DESKTOP_BASE_SLUGS`, `mk/20-build.mk`.
   - Looking again: `EVERY_MS` and `due`, `userland/capsule_install/src/install/rescan.rs:27-32`.
-  - The RST or VMD hint: `RAID`, `userland/capsule_install/src/install/ui/screens/disks.rs:36`, and `raid_hides_disks`, `userland/nonos_blk_client/src/disks/scan.rs:68-72`.
+  - The RST or VMD hint: `RAID`, `userland/capsule_install/src/install/ui/screens/disks.rs:36`, and `raid_hides_disks`, `userland/nonos_blk_client/src/disks/survey_count.rs:28-33`.
 - The confirmation word
-  - The word: `confirm_word`, `userland/nonos_blk_client/src/disks/describe.rs:61-78`, and `serial_word`, `userland/nonos_blk_client/src/disks/word.rs:28-32`.
-  - Lower case, and Enter waits for the word and the plan: `on_confirm_key`, `userland/capsule_install/src/install/event/confirm.rs:26-53`.
+  - The word: `confirm_word`, `userland/nonos_blk_client/src/disks/confirm.rs:26-47`, and `serial_word`, `userland/nonos_blk_client/src/disks/word.rs:28-32`.
+  - Lower case, and Enter waits for the word and the plan: `on_confirm_key`, `userland/capsule_install/src/install/event/confirm.rs:28-69`.
 - What is refused before anything is written
   - Too small: `DiskTooSmall`, `userland/nonos_disk/src/writer/error_text.rs:30-35`, and `needed`, `userland/nonos_disk/src/layout/plan.rs:45-49`.
   - Blocks that are not 512 bytes: `refusal`, `userland/nonos_blk_client/src/disks/describe.rs:52-58`.
-  - Store still loading, no entropy, no driver: `plan_for`, `userland/capsule_install/src/install/job/prepare.rs:36-54`.
+  - Store still loading, no entropy, no driver: `plan_for`, `userland/capsule_install/src/install/job/plan.rs:34-62`.
 - What is written
   - The layout: `nonos_disk_map`, `userland/nonos_disk/src/lib.rs:19-28`; `STORE_BASE_LBA`, `PLAN_LBA` and `DATA_FLOOR`, `userland/nonos_disk_map/src/places.rs:25-44`; `Layout::plan`, `userland/nonos_disk/src/layout/plan.rs:54-71`; `esp_sectors_for`, `userland/nonos_disk/src/layout/plan.rs:39-42`.
   - The ESP's files: `tree`, `userland/nonos_disk/src/image/nonos.rs:49-63`.
   - Loader and kernel read back from the kernel: `mk_install_source`, `userland/capsule_install/src/install/source/load.rs:92-97`.
   - What the store carries, in order: `gather` and `linux_data`, `userland/nonos_disk/src/carry/gather.rs:33-76`.
-  - The store written as given: `block_device::write`, `src/syscall/microkernel/store_write.rs:55`.
-  - Key header cleared, header ring zeroed: `state_jobs`, `userland/nonos_disk/src/session/queue_state.rs:30-42`.
-  - The order of the writes: `queue`, `userland/nonos_disk/src/session/queue.rs:48-62`.
+  - The store written as given: `block_device::write_store`, `src/syscall/microkernel/store_write.rs:61`.
+  - Key header cleared, header ring zeroed: `state_jobs`, `userland/nonos_disk/src/session/queue_state.rs:31-46`.
+  - The order of the writes: `queue`, `userland/nonos_disk/src/session/queue.rs:50-69`.
+- What an update writes
+  - The ESP over the extent the disk has, the table's GUIDs kept: `Plan::keep`, `userland/nonos_disk/src/session/plan_keep.rs:30-47`.
+  - What it writes, in what order, and what it leaves: `keep_queue`, `userland/nonos_disk/src/session/queue_keep.rs:17-72`; nothing outside the ESP and the store: `an_update_writes_nothing_but_the_boot_partition_and_the_store`, `userland/nonos_disk/tests/an_update_writes_the_system_part_alone.rs:39-67`.
+  - Setup's answers from the disk's own store when they check: `DiskAnswers::new`, `userland/nonos_disk/src/keep/source.rs:37-43`.
+  - The table, extents and plan an update needs: `read_table`, `userland/nonos_disk/src/keep/table.rs:38-63`, `header_holds`, `userland/nonos_disk/src/keep/header.rs:33-45`, `placed`, `userland/nonos_disk/src/keep/places.rs:31-46`, and `plan_inside`, `userland/nonos_disk/src/keep/volume.rs:34-52`.
+  - The key header's ways and the handover: `key_state`, `userland/nonos_disk/src/keep/key.rs:52-68`.
+  - The ESP files fitting the ESP there: `for_image`, `userland/nonos_disk/src/keep/fit.rs:29-53`.
 - How long it takes
   - 2 MiB per step: `BUDGET`, `userland/capsule_install/src/install/job/work.rs:61`.
-  - The write time on Done: `seconds`, `userland/capsule_install/src/install/ui/screens/done.rs:49`.
+  - The write time on Done: `seconds`, `userland/capsule_install/src/install/ui/screens/done.rs:48`.
 - After the install
   - The fallback path: `tree`, `userland/nonos_disk/src/image/nonos.rs:49-50`.
   - A USB stick comes before internal disks: `ORDER`, `src/hardware/block_device/select.rs:48`.
