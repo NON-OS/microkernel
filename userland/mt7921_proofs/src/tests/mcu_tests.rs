@@ -19,7 +19,8 @@ pub fn card() -> (Card, crate::model::Shared) {
     let r = regs(&c);
     let mut dma = Dma::map(1, 1).unwrap();
     dma.reset(&r);
-    (Card { regs: r, dma, mcu: Mcu::default(), tokens: Tokens::default(), woken: 0 }, c)
+    let (mcu, tokens) = (Mcu::default(), Tokens::default());
+    (Card { regs: r, dma, mcu, tokens, woken: 0, keyed: false }, c)
 }
 
 #[test]

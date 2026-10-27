@@ -252,6 +252,15 @@ MT7922.
       station picks SAE), then WPA2: the panel reads Joined. Both are proven
       on the host only; say which security the access point ran, and whether
       it is 2.4 or 5 GHz.
+- [ ] Keys: as the join finishes, `[mt7921] pairwise key in the chip` and
+      `[mt7921] group key in the chip`. `pairwise key refused by the
+      firmware` means the station fell back to CCMP in software: report it,
+      and whether DHCP still works (that says whether the chip passes up a
+      protected frame it holds no key for). Joined with both keys in but no
+      lease: the status reply's bad-frames word rising means the chip
+      reports decrypt errors; keep the log. Leave the link up past the
+      access point's group rekey (often an hour): a second `group key in the
+      chip`, and traffic still flowing, is the rekey working.
 - [ ] DHCP: `[NET-CORE] bind: interface up on driver.mt7921e0`, then a
       lease (`[NET-CORE] lease-status state=...`); a page loads in the
       browser. Leave it a few minutes, on battery too: a line `[mt7921]
