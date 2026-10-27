@@ -37,6 +37,10 @@ pub fn mprotect(guest: &mut Guest, addr: u64, len: u64, prot: u64) -> u64 {
         Ok(None) => return errno::ok(0),
         Err(e) => return errno::fail(e),
     };
+    /* A shared file map: never exec, and write only as its descriptor was open. */
+    if let Err(e) = crate::linux::file::shared_maps::protect(guest.pid, start, span, prot) {
+        return errno::fail(e);
+    }
     /*
      * A file mapped without exec was never proved, and making it executable
      * now would run bytes the exec path would have refused. Anonymous memory

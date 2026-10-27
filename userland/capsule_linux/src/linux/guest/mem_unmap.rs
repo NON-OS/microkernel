@@ -41,6 +41,10 @@ impl Guest {
         if maps_full(self.regions.len(), kept.len()) {
             return -errno::ENOMEM;
         }
+        /* A shared file map's changed pages go to its file before they go. */
+        if let Err(e) = crate::linux::file::shared_maps::unmapped(self.pid, start, span) {
+            return -e;
+        }
         let rc = self.drop_frames(start, span);
         if rc < 0 {
             return rc;
