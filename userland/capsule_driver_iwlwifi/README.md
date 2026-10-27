@@ -57,8 +57,7 @@ BE201 run `iwlwifi-gl-c0-fm-c0-92.ucode` and `iwlwifi-bz-b0-fm-c0-92.ucode`
 with theirs, in the BZ family's second CSR layout; the AX201 CNVi runs
 `iwlwifi-Qu-b0-hr-b0-77.ucode`, `-Qu-c0-` or `-QuZ-a0-` by its MAC and step,
 and the AX200 `iwlwifi-cc-a0-77.ucode`, on the 22000 family's own transport
-(version 1 context info). Every file but cc-a0 (an earlier build already in
-the tree) is linux-firmware's at commit bf992df7 (licence: Redistributable,
+(version 1 context info). Every file is linux-firmware's at commit bf992df7 (licence: Redistributable,
 LICENCE.iwlwifi_firmware / `nonos-bootloader/firmware/intel/LICENSE`). Those
 paths are host-proven, never booted on those parts ([firmware](docs/firmware.md),
 and the test plans in `docs/hardware/real-hardware-checklist.md`).
