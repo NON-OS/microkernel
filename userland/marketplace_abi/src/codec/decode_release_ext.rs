@@ -21,13 +21,13 @@ use alloc::vec::Vec;
 use super::error::DecodeError;
 use super::reader::Reader;
 use super::strings::{bounded_bytes, bounded_count};
-use crate::limits::{GUEST_POLICY_LEN, MAX_PROOF_ANCHORS};
+use crate::limits::{guest_policy_fits, GUEST_ARGS_MAX, GUEST_POLICY_LEN, MAX_PROOF_ANCHORS};
 use crate::types::ReleaseExt;
 
 pub(super) fn read(r: &mut Reader<'_>) -> Result<ReleaseExt, DecodeError> {
     let commerce_hash = r.fixed::<32>()?;
-    let guest_policy = bounded_bytes(r, GUEST_POLICY_LEN)?;
-    if !guest_policy.is_empty() && guest_policy.len() != GUEST_POLICY_LEN as usize {
+    let guest_policy = bounded_bytes(r, GUEST_POLICY_LEN + GUEST_ARGS_MAX)?;
+    if !guest_policy_fits(guest_policy.len()) {
         return Err(DecodeError::BadLength);
     }
     let chunk_root = r.fixed::<32>()?;

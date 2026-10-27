@@ -14,8 +14,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """The committed documents under nonos-data/market/catalogue/ are one app
-each and agree with the recipes: the services, the set, the ids under the
-document's own publisher key, free. Run:
+each and agree with the recipes: the services, the set, the listed args, the
+text, the ids under the document's own publisher key, free. Run:
 python3 -m unittest discover -s tools/nonos_market_catalogue -t tools"""
 
 import json
@@ -60,6 +60,7 @@ class Documents(unittest.TestCase):
             self.assertEqual(doc["schema_version"], 4)
             self.assertEqual(int.from_bytes(p[48:56], "little"), recipe["mask"], e["listing_id"])
             self.assertEqual(p[152:217], recipe["calls"], e["listing_id"])
+            self.assertEqual((p[256:], e["description"]), (recipe["args"], recipe["text"]), e["listing_id"])
             self.assertEqual((p[56:88], p[88:120]), (lid, release_id(lid, rel["release_id"])))
             self.assertEqual(e["commerce"]["settle_mode"], "free")
             self.assertEqual(rel["package_hash"], rel["manifest_hash"])

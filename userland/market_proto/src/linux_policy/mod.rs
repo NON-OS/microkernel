@@ -18,13 +18,15 @@
 //! init hands it to capsule_linux's install role in argv m.
 //!
 //! Body: version u8 (2) | kind u8 | package_hash[32] | for KIND_POLICY
-//! only, policy[256] | listing_key[32] | release_key[32]. The package hash is
+//! only, policy[256] | listing_key[32] | release_key[32] | the release's
+//! listed arguments, 0 to MARKET_ARGS_MAX bytes. The package hash is
 //! the release the answer was made from, which init holds to the pin it
 //! was given, so an index replaced between its asks is refused, never mixed.
 //! Any other version, kind or length is refused, so a reply is exactly one
 //! of the three or nothing.
 
 use alloc::boxed::Box;
+use alloc::vec::Vec;
 
 mod body;
 mod parse;
@@ -44,12 +46,15 @@ pub const KIND_POLICY: u8 = 1;
 pub const KIND_REFUSED: u8 = 2;
 /// policy[256] | listing_key[32] | release_key[32], argv m's bytes.
 pub const MARKET_ARG_LEN: usize = 320;
+/// The most bytes of listed arguments after them (nonos_linux_policy::args).
+pub const MARKET_ARGS_MAX: usize = 1024;
 /// version | kind | package_hash.
 pub const LINUX_POLICY_HEAD: usize = 34;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum LinuxPolicy {
     NoPolicy,
-    Policy(Box<[u8; MARKET_ARG_LEN]>),
+    /// argv m's bytes, then the listed arguments, empty for none.
+    Policy(Box<[u8; MARKET_ARG_LEN]>, Vec<u8>),
     Refused,
 }

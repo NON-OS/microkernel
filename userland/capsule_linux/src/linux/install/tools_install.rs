@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `install nonos-<tool>`: an in-tree tool the image does not carry, from
+//! `install nonos-<tool>`: an in-tree tool the image does not carry, or a
+//! source recipe's program (deb:nonos-<tool> in the Debian family), from
 //! the NONOS package mirror this image was built for (NONOS_PACKAGE_MIRROR,
 //! name:port, from nonos.toml's linux_packages). The content is fetched
 //! through the network the person chose, held to the market's pin, and
@@ -50,6 +51,8 @@ pub fn install(tool: &str, pin: &[u8; 32]) -> Result<(), Why> {
     say(b"[LINUX] provenance Verified: the market's pin matches\n");
     // Held to the signed index's pin above, so these are authenticated bytes.
     let files = Verified::checked(content);
+    // A program built for glibc brings the Debian packages its content pins.
+    super::deb::install_needs(&files, tool)?;
     let listing = alloc::format!("{PREFIX}{tool}");
     unpack(&files, &listing, true, false).map(|_| ())
 }
