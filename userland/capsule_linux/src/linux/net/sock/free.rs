@@ -43,7 +43,7 @@ impl Socks {
             return;
         };
         match gone.svc {
-            Some(Backend::Sockets(h)) => super::super::stream::close(h),
+            Some(Backend::Routed(h)) => super::super::routed::close(h),
             /* Unless shutdown closed it already: a stream is closed once. */
             Some(Backend::Anon(mut a)) => {
                 if let Some(c) = a.close() {
