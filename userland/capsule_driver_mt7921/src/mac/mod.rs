@@ -6,6 +6,7 @@
 //! The frame path's formats: what goes with a frame onto ring 0, what
 //! comes with one off ring 2, and the chip's reports in between.
 
+pub mod pick;
 pub mod rate;
 pub mod rxd;
 pub mod tokens;

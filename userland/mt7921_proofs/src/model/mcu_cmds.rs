@@ -26,7 +26,14 @@ impl Chip {
         };
         let (seq, set_query, ext) = (b[39], b[38], if uni { 0 } else { b[41] });
         self.mcu.seen.push(Seen { uni, cid, ext, seq, set_query, body: body.clone() });
-        let ring = if self.mcu.running { 4 } else { 0 };
+        let to_data = uni && cid == 0x27 && self.faults.grant_on_data;
+        let ring = if to_data {
+            2
+        } else if self.mcu.running {
+            4
+        } else {
+            0
+        };
         let out = if uni {
             self.unified(cid as u8, seq, &body)
         } else {

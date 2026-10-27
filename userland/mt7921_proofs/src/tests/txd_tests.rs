@@ -5,7 +5,7 @@
 //! `mt76_connac_write_hw_txp`; and the rates frames go at, by
 //! `mt76_rates` and `mt76_connac2_mac_tx_rate_val`.
 
-use crate::mac::rate::{bitmaps, data_rate, lowest, value};
+use crate::mac::rate::{basic, bitmaps, lowest, value};
 use crate::mac::txd::{txwi, TxSpec};
 
 fn w(b: &[u8], i: usize) -> u32 {
@@ -61,7 +61,7 @@ fn a_fragment_or_a_frame_the_txp_cannot_say_is_refused() {
 }
 
 #[test]
-fn rates_are_the_chips_values_and_data_takes_the_fastest_basic() {
+fn rates_are_the_chips_values_and_basic_ones_are_the_bands_own() {
     assert_eq!(
         (value(2, false), value(22, false), value(12, false), value(108, true)),
         (0, 3, 0x4b, 0x4c)
@@ -70,5 +70,6 @@ fn rates_are_the_chips_values_and_data_takes_the_fastest_basic() {
     let ap = [0x82, 0x84, 0x8b, 0x96, 0x0c, 0x12, 0x18, 0x24];
     assert_eq!(bitmaps(&ap, false), (0xff, 0xf));
     assert_eq!(bitmaps(&[0x8c, 0x98, 0x30], true), (0x15, 0x05));
-    assert_eq!((data_rate(&ap, false), data_rate(&[0x0c, 0x18], true)), (22, 12));
+    assert_eq!((basic(&ap, false), basic(&[0x0c, 0x98], true)), (Some((2, 22)), Some((24, 24))));
+    assert_eq!(basic(&ap, true), None, "no CCK rate is a 5 GHz basic rate");
 }

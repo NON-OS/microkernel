@@ -5,8 +5,10 @@
 
 //! Reading the data ring (ring 2): frames for the station, and the chip's
 //! transmit-free reports, which give tokens back (`mt7921_queue_rx_skb`
-//! sorts the same way). An MCU event that comes this way is counted and
-//! dropped; replies the driver waits on come on the event rings.
+//! sorts the same way). An unasked MCU event that comes this way is taken
+//! as one from the event rings is (Linux hands `PKT_TYPE_RX_EVENT` on any
+//! ring to `mt7921_mcu_rx_event`), so a channel grant here is not lost;
+//! replies the driver waits on come on the event rings.
 
 use alloc::vec::Vec;
 
@@ -42,7 +44,8 @@ impl Mt7921 {
                     }
                     _ => self.count.rx_bad = self.count.rx_bad.wrapping_add(1),
                 },
-                Kind::Event | Kind::Other => {}
+                Kind::Event => c.mcu.note_unasked(b),
+                Kind::Other => {}
             }
         }
         None
