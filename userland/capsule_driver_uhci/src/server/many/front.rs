@@ -36,6 +36,11 @@ pub struct Front<H: Hc> {
     pub bound: [Bind; DEVS],
     /// The children below hubs, parked or claimed (nonos_usb_virt).
     pub virt: Virt,
+    /// The client that enabled each slot, its only user (owners.rs).
+    pub owner: [u32; DEVS],
+    /// Whether a client lives: the kernel's word (mk_pid_alive) once
+    /// setup gives it; until then every client does.
+    pub alive: fn(u32) -> bool,
 }
 
 impl<H: Hc> Front<H> {
@@ -44,6 +49,8 @@ impl<H: Hc> Front<H> {
             hcs: core::array::from_fn(|_| None),
             bound: [Bind::Free; DEVS],
             virt: Virt::default(),
+            owner: [0; DEVS],
+            alive: |_| true,
         }
     }
 
