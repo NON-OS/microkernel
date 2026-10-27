@@ -1,0 +1,42 @@
+diff --git a/Cargo.toml b/Cargo.toml
+index 3ac0b4f..22600f0 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -228,9 +228,9 @@ net-defaults = [
+     "system",
+     "util",
+ 
+-    "p2p-tor",
++    #"p2p-tor",
+     #"p2p-nym",
+-    "p2p-i2p",
++    #"p2p-i2p",
+ ]
+ 
+ p2p-unix = []
+diff --git a/bin/darkirc/Cargo.toml b/bin/darkirc/Cargo.toml
+index 783f6c2..72d9b69 100644
+--- a/bin/darkirc/Cargo.toml
++++ b/bin/darkirc/Cargo.toml
+@@ -10,7 +10,7 @@ repository = "https://codeberg.org/darkrenaissance/darkfi"
+ 
+ [lib]
+ name = "darkirc"
+-crate-type = ["cdylib"]
++crate-type = ["rlib"]
+ path = "src/lib.rs"
+ 
+ [[bin]]
+diff --git a/bin/drk/Cargo.toml b/bin/drk/Cargo.toml
+index b937e4d..654d17c 100644
+--- a/bin/drk/Cargo.toml
++++ b/bin/drk/Cargo.toml
+@@ -26,7 +26,7 @@ num-bigint = "0.4.6"
+ prettytable-rs = "0.10.0"
+ rand = "0.8.5"
+ rodio = {version = "0.20.1", default-features = false, features = ["minimp3"]}
+-rusqlite = {version = "0.32.1", features = ["sqlcipher"]}
++rusqlite = {version = "0.32.1", features = ["bundled-sqlcipher"]}
+ toml = "0.8.22"
+ url = "2.5.4"
+ 
