@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One connection several GETs go out on at once (fetch/window.rs): a route
-//! stream on the network the person chose, reused for the next GET while
-//! its replies leave it fit (http_reply.rs, reusable), or, in a dev-mirror
-//! build only, a socket of this capsule's own to a mirror on the local
-//! network, one per GET (direct.rs says why). Its reads are conn_io.rs.
+//! A connection of a window of GETs (get/window.rs): a route stream on the
+//! network the person chose, reused while its replies leave it fit, or in a
+//! dev-mirror build only a socket of this capsule's own to a mirror on the
+//! local network, one per GET (direct.rs says why). Reads: conn_io.rs.
 
 use nonos_route_link::{Route, RouteStream};
 
@@ -41,14 +40,7 @@ impl Conn {
         }
         #[cfg(feature = "dev-mirror")]
         if is_local(at) {
-            let h = raw::open_stream_to(at).ok_or("no socket")?;
-            return match raw::connect_host(h, at, port) {
-                Some(()) => Ok(Conn::Raw(h)),
-                None => {
-                    raw_io::close(h);
-                    Err("it did not connect")
-                }
-            };
+            return Conn::Raw(raw::open_stream_to(at).ok_or("no socket")?).connected(at, port);
         }
         RouteStream::connect(Route::for_installs(), at, port).map(|s| Conn::Route(Stream(s)))
     }
@@ -63,11 +55,19 @@ impl Conn {
     pub fn ended(&self) -> bool {
         matches!(self, Conn::Route(s) if s.0.ended())
     }
+
+    /// A raw socket connected, or closed by its drop.
+    #[cfg(feature = "dev-mirror")]
+    fn connected(self, at: &str, port: u16) -> Result<Conn, &'static str> {
+        let Conn::Raw(h) = self else { return Ok(self) };
+        raw::connect_host(h, at, port).map(|()| self).ok_or("it did not connect")
+    }
 }
 
 #[cfg(feature = "dev-mirror")]
 impl Drop for Conn {
     fn drop(&mut self) {
+        #[cfg(feature = "dev-mirror")]
         if let Conn::Raw(h) = self {
             raw_io::close(*h);
         }
