@@ -20,6 +20,8 @@
 
 extern crate alloc;
 
+#[path = "../../capsule_driver_uvc/src/alt.rs"]
+pub mod alt;
 #[path = "../../capsule_driver_uvc/src/batch.rs"]
 pub mod batch;
 #[path = "../../capsule_driver_uvc/src/gate.rs"]
@@ -31,6 +33,8 @@ pub mod listing;
 #[path = "../../capsule_driver_uvc/src/wire.rs"]
 pub mod wire;
 
+#[cfg(test)]
+mod alt_tests;
 #[cfg(test)]
 mod bound_tests;
 #[cfg(test)]
