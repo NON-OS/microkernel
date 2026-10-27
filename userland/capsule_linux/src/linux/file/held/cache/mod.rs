@@ -29,11 +29,13 @@
 mod change;
 mod flush;
 mod names;
+mod seen;
 mod table;
 mod take;
 
-pub use change::{resize, write};
+pub use change::put;
 pub use flush::{flush, flush_all};
 pub use names::{bytes, forget, growth, names_in, renamed, unstored};
-pub use table::{held, mtime, size};
+pub use seen::{resize, write};
+pub use table::{held, mtime, size, MAX_FILE};
 pub use take::{hold, hold_emptied, read};

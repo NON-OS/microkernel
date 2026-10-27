@@ -44,9 +44,10 @@ pub(super) fn map_at(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64
     if req.flags & MAP_SHARED != 0 {
         /*
          * Sharing a file between processes needs frames that two address
-         * spaces both point at, which no peer call offers.
+         * spaces both point at, which no peer call offers: the family
+         * serves it instead, each map with its own pages (map_shared.rs).
          */
-        return errno::fail(errno::ENOSYS);
+        return super::map_shared::shared(guest, req, at, span).map_or_else(errno::fail, errno::ok);
     }
     file(guest, req, at, span)
 }

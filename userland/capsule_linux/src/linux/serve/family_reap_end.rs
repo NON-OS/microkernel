@@ -35,6 +35,8 @@ impl Family {
             // Its window goes with it, off the screen and out of the window manager.
             crate::linux::wayland::close_window(&mut gone.scene);
             crate::linux::file::exe_forget(gone.pid);
+            // Its shared file maps go back to their files before its pages go.
+            crate::linux::file::shared_maps::ended(gone.pid);
             let status = gone.exited.unwrap_or(0);
             for tid in gone.threads.iter().chain([gone.pid].iter()) {
                 let rc = mk_kill(*tid as u64, SIGKILL);
