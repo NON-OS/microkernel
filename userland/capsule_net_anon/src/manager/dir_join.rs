@@ -42,7 +42,7 @@ pub fn tick(state: &mut Manager) {
     if state.refreshing {
         return refresh(state, batch.last);
     }
-    state.relays = join(&state.entries, &state.micro);
+    (state.relays, state.exits.ports) = join(&state.entries, &state.micro);
     if draw_path(&state.relays, &state.weights).is_some() {
         trace::say_two(b"directory usable", state.relays.len() as u64, state.entries.len() as u64);
         state.bootstrap = Bootstrap::Ready;
@@ -67,12 +67,12 @@ fn refresh(state: &mut Manager, last: bool) {
         state.bootstrap = Bootstrap::Anchored;
         return;
     };
-    let joined = join(&state.entries, &state.micro);
+    let (joined, ports) = join(&state.entries, &state.micro);
     match refresh_join(last, draw_path(&joined, &next.weights).is_some()) {
         RefreshJoin::Keep => {}
         RefreshJoin::Swap => {
             trace::say_two(b"directory refreshed", joined.len() as u64, state.entries.len() as u64);
-            state.relays = joined;
+            (state.relays, state.exits.ports) = (joined, ports);
             state.weights = next.weights;
             state.valid_after = next.valid_after;
             state.fresh_until = next.fresh_until;
@@ -91,4 +91,3 @@ fn refresh(state: &mut Manager, last: bool) {
         }
     }
 }
-
