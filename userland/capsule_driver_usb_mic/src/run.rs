@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The driver's loop: requests answered, the stream pumped while it runs
 //! (each batch call waits on the one before, which paces it), a
-//! microphone looked for while there is none, and one gone from its port
-//! given back (its stream stopped first).
+//! microphone looked for while there is none, a stream whose client the
+//! kernel says is gone stopped, and a microphone gone from its port given
+//! back (its stream stopped first).
 
 use alloc::vec;
 
@@ -28,7 +29,7 @@ use nonos_usbnet::scan::Scanner;
 use crate::bind::bind;
 use crate::device::Dev;
 use crate::frame::decode;
-use crate::gone::{give_back, gone};
+use crate::gone::{give_back, gone, reap};
 use crate::ops::answer;
 use crate::stream::pump;
 use crate::wire::{HDR_LEN, REPLY_MAX};
@@ -62,6 +63,7 @@ pub fn run() -> ! {
             continue;
         }
         next = Deadline::after_ms(SEARCH_MS);
+        reap(&mut d);
         if gone(&d) {
             give_back(&mut d, &mut scanner);
         }
