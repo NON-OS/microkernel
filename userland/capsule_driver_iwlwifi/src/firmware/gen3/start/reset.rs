@@ -19,7 +19,7 @@ pub(super) fn set<M: Mmio>(m: &M, reg: usize, bits: u32) {
 /// The software reset, then its settle time (5-6 ms on V1, 10-20 ms on V2).
 pub fn sw_reset<M: Mmio, C: Clock>(m: &M, c: &mut C, csr: CsrLayout) {
     let (reg, bit, settle_us) = match csr {
-        CsrLayout::V1 => (CSR_RESET, RESET_SW_RESET, 6000),
+        CsrLayout::V1 | CsrLayout::Gen2 => (CSR_RESET, RESET_SW_RESET, 6000),
         CsrLayout::V2 => (CSR_GP_CNTRL, GP_SW_RESET, 20_000),
     };
     set(m, reg, bit);
@@ -30,7 +30,7 @@ pub fn sw_reset<M: Mmio, C: Clock>(m: &M, c: &mut C, csr: CsrLayout) {
 /// Linux; a millisecond here). V2 then settles 10-20 ms, as Linux does.
 pub fn stop_master<M: Mmio, C: Clock>(m: &M, c: &mut C, csr: CsrLayout) -> bool {
     match csr {
-        CsrLayout::V1 => {
+        CsrLayout::V1 | CsrLayout::Gen2 => {
             set(m, CSR_RESET, RESET_STOP_MASTER);
             c.poll_for(STOP_MASTER_MS, &mut || m.read32(CSR_RESET) & RESET_MASTER_DISABLED != 0)
         }

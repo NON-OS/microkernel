@@ -27,10 +27,18 @@ const MA: Transport = V1;
 const BZ: Transport = Transport { csr: CsrLayout::V2, ..SO_LONG };
 /// `iwl_gl_trans_cfg`: the discrete BE200, no LTR delay.
 const GL: Transport = Transport { integrated: false, ltr_delay: 0, ..BZ };
+/// cfg/22000.c `iwl_qu_trans_cfg`: the CNVi, crystal 500, LTR delay 200 us;
+/// `iwl_qu_medium_latency_trans_cfg`: 1820 and 1820 us (3);
+/// `iwl_qu_long_latency_trans_cfg`: 12000, low latency, 2500 us;
+/// `iwl_ax200_trans_cfg`: discrete, nothing set.
+const QU: Transport = Transport { csr: CsrLayout::Gen2, ..SO };
+const QU_MEDIUM: Transport = Transport { ltr_delay: 3, xtal_latency: 1820, ..QU };
+const QU_LONG: Transport = Transport { csr: CsrLayout::Gen2, ..SO_LONG };
+const AX200: Transport = Transport { integrated: false, csr: CsrLayout::Gen2, ..V1 };
 
-/// The transport for a PCI device ID, or `None` for one outside the AX210
-/// and BZ families. Linux takes 0xA840 only with listed subsystem ids; any
-/// is taken here, the MAC and RF then deciding.
+/// The transport for a PCI device ID, or `None` for one outside the 22000,
+/// AX210 and BZ families. Linux takes 0xA840 only with listed subsystem
+/// ids; any is taken here, the MAC and RF then deciding.
 pub fn transport(pci_device: u16) -> Option<Transport> {
     match pci_device {
         0x7AF0 | 0x7F70 => Some(SO),
@@ -40,6 +48,10 @@ pub fn transport(pci_device: u16) -> Option<Transport> {
         0x2729 | 0x7E40 => Some(MA),
         0x272B => Some(GL),
         0xA840 | 0x7740 | 0x4D40 => Some(BZ),
+        0x02F0 | 0x06F0 => Some(QU),
+        0x34F0 | 0x3DF0 | 0x4DF0 => Some(QU_MEDIUM),
+        0x43F0 | 0xA0F0 => Some(QU_LONG),
+        0x2723 => Some(AX200),
         _ => None,
     }
 }

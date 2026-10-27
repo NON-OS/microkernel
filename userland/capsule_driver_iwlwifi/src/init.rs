@@ -19,7 +19,7 @@ use crate::regs::Regs;
 /// Linux's `iwl_finish_nic_init` does there.
 pub fn bring_up(regs: Regs, csr: CsrLayout) -> Result<(), &'static str> {
     let ready = match csr {
-        CsrLayout::V1 => {
+        CsrLayout::V1 | CsrLayout::Gen2 => {
             regs.set_bits(CSR_GP_CNTRL, GP_CNTRL_XTAL_ON);
             regs.set_bits(CSR_GP_CNTRL, GP_CNTRL_MAC_ACCESS_REQ | GP_CNTRL_INIT_DONE);
             GP_CNTRL_MAC_CLOCK_READY

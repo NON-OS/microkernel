@@ -29,19 +29,18 @@
 use super::alive::{parse as parse_alive, Alive, UCODE_ALIVE_NTFY};
 use super::cmds::{LEGACY_GROUP, LONG_GROUP};
 use super::dev::{Dev, Flow, WaitError};
-use super::layout::{lay_out, Board, LayoutError, Memory};
+use super::layout::{Board, LayoutError, Memory};
 use super::packet::Packet;
-use super::plan::{CTXT_INFO, IML};
 use super::region::{Clock, Region};
 use super::regs::{CSR_INT, CSR_MSIX_HW_INT_CAUSES_AD, INT_BIT_ALIVE, MSIX_HW_ALIVE};
-use super::start::{
-    after_kick, before_kick, enable_alive_int, mask_interrupts, start_hw, StartError,
-};
+use super::start::{mask_interrupts, StartError};
 use super::ucode::Ucode;
-use super::{kick, FwLayout};
+use super::FwLayout;
 use crate::regs::Mmio;
+use kick::start_and_kick;
 use pnvm_step::pnvm_step;
 
+mod kick;
 mod pnvm_step;
 
 pub const ALIVE_MS: u32 = 2000;
@@ -77,14 +76,8 @@ pub fn boot<M: Mmio, R: Region + ?Sized, C: Clock>(
     ucode: &Ucode<'_>,
     board: &Board,
 ) -> Result<Alive, BootError> {
-    let (m, csr) = (dev.m, dev.csr);
-    start_hw(m, c, csr).map_err(BootError::Start)?;
-    before_kick(m, c, csr).map_err(BootError::Start)?;
-    lay_out(mem, fw, ucode.iml, board, &mut dev.rxq, &mut dev.cmdq).map_err(BootError::Layout)?;
-    enable_alive_int(m);
-    let base = mem.ctrl.dev();
-    kick(m, base + CTXT_INFO as u64, base + IML as u64, ucode.iml.len() as u32);
-    after_kick(m, c, csr, board.discrete).map_err(BootError::Start)?;
+    let m = dev.m;
+    start_and_kick(dev, c, mem, fw, ucode, board)?;
 
     let mut cause = || {
         m.read32(CSR_INT) & INT_BIT_ALIVE != 0
