@@ -52,7 +52,7 @@ pub(super) fn install(listing: &str, release: &str) {
             } else {
                 b"[LINUX-INSTALL] started "
             });
-            l.str(listing.as_bytes()).end();
+            l.app(listing.as_bytes()).end();
         }
         Err(e) => {
             // Which preflight check refused the installer, not only that one did.
@@ -64,5 +64,5 @@ pub(super) fn install(listing: &str, release: &str) {
 
 fn refuse(listing: &str, said: &[u8]) {
     super::status::set(listing, Stage::Refused);
-    Line::new().str(said).str(listing.as_bytes()).end();
+    Line::new().str(said).app(listing.as_bytes()).end();
 }
