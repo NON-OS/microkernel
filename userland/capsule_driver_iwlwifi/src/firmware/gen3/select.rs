@@ -35,6 +35,7 @@ use super::csr::CsrLayout;
 
 pub mod bz_step;
 mod ids;
+mod qu;
 mod refusal;
 mod transports;
 
@@ -62,6 +63,12 @@ pub enum Image {
     BzFm,
     /// iwlwifi-ma-b0-gf4-a0-86.ucode (Meteor Lake with a dual-radio GF4).
     MaGf4,
+    /// iwlwifi-Qu-b0-hr-b0-77.ucode, -Qu-c0-hr-b0-77, -QuZ-a0-hr-b0-77 (the
+    /// AX201 CNVi of Ice, Comet, Tiger and Jasper Lake) and -cc-a0-77 (AX200).
+    QuB0Hr,
+    QuC0Hr,
+    QuZHr,
+    CcHr,
 }
 
 /// The transport values for one PCI device.
@@ -94,6 +101,9 @@ fn fm(hw_rev: u32, rf_id: u32, want: u8, image: Image) -> Result<Image, Refusal>
 /// other family than its PCI device's is refused.
 pub fn select(pci_device: u16, hw_rev: u32, rf_id: u32) -> Result<(Image, Transport), Refusal> {
     let t = transport(pci_device).ok_or(Refusal::NotSoDevice(pci_device))?;
+    if t.csr == CsrLayout::Gen2 {
+        return qu::qu_image(pci_device, hw_rev, rf_id).map(|image| (image, t));
+    }
     let mac = mac_type(hw_rev);
     let rf = rf_type(rf_id);
     let cdb = rf_is_cdb(rf_id);

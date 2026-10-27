@@ -41,7 +41,7 @@ impl Sweep {
         on_frame: &mut dyn FnMut(RxFrame),
     ) -> Result<Tick, ScanError> {
         let uid = self.next_uid;
-        let req = request(channels, uid).ok_or(ScanError::NoChannels)?;
+        let req = request(channels, uid, dev.speaks.scan).ok_or(ScanError::NoChannels)?;
         (self.uid, self.next_uid) = (uid, (uid + 1) % SCAN_UIDS);
         let status = Cell::new(None);
         let frames = &mut self.frames;

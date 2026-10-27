@@ -24,7 +24,7 @@ impl Bss {
         fw: &mut Fw<'_, '_, M, R, C>,
     ) -> Result<(), SetupError> {
         let ch = self.target.channel;
-        fw.command(LONG_GROUP, PHY_CONTEXT_CMD, &phy_context(ACTION_ADD, ch, fw.dev.cdb))?;
+        fw.command(LONG_GROUP, PHY_CONTEXT_CMD, &phy_context(ACTION_ADD, ch, fw.dev.speaks.cdb))?;
         self.stage = Stage::Phy;
         fw.command(DATA_PATH_GROUP, RLC_CONFIG_CMD, &rlc_config(self.rx_ant))?;
         // Before association the link has no ERP state yet (Linux's

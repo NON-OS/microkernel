@@ -29,9 +29,9 @@ fn an_adapter_with_no_routed_intx_line_is_still_found() {
 
 #[test]
 fn a_part_this_driver_cannot_run_is_not_claimed() {
-    // W4: 7265, 8265, 9260, 9560, AX200 and AX201 outside the SO platforms.
-    // Each is still named at discovery (`announce`).
-    for device in [0x095Au16, 0x24FD, 0x2526, 0x9DF0, 0x2723, 0xA0F0] {
+    // W4: 7265, 8265, 9260 and 9560. Each is still named at discovery
+    // (`announce`), and given up on (`verdict`).
+    for device in [0x095Au16, 0x24FD, 0x2526, 0x9DF0] {
         assert!(!is_supported_adapter(&Candidate { device, ..ax210() }), "{device:#06x}");
     }
 }

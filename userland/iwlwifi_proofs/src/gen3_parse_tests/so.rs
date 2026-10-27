@@ -17,5 +17,5 @@ fn each_so_platform_gets_its_transport_values() {
         (2, 12000, true, false)
     );
     assert!(transport(0x7A70).unwrap().imr_enabled && transport(0x51F1).unwrap().imr_enabled);
-    assert!(transport(0x2723).is_none());
+    assert!(transport(0x2526).is_none(), "a 9260 has no transport here");
 }

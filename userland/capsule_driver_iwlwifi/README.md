@@ -5,8 +5,10 @@
 `capsule_driver_iwlwifi` is the Intel Wi-Fi PCIe hardware capsule. It owns the
 Intel wireless device claim, BAR0 mapping, interrupt grant, DMA grants,
 firmware selection and load, and, on the SO platforms (AX211, and AX201 on an
-SO platform), the discrete AX210 (8086:2725), Meteor Lake (8086:7E40, 2729)
-and the Wi-Fi 7 BE200 (8086:272B) and BE201 (8086:A840, 7740, 4D40), the
+SO platform), the discrete AX210 (8086:2725), Meteor Lake (8086:7E40, 2729),
+the 22000 family (the AX200, 8086:2723, and the AX201 CNVi on Ice, Comet,
+Tiger and Jasper Lake, 8086:02F0, 06F0, 34F0, 3DF0, 4DF0, 43F0, A0F0) and
+the Wi-Fi 7 BE200 (8086:272B) and BE201 (8086:A840, 7740, 4D40), the
 firmware bring-up, passive scanning, joining WPA2 and WPA3
 networks and carrying their data for `driver.iwlwifi0`.
 
@@ -42,16 +44,21 @@ This slice does not implement open networks, hidden networks, HT, VHT or HE
 rates, rate scaling (data goes at the highest basic rate), QoS (WMM),
 aggregation, power save beyond Linux's balanced scheme, active scanning,
 6 GHz channels, regulatory updates beyond the world domain,
-interrupt-driven operation, monitor mode, AP mode, or roaming. The 7265, 8265,
-9260/9560 and AX200 parts, and AX201 outside the SO platforms, do not get a
-radio from this driver yet.
+interrupt-driven operation, monitor mode, AP mode, or roaming. The 7000,
+8000 and 9000 families (7265, 8265, 9260, 9461/9462/9560, including a 9560
+module on a Qu or QuZ CNVi) do not get a radio from this driver yet; such a
+card gives up by name (`[iwlwifi] pci 8086:<id> <what>: present, not run by
+this driver; given up`, status 6), or at step 4 for a JF radio on a Qu id.
 
 The discrete AX210 and Meteor Lake run linux-firmware's
 `iwlwifi-ty-a0-gf-a0-86.ucode` and `iwlwifi-ma-b0-gf-a0-86.ucode` (or
 `-gf4-a0-86` for a dual-radio module) with their `.pnvm` files; the BE200 and
 BE201 run `iwlwifi-gl-c0-fm-c0-92.ucode` and `iwlwifi-bz-b0-fm-c0-92.ucode`
-with theirs, in the BZ family's second CSR layout. Every file is
-linux-firmware's at commit bf992df7 (licence: Redistributable,
+with theirs, in the BZ family's second CSR layout; the AX201 CNVi runs
+`iwlwifi-Qu-b0-hr-b0-77.ucode`, `-Qu-c0-` or `-QuZ-a0-` by its MAC and step,
+and the AX200 `iwlwifi-cc-a0-77.ucode`, on the 22000 family's own transport
+(version 1 context info). Every file but cc-a0 (an earlier build already in
+the tree) is linux-firmware's at commit bf992df7 (licence: Redistributable,
 LICENCE.iwlwifi_firmware / `nonos-bootloader/firmware/intel/LICENSE`). Those
 paths are host-proven, never booted on those parts ([firmware](docs/firmware.md),
 and the test plans in `docs/hardware/real-hardware-checklist.md`).

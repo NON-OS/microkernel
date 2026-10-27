@@ -23,6 +23,7 @@ use crate::firmware::gen3::outcome::Failure;
 use crate::firmware::gen3::regs::{CSR_HW_REV, CSR_HW_RF_ID, CSR_MSIX_HW_INT_MASK_AD};
 use crate::firmware::gen3::select::{bz_mac_step, mac_type, select, transport, MAC_BZ};
 use crate::firmware::gen3::select::{Image, Refusal, Transport};
+use crate::firmware::gen3::start::gen2::start_hw_gen2;
 use crate::firmware::gen3::start::{start_hw, StartError};
 
 use super::super::clock::Uptime;
@@ -47,7 +48,11 @@ pub(super) fn identify(d: &Driver, ids: &mut Seen) -> Result<(Image, Transport),
     if ids.hw_rev == u32::MAX {
         return Err(Failure::DeadMmio);
     }
-    start_hw(&m, &mut c, t.csr).map_err(Failure::Start)?;
+    let woke = match t.csr {
+        CsrLayout::Gen2 => start_hw_gen2(&m, &mut c, t.integrated, !t.integrated),
+        CsrLayout::V1 | CsrLayout::V2 => start_hw(&m, &mut c, t.csr),
+    };
+    woke.map_err(Failure::Start)?;
     ids.rf_id = m.read32(CSR_HW_RF_ID);
     // A Bz MAC's step is the CNVi's, ORed into hw_rev as Linux does.
     if mac_type(ids.hw_rev) == MAC_BZ && t.csr == CsrLayout::V2 {

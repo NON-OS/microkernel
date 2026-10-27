@@ -1,7 +1,16 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 
-//! The AX210- and BZ-family files, linked in from
-//! `nonos-bootloader/firmware/intel/` (provenance in `blob`).
+//! The files, linked in from `nonos-bootloader/firmware/intel/`
+//! (provenance in `blob`).
+
+pub(super) const QU_B_HR: &[u8] =
+    include_bytes!("../../../../../nonos-bootloader/firmware/intel/iwlwifi-Qu-b0-hr-b0-77.ucode");
+pub(super) const QU_C_HR: &[u8] =
+    include_bytes!("../../../../../nonos-bootloader/firmware/intel/iwlwifi-Qu-c0-hr-b0-77.ucode");
+pub(super) const QUZ_HR: &[u8] =
+    include_bytes!("../../../../../nonos-bootloader/firmware/intel/iwlwifi-QuZ-a0-hr-b0-77.ucode");
+pub(super) const CC: &[u8] =
+    include_bytes!("../../../../../nonos-bootloader/firmware/intel/iwlwifi-cc-a0-77.ucode");
 
 pub(super) const SO_GF: &[u8] =
     include_bytes!("../../../../../nonos-bootloader/firmware/intel/iwlwifi-so-a0-gf-a0-86.ucode");

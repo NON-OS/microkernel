@@ -2459,6 +2459,7 @@
    ".cargo",
    "nonos-bootloader/firmware/intel/iwlwifi-bz-b0-fm-c0-92.ucode",
    "nonos-bootloader/firmware/intel/iwlwifi-bz-b0-fm-c0.pnvm",
+   "nonos-bootloader/firmware/intel/iwlwifi-cc-a0-77.ucode",
    "nonos-bootloader/firmware/intel/iwlwifi-gl-c0-fm-c0-92.ucode",
    "nonos-bootloader/firmware/intel/iwlwifi-gl-c0-fm-c0.pnvm",
    "nonos-bootloader/firmware/intel/iwlwifi-ma-b0-gf-a0-86.ucode",

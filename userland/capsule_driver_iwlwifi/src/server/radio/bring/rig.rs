@@ -18,7 +18,6 @@
 //! same regions: the device was told their addresses, so they live as long
 //! as the capsule does, and a restart reuses them rather than map more.
 
-use crate::firmware::gen3::cmds::CAPA_CDB_SUPPORT;
 use crate::firmware::gen3::dev::Dev;
 use crate::firmware::gen3::layout::{Board, Memory};
 use crate::firmware::gen3::outcome::Failure;
@@ -43,7 +42,6 @@ pub struct Rig {
 /// boot lays the control region out again).
 pub fn boot_rig(rig: &'static Rig) -> Result<Dev<'static, Regs, Grant>, Failure> {
     let mut dev = Dev::new(rig.regs, rig.mem.ctrl, rig.mem.rbs).with_csr(rig.transport.csr);
-    dev.cdb = rig.ucode.capa(CAPA_CDB_SUPPORT);
     boot_alive(&mut dev, &rig.mem, &rig.fw, &rig.ucode, &rig.board)?;
     Ok(dev)
 }

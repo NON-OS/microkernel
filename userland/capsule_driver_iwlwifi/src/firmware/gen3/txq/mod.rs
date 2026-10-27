@@ -32,7 +32,8 @@
 //! fetch chunks (`DIV_ROUND_UP(2 + 10 * buffers, 64) - 1`) in bits 14-15, and
 //! the doorbell is `HBUS_TARG_WRPTR = write_ptr | queue << 16`, the write
 //! pointer running over 16 bits (`max_tfd_queue_size` 65536) and the
-//! descriptor index being it modulo the ring.
+//! descriptor index being it modulo the ring. The 22000 family differs in
+//! the command, the byte count entry (`head`) and an 8-bit write pointer.
 //!
 //! The firmware answers each frame with a TX response naming the queue and
 //! the next index it has not finished (`ssn`); the slots before it are free
@@ -43,6 +44,7 @@
 
 pub mod answered;
 pub mod area;
+mod head;
 mod layout;
 mod queue;
 mod send;
