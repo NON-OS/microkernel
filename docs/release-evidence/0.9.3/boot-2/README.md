@@ -43,7 +43,12 @@ asks.
   calls and an mmap (minisign-3.png top). The kernel's line reads
   `Segmentation fault: user process accessed invalid address [ADDR]`, with
   the address redacted. Open.
-- **radare2.** Its install bound the policy with no refusal, then:
+- **radare2.** Corrected 2026-10-27: the first refusal below was the
+  driver's fault, not radare2's. serial.log shows `linux radare2` started
+  (line 7127) before its install ended (`[LINUX] installed`, line 7817), so
+  its program was still held. That refusal is correct. Its words now say
+  "still being installed" (f1f7190aeb). The libr_io line is still open.
+  As first written:
   - `linux radare2 -q -c iI /bin/busybox`: `/usr/bin/radare2 does not run:
     its proof was refused (its policy is not vouched for)`
     (radare2-1.png);
