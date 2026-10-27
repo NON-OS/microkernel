@@ -45,7 +45,9 @@ pub fn sys_stdout_write(user_ptr: u64, len: u64) -> i64 {
     if crate::usercopy::copy_from_user(user_ptr, &mut buf[..len]).is_err() {
         return ERRNO_FAULT;
     }
-    if crate::syscall::caps::current_caps_or_default().can_debug() {
+    // As MkDebug: on serial only in a build with capsule serial output.
+    let debug = crate::syscall::caps::current_caps_or_default().can_debug();
+    if debug && cfg!(feature = "capsule-serial-debug") {
         crate::sys::serial::passthrough(&buf[..len]);
     }
     super::debug::mirror_to_proc_inbox(&buf[..len]);
