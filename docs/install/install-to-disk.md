@@ -6,7 +6,7 @@ Put NONOS on a disk in this computer: how the installer picks the disk, what it 
 
 The installer is `capsule_install`. It writes the system this machine is running onto a disk you name, with its package [store](../overview/glossary-linux-personality.md#store) and an encrypted [data volume](../overview/glossary-claim-epoch.md#data-volume). There are three ways in:
 
-- Boot the stick and choose `Install NØNOS` in the boot menu. Setup opens with Install chosen on its Mode step. When you finish the Review step, the installer takes the whole screen, with no desktop behind it. If an earlier boot of the stick kept its answers, setup does not run and the installer opens at once.
+- Boot the stick and choose `Install NØNOS` in the boot menu. Setup opens with Install chosen on its Mode step. When you finish the Review step, the installer takes the whole screen, with no desktop behind it. If the stick kept its answers under an earlier release, setup does not run and the installer opens at once.
 - Choose `Install to this computer` on setup's Mode step, on any boot that runs setup.
 - From the desktop, open the Install tile on the dock. The installer then runs in a window.
 
