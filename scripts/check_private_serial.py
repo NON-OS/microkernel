@@ -19,8 +19,10 @@ kernel paths that copy a process's own bytes to serial, MkDebug, StdoutWrite
 and the fd stdio path, are each held behind that feature, and a process is
 named on a line only through `Line::who`, which shows a Linux guest only as
 "foreign" there (src/sys/serial/who.rs). This check fails a copy of process
-bytes to serial outside those paths or not behind the feature, and a raw
-process name written into a line.
+bytes to serial outside those paths or not behind the feature, a raw
+process name written into a line, and an app's listing or package name
+written into a line other than through `Line::app`, which names it only
+with capsule serial output: an app's name says what the person does.
 """
 
 import argparse
@@ -37,6 +39,7 @@ BYTES: dict = {"src/arch/x86_64/diag/fatal_notice.rs": "the kernel's own fatal n
 GATE = "capsule-serial-debug"
 COPY = re.compile(r"serial::(passthrough|core::write_byte)\s*\(")
 NAME = re.compile(r"\.str\([^;]*?(\.name\.lock\(\)|\bpcb\.name\(\))")
+APP = re.compile(r"\.str\(\s*&?\s*(listing|package|pkg)\b|println\([^;]*format!\([^;]*\{(listing|package|pkg)\b")
 
 
 def problems(sources: dict) -> list:
@@ -55,6 +58,8 @@ def problems(sources: dict) -> list:
                 out.append(f"{path}: a copy to serial not behind {GATE}")
         for m in NAME.finditer(text):
             out.append(f"{path}: a process name written raw into a line; use Line::who")
+        for m in APP.finditer(text):
+            out.append(f"{path}: an app's name written raw into a line; use Line::app")
     out += [f"{p}: listed but copies nothing to serial" for p in (*COPIES, *BYTES) if p in sources
             and not COPY.search(sources[p])]
     return out
@@ -68,7 +73,10 @@ CASES = [("as built", lambda s: s, 0),
          ("a raw name", lambda s: {**s, "src/x.rs": "fn f(l: &mut Line, p: &P) { l.str(p.name.lock().as_bytes()); }"}, 1),
          ("a raw pcb.name()", lambda s: {**s, "src/x.rs": "fn f(l: &mut Line, pcb: &P) { l.str(pcb.name().as_bytes()); }"}, 1),
          ("a profile name", lambda s: {**s, "src/x.rs": "fn f(l: &mut Line, p: &P) { l.str(p.name().as_bytes()); }"}, 0),
-         ("a name through who", lambda s: {**s, "src/x.rs": "fn f(l: &mut Line, p: &P) { l.who(p.name.lock().as_bytes()); }"}, 0)]
+         ("a name through who", lambda s: {**s, "src/x.rs": "fn f(l: &mut Line, p: &P) { l.who(p.name.lock().as_bytes()); }"}, 0),
+         ("a raw listing", lambda s: {**s, "src/x.rs": "fn f(l: &mut Line, listing: &str) { l.str(listing.as_bytes()); }"}, 1),
+         ("a formatted package", lambda s: {**s, "src/x.rs": 'fn f(package: &str) { println(alloc::format!("[X] {package}").as_bytes()); }'}, 1),
+         ("a listing through app", lambda s: {**s, "src/x.rs": "fn f(l: &mut Line, listing: &str) { l.app(listing.as_bytes()); }"}, 0)]
 
 
 def main() -> int:
