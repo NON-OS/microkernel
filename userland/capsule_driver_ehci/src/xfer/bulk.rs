@@ -17,17 +17,16 @@
 //! A bulk endpoint on its slot's own bulk QH in the async ring: one qTD a
 //! transfer, the controller cutting it into packets of the QH's size; the
 //! toggle is the QH's, kept across transfers. A short IN packet ends the
-//! qTD. bulk_run.rs runs one transfer and resets the QH.
+//! qTD. bulk_run.rs sets the QHs, runs one transfer and resets the QH.
 
 use super::failed::{failed, CtrlError};
-use crate::env::{Clock, Mem, Regs};
+use crate::env::Mem;
 use crate::facts::qtd::{PID_IN, PID_OUT};
 use crate::sched::layout::qh;
 use crate::sched::link::Link;
-use crate::sched::qh::chars;
 use crate::sched::qtd::{moved, write, Qtd};
 use crate::sched::queue::{start, Ran};
-use crate::sched::take::{clear_halt, take_back};
+use crate::sched::take::clear_halt;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct BulkEp {
@@ -37,12 +36,6 @@ pub struct BulkEp {
     /// The QH's ring index.
     pub ring: usize,
     pub link: Link,
-}
-
-/// The QH set for the endpoint, DATA0 next: taken from the ring for it.
-pub fn configure<M: Mem, R: Regs, C: Clock>(mrc: (&M, &mut R, &C), op: u32, ep: &BulkEp) {
-    let ch = ep.link.chars(chars(ep.addr, ep.ep, ep.mps, false), false);
-    take_back(mrc, op, ep.ring, false, Some((ch, ep.link.caps(false))));
 }
 
 /// One qTD of `len` bytes at `buf`, written at `qtd` and handed over.

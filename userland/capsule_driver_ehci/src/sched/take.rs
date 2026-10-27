@@ -15,44 +15,45 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Taking a QH back. An async QH is unlinked from the ring, the async
-//! advance doorbell rung so the controller holds no copy of it, then its
-//! overlay is emptied (or its characteristics rewritten) and it is linked
-//! back. A periodic QH loses its micro-frame mask and a frame passes. A
-//! halted QH is skipped by the controller, so it is emptied at once.
+//! advance doorbell rung so the controller holds no copy of it
+//! (advance.rs), then its overlay is emptied (or its characteristics
+//! rewritten) and it is linked back; one the controller may still hold is
+//! linked back untouched. A periodic QH loses its micro-frame mask and a
+//! frame passes. A halted QH is skipped by the controller, so it is
+//! emptied at once.
 
+use super::advance::{doorbell, Advance, Dead};
 use super::layout::{qh, ring_prev};
 use super::qh::{empty, qh_link};
 use crate::env::{until, Clock, Mem, Regs};
-use crate::facts::bounds::DOORBELL_MS;
-use crate::facts::regs::{CMD_IAAD, FRINDEX, STS_IAA, USBCMD, USBSTS};
-
-/// Ring the async advance doorbell and see it answered.
-pub fn doorbell<R: Regs, C: Clock>(r: &mut R, c: &C, op: u32) {
-    r.w32(op + USBSTS, STS_IAA);
-    let cmd = r.r32(op + USBCMD);
-    r.w32(op + USBCMD, cmd | CMD_IAAD);
-    until(c, DOORBELL_MS, || r.r32(op + USBSTS) & STS_IAA != 0);
-    r.w32(op + USBSTS, STS_IAA);
-}
+use crate::facts::regs::FRINDEX;
 
 /// Ring QH `i` taken back: emptied (the toggle kept or reset) and, when
 /// characteristics and capabilities are given, set for another endpoint.
+/// Err once the doorbell went unanswered; the QH is rewritten only on a
+/// controller that answered it or was seen to halt.
 pub fn take_back<M: Mem, R: Regs, C: Clock>(
     (m, r, c): (&M, &mut R, &C),
     op: u32,
     i: usize,
     keep_dt: bool,
     set: Option<(u32, u32)>,
-) {
+) -> Result<(), Dead> {
     let (this, prev) = (qh(i), ring_prev(i));
     m.wr(prev, m.rd(this));
-    doorbell(r, c, op);
-    if let Some((ch, caps)) = set {
-        m.wr(this + 4, ch);
-        m.wr(this + 8, caps);
+    let advance = doorbell(r, c, op);
+    if advance != Advance::Wedged {
+        if let Some((ch, caps)) = set {
+            m.wr(this + 4, ch);
+            m.wr(this + 8, caps);
+        }
+        empty(m, this, keep_dt);
     }
-    empty(m, this, keep_dt);
     m.wr(prev, qh_link(m, this));
+    match advance {
+        Advance::Seen => Ok(()),
+        _ => Err(Dead),
+    }
 }
 
 /// A periodic QH stopped: no micro-frame mask, a frame let pass (FRINDEX
