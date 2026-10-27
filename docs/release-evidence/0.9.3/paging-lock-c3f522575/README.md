@@ -31,6 +31,8 @@ Terminal.
 - `desktop.png`, `terminal.png`: the desktop, and the Terminal open on
   0.9.3 at 4m 48s.
 
-Not here yet: the 8-CPU lane, and a run of Linux guests under the new peer
-locks. The owner's local session runs the same lanes on its machine and
-pushes them to `evidence/s1-lock`.
+The 8-CPU lanes and a run of Linux guests under the new peer locks are in
+[s1-lock](../s1-lock/README.md), booted by the owner's local session: six
+lanes to the desktop and a Monero install and run, 0 `[LOCK]` and
+0 `unanswered` in all of them. Its pre-fix contrast boot ran a different
+workload, so it says little about the six lines above.
