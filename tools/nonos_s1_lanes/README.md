@@ -9,7 +9,7 @@ what a pass looks like. Run with the Intel IOMMU lane, as every S1 lane is:
 
 | Lane | Extra QEMU lanes | What it shows | A pass |
 |---|---|---|---|
-| `coherence.steps` | none | A file mapped MAP_SHARED, as LMDB does: a write() seen through a read map, a write through a writable map seen by read(), both kept for the next run | the Terminal (`coherence.png`, `next-run.png`) shows `P map_ro ok`, `P seen HELLO BEYOND`, `P over refused`, `P map_rw ok`, `P read_sees WORLD`, `P msync 0 munmap 0`, `P exec_shared refused`, then `P next_run HELLO WORLD BEYOND size 9006` |
+| `coherence.steps` | none | A file mapped MAP_SHARED, as LMDB does: a write() seen through a read map, a write through a writable map seen by read(), both kept for the next run | the Terminal (`coherence.png`, `next-run.png`) shows `P ro ok`, `P seen HELLO BEYOND`, `P over refused`, `P rw ok`, `P read WORLD`, `P msync 0 unmap 0`, `P exec refused`, then `P next_run HELLO WORLD BEYOND size 9006`; the typed line stays under the Terminal's input limit |
 | `monero.steps` | needs the network: the dev relay, or a machine whose QEMU user net reaches the internet | Monero's ring database (LMDB, mapped shared): a ring set in one run of the wallet and printed in the next | no "Failed to initialize ring database"; `print_ring` shows the ring in both runs; `/root/.shared-ringdb` holds `data.mdb` and `lock.mdb` |
 | `group.steps` | `--lane hda-beside-nic --lane nic=e1000e` | Two vendor drivers' devices in one isolation group, as the HP's Wi-Fi sits beside its NVMe disk | serial shows `[VT-D] shared: ... each in its own domain`, and both the HDA and the e1000e drivers come up; a hardened boot shows `[VT-D] refused:` instead |
 
