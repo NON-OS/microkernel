@@ -28,6 +28,9 @@ pub struct Pkg {
     /// What it needs installed with it, from its `D:` line: package names
     /// and `so:` libraries, version constraints dropped.
     pub depends: Vec<String>,
+    /// Which branch's index listed it (run.rs BRANCHES), so it is fetched
+    /// from there and nowhere else.
+    pub branch: usize,
 }
 
 impl Pkg {
