@@ -4,17 +4,19 @@
 //! ids are Linux v6.12 `rtw89/rtw8852be.c`'s `rtw89_8852be_id_table`
 //! (10ec:b852, 10ec:b85b). The registers are in a memory BAR that is not
 //! BAR0 (`pci.c`, `rtw89_pci_setup_mapping`, maps bar_id 2), so the first
-//! memory BAR is taken by scanning, and one too small for the PHY's window
-//! (`phy::CR_BASE` plus the RF pages) is refused.
+//! memory BAR is taken by scanning, and one too small for the highest
+//! register the driver writes is refused.
 
 use nonos_libc::{mk_device_list, DeviceRecord, BAR_KIND_MMIO, BUS_KIND_PCI};
 
 pub const PCI_VENDOR_REALTEK: u16 = 0x10ec;
 /// The RTL8852BE's device ids.
 pub const RTL8852BE_DEVICE_IDS: [u16; 2] = [0xb852, 0xb85b];
-/// The smallest register window the driver can use: the PHY's registers sit
-/// at 0x10000 and reach past 0x1f000.
-pub const BAR_MIN: u64 = 0x2_0000;
+/// The smallest register window the driver can use: the indirect access
+/// window (`R_AX_INDIR_ACCESS_ENTRY`, `mac::macid`) sits at 0x40000, past
+/// the PHY's at 0x10000. A BAR's size is a power of two, so that is 512 KiB
+/// (the card's BAR is 1 MiB).
+pub const BAR_MIN: u64 = 0x8_0000;
 const MAX_DEVICES: usize = 96;
 
 #[derive(Clone, Copy)]

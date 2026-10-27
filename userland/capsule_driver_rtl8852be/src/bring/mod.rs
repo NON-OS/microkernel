@@ -10,6 +10,7 @@ mod partial;
 pub mod phy_init;
 pub mod probe;
 pub mod start;
+pub mod up;
 
 pub use partial::partial_init;
 
