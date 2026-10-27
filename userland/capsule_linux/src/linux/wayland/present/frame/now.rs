@@ -24,10 +24,16 @@ use super::super::super::scene::Scene;
 use super::geometry::{around, Around};
 
 /// The frame around content of `shape`, for the buffer drawn now: none
-/// when it fills the display, or is drawn for a configure that does.
+/// when it is full screen, or is drawn for a configure that is.
 pub fn around_shape(scene: &Scene, (w, h, _): Shape) -> Around {
-    let fills = scene.fit.due().map_or(scene.fit.now(), |c| c.mode).fills();
-    around(w, h, scene.frame.quarters, fills || scene.frame.own_frame)
+    let bare = scene.fit.due().map_or(scene.fit.now(), |c| c.mode).bare();
+    around(w, h, scene.frame.quarters, bare || scene.frame.own_frame)
+}
+
+/// The content rect a frame leaves of `rect`, the window's whole on screen.
+pub fn inset(scene: &Scene, (x, y, w, h): (u32, u32, u32, u32)) -> (u32, u32, u32, u32) {
+    let a = around(0, 0, scene.frame.quarters, scene.frame.own_frame);
+    (x, y, w.saturating_sub(a.w).max(1), h.saturating_sub(a.h).max(1))
 }
 
 /// The shown window's frame and its content size, or None with no window.
