@@ -18,6 +18,8 @@
 
 pub(super) mod anyone;
 mod ask;
+pub(super) mod conn;
+mod conn_io;
 /* Waiting for Anyone before an install downloads, the fetcher's own rule. */
 #[path = "../../../../../capsule_model_fetch/src/get/anyone_wait.rs"]
 mod anyone_wait;
