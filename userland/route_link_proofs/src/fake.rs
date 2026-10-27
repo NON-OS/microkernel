@@ -157,7 +157,7 @@ impl FakeProxy {
     fn serve(&mut self, body: &[u8]) -> (Vec<u8>, bool, bool) {
         match self.stage {
             Stage::Greeting => {
-                if body != [5, 1, 0] {
+                if body != [5, 1, 0] && body != [5, 2, 0, 0x80] {
                     self.stage = Stage::Over;
                     return (vec![1], false, false);
                 }

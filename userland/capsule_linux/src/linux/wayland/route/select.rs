@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The primary selection and cursor shapes. NONOS carries no selection
-//! between guests, or to the desktop, by design, as the data device does
-//! not (data_device.rs): a guest is given its sources and a device per
-//! seat, and a selection it offers is cancelled at once. The cursor is the
-//! compositor's own, so a shape a guest asks for changes nothing. False
-//! means nothing served it.
+//! The primary selection and cursor shapes. A primary selection a client
+//! sets is kept as its guest's own and offered to every primary selection
+//! device the guest holds, as the data device's selection is
+//! (data_device.rs); it never leaves the guest, not even for the desktop
+//! clipboard, and no guest is offered another's. The cursor is the
+//! compositor's own, so a shape a guest asks for changes nothing. The
+//! offers of both selections are served last (clip/ask.rs). False means
+//! nothing served it.
 
 use crate::linux::guest::Guest;
 
+use super::super::clip::{ask, which::Which};
 use super::super::ops::select::*;
-use super::super::out::Event;
 use super::super::{args::Args, forget::forget, object::Object};
 
 pub fn route(
@@ -42,18 +44,22 @@ pub fn route(
         (Some(PrimaryManager), PRIMARY_MANAGER_GET_DEVICE) => {
             made_for(guest, args, PrimaryDevice, Seat)
         }
-        (Some(PrimaryDevice), PRIMARY_DEVICE_SET_SELECTION) => cancel(guest, args),
-        (Some(PrimarySource), PRIMARY_SOURCE_OFFER) => {}
+        (Some(PrimaryDevice), PRIMARY_DEVICE_SET_SELECTION) => {
+            ask::set(guest, Which::Primary, args)
+        }
+        (Some(PrimarySource), PRIMARY_SOURCE_OFFER) => ask::mime(guest, id, args),
+        (Some(PrimarySource), PRIMARY_SOURCE_DESTROY) => {
+            ask::source_gone(guest, Which::Primary, id)
+        }
         (Some(CursorManager), CURSOR_MANAGER_GET_POINTER) => {
             made_for(guest, args, CursorDevice, Pointer)
         }
         (Some(CursorDevice), CURSOR_DEVICE_SET_SHAPE) => {}
         (Some(PrimaryManager), PRIMARY_MANAGER_DESTROY)
         | (Some(PrimaryDevice), PRIMARY_DEVICE_DESTROY)
-        | (Some(PrimarySource), PRIMARY_SOURCE_DESTROY)
         | (Some(CursorManager), CURSOR_MANAGER_DESTROY)
         | (Some(CursorDevice), CURSOR_DEVICE_DESTROY) => forget(guest, object, id),
-        _ => return false,
+        _ => return ask::offer(guest, object, id, op, args),
     }
     true
 }
@@ -63,12 +69,5 @@ fn made_for(guest: &mut Guest, args: &mut Args<'_>, what: Object, of: Object) {
     let (Some(id), Some(named)) = (args.u32(), args.u32()) else { return };
     if guest.objects.get(named) == Some(of) {
         let _ = guest.objects.put(id, what);
-    }
-}
-
-fn cancel(guest: &mut Guest, args: &mut Args<'_>) {
-    let source = args.u32().unwrap_or(0);
-    if guest.objects.get(source) == Some(Object::PrimarySource) {
-        Event::new(source, PRIMARY_SOURCE_CANCELLED).send(&mut guest.display.to_client);
     }
 }

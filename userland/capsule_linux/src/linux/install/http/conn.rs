@@ -19,7 +19,7 @@
 //! dev-mirror build only a socket of this capsule's own to a mirror on the
 //! local network, one per GET (direct.rs says why). Reads: conn_io.rs.
 
-use nonos_route_link::{Route, RouteStream};
+use nonos_route_link::RouteStream;
 
 use super::stream::Stream;
 #[cfg(feature = "dev-mirror")]
@@ -42,7 +42,7 @@ impl Conn {
         if is_local(at) {
             return Conn::Raw(raw::open_stream_to(at).ok_or("no socket")?).connected(at, port);
         }
-        RouteStream::connect(Route::for_installs(), at, port).map(|s| Conn::Route(Stream(s)))
+        RouteStream::connect_install(at, port).map(|s| Conn::Route(Stream(s)))
     }
 
     /// A route stream may carry the next GET; a raw socket never does.

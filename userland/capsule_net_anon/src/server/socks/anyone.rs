@@ -31,8 +31,8 @@ pub struct Anyone<'a> {
 }
 
 impl Tunnel for Anyone<'_> {
-    fn open(&mut self, host: &[u8], port: u16) -> Result<u16, u8> {
-        super::anyone_open::open(self.state, self.now, host, port)
+    fn open(&mut self, host: &[u8], port: u16, install: bool) -> Result<u16, u8> {
+        super::anyone_open::open(self.state, self.now, host, port, install)
     }
 
     fn far(&self, id: u16) -> Far {

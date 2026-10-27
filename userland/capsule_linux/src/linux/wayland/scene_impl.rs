@@ -18,6 +18,7 @@
 
 use alloc::vec::Vec;
 
+use super::clip::Clip;
 use super::fit::Fit;
 use super::held_keys::HeldKeys;
 use super::popup::stack::Popups;
@@ -48,6 +49,8 @@ impl Scene {
             held: HeldKeys::new(),
             subs: Subs::default(),
             popups: Popups::default(),
+            frame: Default::default(),
+            clip: Clip::default(),
         }
     }
 

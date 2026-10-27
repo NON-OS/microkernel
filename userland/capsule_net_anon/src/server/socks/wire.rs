@@ -20,16 +20,25 @@ pub const VERSION: u8 = 5;
 const METHOD_NO_AUTH: u8 = 0;
 const METHOD_NONE_ACCEPTABLE: u8 = 0xFF;
 
+/// A method from the private range (X'80' to X'FE') nonos_route_link lists
+/// beside no-authentication for an install's download, never chosen in
+/// reply: it only marks the stream as an install's, so it may take the warm
+/// circuit (manager/warm_rule.rs). net.socks5 reads past it.
+pub const METHOD_INSTALL: u8 = 0x80;
+
 /// A whole greeting at the front of `buf`: whether no-authentication was
-/// offered, and how many bytes it took. `None` while it is incomplete.
-pub fn greeting(buf: &[u8]) -> Option<Result<(bool, usize), ()>> {
+/// offered, whether the install mark was, and how many bytes it took. `None`
+/// while it is incomplete. The methods are as many as the count byte says,
+/// at most 255, and none is read past what has arrived.
+pub fn greeting(buf: &[u8]) -> Option<Result<(bool, bool, usize), ()>> {
     let (&ver, rest) = buf.split_first()?;
     if ver != VERSION {
         return Some(Err(()));
     }
     let (&n, methods) = rest.split_first()?;
     let methods = methods.get(..n as usize)?;
-    Some(Ok((methods.contains(&METHOD_NO_AUTH), 2 + n as usize)))
+    let install = methods.contains(&METHOD_INSTALL);
+    Some(Ok((methods.contains(&METHOD_NO_AUTH), install, 2 + n as usize)))
 }
 
 /// The answer to a greeting.
