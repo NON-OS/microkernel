@@ -16,12 +16,15 @@
 
 mod alloc_impl;
 mod allocator;
+mod bins;
 mod bootstrap;
 mod dealloc_impl;
+mod front;
 mod global_alloc;
 mod header;
 mod region_alloc;
 mod region_extent;
+mod region_pick;
 mod regions;
 mod statistics;
 mod stats;
