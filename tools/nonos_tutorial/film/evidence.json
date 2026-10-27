@@ -1,0 +1,84 @@
+{
+  "_": "Every line an evidence card or a layer draws, copied exactly from a real log or screen, with where it is. CREDITS.txt lists each one again; test_film.py holds the two together.",
+  "shared_map": {
+    "heading": "EVIDENCE · SHARED MAP · 0d0cff02d4",
+    "utc": "2026-10-27 15:27:46 UTC",
+    "utc_source": "next-run.png: the second run's stamp, 15:27:46, on a desktop set to UTC",
+    "where": "DEV IMAGE 0d0cff02d4 · QEMU TCG · INTEL IOMMU",
+    "path": "docs/release-evidence/0.9.3/s1-shared-maps-0d0cff02d4",
+    "commit": "e0fda48c46 (branch nonos/jolly-gauss-xbkfum)",
+    "lines": [
+      {"text": "P ro ok", "source": "README.md:23, coherence.png"},
+      {"text": "P seen HELLO BEYOND", "source": "README.md:24, coherence.png"},
+      {"text": "P over refused Function not implemented", "source": "README.md:25, coherence.png", "refused": true},
+      {"text": "P rw ok", "source": "README.md:26, coherence.png"},
+      {"text": "P read WORLD", "source": "README.md:27, coherence.png"},
+      {"text": "P msync 0 unmap 0", "source": "README.md:28, coherence.png"},
+      {"text": "P exec refused Permission denied", "source": "README.md:29, coherence.png", "refused": true},
+      {"text": "P next_run HELLO WORLD BEYOND size 9006", "source": "README.md:33, next-run.png", "kept": true}
+    ]
+  },
+  "isolation": {
+    "heading": "EVIDENCE · ISOLATION · 61ec29ea2",
+    "utc": "2026-10-27 11:03 UTC",
+    "utc_source": "calls.png: the desktop clock, Tue 27 Oct 11:03, set to UTC",
+    "where": "DEV IMAGE 61ec29ea2 · QEMU TCG · HOSTILE GUEST",
+    "path": "docs/release-evidence/0.9.3/s1-isolation-61ec29ea2",
+    "commit": "branch nonos/jolly-gauss-xbkfum",
+    "lines": [
+      {"text": "[LINUX] refused ptrace: a guest does not inspect or steer another", "source": "calls.png line 1; README.md:21"},
+      {"text": "P ptrace    -1 Operation not permitted", "source": "calls.png line 2; README.md:21; hostile.steps:44 prints \"P %-9s %d %s\"", "refused": true},
+      {"text": "[LINUX] refused process_vm_readv: no guest reads another's memory", "source": "calls.png line 3; README.md:22"},
+      {"text": "P vm_readv  -1 Operation not permitted", "source": "calls.png line 4; README.md:22", "refused": true},
+      {"text": "P mmap_x    -1 Operation not permitted", "source": "calls.png line 23; README.md:31 (W^X)", "refused": true},
+      {"text": "[LINUX] its policy refused 11: jit=1 barred=3 unserved=7", "source": "calls.png last line; README.md:42"}
+    ]
+  },
+  "kept_home": {
+    "heading": "EVIDENCE · KEPT HOME · 61ec29ea2",
+    "utc": "2026-10-27 11:51:56 UTC",
+    "utc_source": "read.png: the read's stamp, 11:51:56, after the power-off",
+    "where": "INSTALLED DISK · AFTER POWER OFF · 8.6 GB NVMe",
+    "path": "docs/release-evidence/0.9.3/s1-kept-home-61ec29ea2",
+    "commit": "branch nonos/jolly-gauss-xbkfum",
+    "lines": [
+      {"text": "[ZS] keeping turned on: the person chose it, the policy service says", "source": "read.serial.log:1295"},
+      {"text": "[DATA] volume open: 14415872 sectors at LBA 262144", "source": "read.serial.log:1979"},
+      {"text": "P read kept-home-7f3a9c41", "source": "read.png line 3; README.md:23", "kept": true},
+      {"text": "grep -c -a kept-home-7f3a9c41 install-target.img", "source": "README.md:27", "value": "0", "value_source": "README.md:28 (after the read boot: 0)"}
+    ]
+  },
+  "box_policy": {
+    "heading": "mask=0x10a  NET_ANON FILES_HOME TTY",
+    "utc": "",
+    "where": "SEALED b434cdf175",
+    "path": "docs/release-evidence/0.9.3/film-frames-b434cdf175/003599.png",
+    "commit": "a960427a7f (branch film/frames-b434)",
+    "lines": [
+      {"text": "mask=0x10a", "source": "003599.png: [LINUX] policy bound: from=market listing=90d6997200753ea7f814a49f792a4d34f3d0f190355704c0f325882276005d4e mask=0x10a served=0x10a NET_ANON FILES_HOME TTY"},
+      {"text": "NET_ANON FILES_HOME TTY", "source": "003599.png, the same line; the bits are userland/nonos_linux_policy/src/mask.rs:24,28,38"}
+    ]
+  },
+  "boot_serial": {
+    "heading": "",
+    "utc": "",
+    "where": "DEV IMAGE 61ec29ea2, the boot's serial log",
+    "path": "docs/release-evidence/0.9.3/s1-isolation-61ec29ea2/serial.log",
+    "commit": "branch nonos/jolly-gauss-xbkfum",
+    "lines": [
+      {"text": "[NONOS] === Security Status ===", "source": "serial.log:105"},
+      {"text": "[NONOS] Kernel signature: VERIFIED", "source": "serial.log:106"},
+      {"text": "[NONOS] Secure Boot: DISABLED", "source": "serial.log:107"},
+      {"text": "[CPU-PROT] smep=1 smap=1 umip=1 nx=1 wp=1 pge=1", "source": "serial.log:125"},
+      {"text": "[STACK-GUARD] bsp armed 8/8", "source": "serial.log:126"},
+      {"text": "[KSEC] 4/4 sections mapped as declared", "source": "serial.log:127"},
+      {"text": "[VT-D] translation enabled, levels=0x0000000000000004 devices=0x000000000000000A", "source": "serial.log:132"},
+      {"text": "[VT-D] enumerated devices blocked until claimed; with reserved memory=0; others denied", "source": "serial.log:133"},
+      {"text": "[VT-D] IOMMU interrupt remapping on, entries=256, compatibility format interrupts blocked", "source": "serial.log:135"},
+      {"text": "[IOMMU] intel-vt-d present, enforcing=1, unconfined grants=0, identity devices=0", "source": "serial.log:137"},
+      {"text": "[IOMMU] capabilities aw=48 ir=1 snoop=0 pages=0x0000000000001000 domains=256", "source": "serial.log:138"},
+      {"text": "[CRYPTO-POST] 4/4 known-answer tests passed", "source": "serial.log:139"},
+      {"text": "[VT-D] confined to its capsule's domain", "source": "serial.log:267"}
+    ]
+  }
+}
