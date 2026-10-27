@@ -24,6 +24,7 @@ use super::super::spawn::tasks::MAX_TASKS;
 pub(super) const RLIMIT: usize = 16;
 
 const RLIMIT_STACK: u64 = 3;
+const RLIMIT_CORE: u64 = 4;
 const RLIMIT_NPROC: u64 = 6;
 const RLIMIT_NOFILE: u64 = 7;
 const RLIMIT_AS: u64 = 9;
@@ -40,9 +41,16 @@ const ADDRESS_SPACE: u64 = 0x0000_7FFF_F000;
 /* Unlimited, as Linux spells it. */
 const INFINITY: u64 = u64::MAX;
 
+/// Whether `asked`, a `struct rlimit`, is the limit `resource` already has.
+pub fn unchanged(resource: u64, asked: &[u8]) -> bool {
+    limit_for(resource).is_some_and(|limit| super::same::same(limit, asked))
+}
+
 pub fn limit_for(resource: u64) -> Option<(u64, u64)> {
     match resource {
         RLIMIT_STACK => Some((STACK_BYTES, STACK_BYTES)),
+        /* No guest ever leaves a core file: the limit is 0, and stays so. */
+        RLIMIT_CORE => Some((0, 0)),
         /* fork and clone are refused past it (spawn/tasks.rs). */
         RLIMIT_NPROC => Some((MAX_TASKS as u64, MAX_TASKS as u64)),
         RLIMIT_NOFILE => Some((MAX_FDS as u64, MAX_FDS as u64)),
