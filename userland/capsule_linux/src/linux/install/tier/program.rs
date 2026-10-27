@@ -24,7 +24,7 @@ use super::super::why::Why;
 use super::install::say;
 use crate::linux::file::{key, store_hash, HashFault};
 
-const MAX_PROGRAM: u64 = 64 << 20;
+const MAX_PROGRAM: u64 = crate::linux::program_max::PROGRAM_MAX as u64;
 
 pub(super) fn pinned(app: &App, pin: &[u8; 32]) -> Result<(), Why> {
     let path = core::str::from_utf8(app.program).unwrap_or("its program");

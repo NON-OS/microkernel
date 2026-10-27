@@ -25,7 +25,7 @@ use super::load::load_at;
 use super::loaded::LoadError;
 
 /// The largest image that will be read out of the store.
-const MAX_IMAGE: u32 = 64 << 20;
+const MAX_IMAGE: u32 = crate::linux::program_max::PROGRAM_MAX;
 
 /// Where the interpreter's entry point ended up.
 pub(super) fn place(guest: &mut Guest, path: &[u8]) -> Result<u64, LoadError> {

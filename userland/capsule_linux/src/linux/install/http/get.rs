@@ -29,9 +29,10 @@ use super::route::exchange;
 #[cfg(feature = "dev-mirror")]
 use crate::linux::net::route::is_local;
 
-/// Enough for the largest package index; a reply beyond it is refused
+/// Enough for the largest package index, or a pinned content tar holding a
+/// program up to PROGRAM_MAX with its data; a reply beyond it is refused
 /// rather than truncated into a half-parsed index.
-pub(super) const MAX_BODY: usize = 64 << 20;
+pub(super) const MAX_BODY: usize = 160 << 20;
 
 /// A GET to Alpine's mirror.
 pub fn get(path: &str) -> Option<Vec<u8>> {

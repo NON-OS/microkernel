@@ -22,7 +22,7 @@ use crate::linux::file::{key, store_read};
 use crate::linux::guest::{Guest, Kind};
 
 /// The same ceiling the exec path reads an image under.
-const MAX_IMAGE: u32 = 64 << 20;
+const MAX_IMAGE: u32 = crate::linux::program_max::PROGRAM_MAX;
 
 /// The bytes of `fd`'s file, if this machine has agreed to execute them. The
 /// mapping is filled from these, not read again: a second read could see a

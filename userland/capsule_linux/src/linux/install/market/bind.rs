@@ -25,7 +25,7 @@ use super::check::names_program;
 use super::minted::{beside, POLICY, POLICY_TRAILER};
 use crate::linux::file::{key, store_read, store_write};
 
-const MAX_IMAGE: u32 = 64 << 20;
+const MAX_IMAGE: u32 = crate::linux::program_max::PROGRAM_MAX;
 
 pub(super) fn bind(pkg: &str, policy: &LinuxAppPolicy) -> Result<(), &'static str> {
     let path = recorded(pkg).ok_or("the package records no program")?;

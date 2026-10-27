@@ -35,3 +35,9 @@ pub(super) fn header() -> Option<ProcStatHeader> {
     let h: ProcStatHeader = unsafe { core::ptr::read_unaligned(buf.as_ptr().cast()) };
     (h.version >= PROC_STAT_VERSION && h.mem_total_kb > 0).then_some(h)
 }
+
+/// What the machine has free, in KiB: the run's heap is sized from it
+/// (heap.rs) before anything is allocated, which this does not do.
+pub fn free_kb() -> Option<u64> {
+    header().map(|h| h.mem_free_kb)
+}
