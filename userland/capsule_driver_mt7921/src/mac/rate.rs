@@ -61,9 +61,10 @@ pub fn bitmaps(rates: &[u8], ghz5: bool) -> (u16, u16) {
     (supp, basic)
 }
 
-/// The fastest basic rate in `rates`, or the band's lowest: what data goes
-/// at, as the Intel driver sends it, with no rate scaling.
-pub fn data_rate(rates: &[u8], ghz5: bool) -> u8 {
-    let basic = rates.iter().filter(|&&r| r & 0x80 != 0).map(|&r| r & 0x7f);
-    basic.filter(|&r| table(ghz5).iter().any(|t| t.0 == r)).max().unwrap_or(lowest(ghz5))
+/// The lowest and the fastest basic rate in `rates` that the band has, or
+/// `None` when `rates` marks none of them basic.
+pub fn basic(rates: &[u8], ghz5: bool) -> Option<(u8, u8)> {
+    let marked = rates.iter().filter(|&&r| r & 0x80 != 0).map(|&r| r & 0x7f);
+    let ours = marked.filter(|&r| table(ghz5).iter().any(|t| t.0 == r));
+    ours.fold(None, |m, r| Some(m.map_or((r, r), |(lo, hi): (u8, u8)| (lo.min(r), hi.max(r)))))
 }

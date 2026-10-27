@@ -17,8 +17,9 @@ impl Chip {
             (0x27, 0) => {
                 self.mcu.roc = body.get(10).copied();
                 self.mcu.grants += 1;
-                let token = body[9].wrapping_add(u8::from(self.faults.stale_grant));
-                (!self.faults.no_grant).then(|| reply::grant(token, body[10]))
+                let (stale, f) = (u8::from(self.faults.stale_grant), &self.faults);
+                let token = if f.tokenless_grant { 0 } else { body[9].wrapping_add(stale) };
+                (!f.no_grant).then(|| reply::grant(token, body[10].wrapping_add(stale)))
             }
             (0x27, _) => {
                 self.mcu.roc = None;

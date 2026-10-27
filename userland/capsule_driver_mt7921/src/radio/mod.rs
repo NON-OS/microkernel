@@ -13,6 +13,7 @@ mod assoc;
 mod bss;
 mod data;
 mod diag;
+mod learn;
 mod port;
 mod recv;
 mod roc;
@@ -29,14 +30,7 @@ use crate::ids::Chip;
 use crate::init::caps::Caps;
 use crate::vif::bss::Basic;
 use crate::vif::sta::Peer;
-
-/// A channel request held: its token, whether it is a join's, and since.
-#[derive(Clone, Copy)]
-pub struct Held {
-    pub token: u8,
-    pub join: bool,
-    pub since: u64,
-}
+pub use roc::Held;
 
 pub struct Mt7921 {
     pub card: Card,
@@ -50,8 +44,10 @@ pub struct Mt7921 {
     pub roc: Option<Held>,
     pub token: u8,
     pub peer: Option<Peer>,
-    /// What association settled: the BSS as told, and the data rate.
-    pub joined: Option<(Basic, u8)>,
+    /// What association settled: the BSS as told, its basic rates.
+    pub joined: Option<(Basic, (u8, u8))>,
+    /// The access points heard, by their basic rates.
+    pub aps: learn::Heard,
     /// Frames read while making room for a send, delivered first.
     pub inbox: VecDeque<(Vec<u8>, i8)>,
     pub count: diag::Counts,
@@ -63,7 +59,8 @@ impl Mt7921 {
     pub fn new(card: Card, chip: Chip, caps: Caps, mac: [u8; 6]) -> Self {
         let (at, home, roc, peer, joined) = (None, None, None, None, None);
         let (inbox, count, token, dead) = (VecDeque::new(), diag::Counts::default(), 0, false);
-        Self { card, chip, caps, mac, at, home, roc, token, peer, joined, inbox, count, dead }
+        let aps = learn::Heard::default();
+        Self { card, chip, caps, mac, at, home, roc, token, peer, joined, aps, inbox, count, dead }
     }
 
     pub(crate) fn ghz5(&self) -> bool {
