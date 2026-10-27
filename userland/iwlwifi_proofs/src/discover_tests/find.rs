@@ -55,7 +55,7 @@ fn a_non_intel_or_non_network_function_is_not_found() {
     assert!(!is_supported_adapter(&Candidate { class: 0x04, subclass: 0x03, ..ax210() }), "audio");
     assert!(!is_supported_adapter(&Candidate { subclass: 0x00, ..ax210() }), "ethernet");
     assert!(!is_supported_adapter(&Candidate { device: 0x15F3, ..ax210() }), "an Intel NIC id");
-    assert!(!is_supported_adapter(&Candidate { device: 0x272B, ..ax210() }), "BE200, not run");
+    assert!(!is_supported_adapter(&Candidate { device: 0x2725, ..ax210() }), "AX210, not run");
     assert!(!is_supported_adapter(&Candidate { is_pci: false, ..ax210() }), "not on PCI");
     assert!(!is_supported_adapter(&Candidate { bar0_mmio: false, ..ax210() }), "no register BAR");
 }
