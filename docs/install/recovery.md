@@ -51,7 +51,7 @@ To get it back, put the firmware and the Secure Boot setting back as they were w
 If the installed system does not boot, or you want a clean one:
 
 1. Plug the stick in and boot it. Open the firmware's boot menu and choose the stick.
-2. Choose `Install NØNOS` and answer setup. If an earlier boot of the stick kept its answers, setup does not run and the installer opens at once.
+2. Choose `Install NØNOS` and answer setup. If the stick kept its answers under an earlier release, setup does not run and the installer opens at once.
 3. Choose the old disk, type its word, and let the installer write and read it back ([Install to disk](install-to-disk.md)).
 
 This erases the old store and data volume. If the stick itself is refused, the screen says why: see [Troubleshooting](troubleshooting.md).

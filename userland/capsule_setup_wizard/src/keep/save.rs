@@ -44,11 +44,11 @@ pub fn save(ctx: &Context) {
     }
 }
 
-/// An amnesic boot keeps nothing, but holds its answers in memory: when the
-/// person installs NONOS from this session, the installer carries them, and
-/// the installed disk starts set up instead of running setup again with
-/// Amnesic, which would leave it keeping nothing. No marker is written and
-/// nothing is persisted; the answers are gone at shutdown.
+/// Amnesic and Install keep nothing here, but hold the answers in memory:
+/// the installer, opened now or later from the dock, carries them, and the
+/// installed disk starts set up. No marker is written and nothing is
+/// persisted, so the disk this boot came from runs setup again next boot;
+/// the answers are gone at shutdown.
 pub fn stage(ctx: &Context) {
     let record = record_of(ctx);
     let pid = mk_getpid();
