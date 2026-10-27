@@ -18,7 +18,6 @@
 //! queue that calls for a restart.
 
 use crate::firmware::gen3::join::inbox::{Inbox, Queues};
-use crate::firmware::gen3::txq::{TxQueue, TXQ_STRIDE};
 
 use super::state::Join;
 
@@ -30,7 +29,7 @@ impl Join {
         if self.joined.take().is_some() {
             self.history.lost();
         }
-        self.q = Queues { mgmt: TxQueue::new(0), data: TxQueue::new(TXQ_STRIDE) };
+        self.q = Queues::fresh(self.csr);
         self.inbox = Inbox::new();
     }
 

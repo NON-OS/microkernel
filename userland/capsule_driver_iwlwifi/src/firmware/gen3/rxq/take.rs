@@ -2,9 +2,7 @@
 
 //! Filled buffers taken off the used ring and posted again.
 
-use super::super::plan::{
-    RB_SIZE, RB_STTS, RX_BUFS, RX_FREE, RX_FREE_DESC, RX_RING, RX_USED, RX_USED_DESC,
-};
+use super::super::plan::{RB_SIZE, RB_STTS, RX_BUFS, RX_FREE, RX_FREE_DESC, RX_RING};
 use super::super::region::{get16, put16, put64, zero, Region};
 use super::queue::{RxQueue, Taken, CD_FRAGMENTED};
 
@@ -16,13 +14,13 @@ impl RxQueue {
         if closed == self.read {
             return None;
         }
-        let cd = RX_USED + self.read * RX_USED_DESC;
+        let (id_at, flags_at) = self.used_entry(self.read);
         self.read = (self.read + 1) & (RX_RING - 1);
-        let vid = get16(ctrl, cd + 4)?;
+        let vid = get16(ctrl, id_at)?;
         let mut flags = [0u8; 1];
         // A failed read must not pass as a clear flag: a zero there would take
         // one piece of a multi-buffer frame as a whole one (E-34).
-        if !ctrl.read(cd + 6, &mut flags) {
+        if !ctrl.read(flags_at, &mut flags) {
             return Some(Taken::BadId);
         }
         let slot = (vid as usize).wrapping_sub(1);

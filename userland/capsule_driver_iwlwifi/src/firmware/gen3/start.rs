@@ -20,18 +20,24 @@
 //! `iwl_trans_pcie_gen2_start_fw` up to the self-load kick (prepare again,
 //! clear and mask interrupts, clear the RF-kill handshake bits, gen2 APM init,
 //! interrupt coalescing, shadow registers), and after the kick the LTR
-//! workaround, `UREG_CPU_INIT_RUN` and the wait for the image loader. Every
-//! wait is bounded; the ones Linux treats as fatal are fatal here too.
+//! workaround, `UREG_CPU_INIT_RUN` and the wait for the image loader (V2:
+//! CSR_FUNC_SCRATCH and ROM_START, no workaround). Every wait is bounded;
+//! the ones Linux treats as fatal are fatal here too.
 //!
 //! Interrupts stay with the cause registers: the driver polls them. Linux
 //! programs either the legacy mask or the MSI-X masks depending on how the
 //! PCI function's interrupt was set up; this driver does not know which the
 //! broker enabled, so it programs both and polls both cause registers.
 
+use super::csr::{CsrLayout, CSR_FUNC_SCRATCH, FUNC_SCRATCH_INIT, GP_ROM_START};
 use super::prph::write_umac;
 use super::region::Clock;
 use super::regs::*;
 use crate::regs::Mmio;
+use reset::{mask_all, set, sw_reset};
+pub use reset::{mask_interrupts, stop_device};
+
+pub mod reset;
 
 /// Why the chip did not start.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -50,13 +56,8 @@ const PREPARE_ROUNDS: u32 = 10;
 const PREPARE_POLL_MS: u32 = 150;
 const CLOCK_POLL_MS: u32 = 25;
 const IML_POLL_MS: u32 = 100;
-const STOP_MASTER_MS: u32 = 1;
 /// `IWL_HOST_INT_TIMEOUT_DEF`.
 const INT_COALESCING_DEF: u32 = 0x40;
-
-fn set<M: Mmio>(m: &M, reg: usize, bits: u32) {
-    m.write32(reg, m.read32(reg) | bits);
-}
 
 // `iwl_pcie_set_hw_ready`.
 fn set_hw_ready<M: Mmio, C: Clock>(m: &M, c: &mut C) -> bool {
@@ -96,30 +97,30 @@ fn set_hw_ready_once<M: Mmio>(m: &M) -> bool {
 }
 
 /// `iwl_finish_nic_init`: move the adapter to D0A and wait for the clock.
-fn finish_nic_init<M: Mmio, C: Clock>(m: &M, c: &mut C) -> Result<(), StartError> {
-    set(m, CSR_GP_CNTRL, GP_INIT_DONE);
-    let up = c.poll_for(CLOCK_POLL_MS, &mut || m.read32(CSR_GP_CNTRL) & GP_MAC_CLOCK_READY != 0);
+fn finish_nic_init<M: Mmio, C: Clock>(m: &M, c: &mut C, csr: CsrLayout) -> Result<(), StartError> {
+    let (bits, ready) = csr.init();
+    set(m, CSR_GP_CNTRL, bits);
+    let up = c.poll_for(CLOCK_POLL_MS, &mut || m.read32(CSR_GP_CNTRL) & ready != 0);
     up.then_some(()).ok_or(StartError::ClockNotReady)
 }
 
 /// The APM init both `iwl_pcie_apm_init` and `iwl_pcie_gen2_apm_init` run on
 /// this family: L0s off, FH wait threshold, HAP wake, then D0A.
-fn apm_init<M: Mmio, C: Clock>(m: &M, c: &mut C) -> Result<(), StartError> {
+fn apm_init<M: Mmio, C: Clock>(m: &M, c: &mut C, csr: CsrLayout) -> Result<(), StartError> {
     set(m, CSR_GIO_CHICKEN_BITS, GIO_CHICKEN_L1A_NO_L0S_RX);
     set(m, CSR_DBG_HPET_MEM_REG, DBG_HPET_MEM_REG_VAL);
     set(m, CSR_HW_IF_CONFIG_REG, HW_IF_CONFIG_HAP_WAKE_L1A);
     set(m, CSR_GIO_REG, GIO_L0S_DISABLED);
-    finish_nic_init(m, c)
+    finish_nic_init(m, c, csr)
 }
 
 /// `_iwl_trans_pcie_start_hw`: prepare, software reset (which drops
 /// ownership, so prepare again), APM init.
-pub fn start_hw<M: Mmio, C: Clock>(m: &M, c: &mut C) -> Result<(), StartError> {
+pub fn start_hw<M: Mmio, C: Clock>(m: &M, c: &mut C, csr: CsrLayout) -> Result<(), StartError> {
     prepare_card_hw(m, c)?;
-    set(m, CSR_RESET, RESET_SW_RESET);
-    c.delay_us(6000);
+    sw_reset(m, c, csr);
     prepare_card_hw(m, c)?;
-    apm_init(m, c)
+    apm_init(m, c, csr)
 }
 
 /// Whether the hardware RF-kill switch has the radio off.
@@ -127,34 +128,16 @@ pub fn rf_killed<M: Mmio>(m: &M) -> bool {
     m.read32(CSR_GP_CNTRL) & GP_HW_RF_KILL_SW == 0
 }
 
-fn mask_all<M: Mmio>(m: &M) {
-    m.write32(CSR_INT_MASK, 0);
-    m.write32(CSR_INT, 0xFFFF_FFFF);
-    m.write32(CSR_FH_INT_STATUS, 0xFFFF_FFFF);
-    m.write32(CSR_MSIX_FH_INT_MASK_AD, 0xFFFF_FFFF);
-    m.write32(CSR_MSIX_HW_INT_MASK_AD, 0xFFFF_FFFF);
-}
-
-/// Stop the device signalling interrupts once ALIVE is in: this driver
-/// polls the receive index and the cause registers, which still latch with
-/// every mask set, and an INTx line left asserted could be shared with
-/// another device. The cause bits are left for the error checks to read.
-pub fn mask_interrupts<M: Mmio>(m: &M) {
-    m.write32(CSR_INT_MASK, 0);
-    m.write32(CSR_MSIX_FH_INT_MASK_AD, 0xFFFF_FFFF);
-    m.write32(CSR_MSIX_HW_INT_MASK_AD, 0xFFFF_FFFF);
-}
-
 /// `iwl_trans_pcie_gen2_start_fw` up to the point the context info is
 /// handed over: the caller lays out memory and kicks the self-load next.
-pub fn before_kick<M: Mmio, C: Clock>(m: &M, c: &mut C) -> Result<(), StartError> {
+pub fn before_kick<M: Mmio, C: Clock>(m: &M, c: &mut C, csr: CsrLayout) -> Result<(), StartError> {
     prepare_card_hw(m, c)?;
     m.write32(CSR_INT, 0xFFFF_FFFF);
     mask_all(m);
     m.write32(CSR_UCODE_DRV_GP1_CLR, UCODE_SW_BIT_RFKILL);
     m.write32(CSR_UCODE_DRV_GP1_CLR, UCODE_DRV_GP1_BIT_CMD_BLOCKED);
     m.write32(CSR_INT, 0xFFFF_FFFF);
-    apm_init(m, c)?;
+    apm_init(m, c, csr)?;
     m.write32(CSR_INT_COALESCING, INT_COALESCING_DEF);
     set(m, CSR_MAC_SHADOW_REG_CTRL, SHADOW_REG_ENABLE);
     Ok(())
@@ -168,11 +151,18 @@ pub fn enable_alive_int<M: Mmio>(m: &M) {
     m.write32(CSR_MSIX_FH_INT_MASK_AD, 0);
 }
 
-/// After the kick: the integrated-part LTR workaround (clear the image loader
-/// cause, then keep the device busy until it is set), and starting the CPU.
-pub fn after_kick<M: Mmio, C: Clock>(m: &M, c: &mut C) -> Result<(), StartError> {
+/// After the kick, starting the CPU. V1: the LTR workaround (clear the image
+/// loader cause, then keep the device busy until it is set) around
+/// UREG_CPU_INIT_RUN. V2: CSR_FUNC_SCRATCH then ROM_START; `iwl_pcie_set_ltr`
+/// has nothing to do for BZ, so there is no wait.
+pub fn after_kick<M: Mmio, C: Clock>(m: &M, c: &mut C, csr: CsrLayout) -> Result<(), StartError> {
+    if csr == CsrLayout::V2 {
+        m.write32(CSR_FUNC_SCRATCH, FUNC_SCRATCH_INIT);
+        set(m, CSR_GP_CNTRL, GP_ROM_START);
+        return Ok(());
+    }
     m.write32(CSR_MSIX_HW_INT_CAUSES_AD, MSIX_HW_IML);
-    if !write_umac(m, c, UREG_CPU_INIT_RUN, 1) {
+    if !write_umac(m, c, csr, UREG_CPU_INIT_RUN, 1) {
         return Err(StartError::NoNicAccess);
     }
     // `iwl_pcie_spin_for_iml`: not fatal; the ALIVE wait decides.
@@ -181,18 +171,4 @@ pub fn after_kick<M: Mmio, C: Clock>(m: &M, c: &mut C) -> Result<(), StartError>
         m.read32(CSR_MSIX_HW_INT_CAUSES_AD) & MSIX_HW_IML != 0
     });
     Ok(())
-}
-
-/// What a failed bring-up leaves the card at (`iwl_trans_pcie_gen2_stop_device`
-/// reduced to the part that quiets it): every interrupt masked, bus mastering
-/// stopped (`iwl_pcie_apm_stop_master`; a timeout is not fatal, as in Linux),
-/// then a software reset that halts the firmware. `false` when the master
-/// never reported stopped.
-pub fn stop_device<M: Mmio, C: Clock>(m: &M, c: &mut C) -> bool {
-    mask_all(m);
-    set(m, CSR_RESET, RESET_STOP_MASTER);
-    let stopped = c.poll_for(STOP_MASTER_MS, &mut || m.read32(CSR_RESET) & RESET_MASTER_DISABLED != 0);
-    set(m, CSR_RESET, RESET_SW_RESET);
-    c.delay_us(6000);
-    stopped
 }
