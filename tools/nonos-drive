@@ -35,6 +35,9 @@ Each step is one of:
                         (1920x1080), on a machine given an absolute device:
                         --qemu-arg=--lane --qemu-arg=usb-tablet
     click[:right]       press and release a mouse button
+    regs:NAME           every CPU's registers and the code at each PC to
+                        DIR/regs-NAME.txt, and the run goes on: a sample of
+                        where a slow program is
     unplug:ID           pull device ID out of the machine (a lane's devices:
                         lane-usb-audio); the run fails if QEMU refuses
 
