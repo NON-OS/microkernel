@@ -7444,7 +7444,8 @@
    "userland/nonos_wifi_core_proofs/src/soft/data_frames.rs",
    "userland/nonos_wifi_core_proofs/src/soft/frames.rs",
    "userland/nonos_wifi_core_proofs/src/soft/protect.rs",
-   "userland/nonos_wifi_core_proofs/src/soft/quirks.rs"
+   "userland/nonos_wifi_core_proofs/src/soft/quirks.rs",
+   "userland/rtl8852_proofs/src/sae_air"
   ],
   "md": [],
   "signed": []
