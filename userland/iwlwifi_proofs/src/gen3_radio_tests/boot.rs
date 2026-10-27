@@ -33,7 +33,8 @@ fn a_failed_boot_leaves_the_device_stopped() {
     let mem = Memory { ctrl: r.model.ctrl.as_ref(), rbs: r.model.rbs.as_ref(), fw: &fw };
     let mut dev = Dev::new(&r.model, r.model.ctrl.as_ref(), r.model.rbs.as_ref());
     let mut c = polls();
-    let board = Board { hw_rev: 0x370, imr_enabled: false, rf_id: 0x10D000, pnvm: None };
+    let board =
+        Board { hw_rev: 0x370, imr_enabled: false, rf_id: 0x10D000, pnvm: None, discrete: false };
     assert_eq!(boot(&mut dev, &mut c, &mem, &layout, &ucode, &board), Err(BootError::NoAliveCause));
     let before = c.delays_us;
     assert!(

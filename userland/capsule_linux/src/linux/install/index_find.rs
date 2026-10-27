@@ -18,7 +18,12 @@
 //! has or provides, and, for the package the market listed, by its own name
 //! only.
 
+use alloc::{string::String, vec::Vec};
+
 use super::index::{Index, Pkg};
+
+/// The needs not met yet, and those that wait (next_need).
+pub type Needs<'a> = (&'a mut Vec<String>, &'a mut Vec<String>);
 
 impl Index {
     /// What an install asks for next: a library by its soname, the listed
@@ -43,5 +48,28 @@ impl Index {
     /// the market's pin names the listed package's bytes, not a provider's.
     pub fn listed(&self, name: &str) -> Option<&Pkg> {
         self.pkgs.iter().find(|p| p.name == name)
+    }
+
+    /// Whether a package of `done` has or provides `want`.
+    pub fn provided_in(&self, want: &str, done: &[String]) -> bool {
+        let (list, key) = want.strip_prefix("so:").map_or((&self.names, want), |l| (&self.libs, l));
+        list.iter().any(|(k, i)| k == key && done.contains(&self.pkgs[*i].name))
+    }
+
+    /// The next need, and whether it is the listed package. One named only by
+    /// what provides it (`icu-data`) waits in `later` while named needs remain,
+    /// as one may name the provider it takes (`icu-data-full`). One met is passed.
+    pub fn next_need(&self, (wanted, later): Needs, done: &[String]) -> Option<(String, bool)> {
+        while let Some(w) = wanted.pop() {
+            if done.is_empty() {
+                return Some((w, true));
+            } else if self.provided_in(&w, done) {
+            } else if w.starts_with("so:") || self.listed(&w).is_some() {
+                return Some((w, false));
+            } else {
+                later.push(w);
+            }
+        }
+        Some((core::iter::from_fn(|| later.pop()).find(|w| !self.provided_in(w, done))?, false))
     }
 }

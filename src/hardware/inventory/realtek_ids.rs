@@ -16,7 +16,7 @@
 
 //! The Realtek network parts a capsule starts for, the capsules' own ids
 //! (kernel_proofs holds them together): the 8139, the 8169 family's
-//! Ethernet parts, and the RTL8821CE Wi-Fi.
+//! Ethernet parts, and the RTL8821CE and RTL8822CE Wi-Fi.
 //!
 //! Pure, with no imports, so host proofs can include it by path.
 
@@ -24,3 +24,4 @@ pub const RTL8139_DEVICE_ID: u16 = 0x8139;
 pub const RTL8169_DEVICE_IDS: [u16; 10] =
     [0x2502, 0x2600, 0x3000, 0x8125, 0x8136, 0x8161, 0x8162, 0x8167, 0x8168, 0x8169];
 pub const RTL8821CE_DEVICE_IDS: [u16; 2] = [0xb821, 0xc821];
+pub const RTL8822CE_DEVICE_IDS: [u16; 2] = [0xc822, 0xc82f];

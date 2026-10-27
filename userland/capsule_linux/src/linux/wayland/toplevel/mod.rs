@@ -19,7 +19,9 @@
 
 mod ask;
 mod destroy;
+mod frame_max;
 mod modes;
 
 pub use destroy::destroy;
+pub use frame_max::maximize;
 pub use modes::{has_toplevel, set, toggle, unset};

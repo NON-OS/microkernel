@@ -21,8 +21,8 @@ use alloc::vec::Vec;
 
 use nonos_libc::mk_debug;
 
-use super::get::closure::{closure, Closed};
 use super::fetch::get::fetch;
+use super::get::closure::{closure, Closed};
 use super::get::index::load_index;
 use super::get::package::path_of;
 use super::get::window::window;
@@ -48,7 +48,10 @@ fn install_all(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
     let max = super::limit::max_packages();
     let pkgs = closure(&index, name, max).map_err(|why| match why {
         Closed::NotProvided => refused("nothing provides it", super::Why::NOT_PROVIDED),
-        Closed::TooLarge => refused(&alloc::format!("refused: closure passes {max} packages"), super::Why::TOO_LARGE),
+        Closed::TooLarge => refused(
+            &alloc::format!("refused: closure passes {max} packages"),
+            super::Why::TOO_LARGE,
+        ),
     })?;
     // Fetched several at once, verified and placed one by one in this order.
     let paths: Option<Vec<String>> = pkgs.iter().map(|p| path_of(p)).collect();
@@ -59,7 +62,9 @@ fn install_all(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
         let files = fetch(pkg, apk.unwrap_or_default(), (pkg.name == name).then_some(pin))?;
         say(b"[LINUX] provenance Verified: index signature and checksums match\n");
         timing::placing(|| unpack(&files, &pkg.name, pkg.name == name, false)).map(drop)
-    })
+    })?;
+    let names: Vec<String> = pkgs.iter().map(|p| p.name.clone()).collect();
+    super::record::closure::keep(name, &names)
 }
 
 fn refused(why: &str, code: super::Why) -> super::Why {

@@ -26,7 +26,7 @@ pub const TX_STUCK_MS: u64 = 2500;
 impl TxQueue {
     /// Frames the device has not answered.
     pub fn in_flight(&self) -> usize {
-        self.write.wrapping_sub(self.read) as usize
+        (self.write.wrapping_sub(self.read) & self.csr.wrap()) as usize
     }
 
     /// The device finished every slot before `ssn`: free them. `false` when
@@ -38,7 +38,7 @@ impl TxQueue {
         if n > self.in_flight() {
             return false;
         }
-        self.read = self.read.wrapping_add(n as u16);
+        self.read = self.read.wrapping_add(n as u16) & self.csr.wrap();
         true
     }
 

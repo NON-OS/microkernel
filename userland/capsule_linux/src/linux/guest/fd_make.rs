@@ -18,6 +18,7 @@
 
 use alloc::string::String;
 use alloc::vec::Vec;
+use core::sync::atomic::{AtomicU32, Ordering};
 
 use crate::linux::file::Stream;
 
@@ -37,8 +38,13 @@ impl Fd {
         fd
     }
 
+    /// A memfd carries an identity in `handle`, which every dup of it copies,
+    /// so a mapping can be found from any descriptor for the same memory.
     pub fn memfd() -> Fd {
-        Fd::empty(Kind::Memfd)
+        static NEXT: AtomicU32 = AtomicU32::new(1);
+        let mut fd = Fd::empty(Kind::Memfd);
+        fd.handle = NEXT.fetch_add(1, Ordering::Relaxed);
+        fd
     }
 
     pub fn unix() -> Fd {

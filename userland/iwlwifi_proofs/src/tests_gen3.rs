@@ -19,6 +19,8 @@ mod gen3_fetch_tests;
 #[cfg(test)]
 mod gen3_fuzz_tests;
 #[cfg(test)]
+mod gen3_gen2_tests;
+#[cfg(test)]
 mod gen3_image_tests;
 #[cfg(test)]
 mod gen3_layout_tests;
@@ -42,6 +44,8 @@ mod gen3_stop_tests;
 mod gen3_sweep_uid_tests;
 #[cfg(test)]
 mod gen3_tests;
+#[cfg(test)]
+mod gen3_ty_ma_tests;
 #[cfg(test)]
 mod prph_scratch_tests;
 #[cfg(test)]

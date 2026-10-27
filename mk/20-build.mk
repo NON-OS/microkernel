@@ -543,6 +543,8 @@ include userland/capsule_driver_virtio_gpu/Capsule.mk
 include userland/capsule_driver_virtio_net/Capsule.mk
 include userland/capsule_driver_iwlwifi/Capsule.mk
 include userland/capsule_driver_rtl8821ce/Capsule.mk
+include userland/capsule_driver_rtl8822ce/Capsule.mk
+include userland/capsule_driver_mt7921/Capsule.mk
 include userland/capsule_driver_i2c_pci/Capsule.mk
 include userland/capsule_driver_i2c_hid/Capsule.mk
 include userland/capsule_driver_xhci/Capsule.mk
@@ -1191,7 +1193,7 @@ nonos-mk-audio-player-smoketest-test: $(proof-io_ARTIFACTS) \
 
 # nonos-mk-desktop-gui-prod: the QEMU-bootable profile. This is NOT just a lighter
 # cut of zerostate; it deliberately excludes the real-hardware driver capsules
-# (iwlwifi, rtl8821ce, rtl8169, e1000, rtl8139, ahci, hda, nvme, usb-msc, i2c)
+# (iwlwifi, rtl8821ce, rtl8822ce, rtl8169, e1000, rtl8139, ahci, hda, nvme, usb-msc, i2c)
 # that have no counterpart under QEMU and block on spawn when their hardware is
 # absent. The runtime, debug, and benchmark boot targets use this so a QEMU boot
 # reaches the ready marker. The full hardware image is nonos-mk-zerostate, which
@@ -1319,6 +1321,7 @@ nonos-mk-arm-gui: nonos-mk-check-deps nonos-mk-ensure-signing-key
 # real-hardware drivers, for booting under QEMU.
 nonos-mk-zerostate: nonos-mk-all-capsules-attested \
 		$(driver-iwlwifi_ARTIFACTS) $(driver-rtl8821ce_ARTIFACTS) \
+		$(driver-rtl8822ce_ARTIFACTS) \
 		nonos-mk-verify-desktop-gui-capsules \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	$(call nonos_kernel_build,zerostate: microkernel-full-gui + nonos-smp,microkernel-full-gui$(_boot_comma)nonos-smp)
@@ -1436,6 +1439,11 @@ nonos-mk-esp: \
 	@cp $(TARGET_DIR)/boot_root.approval $(ESP_DIR)/EFI/nonos/boot_root.approval
 	@printf "timeout=0\ndefault=nonos\n" > $(ESP_DIR)/EFI/nonos/boot.cfg
 	@echo 'fs0:\EFI\Boot\BOOTX64.EFI' > $(ESP_DIR)/startup.nsh
+	@# The firmware package (MediaTek MT7921/MT7922): pinned files beside the
+	@# image, never inside it; the loader reads them at boot. Without them the
+	@# medium is still packed and mt7921e reports the package missing.
+	@$(if $(filter 0,$(NONOS_FIRMWARE_PACKAGE)),true,$(NONOS_PYTHON) scripts/firmware_package.py \
+		--esp $(ESP_DIR) $(NONOS_FIRMWARE_FROM) --optional)
 	@# The ELF just linked is a byte prefix of what was staged, or the pack
 	@# chain raced the link and this ESP boots an older kernel. Checked here
 	@# rather than in each boot target, so nothing that consumes an ESP can
@@ -1481,6 +1489,11 @@ nonos-mk-boot-root-record:
 # session runs its Linux tree and apps from the stick and keeps its state
 # there. mk/40-run.mk adds the store's contents as prerequisites.
 USB_ESP_MIB := 128
+# Where the firmware package comes from: a linux-firmware tree named by
+# NONOS_FIRMWARE_SOURCE, or the pinned commit fetched once into target/.
+# NONOS_FIRMWARE_PACKAGE=0 packs a medium without it.
+NONOS_FIRMWARE_PACKAGE ?= 1
+NONOS_FIRMWARE_FROM = $(if $(NONOS_FIRMWARE_SOURCE),--source $(NONOS_FIRMWARE_SOURCE),--fetch $(TARGET_DIR)/firmware/linux-firmware)
 nonos-mk-usb-img: nonos-mk-esp
 	@echo "Building GPT/FAT32 USB image $(USB_IMG) ($(USB_IMG_MB) MiB)..."
 	@dd if=/dev/zero of=$(USB_IMG) bs=1048576 count=$(USB_IMG_MB) status=none 2>/dev/null \

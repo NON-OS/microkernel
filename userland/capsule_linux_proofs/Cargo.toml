@@ -40,6 +40,8 @@ blake3 = { version = "1", default-features = false, features = ["pure"] }
 nonos_policy_proto = { path = "../policy_proto" }
 # The box a guest runs in, which the mounted app files bind and narrow.
 nonos_linux_policy = { path = "../nonos_linux_policy" }
+# The NØNOS frame a guest's window is drawn in (wayland/present/frame).
+nonos_toolkit = { path = "../toolkit", default-features = false }
 
 [dev-dependencies]
 # The verifier the crypto service runs, standing in for the IPC call.

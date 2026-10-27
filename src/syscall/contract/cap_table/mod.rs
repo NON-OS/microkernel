@@ -30,8 +30,14 @@ mod mk_trust;
 use crate::capabilities::CapabilityToken;
 use crate::syscall::numbers::SyscallNumber;
 
-/// Total cap-table over `SyscallNumber`.
-pub(super) fn is_allowed(caps: &CapabilityToken, number: SyscallNumber) -> bool {
+/// Total cap-table over `SyscallNumber`. `shell` says whether the caller is
+/// the desktop shell the kernel spawned, and is asked only for the one call
+/// that depends on it.
+pub(super) fn is_allowed(
+    caps: &CapabilityToken,
+    number: SyscallNumber,
+    shell: fn() -> bool,
+) -> bool {
     crypto::check(caps, number)
         .or_else(|| admin::check(caps, number))
         .or_else(|| mk::check(caps, number))
@@ -39,7 +45,7 @@ pub(super) fn is_allowed(caps: &CapabilityToken, number: SyscallNumber) -> bool 
         .or_else(|| mk_ipc::check(caps, number))
         .or_else(|| mk_device::check(caps, number))
         .or_else(|| mk_platform::check(caps, number))
-        .or_else(|| mk_trust::check(caps, number))
+        .or_else(|| mk_trust::check(caps, number, shell))
         .or_else(|| mk_surface::check(caps, number))
         .or_else(|| graphics::check(caps, number))
         .unwrap_or(false)

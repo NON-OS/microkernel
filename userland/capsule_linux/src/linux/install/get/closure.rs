@@ -16,7 +16,8 @@
 
 //! An install's packages, resolved from the index before any is fetched,
 //! in the order the install has always taken them: the listed package
-//! first, then each need as it is popped, a name met again skipped. Known
+//! first, then each need as it is popped, a name met again skipped, a need
+//! named only by a provider after the named ones, then install_if's. Known
 //! whole before the first byte moves, several can be fetched at once
 //! (get/window.rs) and still be placed in this order. Pure, so the host
 //! proofs hold it.
@@ -35,17 +36,23 @@ pub enum Closed {
 }
 
 pub fn closure<'a>(index: &'a Index, name: &str, max: usize) -> Result<Vec<&'a Pkg>, Closed> {
-    let mut wanted: Vec<String> = vec![String::from(name)];
-    let mut done: Vec<&Pkg> = Vec::new();
-    while let Some(next) = wanted.pop() {
+    let (mut wanted, mut later) = (vec![String::from(name)], Vec::new());
+    let (mut done, mut names): (Vec<&Pkg>, Vec<String>) = (Vec::new(), Vec::new());
+    // Named needs first, then ones named by what provides them (index_find.rs),
+    // then what install_if says comes with the closure (install_if.rs).
+    while let Some((next, exact)) = index
+        .next_need((&mut wanted, &mut later), &names)
+        .or_else(|| Some((super::super::install_if::next(index, &names)?, true)))
+    {
         // The listed package itself, by its name; its needs by name or provider.
-        let pkg = index.resolve(&next, done.is_empty()).ok_or(Closed::NotProvided)?;
-        if done.iter().any(|d| d.name == pkg.name) {
+        let pkg = index.resolve(&next, exact).ok_or(Closed::NotProvided)?;
+        if names.contains(&pkg.name) {
             continue;
         }
         if done.len() == max {
             return Err(Closed::TooLarge);
         }
+        names.push(pkg.name.clone());
         done.push(pkg);
         wanted.extend(pkg.depends.iter().cloned());
     }

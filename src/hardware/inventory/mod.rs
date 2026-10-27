@@ -1,18 +1,6 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 mod classify;
 mod classify_device;
@@ -27,6 +15,7 @@ mod i2c_host;
 #[cfg(any(feature = "nonos-capsule-driver-i2c-pci", feature = "nonos-capsule-driver-i2c-hid"))]
 mod i2c_present;
 mod intel_ethernet_ids;
+mod mediatek_ids;
 mod missing;
 mod platform_sd;
 mod present;
@@ -63,7 +52,9 @@ pub use intel_ethernet_ids::{
 };
 pub use missing::missing_path;
 pub use present::present;
-pub use realtek_ids::{RTL8139_DEVICE_ID, RTL8169_DEVICE_IDS, RTL8821CE_DEVICE_IDS};
+pub use realtek_ids::{
+    RTL8139_DEVICE_ID, RTL8169_DEVICE_IDS, RTL8821CE_DEVICE_IDS, RTL8822CE_DEVICE_IDS,
+};
 pub use record::InventoryRecord;
 pub use scan::scan;
 pub use sd_host::{is_sd_host, INTEL_SDIO_DEVICE_IDS};

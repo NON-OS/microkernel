@@ -32,7 +32,7 @@ Host-tested on 2026-10-24: the closure has every production capsule below and le
 - the NOX settle and proof fetch services: `nonos-capsule-nox-settle`, `nonos-capsule-prove-fetch`;
 - first-boot setup and the installer;
 - every production hardware driver:
-  - NICs: virtio, e1000, e1000e, igb, rtl8139, rtl8169, pcnet, vmxnet3, tulip, iwlwifi and rtl8821ce;
+  - NICs: virtio, e1000, e1000e, igb, rtl8139, rtl8169, pcnet, vmxnet3, tulip, iwlwifi, rtl8821ce, rtl8822ce and mt7921;
     and the ASIX AX88179 and Realtek RTL8153 USB adapters, host-proved, not booted (QEMU has neither), both outside the Standard profile;
   - storage: virtio-blk, virtio-scsi, NVMe, AHCI, PIIX IDE, pvscsi, MPT, SDHCI, UFS and USB mass
     storage, and BusLogic, host-proved, not booted (QEMU has no BusLogic device);
@@ -80,15 +80,17 @@ The kernel embeds each capsule's certificate, manifest and STARK trailer from `n
 - The 13 capsules this change adds have no trust set either: the 11 drivers, plus nox-settle and prove-fetch.
 - On 2026-10-27 S4 added `driver-ixgbe`, `driver-cdc-ecm`, `driver-cdc-ncm`, `driver-rndis`, `driver-smbus` and `driver-bga`, and took `driver-ccid`, `driver-fido` and `driver-uvc` out of the profile (no client in this release can use them; their reasons are in docs/hardware/MATRIX.md).
 - On 2026-10-27 S4 added `driver-igc` (Intel I225 and I226, the 2.5 GbE of most mini PCs and many boards since 2020) to `microkernel-full-gui`; it has no trust set either.
+- On 2026-10-27 S4 added `driver-rtl8822ce` (Realtek RTL8822CE, 10ec:c822 and 10ec:c82f, a 2x2 Wi-Fi 5 card in many laptops since 2019) to `microkernel-full-gui`; it has no trust set either. Its PHY tables are rtw88's, taken under that code's BSD-3-Clause option (userland/capsule_driver_rtl8822ce/README.md).
+- On 2026-10-27 S4 added `driver-mt7921` (MediaTek MT7921 and MT7922 Wi-Fi: AMD RZ608 and RZ616, the ThinkPad T14 Gen 4 AMD among many) to `microkernel-full-gui`; it has no trust set either. Its card firmware is not in the image: the loader reads the pinned package from the boot medium (`scripts/firmware_package.py`).
 - `driver-rtl8153` (Realtek RTL8153, RTL8153B) likewise: its own `microkernel-driver-rtl8153` profile, not in `microkernel-full-gui`, until Decision 10 is ruled.
 - A trust set that exists can still be stale. `nix build` also refuses a kernel when a shipped capsule's sealed manifest grants other caps than its `Capsule.mk` now says (`scripts/check_sealed_caps.py`, called from `tools/nix/image.nix`). On 2026-10-24, nine sealed manifests were stale this way. Five follow from this change's narrowing: keyring, login, payment, wallet-nonos and virtio-gpu. Four come from changes on main since the last seal: input-router, linux, boot-splash and i2c-pci. The next seal rewrites all nine. Host-tested: the script's `--self-test`, run by the flake's `static-abi` check.
 
-So `nix build` of the default image waits for the next release seal, which writes all 32 trust sets in one step. A development image (`make dev-image`, `tools/nonos-dev-image`) is sealed with throwaway keys and builds and boots now.
+So `nix build` of the default image waits for the next release seal, which writes all 34 trust sets in one step. A development image (`make dev-image`, `tools/nonos-dev-image`) is sealed with throwaway keys and builds and boots now.
 
-The 32, as `scripts/baselines/unsealed.txt` holds them. The flake's `static-release-trust` check fails when a release profile ships any other capsule without its trust set, when one of these is sealed and still listed, or when this list and the baseline differ:
+The 34, as `scripts/baselines/unsealed.txt` holds them. The flake's `static-release-trust` check fails when a release profile ships any other capsule without its trust set, when one of these is sealed and still listed, or when this list and the baseline differ:
 
 <!-- unsealed: begin -->
-`driver-ac97`, `driver-bga`, `driver-buslogic`, `driver-cdc-ecm`, `driver-cdc-ncm`, `driver-e1000e`, `driver-ehci`, `driver-igb`, `driver-igc`, `driver-ixgbe`, `driver-mpt`, `driver-ohci`, `driver-pcnet`, `driver-piix-ide`, `driver-pvscsi`, `driver-rndis`, `driver-sdhci`, `driver-smbus`, `driver-tulip`, `driver-ufs`, `driver-uhci`, `driver-usb-audio`, `driver-usb-hub`, `driver-virtio-input`, `driver-virtio-scsi`, `driver-vmbus`, `driver-vmmdev`, `driver-vmmouse`, `driver-vmware-svga`, `driver-vmxnet3`, `nox-settle`, `prove-fetch`.
+`driver-ac97`, `driver-bga`, `driver-buslogic`, `driver-cdc-ecm`, `driver-cdc-ncm`, `driver-e1000e`, `driver-ehci`, `driver-igb`, `driver-igc`, `driver-ixgbe`, `driver-mpt`, `driver-mt7921`, `driver-ohci`, `driver-pcnet`, `driver-piix-ide`, `driver-pvscsi`, `driver-rndis`, `driver-rtl8822ce`, `driver-sdhci`, `driver-smbus`, `driver-tulip`, `driver-ufs`, `driver-uhci`, `driver-usb-audio`, `driver-usb-hub`, `driver-virtio-input`, `driver-virtio-scsi`, `driver-vmbus`, `driver-vmmdev`, `driver-vmmouse`, `driver-vmware-svga`, `driver-vmxnet3`, `nox-settle`, `prove-fetch`.
 <!-- unsealed: end -->
 
 ## Off, and why

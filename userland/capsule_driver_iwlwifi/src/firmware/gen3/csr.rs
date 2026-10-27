@@ -22,6 +22,7 @@
 //! mirror the Linux iwlwifi CSR map (iwl-context-info-gen3.h, iwl-csr.h),
 //! reimplemented here as plain constants.
 
+mod gen2;
 mod layout;
 pub use layout::*;
 

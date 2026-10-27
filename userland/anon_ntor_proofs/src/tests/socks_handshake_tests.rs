@@ -7,7 +7,7 @@ use super::socks::frame::{ask, is_socks, Ask};
 use super::socks::front::Front;
 use super::socks::tunnel::Far;
 use super::socks_fake::fake;
-use super::socks_frames::{bytes, handshake, HELLO, PID};
+use super::socks_frames::{bytes, connect_example, handshake, HELLO, PID};
 
 #[test]
 fn a_socks_frame_never_reads_as_an_api_request() {
@@ -34,6 +34,14 @@ fn a_greeting_split_across_frames_is_joined() {
     let (mut front, mut t) = (Front::default(), fake());
     assert_eq!(front.serve(&mut t, PID, &bytes(&[5])), [0]);
     assert_eq!(front.serve(&mut t, PID, &bytes(&[1, 0])), [0, 5, 0]);
+}
+
+#[test]
+fn an_install_greeting_marks_its_own_open() {
+    let (mut front, mut t) = (Front::default(), fake());
+    assert_eq!(front.serve(&mut t, PID, &bytes(&[5, 2, 0, 0x80])), [0, 5, 0], "never chosen");
+    front.serve(&mut t, PID, &bytes(&connect_example()));
+    assert_eq!(t.install, Some(true));
 }
 
 #[test]

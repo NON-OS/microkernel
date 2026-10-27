@@ -16,7 +16,7 @@
 
 //! `wl_shm`: the pool a client draws into, and the buffers inside it.
 
-use crate::linux::file::mapped_at;
+use crate::linux::file::{mapped_at, mapped_now, memfd_id};
 use crate::linux::guest::Guest;
 
 use super::args::Args;
@@ -34,39 +34,38 @@ pub fn formats(guest: &mut Guest, id: u32) {
     }
 }
 
-/// The descriptor was passed in the control data of the sendmsg that
-/// carried this request, so it is taken from the queue in order. An fd
-/// argument has no word in the body: the body is the new id and the size.
+/// The descriptor came in the control data of the sendmsg that carried this
+/// request, taken from the queue in order; the body is the new id and size.
 pub fn create_pool(guest: &mut Guest, args: &mut Args<'_>) {
     let (Some(id), Some(size)) = (args.u32(), args.u32()) else {
         return;
     };
     let Some(fd) = take_fd(guest) else {
-        return;
+        return refused(b"[WAYLAND] shm pool with no descriptor passed\n");
     };
-    let Some((at, _)) = mapped_at(guest, fd as u64) else {
-        let line = b"[WAYLAND] shm pool over a descriptor the client never mapped\n";
-        let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
-        // No pixels to read: reading zeros would show a black window
-        // rather than say why.
-        return;
+    let memfd = memfd_id(guest, fd as u64).unwrap_or(0);
+    let Some((at, _)) = mapped_now(guest, memfd).or_else(|| mapped_at(guest, fd as u64)) else {
+        // No pixels to read: zeros would show a black window, not say why.
+        return refused(b"[WAYLAND] shm pool over a descriptor the client never mapped\n");
     };
-    /*
-     * The declared size, bounded by what the client actually has at that
-     * address.
-     */
+    // The declared size, bounded by what the client actually has there.
     let size = (size as u64).min(guest.mapped_from(at));
     if size == 0 {
-        return;
+        return refused(b"[WAYLAND] shm pool over a descriptor mapped at no address\n");
     }
     if !guest.objects.put(id, Object::ShmPool) {
-        return;
+        return refused(b"[WAYLAND] shm pool refused: the object table is full\n");
     }
     guest.scene.pools.retain(|p| p.id != id);
-    guest.scene.pools.push(Pool { id, at, size, fd });
+    guest.scene.pools.push(Pool { id, at, size, fd, memfd });
 }
 
-fn take_fd(guest: &mut Guest) -> Option<u32> {
+/// A pool not made says why: else the client fails later, on no object.
+fn refused(line: &[u8]) {
+    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+}
+
+pub(super) fn take_fd(guest: &mut Guest) -> Option<u32> {
     match guest.display.fds.is_empty() {
         true => None,
         false => Some(guest.display.fds.remove(0)),

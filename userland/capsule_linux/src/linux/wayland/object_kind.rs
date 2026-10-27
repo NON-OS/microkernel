@@ -39,6 +39,7 @@ pub enum Object {
     DataDeviceManager,
     DataSource,
     DataDevice,
+    DataOffer,
     DecorationManager,
     Decoration,
     Positioner,
@@ -54,6 +55,7 @@ pub enum Object {
     PrimaryManager,
     PrimaryDevice,
     PrimarySource,
+    PrimaryOffer,
     CursorManager,
     CursorDevice,
 }

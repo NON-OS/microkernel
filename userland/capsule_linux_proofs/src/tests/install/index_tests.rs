@@ -56,3 +56,7 @@ fn each_package_keeps_the_branch_that_listed_it() {
     let branch = |n: &str| index.by_name(n).map(|p| p.branch);
     assert_eq!((branch("musl"), branch("age"), branch("micro")), (Some(0), Some(1), Some(1)));
 }
+
+/// Alpine's install_if, read from the same index records.
+#[path = "install_if_tests.rs"]
+mod install_if;

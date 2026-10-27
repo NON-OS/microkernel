@@ -32,11 +32,11 @@ pub fn describe(ctx: &Context, say: &mut impl FnMut(&[u8], u32)) {
     }
     let what: &[u8] = match n.selected() {
         None => b"Setup joins no network, so nothing is sent over Wi-Fi.",
-        Some(net) if net.secured => b"Secured (WPA2-Personal): type its passphrase, ENTER joins.",
+        Some(net) if net.secured => b"Secured (WPA2/WPA3): type its passphrase, ENTER joins.",
         Some(_) => b"Open network: anyone nearby can read what it carries.",
     };
     say(what, FG);
-    say(b"WPA3 (SAE) and enterprise networks cannot be joined.", HINT);
+    say(b"Enterprise (802.1X) networks cannot be joined.", HINT);
     if mode::keeps(ctx) {
         say(remember_line(n, &mut line), FG);
     }

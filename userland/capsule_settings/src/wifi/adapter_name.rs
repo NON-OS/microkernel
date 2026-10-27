@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The name an adapter is listed under: a specific one for the Intel and
-//! Realtek parts known here, else a generic vendor or Wi-Fi label, so an
+//! The name an adapter is listed under: a specific one for the Intel,
+//! Realtek and MediaTek parts known here, else a generic vendor or Wi-Fi label, so an
 //! unknown but valid card still lists.
 
 /// A friendly name from vendor and device id. Known Intel and Realtek WiFi
@@ -24,8 +24,13 @@
 pub fn adapter_label(vendor: u16, device: u16) -> &'static str {
     const INTEL: u16 = 0x8086;
     const REALTEK: u16 = 0x10EC;
+    const MEDIATEK: u16 = 0x14C3;
     match (vendor, device) {
         (REALTEK, 0xB821 | 0xC821) => "Realtek RTL8821CE",
+        (REALTEK, 0xC822 | 0xC82F) => "Realtek RTL8822CE",
+        (MEDIATEK, 0x7961 | 0x0608) => "MediaTek MT7921",
+        (MEDIATEK | 0x0B48, 0x7922) | (MEDIATEK, 0x0616) => "MediaTek MT7922",
+        (MEDIATEK, 0x7920) => "MediaTek MT7920",
         (INTEL, 0x2723 | 0x02F0 | 0x06F0 | 0x34F0 | 0x3DF0 | 0x4DF0 | 0x43F0) => {
             "Intel Wi-Fi 6 AX200"
         }

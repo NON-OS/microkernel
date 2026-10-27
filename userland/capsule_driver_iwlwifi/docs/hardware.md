@@ -8,7 +8,10 @@ detail, counters) and the Settings Wi-Fi panel.
 
 - Absence and retry: on a machine without the device, no claim and exit
   `EXIT_ABSENT` (2), which the kernel names as `[EXIT] <service> status 2: no
-  device present, not started` (`src/process/exit/end_note.rs`). With the
+  device present, not started` (`src/process/exit/end_note.rs`). An Intel
+  Wi-Fi card this driver does not run is not absent: `[iwlwifi] pci
+  8086:<id> <what>: present, not run by this driver; given up`, no claim,
+  and status 6. With the
   device present but failing setup, at most seven claim and release rounds,
   then `EXIT_GAVE_UP` (6) and `[EXIT] <service> status 6: device present,
   bring-up failed and was given up`. The capsule holds no core while it waits.
@@ -17,7 +20,9 @@ detail, counters) and the Settings Wi-Fi panel.
   gives up and the gen3 path never runs).
 - Identity: `[iwlwifi] pci 0x000051f0` (or your platform's id; the card's
   revision and RF id are no longer printed), then
-  `[iwlwifi] firmware iwlwifi-so-a0-gf-a0-86.ucode` (or hr-b0-84).
+  `[iwlwifi] firmware iwlwifi-so-a0-gf-a0-86.ucode` (or hr-b0-84). The
+  per-card plans for the AX210, Meteor Lake, AX200 and AX201 paths are in
+  `docs/hardware/real-hardware-checklist.md` at the top of the tree.
 - DMA: about ten grants in the broker log, none refused (else
   `[iwlwifi] no DMA region of N bytes` and stage NoDma).
 - ALIVE: `[iwlwifi] firmware alive: status 0x0000cafe umac M.N sku 0x...`.

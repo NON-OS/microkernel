@@ -54,7 +54,10 @@ fn realtek_by_table_and_wireless_by_subclass() {
     for id in [0xb821, 0xc821] {
         assert_eq!(classify_network(0x80, 0x10ec, id), NetworkRtl8821ce, "{id:04x}");
     }
-    assert_eq!(classify_network(0x80, 0x10ec, 0xc822), NetworkRealtekWifi, "RTL8822CE");
+    for id in [0xc822, 0xc82f] {
+        assert_eq!(classify_network(0x80, 0x10ec, id), NetworkRtl8822ce, "{id:04x}");
+    }
+    assert_eq!(classify_network(0x80, 0x10ec, 0xb822), NetworkRealtekWifi, "RTL8822BE");
     assert_eq!(classify_network(0x80, 0x10ec, 0x8852), NetworkRealtekWifi, "RTL8852AE");
     assert_eq!(classify_network(0x00, 0x10ec, 0x8126), Unknown, "RTL8126A, no driver yet");
 }

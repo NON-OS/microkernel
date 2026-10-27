@@ -15,7 +15,7 @@ const fn pages(n: usize) -> usize {
 /// The byte count table's bytes beyond V1's, page rounded.
 pub const fn bc_extra(csr: CsrLayout) -> usize {
     match csr {
-        CsrLayout::V1 => 0,
+        CsrLayout::V1 | CsrLayout::Gen2 => 0,
         CsrLayout::V2 => pages(BC_TABLE_BZ) - pages(BC_TABLE),
     }
 }
@@ -33,7 +33,7 @@ pub const fn tx_region(csr: CsrLayout) -> usize {
 impl TxQueue {
     /// Queue `n` (0 or 1) of a transmit region in the family's layout.
     pub const fn nth(n: usize, csr: CsrLayout) -> Self {
-        Self { extra: bc_extra(csr), ..Self::new(n * txq_stride(csr)) }
+        Self { extra: bc_extra(csr), csr, ..Self::new(n * txq_stride(csr)) }
     }
 
     // The first-buffer slots and the frame buffers, after the table.

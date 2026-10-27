@@ -21,6 +21,8 @@ use nonos_app_skeleton::input::{InputEvent, InputKind};
 
 use crate::linux::guest::Guest;
 
+use super::super::present::frame::now::to_content;
+use super::super::present::frame::pointer as frame;
 use super::axis::wheel;
 use super::button::button;
 use super::key::key;
@@ -30,16 +32,30 @@ use super::send::motion;
 const KEY_F11: u32 = nonos_app_skeleton::KEY_F1 + 10;
 
 pub fn deliver(guest: &mut Guest, event: &InputEvent) {
+    super::super::clip::focus::input(guest, event.kind);
     match event.kind {
         InputKind::KeyDown if event.code == KEY_F11 && super::super::toplevel::toggle(guest) => {}
         InputKind::KeyUp
             if event.code == KEY_F11 && super::super::toplevel::has_toplevel(guest) => {}
         InputKind::KeyDown => key(guest, event.code, event.flags, 1),
         InputKind::KeyUp => key(guest, event.code, event.flags, 0),
-        InputKind::PointerAbs => motion(guest, event.x, event.y),
-        InputKind::ButtonDown => button(guest, event.code, 1),
-        InputKind::ButtonUp => button(guest, event.code, 0),
-        InputKind::Wheel => wheel(guest, event.delta_x, event.delta_y, event.x, event.y),
+        // The NØNOS frame takes what lands on it (present/frame/pointer.rs).
+        InputKind::PointerAbs => {
+            if let Some((x, y)) = frame::motion(guest, event.x, event.y) {
+                motion(guest, x, y);
+            }
+        }
+        InputKind::ButtonDown if !frame::button(guest, event.code, true) => {
+            button(guest, event.code, 1)
+        }
+        InputKind::ButtonUp if !frame::button(guest, event.code, false) => {
+            button(guest, event.code, 0)
+        }
+        InputKind::Wheel => {
+            if let Some((x, y)) = to_content(&guest.scene, event.x, event.y) {
+                wheel(guest, event.delta_x, event.delta_y, x, y);
+            }
+        }
         _ => {}
     }
 }

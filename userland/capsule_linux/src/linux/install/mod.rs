@@ -39,6 +39,7 @@ mod http;
 mod http_reply;
 mod index;
 mod index_find;
+mod install_if;
 mod isa;
 mod limit;
 mod manifest;

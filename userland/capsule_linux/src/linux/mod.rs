@@ -31,6 +31,7 @@ mod call;
 mod console;
 mod env;
 mod file;
+mod gtk_prep;
 mod guest;
 mod heap;
 mod heap_choice;

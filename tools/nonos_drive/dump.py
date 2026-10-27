@@ -31,10 +31,11 @@ def monitor(q, line, cpu=None):
     return reply.get("return", f"(error: {reply.get('error')})")
 
 
-def dump(q, out):
-    """Write the machine's state to out/stuck.txt and return its path, or
-    None when the monitor has gone, as it has when QEMU itself exited."""
-    path = out / FILE
+def dump(q, out, name=FILE):
+    """Write the machine's state to out/<name> (stuck.txt) and return its
+    path, or None when the monitor has gone, as it has when QEMU itself
+    exited. A `regs:` step names its own file and the run goes on."""
+    path = out / name
     try:
         cpus = [c["cpu-index"] for c in q.cmd("query-cpus-fast").get("return", [])]
         parts = ["== info status", monitor(q, "info status"),
@@ -45,5 +46,5 @@ def dump(q, out):
         print(f"  stuck: the monitor did not answer ({e})", flush=True)
         return None
     path.write_text("\n".join(parts) + "\n")
-    print(f"  stuck: {len(cpus)} CPUs' registers and code in {FILE}", flush=True)
+    print(f"  {len(cpus)} CPUs' registers and code in {name}", flush=True)
     return path
