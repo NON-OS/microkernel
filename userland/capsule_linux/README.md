@@ -148,10 +148,10 @@ a third takes NET_ANON away. Only a vendor row carries its list today (`dests=` 
 - Only a toplevel's commit reaches the screen (`commit.rs`). Subsurfaces are kept as
   objects; their pixels are not composed onto the window yet.
 - An XRGB8888 buffer is shown opaque (`opaque.rs`); only ARGB8888 and XRGB8888 are taken.
-- NONOS carries no clipboard or drag between guests, or to the desktop, by design: a guest
-  cannot read what another program copied. `data_device.rs` gives a client its sources and
-  a device per seat, and cancels any selection or drag at once. The primary selection is served the
-  same way (`route_select.rs`), and a cursor shape a guest asks for changes nothing: the
+- A guest's selection and primary selection are its own (`clip/`): offered to all its devices,
+  read by its clients, never offered to another guest. Text alone goes to and from the user's
+  clipboard service, only within 5 s of a key or button the focused window got (`clip/desk.rs`).
+  A drag is cancelled at once, and a cursor shape a guest asks for changes nothing: the
   cursor is the compositor's own.
 - Decorations are always server-side (`decoration.rs`): the window manager frames a guest's
   window like any other.

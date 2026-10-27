@@ -33,9 +33,9 @@ pub fn refit(scene: &mut Scene) {
         say("[WAYLAND] no compositor or window manager for a window\n".into());
         return;
     };
-    let (Some(handle), Some(id), Some((w, h, _))) = (scene.out, scene.window, scene.shape) else {
-        return;
-    };
+    let (Some(handle), Some(id)) = (scene.out, scene.window) else { return };
+    let Some((a, _)) = super::frame::now::shown(scene) else { return };
+    let (w, h) = (a.w, a.h);
     let at = origin(scene.fit.due(), scene.at, w, h);
     if scene.at != Some(at) {
         let rid = scene.next_serial();
@@ -51,7 +51,7 @@ pub fn refit(scene: &mut Scene) {
 /// The window manager's rect for the window: a configure's, with its flag,
 /// or a size the guest took on its own (`resized`).
 pub(super) fn tell_wm(scene: &mut Scene, wm: u32, id: u32, resized: bool) {
-    let Some(rect) = scene.rect() else { return };
+    let Some(rect) = super::frame::now::outer_rect(scene) else { return };
     let rid = scene.next_serial();
     let told = match scene.fit.due() {
         Some(c) => {
