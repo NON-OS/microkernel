@@ -26,7 +26,7 @@ mod fat_chain;
 mod fat_dir;
 mod identify;
 mod loader_file;
-mod read;
+pub(crate) mod read;
 mod record;
 mod table;
 mod volumes;

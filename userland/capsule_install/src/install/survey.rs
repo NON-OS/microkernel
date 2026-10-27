@@ -18,7 +18,8 @@
  * The disk list: made when the disks screen opens, made again when a
  * person comes back to it from a stopped install, on R, and on its own
  * while it has nothing to install to or a row for a missing driver. The
- * disk that was selected stays selected when it is still there.
+ * disk that was selected stays selected when it is still there; what an
+ * update would keep of it is read again when it is chosen again.
  */
 
 use nonos_blk_client::survey;
@@ -34,6 +35,7 @@ pub fn look(state: &mut State) {
     state.raid = found.raid_hides_disks();
     state.incomplete = found.incomplete();
     state.disks = found.disks;
+    state.keep = None;
     let ended = mk_time_millis();
     state.looked = Some(Looked { ended, took: ended.saturating_sub(started) });
     state.selected = keep
