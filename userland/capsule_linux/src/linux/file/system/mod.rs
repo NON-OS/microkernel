@@ -25,3 +25,4 @@ pub mod load;
 pub mod machine;
 mod machine_header;
 pub(super) mod space;
+pub use machine_header::free_kb;
