@@ -54,7 +54,7 @@ pub fn hold(path: &[u8], exists: bool) -> Result<(), i64> {
  */
 pub fn hold_emptied(path: &[u8], stored: u64) -> Result<(), i64> {
     if held(path) {
-        return super::change::resize(path, 0);
+        return super::seen::resize(path, 0);
     }
     CACHE.0.borrow_mut().push(Entry {
         path: path.to_vec(),
@@ -64,7 +64,7 @@ pub fn hold_emptied(path: &[u8], stored: u64) -> Result<(), i64> {
         in_store: true,
         mtime_ms: now(),
     });
-    Ok(())
+    super::seen::emptied(path, stored)
 }
 
 pub fn read(path: &[u8], at: u64, len: usize) -> Option<Vec<u8>> {
