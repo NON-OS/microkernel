@@ -39,13 +39,15 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
     };
     let max = super::limit::max_packages();
     let mut wanted: Vec<String> = vec![String::from(name)];
-    let mut done: Vec<String> = Vec::new();
+    let (mut done, mut later): (Vec<String>, Vec<String>) = (Vec::new(), Vec::new());
     // A closure done brings in what install_if says comes with it, by name.
-    while let Some((next, exact)) = wanted.pop().map(|n| (n, done.is_empty())).or_else(|| {
-        let n = super::install_if::next(&index, &done)?;
-        say(alloc::format!("[LINUX] {n} comes with it (install_if)\n").as_bytes());
-        Some((n, true))
-    }) {
+    while let Some((next, exact)) =
+        index.next_need((&mut wanted, &mut later), &done).or_else(|| {
+            let n = super::install_if::next(&index, &done)?;
+            say(alloc::format!("[LINUX] {n} comes with it (install_if)\n").as_bytes());
+            Some((n, true))
+        })
+    {
         // The listed package itself, pinned; its needs by name or provider.
         let Some(pkg) = index.resolve(&next, exact) else {
             say(b"[LINUX] nothing provides it\n");
