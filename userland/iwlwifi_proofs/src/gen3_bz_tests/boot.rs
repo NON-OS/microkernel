@@ -61,4 +61,8 @@ fn after_alive_the_be200_comes_up_with_the_v8_regulatory_reply() {
     let cmds = r.model.s.borrow().commands.clone();
     let mac = cmds.iter().find(|s| (s.group, s.cmd) == (MAC_CONF_GROUP, MAC_CONFIG_CMD));
     assert_eq!(&mac.unwrap().payload[12..18], &SCAN_IF_ADDR);
+    // `iwl_mvm_get_current_regdomain`: "ZZ" from MCC_SOURCE_GET_CURRENT,
+    // the image taking Wi-Fi MCC updates (API 9).
+    let mcc = cmds.iter().find(|s| (s.group, s.cmd) == (LONG_GROUP, MCC_UPDATE_CMD));
+    assert_eq!(mcc.unwrap().payload[..3], [b'Z', b'Z', 0x10]);
 }
