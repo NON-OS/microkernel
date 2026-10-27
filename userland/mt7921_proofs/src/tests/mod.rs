@@ -33,3 +33,4 @@ mod start_tests;
 mod tune_tests;
 mod txd_tests;
 mod vif_tests;
+mod wpa3_tests;

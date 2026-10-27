@@ -21,11 +21,13 @@ mod mcu_uni;
 pub mod mem;
 pub mod net;
 pub mod package;
+pub mod phy;
 pub mod reply;
 pub mod rig;
 pub mod rings;
 mod rx;
 pub mod wire;
+pub mod wpa3;
 
 use std::cell::RefCell;
 use std::rc::Rc;
