@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs, group 8 of 8: test modules mounted by path
+//! Host proofs, group 8 of 9: test modules mounted by path
 //! from proofs.rs, each at its own file.
 
 /// The IPC receives check what they write to before they wait.

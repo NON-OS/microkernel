@@ -5492,6 +5492,18 @@ else
     fail_with "check_serial_whole_lines: a kernel serial line is written in pieces"
 fi
 unset whole_out
+# A release console carries no process's bytes and no Linux guest's name:
+# MkDebug, StdoutWrite and the fd stdio path copy to serial only behind
+# capsule-serial-debug, which no release profile keeps, and a process is named
+# on a line only through Line::who. The self-test first.
+if private_out="$(python3 scripts/check_private_serial.py --self-test 2>&1 \
+    && python3 scripts/check_private_serial.py 2>&1)"; then
+    note ok "no process bytes or guest names reach a release console (check_private_serial)"
+else
+    tail -n 5 <<< "${private_out}" >&2
+    fail_with "check_private_serial: a process's bytes or a guest's name reach a release console"
+fi
+unset private_out
 # A release takes the capsules as make declares them, never the development
 # set (capsules-dev): the lines that choose it are pinned, and a release seal
 # handed it refuses by what was built, not by the flag. The self-tests first,

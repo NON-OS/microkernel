@@ -17,6 +17,7 @@
 mod address_space;
 pub mod api;
 mod core;
+mod directory;
 mod faults;
 mod mapping;
 mod pending_flush;
