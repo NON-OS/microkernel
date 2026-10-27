@@ -24,26 +24,29 @@ import subprocess
 import sys
 from pathlib import Path
 
-from . import lock, logos
+from . import lock, logos, source_lock
 from .catalogue import catalogue_entries
 from .names import cache_safe
 from .recipes_file import load
+from .source_recipe import is_source
+from .source_run import source_entries
 from .sources import ARCH, BRANCHES, RELEASE, apk_of, cached, table
 
 
 def catalogue_run(path: Path, cache: Path, mirror: str, release: str, arch: str, key: str, when_ms: int,
-                  update_lock: bool = False) -> list:
-    """The catalogue's entries, or SystemExit with what stopped them.
-    `update_lock` writes the lock from this run instead of holding to it."""
+                  update_lock: bool = False, site: tuple = ("", None, None)) -> list:
+    """The catalogue's entries, or SystemExit with what stopped them. `update_lock`
+    writes the locks from this run instead of holding to them; `site` is source_run.py's."""
     if (release, arch) != (RELEASE, ARCH):
         sys.exit(f"catalogue: the device installs from Alpine {RELEASE} {ARCH}, not {release} {arch}")
     cache, pinned = cache / "catalogue" / RELEASE / ARCH, path.with_name(path.stem + ".lock.json")
     try:
         recipes = load(path, Path("."))
-        names = [r["package"] for r in recipes]
         marks = {r["package"]: logos.digests(r, Path(".")) for r in recipes}
         # The listing signs the raster's BLAKE3 as its logo_hash.
         recipes = [dict(r, logo_hash=marks[r["package"]][1]) for r in recipes]
+        built, recipes = [r for r in recipes if is_source(r)], [r for r in recipes if not is_source(r)]
+        names = [r["package"] for r in recipes]
         known = table(mirror, cache, names)
         pins = None if update_lock else lock.read(pinned)
         if pins is not None:
@@ -63,6 +66,10 @@ def catalogue_run(path: Path, cache: Path, mirror: str, release: str, arch: str,
     print(f"catalogue: {len(found)} of {len(recipes)} apps", file=sys.stderr)
     if len(found) != len(recipes):
         sys.exit("catalogue: a recipe was not listed; a seal lists every recipe or none")
+    try:
+        built = source_entries(built, site, source_lock.path_of(path), marks, key, when_ms, update_lock)
+    except (ValueError, TypeError, OSError) as why:
+        sys.exit(f"catalogue: {why}")
     if update_lock:
         lock.write(pinned, known, names, found, marks)
-    return found
+    return found + built
