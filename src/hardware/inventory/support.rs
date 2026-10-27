@@ -26,7 +26,7 @@ pub fn support_state(family: HardwareFamily) -> SupportState {
         }
         NetworkVirtio | NetworkE1000 | NetworkRtl8139 | NetworkRtl8169 => DataPath,
         NetworkE1000e | NetworkIgb | NetworkIgc | NetworkIxgbe => DataPath,
-        NetworkRtl8821ce | NetworkRtl8822ce => DataPath,
+        NetworkRtl8821ce | NetworkRtl8822ce | NetworkMt7921 => DataPath,
         NetworkPcnet => DataPath,
         NetworkVmxnet3 => DataPath,
         NetworkTulip => DataPath,
