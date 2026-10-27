@@ -53,7 +53,8 @@ pub(super) fn cooked(state: &mut State, key: Key, m: Mods) -> EventOutcome {
         Key::Enter => state.cooked.enter(&mut fx),
         _ => return EventOutcome::Idle,
     }
-    if !fx.echo.is_empty() {
+    // A tty with echo off (a password prompt) shows nothing of what is typed.
+    if !fx.echo.is_empty() && !state.scrollback.vt.modes.no_echo {
         state.scrollback.feed_raw(&fx.echo);
     }
     if !fx.send.is_empty() {

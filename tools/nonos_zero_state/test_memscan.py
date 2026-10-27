@@ -46,7 +46,9 @@ class Count(unittest.TestCase):
         secret = memscan.marker()
         with mock.patch.object(memscan, "SLICE", 11):
             self.assertEqual(memscan.count(self.file((secret.encode() + b"x") * 9), secret), 9)
-            self.assertEqual(memscan.count(self.file(secret[:-1].encode() * 9), secret), 0)
+            # A separator after each cut copy: a marker ending in "z" would
+            # otherwise be made again where one copy's "zq" follows the last.
+            self.assertEqual(memscan.count(self.file((secret[:-1] + "_").encode() * 9), secret), 0)
 
     def test_a_dump_is_removed_once_read(self):
         secret = memscan.marker()
