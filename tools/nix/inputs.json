@@ -11052,6 +11052,8 @@
    "userland/capsule_driver_virtio_input/src/keyboard/state.rs",
    "userland/capsule_driver_virtio_input/src/post.rs",
    "userland/capsule_driver_virtio_input/src/queue",
+   "userland/capsule_driver_virtio_input/src/setup/pci.rs",
+   "userland/capsule_driver_virtio_input/src/setup/sequence.rs",
    "userland/libc/src/surface_registry/abs.rs",
    "userland/nonos_keymap",
    "userland/nonos_virtio",
