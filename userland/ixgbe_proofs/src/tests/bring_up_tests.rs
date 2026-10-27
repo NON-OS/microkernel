@@ -62,7 +62,8 @@ fn the_part_comes_up_under_the_drawn_address_and_says_so() {
     assert_eq!(bar.wrote32(REG_SECRXCTRL) & SECRXCTRL_RX_DIS, 0, "security path let go");
     assert_eq!(bar.wrote32(REG_RDT), 31);
     assert_eq!(d.link, Some(LinkState { up: true, mbps: 10_000 }));
-    let text: Vec<String> = mac.iter().map(|b| format!("{b:02x}")).collect();
-    let want = format!("ixgbe: up 10fb {} link=up\n", text.join(":"));
+    let want = format!("ixgbe: up 10fb link=up\n");
     assert_eq!(said().last(), Some(&want));
+    let tail = format!("{:02x}:{:02x}:{:02x}", mac[3], mac[4], mac[5]);
+    assert!(said().iter().all(|l| !l.contains(&tail)), "no line holds the station address");
 }
