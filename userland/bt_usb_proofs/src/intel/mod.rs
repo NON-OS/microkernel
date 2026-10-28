@@ -27,13 +27,17 @@ mod model_cmds;
 mod model_pipes;
 mod model_send;
 mod rig;
+mod rig_ops;
 
 mod carried_tests;
+mod ccp_tests;
 mod ddc_tests;
 mod flow_tests;
+mod iml_tests;
 mod legacy_tests;
 mod name_tests;
 mod refuse_tests;
+mod runs_tests;
 mod send_tests;
 mod timeout_tests;
 mod version_tests;
