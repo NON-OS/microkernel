@@ -15,13 +15,14 @@ volume](../overview/glossary-claim-epoch.md#data-volume) the plan names.
 | `MSWR` | `0x5257534D` | `MkStoreWrite` | StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk_device.rs:42` | Write up to 8 KiB of whole 512-byte sectors of the package store, at block 256 and above and below the disk plan. |
 | `MSRR` | `0x5252534D` | `MkStoreRead` | StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk_device.rs:42` | Read up to 32 KiB of whole sectors from the same window of the package store. |
 | `MKEP` | `0x50454B4D` | `MkKeeping` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | 1 once this boot keeps what it writes, which only the policy service turns on; 0 before. |
-| `MDIM` | `0x4D49444D` | `MkDataImport` | FileSystem and StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk_device.rs:43` | Import a file into the data volume, kept only if it matches its SHA-256. |
-| `MDST` | `0x5453444D` | `MkDataStat` | FileSystem | `can_open_files` `src/syscall/contract/cap_table/mk_device.rs:45` | The size of a file on the data volume. |
-| `MDRD` | `0x4452444D` | `MkDataRead` | FileSystem | `can_open_files` `src/syscall/contract/cap_table/mk_device.rs:45` | Read a range of a file on the data volume. |
-| `MDPW` | `0x5750444D` | `MkDataPassphrase` | FileSystem and StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk_device.rs:44` | Key the data volume with a passphrase, or create it. |
-| `MDFB` | `0x4246444D` | `MkDataFeedBegin` | StreamImport | `can_stream_import` `src/syscall/contract/cap_table/mk_device.rs:48` | Begin an import fed chunk by chunk, pinned to a digest. |
-| `MDFD` | `0x4446444D` | `MkDataFeed` | StreamImport | `can_stream_import` `src/syscall/contract/cap_table/mk_device.rs:48` | Feed the next chunk of that import. |
-| `MDRM` | `0x4D52444D` | `MkDataRemove` | StreamImport | `can_stream_import` `src/syscall/contract/cap_table/mk_device.rs:48` | Take an imported file off the data volume, with its record. |
+| `MDIM` | `0x4D49444D` | `MkDataImport` | FileSystem and StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk_device.rs:45` | Import a file into the data volume, kept only if it matches its SHA-256. |
+| `MDST` | `0x5453444D` | `MkDataStat` | FileSystem | `can_open_files` `src/syscall/contract/cap_table/mk_device.rs:46` | The size of a file on the data volume. |
+| `MDRD` | `0x4452444D` | `MkDataRead` | FileSystem | `can_open_files` `src/syscall/contract/cap_table/mk_device.rs:46` | Read a range of a file on the data volume. |
+| `MDPW` | `0x5750444D` | `MkDataPassphrase` | FileSystem and StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk_device.rs:45` | Key the data volume with a passphrase, or create it. |
+| `MDHO` | `0x4F48444D` | `MkDataHandover` | FileSystem and StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk_device.rs:45` | Prepare the data volume for an update: its key sealed once more for the next release's first boot. |
+| `MDFB` | `0x4246444D` | `MkDataFeedBegin` | StreamImport | `can_stream_import` `src/syscall/contract/cap_table/mk_device.rs:49` | Begin an import fed chunk by chunk, pinned to a digest. |
+| `MDFD` | `0x4446444D` | `MkDataFeed` | StreamImport | `can_stream_import` `src/syscall/contract/cap_table/mk_device.rs:49` | Feed the next chunk of that import. |
+| `MDRM` | `0x4D52444D` | `MkDataRemove` | StreamImport | `can_stream_import` `src/syscall/contract/cap_table/mk_device.rs:49` | Take an imported file off the data volume, with its record. |
 
 ### Attestation, signing roots and installs
 

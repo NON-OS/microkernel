@@ -26,8 +26,8 @@ pub(super) fn encode_key_header(keyed: &Keyed) -> [u8; 512] {
     s[..8].copy_from_slice(b"NONOSDK1");
     match keyed {
         Keyed::Tpm => s[8] = 1,
-        Keyed::Passphrase(k) => {
-            s[8] = 2;
+        Keyed::Passphrase(k) | Keyed::Approved(k) => {
+            s[8] = if matches!(keyed, Keyed::Approved(_)) { 3 } else { 2 };
             s[12..16].copy_from_slice(&k.params.m_kib.to_le_bytes());
             s[16..20].copy_from_slice(&k.params.t.to_le_bytes());
             s[20..24].copy_from_slice(&k.params.p.to_le_bytes());

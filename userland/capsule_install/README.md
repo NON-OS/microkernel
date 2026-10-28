@@ -16,7 +16,10 @@ spawns it on demand, or first and full screen when setup or the boot menu asks f
 
 Screens run in a fixed order (`src/install/state/screen.rs`): Welcome, Proofs, Disks,
 Confirm, Writing, Verifying, Done, with Failed after Writing or Verifying. Nothing touches the
-disk before Confirm (`src/install/job/prepare.rs`, `src/install/job/start.rs`).
+disk before Confirm (`src/install/job/prepare.rs`, `src/install/job/start.rs`). On a NØNOS disk
+whose data an update can keep, Confirm offers to update it in place, writing the ESP and the store
+alone (`src/install/state/choice.rs`, `nonos_disk::read_installed`); on a boot from an installed
+NØNOS, Welcome offers to prepare it for that update (`src/install/handover/`).
 
 - The image bytes come from the kernel via `mk_install_source` and are copied once into
   capsule memory (`src/install/source/load.rs`); the heap is sized from those sizes
