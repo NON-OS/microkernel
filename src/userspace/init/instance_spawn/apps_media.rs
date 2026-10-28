@@ -54,3 +54,12 @@ pub(super) fn spawn_install() -> Result<u32, SpawnError> {
 pub(super) fn spawn_install() -> Result<u32, SpawnError> {
     Err(SpawnError::FeatureDisabled)
 }
+
+#[cfg(feature = "nonos-capsule-simplex-ui")]
+pub(super) fn spawn_simplex_ui() -> Result<u32, SpawnError> {
+    crate::userspace::capsule_simplex_ui::spawn_simplex_ui_instance()
+}
+#[cfg(not(feature = "nonos-capsule-simplex-ui"))]
+pub(super) fn spawn_simplex_ui() -> Result<u32, SpawnError> {
+    Err(SpawnError::FeatureDisabled)
+}
