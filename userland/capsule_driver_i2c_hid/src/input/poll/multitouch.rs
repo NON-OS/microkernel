@@ -29,7 +29,9 @@ use crate::state::{Seen, State};
 /// when it completes no frame (a torn read, a hybrid frame still coming),
 /// or completed a screen's, which is posted already.
 pub(super) fn multitouch(state: &mut State, report: &[u8]) -> Option<Seen> {
-    if !state.mt.takes(report) {
+    // The touch report is every report, where the device numbers none.
+    let rid = state.mt.rid;
+    if rid != 0 && report.first() != Some(&rid) {
         return pointer(state, report);
     }
     let f = state.mt.frame(report)?;
