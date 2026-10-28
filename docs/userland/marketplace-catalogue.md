@@ -110,7 +110,7 @@ After the fetch, every listing's `.apk` must be the one `B` pins. So two seals o
 
 ## Apps built from source
 
-Some apps are packaged by no distribution: DarkFi's drk, darkirc and darkfid, and SimpleX's simplex-chat. A recipe of kind `source` lists one of these from a build of its upstream at a single commit, or from the binary its upstream publishes (below) (`tools/nonos_market_catalogue/source_recipe.py`, `checked`). DarkFi's three are in the catalogue, built from v0.5.0. SimpleX's terminal client is in it as `linux.kali.nonos-simplex-chat`, from SimpleX's own v7.0.3 release binary.
+Some apps are packaged by no distribution: DarkFi's drk, darkirc and darkfid, and SimpleX's simplex-chat. A recipe of kind `source` lists one of these from a build of its upstream at a single commit, or from the binary its upstream publishes (below) (`tools/nonos_market_catalogue/source_recipe.py`, `checked`). DarkFi's three are in the catalogue, built from v0.5.0. SimpleX's terminal client is in it as `linux.kali.nonos-simplex-chat`, from SimpleX's own v7.0.3 release binary. The same binary is in it a second time as `linux.kali.nonos-simplex-core`, the engine NØNOS's SimpleX window drives over its WebSocket API: its own package and program name (`usr/bin/simplex-core`), so its policy and listed arguments sit beside a program of their own, in the box FILES_HOME NET_ANON, with `--chat-server-port=5225 --yes-migrate`.
 
 | Key | Required | What it holds |
 |---|---|---|
@@ -121,7 +121,7 @@ Some apps are packaged by no distribution: DarkFi's drk, darkirc and darkfid, an
 | `build` | yes | the name of the nix recipe under `tools/nix/sources/` that builds it offline |
 | `program` | yes | the program the listing sells, as `usr/bin/<name>` |
 | `licence`, `mask`, `name`, `text` | yes | as for an Alpine recipe |
-| `calls`, `dests`, `logo` | no | as for an Alpine recipe |
+| `calls`, `dests`, `logo`, `args` | no | as for an Alpine recipe |
 
 The rest of the recipe is checked as an Alpine one is: the allowlist, the services, the set, the dests file and the logo record. `index_licence` and `licence_source` describe an index, so a source recipe may not carry them. Its listing is `linux.nonos-<package>`. That is the namespace the device installs from the NONOS package mirror (`userland/capsule_linux/src/linux/install/tools.rs`). The generator adds the prefix, so a recipe that names a reserved namespace itself (`nonos-`, `qwen-`, `kali.`, `blackarch.`) is refused.
 
