@@ -13,3 +13,7 @@ Host: 32-core Xeon, KVM, 8 GiB guest, standard dev images.
 The wallet ran with --log-file /root/w.log --daemon-address
 node.moneroworld.com:18089 --untrusted-daemon. Wallet output is not in
 serial; seeds were never captured.
+- gdb9a-anyone-sync.log: db9d7593ee, Anyone really chosen. The dead name
+  gives "[ANON] stream ended N 2" (RESOLVEFAILED); then set_daemon
+  xmr-node.cakewallet.com:18081 this-is-probably-a-spy-node and refresh:
+  status 3775093 / 3793833, syncing.
