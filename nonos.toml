@@ -45,6 +45,10 @@ features = []
 # mirror. Set, the seal lists them and writes each one's content to
 # <out>/packages/<blake3>.tar, to be served from the mirror at /linux/.
 linux_packages = ""
+# With linux_packages set, the built content of the catalogue's source
+# recipes (SimpleX, DarkFi): <package>.tar each, from tools/nonos-source-asset
+# and tools/nix/sources/darkfi-build.sh. Empty: those recipes are not listed.
+linux_sources = ""
 
 # What the package store carries besides the capsules.
 [store]
