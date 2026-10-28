@@ -35,6 +35,7 @@ pub fn default() -> Vec<Vec<u8>> {
         // What gtk_prep.rs makes in this run's private /tmp, for GTK.
         b"GSETTINGS_SCHEMA_DIR=/tmp".to_vec(),
         b"GDK_PIXBUF_MODULE_FILE=/tmp/loaders.cache".to_vec(),
+        b"XDG_DATA_DIRS=/tmp/share:/usr/local/share:/usr/share".to_vec(),
         // A window program's toolkit is told it is on Wayland, and drawn
         // without GL, which no guest has: GTK 4 through cairo, Qt Quick in
         // software. Qt and GDK are held to Wayland, as there is no X server
