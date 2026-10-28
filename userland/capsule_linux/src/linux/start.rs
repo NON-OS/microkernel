@@ -42,20 +42,19 @@ pub fn run() -> ! {
     }
     /* source() has said why when it starts nothing. */
     let Some(launch) = source() else { super::start_stop::stop("no program to run", 1) };
-    let pid = mk_foreign_spawn(b"linux");
-    if pid < 0 {
-        say(b"[LINUX] no guest, errno ");
-        let e = (-pid) as u32;
-        let digits = [b'0' + (e / 10 % 10) as u8, b'0' + (e % 10) as u8, b'\n'];
-        say(&digits);
-        super::start_stop::stop("the kernel gave no guest", 1)
-    }
-    super::call::mark_start();
     if !super::file::prepare_private() {
         say(b"[LINUX] no private directories, not starting\n");
         super::start_stop::stop("no private folders", 1)
     }
+    // GTK's tools run before the program's guest exists: one made beside it
+    // joins its seal family and starts it, and the seal then refuses the
+    // program's note (seal_note.rs), so the run would not be kept.
     super::gtk_prep::prepare(&launch.bytes);
+    let pid = mk_foreign_spawn(b"linux");
+    if pid < 0 {
+        super::start_stop::no_guest(pid)
+    }
+    super::call::mark_start();
     let mut guest = Guest::new(pid as u32);
     guest.links = alloc::rc::Rc::new(super::guest::Links::load());
     let code = match start(&mut guest, launch) {
