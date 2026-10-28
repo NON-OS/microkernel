@@ -21,10 +21,10 @@ its own box with its own database (simplex.core,
   connection state and the outbox of commands. Pure.
 - `src/link/`: the `Transport` trait; `CoreChannel`, the WebSocket chat
   API (the upgrade, masked text frames out, frames in, pings answered) over
-  a `Pipe`; the NSO1 codec SERVE_ONE speaks; and `Transcript`, a recorded
+  a `Pipe`; and `Transcript`, a recorded
   session in the v6 shapes the host proofs replay. All pure.
 - `src/serve/`: the window's pipe, one SERVE_ONE connection on
-  `linux.serve.app.simplex` in NSO1 messages, and `open`, which starts the
+  `linux.serve.app.simplex` in the frames (`nonos_serve_wire`), and `open`, which starts the
   core (MkAppLaunch of `linux.kali.nonos-simplex-chat`) and asks for the
   endpoint each quarter second for half a minute. Until it answers the
   window is offline and says so; it never shows a recorded session.
@@ -65,8 +65,6 @@ desktop's app list. None of that is done here.
 
 ## Not done yet
 
-- The NSO1 op numbers and reply shape are the (docs/design/serve-one.md);
-  `src/link/nso1.rs` holds them in one place. Run against the SERVE_ONE and
-  the core on a boot: not yet.
+- Run against the SERVE_ONE and the core on a boot: not yet.
 - Groups are read and shown; making and managing them, files, the QR code
   of a link and notifications are not here yet.
