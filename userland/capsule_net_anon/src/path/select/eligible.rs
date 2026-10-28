@@ -20,6 +20,16 @@ use super::super::relay::Relay;
 use super::super::weights::Position;
 
 pub(super) fn eligible(relay: &Relay, position: Position) -> bool {
+    eligible_by(relay, position, |exit| exit.exits_web)
+}
+
+/// `eligible`, with `lets_out` judging an exit's policy in place of the web
+/// ports: how the exit of a circuit for a stream to another port is drawn.
+pub(super) fn eligible_by(
+    relay: &Relay,
+    position: Position,
+    lets_out: impl Fn(&Relay) -> bool,
+) -> bool {
     if !relay.usable() || relay.flags.authority {
         return false;
     }
@@ -32,7 +42,7 @@ pub(super) fn eligible(relay: &Relay, position: Position) -> bool {
          * well, or a circuit builds all three hops and the stream is refused
          * at the last one, which costs three handshakes to learn.
          */
-        Position::Exit => relay.flags.exit && relay.flags.fast && relay.exits_web,
+        Position::Exit => relay.flags.exit && relay.flags.fast && lets_out(relay),
     }
 }
 

@@ -21,19 +21,17 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use crate::circuit::Circuit;
-use crate::directory::consensus::Entry;
-use crate::directory::microdesc::Microdesc;
-use crate::directory::verify::AuthorityCert;
+use crate::directory::{consensus::Entry, microdesc::Microdesc, verify::AuthorityCert};
 use crate::link::Link;
-use crate::path::{Relay, Taken, Weights};
+use crate::path::{Exits, Relay, Taken, Weights};
 use crate::stream::Stream;
 
 use super::super::dir_job::DirWork;
 use super::super::guard::Guard;
 use super::super::onion::OnionJob;
+use super::bootstrap::Bootstrap;
 use crate::onion::cache::DescCache;
 use crate::onion::client_auth::ClientKey;
-use super::bootstrap::Bootstrap;
 
 pub struct Manager {
     pub tcp_port: u32,
@@ -98,6 +96,8 @@ pub struct Manager {
     pub guard: Option<Guard>,
     /// Guards this boot gave up on, which a redraw avoids.
     pub given_up: Vec<Taken>,
+    /// What each exit lets out, and the ports exits refused this boot.
+    pub exits: Exits,
     /// A consensus that was Ready is being replaced; the relays, weights and
     /// times in hand serve until the new set is whole (refresh_rule.rs).
     pub refreshing: bool,

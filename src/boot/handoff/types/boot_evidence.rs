@@ -29,6 +29,9 @@ pub const MODULE_KIND_BOOT_ROOT_RECORD: u32 = 6;
 /// The package store from its header on, read by the loader through the
 /// firmware's disk driver.
 pub const MODULE_KIND_STORE: u32 = 7;
+/// Set in the store module's `reserved` when the loader read the copy from
+/// the disk it came from itself; the loader's flag of the same name sets it.
+pub const STORE_FROM_BOOT_DISK: u32 = 1;
 /// Ranges of the boot disk the loader copied: the live plan's sector and the
 /// files it names for import (`hardware::block_device::mirror`).
 pub const MODULE_KIND_DISK_MIRROR: u32 = 8;
