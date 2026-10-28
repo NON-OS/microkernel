@@ -12,6 +12,8 @@ generated userland/nonos_tls/src/roots/store.bin
 generated userland/nonos_proof_abi/src/isolation/program.bin
 generated userland/capsule_linux/guests/busybox.elf
 upstream nonos-bootloader/firmware/*
+# The RTL8821C Bluetooth patch the bt_usb capsule embeds (its firmware/README.md).
+upstream userland/capsule_driver_bt_usb/firmware/*
 upstream userland/capsule_linux/keys/alpine/*
 upstream nonos-data/cacert.pem
 fixture */tests/*
