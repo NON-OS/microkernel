@@ -19,6 +19,8 @@
 pub const LEN: usize = 256;
 pub const MAGIC: [u8; 8] = *b"NLXPOL01";
 pub const VERSION: u16 = 1;
+/// Version 1 with SERVE_ONE's field where its tail pad began (crate::serve).
+pub const VERSION_SERVE: u16 = 2;
 
 pub(crate) const AT_MAGIC: usize = 0;
 pub(crate) const AT_VERSION: usize = 8;
@@ -32,3 +34,6 @@ pub(crate) const AT_NET_DESTS: usize = 120;
 pub(crate) const AT_SYSCALLS: usize = 152;
 /// From the end of the syscall set to the end, all zero.
 pub(crate) const AT_PAD_TAIL: usize = 217;
+/// In version 2, the port and then the name; from the name's end, all zero.
+pub(crate) const AT_SERVE: usize = 217;
+pub(crate) const AT_PAD_SERVE: usize = 251;
