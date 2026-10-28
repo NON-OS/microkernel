@@ -364,7 +364,7 @@
  },
  {
   "name": "bt-intel-any-platform",
-  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/flow.rs",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/fresh.rs",
   "old": "Some(v) if v.platform() == 0x37 => Ok(v),",
   "new": "Some(v) => Ok(v),",
   "test": "intel::",
@@ -389,6 +389,105 @@
   "file": "userland/capsule_driver_bt_usb/src/vendor/intel/ids.rs",
   "old": "COMBINED.contains(&pid)",
   "new": "pid != 0",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-dsbr-skipped",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/fresh.rs",
+  "old": "IMG_IML => dsbr(w, &v)?,",
+  "new": "IMG_IML => {}",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-dsbr-for-a0",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/fresh.rs",
+  "old": "(v.cnvi_top >> 24) & 0xf == 0x01",
+  "new": "(v.cnvi_top >> 24) & 0xf == 0x00",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-dsbr-enabled",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/fresh.rs",
+  "old": "w.command(DSBR, &[0x00, 0x00])?;",
+  "new": "w.command(DSBR, &[0x01, 0x00])?;",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-iml-one-pass",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/fresh.rs",
+  "old": "for _ in 0..2 {",
+  "new": "for _ in 0..1 {",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-iml-firmware-not-renamed",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/fresh.rs",
+  "old": "        sent = stem(&v, true);\n",
+  "new": "",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-ddc-from-final-version",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/fresh.rs",
+  "old": "IMG_OP => return finish(w, &sent),",
+  "new": "IMG_OP => return finish(w, &stem(&v, false)),",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-fw-id-not-in-name",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/name.rs",
+  "old": "Ok(id) if !id.is_empty() => base + \"-\" + id,",
+  "new": "Ok(id) if !id.is_empty() => base,",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-ax200-0-3-lost",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/carried.rs",
+  "old": "&[\"1-3\", \"0-3\"]",
+  "new": "&[\"1-3\"]",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-be201-loader-lost",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/carried.rs",
+  "old": "&[\"iml\"]",
+  "new": "&[\"iml-x\"]",
   "test": "intel::",
   "args": [
    "--release"

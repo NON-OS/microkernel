@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::loader::VID;
-use super::rig::{bootloader, ops_after, run, tlv, BZRU, TYP};
+use super::rig::{bootloader, run, tlv, BZRU, TYP};
+use super::rig_ops::ops_after;
 use nonos_bt_hci::HciError;
 
 #[test]
