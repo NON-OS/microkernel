@@ -34,7 +34,7 @@ fn a_policy_for_a_release_that_is_not_ready_is_refused() {
     let listing = listing_id(&Host, &e.publisher_pubkey, &e.listing_id);
     let release = release_id(&Host, &listing, &rel.release_id);
     let (e, mut rel) = linux(policy(listing, release), "https://pkg");
-    assert!(matches!(read(encode(&e, &rel, true, true)), LinuxPolicy::Policy(_)));
+    assert!(matches!(read(encode(&e, &rel, true, true)), LinuxPolicy::Policy(..)));
     rel.supported_arches = vec!["riscv64".into()];
     assert_eq!(read(encode(&e, &rel, true, true)), LinuxPolicy::Refused, "another arch");
     let (mut sale, rel) = linux(policy(listing, release), "https://pkg");

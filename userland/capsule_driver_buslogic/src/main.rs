@@ -27,7 +27,7 @@ mod port;
 mod setup;
 mod wait;
 
-use nonos_libc::{heap_init, mk_exit, start_driver, EXIT_ABSENT};
+use nonos_libc::{bringup::EXIT_EMPTY, heap_init, mk_exit, start_driver};
 /// The units the setup fills, named here so the setup's files name them
 /// the same way in the capsule and in its proofs.
 pub use nonos_scsi_serve::Units;
@@ -46,6 +46,7 @@ const EXIT_HEAP_INIT: i32 = 1;
 /// resets the adapter, gives it its mailboxes and scans the targets, giving
 /// everything back when a step fails; the attempts are bounded and slept
 /// between. An adapter with nothing on it is given back too.
+/// It leaves with EXIT_EMPTY, not EXIT_ABSENT: the controller is there.
 ///
 /// # Safety
 /// The kernel enters here once, on the capsule's own fresh stack.
@@ -61,7 +62,7 @@ pub unsafe extern "C" fn _start() -> ! {
     if driver.units.count() == 0 {
         driver.release();
         say::no_disk(NAME);
-        mk_exit(EXIT_ABSENT);
+        mk_exit(EXIT_EMPTY);
     }
     for (unit, d) in driver.units.disks.iter().enumerate() {
         if let Some(d) = d {

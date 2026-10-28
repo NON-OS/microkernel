@@ -11,6 +11,9 @@
 #   bootloader/           BOOTX64 before enrollment and Secure Boot signing,
 #                         once the tree holds the kernel's public keys
 #   capsules/<slug>/      every capsule ELF the trust set enrolls
+#   firmware/mediatek/    the firmware package, beside the image and never in
+#                         it: linux-firmware's pinned files and their licence,
+#                         for EFI/nonos/firmware/mediatek on the boot medium
 #   linux/                the Linux userland and its data files
 #   nonos.cdx.json        the software bill of materials
 { pkgs, lib, pins, capsules, userland, image, sbom }:
@@ -18,6 +21,7 @@ cfg:
 let
   kernel = image.kernel cfg;
   loader = image.bootloader cfg;
+  firmware = import ./firmware.nix { inherit pkgs lib; };
   loaderNote = "not built: the loader compiles in the kernel's public keys and root, and the tree "
     + "has none until ek's first seal is committed (tools/nix/README.md, Seal)";
   kernelReady = image.kernelReady cfg;
@@ -61,7 +65,8 @@ pkgs.runCommand "nonos-${cfg.name}" {
   nativeBuildInputs = [ pins.python ];
   passthru = { inherit kernel loader cfg; };
 } ''
-  mkdir -p $out/kernel $out/bootloader $out/capsules $out/linux
+  mkdir -p $out/kernel $out/bootloader $out/capsules $out/linux $out/firmware/mediatek
+  cp ${firmware}/* $out/firmware/mediatek/
   ${if kernelReady then "cp ${kernel}/nonos-kernel $out/kernel/" else "echo ${lib.escapeShellArg kernelNote} > $out/kernel/README"}
   ${if image.loaderReady then "cp ${loader}/nonos_boot.efi $out/bootloader/" else "echo ${lib.escapeShellArg loaderNote} > $out/bootloader/README"}
   ${lib.concatMapStrings (e: ''

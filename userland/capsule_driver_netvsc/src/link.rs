@@ -26,12 +26,11 @@ use alloc::collections::VecDeque;
 use alloc::vec;
 use alloc::vec::Vec;
 
-use nonos_vmbus::packet::{
-    xfer_pages, FLAG_REQUEST_COMPLETION, PACKET_COMP, PACKET_DATA_INBAND, PACKET_DATA_USING_XFER_PAGES,
-};
+use nonos_vmbus::packet::{xfer_pages, FLAG_REQUEST_COMPLETION, PACKET_COMP};
+use nonos_vmbus::packet::{PACKET_DATA_INBAND, PACKET_DATA_USING_XFER_PAGES};
 use nonos_vmbus::{Channel, Header, Host, RingError, Shared};
 
-use crate::constants::layout::MAX_SECTIONS;
+use crate::constants::layout::{MAX_SECTIONS, PACKETS_PER_PASS};
 use crate::constants::nvsp::{CONTROL_CHANNEL, DATA_CHANNEL};
 use crate::nvsp::{self, Message};
 use crate::rndis::{self, Received};
@@ -123,28 +122,26 @@ impl<H: Host, M: Shared> Link<H, M> {
         }
     }
 
-    /// Take everything the host sent. Owed completions go first.
+    /// Take what the host sent, PACKETS_PER_PASS at most; the rest waits
+    /// for the next pass. Owed completions go first.
     pub fn service(&mut self) -> Result<(), LinkError> {
         match self.flush_owed() {
             Ok(()) | Err(LinkError::Busy) => {}
             Err(e) => return Err(e),
         }
         let mut buf = vec![0u8; IN_MAX];
-        loop {
+        for _ in 0..PACKETS_PER_PASS {
             if self.dead {
-                return Err(LinkError::Broken);
+                break;
             }
             match self.chan.recv(&mut self.host, &mut self.rings, &mut buf) {
                 Ok(Some((h, n))) => self.take(&h, &buf[..n]),
-                Ok(None) => return Ok(()),
-                Err(RingError::TooBig) => {
-                    if self.chan.inb.skip(&mut self.rings).is_err() {
-                        self.dead = true;
-                    }
-                }
+                Ok(None) => break,
+                Err(RingError::TooBig) => self.dead |= self.chan.inb.skip(&mut self.rings).is_err(),
                 Err(_) => self.dead = true,
             }
         }
+        (!self.dead).then_some(()).ok_or(LinkError::Broken)
     }
 
     fn take(&mut self, h: &Header, p: &[u8]) {
@@ -277,8 +274,9 @@ impl<H: Host, M: Shared> Link<H, M> {
         self.bufs.send.barrier();
         let m = nvsp::rndis_packet(channel, i as u32, len as u32);
         self.busy |= 1u64 << i;
+        let tx = TX_BASE + i as u64;
         loop {
-            match self.send_packet(PACKET_DATA_INBAND, FLAG_REQUEST_COMPLETION, TX_BASE + i as u64, &m) {
+            match self.send_packet(PACKET_DATA_INBAND, FLAG_REQUEST_COMPLETION, tx, &m) {
                 Ok(()) => return Ok(()),
                 Err(LinkError::Busy) if self.host.now_ms() < until => {
                     self.service()?;
@@ -292,15 +290,15 @@ impl<H: Host, M: Shared> Link<H, M> {
         }
     }
 
-    /// An RNDIS request with id `request` on the control channel, and its
+    /// An RNDIS request with id `rid` on the control channel, and its
     /// reply's status and information buffer, within `ms`.
-    pub fn control(&mut self, req: &[u8], request: u32, ms: u64) -> Result<(u32, Vec<u8>), LinkError> {
+    pub fn control(&mut self, req: &[u8], rid: u32, ms: u64) -> Result<(u32, Vec<u8>), LinkError> {
         let until = self.host.now_ms().saturating_add(ms);
-        self.replies.retain(|r| r.0 != request);
+        self.replies.retain(|r| r.0 != rid);
         self.send_rndis(CONTROL_CHANNEL, &[req], ms)?;
         loop {
             self.service()?;
-            if let Some(i) = self.replies.iter().position(|r| r.0 == request) {
+            if let Some(i) = self.replies.iter().position(|r| r.0 == rid) {
                 let (_, status, info) = self.replies.remove(i).unwrap();
                 return Ok((status, info));
             }

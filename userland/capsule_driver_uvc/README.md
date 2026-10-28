@@ -70,7 +70,8 @@ asks about CameraCapture; it never holds it.
 
 - Uncompressed (YUY2, NV12) and MJPEG formats, every frame size listed.
 - The smallest alternate setting whose bandwidth fits the committed
-  payload size.
+  payload size; if its endpoint cannot then be configured, alternate 0
+  again, so a stream that never began holds no bandwidth.
 - Isochronous IN on `driver.xhci0` only (ops 0x18 and 0x1A); EHCI, OHCI
   and UHCI cameras are listed but answer -22 at START.
 - The compositor told when streaming starts and stops (NCMP op 0x000A),

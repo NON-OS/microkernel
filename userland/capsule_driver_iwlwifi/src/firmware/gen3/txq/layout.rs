@@ -27,6 +27,8 @@ pub const TXQ_FRAMES: usize = 16;
 pub const TX_BUF: usize = 2048;
 /// `TFD_QUEUE_BC_SIZE_GEN3_AX210` entries of two bytes.
 pub const BC_TABLE: usize = 1024 * 2;
+/// `TFD_QUEUE_BC_SIZE_GEN3_BZ` entries of two bytes.
+pub const BC_TABLE_BZ: usize = 1024 * 4 * 2;
 /// The device command header before the transmit command.
 pub(super) const CMD_HDR: usize = 4;
 

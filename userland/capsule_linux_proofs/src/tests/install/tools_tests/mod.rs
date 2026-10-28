@@ -19,7 +19,10 @@
 //! Alpine's family, where the stored tools live, and the personality fetches
 //! the content its pin names from the NONOS package mirror. Held end to end:
 //! the kernel's own mapping, the personality's split and its reading of the
-//! name, and the path a mirror serves the content at.
+//! name, and the path a mirror serves the content at. A source recipe's
+//! glibc program is listed as `linux.kali.nonos-<tool>`: Debian's family,
+//! and the Debian packages its content pins (debs.rs).
 
+mod debs;
 mod name;
 mod seal;

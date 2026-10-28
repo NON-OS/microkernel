@@ -68,3 +68,9 @@ fn an_uninstall_takes_out_its_own_lines_only() {
     holding(&[]);
     assert!(unrecord(&[b"/usr/bin/ok".to_vec()]), "no table is no line to take out");
 }
+
+#[test]
+fn a_terminal_databases_links_fit() {
+    // ncurses-terminfo: 1072 links, the longest line about 70 bytes.
+    assert!(MAX_TABLE as usize >= 1072 * 72 * 4, "room for it and more beside it");
+}

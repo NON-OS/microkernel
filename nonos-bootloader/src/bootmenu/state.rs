@@ -16,6 +16,7 @@
 
 //! What the menu shows: the selection, the countdown, and what to repaint.
 
+use crate::loader::file::BootDevice;
 use crate::security::SecurityContext;
 
 /// What changed since the last frame, so a key press repaints only the card
@@ -35,10 +36,12 @@ pub(super) struct Frame<'a> {
     /// The first frame leaves the emblem to the opening animation.
     pub intro: bool,
     pub sec: &'a SecurityContext,
+    /// The kind of disk this loader was read from, read once before the menu.
+    pub boot: BootDevice,
 }
 
 impl<'a> Frame<'a> {
-    pub fn new(default: usize, total_s: u32, sec: &'a SecurityContext) -> Self {
-        Frame { sel: default, default, remaining_s: total_s, total_s, intro: true, sec }
+    pub fn new(default: usize, total_s: u32, sec: &'a SecurityContext, boot: BootDevice) -> Self {
+        Frame { sel: default, default, remaining_s: total_s, total_s, intro: true, sec, boot }
     }
 }

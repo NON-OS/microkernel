@@ -33,13 +33,17 @@ const DRIVER: &[u8] = b"driver.hda";
 /// Intel laptop, an AMD ACP, only HDMI) is not a failure: the driver gives
 /// its claims back and stays to say why, so the audio server and the
 /// applications can tell the user in plain words instead of going silent.
-/// An Intel SST engine on the bus starts the verdict at "needs SOF", so a
+/// An Intel SST engine, or an Intel DSP of class 0x0480, on the bus starts
+/// the verdict at "needs SOF" (alone, it is not "no controller"), so a
 /// Broadwell's HDMI-only controller beside it, or one that fails, cannot
 /// hide where the speakers are.
 pub fn start() -> ! {
     let survey = discover::survey();
     if let Some(dev) = survey.intel_sst {
-        Line::new("[HDA] intel sst dsp 8086:").hex(dev as u32, 4).s(" found, needs SOF").emit();
+        Line::new("[HDA] intel sst dsp 8086:")
+            .hex(dev as u32, 4)
+            .s(" found, needs the SOF DSP driver, which NONOS does not have")
+            .emit();
     }
     let dsp = survey.amd_acp || survey.intel_sst.is_some();
     if survey.is_empty() && dsp {

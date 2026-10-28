@@ -22,7 +22,9 @@
 use nonos_libc::{given_back, refuse_config, EPOCH};
 
 use crate::claim::claim;
-use crate::constants::{CSR_GP_CNTRL, GP_CNTRL_MAC_CLOCK_READY};
+use crate::constants::CSR_GP_CNTRL;
+use crate::gen3::regs::GP_MAC_CLOCK_READY;
+use crate::gen3_model::Polls;
 use crate::grants::{init_or_release, Grants};
 use crate::regs::Regs;
 
@@ -49,10 +51,11 @@ fn the_claim_turns_on_memory_space_alone() {
 #[test]
 fn setup_wakes_the_chip_and_never_turns_bus_master_on() {
     let mut window = vec![0u32; 0x100 / 4];
-    window[CSR_GP_CNTRL / 4] = GP_CNTRL_MAC_CLOCK_READY;
+    window[CSR_GP_CNTRL / 4] = GP_MAC_CLOCK_READY;
     let before = given_back().len();
     // SAFETY: the window's own 0x100 bytes, alive for the call.
     let regs = unsafe { Regs::new(window.as_mut_ptr() as u64, 0x100) };
-    assert!(init_or_release(regs, &mut grants()).is_ok());
+    let mut c = Polls { per_wait: 64, delays_us: 0 };
+    assert!(init_or_release(regs, crate::gen3::csr::CsrLayout::V1, &mut c, &mut grants()).is_ok());
     assert!(since(before).is_empty(), "no command write: Bus Master waits for the stop");
 }

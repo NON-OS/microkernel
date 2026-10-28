@@ -21,11 +21,13 @@
 pub mod abi;
 pub mod boxed;
 pub mod call;
+pub mod console;
 pub mod file;
 pub mod guest;
 #[path = "../../../capsule_linux/src/linux/heap_choice.rs"]
 pub mod heap_choice;
 pub mod net;
+pub mod pty;
 pub mod unix;
 #[path = "../../../capsule_linux/src/linux/whole.rs"]
 pub mod whole;

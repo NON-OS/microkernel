@@ -33,8 +33,13 @@ pub fn parse<'a>(v: &'a View, rest: &'a [&'a [u8]]) -> Option<At<'a>> {
         (b"sys", _) => Some(At::Sysctl(more)),
         (name, []) if SYSTEM.contains(&name) => Some(At::System(name)),
         (pid, _) => {
-            let proc = v.find(number(pid)?)?;
-            in_pid(proc, proc.ns, more, true)
+            let n = number(pid)?;
+            if let Some(proc) = v.find(n) {
+                return in_pid(proc, proc.ns, more, true);
+            }
+            /* Linux answers a thread's number too, unlisted, as that thread. */
+            let proc = v.procs.iter().find(|p| p.tids.iter().any(|(ns, _)| *ns == n))?;
+            in_pid(proc, n, more, false)
         }
     }
 }
