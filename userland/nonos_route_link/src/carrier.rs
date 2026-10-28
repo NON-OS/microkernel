@@ -36,3 +36,13 @@ pub trait Carrier {
     /* Sleep without spinning. */
     fn pause(&mut self, ms: u64);
 }
+
+/*
+ * What a call returns when the kernel had no room to queue its frame, so
+ * the proxy never saw it: the caller already holds its share of the
+ * proxy's places (EBUSY), or the proxy's inbox is full (EAGAIN). The same
+ * frame sent later is taken. Any other negative return is a frame the
+ * proxy holds and has not answered in time, or a proxy that cannot be
+ * reached at all, which the frame after it meets as well.
+ */
+pub const NO_ROOM: [i64; 2] = [-16, -11];
