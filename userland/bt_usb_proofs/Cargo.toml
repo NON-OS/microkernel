@@ -20,6 +20,8 @@ nonos_bt_hogp = { path = "../nonos_bt_hogp" }
 nonos_bt_proto = { path = "../bt_proto" }
 nonos_bt_smp = { path = "../nonos_bt_smp" }
 nonos_bt_wire = { path = "../nonos_bt_wire" }
+# SHA-256 for the modelled MediaTek package's pins.
+nonos_hash = { path = "../nonos_hash" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
