@@ -25,7 +25,7 @@ use super::job_argv::{job_argv, job_caps, JobKind};
 use super::spawn::{PROVE_CAPS, WINDOW};
 use crate::capabilities::{serial_debug_cap, Capability};
 use crate::kernel_core::process_spawn::capsule_spawn::{
-    spawn_verified, CapsuleSpecVerified, SpawnError,
+    spawn_verified_with_argv, CapsuleSpecVerified, SpawnError,
 };
 use crate::security::nonos_id_cert::IdCertVerifyError;
 use crate::security::nonos_trust_anchor::{decode as decode_anchor, BAKED_TRUST_ANCHOR_POLICY};
@@ -67,7 +67,5 @@ pub fn spawn_prove_job(kind: JobKind, asker: u32) -> Result<u32, SpawnError> {
         requested_caps: job_caps(kind, PROVE_CAPS, ATTEST_READ) | serial_debug_cap(),
         debug_tag: b"[PROVE-JOB] elf error:",
     };
-    let pid = spawn_verified(&spec, &trust, None)?;
-    let _ = crate::process::set_argv(pid, job_argv(kind, asker));
-    Ok(pid)
+    spawn_verified_with_argv(&spec, &trust, None, job_argv(kind, asker))
 }
