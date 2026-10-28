@@ -38,6 +38,6 @@ pub(in crate::syscall::contract) fn resolve(
     check_session_binding(token, ctx)?;
     check_asid_binding(token, ctx)?;
     check_revocation_epoch(token, ctx)?;
-    check_syscall_allowed(token, number, ctx.caller_is_shell)?;
+    check_syscall_allowed(token, number, ctx.caller_launches)?;
     Ok(())
 }
