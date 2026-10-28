@@ -22,6 +22,7 @@ mod frame;
 pub mod full;
 mod header;
 mod hints;
+mod keep_text;
 pub mod metrics;
 mod screens;
 mod text;
