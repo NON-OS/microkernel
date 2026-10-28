@@ -21,6 +21,7 @@
 
 mod call;
 mod failure;
+mod follow;
 mod info;
 mod install;
 mod install_said;
@@ -30,6 +31,8 @@ mod ready;
 mod run;
 mod stage_text;
 mod uninstall;
+mod watch;
 mod wrap;
 
+pub use follow::tick as follow_installs;
 pub use run::run;
