@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The listings whose home keeps more than declared::HOME, by the listing
-//! key their policy carries (home_key.rs): another publisher's listing of
-//! the same name has another key and the ordinary home. Self-contained, so
-//! market_proofs recomputes each key from its catalogue listing.
+//! key their policy carries (home_key.rs) or the program it names: an image
+//! whose catalogue is signed with its own keys, as a development image's
+//! is, keys the same listing differently, and its program is the same.
+//! Only how much a home may keep follows; which home is the key's alone.
+//! Self-contained, so market_proofs holds each to its catalogue listing.
 
 /// linux.monero, published by NONOS. Its wallet keeps a 32-byte hash for
 /// each block it has scanned, about 21 MB for a wallet made today, and on
@@ -28,8 +30,14 @@ pub const MONERO: [u8; 32] = [
     0xf3, 0xd0, 0xf1, 0x90, 0x35, 0x57, 0x04, 0xc0, 0xf3, 0x25, 0x88, 0x22, 0x76, 0x00, 0x5d, 0x4e,
 ];
 
+/// monero-wallet-cli 0.18.3.3-r1, the program linux.monero's policy names.
+pub const MONERO_PROGRAM: [u8; 32] = [
+    0x20, 0x73, 0xf1, 0xb6, 0x21, 0xb3, 0xf1, 0x0b, 0xa4, 0x5b, 0x29, 0xa2, 0x7d, 0xe4, 0xe7, 0x83,
+    0xb6, 0xd8, 0xd2, 0x49, 0xbd, 0x57, 0x00, 0x88, 0x70, 0x62, 0xc3, 0x87, 0xcc, 0x66, 0x9c, 0x83,
+];
+
 /// What its home keeps: room for both copies and the chain's growth.
 pub const MONERO_HOME: u64 = 64 << 20;
 
-/// Each listing that keeps more, and how much.
-pub const LARGER: &[([u8; 32], u64)] = &[(MONERO, MONERO_HOME)];
+/// Each listing that keeps more, by its key or its program, and how much.
+pub const LARGER: &[([u8; 32], [u8; 32], u64)] = &[(MONERO, MONERO_PROGRAM, MONERO_HOME)];
