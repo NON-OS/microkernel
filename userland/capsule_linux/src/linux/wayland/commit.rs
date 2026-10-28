@@ -27,6 +27,9 @@ use super::subsurface::commit::sub_commit;
 use super::subsurface::compose::repaint;
 use super::subsurface::restack::parent_commit;
 
+#[path = "pace.rs"]
+pub mod pace;
+
 /// A commit with a buffer is the only thing that reaches the screen, and
 /// only a window's, the surface of a toplevel, with its subsurfaces laid
 /// on it (subsurface/). A cursor's buffer is released and its frames
@@ -49,12 +52,7 @@ pub fn commit(guest: &mut Guest, id: u32) {
     }
     Event::new(buffer, ev::BUFFER_RELEASE).send(&mut guest.display.to_client);
     let owed = take_frames(guest, id);
-    for callback in owed {
-        Event::new(callback, ev::CALLBACK_DONE).u32(0).send(&mut guest.display.to_client);
-        /* A callback ends with its done, and its id goes back to the client. */
-        guest.objects.drop_id(callback);
-        super::handlers::delete_id(guest, callback);
-    }
+    pace::owe(guest, id, owed);
 }
 
 fn surface_buffer(guest: &Guest, id: u32) -> Option<(u32, bool)> {
