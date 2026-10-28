@@ -46,7 +46,7 @@ pub fn paint(state: &mut State, fb: &mut PaintBuffer) {
     fb.clear(theme::BACKGROUND);
     let (w, h) = (fb.width, fb.height);
     let body = window_body(w, h);
-    header::paint(fb, &body.m, state.screen, w);
+    header::paint(fb, &body.m, state, w);
     screen(state, fb, body);
     footer::paint(fb, &body.m, state, w, h);
 }

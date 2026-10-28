@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The rows a survey is made of: a disk to install to, a disk withheld, and
-//! a driver that gave no disk.
+//! a driver that gave no disk. A target that holds NONOS is read further,
+//! for what an update would keep of it.
 
 use alloc::string::String;
 
@@ -37,6 +38,7 @@ pub fn target(device: BlockDevice, contents: Contents) -> Disk {
         contents,
         identity: device.identity().ok().flatten(),
         fault: None,
+        keep: contents.keep(&device),
     }
 }
 
@@ -52,6 +54,7 @@ pub fn withheld(device: BlockDevice, why: &str) -> Disk {
         contents: Contents::probe(&device),
         identity: device.identity().ok().flatten(),
         fault: Some(String::from(why)),
+        keep: None,
     }
 }
 
@@ -66,5 +69,6 @@ pub fn failed(driver: Driver, instance: u8, unit: u16, e: &BlkError) -> Disk {
         contents: Contents::Unknown,
         identity: None,
         fault: Some(fault(driver, instance, e)),
+        keep: None,
     }
 }

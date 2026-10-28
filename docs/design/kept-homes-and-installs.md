@@ -1,6 +1,9 @@
 # Design: Linux homes and installs kept across reboots
 
-Status: proposed, before code (S1, privacy/TCB). It builds on the homes
+Status: the owner ruled on 27 October 2026. 0.9.3 ships K1, the handover
+(K1b, below) and the installer's "Update NØNOS (keep my data)". Kept homes
+and kept installs move to the next release. This page was first written
+as a proposal, before code (S1, privacy/TCB). It builds on the homes
 design already ruled on (`HANDOFF/catalogue/files-home-design.md`, rulings
 1-6, and `HANDOFF/letters/privacy-apps/03-homes-that-last.md`, H1-H3) and
 adds what those leave open: a volume key that survives an update, and the
@@ -81,6 +84,19 @@ first update. Kept homes do not ship before this is fixed.
 | K1.3 | a kind-3 volume that will not unwrap is never formatted over | format on any open error |
 | K1.4 | a kind-1 volume still opens with the v1 derivation | read every header as kind 3 |
 | K1.5 | format writes kind 3, never kind 1 | keep the v1 format |
+
+### K1b: the handover, for an update that brings a new bootloader
+
+K1 binds PCR 4, the bootloader, as it is, and most releases build the
+bootloader anew, so K1 alone keeps a volume only across a kernel-only
+update. Before an update the installer, on the person's word, asks
+`MkDataHandover`: the volume key is sealed once more under the same policy
+without PCR 4, label `blockfs.data.handover.v1`, into the key header's
+sector at bytes 128..196. The next boot opens the volume under its own key
+and clears the record, or, under a new bootloader, opens it by the record,
+wraps the key under its own key and clears the record, in two writes each
+read back. The record lasts one boot. The window it opens, and the code,
+are on `docs/security/device-secrets-and-keys.md` ("The handover").
 
 ## Homes: H1 and H2, as ruled
 
