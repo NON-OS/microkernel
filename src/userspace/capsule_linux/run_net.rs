@@ -41,8 +41,5 @@ pub(super) const RUN_NET: Role = Role {
 /// The run of `package` again, as app.linux.run.net, with the argv init
 /// gives every run role.
 pub fn spawn_run_net(package: &str) -> Result<u32, SpawnError> {
-    let pid = spawn_role(&RUN_NET)?;
-    let argv = vec![String::from("run"), String::from(package)];
-    let _ = crate::process::set_argv(pid, argv);
-    Ok(pid)
+    spawn_role(&RUN_NET, Some(vec![String::from("run"), String::from(package)]))
 }

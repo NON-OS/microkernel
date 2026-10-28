@@ -46,6 +46,7 @@ impl Sock {
             error: 0,
             opts: Opts::new(proto),
             svc: None,
+            opened_late: false,
             holders: pid.map_or_else(Vec::new, |p| vec![p]),
             uname: None,
             upeer: None,

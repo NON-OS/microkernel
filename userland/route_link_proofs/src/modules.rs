@@ -30,6 +30,8 @@ pub mod devnet;
 pub mod direct_only;
 #[path = "../../nonos_route_link/src/frame.rs"]
 pub mod frame;
+#[path = "../../nonos_route_link/src/frame_on.rs"]
+pub mod frame_on;
 #[path = "../../nonos_route_link/src/install.rs"]
 pub mod install;
 #[path = "../../nonos_route_link/src/opening.rs"]
