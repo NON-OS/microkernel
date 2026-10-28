@@ -21,6 +21,7 @@ use alloc::vec::Vec;
 
 use nonos_market_proto::installed_line;
 
+use super::headline_failed::with_detail;
 use crate::store::listing::Listing;
 use crate::store::market::Readiness;
 use crate::store::next_step::refused_uninstall;
@@ -68,6 +69,6 @@ pub(super) fn headline(state: &State, listing: &Listing, r: &Readiness) -> (Vec<
     match (fetching, behind) {
         (Some(said), _) => (said.into_bytes(), ACCENT),
         (None, Some(said)) => (said, MUTED),
-        (None, None) => (line.to_vec(), tone),
+        (None, None) => (with_detail(listing, line), tone),
     }
 }
