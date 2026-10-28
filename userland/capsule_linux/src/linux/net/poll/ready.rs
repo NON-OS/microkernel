@@ -43,6 +43,7 @@ pub fn ready(guest: &Guest, fd: u64) -> u16 {
         Some(Kind::Epoll) => crate::linux::file::epoll_bits(guest, fd),
         Some(Kind::Stdin) => crate::linux::console::bits(),
         Some(Kind::Pty) => crate::linux::pty::bits(guest, fd),
+        Some(Kind::Pidfd) => crate::linux::call::pidfd::bits(guest, fd),
         Some(_) => POLLIN | POLLOUT,
     }
 }
