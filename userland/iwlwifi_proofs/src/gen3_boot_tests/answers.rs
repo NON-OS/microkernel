@@ -8,9 +8,11 @@ use crate::gen3_model::{reply, Out, Seen};
 type Answers = Box<dyn FnMut(&Seen) -> Vec<Out>>;
 
 // The answers a unified-image firmware gives to the bring-up commands.
-pub(super) fn firmware_answers(ax_mcc: bool) -> Answers {
+pub(crate) fn firmware_answers(ax_mcc: bool) -> Answers {
     Box::new(move |s: &Seen| match (s.group, s.cmd) {
-        (0x0C, 0x00) => vec![reply(s, vec![]), Out { cmd: 0x04, group: 1, seq: 0x8000, payload: vec![] }],
+        (0x0C, 0x00) => {
+            vec![reply(s, vec![]), Out { cmd: 0x04, group: 1, seq: 0x8000, payload: vec![] }]
+        }
         (0x0C, 0x02) => {
             let mut p = vec![0u8; 468];
             p[12] = 3;
@@ -42,7 +44,12 @@ pub(super) fn firmware_answers(ax_mcc: bool) -> Answers {
             vec![
                 reply(s, vec![]),
                 Out { cmd: 0xC1, group: 0, seq: 0x8000, payload: beacon },
-                Out { cmd: 0x0F, group: 0, seq: 0x8000, payload: vec![0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+                Out {
+                    cmd: 0x0F,
+                    group: 0,
+                    seq: 0x8000,
+                    payload: vec![0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                },
             ]
         }
         _ => vec![reply(s, vec![])],

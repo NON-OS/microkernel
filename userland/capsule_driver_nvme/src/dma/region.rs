@@ -18,6 +18,10 @@ use nonos_libc::{mk_dma_map, mk_dma_unmap, DmaMapOut};
 
 use crate::error::{NvmeError, NvmeResult};
 
+/// The page every grant must start on: queues, PRP entries and host memory
+/// buffer descriptors all name whole 4 KiB pages.
+const PAGE_MASK: u64 = 0xfff;
+
 /// Memory the controller may be given. Dropping a region unmaps nothing:
 /// memory the controller may have seen goes back only with the device's
 /// release, which turns bus mastering off before it drains the grants, so
@@ -36,6 +40,13 @@ impl DmaRegion {
         let r = mk_dma_map(device_id, claim_epoch, length, 0, &mut out);
         if r < 0 {
             return Err(NvmeError::BrokerCallFailed);
+        }
+        // A short grant would let the controller write past what is ours; a
+        // misaligned one would be named by addresses it does not start at.
+        // Neither has been handed to the controller, so it goes back now.
+        if out.length < length || (out.user_va | out.device_addr) & PAGE_MASK != 0 {
+            let _ = mk_dma_unmap(out.grant_id);
+            return Err(NvmeError::DmaGrantShort);
         }
         Ok(Self { grant_id: out.grant_id, user_va: out.user_va, device_addr: out.device_addr })
     }

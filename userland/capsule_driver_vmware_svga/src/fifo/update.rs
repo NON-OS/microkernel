@@ -43,9 +43,10 @@ pub fn update(
             Some(_) if deadline.expired() => return Err("FIFO stayed full"),
             Some(_) => regs.write(SYNC, SYNC_GENERIC),
         }
-        core::hint::spin_loop();
+        // The host drains the ring on its own time: give the core away.
+        nonos_libc::mk_yield();
     }
-    fifo.push(&words);
+    fifo.push(&words)?;
     regs.write(SYNC, SYNC_GENERIC);
     Ok(())
 }

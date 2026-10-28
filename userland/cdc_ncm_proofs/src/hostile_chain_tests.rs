@@ -3,7 +3,7 @@
 //! ends, takes nothing twice, and reads nothing outside the transfer.
 
 use crate::hostile_tests::good;
-use crate::ntb::{found, Ntb, NCM0};
+use crate::ntb::{found, Ntb, NCM0, NCM1};
 
 #[test]
 fn a_looping_ndp_chain_gives_each_datagram_once() {
@@ -15,6 +15,15 @@ fn a_looping_ndp_chain_gives_each_datagram_once() {
     assert_eq!(found(&b.0, 4096), [(40, 60), (120, 60)], "two NDPs naming each other");
     b.u16(206, 250);
     assert_eq!(found(&b.0, 4096), [(40, 60), (120, 60)], "next NDP past the end");
+}
+
+#[test]
+fn bytes_without_an_ndp_signature_end_the_chain_and_name_no_next() {
+    let mut b = Ntb::new(256, 12);
+    b.ndp(12, 0x1234_5678, 200, &[(40, 60)]).ndp(200, NCM0, 0, &[(120, 60)]);
+    assert_eq!(found(&b.0, 4096), [], "the NDP its next index names is not read");
+    b.ndp(12, NCM1, 200, &[(40, 60)]);
+    assert_eq!(found(&b.0, 4096), [(120, 60)], "a CRC NDP's chain still holds");
 }
 
 #[test]

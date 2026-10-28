@@ -66,6 +66,13 @@ edges between; a controller that becomes ready a millisecond inside its
 CAP.TO is taken. 200,000 random CAP, CSTS and elapsed values never wait past
 the bound or report ready for a CSTS that is not.
 
+## Idling between polls (`idle_tests.rs`)
+
+The ready, pre-disable and shutdown waits idle a millisecond (the shim
+counts `mk_idle_ms`) after every CSTS read that says wait, and not at all
+for a controller already there; an unanswered admin command idles before
+each clock read of its 5 s budget.
+
 ## Completion waits (`completion_tests.rs`)
 
 The admin and I/O queues share one loop (`admin/completion_wait.rs`) over a

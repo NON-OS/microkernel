@@ -44,6 +44,7 @@ mod rules_tests;
 mod rx_batch_tests;
 mod rx_bound_tests;
 mod rx_copy_tests;
+mod rx_drop_tests;
 mod rx_edge_tests;
 mod rx_fuzz_tests;
 mod rx_packet_tests;
