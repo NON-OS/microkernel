@@ -42,6 +42,7 @@ pub fn write(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
         Some(Kind::Device) => file::dev_write(guest, fd, buf, len),
         Some(Kind::Resolver) => net::dns::query(guest, fd, buf, len, LOOPBACK_53),
         Some(Kind::Dir) => errno::fail(errno::EISDIR),
+        Some(Kind::Memfd) => file::memfd_write(guest, fd),
         _ => errno::fail(errno::EBADF),
     }
 }
