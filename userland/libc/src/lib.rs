@@ -130,7 +130,7 @@ pub use prove::{mk_prove_job, PROVE_JOB_DELIVER, PROVE_JOB_PROVE, PROVE_JOB_RECE
 pub use seal::{mk_seal_drop, mk_seal_note, mk_seal_peek, mk_seal_read, mk_seal_read_live};
 pub use seal::{SEAL_APP_ID, SEAL_DIAG};
 pub use spawn_instance::mk_spawn_instance;
-pub use store::{mk_keeping, mk_store_read, mk_store_write};
+pub use store::{mk_data_handover, mk_keeping, mk_store_read, mk_store_write};
 pub use surface_registry::{
     input_abs_scale, mk_display_vsync_wait, mk_input_event_drain, mk_input_event_post,
     mk_input_event_wait, mk_surface_attach, mk_surface_present, mk_surface_present_rect,

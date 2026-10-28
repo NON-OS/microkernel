@@ -82,9 +82,15 @@ mv .keys/nonos_trust_anchor_mldsa65.pub nonos-data/trust/keys/
 # The device policy key signs the boot-root record the kernel checks the loader
 # against, and kernel.approval. The kernel compiles in its public point, x || y,
 # so a scratch image carries a scratch key end to end, made as the ceremony
-# makes the real one.
-echo "[scratch-trust-bootstrap] generating scratch device policy key (P-256)"
-openssl ecparam -name prime256v1 -genkey -noout -out .keys/device_policy_p256.pem
+# makes the real one. One already made is kept, as a release keeps the
+# ceremony's: the data volume's key is wrapped under a policy that names it,
+# so an image sealed again with a new one opens no volume an earlier one made.
+if [ -f .keys/device_policy_p256.pem ]; then
+    echo "[scratch-trust-bootstrap] keeping the scratch device policy key (P-256)"
+else
+    echo "[scratch-trust-bootstrap] generating scratch device policy key (P-256)"
+    openssl ecparam -name prime256v1 -genkey -noout -out .keys/device_policy_p256.pem
+fi
 chmod 600 .keys/device_policy_p256.pem
 openssl ec -in .keys/device_policy_p256.pem -pubout -outform DER 2>/dev/null | tail -c 64 \
     > nonos-data/trust/policy/device_policy_p256.pub
