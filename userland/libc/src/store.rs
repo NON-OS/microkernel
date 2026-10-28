@@ -16,7 +16,9 @@
 
 //! The package store's sectors, on the disk the kernel keeps NONOS on.
 
-use crate::syscall::{call_raw, N_MK_KEEPING, N_MK_STORE_READ, N_MK_STORE_WRITE};
+use crate::syscall::{
+    call_raw, N_MK_DATA_HANDOVER, N_MK_KEEPING, N_MK_STORE_READ, N_MK_STORE_WRITE,
+};
 
 /// Read `len` bytes (whole sectors, at most 32 KiB) from `lba` into `buf`.
 /// Returns the bytes read, or a negative errno.
@@ -40,4 +42,13 @@ pub fn mk_store_write(lba: u64, buf: *const u8, len: usize) -> i64 {
 /// mode that keeps, and false on a kernel that does not know the call.
 pub fn mk_keeping() -> bool {
     call_raw(N_MK_KEEPING, [0; 6]) == 1
+}
+
+/// Prepare this disk's data volume for an update: its key sealed once more,
+/// for one boot, so the next release's bootloader opens it. Needs StoreWrite
+/// and FileSystem. 0 once written; ENOTSUP this boot keeps nothing, EAGAIN
+/// not open yet, EALREADY a passphrase keys it, ENOENT made for one kernel,
+/// EACCES this boot not approved, EIO the disk did not take it.
+pub fn mk_data_handover() -> i64 {
+    call_raw(N_MK_DATA_HANDOVER, [0; 6])
 }
