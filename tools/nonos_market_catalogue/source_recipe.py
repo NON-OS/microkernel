@@ -17,7 +17,8 @@
 its upstream at one commit (source_run.py lists it). It names the upstream
 (`source`, an https git URL, and `commit`, the full 40-hex commit), the
 nix recipe that builds it offline (`build`, under tools/nix/sources/), and
-the program its listing sells (`program`, required). The rest, its listed
+the program its listing sells (`program`, required), and may name `serve`,
+SERVE_ONE's `name:port` (serve.py in nonos_linux_pack). The rest, its listed
 `args` too, is checked as an Alpine recipe's is (recipes.py). Its listing
 is `linux.nonos-<package>`, the namespace the device installs from the
 NONOS package mirror (install/tools.rs), so the generator adds the prefix
@@ -26,12 +27,14 @@ and a recipe may not. One listing upstream's release binary has an `asset` inste
 import re
 from pathlib import Path
 
+from nonos_linux_pack.serve import served
+
 from . import asset_recipe
 from .recipes import checked as common
 
 KIND = "source"
 OWN = ("kind", "source", "commit", "build")
-KEYS = frozenset(OWN + ("package", "licence", "mask", "dests", "calls", "name", "text", "logo", "program", "args"))
+KEYS = frozenset(OWN + ("package", "licence", "mask", "dests", "calls", "name", "text", "logo", "program", "args", "serve"))
 NEEDED = frozenset(OWN + ("package", "licence", "mask", "name", "text", "program"))
 # install/tools.rs `tool`: lower case, digits, `-` and `.`; and `nonos-` and
 # the name together fit a listing id (names.py LISTING).
@@ -66,5 +69,7 @@ def checked(item: dict, root: Path) -> dict:
         raise ValueError(f"{name}: its commit is not a full 40-hex commit")
     elif not BUILD.fullmatch(item["build"]):
         raise ValueError(f"{name}: its build is not a nix recipe name")
-    recipe = common({k: v for k, v in item.items() if k not in own}, root)
+    recipe = common({k: v for k, v in item.items() if k not in own + ("serve",)}, root)
+    if "serve" in item:
+        recipe["mask"], recipe["serve"] = served(recipe["mask"], item["serve"])
     return dict(recipe, **{k: item[k] for k in own})
