@@ -29,6 +29,7 @@ mod fixture_link;
 pub mod hci_sim;
 #[path = "../../nonos_bt_hogp_proofs/src/sim/mod.rs"]
 pub mod hogp_sim;
+mod intel;
 #[path = "../../capsule_driver_bt_usb/src/link/mod.rs"]
 mod link;
 #[path = "../../capsule_driver_bt_usb/src/hid/modifier.rs"]
