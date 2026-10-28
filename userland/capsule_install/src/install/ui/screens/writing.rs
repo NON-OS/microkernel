@@ -33,10 +33,12 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
     let Some(job) = state.job.as_ref() else { return };
     let m = &b.m;
     let verifying = state.screen == Screen::Verifying;
-    let what = if verifying {
-        "Reading every sector back and comparing it with what was sent."
-    } else {
-        "Writing the boot partition, the store, the disk plan and the table."
+    let what = match (verifying, state.updating()) {
+        (true, _) => "Reading every sector back and comparing it with what was sent.",
+        (false, false) => "Writing the boot partition, the store, the disk plan and the table.",
+        (false, true) => {
+            "Writing the boot partition and the store. The data volume is not touched."
+        }
     };
     text::line(fb, b.x, b.y, what, theme::FOREGROUND, m.body_px);
 
@@ -61,7 +63,8 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
     right(fb, b.x + b.w, counts_y, &speed, theme::MUTED, m.body_px);
 
     if verifying {
-        let wrote = alloc::format!("written in {} s, table and flush done", job.write_seconds);
+        let done = if state.updating() { "flush done" } else { "table and flush done" };
+        let wrote = alloc::format!("written in {} s, {done}", job.write_seconds);
         text::line(fb, b.x, counts_y + m.line_h, &wrote, theme::MUTED, m.body_px);
     }
 }

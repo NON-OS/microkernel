@@ -21,7 +21,7 @@ siblings ask for their own bit alone
 | 3 | `IPC` | The eight IPC calls, `MkThreadSpawn`, `MkWait`, `MkKill`, `MkProcOutput`, `MkProcInput`, `MkStdinRead`, `MkStdoutWrite`, `MkPrivateWrite`, `MkToolRun`, `MkTtySet`. |
 | 4 | `Memory` | `MkMmap`, `MkMunmap`. |
 | 5 | `Crypto` | The 12 crypto calls, `CRND` to `CMKY`. |
-| 6 | `FileSystem` | `MkDataStat`, `MkDataRead`; with `StoreWrite`, `MkDataImport` and `MkDataPassphrase`. |
+| 6 | `FileSystem` | `MkDataStat`, `MkDataRead`; with `StoreWrite`, `MkDataImport`, `MkDataPassphrase` and `MkDataHandover`. |
 | 7 | `Hardware` | Nothing. The kernel list marks it as enforcing nothing. |
 | 8 | `Debug` | `MkDebug`. |
 | 9 | `Admin` | `AdminReboot`, `AdminShutdown`, `AdminPolicyPush`, `MkCapGrant`, `MkCapRevoke`, and the stand in role above. |
