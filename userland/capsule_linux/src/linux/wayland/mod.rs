@@ -22,7 +22,7 @@ mod bind;
 mod buffer;
 mod clip;
 mod close;
-mod commit;
+pub(crate) mod commit;
 mod configure;
 mod data_device;
 mod decoration;

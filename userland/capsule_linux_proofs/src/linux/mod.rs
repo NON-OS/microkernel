@@ -22,6 +22,8 @@ pub mod abi;
 pub mod boxed;
 pub mod call;
 pub mod console;
+#[path = "../../../capsule_linux/src/linux/env.rs"]
+pub mod env;
 pub mod file;
 pub mod guest;
 #[path = "../../../capsule_linux/src/linux/heap_choice.rs"]
