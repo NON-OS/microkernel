@@ -1,4 +1,5 @@
 {"format": "nonos.linux-catalogue-sources-lock.v1", "sources": {
+  "darkfi-app": {"B": "959f34bddf3a7b8d33f68c655000d34711ab7696d800663e1fd787ca6b4ddcd9", "S": "48394240", "commit": "2e2de47c699529600085649b69c5c1878164e79a", "G": "", "R": ""},
   "darkfi-darkfid": {"B": "43910d3ce3dfce5a21513319d9a4888e775aa2b7fe4978d83f67a8da30d9eb3a", "S": "20920320", "commit": "2e2de47c699529600085649b69c5c1878164e79a", "G": "", "R": ""},
   "darkfi-darkirc": {"B": "0dd0068a9079b74c53d48c31d4655379c11e8acd97bee5d0ea07a6da8fd64bee", "S": "10629120", "commit": "2e2de47c699529600085649b69c5c1878164e79a", "G": "", "R": ""},
   "darkfi-drk": {"B": "b64607bb3db2b56a896a78c60d3df97bce4d83b21901a92a2d66133b1c417967", "S": "19916800", "commit": "2e2de47c699529600085649b69c5c1878164e79a", "G": "", "R": ""},
