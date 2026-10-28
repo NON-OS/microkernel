@@ -41,6 +41,6 @@ pub use lookup::{host, hosts};
 pub use port::connected_ports;
 pub use read_shared::read_shared;
 pub use slot::{address_device, disable_slot, enable_slot};
-pub use wire::{BULK_MAX, CONTROL_MAX, E_AGAIN, E_BUSY, E_INVAL, E_IO, E_PIPE};
+pub use wire::{BULK_MAX, CONTROL_MAX, DATA_AT, E_AGAIN, E_BUSY, E_INVAL, E_IO, E_PIPE};
 pub use wire::{PORT_CLAIMED, PORT_FREE};
 pub use xhci_bus::XhciBus;
