@@ -72,7 +72,7 @@ pub use attest::{
     AttestStatus, ATTEST_DOC_REFUSED, ATTEST_ENTRY_LEN, ZK_PATH_ONLY, ZK_STARK,
 };
 pub use attest_policy::{parse_attest_policy, AttestPolicy, PolicyTree, ATTEST_POLICY_LEN};
-pub use battery::mk_battery_status;
+pub use battery::{mk_battery_state, mk_battery_status};
 pub use bringup::{bring_up, recv_ready, say_absent, start_driver, EXIT_ABSENT, EXIT_GAVE_UP};
 pub use broker::*;
 pub use caps::{mk_cap_check, mk_cap_grant, mk_cap_revoke};

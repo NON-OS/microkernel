@@ -1103,6 +1103,10 @@ microkernel-full-gui = [
   "microkernel-desktop-gui",
   "nonos-capsule-nox-settle",
   "nonos-capsule-prove-fetch",
+  # The platform's AML in its own capsule, built power-only (its Capsule.mk):
+  # batteries, AC, lids and buttons for the bar, nothing that acts beyond them.
+  # No network, so hardened and airgapped keep it.
+  "nonos-capsule-acpi",
   "nonos-capsule-driver-igb",
   "nonos-capsule-driver-e1000e",
   "nonos-capsule-driver-igc",
