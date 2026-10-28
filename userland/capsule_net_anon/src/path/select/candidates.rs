@@ -33,10 +33,22 @@ pub fn candidates<'a>(
     position: Position,
     taken: &[Taken],
 ) -> (Vec<&'a Relay>, Vec<u64>) {
+    candidates_where(relays, weights, position, taken, |relay| eligible(relay, position))
+}
+
+/// `candidates`, with `fits` saying which relays may fill the position in
+/// place of `eligible`. The weights and the exclusions are the same.
+pub fn candidates_where<'a>(
+    relays: &'a [Relay],
+    weights: &Weights,
+    position: Position,
+    taken: &[Taken],
+    fits: impl Fn(&Relay) -> bool,
+) -> (Vec<&'a Relay>, Vec<u64>) {
     let mut chosen = Vec::new();
     let mut scaled = Vec::new();
     for relay in relays.iter() {
-        if !eligible(relay, position) || excluded(relay, taken) {
+        if !fits(relay) || excluded(relay, taken) {
             continue;
         }
         let weight = scale(relay.weight, weight_for(weights, &relay.flags, position));
