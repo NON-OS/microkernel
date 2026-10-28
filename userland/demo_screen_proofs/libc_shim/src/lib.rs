@@ -20,6 +20,7 @@
 //! call (the procstat header, the worker handoff, the deadline) are mounted
 //! as they are.
 
+mod app;
 mod attest;
 pub mod boot_attest;
 mod calls;
@@ -40,6 +41,7 @@ mod linux_ask_net;
 #[path = "../../../libc/src/procstat_header.rs"]
 pub mod procstat_header;
 
+pub use app::*;
 pub use attest::{
     mk_attest_doc, mk_attest_entries, mk_attest_status, AttestStatus, ATTEST_ENTRY_LEN,
 };
