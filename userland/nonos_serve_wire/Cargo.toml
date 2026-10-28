@@ -1,0 +1,20 @@
+# NØNOS userland: nonos_serve_wire
+#
+# The frames between the capsule a box's SERVE_ONE names and the Linux
+# personality that serves the box's one loopback port
+# (docs/design/serve-one.md). Both sides import this crate, so the numbers
+# cannot drift apart.
+
+[package]
+name = "nonos_serve_wire"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "The SERVE_ONE wire: one guest port, one capsule, no_std"
+
+[lib]
+crate-type = ["rlib"]
+
+[package.metadata.nonos]
+test-lane = true
