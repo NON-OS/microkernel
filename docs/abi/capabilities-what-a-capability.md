@@ -39,7 +39,7 @@ checks it instead.
 | 3 | `0x8` | `IPC` | `IPC` | Send and receive messages, and start and drive child processes. | `MISD`, `MIRC`, `MICL`, `MIRF`, `MIRY`, `MIRQ`, `MIRT`, `MISP`, `MSVL`, `MSVR`, `MCLD`, `MWAT`, `MKIL`, `MTSP`, `MOUT`, `MPIN`, `MSRD`, `MTRN`, `MTTY`, `MSOW`, `MPVW`, `MCVF`, `MPJB` |
 | 4 | `0x10` | `Memory` | `MEMORY` | Map and unmap pages. | `MMAP`, `MUMP`, `MCLD`, `MCVF` |
 | 5 | `0x20` | `Crypto` | `CRYPTO` | Use the crypto calls. | `CRND`, `CHSH`, `CENC`, `CDEC`, `CEAD`, `CDAD`, `CXPK`, `CXSH`, `CHMC`, `CHKF`, `CKEC`, `CMKY` |
-| 6 | `0x40` | `FileSystem` | `FILE_SYSTEM` | Read the data volume, and reach the VFS service. | `MDIM`, `MDST`, `MDRD`, `MDPW` |
+| 6 | `0x40` | `FileSystem` | `FILE_SYSTEM` | Read the data volume, and reach the VFS service. | `MDIM`, `MDST`, `MDRD`, `MDPW`, `MDHO` |
 | 7 | `0x80` | `Hardware` | `HARDWARE` | Enforces nothing. | none |
 | 8 | `0x100` | `Debug` | `DEBUG` | Write diagnostic lines to the boot serial. | `MDBG` |
 | 9 | `0x200` | `Admin` | `ADMIN` | Reboot, shut down, push policy, grant and revoke capabilities. Accepted in place of the window right, and of `DeviceEnum` when listing devices; never of a [broker](../overview/glossary-hardware-broker.md#broker) or input right. | `MCGT`, `MCRV`, `MDLS`, `MSPI`, `ARBT`, `ASDN`, `APPS` |
@@ -59,7 +59,7 @@ checks it instead.
 | 23 | `0x800000` | `SpawnBroker` | `SPAWN_BROKER` | Attribute a capsule load's parent to a live pid other than the caller, and ask whether a message's sender holds SpawnWindow or AppInstall. | `MCOF` |
 | 24 | `0x1000000` | `SpawnWindow` | `SPAWN_WINDOW` | Launch a capsule for the user beyond the launcher's own capabilities, or spawn another instance of an embedded app. | `MSPI`, `MCLD`, `MTRN` |
 | 25 | `0x2000000` | `ProcessControl` | `PROCESS_CONTROL` | Terminate a process the caller does not parent, and read the full process table. | none |
-| 26 | `0x4000000` | `StoreWrite` | `STORE_WRITE` | Read and write the package store; with FileSystem, import into and key the data volume. | `MSWR`, `MSRR`, `MDIM`, `MDPW` |
+| 26 | `0x4000000` | `StoreWrite` | `STORE_WRITE` | Read and write the package store; with FileSystem, import into, key and hand over the data volume. | `MSWR`, `MSRR`, `MDIM`, `MDPW`, `MDHO` |
 | 27 | `0x8000000` | `EnrolDevRoot` | `ENROL_DEV_ROOT` | Enrol a signing root, so capsules built on this machine run on it. `Admin` does not imply it. | `MDRQ`, `MDRC`, `MDRO`, `MLCG`, `MLCR` |
 | 28 | `0x10000000` | `Keyring` | `KEYRING` | Meant to gate the keyring capsule. Only the kernel's keyring client asks for it, and no kernel code calls that client in 0.9.2. | none |
 | 29 | `0x20000000` | `Entropy` | `ENTROPY` | Meant to gate the entropy capsule. Only the kernel client's statistics and health check ask for it, and no kernel code calls them in 0.9.2. | none |
