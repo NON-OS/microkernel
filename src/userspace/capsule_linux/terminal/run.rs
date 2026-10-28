@@ -41,7 +41,7 @@ pub(super) fn run_tier_for_caller(word: &[u8]) -> Result<u32, i64> {
         crate::sys::serial::print(b"[LINUX-TERM] refused: every slot is busy\n");
         return Err(ERRNO_BUSY);
     };
-    match spawn_role(&TERMINAL[slot]) {
+    match spawn_role(&TERMINAL[slot], None) {
         Ok(pid) => Ok(outlived(parent, pid)),
         Err(e) => {
             slots::cancel(slot);
