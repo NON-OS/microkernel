@@ -30,14 +30,18 @@ from .lock_file import FIELDS, FORMAT, read
 __all__ = ["bytes_held", "held", "read", "write"]
 
 
-def held(known: dict, pins: dict, names: list) -> None:
-    """ValueError naming every recipe the index no longer resolves to its pin."""
+def held(known: dict, pins: dict, names: list, extras: list = ()) -> None:
+    """ValueError naming every recipe or extra the index no longer resolves to
+    its pin, and any pinned in the other's shape (lock_file.py)."""
+    shape = [f"{n}: a recipe pinned as an extra" for n in names if "B" not in pins.get(n, "B")]
+    shape += [f"{n}: an extra pinned as a recipe" for n in extras if "B" in pins.get(n, "")]
+    names = list(names) + list(extras)
     moved = [f"{n}: locked {pins[n]['V']}, the index has {known[n]['V']}" for n in names
              if n in pins and n in known and any(known[n].get(f) != pins[n][f] for f in FIELDS)]
     unpinned = [n for n in names if n not in pins]
     gone = [n for n in names if n in pins and n not in known]
-    if moved or unpinned or gone or set(pins) - set(names):
-        said = moved + [f"{n}: not in the lock" for n in unpinned] + [f"{n}: not in the index" for n in gone]
+    if moved or unpinned or gone or shape or set(pins) - set(names):
+        said = moved + shape + [f"{n}: not in the lock" for n in unpinned] + [f"{n}: not in the index" for n in gone]
         said += [f"{n}: locked, no recipe" for n in sorted(set(pins) - set(names))]
         raise ValueError("the lock does not hold; review, then --update-lock: " + "; ".join(said))
 
@@ -54,10 +58,12 @@ def bytes_held(pins: dict, found: list) -> None:
         raise ValueError("the lock does not hold; review, then --update-lock: " + "; ".join(moved))
 
 
-def write(path: Path, known: dict, names: list, found: list, marks: dict) -> None:
-    """`marks` is {package: (G, R)}, as logos.digests gives them."""
+def write(path: Path, known: dict, names: list, found: list, marks: dict, extras: list = ()) -> None:
+    """`marks` is {package: (G, R)}, as logos.digests gives them; each of
+    `extras` is pinned by its index record alone."""
     signed = dict(map(apk, found))
     pins = {n: {**{f: known[n][f] for f in FIELDS}, "B": signed[n], "G": marks[n][0], "R": marks[n][1]}
             for n in sorted(names)}
+    pins = dict(sorted({**pins, **{n: {f: known[n][f] for f in FIELDS} for n in extras}}.items()))
     rows = ",\n".join(f"  {json.dumps(n)}: {json.dumps(p)}" for n, p in pins.items())
     path.write_text('{"format": ' + json.dumps(FORMAT) + ', "packages": {\n' + rows + "\n}}\n")
