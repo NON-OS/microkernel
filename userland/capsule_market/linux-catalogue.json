@@ -70,7 +70,7 @@
    "text": "A fast Wayland terminal in its own window, running a shell. Its box may start programs, as a terminal starts its shell, and every program it starts is held to the same box: its own home, no network."},
   {"package": "mpv", "licence": "GPL-2.0-or-later", "mask": "WAYLAND FILES_HOME", "name": "mpv (media player)", "program": "usr/bin/mpv",
    "args": ["--vo=wlshm", "--force-window=yes", "--idle=yes", "--osc=no", "--ytdl=no", "--load-stats-overlay=no",
-            "--load-console=no", "--load-auto-profiles=no", "--load-scripts=no"],
+            "--load-osd-console=no", "--load-auto-profiles=no", "--load-scripts=no"],
    "text": "A media player in its own window, for the video and audio files in its own home. It draws in software, with no GPU, and has no network at all, so it plays only what is already in its home. Its box never lets it make code as it runs, so it starts without its Lua scripts: no on-screen controls, keyboard only (space pauses, arrows seek, q quits)."},
   {"kind": "source", "package": "simplex-chat", "source": "https://github.com/simplex-chat/simplex-chat",
    "asset": "https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.3/simplex-chat-ubuntu-22_04-x86_64",
