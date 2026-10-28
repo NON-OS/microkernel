@@ -123,6 +123,7 @@ arch_prctl | its own thread pointer | its own state
 gettid | the calling thread's number in the family | family numbering
 tkill | as kill | as kill
 tgkill | as kill | as kill
+pidfd_send_signal | as kill, for the child its pidfd names | as kill
 time | the wall clock in seconds | as gettimeofday
 futex | wakes among its own threads | its own state
 getdents64 | names in the Linux tree or its private dirs | as open

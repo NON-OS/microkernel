@@ -26,6 +26,8 @@ use crate::linux::guest::Kind;
 
 impl Family {
     pub(in super::super) fn lend(&mut self, i: usize) {
+        // Each pidfd learns whether its process runs, has ended or is gone.
+        crate::linux::call::pidfd::note(&mut self.guests);
         crate::linux::pty::note(self.guests.iter().flat_map(|g| g.fds.iter()));
         let ends = self.pipe_ends();
         let events = self.named(Kind::Event, self.events.len());

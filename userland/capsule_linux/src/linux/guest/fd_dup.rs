@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! A pipe end, and a second descriptor onto the same thing.
 
 use super::fd::Fd;
@@ -34,6 +33,7 @@ impl Fd {
         fd.handle = from.handle;
         fd.writable = from.writable;
         fd.nonblock = from.nonblock;
+        fd.ended = from.ended;
         // Linux shares the interest list itself; a copy keeps what was
         // registered when the descriptor was duplicated or the process forked.
         fd.watch = from.watch.clone();

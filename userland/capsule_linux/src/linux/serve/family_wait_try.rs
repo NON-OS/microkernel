@@ -18,23 +18,29 @@
 //! ended child that fits is reported, or the call answers at once with none,
 //! or it stays parked until a child ends.
 
+use core::mem;
+
 use super::family::Family;
 use super::family_wait_report::report;
 use crate::linux::abi::errno;
-use crate::linux::call::{WALL, WCLONE, WEXITED, WNOHANG, WNOWAIT};
+use crate::linux::call::wait_take::{take, Found};
+use crate::linux::call::{WALL, WCLONE, WNOHANG, WNOWAIT};
 use crate::linux::guest::sigwaits::{ChildWait, Which};
 
 impl Family {
     pub(super) fn try_wait(&mut self, i: usize, w: &ChildWait) -> Option<u64> {
+        /* Taken out while `fits` reads the family, and put back after. */
+        let p = &mut self.guests[i];
+        let (mut ended, mut children) = (mem::take(&mut p.ended), mem::take(&mut p.children));
         let group_of = |pid: u32| {
             let live = self.guests.iter().find(|g| g.pid == pid).map(|g| g.pgid);
             live.or_else(|| {
                 self.guests[i].signals.kid_groups.iter().find(|k| k.0 == pid).map(|k| k.1)
             })
         };
-        let p = &self.guests[i];
+        let clone_kids = &self.guests[i].signals.clone_kids;
         let fits = |pid: u32| {
-            let clone = p.signals.clone_kids.contains(&pid);
+            let clone = clone_kids.contains(&pid);
             let kind = w.options & WALL != 0 || (w.options & WCLONE != 0) == clone;
             kind && match w.which {
                 Which::Any => true,
@@ -42,21 +48,20 @@ impl Family {
                 Which::Group(g) => group_of(pid) == Some(g),
             }
         };
-        let exits = w.options & WEXITED != 0;
-        let done = p.ended.iter().position(|(pid, _)| exits && fits(*pid));
-        let any = p.children.iter().any(|c| fits(*c));
+        let found = take(&mut ended, &mut children, w.options, fits);
         let p = &mut self.guests[i];
-        let Some(at) = done else {
-            return match (any, w.options & WNOHANG != 0) {
-                (false, _) => Some(report(p, w, None, errno::fail(errno::ECHILD))),
-                (true, true) => Some(report(p, w, None, 0)),
-                (true, false) => None,
-            };
+        (p.ended, p.children) = (ended, children);
+        let (pid, status) = match found {
+            Found::NoChild => return Some(report(p, w, None, errno::fail(errno::ECHILD))),
+            /* An O_NONBLOCK pidfd's waitid answers EAGAIN where WNOHANG answers 0. */
+            Found::NotYet if w.eagain => {
+                return Some(report(p, w, None, errno::fail(errno::EAGAIN)))
+            }
+            Found::NotYet if w.options & WNOHANG != 0 => return Some(report(p, w, None, 0)),
+            Found::NotYet => return None,
+            Found::Ended(pid, status) => (pid, status),
         };
-        let (pid, status) = p.ended[at];
         if w.options & WNOWAIT == 0 {
-            p.ended.remove(at);
-            p.children.retain(|c| *c != pid);
             p.signals.clone_kids.retain(|c| *c != pid);
             p.signals.kid_groups.retain(|k| k.0 != pid);
         }
