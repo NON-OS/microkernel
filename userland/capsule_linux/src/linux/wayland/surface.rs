@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! `wl_surface`: what the client is drawing, and when it says so.
 
 use crate::linux::guest::Guest;
 
+use super::args::Args;
 use super::object::Object;
 use super::state::Surface;
-use super::args::Args;
 
 pub fn create(guest: &mut Guest, args: &mut Args<'_>) {
     let Some(id) = args.u32() else { return };
@@ -36,7 +35,9 @@ pub fn create(guest: &mut Guest, args: &mut Args<'_>) {
         toplevel: None,
         frames: alloc::vec::Vec::new(),
         configured: false,
+        scale: Default::default(),
     });
+    super::route::scale_surface::told(guest, id);
 }
 
 pub fn attach(guest: &mut Guest, id: u32, args: &mut Args<'_>) {

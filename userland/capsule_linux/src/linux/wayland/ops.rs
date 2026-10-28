@@ -41,6 +41,7 @@ pub mod ev {
     pub const BUFFER_RELEASE: u16 = 0;
     pub const XDG_SURFACE_CONFIGURE: u16 = 0;
     pub const TOPLEVEL_CONFIGURE: u16 = 0;
+    pub const SURFACE_PREFERRED_BUFFER_SCALE: u16 = 2;
 }
 
 /// wl_shm formats. Zero and one are the two every client understands.
