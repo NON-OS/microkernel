@@ -14,28 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Proofs for capsule_acpi's pure parts, built on the host against the
-//! capsule's own sources, included by path.
+//! Proofs for capsule_acpi's pure parts, on the host, against its own sources.
 
 extern crate alloc;
 
+#[path = "../../capsule_acpi/src/serial/bus_key.rs"]
+pub mod bus_key;
 #[path = "../../capsule_acpi/src/cpu/caps.rs"]
 pub mod caps;
 #[path = "../../capsule_acpi/src/cpu/caps_kernel.rs"]
 pub mod caps_kernel;
-#[path = "../../capsule_acpi/src/serial/bus_key.rs"]
-pub mod bus_key;
 pub mod native;
-#[path = "../../capsule_acpi/src/boot/pass.rs"]
-pub mod pass;
 #[path = "../../capsule_acpi/src/power/off/rule.rs"]
 pub mod off_rule;
+#[path = "../../capsule_acpi/src/boot/pass.rs"]
+pub mod pass;
 #[path = "../../capsule_acpi/src/server/policy.rs"]
 pub mod policy;
 #[path = "props.rs"]
 pub mod props;
 #[path = "../../capsule_acpi/src/aei/rate.rs"]
 pub mod rate;
+pub mod release;
 #[path = "../../capsule_acpi/src/dpower/wake_sweep.rs"]
 pub mod wake_sweep;
 
