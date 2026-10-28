@@ -17,6 +17,9 @@
 //! Host proofs, group 9 of 9: test modules mounted by path
 //! from proofs.rs, each at its own file.
 
+#[path = "argv_before_run_tests.rs"]
+#[cfg(test)]
+mod argv_before_run_tests;
 /// Which process owns which address space, read without the paging lock.
 #[path = "asid_directory/mod.rs"]
 pub mod asid_directory;
