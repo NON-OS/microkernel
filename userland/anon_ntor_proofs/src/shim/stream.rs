@@ -16,6 +16,9 @@
 
 //! The stream wire formats, included from the real capsule source.
 
+#[path = "../../../capsule_net_anon/src/stream/again.rs"]
+pub mod again;
+
 #[path = "../../../capsule_net_anon/src/stream/begin.rs"]
 pub mod begin;
 
@@ -45,6 +48,9 @@ pub mod table;
 
 #[path = "../../../capsule_net_anon/src/stream/grant.rs"]
 pub mod grant;
+
+#[path = "../../../capsule_net_anon/src/stream/held.rs"]
+pub mod held;
 
 #[path = "../../../capsule_net_anon/src/stream/owned.rs"]
 pub mod owned;

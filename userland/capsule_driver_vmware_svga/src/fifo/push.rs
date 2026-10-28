@@ -32,14 +32,20 @@ impl Fifo {
     /// Write `words` one at a time, moving NEXT_CMD after each, so a command
     /// that wraps past the end is never seen half written: the device reads
     /// only up to NEXT_CMD. This is VMware's own path for a FIFO without
-    /// the reserve capability.
-    pub fn push(&self, words: &[u32]) {
+    /// the reserve capability. NEXT_CMD sits in memory the host writes too,
+    /// so it is checked on every word, never trusted: an index outside the
+    /// ring or not word aligned ends the command with an error.
+    pub fn push(&self, words: &[u32]) -> Result<(), &'static str> {
         for &w in words {
             let next = self.get(FIFO_NEXT_CMD);
+            if next & 3 != 0 || next < self.min || next >= self.max {
+                return Err("FIFO NEXT_CMD out of the ring");
+            }
             self.set(next as usize / 4, w);
             let after = if next + 4 >= self.max { self.min } else { next + 4 };
             fence(Ordering::Release);
             self.set(FIFO_NEXT_CMD, after);
         }
+        Ok(())
     }
 }

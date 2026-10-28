@@ -31,11 +31,18 @@
     feature = "nonos-capsule-driver-ufs",
     feature = "nonos-capsule-driver-virtio-blk",
     feature = "nonos-capsule-driver-virtio-net",
+    feature = "nonos-capsule-driver-e1000",
     feature = "nonos-capsule-driver-e1000e",
+    feature = "nonos-capsule-driver-igc",
+    feature = "nonos-capsule-driver-rtl8139",
+    feature = "nonos-capsule-driver-rtl8169",
     feature = "nonos-capsule-driver-igb",
     feature = "nonos-capsule-driver-ixgbe",
     feature = "nonos-capsule-driver-iwlwifi",
-    feature = "nonos-capsule-driver-rtl8821ce"
+    feature = "nonos-capsule-driver-rtl8821ce",
+    feature = "nonos-capsule-driver-rtl8822ce",
+    feature = "nonos-capsule-driver-mt7921",
+    feature = "nonos-capsule-driver-rtl8852be"
 ))]
 
 use crate::hardware::inventory::{present as has, HardwareFamily};

@@ -15,14 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The platform as the loader's checks found it before the menu: four facts
-//! as mono label and value pairs, two to a row.
+//! as mono label and value pairs, two to a row, then the kind of disk this
+//! boot started from on a row of its own.
 
 use super::layout::Layout;
 use crate::display::ink::palette::{BAD, CYAN, TEXT, TEXT_3, WARN};
 use crate::display::ink::{label, label_width, metrics, Style};
+use crate::loader::file::BootDevice;
 use crate::security::{SecurityContext, SecurityPolicy};
 
-pub(super) fn draw_platform(l: &Layout, s: &SecurityContext) {
+pub(super) fn draw_platform(l: &Layout, s: &SecurityContext, boot: BootDevice) {
     let floor: (&[u8], u32) = match SecurityPolicy::from_build() {
         SecurityPolicy::Hardened => (b"HARDENED", CYAN),
         SecurityPolicy::Standard => (b"STANDARD", TEXT),
@@ -54,6 +56,10 @@ pub(super) fn draw_platform(l: &Layout, s: &SecurityContext) {
         label(x, y, name, TEXT_3);
         label(x + label_width(b"SECURE BOOT") + 3 * l.u, y, value, *color);
     }
+    /* A stick and the disk installed from it show the same menu; this tells them apart. */
+    let y = l.platform_y + 2 * line;
+    label(l.col_x, y, b"STARTING FROM", TEXT_3);
+    label(l.col_x + label_width(b"STARTING FROM") + 3 * l.u, y, boot.label(), TEXT);
 }
 
 const fn on(b: bool) -> u32 {

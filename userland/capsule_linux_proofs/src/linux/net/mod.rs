@@ -16,7 +16,8 @@
 
 //! The counts and sets poll and select take, the resolver, and the path a
 //! stream outside the family takes: the route decision, what is said to
-//! net.anon and read back, and the socket table's bookkeeping for it.
+//! net.anon and read back, the SOCKS endpoint, the retry rule and the line
+//! a person reads (routed/), and the socket table's bookkeeping for it.
 
 #[path = "../../../../capsule_linux/src/linux/net/bind_any.rs"]
 pub mod bind_any;
@@ -25,8 +26,11 @@ pub mod ready_sets;
 
 pub mod dns;
 
-/* The route every capsule holding Network leaves by: nonos_route_link's own. */
-pub use crate::pick::{Route, ANYONE_DOWN};
+/* The route every capsule holding Network leaves by, and its bounds and
+ * refusals: nonos_route_link's own. */
+pub use crate::bounds::{NOT_YET_GAP_MS, OPEN_MS};
+pub use crate::pick::{pick, Route, ANYONE_DOWN};
+pub use crate::refusal::Proxy;
 
 #[path = "../../../../capsule_linux/src/linux/net/guest_route.rs"]
 pub mod guest_route;
@@ -42,4 +46,4 @@ pub mod sock;
 
 /* The two calls the table makes to close a stream, recorded, not sent. */
 pub mod anon_stream;
-pub mod stream;
+pub mod routed;

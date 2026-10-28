@@ -10,9 +10,9 @@ The rest of this page is read from the code and from the host tests in `rtl8821c
 
 ## Identity
 
-The driver takes one PCI function: vendor 0x10EC, device 0xC821 (`userland/capsule_driver_rtl8821ce/src/constants/mod.rs:24-26`, `PCI_DEVICE_RTL8821CE`). Its registers sit in the first memory BAR with a non-zero size, which on this chip is not BAR0, so `find` looks for it (`userland/capsule_driver_rtl8821ce/src/discover.rs:38-65`).
+The driver takes one PCI function: vendor 0x10EC, device 0xB821 or 0xC821, the two ids Linux v6.12 rtw88 binds the chip by (`userland/capsule_driver_rtl8821ce/src/constants/pci.rs`, `RTL8821CE_DEVICE_IDS`); the kernel's inventory and the broker's scope row name the same two, and `kernel_proofs` holds the inventory to the driver's list. Only a 0xC821 card has been run on real hardware. Its registers sit in the first memory BAR with a non-zero size, which on this chip is not BAR0, so `find` looks for it (`userland/capsule_driver_rtl8821ce/src/discover.rs:38-65`).
 
-The kernel starts the capsule only when the boot PCI scan found 10ec:c821 (`src/userspace/init/spawn_plan/drivers_wifi.rs:50-62`, `spawn_rtl8821ce`). Its service is `driver.rtl8821ce0` on port 4234 (`userland/capsule_driver_rtl8821ce/Capsule.mk:14`, `CAPSULE_SERVICE_ENDPOINT`).
+The kernel starts the capsule only when the boot PCI scan found 10ec:b821 or 10ec:c821 (`src/userspace/init/spawn_plan/drivers_wifi.rs:50-62`, `spawn_rtl8821ce`). Its service is `driver.rtl8821ce0` on port 4234 (`userland/capsule_driver_rtl8821ce/Capsule.mk:14`, `CAPSULE_SERVICE_ENDPOINT`).
 
 ## Authority
 

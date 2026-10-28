@@ -34,7 +34,7 @@ pub(super) fn render(f: &Frame<'_>, dirty: Dirty) {
             if f.intro {
                 return;
             }
-            draw_platform(&l, f.sec);
+            draw_platform(&l, f.sec, f.boot);
             draw_body(&l, f);
         }
         Dirty::Selection => {

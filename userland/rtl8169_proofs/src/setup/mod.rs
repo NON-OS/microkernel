@@ -30,7 +30,7 @@ mod claim;
 #[path = "../../../capsule_driver_rtl8169/src/setup/command_word.rs"]
 mod command_word;
 #[path = "../../../capsule_driver_rtl8169/src/setup/dma.rs"]
-mod dma;
+pub mod dma;
 #[path = "../../../capsule_driver_rtl8169/src/setup/driver.rs"]
 mod driver;
 #[path = "../../../capsule_driver_rtl8169/src/setup/mmio.rs"]

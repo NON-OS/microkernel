@@ -17,15 +17,13 @@
 //! A stream to an address outside the family. It goes over the anonymity
 //! network the person chose, never the open network, and the guest holds no
 //! capability that could name a socket: there is no second route to disable
-//! and no firewall rule to remove. With the Anyone network chosen net.anon
-//! holds the stream (connect_anon.rs); otherwise net.sockets holds it on the
-//! Nym mixnet, as below. The family's entry names it either way.
+//! and no firewall rule to remove. routed/ opens and carries it: through
+//! net.anon on the Anyone network, through net.socks5 on the Nym mixnet.
 //!
-//! Direct, when it is the system's default, still leaves a guest on the
-//! mixnet. That is by design and not an omission: a guest runs a program
-//! nobody here wrote, and a direct socket would name this machine to
-//! whatever it connects to. The rule is guest_route.rs; the one exception on
-//! the installer's own path is design/install-network.md.
+//! An address this capsule invented for a name goes as the name, and any
+//! other as its dotted quad: the far end's exit resolves a name, so nothing
+//! on this machine looks one up. Direct, when it is the system's default,
+//! still leaves a guest on the mixnet; that is by design (guest_route.rs).
 
 use alloc::string::String;
 use nonos_linux_policy::dests::Target;
@@ -35,11 +33,11 @@ use crate::linux::abi::errno;
 use crate::linux::app::granted;
 use crate::linux::guest::Guest;
 
-use super::super::guest_route::{path, Path};
+use super::super::anon_answer::dotted;
+use super::super::routed::{self, Dest};
 use super::super::sock::{self, Addr};
-use super::super::Route;
 
-pub fn connect(guest: &Guest, id: u32, to: Addr) -> u64 {
+pub fn connect(guest: &Guest, id: u32, to: Addr, nonblock: bool) -> u64 {
     let host = super::super::dns::host_for(guest, to.ip);
     let target = host.as_deref().map_or(Target::V4(to.ip), Target::Name);
     let ([a, b, c, d], port) = (to.ip, to.port);
@@ -56,18 +54,15 @@ pub fn connect(guest: &Guest, id: u32, to: Addr) -> u64 {
     if sock::with(|t| t.get(id).is_some_and(|s| s.connected || s.listening || s.svc.is_some())) {
         return errno::fail(errno::EISCONN);
     }
+    let host = host.unwrap_or_else(|| dotted(to.ip));
+    let answer = routed::dial(id, Dest { host, port }, to, nonblock);
     /*
-     * The chosen network, read for this connection: Anyone goes to net.anon,
-     * or nowhere when net.anon is not running; Nym, an unreadable default and
-     * Direct go to the mixnet below. One network or none, never a second.
+     * A boxed run's report names each destination the network took a
+     * stream to, or is taking one to: a blocking connect still opening is
+     * parked on EAGAIN and finishes in a later try.
      */
-    let answer = match path(Route::chosen()) {
-        Path::Mixnet => super::mixnet::mixnet(guest, id, to),
-        Path::Anyone(port) => super::anon::connect(guest, id, to, port),
-        Path::Unreachable(why) => return super::super::policy::unreachable(to, why),
-    };
-    /* A boxed run's report names each destination the network took a stream to. */
-    if answer == errno::ok(0) || answer == errno::fail(errno::EINPROGRESS) {
+    let opening = [errno::ok(0), errno::fail(errno::EINPROGRESS), errno::fail(errno::EAGAIN)];
+    if opening.contains(&answer) {
         crate::linux::boxed::connected(dest.as_bytes());
     }
     answer

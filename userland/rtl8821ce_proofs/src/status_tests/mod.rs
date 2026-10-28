@@ -5,5 +5,6 @@
 //! read that stalls on any byte, and after a whole read.
 
 mod card;
+mod claim;
 mod stall;
 mod whole;

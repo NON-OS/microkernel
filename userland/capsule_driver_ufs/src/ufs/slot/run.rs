@@ -40,6 +40,8 @@ pub fn run<H: Hw>(hw: &H, c: &Ctx, r: &Req) -> Result<[u8; RSP_READ], UfsError> 
     let l = &c.lists;
     let prdt = match r.data_len {
         0 => None,
+        // The host moves what the PRDT says: never past the data region.
+        n if n > l.data.len => return Err(UfsError::Bounce),
         n => Some(entry(l.data.bus, n).ok_or(UfsError::Host)?),
     };
     let at = SLOT as usize * UTRD_LEN;

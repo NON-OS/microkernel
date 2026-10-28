@@ -33,7 +33,12 @@ fn entry(digest: u8, address: [u8; 4]) -> Entry {
 fn micro(digest: u8) -> ([u8; 32], Microdesc) {
     (
         [digest; 32],
-        Microdesc { ntor_onion_key: [digest; 32], ed25519_identity: [digest; 32], exits_web: true },
+        Microdesc {
+            ntor_onion_key: [digest; 32],
+            ed25519_identity: [digest; 32],
+            exits_web: true,
+            ..Microdesc::default()
+        },
     )
 }
 
@@ -46,7 +51,7 @@ fn held(digests: &[u8]) -> Vec<([u8; 32], Microdesc)> {
 #[test]
 fn an_entry_takes_the_keys_from_its_own_microdescriptor() {
     let entries = alloc::vec![entry(7, [10, 0, 0, 1])];
-    let relays = join(&entries, &held(&[7]));
+    let (relays, _) = join(&entries, &held(&[7]));
     assert_eq!(relays.len(), 1);
     assert_eq!(relays[0].ntor_onion_key, [7u8; 32], "the key of the digest it named");
     assert_eq!(relays[0].address, [10, 0, 0, 1], "and the address from the consensus half");
@@ -54,7 +59,7 @@ fn an_entry_takes_the_keys_from_its_own_microdescriptor() {
 #[test]
 fn an_entry_whose_microdescriptor_is_missing_is_dropped() {
     let entries = alloc::vec![entry(1, [10, 0, 0, 1]), entry(2, [10, 0, 0, 2])];
-    let relays = join(&entries, &held(&[2]));
+    let (relays, _) = join(&entries, &held(&[2]));
     assert_eq!(relays.len(), 1, "carrying a zero ntor key would fail at the relay instead");
     assert_eq!(relays[0].rsa_identity, [2u8; 20]);
 }

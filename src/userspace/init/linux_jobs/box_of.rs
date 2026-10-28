@@ -22,6 +22,7 @@
 
 use alloc::boxed::Box;
 use alloc::format;
+use alloc::vec::Vec;
 
 use crate::security::market_capsule::client::linux_policy_wire::{
     held_to, LinuxPolicyReply, MARKET_ARG_LEN,
@@ -29,7 +30,8 @@ use crate::security::market_capsule::client::linux_policy_wire::{
 use crate::security::market_capsule::client::queued_get_linux_policy;
 use crate::sys::serial::println;
 
-pub(super) type Arg = Box<[u8; MARKET_ARG_LEN]>;
+/// argv m's bytes and the release's listed arguments.
+pub(super) type Arg = (Box<[u8; MARKET_ARG_LEN]>, Vec<u8>);
 
 /// `pin` is the package hash init was given for this release: an answer made
 /// from another, as when the index was replaced between asks, is refused.
@@ -37,7 +39,7 @@ pub(super) fn box_of(listing: &str, release: &str, pin: &[u8; 32]) -> Result<Opt
     let said = match queued_get_linux_policy(listing, release).map(|answer| held_to(answer, pin)) {
         Ok(None) => format!("the market answered for another {release}; the index changed"),
         Ok(Some(LinuxPolicyReply::NoPolicy)) => return Ok(None),
-        Ok(Some(LinuxPolicyReply::Policy(m))) => return Ok(Some(m)),
+        Ok(Some(LinuxPolicyReply::Policy(m, args))) => return Ok(Some((m, args))),
         Ok(Some(LinuxPolicyReply::Refused)) => {
             format!("the market refuses the box {release} names")
         }

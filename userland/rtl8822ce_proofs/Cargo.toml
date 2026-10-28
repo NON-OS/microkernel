@@ -1,0 +1,22 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host proofs for the RTL8822CE driver: the capsule's own source, and the
+# RTL8821CE files it mounts, included by #[path] and driven against a
+# modelled register file. The libc shim is rtl8821ce_proofs'.
+[package]
+name = "rtl8822ce_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_libc = { package = "rtl8821ce_proofs_libc_shim", path = "../rtl8821ce_proofs/libc_shim" }
+nonos_mac = { path = "../nonos_mac" }
+nonos_wifi_core = { path = "../nonos_wifi_core" }
+
+[dev-dependencies]
+nonos_hash = { path = "../nonos_hash" }

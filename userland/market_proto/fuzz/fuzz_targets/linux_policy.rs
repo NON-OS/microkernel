@@ -37,7 +37,9 @@ fuzz_target!(|data: &[u8]| {
             let same = match (p, k) {
                 (LinuxPolicy::NoPolicy, kernel::LinuxPolicyReply::NoPolicy) => true,
                 (LinuxPolicy::Refused, kernel::LinuxPolicyReply::Refused) => true,
-                (LinuxPolicy::Policy(x), kernel::LinuxPolicyReply::Policy(y)) => x == y,
+                (LinuxPolicy::Policy(x, a), kernel::LinuxPolicyReply::Policy(y, b)) => {
+                    x == y && a == b
+                }
                 _ => false,
             };
             assert!(same, "the two readers read one reply two ways");

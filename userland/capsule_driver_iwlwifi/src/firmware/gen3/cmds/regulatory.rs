@@ -2,12 +2,17 @@
 
 //! The world regulatory domain asked for and its reply read, and the scan configuration.
 
-/// `iwl_mcc_update_cmd` asking for the world domain "ZZ" from the firmware's
-/// own data (`MCC_SOURCE_OLD_FW`), as `iwl_mvm_init_mcc` does on a platform
-/// without a BIOS country code.
-pub fn mcc_update_world() -> [u8; 28] {
+/// `iwl_mcc_update_cmd` for "ZZ" as `iwl_mvm_init_mcc` sends it on a
+/// platform without a BIOS country code (`iwl_mvm_get_current_regdomain`):
+/// to a firmware that takes Wi-Fi MCC updates (`wifi_mcc`, the
+/// `iwl_mvm_is_wifi_mcc_supported` bits) from `MCC_SOURCE_GET_CURRENT`,
+/// which asks its current domain and tells it the driver takes location
+/// updates; to an older one from `MCC_SOURCE_OLD_FW`.
+pub fn mcc_update_zz(wifi_mcc: bool) -> [u8; 28] {
+    const MCC_SOURCE_GET_CURRENT: u8 = 0x10;
     let mut c = [0u8; 28];
     c[0..2].copy_from_slice(&(((b'Z' as u16) << 8) | b'Z' as u16).to_le_bytes());
+    c[2] = if wifi_mcc { MCC_SOURCE_GET_CURRENT } else { 0 };
     c
 }
 

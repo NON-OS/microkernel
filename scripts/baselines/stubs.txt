@@ -95,8 +95,8 @@ userland/capsule_browser/src/browser/js/interp/natives/json_stringify.rs:25
 userland/capsule_desktop_shell/src/render/topbar/search_glyph.rs:17
 userland/capsule_driver_ahci/src/setup/say_skipped.rs:29
 userland/capsule_driver_hda/src/error/reason.rs:29
-userland/capsule_driver_iwlwifi/src/firmware/gen3/outcome.rs:155
-userland/capsule_driver_iwlwifi/src/firmware/gen3/outcome.rs:205
+userland/capsule_driver_iwlwifi/src/firmware/gen3/outcome/detail.rs:59
+userland/capsule_driver_iwlwifi/src/firmware/gen3/outcome/text.rs:55
 userland/capsule_driver_iwlwifi/src/firmware/gen3/up.rs:55
 userland/capsule_driver_iwlwifi/src/firmware/gen3/up.rs:93
 userland/capsule_driver_iwlwifi/src/firmware/gen3/up.rs:96
@@ -111,7 +111,7 @@ userland/capsule_driver_rtl8169/src/chip/error.rs:32
 userland/capsule_driver_rtl8169/src/chip/error.rs:43
 userland/capsule_driver_rtl8169/src/chip/say.rs:48
 userland/capsule_driver_rtl8169/src/chip/say.rs:52
-userland/capsule_driver_rtl8821ce/src/serve/radio.rs:140
+userland/capsule_driver_rtl8821ce/src/serve/radio/phy.rs:40
 userland/capsule_driver_virtio_blk/src/setup/registers.rs:32
 userland/capsule_driver_virtio_net/src/setup/registers/map.rs:30
 userland/capsule_driver_virtio_rng/src/setup/registers/grant.rs:29
@@ -144,7 +144,7 @@ userland/nonos_qjs/build.rs:23
 userland/nonos_qjs/build.rs:84
 userland/nonos_qjs/src/lib.rs:26
 userland/nonos_wifi_client/src/driver/join_text.rs:28
-userland/nonos_wifi_client/src/driver/stage.rs:60
+userland/nonos_wifi_client/src/driver/stage_kind.rs:57
 userland/sdk/nonos_std/src/io/error.rs:28
 userland/toolkit/src/image/bmp/readable.rs:22
 userland/toolkit/src/image/bmp/readable.rs:26

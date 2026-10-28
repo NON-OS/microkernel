@@ -18,17 +18,25 @@ use super::constants::{IO_ENTRIES, IO_QID};
 use super::geometry::NamespaceGeometry;
 use super::queue::IoQueue;
 use crate::admin::AdminQueue;
-use crate::error::NvmeResult;
+use crate::controller::ControllerInfo;
+use crate::error::{NvmeError, NvmeResult};
 use crate::regs::Regs;
 
+/// Build queue pair 1 for `geometry`. A controller whose CAP.MQES allows
+/// fewer than IO_ENTRIES entries is refused before anything is mapped or
+/// sent: Create I/O CQ and SQ would name a queue larger than it supports.
 pub fn bring_up(
     device_id: u64,
     epoch: u64,
     regs: Regs,
-    stride: u8,
+    info: ControllerInfo,
     admin: &mut AdminQueue,
     geometry: NamespaceGeometry,
 ) -> NvmeResult<IoQueue> {
+    if info.max_queue_entries() < IO_ENTRIES {
+        return Err(NvmeError::QueueTooShallow);
+    }
+    let stride = info.doorbell_stride();
     let io = IoQueue::allocate(device_id, epoch, stride, IO_QID, &geometry)?;
     io.create(admin, regs, stride)?;
     Ok(io)

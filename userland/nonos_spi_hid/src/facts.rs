@@ -51,3 +51,7 @@ pub const OUT_GET_FEATURE: u8 = 0x04;
 pub const DEVICE_DESCRIPTOR_LEN: usize = 24;
 /// A frame's opcode byte and 24-bit address.
 pub const FRAME_HEAD: usize = 4;
+/// The most bytes one transfer on driver.spi0 moves, and so the longest
+/// body a read frame may ask for behind its head.
+pub const TRANSFER_MAX: usize = 4000;
+pub const BODY_MAX: usize = TRANSFER_MAX - FRAME_HEAD;

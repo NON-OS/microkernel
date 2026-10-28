@@ -45,6 +45,7 @@ pub const EXIT_GROUP: u64 = 231;
 pub const OPENAT: u64 = 257;
 pub const NEWFSTATAT: u64 = 262;
 pub const SET_ROBUST_LIST: u64 = 273;
+pub const GET_ROBUST_LIST: u64 = 274;
 pub const PRLIMIT64: u64 = 302;
 pub const GETRANDOM: u64 = 318;
 pub const MEMFD_CREATE: u64 = 319;

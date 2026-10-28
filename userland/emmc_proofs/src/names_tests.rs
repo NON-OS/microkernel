@@ -59,9 +59,6 @@ fn the_part_served_is_named_on_the_console() {
     disk.say_part();
     assert_eq!(disk.names().model(), b"SanDisk DF4032");
     assert_eq!(&disk.names().serial, b"12345678");
-    assert!(
-        rig.logged("serving SanDisk DF4032, serial 12345678, OCR 0xc0ff8080"),
-        "{:#?}",
-        rig.logs()
-    );
+    assert!(rig.logged("serving SanDisk DF4032, OCR 0xc0ff8080"), "{:#?}", rig.logs());
+    assert!(!rig.logged("12345678"), "the serial reached the console");
 }

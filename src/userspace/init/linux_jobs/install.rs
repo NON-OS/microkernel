@@ -43,7 +43,8 @@ pub(super) fn install(listing: &str, release: &str) {
         Ok(v) => v,
         Err(said) => return refuse(listing, said),
     };
-    match spawn_install(&name, &hash, policy.as_deref(), direct) {
+    let market = policy.as_ref().map(|(m, args)| (&**m, args.as_slice()));
+    match spawn_install(&name, &hash, market, direct) {
         Ok(pid) => {
             super::status::set(listing, Stage::Running(pid));
             let mut l = Line::new();

@@ -28,16 +28,20 @@ pub enum Dev {
     Random,
     Urandom,
     Tty,
+    /* A new pseudo-terminal's master, and the slaves open now (linux::pty). */
+    Ptmx,
+    Pts(u32),
 }
 
 /* Name, device, major and minor, from Linux's Documentation/admin-guide/devices.txt. */
-pub(super) const DEVICES: [(&[u8], Dev, u32, u32); 6] = [
+pub(super) const DEVICES: [(&[u8], Dev, u32, u32); 7] = [
     (b"null", Dev::Null, 1, 3),
     (b"zero", Dev::Zero, 1, 5),
     (b"full", Dev::Full, 1, 7),
     (b"random", Dev::Random, 1, 8),
     (b"urandom", Dev::Urandom, 1, 9),
     (b"tty", Dev::Tty, 5, 0),
+    (b"ptmx", Dev::Ptmx, 5, 2),
 ];
 
 /* udev's links, which a shell's /dev/stdin redirection opens. */
@@ -53,9 +57,10 @@ pub fn node(rest: &[&[u8]]) -> Option<Node> {
         [] => {
             let mut names: Vec<Vec<u8>> = DEVICES.iter().map(|d| d.0.to_vec()).collect();
             names.extend(LINKS.iter().map(|l| l.0.to_vec()));
-            names.push(b"shm".to_vec());
+            names.extend([b"shm".to_vec(), b"pts".to_vec()]);
             Some(Node::Dir(names))
         }
+        [b"pts", tail @ ..] => super::number::pts(tail),
         [name] => DEVICES
             .iter()
             .find(|d| d.0 == *name)

@@ -21,9 +21,18 @@ pub fn call(cx: &mut Cx, op: u16, body: &[u8]) -> Answer {
     call_with(op, body, |req, body, tx| dispatch(cx, req, body, tx))
 }
 
-/// A request to the host front over several controllers (server/many).
+/// A request to the host front over several controllers (server/many),
+/// from client CLIENT.
 pub fn call_host(f: &mut Front<Cx>, op: u16, body: &[u8]) -> Answer {
-    call_with(op, body, |req, body, tx| serve(f, req, body, tx))
+    call_as(f, CLIENT, op, body)
+}
+
+/// The class driver every proof speaks as, unless one says otherwise.
+pub const CLIENT: u32 = 7;
+
+/// A request to the host front from client `pid`.
+pub fn call_as(f: &mut Front<Cx>, pid: u32, op: u16, body: &[u8]) -> Answer {
+    call_with(op, body, |req, body, tx| serve(f, pid, req, body, tx))
 }
 
 fn call_with(

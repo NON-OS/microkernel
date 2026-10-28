@@ -6,7 +6,7 @@ Put NONOS on a disk in this computer: how the installer picks the disk, what it 
 
 The installer is `capsule_install`. It writes the system this machine is running onto a disk you name, with its package [store](../overview/glossary-linux-personality.md#store) and an encrypted [data volume](../overview/glossary-claim-epoch.md#data-volume). There are three ways in:
 
-- Boot the stick and choose `Install NØNOS` in the boot menu. Setup opens with Install chosen on its Mode step. When you finish the Review step, the installer takes the whole screen, with no desktop behind it. If an earlier boot of the stick kept its answers, setup does not run and the installer opens at once.
+- Boot the stick and choose `Install NØNOS` in the boot menu. Setup opens with Install chosen on its Mode step. When you finish the Review step, the installer takes the whole screen, with no desktop behind it. If the stick kept its answers under an earlier release, setup does not run and the installer opens at once.
 - Choose `Install to this computer` on setup's Mode step, on any boot that runs setup.
 - From the desktop, open the Install tile on the dock. The installer then runs in a window.
 
@@ -43,13 +43,13 @@ Escape steps back. On Welcome and on Stopped it closes the installer, and on Don
 
 ## Which disks are offered
 
-The Disks screen lists every disk the NVMe, SATA and virtio-blk drivers serve. eMMC and UFS installs are not in 0.9.3: their driver capsules have no publisher key and are not in a shipped image. Each row gives the model or the bus, the size, the serial, the block size when it is not 512 bytes, and what the disk holds now: `blank`, `NONOS installed`, `another system (GPT)`, `another system (MBR)`, `unrecognised contents` or `did not answer a read`.
+The Disks screen lists every disk the NVMe, SATA and virtio-blk drivers serve. eMMC and UFS installs are not in 0.9.3: their driver capsules have no publisher key and are not in a shipped image. Each row gives the model or the bus, the size, the serial, the block size when it is not 512 bytes, and what the disk holds now: `blank`, `NONOS installed`, `another system (GPT)`, `another system (MBR)`, `holds data, but no partition table NONOS knows` or `did not answer a read`.
 
 Some rows are not targets, and say why:
 
 - The stick this boot came from is left off the list, by the loader's record of its partition.
 - A disk that holds a copy of the running loader, with no such record to tell it from the stick, reads `holds the loader this boot ran, so it may be the boot disk: not offered`.
-- A controller whose driver did not start reads, for example, `NVMe controller present, its driver did not come up`.
+- A controller that gave no disk reads, for example, `SATA controller found, no disk on it (empty, or its driver did not start)`. Many laptops have a SATA controller with nothing on it beside an NVMe disk; that line is then expected and harmless.
 - A disk whose first sectors do not read reads `its first sectors did not read:` with the driver's status, and `not offered`.
 
 USB disks never appear: the list asks those three drivers only. While the list has nothing to install to, or a driver is missing, it looks again every two seconds, or after four times as long as the last look took when that is longer. Press `r` to look at once. With no disk and an Intel RST or VMD controller on the bus, the screen says `Intel RST/VMD is on: set the BIOS storage mode to AHCI (or turn VMD off), then boot this stick again.` It adds that a Windows already on the computer may need switching to AHCI first, or it will not start after the change.
@@ -105,7 +105,7 @@ The Done screen says `Remove the USB stick, then press Enter to restart.`
 2. Press Enter. The machine restarts.
 3. If the machine does not start NONOS from the disk, choose that disk in the firmware's boot menu.
 
-The installer writes no firmware boot entry: the firmware finds the loader at the fallback path `EFI/BOOT/BOOTX64.EFI`. The installed disk shows the same boot menu as the stick, because it carries the same loader. The stick has to come out because, while a USB stick that carries NONOS is plugged in, the kernel keeps the boot's state on it before any internal disk.
+The installer writes no firmware boot entry: the firmware finds the loader at the fallback path `EFI/BOOT/BOOTX64.EFI`. The installed disk shows the same boot menu as the stick, because it carries the same loader. The stick has to come out because the firmware may start it again instead of the disk. The kernel keeps the disk the loader was read from, and never another NONOS disk in its place: a boot from the stick is a stick session, amnesic and with setup, however the internal disk is set up. When the kernel cannot drive the stick, it reads the loader's copy of the stick's store, keeps nothing, and says `[BLOCK] the disk this boot came from is not driven` once on the serial console. The boot menu's platform panel says which disk started: `STARTING FROM` is `USB STICK`, `INTERNAL DISK` for an NVMe or SATA disk, or `THIS DISK` for any other.
 
 On its first boot, the first time a program asks for the data volume, the kernel finds the cleared key header, derives the volume key from the TPM and formats the volume, and the log says `[DATA] formatted a volume of` with its size in sectors. Without a TPM the volume stays closed: the program gets EIO, and the serial console says `[DATA] refused with EIO: MachineKey(...)`. The kernel's own `[DATA] no machine key` line goes to its structured log, which nothing installs in this release, so it does not print. Setup does not run there when setup's answers came with the store.
 
@@ -162,7 +162,8 @@ Installing to an internal NVMe disk and booting from it was reported on real har
   - The write time on Done: `seconds`, `userland/capsule_install/src/install/ui/screens/done.rs:49`.
 - After the install
   - The fallback path: `tree`, `userland/nonos_disk/src/image/nonos.rs:49-50`.
-  - A USB stick comes before internal disks: `ORDER`, `src/hardware/block_device/select.rs:48`.
+  - The disk the loader came from is kept, and no other in its place: `selected`, `src/hardware/block_device/select.rs:40-75`, and `settle`, `src/hardware/block_device/settle.rs:35-48`, by the rule `other_disk`, `src/hardware/block_device/other_disk.rs:41-49`.
+  - Which disk started, on the boot menu: `classify`, `nonos-bootloader/src/loader/file/device_kind.rs:41-55`, and `draw_platform`, `nonos-bootloader/src/bootmenu/platform.rs:59-62`.
   - First boot keys and formats the volume: `derive_for_kernel` and `mount_or_format`, `src/fs/blockfs_volume/open_machine.rs:75-79`, and `volume_sectors`, `src/fs/blockfs_volume/mount_or_format.rs:69`.
   - The EIO line on the serial console: `errno`, `src/syscall/microkernel/data/errno.rs:30-53`.
 - Other installers in the tree

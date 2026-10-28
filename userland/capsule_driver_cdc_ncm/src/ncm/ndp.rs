@@ -17,7 +17,9 @@
 //! One NDP of a received block (USB NCM 1.0, 3.3, as recalled,
 //! unverified): dwSignature, wLength, the next NDP's index, then
 //! (index, length) entries, the last of them the zero pair that ends the
-//! list. The whole NDP must lie in the block. Its datagrams are taken in
+//! list. The whole NDP must lie in the block, and carry an NDP's
+//! signature: one with CRCs is passed over, its chain followed, and any
+//! other ends the walk. Its datagrams are taken in
 //! order up to the first zero or malformed entry, each wholly inside the
 //! block and at least an Ethernet header long.
 
@@ -29,7 +31,7 @@ use super::format::Format;
 use super::nth::{le16, le32};
 
 /// The next NDP's index (0: none), or `None` for an NDP that does not fit
-/// in `b`. At most `room` datagrams are left in `out`.
+/// in `b` or has no NDP's signature. At most `room` datagrams are left in `out`.
 pub fn ndp(
     f: &Format,
     b: &[u8],
@@ -43,8 +45,12 @@ pub fn ndp(
         return None;
     }
     let next = f.field(b, at + f.ndp_next)?;
-    if le32(b, at)? != f.ndp_sign as usize {
-        return Some(next);
+    match le32(b, at)? {
+        s if s == f.ndp_sign as usize => {}
+        // CRC mode is off, but a CRC NDP is still an NDP: its chain holds.
+        s if s == f.ndp_crc as usize => return Some(next),
+        // Not an NDP: its "next index" is whatever bytes sit there.
+        _ => return None,
     }
     // The last slot wLength makes room for is the terminator.
     let slots = (len - f.ndp_header) / entry - 1;

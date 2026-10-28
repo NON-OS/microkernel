@@ -28,6 +28,7 @@
 mod broker;
 mod clock;
 mod device_dma;
+pub mod devices;
 mod dma;
 mod dma_refuse;
 mod grants;
@@ -53,6 +54,8 @@ pub use broker::{
 };
 pub use clock::{mk_idle_ms, mk_yield, slept_ms, yields, Deadline};
 pub use device_dma::{device_read64, DmaFault};
+pub use devices::BUS_KIND_PCI;
+pub use devices::{mk_device_list, offer_devices, Bar, DeviceRecord, BAR_KIND_MMIO, BUS_KIND_FDT};
 pub use dma::{mk_dma_map, DmaMapOut};
 pub use dma_refuse::refuse_dma_after;
 pub use grants::dma_host;

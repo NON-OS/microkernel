@@ -15,13 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A name moved in the store, with what the family keeps beside it: its
-//! cached copy, its mode, its times and its extended attributes.
+//! cached copy, its shared maps, its mode, its times and its extended
+//! attributes.
 
 use crate::linux::abi::errno;
 
 use super::super::meta::look;
 use super::super::resolve::key;
-use super::super::{cache, modes, store_name};
+use super::super::{cache, modes, shared_maps, store_name};
 
 /// `from`, which is not a link, renamed to `to`.
 pub(super) fn move_name(from: &[u8], to: &[u8]) -> u64 {
@@ -31,6 +32,7 @@ pub(super) fn move_name(from: &[u8], to: &[u8]) -> u64 {
     /* A file in the way is replaced, as rename(2) replaces it. */
     if let Some((_, false)) = look(to) {
         cache::forget(to);
+        shared_maps::unlinked(to);
         let _ = store_name::unlink(&key(to));
     }
     /* The store renames what it has: the family's copy goes in first. */
@@ -40,6 +42,7 @@ pub(super) fn move_name(from: &[u8], to: &[u8]) -> u64 {
     match store_name::rename(&key(from), &key(to)) {
         Ok(()) => {
             cache::renamed(from, to);
+            shared_maps::renamed(from, to);
             modes::renamed(from, to);
             super::super::times::renamed(from, to);
             super::super::xattr_table::renamed(from, to);

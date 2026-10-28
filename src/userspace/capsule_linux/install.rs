@@ -27,18 +27,18 @@ use super::roles::{Role, INSTALL, RUN, TERMINAL};
 use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 /// Spawn the installer for `package`, which must hash to `pinned`. `market`
-/// is the release's guest_policy | listing_key | release_key, and None only
-/// for a release that has no guest_policy: sent as 640 hex, or "-".
+/// is the release's policy | listing_key | release_key and listed arguments,
+/// None only for a release with no guest_policy: one hex word, or "-".
 /// With `direct`, a Qwen tier's model is downloaded over a direct connection
 /// for this install only: the person chose it in the store, where it is
 /// said that the mirror then sees this machine's address.
 pub fn spawn_install(
     package: &str,
     pinned: &[u8; 32],
-    market: Option<&[u8; 320]>,
+    market: Option<(&[u8; 320], &[u8])>,
     direct: bool,
 ) -> Result<u32, SpawnError> {
-    let m = market.map_or_else(|| String::from("-"), |m| hex(m));
+    let m = market.map_or_else(|| String::from("-"), |(m, args)| hex(m) + &hex(args));
     let mut argv = vec![String::from("install"), String::from(package), hex(pinned), m];
     if direct {
         argv.push(String::from("direct"));
@@ -69,9 +69,7 @@ pub fn spawn_terminal_net(argv: Vec<String>) -> Result<u32, SpawnError> {
 }
 
 fn spawn(role: &Role, argv: Vec<String>) -> Result<u32, SpawnError> {
-    let pid = spawn_role(role)?;
-    let _ = crate::process::set_argv(pid, argv);
-    Ok(pid)
+    spawn_role(role, Some(argv))
 }
 
 fn hex(bytes: &[u8]) -> String {

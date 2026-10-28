@@ -21,10 +21,12 @@
 mod clock_tests;
 #[path = "dma_tests.rs"]
 mod dma_tests;
-#[path = "gpio0_tests.rs"]
-mod gpio0_tests;
 #[path = "enable_state_tests.rs"]
 mod enable_state_tests;
+#[path = "gpio0_tests.rs"]
+mod gpio0_tests;
+#[path = "kernel_list_tests.rs"]
+mod kernel_list_tests;
 #[path = "lpss_tests.rs"]
 mod lpss_tests;
 #[path = "mmio_tests.rs"]

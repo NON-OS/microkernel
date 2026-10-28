@@ -19,6 +19,7 @@
 
 pub mod layout;
 pub mod rx;
+mod rx_batch;
 mod rx_consume;
 pub mod rx_wb;
 pub mod tx;
