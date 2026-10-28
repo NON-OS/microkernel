@@ -6774,6 +6774,7 @@
    "userland/compositor/src/setup/gop_backing.rs",
    "userland/compositor/src/setup/rejected.rs",
    "userland/kernel_proofs",
+   "userland/libc/src/battery.rs",
    "userland/libc/src/bringup/policy.rs",
    "userland/libc/src/broker/device.rs",
    "userland/libc/src/broker/dma.rs",
