@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The sectors the kernel reads at boot: the data volume's header ring and
-//! the key header zeroed, the store, and the disk plan.
+//! the key header zeroed, the store, and the disk plan. An update writes
+//! the store alone (`queue_keep`).
 
 use alloc::rc::Rc;
 use alloc::vec::Vec;
@@ -40,6 +41,11 @@ pub fn state_jobs<'a>(plan: &Plan<'a>, jobs: &mut Vec<Job<'a>>) {
      * first boot that opens the volume writes the real header, then formats.
      */
     jobs.push(Job::part(KEY_LBA, zeros, 0..SECTOR_SIZE));
+    store_jobs(plan, jobs);
+    jobs.push(Job::owned(PLAN_LBA, plan_sector(&plan.layout.data)));
+}
+
+pub fn store_jobs<'a>(plan: &Plan<'a>, jobs: &mut Vec<Job<'a>>) {
     /*
      * The header sector last, as vfs commits a table: it is what makes the
      * sectors after it a store.
@@ -47,5 +53,4 @@ pub fn state_jobs<'a>(plan: &Plan<'a>, jobs: &mut Vec<Job<'a>>) {
     let store = plan.store.shared();
     jobs.push(Job::part(STORE_BASE_LBA + 1, store.clone(), SECTOR_SIZE..store.len()));
     jobs.push(Job::part(STORE_BASE_LBA, store, 0..SECTOR_SIZE));
-    jobs.push(Job::owned(PLAN_LBA, plan_sector(&plan.layout.data)));
 }

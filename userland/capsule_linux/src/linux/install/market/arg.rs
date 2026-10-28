@@ -18,12 +18,12 @@
 //! box, from the release. init writes it, and only init can, since
 //! the kernel's init sets a spawned process's arguments. "-" is a release
 //! with no guest_policy; anything else is policy[256] | listing_key[32] |
-//! release_key[32], then the release's listed arguments, if any, up to
-//! nonos_linux_policy::args::MAX_LEN bytes, all as lowercase hex.
+//! release_key[32], then the release's listed arguments and extra packages,
+//! if any (nonos_linux_policy::with), up to args::MAX_LEN bytes, as lowercase hex.
 
 use alloc::vec::Vec;
 
-use nonos_linux_policy::args::{check, MAX_LEN};
+use nonos_linux_policy::args::MAX_LEN;
 
 /// The policy and the two keys it must name.
 pub const MARKET_LEN: usize = 256 + 32 + 32;
@@ -32,22 +32,12 @@ pub const MARKET_LEN: usize = 256 + 32 + 32;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct NotMarket;
 
-/// What the market sent: the policy with its keys, and the listed arguments,
-/// empty for none.
+/// What the market sent: the policy with its keys, and the tail after them,
+/// the listed arguments then the extra packages (tail.rs), empty for none.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Market {
     pub head: [u8; MARKET_LEN],
     pub args: Vec<u8>,
-}
-
-impl Market {
-    /// Its arguments, when there are none or they are canonical.
-    pub fn listed(&self) -> Result<&[u8], &'static str> {
-        match self.args.is_empty() || check(&self.args).is_ok() {
-            true => Ok(&self.args),
-            false => Err("its listed arguments are malformed"),
-        }
-    }
 }
 
 /// Ok(None) for "-", Ok(Some) for the 320 bytes and any arguments after.
