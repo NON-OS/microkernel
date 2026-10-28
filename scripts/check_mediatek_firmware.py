@@ -5,14 +5,17 @@
 """Hold the MediaTek firmware package to its one set of pins, and keep its
 bytes out of the tree.
 
-The mt7921e driver pins each file by name, length and sha256
-(userland/capsule_driver_mt7921/src/fw/pins.rs). Fails when:
+The mt7921e driver pins each of its six files by name, length and sha256
+(userland/capsule_driver_mt7921/src/fw/pins.rs), and the Bluetooth capsule
+its two after them (userland/capsule_driver_bt_usb/src/vendor/mediatek/pins.rs).
+Fails when:
   - the nix artifact's list (tools/nix/firmware.json) names another commit,
     file, length or hash, or another licence;
   - the loader's paths (nonos-bootloader/src/entry/firmware_package.rs) name
     other files, in another order, or another first module kind;
-  - the kernel's served kinds (install_source_kinds.rs) or the driver's own
-    first slot are not 0x20 and six;
+  - the kernel's served kinds (install_source_kinds.rs) are not 0x20 and
+    eight, the Wi-Fi driver's first slot not 0x20 or the Bluetooth
+    capsule's first kind not 0x26;
   - the loader reads a file without first asking whether it is there (a
     medium without the package must boot without a "File not found" line);
   - the seal's ESP (tools/nonos_seal/media.py, run here on empty stand-ins)
@@ -40,7 +43,8 @@ import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from mediatek_firmware import ESP_DIR, KINDS_RS, LICENCE, LOADER_RS, PACKAGE_RS, commit, pins  # noqa: E402
+from mediatek_firmware import (BT_FILES_RS, BT_PINS_RS, ESP_DIR, KINDS_RS, LICENCE,  # noqa: E402
+                               LOADER_RS, PACKAGE_RS, commit, pins)
 
 NIX_JSON = "tools/nix/firmware.json"
 SEAL_MEDIA = "tools/nonos_seal/media.py"
@@ -50,7 +54,7 @@ SCOPE = ("src/", "userland/", "nonos-bootloader/", "kernel_proofs/")
 NEEDLE = 32
 STRIDE = 8192
 DISTINCT = 24
-INCLUDE = re.compile(r"include_bytes!\s*\([^)]*(mediatek|WIFI_RAM_CODE|WIFI_MT79)", re.I)
+INCLUDE = re.compile(r"include_bytes!\s*\([^)]*(mediatek|WIFI_RAM_CODE|WIFI_MT79|BT_RAM_CODE)", re.I)
 HEXRUN = re.compile(r"(?:0x[0-9a-fA-F]{1,2}\s*,\s*){32,}")
 
 
@@ -73,10 +77,12 @@ def agreement(root: Path):
     if number(loader, "KIND_FIRMWARE_FIRST") != 0x20:
         out.append(f"{LOADER_RS}: KIND_FIRMWARE_FIRST is not 0x20")
     kinds = (root / KINDS_RS).read_text()
-    if number(kinds, "KIND_FIRMWARE_FIRST") != 0x20 or number(kinds, "FIRMWARE_FILES") != 6:
-        out.append(f"{KINDS_RS}: does not serve kinds 0x20..0x25")
+    if number(kinds, "KIND_FIRMWARE_FIRST") != 0x20 or number(kinds, "FIRMWARE_FILES") != len(pinned):
+        out.append(f"{KINDS_RS}: does not serve kinds 0x20..0x{0x1f + len(pinned):02x}")
     if number((root / PACKAGE_RS).read_text(), "SLOT_FIRST") != 0x20:
         out.append(f"{PACKAGE_RS}: SLOT_FIRST is not 0x20")
+    if number((root / BT_FILES_RS).read_text(), "KIND_FIRST") != 0x26:
+        out.append(f"{BT_FILES_RS}: KIND_FIRST is not 0x26, the slot after the Wi-Fi six")
     asked, read = loader.find("if !file_exists(st, path)"), loader.find("load_file_from_esp(st, path)")
     if asked < 0 or read < asked:
         out.append(f"{LOADER_RS}: reads a file without asking first whether it is there")
@@ -167,7 +173,8 @@ def self_test() -> int:
     with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as b:
         t, blobs = Path(d), Path(b)
         for rel in ("userland/capsule_driver_mt7921/src/fw/pins.rs", PACKAGE_RS, LOADER_RS,
-                    KINDS_RS, NIX_JSON, SEAL_MEDIA, SEAL_MAIN, "scripts/mediatek_firmware.py"):
+                    KINDS_RS, NIX_JSON, SEAL_MEDIA, SEAL_MAIN, "scripts/mediatek_firmware.py",
+                    BT_PINS_RS, BT_FILES_RS):
             (t / rel).parent.mkdir(parents=True, exist_ok=True)
             (t / rel).write_text((root / rel).read_text())
         if agreement(t) or no_blobs(t):
@@ -204,8 +211,23 @@ def self_test() -> int:
         (t / LOADER_RS).write_text((root / LOADER_RS).read_text().replace("MT7922_1.bin", "MT7922_2.bin"))
         cases.append(("the loader reading another file", agreement(t)))
         (t / LOADER_RS).write_text((root / LOADER_RS).read_text())
-        (t / KINDS_RS).write_text((root / KINDS_RS).read_text().replace("FIRMWARE_FILES: u32 = 6", "FIRMWARE_FILES: u32 = 5"))
-        cases.append(("the kernel serving five", agreement(t)))
+        (t / KINDS_RS).write_text((root / KINDS_RS).read_text().replace("FIRMWARE_FILES: u32 = 8", "FIRMWARE_FILES: u32 = 6"))
+        cases.append(("the kernel serving the Wi-Fi six alone", agreement(t)))
+        (t / KINDS_RS).write_text((root / KINDS_RS).read_text())
+        (t / LOADER_RS).write_text((root / LOADER_RS).read_text().replace(
+            "BT_RAM_CODE_MT7922_1_1_hdr.bin", "BT_RAM_CODE_MT7922_1_2_hdr.bin"))
+        cases.append(("the loader reading another Bluetooth file", agreement(t)))
+        (t / LOADER_RS).write_text((root / LOADER_RS).read_text())
+        (t / BT_FILES_RS).write_text((root / BT_FILES_RS).read_text().replace(
+            "KIND_FIRST: u64 = 0x26", "KIND_FIRST: u64 = 0x20"))
+        cases.append(("the Bluetooth capsule asking for the Wi-Fi kinds", agreement(t)))
+        (t / BT_FILES_RS).write_text((root / BT_FILES_RS).read_text())
+        (t / NIX_JSON).write_text((root / NIX_JSON).read_text().replace("533870", "533871"))
+        cases.append(("the nix list another Bluetooth length", agreement(t)))
+        (t / NIX_JSON).write_text((root / NIX_JSON).read_text())
+        (t / "userland/z.rs").write_text('static B: &[u8] = include_bytes!("BT_RAM_CODE_MT7922_1_1_hdr.bin");\n')
+        cases.append(("an include_bytes! of a Bluetooth file", no_blobs(t)))
+        (t / "userland/z.rs").unlink()
         (t / KINDS_RS).write_text((root / KINDS_RS).read_text())
         (t / NIX_JSON).write_text((root / NIX_JSON).read_text().replace("92192", "92193"))
         cases.append(("the nix list another length", agreement(t)))
@@ -238,7 +260,7 @@ def main() -> int:
     for line in bad:
         print(f"check_mediatek_firmware: {line}")
     if not bad:
-        print(f"check_mediatek_firmware: six pinned files agree in driver, loader, kernel and "
+        print(f"check_mediatek_firmware: {len(pins(root))} pinned files agree in drivers, loader, kernel and "
               f"build; none in the tree{', the sources or the artifacts' if a.blobs else ''}")
     return 1 if bad else 0
 
