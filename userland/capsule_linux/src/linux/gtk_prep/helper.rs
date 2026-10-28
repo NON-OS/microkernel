@@ -17,6 +17,8 @@
 //! One GTK preparation tool, run to its end as a guest of its own. A tool
 //! the store does not hold but the built-in BusyBox serves runs as that.
 
+use alloc::format;
+use alloc::string::String;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
 use nonos_libc::mk_foreign_spawn;
@@ -43,7 +45,13 @@ pub(super) fn helper(path: &[u8], args: &[&[u8]]) {
     HELPING.store(true, Ordering::Relaxed);
     let started = super::super::start_guest::start(&mut guest, launch);
     HELPING.store(false, Ordering::Relaxed);
-    if started.is_err() || super::super::serve::serve(guest) != 0 {
-        say(b"[LINUX] a GTK preparation tool did not run cleanly\n");
+    let code = match started {
+        Ok(()) => super::super::serve::serve(guest),
+        Err(_) => -1,
+    };
+    if code != 0 {
+        let tool = String::from_utf8_lossy(path);
+        let first = String::from_utf8_lossy(args.first().copied().unwrap_or_default());
+        say(format!("[LINUX] GTK preparation {tool} {first} ended {code}\n").as_bytes());
     }
 }
