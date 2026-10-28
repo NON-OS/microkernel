@@ -141,10 +141,11 @@ The window speaks WebSocket over the bytes; the personality does not parse
 it. While a conn is open the loop waits 20 ms, not 250, until unit 7.
 
 **Who calls what.** (1) The window, owning `app.simplex`, calls
-MkAppLaunch(`linux.nonos-simplex-chat`); a new arm admits a SERVES capsule
-for its own listing (`mk_trust.rs:58`). (2) Init starts the run, which
-restarts as app.linux.run.net (`src/userspace/capsule_linux/run_net.rs:17-22`)
-noting the launcher's pid (not done today). (3) The core listens; the
+MkAppLaunch(`linux.kali.nonos-simplex-chat`); a new arm admits a SERVES capsule
+for its own listing (`mk_trust.rs:61`, `src/syscall/microkernel/app_launch_rule.rs`).
+(2) Init starts the run, which restarts as app.linux.run.net
+(`src/userspace/capsule_linux/run_net.rs:17-22`), held to the launcher's pid
+(`src/userspace/capsule_linux/served_run.rs`). (3) The core listens; the
 personality calls `MkServeOne("app.simplex")`. (4) The window looks up
 `linux.serve.app.simplex` (`ipc/lookup.rs:54-56`), retrying 30 s on ENOENT,
 then sends OPEN, the upgrade and `/_get chats`. (5) The window exits; the run
@@ -259,3 +260,15 @@ Interfaces the units share, so they can be written apart:
   `mk_serve_one(name: &[u8], listing_key: &[u8; 32]) -> i64`. The endpoint is
   named `linux.serve.<name>` and held to `name`.
 - wire: as in "The wire" above, magic `NSO1`.
+
+As built, unit 3:
+- The launch arm. The kernel cannot read an installed package's key when it
+  queues a launch: the key is in the policy the install role wrote to the
+  personality's store, which only the run reads and checks at start. So
+  `LISTINGS` beside SERVES names the listing id each capsule may launch, the
+  id its key is made from (market_proofs holds the two together); the launch
+  is held to that id, EPERM otherwise, and MkServeOne still binds the key, so
+  a same-named listing of another publisher starts but is never served.
+- The run is noted as the launcher's process when queued, follows it into
+  app.linux.run.net, and is ended with the launcher's teardown; a start still
+  queued then ends as it starts. Any other launch forgets the note.
