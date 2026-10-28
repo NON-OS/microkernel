@@ -3,9 +3,8 @@ use crate::render::{self, widgets::lines, widgets::rows};
 use crate::server::step::{default_key, list_nav, Outcome, K_ENTER, K_ENTER_LF};
 use crate::state::Context;
 
-/// Rows after the first, which is amnesic.
-pub const USB_LIVE: u8 = 1;
-pub const INSTALL: u8 = 2;
+/// Rows after the first, which is amnesic, defined beside their rule.
+pub use crate::keep::{INSTALL, USB_LIVE};
 
 /*
  * Setup's exit status in its low byte: 0 starts the desktop, and 3 hands the
@@ -30,16 +29,16 @@ const WHY: [&[&[u8]]; 3] = [
         b"virtio disk today, and has no passphrase-keyed volume.",
     ],
     &[
-        b"Keeps your name, keyboard, time zone, wallpaper, Qwen model and",
-        b"apps in the store on this boot's NONOS disk, so setup does not",
-        b"run again, then opens the installer. The installer writes this",
-        b"boot image and a new store to a disk you name. That store",
-        b"carries those answers and signed programs, so setup does not",
-        b"run there either.",
+        b"Opens the installer. It writes this boot image and a new store",
+        b"to a disk you name, carrying your name, keyboard, time zone,",
+        b"wallpaper, Qwen model, apps and signed programs, so setup does",
+        b"not run there. The disk this boot came from keeps no answers:",
+        b"started from it again, NONOS is amnesic and runs setup.",
     ],
 ];
 
-/// Whether this mode keeps state across boots.
+/// Whether this mode keeps state across boots: Install, on the disk the
+/// installer writes. Its answers stay out of this boot's store (`keep::answers_for`).
 pub fn keeps(ctx: &Context) -> bool {
     ctx.mode_sel == INSTALL
 }

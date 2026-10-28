@@ -96,7 +96,7 @@ After the fetch, every listing's `.apk` must be the one `B` pins. So two seals o
 
 ## Apps built from source
 
-Some apps are packaged by no distribution: DarkFi's drk, darkirc and darkfid, and SimpleX's simplex-chat. A recipe of kind `source` lists one of these from a build of its upstream at a single commit, or from the binary its upstream publishes (below) (`tools/nonos_market_catalogue/source_recipe.py`, `checked`). DarkFi's three are in the catalogue, built from v0.5.0.
+Some apps are packaged by no distribution: DarkFi's drk, darkirc and darkfid, and SimpleX's simplex-chat. A recipe of kind `source` lists one of these from a build of its upstream at a single commit, or from the binary its upstream publishes (below) (`tools/nonos_market_catalogue/source_recipe.py`, `checked`). DarkFi's three are in the catalogue, built from v0.5.0. SimpleX's terminal client is in it as `linux.kali.nonos-simplex-chat`, from SimpleX's own v7.0.3 release binary.
 
 | Key | Required | What it holds |
 |---|---|---|
@@ -179,7 +179,7 @@ With `--learn`, the sha256 is taken from the signed file instead of the recipe, 
 
 ## Adding an app
 
-1. Check that the package is in Alpine v3.20, that its licence is on the allowlist, and that it needs nothing the platform lacks: no pty, no program over 64 MiB, no inbound network.
+1. Check that the package is in Alpine v3.20, that its licence is on the allowlist, and that it needs nothing the platform lacks: no program over 64 MiB, no inbound network. A pseudo-terminal is there (`/dev/ptmx` and `/dev/pts/N`, see [the Linux personality](linux-personality.md#pseudo-terminals)), but no app has yet run on one.
 2. Add its recipe with the narrowest mask it works in.
 3. Run the generator and the documents step, and commit the new document.
 4. Run once with `--update-lock` and commit the lock with the recipe.
