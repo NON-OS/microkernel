@@ -20,18 +20,23 @@
 use nonos_libc::{mk_foreign_wait, ForeignFrame};
 
 use super::family::Family;
+use crate::linux::call::now_ms;
 use crate::linux::guest::Guest;
 use crate::linux::net;
+use crate::linux::wayland::commit::pace;
 
 /// How long one wait blocks before looking at the guest again.
 const WAIT_MS: u64 = 250;
+const CLOCK_MONOTONIC: u64 = 1;
 
 pub fn serve(guest: Guest) -> i32 {
     let mut family = Family::new(guest);
     loop {
         let mut frame = ForeignFrame::default();
-        // A sleeper, a parked wait or a closing stream due sooner shortens it.
-        let wake = [family.next_wake_ms(), net::closing_ms()].into_iter().flatten().min();
+        // A sleeper, a parked wait, a closing stream or a held frame callback
+        // due sooner shortens it.
+        let due = [family.next_wake_ms(), net::closing_ms(), frames_due(&family)];
+        let wake = due.into_iter().flatten().min();
         let wait = wake.map_or(WAIT_MS, |ms| ms.clamp(1, WAIT_MS));
         if mk_foreign_wait(&mut frame, wait) > 0 {
             family.answer(&frame);
@@ -39,6 +44,7 @@ pub fn serve(guest: Guest) -> i32 {
         family.settle_tty_interrupt();
         family.settle_ptys();
         family.settle_sleeps();
+        settle_frames(&mut family);
         family.settle_futex();
         // After reap, so a write end that left with its process reads as end of file.
         family.reap();
@@ -54,4 +60,15 @@ pub fn serve(guest: Guest) -> i32 {
             return code;
         }
     }
+}
+
+/* Frame callbacks held for their period (wayland commit/pace.rs) go when due. */
+fn settle_frames(family: &mut Family) {
+    let Some(now) = now_ms(CLOCK_MONOTONIC) else { return };
+    family.guests.iter_mut().for_each(|g| pace::settle(g, now));
+}
+
+fn frames_due(family: &Family) -> Option<u64> {
+    let now = now_ms(CLOCK_MONOTONIC)?;
+    family.guests.iter().filter_map(|g| pace::next_ms(g, now)).min()
 }
