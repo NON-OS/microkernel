@@ -16,7 +16,8 @@
 
 use super::loader::carried::carried;
 use super::loader::ddc::entries;
-use super::rig::{bootloader, ops_after, run, SOLAR};
+use super::rig::{bootloader, run, SOLAR};
+use super::rig_ops::ops_after;
 
 #[test]
 fn ddc_entries_are_a_length_then_that_many_octets() {

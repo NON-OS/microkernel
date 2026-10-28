@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::model::Intel;
-use super::name_tests::BZRI;
 use super::rig::{bootloader, run, tlv, TYP};
 use nonos_bt_hci::HciError;
 use nonos_bt_wire::hci::opcode::Opcode;
@@ -41,11 +40,12 @@ fn a_refused_fragment_ends_the_download_there() {
 
 #[test]
 fn firmware_the_tree_does_not_carry_is_refused_by_name_before_any_is_sent() {
-    let m = Intel { tlv: [tlv(BZRI, 0x01, [0; 3], 1), Vec::new()], ..Intel::default() };
+    let gf = (0x0100_0900, 0x410, 0x1e, "");
+    let m = Intel { tlv: [tlv(gf, 0x01, [0; 3], 1), Vec::new()], ..Intel::default() };
     let (r, m, said) = run(m, 0x0035);
     assert_eq!(r, Err(HciError::NotBluetooth));
     assert_eq!(m.ops, [0xfc05]);
-    assert_eq!(said, ["intel: firmware not carried: ibt-0190-0291-iml.sfi"]);
+    assert_eq!(said, ["intel: firmware not carried: ibt-0190-0041-iml.sfi"]);
 }
 
 #[test]

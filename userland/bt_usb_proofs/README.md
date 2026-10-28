@@ -59,7 +59,10 @@ the carried linux-firmware files themselves.
 |---|---|---|
 | `intel/version_tests.rs` | 5 | the TLV fields kept, the running build and the bootloader's minimum, a TLV past the end, a stray octet, a short value, a firmware id that is not a name, the old form |
 | `intel/name_tests.rs` | 4 | CNVi/CNVr packing; ibt-0041-0041, ibt-1040-0041, ibt-0291-0291; Blazar's -iml and firmware id; ibt-19-32-1 in decimal, SfP and later not |
-| `intel/carried_tests.rs` | 3 | every carried file frames whole for each engine and names its boot address and build; WHENCE's links; aligned runs only |
+| `intel/carried_tests.rs` | 2 | every carried file frames whole for each engine and names its boot address and build, and has a DDC unless a loader; WHENCE's links and ibt-20-0-3 |
+| `intel/runs_tests.rs` | 1 | aligned runs only |
+| `intel/iml_tests.rs` | 3 | a BE201: loader, DSBR, the firmware the loader names, DDC named from the loader's version; a loader naming nothing carried; a running BE201 matched against its loader's build |
+| `intel/ccp_tests.rs` | 2 | an AX200 takes ibt-20-1-3 (also as 0-3) and ibt-20-1-4; a running one left running |
 | `intel/send_tests.rs` | 4 | 252-octet fragments, kind first; the ECDSA header, then every command; the RSA header in five fragments; headers missing for an engine |
 | `intel/flow_tests.rs` | 5 | an AX210 loaded, booted, DDC, mask, Reset; events on bulk IN and a result before the last Complete; the carried build already running not loaded; another build sent back; a product not marked combined left alone |
 | `intel/legacy_tests.rs` | 4 | an AX201 in the old form by its link; a TLV-answering HrP asked again; Limited_CCE refused; a running AX201 left running |
@@ -68,7 +71,7 @@ the carried linux-firmware files themselves.
 | `intel/ddc_tests.rs` | 2 | DDC entries length first; the carried DDC entry by entry after boot |
 
 `verification/host_mutants/bt-intel.json` holds a mutant for each rule of
-the loader (36), each killed by `intel::`:
+the loader (45), each killed by `intel::`:
 `tools/nonos-host-mutants verification/host_mutants/bt-intel.json`.
 
 ```

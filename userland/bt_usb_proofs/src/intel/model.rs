@@ -38,6 +38,10 @@ pub struct Intel {
     /// The fragment (counted from 1) answered with status 0x12.
     pub refuse_fragment: usize,
     pub boots: bool,
+    /// An intermediate loader: what Read Version answers while it runs and
+    /// the data octets of the firmware it then takes; set while it runs.
+    pub iml: Option<(Vec<u8>, usize)>,
+    pub in_iml: bool,
     pub bulk_events: bool,
     pub booted: bool,
     /// What the host did: every opcode in order, every Secure Send's
@@ -46,6 +50,7 @@ pub struct Intel {
     pub fragments: Vec<Vec<u8>>,
     pub ddc: Vec<Vec<u8>>,
     pub boot_addr: Option<u32>,
+    pub boot_addrs: Vec<u32>,
     pub to_bootloader: u32,
     pub data: usize,
     pub pauses: u32,
