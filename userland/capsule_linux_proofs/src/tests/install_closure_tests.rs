@@ -22,7 +22,7 @@ use crate::install::index::{self, Index};
 use crate::install::install_if;
 
 #[path = "../../../capsule_linux/src/linux/install/get"]
-mod get {
+pub(super) mod get {
     pub mod closure;
 }
 use get::closure::{closure, Closed};
@@ -31,7 +31,7 @@ const TEXT: &[u8] = b"P:app\nV:1\nS:1000\nD:liba so:libb.so.1\n\nP:liba\nV:1\nD:
 P:libb\nV:1\np:so:libb.so.1=1\nD:libc\n\nP:libc\nV:1\n\n";
 
 fn names(index: &Index, name: &str, max: usize) -> Result<Vec<String>, Closed> {
-    closure(index, name, max).map(|pkgs| pkgs.iter().map(|p| p.name.clone()).collect())
+    closure(index, name, &[], max).map(|pkgs| pkgs.iter().map(|p| p.name.clone()).collect())
 }
 
 #[test]
