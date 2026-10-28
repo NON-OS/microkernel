@@ -39,7 +39,7 @@ fn the_app_is_noted_to_the_seal_between_its_proof_and_its_start() {
     assert!(proved < noted && noted < started);
     let note = include_str!("../../../../capsule_linux/src/linux/seal_note.rs");
     assert!(note.contains("mk_seal_note(nonos_libc::SEAL_APP_ID, &note)"));
-    assert!(note.contains("super::seal_slot::slot0(app_id, super::boxed::armed_hash().as_ref())"));
+    assert!(note.contains("seal_slot::slot0(app_id, super::boxed::armed_hash().as_ref())"));
     let spawn = include_str!("../../../../capsule_linux/src/linux/start.rs");
     assert!(spawn.find("mk_foreign_spawn").unwrap() < spawn.find("start(&mut guest").unwrap());
 }
