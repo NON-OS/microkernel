@@ -25,6 +25,7 @@ impl LinkStation {
     pub(super) fn wipe_keys(&mut self) {
         match &mut self.ccmp {
             Ccmp::Software { tk } | Ccmp::SoftwareTxHwRx { tk } => wipe(tk),
+            Ccmp::Offload { tk, .. } => wipe(tk),
             Ccmp::Gcmp256 { tk } => wipe(tk),
             Ccmp::Hardware => {}
         }

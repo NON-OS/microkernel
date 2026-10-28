@@ -16,7 +16,7 @@
 
 pub mod budget;
 
-use nonos_libc::mk_uptime_ms;
+use nonos_libc::{mk_idle_ms, mk_uptime_ms};
 
 pub use budget::Budget;
 
@@ -28,6 +28,13 @@ pub fn uptime_ms() -> Option<u64> {
     } else {
         Some(t as u64)
     }
+}
+
+/// Give the core away for a millisecond between two polls of a register
+/// that may take seconds to change (CAP.TO allows 127.5 s). A failed sleep
+/// only shortens the pause: every such wait is bounded on the clock.
+pub fn idle() {
+    let _ = mk_idle_ms(1);
 }
 
 /// A budget of `limit_ms` from now.

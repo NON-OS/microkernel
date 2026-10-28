@@ -25,7 +25,14 @@ impl Mmio for Stuck {
 #[test]
 fn a_bus_master_that_never_stops_is_reported_and_still_reset() {
     let m = Stuck(RefCell::new(HashMap::new()));
-    assert!(!stop_device(&m, &mut Polls { per_wait: 64, delays_us: 0 }), "no Bus Master for it");
+    assert!(
+        !stop_device(
+            &m,
+            &mut Polls { per_wait: 64, delays_us: 0 },
+            crate::gen3::csr::CsrLayout::V1
+        ),
+        "no Bus Master for it"
+    );
     assert_eq!(
         m.read32(CSR_RESET) & (RESET_STOP_MASTER | RESET_SW_RESET),
         RESET_STOP_MASTER | RESET_SW_RESET

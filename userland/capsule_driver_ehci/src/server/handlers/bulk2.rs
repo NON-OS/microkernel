@@ -24,8 +24,8 @@ use crate::env::{Clock, Mem, Regs};
 use crate::sched::layout::{pair2_ring, SECOND_PAIRS};
 use crate::server::context::Ctx;
 use crate::server::reply::{bytes, status};
-use crate::wire::{Request, E_BUSY, E_INVAL};
-use crate::xfer::bulk::{configure as set_qh, BulkEp};
+use crate::wire::{Request, E_BUSY, E_INVAL, E_IO};
+use crate::xfer::{bulk::BulkEp, bulk_run::configure as set_qh};
 
 /// As OP_CONFIGURE_BULK: `slot, ep_in, ep_out, bursts, mps_in, mps_out`.
 pub fn configure<R: Regs, C: Clock, M: Mem>(
@@ -53,8 +53,9 @@ pub fn configure<R: Regs, C: Clock, M: Mem>(
     let (i, o) = (ep(ep_in, a, b, true), ep(ep_out, c, d, false));
     (dev.bulk2, dev.claimed) = (Some((i, o)), true);
     let op = cx.table.op;
-    set_qh((&cx.mem, &mut cx.io, &cx.clock), op, &i);
-    set_qh((&cx.mem, &mut cx.io, &cx.clock), op, &o);
+    if set_qh((&cx.mem, &mut cx.io, &cx.clock), op, (&i, &o)).is_err() {
+        return status(tx, req, E_IO);
+    }
     bytes(tx, req, &[2 * (ep_in & 0xF) + 1, 2 * (ep_out & 0xF), 0, 0])
 }
 

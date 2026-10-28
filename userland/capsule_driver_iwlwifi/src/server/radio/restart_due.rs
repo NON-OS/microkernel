@@ -36,9 +36,10 @@ impl Radio {
         }
         let r = *r;
         let (id, epoch) = self.pci;
-        let up = master_on(r.rig.regs, &mut Uptime, || command(id, epoch, true))
-            .and_then(|()| boot_rig(r.rig))
-            .and_then(|dev| finish(dev, r.rig, r.addr, r.restarts));
+        let up =
+            master_on(r.rig.regs, &mut Uptime, r.rig.transport.csr, || command(id, epoch, true))
+                .and_then(|()| boot_rig(r.rig))
+                .and_then(|dev| finish(dev, r.rig, r.addr, r.restarts));
         match up {
             Ok(up) => {
                 Line::new().text(b"radio up again; passive scanning").send();

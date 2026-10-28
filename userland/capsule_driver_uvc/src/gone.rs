@@ -22,6 +22,7 @@ use nonos_usbnet::scan::Scanner;
 use nonos_usbnet::xhci::{connected_ports, disable_slot};
 
 use crate::device::Dev;
+use crate::ops::alive;
 use crate::stream::stop;
 
 pub fn gone(d: &Dev) -> bool {
@@ -35,5 +36,14 @@ pub fn give_back(d: &mut Dev, scanner: &mut Scanner) {
         say(b"uvc", &[b"camera unplugged, given back"]);
         disable_slot(b.xhci, b.slot);
         scanner.lost(b.xhci, b.port);
+    }
+}
+
+/// The stream's client gone (the kernel says so): the stream stopped and
+/// the indicator taken down, so the next client is not turned away.
+pub fn reap(d: &mut Dev) {
+    if d.session.reap(alive) {
+        say(b"uvc", &[b"the stream's client is gone, stream stopped"]);
+        stop(d);
     }
 }

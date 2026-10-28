@@ -6,6 +6,8 @@
 pub mod core;
 #[path = "../../capsule_driver_spi/src/facts/mod.rs"]
 pub mod facts;
+#[path = "../../capsule_driver_spi/src/ids.rs"]
+pub mod ids;
 #[path = "../../capsule_driver_spi/src/setup/prove.rs"]
 pub mod prove;
 
@@ -16,6 +18,10 @@ mod model_status;
 #[cfg(test)]
 mod exchange_tests;
 #[cfg(test)]
+mod ids_tests;
+#[cfg(test)]
 mod prove_tests;
+#[cfg(test)]
+mod reset_tests;
 #[cfg(test)]
 mod settings_tests;
