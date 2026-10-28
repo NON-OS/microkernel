@@ -47,7 +47,7 @@ pub use peers_inbox::{caller_may_reach_pid, caller_may_write_inbox};
 pub use policy::required_caps;
 pub(crate) use reserved::{is_reserved_service, is_runtime_registrable};
 pub(crate) use serve_register::register_served;
-pub(crate) use serve_rule::{admit_serve, is_serve_port, ServeRefusal, SERVE_NAME_MAX};
+pub(crate) use serve_rule::{admit_serve, is_serve_port, serves, ServeRefusal, SERVE_NAME_MAX};
 pub(crate) use system_names::{is_reserved_form, is_system_name};
 pub use unregister::{unregister_endpoint_by_name, unregister_endpoints_for_pid};
 

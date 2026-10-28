@@ -29,6 +29,7 @@ import cap_audit
 import cap_audit_kernel as kern
 import cap_audit_userland as user
 from cap_audit_rust import Source, cargo_manifest, module_files
+from cap_audit_selftest_launch import check_launch, check_strict
 
 
 def _write(root, files):
@@ -291,25 +292,6 @@ def check_sandbox(tmp):
     assert [f.split(":")[0] for f in fails] == ["old", "bare"], fails
 
 
-def check_strict():
-    """--strict holds a capsule to its own calls and to an optional Debug;
-    EXEMPT and DEBUG_REQUIRED are the only ways out, and a dependency's call
-    is not a failure."""
-    def report(name, debug=None, needs=None, strength=kern.HARD):
-        return {"capsule": name,
-                "bits": [{"name": "Debug", "source": debug}] if debug else [],
-                "missing": [{"needs": needs, "strength": strength}] if needs else []}
-    fails = cap_audit.strict_failures([
-        report("app", debug="required"), report("app2", debug="optional"),
-        report("tool", needs="Memory"), report("dep", needs="Admin",
-                                               strength=kern.CONDITIONAL),
-        report("attack", debug="required", needs="Network"),
-        report("linux", debug="required")])
-    assert fails == ["app: Debug is required; it belongs in CAPSULE_OPTIONAL_CAPS",
-                     "tool: would fail without Memory"], fails
-    assert "attack" in cap_audit.EXEMPT and "linux" in cap_audit.DEBUG_REQUIRED
-
-
 def check_tree(root):
     """The real tree parses, and its parsers agree with what the kernel says."""
     gates = kern.syscall_gates(root)
@@ -351,6 +333,7 @@ def self_test(root):
         check_sandbox(tmp)
     check_assess()
     check_strict()
+    check_launch(root)
     count = check_tree(Path(root).resolve())
     print(f"cap-audit: self-test passed, the parsers read every planted case and "
           f"{count} real capsules")

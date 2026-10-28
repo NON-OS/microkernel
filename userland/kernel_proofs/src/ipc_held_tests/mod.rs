@@ -35,6 +35,9 @@ mod usb_hosts;
 // MkServeOne's rule, with the SERVES table it mounts beside it.
 #[path = "../../../../src/services/registry/serve_rule.rs"]
 mod serve_rule;
+// MkAppLaunch's rule for a capsule SERVES lists.
+#[path = "../../../../src/syscall/microkernel/app_launch_rule.rs"]
+mod app_launch_rule;
 
 mod addressed;
 mod air_gapped;
@@ -54,6 +57,7 @@ mod gates;
 mod held_to;
 mod names;
 mod power_off;
+mod serve_launch;
 mod serve_one;
 mod single_client;
 mod spi_hid_tests;
