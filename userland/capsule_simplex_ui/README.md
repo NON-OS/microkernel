@@ -55,13 +55,13 @@ database are the core's, in the core's home.
 
 ## Wiring
 
-`Capsule.mk` declares `simplex-ui` (`app.simplex`, ports 5014 and 5015) but
-`mk/20-build.mk` does not include it yet. Including it puts the capsule in
-publisher keys (`nonos-data/trust/keys/simplex_ui_publisher_{ed25519,mldsa65}.pub`
-and their seeds), the signed certificate, manifest and trailer under
-`nonos-data/trust/capsules/`, the key manifest entry, and, for a launcher
-entry, the kernel mirror under `src/userspace/` with the spawn and the
-desktop's app list. None of that is done here.
+`Capsule.mk` declares `simplex-ui` (`app.simplex`, ports 5014 and 5015);
+`mk/20-build.mk` includes it, the desktop profile turns on
+`nonos-capsule-simplex-ui`, and the kernel mirror in
+`src/userspace/capsule_simplex_ui` starts one window when the desktop's
+keys (`nonos-data/trust/keys/simplex_ui_publisher_{ed25519,mldsa65}.pub` and
+their seeds), the signed certificate, manifest and trailer under
+`nonos-data/trust/capsules/` and the key manifest entry.
 
 ## Not done yet
 
