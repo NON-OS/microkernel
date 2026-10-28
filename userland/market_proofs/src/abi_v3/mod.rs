@@ -40,6 +40,7 @@ mod policy;
 mod policy_args;
 mod policy_fixture;
 mod policy_vendor;
+mod policy_with;
 mod price;
 mod qwen_vector;
 mod refusals;

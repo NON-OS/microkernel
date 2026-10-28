@@ -17,8 +17,8 @@
 use super::args::Args;
 use crate::syscall::microkernel::boot_attest::sys_boot_attest;
 use crate::syscall::microkernel::data::{
-    sys_data_feed, sys_data_feed_begin, sys_data_import, sys_data_passphrase, sys_data_read,
-    sys_data_remove, sys_data_stat,
+    sys_data_feed, sys_data_feed_begin, sys_data_handover, sys_data_import, sys_data_passphrase,
+    sys_data_read, sys_data_remove, sys_data_stat,
 };
 use crate::syscall::microkernel::device_proof::{sys_boot_slots, sys_device_secret, sys_enroll};
 use crate::syscall::microkernel::numbers::*;
@@ -30,6 +30,7 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_DATA_STAT => sys_data_stat(a.a0, a.a1),
         SYS_DATA_READ => sys_data_read(a.a0, a.a1, a.a2, a.a3, a.a4, a.a5),
         SYS_DATA_PASSPHRASE => sys_data_passphrase(a.a0, a.a1, a.a2),
+        SYS_DATA_HANDOVER => sys_data_handover(),
         SYS_DATA_FEED_BEGIN => sys_data_feed_begin(a.a0, a.a1, a.a2, a.a3, a.a4),
         SYS_DATA_FEED => sys_data_feed(a.a0, a.a1, a.a2),
         SYS_DATA_REMOVE => sys_data_remove(a.a0, a.a1),

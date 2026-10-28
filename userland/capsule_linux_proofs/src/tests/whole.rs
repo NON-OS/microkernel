@@ -29,8 +29,8 @@ fn a_file_too_long_to_hold_is_refused_never_held_cut_short() {
         "the read asks one byte past"
     );
     assert!(
-        STORED.contains("whole(data, MAX_FILE as u32).ok_or(errno::EFBIG)"),
-        "a full read is refused"
+        STORED.contains("whole(data, MAX_FILE as u32).ok_or_else(too_large)"),
+        "a full read is refused, EFBIG, said once a run (too_large.rs)"
     );
     assert!(
         TAKE.contains("true => stored(&key)?,"),

@@ -19,7 +19,8 @@
 use alloc::format;
 use alloc::string::String;
 
-use nonos_market_proto::{installed_line, reason, removal_only, Stage};
+use nonos_libc::{mk_app_install_detail, MK_APP_INSTALL_DETAIL_MAX};
+use nonos_market_proto::{install_detail, installed_line, reason, removal_only, Stage};
 
 /// The Marketplace window's words for it, from the same table, with what
 /// to do next: install or uninstall again when that could work, and nothing
@@ -40,9 +41,16 @@ pub(super) fn stage_text(id: &[u8], stage: Stage) -> String {
         Stage::Failed(code) => {
             let said = reason(code);
             let verb = if removal_only(code) { "uninstall" } else { "install" };
+            // Which package and which check, when the installer said.
+            let mut buf = [0u8; MK_APP_INSTALL_DETAIL_MAX];
+            let rc = mk_app_install_detail(id, &mut buf);
+            let line = match install_detail(&buf, rc) {
+                Some(detail) => format!("{}: {detail}", said.line),
+                None => String::from(said.line),
+            };
             match said.retry {
-                true => format!("{} (reason {code}); `market {verb}` again", said.line),
-                false => format!("{} (reason {code})", said.line),
+                true => format!("{line} (reason {code}); `market {verb}` again"),
+                false => format!("{line} (reason {code})"),
             }
         }
     }

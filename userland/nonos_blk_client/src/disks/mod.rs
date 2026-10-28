@@ -25,12 +25,15 @@ mod contents;
 mod describe;
 mod fault;
 pub mod in_use;
+mod installed;
 mod probe;
 mod rows;
 mod scan;
 mod survey;
+mod survey_count;
 mod word;
 
 pub use contents::Contents;
+pub use installed::running_installed;
 pub use scan::{scan, survey};
 pub use survey::{Disk, Survey};

@@ -28,6 +28,7 @@ use crate::install::state::{Screen, State};
 pub fn hints(state: &State) -> (&'static str, &'static str) {
     let leave = if active() { "Esc leave, the desktop starts" } else { "Esc close" };
     match state.screen {
+        Screen::Welcome if state.installed => (leave, "P prepare to update   Enter see the proofs"),
         Screen::Welcome => (leave, "Enter see the proofs"),
         Screen::Proofs if state.image.is_some() => ("Esc back", "Enter choose a disk"),
         Screen::Proofs => ("Esc back", ""),
@@ -35,10 +36,18 @@ pub fn hints(state: &State) -> (&'static str, &'static str) {
             ("Esc back", "R look again   ↑↓ select   Enter continue")
         }
         Screen::Disks => ("Esc back", "R look again"),
+        Screen::Confirm if state.offers_update() && matches!(state.prepared, Some(Ok(_))) => {
+            ("Esc back", "↑↓ choose   type the word, then Enter")
+        }
+        Screen::Confirm if state.offers_update() => ("Esc back", "↑↓ choose"),
         Screen::Confirm if matches!(state.prepared, Some(Ok(_))) => {
             ("Esc back", "type the word, then Enter")
         }
         Screen::Confirm => ("Esc back", ""),
+        Screen::Writing if stoppable(state) && state.updating() => {
+            ("Esc stop, your data stays as it is", "do not power off")
+        }
+        Screen::Writing if state.updating() => ("", "writing the boot sector, do not power off"),
         Screen::Writing if stoppable(state) => {
             ("Esc stop, the disk is left without a table", "do not power off")
         }

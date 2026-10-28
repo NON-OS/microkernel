@@ -33,6 +33,7 @@ mod seen;
 mod stored;
 mod table;
 mod take;
+mod too_large;
 
 pub use change::put;
 pub use flush::{flush, flush_all};

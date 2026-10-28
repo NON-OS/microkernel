@@ -52,6 +52,10 @@ pub struct Surface {
     pub toplevel: Option<u32>,
     /// Frame callbacks owed, answered after the next present.
     pub frames: Vec<u32>,
+    /// Those presented and held for their frame period (commit/pace.rs),
+    /// and when the last were answered.
+    pub held: Vec<u32>,
+    pub last_done: Option<u64>,
     /// Set once a configure has been sent and acked.
     pub configured: bool,
     /// Its buffer scale and viewport (present/scale_math.rs).
