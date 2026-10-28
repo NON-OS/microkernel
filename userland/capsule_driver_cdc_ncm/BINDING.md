@@ -50,8 +50,10 @@ checked against the block, queued, and handed up one per call. A device
 that offered 32-bit NTBs may send one (an NTH32 "ncmh", NDP32s "ncm0" with
 32-bit indices, as recalled, unverified); it is read the same way, by the
 same walk. At most 40 datagrams are taken from one block. A malformed
-block, NDP or entry is dropped, as is an NDP with CRCs and a datagram
-longer than a frame.
+block, NDP or entry is dropped, as is a datagram longer than a frame. An
+NDP with CRCs is passed over and the chain goes on past it, as Linux's
+cdc_ncm does; bytes with no NDP signature at all end the walk, their
+"next index" not followed.
 
 Out stays NTB16: every device takes it, the format is set to 16-bit where
 32-bit is offered too, and a block is at most one 4096-byte transfer, far

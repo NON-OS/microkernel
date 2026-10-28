@@ -151,7 +151,8 @@ def main():
     kernel_bin = chain.sign_kernel(step, tools, elf, kernel_trailer, cfg["rollback_index"], work, path_only)
     boot_root, approval = chain.records(step, cfg["rollback_index"], work)
     boot_efi = chain.secure_boot(step, efi, args.release and cfg["loader"] == "production")
-    esp = media.esp(out, boot_efi, kernel_bin, loader_trailer, boot_root, approval)
+    firmware = os.path.join(nix_build(step, attr), "firmware", "mediatek")
+    esp = media.esp(out, boot_efi, kernel_bin, loader_trailer, boot_root, approval, firmware)
     entries = media.store_entries(cfg["store"], capsules_out, linux_out, capsules.catalogue(),
                                   cfg["enabled"], out)
     img = media.usb(step, out, esp, entries)

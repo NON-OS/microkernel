@@ -1,18 +1,6 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! The network cards are one table, and the kernel reads it everywhere it
 //! names a card.
@@ -60,8 +48,13 @@ fn the_table_names_every_card_the_kernel_starts() {
         include_str!("../../../../src/hardware/cdc_ecm_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/cdc_ncm_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/rndis_capsule/spawn.rs"),
+        include_str!("../../../../src/hardware/ax88179_capsule/spawn.rs"),
+        include_str!("../../../../src/hardware/rtl8153_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/iwlwifi_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/rtl8821ce_capsule/spawn.rs"),
+        include_str!("../../../../src/hardware/rtl8822ce_capsule/spawn.rs"),
+        include_str!("../../../../src/hardware/mt7921_capsule/spawn.rs"),
+        include_str!("../../../../src/hardware/rtl8852be_capsule/spawn.rs"),
     ];
     assert_eq!(spawns.len(), NICS.len(), "a card on the table has no spawn here");
     for ((card, _), spawn) in NICS.iter().zip(spawns) {

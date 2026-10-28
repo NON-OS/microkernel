@@ -957,7 +957,7 @@ if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0xF8038' userland/capsule_driver_iwlwi
    ! grep -q 'mk_mmio_map' userland/capsule_driver_iwlwifi/src/setup/mmio.rs ||
    ! grep -q 'mk_irq_bind' userland/capsule_driver_iwlwifi/src/setup/irq.rs ||
    ! grep -q 'mk_dma_map' userland/capsule_driver_iwlwifi/src/server/radio/grant.rs ||
-   ! grep -q 'include_bytes!' userland/capsule_driver_iwlwifi/src/firmware/blob.rs ||
+   ! cat userland/capsule_driver_iwlwifi/src/firmware/blob.rs userland/capsule_driver_iwlwifi/src/firmware/blob/files.rs 2>/dev/null | grep -q 'include_bytes!' ||
    ! grep -q 'pub fn gen3_blob' userland/capsule_driver_iwlwifi/src/firmware/blob.rs ||
    ! grep -q 'OP_STATUS' userland/capsule_driver_iwlwifi/src/server/control/kinds.rs ||
    ! grep -rq 'spawn_driver_iwlwifi_capsule' src/userspace/init/ ||
@@ -5218,6 +5218,18 @@ else
     fail_with "check_driver_scope: a driver capsule and its scope row disagree"
 fi
 unset scope_out
+# The MediaTek firmware package is pinned once, in the mt7921e driver, and
+# the loader's paths, the kernel's served kinds and the nix artifact's list
+# agree with it; no pinned file is committed or included in a source. The
+# self-test first, so a check that stopped reading the pins cannot pass.
+if mtk_out="$(python3 scripts/check_mediatek_firmware.py --self-test 2>&1 \
+    && python3 scripts/check_mediatek_firmware.py 2>&1)"; then
+    note ok "the MediaTek firmware package agrees with its pins and is not in the tree (check_mediatek_firmware)"
+else
+    tail -n 5 <<< "${mtk_out}" >&2
+    fail_with "check_mediatek_firmware: a MediaTek firmware pin disagrees, or its bytes are in the tree"
+fi
+unset mtk_out
 # G-84: every display driver the compositor tries, with a capsule, is in the
 # full desktop image or on a list that may only shrink; the self-test first,
 # so a scan that stopped seeing drivers cannot pass by finding none.

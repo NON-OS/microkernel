@@ -27,11 +27,23 @@
 //! as an HD Audio controller, a reset that cannot work on a register set
 //! that is not HD Audio's, so the driver would give up instead of saying the
 //! machine needs the DSP.
+//!
+//! From Skylake on the DSP sits in the HD Audio function itself; one that
+//! reports class 0x0480 is neither 0x0403 nor 0x0401, no controller here,
+//! and runs only under SOF. It is named the same way (`intel_dsp`).
 
 use crate::constants::PCI_VENDOR_INTEL;
+use crate::controller::intel::skl_family;
 
 const SST: &[u16] = &[0x9c36, 0x9cb6, 0x0f28, 0x22a8, 0x119a];
 
 pub fn intel_sst(vendor: u16, device: u16) -> bool {
     vendor == PCI_VENDOR_INTEL && SST.contains(&device)
+}
+
+/// An Intel HD Audio function (the `AZX_DRIVER_SKL` ids) reporting class
+/// 0x0480: its DSP. The ids keep out Intel's other 0x0480 functions, the
+/// IPU cameras.
+pub fn intel_dsp(vendor: u16, device: u16, class: u8, subclass: u8) -> bool {
+    class == 0x04 && subclass == 0x80 && skl_family(vendor, device)
 }
