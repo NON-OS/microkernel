@@ -70,11 +70,14 @@ window on the NONOS desktop, inside the NONOS frame: title bar, close, minimise 
 - GTK's preparation tools run before the program's guest is made, so a GTK program's run is
   noted to the seal. Before, every GTK program's run went unnoted and unkept, with "the seal
   refused the app's note" (fd2a80e365). A KVM run on that commit drew KeePassXC 2.7.8's window
-  with no ENOSPC and no seal refusal; no log of that run is committed.
-- A program that asks EGL for OpenGL is pointed at Mesa's software driver, drawing through
-  Wayland, where its box's package closure carries that driver (`LIBGL_ALWAYS_SOFTWARE`,
-  `EGL_PLATFORM=wayland` in `linux/env.rs`; 1f56b890a6). A surface's frame callbacks are answered
-  at most 30 times a second, and at once for an idle window (`wayland/pace_rule.rs`; 664185e8a8).
+  with no ENOSPC and no seal refusal; no log of that run is committed. They run in the network
+  role too, where an app whose box has NET_ANON starts again: there they had been refused, and
+  each of Telegram's steps "ended -1" (3719ffb4cb).
+- A program that asks EGL for OpenGL is pointed at Mesa's software driver, drawing through Wayland,
+  only where its run's store holds the NØNOS-built Mesa (`LIBGL_ALWAYS_SOFTWARE` in `linux/env.rs`;
+  1f56b890a6, 16e720b701). Pointed at a driver that was not there, every Qt program said Mesa could
+  not open it. No image carries that Mesa yet. A surface's frame callbacks are answered at most 30
+  times a second, and at once for an idle window (`wayland/pace_rule.rs`; 664185e8a8).
 
 ### Pseudo-terminals
 
@@ -101,6 +104,11 @@ progress in the window is quoted from the notes of those runs. These fixes made 
   (e16e16d6b4).
 - A stored file mapped shared, as LMDB maps one, is served, one writer per range
   (373e35a4d5, `s1-shared-maps-0d0cff02d4`).
+- The wallet's home keeps 64 MiB, by its listing's key or the program its policy names
+  (`app/home_listings.rs`), and an app may hold as much in open files as its home keeps
+  (`file/system/space/copies.rs`; bbe7b13cea, 9b2af1acc7). The wallet writes its cache whole beside
+  the last before it replaces it, two copies past 16 MiB each. In a KVM run a fresh wallet refreshed
+  to 3794280/3794280 and `exit` ended it with status 0 and no "failed to save".
 
 ### Installing Linux apps
 
@@ -122,16 +130,23 @@ and the package's name, never a fault. An install takes 640 MiB where 2 GiB is
 install had stopped with code 134; in a KVM run with 4 and 8 GiB guests, Telegram's own package
 peaked at 143 MiB.
 
+Telegram Desktop's 254 packages install whole, with 8 GiB (a 640 MiB install heap) and with 4 GiB
+(320 MiB), in a KVM run on the follow-up tree, with no restart of the network service. That
+service lets go of a stream whose caller has gone (884cd0faae), and an install opens a dropped
+connection once more before it gives up (23edef7e60). The largest packages peaked at 143310 KiB
+(telegram-desktop), 65072 KiB (qt6-qtdeclarative) and 34160 KiB (qt6-qtbase).
+
 A need that several packages provide now takes the provider an earlier install placed, where
 there is one, instead of the index's first (5dcb276cc4). Telegram Desktop's install after
 KeePassXC's had been refused: it took `icu-data-en`, which holds the same file as the
 `icu-data-full` KeePassXC placed. In a KVM run, Telegram's install after KeePassXC placed
 `icu-data-full` again, with no refused member.
 
-One file a Linux app writes may now fill its home, 16 MiB, where it was held to 8 MiB. A write
-past it fails with EFBIG, and the first refusal in a run prints `linux: this app wrote a file
-past 16 MiB, the most one file may hold here; that write was refused.` in the app's window
-(38f906c9c7).
+One file a Linux app writes may fill its home, where it was held to 8 MiB: 16 MiB, or 64 MiB for the
+Monero wallet. A write past the home fails, and the first refusal in a run says so in the app's
+window, with the home's size (`file/system/space/home_room.rs`); a file past 64 MiB fails with EFBIG
+and `linux: this app wrote a file past 64 MiB, the most one file may hold here; that write was
+refused.` (38f906c9c7, 9b2af1acc7).
 
 The file store, which holds installed Linux apps in memory, may give its clients' files a
 quarter of memory, between 160 MiB and 4 GiB, and halves its ask when a heap cannot be mapped
@@ -227,15 +242,13 @@ paging-lock waits seen on 30a4b58c4 are gone after the paging-lock fix (adb53a20
 
 ## Known limitations
 
-- **Linux apps keep nothing past power off.** A home is held in memory, up to 16 MiB and 128
-  names, and is gone at power off. A home kept across a reboot is designed and not in this
-  release (`docs/design/kept-homes-and-installs.md`). One file an app writes may fill its home
-  and no more (`MAX_FILE` in `file/held/cache/table.rs`).
-- **Monero.** Saving a large wallet cache, as the wallet does when it exits after a sync, can
-  fail: the cache can pass the 16 MiB its home holds (`HOME` in `file/system/declared/home.rs`).
-  On every wallet open the first refresh fails with "net.socks5 sent an answer this cannot read",
-  and the next connects. An install from the real mirror with one package at a time is not yet
-  shown (`s1-g-kvm`, "Not shown here"). Write the seed on paper; it is the only copy that
+- **Linux apps keep nothing past power off.** A home is held in memory, up to 16 MiB (the Monero
+  wallet's 64 MiB) and 128 names, and is gone at power off. A home kept across a reboot is designed
+  and not in this release (`docs/design/kept-homes-and-installs.md`). One file an app writes may
+  fill its home and no more, and none may pass 64 MiB (`MAX_FILE` in `file/held/cache/table.rs`).
+- **Monero.** On every wallet open the first refresh fails with "net.socks5 sent an answer this
+  cannot read", and the next connects. An install from the real mirror with one package at a time is
+  not yet shown (`s1-g-kvm`, "Not shown here"). Write the seed on paper; it is the only copy that
   survives power off.
 - **Update NØNOS (keep my data)**: from the prepare until the next boot, an approved kernel opens
   the data volume on this machine whatever bootloader measured it, so prepare right before the
@@ -247,10 +260,6 @@ paging-lock waits seen on 30a4b58c4 are gone after the paging-lock fix (adb53a20
 - **Linux windows**: Mousepad, mpv and zathura are listed, but no boot in the evidence shows
   their windows. Copy and paste between a Linux window and the desktop is tested on the host
   only.
-- **Very large installs**: installing a very large app, such as Telegram, can fail partway on
-  the sealed image, when the network service runs out of memory after a few hundred downloads.
-  It restarts on its own, and retrying the install works. A fix is in the follow-up release
-  (884cd0faae, 23edef7e60).
 - **Wi-Fi**: only the RTL8821CE has run on a card. The RTL8822CE, RTL8852BE, MT7921 family and
   every Intel card have run only against a modelled device (`docs/drivers/wifi/README.md`).
 - **Seen on development boots, not shown fixed:** lame ends on signal 11 (`s3-boot2`); micro
