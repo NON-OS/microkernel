@@ -40,7 +40,7 @@ class Lock(unittest.TestCase):
             at.write_text(doc({"x": PIN}))
             self.assertEqual(lock.read(at), {"x": PIN})
             for bad in (doc({"x": PIN}, fmt="v0"), doc({"x": PIN}, extra=1), doc({"X": PIN}),
-                        doc({"x": dict(PIN, V="../1")}), doc({"x": dict(PIN, S=3)}), doc({"x": {"V": "1"}}), doc({"x": INDEX}),
+                        doc({"x": dict(PIN, V="../1")}), doc({"x": dict(PIN, S=3)}), doc({"x": {"V": "1"}}), doc({"x": dict(INDEX, B="ab")}),
                         doc({"x": dict(PIN, G="ab")}), doc({"x": dict(PIN, R="AB" * 32)}), doc({"x": dict(PIN, R=0)}),
                         "{", "\xff"):
                 at.write_bytes(bad.encode("latin-1"))
