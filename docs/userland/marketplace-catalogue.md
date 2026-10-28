@@ -31,7 +31,7 @@ Nothing is listed until the generator has authenticated it as the device does, u
 
 ## The recipes file
 
-`userland/capsule_market/linux-catalogue.json` is versioned. Its shape is `{"format": "nonos.linux-catalogue.v1", "apps": [...]}`, and a file of any other format, shape, encoding, or more than 1 MiB is refused whole (`tools/nonos_market_catalogue/recipes_file.py:29`, `load`). Each app is an object of strings, and `args` a list of them:
+`userland/capsule_market/linux-catalogue.json` is versioned. Its shape is `{"format": "nonos.linux-catalogue.v1", "apps": [...]}`, and a file of any other format, shape, encoding, or more than 1 MiB is refused whole (`tools/nonos_market_catalogue/recipes_file.py:29`, `load`). Each app is an object of strings, and `args` and `with` lists of them:
 
 | Key | Required | What it holds |
 |---|---|---|
@@ -43,6 +43,7 @@ Nothing is listed until the generator has authenticated it as the device does, u
 | `dests` | no | a file inside the tree of the plan destinations, one a line; needs NET_ANON |
 | `program` | no | the program the listing sells, as `usr/bin/<name>`, for a package of many programs |
 | `args` | no | the long options the program starts with, before the person's own (below) |
+| `with` | no | Alpine packages the install adds to the closure, which nothing the package needs names (below) |
 
 Without `calls` the set is UNMEASURED: buckets 0 to 511 set and 512 clear (`tools/nonos_market_catalogue/recipes.py:31`). That is the market-ready form of "no set yet". A recipe is refused if:
 
@@ -61,6 +62,17 @@ A recipe's `args` are the words its program starts with, before the person's own
 - **At start.** The personality reads them beside the program and holds them to that trailer and to the policy the program was bound to (`app/listed.rs`). It puts each one before the person's words, except one whose option the person names themself, as `--name` or `--name=...` before any `--` (`app/args_listed.rs`). A file that is there but not vouched for refuses the start, and does not start the program without them. A program another program starts with `execve` gets only the words it is given.
 
 *host-tested* (capsule_linux_proofs, market_proofs, market_proto, nonos_linux_policy, the catalogue suite). Not booted yet.
+
+## Extra packages
+
+A recipe's `with` names Alpine packages its install adds to the closure: a plugin the program needs to be useful but no package depends on. zathura opens no PDF without `zathura-pdf-mupdf`, for one. They add no service and no mask bit. They install as dependencies do, so a program among them runs in the default box, not the listing's.
+
+- **The rule.** 1 to 8 names, each a package name by the generator's rule (`names.py`, `PACKAGE`), none twice and not the recipe's own. Each must be in the fresh signed index, or the run stops by name (`tools/nonos_market_catalogue/listed_with.py`; the device's copy of the rule is `userland/nonos_linux_policy/src/with/`, and both pin the same bytes).
+- **The lock.** Each extra is pinned like a recipe's package, by its index record's version, checksum and size, but with no `B`, `G` or `R`, since no listing signs its `.apk`. An index that moves an extra stops the seal by name, and `--update-lock` pins a new one (`lock.py`, `lock_file.py`).
+- **Where they ride.** In the same tail as the listed arguments, after them or straight after the policy, as `"NLXWITH1" | count | (length | name)...`. The publisher's release signature and the operator's index signature cover them. Arguments and extras together stay within marketplace_abi's 1024 bytes after the policy. A listing with no `with` carries the bytes it always has.
+- **To the device.** The market and init hand the tail on unchanged. The install role splits it where the arguments' own lengths end and reads both whole before it fetches anything, refusing the install otherwise (`install/market/tail.rs`). An extra is wanted after the listed package and its needs, and is resolved, verified by the index's checksum and placed as any need is (`install/get/closure.rs`). The market's pin holds the listed package alone. An uninstall takes the extras out with the closure. A tier, a tool or a Debian or pacman install refuses extras (`install/family.rs`).
+
+*host-tested* (capsule_linux_proofs, market_proofs, nonos_linux_policy, the catalogue suite). No listing carries extras yet. Not booted.
 
 ## Generating listings
 

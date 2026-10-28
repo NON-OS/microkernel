@@ -26,6 +26,7 @@
 //! 6. the partition table, backup first, primary header last.
 //!
 //! The read-back covers 2 to 6. The wipe is overwritten by what follows it.
+//! An update queues its own jobs, from `queue_keep`.
 
 use alloc::vec::Vec;
 
@@ -34,6 +35,7 @@ use nonos_disk_map::{PLAN_LBA, STORE_BASE_LBA};
 use super::job::Job;
 use super::plan::Plan;
 use super::queue_esp::esp_jobs;
+use super::queue_keep::keep_queue;
 use super::queue_state::state_jobs;
 use crate::gpt::table;
 
@@ -46,6 +48,9 @@ pub struct Queue<'a> {
 }
 
 pub fn queue<'a>(plan: &Plan<'a>) -> Queue<'a> {
+    if plan.keep {
+        return keep_queue(plan);
+    }
     let layout = &plan.layout;
     let mut jobs = Vec::new();
     for (lba, sectors) in

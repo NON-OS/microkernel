@@ -36,8 +36,8 @@ pub use instance_spawn::{request as request_instance, PendingApp};
 pub(crate) use linux_jobs::has_pending as installs_pending;
 pub(crate) use linux_jobs::service as service_installs;
 pub(crate) use linux_jobs::{
-    install_ended, install_stage, request_install, request_net_run, request_quiet_run, request_run,
-    request_uninstall, run_waiting, Stage,
+    install_detail, install_ended, install_stage, install_tell, request_install, request_net_run,
+    request_quiet_run, request_run, request_uninstall, run_waiting, Stage, INSTALL_DETAIL_MAX,
 };
 pub(crate) use prove_job::{
     ask_for as prove_job_ask, has_pending as prove_job_pending, request as request_prove_job,

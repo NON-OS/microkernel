@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the install erases and writes, one row each, read off the plan the
-//! write follows; or, for a disk that cannot take NONOS, why not.
+//! What the install erases and writes, or what an update keeps and writes,
+//! one row each, read off the plan the write follows; or, for a disk that
+//! cannot take NONOS, why not.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_disk::describe;
+use nonos_disk::{describe, describe_keep};
 
 use crate::install::state::State;
 use crate::install::ui::metrics::Metrics;
@@ -35,9 +36,13 @@ const REFUSED_LINES: u32 = 3;
 pub fn written(state: &State, fb: &mut PaintBuffer, m: &Metrics, x: u32, y: u32, w: u32) -> u32 {
     match &state.prepared {
         Some(Ok(p)) => {
-            let rows = describe(&p.plan, &p.carried);
+            let (rows, caption) = if p.plan.keep {
+                (describe_keep(&p.plan, &p.carried), "what is kept and written")
+            } else {
+                (describe(&p.plan, &p.carried), "what is erased and written")
+            };
             let lines = rows.len() as u32;
-            let mut r = card(fb, m, x, y, w, m.card_h(lines), "what is erased and written");
+            let mut r = card(fb, m, x, y, w, m.card_h(lines), caption);
             for row in &rows {
                 r = kv(fb, m, x + m.inset, r, w - 2 * m.inset, row.label, &row.value, false);
             }

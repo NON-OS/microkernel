@@ -46,6 +46,7 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
     let mut done: Vec<String> = Vec::new();
     while let Some(next) = wanted.pop() {
         let Some((rec, repo)) = find(&db.records, &next, done.is_empty()) else {
+            crate::linux::install::refuse::tell(&next, "", "nothing provides it");
             return say(b"[LINUX] nothing provides it\n", Why::NOT_PROVIDED);
         };
         if done.contains(&rec.name) {

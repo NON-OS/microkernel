@@ -14,10 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What to do after each way an install can stop.
+//! What to do after each way an install or an update can stop, and what
+//! an update that stopped left of the disk.
 
 pub const RETRY_TABLE: &str = "Choose this disk again to start over, or another disk. Nothing else changed, and the drive you started from still boots.";
 pub const RETRY_READBACK: &str =
     "Install onto this disk again. If the read-back fails twice, the disk is failing: use another.";
+pub const RETRY_UPDATE: &str = "Choose this disk again and update it once more to finish. Until then your data volume stays as it was, and NØNOS does not start from this disk.";
+pub const UPDATE_STOPPED: &str =
+    "The update stopped before the new system was complete. Your data volume was not touched.";
+pub const UPDATE_READBACK: &str = "Your data volume was not touched, but the new system did not read back as written. Do not boot it.";
+pub const RETRY_UPDATE_READBACK: &str =
+    "Update this disk again. If the read-back fails twice, the disk is failing.";
 pub const RETRY_OTHER: &str =
     "Choose a disk again. If it repeats, photograph this screen and report it.";
