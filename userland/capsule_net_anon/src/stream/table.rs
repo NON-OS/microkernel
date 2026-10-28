@@ -39,6 +39,8 @@ pub struct Stream {
     pub deliver_window: i32,
     /// Cells delivered since the last SENDME on this stream.
     pub delivered_since: i32,
+    /// The open, kept until CONNECTED so it can go to another exit.
+    pub held: Option<super::held::Held>,
 }
 
 impl Stream {
@@ -52,6 +54,7 @@ impl Stream {
             package_window: STREAM_START,
             deliver_window: STREAM_START,
             delivered_since: 0,
+            held: None,
         }
     }
 
