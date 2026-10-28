@@ -48,7 +48,7 @@ siblings ask for their own bit alone
 | 30 | `AppInstall` | `MkAppInstall`, `MkAppLaunch`, `MkAppInstallStatus`, `MkAppUninstall`. |
 | 31 | `AttestRead` | `MkAttestEntries`, `MkLogTail`, every field of other processes in `MkProcStat`; `MkAttestDoc` only without `Network`. |
 | 32 | `ForeignExec` | The 15 `MkForeign` and `MkPeer` calls that host a Linux guest, and `MkLocalVerify`. |
-| 33 | `LocalSign` | `MkLocalSign`. |
+| 33 | `LocalSign` | `MkLocalSign`; `MkAppInstallStatus` only to leave its failed install's line. |
 | 34 | `StreamImport` | `MkDataFeedBegin`, `MkDataFeed`, `MkDataRemove`. |
 | 35 | `DeviceSecret` | `MkDeviceSecret`, `MkBootSlots`, `MkEnroll`. |
 | 36 | `InputConsumer` | `MkInputEventDrain`, `MkInputEventWait`; input_router alone holds it. |
