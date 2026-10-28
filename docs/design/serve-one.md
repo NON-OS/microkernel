@@ -261,7 +261,7 @@ Interfaces the units share, so they can be written apart:
   named `linux.serve.<name>` and held to `name`.
 - wire: as in "The wire" above, magic `NSO1`.
 
-As built, unit 3:
+As built, units 3 and 7:
 - The launch arm. The kernel cannot read an installed package's key when it
   queues a launch: the key is in the policy the install role wrote to the
   personality's store, which only the run reads and checks at start. So
@@ -272,3 +272,6 @@ As built, unit 3:
 - The run is noted as the launcher's process when queued, follows it into
   app.linux.run.net, and is ended with the launcher's teardown; a start still
   queued then ends as it starts. Any other launch forgets the note.
+- MkForeignWait returns 0, nothing written, once a message comes to the
+  caller's own inbox, told once a count so a message left unread does not
+  wake it again. A frame's size and ETIMEDOUT are as before.

@@ -58,6 +58,7 @@ pub fn clear(pid: u32) {
     super::trap_frame::drop_frame(pid);
     super::notice::forget_supervisor(pid);
     super::interrupt::forget(pid);
+    super::wait::forget(pid);
     // A family ends when its last guest leaves the registry (seal/end.rs).
     super::seal::ended(pid, host, whole);
 }
