@@ -30,8 +30,9 @@ use nonos_usbnet::{Bind, Bus, Found, Pipes, Setup};
 pub struct Bound {
     pub pipes: XhciPipes,
     pub iface: BtInterface,
-    /// idVendor and idProduct, for a vendor's own setup before bring-up.
-    pub id: (u16, u16),
+    /// The device descriptor's vendor and product: which vendor's setup,
+    /// if any, the controller needs before bring-up.
+    pub ids: (u16, u16),
 }
 
 pub fn bind(mut bus: XhciBus, found: &Found, desk: Desk) -> Bind<Bound> {
@@ -58,6 +59,6 @@ pub fn bind(mut bus: XhciBus, found: &Found, desk: Desk) -> Bind<Bound> {
         return Bind::Failed("SET_CONFIGURATION refused", e);
     }
     let pipes = XhciPipes { bus, dci, event_read: c.event_read, desk };
-    let id = (found.info.vendor, found.info.product);
-    Bind::Ours(Bound { pipes, iface: c.iface, id })
+    let ids = (found.info.vendor, found.info.product);
+    Bind::Ours(Bound { pipes, iface: c.iface, ids })
 }

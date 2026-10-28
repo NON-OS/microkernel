@@ -19,10 +19,10 @@ use crate::settings::schema::rows::{Block, BtLive, Live, Pill, Row};
 pub const BLUETOOTH: &[Block] = &[
     Block {
         title: "Bluetooth",
-        note: Some("Keyboards and mice over a USB adapter. S scans or stops."),
+        note: Some("Keyboards and mice over Bluetooth LE. S scans or stops."),
         pill: Pill::Bt,
         rows: &[
-            Row::Live("Adapter", Live::Bt(BtLive::Controller)),
+            Row::Live("Controller", Live::Bt(BtLive::Controller)),
             Row::Live("Status", Live::Bt(BtLive::Status)),
             Row::Live("Scanning", Live::Bt(BtLive::Scanning)),
         ],

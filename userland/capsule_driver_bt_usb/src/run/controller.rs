@@ -26,6 +26,7 @@ use super::say::say;
 use crate::link::{forget, Private};
 use crate::usb::{Bound, XhciPipes};
 use crate::vendor::intel;
+use crate::vendor::realtek::patch;
 use nonos_bt_bond::LocalIrk;
 
 /// ACL packets are taken up to this many data octets until bring-up has
@@ -36,8 +37,15 @@ const ACL_FIRST: u16 = 27;
 /// the controller has been told to forget them.
 pub fn controller(b: Bound, irk: &LocalIrk, env: &mut CapsuleEnv) -> HciError {
     let mut host = Host::new(UsbHci::new(b.pipes, &b.iface, ACL_FIRST));
-    let up = if b.id.0 == intel::VID { intel::setup(&mut host, b.id.1, say) } else { Ok(()) };
-    let why = up.err().unwrap_or_else(|| run_on(&mut host, irk, env));
+    let intel = if b.ids.0 == intel::VID { intel::setup(&mut host, b.ids.1, say) } else { Ok(()) };
+    if let Err(e) = intel {
+        forget(&mut host, &e);
+        return e;
+    }
+    let why = match patch(&mut host, b.ids) {
+        Ok(()) => run_on(&mut host, irk, env),
+        Err(e) => e,
+    };
     forget(&mut host, &why);
     why
 }
@@ -48,9 +56,10 @@ fn run_on(host: &mut Host<UsbHci<XhciPipes>>, irk: &LocalIrk, env: &mut CapsuleE
         Err(e) => return e,
     };
     host.transport().set_acl_max(c.acl_len);
-    // An all-zero address is a controller still waiting for its vendor's
-    // setup, which this host does not do (letter E-12); it also could not
-    // stand for this host in pairing (Vol 3, Part H, 2.2.7).
+    // An all-zero address is a controller still waiting for vendor setup
+    // this host does not do (letter E-12; only the RTL8821C's patch is
+    // loaded, above); it also could not stand for this host in pairing
+    // (Vol 3, Part H, 2.2.7).
     if c.addr.0 == [0; 6] {
         return HciError::NotBluetooth;
     }

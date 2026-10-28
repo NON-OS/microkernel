@@ -597,6 +597,7 @@ include userland/capsule_driver_cdc_ncm/Capsule.mk
 include userland/capsule_driver_rndis/Capsule.mk
 include userland/capsule_driver_ax88179/Capsule.mk
 include userland/capsule_driver_rtl8153/Capsule.mk
+include userland/capsule_driver_bt_usb/Capsule.mk
 include userland/capsule_driver_smbus/Capsule.mk
 include userland/capsule_driver_uhci/Capsule.mk
 include userland/capsule_driver_ohci/Capsule.mk

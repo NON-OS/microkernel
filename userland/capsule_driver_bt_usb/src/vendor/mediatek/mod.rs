@@ -42,8 +42,8 @@ pub fn up(mut b: Bound, found: &Found) -> Option<Bound> {
     match setup::setup(&mut Glue(&mut b.pipes), &files::FILES) {
         Ok(up) => {
             let (sent, held) = (digits(up.sent.sent), digits(up.sent.applied));
-            let name = up.chip.name();
-            say(&[b"MediaTek ", name, b" patched: ", &sent, b" sections sent, ", &held, b" held"]);
+            let chip = up.chip.name();
+            say(&[b"MediaTek ", chip, b" patched: ", &sent, b" sections sent, ", &held, b" held"]);
             Some(b)
         }
         Err(f) => {

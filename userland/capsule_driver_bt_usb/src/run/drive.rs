@@ -31,11 +31,17 @@ pub fn run() -> ! {
     let (mut env, irk) = bonds::environment();
     let mut finder = Finder::new();
     say(&[b"started, looking for a controller"]);
+    let mut told = false;
     loop {
         let Some((bound, port)) = finder.pass(&env.desk) else {
+            // Said once a search: a machine with no controller stays quiet.
+            if !core::mem::replace(&mut told, true) {
+                say(&[b"no controller yet; looking each second"]);
+            }
             env.desk.wait(SEARCH_MS);
             continue;
         };
+        told = false;
         let (xhci, slot) = (bound.pipes.bus.xhci, bound.pipes.bus.slot);
         let why = controller(bound, &irk, &mut env);
         env.desk.board().controller = false;
