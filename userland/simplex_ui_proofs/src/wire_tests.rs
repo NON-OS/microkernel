@@ -14,30 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The NSO1 head and the WebSocket handshake and frames.
+//! The WebSocket handshake and frames. The SERVE_ONE frames are the crate's
+//! own (nonos_serve_wire), held by its tests.
 
-use crate::link::nso1::{message, parse, Head, FRAME_MAX, HEAD, READ, WRITE};
 use crate::link::ws_frame::text;
 use crate::link::ws_hello::{answer, request, Answer};
 use crate::link::ws_read::{take, Got};
-
-#[test]
-fn an_nso1_message_reads_back_as_written() {
-    let m = message(WRITE, 7, b"hello");
-    assert_eq!(&m[..4], b"NSO1");
-    assert_eq!(m.len(), HEAD + 5);
-    let (head, body) = parse(&m).unwrap();
-    assert_eq!(head, Head { op: WRITE, conn: 7, len: 5 });
-    assert_eq!(body, b"hello");
-}
-
-#[test]
-fn an_nso1_reply_short_of_its_length_or_not_nso1_is_none() {
-    let m = message(READ, 1, b"abc");
-    assert!(parse(&m[..m.len() - 1]).is_none());
-    assert!(parse(b"NSO2\x03\x00\x01\x00\x00\x00\x00\x00").is_none());
-    assert_eq!(message(WRITE, 1, &vec![0; FRAME_MAX + 9]).len(), HEAD + FRAME_MAX);
-}
 
 #[test]
 fn the_upgrade_asks_for_websocket_with_the_rfc_key() {

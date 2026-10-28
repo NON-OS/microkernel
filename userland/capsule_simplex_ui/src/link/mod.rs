@@ -30,7 +30,6 @@ pub mod core_transport;
  * itself never shows one. */
 #[allow(dead_code)]
 pub mod echo;
-pub mod nso1;
 pub mod pipe;
 #[allow(dead_code)]
 pub mod replay;
