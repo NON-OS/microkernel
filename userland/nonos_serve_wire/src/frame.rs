@@ -18,7 +18,8 @@
 //! op may carry. `len` is never trusted: it must name exactly the bytes after
 //! the header, and no more than MAX_BODY.
 
-use crate::ops::{read_asked, CLOSE, HEADER, MAGIC, MAX_BODY, OPEN, READ, WRITE};
+use crate::bodies::{read_asked, written};
+use crate::ops::{CLOSE, HEADER, MAGIC, MAX_BODY, OPEN, READ, WRITE};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Header {
@@ -61,7 +62,7 @@ pub fn request(frame: &[u8]) -> Result<(Header, &[u8]), Refused> {
     let (h, body) = decode(frame)?;
     let fits = match h.op {
         OPEN | CLOSE => body.is_empty(),
-        WRITE => !body.is_empty(),
+        WRITE => written(body).is_some(),
         _ => read_asked(body).is_some(),
     };
     (h.status == 0 && fits).then_some((h, body)).ok_or(Refused::Body)
