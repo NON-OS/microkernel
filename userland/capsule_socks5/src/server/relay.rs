@@ -159,7 +159,7 @@ impl Mixnet for Live {
 /// has already ended: the exit keeps sending until it hears the close, and
 /// holding what it sent for a reader that is gone kept it for ever.
 fn take(inbox: &mut Inbox, manager: &Manager, msg: &[u8]) {
-    crate::server::trace_reply_bytes(msg.len());
+    crate::server::trace_reply(msg);
     let Some(response) = decode_response(msg) else {
         // It arrived and was not ours to read. Saying so separates a reply
         // the exit never sent from one sent in a shape we do not speak.

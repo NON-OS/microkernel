@@ -41,3 +41,8 @@ pub fn flat() -> Weights {
 pub fn pool() -> Vec<Relay> {
     (1..=12u8).map(|i| relay([10, i, 0, 1], i)).collect()
 }
+
+/// The web rule, the exit a circuit for port 80 or 443 is drawn with.
+pub fn web(relay: &Relay) -> bool {
+    relay.exits_web
+}
