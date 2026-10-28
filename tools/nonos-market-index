@@ -42,8 +42,8 @@ def main():
     ap.add_argument("--linux-list", type=Path, required=True)
     ap.add_argument("--guest-list", type=Path)
     ap.add_argument("--catalogue", type=Path)
-    ap.add_argument("--tool-list", type=Path)
-    ap.add_argument("--package-mirror", default="")
+    ap.add_argument("--tool-list", type=Path); ap.add_argument("--package-mirror", default="")
+    ap.add_argument("--sources", type=Path, help="source recipes' built content, as the catalogue tool takes it")
     ap.add_argument("--package-out", type=Path)
     ap.add_argument("--serial", type=int, required=True)
     ap.add_argument("--extra", type=Path, help="a catalogue whose entries are added, for a development image")
@@ -64,7 +64,7 @@ def main():
     guests += ["--catalogue", a.catalogue] if a.catalogue else []
     if a.tool_list and a.package_mirror:
         guests += ["--tool-list", a.tool_list, "--package-mirror", a.package_mirror,
-                   *(["--package-out", a.package_out] if a.package_out else [])]
+                   *(["--package-out", a.package_out] if a.package_out else []), *(["--sources", a.sources] if a.sources else [])]
     run(sys.executable, tools / "nonos-market-catalogue", "--out", catalogue, "--no-nonos",
         "--operator-pubkey", key, "--linux-list", a.linux_list, "--serial", a.serial, *guests)
     if a.extra:

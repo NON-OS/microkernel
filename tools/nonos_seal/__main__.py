@@ -134,7 +134,7 @@ def main():
     say("[1/6] inputs")
     linux_out = nix_build(step, "linux-userland")
     market.seal(step, tools, linux_out, serial, args.mirror, cfg.get("linux_packages", ""),
-                os.path.join(out, "packages"), required=cfg["release"] and not path_only)
+                os.path.join(out, "packages"), required=cfg["release"] and not path_only, sources=cfg.get("linux_sources", ""))
 
     say("[2/6] capsules")
     capsules_out, kept = current_capsules(step, tools)
