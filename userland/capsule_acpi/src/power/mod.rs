@@ -26,8 +26,9 @@ mod refresh;
 mod report;
 mod say;
 mod state;
+mod word;
 
 pub use read::find;
 pub use refresh::{all, notified, tick};
-pub use report::word;
 pub use state::Power;
+pub use word::word;
