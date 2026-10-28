@@ -20,8 +20,12 @@
 
 /// No index or package is larger (http/get.rs MAX_BODY).
 const MAX: usize = 160 << 20;
-/// At most this many GETs in flight, and their replies held, at once...
-const WIDTH: usize = 3;
+/// At most this many GETs in flight, and their replies held, at once: one.
+/// Both proxies key a conversation on the caller's pid (nonos_route_link
+/// tunnel.rs), so a second stream this install opens ends the first; three
+/// at once brought no package a byte on either network. More waits for
+/// route streams that name themselves...
+const WIDTH: usize = 1;
 /// ...and at most this many bytes, and a sixth of the heap left free (an
 /// unpack and its pack take several times a package), unless one package
 /// alone is larger, which then comes and is placed with nothing beside it.

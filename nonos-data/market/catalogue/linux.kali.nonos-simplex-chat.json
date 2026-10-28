@@ -1,0 +1,61 @@
+{
+  "schema_version": 4,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.kali.nonos-simplex-chat",
+      "capsule_id": "de9dbf3a6443cd603f40238700e2df713e00c78136116cdb11a78da46ebab7fc",
+      "name": "SimpleX Chat (terminal)",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "SimpleX Chat v7.0.3 in a terminal: SimpleX's own release binary, not built here, pinned by sha256 and BLAKE3 and checked against SimpleX's signed checksums. It runs in the Debian family's tree with pinned Debian libraries. It reaches SMP servers over Anyone or Nym, never direct, and keeps its database, your profile, contacts and messages, in its own home. That home lasts until the machine powers off: a live session, gone then, until kept homes come.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "nonos-simplex-chat@v7.0.3",
+          "manifest_hash": "de9dbf3a6443cd603f40238700e2df713e00c78136116cdb11a78da46ebab7fc",
+          "package_hash": "de9dbf3a6443cd603f40238700e2df713e00c78136116cdb11a78da46ebab7fc",
+          "package_url": "http://10.0.2.2:8080/linux/de9dbf3a6443cd603f40238700e2df713e00c78136116cdb11a78da46ebab7fc.tar",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c303101000000000000001813d4fb4e6b032800de05ea23b5b9a97d5bc20e81fe377216bff237c9d6f9b40a010000000000000124fa9adc22b09efb6d592a78c64a7feb9e23457c8536623e50402fbbdb766e12bf92e4e931abc9402606872501900712fe5f8ed6dc8092c3a3fbe812750f6f0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "upstream's release binary https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.3/simplex-chat-ubuntu-22_04-x86_64, sha256 5afb1d25efe5ccf564a1ab124bc7f410a7a73171c974a4d8b7f4d8f2e3d62e77 as https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.3/_sha256sums gives it; content of 79544320 bytes pinned by BLAKE3; licence AGPL-3.0-only; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}
