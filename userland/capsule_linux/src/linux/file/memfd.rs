@@ -21,6 +21,17 @@ use crate::linux::guest::{Fd, Guest, Kind};
 
 use super::slot::install;
 
+#[path = "memfd_seal.rs"]
+mod memfd_seal;
+#[path = "memfd_seal_maps.rs"]
+mod memfd_seal_maps;
+#[path = "memfd_seal_rules.rs"]
+mod memfd_seal_rules;
+
+pub use memfd_seal::{fcntl_seal, seals_start};
+pub use memfd_seal_maps::write_sealed;
+pub use memfd_seal_maps::{is_seal_cmd, map_sealed, memfd_write, resize_sealed, seals_keep};
+
 pub fn is_memfd(guest: &Guest, fd: u64) -> bool {
     matches!(guest.fds.get(fd as usize), Some(e) if e.kind == Kind::Memfd)
 }

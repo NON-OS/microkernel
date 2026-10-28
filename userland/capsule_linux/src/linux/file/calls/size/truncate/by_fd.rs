@@ -24,6 +24,11 @@ pub fn ftruncate(guest: &mut Guest, fd: u64, len: u64) -> u64 {
     if (len as i64) < 0 {
         return errno::fail(errno::EINVAL);
     }
+    /* SHRINK and GROW refuse a memfd's new size. */
+    let size = guest.fds.get(fd as usize).map_or(0, |e| e.size);
+    if crate::linux::file::resize_sealed(guest, fd, size, len) {
+        return errno::fail(errno::EPERM);
+    }
     let Some(entry) = guest.fds.get_mut(fd as usize).filter(|f| f.is_open()) else {
         return errno::fail(errno::EBADF);
     };

@@ -1,0 +1,61 @@
+{
+  "schema_version": 4,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.telegram-desktop",
+      "capsule_id": "70cb183d21822341506a36ef98161217a5367f899d71794ed3caf4585d80220f",
+      "name": "Telegram Desktop",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Telegram's desktop client, in its own window. It reaches Telegram's servers over Anyone, never direct, so they never learn your address. They still see your account's phone number, your contacts, who you talk to and when, and your messages: the desktop app has no secret chats, so nothing it sends is end-to-end encrypted. It runs in its own box, with its own home and no other files.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "telegram-desktop@5.0.1-r6",
+          "manifest_hash": "70cb183d21822341506a36ef98161217a5367f899d71794ed3caf4585d80220f",
+          "package_hash": "70cb183d21822341506a36ef98161217a5367f899d71794ed3caf4585d80220f",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/telegram-desktop-5.0.1-r6.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c3031010000000000000080b63dfe516d47a30bce076f4d4ca4a3e59027e7df51f497dc100141ab02f2070b00000000000000328f86ee031afc848a56422e6b489f120ebeb8759206653857e881de6217aea9f911dbe2595995791ad7466a983bb947d8373997bcf2d494d5d430b80a0a928b0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 38323636 bytes; licence GPL-3.0-or-later WITH OpenSSL-Exception; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}

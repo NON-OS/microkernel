@@ -26,31 +26,11 @@ use spin::Mutex;
 use crate::process::core::{ProcessState, PROCESS_TABLE};
 
 use super::evict::victim;
+pub(crate) use super::stage::Stage;
 
 /// Bounds the table. When it is full, the finished install recorded
 /// longest ago gives way (`evict`); one still moving never does.
 const CAP: usize = 32;
-
-#[derive(Clone, Copy)]
-pub(crate) enum Stage {
-    Queued,
-    Running(u32),
-    Installed,
-    /// The installer's exit code: `install::Why` in the personality.
-    Failed(i32),
-    /// Init would not start it: the market withdrew it, or the spawn gate refused.
-    Refused,
-    /// The personality is taking the package away.
-    Removing(u32),
-    Removed,
-}
-
-impl Stage {
-    /// Nothing more will happen to it without a new request.
-    fn finished(self) -> bool {
-        matches!(self, Stage::Installed | Stage::Removed | Stage::Failed(_) | Stage::Refused)
-    }
-}
 
 #[derive(Clone, Copy)]
 struct Kept {
@@ -117,25 +97,31 @@ pub(crate) fn one_moving() -> bool {
 pub(crate) fn get(listing: &str) -> Option<Stage> {
     let mut t = STAGES.lock();
     let kept = *t.kept.get(listing)?;
-    let (pid, removing) = match kept.stage {
-        Stage::Running(pid) => (pid, false),
-        Stage::Removing(pid) => (pid, true),
-        _ => return Some(kept.stage),
-    };
+    let Some(pid) = kept.stage.pid() else { return Some(kept.stage) };
+    // A table's own removal marks it Terminated(0) whatever it exited with,
+    // so the code is the one teardown stored on the control block.
     let ended = match PROCESS_TABLE.find_by_pid(pid) {
         Some(pcb) => match *pcb.state.lock() {
-            ProcessState::Zombie(code) | ProcessState::Terminated(code) => Some(code),
+            ProcessState::Zombie(_) | ProcessState::Terminated(_) => {
+                Some(pcb.exit_code.load(core::sync::atomic::Ordering::Acquire))
+            }
             _ => None,
         },
         None => Some(crate::process::exit::peek_exit_status(pid).unwrap_or(-1)),
     };
-    let now = match ended {
-        None => kept.stage,
-        Some(0) if removing => Stage::Removed,
-        Some(0) => Stage::Installed,
-        Some(code) => Stage::Failed(code),
-    };
+    let now = ended.map_or(kept.stage, |code| kept.stage.ended(code));
     // Its age stays when it was asked for, not when it was read.
     t.kept.insert(String::from(listing), Kept { stage: now, at: kept.at });
     Some(now)
+}
+
+/// `pid` ended with `code`: the install or removal it ran is finished now,
+/// not when someone next asks, by which time its status may have left the
+/// reap log. Teardown calls it, so the table is only tried; when held, the
+/// next read finds the ended process as before.
+pub(crate) fn ended(pid: u32, code: i32) {
+    let Some(mut t) = STAGES.try_lock() else { return };
+    for k in t.kept.values_mut().filter(|k| k.stage.pid() == Some(pid)) {
+        k.stage = k.stage.ended(code);
+    }
 }

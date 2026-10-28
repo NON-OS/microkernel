@@ -52,6 +52,8 @@ pub fn name(what: Object) -> &'static [u8] {
         Object::XdgOutput => b"zxdg_output_v1",
         Object::Viewporter => b"wp_viewporter",
         Object::Viewport => b"wp_viewport",
+        Object::FractionalManager => b"wp_fractional_scale_manager_v1",
+        Object::FractionalScale => b"wp_fractional_scale_v1",
         Object::Activation => b"xdg_activation_v1",
         Object::ActivationToken => b"xdg_activation_token_v1",
         Object::SinglePixel => b"wp_single_pixel_buffer_manager_v1",

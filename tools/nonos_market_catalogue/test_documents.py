@@ -13,9 +13,9 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""The committed documents under nonos-data/market/catalogue/ are one app
-each and agree with the recipes: the services, the set, the listed args, the
-text, the ids under the document's own publisher key, free. Run:
+"""The committed documents under nonos-data/market/catalogue/ are one app each and agree
+with the recipes, Alpine or source (listed as linux.nonos-<package>, source_run.py): the services,
+the set, the listed args, the text, the ids under the document's own publisher key, free. Run:
 python3 -m unittest discover -s tools/nonos_market_catalogue -t tools"""
 
 import json
@@ -30,7 +30,8 @@ from .recipes_file import load
 
 ROOT = Path(__file__).resolve().parents[2]
 DOCS = ROOT / "nonos-data/market/catalogue"
-RECIPES = {r["package"]: r for r in load(ROOT / "userland/capsule_market/linux-catalogue.json", ROOT)}
+RECIPES = {("nonos-" if r.get("kind") else "") + r["package"]: r
+           for r in load(ROOT / "userland/capsule_market/linux-catalogue.json", ROOT)}
 
 
 def documents():
@@ -62,9 +63,9 @@ class Documents(unittest.TestCase):
             self.assertEqual(p[152:217], recipe["calls"], e["listing_id"])
             self.assertEqual((p[256:], e["description"]), (recipe["args"], recipe["text"]), e["listing_id"])
             self.assertEqual((p[56:88], p[88:120]), (lid, release_id(lid, rel["release_id"])))
-            self.assertEqual(e["commerce"]["settle_mode"], "free")
-            self.assertEqual(rel["package_hash"], rel["manifest_hash"])
-            self.assertTrue(rel["package_url"].endswith(f"/{rel['release_id'].replace('@', '-')}.apk"))
+            self.assertEqual((e["commerce"]["settle_mode"], rel["package_hash"]), ("free", rel["manifest_hash"]))
+            got = f"/{rel['package_hash']}.tar" if recipe.get("kind") else f"/{rel['release_id'].replace('@', '-')}.apk"
+            self.assertTrue(rel["package_url"].endswith(got), e["listing_id"])
             self.assertIn(f"licence {recipe['licence']}", rel["validation"]["note"])
             self.assertIn("installs only in this release's box", rel["validation"]["note"])
             self.assertEqual(rel["publisher_signature"], "")
