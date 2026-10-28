@@ -20,5 +20,7 @@
   "swayimg": {"V": "2.2-r1", "C": "Q1WPRowh7yowyXyC2MTnCsopcs2E4=", "S": "51409", "B": "06319e6aa60c56f55f8da576d1b8695363ef2d3ba3e3f2c698281c28df360456", "G": "", "R": ""},
   "telegram-desktop": {"V": "5.0.1-r6", "C": "Q1hGjs4BX/Ri7nRSaMZmdKdI+4hek=", "S": "38323636", "B": "70cb183d21822341506a36ef98161217a5367f899d71794ed3caf4585d80220f", "G": "", "R": ""},
   "tig": {"V": "2.5.10-r0", "C": "Q13sZq/SIGXngty0auMy+P4CCQDEg=", "S": "199250", "B": "f2543fcea8165dfde08d40fcef8440009642a6f22dcbad39a5e35933469ed3bf", "G": "", "R": ""},
-  "vim": {"V": "9.1.0707-r0", "C": "Q1JH+XfzD5kVNgb92NMgeEQbUZE88=", "S": "1476729", "B": "64641cc28aa7ef9fb3211727152842e4f619bff4b346dba77a308dfc3d194a1a", "G": "3447fef5fcf8a2e4ee5a0c93b0858c7c0c865592d9192579ced873f0f1809501", "R": "621cd01f40b9dbccfd004f15863e74f75d126aa1460a20087d7e46ac59723748"}
+  "vim": {"V": "9.1.0707-r0", "C": "Q1JH+XfzD5kVNgb92NMgeEQbUZE88=", "S": "1476729", "B": "64641cc28aa7ef9fb3211727152842e4f619bff4b346dba77a308dfc3d194a1a", "G": "3447fef5fcf8a2e4ee5a0c93b0858c7c0c865592d9192579ced873f0f1809501", "R": "621cd01f40b9dbccfd004f15863e74f75d126aa1460a20087d7e46ac59723748"},
+  "zathura": {"V": "0.5.6-r0", "C": "Q1Dn27/0IAXwMjjnIZCLVsRl7Te/E=", "S": "113199", "B": "fedb75ff37237eb1f1e5db95d9aecaf28f51eafe982d633512662454af5152d1", "G": "", "R": ""},
+  "zathura-pdf-mupdf": {"V": "0.4.2-r0", "C": "Q1o4QRNlVOLiw9raX5fe7GDUKeKrY=", "S": "9934"}
 }}
