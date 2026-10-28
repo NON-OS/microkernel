@@ -654,6 +654,7 @@
   ],
   "include": [
    ".cargo",
+   "nonos-data/market/catalogue",
    "userland/agentproof_policy",
    "userland/agentproof_proofs",
    "userland/capsule_linux/policies.txt",
@@ -672,6 +673,7 @@
   "include": [
    ".cargo",
    "nonos-attest-path",
+   "nonos-data/market/catalogue",
    "nonos-device-attest",
    "nonos-mldsa65",
    "src/crypto/asymmetric/p256/constants.rs",
@@ -3480,6 +3482,7 @@
   ],
   "include": [
    ".cargo",
+   "nonos-data/market/catalogue",
    "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "tools/devnet/tls/root_spki.der",
@@ -3517,6 +3520,7 @@
   ],
   "include": [
    ".cargo",
+   "nonos-data/market/catalogue",
    "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/capsule_linux/family.rs",
    "src/userspace/capsule_linux/terminal/tier.rs",
@@ -4005,6 +4009,7 @@
   "include": [
    ".cargo",
    "nonos-attest-path",
+   "nonos-data/market/catalogue",
    "nonos-device-attest",
    "nonos-mldsa65",
    "src/crypto/asymmetric/p256/constants.rs",
@@ -7898,6 +7903,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "nonos-data/market/catalogue",
    "userland/capsule_linux/policies.txt",
    "userland/capsule_linux/src/linux/install/chat_pick.rs",
    "userland/nonos_linux_policy"
@@ -8619,6 +8625,7 @@
    ".cargo",
    "nonos-attest-path",
    "nonos-boot-measure",
+   "nonos-data/market/catalogue",
    "nonos-device-attest",
    "nonos-mldsa65",
    "src/crypto/asymmetric/p256/constants.rs",
