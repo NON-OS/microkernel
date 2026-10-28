@@ -65,8 +65,3 @@ pub fn run(m: Intel, pid: u16) -> (Result<(), HciError>, Intel, Vec<String>) {
     let m = std::mem::take(host.transport().pipes());
     (r, m, SAID.with(|s| s.borrow().clone()))
 }
-
-pub fn ops_after(m: &Intel, op: u16) -> Vec<u16> {
-    let at = m.ops.iter().rposition(|&o| o == op).expect("sent");
-    m.ops[at + 1..].to_vec()
-}

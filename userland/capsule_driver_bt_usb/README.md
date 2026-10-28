@@ -302,7 +302,11 @@ bring-up, in the order `btintel_setup_combined` gives: Intel Read Version
 ECDSA when the controller's secure boot engine is), then the commands in
 aligned runs, in fragments of at most 252 octets; the Secure Send Result
 within 5 s; Intel Reset (0xfc01) to the file's boot address and its bootup
-event within 1 s; Intel Write DDC (0xfc8b) entry by entry; Intel's event
+event within 1 s; for Blazar and later, the intermediate loader (-iml) that
+way first, then, on a BlazarI B0, Intel DSBR (0xfc0a) sent as zero (Linux
+takes it from the UEFI variable UefiCnvCommonDSBR, which this capsule does
+not read), then the firmware the loader names by its id; Intel Write DDC
+(0xfc8b) entry by entry; Intel's event
 mask (0xfc52); Reset. A controller already running the carried build is
 not loaded; one running another build, or whose download fails, is reset
 to its bootloader and found again.
@@ -310,9 +314,14 @@ to its bootloader and found again.
 The carried files are linux-firmware's, unmodified, under
 `nonos-bootloader/firmware/intel/` with `LICENCE.ibt_firmware`, pinned in
 `scripts/baselines/upstream.sha256`: `ibt-19-0-4` (AX201, and the nine
-ibt-19 names WHENCE links to it), `ibt-0041-0041` (AX210), `ibt-1040-0041`
-(AX211, also as ibt-1040-4150 and ibt-1040-1050) and `ibt-0291-0291`
-(BE200), each .sfi with its .ddc. Any other is refused by name.
+ibt-19 names WHENCE links to it), `ibt-20-1-3` (AX200, also as the
+byte-identical ibt-20-0-3) and `ibt-20-1-4` (AX200), `ibt-0041-0041`
+(AX210), `ibt-1040-0041` (AX211, also as ibt-1040-4150 and ibt-1040-1050),
+`ibt-0291-0291` (BE200), each .sfi with its .ddc; and for the BE201 on
+Meteor Lake and Arrow Lake CNVi over USB, `ibt-0190-0291-iml.sfi` and
+`ibt-0190-0291-usb` .sfi and .ddc. Lunar Lake's BE201 is reached over PCIe
+(btintel_pcie, the -pci files), which this capsule does not drive. Any
+other is refused by name.
 
 ## Operating rules
 
@@ -357,6 +366,6 @@ other than Intel, and bonds kept past this boot. The pairing dialog is Settings'
 ## Verification
 
 `cd userland/bt_usb_proofs && RUST_TEST_THREADS=1 cargo test --release`
-(161 pass at the time of writing); the capsule's `cargo build --release`
+(166 pass at the time of writing); the capsule's `cargo build --release`
 and `cargo clippy` for x86_64-nonos-user. Not verified under QEMU or on
 hardware.
