@@ -19,6 +19,7 @@
 
 mod pio;
 mod region;
+mod span;
 mod uptime;
 
 pub use pio::Ports;

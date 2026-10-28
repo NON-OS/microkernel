@@ -42,3 +42,5 @@ mod capture_tests;
 mod gate_tests;
 #[cfg(test)]
 mod ring_tests;
+#[cfg(test)]
+mod short_frame_tests;

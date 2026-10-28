@@ -16,7 +16,7 @@
 
 //! The frame painted, with the guest's pixels over its ground.
 
-use crate::wayland_frame::geometry::around;
+use crate::wayland_frame::geometry::around_at;
 use crate::wayland_frame::paint::{over, paint, Look};
 use nonos_toolkit::decorations::DecorationHit;
 
@@ -34,7 +34,7 @@ fn a_clear_guest_shows_the_frames_ground_and_its_pixels_land_inside() {
     let (cw, ch) = (40, 20);
     let mut client = vec![0u8; cw * ch * 4];
     client[..4].copy_from_slice(&0xFF12_3456u32.to_le_bytes());
-    let a = around(cw as u32, ch as u32, 4, false);
+    let a = around_at(cw as u32, ch as u32, 4, false, false);
     let mut out = vec![0u32; (a.w * a.h) as usize];
     // SAFETY: a u32 buffer viewed as bytes, the way the capsule's frame is.
     let bytes =
@@ -50,7 +50,7 @@ fn a_clear_guest_shows_the_frames_ground_and_its_pixels_land_inside() {
 
 #[test]
 fn a_buffer_too_short_for_the_frame_is_refused() {
-    let a = around(40, 20, 4, false);
+    let a = around_at(40, 20, 4, false, false);
     let mut out = vec![0u8; 16];
     let look = Look { title: b"", hover: DecorationHit::None, focused: false };
     assert!(!paint(&mut out, a, &[0u8; 3200], (40, 20, 160), (&look, true), 4));
@@ -59,7 +59,7 @@ fn a_buffer_too_short_for_the_frame_is_refused() {
 #[test]
 fn a_frame_left_as_painted_still_gets_the_whole_content_again() {
     let (cw, ch) = (8u32, 4u32);
-    let a = around(cw, ch, 4, false);
+    let a = around_at(cw, ch, 4, false, false);
     let mut out = vec![0u32; (a.w * a.h) as usize];
     // SAFETY: as above.
     let bytes =

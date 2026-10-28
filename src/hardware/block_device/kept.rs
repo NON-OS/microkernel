@@ -24,7 +24,6 @@ use spin::Once;
 use super::announce::announce;
 use super::backend::Backend;
 use super::gpt::Places;
-use super::wait::{caller_gone, waited_for_boot_disk};
 use super::BlockDeviceError;
 
 static SELECTED: Once<(Backend, Places)> = Once::new();
@@ -51,24 +50,4 @@ pub(super) fn none() -> BlockDeviceError {
         crate::log::warn!("{}", line);
     }
     BlockDeviceError::Dead
-}
-
-/// The end of a pass that found no boot disk: another NONOS disk is kept
-/// once every disk answered, or once the wait for a refused one runs out.
-pub(super) fn settle(
-    other: Option<(Backend, Places)>,
-    refused: Option<BlockDeviceError>,
-) -> Result<Backend, BlockDeviceError> {
-    match (other, refused) {
-        (Some((b, p)), None) => Ok(keep(b, p)),
-        // Never for a caller killed meanwhile: its asks failed for it (L81).
-        (Some((b, p)), Some(e)) => {
-            if !caller_gone() && waited_for_boot_disk() {
-                Ok(keep(b, p))
-            } else {
-                Err(e)
-            }
-        }
-        (None, _) => Err(none()),
-    }
 }

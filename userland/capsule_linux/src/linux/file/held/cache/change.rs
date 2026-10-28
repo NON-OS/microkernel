@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/* Writing into a copy, and cutting or growing it. */
+/*
+ * Writing into a copy, and cutting or growing it, as no shared map sees
+ * it; what the maps see is seen.rs.
+ */
 
 use crate::linux::abi::errno;
 
@@ -31,7 +34,7 @@ fn room(path: &[u8], len: usize) -> Result<(), i64> {
 }
 
 /* Write `bytes` at `at`, filling any gap with zeros, as a sparse write reads. */
-pub fn write(path: &[u8], at: u64, bytes: &[u8]) -> Result<usize, i64> {
+pub fn put(path: &[u8], at: u64, bytes: &[u8]) -> Result<usize, i64> {
     let end = (at as usize).checked_add(bytes.len()).filter(|e| *e <= MAX_FILE);
     let end = end.ok_or(errno::EFBIG)?;
     room(path, end.max(size(path).unwrap_or(0) as usize))?;
@@ -47,7 +50,7 @@ pub fn write(path: &[u8], at: u64, bytes: &[u8]) -> Result<usize, i64> {
     .ok_or(errno::EBADF)
 }
 
-pub fn resize(path: &[u8], len: u64) -> Result<(), i64> {
+pub fn set_len(path: &[u8], len: u64) -> Result<(), i64> {
     let len = usize::try_from(len).ok().filter(|l| *l <= MAX_FILE).ok_or(errno::EFBIG)?;
     room(path, len)?;
     with(path, |e| {

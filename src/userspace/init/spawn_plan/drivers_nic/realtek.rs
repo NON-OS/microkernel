@@ -23,7 +23,11 @@ pub(super) fn spawn() {
 
 #[cfg(feature = "nonos-capsule-driver-rtl8139")]
 fn spawn_rtl8139() {
+    use crate::hardware::inventory::HardwareFamily;
     use crate::hardware::rtl8139_capsule as c;
+    if !super::super::device_present::present("DRIVER-RTL8139", HardwareFamily::NetworkRtl8139) {
+        return;
+    }
     super::super::boot::capsule(
         "DRIVER-RTL8139",
         "driver_rtl8139",
@@ -36,7 +40,11 @@ fn spawn_rtl8139() {}
 
 #[cfg(feature = "nonos-capsule-driver-rtl8169")]
 fn spawn_rtl8169() {
+    use crate::hardware::inventory::HardwareFamily;
     use crate::hardware::rtl8169_capsule as c;
+    if !super::super::device_present::present("DRIVER-RTL8169", HardwareFamily::NetworkRtl8169) {
+        return;
+    }
     super::super::boot::capsule(
         "DRIVER-RTL8169",
         "driver_rtl8169",

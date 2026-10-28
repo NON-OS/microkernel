@@ -18,21 +18,25 @@
 
 use crate::cell::RELAY_BEGIN;
 use crate::protocol::STREAM_MAX;
-use crate::stream::{begin_body, may_open, next_id, Stream};
+use crate::stream::{begin_body, may_open, Held, Stream};
 use crate::trace;
 
 use super::super::state::Manager;
+use super::free_id::free_id;
 use super::pick_circuit::pick;
 use super::send_relay::{send_relay, SendError};
+use super::wait::wait;
 
-/// Open a stream to `host` on `port` through an open circuit.
-///
+/// Open a stream to `host` on `port` through an open circuit whose exit takes
+/// the port; an `install` takes the warm circuit when one is open
+/// (pick_circuit.rs). With none, the stream may wait for one (wait.rs).
 pub fn open_stream(
     state: &mut Manager,
     host: &[u8],
     port: u16,
     now: u64,
     owner: u32,
+    install: bool,
 ) -> Result<u16, SendError> {
     if !may_open(&state.streams, owner, STREAM_MAX) {
         return Err(SendError::TableFull);
@@ -42,7 +46,9 @@ pub fn open_stream(
     if crate::onion::address::is_onion(host) {
         return super::super::onion::open(state, host, port, now, owner);
     }
-    let index = pick(state, now).ok_or(SendError::NoCircuit)?;
+    let Some(index) = pick(state, now, port, install) else {
+        return wait(state, host, port, now, owner, install);
+    };
     let body = begin_body(host, port).ok_or(SendError::TooLong)?;
     let circuit = state.circuits[index].id;
     let id = free_id(state).ok_or(SendError::TableFull)?;
@@ -51,29 +57,8 @@ pub fn open_stream(
     send_relay(state, index, RELAY_BEGIN, id, &body)?;
     let mut stream = Stream::new(id, circuit);
     stream.owner = owner;
+    stream.held = Some(Held::new(body, port, now, install));
     state.streams.push(stream);
     trace::say_num(b"stream begin sent", id as u64);
     Ok(id)
-}
-
-/*
- * Ids are allocated unique across every open stream, not only within the
- * circuit, because the id is also the handle a caller holds: two streams
- * sharing one would each receive the other's payload through the server.
- * Relay cells are still matched by (circuit, id). The counter running on past sixty five thousand is fine
- * until the wrapped value lands on an id still open on the same circuit. Reaching
- * that needs more streams in one circuit's life than it will ever see, but the
- * consequence if it ever happened is two streams sharing an id and each receiving
- * the other's payload, which is not a thing to leave to arithmetic.
- */
-
-pub(in crate::manager) fn free_id(state: &Manager) -> Option<u16> {
-    let mut id = state.next_stream;
-    for _ in 0..u16::MAX {
-        id = next_id(id);
-        if !state.streams.iter().any(|s| s.id == id) {
-            return Some(id);
-        }
-    }
-    None
 }

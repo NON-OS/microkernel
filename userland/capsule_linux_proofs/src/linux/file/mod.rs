@@ -31,6 +31,8 @@ pub mod epoll_rules;
 pub mod exe;
 pub mod link;
 pub mod lock;
+#[path = "../../../../capsule_linux/src/linux/file/memfd_seal_rules.rs"]
+pub mod memfd_seal_rules;
 #[path = "../../../../capsule_linux/src/linux/file/made/proc/mounts/table.rs"]
 pub mod mounts;
 pub mod pack;
@@ -40,6 +42,8 @@ pub mod path;
 pub mod punch;
 #[path = "../../../../capsule_linux/src/linux/file/open/shm_rule.rs"]
 pub mod shm_rule;
+/* A stored file mapped shared, served within the family (held/shared_maps). */
+pub mod shared_maps;
 pub mod store;
 
 /* The family a pack's name is in (pack/paths.rs), where the capsule keeps it. */

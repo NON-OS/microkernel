@@ -27,9 +27,9 @@ use crate::msg::Offer;
 use crate::say;
 
 /// Give `o` a record when its interface has a driver.
-pub fn give(hv: &Hv, o: &mut Offer) {
+pub fn give<'a>(hv: &Hv, o: &'a mut Offer) -> &'a Offer {
     if !given(o.interface) || o.record.is_some() {
-        return;
+        return o;
     }
     let rc = mk_hv_channel(hv.device_id, o.relid);
     if rc > 0 {
@@ -37,4 +37,5 @@ pub fn give(hv: &Hv, o: &mut Offer) {
     } else {
         say::not_given(o, rc);
     }
+    o
 }

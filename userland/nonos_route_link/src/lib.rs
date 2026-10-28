@@ -41,6 +41,9 @@ mod describe;
 mod devnet;
 mod direct_only;
 mod frame;
+mod frame_on;
+mod install;
+mod install_stream;
 mod ipc;
 mod opening;
 mod patience;
@@ -51,13 +54,18 @@ mod rpc_route;
 mod slice;
 mod socks;
 mod stream;
+mod stream_on;
 mod tunnel;
 mod tunnel_io;
+mod tunnel_open;
 
+pub use bounds::{NOT_YET_GAP_MS, OPEN_MS};
 pub use chosen::{default_route, direct_refusal};
 #[cfg(feature = "devnet")]
 pub use devnet::{DEVNET_RPC_AT, DEVNET_RPC_HOST};
 pub use direct_only::direct_refused;
+pub use frame::CARRY_MAX;
+pub use frame_on::STREAMS_PER_CALLER;
 pub use pick::{
     for_host, install_route, is_anyone, is_short_anyone, pick, private_only, Route, ANYONE_DOWN,
     ANYONE_INSTALLS_DOWN, ANYONE_NEEDED, NYM_DOWN, PRIVATE_DOWN, SHORT_NOTICE, UNREAD,

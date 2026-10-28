@@ -41,6 +41,9 @@ These are the service endpoints declared in `userland/*/Capsule.mk`, each with t
 | 4254 | `driver.rndis0` | 4255 | `capsule_driver_rndis` |
 | 4256 | `driver.ax88179_0` | 4257 | `capsule_driver_ax88179` |
 | 4258 | `driver.rtl8153_0` | 4259 | `capsule_driver_rtl8153` |
+| 4264 | `driver.rtl8822ce0` | 4265 | `capsule_driver_rtl8822ce` |
+| 4266 | `driver.mt7921e0` | 4267 | `capsule_driver_mt7921` |
+| 4268 | `driver.rtl8852be0` | 4269 | `capsule_driver_rtl8852be` |
 | 4270 | `driver.e1000e_0` | 4271 | `capsule_driver_e1000e` |
 | 4272 | `driver.igc_0` | 4273 | `capsule_driver_igc` |
 | 4290 | `driver.rtsx0` | 4291 | `capsule_driver_rtsx` |

@@ -50,9 +50,15 @@ let
   networkFeatures = [
     "nonos-capsule-driver-virtio-net" "nonos-capsule-driver-e1000" "nonos-capsule-driver-rtl8139"
     "nonos-capsule-driver-rtl8169" "nonos-capsule-driver-iwlwifi" "nonos-capsule-driver-rtl8821ce"
+    "nonos-capsule-driver-rtl8822ce"
     "nonos-capsule-driver-pcnet" "nonos-capsule-driver-vmxnet3" "nonos-capsule-driver-tulip"
     "nonos-capsule-driver-igb" "nonos-capsule-driver-ixgbe" "nonos-capsule-driver-e1000e"
+    "nonos-capsule-driver-igc" "nonos-capsule-driver-netvsc"
     "nonos-capsule-driver-cdc-ecm" "nonos-capsule-driver-cdc-ncm" "nonos-capsule-driver-rndis"
+    "nonos-capsule-driver-ax88179"
+    "nonos-capsule-driver-rtl8153"
+    "nonos-capsule-driver-mt7921"
+    "nonos-capsule-driver-rtl8852be"
     "nonos-capsule-net-l2" "nonos-capsule-net-ip" "nonos-capsule-net-udp" "nonos-capsule-net-dhcp"
     "nonos-capsule-net-tcp" "nonos-capsule-net-dns" "nonos-capsule-net-ntp" "nonos-capsule-net-core"
     "nonos-capsule-net-sockets" "nonos-capsule-net-nym" "nonos-capsule-net-anon" "nonos-capsule-socks5"
@@ -66,7 +72,13 @@ let
 
   # Lets a machine with no IOMMU in service boot with its devices unconfined,
   # said everywhere; a hardened image must refuse those claims instead.
-  postureFeatures = [ "nonos-dma-unconfined-posture" ];
+  # Lets a standard boot share an isolation group between two vendor drivers
+  # when only a port without ACS joins them; a hardened image refuses.
+  postureFeatures = [ "nonos-dma-unconfined-posture" "nonos-shared-group-posture" ];
+
+  # Keeps the kernel's own console lines in memory for the Terminal's `log`
+  # (src/sys/serial/tail.rs); a hardened image keeps nothing.
+  tailFeatures = [ "nonos-log-tail" ];
 
   # The marketplace's payment path, for development images only (the lead's
   # P3): the meter, which no release seal has re-signed since its caps were
@@ -84,7 +96,7 @@ let
     standard = {
       about = "the full system for real hardware: every driver, the desktop, first-boot setup and the installer";
       for = "a person's own machine, every day";
-      privacy = "amnesic until the person chooses to install; only a program granted the network capability can open a socket, and the Nym mixnet client is there for those that use it; no capsule can write to the serial console (a development image can)";
+      privacy = "amnesic until the person chooses to install; only a program granted the network capability can open a socket, and the Nym mixnet client is there for those that use it; no capsule can write to the serial console (a development image can); the kernel keeps its own console lines in memory for the Terminal's log";
       kernel = [ "microkernel-full-gui" ];
       loader = "standard";
       drop = debugFeatures;
@@ -92,10 +104,10 @@ let
     hardened = {
       about = "the full system with Secure Boot and a TPM required at boot and no serial console for capsules";
       for = "a machine that may be seized or tampered with";
-      privacy = "standard, and the loader refuses to start without Secure Boot and a TPM to measure into; no capsule can write to a console anyone could read";
+      privacy = "standard, and the loader refuses to start without Secure Boot and a TPM to measure into; no capsule can write to a console anyone could read, and the kernel keeps none of its console lines in memory";
       kernel = [ "microkernel-full-gui" ];
       loader = "production";
-      drop = debugFeatures ++ postureFeatures;
+      drop = debugFeatures ++ postureFeatures ++ tailFeatures;
     };
     airgapped = {
       about = "hardened, with no network driver, stack or online program compiled in; installs only from offline media";
@@ -103,7 +115,7 @@ let
       privacy = "hardened, and no code that could reach a network exists in the image: no driver, no stack, no program that goes online";
       kernel = [ "microkernel-full-gui" ];
       loader = "production";
-      drop = debugFeatures ++ postureFeatures ++ networkFeatures;
+      drop = debugFeatures ++ postureFeatures ++ tailFeatures ++ networkFeatures;
     };
     qemu = {
       about = "the desktop for virtual machines, without the drivers only real hardware has";

@@ -16,8 +16,9 @@
 
 use nonos_libc::{mk_device_list, DeviceRecord, BAR_KIND_MMIO, BUS_KIND_PCI};
 
-use crate::pci_match::{is_intel_wifi, is_supported_adapter, Candidate};
+use crate::pci_match::{is_intel_wifi, Candidate};
 use crate::setup::announce;
+use crate::verdict::{verdict, Verdict};
 
 const MAX_DEVICES: usize = 96;
 
@@ -32,28 +33,31 @@ pub struct Found {
     pub pci_device: u16,
 }
 
-pub fn find_iwlwifi() -> Option<Found> {
+/// The function to bring up (`Ok(Some)`), nothing (`Ok(None)`), or an Intel
+/// Wi-Fi function there but not run (`Err`, its device id; `verdict`). Every
+/// Intel Wi-Fi function is named on the way (`announce`).
+pub fn find_iwlwifi() -> Result<Option<Found>, u16> {
     let mut buf = [DeviceRecord::empty(); MAX_DEVICES];
     let n = mk_device_list(0, buf.as_mut_ptr(), MAX_DEVICES as u64);
-    if n <= 0 {
-        return None;
+    let records = &buf[..core::cmp::min(n.max(0) as usize, MAX_DEVICES)];
+    for c in records.iter().map(candidate).filter(is_intel_wifi) {
+        announce(c.device);
     }
-    for r in &buf[..core::cmp::min(n as usize, MAX_DEVICES)] {
-        let c = candidate(r);
-        if is_intel_wifi(&c) {
-            announce(c.device);
-        }
-        if is_supported_adapter(&c) {
-            return Some(Found {
-                device_id: r.device_id,
-                irq_pin: r.irq_pin,
-                irq_line: r.irq_line,
-                bar0_size: r.bars[0].size,
-                pci_device: r.device,
-            });
-        }
+    match verdict(records.iter().map(candidate)) {
+        Verdict::Run(i) => Ok(Some(found(&records[i]))),
+        Verdict::NotRun(device) => Err(device),
+        Verdict::Absent => Ok(None),
     }
-    None
+}
+
+fn found(r: &DeviceRecord) -> Found {
+    Found {
+        device_id: r.device_id,
+        irq_pin: r.irq_pin,
+        irq_line: r.irq_line,
+        bar0_size: r.bars[0].size,
+        pci_device: r.device,
+    }
 }
 
 // The fields of a broker record the adapter decision reads.

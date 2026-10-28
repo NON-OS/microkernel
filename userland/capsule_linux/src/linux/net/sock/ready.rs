@@ -26,7 +26,7 @@ const POLLERR: u16 = 0x008;
 const POLLHUP: u16 = 0x010;
 const POLLRDHUP: u16 = 0x2000;
 
-/// The bits for `id`, or None when net.sockets or net.anon holds its state.
+/// The bits for `id`, or None when routed/ or net.anon holds its state.
 pub fn bits(id: u32) -> Option<u16> {
     with(|t| {
         let s = t.get(id).filter(|s| s.svc.is_none())?;

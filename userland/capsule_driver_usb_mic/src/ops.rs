@@ -17,7 +17,7 @@
 //! holds MicrophoneCapture, every time; READ and STOP are the streaming
 //! peer's alone (gate.rs).
 
-use nonos_libc::mk_cap_check;
+use nonos_libc::{mk_cap_check, mk_pid_alive};
 
 use crate::begin::begin;
 use crate::device::Dev;
@@ -29,6 +29,11 @@ use crate::wire::*;
 
 pub(crate) fn holds(peer: u32) -> bool {
     mk_cap_check(peer, MICROPHONE_CAPTURE)
+}
+
+/// Whether the kernel says `pid` still runs.
+pub(crate) fn alive(pid: u32) -> bool {
+    mk_pid_alive(pid)
 }
 
 pub fn answer(d: &mut Dev, peer: u32, req: &Request, body: &[u8], tx: &mut [u8]) -> usize {

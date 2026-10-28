@@ -33,5 +33,6 @@ pub(super) fn start_code(e: StartError) -> u32 {
         StartError::NotReady => 1,
         StartError::ClockNotReady => 2,
         StartError::NoNicAccess => 3,
+        StartError::Persistent => 4,
     }
 }

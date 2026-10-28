@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Every order of shutdown, close and free, and a mixnet stream.
+//! Every order of shutdown, close and free, and a stream the routed table holds.
 
 use super::adopt::{anon_socket, quiet, ANON, GUEST};
 use crate::linux::net::sock::{Backend, Close, Domain, Proto, Socks, Via};
-use crate::linux::net::{anon_stream, stream};
+use crate::linux::net::{anon_stream, routed};
 
 #[test]
 fn every_order_of_shutdown_close_and_free_closes_once() {
@@ -44,15 +44,26 @@ fn every_order_of_shutdown_close_and_free_closes_once() {
 }
 
 #[test]
-fn a_mixnet_stream_is_let_go_as_before() {
+fn a_routed_stream_is_let_go_once_and_only_there() {
     quiet();
     let mut t = Socks::new();
     let id = t.open(Domain::Inet, Proto::Stream, Some(GUEST));
-    t.get_mut(id).expect("there").svc = Some(Backend::Sockets(21));
-    assert_eq!(t.get(id).and_then(|s| s.svc.as_ref()).map(Backend::via), Some(Via::Sockets(21)));
+    t.get_mut(id).expect("there").svc = Some(Backend::Routed(21));
+    assert_eq!(t.get(id).and_then(|s| s.svc.as_ref()).map(Backend::via), Some(Via::Routed(21)));
     t.release(id, GUEST);
-    assert_eq!(stream::closed(), vec![21]);
-    assert!(anon_stream::closed().is_empty(), "net.anon is not told of a mixnet stream");
+    assert_eq!(routed::closed(), vec![(21, false)], "carried on until what was written goes");
+    assert!(anon_stream::closed().is_empty(), "net.anon is not told of a routed stream");
     t.free(id, false);
-    assert!(stream::closed().is_empty());
+    assert!(routed::closed().is_empty());
+}
+
+#[test]
+fn an_abortive_close_drops_what_a_routed_stream_has_queued() {
+    quiet();
+    let mut t = Socks::new();
+    let id = t.open(Domain::Inet, Proto::Stream, Some(GUEST));
+    let s = t.get_mut(id).expect("there");
+    (s.svc, s.opts.linger) = (Some(Backend::Routed(4)), (1, 0));
+    t.release(id, GUEST);
+    assert_eq!(routed::closed(), vec![(4, true)], "SO_LINGER of 0 s is Linux's reset");
 }
