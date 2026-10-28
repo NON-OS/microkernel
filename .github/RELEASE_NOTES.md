@@ -52,9 +52,16 @@ window on the NONOS desktop, inside the NONOS frame: title bar, close, minimise 
 - **KeePassXC** 2.7.8 (Qt 5) draws its welcome screen in the frame, in a box with no network,
   once the personality served FUTEX_WAKE_OP, which Qt's semaphore needs (ceb0f0ee6a,
   `gui-keepassxc`).
-- **Telegram Desktop** 5.0.1 (Qt 6) is listed, in a box of WAYLAND, FILES_HOME and NET_ANON
-  (1a17cb72ad). The fix its window needed, `/proc` answering a thread's own number, is on main
-  (71e34654ac). No boot of this tree in the evidence shows its window.
+- **Telegram Desktop** 5.0.1 (Qt 6) draws its welcome screen in the frame on a development
+  image, in a box of WAYLAND, FILES_HOME and NET_ANON, once `/proc` answered a thread's own
+  number (71e34654ac, `gui-telegram`). A sign-in is not shown: that test machine reached only the
+  package mirror.
+- **foot** 1.17.2 is listed in a box of WAYLAND, TTY, FILES_HOME and EXEC (fbbd8c5f80). It drew
+  its window and ran a shell over `/dev/pts` on a development image (`gui-foot`).
+- **mpv** 0.38.0, drawing to `wl_shm` with no GPU (`--vo=wlshm`), and **Mousepad** 0.6.2, a GTK
+  text editor, are listed (fbbd8c5f80). **zathura** 0.5.6 is listed with its mupdf PDF plugin,
+  which the listing adds to the install (c7bc7960c4, 1a48cc9bef). For these three, no boot in the
+  evidence shows a window.
 - Large installs hold: 304 packages verified in one boot, KeePassXC (126) and
   gnome-authenticator (155) among them, with no stall, lock wait or OOM (`gui-large-installs`).
 - A run's private directories (`/tmp`, `/run/user/0`) hold 1536 names, where they held 128.
@@ -62,7 +69,8 @@ window on the NONOS desktop, inside the NONOS frame: title bar, close, minimise 
   fifteen names, so GTK and Qt programs no longer stop on ENOSPC (b7521ace2b).
 - GTK's preparation tools run before the program's guest is made, so a GTK program's run is
   noted to the seal. Before, every GTK program's run went unnoted and unkept, with "the seal
-  KVM on that commit, with no ENOSPC and no seal refusal; no log of that run is committed.
+  refused the app's note" (fd2a80e365). A KVM run on that commit drew KeePassXC 2.7.8's window
+  with no ENOSPC and no seal refusal; no log of that run is committed.
 - A program that asks EGL for OpenGL is pointed at Mesa's software driver, drawing through
   Wayland, where its box's package closure carries that driver (`LIBGL_ALWAYS_SOFTWARE`,
   `EGL_PLATFORM=wayland` in `linux/env.rs`; 1f56b890a6). A surface's frame callbacks are answered
@@ -79,14 +87,16 @@ pending bytes or lines on the slave and 64 KiB of output, and keeps each signal 
 ### A Monero wallet over Nym and Anyone
 
 `linux.monero` starts `monero-wallet-cli` against the listing's node,
-`xmr-node.cakewallet.com:18081`, with `--untrusted-daemon` (`linux-catalogue.json`). On the
-images (`s1-g-kvm`). The serial log shows the streams; the progress in the window is quoted from
+`xmr-node.cakewallet.com:18081`, with `--untrusted-daemon`, and keeps its log to 1 MiB in one
+file (`linux-catalogue.json`; 1addaf292b). On a KVM host the wallet synced from that node over
+Anyone and over Nym, on development images (`s1-g-kvm`). The serial log shows the streams; the
+progress in the window is quoted from the notes of those runs. These fixes made it work:
 
 - net.anon picks an exit whose policy takes the stream's port, as the wallet's 18081 needs, and
   sends a refused open once more to another exit (b5876fcae6).
 - A spawned process holds its arguments from its first instruction, so an install reads them in
-  time and takes its 320 MiB heap, not a program's 160 MiB (b5bb69a407). Every tree in `s1-g-kvm` with the fix installs
-  at `of 327680 KiB`.
+  time and takes its 320 MiB heap, not a program's 160 MiB (b5bb69a407). Every tree in
+  `s1-g-kvm` with the fix installs at `of 327680 KiB`.
 - `get_robust_list` is answered, so LMDB can make its lock and the wallet's ring database opens
   (e16e16d6b4).
 - A stored file mapped shared, as LMDB maps one, is served, one writer per range
@@ -99,6 +109,10 @@ opened three at once, so each took the conversation from the one before and no p
 It now fetches one package at a time over its kept stream (9fc7634b39, proven in
 `install_window_tests.rs`). Before the fix, a lone stream brought the 24.7 MB Monero package
 from the real Alpine mirror whole (`s1-g-kvm`, `diag-694ba69799-realmirror-anyone.log`).
+
+A failed install says which package and which check stopped it, for example
+`libzmq-4.3.5-r2 (its checksum did not match the signed index)`, in the Terminal's `market`
+commands and the Marketplace's headline (e3bed0a8f0).
 
 One file a Linux app writes may now fill its home, 16 MiB, where it was held to 8 MiB. A write
 past it fails with EFBIG, and the first refusal in a run prints `linux: this app wrote a file
@@ -113,16 +127,18 @@ quarter of memory, between 160 MiB and 4 GiB, and halves its ask when a heap can
 
 ### The Marketplace
 
-The catalogue (`userland/capsule_market/linux-catalogue.json`) lists 22 Alpine apps, each in
-its own box, among them KeePassXC, Telegram Desktop, swayimg, the Monero wallet, Profanity, age,
-minisign, git and vim. The Marketplace's Open of a terminal program runs it in the Terminal
-(c55d58e10, `gui-store-tty-open`).
+The catalogue (`userland/capsule_market/linux-catalogue.json`) holds 30 recipes. A release
+image lists its 26 Alpine apps, each in its own box, among them KeePassXC, Telegram Desktop,
+Mousepad, foot, mpv, zathura, swayimg, the Monero wallet, Profanity, age, git and vim. The
+Marketplace's Open of a terminal program runs it in the Terminal (c55d58e10,
+`gui-store-tty-open`).
 
-The catalogue also holds SimpleX Chat's terminal client (`linux.kali.nonos-simplex-chat`, from
+The other four are SimpleX Chat's terminal client (`linux.kali.nonos-simplex-chat`, from
 SimpleX's signed v7.0.3 binary, d8e427216b) and DarkFi's `drk`, `darkirc` and `darkfid`
-(1a17cb72ad). These four are served from a NONOS package mirror. A seal lists them only with
-such a mirror, and `nonos.toml` sets none (`linux_packages = ""`), so a release image built from
-this tree does not list them (`docs/userland/marketplace-catalogue.md`, "No mirror, none listed").
+(1a17cb72ad). They are served from a NONOS package mirror. A seal lists them only when
+`nonos.toml` names a mirror and their built content (`linux_packages`, `linux_sources`;
+2c9ecace25), and both are empty, so a release image built from this tree does not list them
+(`docs/userland/marketplace-catalogue.md`, "No mirror, none listed").
 
 ### Update NØNOS (keep my data)
 
@@ -143,7 +159,8 @@ wallet's vault or saved Wi-Fi (`docs/install/update.md`).
   a DHCP lease through their card, with net.core reading it in batches (`drivers/`). That is the
   0.9.2 receive fault of e1000 and RTL8139 shown fixed on a boot. The RTL8169 fix is proven on
   the host only.
-  image of main at 0bd7c2263 (`drivers/rtl8821ce`). No log or screenshot was sent. Two vendor
+  seal of main 8f2d183dda (`drivers/rtl8821ce`). It is their report only: no log or screenshot
+  was sent. Two vendor
   drivers may now share an isolation group on a standard boot, which let that card be claimed
   beside the NVMe disk (82ee1a3110).
 - **New Wi-Fi drivers, modelled only.** The standard image carries drivers for the RTL8822CE,
@@ -159,7 +176,8 @@ wallet's vault or saved Wi-Fi (`docs/install/update.md`).
   power off through the wipe (`capsule_power`; `docs/using/desktop.md`). A development boot
   held a secret in RAM 8 times before Power Off and 0 times after
   (`docs/security/privacy-evidence/2026-10-25/zs-6d87d9aff`). The installers' restart goes
-  through the same service and they hold no Admin (S-14).
+  through the same service and they hold no Admin
+  (`docs/security/privacy-evidence/2026-10-26/s14-653523a51`).
 - With no IOMMU in service, the splash says `device DMA not confined by hardware` in red
   (`gpu-469dddb58-no-iommu`).
 
@@ -174,8 +192,8 @@ as it is typed (717a125504).
 
 Three gate boots of main (a7af21a70, 23d57ac60, 6f0bbe716) reached the desktop on 4 CPUs with
 VT-d enforcing and no unconfined grant, with no FATAL, panic or lock wait (`gate-*`). The
-paging-lock waits seen on 30a4b58c4 are gone after the fix (adb53a20d, abae61bc9): 0 `[LOCK]`
-lines in eight boots at 4 and 8 CPUs (`s1-paging-lock-c3f522575`, `s1-lock`).
+paging-lock waits seen on 30a4b58c4 are gone after the paging-lock fix (adb53a20d, abae61bc9):
+0 `[LOCK]` lines in eight boots at 4 and 8 CPUs (`s1-paging-lock-c3f522575`, `s1-lock`).
 
 ## Breaking changes
 
@@ -204,9 +222,14 @@ lines in eight boots at 4 and 8 CPUs (`s1-paging-lock-c3f522575`, `s1-lock`).
 - **Installs fetch one package at a time** (9fc7634b39).
 - **Not in this release:** SimpleX's desktop window and DarkFi's GUI. SimpleX comes only as its
   terminal client, and only on an image sealed with a NONOS package mirror (above). No boot has
-  shown it reach an SMP server (`docs/using/simplex.md`). foot ran on a development image but is
-  not listed (`gui-foot`). No GTK app is listed or shown with a window. Copy and paste between a
-  Linux window and the desktop is tested on the host only.
+  shown it reach an SMP server (`docs/using/simplex.md`).
+- **Linux windows**: Mousepad, mpv and zathura are listed, but no boot in the evidence shows
+  their windows. Copy and paste between a Linux window and the desktop is tested on the host
+  only.
+- **Booting a stick beside an installed disk**: on some firmware (seen on an HP laptop), a USB
+  stick booted on a machine with NØNOS installed on an internal disk comes up as the installed
+  system, so an update or reinstall from that stick is not possible there. A fix is in a
+  follow-up release.
 - **Wi-Fi**: only the RTL8821CE has run on a card. The RTL8822CE, RTL8852BE, MT7921 family and
   every Intel card have run only against a modelled device (`docs/drivers/wifi/README.md`).
 - **Seen on development boots, not shown fixed:** lame ends on signal 11 (`s3-boot2`); micro

@@ -1,6 +1,6 @@
 # Release evidence for NONOS 0.9.3
 
-One line for each of the 53 directories here: what it proves, taken from that
+One line for each of the 54 directories here: what it proves, taken from that
 directory's own README. Three directories have no README; their line says what
 the files are and which commit added them.
 
@@ -13,10 +13,11 @@ were added by name.
 ## Boots of main
 
 - [boot-ad2a58a01](boot-ad2a58a01/README.md): main at ad2a58a01, standard-dev:
-  the default lane reaches setup with a DHCP lease and `[HW] 11 driven`; the
-  e1000e, igb, e1000 and rtl8139 lanes each get a lease; the five Wi-Fi drivers
+  the default machine reaches setup with a DHCP lease and `[HW] 11 driven`;
+  the e1000e, igb, e1000 and rtl8139 cards each get a lease; the five Wi-Fi drivers
   say `no controller present, not spawned`. The serial logs it names are not
   committed.
+- [gate-a7af21a70](gate-a7af21a70/README.md): the first 0.9.3 gate boot,
   qemu-dev, 4 CPUs, Intel IOMMU: `enforcing=1, unconfined grants=0`, all 13
   setup steps to the desktop, 55 `[ZK-ATTEST] ok`, no FATAL or `[LOCK]`.
 - [gate-23d57ac60](gate-23d57ac60/README.md): the second gate, standard-dev:
@@ -25,11 +26,11 @@ were added by name.
 - [gate-6f0bbe716](gate-6f0bbe716/README.md): the third gate, standard-dev:
   IOMMU enforcing, 4 CPUs, 67 `[ZK-ATTEST] ok`, no `unanswered`, trap, panic or
   FATAL line, and no kernel line starting mid-line.
-  of 26 October, from his serial excerpt: lock waits on every CPU, mappings
+  of 26 October, from their serial excerpt: lock waits on every CPU, mappings
   kept after exit and a kernel heap OOM to the panic path. Marked NO-GO, with
 - [regression-30a4b58c4-paging-lock](regression-30a4b58c4-paging-lock/README.md):
   main at 30a4b58c4 printed 12 and 80 `[LOCK]` lines in two boots, every
-  waiter in the paging manager; the uhci lane on the same image starts
+  waiter in the paging manager; a boot with a UHCI controller on the same image starts
   `driver.uhci0`.
 
 ## Kernel and isolation
@@ -37,12 +38,13 @@ were added by name.
 - [s1-paging-lock-c3f522575](s1-paging-lock-c3f522575/README.md): the
   paging-lock fix (adb53a20d, abae61bc9) with MkGetPid put back: 0 `[LOCK]`
   lines where the same build printed 12 and 80 before.
-  lock fix at 4 and 8 CPUs, and a Monero install and run: 0 `[LOCK]` and 0
-  `unanswered` in every lane.
+- [s1-lock](s1-lock/README.md): six boots of the lock fix at 4 and 8 CPUs on
+  a macOS host, and a Monero install and run: 0 `[LOCK]` and 0 `unanswered`
+  in every boot.
 - [s1-isolation-61ec29ea2](s1-isolation-61ec29ea2/README.md): a hostile Linux
   program's probes (ptrace, process_vm_readv, module load, kexec, mount, a
-  W^X mapping, raw sockets, a fork bomb) each refused, on an image of the
-  branch with MkGetPid on top, which main does not carry.
+  W^X mapping, raw sockets, a fork bomb) each refused, on an image of a
+  branch with MkGetPid on top, which this release does not carry.
 - [s1-shared-maps-0d0cff02d4](s1-shared-maps-0d0cff02d4/README.md): a stored
   file mapped `MAP_SHARED`, as LMDB maps one: read and write maps served, one
   writer per range, an executable shared map refused, and the writes outlive
@@ -50,7 +52,7 @@ were added by name.
 - [ksec-6e1472210b-console-lines](ksec-6e1472210b-console-lines/README.md):
   every `[USER-FIRST]` line whole and at column 0 across 4 CPUs, 64 of 64,
   where the boot before had 5 of 64 behind another writer.
-- [ksec-c8a952663-iommu-intel](ksec-c8a952663-iommu-intel/README.md): S-13's
+- [ksec-c8a952663-iommu-intel](ksec-c8a952663-iommu-intel/README.md): the
   load and tool-run bounds booted: tools, an installed proof capsule and a
   Launchpad app spawn with their own masks, and no `[CAP-DENY]` line.
 - [ksec-d2a9d0bfa-iommu-intel](ksec-d2a9d0bfa-iommu-intel/README.md): the
@@ -59,12 +61,13 @@ were added by name.
 
 ## Installing and updating
 
-  image A installed and prepared, Update NØNOS (keep my data) from image B
-  with a changed bootloader, then the data volume opens under B through the
-  handover and, on the next boot, under B's own key.
+  with a software TPM: image A installed and prepared, Update NØNOS (keep my
+  data) from image B with a changed bootloader, then the data volume opens
+  under B through the handover and, on the next boot, under B's own key.
 
 ## Linux programs, installs and the Monero wallet
 
+- [s1-g-kvm](s1-g-kvm/README.md): on a KVM host, the Monero wallet
   syncs from the listing's node over Anyone and over Nym; why a real-mirror
   install failed (one stream per caller), and the spawn fix that gives an
   install its 320 MiB heap.
@@ -89,9 +92,14 @@ were added by name.
 - [gui-keepassxc](gui-keepassxc/README.md): KeePassXC 2.7.8 (Qt 5) draws its
   welcome screen in the frame, in a box of WAYLAND and FILES_HOME, once
   FUTEX_WAKE_OP was served.
+- [gui-telegram](gui-telegram/README.md): Telegram Desktop 5.0.1 (Qt 6) draws
+  its welcome screen in the frame, in a box of WAYLAND, NET_ANON and
+  FILES_HOME, once `/proc` answered a thread's own number (71e34654ac); its
+  connections reach the box's SOCKS5 port and are refused, as that machine
+  reached only the package mirror. A sign-in is not shown.
 - [gui-foot](gui-foot/README.md): foot draws its window and runs a shell over
-  `/dev/pts`, on an image of foot with test commits main does not carry;
-  foot is not listed.
+  `/dev/pts`, on a development image with foot's test recipe; foot is listed
+  since fbbd8c5f80.
 - [gui-large-installs](gui-large-installs/README.md): 304 packages verified in
   one boot (swayimg, KeePassXC, gnome-authenticator) with no stall, `[LOCK]`,
   OOM or panic; no window opened in that boot.
@@ -182,6 +190,6 @@ were added by name.
 
 - [drivers](drivers/): one folder a card. e1000, e1000e, igb, pcnet, rtl8139,
   tulip and vmxnet3 each get a DHCP lease through the card on QEMU with only
-  its own driver spawned, on standard-dev of drivers at 4b1eeb014 (the
-  report that Wi-Fi works on his HP laptop on a sealed image of main at
-  0bd7c2263, with no log or screenshot.
+  its own driver spawned, on standard-dev at 4b1eeb014 (the serial logs the
+  Wi-Fi works on their HP laptop, on their seal of main 8f2d183dda, with no
+  log or screenshot.
