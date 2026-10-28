@@ -19,19 +19,20 @@
 //! reply endpoint alone was checked, needing only IPC: each refusal below
 //! was a delivery there.
 
-use super::common::{owner, IPC, NETWORK};
+use super::common::{owner, Gate, IPC, NETWORK};
 use super::held::inbox_admits;
 use super::registry_addressed::addressed_admits;
 
 /// A capsule addressing `name`, served by a process with `served`, the
 /// caller holding `held` and owning `mine`.
-fn send(served: &[(&str, u64)], held: u64, mine: &'static [&'static str], name: &str) -> bool {
+fn send(served: &[Gate], held: u64, mine: &'static [&'static str], name: &str) -> bool {
     let own = owner(mine)(name);
     addressed_admits(false, own, || inbox_admits(served.iter().copied(), held, owner(mine)))
 }
 
-const XHCI: [(&str, u64); 2] = [("driver.xhci0", IPC), ("endpoint.driver.xhci0.reply", IPC)];
-const NET: [(&str, u64); 2] = [("net.sockets", IPC | NETWORK), ("endpoint.net.sockets.reply", IPC)];
+const XHCI: [Gate; 2] = [("driver.xhci0", IPC, None), ("endpoint.driver.xhci0.reply", IPC, None)];
+const NET: [Gate; 2] =
+    [("net.sockets", IPC | NETWORK, None), ("endpoint.net.sockets.reply", IPC, None)];
 
 #[test]
 fn a_held_driver_is_not_reached_by_its_reply_endpoint() {
@@ -53,7 +54,7 @@ fn a_net_service_is_not_reached_by_its_reply_endpoint_without_network() {
 fn the_kernels_endpoints_and_the_callers_own_are_unchanged() {
     assert!(addressed_admits(true, false, || false), "a kernel-owned reply inbox");
     let mine: &'static [&'static str] = &["app.attack", "endpoint.app.attack.reply"];
-    let own = [("app.attack", IPC), ("endpoint.app.attack.reply", IPC)];
+    let own = [("app.attack", IPC, None), ("endpoint.app.attack.reply", IPC, None)];
     assert!(send(&own, IPC, mine, "endpoint.app.attack.reply"), "its own reply port");
     let mut asked = false;
     assert!(addressed_admits(false, true, || {

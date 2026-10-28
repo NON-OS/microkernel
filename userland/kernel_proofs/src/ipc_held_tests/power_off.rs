@@ -29,11 +29,11 @@ const NAMED: [&str; 3] = [SHELL, "app.install", "tool.install"];
 fn only_the_shell_and_the_installers_reach_capsule_powers_inbox() {
     assert_eq!(callers_of("power.off"), Some(&NAMED[..]));
     for caller in ["power", "driver.i2c_pci0", "driver.gpio0", "app.settings", "acpi", ""] {
-        assert!(!endpoint_admits("power.off", |n| n == caller), "{caller}");
+        assert!(!endpoint_admits("power.off", None, |n| n == caller), "{caller}");
     }
-    let served = [("power", 0x8u64), ("power.off", 0x8)];
+    let served = [("power", 0x8u64, None), ("power.off", 0x8, None)];
     for caller in NAMED {
-        assert!(endpoint_admits("power.off", |n| n == caller), "{caller}");
+        assert!(endpoint_admits("power.off", None, |n| n == caller), "{caller}");
         assert!(inbox_admits(served, 0x8, |n| n == caller), "{caller} by pid");
     }
     assert!(!inbox_admits(served, 0x8, |n| n == "acpi"), "acpi by pid: power.off refuses");

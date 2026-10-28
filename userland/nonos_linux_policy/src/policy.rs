@@ -16,6 +16,8 @@
 
 //! A decoded policy.
 
+use crate::mask::SERVE_ONE;
+use crate::serve::ServeOne;
 use crate::syscall_set::SyscallSet;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -34,4 +36,24 @@ pub struct LinuxAppPolicy {
     pub net_dests_hash: [u8; 32],
     /// The system calls it may complete.
     pub syscall_set: SyscallSet,
+    /// Where SERVE_ONE serves, in a version 2 policy; read it by serve_one,
+    /// as it counts only while the bit is set.
+    pub serve: Option<ServeOne>,
+}
+
+impl LinuxAppPolicy {
+    /// The field, while the bit grants it; without the bit, nothing.
+    pub fn serve_one(&self) -> Option<ServeOne> {
+        self.serve.filter(|_| self.mask & SERVE_ONE != 0)
+    }
+
+    /// `mask`, what an exec of `program` under this policy leaves
+    /// (mask::narrow), with SERVE_ONE kept only into the same field: an exec
+    /// cannot carry the one listener to another port or another capsule.
+    pub fn exec_keeps(&self, program: &LinuxAppPolicy, mask: u64) -> u64 {
+        match self.serve_one() == program.serve_one() {
+            true => mask,
+            false => mask & !SERVE_ONE,
+        }
+    }
 }

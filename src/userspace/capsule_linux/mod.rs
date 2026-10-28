@@ -38,7 +38,7 @@ pub use run_net::spawn_run_net;
 /// checks the caller against exactly what that role's spawn installs.
 pub const TERMINAL_NET_EXTRA: u64 = role_term_net::TERMINAL_NET.extra_caps;
 pub(crate) use embed::LINUX_MANIFEST_BYTES;
-pub use run_owner::{run_busy, run_net_busy, run_package_of};
+pub use run_owner::{is_run_role, run_busy, run_net_busy, run_package_of};
 pub use spawn::{spawn_linux_capsule, LINUX_CAPS};
 pub use state::shared_state;
 pub use term_ticket::{asked_by_terminal_role, end_tickets_of, take_term_ticket};
