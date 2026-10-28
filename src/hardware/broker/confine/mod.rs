@@ -28,6 +28,8 @@ mod decide;
 mod detach;
 mod detach_all;
 mod gates;
+mod group_rule;
+pub(super) mod group_share;
 mod held;
 mod interrupts;
 mod iova;

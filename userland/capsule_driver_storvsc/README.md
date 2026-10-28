@@ -106,7 +106,9 @@ the layer above reads. INQUIRY and MODE SENSE, which Hyper-V answers
 wrongly, count as success with what moved (`storvsc_host_mishandles_cmd`).
 A completion for another id is dropped; a packet the host sends of its own
 accord (a bus enumerated, a device removed) is noted, and one too long to
-be an answer is skipped. A request never completed resets the bus, which
+be an answer is skipped. The clock is read before every packet, so a host
+that keeps its ring full of other packets cannot hold a wait past its
+deadline. A request never completed resets the bus, which
 the host answers once nothing is out; a host that does not answer that,
 or a ring whose index the host put out of bounds, is given up on and every
 later request answers -5.

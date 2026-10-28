@@ -16,8 +16,11 @@
 
 //! A look at the memory modules' SPD EEPROMs once the host is up, so the
 //! boot log shows the bus working: each of 0x50 to 0x57 that answers, and
-//! its byte 2 (the DRAM type, JEDEC 21-C), read with the transfer the wire
-//! serves. Reading an EEPROM moves only its address pointer.
+//! its byte 2, read with the transfer the wire serves. The line names the
+//! byte, not its meaning: on a DDR3 or DDR4 EEPROM it is the DRAM type
+//! (JEDEC 21-C), but on DDR5 the address is an SPD hub, whose byte 2 is its
+//! register MR2, the hub's device revision (JESD300-5). Reading an EEPROM
+//! moves only its address pointer.
 
 use crate::ports::Ports;
 use crate::say::Line;
@@ -26,18 +29,18 @@ use crate::xfer::{transfer, Kind, Xfer, BLOCK_MAX};
 
 const SPD_FIRST: u8 = 0x50;
 const SPD_LAST: u8 = 0x57;
-const DRAM_TYPE: u8 = 2;
+const SPD_BYTE: u8 = 2;
 
 pub fn survey(d: &mut Driver) {
     let mut answered = 0u32;
     for addr in SPD_FIRST..=SPD_LAST {
-        if let Some(kind) = read_type(&mut d.host, addr) {
+        if let Some(byte) = read_byte(&mut d.host, addr) {
             answered += 1;
             Line::new()
                 .put(b"spd ")
                 .hex(addr as u32, 2)
-                .put(b" dram type ")
-                .hex(kind as u32, 2)
+                .put(b" byte 2 ")
+                .hex(byte as u32, 2)
                 .send();
         }
     }
@@ -47,12 +50,12 @@ pub fn survey(d: &mut Driver) {
     line.put(b" up, spd answered at ").hex(answered, 1).put(b" of 8 addresses").send();
 }
 
-fn read_type<P: Ports>(host: &mut P, addr: u8) -> Option<u8> {
+fn read_byte<P: Ports>(host: &mut P, addr: u8) -> Option<u8> {
     let x = Xfer {
         addr,
         read: true,
         kind: Kind::ByteData,
-        cmd: DRAM_TYPE,
+        cmd: SPD_BYTE,
         len: 0,
         data: [0; BLOCK_MAX],
     };

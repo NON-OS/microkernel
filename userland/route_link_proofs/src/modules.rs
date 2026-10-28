@@ -30,6 +30,10 @@ pub mod devnet;
 pub mod direct_only;
 #[path = "../../nonos_route_link/src/frame.rs"]
 pub mod frame;
+#[path = "../../nonos_route_link/src/frame_on.rs"]
+pub mod frame_on;
+#[path = "../../nonos_route_link/src/install.rs"]
+pub mod install;
 #[path = "../../nonos_route_link/src/opening.rs"]
 pub mod opening;
 #[path = "../../nonos_route_link/src/patience.rs"]
@@ -46,3 +50,5 @@ pub mod socks;
 pub mod tunnel;
 #[path = "../../nonos_route_link/src/tunnel_io.rs"]
 pub mod tunnel_io;
+#[path = "../../nonos_route_link/src/tunnel_open.rs"]
+pub mod tunnel_open;

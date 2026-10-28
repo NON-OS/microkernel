@@ -71,9 +71,9 @@ pub fn pre_disable_step(cap: u64, csts: u32, elapsed_ms: u64) -> NvmeResult<PreD
     Ok(PreDisableStep::Wait)
 }
 
-/// Wait, bounded by CAP.TO, until EN may be cleared. The register read and
-/// the clock are passed in as for `wait_ready`; a failed clock read ends the
-/// wait as `ClockFailed`.
+/// Wait, bounded by CAP.TO and idling between reads, until EN may be
+/// cleared. The register read and the clock are passed in as for
+/// `wait_ready`; a failed clock read ends the wait as `ClockFailed`.
 pub fn await_ready_before_disable<R, C>(cap: u64, mut read_csts: R, mut now_ms: C) -> NvmeResult<()>
 where
     R: FnMut() -> u32,
@@ -84,7 +84,7 @@ where
         let csts = read_csts();
         let now = now_ms().ok_or(NvmeError::ClockFailed)?;
         match pre_disable_step(cap, csts, now.saturating_sub(start))? {
-            PreDisableStep::Wait => core::hint::spin_loop(),
+            PreDisableStep::Wait => crate::clock::idle(),
             PreDisableStep::Clear => return Ok(()),
         }
     }

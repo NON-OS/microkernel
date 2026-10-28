@@ -50,6 +50,9 @@ pub(super) fn vectored(
     if flags & !RWF_KNOWN != 0 {
         return errno::fail(errno::EOPNOTSUPP);
     }
+    if write && crate::linux::file::write_sealed(guest, fd) {
+        return errno::fail(errno::EPERM);
+    }
     let at = match place(guest, fd, at, write && flags & RWF_APPEND != 0) {
         Ok(at) => at,
         Err(e) => return e,

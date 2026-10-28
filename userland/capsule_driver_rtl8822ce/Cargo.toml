@@ -1,0 +1,31 @@
+# NONOS userland: capsule_driver_rtl8822ce
+# eK@nonos.systems
+#
+# Realtek RTL8822CE (rtw88 8822C, 2x2 802.11ac PCIe). The chip files are
+# its own; the files that are the same for every rtw88 11ac PCIe chip are
+# capsule_driver_rtl8821ce's, mounted by #[path] (README.md, "Shared").
+
+[package]
+name = "nonos_capsule_driver_rtl8822ce"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland Realtek RTL8822CE wifi driver capsule"
+
+[[bin]]
+name = "driver_rtl8822ce"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_mac = { path = "../nonos_mac" }
+nonos_wifi_core = { path = "../nonos_wifi_core" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

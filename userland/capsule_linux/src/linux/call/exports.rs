@@ -24,7 +24,7 @@ pub use super::cwd::{chdir, fchdir, getcwd};
 pub use super::epoch::{family_ms, mark_start};
 pub use super::futex::futex;
 pub use super::glibc::prctl;
-pub use super::glibc_sched::{clone3, getcpu, membarrier, sched_getaffinity};
+pub use super::glibc_sched::{clone3, get_robust_list, getcpu, membarrier, sched_getaffinity};
 pub use super::ident::{getppid, setuid};
 pub use super::io::{close, read, write};
 pub use super::ioctl::ioctl;

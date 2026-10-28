@@ -35,4 +35,9 @@ pub enum Ccmp {
     /// The station runs GCMP-256 in software both ways with the 32-octet
     /// pairwise key; no chip here has it in hardware.
     Gcmp256 { tk: [u8; 32] },
+    /// The station installed its keys in the chip, which encrypts every frame
+    /// the station marks Protected and decrypts what it can; the station
+    /// frames plaintext, with the CCMP header and its own packet number when
+    /// `host_iv`, and keeps the key to open a frame the chip passed undecrypted.
+    Offload { tk: [u8; 16], host_iv: bool },
 }

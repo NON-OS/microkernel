@@ -34,26 +34,25 @@ mod station;
 
 use nonos_libc::{heap_init, mk_exit, start_driver};
 
+use crate::constants::exit;
+
 const DRIVER: &[u8] = b"driver.netvsc";
 /// The service name the capsule is spawned under.
 pub const NAME: &[u8] = b"driver.netvsc0";
-const EXIT_HEAP_INIT: i32 = 1;
-/// The host broke the channel: everything is given back.
-const EXIT_CHANNEL_BROKEN: i32 = 2;
 
 /// Without a network channel given by the VMBus core in time, the driver
 /// says so and leaves before claiming anything. With one, each attempt opens
 /// the channel, starts the protocol and settles the station address, giving
 /// everything back when a step fails; the attempts are bounded and slept
-/// between. Then it serves frames until the host breaks the channel, and
-/// gives everything back.
+/// between. Then it serves frames until the host breaks the channel, gives
+/// everything back and leaves as a device present that failed.
 ///
 /// # Safety
 /// The kernel enters here once, on the capsule's own fresh stack.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
-        mk_exit(EXIT_HEAP_INIT);
+        mk_exit(exit::HEAP_INIT);
     }
     let mut driver = match start_driver(DRIVER, discover::find(), |dev| setup::run(*dev)) {
         Ok(d) => d,
@@ -61,5 +60,5 @@ pub unsafe extern "C" fn _start() -> ! {
     };
     serve::run(&mut driver.net);
     driver.release();
-    mk_exit(EXIT_CHANNEL_BROKEN);
+    mk_exit(exit::CHANNEL_BROKEN);
 }

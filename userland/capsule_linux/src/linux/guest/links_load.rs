@@ -20,7 +20,8 @@ use crate::linux::file::{key, store_read, visible};
 
 use super::links::Links;
 
-const MAX_TABLE: u32 = 64 << 10;
+/// As much as the installer may write (install/place_links/table.rs).
+const MAX_TABLE: u32 = 1 << 20;
 
 impl Links {
     /// Where the image lists its links.
