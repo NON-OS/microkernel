@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What a family may keep in its private directories. They live in the
-//! store every capsule shares, which holds 2048 names in all and keeps its
-//! bytes in one 192 MiB heap, so the quota is what keeps one guest from
-//! filling the store or running it out of memory. Held here: the ceilings
+//! store every capsule shares, which holds 8192 names, 2048 an owner, and
+//! its clients' bytes in no less than 160 MiB, so the quota is what keeps
+//! one guest from filling the store or running it out of memory. Held here: the ceilings
 //! are ones the store can carry, a family is refused past either with
 //! ENOSPC however it gets there, a family over the quota can still shrink,
 //! and the copies it writes into, held in this capsule's memory until they
@@ -27,5 +27,6 @@ mod ceiling;
 mod growth;
 mod home;
 mod home_key;
+mod mime;
 mod one_file;
 mod open;
