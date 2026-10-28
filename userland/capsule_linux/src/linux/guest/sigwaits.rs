@@ -42,7 +42,7 @@ pub enum Which {
     Group(u32),
 }
 
-/// A thread in wait4 or waitid, and where its answer goes.
+/// A thread in wait4 or waitid, and where its answer goes; `eagain` for an O_NONBLOCK pidfd.
 #[derive(Clone, Copy)]
 pub struct ChildWait {
     pub tid: u32,
@@ -52,6 +52,7 @@ pub struct ChildWait {
     pub out: u64,
     pub rusage: u64,
     pub waitid: bool,
+    pub eagain: bool,
 }
 
 /// Who a signal leaving this process is for.
