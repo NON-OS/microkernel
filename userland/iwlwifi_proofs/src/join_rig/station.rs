@@ -16,13 +16,14 @@
 
 //! The station side: its join state and a firmware handle over the rig.
 
+use super::gen2;
 use super::*;
 use crate::gen3::bringup::boot;
 use crate::gen3::dev::Dev;
 use crate::gen3::dram_map::classify;
 use crate::gen3::join::fw::Fw;
 use crate::gen3::join::inbox::{Inbox, Queues};
-use crate::gen3::layout::{Board, Memory};
+use crate::gen3::layout::Memory;
 use crate::gen3::txq::{TxQueue, TXQ_STRIDE};
 use crate::gen3::ucode::Ucode;
 use crate::gen3_model::{Mem, Model, Polls};
@@ -35,20 +36,28 @@ pub struct Station {
 
 impl Station {
     pub fn new() -> Self {
-        Self { q: Queues { mgmt: TxQueue::new(0), data: TxQueue::new(TXQ_STRIDE) }, inbox: Inbox::new() }
+        Self {
+            q: Queues { mgmt: TxQueue::new(0), data: TxQueue::new(TXQ_STRIDE) },
+            inbox: Inbox::new(),
+        }
     }
 }
 
 /// Boot the rig to ALIVE and run `f` with the firmware the join drives.
 pub fn with_fw(r: &Rig, st: &mut Station, f: impl FnOnce(&mut Fw<'_, '_, Model, Mem, Polls>)) {
-    let ucode = Ucode::parse(SO_GF).unwrap();
-    let layout = classify(SO_GF);
+    let (blob, csr, board) = gen2::part(r);
+    let ucode = Ucode::parse_for(blob, csr).unwrap();
+    let layout = classify(blob);
     let fw: Vec<&Mem> = r.fw_regions.iter().map(|m| m.as_ref()).collect();
     let mem = Memory { ctrl: r.model.ctrl.as_ref(), rbs: r.model.rbs.as_ref(), fw: &fw };
-    let mut dev = Dev::new(&r.model, r.model.ctrl.as_ref(), r.model.rbs.as_ref());
+    let mut dev = Dev::new(&r.model, r.model.ctrl.as_ref(), r.model.rbs.as_ref()).with_csr(csr);
+    if r.gen2 {
+        st.q = Queues::fresh(csr);
+    }
     let mut c = Polls { per_wait: 64, delays_us: 0 };
-    boot(&mut dev, &mut c, &mem, &layout, &ucode, &Board { hw_rev: 0x370, imr_enabled: false, rf_id: 0x10D000, pnvm: None }).expect("alive");
+    boot(&mut dev, &mut c, &mem, &layout, &ucode, &board).expect("alive");
     r.model.s.borrow_mut().commands.clear();
-    let mut fw = Fw { dev: &mut dev, tx: r.tx.as_ref(), clock: &mut c, q: &mut st.q, inbox: &mut st.inbox };
+    let mut fw =
+        Fw { dev: &mut dev, tx: r.tx.as_ref(), clock: &mut c, q: &mut st.q, inbox: &mut st.inbox };
     f(&mut fw);
 }

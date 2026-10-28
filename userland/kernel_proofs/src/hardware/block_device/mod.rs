@@ -23,8 +23,15 @@ mod pass;
 #[path = "../../../../../src/hardware/block_device/wait_since.rs"]
 mod wait_since;
 
+// What a pass's end does with a NONOS disk that is not the boot disk.
+#[cfg(test)]
+#[path = "../../../../../src/hardware/block_device/other_disk.rs"]
+mod other_disk;
+
 pub use error::BlockDeviceError;
 
+#[cfg(test)]
+mod other_disk_tests;
 #[cfg(test)]
 mod pass_tests;
 

@@ -6,11 +6,16 @@
 use crate::driver_ids::has_driver;
 
 /* Settings says a chip with no NONOS driver plainly instead of waiting on a
-driver that will never answer: the inventory spawns iwlwifi for Intel wireless
-and the RTL8821CE driver for 10ec:c821, and nothing else. */
+driver that will never answer: the inventory spawns iwlwifi for Intel wireless,
+the RTL8821CE driver for 10ec:b821 and 10ec:c821, the RTL8822CE driver for
+10ec:c822 and 10ec:c82f, the MediaTek driver for the MT7921/MT7922 ids, the
+RTL8852BE driver for 10ec:b852 and 10ec:b85b, and nothing else. */
 #[test]
 fn only_the_chips_a_driver_is_spawned_for_have_one() {
     assert!(has_driver(0x10EC, 0xC821));
+    assert!(has_driver(0x10EC, 0xB821), "rtw88 binds both RTL8821CE ids");
+    assert!(has_driver(0x10EC, 0xC822) && has_driver(0x10EC, 0xC82F), "and both RTL8822CE");
+    assert!(has_driver(0x10EC, 0xB852) && has_driver(0x10EC, 0xB85B), "and both RTL8852BE");
     for intel in [0x095A, 0x24FD, 0x2526, 0x9DF0, 0x2723, 0x06F0, 0x2725, 0x51F0, 0x7AF0, 0x7F70] {
         assert!(has_driver(0x8086, intel), "{intel:#x}");
     }
@@ -23,15 +28,19 @@ fn only_the_chips_a_driver_is_spawned_for_have_one() {
     for intel in [0x24F7, 0x24F8, 0x24F9, 0x24FA, 0x24FC] {
         assert!(!has_driver(0x8086, intel), "{intel:#x}");
     }
-    // MediaTek MT7921/MT7922, Broadcom, Qualcomm ath10k/ath11k, RTL8822CE/BE.
+    for (v, d) in [(0x14C3, 0x7961), (0x14C3, 0x7922), (0x0B48, 0x7922), (0x14C3, 0x0616)] {
+        assert!(has_driver(v, d), "{v:#x}:{d:#x}");
+    }
+    // MediaTek MT7915/MT7925, Broadcom, Qualcomm ath10k/ath11k, RTL8822BE, RTL8852AE/CE.
     for (v, d) in [
-        (0x14C3, 0x7961),
-        (0x14C3, 0x0616),
+        (0x14C3, 0x7915),
+        (0x14C3, 0x7925),
         (0x14E4, 0x43A0),
         (0x168C, 0x003E),
         (0x17CB, 0x1103),
-        (0x10EC, 0xC822),
         (0x10EC, 0xB822),
+        (0x10EC, 0x8852),
+        (0x10EC, 0xC852),
     ] {
         assert!(!has_driver(v, d), "{v:#x}:{d:#x}");
     }

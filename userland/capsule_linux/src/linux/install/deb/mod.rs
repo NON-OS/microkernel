@@ -24,9 +24,12 @@ mod find;
 mod index;
 mod keyring;
 pub(in crate::linux::install) mod merged_usr;
+mod needs;
 mod packages;
+mod pinned;
 mod release;
 mod run;
 mod source;
 
+pub use needs::install_needs;
 pub use run::install;

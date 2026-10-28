@@ -18,7 +18,6 @@
 
 use super::super::bringup::BootError;
 use super::super::layout::LayoutError;
-use super::super::select::Refusal;
 use super::super::up::UpError;
 use super::kinds::Failure;
 use super::master::MasterError;
@@ -38,14 +37,7 @@ impl Failure {
             Failure::Start(e) => start_code(e),
             Failure::Master(MasterError::NotStopped) => 1,
             Failure::Master(MasterError::Refused) => 2,
-            Failure::Refused(r) => match r {
-                Refusal::NotSoDevice(id) => 0x1_0000 | u32::from(id),
-                Refusal::MacNotBundled(mac) => 0x2_0000 | u32::from(mac),
-                Refusal::RfNotBundled(rf) => 0x3_0000 | u32::from(rf),
-                Refusal::CdbNotBundled => 0x4_0000,
-                Refusal::MacStepNotBundled(step) => 0x5_0000 | u32::from(step),
-                Refusal::ImageNotBundled(image) => 0x6_0000 | image as u32,
-            },
+            Failure::Refused(r) => r.code(),
             Failure::Boot(b) => match b {
                 BootError::Start(e) => 0x10 | start_code(e),
                 BootError::Layout(LayoutError::Plan) => 0x21,

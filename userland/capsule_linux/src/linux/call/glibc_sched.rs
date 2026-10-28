@@ -19,6 +19,10 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
+#[path = "robust.rs"]
+mod robust;
+pub use robust::get_robust_list;
+
 /*
  * One CPU, unless the family is a shipped tier, which is told the CPUs the
  * machine has online (file::machine). The core count is otherwise a

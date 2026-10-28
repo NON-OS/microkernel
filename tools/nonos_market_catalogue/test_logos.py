@@ -13,11 +13,10 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""The logos the tree commits agree with the record, the lock and the
-documents (logos.py): a recipe names a logo only where its row allows it,
-its source hashes to G, its raster to R, and its document signs R; a recipe
-without one has "" for both, a zero logo_hash and no raster. Each rule also
-refuses on its own, on a tree made here. Run:
+"""The logos the tree commits agree with the record, the Alpine and sources locks and the
+documents (logos.py): a recipe names a logo only where its row allows it, its source hashes
+to G, its raster to R, and its document signs R; a recipe without one has "" for both, a zero
+logo_hash and no raster. Each rule also refuses on its own, on a tree made here. Run:
 python3 -m unittest discover -s tools/nonos_market_catalogue -t tools"""
 
 import json
@@ -27,7 +26,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from . import logos
+from . import logos, source_asset, source_lock
 from .digest import blake3
 from .lock_file import read
 from .recipes import checked
@@ -35,7 +34,8 @@ from .recipes_file import load
 
 ROOT = Path(__file__).resolve().parents[2]
 RECIPES = load(ROOT / "userland/capsule_market/linux-catalogue.json", ROOT)
-PINS = read(ROOT / "userland/capsule_market/linux-catalogue.lock.json")
+PINS = {**read(ROOT / "userland/capsule_market/linux-catalogue.lock.json"),
+        **source_lock.read(ROOT / "userland/capsule_market/linux-catalogue.sources.lock.json")}
 RULED = f"UNCLEAR; {logos.RULING}"
 RECORD = "\n".join(("# r", "## Table", "| App | a | b | c | Verdict |", "|---|---|---|---|---|",
                     "| c | y | y | y | CLEAR, with conditions |", "| u | y | y | y | UNCLEAR |",
@@ -44,8 +44,9 @@ RECORD = "\n".join(("# r", "## Table", "| App | a | b | c | Verdict |", "|---|--
 BASE = {"licence": "MIT", "mask": "TTY", "name": "X", "text": "x", "logo": "l.svg"}
 
 
-def document(package):
-    (e,) = json.loads((ROOT / f"nonos-data/market/catalogue/linux.{package}.json").read_text())["entries"]
+def document(r):  # a source recipe's listing is named by source_asset.py's naming
+    lid = source_asset.naming(r, "nonos-" + r["package"])[0] if r.get("kind") else "linux." + r["package"]
+    (e,) = json.loads((ROOT / f"nonos-data/market/catalogue/{lid}.json").read_text())["entries"]
     return e
 
 
@@ -55,14 +56,14 @@ class Committed(unittest.TestCase):
         for r in RECIPES:
             n, pin, at = r["package"], PINS[r["package"]], logos.raster_of(ROOT, r["package"])
             if not r.get("logo"):
-                self.assertEqual((pin["G"], pin["R"], document(n)["logo_hash"]), ("", "", ""), n)
+                self.assertEqual((pin["G"], pin["R"], document(r)["logo_hash"]), ("", "", ""), n)
                 self.assertFalse(at.exists(), n)
                 continue
             self.assertTrue(logos.may_show(rows[n]), n)
             raster = at.read_bytes()
             self.assertEqual(blake3((ROOT / r["logo"]).read_bytes()), pin["G"], n)
             self.assertEqual(blake3(raster), pin["R"], n)
-            self.assertEqual(document(n)["logo_hash"], pin["R"], n)
+            self.assertEqual(document(r)["logo_hash"], pin["R"], n)
             side = math.isqrt(len(raster) // 4)
             self.assertTrue(len(raster) == 4 * side * side and 0 < side <= logos.OWN_MAX, n)
 
@@ -105,10 +106,9 @@ class Rules(unittest.TestCase):
             self.assertEqual(logos.digests({"package": "y"}, root), ("", ""))
             logos.raster_of(root, "y").parent.mkdir(parents=True)
             logos.raster_of(root, "y").write_bytes(bytes(16))
-            with self.assertRaises(ValueError):
-                logos.digests({"package": "y"}, root)
-            with self.assertRaises(ValueError):
-                logos.digests({"package": "x", "logo": "x.svg"}, root)
+            for bad in ({"package": "y"}, {"package": "x", "logo": "x.svg"}):
+                with self.assertRaises(ValueError, msg=bad):
+                    logos.digests(bad, root)
 
 
 if __name__ == "__main__":

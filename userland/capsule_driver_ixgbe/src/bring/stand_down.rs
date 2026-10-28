@@ -18,15 +18,23 @@
 //! nothing. A step that fails after a queue was enabled would otherwise leave
 //! it able to DMA into ring memory the broker is about to hand to someone
 //! else. Both queues are disabled, both engines stopped, every cause masked,
-//! and bus mastering asked to stop.
+//! and bus mastering asked to stop, then waited on.
 
 use crate::bring::quiet::mask_all;
-use crate::facts::mac::{CTRL_GIO_DIS, DMATXCTL_TE, RXCTRL_RXEN};
+use crate::facts::mac::{CTRL_GIO_DIS, DMATXCTL_TE, RXCTRL_RXEN, STATUS_GIO};
 use crate::facts::regs::REG_TXDCTL;
 use crate::facts::regs::{REG_CTRL, REG_DMATXCTL, REG_RXCTRL, REG_RXDCTL, REG_STATUS};
 use crate::regs::Regs;
 
-pub fn run(regs: &Regs) {
+use super::wait::until;
+
+/// How long the master gets to finish, as Linux's ixgbe_disable_pcie_master
+/// allows (IXGBE_PCI_MASTER_DISABLE_TIMEOUT, 800 x 100 us).
+pub const MASTER_STOP_MS: u64 = 80;
+
+/// Whether the part's bus master stopped within MASTER_STOP_MS; the
+/// grants go back only after that.
+pub fn run(regs: &Regs) -> bool {
     // SAFETY: `regs` carries a valid broker MmioMap base for BAR0 and every
     // offset is a 32-bit register inside it (facts::regs).
     unsafe {
@@ -39,6 +47,7 @@ pub fn run(regs: &Regs) {
         mask_all(regs);
         let ctrl = regs.r32(REG_CTRL);
         regs.w32(REG_CTRL, ctrl | CTRL_GIO_DIS);
-        let _ = regs.r32(REG_STATUS);
     }
+    // SAFETY: as above; STATUS is a 32-bit register in BAR0.
+    until(MASTER_STOP_MS, || unsafe { regs.r32(REG_STATUS) } & STATUS_GIO == 0)
 }
