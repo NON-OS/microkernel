@@ -48,6 +48,7 @@ impl Index {
                 Some(b'C') => cur.checksum = super::auth::checksum(rest),
                 Some(b'P') => cur.name = String::from(rest),
                 Some(b'S') => cur.size = rest.parse().unwrap_or(0),
+                Some(b'I') => cur.installed = rest.parse().unwrap_or(0),
                 Some(b'V') => cur.version = String::from(rest),
                 Some(b'D') => cur.read_depends(rest),
                 Some(b'i') => cur.read_install_if(rest),
