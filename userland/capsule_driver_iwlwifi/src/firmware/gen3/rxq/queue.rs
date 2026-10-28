@@ -2,10 +2,9 @@
 
 //! The queue's state, and its rings cleared, stocked and kicked.
 
+use super::super::csr::CsrLayout;
 use super::super::plan::{RB_STTS, RX_BUFS, RX_FREE, RX_FREE_DESC, RX_RING, RX_USED, RX_USED_DESC};
 use super::super::region::{zero, Region};
-use super::super::regs::RFH_Q0_FRBDCB_WIDX_TRG;
-use crate::regs::Mmio;
 
 /// `IWL_RX_CD_FLAGS_FRAGMENTED`: this buffer is part of a frame larger than
 /// one buffer. Such frames are dropped, as Linux does.
@@ -28,6 +27,8 @@ pub struct RxQueue {
     pub(super) write_actual: usize,
     pub(super) posted: [bool; RX_BUFS],
     pub(super) next_is_fragment: bool,
+    /// The family's layout: the used-ring entry and the free index doorbell.
+    pub csr: CsrLayout,
 }
 
 impl Default for RxQueue {
@@ -38,13 +39,21 @@ impl Default for RxQueue {
 
 impl RxQueue {
     pub const fn new() -> Self {
-        Self { read: 0, write: 0, write_actual: 0, posted: [false; RX_BUFS], next_is_fragment: false }
+        let posted = [false; RX_BUFS];
+        Self {
+            read: 0,
+            write: 0,
+            write_actual: 0,
+            posted,
+            next_is_fragment: false,
+            csr: CsrLayout::V1,
+        }
     }
 
     /// Clear the status word and both rings and post every buffer on the free
     /// ring. The device is not told until [`RxQueue::kick`].
     pub fn init<R: Region + ?Sized>(&mut self, ctrl: &R, rbs: &R) -> bool {
-        *self = Self::new();
+        *self = Self { csr: self.csr, ..Self::new() };
         if !zero(ctrl, RB_STTS, 2)
             || !zero(ctrl, RX_FREE, RX_RING * RX_FREE_DESC)
             || !zero(ctrl, RX_USED, RX_RING * RX_USED_DESC)
@@ -52,14 +61,5 @@ impl RxQueue {
             return false;
         }
         (1..=RX_BUFS as u16).all(|vid| self.post(ctrl, rbs, vid))
-    }
-
-    /// Tell the device how far the free ring is stocked (a multiple of eight).
-    pub fn kick<M: Mmio>(&mut self, m: &M) {
-        let actual = self.write & !7;
-        if actual != self.write_actual {
-            self.write_actual = actual;
-            m.write32(RFH_Q0_FRBDCB_WIDX_TRG, actual as u32);
-        }
     }
 }

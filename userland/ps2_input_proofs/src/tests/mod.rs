@@ -35,6 +35,7 @@ mod mouse_sync_tests;
 mod mouse_tests;
 mod packet_tests;
 mod pause_tests;
+mod polled_aux_tests;
 mod presence_tests;
 mod reinit_tests;
 mod sequence_fallback_tests;

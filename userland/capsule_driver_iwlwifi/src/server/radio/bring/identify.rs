@@ -14,14 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The card named: its register window checked, the NIC taken (which makes
-//! the RF id readable) and the firmware chosen by MAC and RF type.
+//! The card named: its register window checked, then in Linux v6.12's
+//! order (`iwl_pci_probe`, then `_iwl_trans_pcie_start_hw`) the CRF and RF
+//! ids read with the NIC awake from setup's wake (`select::probe`), the NIC
+//! taken and reset, and the firmware chosen by MAC and RF type.
 
 use crate::driver::Driver;
+use crate::firmware::gen3::csr::CsrLayout;
 use crate::firmware::gen3::outcome::Failure;
-use crate::firmware::gen3::regs::{CSR_HW_REV, CSR_HW_RF_ID, CSR_MSIX_HW_INT_MASK_AD};
+use crate::firmware::gen3::regs::{CSR_HW_REV, CSR_MSIX_HW_INT_MASK_AD};
+use crate::firmware::gen3::select::probe::probe;
 use crate::firmware::gen3::select::{select, transport, Image, Refusal, Transport};
-use crate::firmware::gen3::start::start_hw;
+use crate::firmware::gen3::start::gen2::start_hw_gen2;
+use crate::firmware::gen3::start::{start_hw, StartError};
 
 use super::super::clock::Uptime;
 use super::super::say::Line;
@@ -31,22 +36,29 @@ use super::seen::Seen;
 const WINDOW_MIN: u64 = (CSR_MSIX_HW_INT_MASK_AD + 4) as u64;
 
 pub(super) fn identify(d: &Driver, ids: &mut Seen) -> Result<(Image, Transport), Failure> {
-    // An adapter that is not an SO platform is left exactly as setup left it.
-    if transport(d.pci_device).is_none() {
+    // An adapter without a platform here is left exactly as setup left it.
+    let Some(t) = transport(d.pci_device) else {
         return Err(Failure::Refused(Refusal::NotSoDevice(d.pci_device)));
-    }
+    };
     if d.mmio_len < WINDOW_MIN {
         return Err(Failure::Window);
     }
     ids.touched = true;
     let m = d.regs;
     let mut c = Uptime;
-    ids.hw_rev = m.read32(CSR_HW_REV);
-    if ids.hw_rev == u32::MAX {
+    let hw_rev = m.read32(CSR_HW_REV);
+    if hw_rev == u32::MAX {
         return Err(Failure::DeadMmio);
     }
-    start_hw(&m, &mut c).map_err(Failure::Start)?;
-    ids.rf_id = m.read32(CSR_HW_RF_ID);
+    let named = probe(&m, &mut c, t.csr, hw_rev);
+    let woke = match t.csr {
+        CsrLayout::Gen2 => start_hw_gen2(&m, &mut c, t.integrated, !t.integrated),
+        CsrLayout::V1 | CsrLayout::V2 => start_hw(&m, &mut c, t.csr),
+    };
+    // A NIC that was never taken says so from the start; one taken that
+    // would not wake for the probe's reads fails as Linux's probe does.
+    woke.map_err(Failure::Start)?;
+    (ids.hw_rev, ids.rf_id) = named.ok_or(Failure::Start(StartError::NoNicAccess))?;
     Line::new().text(b"pci ").hex(u32::from(d.pci_device)).send();
 
     select(d.pci_device, ids.hw_rev, ids.rf_id).map_err(Failure::Refused)

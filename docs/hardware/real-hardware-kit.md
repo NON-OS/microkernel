@@ -32,10 +32,9 @@ with it off. That second boot is the no-IOMMU posture: the boot log must carry
 3. A second stick, or the same one rewritten, with `make dev-image PROFILE=hardened` for one
    boot per machine with the IOMMU off: it must refuse device claims and say so.
 4. The development image seals every capsule with throwaway keys, so it carries e1000e,
-   igb and the hub driver, which a sealed Standard image cannot until the release seals them.
-   For an I225/I226 board (machine 4), igc is wired but not listed: before step 1 set
-   `features = ["nonos-capsule-driver-igc"]` in `nonos.toml`, and put it back afterwards.
-   Never seal such an image for use.
+   igb, igc and the hub driver, which a sealed Standard image cannot until the release seals
+   them. Never seal such an image for use. The four reference machines have one-page plans
+   in [Bring-up plans](bring-up/README.md).
 
 ## On each machine
 

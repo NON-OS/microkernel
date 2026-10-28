@@ -17,8 +17,8 @@
 //! The link context: which PHY the station's one link runs on, whether it
 //! is active, and the BSS's rates and timing.
 //!
-//! `struct iwl_link_config_cmd` (fw/api/mac-cfg.h),
-//! LINK_CONTEXT_CONFIG_CMD_API_S_VER_1, 208 bytes: `action` 0, `link_id` 4,
+//! `struct iwl_link_config_cmd` (fw/api/mac-cfg.h), LINK_CONTEXT_CONFIG_CMD
+//! _API_S_VER_1 and _VER_2, 208 bytes: `action` 0, `link_id` 4,
 //! `mac_id` 8, `phy_id` 12, `local_link_addr` 16, `modify_mask` 24, `active`
 //! 28, `listen_lmac` 32, `cck_rates` 36, `ofdm_rates` 40,
 //! `cck_short_preamble` 44, `short_slot` 48, `protection_flags` 52,
@@ -32,8 +32,8 @@
 //! (`FW_CTXT_INVALID`); a change names the PHY, the link's state, the ACK
 //! rates (`iwl_mvm_set_fw_basic_rates`), the ERP preamble and slot, and the
 //! beacon interval and DTIM interval (`bi * dtim_period`), and `modify_mask`
-//! says which of them the firmware is to take. `listen_lmac` stays 0 (this
-//! firmware does not list the command, so version 1). A legacy, non-QoS
+//! says which of them the firmware is to take. `listen_lmac` stays 0 (v2: a
+//! reserved byte, `iwl_mvm_add_link` sets it only below v2). A legacy, non-QoS
 //! association sets no protection, QoS or HE fields: Linux sends
 //! `LINK_CONTEXT_MODIFY_QOS_PARAMS` only for a QoS BSS and the HE parameters
 //! only for an HE one.
@@ -48,8 +48,7 @@ pub const MAC_ID: u32 = 0;
 /// `FW_CTXT_INVALID`: no PHY.
 pub const CTXT_INVALID: u32 = 0xFFFF_FFFF;
 
-/// `LINK_CONTEXT_MODIFY_ACTIVE` and `LINK_CONTEXT_MODIFY_RATES_INFO`.
-pub const MODIFY_ACTIVE: u32 = 1 << 0;
+pub const MODIFY_ACTIVE: u32 = 1 << 0; // LINK_CONTEXT_MODIFY_ACTIVE, _RATES_INFO
 pub const MODIFY_RATES_INFO: u32 = 1 << 1;
 
 /// What one link command says.

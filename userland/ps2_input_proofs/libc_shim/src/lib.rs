@@ -31,8 +31,8 @@ mod time;
 
 pub use broker::{
     acked, mk_device_claim, mk_device_list, mk_device_release, mk_irq_ack, mk_irq_bind,
-    mk_irq_poll, mk_pio_grant, present, released, DeviceRecord, IrqBindOut, IrqPollOut,
-    PioGrantOut, BUS_KIND_ACPI, PIO_GRANT,
+    mk_irq_poll, mk_pio_grant, present, refuse_lines, released, DeviceRecord, IrqBindOut,
+    IrqPollOut, PioGrantOut, BUS_KIND_ACPI, PIO_GRANT,
 };
 pub use debug::{mk_debug, take_debug};
 pub use input::{

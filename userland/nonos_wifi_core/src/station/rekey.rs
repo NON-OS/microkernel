@@ -27,7 +27,9 @@ impl LinkStation {
     /// hardware takes it from the driver (`Rx::Handshake::pairwise_key`).
     pub(super) fn set_pairwise_key(&mut self, tk: &[u8]) {
         match &mut self.ccmp {
-            Ccmp::Software { tk: old } | Ccmp::SoftwareTxHwRx { tk: old } => {
+            Ccmp::Software { tk: old }
+            | Ccmp::SoftwareTxHwRx { tk: old }
+            | Ccmp::Offload { tk: old, .. } => {
                 if let Ok(k) = tk.try_into() {
                     *old = k;
                 }
