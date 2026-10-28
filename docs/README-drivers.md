@@ -40,12 +40,17 @@ Part of [NONOS documentation](README.md).
   and where its events go.
 - [USB hubs](drivers/usb/hubs.md): a hub comes up, and the devices behind it are
   not reached yet.
-- [Wi-Fi drivers](drivers/wifi/README.md): the two Wi-Fi drivers, a scan and a
+- [Wi-Fi drivers](drivers/wifi/README.md): the three Wi-Fi drivers, a scan and a
   join from Settings to the radio, and what is refused.
 - [Realtek RTL8821CE](drivers/wifi/rtl8821ce.md): the 2.4 GHz driver that scans,
   joins WPA2 and WPA3 networks and carries traffic.
 - [Intel Wi-Fi (iwlwifi)](drivers/wifi/iwlwifi.md): the Intel cards it finds,
   and the few it can join on, so far only against a modelled device.
+- [Realtek RTL8852BE](drivers/wifi/rtl8852be.md): the Wi-Fi 6 card run as a 20 MHz
+  station, so far only against a modelled chip.
+- [MediaTek MT7921 and MT7922](drivers/wifi/mt7921.md): the RZ608 and RZ616
+  cards, their firmware package on the boot medium, so far only against a
+  modelled chip.
 - [Wi-Fi chips with no driver](drivers/wifi/not-supported.md): how to tell
   whether your chip has a driver, and what to use instead.
 - [Ethernet drivers](drivers/ethernet/README.md): every Ethernet driver, which

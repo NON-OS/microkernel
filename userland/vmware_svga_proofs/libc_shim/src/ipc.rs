@@ -39,6 +39,11 @@ pub fn mk_debug(_buf: *const u8, len: usize) -> i64 {
     len as i64
 }
 
+/// The host has no scheduler to give the core to.
+pub fn mk_yield() -> i64 {
+    0
+}
+
 pub struct Deadline {
     end: Instant,
 }

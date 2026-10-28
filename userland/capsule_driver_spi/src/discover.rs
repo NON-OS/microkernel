@@ -13,19 +13,19 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The functions that could be an LPSS SPI host: Intel, of the classes the
-//! LPSS functions carry (serial bus or signal processing, subclass other),
-//! with a memory BAR 0 large enough for the private block. Which of them is
-//! SPI is proved after the claim, by the LPSS capabilities register, and
-//! the functions driver.i2c_pci0 lists as I2C are never tried; the
-//! firmware's flash controller is refused by the broker before that, by
-//! where it sits, so it is never claimed here (broker/firmware_flash.rs).
+//! The functions that could be an LPSS SPI host: an id on the SPI list
+//! (ids.rs), of the classes the LPSS functions carry (serial bus or signal
+//! processing, subclass other), with a memory BAR 0 large enough for the
+//! private block. No other function of those classes is claimed. That one
+//! is SPI is proved again after the claim, by the LPSS capabilities
+//! register; the functions driver.i2c_pci0 lists as I2C are never tried.
+//! The firmware's flash controller is refused by the broker before that,
+//! by where it sits, so it is never claimed here (broker/firmware_flash.rs).
 
 use alloc::vec::Vec;
 
 use nonos_libc::{mk_device_list, DeviceRecord, BAR_KIND_MMIO};
 
-const INTEL: u16 = 0x8086;
 const CLASSES: [(u8, u8); 2] = [(0x0C, 0x80), (0x11, 0x80)];
 /// The private block ends at 0x300; LPSS BARs are 4 KiB.
 const BAR_MIN: u64 = 0x1000;
@@ -52,7 +52,7 @@ pub fn candidates() -> Option<Vec<Found>> {
 
 pub fn is_candidate(r: &DeviceRecord) -> bool {
     let bar = r.bars[0];
-    r.vendor == INTEL
+    crate::ids::spi_host(r.vendor, r.device)
         && crate::i2c_ids::device_info(r.device).is_none()
         && CLASSES.contains(&(r.pci_class, r.pci_subclass))
         && r.bar_count > 0
