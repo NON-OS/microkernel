@@ -50,4 +50,6 @@ pub enum Kind {
     Signal,
     /// One side of a pseudo-terminal this capsule holds (linux::pty).
     Pty,
+    /// A pidfd: the one process a clone's CLONE_PIDFD named (call::pidfd).
+    Pidfd,
 }
