@@ -22,7 +22,7 @@ from .keccak import keccak256
 MAGIC, VERSION, LEN, SET_LEN = b"NLXPOL01", 1, 256, 65
 MASK = {"WAYLAND": 1 << 0, "NET_ANON": 1 << 1, "NET_LISTEN_LO": 1 << 2,
         "FILES_HOME": 1 << 3, "FILES_USER": 1 << 4, "MODELS_RO": 1 << 5,
-        "EXEC": 1 << 6, "JIT": 1 << 7, "TTY": 1 << 8}
+        "EXEC": 1 << 6, "JIT": 1 << 7, "TTY": 1 << 8, "SERVE_ONE": 1 << 9}
 ALWAYS_SERVED, NATIVE_BUCKET = (60, 231), 512
 
 
@@ -58,6 +58,8 @@ def encode(program: bytes, mask: int, listing: bytes, release: bytes,
         raise ValueError("calls is not a 65-byte set of buckets 0 to 512")
     if mask & MASK["FILES_USER"]:
         raise ValueError("FILES_USER is reserved: nothing serves the person's files yet")
+    if mask & MASK["SERVE_ONE"]:
+        raise ValueError("SERVE_ONE needs version 2's port and name, which this tool does not write yet")
     if not market_ready(calls, mask):
         raise ValueError("calls must name exit (60) and exit_group (231) and leave bucket 512 clear")
     for name, field in (("program", program), ("listing", listing), ("release", release), ("dests", dests_hash)):

@@ -64,6 +64,11 @@ class Policy(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "FILES_USER is reserved"):
             encode(bytes(32), MASK["FILES_USER"] | MASK["TTY"], bytes(32), bytes(32), bytes(32), calls)
 
+    def test_serve_one_is_not_written_without_its_field(self):
+        with self.assertRaisesRegex(ValueError, "SERVE_ONE needs version 2"):
+            encode(bytes(32), MASK["SERVE_ONE"] | MASK["NET_ANON"], bytes(32), bytes(32), bytes(32),
+                   bytes.fromhex(CALLS))
+
 
 if __name__ == "__main__":
     unittest.main()
