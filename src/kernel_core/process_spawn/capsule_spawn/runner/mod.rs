@@ -25,7 +25,9 @@ mod publisher_gate;
 mod secret_log;
 mod tier;
 mod verified;
+mod verified_argv;
 
 pub(crate) use tier::{classify as classify_tier, Tier};
 pub use verified::spawn_verified;
 pub(crate) use verified::spawn_verified_as;
+pub use verified_argv::spawn_verified_with_argv;

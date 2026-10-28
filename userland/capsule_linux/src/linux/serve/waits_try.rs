@@ -31,7 +31,7 @@ pub fn may_wait(guest: &Guest, nr: u64, fd: u64) -> bool {
         return false;
     }
     match guest.fds.get(fd as usize).map(|f| f.kind) {
-        Some(Kind::Event | Kind::Pipe) => nr != np::SENDFILE,
+        Some(Kind::Event | Kind::Pipe | Kind::Pty) => nr != np::SENDFILE,
         Some(Kind::Timer | Kind::Stdin) => reads,
         Some(Kind::Stdout | Kind::Stderr) => !reads,
         _ => false,
