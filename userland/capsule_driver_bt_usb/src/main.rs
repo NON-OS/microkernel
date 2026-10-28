@@ -30,6 +30,7 @@ mod nbtc;
 mod ring;
 mod run;
 mod usb;
+mod vendor;
 
 use nonos_libc::{heap_init, mk_exit};
 
