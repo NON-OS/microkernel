@@ -31,7 +31,7 @@ impl Session {
             let plain = deauth_frame(self.station.mac(), self.bssid, 0, REASON_LEAVING);
             let frame = if self.pmf { self.station.protect_mgmt(&plain) } else { Some(plain) };
             if let Some(f) = frame {
-                r.send(&f);
+                self.put(r, &f);
             }
         }
         self.station.deassociate();

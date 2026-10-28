@@ -23,6 +23,7 @@
 
 extern crate alloc;
 
+mod alt;
 mod batch;
 mod begin;
 mod bind;

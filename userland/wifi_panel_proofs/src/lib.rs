@@ -14,10 +14,20 @@ pub use wifi::{join_wire, network};
 pub mod fw_step;
 #[cfg(test)]
 mod fw_step_tests;
+#[path = "../../nonos_wifi_client/src/driver/intel_step.rs"]
+pub mod intel_step;
+#[cfg(test)]
+mod intel_stop_tests;
 #[path = "../../nonos_wifi_client/src/driver/reply.rs"]
 pub mod reply;
 #[cfg(test)]
 mod reply_tests;
+#[path = "../../nonos_wifi_client/src/driver/stop.rs"]
+pub mod stop;
+#[cfg(test)]
+mod stop_tests;
+#[path = "../../nonos_wifi_client/src/driver/stop_words.rs"]
+mod stop_words;
 #[path = "../../nonos_wifi_client/src/wipe.rs"]
 pub mod wipe;
 

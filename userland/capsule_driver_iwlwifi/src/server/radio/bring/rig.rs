@@ -41,7 +41,7 @@ pub struct Rig {
 /// Boot the firmware to ALIVE in the rig's regions, on fresh queues (the
 /// boot lays the control region out again).
 pub fn boot_rig(rig: &'static Rig) -> Result<Dev<'static, Regs, Grant>, Failure> {
-    let mut dev = Dev::new(rig.regs, rig.mem.ctrl, rig.mem.rbs);
+    let mut dev = Dev::new(rig.regs, rig.mem.ctrl, rig.mem.rbs).with_csr(rig.transport.csr);
     boot_alive(&mut dev, &rig.mem, &rig.fw, &rig.ucode, &rig.board)?;
     Ok(dev)
 }

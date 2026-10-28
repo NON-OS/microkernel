@@ -24,7 +24,7 @@ use super::claim::Claim;
 use super::discover::Found;
 use super::handoff::handoff;
 use super::pci;
-use crate::env::Regs;
+use crate::env::{Mem, Regs};
 use crate::facts::pci::{register_grant, MMIO_BAR};
 use crate::facts::regs::{HCCPARAMS, HCC_EECP_SHIFT};
 use crate::hc::start::start;
@@ -58,5 +58,6 @@ pub fn run(dev: Found) -> Result<Driver, &'static str> {
     handoff(&claim, (registers.r32(HCCPARAMS) >> HCC_EECP_SHIFT) & 0xFF)?;
     let mut cx = Ctx::new(registers, Uptime, region);
     (cx.table.op, cx.table.ports) = start(&mut cx.io, &cx.clock, &cx.mem)?;
+    cx.mem.fault().map_err(|_| "ehci: the schedule reached outside its region")?;
     Ok(Driver { cx, found: dev, claim })
 }

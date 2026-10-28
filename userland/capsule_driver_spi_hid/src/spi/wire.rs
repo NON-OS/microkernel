@@ -32,6 +32,7 @@ pub const OP_TRANSFER: u16 = 4;
 pub const OP_DOORBELL: u16 = 5;
 /// spi0's most bytes one transfer moves, both ways at once.
 pub const TRANSFER_MAX: usize = 4000;
+const _: () = assert!(TRANSFER_MAX == nonos_spi_hid::TRANSFER_MAX);
 /// The wire's I/O error: a call that brought no reply, or not one.
 pub const E_IO: i32 = -5;
 /// A whole transfer is bounded at 100 ms in spi0; the call waits longer.

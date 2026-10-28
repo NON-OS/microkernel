@@ -34,8 +34,9 @@ const PCI_PROGIF_XHCI: u8 = 0x30;
 /// Every usable xHCI controller, the chipset's ahead of any Thunderbolt one,
 /// otherwise in the order the bus lists them.
 pub fn find_all_xhci() -> Vec<Found> {
+    // The xHCI class only: a list of every class lost those past MAX_DEVICES.
     let mut buf = [DeviceRecord::empty(); MAX_DEVICES];
-    let n = mk_device_list(0, buf.as_mut_ptr(), MAX_DEVICES as u64);
+    let n = mk_device_list(CLASS_USB_HOST_XHCI, buf.as_mut_ptr(), MAX_DEVICES as u64);
     if n <= 0 {
         return Vec::new();
     }

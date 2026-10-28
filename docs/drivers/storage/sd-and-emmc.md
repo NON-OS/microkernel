@@ -27,7 +27,7 @@ flowchart TD
     Hosts -->|none| Retry[the attempt fails and is retried]
 ```
 
-The capsule tries the hosts in discovery order, Intel eMMC ones first, and serves the first whose card comes up, naming the part on the console (`driver.emmc: serving <maker> <product>, serial <8 hex digits>, OCR 0x...`). When none gives a disk, the attempt fails and is retried on the shared schedule (`userland/capsule_driver_sdhci/src/served/bring_up.rs`, `bring_up`). The kernel block layer reaches the disk through its block wire client, asked right after SATA (`src/hardware/block_device/wire/`, `Backend::Wire`). The installer's disk list, `nonos_blk_client`, still looks for eMMC behind `driver.ahci0`; until it speaks the block wire it does not list the eMMC disk.
+The capsule tries the hosts in discovery order, Intel eMMC ones first, and serves the first whose card comes up, naming the part on the console (`driver.emmc: serving <maker> <product>, OCR 0x...`); the card's serial number stays out of the boot log and goes only to the identify reply, which StoreWrite gates. When none gives a disk, the attempt fails and is retried on the shared schedule (`userland/capsule_driver_sdhci/src/served/bring_up.rs`, `bring_up`). The kernel block layer reaches the disk through its block wire client, asked right after SATA (`src/hardware/block_device/wire/`, `Backend::Wire`). The installer's disk list, `nonos_blk_client`, still looks for eMMC behind `driver.ahci0`; until it speaks the block wire it does not list the eMMC disk.
 
 ### Which hosts
 
@@ -47,6 +47,7 @@ The host is driven as SDHCI 3.0 or 4.x and the card as JEDEC eMMC 5.1 (`userland
 - The bus is 8, 4 or 1 lines wide, 8 only on a host that offers it: the widest whose EXT_CSD reads back the same (`userland/capsule_driver_sdhci/src/emmc/mmc/speed/select.rs:27-35`, `widths`).
 - HS200, HS400 and DDR52 are not attempted. The first two need tuning (`userland/capsule_driver_sdhci/src/emmc/mmc/speed/mod.rs:17-23`, `mmc_select_timing`).
 - ADMA2 descriptors move the data. Completions are polled, and the INTx pin is turned off (`userland/capsule_driver_sdhci/src/emmc/platform/open/open_host.rs:40-57`, `MK_PCI_CMD_INTX_DISABLE`).
+- The descriptor table and the data buffer are each one broker DMA grant, used for the length asked and no more; a grant shorter than asked fails the open as a refused grant before Bus Master is turned on (`userland/capsule_driver_sdhci/src/emmc/platform/dma.rs`, `map`).
 - One request moves at most 64 sectors of 512 bytes (`userland/capsule_driver_sdhci/src/emmc/disk/sizes.rs:19-21`, `MAX_SECTORS`).
 
 ### How it was verified
