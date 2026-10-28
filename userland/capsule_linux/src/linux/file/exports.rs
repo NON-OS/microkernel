@@ -56,6 +56,7 @@ pub use super::store::{
 pub use super::store::{pack, Stream};
 pub use super::store_found::found as store_found;
 pub use super::store_name::unlink as store_unlink;
+pub use super::system::space::choose_home;
 pub use super::timerfd::get::timerfd_gettime;
 pub use super::timerfd::open::timerfd_create;
 pub use super::timerfd::read::{bits as timer_bits, read as timerfd_read};

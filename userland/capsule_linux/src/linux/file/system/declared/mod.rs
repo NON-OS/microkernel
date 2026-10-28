@@ -27,7 +27,7 @@ mod home;
 mod names;
 mod sizes;
 
-pub use home::{HOME, HOMES, HOME_NAMES};
+pub use home::{HOME, HOMES, HOME_MOST, HOME_NAMES};
 
 pub use names::{DOMAIN, HOSTNAME, MACHINE, OSTYPE, RELEASE, VERSION};
 pub use sizes::{
