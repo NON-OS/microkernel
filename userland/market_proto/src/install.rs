@@ -65,3 +65,11 @@ impl Stage {
         matches!(self, Stage::Queued | Stage::Installing | Stage::Removing)
     }
 }
+
+/// What `mk_app_install_detail` answered `rc` into `buf`: which package and
+/// check stopped a failed install. None for no line, an errno, or bytes that
+/// are not printable ASCII, which the kernel never passes and no client takes.
+pub fn detail(buf: &[u8], rc: i64) -> Option<&str> {
+    let line = buf.get(..usize::try_from(rc).ok().filter(|&n| n > 0)?)?;
+    line.iter().all(|b| (b' '..=b'~').contains(b)).then(|| core::str::from_utf8(line).ok())?
+}
