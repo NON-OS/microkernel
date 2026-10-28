@@ -50,3 +50,7 @@ fn the_reply_kept_for_an_ended_caller_is_forgotten() {
     assert!(carried_again(ended), "nothing kept for the caller that ended");
     assert!(!carried_again(living), "the living caller's reply is still kept");
 }
+
+/* An exit's refusal, read for its class alone. */
+#[path = "refusal_tests.rs"]
+mod refusal;
