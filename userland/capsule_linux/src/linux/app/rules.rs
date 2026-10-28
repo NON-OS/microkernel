@@ -18,7 +18,7 @@
 //! by the host proofs as it ships. gate.rs and calls.rs ask these.
 
 use nonos_linux_policy::market::ALWAYS_SERVED;
-use nonos_linux_policy::mask::{grants, NET_ANON, NET_LISTEN_LO};
+use nonos_linux_policy::mask::{grants, NET_ANON, NET_LISTEN_LO, SERVE_ONE};
 use nonos_linux_policy::SyscallSet;
 
 /// Whether call `number` is refused before it is served. exit and
@@ -29,9 +29,10 @@ pub fn call_refused(calls: &SyscallSet, number: u64) -> bool {
     !ALWAYS_SERVED.contains(&number) && !calls.allows(number)
 }
 
-/// An internet socket at all: for reaching out, or for listening at home.
+/// An internet socket at all: for reaching out, for listening at home, or
+/// for the one listener SERVE_ONE serves (serve_rule.rs).
 pub fn inet_allowed(mask: u64) -> bool {
-    grants(mask, NET_ANON) || grants(mask, NET_LISTEN_LO)
+    grants(mask, NET_ANON) || grants(mask, NET_LISTEN_LO) || grants(mask, SERVE_ONE)
 }
 
 /// What a run does once its program's policy is bound, by whether the box
