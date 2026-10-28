@@ -19,6 +19,7 @@ build writes: 9288 was read off `build` for the same files. Run:
 python3 -m unittest discover -s tools/nonos_market_catalogue -t tools"""
 
 import unittest
+from pathlib import Path
 from unittest import mock
 
 from . import pack_size
@@ -45,10 +46,28 @@ class PackSize(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "past the 64 MiB"):
             pack_size.check(tar([("usr/share/a", b"x" * (pack_size.MAX_PACK - 4095))]))
 
+    def test_a_listed_program_is_a_file_beside_the_pack(self):
+        big = ELF + b"x" * pack_size.MAX_PACK
+        pack_size.check(tar([("usr/bin/simplex-chat", big), ("usr/share/a", b"a")]))
+        self.assertLess(pack_size.pack_len(tar(SMALL), True), 9288)
+        with self.assertRaisesRegex(ValueError, "past the 64 MiB"):
+            pack_size.check(tar([("usr/share/a", b"x" * pack_size.MAX_PACK)]))
+
+    def test_a_program_past_the_largest_file_is_refused(self):
+        with mock.patch.object(pack_size, "MAX_FILE", len(ELF) + 64):
+            pack_size.check(tar([("usr/bin/t", ELF + b"x" * 64)]))
+            with self.assertRaisesRegex(ValueError, "usr/bin/t is past"):
+                pack_size.check(tar([("usr/bin/t", ELF + b"x" * 65)]))
+
+    def test_the_file_bound_is_the_stores(self):
+        vfs = Path(__file__).resolve().parents[2] / "userland/capsule_vfs/src/store/fdtable/types.rs"
+        self.assertIn("const MAX_FILE_BYTES: usize = 1 << 27;", vfs.read_text())
+
     def test_more_files_than_a_pack_holds_are_refused(self):
-        with mock.patch.object(pack_size, "MAX_ENTRIES", 4):
+        # vim and its trailer are held beside the pack: two names are in it.
+        with mock.patch.object(pack_size, "MAX_ENTRIES", 2):
             pack_size.check(tar(SMALL))
-            with self.assertRaisesRegex(ValueError, "more than 4 files"):
+            with self.assertRaisesRegex(ValueError, "more than 2 files"):
                 pack_size.check(tar(SMALL + [("usr/share/b", b"b")]))
 
 

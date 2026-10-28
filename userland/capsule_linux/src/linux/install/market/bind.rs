@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Binding a market release's policy to the program its install recorded:
 //! the policy names that program's bytes, is written beside it over the
-//! PENDING that held it (minted.rs), and is vouched for by this machine.
+//! PENDING that held it (minted.rs), and is vouched for by this machine,
+//! after any listed arguments are (bind_args.rs).
 
 use nonos_linux_policy::LinuxAppPolicy;
 
@@ -27,12 +28,13 @@ use crate::linux::file::{key, store_read, store_write};
 
 const MAX_IMAGE: u32 = crate::linux::program_max::PROGRAM_MAX;
 
-pub(super) fn bind(pkg: &str, policy: &LinuxAppPolicy) -> Result<(), &'static str> {
+pub(super) fn bind(pkg: &str, policy: &LinuxAppPolicy, args: &[u8]) -> Result<(), &'static str> {
     let path = recorded(pkg).ok_or("the package records no program")?;
     let image = store_read(&key(&path), MAX_IMAGE).map_err(|_| "its program could not be read")?;
     if !names_program(policy, &image) {
         return Err("its policy names another program");
     }
+    super::bind_args::bind_args(&path, &policy.encode(), args)?;
     store_write(&key(&beside(&path, POLICY)), &policy.encode())
         .map_err(|_| "its policy could not be written")?;
     match sign_beside(&path, &policy.encode(), POLICY_TRAILER) {

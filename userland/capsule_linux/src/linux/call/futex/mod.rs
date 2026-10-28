@@ -23,5 +23,6 @@
 
 mod call;
 mod wait;
+mod wake_op;
 
 pub use call::futex;

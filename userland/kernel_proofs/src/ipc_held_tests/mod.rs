@@ -34,6 +34,7 @@ mod nics;
 mod usb_hosts;
 
 mod addressed;
+mod air_gapped;
 mod bluetooth;
 mod card_names;
 mod card_readers;

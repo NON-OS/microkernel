@@ -17,11 +17,13 @@
 //! The broker half of the shim.
 
 mod calls;
+mod refuse;
 mod table;
 mod types;
 
 pub use calls::{
     mk_device_claim, mk_device_release, mk_irq_ack, mk_irq_bind, mk_irq_poll, mk_pio_grant,
 };
+pub use refuse::refuse_lines;
 pub use table::{acked, mk_device_list, present, released};
 pub use types::{DeviceRecord, IrqBindOut, IrqPollOut, PioGrantOut, BUS_KIND_ACPI, PIO_GRANT};

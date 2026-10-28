@@ -25,6 +25,7 @@ use super::super::args::Args;
 use super::super::object::Object;
 use super::super::ops::shell::POPUP_DONE;
 use super::super::out::Event;
+use super::super::present::scale_math::to_logical;
 use super::super::scene::Scene;
 use super::place::place;
 use super::side::complete;
@@ -56,7 +57,10 @@ fn placed(scene: &Scene, id: u32, xdg: u32, parent: u32, positioner: u32) -> Opt
         return None;
     }
     let (_, _, w, h) = scene.rect()?;
-    let (x, y, pw, ph) = place(&rule, (-ox, -oy, w as i32, h as i32));
+    // Placed in the logical pixels the client draws in.
+    let e = scene.frame.ratio;
+    let (w, h) = (to_logical(w as i32, e), to_logical(h as i32, e));
+    let (x, y, pw, ph) = place(&rule, (-ox, -oy, w, h));
     let rect = (x.saturating_add(ox), y.saturating_add(oy), pw, ph);
     Some(Popup { id, surface, parent, rect, grabbed: false })
 }

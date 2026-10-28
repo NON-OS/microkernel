@@ -31,6 +31,7 @@ mod cplus_tests;
 mod decode_tests;
 mod detect_ext_tests;
 mod detect_tests;
+mod dma_grant_tests;
 mod finish_tests;
 mod g_init_tests;
 mod g_start_tests;

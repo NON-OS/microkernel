@@ -15,6 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::super::attested_parent::AttestedParent;
+use alloc::string::String;
+use alloc::vec::Vec;
+
 use super::super::preflighted::Preflighted;
 
 pub(crate) struct InstallParams<'a> {
@@ -33,4 +36,6 @@ pub(crate) struct InstallParams<'a> {
     /// What the gate proved, the capsule's namespace and whether it is the
     /// system's own, all recorded before the pid can run (L61).
     pub gate: &'a Preflighted,
+    /// The process's arguments, set before it is queued to run (admit.rs).
+    pub argv: Option<Vec<String>>,
 }

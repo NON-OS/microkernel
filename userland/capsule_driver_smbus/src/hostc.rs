@@ -14,13 +14,45 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What HOSTC should hold. Pure, for the proofs.
+//! What HOSTC should hold, and the bring-up that sets it and puts it back.
+//! Pure, for the proofs.
 
 use crate::regs::{HOSTC_HST_EN, HOSTC_I2C_EN};
 
+/// The bits the driver changes: the two the broker lets it write
+/// (`src/hardware/broker/pci/quirk_bits/writable.rs`).
+pub const HOSTC_CHANGED: u8 = HOSTC_HST_EN | HOSTC_I2C_EN;
+
 /// The host enabled and SMBus (not I2C) timing; every other bit, SMI routing
-/// among them, as firmware set it. The broker lets exactly these two bits
-/// change (`src/hardware/broker/pci/quirk_bits.rs`).
-pub fn hostc_wanted(current: u16) -> u16 {
+/// among them, as firmware set it.
+pub fn hostc_wanted(current: u8) -> u8 {
     (current & !HOSTC_I2C_EN) | HOSTC_HST_EN
+}
+
+/// HOSTC in config space: a one-byte read, and a write of the
+/// `HOSTC_CHANGED` bits alone, each to the value given.
+pub trait HostcCfg {
+    fn read(&mut self) -> Option<u8>;
+    fn write(&mut self, bits: u8) -> bool;
+}
+
+/// The host turned on, then the rest of the bring-up; if that fails, HOSTC
+/// is put back as firmware left it, so a host never served is not left on.
+pub fn turned_on<C: HostcCfg, T>(
+    cfg: &mut C,
+    rest: impl FnOnce() -> Result<T, &'static str>,
+) -> Result<T, &'static str> {
+    let saved = cfg.read().ok_or("smbus: config read refused")?;
+    let want = hostc_wanted(saved);
+    if want == saved {
+        return rest();
+    }
+    if !cfg.write(want & HOSTC_CHANGED) {
+        return Err("smbus: HOSTC write refused");
+    }
+    let done = rest();
+    if done.is_err() {
+        let _ = cfg.write(saved & HOSTC_CHANGED);
+    }
+    done
 }

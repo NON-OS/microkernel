@@ -28,12 +28,23 @@ mod select;
 #[path = "../../../capsule_net_anon/src/path/through.rs"]
 mod through;
 
+#[path = "../../../capsule_net_anon/src/path/ports.rs"]
+mod ports;
+
+#[path = "../../../capsule_net_anon/src/path/refused.rs"]
+pub mod refused;
+
+#[path = "../../../capsule_net_anon/src/path/exits.rs"]
+mod exits;
+
 #[path = "../../../capsule_net_anon/src/path/guard_pick.rs"]
 pub mod guard_pick;
 
+pub use exits::Exits;
+pub use ports::Ports;
 pub use relay::{Flags, Relay};
 pub use select::candidates::candidates;
-pub use select::{choose, eligible, Taken};
+pub use select::{any_exit, choose, choose_exit, eligible, Taken};
 pub use through::through;
 pub use weights::{weight_for, Position, Weights};
 

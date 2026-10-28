@@ -29,9 +29,9 @@ fn firmware_is_chosen_by_mac_and_rf_type() {
     assert_eq!(select(0x51F0, so, 0x0010_5000), Err(Refusal::RfNotBundled(0x105)), "JF");
     assert_eq!(select(0x51F0, so, 0), Err(Refusal::RfNotBundled(0)), "blank OTP");
     assert_eq!(
-        select(0x2723, so, gf),
-        Err(Refusal::NotSoDevice(0x2723)),
-        "AX200 is not an AX210-family platform"
+        select(0x2526, so, gf),
+        Err(Refusal::NotSoDevice(0x2526)),
+        "a 9260 is not a platform this driver runs"
     );
     assert_eq!(
         select(0x51F0, 0x0000_0500, gf),

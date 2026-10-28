@@ -31,7 +31,7 @@ impl Session {
         let have = env.random(&mut fresh);
         match self.station.sa_query_poll(now, fresh) {
             SaTick::Send(f) if have => {
-                r.send(&f);
+                self.put(r, &f);
             }
             SaTick::Ended => return Some(Ended::Lost),
             _ => {}

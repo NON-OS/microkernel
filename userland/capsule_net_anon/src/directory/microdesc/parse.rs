@@ -20,6 +20,7 @@ use crate::directory::base64::decode;
 use crate::directory::lines::{arg, lines};
 
 use super::policy::exits_web;
+use super::summary::summary;
 use super::types::Microdesc;
 
 /*
@@ -51,7 +52,10 @@ pub fn parse(body: &[u8]) -> Option<Microdesc> {
                     out.ed25519_identity.copy_from_slice(&raw);
                 }
             }
-            b"p" => out.exits_web = exits_web(line.rest),
+            b"p" => {
+                out.exits_web = exits_web(line.rest);
+                out.ports = summary(line.rest).unwrap_or_default();
+            }
             _ => {}
         }
     }

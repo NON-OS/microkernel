@@ -13,19 +13,22 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! OP_START: the peer asked of the kernel again, the stream agreed with the
-//! camera, and the compositor's indicator shown, or no stream.
+//! OP_START: the peer asked of the kernel again, the compositor's indicator
+//! shown, then the stream agreed with the camera, or no stream.
 
 use nonos_uvc::Assembler;
 
 use crate::device::Dev;
+use crate::indicator::shown_first;
+use crate::notify::capture;
 use crate::ops::holds;
 use crate::start::start;
 use crate::stream::stop;
 use crate::wire::{E_NODEV, E_PERM};
 
-/// A stream started for `peer`: asked of the kernel again, agreed with the
-/// camera, and told to the compositor. The most bytes a frame takes.
+/// A stream started for `peer`: asked of the kernel again, told to the
+/// compositor, and agreed with the camera only once the indicator is shown
+/// (Decision 9: no indicator, no stream). The most bytes a frame takes.
 pub fn begin(d: &mut Dev, peer: u32, args: (u8, u8, u32)) -> Result<u32, i32> {
     d.session.start(peer, holds(peer))?;
     if d.stream.is_some() {
@@ -36,15 +39,11 @@ pub fn begin(d: &mut Dev, peer: u32, args: (u8, u8, u32)) -> Result<u32, i32> {
         d.session.stop();
         return Err(E_NODEV);
     };
-    match start(&mut bus, &b.nic, args) {
+    let (begun, hide) = (|| start(&mut bus, &b.nic, args), || _ = capture(false));
+    match shown_first(E_PERM, || capture(true), begun, hide) {
         Ok(s) => {
             let max = s.max_frame;
             d.stream = Some((s, Assembler::new(max as usize)));
-            // Decision 9: no indicator, no stream.
-            if !crate::notify::capture(true) {
-                stop(d);
-                return Err(E_PERM);
-            }
             Ok(max)
         }
         Err(e) => {

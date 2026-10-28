@@ -17,7 +17,7 @@
 //! A stream adopted by its socket, and freed once.
 
 use crate::linux::net::sock::{Addr, Backend, Close, Domain, Proto, Socks, Via};
-use crate::linux::net::{anon_stream, stream};
+use crate::linux::net::{anon_stream, routed};
 
 pub(super) const LIMITS: &str =
     include_str!("../../../../../capsule_net_anon/src/protocol/limits.rs");
@@ -36,7 +36,7 @@ pub(super) fn anon_socket(t: &mut Socks, sid: u16) -> u32 {
 
 pub(super) fn quiet() {
     let _ = anon_stream::closed();
-    let _ = stream::closed();
+    let _ = routed::closed();
 }
 
 #[test]
@@ -62,5 +62,5 @@ fn freeing_the_entry_closes_the_stream_once() {
     assert_eq!(anon_stream::closed(), vec![Close { port: ANON, id: 3 }]);
     t.free(id, false);
     assert!(anon_stream::closed().is_empty(), "a freed entry is not freed again");
-    assert!(stream::closed().is_empty(), "net.sockets is not told of a net.anon stream");
+    assert!(routed::closed().is_empty(), "the routed table is not told of a net.anon stream");
 }

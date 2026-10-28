@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The partition this boot came from, as the loader recorded it, read once.
+//! The partition this boot came from, as the loader recorded it, read once,
+//! and whether the loader read its copy of the store from that same disk.
 
 use spin::Once;
 
 use super::gpt::boot_guid;
 use crate::boot::handoff::types::{BOOT_MEDIA_LEN, MODULE_KIND_BOOT_MEDIA};
+use crate::boot::handoff::types::{MODULE_KIND_STORE, STORE_FROM_BOOT_DISK};
 use crate::syscall::microkernel::{install_source_modules, install_source_window};
 
 static BOOT: Once<Option<[u8; 16]>> = Once::new();
@@ -28,6 +30,15 @@ static BOOT: Once<Option<[u8; 16]>> = Once::new();
 /// none (an MBR stick, a firmware FAT drive) or left no record.
 pub(super) fn partition() -> Option<[u8; 16]> {
     *BOOT.call_once(read)
+}
+
+/// True when the loader marked its store copy as read from the disk it came
+/// from, and the copy is one the kernel answers store reads from. A loader
+/// that leaves the mark off, or read another disk's store, gives false.
+pub(super) fn store_from_boot_disk() -> bool {
+    let marked = install_source_modules::find(MODULE_KIND_STORE as u64)
+        .is_some_and(|m| m.reserved & STORE_FROM_BOOT_DISK != 0);
+    marked && super::store_copy::present()
 }
 
 fn read() -> Option<[u8; 16]> {

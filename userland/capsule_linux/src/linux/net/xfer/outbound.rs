@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Bytes out of a socket: to a stream's peer, a datagram to the port or the
-//! Unix name it is sent to, or a stream outside the family through
-//! net.sockets or net.anon.
+//! Unix name it is sent to, or a stream outside the family, which routed/
+//! or net.anon carries.
 
 use alloc::vec;
 
@@ -41,14 +41,15 @@ pub fn send(guest: &Guest, id: u32, iov: &Iov, skip: usize, flags: u64, to: Opti
     };
     let cap = match svc {
         Some(Via::Anon) => super::super::anon_stream::SEND_MAX,
-        _ => super::super::cap::cap(svc.is_some(), proto == Proto::Stream),
+        Some(Via::Routed(_)) => super::super::routed::SEND_MAX,
+        None => super::super::cap::cap(proto == Proto::Stream),
     };
     let bytes = match iov::gather(guest, iov, skip, cap) {
         Ok(b) => b,
         Err(e) => return e,
     };
-    if let Some(Via::Sockets(h)) = svc {
-        return super::super::stream::send_bytes(h, &bytes);
+    if let Some(Via::Routed(_)) = svc {
+        return super::super::routed::send(guest, id, &bytes);
     }
     if let Some(Via::Anon) = svc {
         return super::super::anon_stream::send(id, &bytes);

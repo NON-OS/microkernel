@@ -16,23 +16,26 @@
 //! The two ends of a connect: its transmit region, and what it records.
 
 use crate::driver::Driver;
+use crate::firmware::gen3::csr::CsrLayout;
 use crate::firmware::gen3::join::exchange::Progress;
+use crate::firmware::gen3::join::inbox::Queues;
 use crate::firmware::gen3::join::run::{JoinEnd, Joined};
-use crate::firmware::gen3::txq::TX_REGION;
+use crate::firmware::gen3::txq::tx_region as region_len;
 use crate::server::join_wire::{end_code, ConnectResult};
 
 use super::super::grant::Grant;
 use super::super::say::Line;
 use super::state::Join;
 
-/// The transmit region: one broker grant on the first join, kept from then on.
-pub(super) fn tx_region(join: &mut Join, d: &Driver) -> Option<&'static Grant> {
+/// The transmit region: one broker grant on the first join, kept from then
+/// on, in the family's layout, its queues laid out in it.
+pub(super) fn tx_region(join: &mut Join, d: &Driver, csr: CsrLayout) -> Option<&'static Grant> {
     let tx = match join.tx {
         Some(t) => t,
-        None => match Grant::map(d.device_id, d.claim_epoch, TX_REGION) {
+        None => match Grant::map(d.device_id, d.claim_epoch, region_len(csr)) {
             Some(g) => {
                 let t: &'static Grant = alloc::boxed::Box::leak(alloc::boxed::Box::new(g));
-                join.tx = Some(t);
+                (join.tx, join.csr, join.q) = (Some(t), csr, Queues::fresh(csr));
                 t
             }
             None => {

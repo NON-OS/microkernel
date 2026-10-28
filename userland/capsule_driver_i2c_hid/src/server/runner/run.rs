@@ -20,7 +20,7 @@ use nonos_libc::{mk_exit, mk_ipc_recv_from, mk_uptime_ms, recv_ready, EXIT_ABSEN
 
 use super::dispatch::dispatch;
 use crate::drive::pass;
-use crate::protocol::{parse, refused, E_INVAL, HDR_LEN, IPC_PAYLOAD_MAX};
+use crate::protocol::{parse, received, refused, E_INVAL, HDR_LEN, IPC_PAYLOAD_MAX};
 use crate::server::respond;
 use crate::state::State;
 
@@ -46,8 +46,9 @@ pub fn run(mut state: State) -> ! {
         if !ready || sender_pid == 0 {
             continue;
         }
-        let Some((req, body)) = parse(&rx[..n as usize]) else {
-            let _ = respond::send(sender_pid, &refused(&rx[..n as usize]), E_INVAL, &[], &mut tx);
+        let msg = received(&rx, n);
+        let Some((req, body)) = parse(msg) else {
+            let _ = respond::send(sender_pid, &refused(msg), E_INVAL, &[], &mut tx);
             continue;
         };
         dispatch(&mut state, sender_pid, req, body, &mut tx);

@@ -18,13 +18,18 @@
 
 mod build;
 pub mod draw;
+mod exits;
 pub mod guard_pick;
+mod ports;
+mod refused;
 mod relay;
 mod select;
 mod through;
 mod weights;
 
 pub use build::{draw_middle, draw_path, draw_path_through};
+pub use exits::Exits;
+pub use ports::Ports;
 pub use relay::{Flags, Relay};
-pub use select::Taken;
+pub use select::{any_exit, Taken};
 pub use weights::Weights;

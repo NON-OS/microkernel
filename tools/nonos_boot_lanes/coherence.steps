@@ -1,0 +1,49 @@
+# Shared file maps (S1): a Linux program maps a stored file shared, as LMDB
+# does, and the next run reads what the first left there.
+until:Capsules spawned:1800
+until:[SPLASH] stepped aside:900
+wait:6
+key:ret
+wait:6
+type:ek
+wait:3
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+wait:6
+key:down
+wait:3
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+key:ret
+wait:120
+key:esc
+wait:6
+shot:desktop
+key:ctrl+alt+t
+wait:40
+type:linux perl -e 'open F,"+>/root/m.db";print F "A"x8192;close F;open F,"+</root/m.db";$d=fileno F;$r=syscall(9,0,16384,1,1,$d,0);print "P ro ",$r>0?"ok":"fail $!","\n";($h,$y)=("HELLO","BEYOND");syscall(18,$d,$h,5,100);syscall(18,$d,$y,6,9000);print "P seen ",unpack("P5",pack("J",$r+100))," ",unpack("P6",pack("J",$r+9000)),"\n";print "P over ",syscall(9,0,4096,3,1,$d,0)>0?"allowed":"refused $!","\n";syscall(11,$r,16384);$w=syscall(9,0,4096,3,1,$d,0);print "P rw ",$w>0?"ok":"fail $!","\n";pipe R,W;syswrite W,"WORLD";close W;syscall(0,fileno R,$w+200,5);$b="\0"x5;syscall(17,$d,$b,5,200);print "P read $b\n";print "P msync ",syscall(26,$w,4096,4)," unmap ",syscall(11,$w,4096),"\n";print "P exec ",syscall(9,0,4096,5,1,$d,0)>0?"allowed":"refused $!","\n"'
+key:ret
+wait:180
+shot:coherence
+type:linux perl -e 'open F,"/root/m.db" or die;my $s=do{local $/;<F>};print "P next_run ",substr($s,100,5)," ",substr($s,200,5)," ",substr($s,9000,6)," size ",length $s,"\n"'
+key:ret
+wait:150
+shot:next-run

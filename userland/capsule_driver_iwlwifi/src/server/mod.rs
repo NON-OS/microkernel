@@ -15,4 +15,5 @@ mod radio;
 mod runner;
 mod view;
 
+pub use radio::Uptime;
 pub use runner::run;

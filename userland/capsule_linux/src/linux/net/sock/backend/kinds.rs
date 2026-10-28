@@ -19,8 +19,10 @@
 use super::anon::Anon;
 
 pub enum Backend {
-    /// A net.sockets mixnet socket.
-    Sockets(u32),
+    /// A stream this capsule carries (routed/), by its index there: on the
+    /// Nym mixnet through net.socks5, one still opening on either network,
+    /// or the SOCKS endpoint's conversation.
+    Routed(u32),
     /// A stream net.anon opened for this capsule.
     Anon(Anon),
 }
@@ -28,7 +30,7 @@ pub enum Backend {
 /// Which service a call on the stream goes to, without the stream's state.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Via {
-    Sockets(u32),
+    Routed(u32),
     Anon,
 }
 
@@ -51,7 +53,7 @@ pub enum End {
 impl Backend {
     pub fn via(&self) -> Via {
         match self {
-            Backend::Sockets(h) => Via::Sockets(*h),
+            Backend::Routed(h) => Via::Routed(*h),
             Backend::Anon(_) => Via::Anon,
         }
     }
@@ -59,14 +61,14 @@ impl Backend {
     pub fn anon(&self) -> Option<&Anon> {
         match self {
             Backend::Anon(a) => Some(a),
-            Backend::Sockets(_) => None,
+            Backend::Routed(_) => None,
         }
     }
 
     pub fn anon_mut(&mut self) -> Option<&mut Anon> {
         match self {
             Backend::Anon(a) => Some(a),
-            Backend::Sockets(_) => None,
+            Backend::Routed(_) => None,
         }
     }
 }

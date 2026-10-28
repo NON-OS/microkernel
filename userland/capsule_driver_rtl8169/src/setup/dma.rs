@@ -27,14 +27,20 @@ fn page_round(n: u64) -> u64 {
     (n + PAGE_MASK) & !PAGE_MASK
 }
 
+const FOUR_GIB: u64 = 1 << 32;
+
 fn alloc(device_id: u64, epoch: u64, bytes: u64, flags: u32) -> Option<DmaMapOut> {
     let mut out = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
     let r = mk_dma_map(device_id, epoch, page_round(bytes), flags, &mut out);
-    if r < 0 {
-        None
-    } else {
-        Some(out)
-    }
+    (r >= 0 && granted(&out, bytes, flags & MK_DMA_MAP_DMA32 != 0)).then_some(out)
+}
+
+/// Whether a grant covers `bytes` and, for a chip that addresses only
+/// 32 bits, ends below 4 GiB: the descriptors take whatever it says, and a
+/// short or high grant would send the chip's DMA past it.
+pub fn granted(out: &DmaMapOut, bytes: u64, dma32: bool) -> bool {
+    let end = out.device_addr.checked_add(out.length);
+    out.length >= bytes && end.is_some_and(|end| !dma32 || end <= FOUR_GIB)
 }
 
 pub fn map_all(

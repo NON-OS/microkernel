@@ -16,6 +16,7 @@
 
 //! The proofs, one concern per file, each against `model`.
 
+mod bounce_tests;
 mod bring_up_tests;
 mod device_tests;
 mod encode_tests;

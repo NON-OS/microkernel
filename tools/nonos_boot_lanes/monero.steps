@@ -1,0 +1,82 @@
+# Monero's ring database (S1): the wallet's LMDB, mapped shared. Install
+# monero over the dev relay, make a wallet, set a ring and read it back in a
+# second run of the wallet.
+until:Capsules spawned:1800
+until:[SPLASH] stepped aside:900
+wait:6
+key:ret
+wait:6
+type:ek
+wait:3
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+wait:6
+key:down
+wait:3
+key:ret
+wait:6
+key:ret
+wait:6
+key:ret
+key:ret
+wait:120
+key:esc
+wait:6
+shot:desktop
+key:ctrl+alt+t
+wait:40
+type:market install linux.monero
+key:ret
+until:[LINUX] installed:9000
+wait:30
+shot:installed
+type:linux monero-wallet-cli --offline --generate-new-wallet /root/w --password nonos-test-pass --mnemonic-language English
+key:ret
+wait:420
+shot:mon-generated
+type:N
+key:ret
+wait:60
+shot:mon-prompt
+type:set_ring 1111111111111111111111111111111111111111111111111111111111111111 absolute 10 20 30 40
+key:ret
+wait:90
+shot:mon-set
+type:print_ring 1111111111111111111111111111111111111111111111111111111111111111
+key:ret
+wait:60
+shot:mon-print
+type:exit
+key:ret
+wait:120
+type:linux perl -e 'opendir D,"/root/.shared-ringdb" or die "P none $!\n";for(sort grep !/^\./,readdir D){my @s=stat "/root/.shared-ringdb/$_";print "P ringdb $_ ",(-d _ ? "dir" : $s[7]),"\n"}'
+key:ret
+wait:120
+shot:ringdb-files
+type:linux monero-wallet-cli --offline --wallet-file /root/w --password nonos-test-pass
+key:ret
+wait:420
+shot:mon-reopened
+type:print_ring 1111111111111111111111111111111111111111111111111111111111111111
+key:ret
+wait:60
+shot:mon-print-again
+type:exit
+key:ret
+wait:90
+shot:mon-exit

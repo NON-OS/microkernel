@@ -5,12 +5,20 @@
 
 use nonos_libc::{given_back, EPOCH};
 
-use crate::constants::{CSR_GP_CNTRL, GP_CNTRL_MAC_CLOCK_READY};
+use crate::constants::CSR_GP_CNTRL;
+use crate::gen3::regs::GP_MAC_CLOCK_READY;
+use crate::gen3_model::Polls;
 use crate::grants::{init_or_release, Grants};
 use crate::regs::Regs;
 
 fn grants() -> Grants {
     Grants { device_id: 5, claim: Some(EPOCH), mmio: Some(6), irq: Some(7) }
+}
+
+// Setup's wake of a V1 chip on one attempt's grants.
+fn wake(regs: Regs) -> Result<(), &'static str> {
+    let mut c = Polls { per_wait: 64, delays_us: 0 };
+    init_or_release(regs, crate::gen3::csr::CsrLayout::V1, &mut c, &mut grants())
 }
 
 /// The release order: Bus Master off (Memory Space alone, 2), the grants in
@@ -35,7 +43,7 @@ impl Window {
 fn a_chip_whose_clock_never_comes_up_gives_back_every_grant_and_the_claim() {
     let mut w = Window::new();
     let before = given_back().len();
-    let got = init_or_release(w.regs(), &mut grants());
+    let got = wake(w.regs());
     assert_eq!(got.err(), Some("iwlwifi: mac clock not ready"));
     assert_eq!(given_back()[before..], EVERYTHING);
 }
@@ -43,9 +51,9 @@ fn a_chip_whose_clock_never_comes_up_gives_back_every_grant_and_the_claim() {
 #[test]
 fn a_chip_that_wakes_keeps_every_grant() {
     let mut w = Window::new();
-    w.0[CSR_GP_CNTRL / 4] = GP_CNTRL_MAC_CLOCK_READY;
+    w.0[CSR_GP_CNTRL / 4] = GP_MAC_CLOCK_READY;
     let before = given_back().len();
-    assert!(init_or_release(w.regs(), &mut grants()).is_ok());
+    assert!(wake(w.regs()).is_ok());
     assert_eq!(given_back()[before..], [], "nothing released, and Bus Master still off");
 }
 

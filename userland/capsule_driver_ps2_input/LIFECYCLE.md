@@ -34,8 +34,9 @@ runs and status replies report `mouse_enabled = 0`.
 | no i8042 answers (the ports float, the output buffer never empties) | the probe gives its claim back, one log line, exit `EXIT_ABSENT` (2) |
 | keyboard enable fails | both claims are released (with the port grant and both lines); the attempt is repeated on the shared bounded schedule, and running out exits `EXIT_GAVE_UP` (6) |
 | PIO grant denied | startup fails and device claim is released |
-| IRQ1 bind denied | PIO grant and device claim are released |
-| AUX record or IRQ12 bind denied | keyboard grants are released and startup fails |
+| IRQ1 bind denied | the port grant is taken again and the keyboard is polled: the serve loop drains the controller every pass and sleeps 1 ms, not 100 ms, between passes |
+| AUX record missing or not claimed | the keyboard serves alone, mouse status reports disabled |
+| IRQ12 bind denied | the aux claim is kept and the mouse is brought up polled, as the keyboard is without IRQ1 |
 | mouse command not acknowledged | keyboard path stays live, mouse status reports disabled |
 | kernel input ring refuses a key event | counted in `OP_GET_STATE` |
 | mouse queue full | new mouse events are dropped and counted |

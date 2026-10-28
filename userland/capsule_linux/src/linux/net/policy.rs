@@ -19,8 +19,8 @@
 //! the capsule can connect to it. Anything else is EACCES, said by name.
 //! A raw internet socket reaches below anything that could confine it and
 //! is EPERM; a packet socket is a family socket.rs does not make, so it is
-//! EAFNOSUPPORT. A stream whose chosen network is not
-//! running is ENETUNREACH, with the network's name.
+//! EAFNOSUPPORT. A stream that cannot open on the chosen network is
+//! routed/'s to refuse.
 
 use alloc::format;
 
@@ -52,15 +52,6 @@ pub fn refuse_out(call: &str, to: Addr) -> u64 {
         "[LINUX] refused {call} {a}.{b}.{c}.{d}:{}: a guest's datagrams stay in the family\n",
         to.port
     );
-    say(line.as_bytes());
-    errno::fail(errno::ENETUNREACH)
-}
-
-/// ENETUNREACH for a stream whose chosen network is not running, with the
-/// network by name (guest_route.rs). Nothing else is tried.
-pub fn unreachable(to: Addr, why: &str) -> u64 {
-    let [a, b, c, d] = to.ip;
-    let line = format!("[LINUX] refused connect {a}.{b}.{c}.{d}:{}: {why}\n", to.port);
     say(line.as_bytes());
     errno::fail(errno::ENETUNREACH)
 }

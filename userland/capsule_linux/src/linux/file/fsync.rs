@@ -33,10 +33,18 @@ pub fn fsync(guest: &Guest, fd: u64) -> u64 {
     if entry.kind == Kind::Dir || super::synth::owns(&entry.path) {
         return errno::ok(0);
     }
-    match super::cache::flush(&entry.path, true) {
+    match sync_path(&entry.path) {
         Ok(()) => errno::ok(0),
         Err(e) => errno::fail(e),
     }
+}
+
+/*
+ * One file's copy to the store, with what its shared maps changed: fsync's
+ * and fdatasync's, and msync's for each file a span maps.
+ */
+pub(super) fn sync_path(path: &[u8]) -> Result<(), i64> {
+    super::cache::flush(path, true)
 }
 
 /* sync(2) cannot fail; syncfs answers its errors, and EBADF for a bad fd. */

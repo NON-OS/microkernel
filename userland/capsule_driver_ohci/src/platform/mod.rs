@@ -19,6 +19,7 @@
 
 mod mmio;
 mod region;
+mod span;
 mod uptime;
 
 pub use mmio::Registers;

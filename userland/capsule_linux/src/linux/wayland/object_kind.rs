@@ -49,6 +49,8 @@ pub enum Object {
     XdgOutput,
     Viewporter,
     Viewport,
+    FractionalManager,
+    FractionalScale,
     Activation,
     ActivationToken,
     SinglePixel,

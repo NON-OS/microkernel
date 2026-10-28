@@ -1,18 +1,6 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HardwareFamily {
@@ -24,13 +12,11 @@ pub enum HardwareFamily {
     StorageVirtioScsi,
     /// BusLogic MultiMaster (104b:1040): VirtualBox's and VMware's BusLogic.
     StorageBuslogic,
-    /// LSI Fusion-MPT (1000:0030, 1000:0054): VMware's and VirtualBox's
-    /// LSI Logic Parallel and SAS, QEMU's mptsas1068.
+    /// LSI Fusion-MPT (1000:0030, 1000:0054): VMware's, VirtualBox's; QEMU's mptsas1068.
     StorageMpt,
     /// VMware PVSCSI (15ad:07c0): VMware's paravirtual SCSI, QEMU's pvscsi.
     StorageVmwarePvscsi,
-    /// An Intel VMD: a PCI domain hiding NVMe and SATA controllers behind
-    /// it (`vmd`). Listed, never spawned for.
+    /// An Intel VMD hiding NVMe and SATA controllers (`vmd`): listed, never spawned for.
     StorageVmd,
     /// An Intel eMMC host (`emmc`): the soldered disk of Atom, Celeron and
     /// Pentium Silver laptops. Served by the SD host controller capsule.
@@ -42,8 +28,7 @@ pub enum HardwareFamily {
     StorageSdhci,
     /// A UFS host controller, class 01h subclass 09h: driver.ufs0's.
     StorageUfs,
-    /// Intel PIIX3/PIIX4 IDE (8086:7010, 8086:7111): QEMU's pc machine,
-    /// VirtualBox's default, Hyper-V Generation 1.
+    /// Intel PIIX3/PIIX4 IDE (8086:7010, 8086:7111): QEMU pc, VirtualBox, Hyper-V Gen 1.
     StorageIde,
     NetworkVirtio,
     /// The 8254x parts the e1000 capsule takes.
@@ -65,9 +50,12 @@ pub enum HardwareFamily {
     /// DEC 21140/21143: Hyper-V's legacy network adapter, QEMU's tulip.
     NetworkTulip,
     NetworkRtl8821ce,
+    NetworkRtl8822ce,
+    NetworkRtl8852be,
     NetworkIwlwifi,
-    /// A Realtek wireless part other than the RTL8821CE.
+    /// A Realtek wireless part no driver here takes (the RTL8852CE among them).
     NetworkRealtekWifi,
+    NetworkMt7921,
     DisplayGopFramebuffer,
     DisplayVirtioGpu,
     DisplayBga,

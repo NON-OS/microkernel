@@ -28,6 +28,9 @@ pub fn ioctl(guest: &mut Guest, fd: u64, req: u64, arg: u64) -> u64 {
     let Some(kind) = guest.fds.get(fd as usize).filter(|e| e.is_open()).map(|e| e.kind) else {
         return errno::fail(errno::EBADF);
     };
+    if let Some(answer) = crate::linux::pty::ioctl(guest, fd, req, arg) {
+        return answer;
+    }
     let console = matches!(kind, Kind::Stdin | Kind::Stdout | Kind::Stderr);
     /* Without TTY in its policy, a program's console is the pipe it is off one. */
     let on_terminal = console

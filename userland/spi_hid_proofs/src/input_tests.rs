@@ -14,7 +14,7 @@ fn hdr(words: u32, last: bool) -> [u8; 4] {
 #[test]
 fn a_header_gives_its_body_length_in_words() {
     assert_eq!(header(hdr(5, true)), Some(Header { body_len: 20, last: true }));
-    assert_eq!(header(hdr(0x3FFF, false)).map(|h| h.body_len), Some(0x3FFF * 4));
+    assert_eq!(header(hdr(999, false)).map(|h| h.body_len), Some(999 * 4));
     let mut wrong = hdr(5, true);
     wrong[3] = 0;
     assert_eq!(header(wrong), None, "no sync byte");

@@ -1,0 +1,31 @@
+# NONOS userland: capsule_driver_mt7921
+# eK@nonos.systems
+
+[package]
+name = "nonos_capsule_driver_mt7921"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland MediaTek MT7921/MT7922 PCIe Wi-Fi driver capsule"
+
+[[bin]]
+name = "driver_mt7921"
+path = "src/main.rs"
+
+# SHA-256 checks each firmware file of the package against the hash this
+# capsule carries: the RustCrypto crate, version and features the Wi-Fi core
+# already builds for the capsule target.
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_mac = { path = "../nonos_mac" }
+nonos_wifi_core = { path = "../nonos_wifi_core" }
+sha2 = { version = "0.10", default-features = false, features = ["force-soft"] }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

@@ -26,9 +26,9 @@ use std::alloc::{alloc_zeroed, Layout};
 use std::cell::{Cell, RefCell};
 
 use crate::calls::Call;
-use crate::log::note;
 use crate::types::DmaMapOut;
 use crate::MK_DMA_MAP_DMA32;
+use crate::{log::note, refuse::short};
 
 const PAGE: usize = 4096;
 /// Where grants start on the bus: DMA32 ones, and all others.
@@ -70,6 +70,6 @@ pub fn mk_dma_map(device: u64, _epoch: u64, length: u64, flags: u32, out: &mut D
     let base = if flags & MK_DMA_MAP_DMA32 != 0 { LOW_BASE } else { HIGH_BASE };
     let bus = base + id * BUS_STRIDE;
     GRANTS.with(|g| g.borrow_mut().push(Grant { id, device, host, bus, layout }));
-    *out = DmaMapOut { user_va: host as u64, device_addr: bus, length: size as u64, grant_id: id };
+    *out = DmaMapOut { user_va: host as u64, device_addr: bus, length: short(size), grant_id: id };
     0
 }

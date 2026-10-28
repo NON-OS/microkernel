@@ -1,0 +1,21 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the RTL8153 driver: the shipped rtl module runs
+# here through #[path], binding a modelled RTL8153 or RTL8153B (its
+# registers behind vendor control transfers, as Linux v6.12 r8152.c shows
+# them reached) on the scripted bus usbnet_proofs gives, and moving frames
+# through it.
+[package]
+name = "rtl8153_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_usbnet = { package = "usbnet_proofs", path = "../usbnet_proofs" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

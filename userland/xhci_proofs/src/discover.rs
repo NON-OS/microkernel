@@ -14,11 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The controller discovery found, as `setup` takes it. Finding it goes
-//! through the broker's device list, which a test does not need: it names
-//! the controller itself.
+//! The controller discovery found, as `setup` takes it, and the search
+//! itself over the shim's device list (find_tests.rs).
 
+#[cfg(test)]
+#[path = "../../capsule_driver_xhci/src/discover/find.rs"]
+mod find;
 #[path = "../../capsule_driver_xhci/src/discover/found.rs"]
 mod found;
+#[cfg(test)]
+#[path = "../../capsule_driver_xhci/src/discover/thunderbolt.rs"]
+mod thunderbolt;
+
+#[cfg(test)]
+#[path = "find_tests.rs"]
+mod find_tests;
 
 pub use found::Found;

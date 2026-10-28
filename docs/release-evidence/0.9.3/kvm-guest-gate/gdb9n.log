@@ -1,0 +1,3550 @@
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: failed to load Boot0001 "UEFI QEMU DVD-ROM QM00005 " from PciRoot(0x0)/Pci(0x1F,0x2)/Sata(0x2,0xFFFF,0x0): Not Found
+BdsDxe: loading Boot0002 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0002 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+[2J[01;01H[=3h[2J[01;01H[BOOT] NONOS Bootloader v1.0
+[WARN] gop: [GOP] 1280x800 firmware current pitch=1280px fmt=BGRX fb=0xc0000000 panel=0x0mm
+[WARN] gop: [GOP] handle 1 of 2, console out on: 1
+=== Loading Bootloader Configuration ===
+   [INFO] Using default security policy
+   [INFO] Using default network policy
+========================================
+[ERROR] security: Platform Key missing: NOT_FOUND
+[ERROR] security: Signature DB missing: NOT_FOUND
+[WARN] security: PCR extend failed: no TCG2 handle
+=== Security Status ===
+Production Keys: LOADED
+SecureBoot: DISABLED
+PlatformKey: MISSING
+SignatureDB: MISSING
+HW RNG: AVAILABLE
+Measured Boot: INACTIVE
+Ed25519: PASS
+BLAKE3: PASS
+=======================
+=== HW Summary ===
+ACPI: available
+Memory: reported
+CPUs: detected
+Storage: counted
+Network: counted
+Graphics: counted
+PCI: counted
+==================
+[WARN] enforce: SecureBoot not enabled
+[WARN] enforce: TPM not available
+[SECURITY] PASSED
+[WARN] enforce: SecureBoot disabled
+[WARN] enforce: TPM not available
+[WARN] enforce: PlatformKey not verified
+  [CRYPTO] Kernel bytes: 88100184
+  [CRYPTO] Computing BLAKE3 hash...
+  [CRYPTO] BLAKE3: a94c7251619d74df...
+  [CRYPTO] Extracting Ed25519 + ML-DSA-65 signatures...
+  [CRYPTO] Sig R: 11d19904b1ed6b35...
+  [CRYPTO] Sig S: 0cbd5840001515dc...
+  [CRYPTO] Verifying Ed25519 signature...
+  [CRYPTO] Ed25519 verify ....................... [PASS]
+  [CRYPTO] Signer key ID: f9355fd53b2b7771...
+  [CRYPTO] Verifying ML-DSA-65 signature...
+  [CRYPTO] ML-DSA-65 verify .................... [PASS]
+  [CRYPTO] Kernel signature state ............... [PASS]
+[WARN] proofs: TCG LOG ABSENT: no log from the firmware
+[WARN] proofs: SECURE BOOT OFF: UEFI Secure Boot disabled
+[WARN] proofs: TPM OFF: no TPM 2.0 measured boot
+[PT0]
+[PT1]
+[KTXT]
+[EBS0]
+[EBS1]
+[MMAP1]
+[CR3OK]
+V>
+NX64
+R
+[NONOS] Handoff OK
+[NONOS] Kernel entry - SSE enabled
+[TIMER] Initialized, TSC freq=2593 MHz
+[BENCH] 251 kernel_entry
+[NONOS] GDT configured
+[NONOS] SYSCALL configured
+[NONOS] Early IDT configured
+[NONOS] Global allocator initialized
+[NONOS] Full IDT loaded
+[BENCH] 257 kernel_idt_ready
+[NONOS] ACPI tables parsed
+[ACPI] power button: fixed feature, polled; a press goes to the desktop as the Power key
+[APIC] Initializing Local APIC...
+[APIC] Local APIC enabled, ID=0 Version=0x0x0000000000000014 mode=xAPIC
+[APIC] Initializing I/O APIC...
+[APIC] Disabling legacy PIC (8259A)...
+[APIC] Legacy PIC disabled
+[APIC] MADT ISOs=5
+[APIC] I/O APIC enabled, ID=0 base=0x0x00000000FEC00000 gsi_base=0 Max redirections=24
+[NONOS] APIC initialized
+[APIC] Setting up timer at 100 Hz
+[NONOS] Preemption timer armed
+[BENCH] 285 kernel_timer_ready
+[NONOS] Interrupts enabled
+[NONOS] memory encryption: none
+[PCI] Enumerating PCI devices...
+[PCI] Found 9 devices
+[PCI] 0:0.0 Host Bridge (0x0000000000008086:0x00000000000029C0)
+[PCI] 0:2.0 VGA Controller (0x0000000000001AF4:0x0000000000001050)
+[PCI] 0:3.0 xHCI USB 3.0 (0x0000000000001B36:0x000000000000000D)
+[PCI] 0:5.0 Ethernet (0x0000000000001AF4:0x0000000000001000)
+[PCI] 0:31.0 ISA Bridge (0x0000000000008086:0x0000000000002918)
+[PCI] 0:31.2 SATA AHCI (0x0000000000008086:0x0000000000002922)
+[NONOS] PCI enumerated
+[BENCH] 476 kernel_pci_ready
+[NONOS] RNG seed: AVAILABLE - applying...
+[NONOS] RNG seed: APPLIED SUCCESSFULLY
+[VMD] no Intel VMD on segment 0; disks are on the root bus
+[ACPI] sci irq=9 device=0x000000000000000B
+[NONOS] hardware broker seeded
+[PLATFORM] hypervisor=kvm
+[NONOS] Entropy: CPU RNG
+[NONOS] boot session nonce latched
+[NONOS] token signing key latched
+[BENCH] 917 kernel_core_ready
+[NONOS] === Security Status ===
+[NONOS] Kernel signature: VERIFIED
+[NONOS] Secure Boot: DISABLED
+[NONOS] ========================
+[NONOS] Microkernel boot
+[BENCH] 923 microkernel_init_start
+[BOOT-ENTROPY] nonce drawn, hardware generator present
+[MEM] 6887 MiB free to allocate, in a span of 0x0000000000100000..0x0000000280000000
+[DMA] display pool pages=8192
+[DMA] low32 pool pages=2048 floor=1024
+[fbconsole] on-screen log disabled; serial only
+[NONOS] Microkernel init
+[RNG] seeded from: cpu-random-instruction firmware-seed
+[SMP] madt aps=7 disabled=0 duplicate=0 invalid=0 unaddressable=0 over_limit=0
+[VM] adopted root 0x000000006DB36000
+[VM-INIT] kernel half populated entries: 256
+[VM-INIT] LAPIC rebased to UC kernel mapping
+[VM-INIT] low half cleared
+[BENCH] 951 vm_ready
+[HEAP] second region 256 MiB
+[CPU-PROT] smep=1 smap=0 umip=1 nx=1 wp=1 pge=1
+[CPU-PROT] WARNING kernel is not fully protected from user pages
+[STACK-GUARD] bsp armed 8/8
+[KSEC] 4/4 sections mapped as declared
+[CPU-FPU] xsave=1 xcr0=0x0000000000000007 area=832
+[IOMMU] no DMAR remapping unit and no IVRS table; IOMMU domains refused; DMA is unrestricted
+[IOMMU] posture=dma-unconfined reason=no-remapping-hardware-described profile=Standard built=1; a claimed device may reach all of memory
+[IOMMU] none present, enforcing=0, unconfined grants=0, identity devices=0, posture=dma-unconfined
+[IOMMU] capabilities aw=0 ir=0 snoop=0 pages=0x0000000000000000 domains=0
+[CRYPTO-POST] 4/4 known-answer tests passed
+[FB] handoff ptr=0xc0000000 stride=0x1400 fmt=0x3
+[FB] mapped 1280x800 pitch=5120 BGRX write-combining scale=1
+[ACPI] power button: SCI line masked, PM1_EN=0x0000000000000100
+[NONOS] device interrupt routing ready
+[BENCH] 992 process_runtime_ready
+[APIC] Setting up timer at 100 Hz
+[SMP] ap=1 apic=1 online
+[SMP-AP] cpu=1 svr=0x00000000000001FF lvt_timer=0x0000000000020020 init=600000 counting=1 ppr=0x0000000000000000 in_service=none
+[CPU-PROT] cpu=1 smep=1 smap=0 umip=1 nx=1 wp=1 pge=1
+[APIC] Setting up timer at 100 Hz
+[SMP] ap=2 apic=2 online
+[SMP-AP] cpu=2 svr=0x00000000000001FF lvt_timer=0x0000000000020020 init=600000 counting=1 ppr=0x0000000000000000 in_service=none
+[CPU-PROT] cpu=2 smep=1 smap=0 umip=1 nx=1 wp=1 pge=1
+[APIC] Setting up timer at 100 Hz
+[SMP] ap=3 apic=3 online
+[SMP-AP] cpu=3 svr=0x00000000000001FF lvt_timer=0x0000000000020020 init=600000 counting=1 ppr=0x0000000000000000 in_service=none
+[CPU-PROT] cpu=3 smep=1 smap=0 umip=1 nx=1 wp=1 pge=1
+[APIC] Setting up timer at 100 Hz
+[SMP] ap=4 apic=4 online
+[SMP-AP] cpu=4 svr=0x00000000000001FF lvt_timer=0x0000000000020020 init=600000 counting=1 ppr=0x0000000000000000 in_service=none
+[CPU-PROT] cpu=4 smep=1 smap=0 umip=1 nx=1 wp=1 pge=1
+[APIC] Setting up timer at 100 Hz
+[SMP] ap=5 apic=5 online
+[SMP-AP] cpu=5 svr=0x00000000000001FF lvt_timer=0x0000000000020020 init=600000 counting=1 ppr=0x0000000000000000 in_service=none
+[CPU-PROT] cpu=5 smep=1 smap=0 umip=1 nx=1 wp=1 pge=1
+[APIC] Setting up timer at 100 Hz
+[SMP] ap=6 apic=6 online
+[SMP-AP] cpu=6 svr=0x00000000000001FF lvt_timer=0x0000000000020020 init=600000 counting=1 ppr=0x0000000000000000 in_service=none
+[CPU-PROT] cpu=6 smep=1 smap=0 umip=1 nx=1 wp=1 pge=1
+[APIC] Setting up timer at 100 Hz
+[SMP] ap=7 apic=7 online
+[SMP-AP] cpu=7 svr=0x00000000000001FF lvt_timer=0x0000000000020020 init=600000 counting=1 ppr=0x0000000000000000 in_service=none
+[CPU-PROT] cpu=7 smep=1 smap=0 umip=1 nx=1 wp=1 pge=1
+[SMP] answered=7 online=8
+[SMP-PROOF] cpu_count=8 PASS
+[SMP] AP TSC rate 2593 MHz, the boot CPU's
+[NONOS] Core ready
+[BENCH] 1091 microkernel_core_ready
+[BENCH] 1093 microkernel_main_start
+[KLOG WARN] [TPM] no TPM at 0xFED40000 (interface id 0x0)
+[BOOT-ATTEST] bootloader self-reported, not measured: enrolled, epoch 1
+[NONOS] boot log held; starting userspace
+[UKERNEL] Creating init
+[BENCH] 4000 init_process_created
+[UKERNEL] Entering userspace
+[BENCH] 4003 init_enter_userspace
+[INIT] Starting
+[INIT] boot profile: Standard
+[BENCH] 4006 capsule_spawn_start:ramfs
+[ZK-ATTEST] development image: paths only, no STARK proofs, never a release
+[BENCH] 4016 capsule_attest_ok:ramfs
+[ZK-ATTEST] ok ramfs vendor
+[BENCH] 4019 capsule_preflight_ok:ramfs
+[SPAWN] name=ramfs pid=0x0000000000000002 caps=0x0000000000000038 entry=0x00000000010741E0
+[BENCH] 4023 capsule_runqueue_ok:ramfs
+[SMP] cpu=1 runs user pid 2
+[RAMFS] capsule spawned
+[USER-FIRST] pid=0x0000000000000002 rip=0x00000000010741E0
+[BENCH] 4027 capsule_spawn_start:keyring
+[BENCH] 4039 capsule_attest_ok:keyring
+[ZK-ATTEST] ok keyring vendor
+[BENCH] 4041 capsule_preflight_ok:keyring
+[SPAWN] name=keyring pid=0x0000000000000003 caps=0x0000000010000038 entry=0x000000001D4AC4B0
+[BENCH] 4049 capsule_runqueue_ok:keyring
+[USER-FIRST] pid=0x0000000000000003 rip=0x000000001D4AC4B0
+[KEYRING] capsule spawned
+[BENCH] 4053 capsule_spawn_start:entropy_pool
+[BENCH] 4061 capsule_attest_ok:entropy_pool
+[ZK-ATTEST] ok entropy_pool vendor
+[BENCH] 4064 capsule_preflight_ok:entropy_pool
+[SPAWN] name=entropy_pool pid=0x0000000000000004 caps=0x0000000000000038 entry=0x000000000AFA2080
+[BENCH] 4070 capsule_runqueue_ok:entropy_pool
+[SMP] cpu=2 runs user pid 4
+[ENTROPY] capsule spawned
+[USER-FIRST] pid=0x0000000000000004 rip=0x000000000AFA2080
+[BENCH] 4074 capsule_spawn_start:crypto_pool
+[BENCH] 4087 capsule_attest_ok:crypto_pool
+[ZK-ATTEST] ok crypto_pool vendor
+[BENCH] 4090 capsule_preflight_ok:crypto_pool
+[SPAWN] name=crypto_pool pid=0x0000000000000005 caps=0x0000000000000018 entry=0x0000000027A113A0
+[BENCH] 4095 capsule_runqueue_ok:crypto_pool
+[USER-FIRST] pid=0x0000000000000005 rip=0x0000000027A113A0
+[CRYPTO] capsule spawned
+[BENCH] 4100 capsule_spawn_start:policy
+[BENCH] 4108 capsule_attest_ok:policy
+[ZK-ATTEST] ok policy vendor
+[BENCH] 4110 capsule_preflight_ok:policy
+[SPAWN] name=policy pid=0x0000000000000006 caps=0x0000000000000259 entry=0x00000000094BB980
+[BENCH] 4115 capsule_runqueue_ok:policy
+[USER-FIRST] pid=0x0000000000000006 rip=0x00000000094BB980
+[POLICY] capsule spawned
+[BENCH] 4120 capsule_spawn_start:input_router
+[BENCH] 4128 capsule_attest_ok:input_router
+[ZK-ATTEST] ok input_router vendor
+[BENCH] 4131 capsule_preflight_ok:input_router
+[SPAWN] name=input_router pid=0x0000000000000007 caps=0x0000001000000018 entry=0x000000000111CCE0
+[BENCH] 4137 capsule_runqueue_ok:input_router
+[USER-FIRST] pid=0x0000000000000007 rip=0x000000000111CCE0
+[INPUT-ROUTER] capsule spawned
+[BENCH] 4141 capsule_spawn_start:compositor
+[BENCH] 4150 capsule_attest_ok:compositor
+[ZK-ATTEST] ok compositor vendor
+[BENCH] 4153 capsule_preflight_ok:compositor
+[SPAWN] name=compositor pid=0x0000000000000008 caps=0x0000000000007918 entry=0x000000001F4287C0
+[BENCH] 4159 capsule_runqueue_ok:compositor
+[USER-FIRST] pid=0x0000000000000008 rip=0x000000001F4287C0
+[COMPOSITOR] capsule spawned
+[BENCH] 4164 capsule_spawn_start:app.boot_splash
+[BENCH] 4172 capsule_attest_ok:app.boot_splash
+[ZK-ATTEST] ok app.boot_splash vendor
+[BENCH] 4175 capsule_preflight_ok:app.boot_splash
+[SPAWN] name=app.boot_splash pid=0x0000000000000009 caps=0x0000000000001118 entry=0x000000000753E570
+[BENCH] 4182 capsule_runqueue_ok:app.boot_splash
+[USER-FIRST] pid=0x0000000000000009 rip=0x000000000753E570
+[BOOT-SPLASH] capsule spawned
+[BENCH] 4188 capsule_spawn_start:driver.virtio_rng
+[SMP] cpu=5 runs user pid 7
+[BENCH] 4196 capsule_attest_ok:driver.virtio_rng
+[ZK-ATTEST] ok driver.virtio_rng vendor
+[BENCH] 4199 capsule_preflight_ok:driver.virtio_rng
+[SPAWN] name=driver.virtio_rng pid=0x000000000000000A caps=0x00000000001B8118 entry=0x00000000242357D0
+[BENCH] 4206 capsule_runqueue_ok:driver.virtio_rng
+[USER-FIRST] pid=0x000000000000000A rip=0x00000000242357D0
+[DRIVER-VIRTIO-RNG] capsule spawned
+[BENCH] 4212 capsule_spawn_start:driver.virtio_blk0
+[BENCH] 4220 capsule_attest_ok:driver.virtio_blk0
+[ZK-ATTEST] ok driver.virtio_blk0 vendor
+[BENCH] 4223 capsule_preflight_ok:driver.virtio_blk0
+[SPAWN] name=driver.virtio_blk0 pid=0x000000000000000B caps=0x00000000001F8119 entry=0x00000000258B2220
+[BENCH] 4230 capsule_runqueue_ok:driver.virtio_blk0
+[USER-FIRST] pid=0x000000000000000B rip=0x00000000258B2220
+[IOMMU] refused translates: no DMAR remapping unit and no IVRS table
+[SMP] cpu=3 runs user pid 8
+[VT-D] no-IOMMU posture: device DMA not confined by hardware, reaches all memory
+[DRIVER-VIRTIO-BLK] capsule spawned
+[BENCH] 4241 capsule_spawn_start:driver.virtio_gpu0
+[BROKER] device 0x0000000000000004 not reset at claim: no FLR
+[BLK] step find[BLK] step claim[MMIO] broker
+[IOMMU] refused translates: no DMAR remapping unit and no IVRS table
+[BENCH] 4251 capsule_attest_ok:driver.virtio_gpu0
+[VT-D] no-IOMMU posture: device DMA not confined by hardware, reaches all memory
+[ZK-ATTEST] ok driver.virtio_gpu0 vendor
+[MMIO] broker ok
+[BENCH] 4260 capsule_preflight_ok:driver.virtio_gpu0
+[MMIO] out
+[BROKER] device 0x0000000000000001 not reset at claim: no FLR
+[MMIO] broker
+[SPAWN] driver.virtio_gpu0 install enter
+[MMIO] broker ok
+[MMIO] out
+[SPAWN] name=driver.virtio_gpu0 pid=0x000000000000000C caps=0x00000000000B9118 entry=0x000000002FFF4310
+[BLK] step transport
+[DMA] grant uncached pages=2
+[BENCH] 4274 capsule_runqueue_ok:driver.virtio_gpu0
+[IOMMU] none present, enforcing=0, unconfined grants=1, identity devices=0, posture=dma-unconfined
+[BLK] step modern-regs
+[IOMMU] none present, enforcing=0, unconfined grants=2, identity devices=0, posture=dma-unconfined
+[MMIO] broker
+[USER-FIRST] pid=0x000000000000000C rip=0x000000002FFF4310
+[SPAWN] driver.virtio_gpu0 runqueue ok
+[SMP] cpu=4 runs user pid 8
+[MMIO] broker ok
+[DRIVER-VIRTIO-GPU] capsule spawned
+[DISPLAY] gfx lookup: driver.virtio_gpu0
+[BENCH] 4302 capsule_spawn_start:driver.virtio_net0
+[MMIO] out
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[BLK] step irq-bind[BLK] step negotiate
+[BENCH] 4311 capsule_attest_ok:driver.virtio_net0
+[IOMMU] refused translates: no DMAR remapping unit and no IVRS table
+[BLK] step dma
+[VT-D] no-IOMMU posture: device DMA not confined by hardware, reaches all memory
+[DMA] grant uncached pages=3
+[BROKER] claimed device 0x0000000000000002 bus master off until its driver turns it on
+[IOMMU] none present, enforcing=0, unconfined grants=3, identity devices=0, posture=dma-unconfined
+[ZK-ATTEST] ok driver.virtio_net0 vendor
+[MMIO] broker
+[BENCH] 4329 capsule_preflight_ok:driver.virtio_net0
+[IOMMU] none present, enforcing=0, unconfined grants=4, identity devices=0, posture=dma-unconfined
+[MMIO] broker ok
+[MMIO] out
+[IOMMU] none present, enforcing=0, unconfined grants=5, identity devices=0, posture=dma-unconfined
+[SPAWN] driver.virtio_net0 install enter
+[BLK] step bring-up
+[SPAWN] name=driver.virtio_net0 pid=0x000000000000000D caps=0x00000000001B8138 entry=0x000000003774B9E0
+[BLK] step ready
+[BENCH] 4347 capsule_runqueue_ok:driver.virtio_net0
+[USER-FIRST] pid=0x000000000000000D rip=0x000000003774B9E0
+[SPAWN] driver.virtio_net0 runqueue ok
+[MMIO] broker
+[DRIVER-VIRTIO-NET] capsule spawned
+[MMIO] broker ok
+[BENCH] 4356 capsule_spawn_start:power
+[MMIO] out
+[MMIO] broker
+[MMIO] broker ok
+[MMIO] out
+[IOMMU] none present, enforcing=0, unconfined grants=6, identity devices=0, posture=dma-unconfined
+[BENCH] 4365 capsule_attest_ok:power
+[GPU-EDID] EDID read: its modes offered
+[ZK-ATTEST] ok power vendor
+[GPU-3D] virgl not offered (2d scanout only)
+[BENCH] 4369 capsule_preflight_ok:power
+[SPAWN] name=power pid=0x000000000000000E caps=0x0000000000000218 entry=0x0000000015DF0E90
+[BENCH] 4376 capsule_runqueue_ok:power
+[USER-FIRST] pid=0x000000000000000E rip=0x0000000015DF0E90
+[POWER] capsule spawned
+[DRIVER-VMBUS] no Hyper-V SynIC, not spawned
+[DRIVER-VMWARE-SVGA] no controller present, not spawned
+[BENCH] 4384 capsule_spawn_start:driver.ahci0
+[IOMMU] none present, enforcing=0, unconfined grants=7, identity devices=0, posture=dma-unconfined
+[net-setup] find
+[BENCH] 4393 capsule_attest_ok:driver.ahci0
+[net-setup] claim
+[ZK-ATTEST] ok driver.ahci0 vendor
+[IOMMU] refused translates: no DMAR remapping unit and no IVRS table
+[BENCH] 4402 capsule_preflight_ok:driver.ahci0
+[VT-D] no-IOMMU posture: device DMA not confined by hardware, reaches all memory
+[SPAWN] name=driver.ahci0 pid=0x000000000000000F caps=0x00000000000F8118 entry=0x000000002898CC70
+[BROKER] device 0x0000000000000005 not reset at claim: no FLR
+[USER-FIRST] pid=0x000000000000000F rip=0x000000002898CC70
+[BENCH] 4416 surface_register_first
+[net-setup] transport
+[DISPLAY] mode 1920x1080
+[BENCH] 4413 capsule_runqueue_ok:driver.ahci0
+[DRIVER-AHCI] capsule spawned
+[net-setup] modern pci
+[DRIVER-NVME] no controller present, not spawned
+[net-setup] modern regmap
+[BENCH] 4425 capsule_spawn_start:driver.xhci0
+[MMIO] broker
+[BENCH] 4435 capsule_attest_ok:driver.xhci0
+[ZK-ATTEST] ok driver.xhci0 vendor
+[BENCH] 4438 capsule_preflight_ok:driver.xhci0
+[MMIO] broker ok
+[MMIO] out
+[SPAWN] name=driver.xhci0 pid=0x0000000000000010 caps=0x00000000000F8118 entry=0x00000000028C4100
+[MMIO] broker
+[BENCH] 4460 capsule_runqueue_ok:driver.xhci0
+[MMIO] broker ok
+[MMIO] out
+[USER-FIRST] pid=0x0000000000000010 rip=0x00000000028C4100
+[MMIO] broker
+[DRIVER-XHCI] capsule spawned
+[DISPLAY] on driver.virtio_gpu0 1920x1080, canvas 1920x1080 at scale 1.00
+[ahci] controller 0x80862922 class 0x00010601 ABAR 4096 bytes
+[MMIO] broker ok
+[MMIO] out
+[DRIVER-EHCI] no controller present, not spawned
+[MUNMAP] release_va_failed
+[DRIVER-OHCI] no controller present, not spawned
+[net-setup] negotiate
+[MUNMAP] pid=0x0000000000000008 name=compositor size=0x0000000000001000 va=0x00000000817E9000 total_pid=0x0000000001010000 total_system=0x000000000E7F9000
+[DRIVER-UHCI] no controller present, not spawned
+[net-setup] dma
+[SMP] cpu=7 runs user pid 9
+[DMA] grant uncached pages=3
+[SMP] cpu=6 runs user pid 17
+[DISPLAY] serving: first turn at 3532 ms took 2 ms
+[IOMMU] refused translates: no DMAR remapping unit and no IVRS table
+[IOMMU] none present, enforcing=0, unconfined grants=8, identity devices=0, posture=dma-unconfined
+[DRIVER-IWLWIFI] no controller present, not spawned
+[IOMMU] none present, enforcing=0, unconfined grants=9, identity devices=0, posture=dma-unconfined
+[IOMMU] refused translates: no DMAR remapping unit and no IVRS table
+[DMA] grant uncached pages=3
+[VT-D] no-IOMMU posture: device DMA not confined by hardware, reaches all memory
+[DISPLAY] first request op 0x0001 from pid 9 at 3534 ms
+[USER-FIRST] pid=0x0000000000000011 rip=0x000000001F43A10C
+[IOMMU] none present, enforcing=0, unconfined grants=10, identity devices=0, posture=dma-unconfined
+[DRIVER-RTL8821CE] no controller present, not spawned
+[IOMMU] none present, enforcing=0, unconfined grants=11, identity devices=0, posture=dma-unconfined
+[DIAG] ipc.drain kernel.entropy=0x0000000000000004
+[net-setup] queues
+[VT-D] no-IOMMU posture: device DMA not confined by hardware, reaches all memory
+[net-setup] done
+[BROKER] device 0x0000000000000003 not reset at claim: no FLR
+[BROKER] device 0x0000000000000007 not reset at claim: no FLR
+[MMIO] broker
+[DRIVER-I2C-PCI] no controller present, not spawned
+[MMIO] broker
+[DRIVER-I2C-HID] no I2C host to ask, not spawned
+[BENCH] 4542 capsule_spawn_start:driver.ps2_kbd0
+[BENCH] 4550 capsule_attest_ok:driver.ps2_kbd0
+[MMIO] broker ok
+[MMIO] broker ok
+[ZK-ATTEST] ok driver.ps2_kbd0 vendor
+[MMIO] out
+[BENCH] 4554 capsule_preflight_ok:driver.ps2_kbd0
+[MMIO] out
+[SPAWN] name=driver.ps2_kbd0 pid=0x0000000000000012 caps=0x0000000000358118 entry=0x000000002277F610
+[ahci] CAP 0xc0141f05 CAP2 0x00000000 VS 0x00010000 PI 0x0000003f walked 0x0000003f ABAR mapped 4096
+[USER-FIRST] pid=0x0000000000000012 rip=0x000000002277F610
+[ahci] cfg 90h 0x00000040 94h 0x00000000
+[driver_xhci] legacy handoff ok
+[BENCH] 4561 capsule_runqueue_ok:driver.ps2_kbd0
+[driver_xhci] reset ok
+[DRIVER-PS2-INPUT] capsule spawned
+[driver_xhci] cnr cleared
+[DRIVER-VIRTIO-INPUT] no controller present, not spawned
+[driver_xhci] scratchpads ok
+[DRIVER-VMMDEV] no controller present, not spawned
+[IOMMU] none present, enforcing=0, unconfined grants=12, identity devices=0, posture=dma-unconfined
+[SPLASH] up 1920x1080 at 3632 ms
+[BENCH] 4580 capsule_spawn_start:driver.vmmouse0
+[IOMMU] none present, enforcing=0, unconfined grants=13, identity devices=0, posture=dma-unconfined
+[IOMMU] none present, enforcing=0, unconfined grants=14, identity devices=0, posture=dma-unconfined
+[IOMMU] none present, enforcing=0, unconfined grants=15, identity devices=0, posture=dma-unconfined
+[driver_ps2] aux port: pointer up, wheel
+[BENCH] 4593 capsule_attest_ok:driver.vmmouse0
+[driver_ps2] bring-up: bytes from the other port dropped: 0
+[IOMMU] none present, enforcing=0, unconfined grants=16, identity devices=0, posture=dma-unconfined
+[driver_ps2] endpoint driver.ps2_kbd0 ready
+[IOMMU] none present, enforcing=0, unconfined grants=17, identity devices=0, posture=dma-unconfined
+[driver_xhci] dcbaa ok
+[IOMMU] none present, enforcing=0, unconfined grants=18, identity devices=0, posture=dma-unconfined
+[BENCH] 4620 display_flush_first
+[ZK-ATTEST] ok driver.vmmouse0 vendor
+[DISPLAY] present 1: 1 rects, box 1920x1080 at 0,0, serial 786433, lit 62 of 64 sampled, taken
+[BENCH] 4622 capsule_preflight_ok:driver.vmmouse0
+[DISPLAY] first frame let through at 3677 ms
+[driver_xhci] cmd ring ok
+[IOMMU] none present, enforcing=0, unconfined grants=19, identity devices=0, posture=dma-unconfined
+[SPAWN] name=driver.vmmouse0 pid=0x0000000000000013 caps=0x0000000000300118 entry=0x0000000016AB1FE0
+[driver_xhci] evt ring ok
+[USER-FIRST] pid=0x0000000000000013 rip=0x0000000016AB1FE0
+[ahci] port 0: disk, 1032192 sectors, QEMU HARDDISK SSTS 0x00000113 TFD 0x00000050 SERR 0x00000000 SIG 0x00000101 CMD 0x0000c017
+[DISPLAY] present 2: 1 rects, box 1920x16 at 0,672, serial 786433, lit 64 of 64 sampled, taken
+[driver_xhci] running
+driver.vmmouse: up, backdoor version 6, absolute pointer on
+[driver_xhci] noop ok
+[BENCH] 4640 capsule_runqueue_ok:driver.vmmouse0
+[IOMMU] none present, enforcing=0, unconfined grants=20, identity devices=0, posture=dma-unconfined
+[driver_xhci] endpoint driver.xhci0 ready
+[DRIVER-VMMOUSE] capsule spawned
+[IOMMU] none present, enforcing=0, unconfined grants=21, identity devices=0, posture=dma-unconfined
+[BENCH] 4663 capsule_spawn_start:driver.e1000_0
+[IOMMU] none present, enforcing=0, unconfined grants=22, identity devices=0, posture=dma-unconfined
+[IOMMU] none present, enforcing=0, unconfined grants=23, identity devices=0, posture=dma-unconfined
+[BENCH] 4675 capsule_attest_ok:driver.e1000_0
+[ZK-ATTEST] ok driver.e1000_0 vendor
+[BENCH] 4680 capsule_preflight_ok:driver.e1000_0
+[SPAWN] name=driver.e1000_0 pid=0x0000000000000014 caps=0x00000000000B8138 entry=0x0000000008445400
+[BENCH] 4686 capsule_runqueue_ok:driver.e1000_0
+[USER-FIRST] pid=0x0000000000000014 rip=0x0000000008445400
+[DRIVER-E1000] capsule spawned
+[DRIVER-E1000E] no controller present, not spawned
+[DRIVER-IGB] no controller present, not spawned
+[BENCH] 4694 capsule_spawn_start:driver.rtl8139_0
+[BENCH] 4702 capsule_attest_ok:driver.rtl8139_0
+[ZK-ATTEST] ok driver.rtl8139_0 vendor
+[BENCH] 4706 capsule_preflight_ok:driver.rtl8139_0
+[SPAWN] name=driver.rtl8139_0 pid=0x0000000000000015 caps=0x0000000000198138 entry=0x0000000010693E60
+driver.e1000: no controller present, not started
+[USER-FIRST] pid=0x0000000000000015 rip=0x0000000010693E60
+[EXIT] code=2 driver.e1000_0
+[BENCH] 4712 capsule_runqueue_ok:driver.rtl8139_0
+[EXIT] driver.e1000_0 status 2: no device present, not started
+[DRIVER-RTL8139] capsule spawned
+[BENCH] 4722 capsule_spawn_start:driver.rtl8169_0
+[BENCH] 4730 capsule_attest_ok:driver.rtl8169_0
+[ZK-ATTEST] ok driver.rtl8169_0 vendor
+[BENCH] 4734 capsule_preflight_ok:driver.rtl8169_0
+driver.rtl8139: no controller present, not started
+[SPAWN] name=driver.rtl8169_0 pid=0x0000000000000016 caps=0x00000000000B8138 entry=0x0000000022E66CC0
+[EXIT] code=2 driver.rtl8139_0
+[BENCH] 4741 capsule_runqueue_ok:driver.rtl8169_0
+[EXIT] driver.rtl8139_0 status 2: no device present, not started
+[DRIVER-RTL8169] capsule spawned
+[USER-FIRST] pid=0x0000000000000016 rip=0x0000000022E66CC0
+[DRIVER-PCNET] no controller present, not spawned
+[DRIVER-VMXNET3] no controller present, not spawned
+[DRIVER-TULIP] no controller present, not spawned
+[BENCH] 4755 capsule_spawn_start:driver.usb_hub0
+[BENCH] 4764 capsule_attest_ok:driver.usb_hub0
+[ZK-ATTEST] ok driver.usb_hub0 vendor
+[BENCH] 4767 capsule_preflight_ok:driver.usb_hub0
+[SPAWN] name=driver.usb_hub0 pid=0x0000000000000017 caps=0x0000000000000118 entry=0x000000003EA4ECD0
+driver.rtl8169: no controller present, not started
+[BENCH] 4773 capsule_runqueue_ok:driver.usb_hub0
+[USER-FIRST] pid=0x0000000000000017 rip=0x000000003EA4ECD0
+[DRIVER-USB-HUB] capsule spawned
+[EXIT] code=2 driver.rtl8169_0
+[BENCH] 4780 capsule_spawn_start:driver.usb_hid0
+[EXIT] driver.rtl8169_0 status 2: no device present, not started
+[BENCH] 4789 capsule_attest_ok:driver.usb_hid0
+[ZK-ATTEST] ok driver.usb_hid0 vendor
+[BENCH] 4793 capsule_preflight_ok:driver.usb_hid0
+[DISPLAY] present 3: 1 rects, box 1920x16 at 0,672, serial 786433, lit 64 of 64 sampled, taken
+[SPAWN] name=driver.usb_hid0 pid=0x0000000000000018 caps=0x0000000000200118 entry=0x0000000030F4C090
+[BENCH] 4802 capsule_runqueue_ok:driver.usb_hid0
+[USER-FIRST] pid=0x0000000000000018 rip=0x0000000030F4C090
+[DRIVER-USB-HID] capsule spawned
+[BENCH] 4807 capsule_spawn_start:driver.usb_msc0
+[BENCH] 4815 capsule_attest_ok:driver.usb_msc0
+[ZK-ATTEST] ok driver.usb_msc0 vendor
+[BENCH] 4818 capsule_preflight_ok:driver.usb_msc0
+[SPAWN] name=driver.usb_msc0 pid=0x0000000000000019 caps=0x0000000000000019 entry=0x0000000029D978B0
+[BENCH] 4825 capsule_runqueue_ok:driver.usb_msc0
+[USER-FIRST] pid=0x0000000000000019 rip=0x0000000029D978B0
+[DRIVER-USB-MSC] capsule spawned
+[BENCH] 4831 capsule_spawn_start:driver.uvc0
+[BENCH] 4839 capsule_attest_ok:driver.uvc0
+[ZK-ATTEST] ok driver.uvc0 vendor
+[BENCH] 4842 capsule_preflight_ok:driver.uvc0
+[SPAWN] name=driver.uvc0 pid=0x000000000000001A caps=0x0000000000000118 entry=0x00000000342E6030
+[BENCH] 4848 capsule_runqueue_ok:driver.uvc0
+[USER-FIRST] pid=0x000000000000001A rip=0x00000000342E6030
+[DRIVER-UVC] capsule spawned
+[BENCH] 4853 capsule_spawn_start:driver.ccid0
+[BENCH] 4861 capsule_attest_ok:driver.ccid0
+[ZK-ATTEST] ok driver.ccid0 vendor
+[BENCH] 4864 capsule_preflight_ok:driver.ccid0
+[SPAWN] name=driver.ccid0 pid=0x000000000000001B caps=0x0000000000000118 entry=0x000000002FC29E80
+[BENCH] 4871 capsule_runqueue_ok:driver.ccid0
+[USER-FIRST] pid=0x000000000000001B rip=0x000000002FC29E80
+[DRIVER-CCID] capsule spawned
+[BENCH] 4877 capsule_spawn_start:driver.fido0
+[usbnet uvc] started, looking for a camera
+[IOMMU] none present, enforcing=0, unconfined grants=22, identity devices=0, posture=dma-unconfined
+[BENCH] 4885 capsule_attest_ok:driver.fido0
+[IOMMU] none present, enforcing=0, unconfined grants=21, identity devices=0, posture=dma-unconfined
+[ZK-ATTEST] ok driver.fido0 vendor
+[IOMMU] none present, enforcing=0, unconfined grants=20, identity devices=0, posture=dma-unconfined
+[BENCH] 4893 capsule_preflight_ok:driver.fido0
+[IOMMU] none present, enforcing=0, unconfined grants=19, identity devices=0, posture=dma-unconfined
+[SPAWN] name=driver.fido0 pid=0x000000000000001C caps=0x0000000000000118 entry=0x0000000005A289C0
+[usbnet ccid] started, looking for a reader; held to no client yet
+[USER-FIRST] pid=0x000000000000001C rip=0x0000000005A289C0
+[BENCH] 4911 capsule_runqueue_ok:driver.fido0
+[ahci] port 1: no disk SSTS 0x00000000 TFD 0x00000050 SERR 0x00000000 SIG 0xffff0101 CMD 0x00000006
+[DRIVER-FIDO] capsule spawned
+[IOMMU] none present, enforcing=0, unconfined grants=20, identity devices=0, posture=dma-unconfined
+[BENCH] 4926 capsule_spawn_start:driver.hda0
+[IOMMU] none present, enforcing=0, unconfined grants=21, identity devices=0, posture=dma-unconfined
+[IOMMU] none present, enforcing=0, unconfined grants=22, identity devices=0, posture=dma-unconfined
+[BENCH] 4940 capsule_attest_ok:driver.hda0
+[IOMMU] none present, enforcing=0, unconfined grants=23, identity devices=0, posture=dma-unconfined
+[usbnet fido] started, looking for a security key; held to no client yet
+[IOMMU] none present, enforcing=0, unconfined grants=22, identity devices=0, posture=dma-unconfined
+[ZK-ATTEST] ok driver.hda0 vendor
+[IOMMU] none present, enforcing=0, unconfined grants=21, identity devices=0, posture=dma-unconfined
+[BENCH] 4960 capsule_preflight_ok:driver.hda0
+[IOMMU] none present, enforcing=0, unconfined grants=20, identity devices=0, posture=dma-unconfined
+[SPAWN] name=driver.hda0 pid=0x000000000000001D caps=0x00000000000F8118 entry=0x000000000551B8E0
+[IOMMU] none present, enforcing=0, unconfined grants=19, identity devices=0, posture=dma-unconfined
+[BENCH] 4974 capsule_runqueue_ok:driver.hda0
+[USER-FIRST] pid=0x000000000000001D rip=0x000000000551B8E0
+[DRIVER-HDA] capsule spawned
+[ahci] port 2: no disk SSTS 0x00000113 TFD 0x00000170 SERR 0x00000000 SIG 0xeb140101 CMD 0x00000006
+[DRIVER-SDHCI] no controller present, not spawned
+[IOMMU] none present, enforcing=0, unconfined grants=20, identity devices=0, posture=dma-unconfined
+[DRIVER-UFS] no controller present, not spawned
+[IOMMU] none present, enforcing=0, unconfined grants=21, identity devices=0, posture=dma-unconfined
+[DRIVER-PIIX-IDE] no controller present, not spawned
+[IOMMU] none present, enforcing=0, unconfined grants=22, identity devices=0, posture=dma-unconfined
+[DRIVER-VIRTIO-SCSI] no controller present, not spawned
+[IOMMU] none present, enforcing=0, unconfined grants=23, identity devices=0, posture=dma-unconfined
+driver.hda: no controller present, not started
+[DRIVER-PVSCSI] no controller present, not spawned
+[EXIT] code=2 driver.hda0
+[DRIVER-BUSLOGIC] no controller present, not spawned
+[EXIT] driver.hda0 status 2: no device present, not started
+[DRIVER-MPT] no controller present, not spawned
+[DRIVER-AC97] no controller present, not spawned
+[BENCH] 5020 capsule_spawn_start:driver.usb_audio0
+[BENCH] 5028 capsule_attest_ok:driver.usb_audio0
+[ZK-ATTEST] ok driver.usb_audio0 vendor
+[BENCH] 5031 capsule_preflight_ok:driver.usb_audio0
+[SPAWN] name=driver.usb_audio0 pid=0x000000000000001E caps=0x0000000000000118 entry=0x0000000031A444E0
+[BENCH] 5037 capsule_runqueue_ok:driver.usb_audio0
+[USER-FIRST] pid=0x000000000000001E rip=0x0000000031A444E0
+[DRIVER-USB-AUDIO] capsule spawned
+[BENCH] 5042 capsule_spawn_start:audio.server
+[BENCH] 5050 capsule_attest_ok:audio.server
+[ZK-ATTEST] ok audio.server vendor
+[BENCH] 5053 capsule_preflight_ok:audio.server
+[SPAWN] name=audio.server pid=0x000000000000001F caps=0x0000000000000118 entry=0x00000000323E99F0
+[BENCH] 5064 capsule_runqueue_ok:audio.server
+[USER-FIRST] pid=0x000000000000001F rip=0x00000000323E99F0
+[AUDIO] capsule spawned
+[BENCH] 5068 capsule_spawn_start:vfs_pool
+[usbnet usb-audio] started, looking for a device
+[BENCH] 5079 capsule_attest_ok:vfs_pool
+[ZK-ATTEST] ok vfs_pool vendor
+[BENCH] 5082 capsule_preflight_ok:vfs_pool
+[SPAWN] name=vfs_pool pid=0x0000000000000020 caps=0x0000000004000118 entry=0x00000000191BCEB0
+[BENCH] 5090 capsule_runqueue_ok:vfs_pool
+[USER-FIRST] pid=0x0000000000000020 rip=0x00000000191BCEB0
+[VFS] capsule spawned
+[BENCH] 5094 capsule_spawn_start:net.core
+[BENCH] 5103 capsule_attest_ok:net.core
+[ZK-ATTEST] ok net.core vendor
+[BENCH] 5106 capsule_preflight_ok:net.core
+[SPAWN] name=net.core pid=0x0000000000000021 caps=0x000000000000057D entry=0x0000000016FCEC40
+[BENCH] 5127 capsule_runqueue_ok:net.core
+[USER-FIRST] pid=0x0000000000000021 rip=0x0000000016FCEC40
+[NET-CORE] capsule spawned
+[BENCH] 5132 capsule_spawn_start:net.nym
+[BENCH] 5144 capsule_attest_ok:net.nym
+[ZK-ATTEST] ok net.nym vendor
+[BENCH] 5146 capsule_preflight_ok:net.nym
+[AUDIO] up
+[SPAWN] name=net.nym pid=0x0000000000000022 caps=0x000000000000013C entry=0x000000002AC20620
+[BENCH] 5166 capsule_runqueue_ok:net.nym
+[USER-FIRST] pid=0x0000000000000022 rip=0x000000002AC20620
+[NET-NYM] capsule spawned
+[BENCH] 5171 capsule_spawn_start:net.anon
+[BENCH] 5185 capsule_attest_ok:net.anon
+[ZK-ATTEST] ok net.anon vendor
+[BENCH] 5188 capsule_preflight_ok:net.anon
+[SPAWN] name=net.anon pid=0x0000000000000023 caps=0x000000000000013C entry=0x0000000000CE2E40
+[IOMMU] none present, enforcing=0, unconfined grants=22, identity devices=0, posture=dma-unconfined
+[USER-FIRST] pid=0x0000000000000023 rip=0x0000000000CE2E40
+[IOMMU] none present, enforcing=0, unconfined grants=21, identity devices=0, posture=dma-unconfined
+[BENCH] 5213 capsule_runqueue_ok:net.anon
+[IOMMU] none present, enforcing=0, unconfined grants=20, identity devices=0, posture=dma-unconfined
+[NET-ANON] capsule spawned
+[IOMMU] none present, enforcing=0, unconfined grants=19, identity devices=0, posture=dma-unconfined
+[BENCH] 5231 capsule_spawn_start:net.sockets
+[ahci] port 3: no disk SSTS 0x00000000 TFD 0x00000050 SERR 0x00000000 SIG 0xffff0101 CMD 0x00000006
+[IOMMU] none present, enforcing=0, unconfined grants=20, identity devices=0, posture=dma-unconfined
+[BENCH] 5244 capsule_attest_ok:net.sockets
+[ZK-ATTEST] ok net.sockets vendor
+[IOMMU] none present, enforcing=0, unconfined grants=21, identity devices=0, posture=dma-unconfined
+[BENCH] 5247 capsule_preflight_ok:net.sockets
+[IOMMU] none present, enforcing=0, unconfined grants=22, identity devices=0, posture=dma-unconfined
+[IOMMU] none present, enforcing=0, unconfined grants=23, identity devices=0, posture=dma-unconfined
+[SPAWN] name=net.sockets pid=0x0000000000000024 caps=0x000000000000011C entry=0x0000000002012A50
+[BENCH] 5264 capsule_runqueue_ok:net.sockets
+[USER-FIRST] pid=0x0000000000000024 rip=0x0000000002012A50
+[NET-SOCKETS] capsule spawned
+[BENCH] 5269 capsule_spawn_start:net.socks5
+[BENCH] 5278 capsule_attest_ok:net.socks5
+[ZK-ATTEST] ok net.socks5 vendor
+[BENCH] 5281 capsule_preflight_ok:net.socks5
+[NET-CORE] registered net.tcp net.udp net.dhcp.client net.dns net.ip
+[NET-CORE] bind: interface up on driver.virtio_net0
+[DIAG] ipc.drain kernel.entropy=0x0000000000000004
+[SPAWN] name=net.socks5 pid=0x0000000000000025 caps=0x000000000000011C entry=0x000000002E89D570
+[BENCH] 5356 capsule_runqueue_ok:net.socks5
+[USER-FIRST] pid=0x0000000000000025 rip=0x000000002E89D570
+[SOCKS5] capsule spawned
+[BENCH] 5361 capsule_spawn_start:nonos.prove.fetch
+[BENCH] 5369 capsule_attest_ok:nonos.prove.fetch
+[ZK-ATTEST] ok nonos.prove.fetch vendor
+[BENCH] 5373 capsule_preflight_ok:nonos.prove.fetch
+[SPAWN] name=nonos.prove.fetch pid=0x0000000000000026 caps=0x000000000000013D entry=0x000000001472BB60
+[BENCH] 5383 capsule_runqueue_ok:nonos.prove.fetch
+[USER-FIRST] pid=0x0000000000000026 rip=0x000000001472BB60
+[PROVE-FETCH] capsule spawned
+[BENCH] 5388 capsule_spawn_start:app.setup_wizard
+[NET-CORE] DHCP asking for a lease
+[ANON] starting
+[ANON] net.tcp found, serving
+[BENCH] 5404 capsule_attest_ok:app.setup_wizard
+[ZK-ATTEST] ok app.setup_wizard vendor
+[BENCH] 5407 capsule_preflight_ok:app.setup_wizard
+[SPAWN] name=app.setup_wizard pid=0x0000000000000027 caps=0x0000000008001979 entry=0x00000000170E4F30
+[BENCH] 5418 capsule_runqueue_ok:app.setup_wizard
+[USER-FIRST] pid=0x0000000000000027 rip=0x00000000170E4F30
+[SETUP-WIZARD] capsule spawned
+[BENCH] 5423 capsule_spawn_start:nonos.shield
+[IOMMU] none present, enforcing=0, unconfined grants=22, identity devices=0, posture=dma-unconfined
+[IOMMU] none present, enforcing=0, unconfined grants=21, identity devices=0, posture=dma-unconfined
+[IOMMU] none present, enforcing=0, unconfined grants=20, identity devices=0, posture=dma-unconfined
+[IOMMU] none present, enforcing=0, unconfined grants=19, identity devices=0, posture=dma-unconfined
+[ahci] port 4: no disk SSTS 0x00000000 TFD 0x00000050 SERR 0x00000000 SIG 0xffff0101 CMD 0x00000006
+[IOMMU] none present, enforcing=0, unconfined grants=20, identity devices=0, posture=dma-unconfined
+[IOMMU] none present, enforcing=0, unconfined grants=21, identity devices=0, posture=dma-unconfined
+[IOMMU] none present, enforcing=0, unconfined grants=22, identity devices=0, posture=dma-unconfined
+[NET-CORE] lease 10.0.2.15/24 gw 10.0.2.5
+[IOMMU] none present, enforcing=0, unconfined grants=23, identity devices=0, posture=dma-unconfined
+[NET-CORE] lease dns 10.0.2.3
+[NET-CORE] lease-status state=3 ip=10.0.2.15
+[BENCH] 5528 capsule_attest_ok:nonos.shield
+[ZK-ATTEST] ok nonos.shield vendor
+[BENCH] 5531 capsule_preflight_ok:nonos.shield
+[SPAWN] name=nonos.shield pid=0x0000000000000028 caps=0x000000000000017D entry=0x0000000012894AB0
+[BENCH] 5599 capsule_runqueue_ok:nonos.shield
+[USER-FIRST] pid=0x0000000000000028 rip=0x0000000012894AB0
+[SHIELD] capsule spawned
+[INIT] Capsules spawned
+[ATTEST-DOC] refused: no tpm present
+[SMP] cpu=0 runs user pid 16
+[BENCH] 5610 capsule_spawn_start:proof_io
+[BENCH] 5618 capsule_attest_ok:proof_io
+[ZK-ATTEST] ok proof_io vendor
+[BENCH] 5621 capsule_preflight_ok:proof_io
+[SPAWN] name=proof_io pid=0x0000000000000029 caps=0x0000000000000118 entry=0x00000000276EF330
+[BENCH] 5643 capsule_runqueue_ok:proof_io
+[USER-FIRST] pid=0x0000000000000029 rip=0x00000000276EF330
+[SYSCALL-PROOF] PASS time-loop invalid-number invalid-pointer invalid-size retired-enosys
+[USER-FIRST] pid=0x000000000000002A rip=0x0000000012883DFC
+[IOMMU] none present, enforcing=0, unconfined grants=22, identity devices=0, posture=dma-unconfined
+[IOMMU] none present, enforcing=0, unconfined grants=21, identity devices=0, posture=dma-unconfined
+[USER-FIRST] pid=0x000000000000002B rip=0x0000000012883DFC
+[IOMMU] none present, enforcing=0, unconfined grants=20, identity devices=0, posture=dma-unconfined
+[IOMMU] none present, enforcing=0, unconfined grants=19, identity devices=0, posture=dma-unconfined
+[ahci] port 5: no disk SSTS 0x00000000 TFD 0x00000050 SERR 0x00000000 SIG 0xffff0101 CMD 0x00000006
+[ahci] serving port 0 (no NONOS on any disk): QEMU HARDDISK
+[USER-FIRST] pid=0x000000000000002C rip=0x0000000012883DFC
+[USER-FIRST] pid=0x000000000000002D rip=0x0000000012883DFC
+[USER-FIRST] pid=0x000000000000002E rip=0x0000000012883DFC
+[USER-FIRST] pid=0x000000000000002F rip=0x0000000012883DFC
+[USER-FIRST] pid=0x0000000000000030 rip=0x0000000012883DFC
+[NYM] directory: fetching
+[NYM] fetch: connecting
+[USER-FIRST] pid=0x0000000000000031 rip=0x0000000012883DFC
+[shield 5027 ms] prover pool: 8 of 8 cores
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261028064559
+[DIAG] ipc.drain kernel.entropy=0x0000000000000004
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.entropy=0x0000000000000004
+[DIAG] ipc.drain proc.35=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[NET-CORE] rx batch: 256 calls, 0 not answered in time, bound 24 ms
+[NET-CORE] rx batch: 1024 calls, 0 not answered in time, bound 24 ms
+[DIAG] ipc.drain proc.35=0x0000000000000005
+[DIAG] ipc.drain proc.35=0x0000000000000005
+[AUDIO] output driver.usb_audio0
+[KLOG WARN] [CAP-DENY] pid=6 syscall=MkDebug(1195525197)
+[KLOG WARN] [CAP-DENY] pid=6 syscall=MkDebug(1195525197)
+[KLOG WARN] [CAP-DENY] pid=6 syscall=MkDebug(1195525197)
+[KLOG WARN] [CAP-DENY] pid=6 syscall=MkDebug(1195525197)
+[KLOG WARN] [CAP-DENY] pid=6 syscall=MkDebug(1195525197)
+[VFS] serving, store status 00[NET-CORE] rx batch: 4096 calls, 0 not answered in time, bound 24 ms
+[DIAG] ipc.drain proc.35=0x0000000000000005
+[DIAG] ipc.drain proc.35=0x0000000000000005
+[STORE] the loader's copy of the store: 88369152 bytes
+[PKG] vfy ok /capsules/std_proof.elf
+[PKG] vfy ok /capsules/std_proof.nonos_id_cert.bin
+[PKG] vfy ok /capsules/std_proof.manifest.bin
+[PKG] vfy ok /capsules/std_proof.zk_trailer.bin
+[PKG] vfy ok /capsules/gui_demo.elf
+[PKG] vfy ok /capsules/gui_demo.nonos_id_cert.bin
+[PKG] vfy ok /capsules/gui_demo.manifest.bin
+[PKG] vfy ok /capsules/gui_demo.zk_trailer.bin
+[PKG] vfy ok /capsules/game_2048.elf
+[PKG] vfy ok /capsules/game_2048.nonos_id_cert.bin
+[PKG] vfy ok /capsules/game_2048.manifest.bin
+[PKG] vfy ok /capsules/game_2048.zk_trailer.bin
+[PKG] vfy ok /capsules/egui_proof.elf
+[PKG] vfy ok /capsules/egui_proof.nonos_id_cert.bin
+[PKG] vfy ok /capsules/egui_proof.manifest.bin
+[PKG] vfy ok /capsules/egui_proof.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/python3
+[PKG] vfy ok /linux/usr/bin/python3.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/python3.manifest.bin
+[PKG] vfy ok /linux/usr/bin/python3.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/lua
+[PKG] vfy ok /linux/usr/bin/lua.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/lua.manifest.bin
+[PKG] vfy ok /linux/usr/bin/lua.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/zstd
+[PKG] vfy ok /linux/usr/bin/zstd.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/zstd.manifest.bin
+[PKG] vfy ok /linux/usr/bin/zstd.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/john
+[PKG] vfy ok /linux/usr/bin/john.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/john.manifest.bin
+[PKG] vfy ok /linux/usr/bin/john.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/sqlite3
+[PKG] vfy ok /linux/usr/bin/sqlite3.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/sqlite3.manifest.bin
+[PKG] vfy ok /linux/usr/bin/sqlite3.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/qjs
+[PKG] vfy ok /linux/usr/bin/qjs.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/qjs.manifest.bin
+[PKG] vfy ok /linux/usr/bin/qjs.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/jq
+[PKG] vfy ok /linux/usr/bin/jq.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/jq.manifest.bin
+[PKG] vfy ok /linux/usr/bin/jq.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/tclsh
+[PKG] vfy ok /linux/usr/bin/tclsh.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/tclsh.manifest.bin
+[PKG] vfy ok /linux/usr/bin/tclsh.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/mruby
+[PKG] vfy ok /linux/usr/bin/mruby.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/mruby.manifest.bin
+[PKG] vfy ok /linux/usr/bin/mruby.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/rg
+[PKG] vfy ok /linux/usr/bin/rg.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/rg.manifest.bin
+[PKG] vfy ok /linux/usr/bin/rg.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/fd
+[PKG] vfy ok /linux/usr/bin/fd.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/fd.manifest.bin
+[PKG] vfy ok /linux/usr/bin/fd.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/gojq
+[PKG] vfy ok /linux/usr/bin/gojq.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/gojq.manifest.bin
+[PKG] vfy ok /linux/usr/bin/gojq.zk_trailer.bin
+[DIAG] ipc.drain proc.35=0x0000000000000005
+[PKG] vfy ok /linux/usr/bin/perl
+[PKG] vfy ok /linux/usr/bin/perl.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/perl.manifest.bin
+[PKG] vfy ok /linux/usr/bin/perl.zk_trailer.bin
+[PKG] vfy ok /linux/usr/lib/perl5/strict.pm
+[PKG] vfy ok /linux/usr/lib/perl5/warnings.pm
+[PKG] vfy ok /linux/usr/lib/perl5/warnings/register.pm
+[PKG] vfy ok /linux/usr/lib/perl5/feature.pm
+[PKG] vfy ok /linux/usr/lib/perl5/utf8.pm
+[PKG] vfy ok /linux/usr/lib/perl5/vars.pm
+[PKG] vfy ok /linux/usr/lib/perl5/constant.pm
+[PKG] vfy ok /linux/usr/lib/perl5/lib.pm
+[PKG] vfy ok /linux/usr/lib/perl5/integer.pm
+[PKG] vfy ok /linux/usr/lib/perl5/bytes.pm
+[PKG] vfy ok /linux/usr/lib/perl5/overload.pm
+[PKG] vfy ok /linux/usr/lib/perl5/overloading.pm
+[PKG] vfy ok /linux/usr/lib/perl5/parent.pm
+[PKG] vfy ok /linux/usr/lib/perl5/base.pm
+[PKG] vfy ok /linux/usr/lib/perl5/fields.pm
+[PKG] vfy ok /linux/usr/lib/perl5/subs.pm
+[PKG] vfy ok /linux/usr/lib/perl5/builtin.pm
+[PKG] vfy ok /linux/usr/lib/perl5/experimental.pm
+[PKG] vfy ok /linux/usr/lib/perl5/version.pm
+[PKG] vfy ok /linux/usr/lib/perl5/version/regex.pm
+[PKG] vfy ok /linux/usr/lib/perl5/attributes.pm
+[PKG] vfy ok /linux/usr/lib/perl5/mro.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Carp.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Carp/Heavy.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Exporter.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Exporter/Heavy.pm
+[PKG] vfy ok /linux/usr/lib/perl5/XSLoader.pm
+[PKG] vfy ok /linux/usr/lib/perl5/DynaLoader.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Config.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Errno.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Scalar/Util.pm
+[PKG] vfy ok /linux/usr/lib/perl5/List/Util.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Sub/Util.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Hash/Util.pm
+[PKG] vfy ok /linux/usr/lib/perl5/POSIX.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Fcntl.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Symbol.pm
+[PKG] vfy ok /linux/usr/lib/perl5/SelectSaver.pm
+[PKG] vfy ok /linux/usr/lib/perl5/English.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Env.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/Handle.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/File.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/Seekable.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/Select.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/Socket.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/Socket/INET.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/Socket/UNIX.pm
+[PKG] vfy ok /linux/usr/lib/perl5/IO/Socket/IP.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Socket.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Basename.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Spec.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Spec/Unix.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Path.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Temp.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Find.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Copy.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/stat.pm
+[PKG] vfy ok /linux/usr/lib/perl5/File/Glob.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Cwd.pm
+[PKG] vfy ok /linux/usr/lib/perl5/FindBin.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Getopt/Long.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Getopt/Std.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Data/Dumper.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Storable.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Text/Tabs.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Text/ParseWords.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Text/Abbrev.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Time/Local.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Time/HiRes.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Time/Piece.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Time/Seconds.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Time/localtime.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Time/tm.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Class/Struct.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Digest/MD5.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Digest/SHA.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Digest/base.pm
+[PKG] vfy ok /linux/usr/lib/perl5/MIME/Base64.pm
+[PKG] vfy ok /linux/usr/lib/perl5/MIME/QuotedPrint.pm
+[PKG] vfy ok /linux/usr/lib/perl5/JSON/PP.pm
+[PKG] vfy ok /linux/usr/lib/perl5/JSON/PP/Boolean.pm
+[PKG] vfy ok /linux/usr/lib/perl5/HTTP/Tiny.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Term/ANSIColor.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Tie/Hash.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Tie/Array.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Tie/Scalar.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Tie/Handle.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Tie/StdHandle.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Benchmark.pm
+[PKG] vfy ok /linux/usr/lib/perl5/PerlIO.pm
+[PKG] vfy ok /linux/usr/lib/perl5/PerlIO/encoding.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Encode.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Encode/Alias.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Encode/Config.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Encode/Encoding.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Encode/MIME/Name.pm
+[PKG] vfy ok /linux/usr/lib/perl5/Config_heavy.pl
+[PKG] vfy ok /linux/usr/lib/perl5/Config_git.pl
+[PKG] vfy ok /linux/usr/bin/nano
+[PKG] vfy ok /linux/usr/bin/nano.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/nano.manifest.bin
+[PKG] vfy ok /linux/usr/bin/nano.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/make
+[PKG] vfy ok /linux/usr/bin/make.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/make.manifest.bin
+[PKG] vfy ok /linux/usr/bin/make.zk_trailer.bin
+[PKG] vfy ok /linux/usr/bin/openssl
+[PKG] vfy ok /linux/usr/bin/openssl.nonos_id_cert.bin
+[PKG] vfy ok /linux/usr/bin/openssl.manifest.bin
+[PKG] vfy ok /linux/usr/bin/openssl.zk_trailer.bin
+[PKG] vfy ok /linux/bin/qwenchat
+[PKG] vfy ok /linux/bin/qwenchat.nonos_id_cert.bin
+[PKG] vfy ok /linux/bin/qwenchat.manifest.bin
+[PKG] vfy ok /linux/bin/qwenchat.zk_trailer.bin
+[PKG] vfy ok /linux/bin/qwenchat-x86_64_v2
+[PKG] vfy ok /linux/bin/qwenchat-x86_64_v2.nonos_id_cert.bin
+[PKG] vfy ok /linux/bin/qwenchat-x86_64_v2.manifest.bin
+[PKG] vfy ok /linux/bin/qwenchat-x86_64_v2.zk_trailer.bin
+[PKG] vfy ok /linux/bin/qwenchat-x86_64
+[PKG] vfy ok /linux/bin/qwenchat-x86_64.nonos_id_cert.bin
+[PKG] vfy ok /linux/bin/qwenchat-x86_64.manifest.bin
+[PKG] vfy ok /linux/bin/qwenchat-x86_64.zk_trailer.bin
+[PKG] vfy ok /linux/usr/lib/python312.zip
+[PKG] vfy ok /linux/usr/lib/python3.12/lib-dynload/README
+[PKG] vfy ok /linux/etc/ssl/cert.pem
+[PKG] vfy ok /linux/usr/share/john/john.conf
+[PKG] vfy ok /linux/usr/share/john/password.lst
+[PKG] vfy ok /linux/usr/lib/tcl8.6/init.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/tclIndex
+[PKG] vfy ok /linux/usr/lib/tcl8.6/auto.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/package.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/tm.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/history.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/parray.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/word.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/clock.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/msgcat/msgcat.tcl
+[PKG] vfy ok /linux/usr/lib/tcl8.6/msgcat/pkgIndex.tcl
+[PKG] vfy ok /linux/usr/share/fonts/dejavu/DejaVuSans.ttf
+[PKG] vfy ok /linux/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf
+[PKG] vfy ok /linux/usr/share/fonts/dejavu/DejaVuSansMono.ttf
+[PKG] vfy ok /linux/usr/share/fonts/dejavu/DejaVuSerif.ttf
+[PKG] vfy ok /linux/usr/share/fonts/dejavu/LICENSE
+[PKG] vfy ok /linux/etc/passwd
+[PKG] vfy ok /linux/usr/share/nonos/tour/README
+[PKG] vfy ok /linux/usr/share/nonos/tour/mandelbrot.py
+[PKG] vfy ok /linux/usr/share/nonos/keymap.xkb
+[PKG] vfy ok /linux/etc/nonos-links
+[VFSD] packages staged
+[DIAG] ipc.drain proc.35=0x0000000000000005
+[ANON] authority certs 7 7
+[NYM] fetch: ok-len-or-err 22212 0
+[NYM] directory: mix layers in hand, gateways next
+[NYM] no directory gateways yet, dialling a compiled one
+[DIAG] ipc.drain kernel.entropy=0x0000000000000004
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[NET-NYM] gateway bound 159.89.174.132
+[DIAG] ipc.drain proc.35=0x0000000000000005
+[DIAG] ipc.drain proc.35=0x0000000000000005
+[DIAG] ipc.drain proc.35=0x0000000000000005
+[DIAG] ipc.drain proc.35=0x0000000000000005
+[DIAG] ipc.drain proc.35=0x0000000000000005
+[DIAG] ipc.drain proc.35=0x0000000000000005
+[NYM] directory: fetching
+[NYM] fetch: connecting
+[DIAG] ipc.drain proc.35=0x0000000000000005
+[ANON] consensus signed by 7 7
+[ANON] consensus relays 5781
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261028064604
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[DIAG] ipc.drain proc.34=0x0000000000000005
+[KLOG WARN] [CAP-DENY] pid=6 syscall=MkDebug(1195525197)
+[KLOG WARN] [CAP-DENY] pid=6 syscall=MkDebug(1195525197)
+[KLOG WARN] [CAP-DENY] pid=6 syscall=MkDebug(1195525197)
+[KLOG WARN] [CAP-DENY] pid=6 syscall=MkDebug(1195525197)
+[KLOG WARN] [CAP-DENY] pid=6 syscall=MkDebug(1195525197)
+[KLOG WARN] [CAP-DENY] pid=6 syscall=MkDebug(1195525197)
+[KLOG WARN] [CAP-DENY] pid=6 syscall=MkDebug(1195525197)
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005
+[ANON] microdescs 92 92
+[ANON] directory usable 92 5781
+[ANON] link tcp up  91. 197. 55. 97: 9001
+[ANON] link tls up
+[ANON] link version 5
+[ANON] link identity proved
+[ANON] link open
+[ANON] link open to guard  91. 197. 55. 97: 9001
+[ANON] circuit hop up 1
+[ANON] circuit hop up 2
+[ANON] circuit hop up 3
+[ANON] circuit open 2147483649
+[ANON] warm circuit for installs, building 2147483650
+[NET-CORE] rx batch: 16384 calls, 0 not answered in time, bound 24 ms
+[ANON] circuit hop up 1
+[ANON] circuit hop up 2
+[ANON] circuit hop up 3
+[ANON] circuit open 2147483650
+[ANON] circuit hop up 1
+[ANON] circuit hop up 2
+[NYM] fetch: ok-len-or-err 75560 0
+[NYM] directory: mix layers in hand, gateways next
+[NYM] gateway control register
+[NYM] gateway control bandwidth
+[ANON] circuit hop up 3
+[ANON] circuit open 2147483651
+[NYM] directory: fetching
+[NYM] fetch: connecting
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261028064608
+[NYM] fetch: ok-len-or-err 75560 0
+[NYM] directory synced, nodes 420
+[NYM] gateway is not in the directory, dialling one that is
+[NYM] dialling a directory gateway of 180
+[NET-NYM] gateway bound 157.173.25.245
+[NYM] gateway control register
+[NYM] gateway control bandwidth
+[SPLASH] stepped aside at 33653 ms: the dwell ran out
+[SETUP] keyboard held
+[MUNMAP] pid=0x0000000000000009 name=app.boot_splash size=0x00000000007E9000 va=0x0000000081000000 total_pid=0x0000000001000000 total_system=0x0000000052084000
+[BENCH] 81453 input_post_first
+[BENCH] 81455 input_drain_first
+[LOCAL-BUILD] no machine key; identity lasts this boot
+[DEV-ROOT] local root enrolled; installed software may run
+[SETUP] answers held in memory for the installer; nothing is kept
+[BENCH] 148036 capsule_spawn_start:app.boot_splash
+[BENCH] 148054 capsule_attest_ok:app.boot_splash
+[ZK-ATTEST] ok app.boot_splash vendor
+[BENCH] 148061 capsule_preflight_ok:app.boot_splash
+[SPAWN] name=app.boot_splash pid=0x0000000000000032 caps=0x0000000000001118 entry=0x000000000906A570
+[BENCH] 148074 capsule_runqueue_ok:app.boot_splash
+[USER-FIRST] pid=0x0000000000000032 rip=0x000000000906A570
+[BOOT-SPLASH] capsule spawned
+[BENCH] 148086 capsule_spawn_start:wm
+[BENCH] 148102 capsule_attest_ok:wm
+[ZK-ATTEST] ok wm vendor
+[BENCH] 148106 capsule_preflight_ok:wm
+[SPAWN] name=wm pid=0x0000000000000033 caps=0x0000000000000018 entry=0x0000000035A0CA50
+[BENCH] 148117 capsule_runqueue_ok:wm
+[USER-FIRST] pid=0x0000000000000033 rip=0x0000000035A0CA50
+[WM] capsule spawned
+[BENCH] 148123 capsule_spawn_start:wallpaper_catalog
+[BENCH] 148134 capsule_attest_ok:wallpaper_catalog
+[ZK-ATTEST] ok wallpaper_catalog vendor
+[BENCH] 148139 capsule_preflight_ok:wallpaper_catalog
+[SPAWN] name=wallpaper_catalog pid=0x0000000000000034 caps=0x0000000000000059 entry=0x000000000D488AA0
+[BENCH] 148147 capsule_runqueue_ok:wallpaper_catalog
+[USER-FIRST] pid=0x0000000000000034 rip=0x000000000D488AA0
+[WALLPAPER-CATALOG] capsule spawned
+[BENCH] 148155 capsule_spawn_start:wallpaper
+[BENCH] 148170 capsule_attest_ok:wallpaper
+[ZK-ATTEST] ok wallpaper vendor
+[BENCH] 148173 capsule_preflight_ok:wallpaper
+[SPAWN] name=wallpaper pid=0x0000000000000035 caps=0x0000000000001918 entry=0x0000000023C98000
+[BENCH] 148183 capsule_runqueue_ok:wallpaper
+[USER-FIRST] pid=0x0000000000000035 rip=0x0000000023C98000
+[WALLPAPER] capsule spawned
+[BENCH] 148188 capsule_spawn_start:desktop_shell
+[BENCH] 148242 capsule_attest_ok:desktop_shell
+[ZK-ATTEST] ok desktop_shell vendor
+[BENCH] 148245 capsule_preflight_ok:desktop_shell
+[SPLASH] up 1920x1080 at 146992 ms
+[SPAWN] name=desktop_shell pid=0x0000000000000036 caps=0x000000000100115D entry=0x0000000024641570
+[BENCH] 148319 capsule_runqueue_ok:desktop_shell
+[USER-FIRST] pid=0x0000000000000036 rip=0x0000000024641570
+[DESKTOP-SHELL] capsule spawned
+[BENCH] 148324 capsule_spawn_start:image_codec
+[BENCH] 148332 capsule_attest_ok:image_codec
+[ZK-ATTEST] ok image_codec vendor
+[BENCH] 148338 capsule_preflight_ok:image_codec
+[SPAWN] name=image_codec pid=0x0000000000000037 caps=0x0000000000003018 entry=0x00000000147142A0
+[BENCH] 148350 capsule_runqueue_ok:image_codec
+[USER-FIRST] pid=0x0000000000000037 rip=0x00000000147142A0
+[IMAGE-CODEC] capsule spawned
+[BENCH] 148355 capsule_spawn_start:app.video_player
+[BENCH] 148376 capsule_attest_ok:app.video_player
+[ZK-ATTEST] ok app.video_player vendor
+[BENCH] 148379 capsule_preflight_ok:app.video_player
+[BENCH] 147107 shell_start
+[SPAWN] name=app.video_player pid=0x0000000000000038 caps=0x0000000000003959 entry=0x000000000BE245F0
+[BENCH] 147109 shell_peers
+[BENCH] 148395 capsule_runqueue_ok:app.video_player
+[USER-FIRST] pid=0x0000000000000038 rip=0x000000000BE245F0
+[BENCH] 147114 shell_peers_healthy
+[VIDEO-PLAYER] capsule spawned
+[BENCH] 148404 capsule_spawn_start:clipboard
+[BENCH] 148412 capsule_attest_ok:clipboard
+[ZK-ATTEST] ok clipboard vendor
+[BENCH] 148415 capsule_preflight_ok:clipboard
+[SPAWN] clipboard install enter
+[SPAWN] name=clipboard pid=0x0000000000000039 caps=0x0000000000000018 entry=0x000000002B04DBF0
+[BENCH] 148423 capsule_runqueue_ok:clipboard
+[USER-FIRST] pid=0x0000000000000039 rip=0x000000002B04DBF0
+[SPAWN] clipboard runqueue ok
+[CLIPBOARD] capsule spawned
+[BENCH] 148429 capsule_spawn_start:attest
+[BENCH] 148437 capsule_attest_ok:attest
+[ZK-ATTEST] ok attest vendor
+[BENCH] 148441 capsule_preflight_ok:attest
+[SPAWN] name=attest pid=0x000000000000003A caps=0x0000000080000019 entry=0x00000000252742A0
+[BENCH] 148453 capsule_runqueue_ok:attest
+[ATTEST] capsule spawned
+[USER-FIRST] pid=0x000000000000003A rip=0x00000000252742A0
+[BENCH] 148456 capsule_spawn_start:installer
+[BENCH] 148468 capsule_attest_ok:installer
+[ZK-ATTEST] ok installer vendor
+[BENCH] 148471 capsule_preflight_ok:installer
+[SPAWN] name=installer pid=0x000000000000003B caps=0x0000000000800059 entry=0x00000000239BA5F0
+[BENCH] 148477 capsule_runqueue_ok:installer
+[USER-FIRST] pid=0x000000000000003B rip=0x00000000239BA5F0
+[INSTALLER] capsule spawned
+[BENCH] 148482 capsule_spawn_start:payment
+[BENCH] 148493 capsule_attest_ok:payment
+[ZK-ATTEST] ok payment vendor
+[BENCH] 148496 capsule_preflight_ok:payment
+[SPAWN] name=payment pid=0x000000000000003C caps=0x0000000010000079 entry=0x0000000028D18660
+[BENCH] 148544 capsule_runqueue_ok:payment
+[USER-FIRST] pid=0x000000000000003C rip=0x0000000028D18660
+[PAYMENT] capsule spawned
+[BENCH] 148551 capsule_spawn_start:nox_settle
+[BENCH] 148562 capsule_attest_ok:nox_settle
+[ZK-ATTEST] ok nox_settle vendor
+[BENCH] 148565 capsule_preflight_ok:nox_settle
+[SPAWN] name=nox_settle pid=0x000000000000003D caps=0x000000000000003C entry=0x0000000034565080
+[BENCH] 148600 capsule_runqueue_ok:nox_settle
+[USER-FIRST] pid=0x000000000000003D rip=0x0000000034565080
+[NOX-SETTLE] capsule spawned
+[BENCH] 148605 capsule_spawn_start:login
+[MUNMAP] release_va_failed
+[MUNMAP] pid=0x0000000000000035 name=wallpaper size=0x0000000000001000 va=0x00000000817E9000 total_pid=0x00000000017F9000 total_system=0x000000005A066000
+[BENCH] 148614 capsule_attest_ok:login
+[USER-FIRST] pid=0x000000000000003E rip=0x0000000023CA9F8C
+[ZK-ATTEST] ok login vendor
+[BENCH] 148619 capsule_preflight_ok:login
+[SPAWN] login install enter
+[SPAWN] name=login pid=0x000000000000003F caps=0x0000000010001018 entry=0x00000000399D0B60
+[BENCH] 148626 capsule_runqueue_ok:login
+[SPAWN] login runqueue ok
+[LOGIN] capsule spawned
+[BENCH] 148630 capsule_spawn_start:toolkit
+[USER-FIRST] pid=0x000000000000003F rip=0x00000000399D0B60
+[BENCH] 148638 capsule_attest_ok:toolkit
+[ZK-ATTEST] ok toolkit vendor
+[BENCH] 148641 capsule_preflight_ok:toolkit
+[SPAWN] toolkit install enter
+[SPAWN] name=toolkit pid=0x0000000000000040 caps=0x0000000000000019 entry=0x00000000052F3EA0
+[BENCH] 148676 capsule_runqueue_ok:toolkit
+[SPAWN] toolkit runqueue ok
+[TOOLKIT] capsule spawned
+[BENCH] 148680 capsule_spawn_start:market.index
+[BENCH] 148704 capsule_attest_ok:market.index
+[ZK-ATTEST] ok market.index vendor
+[BENCH] 148707 capsule_preflight_ok:market.index
+[SPAWN] name=market.index pid=0x0000000000000041 caps=0x0000000000000059 entry=0x00000000298C0190
+[BENCH] 148716 capsule_runqueue_ok:market.index
+[MARKET] capsule spawned
+[BENCH] 148719 capsule_spawn_start:app.about
+[BENCH] 148767 capsule_attest_ok:app.about
+[ZK-ATTEST] ok app.about vendor
+[BENCH] 148770 capsule_preflight_ok:app.about
+[SPAWN] name=app.about pid=0x0000000000000042 caps=0x0000000080001919 entry=0x00000000012A0F60
+[BENCH] 148812 capsule_runqueue_ok:app.about
+[APP-ABOUT] capsule spawned
+[BENCH] 148815 capsule_spawn_start:app.store
+[USER-FIRST] pid=0x0000000000000040 rip=0x00000000052F3EA0
+[USER-FIRST] pid=0x0000000000000041 rip=0x00000000298C0190
+[BENCH] 148856 capsule_attest_ok:app.store
+[ZK-ATTEST] ok app.store vendor
+[BENCH] 148859 capsule_preflight_ok:app.store
+[SPAWN] name=app.store pid=0x0000000000000043 caps=0x0000000040001919 entry=0x000000002CC03B20
+[BENCH] 148962 capsule_runqueue_ok:app.store
+[APP-STORE] capsule spawned
+[BENCH] 148965 capsule_spawn_start:app.calculator
+[BENCH] 149006 capsule_attest_ok:app.calculator
+[ZK-ATTEST] ok app.calculator vendor
+[BENCH] 149009 capsule_preflight_ok:app.calculator
+[SPAWN] name=app.calculator pid=0x0000000000000044 caps=0x0000000000001919 entry=0x0000000002832770
+[BENCH] 149125 capsule_runqueue_ok:app.calculator
+[APP-CALCULATOR] capsule spawned
+[BENCH] 149128 capsule_spawn_start:app.browser
+[BENCH] 149188 capsule_attest_ok:app.browser
+[ZK-ATTEST] ok app.browser vendor
+[BENCH] 149192 capsule_preflight_ok:app.browser
+[SOCKS5] connect, destination bytes 39
+[NYM] fetch: connecting
+[SPAWN] name=app.browser pid=0x0000000000000045 caps=0x000000000000193D entry=0x0000000025FF8250
+[BENCH] 149306 capsule_runqueue_ok:app.browser
+[APP-BROWSER] capsule spawned
+[BENCH] 149309 capsule_spawn_start:app.snake
+[BENCH] 148034 shell_backings
+[NYM] fetch: handshaking
+[NYM] fetch: now 20261028064822
+[SPLASH] stepped aside at 148066 ms: the desktop is up
+[BENCH] 149365 capsule_attest_ok:app.snake
+[ZK-ATTEST] ok app.snake vendor
+[BENCH] 149368 capsule_preflight_ok:app.snake
+[MUNMAP] pid=0x0000000000000032 name=app.boot_splash size=0x00000000007E9000 va=0x0000000081000000 total_pid=0x0000000001000000 total_system=0x000000006C00A000
+[SPAWN] name=app.snake pid=0x0000000000000046 caps=0x0000000000001959 entry=0x00000000019F1E40
+[BENCH] 148145 shell_painted
+[BENCH] 149432 capsule_runqueue_ok:app.snake
+[APP-SNAKE] capsule spawned
+[BENCH] 149436 capsule_spawn_start:app.nonos_wallet
+[BENCH] 149487 capsule_attest_ok:app.nonos_wallet
+[ZK-ATTEST] ok app.nonos_wallet vendor
+[BENCH] 149491 capsule_preflight_ok:app.nonos_wallet
+[SPAWN] name=app.nonos_wallet pid=0x0000000000000047 caps=0x000000001000197D entry=0x000000003562E550
+[BENCH] 149578 capsule_runqueue_ok:app.nonos_wallet
+[APP-NONOS-WALLET] capsule spawned
+[BENCH] 149583 capsule_spawn_start:app.terminal
+[BENCH] 148326 shell_registered
+[BENCH] 149613 capsule_attest_ok:app.terminal
+[ZK-ATTEST] ok app.terminal vendor
+[BENCH] 149617 capsule_preflight_ok:app.terminal
+[SPAWN] name=app.terminal pid=0x0000000000000048 caps=0x00000000C100197D entry=0x000000003A005EA0
+[BENCH] 149634 capsule_runqueue_ok:app.terminal
+[APP-TERMINAL] capsule spawned
+[BENCH] 149637 capsule_spawn_start:app.file_manager
+[BENCH] 149660 capsule_attest_ok:app.file_manager
+[ZK-ATTEST] ok app.file_manager vendor
+[BENCH] 149663 capsule_preflight_ok:app.file_manager
+[BENCH] 148390 shell_committed
+[BENCH] 148400 shell_windows
+[BENCH] 148416 shell_subscribed
+[MUNMAP] release_va_failed
+[MUNMAP] pid=0x0000000000000035 name=wallpaper size=0x0000000000001000 va=0x00000000817FA000 total_pid=0x0000000001809000 total_system=0x000000007301A000
+[SPAWN] name=app.file_manager pid=0x0000000000000049 caps=0x0000000000001959 entry=0x000000000EBAEFD0
+[BENCH] 149715 capsule_runqueue_ok:app.file_manager
+[APP-FILE-MANAGER] capsule spawned
+[BENCH] 149718 capsule_spawn_start:app.audio_player
+[BENCH] 149744 capsule_attest_ok:app.audio_player
+[ZK-ATTEST] ok app.audio_player vendor
+[BENCH] 149747 capsule_preflight_ok:app.audio_player
+[SPAWN] name=app.audio_player pid=0x000000000000004B caps=0x000000000000197D entry=0x000000003BE553F0
+[BENCH] 149798 capsule_runqueue_ok:app.audio_player
+[APP-AUDIO-PLAYER] capsule spawned
+[BENCH] 149802 capsule_spawn_start:app.linux
+[BENCH] 149841 capsule_attest_ok:app.linux
+[ZK-ATTEST] ok app.linux vendor
+[BENCH] 149844 capsule_preflight_ok:app.linux
+[SPAWN] name=app.linux pid=0x000000000000004C caps=0x0000000104001979 entry=0x0000000001F7D880
+[BENCH] 149869 capsule_runqueue_ok:app.linux
+[APP-LINUX] capsule spawned
+[BENCH] 149872 capsule_spawn_start:app.text_editor
+[BENCH] 149894 capsule_attest_ok:app.text_editor
+[ZK-ATTEST] ok app.text_editor vendor
+[BENCH] 149897 capsule_preflight_ok:app.text_editor
+[BENCH] 148647 shell_serving
+[SPAWN] name=app.text_editor pid=0x000000000000004D caps=0x0000000000001959 entry=0x0000000017E6EB60
+[BENCH] 149955 capsule_runqueue_ok:app.text_editor
+[APP-TEXT-EDITOR] capsule spawned
+[BENCH] 149958 capsule_spawn_start:app.settings
+[BENCH] 149997 capsule_attest_ok:app.settings
+[ZK-ATTEST] ok app.settings vendor
+[BENCH] 150001 capsule_preflight_ok:app.settings
+[SPAWN] name=app.settings pid=0x000000000000004E caps=0x000000000000997D entry=0x0000000035A879E0
+[BENCH] 150085 capsule_runqueue_ok:app.settings
+[APP-SETTINGS] capsule spawned
+[BENCH] 150088 capsule_spawn_start:app.process_manager
+[BENCH] 150127 capsule_attest_ok:app.process_manager
+[ZK-ATTEST] ok app.process_manager vendor
+[BENCH] 150131 capsule_preflight_ok:app.process_manager
+[SPAWN] name=app.process_manager pid=0x000000000000004F caps=0x0000000002001919 entry=0x0000000012BA30F0
+[BENCH] 150170 capsule_runqueue_ok:app.process_manager
+[APP-PROCESS-MANAGER] capsule spawned
+[WALLPAPER] wallpaper 0 shown
+[LINUX] personality up
+[LINUX] store settled after 1 ms
+[LINUX] personality ready, nothing asked to run
+[SMP] tlb shootdown slow: acks outstanding=1 after ms=50 nmi sent=1
+[SHELL] live session: offering the installer
+[NYM] fetch: ok-len-or-err 1610187 0
+[NYM] exit lookup: requesters on known exits 180
+[NYM] exit lookup: candidates 180
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000000200
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 7
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000000400
+[NYM] sending packets for bytes 7 53
+[NYM] sent
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000000600
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 8
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000000800
+[NYM] sending packets for bytes 8 295
+[NYM] sent
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 14
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 13
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 12
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 11
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 21
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000000A00
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000000C00
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000000E00
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000001000
+[NYM] build: fragments 29
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000001200
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000001400
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000001600
+[NYM] top up: blocks ahead of need, then held 100 147
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] reply blocks built 0
+[SOCKS5] exit answered bytes 21
+[NYM] route home hops 4
+[NYM] resend: fragments sent again, of due 3 3
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 39
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 38
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 37
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 36
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 35
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 34
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 33
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 32
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 31
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 30
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 29
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 28
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 27
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 26
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 25
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 24
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 23
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 22
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 21
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 20
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 19
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 18
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 17
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 16
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 15
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 14
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 13
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 12
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 11
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 10
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 9
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 8
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 7
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 6
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 5
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 4
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 3
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 2
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 1
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[NYM] resend: fragments sent again, of due 1 1
+[NYM] gateway control send
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] push held: sets waiting, bytes 1 1604
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 0
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 2799
+[SOCKS5] exit answered bytes 2799
+[DIAG] ipc.drain proc.61=0x0000000000000005 hits=0x0000000000001800
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000001A00
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 8
+[NYM] sending packets for bytes 8 319
+[NYM] sent
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 7
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 6
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 5
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 4
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 3
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 2
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 1
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 549
+[SOCKS5] exit answered bytes 549
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 0
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 21
+[SOCKS5] exit answered bytes 21
+[SOCKS5] connect, destination bytes 39
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000001C00
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000001E00
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 7
+[NYM] sending packets for bytes 7 53
+[NYM] sent
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000002000
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 8
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000002200
+[NYM] sending packets for bytes 8 295
+[NYM] sent
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 14
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 13
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 12
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 11
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 10
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 9
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 21
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 8
+[NYM] gateway control send
+[SOCKS5] exit answered bytes 21
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 7
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 6
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 5
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 4
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 3
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 2
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 1
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[NYM] resend: fragments sent again, of due 1 1
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 0
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] push held: sets waiting, bytes 1 1604
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 2798
+[SOCKS5] exit answered bytes 2798
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000002400
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 8
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000002600
+[NYM] sending packets for bytes 8 664
+[NYM] sent
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 7
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 6
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 5
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 4
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 3
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 21
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 2
+[SOCKS5] exit answered bytes 21
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 1
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 0
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 712
+[SOCKS5] exit answered bytes 712
+[SHELL] answered op 0x0008 at 175543 ms, 28436 ms after the shell began
+[SHELL] answered op 0x0008 at 175578 ms, 28471 ms after the shell began
+[SHELL] answered op 0x0008 at 175614 ms, 28507 ms after the shell began
+[SHELL] answered op 0x0008 at 175648 ms, 28541 ms after the shell began
+[LINUX-INSTALL] market says ready=1 index=1 url=1 publisher=1 validated=1 arch=1 attest=1, release: pinned
+[BENCH] 192198 capsule_spawn_start:app.linux.install
+[BENCH] 192267 capsule_attest_ok:app.linux.install
+[ZK-ATTEST] ok app.linux.install vendor
+[BENCH] 192270 capsule_preflight_ok:app.linux.install
+[SPAWN] name=app.linux.install pid=0x0000000000000050 caps=0x000000070400197D entry=0x000000000BEB0880
+[BENCH] 192286 capsule_runqueue_ok:app.linux.install
+[LINUX-INSTALL] started, in its release's box linux.monero
+[LINUX] personality up
+[LINUX] installing
+[LINUX] store settled after 0 ms
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/main/x86_64/APKINDEX.tar.gz, 473606 bytes
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/community/x86_64/APKINDEX.tar.gz, 1848333 bytes
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/main/x86_64/libzmq-4.3.5-r2.apk, 263240 bytes
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/main/x86_64/libstdc++-13.2.1_git20240309-r1.apk, 916001 bytes
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/community/x86_64/monero-0.18.3.3-r1.apk, 24698520 bytes
+[LINUX] heap fetched monero: used=38765 peak=38765 of 327680 KiB
+[LINUX] heap unpacked monero: used=72409 peak=96992 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] monero: 1 file(s) in one pack of 63335 bytes; store names 236 -> 238
+[LINUX] unpacked files=15 links=0 linked=0 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] heap fetched libzmq: used=14189 peak=14189 of 327680 KiB
+[LINUX] heap unpacked libzmq: used=14545 peak=14934 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] libzmq: 2 file(s) in one pack of 747592 bytes; store names 285 -> 287
+[LINUX] unpacked files=1 links=1 linked=1 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] heap fetched libstdc++: used=13805 peak=13805 of 327680 KiB
+[LINUX] heap unpacked libstdc++: used=14919 peak=16460 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] libstdc++: 2 file(s) in one pack of 2705928 bytes; store names 288 -> 290
+[LINUX] unpacked files=1 links=1 linked=1 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/main/x86_64/libgcc-13.2.1_git20240309-r1.apk, 64048 bytes
+[LINUX] heap fetched libgcc: used=12557 peak=12557 of 327680 KiB
+[LINUX] heap unpacked libgcc: used=12611 peak=12712 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] libgcc: 2 file(s) in one pack of 145288 bytes; store names 291 -> 293
+[LINUX] unpacked files=1 links=0 linked=0 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/main/x86_64/libsodium-1.0.19-r1.apk, 167406 bytes
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/main/x86_64/musl-1.2.5-r4.apk, 408411 bytes
+[LINUX] heap fetched musl: used=13613 peak=13613 of 327680 KiB
+[LINUX] heap unpacked musl: used=13495 peak=14268 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] musl: 2 file(s) in one pack of 654024 bytes; store names 294 -> 296
+[LINUX] unpacked files=1 links=1 linked=1 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] heap fetched libsodium: used=12845 peak=12845 of 327680 KiB
+[LINUX] heap unpacked libsodium: used=13003 peak=13200 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] libsodium: 2 file(s) in one pack of 347848 bytes; store names 297 -> 299
+[LINUX] unpacked files=1 links=1 linked=1 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/main/x86_64/unbound-libs-1.20.0-r2.apk, 408059 bytes
+[LINUX] heap fetched unbound-libs: used=13229 peak=13229 of 327680 KiB
+[LINUX] heap unpacked unbound-libs: used=13321 peak=14094 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] unbound-libs: 2 file(s) in one pack of 870664 bytes; store names 300 -> 302
+[LINUX] unpacked files=1 links=1 linked=1 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/main/x86_64/protobuf-c-1.5.0-r0.apk, 13342 bytes
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/main/x86_64/libssl3-3.3.7-r0.apk, 358258 bytes
+[LINUX] heap fetched libssl3: used=13061 peak=13061 of 327680 KiB
+[LINUX] heap unpacked libssl3: used=13477 peak=13866 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] libssl3: 2 file(s) in one pack of 806728 bytes; store names 303 -> 305
+[LINUX] unpacked files=1 links=1 linked=1 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/main/x86_64/libevent-2.1.12-r7.apk, 283143 bytes
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/main/x86_64/libcrypto3-3.3.7-r0.apk, 1821834 bytes
+[LINUX] heap fetched libcrypto3: used=15749 peak=15749 of 327680 KiB
+[LINUX] heap unpacked libcrypto3: used=17307 peak=20384 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] libcrypto3: 16 file(s) in one pack of 4711432 bytes; store names 306 -> 308
+[LINUX] unpacked files=10 links=1 linked=1 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] heap fetched protobuf-c: used=12677 peak=12677 of 327680 KiB
+[LINUX] heap unpacked protobuf-c: used=12693 peak=12799 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] protobuf-c: 2 file(s) in one pack of 34696 bytes; store names 309 -> 311
+[LINUX] unpacked files=1 links=1 linked=1 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] heap fetched libevent: used=12653 peak=12653 of 327680 KiB
+[LINUX] heap unpacked libevent: used=12939 peak=13328 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] libevent: 10 file(s) in one pack of 661896 bytes; store names 312 -> 314
+[LINUX] unpacked files=5 links=5 linked=5 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/main/x86_64/ncurses-terminfo-base-6.4_p20240420-r2.apk, 22314 bytes
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/main/x86_64/readline-8.2.10-r0.apk, 120033 bytes
+[LINUX] heap fetched readline: used=12677 peak=12677 of 327680 KiB
+[LINUX] heap unpacked readline: used=12785 peak=12982 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] readline: 3 file(s) in one pack of 291464 bytes; store names 315 -> 317
+[LINUX] unpacked files=2 links=1 linked=1 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/main/x86_64/libncursesw-6.4_p20240420-r2.apk, 158639 bytes
+[LINUX] heap fetched libncursesw: used=12533 peak=12533 of 327680 KiB
+[LINUX] heap unpacked libncursesw: used=12681 peak=12878 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] libncursesw: 2 file(s) in one pack of 343112 bytes; store names 318 -> 320
+[LINUX] unpacked files=1 links=1 linked=1 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] heap fetched ncurses-terminfo-base: used=12341 peak=12341 of 327680 KiB
+[LINUX] heap unpacked ncurses-terminfo-base: used=12507 peak=12536 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] ncurses-terminfo-base: 39 file(s) in one pack of 103488 bytes; store names 321 -> 323
+[LINUX] unpacked files=39 links=1 linked=1 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/community/x86_64/miniupnpc-2.2.7-r0.apk, 34909 bytes
+[LINUX] heap fetched miniupnpc: used=12320 peak=12320 of 327680 KiB
+[LINUX] heap unpacked miniupnpc: used=12382 peak=12435 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] miniupnpc: 7 file(s) in one pack of 100360 bytes; store names 324 -> 326
+[LINUX] unpacked files=4 links=0 linked=0 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/community/x86_64/hidapi-0.14.0-r0.apk, 18756 bytes
+[LINUX] heap fetched hidapi: used=12341 peak=12341 of 327680 KiB
+[LINUX] heap unpacked hidapi: used=12387 peak=12416 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] hidapi: 4 file(s) in one pack of 56136 bytes; store names 327 -> 329
+[LINUX] unpacked files=2 links=2 linked=2 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/main/x86_64/eudev-libs-3.2.14-r2.apk, 26373 bytes
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/main/x86_64/libusb-1.0.27-r0.apk, 47473 bytes
+[LINUX] heap fetched libusb: used=12389 peak=12389 of 327680 KiB
+[LINUX] heap unpacked libusb: used=12451 peak=12504 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] libusb: 2 file(s) in one pack of 108424 bytes; store names 330 -> 332
+[LINUX] unpacked files=1 links=1 linked=1 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] heap fetched eudev-libs: used=12341 peak=12341 of 327680 KiB
+[LINUX] heap unpacked eudev-libs: used=12353 peak=12523 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] eudev-libs: 2 file(s) in one pack of 59336 bytes; store names 333 -> 335
+[LINUX] unpacked files=1 links=1 linked=1 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/main/x86_64/boost1.84-thread-1.84.0-r1.apk, 44632 bytes
+[LINUX] heap fetched boost1.84-thread: used=12365 peak=12365 of 327680 KiB
+[LINUX] heap unpacked boost1.84-thread: used=12447 peak=12500 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] boost1.84-thread: 2 file(s) in one pack of 125128 bytes; store names 336 -> 338
+[LINUX] unpacked files=1 links=0 linked=0 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/main/x86_64/boost1.84-serialization-1.84.0-r1.apk, 89851 bytes
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/main/x86_64/boost1.84-filesystem-1.84.0-r1.apk, 64258 bytes
+[LINUX] heap fetched boost1.84-serialization: used=12557 peak=12557 of 327680 KiB
+[LINUX] heap unpacked boost1.84-serialization: used=12761 peak=12862 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] boost1.84-serialization: 2 file(s) in one pack of 297032 bytes; store names 339 -> 341
+[LINUX] unpacked files=1 links=0 linked=0 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] mirror 10.0.2.2 is on the local network: reached directly
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/main/x86_64/boost1.84-chrono-1.84.0-r1.apk, 15140 bytes
+[LINUX] mirror 10.0.2.2: /alpine/v3.20/main/x86_64/boost1.84-program_options-1.84.0-r1.apk, 155040 bytes
+[LINUX] heap fetched boost1.84-program_options: used=12581 peak=12581 of 327680 KiB
+[LINUX] heap unpacked boost1.84-program_options: used=12809 peak=13006 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] boost1.84-program_options: 2 file(s) in one pack of 428104 bytes; store names 342 -> 344
+[LINUX] unpacked files=1 links=0 linked=0 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] heap fetched boost1.84-filesystem: used=12389 peak=12389 of 327680 KiB
+[LINUX] heap unpacked boost1.84-filesystem: used=12453 peak=12554 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] boost1.84-filesystem: 2 file(s) in one pack of 157960 bytes; store names 345 -> 347
+[LINUX] unpacked files=1 links=0 linked=0 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX] heap fetched boost1.84-chrono: used=12293 peak=12293 of 327680 KiB
+[LINUX] heap unpacked boost1.84-chrono: used=12319 peak=12445 of 327680 KiB
+[LINUX] provenance Verified: index signature and checksums match
+[LINUX] boost1.84-chrono: 2 file(s) in one pack of 43144 bytes; store names 348 -> 350
+[LINUX] unpacked files=1 links=0 linked=0 dropped=0
+[LINUX] unserved persist: install kept in RAM, store at rest unencrypted
+[LINUX-TIME] index 2 gets 2.3 MB 1.7 s 1.35 MB/s
+[LINUX-TIME] packages 23 gets 30.2 MB 22.5 s 1.34 MB/s
+[LINUX-TIME] verify 2.0 s place 3.5 s total 57.8 s
+[LINUX] installed
+[SMP] tlb shootdown slow: acks outstanding=1 after ms=50 nmi sent=1
+[BENCH] 291220 capsule_spawn_start:app.linux.term
+[BENCH] 291287 capsule_attest_ok:app.linux.term
+[ZK-ATTEST] ok app.linux.term vendor
+[BENCH] 291291 capsule_preflight_ok:app.linux.term
+[SPAWN] name=app.linux.term pid=0x0000000000000051 caps=0x0000000104001979 entry=0x000000001CDF0880
+[BENCH] 291307 capsule_runqueue_ok:app.linux.term
+[FOREIGN] guest pid=0x0000000000000052 caps=0x0000000000000000
+[EXIT] code=5129556 app.linux.term
+[MEASURE] app=37998bb5c5db0167 ok=0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+[BENCH] 292381 capsule_spawn_start:app.linux.term.net
+[BENCH] 292418 capsule_attest_ok:app.linux.term.net
+[ZK-ATTEST] ok app.linux.term.net vendor
+[BENCH] 292423 capsule_preflight_ok:app.linux.term.net
+[SPAWN] name=app.linux.term.net pid=0x0000000000000053 caps=0x000000010400197D entry=0x000000000C413880
+[BENCH] 292435 capsule_runqueue_ok:app.linux.term.net
+[FOREIGN] guest pid=0x0000000000000054 caps=0x0000000000000000
+[SOCKS5] connect, destination bytes 26
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000002800
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 7
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000002A00
+[NYM] sending packets for bytes 7 40
+[NYM] sent
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000002C00
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 8
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000002E00
+[NYM] sending packets for bytes 8 538
+[NYM] sent
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 14
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 13
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 12
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 11
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 10
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 9
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 8
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 7
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 6
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 5
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 4
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 3
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 2
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 1
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 0
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 67
+[SOCKS5] exit answered bytes 67
+[SOCKS5] connect, destination bytes 26
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000003000
+[NYM] reply blocks built 19
+[NYM] route home hops 4
+[NYM] build: fragments 6
+[NYM] sending packets for bytes 6 40
+[NYM] sent
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[NYM] build: fragments 1
+[NYM] sending packets for bytes 1 144
+[NYM] sent
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 6
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 5
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 4
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 3
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 2
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 1
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[NYM] build: fragments 1
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000003200
+[NYM] sending packets for bytes 1 331
+[NYM] sent
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 1
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 67
+[SOCKS5] exit answered bytes 67
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 0
+[SOCKS5] connect, destination bytes 26
+[NYM] reply blocks built 1
+[NYM] route home hops 4
+[NYM] build: fragments 1
+[NYM] sending packets for bytes 1 40
+[NYM] sent
+[NYM] gateway control send
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[NYM] build: fragments 1
+[NYM] sending packets for bytes 1 143
+[NYM] sent
+[NYM] gateway control send
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[NYM] build: fragments 1
+[NYM] sending packets for bytes 1 108
+[NYM] sent
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 2
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 1
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 67
+[SOCKS5] exit answered bytes 67
+[SOCKS5] connect, destination bytes 26
+[NYM] reply blocks built 1
+[NYM] route home hops 4
+[NYM] build: fragments 1
+[NYM] sending packets for bytes 1 40
+[NYM] sent
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 1
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[NYM] build: fragments 1
+[NYM] sending packets for bytes 1 143
+[NYM] sent
+[NYM] gateway control send
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[NYM] build: fragments 1
+[NYM] sending packets for bytes 1 108
+[NYM] sent
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 2
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 1
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 67
+[SOCKS5] exit answered bytes 67
+[SOCKS5] connect, destination bytes 26
+[NYM] reply blocks built 1
+[NYM] route home hops 4
+[NYM] build: fragments 1
+[NYM] sending packets for bytes 1 40
+[NYM] sent
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 1
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[NYM] build: fragments 1
+[NYM] sending packets for bytes 1 143
+[NYM] sent
+[NYM] gateway control send
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 67
+[SOCKS5] exit answered bytes 67
+[SOCKS5] connect, destination bytes 26
+[NYM] reply blocks built 1
+[NYM] route home hops 4
+[NYM] build: fragments 1
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000003400
+[NYM] sending packets for bytes 1 40
+[NYM] sent
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 2
+[NYM] gateway control send
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[NYM] build: fragments 1
+[NYM] sending packets for bytes 1 144
+[NYM] sent
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 2
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 1
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 0
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[NYM] build: fragments 1
+[NYM] sending packets for bytes 1 338
+[NYM] sent
+[NYM] gateway control send
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 67
+[SOCKS5] exit answered bytes 67
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 0
+[SOCKS5] connect, destination bytes 26
+[NYM] reply blocks built 1
+[NYM] route home hops 4
+[NYM] build: fragments 1
+[NYM] sending packets for bytes 1 40
+[NYM] sent
+[SOCKS5] open refused: exit silent, rotating to the ne
+[NYM] gateway control send
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 67
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 0
+[SOCKS5] connect, destination bytes 26
+[NYM] exit lookup: candidates 180
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000003600
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 7
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000003800
+[NYM] sending packets for bytes 7 40
+[NYM] sent
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000003A00
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 7
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000003C00
+[NYM] sending packets for bytes 7 143
+[NYM] sent
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 13
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 12
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 11
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 10
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 9
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 8
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000003E00
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 7
+[NYM] sending packets for bytes 7 108
+[NYM] sent
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 14
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 67
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000004000
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000004200
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000004400
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000004600
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000004800
+[NYM] build: fragments 29
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000004A00
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000004C00
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000004E00
+[NYM] top up: blocks ahead of need, then held 100 171
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 42
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 41
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 40
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 39
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 38
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 37
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 36
+[SOCKS5] exit answered bytes 67
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 35
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 34
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 33
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 32
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 31
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 30
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] push dropped: a copy of a fragment already taken
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 29
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 28
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 27
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 26
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 25
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 24
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 23
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 22
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 21
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 20
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 19
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 18
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[NYM] resend: fragments sent again, of due 1 1
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 17
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 16
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 15
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 14
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 13
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 12
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 11
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 10
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 9
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 8
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 7
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 6
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 5
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 4
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 3
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 2
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 1
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 0
+[SOCKS5] connect, destination bytes 26
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000005000
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 7
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000005200
+[NYM] sending packets for bytes 7 40
+[NYM] sent
+[SOCKS5] open refused: exit silent, rotating to the ne
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 6
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 5
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 4
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 3
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 2
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 67
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 1
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 0
+[SOCKS5] connect, destination bytes 26
+[NYM] exit lookup: candidates 180
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000005400
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 7
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000005600
+[NYM] sending packets for bytes 7 40
+[NYM] sent
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000005800
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 7
+[NYM] sending packets for bytes 7 143
+[NYM] sent
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 13
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 12
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 11
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 10
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 9
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 8
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 7
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 6
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 5
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000005A00
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 7
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000005C00
+[NYM] sending packets for bytes 7 108
+[NYM] sent
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 11
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 10
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 9
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 8
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 7
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 67
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000005E00
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000006000
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000006200
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000006400
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000006600
+[NYM] build: fragments 29
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000006800
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000006A00
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000006C00
+[NYM] top up: blocks ahead of need, then held 100 171
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 35
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 34
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 33
+[SOCKS5] exit answered bytes 67
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 32
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 31
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 30
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 29
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 28
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 27
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 26
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 25
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 24
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 23
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 22
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 21
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 20
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 19
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 18
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 17
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 16
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 15
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 14
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 13
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 12
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 11
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 10
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 9
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 8
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 7
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 6
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 5
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 4
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 3
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 2
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 1
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[NYM] resend: fragments sent again, of due 1 1
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 0
+[ANON] circuits retired 1
+[ANON] circuit hop up 1
+[ANON] circuit hop up 2
+[ANON] circuit hop up 3
+[ANON] circuit open 2147483652
+[ANON] circuits retired 1
+[ANON] warm circuit for installs, building 2147483653
+[ANON] circuit hop up 1
+[ANON] circuit hop up 2
+[ANON] circuit hop up 3
+[ANON] circuit open 2147483653
+[ANON] circuits retired 1
+[ANON] circuit hop up 1
+[ANON] circuit hop up 2
+[ANON] circuit hop up 3
+[ANON] circuit open 2147483654
+[SOCKS5] connect, destination bytes 26
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000006E00
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 7
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000007000
+[NYM] sending packets for bytes 7 40
+[NYM] sent
+[SOCKS5] open refused: exit silent, rotating to the ne
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 6
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 5
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 4
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 3
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 2
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 1
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 0
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 67
+[SOCKS5] connect, destination bytes 26
+[NYM] exit lookup: candidates 180
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000007200
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 7
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000007400
+[NYM] sending packets for bytes 7 40
+[NYM] sent
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000007600
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 7
+[NYM] sending packets for bytes 7 144
+[NYM] sent
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 13
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 12
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 11
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 10
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 9
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000007800
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 8
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000007A00
+[NYM] sending packets for bytes 8 338
+[NYM] sent
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 16
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 15
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 14
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 13
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 12
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 11
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 10
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 9
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 8
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 7
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 6
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 5
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 4
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 3
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 2
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 1
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[NYM] resend: fragments sent again, of due 1 1
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 0
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 67
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000007C00
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000007E00
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000008000
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000008200
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000008400
+[NYM] build: fragments 29
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000008600
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000008800
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000008A00
+[NYM] top up: blocks ahead of need, then held 100 171
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[SOCKS5] exit answered bytes 67
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 28
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 27
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 26
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 25
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 24
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 23
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 22
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 21
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 20
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 19
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 18
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 17
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 16
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 15
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 14
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 13
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 12
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 11
+[SOCKS5] connect, destination bytes 26
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000008C00
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 7
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000008E00
+[NYM] sending packets for bytes 7 40
+[NYM] sent
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 17
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 16
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 15
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 14
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 13
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 12
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 11
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 10
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 9
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 8
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000009000
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 7
+[NYM] sending packets for bytes 7 143
+[NYM] sent
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 14
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 13
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 12
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 11
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 10
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 9
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 8
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000009200
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000009400
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 7
+[NYM] sending packets for bytes 7 108
+[NYM] sent
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 67
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[SOCKS5] exit answered bytes 67
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 14
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 13
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 12
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 11
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 10
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 9
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 8
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 7
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[NYM] resend: fragments sent again, of due 1 1
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 6
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 5
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 4
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 3
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 2
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 1
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[NYM] resend: fragments sent again, of due 1 1
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 0
+[SOCKS5] connect, destination bytes 26
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000009600
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000009800
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 7
+[NYM] sending packets for bytes 7 40
+[NYM] sent
+[SOCKS5] open refused: exit silent, rotating to the ne
+[SOCKS5] connect, destination bytes 26
+[NYM] exit lookup: candidates 180
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000009A00
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 7
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000009C00
+[NYM] sending packets for bytes 7 40
+[NYM] sent
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 13
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 12
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 11
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 10
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 9
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 8
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 7
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x0000000000009E00
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 7
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x000000000000A000
+[NYM] sending packets for bytes 7 143
+[NYM] sent
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 13
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 12
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 11
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 67
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x000000000000A200
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x000000000000A400
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x000000000000A600
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x000000000000A800
+[NYM] build: fragments 29
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x000000000000AA00
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x000000000000AC00
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x000000000000AE00
+[NYM] top up: blocks ahead of need, then held 100 147
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 39
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 38
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 37
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 36
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 67
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[SOCKS5] exit answered bytes 67
+[SOCKS5] exit answered bytes 67
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 35
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 34
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 33
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 32
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 31
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 30
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 29
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 28
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 27
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 26
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 25
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 24
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 23
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 22
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 21
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 20
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 19
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 18
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 17
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x000000000000B000
+[NYM] resend: fragments sent again, of due 3 3
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 16
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 15
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 14
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 13
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 12
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 11
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 10
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 9
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 8
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 7
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 6
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 5
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 4
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 3
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 2
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 1
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[NYM] resend: fragments sent again, of due 1 1
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 0
+[SOCKS5] connect, destination bytes 26
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x000000000000B200
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 7
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x000000000000B400
+[NYM] sending packets for bytes 7 40
+[NYM] sent
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x000000000000B600
+[NYM] reply blocks built 24
+[NYM] route home hops 4
+[NYM] build: fragments 7
+[NYM] sending packets for bytes 7 143
+[NYM] sent
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 13
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 12
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 11
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 10
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 1673
+[NYM] pushed message bytes 1643
+[NYM] reply delivered bytes 67
+[SOCKS5] exit answered bytes 67
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 9
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 8
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 7
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 6
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 5
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 4
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 3
+[NYM] reply blocks built 0
+[NYM] route home hops 4
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x000000000000B800
+[NYM] resend: fragments sent again, of due 3 3
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway control send
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 2
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 1
+[NYM] gateway frame bytes 51
+[NYM] pushed message bytes 21
+[NYM] fragment acknowledged, still waiting on 0
+[NET-CORE] link probe driver.virtio_net0 no-answer[ANON] consensus no longer fresh, refetching while it serves
+[ANON] consensus signed by 7 7
+[ANON] consensus relays 5782
+[ANON] microdescs 92 92
+[ANON] microdescs 92 184
+[ANON] microdescs 92 276
+[ANON] microdescs 92 368
+[DIAG] ipc.drain kernel.crypto=0x0000000000000005 hits=0x000000000000BA00
+[ANON] microdescs 92 460
+[ANON] microdescs 92 552
+[ANON] microdescs 92 644
+[ANON] microdescs 92 736
+[ANON] microdescs 92 828

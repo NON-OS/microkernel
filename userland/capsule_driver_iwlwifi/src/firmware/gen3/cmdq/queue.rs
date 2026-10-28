@@ -16,7 +16,8 @@
 
 //! The command queue's write pointer, and a command sent on it.
 
-use super::super::plan::{CMD_BUF, CMD_RING};
+use super::super::csr::CsrLayout;
+use super::super::plan::CMD_BUF;
 use super::super::region::Region;
 use super::super::regs::HBUS_TARG_WRPTR;
 use super::sizes::{QUEUE, WIDE_HDR};
@@ -27,6 +28,8 @@ pub struct CmdQueue {
     pub(super) write_ptr: u16,
     /// The sequence of the command sent and not yet answered.
     pub(super) in_flight: Option<u16>,
+    /// The family's ring size and write-pointer wrap (`csr::gen2`).
+    pub csr: CsrLayout,
 }
 
 impl Default for CmdQueue {
@@ -37,7 +40,7 @@ impl Default for CmdQueue {
 
 impl CmdQueue {
     pub const fn new() -> Self {
-        Self { write_ptr: 0, in_flight: None }
+        Self { write_ptr: 0, in_flight: None, csr: CsrLayout::V1 }
     }
 
     /// Queue command `cmd` of `group` (version `version`, usually 0) with
@@ -59,13 +62,13 @@ impl CmdQueue {
         if total > CMD_BUF || payload.len() > u16::MAX as usize {
             return None;
         }
-        let slot = self.write_ptr as usize & (CMD_RING - 1);
+        let slot = self.write_ptr as usize & (self.csr.cmd_ring() - 1);
         let sequence = (QUEUE & 0x1F) << 8 | (self.write_ptr & 0xFF);
         let hdr = header(group, cmd, version, sequence, payload.len() as u16);
         if !write_command(ctrl, slot, &hdr, payload) {
             return None;
         }
-        self.write_ptr = self.write_ptr.wrapping_add(1);
+        self.write_ptr = self.write_ptr.wrapping_add(1) & self.csr.wrap();
         m.write32(HBUS_TARG_WRPTR, self.write_ptr as u32 | (QUEUE as u32) << 16);
         Some(sequence)
     }

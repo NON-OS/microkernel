@@ -19,9 +19,10 @@ for its chain reads, and no image in this release asks a time server. See
 
 You can install NONOS on an internal disk. Choose to install in first-boot
 setup, or pick `Install NØNOS` in the boot menu, and the installer writes to the
-disk you choose after you confirm. Until then NONOS writes nothing to any disk,
-except that choosing Install in setup keeps your answers in the stick's own
-store. See [Install to disk](../install/install-to-disk.md).
+disk you choose after you confirm. Until then NONOS writes none of your answers
+to any disk: Install holds them in memory for the installer. Only a Wi-Fi
+network you ask setup to remember, and consent to run installed software, go
+to the stick's own store. See [Install to disk](../install/install-to-disk.md).
 
 ## Trying NONOS in a virtual machine
 

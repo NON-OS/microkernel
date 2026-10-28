@@ -41,8 +41,9 @@ pub fn install(pkg: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
     }
     /*
      * An in-tree tool the image does not carry: its content from the NONOS
-     * package mirror, pinned by the market, into Alpine's tree, where the
-     * stored tools are.
+     * package mirror, pinned by the market, into its family's tree: Alpine's,
+     * where the stored tools are, or Debian's for `linux.kali.nonos-<tool>`,
+     * a glibc program with the Debian packages its content pins.
      */
     if let Some(tool) = super::tools::tool(pkg) {
         return super::tools_install::install(tool, pin);

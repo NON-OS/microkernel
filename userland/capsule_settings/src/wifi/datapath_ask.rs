@@ -55,6 +55,8 @@ pub fn driver_datapath() -> Option<DataPath> {
         efuse_flags: if long { word(24) } else { 0 },
         efuse_stalled_at: if long { word(28) } else { 0 },
         efuse_bank_ldo: if long { word(32) } else { 0 },
+        claim_step: if long { word(36) } else { 0 },
+        claim_errno: if long { word(40) } else { 0 },
         fw_step: if fw { b[FW_REPORT_AT] } else { 0 },
         fw_chunks: if fw { word(FW_REPORT_AT + 1) } else { 0 },
         fw_ctrl: if fw { word(FW_REPORT_AT + 5) } else { 0 },
