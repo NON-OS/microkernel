@@ -50,6 +50,7 @@ mod fido_tests;
 mod gates;
 mod names;
 mod power_off;
+mod radio_tests;
 mod single_client;
 mod spi_hid_tests;
 mod spi_tests;

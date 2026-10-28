@@ -8,6 +8,7 @@ pub mod ax88179_capsule;
 pub mod bga_capsule;
 pub mod block_device;
 pub mod broker;
+pub mod bt_usb_capsule;
 pub mod buslogic_capsule;
 pub mod ccid_capsule;
 pub mod cdc_acm_capsule;
