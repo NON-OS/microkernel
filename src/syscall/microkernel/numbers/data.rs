@@ -32,6 +32,8 @@ pub const SYS_DATA_IMPORT: u64 = tag4(b"MDIM");
 pub const SYS_DATA_STAT: u64 = tag4(b"MDST");
 pub const SYS_DATA_READ: u64 = tag4(b"MDRD");
 pub const SYS_DATA_PASSPHRASE: u64 = tag4(b"MDPW");
+/// The data volume's key sealed once more for the next release's first boot.
+pub const SYS_DATA_HANDOVER: u64 = tag4(b"MDHO");
 /// An import fed chunk by chunk, by a capsule holding StreamImport (model fetch, prove).
 pub const SYS_DATA_FEED_BEGIN: u64 = tag4(b"MDFB");
 pub const SYS_DATA_FEED: u64 = tag4(b"MDFD");
