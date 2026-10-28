@@ -7,6 +7,18 @@ use std::cell::Cell;
 
 thread_local! {
     static MICROS: Cell<u64> = const { Cell::new(0) };
+    static IDLES: Cell<u64> = const { Cell::new(0) };
+}
+
+/// An idle moves the clock on by the time given, and is counted.
+pub fn idle_ms(ms: u64) {
+    MICROS.with(|m| m.set(m.get() + ms * 1000));
+    IDLES.with(|n| n.set(n.get() + 1));
+}
+
+/// How many idles this thread has taken.
+pub fn idles() -> u64 {
+    IDLES.with(Cell::get)
 }
 
 /// Milliseconds on this thread's clock, which every reading moves on.

@@ -22,10 +22,10 @@ When no Wi-Fi driver answers, the panel takes the first Wi-Fi chip on the PCI bu
 | Wi-Fi row | What it means |
 |---|---|
 | `No Wi-Fi hardware found` | The PCI bus lists no Wi-Fi function. |
-| `Wi-Fi chip` 14c3:7961 `has no NONOS driver; use Ethernet or USB Wi-Fi` | NONOS has no driver for this chip. No wait or reboot changes that. |
-| `Wi-Fi driver did not start for` 10ec:c821 | NONOS has a driver for this chip, but none is running: it did not start, it left, or the image carries no Wi-Fi driver, as in the `qemu` and air-gapped profiles. |
+| `Wi-Fi chip` 14c3:7925 `has no NONOS driver; use Ethernet or USB Wi-Fi` | NONOS has no driver for this chip. No wait or reboot changes that. |
+| `Wi-Fi driver did not start for` 10ec:b821 or 10ec:c821 | NONOS has a driver for this chip, but none is running: it did not start, it left, or the image carries no Wi-Fi driver, as in the `qemu` and air-gapped profiles. |
 
-`has_driver` is a fixed list, not a look at the running image: it is true for one Realtek id, 10ec:c821, and for the Intel ids the iwlwifi driver takes, and false for every other vendor and every other Realtek id (`userland/capsule_settings/src/wifi/interface.rs:70-120`, `has_driver`).
+`has_driver` is a fixed list, not a look at the running image: it is true for two Realtek ids, 10ec:b821 and 10ec:c821, and for the Intel ids the iwlwifi driver takes, and false for every other vendor and every other Realtek id (`userland/capsule_settings/src/wifi/interface.rs:70-120`, `has_driver`).
 
 NONOS 0.9.2 has no driver for any USB Wi-Fi adapter. The `USB Wi-Fi` suggestion in these texts does not apply to this release.
 
@@ -35,15 +35,17 @@ The Settings tests hold these ids to `has_driver` returning false (`userland/cap
 
 | Chip | PCI vendor:device | Driver in 0.9.2 |
 |---|---|---|
-| MediaTek MT7921 | 14c3:7961 | none |
-| MediaTek MT7922 | 14c3:0616 | none |
+| MediaTek MT7915 | 14c3:7915 | none |
+| MediaTek MT7925 | 14c3:7925 | none |
 | Broadcom | 14e4:43a0 | none |
 | Qualcomm, ath10k family | 168c:003e | none |
 | Qualcomm, ath11k family | 17cb:1103 | none |
-| Realtek RTL8822CE | 10ec:c822 | none |
 | Realtek RTL8822BE | 10ec:b822 | none |
+| Realtek RTL8852CE | 10ec:c852 | none |
 
-The same Realtek rule covers every other Realtek Wi-Fi chip, the RTL8852 family included: for vendor 10ec, only device c821 has a driver. Intel BE200 and BE201 (8086:272b and 8086:a840) are named by the iwlwifi driver but are not in its id table, so it never takes them (`userland/capsule_driver_iwlwifi/src/firmware/generation.rs:59-60`, `family_for_device`).
+The MediaTek MT7921 and MT7922 (14c3:7961, 7922, 0608, 0616, 7920 and 0b48:7922) have a driver since October 2026, host-proven only ([mt7921.md](mt7921.md)).
+
+The same Realtek rule covers every other Realtek Wi-Fi chip, the RTL8852AE and RTL8852CE included: for vendor 10ec, only devices b821 and c821 (RTL8821CE), c822 and c82f ([RTL8822CE](rtl8822ce.md), host-proven only) and b852 and b85b ([RTL8852BE](rtl8852be.md), host-proven only) have a driver. Intel BE200 and BE201 (8086:272b, a840, 7740, 4d40) are taken by the iwlwifi driver since its BZ-family work, host-proven only ([iwlwifi.md](iwlwifi.md#be200-and-be201)).
 
 No driver [capsule](../../overview/glossary-boot-root-record.md#capsule) for any of these chips exists in the tree.
 
@@ -52,15 +54,15 @@ No driver [capsule](../../overview/glossary-boot-root-record.md#capsule) for any
 The tree carries vendor firmware for several of these chips, and their presence does not mean support.
 
 - The bootloader embeds firmware for the RTL8822B, RTL8822C, RTL8723D, RTL8851B and RTL8852A, B and C, and hands it to the kernel (`nonos-bootloader/src/firmware/loader.rs:33-47`, `FIRMWARE_TABLE`).
-- The kernel's lookup for Realtek Wi-Fi firmware has no caller, and no capsule reads those files (`src/boot/firmware.rs:85-104`, `get_realtek_wifi_firmware`).
-- The only Realtek file a driver links is `rtw8821c_fw.bin` (`userland/capsule_driver_rtl8821ce/src/fwload.rs:38`, `include_bytes`).
-- `nonos-bootloader/firmware/mediatek/mt7921e_fw.bin` and `mt7922_fw.bin` are empty files, and `nonos-bootloader/firmware/qualcomm/qca6174a-wifi.bin` is 57 bytes. No code reads any of them.
+- The kernel's lookup for Realtek Wi-Fi firmware has no caller, and no capsule reads those files through it (`src/boot/firmware.rs:85-104`, `get_realtek_wifi_firmware`).
+- The Realtek files a driver links are `rtw8821c_fw.bin` (`userland/capsule_driver_rtl8821ce/src/fwload.rs:38`, `include_bytes`) `rtw8822c_fw.bin` (`userland/capsule_driver_rtl8822ce/src/fwload/image.rs`, `FW`) and `rtw8852b_fw-1.bin` (`userland/capsule_driver_rtl8852be/src/fw/mod.rs`, `IMAGE`).
+- `nonos-bootloader/firmware/mediatek/mt7921e_fw.bin` and `mt7922_fw.bin` are empty files and stay so (`scripts/check_mediatek_firmware.py` fails otherwise); the MT7921 driver's firmware is a package on the boot medium ([mt7921.md](mt7921.md#the-firmware-package)), and `nonos-bootloader/firmware/qualcomm/qca6174a-wifi.bin` is 57 bytes. No code reads any of them.
 
 ## What to use instead
 
 On real hardware, 0.9.2 offers little here.
 
-1. If the Wi-Fi card is a replaceable module, a Realtek RTL8821CE card (10ec:c821). It is the only Wi-Fi chip with a hardware report for 0.9.2; read its [page](rtl8821ce.md) first.
+1. If the Wi-Fi card is a replaceable module, a Realtek RTL8821CE card (10ec:c821, or 10ec:b821). It is the only Wi-Fi chip with a hardware report for 0.9.2; read its [page](rtl8821ce.md) first.
 2. In a virtual machine, the virtio network device, which the QEMU run targets attach; see [Ethernet drivers](../ethernet/README.md#virtio-net-in-a-virtual-machine).
 
 Three routes that look possible are not available in 0.9.2:

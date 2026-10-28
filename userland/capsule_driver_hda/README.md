@@ -121,9 +121,11 @@ controller in turn until one plays:
    codec whose graph spends the budget with nothing routed is skipped by name
    (`[HDA] codec <n> graph over budget`). The codec with speakers wins.
 5. With no analog output, name the reason (`src/controller/verdict.rs`):
-   an Intel SST engine on the bus, or an Intel DSP controller with no codec
-   or only HDMI, needs SOF (logged `[HDA] intel sst dsp 8086:<id> found,
-   needs SOF`, then `[HDA] no playable output: <reason>`), an AMD ACP
+   an Intel SST engine on the bus, an Intel HD Audio function reporting
+   class 0x0480 (its DSP, never claimed), or an Intel DSP controller with
+   no codec or only HDMI, needs SOF (logged `[HDA] intel sst dsp 8086:<id>
+   found, needs the SOF DSP driver, which NONOS does not have`, then
+   `[HDA] no playable output: <reason>`), an AMD ACP
    on the bus explains an AMD machine, otherwise no codec, HDMI only or no
    usable output. The claims are given back and the driver serves only
    `OP_OUTPUT_STATUS` (`src/server/runner/status.rs`).

@@ -17,6 +17,7 @@
 //! The host controller: taken from firmware, reset and started, its root
 //! ports powered, each port reset and read in the wire's form.
 
+pub mod interval;
 pub mod own;
 pub mod port;
 pub mod power;

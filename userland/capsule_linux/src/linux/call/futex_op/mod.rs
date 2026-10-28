@@ -20,6 +20,8 @@
 
 mod cmd;
 mod counts;
+mod wake_op;
 
 pub use cmd::{decode, Cmd};
 pub use counts::{requeue_counts, wake_count};
+pub use wake_op::{decode_op, named as is_wake_op};

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::types::Terminal;
+use crate::command::builtin::market::follow_installs;
 use crate::jobs;
 use crate::term::prefs::store;
 
@@ -27,7 +28,9 @@ impl Terminal {
         self.flush_prefs();
         let sampled = self.rail.tick();
         let handed = self.take_handed();
-        jobs::pump(self.cur()) || sampled || handed
+        let state = self.cur();
+        let said = follow_installs(&mut state.scrollback, state.fg_running);
+        jobs::pump(self.cur()) || sampled || handed || said
     }
 
     fn flush_prefs(&mut self) {

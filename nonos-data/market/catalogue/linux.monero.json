@@ -11,7 +11,7 @@
       "publisher_name": "Linux",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "Monero's command-line wallet. It talks to a remote node you name, over Nym or Anyone, never direct, so the node never learns your address; it still sees which outputs your wallet asks about. Its box allows any node: a market release cannot carry a list yet (plan/33, L5). The daemon and tools in its package have no box of their own and are refused.",
+      "description": "Monero's command-line wallet. It starts with a public remote node, xmr-node.cakewallet.com:18081, as an untrusted node, so it offers no mining, and logs to its home; name another with --daemon-address. It reaches the node over Nym or Anyone, never direct, so the node never learns your address; it still sees which outputs your wallet asks about. Its box allows any node: a market release cannot carry a list of destinations yet (plan/33, L5). The daemon and tools in its package have no box of their own and are refused.",
       "logo_hash": "",
       "price": {
         "kind": "free",
@@ -46,7 +46,7 @@
           ],
           "zk_trailer_hash": "",
           "ext": {
-            "guest_policy": "4e4c58504f4c303101000000000000002073f1b621b3f10ba45b29a27de4e783b6d8d249bd5700887062c387cc669c830a0100000000000090d6997200753ea7f814a49f792a4d34f3d0f190355704c0f325882276005d4e8d81401c6fc94d171a0668784188540729667bee3a67fd50c1cbd6828e379bb80000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+            "guest_policy": "4e4c58504f4c303101000000000000002073f1b621b3f10ba45b29a27de4e783b6d8d249bd5700887062c387cc669c830a0100000000000090d6997200753ea7f814a49f792a4d34f3d0f190355704c0f325882276005d4e8d81401c6fc94d171a0668784188540729667bee3a67fd50c1cbd6828e379bb80000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000004e4c584152473031032e2d2d6461656d6f6e2d616464726573733d786d722d6e6f64652e63616b6577616c6c65742e636f6d3a3138303831122d2d756e747275737465642d6461656d6f6e262d2d6c6f672d66696c653d2f726f6f742f6d6f6e65726f2d77616c6c65742d636c692e6c6f67"
           },
           "validation": {
             "status": "validated",

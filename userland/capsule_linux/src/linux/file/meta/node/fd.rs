@@ -24,7 +24,7 @@ use super::super::super::proc::{CONSOLE_IN, CONSOLE_OUT, PIPES, SOCKETS};
 use super::super::super::synth::S_IFREG;
 use super::super::statbuf::Meta;
 use super::device::device;
-use super::made::{named, tty};
+use super::made::{named, pty, tty};
 use super::path::{at, of};
 
 /* fstat: a file by its path, and the rest by kind, as /proc names them. */
@@ -54,6 +54,7 @@ pub fn of_fd(guest: &Guest, f: &Fd) -> Result<Meta, i64> {
         )),
         Kind::Memfd => Ok(Meta { size: f.size, ..at(b"/memfd:", S_IFREG | 0o777, 0, now()) }),
         Kind::Device => device(&f.path, f.handle).ok_or(errno::EBADF),
+        Kind::Pty => Ok(pty(&f.path, f.handle)),
         Kind::Epoll | Kind::Timer | Kind::Event | Kind::Signal => Ok(named(b"anon_inode:[]", b"/")),
     }
 }

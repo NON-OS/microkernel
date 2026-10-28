@@ -39,3 +39,15 @@ fn one_peer_streams_and_only_it_reads_or_stops() {
     s.stop();
     assert_eq!((s.own(7), s.start(8, true)), (Err(E_PERM), Ok(())));
 }
+
+#[test]
+fn a_stream_whose_peer_died_is_let_go() {
+    let mut s = Session::default();
+    assert!(!s.reap(|_| false), "no stream, nothing to stop");
+    assert_eq!(s.start(7, true), Ok(()));
+    assert!(!s.reap(|p| p == 7), "a live peer keeps its stream");
+    assert_eq!(s.start(8, true), Err(E_BUSY));
+    assert!(s.reap(|p| p != 7), "the kernel says 7 is gone: stop the stream");
+    assert_eq!((s.streamer, s.own(7)), (None, Err(E_PERM)));
+    assert_eq!(s.start(8, true), Ok(()), "the next client is not turned away");
+}

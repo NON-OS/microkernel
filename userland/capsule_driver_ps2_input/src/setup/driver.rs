@@ -21,3 +21,13 @@ pub struct Driver {
     /// The mouse negotiated the 4-byte IntelliMouse report with a scroll wheel.
     pub mouse_wheel: bool,
 }
+
+impl Driver {
+    /// Whether a port in use has no line bound (a grant id of 0): its bytes
+    /// are found only by draining the controller, so the serve loop must not
+    /// sleep long between passes. A mouse packet is three or four bytes, and
+    /// the controller holds one at a time.
+    pub fn polled(&self) -> bool {
+        self.irq_grant_id == 0 || (self.mouse_enabled && self.aux_irq_grant_id == 0)
+    }
+}

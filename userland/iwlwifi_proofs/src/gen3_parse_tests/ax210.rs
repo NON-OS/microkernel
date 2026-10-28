@@ -6,8 +6,8 @@ use crate::gen3::select::{select, transport, Image, Refusal};
 
 /* The discrete AX210 (TY, 0x2725) and Meteor Lake (MA, 0x7E40 and 0x2729)
 share the gen3 boot. Linux names their firmware ty-a0-gf-a0 and ma-b0-gf-a0
-(iwl_drv_get_fw_name: TY's step is always 'a'; MA's is the low nibble of
-CSR_HW_REV, 1 for B0). */
+(iwl_drv_get_fwname_pre: TY's step is always 'a'; MA's is the low nibble of
+CSR_HW_REV, 1 for B0, and its RF's step, 'a', with "gf4" for a CDB module). */
 #[test]
 fn the_discrete_ax210_and_meteor_lake_get_their_images() {
     let ty = 0x0000_0420;
@@ -36,7 +36,9 @@ fn the_discrete_ax210_and_meteor_lake_get_their_images() {
         Err(Refusal::RfNotBundled(0x10C)),
         "ma-b0-hr-b0 is not carried"
     );
-    assert_eq!(select(0x7E40, ma_b0, gf | 0x1000_0000), Err(Refusal::CdbNotBundled));
+    assert_eq!(select(0x7E40, ma_b0, gf | 0x1000_0000).map(|r| r.0), Ok(Image::MaGf4), "gf4");
+    // The image is named from the RF step too: there is no ma-b0-gf-b0.
+    assert_eq!(select(0x7E40, ma_b0, gf | 0x100), Err(Refusal::RfStepNotBundled(1)));
 }
 
 #[test]

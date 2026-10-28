@@ -41,6 +41,9 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         NetworkVmxnet3 => "driver_vmxnet3",
         NetworkTulip => "driver_tulip",
         NetworkRtl8821ce => "driver_rtl8821ce",
+        NetworkRtl8822ce => "driver_rtl8822ce",
+        NetworkMt7921 => "driver_mt7921",
+        NetworkRtl8852be => "driver_rtl8852be",
         NetworkIwlwifi => "driver_iwlwifi",
         DisplayVirtioGpu => "driver_virtio_gpu",
         // It keeps the firmware's mode until the compositor asks for another
@@ -64,6 +67,7 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         AudioHda => "driver_hda",
         SerialI2c => "driver_i2c_pci",
         SerialSmbus => "driver_smbus",
+        SerialSpi => "driver_spi",
         _ => return None,
     })
 }

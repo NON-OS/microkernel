@@ -60,7 +60,8 @@ pub fn wait<M: Mem, R: Regs, C: Clock>(
         ran.is_some()
     });
     ran.unwrap_or_else(|| {
-        take_back((m, r, c), op, i, true, None);
+        // Timed out whether or not the controller let the QH go (take.rs).
+        let _ = take_back((m, r, c), op, i, true, None);
         Ran::TimedOut
     })
 }
