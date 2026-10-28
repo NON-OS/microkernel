@@ -28,9 +28,7 @@ use nonos_vmbus::{Channel, Header, Host, RingError, Shared};
 
 use crate::constants::layout::{DATA_BYTES, DATA_PAGES, PAGE};
 use crate::constants::timing::{COMMAND_MS, INIT_MS};
-use crate::constants::vstor::{
-    OP_ENUMERATE_BUS, OP_REMOVE_DEVICE, OP_RESET_BUS, PACKET, RESET_ID,
-};
+use crate::constants::vstor::{OP_ENUMERATE_BUS, OP_REMOVE_DEVICE, OP_RESET_BUS, PACKET, RESET_ID};
 use crate::vstor::{self, Packet};
 
 /// The largest packet the host sends this driver: a header and a vstor
@@ -68,7 +66,17 @@ impl<H: Host, M: Shared> VmHba<H, M> {
     /// `data` points to DATA_BYTES the host reaches at page `data_pfn` on,
     /// mapped for the value's life and touched by no one else but the host.
     pub unsafe fn new(host: H, rings: M, chan: Channel, data: *mut u8, data_pfn: u64) -> Self {
-        Self { host, rings, chan, data, data_pfn, limit: DATA_BYTES, next_id: 0, changed: false, dead: false }
+        Self {
+            host,
+            rings,
+            chan,
+            data,
+            data_pfn,
+            limit: DATA_BYTES,
+            next_id: 0,
+            changed: false,
+            dead: false,
+        }
     }
 
     /// Send `body` as one packet of `id`: in band, or with the first `len`
@@ -101,24 +109,22 @@ impl<H: Host, M: Shared> VmHba<H, M> {
     /// The completion of `id` into `out`, its vstor packet's length.
     fn wait(&mut self, id: u64, out: &mut [u8; IN_MAX], until: u64) -> Wait {
         loop {
+            // Read before each packet, so a host that never lets its ring run
+            // empty is bounded by the clock as surely as one that sends none.
+            let late = self.host.now_ms() >= until;
             match self.chan.recv(&mut self.host, &mut self.rings, out) {
-                Ok(Some((h, n))) => {
+                Ok(Some((h, n))) if h.ty == PACKET_COMP && h.transaction_id == id => {
                     let start = h.data_at.min(n);
-                    if h.ty == PACKET_COMP && h.transaction_id == id {
-                        out.copy_within(start..n, 0);
-                        return Wait::Got(n - start);
-                    }
-                    if h.transaction_id == 0 {
-                        self.unasked(&out[start..n]);
-                    }
+                    out.copy_within(start..n, 0);
+                    return Wait::Got(n - start);
                 }
-                Ok(None) if self.host.now_ms() < until => self.host.idle(),
-                Ok(None) => return Wait::Silent,
-                Err(RingError::TooBig) => {
-                    if self.chan.inb.skip(&mut self.rings).is_err() {
-                        return Wait::Broken;
-                    }
+                Ok(_) | Err(RingError::TooBig) if late => return Wait::Silent,
+                Ok(Some((h, n))) if h.transaction_id == 0 => {
+                    self.unasked(&out[h.data_at.min(n)..n])
                 }
+                Ok(Some(_)) => {}
+                Ok(None) => self.host.idle(),
+                Err(RingError::TooBig) if self.chan.inb.skip(&mut self.rings).is_ok() => {}
                 Err(_) => return Wait::Broken,
             }
         }
@@ -173,15 +179,9 @@ impl<H: Host, M: Shared> VmHba<H, M> {
     }
 }
 
-/// The id after `id`: 1 upward, wrapping short of the start's and the
-/// reset's ids; 0 is the host's own.
-pub fn next_id(id: u64) -> u64 {
-    if id >= RESET_ID - 1 {
-        1
-    } else {
-        id + 1
-    }
-}
+#[path = "next_id.rs"]
+mod ids;
+pub use ids::next_id;
 
 impl<H: Host, M: Shared> Hba for VmHba<H, M> {
     fn buffer(&mut self) -> &mut [u8] {

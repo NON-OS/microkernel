@@ -24,7 +24,8 @@ pub(super) const MAX_CONTROLLERS: usize = 4;
 pub struct Survey {
     pub hda: [Option<Found>; MAX_CONTROLLERS],
     pub amd_acp: bool,
-    /// The device id of an Intel SST engine on the bus (`controller::sst`).
+    /// The device id of an Intel SST engine on the bus (`controller::sst`),
+    /// or of an Intel DSP function of class 0x0480 (`sst::intel_dsp`).
     pub intel_sst: Option<u16>,
 }
 

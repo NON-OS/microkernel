@@ -24,7 +24,7 @@ use nonos_app_skeleton::discover::lookup_port;
 
 use crate::linux::guest::Guest;
 
-use super::super::present::surface::say;
+use super::super::present::{scale_math::point_px, surface::say};
 use super::super::reshape::Shape;
 use super::blend::{lay, Plane};
 use super::order::layers;
@@ -32,7 +32,7 @@ use super::state::Subs;
 
 /// Lay the subsurfaces placed on `root` onto its `frame`, shaped `shape`,
 /// keeping the frame as it was for a later repaint.
-pub fn compose(subs: &mut Subs, root: u32, frame: &mut [u8], shape: Shape) {
+pub fn compose(subs: &mut Subs, root: u32, frame: &mut [u8], shape: Shape, e: u32) {
     if !subs.stacks.iter().any(|s| s.parent == root) {
         subs.base = alloc::vec::Vec::new();
         return;
@@ -43,7 +43,7 @@ pub fn compose(subs: &mut Subs, root: u32, frame: &mut [u8], shape: Shape) {
     } else {
         subs.base.extend_from_slice(frame);
     }
-    paint(subs, root, frame, shape);
+    paint(subs, root, frame, shape, e);
 }
 
 /// Paint the window again from its kept pixels, as a subsurface changed.
@@ -56,13 +56,13 @@ pub fn repaint(guest: &mut Guest) {
     let fits = len != 0 && len as u64 == u64::from(shape.2) * u64::from(shape.1);
     let Some(frame) = scene.pixels.frame(len).filter(|_| fits) else { return };
     frame.copy_from_slice(&scene.subs.base);
-    paint(&scene.subs, root, frame, shape);
+    paint(&scene.subs, root, frame, shape, scene.frame.ratio);
     let (Some((x, y)), Some(port)) = (scene.at, lookup_port(b"compositor")) else { return };
     let _ = damage_commit(port, scene.next_serial(), x, y, shape.0, shape.1);
 }
 
-fn paint(subs: &Subs, root: u32, frame: &mut [u8], (w, h, stride): Shape) {
-    let at = |id| subs.of(id).filter(|s| s.shown.is_some()).map(|s| s.at);
+fn paint(subs: &Subs, root: u32, frame: &mut [u8], (w, h, stride): Shape, e: u32) {
+    let at = |id| subs.of(id).filter(|s| s.shown.is_some()).map(|s| point_px(s.at, e));
     let (below, above) = layers(&subs.stacks, root, &at);
     let plane = Plane { w, h, stride };
     // Beneath the window, nearest first; above it, lowest first.

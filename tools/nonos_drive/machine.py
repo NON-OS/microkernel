@@ -15,16 +15,27 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 """The machine a drive runs: nix run .#qemu, headless with a software TPM,
-its serial console to a file and its own output to DIR/qemu.log."""
+its serial console to a file and its own output to DIR/qemu.log. A drive
+filmed (record.py) shows it full screen on its X display instead."""
 
 import subprocess
 
+from .record import display_env
 
-def start(root, image, out, serial, qemu_args):
-    cmd = ["nix", "run", ".#qemu", "--", "--image", image, "--tpm", "--headless",
-           "--serial", str(serial), *qemu_args]
+
+def command(image, serial, qemu_args, shown=False):
+    view = "--shown" if shown else "--headless"
+    return ["nix", "run", ".#qemu", "--", "--image", image, "--tpm", view,
+            "--serial", str(serial), *qemu_args]
+
+
+def start(root, image, out, serial, qemu_args, display=None):
+    """QEMU, headless; or with `display`, an X display's number, in a window
+    on it, full screen."""
+    shown = display is not None
     log = open(out / "qemu.log", "w")
-    return subprocess.Popen(cmd, cwd=root, stdout=log, stderr=subprocess.STDOUT)
+    return subprocess.Popen(command(image, serial, qemu_args, shown), cwd=root, stdout=log,
+                            stderr=subprocess.STDOUT, env=display_env(display) if shown else None)
 
 
 def stop(qemu):

@@ -54,7 +54,7 @@ pub fn decode(msg: &[u8]) -> Option<(Request, &[u8])> {
     if at(0)? != MAGIC || msg.get(4..6)? != VERSION.to_le_bytes() {
         return None;
     }
-    let op = u16::from_le_bytes([msg[6], msg[7]]);
+    let op = msg.get(6..8).map(|b| u16::from_le_bytes([b[0], b[1]]))?;
     let body = msg.get(HDR_LEN..HDR_LEN + at(16)? as usize)?;
     Some((Request { op, id: at(12)? }, body))
 }

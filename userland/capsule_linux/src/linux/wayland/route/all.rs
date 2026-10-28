@@ -49,8 +49,11 @@ pub fn route(
             req::SURFACE_SET_OPAQUE_REGION
             | req::SURFACE_SET_INPUT_REGION
             | req::SURFACE_SET_BUFFER_TRANSFORM
-            | req::SURFACE_SET_BUFFER_SCALE,
+            | req::SURFACE_OFFSET,
         ) => {}
+        (Some(Object::Surface), req::SURFACE_SET_BUFFER_SCALE) => {
+            super::scale_surface::buffer_scale(guest, id, args)
+        }
         (Some(Object::Compositor), req::COMPOSITOR_CREATE_REGION) => region::create(guest, args),
         (Some(Object::Region), req::REGION_ADD | req::REGION_SUBTRACT) => {}
         (Some(Object::Subcompositor), req::SUBCOMPOSITOR_GET_SUBSURFACE) => {

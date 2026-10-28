@@ -30,4 +30,5 @@ pub const EADDRNOTAVAIL: i64 = 99;
 pub const EISCONN: i64 = 106;
 pub const ECONNABORTED: i64 = 103;
 pub const ENOBUFS: i64 = 105;
+pub const EHOSTUNREACH: i64 = 113;
 pub const EALREADY: i64 = 114;

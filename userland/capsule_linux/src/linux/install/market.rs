@@ -21,6 +21,7 @@
 
 pub(super) mod arg;
 mod bind;
+mod bind_args;
 mod check;
 pub(super) mod choose;
 pub(super) mod hold;

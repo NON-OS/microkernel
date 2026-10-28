@@ -20,7 +20,6 @@ use nonos_libc::mk_uptime_ms;
 
 use crate::circuit::{ask_create, client_circuit_id, BuildError, Circuit, CircuitStage, Purpose};
 use crate::circuit::{Pending, HOP_MS};
-use crate::path::draw_path_through;
 use crate::protocol::CIRCUIT_MAX;
 use crate::trace;
 
@@ -30,6 +29,7 @@ use super::state::Manager;
 /// Start one circuit if there is room and a link, or time out the one being
 /// built. Replies are finished by the pump as they arrive, never waited for.
 pub fn tick(state: &mut Manager, now: u64) {
+    let want = super::out::waiting(state, now);
     /* Onion circuits are built, timed and torn down by their lookup, so only
      * general ones are counted or timed here. */
     let building = state
@@ -48,8 +48,9 @@ pub fn tick(state: &mut Manager, now: u64) {
     if !state.usable_at(now) || general >= CIRCUIT_MAX {
         return;
     }
+    let warm = !want.waited && super::warm::wanted(state, now, general);
     let (Some(link), Some(guard)) = (state.link.as_mut(), state.guard.as_ref()) else { return };
-    let Some(path) = draw_path_through(&guard.relay, &state.relays, &state.weights) else {
+    let Some(path) = want.draw(&guard.relay, &state.relays, &state.weights, &state.exits) else {
         trace::say(b"no exit and middle to go with the guard");
         return;
     };
@@ -57,6 +58,7 @@ pub fn tick(state: &mut Manager, now: u64) {
     state.next_circuit = state.next_circuit.wrapping_add(1);
     let asked = ask_create(link, id, &path[0]);
     let mut circuit = Circuit::new(id, path);
+    super::warm::mark(&mut circuit, warm);
     match asked {
         Ok(handshake) => {
             let deadline = mk_uptime_ms().saturating_add(HOP_MS);
