@@ -25,6 +25,7 @@ use super::links::links;
 use super::say::say;
 use crate::link::{forget, Private};
 use crate::usb::{Bound, XhciPipes};
+use crate::vendor::intel;
 use nonos_bt_bond::LocalIrk;
 
 /// ACL packets are taken up to this many data octets until bring-up has
@@ -35,7 +36,8 @@ const ACL_FIRST: u16 = 27;
 /// the controller has been told to forget them.
 pub fn controller(b: Bound, irk: &LocalIrk, env: &mut CapsuleEnv) -> HciError {
     let mut host = Host::new(UsbHci::new(b.pipes, &b.iface, ACL_FIRST));
-    let why = run_on(&mut host, irk, env);
+    let up = if b.id.0 == intel::VID { intel::setup(&mut host, b.id.1, say) } else { Ok(()) };
+    let why = up.err().unwrap_or_else(|| run_on(&mut host, irk, env));
     forget(&mut host, &why);
     why
 }
