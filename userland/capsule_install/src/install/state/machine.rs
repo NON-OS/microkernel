@@ -19,6 +19,9 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
+use nonos_disk::Keep;
+
+use super::choice::Choice;
 use super::outcome::Outcome;
 use super::prepared::Prepared;
 use super::screen::Screen;
@@ -50,6 +53,15 @@ pub struct State {
     pub incomplete: bool,
     /// When the last look at the disks ended and how long it took.
     pub looked: Option<Looked>,
+    /// What an update would keep of the chosen disk, held to this image's
+    /// boot files when it was chosen; `None` for one that holds no NONOS.
+    pub keep: Option<Keep>,
+    /// The confirm screen's row, on a disk an update could keep.
+    pub choice: Choice,
+    /// This boot runs from an installed NØNOS: the first screen offers to
+    /// prepare it for an update, and says here what the kernel answered.
+    pub installed: bool,
+    pub handover: Option<i64>,
 }
 
 /// Milliseconds of uptime.
@@ -57,33 +69,4 @@ pub struct State {
 pub struct Looked {
     pub ended: i64,
     pub took: i64,
-}
-
-impl State {
-    pub fn new() -> Self {
-        let boot = Boot::read();
-        let (image, notice) = match Image::load() {
-            Ok(image) => (Some(image), None),
-            Err(why) => (None, Some(why)),
-        };
-        State {
-            screen: Screen::Welcome,
-            disks: Vec::new(),
-            selected: 0,
-            typed: Vec::new(),
-            image,
-            boot,
-            prepared: None,
-            job: None,
-            outcome: None,
-            notice,
-            raid: false,
-            incomplete: false,
-            looked: None,
-        }
-    }
-
-    pub fn selected_disk(&self) -> Option<&Disk> {
-        self.disks.get(self.selected)
-    }
 }
