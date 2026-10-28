@@ -16,9 +16,13 @@
 
 //! A trailer for something this machine is installing.
 
+#[path = "install_status.rs"]
+mod status;
+pub use status::*;
+
 use crate::syscall::{
-    call_raw, N_MK_APP_INSTALL, N_MK_APP_INSTALL_STATUS, N_MK_APP_LAUNCH, N_MK_APP_UNINSTALL,
-    N_MK_LOCAL_SIGN, N_MK_LOCAL_VERIFY,
+    call_raw, N_MK_APP_INSTALL, N_MK_APP_LAUNCH, N_MK_APP_UNINSTALL, N_MK_LOCAL_SIGN,
+    N_MK_LOCAL_VERIFY,
 };
 
 /// How many bytes a trailer for `elf` takes, or a negative errno.
@@ -63,11 +67,4 @@ pub fn mk_app_launch(listing: &[u8]) -> i64 {
 /// Ask for the package a listing installed to be taken away.
 pub fn mk_app_uninstall(listing: &[u8]) -> i64 {
     call_raw(N_MK_APP_UNINSTALL, [listing.as_ptr() as u64, listing.len() as u64, 0, 0, 0, 0])
-}
-
-/// Where an asked-for install of `listing` stands: 0 nothing asked, 1 queued,
-/// 2 installing, 3 installed, 4 refused before it started, 5 removing, 6
-/// removed, 16 plus the installer's reason code when it failed.
-pub fn mk_app_install_status(listing: &[u8]) -> i64 {
-    call_raw(N_MK_APP_INSTALL_STATUS, [listing.as_ptr() as u64, listing.len() as u64, 0, 0, 0, 0])
 }
