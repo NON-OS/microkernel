@@ -28,11 +28,12 @@ mod identity_exec;
 mod listed;
 mod reach;
 mod rules;
+mod serve_rule;
 
 pub use bind::{bind, bind_built_in};
 pub use calls::{outside, undeclared};
-pub use family::{grant, home, models};
-pub use gate::{granted, inet, may_dial, refuse};
+pub use family::{grant, home, listing, models};
+pub use gate::{granted, inet, may_bind, may_dial, refuse, serve_at};
 pub use home_key::home_key;
 pub use identity::AppIdentity;
 pub use listed::start_args;

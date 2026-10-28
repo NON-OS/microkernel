@@ -38,6 +38,16 @@ pub fn may_dial(guest: &Guest, to: Target<'_>, port: u16) -> bool {
     super::reach::may_dial(guest.app.mask, &guest.app.reach, to, port)
 }
 
+/// A bind to `ip`:`port`, `stream` for a stream socket (serve_rule::may_bind).
+pub fn may_bind(guest: &Guest, stream: bool, ip: [u8; 4], port: u16) -> bool {
+    super::serve_rule::may_bind(guest.app.mask, guest.app.policy.serve_one(), stream, ip, port)
+}
+
+/// The listener SERVE_ONE serves (serve_rule::serve_at).
+pub fn serve_at(guest: &Guest, stream: bool, ip: [u8; 4], port: u16) -> bool {
+    super::serve_rule::serve_at(guest.app.mask, guest.app.policy.serve_one(), stream, ip, port)
+}
+
 /// `errno` for `what`, after saying that the program's policy does not
 /// grant `needs`.
 pub fn refuse(what: &str, needs: &str, code: i64) -> u64 {

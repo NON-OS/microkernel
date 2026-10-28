@@ -48,7 +48,7 @@ pub(super) fn start(guest: &mut Guest, launch: Launch) -> Result<(), &'static [u
     super::terminal_hand::to_terminal(guest)?;
     super::seal_note::seal_app(&guest.app.app_id);
     super::run_net::settle(guest.app.mask)?;
-    super::app::grant(guest.app.mask);
+    super::app::grant(&guest.app);
     let (listing, program) = (&guest.app.policy.listing_id, &guest.app.policy.program_blake3);
     let key = super::app::home_key(listing, program);
     super::start_home::open(guest, key)?;
