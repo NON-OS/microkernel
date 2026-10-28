@@ -3,6 +3,7 @@
 # still listed, and on any difference from docs/build/feature-inventory.md's list.
 driver-ac97
 driver-bga
+driver-bt-usb
 driver-buslogic
 driver-cdc-ecm
 driver-cdc-ncm
