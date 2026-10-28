@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! WRITE: the bytes for the guest put in its end of the door, as many as it
 //! has room for, so its buffer bounds what the capsule writes.
 
