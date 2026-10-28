@@ -106,7 +106,7 @@ Every run fetches the signed indexes fresh, then holds them to the lock. A run s
 
 ## Apps built from source
 
-Some apps are packaged by no distribution: DarkFi's drk, darkirc and darkfid, and SimpleX's simplex-chat. A recipe of kind `source` lists one of these from a build of its upstream at a single commit, or from the binary its upstream publishes (below) (`tools/nonos_market_catalogue/source_recipe.py`, `checked`). DarkFi's three are in the catalogue, built from v0.5.0. SimpleX's terminal client is in it as `linux.kali.nonos-simplex-chat`, from SimpleX's own v7.0.3 release binary.
+Some apps are packaged by no distribution: DarkFi's drk, darkirc and darkfid and its chat app, and SimpleX's simplex-chat. A recipe of kind `source` lists one of these from a build of its upstream at a single commit, or from the binary its upstream publishes (below) (`tools/nonos_market_catalogue/source_recipe.py`, `checked`). DarkFi's four are in the catalogue, built from v0.5.0; the chat app, `linux.nonos-darkfi-app`, is drawn by mesa's softpipe on the CPU (tools/nix/sources/darkfi-app-*.sh). SimpleX's terminal client is in it as `linux.kali.nonos-simplex-chat`, from SimpleX's own v7.0.3 release binary.
 
 | Key | Required | What it holds |
 |---|---|---|
