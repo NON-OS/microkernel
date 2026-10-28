@@ -28,9 +28,14 @@ use super::mapped::Mapped;
 /// Write the command register: Memory Space always, Bus Master when `master`.
 /// Whether the broker took the write.
 pub fn command(device_id: u64, epoch: u64, master: bool) -> bool {
+    command_rc(device_id, epoch, master) >= 0
+}
+
+/// `command`, with the broker's answer: 0, or a negative errno.
+pub fn command_rc(device_id: u64, epoch: u64, master: bool) -> i64 {
     let bus = if master { MK_PCI_CMD_BUS_MASTER } else { 0 };
     let value = MK_PCI_CMD_MEMORY_SPACE | bus;
-    mk_pci_config_write(device_id, epoch, MK_PCI_CFG_COMMAND, value) >= 0
+    mk_pci_config_write(device_id, epoch, MK_PCI_CFG_COMMAND, value)
 }
 
 /// Quiesce the chip: its engines stopped, then Bus Master off

@@ -22,10 +22,10 @@
 const EMPTY_BATCH: [u8; 4] = [0; 4];
 
 /// `answer` is the body of a status-zero reply to the probe, `None` for
-/// any other reply or none. Status zero alone is not enough: e1000,
-/// e1000e, igc, RTL8139 and RTL8169 number operation 6 for their counters
-/// and answer it with status 0, and reading those as batches took in no
-/// frame at all.
+/// any other reply or none. Status zero alone is not enough: in 0.9.2
+/// e1000, e1000e, igc, RTL8139 and RTL8169 numbered operation 6 for their
+/// counters and answered it with status 0, and reading those as batches
+/// took in no frame at all.
 pub fn served(answer: Option<&[u8]>) -> bool {
     answer == Some(&EMPTY_BATCH[..])
 }

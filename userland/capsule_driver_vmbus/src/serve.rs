@@ -46,12 +46,11 @@ pub fn step(d: &mut Driver) -> usize {
         n += 1;
         match kind(m.bytes()) {
             Some(OFFERCHANNEL) => {
-                if let Some(mut o) = msg::offer(m.bytes()) {
-                    give(&d.hv, &mut o);
-                    if d.offers.insert(o) {
-                        say::offered(&o);
-                    } else {
-                        say::full(&o);
+                if let Some(o) = msg::offer(m.bytes()) {
+                    // Kept before given: a full table strands no record.
+                    match d.offers.insert(o) {
+                        Some(kept) => say::offered(give(&d.hv, kept)),
+                        None => say::full(&o),
                     }
                 }
             }

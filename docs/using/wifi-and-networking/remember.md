@@ -19,6 +19,7 @@ The `Status` row on the Wi-Fi page reads:
 | `Not connected` | The driver is ready and no network is joined. |
 | `<adapter>: <stage>` | The driver is still bringing the card up, or stopped at a step, for example `The card's firmware did not load`. |
 | `Firmware stopped: <step> (0x....)` | The RTL8821CE firmware load stopped at the named step, with the control register's bits. |
+| `Card not claimed: <step> refused, <reason> (-N)` | The kernel refused the RTL8821CE driver the card: `claim`, `memory enable` (the PCI command register) or `register map`, with the error number, for example `claim refused, busy (-16)`. Send this line with a report: it says which check refused. |
 | `No Wi-Fi hardware found` | No wireless chip is on the bus. |
 | `Wi-Fi driver did not start for vvvv:dddd` | This build has a driver for the chip, and the driver is not running. |
 | `Wi-Fi chip vvvv:dddd has no NONOS driver; use Ethernet or USB Wi-Fi` | No driver for this chip. NONOS has no USB Wi-Fi driver in this release, so a cable is the only other way, and on real hardware a cable gets no address in this release (see [Ethernet](wired.md#ethernet)). |

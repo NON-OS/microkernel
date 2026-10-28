@@ -8,8 +8,8 @@ pub const NETS_MAX: usize = 6;
 pub struct NetState {
     pub driver: Option<Driver>,
     pub stage: Option<DriverStage>,
-    /// The firmware step a failed load stopped at, when the driver reports one.
-    pub fw_step: Option<u8>,
+    /// Why bring-up stopped, when the driver reports it (`StopWhy`).
+    pub stop: Option<nonos_wifi_client::StopWhy>,
     pub nets: [ScanNetwork; NETS_MAX],
     pub count: usize,
     /// Row: 0 is "No network", 1 and on are `nets`.
@@ -41,7 +41,7 @@ impl NetState {
         Self {
             driver: None,
             stage: None,
-            fw_step: None,
+            stop: None,
             nets: [ScanNetwork::EMPTY; NETS_MAX],
             count: 0,
             sel: 0,

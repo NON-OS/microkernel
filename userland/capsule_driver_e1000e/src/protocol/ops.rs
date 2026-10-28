@@ -16,14 +16,16 @@
 
 //! Op discriminants for `driver.e1000e_0`, the NNET set every wired card
 //! serves. The counters are on 7: net.core asks every card for OP_RX_BATCH
-//! (6) first and takes a status-0 answer as a batch of frames, and this
-//! driver hands frames up one per call, so 6 is refused (E_INVAL).
+//! (6) first and takes an empty batch as the answer of a driver that serves
+//! batches, which this one does.
 
 pub const OP_HEALTHCHECK: u16 = 1;
 pub const OP_LINK_STATUS: u16 = 2;
 pub const OP_MAC_ADDRESS: u16 = 3;
 pub const OP_TX_PACKET: u16 = 4;
 pub const OP_RX_PACKET: u16 = 5;
+/// Every waiting frame in one numbered reply, as e1000, igc and virtio_net serve it.
+pub const OP_RX_BATCH: u16 = 6;
 /// The register snapshot. Not 6: that is OP_RX_BATCH, which net.core probes
 /// for, and a snapshot there had every received frame dropped.
 pub const OP_STATS: u16 = 7;

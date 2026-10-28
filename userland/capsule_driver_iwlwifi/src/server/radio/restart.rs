@@ -44,7 +44,7 @@ impl Radio {
     /// wait to restart it, or stay down once the tries are spent.
     pub(super) fn firmware_failed(&mut self, now: u64, why: Failure) {
         let State::Up(up) = &self.state else { return };
-        stop_device(up.dev.m, &mut Uptime);
+        stop_device(up.dev.m, &mut Uptime, up.dev.csr);
         let (rig, addr, restarts) = (up.rig, up.addr, up.restarts);
         self.master_off();
         self.after_firmware_stopped();

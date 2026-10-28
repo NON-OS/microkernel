@@ -39,7 +39,7 @@ fn the_answer_is_for_the_release_found_with_its_hash_and_signatures() {
         vec![nonos_marketplace_abi::MarketplaceEntry { releases: vec![rel.clone()], ..e.clone() }];
     let ask = |signed, publisher: bool| answer(&index, signed, |_, _| publisher, &e.listing_id, "");
     let (reply, hash) = ask(true, true).expect("found");
-    assert!(matches!(reply, LinuxPolicy::Policy(_)) && hash == rel.package_hash);
+    assert!(matches!(reply, LinuxPolicy::Policy(..)) && hash == rel.package_hash);
     assert_eq!(ask(false, true).map(|a| a.0), Some(LinuxPolicy::Refused), "index unsigned");
     assert_eq!(ask(true, false).map(|a| a.0), Some(LinuxPolicy::Refused), "publisher unsigned");
     assert!(answer(&index, true, |_, _| true, "linux.other", "").is_none(), "no such listing");

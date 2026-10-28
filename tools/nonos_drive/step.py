@@ -21,6 +21,7 @@ import time
 
 from steps import until
 
+from .caption import say
 from .dump import dump
 from .plug import unplug
 
@@ -64,7 +65,20 @@ def after(serial, text, secs):
     return False
 
 
-def run(q, s, out, serial):
+def subtitle(text, film):
+    """A `say:` step: the drive's log names it; a drive filmed (`film`, a
+    record.Film) draws it from the next frame on and notes when, in the
+    video, it came up."""
+    at = ""
+    if film is not None:
+        say(film.caption, text)
+        at = f" at {film.cue(text)}"
+    print((f"  say {text!r}" if text else "  say: caption cleared") + at, flush=True)
+
+
+def run(q, s, out, serial, film=None):
+    """Take step `s`; False when it did not happen. `film` is the Film of a
+    drive filmed (record.py), None for one that is not."""
     kind, _, arg = s.partition(":")
     if kind == "after":
         timed = arg.rsplit(":", 1)[-1].isdigit()
@@ -82,8 +96,10 @@ def run(q, s, out, serial):
         if not ok:
             dump(q, out)
         return ok
-    if kind == "wait":
+    if kind in ("wait", "pause"):
         time.sleep(float(arg))
+    elif kind == "say":
+        subtitle(arg, film)
     elif kind == "shot":
         q.shot(str(out / f"{arg}.png"))
         print(f"  shot {arg}.png", flush=True)
