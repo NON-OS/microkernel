@@ -28,12 +28,19 @@ impl Intel {
         self.ops.push(op.0);
         let booted = usize::from(self.booted);
         let ret = match (op.0, p) {
+            (0xfc05, [0xff]) if self.in_iml => self.iml.clone().expect("a loader").0,
             (0xfc05, [0xff]) => self.tlv[booted].clone(),
             (0xfc05, []) => self.old[booted].clone(),
             (0xfc0d, []) if !self.booted => self.boot_params.clone(),
             (0xfc01, &[0, 1, 0, 1, a, b, c, d]) if !self.booted => {
                 self.boot_addr = Some(u32::from_le_bytes([a, b, c, d]));
-                self.booted = self.boots;
+                self.boot_addrs.push(u32::from_le_bytes([a, b, c, d]));
+                match &self.iml {
+                    Some((_, next)) if !self.in_iml => {
+                        (self.in_iml, self.data, self.expect) = (true, 0, *next)
+                    }
+                    _ => (self.in_iml, self.booted) = (false, self.boots),
+                }
                 if self.boots {
                     self.event(&[0xff, 7, 0x02, 0, 1, 0, 0, 0, 0]);
                 }
@@ -44,6 +51,7 @@ impl Intel {
                 self.ddc.push(entry.to_vec());
                 Vec::new()
             }
+            (0xfc0a, [0, 0]) if self.in_iml => Vec::new(),
             (0xfc52, [0x87, 0x0c, 0, 0, 0, 0, 0, 0]) | (0x0c03, []) => Vec::new(),
             _ => return self.complete(op.0, 0x01, &[]),
         };
