@@ -16,15 +16,16 @@
 
 //! The quota the store can carry, and a change past either ceiling.
 
-use crate::calls::loadavg::declared::{MEMORY, PRIVATE, PRIVATE_NAMES};
+use crate::calls::loadavg::declared::{HOME_NAMES, MEMORY, PRIVATE, PRIVATE_NAMES};
 use crate::calls::loadavg::space::quota::{allows, Kept};
 use crate::linux::abi::errno::ENOSPC;
 
-/// capsule_vfs: the names the whole store holds, and the heap its bytes
-/// live in beside the 60 MiB it loads at boot.
-pub(super) const STORE_NAMES: u64 = 2048;
-const STORE_HEAP: u64 = 192 << 20;
-const STORE_LOADED: u64 = 60 << 20;
+/// capsule_vfs: the names the whole store holds (MAX_FILES), the names
+/// one owner, a run's capsule, may make (NAMES_PER_OWNER), and the least
+/// any machine gives every client's bytes together (DATA_BYTES_MAX).
+pub(super) const STORE_NAMES: u64 = 8192;
+const OWNER_NAMES: u64 = STORE_NAMES / 4;
+const STORE_BYTES: u64 = 160 << 20;
 
 pub(super) fn kept(bytes: u64, names: u64) -> Kept {
     Kept { bytes, names }
@@ -35,8 +36,9 @@ pub(super) fn kept(bytes: u64, names: u64) -> Kept {
 #[test]
 fn the_quota_is_one_the_store_can_carry_for_several_families() {
     const { assert!(PRIVATE < MEMORY / 2, "not the half of memory an unsized tmpfs takes") };
-    const { assert!(8 * PRIVATE <= STORE_HEAP - STORE_LOADED, "eight families fit the heap") };
-    const { assert!(8 * PRIVATE_NAMES <= STORE_NAMES / 2, "eight take half the names") };
+    const { assert!(8 * PRIVATE <= STORE_BYTES, "eight families fit the bytes") };
+    const { assert!(PRIVATE_NAMES + HOME_NAMES <= OWNER_NAMES, "the run's ceiling, not the store's") };
+    const { assert!(4 * PRIVATE_NAMES <= STORE_NAMES * 3 / 4, "four leave a quarter of the names") };
     const { assert!(PRIVATE >= 8 << 20, "one file as large as a family may hold fits") };
 }
 
