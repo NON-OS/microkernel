@@ -35,6 +35,7 @@ pub enum LauncherIcon {
     VideoPlayer,
     Install,
     Qwen,
+    Simplex,
 }
 
 pub struct LauncherApp {
