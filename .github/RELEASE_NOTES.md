@@ -2,9 +2,10 @@
 
 0.9.3 follows the 0.9.2 pre-release. Linux programs can now open windows on the desktop through
 a Wayland bridge, the Monero wallet syncs over Nym and Anyone, Linux programs get
-pseudo-terminals, and the standard image carries Wi-Fi drivers for more chips. Each claim below
-names the file, commit or evidence directory it rests on. The evidence for this release is
-indexed in `docs/release-evidence/0.9.3/README.md`.
+pseudo-terminals, and the standard image carries Wi-Fi drivers for more chips. A disk installed
+by 0.9.3 can be updated in place to a later release and keep its encrypted data volume. Each
+claim below names the file, commit or evidence directory it rests on. The evidence for this
+release is indexed in `docs/release-evidence/0.9.3/README.md`.
 
 It is a pre-release. What it does not do yet is listed under [Known limitations](#known-limitations),
 and it should be read before you install it on a machine you care about.
@@ -56,6 +57,17 @@ window on the NONOS desktop, inside the NONOS frame: title bar, close, minimise 
   (71e34654ac). No boot of this tree in the evidence shows its window.
 - Large installs hold: 304 packages verified in one boot, KeePassXC (126) and
   gnome-authenticator (155) among them, with no stall, lock wait or OOM (`gui-large-installs`).
+- A run's private directories (`/tmp`, `/run/user/0`) hold 1536 names, where they held 128.
+  GTK's mime database is built whole there before the program starts and kept as its caches,
+  fifteen names, so GTK and Qt programs no longer stop on ENOSPC (b7521ace2b).
+- GTK's preparation tools run before the program's guest is made, so a GTK program's run is
+  noted to the seal. Before, every GTK program's run went unnoted and unkept, with "the seal
+  refused the app's note" (fd2a80e365). The host lane reports KeePassXC 2.7.8's window drawn on
+  KVM on that commit, with no ENOSPC and no seal refusal; no log of that run is committed.
+- A program that asks EGL for OpenGL is pointed at Mesa's software driver, drawing through
+  Wayland, where its box's package closure carries that driver (`LIBGL_ALWAYS_SOFTWARE`,
+  `EGL_PLATFORM=wayland` in `linux/env.rs`; 1f56b890a6). A surface's frame callbacks are answered
+  at most 30 times a second, and at once for an idle window (`wayland/pace_rule.rs`; 664185e8a8).
 
 ### Pseudo-terminals
 
@@ -91,6 +103,11 @@ It now fetches one package at a time over its kept stream (9fc7634b39, proven in
 `install_window_tests.rs`). Before the fix, a lone stream brought the 24.7 MB Monero package
 from the real Alpine mirror whole (`s1-g-kvm`, `diag-694ba69799-realmirror-anyone.log`).
 
+One file a Linux app writes may now fill its home, 16 MiB, where it was held to 8 MiB. A write
+past it fails with EFBIG, and the first refusal in a run prints `linux: this app wrote a file
+past 16 MiB, the most one file may hold here; that write was refused.` in the app's window
+(38f906c9c7).
+
 The file store, which holds installed Linux apps in memory, may give its clients' files a
 quarter of memory, between 160 MiB and 4 GiB, and halves its ask when a heap cannot be mapped
 (f8f2f81c74, `capsule_vfs/src/store/fdtable/budget_size.rs`). A program may be up to 128 MiB
@@ -109,6 +126,20 @@ SimpleX's signed v7.0.3 binary, d8e427216b) and DarkFi's `drk`, `darkirc` and `d
 (1a17cb72ad). These four are served from a NONOS package mirror. A seal lists them only with
 such a mirror, and `nonos.toml` sets none (`linux_packages = ""`), so a release image built from
 this tree does not list them (`docs/userland/marketplace-catalogue.md`, "No mirror, none listed").
+
+### Update NØNOS (keep my data)
+
+A disk installed by 0.9.3 or later can be updated in place to a later release and keep its
+encrypted data volume. The installer rewrites the boot partition and the store and nothing else
+(8587032e4b; `keep_queue` in `userland/nonos_disk/src/session/queue_keep.rs`). A new data
+volume's key is random, wrapped under a key the TPM gives only a kernel the release approved, on
+this machine's firmware, bootloader and Secure Boot state (85a8d41ac1). A new bootloader changes
+PCR 4, so before an update the installed system prepares a one-boot handover: open Install NØNOS
+and press P beside `Prepare this computer for an update` (7ff8129c52, 6335608d67). On QEMU with a
+software TPM, a volume prepared under one image opened under a second image with a changed
+bootloader through the handover, then under that bootloader's own key on the next boot
+(`s1-k1-update`). An update keeps the data volume, not store apps, settings since setup, the
+wallet's vault or saved Wi-Fi (`docs/install/update.md`).
 
 ### Drivers
 
@@ -155,18 +186,26 @@ lines in eight boots at 4 and 8 CPUs (`s1-paging-lock-c3f522575`, `s1-lock`).
 
 - `MkBootLogo` (MBGL) is retired. Its number is kept and answers EINVAL to every caller
   (`src/syscall/microkernel/retired.rs`).
-- No in-place upgrade. Reinstall; nothing carries over from an older install.
+- A disk made before 0.9.3 cannot be updated in place. Those releases keyed the data volume to
+  their own kernel, and the installer says `NØNOS keyed to its own kernel: its data cannot be
+  kept` (`MadeBefore` in `userland/nonos_disk/src/keep/why.rs`). Install 0.9.3 over it; nothing
+  carries over from the old disk.
 
 ## Known limitations
 
 - **Linux apps keep nothing past power off.** A home is held in memory, up to 16 MiB and 128
   names, and is gone at power off. A home kept across a reboot is designed and not in this
-  release (`docs/design/kept-homes-and-installs.md`). One file an app writes is held to 8 MiB;
-  a write past it fails with EFBIG and says nothing (`file/held/cache/table.rs`, `MAX_FILE`).
-- **Monero.** On every wallet open the first refresh fails with "net.socks5 sent an answer this
-  cannot read", and the next connects. An install from the real mirror with one package at a
-  time is not yet shown (`s1-g-kvm`, "Not shown here"). Write the seed on paper; it is the only
-  copy that survives power off.
+  release (`docs/design/kept-homes-and-installs.md`). One file an app writes may fill its home
+  and no more (`MAX_FILE` in `file/held/cache/table.rs`).
+- **Monero.** Saving a large wallet cache, as the wallet does when it exits after a sync, can
+  fail: the cache can pass the 16 MiB its home holds (`HOME` in `file/system/declared/home.rs`).
+  On every wallet open the first refresh fails with "net.socks5 sent an answer this cannot read",
+  and the next connects. An install from the real mirror with one package at a time is not yet
+  shown (`s1-g-kvm`, "Not shown here"). Write the seed on paper; it is the only copy that
+  survives power off.
+- **Update NØNOS (keep my data)**: from the prepare until the next boot, an approved kernel opens
+  the data volume on this machine whatever bootloader measured it, so prepare right before the
+  update (`docs/security/device-secrets-and-keys.md`, "The handover").
 - **Installs fetch one package at a time** (9fc7634b39).
 - **Not in this release:** SimpleX's desktop window and DarkFi's GUI. SimpleX comes only as its
   terminal client, and only on an image sealed with a NONOS package mirror (above). No boot has
@@ -183,4 +222,4 @@ lines in eight boots at 4 and 8 CPUs (`s1-paging-lock-c3f522575`, `s1-lock`).
 - **aarch64** is a preview with no loader and no release image; **riscv64** is not supported,
   and under QEMU it stops at its unported VM layer (`docs/architectures/README.md`).
 - **Not yet tested on a booted image**: Secure Boot enabled, and an update from one release to
-  the next.
+  the next. The update lane ran between two development images of one tree (`s1-k1-update`).
