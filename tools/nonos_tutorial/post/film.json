@@ -1,0 +1,120 @@
+{
+  "source": "../../../target/tour/nonos-0.9.3-tour.mp4",
+  "cues": "../../../target/tour/cues.txt",
+  "fade": 0.8,
+  "transition": "fade",
+  "title": {"label": "THE TOUR", "title": "NØNOS 0.9.3", "line": "Private by default.", "seconds": 4},
+  "chapters": [
+    {
+      "title": "Every boot checks itself",
+      "line": "Before anything runs, the loader proves the kernel",
+      "clips": [
+        {"from": {"cue": "The boot menu. Esc holds", "shift": -0.5}, "to": {"cue": "We start Standard.", "shift": 3},
+         "aspect": 1.6,
+         "zoom": [{"at": {"cue": "Hardened also needs"}, "for": 6.5, "box": [740, 580, 720, 260]}]},
+        {"from": {"cue": "The loader measures"}, "to": {"cue": "The splash lists", "shift": -0.3}, "aspect": 1.6,
+         "lower": [{"at": 0.5, "for": 4, "title": "Verified boot", "text": "Ed25519 and ML-DSA-65, then the hand-off"}]},
+        {"from": {"cue": "The splash lists"}, "to": {"cue": "The splash lists", "shift": 7.5},
+         "zoom": [{"at": 1.0, "for": 6.0, "box": [770, 400, 380, 240]}]}
+      ]
+    },
+    {
+      "title": "No account. Thirteen answers.",
+      "line": "First-boot setup, by keyboard, with no password",
+      "clips": [
+        {"from": {"cue": "First-boot setup:"}, "to": {"cue": "Step 13, review", "shift": 7.5},
+         "zoom": [{"at": {"cue": "Step 4, the mode", "shift": 0.5}, "for": 6.5, "box": [790, 260, 760, 260]},
+                  {"at": {"cue": "Anyone: onion routing", "shift": 0.3}, "for": 6.0, "box": [790, 260, 760, 360]}]}
+      ]
+    },
+    {
+      "title": "Your computer forgets you",
+      "line": "Amnesic by default: RAM only, no disk written",
+      "clips": [
+        {"from": {"cue": "A live session: nothing is kept"}, "to": {"cue": "A live session: nothing is kept", "shift": 7.5},
+         "zoom": [{"at": 0.8, "for": 6.0, "box": [636, 420, 650, 130]}]},
+        {"from": {"cue": "A note, in memory", "shift": -5}, "to": {"cue": "A note, in memory", "shift": 7.5}}
+      ]
+    },
+    {
+      "title": "A desktop that shows its work",
+      "line": "Every window says where it came from",
+      "clips": [
+        {"from": {"cue": "The desktop. The dock"}, "to": {"cue": "Proofs asks two questions", "shift": 8.5},
+         "lower": [{"at": {"cue": "Settings. Your name", "shift": 0.5}, "for": 5, "title": "Settings",
+                    "text": "Names never sent on a network"}],
+         "zoom": [{"at": {"cue": "About this system:", "shift": 0.8}, "for": 6.0, "box": [1150, 280, 420, 140]}]}
+      ]
+    },
+    {
+      "title": "Who can reach what",
+      "line": "The kernel's own account, not the apps'",
+      "clips": [
+        {"from": {"cue": "The Terminal opens with"}, "to": {"cue": "Each device is blocked", "shift": 7.5},
+         "zoom": [{"at": {"cue": "Every word comes from", "shift": 0.3}, "for": 6.5, "box": [356, 690, 760, 150]},
+                  {"at": {"cue": "Each device is blocked", "shift": 0.3}, "for": 6.5, "box": [356, 240, 760, 340]}]}
+      ]
+    },
+    {
+      "title": "Apps in a box",
+      "line": "What a Linux app may do, and what it may not",
+      "clips": [
+        {"from": {"cue": "A Linux program: Perl", "shift": -3}, "to": {"cue": "audit for one app", "shift": 8.5},
+         "lower": [{"at": 0.5, "for": 4.5, "title": "Linux personality", "text": "Each program held to its own policy"}],
+         "zoom": [{"at": {"cue": "Its policy line"}, "for": 7.0, "box": [356, 240, 1100, 80]},
+                  {"at": {"cue": "Refused: a guest"}, "for": 7.0, "box": [356, 240, 760, 140]},
+                  {"at": {"cue": "Refused too"}, "for": 7.0, "box": [356, 240, 900, 140]}]}
+      ]
+    },
+    {
+      "title": "A store that checks every byte",
+      "line": "Signed, pinned, and proved on this machine",
+      "optional": true,
+      "clips": [
+        {"from": {"cue": "The Marketplace. Its catalogue"}, "to": {"cue": "Install. The package", "shift": 5},
+         "zoom": [{"at": {"cue": "Every gate must pass", "shift": 0.3}, "for": 6.5, "box": [1080, 560, 420, 240]}]},
+        {"from": {"cue": "Install. The package", "shift": 5}, "to": {"cue": "Installed, and held", "shift": -0.5},
+         "speed": 8, "tag": "×8"},
+        {"from": {"cue": "Installed, and held", "shift": -0.5}, "to": {"cue": "It zooms on a key", "shift": 5},
+         "lower": [{"at": {"cue": "A Linux window app"}, "for": 5, "title": "swayimg",
+                    "text": "A Wayland app in its box: no network"}]}
+      ]
+    },
+    {
+      "title": "Talk without being watched",
+      "line": "Chat that leaves only over Nym or Anyone",
+      "optional": true,
+      "clips": [
+        {"from": {"cue": "SimpleX Chat, from"}, "to": {"cue": "Its box lets it reach", "shift": 8}},
+        {"from": {"cue": "Telegram Desktop, from"}, "to": {"cue": "Its window opens on", "shift": 8}}
+      ]
+    },
+    {
+      "title": "Money that stays yours",
+      "line": "A Monero wallet whose node never sees this machine",
+      "optional": true,
+      "clips": [
+        {"from": {"cue": "Monero's wallet, from"}, "to": {"cue": "A new wallet.", "shift": -1}, "speed": 8, "tag": "×8"},
+        {"from": {"cue": "A new wallet."}, "to": {"cue": "The wallet syncing", "shift": 8},
+         "zoom": [{"at": {"cue": "The wallet syncing"}, "for": 7.0, "box": [356, 240, 900, 300]}]}
+      ]
+    },
+    {
+      "title": "Your own AI",
+      "line": "A language model that never leaves the machine",
+      "optional": true,
+      "clips": [
+        {"from": {"cue": "Qwen, a language model", "shift": -3}, "to": {"cue": "The answer streams in", "shift": 20},
+         "lower": [{"at": 3.5, "for": 5, "title": "Qwen3 0.6B", "text": "On the stick, held in memory, offline"}]}
+      ]
+    },
+    {
+      "title": "Gone when you're done",
+      "line": "Power off wipes memory, and nothing was kept",
+      "clips": [
+        {"from": {"cue": "Power Off asks first"}, "to": {"cue": "Power off. This session", "shift": 14}}
+      ]
+    }
+  ],
+  "end": {"label": "AGPL-3.0-OR-LATER", "title": "NØNOS 0.9.3", "line": "nonos.systems", "seconds": 5}
+}

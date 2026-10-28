@@ -1,0 +1,479 @@
+# NØNOS 0.9.3: the tour, from power-on to power off, filmed by
+#   tools/nonos-drive --record OUT.mp4 --steps tools/nonos_tutorial/tour.steps
+# README.md beside this file has the whole command, the lanes and the timings;
+# STORYBOARD.md has the chapters these sections are cut into (post/film.json).
+#
+# Every caption says what is on screen at that moment, and was checked
+# against the code, the docs (docs/using, docs/install, docs/overview) and
+# screenshots of a boot of the development image. Clicks are abs:X,Y on the
+# 1920x1080 desktop, so the machine needs the usb-tablet lane; a key is used
+# wherever a key does the same, because a key lands on any screen.
+#
+# Each app window is opened alone and closed before the next, so it opens in
+# the middle of the work area (capsule_wm's cascade.rs), above the captions,
+# and the positions clicked are the ones the screenshots showed.
+#
+# Pauses are timed for a KVM host. A wait on the machine is an until: step on
+# its serial console, so a slower machine waits longer, not wrongly.
+#
+# Optional sections sit between a pair of marker lines; the README's sed
+# line cuts any of them out:
+#   market     needs the network (and, on a -dev image, the host's relay)
+#   simplex    needs the listing linux.simplex-chat on main (not there yet)
+#   telegram   needs the listing linux.telegram-desktop on main (not there
+#              yet) and a Qt display path in the Linux personality
+#   monero     needs the SOCKS endpoint on main (not there yet) and a node
+#   qwen       needs a Qwen model: both images carry Qwen3 0.6B on the stick
+#   dev-image  a caption true only of a -dev image
+#   sealed     a caption true only of a sealed image
+# Cut the one of dev-image and sealed that is not the image you film.
+
+# ==== 1. Every boot checks itself ===========================================
+say:This is NØNOS 0.9.3, from the moment the machine is switched on.
+until:PCI: counted:600
+pause:1
+key:esc
+say:The boot menu. Esc holds its countdown, so we can read each entry.
+pause:6
+say:Standard boots when the kernel is signed, attested and current.
+pause:6
+key:down
+pause:1
+say:Hardened also needs Secure Boot and a TPM. Here it says it would refuse.
+pause:7
+key:down
+pause:1
+key:down
+pause:1
+say:Air-Gapped starts no network driver and no network service at all.
+pause:6
+key:down
+pause:1
+say:Recovery is a Terminal and Files, with no network and no setup.
+pause:6
+key:home
+pause:1
+say:We start Standard.
+pause:3
+key:ret
+say:The loader measures the kernel and checks its two signatures before it runs.
+until:[SPLASH] up:600
+say:The splash lists each link of the boot chain, and says what did not pass.
+pause:7
+say:
+until:Capsules spawned:900
+until:[SPLASH] stepped aside:600
+pause:3
+
+# ==== 2. No account. Thirteen answers. ======================================
+say:First-boot setup: thirteen steps, all by keyboard. There is no password.
+pause:6
+say:Step 1, the keyboard: six layouts. Ctrl+Alt+Space cycles them at any time.
+pause:6
+key:ret
+pause:2
+say:Step 2, your name, which the Terminal shows as name@host.
+pause:3
+type:ek
+pause:3
+key:ret
+pause:2
+say:Step 3, the time zone, for the menu bar clock: j adds an hour, k takes one.
+pause:3
+type:j
+pause:2
+type:k
+pause:3
+key:ret
+pause:2
+say:Step 4, the mode. Amnesic is the default: RAM only, no disk is written.
+pause:7
+key:down
+pause:1
+say:USB live cannot be chosen yet, and the screen says why.
+pause:5
+key:down
+pause:1
+say:Install to this computer keeps your answers and opens the installer.
+pause:6
+key:home
+pause:1
+say:We stay amnesic: when this machine stops, everything here is gone.
+pause:5
+key:ret
+pause:2
+say:Step 5, the network. No network is the default, and the private choice.
+pause:6
+say:A wired card is used once a cable is in; Wi-Fi is joined only if you ask.
+pause:7
+key:ret
+pause:2
+say:Step 6, the route out. The Nym mixnet is the default.
+pause:5
+say:It hides who you talk to, even from someone watching the whole internet.
+pause:6
+key:down
+pause:1
+say:Anyone: onion routing through three relays, much faster than the mixnet.
+pause:6
+say:We choose Anyone for this film. A route that fails never falls back.
+pause:5
+key:ret
+pause:2
+say:Step 7, privacy: what NØNOS does without being asked. There is no telemetry.
+pause:7
+key:ret
+pause:2
+say:Step 8, appearance: which wallpapers to keep, and which is the desktop's.
+pause:6
+key:ret
+pause:2
+say:Step 9, the Qwen model: a language model that runs here, offline.
+pause:6
+say:The stick carries Qwen3 0.6B. It is held in memory, and gone at power off.
+pause:7
+key:ret
+pause:2
+say:Step 10, apps: each optional app is on until you turn it off with Space.
+pause:6
+key:ret
+pause:2
+say:Step 11, installed software: may programs from the Marketplace run?
+pause:5
+key:down
+pause:1
+say:We allow them, to install apps later. This machine proves each one.
+pause:6
+key:ret
+pause:2
+say:Step 12, the computer's name: the host in name@host.
+pause:3
+type:tour
+pause:3
+key:ret
+pause:2
+say:Step 13, review every answer. Enter applies them and starts the desktop.
+pause:7
+key:ret
+say:
+until:the desktop is up:900
+until:name=app.process_manager:300
+pause:5
+
+# ==== 3. Your computer forgets you; a desktop that shows its work ===========
+say:A live session: nothing is kept. Files, settings and models go when it stops.
+pause:7
+key:esc
+pause:3
+say:The desktop. The dock is at the bottom, the menu bar at the top.
+pause:6
+say:Top right: no battery here, the network mark, search, and the clock.
+pause:7
+abs:157,28
+pause:1
+click
+pause:2
+say:The first menu is always there, with About this system and Power Off.
+pause:6
+key:esc
+pause:2
+abs:1763,28
+pause:1
+click
+pause:2
+say:Search opens the Launchpad: every app and every tool, filtered as you type.
+pause:6
+key:esc
+pause:1
+key:esc
+pause:2
+abs:517,1020
+pause:1
+click
+pause:3
+say:Files, from the dock: your home, the places, and this machine's store.
+pause:7
+abs:1352,266
+pause:1
+click
+pause:2
+abs:651,1020
+pause:1
+click
+pause:3
+say:Settings. Your name and the computer's name are never sent on a network.
+pause:7
+abs:1302,286
+pause:1
+click
+pause:2
+abs:157,28
+pause:1
+click
+pause:1
+abs:205,157
+pause:1
+click
+pause:3
+say:About this system: the version, and whether the kernel verified this window.
+pause:7
+abs:537,298
+pause:1
+click
+pause:3
+say:Proofs asks two questions: is this boot attested, and is its traffic anonymous?
+pause:8
+# >>> dev-image
+say:A development image answers no, and the page shows which checks failed.
+pause:7
+# <<< dev-image
+key:esc
+pause:2
+
+# ==== 4. Who can reach what =================================================
+key:ctrl+alt+t
+pause:5
+say:The Terminal opens with Ctrl+Alt+T, from anywhere on the desktop.
+pause:5
+say:A new tab says what this is: a Standard boot, and who signed the Terminal.
+pause:6
+type:help
+key:ret
+pause:1
+say:help lists every command, in groups.
+pause:6
+key:ctrl+l
+type:audit
+key:ret
+pause:2
+say:audit: which capsules can reach the network, storage and devices, right now.
+pause:7
+say:Every word comes from the kernel, not from what a capsule says about itself.
+pause:7
+key:ctrl+l
+type:log VT-D
+key:ret
+pause:1
+say:log VT-D: the kernel's own lines about the IOMMU, which fences device memory.
+pause:7
+say:Each device is blocked until its driver claims it, then kept in that domain.
+pause:7
+key:ctrl+l
+type:write notes.txt nothing here outlives this session
+key:ret
+type:cat notes.txt
+key:ret
+pause:1
+say:A note, in memory. An amnesic boot writes no disk: at power off it is gone.
+pause:7
+key:ctrl+l
+
+# ==== 5. Apps in a box ======================================================
+type:linux perl -e 'print "Hello from Perl, in its box\n"'
+key:ret
+say:A Linux program: Perl, run by NØNOS's Linux personality, in a box of its own.
+pause:8
+say:Its policy line: its own files, starting programs, the terminal. No network.
+pause:8
+key:ctrl+l
+type:linux perl -e '$!=0;$r=syscall(101,16,1,0,0);print "ptrace: $r $!\n"'
+key:ret
+say:Now it tries to attach to another process with ptrace, as spyware would.
+pause:8
+say:Refused: a guest does not inspect or steer another. The refusal is counted.
+pause:8
+key:ctrl+l
+type:linux perl -MSocket -e 'socket(S,2,1,0);connect(S,sockaddr_in(443,inet_aton("1.1.1.1"))) or print "connect: $!\n"'
+key:ret
+say:And it tries to reach the internet directly.
+pause:8
+say:Refused too: its policy grants it no network.
+pause:8
+key:ctrl+l
+type:audit --agent app.file_manager
+key:ret
+pause:1
+say:audit for one app: Files can reach storage, and cannot reach the network.
+pause:8
+key:ctrl+l
+
+# >>> market
+# ==== 6. A store that checks every byte =====================================
+abs:1542,186
+pause:1
+click
+pause:2
+abs:852,1020
+pause:1
+click
+pause:4
+say:The Marketplace. Its catalogue is signed, and it is already on the machine.
+pause:7
+key:right
+pause:1
+key:right
+pause:1
+type:/
+type:swayimg
+key:ret
+pause:2
+say:swayimg: an image viewer with a window of its own. No network, only its home.
+pause:7
+say:Every gate must pass before it installs: signatures, pins and its policy.
+pause:7
+say:Install. The package must match the catalogue's pin, and Alpine's signature.
+pause:5
+# >>> dev-image
+say:This development image downloads from a relay on the host, at 10.0.2.2.
+# <<< dev-image
+# >>> sealed
+say:The download goes over the Anyone network, whatever route you chose.
+# <<< sealed
+key:ret
+after:[LINUX] installed:1800
+pause:2
+say:Installed, and held in memory until restart.
+pause:5
+key:esc
+pause:2
+key:ctrl+alt+t
+pause:4
+type:linux swayimg /usr/share/icons/hicolor/64x64/apps/swayimg.png
+key:ret
+pause:10
+say:A Linux window app, in a window of its own on the NØNOS desktop.
+pause:7
+type:=
+pause:2
+type:=
+pause:2
+say:It zooms on a key, as it does on Linux.
+pause:5
+type:q
+pause:3
+say:
+key:ctrl+l
+# <<< market
+
+# >>> simplex
+# Needs the listing linux.simplex-chat on main (S3's recipe and the owner's
+# static build, HANDOFF/letters/2026-10-27-s3-simplex-build-and-boot1.md).
+# Not rehearsed: rehearse it once the listing lands, then keep or fix it.
+# ==== 7a. Talk without being watched: SimpleX ================================
+key:ctrl+alt+t
+pause:3
+type:market install linux.simplex-chat
+say:SimpleX Chat, from the Marketplace: no account, no phone number.
+key:ret
+after:[LINUX] installed:1800
+pause:2
+type:linux simplex-chat
+key:ret
+pause:15
+say:Its box lets it reach servers only over Nym or Anyone, never directly.
+pause:8
+type:/quit
+key:ret
+pause:3
+say:
+key:ctrl+l
+# <<< simplex
+
+# >>> telegram
+# Needs the listing linux.telegram-desktop on main, and a Qt display path in
+# the Linux personality (docs/using/privacy-apps.md, KeePassXC's row). Not
+# rehearsed: rehearse it once both land, then keep or fix it.
+# ==== 7b. Talk without being watched: Telegram ===============================
+key:ctrl+alt+t
+pause:3
+type:market install linux.telegram-desktop
+say:Telegram Desktop, from the Marketplace, boxed like every Linux app.
+key:ret
+after:[LINUX] installed:1800
+pause:2
+type:linux telegram-desktop
+key:ret
+pause:20
+say:Its window opens on the desktop; its connections leave over Nym or Anyone.
+pause:8
+key:ctrl+q
+pause:3
+say:
+key:ctrl+l
+# <<< telegram
+
+# ---- The SOCKS endpoint lands on main soon. Until it has, cut this block. ----
+# >>> monero
+# ==== 8. Money that stays yours =============================================
+key:ctrl+alt+t
+pause:3
+type:market install linux.monero
+say:Monero's wallet, from the Marketplace. Its box allows no direct connection.
+key:ret
+after:[LINUX] installed:1800
+pause:2
+type:linux monero-wallet-cli --generate-new-wallet /root/tour --password tour --mnemonic-language English --daemon-address node.sethforprivacy.com:18089 --proxy 127.0.0.1:9050
+key:ret
+pause:20
+say:A new wallet. Its node is reached through the SOCKS endpoint, over Anyone.
+pause:10
+say:The node sees an exit relay, not this machine.
+pause:20
+type:status
+key:ret
+pause:5
+say:The wallet syncing with the node.
+pause:8
+type:exit
+key:ret
+pause:3
+say:
+key:ctrl+l
+# <<< monero
+
+# >>> qwen
+# ==== 9. Your own AI =========================================================
+key:ctrl+alt+t
+pause:3
+type:qwen what is a microkernel? Answer in one sentence.
+key:ret
+say:Qwen, a language model that runs here. No question leaves this machine.
+pause:8
+say:Its policy line: models read-only, a terminal, and no network at all.
+pause:8
+say:The model is checked against its signed pin before it is loaded.
+pause:20
+# The rehearsal under TCG reached "qwen: verified" and the load; the answer
+# itself is seen only on KVM. Check its timing on the first KVM run.
+say:The answer streams in as the model writes it, on this machine.
+pause:20
+type:/bye
+key:ret
+pause:3
+say:
+key:ctrl+l
+# <<< qwen
+
+# ==== 10. Gone when you're done =============================================
+abs:1542,186
+pause:1
+click
+pause:2
+abs:157,28
+pause:1
+click
+pause:2
+abs:175,229
+pause:1
+click
+pause:2
+say:Power Off asks first: every window closes and memory is wiped.
+pause:6
+key:tab
+pause:1
+key:ret
+say:Power off. This session kept nothing, so nothing of it is left.
+until:[POWER] leave:300
+pause:12
+say:
+pause:2

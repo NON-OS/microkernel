@@ -30,6 +30,7 @@ pub(super) fn connected(state: &mut Manager, index: usize, id: u16, body: &[u8])
     let Some(stream) = find_on(&mut state.streams, circuit, id) else {
         return;
     };
+    stream.held = None;
     if !connected_is_valid(body) {
         stream.stage = StreamStage::Ended(REASON_MISC);
         return;
@@ -38,7 +39,7 @@ pub(super) fn connected(state: &mut Manager, index: usize, id: u16, body: &[u8])
     trace::say_num(b"stream connected", id as u64);
 }
 
-pub(super) fn ended(state: &mut Manager, index: usize, id: u16, body: &[u8]) {
+pub(super) fn ended(state: &mut Manager, index: usize, id: u16, body: &[u8], now: u64) {
     let why = reason(body);
     let circuit = state.circuits[index].id;
     let mut on_circuit = None;
@@ -50,6 +51,7 @@ pub(super) fn ended(state: &mut Manager, index: usize, id: u16, body: &[u8]) {
     if needs_another_exit(why) {
         blame(state, on_circuit);
     }
+    super::super::out::again(state, index, id, why, now);
 }
 
 /// A stream-level SENDME: the exit will take STREAM_INCREMENT more cells on
