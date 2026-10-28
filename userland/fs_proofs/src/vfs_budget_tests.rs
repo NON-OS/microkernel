@@ -24,6 +24,7 @@ const A: u32 = 40;
 const B: u32 = 41;
 const KERNEL: u32 = 0;
 const MIB: usize = 1 << 20;
+const FILE: usize = 128 * MIB; // types.rs MAX_FILE_BYTES
 
 mod installs;
 
@@ -48,7 +49,7 @@ fn fill(s: &mut Store, path: &str, pid: u32, chunk: usize) -> usize {
     let mut written = 0;
     while let Ok(n) = s.write(fd, pid, &piece) {
         written += n as usize;
-        assert!(written <= 64 * MIB, "a file passed the per-file ceiling");
+        assert!(written <= FILE, "a file passed the per-file ceiling");
     }
     written
 }
@@ -60,7 +61,7 @@ fn writes_stop_at_the_budget_and_the_store_goes_on() {
     loop {
         let wrote = fill(&mut s, &format!("/tmp/big{i}"), A, 4 * MIB);
         i += 1;
-        if wrote < 64 * MIB {
+        if wrote < FILE {
             break;
         }
         assert!(i < 16, "the budget never refused");
@@ -80,7 +81,7 @@ fn writes_stop_at_the_budget_and_the_store_goes_on() {
 fn the_allocation_never_passes_the_budget_under_small_writes() {
     let mut s = Store::new();
     let mut i = 0;
-    while fill(&mut s, &format!("/tmp/f{i}"), A, 4096) == 64 * MIB {
+    while fill(&mut s, &format!("/tmp/f{i}"), A, 4096) == FILE {
         i += 1;
         assert!(i < 16);
     }
@@ -93,10 +94,9 @@ fn the_allocation_never_passes_the_budget_under_small_writes() {
 fn a_copy_past_the_budget_is_refused_whole() {
     let mut s = Store::new();
     for i in 0..2 {
-        assert_eq!(fill(&mut s, &format!("/tmp/c{i}"), A, 8 * MIB), 64 * MIB);
+        assert_eq!(installs::put(&mut s, &format!("/tmp/c{i}"), 64 * MIB), 64 * MIB);
     }
     let before = (s.usage().0, data_held(&s));
-    // A third 64 MiB file does not fit beside two in 160 MiB.
     assert_eq!(s.copy("/tmp/c0", "/tmp/c2", false, A), Err(StoreError::Full));
     assert_eq!((s.usage().0, data_held(&s)), before);
 }
@@ -105,7 +105,7 @@ fn a_copy_past_the_budget_is_refused_whole() {
 fn a_truncate_that_grows_past_the_budget_is_refused() {
     let mut s = Store::new();
     for i in 0..2 {
-        assert_eq!(fill(&mut s, &format!("/tmp/t{i}"), A, 8 * MIB), 64 * MIB);
+        assert_eq!(installs::put(&mut s, &format!("/tmp/t{i}"), 64 * MIB), 64 * MIB);
     }
     file(&mut s, "/tmp/t2", A);
     assert_eq!(s.truncate("/tmp/t2", (40 * MIB) as u64), Err(StoreError::Full));
