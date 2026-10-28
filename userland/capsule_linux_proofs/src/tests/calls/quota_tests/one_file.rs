@@ -19,7 +19,7 @@
 //! (docs/release-evidence/0.9.3/s1-g-kvm). The bound is the home quota
 //! itself, and passing it is said once a run.
 
-use crate::calls::loadavg::declared::HOME;
+use crate::calls::loadavg::declared::{HOME, HOME_MOST};
 
 const TABLE: &str = include_str!("../../../../../capsule_linux/src/linux/file/held/cache/table.rs");
 const TOLD: &str =
@@ -27,8 +27,8 @@ const TOLD: &str =
 
 #[test]
 fn one_file_may_fill_its_home() {
-    assert_eq!(HOME, 16 << 20);
-    assert!(TABLE.contains("pub const MAX_FILE: usize = HOME as usize;"), "tied to the home");
+    assert_eq!((HOME, HOME_MOST), (16 << 20, 64 << 20));
+    assert!(TABLE.contains("pub const MAX_FILE: usize = HOME_MOST as usize;"), "the largest home");
 }
 
 #[test]
@@ -36,4 +36,16 @@ fn a_write_past_it_is_said_once_a_run() {
     let change = include_str!("../../../../../capsule_linux/src/linux/file/held/cache/change.rs");
     assert_eq!(change.matches("ok_or_else(too_large)").count(), 2, "put and set_len");
     assert!(TOLD.contains("!TOLD.swap(true, Ordering::Relaxed)") && TOLD.contains("errno::EFBIG"));
+}
+
+#[test]
+fn the_home_is_sized_for_its_listing_before_it_opens() {
+    let start = include_str!("../../../../../capsule_linux/src/linux/start_home.rs");
+    let chose = start.find("file::choose_home(&guest.app.policy.listing_id);").expect("chosen");
+    assert!(chose < start.find("super::file::open_home(key)").expect("opened"));
+    let room =
+        include_str!("../../../../../capsule_linux/src/linux/file/system/space/home_room.rs");
+    assert_eq!(room.matches(", most),").count(), 2, "both arms held to the run's home");
+    let statfs = include_str!("../../../../../capsule_linux/src/linux/file/system/space/room.rs");
+    assert!(statfs.contains("blocks: home_bytes() / BSIZE,"), "statfs says the run's home");
 }
