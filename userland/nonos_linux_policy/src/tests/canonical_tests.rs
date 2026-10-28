@@ -16,21 +16,23 @@
 
 //! One policy, one encoding: any single bit flipped anywhere either is
 //! refused or decodes to a policy that encodes back to exactly the flipped
-//! bytes. Two encodings of one policy would give it two hashes.
+//! bytes. Two encodings of one policy would give it two hashes. So for
+//! version 2, whose name has one spelling, zero padded.
 
-use super::sample::policy;
+use super::sample::{policy, served};
 use crate::{decode, policy_hash, LEN};
 
 #[test]
 fn every_flip_is_refused_or_reencodes_to_itself() {
-    let base = policy().encode();
-    for at in 0..LEN {
-        for bit in 0..8 {
-            let mut b = base;
-            b[at] ^= 1 << bit;
-            if let Ok(p) = decode(&b) {
-                assert_eq!(p.encode(), b, "byte {at} bit {bit}");
-                assert_ne!(policy_hash(&b), policy_hash(&base));
+    for base in [policy().encode(), served().encode()] {
+        for at in 0..LEN {
+            for bit in 0..8 {
+                let mut b = base;
+                b[at] ^= 1 << bit;
+                if let Ok(p) = decode(&b) {
+                    assert_eq!(p.encode(), b, "byte {at} bit {bit}");
+                    assert_ne!(policy_hash(&b), policy_hash(&base));
+                }
             }
         }
     }
@@ -38,7 +40,7 @@ fn every_flip_is_refused_or_reencodes_to_itself() {
 
 #[test]
 fn reencoding_a_decoded_policy_is_the_identity() {
-    let b = policy().encode();
-    let p = decode(&b).unwrap();
-    assert_eq!(p.encode(), b);
+    for b in [policy().encode(), served().encode()] {
+        assert_eq!(decode(&b).unwrap().encode(), b);
+    }
 }
