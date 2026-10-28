@@ -62,7 +62,7 @@ pub use bond_code::BondCode;
 pub use commerce::{Commerce, BINDING_VALID, COMMERCE_MATCHES};
 pub use commerce_parse::parse_commerce;
 pub use header::{HDR_LEN, MAGIC, STATUS_LEN, VERSION};
-pub use install::Stage;
+pub use install::{detail as install_detail, Stage};
 pub use linux_policy::{linux_policy_body, parse_linux_policy, LinuxPolicy, MARKET_ARG_LEN};
 pub use listing::{parse_list, Entry};
 pub use ops::*;

@@ -55,15 +55,18 @@ pub const HPAGE_PMD: u64 = 2 << 20;
 /*
  * The most the family may keep in its private directories, all of them
  * together, in bytes and in names (a file or a directory each): the
- * tmpfs mounts there are mounted with size=16m and nr_inodes=128, and a
- * change past either is ENOSPC (space/quota.rs).
+ * tmpfs mounts there are mounted with size=16m and nr_inodes=1536, and a
+ * change past either is ENOSPC (space/quota.rs). GTK's preparation builds
+ * its mime database there before the program starts, 1068 names at once
+ * before it keeps fifteen (gtk_prep/mime.rs): at 128 the build was refused
+ * and left no room, and KeePassXC could not make /run/user/0.
  *
  * Linux sizes a tmpfs it is given no size at half its memory, which here
  * would be a gigabyte. These directories live in the store, which every
- * capsule on the machine shares: it holds 2048 names in all (capsule_vfs
- * MAX_FILES) and keeps every byte in a 320 MiB heap beside the 96 MiB it
- * loads at boot. A family allowed a gigabyte could fill the one and run
- * the other out, ending the store for everything else that runs.
+ * capsule on the machine shares: it holds 8192 names, 2048 an owner
+ * (capsule_vfs MAX_FILES, NAMES_PER_OWNER), and the clients' bytes in no
+ * less than 160 MiB (DATA_BYTES_MAX). A family allowed a gigabyte could
+ * fill it, ending the store for everything else that runs.
  */
 pub const PRIVATE: u64 = 16 << 20;
-pub const PRIVATE_NAMES: u64 = 128;
+pub const PRIVATE_NAMES: u64 = 1536;

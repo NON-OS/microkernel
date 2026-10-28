@@ -29,7 +29,7 @@ use super::wrap::wrap;
 
 /// At most this many lines of the sentence: a reason a person must act on
 /// is read whole, not cut at the pane's edge.
-const SENTENCE_LINES: usize = 2;
+const SENTENCE_LINES: usize = 3;
 
 /// Paints from `span`'s top, no gate row below its bottom, and returns the
 /// y to carry on from. `room` is the pane's width for text.
