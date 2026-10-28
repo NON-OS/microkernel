@@ -52,9 +52,9 @@ const HEAD_PAGES: usize = (HEADER + TOC_ENTRY * MAX_ENTRIES).div_ceil(PAGE);
 const CHUNK: usize = 256 * 1024;
 
 /// The store's bytes from its header on, as (physical base, length), in
-/// loader-data pages, and the disk it was read from; `None` when no disk the
-/// firmware sees carries one.
-pub fn store_copy(bs: &BootServices) -> Option<((u64, u64), Handle)> {
+/// loader-data pages, the disk it was read from, and whether that disk holds
+/// this loader's volume; `None` when no disk the firmware sees carries one.
+pub fn store_copy(bs: &BootServices) -> Option<((u64, u64), Handle, bool)> {
     let handles = bs.find_handles::<BlockIO>().ok()?;
     let own = own_volume(bs);
     /*
@@ -67,9 +67,9 @@ pub fn store_copy(bs: &BootServices) -> Option<((u64, u64), Handle)> {
     let own_nodes = own.and_then(|h| nodes(bs, h)).unwrap_or_default();
     let ours: alloc::vec::Vec<bool> =
         handles.iter().map(|&h| Some(h) != own && holds(bs, h, &own_nodes)).collect();
-    let first = handles.iter().zip(&ours).filter(|(_, &o)| o).map(|(&h, _)| h);
-    let rest = handles.iter().zip(&ours).filter(|(_, &o)| !o).map(|(&h, _)| h);
-    first.chain(rest).find_map(|h| copy_from(bs, h).map(|copy| (copy, h)))
+    let first = handles.iter().zip(&ours).filter(|(_, &o)| o);
+    let rest = handles.iter().zip(&ours).filter(|(_, &o)| !o);
+    first.chain(rest).find_map(|(&h, &o)| copy_from(bs, h).map(|copy| (copy, h, o)))
 }
 
 /* Each node of the device path of `handle`, as its bytes. */

@@ -20,12 +20,13 @@
 
 /// Suffixes of the proof files beside a program, and of its vouched policy
 /// (app/bind.rs reads both of those).
-pub const REFUSED: [&[u8]; 5] = [
+pub const REFUSED: [&[u8]; 6] = [
     b".nonos_id_cert.bin",
     b".manifest.bin",
     b".zk_trailer.bin",
     b".nonos_linux_policy.bin",
     b".nonos_linux_policy.zk_trailer.bin",
+    b".nonos_linux_policy.args.bin",
 ];
 
 /// Whether `name` is one of them, wherever in the package it sits.

@@ -64,9 +64,8 @@ pub(crate) fn run_for_caller(argv: &[u8]) -> Result<u32, i64> {
         requested_caps: CAPS,
         debug_tag: b"",
     };
-    let pid = capsule_spawn::spawn_verified(&spec, &anchor, None).map_err(super::refusal::errno)?;
     let words = argv.split(|&b| b == 0).filter(|w| !w.is_empty());
     let words: Vec<String> = words.map(|w| String::from_utf8_lossy(w).into_owned()).collect();
-    let _ = crate::process::set_argv(pid, words);
-    Ok(pid)
+    capsule_spawn::spawn_verified_with_argv(&spec, &anchor, None, words)
+        .map_err(super::refusal::errno)
 }

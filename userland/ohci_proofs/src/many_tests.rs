@@ -3,10 +3,11 @@
 //! driver.uhci0): ports numbered on by each controller's own count, and
 //! a slot's requests reaching the controller it was addressed on.
 
-use crate::model::{call_host, rig, Cx, Device};
+use crate::model::{call_as, call_host, rig, Cx, Device, CLIENT};
 use crate::server::many::front::Bind;
 use crate::server::many::Front;
 use crate::wire::ops::*;
+use crate::wire::E_PERM;
 
 #[test]
 fn two_controllers_one_host() {
@@ -23,4 +24,16 @@ fn two_controllers_one_host() {
     assert_eq!(wb.borrow().devs[2].as_ref().unwrap().addr, s);
     let d = call_host(&mut f, OP_GET_DEVICE_DESCRIPTOR, &[s]);
     assert_eq!((d.status, d.data[7]), (0, 16), "the second controller's device");
+}
+
+#[test]
+fn a_slot_serves_only_the_client_that_enabled_it() {
+    let mut f: Front<Cx> = Front::new();
+    assert!(f.add(rig(vec![Some(Device::full(64)), None, None]).0));
+    let s = call_host(&mut f, OP_ENABLE_SLOT, &[]).data[0];
+    assert_eq!(call_host(&mut f, OP_ADDRESS_DEVICE, &[s, 1]).status, 0);
+    for op in [OP_GET_DEVICE_DESCRIPTOR, OP_DISABLE_SLOT] {
+        assert_eq!(call_as(&mut f, CLIENT + 1, op, &[s]).status, E_PERM);
+    }
+    assert_eq!(call_host(&mut f, OP_GET_DEVICE_DESCRIPTOR, &[s]).status, 0);
 }

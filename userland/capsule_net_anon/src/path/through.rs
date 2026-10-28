@@ -21,11 +21,11 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use super::relay::Relay;
-use super::select::{choose, Taken};
+use super::select::{choose, choose_exit, Taken};
 use super::weights::{Position, Weights};
 
-/// A three hop path whose first hop is `guard`, with each draw's dice from
-/// `roll`.
+/// A three hop path whose first hop is `guard` and whose exit `takes` the
+/// stream it is for (`choose_exit`), with each draw's dice from `roll`.
 ///
 /// A circuit is created over a link, so its first hop can only be the relay
 /// at the far end of that link. A path drawn with a guard of its own sent
@@ -36,11 +36,12 @@ pub fn through(
     guard: &Relay,
     relays: &[Relay],
     weights: &Weights,
+    takes: impl Fn(&Relay) -> bool,
     mut roll: impl FnMut() -> Option<u64>,
 ) -> Option<Vec<Relay>> {
     let mut taken: Vec<Taken> = Vec::with_capacity(3);
     taken.push(took(guard));
-    let exit = choose(relays, weights, Position::Exit, &taken, roll()?)?.clone();
+    let exit = choose_exit(relays, weights, &taken, takes, roll()?)?.clone();
     taken.push(took(&exit));
     let middle = choose(relays, weights, Position::Middle, &taken, roll()?)?.clone();
     Some(alloc::vec![guard.clone(), middle, exit])

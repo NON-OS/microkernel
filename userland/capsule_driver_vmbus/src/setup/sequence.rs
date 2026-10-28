@@ -62,6 +62,8 @@ pub fn run(device_id: u64) -> Result<Driver, &'static str> {
         connect::disconnect(&hv, bus);
         return Err(give_back(e));
     }
-    offers.iter_mut().for_each(|o| crate::give::give(&hv, o));
+    offers.iter_mut().for_each(|o| {
+        crate::give::give(&hv, o);
+    });
     Ok(Driver { hv, bus, offers })
 }

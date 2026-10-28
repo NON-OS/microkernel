@@ -8,16 +8,28 @@ detail, counters) and the Settings Wi-Fi panel.
 
 - Absence and retry: on a machine without the device, no claim and exit
   `EXIT_ABSENT` (2), which the kernel names as `[EXIT] <service> status 2: no
-  device present, not started` (`src/process/exit/end_note.rs`). With the
+  device present, not started` (`src/process/exit/end_note.rs`). An Intel
+  Wi-Fi card this driver does not run is not absent: `[iwlwifi] pci
+  8086:<id> <what>: present, not run by this driver; given up`, no claim,
+  and status 6. With the
   device present but failing setup, at most seven claim and release rounds,
   then `EXIT_GAVE_UP` (6) and `[EXIT] <service> status 6: device present,
   bring-up failed and was given up`. The capsule holds no core while it waits.
-- Setup on an SO laptop: the MAC clock comes ready in setup's legacy APM poll
-  (it runs before the gen3 path takes the NIC; if it times out there, setup
-  gives up and the gen3 path never runs).
+- Setup's wake: the NIC is taken first (NIC_READY, else PREPARE until it is,
+  which takes back a card a previous OS left to the management engine), then
+  D0A is asked in the family's CSR layout and the MAC clock awaited, as
+  Linux's probe does. A clock that never comes up fails setup (the gen3 path
+  never runs); a NIC that never reports ready is left to the start, which
+  names it (step 3, detail 1).
+- The panel: on any failure the Settings Wi-Fi link row reads `Intel Wi-Fi:
+  stopped at N: <what> (0x<detail>)`, and the setup wizard's network line
+  the same; N and the detail are the status reply's step and detail word
+  (`docs/drivers/wifi/iwlwifi/status.md`).
 - Identity: `[iwlwifi] pci 0x000051f0` (or your platform's id; the card's
   revision and RF id are no longer printed), then
-  `[iwlwifi] firmware iwlwifi-so-a0-gf-a0-86.ucode` (or hr-b0-84).
+  `[iwlwifi] firmware iwlwifi-so-a0-gf-a0-86.ucode` (or hr-b0-84). The
+  per-card plans for the AX210, Meteor Lake, AX200 and AX201 paths are in
+  `docs/hardware/real-hardware-checklist.md` at the top of the tree.
 - DMA: about ten grants in the broker log, none refused (else
   `[iwlwifi] no DMA region of N bytes` and stage NoDma).
 - ALIVE: `[iwlwifi] firmware alive: status 0x0000cafe umac M.N sku 0x...`.
@@ -28,7 +40,9 @@ detail, counters) and the Settings Wi-Fi panel.
   detail 0x61 means it never came. With a PNVM file in the tree, the line
   `platform NVM section ... given` or `no platform NVM section for this SKU`
   says which happened.
-- Up: `[iwlwifi] up: 38 channels, tx ant 3, regulatory 0x....`, then
+- Up: `[iwlwifi] up: 38 channels, tx ant 3, regulatory 0x....` (the
+  domain the firmware reports for `MCC_SOURCE_GET_CURRENT`: 0x5a5a, "ZZ",
+  on a machine whose firmware knows no country yet), then
   `[iwlwifi] radio up; passive scanning`. A failure names the group and
   command that went unanswered in its detail word.
 - RF-kill: with the switch off, `the hardware RF-kill switch has the radio

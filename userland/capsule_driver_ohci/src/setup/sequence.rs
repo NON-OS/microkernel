@@ -23,6 +23,7 @@ use nonos_libc::{MK_DMA_MAP_COHERENT, MK_DMA_MAP_DMA32};
 use super::claim::Claim;
 use super::discover::Found;
 use super::pci;
+use crate::env::Mem;
 use crate::facts::pci::{register_grant, MMIO_BAR};
 use crate::hc::power::power;
 use crate::hc::start::start;
@@ -56,6 +57,7 @@ pub fn run(dev: Found) -> Result<Driver, &'static str> {
     let mapped = registers.mapped();
     let mut cx = Ctx::new(registers, Uptime, region);
     start(&mut cx.io, &cx.clock, &cx.mem, mapped)?;
+    cx.mem.fault().map_err(|_| "ohci: the schedule reached outside its region")?;
     cx.table.ports = power(&mut cx.io, &cx.clock);
     Ok(Driver { cx, found: dev, claim })
 }

@@ -16,6 +16,9 @@
 
 use super::say::say;
 
+#[path = "seal_slot.rs"]
+mod seal_slot;
+
 /*
  * Slot 0 of the kernel's seal: the app the family runs, and in a box the
  * box with it (seal_slot.rs), noted once, after MkForeignSpawn and before
@@ -27,7 +30,7 @@ pub(super) fn seal_app(app_id: &[u8; 32]) {
     if super::gtk_prep::helping() {
         return;
     }
-    let Some(note) = super::seal_slot::slot0(app_id, super::boxed::armed_hash().as_ref()) else {
+    let Some(note) = seal_slot::slot0(app_id, super::boxed::armed_hash().as_ref()) else {
         return;
     };
     if nonos_libc::mk_seal_note(nonos_libc::SEAL_APP_ID, &note) < 0 {

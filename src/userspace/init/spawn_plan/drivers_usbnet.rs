@@ -1,29 +1,22 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! The USB network class drivers, wherever a USB host is: whether an
 //! adapter or a tethered phone is plugged in is known only once each driver
 //! searches the ports, and each keeps searching while it has no device.
+
+mod ax88179;
+mod rtl8153;
 
 pub(super) fn spawn() {
     // Said only by a build that carries one of them.
     #[cfg(any(
         feature = "nonos-capsule-driver-cdc-ecm",
         feature = "nonos-capsule-driver-cdc-ncm",
-        feature = "nonos-capsule-driver-rndis"
+        feature = "nonos-capsule-driver-rndis",
+        feature = "nonos-capsule-driver-ax88179",
+        feature = "nonos-capsule-driver-rtl8153"
     ))]
     if !super::usb_host::usb_host() {
         crate::sys::boot_log::ok("DRIVER-USBNET", "no USB host, not spawned");
@@ -32,6 +25,8 @@ pub(super) fn spawn() {
     spawn_cdc_ecm();
     spawn_cdc_ncm();
     spawn_rndis();
+    ax88179::spawn();
+    rtl8153::spawn();
 }
 
 #[cfg(feature = "nonos-capsule-driver-cdc-ecm")]

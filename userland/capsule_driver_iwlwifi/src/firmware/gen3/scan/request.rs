@@ -20,9 +20,11 @@ use alloc::vec::Vec;
 
 use super::consts::*;
 
-/// Build the request with `uid` for `channels` (2.4 and 5 GHz numbers).
+/// Build the request with `uid` for `channels` (2.4 and 5 GHz numbers), at
+/// SCAN_REQ_UMAC `version` 17 or 15: the same bytes but each channel's band,
+/// in its flags (bits 30-31) from 17 on and in `v2.band` before.
 /// `None` for no channels or more than the request holds.
-pub fn request(channels: &[u8], uid: u32) -> Option<Vec<u8>> {
+pub fn request(channels: &[u8], uid: u32, version: u8) -> Option<Vec<u8>> {
     if channels.is_empty() || channels.len() > MAX_CHANNELS {
         return None;
     }
@@ -52,7 +54,11 @@ pub fn request(channels: &[u8], uid: u32) -> Option<Vec<u8>> {
     for (i, &ch) in channels.iter().enumerate() {
         let at = CHANNEL_CFG + i * 8;
         let band = if ch <= 14 { PHY_BAND_24 } else { PHY_BAND_5 };
-        c[at..at + 4].copy_from_slice(&(band << BAND_POS).to_le_bytes());
+        if version >= 17 {
+            c[at..at + 4].copy_from_slice(&(band << BAND_POS).to_le_bytes());
+        } else {
+            c[at + 5] = band as u8;
+        }
         c[at + 4] = ch;
         // Linux writes `v2.iter_count`, the same byte as `v5.iter_count`.
         c[at + 6] = 1;

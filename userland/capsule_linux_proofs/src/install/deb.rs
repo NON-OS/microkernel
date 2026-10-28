@@ -30,3 +30,6 @@ pub mod release;
 
 #[path = "../../../capsule_linux/src/linux/install/deb/find.rs"]
 pub mod find;
+
+#[path = "../../../capsule_linux/src/linux/install/deb/pinned.rs"]
+pub mod pinned;

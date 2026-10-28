@@ -24,6 +24,8 @@ Each list maps to a family that selects the bring-up steps for it (`userland/cap
 
 The capsule has the same link protocol and the same polled, interrupt-free design as e1000, with separate receive and transmit rings, and draws its station address the same way (`userland/capsule_driver_e1000e/src/init/station_address.rs:22-26`, `draw`). Its mask is 0xB8038 with Debug optional (`userland/capsule_driver_e1000e/Capsule.mk:26-30`, `CAPSULE_REQUIRED_CAPS`).
 
+Since 27 October 2026 it serves operation 6, `OP_RX_BATCH`, as e1000, igc and virtio-net do: the empty probe is answered with an empty batch, every waiting frame comes in one numbered reply of at most 24 frames and 64 KiB, errored slots are given back and left out, and a batch asked for again by the same number is sent again rather than lost (`userland/capsule_driver_e1000e/src/server/handlers/rx_batch.rs`, `handle`; `src/queue/rx_batch.rs`, `take_batch`). The register snapshot stays at operation 7 (`userland/capsule_driver_e1000e/src/protocol/ops.rs`, `OP_STATS`). `e1000e_proofs` reads its replies with `net.core`'s own `batch_served` and `batch_frames`, mounted unmodified (`src/tests/net_reader.rs`).
+
 ## Why it is not in 0.9.2
 
 - The build does not include its makefile, whose `CAPSULE_SLUG` is `driver-e1000e`; a comment in it says wiring it into the kernel and the stack is a separate step (`userland/capsule_driver_e1000e/Capsule.mk:8-11`, `CAPSULE_SLUG`). The Ethernet makefiles the build includes are those of virtio-net, e1000, RTL8139 and RTL8169 (`mk/20-build.mk:540-550`, `capsule_driver_e1000`).
@@ -32,7 +34,7 @@ The capsule has the same link protocol and the same polled, interrupt-free desig
 
 ## Tests
 
-`e1000e_proofs` runs the driver's files against host memory and a modelled register window. The flake check `proofs-e1000e_proofs` passed with 48 tests on this commit. No QEMU run and no hardware boot exist for it.
+`e1000e_proofs` runs the driver's files against host memory and a modelled register window. The flake check `proofs-e1000e_proofs` passed with 80 tests on 27 October 2026 (`cargo test` in `userland/e1000e_proofs`). No QEMU run and no hardware boot exist for it.
 
 ## See also
 

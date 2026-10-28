@@ -33,7 +33,12 @@ fn entry(digest: u8, address: [u8; 4]) -> Entry {
 fn micro(digest: u8) -> ([u8; 32], Microdesc) {
     (
         [digest; 32],
-        Microdesc { ntor_onion_key: [digest; 32], ed25519_identity: [digest; 32], exits_web: true },
+        Microdesc {
+            ntor_onion_key: [digest; 32],
+            ed25519_identity: [digest; 32],
+            exits_web: true,
+            ..Microdesc::default()
+        },
     )
 }
 
@@ -47,7 +52,7 @@ fn held(digests: &[u8]) -> Vec<([u8; 32], Microdesc)> {
 fn every_position_in_the_ordering_is_found() {
     let digests: Vec<u8> = (1..=40).collect();
     let entries: Vec<Entry> = digests.iter().map(|d| entry(*d, [10, 0, 0, *d])).collect();
-    let relays = join(&entries, &held(&digests));
+    let (relays, _) = join(&entries, &held(&digests));
     assert_eq!(relays.len(), 40, "first, last and everything between");
     for (i, relay) in relays.iter().enumerate() {
         assert_eq!(relay.ntor_onion_key, [digests[i]; 32], "no entry took another's key");
@@ -56,7 +61,7 @@ fn every_position_in_the_ordering_is_found() {
 #[test]
 fn the_output_follows_the_consensus_order() {
     let entries = alloc::vec![entry(9, [10, 0, 0, 9]), entry(3, [10, 0, 0, 3])];
-    let relays = join(&entries, &held(&[3, 9]));
+    let (relays, _) = join(&entries, &held(&[3, 9]));
     assert_eq!(relays.len(), 2);
     assert_eq!(relays[0].rsa_identity, [9u8; 20], "entry order, not digest order");
     assert_eq!(relays[1].rsa_identity, [3u8; 20]);

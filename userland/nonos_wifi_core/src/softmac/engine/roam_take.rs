@@ -40,7 +40,7 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
         let net = (&name[..len], bssid, akm.suite_type());
         let at = (h.band, if channel != 0 { channel } else { h.channel });
         let now = self.env.now_ms();
-        let mut next = Session::start(r.mac(), net, at, Keys { tk, supplicant }, now);
+        let mut next = Session::start(r, net, at, Keys { tk, supplicant }, now);
         if let Some(k) = kit.as_mut() {
             k.signal.reset();
             k.runs = report.selection.unwrap_or(k.runs);

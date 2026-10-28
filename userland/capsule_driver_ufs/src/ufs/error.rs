@@ -43,6 +43,8 @@ pub enum UfsError {
     BlockSize(u32),
     /// A logical unit of more blocks than its bytes can count.
     Capacity(u64),
+    /// A transfer that does not fit the data region it is bounced through.
+    Bounce,
 }
 
 /// DATA PROTECT and ILLEGAL REQUEST, the sense keys a caller can act on.

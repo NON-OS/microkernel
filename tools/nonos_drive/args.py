@@ -29,6 +29,8 @@ def parse(doc):
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--steps", type=Path)
     ap.add_argument("--qemu-arg", action="append", default=[])
+    ap.add_argument("--record", type=Path, metavar="OUT.mp4",
+                    help="film the drive, captions and all, to this video (record.py)")
     ap.add_argument("step", nargs="*")
     a = ap.parse_args()
     steps = list(a.step)

@@ -30,10 +30,10 @@
 //! `rx_frame`), the background sweep the serving loop pumps (`sweep`) and
 //! what it hears (`heard`), how a failed bring-up is reported (`outcome`),
 //! and joining a network (`station`, `txq`, `tx_cmd`, `tx_resp`, `rx_data`,
-//! `join`). All of it
-//! runs against the `Mmio`, `Region` and `Clock` traits, so the proofs drive
-//! the whole sequence against a modeled device; the capsule supplies broker
-//! grants and the uptime clock.
+//! `join`); the 22000 family's own boot (`gen2`). All of it runs against the
+//! `Mmio`, `Region` and `Clock` traits, so the proofs drive the whole
+//! sequence against a modeled device; the capsule supplies broker grants and
+//! the uptime clock.
 
 pub mod alive;
 pub mod boot;
@@ -44,6 +44,7 @@ pub mod csr;
 pub mod ctxt_info;
 pub mod dev;
 pub mod dram_map;
+pub mod gen2;
 pub mod heard;
 pub mod image;
 pub mod join;
@@ -66,6 +67,9 @@ pub mod select;
 pub mod start;
 pub mod station;
 pub mod sweep;
+pub mod tx_cmd;
+pub mod tx_resp;
+pub mod txq;
 pub mod ucode;
 pub mod up;
 
@@ -75,10 +79,6 @@ pub use dram_map::{classify, FwLayout};
 pub use image::find_iml;
 pub use prph_scratch::{DramImage, PrphScratch, PRPH_SCRATCH_SIZE};
 pub use rx_mpdu::extract_mpdu;
-
-pub mod tx_cmd;
-pub mod tx_resp;
-pub mod txq;
 
 // Proven by the proofs, not run by the capsule: the single-region firmware
 // staging `layout` replaced once a DMA grant was capped at 64 pages, the

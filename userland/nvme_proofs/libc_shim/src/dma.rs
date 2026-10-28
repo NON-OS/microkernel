@@ -34,14 +34,23 @@ pub struct DmaMapOut {
 
 thread_local! {
     static NEXT_GRANT: Cell<u64> = const { Cell::new(0x100) };
+    static SKEW: Cell<(u64, u64)> = const { Cell::new((0, 0)) };
+}
+
+/// Have every later grant come `short` bytes short of the length asked,
+/// and start `offset` bytes into its page, as a broker at fault might.
+pub fn skew_grants(short: u64, offset: u64) {
+    SKEW.with(|s| s.set((short, offset)));
 }
 
 pub fn mk_dma_map(_device: u64, _epoch: u64, length: u64, _flags: u32, out: &mut DmaMapOut) -> i64 {
-    let Ok(layout) = Layout::from_size_align(length.max(1) as usize, 4096) else {
+    let (short, offset) = SKEW.with(Cell::get);
+    let Ok(layout) = Layout::from_size_align((length + offset).max(1) as usize, 4096) else {
         return -22;
     };
     // SAFETY: the layout has a non-zero size.
-    let at = unsafe { alloc_zeroed(layout) } as u64;
+    let at = unsafe { alloc_zeroed(layout) } as u64 + offset;
+    let length = length.saturating_sub(short);
     let grant_id = NEXT_GRANT.with(|n| n.replace(n.get() + 1));
     *out = DmaMapOut { user_va: at, device_addr: at, length, grant_id };
     record("dma_map", grant_id);

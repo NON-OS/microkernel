@@ -13,7 +13,13 @@ The status operation returns a stage byte, and the panel shows its text (`userla
 | `EfuseFailed` | 6 | `The card's calibration did not read` |
 | `NoStationAddress` | 7 | `No random address could be drawn` |
 | `NoAirPath` | 8 | `card not supported yet; use Ethernet or USB Wi-Fi` |
+| `Restarting` | 9 | `The card's firmware stopped; restarting it` |
+| `PackageMissing` | 10 | `The firmware package is missing from the boot medium` |
+| `PackageMismatch` | 11 | `The firmware package does not match this build` |
+| `ChipInit` | 12 | `The card did not finish setting up its radio` |
 | any other | | `The driver reported an unknown stage` |
+
+After `NotClaimed` the RTL8821CE's status reply also carries the claim step the kernel refused (1 the claim, 2 the command register's Memory Space write, 3 the register map) and the error number, in words 9 and 10 of its body (`userland/capsule_driver_rtl8821ce/src/setup/claim_note.rs`). Settings and the setup wizard show them as `not claimed: claim refused, busy (-16)` (`userland/nonos_wifi_client/src/driver/stop.rs`, `StopWhy`).
 
 The RTL8821CE also serves `DeadMmio` once its card reads back all ones while serving; its radio is down from then on.
 

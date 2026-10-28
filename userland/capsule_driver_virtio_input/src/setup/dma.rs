@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The one DMA grant: the event queue's ring and its buffers, coherent, as
-//! the device reads the rings and writes the buffers while it runs.
+//! the device reads the rings and writes the buffers while it runs. A grant
+//! shorter than asked is given back and refused: the ring would run past it.
 
-use nonos_libc::{mk_dma_map, DmaMapOut, MK_DMA_MAP_COHERENT};
+use nonos_libc::{mk_dma_map, mk_dma_unmap, DmaMapOut, MK_DMA_MAP_COHERENT};
 
 use crate::constants::queue::RING_BYTES;
 
@@ -26,6 +27,10 @@ pub fn map(device_id: u64, epoch: u64) -> Result<DmaMapOut, &'static str> {
     let length = RING_BYTES as u64;
     if mk_dma_map(device_id, epoch, length, MK_DMA_MAP_COHERENT, &mut out) < 0 {
         return Err("dma map failed (event queue)");
+    }
+    if out.length < length {
+        let _ = mk_dma_unmap(out.grant_id);
+        return Err("dma grant short (event queue)");
     }
     Ok(out)
 }

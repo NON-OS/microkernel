@@ -13,6 +13,14 @@ and how it is checked in [Input: how it is checked](checks.md).
 | HID-over-I2C touchpad on an Intel LPSS or AMD I2C controller | `capsule_driver_i2c_hid` over `capsule_driver_i2c_pci` | `driver.i2c_hid0`, `driver.i2c_pci0` | [I2C-HID touchpads](i2c-hid.md) |
 | USB keyboard, mouse or tablet behind an xHCI controller | `capsule_driver_usb_hid` | `driver.usb_hid0` | [USB keyboards and mice](../usb/hid.md) |
 
+In a virtual machine the absolute pointer comes from `capsule_driver_vmmdev`
+(VirtualBox mouse integration) or `capsule_driver_vmmouse` (the VMware and
+QEMU vmmouse). Each switches the host into absolute mode last in its
+bring-up and has no way to switch it back if the capsule dies: the kernel
+runs no driver code at a capsule's exit, and neither device offers a reset
+the broker could use. The host's PS/2 pointer then stays still until the VM
+is reset or the driver starts again (each driver's README, Failure model).
+
 Each driver is its own [capsule](../../overview/glossary-boot-root-record.md#capsule) in ring 3,
 and none of them decides which window gets the input. Only the PS/2 driver holds
 grants from the [hardware broker](../../overview/glossary-hardware-broker.md#hardware-broker)

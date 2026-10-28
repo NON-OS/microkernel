@@ -117,7 +117,7 @@ Nine of the 28 directories are in the tree with their proofs but are not built i
 | Capsule | Device class | Service | Built in | What it does |
 |---|---|---|---|---|
 | `capsule_driver_ahci` | SATA AHCI, Intel RST | `driver.ahci0` | desktop-offline | SATA disks behind an AHCI controller or Intel RST in RAID mode |
-| `capsule_driver_ax88179` | USB Ethernet | `driver.ax88179_0` | no | ASIX AX88179 and AX88178A Gigabit adapters on `driver.xhci0` |
+| `capsule_driver_ax88179` | USB Ethernet | `driver.ax88179_0` | its own profile, held | ASIX AX88179 and AX88178A Gigabit adapters on the USB hosts; host-proven, not booted |
 | `capsule_driver_bga` | Display | none | no | Bochs Graphics Adapter mode set; parked, see [Display](display.md#bochs-bga) |
 | `capsule_driver_cdc_ecm` | USB Ethernet | `driver.cdc_ecm0` | no | USB CDC Ethernet Control Model functions |
 | `capsule_driver_cdc_ncm` | USB Ethernet | `driver.cdc_ncm0` | no | USB CDC Network Control Model functions |

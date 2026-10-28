@@ -2,6 +2,7 @@
 //! A command goes out as its header and two buffers, the ring wraps, and a
 //! UMAC register write uses its window.
 
+use super::regions::regions;
 use crate::gen3::cmdq::{CmdQueue, FIRST_TB};
 use crate::gen3::plan::*;
 use crate::gen3::prph::write_umac;
@@ -10,7 +11,6 @@ use crate::gen3::regs::*;
 use crate::gen3::scan::SCAN_REQ_V17_LEN;
 use crate::gen3_model::{Model, Polls};
 use crate::regs::Mmio;
-use super::regions::regions;
 
 #[test]
 fn a_command_goes_out_as_the_header_and_two_buffers_and_rings_the_doorbell() {
@@ -20,7 +20,11 @@ fn a_command_goes_out_as_the_header_and_two_buffers_and_rings_the_doorbell() {
     assert!(q.init(ctrl.as_ref()));
     let seq = q.send(&model, ctrl.as_ref(), 0x0C, 0x02, 0, &[0; 4]).unwrap();
     assert_eq!(seq, 0);
-    assert_eq!(model.s.borrow().commands[0].payload, vec![0; 4], "decoded from the ring by the device");
+    assert_eq!(
+        model.s.borrow().commands[0].payload,
+        vec![0; 4],
+        "decoded from the ring by the device"
+    );
     let mut t = [0u8; 256];
     ctrl.read(CMD_TFDS, &mut t);
     assert_eq!(u16::from_le_bytes([t[0], t[1]]), 1, "twelve bytes: one buffer");
@@ -56,7 +60,7 @@ fn a_umac_register_write_uses_the_24_bit_window_and_releases_the_mac() {
     let (ctrl, rbs) = regions();
     let model = Model::new(ctrl, rbs);
     let mut c = Polls { per_wait: 4, delays_us: 0 };
-    assert!(write_umac(&model, &mut c, UREG_CPU_INIT_RUN, 1));
+    assert!(write_umac(&model, &mut c, crate::gen3::csr::CsrLayout::V1, UREG_CPU_INIT_RUN, 1));
     assert_eq!(model.reg(HBUS_TARG_PRPH_WADDR), 0x03D0_5C44, "address and byte enables");
     assert_eq!(model.read32(CSR_GP_CNTRL) & GP_MAC_ACCESS_REQ, 0, "access released");
 }

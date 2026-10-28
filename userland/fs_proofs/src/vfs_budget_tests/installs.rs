@@ -17,14 +17,14 @@
 //! Bytes placed by install, and the kernel's own staged files, against the
 //! clients' budget (`capsule_vfs/src/store/fdtable/budget.rs`).
 
-use super::{fill, A, KERNEL, MIB};
+use super::{file, fill, A, KERNEL, MIB};
 use crate::vfs_store::{Store, StoreError, DATA_BYTES_MAX};
 
 #[test]
 fn installing_bytes_is_held_to_the_budget_too() {
     let mut s = Store::new();
     for i in 0..2 {
-        assert_eq!(fill(&mut s, &format!("/tmp/i{i}"), A, 8 * MIB), 64 * MIB);
+        assert_eq!(put(&mut s, &format!("/tmp/i{i}"), 64 * MIB), 64 * MIB);
     }
     let big = vec![7u8; 40 * MIB];
     assert_eq!(s.install_bytes("/pkg/x", 0, &big, A), Err(StoreError::Full));
@@ -39,4 +39,16 @@ fn the_kernels_staged_files_leave_clients_the_whole_budget() {
     let got: usize = (0..3).map(|i| fill(&mut s, &format!("/tmp/c{i}"), A, 8 * MIB)).sum();
     assert!(got >= 2 * 64 * MIB, "clients got {got} bytes beside the staged files");
     assert!(s.held_except(None) <= DATA_BYTES_MAX);
+}
+
+/// Write `bytes` to a new file of A's in 8 MiB pieces, stopping at a refusal.
+pub(super) fn put(s: &mut Store, path: &str, bytes: usize) -> usize {
+    let fd = file(s, path, A);
+    let piece = vec![0x5Au8; 8 * MIB];
+    let mut written = 0;
+    while written < bytes {
+        let Ok(n) = s.write(fd, A, &piece[..(bytes - written).min(8 * MIB)]) else { break };
+        written += n as usize;
+    }
+    written
 }

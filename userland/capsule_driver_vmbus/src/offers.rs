@@ -30,21 +30,18 @@ impl Offers {
         Self { slots: [None; MAX_CHANNELS], dropped: 0 }
     }
 
-    /// Kept, replacing an offer with the same relid. False when full.
-    pub fn insert(&mut self, o: Offer) -> bool {
+    /// Kept, replacing an offer with the same relid. None when full.
+    pub fn insert(&mut self, o: Offer) -> Option<&mut Offer> {
         let at = self
             .slots
             .iter()
             .position(|s| s.is_some_and(|s| s.relid == o.relid))
             .or_else(|| self.slots.iter().position(Option::is_none));
         match at {
-            Some(i) => {
-                self.slots[i] = Some(o);
-                true
-            }
+            Some(i) => Some(self.slots[i].insert(o)),
             None => {
                 self.dropped = self.dropped.saturating_add(1);
-                false
+                None
             }
         }
     }

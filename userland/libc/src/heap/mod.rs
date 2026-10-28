@@ -25,6 +25,7 @@ pub use stats::{reset_peak, stats, Stats};
 
 /// What the crate's root names the heap's calls by.
 pub mod exports {
+    pub use super::init::INITIAL_HEAP_SIZE as HEAP_SIZE;
     pub use super::init::{init as heap_init, init_sized as heap_init_sized, HeapError};
     pub use super::stats::{
         reset_peak as heap_reset_peak, stats as heap_stats, Stats as HeapStats,

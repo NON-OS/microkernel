@@ -4,9 +4,13 @@
 //! shaping of a report for the shared HID poll.
 
 pub mod acpi;
+#[path = "../../capsule_driver_spi_hid/src/retry.rs"]
+pub mod retry;
 #[path = "../../capsule_driver_spi_hid/src/shape.rs"]
 pub mod shape;
 
+#[cfg(test)]
+mod bound_tests;
 #[cfg(test)]
 mod frame_tests;
 #[cfg(test)]

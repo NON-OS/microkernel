@@ -32,8 +32,9 @@ use super::{install_source_modules, install_source_records, install_source_windo
 
 pub use super::install_source_kinds::*;
 
-/* The modules an installer is given. The TCG log is not among them: it
- * records this machine's firmware, which an installed disk measures afresh. */
+/* The modules an installer is given, beside the firmware package's files.
+ * The TCG log is not among them: it records this machine's firmware, which
+ * an installed disk measures afresh. */
 const SERVED: [u32; 5] = [
     KIND_LOADER_IMAGE,
     KIND_KERNEL_IMAGE,
@@ -49,7 +50,7 @@ pub fn sys_install_source(kind: u64, offset: u64, out_ptr: u64, out_len: u64) ->
     if let Some(served) = install_source_records::record(kind, offset, out_ptr, out_len) {
         return served;
     }
-    if !SERVED.iter().any(|&k| u64::from(k) == kind) {
+    if !SERVED.iter().any(|&k| u64::from(k) == kind) && !is_firmware(kind) {
         return ERRNO_NOENT;
     }
     let Some(m) = install_source_modules::find(kind) else {

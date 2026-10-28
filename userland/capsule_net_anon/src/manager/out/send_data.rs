@@ -17,7 +17,7 @@
 //! Handing bytes to an open stream.
 
 use crate::cell::RELAY_DATA;
-use crate::stream::{pieces, StreamStage};
+use crate::stream::{keep, pieces, StreamStage};
 
 use super::super::state::Manager;
 use super::send_relay::{send_relay, SendError};
@@ -50,6 +50,10 @@ pub fn send_data(state: &mut Manager, id: u16, data: &[u8]) -> Result<usize, Sen
     }
     if sent == 0 && !data.is_empty() {
         return Err(SendError::WouldBlock);
+    }
+    /* Bytes sent before CONNECTED go again behind a second open (again.rs). */
+    if let Some(stream) = state.streams.iter_mut().find(|s| s.id == id) {
+        keep(stream, &data[..sent]);
     }
     Ok(sent)
 }

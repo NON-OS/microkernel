@@ -1,18 +1,4 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// NONOS Operating System (AGPL-3.0-or-later)
 
 //! What a soft-MAC chip driver gives the shared station: a radio that tunes,
 //! sends and receives whole 802.11 frames, and an environment with a clock
@@ -22,13 +8,16 @@
 
 use super::assoc::Association;
 pub use super::env::Env;
+pub use crate::key::{ChipKey, Crypto};
 use crate::regdom::Band;
 use crate::rsn::Ciphers;
 
 /// One received frame: its length in the caller's buffer (FCS removed), the
 /// signal it arrived at, and whether the chip decrypted it, leaving the CCMP
 /// header and the MIC as received. Where the station holds the key it checks
-/// that MIC itself, so the chip's word alone protects nothing it can check.
+/// that MIC itself; only a station that keyed the chip (`Crypto`) takes its
+/// word. A chip that strips both writes the header back from the packet
+/// number it reports, and eight octets where the MIC was.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct RxInfo {
     pub len: usize,
@@ -64,6 +53,19 @@ pub trait Radio {
     /// say is held to CCMP-128, so a join with it keeps its old ciphers.
     fn ciphers(&self) -> Ciphers {
         Ciphers::CCMP_128_ONLY
+    }
+    /// Who runs CCMP-128: the station, unless the radio says the chip does.
+    fn crypto(&self) -> Crypto {
+        Crypto::Software
+    }
+    /// Put `key` into the chip's key table, keeping no copy; false if refused.
+    fn set_key(&mut self, _key: &ChipKey<'_>) -> bool {
+        false
+    }
+    /// Queue a frame for the chip to encrypt under the pairwise key it holds
+    /// (Protected set, no MIC); false, and nothing sent, if it holds none.
+    fn send_keyed(&mut self, _mpdu: &[u8]) -> bool {
+        false
     }
     /// Chip-specific words the status op carries for a person diagnosing a
     /// bring-up on a machine with no serial console.

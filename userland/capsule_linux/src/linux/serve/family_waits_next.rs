@@ -22,7 +22,7 @@ use super::waits_fds::watched;
 use crate::linux::guest::Kind;
 use crate::linux::net::outside;
 
-/// How often a wait on a stream net.sockets or net.anon holds, or on the console, is
+/// How often a wait on a stream routed/ or net.anon holds, or on the console, is
 /// looked at again: what the terminal typed and room in the launcher's
 /// inbox arrive with no answer to mark them. A family socket changes only
 /// in an answer, and a timer is looked at when it fires.

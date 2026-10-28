@@ -24,5 +24,5 @@ mod mem;
 mod regs;
 
 pub use clock::{hold, until, Clock};
-pub use mem::Mem;
+pub use mem::{Mem, OutOfRegion};
 pub use regs::Regs;

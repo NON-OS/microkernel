@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The radio's join state, and the link net_core sees with no port open.
+use crate::firmware::gen3::csr::CsrLayout;
 use crate::firmware::gen3::join::inbox::{Inbox, Queues};
 use crate::firmware::gen3::join::run::Joined;
-use crate::firmware::gen3::txq::{TxQueue, TXQ_STRIDE};
 use nonos_wifi_core::address::Addresses;
 use nonos_wifi_core::link_history::LinkHistory;
 use nonos_wifi_core::netif::LinkPort;
@@ -28,6 +28,7 @@ pub(super) const SSID_MAX: usize = 32;
 /// The radio's join state.
 pub struct Join {
     pub(super) tx: Option<&'static Grant>,
+    pub(super) csr: CsrLayout, // the layout the transmit region was mapped in
     pub(super) q: Queues,
     pub(super) inbox: Inbox,
     pub(super) joined: Option<Joined>,
@@ -44,7 +45,8 @@ impl Join {
     pub fn new() -> Self {
         Self {
             tx: None,
-            q: Queues { mgmt: TxQueue::new(0), data: TxQueue::new(TXQ_STRIDE) },
+            csr: CsrLayout::V1,
+            q: Queues::fresh(CsrLayout::V1),
             inbox: Inbox::new(),
             joined: None,
             ssid: [0; SSID_MAX],

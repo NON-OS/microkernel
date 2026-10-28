@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Work a capsule asks the Linux personality to do, performed by init: an
 //! install once the market vouches for it, or a run of what was installed.
 
@@ -27,12 +26,15 @@ mod queue;
 mod run;
 mod run_waiting;
 mod service;
+mod stage;
 mod status;
 mod vouched;
 mod why;
 
-pub(crate) use queue::{has_pending, request_install, request_quiet_run, request_run, request_uninstall};
+pub(crate) use queue::{
+    has_pending, request_install, request_quiet_run, request_run, request_uninstall,
+};
 pub(crate) use run::request_net_run;
 pub(crate) use run_waiting::run_waiting;
 pub(crate) use service::service;
-pub(crate) use status::{get as install_stage, Stage};
+pub(crate) use status::{ended as install_ended, get as install_stage, Stage};

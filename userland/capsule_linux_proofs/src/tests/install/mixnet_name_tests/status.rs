@@ -14,18 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The statuses net.sockets sends, read back by the capsule.
+//! The statuses net.sockets sends for a connect by name. A guest's stream
+//! no longer reaches net.sockets at all: it goes by name through net.socks5
+//! or net.anon (the capsule's net/routed/), so these hold the server alone.
 
 use super::helpers::connect_by_host;
-use crate::net_ops::{NET_E_NAME_REFUSED, NET_E_NO_TRANSPORT};
-use crate::protocol::{E_BAD_ADDR, E_NAME_REFUSED, E_NO_DNS, E_NO_TRANSPORT};
+use crate::protocol::{E_BAD_ADDR, E_NAME_REFUSED, E_NO_DNS};
 use crate::server::handlers::host_target::lookup_status;
 
 #[test]
-fn the_capsule_reads_the_statuses_the_server_sends() {
-    /* The guest is told ENETUNREACH for both: no route out, nothing sent. */
-    assert_eq!(NET_E_NAME_REFUSED, E_NAME_REFUSED);
-    assert_eq!(NET_E_NO_TRANSPORT, E_NO_TRANSPORT);
+fn a_refused_name_is_not_a_name_that_failed_to_resolve() {
     assert_ne!(E_NAME_REFUSED, E_BAD_ADDR, "a refusal is not a name that failed to resolve");
 }
 

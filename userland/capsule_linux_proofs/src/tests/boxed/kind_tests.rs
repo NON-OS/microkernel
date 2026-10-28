@@ -46,6 +46,7 @@ fn every_grant_a_refusal_names_has_its_kind() {
         include_str!("../../../../capsule_linux/src/linux/net/named/connect.rs"),
         include_str!("../../../../capsule_linux/src/linux/net/listen.rs"),
         include_str!("../../../../capsule_linux/src/linux/net/connect/out.rs"),
+        include_str!("../../../../capsule_linux/src/linux/net/routed/ask.rs"),
         include_str!("../../../../capsule_linux/src/linux/net/bind.rs"),
         include_str!("../../../../capsule_linux/src/linux/net/socket.rs"),
         include_str!("../../../../capsule_linux/src/linux/call/spawn/exec.rs"),

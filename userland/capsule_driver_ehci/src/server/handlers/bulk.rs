@@ -21,8 +21,9 @@ use crate::env::{Clock, Mem, Regs};
 use crate::sched::layout::bulk_ring;
 use crate::server::context::Ctx;
 use crate::server::reply::{bytes, status};
-use crate::wire::{Request, E_INVAL};
-use crate::xfer::bulk::{configure as set_qh, BulkEp};
+use crate::wire::{Request, E_INVAL, E_IO};
+use crate::xfer::bulk::BulkEp;
+use crate::xfer::bulk_run::configure as set_qh;
 
 /// `slot, ep_in, ep_out, bursts, mps_in_le16, mps_out_le16`; the bursts
 /// byte is SuperSpeed's and means nothing at full speed.
@@ -48,7 +49,8 @@ pub fn configure<R: Regs, C: Clock, M: Mem>(
     let (i, o) = (ep(ep_in, a, b, true), ep(ep_out, c, d, false));
     (dev.bulk, dev.claimed) = (Some((i, o)), true);
     let op = cx.table.op;
-    set_qh((&cx.mem, &mut cx.io, &cx.clock), op, &i);
-    set_qh((&cx.mem, &mut cx.io, &cx.clock), op, &o);
+    if set_qh((&cx.mem, &mut cx.io, &cx.clock), op, (&i, &o)).is_err() {
+        return status(tx, req, E_IO);
+    }
     bytes(tx, req, &[2 * (ep_in & 0xF) + 1, 2 * (ep_out & 0xF), 0, 0])
 }

@@ -33,3 +33,6 @@ pub mod firmware;
 pub mod irq_plan;
 #[path = "../../capsule_driver_iwlwifi/src/pci_match.rs"]
 pub mod pci_match;
+// What discovery leads to: run, present but not run (gave up), or absent.
+#[path = "../../capsule_driver_iwlwifi/src/verdict.rs"]
+pub mod verdict;

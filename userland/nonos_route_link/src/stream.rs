@@ -127,7 +127,7 @@ pub(crate) fn for_host(route: Route, host: &str) -> (Route, Proxy) {
  * wait (`opening.rs`). Direct is the caller's own socket to make, and a
  * route that is down is refused with its reason, as `connect` refuses it.
  */
-pub struct RouteOpening(Opening<Ipc>);
+pub struct RouteOpening(pub(crate) Opening<Ipc>);
 
 impl RouteOpening {
     /* No call made through it waits longer than `slice_ms`. */

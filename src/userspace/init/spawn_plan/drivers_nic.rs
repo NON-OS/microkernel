@@ -27,6 +27,10 @@ pub(super) fn spawn() {
 #[cfg(feature = "nonos-capsule-driver-e1000")]
 fn spawn_e1000() {
     use crate::hardware::e1000_capsule as c;
+    use crate::hardware::inventory::HardwareFamily;
+    if !super::device_present::present("DRIVER-E1000", HardwareFamily::NetworkE1000) {
+        return;
+    }
     super::boot::capsule(
         "DRIVER-E1000",
         "driver_e1000",
@@ -40,6 +44,10 @@ fn spawn_e1000() {}
 #[cfg(feature = "nonos-capsule-driver-igc")]
 fn spawn_igc() {
     use crate::hardware::igc_capsule as c;
+    use crate::hardware::inventory::HardwareFamily;
+    if !super::device_present::present("DRIVER-IGC", HardwareFamily::NetworkIgc) {
+        return;
+    }
     super::boot::capsule("DRIVER-IGC", "driver_igc", c::spawn_driver_igc_capsule, c::shared_state);
 }
 #[cfg(not(feature = "nonos-capsule-driver-igc"))]
