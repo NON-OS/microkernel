@@ -21,8 +21,10 @@ pub use super::pkg::Pkg;
 use alloc::string::String;
 use alloc::vec::Vec;
 
+#[path = "index_installed.rs"]
+mod installed;
 /// Each soname, and each name or provided name, to the package that has it.
-/// The lookups are in index_find.rs.
+/// The lookups are in index_find.rs, and index_installed.rs.
 #[derive(Default)]
 pub struct Index {
     pub(super) pkgs: Vec<Pkg>,
