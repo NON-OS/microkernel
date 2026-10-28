@@ -20,8 +20,8 @@ use alloc::vec::Vec;
 
 use nonos_libc::{mk_yield, Deadline};
 
-use super::call::call;
-use super::ops::{OP_CLOSE, OP_RECV, OP_SEND};
+use super::sockets::call::call;
+use super::sockets::ops::{OP_CLOSE, OP_RECV, OP_SEND};
 
 /// One transfer; the service caps a reply, so a body arrives in pieces.
 const CHUNK: usize = 32 << 10;

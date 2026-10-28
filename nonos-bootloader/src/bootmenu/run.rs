@@ -26,7 +26,7 @@ use super::state::{Dirty, Frame};
 use crate::display::gop::is_initialized;
 use crate::hardware::HardwareInfo;
 use crate::menu::MenuAction;
-use crate::security::SecurityContext;
+use crate::{loader::file::boot_device, security::SecurityContext};
 
 const TIMEOUT_S: u32 = 10;
 const TICK_US: usize = 50_000;
@@ -37,7 +37,7 @@ pub fn run(st: &mut SystemTable<Boot>, sec: &SecurityContext, _hw: &HardwareInfo
         return MenuAction::Timeout;
     }
     let default = default_index();
-    let mut f = Frame::new(default, TIMEOUT_S, sec);
+    let mut f = Frame::new(default, TIMEOUT_S, sec, boot_device(st.boot_services()));
     render(&f, Dirty::All);
     intro(st.boot_services());
     f.intro = false;

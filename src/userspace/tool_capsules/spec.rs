@@ -67,15 +67,14 @@ impl ToolCapsule {
             requested_caps: self.caps,
             debug_tag: b"",
         };
-        let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;
-        if !argv.is_empty() {
-            let vec: alloc::vec::Vec<alloc::string::String> = argv
-                .split(|&b| b == 0)
-                .filter(|s| !s.is_empty())
-                .map(|s| alloc::string::String::from_utf8_lossy(s).into_owned())
-                .collect();
-            let _ = crate::process::set_argv(pid, vec);
+        let vec: alloc::vec::Vec<alloc::string::String> = argv
+            .split(|&b| b == 0)
+            .filter(|s| !s.is_empty())
+            .map(|s| alloc::string::String::from_utf8_lossy(s).into_owned())
+            .collect();
+        match vec.is_empty() {
+            true => capsule_spawn::spawn_verified(&spec, &trust_anchor, None),
+            false => capsule_spawn::spawn_verified_with_argv(&spec, &trust_anchor, None, vec),
         }
-        Ok(pid)
     }
 }
