@@ -28,10 +28,12 @@
  */
 
 mod home_room;
+mod home_size;
 pub mod quota;
 mod room;
 mod used;
 
+pub use home_size::choose as choose_home;
 pub use quota::Kept;
 pub use room::{of, BSIZE};
 pub use used::{room_for, within};

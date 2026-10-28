@@ -7133,6 +7133,7 @@
   ],
   "include": [
    ".cargo",
+   "nonos-data/market/catalogue/linux.monero.json",
    "nonos-data/market/index.bin",
    "nonos-data/market/logos",
    "src/security/market_capsule/client/linux_policy_wire.rs",
@@ -7171,6 +7172,7 @@
    "userland/capsule_app_store/src/store/ui/gate_fit.rs",
    "userland/capsule_app_store/src/store/verdict.rs",
    "userland/capsule_linux/src/linux/app/home_key.rs",
+   "userland/capsule_linux/src/linux/app/home_listings.rs",
    "userland/capsule_linux/src/linux/install/why.rs",
    "userland/capsule_linux/src/linux/install/why_model.rs",
    "userland/capsule_linux/src/linux/install/why_package.rs",

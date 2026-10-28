@@ -16,7 +16,7 @@
 
 /* Which changes the quota takes, to the store and to the family's copies. */
 
-use super::super::super::declared::{HOME, HOMES, HOME_NAMES, PRIVATE, PRIVATE_NAMES};
+use super::super::super::declared::{HOMES, HOME_NAMES, PRIVATE, PRIVATE_NAMES};
 use super::kept::Kept;
 use crate::linux::abi::errno;
 
@@ -32,11 +32,12 @@ pub fn allows(now: Kept, then: Kept) -> Result<(), i64> {
 }
 
 /*
- * The same for the family's home, `all` the bytes every home keeps before
- * and after: past its own ceiling, or past what all homes may keep.
+ * The same for the family's home, of `home` bytes (space/home_size.rs),
+ * `all` the bytes every home keeps before and after: past its own ceiling,
+ * or past what all homes may keep.
  */
-pub fn home_allows(now: Kept, then: Kept, all: (u64, u64)) -> Result<(), i64> {
-    held_to(now, then, HOME, HOME_NAMES)?;
+pub fn home_allows(now: Kept, then: Kept, all: (u64, u64), home: u64) -> Result<(), i64> {
+    held_to(now, then, home, HOME_NAMES)?;
     held_to(Kept { bytes: all.0, names: 0 }, Kept { bytes: all.1, names: 0 }, HOMES, 0)
 }
 
