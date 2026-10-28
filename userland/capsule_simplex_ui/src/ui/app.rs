@@ -22,7 +22,7 @@ use super::event::on_event;
 use super::manifest::manifest;
 use super::paint::paint;
 use super::view::View;
-use crate::link::open::open;
+use crate::serve::open;
 use crate::link::Transport;
 use crate::model::state::Model;
 

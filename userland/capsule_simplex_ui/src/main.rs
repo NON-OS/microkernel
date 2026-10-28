@@ -22,6 +22,7 @@ extern crate alloc;
 mod link;
 mod model;
 mod proto;
+mod serve;
 mod ui;
 
 use nonos_app_skeleton::run;

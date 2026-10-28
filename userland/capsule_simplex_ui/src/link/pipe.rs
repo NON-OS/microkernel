@@ -14,19 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which transport the window runs on.
+//! What carries the core's bytes: one SERVE_ONE connection in the window,
+//! a scripted one in the proofs.
 
-use alloc::boxed::Box;
+use alloc::vec::Vec;
 
-use super::core_channel::CoreChannel;
-use super::transcript::{Transcript, SESSION};
-use super::Transport;
-
-/// The channel to the core when it is up, else the recorded session.
-pub fn open() -> Box<dyn Transport> {
-    let core = CoreChannel;
-    if core.up() {
-        return Box::new(core);
-    }
-    Box::new(Transcript::new(SESSION))
+/// One connection to the core's port, as SERVE_ONE serves it.
+pub trait Pipe {
+    /// Bytes that came since the last read; None once the connection is gone.
+    fn read(&mut self) -> Option<Vec<u8>>;
+    /// False when the bytes could not be sent.
+    fn write(&mut self, bytes: &[u8]) -> bool;
 }
