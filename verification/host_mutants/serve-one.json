@@ -54,5 +54,48 @@
   "new": "0xbb, 0xdb, 0x76, 0x6f,",
   "test": "serves_key",
   "crate": "userland/market_proofs"
+ },
+ {
+  "name": "serve-launch-any-listing",
+  "file": "src/syscall/microkernel/app_launch_rule.rs",
+  "old": "owns(capsule) && own == listing",
+  "new": "owns(capsule)",
+  "test": "ipc_held_tests::serve_launch::a_served_capsule_launches_its_own_listing_alone",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "serve-launch-never-ended",
+  "file": "src/userspace/capsule_linux/served_run_rule.rs",
+  "old": "        return s.run.take();",
+  "new": "        return None;",
+  "test": "served_run::tests::the_run_ends_with_its_launcher",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "serve-launch-queued-start-outlives",
+  "file": "src/userspace/capsule_linux/served_run_rule.rs",
+  "old": "        s.launcher = None;\n",
+  "new": "",
+  "test": "served_run::tests::a_start_still_queued_when_the_launcher_left_ends_as_it_starts",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "serve-launch-listing-drifts",
+  "file": "src/services/registry/serves.rs",
+  "old": "(\"app.simplex\", \"linux.kali.nonos-simplex-chat\"),",
+  "new": "(\"app.simplex\", \"linux.kali.simplex-chat\"),",
+  "test": "serves_key",
+  "crate": "userland/market_proofs"
+ },
+ {
+  "name": "serve-launch-audit-any-capsule",
+  "file": "scripts/cap_audit_launch.py",
+  "old": "getattr(gates.get(t), \"owners\", frozenset()) & own}",
+  "new": "getattr(gates.get(t), \"owners\", frozenset())}",
+  "cmd": [
+   "python3",
+   "scripts/cap_audit.py",
+   "--selftest"
+  ]
  }
 ]

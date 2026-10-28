@@ -18,7 +18,8 @@
 //! src/services/registry/serves.rs), recomputed from the catalogue listing it
 //! stands for by the abi's own listing_id, and held to the id that listing's
 //! guest policy carries, which the personality binds at start. A key edited
-//! by hand, or a listing republished under another key, fails here.
+//! by hand, or a listing republished under another key, fails here; so does
+//! a launch id (LISTINGS) that is not the one the key is made from.
 
 use super::hosts::Host;
 use nonos_marketplace_abi::{listing_id, AT_LISTING};
@@ -42,7 +43,9 @@ fn hex(s: &str) -> Vec<u8> {
 #[test]
 fn the_simplex_window_is_paired_with_its_listings_key() {
     let publisher: [u8; 32] = hex(field("publisher_pubkey")).try_into().unwrap();
-    let key = listing_id(&Host, &publisher, field("listing_id"));
+    let (_, launched) = serves::LISTINGS.iter().find(|(c, _)| *c == "app.simplex").unwrap();
+    assert_eq!(*launched, field("listing_id"), "the window launches another listing");
+    let key = listing_id(&Host, &publisher, launched);
     let (_, served) = serves::SERVES.iter().find(|(c, _)| *c == "app.simplex").unwrap();
     assert_eq!(*served, key, "SERVES' key is not linux.kali.nonos-simplex-chat's");
     let policy = hex(field("guest_policy"));
