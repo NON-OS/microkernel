@@ -14,16 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! P.2: version 2 round trips and sits where the plan puts it, and moves no
-//! version 1 byte: every committed policy encodes to itself, and so does it
-//! with a field its SERVE_ONE bit does not grant.
+//! P.2: version 2 round trips and sits where the plan puts it, and a field
+//! its SERVE_ONE bit does not grant moves no version 1 byte. Every committed
+//! policy keeping its hash is held in capsule_linux_proofs, which reads the
+//! market catalogue without making it an input of every capsule.
 
-use super::sample::served;
-use crate::{decode, policy_hash, LinuxAppPolicy, ServeOne, LEN};
-
-/// The market catalogue the operator publishes, each release's guest_policy.
-const CATALOGUE: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../nonos-data/market/catalogue");
-const KEY: &str = "\"guest_policy\": \"";
+use super::sample::{policy, served};
+use crate::{decode, LinuxAppPolicy};
 
 #[test]
 fn a_served_policy_round_trips_as_version_2() {
@@ -38,21 +35,7 @@ fn a_served_policy_round_trips_as_version_2() {
 }
 
 #[test]
-fn every_committed_policy_keeps_its_bytes_and_hash() {
-    let serve = ServeOne::new(5225, b"app.simplex");
-    let mut seen = 0;
-    for file in std::fs::read_dir(CATALOGUE).unwrap() {
-        let text = std::fs::read_to_string(file.unwrap().path()).unwrap();
-        for hex in text.split(KEY).skip(1) {
-            let b: [u8; LEN] =
-                core::array::from_fn(|i| u8::from_str_radix(&hex[2 * i..2 * i + 2], 16).unwrap());
-            let p = decode(&b).unwrap();
-            assert_eq!((p.encode(), p.serve_one()), (b, None));
-            let unserved = LinuxAppPolicy { serve, ..p };
-            assert_eq!(unserved.serve_one(), None);
-            assert_eq!(policy_hash(&unserved.encode()), policy_hash(&b));
-            seen += 1;
-        }
-    }
-    assert_ne!(seen, 0, "no guest_policy under {CATALOGUE}");
+fn a_field_the_bit_does_not_grant_is_not_written() {
+    let unserved = LinuxAppPolicy { serve: served().serve, ..policy() };
+    assert_eq!(unserved.encode(), policy().encode());
 }
