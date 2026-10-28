@@ -17,6 +17,8 @@ target/
 !userland/*_proofs/vectors/*.bin
 # Register tables generated from rtw89 under BSD-3-Clause (tables/README.md).
 !userland/capsule_driver_rtl8852be/tables/*.bin
+# The RTL8821C Bluetooth patch, linux-firmware's, pinned (firmware/README.md).
+!userland/capsule_driver_bt_usb/firmware/*.bin
 # The pinned wallet vectors Test 5 proves on the machine.
 !userland/capsule_shield_vectors/vectors/*/proof-format7.bin
 
