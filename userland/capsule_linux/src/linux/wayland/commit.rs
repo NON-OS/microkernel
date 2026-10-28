@@ -36,6 +36,7 @@ pub mod pace;
 /// answered, so its client draws on, and never takes the window's place.
 pub fn commit(guest: &mut Guest, id: u32) {
     super::popup::gone::unheld_commit(guest, id);
+    super::popup::dialog_lay::commit(guest, id);
     let changed = sub_commit(guest, id) == Some(true);
     parent_commit(&mut guest.scene.subs, id);
     let Some((buffer, window)) = surface_buffer(guest, id) else {
@@ -57,7 +58,9 @@ pub fn commit(guest: &mut Guest, id: u32) {
 
 fn surface_buffer(guest: &Guest, id: u32) -> Option<(u32, bool)> {
     let s = guest.scene.surfaces.iter().find(|s| s.id == id)?;
-    Some((s.pending?, s.toplevel.is_some()))
+    // A dialog laid on the window is a layer of it, not the window.
+    let laid = guest.scene.popups.list.iter().any(|p| Some(p.id) == s.toplevel);
+    Some((s.pending?, s.toplevel.is_some() && !laid))
 }
 
 fn take_frames(guest: &mut Guest, id: u32) -> Vec<u32> {
