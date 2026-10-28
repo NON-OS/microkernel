@@ -121,9 +121,11 @@ def keys(host_tools):
     if not (TREE / ".keys/signing_key_v1.bin").is_file():
         print("nonos-dev-image: making throwaway keys in target/dev/tree, as CI does")
         sh("bash", "nonos-ci/setup-signing-key.sh")
-    # Every build, not only the first: the script makes only the keys that are
-    # missing, and a capsule added to the tree since the copy's keys were made
-    # needs its own, or the seal stops at it.
+    # Every build, not only the first: a capsule added to the tree since the
+    # copy's keys were made needs its own, or the seal stops at it. The script
+    # makes the publishers' keys afresh each time and keeps the device policy
+    # key once made, so an image sealed again opens the data volume an earlier
+    # one made, as a release does.
     sh("nix", "develop", "--command", "bash", "nonos-ci/scratch-trust-bootstrap.sh",
        env={"NONOS_HOST_TOOLS": host_tools, "NONOS_SCRATCH_KEYS_ONLY": "1"})
     # The market capsule embeds the market operator's public key, and the seal
