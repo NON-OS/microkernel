@@ -24,10 +24,19 @@ pub struct More {
     pub user_timeout: u32,
     pub quickack: bool,
     pub fastopen: u32,
+    pub oobinline: bool,
 }
 
 impl Default for More {
     fn default() -> More {
-        More { tos: 0, ttl: 64, priority: 0, user_timeout: 0, quickack: true, fastopen: 0 }
+        More {
+            tos: 0,
+            ttl: 64,
+            priority: 0,
+            user_timeout: 0,
+            quickack: true,
+            fastopen: 0,
+            oobinline: false,
+        }
     }
 }
