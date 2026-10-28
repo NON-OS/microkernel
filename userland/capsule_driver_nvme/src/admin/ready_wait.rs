@@ -18,7 +18,8 @@ use super::ready_step::{ready_step, ReadyStep};
 use crate::error::{NvmeError, NvmeResult};
 
 /// Poll CSTS until RDY matches `want_ready`, the controller reports a fatal
-/// status, or the time CAP.TO allows runs out. The register read and the
+/// status, or the time CAP.TO allows runs out, idling a millisecond after
+/// each read that says wait (clock::idle). The register read and the
 /// monotonic clock are passed in, so the host proofs drive this same loop
 /// with a scripted controller and a scripted clock. CSTS is read before the
 /// clock, so a controller that turned ready just as the time ran out still
@@ -40,7 +41,7 @@ where
         let csts = read_csts();
         let now = now_ms().ok_or(NvmeError::ClockFailed)?;
         match ready_step(cap, csts, want_ready, now.saturating_sub(start)) {
-            ReadyStep::Wait => core::hint::spin_loop(),
+            ReadyStep::Wait => crate::clock::idle(),
             ReadyStep::Reached => return Ok(()),
             ReadyStep::Failed(e) => return Err(e),
         }

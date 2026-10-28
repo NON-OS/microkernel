@@ -2,8 +2,8 @@
 
 //! The status reply's body, in named fields only: no address the radio was
 //! mapped at, no BAR, no efuse content and never the factory address. The
-//! two words where the BAR and the window address were stay zero, so the
-//! layout readers know is kept.
+//! two words where the BAR and the window address were now carry the claim
+//! step that refused and its errno (`setup::claim_note`), small numbers.
 
 use crate::efuse::EfuseDiag;
 use crate::link::LinkStats;
@@ -16,10 +16,17 @@ pub const STATUS_BODY_LEN: usize = 1 + 13 * 4;
  * frames the ring returned, RX frames parsed to Ethernet, net_core requests
  * answered and RX errors. Then the last stalled efuse read (`EfuseDiag`),
  * which separates a dead register window from a live one whose efuse
- * controller is never clocked, two zero words, and what the station's
+ * controller is never clocked, the claim step that refused and its errno
+ * (both zero after a claim that held), and what the station's
  * receive checks refused and how many group rekeys the link answered.
  */
-pub fn status_body(stage: u8, s: &LinkStats, efuse: &EfuseDiag, out: &mut [u8]) -> Option<usize> {
+pub fn status_body(
+    stage: u8,
+    s: &LinkStats,
+    efuse: &EfuseDiag,
+    claim: (u32, u32),
+    out: &mut [u8],
+) -> Option<usize> {
     let out = out.get_mut(..STATUS_BODY_LEN)?;
     out[0] = stage;
     let words = [
@@ -32,8 +39,8 @@ pub fn status_body(stage: u8, s: &LinkStats, efuse: &EfuseDiag, out: &mut [u8]) 
         efuse.flags,
         efuse.stalled_at,
         efuse.bank_ldo,
-        0,
-        0,
+        claim.0,
+        claim.1,
         s.rx_refused,
         s.rekeys,
     ];

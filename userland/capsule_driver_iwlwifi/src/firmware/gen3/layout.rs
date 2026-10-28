@@ -26,8 +26,8 @@ use alloc::vec::Vec;
 
 use super::cmdq::CmdQueue;
 use super::plan::{
-    plan_firmware, Block, CMD_RING, CMD_TFDS, CTXT_INFO, IML, PAGE, PRPH_INFO, PRPH_SCRATCH,
-    RB_STTS, RX_FREE, RX_RING, RX_USED,
+    plan_firmware, CMD_RING, CMD_TFDS, CTXT_INFO, IML, PAGE, PRPH_INFO, PRPH_SCRATCH, RB_STTS,
+    RX_FREE, RX_RING, RX_USED,
 };
 use super::prph_scratch::flags::{CTRL_IMR_DEBUG_EN, CTRL_MTR_FORMAT, CTRL_MTR_MODE};
 use super::prph_scratch::PRPH_SCRATCH_REPORTED;
@@ -36,6 +36,12 @@ use super::rxq::RxQueue;
 use super::{
     CtxtInfoGen3, DramImage, FwLayout, PrphScratch, CTXT_INFO_GEN3_SIZE, PRPH_SCRATCH_SIZE,
 };
+pub use parts::{Board, Memory};
+pub use sections::place;
+use sections::section_lens;
+
+mod parts;
+mod sections;
 
 /// Why the memory could not be laid out.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -48,38 +54,16 @@ pub enum LayoutError {
     Write,
 }
 
-/// What the layout needs to know about the adapter.
-pub struct Board {
-    pub hw_rev: u32,
-    pub imr_enabled: bool,
-    /// CSR_HW_RF_ID, which picks the platform NVM section with the MAC type.
-    pub rf_id: u32,
-    /// The platform NVM file for this image, when the tree carries one.
-    pub pnvm: Option<&'static [u8]>,
-}
-
 /// The firmware regions to request: the sizes [`plan_firmware`] gives for
 /// the sections in LMAC, UMAC, paging order.
 pub fn firmware_region_sizes(fw: &FwLayout<'_>) -> Option<Vec<usize>> {
     plan_firmware(&section_lens(fw)).map(|p| p.regions)
 }
 
-fn section_lens(fw: &FwLayout<'_>) -> Vec<usize> {
-    fw.lmac.iter().chain(fw.umac.iter()).chain(fw.virt.iter()).map(|s| s.data.len()).collect()
-}
-
 /// `TFD_QUEUE_CB_SIZE` and `RX_QUEUE_CB_SIZE`: ring sizes as the log2 the
 /// context info carries.
 pub const MTR_SIZE: u16 = CMD_RING.trailing_zeros() as u16 - 3;
 pub const MCR_SIZE: u16 = RX_RING.trailing_zeros() as u16;
-
-/// The DMA memory of one bring-up: the control region, the receive buffers,
-/// and the firmware regions [`firmware_region_sizes`] asked for, in order.
-pub struct Memory<'r, R: Region + ?Sized> {
-    pub ctrl: &'r R,
-    pub rbs: &'r R,
-    pub fw: &'r [&'r R],
-}
 
 /// Write everything into `mem` and initialise both queues.
 pub fn lay_out<R: Region + ?Sized>(
@@ -90,25 +74,9 @@ pub fn lay_out<R: Region + ?Sized>(
     rxq: &mut RxQueue,
     cmdq: &mut CmdQueue,
 ) -> Result<(), LayoutError> {
-    let (ctrl, rbs, fw_regions) = (mem.ctrl, mem.rbs, mem.fw);
-    let plan = plan_firmware(&section_lens(fw)).ok_or(LayoutError::Plan)?;
-    if plan.regions.len() != fw_regions.len()
-        || plan.regions.iter().zip(fw_regions).any(|(&want, r)| r.len() < want)
-    {
-        return Err(LayoutError::Plan);
-    }
-    let sections = fw.lmac.iter().chain(fw.umac.iter()).chain(fw.virt.iter());
-    let mut addrs = Vec::with_capacity(plan.blocks.len());
-    for (s, b) in sections.zip(&plan.blocks) {
-        let Block { region, off, .. } = *b;
-        let r = fw_regions[region];
-        if !r.write(off, s.data) {
-            return Err(LayoutError::Write);
-        }
-        addrs.push(r.dev() + off as u64);
-    }
-    let (lmac, rest) = addrs.split_at(fw.lmac.len());
-    let (umac, virt) = rest.split_at(fw.umac.len());
+    let (ctrl, rbs) = (mem.ctrl, mem.rbs);
+    let placed = place(mem, fw)?;
+    let (umac, lmac, virt) = placed.maps();
 
     if !zero(ctrl, CTXT_INFO, RB_STTS + PAGE) || !ctrl.write(IML, iml) {
         return Err(LayoutError::Write);

@@ -17,6 +17,7 @@
 mod ask;
 mod bring_up;
 mod caps_modes;
+mod fifo_push;
 mod frames;
 mod frames_stall;
 mod mode_set;

@@ -23,10 +23,11 @@ use super::hc::Hc;
 use crate::server::reply::{bytes, status};
 use crate::wire::{Request, E_BUSY, E_INVAL, REQUEST_MAX};
 
-pub fn enable<H: Hc>(f: &mut Front<H>, req: &Request, tx: &mut [u8]) -> usize {
+/// A free slot given out, `pid`'s until it gives it back (owners.rs).
+pub fn enable<H: Hc>(f: &mut Front<H>, pid: u32, req: &Request, tx: &mut [u8]) -> usize {
     match f.bound.iter().position(|b| *b == Bind::Free) {
         Some(i) => {
-            f.bound[i] = Bind::Enabled;
+            (f.bound[i], f.owner[i]) = (Bind::Enabled, pid);
             bytes(tx, req, &[i as u8 + 1, 0, 0, 0])
         }
         None => status(tx, req, E_BUSY),

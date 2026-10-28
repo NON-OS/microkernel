@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! CMD2 ALL_SEND_CID: the card's identity, logged.
+//! CMD2 ALL_SEND_CID: the card's identity, logged without its serial.
 
 use super::super::super::env::{Clock, Log, Mmio};
 use super::super::super::error::EmmcResult;
@@ -40,8 +40,6 @@ pub(super) fn read_cid<M: Mmio, C: Clock, L: Log>(
             .hex(cid.oid as u64)
             .s(b" prv ")
             .hex(cid.prv as u64)
-            .s(b" psn ")
-            .hex(cid.psn as u64)
             .s(if sector_mode { b" sector mode" as &[u8] } else { b" byte mode" }),
     );
     Ok(cid)

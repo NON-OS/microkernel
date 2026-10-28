@@ -1,0 +1,25 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the MT7921/MT7922 driver: its real source,
+# included by #[path], driven against a modelled chip (registers, the
+# WFDMA rings, the MCU and its firmware download, the air with an access
+# point), with synthetic firmware images built in the tests in the real
+# header layouts. No MediaTek file is read or carried.
+[package]
+name = "mt7921_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_libc = { package = "mt7921_proofs_libc_shim", path = "libc_shim" }
+nonos_mac = { path = "../nonos_mac" }
+nonos_wifi_core = { path = "../nonos_wifi_core" }
+sha2 = { version = "0.10", default-features = false, features = ["force-soft"] }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

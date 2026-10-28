@@ -22,12 +22,13 @@
 
 use crate::env::{Clock, Mem, Regs};
 use crate::facts::qtd::PID_IN;
+use crate::sched::advance::Dead;
 use crate::sched::layout::{intr_buf, intr_qh, intr_qtd, INTR_BUF_LEN};
 use crate::sched::link::Link;
+use crate::sched::park::park;
 use crate::sched::qh::{chars, empty};
 use crate::sched::qtd::{write, Qtd};
 use crate::sched::queue::start;
-use crate::sched::take::park;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct IntrEp {
@@ -55,7 +56,12 @@ pub fn arm<M: Mem>(m: &M, ep: &IntrEp) {
     start(m, intr_qh(i), intr_qtd(i));
 }
 
-/// Stop the endpoint's QH, for another endpoint to open.
-pub fn stop<M: Mem, R: Regs, C: Clock>((m, r, c): (&M, &mut R, &C), op: u32, index: usize) {
-    park((m, r, c), op, intr_qh(index));
+/// Stop the endpoint's QH, for another endpoint to open; Err when the
+/// controller would not let it go (park.rs).
+pub fn stop<M: Mem, R: Regs, C: Clock>(
+    (m, r, c): (&M, &mut R, &C),
+    op: u32,
+    index: usize,
+) -> Result<(), Dead> {
+    park((m, r, c), op, intr_qh(index))
 }

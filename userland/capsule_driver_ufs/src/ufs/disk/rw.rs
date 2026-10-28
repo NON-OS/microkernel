@@ -35,8 +35,10 @@ pub fn read<H: Hw>(
 ) -> Result<(), UfsError> {
     let bytes = n as usize * u.block_len as usize;
     exec(hw, &d.ctx, u.lun, rw(false, lba, n), Data::In(bytes), SCSI_MS)?;
-    d.ctx.lists.data.get(0, &mut out[..bytes]);
-    Ok(())
+    match d.ctx.lists.data.get(0, &mut out[..bytes]) {
+        true => Ok(()),
+        false => Err(UfsError::Bounce),
+    }
 }
 
 pub fn write<H: Hw>(
@@ -52,7 +54,11 @@ pub fn write<H: Hw>(
     if d.ctx.slot_held(hw) {
         return Err(UfsError::Host);
     }
-    d.ctx.lists.data.put(0, &src[..bytes]);
+    // A transfer the data region cannot hold is never sent: the WRITE would
+    // carry whatever the region last held.
+    if !d.ctx.lists.data.put(0, &src[..bytes]) {
+        return Err(UfsError::Bounce);
+    }
     exec(hw, &d.ctx, u.lun, rw(true, lba, n), Data::Out(bytes), SCSI_MS)
 }
 

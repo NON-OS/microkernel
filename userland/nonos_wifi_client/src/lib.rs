@@ -26,7 +26,7 @@ mod wire;
 
 pub use driver::{
     find, firmware_step_text, join_text, ConnectResult, Driver, DriverStage, Link, ScanOutcome,
-    ScanStats, OP_STATUS, WIFI_HDR,
+    ScanStats, StopWhy, OP_STATUS, WIFI_HDR,
 };
 pub use join_wire::{JoinFlags, LastJoin, LinkEnded, AKM_SAE};
 pub use network::{ScanNetwork, SSID_MAX};

@@ -62,5 +62,6 @@ fn describe(l: &mut Line, e: UfsError) {
         UfsError::Dma32 => l.s(b"DMA above 4 GiB and no 64-bit addressing"),
         UfsError::BlockSize(n) => l.s(b"block size ").dec(n as u64),
         UfsError::Capacity(n) => l.s(b"capacity of ").dec(n).s(b" blocks"),
+        UfsError::Bounce => l.s(b"transfer larger than the data region"),
     };
 }

@@ -52,7 +52,7 @@ impl<R: Radio> LinkPort for Port<'_, R> {
 
     fn send_tx(&mut self, frame: &[u8]) -> bool {
         let sent = match self.session.as_mut().filter(|_| !self.closed) {
-            Some(s) => s.station.tx_frame(frame).is_some_and(|mpdu| self.radio.send(&mpdu)),
+            Some(s) => s.station.tx_frame(frame).is_some_and(|mpdu| s.put(self.radio, &mpdu)),
             None => false,
         };
         LinkStats::bump(if sent { &mut self.stats.tx_ok } else { &mut self.stats.tx_drop });

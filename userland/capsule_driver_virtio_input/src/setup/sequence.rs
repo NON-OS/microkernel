@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One function brought up: claim, bus mastering, the capability walk,
-//! the common, notify and device regions, the event queue's grant, then
-//! the handshake and the axes; `ready` hands the ring over. Nothing is
+//! One function brought up: claim, memory decode, the capability walk,
+//! the common, notify and device regions, the event queue's grant, the
+//! handshake (a reset, then this ring), bus mastering, and the axes;
+//! `ready` hands the ring over. Nothing is
 //! bound: the driver polls, and the available ring asks for no interrupt.
 
 use nonos_libc::mk_device_release;
@@ -33,7 +34,7 @@ pub fn run(dev: Found) -> Result<Input, &'static str> {
         let _ = mk_device_release(dev.device_id);
         e
     };
-    pci::enable(dev.device_id, epoch).map_err(release)?;
+    pci::command(dev.device_id, epoch, pci::DECODE).map_err(release)?;
     let mut broker = LibcBroker::new(dev.device_id, epoch);
     let cfg = ConfigSpace::read(&mut broker).ok_or(VirtioError::ConfigRead.message());
     let caps = parse(&cfg.map_err(release)?, &dev.bars);
@@ -51,6 +52,7 @@ pub fn run(dev: Found) -> Result<Input, &'static str> {
     let device = window.device.ok_or(VirtioError::NoDeviceCfg.message()).map_err(fail)?.region;
     let (size, doorbell) =
         handshake::run(&common, window.notify_area(), dma.device_addr).map_err(fail)?;
+    pci::command(dev.device_id, epoch, pci::MASTER).map_err(fail)?;
     let axes = axes::read(&common, device).map_err(fail)?;
     Ok(ready::finish(window, &dma, size, doorbell, axes))
 }

@@ -1,8 +1,12 @@
 ## Failure model
 
-Every setup phase rolls back prior broker grants on failure. With no
-supported adapter in the device list the capsule logs one line and exits
-`EXIT_ABSENT` (2) before claiming anything. An adapter that is present but
+Every setup phase rolls back prior broker grants on failure. With no Intel
+Wi-Fi function in the device list the capsule logs one line and exits
+`EXIT_ABSENT` (2) before claiming anything. With one this driver does not
+run (a generation with no boot path here, or an id it does not know) it
+names it, `[iwlwifi] pci 8086:<id> <what>: present, not run by this driver;
+given up`, and exits `EXIT_GAVE_UP` (6), nothing claimed (`verdict`). An
+adapter that is present but
 fails setup, including an APM clock that never comes up, gives back every
 grant and is retried on the shared bounded schedule (`nonos_libc::bring_up`:
 seven tries, sleeping between them); running out exits `EXIT_GAVE_UP` (6).
@@ -15,7 +19,7 @@ code for the client, then step and detail word):
 | 1 | register window smaller than 0x2810 | DeadMmio (3) |
 | 2 | CSR_HW_REV reads all ones | DeadMmio (3) |
 | 3 | NIC not ready (detail 1), clock not ready (2), no NIC access (3) | PowerFailed (2) |
-| 4 | no bundled firmware: not an AX210-family platform (0x1xxxx, the PCI id), MAC (0x2xxxx), RF (0x3xxxx), CDB (0x40000), MA step (0x5000s), image not in the tree (0x6000i) | NoAirPath (8) |
+| 4 | no bundled firmware: not an AX210-family platform (0x1xxxx, the PCI id), MAC (0x2xxxx), RF (0x3xxxx), CDB (0x40000), MAC step (0x5000s: MA not B, Gl not C, Bz not B), image not in the tree (0x6000i), FM radio step other than C (0x7000s) | NoAirPath (8) |
 | 5 | bundled image did not parse or plan | FirmwareFailed (4) |
 | 6 | the broker refused a DMA grant | NoDma (5) |
 | 7 | boot: start (0x1x), layout (0x2x), no ALIVE cause (0x30), no ALIVE notification (0x4x), status not 0xCAFE (0x5ssss), PNVM (0x6x) | FirmwareFailed (4), or PowerFailed (2) for start errors |

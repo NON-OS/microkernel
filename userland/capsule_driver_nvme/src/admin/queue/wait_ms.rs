@@ -51,7 +51,11 @@ impl AdminQueue {
             },
             // SAFETY: the CQ0 head doorbell lies in the mapped register block.
             |head| unsafe { regs.w32(cq0_head(stride), head as u32) },
+            // Reached once every DEADLINE_CHECK_SPINS polls: a command that
+            // completes within them never sleeps, one that does not gives the
+            // core away for a millisecond before each look at the clock.
             || {
+                clock::idle();
                 let now = clock::uptime_ms();
                 clock_lost |= now.is_none();
                 budget.spent(now)

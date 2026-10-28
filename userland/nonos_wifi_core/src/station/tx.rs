@@ -45,6 +45,11 @@ impl LinkStation {
             // Pure-hardware CCMP hands the radio a plaintext frame; the engine
             // inserts the IV and ciphertext and sets the Protected bit itself.
             Ccmp::Hardware => return Some(mpdu),
+            // The chip numbers it, or the station did in `chip_frame`.
+            Ccmp::Offload { host_iv, .. } => {
+                let host_iv = *host_iv;
+                return self.chip_frame(&mpdu, host_iv);
+            }
             Ccmp::Software { tk } | Ccmp::SoftwareTxHwRx { tk } => protect(&mpdu, pn, tk)?,
             Ccmp::Gcmp256 { tk } => gcmp::encrypt(&mpdu, pn, tk)?,
         };
@@ -58,7 +63,7 @@ impl LinkStation {
     /// malformed, the MIC fails, or the body is not LLC/SNAP encapsulated.
     pub fn rx_frame(&self, mpdu: &[u8]) -> Option<Vec<u8>> {
         match &self.ccmp {
-            Ccmp::Hardware | Ccmp::SoftwareTxHwRx { .. } => parse_data(mpdu),
+            Ccmp::Hardware | Ccmp::SoftwareTxHwRx { .. } | Ccmp::Offload { .. } => parse_data(mpdu),
             Ccmp::Software { tk } => parse_data(&unprotect(mpdu, tk)?),
             Ccmp::Gcmp256 { tk } => {
                 parse_data(&cipher::unprotect(mpdu, &TemporalKey::Gcmp256(*tk))?)

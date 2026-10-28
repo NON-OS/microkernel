@@ -219,6 +219,10 @@ fn the_scratch_takes_the_descriptor_address_and_total_size() {
     assert_eq!(u32::from_le_bytes(b[8..12].try_into().unwrap()), 13656);
 }
 
+fn board(f: &'static [u8]) -> Board {
+    Board { hw_rev: 0x370, imr_enabled: false, rf_id: 0x0010_D000, pnvm: Some(f), discrete: false }
+}
+
 /* The boot, against the modeled card: ALIVE names SKU 0x000610D1, so the
 section is laid out after the image loader and the scratch points at it before
 the doorbell rings. */
@@ -231,17 +235,15 @@ fn a_sku_part_is_given_its_section_before_the_doorbell() {
     let rbs = Mem::new(RB_REGION, 0x2000_0000);
     let layout = classify(SO_GF);
     let sizes = firmware_region_sizes(&layout).unwrap();
-    let fw: Vec<Rc<Mem>> = sizes
-        .iter()
-        .enumerate()
-        .map(|(i, &n)| Mem::new(n, 0x4000_0000 + (i as u64) * 0x10_0000))
-        .collect();
+    let fw = sizes.iter().enumerate();
+    let fw: Vec<Rc<Mem>> =
+        fw.map(|(i, &n)| Mem::new(n, 0x4000_0000 + (i as u64) * 0x10_0000)).collect();
     let model = Model::new(ctrl, rbs);
     model.s.borrow_mut().alive_sku = [0x0006_10D1, 0, 0];
     let fw_refs: Vec<&Mem> = fw.iter().map(|m| m.as_ref()).collect();
     let mem = Memory { ctrl: model.ctrl.as_ref(), rbs: model.rbs.as_ref(), fw: &fw_refs };
     let mut dev = Dev::new(&model, model.ctrl.as_ref(), model.rbs.as_ref());
-    let board = Board { hw_rev: 0x370, imr_enabled: false, rf_id: 0x0010_D000, pnvm: Some(f) };
+    let board = board(f);
     let mut c = Polls { per_wait: 64, delays_us: 0 };
     boot(&mut dev, &mut c, &mem, &layout, &ucode, &board).expect("alive and the PNVM step done");
     assert_eq!(dev.pnvm, Some(0xAAAA_0001));
@@ -265,24 +267,20 @@ its zero pnvm fields: the firmware runs on its defaults, as Linux's does. */
 fn an_unknown_sku_boots_on_firmware_defaults() {
     let f: &'static [u8] = Box::leak(so_file().into_boxed_slice());
     let ucode = Ucode::parse(SO_GF).unwrap();
-    let ctrl = Mem::new(
-        control_len_pnvm(ucode.iml.len(), reserve(f, MAC_SO, RF_GF)).unwrap(),
-        0x1000_0000,
-    );
+    let res = reserve(f, MAC_SO, RF_GF);
+    let ctrl = Mem::new(control_len_pnvm(ucode.iml.len(), res).unwrap(), 0x1000_0000);
     let rbs = Mem::new(RB_REGION, 0x2000_0000);
     let layout = classify(SO_GF);
     let sizes = firmware_region_sizes(&layout).unwrap();
-    let fw: Vec<Rc<Mem>> = sizes
-        .iter()
-        .enumerate()
-        .map(|(i, &n)| Mem::new(n, 0x4000_0000 + (i as u64) * 0x10_0000))
-        .collect();
+    let fw = sizes.iter().enumerate();
+    let fw: Vec<Rc<Mem>> =
+        fw.map(|(i, &n)| Mem::new(n, 0x4000_0000 + (i as u64) * 0x10_0000)).collect();
     let model = Model::new(ctrl, rbs);
     model.s.borrow_mut().alive_sku = [0x0009_10D1, 0, 0];
     let fw_refs: Vec<&Mem> = fw.iter().map(|m| m.as_ref()).collect();
     let mem = Memory { ctrl: model.ctrl.as_ref(), rbs: model.rbs.as_ref(), fw: &fw_refs };
     let mut dev = Dev::new(&model, model.ctrl.as_ref(), model.rbs.as_ref());
-    let board = Board { hw_rev: 0x370, imr_enabled: false, rf_id: 0x0010_D000, pnvm: Some(f) };
+    let board = board(f);
     let mut c = Polls { per_wait: 64, delays_us: 0 };
     boot(&mut dev, &mut c, &mem, &layout, &ucode, &board).expect("alive");
     assert_eq!(dev.pnvm, None);

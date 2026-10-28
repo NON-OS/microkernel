@@ -2,9 +2,9 @@
 //! Both bundled firmwares speak every layout the join encodes; another is
 //! refused.
 
-use crate::gen3::station::ids::{check, APIS, PHY_CONTEXT_CMD, SEC_KEY_CMD};
+use super::fixtures::{with_version, SO_GF, SO_HR};
+use crate::gen3::station::ids::{check, ABSENT, APIS, PHY_CONTEXT_CMD, SEC_KEY_CMD};
 use crate::gen3::ucode::Ucode;
-use super::fixtures::{SO_GF, SO_HR, with_version};
 
 #[test]
 fn both_bundled_firmwares_speak_every_layout_the_join_encodes() {
@@ -14,7 +14,12 @@ fn both_bundled_firmwares_speak_every_layout_the_join_encodes() {
         for a in &APIS {
             match u.cmd_version(a.group, a.cmd) {
                 Some(v) => assert!(a.listed.contains(&v), "{:#x}/{:#x} at {v}", a.group, a.cmd),
-                None => assert!(a.listed.is_empty(), "{:#x}/{:#x} unlisted", a.group, a.cmd),
+                None => assert!(
+                    a.listed.is_empty() || a.listed.contains(&ABSENT),
+                    "{:#x}/{:#x}",
+                    a.group,
+                    a.cmd
+                ),
             }
         }
     }
@@ -27,7 +32,8 @@ fn both_bundled_firmwares_speak_every_layout_the_join_encodes() {
 
 #[test]
 fn a_firmware_with_another_layout_is_refused() {
-    let moved = with_version(SO_GF, 1, PHY_CONTEXT_CMD, 5);
+    // Version 6 adds the puncture mask, which the join does not encode.
+    let moved = with_version(SO_GF, 1, PHY_CONTEXT_CMD, 6);
     assert_eq!(check(&Ucode::parse(&moved).unwrap()), Err((1, PHY_CONTEXT_CMD)));
     let moved = with_version(SO_GF, 5, SEC_KEY_CMD, 2);
     assert_eq!(check(&Ucode::parse(&moved).unwrap()), Err((5, SEC_KEY_CMD)));

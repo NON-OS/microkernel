@@ -19,7 +19,9 @@ use core::sync::atomic::{AtomicBool, Ordering};
 use super::allocator::ALLOCATOR;
 use super::span;
 
-const INITIAL_HEAP_SIZE: usize = 16 * 1024 * 1024;
+/// The heap every capsule gets unless it asks for more (`init_sized`): what
+/// a driver that holds large buffers sizes them against.
+pub const INITIAL_HEAP_SIZE: usize = 16 * 1024 * 1024;
 
 static INITIALIZED: AtomicBool = AtomicBool::new(false);
 
