@@ -18,10 +18,13 @@
 //! own state so the reasons a link is down can be told on the page.
 
 use crate::wifi::{DataPath, DriverStage, NetStatus, ScanStats};
+use nonos_wifi_client::StopWhy;
 
 pub struct WifiDiag {
     /// The driver's radio bring-up stage from the last query, if it answered.
     pub stage: Option<DriverStage>,
+    /// Why bring-up stopped, when the driver says (`Driver::stop_why`).
+    pub stop: Option<StopWhy>,
     /// The driver's receive-pipeline counters from the last scan, so the panel can
     /// show where reception stops when no networks come back.
     pub stats: ScanStats,
@@ -43,6 +46,7 @@ impl WifiDiag {
     pub fn new() -> Self {
         WifiDiag {
             stage: None,
+            stop: None,
             stats: ScanStats::default(),
             datapath: None,
             net: NetStatus::NoService,

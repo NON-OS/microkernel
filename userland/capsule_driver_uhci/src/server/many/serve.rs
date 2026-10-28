@@ -29,17 +29,26 @@ use super::ports::ports;
 use super::slots::{enable, forward};
 use crate::server::reply::status;
 use crate::wire::ops::*;
-use crate::wire::Request;
+use crate::wire::{Request, E_PERM};
 use nonos_usb_virt::OP_PARK;
 
-pub fn serve<H: Hc>(f: &mut Front<H>, req: &Request, body: &[u8], tx: &mut [u8]) -> usize {
+/// `req` from client `pid`: past the status ops and Enable Slot, the slot
+/// it names first must be the client's (owners.rs).
+pub fn serve<H: Hc>(
+    f: &mut Front<H>,
+    pid: u32,
+    req: &Request,
+    body: &[u8],
+    tx: &mut [u8],
+) -> usize {
     match req.op {
         OP_HEALTHCHECK => status(tx, req, 0),
         OP_PORT_STATUS => ports(f, req, tx),
-        OP_ENABLE_SLOT => enable(f, req, tx),
+        OP_ENABLE_SLOT => enable(f, pid, req, tx),
+        _ if body.first().is_some_and(|&s| !f.admits(s, pid)) => status(tx, req, E_PERM),
+        OP_PARK => park(f, pid, req, body, tx),
         OP_DISABLE_SLOT => disable(f, req, body, tx),
         OP_ADDRESS_DEVICE | OP_ADDRESS_ROUTED => address(f, req, body, tx),
-        OP_PARK => park(f, req, body, tx),
         _ => forward(f, req, body, tx),
     }
 }

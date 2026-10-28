@@ -38,12 +38,12 @@ pub fn finish(
     restarts: Restarts,
 ) -> Result<Up, Failure> {
     let (ucode, transport) = (&rig.ucode, &rig.transport);
-    let regs = dev.m;
+    let (regs, csr) = (dev.m, dev.csr);
     let mut c = Uptime;
     let info = match up(&mut dev, &mut c, ucode, transport, addr.unwrap_or(SCAN_IF_ADDR)) {
         Ok(i) => i,
         Err(e) => {
-            stop_device(regs, &mut c);
+            stop_device(regs, &mut c, csr);
             return Err(Failure::Up(e));
         }
     };

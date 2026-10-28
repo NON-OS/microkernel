@@ -30,3 +30,7 @@ mod nic_rows;
 mod ranges;
 mod spawned;
 mod virt_rows;
+#[cfg(test)]
+mod wifi_rows;
+#[cfg(test)]
+mod wifi_rows_8852;

@@ -39,22 +39,22 @@ pub(super) fn boot_alive(
     ucode: &Ucode<'_>,
     board: &Board,
 ) -> Result<(), Failure> {
-    let regs = dev.m;
+    let (regs, csr) = (dev.m, dev.csr);
     let mut c = Uptime;
     let alive = match boot(dev, &mut c, mem, fw, ucode, board) {
         Ok(a) => a,
         Err(e) => {
             // What Linux prints when ALIVE does not come: how far the ROM's
             // secure boot got on each CPU.
-            let cpu1 = read_umac(regs, &mut c, UMAG_SB_CPU_1_STATUS).unwrap_or(u32::MAX);
-            let cpu2 = read_umac(regs, &mut c, UMAG_SB_CPU_2_STATUS).unwrap_or(u32::MAX);
+            let cpu1 = read_umac(regs, &mut c, csr, UMAG_SB_CPU_1_STATUS).unwrap_or(u32::MAX);
+            let cpu2 = read_umac(regs, &mut c, csr, UMAG_SB_CPU_2_STATUS).unwrap_or(u32::MAX);
             Line::new()
                 .text(b"secure boot status: cpu1 ")
                 .hex(cpu1)
                 .text(b" cpu2 ")
                 .hex(cpu2)
                 .send();
-            stop_device(regs, &mut c);
+            stop_device(regs, &mut c, csr);
             return Err(Failure::Boot(e));
         }
     };

@@ -21,7 +21,7 @@
 use super::super::model::State;
 use crate::wifi::{driver_datapath, net_poll_due, net_status, station_source};
 use nonos_libc::mk_uptime_ms;
-use nonos_wifi_client::{find, keeps_state};
+use nonos_wifi_client::{find, keeps_state, DriverStage};
 
 /// Refresh which driver runs, its bring-up stage and link, whether this boot
 /// keeps state, the data-path frame counts and net_core's lease without
@@ -41,6 +41,10 @@ pub fn refresh_wifi_status(state: &mut State) {
     let driver = find();
     state.wifi.driver = driver;
     state.wifi_diag.stage = driver.and_then(|d| d.stage());
+    state.wifi_diag.stop = match (driver, state.wifi_diag.stage) {
+        (Some(d), Some(stage)) if stage != DriverStage::Ready => d.stop_why(stage),
+        _ => None,
+    };
     state.wifi.link = driver.and_then(|d| d.link());
     state.wifi.keeps = keeps_state();
     state.wifi.remember &= state.wifi.keeps;

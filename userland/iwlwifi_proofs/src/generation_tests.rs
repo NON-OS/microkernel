@@ -54,10 +54,9 @@ fn the_brief_s_cards_are_named_by_their_generation() {
 }
 
 #[test]
-fn the_tiger_lake_ax201_is_named_and_left_unclaimed() {
+fn the_tiger_lake_ax201_is_named_and_run() {
     // 0xA0F0 was missing from the family table, and the driver left without
-    // a word. Discovery names it now (`announce`), and leaves it unclaimed:
-    // there is no boot path for it here.
-    assert!(!is_supported_adapter(&adapter(0xA0F0)));
-    assert!(!name(0xA0F0).unwrap().boots);
+    // a word. Discovery names it, and the 22000 family's boot path runs it.
+    assert!(is_supported_adapter(&adapter(0xA0F0)));
+    assert!(name(0xA0F0).unwrap().boots);
 }

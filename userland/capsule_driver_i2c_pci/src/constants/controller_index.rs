@@ -60,4 +60,9 @@ pub fn controller_index(device: u16) -> Option<u8> {
         .or_else(|| block(0x7ACC, 4).or_else(|| pair(0x7AFC, 0x7AFD, 4)))
         .or_else(|| block(0x7A4C, 4).or_else(|| pair(0x7A7C, 0x7A7D, 4)))
         .or_else(|| block(0x7E78, 4).or_else(|| pair(0x7E50, 0x7E51, 4)))
+        // Arrow Lake-H, the 800 Series PCH and Lunar Lake, laid out as
+        // Meteor Lake's (a block of four, then I2C4 and I2C5; unverified).
+        .or_else(|| block(0x7778, 4).or_else(|| pair(0x7750, 0x7751, 4)))
+        .or_else(|| block(0x7F4C, 4).or_else(|| pair(0x7F7A, 0x7F7B, 4)))
+        .or_else(|| block(0xA878, 4).or_else(|| pair(0xA850, 0xA851, 4)))
 }

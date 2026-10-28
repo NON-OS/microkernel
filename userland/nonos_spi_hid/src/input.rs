@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! An input report's header read, and the body that follows it: a header
-//! with the wrong version or sync byte is no report, and a body is taken
+//! with the wrong version or sync byte is no report, nor is one naming a
+//! body longer than a transfer carries (BODY_MAX), and a body is taken
 //! only whole and within the length its header gave.
 
 use super::facts::*;
@@ -31,8 +32,12 @@ pub fn header(b: [u8; HEADER_LEN]) -> Option<Header> {
     if h & 0xF != HEADER_VERSION || b[3] != HEADER_SYNC {
         return None;
     }
-    let words = (h >> LENGTH_SHIFT & LENGTH_MASK) as usize;
-    Some(Header { body_len: words * 4, last: h & LAST_FRAGMENT != 0 })
+    let body_len = (h >> LENGTH_SHIFT & LENGTH_MASK) as usize * 4;
+    // A body no transfer can carry is refused before a frame is made for it.
+    if body_len > BODY_MAX {
+        return None;
+    }
+    Some(Header { body_len, last: h & LAST_FRAGMENT != 0 })
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]

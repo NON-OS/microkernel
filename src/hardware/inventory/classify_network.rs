@@ -18,7 +18,11 @@ use super::family::HardwareFamily;
 use super::intel_ethernet_ids::{
     E1000E_DEVICE_IDS, E1000_DEVICE_IDS, IGB_DEVICE_IDS, IGC_DEVICE_IDS, IXGBE_DEVICE_IDS,
 };
-use super::realtek_ids::{RTL8139_DEVICE_ID, RTL8169_DEVICE_IDS, RTL8821CE_DEVICE_ID};
+use super::mediatek_ids::MT7921_IDS;
+use super::realtek_ids::RTL8852BE_DEVICE_IDS;
+use super::realtek_ids::{
+    RTL8139_DEVICE_ID, RTL8169_DEVICE_IDS, RTL8821CE_DEVICE_IDS, RTL8822CE_DEVICE_IDS,
+};
 
 const SUBCLASS_OTHER: u8 = 0x80;
 
@@ -29,12 +33,15 @@ pub(super) fn classify_network(subclass: u8, vendor: u16, device: u16) -> Hardwa
         0x1af4 => HardwareFamily::NetworkVirtio,
         0x8086 if subclass == SUBCLASS_OTHER => HardwareFamily::NetworkIwlwifi,
         0x8086 => intel_ethernet(device),
-        0x10ec if device == RTL8821CE_DEVICE_ID => HardwareFamily::NetworkRtl8821ce,
-        // Realtek's other wireless parts (8822CE, 8852AE and the rest).
+        0x10ec if RTL8821CE_DEVICE_IDS.contains(&device) => HardwareFamily::NetworkRtl8821ce,
+        0x10ec if RTL8822CE_DEVICE_IDS.contains(&device) => HardwareFamily::NetworkRtl8822ce,
+        0x10ec if RTL8852BE_DEVICE_IDS.contains(&device) => HardwareFamily::NetworkRtl8852be,
+        // Realtek's other wireless parts (8852AE, 8852CE and the rest).
         0x10ec if subclass == SUBCLASS_OTHER => HardwareFamily::NetworkRealtekWifi,
         0x10ec if device == RTL8139_DEVICE_ID => HardwareFamily::NetworkRtl8139,
         0x10ec if RTL8169_DEVICE_IDS.contains(&device) => HardwareFamily::NetworkRtl8169,
         0x1022 if device == 0x2000 => HardwareFamily::NetworkPcnet,
+        0x14c3 | 0x0b48 if MT7921_IDS.contains(&(vendor, device)) => HardwareFamily::NetworkMt7921,
         0x15ad if device == 0x07b0 => HardwareFamily::NetworkVmxnet3,
         0x1011 if device == 0x0009 || device == 0x0019 => HardwareFamily::NetworkTulip,
         _ => HardwareFamily::Unknown,

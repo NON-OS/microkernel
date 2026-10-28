@@ -47,7 +47,7 @@ pub fn bring_up(d: &Driver, ids: &mut Seen) -> Result<Up, Failure> {
     let (image, transport) = identify(d, ids)?;
     let blob = gen3_blob(image).ok_or(Failure::Refused(Refusal::ImageNotBundled(image)))?;
     Line::new().text(b"firmware ").text(blob.name.as_bytes()).send();
-    let ucode = Ucode::parse(blob.bytes).ok_or(Failure::Image)?;
+    let ucode = Ucode::parse_for(blob.bytes, transport.csr).ok_or(Failure::Image)?;
     let fw = classify(blob.bytes);
     let sizes = firmware_region_sizes(&fw).ok_or(Failure::Image)?;
     // Space after the image loader for the largest platform NVM section this
@@ -55,7 +55,7 @@ pub fn bring_up(d: &Driver, ids: &mut Seen) -> Result<Up, Failure> {
     let pnvm = gen3_pnvm(image);
     let reserve = pnvm.map_or(0, |f| pnvm_reserve(f, mac_type(ids.hw_rev), rf_type(ids.rf_id)));
     let ctrl_len = control_len_pnvm(ucode.iml.len(), reserve).ok_or(Failure::Image)?;
-    let grants = map_all(d, ctrl_len, &sizes).ok_or(Failure::NoDma)?;
+    let grants = map_all(d, ctrl_len, transport.csr.rb_region(), &sizes).ok_or(Failure::NoDma)?;
 
     // From the kick on the device holds these addresses: the grants live as
     // long as the capsule does.
@@ -65,10 +65,11 @@ pub fn bring_up(d: &Driver, ids: &mut Seen) -> Result<Up, Failure> {
     let fw_refs: &'static [&'static Grant] = Vec::leak(fw_grants.iter().collect());
     let regs: &'static Regs = Box::leak(Box::new(d.regs));
     let mem = Memory { ctrl, rbs, fw: fw_refs };
-    let board =
-        Board { hw_rev: ids.hw_rev, imr_enabled: transport.imr_enabled, rf_id: ids.rf_id, pnvm };
+    let (hw_rev, rf_id, discrete) = (ids.hw_rev, ids.rf_id, !transport.integrated);
+    let board = Board { hw_rev, imr_enabled: transport.imr_enabled, rf_id, pnvm, discrete };
     let rig: &'static Rig = Box::leak(Box::new(Rig { regs, mem, fw, ucode, board, transport }));
-    master_on(rig.regs, &mut Uptime, || command(d.device_id, d.claim_epoch, true))?;
+    let bus_master = || command(d.device_id, d.claim_epoch, true);
+    master_on(rig.regs, &mut Uptime, rig.transport.csr, bus_master)?;
     let dev = boot_rig(rig)?;
     finish(dev, rig, station_addr(), Restarts::NEW)
 }

@@ -20,8 +20,11 @@ pub fn ndp_lie(r: &mut Rng, lie: Lie, b: &mut Block) -> Option<(bool, Vec<(usize
             keep(b, &|k, _| k < j)
         }
         Lie::NdpSign => {
-            b.raw[at + r.range(0, 3)] ^= 0x01;
-            keep(b, &|k, _| k != j)
+            let byte = r.range(0, 3);
+            b.raw[at + byte] ^= 0x01;
+            // The last byte so turns "NCM0" into "NCM1", a CRC NDP passed
+            // over; any other byte leaves no NDP, and its chain ends.
+            keep(b, &|k, _| if byte == 3 { k != j } else { k < j })
         }
         Lie::NdpLoop => {
             b.field(at + s.ndp_next, b.ndps[r.range(0, j)].0 as u64);

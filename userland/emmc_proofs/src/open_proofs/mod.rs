@@ -16,8 +16,8 @@
 
 //! The open path's proofs, over the stand-in nonos_libc: Bus Master at open
 //! on a host a dead driver left with ADMA running, the refusals, a host still
-//! busy after its reset, the regions' address width, the hand-back,
-//! Command writes the broker refuses, and a removable slot's open.
+//! busy after its reset, the regions' address width, a short grant, the
+//! hand-back, Command writes the broker refuses, and a removable slot's open.
 
 mod busy_tests;
 mod dma32_tests;
@@ -26,4 +26,5 @@ mod open_refusal_tests;
 mod open_tests;
 mod refused_write_tests;
 mod removable_tests;
+mod short_grant_tests;
 mod small_bar_tests;

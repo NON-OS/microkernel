@@ -25,7 +25,11 @@
 //! past the known range is ignored and a command table's partial last entry
 //! dropped.
 
+use super::csr::CsrLayout;
 use super::find_iml;
+use words::{le32, set_word, test, BITMAP_WORDS};
+
+mod words;
 
 const HEADER_LEN: usize = 88;
 const MAGIC: u32 = 0x0A4C_5749;
@@ -34,8 +38,6 @@ const TLV_API_CHANGES_SET: u32 = 29;
 const TLV_ENABLED_CAPABILITIES: u32 = 30;
 const TLV_N_SCAN_CHANNELS: u32 = 31;
 const TLV_CMD_VERSIONS: u32 = 48;
-/// `NUM_IWL_UCODE_TLV_CAPA` and `NUM_IWL_UCODE_TLV_API`: 128 bits each.
-const BITMAP_WORDS: usize = 4;
 /// A version the table marks as not reported (`IWL_FW_CMD_VER_UNKNOWN`).
 const VER_UNKNOWN: u8 = 99;
 /// Legacy commands sent with the wide header are listed under `LONG_GROUP`.
@@ -56,6 +58,19 @@ impl<'a> Ucode<'a> {
     /// Parse `blob`, or `None` if it is not a well-formed iwlwifi TLV file or
     /// carries no image loader (every gen3 image has one).
     pub fn parse(blob: &'a [u8]) -> Option<Self> {
+        Self::parse_any(blob).filter(|u| !u.iml.is_empty())
+    }
+
+    /// Parse `blob` for a family: a 22000-family image (context info, not
+    /// the gen3 kind) has no image loader and needs none.
+    pub fn parse_for(blob: &'a [u8], csr: CsrLayout) -> Option<Self> {
+        match csr {
+            CsrLayout::Gen2 => Self::parse_any(blob),
+            CsrLayout::V1 | CsrLayout::V2 => Self::parse(blob),
+        }
+    }
+
+    fn parse_any(blob: &'a [u8]) -> Option<Self> {
         if blob.len() < HEADER_LEN || le32(blob, 0)? != 0 || le32(blob, 4)? != MAGIC {
             return None;
         }
@@ -78,9 +93,10 @@ impl<'a> Ucode<'a> {
                 TLV_N_SCAN_CHANNELS if len == 4 => u.n_scan_channels = le32(data, 0)?,
                 TLV_ENABLED_CAPABILITIES if len == 8 => set_word(&mut u.capa, data)?,
                 TLV_API_CHANGES_SET if len == 8 => set_word(&mut u.api, data)?,
-                TLV_PHY_SKU | TLV_N_SCAN_CHANNELS | TLV_ENABLED_CAPABILITIES | TLV_API_CHANGES_SET => {
-                    return None
-                }
+                TLV_PHY_SKU
+                | TLV_N_SCAN_CHANNELS
+                | TLV_ENABLED_CAPABILITIES
+                | TLV_API_CHANGES_SET => return None,
                 TLV_CMD_VERSIONS => u.cmd_versions = data,
                 _ => {}
             }
@@ -89,7 +105,7 @@ impl<'a> Ucode<'a> {
         }
         // The image loader, found by the same walk the section split uses.
         u.iml = find_iml(blob).unwrap_or(&[]);
-        (!u.iml.is_empty()).then_some(u)
+        Some(u)
     }
 
     /// Whether capability `bit` (`IWL_UCODE_TLV_CAPA_*`) is set.
@@ -131,24 +147,4 @@ impl<'a> Ucode<'a> {
     fn lookup(&self, group: u8, cmd: u8) -> Option<&'a [u8]> {
         self.cmd_versions.chunks_exact(4).find(|e| e[0] == cmd && e[1] == group)
     }
-}
-
-// A capability or API record: `[word index u32][bits u32]`. A word past the
-// 128 bits this driver knows is ignored.
-fn set_word(words: &mut [u32; BITMAP_WORDS], data: &[u8]) -> Option<()> {
-    let index = le32(data, 0)? as usize;
-    let bits = le32(data, 4)?;
-    if let Some(w) = words.get_mut(index) {
-        *w = bits;
-    }
-    Some(())
-}
-
-fn test(words: &[u32; BITMAP_WORDS], bit: u32) -> bool {
-    words.get((bit / 32) as usize).is_some_and(|w| w & (1 << (bit % 32)) != 0)
-}
-
-fn le32(d: &[u8], o: usize) -> Option<u32> {
-    let b = d.get(o..o.checked_add(4)?)?;
-    Some(u32::from_le_bytes([b[0], b[1], b[2], b[3]]))
 }

@@ -23,8 +23,10 @@
 
 pub const PRIV: u64 = 0x200;
 pub const PRIV_RESETS: u64 = PRIV + 0x04;
-/// Function and both DMA resets released.
-pub const PRIV_RESETS_DEASSERT: u32 = 0x7;
+/// The function released (bits 1:0); the integrated DMA's reset (bit 2)
+/// stays asserted, as driver.i2c_pci0 keeps it: every byte moves by
+/// programmed I/O, and a DMA engine let out could master the bus.
+pub const PRIV_RESETS_DEASSERT: u32 = 0x3;
 /// The capabilities register: its type field (bits 7:4) says I2C (0), UART
 /// (1) or SPI (2).
 pub const PRIV_CAPS: u64 = PRIV + 0xFC;

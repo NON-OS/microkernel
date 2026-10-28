@@ -20,6 +20,7 @@ mod boot;
 mod boot_disk;
 mod boot_evidence;
 mod dev;
+mod firmware_package;
 mod init;
 mod install_source;
 mod loader_path;

@@ -21,7 +21,7 @@ use super::bulk2::pair;
 use crate::env::{Clock, Mem, Regs};
 use crate::server::context::Ctx;
 use crate::server::reply::{bytes, status};
-use crate::wire::{Request, E_INVAL};
+use crate::wire::{Request, E_INVAL, E_IO};
 use crate::xfer::bulk_run::reset as reset_ed;
 
 /// `slot, which`: bit 0 the IN pipe, bit 1 the second pair. The next
@@ -42,6 +42,8 @@ pub fn reset<R: Regs, C: Clock, M: Mem>(
     let Some((i, o)) = pair(dev, which >> 1) else { return status(tx, req, E_INVAL) };
     let ep = if which & 1 == 1 { *i } else { *o };
     let op = cx.table.op;
-    reset_ed((&cx.mem, &mut cx.io, &cx.clock), op, &ep);
-    bytes(tx, req, &[0; 4])
+    match reset_ed((&cx.mem, &mut cx.io, &cx.clock), op, &ep) {
+        Ok(()) => bytes(tx, req, &[0; 4]),
+        Err(_) => status(tx, req, E_IO),
+    }
 }

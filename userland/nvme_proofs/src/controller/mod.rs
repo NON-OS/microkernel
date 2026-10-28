@@ -24,6 +24,8 @@ mod doorbells_fit;
 mod info_type;
 #[path = "../../../capsule_driver_nvme/src/controller/info/is_nvme_register_block.rs"]
 mod is_nvme_register_block;
+#[path = "../../../capsule_driver_nvme/src/controller/info/max_queue_entries.rs"]
+mod max_queue_entries;
 #[path = "../../../capsule_driver_nvme/src/controller/info/min_page_shift.rs"]
 mod min_page_shift;
 #[path = "../../../capsule_driver_nvme/src/controller/info/read.rs"]

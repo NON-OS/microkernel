@@ -40,9 +40,9 @@ mod dma_back;
 mod dma_order;
 mod grants;
 mod log;
-mod pci_bits;
 #[path = "../../../libc/src/broker/mmio_access.rs"]
 mod mmio_access;
+mod pci_bits;
 mod refuse;
 mod released;
 mod types;
@@ -58,12 +58,12 @@ pub use dma_back::{live_dma, mk_dma_unmap};
 pub use dma_order::{dma_mb, dma_rmb, dma_wmb};
 pub use grants::{mk_irq_bind, mk_irq_unbind, mk_mmio_map, mk_mmio_unmap};
 pub use log::{seen, watch};
-pub use pci_bits::*;
 pub use mmio_access::{
     mmio_read16, mmio_read32, mmio_read64, mmio_read8, mmio_write16, mmio_write32, mmio_write64,
     mmio_write8,
 };
-pub use refuse::{refuse, refuse_after};
+pub use pci_bits::*;
+pub use refuse::{grant_short, refuse, refuse_after};
 pub use released::{bus_master_off, bus_master_off_after_stop, released_last};
 pub use types::{Bar, DmaMapOut, IrqBindOut, MmioMapOut, BAR_KIND_MMIO, BAR_KIND_PIO};
 

@@ -37,7 +37,12 @@ pub(super) fn ready() -> Result<Driver, Step> {
     }
     match driver.stage_within(CALL_MS) {
         Some(DriverStage::Ready) => {}
-        Some(DriverStage::NoAirPath) => return Err(Step::Done),
+        // No firmware it could ever run: a card it has no air path for, or a
+        // firmware package missing or not the pinned files. None of it
+        // changes before the next boot.
+        Some(
+            DriverStage::NoAirPath | DriverStage::PackageMissing | DriverStage::PackageMismatch,
+        ) => return Err(Step::Done),
         _ => return Err(Step::NotYet),
     }
     if driver.link_within(CALL_MS).is_some_and(|l| l.associated) {

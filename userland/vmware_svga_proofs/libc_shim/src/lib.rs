@@ -25,7 +25,7 @@ pub mod surface_registry;
 
 pub use broker::PioGrantOut;
 pub use broker::{calls, mk_device_claim, mk_device_release, mk_pio_grant, mk_pio_release};
-pub use ipc::{mk_debug, mk_ipc_reply, replies, Deadline};
+pub use ipc::{mk_debug, mk_ipc_reply, mk_yield, replies, Deadline};
 pub use mmio::{mk_mmio_map, mk_mmio_unmap, set_bar, MmioMapOut};
 pub use surface::{
     fail_surface, mk_mmap, mk_munmap, mk_surface_register, surfaces, SurfaceDescriptor,

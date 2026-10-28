@@ -20,6 +20,8 @@
 
 extern crate alloc;
 
+#[path = "../../capsule_driver_uvc/src/alt.rs"]
+pub mod alt;
 #[path = "../../capsule_driver_uvc/src/batch.rs"]
 pub mod batch;
 #[path = "../../capsule_driver_uvc/src/gate.rs"]
@@ -32,6 +34,8 @@ pub mod listing;
 pub mod wire;
 
 #[cfg(test)]
+mod alt_tests;
+#[cfg(test)]
 mod bound_tests;
 #[cfg(test)]
 mod camera_tests;
@@ -39,6 +43,8 @@ mod camera_tests;
 mod frame_tests;
 #[cfg(test)]
 mod gate_tests;
+#[cfg(test)]
+mod heap_tests;
 #[cfg(test)]
 mod hostile_tests;
 #[cfg(test)]
@@ -51,5 +57,9 @@ mod payload_sweep;
 mod payload_sweep_tests;
 #[cfg(test)]
 mod probe_tests;
+#[cfg(test)]
+mod short_frame_tests;
+#[cfg(test)]
+mod shown_first_tests;
 #[cfg(test)]
 mod webcam;

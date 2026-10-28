@@ -61,7 +61,7 @@ impl Bss {
             let _ = fw.command(
                 LONG_GROUP,
                 PHY_CONTEXT_CMD,
-                &phy_context(ACTION_REMOVE, self.target.channel),
+                &phy_context(ACTION_REMOVE, self.target.channel, fw.dev.speaks.cdb),
             );
         }
         self.stage = Stage::Down;

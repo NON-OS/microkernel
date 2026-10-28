@@ -20,7 +20,9 @@ use super::bulk::{arm, ended, BulkEp};
 use super::failed::CtrlError;
 use crate::env::{Clock, Mem, Regs};
 use crate::facts::bounds::BULK_MS;
+use crate::sched::advance::Dead;
 use crate::sched::layout::{BULK_BUF, BULK_MAX, BULK_QTD};
+use crate::sched::qh::chars;
 use crate::sched::queue::wait;
 use crate::sched::take::take_back;
 
@@ -41,7 +43,26 @@ pub fn bulk<M: Mem, R: Regs, C: Clock>(
 }
 
 /// DATA0 next, as the device is after CLEAR_FEATURE(ENDPOINT_HALT); also
-/// what a slot's end does to its QHs.
-pub fn reset<M: Mem, R: Regs, C: Clock>(mrc: (&M, &mut R, &C), op: u32, ep: &BulkEp) {
-    take_back(mrc, op, ep.ring, false, None);
+/// what a slot's end does to its QHs. Err: the controller is dead.
+pub fn reset<M: Mem, R: Regs, C: Clock>(
+    mrc: (&M, &mut R, &C),
+    op: u32,
+    ep: &BulkEp,
+) -> Result<(), Dead> {
+    take_back(mrc, op, ep.ring, false, None)
+}
+
+/// A pair's QHs set for their endpoints, DATA0 next: taken from the ring
+/// for them. Err: the controller is dead.
+pub fn configure<M: Mem, R: Regs, C: Clock>(
+    (m, r, c): (&M, &mut R, &C),
+    op: u32,
+    (i, o): (&BulkEp, &BulkEp),
+) -> Result<(), Dead> {
+    let mut set = |ep: &BulkEp| {
+        let ch = ep.link.chars(chars(ep.addr, ep.ep, ep.mps, false), false);
+        take_back((m, &mut *r, c), op, ep.ring, false, Some((ch, ep.link.caps(false))))
+    };
+    set(i)?;
+    set(o)
 }

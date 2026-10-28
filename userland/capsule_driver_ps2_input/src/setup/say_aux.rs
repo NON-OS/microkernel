@@ -19,9 +19,9 @@
 
 use super::marker::marker;
 
-/// No aux port in the device list, or its interrupt line not bound.
+/// No aux port in the device list, or its record not claimed.
 pub(super) fn say_no_aux() {
-    marker(b"[driver_ps2] aux port: none listed or no line, PS/2 pointer off\n");
+    marker(b"[driver_ps2] aux port: none listed or not claimed, PS/2 pointer off\n");
 }
 
 /// What `enable_mouse` answered.

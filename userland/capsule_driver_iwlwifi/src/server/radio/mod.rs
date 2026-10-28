@@ -47,5 +47,6 @@ mod sweep_end;
 mod tick;
 mod view;
 
+pub use clock::Uptime;
 pub use state::Radio;
 use state::{State, REST_MS};

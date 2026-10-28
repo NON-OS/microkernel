@@ -32,16 +32,15 @@ pub fn install_source(
     intent: BootIntent,
     evidence: [Module; 3],
 ) -> InstallHandoff {
-    let loader = match load_file_from_esp(st, super::loader_path::LOADER_PATH) {
-        Ok(bytes) => region(Vec::leak(bytes), MODULE_KIND_LOADER_IMAGE),
-        Err(_) => Module::default(),
-    };
+    let loader = load_file_from_esp(st, super::loader_path::LOADER_PATH)
+        .map_or(Module::default(), |b| region(Vec::leak(b), MODULE_KIND_LOADER_IMAGE));
     let (store, mirror) = boot_disk(st);
     InstallHandoff {
         source: [loader, region(kernel_data, MODULE_KIND_KERNEL_IMAGE), boot_media(st)],
         evidence,
         store,
         mirror,
+        firmware: super::firmware_package::firmware_package(st),
         requested: intent == BootIntent::Install,
         profile: 0,
     }

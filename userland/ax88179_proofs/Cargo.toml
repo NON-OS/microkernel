@@ -1,0 +1,20 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the AX88179 driver: the shipped ax module runs
+# here through #[path], binding a scripted AX88179 (its descriptors and
+# its vendor register answers) and moving frames through it, held to a
+# model of the vendor requests its bring-up must send.
+[package]
+name = "ax88179_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_usbnet = { package = "usbnet_proofs", path = "../usbnet_proofs" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

@@ -38,6 +38,8 @@ mod hmb_layout_tests;
 mod hmb_plan_tests;
 #[cfg(test)]
 mod hostile_tests;
+#[cfg(test)]
+mod idle_tests;
 #[cfg(kani)]
 mod kani_proofs;
 #[path = "../../capsule_driver_nvme/src/server/medium_rule.rs"]

@@ -4,6 +4,8 @@ Status: wired, not yet signed. The kernel mirror (`src/hardware/igc_capsule`)
 embeds and spawns it under `nonos-capsule-driver-igc` (the
 `microkernel-driver-igc` build), the broker scope row `driver.igc_0` admits
 its id list, and net.core and net.l2 reach it through
+`src/services/registry/nics.rs`. It has no owner certificate yet, so no image
+carries it until the owner signs it.
 
 ## Role
 
@@ -44,7 +46,8 @@ No interrupt is bound and IMS is never written.
 
 Same operations as `driver.e1000_0`: `OP_HEALTHCHECK`, `OP_LINK_STATUS`
 (1 byte), `OP_MAC_ADDRESS` (6 bytes), `OP_TX_PACKET`, `OP_RX_PACKET`
-(length and frame), `OP_STATS` (48-byte snapshot).
+(length and frame), `OP_RX_BATCH` (every waiting frame, numbered, kept
+until the next number), `OP_STATS` (48-byte snapshot).
 
 ## Authority
 
@@ -121,6 +124,7 @@ line and a `link up` line, and DHCP completing through `net.core`.
 
 ## Release checklist
 
+- Sealed by the owner (the kernel mirror and the stack are wired).
 - One I225/I226 boot photographed with the lines in `docs/hardware/igc.md`.
 
 ## Explicit non-goals today

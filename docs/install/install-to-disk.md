@@ -43,13 +43,13 @@ Escape steps back. On Welcome and on Stopped it closes the installer, and on Don
 
 ## Which disks are offered
 
-The Disks screen lists every disk the NVMe, SATA and virtio-blk drivers serve. eMMC and UFS installs are not in 0.9.3: their driver capsules have no publisher key and are not in a shipped image. Each row gives the model or the bus, the size, the serial, the block size when it is not 512 bytes, and what the disk holds now: `blank`, `NONOS installed`, `another system (GPT)`, `another system (MBR)`, `unrecognised contents` or `did not answer a read`.
+The Disks screen lists every disk the NVMe, SATA and virtio-blk drivers serve. eMMC and UFS installs are not in 0.9.3: their driver capsules have no publisher key and are not in a shipped image. Each row gives the model or the bus, the size, the serial, the block size when it is not 512 bytes, and what the disk holds now: `blank`, `NONOS installed`, `another system (GPT)`, `another system (MBR)`, `holds data, but no partition table NONOS knows` or `did not answer a read`.
 
 Some rows are not targets, and say why:
 
 - The stick this boot came from is left off the list, by the loader's record of its partition.
 - A disk that holds a copy of the running loader, with no such record to tell it from the stick, reads `holds the loader this boot ran, so it may be the boot disk: not offered`.
-- A controller whose driver did not start reads, for example, `NVMe controller present, its driver did not come up`.
+- A controller that gave no disk reads, for example, `SATA controller found, no disk on it (empty, or its driver did not start)`. Many laptops have a SATA controller with nothing on it beside an NVMe disk; that line is then expected and harmless.
 - A disk whose first sectors do not read reads `its first sectors did not read:` with the driver's status, and `not offered`.
 
 USB disks never appear: the list asks those three drivers only. While the list has nothing to install to, or a driver is missing, it looks again every two seconds, or after four times as long as the last look took when that is longer. Press `r` to look at once. With no disk and an Intel RST or VMD controller on the bus, the screen says `Intel RST/VMD is on: set the BIOS storage mode to AHCI (or turn VMD off), then boot this stick again.` It adds that a Windows already on the computer may need switching to AHCI first, or it will not start after the change.

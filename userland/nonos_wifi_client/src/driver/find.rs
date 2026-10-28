@@ -47,6 +47,12 @@ impl Driver {
         self.label
     }
 
+    /// Whether this is the Intel driver, whose status reply carries its
+    /// bring-up step and detail word after the stage (`StopWhy::intel`).
+    pub(super) fn is_intel(&self) -> bool {
+        self.name == b"driver.iwlwifi0"
+    }
+
     /// Whether this driver runs a join. One that does not is never sent a
     /// passphrase.
     pub fn joins(&self) -> bool {

@@ -8,11 +8,9 @@
 
 //! Which Intel Wi-Fi generation a PCI device id is, grouped as Linux's
 //! pcie/drv.c `iwl_hw_card_ids` groups it, and whether this driver boots it.
-//! Only the AX210 family's gen3 context-info boot is written (SO, TY and MA
-//! MACs, `gen3::select::transport`), and of those only the platforms whose
-//! firmware the tree carries run (`carried`). Every other generation is named
-//! so the boot log says which card the machine has and that its boot path is
-//! missing, rather than leaving the card unmentioned.
+//! A card boots when its firmware is carried (`carried`). Every other
+//! generation is named so the boot log says which card the machine has and
+//! that its boot path is missing, rather than leaving the card unmentioned.
 
 use super::carried::runs;
 use super::family::{family_for_device, Family};
@@ -27,20 +25,33 @@ pub struct Named {
     pub boots: bool,
 }
 
-const fn n(what: &'static str, linux_fw: &'static str) -> Option<Named> {
-    Some(Named { what, linux_fw, boots: false })
-}
-
 pub fn name(device: u16) -> Option<Named> {
-    if runs(device) {
-        let what = "AX210 family (AX211 or AX201 on an SO platform), gen3 context info";
-        return Some(Named { what, linux_fw: "iwlwifi-so-a0-*.ucode", boots: true });
-    }
-    if transport(device).is_some() {
-        let what = "AX210 family (discrete AX210 or Meteor Lake), its firmware not carried";
-        return n(what, "iwlwifi-ty-a0-gf-a0 or ma-b0-gf-a0-*.ucode");
-    }
+    let boots = runs(device);
+    let n = |what, linux_fw| Some(Named { what, linux_fw, boots });
     match device {
+        0x272B | 0xA840 | 0x7740 | 0x4D40 => n(
+            "BE200 or BE201 (BZ family, Wi-Fi 7), gen3 context info, v2 CSR",
+            "iwlwifi-gl-c0/bz-b0-fm-c0-92.ucode",
+        ),
+        0x2725 => n(
+            "AX210 family, discrete AX210 (TY MAC), gen3 context info",
+            "iwlwifi-ty-a0-gf-a0-86.ucode",
+        ),
+        0x2729 | 0x7E40 => n(
+            "AX210 family, Meteor Lake CNVi (MA MAC), gen3 context info",
+            "iwlwifi-ma-b0-gf-a0 or -gf4-a0-86.ucode",
+        ),
+        0x2723 => n("AX200 (22000 family, discrete), context info", "iwlwifi-cc-a0-77.ucode"),
+        // The Qu and QuZ MACs carry an HR radio (AX201, run) or a JF one
+        // (9461, 9462, 9560, whose image is not carried); the RF id says.
+        0x02F0 | 0x06F0 | 0x34F0 | 0x3DF0 | 0x43F0 | 0x4DF0 | 0xA0F0 => n(
+            "AX201 or 9560 CNVi (22000 family, Qu/QuZ MAC), context info",
+            "iwlwifi-Qu-b0/Qu-c0/QuZ-a0-hr-b0-77.ucode (JF: -jf-b0, not carried)",
+        ),
+        _ if transport(device).is_some() => n(
+            "AX210 family (AX211 or AX201 on an SO platform), gen3 context info",
+            "iwlwifi-so-a0-*.ucode",
+        ),
         0x08B1 | 0x08B2 => n("7260 (7000 family)", "iwlwifi-7260-17.ucode"),
         0x08B3 | 0x08B4 => n("3160 (7000 family)", "iwlwifi-3160-17.ucode"),
         0x095A | 0x095B => n("7265 (7000 family)", "iwlwifi-7265D-29.ucode"),
@@ -55,14 +66,6 @@ pub fn name(device: u16) -> Option<Named> {
         0x30DC | 0x31DC | 0x9DF0 | 0xA370 => {
             n("9461, 9462 or 9560 CNVi (9000 family)", "iwlwifi-9000-pu-b0-jf-b0-46.ucode")
         }
-        0x2723 => n("AX200 (22000 family, discrete)", "iwlwifi-cc-a0-77.ucode"),
-        // The Qu and QuZ MACs carry an HR radio (AX201) or a JF one (9461,
-        // 9462, 9560); the RF id read at bring-up says which.
-        0x02F0 | 0x06F0 | 0x34F0 | 0x3DF0 | 0x43F0 | 0x4DF0 | 0xA0F0 => n(
-            "AX201 or 9560 CNVi (22000 family, Qu/QuZ MAC)",
-            "iwlwifi-Qu/QuZ-*-hr-b0 or -jf-b0-77.ucode",
-        ),
-        0x272B | 0xA840 => n("BE200 or BE201 (BZ family, Wi-Fi 7)", "iwlwifi-gl/bz-*-fm-*.ucode"),
         _ if family_for_device(device) == Some(Family::Ax210) => {
             n("AX210 family id without transport values", "iwlwifi-so/ty/ma-*.ucode")
         }

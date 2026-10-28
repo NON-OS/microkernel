@@ -27,7 +27,7 @@ mod setup;
 mod start;
 mod vstor;
 
-use nonos_libc::{heap_init, mk_exit, start_driver, EXIT_ABSENT};
+use nonos_libc::{bringup::EXIT_EMPTY, heap_init, mk_exit, start_driver};
 use nonos_scsi_serve::{say, server};
 
 const DRIVER: &[u8] = b"driver.storvsc";
@@ -43,6 +43,7 @@ const EXIT_HEAP_INIT: i32 = 1;
 /// the channel, starts the protocol and scans the targets, giving
 /// everything back when a step fails; the attempts are bounded and slept
 /// between. A controller with nothing on it is given back too.
+/// It leaves with EXIT_EMPTY, not EXIT_ABSENT: the controller is there.
 ///
 /// # Safety
 /// The kernel enters here once, on the capsule's own fresh stack.
@@ -58,7 +59,7 @@ pub unsafe extern "C" fn _start() -> ! {
     if driver.units.count() == 0 {
         driver.release();
         say::no_disk(NAME);
-        mk_exit(EXIT_ABSENT);
+        mk_exit(EXIT_EMPTY);
     }
     for (unit, d) in driver.units.disks.iter().enumerate() {
         if let Some(d) = d {

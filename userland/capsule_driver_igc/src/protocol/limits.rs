@@ -29,3 +29,8 @@ pub const LINK_STATUS_PAYLOAD_LEN: usize = 1;
 pub const STATS_PAYLOAD_LEN: usize = 48;
 // rx_packet body: u32 length followed by frame bytes.
 pub const RX_PAYLOAD_PREFIX_LEN: usize = 4;
+/// Frames one batch carries at most: most of the 32-slot ring, so the part
+/// keeps buffers to fill while the batch is on its way.
+pub const BATCH_MAX_FRAMES: usize = 24;
+/// Batch body bytes at most; net.core's reply buffer holds 64 KiB.
+pub const BATCH_MAX_BYTES: usize = 64 * 1024;
