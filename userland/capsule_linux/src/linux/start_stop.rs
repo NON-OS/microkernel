@@ -25,6 +25,15 @@ pub(super) fn stop(why: &str, code: i32) -> ! {
     mk_exit(code)
 }
 
+/// The kernel gave no guest; `pid` is its errno, negated.
+pub(super) fn no_guest(pid: i64) -> ! {
+    super::file::clear_private();
+    super::say::say(b"[LINUX] no guest, errno ");
+    let e = (-pid) as u32;
+    super::say::say(&[b'0' + (e / 10 % 10) as u8, b'0' + (e % 10) as u8, b'\n']);
+    stop("the kernel gave no guest", 1)
+}
+
 /// A start step's log line as the reason a report gives.
 pub(super) fn why(step: &[u8]) -> &str {
     let line = core::str::from_utf8(step).unwrap_or("refused").trim();

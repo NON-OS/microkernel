@@ -28,6 +28,7 @@ use crate::userspace::capsule_linux::{package_arg, spawn_install};
 use super::status::Stage;
 
 pub(super) fn install(listing: &str, release: &str) {
+    super::detail::bind(listing, 0);
     let (release, direct) = super::direct::split(listing, release);
     if direct {
         println(b"[LINUX-INSTALL] the person chose a direct download of this tier's model");
@@ -47,6 +48,7 @@ pub(super) fn install(listing: &str, release: &str) {
     match spawn_install(&name, &hash, market, direct) {
         Ok(pid) => {
             super::status::set(listing, Stage::Running(pid));
+            super::detail::bind(listing, pid);
             let mut l = Line::new();
             l.str(if policy.is_some() {
                 b"[LINUX-INSTALL] started, in its release's box "

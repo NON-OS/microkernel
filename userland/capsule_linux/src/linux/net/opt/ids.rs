@@ -29,6 +29,7 @@ pub const SO_BROADCAST: u64 = 6;
 pub const SO_SNDBUF: u64 = 7;
 pub const SO_RCVBUF: u64 = 8;
 pub const SO_KEEPALIVE: u64 = 9;
+pub const SO_OOBINLINE: u64 = 10;
 pub const SO_LINGER: u64 = 13;
 pub const SO_REUSEPORT: u64 = 15;
 pub const SO_RCVTIMEO: u64 = 20;

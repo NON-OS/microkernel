@@ -27,6 +27,7 @@ pub(super) mod choose;
 pub(super) mod hold;
 pub(super) mod minted;
 mod run;
+mod tail;
 pub(super) mod take;
 
 pub use run::install_from;

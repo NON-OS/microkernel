@@ -22,3 +22,14 @@ pub(super) fn refuse(line: &[u8], why: Why) -> Result<(), Why> {
     let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
     Err(why)
 }
+
+/// Which package and which check stopped the install, as "name-version
+/// (check)", for the person who asked and no one else: init keeps it in
+/// memory for this listing only, and it never reaches the debug line.
+pub(super) fn tell(name: &str, version: &str, check: &str) {
+    let line = match version.is_empty() {
+        true => alloc::format!("{name} ({check})"),
+        false => alloc::format!("{name}-{version} ({check})"),
+    };
+    let _ = nonos_libc::mk_app_install_tell(line.as_bytes());
+}

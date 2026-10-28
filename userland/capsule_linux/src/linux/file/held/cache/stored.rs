@@ -31,10 +31,11 @@ use crate::linux::whole::{ask, whole};
 use super::super::super::root::Key;
 use super::super::super::store;
 use super::table::{now, MAX_FILE};
+use super::too_large::too_large;
 
 /* The bytes of the file at `key` and when it last changed. */
 pub(super) fn stored(key: &Key) -> Result<(Vec<u8>, u64), i64> {
     let at = store::stat_full(key).map_or_else(|_| now(), |s| s.2);
     let data = store::read(key, ask(MAX_FILE as u32)).map_err(|_| errno::EIO)?;
-    Ok((whole(data, MAX_FILE as u32).ok_or(errno::EFBIG)?, at))
+    Ok((whole(data, MAX_FILE as u32).ok_or_else(too_large)?, at))
 }

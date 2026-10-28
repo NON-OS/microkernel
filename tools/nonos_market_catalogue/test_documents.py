@@ -61,7 +61,7 @@ class Documents(unittest.TestCase):
             self.assertEqual(doc["schema_version"], 4)
             self.assertEqual(int.from_bytes(p[48:56], "little"), recipe["mask"], e["listing_id"])
             self.assertEqual(p[152:217], recipe["calls"], e["listing_id"])
-            self.assertEqual((p[256:], e["description"]), (recipe["args"], recipe["text"]), e["listing_id"])
+            self.assertEqual((p[256:], e["description"]), (recipe["args"] + recipe.get("with_block", b""), recipe["text"]), e["listing_id"])
             self.assertEqual((p[56:88], p[88:120]), (lid, release_id(lid, rel["release_id"])))
             self.assertEqual((e["commerce"]["settle_mode"], rel["package_hash"]), ("free", rel["manifest_hash"]))
             got = f"/{rel['package_hash']}.tar" if recipe.get("kind") else f"/{rel['release_id'].replace('@', '-')}.apk"
