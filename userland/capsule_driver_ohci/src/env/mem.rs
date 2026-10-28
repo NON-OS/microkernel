@@ -18,6 +18,10 @@
 //! the CPU by offset. Every word is read and written whole and volatile,
 //! since the controller writes TD status while the CPU looks.
 
+/// An access outside the schedule region: refused, never made.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub struct OutOfRegion;
+
 pub trait Mem {
     /// The bus address of offset `off`, below 4 GiB.
     fn bus(&self, off: usize) -> u32;
@@ -25,4 +29,9 @@ pub trait Mem {
     fn wr(&self, off: usize, v: u32);
     fn read_bytes(&self, off: usize, out: &mut [u8]);
     fn write_bytes(&self, off: usize, src: &[u8]);
+    /// An access outside the region since the last asking, then
+    /// forgotten: the request that made it is answered E_IO.
+    fn fault(&self) -> Result<(), OutOfRegion> {
+        Ok(())
+    }
 }

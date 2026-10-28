@@ -8,6 +8,7 @@ version = "0.1.0"
 dependencies = [
  "nonos_usb_hub",
  "nonos_usb_virt",
+ "uhci_proofs_libc_shim",
 ]
 
 [[package]]
@@ -17,3 +18,7 @@ version = "0.3.0"
 [[package]]
 name = "nonos_usb_virt"
 version = "0.3.0"
+
+[[package]]
+name = "uhci_proofs_libc_shim"
+version = "0.1.0"

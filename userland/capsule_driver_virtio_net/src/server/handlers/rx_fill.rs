@@ -27,9 +27,11 @@ use crate::rx::take_one;
 use crate::scrub::scrub;
 
 /// A batch body, `[u32 count]` then `[u32 len][frame]` per frame, or `None`
-/// when nothing is waiting. A frame is taken only while the longest one
+/// when no frame is waiting. A frame is taken only while the longest one
 /// take_one hands on could still fit, since a frame off the ring cannot be
 /// put back; each buffer goes back to the device as its frame is copied.
+/// An entry take_one dropped (its 0) is no frame and takes no place in the
+/// batch, but counts toward the entries one batch may take.
 pub fn fill(rx: &mut RxQueue) -> Option<Vec<u8>> {
     let mut frame = [0u8; MAX_ETHERNET_FRAME];
     let mut next = take_one(rx, &mut frame);
@@ -38,20 +40,21 @@ pub fn fill(rx: &mut RxQueue) -> Option<Vec<u8>> {
     // copies of earlier frames behind in the memory it moved out of.
     let mut body = Vec::with_capacity(BATCH_MAX_BYTES);
     body.extend_from_slice(&0u32.to_le_bytes());
-    let mut count = 0u32;
+    let (mut count, mut entries) = (0u32, 0usize);
     while let Some(len) = next {
-        let bytes = frame.get(..len).unwrap_or(&[]);
-        body.extend_from_slice(&(bytes.len() as u32).to_le_bytes());
-        body.extend_from_slice(bytes);
-        count += 1;
+        entries += 1;
+        if let Some(bytes) = frame.get(..len).filter(|b| !b.is_empty()) {
+            body.extend_from_slice(&(bytes.len() as u32).to_le_bytes());
+            body.extend_from_slice(bytes);
+            count += 1;
+        }
         let room = body.len() + RX_PAYLOAD_PREFIX_LEN + MAX_ETHERNET_FRAME <= BATCH_MAX_BYTES;
-        next = if room && (count as usize) < BATCH_MAX_FRAMES {
-            take_one(rx, &mut frame)
-        } else {
-            None
-        };
+        next = if room && entries < BATCH_MAX_FRAMES { take_one(rx, &mut frame) } else { None };
     }
     scrub(&mut frame);
+    if count == 0 {
+        return None;
+    }
     body[..4].copy_from_slice(&count.to_le_bytes());
     Some(body)
 }

@@ -29,8 +29,8 @@ pub(in crate::userspace::init) fn spawn_display_core() {
 
 #[cfg(feature = "microkernel-input-probe")]
 pub(in crate::userspace::init) fn spawn_display_core() {}
-
 pub(in crate::userspace::init) fn spawn_drivers() {
+    crate::hardware::inventory::report::say();
     super::drivers_virtio::spawn();
     super::platform_acpi::spawn();
     super::vm::spawn_bus();

@@ -35,71 +35,16 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use crate::gen3::region::{Clock, Region};
+use crate::gen3::region::Region;
 use crate::gen3::regs::*;
 use crate::regs::Mmio;
+pub use mem::{Mem, Polls};
 
-pub struct Mem {
-    pub bytes: RefCell<Vec<u8>>,
-    pub dev: u64,
-}
-
-impl Mem {
-    pub fn new(len: usize, dev: u64) -> Rc<Self> {
-        Rc::new(Self { bytes: RefCell::new(vec![0; len]), dev })
-    }
-}
-
-impl Region for Mem {
-    fn len(&self) -> usize {
-        self.bytes.borrow().len()
-    }
-    fn dev(&self) -> u64 {
-        self.dev
-    }
-    fn write(&self, off: usize, src: &[u8]) -> bool {
-        let mut b = self.bytes.borrow_mut();
-        match off.checked_add(src.len()) {
-            Some(end) if end <= b.len() => {
-                b[off..end].copy_from_slice(src);
-                true
-            }
-            _ => false,
-        }
-    }
-    fn read(&self, off: usize, dst: &mut [u8]) -> bool {
-        let b = self.bytes.borrow();
-        match off.checked_add(dst.len()) {
-            Some(end) if end <= b.len() => {
-                dst.copy_from_slice(&b[off..end]);
-                true
-            }
-            _ => false,
-        }
-    }
-}
-
-/// A clock that re-checks a condition a fixed number of times. Its time is
-/// `delays_us`: a settle adds its length, a wait that runs out adds the whole
-/// wait, and a wait that is answered adds a millisecond.
-pub struct Polls {
-    pub per_wait: u32,
-    pub delays_us: u64,
-}
-
-impl Clock for Polls {
-    fn poll_for(&mut self, ms: u32, ready: &mut dyn FnMut() -> bool) -> bool {
-        let met = (0..self.per_wait).any(|_| ready());
-        self.delays_us += if met { 1000 } else { u64::from(ms) * 1000 };
-        met
-    }
-    fn delay_us(&mut self, us: u32) {
-        self.delays_us += us as u64;
-    }
-    fn now_ms(&mut self) -> u64 {
-        self.delays_us / 1000
-    }
-}
+pub mod gen2;
+mod mem;
+mod queues;
+mod tx;
+mod v2;
 
 /// A command the device saw: group, opcode, sequence, payload.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -184,6 +129,16 @@ pub struct State {
     /// A frame delivered again each time the host looks for the interrupt
     /// cause: a channel that is never quiet.
     pub flood: Option<Out>,
+    /// The device speaks the V2 (BZ) CSR layout, and only it.
+    pub v2: bool,
+    /// The device is a 22000-family part (`gen2`): its context info's
+    /// address, peripheral values to read back, packets per buffer.
+    pub gen2: bool,
+    pub ctxt_ba: u64,
+    pub prph_vals: HashMap<u32, u32>,
+    pub pack: usize,
+    /// Every register write, in order.
+    pub writes: Vec<(usize, u32)>,
 }
 
 #[derive(Clone)]
@@ -215,6 +170,12 @@ impl Model {
             fw_error_after: None,
             txq: None,
             flood: None,
+            v2: false,
+            gen2: false,
+            ctxt_ba: 0,
+            prph_vals: HashMap::new(),
+            pack: 1,
+            writes: Vec::new(),
         };
         Self { s: Rc::new(RefCell::new(s)), ctrl, rbs }
     }
@@ -236,25 +197,11 @@ impl Model {
             if stocked == 0 {
                 break;
             }
-            let out = s.queued.remove(0);
-            let fr = crate::gen3::plan::RX_FREE + s.fr_read * 16;
-            let mut d = [0u8; 16];
-            self.ctrl.read(fr, &mut d);
-            let vid = u16::from_le_bytes([d[0], d[1]]);
-            let addr = u64::from_le_bytes(d[8..16].try_into().unwrap());
-            let off = (addr - self.rbs.dev) as usize;
-            let mut pkt = Vec::new();
-            let len = (4 + out.payload.len()) as u32;
-            pkt.extend_from_slice(&len.to_le_bytes());
-            pkt.push(out.cmd);
-            pkt.push(out.group);
-            pkt.extend_from_slice(&out.seq.to_le_bytes());
-            pkt.extend_from_slice(&out.payload);
-            self.rbs.write(off, &pkt);
-            let ud = crate::gen3::plan::RX_USED + s.ur_write * 32;
-            let mut cd = [0u8; 32];
-            cd[4..6].copy_from_slice(&vid.to_le_bytes());
-            self.ctrl.write(ud, &cd);
+            let n = if s.gen2 { s.pack.clamp(1, s.queued.len()) } else { 1 };
+            let outs: Vec<Out> = s.queued.drain(..n).collect();
+            let (vid, off) = gen2::free_entry(&self.ctrl, &self.rbs, s.fr_read, s.gen2);
+            self.rbs.write(off, &gen2::packets(&outs, s.gen2));
+            gen2::put_used(&self.ctrl, s.ur_write, vid, s.gen2, s.v2);
             s.fr_read = (s.fr_read + 1) & (RX_RING - 1);
             s.ur_write = (s.ur_write + 1) & (RX_RING - 1);
             let closed = s.ur_write as u16;
@@ -264,23 +211,11 @@ impl Model {
 
     fn prph_write(&self, addr: u32, val: u32) {
         self.s.borrow_mut().prph.push((addr, val));
-        if addr == UREG_CPU_INIT_RUN + 0x30_0000 && val == 1 {
-            let (no_alive, status, sku) = {
-                let s = self.s.borrow();
-                (s.no_alive, s.alive_status, s.alive_sku)
-            };
-            if no_alive {
-                return;
-            }
-            let mut s = self.s.borrow_mut();
-            *s.regs.entry(CSR_INT).or_insert(0) |= INT_BIT_ALIVE;
-            let mut p = vec![0u8; 144];
-            p[0..2].copy_from_slice(&status.to_le_bytes());
-            p[100..104].copy_from_slice(&0x4Au32.to_le_bytes());
-            for (i, w) in sku.iter().enumerate() {
-                p[116 + 4 * i..120 + 4 * i].copy_from_slice(&w.to_le_bytes());
-            }
-            s.queued.push(Out { cmd: 0x01, group: 0, seq: 0x8000, payload: p });
+        if self.s.borrow().gen2 {
+            return self.gen2_prph(addr, val);
+        }
+        if addr == UREG_CPU_INIT_RUN + 0x30_0000 && val == 1 && !self.s.borrow().v2 {
+            self.raise_alive();
         }
         if addr == UREG_DOORBELL_TO_ISR6 + 0x30_0000 && val & UREG_DOORBELL_TO_ISR6_PNVM != 0 {
             self.queue(Out { cmd: 0xFE, group: 0x0C, seq: 0x8000, payload: vec![0; 4] });
@@ -289,20 +224,10 @@ impl Model {
 
     // Decode the command whose doorbell was just rung and answer it.
     fn doorbell(&self, wptr: u32) {
-        let slot = (wptr.wrapping_sub(1) as usize) & 127;
+        let ring = if self.s.borrow().gen2 { 32 } else { 128 };
+        let slot = (wptr.wrapping_sub(1) as usize) & (ring - 1);
         let tfd = crate::gen3::plan::CMD_TFDS + slot * 256;
-        let mut t = [0u8; 256];
-        self.ctrl.read(tfd, &mut t);
-        let n = u16::from_le_bytes([t[0], t[1]]) as usize;
-        let mut bytes = Vec::new();
-        for i in 0..n {
-            let at = 2 + i * 10;
-            let len = u16::from_le_bytes([t[at], t[at + 1]]) as usize;
-            let addr = u64::from_le_bytes(t[at + 2..at + 10].try_into().unwrap());
-            let mut b = vec![0u8; len];
-            self.ctrl.read((addr - self.ctrl.dev) as usize, &mut b);
-            bytes.extend_from_slice(&b);
-        }
+        let bytes: Vec<u8> = queues::buffers(&self.ctrl, tfd).concat();
         let seen = Seen {
             cmd: bytes[0],
             group: bytes[1],
@@ -337,97 +262,6 @@ impl Model {
     }
 }
 
-impl Model {
-    // SCD_QUEUE_CONFIG_CMD, answered by the transmit side when there is one.
-    fn queue_config(&self, c: &Seen) -> Option<Out> {
-        if (c.group, c.cmd) != (0x5, 0x17) {
-            return None;
-        }
-        let mut s = self.s.borrow_mut();
-        let t = s.txq.as_mut()?;
-        let word = |at: usize| u32::from_le_bytes(c.payload[at..at + 4].try_into().unwrap());
-        let mut rsp = vec![0u8; t.queue_reply_len];
-        if word(0) == 0 {
-            let qid = t.next_qid;
-            t.next_qid += 1;
-            let bc = u64::from_le_bytes(c.payload[20..28].try_into().unwrap());
-            let ring = u64::from_le_bytes(c.payload[28..36].try_into().unwrap());
-            t.rings.insert(qid, (ring, bc));
-            if rsp.len() >= 2 {
-                rsp[0..2].copy_from_slice(&qid.to_le_bytes());
-            }
-            Some(reply(c, rsp))
-        } else {
-            // A removal: the queue is the one of this station and TID.
-            Some(reply(c, vec![]))
-        }
-    }
-
-    // Decode the frame queued on `qid` whose doorbell was just rung.
-    fn tx_doorbell(&self, qid: u16, wptr: u32) {
-        let slot = (wptr.wrapping_sub(1) as usize) & 127;
-        let (mem, ring, bc) = {
-            let s = self.s.borrow();
-            let Some(t) = s.txq.as_ref() else { return };
-            let Some(&(ring, bc)) = t.rings.get(&qid) else { return };
-            (t.mem.clone(), ring, bc)
-        };
-        let mut tfd = [0u8; 256];
-        mem.read((ring - mem.dev) as usize + slot * 256, &mut tfd);
-        let n = u16::from_le_bytes([tfd[0], tfd[1]]) as usize;
-        let mut tbs = Vec::new();
-        for i in 0..n {
-            let at = 2 + i * 10;
-            let len = u16::from_le_bytes([tfd[at], tfd[at + 1]]) as usize;
-            let addr = u64::from_le_bytes(tfd[at + 2..at + 10].try_into().unwrap());
-            let mut b = vec![0u8; len];
-            mem.read((addr - mem.dev) as usize, &mut b);
-            tbs.push(b);
-        }
-        let cmd: Vec<u8> = tbs.iter().take(2).flatten().copied().collect();
-        let body: Vec<u8> = tbs.get(2).cloned().unwrap_or_default();
-        let frame_len = u16::from_le_bytes([cmd[4], cmd[5]]) as usize;
-        let hdr_len = frame_len - body.len();
-        let mut frame = cmd[32..32 + hdr_len].to_vec();
-        frame.extend_from_slice(&body);
-        let mut entry = [0u8; 2];
-        mem.read((bc - mem.dev) as usize + slot * 2, &mut entry);
-        let sent = Sent {
-            queue: qid,
-            frame: frame.clone(),
-            flags: u16::from_le_bytes([cmd[6], cmd[7]]),
-            rate: u32::from_le_bytes(cmd[20..24].try_into().unwrap()),
-        };
-        let (air, respond) = {
-            let mut s = self.s.borrow_mut();
-            let t = s.txq.as_mut().unwrap();
-            if u16::from_le_bytes(entry) & 0x3FFF != frame_len as u16 || cmd[0] != 0x1C {
-                t.bc_mismatch += 1;
-            }
-            t.sent.push(sent);
-            (t.air.take(), !t.no_tx_response)
-        };
-        if respond {
-            let mut p = vec![0u8; 48];
-            p[0] = 1;
-            p[36..38].copy_from_slice(&qid.to_le_bytes());
-            p[40] = 1;
-            p[44..46].copy_from_slice(&(wptr as u16).to_le_bytes());
-            let seq = (qid & 0x1F) << 8 | slot as u16;
-            self.queue(Out { cmd: 0x1C, group: 0, seq, payload: p });
-        }
-        if let Some(mut air) = air {
-            let outs = air(&frame);
-            if let Some(t) = self.s.borrow_mut().txq.as_mut() {
-                t.air = Some(air);
-            }
-            for o in outs {
-                self.queue(o);
-            }
-        }
-    }
-}
-
 /// The plain reply to a command: same opcode, group and sequence.
 pub fn reply(c: &Seen, payload: Vec<u8>) -> Out {
     Out { cmd: c.cmd, group: c.group, seq: c.seq, payload }
@@ -445,12 +279,20 @@ impl Mmio for Model {
         let v = *s.regs.get(&off).unwrap_or(&0);
         match off {
             CSR_HW_IF_CONFIG_REG if s.ready_never => v & !HW_IF_CONFIG_NIC_READY,
+            CSR_GP_CNTRL if s.v2 => v2::gp_read(v),
             CSR_GP_CNTRL if v & (GP_INIT_DONE | GP_MAC_ACCESS_REQ) != 0 => v | GP_MAC_CLOCK_READY,
             _ => v,
         }
     }
     fn write32(&self, off: usize, val: u32) {
+        let (v2, g2) = {
+            let mut s = self.s.borrow_mut();
+            s.writes.push((off, val));
+            (s.v2, s.gen2)
+        };
         match off {
+            CSR_GP_CNTRL | HBUS_TARG_WRPTR if v2 && self.v2_write(off, val) => {}
+            _ if g2 && self.gen2_write(off, val) => {}
             CSR_INT | CSR_MSIX_HW_INT_CAUSES_AD => {
                 let mut s = self.s.borrow_mut();
                 let e = s.regs.entry(off).or_insert(0);
@@ -472,7 +314,7 @@ impl Mmio for Model {
                 }
             }
             // Stopping the bus master is acknowledged at once.
-            CSR_RESET if val & RESET_STOP_MASTER != 0 => {
+            CSR_RESET if val & RESET_STOP_MASTER != 0 && !v2 => {
                 self.s.borrow_mut().regs.insert(off, val | RESET_MASTER_DISABLED);
             }
             _ => {

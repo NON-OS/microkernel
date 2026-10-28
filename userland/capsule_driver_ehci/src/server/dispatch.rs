@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One request to its handler; anything not served answers E_INVAL.
+//! One request to its handler; anything not served answers E_INVAL, and
+//! one that reached outside the schedule region E_IO.
 
 use super::context::Ctx;
 use super::handlers::{
@@ -23,9 +24,9 @@ use super::handlers::{
 use super::reply::status;
 use crate::env::{Clock, Mem, Regs};
 use crate::wire::ops::*;
-use crate::wire::{Request, E_INVAL};
+use crate::wire::{Request, E_INVAL, E_IO};
 
-pub fn dispatch<R: Regs, C: Clock, M: Mem>(
+fn route<R: Regs, C: Clock, M: Mem>(
     cx: &mut Ctx<R, C, M>,
     req: &Request,
     body: &[u8],
@@ -51,5 +52,21 @@ pub fn dispatch<R: Regs, C: Clock, M: Mem>(
         OP_ADDRESS_ROUTED => hub::address(cx, req, body, tx),
         OP_CONFIGURE_HUB => hub::configure(cx, req, body, tx),
         _ => status(tx, req, E_INVAL),
+    }
+}
+
+/// `req` served. One whose handler reached outside the schedule region (a
+/// layout bound broken: span.rs refused the access) is answered E_IO,
+/// whatever its handler built.
+pub fn dispatch<R: Regs, C: Clock, M: Mem>(
+    cx: &mut Ctx<R, C, M>,
+    req: &Request,
+    body: &[u8],
+    tx: &mut [u8],
+) -> usize {
+    let n = route(cx, req, body, tx);
+    match cx.mem.fault() {
+        Ok(()) => n,
+        Err(_) => status(tx, req, E_IO),
     }
 }
