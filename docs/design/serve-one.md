@@ -261,7 +261,7 @@ Interfaces the units share, so they can be written apart:
   named `linux.serve.<name>` and held to `name`.
 - wire: as in "The wire" above, magic `NSO1`.
 
-As built, units 3 and 7:
+As built, units 3, 4 and 7:
 - The launch arm. The kernel cannot read an installed package's key when it
   queues a launch: the key is in the policy the install role wrote to the
   personality's store, which only the run reads and checks at start. So
@@ -275,3 +275,8 @@ As built, units 3 and 7:
 - MkForeignWait returns 0, nothing written, once a message comes to the
   caller's own inbox, told once a count so a message left unread does not
   wake it again. A frame's size and ETIMEDOUT are as before.
+- P.9's fuzz target is `serve_wire` (`userland/capsule_linux_proofs/fuzz`, in
+  the nightly matrix): any bytes as one frame, then as steps against the
+  server as it ships, the guest accepting, writing, reading and closing
+  between frames from the opener and another pid. Trusting `len`, or keying a
+  conn by its id alone, each crash it within seconds.
