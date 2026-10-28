@@ -48,6 +48,7 @@ pub(super) fn run(out: &mut Output<'_>, id: &[u8]) {
             return out.writeln(format!("market: {name} is installed already: {said}").as_bytes());
         }
         s if s.pending() => {
+            super::follow::asked(id, false, 0);
             return out.writeln(format!("market: {name}: {}", stage_text(id, s)).as_bytes());
         }
         // The last try stopped for a reason this boot cannot change; an
@@ -70,5 +71,5 @@ pub(super) fn run(out: &mut Output<'_>, id: &[u8]) {
         Ok(None) => return super::failure::Failure::Malformed.say(out, ""),
         Err(why) => return why.say(out, super::failure::NO_LISTING),
     }
-    out.writeln(said(&name, mk_app_install(id, b"")).as_bytes());
+    out.writeln(said(&name, super::follow::asked(id, false, mk_app_install(id, b""))).as_bytes());
 }
