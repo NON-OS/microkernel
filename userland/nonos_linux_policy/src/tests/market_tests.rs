@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! market_ready: exit and exit_group in the set, bucket 512 out of it, and
-//! no FILES_USER in the box.
+//! market_ready: exit and exit_group in the set, bucket 512 out of it, no
+//! FILES_USER in the box, and no SERVE_ONE beside WAYLAND.
 
 use crate::market::{ALWAYS_SERVED, NATIVE_BUCKET};
-use crate::mask::{FILES_HOME, FILES_USER, WAYLAND};
+use crate::mask::{FILES_HOME, FILES_USER, NET_ANON, SERVE_ONE, WAYLAND};
 use crate::{market_ready, unlisted, LinuxAppPolicy, SyscallSet};
 
 fn with(calls: SyscallSet) -> LinuxAppPolicy {
@@ -55,4 +55,14 @@ fn files_user_is_reserved_until_something_serves_it() {
     assert!(market_ready(&box_of(WAYLAND | FILES_HOME)));
     assert!(!market_ready(&box_of(FILES_USER)));
     assert!(!market_ready(&box_of(WAYLAND | FILES_HOME | FILES_USER)));
+}
+
+#[test]
+fn serve_one_is_never_ready_beside_the_display() {
+    let both = SyscallSet::NONE.with(60).with(231);
+    let box_of = |mask| LinuxAppPolicy { mask, ..with(both) };
+    assert!(market_ready(&box_of(SERVE_ONE | NET_ANON | FILES_HOME)));
+    assert!(market_ready(&box_of(WAYLAND | NET_ANON | FILES_HOME)));
+    assert!(!market_ready(&box_of(SERVE_ONE | WAYLAND)));
+    assert!(!market_ready(&box_of(SERVE_ONE | WAYLAND | NET_ANON | FILES_HOME)));
 }

@@ -18,8 +18,9 @@
 
 use crate::error::PolicyError;
 use crate::layout::*;
-use crate::mask::KNOWN;
+use crate::mask::{KNOWN, SERVE_ONE};
 use crate::policy::LinuxAppPolicy;
+use crate::serve::ServeOne;
 use crate::syscall_set::SyscallSet;
 
 pub fn decode(bytes: &[u8]) -> Result<LinuxAppPolicy, PolicyError> {
@@ -27,17 +28,27 @@ pub fn decode(bytes: &[u8]) -> Result<LinuxAppPolicy, PolicyError> {
     if b[AT_MAGIC..AT_VERSION] != MAGIC {
         return Err(PolicyError::Magic);
     }
-    if u16::from_le_bytes([b[AT_VERSION], b[AT_VERSION + 1]]) != VERSION {
-        return Err(PolicyError::Version);
-    }
+    // Version 2 carries SERVE_ONE's field where version 1's tail pad begins.
+    let pad_from = match u16::from_le_bytes([b[AT_VERSION], b[AT_VERSION + 1]]) {
+        VERSION => AT_PAD_TAIL,
+        VERSION_SERVE => AT_PAD_SERVE,
+        _ => return Err(PolicyError::Version),
+    };
     let pad_head = &b[AT_PAD_HEAD..AT_PROGRAM];
-    let pad_tail = &b[AT_PAD_TAIL..];
+    let pad_tail = &b[pad_from..];
     if pad_head.iter().chain(pad_tail).any(|&x| x != 0) {
         return Err(PolicyError::Reserved);
     }
     let mask = u64::from_le_bytes(field(b, AT_MASK));
     if mask & !KNOWN != 0 {
         return Err(PolicyError::UnknownMask);
+    }
+    let serve = match pad_from {
+        AT_PAD_SERVE => Some(ServeOne::from_bytes(field(b, AT_SERVE))?),
+        _ => None,
+    };
+    if (mask & SERVE_ONE != 0) != serve.is_some() {
+        return Err(PolicyError::Serve);
     }
     let syscall_set = SyscallSet::from_bytes(field(b, AT_SYSCALLS))?;
     Ok(LinuxAppPolicy {
@@ -47,6 +58,7 @@ pub fn decode(bytes: &[u8]) -> Result<LinuxAppPolicy, PolicyError> {
         release_id: field(b, AT_RELEASE),
         net_dests_hash: field(b, AT_NET_DESTS),
         syscall_set,
+        serve,
     })
 }
 

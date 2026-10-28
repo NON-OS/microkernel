@@ -67,3 +67,9 @@ fn files_user_is_reserved_in_the_vendor_table_too() {
     let why = parse("/bin/prog WAYLAND FILES_USER").err().unwrap();
     assert!(why.contains("FILES_USER is reserved"), "{why}");
 }
+
+#[test]
+fn serve_one_has_no_field_in_the_vendor_table() {
+    let why = parse("/bin/prog TTY SERVE_ONE").err().unwrap();
+    assert!(why.contains("SERVE_ONE needs a field"), "{why}");
+}

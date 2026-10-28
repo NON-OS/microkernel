@@ -35,6 +35,12 @@ pub fn run_net_busy() -> bool {
     lookup_service(RUN_NET.name).is_some()
 }
 
+/// Whether `pid` is the process the kernel registered as a run role,
+/// app.linux.run or app.linux.run.net, which no other capsule may claim.
+pub fn is_run_role(pid: u32) -> bool {
+    [RUN.name, RUN_NET.name].iter().any(|n| lookup_service(n).is_some_and(|ep| ep.pid == pid))
+}
+
 /// The package `pid` was started to run, when `pid` is the process the
 /// kernel registered as app.linux.run at spawn, which no other capsule may
 /// claim. Its argv is init's, `run` then the package (install.rs), and the

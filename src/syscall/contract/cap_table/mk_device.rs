@@ -67,8 +67,8 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkForeignFork
         | SyscallNumber::MkPeerUnmap
         | SyscallNumber::MkForeignExec => caps.can_foreign_exec(),
-        /* The handler admits only the Linux run role, for its own pid. */
-        SyscallNumber::MkLinuxRunNet => caps.can_foreign_exec(),
+        /* Their handlers admit only the Linux run role: its own pid; a SERVES pair. */
+        SyscallNumber::MkLinuxRunNet | SyscallNumber::MkServeOne => caps.can_foreign_exec(),
 
         _ => return None,
     })

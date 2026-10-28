@@ -24,6 +24,7 @@ mod reply;
 mod reply_to;
 mod send;
 mod send_to_pid;
+mod serve_one;
 
 pub use call::{mk_ipc_call, mk_ipc_call_timeout};
 pub use lookup::mk_service_lookup;
@@ -35,3 +36,4 @@ pub use reply::mk_ipc_reply;
 pub use reply_to::mk_ipc_reply_to;
 pub use send::mk_ipc_send;
 pub use send_to_pid::mk_ipc_send_to_pid;
+pub use serve_one::mk_serve_one;

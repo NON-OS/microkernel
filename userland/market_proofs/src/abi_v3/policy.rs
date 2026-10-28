@@ -16,6 +16,7 @@
 
 //! The guest policy gate, against the plan's layout written out here.
 
+use nonos_marketplace_abi::POLICY_VERSION_SERVE;
 use nonos_marketplace_abi::{listing_id, policy_verdict, release_id, PolicyVerdict};
 use nonos_marketplace_abi::{AT_LISTING, AT_RELEASE, POLICY_LEN, POLICY_MAGIC, POLICY_VERSION};
 
@@ -25,6 +26,7 @@ use super::policy_fixture::{linux, policy};
 #[test]
 fn the_pinned_offsets_are_plan_30s() {
     assert_eq!((POLICY_LEN, &POLICY_MAGIC, POLICY_VERSION), (256, b"NLXPOL01", 1));
+    assert_eq!(POLICY_VERSION_SERVE, 2);
     assert_eq!((AT_LISTING, AT_RELEASE), (56, 88));
 }
 
@@ -38,6 +40,13 @@ fn a_market_package_needs_its_own_ids() {
     assert_eq!(policy_verdict(&Host, &e, &rel), PolicyVerdict::Valid);
     let (e, rel) = linux(policy(listing, [0; 32]), "https://pkg");
     assert_eq!(policy_verdict(&Host, &e, &rel), PolicyVerdict::WrongIds);
+    // Version 2, SERVE_ONE's form, is read as this release's; 3 is no form.
+    for (version, want) in [(2u16, PolicyVerdict::Valid), (3, PolicyVerdict::BadHeader)] {
+        let mut p = policy(listing, release);
+        p[8..10].copy_from_slice(&version.to_le_bytes());
+        let (e, rel) = linux(p, "https://pkg");
+        assert_eq!(policy_verdict(&Host, &e, &rel), want, "version {version}");
+    }
 }
 
 #[test]

@@ -21,6 +21,7 @@ mod trace_link_tests;
 
 mod boxed;
 mod calls;
+mod committed_policy_tests;
 mod heap_choice_tests;
 mod install;
 mod install_closure_tests;

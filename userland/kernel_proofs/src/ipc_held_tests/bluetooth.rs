@@ -27,7 +27,7 @@ const BT: &str = "driver.bt_usb0";
 fn the_bluetooth_host_takes_settings_and_the_shell() {
     for caller in ["app.settings", "app.settings.1", "app.settings.2", "desktop_shell"] {
         let one: &'static [&'static str] = Box::leak(Box::new([caller]));
-        assert!(endpoint_admits(BT, owner(one)), "refused {caller}");
+        assert!(endpoint_admits(BT, None, owner(one)), "refused {caller}");
     }
 }
 
@@ -35,7 +35,7 @@ fn the_bluetooth_host_takes_settings_and_the_shell() {
 fn the_bluetooth_host_refuses_everyone_else() {
     for caller in ["app.browser", "app.settings.3", "net.core", "driver.xhci0", "driver.usb_hid0"] {
         let one: &'static [&'static str] = Box::leak(Box::new([caller]));
-        assert!(!endpoint_admits(BT, owner(one)), "took {caller}");
+        assert!(!endpoint_admits(BT, None, owner(one)), "took {caller}");
     }
-    assert!(!endpoint_admits(BT, owner(&[])), "took a caller owning nothing");
+    assert!(!endpoint_admits(BT, None, owner(&[])), "took a caller owning nothing");
 }

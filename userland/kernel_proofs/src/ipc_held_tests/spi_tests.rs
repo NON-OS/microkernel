@@ -46,7 +46,7 @@ fn the_spi_host_starts_after_the_i2c_host_with_no_irq_dma_or_pio() {
 #[test]
 fn only_the_spi_hid_driver_reaches_the_spi_host() {
     assert_eq!(callers_of("driver.spi0"), Some(&["driver.spi_hid0"][..]));
-    assert!(endpoint_admits("driver.spi0", owner(&["driver.spi_hid0"])));
+    assert!(endpoint_admits("driver.spi0", None, owner(&["driver.spi_hid0"])));
     let others = owner(&["app.terminal", "app.browser", "driver.i2c_hid0", "compositor"]);
-    assert!(!endpoint_admits("driver.spi0", others), "another capsule reaches it");
+    assert!(!endpoint_admits("driver.spi0", None, others), "another capsule reaches it");
 }

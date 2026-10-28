@@ -3517,6 +3517,7 @@
   ],
   "include": [
    ".cargo",
+   "nonos-data/market/catalogue",
    "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/capsule_linux/family.rs",
    "src/userspace/capsule_linux/terminal/tier.rs",
@@ -7133,9 +7134,11 @@
   ],
   "include": [
    ".cargo",
+   "nonos-data/market/catalogue/linux.kali.nonos-simplex-chat.json",
    "nonos-data/market/index.bin",
    "nonos-data/market/logos",
    "src/security/market_capsule/client/linux_policy_wire.rs",
+   "src/services/registry/serves.rs",
    "userland/capsule_app_store/src/store/asked.rs",
    "userland/capsule_app_store/src/store/asked_label.rs",
    "userland/capsule_app_store/src/store/channel_held.rs",
