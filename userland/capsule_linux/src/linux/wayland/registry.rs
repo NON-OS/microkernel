@@ -20,7 +20,7 @@ use super::global::Global;
 use super::object::Object;
 
 pub const GLOBALS: &[Global] = &[
-    Global { name: 1, interface: b"wl_compositor", version: 4, object: Object::Compositor },
+    Global { name: 1, interface: b"wl_compositor", version: 6, object: Object::Compositor },
     Global { name: 2, interface: b"wl_shm", version: 1, object: Object::Shm },
     Global { name: 3, interface: b"xdg_wm_base", version: 2, object: Object::XdgBase },
     Global { name: 4, interface: b"wl_seat", version: 5, object: Object::Seat },
@@ -63,5 +63,11 @@ pub const GLOBALS: &[Global] = &[
         interface: b"wp_cursor_shape_manager_v1",
         version: 1,
         object: Object::CursorManager,
+    },
+    Global {
+        name: 15,
+        interface: b"wp_fractional_scale_manager_v1",
+        version: 1,
+        object: Object::FractionalManager,
     },
 ];
