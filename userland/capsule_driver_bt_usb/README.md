@@ -207,8 +207,8 @@ endpoint and 0x000E to read it.
 ## Authority
 
 ```text
-allowed:   HCI over USB, L2CAP fixed channels, SMP pairing, ATT/GATT client, HOGP boot reports, input events, NBTC to Settings and the shell
-forbidden: xHCI ownership, USB scheduling, DMA buffers, vendor firmware, BR/EDR, keys anywhere but this process and its own keyring records
+allowed:   HCI over USB, Intel's firmware download (carried files only), L2CAP fixed channels, SMP pairing, ATT/GATT client, HOGP boot reports, input events, NBTC to Settings and the shell
+forbidden: xHCI ownership, USB scheduling, DMA buffers, firmware from outside the image, BR/EDR, keys anywhere but this process and its own keyring records
 ```
 
 ## Privacy and persistence
@@ -292,10 +292,44 @@ its keys, its HID host and the keys held down, and the bonds and this
 host's IRK. driver.xhci0 owns slots,
 endpoint contexts, rings and DMA.
 
+## Intel controllers
+
+`src/vendor/intel/` loads an Intel controller (vendor 0x8087, the products
+Linux v6.12's btusb.c marks BTUSB_INTEL_COMBINED) before the standard
+bring-up, in the order `btintel_setup_combined` gives: Intel Read Version
+(0xfc05) in TLV form, or the old form for JfP to CcP; Read Boot Params
+(0xfc0d) on the old form; the firmware file chosen as
+`btintel_get_fw_name_tlv` (or `btintel_get_fw_name`) names it; Secure Send
+(0xfc09, on bulk OUT) of the CSS header, public key and signature (RSA, or
+ECDSA when the controller's secure boot engine is), then the commands in
+aligned runs, in fragments of at most 252 octets; the Secure Send Result
+within 5 s; Intel Reset (0xfc01) to the file's boot address and its bootup
+event within 1 s; for Blazar and later, the intermediate loader (-iml) that
+way first, then, on a BlazarI B0, Intel DSBR (0xfc0a) sent as zero (Linux
+takes it from the UEFI variable UefiCnvCommonDSBR, which this capsule does
+not read), then the firmware the loader names by its id; Intel Write DDC
+(0xfc8b) entry by entry; Intel's event
+mask (0xfc52); Reset. A controller already running the carried build is
+not loaded; one running another build, or whose download fails, is reset
+to its bootloader and found again.
+
+The carried files are linux-firmware's, unmodified, under
+`nonos-bootloader/firmware/intel/` with `LICENCE.ibt_firmware`, pinned in
+`scripts/baselines/upstream.sha256`: `ibt-19-0-4` (AX201, and the nine
+ibt-19 names WHENCE links to it), `ibt-20-1-3` (AX200, also as the
+byte-identical ibt-20-0-3) and `ibt-20-1-4` (AX200), `ibt-0041-0041`
+(AX210), `ibt-1040-0041` (AX211, also as ibt-1040-4150 and ibt-1040-1050),
+`ibt-0291-0291` (BE200), each .sfi with its .ddc; and for the BE201 on
+Meteor Lake and Arrow Lake CNVi over USB, `ibt-0190-0291-iml.sfi` and
+`ibt-0190-0291-usb` .sfi and .ddc. Lunar Lake's BE201 is reached over PCIe
+(btintel_pcie, the -pci files), which this capsule does not drive. Any
+other is refused by name.
+
 ## Operating rules
 
 - Keep USB transfer mechanics in driver.xhci0.
-- Send no vendor command; a controller that needs one is refused.
+- Send no vendor command but Intel's setup (below); any other controller
+  that needs one is refused.
 - Pair with LE Secure Connections only; never fall back to legacy pairing.
 - Read the HID service only on an encrypted link.
 - Bound every length the controller or the peer sends before using it.
@@ -328,12 +362,12 @@ is on main yet.
 ## Explicit non-goals today
 
 BR/EDR (Classic) devices, more than one device at a time, Report Protocol
-(media keys, wheels, absolute pointers), vendor firmware loading, and
-bonds kept past this boot. The pairing dialog is Settings', over NBTC.
+(media keys, wheels, absolute pointers), firmware loading for vendors
+other than Intel, and bonds kept past this boot. The pairing dialog is Settings', over NBTC.
 
 ## Verification
 
 `cd userland/bt_usb_proofs && RUST_TEST_THREADS=1 cargo test --release`
-(103 pass at the time of writing); the capsule's `cargo build --release`
+(166 pass at the time of writing); the capsule's `cargo build --release`
 and `cargo clippy` for x86_64-nonos-user. Not verified under QEMU or on
 hardware.
