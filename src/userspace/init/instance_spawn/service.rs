@@ -18,7 +18,7 @@ use super::apps_desk::{
     spawn_about, spawn_clock, spawn_file_manager, spawn_snake, spawn_wallet_nonos,
 };
 use super::apps_media::{
-    spawn_audio_player, spawn_install, spawn_process_manager, spawn_video_player,
+    spawn_audio_player, spawn_install, spawn_process_manager, spawn_simplex_ui, spawn_video_player,
 };
 use super::apps_tools::{
     spawn_browser, spawn_calculator, spawn_settings, spawn_terminal, spawn_text_editor,
@@ -42,6 +42,7 @@ pub(crate) fn service() {
             PendingApp::Clock => spawn_clock(),
             PendingApp::About => spawn_about(),
             PendingApp::Snake => spawn_snake(),
+            PendingApp::SimplexUi => spawn_simplex_ui(),
             PendingApp::WalletNonos => spawn_wallet_nonos(),
             PendingApp::FileManager => spawn_file_manager(),
             PendingApp::ProcessManager => spawn_process_manager(),

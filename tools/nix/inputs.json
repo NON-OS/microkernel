@@ -183,7 +183,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "nonos-attest-path": {
@@ -1232,7 +1235,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/asid_proofs": {
@@ -4273,6 +4279,24 @@
   "md": [],
   "signed": []
  },
+ "userland/capsule_simplex_ui": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_simplex_ui",
+   "userland/libc",
+   "userland/nonos_serve_wire",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/capsule_snake": {
   "exclude": [
    "userland/toolkit/image_tests"
@@ -5124,7 +5148,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/dhcp_proofs": {
@@ -5499,7 +5526,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/emmc_proofs": {
@@ -6910,7 +6940,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/l2_proofs": {
@@ -7114,7 +7147,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/login_proofs": {
@@ -8919,7 +8955,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/riscv_kernel_proofs": {
@@ -9086,7 +9125,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/rndis_proofs": {
@@ -9341,7 +9383,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/route_link_proofs": {
@@ -10193,7 +10238,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/smp_stress_proofs": {
@@ -10528,7 +10576,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/suspend_proofs": {
@@ -10958,7 +11009,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/tls_proofs": {
