@@ -78,7 +78,7 @@ Not booted yet: install and run wait on a boot, and the package (24.7 MB) is lar
 | App | What blocks it |
 |---|---|
 | GnuPG, `pass` | `gpg` runs `gpg-agent` for every secret-key operation, and a release can box only one program (M-09). |
-| KeePassXC, Feather | Need Qt and a display path the Linux personality does not have yet (G9). |
+| Feather | A Qt Monero wallet that Alpine v3.20 does not ship; it would come from pinned source. |
 | OnionShare | Its job is serving files to others: an inbound service, which a guest is never given. |
 | exiftool | A Perl script: the program that runs is the image's `perl`, and a box follows a path, not the script (M-10). |
-| age, minisign | Already listed, in the catalogue's first set. |
+| age, minisign, KeePassXC | Already listed. KeePassXC keeps its encrypted file in its own home, offline (`docs/release-evidence/0.9.3/gui-keepassxc/`). |
