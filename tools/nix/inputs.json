@@ -8049,6 +8049,15 @@
   "md": [],
   "signed": []
  },
+ "userland/nonos_serve_wire": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_serve_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/nonos_smbios_proofs": {
   "exclude": [],
   "include": [
