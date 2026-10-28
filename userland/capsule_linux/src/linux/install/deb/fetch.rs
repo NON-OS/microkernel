@@ -25,22 +25,33 @@ use crate::linux::install::auth::Verified;
 use crate::linux::install::unpacked::unpacked;
 
 pub fn fetch(src: &Source, r: &Record, pin: Option<&[u8; 32]>) -> Option<Verified> {
-    let deb = src.get(&r.filename)?;
+    let Some(deb) = src.get(&r.filename) else { return told(r, "it did not download") };
     if pin.is_some_and(|want| blake3::hash(&deb).as_bytes() != want) {
-        return refuse(b"[LINUX] package is not the one the market listed\n");
+        refuse(b"[LINUX] package is not the one the market listed\n");
+        return told(r, "it is not the one the market listed");
     }
     if Some(nonos_hash::sha256(&deb)) != r.sha256 {
-        return refuse(b"[LINUX] package does not match its signed index\n");
+        refuse(b"[LINUX] package does not match its signed index\n");
+        return told(r, "its checksum did not match the signed index");
     }
-    let parts = members(&deb)?;
+    let Some(parts) = members(&deb) else { return told(r, "it is not a .deb") };
     if parts.first() != Some(&(b"debian-binary".as_slice(), b"2.0\n".as_slice())) {
-        return refuse(b"[LINUX] refused: not a version 2.0 .deb\n");
+        refuse(b"[LINUX] refused: not a version 2.0 .deb\n");
+        return told(r, "it is not a version 2.0 .deb");
     }
-    let (_, data) = parts.iter().find(|(name, _)| name.starts_with(b"data.tar"))?;
-    Some(Verified::checked(unpacked(data)?))
+    let data = parts.iter().find(|(name, _)| name.starts_with(b"data.tar"));
+    let Some(files) = data.and_then(|(_, d)| unpacked(d)) else {
+        return told(r, "it did not unpack");
+    };
+    Some(Verified::checked(files))
 }
 
-fn refuse(line: &[u8]) -> Option<Verified> {
+fn refuse(line: &[u8]) {
     let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+}
+
+/// For the person who asked only (refuse::tell): never on the debug line.
+fn told(r: &Record, check: &str) -> Option<Verified> {
+    crate::linux::install::refuse::tell(&r.name, &r.version, check);
     None
 }
