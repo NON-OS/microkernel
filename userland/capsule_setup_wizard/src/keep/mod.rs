@@ -14,14 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Setup's answers across boots: kept in the vfs store when the chosen mode
-//! keeps state, and read back so a later boot skips setup.
+//! Setup's answers across boots: kept in the store of the disk this boot
+//! came from only by a mode that keeps state there (`choice`), held in
+//! memory for the installer otherwise, and read back so a later boot from a
+//! disk that kept them skips setup.
 
+mod choice;
 mod put;
 mod save;
 mod skip;
 mod store;
 
+pub use choice::{answers_for, Answers, INSTALL, USB_LIVE};
 pub use save::{save, stage};
 pub use skip::{already_done, wait_for_policy};
 pub use store::{store_pending, store_ready};

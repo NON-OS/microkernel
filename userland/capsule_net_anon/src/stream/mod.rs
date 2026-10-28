@@ -16,23 +16,27 @@
 
 //! Streams over a circuit.
 
+mod again;
 mod begin;
 mod connected;
 mod data;
 mod end;
 mod find;
 mod grant;
+mod held;
 mod ids;
 mod owned;
 mod sendme;
 mod stage;
 pub(crate) mod table;
 
+pub use again::{retries, sends_again};
 pub use begin::body as begin_body;
 pub use connected::is_valid as connected_is_valid;
 pub use data::pieces;
 pub use end::{is_clean, needs_another_exit, reason, REASON_DONE};
 pub use find::find_on;
+pub use held::{keep, Held, WAIT_SECONDS};
 pub use ids::next as next_id;
 pub use owned::{carries_others, may_open, orphaned, owned, FRONT, ONION};
 pub use sendme::body as sendme_body;

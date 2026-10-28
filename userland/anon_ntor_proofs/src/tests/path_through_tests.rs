@@ -3,7 +3,7 @@
 
 use crate::path::through;
 
-use super::path_pool::{flat, pool, relay};
+use super::path_pool::{flat, pool, relay, web};
 
 #[test]
 fn the_first_hop_is_the_linked_guard_for_every_roll() {
@@ -11,7 +11,7 @@ fn the_first_hop_is_the_linked_guard_for_every_roll() {
     let guard = relays[4].clone();
     for seed in 0..500u64 {
         let mut n = seed;
-        let path = through(&guard, &relays, &flat(), || {
+        let path = through(&guard, &relays, &flat(), web, || {
             n = n.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
             Some(n)
         })
@@ -32,7 +32,7 @@ fn no_later_hop_shares_the_guards_16() {
     let guard = relays[4].clone();
     for seed in 0..500u64 {
         let mut n = seed;
-        let path = through(&guard, &relays, &flat(), || {
+        let path = through(&guard, &relays, &flat(), web, || {
             n = n.wrapping_mul(2862933555777941757).wrapping_add(3037000493);
             Some(n)
         })
@@ -44,5 +44,5 @@ fn no_later_hop_shares_the_guards_16() {
 #[test]
 fn no_dice_no_path() {
     let relays = pool();
-    assert!(through(&relays[0], &relays, &flat(), || None).is_none());
+    assert!(through(&relays[0], &relays, &flat(), web, || None).is_none());
 }

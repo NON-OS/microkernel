@@ -16,9 +16,9 @@
 
 /*
  * The lines under the review table: what the mode keeps, what may run,
- * the Wi-Fi network, and whether the name, Qwen model and apps are kept. With no
- * store this boot the answers still reach the vfs, and the installer
- * carries them from there to the disk it writes.
+ * the Wi-Fi network, and whether the name, Qwen model and apps are kept.
+ * Install keeps no answers on the disk this boot came from: they reach the
+ * vfs in memory, and the installer carries them to the disk it writes.
  */
 
 use crate::state::Context;
@@ -26,13 +26,10 @@ use crate::state::Context;
 use super::mode;
 
 pub fn mode_line(ctx: &Context) -> &'static [u8] {
-    match (mode::keeps(ctx), crate::keep::store_ready()) {
-        (false, _) if ctx.install_boot => {
-            b"Mode: amnesic. No install this boot; the desktop starts."
-        }
-        (false, _) => b"Mode: amnesic. Nothing is kept; setup runs again next boot.",
-        (true, true) => b"Mode: install. Answers kept, then the installer opens.",
-        (true, false) => b"Mode: install. No store here; the installer carries them.",
+    match (mode::keeps(ctx), ctx.install_boot) {
+        (false, true) => b"Mode: amnesic. No install this boot; the desktop starts.",
+        (false, false) => b"Mode: amnesic. Nothing is kept; setup runs again next boot.",
+        (true, _) => b"Mode: install. Answers go to the installed disk; none stay here.",
     }
 }
 
@@ -46,16 +43,18 @@ pub fn net_line(ctx: &Context) -> &'static [u8] {
 
 pub fn route_line(ctx: &Context) -> &'static [u8] {
     match crate::render::screens::route::route(ctx.route_sel) {
-        nonos_policy_proto::route::ANYONE => b"Network: the Anyone network for the browser and downloads.",
-        nonos_policy_proto::route::DIRECT => b"Network: direct; sites and mirrors see this address.",
+        nonos_policy_proto::route::ANYONE => {
+            b"Network: the Anyone network for the browser and downloads."
+        }
+        nonos_policy_proto::route::DIRECT => {
+            b"Network: direct; sites and mirrors see this address."
+        }
         _ => b"Network: the Nym mixnet for the browser and downloads.",
     }
 }
 
 pub fn local_line(ctx: &Context) -> &'static [u8] {
-    /*
-     * Named here too, since this commit is what grants or revokes it.
-     */
+    // Named here too, since this commit is what grants or revokes it.
     match (ctx.local_sel, mode::keeps(ctx)) {
         (1, true) => b"Installed software may run",
         (1, false) => b"Installed software may run, this boot",
@@ -64,13 +63,13 @@ pub fn local_line(ctx: &Context) -> &'static [u8] {
 }
 
 /*
- * keep::save keeps these with the keyboard, time zone and wallpaper, so
- * they are kept exactly when the mode line says the answers are.
+ * The answers record holds these with the keyboard, time zone and
+ * wallpaper, so they go exactly where the mode line says the answers do.
  */
 pub fn name_line(ctx: &Context) -> &'static [u8] {
-    match (mode::keeps(ctx), crate::keep::store_ready()) {
-        (false, _) => b"Names, Qwen model and apps: amnesic, for this boot only.",
-        (true, true) => b"Names, Qwen model and apps: kept with the other answers.",
-        (true, false) => b"Names, Qwen model and apps: kept on the disk the installer writes.",
+    if mode::keeps(ctx) {
+        b"Names, Qwen model and apps: kept on the disk the installer writes."
+    } else {
+        b"Names, Qwen model and apps: amnesic, for this boot only."
     }
 }

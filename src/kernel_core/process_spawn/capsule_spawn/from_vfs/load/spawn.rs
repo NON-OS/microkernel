@@ -69,7 +69,6 @@ pub(crate) fn load_capsule_from_vfs(
         debug_tag: b"[RUNTIME-LOAD] elf error:",
     };
     let (trust, now_ms) = super::trust::trust_and_now()?;
-    let pid = spawn_verified_as(&spec, &trust, now_ms, on_behalf_of).map_err(LoadError::Spawn)?;
-    super::args::set_argv(pid, args);
-    Ok(pid)
+    let argv = super::args::argv_of(args);
+    spawn_verified_as(&spec, &trust, now_ms, on_behalf_of, argv).map_err(LoadError::Spawn)
 }
