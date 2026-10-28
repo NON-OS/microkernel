@@ -78,7 +78,7 @@
    "sums": "https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.3/_sha256sums",
    "family": "debian", "needs": "libc6 libgmp10 libssl3t64 zlib1g",
    "program": "usr/bin/simplex-core", "licence": "AGPL-3.0-only", "mask": "FILES_HOME NET_ANON", "name": "SimpleX Chat core",
-   "args": ["--chat-server-port=5225", "--yes-migrate"],
+   "args": ["--chat-server-port=5225", "--yes-migrate"], "serve": "app.simplex:5225",
    "text": "the engine for NØNOS's SimpleX window; not for direct use"},
   {"package": "zathura", "licence": "Zlib", "mask": "WAYLAND FILES_HOME", "name": "zathura (PDF viewer)",
    "text": "A keyboard-driven PDF viewer that opens in its own window. It opens the documents in its own home, or ones you put there. Its PDF support is the mupdf plugin, zathura-pdf-mupdf, installed with it. It has no network at all, and it runs in its own box, so a hostile PDF is held by that box, not by the viewer.", "with": ["zathura-pdf-mupdf"]}
