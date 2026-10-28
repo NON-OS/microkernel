@@ -23,6 +23,9 @@
 //! part on a second thread where a handshake needs one. QEMU's igb device is
 //! an 82576, so the owner can also boot the capsule against it.
 
+// The server loop allocates its buffers through `alloc`, as in the capsule.
+extern crate alloc;
+
 #[path = "../../capsule_driver_igb/src/bring/mod.rs"]
 pub mod bring;
 #[path = "../../capsule_driver_igb/src/facts/mod.rs"]
@@ -37,6 +40,7 @@ pub mod protocol;
 pub mod queue;
 #[path = "../../capsule_driver_igb/src/regs.rs"]
 pub mod regs;
+pub mod server;
 pub mod setup;
 #[path = "../../capsule_driver_igb/src/sizes/mod.rs"]
 pub mod sizes;

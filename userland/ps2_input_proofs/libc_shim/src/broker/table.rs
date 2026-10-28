@@ -42,6 +42,7 @@ pub fn released() -> Vec<u64> {
 pub fn present(devices: &[DeviceRecord]) {
     DEVICES.with(|d| *d.borrow_mut() = devices.to_vec());
     ACKED.with(|a| a.borrow_mut().clear());
+    super::refuse::refuse_lines(&[]);
 }
 
 pub(super) fn acknowledge(grant_id: u64) {

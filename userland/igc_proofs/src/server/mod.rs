@@ -17,6 +17,8 @@
 //! The server: the loop, the handlers, the one reply path, and the transmit
 //! watchdog, against the IPC calls the shim scripts.
 
+#[path = "../../../capsule_driver_igc/src/server/dispatch.rs"]
+pub mod dispatch;
 #[path = "../../../capsule_driver_igc/src/server/error.rs"]
 pub mod error;
 #[path = "../../../capsule_driver_igc/src/server/handlers/mod.rs"]

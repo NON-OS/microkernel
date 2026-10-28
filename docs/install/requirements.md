@@ -75,7 +75,7 @@ Which controllers and chips have drivers, and what has been seen working, is in 
 
 A network is optional: setup's default is no network at all.
 
-- Wi-Fi goes through two drivers ([Wi-Fi drivers](../drivers/wifi/README.md)). The Realtek RTL8821CE driver takes PCI id 10ec:c821. The Intel iwlwifi driver takes more Intel cards than it can join on, and on those it reports `card not supported yet` ([iwlwifi](../drivers/wifi/iwlwifi.md)). NONOS 0.9.2 has no USB Wi-Fi driver.
+- Wi-Fi goes through two drivers ([Wi-Fi drivers](../drivers/wifi/README.md)). The Realtek RTL8821CE driver takes PCI ids 10ec:b821 and 10ec:c821. The Intel iwlwifi driver takes more Intel cards than it can join on, and on those it reports `card not supported yet` ([iwlwifi](../drivers/wifi/iwlwifi.md)). NONOS 0.9.2 has no USB Wi-Fi driver.
 - A wired card served by the e1000, RTL8169, RTL8139 or virtio-net driver is used as soon as a cable is plugged in. Read from the code, only virtio-net, in a virtual machine, gets an address that way: `net.core` drops every frame received through the other three, so DHCP gets no lease through them ([the receive fault](../drivers/ethernet/README.md#the-receive-fault)).
 
 ## Reported on real hardware
@@ -119,7 +119,7 @@ A network is optional: setup's default is no network at all.
   - The installer's word on RST or VMD: `raid_hides_disks` in `userland/nonos_blk_client/src/disks/scan.rs:67-73`.
 - Network
   - The two Wi-Fi drivers: `SERVICES` in `userland/nonos_wifi_client/src/driver/services.rs:32-34`.
-  - PCI id 10ec:c821: `PCI_DEVICE_RTL8821CE` in `userland/capsule_driver_rtl8821ce/src/constants/mod.rs:25-26`.
+  - PCI ids 10ec:b821 and 10ec:c821: `RTL8821CE_DEVICE_IDS` in `userland/capsule_driver_rtl8821ce/src/constants/pci.rs`.
   - `card not supported yet`: `NoAirPath` in `userland/nonos_wifi_client/src/driver/stage.rs:60`.
   - The wired drivers, used once a cable is in: `WIRED` in `userland/capsule_setup_wizard/src/network/wired.rs:3-14`.
 
