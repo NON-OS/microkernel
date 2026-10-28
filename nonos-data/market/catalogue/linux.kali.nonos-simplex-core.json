@@ -1,0 +1,61 @@
+{
+  "schema_version": 4,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.kali.nonos-simplex-core",
+      "capsule_id": "4cb1a42bb37ab366a9d595d57c06a338bedc7e7309d0fa81057605d8f4850365",
+      "name": "SimpleX Chat core",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "the engine for N\u00d8NOS's SimpleX window; not for direct use",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "nonos-simplex-core@v7.0.3",
+          "manifest_hash": "4cb1a42bb37ab366a9d595d57c06a338bedc7e7309d0fa81057605d8f4850365",
+          "package_hash": "4cb1a42bb37ab366a9d595d57c06a338bedc7e7309d0fa81057605d8f4850365",
+          "package_url": "http://10.0.2.2:8080/linux/4cb1a42bb37ab366a9d595d57c06a338bedc7e7309d0fa81057605d8f4850365.tar",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c303101000000000000001813d4fb4e6b032800de05ea23b5b9a97d5bc20e81fe377216bff237c9d6f9b40a000000000000008900cce83cfdfec6a07aa4781896c912b311d67f7435035aa60eacc85b0a59a4435f6d8f10567b33b0d420d89b36f9ec0b0fb9667c7b7c468b05d7394b2004700000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000004e4c58415247303102172d2d636861742d7365727665722d706f72743d353232350d2d2d7965732d6d696772617465"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "upstream's release binary https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.3/simplex-chat-ubuntu-22_04-x86_64, sha256 5afb1d25efe5ccf564a1ab124bc7f410a7a73171c974a4d8b7f4d8f2e3d62e77 as https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.3/_sha256sums gives it; content of 79544320 bytes pinned by BLAKE3; licence AGPL-3.0-only; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}
