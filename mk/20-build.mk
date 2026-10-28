@@ -616,6 +616,7 @@ include userland/capsule_socks5/Capsule.mk
 include userland/capsule_wallpaper/Capsule.mk
 include userland/capsule_attest/Capsule.mk
 include userland/capsule_power/Capsule.mk
+include userland/capsule_acpi/Capsule.mk
 
 # The Linux userland every image carries in its store. Before the enrollment
 # below, which takes the capsule set as it stands when it is read.

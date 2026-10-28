@@ -18,15 +18,19 @@
 //! three minutes old; a percentage, absent or present-unknown otherwise.
 //! One test, since the report is one static the cases would share.
 
-use super::power_report::{battery, record, Battery, BATTERY_PRESENT, CHARGING, PERCENT_MASK};
+use super::power_report::{
+    battery, record, state, Battery, BATTERY_PRESENT, CHARGING, PERCENT_MASK,
+};
 
 #[test]
 fn reports_are_believed_while_fresh() {
-    assert_eq!(battery(1_000), Battery::Unreported, "nothing reported yet");
+    assert_eq!((battery(1_000), state(1_000)), (Battery::Unreported, None), "nothing yet");
     record(BATTERY_PRESENT | CHARGING | 57, 10_000);
     assert_eq!(battery(10_000), Battery::Percent(57));
     assert_eq!(battery(190_000), Battery::Percent(57), "exactly three minutes");
-    assert_eq!(battery(190_001), Battery::Unreported, "stale");
+    // MkBatteryStatus form 1: the whole word, as long as the percentage.
+    assert_eq!(state(190_000), Some(BATTERY_PRESENT | CHARGING | 57));
+    assert_eq!((battery(190_001), state(190_001)), (Battery::Unreported, None), "stale");
     record(0, 200_000);
     assert_eq!(battery(200_500), Battery::Absent);
     record(BATTERY_PRESENT | PERCENT_MASK, 300_000);

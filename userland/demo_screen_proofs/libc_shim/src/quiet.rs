@@ -35,6 +35,9 @@ pub fn mk_ipc_send_to_pid(_pid: u32, _buf: *const u8, _len: usize) -> i64 {
 pub fn mk_battery_status() -> i64 {
     ENODEV
 }
+pub fn mk_battery_state() -> i64 {
+    ENODEV
+}
 pub fn mk_log_tail(_out: &mut [u8]) -> i64 {
     0
 }
