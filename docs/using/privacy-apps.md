@@ -62,7 +62,7 @@ Not booted yet: install and run wait on a boot, and the package (24.7 MB) is lar
 
 ### What it protects
 
-- **Your address from the node.** The listing starts the wallet with a public remote node and `--untrusted-daemon`, and `--daemon-address host:port` names another. It talks to the node over Nym or Anyone, never direct, so the node sees an exit, not this machine. *design* With `--proxy 127.0.0.1:9050` it goes through the personality's SOCKS proxy by the same route, and the wallet treats the route as it treats one over Tor, asking for no extra flag before it uses the remote node: `monero-wallet-cli --proxy 127.0.0.1:9050 --daemon-address <node>:18089`. *design*
+- **Your address from the node.** The listing starts the wallet with a public remote node and `--untrusted-daemon`, and `--daemon-address host:port` names another. It talks to the node over Nym or Anyone, never direct, so the node sees an exit, not this machine. Over Anyone this is *booted*: the wallet refreshed from xmr-node.cakewallet.com:18081 (`docs/release-evidence/0.9.3/s1-g-kvm/`); over Nym it is *design*. The wallet needs no `--proxy`, and Monero refuses one for a clearnet node unless an SSL option such as `--daemon-ssl-allowed-fingerprints` pins it, or the node is a .onion or .i2p address (the same lanes). *booted*
 - **Your keys from the network.** The wallet's keys and its files stay in its own home; nothing else on the machine reads them. *design*
 
 ### What it does not protect
