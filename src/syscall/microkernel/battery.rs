@@ -30,8 +30,17 @@
 //! which can say a battery is absent but never what it holds. No number is
 //! ever invented: a plausible fixed one is the one answer that cannot be
 //! checked and cannot be corrected.
+//!
+//! `form` 0 asks for that percentage. `form` 1 asks for the fresh report's
+//! whole word instead (`power_report`: charge, present, charging,
+//! discharging, AC), so the bar can say "Charging"; without a fresh report
+//! it answers as form 0 does. Any other form is EINVAL.
 
-use super::errnos::{ERRNO_NODEV, ERRNO_NOTSUP};
+use super::errnos::{ERRNO_INVAL, ERRNO_NODEV, ERRNO_NOTSUP};
+
+/// MkBatteryStatus's forms.
+pub const FORM_PERCENT: u64 = 0;
+pub const FORM_STATE: u64 = 1;
 
 crate::arch::acpi_only! {
     mod report;
@@ -42,8 +51,13 @@ crate::arch::acpi_only! {
     mod report;
 }
 
-pub fn sys_battery_status() -> i64 {
-    if let Some(answer) = report::answer() {
+pub fn sys_battery_status(form: u64) -> i64 {
+    let fresh = match form {
+        FORM_PERCENT => report::answer(),
+        FORM_STATE => report::state(),
+        _ => return ERRNO_INVAL,
+    };
+    if let Some(answer) = fresh {
         return answer;
     }
     if crate::arch::acpi_tables_declare_battery() == Some(false) {

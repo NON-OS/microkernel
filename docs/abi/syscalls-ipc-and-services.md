@@ -48,7 +48,7 @@ the ports.
 | `MMON` | `0x4E4F4D4D` | `MkTimeMonotonic` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | Milliseconds since boot; never moves backwards. |
 | `MTRT` | `0x5452544D` | `MkTimeRtc` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | Read the real-time clock as a date and time record. |
 | `MTAD` | `0x4441544D` | `MkTimeAdjust` | TimeSet | `can_set_time` `src/syscall/contract/cap_table/mk_proc.rs:36` | Correct the wall clock to a Unix time in milliseconds between 2025-01-01 and 2100-01-01 UTC. |
-| `MBAT` | `0x5441424D` | `MkBatteryStatus` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | Battery charge; in 0.9.2 always `ENODEV` or `EOPNOTSUPP`, since the kernel runs no AML. |
+| `MBAT` | `0x5441424D` | `MkBatteryStatus` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | Battery charge, from the ACPI capsule's report while it is under three minutes old, else `ENODEV` (no battery declared) or `EOPNOTSUPP`. `form` 0 answers the percentage; `form` 1 the report's whole word (bits 0-7 charge, 0xFF unknown; 8 present; 9 charging; 10 discharging; 11 AC online; 12 AC known); any other form `EINVAL`. |
 
 ### Output, input and terminals
 
