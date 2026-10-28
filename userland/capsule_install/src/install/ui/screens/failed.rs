@@ -17,13 +17,13 @@
 //! Why it stopped, in the words the writer gave, what state the disk is in,
 //! and what to do. A write that stopped before the table was complete left
 //! a disk that must not be booted; a read-back that failed left a complete
-//! disk whose contents cannot be trusted. Both are said.
+//! disk whose contents cannot be trusted. Both are said. An update that
+//! stopped left the data as it was, and is run again (`failed_text.rs`).
 
 use alloc::format;
-use alloc::string::String;
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_blk_client::{describe_status, last_refusal, Refusal, RefusedOp};
+use nonos_blk_client::last_refusal;
 
 use crate::install::format::bytes;
 use crate::install::state::State;
@@ -32,7 +32,9 @@ use crate::install::ui::theme;
 use crate::install::ui::widgets::section;
 use crate::install::ui::wrap::Ink;
 
-use super::failed_text::{RETRY_OTHER, RETRY_READBACK, RETRY_TABLE};
+use super::failed_request::{attempt_text, request_text};
+use super::failed_text::{RETRY_OTHER, RETRY_READBACK, RETRY_TABLE, RETRY_UPDATE};
+use super::failed_text::{RETRY_UPDATE_READBACK, UPDATE_READBACK, UPDATE_STOPPED};
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
     let why = state
@@ -51,10 +53,11 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
     };
     /* A receipt exists only once the table and the flush went down. */
     let table_written = o.disk_guid[0] != b'-';
-    let (disk, retry) = if table_written {
-        ("It has a complete table, but its contents did not read back as written. Do not boot it.", RETRY_READBACK)
-    } else {
-        ("The write stopped before the partition table was complete. Do not boot it.", RETRY_TABLE)
+    let (disk, retry) = match (table_written, state.updating()) {
+        (true, false) => ("It has a complete table, but its contents did not read back as written. Do not boot it.", RETRY_READBACK),
+        (false, false) => ("The write stopped before the partition table was complete. Do not boot it.", RETRY_TABLE),
+        (true, true) => (UPDATE_READBACK, RETRY_UPDATE_READBACK),
+        (false, true) => (UPDATE_STOPPED, RETRY_UPDATE),
     };
     let now = format!("{disk} {} were written before it stopped.", bytes(o.bytes_written));
     let muted = Ink::body(m, theme::MUTED);
@@ -71,45 +74,4 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
         "03"
     };
     section(fb, m, b.x, y, b.w, (step, "WHAT TO DO", red.1), retry, fg);
-}
-
-/// The writer's own account, when no driver request was recorded failing:
-/// "NVMe  ...  256 GB: write of 64 sectors at LBA 160256, in the ESP's data
-/// area, failed: I/O error."
-fn attempt_text(state: &State, request: &str, status: Option<i32>) -> String {
-    let why = status.map(describe_status).unwrap_or_else(|| String::from("see above"));
-    format!("{}: {request}, failed: {why}.", disk_text(state).as_deref().unwrap_or("the disk"))
-}
-
-fn disk_text(state: &State) -> Option<String> {
-    state.selected_disk().map(|d| {
-        let model = d.identity.map(|i| String::from(i.model_str())).unwrap_or_default();
-        let mut s = String::from(d.label());
-        if !model.is_empty() {
-            s.push_str("  ");
-            s.push_str(&model);
-        }
-        if d.bytes() > 0 {
-            s.push_str("  ");
-            s.push_str(&bytes(d.bytes()));
-        }
-        s
-    })
-}
-
-/// "NVMe  Samsung SSD 980  256 GB: write of 64 sectors at LBA 2080 failed:
-/// NVMe status type 0 code 0x04, data transfer error."
-fn request_text(state: &State, r: Refusal) -> String {
-    let disk = disk_text(state);
-    let disk = disk.as_deref().unwrap_or("the disk");
-    let why = describe_status(r.status);
-    match r.op {
-        RefusedOp::Flush => format!("{disk}: the cache flush failed: {why}."),
-        op => format!(
-            "{disk}: {} of {} sectors at LBA {} failed: {why}.",
-            op.word(),
-            r.sectors,
-            r.lba
-        ),
-    }
 }

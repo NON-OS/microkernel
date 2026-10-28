@@ -83,6 +83,7 @@ MCVF = 0x4656434D
 MCOF = 0x464F434D
 MDFB = 0x4246444D
 MDFD = 0x4446444D
+MDHO = 0x4F48444D
 MDIM = 0x4D49444D
 MDPW = 0x5750444D
 MDRC = 0x4352444D
@@ -880,8 +881,8 @@ ret  = {type="i64"}
 
 [desc.MAIS]
 nr   = 0x5349414D
-caps = ["AppInstall"]
-args = [{name="listing_ptr",type="u64",dir="in"},{name="listing_len",type="u64",dir="in"}]
+caps_any = ["AppInstall", "LocalSign"]
+args = [{name="listing_ptr",type="u64",dir="in"},{name="listing_len",type="u64",dir="in"},{name="op",type="u64",dir="in"},{name="buf_ptr",type="u8*",dir="inout"},{name="buf_len",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MAUN]
@@ -922,6 +923,12 @@ nr   = 0x5256534D
 caps = ["IPC"]
 args = [{name="name_ptr",type="u64",dir="in"},{name="name_len",type="usize",dir="in"},{name="port",type="u32",dir="in"}]
 ret  = {type="i64"}
+[desc.MDHO]
+nr   = 0x4F48444D
+caps = ["StoreWrite", "FileSystem"]
+args = []
+ret  = {type="i64"}
+
 [desc.MDIM]
 nr   = 0x4D49444D
 caps = ["StoreWrite", "FileSystem"]
