@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Several of an install's packages fetched at once (fast downloads, D): at
-//! most WIDTH GETs in flight to the one mirror, each on its own connection
-//! of the route the install chose, the bytes held bounded (window_room.rs),
-//! and each reply handed on in the order asked, so the install
-//! still verifies and places its closure in its own order.
+//! An install's packages fetched (fast downloads, D): at most WIDTH GETs
+//! in flight to the one mirror, one while a proxy keeps one stream per
+//! caller (window_room.rs), each on a kept connection of the route the
+//! install chose when one is fit, and each reply handed on in the order
+//! asked, so the install still verifies and places its closure in order.
 
 use alloc::string::String;
 use alloc::vec::Vec;
