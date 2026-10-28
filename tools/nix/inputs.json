@@ -7527,6 +7527,8 @@
    "userland/capsule_net_core/src/server/runner/refuse.rs",
    "userland/capsule_net_core/src/server/runner/run.rs",
    "userland/capsule_net_core/src/server/runner/turn.rs",
+   "userland/capsule_net_core/src/state/orphan_rule.rs",
+   "userland/capsule_net_core/src/state/orphans.rs",
    "userland/net_core_proofs",
    "userland/net_proofs/shim",
    "userland/policy_proto"
