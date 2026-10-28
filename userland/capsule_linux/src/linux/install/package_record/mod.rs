@@ -21,7 +21,9 @@
 //! guest can rewrite what an uninstall would take out.
 
 mod all;
+mod held;
 mod one;
 
 pub(super) use all::{installed, others, settle};
+pub(super) use held::{held_by_another, kept};
 pub(super) use one::{read, write};
