@@ -26,3 +26,30 @@ impl Drop for HeldKey {
         crate::vault::wipe(&mut self.0);
     }
 }
+
+/// Who runs CCMP-128 on a soft-MAC radio's link.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Crypto {
+    /// The station seals and opens every frame itself.
+    Software,
+    /// The chip encrypts and decrypts under keys the station installs, and
+    /// writes each sent frame's CCMP header and packet number itself
+    /// (Linux mt76 sets no `IEEE80211_KEY_FLAG_GENERATE_IV`).
+    ChipIv,
+    /// As `ChipIv`, but the station writes each data frame's CCMP header
+    /// with its own packet number and the chip encrypts behind it, and the
+    /// station seals management frames itself (Linux rtw89 on the 8852B sets
+    /// `IEEE80211_KEY_FLAG_GENERATE_IV` and `IEEE80211_KEY_FLAG_SW_MGMT_TX`).
+    HostIv,
+}
+
+/// A CCMP-128 key on its way into a chip's key table, borrowed from the
+/// station that holds it: the radio copies it into its command and wipes
+/// that copy once the chip has it.
+pub enum ChipKey<'a> {
+    /// The pairwise key, index 0, of the access point.
+    Pairwise(&'a [u8; 16]),
+    /// A group key at its index and, under management frame protection, the
+    /// integrity group key (index, key) that goes with it.
+    Group { id: u8, gtk: &'a [u8; 16], igtk: Option<(u8, &'a [u8; 16])> },
+}

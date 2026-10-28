@@ -106,7 +106,9 @@ the layer above reads. INQUIRY and MODE SENSE, which Hyper-V answers
 wrongly, count as success with what moved (`storvsc_host_mishandles_cmd`).
 A completion for another id is dropped; a packet the host sends of its own
 accord (a bus enumerated, a device removed) is noted, and one too long to
-be an answer is skipped. A request never completed resets the bus, which
+be an answer is skipped. The clock is read before every packet, so a host
+that keeps its ring full of other packets cannot hold a wait past its
+deadline. A request never completed resets the bus, which
 the host answers once nothing is out; a host that does not answer that,
 or a ring whose index the host put out of bounds, is given up on and every
 later request answers -5.
@@ -163,12 +165,14 @@ request ids; every SRB status, sense and a short transfer; Hyper-V's
 mishandled commands; stale completions, the host's own packets and an
 oversized one; a lost request and the bus reset; a host given up on; a ring
 the host broke; a guest ring that stays full. QEMU has no storage VSP, so a
+boot is on Hyper-V, and the owner's.
 
 ## Release checklist
 
 - Signed manifest and kernel mirror present (`driver_storvsc` keys); the
   capsule is in no release profile until then.
 - `storvsc_proofs`, `nonos_vmbus` and `nonos_scsi` tests pass.
+- The kernel's block layer row for `driver.storvsc0` (the maintainers').
 - A Hyper-V Generation 2 guest installs to and boots from its SCSI disk.
 
 ## Explicit non-goals today

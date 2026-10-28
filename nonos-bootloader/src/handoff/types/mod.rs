@@ -41,5 +41,5 @@ pub use memory::MemoryMap;
 pub use security::{AttestPolicy, Measurements, RngSeed, ZkAttestation};
 pub use system::{
     AcpiInfo, Module, Modules, SmbiosInfo, Timing, MODULE_KIND_BOOT_MEDIA,
-    MODULE_KIND_KERNEL_IMAGE, MODULE_KIND_LOADER_IMAGE, MODULE_KIND_STORE,
+    MODULE_KIND_KERNEL_IMAGE, MODULE_KIND_LOADER_IMAGE, MODULE_KIND_STORE, STORE_FROM_BOOT_DISK,
 };

@@ -20,6 +20,8 @@
 
 #[path = "../../capsule_driver_virtio_input/src/constants/mod.rs"]
 pub mod constants;
+#[path = "../../capsule_driver_virtio_input/src/setup/dma.rs"]
+pub mod dma;
 #[path = "../../capsule_driver_virtio_input/src/events/mod.rs"]
 pub mod events;
 pub mod init;
