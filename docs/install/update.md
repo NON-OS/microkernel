@@ -10,7 +10,7 @@ The installer offers the update when the disk is laid out as the installer lays 
 
 - a data volume kept by a passphrase can be kept at once;
 - a data volume kept by the TPM under the release-approved chain can be kept once the installed system has prepared it, as the next section says;
-- a data volume kept by a TPM key bound to its own kernel cannot be kept. That is how releases before 0.9.3 keyed a volume with no passphrase, and the Confirm screen says `NØNOS made before 0.9.3: its data cannot be kept`.
+- a data volume kept by a TPM key bound to its own kernel cannot be kept. That is how releases before 0.9.3 keyed a volume with no passphrase, and the Confirm screen says `NØNOS keyed to its own kernel: its data cannot be kept`.
 
 How a prepared volume opens under the next release is in [Measured boot and the TPM](../security/measured-boot-and-tpm.md).
 

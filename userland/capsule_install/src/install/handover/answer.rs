@@ -26,7 +26,7 @@ pub fn answer(rc: i64) -> (String, bool) {
         0 => "Ready. Restart from the new NØNOS stick and choose Update NØNOS (keep my data). Until you do, your data volume opens without the bootloader check for one start.",
         -95 => "This start keeps nothing, so there is nothing to keep.",
         -11 => "Your data volume is not open yet. Try again in a moment.",
-        -2 => "This disk's data was made before 0.9.3 and cannot be kept.",
+        -2 => "This disk's data is keyed to the kernel that made it, so no new release opens it: it cannot be kept.",
         -114 => "Your data is kept by a passphrase: nothing to prepare.",
         -13 => "This start is not one the release approved, so it cannot prepare.",
         -5 => "The disk did not take the change.",

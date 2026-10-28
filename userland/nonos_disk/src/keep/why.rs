@@ -48,7 +48,7 @@ impl NotKept {
             NotKept::Moved => "NØNOS, laid out another way: its data cannot be kept",
             NotKept::Plan => "NØNOS, but its plan names no volume in NONOS-DATA",
             NotKept::NoKeyHeader => "NØNOS with no key header: its data cannot be kept",
-            NotKept::MadeBefore => "NØNOS made before 0.9.3: its data cannot be kept",
+            NotKept::MadeBefore => "NØNOS keyed to its own kernel: its data cannot be kept",
             NotKept::UnknownWay(_) => "NØNOS, with a key this release does not know",
             NotKept::EspTooSmall => "NØNOS, but the new boot files do not fit there",
         }
