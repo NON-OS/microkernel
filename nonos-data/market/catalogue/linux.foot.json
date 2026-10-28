@@ -1,0 +1,61 @@
+{
+  "schema_version": 4,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.foot",
+      "capsule_id": "4512cf82e115668c0275a669a3cf3252781768a79c0033aadf08a2f8319cbb66",
+      "name": "foot (terminal)",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A fast Wayland terminal in its own window, running a shell. Its box may start programs, as a terminal starts its shell, and every program it starts is held to the same box: its own home, no network.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "foot@1.17.2-r0",
+          "manifest_hash": "4512cf82e115668c0275a669a3cf3252781768a79c0033aadf08a2f8319cbb66",
+          "package_hash": "4512cf82e115668c0275a669a3cf3252781768a79c0033aadf08a2f8319cbb66",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/foot-1.17.2-r0.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c303101000000000000002a71ade7a2da4f10943afa3146780dac0a61921194243f6150140b5d8024df7a4901000000000000a97c65b3741283f1c317e9ab8bb7ba7d03e1e5b87da4d44910122ac89836e9e211f3db3680ec4742c31de4f5273943c548d391526736be6582a80fefdd8aff1a0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 205098 bytes; licence MIT; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}
