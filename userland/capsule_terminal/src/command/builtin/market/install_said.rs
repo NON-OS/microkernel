@@ -25,7 +25,8 @@ const EINVAL: i64 = -22;
 pub(super) fn said(name: &str, rc: i64) -> String {
     match rc {
         0 => format!(
-            "market: {name} queued; `market info {name}` shows how it goes, as does the Marketplace"
+            "market: {name} queued; this Terminal says when it is installed or why not, \
+             and `market info {name}` shows how it goes"
         ),
         EBUSY => format!("market: {name} is queued already, or the queue is full (EBUSY)"),
         EINVAL => format!("market: the system refused {name} as a listing id (EINVAL)"),

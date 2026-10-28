@@ -54,6 +54,8 @@ pub struct State {
     /// tier's install, and when it may be asked again (`fetch_status`).
     pub fetch: Option<crate::status_wire::Status>,
     pub fetch_at_ms: i64,
+    /// When every Linux listing is next asked where it stands (`app_tick`).
+    pub others_at_ms: i64,
     /// The order a purchase became, as the meter reports it (B9).
     pub orders: super::orders::Orders,
     /// The proof of an installed app's run this store asks for (I-B9a).
