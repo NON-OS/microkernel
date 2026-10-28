@@ -64,10 +64,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos_serve_wire"
+version = "0.1.0"
+
+[[package]]
 name = "nonos_simplex_ui"
 version = "0.1.0"
 dependencies = [
  "nonos_app_skeleton",
+ "nonos_serve_wire",
  "nonos_toolkit",
  "nonos_userland_libc",
 ]
