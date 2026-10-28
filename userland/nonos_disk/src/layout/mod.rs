@@ -27,4 +27,4 @@ mod sizes;
 pub use extent::Extent;
 pub use plan::Layout;
 pub use region::Region;
-pub use sizes::{DATA_MIN_SECTORS, ESP_SECTORS, MIN_DISK_SECTORS};
+pub use sizes::{DATA_MIN_SECTORS, ESP_SECTORS, MIB_SECTORS, MIN_DISK_SECTORS};

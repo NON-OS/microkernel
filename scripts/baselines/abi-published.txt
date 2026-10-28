@@ -103,6 +103,7 @@ syscalls.numbers MDBG 1195525197
 syscalls.numbers MDCL 1279476813
 syscalls.numbers MDFB 1111901261
 syscalls.numbers MDFD 1145455693
+syscalls.numbers MDHO 1330136141
 syscalls.numbers MDIM 1296647245
 syscalls.numbers MDLS 1397507149
 syscalls.numbers MDMM 1296909389

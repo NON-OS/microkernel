@@ -26,7 +26,7 @@ use alloc::format;
 use nonos_app_skeleton::PaintBuffer;
 
 use crate::install::full::setup_kept;
-use crate::install::state::Screen;
+use crate::install::state::State;
 
 use super::layout::FullLayout;
 use super::steps::{centred, row};
@@ -35,18 +35,22 @@ use nonos_brand::palette::{CYAN, RULE, TEXT, TEXT_3};
 
 const STEPS: [&str; 5] =
     ["THIS COMPUTER", "CHOOSE THE DISK", "ERASE PLAN", "WRITE, READ BACK", "INSTALLED"];
+/* On the update row the plan and the end say update, never erase. */
+const UPDATE_STEPS: [&str; 5] =
+    ["THIS COMPUTER", "CHOOSE THE DISK", "UPDATE PLAN", "WRITE, READ BACK", "UPDATED"];
 
-pub(super) fn panel(fb: &mut PaintBuffer, l: &FullLayout, screen: Screen) {
+pub(super) fn panel(fb: &mut PaintBuffer, l: &FullLayout, state: &State) {
     let (h, pw) = (fb.height, l.panel_w);
     fb.fill_rect(pw, 0, l.scale.px(1).max(1), h, RULE);
     emblem(fb, l.emblem_x, l.emblem_y, l.emblem_w, CYAN, true);
     centred(fb, l, l.caption_y, "INSTALL N\u{d8}NOS", TEXT);
     centred(fb, l, l.release_y, &nonos_brand::release(), TEXT_3);
-    let now = screen.step() as usize;
+    let now = state.screen.step() as usize;
     let (x, mut y) = (l.steps_x, l.steps_y);
     let setup = if setup_kept() { "FIRST-BOOT SETUP" } else { "SETUP: NO ANSWERS KEPT" };
     row(fb, l, x, y, "00", setup, if setup_kept() { CYAN } else { TEXT_3 }, false);
-    for (i, name) in STEPS.iter().enumerate() {
+    let steps = if state.on_update_row() { UPDATE_STEPS } else { STEPS };
+    for (i, name) in steps.iter().enumerate() {
         y += l.step_h;
         let colour = if i + 1 < now {
             CYAN

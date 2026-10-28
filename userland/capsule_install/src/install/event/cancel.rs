@@ -24,13 +24,16 @@ use crate::install::job::Phase;
 use crate::install::state::{Outcome, Screen, State};
 
 /// Whether a stop now leaves the disk with no table: until the first byte
-/// of the new table, since the old tables were wiped first. The read-back
-/// cannot be stopped; there is nothing to save by it.
+/// of the new table, since the old tables were wiped first. An update may
+/// be stopped until its last write, the boot sector. The read-back cannot
+/// be stopped; there is nothing to save by it.
 pub fn stoppable(state: &State) -> bool {
     matches!(state.job.as_ref().map(|j| &j.phase), Some(Phase::Writing(s)) if s.stoppable())
 }
 
-/// Stop the write, leaving a disk that firmware reads as unpartitioned.
+/// Stop the write, leaving a disk that firmware reads as unpartitioned, or
+/// after an update one whose boot partition is no volume and whose data is
+/// as it was.
 pub fn cancel(state: &mut State) -> EventOutcome {
     state.job = None;
     state.outcome = Some(Outcome {
@@ -40,7 +43,11 @@ pub fn cancel(state: &mut State) -> EventOutcome {
         bytes_verified: 0,
         store_files: 0,
         seconds: 0,
-        error: Some(String::from("stopped by you before the table was written")),
+        error: Some(String::from(if state.updating() {
+            "stopped by you before the update was complete"
+        } else {
+            "stopped by you before the table was written"
+        })),
         request: None,
         status: None,
     });

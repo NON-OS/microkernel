@@ -15,20 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The machine volume's open, under the volume's write hold: the window,
-//! the key header, the key derived from the TPM, and the mount, installed
-//! into the held volume. Nothing here takes the volume again.
+//! the key header, the key the TPM gives (key_pick.rs), and the mount,
+//! installed into the held volume. Nothing here takes the volume again.
 
 use super::super::error::VolumeError;
+use super::super::handover::opened;
 use super::super::key_header::Keyed;
 use super::super::key_header_io::read_key_header;
+use super::super::key_pick::{fresh, legacy};
 use super::super::mount_or_format::mount_or_format;
 use super::super::opened::install;
 use super::super::plan_types::Plan;
+use super::super::ring_blank::ring_blank;
 use super::super::state::VolumeState;
-use crate::security::tpm::machine_key::derive_for_kernel;
-
-/// The kernel label the volume key is derived under.
-const KEY_LABEL: &[u8] = b"blockfs.data.v1";
 
 pub(in super::super) fn open_into(
     v: &mut Option<VolumeState>,
@@ -36,15 +35,18 @@ pub(in super::super) fn open_into(
 ) -> Result<(), VolumeError> {
     crate::fs::cryptoblock::set_window(plan.volume_base, plan.volume_sectors)
         .map_err(VolumeError::Window)?;
-    if let Some(Keyed::Passphrase(_)) = read_key_header()? {
-        crate::log::warn!("[DATA] the volume is keyed by a passphrase; it waits for one");
-        return Err(VolumeError::NeedsPassphrase);
-    }
-    let key = derive_for_kernel(KEY_LABEL).map_err(|e| {
-        crate::log::warn!("[DATA] no machine key ({:?}); the data volume stays closed", e);
-        VolumeError::MachineKey(e)
-    })?;
-    let mount = mount_or_format(&key, plan, &Keyed::Tpm)?;
+    // The key by what the header says (key_pick.rs): a blank volume with no
+    // header is formatted with a wrapped key, an old one opens as it did.
+    let (key, keyed) = match read_key_header()? {
+        Some(Keyed::Passphrase(_)) => {
+            crate::log::warn!("[DATA] the volume is keyed by a passphrase; it waits for one");
+            return Err(VolumeError::NeedsPassphrase);
+        }
+        Some(Keyed::Approved(wrapped)) => opened(&wrapped)?,
+        None if ring_blank(plan.volume_base)? => fresh()?,
+        Some(Keyed::Tpm) | None => (legacy()?, Keyed::Tpm),
+    };
+    let mount = mount_or_format(&key, plan, &keyed)?;
     install(v, plan, key, mount);
     Ok(())
 }

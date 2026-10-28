@@ -37,7 +37,7 @@ mod status_text;
 mod wire;
 
 pub use device::{controllers, discover, BlockDevice, Found, Geometry, Identity};
-pub use disks::{scan, survey, Contents, Disk, Survey};
+pub use disks::{running_installed, scan, survey, Contents, Disk, Survey};
 pub use driver::{classify, Controller, Driver};
 pub use error::BlkError;
 pub use refusal::{last_refusal, Op as RefusedOp, Refusal};

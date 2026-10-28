@@ -46,6 +46,7 @@ pub(crate) const N_MK_DATA_IMPORT: i64 = tag4(b"MDIM");
 pub(crate) const N_MK_DATA_STAT: i64 = tag4(b"MDST");
 pub(crate) const N_MK_DATA_READ: i64 = tag4(b"MDRD");
 pub(crate) const N_MK_DATA_PASSPHRASE: i64 = tag4(b"MDPW");
+pub(crate) const N_MK_DATA_HANDOVER: i64 = tag4(b"MDHO");
 pub(crate) const N_MK_DATA_FEED_BEGIN: i64 = tag4(b"MDFB");
 pub(crate) const N_MK_DATA_FEED: i64 = tag4(b"MDFD");
 pub(crate) const N_MK_DATA_REMOVE: i64 = tag4(b"MDRM");
