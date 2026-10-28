@@ -43,7 +43,10 @@ fn the_monero_home_is_its_listings_own() {
     let publisher: [u8; 32] = hex(field("publisher_pubkey")).try_into().unwrap();
     let key = listing_id(&Host, &publisher, "linux.monero");
     assert_eq!(home_listings::MONERO, key, "not linux.monero's listing key");
-    assert_eq!(home_listings::LARGER, &[(key, 64 << 20)][..], "one listing, 64 MiB");
     let policy = hex(field("guest_policy"));
     assert_eq!(policy[AT_LISTING..AT_LISTING + 32], key, "the policy binds another listing");
+    // The program its policy names, at nonos_linux_policy's AT_PROGRAM (16).
+    let program: [u8; 32] = policy[16..48].try_into().unwrap();
+    assert_eq!(home_listings::MONERO_PROGRAM, program, "not the program linux.monero runs");
+    assert_eq!(home_listings::LARGER, &[(key, program, 64 << 20)][..], "one listing, 64 MiB");
 }
