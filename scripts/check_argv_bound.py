@@ -73,8 +73,9 @@ def faults(root: Path) -> list:
 DECOYS = [
     (LIBC, "pub const ARGV_BYTES_MAX: usize = 4096;", "pub const ARGV_BYTES_MAX: usize = 256;"),
     (TOOL, "const MAX_ARGV: usize = 4096;", "const MAX_ARGV: usize = 8192;"),
-    ("src/userspace/capsule_linux/run_net.rs", "let _ = crate::process::set_argv(pid, argv);",
-     "crate::process::with_process(pid, |pcb| *pcb.argv.lock() = argv);"),
+    ("src/kernel_core/process_spawn/capsule_spawn/runner/install/admit.rs",
+     "let _ = crate::process::set_argv(pid, argv.clone());",
+     "crate::process::with_process(pid, |pcb| *pcb.argv.lock() = argv.clone());"),
     (HEAP, "[0u8; nonos_libc::ARGV_BYTES_MAX]", "[0u8; 256]"),
     (SETTER, "    if !fits(&words) {", "    if false {"),
 ]

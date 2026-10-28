@@ -34,6 +34,9 @@ pub fn open_named(guest: &mut Guest, named: Vec<u8>, flags: u64, mode: u64) -> u
     if super::shm_rule::is_buffer(&full, flags) {
         return super::super::memfd_create(guest);
     }
+    if let Some(got) = crate::linux::pty::open(guest, &full, flags) {
+        return got;
+    }
     /* /dev/null and its kin are descriptors this capsule answers itself. */
     if dev::device_of(&full).is_some() {
         return dev::open_path(guest, &full, flags);

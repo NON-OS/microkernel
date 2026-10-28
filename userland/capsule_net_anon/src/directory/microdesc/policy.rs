@@ -19,7 +19,25 @@
 use crate::directory::lines::arg;
 use crate::directory::number::decimal;
 
+use super::summary::Summary;
+
 const WEB_PORTS: [u64; 2] = [80, 443];
+
+/// Whether a kept summary lets a stream to `port` out. An accept line lets
+/// out what it lists and a reject line what it does not. A line cut at
+/// RANGES_MAX is read as letting out only what it is known to, so a cut
+/// reject line lets out nothing: the port may be in the part dropped.
+pub fn exits_to(summary: &Summary, port: u16) -> bool {
+    if port == 0 {
+        return false;
+    }
+    let listed = summary.ranges.iter().any(|&(low, high)| low <= port && port <= high);
+    if summary.reject {
+        !listed && !summary.cut
+    } else {
+        listed
+    }
+}
 
 /// Whether the summary lets every web port out.
 ///

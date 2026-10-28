@@ -38,9 +38,15 @@ pub fn draw_path(relays: &[Relay], weights: &Weights) -> Option<Vec<Relay>> {
     Some(alloc::vec![guard, middle, exit])
 }
 
-/// A three hop path through `guard`, the relay the link is open to.
-pub fn draw_path_through(guard: &Relay, relays: &[Relay], weights: &Weights) -> Option<Vec<Relay>> {
-    super::through::through(guard, relays, weights, roll)
+/// A three hop path through `guard`, the relay the link is open to, whose
+/// exit `takes` the stream it is for.
+pub fn draw_path_through(
+    guard: &Relay,
+    relays: &[Relay],
+    weights: &Weights,
+    takes: impl Fn(&Relay) -> bool,
+) -> Option<Vec<Relay>> {
+    super::through::through(guard, relays, weights, takes, roll)
 }
 
 /// A middle relay for a circuit whose first and last hops are already

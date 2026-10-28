@@ -29,10 +29,12 @@ mod request;
 mod run;
 mod state;
 mod trace;
+mod trace_refusal;
 pub mod who;
 
 pub use parked::parked;
 pub use run::run;
 pub use trace::open_failed as trace_open;
+pub use trace::reply_kind as trace_reply_kind;
 pub use trace::step as trace_step;
-pub use trace::{reply_bytes as trace_reply_bytes, reply_kind as trace_reply_kind};
+pub use trace_refusal::reply as trace_reply;

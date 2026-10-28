@@ -18,8 +18,8 @@
 
 use alloc::vec::Vec;
 
-use super::call::call;
-use super::ops::{DOMAIN, KIND_MIXNET, KIND_STREAM, OP_CONNECT_HOST, OP_RECV, OP_SOCKET};
+use super::sockets::call::call;
+use super::sockets::ops::{DOMAIN, KIND_MIXNET, KIND_STREAM, OP_CONNECT_HOST, OP_RECV, OP_SOCKET};
 
 /// A stream to `ip`: over the mixnet, like everything else, unless `ip` is a
 /// mirror on the local network (`route::is_local`), which is dialled directly
@@ -46,7 +46,7 @@ pub fn open_stream_to(ip: &str) -> Option<u32> {
 }
 
 pub fn connect_host(handle: u32, host: &str, port: u16) -> Option<()> {
-    let body = super::host_body::host_body(handle, port, host.as_bytes())?;
+    let body = super::sockets::host_body::host_body(handle, port, host.as_bytes())?;
     match call(OP_CONNECT_HOST, &body, 0) {
         Some((0, _)) => Some(()),
         got => failed("connect", host, got.map(|g| g.0)),

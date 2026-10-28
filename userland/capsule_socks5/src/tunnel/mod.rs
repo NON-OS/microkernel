@@ -38,6 +38,7 @@ mod decode;
 mod encode;
 mod hostport;
 mod provider;
+mod refusal;
 mod writer;
 
 #[cfg(test)]
@@ -50,3 +51,6 @@ pub use hostport::write_hostport;
 pub use provider::ENVELOPE_BYTES;
 #[cfg(test)]
 pub use provider::{INTERFACE_VERSION, TAG_PROVIDER_DATA};
+pub use refusal::refusal;
+#[cfg(test)]
+pub use refusal::Refusal;

@@ -58,7 +58,7 @@ pub(crate) fn run(params: &InstallParams<'_>) -> Result<u32, SpawnError> {
     if named != Some(true) {
         forget_reply(params.reply_inbox);
         crate::process::exit::teardown(pid, SPAWN_FAILED, false);
-        return Err(if named.is_none() { SpawnError::ProcessCreation } else { SpawnError::InboxName });
+        return Err(named.map_or(SpawnError::ProcessCreation, |_| SpawnError::InboxName));
     }
     /*
      * From here the process exists and holds the reply inbox. A step that
@@ -106,11 +106,11 @@ fn finish(params: &InstallParams<'_>, pid: u32) -> Result<(), SpawnError> {
         .map_err(|_| super::trace::collided(params.name))?;
     super::spawn_log::emit(params.name, pid, caps, entry);
     /*
-     * Nothing below can fail. A terminal's run of the Linux personality gets
-     * its request and is marked private here, before it can first run.
+     * Nothing below can fail. The process gets its arguments, and a terminal's
+     * run its request and its private mark, here, before it can first run.
      */
     params.gate.record(pid);
-    crate::userspace::capsule_linux::admit_terminal_run(params.name, pid);
+    super::admit::admit(params, pid);
     crate::sched::add_to_run_queue(pid);
     crate::sys::bench::mark_named(b"capsule_runqueue_ok", params.name.as_bytes());
     super::trace::trace(params.name, b"runqueue ok");

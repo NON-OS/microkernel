@@ -44,7 +44,7 @@ pub fn takes(guest: &Guest, n: u64, fd: u64) -> bool {
     ) && guest.fds.get(fd as usize).is_some_and(|f| f.kind == Kind::Socket)
 }
 
-/// True when a parked call waits on a stream net.sockets or net.anon holds, which
+/// True when a parked call waits on a stream routed/ or net.anon holds, which
 /// nothing but a look tells the family has changed.
 pub fn ticks(guest: &Guest, wait: &Blocked) -> bool {
     takes(guest, wait.nr, wait.args[0])

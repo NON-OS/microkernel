@@ -14,10 +14,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-"""Each typing rule of qmp.py, removed (mutants.json), must fail test_keys.py.
-Each mutant is applied to a copy of the two files and the keys suite must
-fail; the unmutated copy must pass; a mutant that no longer applies exactly
-once fails too, so none rots into testing nothing."""
+"""Each typing rule of qmp.py, removed (mutants.json), must fail test_keys.py,
+and a caption written other than whole and renamed must fail
+test_caption.py. Each mutant is applied to a copy of the files and the two
+suites must fail; the unmutated copy must pass; a mutant that no longer
+applies exactly once fails too, so none rots into testing nothing."""
 
 import json
 import os
@@ -31,14 +32,16 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 COPY = ("userland/capsule_install/e2e/qmp.py", "tools/nonos_drive/__init__.py",
-        "tools/nonos_drive/test_keys.py")
+        "tools/nonos_drive/test_keys.py", "tools/nonos_drive/caption.py",
+        "tools/nonos_drive/test_caption.py")
+SUITES = ("tools.nonos_drive.test_keys", "tools.nonos_drive.test_caption")
 MUTANTS = json.loads((HERE / "mutants.json").read_text())
 
 
 def keys_suite(tree: Path) -> int:
-    """test_keys.py's exit status in `tree`; a hang fails."""
+    """The keys and caption suites' exit status in `tree`; a hang fails."""
     try:
-        return subprocess.run([sys.executable, "-m", "unittest", "tools.nonos_drive.test_keys"],
+        return subprocess.run([sys.executable, "-m", "unittest", *SUITES],
                               cwd=tree, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                               check=False, timeout=60).returncode
     except subprocess.TimeoutExpired:

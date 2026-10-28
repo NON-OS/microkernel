@@ -66,6 +66,7 @@ pub fn of(number: u64) -> &'static [u8] {
         nr::OPENAT => b"openat",
         nr::NEWFSTATAT => b"newfstatat",
         nr::SET_ROBUST_LIST => b"set_robust_list",
+        nr::GET_ROBUST_LIST => b"get_robust_list",
         nr::PRLIMIT64 => b"prlimit64",
         nr::GETRANDOM => b"getrandom",
         nr::RSEQ => b"rseq",
