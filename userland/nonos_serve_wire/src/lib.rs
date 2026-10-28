@@ -28,16 +28,22 @@
 //! | Op | Question body | Answer body when OK |
 //! |---|---|---|
 //! | OPEN | none | none; conn is the new connection |
-//! | WRITE | 1 to 65,536 bytes for the guest | u32 LE: how many it took, 0 when its buffer is full |
-//! | READ | want u32 LE, wait_ms u32 LE (5,000 at most) | what the guest wrote, at most `want`; none when the wait ran out |
+//! | WRITE | number u32 LE, then 1 to 65,532 bytes for the guest | u32 LE: how many it took, 0 when its buffer is full |
+//! | READ | number u32 LE, want u32 LE, wait_ms u32 LE (5,000 at most) | what the guest wrote, at most `want`; none when the wait ran out |
 //! | CLOSE | none | none; the guest reads end of file |
+//!
+//! WRITE and READ are numbered (bodies.rs): asked again under the same
+//! number, after a call that timed out, they get the kept answer, so a
+//! caller's timeout must cover `wait_ms`, and a retry costs nothing.
 
 #![cfg_attr(not(test), no_std)]
 
+mod bodies;
 mod frame;
 mod ops;
 mod put;
 
+pub use bodies::{read_ask, read_asked, took, took_of, write_head, written};
 pub use frame::{decode, request, Header, Refused};
 pub use ops::*;
 pub use put::put;

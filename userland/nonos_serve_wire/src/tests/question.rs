@@ -24,12 +24,27 @@ fn a_question_carries_only_what_its_op_may() {
     assert!(request(&frame(OPEN, 0, 0, b"")).is_ok());
     assert_eq!(request(&frame(OPEN, 0, 0, b"x")), Err(Refused::Body));
     assert_eq!(request(&frame(CLOSE, 0, 3, b"x")), Err(Refused::Body));
-    assert_eq!(request(&frame(WRITE, 0, 3, b"")), Err(Refused::Body));
     assert_eq!(request(&frame(OPEN, EBUSY, 0, b"")), Err(Refused::Body), "a question has status 0");
-    assert!(request(&frame(READ, 0, 3, &read_ask(4096, 5_000))).is_ok());
-    assert_eq!(request(&frame(READ, 0, 3, &read_ask(4096, 5_001))), Err(Refused::Body));
-    assert_eq!(request(&frame(READ, 0, 3, &read_ask(0, 10))), Err(Refused::Body));
-    assert_eq!(request(&frame(READ, 0, 3, &read_ask(MAX_BODY as u32 + 1, 10))), Err(Refused::Body));
-    assert_eq!(took_of(&took(65_536)), Some(65_536));
+    assert_eq!(took_of(&took(65_532)), Some(65_532));
     assert_eq!(took_of(b"abc"), None);
+}
+
+#[test]
+fn write_and_read_carry_their_number_and_stay_in_bounds() {
+    let w = [&write_head(7)[..], b"abc"].concat();
+    assert!(request(&frame(WRITE, 0, 3, &w)).is_ok());
+    assert_eq!(written(&w), Some((7, &b"abc"[..])));
+    assert_eq!(
+        request(&frame(WRITE, 0, 3, &write_head(7))),
+        Err(Refused::Body),
+        "a number, no bytes"
+    );
+    assert_eq!(request(&frame(WRITE, 0, 3, b"")), Err(Refused::Body));
+    assert!(request(&frame(READ, 0, 3, &read_ask(9, 4096, 5_000))).is_ok());
+    assert_eq!(read_asked(&read_ask(9, 4096, 5_000)), Some((9, 4096, 5_000)));
+    assert_eq!(request(&frame(READ, 0, 3, &read_ask(9, 4096, 5_001))), Err(Refused::Body));
+    assert_eq!(request(&frame(READ, 0, 3, &read_ask(9, 0, 10))), Err(Refused::Body));
+    let past = read_ask(9, MAX_BODY as u32 + 1, 10);
+    assert_eq!(request(&frame(READ, 0, 3, &past)), Err(Refused::Body));
+    assert_eq!(request(&frame(READ, 0, 3, &read_ask(9, 1, 1)[..8])), Err(Refused::Body));
 }
