@@ -67,3 +67,8 @@ fn a_path_another_package_holds_is_a_conflict() {
     assert_eq!(held_by_another(&mine(&[b"/usr/bin/jq"]), core::slice::from_ref(&a)), None);
     assert_eq!(held_by_another(&mine(&[b"/bin/ls"]), &[]), None, "no other package");
 }
+
+#[path = "held_map_tests.rs"]
+mod held_map;
+#[path = "reopen_tests.rs"]
+mod reopen;

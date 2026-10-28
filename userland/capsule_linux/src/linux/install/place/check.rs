@@ -25,7 +25,6 @@ use alloc::vec::Vec;
 
 use nonos_libc::mk_debug;
 
-use super::super::member::conflict::held_by_another;
 use super::super::member::image::shadows;
 use super::super::member::name::member_refused;
 use super::super::proof_names::is_proof_name;
@@ -56,12 +55,10 @@ pub(super) fn check(entries: &[Entry], pkg: &str) -> Result<(), Why> {
             mine.push(at);
         }
     }
-    let Some(others) = super::super::package_record::others(pkg) else {
-        return refuse(pkg, b"", "another package's record is unreadable");
-    };
-    match held_by_another(&mine, &others) {
-        Some(at) => refuse(pkg, at, "another installed package holds it"),
-        None => Ok(()),
+    match super::super::package_record::held_by_another(&mine, pkg) {
+        Err(()) => refuse(pkg, b"", "another package's record is unreadable"),
+        Ok(Some(at)) => refuse(pkg, &at, "another installed package holds it"),
+        Ok(None) => Ok(()),
     }
 }
 

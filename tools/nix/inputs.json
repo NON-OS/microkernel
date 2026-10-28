@@ -3522,6 +3522,7 @@
    "src/userspace/capsule_linux/family.rs",
    "src/userspace/capsule_linux/terminal/tier.rs",
    "src/userspace/init/app_choice/bits.rs",
+   "src/userspace/init/supervisor/watch_rule.rs",
    "tools/nix/store.json",
    "userland/assets/icons",
    "userland/capsule_linux/Cargo.toml",
