@@ -1,6 +1,6 @@
 # Release evidence for NONOS 0.9.3
 
-One line for each of the 52 directories here: what it proves, taken from that
+One line for each of the 53 directories here: what it proves, taken from that
 directory's own README. Three directories have no README; their line says what
 the files are and which commit added them.
 
@@ -56,6 +56,12 @@ were added by name.
 - [ksec-d2a9d0bfa-iommu-intel](ksec-d2a9d0bfa-iommu-intel/README.md): the
   selftest's `attack suite: PASS`, with the open-with deputy escape refused;
   tools and an app spawn on qemu-dev with no `[CAP-DENY]`.
+
+## Installing and updating
+
+  image A installed and prepared, Update NØNOS (keep my data) from image B
+  with a changed bootloader, then the data volume opens under B through the
+  handover and, on the next boot, under B's own key.
 
 ## Linux programs, installs and the Monero wallet
 
