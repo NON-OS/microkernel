@@ -49,9 +49,10 @@ fn each_operation_decodes_or_is_refused_with_linux_errno() {
         // The realtime clock is WAIT_BITSET's alone.
         (W, WAIT | REALTIME, 0, 0, Err(ENOSYS)),
         (W, WAKE | REALTIME, 0, 0, Err(ENOSYS)),
-        // Operations not served, and bits outside the command, are ENOSYS:
-        // 0x200 is not FUTEX_WAIT with a stray bit.
-        (W, 5, 0, 0, Err(ENOSYS)),
+        // Operations not served here, and bits outside the command, are
+        // ENOSYS: 0x200 is not FUTEX_WAIT with a stray bit. FUTEX_WAKE_OP is
+        // served before this decoder (wake_op.rs), and FUTEX_LOCK_PI not at all.
+        (W, 6, 0, 0, Err(ENOSYS)),
         (W, 6 | PRIVATE, 0, 0, Err(ENOSYS)),
         (W, 0x200, 0, 0, Err(ENOSYS)),
         // A word is four bytes on a four-byte boundary, both of them.
