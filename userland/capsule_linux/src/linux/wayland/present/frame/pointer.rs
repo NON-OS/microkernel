@@ -43,7 +43,7 @@ pub fn motion(guest: &mut Guest, x: i32, y: i32) -> Option<(i32, i32)> {
     }
     let q = guest.scene.frame.quarters;
     let hit = match x >= 0 && y >= 0 {
-        true => hit_test_at(a.w, a.h, false, x as u32, y as u32, q),
+        true => hit_test_at(a.w, a.h, a.max, x as u32, y as u32, q),
         false => DecorationHit::None,
     };
     light(&mut guest.scene, hit);
@@ -63,7 +63,7 @@ pub fn button(guest: &mut Guest, code: u32, down: bool) -> bool {
     if !down || code != LEFT || x < 0 || y < 0 {
         return true;
     }
-    match hit_test_at(a.w, a.h, false, x as u32, y as u32, guest.scene.frame.quarters) {
+    match hit_test_at(a.w, a.h, a.max, x as u32, y as u32, guest.scene.frame.quarters) {
         DecorationHit::CloseButton => super::buttons::close(guest),
         DecorationHit::MinimizeButton => super::buttons::minimize(&mut guest.scene),
         DecorationHit::MaximizeButton => super::buttons::maximize(guest),

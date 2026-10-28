@@ -17,8 +17,10 @@
 //! futex decodes and refuses as Linux's do_futex does, reads its counts as
 //! the ints they are, and a wake takes only waiters whose bitset meets its
 //! own, so it can never be used up on a waiter it was not meant for.
+//! FUTEX_WAKE_OP's operation is read as Linux reads it.
 
 mod counts;
 mod decode;
 mod robust_list;
 mod wake;
+mod wake_op;
