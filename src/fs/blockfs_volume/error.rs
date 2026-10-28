@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::handover::HandoverRefusal;
 use super::plan_types::PlanError;
 use crate::crypto::util::argon2::Argon2Error;
 use crate::fs::blockfs::BlockFsError;
@@ -69,4 +70,6 @@ pub enum VolumeError {
     /// The seeded RNG could not give a key, a salt or a nonce. Nothing was
     /// written.
     NoRandomness,
+    /// A prepare for an update was refused (handover/).
+    Handover(HandoverRefusal),
 }

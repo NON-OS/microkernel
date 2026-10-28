@@ -21,7 +21,7 @@
 use super::errnos::{ERRNO_FAULT, ERRNO_NOENT};
 use super::install_source_in_use::{in_use_record, AHCI, NVME, USB_MSC, VIRTIO_BLK};
 use super::install_source_kinds::{KIND_IN_USE_DISK, KIND_KERNEL_APPROVAL};
-use crate::hardware::block_device::{chosen, Kind};
+use crate::hardware::block_device::{chosen, selected, Kind};
 
 /// What `kind` serves when it is such a record, None when it is not one.
 pub(super) fn record(kind: u64, offset: u64, out_ptr: u64, out_len: u64) -> Option<i64> {
@@ -31,11 +31,12 @@ pub(super) fn record(kind: u64, offset: u64, out_ptr: u64, out_len: u64) -> Opti
     (kind == u64::from(KIND_IN_USE_DISK)).then(|| in_use(offset, out_ptr, out_len))
 }
 
-/* Only once a disk carried the layout is one kept (select.rs); before
- * that no disk is in use, which is no such record. The kernel's block
- * layer speaks to each backend's instance 0. */
+/* A disk is chosen at the first read or write (select.rs), and an installer
+ * opened before any must still learn it runs from its disk, so asking
+ * chooses as a store write does. While a driver is still starting none is
+ * kept, which is no such record. The block layer speaks to instance 0. */
 fn in_use(offset: u64, out_ptr: u64, out_len: u64) -> i64 {
-    let Some(backend) = chosen() else {
+    let Some(backend) = chosen().or_else(|| selected().ok()) else {
         return ERRNO_NOENT;
     };
     let code = match backend.kind() {
