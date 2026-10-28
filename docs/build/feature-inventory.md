@@ -72,6 +72,17 @@ These were in this change's first draft and are out of the default image again. 
 - cdc-ecm and rndis: run E put QEMU's `usb-net` in place of the NIC, and the capture held no frame from the guest (`EMPTY`), so neither carried traffic. net.core's calls to both went unanswered (`[DIAG] ipc.call unanswered driver.rndis0`, `driver.cdc_ecm0`, ETIMEDOUT).
 - bga: run E, status 6. Its framebuffer map asks for write-combining (`MK_MMIO_MAP_WC`, L17), and the broker knows no MMIO flag (`FLAGS_KNOWN = 0`, `src/hardware/broker/mmio/map.rs`), so it answers EOPNOTSUPP.
 
+## The ACPI capsule, power only
+
+`nonos-capsule-acpi` is in `microkernel-full-gui`, so Standard, Hardened and Air-Gapped carry it. It is built with `release-power-only` (`userland/capsule_acpi/Capsule.mk`), which keeps what the battery, AC, lid and buttons need and leaves out every part that acts on the machine beyond them (`userland/capsule_acpi/src/release/rule.rs`, proved in `capsule_acpi_proofs`; the capsule's README, "Release build", gives each reason). Hardened and Air-Gapped keep it: it reaches no network, claims no PCI function and does no DMA, and its tables are measured into the attestation registry.
+
+- Runs: the tables loaded, the EC found, the regions connected with their _REG, `_INI`, ACPI mode with the runtime GPEs and the SCI, the EC's GPE and _Qxx, batteries and AC adapters (`_STA`, `_BIX`/`_BIF`, `_BST`, `_PSR`) reported through `MkAcpiPower`, lids and control-method buttons, and what only reads (inventory, `_PRT`, SMBIOS, serial and legacy devices, proximity, the PCI `_DSM` facts, hotkey names).
+- Left out: `\_PIC(1)`, every `_OSC`, `\_S5` to the kernel and PREPARE_SLEEP's `\_TTS`/`\_PTS`, the reserved ranges, hidden functions' `_PS0`, hot plug, platform device records, `_BTP`, the capsule's own wiped power-off, the fixed power button's hand-over, cooling, processor records, backlight, hardware-error acknowledgement, port facts, Type-C, device power and the ops that act (SET_BRIGHTNESS, PREPARE_SLEEP, DEVICE_POWER, GPIO_EVENT, SET_POWER_CAP answer EPERM).
+- A power-button press reaching the capsule (a PNP0C0C Notify) goes to the desktop as its Power key; the fixed button stays with the kernel's poll. A critical battery is reported, and the kernel's own watch (ask the desktop, then power off 30 s later) acts on it.
+- MkBatteryStatus form 1 hands the bar and About the report's whole word, so they say "57% Charging". The word carries no rate or capacity, so neither shows a time left.
+
+Still open from before: a `Firmware` capability bit in place of Admin (`the design notes`), and the seal.
+
 ## A capsule that is in the image but not yet sealed
 
 The kernel embeds each capsule's certificate, manifest and STARK trailer from `nonos-data/trust/capsules/`. The release seal writes those files with the release keys, and the developers commit them. `nix build` refuses a kernel that ships a capsule with no trust set (`unsealed`, `tools/nix/image.nix`). That gate applies before and after this change:
@@ -83,15 +94,16 @@ The kernel embeds each capsule's certificate, manifest and STARK trailer from `n
 - On 2026-10-27 S4 added `driver-rtl8822ce` (Realtek RTL8822CE, 10ec:c822 and 10ec:c82f, a 2x2 Wi-Fi 5 card in many laptops since 2019) to `microkernel-full-gui`; it has no trust set either. Its PHY tables are rtw88's, taken under that code's BSD-3-Clause option (userland/capsule_driver_rtl8822ce/README.md).
 - On 2026-10-27 S4 added `driver-mt7921` (MediaTek MT7921 and MT7922 Wi-Fi: AMD RZ608 and RZ616, the ThinkPad T14 Gen 4 AMD among many) to `microkernel-full-gui`; it has no trust set either. Its card firmware is not in the image: the loader reads the pinned package from the boot medium (`scripts/firmware_package.py`).
 - On 2026-10-27 S4 added `driver-rtl8852be` (Realtek RTL8852BE, 10ec:b852 and 10ec:b85b, a 2x2 Wi-Fi 6 card in many laptops since 2021, run as a 20 MHz legacy station) to `microkernel-full-gui`; it has no trust set either. Its register tables are rtw89's, taken under that code's BSD-3-Clause option (userland/capsule_driver_rtl8852be/docs/licence.md).
+- On 2026-10-28 S4 added `acpi` (capsule_acpi, built with its `release-power-only` feature) to `microkernel-full-gui`, so the bar reads the battery; it has no trust set either. What that build runs and leaves out is below, under "The ACPI capsule, power only".
 - `driver-rtl8153` (Realtek RTL8153, RTL8153B) likewise: its own `microkernel-driver-rtl8153` profile, not in `microkernel-full-gui`, until Decision 10 is ruled.
 - A trust set that exists can still be stale. `nix build` also refuses a kernel when a shipped capsule's sealed manifest grants other caps than its `Capsule.mk` now says (`scripts/check_sealed_caps.py`, called from `tools/nix/image.nix`). On 2026-10-24, nine sealed manifests were stale this way. Five follow from this change's narrowing: keyring, login, payment, wallet-nonos and virtio-gpu. Four come from changes on main since the last seal: input-router, linux, boot-splash and i2c-pci. The next seal rewrites all nine. Host-tested: the script's `--self-test`, run by the flake's `static-abi` check.
 
-So `nix build` of the default image waits for the next release seal, which writes all 35 trust sets in one step. A development image (`make dev-image`, `tools/nonos-dev-image`) is sealed with throwaway keys and builds and boots now.
+So `nix build` of the default image waits for the next release seal, which writes all 36 trust sets in one step. A development image (`make dev-image`, `tools/nonos-dev-image`) is sealed with throwaway keys and builds and boots now.
 
-The 35, as `scripts/baselines/unsealed.txt` holds them. The flake's `static-release-trust` check fails when a release profile ships any other capsule without its trust set, when one of these is sealed and still listed, or when this list and the baseline differ:
+The 36, as `scripts/baselines/unsealed.txt` holds them. The flake's `static-release-trust` check fails when a release profile ships any other capsule without its trust set, when one of these is sealed and still listed, or when this list and the baseline differ:
 
 <!-- unsealed: begin -->
-`driver-ac97`, `driver-bga`, `driver-buslogic`, `driver-cdc-ecm`, `driver-cdc-ncm`, `driver-e1000e`, `driver-ehci`, `driver-igb`, `driver-igc`, `driver-ixgbe`, `driver-mpt`, `driver-mt7921`, `driver-ohci`, `driver-pcnet`, `driver-piix-ide`, `driver-pvscsi`, `driver-rndis`, `driver-rtl8822ce`, `driver-rtl8852be`, `driver-sdhci`, `driver-smbus`, `driver-tulip`, `driver-ufs`, `driver-uhci`, `driver-usb-audio`, `driver-usb-hub`, `driver-virtio-input`, `driver-virtio-scsi`, `driver-vmbus`, `driver-vmmdev`, `driver-vmmouse`, `driver-vmware-svga`, `driver-vmxnet3`, `nox-settle`, `prove-fetch`.
+`acpi`, `driver-ac97`, `driver-bga`, `driver-buslogic`, `driver-cdc-ecm`, `driver-cdc-ncm`, `driver-e1000e`, `driver-ehci`, `driver-igb`, `driver-igc`, `driver-ixgbe`, `driver-mpt`, `driver-mt7921`, `driver-ohci`, `driver-pcnet`, `driver-piix-ide`, `driver-pvscsi`, `driver-rndis`, `driver-rtl8822ce`, `driver-rtl8852be`, `driver-sdhci`, `driver-smbus`, `driver-tulip`, `driver-ufs`, `driver-uhci`, `driver-usb-audio`, `driver-usb-hub`, `driver-virtio-input`, `driver-virtio-scsi`, `driver-vmbus`, `driver-vmmdev`, `driver-vmmouse`, `driver-vmware-svga`, `driver-vmxnet3`, `nox-settle`, `prove-fetch`.
 <!-- unsealed: end -->
 
 ## Off, and why

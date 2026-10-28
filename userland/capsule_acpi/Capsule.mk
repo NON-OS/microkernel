@@ -18,5 +18,8 @@ CAPSULE_REQUIRED_CAPS    := 0x58218
 # Debug (0x100), for its serial lines in a build with capsule serial debug.
 CAPSULE_OPTIONAL_CAPS    := 0x100
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_acpi
+# Every image runs the power-only build: batteries, AC, lids, buttons and
+# the EC, and nothing that acts beyond them (src/release/rule.rs).
+CAPSULE_CARGO_FEATURES   := release-power-only
 
 include nonos-mk/capsule.mk
