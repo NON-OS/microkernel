@@ -42,7 +42,7 @@ fn a_still_finger_sending_one_frame_keeps_its_click_while_the_stick_moves() {
         ups += of_kind(&take_events(), INPUT_KIND_BUTTON_UP).len();
         mk_idle_ms(8);
     }
-    assert!(ups == 0 && s.gesture.button_held(), "the still click was let go {ups} times");
+    assert!(ups == 0 && s.gesture.was_button, "the still click was let go {ups} times");
 }
 
 #[test]
