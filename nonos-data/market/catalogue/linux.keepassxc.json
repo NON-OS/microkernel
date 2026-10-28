@@ -1,0 +1,61 @@
+{
+  "schema_version": 4,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.keepassxc",
+      "capsule_id": "2c41e3c4ca3f237e9bd6705b24e047e12cc4d0c03b4a5e9628b4c7d20e8520f4",
+      "name": "KeePassXC",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A password manager that keeps your passwords in one encrypted file in its own home, offline. Its box has no network at all, so nothing it holds can leave the machine through it. It opens in its own window in the NØNOS frame; copied passwords go to the NØNOS clipboard, and are cleared there when KeePassXC clears them.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "keepassxc@2.7.8-r0",
+          "manifest_hash": "2c41e3c4ca3f237e9bd6705b24e047e12cc4d0c03b4a5e9628b4c7d20e8520f4",
+          "package_hash": "2c41e3c4ca3f237e9bd6705b24e047e12cc4d0c03b4a5e9628b4c7d20e8520f4",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/keepassxc-2.7.8-r0.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c303101000000000000000ea09503aa2d199b7e454b8586fa7531ef52f56521d26f56bb13791da9ee80ae0900000000000000a8b701c990cc02fb26057349e9fe26ee9719f1d4d9afeba61aeb71148f391b10b94f21bd9c7c6d06e466ae1f2d4c96d88574af48b9ea2cd06bb7bc450ba45e5f0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 4339078 bytes; licence GPL-2.0-only OR GPL-3.0-only; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}
