@@ -117,7 +117,7 @@ Some apps are packaged by no distribution: DarkFi's drk, darkirc and darkfid, an
 | `build` | yes | the name of the nix recipe under `tools/nix/sources/` that builds it offline |
 | `program` | yes | the program the listing sells, as `usr/bin/<name>` |
 | `licence`, `mask`, `name`, `text` | yes | as for an Alpine recipe |
-| `calls`, `dests`, `logo`, `args` | no | as for an Alpine recipe |
+| `calls`, `dests`, `logo`, `args`; `serve` | no | as for an Alpine recipe; `serve` is `name:port`, the one capsule (1 to 32 of `[a-z0-9._-]` from a letter) the kernel lets reach the program's one listener on 127.0.0.1, at a port from 1 to 65535. It sets SERVE_ONE and writes a version 2 policy with the port and name at byte 217 (`tools/nonos_linux_pack/serve.py`). It is refused with WAYLAND, named in `mask`, or in an Alpine recipe |
 
 The rest of the recipe is checked as an Alpine one is: the allowlist, the services, the set, the dests file and the logo record. `index_licence` and `licence_source` describe an index, so a source recipe may not carry them. Its listing is `linux.nonos-<package>`. That is the namespace the device installs from the NONOS package mirror (`userland/capsule_linux/src/linux/install/tools.rs`). The generator adds the prefix, so a recipe that names a reserved namespace itself (`nonos-`, `qwen-`, `kali.`, `blackarch.`) is refused.
 
