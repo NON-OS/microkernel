@@ -21,6 +21,8 @@
 use alloc::vec::Vec;
 use nonos_libc::mk_debug;
 
+use super::line_frame::framed;
+
 /// The kernel takes 256 bytes a call; a longer line is cut.
 const MAX: usize = 256;
 
@@ -69,7 +71,7 @@ impl Line {
     }
 
     pub fn end(self) {
-        let n = self.0.len().min(MAX);
-        let _ = mk_debug(self.0.as_ptr(), n);
+        let line = framed(self.0, MAX);
+        let _ = mk_debug(line.as_ptr(), line.len());
     }
 }

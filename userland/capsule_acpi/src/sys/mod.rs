@@ -30,6 +30,7 @@ pub mod clock;
 pub mod device_name;
 pub mod function_of;
 pub mod hw_error;
+mod line_frame;
 pub mod log;
 pub mod log_parts;
 pub mod lpit;
