@@ -38,8 +38,7 @@ impl Popups {
     /// What a grab's end on `id` takes down: every grabbing popup from it
     /// up, topmost first; or `id` alone when it holds no grab.
     pub fn ending(&self, id: u32) -> Vec<u32> {
-        let popup = |p: &&Popup| p.grabbed && !self.dialogs.contains(&p.id);
-        let grabbed: Vec<u32> = self.list.iter().filter(popup).map(|p| p.id).collect();
+        let grabbed: Vec<u32> = self.list.iter().filter(|p| p.grabbed).map(|p| p.id).collect();
         match grabbed.iter().position(|g| *g == id) {
             Some(from) => grabbed[from..].iter().rev().copied().collect(),
             None => self.list.iter().filter(|p| p.id == id).map(|p| p.id).collect(),
@@ -48,10 +47,8 @@ impl Popups {
 
     /// Every popup, the grabbing ones topmost first, then the waiting ones.
     pub fn all(&self) -> Vec<u32> {
-        let popup = |p: &&Popup| !self.dialogs.contains(&p.id);
-        let waiting = self.list.iter().filter(popup).filter(|p| !p.grabbed).map(|p| p.id);
-        let grabbed = self.list.iter().rev().filter(popup).filter(|p| p.grabbed);
-        grabbed.map(|p| p.id).chain(waiting).collect()
+        let waiting = self.list.iter().filter(|p| !p.grabbed).map(|p| p.id);
+        self.list.iter().rev().filter(|p| p.grabbed).map(|p| p.id).chain(waiting).collect()
     }
 
     /// The grabbing popup under (`x`, `y`) on the toplevel's surface, topmost
