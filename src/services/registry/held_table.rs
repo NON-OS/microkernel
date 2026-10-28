@@ -24,7 +24,7 @@
 mod lists;
 
 use super::super::usb_hosts::USB_HOSTS;
-use lists::{BLUETOOTH_PANELS, KERNEL_ONLY, USB_CLIENTS};
+use lists::{BLUETOOTH_PANELS, KERNEL_ONLY, USB_CLIENTS, XHCI_CLIENTS};
 
 /// An endpoint held to a list, then the endpoints whose owners may send to it.
 pub(super) const HELD: &[(&str, &[&str])] = &[
@@ -44,7 +44,7 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     ("driver.fido0", KERNEL_ONLY),
     ("driver.spi0", &["driver.spi_hid0"]),
     ("driver.spi_hid0", KERNEL_ONLY),
-    (USB_HOSTS[0], USB_CLIENTS),
+    (USB_HOSTS[0], XHCI_CLIENTS),
     ("driver.i2c_pci0", &["driver.i2c_hid0"]),
     ("driver.hda0", &["audio.server"]),
     ("driver.ac97_0", &["audio.server"]),

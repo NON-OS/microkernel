@@ -461,3 +461,59 @@ not a fault.
       above if any, the laptop model, the download notes, and the first
       `[rtl8852be]` line that differs from this list. No line from this
       driver carries a MAC address, an SSID or a serial number.
+
+## Bluetooth on the HP laptop: the RTL8821CE's Realtek controller
+
+The RTL8821CE combo card carries Wi-Fi on PCIe (10ec:c821,
+`capsule_driver_rtl8821ce`) and Bluetooth on the laptop's internal USB,
+behind xHCI (`capsule_driver_bt_usb`). The Bluetooth half needs Realtek's
+patch before it is used: the capsule loads `rtl8821c_fw.bin` and
+`rtl8821c_config.bin` (linux-firmware's, embedded) with `nonos_bt_rtl`,
+then brings it up and pairs Bluetooth LE keyboards and mice. It is
+host-proven on a modelled RTL8821C only; this boot is its first on real
+hardware. The `bt-usb:` lines print on a development image
+(`standard-dev`; `Debug` granted). Hardened and Air-Gapped carry no
+Bluetooth at all.
+
+- [ ] Before booting, under Linux if the HP has it: save `lsusb` (the
+      Bluetooth line: 0bda:b00a, 0bda:c821 or 13d3:3529), and
+      `dmesg | grep -i 'bluetooth: hci0: RTL'` (its `rom_version status=0
+      version=N`, `loading rtl_bt/rtl8821c_fw.bin` and `fw version 0x...`
+      lines). The ROM version decides which patch is sent.
+- [ ] Power the laptop fully off first (not a reboot from Linux): a patch
+      Linux loaded survives a warm reboot, and the capsule then rightly
+      says `Realtek controller runs its own firmware` instead of loading.
+      Try that warm case too, second, and note which line it gave.
+- [ ] Boot a `standard-dev` image. In the Terminal: `log bt-usb`. Expected,
+      in order: `bt-usb: started, looking for a controller`, then within a
+      few seconds `bt-usb: Realtek patch loaded: ROM 1, firmware
+      1975054488, 139 fragments` (ROM 0: 78 fragments), then
+      `bt-usb: controller up`.
+- [ ] A refusal names its step: `controller not usable: ...` (binding; for
+      `ACL endpoints refused` keep the whole log), `Realtek patch not
+      loaded: no patch for this ROM version` (keep the Linux `rom_version`
+      line), `... controller failed or refused the setup` (a fragment
+      refused), `controller given back: ...`. Keep that line.
+- [ ] Settings, Bluetooth: Controller reads `Controller ready`, Status
+      `Looking for devices`, Scanning `On`.
+- [ ] A BLE keyboard (one that pairs by passkey): put it in pairing mode,
+      press P on the page. The Asks row shows `Type NNNNNN on it, then
+      its Enter`; type those six digits on the keyboard and Enter. The log
+      shows `bt-usb: connected`, `paired`, `bond kept`, `HID ready:
+      keyboard`, and no digits. Type in the Terminal: the letters appear.
+      The Paired devices row reads `Paired with a passkey or number
+      checked`, `Connected, battery N%`.
+- [ ] A BLE mouse: P again, then pairing mode on the mouse. It pairs with
+      nothing asked (`Paired without a check: Just Works`); the pointer
+      moves and the buttons click. A keyboard that paired by Just Works
+      would not type: the log says `keys not posted: paired with no
+      passkey typed`.
+- [ ] Switch the keyboard off and on: `link lost`, then `encrypted with the
+      kept bond` and it types again without pairing. F forgets it.
+- [ ] With Wi-Fi joined, pair and type again: the card's Wi-Fi and
+      Bluetooth share one antenna, and NONOS sets no coexistence; note any
+      drop in either.
+- [ ] Send back: `log bt-usb > bt.txt`, the boot log (`log > boot-log.txt`),
+      the Linux lines above, the keyboard's and mouse's make and model.
+      No `bt-usb:` line carries a Bluetooth address, a device name, a key
+      or a passkey; report any that does.
