@@ -32,9 +32,10 @@ const SCHEMAS: &[u8] = b"/usr/share/glib-2.0/schemas";
 const LOADERS: &[u8] = b"/usr/bin/gdk-pixbuf-query-loaders";
 const LINKS: [&[u8]; 3] = [b"libgtk-3.so", b"libgtk-4.so", b"libgdk_pixbuf-2.0.so"];
 /// The same, where the program links them through its own library (Mousepad
-/// through libmousepad): a run's store holds only its closure's packs.
-const LIBS: [&[u8]; 3] =
-    [b"/usr/lib/libgtk-3.so.0", b"/usr/lib/libgtk-4.so.1", b"/usr/lib/libgdk_pixbuf-2.0.so.0"];
+/// through libmousepad): a run's store holds only its closure's packs, and
+/// every GTK brings gdk-pixbuf's loaders. A directory, as a library's name
+/// there is a link the store does not answer for.
+const PIXBUF: &[u8] = b"/usr/lib/gdk-pixbuf-2.0";
 
 static HELPING: AtomicBool = AtomicBool::new(false);
 
@@ -46,7 +47,7 @@ pub fn helping() -> bool {
 /// Both, for a program that links GTK, where the store has the tool.
 pub fn prepare(program: &[u8]) {
     let links = LINKS.iter().any(|l| program.windows(l.len()).any(|w| w == *l));
-    if !links && !LIBS.iter().any(|l| found(l)) {
+    if !links && !found(PIXBUF) {
         return;
     }
     if found(COMPILE) && found(SCHEMAS) {
