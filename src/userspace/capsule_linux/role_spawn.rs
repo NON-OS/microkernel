@@ -16,6 +16,9 @@
 
 //! The personality spawned in a role: the one verified path every role takes.
 
+use alloc::string::String;
+use alloc::vec::Vec;
+
 use super::embed::{
     LINUX_ATTESTATION_BYTES, LINUX_ELF, LINUX_MANIFEST_BYTES, LINUX_NONOS_ID_CERT_BYTES,
 };
@@ -27,10 +30,10 @@ use crate::security::nonos_trust_anchor::{
     decode as decode_trust_anchor, BAKED_TRUST_ANCHOR_POLICY,
 };
 
-/// The personality in `role`, parented to the caller, with no argument
-/// vector set here: a caller that must hand one over before the process
-/// first runs does it from the spawn path (see `terminal::admit`).
-pub(super) fn spawn_role(role: &Role) -> Result<u32, SpawnError> {
+/// The personality in `role`, parented to the caller, holding `argv` from
+/// its first instruction; with None, a terminal run takes its reserved
+/// request from the spawn path instead (`terminal::admit`).
+pub(super) fn spawn_role(role: &Role, argv: Option<Vec<String>>) -> Result<u32, SpawnError> {
     let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)
         .map_err(|_| SpawnError::NonosIdCertRejected(IdCertVerifyError::TrustAnchorPolicy))?;
     let spec = CapsuleSpecVerified {
@@ -46,5 +49,8 @@ pub(super) fn spawn_role(role: &Role) -> Result<u32, SpawnError> {
         requested_caps: LINUX_CAPS | role.extra_caps,
         debug_tag: role.tag,
     };
-    capsule_spawn::spawn_verified(&spec, &trust_anchor, None)
+    match argv {
+        Some(argv) => capsule_spawn::spawn_verified_with_argv(&spec, &trust_anchor, None, argv),
+        None => capsule_spawn::spawn_verified(&spec, &trust_anchor, None),
+    }
 }

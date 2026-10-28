@@ -23,6 +23,7 @@ use crate::linux::guest::Guest;
 
 use super::super::present::frame::now::to_content;
 use super::super::present::frame::pointer as frame;
+use super::super::present::scale_math::to_logical;
 use super::axis::wheel;
 use super::button::button;
 use super::key::key;
@@ -41,7 +42,8 @@ pub fn deliver(guest: &mut Guest, event: &InputEvent) {
         InputKind::KeyUp => key(guest, event.code, event.flags, 0),
         // The NØNOS frame takes what lands on it (present/frame/pointer.rs).
         InputKind::PointerAbs => {
-            if let Some((x, y)) = frame::motion(guest, event.x, event.y) {
+            let on = frame::motion(guest, event.x, event.y);
+            if let Some((x, y)) = on.map(|p| logical(guest, p)) {
                 motion(guest, x, y);
             }
         }
@@ -52,10 +54,18 @@ pub fn deliver(guest: &mut Guest, event: &InputEvent) {
             button(guest, event.code, 0)
         }
         InputKind::Wheel => {
-            if let Some((x, y)) = to_content(&guest.scene, event.x, event.y) {
+            let on = to_content(&guest.scene, event.x, event.y);
+            if let Some((x, y)) = on.map(|p| logical(guest, p)) {
                 wheel(guest, event.delta_x, event.delta_y, x, y);
             }
         }
         _ => {}
     }
+}
+
+/// A point on the window's content as one on its surface, in the logical
+/// pixels the client draws in.
+fn logical(guest: &Guest, (x, y): (i32, i32)) -> (i32, i32) {
+    let e = guest.scene.frame.ratio;
+    (to_logical(x, e), to_logical(y, e))
 }
