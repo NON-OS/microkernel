@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! driver.spi0: an Intel LPSS SPI host, its raw transfers served to one
 //! client. Never the firmware's flash controller: the broker refuses that
-//! claim, and this driver binds only a function whose LPSS capabilities
-//! name SPI. Its endpoint is held to driver.spi_hid0 alone.
+//! claim, and this driver binds only a listed LPSS SPI function (ids.rs)
+//! whose capabilities name SPI; with none it leaves as absent. Its endpoint
+//! is held to driver.spi_hid0 alone.
 
 #![no_std]
 #![no_main]
@@ -36,6 +37,7 @@ mod gpio0;
 /// this driver cannot take one from under the touchpad's driver.
 #[path = "../../capsule_driver_i2c_pci/src/constants/device_info.rs"]
 mod i2c_ids;
+mod ids;
 mod ops;
 #[path = "../../capsule_driver_cdc_acm/src/acm/owner.rs"]
 mod owner;

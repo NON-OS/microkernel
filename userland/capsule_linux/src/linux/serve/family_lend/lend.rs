@@ -26,10 +26,18 @@ use crate::linux::guest::Kind;
 
 impl Family {
     pub(in super::super) fn lend(&mut self, i: usize) {
+        crate::linux::pty::note(self.guests.iter().flat_map(|g| g.fds.iter()));
         let ends = self.pipe_ends();
         let events = self.named(Kind::Event, self.events.len());
         let timers = self.named(Kind::Timer, self.timers.len());
         let tasks = count(self.guests.iter().map(|g| (g.threads.len(), g.ended.len())));
+        // A memfd's seals go once no descriptor in the family names it.
+        let names = |id| {
+            self.guests
+                .iter()
+                .any(|g| g.fds.iter().any(|f| f.kind == Kind::Memfd && f.handle == id))
+        };
+        crate::linux::file::seals_keep(names);
         let g = &mut self.guests[i];
         g.pipe_ends = ends;
         g.event_used = events;

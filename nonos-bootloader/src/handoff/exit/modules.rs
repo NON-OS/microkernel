@@ -17,7 +17,7 @@
 //! The module array the handoff points at: the loader image, the kernel
 //! image file and the boot partition's record, for the installer, then the
 //! boot evidence for the kernel's check of this loader, then the package
-//! store. Written into the
+//! store, then the firmware package's files. Written into the
 //! loader-data page allocated for it, so it outlives boot services like the
 //! handoff itself.
 
@@ -39,7 +39,8 @@ pub unsafe fn init_modules(bh_ptr: *mut BootHandoffV1, p: &HandoffInitParams) {
         .source
         .iter()
         .chain(install.evidence.iter())
-        .chain([&install.store, &install.mirror]);
+        .chain([&install.store, &install.mirror])
+        .chain(install.firmware.iter());
     for m in all.filter(|m| m.size > 0) {
         core::ptr::write(slots.add(count as usize), *m);
         count += 1;

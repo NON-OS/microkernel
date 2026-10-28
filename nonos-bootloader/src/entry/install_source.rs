@@ -17,12 +17,14 @@
 use alloc::{boxed::Box, vec::Vec};
 
 use nonos_boot::handoff::types::{
-    InstallHandoff, Module, BOOT_MEDIA_LEN, MODULE_KIND_BOOT_MEDIA, MODULE_KIND_DISK_MIRROR,
-    MODULE_KIND_KERNEL_IMAGE, MODULE_KIND_LOADER_IMAGE, MODULE_KIND_STORE,
+    InstallHandoff, Module, BOOT_MEDIA_LEN, MODULE_KIND_BOOT_MEDIA, MODULE_KIND_KERNEL_IMAGE,
+    MODULE_KIND_LOADER_IMAGE,
 };
-use nonos_boot::loader::file::{boot_partition, disk_mirror, load_file_from_esp, store_copy};
+use nonos_boot::loader::file::{boot_partition, load_file_from_esp};
 use nonos_boot::menu::BootIntent;
 use uefi::prelude::*;
+
+use super::boot_disk::boot_disk;
 
 pub fn install_source(
     st: &SystemTable<Boot>,
@@ -30,16 +32,15 @@ pub fn install_source(
     intent: BootIntent,
     evidence: [Module; 3],
 ) -> InstallHandoff {
-    let loader = match load_file_from_esp(st, super::loader_path::LOADER_PATH) {
-        Ok(bytes) => region(Vec::leak(bytes), MODULE_KIND_LOADER_IMAGE),
-        Err(_) => Module::default(),
-    };
+    let loader = load_file_from_esp(st, super::loader_path::LOADER_PATH)
+        .map_or(Module::default(), |b| region(Vec::leak(b), MODULE_KIND_LOADER_IMAGE));
     let (store, mirror) = boot_disk(st);
     InstallHandoff {
         source: [loader, region(kernel_data, MODULE_KIND_KERNEL_IMAGE), boot_media(st)],
         evidence,
         store,
         mirror,
+        firmware: super::firmware_package::firmware_package(st),
         requested: intent == BootIntent::Install,
         profile: 0,
     }
@@ -55,19 +56,6 @@ fn boot_media(st: &SystemTable<Boot>) -> Module {
         },
         None => Module::default(),
     }
-}
-
-fn boot_disk(st: &SystemTable<Boot>) -> (Module, Module) {
-    let bs = st.boot_services();
-    let Some(((base, size), disk)) = store_copy(bs) else {
-        return (Module::default(), Module::default());
-    };
-    let store = Module { base, size, kind: MODULE_KIND_STORE, reserved: 0 };
-    let mirror = match disk_mirror(bs, disk) {
-        Some((base, size)) => Module { base, size, kind: MODULE_KIND_DISK_MIRROR, reserved: 0 },
-        None => Module::default(),
-    };
-    (store, mirror)
 }
 
 fn region(bytes: &[u8], kind: u32) -> Module {
