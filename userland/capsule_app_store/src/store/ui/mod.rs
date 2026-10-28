@@ -26,6 +26,7 @@ mod gate_fit;
 mod gates;
 pub mod geometry;
 mod headline;
+mod headline_failed;
 mod hex;
 pub mod metrics;
 mod price_lines;

@@ -1,0 +1,61 @@
+{
+  "schema_version": 4,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.zathura",
+      "capsule_id": "fedb75ff37237eb1f1e5db95d9aecaf28f51eafe982d633512662454af5152d1",
+      "name": "zathura (PDF viewer)",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A keyboard-driven PDF viewer that opens in its own window. It opens the documents in its own home, or ones you put there. Its PDF support is the mupdf plugin, zathura-pdf-mupdf, installed with it. It has no network at all, and it runs in its own box, so a hostile PDF is held by that box, not by the viewer.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "zathura@0.5.6-r0",
+          "manifest_hash": "fedb75ff37237eb1f1e5db95d9aecaf28f51eafe982d633512662454af5152d1",
+          "package_hash": "fedb75ff37237eb1f1e5db95d9aecaf28f51eafe982d633512662454af5152d1",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/zathura-0.5.6-r0.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c30310100000000000000c03258d3920380bf60ab8daa55f47790ea8f04a381c6a3b6054110db911232cb0900000000000000a40e54764a19c716f251667648e30c9734f55b03856b59712771573e9552d8afb85dd497ff398d0dd25878a0e89ac94a4b00028574ea3940cb915b1f197ba3aa0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000004e4c58574954483101117a6174687572612d7064662d6d75706466"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 113199 bytes; licence Zlib; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}
