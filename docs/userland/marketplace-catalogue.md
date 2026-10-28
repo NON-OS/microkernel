@@ -176,7 +176,7 @@ With `--learn`, the sha256 is taken from the signed file instead of the recipe, 
 
 ## Adding an app
 
-1. Check that the package is in Alpine v3.20, that its licence is on the allowlist, and that it needs nothing the platform lacks: no pty, no program over 64 MiB, no inbound network.
+1. Check that the package is in Alpine v3.20, that its licence is on the allowlist, and that it needs nothing the platform lacks: no program over 64 MiB, no inbound network. A pseudo-terminal is there (`/dev/ptmx` and `/dev/pts/N`, see [the Linux personality](linux-personality.md#pseudo-terminals)), but no app has yet run on one.
 2. Add its recipe with the narrowest mask it works in.
 3. Run the generator and the documents step, and commit the new document.
 4. Run once with `--update-lock` and commit the lock with the recipe.
