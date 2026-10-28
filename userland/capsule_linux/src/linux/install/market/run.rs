@@ -19,6 +19,8 @@
 //! install records once it is in the store, written beside it and vouched
 //! for. Any failure fails the install and leaves nothing of it.
 
+use alloc::vec::Vec;
+
 use nonos_libc::mk_debug;
 
 use super::super::record::program::forget;
@@ -31,12 +33,13 @@ use super::check::gate;
 /// whose box is the personality's own table's, installs without one.
 pub fn install_from(pkg: &str, pin: &[u8; 32], market: Option<&Market>) -> Result<(), Why> {
     let Some(policy) = gate(pkg, market).map_err(refused)? else {
-        return install(pkg, pin);
+        return install(pkg, pin, &[]);
     };
+    // gate read the tail whole: its arguments, and the extras the closure adds.
+    let (args, extras) = market.map_or(Ok((&[][..], Vec::new())), Market::tail).map_err(refused)?;
     // Its programs land held: until bind, nothing of it starts unboxed.
     super::hold::hold(&policy.program_blake3);
-    install(pkg, pin)?;
-    let args = market.map_or(&[][..], |m| &m.args);
+    install(pkg, pin, &extras)?;
     if let Err(why) = bind(pkg, &policy, args) {
         let why = refused(why);
         // Whatever of it would not go stays held: its policy is not vouched.

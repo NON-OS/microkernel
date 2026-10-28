@@ -46,6 +46,7 @@ pub(crate) fn service() {
 /* Nothing is fetched or checked: the personality removes only the files its
  * own install recorded for the package. */
 fn uninstall(listing: &str) {
+    super::detail::bind(listing, 0);
     if super::super::app_choice::linux_off() {
         super::status::set(listing, Stage::Refused);
         return println(b"[LINUX-UNINSTALL] Linux turned off at setup, refused");
@@ -59,6 +60,7 @@ fn uninstall(listing: &str) {
     let said: &[u8] = match spawn_uninstall(&name) {
         Ok(pid) => {
             super::status::set(listing, Stage::Removing(pid));
+            super::detail::bind(listing, pid);
             b"[LINUX-UNINSTALL] started "
         }
         Err(e) => {

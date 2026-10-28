@@ -54,7 +54,8 @@ impl<'a> Session<'a> {
     }
 
     /// True until the first byte of the partition table is sent: stopping
-    /// then leaves a disk with no table, old or new.
+    /// then leaves a disk with no table, old or new. For an update, until
+    /// its last job, the boot sector (`queue_keep`).
     pub fn stoppable(&self) -> bool {
         self.next < self.table_from || (self.next == self.table_from && self.offset == 0)
     }
