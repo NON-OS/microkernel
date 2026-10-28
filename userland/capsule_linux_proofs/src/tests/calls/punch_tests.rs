@@ -22,7 +22,7 @@ use super::super::random::Regs;
 use crate::linux::file::punch::punched;
 
 /// What the family may hold of one file (held/cache/table.rs MAX_FILE).
-const MAX_FILE: u64 = 8 << 20;
+const MAX_FILE: u64 = crate::calls::loadavg::declared::HOME;
 
 #[test]
 fn a_hole_inside_the_file_is_zeroed_as_asked() {
