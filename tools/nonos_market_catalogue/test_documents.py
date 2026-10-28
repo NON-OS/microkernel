@@ -13,10 +13,9 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""The committed documents under nonos-data/market/catalogue/ are one app each and agree
-with the recipes, Alpine or source (listed as linux.nonos-<package>, source_run.py): the services,
-the set, the listed args, the text, the ids under the document's own publisher key, free. Run:
-python3 -m unittest discover -s tools/nonos_market_catalogue -t tools"""
+"""The committed documents under nonos-data/market/catalogue/ are one app each and agree with the recipes,
+Alpine or source (named by source_asset.naming): the services, the set, the listed args, the text, the ids
+under the document's own publisher key, free. Run: python3 -m unittest discover -s tools/nonos_market_catalogue -t tools"""
 
 import json
 import tempfile
@@ -25,12 +24,13 @@ from pathlib import Path
 
 from nonos_linux_pack.policy import listing_id, release_id
 
+from . import source_asset
 from .documents import split, write
 from .recipes_file import load
 
 ROOT = Path(__file__).resolve().parents[2]
 DOCS = ROOT / "nonos-data/market/catalogue"
-RECIPES = {("nonos-" if r.get("kind") else "") + r["package"]: r
+RECIPES = {source_asset.naming(r, "nonos-" + r["package"])[0] if r.get("kind") else "linux." + r["package"]: r
            for r in load(ROOT / "userland/capsule_market/linux-catalogue.json", ROOT)}
 
 
@@ -49,13 +49,13 @@ class Documents(unittest.TestCase):
 
     def test_there_is_a_document_for_every_recipe_and_no_other(self):
         names = sorted(d["entries"][0]["listing_id"] for d in documents())
-        self.assertEqual(names, sorted(f"linux.{p}" for p in RECIPES))
+        self.assertEqual(names, sorted(RECIPES))
 
     def test_every_document_agrees_with_its_recipe(self):
         for doc in documents():
             (e,) = doc["entries"]
             (rel,) = e["releases"]
-            recipe = RECIPES[e["listing_id"].removeprefix("linux.")]
+            recipe = RECIPES[e["listing_id"]]
             p = bytes.fromhex(rel["ext"]["guest_policy"])
             lid = listing_id(bytes.fromhex(e["publisher_pubkey"]), e["listing_id"])
             self.assertEqual(doc["schema_version"], 4)
