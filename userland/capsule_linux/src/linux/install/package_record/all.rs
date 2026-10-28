@@ -35,6 +35,13 @@ pub(in super::super) fn others(name: &str) -> Option<Vec<Manifest>> {
     names.filter(|n| !n.is_empty() && n != name).map(|n| read(&n)).collect()
 }
 
+/// Every package an install placed in this family, by its record's name.
+pub(in super::super) fn installed() -> Vec<String> {
+    let listed = vfs::list_paths(mk_getpid(), &dir()).unwrap_or_default();
+    let names = listed.iter().map(|p| p.rsplit('/').next().unwrap_or(p)).map(String::from);
+    names.filter(|n| !n.is_empty()).collect()
+}
+
 /// Keep only what is still to take out, or drop the record once nothing is.
 pub(in super::super) fn settle(name: &str, left: &Manifest) -> bool {
     let pid = mk_getpid();
