@@ -38,5 +38,6 @@ pub const fn unlisted(program_blake3: [u8; 32]) -> LinuxAppPolicy {
         release_id: [0; 32],
         net_dests_hash: [0; 32],
         syscall_set: SyscallSet::ALL,
+        serve: None,
     }
 }
