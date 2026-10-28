@@ -16,8 +16,9 @@
 //! The compositor's capture indicator, pure: the notice sent whenever a
 //! capture starts or stops (NCMP version 1, op 000Ah, body `kind u32` (1
 //! the camera, 2 the microphone) and `on u32`), and whether its reply says
-//! the indicator is shown. driver.usb_mic0 mounts it too. Under Decision 9 no indicator means no stream, so anything but a
-//! whole NCMP reply with status 0 is a refusal.
+//! the indicator is shown. driver.usb_mic0 mounts it too. Under Decision
+//! 9 no indicator means no stream, so anything but a whole NCMP reply with
+//! status 0 is a refusal, and the indicator is shown before capture starts.
 
 const MAGIC: u32 = 0x4E43_4D50; // "NCMP"
 const VERSION: u16 = 1;
@@ -43,4 +44,20 @@ pub fn shown(rc: i64, resp: &[u8]) -> bool {
     let ncmp = at(0).map(u32::from_le_bytes) == Some(MAGIC)
         && resp.get(6..8) == Some(&OP_CAPTURE.to_le_bytes()[..]);
     whole && ncmp && at(STATUS_AT).map(i32::from_le_bytes) == Some(0)
+}
+
+/// Capture begun only under a shown indicator: `show` asks the compositor,
+/// `begin` runs only once it answered that the indicator is shown, and a
+/// begin that fails takes the indicator down again (`hide`). `refused`
+/// when the indicator is not shown.
+pub fn shown_first<T>(
+    refused: i32,
+    show: impl FnOnce() -> bool,
+    begin: impl FnOnce() -> Result<T, i32>,
+    hide: impl FnOnce(),
+) -> Result<T, i32> {
+    if !show() {
+        return Err(refused);
+    }
+    begin().inspect_err(|_| hide())
 }

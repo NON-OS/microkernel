@@ -9,7 +9,7 @@ After the boot menu, the loader checks the kernel, shows its proofs panel for a 
 Setup does not run:
 
 - on a Recovery boot, which goes straight to the desktop with a Terminal open;
-- when an earlier boot kept its answers: setup restores them and exits without drawing, and the kernel log says `[SETUP] kept from an earlier boot; starting the desktop`, or `opening the installer` on a boot from the menu's `Install NØNOS` entry;
+- when the disk this boot came from keeps setup's answers, as a disk the installer wrote does: setup restores them and exits without drawing, and the kernel log says `[SETUP] kept from an earlier boot; starting the desktop`, or `opening the installer` on a boot from the menu's `Install NØNOS` entry. A stick keeps none, so it runs setup on every boot; one that kept answers under an earlier release keeps skipping setup until the image is written to it again;
 - on an image built with `install = false` in `nonos.toml`, which has no setup and no installer.
 
 There is no login and no password. The `login` service starts with nothing on screen, and no program in this release asks it to start or end a session.
@@ -32,16 +32,16 @@ There is no login and no password. The `login` service starts with nothing on sc
 3. Time zone. Whole hours from UTC, from UTC-12 to UTC+14, for the menu bar clock. `j` or Down adds an hour, and `k` or Up takes one off.
 4. Mode. Where this machine keeps what you do:
    - `Amnesic (default)`: RAM only. Nothing is written to any disk, and setup runs again on the next boot.
-   - `USB live (unavailable)`: cannot be chosen. It would keep an encrypted volume on the boot stick, and its screen says why it cannot: NONOS keeps state only on an NVMe, SATA or virtio disk today, and has no passphrase-keyed volume. The answers Install keeps on the stick, below, are plain records in its store, not that volume.
-   - `Install to this computer`: keeps your answers in the [package store](../overview/glossary-linux-personality.md#store) of the disk this boot came from, so setup does not run again, then opens the installer when setup ends.
+   - `USB live (unavailable)`: cannot be chosen. It would keep an encrypted volume on the boot stick, and its screen says why it cannot: NONOS keeps state only on an NVMe, SATA or virtio disk today, and has no passphrase-keyed volume. It is the one mode that would keep the answers on the stick itself.
+   - `Install to this computer`: opens the installer when setup ends. Your answers are held in memory, and the installer writes them into the [package store](../overview/glossary-linux-personality.md#store) of the disk it installs, so setup does not run there. The disk this boot came from keeps none of them: started from the stick again, NONOS is amnesic and runs setup.
 
    After the boot menu's `Install NØNOS` entry, this step starts on Install.
 5. Network. The first row is `No network (default, private)`. Under it come up to six Wi-Fi networks the card has heard, strongest first. The list refreshes every 2 seconds, and `s` looks again.
    - Enter on an open network sends the join at once, but the join fails: the drivers' join engine refuses a network with no RSN element.
    - A secured network asks for its passphrase: 8 to 63 characters, or a 64-digit hex key, shown as stars. Tab shows it, Escape clears it, Enter joins. A join takes up to 30 seconds. A failed join says why and wipes what you typed.
    - With the Install mode chosen, `r` remembers the joined network, sealed with a key the [TPM](../overview/glossary-stark-proof.md#tpm) derives. It is kept in the stick's store, and the installer does not carry it to the disk it writes, so join again from Settings once the installed system boots.
-   - The step's own note reads `WPA3 (SAE) and enterprise networks cannot be joined.` Its WPA3 half is older than the join code, which joins WPA3-Personal networks.
-   - A wired card is used as soon as a cable is plugged in, without asking. Read from the code, only virtio-net, in a virtual machine, gets an address that way in this release: the e1000, RTL8139 and RTL8169 drivers carry [a receive fault](../drivers/ethernet/README.md#the-receive-fault).
+   - The step's own note reads `Enterprise (802.1X) networks cannot be joined.` WPA2- and WPA3-Personal networks are joined: SAE whenever the access point offers it, and a network saved as WPA3 is never joined with WPA2 (`userland/nonos_wifi_core/src/rsn/select/joinpolicy.rs`).
+   - A wired card is used as soon as a cable is plugged in, without asking. On QEMU, virtio-net, e1000, e1000e, igb, RTL8139, PCnet, vmxnet3 and Tulip each got an address that way (`docs/release-evidence/0.9.3/drivers/`). The RTL8169 driver's fix for [the receive fault](../drivers/ethernet/README.md#the-receive-fault) is proven on the host only, since QEMU has no model of that chip.
 
    On Safe Mode and Air-Gapped boots the step says `This boot runs no network: the boot menu chose it.` See [Wi-Fi and networking](../using/wifi-and-networking.md).
 6. Network route. Which network the browser and the Terminal use. The screen describes Qwen downloads under each choice, but they do not follow it: downloads for an install, a Qwen model or a Linux package go over the [Anyone network](../overview/glossary-amnesic-boot.md#anyone-network) whatever this step says, unless you ask for one download to go direct.
@@ -67,16 +67,16 @@ Every answer is handed to the settings service, which applies it to this session
 
 | What | Path | When it is written |
 |---|---|---|
-| The answers: keyboard, time zone, wallpaper and the wallpapers kept, name, Qwen tier, apps turned off, computer name, network route | `/nonos/setup/answers` | Install: written to the store. Amnesic: held in memory for the installer, gone at shutdown |
-| The marker that setup is done | `/nonos/setup/done` | Install only, after the answers |
-| Consent to run installed software | `/nonos/consent/local.token` | Install, with `Also software installed here` chosen |
-| A remembered Wi-Fi network | `/nonos/wifi/saved` | Install, with `r` checked and a TPM present |
+| The answers: keyboard, time zone, wallpaper and the wallpapers kept, name, Qwen tier, apps turned off, computer name, network route | `/nonos/setup/answers` | Never to the disk this boot came from. Amnesic and Install hold them in memory, and the installer writes them to the disk it installs. Gone at shutdown |
+| The marker that setup is done | `/nonos/setup/done` | Never to the disk this boot came from. The installer writes it beside the answers on the disk it installs |
+| Consent to run installed software | `/nonos/consent/local.token` | Install, with `Also software installed here` chosen: to the store of the disk this boot came from. The installer does not carry it |
+| A remembered Wi-Fi network | `/nonos/wifi/saved` | Install, with `r` checked and a TPM present: to the store of the disk this boot came from. The installer does not carry it |
 
-- The answers go first and the marker last, so a save cut short restores nothing and setup simply runs again.
+- The answers and the marker reach the installed disk together, in the store the installer writes.
 - The answers and the marker are not encrypted. The store is written to the disk as it is.
 - The Wi-Fi passphrase is never written in the clear. It is shown as stars, never sent to the console, and wiped from memory on Escape, after a failed join, and once review has used it.
-- Until you install, the store that keeps your answers is the stick's. The installer carries the answers to the disk it writes, so setup does not run there either.
-- To run setup again on a stick that kept answers, write the image to it again: a freshly written store holds no answers.
+- Until you install, your answers are only in memory. The installer carries them to the disk it writes, so setup does not run there, and the stick keeps none: started from it again, NONOS runs setup.
+- A stick that kept answers under an earlier release skips setup until the image is written to it again: a freshly written store holds no answers.
 
 ## When setup cannot start
 
@@ -88,12 +88,12 @@ Setup first waits up to 30 seconds for this boot's store to load. If setup canno
 flowchart TD
   review[Review] --> mode{Mode step}
   mode -->|Amnesic| desk[desktop]
-  mode -->|Install| kept[answers kept]
-  kept --> inst[installer]
+  mode -->|Install| held[answers held in memory]
+  held --> inst[installer]
   inst --> desk
 ```
 
-Amnesic starts the desktop. Install keeps the answers, then hands the whole screen to the installer with no desktop behind it. If you leave the installer without installing, the desktop starts.
+Amnesic starts the desktop. Install holds the answers in memory for the installer, then hands the whole screen to it with no desktop behind it. If you leave the installer without installing, the desktop starts.
 
 ## Where this comes from
 
@@ -111,7 +111,7 @@ Amnesic starts the desktop. Install keeps the answers, then hands the whole scre
   - The step names: `STEP_LABELS`, `userland/capsule_setup_wizard/src/render/theme.rs:29`; each screen is a file under `userland/capsule_setup_wizard/src/render/screens/`.
   - Keyboard layouts: `POLICY_LAYOUTS`, `userland/nonos_keymap/src/policy.rs:28`.
   - Time zone keys: `on_key`, `userland/capsule_setup_wizard/src/render/screens/timezone.rs:44-50`.
-  - The three modes: `MODES`, `userland/capsule_setup_wizard/src/render/screens/mode.rs:18-19`, and the start on Install, `mode_sel`, `userland/capsule_setup_wizard/src/state.rs:70`.
+  - The three modes: `MODES`, `userland/capsule_setup_wizard/src/render/screens/mode.rs:17-18`, and the start on Install, `mode_sel`, `userland/capsule_setup_wizard/src/state.rs:70`.
   - The network list, every 2 seconds, strongest first: `POLL_MS` and `refresh`, `userland/capsule_setup_wizard/src/network/poll.rs:13-55`.
   - Open networks refused: `OpenNetwork`, `userland/nonos_wifi_core/src/mlme/beacon.rs:50-51`.
   - The remembered network stays behind: `gather`, `userland/nonos_disk/src/carry/gather.rs:35-90`.
@@ -122,9 +122,11 @@ Amnesic starts the desktop. Install keeps the answers, then hands the whole scre
   - Installed software: `MODES`, `userland/capsule_setup_wizard/src/render/screens/local_software.rs:24-30`.
   - A refused answer named once on Review: `unsaved_told`, `userland/capsule_setup_wizard/src/render/screens/review.rs:69-80`.
 - What is kept, and where
-  - Applied to this session: `commit`, `userland/capsule_setup_wizard/src/render/screens/commit.rs:17`.
+  - Applied to this session: `commit`, `userland/capsule_setup_wizard/src/render/screens/commit.rs:21`.
+  - Where the answers go by mode, Install holding them in memory: `answers_for`, `userland/capsule_setup_wizard/src/keep/choice.rs:43-49`, and `stage`, `userland/capsule_setup_wizard/src/keep/save.rs:52-66`.
+  - The installer adds the marker beside the answers: `carry`, `userland/nonos_disk/src/carry/setup.rs:42-49`.
   - The paths: `ANSWERS_PATH` and `DONE_PATH`, `userland/policy_proto/src/setup_record/layout.rs:33-34`; `TOKEN`, `userland/capsule_setup_wizard/src/consent/restore.rs:24`; `PATH`, `userland/nonos_wifi_client/src/saved/file.rs:21`.
-  - Answers first, marker last: `save`, `userland/capsule_setup_wizard/src/keep/save.rs:30-37`.
+  - Answers first, marker last, in the one mode that would keep them on this disk, USB live: `save`, `userland/capsule_setup_wizard/src/keep/save.rs:30-45`.
   - The store written as it is: `block_device::write`, `src/syscall/microkernel/store_write.rs:55`.
 - When setup cannot start
   - The 30-second wait: `STORE_WAIT_MS`, `userland/capsule_setup_wizard/src/keep/skip.rs:29`.

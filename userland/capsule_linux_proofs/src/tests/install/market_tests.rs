@@ -17,7 +17,7 @@
 //! The fourth word of an install request, and the four checks a market
 //! policy passes before the install role vouches for it (plan/30).
 
-use crate::install::market::arg::{market_arg, NotMarket, MARKET_LEN};
+use crate::install::market::arg::{market_arg, Market, NotMarket, MARKET_LEN};
 use crate::install::market::check::{admit, names_program};
 use nonos_linux_policy::{unlisted, LinuxAppPolicy, SyscallSet};
 
@@ -42,11 +42,11 @@ pub(super) fn market(p: &LinuxAppPolicy, listing: u8, release: u8) -> [u8; MARKE
 }
 
 #[test]
-fn the_word_is_a_dash_or_640_lowercase_hex() {
+fn the_word_is_a_dash_or_at_least_640_lowercase_hex() {
     assert_eq!(market_arg(b"-"), Ok(None));
     let m = market(&policy(1, 2, ready()), 1, 2);
     let hex: String = m.iter().map(|b| format!("{b:02x}")).collect();
-    assert_eq!(market_arg(hex.as_bytes()), Ok(Some(m)));
+    assert_eq!(market_arg(hex.as_bytes()), Ok(Some(Market { head: m, args: Vec::new() })));
     for bad in [hex.to_uppercase(), hex[1..].to_string(), format!("{hex}0"), String::new()] {
         assert_eq!(market_arg(bad.as_bytes()), Err(NotMarket), "{}", bad.len());
     }

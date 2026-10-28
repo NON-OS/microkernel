@@ -21,8 +21,10 @@
 
 mod memory;
 mod model;
+mod net_reader;
 mod part_model;
 mod phy_model;
+mod serve;
 
 mod bring_up_parts_tests;
 mod bring_up_tests;
@@ -44,6 +46,7 @@ mod refused_port_tests;
 mod reset_nvm_tests;
 mod reset_order_tests;
 mod reset_tests;
+mod rx_batch_limit_tests;
 mod rx_batch_tests;
 mod rx_fuzz;
 mod rx_piece_tests;
@@ -51,6 +54,7 @@ mod rx_queue_tests;
 mod rx_wb_tests;
 mod semaphore_tests;
 mod stage_tests;
+mod stand_down_tests;
 mod swfw_tests;
 mod timeout_text_tests;
 mod tx_encode_tests;

@@ -17,7 +17,8 @@
 /*
  * A proxy's service port, reached by a bounded IPC call. The kernel stamps
  * each call with its own token, so an answer that arrives after its caller
- * stopped waiting is discarded rather than handed to the next call.
+ * stopped waiting is discarded rather than handed to the next call. A
+ * carrier for a named stream names it in every frame it carries (`frame_on`).
  */
 
 use nonos_libc::{mk_idle_ms, mk_ipc_call_timeout, mk_uptime_ms};
@@ -26,16 +27,24 @@ use crate::carrier::Carrier;
 
 pub struct Ipc {
     port: u32,
+    /* The stream every frame names, 0 for the one a frame naming none is. */
+    stream: u32,
 }
 
 impl Ipc {
     pub fn new(port: u32) -> Ipc {
-        Ipc { port }
+        Ipc { port, stream: 0 }
+    }
+
+    pub fn on(port: u32, stream: u32) -> Ipc {
+        Ipc { port, stream }
     }
 }
 
 impl Carrier for Ipc {
     fn call(&mut self, frame: &[u8], wait_ms: u64, into: &mut [u8]) -> i64 {
+        let named = crate::frame_on::on(self.stream, frame);
+        let frame = named.as_deref().unwrap_or(frame);
         mk_ipc_call_timeout(
             self.port as u64,
             frame.as_ptr(),

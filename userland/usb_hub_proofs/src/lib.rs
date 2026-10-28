@@ -60,3 +60,8 @@ mod virt_park_tests;
 mod walk_more_tests;
 #[cfg(test)]
 mod walk_tests;
+#[cfg(test)]
+#[path = "../../capsule_driver_usb_hub/src/wire.rs"]
+pub mod wire;
+#[cfg(test)]
+mod wire_reply_tests;
