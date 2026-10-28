@@ -27,6 +27,9 @@ pub fn pwrite64(guest: &mut Guest, fd: u64, buf: u64, len: u64, at: u64) -> u64 
     if (at as i64) < 0 {
         return errno::fail(errno::EINVAL);
     }
+    if crate::linux::file::write_sealed(guest, fd) {
+        return errno::fail(errno::EPERM);
+    }
     if let Err(e) = seekable(guest, fd) {
         return e;
     }

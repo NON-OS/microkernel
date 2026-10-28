@@ -24,6 +24,7 @@ use nonos_app_skeleton::discover::lookup_port;
 use crate::linux::guest::Guest;
 
 use super::out::Event;
+use super::present::{scale_math::whole, scaled::quarters};
 
 const GEOMETRY: u16 = 0;
 const MODE: u16 = 1;
@@ -68,7 +69,7 @@ pub fn announce(guest: &mut Guest, id: u32) {
         Event::new(id, DESCRIPTION).string(b"the NONOS display").send(to);
     }
     if guest.objects.at_least(id, 2) {
-        Event::new(id, SCALE).u32(1).send(to);
+        Event::new(id, SCALE).u32(whole(quarters())).send(to);
         Event::new(id, DONE).send(to);
     }
 }

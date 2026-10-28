@@ -16,7 +16,7 @@
 
 //! The futex call, its operation decoded and answered.
 
-use super::super::futex_op::{decode, wake_count, Cmd};
+use super::super::futex_op::{decode, is_wake_op, wake_count, Cmd};
 use super::super::futex_requeue::requeue;
 use super::super::futex_time::deadline;
 use super::wait::wait;
@@ -29,6 +29,9 @@ use crate::linux::serve::Answer;
 /// a wake meant for one waiter never uses itself up on another.
 pub fn futex(guest: &mut Guest, tid: u32, a: [u64; 6]) -> Answer {
     let (uaddr, op, val) = (a[0], a[1], a[2]);
+    if is_wake_op(op) {
+        return super::wake_op::wake_op(guest, a);
+    }
     let cmd = match decode(uaddr, op, a[4], a[5]) {
         Ok(cmd) => cmd,
         Err(e) => return Answer::value(errno::fail(e)),

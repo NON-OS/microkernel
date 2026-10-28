@@ -52,5 +52,7 @@
    "args": ["--daemon-address=xmr-node.cakewallet.com:18081", "--untrusted-daemon"],
    "text": "Monero's command-line wallet. It starts with a public remote node, xmr-node.cakewallet.com:18081, as an untrusted node, so it offers no mining; name another with --daemon-address. It reaches the node over Nym or Anyone, never direct, so the node never learns your address; it still sees which outputs your wallet asks about. Its box allows any node: a market release cannot carry a list of destinations yet. The daemon and tools in its package have no box of their own and are refused."},
   {"package": "swayimg", "licence": "MIT", "mask": "WAYLAND FILES_HOME", "name": "swayimg",
-   "text": "An image viewer that opens in its own window: PNG, JPEG, GIF, WebP, SVG and more, with zoom, pan and a slideshow. It reads only files in its own home and has no network at all. It decodes untrusted images with the usual libraries, so a hostile image is held by its box, not by the viewer."}
+   "text": "An image viewer that opens in its own window: PNG, JPEG, GIF, WebP, SVG and more, with zoom, pan and a slideshow. It reads only files in its own home and has no network at all. It decodes untrusted images with the usual libraries, so a hostile image is held by its box, not by the viewer."},
+  {"package": "keepassxc", "licence": "GPL-2.0-only OR GPL-3.0-only", "mask": "WAYLAND FILES_HOME", "name": "KeePassXC",
+   "text": "A password manager that keeps your passwords in one encrypted file in its own home, offline. Its box has no network at all, so nothing it holds can leave the machine through it. It opens in its own window in the NØNOS frame; copied passwords go to the NØNOS clipboard, and are cleared there when KeePassXC clears them."}
 ]}

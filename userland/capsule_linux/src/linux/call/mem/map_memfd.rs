@@ -25,6 +25,10 @@ use super::map_req::MapReq;
 /// A memfd has nothing to read in: it is pages, and the client is about to
 /// draw into them.
 pub fn memfd(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
+    /* WRITE and FUTURE_WRITE refuse a new writable shared map. */
+    if crate::linux::file::map_sealed(guest, req.fd, req.prot, req.flags) {
+        return errno::fail(errno::EPERM);
+    }
     let out = anonymous(guest, req, at, span);
     if (out as i64) < 0 {
         return out;
