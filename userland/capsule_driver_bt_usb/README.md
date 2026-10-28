@@ -47,6 +47,7 @@ logs `controller not usable: ACL endpoints refused`.
 | `ring` | The bond store's `Keys` over the keyring: OP_STORE, OP_RETRIEVE, OP_DELETE and OP_LIST (L33), with the layouts `capsule_keyring` reads. Its request and answer layouts are pure, so the proofs run them. |
 | `nbtc` | NBTC v1, the protocol driver.bt_usb0 answers (below): the frame, who may ask what, and the board it reads and changes. Pure, so the proofs run all of it. |
 | `run` | The clock, log and random source; the desk, whose every wait answers NBTC; the bond store opened; finding the controller on the ports, and the loop of links. |
+| `vendor` | A controller's own setup before HCI bring-up, by its USB id: `mediatek` patches an MT7921 or MT7922 (below). |
 
 ## A link
 
@@ -97,7 +98,40 @@ pairing or ATT timer, a PDU that found no ACL buffer for 32 s, the
 controller giving the link's handle to another) is ended with Disconnect,
 and the next look waits 30 s.
 
+## MediaTek MT7921 and MT7922
+
+These answer HCI only once their ROM is patched. A controller Linux v6.12
+`btusb.c` marks `BTUSB_MEDIATEK` for these chips (every 0e8d device with an
+E0/01/01 interface, such as 0e8d:0608 and 0e8d:0616, and 28 modules by
+Foxconn, Lite-On, AzureWave and 35f5; `src/vendor/mediatek/ids.rs`) is set
+up as `btmtk_usb_setup` does, before Reset:
+1. its chip id, ROM version and flavour read (vendor request 0x63); an id
+   or revision with no patch in the package (MT7925, the MT7921's 1a
+   flavour) is refused;
+2. its patch read from the firmware package (`MkInstallSource` kind 0x26,
+   `BT_RAM_CODE_MT7961_1_2_hdr.bin`, or 0x27,
+   `BT_RAM_CODE_MT7922_1_1_hdr.bin`) and held to its pinned length and
+   SHA-256 before the chip is touched. The files are never in this capsule:
+   MediaTek's licence forbids a form the GPL or LGPL would cover, so they
+   ship on the boot medium as the Wi-Fi driver's do;
+3. the Bluetooth subsystem reset through the USB wrapper's registers, done
+   within 1 s;
+4. each section asked about over WMT (HCI vendor command 0xfc6f, answered
+   by event 0xe4 on the default endpoint within 10 s): one already applied
+   is left, one in progress is asked again 100 ms later at most 20 times;
+   the rest is sent in 250-octet blocks flagged 1, 2 ... 3;
+5. the endpoint reset option, then WMT function control 1: Bluetooth on.
+
+Any refusal is logged (`MediaTek controller not set up:` and why) and the
+controller given back; `MediaTek MT7922 patched: 2 sections sent, 0
+held` otherwise. `bt_usb_proofs` runs all of it but the glue against a
+modelled chip with made-up patch files.
+
 ## Not yet
+
+- `MkInstallSource` is gated on DeviceEnum, which the manifest does not
+  grant yet: until it does, a MediaTek controller is refused with "the
+  firmware package is missing from the boot medium".
 
 - Bonds last for this boot only (Decision 27). They are kept in the
   keyring when it keeps this capsule's records (L33), else in this
@@ -208,7 +242,7 @@ endpoint and 0x000E to read it.
 
 ```text
 allowed:   HCI over USB, L2CAP fixed channels, SMP pairing, ATT/GATT client, HOGP boot reports, input events, NBTC to Settings and the shell
-forbidden: xHCI ownership, USB scheduling, DMA buffers, vendor firmware, BR/EDR, keys anywhere but this process and its own keyring records
+forbidden: xHCI ownership, USB scheduling, DMA buffers, vendor firmware other than the pinned package's, BR/EDR, keys anywhere but this process and its own keyring records
 ```
 
 ## Privacy and persistence
@@ -295,7 +329,8 @@ endpoint contexts, rings and DMA.
 ## Operating rules
 
 - Keep USB transfer mechanics in driver.xhci0.
-- Send no vendor command; a controller that needs one is refused.
+- Send no vendor command but a pinned vendor setup's (`vendor/`); any other
+  controller that needs one is refused.
 - Pair with LE Secure Connections only; never fall back to legacy pairing.
 - Read the HID service only on an encrypted link.
 - Bound every length the controller or the peer sends before using it.
@@ -328,7 +363,7 @@ is on main yet.
 ## Explicit non-goals today
 
 BR/EDR (Classic) devices, more than one device at a time, Report Protocol
-(media keys, wheels, absolute pointers), vendor firmware loading, and
+(media keys, wheels, absolute pointers), vendor firmware but MediaTek's, and
 bonds kept past this boot. The pairing dialog is Settings', over NBTC.
 
 ## Verification

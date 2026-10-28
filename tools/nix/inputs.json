@@ -1637,6 +1637,7 @@
    "userland/nonos_bt_smp",
    "userland/nonos_bt_smp_proofs/src/sim",
    "userland/nonos_bt_wire",
+   "userland/nonos_hash",
    "userland/nonos_p256"
   ],
   "md": [],
