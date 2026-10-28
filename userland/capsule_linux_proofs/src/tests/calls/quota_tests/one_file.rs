@@ -41,11 +41,28 @@ fn a_write_past_it_is_said_once_a_run() {
 #[test]
 fn the_home_is_sized_for_its_listing_before_it_opens() {
     let start = include_str!("../../../../../capsule_linux/src/linux/start_home.rs");
-    let chose = start.find("file::choose_home(&guest.app.policy.listing_id);").expect("chosen");
+    let chose = start
+        .find("file::choose_home(&policy.listing_id, &policy.program_blake3);")
+        .expect("chosen");
     assert!(chose < start.find("super::file::open_home(key)").expect("opened"));
     let room =
         include_str!("../../../../../capsule_linux/src/linux/file/system/space/home_room.rs");
     assert_eq!(room.matches(", most),").count(), 2, "both arms held to the run's home");
     let statfs = include_str!("../../../../../capsule_linux/src/linux/file/system/space/room.rs");
     assert!(statfs.contains("blocks: home_bytes() / BSIZE,"), "statfs says the run's home");
+}
+
+/// A synced wallet saves its 21 MB cache beside the last: the copies it is
+/// writing are held to its private directories and its home together, so
+/// its 64 MiB home takes both, and a 16 MiB home refuses, said once a run.
+#[test]
+fn the_copies_being_written_are_held_to_the_home_as_well() {
+    use crate::calls::loadavg::declared::PRIVATE;
+    use crate::calls::loadavg::space::quota::copies_allow;
+    let (cache, new) = (21 << 20, 21 << 20);
+    assert_eq!(copies_allow(cache, 0, new, PRIVATE + HOME_MOST), Ok(()), "64 MiB home");
+    assert!(copies_allow(cache, 0, new, PRIVATE + HOME).is_err(), "16 MiB home");
+    let copies = include_str!("../../../../../capsule_linux/src/linux/file/system/space/copies.rs");
+    assert!(copies.contains("let most = PRIVATE.saturating_add(home_bytes());"));
+    assert!(copies.contains("!TOLD.swap(true, Ordering::Relaxed)"), "said once a run");
 }
