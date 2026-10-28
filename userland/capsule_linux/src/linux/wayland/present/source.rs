@@ -24,14 +24,18 @@ const NO_POOL: &[u8] = b"[WAYLAND] commit of a buffer with no pool behind it, no
 const NO_FRAME: &[u8] =
     b"[WAYLAND] commit of a buffer empty, outside its pool or larger than a frame, not shown\n";
 
+#[derive(Clone, Copy)]
 pub struct Source {
     /// Where the pixels start in the guest.
     pub at: u64,
+    /// The shape they are shown at, and how many bytes that is.
     pub shape: Shape,
-    /// How many bytes that is (`frame_len`).
     pub bytes: usize,
     /// XRGB: its alpha bytes are set as it is taken (opaque.rs).
     pub opaque: bool,
+    /// The buffer's own shape and bytes (`frame_len`), when it is shown at
+    /// another size (scaled.rs).
+    pub raw: Option<(Shape, usize)>,
 }
 
 /// The pixels of `buffer`, or what to say instead.
@@ -40,11 +44,14 @@ pub fn source(scene: &Scene, buffer: u32) -> Result<Source, &'static [u8]> {
     let pool = scene.pools.iter().find(|p| p.id == b.pool).ok_or(NO_POOL)?;
     let at = pool.at.checked_add(b.offset).ok_or(NO_FRAME)?;
     let bytes = frame_len(b.offset, b.stride, b.height, pool.size).ok_or(NO_FRAME)?;
-    Ok(Source { at, shape: (b.width, b.height, b.stride), bytes, opaque: b.opaque })
+    Ok(Source { at, shape: (b.width, b.height, b.stride), bytes, opaque: b.opaque, raw: None })
 }
 
 /// Read `src` out of the guest into `frame`, opaque when it is XRGB.
 pub fn take(pid: u32, src: &Source, frame: &mut [u8]) -> bool {
+    if let Some(raw) = src.raw {
+        return super::scaled::take_scaled(pid, src, raw, frame);
+    }
     if !crate::linux::guest::Guest::read_into(pid, src.at, frame) {
         return false;
     }

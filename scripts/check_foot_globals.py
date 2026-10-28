@@ -32,8 +32,6 @@ HELD = {
     "wp_presentation",
     # An input method this system does not have; held until foot's run shows a need.
     "zwp_text_input_manager_v3",
-    # Would repeat wl_output's scale 1; held until foot's run shows a need.
-    "wp_fractional_scale_manager_v1",
 }
 
 
