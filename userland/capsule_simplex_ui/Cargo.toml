@@ -22,6 +22,7 @@ path = "src/main.rs"
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_app_skeleton = { path = "../app_skeleton" }
 nonos_toolkit = { path = "../toolkit", default-features = false }
+nonos_serve_wire = { path = "../nonos_serve_wire" }
 
 [profile.release]
 panic = "abort"
