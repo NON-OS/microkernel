@@ -48,7 +48,7 @@ linux_packages = ""
 # With linux_packages set, the built content of the catalogue's source
 # recipes (SimpleX, DarkFi): <package>.tar each, from tools/nonos-source-asset
 # and tools/nix/sources/darkfi-build.sh. Empty: those recipes are not listed.
-linux_sources = ""
+linux_sources = "target/linux-sources"
 
 # What the package store carries besides the capsules.
 [store]
