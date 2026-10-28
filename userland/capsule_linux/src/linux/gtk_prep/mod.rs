@@ -20,20 +20,29 @@
 //! make both into this run's /tmp, where env.rs points the program, each as
 //! a proved, boxed guest of its own that takes no seal note (seal_note.rs).
 
-use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, Ordering};
-use nonos_libc::mk_foreign_spawn;
 
-use super::file::{key, store_found, store_read};
-use super::guest::{Guest, Links};
-use super::launch::Launch;
-use super::say::say;
-use super::source::MAX_IMAGE;
+mod helper;
+
+use super::file::{key, store_found};
+use helper::helper;
 
 const COMPILE: &[u8] = b"/usr/bin/glib-compile-schemas";
 const SCHEMAS: &[u8] = b"/usr/share/glib-2.0/schemas";
 const LOADERS: &[u8] = b"/usr/bin/gdk-pixbuf-query-loaders";
+const MIME: &[u8] = b"/usr/bin/update-mime-database";
+/// gdk-pixbuf knows an image by its mime type, so with no mime database
+/// GTK cannot read its own icons and aborts. The database is built where
+/// env.rs's XDG_DATA_DIRS looks first, from the packages' own sources. Each
+/// step is a tool of its own, as a box without EXEC lets no shell run one.
+const MIME_DIR: &[u8] = b"/tmp/share/mime";
+const BUSYBOX: &[u8] = b"/bin/busybox";
 const LINKS: [&[u8]; 3] = [b"libgtk-3.so", b"libgtk-4.so", b"libgdk_pixbuf-2.0.so"];
+/// The same, where the program links them through its own library (Mousepad
+/// through libmousepad): a run's store holds only its closure's packs, and
+/// every GTK brings gdk-pixbuf's loaders. A directory, as a library's name
+/// there is a link the store does not answer for.
+const PIXBUF: &[u8] = b"/usr/lib/gdk-pixbuf-2.0";
 
 static HELPING: AtomicBool = AtomicBool::new(false);
 
@@ -44,7 +53,8 @@ pub fn helping() -> bool {
 
 /// Both, for a program that links GTK, where the store has the tool.
 pub fn prepare(program: &[u8]) {
-    if !LINKS.iter().any(|l| program.windows(l.len()).any(|w| w == *l)) {
+    let links = LINKS.iter().any(|l| program.windows(l.len()).any(|w| w == *l));
+    if !links && !found(PIXBUF) {
         return;
     }
     if found(COMPILE) && found(SCHEMAS) {
@@ -53,23 +63,13 @@ pub fn prepare(program: &[u8]) {
     if found(LOADERS) {
         helper(LOADERS, &[b"--update-cache"]);
     }
+    if found(MIME) {
+        helper(BUSYBOX, &[b"mkdir", b"-p", b"/tmp/share"]);
+        helper(BUSYBOX, &[b"cp", b"-r", b"/usr/share/mime", b"/tmp/share/"]);
+        helper(MIME, &[MIME_DIR]);
+    }
 }
 
 fn found(path: &[u8]) -> bool {
     store_found(&key(path)).unwrap_or(false)
-}
-
-/// One tool, run to its end; one that does not run is no worse than none.
-fn helper(path: &[u8], args: &[&[u8]]) {
-    let Ok(bytes) = store_read(&key(path), MAX_IMAGE) else { return };
-    let Ok(pid) = u32::try_from(mk_foreign_spawn(b"linux")) else { return };
-    let mut guest = Guest::new(pid);
-    guest.links = alloc::rc::Rc::new(Links::load());
-    let args: Vec<Vec<u8>> = args.iter().map(|a| a.to_vec()).collect();
-    HELPING.store(true, Ordering::Relaxed);
-    let started = super::start_guest::start(&mut guest, Launch::store(path.to_vec(), bytes, args));
-    HELPING.store(false, Ordering::Relaxed);
-    if started.is_err() || super::serve::serve(guest) != 0 {
-        say(b"[LINUX] a GTK preparation tool did not run cleanly\n");
-    }
 }
