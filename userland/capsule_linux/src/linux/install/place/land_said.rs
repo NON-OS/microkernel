@@ -54,4 +54,5 @@ pub(super) fn refused(name: &str, why: Refused) -> Why {
 pub(super) fn say(name: &str, why: &str) {
     let line = format!("[LINUX] {name}: {why}; nothing of it is written\n");
     let _ = mk_debug(line.as_ptr(), line.len());
+    super::super::refuse::tell(name, "", why);
 }
