@@ -22,7 +22,7 @@
 //! table matching the manifest's instance endpoints; the verified spawn path
 //! still re-checks that each is declared (endpoint drift) before registering it.
 
-use super::{spawn_verified, CapsuleSpecVerified, SpawnError};
+use super::{spawn_verified_with_argv, CapsuleSpecVerified, SpawnError};
 use crate::security::nonos_id_cert::IdCertVerifyError;
 use crate::security::nonos_trust_anchor::{
     decode as decode_trust_anchor, BAKED_TRUST_ANCHOR_POLICY,
@@ -105,13 +105,12 @@ pub fn spawn_next(app: &InstanceSpawn) -> Result<u32, SpawnError> {
     // Match the boot spawn path exactly: it passes None here, so the
     // certificate temporal window is treated the same for an on-demand
     // instance as for the boot instance.
-    let pid = spawn_verified(&spec, &trust, None)?;
     // Tag the instance ephemeral. The app skeleton reads this and exits (full
     // teardown, RAM zeroized) when its window closes, instead of lingering
     // idle, so a closed tab leaves no resident capsule and a relaunch is a
-    // fresh spawn. Set before the app is scheduled far enough to read argv.
-    let _ = crate::process::set_argv(pid, alloc::vec![alloc::string::String::from(INSTANCE_ARG)]);
-    Ok(pid)
+    // fresh spawn. Held from its first instruction, set inside the spawn.
+    let argv = alloc::vec![alloc::string::String::from(INSTANCE_ARG)];
+    spawn_verified_with_argv(&spec, &trust, None, argv)
 }
 
 /// The argv marker that tells the app skeleton it is an on-demand window
