@@ -28,6 +28,9 @@ use nonos_aml::load::Aml;
 use nonos_aml::sleep::sleep_types;
 
 pub fn read_s5(aml: &mut Aml, host: &mut CapsuleHost) {
+    if !crate::release::on(crate::release::Part::Sleep) {
+        return; // the kernel's own reading stands
+    }
     match sleep_types(aml, &mut evaluator(host), SOFT_OFF) {
         Some(t) => {
             let l = Line::new(b"\\_S5 SLP_TYP ").dec(u64::from(t.a)).str(b"/").dec(u64::from(t.b));

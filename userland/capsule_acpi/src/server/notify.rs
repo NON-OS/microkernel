@@ -20,6 +20,7 @@
 //! else is logged.
 
 use crate::boot::{path, Acpi};
+use crate::release::{on, Part};
 use crate::sys::log::Line;
 
 pub fn route(acpi: &mut Acpi) {
@@ -35,8 +36,13 @@ pub fn route(acpi: &mut Acpi) {
             || crate::hotkeys::notified(hotkeys, aml, host, id, value)
             || crate::apei::notified(apei, id)
             || crate::typec::notified(typec, aml, host, id);
-        if !served && !crate::dpower::woken(acpi, id, value) && !crate::hotplug::notified(acpi, id, value) {
-            Line::new(b"notify ").str(path(&acpi.aml, id).as_bytes()).str(b" ").hex(value as u64).end();
+        let served = served || (on(Part::DevicePower) && crate::dpower::woken(acpi, id, value));
+        if !served && !(on(Part::Hotplug) && crate::hotplug::notified(acpi, id, value)) {
+            Line::new(b"notify ")
+                .str(path(&acpi.aml, id).as_bytes())
+                .str(b" ")
+                .hex(value as u64)
+                .end();
         }
     }
 }
