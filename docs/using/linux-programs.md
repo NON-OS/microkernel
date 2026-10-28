@@ -81,7 +81,7 @@ John the Ripper's incremental-mode charset files are not shipped, so `john --inc
 
 - The Linux tree is read-only to a program, and a write to it is answered with `read-only file system`.
 - Each run gets its own `/tmp`, `/dev/shm`, `/home`, `/root`, `/run` and `/var/tmp`. They are made when the program starts and removed when it ends.
-- Those directories hold at most 16 MiB and 128 names together. Past either, a write fails with ENOSPC.
+- Those directories hold at most 16 MiB and 1536 names together. Past either, a write fails with ENOSPC.
 
 So a file a program writes is gone when it exits. Move data between NONOS and a program with the Terminal's redirects:
 
@@ -143,7 +143,7 @@ The source behind the facts above, at the commit in the footer.
 - Files: what a program sees, and how to share them
   - The tree is read-only: `writable` in `userland/capsule_linux/src/linux/file/root.rs:59-65`.
   - The private directories: `PRIVATE` in `userland/capsule_linux/src/linux/file/private/names.rs:28`.
-  - 16 MiB and 128 names: `PRIVATE` and `PRIVATE_NAMES` in `userland/capsule_linux/src/linux/file/system/declared/sizes.rs:68-69`.
+  - 16 MiB and 1536 names: `PRIVATE` and `PRIVATE_NAMES` in `userland/capsule_linux/src/linux/file/system/declared/sizes.rs:71-72`.
   - Input under 1 MiB: `read_input` in `userland/capsule_terminal/src/jobs/tool_redirect.rs:91-103`.
   - Output kept up to 1 MiB: `finish` in `userland/capsule_terminal/src/jobs/capture.rs:83-99`.
   - A pipe is refused: `admit` in `userland/capsule_terminal/src/command/dispatch/tool_admit.rs:32-43`.

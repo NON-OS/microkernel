@@ -16,8 +16,8 @@
 
 //! The data volume, reached by name: a verified import, a size, and a read
 //! of any range. The volume is the machine's; a capsule reaches it only
-//! with FileSystem, and brings a file in, or keys the volume with a
-//! passphrase, only with StoreWrite as well. A file fed in chunk by chunk
+//! with FileSystem, and brings a file in, keys the volume with a passphrase,
+//! or prepares it for an update, only with StoreWrite as well. A file fed in chunk by chunk
 //! takes StreamImport alone, which grants no read. A Linux app's kept
 //! home and installs are refused to every caller but the Linux personality
 //! (kept_name.rs).
@@ -26,6 +26,7 @@ mod errno;
 mod feed;
 mod feed_begin;
 mod feed_errno;
+mod handover;
 mod import;
 mod kept_name;
 mod name;
@@ -39,6 +40,7 @@ mod stat;
 
 pub use feed::sys_data_feed;
 pub use feed_begin::sys_data_feed_begin;
+pub use handover::sys_data_handover;
 pub use import::sys_data_import;
 pub use passphrase::sys_data_passphrase;
 pub use read::sys_data_read;

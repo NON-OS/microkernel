@@ -8,4 +8,3 @@ not this page. [How to read it](coverage.md#how-to-read-it).
 | P2 | Intel SST/SOF DSP laptops with digital microphones | 2019-2026 | most machines | `8086:02c8` `8086:a0c8` `8086:51c8` `8086:7e28` | 4 of 4 | yes | B | codec output through HDA; the DSP's DMIC capture has no driver |
 | P2 | Conexant, Cirrus Logic and other HDA codecs | 2017-2026 | common | `14f1:*` `1013:*` `111d:*` | no driver | yes | B | Cirrus and IDT family setup and Apple GPIOs, Conexant EAPD (host-tested); per-board pin fixups not taken |
 | P3 | AMD ACP (laptop microphones and speakers on some boards) | 2019-2026 | common | `1022:15e2` | no driver | no feature | B | detected only |
-| - | Intel HD Audio controller (PCH) | 2017-2026 | most machines | `class:04/03` | by class | yes | B | works on the bench laptop (6 Oct report) |
