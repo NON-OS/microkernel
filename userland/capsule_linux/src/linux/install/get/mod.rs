@@ -22,5 +22,6 @@ pub(super) mod index;
 pub(super) mod package;
 pub(super) mod window;
 mod window_end;
+mod window_heap;
 mod window_poll;
 pub mod window_room;
