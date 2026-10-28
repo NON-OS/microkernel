@@ -29,3 +29,15 @@ pub mod wrap;
 
 #[path = "installer_full.rs"]
 pub mod full;
+
+#[cfg(test)]
+#[path = "installer_keep_tests.rs"]
+mod keep_tests;
+
+#[cfg(test)]
+#[path = "installer_keep_keys_tests.rs"]
+mod keep_keys_tests;
+
+#[cfg(test)]
+#[path = "installer_keep_rows_tests.rs"]
+mod keep_rows_tests;

@@ -75,6 +75,7 @@ pub enum SyscallNumber {
     MkDataStat = crate::syscall::abi::tag4(b"MDST"),
     MkDataRead = crate::syscall::abi::tag4(b"MDRD"),
     MkDataPassphrase = crate::syscall::abi::tag4(b"MDPW"),
+    MkDataHandover = crate::syscall::abi::tag4(b"MDHO"),
     MkDataFeedBegin = crate::syscall::abi::tag4(b"MDFB"),
     MkDataFeed = crate::syscall::abi::tag4(b"MDFD"),
     MkDataRemove = crate::syscall::abi::tag4(b"MDRM"),
