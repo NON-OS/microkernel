@@ -28,20 +28,23 @@ pub enum Kind {
     Dir,
 }
 
-pub struct Entry {
+/// A member, its body a slice of the decompressed package rather than a
+/// copy of it: a copy held every package twice over, and Telegram's, with a
+/// binary past 100 MB, passed the install heap and ended the install.
+pub struct Entry<'a> {
     pub name: Vec<u8>,
     pub kind: Kind,
-    pub body: Vec<u8>,
+    pub body: &'a [u8],
 }
 
 /// An entry; a pax, GNU long-name or global record; or a device, fifo or unknown.
-pub(super) enum Read {
-    Entry(Entry),
+pub(super) enum Read<'a> {
+    Entry(Entry<'a>),
     Record,
     Dropped,
 }
 
-pub(super) fn read(flag: u8, head: &[u8], body: &[u8], next: &mut Overrides) -> Read {
+pub(super) fn read<'a>(flag: u8, head: &[u8], body: &'a [u8], next: &mut Overrides) -> Read<'a> {
     let kind = match flag {
         b'0' | 0 | b'7' => Kind::File,
         b'1' => Kind::Hardlink(member(next.link.take().unwrap_or_else(|| link_of(head)))),
@@ -66,7 +69,7 @@ pub(super) fn read(flag: u8, head: &[u8], body: &[u8], next: &mut Overrides) -> 
         }
     };
     let name = member(next.path.take().unwrap_or_else(|| name_of(head)));
-    let body = if matches!(kind, Kind::File) { body.to_vec() } else { Vec::new() };
+    let body = if matches!(kind, Kind::File) { body } else { &[] };
     *next = Overrides::default();
     Read::Entry(Entry { name, kind, body })
 }
