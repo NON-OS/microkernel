@@ -23,10 +23,10 @@ use alloc::vec::Vec;
 use nonos_openpgp::Key;
 
 use super::desc::Record;
-use crate::linux::install::pgp::signed;
 use super::source::Source;
-use crate::linux::install::unpacked::unpacked;
 use crate::linux::install::auth::{base64, Verified};
+use crate::linux::install::pgp::signed;
+use crate::linux::install::unpacked::unpacked;
 
 pub fn fetch(
     src: &Source,
@@ -35,25 +35,34 @@ pub fn fetch(
     r: &Record,
     pin: Option<&[u8; 32]>,
 ) -> Option<Verified> {
-    let pkg = src.get(repo, &r.filename)?;
+    let Some(pkg) = src.get(repo, &r.filename) else { return told(r, "it did not download") };
     if pin.is_some_and(|want| blake3::hash(&pkg).as_bytes() != want) {
-        return refuse(b"[LINUX] package is not the one the market listed\n");
+        refuse(b"[LINUX] package is not the one the market listed\n");
+        return told(r, "it is not the one the market listed");
     }
     if Some(nonos_hash::sha256(&pkg)) != r.sha256 {
-        return refuse(b"[LINUX] package does not match its database record\n");
+        refuse(b"[LINUX] package does not match its database record\n");
+        return told(r, "its checksum did not match the signed database");
     }
     // The database may carry the signature; a mirror serves it beside the file.
-    let sig: Vec<u8> = match r.pgpsig.is_empty() {
-        false => base64::decode(r.pgpsig.as_bytes())?,
-        true => src.get(repo, &format!("{}.sig", r.filename))?,
+    let sig: Option<Vec<u8>> = match r.pgpsig.is_empty() {
+        false => base64::decode(r.pgpsig.as_bytes()),
+        true => src.get(repo, &format!("{}.sig", r.filename)),
     };
+    let Some(sig) = sig else { return told(r, "its signature did not download") };
     if !signed(ring, &sig, &pkg) {
-        return None;
+        return told(r, "its signature did not verify");
     }
-    Some(Verified::checked(unpacked(&pkg)?))
+    let Some(files) = unpacked(&pkg) else { return told(r, "it did not unpack") };
+    Some(Verified::checked(files))
 }
 
-fn refuse(line: &[u8]) -> Option<Verified> {
+fn refuse(line: &[u8]) {
     let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+}
+
+/// For the person who asked only (refuse::tell): never on the debug line.
+fn told(r: &Record, check: &str) -> Option<Verified> {
+    crate::linux::install::refuse::tell(&r.name, &r.version, check);
     None
 }
