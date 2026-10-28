@@ -20,4 +20,5 @@
 
 mod counts;
 mod decode;
+mod robust_list;
 mod wake;
