@@ -19,12 +19,14 @@
 
 mod advance;
 mod finish;
+mod plan;
+mod plan_keep;
 mod prepare;
 mod start;
 mod tick;
 mod work;
 
-pub use prepare::prepare;
+pub use prepare::{prepare, replan};
 pub use start::start;
 pub use tick::tick;
 pub use work::{Job, Phase};

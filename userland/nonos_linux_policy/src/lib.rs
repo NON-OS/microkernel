@@ -40,6 +40,7 @@ mod syscall_set;
 mod unlisted;
 #[cfg(feature = "vendor")]
 pub mod vendor;
+pub mod with;
 
 pub use bucket::{bucket, BUCKETS};
 pub use decode::decode;

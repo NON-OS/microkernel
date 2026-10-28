@@ -173,7 +173,7 @@ let
     rollback_index = 1;
     features = [ ];
     # The NONOS package mirror the in-tree tools install from; empty, none.
-    linux_packages = "";
+    linux_packages = ""; linux_sources = ""; # and where source recipes' content is
     store = { linux = true; media = true; };
   };
 
