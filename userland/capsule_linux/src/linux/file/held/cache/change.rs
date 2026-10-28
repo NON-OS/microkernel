@@ -40,24 +40,36 @@ pub fn put(path: &[u8], at: u64, bytes: &[u8]) -> Result<usize, i64> {
     let end = end.ok_or_else(too_large)?;
     room(path, end.max(size(path).unwrap_or(0) as usize))?;
     with(path, |e| {
-        if e.data.len() < end {
-            e.data.resize(end, 0);
-        }
+        grow(&mut e.data, end)?;
         e.data[at as usize..end].copy_from_slice(bytes);
         e.dirty = true;
         e.mtime_ms = now();
-        bytes.len()
+        Ok(bytes.len())
     })
-    .ok_or(errno::EBADF)
+    .ok_or(errno::EBADF)?
 }
 
 pub fn set_len(path: &[u8], len: u64) -> Result<(), i64> {
     let len = usize::try_from(len).ok().filter(|l| *l <= MAX_FILE).ok_or_else(too_large)?;
     room(path, len)?;
     with(path, |e| {
-        e.data.resize(len, 0);
+        grow(&mut e.data, len)?;
+        e.data.truncate(len);
         e.dirty = true;
         e.mtime_ms = now();
+        Ok(())
     })
-    .ok_or(errno::EBADF)
+    .ok_or(errno::EBADF)?
+}
+
+/*
+ * A copy grown to `len` bytes, zeros after its end: ENOMEM, not an abort,
+ * when this capsule's heap cannot hold it (a wallet's cache on a machine
+ * with no memory to spare for the large heap, heap.rs).
+ */
+fn grow(data: &mut alloc::vec::Vec<u8>, len: usize) -> Result<(), i64> {
+    let more = len.saturating_sub(data.len());
+    data.try_reserve(more).map_err(|_| errno::ENOMEM)?;
+    data.resize(len.max(data.len()), 0);
+    Ok(())
 }

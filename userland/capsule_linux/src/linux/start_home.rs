@@ -31,6 +31,7 @@ pub(super) fn open(guest: &mut Guest, key: [u8; 32]) -> Result<(), &'static [u8]
     if !super::app::home() {
         return Ok(());
     }
+    super::file::choose_home(&guest.app.policy.listing_id);
     if !super::file::open_home(key) {
         return Err(&b"[LINUX] its home could not be opened\n"[..]);
     }
