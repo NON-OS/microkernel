@@ -31,7 +31,7 @@ INDEX = "nonos-data/market/index.bin"
 CATALOGUE = "nonos-data/models/catalogue.bin"
 
 
-def seal(step, tools, linux_out, serial, mirror, package_mirror="", packages="", required=False):
+def seal(step, tools, linux_out, serial, mirror, package_mirror="", packages="", required=False, sources=""):
     # An image people will use needs both catalogues: without them the
     # Marketplace lists nothing and no Qwen tier can be fetched. Only a
     # development image may go without; this asks only whether the key is
@@ -67,7 +67,7 @@ def seal(step, tools, linux_out, serial, mirror, package_mirror="", packages="",
              # The in-tree tools the image does not carry, listed only with a NONOS
              # package mirror, their content written to `packages` for ek to put on it.
              *(["--tool-list", "userland/capsule_market/linux-tools.json",
-                "--package-mirror", package_mirror, "--package-out", packages] if package_mirror else []),
+                "--package-mirror", package_mirror, "--package-out", packages, *(["--sources", sources] if sources else [])] if package_mirror else []),
              *extra, env={"SOURCE_DATE_EPOCH": serial})
     step.run("python3", "tools/nonos-qwen-tier.py", "catalogue", "--out", CATALOGUE,
              "--seed", keys.OPERATOR_SEED, "--pubkey", keys.OPERATOR_PUB, "--serial", serial,

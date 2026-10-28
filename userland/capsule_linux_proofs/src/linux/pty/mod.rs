@@ -33,6 +33,7 @@ pub mod name;
 pub mod note;
 #[path = "../../../../capsule_linux/src/linux/pty/out.rs"]
 pub mod out;
+#[allow(clippy::new_without_default)]
 #[path = "../../../../capsule_linux/src/linux/pty/pair.rs"]
 pub mod pair;
 #[path = "../../../../capsule_linux/src/linux/pty/pair_io.rs"]
