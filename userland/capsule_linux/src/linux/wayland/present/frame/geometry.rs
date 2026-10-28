@@ -30,12 +30,14 @@ pub struct Around {
     pub h: u32,
     pub cx: u32,
     pub cy: u32,
+    /// Drawn as a maximised window's frame: no margin round it.
+    pub max: bool,
 }
 
 impl Around {
     /// No frame: the window is the content.
     pub const fn bare(w: u32, h: u32) -> Around {
-        Around { w, h, cx: 0, cy: 0 }
+        Around { w, h, cx: 0, cy: 0, max: false }
     }
 
     pub fn framed(&self) -> bool {
@@ -49,12 +51,13 @@ impl Around {
     }
 }
 
-/// The frame around content `w` by `h` at `quarters` of display scale, or
-/// none when `fills` (full screen or maximised).
-pub fn around(w: u32, h: u32, quarters: u32, fills: bool) -> Around {
+/// The frame around content `w` by `h` at `quarters` of display scale: none
+/// when `fills` (full screen, or a guest that draws its own), and without
+/// the toolkit's margin round it when `max`.
+pub fn around_at(w: u32, h: u32, quarters: u32, fills: bool, max: bool) -> Around {
     if fills {
         return Around::bare(w, h);
     }
-    let c = content_rect_at(PROBE, PROBE, false, quarters);
-    Around { w: w + (PROBE - c.w), h: h + (PROBE - c.h), cx: c.x, cy: c.y }
+    let c = content_rect_at(PROBE, PROBE, max, quarters);
+    Around { w: w + (PROBE - c.w), h: h + (PROBE - c.h), cx: c.x, cy: c.y, max }
 }

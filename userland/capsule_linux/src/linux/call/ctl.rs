@@ -36,10 +36,7 @@ pub fn fcntl(guest: &mut Guest, fd: u64, cmd: u64, arg: u64) -> u64 {
         return errno::fail(errno::EBADF);
     };
     match cmd {
-        /*
-         * A shell sets close-on-exec on the descriptors it keeps for itself,
-         * then execs, and expects the command not to see them.
-         */
+        /* A shell's own descriptors close on exec, so the command never sees them. */
         F_GETFD => errno::ok(u64::from(entry.cloexec)),
         F_SETFD => {
             entry.cloexec = arg & FD_CLOEXEC != 0;
@@ -59,6 +56,8 @@ pub fn fcntl(guest: &mut Guest, fd: u64, cmd: u64, arg: u64) -> u64 {
         F_DUPFD | F_DUPFD_CLOEXEC => file::dup_from(guest, fd, arg, cmd == F_DUPFD_CLOEXEC),
         /* The record locks; a wait among them is parked before this is reached. */
         c if file::is_lock_cmd(c) => file::fcntl_lock(guest, fd, cmd, arg),
+        /* A memfd's seals, which every descriptor on it shares. */
+        c if file::is_seal_cmd(c) => file::fcntl_seal(guest, fd, cmd, arg),
         _ => errno::fail(errno::EINVAL),
     }
 }
