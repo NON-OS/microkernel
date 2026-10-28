@@ -32,15 +32,6 @@ pub fn mk_ipc_call(_: u64, _: *const u8, _: usize, _: *mut u8, _: usize) -> i64 
 pub fn mk_ipc_send_to_pid(_pid: u32, _buf: *const u8, _len: usize) -> i64 {
     -3
 }
-pub fn mk_app_install(_listing: &[u8], _release: &[u8]) -> i64 {
-    ENOSYS
-}
-pub fn mk_app_install_status(_listing: &[u8]) -> i64 {
-    ENOSYS
-}
-pub fn mk_app_uninstall(_listing: &[u8]) -> i64 {
-    ENOSYS
-}
 pub fn mk_battery_status() -> i64 {
     ENODEV
 }
