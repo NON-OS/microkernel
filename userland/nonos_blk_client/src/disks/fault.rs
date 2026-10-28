@@ -28,7 +28,9 @@ pub fn fault(driver: Driver, instance: u8, e: &BlkError) -> String {
     let bus = core::str::from_utf8(driver.label()).unwrap_or("disk");
     match e {
         BlkError::NoService if instance == 0 => {
-            alloc::format!("{bus} controller present, its driver did not come up")
+            alloc::format!(
+                "{bus} controller found, no disk on it (empty, or its driver did not start)"
+            )
         }
         BlkError::NoService => {
             alloc::format!("another {bus} controller is present, no driver is serving it")

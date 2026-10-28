@@ -47,7 +47,15 @@ GPT_TAIL = 2048
 IMAGE_DATE, IMAGE_TOUCH, FAT_SERIAL = "2026010100000000", "202601010000.00", "4e4f4e4f"
 
 
-def esp(out, loader, kernel, loader_trailer, boot_root, approval):
+# The firmware package's place on the medium, where the loader reads it
+# (nonos-bootloader/src/entry/firmware_package.rs, scripts/mediatek_firmware.py).
+FIRMWARE_DIR = f"{ESP_FILES}/firmware/mediatek"
+
+
+def esp(out, loader, kernel, loader_trailer, boot_root, approval, firmware=None):
+    """The ESP. `firmware` is the artifact tree's firmware/mediatek (the pinned
+    files and their licence), placed beside the image and never in it; without
+    it the medium boots and mt7921e reports the package missing."""
     root = os.path.join(out, "esp")
     shutil.rmtree(root, ignore_errors=True)
     os.makedirs(os.path.join(root, "EFI/BOOT"))
@@ -56,6 +64,13 @@ def esp(out, loader, kernel, loader_trailer, boot_root, approval):
              f"{ESP_FILES}/bootloader.trailer": loader_trailer, f"{ESP_FILES}/boot_root.approval": boot_root}
     if approval:
         place[f"{ESP_FILES}/kernel.approval"] = approval
+    if firmware and os.path.isdir(firmware):
+        os.makedirs(os.path.join(root, FIRMWARE_DIR))
+        for name in sorted(os.listdir(firmware)):
+            if os.path.isfile(os.path.join(firmware, name)):
+                place[f"{FIRMWARE_DIR}/{name}"] = os.path.join(firmware, name)
+    else:
+        print("  WARNING: no firmware package to place; mt7921e will report it missing")
     for rel, src in place.items():
         shutil.copyfile(src, os.path.join(root, rel))
     with open(os.path.join(root, ESP_FILES, "boot.cfg"), "wb") as f:

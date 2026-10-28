@@ -40,6 +40,8 @@ mod devnet_tests;
 #[cfg(test)]
 mod direct_tests;
 #[cfg(test)]
+mod frame_on_tests;
+#[cfg(test)]
 mod frame_tests;
 #[cfg(test)]
 mod install_tests;
@@ -53,6 +55,8 @@ mod pick_tests;
 mod sdk_way_tests;
 #[cfg(test)]
 mod slice_tests;
+#[cfg(test)]
+mod socks5_request;
 #[cfg(test)]
 mod socks_tests;
 #[cfg(test)]

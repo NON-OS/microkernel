@@ -17,6 +17,13 @@ The status reply carries the stage byte the panel shows, then the step bring-up 
 | 11 | a firmware command went unanswered | `FirmwareFailed` | 0 |
 | 12 | a transmitted frame went unanswered for 2.5 s | `FirmwareFailed` | 0 |
 
+The panels show the step and detail word on any stage short of ready
+(`userland/nonos_wifi_client/src/driver/stop.rs`, `StopWhy::intel`): the
+Settings Wi-Fi link row reads `Intel Wi-Fi: stopped at 8: a firmware setup
+command failed (0x0101c801)` (MCC_UPDATE_CMD, group 1 command 0xC8, timed
+out), the setup wizard's network line the same; the words for each step are
+`intel_step_text`. A restart under way (stage 9) shows its own stage line.
+
 In 0x6000i, the image number is 0 for so-a0-gf-a0, 1 for so-a0-hr-b0, 2 for ty-a0-gf-a0 and 3 for ma-b0-gf-a0 (`userland/capsule_driver_iwlwifi/src/firmware/gen3/select.rs:32-44`, `Image`).
 
 ## The older driver protocol

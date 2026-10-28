@@ -25,6 +25,8 @@ pub struct Frame {
     pub title: Vec<u8>,
     /// The display's scale in quarters, read as a window opens (4 is 1:1).
     pub quarters: u32,
+    /// Shown pixels per logical pixel, in 120ths (scale_math.rs).
+    pub ratio: u32,
     /// The guest draws its own frame (xdg-decoration client-side).
     pub own_frame: bool,
     pub hover: DecorationHit,
@@ -57,6 +59,7 @@ impl Default for Frame {
         Frame {
             title,
             quarters: 4,
+            ratio: 120,
             own_frame: false,
             hover: DecorationHit::None,
             pointer: (0, 0),

@@ -33,7 +33,7 @@ rt_sigtimedwait | which of its own signals came, with its siginfo: a sender's pi
 rt_sigqueueinfo | as kill | as kill
 rt_sigsuspend | nothing; it returns EINTR once one of its own signals is handled | its own state
 rt_tgsigqueueinfo | as kill | as kill
-ioctl | its own descriptor flags and buffered byte counts; on a terminal, the settings it set, the terminal's size in cells and its own group and session in the family's numbering; ENOTTY otherwise, EBADF for a closed descriptor | its own state; the size is of the person's own terminal and is shown only to a family running on it
+ioctl | its own descriptor flags and buffered byte counts; on a terminal, the settings it set, the terminal's size in cells and its own group and session in the family's numbering; on a pseudo-terminal the family made, its number, lock, settings, size and groups, all set within the family; ENOTTY otherwise, EBADF for a closed descriptor | its own state; the size is of the person's own terminal and is shown only to a family running on it
 pread64 | bytes of its own files | as read
 readv | as read | as read
 writev | as write | as write

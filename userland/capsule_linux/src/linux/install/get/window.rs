@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Several of an install's packages fetched at once (fast downloads, D): at
-//! most WIDTH GETs in flight to the one mirror, each on its own connection
-//! of the route the install chose, the bytes held bounded (window_room.rs),
-//! and each reply handed on in the order asked, so the install
-//! still verifies and places its closure in its own order.
+//! An install's packages fetched (fast downloads, D): at most WIDTH GETs
+//! in flight to the one mirror, one while a proxy keeps one stream per
+//! caller (window_room.rs), each on a kept connection of the route the
+//! install chose when one is fit, and each reply handed on in the order
+//! asked, so the install still verifies and places its closure in order.
 
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -29,8 +29,9 @@ use super::super::mirror::mirror;
 use super::super::timing;
 use super::super::Why;
 use super::window_end::{held, Flight};
-use super::window_room::{cap, room};
+use super::window_heap::unused;
 use super::window_poll::poll_all;
+use super::window_room::{cap, room};
 
 /// Hand `each` the reply to each of `paths`, of the index's `sizes`, in
 /// order: None for one not come whole. An error from `each` ends it.
@@ -43,7 +44,7 @@ pub(in crate::linux::install) fn window(
     let (mut kept, mut flying, mut ready) = (Vec::new(), Vec::new(), Vec::new());
     let (mut next, mut give, mut mark) = (0, 0, timing::now());
     while give < paths.len() {
-        while next < paths.len() && room(sizes, &held(&flying, &ready), next) {
+        while next < paths.len() && room(sizes, &held(&flying, &ready), next, unused()) {
             match start(&paths[next], (at, port, host), &mut kept) {
                 Some((c, reused)) => flying.push(Flight::new(next, c, reused, cap(sizes[next]))),
                 None => ready.push((next, None)),

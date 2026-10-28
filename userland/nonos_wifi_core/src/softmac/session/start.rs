@@ -15,19 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A session opened on a finished join: the station engine keyed with the
-//! pairwise key in software, so every chip is driven the same way, and the
-//! supplicant handed over for the AP's later key handshakes.
+//! pairwise key, the supplicant handed over for the AP's later key
+//! handshakes, and, on a radio whose chip runs CCMP-128, the keys put in the
+//! chip (`chip`); on any other the station runs the cipher in software.
 
 use alloc::collections::VecDeque;
 
+use super::chip::key_chip;
 use super::state::{Keys, Session};
 use crate::regdom::Band;
 use crate::rsn::TemporalKey;
+use crate::softmac::radio::Radio;
 use crate::station::{Ccmp, LinkStation};
 
 impl Session {
-    pub fn start(
-        mac: [u8; 6],
+    pub fn start<R: Radio>(
+        r: &mut R,
         net: (&[u8], [u8; 6], u8),
         at: (Band, u8),
         keys: Keys,
@@ -35,13 +38,14 @@ impl Session {
     ) -> Self {
         let (name, bssid, akm) = net;
         let pmf = keys.supplicant.pmf();
-        let mut station = LinkStation::new(mac);
+        let mut station = LinkStation::new(r.mac());
         let mode = match keys.tk {
             TemporalKey::Ccmp128(tk) => Ccmp::Software { tk },
             TemporalKey::Gcmp256(tk) => Ccmp::Gcmp256 { tk },
         };
         station.associate(bssid, mode);
         station.set_supplicant(keys.supplicant);
+        key_chip(r, &mut station);
         let (mut ssid, len) = ([0u8; 32], name.len().min(32));
         ssid[..len].copy_from_slice(&name[..len]);
         let (band, channel) = at;

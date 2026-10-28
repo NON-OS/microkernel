@@ -39,6 +39,7 @@ pub fn new_memfd(guest: &mut Guest, flags: u64) -> u64 {
     match memfd_flags(flags) {
         Ok(cloexec) => {
             let got = crate::linux::file::memfd_create(guest);
+            crate::linux::file::seals_start(guest, got, flags);
             cloexec_on(guest, got, cloexec)
         }
         Err(e) => errno::fail(e),

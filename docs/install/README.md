@@ -18,7 +18,7 @@ flowchart LR
 2. [Get an image](get-an-image.md). Build and [seal](../overview/glossary-rollback-index.md#seal) `nonos.img` from this source tree.
 3. [Write a USB stick](usb-stick.md). Write the image with `make usb` or `dd`, then compare the stick with the image.
 4. [Boot modes](boot-modes.md). Boot the stick and pick an entry in the NONOS boot menu: Standard, Hardened, Safe Mode, Air-Gapped, Recovery, Install or Shut down.
-5. [First boot](first-boot.md). Answer the thirteen steps of setup. Amnesic keeps nothing; Install keeps your answers and opens the installer.
+5. [First boot](first-boot.md). Answer the thirteen steps of setup. Amnesic keeps nothing; Install opens the installer, which carries your answers to the disk it writes.
 6. [Install to disk](install-to-disk.md). Choose a disk and type its confirmation word. The installer lays out the whole disk, writes the boot files, the [store](../overview/glossary-linux-personality.md#store) and the partition table, and reads back every sector it wrote. Then boot the installed disk.
 7. [Update](update.md). Move an installed system to a newer release.
 8. [Recovery](recovery.md). Boot with no network and no setup, to read an installed system's files or start over.

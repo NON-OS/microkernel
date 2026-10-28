@@ -15,12 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Fetching what an install needs: the branch indexes, then its packages,
-//! several at once, each from the branch that holds it.
+//! each from the branch that holds it.
 
 pub(super) mod closure;
 pub(super) mod index;
 pub(super) mod package;
 pub(super) mod window;
 mod window_end;
+mod window_heap;
 mod window_poll;
 pub mod window_room;
