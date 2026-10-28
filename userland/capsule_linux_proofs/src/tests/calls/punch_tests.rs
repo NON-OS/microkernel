@@ -61,3 +61,6 @@ fn no_arguments_make_the_zeroes_larger_than_the_copy() {
         }
     }
 }
+
+#[path = "memfd_seal_tests.rs"]
+mod memfd_seal_tests;
