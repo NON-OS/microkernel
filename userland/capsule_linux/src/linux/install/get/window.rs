@@ -29,8 +29,9 @@ use super::super::mirror::mirror;
 use super::super::timing;
 use super::super::Why;
 use super::window_end::{held, Flight};
-use super::window_room::{cap, room};
+use super::window_heap::unused;
 use super::window_poll::poll_all;
+use super::window_room::{cap, room};
 
 /// Hand `each` the reply to each of `paths`, of the index's `sizes`, in
 /// order: None for one not come whole. An error from `each` ends it.
@@ -43,7 +44,7 @@ pub(in crate::linux::install) fn window(
     let (mut kept, mut flying, mut ready) = (Vec::new(), Vec::new(), Vec::new());
     let (mut next, mut give, mut mark) = (0, 0, timing::now());
     while give < paths.len() {
-        while next < paths.len() && room(sizes, &held(&flying, &ready), next) {
+        while next < paths.len() && room(sizes, &held(&flying, &ready), next, unused()) {
             match start(&paths[next], (at, port, host), &mut kept) {
                 Some((c, reused)) => flying.push(Flight::new(next, c, reused, cap(sizes[next]))),
                 None => ready.push((next, None)),
