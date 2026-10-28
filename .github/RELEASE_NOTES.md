@@ -1,9 +1,10 @@
-# NONOS 0.9.2 (pre-release)
+# NONOS 0.9.3 (pre-release)
 
-This tag replaces the 0.9.2 pre-release of September 3. That tag was cut before most of what 0.9.2
-is: the Linux personality, the Anyone transport, the shield, the installer and the Marketplace
-all landed after it. This one is cut from the tree that holds them, built the same way on Linux
-and macOS, with every capsule proved under one STARK policy root.
+0.9.3 follows the 0.9.2 pre-release. Linux programs can now open windows on the desktop through
+a Wayland bridge, the Monero wallet syncs over Nym and Anyone, Linux programs get
+pseudo-terminals, and the standard image carries Wi-Fi drivers for more chips. Each claim below
+names the file, commit or evidence directory it rests on. The evidence for this release is
+indexed in `docs/release-evidence/0.9.3/README.md`.
 
 It is a pre-release. What it does not do yet is listed under [Known limitations](#known-limitations),
 and it should be read before you install it on a machine you care about.
@@ -14,13 +15,16 @@ and it should be read before you install it on a machine you care about.
 |---|---|---|
 | `nonos.img`, `nonos.iso` | the release seal, on the signing machine | The bootable image, its kernel and loader signed (Ed25519 and ML-DSA-65). |
 | `nonos-release-bundle.tar.gz` | CI, from a reproducible build | The kernel ELF, the UEFI loader, the capsule catalogue, the SBOM, every trust root and the STARK trailer of every enrolled capsule. |
+| `BUNDLE-SHA256SUMS`, `BUNDLE-BLAKE3SUMS` | CI | The bundle's own sums, over the files inside the tarball. |
 | `verifier.wasm` | CI | The STARK verifier the kernel's gate links (`nox_verify`), for checking proofs in a browser. |
 | `proof-verify-web.tar.gz` | CI | The proof verifier's page (`nonos-proof-verify` in wasm): checks the release's committed attestation proofs the same way the boot gates do, in a browser tab. |
 | `nonos.cdx.json`, `nonos-build.json`, `provenance.json` | CI | Bill of materials, build record with every input hash, and the bundle's provenance. |
 | `SHA256SUMS`, `BLAKE3SUMS` | CI | Sums over exactly the CI files above. |
 | `IMAGE-SHA256SUMS`, `IMAGE-BLAKE3SUMS` | the release seal | Sums over `nonos.img` and `nonos.iso`. |
 
-CI holds no signing key and signs nothing. The image is the same build CI makes, plus signatures.
+The CI files are the ones `.github/workflows/ci-release-artifacts.yml` uploads, and the release
+job publishes all of them. CI holds no signing key and signs nothing. The image is the same build
+CI makes, plus signatures.
 
 ## Verify it
 
@@ -34,96 +38,149 @@ Rebuild it yourself and compare: `nix build .#standard` at this tag gives the ke
 capsules in the bundle, byte for byte, on x86_64 Linux and on Apple silicon macOS. The
 `reproducible` CI lane builds on both and compares every file.
 
-## What is new since the September tag
+## What is new since 0.9.2
 
-### Running Linux programs
+### Linux programs in their own windows
 
-The Linux personality (`capsule_linux`) runs unmodified x86_64 Linux binaries, static and
-dynamic, with threads, a filesystem view, sockets and signals, each confined and attested before
-it runs. It installs Alpine, Debian/Kali and pacman packages. Every image carries CPython 3.12,
-Lua 5.4, zstd, John the Ripper and `qwenchat` (llama.cpp), all built from pinned sources; a
-dozen more (sqlite3, perl, tclsh, mruby, qjs, jq, gojq, rg, fd, nano, make, openssl) install
-from the Marketplace.
+The Linux personality carries a Wayland bridge. A program whose box grants WAYLAND opens its own
+window on the NONOS desktop, inside the NONOS frame: title bar, close, minimise and maximise
+(53d8f03bf4, 272b635d32). DejaVu fonts are stored for window programs (ca7275f90).
 
-### Private networking
+- **swayimg** draws its window, zooms and closes (`gui-swayimg`). The frame's close button ends
+  it with status 0, and maximise keeps the title bar (`gui-frame`).
+- **KeePassXC** 2.7.8 (Qt 5) draws its welcome screen in the frame, in a box with no network,
+  once the personality served FUTEX_WAKE_OP, which Qt's semaphore needs (ceb0f0ee6a,
+  `gui-keepassxc`).
+- **Telegram Desktop** 5.0.1 (Qt 6) is listed, in a box of WAYLAND, FILES_HOME and NET_ANON
+  (1a17cb72ad). The fix its window needed, `/proc` answering a thread's own number, is on main
+  (71e34654ac). No boot of this tree in the evidence shows its window.
+- Large installs hold: 304 packages verified in one boot, KeePassXC (126) and
+  gnome-authenticator (155) among them, with no stall, lock wait or OOM (`gui-large-installs`).
 
-- **Anyone transport** (`capsule_net_anon`): an onion routing client for the Anyone network, a
-  Tor 0.4.8.11 fork. Model downloads go over it.
-- **Nym**: the whole active set is held and drawn without bias, the replay window is checked on
-  the live receive path, and the S-box is constant time.
-- **TLS**: a streaming client with alert reasons, and DER lengths past the buffer refused.
+### Pseudo-terminals
 
-### Wallet, proofs and attestation
+A Linux program can open `/dev/ptmx` and `/dev/pts/N`, as a terminal emulator does before it
+starts its shell: line discipline, signals, window size and hang-up (1c81ded90a). A family holds
+at most 64 pairs (`pty/table.rs`, `MAX`). A master that writes with no reader stops at 4096
+pending bytes or lines on the slave and 64 KiB of output, and keeps each signal it raises once
+(ec07d31412, with two flood proofs).
 
-- **Shield** (`capsule_shield`): the NOX Shield wallet service, on the same Rust core as the
-  phone apps.
-- **Anonymous device proof** (`capsule_prove`), with no network capability.
-- **One STARK policy root** over every capsule, checked at spawn by `nox_verify`. The kernel and
-  the loader carry their own attestation roots, and the kernel checks the loader at boot.
-- **TPM machine key and vault**: records sealed to the machine; the wallet vault is sealed by the
-  keyring.
+### A Monero wallet over Nym and Anyone
 
-### Installing and the Marketplace
+`linux.monero` starts `monero-wallet-cli` against the listing's node,
+`xmr-node.cakewallet.com:18081`, with `--untrusted-daemon` (`linux-catalogue.json`). On the
+owner's KVM host the wallet synced from that node over Anyone and over Nym, on development
+images (`s1-g-kvm`). The serial log shows the streams; the progress in the window is quoted from
+the maintainers' notes. These fixes on main made it work:
 
-- **Installer** (`capsule_install`, and `install-cli`): writes a whole NONOS disk and reads every
-  sector back. It keeps setup answers, Wi-Fi, the wallet vault, models and installed packages.
-- **Marketplace** with a signed catalogue, and **Qwen tiers** installed from the Models tab or
-  `qwen get`, each file checked against its SHA-256.
-- Image profiles come from `nonos.toml`: standard, hardened, airgapped, qemu, dev, core.
+- net.anon picks an exit whose policy takes the stream's port, as the wallet's 18081 needs, and
+  sends a refused open once more to another exit (b5876fcae6).
+- A spawned process holds its arguments from its first instruction, so an install reads them in
+  time and takes its 320 MiB heap, not a program's 160 MiB (b5bb69a407). Every tree in `s1-g-kvm` with the fix installs
+  at `of 327680 KiB`.
+- `get_robust_list` is answered, so LMDB can make its lock and the wallet's ring database opens
+  (e16e16d6b4).
+- A stored file mapped shared, as LMDB maps one, is served, one writer per range
+  (373e35a4d5, `s1-shared-maps-0d0cff02d4`).
 
-### Kernel
+### Installing Linux apps
 
-- **SMP on every core**: AP bring-up, IPIs, TLB shootdown, and deferred invalidation with one
-  rendezvous per unmap.
-- **Hardening that was off is on**: stack guards, the W^X check on both halves, uncached MMIO,
-  the IOMMU brought up after paging, and every device mapping confined to the broker allowlist.
-- **Smaller syscall surface**: `MkSpawn` and the five signing syscalls are gone, wallet curve
-  crypto moved to ring 3, and the halo2 verifier removed from kernel and loader.
-- **Fixes**: the SYSRET STAR RPL bits, IDT error codes for vectors 29 and 30, the RSDP checks,
-  PCI masking, IOMMU register bounds, close-on-exec across fork, and fatal exceptions that now
-  explain themselves on serial.
+Every install goes over Anyone, and both proxies keep one stream per caller. The installer had
+opened three at once, so each took the conversation from the one before and no package arrived.
+It now fetches one package at a time over its kept stream (9fc7634b39, proven in
+`install_window_tests.rs`). Before the fix, a lone stream brought the 24.7 MB Monero package
+from the real Alpine mirror whole (`s1-g-kvm`, `diag-694ba69799-realmirror-anyone.log`).
 
-### Desktop
+The file store, which holds installed Linux apps in memory, may give its clients' files a
+quarter of memory, between 160 MiB and 4 GiB, and halves its ask when a heap cannot be mapped
+(f8f2f81c74, `capsule_vfs/src/store/fdtable/budget_size.rs`). A program may be up to 128 MiB
+(36310ba533; `linux/program_max.rs`, and `MAX_ELF` in
+`src/syscall/microkernel/local_image/digest.rs`).
 
-git in the Terminal (clone and push over HTTPS), an xterm-compatible terminal emulator, the
-rebuilt Files app with search, tags and favourites, contrast-checked themes, text scaling and
-reduced motion, and a startup chime.
+### The Marketplace
 
-### Verification
+The catalogue (`userland/capsule_market/linux-catalogue.json`) lists 22 Alpine apps, each in
+its own box, among them KeePassXC, Telegram Desktop, swayimg, the Monero wallet, Profanity, age,
+minisign, git and vim. The Marketplace's Open of a terminal program runs it in the Terminal
+(c55d58e10, `gui-store-tty-open`).
 
-979 kernel functions are extracted from the Rust and proven in Lean (492 with a behavioural
-property), next to 1,499 core Lean theorems with no `sorry`, 109 Kani harnesses and 107 runnable
-proof crates (`verification/evidence/EVIDENCE.json`). The proofs found real bugs, among them
-`align_up` defined four ways with four answers and a constant-time compare that computed its
-borrow wrongly.
+The catalogue also holds SimpleX Chat's terminal client (`linux.kali.nonos-simplex-chat`, from
+SimpleX's signed v7.0.3 binary, d8e427216b) and DarkFi's `drk`, `darkirc` and `darkfid`
+(1a17cb72ad). These four are served from a NONOS package mirror. A seal lists them only with
+such a mirror, and `nonos.toml` sets none (`linux_packages = ""`), so a release image built from
+this tree does not list them (`docs/userland/marketplace-catalogue.md`, "No mirror, none listed").
 
-### Build
+### Drivers
 
-One Nix build behind `make`. The capsules, tools, kernel and image come out byte-identical on
-Linux and macOS: fat LTO, host-neutral crate names in the rustc wrapper, one codegen unit for
-upstream tools, portable BLAKE3, and pinned host tools. `make seal` signs and enrolls, and keeps
-the committed STARK enrollment when it still proves the capsules.
+- **Wired, on QEMU.** The e1000, e1000e, igb, RTL8139, PCnet, vmxnet3 and Tulip drivers each got
+  a DHCP lease through their card, with net.core reading it in batches (`drivers/`). That is the
+  0.9.2 receive fault of e1000 and RTL8139 shown fixed on a boot. The RTL8169 fix is proven on
+  the host only.
+- **Wi-Fi on hardware.** The owner reports RTL8821CE Wi-Fi working on his HP laptop on a sealed
+  image of main at 0bd7c2263 (`drivers/rtl8821ce`). No log or screenshot was sent. Two vendor
+  drivers may now share an isolation group on a standard boot, which let that card be claimed
+  beside the NVMe disk (82ee1a3110).
+- **New Wi-Fi drivers, modelled only.** The standard image carries drivers for the RTL8822CE,
+  RTL8852BE, MediaTek MT7921, MT7922 and MT7920, and Intel BE200 and BE201, beside RTL8821CE and
+  the Intel SO cards (`docs/drivers/wifi/README.md`). None has run on its card.
+
+### Setup and the desktop
+
+- First-boot setup has 13 steps (`capsule_setup_wizard/src/render/layout.rs`, `STEPS`), and
+  each gate boot of this tree walked all 13 to the desktop (`gate-a7af21a70`). Setup, About and
+  the Terminal read the release from `VERSION`, which says 0.9.3 (f68bb8ac3a).
+- Power Off in the desktop's menu, and the Power key, ask "Power off and wipe memory?" and then
+  power off through the wipe (`capsule_power`; `docs/using/desktop.md`). A development boot
+  held a secret in RAM 8 times before Power Off and 0 times after
+  (`docs/security/privacy-evidence/2026-10-25/zs-6d87d9aff`). The installers' restart goes
+  through the same service and they hold no Admin (S-14).
+- With no IOMMU in service, the splash says `device DMA not confined by hardware` in red
+  (`gpu-469dddb58-no-iommu`).
+
+### The Terminal
+
+History search, a hint bar that follows the state, Ctrl+Alt+T, the git branch and jobs in the
+prompt, WCAG AA contrast on every theme, a theme picker, split view, the F12 drop-down and a
+`latency` command, each booted (`terminal-01` to `terminal-14`). A password prompt is not shown
+as it is typed (717a125504).
+
+### Boots of this tree
+
+Three gate boots of main (a7af21a70, 23d57ac60, 6f0bbe716) reached the desktop on 4 CPUs with
+VT-d enforcing and no unconfined grant, with no FATAL, panic or lock wait (`gate-*`). The
+paging-lock waits seen on 30a4b58c4 are gone after the fix (adb53a20d, abae61bc9): 0 `[LOCK]`
+lines in eight boots at 4 and 8 CPUs (`s1-paging-lock-c3f522575`, `s1-lock`).
 
 ## Breaking changes
 
-- The `MkSpawn` and signing syscalls are removed. Capsules built out of tree must use
-  `nonos_ed25519` and `nonos_secp256k1` and the current spawn path.
-- New capability bits: `AttestRead`, `LocalSign`, `ForeignExec`.
-- The submodules are folded into this one repository. Re-clone.
-- The trust set is re-signed. Enrollments from the September tag do not verify against it.
+- `MkBootLogo` (MBGL) is retired. Its number is kept and answers EINVAL to every caller
+  (`src/syscall/microkernel/retired.rs`).
 - No in-place upgrade. Reinstall; nothing carries over from an older install.
 
 ## Known limitations
 
-- **A USB stick boot does not bind the stick.** The kernel picks a disk at its first block I/O,
-  and a boot from a stick makes none, so its state is not kept on the stick. The CI boot test
-  checks that the stick boots and the USB storage driver starts, not that it binds.
-- **Not in any image yet**: the e1000e, igc, USB Ethernet and rtsx drivers, the attack suite,
-  the assembly installer and the SMP stress test.
-- **Desktop**: it cannot power off, Files and the Editor do not keep files across a reboot,
-  there is no login password, no USB hubs, and memory above 64 GiB is unused.
-- **Hardening**: no KASLR, no compiler stack canaries, the capability ceiling is logged rather
-  than enforced, and the package store is not encrypted.
-- **aarch64** is a preview with no loader or image; **riscv64** does not build a kernel.
-- **Not yet tested on a booted image**: live Nym and Anyone traffic, Secure Boot enabled, and an
-  update from one release to the next.
+- **Linux apps keep nothing past power off.** A home is held in memory, up to 16 MiB and 128
+  names, and is gone at power off. A home kept across a reboot is designed and not in this
+  release (`docs/design/kept-homes-and-installs.md`). One file an app writes is held to 8 MiB;
+  a write past it fails with EFBIG and says nothing (`file/held/cache/table.rs`, `MAX_FILE`).
+- **Monero.** On every wallet open the first refresh fails with "net.socks5 sent an answer this
+  cannot read", and the next connects. An install from the real mirror with one package at a
+  time is not yet shown (`s1-g-kvm`, "Not shown here"). Write the seed on paper; it is the only
+  copy that survives power off.
+- **Installs fetch one package at a time** (9fc7634b39).
+- **Not in this release:** SimpleX's desktop window and DarkFi's GUI. SimpleX comes only as its
+  terminal client, and only on an image sealed with a NONOS package mirror (above). No boot has
+  shown it reach an SMP server (`docs/using/simplex.md`). foot ran on a development image but is
+  not listed (`gui-foot`). No GTK app is listed or shown with a window. Copy and paste between a
+  Linux window and the desktop is tested on the host only.
+- **Wi-Fi**: only the RTL8821CE has run on a card. The RTL8822CE, RTL8852BE, MT7921 family and
+  every Intel card have run only against a modelled device (`docs/drivers/wifi/README.md`).
+- **Seen on development boots, not shown fixed:** lame ends on signal 11 (`s3-boot2`); micro
+  opened from the Marketplace stops on `open /dev/tty` (`gui-store-tty-open`).
+- **Hardening**: no KASLR, no compiler stack canaries, and the package store is not encrypted.
+  A machine with no IOMMU in service boots Standard with device DMA unconfined, said on the
+  splash and in About. See `docs/release/0.9.3-security-limits.md`.
+- **aarch64** is a preview with no loader and no release image; **riscv64** is not supported,
+  and under QEMU it stops at its unported VM layer (`docs/architectures/README.md`).
+- **Not yet tested on a booted image**: Secure Boot enabled, and an update from one release to
+  the next.
