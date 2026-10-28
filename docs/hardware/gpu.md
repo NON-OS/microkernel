@@ -6,8 +6,9 @@ would rest on. Nothing on this page has been booted on real hardware.
 ## What happens on any GPU today
 
 `make` builds `microkernel-full-gui` (`mk/20-build.mk`, `nonos-mk-zerostate`). That
-image carries no native GPU driver: `nonos-capsule-driver-intel-display` and
-(`scripts/baselines/display_profiles.txt`), and `capsule_driver_bootfb` is in no image.
+image carries no native driver for a real GPU: `nonos-capsule-driver-intel-display`
+is held out of it (`scripts/baselines/display_profiles.txt`), `capsule_driver_bootfb`
+is in no image, and `nonos-capsule-driver-bga`, which it does carry since 27 October
 So on every real machine the desktop takes one of two paths:
 
 1. **Firmware framebuffer.** The loader picks a linear 32-bit mode from the UEFI GOP,

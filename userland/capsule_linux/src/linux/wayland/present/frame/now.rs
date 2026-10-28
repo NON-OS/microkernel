@@ -19,20 +19,22 @@
 
 use nonos_app_skeleton::runner::chrome::quarters_for;
 
+use super::super::super::fit::Mode;
 use super::super::super::reshape::Shape;
 use super::super::super::scene::Scene;
-use super::geometry::{around, Around};
+use super::geometry::{around_at, Around};
 
 /// The frame around content of `shape`, for the buffer drawn now: none
 /// when it is full screen, or is drawn for a configure that is.
 pub fn around_shape(scene: &Scene, (w, h, _): Shape) -> Around {
-    let bare = scene.fit.due().map_or(scene.fit.now(), |c| c.mode).bare();
-    around(w, h, scene.frame.quarters, bare || scene.frame.own_frame)
+    let mode = scene.fit.due().map_or(scene.fit.now(), |c| c.mode);
+    let (bare, max) = (mode.bare() || scene.frame.own_frame, mode == Mode::Maximized);
+    around_at(w, h, scene.frame.quarters, bare, max)
 }
 
 /// The content rect a frame leaves of `rect`, the window's whole on screen.
 pub fn inset(scene: &Scene, (x, y, w, h): (u32, u32, u32, u32)) -> (u32, u32, u32, u32) {
-    let a = around(0, 0, scene.frame.quarters, scene.frame.own_frame);
+    let a = around_at(0, 0, scene.frame.quarters, scene.frame.own_frame, true);
     (x, y, w.saturating_sub(a.w).max(1), h.saturating_sub(a.h).max(1))
 }
 

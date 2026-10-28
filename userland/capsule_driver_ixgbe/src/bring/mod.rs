@@ -30,7 +30,7 @@ pub mod reset;
 pub mod rings;
 pub mod settings;
 pub mod stage;
-mod stand_down;
+pub mod stand_down;
 pub mod wait;
 
 pub use finish::finish;

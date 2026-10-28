@@ -34,13 +34,13 @@ impl Session {
         match self.station.receive_mgmt(f, hw) {
             MgmtRx::Left(reason) => return Some(Ended::Left(reason)),
             MgmtRx::Reply(frame) => {
-                r.send(&frame);
+                self.put(r, &frame);
             }
             MgmtRx::SaQueryNeeded => {
                 let mut txid = [0u8; 2];
                 if env.random(&mut txid) {
                     if let Some(req) = self.station.sa_query_start(env.now_ms(), txid) {
-                        r.send(&req);
+                        self.put(r, &req);
                     }
                 }
             }

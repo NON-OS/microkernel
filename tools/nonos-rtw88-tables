@@ -1,0 +1,148 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""Write the RTL8822CE PHY tables from rtw88's rtw8822c_table.c.
+
+    tools/nonos-rtw88-tables SRC            write the tables
+    tools/nonos-rtw88-tables SRC --check    say whether the committed ones match
+
+SRC is drivers/net/wireless/realtek/rtw88/rtw8822c_table.c from Linux v6.12,
+held to its sha256 below, so the tables can only come from that one file. The
+file is "GPL-2.0 OR BSD-3-Clause"; the tables are taken under the BSD-3-Clause
+option, and every table file carries Realtek's notice and the licence text.
+Each table is the u32 array of the same name, every word kept as the source
+spells it and in its order, so the condition parser sees exactly the vendor's
+stream. Nothing is filtered, merged or reordered. The output is rustfmt'd.
+"""
+
+import argparse
+import hashlib
+import re
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+SOURCE_SHA256 = "ec3f4d9eed016932b9100e4e2332c12f67bd0824a3f3b4b05cc515e7916a2247"
+OUT = Path("userland/capsule_driver_rtl8822ce/src/phy/tables")
+# (file, rtw88 array, Rust static, what it is)
+TABLES = [
+    ("bb.rs", "rtw8822c_bb", "RTL8822C_BB", "the baseband table, written by rtw_phy_cfg_bb"),
+    ("agc.rs", "rtw8822c_agc", "RTL8822C_AGC", "the AGC table, written by rtw_phy_cfg_agc"),
+    ("cal_init.rs", "rtw8822c_array_mp_cal_init", "RTL8822C_CAL_INIT",
+     "the RF calibration init table (rfk_init_tbl), written by rtw_phy_cfg_bb"),
+    ("rf_a.rs", "rtw8822c_rf_a", "RTL8822C_RF_A", "the RF path-A table, written by rtw_phy_cfg_rf"),
+    ("rf_b.rs", "rtw8822c_rf_b", "RTL8822C_RF_B", "the RF path-B table, written by rtw_phy_cfg_rf"),
+]
+NOTICE = """\
+// Written by tools/nonos-rtw88-tables from rtw8822c_table.c; do not edit.
+//
+// {what}: rtw88 `{array}`, Linux v6.12
+// drivers/net/wireless/realtek/rtw88/rtw8822c_table.c (sha256 {sha}).
+// That file is licensed "GPL-2.0 OR BSD-3-Clause"; this data is used under the
+// BSD-3-Clause option, whose notice follows.
+//
+// Copyright(c) 2018-2019  Realtek Corporation
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+// 1. Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
+//    and/or other materials provided with the distribution.
+// 3. Neither the name of the copyright holder nor the names of its
+//    contributors may be used to endorse or promote products derived from this
+//    software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+
+//! {what_cap}, as the vendor's address/value (or condition-marker) words.
+
+/// rtw88 `{array}`, word for word.
+pub static {static}: &[u32] = &[
+"""
+
+
+def words(src: str, array: str) -> list:
+    """The words of `static const u32 <array>[] = { ... };`, as spelled."""
+    m = re.search(r"static const u32 " + re.escape(array) + r"\[\] = \{(.*?)\n\};", src, re.S)
+    if not m:
+        raise SystemExit(f"rtw88-tables: no array {array}")
+    body = re.sub(r"/\*.*?\*/|//[^\n]*", "", m.group(1), flags=re.S)
+    toks = [t for t in re.split(r"[\s,]+", body) if t]
+    bad = [t for t in toks if not re.fullmatch(r"0[xX][0-9A-Fa-f]{1,8}", t)]
+    if bad or len(toks) % 2:
+        raise SystemExit(f"rtw88-tables: {array}: {len(toks)} words, unexpected {bad[:3]}")
+    return toks
+
+
+def render(src: str) -> dict:
+    sha = hashlib.sha256(src.encode()).hexdigest()
+    out = {}
+    for file, array, static, what in TABLES:
+        toks = words(src, array)
+        head = NOTICE.format(what=what, array=array, sha=sha, static=static,
+                             what_cap=what[0].upper() + what[1:])
+        lines = [", ".join(toks[i:i + 8]) + "," for i in range(0, len(toks), 8)]
+        out[file] = head + "\n".join("    " + line for line in lines) + "\n];\n"
+    return out
+
+
+def rustfmt(files: dict) -> dict:
+    with tempfile.TemporaryDirectory() as d:
+        paths = []
+        for name, text in files.items():
+            p = Path(d) / name
+            p.write_text(text)
+            paths.append(str(p))
+        cfg = "edition=2021,newline_style=Unix,use_small_heuristics=Max"
+        subprocess.run(["rustfmt", "--edition", "2021", "--config", cfg, *paths], check=True)
+        return {name: (Path(d) / name).read_text() for name in files}
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("source", type=Path)
+    ap.add_argument("--check", action="store_true")
+    a = ap.parse_args()
+    raw = a.source.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != SOURCE_SHA256:
+        print("rtw88-tables: the source is not rtw8822c_table.c of Linux v6.12", file=sys.stderr)
+        return 1
+    files = rustfmt(render(raw.decode()))
+    if a.check:
+        stale = [n for n, t in files.items() if not (OUT / n).is_file() or (OUT / n).read_text() != t]
+        print(f"rtw88-tables: {len(files) - len(stale)} of {len(files)} match; stale: {stale}")
+        return 1 if stale else 0
+    for name, text in files.items():
+        (OUT / name).write_text(text)
+    print(f"rtw88-tables: wrote {len(files)} tables to {OUT}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

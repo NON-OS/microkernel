@@ -20,10 +20,12 @@
 //! nothing moved; turning it on again before the engines stop would let them
 //! write there. So Bus Master goes on only once the device's own bus master
 //! was told to stop and read back stopped and the chip was reset
-//! (`stop_device`: STOP_MASTER, MASTER_DISABLED, SW_RESET), and only right
+//! (`stop_device` in the family's CSR layout: the bus-master stop, its
+//! status, the software reset), and only right
 //! before the firmware is booted: after the part was judged runnable and its
 //! regions mapped, and again before each restart.
 
+use super::super::csr::CsrLayout;
 use super::super::region::Clock;
 use super::super::start::stop_device;
 use super::kinds::Failure;
@@ -52,9 +54,10 @@ impl MasterError {
 pub fn master_on<M: Mmio, C: Clock>(
     m: &M,
     c: &mut C,
+    csr: CsrLayout,
     enable: impl FnOnce() -> bool,
 ) -> Result<(), Failure> {
-    if !stop_device(m, c) {
+    if !stop_device(m, c, csr) {
         return Err(Failure::Master(MasterError::NotStopped));
     }
     if !enable() {

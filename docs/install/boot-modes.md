@@ -45,12 +45,12 @@ Under the selected entry it shows one sentence, a line naming the checks the loa
 
 | Entry | What the loader requires | What the kernel starts | First-boot setup |
 |---|---|---|---|
-| Standard | a signed kernel (Ed25519 and ML-DSA-65), its STARK attestation, the rollback check, a hardware RNG | everything the image carries | runs, unless an earlier boot kept its answers |
+| Standard | a signed kernel (Ed25519 and ML-DSA-65), its STARK attestation, the rollback check, a hardware RNG | everything the image carries | runs, unless the disk keeps setup's answers, as an installed disk does |
 | Hardened | Standard, plus Secure Boot with PK and db, and a TPM 2.0 | the same as Standard | the same as Standard |
-| Safe Mode | the same as Standard | no network driver or service, no audio, no optional app | the same as Standard |
+| Safe Mode | the same as Standard | no network driver or service, no audio driver or service (playback or microphone), no optional app | the same as Standard |
 | Air-Gapped | Standard, plus a TPM whose rollback floor it can read | no network driver or service; Browser and Marketplace stay off | the same as Standard |
 | Recovery | the same as Standard | no network; a Terminal opens, with Files and the Editor | skipped |
-| `Install NØNOS` | the same as Standard, raised to the build floor | the same as Standard, then the installer | runs, starting on Install; when an earlier boot kept its answers, the installer opens at once |
+| `Install NØNOS` | the same as Standard, raised to the build floor | the same as Standard, then the installer | runs, starting on Install; when the disk keeps setup's answers, the installer opens at once |
 | Shut down | nothing | nothing: the machine powers off | does not run |
 
 On the loader's side, every entry that boots except Hardened shows the same checks line, `ED25519 · ML-DSA-65 · STARK · ROLLBACK · RNG`. Hardened shows `STANDARD + SECURE BOOT · PK · DB · TPM 2.0`. The menu can raise the image's build floor and never lower it, so on a `hardened` or `airgapped` image every entry needs [Secure Boot](../overview/glossary-rollback-index.md#secure-boot) and a [TPM](../overview/glossary-stark-proof.md#tpm). These lines say what each entry asks for. The signature, Secure Boot and RNG checks themselves run in the loader's verification code, which these pages do not describe; see [Boot chain and signatures](../security/boot-chain-and-signatures.md) for what is known of them.
@@ -59,7 +59,7 @@ Hardened and Air-Gapped are the two modes that need a TPM, because it holds the 
 
 On the kernel's side, Hardened changes nothing: the kernel treats it as Standard for the network and the apps. The other modes change what starts:
 
-- On Safe Mode, Air-Gapped and Recovery boots the [spawn gate](../overview/glossary-rollback-index.md#spawn-gate) refuses every network driver, every `net.` service and the model fetcher. Safe Mode also refuses `driver.hda0`, `audio.server`, `app.snake` and `app.hello`.
+- On Safe Mode, Air-Gapped and Recovery boots the [spawn gate](../overview/glossary-rollback-index.md#spawn-gate) refuses every network driver, every `net.` service and the model fetcher. Safe Mode also refuses every audio driver, playback and capture alike (`driver.hda0`, `driver.ac97_0`, `driver.usb_audio0`, `driver.usb_mic0`), `audio.server`, `app.snake` and `app.hello`.
 - On those three boots every program that does start loses the Network [capability](../overview/glossary-boot-root-record.md#capability), so none can bring a network up later.
 - Each refusal goes to the kernel log as `[PROFILE] <mode>: not started: <name>`.
 - Init keeps apps off by mode: every optional app on Safe Mode, the Browser and the Marketplace on Air-Gapped, and everything but Files and the Editor on Recovery, beside the Terminal and Settings every boot has.
@@ -105,7 +105,7 @@ The menu has no development entry, on purpose. A loader built with the developme
   - Air-Gapped without a readable floor: `Floor::Refuse`, `nonos-bootloader/src/boot/crypto/rollback/floor.rs:41-51`.
   - A floor above the kernel's index: `Floor::Held`, `nonos-bootloader/src/boot/crypto/rollback/floor.rs:30-40`.
   - Hardened is Standard to the kernel: `network` and `minimal`, `src/boot/handoff/api/profile.rs:44-52`.
-  - What the spawn gate refuses: `NETWORK_DRIVERS` and `NOT_SAFE`, `src/kernel_core/process_spawn/capsule_spawn/runner/profile_refuse.rs:21-40`.
+  - What the spawn gate refuses: `NETWORK_TOOLS`, the card table and `NOT_SAFE`, `src/kernel_core/process_spawn/capsule_spawn/runner/profile_refuse.rs:22-42`; every audio capsule on `NOT_SAFE` is proven by `userland/kernel_proofs/src/safe_mode/mod.rs`.
   - The Network capability dropped: `caps`, `src/kernel_core/process_spawn/capsule_spawn/runner/profile_gate.rs:48-55`.
   - The `[PROFILE]` log line: `check`, `src/kernel_core/process_spawn/capsule_spawn/runner/profile_gate.rs:31-46`.
   - Apps kept off by mode: `withheld`, `src/userspace/init/app_choice/profile.rs:37-44`.

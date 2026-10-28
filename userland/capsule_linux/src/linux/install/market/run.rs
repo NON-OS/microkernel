@@ -23,24 +23,21 @@ use nonos_libc::mk_debug;
 
 use super::super::record::program::forget;
 use super::super::{install, uninstall, Why};
-use super::arg::MARKET_LEN;
+use super::arg::Market;
 use super::bind::bind;
 use super::check::gate;
 
 /// `market` is None for a release with no guest_policy: only a shipped tier,
 /// whose box is the personality's own table's, installs without one.
-pub fn install_from(
-    pkg: &str,
-    pin: &[u8; 32],
-    market: Option<&[u8; MARKET_LEN]>,
-) -> Result<(), Why> {
+pub fn install_from(pkg: &str, pin: &[u8; 32], market: Option<&Market>) -> Result<(), Why> {
     let Some(policy) = gate(pkg, market).map_err(refused)? else {
         return install(pkg, pin);
     };
     // Its programs land held: until bind, nothing of it starts unboxed.
     super::hold::hold(&policy.program_blake3);
     install(pkg, pin)?;
-    if let Err(why) = bind(pkg, &policy) {
+    let args = market.map_or(&[][..], |m| &m.args);
+    if let Err(why) = bind(pkg, &policy, args) {
         let why = refused(why);
         // Whatever of it would not go stays held: its policy is not vouched.
         if uninstall(pkg).is_err() && !forget(pkg) {

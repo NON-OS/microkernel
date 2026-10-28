@@ -46,7 +46,7 @@ impl Contents {
             Contents::Nonos => "NONOS installed",
             Contents::OtherGpt => "another system (GPT)",
             Contents::Mbr => "another system (MBR)",
-            Contents::Unknown => "unrecognised contents",
+            Contents::Unknown => "holds data, but no partition table NONOS knows",
             Contents::Unread(_) => "did not answer a read",
         }
     }
