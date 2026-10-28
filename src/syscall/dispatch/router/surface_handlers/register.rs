@@ -47,6 +47,7 @@ pub(in super::super) fn do_register(desc_ptr: u64) -> SyscallResult {
         Ok((sid, _)) => {
             crate::sys::bench::mark_once(&FIRST_SURFACE_REGISTER, b"surface_register_first");
             log_display_mode(&desc);
+            super::linux_window::note(pid, &desc);
             SyscallResult::success_audited(sid as i64)
         }
         Err(e) => errno(map_err(e)),
