@@ -16,20 +16,29 @@
 
 //! Everything this capsule sends on a circuit.
 
+mod again;
+mod attach;
 mod buffered;
+mod free_id;
 mod open_stream;
 mod pick_circuit;
+mod room;
 mod send_data;
 mod send_end;
 mod send_relay;
 mod sendme_tick;
 mod stream_sendme;
+mod wait;
+mod waiting;
+mod want;
 mod window;
 
+pub(super) use again::again;
+pub(super) use free_id::free_id;
 pub use open_stream::open_stream;
-pub(super) use open_stream::free_id;
-pub(super) use send_relay::send_relay;
 pub use send_data::send_data;
 pub use send_end::send_end;
+pub(super) use send_relay::send_relay;
 pub use send_relay::SendError;
 pub use sendme_tick::tick as sendme_tick;
+pub(super) use waiting::waiting;

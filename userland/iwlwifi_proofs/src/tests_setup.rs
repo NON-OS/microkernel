@@ -15,3 +15,5 @@ mod grants_tests;
 mod regs_tests;
 #[cfg(test)]
 mod request_inbox_tests;
+#[cfg(test)]
+mod setup_wake_tests;

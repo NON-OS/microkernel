@@ -34,6 +34,7 @@ mod hid;
 mod input;
 mod link;
 mod report;
+mod retry;
 mod run;
 mod setup;
 mod shape;

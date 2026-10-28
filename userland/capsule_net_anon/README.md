@@ -120,7 +120,10 @@ or graphics bit is asked for: the capsule never touches a device, a file or a su
  (`src/server/handlers/path.rs`).
 - The serial log names authority addresses and the guard address
  (`link open to guard <addr>`, `src/manager/link_tick.rs:47`) and stream and circuit ids. It
- does not log destination hosts or stream payloads.
+ does not log destination hosts, destination ports or stream payloads.
+- Up to 64 pairs of exit identity and port, an exit that ended a stream to that port before
+ it connected, are remembered for the boot so no draw for the port takes that exit again
+ (`src/path/refused.rs`). No host is kept, and nothing is written.
 - A one-hop or two-hop circuit is not offered: `HOPS` is fixed at 3
  (`src/protocol/limits.rs`).
 
@@ -138,6 +141,12 @@ or graphics bit is asked for: the capsule never touches a device, a file or a su
 5. At most 3 circuits (one working, one building, one being torn down) and 32 streams, at most
  half of them per owner (`may_open`, `src/stream/owned.rs`). A circuit stops taking new
  streams after 600 s and is retired after 2 failed streams (`src/protocol/limits.rs`).
+ A stream goes down a circuit whose exit's policy summary takes its port. With none, it
+ waits up to 45 s while one is drawn for that port, and with three held an idle one that is
+ not the warm circuit is torn down to make room (`src/manager/out/wait.rs`,
+ `src/manager/out/waiting.rs`, `src/manager/out/room.rs`). An END before CONNECTED with
+ reason 4, 7, 8, 9 or 11 sends the open, and up to 8 KiB sent behind it, once more to
+ another exit that takes the port (`src/manager/out/again.rs`, `src/stream/again.rs`).
 6. Every turn also ends the streams of API callers that have ended (`src/server/reap.rs`), and
  every 5 s or on a change of stage posts a route report to the attest service
  (`src/server/report/`). The report names no relay; the board takes it only from `net.anon`
@@ -175,7 +184,10 @@ As recorded in `PROTOCOL.md`, "What this capsule implements":
 - Link protocol 4 or 5, with the CERTS cell and Ed25519 certificate chain checked
  (`src/link/`).
 - Three-hop circuits over guard, middle and exit, drawn by consensus bandwidth weights, with a
- whole /16 excluded per path, not only a relay identity (`src/path/`).
+ whole /16 excluded per path, not only a relay identity (`src/path/`). The exit is drawn by
+ the stream's port from each relay's microdescriptor policy summary, kept to 64 ranges
+ (`src/directory/microdesc/summary.rs`, `src/path/ports.rs`); ports 80 and 443 keep the rule
+ that both web ports are let out.
 - RELAY_BEGIN streams with authenticated v1 SENDMEs (`src/stream/`, `src/circuit/window.rs`).
 - Directory client for the microdescriptor consensus from the seven authorities over DirPort
  9230, with zlib inflate, authority certificate anchoring to hardcoded v3 identities, RSA

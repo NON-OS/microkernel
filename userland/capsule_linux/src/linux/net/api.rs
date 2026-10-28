@@ -34,6 +34,7 @@ pub use super::poll::ready::{ready, POLLERR, POLLHUP};
 pub use super::poll::set::poll;
 pub use super::poll::socket::outside;
 pub use super::recvfrom::recvfrom;
+pub use super::routed::{closing_ms, flush_closing, settle_closing};
 pub use super::select::{clear as select_clear, select};
 pub use super::shutdown::shutdown;
 pub use super::socket::socket;

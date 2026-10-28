@@ -27,6 +27,9 @@ pub struct Format {
     /// "NCM0" or "ncm0": datagrams without a CRC. CRC mode is set off at
     /// bind, so an NDP with CRCs is not read.
     pub ndp_sign: u32,
+    /// "NCM1" or "ncm1": an NDP with CRCs, passed over with its chain
+    /// followed, as Linux does; any other signature is no NDP.
+    pub ndp_crc: u32,
     /// The NDP's fixed part before its entries, and where in it the next
     /// NDP's index sits.
     pub ndp_header: usize,
@@ -41,6 +44,7 @@ pub const NTB16: Format = Format {
     nth_sign: 0x484D_434E,
     nth_len: 12,
     ndp_sign: 0x304D_434E,
+    ndp_crc: 0x314D_434E,
     ndp_header: 8,
     ndp_next: 6,
     entry: 4,
@@ -50,6 +54,7 @@ pub const NTB32: Format = Format {
     nth_sign: 0x686D_636E,
     nth_len: 16,
     ndp_sign: 0x306D_636E,
+    ndp_crc: 0x316D_636E,
     ndp_header: 16,
     ndp_next: 8,
     entry: 8,

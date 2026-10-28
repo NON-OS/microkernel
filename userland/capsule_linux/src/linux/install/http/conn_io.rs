@@ -44,7 +44,9 @@ impl Conn {
             Conn::Route(s) => s.0.read_wait(&mut chunk, POLL_MS)?,
             #[cfg(feature = "dev-mirror")]
             Conn::Raw(h) => {
-                let got = raw::recv_now(*h, CHUNK).ok_or("the read failed")?;
+                // A refused read is "nothing yet", as raw_io::recv_until takes
+                // it: a mirror fetching upstream is quiet, not gone.
+                let got = raw::recv_now(*h, CHUNK).unwrap_or_default();
                 chunk[..got.len()].copy_from_slice(&got);
                 got.len()
             }

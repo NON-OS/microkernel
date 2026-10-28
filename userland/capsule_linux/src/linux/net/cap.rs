@@ -22,12 +22,13 @@ const STREAM_CAP: usize = 128 << 10;
 /// One byte past the largest datagram, so a larger one is seen and refused.
 const GRAM_CAP: usize = 65508;
 
-/// The most one send gathers: what net.sockets carries in a call, a
-/// stream peer's default queue, or one byte past the largest datagram.
-pub fn cap(outside: bool, stream: bool) -> usize {
-    match (outside, stream) {
-        (true, _) => super::stream::MAX_IO,
-        (false, true) => STREAM_CAP,
-        (false, false) => GRAM_CAP,
+/// The most one send on a family socket gathers: a stream peer's default
+/// queue, or one byte past the largest datagram. A stream outside the
+/// family takes what its own queue holds (xfer/outbound.rs).
+pub fn cap(stream: bool) -> usize {
+    if stream {
+        STREAM_CAP
+    } else {
+        GRAM_CAP
     }
 }
