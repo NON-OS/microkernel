@@ -31,19 +31,21 @@ static BYTES: AtomicU64 = AtomicU64::new(HOME);
 const _: () = {
     let mut i = 0;
     while i < LARGER_HOMES.len() {
-        assert!(LARGER_HOMES[i].1 > HOME && LARGER_HOMES[i].1 <= HOME_MOST);
+        assert!(LARGER_HOMES[i].2 > HOME && LARGER_HOMES[i].2 <= HOME_MOST);
         i += 1;
     }
 };
 
-/// The home size of the listing whose key is `listing`.
-pub fn of(listing: &[u8; 32]) -> u64 {
-    LARGER_HOMES.iter().find(|(key, _)| key == listing).map_or(HOME, |&(_, bytes)| bytes)
+/// The home size of the listing whose key is `listing`, or whose policy
+/// names `program`.
+pub fn of(listing: &[u8; 32], program: &[u8; 32]) -> u64 {
+    let named = |(key, prog, _): &&([u8; 32], [u8; 32], u64)| key == listing || prog == program;
+    LARGER_HOMES.iter().find(named).map_or(HOME, |&(_, _, bytes)| bytes)
 }
 
 /// Chosen as the home opens, for the listing the run's policy names.
-pub fn choose(listing: &[u8; 32]) {
-    BYTES.store(of(listing), Ordering::Relaxed);
+pub fn choose(listing: &[u8; 32], program: &[u8; 32]) {
+    BYTES.store(of(listing, program), Ordering::Relaxed);
 }
 
 /// This run's home size, in bytes.
