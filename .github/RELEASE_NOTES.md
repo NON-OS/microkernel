@@ -114,6 +114,21 @@ A failed install says which package and which check stopped it, for example
 `libzmq-4.3.5-r2 (its checksum did not match the signed index)`, in the Terminal's `market`
 commands and the Marketplace's headline (e3bed0a8f0).
 
+An install holds one package about twice its installed size, its tar and its pack, where it held
+it three times; the tar walk borrows each file from the tar. Before a package is unpacked, the
+installer checks that it fits the heap left, and a package that cannot fit ends the install with
+the reason "Too little free memory to unpack one of its packages; close other apps, then retry"
+and the package's name, never a fault. An install takes 640 MiB where 2 GiB is
+free, then 320 MiB, then 160 MiB (f03a6abe69). On the owner's 8 GB HP laptop, Telegram Desktop's
+install had stopped with code 134; in a KVM run with 4 and 8 GiB guests, Telegram's own package
+peaked at 143 MiB.
+
+A need that several packages provide now takes the provider an earlier install placed, where
+there is one, instead of the index's first (5dcb276cc4). Telegram Desktop's install after
+KeePassXC's had been refused: it took `icu-data-en`, which holds the same file as the
+`icu-data-full` KeePassXC placed. In a KVM run, Telegram's install after KeePassXC placed
+`icu-data-full` again, with no refused member.
+
 One file a Linux app writes may now fill its home, 16 MiB, where it was held to 8 MiB. A write
 past it fails with EFBIG, and the first refusal in a run prints `linux: this app wrote a file
 past 16 MiB, the most one file may hold here; that write was refused.` in the app's window
@@ -153,6 +168,14 @@ software TPM, a volume prepared under one image opened under a second image with
 bootloader through the handover, then under that bootloader's own key on the next boot
 (`s1-k1-update`). An update keeps the data volume, not store apps, settings since setup, the
 wallet's vault or saved Wi-Fi (`docs/install/update.md`).
+
+A USB stick booted beside an installed disk comes up as the stick (9eb8a850bb). On the owner's
+HP laptop it had come up as the installed system. The loader takes no other disk's store on a
+USB boot and recognises its own disk by its GPT partition GUID. The kernel never keeps another
+disk on a USB boot, and `log BLOCK` says why a boot kept the disk it did. In a KVM run, a new
+stick beside an installed NVMe disk came up with the stick's store
+(`[STORE] the loader's copy of the store: 88369152 bytes`) and setup at its first step, and the
+NVMe disk alone came up as the installed desktop. No log of that run is committed.
 
 ### Drivers
 
@@ -228,10 +251,10 @@ paging-lock waits seen on 30a4b58c4 are gone after the paging-lock fix (adb53a20
 - **Linux windows**: Mousepad, mpv and zathura are listed, but no boot in the evidence shows
   their windows. Copy and paste between a Linux window and the desktop is tested on the host
   only.
-- **Booting a stick beside an installed disk**: on some firmware (seen on an HP laptop), a USB
-  stick booted on a machine with NØNOS installed on an internal disk comes up as the installed
-  system, so an update or reinstall from that stick is not possible there. A fix is in a
-  follow-up release.
+- **Very large installs**: installing a very large app, such as Telegram, can fail partway on
+  the sealed image, when the network service runs out of memory after a few hundred downloads.
+  It restarts on its own, and retrying the install works. A fix is in the follow-up release
+  (884cd0faae, 23edef7e60).
 - **Wi-Fi**: only the RTL8821CE has run on a card. The RTL8822CE, RTL8852BE, MT7921 family and
   every Intel card have run only against a modelled device (`docs/drivers/wifi/README.md`).
 - **Seen on development boots, not shown fixed:** lame ends on signal 11 (`s3-boot2`); micro
