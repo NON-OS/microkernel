@@ -3560,6 +3560,7 @@
    "userland/nonos_route_link/src/pick.rs",
    "userland/nonos_route_link/src/refusal.rs",
    "userland/nonos_route_link/src/socks.rs",
+   "userland/nonos_serve_wire",
    "userland/openpgp",
    "userland/policy_proto",
    "userland/toolkit",
