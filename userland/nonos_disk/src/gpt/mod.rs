@@ -26,5 +26,5 @@ mod shape;
 mod table;
 
 pub use probe::written_by_nonos;
-pub use shape::{ARRAY_SECTORS, FIRST_USABLE_LBA};
+pub use shape::{ARRAY_SECTORS, ENTRY_COUNT, ENTRY_SIZE, FIRST_USABLE_LBA};
 pub use table::table;

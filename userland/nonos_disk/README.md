@@ -31,9 +31,10 @@ smaller than `MIN_DISK_SECTORS` is refused.
 | `store` | `StoreBuilder`: the package store in `nonos_disk_map`'s container format |
 | `carry` | `gather`: what an install carries from the running system into the new store: first-boot setup's answers and the signed programs under `/capsules/` and `/linux/` |
 | `plan_sector` | the disk plan naming the data volume; the key header is cleared so the first boot keys the volume with the TPM, and the volume's header ring is zeroed so that boot formats it |
-| `session`, `writer` | `install` and `verify`: write every run, read it back, and report a `Receipt` |
+| `session`, `writer` | `install` and `verify`: write every run, read it back, and report a `Receipt`; `update` writes the ESP and the store alone over an installed disk |
+| `keep` | `read_installed`: whether an update keeps an installed disk's data, from its table, plan and key header; `DiskAnswers`: setup's answers out of that disk's own store |
 | `boot_media` | `is_boot_media`: whether a disk is the medium this machine booted from, by its ESP GUID, an MBR signature, or the loader file |
-| `describe` | the rows the installer shows for what will be written |
+| `describe` | the rows the installer shows for what will be written, or kept and written |
 
 A `BlockSink` takes `(lba, bytes)` in whole 512-byte sectors: a block driver in
 the installers (`nonos_blk_client::DeviceSink`), memory in the host tests, so
@@ -41,11 +42,14 @@ the disk the tests read is the disk that gets written.
 
 ## Tests
 
-`tests/` holds 38 `#[test]` functions, one property per file: the GPT is valid
+`tests/` holds 70 `#[test]` functions, one property per file: the GPT is valid
 for firmware, the ESP reads back by the FAT specification and through
 `mtools`, every write is whole sectors, the layout fits every disk size, the
 kernel takes what is written, vfs loads the store, verify catches corruption,
-and boot-media detection answers any disk without a panic. Run `cargo test`
+and boot-media detection answers any disk without a panic. The `an_update_*`
+files hold an update to the key header, the layout, the plan and the table it
+leaves, and show it writes nothing outside the ESP and the store, can be
+stopped and run again, and carries the disk's own answers. Run `cargo test`
 in this directory.
 
 See [storage](../../docs/handbook/storage.md) and

@@ -36,6 +36,7 @@ pub enum KeyedBy {
     NoHeader,
     Tpm,
     Passphrase { cost: [u32; 3], salt: [u8; 32], nonce: [u8; 12], sealed: [u8; 48] },
+    Approved { nonce: [u8; 12], sealed: [u8; 48] },
     Unknown(u8),
 }
 
@@ -50,6 +51,7 @@ pub fn keyed_by(s: &[u8; 512]) -> KeyedBy {
             nonce: k.nonce,
             sealed: k.key_and_tag,
         },
+        Ok(Some(Keyed::Approved(k))) => KeyedBy::Approved { nonce: k.nonce, sealed: k.key_and_tag },
         Err(way) => KeyedBy::Unknown(way),
     }
 }
