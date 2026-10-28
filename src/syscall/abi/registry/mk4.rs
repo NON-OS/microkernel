@@ -24,6 +24,7 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MDST", SyscallNumber::MkDataStat, "MkDataStat"),
     e(b"MDRD", SyscallNumber::MkDataRead, "MkDataRead"),
     e(b"MDPW", SyscallNumber::MkDataPassphrase, "MkDataPassphrase"),
+    e(b"MDHO", SyscallNumber::MkDataHandover, "MkDataHandover"),
     e(b"MDFB", SyscallNumber::MkDataFeedBegin, "MkDataFeedBegin"),
     e(b"MDFD", SyscallNumber::MkDataFeed, "MkDataFeed"),
     e(b"MDRM", SyscallNumber::MkDataRemove, "MkDataRemove"),

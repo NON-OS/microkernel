@@ -34,6 +34,8 @@ pub fn create(guest: &mut Guest, args: &mut Args<'_>) {
         xdg: None,
         toplevel: None,
         frames: alloc::vec::Vec::new(),
+        held: alloc::vec::Vec::new(),
+        last_done: None,
         configured: false,
         scale: Default::default(),
     });
