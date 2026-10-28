@@ -33,12 +33,12 @@ pub(super) const RELEASE: &str = "v3.20";
 pub(super) const ARCH: &str = "x86_64";
 pub(super) const BRANCHES: [&str; 2] = ["main", "community"];
 
-/// Alpine's install; `family::install` sends the other families elsewhere.
-pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
-    timing::timed(|| install_all(name, pin))
+/// Alpine's install, extras and all; `family::install` sends the other families elsewhere.
+pub fn install(name: &str, pin: &[u8; 32], extras: &[&str]) -> Result<(), super::Why> {
+    timing::timed(|| install_all(name, pin, extras))
 }
 
-fn install_all(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
+fn install_all(name: &str, pin: &[u8; 32], extras: &[&str]) -> Result<(), super::Why> {
     super::http::reach::reachable(super::mirror::mirror().0)?;
     let Some(index) = load_index() else {
         say(b"[LINUX] no package index\n");
@@ -46,7 +46,7 @@ fn install_all(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
     };
     timing::packages();
     let max = super::limit::max_packages();
-    let pkgs = closure(&index, name, max).map_err(|why| match why {
+    let pkgs = closure(&index, name, extras, max).map_err(|why| match why {
         Closed::NotProvided => refused("nothing provides it", super::Why::NOT_PROVIDED),
         Closed::TooLarge => refused(
             &alloc::format!("refused: closure passes {max} packages"),

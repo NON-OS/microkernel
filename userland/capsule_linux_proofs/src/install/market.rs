@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The market install's pure parts, at the capsule's paths: the request's
-//! fourth word, what a policy is held to, and how a held program is written
+//! fourth word and its tail, what a policy is held to, and how a held program is written
 //! and taken out.
 
 #[path = "../../../capsule_linux/src/linux/install/market/arg.rs"]
@@ -26,5 +26,7 @@ pub mod check;
 pub mod choose;
 #[path = "../../../capsule_linux/src/linux/install/market/minted.rs"]
 pub mod minted;
+#[path = "../../../capsule_linux/src/linux/install/market/tail.rs"]
+pub mod tail;
 #[path = "../../../capsule_linux/src/linux/install/market/take.rs"]
 pub mod take;
