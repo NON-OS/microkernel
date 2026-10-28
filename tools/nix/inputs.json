@@ -9353,6 +9353,9 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/ipc/kernel_ipc.rs",
+   "src/syscall/microkernel/errnos.rs",
+   "src/syscall/microkernel/ipc/call/sys_ipc_call.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/capsule_net_ntp/src/decide.rs",
    "userland/capsule_socks5/src/server/request/ask.rs",
