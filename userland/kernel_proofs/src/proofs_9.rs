@@ -44,6 +44,9 @@ pub mod peer_stripe;
 /// A Linux guest named on a release console only as "foreign".
 #[path = "serial_who/mod.rs"]
 pub mod serial_who;
+/// The run a SERVES capsule launched ends with that capsule's process.
+#[path = "served_run/mod.rs"]
+pub mod served_run;
 /// The paging manager's lock, handed over in the order it was asked for.
 #[path = "ticket_lock/mod.rs"]
 pub mod ticket_lock;
