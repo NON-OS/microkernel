@@ -5,5 +5,7 @@
  {"name": "send-as-checked", "file": "userland/capsule_install/e2e/qmp.py", "old": "        keys = [keys_for(ch) for ch in text]\n        for chord in keys:\n", "new": "        for chord in (keys_for(ch) for ch in text):\n"},
  {"name": "capital-unshifted", "file": "userland/capsule_install/e2e/qmp.py", "old": "return (\"shift\", ch.lower()) if ch.isupper() else (ch,)", "new": "return (ch.lower(),)"},
  {"name": "release-in-order", "file": "userland/capsule_install/e2e/qmp.py", "old": "            for name in reversed(chord):", "new": "            for name in chord:"},
- {"name": "never-released", "file": "userland/capsule_install/e2e/qmp.py", "old": "                self._event(name, False)", "new": "                pass"}
+ {"name": "never-released", "file": "userland/capsule_install/e2e/qmp.py", "old": "                self._event(name, False)", "new": "                pass"},
+ {"name": "caption-in-place", "file": "tools/nonos_drive/caption.py", "old": "    tmp.write_text(text, encoding=\"utf-8\")\n    os.replace(tmp, path)", "new": "    path.write_text(text, encoding=\"utf-8\")"},
+ {"name": "caption-never-renamed", "file": "tools/nonos_drive/caption.py", "old": "    os.replace(tmp, path)", "new": "    pass"}
 ]

@@ -19,6 +19,7 @@
 mod parse;
 pub mod policy;
 mod split;
+pub mod summary;
 mod types;
 
 pub use parse::parse;

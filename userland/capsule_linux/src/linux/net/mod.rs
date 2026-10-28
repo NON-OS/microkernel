@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Sockets: the family's own, kept in `sock`, and a stream outside the
-//! family, which net.sockets carries over the mixnet, or net.anon over the
-//! Anyone network when that is the network chosen (guest_route.rs).
+//! family over the network chosen (guest_route.rs), which routed/ opens and
+//! carries: through net.socks5 on the Nym mixnet, net.anon on Anyone.
 
 mod accept;
 mod anon_answer;
@@ -27,7 +27,6 @@ mod anon_wire;
 mod api;
 mod bind;
 mod bind_any;
-mod call;
 mod call_kind;
 mod cap;
 mod close;
@@ -39,7 +38,6 @@ pub mod dns;
 mod fd;
 mod flags;
 mod guest_route;
-mod host_body;
 mod iov;
 mod listen;
 mod mmsg;
@@ -47,7 +45,6 @@ mod msg;
 mod name;
 mod named;
 mod offline;
-mod ops;
 mod opt;
 mod pair;
 mod peer_addr;
@@ -63,18 +60,20 @@ mod recvfrom;
 mod resolver;
 #[cfg(feature = "dev-mirror")]
 pub mod route;
+mod routed;
 mod select;
 mod shutdown;
 pub mod sock;
 mod sockaddr;
 mod socket;
 mod socket_kind;
-mod stream;
+#[cfg(feature = "dev-mirror")]
+mod sockets;
 mod try_call;
 mod xfer;
 
-/* The route every capsule holding Network leaves by, read in guest_route.rs. */
-use nonos_route_link::{Route, ANYONE_DOWN};
+/* The route every capsule holding Network leaves by, and its bounds (routed/). */
+use nonos_route_link::{pick, Proxy, Route, ANYONE_DOWN, NOT_YET_GAP_MS, OPEN_MS};
 
 pub use api::*;
 pub use offline::{any_inet, refuse_socket};

@@ -21,8 +21,8 @@
 //!
 //! A stream to 127.0.0.0/8 is a pair of entries, each holding what the other
 //! wrote. A datagram to a bound loopback port is queued on that entry. A
-//! stream to anywhere else is an entry backed by a net.sockets handle, or by
-//! a net.anon stream when the Anyone network is the one chosen.
+//! stream to anywhere else is an entry backed by a stream routed/ carries,
+//! or by a net.anon stream once the Anyone network has opened one.
 
 mod adopt;
 mod anon_rx;
@@ -58,7 +58,7 @@ mod types;
 mod unlisten;
 
 pub use anon_rx::Got;
-pub use backend::{Backend, Close, Via};
+pub use backend::{Backend, Close, End, Via};
 pub use cell::with;
 pub use gram_dest::Dest;
 pub use holders::Holder;

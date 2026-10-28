@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Fetching what an install needs: the branch indexes, then its packages,
-//! several at once, each from the branch that holds it.
+//! each from the branch that holds it.
 
 pub(super) mod closure;
 pub(super) mod index;

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The simulated network and the lookups run against it.
 
 mod world;
@@ -23,6 +22,17 @@ mod abandon_tests;
 mod cache_tests;
 mod client_auth_tests;
 mod connect_tests;
+mod exit_choice_tests;
+mod exit_circuit;
+mod exit_far;
+mod exit_isolation_more_tests;
+mod exit_isolation_tests;
+mod exit_net;
+mod exit_retry_more_tests;
+mod exit_retry_once_tests;
+mod exit_retry_tests;
+mod exit_turn;
+mod exit_wait_tests;
 mod failure_tests;
 mod hostile_tests;
 mod log_tests;

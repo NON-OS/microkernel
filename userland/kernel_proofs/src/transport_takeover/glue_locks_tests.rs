@@ -23,9 +23,9 @@
 use super::text::{between, code, tail};
 
 const FOUND: &str = include_str!("../../../../src/hardware/block_device/found.rs");
-// The pass runs in select.rs; its end is settled in kept.rs.
+// The pass runs in select.rs; its end is settled in settle.rs.
 const PASS: &str = include_str!("../../../../src/hardware/block_device/select.rs");
-const SELECT: &str = include_str!("../../../../src/hardware/block_device/kept.rs");
+const SELECT: &str = include_str!("../../../../src/hardware/block_device/settle.rs");
 const WAIT: &str = include_str!("../../../../src/hardware/block_device/wait.rs");
 const FAST: &str = include_str!("../../../../src/security/entropy_capsule/fast.rs");
 const ASK: &str = include_str!("../../../../src/security/entropy_capsule/client/ask.rs");
@@ -43,11 +43,13 @@ fn a_killed_callers_failure_never_settles_the_disk() {
     );
     assert_eq!(tail(PASS, "Found::Refused(e) =>"), code(arm) + "}", "a refusal dropped");
     let end = concat!(
-        "match (other, refused) { (Some((b, p)), None) => Ok(keep(b, p)),",
-        " (Some((b, p)), Some(e)) => { if !caller_gone() && waited_for_boot_disk() {",
-        " Ok(keep(b, p)) } else { Err(e) } } (None, _) => Err(none()), }",
+        "let Some((b, p)) = other else { return Err(none()) }; let waited = refused.is_some()",
+        " && !caller_gone() && waited_for_boot_disk(); let (named, own_copy) =",
+        " (booted::partition().is_some(), booted::store_from_boot_disk()); match (other_disk(",
+        " named, own_copy, refused.is_some(), waited), refused) { (Other::Keep, _) => Ok(keep(b, p)),",
+        " (Other::Wait, Some(e)) => Err(e), (Other::Wait | Other::Leave, _) => Err(left_alone()), } }",
     );
-    assert_eq!(tail(SELECT, "match (other, refused)"), code(end) + "}", "a disk kept wrong");
+    assert_eq!(between(SELECT, "let Some(", "fn left_alone"), code(end), "a disk kept wrong");
     let stamp = "pub(super) fn refused_now() { if !caller_gone() { stamp(&SINCE, uptime_ms()); } }";
     assert_eq!(between(WAIT, "pub(super) fn refused_now", "pub(super) fn waited_"), code(stamp));
     let gone = concat!(

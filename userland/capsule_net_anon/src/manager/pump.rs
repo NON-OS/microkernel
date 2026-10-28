@@ -116,7 +116,7 @@ fn one(state: &mut Manager, now: u64, wait_ms: i64) -> bool {
         super::end_streams::end_streams(state, index);
         return true;
     };
-    deliver(state, index, opened.hop, &cell.payload);
+    deliver(state, index, opened.hop, &cell.payload, now);
     true
 }
 
@@ -129,4 +129,3 @@ fn charge_guard(state: &mut Manager, now: u64) {
         }
     }
 }
-

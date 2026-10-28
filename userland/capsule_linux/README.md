@@ -17,7 +17,7 @@ the image (`src/linux/image/`), and enters the serve loop. Main modules under `s
 - `serve/`: the loop, dispatch and per-area tables (`table_file.rs`, `table_net.rs`, ...).
 - `guest/`: a hosted process: descriptors, memory, signals, links.
 - `file/`: the guest's filesystem view over the store, path walk, epoll, eventfd, timerfd.
-- `net/`: family-local sockets, and streams carried by `net.sockets` or `net.anon`.
+- `net/`: family-local sockets, and streams carried through `net.socks5` or `net.anon` (`net/routed/`).
 - `unix/`, `wayland/`: the display connection and a Wayland server for guest windows.
 - `console/`, `terminal*.rs`: terminal runs. `install/`: fetch, authenticate, unpack.
 - `attest*.rs`, `origin.rs`: proving a program before it runs. `app/`: the policy it is
@@ -102,30 +102,71 @@ capsule's own BusyBox, whose app_id no verifier takes, is not noted.
 A guest's sockets stay inside the family, except a stream to an address outside
 127.0.0.0/8. That stream follows the network the person chose, read for each connection the
 way every capsule holding Network reads it: `nonos_route_link`'s pick over the policy store's
-default network and the anonymity networks that run (`net/guest_route.rs`).
+default network and the anonymity networks that run (`net/guest_route.rs`). `net/routed/`
+opens and carries it.
 
-- Anyone: a net.anon stream, opened through its handle front (`net/connect_anon.rs`,
-  `net/anon_*.rs`). A name the guest looked up goes to the exit unresolved, a literal address
-  as its dotted quad, so nothing here looks a name up. With net.anon not running the connect
-  is ENETUNREACH, the serial log says `[LINUX] refused connect <ip>:<port>: the Anyone
-  network, the default, is not running`, and nothing else is tried.
-- Nym, or a default that cannot be read: a net.sockets mixnet socket, as before. A mixnet
-  with no gateway is ENETUNREACH.
-- Direct: the mixnet as well. A guest never reaches the network directly, whatever the
-  default. That is deliberate (`net/connect_out.rs`, `design/install-network.md`).
+- The host goes by name. A name the guest looked up was answered here with a stand-in address
+  in 100.64.0.0/10 (`net/dns/`); a connect to that address goes as the name, unresolved, and the
+  exit resolves it. A literal address goes as its dotted quad. Nothing on this machine looks a
+  name up, and nothing is ever sent in the clear.
+- Anyone: a net.anon stream, opened through its handle front (`net/routed/anyone.rs`); once
+  open the socket holds it as its own net.anon stream (`net/anon_*.rs`).
+- Nym: one of net.socks5's named streams, opened as an install's own stream is on Route::Nym,
+  by `nonos_route_link`'s opening (`RouteOpening::begin_on`: a reset, the SOCKS5 greeting, a
+  CONNECT naming the host as a DOMAINNAME, ATYP 3), and carried in slices of 50 ms so no guest
+  waits on another's (`net/routed/nym.rs`, `link.rs`, `pump.rs`). This capsule is one caller
+  for every guest, so each stream names its own stream number at the proxy, 1 to 7: an eighth
+  at once is ENOBUFS. net.sockets' mixnet socket is never used: its frames carry an address and
+  refuse every name, which left a guest with no way to reach a host by name over Nym.
+- Direct: Nym as well. A guest never reaches the network directly, whatever the default. That
+  is deliberate (`net/guest_route.rs`, `design/install-network.md`).
+- A close does not lose what was written. A Nym stream closed, or left by a guest that exits,
+  with written bytes net.socks5 has not taken yet is kept, held by no socket, and carried on by
+  the serve loop until they have gone, in order and once, for 10 s at most; when the family
+  ends, the capsule carries them before it exits (`net/routed/closing.rs`, `linger.rs`,
+  `queue.rs`). What came back unread is dropped, and SO_LINGER of 0 s drops the queue too, as
+  Linux's reset does. On Anyone nothing is queued here: a write is told only what net.anon has
+  already sent as RELAY_DATA, and the close's RELAY_END follows it on the same circuit.
+- Not ready yet: a default the policy store does not give (no store yet, or the restore not
+  done), a network whose service has not registered, or net.anon with no directory, link or
+  circuit, is asked again each second, up to the 45 s an install's own open allows
+  (`nonos_route_link`'s OPEN_MS), and is then ENETUNREACH (`net/routed/retry.rs`). A default
+  that cannot be read never becomes Nym. A blocking connect waits; a non-blocking one is
+  EINPROGRESS and is told by POLLOUT and SO_ERROR, as on Linux. A destination that refuses (the
+  exit's policy, the host, no exit for it) is refused at once and not asked again, and no
+  failure on one network is answered by trying another.
+- When a stream cannot open, the run's own Terminal window says so in one line, naming the
+  network and a reason and never the host or the port, for example
+  `[LINUX] net: Nym could not open a stream: the Nym mixnet is not connected yet`
+  (`net/routed/line.rs`, `said.rs`). It is a private write to the run's window, which never
+  reaches serial; a run on no terminal says it on the debug channel, which a release keeps off
+  serial.
+
+A family holding NET_ANON also has a SOCKS endpoint at 127.0.0.1:9050, unless one of its own
+sockets listens there (`net/routed/endpoint.rs`). It takes SOCKS5 with no authentication,
+SOCKS4 and SOCKS4a, CONNECT only, to an IPv4 address or a name (`net/routed/socks/`). IPv6 is
+refused with reply 8, BIND and UDP ASSOCIATE with reply 7, and a request longer than 512 bytes
+is refused. A whole CONNECT is held to the same policy and route as a plain connect, and opens
+on the chosen network by name: a name stays a name, a stand-in address goes back to being its
+name, a literal address goes as its dotted quad. The reply is success once the stream is open,
+or general failure, not allowed, network unreachable, host unreachable or connection refused
+from why it did not; then the guest's socket is the stream. No line names the destination, only
+its length. So a program that speaks SOCKS needs nothing else, for example
+`monero-wallet-cli --proxy 127.0.0.1:9050 --daemon-address <node>:18089`.
 
 Datagrams outside the family stay ENETUNREACH, binds and listens outside loopback EACCES, a
 raw internet socket EPERM (`net/policy.rs`), and any family but AF_INET and AF_UNIX, packet
 sockets among them, EAFNOSUPPORT (`net/socket.rs`). net.anon has no half-close, so shutting only
-the writing side of an Anyone stream is EOPNOTSUPP, as it is on the mixnet; shutting both
-sides closes it. A connect over Anyone returns once net.anon has sent the exit its BEGIN, so
-a far end that refuses is reported by the first read, as ECONNREFUSED. net.anon gives one
+the writing side of an Anyone stream is EOPNOTSUPP, and a stream on Nym has none at all;
+shutting both sides of an Anyone stream closes it. A connect over Anyone returns once net.anon
+has sent the exit its BEGIN, so a far end that refuses is reported by the first read, as
+ECONNREFUSED. net.anon gives one
 caller at most 16 streams and this capsule is one caller for all its guests: a connect past
 that is ENOBUFS. net.anon cannot be asked whether bytes wait without taking them, so a poll
 or read takes them into the socket's own buffer, which never holds more than one 32 KiB reply
 (`net/sock/anon_rx.rs`).
 
-net.sockets and net.anon both take Network to reach. The run and terminal roles are spawned
+net.socks5 and net.anon both take Network to reach. The run and terminal roles are spawned
 without it, so there neither service answers a guest. A run whose program's policy has
 NET_ANON asks the kernel, by `MkLinuxRunNet` naming its own pid, to be started again as
 `app.linux.run.net`, which holds Network, binds the same policy again and exits unless it has
