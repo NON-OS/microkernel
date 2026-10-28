@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A loaded capsule's arguments, NUL-separated, onto its process.
+//! A loaded capsule's arguments, NUL-separated, as the argv its process
+//! holds from its first instruction (runner/install/admit.rs); None for none.
 
-pub(super) fn set_argv(pid: u32, args: &[u8]) {
-    if !args.is_empty() {
-        let argv: alloc::vec::Vec<alloc::string::String> = args
-            .split(|&b| b == 0)
-            .filter(|s| !s.is_empty())
-            .map(|s| alloc::string::String::from_utf8_lossy(s).into_owned())
-            .collect();
-        let _ = crate::process::set_argv(pid, argv);
-    }
+pub(super) fn argv_of(args: &[u8]) -> Option<alloc::vec::Vec<alloc::string::String>> {
+    let argv: alloc::vec::Vec<alloc::string::String> = args
+        .split(|&b| b == 0)
+        .filter(|s| !s.is_empty())
+        .map(|s| alloc::string::String::from_utf8_lossy(s).into_owned())
+        .collect();
+    (!argv.is_empty()).then_some(argv)
 }
