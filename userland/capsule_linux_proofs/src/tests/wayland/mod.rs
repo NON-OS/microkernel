@@ -30,6 +30,7 @@ mod popup_bounds_tests;
 mod popup_grab_tests;
 mod popup_place_tests;
 mod popup_positioner_tests;
+mod scale_tests;
 mod subsurface_blend_tests;
 mod subsurface_clip_tests;
 mod subsurface_commit_tests;

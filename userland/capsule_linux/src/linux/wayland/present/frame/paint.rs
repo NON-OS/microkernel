@@ -49,7 +49,7 @@ pub fn paint(
         PaintBuffer { pixels: &mut words[..n], stride_words: a.w, width: a.w, height: a.h };
     if chrome {
         let state = FrameState { hover: look.hover, focused: look.focused };
-        draw_frame_at(&mut fb, false, look.title, state, 0, quarters);
+        draw_frame_at(&mut fb, a.max, look.title, state, 0, quarters);
     }
     let ground = frame_bg();
     let (cw, ch) = (cw.min(a.w.saturating_sub(a.cx)), ch.min(a.h.saturating_sub(a.cy)));
