@@ -29,3 +29,9 @@ serial; seeds were never captured.
   --version` typed 15 s into `market install linux.monero`: line 1762
   "[LINUX] installing", 1779 "[EXIT] code=1 app.linux.term", 1962
   "[LINUX] installed"; heap lines of 327680 KiB.
+- diag-694ba69799-realmirror-{nym,anyone}.log: dev build of the owner's
+  commit with dev-mirror off (real dl-cdn.alpinelinux.org), serial debug on.
+  Package GETs on the window's parallel streams end "no whole 200 reply";
+  a lone retry stream brought monero whole (24698520 bytes) on Anyone.
+- owner-seal-694ba69799-no-typing-134.log: the owner's seal, nothing typed
+  during the install: [EXIT] code=134.
