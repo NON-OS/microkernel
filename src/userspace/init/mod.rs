@@ -27,19 +27,19 @@ mod spawn_plan;
 mod spawn_report;
 mod supervisor;
 
+pub(crate) use app_choice::{off as apps_off, tool_off as app_tool_off};
+pub(crate) use app_choice::{window_off as app_window_off, PRESENT as APPS_PRESENT};
 pub use entry::run_init;
-pub(crate) use linux_jobs::{
-    install_stage, request_install, request_net_run, request_quiet_run, request_run,
-    request_uninstall, run_waiting, Stage,
-};
-pub(crate) use linux_jobs::has_pending as installs_pending;
-pub(crate) use linux_jobs::service as service_installs;
-pub(crate) use prove_job::{
-    has_pending as prove_job_pending, request as request_prove_job, service as service_prove_job,
-    ask_for as prove_job_ask, Caller as ProveCaller,
-};
 pub(crate) use instance_spawn::has_pending as instance_spawns_pending;
 pub(crate) use instance_spawn::service as service_instance_spawns;
 pub use instance_spawn::{request as request_instance, PendingApp};
-pub(crate) use app_choice::{off as apps_off, tool_off as app_tool_off};
-pub(crate) use app_choice::{window_off as app_window_off, PRESENT as APPS_PRESENT};
+pub(crate) use linux_jobs::has_pending as installs_pending;
+pub(crate) use linux_jobs::service as service_installs;
+pub(crate) use linux_jobs::{
+    install_ended, install_stage, request_install, request_net_run, request_quiet_run, request_run,
+    request_uninstall, run_waiting, Stage,
+};
+pub(crate) use prove_job::{
+    ask_for as prove_job_ask, has_pending as prove_job_pending, request as request_prove_job,
+    service as service_prove_job, Caller as ProveCaller,
+};

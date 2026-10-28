@@ -24,10 +24,12 @@ use crate::process::core::Pid;
 static REAP_LOG: Mutex<BTreeMap<Pid, (Pid, i32)>> = Mutex::new(BTreeMap::new());
 const REAP_LOG_CAP: usize = 64;
 
-/// Keep `pid`'s status for its parent, evicting to stay inside the cap.
+/// Keep `pid`'s status for its parent, evicting to stay inside the cap. An
+/// install or removal init ran with this pid is marked finished here too.
 pub(super) fn record(pid: Pid, parent: Pid, code: i32) {
     #[cfg(feature = "microkernel-setup-wizard")]
     super::kept::note(pid, code);
+    crate::userspace::init::install_ended(pid, code);
     let mut log = REAP_LOG.lock();
     if log.len() >= REAP_LOG_CAP {
         if let Some((&oldest, _)) = log.iter().next() {

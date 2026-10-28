@@ -25,6 +25,10 @@ pub const WHY_ANYONE_NO_EXIT: u8 = 32;
 /// The Anyone network, which downloads installs, did not come up in the
 /// three minutes a download waits for it.
 pub const WHY_ANYONE_NOT_UP: u8 = 33;
+/// Not an `install::Why`: the exit of an installer that stopped partway,
+/// as a panic ends a capsule (out of memory, or a fault), with no word of
+/// its own. Without this it read as a reason the system does not name.
+pub const WHY_STOPPED: u8 = 134;
 
 pub(super) fn exits_reason(code: u8) -> Option<Reason> {
     Some(match code {
@@ -41,6 +45,11 @@ pub(super) fn exits_reason(code: u8) -> Option<Reason> {
         WHY_ANYONE_NOT_UP => said(
             "Anyone did not build a circuit within 3 minutes; retry, or press d to download \
              direct (the mirror sees this machine's address)",
+            true,
+        ),
+        WHY_STOPPED => said(
+            "The installer stopped partway, out of memory or on a fault; retry, and if it \
+             stops again the serial log says where",
             true,
         ),
         _ => return None,

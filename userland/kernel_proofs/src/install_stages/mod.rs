@@ -34,4 +34,12 @@ mod evict;
 #[path = "../../../../src/userspace/init/linux_jobs/order.rs"]
 mod order;
 mod order_tests;
+/*
+ * And what an installer's exit makes of its stage: one that stopped on a
+ * panic (exit 134) is failed with that code, never left installing, and a
+ * queued install is not touched by some other process ending.
+ */
+#[path = "../../../../src/userspace/init/linux_jobs/stage.rs"]
+mod stage;
+mod stage_tests;
 mod tests;
