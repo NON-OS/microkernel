@@ -27,6 +27,7 @@ use crate::sched::link::Link;
 use crate::sched::qh::chars;
 use crate::sched::take::take_back;
 use crate::xfer::control::control;
+use crate::xfer::failed::CtrlError;
 
 /// EP0's packet size, from bMaxPacketSize0: 8 at low speed, 8 to 64 at
 /// full speed, 64 at high speed (USB 2.0 section 9.6.1).
@@ -50,9 +51,10 @@ pub fn assign<R: Regs, C: Clock, M: Mem>(
     let op = t.op;
     let set = |r: &mut R, ring: usize, addr: u8, mps: u16| {
         let ch = link.chars(chars(addr, 0, mps, true), true);
-        take_back((m, r, c), op, ring, false, Some((ch, link.caps(false))));
+        let dead = AddrError::Control(CtrlError::TimedOut);
+        take_back((m, r, c), op, ring, false, Some((ch, link.caps(false)))).map_err(|_| dead)
     };
-    set(r, ADDR0_RING, 0, if link.high() { 64 } else { 8 });
+    set(r, ADDR0_RING, 0, if link.high() { 64 } else { 8 })?;
     let get = [0x80, 6, 0, 1, 0, 0, 8, 0];
     control((m, r, c), op, ADDR0_RING, get).map_err(AddrError::Control)?;
     let mut d = [0u8; 8];
@@ -60,7 +62,7 @@ pub fn assign<R: Regs, C: Clock, M: Mem>(
     let mps0 = ep0_size(link, d[7]);
     control((m, r, c), op, ADDR0_RING, [0, 5, slot, 0, 0, 0, 0, 0]).map_err(AddrError::Control)?;
     hold(c, SET_ADDRESS_MS);
-    set(r, ctrl_ring(slot), slot, mps0);
+    set(r, ctrl_ring(slot), slot, mps0)?;
     if let Some(dev) = t.dev(slot) {
         (dev.port, dev.link) = (port, link);
     }

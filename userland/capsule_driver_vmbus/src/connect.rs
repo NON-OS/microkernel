@@ -58,17 +58,17 @@ pub fn connect(hv: &Hv, pages: Pages) -> Result<Bus, &'static str> {
         }
         // From 5.0 the host names where messages go; the kernel lets the
         // core post on the two connections VMBus defines and no other.
-        let connection = if version < VERSION_V5 {
-            CONNECTION_MESSAGE
-        } else if named == 0 {
-            CONNECTION_MESSAGE_V5
-        } else {
-            named
+        let connection = match named {
+            _ if version < VERSION_V5 => CONNECTION_MESSAGE,
+            0 => CONNECTION_MESSAGE_V5,
+            n => n,
         };
-        if connection != CONNECTION_MESSAGE && connection != CONNECTION_MESSAGE_V5 {
-            return Err("host named a message connection the kernel refuses");
+        if connection == CONNECTION_MESSAGE || connection == CONNECTION_MESSAGE_V5 {
+            return Ok(Bus { version, connection });
         }
-        return Ok(Bus { version, connection });
+        // Undone where it was made, as a gather that fails is.
+        disconnect(hv, Bus { version, connection: to });
+        return Err("host named a message connection the kernel refuses");
     }
     Err("no VMBus version in common")
 }

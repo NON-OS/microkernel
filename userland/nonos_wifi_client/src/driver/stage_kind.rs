@@ -9,7 +9,10 @@
 /// bring-up steps; 8 is what the iwlwifi driver reports for a card it takes but
 /// has no air path for: everything but the SO-platform AX211 and AX201 (PCI
 /// 0x51F0, 0x51F1, 0x54F0, 0x7A70, 0x7AF0, 0x7F70), whose firmware it boots;
-/// 9 is iwlwifi restarting a firmware that raised its error cause.
+/// 9 is iwlwifi restarting a firmware that raised its error cause; 10 and 11
+/// are the MediaTek driver's firmware package, not on the boot medium or not
+/// the files its pins name; 12 is the RTL8852BE's PCIe, MAC, PHY or
+/// calibration step the chip did not finish.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum DriverStage {
     Ready,
@@ -22,13 +25,16 @@ pub enum DriverStage {
     NoStationAddress,
     NoAirPath,
     Restarting,
+    PackageMissing,
+    PackageMismatch,
+    ChipInit,
     Unknown,
 }
 
 impl DriverStage {
     pub(super) fn from_code(code: u8) -> Self {
         use DriverStage::*;
-        const ALL: [DriverStage; 10] = [
+        const ALL: [DriverStage; 13] = [
             Ready,
             NotClaimed,
             PowerFailed,
@@ -39,6 +45,9 @@ impl DriverStage {
             NoStationAddress,
             NoAirPath,
             Restarting,
+            PackageMissing,
+            PackageMismatch,
+            ChipInit,
         ];
         ALL.get(code as usize).copied().unwrap_or(Unknown)
     }
@@ -56,6 +65,9 @@ impl DriverStage {
             DriverStage::NoStationAddress => "No random address could be drawn",
             DriverStage::NoAirPath => "card not supported yet; use Ethernet or USB Wi-Fi",
             DriverStage::Restarting => "The card's firmware stopped; restarting it",
+            DriverStage::PackageMissing => "The firmware package is missing from the boot medium",
+            DriverStage::PackageMismatch => "The firmware package does not match this build",
+            DriverStage::ChipInit => "The card did not finish setting up its radio",
             DriverStage::Unknown => "The driver reported an unknown stage",
         }
     }

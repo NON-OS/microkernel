@@ -29,11 +29,19 @@ pub trait Region {
     fn read(&self, off: usize, dst: &mut [u8]) -> bool;
 }
 
+mod bytes;
+mod spin;
+pub use bytes::*;
+pub use spin::spin_until;
+
 /// Bounded waiting. `poll_for` re-checks `ready` until it holds or `ms`
-/// milliseconds pass; `delay_us` lets a settle time elapse; `now_ms` is the
-/// time a deadline spanning many waits is measured on.
+/// milliseconds pass, and may sleep between checks; `spin_for` does the
+/// same without ever yielding the CPU (`spin_until`); `delay_us` lets a
+/// settle time elapse; `now_ms` is the time a deadline spanning many waits
+/// is measured on.
 pub trait Clock {
     fn poll_for(&mut self, ms: u32, ready: &mut dyn FnMut() -> bool) -> bool;
+    fn spin_for(&mut self, ms: u32, ready: &mut dyn FnMut() -> bool) -> bool;
     fn delay_us(&mut self, us: u32);
     fn now_ms(&mut self) -> u64;
 }
@@ -44,32 +52,4 @@ pub trait Clock {
 pub fn span(len: usize, off: usize, n: usize) -> Option<core::ops::Range<usize>> {
     let end = off.checked_add(n)?;
     (end <= len).then_some(off..end)
-}
-
-pub fn put16<R: Region + ?Sized>(r: &R, off: usize, v: u16) -> bool {
-    r.write(off, &v.to_le_bytes())
-}
-
-pub fn put64<R: Region + ?Sized>(r: &R, off: usize, v: u64) -> bool {
-    r.write(off, &v.to_le_bytes())
-}
-
-pub fn get16<R: Region + ?Sized>(r: &R, off: usize) -> Option<u16> {
-    let mut b = [0u8; 2];
-    r.read(off, &mut b).then(|| u16::from_le_bytes(b))
-}
-
-/// Zero `len` bytes at `off`, in chunks.
-pub fn zero<R: Region + ?Sized>(r: &R, off: usize, len: usize) -> bool {
-    let chunk = [0u8; 256];
-    let mut done = 0;
-    while done < len {
-        let n = (len - done).min(chunk.len());
-        let Some(at) = off.checked_add(done) else { return false };
-        if !r.write(at, &chunk[..n]) {
-            return false;
-        }
-        done += n;
-    }
-    true
 }

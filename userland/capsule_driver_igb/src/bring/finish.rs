@@ -35,7 +35,7 @@ pub fn finish(mut driver: Driver) -> Result<Driver, &'static str> {
         }
         Err(e) => {
             Line::new().text(e).send();
-            stand_down::run(&driver.regs);
+            let _ = stand_down::run(&driver.regs);
             driver.release();
             Err(e)
         }

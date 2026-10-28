@@ -31,6 +31,8 @@ pub fn device_info(device: u16) -> Option<(&'static str, u32)> {
     const SPT: u32 = 120_000_000;
     const BXT: u32 = 133_000_000;
     const CNL: u32 = 216_000_000;
+    // Lunar Lake: Linux v6.12 intel-lpss-pci gives these ehl_i2c_info.
+    const EHL: u32 = 100_000_000;
     match device {
         // Broxton A/B step, Apollo Lake, Gemini Lake: I2C0..I2C7.
         0x0AAC..=0x0ABA if device & 1 == 0 => Some(("Broxton", BXT)),
@@ -57,6 +59,10 @@ pub fn device_info(device: u16) -> Option<(&'static str, u32)> {
         0x7ACC..=0x7ACF | 0x7AFC | 0x7AFD => Some(("Alder Lake-S", BXT)),
         0x7A4C..=0x7A4F | 0x7A7C | 0x7A7D => Some(("Raptor Lake-S", BXT)),
         0x7E78..=0x7E7B | 0x7E50 | 0x7E51 => Some(("Meteor Lake-P", BXT)),
+        // Linux v6.12 intel-lpss-pci: bxt_i2c_info for both Arrow Lake PCHs.
+        0x7778..=0x777B | 0x7750 | 0x7751 => Some(("Arrow Lake-H", BXT)),
+        0x7F4C..=0x7F4F | 0x7F7A | 0x7F7B => Some(("800 Series PCH", BXT)),
+        0xA878..=0xA87B | 0xA850 | 0xA851 => Some(("Lunar Lake-M", EHL)),
         _ => None,
     }
 }

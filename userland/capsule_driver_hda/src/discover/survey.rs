@@ -24,7 +24,7 @@ use super::found::found;
 use super::machine::{Survey, MAX_CONTROLLERS};
 use crate::constants::CLASS_AUDIO;
 use crate::controller::intel::{amd_acp, graphics_audio};
-use crate::controller::sst::intel_sst;
+use crate::controller::sst::{intel_dsp, intel_sst};
 
 const MAX_DEVICES: usize = 128;
 /// Every class the broker reports; the ACP is filed under "other".
@@ -51,7 +51,9 @@ pub fn survey() -> Survey {
     let pci = buf[..clamp(got)].iter().filter(|r| r.bus_kind == BUS_KIND_PCI);
     for r in pci {
         s.amd_acp |= amd_acp(r.vendor, r.pci_class, r.pci_subclass);
-        if intel_sst(r.vendor, r.device) {
+        if intel_sst(r.vendor, r.device)
+            || intel_dsp(r.vendor, r.device, r.pci_class, r.pci_subclass)
+        {
             s.intel_sst = Some(r.device);
         }
     }

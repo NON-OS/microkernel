@@ -4,6 +4,8 @@ Status: wired, not yet signed. The kernel mirror (`src/hardware/ehci_capsule`)
 embeds and spawns it under `nonos-capsule-driver-ehci` (the
 `microkernel-driver-ehci` build) when the inventory sees `UsbEhci`, a
 function of class 0Ch, subclass 03h, interface 20h. `driver.ehci0` is held
+to the USB class drivers. It has no owner certificate yet, so no image
+carries it until the owner signs it.
 
 ## Role
 
@@ -17,6 +19,7 @@ whose own capsule serves them; the class drivers search every host.
 ```text
 class driver --NXHC--> driver.ehci0 --MMIO grant, DMA region--> EHCI --> high speed
                                                     |
+                                     port owner --> companion (driver.uhci0 / ohci0)
 ```
 
 ## Microkernel contract
@@ -90,7 +93,9 @@ interrupt QHs; control takes them from each qTD.
 
 Every port goes to this controller (CONFIGFLAG) before any is decided.
 A slot given back takes its bulk QHs back at DATA0 and parks its
-interrupt QHs. A port that turns out not high speed is the companion's.
+interrupt QHs: a frame is let pass before a QH is emptied, and a
+controller whose frames stop is stopped as a dead one is, its QH emptied
+only once it reads halted; the give-back then answers E_IO. A port that turns out not high speed is the companion's.
 
 ## Privacy and persistence
 
@@ -121,6 +126,7 @@ VMware's EHCI and on chipsets with EHCI and companion hosts.
 
 ## Release checklist
 
+- Signed by the owner and added to the image's features.
 - A QEMU `-device usb-ehci -device usb-storage` boot reading the stick.
 - VirtualBox with USB 2.0 (EHCI + OHCI): a stick on EHCI, the tablet on
   OHCI.

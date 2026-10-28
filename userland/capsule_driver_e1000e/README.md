@@ -3,6 +3,8 @@
 Status: wired, not yet signed. The kernel mirror (`src/hardware/e1000e_capsule`)
 embeds and spawns it under `nonos-capsule-driver-e1000e` (the
 `microkernel-driver-e1000e` build), and net.core and net.l2 reach it through
+`src/services/registry/nics.rs`. It has no owner certificate yet, so no image
+carries it until the owner signs it.
 
 ## Role
 
@@ -47,7 +49,8 @@ No interrupt is bound and IMS is never written.
 
 Same operations as `driver.e1000_0`: `OP_HEALTHCHECK`, `OP_LINK_STATUS`
 (1 byte), `OP_MAC_ADDRESS` (6 bytes), `OP_TX_PACKET`, `OP_RX_PACKET`
-(length and frame), `OP_STATS` on 7 (48-byte snapshot).
+(length and frame), `OP_RX_BATCH` (every waiting frame, numbered, kept
+until the next number), `OP_STATS` on 7 (48-byte snapshot).
 
 ## Authority
 
@@ -70,11 +73,13 @@ hardware bits, address, link, rings), turn Bus Master on, enable both units
 and serve IPC until the process ends.
 
 An I219 whose status word asks for a descriptor flush at claim holds
+descriptors fetched under a previous owner (a dead capsule, or firmware),
 and they may name frames since freed. No datasheet in the tree says that
 rewriting TDBAL/RDBAL drops them, so the driver fails closed: Bus Master
 does not go on for a flush, and the part is reset with Bus Master off. A
 reset that does not complete ends the attempt as `I219 descriptors pending,
 a function reset is needed`, Bus Master never on, and the device goes back.
+The kernel's K10a function level reset at claim clears those descriptors
 wherever the function offers FLR, so the word should read clear by then.
 The flush (Linux e1000_flush_desc_rings) runs only on descriptors the
 driver's own rings gave the part: before a transmit-hang recovery's reset,
@@ -110,6 +115,7 @@ later. Link down and RX empty are answers, not errors.
 
 Device table for 64 IDs, polled RX/TX on legacy descriptors with 2048-byte
 buffers, CRC stripped, short frames padded, ULP exit, SMBus to PCIe switch,
+LANPHYPC toggle, I219 ring flush, K1 timing on pch_mtp and later, link
 state lines.
 
 ## Wire format
@@ -139,6 +145,7 @@ line and a `link up` line, and DHCP completing through `net.core`.
 
 ## Release checklist
 
+- Signed by the owner and added to the image's features, with net.core,
   net.l2, the setup wizard and capsule_attack re-signed for the NIC table.
 - QEMU `-device e1000e` frame round trip.
 - One I219 boot photographed with the lines in `docs/hardware/e1000e.md`.
