@@ -45,6 +45,7 @@ mod price;
 mod qwen_vector;
 mod refusals;
 mod roundtrip;
+mod serves_key;
 mod signing;
 mod wire;
 mod wire_cut;
