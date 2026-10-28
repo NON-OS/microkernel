@@ -430,7 +430,8 @@ not a fault.
       `claim or map refused, step N errno M`, `bus master refused`,
       `ring mapping failed` (stage 5), `probe stopped` (stage 2 power, 4
       firmware or mailbox, 6 efuse, 12 a PCIe or MAC step),
-      `one-antenna board not supported` (stage 8: note the laptop model),
+      `one-antenna board: only two-antenna boards are driven` (stage 8: note
+      the laptop model),
       `start stopped` (stage 12: a MAC, PHY or calibration step), `no
       entropy for an address` (stage 7), `station interface set-up
       failed` (stage 12). `firmware did not take every rf register page`
