@@ -29,6 +29,8 @@ pub mod model;
 pub mod proto;
 
 #[cfg(test)]
+mod channel_tests;
+#[cfg(test)]
 mod fixture;
 #[cfg(test)]
 mod flow_tests;
@@ -44,3 +46,5 @@ mod proto_tests;
 mod resp_tests;
 #[cfg(test)]
 mod transcript_tests;
+#[cfg(test)]
+mod wire_tests;
