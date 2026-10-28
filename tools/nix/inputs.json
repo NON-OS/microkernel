@@ -10617,6 +10617,7 @@
    "userland/capsule_terminal/src/command/builtin/help_pages.rs",
    "userland/capsule_terminal/src/command/builtin/help_usage",
    "userland/capsule_terminal/src/command/builtin/market/list_row.rs",
+   "userland/capsule_terminal/src/command/builtin/market/watch.rs",
    "userland/capsule_terminal/src/command/builtin/neofetch/compose.rs",
    "userland/capsule_terminal/src/command/builtin/neofetch/emblem.rs",
    "userland/capsule_terminal/src/command/builtin/neofetch/emblem_cell.rs",
