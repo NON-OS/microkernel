@@ -21,7 +21,7 @@ use super::pipe::ServePipe;
 use crate::link::core_channel::CoreChannel;
 use crate::link::Transport;
 use alloc::boxed::Box;
-use nonos_libc::{crypto_random, mk_app_launch, mk_uptime_ms};
+use nonos_libc::{mk_app_launch, mk_uptime_ms};
 
 /// The core's listing, which MkAppLaunch starts in its own box.
 const CORE: &[u8] = b"linux.kali.nonos-simplex-chat";
@@ -55,10 +55,9 @@ impl Transport for Lazy {
         let now = mk_uptime_ms();
         if self.open.is_none() && now - self.since < TRY_MS && now - self.last >= EVERY_MS {
             self.last = now;
-            let mut seed = [0u8; 16];
-            if crypto_random(seed.as_mut_ptr(), seed.len()) >= 0 {
-                self.open = ServePipe::open().map(|p| CoreChannel::new(p, seed));
-            }
+            // A mask guards proxies on a shared path; this path is the box's own loopback.
+            let seed = (now as u128 ^ 0x5349_4d50_4c45_5800).to_le_bytes();
+            self.open = ServePipe::open().map(|p| CoreChannel::new(p, seed));
         }
         if let Some(c) = &mut self.open {
             c.tick();
