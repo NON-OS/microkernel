@@ -878,6 +878,42 @@
    "sha256": "ff7a1b1a0c56b286db3dbfb0015c0d8a1e0608bddedddc35687d97a3652403fd"
   },
   {
+   "key": "publisher driver_rtl8822ce ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_rtl8822ce_publisher_ed25519.pub",
+   "sha256": "9c3e5bed601ebd763513b3ad4d1545684023abef58b1e53c94e17d96b7af8288"
+  },
+  {
+   "key": "publisher driver_rtl8822ce mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_rtl8822ce_publisher_mldsa65.pub",
+   "sha256": "adbb4c27ea351d0b36aed441892d7eeb4870e70536b09c35a4e5e86083770444"
+  },
+  {
+   "key": "publisher driver_mt7921 ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_mt7921_publisher_ed25519.pub",
+   "sha256": "7fcdfccb5a434adbf90e348e2ee15ac4e2c1cd089c7132aea1b97768bd5e6529"
+  },
+  {
+   "key": "publisher driver_mt7921 mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_mt7921_publisher_mldsa65.pub",
+   "sha256": "4b5097082cf72662efc1f7a3e2c7962b50deca285a4a141ae2f666a2d70ad104"
+  },
+  {
+   "key": "publisher driver_rtl8852be ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_rtl8852be_publisher_ed25519.pub",
+   "sha256": "28672b6f0a6797ac44b4c8b8e7a470bbd6989d006634dfdd8d0dddf879345aea"
+  },
+  {
+   "key": "publisher driver_rtl8852be mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_rtl8852be_publisher_mldsa65.pub",
+   "sha256": "265131afb70aaa34f4044feb9b81eacf879f1b20c7f234808b3cf1dbd79bb132"
+  },
+  {
    "key": "publisher driver_i2c_pci ed25519",
    "kind": "ed25519",
    "public": "nonos-data/trust/keys/driver_i2c_pci_publisher_ed25519.pub",
@@ -1464,6 +1500,30 @@
    "kind": "mldsa65",
    "public": "nonos-data/trust/keys/driver_rndis_publisher_mldsa65.pub",
    "sha256": "faedc94d9f5231aef5db59f315ac2d5e9a688b550d0d9f8264ac31fd1029643e"
+  },
+  {
+   "key": "publisher driver_ax88179 ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_ax88179_publisher_ed25519.pub",
+   "sha256": "7e5910b422117607903e038753324d9ef03749e99b1a03141ce8153d4bf39e01"
+  },
+  {
+   "key": "publisher driver_ax88179 mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_ax88179_publisher_mldsa65.pub",
+   "sha256": "27ba5b7530996a3799cd67a0bf0b8b38c401cf94b4b176238c4de1bfec029f31"
+  },
+  {
+   "key": "publisher driver_rtl8153 ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_rtl8153_publisher_ed25519.pub",
+   "sha256": "f667e65257b32adde738bc54f88731f0ec9bb89e6a3df0715bf8676fe94e7968"
+  },
+  {
+   "key": "publisher driver_rtl8153 mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_rtl8153_publisher_mldsa65.pub",
+   "sha256": "50c3bdcf53e2a78918cc4e0a3fc62f0852c8ca59fe40d5562bdd9382039ee03f"
   },
   {
    "key": "publisher driver_smbus ed25519",
