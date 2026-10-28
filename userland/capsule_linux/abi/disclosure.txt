@@ -153,6 +153,7 @@ faccessat | as access | as open
 pselect6 | as select | as poll
 ppoll | as poll | as poll
 set_robust_list | 0 | a constant
+get_robust_list | no list, 24 bytes long, for the caller's own thread; another thread's is refused | a constant, and whose list it is stays unsaid
 utimensat | success, or refusal outside its private dirs; the times it sets read back through stat | as rename; the times are its own
 utimes | as utimensat | as utimensat
 utime | as utimensat | as utimensat
