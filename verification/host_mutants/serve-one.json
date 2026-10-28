@@ -97,5 +97,29 @@
    "scripts/cap_audit.py",
    "--selftest"
   ]
+ },
+ {
+  "name": "foreign-wait-never-wakes-on-inbox",
+  "file": "src/process/foreign/wait/wake_rule.rs",
+  "old": "    } else if enqueued != heard {",
+  "new": "    } else if false {",
+  "test": "foreign_wake::tests::a_message_to_the_callers_own_inbox_ends_the_wait",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "foreign-wait-wakes-while-unread",
+  "file": "src/process/foreign/wait/wake_rule.rs",
+  "old": "    } else if enqueued != heard {",
+  "new": "    } else if enqueued > 0 {",
+  "test": "foreign_wake::tests::a_message_left_unread_wakes_it_once",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "foreign-wait-inbox-before-frame",
+  "file": "src/process/foreign/wait/wake_rule.rs",
+  "old": "    if trapped {\n        Look::Frame\n    } else if enqueued != heard {\n        Look::Inbox\n",
+  "new": "    if enqueued != heard {\n        Look::Inbox\n    } else if trapped {\n        Look::Frame\n",
+  "test": "foreign_wake::tests::a_trapped_guest_goes_first_and_the_inbox_is_told_next",
+  "crate": "userland/kernel_proofs"
  }
 ]
