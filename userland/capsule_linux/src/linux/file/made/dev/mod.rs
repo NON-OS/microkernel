@@ -19,9 +19,10 @@
  * the links into /proc/self/fd. The devices themselves, null, zero, full,
  * random and urandom, are descriptors file/dev.rs answers.
  *
- * There is no terminal: a guest's console is a stream, as a pipe is, so
- * /dev/tty answers ENXIO, which is what Linux answers a process with no
- * controlling terminal. /dev/shm is the family's own private directory in
+ * A guest's console is a stream, as a pipe is, so /dev/tty answers ENXIO,
+ * which is what Linux answers a process with no controlling terminal,
+ * unless its session has a pseudo-terminal: /dev/ptmx and /dev/pts/N are
+ * linux::pty's, which opens them before they reach here. /dev/shm is the family's own private directory in
  * the store, and is not made here.
  */
 

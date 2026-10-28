@@ -31,13 +31,15 @@ use super::super::warm_rule::{may_take, spent};
  * spreads consecutive streams across what is left instead of stacking them.
  *
  * An install goes down the warm circuit while it takes streams, and down the
- * others by the same rule when it does not; no other stream goes down it.
+ * others by the same rule when it does not; no other stream goes down it. Of
+ * those, only a circuit whose exit takes the stream's port is taken at all;
+ * every circuit drawn for the web ports takes 80 and 443, as before.
  */
 
-pub(super) fn pick(state: &mut Manager, now: u64, install: bool) -> Option<usize> {
-    let cursor = state.circuit_cursor;
-    let warm = (0..state.circuits.len())
-        .find(|&i| install && state.circuits[i].warm && usable(state, i, now, true));
+pub(super) fn pick(state: &mut Manager, now: u64, port: u16, install: bool) -> Option<usize> {
+    let (cursor, n) = (state.circuit_cursor, state.circuits.len());
+    let takes = |i: usize| usable(state, i, now, install) && fits(state, i, port);
+    let warm = (0..n).find(|&i| install && state.circuits[i].warm && takes(i));
     if install {
         trace::say(if warm.is_some() {
             b"install stream on the warm circuit"
@@ -45,24 +47,24 @@ pub(super) fn pick(state: &mut Manager, now: u64, install: bool) -> Option<usize
             b"install stream, no warm circuit open"
         });
     }
+    let proven = |i: usize| state.circuits[i].proven;
     let best = warm
-        .or_else(|| scan(state, now, cursor, true, install))
-        .or_else(|| scan(state, now, cursor, false, install))?;
+        .or_else(|| scan(n, cursor, |i| takes(i) && proven(i)))
+        .or_else(|| scan(n, cursor, |i| takes(i) && !proven(i)))?;
     state.circuit_cursor = best.wrapping_add(1);
     Some(best)
 }
 
-fn scan(state: &Manager, now: u64, cursor: usize, proven: bool, install: bool) -> Option<usize> {
-    let n = state.circuits.len();
-    if n == 0 {
-        return None;
-    }
-    (0..n)
-        .map(|step| (cursor.wrapping_add(step)) % n)
-        .find(|&i| usable(state, i, now, install) && state.circuits[i].proven == proven)
+fn scan(n: usize, cursor: usize, takes: impl Fn(usize) -> bool) -> Option<usize> {
+    (0..n).map(|step| (cursor.wrapping_add(step)) % n).find(|&i| takes(i))
 }
 
-fn usable(state: &Manager, index: usize, now: u64, install: bool) -> bool {
+/// Whether the exit of the circuit at `index` takes a stream to `port`.
+pub(super) fn fits(state: &Manager, index: usize, port: u16) -> bool {
+    state.circuits[index].path.last().is_some_and(|exit| state.exits.takes(exit, port))
+}
+
+pub(super) fn usable(state: &Manager, index: usize, now: u64, install: bool) -> bool {
     let c = &state.circuits[index];
     c.stage == CircuitStage::Open
         && c.purpose == Purpose::General

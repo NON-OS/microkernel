@@ -14,12 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! connect, by where it goes: loopback, a datagram peer, or a stream out over the chosen network.
+//! connect, by where it goes: loopback, a datagram peer, the SOCKS
+//! endpoint, or a stream out over the chosen network (routed/).
 
-pub(super) mod anon;
 pub(super) mod call;
 pub(super) mod dgram;
-pub(super) mod dial;
 pub(super) mod lo;
-pub(super) mod mixnet;
 pub(super) mod out;

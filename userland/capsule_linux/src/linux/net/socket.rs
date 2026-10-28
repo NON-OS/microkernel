@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! `socket` for AF_INET and AF_UNIX. The socket is the family's until it
-//! connects outside 127.0.0.0/8 (then net.sockets or net.anon holds the
+//! connects outside 127.0.0.0/8 (then routed/ or net.anon holds the
 //! stream, guest_route.rs) or to the display's path (then it is the display
 //! connection).
 

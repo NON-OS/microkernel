@@ -12,7 +12,7 @@ To update, you install the newer release over the old one.
 
 1. Get the newer image and write it to a stick ([Get an image](get-an-image.md), [Write a USB stick](usb-stick.md)).
 2. Boot the stick and choose `Install NØNOS` in the boot menu ([Boot modes](boot-modes.md)).
-3. Answer setup. Its answers are the ones the new disk starts with ([First boot](first-boot.md)). If an earlier boot of this stick kept its answers, setup does not run, and those answers go to the disk. Answers kept by 0.9.2 or earlier keep everything but the wallpaper: its choice named a picture from the old list of 63, so it reads as `Canyon neon`, the default, with all four wallpapers kept ([Settings](../using/settings.md#appearance)).
+3. Answer setup. Its answers are the ones the new disk starts with ([First boot](first-boot.md)). If this stick kept its answers under an earlier release, setup does not run, and those answers go to the disk. Answers kept by 0.9.2 or earlier keep everything but the wallpaper: its choice named a picture from the old list of 63, so it reads as `Canyon neon`, the default, with all four wallpapers kept ([Settings](../using/settings.md#appearance)).
 4. On the Disks screen choose the disk that holds the old system. Its row says `NONOS installed`, and the Confirm screen warns `holds NØNOS; its store and data volume are lost`.
 5. Type the disk's word, let the installer write and read back, remove the stick and restart ([Install to disk](install-to-disk.md)).
 
@@ -20,7 +20,7 @@ An update from one release to another is not tested in this release.
 
 ## What carries over
 
-Nothing from the old disk. The installer carries what the running boot holds, and when you boot the stick that is the stick's store, because the kernel takes a USB stick that carries NONOS before any internal disk. It carries setup's answers, the wallpapers they keep, and the signed programs the stick carries. The old store, the programs you installed there from the Marketplace, anything you kept there, and the old [data volume](../overview/glossary-claim-epoch.md#data-volume) are erased with the disk.
+Nothing from the old disk. The installer carries what the running boot holds, and when you boot the stick that is the stick's store: the kernel keeps the disk the loader was read from, and never another NONOS disk in its place. It carries setup's answers, the wallpapers they keep, and the signed programs the stick carries. The old store, the programs you installed there from the Marketplace, anything you kept there, and the old [data volume](../overview/glossary-claim-epoch.md#data-volume) are erased with the disk.
 
 NONOS 0.9.2 has no way to copy files off the old disk first: the file service keeps files in memory and in the NONOS store, and mounts no other file system, and the USB storage driver serves sectors, not files.
 

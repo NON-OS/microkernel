@@ -53,7 +53,7 @@ fn install_all(name: &str, pin: &[u8; 32], extras: &[&str]) -> Result<(), super:
             super::Why::TOO_LARGE,
         ),
     })?;
-    // Fetched several at once, verified and placed one by one in this order.
+    // Fetched in a window (get/window.rs), verified and placed in this order.
     let paths: Option<Vec<String>> = pkgs.iter().map(|p| path_of(p)).collect();
     let paths = paths.ok_or(super::Why::INDEX)?;
     let sizes: Vec<usize> = pkgs.iter().map(|p| p.size).collect();

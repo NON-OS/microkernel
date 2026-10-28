@@ -16,13 +16,16 @@
 
 //! `connect`. On 127.0.0.0/8 the family links the two ends in the caller's
 //! own call, as Linux's loopback does, and a non-blocking socket answers
-//! EINPROGRESS all the same; anywhere else a stream goes over the anonymity
-//! network chosen (connect_out.rs).
+//! EINPROGRESS all the same; 127.0.0.1:9050 with nothing of the family's
+//! listening there is the SOCKS endpoint, for a program holding NET_ANON;
+//! anywhere else a stream goes over the anonymity network chosen (out.rs).
+//! A connect already under way is answered from where it has got.
 
 use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
 
 use super::super::fd::{nonblock, sock_of};
+use super::super::routed;
 use super::super::sock::{self, Domain, Proto};
 use super::super::sockaddr::{self, is_loopback, AF_INET};
 
@@ -35,6 +38,9 @@ pub fn connect(guest: &mut Guest, fd: u64, at: u64, len: u64) -> u64 {
         Ok(id) => id,
         Err(e) => return e,
     };
+    if let Some(answer) = routed::again(id, nonblock(guest, fd)) {
+        return answer;
+    }
     let (family, to) = match sockaddr::read(guest, at, len) {
         Ok(v) => v,
         Err(e) => return e,
@@ -46,7 +52,8 @@ pub fn connect(guest: &mut Guest, fd: u64, at: u64, len: u64) -> u64 {
         (_, Domain::Unix) => super::super::named::connect(guest, fd, id, proto, at, len),
         (Proto::Dgram, _) => super::dgram::connect(guest, fd, id, family, to),
         _ if family != AF_INET => errno::fail(errno::EAFNOSUPPORT),
+        _ if routed::serves(guest, id, to) => routed::socks(id, nonblock(guest, fd)),
         _ if is_loopback(to.ip) => super::lo::loopback(id, to, nonblock(guest, fd)),
-        _ => super::out::connect(guest, id, to),
+        _ => super::out::connect(guest, id, to, nonblock(guest, fd)),
     }
 }

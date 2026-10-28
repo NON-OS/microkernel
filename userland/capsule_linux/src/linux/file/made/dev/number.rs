@@ -16,10 +16,15 @@
 
 /* The device numbers stat reports, and /dev/fd's links. */
 
+use super::super::synth::Node;
 use super::tree::{Dev, DEVICES};
+use crate::linux::pty;
 
 /* st_rdev, in the encoding glibc's and musl's makedev use. */
 pub fn rdev(dev: Dev) -> u64 {
+    if let Dev::Pts(n) = dev {
+        return 136 << 8 | u64::from(n & 0xff) | u64::from(n & !0xff) << 12;
+    }
     let (_, _, major, minor) = DEVICES.iter().find(|d| d.1 == dev).copied().unwrap_or(DEVICES[0]);
     let (major, minor) = (u64::from(major), u64::from(minor));
     ((major & 0xfff) << 8) | (minor & 0xff) | ((minor & !0xff) << 12) | ((major & !0xfff) << 32)
@@ -29,4 +34,16 @@ pub fn rdev(dev: Dev) -> u64 {
 pub fn at(path: &[u8]) -> Option<Dev> {
     let name = path.strip_prefix(b"/dev/")?;
     DEVICES.iter().find(|d| d.0 == name).map(|d| d.1)
+}
+
+/* /dev/pts: a slave for each pseudo-terminal whose master is open. */
+pub(super) fn pts(tail: &[&[u8]]) -> Option<Node> {
+    let names = pty::names();
+    match tail {
+        [] => Some(Node::Dir(names.iter().map(|n| alloc::format!("{n}").into_bytes()).collect())),
+        [n] => pty::pts_number(&[b"/dev/pts/", *n].concat())
+            .filter(|n| names.contains(n))
+            .map(|n| Node::Dev(Dev::Pts(n))),
+        _ => None,
+    }
 }

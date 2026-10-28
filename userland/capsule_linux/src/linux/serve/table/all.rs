@@ -58,6 +58,7 @@ fn rest(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> u64 {
         np::UMASK => call::umask(guest, a[0]),
         np::PRLIMIT64 => call::prlimit64(guest, a[1], a[2], a[3]),
         nr::RSEQ | nr::SET_ROBUST_LIST => errno::ok(0),
+        nr::GET_ROBUST_LIST => call::get_robust_list(guest, a[0], a[1], a[2]),
         nr::ARCH_PRCTL => call::arch_prctl(guest, tid, a[0], a[1]),
         nr::GETRANDOM => call::getrandom(guest, a[0], a[1], a[2]),
         nr::PRCTL => call::prctl(guest, tid, a[0], a[1]),
