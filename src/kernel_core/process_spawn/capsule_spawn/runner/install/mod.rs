@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod admit;
 mod install;
 mod install_caps;
 mod load_elf_into_pid;
