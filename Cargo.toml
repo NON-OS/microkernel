@@ -222,6 +222,10 @@ nonos-capsule-driver-cdc-ncm    = []
 nonos-capsule-driver-rndis      = []
 nonos-capsule-driver-ax88179    = []
 nonos-capsule-driver-rtl8153    = []
+# The Bluetooth LE host over USB (driver.bt_usb0): keyboards and mice, and
+# the RTL8821C patch it loads. A radio: Hardened and Air-Gapped drop it
+# (tools/nix/config.nix, radioFeatures).
+nonos-capsule-driver-bt-usb     = []
 nonos-capsule-driver-smbus      = []
 nonos-capsule-driver-uhci       = []
 nonos-capsule-driver-ohci       = []
@@ -677,6 +681,14 @@ microkernel-driver-rtl8153 = [
   "nonos-capsule-driver-rtl8153",
 ]
 
+microkernel-driver-bt-usb = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-bt-usb",
+]
+
 microkernel-driver-cdc-ncm = [
   "microkernel-core",
   "nonos-production",
@@ -1114,6 +1126,7 @@ microkernel-full-gui = [
   "nonos-capsule-driver-cdc-ecm",
   "nonos-capsule-driver-cdc-ncm",
   "nonos-capsule-driver-rndis",
+  "nonos-capsule-driver-bt-usb",
   "nonos-capsule-driver-smbus",
   "nonos-capsule-driver-bga",
   "nonos-capsule-driver-ufs",

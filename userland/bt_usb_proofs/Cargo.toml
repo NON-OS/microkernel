@@ -18,10 +18,13 @@ nonos_bt_bond = { path = "../nonos_bt_bond" }
 nonos_bt_hci = { path = "../nonos_bt_hci" }
 nonos_bt_hogp = { path = "../nonos_bt_hogp" }
 nonos_bt_proto = { path = "../bt_proto" }
+nonos_bt_rtl = { path = "../nonos_bt_rtl" }
 nonos_bt_smp = { path = "../nonos_bt_smp" }
 nonos_bt_wire = { path = "../nonos_bt_wire" }
 # SHA-256 for the modelled MediaTek package's pins.
 nonos_hash = { path = "../nonos_hash" }
+# Settings' Bluetooth panel reads its keys by the skeleton's codes.
+nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

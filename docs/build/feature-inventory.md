@@ -37,14 +37,15 @@ Host-tested on 2026-10-24: the closure has every production capsule below and le
   - storage: virtio-blk, virtio-scsi, NVMe, AHCI, PIIX IDE, pvscsi, MPT, SDHCI, UFS and USB mass
     storage, and BusLogic, host-proved, not booted (QEMU has no BusLogic device);
   - USB host controllers: xHCI, EHCI, OHCI and UHCI, and USB hubs;
-  - input: PS/2, virtio-input, USB HID and I2C HID;
+  - input: PS/2, virtio-input, USB HID and I2C HID, and Bluetooth LE keyboards and mice over a USB
+    controller (`driver-bt-usb`, with the RTL8821C patch it loads), host-proved, not yet booted on hardware;
   - display: virtio-gpu and VMware SVGA;
   - audio: HDA, AC'97 and USB audio;
   - USB cameras (UVC), smart cards (CCID) and FIDO security keys;
   - the I2C bus;
   - VirtualBox and Hyper-V guest support.
 
-`standard` takes `capsule-serial-debug` out of that set, so no capsule writes to the serial console (`drop`, `tools/nix/config.nix`). The `hardened` and `airgapped` profiles start from the same set and take out the same feature, and `airgapped` also takes out every network feature (`networkFeatures`, `tools/nix/config.nix`).
+`standard` takes `capsule-serial-debug` out of that set, so no capsule writes to the serial console (`drop`, `tools/nix/config.nix`). The `hardened` and `airgapped` profiles start from the same set and take out the same feature, and `airgapped` also takes out every network feature (`networkFeatures`, `tools/nix/config.nix`). Both take out Bluetooth, a radio (`radioFeatures`).
 
 ## The drivers this change adds, and what booted
 
@@ -90,14 +91,15 @@ These were in this change's first draft and are out of the default image again. 
 - On 2026-10-27 S4 added `driver-mt7921` (MediaTek MT7921 and MT7922 Wi-Fi: AMD RZ608 and RZ616, the ThinkPad T14 Gen 4 AMD among many) to `microkernel-full-gui`; it has no trust set either. Its card firmware is not in the image: the loader reads the pinned package from the boot medium (`scripts/firmware_package.py`).
 - On 2026-10-27 S4 added `driver-rtl8852be` (Realtek RTL8852BE, 10ec:b852 and 10ec:b85b, a 2x2 Wi-Fi 6 card in many laptops since 2021, run as a 20 MHz legacy station) to `microkernel-full-gui`; it has no trust set either. Its register tables are rtw89's, taken under that code's BSD-3-Clause option (userland/capsule_driver_rtl8852be/docs/licence.md).
 - On 2026-10-28 S4 added `acpi` (capsule_acpi, built with its `release-power-only` feature) to `microkernel-full-gui`, so the bar reads the battery; it has no trust set either. What that build runs and leaves out is below, under "The ACPI capsule, power only".
+- On 2026-10-28 S4 added `driver-bt-usb` (the Bluetooth LE host over USB, for keyboards and mice; on the RTL8821CE combo card it first loads Realtek's RTL8821C patch, linux-firmware's, embedded under its redistribution licence: userland/capsule_driver_bt_usb/firmware/README.md) to `microkernel-full-gui`; it has no trust set either. `hardened` and `airgapped` take it out.
 - A trust set that exists can still be stale. `nix build` also refuses a kernel when a shipped capsule's sealed manifest grants other caps than its `Capsule.mk` now says (`scripts/check_sealed_caps.py`, called from `tools/nix/image.nix`). On 2026-10-24, nine sealed manifests were stale this way. Five follow from this change's narrowing: keyring, login, payment, wallet-nonos and virtio-gpu. Four come from changes on main since the last seal: input-router, linux, boot-splash and i2c-pci. The next seal rewrites all nine. Host-tested: the script's `--self-test`, run by the flake's `static-abi` check.
 
-So `nix build` of the default image waits for the next release seal, which writes all 36 trust sets in one step. A development image (`make dev-image`, `tools/nonos-dev-image`) is sealed with throwaway keys and builds and boots now.
+So `nix build` of the default image waits for the next release seal, which writes all 37 trust sets in one step. A development image (`make dev-image`, `tools/nonos-dev-image`) is sealed with throwaway keys and builds and boots now.
 
-The 36, as `scripts/baselines/unsealed.txt` holds them. The flake's `static-release-trust` check fails when a release profile ships any other capsule without its trust set, when one of these is sealed and still listed, or when this list and the baseline differ:
+The 37, as `scripts/baselines/unsealed.txt` holds them. The flake's `static-release-trust` check fails when a release profile ships any other capsule without its trust set, when one of these is sealed and still listed, or when this list and the baseline differ:
 
 <!-- unsealed: begin -->
-`acpi`, `driver-ac97`, `driver-bga`, `driver-buslogic`, `driver-cdc-ecm`, `driver-cdc-ncm`, `driver-e1000e`, `driver-ehci`, `driver-igb`, `driver-igc`, `driver-ixgbe`, `driver-mpt`, `driver-mt7921`, `driver-ohci`, `driver-pcnet`, `driver-piix-ide`, `driver-pvscsi`, `driver-rndis`, `driver-rtl8822ce`, `driver-rtl8852be`, `driver-sdhci`, `driver-smbus`, `driver-tulip`, `driver-ufs`, `driver-uhci`, `driver-usb-audio`, `driver-usb-hub`, `driver-virtio-input`, `driver-virtio-scsi`, `driver-vmbus`, `driver-vmmdev`, `driver-vmmouse`, `driver-vmware-svga`, `driver-vmxnet3`, `nox-settle`, `prove-fetch`.
+`acpi`, `driver-ac97`, `driver-bga`, `driver-bt-usb`, `driver-buslogic`, `driver-cdc-ecm`, `driver-cdc-ncm`, `driver-e1000e`, `driver-ehci`, `driver-igb`, `driver-igc`, `driver-ixgbe`, `driver-mpt`, `driver-mt7921`, `driver-ohci`, `driver-pcnet`, `driver-piix-ide`, `driver-pvscsi`, `driver-rndis`, `driver-rtl8822ce`, `driver-rtl8852be`, `driver-sdhci`, `driver-smbus`, `driver-tulip`, `driver-ufs`, `driver-uhci`, `driver-usb-audio`, `driver-usb-hub`, `driver-virtio-input`, `driver-virtio-scsi`, `driver-vmbus`, `driver-vmmdev`, `driver-vmmouse`, `driver-vmware-svga`, `driver-vmxnet3`, `nox-settle`, `prove-fetch`.
 <!-- unsealed: end -->
 
 ## Off, and why
