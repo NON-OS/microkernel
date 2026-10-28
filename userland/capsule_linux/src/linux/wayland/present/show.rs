@@ -25,10 +25,9 @@ use super::super::reshape::{reshape, Reshape};
 use super::super::scene_pixels::Pixels;
 use super::super::window_damage::window_damage;
 use super::frame::fill::{fill, window_bytes};
+use super::no_room::outgrown;
 use super::refit::refit;
 use super::window::show;
-
-const NO_ROOM: &[u8] = b"[WAYLAND] no room for the frame, not shown\n";
 
 /// Show `buffer`, committed on `surface`.
 pub fn present(guest: &mut Guest, surface: u32, buffer: u32) {
@@ -47,10 +46,14 @@ pub fn present(guest: &mut Guest, surface: u32, buffer: u32) {
     let a = super::frame::now::around_shape(&guest.scene, src.shape);
     let pid = guest.pid;
     let mut pixels = core::mem::replace(&mut guest.scene.pixels, Pixels::empty());
-    let filled = match pixels.frame(window_bytes(a, &src)) {
-        Some(out) => fill(&mut guest.scene, (pid, surface), &src, out, a),
-        None => return say(NO_ROOM),
+    let Some(out) = pixels.frame(window_bytes(a, &src)) else {
+        // The frame outgrew its surface's pixels (a maximise, a new scale):
+        // they go back, and the window gets a surface of its new size.
+        guest.scene.pixels = pixels;
+        outgrown();
+        return show(guest, surface, &src);
     };
+    let filled = fill(&mut guest.scene, (pid, surface), &src, out, a);
     guest.scene.pixels = pixels;
     if !filled {
         return;
