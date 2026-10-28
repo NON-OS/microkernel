@@ -16,11 +16,14 @@
 
 //! Everything the screens read and the events and ticks change.
 
+mod choice;
 mod machine;
+mod new;
 mod outcome;
 mod prepared;
 mod screen;
 
+pub use choice::Choice;
 pub use machine::{Looked, State};
 pub use outcome::Outcome;
 pub use prepared::Prepared;
