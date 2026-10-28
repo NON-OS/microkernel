@@ -16,23 +16,34 @@
 
 //! The confirmation: type the disk's word, then Enter. A single key cannot
 //! start an erase, and Enter with the wrong word does nothing, which is
-//! the whole reason the word is there.
+//! the whole reason the word is there. On a disk an update could keep, Up
+//! and Down move between updating and erasing; each move clears the word,
+//! so it is typed for the row it starts.
 
-use nonos_app_skeleton::{EventOutcome, KEY_BACKSPACE, KEY_ENTER, KEY_ESC};
+use nonos_app_skeleton::{EventOutcome, KEY_BACKSPACE, KEY_DOWN, KEY_ENTER, KEY_ESC, KEY_UP};
 
-use crate::install::job::start;
-use crate::install::state::{Screen, State};
+use crate::install::job::{replan, start};
+use crate::install::state::{Choice, Screen, State};
 
 pub fn on_confirm_key(state: &mut State, code: u32) -> EventOutcome {
     match code {
         KEY_ESC => {
             state.typed.clear();
-            state.prepared = None;
+            (state.prepared, state.keep) = (None, None);
             state.screen = Screen::Disks;
             EventOutcome::Repaint
         }
         KEY_BACKSPACE => {
             state.typed.pop();
+            EventOutcome::Repaint
+        }
+        KEY_UP | KEY_DOWN if state.offers_update() => {
+            let to = if code == KEY_UP { Choice::Update } else { Choice::Erase };
+            if to != state.choice {
+                state.choice = to;
+                state.typed.clear();
+                replan(state);
+            }
             EventOutcome::Repaint
         }
         KEY_ENTER => {

@@ -47,9 +47,12 @@ pub(super) fn check(
         SyscallNumber::MkSealPeek | SyscallNumber::MkSealDrop => caps.can_device_secret(),
 
         /* The right to ask, which is not the right to host. */
-        SyscallNumber::MkAppInstall
-        | SyscallNumber::MkAppInstallStatus
-        | SyscallNumber::MkAppUninstall => caps.can_app_install(),
+        SyscallNumber::MkAppInstall | SyscallNumber::MkAppUninstall => caps.can_app_install(),
+        /*
+         * The install role, which alone holds LocalSign, leaves its failed
+         * job's line here; the handler lets it do nothing else.
+         */
+        SyscallNumber::MkAppInstallStatus => caps.can_app_install_status(),
         /*
          * A launch queues a run of a package already installed, whose program
          * the exec gate holds to its trailer and its box; it installs nothing.

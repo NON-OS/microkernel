@@ -17,6 +17,17 @@ How verified:
 - QEMU: a QEMU run in the tree attaches this device: `make boot` (`devices`, `tools/nonos_qemu/machine.py:91-100`), CI's boot smoke, or the `mk/10-qemu.mk` and `mk/40-run.mk` targets. No boot log from this commit is recorded here.
 - Real hardware: the one report this release has. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), developer hardware report, 6 October 2026; the image commit was not recorded. It covers Wi-Fi on Realtek RTL8821CE (scan, join, DHCP, DNS, browser traffic), the local Qwen model offline, the Linux programs sh, python3, sqlite3 and john, the installer writing to an internal NVMe disk and booting from it, the I2C-HID touchpad on Intel LPSS, the PS/2 keyboard with its layouts, Intel HD Audio, the power button and the volume keys. Nothing else in this matrix has been run on real hardware for this release.
 
+Reports since 0.9.2, for the 0.9.3 image:
+
+| Machine | What ran | Result | Source |
+|---|---|---|---|
+| KVM, QEMU 7.2 q35, `-cpu host`, OVMF, 8 GiB | the G (44535301b5), local machine | ICH9 AHCI (8086:2922) with nothing attached exits 3, "controller present, nothing behind it to serve"; with a SATA disk on `ide.0` it serves it (`[ahci] serving port 0`) | local machine's report, 28 Oct |
+| the same KVM machine | an NVMe target (`-device nvme`) | the installer lists the NVMe disk and writes it | local machine's report, 28 Oct |
+| the same KVM machine | the stick on virtio-blk, then on usb-storage on qemu-xhci | the stick boots and the install flow passes | local machine's report, 28 Oct |
+| QEMU TCG q35 | dev image of main ad2a58a01 | default machine and the e1000e, igb, e1000 and RTL8139 lanes each lease; every Wi-Fi driver stays out with its card absent | [evidence](../release-evidence/0.9.3/boot-ad2a58a01/README.md) |
+
+No other Wi-Fi card (Intel, RTL8822CE, RTL8852BE, MediaTek) has run on real hardware yet; their rows say host-proven.
+
 Every row is for x86_64 machines; [Architectures](../architectures/README.md) says what the other ports have. The rows describe the image the Standard [build profile](../overview/glossary-boot-root-record.md#build-profile) makes. The Air-Gapped image drops every network driver (`networkFeatures`, `tools/nix/config.nix:92`), and the QEMU image leaves out the drivers only real hardware has (`microkernel-desktop-gui`, `tools/nix/config.nix:95-98`).
 
 PCI ids are vendor:device in hex. USB ids say USB, and ACPI ids are firmware `_HID` strings. Every driver named here is a [capsule](../overview/glossary-boot-root-record.md#capsule) unless the row says kernel.

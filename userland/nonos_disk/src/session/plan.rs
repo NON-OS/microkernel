@@ -38,6 +38,9 @@ pub struct Plan<'a> {
     pub image: NonosImage<'a>,
     pub store: StoreImage,
     pub ids: Ids,
+    /// An update: the disk's own layout and identifiers, and a queue that
+    /// writes the boot partition and the store alone (`queue_keep`).
+    pub keep: bool,
 }
 
 impl<'a> Plan<'a> {
@@ -60,6 +63,6 @@ impl<'a> Plan<'a> {
         }
         check_volume(&placed)?;
         let ids = Ids::from_entropy(&entropy);
-        Ok(Plan { layout, geometry, placed, image: *image, store, ids })
+        Ok(Plan { layout, geometry, placed, image: *image, store, ids, keep: false })
     }
 }
