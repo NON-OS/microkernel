@@ -19,17 +19,28 @@
 //! the frames is a `Transport`.
 //!
 //! Two exist. `Transcript` replays a recorded session so the window runs and
-//! shows real-shaped data with no core. `CoreChannel` is the place the NØNOS
-//! channel to simplex.core goes (the design notes-
-//! simplex-split.md); it is a stub until the box rule that serves the core's
-//! port to this capsule alone exists.
+//! shows real-shaped data with no core. `CoreChannel` speaks the WebSocket
+//! chat API over a `Pipe`: in the window, the one SERVE_ONE connection to
+//! simplex.core (crate::serve); in the proofs, a scripted one.
 
 pub mod core_channel;
+pub mod core_pump;
+pub mod core_transport;
+/* A recorded session the host proofs replay through the model; the window
+ * itself never shows one. */
+#[allow(dead_code)]
 pub mod echo;
-pub mod open;
+pub mod nso1;
+pub mod pipe;
+#[allow(dead_code)]
 pub mod replay;
+#[allow(dead_code)]
 pub mod script;
+#[allow(dead_code)]
 pub mod transcript;
+pub mod ws_frame;
+pub mod ws_hello;
+pub mod ws_read;
 
 use alloc::string::String;
 
