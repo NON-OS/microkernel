@@ -31,6 +31,8 @@ pub mod epoll_rules;
 pub mod exe;
 pub mod link;
 pub mod lock;
+#[path = "../../../../capsule_linux/src/linux/file/memfd_seal_rules.rs"]
+pub mod memfd_seal_rules;
 #[path = "../../../../capsule_linux/src/linux/file/made/proc/mounts/table.rs"]
 pub mod mounts;
 pub mod pack;

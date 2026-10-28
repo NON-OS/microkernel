@@ -34,8 +34,14 @@ pub(super) fn memfd(guest: &mut Guest, fd: u64, mode: u64, at: u64, len: u64) ->
     if mode & !(KEEP_SIZE | PUNCH_HOLE) != 0 {
         return errno::fail(errno::EOPNOTSUPP);
     }
-    let Some(entry) = guest.fds.get_mut(fd as usize) else { return errno::fail(errno::EBADF) };
     let Some(end) = at.checked_add(len) else { return errno::fail(errno::EFBIG) };
+    /* GROW refuses a longer memfd, and WRITE or FUTURE_WRITE a punched hole. */
+    let size = guest.fds.get(fd as usize).map_or(0, |e| e.size);
+    let grows = mode == 0 && crate::linux::file::resize_sealed(guest, fd, size, end.max(size));
+    if grows || (mode & PUNCH_HOLE != 0 && crate::linux::file::write_sealed(guest, fd)) {
+        return errno::fail(errno::EPERM);
+    }
+    let Some(entry) = guest.fds.get_mut(fd as usize) else { return errno::fail(errno::EBADF) };
     if mode == 0 {
         entry.size = entry.size.max(end);
         return errno::ok(0);

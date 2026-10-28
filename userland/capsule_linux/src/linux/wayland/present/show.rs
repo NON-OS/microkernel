@@ -26,14 +26,13 @@ use super::super::scene_pixels::Pixels;
 use super::super::window_damage::window_damage;
 use super::frame::fill::{fill, window_bytes};
 use super::refit::refit;
-use super::source::source;
 use super::window::show;
 
 const NO_ROOM: &[u8] = b"[WAYLAND] no room for the frame, not shown\n";
 
 /// Show `buffer`, committed on `surface`.
 pub fn present(guest: &mut Guest, surface: u32, buffer: u32) {
-    let src = match source(&guest.scene, buffer) {
+    let src = match super::scaled::window(&mut guest.scene, surface, buffer) {
         Ok(found) => found,
         Err(why) => return say(why),
     };
