@@ -32,6 +32,46 @@ One copy per machine and boot. Part of [the real-hardware kit](real-hardware-kit
       stick; copy that file.
 - [ ] Anything that failed, in a sentence each: what you did, what you expected, what happened.
 
+## Battery, AC and lid: HP laptop (Gemini Lake)
+
+capsule_acpi runs the laptop's own AML and reads the battery through the
+embedded controller; it is built power-only (`userland/capsule_acpi/README.md`,
+"Release build"), so it changes nothing else on the machine. It has never
+run on this laptop: QEMU has no battery. The capsule's own `[ACPI]` lines
+print on a development image only (`standard-dev`, `Debug` granted to the
+capsule); on Standard, the bar and About are the test.
+
+- [ ] What to boot: `standard-dev` from the same commit as the result you
+      report, on battery, AC unplugged, lid open.
+- [ ] The bar, within a minute of the desktop: a percentage beside a gauge
+      ("57%"), not "Battery status unavailable" and not "No battery". Note
+      the percentage, and what the firmware's own setup screen or another
+      OS says it is (a few points apart is fine).
+- [ ] About, System: the Power card says Battery `57%` (the same number),
+      State `Discharging`, AC `Offline`.
+- [ ] Plug the AC in. Within a minute the bar says "57% Charging" and
+      About says State `Charging`, AC `Online`. A full battery on AC says
+      the number alone and State `Not charging`. Unplug: within a minute
+      the word Charging goes and About says `Discharging`, `Offline`.
+      Note how many seconds each change took: under a few is the EC's
+      event; up to a minute is the poll.
+- [ ] Close the lid for five seconds, then open it: the screen goes dark
+      while it is closed and lights again (within 2 s of opening). The
+      machine stays on.
+- [ ] Press the power button once, briefly: the desktop's power choice
+      appears, as it did before this capsule. Nothing powers off by itself.
+- [ ] In the Terminal: `log acpi > acpi.txt`. It should hold, in order:
+      `[ACPI] build: power only`, `[ACPI] EC data=...`
+      (ports and GPE), the `_REG failed in 0 scopes` and `_INI` lines, `inventory: N devices`,
+      `GPEs armed ...`, `[ACPI] sci irq=...`, `first publish pass done`,
+      and `power battery=yes charge=57 ac=offline` (again on each change),
+      plus the kernel's `[ACPI] region ...` grants and its posture line.
+      Then `log driver- exit > drivers.txt` as usual.
+- [ ] Send back: `acpi.txt`, `drivers.txt`, photos of the bar on battery
+      and on AC, and the About Power card. Say if any line reads `faulted`,
+      `refused`, `SCI not bound` or `no usable`, and quote it. The lines
+      carry no serial number: the battery's serial string is never logged.
+
 ## Intel Wi-Fi on a first boot: ASUS NUC 15 Pro, ThinkPad T14 (Intel)
 
 Which list below applies is read from the card, not the model name: the

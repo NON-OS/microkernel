@@ -16,12 +16,6 @@
 
 mod append;
 mod chain;
-mod prose;
-mod prose_wrap;
-mod runtime_meter;
-mod runtime_text;
-mod tile_text;
-
 mod display_surface;
 mod licenses_banner;
 mod licenses_cols;
@@ -35,10 +29,16 @@ mod proofs_network;
 mod proofs_route;
 mod proofs_session;
 mod proofs_verdict;
+mod prose;
+mod prose_wrap;
+mod runtime_meter;
+mod runtime_text;
 mod system_build;
+mod system_power;
 mod system_runtime;
 mod system_space;
 mod system_uptime;
+mod tile_text;
 mod trust_caps;
 mod trust_caps_list;
 mod trust_chain;

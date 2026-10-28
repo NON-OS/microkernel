@@ -1,6 +1,7 @@
 # Unsealed release capsules waiting on the release seal ceremony; may only shrink.
 # scripts/check_release_trust.py fails on a slug added here, on one sealed and
 # still listed, and on any difference from docs/build/feature-inventory.md's list.
+acpi
 driver-ac97
 driver-bga
 driver-buslogic

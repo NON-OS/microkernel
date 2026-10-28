@@ -14,7 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Batteries and AC adapters.
+//! Batteries and AC adapters, and a laptop's battery path whole: its tables
+//! through the interpreter, capsule_acpi's fold into the kernel's word, the
+//! kernel's report, and the bar's and About's words, each mounted by path.
 
+#[path = "../../../../capsule_about/src/about/data/battery.rs"]
+mod about_battery;
+#[path = "../../../../capsule_desktop_shell/src/state/indicators/battery_text/mod.rs"]
+mod battery_text;
 mod info_tests;
+mod laptop;
+mod laptop_read;
+mod laptop_regs;
+mod laptop_tests;
+#[path = "../../../../../src/hardware/broker/acpi/power_report.rs"]
+mod power_report;
+mod report_tests;
+#[path = "../../../../capsule_acpi/src/power/state.rs"]
+mod state;
 mod status_tests;
+#[path = "../../../../capsule_acpi/src/power/word.rs"]
+mod word;

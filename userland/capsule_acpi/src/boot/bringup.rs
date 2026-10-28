@@ -23,6 +23,7 @@ use super::bringup_say::{ini_line, pic_line, reg_line};
 use super::eval::evaluator;
 use super::osc::negotiate_all;
 use crate::host::CapsuleHost;
+use crate::release::{on, Part};
 use crate::sys::log_parts::emit;
 use nonos_aml::exec::{ExecLimits, Machine};
 use nonos_aml::load::Aml;
@@ -42,9 +43,14 @@ pub fn bring_up(aml: &mut Aml, host: &mut CapsuleHost) {
         let failed = Machine::new(aml, host, ExecLimits::DEFAULT).connect(aml, space);
         emit(|out| reg_line(failed.len(), space.0, out));
     }
-    let pic = set_pic(aml, &mut evaluator(host), PIC_APIC);
-    emit(|out| pic_line(pic.map(|r| r.map_err(|f| f.at)), out));
-    negotiate_all(aml, host);
+    // A power-only build leaves both out (`release`), firmware as it booted.
+    if on(Part::Pic) {
+        let pic = set_pic(aml, &mut evaluator(host), PIC_APIC);
+        emit(|out| pic_line(pic.map(|r| r.map_err(|f| f.at)), out));
+    }
+    if on(Part::Osc) {
+        negotiate_all(aml, host);
+    }
     let r = initialize(aml, &mut evaluator(host));
     let failed = r.ran.iter().filter(|(_, x)| x.is_err()).count();
     emit(|out| ini_line([r.ran.len(), failed, r.absent.len(), r.sta_failed.len()], out));
