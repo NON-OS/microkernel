@@ -1,5 +1,11 @@
 use crate::protocol::header::{Request, HDR_LEN, MAGIC, VERSION};
 
+/// The bytes a receive that returned `n` left in `rx`: never past the
+/// buffer, whatever the count says, and none for a failed receive.
+pub fn received(rx: &[u8], n: i64) -> &[u8] {
+    &rx[..usize::try_from(n).unwrap_or(0).min(rx.len())]
+}
+
 pub fn parse(buf: &[u8]) -> Option<(Request, &[u8])> {
     if buf.len() < HDR_LEN {
         return None;

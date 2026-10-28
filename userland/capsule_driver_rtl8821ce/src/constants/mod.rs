@@ -19,8 +19,7 @@
 //! the RTL8xxx family); the chip-specific power/RF/firmware tables are ported
 //! separately from rtw88 with attribution.
 
+mod pci;
 pub mod regs;
 
-/// PCI vendor (Realtek) and the RTL8821CE device id.
-pub const PCI_VENDOR_REALTEK: u16 = 0x10EC;
-pub const PCI_DEVICE_RTL8821CE: u16 = 0xC821;
+pub use pci::{PCI_VENDOR_REALTEK, RTL8821CE_DEVICE_IDS};

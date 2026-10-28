@@ -17,15 +17,19 @@
 use super::backend::Backend;
 use super::rows::{AHCI, NVME, USB_MSC, VIRTIO_BLK};
 
-/// Asked in this order. A USB stick that carries NONOS is first: it is
-/// there because someone brought it to boot a live session from it, and
-/// that session keeps its state on the stick, not on an internal disk that
-/// may hold an installed NONOS. The kernel is not told which disk the
-/// firmware booted, so this order stands in for that answer. Then NVMe
-/// before SATA, so a machine with an NVMe data disk and a SATA boot disk
-/// settles on the NVMe one without reading the other. The block-wire
-/// drivers (eMMC and SD) follow SATA, where eMMC was asked while the AHCI
-/// capsule served it; virtio-blk last.
+/// Asked in this order. The order does not choose the disk: the one whose
+/// table holds the partition the loader names is kept wherever it comes
+/// (select.rs). It decides three things. With no partition named, an MBR
+/// stick or no record, the first NONOS disk is kept, so a USB stick that
+/// carries NONOS comes before an internal disk that may hold an installed
+/// one. A row refused before any other NONOS disk is seen ends the pass, so
+/// while driver.usb_msc0 is still looking every pass stops at the stick. And
+/// the first NONOS disk that does not hold the loader's partition is the one
+/// settle.rs may keep, never when the loader read the store from its own
+/// disk. Then NVMe before SATA, so a machine with an NVMe data disk and a
+/// SATA boot disk settles on the NVMe one without reading the other. The
+/// block-wire drivers (eMMC and SD) follow SATA, where eMMC was asked while
+/// the AHCI capsule served it; virtio-blk last.
 /// The cost: on a machine with an xHCI controller, every disk waits while
 /// driver.usb_msc0 looks for a device, about 1.5 s when none is plugged in.
 pub(super) fn order() -> impl Iterator<Item = Backend> {

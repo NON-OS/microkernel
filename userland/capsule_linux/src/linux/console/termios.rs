@@ -16,9 +16,8 @@
 
 //! The terminal's settings as a guest reads and sets them: the kernel's
 //! `struct termios`, starting as Linux's cooked defaults. They are kept
-//! and given back; the terminal itself edits and echoes each line.
-
-use super::state::with;
+//! and given back; the terminal itself edits and echoes each line. Pure, so
+//! a pseudo-terminal starts from the same defaults (linux::pty).
 
 /// c_iflag, c_oflag, c_cflag and c_lflag, c_line, and 19 control bytes.
 pub const SIZE: usize = 36;
@@ -60,9 +59,4 @@ const fn cooked() -> Termios {
     t
 }
 
-pub(super) const COOKED: Termios = cooked();
-
-/// The settings as they stand.
-pub fn termios() -> Termios {
-    with(|c| c.termios)
-}
+pub const COOKED: Termios = cooked();

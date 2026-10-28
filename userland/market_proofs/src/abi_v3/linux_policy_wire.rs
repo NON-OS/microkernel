@@ -38,10 +38,11 @@ fn a_valid_signed_policy_goes_out_whole_with_its_two_keys() {
     let release = release_id(&Host, &listing, &rel.release_id);
     let p = policy(listing, release);
     let (e, rel) = linux(p.clone(), "https://pkg");
-    let LinuxPolicy::Policy(m) = read(encode(&e, &rel, true, true)) else {
+    let LinuxPolicy::Policy(m, args) = read(encode(&e, &rel, true, true)) else {
         panic!("no policy sent")
     };
     assert_eq!((&m[..256], &m[256..288], &m[288..]), (&p[..], &listing[..], &release[..]));
+    assert!(args.is_empty());
 }
 
 #[test]

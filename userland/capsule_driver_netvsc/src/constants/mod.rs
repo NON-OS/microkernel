@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod channel;
+pub mod exit;
 pub mod layout;
 pub mod nvsp;
 pub mod rndis;

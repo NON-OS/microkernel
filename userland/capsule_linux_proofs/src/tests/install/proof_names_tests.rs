@@ -27,6 +27,8 @@ fn every_proof_and_policy_name_is_refused_wherever_it_sits() {
         b"usr/bin/jq.nonos_id_cert.bin",
         b"usr/bin/jq.nonos_linux_policy.bin",
         b"usr/bin/jq.nonos_linux_policy.zk_trailer.bin",
+        b"usr/bin/jq.nonos_linux_policy.args.bin",
+        b"usr/bin/jq.nonos_linux_policy.args.zk_trailer.bin",
         b"deep/dir/x.nonos_linux_policy.bin",
     ] {
         assert!(is_proof_name(name), "{}", String::from_utf8_lossy(name));

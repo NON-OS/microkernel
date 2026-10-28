@@ -41,6 +41,7 @@ fn a_high_capacity_card_comes_up_on_four_lines() {
     drop(sim);
     let n = disk.names();
     assert_eq!((n.model(), &n.serial[..]), (&b"SD SL32G"[..], &b"1234ABCD"[..]));
+    assert!(!rig.logs().iter().any(|l| l.to_lowercase().contains("1234abcd")), "serial logged");
     rig.assert_clean();
 }
 

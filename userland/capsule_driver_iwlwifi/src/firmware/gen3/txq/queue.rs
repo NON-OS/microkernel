@@ -16,11 +16,16 @@
 
 //! A transmit queue's state: its firmware number and its pointers.
 
+use super::super::csr::CsrLayout::{self, V1};
 use super::super::region::{zero, Region};
 use super::layout::{BC, BUFS, TFDS};
 
 pub struct TxQueue {
     pub(super) base: usize,
+    /// The byte count table's pages beyond V1's (`bc_extra`).
+    pub(super) extra: usize,
+    /// The family: the command layout, the byte count and the pointer wrap.
+    pub(super) csr: CsrLayout,
     /// The firmware's number for the queue, while it has one.
     pub id: u16,
     pub live: bool,
@@ -33,7 +38,7 @@ pub struct TxQueue {
 impl TxQueue {
     /// The queue whose area starts `base` bytes into the transmit region.
     pub const fn new(base: usize) -> Self {
-        Self { base, id: 0, live: false, write: 0, read: 0, watch: None }
+        Self { base, extra: 0, csr: V1, id: 0, live: false, write: 0, read: 0, watch: None }
     }
 
     /// The descriptor ring's and byte count table's device addresses.
@@ -51,7 +56,7 @@ impl TxQueue {
         self.write = 0;
         self.read = 0;
         self.watch = None;
-        zero(tx, self.base, BUFS)
+        zero(tx, self.base, BUFS + self.extra)
     }
 
     /// Take the firmware's number for the queue and the write pointer its

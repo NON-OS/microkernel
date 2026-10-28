@@ -90,7 +90,7 @@ pub const HBUS_TARG_WRPTR: usize = 0x460;
 /// Receive queue 0 free-buffer write index.
 pub const RFH_Q0_FRBDCB_WIDX_TRG: usize = 0x1C80;
 
-/// UMAC peripheral registers, written at `UMAC_PRPH_OFFSET` above their base.
+/// UMAC peripheral registers, at the family's `umac_offset` above their base.
 pub const UREG_CPU_INIT_RUN: u32 = 0xA0_5C44;
 pub const UREG_DOORBELL_TO_ISR6: u32 = 0xA0_5C04;
 pub const UREG_DOORBELL_TO_ISR6_PNVM: u32 = 1 << 20;

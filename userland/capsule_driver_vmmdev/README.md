@@ -73,6 +73,15 @@ request the host refuses at runtime is skipped; the next event carries the
 position anew. Bring-up is tried a bounded number of times
 (`nonos_libc::start_driver`).
 
+If the capsule dies once integration is on, nothing turns it off. The
+broker's exit path runs no driver code: it stops Bus Master and resets the
+function only by an FLR (`src/hardware/broker/claim/exit.rs`,
+`reset_rule.rs`), which VMMDev does not offer, and a PCI reset is not the
+VMMDev reset that clears the mouse status. The host goes on sending
+absolute positions nobody reads, and the PS/2 pointer stays still until
+the VM is reset or the driver comes up again. The kernel has no hook that
+undoes a device's mode at a capsule's death; this is a known limitation.
+
 ## Current implemented surface
 
 - Absolute pointer position from the host, with buttons and wheel left to
@@ -106,6 +115,7 @@ checks every request's header and exact size and refuses all but the host
 version before the guest info: the grant order, the introduction and its
 order, every refusal and what it gives back, integration never turned on
 after a failure, positions scaled and posted once, filtered events never
+flagged, and integration off. A boot is the owner's.
 
 ## Release checklist
 

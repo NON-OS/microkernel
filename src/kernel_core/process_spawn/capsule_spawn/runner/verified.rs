@@ -28,17 +28,17 @@ pub fn spawn_verified(
     trust_anchor: &NonosTrustAnchorPolicy,
     now_ms: Option<u64>,
 ) -> Result<u32, SpawnError> {
-    spawn_verified_as(spec, trust_anchor, now_ms, None)
+    spawn_verified_as(spec, trust_anchor, now_ms, None, None)
 }
 
-// Same as `spawn_verified`, but attributes the spawned process to
-// `on_behalf_of` (a kernel-attested pid) instead of the caller. Used by the
-// capsule-load-from-store path when the caller holds spawn-broker authority.
+// As `spawn_verified`, parented to `on_behalf_of`, a kernel-attested pid, not
+// the caller (the store load, with spawn-broker authority); holding `argv`.
 pub(crate) fn spawn_verified_as(
     spec: &CapsuleSpecVerified<'_>,
     trust_anchor: &NonosTrustAnchorPolicy,
     now_ms: Option<u64>,
     on_behalf_of: Option<AttestedParent>,
+    argv: Option<alloc::vec::Vec<alloc::string::String>>,
 ) -> Result<u32, SpawnError> {
     crate::sys::bench::mark_named(b"capsule_spawn_start", spec.name.as_bytes());
     // No binary, certificate or manifest: an image built without this capsule.
@@ -70,5 +70,6 @@ pub(crate) fn spawn_verified_as(
         debug_tag: spec.debug_tag,
         on_behalf_of,
         gate: &preflighted,
+        argv,
     })
 }
