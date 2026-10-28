@@ -14,29 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Fast downloads, D: a window of GETs holds few replies and bounded bytes
-//! (install/get/window_room.rs).
+//! Fast downloads, D: a window of GETs holds one reply at a time, its bytes
+//! bounded (install/get/window_room.rs).
 
 #[path = "../../../capsule_linux/src/linux/install/get/window_room.rs"]
 mod window_room;
 use window_room::{cap, room};
 
+/// A heap with far more free than any window holds.
+const ROOMY: usize = 4 << 30;
+
 #[test]
-fn three_small_replies_at_once_and_never_a_fourth() {
+fn one_get_at_a_time_while_a_proxy_keeps_one_stream_per_caller() {
+    // A second stream from the installer ends the first at the proxy
+    // (nonos_route_link tunnel.rs): three at once brought no package a byte.
     let sizes = [1 << 20; 5];
-    assert!(room(&sizes, &[], 0));
-    assert!(room(&sizes, &[0, 1], 2));
-    assert!(!room(&sizes, &[0, 1, 2], 3));
+    assert!(room(&sizes, &[], 0, ROOMY), "the first, alone");
+    assert!(!room(&sizes, &[0], 1, ROOMY), "never a second beside it");
+    assert!(!room(&sizes, &[0, 1], 2, ROOMY));
 }
 
 #[test]
-fn a_large_package_is_fetched_alone_and_bytes_stay_bounded() {
-    let sizes = [80 << 20, 1 << 20, 40 << 20, 30 << 20];
-    assert!(room(&sizes, &[], 0), "alone, however large");
-    assert!(!room(&sizes, &[0], 1), "nothing beside it");
-    assert!(!room(&sizes, &[1, 2], 3), "past 64 MiB together");
-    assert!(room(&sizes, &[1], 2));
-    assert!(!room(&[0, 1 << 20], &[1], 0), "a size the index lacks counts as the most");
+fn a_package_comes_alone_however_large_or_short_the_heap() {
+    let sizes = [80 << 20, 1 << 20];
+    assert!(room(&sizes, &[], 0, ROOMY), "alone, however large");
+    assert!(room(&sizes, &[], 1, 1 << 20), "alone, however little is free");
+    assert!(!room(&sizes, &[0], 1, ROOMY), "nothing beside it");
+    // Monero's 24.7 MB: a roomy heap takes nothing beside it either.
+    assert!(!room(&[24_698_520, 1 << 20], &[0], 1, 320 << 20));
 }
 
 #[test]

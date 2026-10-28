@@ -957,7 +957,7 @@ if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0xF8038' userland/capsule_driver_iwlwi
    ! grep -q 'mk_mmio_map' userland/capsule_driver_iwlwifi/src/setup/mmio.rs ||
    ! grep -q 'mk_irq_bind' userland/capsule_driver_iwlwifi/src/setup/irq.rs ||
    ! grep -q 'mk_dma_map' userland/capsule_driver_iwlwifi/src/server/radio/grant.rs ||
-   ! grep -q 'include_bytes!' userland/capsule_driver_iwlwifi/src/firmware/blob.rs ||
+   ! cat userland/capsule_driver_iwlwifi/src/firmware/blob.rs userland/capsule_driver_iwlwifi/src/firmware/blob/files.rs 2>/dev/null | grep -q 'include_bytes!' ||
    ! grep -q 'pub fn gen3_blob' userland/capsule_driver_iwlwifi/src/firmware/blob.rs ||
    ! grep -q 'OP_STATUS' userland/capsule_driver_iwlwifi/src/server/control/kinds.rs ||
    ! grep -rq 'spawn_driver_iwlwifi_capsule' src/userspace/init/ ||
@@ -5218,6 +5218,18 @@ else
     fail_with "check_driver_scope: a driver capsule and its scope row disagree"
 fi
 unset scope_out
+# The MediaTek firmware package is pinned once, in the mt7921e driver, and
+# the loader's paths, the kernel's served kinds and the nix artifact's list
+# agree with it; no pinned file is committed or included in a source. The
+# self-test first, so a check that stopped reading the pins cannot pass.
+if mtk_out="$(python3 scripts/check_mediatek_firmware.py --self-test 2>&1 \
+    && python3 scripts/check_mediatek_firmware.py 2>&1)"; then
+    note ok "the MediaTek firmware package agrees with its pins and is not in the tree (check_mediatek_firmware)"
+else
+    tail -n 5 <<< "${mtk_out}" >&2
+    fail_with "check_mediatek_firmware: a MediaTek firmware pin disagrees, or its bytes are in the tree"
+fi
+unset mtk_out
 # G-84: every display driver the compositor tries, with a capsule, is in the
 # full desktop image or on a list that may only shrink; the self-test first,
 # so a scan that stopped seeing drivers cannot pass by finding none.
@@ -5598,9 +5610,11 @@ unset suites_out
 
 # A drive whose `until` step times out leaves every CPU's registers and the
 # code at each one's PC behind, read from that CPU; an unplug step pulls a
-# device out or fails the run (tools/nonos_drive).
+# device out or fails the run; a drive filmed (--record) stops ffmpeg, then
+# QEMU, then Xvfb, and the tutorial's steps are all steps it knows
+# (tools/nonos_drive).
 if drive_out="$( (cd tools && python3 -m unittest -q nonos_drive.test_drive \
-    nonos_drive.test_plug) 2>&1)"; then
+    nonos_drive.test_plug nonos_drive.test_record) 2>&1)"; then
     note ok "a drive that stops at a step leaves every CPU's state, and unplugs (nonos_drive)"
 else
     tail -n 8 <<< "${drive_out}" >&2
@@ -5608,10 +5622,24 @@ else
 fi
 unset drive_out
 
+# The tour's cut: an edit's times found from the recording's captions, zooms
+# that stay 16:9 inside the frame, chapters cross-faded where their marks
+# say, cards in the desktop's colours, and an edit that names only captions
+# the tour has (tools/nonos_tutorial/post).
+if post_out="$( (cd tools && python3 -m unittest -q nonos_tutorial.post.test_post) 2>&1)"; then
+    note ok "the tour's cut keeps to its edit and the brand (nonos_tutorial/post)"
+else
+    tail -n 8 <<< "${post_out}" >&2
+    fail_with "nonos_tutorial/post: the cut breaks its edit or the brand"
+fi
+unset post_out
+
 # A drive's type: step sends every printable character as the keys that type
-# it, and refuses one with no key instead of dropping it; each rule's mutant
-# fails the keys suite (tools/nonos_drive/mutants.json).
-if keys_out="$( (cd tools && python3 -m unittest -q nonos_drive.test_keys nonos_drive.test_mutants) 2>&1)"; then
+# it, and refuses one with no key instead of dropping it; a say: caption is
+# renamed into place whole; each rule's mutant fails the keys or caption
+# suite (tools/nonos_drive/mutants.json).
+if keys_out="$( (cd tools && python3 -m unittest -q nonos_drive.test_keys nonos_drive.test_caption \
+    nonos_drive.test_mutants) 2>&1)"; then
     note ok "a typed line reaches the guest whole, or the drive stops (nonos_drive)"
 else
     tail -n 8 <<< "${keys_out}" >&2

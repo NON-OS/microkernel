@@ -38,7 +38,7 @@ impl Assembler {
             (self.bad, self.lost) = (self.lost, false);
         }
         self.fid = Some(fid);
-        self.bad |= info & ERR != 0 || self.buf.len() + p.len() - hlen > self.max;
+        self.bad |= info & ERR != 0 || !self.room(p.len() - hlen);
         if !self.bad {
             self.buf.extend_from_slice(&p[hlen..]);
         }
@@ -46,5 +46,14 @@ impl Assembler {
             out = self.finish();
         }
         out
+    }
+
+    /// Whether `n` more bytes fit the bound. The buffer takes the whole
+    /// bound once, exactly, so it never grows past it; a heap that cannot
+    /// give it drops the frame, never the driver.
+    fn room(&mut self, n: usize) -> bool {
+        let (len, max) = (self.buf.len(), self.max);
+        len + n <= max
+            && (self.buf.capacity() >= max || self.buf.try_reserve_exact(max - len).is_ok())
     }
 }

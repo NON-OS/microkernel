@@ -30,13 +30,14 @@ pub(crate) fn deliver(
     index: usize,
     hop: usize,
     payload: &[u8; PAYLOAD_BYTES],
+    now: u64,
 ) {
     let header = unpack(payload);
     let Some(body) = body(payload) else { return };
     match header.command {
         RELAY_DATA => data(state, index, header.stream, body),
         RELAY_CONNECTED => connected(state, index, header.stream, body),
-        RELAY_END => ended(state, index, header.stream, body),
+        RELAY_END => ended(state, index, header.stream, body, now),
         /* Stream id zero is the circuit's own window; any other id is that
          * stream's (tor-spec 7.4). */
         RELAY_SENDME if header.stream == 0 => granted(state, index, hop),

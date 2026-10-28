@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `mmap`: anonymous pages, or a private mapping of a file.
+//! `mmap`: anonymous pages, or a mapping of a file, private or shared.
 
 use crate::linux::abi::errno;
 use crate::linux::guest::{maps_full, Guest};

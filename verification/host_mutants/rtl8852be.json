@@ -1,0 +1,772 @@
+[
+ {
+  "name": "rtl8852be-bar-window-covers-the-indirect-access-entry",
+  "file": "userland/capsule_driver_rtl8852be/src/ids.rs",
+  "old": "pub const BAR_MIN: u64 = 0x8_0000;",
+  "new": "pub const BAR_MIN: u64 = 0x2_0000;",
+  "test": "assoc_tests::a_disconnect_tells_the_ap_and_the_firmware_then_a_rejoin_works",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-bound-mailbox-answer-1-s",
+  "file": "userland/capsule_driver_rtl8852be/src/h2c/reg.rs",
+  "old": "const C2H_TIMEOUT_US: u64 = 1_000_000;",
+  "new": "const C2H_TIMEOUT_US: u64 = 2_000_000;",
+  "test": "bound_tests::the_mailbox_waits_one_second_for_an_answer",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-bound-h2c-room-500-ms",
+  "file": "userland/capsule_driver_rtl8852be/src/h2c/post.rs",
+  "old": "pub const ROOM_MS: u64 = 500;",
+  "new": "pub const ROOM_MS: u64 = 1000;",
+  "test": "bound_tests::a_command_queue_that_never_moves_is_given_half_a_second",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-bound-8-descriptors-kept-free",
+  "file": "userland/capsule_driver_rtl8852be/src/h2c/post.rs",
+  "old": "pub const MULTITAG: u32 = 8;",
+  "new": "pub const MULTITAG: u32 = 4;",
+  "test": "bound_tests::a_command_queue_that_never_moves_is_given_half_a_second",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-fw-five-tries",
+  "file": "userland/capsule_driver_rtl8852be/src/fw/mod.rs",
+  "old": "for _ in 0..5 {",
+  "new": "for _ in 0..4 {",
+  "test": "bound_tests::a_firmware_that_never_reports_ready_costs_five_status_waits",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-bound-fw-status-400-ms",
+  "file": "userland/capsule_driver_rtl8852be/src/fw/download.rs",
+  "old": "pub const WAIT_US: u64 = 400_000;",
+  "new": "pub const WAIT_US: u64 = 800_000;",
+  "test": "bound_tests::a_firmware_that_never_reports_ready_costs_five_status_waits",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-fw-chunks-of-2020",
+  "file": "userland/capsule_driver_rtl8852be/src/fw/download.rs",
+  "old": "pub const CHUNK: usize = 2020;",
+  "new": "pub const CHUNK: usize = 2048;",
+  "test": "assoc_tests::a_disconnect_tells_the_ap_and_the_firmware_then_a_rejoin_works",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-h2c-rack-every-fourth",
+  "file": "userland/capsule_driver_rtl8852be/src/h2c/send.rs",
+  "old": "let rack = rack || fw.h2c_seq % 4 == 0;",
+  "new": "let rack = rack || fw.h2c_seq % 8 == 0;",
+  "test": "h2c_tests::commands_are_numbered_one_apart_with_a_receive_ack_every_fourth",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-h2c-one-apart",
+  "file": "userland/capsule_driver_rtl8852be/src/h2c/send.rs",
+  "old": "fw.h2c_seq = fw.h2c_seq.wrapping_add(1);",
+  "new": "fw.h2c_seq = fw.h2c_seq.wrapping_add(2);",
+  "test": "h2c_tests::commands_are_numbered_one_apart_with_a_receive_ack_every_fourth",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-h2c-body-bound",
+  "file": "userland/capsule_driver_rtl8852be/src/h2c/send.rs",
+  "old": "if body.len() > BODY_MAX {",
+  "new": "if body.len() > BODY_MAX + 1 {",
+  "test": "limit_tests::an_h2c_body_past_its_slot_is_refused_and_nothing_posted",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-tx-slot-held-until-released",
+  "file": "userland/capsule_driver_rtl8852be/src/tx/wd_ring.rs",
+  "old": "if self.avail() == 0 || self.busy & (1 << i) != 0 {",
+  "new": "if self.avail() == 0 {",
+  "test": "ring_tests::without_release_reports_the_ring_fills_and_refuses",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-tx-frame-bound",
+  "file": "userland/capsule_driver_rtl8852be/src/tx/wd_ring.rs",
+  "old": "if frame.len() > FRAME_MAX {",
+  "new": "if frame.len() > FRAME_MAX + 1 {",
+  "test": "limit_tests::a_frame_past_its_slot_is_refused",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-ring-tx-len-64",
+  "file": "userland/capsule_driver_rtl8852be/src/ring/tx.rs",
+  "old": "&& len <= 64;",
+  "new": "&& len <= 65;",
+  "test": "limit_tests::ring_sizes_stop_at_their_edges",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-ring-rx-buf-0xffff",
+  "file": "userland/capsule_driver_rtl8852be/src/ring/rx.rs",
+  "old": "&& buf <= 0xffff;",
+  "new": "&& buf <= 0x10000;",
+  "test": "limit_tests::ring_sizes_stop_at_their_edges",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-rx-bad-crc-dropped",
+  "file": "userland/capsule_driver_rtl8852be/src/rx/frame.rs",
+  "old": "if d.crc32_err || d.icv_err {",
+  "new": "if d.icv_err {",
+  "test": "rx_tests::hostile_receive_buffers_are_dropped_and_the_next_frame_read",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-rx-only-wifi-packets",
+  "file": "userland/capsule_driver_rtl8852be/src/rx/frame.rs",
+  "old": "if d.pkt_type != TYPE_WIFI {",
+  "new": "if d.pkt_type == 0xff {",
+  "test": "rx_tests::hostile_receive_buffers_are_dropped_and_the_next_frame_read",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-rx-split-dropped",
+  "file": "userland/capsule_driver_rtl8852be/src/rx/frame.rs",
+  "old": "if !(info.fs && info.ls) {",
+  "new": "if !info.fs {",
+  "test": "rx_tests::hostile_receive_buffers_are_dropped_and_the_next_frame_read",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-rx-buffers-given-back",
+  "file": "userland/capsule_driver_rtl8852be/src/sta/pump.rs",
+  "old": "        q.release(&self.r);\n",
+  "new": "\n",
+  "test": "assoc_tests::a_disconnect_tells_the_ap_and_the_firmware_then_a_rejoin_works",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-tx-mgmt-release",
+  "file": "userland/capsule_driver_rtl8852be/src/sta/pump.rs",
+  "old": "QSEL_MGMT => ch8.release(rp.seq),",
+  "new": "QSEL_MGMT => {}",
+  "test": "limit_tests::management_slots_come_back_on_their_reports",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-tx-mgmt-qsel",
+  "file": "userland/capsule_driver_rtl8852be/src/tx/wd.rs",
+  "old": "pub const QSEL_MGMT: u32 = 0x12;",
+  "new": "pub const QSEL_MGMT: u32 = 0x13;",
+  "test": "assoc_tests::a_disconnect_tells_the_ap_and_the_firmware_then_a_rejoin_works",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-tx-mgmt-channel",
+  "file": "userland/capsule_driver_rtl8852be/src/tx/wd.rs",
+  "old": "pub const CH_MGMT: u32 = 8;",
+  "new": "pub const CH_MGMT: u32 = 9;",
+  "test": "assoc_tests::a_disconnect_tells_the_ap_and_the_firmware_then_a_rejoin_works",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-cam-station-address",
+  "file": "userland/capsule_driver_rtl8852be/src/h2c/cam.rs",
+  "old": "w[4] = bytes_le(&sma[..4]);",
+  "new": "w[4] = bytes_le(&sma[..4]) ^ 1;",
+  "test": "assoc_tests::a_disconnect_tells_the_ap_and_the_firmware_then_a_rejoin_works",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-join-net-type",
+  "file": "userland/capsule_driver_rtl8852be/src/h2c/media.rs",
+  "old": "| field(0x300_0000, net as u32)",
+  "new": "| field(0x300_0000, 0)",
+  "test": "h2c_tests::association_tells_the_firmware_in_rtw89s_order",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-vif-rtw89-order",
+  "file": "userland/capsule_driver_rtl8852be/src/sta/vif.rs",
+  "old": "role_maintain(r, q, fw, Upd::Create)?;\n        join_info(r, q, fw, true, Net::NoLink)?;",
+  "new": "join_info(r, q, fw, true, Net::NoLink)?;\n        role_maintain(r, q, fw, Upd::Create)?;",
+  "test": "h2c_tests::the_station_interface_is_added_in_rtw89s_order",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-assoc-ra-command",
+  "file": "userland/capsule_driver_rtl8852be/src/sta/join.rs",
+  "old": "        ra_assoc(r, q, fw, rates, five).map_err(Stop::Send)?;\n",
+  "new": "\n",
+  "test": "h2c_tests::association_tells_the_firmware_in_rtw89s_order",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-leave-bssid-out-of-cam",
+  "file": "userland/capsule_driver_rtl8852be/src/sta/join.rs",
+  "old": "        self.vif.bssid = [0; 6];\n",
+  "new": "\n",
+  "test": "assoc_tests::a_disconnect_tells_the_ap_and_the_firmware_then_a_rejoin_works",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-tune-5g-band-bits",
+  "file": "userland/capsule_driver_rtl8852be/src/phy/ch_rf18.rs",
+  "old": "v |= 0x1_0000 | 0x100; // BAND1",
+  "new": "v |= 0x1_0000; // BAND1",
+  "test": "assoc_tests::joins_on_5ghz_channel_36",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-tune-20-mhz",
+  "file": "userland/capsule_driver_rtl8852be/src/phy/ch_rf18.rs",
+  "old": "| (3 << 10);",
+  "new": "| (2 << 10);",
+  "test": "tune_tests::every_channel_lands_on_rf_path_a_at_20_mhz",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-tune-queues-given-back",
+  "file": "userland/capsule_driver_rtl8852be/src/mac/sch.rs",
+  "old": "    set(r, fw, was, TXEN_ALL)",
+  "new": "    set(r, fw, 0, TXEN_ALL)",
+  "test": "tune_tests::the_queues_are_stopped_for_the_switch_and_given_back",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-scan-edcca-restored",
+  "file": "userland/capsule_driver_rtl8852be/src/sta/scan.rs",
+  "old": "if let Some(bak) = self.vif.edcca_bak.take() {",
+  "new": "if let Some(bak) = self.vif.edcca_bak.take().filter(|_| false) {",
+  "test": "scan_tests::a_scan_opens_the_filter_and_raises_edcca_then_gives_both_back",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-scan-filter-opened",
+  "file": "userland/capsule_driver_rtl8852be/src/mac/macid.rs",
+  "old": "DEFAULT_RX_FLTR & !SCAN_OPEN",
+  "new": "DEFAULT_RX_FLTR",
+  "test": "scan_tests::a_scan_opens_the_filter_and_raises_edcca_then_gives_both_back",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-efuse-rfe-offset",
+  "file": "userland/capsule_driver_rtl8852be/src/efuse/map.rs",
+  "old": "pub const RFE_TYPE: usize = 0x2ca;",
+  "new": "pub const RFE_TYPE: usize = 0x2cb;",
+  "test": "assoc_tests::a_disconnect_tells_the_ap_and_the_firmware_then_a_rejoin_works",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-efuse-block-index",
+  "file": "userland/capsule_driver_rtl8852be/src/efuse/logical.rs",
+  "old": "let blk = ((h2 & 0xf0) >> 4) as usize | ((h1 & 0x0f) as usize) << 4;",
+  "new": "let blk = ((h2 & 0xf0) >> 4) as usize | ((h1 & 0x0f) as usize) << 3;",
+  "test": "assoc_tests::a_disconnect_tells_the_ap_and_the_firmware_then_a_rejoin_works",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-efuse-power-k-check",
+  "file": "userland/capsule_driver_rtl8852be/src/efuse/phycap.rs",
+  "old": "const PWR_K_VALUE: u8 = 0xaa;",
+  "new": "const PWR_K_VALUE: u8 = 0xab;",
+  "test": "efuse_tests::the_board_fields_come_out_of_the_packed_cells",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-caps-rx-b-only",
+  "file": "userland/capsule_driver_rtl8852be/src/bring/probe.rs",
+  "old": "rx_b_only: get(w[3], 0xff_0000) == 1 }",
+  "new": "rx_b_only: get(w[3], 0xff_0000) == 0 }",
+  "test": "assoc_tests::a_disconnect_tells_the_ap_and_the_firmware_then_a_rejoin_works",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-probe-powers-off",
+  "file": "userland/capsule_driver_rtl8852be/src/bring/probe.rs",
+  "old": "    pwr::switch(r, false, &board_of(cv, &efuse)).map_err(Stop::Power)?;\n",
+  "new": "\n",
+  "test": "efuse_tests::the_probe_leaves_the_chip_off",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-up-one-antenna-refused",
+  "file": "userland/capsule_driver_rtl8852be/src/bring/up.rs",
+  "old": "    if p.caps.rx_b_only {",
+  "new": "    if p.caps.rx_b_only && false {",
+  "test": "stage_tests::a_one_antenna_board_has_no_air_path",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-mac-init-off-on-failure",
+  "file": "userland/capsule_driver_rtl8852be/src/bring/mac_init.rs",
+  "old": "    if out.is_err() {",
+  "new": "    if out.is_err() && false {",
+  "test": "give_back_tests::a_mac_init_that_fails_powers_the_chip_off_itself",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-give-back-off",
+  "file": "userland/capsule_driver_rtl8852be/src/setup/give_back.rs",
+  "old": "    let _ = pwr::switch(r, false, &pwr::Board::default());\n",
+  "new": "\n",
+  "test": "give_back_tests::giving_back_powers_the_chip_off",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-bound-power-poll-20-ms",
+  "file": "userland/capsule_driver_rtl8852be/src/pwr/on.rs",
+  "old": "const POLL_US: u64 = 20_000;",
+  "new": "const POLL_US: u64 = 40_000;",
+  "test": "bound_tests::power_that_never_comes_costs_two_tries_of_twenty_ms",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-address-local-unicast",
+  "file": "userland/capsule_driver_rtl8852be/src/station.rs",
+  "old": "    apply(&mut mac);\n",
+  "new": "    mac[0] = 0xff;\n",
+  "test": "privacy_tests::the_first_address_is_drawn_local_and_unicast",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-line-room-for-newline",
+  "file": "userland/capsule_driver_rtl8852be/src/status.rs",
+  "old": "let room = LINE_MAX - 1 - self.len;",
+  "new": "let room = LINE_MAX - self.len;",
+  "test": "limit_tests::a_console_line_is_cut_never_split",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-nctl-ready-checked",
+  "file": "userland/capsule_driver_rtl8852be/src/phy/nctl.rs",
+  "old": "bb.read32(0x8080) == 0x4",
+  "new": "true",
+  "test": "stage_tests::mac_and_phy_steps_that_never_finish_are_chip_init",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-dle-ready-checked",
+  "file": "userland/capsule_driver_rtl8852be/src/dle/init.rs",
+  "old": "& MGN_INI_RDY == MGN_INI_RDY",
+  "new": "& 0 == 0",
+  "test": "stage_tests::mac_and_phy_steps_that_never_finish_are_chip_init",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-stage-efuse",
+  "file": "userland/capsule_driver_rtl8852be/src/stage.rs",
+  "old": "Stop::Efuse(_) => Stage::EfuseFailed,",
+  "new": "Stop::Efuse(_) => Stage::ChipInit,",
+  "test": "stage_tests::a_dead_efuse_is_efuse_failed",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-stage-power",
+  "file": "userland/capsule_driver_rtl8852be/src/stage.rs",
+  "old": "Stop::Power(_) => Stage::PowerFailed,",
+  "new": "Stop::Power(_) => Stage::ChipInit,",
+  "test": "stage_tests::a_card_off_the_bus_is_power_failed",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-key-sec-cam-class",
+  "file": "userland/capsule_driver_rtl8852be/src/h2c/sec_cam.rs",
+  "old": "Cmd { cat: 1, class: 0xa, func: 1 }",
+  "new": "Cmd { cat: 1, class: 0xb, func: 1 }",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-key-sec-cam-length",
+  "file": "userland/capsule_driver_rtl8852be/src/h2c/sec_cam.rs",
+  "old": "const ENTRY_LEN: u32 = 20;",
+  "new": "const ENTRY_LEN: u32 = 24;",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-key-type-not-ccmp",
+  "file": "userland/capsule_driver_rtl8852be/src/h2c/sec_cam.rs",
+  "old": "pub const TYPE_CCMP128: u8 = 6;",
+  "new": "pub const TYPE_CCMP128: u8 = 7;",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-key-group-in-unicast-slot",
+  "file": "userland/capsule_driver_rtl8852be/src/h2c/cam_keys.rs",
+  "old": "(false, 1..=5) => Some(usize::from(id) + 1),",
+  "new": "(false, 1..=5) => Some(usize::from(id)),",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-key-slots-never-valid",
+  "file": "userland/capsule_driver_rtl8852be/src/h2c/cam_keys.rs",
+  "old": "let (mut w10, mut w11) = (u32::from(self.valid), 0u32);",
+  "new": "let (mut w10, mut w11) = (0u32, 0u32);",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-key-index-bits",
+  "file": "userland/capsule_driver_rtl8852be/src/h2c/cam_keys.rs",
+  "old": "w9 |= u32::from(self.keyid[s]) << (18 + 2 * s);",
+  "new": "w9 |= u32::from(self.keyid[s]) << (16 + 2 * s);",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-key-slot-entry-lost",
+  "file": "userland/capsule_driver_rtl8852be/src/h2c/cam_keys.rs",
+  "old": "0..=2 => w10 |= (s as u32) << (8 + 8 * s),",
+  "new": "0..=2 => w10 |= 0,",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-key-wd-not-asked",
+  "file": "userland/capsule_driver_rtl8852be/src/tx/wd.rs",
+  "old": "let info2 = d.sec.map_or(0, |i| field(0x1e00, 6) | field(0x100, 1) | u32::from(i));",
+  "new": "let info2 = d.sec.map_or(0, |i| field(0x1e00, 6) | u32::from(i));",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-keyed-without-pairwise-key",
+  "file": "userland/capsule_driver_rtl8852be/src/sta/send.rs",
+  "old": "if keyed && (d.mgmt || !to_ap || !self.vif.keys.has(0)) {",
+  "new": "if keyed && (d.mgmt || !to_ap) {",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-keyed-management",
+  "file": "userland/capsule_driver_rtl8852be/src/sta/send.rs",
+  "old": "if keyed && (d.mgmt || !to_ap || !self.vif.keys.has(0)) {",
+  "new": "if keyed && (!to_ap || !self.vif.keys.has(0)) {",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-keyed-not-to-ap",
+  "file": "userland/capsule_driver_rtl8852be/src/sta/send.rs",
+  "old": "if keyed && (d.mgmt || !to_ap || !self.vif.keys.has(0)) {",
+  "new": "if keyed && (d.mgmt || !self.vif.keys.has(0)) {",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-key-before-association",
+  "file": "userland/capsule_driver_rtl8852be/src/sta/keys.rs",
+  "old": "if self.vif.net != Net::Infra || keys[0].is_none() {",
+  "new": "if keys[0].is_none() {",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-key-untaken-counted-in",
+  "file": "userland/capsule_driver_rtl8852be/src/sta/keys.rs",
+  "old": "& self.wipe_slots(first, sent);",
+  "new": "& (self.wipe_slots(first, sent) || true);",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-key-slot-not-restored",
+  "file": "userland/capsule_driver_rtl8852be/src/sta/keys.rs",
+  "old": "self.vif.keys = before;",
+  "new": "let _ = before;",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-key-ring-slot-kept",
+  "file": "userland/capsule_driver_rtl8852be/src/sta/key_cmds.rs",
+  "old": "q.mem.write(at, &[0; SLOT]);",
+  "new": "let _ = at;",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-key-body-kept",
+  "file": "userland/capsule_driver_rtl8852be/src/sta/key_cmds.rs",
+  "old": "        wipe(body);\n",
+  "new": "",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-leave-keeps-keys",
+  "file": "userland/capsule_driver_rtl8852be/src/sta/join.rs",
+  "old": "        // The keys detached, as `rtw89_cam_sec_key_del` detaches each.\n        self.vif.keys = Keys::default();\n",
+  "new": "",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-rx-icv-error-taken",
+  "file": "userland/capsule_driver_rtl8852be/src/rx/frame.rs",
+  "old": "if d.crc32_err || d.icv_err {",
+  "new": "if d.crc32_err {",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "rtl8852be-rx-hw-decryption-ignored",
+  "file": "userland/capsule_driver_rtl8852be/src/rx/frame.rs",
+  "old": "Ok((n, d.hw_dec && !d.sw_dec))",
+  "new": "Ok((n, false))",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "wifi-core-hostiv-header-missing",
+  "file": "userland/nonos_wifi_core/src/station/offload.rs",
+  "old": "if host_iv {",
+  "new": "if false {",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "wifi-core-hostiv-mgmt-for-the-chip",
+  "file": "userland/nonos_wifi_core/src/station/offload.rs",
+  "old": "protected && (f[0] >> 2 & 3 == 2 || !host_iv)",
+  "new": "protected",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "wifi-core-hostiv-mgmt-unsealed",
+  "file": "userland/nonos_wifi_core/src/station/keys.rs",
+  "old": "if let Ccmp::Offload { host_iv: false, .. } = self.ccmp {",
+  "new": "if let Ccmp::Offload { .. } = self.ccmp {",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "wifi-core-hostiv-not-chosen",
+  "file": "userland/nonos_wifi_core/src/softmac/session/chip.rs",
+  "old": "station.offload(crypto == Crypto::HostIv);",
+  "new": "station.offload(crypto == Crypto::Software);",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ },
+ {
+  "name": "wifi-core-hostiv-pn-not-advanced",
+  "file": "userland/nonos_wifi_core/src/station/offload.rs",
+  "old": "            self.pn = self.pn.wrapping_add(1);\n",
+  "new": "",
+  "test": "_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/rtl8852_proofs"
+ }
+]

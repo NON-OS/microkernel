@@ -25,3 +25,6 @@ generated nonos-data/models/catalogue.bin
 # The local test chain's throwaway TLS root and leaves, from tools/devnet/tls/generate.py;
 # only a devnet development build embeds the root, and no release compiles it.
 generated tools/devnet/tls/*
+# The RTL8852BE's register tables, from rtw89's rtw8852b_*.c by the gen*.py
+# scripts beside them (each checks its source's sha256).
+generated userland/capsule_driver_rtl8852be/tables/*.bin

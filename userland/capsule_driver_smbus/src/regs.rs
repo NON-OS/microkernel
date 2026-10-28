@@ -56,7 +56,7 @@ pub const AUX_E32B: u8 = 0x02;
 pub const AUX_CRC: u8 = 0x01;
 
 /// Config byte 0x40, HOSTC: the host enable, and I2C mode, cleared so the
-/// host frames every protocol as SMBus does.
+/// host frames every protocol as SMBus does. One byte: 0x41 is not HOSTC's.
 pub const HOSTC: u32 = 0x40;
-pub const HOSTC_HST_EN: u16 = 0x01;
-pub const HOSTC_I2C_EN: u16 = 0x04;
+pub const HOSTC_HST_EN: u8 = 0x01;
+pub const HOSTC_I2C_EN: u8 = 0x04;

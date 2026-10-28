@@ -33,11 +33,13 @@ pub struct Driver {
 
 pub fn run(dev: Found) -> Result<Driver, &'static str> {
     let claim = Claim::take(dev.device_id)?;
-    host::enable(&claim)?;
-    let mut out = PioGrantOut { port_base: 0, port_count: 0, _pad: 0, grant_id: 0 };
-    if mk_pio_grant(claim.device_id, claim.epoch, SMB_BAR, 0, &mut out) < 0 {
-        return Err("smbus: the broker refused the port grant");
-    }
+    let out = host::enable(&claim, || {
+        let mut out = PioGrantOut { port_base: 0, port_count: 0, _pad: 0, grant_id: 0 };
+        if mk_pio_grant(claim.device_id, claim.epoch, SMB_BAR, 0, &mut out) < 0 {
+            return Err("smbus: the broker refused the port grant");
+        }
+        Ok(out)
+    })?;
     let host = Host::new(out.grant_id);
     Ok(Driver { host, found: dev, io_ports: out.port_count, _claim: claim })
 }

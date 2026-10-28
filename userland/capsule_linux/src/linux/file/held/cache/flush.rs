@@ -26,6 +26,8 @@ use super::table::CACHE;
  * it go afterwards.
  */
 pub fn flush(path: &[u8], keep: bool) -> Result<(), i64> {
+    /* The pages a shared map changed are the file's: they go in first. */
+    super::super::shared_maps::before_flush(path);
     let mut all = CACHE.0.borrow_mut();
     let Some(i) = all.iter().position(|e| e.path == path) else {
         return Ok(());
@@ -52,6 +54,7 @@ pub fn flush(path: &[u8], keep: bool) -> Result<(), i64> {
 
 /* Every changed file to the store: sync, and a process's exit. */
 pub fn flush_all() -> Result<(), i64> {
+    super::super::shared_maps::before_flush_all();
     let paths: Vec<Vec<u8>> =
         CACHE.0.borrow().iter().filter(|e| e.dirty).map(|e| e.path.clone()).collect();
     paths.iter().try_for_each(|p| flush(p, true))

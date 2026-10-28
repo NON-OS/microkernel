@@ -11,7 +11,8 @@
 
 use std::time::{Duration, Instant};
 
-use crate::constants::{CLOCK_READY_MS, CSR_GP_CNTRL, GP_CNTRL_MAC_CLOCK_READY};
+use crate::constants::{CLOCK_READY_MS, CSR_GP_CNTRL};
+use crate::gen3::regs::GP_MAC_CLOCK_READY;
 use crate::regs::Regs;
 
 #[test]
@@ -20,7 +21,7 @@ fn a_clock_that_never_comes_is_waited_for_its_milliseconds_then_refused() {
     // SAFETY: the window's own 256 bytes, alive for the test.
     let regs = unsafe { Regs::new(window.as_mut_ptr() as u64, 256) };
     let start = Instant::now();
-    assert!(!regs.poll_set(CSR_GP_CNTRL, GP_CNTRL_MAC_CLOCK_READY, 30));
+    assert!(!regs.poll_set(CSR_GP_CNTRL, GP_MAC_CLOCK_READY, 30));
     let took = start.elapsed();
     assert!(took >= Duration::from_millis(30), "waited the whole time: {took:?}");
     assert!(took < Duration::from_millis(2000), "and not much more: {took:?}");
@@ -31,9 +32,9 @@ fn a_ready_clock_is_taken_at_once() {
     let mut window = vec![0u32; 64];
     // SAFETY: the window's own 256 bytes, alive for the test.
     let regs = unsafe { Regs::new(window.as_mut_ptr() as u64, 256) };
-    regs.write32(CSR_GP_CNTRL, GP_CNTRL_MAC_CLOCK_READY);
+    regs.write32(CSR_GP_CNTRL, GP_MAC_CLOCK_READY);
     let start = Instant::now();
-    assert!(regs.poll_set(CSR_GP_CNTRL, GP_CNTRL_MAC_CLOCK_READY, CLOCK_READY_MS));
+    assert!(regs.poll_set(CSR_GP_CNTRL, GP_MAC_CLOCK_READY, CLOCK_READY_MS));
     assert!(start.elapsed() < Duration::from_millis(CLOCK_READY_MS));
 }
 
