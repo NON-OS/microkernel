@@ -16,7 +16,7 @@
 
 //! The phrase a failure prints on the boot console.
 
-use super::super::{bringup::BootError, select::Refusal, start::StartError, up::UpError};
+use super::super::{bringup::BootError, start::StartError, up::UpError};
 use super::kinds::Failure;
 
 impl Failure {
@@ -38,20 +38,11 @@ impl Failure {
             | Failure::Boot(BootError::NoNicAccess) => {
                 "the MAC would not wake for a register write"
             }
-            Failure::Refused(Refusal::NotSoDevice(_)) => {
-                "not an SO platform this driver has firmware for"
+            Failure::Start(StartError::Persistent)
+            | Failure::Boot(BootError::Start(StartError::Persistent)) => {
+                "the device's persistence bit is set and write-protected"
             }
-            Failure::Refused(Refusal::MacNotBundled(_)) => "no bundled firmware for this MAC type",
-            Failure::Refused(Refusal::RfNotBundled(_)) => "no bundled firmware for this RF module",
-            Failure::Refused(Refusal::CdbNotBundled) => {
-                "a dual-radio module, whose firmware is not bundled"
-            }
-            Failure::Refused(Refusal::MacStepNotBundled(_)) => {
-                "a Meteor Lake MAC step whose firmware is not bundled"
-            }
-            Failure::Refused(Refusal::ImageNotBundled(_)) => {
-                "its firmware is known but not in this build"
-            }
+            Failure::Refused(r) => r.text(),
             Failure::Image => "the bundled firmware image did not parse",
             Failure::NoDma => "the broker refused a DMA region",
             Failure::Boot(BootError::Layout(_)) => "the firmware did not fit the DMA regions",

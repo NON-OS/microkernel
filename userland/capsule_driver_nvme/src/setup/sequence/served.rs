@@ -59,7 +59,7 @@ pub(super) fn served(
             // The namespace can be served, so a failure to build its queue is
             // the attempt's: the admin wait has said which command failed and
             // how, and the schedule tries again.
-            Some(crate::nvm::bring_up(dev.device_id, claim_epoch, regs, stride, admin, geometry)?)
+            Some(crate::nvm::bring_up(dev.device_id, claim_epoch, regs, info, admin, geometry)?)
         }
         Err(why) => {
             say::refused(&namespace, why);

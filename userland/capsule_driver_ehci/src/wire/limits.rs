@@ -17,6 +17,8 @@
 //! The statuses a reply carries, negative errno values as driver.xhci0
 //! answers them, and the largest request and reply.
 
+/// A slot another client holds, as driver.xhci0's multiplexer answers it.
+pub const E_PERM: i32 = -1;
 pub const E_IO: i32 = -5;
 pub const E_AGAIN: i32 = -11;
 pub const E_BUSY: i32 = -16;
