@@ -16,8 +16,8 @@
 
 //! Whether a Linux release's guest policy is the one it was sold under
 //!. Until the owner merges the tracks (I-B2), nonos_linux_policy is
-//! C's crate and is not linked here: this reads only the header and the two
-//! id fields, at offsets pinned by tests against the plan's layout. Listed
+//! C's crate and is not linked here: this reads the header, version 1 or 2,
+//! and the two ids alone, at offsets pinned against the plan's layout. Listed
 //! arguments after the policy are bounded here and read by the install role.
 
 use super::policy_kind::PolicyVerdict;
@@ -28,6 +28,7 @@ use crate::types::{CapsuleRelease, MarketplaceEntry};
 pub const POLICY_LEN: usize = 256;
 pub const POLICY_MAGIC: [u8; 8] = *b"NLXPOL01";
 pub const POLICY_VERSION: u16 = 1;
+pub const POLICY_VERSION_SERVE: u16 = 2;
 pub const AT_LISTING: usize = 56;
 pub const AT_RELEASE: usize = 88;
 
@@ -54,7 +55,8 @@ pub fn policy_verdict(
     }
     // Listed arguments may follow a market policy, never a vendor tier's.
     let sized = p.len() == POLICY_LEN || (!vendor && guest_policy_fits(p.len()));
-    if !sized || p[..8] != POLICY_MAGIC || p[8..10] != POLICY_VERSION.to_le_bytes() {
+    let versions = [POLICY_VERSION, POLICY_VERSION_SERVE].map(u16::to_le_bytes);
+    if !sized || p[..8] != POLICY_MAGIC || !versions.iter().any(|v| p[8..10] == *v) {
         return PolicyVerdict::BadHeader;
     }
     let (want_listing, want_release) = if vendor {

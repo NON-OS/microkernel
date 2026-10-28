@@ -36,13 +36,15 @@ pub const EXEC: u64 = 1 << 6;
 pub const JIT: u64 = 1 << 7;
 /// A terminal.
 pub const TTY: u64 = 1 << 8;
+/// One listener on 127.0.0.1, at the port and for the capsule its policy's
+/// field names (crate::serve); never without that field.
+pub const SERVE_ONE: u64 = 1 << 9;
 
-/// Every bit with a meaning.
-pub const KNOWN: u64 =
-    WAYLAND | NET_ANON | NET_LISTEN_LO | FILES_HOME | FILES_USER | MODELS_RO | EXEC | JIT | TTY;
+/// Every bit with a meaning: bits 0 to 9, each named above.
+pub const KNOWN: u64 = (SERVE_ONE << 1) - 1;
 
 /// Each bit by the word policies.txt and the serial log name it with.
-pub const NAMES: [(&str, u64); 9] = [
+pub const NAMES: [(&str, u64); 10] = [
     ("WAYLAND", WAYLAND),
     ("NET_ANON", NET_ANON),
     ("NET_LISTEN_LO", NET_LISTEN_LO),
@@ -52,6 +54,7 @@ pub const NAMES: [(&str, u64); 9] = [
     ("EXEC", EXEC),
     ("JIT", JIT),
     ("TTY", TTY),
+    ("SERVE_ONE", SERVE_ONE),
 ];
 
 /// Whether `mask` holds every bit of `want`.
@@ -60,7 +63,8 @@ pub const fn grants(mask: u64, want: u64) -> bool {
 }
 
 /// What a program runs with after an exec: never more than the program
-/// that exec'd it held, so a chain of execs cannot widen the box.
+/// that exec'd it held, so a chain of execs cannot widen the box. SERVE_ONE
+/// is kept only into the same field (LinuxAppPolicy::exec_keeps).
 pub const fn narrow(parent: u64, program: u64) -> u64 {
     parent & program
 }
