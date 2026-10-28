@@ -62,11 +62,11 @@ Explained in [Build](../build/README.md). Code: `tools/nix/image.nix`,
 The wipe `terminate` runs before every shutdown and restart. It stops the other
 CPUs and the claimed devices, wipes DMA buffers, process memory, kernel stacks,
 file system caches, the key vault, the RAM log and the kernel heap, then hands
-the machine to the firmware. A kernel panic, a forced power-off or a power cut
-skips it, and apart from the RAM log it does not reach kernel statics outside
-the heap, the data volume key among them, or a live stick's in-memory volume. In
-0.9.2 only the installer's restart runs it, since the desktop cannot shut down.
-Explained in [Device secrets and
+the machine to the firmware. A forced power-off or a power cut skips it, and a
+kernel panic wipes only the kernel heap before it powers off. Apart from the RAM
+log it does not reach kernel statics outside the heap, the data volume key among
+them, or a live stick's in-memory volume. The desktop's Power Off and the
+installers' restart run it, through the power capsule. Explained in [Device secrets and
 keys](../security/device-secrets-and-keys.md#wiped-at-shutdown-and-reboot).
 Code: `src/security/zerostate/terminate.rs`,
 `src/security/hardening/memory_sanitization/api.rs`.
