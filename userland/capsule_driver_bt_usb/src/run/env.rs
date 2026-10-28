@@ -46,7 +46,7 @@ impl Env for CapsuleEnv {
         say(words);
     }
     fn show_passkey(&mut self, passkey: u32) {
-        say(&[b"to pair, type ", &digits(u64::from(passkey), 6), b" on the keyboard, then Enter"]);
+        say(&[b"to pair, type the passkey Settings shows on the keyboard, then Enter"]);
         self.desk.board().ask(Part::Show(passkey));
     }
     fn battery(&mut self, b: Battery) {
