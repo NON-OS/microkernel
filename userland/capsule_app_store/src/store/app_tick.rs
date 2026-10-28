@@ -27,11 +27,24 @@ pub(super) fn tick(state: &mut State) -> bool {
         return true;
     }
     let moved = state.any_pending() && state.poll_pending();
+    let others = poll_others(state);
     let fetched = state.poll_fetch() | state.watch_order() | state.watch_proof();
     if moved {
         // "install requested" is stale once the system has said more.
         state.asked = None;
     }
     let filled = state.fill() == Step::Shown;
-    moved || fetched || filled
+    moved || others || fetched || filled
+}
+
+/// Every few seconds, every Linux listing: an install the Terminal asked
+/// for, or one asked before this window opened, shows here as it goes and
+/// how it ended, rather than as never asked until `r`.
+fn poll_others(state: &mut State) -> bool {
+    let now = nonos_libc::mk_uptime_ms();
+    if now < state.others_at_ms {
+        return false;
+    }
+    state.others_at_ms = now.saturating_add(3_000);
+    state.poll_all()
 }
