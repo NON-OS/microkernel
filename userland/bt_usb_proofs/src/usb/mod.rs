@@ -18,4 +18,5 @@
 pub mod choose;
 #[path = "../../../capsule_driver_bt_usb/src/usb/limit.rs"]
 pub mod limit;
+mod mediatek;
 mod reply_tests;
