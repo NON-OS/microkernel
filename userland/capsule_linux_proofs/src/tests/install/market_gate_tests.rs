@@ -19,11 +19,13 @@
 
 use super::market_tests::{market, policy, ready};
 
-/* The listed arguments on the same word, and where they go after it. */
+/* The listed arguments and extras on the same word, and where they go after it. */
 #[path = "listed_args_tests.rs"]
 mod listed_args_tests;
 #[path = "market_args_tests.rs"]
 mod market_args_tests;
+#[path = "market_with_tests.rs"]
+mod market_with_tests;
 use crate::install::market::arg::Market;
 use crate::install::market::check::{gate, without_box};
 

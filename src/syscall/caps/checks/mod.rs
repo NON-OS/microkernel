@@ -22,6 +22,7 @@ mod core_exec;
 mod fs;
 mod graphics;
 mod hardware;
+mod install_status;
 mod ipc;
 mod memory;
 mod system;
