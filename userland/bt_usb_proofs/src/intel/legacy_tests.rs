@@ -17,7 +17,8 @@
 use super::loader::carried::carried;
 use super::loader::ddc::entries;
 use super::model::Intel;
-use super::rig::{ops_after, run, tlv};
+use super::rig::{run, tlv};
+use super::rig_ops::ops_after;
 use nonos_bt_hci::HciError;
 
 /// An AX201 whose Read Version names ibt-19-<hw>-<fw>, in its bootloader.

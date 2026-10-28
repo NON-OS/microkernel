@@ -33,3 +33,17 @@ pub(super) const BZRU_SFI: &[u8] =
     include_bytes!("../../../../../nonos-bootloader/firmware/intel/ibt-0291-0291.sfi");
 pub(super) const BZRU_DDC: &[u8] =
     include_bytes!("../../../../../nonos-bootloader/firmware/intel/ibt-0291-0291.ddc");
+pub(super) const CCP_13_SFI: &[u8] =
+    include_bytes!("../../../../../nonos-bootloader/firmware/intel/ibt-20-1-3.sfi");
+pub(super) const CCP_13_DDC: &[u8] =
+    include_bytes!("../../../../../nonos-bootloader/firmware/intel/ibt-20-1-3.ddc");
+pub(super) const CCP_14_SFI: &[u8] =
+    include_bytes!("../../../../../nonos-bootloader/firmware/intel/ibt-20-1-4.sfi");
+pub(super) const CCP_14_DDC: &[u8] =
+    include_bytes!("../../../../../nonos-bootloader/firmware/intel/ibt-20-1-4.ddc");
+pub(super) const BZRI_IML: &[u8] =
+    include_bytes!("../../../../../nonos-bootloader/firmware/intel/ibt-0190-0291-iml.sfi");
+pub(super) const BZRI_SFI: &[u8] =
+    include_bytes!("../../../../../nonos-bootloader/firmware/intel/ibt-0190-0291-usb.sfi");
+pub(super) const BZRI_DDC: &[u8] =
+    include_bytes!("../../../../../nonos-bootloader/firmware/intel/ibt-0190-0291-usb.ddc");
