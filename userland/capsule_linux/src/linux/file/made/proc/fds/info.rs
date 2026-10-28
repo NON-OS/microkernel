@@ -26,7 +26,7 @@ use super::list::{CONSOLE_IN, CONSOLE_OUT, PIPES, SOCKETS};
 
 pub fn fd_target(f: &Fd) -> Vec<u8> {
     match f.kind {
-        Kind::File | Kind::Dir | Kind::Device => f.path.clone(),
+        Kind::File | Kind::Dir | Kind::Device | Kind::Pty => f.path.clone(),
         Kind::Stdin => alloc::format!("pipe:[{CONSOLE_IN}]").into_bytes(),
         Kind::Stdout | Kind::Stderr => alloc::format!("pipe:[{CONSOLE_OUT}]").into_bytes(),
         Kind::Pipe => alloc::format!("pipe:[{}]", PIPES + u64::from(f.handle)).into_bytes(),
