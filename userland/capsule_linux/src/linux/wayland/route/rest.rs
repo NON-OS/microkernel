@@ -44,10 +44,10 @@ pub fn route(
         (Some(Popup), POPUP_GRAB) => popup::grab::grab(guest, id, args),
         // A window minimized ends its popups' grabs, as a focus-out will.
         (Some(XdgToplevel), TOPLEVEL_SET_MINIMIZED) => popup::ends::end_all(guest),
+        (Some(XdgToplevel), TOPLEVEL_SET_PARENT) => popup::dialog::set_parent(guest, id, args),
         (
             Some(XdgToplevel),
-            TOPLEVEL_SET_PARENT
-            | TOPLEVEL_SHOW_WINDOW_MENU
+            TOPLEVEL_SHOW_WINDOW_MENU
             | TOPLEVEL_MOVE
             | TOPLEVEL_RESIZE
             | TOPLEVEL_SET_MAX_SIZE
