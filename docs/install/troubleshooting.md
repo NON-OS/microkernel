@@ -195,12 +195,12 @@ The two `refused with EIO` lines print when a program, such as the model fetcher
 - The installer
   - The Welcome messages: `load` in `userland/capsule_install/src/install/source/load.rs:51-64`.
   - No disk, and RST or VMD: `NO_DISK` and `RAID` in `userland/capsule_install/src/install/ui/screens/disks.rs:34-36`.
-  - The boot disk not offered: `withheld` in `userland/nonos_blk_client/src/disks/scan.rs:139-150`.
+  - The boot disk not offered: `withheld` in `userland/nonos_blk_client/src/disks/rows.rs:45-59`.
   - Too small, a refused transfer, a failed read-back: `WriteError` in `userland/nonos_disk/src/writer/error_text.rs:26-41`.
   - 4096-byte blocks: `refusal` in `userland/nonos_blk_client/src/disks/describe.rs:48-56`.
-  - The store still loading: `store_settled` in `userland/capsule_install/src/install/job/prepare.rs:46-48`.
-  - Stopped by you: `Outcome` in `userland/capsule_install/src/install/event/cancel.rs:36-43`.
-  - The Stopped screen: `paint` in `userland/capsule_install/src/install/ui/screens/failed.rs:37-57`.
+  - The store still loading: `store_settled` in `userland/capsule_install/src/install/job/plan.rs:45-47`.
+  - Stopped by you: `Outcome` in `userland/capsule_install/src/install/event/cancel.rs:39-50`.
+  - The Stopped screen: `paint` in `userland/capsule_install/src/install/ui/screens/failed.rs:39-77`.
 - After installing
   - `[DATA] no machine key` and `MachineKey`: `open_machine_volume` in `src/fs/blockfs_volume/open_machine.rs:73-77`.
   - `Unopenable`, and `[DATA] formatted a volume of` on the console: `mount_or_format` in `src/fs/blockfs_volume/mount_or_format.rs:64-76`.
