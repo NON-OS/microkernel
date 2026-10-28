@@ -17,8 +17,8 @@
 //! `market uninstall <id>`: ask the system to take away what installing a
 //! listing put on this machine. A package's files go; a Qwen tier's model
 //! files go off the data volume, and its program, part of the image, stays.
-//! The system's answer comes as the listing's status, which `market info`
-//! shows as it goes.
+//! The system's answer comes as the listing's status, which this Terminal
+//! follows until it ends, and `market info` shows as it goes.
 
 use alloc::format;
 use alloc::string::String;
@@ -42,6 +42,7 @@ pub(super) fn run(out: &mut Output<'_>, id: &[u8]) {
     let stage = Stage::of(mk_app_install_status(id));
     match stage {
         s if s.pending() => {
+            super::follow::asked(id, s != Stage::Installing, 0);
             return out.writeln(format!("market: {name}: {}", stage_text(id, s)).as_bytes());
         }
         /*
@@ -57,8 +58,8 @@ pub(super) fn run(out: &mut Output<'_>, id: &[u8]) {
         }
         _ => {}
     }
-    let line = match mk_app_uninstall(id) {
-        0 => format!("market: {name}: uninstall queued; `market info {name}` shows how it goes"),
+    let line = match super::follow::asked(id, true, mk_app_uninstall(id)) {
+        0 => format!("market: {name}: uninstall queued; this Terminal says when it is done"),
         EBUSY => format!("market: {name} is queued already, or the queue is full (EBUSY)"),
         EINVAL => format!("market: the system refused {name} as a listing id (EINVAL)"),
         e => format!("market: the system refused the uninstall (errno {})", -e),
