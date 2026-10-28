@@ -34,6 +34,7 @@ mod report_path_tests;
 mod report_tests;
 mod run_line_tests;
 mod seal_box_tests;
+mod seal_family_tests;
 mod seal_slot_tests;
 mod selftest_panic_tests;
 mod sites_tests;
