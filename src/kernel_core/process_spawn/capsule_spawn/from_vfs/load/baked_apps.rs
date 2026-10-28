@@ -37,6 +37,7 @@ pub(crate) const APPS: &[(&str, &str)] = &[
     ("app.prove.job", ""),
     ("app.settings", "systems.nonos.app.settings"),
     ("app.setup_wizard", "systems.nonos.app.setup_wizard"),
+    ("app.simplex", "systems.nonos.app.simplex"),
     ("app.snake", "systems.nonos.app.snake"),
     ("app.store", "systems.nonos.app.store"),
     ("app.terminal", "systems.nonos.app.terminal"),

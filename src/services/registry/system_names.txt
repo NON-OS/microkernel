@@ -47,6 +47,7 @@ app.settings
 app.settings.1
 app.settings.2
 app.setup_wizard
+app.simplex
 app.snake
 app.snake.1
 app.snake.2
@@ -260,6 +261,7 @@ endpoint.app.settings.1.reply
 endpoint.app.settings.2.reply
 endpoint.app.settings.reply
 endpoint.app.setup_wizard.reply
+endpoint.app.simplex.reply
 endpoint.app.snake.1.reply
 endpoint.app.snake.2.reply
 endpoint.app.snake.reply
