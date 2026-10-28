@@ -21,7 +21,7 @@
 
 use crate::linux::abi::errno;
 
-use super::super::super::space::quota::copies_allow;
+use super::super::super::space::copies_allow;
 use super::names::bytes as held_bytes;
 use super::table::{now, size, with, MAX_FILE};
 use super::too_large::too_large;

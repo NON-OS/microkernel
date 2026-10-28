@@ -54,10 +54,10 @@ fn held_to(now: Kept, then: Kept, bytes: u64, names: u64) -> Result<(), i64> {
  * when the copies hold `total` bytes together. The copies are this
  * capsule's own memory, and a family that writes many files and closes
  * none puts nothing in the store for the quota to see, so the copies
- * together are held to the same ceiling: no number of files open at once
- * holds more of this capsule than the store would take of them.
+ * together are held to `most`, what the store would take of them: its
+ * private directories and its home (space/copies.rs).
  */
-pub fn copies_allow(total: u64, was: u64, len: u64) -> Result<(), i64> {
+pub fn copies_allow(total: u64, was: u64, len: u64, most: u64) -> Result<(), i64> {
     let then = total.saturating_sub(was).saturating_add(len);
-    allows(Kept { bytes: total, names: 0 }, Kept { bytes: then, names: 0 })
+    held_to(Kept { bytes: total, names: 0 }, Kept { bytes: then, names: 0 }, most, 0)
 }
