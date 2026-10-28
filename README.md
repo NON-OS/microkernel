@@ -186,8 +186,10 @@ constrains.
 Drivers are written to the device class, so a machine that presents the class is served by the
 same driver: NVMe and AHCI storage, xHCI with USB HID and mass storage, PS/2 and I2C-HID
 keyboards and touchpads, HDA audio, the UEFI GOP display, e1000, RTL8139, RTL8169 and virtio
-under QEMU. Wi-Fi joins WPA2 and WPA3 networks on the RTL8821CE and on Intel AX211. A driver
-whose device is missing leaves at once, and one whose device fails gives up after a few seconds.
+under QEMU. Wi-Fi works on the RTL8821CE on real hardware (the owner's HP laptop, 0.9.3); the Intel,
+RTL8822CE, RTL8852BE and MediaTek drivers join WPA2 and WPA3 networks in their host models only and
+have not yet run on a card. A driver whose device is missing leaves at once, and one whose
+device fails gives up after a few seconds.
 
 Each driver, what it does and what a boot must still confirm on it are in
 [drivers](docs/drivers/README.md) and
