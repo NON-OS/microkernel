@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One GTK preparation tool, run to its end as a guest of its own.
+//! One GTK preparation tool, run to its end as a guest of its own. A tool
+//! the store does not hold but the built-in BusyBox serves runs as that.
 
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
 use nonos_libc::mk_foreign_spawn;
 
+use super::super::built_in;
 use super::super::file::{key, store_read};
 use super::super::guest::{Guest, Links};
 use super::super::launch::Launch;
@@ -29,14 +31,17 @@ use super::HELPING;
 
 /// One tool, run to its end; one that does not run is no worse than none.
 pub(super) fn helper(path: &[u8], args: &[&[u8]]) {
-    let Ok(bytes) = store_read(&key(path), MAX_IMAGE) else { return };
+    let launch = match store_read(&key(path), MAX_IMAGE) {
+        Ok(bytes) => Launch::store(path.to_vec(), bytes, Vec::new()),
+        Err(_) if built_in::serves(path).is_some() => built_in::built_in(),
+        Err(_) => return,
+    };
     let Ok(pid) = u32::try_from(mk_foreign_spawn(b"linux")) else { return };
     let mut guest = Guest::new(pid);
     guest.links = alloc::rc::Rc::new(Links::load());
-    let args: Vec<Vec<u8>> = args.iter().map(|a| a.to_vec()).collect();
+    let launch = Launch { args: args.iter().map(|a| a.to_vec()).collect(), ..launch };
     HELPING.store(true, Ordering::Relaxed);
-    let started =
-        super::super::start_guest::start(&mut guest, Launch::store(path.to_vec(), bytes, args));
+    let started = super::super::start_guest::start(&mut guest, launch);
     HELPING.store(false, Ordering::Relaxed);
     if started.is_err() || super::super::serve::serve(guest) != 0 {
         say(b"[LINUX] a GTK preparation tool did not run cleanly\n");
