@@ -23,7 +23,14 @@ use nonos_libc::mk_debug;
 use super::apps::{wanted, Wanted};
 use crate::linux::file::family::{chosen, Family};
 
-pub fn install(pkg: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
+/// `extras` are a market release's extra packages (market/tail.rs), which
+/// only an Alpine package's closure takes: a tier, a tool or another family
+/// refuses them.
+pub fn install(pkg: &str, pin: &[u8; 32], extras: &[&str]) -> Result<(), super::Why> {
+    let alpine = matches!(wanted(pkg), Wanted::Package) && chosen() == Family::Alpine;
+    if !extras.is_empty() && !(alpine && super::tools::tool(pkg).is_none()) {
+        return Err(super::Why::POLICY);
+    }
     /*
      * A tier the personality ships is installed from the image, its model
      * brought as a dependency. A name in the tiers' namespace that is no
@@ -51,6 +58,6 @@ pub fn install(pkg: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
     match chosen() {
         Family::Pacman => super::pacman::install(pkg, pin),
         Family::Debian => super::deb::install(pkg, pin),
-        Family::Alpine => super::run::install(pkg, pin),
+        Family::Alpine => super::run::install(pkg, pin, extras),
     }
 }

@@ -1,0 +1,61 @@
+{
+  "schema_version": 4,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.mpv",
+      "capsule_id": "f1ed1a68d23815f91519338c7aeee92bd39f9028f29ebe217e8d6239ad706bb6",
+      "name": "mpv (media player)",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A media player in its own window, for the video and audio files in its own home. It draws in software, with no GPU, and has no network at all, so it plays only what is already in its home.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "mpv@0.38.0-r0",
+          "manifest_hash": "f1ed1a68d23815f91519338c7aeee92bd39f9028f29ebe217e8d6239ad706bb6",
+          "package_hash": "f1ed1a68d23815f91519338c7aeee92bd39f9028f29ebe217e8d6239ad706bb6",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/mpv-0.38.0-r0.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c30310100000000000000d518704d97a1be3febbe4111fcdfdd14703a4fa60e4b4e46a62b1ec075a36e2c0900000000000000155a7326262d3a1d68272f2c664545622559fe3aa7b0f3e85693672c1577f970f9ca22896e611d690e53f6df991e8554050fd3f869ce11435183b7bf49d1826b0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000004e4c584152473031030a2d2d766f3d776c73686d122d2d666f7263652d77696e646f773d7965730a2d2d69646c653d796573"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 1106767 bytes; licence GPL-2.0-or-later; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -17,15 +17,7 @@
 //! The console's pure pieces a pseudo-terminal's discipline reuses, at the
 //! crate paths it names in the capsule (`crate::linux::console`).
 
-#[path = "../../../../capsule_linux/src/linux/console/queue.rs"]
-pub mod queue;
-#[path = "../../../../capsule_linux/src/linux/console/queue_piece.rs"]
-pub mod queue_piece;
-#[path = "../../../../capsule_linux/src/linux/console/queue_take.rs"]
-pub mod queue_take;
 #[path = "../../../../capsule_linux/src/linux/console/termios.rs"]
 pub mod termios;
-#[path = "../../../../capsule_linux/src/linux/console/tty_rules.rs"]
-pub mod tty_rules;
-#[path = "../../../../capsule_linux/src/linux/console/wipe.rs"]
-pub mod wipe;
+// The rest are the crate's own console pieces, mounted once (console/mod.rs).
+pub use crate::console::{queue, queue_piece, queue_take, tty_rules, wipe};
