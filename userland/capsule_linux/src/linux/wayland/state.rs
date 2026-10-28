@@ -54,4 +54,6 @@ pub struct Surface {
     pub frames: Vec<u32>,
     /// Set once a configure has been sent and acked.
     pub configured: bool,
+    /// Its buffer scale and viewport (present/scale_math.rs).
+    pub scale: super::present::scale_math::Scale,
 }
