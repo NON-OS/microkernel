@@ -3498,6 +3498,7 @@
    "userland/nonos_linux_pack",
    "userland/nonos_linux_policy",
    "userland/nonos_route_link",
+   "userland/nonos_serve_wire",
    "userland/nonos_socket",
    "userland/nonos_tls",
    "userland/openpgp",
