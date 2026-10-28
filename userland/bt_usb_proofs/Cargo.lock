@@ -18,6 +18,7 @@ dependencies = [
  "nonos_bt_proto",
  "nonos_bt_smp",
  "nonos_bt_wire",
+ "nonos_hash",
 ]
 
 [[package]]
@@ -139,6 +140,10 @@ dependencies = [
 [[package]]
 name = "nonos_bt_wire"
 version = "0.3.0"
+
+[[package]]
+name = "nonos_hash"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_p256"

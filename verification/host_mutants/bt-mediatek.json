@@ -1,0 +1,285 @@
+[
+ {
+  "name": "bt-mtk-phase-last-as-middle",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/load.rs",
+  "old": "(false, 0) => LAST,",
+  "new": "(false, 0) => MIDDLE,",
+  "test": "usb::mediatek::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-mtk-phase-first-as-middle",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/load.rs",
+  "old": "(true, _) => FIRST,",
+  "new": "(true, _) => MIDDLE,",
+  "test": "usb::mediatek::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-mtk-block-past-250",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/load.rs",
+  "old": "const BLOCK: usize = 250;",
+  "new": "const BLOCK: usize = 256;",
+  "test": "usb::mediatek::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-mtk-applied-sent-again",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/load.rs",
+  "old": "2 => return Ok(true),",
+  "new": "2 => return Ok(false),",
+  "test": "usb::mediatek::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-mtk-semaphore-one-look-more",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/load.rs",
+  "old": "const LOOKS: usize = 20;",
+  "new": "const LOOKS: usize = 21;",
+  "test": "usb::mediatek::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-mtk-semaphore-timeout-ignored",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/load.rs",
+  "old": "    Err(Fail::Busy)\n",
+  "new": "    Ok(false)\n",
+  "test": "usb::mediatek::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-mtk-unknown-status-taken",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/load.rs",
+  "old": "_ => return Err(Fail::Status),",
+  "new": "_ => return Ok(false),",
+  "test": "usb::mediatek::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-mtk-hash-not-held",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/fetch.rs",
+  "old": "Some(d) if d == f.sha256 => Ok(buf),",
+  "new": "Some(_) => Ok(buf),",
+  "test": "usb::mediatek::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-mtk-longer-file-taken",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/fetch.rs",
+  "old": "if at != f.len {",
+  "new": "if at < f.len {",
+  "test": "usb::mediatek::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-mtk-missing-as-empty",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/fetch.rs",
+  "old": "n if n < 0 && at == 0 => return Err(Fail::Missing),",
+  "new": "n if n < 0 && at == 0 => break,",
+  "test": "usb::mediatek::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-mtk-reset-before-pin",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/setup.rs",
+  "old": "    let img = fetch(p, for_chip(files, chip))?;\n    reset(p, chip)?;\n",
+  "new": "    reset(p, chip)?;\n    let img = fetch(p, for_chip(files, chip))?;\n",
+  "test": "usb::mediatek::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-mtk-func-on-skipped",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/setup.rs",
+  "old": "    wmt(p, OP_FUNC_CTRL, 0, &[1])?;\n",
+  "new": "",
+  "test": "usb::mediatek::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-mtk-section-past-file",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/image.rs",
+  "old": "is_none_or(|end| end > img.len())",
+  "new": "is_none_or(|end| end > img.len() + 1)",
+  "test": "usb::mediatek::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-mtk-section-count-unbounded",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/image.rs",
+  "old": "if count > MOST {",
+  "new": "if count > MOST + 1 {",
+  "test": "usb::mediatek::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-mtk-answer-any-op",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/wmt.rs",
+  "old": "ev[0] == EVENT && ev[3] == op",
+  "new": "ev[0] == EVENT",
+  "test": "usb::mediatek::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-mtk-answer-wait-short",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/wmt.rs",
+  "old": "const WAIT_MS: usize = 10_000;",
+  "new": "const WAIT_MS: usize = 5_000;",
+  "test": "usb::mediatek::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-mtk-reset-done-ignored",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/reset.rs",
+  "old": "match done && read(p, DEV_ID)? != 0 {",
+  "new": "match read(p, DEV_ID)? != 0 {",
+  "test": "usb::mediatek::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-mtk-mt7922-reset-bits",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/reset.rs",
+  "old": "uhw_write(p, SUBSYS_RST, v | 0x2020)?;",
+  "new": "uhw_write(p, SUBSYS_RST, v | 0x2000)?;",
+  "test": "usb::mediatek::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-mtk-flavour-1a-taken",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/chip.rs",
+  "old": "(0x7961, false, 2) => Ok(Chip::Mt7961),",
+  "new": "(0x7961, _, 2) => Ok(Chip::Mt7961),",
+  "test": "usb::mediatek::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-mtk-vendor-0e8d-lost",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/ids.rs",
+  "old": "MEDIATEK => true,",
+  "new": "MEDIATEK => product == 0x0608,",
+  "test": "usb::mediatek::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-mtk-kind-on-wifi",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/files.rs",
+  "old": "pub const KIND_FIRST: u64 = 0x26;",
+  "new": "pub const KIND_FIRST: u64 = 0x24;",
+  "test": "usb::mediatek::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-mtk-kernel-serves-six",
+  "file": "src/syscall/microkernel/install_source_kinds.rs",
+  "old": "pub const FIRMWARE_FILES: u32 = 8;",
+  "new": "pub const FIRMWARE_FILES: u32 = 6;",
+  "test": "",
+  "cmd": [
+   "python3",
+   "scripts/check_mediatek_firmware.py"
+  ],
+  "crate": ".",
+  "args": []
+ },
+ {
+  "name": "bt-mtk-loader-drops-mt7922",
+  "file": "nonos-bootloader/src/entry/firmware_package.rs",
+  "old": "    uefi::cstr16!(\"\\\\EFI\\\\nonos\\\\firmware\\\\mediatek\\\\BT_RAM_CODE_MT7922_1_1_hdr.bin\"),\n",
+  "new": "",
+  "test": "",
+  "cmd": [
+   "python3",
+   "scripts/check_mediatek_firmware.py"
+  ],
+  "crate": ".",
+  "args": []
+ },
+ {
+  "name": "bt-mtk-nix-other-length",
+  "file": "tools/nix/firmware.json",
+  "old": "\"size\": 517398",
+  "new": "\"size\": 517399",
+  "test": "",
+  "cmd": [
+   "python3",
+   "scripts/check_mediatek_firmware.py"
+  ],
+  "crate": ".",
+  "args": []
+ },
+ {
+  "name": "bt-mtk-pin-other-hash",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/mediatek/pins.rs",
+  "old": "299942dbec7d34af030670ea59f9f7b4fd5c64e738b9e0157d76f4dd3beb190f",
+  "new": "299942dbec7d34af030670ea59f9f7b4fd5c64e738b9e0157d76f4dd3beb1900",
+  "test": "",
+  "cmd": [
+   "python3",
+   "scripts/check_mediatek_firmware.py"
+  ],
+  "crate": ".",
+  "args": []
+ }
+]
