@@ -35,7 +35,7 @@ def guest_policy(recipe: dict, program: bytes, publisher: bytes, app: str, rel: 
     lid = listing_id(publisher, app)
     hashed = dests_hash(recipe["dests"]) if recipe["dests"] else bytes(32)
     return encode(bytes.fromhex(blake3(program)), recipe["mask"], lid, release_id(lid, rel), hashed,
-                  recipe["calls"]) + recipe.get("args", b"") + recipe.get("with_block", b"")
+                  recipe["calls"], recipe.get("serve")) + recipe.get("args", b"") + recipe.get("with_block", b"")
 
 
 def one(recipe: dict, rec: dict, raw: bytes, key: str, when_ms: int) -> dict:
