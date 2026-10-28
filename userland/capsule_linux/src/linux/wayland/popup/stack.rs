@@ -39,9 +39,6 @@ pub struct Popups {
     pub positioners: Vec<(u32, Positioner)>,
     /// The serial of the latest press, key or button, this client was sent.
     pub last_press: Option<u32>,
-    /// Toplevels with a parent, laid as grabbing layers (dialog.rs); a
-    /// popup's end never ends them.
-    pub dialogs: Vec<u32>,
 }
 
 impl Popups {
