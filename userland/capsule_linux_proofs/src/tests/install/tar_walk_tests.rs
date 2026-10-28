@@ -28,7 +28,8 @@ use super::tar_build::{block, file, head};
 fn a_size_that_is_not_octal_or_runs_past_the_data_ends_the_walk() {
     let first = file("usr/a", b"one");
     for bad in [head("usr/b", "9", b'0', "", None), head("usr/b", "7777", b'0', "", None)] {
-        let w = walk(&[first.clone(), bad, block(b"x")].concat());
+        let data = [first.clone(), bad, block(b"x")].concat();
+        let w = walk(&data);
         let names: Vec<&[u8]> = w.entries.iter().map(|e| e.name.as_slice()).collect();
         assert_eq!(names, [b"usr/a"]);
     }
@@ -63,3 +64,6 @@ fn ustar_prefix_goes_in_front_only_when_set() {
     assert_eq!(w.entries[1].name, b"y");
     assert_eq!(unpacked(&set).as_deref(), Some(&set[..]), "an uncompressed tar passes as it is");
 }
+
+#[path = "install_memory_tests.rs"]
+mod memory;

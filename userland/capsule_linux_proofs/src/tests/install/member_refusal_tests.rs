@@ -30,7 +30,8 @@ fn a_dotdot_component_or_an_absolute_name_fails_the_package() {
         assert_eq!(member_refused(n), Some(Refused::Escapes), "{:?}", core::str::from_utf8(n));
     }
     assert_eq!(member_refused(b"/etc/passwd"), Some(Refused::Absolute));
-    let w = walk(&head("x", "0", b'5', "", Some("/etc")));
+    let data = head("x", "0", b'5', "", Some("/etc"));
+    let w = walk(&data);
     assert_eq!(member_refused(&w.entries[0].name), Some(Refused::Absolute), "ustar's prefix");
 }
 
