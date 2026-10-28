@@ -25,3 +25,7 @@ serial; seeds were never captured.
   mirror over Nym. `linux monero-wallet-cli --version` 67 s into the
   install: [EXIT] code=1 app.linux.term, then at once [EXIT] code=5
   app.linux.install.
+- gcaf2-linux-mid-install.log: caf7aeba61, Nym. `linux monero-wallet-cli
+  --version` typed 15 s into `market install linux.monero`: line 1762
+  "[LINUX] installing", 1779 "[EXIT] code=1 app.linux.term", 1962
+  "[LINUX] installed"; heap lines of 327680 KiB.
