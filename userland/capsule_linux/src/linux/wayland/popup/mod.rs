@@ -17,6 +17,8 @@
 //! against its parent and composed into the parent's window.
 
 pub mod axis;
+pub mod dialog;
+pub mod dialog_lay;
 pub mod ends;
 pub mod gone;
 pub mod grab;
