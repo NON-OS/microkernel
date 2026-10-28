@@ -50,6 +50,7 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
         let Some(rec): Option<&Record> =
             group.iter().find_map(|n| find(&index, n, done.is_empty()))
         else {
+            crate::linux::install::refuse::tell(&group.join(" | "), "", "nothing provides it");
             return say(b"[LINUX] nothing provides it\n", Why::NOT_PROVIDED);
         };
         if done.contains(&rec.name) {
