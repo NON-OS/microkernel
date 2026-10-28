@@ -15,8 +15,9 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """Reading the catalogue's lock (lock.py): a versioned object of pins, one
 a package, each its index record's version, checksum and size, its
-.apk's BLAKE3, and its logo's source and raster BLAKE3s ("" for no logo). A file of any other format, shape or encoding is refused
-whole, never read in part."""
+.apk's BLAKE3, and its logo's source and raster BLAKE3s ("" for no logo);
+an extra a recipe adds (listed_with.py) has its index record's alone. A
+file of any other format, shape or encoding is refused whole, never read in part."""
 
 import json
 from pathlib import Path
@@ -32,7 +33,7 @@ MAX_BYTES = 1 << 20
 
 
 def read(path: Path) -> dict:
-    """{package: {V, C, S, B, G, R}}, or ValueError (TypeError for a wrong type)."""
+    """{package: {V, C, S, B, G, R} or, for an extra, {V, C, S}}, or ValueError (TypeError for a wrong type)."""
     if not path.is_file():
         raise ValueError(f"{path}: no lock; make one with --update-lock and commit it")
     raw = path.read_bytes()
@@ -48,10 +49,10 @@ def read(path: Path) -> dict:
     if not isinstance(pins, dict):
         raise TypeError(f"{path}: packages is not an object")
     for name, pin in pins.items():
-        if package(name) != name or not isinstance(pin, dict) or set(pin) != set(PINNED + LOGO):
-            raise ValueError(f"{path}: {name!r} is not pinned by {', '.join(PINNED + LOGO)}")
-        if version(pin["V"]) != pin["V"] or not all(isinstance(pin[f], str) and pin[f] for f in PINNED):
+        if package(name) != name or not isinstance(pin, dict) or set(pin) not in (set(PINNED + LOGO), set(FIELDS)):
+            raise ValueError(f"{path}: {name!r} is not pinned by {', '.join(PINNED + LOGO)}, or an extra's {FIELDS}")
+        if version(pin["V"]) != pin["V"] or not all(isinstance(pin[f], str) and pin[f] for f in PINNED if f in pin):
             raise ValueError(f"{path}: {name}: a pin is not a version, checksum and size")
-        if not all(isinstance(pin[f], str) and len(pin[f]) in (0, 64) and HEX >= set(pin[f]) for f in LOGO):
+        if not all(isinstance(pin[f], str) and len(pin[f]) in (0, 64) and HEX >= set(pin[f]) for f in LOGO if f in pin):
             raise ValueError(f"{path}: {name}: a logo pin is not a BLAKE3 in hex, or \"\"")
     return pins
