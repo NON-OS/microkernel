@@ -44,6 +44,33 @@ released, the modifier bits, the Disconnect reason, a PDU dropped when no
 buffer is free, the peer's early reads not answered, and keys posted from
 a Just Works bond.
 
+## Intel firmware download
+
+`src/intel/` mounts the capsule's `src/vendor/intel/` unchanged and runs it
+against `model*.rs`, an Intel controller written from btintel.c's and
+btusb.c's description: Read Version in TLV and old form, Read Boot Params,
+Secure Send on bulk OUT with a Command Complete for each fragment, the
+Secure Send Result once the last data octet has come, Intel Reset into the
+firmware answered by the bootup event alone, DDC and the event mask. Events
+go out in 16-octet interrupt transfers, or on bulk IN. The firmware sent is
+the carried linux-firmware files themselves.
+
+| File | Tests | What it checks |
+|---|---|---|
+| `intel/version_tests.rs` | 5 | the TLV fields kept, the running build and the bootloader's minimum, a TLV past the end, a stray octet, a short value, a firmware id that is not a name, the old form |
+| `intel/name_tests.rs` | 4 | CNVi/CNVr packing; ibt-0041-0041, ibt-1040-0041, ibt-0291-0291; Blazar's -iml and firmware id; ibt-19-32-1 in decimal, SfP and later not |
+| `intel/carried_tests.rs` | 3 | every carried file frames whole for each engine and names its boot address and build; WHENCE's links; aligned runs only |
+| `intel/send_tests.rs` | 4 | 252-octet fragments, kind first; the ECDSA header, then every command; the RSA header in five fragments; headers missing for an engine |
+| `intel/flow_tests.rs` | 5 | an AX210 loaded, booted, DDC, mask, Reset; events on bulk IN and a result before the last Complete; the carried build already running not loaded; another build sent back; a product not marked combined left alone |
+| `intel/legacy_tests.rs` | 4 | an AX201 in the old form by its link; a TLV-answering HrP asked again; Limited_CCE refused; a running AX201 left running |
+| `intel/refuse_tests.rs` | 4 | rejected firmware not booted and sent back; a refused fragment; firmware not carried refused by name; another platform or variant |
+| `intel/timeout_tests.rs` | 2 | no bootup event: a second, then back to the bootloader; no Secure Send Result: five seconds |
+| `intel/ddc_tests.rs` | 2 | DDC entries length first; the carried DDC entry by entry after boot |
+
+`verification/host_mutants/bt-intel.json` holds a mutant for each rule of
+the loader (36), each killed by `intel::`:
+`tools/nonos-host-mutants verification/host_mutants/bt-intel.json`.
+
 ```
 RUST_TEST_THREADS=1 cargo test --release --config profile.release.overflow-checks=true
 ```

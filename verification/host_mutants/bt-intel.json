@@ -1,0 +1,398 @@
+[
+ {
+  "name": "bt-intel-cnvi-bt-type",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/tlv.rs",
+  "old": "0x12 => v.cnvi_bt = le32()?,",
+  "new": "0x13 => v.cnvi_bt = le32()?,",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-tlv-trailing-octet-kept",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/tlv.rs",
+  "old": "ret.is_empty().then_some(v)",
+  "new": "Some(v)",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-min-fw-not-last",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/tlv.rs",
+  "old": "0x2d => v.build.copy_from_slice(val.get(..3)?),",
+  "new": "0x2d => {}",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-fw-id-any-octet",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/name.rs",
+  "old": "id.iter().all(named)",
+  "new": "id.iter().all(|_| true)",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-name-not-swapped",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/name.rs",
+  "old": "(kind << 4 | step).swap_bytes()",
+  "new": "(kind << 4 | step)",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-iml-from-0x1f",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/name.rs",
+  "old": "if v.variant() < 0x1e {",
+  "new": "if v.variant() < 0x1f {",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-iml-not-for-running",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/name.rs",
+  "old": "(sfi && v.img_type == IMG_OP)",
+  "new": "(false && v.img_type == IMG_OP)",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-old-name-hex",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/legacy.rs",
+  "old": "format!(\"ibt-{}-{}-{}\"",
+  "new": "format!(\"ibt-{:x}-{}-{}\"",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-old-platform-any",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/legacy.rs",
+  "old": "let &[0x37, variant,",
+  "new": "let &[_, variant,",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-limited-cce-ignored",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/legacy.rs",
+  "old": "if p.len() != 22 || p[20] != 0 {",
+  "new": "if p.len() != 22 {",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-link-4150-lost",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/carried.rs",
+  "old": "&[\"0041\", \"4150\", \"1050\"]",
+  "new": "&[\"0041\", \"1050\"]",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-fragment-253",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/send.rs",
+  "old": "pub const FRAGMENT_MAX: usize = 252;",
+  "new": "pub const FRAGMENT_MAX: usize = 253;",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-ecdsa-key-128",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/sfi.rs",
+  "old": "(PKEY, 772, 96)",
+  "new": "(PKEY, 772, 128)",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-ecdsa-engine-sends-rsa",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/sfi.rs",
+  "old": "(false, 1) => (ecdsa,",
+  "new": "(false, 1) => (rsa,",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-rsa-payload-after-ecdsa",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/sfi.rs",
+  "old": "(true, 0) => (rsa, RSA_LEN),",
+  "new": "(true, 0) => (rsa, RSA_LEN + ECDSA_LEN),",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-css-version-unchecked",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/sfi.rs",
+  "old": "_ if at(0) != Some(0x0001_0000) =>",
+  "new": "_ if at(0) == Some(7) =>",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-runs-on-two",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/cmds.rs",
+  "old": "if len % 4 == 0 {",
+  "new": "if len % 2 == 0 {",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-ddc-length-octet-lost",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/ddc.rs",
+  "old": "split_at_checked(usize::from(*len) + 1)",
+  "new": "split_at_checked(usize::from(*len))",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-secure-send-on-control",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/ask.rs",
+  "old": "match self.hci.pipes().bulk_out(&packet).map_err(HciError::Transport)? {",
+  "new": "match self.hci.send_command(&packet).map(|()| packet.len())? {",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-fragment-status-ignored",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/ask.rs",
+  "old": "Some((&s, _)) => Err(HciError::Status(Opcode(op), s)),",
+  "new": "Some((_, rest)) => Ok(rest.to_vec()),",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-bulk-events-dropped",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/wire.rs",
+  "old": "got.inspect(|&n| j.push(&buf[..n.min(BULK_READ)]));",
+  "new": "got.inspect(|_| ());",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-early-result-lost",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/wire.rs",
+  "old": "self.result = Some(*r);",
+  "new": "let _ = r;",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-rejected-firmware-taken",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/download.rs",
+  "old": "Some(0) => Ok(()),",
+  "new": "Some(_) => Ok(()),",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-failed-download-kept",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/download.rs",
+  "old": "taken.inspect_err(|_| to_bootloader(w))",
+  "new": "taken.inspect_err(|_| ())",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-result-wait-short",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/download.rs",
+  "old": "const RESULT_LOOKS: u32 = 5_000;",
+  "new": "const RESULT_LOOKS: u32 = 500;",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-boot-option-current",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/boot.rs",
+  "old": "&[0x00, 0x01, 0x00, 0x01, a, b, c, d]",
+  "new": "&[0x00, 0x01, 0x00, 0x00, a, b, c, d]",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-boot-wait-long",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/boot.rs",
+  "old": "const BOOT_LOOKS: u32 = 1_000;",
+  "new": "const BOOT_LOOKS: u32 = 10_000;",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-boot-timeout-kept",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/boot.rs",
+  "old": "            to_bootloader(w);\n            Err(HciError::Timeout",
+  "new": "            Err(HciError::Timeout",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-other-build-kept",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/steps.rs",
+  "old": "ours.is_some_and(|(_, b)| b == build)",
+  "new": "ours.is_some()",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-ddc-skipped",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/steps.rs",
+  "old": "carried(stem).map_or(Ok(()), |c| ddc::load(w, c.ddc))?;",
+  "new": "carried(stem).map_or(Ok::<(), HciError>(()), |_| Ok(()))?;",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-no-reset",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/end.rs",
+  "old": "w.command(RESET, &[]).map(drop)",
+  "new": "Ok(())",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-no-event-mask",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/end.rs",
+  "old": "match w.command(EVENT_MASK, &[0x87, 0x0c, 0, 0, 0, 0, 0, 0]) {",
+  "new": "match Ok::<_, HciError>(()) {",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-old-parts-not-asked-again",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/flow.rs",
+  "old": "0x11..=0x14 => match legacy::parse(&w.command(READ_VERSION, &[])?) {",
+  "new": "0x11..=0x14 => match legacy::parse(&ret) {",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-any-platform",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/flow.rs",
+  "old": "Some(v) if v.platform() == 0x37 => Ok(v),",
+  "new": "Some(v) => Ok(v),",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-unknown-variant-loaded",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/flow.rs",
+  "old": "0x17..=0x19 | 0x1b..=0x1e => fresh(w, v),",
+  "new": "_ if true => fresh(w, v),",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-intel-combined-any",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/intel/ids.rs",
+  "old": "COMBINED.contains(&pid)",
+  "new": "pid != 0",
+  "test": "intel::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ }
+]
