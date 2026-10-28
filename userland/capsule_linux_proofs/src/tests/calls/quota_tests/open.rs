@@ -34,7 +34,7 @@ fn statfs_counts_the_names_left() {
 /// the same, far inside the capsule's heap.
 #[test]
 fn copies_held_open_together_stop_at_the_quota() {
-    const MAX_FILE: u64 = 8 << 20;
+    const MAX_FILE: u64 = crate::calls::loadavg::declared::HOME;
     let mut files = vec![0u64; 64];
     let mut me = 0;
     'open: while me < files.len() {
