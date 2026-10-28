@@ -23,5 +23,5 @@
 mod all;
 mod one;
 
-pub(super) use all::{others, settle};
+pub(super) use all::{installed, others, settle};
 pub(super) use one::{read, write};
