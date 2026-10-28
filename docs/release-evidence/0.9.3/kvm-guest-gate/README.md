@@ -17,3 +17,11 @@ serial; seeds were never captured.
   gives "[ANON] stream ended N 2" (RESOLVEFAILED); then set_daemon
   xmr-node.cakewallet.com:18081 this-is-probably-a-spy-node and refresh:
   status 3775093 / 3793833, syncing.
+- gcaf-nym-ringdb-fixed.log: test merge caf7aeba61 (s1/argv-alone + s1/land-g
+  e16e16d6b4), Nym, listing node. Installed, heap of 327680 KiB; the wallet
+  reopened with no ring database error and no unserved nr=274, syncing
+  3171087/3793858 over SSL.
+- owner-seal-694ba69799-code5.log: the owner's own release seal, real
+  mirror over Nym. `linux monero-wallet-cli --version` 67 s into the
+  install: [EXIT] code=1 app.linux.term, then at once [EXIT] code=5
+  app.linux.install.
