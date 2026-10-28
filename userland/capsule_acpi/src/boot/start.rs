@@ -25,6 +25,7 @@ use super::{assemble, bringup, first, load, report, tables};
 use crate::host::CapsuleHost;
 
 pub fn boot() -> Option<Acpi> {
+    crate::release::say();
     let smbios = crate::smbios::read();
     let t = tables::fetch()?;
     let mut host = CapsuleHost { facs: tables::map_facs(&t.fadt), ..CapsuleHost::default() };

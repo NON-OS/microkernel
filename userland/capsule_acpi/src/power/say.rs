@@ -16,7 +16,7 @@
 
 //! One line when what the kernel is told changes.
 
-use super::report::{AC_KNOWN, AC_ONLINE, BATTERY_PRESENT, UNKNOWN_PERCENT};
+use super::word::{AC_KNOWN, AC_ONLINE, BATTERY_PRESENT, UNKNOWN_PERCENT};
 use crate::sys::log::Line;
 
 pub(super) fn say(w: u64) {
