@@ -31,7 +31,11 @@ pub fn up<R: Mmio, M: DmaMem>(
     };
     status::line(b"[rtl8852be] firmware up, efuse and phy capabilities read\n");
     if p.caps.rx_b_only {
-        return Err((r, Stage::NoAirPath, b"[rtl8852be] one-antenna board not supported\n"));
+        return Err((
+            r,
+            Stage::NoAirPath,
+            b"[rtl8852be] one-antenna board: only two-antenna boards are driven\n",
+        ));
     }
     let s = match start(&r, &mut rings, &mut fw, &p) {
         Ok(s) => s,
