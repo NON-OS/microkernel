@@ -30,4 +30,7 @@ pub enum PolicyError {
     UnknownMask,
     /// A syscall bit past bucket 512.
     SyscallSet,
+    /// SERVE_ONE without its field or the field without it, a port of 0, or
+    /// a name that is not 1 to 32 of [a-z0-9._-] from a letter, zero padded.
+    Serve,
 }
