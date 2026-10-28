@@ -1,0 +1,58 @@
+[
+ {
+  "name": "serve-one-hold-admits-anyone",
+  "file": "src/services/registry/held_gate.rs",
+  "old": "        None => held_to.is_none_or(owns),",
+  "new": "        None => held_to.is_none_or(|_| true),",
+  "test": "ipc_held_tests::held_to::a_held_endpoint_admits_only_its_capsules_owner",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "serve-one-inbox-skips-the-hold",
+  "file": "src/services/registry/held_gate.rs",
+  "old": "endpoint_admits(name, held_to, &owns)",
+  "new": "endpoint_admits(name, None, &owns)",
+  "test": "ipc_held_tests::held_to::a_send_to_the_holder_by_pid_or_its_role_takes_the_hold",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "serve-one-name-loadable",
+  "file": "src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/baked_names.rs",
+  "old": "    (\"linux.serve\", \"\"),\n",
+  "new": "",
+  "test": "ipc_held_tests::serve_one::a_served_name_is_the_kernels_alone",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "serve-one-any-listing",
+  "file": "src/services/registry/serve_rule.rs",
+  "old": "n.as_bytes() == name && k == key",
+  "new": "n.as_bytes() == name",
+  "test": "ipc_held_tests::serve_one::only_the_run_role_serves_and_only_a_listed_pair",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "serve-one-any-caller",
+  "file": "src/services/registry/serve_rule.rs",
+  "old": "    if !role {",
+  "new": "    if false && !role {",
+  "test": "ipc_held_tests::serve_one::only_the_run_role_serves_and_only_a_listed_pair",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "serve-one-two-a-process",
+  "file": "src/services/registry/serve_rule.rs",
+  "old": "    !owned.any(|name| name.starts_with(SERVE_PREFIX))",
+  "new": "    owned.filter(|name| name.starts_with(SERVE_PREFIX)).count() < 2",
+  "test": "ipc_held_tests::serve_one::a_process_serves_one_endpoint",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "serve-one-key-drifts",
+  "file": "src/services/registry/serves.rs",
+  "old": "0xbb, 0xdb, 0x76, 0x6e,",
+  "new": "0xbb, 0xdb, 0x76, 0x6f,",
+  "test": "serves_key",
+  "crate": "userland/market_proofs"
+ }
+]

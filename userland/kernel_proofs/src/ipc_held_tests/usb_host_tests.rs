@@ -44,17 +44,12 @@ fn every_spawned_host_is_listed_and_held() {
 #[test]
 fn every_listed_host_takes_the_class_drivers_and_no_one_else() {
     let first = callers_of(USB_HOSTS[0]).expect("held");
-    for want in [
-        "driver.usb_hub0",
-        "driver.usb_hid0",
-        "driver.usb_msc0",
-        "driver.usb_audio0",
-    ] {
+    for want in ["driver.usb_hub0", "driver.usb_hid0", "driver.usb_msc0", "driver.usb_audio0"] {
         assert!(first.contains(&want), "{want} cannot reach the host");
     }
     for host in USB_HOSTS {
         assert_eq!(callers_of(host), Some(first), "{host} is held to another list");
-        assert!(!endpoint_admits(host, owner(APPS)), "{host} took an app");
+        assert!(!endpoint_admits(host, None, owner(APPS)), "{host} took an app");
     }
 }
 

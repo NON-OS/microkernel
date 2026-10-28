@@ -14,10 +14,11 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""Where capsule ports are declared: each userland/*/Capsule.mk, and the Linux
-guest makefiles. A guest is enrolled like a capsule, so its ports share the one
-space; the guest makefiles are only read when NONOS_LINUX_GUESTS=1, which is
-why a check of Capsule.mk alone missed them. The production Linux userland
+"""Where capsule ports are declared: each userland/*/Capsule.mk, the Linux
+guest makefiles, and the kernel's table of the ports it serves a run on. A
+guest is enrolled like a capsule, so its ports share the one space; the guest
+makefiles are only read when NONOS_LINUX_GUESTS=1, which is why a check of
+Capsule.mk alone missed them. The production Linux userland
 (userland/linux_userland) declares its programs the same way.
 
 A guest makefile gives a guest its pair as two adjacent literal arguments of a
@@ -72,3 +73,15 @@ def guest_ports(root):
             if m := SEQ.match(line):
                 for port in range(int(m.group(2)), int(m.group(3)) + 1):
                     yield port, f"{mk.name}:* holds {m.group(1)}"
+
+
+def serve_ports(root):
+    # The kernel's own: a Linux run's served endpoint, one port a SERVES row
+    # from SERVE_PORT_BASE (src/services/registry/serve_rule.rs).
+    registry = root / "src/services/registry"
+    if not (registry / "serve_rule.rs").exists():
+        return
+    base = re.search(r"SERVE_PORT_BASE: u32 = (\d+);", (registry / "serve_rule.rs").read_text())
+    rows = re.findall(r'^\s*\("([a-z0-9._-]+)", \w+\),', (registry / "serves.rs").read_text(), re.M)
+    for i, capsule in enumerate(rows if base else []):
+        yield int(base.group(1)) + i, f"kernel served linux.serve.{capsule}"
