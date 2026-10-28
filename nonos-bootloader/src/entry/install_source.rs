@@ -17,10 +17,10 @@
 use alloc::{boxed::Box, vec::Vec};
 
 use nonos_boot::handoff::types::{
-    InstallHandoff, Module, BOOT_MEDIA_LEN, MODULE_KIND_BOOT_MEDIA, MODULE_KIND_KERNEL_IMAGE,
-    MODULE_KIND_LOADER_IMAGE,
+    BootMedia, InstallHandoff, Module, BOOT_MEDIA_LEN, BOOT_MEDIA_USB, MODULE_KIND_BOOT_MEDIA,
+    MODULE_KIND_KERNEL_IMAGE, MODULE_KIND_LOADER_IMAGE,
 };
-use nonos_boot::loader::file::{boot_partition, load_file_from_esp};
+use nonos_boot::loader::file::{boot_device, boot_partition, load_file_from_esp, BootDevice};
 use nonos_boot::menu::BootIntent;
 use uefi::prelude::*;
 
@@ -47,9 +47,14 @@ pub fn install_source(
 }
 
 fn boot_media(st: &SystemTable<Boot>) -> Module {
-    match boot_partition(st.boot_services()) {
+    let bs = st.boot_services();
+    let usb = boot_device(bs) == BootDevice::UsbStick;
+    match boot_partition(bs).or_else(|| usb.then(BootMedia::default)) {
         Some(record) => Module {
-            base: Box::leak(Box::new(record)) as *const _ as u64,
+            base: Box::leak(Box::new(BootMedia {
+                flags: if usb { BOOT_MEDIA_USB } else { 0 },
+                ..record
+            })) as *const _ as u64,
             size: BOOT_MEDIA_LEN as u64,
             kind: MODULE_KIND_BOOT_MEDIA,
             reserved: 0,

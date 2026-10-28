@@ -33,7 +33,7 @@ pub use boot_evidence::{
     MODULE_KIND_BOOT_ROOT_RECORD, MODULE_KIND_BOOT_TRAILER, MODULE_KIND_DISK_MIRROR,
     MODULE_KIND_LOADER_IMAGE, MODULE_KIND_STORE, MODULE_KIND_TCG_LOG, STORE_FROM_BOOT_DISK,
 };
-pub use boot_media::{BootMedia, BOOT_MEDIA_LEN, MODULE_KIND_BOOT_MEDIA};
+pub use boot_media::{BootMedia, BOOT_MEDIA_LEN, BOOT_MEDIA_USB, MODULE_KIND_BOOT_MEDIA};
 pub use constants::{flags, pixel_format, HANDOFF_MAGIC, HANDOFF_VERSION};
 pub use constants::{truncate_cmdline, validate_cmdline_len};
 pub use firmware::{FirmwareEntry, FirmwareHandoff, FirmwareType, MAX_FIRMWARE_ENTRIES};
