@@ -33,10 +33,10 @@ const LOADERS: &[u8] = b"/usr/bin/gdk-pixbuf-query-loaders";
 const MIME: &[u8] = b"/usr/bin/update-mime-database";
 /// gdk-pixbuf knows an image by its mime type, so with no mime database
 /// GTK cannot read its own icons and aborts. The database is built where
-/// env.rs's XDG_DATA_DIRS looks first, from the packages' own sources.
-const MIME_RUN: &[u8] = b"mkdir -p /tmp/share/mime/packages && \
-cp /usr/share/mime/packages/*.xml /tmp/share/mime/packages/ && \
-update-mime-database /tmp/share/mime";
+/// env.rs's XDG_DATA_DIRS looks first, from the packages' own sources. Each
+/// step is a tool of its own, as a box without EXEC lets no shell run one.
+const MIME_DIR: &[u8] = b"/tmp/share/mime";
+const BUSYBOX: &[u8] = b"/bin/busybox";
 const LINKS: [&[u8]; 3] = [b"libgtk-3.so", b"libgtk-4.so", b"libgdk_pixbuf-2.0.so"];
 /// The same, where the program links them through its own library (Mousepad
 /// through libmousepad): a run's store holds only its closure's packs, and
@@ -64,7 +64,9 @@ pub fn prepare(program: &[u8]) {
         helper(LOADERS, &[b"--update-cache"]);
     }
     if found(MIME) {
-        helper(b"/bin/busybox", &[b"sh", b"-c", MIME_RUN]);
+        helper(BUSYBOX, &[b"mkdir", b"-p", b"/tmp/share"]);
+        helper(BUSYBOX, &[b"cp", b"-r", b"/usr/share/mime", b"/tmp/share/"]);
+        helper(MIME, &[MIME_DIR]);
     }
 }
 
