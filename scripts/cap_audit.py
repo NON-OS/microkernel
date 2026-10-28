@@ -33,6 +33,8 @@ app_skeleton's vfs client. A name written as one entry of a table of names
 is not a message to that service. A crates.io tool is held to the tool
 sandbox, SANDBOX_CAPS, which its manifest must name, and to the bits vfs
 asks, which it must be spawned with.
+MkAppLaunch asks no bit of a capsule that owns the desktop shell's endpoint or
+one SERVES pairs with a listing (cap_audit_launch), as the kernel asks none.
 Each bit is then reported as used (with the file and line of one use), as no
 evidence found, or, for a bit something needs and the mask lacks, as one that
 would fail at runtime.
@@ -56,7 +58,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 import cap_audit_kernel as kern  # noqa: E402
+import cap_audit_launch as launch  # noqa: E402
 import cap_audit_userland as user  # noqa: E402
+from cap_audit_sandbox import sandbox_report  # noqa: E402
 
 RANK = {kern.HARD: 0, kern.CONDITIONAL: 1, kern.SOFT: 2, kern.DIAGNOSTIC: 3}
 STATUS = {kern.HARD: "used", kern.CONDITIONAL: "conditional", kern.SOFT: "soft",
@@ -85,7 +89,7 @@ class Kernel:
 
     def __init__(self, root, handle_of):
         self.bits = kern.bits(root)
-        self.syscalls = kern.syscall_gates(root)
+        self.syscalls = launch.syscall_gates(root)
         self.handlers = kern.handler_gates(root)
         self.network, self.network_cite = kern.network_services(root)
         self.keyed, self.keyed_cite = kern.key_services(root)
@@ -164,7 +168,7 @@ def assess(capsule, uses, kernel, root_crate):
             missing.append(("one of " + ", ".join(sorted(gate.names)), shortfall))
 
     for use in uses:
-        for tag in sorted(use.tags):
+        for tag in sorted(launch.asked(use.tags, kernel.syscalls, capsule)):
             gate = kernel.syscalls.get(tag)
             if gate is None:
                 if use.raw:
@@ -224,23 +228,6 @@ def _best(findings, root_crate):
         seen.add(f.use.cite)
         out.append(f)
     return out
-
-
-def sandbox_report(capsule, kernel, grant):
-    """For a crates.io tool: the grant it is spawned with, the sandbox bits
-    its manifest lacks (the spawn gate refuses the grant), and the bits vfs
-    asks that it is not installed with (it cannot open a file). None for a
-    capsule that is not a crates.io tool."""
-    registry = capsule.bin_name in kernel.sandboxed
-    if not registry and capsule.fields.get("CAPSULE_DOMAIN") != "crates.io":
-        return None
-    if registry:
-        grant = kernel.sandbox
-    installed = capsule.required | (capsule.optional & (grant or 0))
-    return {"grant": f"0x{(grant or 0):X}",
-            "from": kernel.sandbox_cite if registry else (capsule.mirror or "its manifest"),
-            "lacks": kernel.names(kernel.sandbox & ~capsule.granted),
-            "vfs_unheld": kernel.names(kernel.vfs_bits & ~installed)}
 
 
 def audit_one(root, capsule, kernel, wrappers, cache):

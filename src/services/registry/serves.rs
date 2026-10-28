@@ -34,6 +34,15 @@ pub(crate) const SERVES: &[(&str, [u8; 32])] = &[
     ("app.simplex", SIMPLEX_CHAT),
 ];
 
+/// The listing each capsule above may start by MkAppLaunch, by the id the
+/// call names (app_launch_rule.rs). The kernel cannot read an installed
+/// package's key at launch, so the id narrows the launch and the key binds
+/// the serve; market_proofs holds each id to its row's key.
+pub(crate) const LISTINGS: &[(&str, &str)] = &[
+    // The key above is made from this id, under its catalogue publisher.
+    ("app.simplex", "linux.kali.nonos-simplex-chat"),
+];
+
 const SIMPLEX_CHAT: [u8; 32] = [
     0x01, 0x24, 0xfa, 0x9a, 0xdc, 0x22, 0xb0, 0x9e, 0xfb, 0x6d, 0x59, 0x2a, 0x78, 0xc6, 0x4a, 0x7f,
     0xeb, 0x9e, 0x23, 0x45, 0x7c, 0x85, 0x36, 0x62, 0x3e, 0x50, 0x40, 0x2f, 0xbb, 0xdb, 0x76, 0x6e,
