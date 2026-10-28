@@ -17,7 +17,7 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-pub(super) const MAX_FILES: usize = 4096;
+pub(super) const MAX_FILES: usize = 8192;
 pub(super) const MAX_OPEN_FDS: usize = 1024;
 /// The most handles one owner holds open at once, so no one client takes them
 /// all; a Linux run holds one a package, about 150 for a Qt or GTK 4 app.

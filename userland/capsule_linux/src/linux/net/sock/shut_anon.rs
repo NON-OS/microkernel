@@ -16,7 +16,7 @@
 
 //! `shutdown` of a stream net.anon carries. net.anon ends a stream both
 //! ways at once (RELAY_END) and has no half-close, so shutting the writing
-//! side alone is refused, as it is for net.sockets' streams. Shutting the
+//! side alone is refused, as it is for a stream on Nym. Shutting the
 //! reading side is the guest's own: later reads find end of file. Shutting
 //! both closes the stream at net.anon, once; the socket and its descriptor
 //! stay until closed, and freeing the socket then sends nothing more.
