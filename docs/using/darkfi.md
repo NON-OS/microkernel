@@ -20,7 +20,7 @@ The chat app opens in its own window:
 
 ## Install them
 
-They come from the NØNOS package mirror, so they install only on an image that has one: today that is a development boot with `tools/nonos-mirror-relay --content <dir>` serving the content ([the development mirror](../build/dev-mirror.md)). No release profile lists a source recipe yet, so a release image does not carry these listings. On such an image, from the Terminal:
+They come from the NØNOS package mirror, so they install only on an image that has one: the 0.9.3 release image, which fetches from `http://mirror.nonos.software/linux/<blake3>.tar` over Anyone, or a development boot with `tools/nonos-mirror-relay --content <dir>` serving the content ([the development mirror](../build/dev-mirror.md)). Plain HTTP is enough: each listing's signature pins the content's BLAKE3. On such an image, from the Terminal:
 
 ```
 market install linux.nonos-darkfi-app
