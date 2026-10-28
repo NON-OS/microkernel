@@ -1,7 +1,10 @@
 # capsule_driver_bt_usb
 
-Status: not in the image. The capsule builds and its host proofs pass,
-needs B-43 applied to `capsule_driver_xhci` first (below).
+Status: in Standard (`microkernel-full-gui`), spawned at boot wherever an
+xHCI host is; not in Hardened or Air-Gapped, which take Bluetooth out
+(`radioFeatures`, tools/nix/config.nix). Waiting on the release seal for its
+trust set (scripts/baselines/unsealed.txt). B-43 is in driver.xhci0. Host
+proofs pass end to end on a modelled RTL8821C; not yet run on hardware.
 
 ## Role
 
@@ -24,9 +27,9 @@ driver.xhci0 -- control OUT, interrupt IN (events), bulk pair (ACL)
 driver.bt_usb0 -- HCI, L2CAP, SMP, ATT/GATT, HOGP --> input ring
 ```
 
-## What it needs from driver.xhci0 (B-43)
+## What it needs from driver.xhci0 (B-43, applied)
 
-B-43 has to be applied before this capsule can bind anything:
+B-43 is what lets this capsule bind anything:
 - one slot holds the event endpoint (interrupt IN) and the ACL bulk pair
   together;
 - an interrupt read is up to wMaxPacketSize bits 10:0, capped at 64
@@ -45,7 +48,22 @@ logs `controller not usable: ACL endpoints refused`.
 | `hid` | Input posting. `capsule_driver_usb_hid`'s own keymap, key event, repeat and posting files are compiled here, so a Bluetooth key is posted with the same code, flags, layout and repeat as a USB one. |
 | `ring` | The bond store's `Keys` over the keyring: OP_STORE, OP_RETRIEVE, OP_DELETE and OP_LIST (L33), with the layouts `capsule_keyring` reads. Its request and answer layouts are pure, so the proofs run them. |
 | `nbtc` | NBTC v1, the protocol driver.bt_usb0 answers (below): the frame, who may ask what, and the board it reads and changes. Pure, so the proofs run all of it. |
-| `run` | The clock, log and random source; the desk, whose every wait answers NBTC; the bond store opened; finding the controller on the ports, and the loop of links. |
+| `run` | The clock, log and random source; the desk, whose every wait answers NBTC; the bond store opened; finding the controller on the ports, the Realtek patch (`realtek`), and the loop of links. |
+| `firmware` | The RTL8821C patch and config, linux-firmware's, embedded unmodified and pinned (`firmware/README.md`, `firmware/SHA256SUMS`). |
+
+## A Realtek controller first
+
+A controller on a Realtek USB id (vendor 0x0bda with the Bluetooth class,
+or 0x13d3:0x3529, as Linux v6.12's btusb.c lists them) whose Read Local
+Version names the RTL8821C's ROM (LMP subversion 0x8821, HCI revision
+0x000c, HCI version 8) is given Realtek's patch before bring-up:
+`nonos_bt_rtl` reads its ROM version (vendor command 0xfc6d), takes the
+patch for it from `rtl8821c_fw.bin`, appends `rtl8821c_config.bin`, and
+sends the whole in 252-octet fragments by vendor command 0xfc20, the last
+marked; bring-up's HCI Reset follows. A Realtek controller already running a
+patch is left as it is. No other controller is sent a vendor command. A
+patch that cannot be loaded (`Realtek patch not loaded: ...`) gives the
+controller back.
 
 ## A link
 
@@ -70,8 +88,8 @@ logs `controller not usable: ACL endpoints refused`.
 5. Any other peer: SMP pairing at once, LE Secure Connections only. This
    host offers its IRK and public identity, so the peer can resolve its
    later addresses. A keyboard with no
-   display pairs by passkey entry: the capsule logs six digits for the
-   user to type and gives them to Settings. A mouse pairs by Just Works.
+   display pairs by passkey entry: the capsule gives Settings six digits
+   for the user to type, and logs only that a passkey is shown there. A mouse pairs by Just Works.
    A peer that shows digits to type here, or a number to confirm, waits
    for the user's answer from Settings, as long as SMP's 30 s timer
    allows. One pairing closes the window.
@@ -116,8 +134,10 @@ and the next look waits 30 s.
 ## Log
 
 `bt-usb:` lines: `bonds last for this boot only (Decision 27)`, where
-bonds are kept, `started`, `controller up`, `connected`, the passkey to
-type, `paired`, `bond kept`, `encrypted with the kept bond`, `HID ready: keyboard mouse`,
+bonds are kept, `started`, `no controller yet; looking each second`,
+`Realtek patch loaded: ROM 1, firmware 1975054488, 139 fragments` (or
+`Realtek controller runs its own firmware`), `controller up`, `connected`,
+`to pair, type the passkey Settings shows on the keyboard, then Enter`, `paired`, `bond kept`, `encrypted with the kept bond`, `HID ready: keyboard mouse`,
 `battery 1: 90%` (instances count from 1), `pairing waits on the user, in
 Settings`, `link lost` or `link ended:`
 with the reason, and `controller given back:` with the reason.
@@ -161,7 +181,9 @@ sees places in the bond list, never addresses.
 
 ## Contract
 
-Caps `0x10200038` (IPC, Memory, Crypto, Debug, Keyring). Crypto is what
+Caps `0x10208038` (IPC, Memory, Crypto, DeviceEnum, InputSource,
+Keyring), and Debug
+(`0x100`) optional for its log. Crypto is what
 the CryptoRandom syscall is gated on; pairing draws its key pair and
 nonces there, and the capsule stops if a draw fails. Keyring is for its
 bonds and its own IRK. Service `driver.bt_usb0` on
@@ -171,10 +193,10 @@ Proofs: `userland/bt_usb_proofs`.
 
 ## Microkernel contract
 
-The manifest grants `IPC`, `Memory`, `Crypto`, `Debug` and `Keyring`:
+The manifest grants `IPC`, `Memory`, `Crypto`, `DeviceEnum`, `InputSource` and `Keyring`, with `Debug` optional. DeviceEnum is enumerate-only and claims nothing: it is what `MkInstallSource` serves firmware packages on the boot medium to (the MediaTek patch):
 
 ```text
-CAPSULE_REQUIRED_CAPS = 0x10200038
+CAPSULE_REQUIRED_CAPS = 0x10208038
 ```
 
 The capsule finds driver.xhci0 and the keyring with `MkServiceLookup`, and
@@ -206,7 +228,7 @@ endpoint and 0x000E to read it.
 
 ```text
 allowed:   HCI over USB, L2CAP fixed channels, SMP pairing, ATT/GATT client, HOGP boot reports, input events, NBTC to Settings and the shell
-forbidden: xHCI ownership, USB scheduling, DMA buffers, vendor firmware, BR/EDR, keys anywhere but this process and its own keyring records
+forbidden: xHCI ownership, USB scheduling, DMA buffers, vendor firmware other than the pinned RTL8821C patch, BR/EDR, keys anywhere but this process and its own keyring records
 ```
 
 ## Privacy and persistence
@@ -218,14 +240,16 @@ and identity address) and this host's IRK are kept as keyring records
 of types 10 and 11, owned by driver.bt_usb0, or in this capsule's memory;
 either way only for this boot (Decision 27). Every copy read back is
 overwritten once decoded. The log carries no address, no key and no
-input; it does carry the passkey to type while pairing, which is what the
-user needs and is worthless once pairing ends. This host scans and
+input and no passkey: the passkey goes to Settings by NBTC's PASSKEY alone
+(bt_usb_proofs' `log_tests` read every `say` in this source). This host scans and
 connects from a resolvable private address renewed every 15 minutes;
 only bonded peers, given its IRK, can tell two of them apart.
 
 ## Runtime lifecycle
 
-Started wherever an xHCI controller is. Every second the free root ports
+Started at boot wherever an xHCI controller is (the spawn plan's
+`drivers_bt.rs`): the kernel enumerates no USB device, so whether a
+Bluetooth controller is there is known only once this capsule looks. Every second the free root ports
 are looked at; a controller is bound, brought up, and runs links one after
 another (scan, connect, pair, serve) until a USB transfer fails or the
 controller stops answering. Its slot is then given back and the ports are
@@ -293,7 +317,8 @@ endpoint contexts, rings and DMA.
 ## Operating rules
 
 - Keep USB transfer mechanics in driver.xhci0.
-- Send no vendor command; a controller that needs one is refused.
+- Send a vendor command only to an RTL8821C ROM, and only its patch load
+  (`nonos_bt_rtl`); any other controller that needs vendor setup is refused.
 - Pair with LE Secure Connections only; never fall back to legacy pairing.
 - Read the HID service only on an encrypted link.
 - Bound every length the controller or the peer sends before using it.
@@ -308,30 +333,32 @@ Typing in an application with a Bluetooth keyboard, after pairing once.
 
 ## Release evidence
 
-Build and host-proof evidence only so far (bt_usb_proofs, 103 tests, with
-the HCI, SMP and HOGP proofs underneath). Runtime evidence needs B-43 in
-driver.xhci0, the kernel spawn, and a real controller and keyboard: none
-is on main yet.
+Build and host-proof evidence (bt_usb_proofs, 136 tests, among them the
+RTL8821C bring-up and a keyboard and a mouse end to end with Settings'
+panel; nonos_bt_rtl_proofs, 36; the HCI, SMP and HOGP proofs underneath).
+Runtime evidence still needs a QEMU boot of an image that carries it and
+a real controller and keyboard (docs/hardware/real-hardware-checklist.md,
+the HP with the RTL8821CE).
 
 ## Release checklist
 
-- B-43 applied to capsule_driver_xhci.
+- B-43 applied to capsule_driver_xhci (done).
 - Capsule builds with zero warnings; clippy clean.
 - bt_usb_proofs, nonos_bt_hci_proofs, nonos_bt_smp_proofs and
   nonos_bt_hogp_proofs pass.
-- The kernel spawns the capsule.
 - On hardware: `bt-usb: controller up`, `paired`, `HID ready: keyboard`,
   then keys in an application.
 
 ## Explicit non-goals today
 
 BR/EDR (Classic) devices, more than one device at a time, Report Protocol
-(media keys, wheels, absolute pointers), vendor firmware loading, and
+(media keys, wheels, absolute pointers), vendor firmware other than the
+RTL8821C patch (Intel and MediaTek controllers are not set up), and
 bonds kept past this boot. The pairing dialog is Settings', over NBTC.
 
 ## Verification
 
 `cd userland/bt_usb_proofs && RUST_TEST_THREADS=1 cargo test --release`
-(103 pass at the time of writing); the capsule's `cargo build --release`
+(136 pass at the time of writing), and `cd userland/nonos_bt_rtl_proofs && cargo test`; the capsule's `cargo build --release`
 and `cargo clippy` for x86_64-nonos-user. Not verified under QEMU or on
 hardware.
