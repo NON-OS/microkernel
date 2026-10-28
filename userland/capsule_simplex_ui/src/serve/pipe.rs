@@ -14,22 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The one SERVE_ONE connection to simplex.core, on an endpoint only this
-//! capsule may call. A read asks with no wait, so a tick never blocks; a
-//! write is offered again, a bounded number of times, while the queue is full.
+//! The one SERVE_ONE connection to simplex.core. A read asks with no wait,
+//! so a tick never blocks; a write is offered again while the queue is full.
 
 use alloc::vec::Vec;
 use nonos_libc::{mk_idle_ms, mk_service_lookup};
-use nonos_serve_wire::{read_ask, took_of, CLOSE, MAX_BODY, OPEN, READ, WRITE};
+use nonos_serve_wire::{read_ask, took_of, write_head, CLOSE, MAX_BODY, OPEN, READ, WRITE};
 
+use super::call::FULL_TRIES;
 use crate::link::pipe::Pipe;
 
 const SERVICE: &[u8] = b"linux.serve.app.simplex";
-const FULL_TRIES: u32 = 200;
-
 pub struct ServePipe {
     pub(super) port: u64,
     pub(super) conn: u16,
+    pub(super) seq: u32,
 }
 
 impl ServePipe {
@@ -40,7 +39,7 @@ impl ServePipe {
         if rc < 0 || port == 0 {
             return None;
         }
-        let pipe = Self { port: u64::from(port), conn: 0 };
+        let pipe = Self { port: u64::from(port), conn: 0, seq: 0 };
         let answer = pipe.call(OPEN, &[])?;
         answer.ok().then_some(Self { conn: answer.conn, ..pipe })
     }
@@ -48,15 +47,16 @@ impl ServePipe {
 
 impl Pipe for ServePipe {
     fn read(&mut self) -> Option<Vec<u8>> {
-        let a = self.call(READ, &read_ask(MAX_BODY as u32, 0))?;
+        let a = self.exchange(READ, &read_ask(self.seq, MAX_BODY as u32, 0))?;
         a.ok().then_some(a.body)
     }
 
     fn write(&mut self, mut bytes: &[u8]) -> bool {
         let mut tries = 0;
         while !bytes.is_empty() && tries < FULL_TRIES {
-            let chunk = &bytes[..bytes.len().min(MAX_BODY)];
-            let Some(a) = self.call(WRITE, chunk).filter(|a| a.ok()) else { return false };
+            let chunk = &bytes[..bytes.len().min(MAX_BODY - 4)];
+            let body = [&write_head(self.seq)[..], chunk].concat();
+            let Some(a) = self.exchange(WRITE, &body).filter(|a| a.ok()) else { return false };
             let n = took_of(&a.body).unwrap_or(0) as usize;
             if n == 0 {
                 tries += 1;

@@ -27,6 +27,8 @@ use super::pipe::ServePipe;
 /// How long any frame waits for its answer. A read asks for no wait of its
 /// own, so this bounds every call the window makes.
 pub(super) const CALL_WAIT_MS: u64 = 2000;
+/// How often a write is offered again while the core's queue is full.
+pub(super) const FULL_TRIES: u32 = 200;
 
 /// The answer's status, and its body.
 pub(super) struct Answer {
@@ -42,6 +44,15 @@ impl Answer {
 }
 
 impl ServePipe {
+    /// A read or a write under the next sequence number. After a timeout the
+    /// same frame, with the same number, asks for the answer the endpoint
+    /// kept, so nothing is lost or done twice.
+    pub(super) fn exchange(&mut self, op: u8, body: &[u8]) -> Option<Answer> {
+        let a = self.call(op, body).or_else(|| self.call(op, body))?;
+        self.seq = self.seq.wrapping_add(1);
+        Some(a)
+    }
+
     pub(super) fn call(&self, op: u8, body: &[u8]) -> Option<Answer> {
         let mut ask = vec![0u8; HEADER + body.len()];
         let head = Header { op, status: OK, conn: self.conn, len: body.len() as u32 };
