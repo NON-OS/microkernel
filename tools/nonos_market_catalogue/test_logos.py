@@ -26,7 +26,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from . import logos, source_lock
+from . import logos, source_asset, source_lock
 from .digest import blake3
 from .lock_file import read
 from .recipes import checked
@@ -44,9 +44,9 @@ RECORD = "\n".join(("# r", "## Table", "| App | a | b | c | Verdict |", "|---|--
 BASE = {"licence": "MIT", "mask": "TTY", "name": "X", "text": "x", "logo": "l.svg"}
 
 
-def document(r):  # a source recipe's listing is linux.nonos-<package> (source_run.py)
-    tail = ("nonos-" if r.get("kind") else "") + r["package"]
-    (e,) = json.loads((ROOT / f"nonos-data/market/catalogue/linux.{tail}.json").read_text())["entries"]
+def document(r):  # a source recipe's listing is named by source_asset.py's naming
+    lid = source_asset.naming(r, "nonos-" + r["package"])[0] if r.get("kind") else "linux." + r["package"]
+    (e,) = json.loads((ROOT / f"nonos-data/market/catalogue/{lid}.json").read_text())["entries"]
     return e
 
 
