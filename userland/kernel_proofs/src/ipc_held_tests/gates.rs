@@ -32,27 +32,27 @@ fn an_endpoint_off_the_list_is_as_it_was() {
         "driver.ufs0",
     ] {
         assert!(callers_of(ep).is_none(), "{ep}");
-        assert!(endpoint_admits(ep, owner(&[])), "{ep}");
+        assert!(endpoint_admits(ep, None, owner(&[])), "{ep}");
     }
 }
 
 #[test]
 fn a_send_by_pid_takes_the_network_gate() {
     // net.sockets' process serves its endpoint and its reply inbox.
-    let sockets = [("net.sockets", IPC | NETWORK), ("endpoint.net.sockets.reply", IPC)];
+    let sockets = [("net.sockets", IPC | NETWORK, None), ("endpoint.net.sockets.reply", IPC, None)];
     assert!(!inbox_admits(sockets, IPC, owner(&[])), "IPC alone wrote into net.sockets");
     assert!(inbox_admits(sockets, IPC | NETWORK, owner(&[])));
 }
 
 #[test]
 fn a_send_by_pid_takes_every_gate_the_process_serves() {
-    let app = [("app.about", IPC), ("endpoint.app.about.reply", IPC)];
+    let app = [("app.about", IPC, None), ("endpoint.app.about.reply", IPC, None)];
     assert!(inbox_admits(app, IPC, owner(&[])), "an app's window lost its focus frames");
     // A process serving one endpoint that needs more is held to it.
-    let mixed = [("app.about", IPC), ("net.dns", IPC | NETWORK)];
+    let mixed = [("app.about", IPC, None), ("net.dns", IPC | NETWORK, None)];
     assert!(!inbox_admits(mixed, IPC, owner(&[])));
     // A card's inbox by pid is held like the card by name.
-    let card = [("driver.e1000_0", IPC), ("endpoint.driver.e1000_0.reply", IPC)];
+    let card = [("driver.e1000_0", IPC, None), ("endpoint.driver.e1000_0.reply", IPC, None)];
     assert!(!inbox_admits(card, IPC | NETWORK, owner(&["app.browser"])));
     assert!(inbox_admits(card, IPC | NETWORK, owner(&["net.core"])));
     // A process that serves nothing is held to nothing beyond the syscall's own gate.

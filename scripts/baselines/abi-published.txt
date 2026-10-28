@@ -201,6 +201,7 @@ syscalls.numbers MSRD 1146245965
 syscalls.numbers MSRG 1196577613
 syscalls.numbers MSRL 1280463693
 syscalls.numbers MSRR 1381126989
+syscalls.numbers MSRV 1448235853
 syscalls.numbers MSSH 1213420365
 syscalls.numbers MSTB 1112822605
 syscalls.numbers MSVL 1280725837

@@ -134,6 +134,7 @@ MSOW = 0x574F534D
 MSPI = 0x4950534D
 MSRD = 0x4452534D
 MSRR = 0x5252534D
+MSRV = 0x5652534D
 MSTB = 0x4254534D
 MSVR = 0x5256534D
 MSWR = 0x5257534D
@@ -803,6 +804,12 @@ ret  = {type="i64"}
 nr   = 0x4E524C4D
 caps = ["ForeignExec"]
 args = [{name="pid",type="u32",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MSRV]
+nr   = 0x5652534D
+caps = ["ForeignExec"]
+args = [{name="name_ptr",type="u64",dir="in"},{name="name_len",type="u64",dir="in"},{name="key_ptr",type="u64",dir="in"},{name="key_len",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MSLR]

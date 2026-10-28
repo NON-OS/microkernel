@@ -29,6 +29,7 @@ riscv64 the `foreign` module is built from `foreign_absent.rs` instead
 | `MPUN` | `0x4E55504D` | `MkPeerUnmap` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Take pages back from a guest. |
 | `MFEX` | `0x5845464D` | `MkForeignExec` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Replace the program a parked guest is running. |
 | `MLRN` | `0x4E524C4D` | `MkLinuxRunNet` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:71` | Ask init to start this Linux run again with Network; only the run role, for its own pid. |
+| `MSRV` | `0x5652534D` | `MkServeOne` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:71` | Serve this Linux run's guest listener to one capsule: `linux.serve.<capsule>`, held to that capsule; only the run role, for a capsule and listing key `SERVES` pairs (`src/services/registry/serves.rs`). Returns the port. |
 
 ### Crypto
 

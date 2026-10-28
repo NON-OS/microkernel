@@ -32,6 +32,9 @@ mod nics;
 // And the USB hosts as its grandparent's `usb_hosts`.
 #[path = "../../../../src/services/registry/usb_hosts.rs"]
 mod usb_hosts;
+// MkServeOne's rule, with the SERVES table it mounts beside it.
+#[path = "../../../../src/services/registry/serve_rule.rs"]
+mod serve_rule;
 
 mod addressed;
 mod air_gapped;
@@ -48,8 +51,10 @@ mod devices;
 mod display_names;
 mod fido_tests;
 mod gates;
+mod held_to;
 mod names;
 mod power_off;
+mod serve_one;
 mod single_client;
 mod spi_hid_tests;
 mod spi_tests;
