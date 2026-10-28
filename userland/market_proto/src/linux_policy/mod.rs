@@ -19,7 +19,7 @@
 //!
 //! Body: version u8 (2) | kind u8 | package_hash[32] | for KIND_POLICY
 //! only, policy[256] | listing_key[32] | release_key[32] | the release's
-//! listed arguments, 0 to MARKET_ARGS_MAX bytes. The package hash is
+//! listed arguments and extra packages, 0 to MARKET_ARGS_MAX bytes. The package hash is
 //! the release the answer was made from, which init holds to the pin it
 //! was given, so an index replaced between its asks is refused, never mixed.
 //! Any other version, kind or length is refused, so a reply is exactly one
