@@ -16,17 +16,26 @@
 
 //! The two screens before a disk is chosen. Enter on the first shows what
 //! this boot proved, with the capsules counted again so the count is of now;
-//! Enter there lists the disks, when there is an image to write.
+//! Enter there lists the disks, when there is an image to write. On a boot
+//! from an installed NØNOS, P on the first prepares it for an update.
 
 use nonos_app_skeleton::{EventOutcome, KEY_ENTER, KEY_ESC};
 
+use crate::install::handover;
 use crate::install::source::census;
 use crate::install::state::{Screen, State};
 use crate::install::survey::look;
 
+const KEY_PREPARE: u32 = b'p' as u32;
+const KEY_PREPARE_CAPS: u32 = b'P' as u32;
+
 pub fn on_start_key(state: &mut State, code: u32) -> EventOutcome {
     match (state.screen, code) {
         (Screen::Welcome, KEY_ESC) => EventOutcome::Close,
+        (Screen::Welcome, KEY_PREPARE | KEY_PREPARE_CAPS) if state.installed => {
+            state.handover = Some(handover::prepare());
+            EventOutcome::Repaint
+        }
         (Screen::Welcome, KEY_ENTER) => {
             state.boot.capsules = census();
             state.screen = Screen::Proofs;
