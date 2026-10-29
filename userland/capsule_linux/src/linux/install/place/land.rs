@@ -37,7 +37,7 @@ pub(super) fn land(name: &str, sources: Vec<Source>) -> Result<(), Why> {
         return Err(Why::PARTIAL);
     };
     let before = names();
-    match put(chosen(), name, &bytes, &trailer) {
+    match put(chosen(), name, &bytes, head, &trailer) {
         Ok(()) => Ok(landed(name, files, bytes.len(), before)),
         Err(Held::InUse) => {
             say(name, "a running app holds it open; close the app to update it");

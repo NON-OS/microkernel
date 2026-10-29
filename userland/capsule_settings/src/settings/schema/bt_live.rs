@@ -19,7 +19,8 @@
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum BtLive {
-    /// Whether the capsule found and brought up a USB adapter.
+    /// Whether the capsule found and brought up a controller, built in or
+    /// plugged in.
     Controller,
     /// The link: looking, connecting, securing or connected.
     Status,

@@ -85,7 +85,7 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_TIME_MONOTONIC => sys_time_monotonic(),
         SYS_TIME_RTC => sys_time_rtc(a.a0),
         SYS_TIME_ADJUST => sys_time_adjust(a.a0),
-        SYS_BATTERY_STATUS => sys_battery_status(),
+        SYS_BATTERY_STATUS => sys_battery_status(a.a0),
         SYS_PROC_STAT => sys_proc_stat(a.a0, a.a1),
         SYS_PROC_OUTPUT => sys_proc_output(a.a0, a.a1, a.a2 as usize),
         SYS_PROC_INPUT => sys_proc_input(a.a0, a.a1, a.a2 as usize),
