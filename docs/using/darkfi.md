@@ -34,7 +34,7 @@ Opening it runs `nonos-drk` (tools/nix/sources/drk-prompt.c):
 
 Opening it runs `nonos-darkfi-localnet` (tools/nix/sources/darkfi-localnet.c):
 
-1. **The wallet first.** It is made as above, on localnet, so darkfid's config in the home names its address as the recipient of what is mined.
+1. **The wallet first.** It is made as above, on localnet, so darkfid's config in the home names its address as the recipient of what is mined. Its drk, prompt and drk config are its own, under `/usr/lib/nonos-darkfi-localnet`, so it installs beside the wallet listing, which owns `/usr/bin/drk`.
 2. **The chain.** It starts minerd with its config at the commit, then `darkfid -n localnet`. Both listen on the box's own loopback only: darkfid's RPC on 8240, minerd on 28467.
 3. **The prompt.** Once darkfid's RPC answers, it runs `drk localnet>`. `scan` reads the mined blocks into the wallet, and `wallet --balance` shows the DRK mined so far.
 4. **The end.** `:quit` stops darkfid and minerd.
@@ -43,7 +43,7 @@ Opening it runs `nonos-darkfi-localnet` (tools/nix/sources/darkfi-localnet.c):
 
 **How long a home lasts.** The chain starts at about 5.7 MB and grows about 20 KB a block. A 16 MiB home holds some hundreds of blocks, a few hours. Live, the default, it is gone at power off.
 
-*host-tested*: in a chroot, 6 blocks were mined in 5 minutes on a slow CPU, `scan` found each reward, `wallet --balance` showed 120 DRK, `:quit` stopped both daemons, and the home was 5.8 MB. *design*: on a device.
+*host-tested*: in a chroot, 6 blocks were mined in 5 minutes on a slow CPU, `scan` found each reward, `wallet --balance` showed 120 DRK, `:quit` stopped both daemons, and the home was 5.8 MB; it also runs with the wallet listing's files beside it. *booted* on KVM for the other three DarkFi listings and SimpleX; this one was refused there before it carried its own drk (another installed package held `/usr/bin/drk`). *design*: on a device.
 
 ## DarkIRC in the Terminal
 
