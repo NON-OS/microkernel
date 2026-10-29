@@ -33,7 +33,9 @@ fn the_group_check_asks_the_rule_both_ways_for_the_claim_and_each_holder() {
     assert!(JOIN_GROUP.contains("blocked_by(claimed, group, &held, ports, place)"));
     assert!(JOIN_GROUP.contains("filter_map(|&e| Some((e, peer(e)?)))"), "no held device's group");
     assert!(JOIN_GROUP.contains("(p.at, p.group.as_deref())"), "an unread group taken as empty");
-    assert!(JOIN_GROUP.contains("Blocked::Unreadable(at) => unreadable_line(at, &holder(c.pid))"));
+    assert!(
+        JOIN_GROUP.contains("Blocked::Unreadable(at) => unreadable_line(at, &holder_name(c.pid))")
+    );
     assert!(GATES.contains("None => Peer { at, group: None, aliases: Vec::new() },"));
 }
 
@@ -41,7 +43,7 @@ fn the_group_check_asks_the_rule_both_ways_for_the_claim_and_each_holder() {
 fn a_held_device_carrying_the_claimed_requester_id_refuses_it() {
     let check = "if let Some((_, p)) = peers.iter().find(|(_, p)| p.aliases.contains(&address)) {";
     assert!(JOIN_GROUP.contains(check), "the reverse alias check is not as written");
-    assert!(JOIN_GROUP.contains("peer_alias_line(p.at, &holder(c.pid))"));
+    assert!(JOIN_GROUP.contains("peer_alias_line(p.at, &holder_name(c.pid))"));
 }
 
 #[test]
