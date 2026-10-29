@@ -255,5 +255,21 @@
  {"name": "run-extras-fetched", "file": "run.py", "old": "table(mirror, cache, names + extras)", "new": "table(mirror, cache, names)"},
  {"name": "run-extras-in-index", "file": "run.py", "old": "known = listed_with.in_index(table(mirror, cache, names + extras), extras)", "new": "known = table(mirror, cache, names + extras)"},
  {"name": "run-extras-held", "file": "run.py", "old": "lock.held(known, pins, names, extras)", "new": "lock.held(known, pins, names)"},
- {"name": "run-extras-pinned", "file": "run.py", "old": "lock.write(pinned, known, names, found, marks, extras)", "new": "lock.write(pinned, known, names, found, marks)"}
+ {"name": "run-extras-pinned", "file": "run.py", "old": "lock.write(pinned, known, names, found, marks, extras)", "new": "lock.write(pinned, known, names, found, marks)"},
+ {"name": "serve-name-from-a-letter", "file": "../nonos_linux_pack/serve.py", "old": "NAME = re.compile(r\"[a-z][a-z0-9._-]{0,31}\")", "new": "NAME = re.compile(r\"[a-z0-9._-]{1,32}\")"},
+ {"name": "serve-name-32", "file": "../nonos_linux_pack/serve.py", "old": "NAME = re.compile(r\"[a-z][a-z0-9._-]{0,31}\")", "new": "NAME = re.compile(r\"[a-z][a-z0-9._-]{0,32}\")"},
+ {"name": "serve-name-lower", "file": "../nonos_linux_pack/serve.py", "old": "NAME = re.compile(r\"[a-z][a-z0-9._-]{0,31}\")", "new": "NAME = re.compile(r\"[a-zA-Z][a-zA-Z0-9._-]{0,31}\")"},
+ {"name": "serve-port-zero", "file": "../nonos_linux_pack/serve.py", "old": "PORT = re.compile(r\"[1-9][0-9]{0,4}\")", "new": "PORT = re.compile(r\"[0-9]{1,5}\")"},
+ {"name": "serve-port-u16", "file": "../nonos_linux_pack/serve.py", "old": " or int(port) > 0xFFFF:", "new": ":"},
+ {"name": "serve-field-checked", "file": "../nonos_linux_pack/serve.py", "old": "    if not 0 < port <= 0xFFFF or not NAME.fullmatch(name):\n", "new": "    if False:\n"},
+ {"name": "serve-wayland", "file": "../nonos_linux_pack/serve.py", "old": "    if mask & MASK[\"WAYLAND\"]:\n", "new": "    if False:\n"},
+ {"name": "serve-sets-the-bit", "file": "../nonos_linux_pack/serve.py", "old": "return mask | MASK[\"SERVE_ONE\"], serve_of(text)", "new": "return mask, serve_of(text)"},
+ {"name": "serve-bit-and-field", "file": "../nonos_linux_pack/policy.py", "old": "    if bool(mask & MASK[\"SERVE_ONE\"]) != (serve is not None):\n", "new": "    if False:\n"},
+ {"name": "serve-encode-wayland", "file": "../nonos_linux_pack/policy.py", "old": "    if mask & SERVED == SERVED:\n", "new": "    if False:\n"},
+ {"name": "serve-ready-wayland", "file": "../nonos_linux_pack/policy.py", "old": " and mask & SERVED != SERVED\n", "new": "\n"},
+ {"name": "serve-not-named", "file": "../nonos_linux_pack/policy.py", "old": "    if unknown or \"SERVE_ONE\" in words:\n", "new": "    if unknown:\n"},
+ {"name": "serve-version-2", "file": "../nonos_linux_pack/policy.py", "old": "(VERSION_SERVE if serve else VERSION)", "new": "(VERSION)"},
+ {"name": "serve-field-written", "file": "../nonos_linux_pack/policy.py", "old": "(field(serve) if serve else b\"\")", "new": "b\"\""},
+ {"name": "serve-passed", "file": "catalogue.py", "old": "recipe[\"calls\"], recipe.get(\"serve\"))", "new": "recipe[\"calls\"], None)"},
+ {"name": "serve-source-only", "file": "source_recipe.py", "old": "\"program\", \"args\", \"serve\"))", "new": "\"program\", \"args\"))"}
 ]
