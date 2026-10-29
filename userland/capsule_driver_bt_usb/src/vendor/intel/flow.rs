@@ -37,6 +37,6 @@ pub fn run<P: UsbPipes>(w: &mut Wire<P>) -> Result<(), HciError> {
             None => Err(w.refuse(&[b"version malformed"])),
         },
         0x17..=0x19 | 0x1b..=0x1e => fresh(w, v),
-        _ => Err(w.refuse(&[b"hardware variant not supported"])),
+        _ => Err(w.refuse(&[b"hardware variant unknown to this loader"])),
     }
 }
