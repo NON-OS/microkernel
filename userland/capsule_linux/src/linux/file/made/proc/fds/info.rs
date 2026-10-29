@@ -38,6 +38,7 @@ pub fn fd_target(f: &Fd) -> Vec<u8> {
         Kind::Timer => b"anon_inode:[timerfd]".to_vec(),
         Kind::Event => b"anon_inode:[eventfd]".to_vec(),
         Kind::Signal => b"anon_inode:[signalfd]".to_vec(),
+        Kind::Pidfd => b"anon_inode:[pidfd]".to_vec(),
         Kind::Free => Vec::new(),
     }
 }

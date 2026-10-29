@@ -18,6 +18,7 @@
 
 pub(super) mod adopt;
 pub(super) mod frame;
+pub(super) mod no_room;
 pub(super) mod open;
 pub(super) mod place;
 pub(super) mod refit;

@@ -23,19 +23,23 @@
  * read the loader and kernel from that very disk. So the store is read here,
  * by the driver that booted the machine, into loader memory the kernel never
  * reclaims, and the kernel serves store reads from it. The disk the loader
- * came from is asked first; any other disk that carries a store after it.
- * Only what the table of contents names is read, at most the 120 MiB below
- * the disk plan.
+ * came from is asked first; any other disk that carries a store after it,
+ * unless the loader came from a USB stick: a stick's boot is never the
+ * installed disk's, so it takes no other disk's store, and the kernel keeps
+ * no other disk (block_device/other_disk.rs). Only what the table of
+ * contents names is read, at most the 120 MiB below the disk plan.
  */
 
 use uefi::prelude::*;
-use uefi::proto::device_path::DevicePath;
 use uefi::proto::media::block::BlockIO;
 use uefi::table::boot::{OpenProtocolAttributes, OpenProtocolParams};
 use uefi::Handle;
 
-use super::own_volume::own_volume;
+use super::boot_device::boot_device;
+use super::device_kind::BootDevice;
+use super::own_disk::ours;
 use super::pages::{Pages, PAGE};
+use super::read_retry::read_all;
 
 /* The store's first byte: LBA 256 of 512-byte sectors. */
 const STORE_AT: u64 = 256 * 512;
@@ -47,70 +51,24 @@ const TOC_ENTRY: usize = 128;
 const MAX_ENTRIES: usize = 512;
 /* Header and table of contents, rounded up to whole pages. */
 const HEAD_PAGES: usize = (HEADER + TOC_ENTRY * MAX_ENTRIES).div_ceil(PAGE);
-/* Bytes per firmware read: large enough to be quick, small enough that
- * every firmware's USB stack takes it in one request. */
-const CHUNK: usize = 256 * 1024;
 
 /// The store's bytes from its header on, as (physical base, length), in
 /// loader-data pages, the disk it was read from, and whether that disk holds
 /// this loader's volume; `None` when no disk the firmware sees carries one.
 pub fn store_copy(bs: &BootServices) -> Option<((u64, u64), Handle, bool)> {
     let handles = bs.find_handles::<BlockIO>().ok()?;
-    let own = own_volume(bs);
-    /*
-     * The volume's path is copied out and its protocol closed before any disk
-     * is opened: the firmware closes every GetProtocol open of a handle by
-     * this agent at once, so two scopes on one handle (the volume is also a
-     * BlockIO handle) left the second close NOT_FOUND, which the uefi crate
-     * asserts on.
-     */
-    let own_nodes = own.and_then(|h| nodes(bs, h)).unwrap_or_default();
-    let ours: alloc::vec::Vec<bool> =
-        handles.iter().map(|&h| Some(h) != own && holds(bs, h, &own_nodes)).collect();
+    let ours = ours(bs, &handles);
+    let stick = boot_device(bs) == BootDevice::UsbStick;
     let first = handles.iter().zip(&ours).filter(|(_, &o)| o);
-    let rest = handles.iter().zip(&ours).filter(|(_, &o)| !o);
+    let rest = handles.iter().zip(&ours).filter(|(_, &o)| !o && !stick);
     first.chain(rest).find_map(|(&h, &o)| copy_from(bs, h).map(|copy| (copy, h, o)))
-}
-
-/* Each node of the device path of `handle`, as its bytes. */
-fn nodes(bs: &BootServices, handle: Handle) -> Option<alloc::vec::Vec<alloc::vec::Vec<u8>>> {
-    let path = path(bs, handle)?;
-    let out = path
-        .node_iter()
-        .map(|node| {
-            // SAFETY: a node is `length()` bytes from its header on, as the
-            // firmware laid the path out; the bytes are copied while the
-            // protocol is still open.
-            unsafe {
-                core::slice::from_raw_parts(node.as_ffi_ptr() as *const u8, node.length() as usize)
-            }
-            .to_vec()
-        })
-        .collect();
-    Some(out)
-}
-
-/* Whether disk `disk` is the one the volume whose path is `own` lies on: its
- * device path is the start of the volume's. */
-fn holds(bs: &BootServices, disk: Handle, own: &[alloc::vec::Vec<u8>]) -> bool {
-    let Some(disk) = nodes(bs, disk) else { return false };
-    !disk.is_empty() && disk.len() < own.len() && disk.iter().zip(own).all(|(a, b)| a == b)
-}
-
-fn path(
-    bs: &BootServices,
-    handle: Handle,
-) -> Option<uefi::table::boot::ScopedProtocol<'_, DevicePath>> {
-    let params = OpenProtocolParams { handle, agent: bs.image_handle(), controller: None };
-    /* SAFETY: GetProtocol borrows the interface for the life of the scope
-     * alone, and nothing here uninstalls it while it is held. */
-    unsafe { bs.open_protocol::<DevicePath>(params, OpenProtocolAttributes::GetProtocol).ok() }
 }
 
 fn copy_from(bs: &BootServices, handle: Handle) -> Option<(u64, u64)> {
     let params = OpenProtocolParams { handle, agent: bs.image_handle(), controller: None };
-    /* SAFETY: as for the device path above; GetProtocol leaves the disk
-     * bound to the driver that holds it BY_DRIVER. */
+    /* SAFETY: GetProtocol borrows the interface for the life of the scope
+     * alone, and leaves the disk bound to the driver that holds it BY_DRIVER;
+     * nothing here uninstalls it while it is held. */
     let blk =
         unsafe { bs.open_protocol::<BlockIO>(params, OpenProtocolAttributes::GetProtocol).ok()? };
     let media = blk.media();
@@ -127,19 +85,13 @@ fn copy_from(bs: &BootServices, handle: Handle) -> Option<(u64, u64)> {
     let total = {
         let head = Pages::new(bs, HEAD_PAGES)?;
         let bytes = head.bytes();
-        blk.read_blocks(media.media_id(), STORE_AT / block, bytes).ok()?;
+        read_all(&blk, block, STORE_AT / block, bytes)?;
         span(bytes)?
     };
     let pages = (total as usize).div_ceil(PAGE);
     let store = Pages::new(bs, pages)?;
     let bytes = store.bytes();
-    let mut done = 0usize;
-    while done < bytes.len() {
-        let take = (bytes.len() - done).min(CHUNK);
-        let lba = (STORE_AT + done as u64) / block;
-        blk.read_blocks(media.media_id(), lba, &mut bytes[done..done + take]).ok()?;
-        done += take;
-    }
+    read_all(&blk, block, STORE_AT / block, bytes)?;
     if &bytes[..8] != MAGIC {
         return None;
     }
