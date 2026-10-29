@@ -28,6 +28,10 @@ use super::super::super::super::opaque::make_opaque;
 use super::super::super::super::present::source::Source;
 use super::super::super::super::scene::Scene;
 
+#[path = "damage_changed.rs"]
+mod in_box;
+pub use in_box::changed;
+
 /// Rows `y0` up to `y1` of `src` read from guest `pid`, opaque when it is
 /// XRGB. Outside the box it said changed a client's buffer may hold an
 /// older frame, so the rows are read apart and only the box is laid.
