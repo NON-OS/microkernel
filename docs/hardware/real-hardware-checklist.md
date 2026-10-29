@@ -557,3 +557,42 @@ Bluetooth at all.
       the Linux lines above, the keyboard's and mouse's make and model.
       No `bt-usb:` line carries a Bluetooth address, a device name, a key
       or a passkey; report any that does.
+
+## Bluetooth on the Intel and MediaTek laptops: T14 Intel, NUC 15 Pro, T14 AMD
+
+The same capsule as the HP's (`capsule_driver_bt_usb`), with the vendor's own
+setup before bring-up (`userland/capsule_driver_bt_usb/README.md`, "Intel
+controllers" and "MediaTek MT7921 and MT7922"). Host-proven only; each of
+these boots is the first on real hardware. Pairing, the page and what to send
+back are the HP section's above; only the setup lines differ. Use a
+`standard-dev` image so the `bt-usb:` lines print.
+
+- [ ] Before booting, under Linux if the machine has it: save `lsusb` (the
+      8087:... or 0e8d:... Bluetooth line) and `dmesg | grep -i
+      'bluetooth: hci0'` (Intel: the `Found device firmware: intel/ibt-...`
+      line; MediaTek: `HW/SW Version` and the `BT_RAM_CODE_...` name).
+- [ ] Power fully off first, as on the HP: firmware Linux loaded survives a
+      warm reboot.
+- [ ] T14 Intel (AX201 or AX211) and NUC 15 Pro (BE201 on Arrow Lake CNVi):
+      `log bt-usb` shows `bt-usb: intel: sending ibt-...` (AX201
+      `ibt-19-0-4`, AX211 `ibt-1040-0041`; the BE201 sends
+      `ibt-0190-0291-iml` first, then `ibt-0190-0291-usb`), then `intel:
+      booted, DDC from ibt-...` and `bt-usb: controller up`. A controller
+      already running the carried build says `intel: firmware already
+      running: ibt-...`; one running another says `running firmware is not
+      ..., sent back to load it` and is found again. `firmware not carried:
+      ...` names a file this release lacks: keep that line and the Linux
+      one. On the BE201, a refusal after the loader stage may be the DSBR
+      word, which NONOS sends as zero (Linux reads it from a UEFI
+      variable): keep the whole log.
+- [ ] T14 AMD (MT7922): boot live from a stick built with the firmware
+      package (the Wi-Fi section above; an installed disk has no package
+      yet). `log bt-usb` shows `bt-usb: MediaTek MT7922 patched: N sections
+      sent, M held`, then `controller up`. `MediaTek controller not set up:
+      ...` names the step; `the firmware package is missing from the boot
+      medium` means the stick has no `EFI/nonos/firmware/mediatek/`.
+- [ ] Then the HP section's pairing steps: a passkey keyboard, a Just Works
+      mouse, switch the keyboard off and on. On a combo card note any Wi-Fi
+      or Bluetooth drop while both run: NONOS sets no coexistence.
+- [ ] Send back: `log bt-usb > bt.txt`, `log > boot-log.txt`, the Linux
+      lines, and the keyboard's and mouse's make and model.
