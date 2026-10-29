@@ -97,6 +97,9 @@ pub mod dirent;
 pub mod statbuf;
 #[path = "../../capsule_linux/src/linux/store_why.rs"]
 pub mod store_why;
+/* A package a running app holds stays as the store has it (`held_keep_tests`). */
+#[path = "../../capsule_linux/src/linux/install/held_keep.rs"]
+pub mod held_keep;
 
 #[path = "../../capsule_linux/src/linux/net/host_body.rs"]
 pub mod host_body;
