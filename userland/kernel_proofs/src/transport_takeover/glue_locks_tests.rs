@@ -43,13 +43,13 @@ fn a_killed_callers_failure_never_settles_the_disk() {
     );
     assert_eq!(tail(PASS, "Found::Refused(e) =>"), code(arm) + "}", "a refusal dropped");
     let end = concat!(
-        "let Some((b, p)) = other else { return Err(none()) }; let waited = refused.is_some()",
-        " && !caller_gone() && waited_for_boot_disk(); let (named, own_copy) =",
-        " (booted::partition().is_some(), booted::store_from_boot_disk()); match (other_disk(",
-        " named, own_copy, refused.is_some(), waited), refused) { (Other::Keep, _) => Ok(keep(b, p)),",
-        " (Other::Wait, Some(e)) => Err(e), (Other::Wait | Other::Leave, _) => Err(left_alone()), } }",
+        "let Some((b, p)) = other else { return Err(none()) }; let waited = refused.is_some() && !caller_gone()",
+        " && waited_for_boot_disk(); let (named, own_copy, usb) = (partition().is_some(), store_from_boot_disk(),",
+        " from_usb()); let end = other_disk(named, own_copy, usb, refused.is_some(), waited); said(end, [named, usb,",
+        " own_copy], b); match (end, refused) { (Other::Keep, _) => Ok(keep(b, p)), (Other::Wait, Some(e)) => Err(e),",
+        " (Other::Wait | Other::Leave, _) => Err(BlockDeviceError::Dead), } }",
     );
-    assert_eq!(between(SELECT, "let Some(", "fn left_alone"), code(end), "a disk kept wrong");
+    assert_eq!(tail(SELECT, "let Some("), code(end), "a disk kept wrong");
     let stamp = "pub(super) fn refused_now() { if !caller_gone() { stamp(&SINCE, uptime_ms()); } }";
     assert_eq!(between(WAIT, "pub(super) fn refused_now", "pub(super) fn waited_"), code(stamp));
     let gone = concat!(

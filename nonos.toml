@@ -44,11 +44,17 @@ features = []
 # the Marketplace's Linux tab. Empty: the image lists none and has no such
 # mirror. Set, the seal lists them and writes each one's content to
 # <out>/packages/<blake3>.tar, to be served from the mirror at /linux/.
-linux_packages = ""
+linux_packages = "mirror.nonos.software:80"
 # With linux_packages set, the built content of the catalogue's source
 # recipes (SimpleX, DarkFi): <package>.tar each, from tools/nonos-source-asset
 # and tools/nix/sources/darkfi-build.sh. Empty: those recipes are not listed.
-linux_sources = ""
+linux_sources = "target/linux-sources"
+# The Debian archive, name:port over plain HTTP, that Debian-family listings
+# (linux.kali.*, SimpleX) and the Debian packages they need install from,
+# over the route the person chose. Its signed index is checked against the
+# pinned keys/kali/archive-key-2025.asc, the archive tools/nonos-market-catalogue
+# lists from. Empty: such a listing refuses to install.
+linux_debian = "kali.download:80"
 
 # What the package store carries besides the capsules.
 [store]

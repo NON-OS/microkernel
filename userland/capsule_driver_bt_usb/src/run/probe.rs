@@ -44,7 +44,7 @@ pub fn probe(mut bus: XhciBus, port: u8, desk: &Desk) -> Probe {
         Err(_) => return failed("descriptors unread"),
     };
     match bind(bus, &found, desk.clone()) {
-        Bind::Ours(bound) => Probe::Ours(bound),
+        Bind::Ours(b) => crate::vendor::mediatek::up(b, &found).map_or(Probe::Failed, Probe::Ours),
         Bind::NotOurs => Probe::NotOurs,
         Bind::Failed(why, _) => failed(why),
     }

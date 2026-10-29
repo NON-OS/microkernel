@@ -22,6 +22,7 @@
 
 use super::pass::{FirstPass, Step};
 use super::state::Acpi;
+use crate::release::{on, Part};
 use crate::sys::clock::now_ms;
 use crate::sys::first_pass::first_pass_done;
 use crate::sys::log::Line;
@@ -31,14 +32,20 @@ pub const FIRST_PASS_MS: u64 = 2_000;
 
 pub fn first(acpi: &mut Acpi, pass: &mut FirstPass) {
     let until = now_ms().saturating_add(FIRST_PASS_MS);
-    crate::reserved::publish(acpi);
+    if on(Part::Reserved) {
+        crate::reserved::publish(acpi);
+    }
     crate::numa::publish(acpi);
     crate::pci_firmware::find(acpi);
-    let all = crate::dpower::reveal_hidden(acpi, until);
+    let all = !on(Part::Hidden) || crate::dpower::reveal_hidden(acpi, until);
     pass.finish(Step::Hidden);
-    crate::hotplug::learn(acpi);
+    if on(Part::Hotplug) {
+        crate::hotplug::learn(acpi);
+    }
     let Acpi { devices, aml, host, .. } = acpi;
-    crate::platform::publish(devices, aml, host);
+    if on(Part::Platform) {
+        crate::platform::publish(devices, aml, host);
+    }
     pass.finish(Step::Records);
     if pass.raise() {
         let l = Line::new(b"first publish pass done");

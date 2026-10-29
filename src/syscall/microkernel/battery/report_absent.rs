@@ -20,3 +20,7 @@
 pub(super) fn answer() -> Option<i64> {
     None
 }
+
+pub(super) fn state() -> Option<i64> {
+    None
+}

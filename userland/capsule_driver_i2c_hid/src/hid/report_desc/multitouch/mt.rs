@@ -30,7 +30,8 @@ use super::slots::Slots;
 pub struct Multitouch {
     pub slots: Slots,
     pub surface: Surface,
-    rid: u8,
+    /// The touch report's ID; 0 where the device numbers none.
+    pub(crate) rid: u8,
     count: Field,
     button: Field,
     assembler: Assembler,
@@ -46,12 +47,6 @@ impl Multitouch {
 
     pub fn serves(&self) -> bool {
         self.slots.n > 0 && (self.surface == Surface::Screen || self.slots.n >= 2)
-    }
-
-    /// Whether `report` (a report after the i2c-hid length) is the touch
-    /// report this path reads: every report, where the device numbers none.
-    pub fn takes(&self, report: &[u8]) -> bool {
-        self.rid == 0 || report.first() == Some(&self.rid)
     }
 
     /// The frame `report` (a report after the i2c-hid length) completes;

@@ -16,9 +16,9 @@
 
 //! The peer list, applied to the calling process.
 
-use super::held::{endpoint_admits, inbox_admits};
+use super::held::endpoint_admits;
 use super::lookup_service;
-use super::peers::{may_reach, peers_of};
+use super::peers::may_reach;
 
 /*
  * A thread is its process: it runs in the same address space with the same
@@ -28,14 +28,14 @@ use super::peers::{may_reach, peers_of};
  * process may not; and owning nothing, a worker was refused the drivers its
  * process drives.
  */
-fn caller_group() -> Option<u32> {
+pub(crate) fn caller_group() -> Option<u32> {
     let pid = crate::process::current_pid()?;
     crate::process::with_process(pid, |pcb| pcb.thread_group_id())
         .filter(|&tgid| tgid != 0)
         .or(Some(pid))
 }
 
-fn caller_name() -> Option<alloc::string::String> {
+pub(super) fn caller_name() -> Option<alloc::string::String> {
     let group = caller_group()?;
     crate::process::with_process(group, |pcb| pcb.name())
 }
@@ -50,32 +50,14 @@ pub(crate) fn caller_owns(name: &str) -> bool {
 
 /// Whether the caller may send to the endpoint called `target`. A caller
 /// with no name is held to nothing it could be named in, but an endpoint
-/// held to its services is held whoever asks.
+/// held to its services, or to a capsule at run time, is held whoever asks.
 pub fn caller_may_reach(target: &str) -> bool {
-    if !endpoint_admits(target, caller_owns) {
+    let held_to = lookup_service(target).and_then(|ep| ep.held_to);
+    if !endpoint_admits(target, held_to.as_deref(), caller_owns) {
         let pid = crate::process::current_pid().unwrap_or(0);
-        crate::log::warn!("[IPC-DENY] pid={} ipc to {}: held to the services that drive it", pid, target);
+        let to = held_to.as_deref().unwrap_or("the services that drive it");
+        crate::log::warn!("[IPC-DENY] pid={} ipc to {}: held to {}", pid, target, to);
         return false;
     }
     caller_name().is_none_or(|name| may_reach(&name, target))
-}
-
-/// Whether the caller, holding the capability bits `held`, may write
-/// straight into `dest`'s own inbox: the gate of every endpoint `dest`
-/// serves, since all of them are read from that inbox.
-pub fn caller_may_write_inbox(dest: u32, held: u64) -> bool {
-    let served = super::endpoints_of(dest);
-    inbox_admits(served.iter().map(|ep| (ep.name.as_str(), ep.caps_required)), held, caller_owns)
-}
-
-/// Whether the caller may send straight to `dest`'s own inbox: only when
-/// `dest` serves one of the endpoints on the caller's list.
-pub fn caller_may_reach_pid(dest: u32) -> bool {
-    let Some(name) = caller_name() else {
-        return true;
-    };
-    let Some(peers) = peers_of(&name) else {
-        return true;
-    };
-    peers.iter().any(|p| lookup_service(p).is_some_and(|ep| ep.pid == dest))
 }

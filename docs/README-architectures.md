@@ -15,6 +15,10 @@ Part of [NONOS documentation](README.md).
 
 ### Release notes
 
+- [NONOS 0.9.3 release notes](release/0.9.3.md): what 0.9.3 adds, the hardware
+  it runs on, what does not work yet, and how to move an installed system to it.
+- [Release evidence for 0.9.3](release-evidence/0.9.3/README.md): one line on
+  each evidence directory and what it proves.
 - [NONOS 0.9.2 release notes](release/0.9.2.md): what 0.9.2 adds, the hardware
   it runs on, what does not work yet, and how to move an installed system to it.
 

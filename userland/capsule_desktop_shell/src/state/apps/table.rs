@@ -19,7 +19,7 @@
 
 use super::kinds::{opened_with, tile, LauncherApp, LauncherIcon};
 
-pub const LAUNCHER_APPS: [LauncherApp; 16] = [
+pub const LAUNCHER_APPS: [LauncherApp; 17] = [
     tile(LauncherIcon::Terminal, b"Terminal", b"app.terminal"),
     tile(LauncherIcon::FileManager, b"Files", b"app.file_manager"),
     tile(LauncherIcon::TextEditor, b"Editor", b"app.text_editor"),
@@ -36,6 +36,7 @@ pub const LAUNCHER_APPS: [LauncherApp; 16] = [
     tile(LauncherIcon::AudioPlayer, b"Music", b"app.audio_player"),
     tile(LauncherIcon::VideoPlayer, b"Video", b"app.video_player"),
     tile(LauncherIcon::Snake, b"Snake", b"app.snake"),
+    tile(LauncherIcon::Simplex, b"SimpleX", b"app.simplex"),
     tile(LauncherIcon::Install, b"Install", b"app.install"),
     /* Opened with a picture (a desktop icon, Files, Open With); no tile. */
     opened_with(LauncherIcon::ImageViewer, b"Image Viewer", b"app.image_viewer"),

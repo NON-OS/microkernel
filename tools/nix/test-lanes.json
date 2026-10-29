@@ -45,6 +45,7 @@
  "userland/nonos_scsi": "",
  "userland/nonos_seal": "",
  "userland/nonos_secp256k1": "",
+ "userland/nonos_serve_wire": "",
  "userland/nonos_vault": "",
  "userland/nonos_vmbus": "",
  "userland/nonos_vt": "",

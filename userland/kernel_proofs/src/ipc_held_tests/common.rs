@@ -46,6 +46,10 @@ pub(super) const WIFI: [&str; 5] = [
     "driver.rtl8852be0",
 ];
 
+/// An endpoint a process serves: its name, the capabilities it requires,
+/// and the capsule the kernel held it to at run time, if any.
+pub(super) type Gate = (&'static str, u64, Option<&'static str>);
+
 /// A caller that owns exactly the endpoints `names`.
 pub(super) fn owner(names: &'static [&'static str]) -> impl Fn(&str) -> bool {
     move |n| names.contains(&n)

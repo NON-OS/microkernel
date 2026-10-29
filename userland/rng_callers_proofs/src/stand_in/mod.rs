@@ -27,10 +27,12 @@ pub mod ram;
 pub mod rng;
 pub mod selftest;
 pub mod time;
+pub mod trip_lock;
 pub mod volume;
 
 pub use devices::hardware;
 pub use kernel::{arch, boot, log, smp, sys};
 pub use keyring::{audit, keyring_capsule, machine_key, scrub_asm};
 pub use ram::memory;
+pub use trip_lock as services;
 pub use volume::blockfs;

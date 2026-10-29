@@ -60,7 +60,10 @@ fn a_one_antenna_board_has_no_air_path() {
     let (_, st, why) = stops(|s| s.phy_cap[3] = 1 << 16);
     assert_eq!(
         (st, why),
-        (Stage::NoAirPath, &b"[rtl8852be] one-antenna board not supported\n"[..])
+        (
+            Stage::NoAirPath,
+            &b"[rtl8852be] one-antenna board: only two-antenna boards are driven\n"[..]
+        )
     );
 }
 

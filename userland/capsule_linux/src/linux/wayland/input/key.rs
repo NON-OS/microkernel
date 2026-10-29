@@ -22,7 +22,7 @@ use crate::linux::guest::Guest;
 
 use super::super::evdev::evdev_of;
 use super::super::out::Event;
-use super::super::xkb_mods::{xkb_masks, ALT, ALTGR, CAPS, CTRL, META, NUM, SHIFT};
+use super::super::xkb_mods::{after, xkb_masks, ALT, ALTGR, CAPS, CTRL, META, NUM, SHIFT};
 use super::enter::keyboard_on;
 
 /// wl_keyboard: key is 3, modifiers 4.
@@ -46,28 +46,30 @@ pub fn key(guest: &mut Guest, code: u32, flags: u16, state: u32) {
     if !(if state == 1 { held.press(linux) } else { held.release(linux) }) {
         return;
     }
+    /* Ctrl+Q is Ctrl only if Ctrl was said before the Q (xkb_mods::after). */
+    let told = xkb_masks(flags);
+    let then = after(told, linux, state == 1);
+    if then.is_none() {
+        mods(guest, id, told);
+    }
     let serial = guest.scene.next_serial();
     if state == 1 {
         guest.scene.popups.last_press = Some(serial);
     }
-    let time = time_ms();
-    Event::new(id, KEYBOARD_KEY)
-        .u32(serial)
-        .u32(time)
-        .u32(linux)
-        .u32(state)
-        .send(&mut guest.display.to_client);
-    let (depressed, locked) = xkb_masks(flags);
-    let serial = guest.scene.next_serial();
-    Event::new(id, KEYBOARD_MODIFIERS)
-        .u32(serial)
-        .u32(depressed)
-        .u32(0)
-        .u32(locked)
-        .u32(0)
-        .send(&mut guest.display.to_client);
+    let time = crate::linux::call::family_ms() as u32;
+    let ev = Event::new(id, KEYBOARD_KEY).u32(serial).u32(time).u32(linux).u32(state);
+    ev.send(&mut guest.display.to_client);
+    if let Some(masks) = then {
+        mods(guest, id, masks);
+    }
 }
 
-fn time_ms() -> u32 {
-    crate::linux::call::family_ms() as u32
+/// wl_keyboard.modifiers with `masks`, when the client does not have them.
+fn mods(guest: &mut Guest, id: u32, (depressed, locked): (u32, u32)) {
+    if !guest.scene.held.mods((depressed, locked)) {
+        return;
+    }
+    let serial = guest.scene.next_serial();
+    let ev = Event::new(id, KEYBOARD_MODIFIERS).u32(serial).u32(depressed).u32(0);
+    ev.u32(locked).u32(0).send(&mut guest.display.to_client);
 }

@@ -6,12 +6,12 @@
   "entries": [
     {
       "listing_id": "linux.nonos-darkfi-darkfid",
-      "capsule_id": "43910d3ce3dfce5a21513319d9a4888e775aa2b7fe4978d83f67a8da30d9eb3a",
-      "name": "DarkFi node (darkfid), local or dev chain only",
+      "capsule_id": "63210266571b705f990fad7de0028e5d50f1deaeeaf0e4132a3b19c63c1fd373",
+      "name": "DarkFi local dev chain",
       "publisher_name": "Linux",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "DarkFi's full node, built here from DarkFi v0.5.0 without its tor and i2p transports. For a local or dev chain only: a mainnet or testnet chain does not fit an app's 16 MiB home. It serves drk's JSON-RPC on 127.0.0.1 inside its own box, and any peer it dials leaves over Anyone, never direct. Its box lets it compile code as it runs (JIT), as wasmer does for each contract and RandomX for its proof of work.",
+      "description": "A DarkFi chain of your own, for trying the wallet, transfers and contracts: DarkFi's darkfid on its localnet, the minerd that mines its blocks, and the drk prompt, built here from DarkFi v0.5.0, in one box joined on its own loopback. What is mined goes to your wallet. It reaches no network at all, and its coins are worth nothing anywhere else. Its box may JIT, as wasmer does for each contract and RandomX for the proof of work. A home holds a few hours of blocks.",
       "logo_hash": "",
       "price": {
         "kind": "free",
@@ -33,9 +33,9 @@
       "releases": [
         {
           "release_id": "nonos-darkfi-darkfid@2e2de47c699529600085649b69c5c1878164e79a",
-          "manifest_hash": "43910d3ce3dfce5a21513319d9a4888e775aa2b7fe4978d83f67a8da30d9eb3a",
-          "package_hash": "43910d3ce3dfce5a21513319d9a4888e775aa2b7fe4978d83f67a8da30d9eb3a",
-          "package_url": "http://10.0.2.2:8080/linux/43910d3ce3dfce5a21513319d9a4888e775aa2b7fe4978d83f67a8da30d9eb3a.tar",
+          "manifest_hash": "63210266571b705f990fad7de0028e5d50f1deaeeaf0e4132a3b19c63c1fd373",
+          "package_hash": "63210266571b705f990fad7de0028e5d50f1deaeeaf0e4132a3b19c63c1fd373",
+          "package_url": "http://10.0.2.2:8080/linux/63210266571b705f990fad7de0028e5d50f1deaeeaf0e4132a3b19c63c1fd373.tar",
           "publisher_signature": "",
           "supported_arches": [
             "x86_64-linux"
@@ -46,11 +46,11 @@
           ],
           "zk_trailer_hash": "",
           "ext": {
-            "guest_policy": "4e4c58504f4c3031010000000000000013757fd8859fc5ee57e4708ecd657bcb092046613914eec287795ee9ce44f3ab8e010000000000001baa5becd593db256f4c404f5dce5237b42a3983d92d6607f40e9780b21858efee9357c76263cc5049a78c396d6c1e2d40a8d256743367ee4b308d0b963552750000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+            "guest_policy": "4e4c58504f4c3031010000000000000026ce4d928634eb80bfd60dd2ade21be0d777f6dd7756131b45ddf300d4287b428c010000000000001baa5becd593db256f4c404f5dce5237b42a3983d92d6607f40e9780b21858efee9357c76263cc5049a78c396d6c1e2d40a8d256743367ee4b308d0b963552750000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
           },
           "validation": {
             "status": "validated",
-            "note": "built from https://github.com/darkrenaissance/darkfi at 2e2de47c699529600085649b69c5c1878164e79a; content of 20920320 bytes pinned by BLAKE3; licence AGPL-3.0-only; installs only in this release's box",
+            "note": "built from https://github.com/darkrenaissance/darkfi at 2e2de47c699529600085649b69c5c1878164e79a; content of 45015040 bytes pinned by BLAKE3; licence AGPL-3.0-only; installs only in this release's box",
             "validator_id": "nonos.operator.linux",
             "validated_at_ms": 1792844669000
           }

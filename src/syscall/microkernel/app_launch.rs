@@ -16,14 +16,26 @@
 
 //! `MkAppLaunch`: start the program a distribution package installed.
 
-use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_INVAL};
+use crate::services::registry::{caller_group, caller_owns, serves::LISTINGS};
+use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_INVAL, ERRNO_PERM};
+use crate::userspace::capsule_linux::note_launch;
 
 use super::app_install::id;
 
-/// `MkAppLaunch(listing_ptr, listing_len)`. Queues the run for init; whether
-/// the program may start is the exec gate's answer, which checks the trailer
-/// the machine minted when it installed the package.
-pub fn sys_app_launch(listing_ptr: u64, listing_len: u64) -> i64 {
+#[path = "app_launch_rule.rs"]
+mod rule;
+use rule::{admit_launch, Launch};
+#[path = "app_launch_take.rs"]
+mod take;
+#[path = "app_launch_word.rs"]
+mod word;
+
+/// `MkAppLaunch(listing_ptr, listing_len, word_ptr, word_len)`. Queues the
+/// run for init; whether the program may start is the exec gate's answer,
+/// which checks the trailer the machine minted when it installed the
+/// package. EPERM for a capsule SERVES lists asking for a listing not its
+/// own (app_launch_rule.rs); EINVAL for a word it may not give (take.rs).
+pub fn sys_app_launch(listing_ptr: u64, listing_len: u64, word_ptr: u64, word_len: u64) -> i64 {
     let listing = match id(listing_ptr, listing_len) {
         Ok(Some(s)) => s,
         Ok(None) => return ERRNO_INVAL,
@@ -34,11 +46,25 @@ pub fn sys_app_launch(listing_ptr: u64, listing_len: u64) -> i64 {
     else {
         return ERRNO_INVAL;
     };
+    let free = crate::syscall::caps::current_caps_or_default().can_app_install()
+        || caller_owns("desktop_shell");
+    if admit_launch(free, caller_owns, &listing, LISTINGS) == Launch::Refused {
+        return ERRNO_PERM;
+    }
+    let word = match take::taken(free, &listing, word_ptr, word_len) {
+        Ok(word) => word,
+        Err(e) => return e,
+    };
     if crate::userspace::capsule_linux::run_busy() || crate::userspace::init::run_waiting() {
         return ERRNO_BUSY;
     }
+    // Noted before it is queued, so init cannot start it unnoted.
+    note_launch(if free { None } else { caller_group() }, &name, word.as_deref());
     match crate::userspace::init::request_run(name) {
         true => 0,
-        false => ERRNO_BUSY,
+        false => {
+            note_launch(None, "", None);
+            ERRNO_BUSY
+        }
     }
 }

@@ -52,6 +52,9 @@ blake3 = { version = "1", default-features = false, features = ["pure"] }
 nonos_linux_policy = { path = "../nonos_linux_policy" }
 # A package as one store object (src/linux/file/store/pack).
 nonos_linux_pack = { path = "../nonos_linux_pack" }
+# The frames between a box's SERVE_ONE listener and its one capsule
+# (src/linux/net/serve_one), which that capsule imports too.
+nonos_serve_wire = { path = "../nonos_serve_wire" }
 
 [profile.release]
 panic = "abort"

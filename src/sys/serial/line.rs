@@ -16,9 +16,8 @@
 
 //! A whole line, assembled before the port is touched.
 //!
-//! `print`, `print_dec` and `print_hex` each take the serial lock for the
-//! duration of that call, so a line built from several of them is several
-//! critical sections with gaps between. On one CPU nothing can run in the
+//! `print` takes the serial lock for the duration of one call, so a line
+//! printed a piece at a time is several critical sections with gaps between. On one CPU nothing can run in the
 //! gaps. On four, two CPUs' lines interleave character by character:
 //!
 //!   [SMP-PROOF] cpu_count=[APIC] Setting up timer at 1100 UP

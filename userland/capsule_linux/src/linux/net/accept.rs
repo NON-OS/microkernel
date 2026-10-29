@@ -22,7 +22,7 @@ use crate::linux::guest::Guest;
 
 use super::close::discard;
 use super::fd::{install, sock_of, SOCK_CLOEXEC, SOCK_NONBLOCK};
-use super::sock::{self, Domain, Peer, Proto};
+use super::sock;
 
 pub fn accept4(guest: &mut Guest, fd: u64, at: u64, lenp: u64, flags: u64) -> u64 {
     if flags & !(SOCK_NONBLOCK | SOCK_CLOEXEC) != 0 {
@@ -33,25 +33,7 @@ pub fn accept4(guest: &mut Guest, fd: u64, at: u64, lenp: u64, flags: u64) -> u6
         Err(e) => return e,
     };
     let pid = guest.pid;
-    let taken = sock::with(|t| {
-        let s = t.get_mut(id).ok_or(errno::EBADF)?;
-        if s.proto == Proto::Dgram {
-            return Err(errno::EOPNOTSUPP);
-        }
-        if !s.listening {
-            return Err(errno::EINVAL);
-        }
-        let child = s.pending.pop_front().ok_or(errno::EAGAIN)?;
-        t.make_room(id);
-        let c = t.get_mut(child).ok_or(errno::ECONNABORTED)?;
-        c.holders.push(pid);
-        let from = match c.domain {
-            Domain::Inet => Peer::Inet(c.remote.unwrap_or_default()),
-            Domain::Unix => Peer::Unix(c.upeer.clone()),
-        };
-        Ok((child, from))
-    });
-    let (child, from) = match taken {
+    let (child, from) = match sock::with(|t| t.accept(id, pid)) {
         Ok(v) => v,
         Err(e) => return errno::fail(e),
     };

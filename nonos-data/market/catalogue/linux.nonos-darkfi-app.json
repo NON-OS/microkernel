@@ -1,0 +1,61 @@
+{
+  "schema_version": 4,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.nonos-darkfi-app",
+      "capsule_id": "790830668af1f142d1560c0bd9483ca23fd8743f73e4f9ee1e65f11d2eac14fe",
+      "name": "DarkFi (chat app)",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "DarkFi's desktop app, built here from v0.5.0 without tor or i2p. It draws on the CPU, with no GPU, so it is slower than on other systems. Its peers are reached over Anyone, never direct.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "nonos-darkfi-app@2e2de47c699529600085649b69c5c1878164e79a",
+          "manifest_hash": "790830668af1f142d1560c0bd9483ca23fd8743f73e4f9ee1e65f11d2eac14fe",
+          "package_hash": "790830668af1f142d1560c0bd9483ca23fd8743f73e4f9ee1e65f11d2eac14fe",
+          "package_url": "http://10.0.2.2:8080/linux/790830668af1f142d1560c0bd9483ca23fd8743f73e4f9ee1e65f11d2eac14fe.tar",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c30310100000000000000001be78e94749453f767902e00f5ab22d010a6a9d6634ad75e706c2ccc430f7b0b00000000000000a07e85d5d8236859860bc53c33d22d315c7c251addd96827db533bb0158ccc26eb3445e41159d0dbd9b276fd5b752bfc8c60435dee6d0c39521bccb66fc9f1fc0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "built from https://github.com/darkrenaissance/darkfi at 2e2de47c699529600085649b69c5c1878164e79a; content of 48394240 bytes pinned by BLAKE3; licence AGPL-3.0-only; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}

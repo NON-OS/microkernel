@@ -44,9 +44,9 @@ fn what_the_kernel_drives_no_capsule_reaches() {
         "driver.virtio_rng",
     ] {
         assert_eq!(callers_of(ep), Some(&[][..]), "{ep} names a caller");
-        assert!(!endpoint_admits(ep, owner(everyone)), "{ep} took a capsule");
+        assert!(!endpoint_admits(ep, None, owner(everyone)), "{ep} took a capsule");
         assert!(
-            !inbox_admits([(ep, IPC)], u64::MAX, owner(everyone)),
+            !inbox_admits([(ep, IPC, None)], u64::MAX, owner(everyone)),
             "{ep} by pid, every bit held"
         );
     }

@@ -37,8 +37,7 @@ use crate::linux::whole::{ask, whole};
 /// refuses the install.
 pub(in crate::linux::install) fn record(name: &str, files: &Verified) -> bool {
     let all = entries(files.files());
-    let pairs: Vec<(&[u8], &[u8])> =
-        all.iter().map(|e| (e.name.as_slice(), e.body.as_slice())).collect();
+    let pairs: Vec<(&[u8], &[u8])> = all.iter().map(|e| (e.name.as_slice(), e.body)).collect();
     let want = super::super::market::hold::wanted();
     let hash = |b: &[u8]| *blake3::hash(b).as_bytes();
     let Some(path) = choose(&pairs, name.as_bytes(), want.as_ref(), hash) else { return true };

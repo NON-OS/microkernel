@@ -67,4 +67,5 @@ pub enum IconId {
     Install,
     Qwen,
     SettingsBluetooth,
+    Simplex,
 }

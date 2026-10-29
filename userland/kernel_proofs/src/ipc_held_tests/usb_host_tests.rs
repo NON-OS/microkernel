@@ -43,18 +43,17 @@ fn every_spawned_host_is_listed_and_held() {
 
 #[test]
 fn every_listed_host_takes_the_class_drivers_and_no_one_else() {
-    let first = callers_of(USB_HOSTS[0]).expect("held");
-    for want in [
-        "driver.usb_hub0",
-        "driver.usb_hid0",
-        "driver.usb_msc0",
-        "driver.usb_audio0",
-    ] {
+    let first = callers_of(USB_HOSTS[1]).expect("held");
+    for want in ["driver.usb_hub0", "driver.usb_hid0", "driver.usb_msc0", "driver.usb_audio0"] {
         assert!(first.contains(&want), "{want} cannot reach the host");
     }
+    // xHCI's list is the others' and the Bluetooth host (bluetooth.rs).
     for host in USB_HOSTS {
-        assert_eq!(callers_of(host), Some(first), "{host} is held to another list");
-        assert!(!endpoint_admits(host, owner(APPS)), "{host} took an app");
+        let list = callers_of(host).expect("held");
+        let extra = list.iter().filter(|c| !first.contains(c)).count();
+        assert_eq!(extra, usize::from(*host == "driver.xhci0"), "{host} is held to another list");
+        assert!(first.iter().all(|c| list.contains(c)), "{host} lost a class driver");
+        assert!(!endpoint_admits(host, None, owner(APPS)), "{host} took an app");
     }
 }
 

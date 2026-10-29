@@ -27,6 +27,12 @@ nonos_aml = { path = "../nonos_aml" }
 nonos_smbios = { path = "../nonos_smbios" }
 nonos_ucsi = { path = "../nonos_ucsi" }
 
+[features]
+# The release images' build (Capsule.mk): the battery, AC, lid and button
+# path and what only reads; everything that acts beyond it left out
+# (src/release/rule.rs, README "Release build").
+release-power-only = []
+
 [profile.release]
 panic = "abort"
 opt-level = 2

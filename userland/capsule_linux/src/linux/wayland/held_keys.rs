@@ -30,11 +30,13 @@ pub const MOST_HELD: usize = 32;
 #[derive(Default)]
 pub struct HeldKeys {
     down: Vec<u32>,
+    /// The (depressed, locked) masks the client was last told.
+    mods: (u32, u32),
 }
 
 impl HeldKeys {
     pub const fn new() -> HeldKeys {
-        HeldKeys { down: Vec::new() }
+        HeldKeys { down: Vec::new(), mods: (0, 0) }
     }
 
     /// Whether a press of `key` is news to the client; it is then down.
@@ -51,5 +53,10 @@ impl HeldKeys {
         let before = self.down.len();
         self.down.retain(|k| *k != key);
         self.down.len() != before
+    }
+
+    /// Whether `masks` are news to the client; they are then what it knows.
+    pub fn mods(&mut self, masks: (u32, u32)) -> bool {
+        core::mem::replace(&mut self.mods, masks) != masks
     }
 }

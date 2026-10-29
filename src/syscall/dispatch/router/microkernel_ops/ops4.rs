@@ -44,6 +44,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkPeerUnmap
             | MkForeignExec
             | MkLinuxRunNet
+            | MkServeOne
             | MkSealRead
             | MkSealNote
             | MkSealPeek

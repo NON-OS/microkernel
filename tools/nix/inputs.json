@@ -46,6 +46,9 @@
    "nonos-data/trust/capsules/driver_bga.manifest.bin",
    "nonos-data/trust/capsules/driver_bga.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_bga.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.manifest.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_buslogic.manifest.bin",
    "nonos-data/trust/capsules/driver_buslogic.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_buslogic.zk_trailer.bin",
@@ -183,7 +186,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "nonos-attest-path": {
@@ -247,6 +253,7 @@
    "nonos-bootloader/src/image_format/parse",
    "nonos-bootloader/src/image_format/types.rs",
    "nonos-bootloader/src/loader/file/device_kind.rs",
+   "nonos-bootloader/src/loader/file/gpt_entry.rs",
    "nonos-bootloader/src/menu/types/mode.rs",
    "nonos-bootloader/src/paging/constants.rs",
    "nonos-bootloader/src/paging/fb_window.rs",
@@ -1095,6 +1102,9 @@
    "nonos-data/trust/capsules/driver_bga.manifest.bin",
    "nonos-data/trust/capsules/driver_bga.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_bga.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.manifest.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_buslogic.manifest.bin",
    "nonos-data/trust/capsules/driver_buslogic.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_buslogic.zk_trailer.bin",
@@ -1232,7 +1242,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/asid_proofs": {
@@ -1615,29 +1628,58 @@
   "signed": []
  },
  "userland/bt_usb_proofs": {
-  "exclude": [],
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
   "include": [
    ".cargo",
+   "nonos-bootloader/firmware/intel/ibt-0041-0041.ddc",
+   "nonos-bootloader/firmware/intel/ibt-0041-0041.sfi",
+   "nonos-bootloader/firmware/intel/ibt-0190-0291-iml.sfi",
+   "nonos-bootloader/firmware/intel/ibt-0190-0291-usb.ddc",
+   "nonos-bootloader/firmware/intel/ibt-0190-0291-usb.sfi",
+   "nonos-bootloader/firmware/intel/ibt-0291-0291.ddc",
+   "nonos-bootloader/firmware/intel/ibt-0291-0291.sfi",
+   "nonos-bootloader/firmware/intel/ibt-1040-0041.ddc",
+   "nonos-bootloader/firmware/intel/ibt-1040-0041.sfi",
+   "nonos-bootloader/firmware/intel/ibt-19-0-4.ddc",
+   "nonos-bootloader/firmware/intel/ibt-19-0-4.sfi",
+   "nonos-bootloader/firmware/intel/ibt-20-1-3.ddc",
+   "nonos-bootloader/firmware/intel/ibt-20-1-3.sfi",
+   "nonos-bootloader/firmware/intel/ibt-20-1-4.ddc",
+   "nonos-bootloader/firmware/intel/ibt-20-1-4.sfi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
    "userland/bt_proto",
    "userland/bt_usb_proofs",
-   "userland/capsule_driver_bt_usb/src/hid/modifier.rs",
-   "userland/capsule_driver_bt_usb/src/link",
-   "userland/capsule_driver_bt_usb/src/nbtc",
-   "userland/capsule_driver_bt_usb/src/ring/answer.rs",
-   "userland/capsule_driver_bt_usb/src/ring/keyring.rs",
-   "userland/capsule_driver_bt_usb/src/ring/wire.rs",
-   "userland/capsule_driver_bt_usb/src/usb/choose.rs",
-   "userland/capsule_driver_bt_usb/src/usb/limit.rs",
+   "userland/capsule_driver_bt_usb/firmware/rtl8821c_config.bin",
+   "userland/capsule_driver_bt_usb/firmware/rtl8821c_fw.bin",
+   "userland/capsule_driver_bt_usb/src",
+   "userland/capsule_driver_usb_hid/src/hid/active.rs",
+   "userland/capsule_driver_usb_hid/src/hid/key_event.rs",
+   "userland/capsule_driver_usb_hid/src/hid/key_post.rs",
+   "userland/capsule_driver_usb_hid/src/hid/keyboard/repeat",
+   "userland/capsule_driver_usb_hid/src/hid/keymap",
+   "userland/capsule_driver_usb_hid/src/hid/post_key.rs",
+   "userland/capsule_driver_usb_hid/src/hid/post_wire.rs",
+   "userland/capsule_driver_usb_hid/src/hid/usage_keycode",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_settings/src/bluetooth/panel",
+   "userland/libc",
    "userland/nonos_aes",
    "userland/nonos_bt_bond",
    "userland/nonos_bt_hci",
    "userland/nonos_bt_hci_proofs/src/sim",
    "userland/nonos_bt_hogp",
    "userland/nonos_bt_hogp_proofs/src/sim",
+   "userland/nonos_bt_rtl",
    "userland/nonos_bt_smp",
    "userland/nonos_bt_smp_proofs/src/sim",
    "userland/nonos_bt_wire",
-   "userland/nonos_p256"
+   "userland/nonos_hash",
+   "userland/nonos_p256",
+   "userland/toolkit"
   ],
   "md": [],
   "signed": []
@@ -1695,6 +1737,28 @@
    "nonos-data/trust/COMMIT"
   ]
  },
+ "userland/capsule_acpi": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
+   "src/hardware/broker/acpi/osc_grant.rs",
+   "src/hardware/broker/acpi/platform_decode.rs",
+   "src/hardware/broker/acpi/platform_encode.rs",
+   "src/hardware/broker/acpi/platform_wire.rs",
+   "src/hardware/broker/acpi/slot_rule.rs",
+   "src/hardware/broker/acpi/slot_wire.rs",
+   "src/hardware/broker/acpi/usb_port_wire.rs",
+   "src/hardware/broker/reserved/wire.rs",
+   "userland/capsule_acpi",
+   "userland/libc",
+   "userland/nonos_aml",
+   "userland/nonos_smbios",
+   "userland/nonos_ucsi"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/capsule_acpi_proofs": {
   "exclude": [],
   "include": [
@@ -1707,6 +1771,9 @@
    "userland/capsule_acpi/Capsule.mk",
    "userland/capsule_acpi/src/aei/rate.rs",
    "userland/capsule_acpi/src/backlight/engine_rule.rs",
+   "userland/capsule_acpi/src/boot/bringup.rs",
+   "userland/capsule_acpi/src/boot/first.rs",
+   "userland/capsule_acpi/src/boot/late.rs",
    "userland/capsule_acpi/src/boot/pass.rs",
    "userland/capsule_acpi/src/boot/sci.rs",
    "userland/capsule_acpi/src/boot/sci_claim.rs",
@@ -1724,15 +1791,21 @@
    "userland/capsule_acpi/src/hotplug/native/step.rs",
    "userland/capsule_acpi/src/hotplug/native/step_timed.rs",
    "userland/capsule_acpi/src/hotplug/native/times.rs",
+   "userland/capsule_acpi/src/power/alarm.rs",
    "userland/capsule_acpi/src/power/off",
    "userland/capsule_acpi/src/props/wire.rs",
    "userland/capsule_acpi/src/props/wire_cursor.rs",
    "userland/capsule_acpi/src/props/wire_read.rs",
    "userland/capsule_acpi/src/props/wire_write.rs",
+   "userland/capsule_acpi/src/release/rule.rs",
    "userland/capsule_acpi/src/serial/bus_key.rs",
+   "userland/capsule_acpi/src/server/notify.rs",
    "userland/capsule_acpi/src/server/policy.rs",
+   "userland/capsule_acpi/src/server/protocol.rs",
    "userland/capsule_acpi/src/server/reply.rs",
    "userland/capsule_acpi/src/sleep",
+   "userland/capsule_acpi/src/sys/line_frame.rs",
+   "userland/capsule_acpi/src/sys/log.rs",
    "userland/capsule_acpi_proofs",
    "userland/capsule_power/Capsule.mk"
   ],
@@ -2269,6 +2342,56 @@
    "userland/nonos_gfx_serve",
    "userland/nonos_gfx_wire",
    "userland/nonos_modes"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_bt_usb": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "nonos-bootloader/firmware/intel/ibt-0041-0041.ddc",
+   "nonos-bootloader/firmware/intel/ibt-0041-0041.sfi",
+   "nonos-bootloader/firmware/intel/ibt-0190-0291-iml.sfi",
+   "nonos-bootloader/firmware/intel/ibt-0190-0291-usb.ddc",
+   "nonos-bootloader/firmware/intel/ibt-0190-0291-usb.sfi",
+   "nonos-bootloader/firmware/intel/ibt-0291-0291.ddc",
+   "nonos-bootloader/firmware/intel/ibt-0291-0291.sfi",
+   "nonos-bootloader/firmware/intel/ibt-1040-0041.ddc",
+   "nonos-bootloader/firmware/intel/ibt-1040-0041.sfi",
+   "nonos-bootloader/firmware/intel/ibt-19-0-4.ddc",
+   "nonos-bootloader/firmware/intel/ibt-19-0-4.sfi",
+   "nonos-bootloader/firmware/intel/ibt-20-1-3.ddc",
+   "nonos-bootloader/firmware/intel/ibt-20-1-3.sfi",
+   "nonos-bootloader/firmware/intel/ibt-20-1-4.ddc",
+   "nonos-bootloader/firmware/intel/ibt-20-1-4.sfi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
+   "src/services/registry/usb_hosts.rs",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/bt_proto",
+   "userland/capsule_driver_bt_usb",
+   "userland/capsule_driver_usb_hid/src/hid/active.rs",
+   "userland/capsule_driver_usb_hid/src/hid/key_event.rs",
+   "userland/capsule_driver_usb_hid/src/hid/key_post.rs",
+   "userland/capsule_driver_usb_hid/src/hid/keyboard/repeat",
+   "userland/capsule_driver_usb_hid/src/hid/keymap",
+   "userland/capsule_driver_usb_hid/src/hid/post_key.rs",
+   "userland/capsule_driver_usb_hid/src/hid/post_wire.rs",
+   "userland/capsule_driver_usb_hid/src/hid/usage_keycode",
+   "userland/libc",
+   "userland/nonos_aes",
+   "userland/nonos_bt_bond",
+   "userland/nonos_bt_hci",
+   "userland/nonos_bt_hogp",
+   "userland/nonos_bt_rtl",
+   "userland/nonos_bt_smp",
+   "userland/nonos_bt_wire",
+   "userland/nonos_keymap",
+   "userland/nonos_mac",
+   "userland/nonos_p256",
+   "userland/nonos_usbnet",
+   "userland/policy_client",
+   "userland/policy_proto"
   ],
   "md": [],
   "signed": []
@@ -3499,6 +3622,7 @@
    "userland/nonos_linux_pack",
    "userland/nonos_linux_policy",
    "userland/nonos_route_link",
+   "userland/nonos_serve_wire",
    "userland/nonos_socket",
    "userland/nonos_tls",
    "userland/openpgp",
@@ -3518,10 +3642,12 @@
   ],
   "include": [
    ".cargo",
+   "nonos-data/market/catalogue",
    "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/capsule_linux/family.rs",
    "src/userspace/capsule_linux/terminal/tier.rs",
    "src/userspace/init/app_choice/bits.rs",
+   "src/userspace/init/supervisor/watch_rule.rs",
    "tools/nix/store.json",
    "userland/assets/icons",
    "userland/capsule_linux/Cargo.toml",
@@ -3559,6 +3685,7 @@
    "userland/nonos_route_link/src/pick.rs",
    "userland/nonos_route_link/src/refusal.rs",
    "userland/nonos_route_link/src/socks.rs",
+   "userland/nonos_serve_wire",
    "userland/openpgp",
    "userland/policy_proto",
    "userland/toolkit",
@@ -4270,6 +4397,24 @@
    "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_shield_vectors",
    "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_simplex_ui": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_simplex_ui",
+   "userland/libc",
+   "userland/nonos_serve_wire",
+   "userland/toolkit"
   ],
   "md": [],
   "signed": []
@@ -5125,7 +5270,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/dhcp_proofs": {
@@ -5363,6 +5511,9 @@
    "nonos-data/trust/capsules/driver_bga.manifest.bin",
    "nonos-data/trust/capsules/driver_bga.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_bga.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.manifest.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_buslogic.manifest.bin",
    "nonos-data/trust/capsules/driver_buslogic.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_buslogic.zk_trailer.bin",
@@ -5500,7 +5651,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/emmc_proofs": {
@@ -6551,10 +6705,13 @@
    "nonos-bootloader/src/display/gop/state.rs",
    "nonos-bootloader/src/display/gop/try_init.rs",
    "nonos-bootloader/src/entry/boot_disk.rs",
+   "nonos-bootloader/src/entry/install_source.rs",
    "nonos-bootloader/src/handoff/config/framebuffer/get_info.rs",
    "nonos-bootloader/src/handoff/prepare/flags.rs",
+   "nonos-bootloader/src/handoff/types/boot_media.rs",
    "nonos-bootloader/src/handoff/types/constants.rs",
    "nonos-bootloader/src/handoff/types/system.rs",
+   "nonos-bootloader/src/loader/file/store_copy.rs",
    "nonos-bootloader/src/paging/constants.rs",
    "nonos-bootloader/src/paging/fb_window.rs",
    "nonos-data/trust/capsules",
@@ -6727,6 +6884,7 @@
    "userland/capsule_setup_wizard/src",
    "userland/capsule_shield/Capsule.mk",
    "userland/capsule_shield_vectors/Capsule.mk",
+   "userland/capsule_simplex_ui/Capsule.mk",
    "userland/capsule_smp_stress/Capsule.mk",
    "userland/capsule_snake/Capsule.mk",
    "userland/capsule_socks5/Capsule.mk",
@@ -6745,6 +6903,7 @@
    "userland/compositor/src/setup/gop_backing.rs",
    "userland/compositor/src/setup/rejected.rs",
    "userland/kernel_proofs",
+   "userland/libc/src/battery.rs",
    "userland/libc/src/bringup/policy.rs",
    "userland/libc/src/broker/device.rs",
    "userland/libc/src/broker/dma.rs",
@@ -6777,6 +6936,9 @@
    "nonos-data/trust/capsules/driver_bga.manifest.bin",
    "nonos-data/trust/capsules/driver_bga.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_bga.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.manifest.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_buslogic.manifest.bin",
    "nonos-data/trust/capsules/driver_buslogic.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_buslogic.zk_trailer.bin",
@@ -6914,7 +7076,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/l2_proofs": {
@@ -6981,6 +7146,9 @@
    "nonos-data/trust/capsules/driver_bga.manifest.bin",
    "nonos-data/trust/capsules/driver_bga.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_bga.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.manifest.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_buslogic.manifest.bin",
    "nonos-data/trust/capsules/driver_buslogic.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_buslogic.zk_trailer.bin",
@@ -7118,7 +7286,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/login_proofs": {
@@ -7138,9 +7309,12 @@
   ],
   "include": [
    ".cargo",
+   "nonos-data/market/catalogue/linux.kali.nonos-simplex-core.json",
+   "nonos-data/market/catalogue/linux.monero.json",
    "nonos-data/market/index.bin",
    "nonos-data/market/logos",
    "src/security/market_capsule/client/linux_policy_wire.rs",
+   "src/services/registry/serves.rs",
    "userland/capsule_app_store/src/store/asked.rs",
    "userland/capsule_app_store/src/store/asked_label.rs",
    "userland/capsule_app_store/src/store/channel_held.rs",
@@ -7176,6 +7350,7 @@
    "userland/capsule_app_store/src/store/ui/gate_fit.rs",
    "userland/capsule_app_store/src/store/verdict.rs",
    "userland/capsule_linux/src/linux/app/home_key.rs",
+   "userland/capsule_linux/src/linux/app/home_listings.rs",
    "userland/capsule_linux/src/linux/install/why.rs",
    "userland/capsule_linux/src/linux/install/why_model.rs",
    "userland/capsule_linux/src/linux/install/why_package.rs",
@@ -7527,6 +7702,8 @@
    "userland/capsule_net_core/src/server/runner/refuse.rs",
    "userland/capsule_net_core/src/server/runner/run.rs",
    "userland/capsule_net_core/src/server/runner/turn.rs",
+   "userland/capsule_net_core/src/state/orphan_rule.rs",
+   "userland/capsule_net_core/src/state/orphans.rs",
    "userland/net_core_proofs",
    "userland/net_proofs/shim",
    "userland/policy_proto"
@@ -7601,11 +7778,16 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/power_report.rs",
    "src/hardware/broker/acpi/s5_choice.rs",
+   "userland/capsule_about/src/about/data/battery.rs",
    "userland/capsule_acpi/src/boot/bringup_say.rs",
    "userland/capsule_acpi/src/boot/load_rule.rs",
    "userland/capsule_acpi/src/dpower/wake_sweep.rs",
+   "userland/capsule_acpi/src/power/state.rs",
+   "userland/capsule_acpi/src/power/word.rs",
    "userland/capsule_acpi/src/sleep",
+   "userland/capsule_desktop_shell/src/state/indicators/battery_text",
    "userland/nonos_aml/src/aei",
    "userland/nonos_aml/src/apei",
    "userland/nonos_aml/src/arena",
@@ -7701,6 +7883,24 @@
    ".cargo",
    "userland/nonos_bt_hogp",
    "userland/nonos_bt_hogp_proofs",
+   "userland/nonos_bt_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_bt_rtl_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "scripts/baselines/upstream.sha256",
+   "userland/capsule_driver_bt_usb/firmware/LICENCE.rtlwifi_firmware.txt",
+   "userland/capsule_driver_bt_usb/firmware/SHA256SUMS",
+   "userland/capsule_driver_bt_usb/firmware/rtl8821c_config.bin",
+   "userland/capsule_driver_bt_usb/firmware/rtl8821c_fw.bin",
+   "userland/capsule_driver_bt_usb/src/vendor/realtek/firmware.rs",
+   "userland/nonos_bt_hci",
+   "userland/nonos_bt_rtl",
+   "userland/nonos_bt_rtl_proofs",
    "userland/nonos_bt_wire"
   ],
   "md": [],
@@ -8046,6 +8246,15 @@
    ".cargo",
    "userland/nonos_hash",
    "userland/nonos_secp256k1"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_serve_wire": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_serve_wire"
   ],
   "md": [],
   "signed": []
@@ -8787,6 +8996,9 @@
    "nonos-data/trust/capsules/driver_bga.manifest.bin",
    "nonos-data/trust/capsules/driver_bga.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_bga.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.manifest.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_buslogic.manifest.bin",
    "nonos-data/trust/capsules/driver_buslogic.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_buslogic.zk_trailer.bin",
@@ -8924,7 +9136,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/riscv_kernel_proofs": {
@@ -8954,6 +9169,9 @@
    "nonos-data/trust/capsules/driver_bga.manifest.bin",
    "nonos-data/trust/capsules/driver_bga.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_bga.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.manifest.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_buslogic.manifest.bin",
    "nonos-data/trust/capsules/driver_buslogic.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_buslogic.zk_trailer.bin",
@@ -9091,7 +9309,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/rndis_proofs": {
@@ -9209,6 +9430,9 @@
    "nonos-data/trust/capsules/driver_bga.manifest.bin",
    "nonos-data/trust/capsules/driver_bga.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_bga.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.manifest.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_buslogic.manifest.bin",
    "nonos-data/trust/capsules/driver_buslogic.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_buslogic.zk_trailer.bin",
@@ -9346,13 +9570,19 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/route_link_proofs": {
   "exclude": [],
   "include": [
    ".cargo",
+   "src/ipc/kernel_ipc.rs",
+   "src/syscall/microkernel/errnos.rs",
+   "src/syscall/microkernel/ipc/call/sys_ipc_call.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/capsule_net_ntp/src/decide.rs",
    "userland/capsule_socks5/src/server/request/ask.rs",
@@ -10005,6 +10235,18 @@
   "md": [],
   "signed": []
  },
+ "userland/simplex_ui_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_simplex_ui/src/link",
+   "userland/capsule_simplex_ui/src/model",
+   "userland/capsule_simplex_ui/src/proto",
+   "userland/simplex_ui_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/smbus_proofs": {
   "exclude": [],
   "include": [
@@ -10050,6 +10292,9 @@
    "nonos-data/trust/capsules/driver_bga.manifest.bin",
    "nonos-data/trust/capsules/driver_bga.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_bga.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.manifest.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_buslogic.manifest.bin",
    "nonos-data/trust/capsules/driver_buslogic.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_buslogic.zk_trailer.bin",
@@ -10187,7 +10432,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/smp_stress_proofs": {
@@ -10385,6 +10633,9 @@
    "nonos-data/trust/capsules/driver_bga.manifest.bin",
    "nonos-data/trust/capsules/driver_bga.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_bga.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.manifest.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_buslogic.manifest.bin",
    "nonos-data/trust/capsules/driver_buslogic.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_buslogic.zk_trailer.bin",
@@ -10522,7 +10773,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/suspend_proofs": {
@@ -10815,6 +11069,9 @@
    "nonos-data/trust/capsules/driver_bga.manifest.bin",
    "nonos-data/trust/capsules/driver_bga.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_bga.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.manifest.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_bt_usb.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_buslogic.manifest.bin",
    "nonos-data/trust/capsules/driver_buslogic.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_buslogic.zk_trailer.bin",
@@ -10952,7 +11209,10 @@
    "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin",
+   "nonos-data/trust/capsules/simplex_ui.manifest.bin",
+   "nonos-data/trust/capsules/simplex_ui.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/simplex_ui.zk_trailer.bin"
   ]
  },
  "userland/tls_proofs": {

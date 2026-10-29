@@ -36,8 +36,11 @@ pub(crate) fn fetch(pkg: &Pkg, apk: Vec<u8>, pin: Option<&[u8; 32]>) -> Result<V
         told(pkg, got, Check::Market);
         return Err(Why::PACKAGE);
     }
-    let files =
-        timing::verifying(|| pkg.checksum.ok_or(Refused::Bad).and_then(|s| verified(&apk, &s)));
+    let (h, need) = (nonos_libc::heap_stats(), super::room::needs(pkg.installed));
+    let room = (need <= h.size.saturating_sub(h.used)).then_some(()).ok_or(Refused::NoMemory(need));
+    let files = timing::verifying(|| {
+        room.and(pkg.checksum.ok_or(Refused::Bad)).and_then(|s| verified(&apk, &s))
+    });
     drop(apk);
     heap("unpacked", &pkg.name);
     files.map_err(|why| match why {

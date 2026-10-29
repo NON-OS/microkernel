@@ -15,12 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The drivers the kernel spawns that hold no scope row (spawned.rs).
+//! driver.bt_usb0 claims no PCI device: its controller is a USB device
+//! behind driver.xhci0, the RTL8821CE's Bluetooth half among them.
 
 /// Drivers that reach their devices through another driver, or vmmouse0
 /// through the backdoor alone, and never call MkDeviceClaim: they have no
 /// row, and must not gain one unnoticed.
-pub(super) const CLAIMS_NOTHING: [&str; 17] = [
+pub(super) const CLAIMS_NOTHING: [&str; 18] = [
     "driver.usb_hid0",
+    "driver.bt_usb0",
     "driver.usb_msc0",
     "driver.i2c_hid0",
     "driver.vmmouse0",

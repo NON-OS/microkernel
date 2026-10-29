@@ -34,7 +34,7 @@ pub const UNNAMED: u32 = 0;
 
 /// Conversations one caller may hold at once. A browser holds a few, and
 /// the table every caller shares must not be taken by one of them.
-pub const STREAMS_PER_CALLER: usize = 8;
+pub const STREAMS_PER_CALLER: usize = 24;
 
 pub fn who(pid: u32, stream: u32) -> Who {
     (u64::from(pid) << 32) | u64::from(stream)

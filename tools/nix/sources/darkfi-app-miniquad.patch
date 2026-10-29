@@ -1,0 +1,68 @@
+diff --git a/src/native/egl.rs b/src/native/egl.rs
+index c9e3562..b3861da 100644
+--- a/src/native/egl.rs
++++ b/src/native/egl.rs
+@@ -192,7 +192,9 @@ pub unsafe fn create_egl_context(
+         EGL_ALPHA_SIZE, alpha_size,
+         EGL_DEPTH_SIZE, 16,
+         EGL_STENCIL_SIZE, 0,
+-        EGL_SAMPLES, sample_count as u32,
++        // NONOS: EGL_SAMPLES is "at least"; 1 would leave out every
++        // single-sampled config, which is all softpipe has.
++        EGL_SAMPLES, if sample_count > 1 { sample_count as u32 } else { 0 },
+         EGL_NONE,
+     ];
+     let mut available_cfgs: Vec<EGLConfig> = vec![null_mut(); 32];
+diff --git a/src/native/linux_wayland.rs b/src/native/linux_wayland.rs
+index 3b8ff0b..ceec458 100644
+--- a/src/native/linux_wayland.rs
++++ b/src/native/linux_wayland.rs
+@@ -1125,7 +1125,10 @@ where
+         (display.client.wl_display_dispatch)(display.display);
+         (display.client.wl_display_dispatch)(display.display);
+ 
+-        display.init_data_device();
++        // A compositor may offer no wl_data_device_manager.
++        if !display.data_device_manager.is_null() {
++            display.init_data_device();
++        }
+         display.init_pointer_context();
+ 
+         let mut libegl = egl::LibEgl::try_load().ok()?;
+diff --git a/src/native/linux_wayland/clipboard.rs b/src/native/linux_wayland/clipboard.rs
+index f49c9a9..20adb9e 100644
+--- a/src/native/linux_wayland/clipboard.rs
++++ b/src/native/linux_wayland/clipboard.rs
+@@ -44,6 +44,9 @@ impl ClipboardContext {
+         self.content.clear();
+         self.content.push_str(data);
+         let display: &mut WaylandPayload = &mut *self.display;
++        if display.data_device.is_null() {
++            return;
++        }
+         // Wayland requires that only the window with focus can set the clipboard
+         if let Some(serial) = display.keyboard_context.enter_serial {
+             let data_source = self.new_data_source();
+diff --git a/src/native/linux_wayland/libwayland_client.rs b/src/native/linux_wayland/libwayland_client.rs
+index c3486f1..3f75e66 100644
+--- a/src/native/linux_wayland/libwayland_client.rs
++++ b/src/native/linux_wayland/libwayland_client.rs
+@@ -594,8 +594,8 @@ crate::declare_module!(
+     pub fn wl_display_disconnect(*mut wl_display),
+     pub fn wl_display_get_fd(*mut wl_display) -> c_int,
+     pub fn wl_display_create_queue(*mut wl_display) -> *mut wl_event_queue,
+-    pub fn wl_display_create_queue_with_name(*mut wl_display, *const c_char) -> *mut wl_event_queue,
+-    pub fn wl_event_queue_get_name(*mut wl_event_queue) -> *const c_char,
++    // Not wayland 1.23's wl_display_create_queue_with_name, wl_event_queue_get_name
++    // or wl_proxy_get_queue: none is called, and libwayland-client 1.22 has none.
+     pub fn wl_event_queue_destroy(*mut wl_event_queue),
+     pub fn wl_display_flush(*mut wl_display),
+     pub fn wl_display_roundtrip(*mut wl_display) -> c_int,
+@@ -611,7 +611,6 @@ crate::declare_module!(
+     pub fn wl_display_get_error(*mut wl_display) -> c_int,
+     pub fn wl_display_get_protocol_error(*mut wl_display, *mut *const wl_interface, *mut c_uint) -> c_uint,
+     pub fn wl_proxy_set_queue(*mut wl_proxy, *mut wl_event_queue),
+-    pub fn wl_proxy_get_queue(*mut wl_proxy) -> *mut wl_event_queue,
+     pub fn wl_proxy_add_listener(*mut wl_proxy, *mut Option<unsafe extern "C" fn()>, *mut c_void) -> c_int,
+     pub fn wl_proxy_destroy(*mut wl_proxy),
+     pub fn wl_proxy_get_version(*mut wl_proxy) -> c_uint,

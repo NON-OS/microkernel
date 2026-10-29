@@ -28,6 +28,8 @@ fn every_grant_a_refusal_names_is_its_own_kind() {
         ("NET_ANON", Kind::Network),
         ("NET_LISTEN_LO", Kind::Network),
         ("NET_ANON or NET_LISTEN_LO", Kind::Network),
+        ("SERVE_ONE", Kind::Network),
+        ("NET_ANON, NET_LISTEN_LO or SERVE_ONE", Kind::Network),
         ("this destination", Kind::Network),
     ] {
         assert_eq!(of_needs(needs), kind, "{needs}");
@@ -44,7 +46,8 @@ fn every_grant_a_refusal_names_has_its_kind() {
     let callers = [
         include_str!("../../../../capsule_linux/src/linux/file/models/open.rs"),
         include_str!("../../../../capsule_linux/src/linux/net/named/connect.rs"),
-        include_str!("../../../../capsule_linux/src/linux/net/listen.rs"),
+        include_str!("../../../../capsule_linux/src/linux/net/serve_one/gate.rs"),
+        include_str!("../../../../capsule_linux/src/linux/net/serve_one/served.rs"),
         include_str!("../../../../capsule_linux/src/linux/net/connect/out.rs"),
         include_str!("../../../../capsule_linux/src/linux/net/routed/ask.rs"),
         include_str!("../../../../capsule_linux/src/linux/net/bind.rs"),
@@ -53,8 +56,16 @@ fn every_grant_a_refusal_names_has_its_kind() {
         include_str!("../../../../capsule_linux/src/linux/call/mem/map_anon.rs"),
         include_str!("../../../../capsule_linux/src/linux/call/mem/prot.rs"),
     ];
-    let named =
-        ["EXEC", "JIT", "WAYLAND", "MODELS_RO", "NET_ANON", "NET_LISTEN_LO", "this destination"];
+    let named = [
+        "EXEC",
+        "JIT",
+        "WAYLAND",
+        "MODELS_RO",
+        "NET_ANON",
+        "NET_LISTEN_LO",
+        "SERVE_ONE",
+        "this destination",
+    ];
     for text in callers {
         assert!(text.contains("app::refuse("));
         assert!(named.iter().any(|n| text.contains(&format!("\"{n}"))), "a grant no kind names");

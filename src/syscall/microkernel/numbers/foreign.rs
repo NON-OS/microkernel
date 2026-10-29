@@ -51,3 +51,5 @@ pub const SYS_PEER_UNMAP: u64 = tag4(b"MPUN");
 pub const SYS_FOREIGN_EXEC: u64 = tag4(b"MFEX");
 /// The Linux run role asks to be started again with Network.
 pub const SYS_LINUX_RUN_NET: u64 = tag4(b"MLRN");
+/// The Linux run role serves its guest's one listener to one capsule.
+pub const SYS_SERVE_ONE: u64 = tag4(b"MSRV");

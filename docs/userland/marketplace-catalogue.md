@@ -108,7 +108,7 @@ After the fetch, every listing's `.apk` must be the one `B` pins. So two seals o
 
 ## Apps built from source
 
-Some apps are packaged by no distribution: DarkFi's drk, darkirc and darkfid, and SimpleX's simplex-chat. A recipe of kind `source` lists one of these from a build of its upstream at a single commit, or from the binary its upstream publishes (below) (`tools/nonos_market_catalogue/source_recipe.py`, `checked`). DarkFi's three are in the catalogue, built from v0.5.0. SimpleX's terminal client is in it as `linux.kali.nonos-simplex-chat`, from SimpleX's own v7.0.3 release binary.
+Some apps are packaged by no distribution: DarkFi's chat app and command-line tools, and SimpleX's simplex-chat. A recipe of kind `source` lists one of these from a build of its upstream at a single commit, or from the binary its upstream publishes (below) (`tools/nonos_market_catalogue/source_recipe.py`, `checked`). DarkFi's chat app, `linux.nonos-darkfi-app`, is in the catalogue, built from v0.5.0, and drawn by mesa's softpipe on the CPU (tools/nix/sources/darkfi-app-*.sh). So is DarkIRC, `linux.nonos-darkfi-darkirc`, as darkirc and the IRC client sic in one box (tools/nix/sources/darkirc-box.sh). So are its wallet, `linux.nonos-darkfi-drk`, a prompt over drk, and a local dev chain, `linux.nonos-darkfi-darkfid`: darkfid on localnet, minerd and drk in one box with no network (tools/nix/sources/darkfi-wallet-box.sh). A testnet or mainnet node is not listed ([DarkFi](../using/darkfi.md)). SimpleX's terminal client is in it as `linux.kali.nonos-simplex-chat`, from SimpleX's own v7.0.3 release binary. The same binary is in it a second time as `linux.kali.nonos-simplex-core`, the engine NØNOS's SimpleX window drives over its WebSocket API: its own package and program name (`usr/bin/simplex-core`), so its policy and listed arguments sit beside a program of their own, in the box FILES_HOME NET_ANON, with `--chat-server-port=5225 --yes-migrate`.
 
 | Key | Required | What it holds |
 |---|---|---|
@@ -119,7 +119,7 @@ Some apps are packaged by no distribution: DarkFi's drk, darkirc and darkfid, an
 | `build` | yes | the name of the nix recipe under `tools/nix/sources/` that builds it offline |
 | `program` | yes | the program the listing sells, as `usr/bin/<name>` |
 | `licence`, `mask`, `name`, `text` | yes | as for an Alpine recipe |
-| `calls`, `dests`, `logo` | no | as for an Alpine recipe |
+| `calls`, `dests`, `logo`, `args`; `serve` | no | as for an Alpine recipe; `serve` is `name:port`, the one capsule (1 to 32 of `[a-z0-9._-]` from a letter) the kernel lets reach the program's one listener on 127.0.0.1, at a port from 1 to 65535. It sets SERVE_ONE and writes a version 2 policy with the port and name at byte 217 (`tools/nonos_linux_pack/serve.py`). It is refused with WAYLAND, named in `mask`, or in an Alpine recipe |
 
 The rest of the recipe is checked as an Alpine one is: the allowlist, the services, the set, the dests file and the logo record. `index_licence` and `licence_source` describe an index, so a source recipe may not carry them. Its listing is `linux.nonos-<package>`. That is the namespace the device installs from the NONOS package mirror (`userland/capsule_linux/src/linux/install/tools.rs`). The generator adds the prefix, so a recipe that names a reserved namespace itself (`nonos-`, `qwen-`, `kali.`, `blackarch.`) is refused.
 
@@ -135,7 +135,7 @@ The rest of the recipe is checked as an Alpine one is: the allowlist, the servic
 
 On the device, `install/tools_install.rs` fetches the content from `NONOS_PACKAGE_MIRROR` and holds it to the index's pin before it is unpacked. `install/market/run.rs` then binds the policy to the program, as for any market listing. So the device needs no change for these apps.
 
-**No mirror, none listed.** Without `--package-mirror`, the source recipes are left out, and each is named on stderr. They are not checked, and their lock is neither read nor written. Every release profile's `linux_packages` is empty today, so no release lists one. With a mirror, every source recipe must be listed or the run stops and names it. That covers:
+**No mirror, none listed.** Without `--package-mirror`, the source recipes are left out, and each is named on stderr. They are not checked, and their lock is neither read nor written. The release's `nonos.toml` names the mirror `mirror.nonos.software:80` and the content `target/linux-sources` (3df8c26a65, 81ce3f9a93), so the release image lists them; a tree whose `linux_packages` is empty lists none. With a mirror, every source recipe must be listed or the run stops and names it. That covers:
 
 - no `--sources`;
 - missing or doubled content;

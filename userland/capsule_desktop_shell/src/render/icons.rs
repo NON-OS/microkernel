@@ -45,6 +45,7 @@ pub(super) fn icon_bytes(icon: LauncherIcon) -> &'static [u8] {
         LauncherIcon::VideoPlayer => IconId::VideoPlayer,
         LauncherIcon::Install => IconId::Install,
         LauncherIcon::Qwen => IconId::Qwen,
+        LauncherIcon::Simplex => IconId::Simplex,
     })
 }
 

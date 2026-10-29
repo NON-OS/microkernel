@@ -31,8 +31,9 @@ pub enum RegionError {
     BadWidth,
     /// A port or function access outside every window the caller holds.
     NotGranted,
-    /// A PCI segment other than 0, which the kernel does not enumerate.
-    Unsupported,
+    /// A PCI segment other than 0: the kernel enumerates segment 0 alone, so
+    /// an access to any other answers ENOTSUP.
+    OtherSegment,
     /// The configuration access itself failed.
     Platform,
     /// A port write that would set SLP_EN, the kernel's alone (`sleep_enable`).

@@ -33,5 +33,5 @@ fn the_spi_hid_driver_starts_after_its_host_and_holds_no_hardware() {
 fn nothing_reaches_the_spi_hid_driver() {
     assert_eq!(callers_of("driver.spi_hid0"), Some(&[][..]));
     let others = owner(&["driver.spi0", "app.terminal", "compositor", "input_router"]);
-    assert!(!endpoint_admits("driver.spi_hid0", others), "a capsule reaches it");
+    assert!(!endpoint_admits("driver.spi_hid0", None, others), "a capsule reaches it");
 }

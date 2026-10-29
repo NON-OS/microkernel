@@ -25,9 +25,9 @@
 
 extern crate alloc;
 
-pub mod stand_in;
 pub mod engine_mount;
-pub use stand_in::{arch, boot, hardware, log, memory, smp, sys, time};
+pub mod stand_in;
+pub use stand_in::{arch, boot, hardware, log, memory, services, smp, sys, time};
 
 include!("mount_crypto.rs");
 include!("mount_fs.rs");

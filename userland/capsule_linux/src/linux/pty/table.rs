@@ -53,7 +53,7 @@ impl Table {
         if n == self.pairs.len() {
             self.pairs.push(None);
         }
-        self.pairs[n] = Some(Pair::new());
+        self.pairs[n] = Some(Pair::opened());
         Some(n as u32)
     }
 

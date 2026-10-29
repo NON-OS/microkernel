@@ -38,9 +38,10 @@ it must not be made, or `None` when Direct is the default
 
 - `Direct`: a `nonos_socket::TcpStream` through `net.sockets`.
 - `Nym` and `Anon`: a `Tunnel` (`src/tunnel.rs`) to `net.socks5` or `net.anon`
-  over a bounded IPC call (`src/ipc.rs`). It sends a reset, then the SOCKS5
-  greeting and a CONNECT naming the host, so the exit resolves the name and
-  this machine never looks it up. Stream bytes go in numbered frames
+  over a bounded IPC call (`src/ipc.rs`). It sends a reset, again until the
+  kernel has room to queue it (`src/carrier.rs`), then the SOCKS5 greeting and
+  a CONNECT naming the host, so the exit resolves the name and this machine
+  never looks it up. Stream bytes go in numbered frames
   (`src/frame.rs`): a marker, a `u32` number and the bytes; a frame whose
   answer was lost is sent again unchanged and the proxy gives back the answer
   it kept.

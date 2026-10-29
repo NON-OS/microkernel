@@ -1,5 +1,5 @@
 diff --git a/Cargo.toml b/Cargo.toml
-index 3ac0b4f..22600f0 100644
+index 3ac0b4f85..22600f044 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
 @@ -228,9 +228,9 @@ net-defaults = [
@@ -15,7 +15,7 @@ index 3ac0b4f..22600f0 100644
  
  p2p-unix = []
 diff --git a/bin/darkirc/Cargo.toml b/bin/darkirc/Cargo.toml
-index 783f6c2..72d9b69 100644
+index 783f6c2af..72d9b69a9 100644
 --- a/bin/darkirc/Cargo.toml
 +++ b/bin/darkirc/Cargo.toml
 @@ -10,7 +10,7 @@ repository = "https://codeberg.org/darkrenaissance/darkfi"
@@ -27,8 +27,65 @@ index 783f6c2..72d9b69 100644
  path = "src/lib.rs"
  
  [[bin]]
+diff --git a/bin/darkirc/src/irc/server.rs b/bin/darkirc/src/irc/server.rs
+index 3a9c93796..d0782eb92 100644
+--- a/bin/darkirc/src/irc/server.rs
++++ b/bin/darkirc/src/irc/server.rs
+@@ -28,7 +28,7 @@ use darkfi::{
+     event_graph::Event,
+     system::{StoppableTask, StoppableTaskPtr, Subscription},
+     util::path::expand_path,
+-    zk::{empty_witnesses, ProvingKey, VerifyingKey, ZkCircuit},
++    zk::{empty_witnesses, VerifyingKey, ZkCircuit},
+     zkas::ZkBinary,
+     Error, Result,
+ };
+@@ -52,7 +52,7 @@ use url::Url;
+ use super::{client::Client, IrcChannel, IrcContact, Priv, Privmsg};
+ use crate::{
+     crypto::{
+-        rln::{RlnIdentity, RLN2_SIGNAL_ZKBIN, RLN2_SLASH_ZKBIN},
++        rln::{RlnIdentity, RLN2_SIGNAL_ZKBIN},
+         saltbox,
+     },
+     settings::{
+@@ -159,14 +159,9 @@ impl IrcServer {
+         let rln_signal_circuit =
+             ZkCircuit::new(empty_witnesses(&rln_signal_zkbin)?, &rln_signal_zkbin);
+ 
+-        if server_store.get("rlnv2-diff-signal-pk")?.is_none() {
+-            info!(target: "irc::server", "[RLN] Creating RlnV2_Diff_Signal ProvingKey");
+-            let provingkey = ProvingKey::build(rln_signal_zkbin.k, &rln_signal_circuit);
+-            let mut buf = vec![];
+-            provingkey.write(&mut buf)?;
+-            server_store.insert("rlnv2-diff-signal-pk", buf)?;
+-        }
+-
++        // NONOS: no proving key is built here. Each is about 137 MB, past
++        // what an app's home holds, and only an RLN identity, which is not
++        // set by default, would prove with one (client.rs sends without).
+         let rln_signal_vk = match server_store.get("rlnv2-diff-signal-vk")? {
+             Some(vk) => {
+                 let mut reader = Cursor::new(vk);
+@@ -182,16 +177,6 @@ impl IrcServer {
+             }
+         };
+ 
+-        if server_store.get("rlnv2-diff-slash-pk")?.is_none() {
+-            info!(target: "irc::server", "[RLN] Creating RlnV2_Diff_Slash ProvingKey");
+-            let zkbin = ZkBinary::decode(RLN2_SLASH_ZKBIN)?;
+-            let circuit = ZkCircuit::new(empty_witnesses(&zkbin).unwrap(), &zkbin);
+-            let provingkey = ProvingKey::build(zkbin.k, &circuit);
+-            let mut buf = vec![];
+-            provingkey.write(&mut buf)?;
+-            server_store.insert("rlnv2-diff-slash-pk", buf)?;
+-        }
+-
+         if server_store.get("rlnv2-diff-slash-vk")?.is_none() {
+             info!(target: "irc::server", "[RLN] Creating RlnV2_Diff_Slash VerifyingKey");
+             let zkbin = ZkBinary::decode(RLN2_SIGNAL_ZKBIN)?;
 diff --git a/bin/drk/Cargo.toml b/bin/drk/Cargo.toml
-index b937e4d..654d17c 100644
+index b937e4d27..654d17c10 100644
 --- a/bin/drk/Cargo.toml
 +++ b/bin/drk/Cargo.toml
 @@ -26,7 +26,7 @@ num-bigint = "0.4.6"

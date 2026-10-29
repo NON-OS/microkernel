@@ -19,12 +19,24 @@ use crate::{decode, unlisted, SyscallSet, UNLISTED_MASK};
 
 #[test]
 fn the_named_bits_are_the_plans() {
-    let named =
-        [WAYLAND, NET_ANON, NET_LISTEN_LO, FILES_HOME, FILES_USER, MODELS_RO, EXEC, JIT, TTY];
+    let named = [
+        WAYLAND,
+        NET_ANON,
+        NET_LISTEN_LO,
+        FILES_HOME,
+        FILES_USER,
+        MODELS_RO,
+        EXEC,
+        JIT,
+        TTY,
+        SERVE_ONE,
+    ];
     for (bit, m) in named.iter().enumerate() {
         assert_eq!(*m, 1 << bit);
+        assert_eq!(NAMES[bit].1, *m);
     }
-    assert_eq!(KNOWN, 0x1FF);
+    assert_eq!(KNOWN, 0x3FF);
+    assert_eq!(NAMES.iter().fold(0, |k, (_, b)| k | b), KNOWN);
 }
 
 #[test]

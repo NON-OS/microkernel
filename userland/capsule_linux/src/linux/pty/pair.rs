@@ -48,7 +48,7 @@ pub struct Pair {
 
 impl Pair {
     /// Locked, with Linux's cooked settings, its master just opened.
-    pub fn new() -> Pair {
+    pub fn opened() -> Pair {
         let (output, input) = (VecDeque::new(), Input::default());
         let (locked, master, slave, slave_seen, hung) = (true, true, false, false, false);
         let (termios, winsize, fg, session) = (COOKED, [0; 8], 0, 0);

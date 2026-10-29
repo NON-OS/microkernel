@@ -40,11 +40,12 @@ mod numa;
 mod pci_firmware;
 mod platform;
 mod ports;
-mod props;
-mod quirks;
-mod reserved;
 mod power;
 mod power_meter;
+mod props;
+mod quirks;
+mod release;
+mod reserved;
 mod serial;
 mod server;
 mod sleep;
@@ -57,12 +58,11 @@ mod typec;
 
 use nonos_libc::{heap_init, mk_exit};
 
-/// Exit code when the kernel hands over no FADT or DSDT: nothing to run.
-const EXIT_NO_TABLES: i32 = 2;
+const EXIT_NO_TABLES: i32 = 2; // the kernel handed over no FADT or DSDT
 
 /// # Safety
-/// The capsule entry point. The kernel loader calls this once on a fresh
-/// stack with the heap region reserved; it must never be called from Rust.
+/// The entry point: the loader calls it once, on a fresh stack with the heap
+/// reserved; never called from Rust.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {

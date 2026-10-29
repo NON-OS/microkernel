@@ -37,7 +37,7 @@ pub fn socket(guest: &mut Guest, family: u64, kind: u64, protocol: u64) -> u64 {
         f if f == u64::from(AF_INET) && !crate::linux::app::inet(guest) && !learning() => {
             return crate::linux::app::refuse(
                 "an internet socket",
-                "NET_ANON or NET_LISTEN_LO",
+                "NET_ANON, NET_LISTEN_LO or SERVE_ONE",
                 errno::EACCES,
             )
         }

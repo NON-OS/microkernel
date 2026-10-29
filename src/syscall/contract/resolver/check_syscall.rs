@@ -23,9 +23,9 @@ use super::error::ResolverError;
 pub(super) fn check_syscall_allowed(
     token: &CapabilityToken,
     number: SyscallNumber,
-    shell: fn() -> bool,
+    launcher: fn() -> bool,
 ) -> Result<(), ResolverError> {
-    if !cap_table::is_allowed(token, number, shell) {
+    if !cap_table::is_allowed(token, number, launcher) {
         return Err(ResolverError::SyscallNotPermitted);
     }
     Ok(())
