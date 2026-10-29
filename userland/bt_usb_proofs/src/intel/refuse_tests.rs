@@ -58,5 +58,5 @@ fn another_platform_or_an_unknown_variant_is_refused() {
     let m = Intel { tlv: [tlv((0, 0, 0x1a, ""), 0x01, [0; 3], 1), Vec::new()], ..Intel::default() };
     let (r, m, said) = run(m, 0x0032);
     assert_eq!((r, m.ops.len()), (Err(HciError::NotBluetooth), 1));
-    assert_eq!(said, ["intel: hardware variant not supported"]);
+    assert_eq!(said, ["intel: hardware variant unknown to this loader"]);
 }
