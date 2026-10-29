@@ -20,7 +20,6 @@
 pub mod field_note_system;
 #[path = "../../capsule_settings/src/settings/manifest.rs"]
 pub mod manifest;
-#[allow(dead_code)]
 #[path = "../../capsule_settings/src/settings/ui/metrics.rs"]
 pub mod metrics;
 #[path = "../../capsule_settings/src/settings/ui/note_wrap.rs"]
