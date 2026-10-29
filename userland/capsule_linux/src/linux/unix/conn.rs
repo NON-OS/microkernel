@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+
 //! One connection: what the client has said, and what it has not read.
 //!
 //! Both directions are this capsule's memory, so both are bounded as a
