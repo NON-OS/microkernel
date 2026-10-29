@@ -48,7 +48,7 @@ fn a_package_is_placed_in_about_twice_its_installed_size() {
     assert_eq!(room::needs(telegram), 2 * telegram + telegram / 8);
     assert_eq!(room::needs(1024), 2048 + (1 << 20));
     assert_eq!(room::needs(usize::MAX), usize::MAX);
-    const { assert!(2 * (110 << 20) + (110 << 17) <= 320 << 20, "Telegram's in the old heap") };
+    assert!(room::needs(telegram) <= 320 << 20, "Telegram's in the old heap");
 }
 
 #[test]
