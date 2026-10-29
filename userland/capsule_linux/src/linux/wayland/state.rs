@@ -60,4 +60,8 @@ pub struct Surface {
     pub configured: bool,
     /// Its buffer scale and viewport (present/scale_math.rs).
     pub scale: super::present::scale_math::Scale,
+    /// What it said changed since its last commit, in buffer pixels, and
+    /// whether a buffer was attached since (damage.rs).
+    pub damage: super::commit::damage_show::damage::Damage,
+    pub attached: bool,
 }
