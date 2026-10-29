@@ -21,9 +21,6 @@
 //! has NET_ANON (plan/32). Its guest reaches out only through the route the
 //! person chose, never Direct.
 
-use alloc::string::String;
-use alloc::vec;
-
 use super::role_spawn::spawn_role;
 use super::roles::Role;
 use crate::capabilities::Capability;
@@ -41,5 +38,5 @@ pub(super) const RUN_NET: Role = Role {
 /// The run of `package` again, as app.linux.run.net, with the argv init
 /// gives every run role.
 pub fn spawn_run_net(package: &str) -> Result<u32, SpawnError> {
-    spawn_role(&RUN_NET, Some(vec![String::from("run"), String::from(package)]))
+    spawn_role(&RUN_NET, Some(super::served_word::run_words(package)))
 }
