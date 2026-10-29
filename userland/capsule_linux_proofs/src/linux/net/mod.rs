@@ -44,6 +44,9 @@ pub mod anon_wire;
 
 pub mod sock;
 
+/* SERVE_ONE's wire server, answering from the table's own door end. */
+pub mod serve_one;
+
 /* The two calls the table makes to close a stream, recorded, not sent. */
 pub mod anon_stream;
 pub mod routed;

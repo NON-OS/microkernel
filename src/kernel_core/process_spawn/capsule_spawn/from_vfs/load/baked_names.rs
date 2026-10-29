@@ -41,6 +41,9 @@ pub(crate) const CORE: &[(&str, &str)] = &[
     ("input_router", "systems.nonos.input_router"),
     ("installer", "systems.nonos.installer"),
     ("keyring", "systems.nonos.keyring"),
+    // A Linux run's served endpoint: the kernel registers it (MkServeOne,
+    // services/registry/serve_rule.rs), and no load may take it.
+    ("linux.serve", ""),
     ("login", "systems.nonos.login"),
     ("market.index", "systems.nonos.market"),
     ("nonos.prove.fetch", "systems.nonos.prove.fetch"),

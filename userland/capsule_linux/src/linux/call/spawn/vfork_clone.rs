@@ -17,39 +17,35 @@
 //! `clone` when it makes a process rather than a thread: a copy, as fork's
 //! is, that starts on the stack the caller named, raises the signal it named
 //! when it ends, and with CLONE_VFORK parks its parent as vfork does. The tid
-//! words it names are written as Linux writes them.
+//! words it names are written as Linux writes them, and with CLONE_PIDFD the
+//! parent is given a pidfd for the child.
 
-use super::clone_flags::{clone_valid, flags_of};
+use super::clone_flags::flags_of;
+use super::pidfd::{give, reserve};
 use super::vfork::start;
 use super::vfork_flags::{CLONE_CHILD_CLEARTID, CLONE_CHILD_SETTID, CLONE_PARENT_SETTID};
-use super::vfork_flags::{CLONE_VFORK, CLONE_VM, CSIGNAL, SERVED};
+use super::vfork_plan::{plan, Refused};
 use crate::linux::abi::errno;
-use crate::linux::guest::sigstate::NSIG;
 use crate::linux::guest::Guest;
 use crate::linux::serve::Answer;
 
 /// clone(flags, stack, parent_tid, child_tid, tls) without CLONE_THREAD.
 pub fn clone_process(guest: &mut Guest, caller: u32, a: [u64; 6]) -> Answer {
     let (flags, stack) = (flags_of(a[0]), a[1]);
-    if let Err(e) = clone_valid(flags) {
-        return Answer::value(errno::fail(e));
-    }
-    let why = if flags & !SERVED != 0 {
-        Some("clone: flags beyond a copied process")
-    } else if flags & CLONE_VM != 0 && flags & CLONE_VFORK == 0 {
-        Some("clone: a process sharing its parent's memory")
-    } else {
-        None
+    let plan = match plan(flags) {
+        Ok(plan) => plan,
+        Err(Refused::Linux(e)) => return Answer::value(errno::fail(e)),
+        Err(Refused::Unserved(why)) => {
+            let line = alloc::format!("[LINUX] unserved {why}, flags {flags:#x}\n");
+            let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+            return Answer::value(errno::fail(errno::ENOSYS));
+        }
     };
-    if let Some(why) = why {
-        let line = alloc::format!("[LINUX] unserved {why}, flags {flags:#x}\n");
-        let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
-        return Answer::value(errno::fail(errno::ENOSYS));
-    }
-    let signal = flags & CSIGNAL;
-    if signal > NSIG as u64 {
-        return Answer::value(errno::fail(errno::EINVAL));
-    }
+    /* The pidfd's number is written at parent_tid before any child is made. */
+    let slot = match plan.pidfd.then(|| reserve(guest, a[2])).transpose() {
+        Ok(slot) => slot,
+        Err(e) => return Answer::value(errno::fail(e)),
+    };
     /* The child's own copy of its tid is written before it can read it. */
     let prep = move |child: &mut Guest| {
         let seen = crate::linux::serve::guest_pid(child.pid).to_le_bytes();
@@ -60,13 +56,17 @@ pub fn clone_process(guest: &mut Guest, caller: u32, a: [u64; 6]) -> Answer {
             child.clear_tids.push((child.pid, a[3]));
         }
     };
-    let answer = start(guest, caller, stack, signal as u8, flags & CLONE_VFORK != 0, prep);
+    let answer = start(guest, caller, stack, plan.signal, plan.parks, prep);
+    /* Only a child made by this call is in `forked`. */
+    let Some(child) = guest.forked.last().map(|c| c.pid) else {
+        return answer;
+    };
     if flags & CLONE_PARENT_SETTID != 0 {
-        /* Only a child made by this call is in `forked`. */
-        if let Some(child) = guest.forked.last().map(|c| c.pid) {
-            let seen = crate::linux::serve::guest_pid(child).to_le_bytes();
-            let _ = guest.write(a[2], &seen);
-        }
+        let seen = crate::linux::serve::guest_pid(child).to_le_bytes();
+        let _ = guest.write(a[2], &seen);
+    }
+    if let Some(slot) = slot {
+        give(guest, slot, child);
     }
     answer
 }

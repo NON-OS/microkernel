@@ -21,7 +21,7 @@ use crate::linux::guest::Guest;
 
 use super::fd::sock_of;
 use super::policy::not_loopback;
-use super::sock::{self, Domain};
+use super::sock::{self, Domain, Proto};
 use super::sockaddr::{self, is_loopback, AF_INET};
 
 pub fn bind(guest: &mut Guest, fd: u64, at: u64, len: u64) -> u64 {
@@ -44,7 +44,8 @@ pub fn bind(guest: &mut Guest, fd: u64, at: u64, len: u64) -> u64 {
     if super::bind_any::unnamed(want.ip, want.port, reaches_out) {
         return errno::ok(0);
     }
-    if !crate::linux::app::granted(guest, nonos_linux_policy::mask::NET_LISTEN_LO) {
+    let stream = sock::with(|t| t.get(id).is_some_and(|s| s.proto == Proto::Stream));
+    if !crate::linux::app::may_bind(guest, stream, want.ip, want.port) {
         return crate::linux::app::refuse("bind", "NET_LISTEN_LO", errno::EACCES);
     }
     if !is_loopback(want.ip) {

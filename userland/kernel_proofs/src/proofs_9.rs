@@ -23,6 +23,9 @@ mod argv_before_run_tests;
 /// Which process owns which address space, read without the paging lock.
 #[path = "asid_directory/mod.rs"]
 pub mod asid_directory;
+/// MkForeignWait returns once a message comes to its caller's own inbox.
+#[path = "foreign_wake/mod.rs"]
+pub mod foreign_wake;
 /// Small blocks kept by size in front of the kernel heap's hole lists.
 #[path = "heap_bins/mod.rs"]
 pub mod heap_bins;
@@ -44,6 +47,9 @@ pub mod peer_stripe;
 /// A Linux guest named on a release console only as "foreign".
 #[path = "serial_who/mod.rs"]
 pub mod serial_who;
+/// The run a SERVES capsule launched ends with that capsule's process.
+#[path = "served_run/mod.rs"]
+pub mod served_run;
 /// The paging manager's lock, handed over in the order it was asked for.
 #[path = "ticket_lock/mod.rs"]
 pub mod ticket_lock;
