@@ -23,6 +23,7 @@ mod install;
 mod role_spawn;
 mod role_term_net;
 mod roles;
+mod run_argv;
 mod run_net;
 mod run_owner;
 mod served_run;
