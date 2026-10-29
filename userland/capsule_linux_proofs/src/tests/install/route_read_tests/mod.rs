@@ -22,4 +22,5 @@
 
 mod limits;
 mod pieces;
+mod resume_parts;
 mod script;
