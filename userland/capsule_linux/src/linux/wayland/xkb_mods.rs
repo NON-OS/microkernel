@@ -41,3 +41,20 @@ pub fn xkb_masks(flags: u16) -> (u32, u32) {
     let locked = bit(CAPS, 1 << 1) | bit(NUM, 1 << 4);
     (depressed, locked)
 }
+
+/// `masks` after the Linux key `linux` went down (`press`) or up: a
+/// modifier key changes what is held at once, before the next event says
+/// so. Clients read the state the last wl_keyboard.modifiers left as a key
+/// arrives, so it is sent before an ordinary key, and after a modifier's.
+pub fn after(masks: (u32, u32), linux: u32, press: bool) -> Option<(u32, u32)> {
+    let bit = match linux {
+        42 | 54 => 1,
+        29 | 97 => 1 << 2,
+        56 => 1 << 3,
+        125 | 126 => 1 << 6,
+        100 => 1 << 7,
+        _ => return None,
+    };
+    let held = if press { masks.0 | bit } else { masks.0 & !bit };
+    Some((held, masks.1))
+}
