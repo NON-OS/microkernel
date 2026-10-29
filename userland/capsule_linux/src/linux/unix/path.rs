@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+
 //! `struct sockaddr_un` out of a guest, and which server it names.
 
 use alloc::vec::Vec;
