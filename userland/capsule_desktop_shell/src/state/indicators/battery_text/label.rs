@@ -25,26 +25,25 @@ pub const NO_BATTERY: &[u8] = b"No battery";
 
 pub const UNAVAILABLE: &[u8] = b"Battery status unavailable";
 
-/// "57%" for a reading, "No battery" or "Battery status unavailable"
-/// otherwise: never a number the kernel did not give.
+/// Said after a reading firmware says is charging.
+pub const CHARGING: &[u8] = b" Charging";
+
+fn put(buf: &mut [u8; LABEL_MAX], at: usize, words: &[u8]) -> usize {
+    buf[at..at + words.len()].copy_from_slice(words);
+    at + words.len()
+}
+
+/// "57%", or "57% Charging", for a reading; "No battery" or "Battery status
+/// unavailable" otherwise: never a number the kernel did not give.
 pub fn label(b: Battery, buf: &mut [u8; LABEL_MAX]) -> usize {
     let p = match b {
-        Battery::None => {
-            buf[..NO_BATTERY.len()].copy_from_slice(NO_BATTERY);
-            return NO_BATTERY.len();
-        }
-        Battery::Unavailable => {
-            buf[..UNAVAILABLE.len()].copy_from_slice(UNAVAILABLE);
-            return UNAVAILABLE.len();
-        }
-        Battery::Percent(p) => p.min(100),
+        Battery::None => return put(buf, 0, NO_BATTERY),
+        Battery::Unavailable => return put(buf, 0, UNAVAILABLE),
+        Battery::Percent(p) | Battery::Charging(p) => p.min(100),
     };
     let mut n = 0;
     if p >= 100 {
-        buf[0] = b'1';
-        buf[1] = b'0';
-        buf[2] = b'0';
-        n = 3;
+        n = put(buf, 0, b"100");
     } else {
         if p >= 10 {
             buf[n] = b'0' + (p / 10) as u8;
@@ -53,6 +52,9 @@ pub fn label(b: Battery, buf: &mut [u8; LABEL_MAX]) -> usize {
         buf[n] = b'0' + (p % 10) as u8;
         n += 1;
     }
-    buf[n] = b'%';
-    n + 1
+    n = put(buf, n, b"%");
+    match b {
+        Battery::Charging(_) => put(buf, n, CHARGING),
+        _ => n,
+    }
 }
