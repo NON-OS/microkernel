@@ -26,7 +26,7 @@
 use nonos_libc::mk_debug;
 
 use super::auth::Verified;
-use super::http::get::get_as;
+use super::http::resume::whole;
 use super::http::reach::reachable;
 use super::mirror::parse;
 use super::place::all::unpack;
@@ -40,7 +40,7 @@ pub fn install(tool: &str, pin: &[u8; 32]) -> Result<(), Why> {
     };
     let (name, port, _) = parse(at);
     reachable(name)?;
-    let Some(content) = get_as(name, port, name, &content_path(pin)) else {
+    let Some(content) = whole(name, port, name, &content_path(pin)) else {
         say(b"[LINUX] the tool did not download\n");
         super::refuse::tell(tool, "", "it did not download");
         return Err(Why::PACKAGE);

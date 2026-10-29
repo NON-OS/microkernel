@@ -49,12 +49,17 @@ pub fn press(p: &mut Presses, now: u64) {
 /// The fixed buttons this capsule's SCI serves: the power button, unless
 /// the FADT names a control-method one; never the sleep button.
 pub fn policy(fadt: &[u8]) -> Policy {
-    Policy { power_button: fixed_button(fadt), sleep_button: false }
+    Policy { power_button: fixed_button(fadt) && taken_here(), sleep_button: false }
+}
+
+/// A power-only build leaves the fixed button to the kernel's poll.
+fn taken_here() -> bool {
+    crate::release::on(crate::release::Part::FixedButton)
 }
 
 /// Once the SCI is bound: tells the kernel this capsule serves the button.
 pub fn take_button(fadt: &[u8]) {
-    if !fixed_button(fadt) {
+    if !fixed_button(fadt) || !taken_here() {
         return;
     }
     match button_taken() {

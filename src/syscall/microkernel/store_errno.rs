@@ -35,6 +35,7 @@ pub(super) const fn store_errno(e: B) -> i64 {
         B::OversizedRequest
         | B::DeviceFailure
         | B::Unsupported
+        | B::ReadOnly
         | B::ProtocolMismatch
         | B::BlockSize => ERRNO_FAULT,
     }

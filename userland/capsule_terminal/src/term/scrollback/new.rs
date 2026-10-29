@@ -31,3 +31,9 @@ impl Scrollback {
         }
     }
 }
+
+impl Default for Scrollback {
+    fn default() -> Self {
+        Self::new()
+    }
+}

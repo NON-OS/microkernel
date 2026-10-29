@@ -37,10 +37,6 @@ pub fn create_address_space(process_id: u32) -> PagingResult<u32> {
     })
 }
 
-pub fn cleanup_address_space(asid: u32) -> PagingResult<()> {
-    cleanup_address_space_keeping(asid, &[])
-}
-
 pub fn cleanup_address_space_keeping(
     asid: u32,
     keep: &[crate::memory::addr::PhysAddr],

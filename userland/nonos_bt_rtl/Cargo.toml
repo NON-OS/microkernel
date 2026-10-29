@@ -1,0 +1,27 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# The Realtek RTL8821C Bluetooth patch loader: the ROM's version read with
+# vendor command 0xfc6d, the patch for it chosen from linux-firmware's
+# "Realtech" epatch file, its config appended, and the whole sent with
+# vendor command 0xfc20 in 252-octet fragments, before the host's standard
+# bring-up resets the controller. The format and commands are hardware
+# facts from Linux v6.12 drivers/bluetooth/btrtl.c (GPL-2.0-only); the code
+# is NONOS's own. no_std for the capsule; std under `cargo test` for the
+# proofs in nonos_bt_rtl_proofs.
+[package]
+name = "nonos_bt_rtl"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_bt_hci = { path = "../nonos_bt_hci" }
+nonos_bt_wire = { path = "../nonos_bt_wire" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
