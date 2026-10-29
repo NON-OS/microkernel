@@ -28,5 +28,6 @@ pub fn display(guest: &mut Guest, fd: u64, at: u64, len: u64) -> u64 {
         f.cloexec = cloexec;
         f.nonblock = nonblock;
     }
+    crate::linux::wayland::commit::launch_clock::connected();
     unix::connect(guest, fd, at, len)
 }
