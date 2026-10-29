@@ -45,7 +45,10 @@ pub fn init() {
         let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
     }
     if super::heap_choice::is_install(&buf, n) {
-        if heap_init_sized(INSTALL_HEAP).is_ok() {
+        // Twice that with memory to spare: one package is placed at about
+        // twice its size (install/fetch/room.rs), Telegram's past 100 MB.
+        let sizes = [INSTALL_HEAP * 2, INSTALL_HEAP, INSTALL_HEAP / 2];
+        if sizes.iter().skip(usize::from(!spare())).any(|&s| heap_init_sized(s).is_ok()) {
             return;
         }
         // Alpine's index still fits the default; a larger one fails where

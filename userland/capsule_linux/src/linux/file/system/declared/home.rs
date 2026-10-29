@@ -20,12 +20,17 @@
  * ruled. A home lives in the store's memory for the boot, beside the
  * family's scratch, which keeps its own PRIVATE and PRIVATE_NAMES: a full
  * home is ENOSPC there and leaves /tmp writable, and a full /tmp leaves the
- * home. Every home together stays well inside the store's 320 MiB heap and
- * 2048 names, so no number of apps' homes ends the store for the rest.
+ * home. A listing named in app/home_listings.rs keeps more, at most
+ * HOME_MOST: Monero's wallet writes its cache whole beside the last, two
+ * copies past 16 MiB each. Every home together stays inside the 160 MiB
+ * the store gives its clients on the smallest machine, so no number of
+ * apps' homes ends the store for the rest.
  */
 pub const HOME: u64 = 16 << 20;
+pub const HOME_MOST: u64 = 64 << 20;
 pub const HOME_NAMES: u64 = 128;
-pub const HOMES: u64 = 64 << 20;
-// The store keeps 2048 names and a 320 MiB heap for every capsule: the
-// build itself holds the ceilings inside it.
-const _: () = assert!(HOMES <= 64 << 20 && HOME <= HOMES && HOME_NAMES <= 128);
+pub const HOMES: u64 = 128 << 20;
+// The store gives its clients' bytes no less than 160 MiB (capsule_vfs
+// DATA_BYTES_MAX): the build itself holds the ceilings inside it.
+const _: () = assert!(HOMES < 160 << 20 && HOME_MOST < HOMES && HOME < HOME_MOST);
+const _: () = assert!(HOME_NAMES <= 128);
