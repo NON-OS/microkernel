@@ -18,6 +18,7 @@
 //! a name it may not place, and a path another package holds.
 
 pub mod conflict;
+pub mod held_map;
 pub mod image;
 pub mod merged;
 pub mod name;

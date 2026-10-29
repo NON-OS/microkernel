@@ -18,10 +18,14 @@ mod boot_device;
 mod boot_partition;
 mod device_kind;
 mod disk_mirror;
+mod gpt_entry;
+mod gpt_names;
 mod load;
+mod own_disk;
 mod own_volume;
 mod pages;
 mod read;
+mod read_retry;
 mod store_copy;
 mod types;
 
