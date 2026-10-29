@@ -64,6 +64,7 @@ mod pinned_tests;
 mod proof_names_tests;
 mod route_read_tests;
 mod service;
+mod held_keep_tests;
 mod store_why_tests;
 mod take_tests;
 mod tar_build;
