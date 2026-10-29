@@ -29,9 +29,10 @@ static SERVED: Mutex<Option<Served>> = Mutex::new(None);
 /// What a run ended with its launcher reads as: killed, as by SIGKILL.
 const ENDED: i32 = 128 + SIGKILL as i32;
 
-/// MkAppLaunch queues `package`: as `launcher`'s, a SERVES capsule's process;
-/// or with None, by AppInstall or the shell, as no one's.
-pub fn note_launch(launcher: Option<u32>, package: &str) {
+/// MkAppLaunch queues `package`: as `launcher`'s, a SERVES capsule's process,
+/// with the `word` it gave (served_word.rs); or with None, as no one's.
+pub fn note_launch(launcher: Option<u32>, package: &str, word: Option<&str>) {
+    super::served_word::keep(package, word.filter(|_| launcher.is_some()));
     let package = String::from(package);
     *SERVED.lock() = launcher.map(|l| Served { launcher: Some(l), package, run: None });
 }

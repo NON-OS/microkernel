@@ -13,6 +13,10 @@ m="$work/mruby"
 # lex.def for older than keywords and ask for a gperf the build has none of.
 cp -Rp "$src" "$m"
 rm -rf "$m/.git" "$m/.rev"
+# A source out of the Nix store has every mtime the same, and on Linux minirake
+# then takes the committed lex.def for stale too: mark it newer than keywords,
+# which leaves its bytes as committed and needs no gperf.
+touch "$m/mrbgems/mruby-compiler/core/lex.def"
 # minirake runs each tool as one program, so zig gets a wrapper per role.
 mkdir -p "$work/zig"
 printf '#!/bin/sh\nexec "%s" cc -target x86_64-linux-musl "$@"\n' "$zig" >"$work/zig/cc"

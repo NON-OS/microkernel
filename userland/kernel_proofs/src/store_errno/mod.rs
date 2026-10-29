@@ -51,6 +51,7 @@ mod tests {
             B::OversizedRequest,
             B::DeviceFailure,
             B::Unsupported,
+            B::ReadOnly,
             B::ProtocolMismatch,
             B::BlockSize,
         ] {

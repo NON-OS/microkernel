@@ -51,6 +51,12 @@ pub use session::keeping_on;
 #[path = "volume_tests/mod.rs"]
 mod tests;
 
+/// Why a handover prepare was refused (handover/mod.rs): none is asked here.
+mod handover {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub enum HandoverRefusal {}
+}
+
 /// The stream lock: no import is ever in flight here.
 mod import_feed {
     pub(in crate::fs) fn with_streams<R>(f: impl FnOnce() -> (R, bool)) -> R {

@@ -40,3 +40,14 @@ pub(super) fn install(asked: Install) -> ! {
     say(if done.is_ok() { b"[LINUX] installed\n" } else { b"[LINUX] install failed\n" });
     mk_exit(done.map_or_else(|why| why.code(), |()| 0))
 }
+
+/// An uninstall request, carried out; the exit code names the reason, which
+/// the store shows.
+pub(super) fn uninstall(name: &str) -> ! {
+    say(b"[LINUX] uninstalling\n");
+    let pkg = choose(name);
+    super::file::allow_shared_writes();
+    let done = super::install::uninstall(pkg);
+    say(if done.is_ok() { b"[LINUX] uninstalled\n" } else { b"[LINUX] uninstall failed\n" });
+    mk_exit(done.map_or_else(|why| why.code(), |()| 0))
+}

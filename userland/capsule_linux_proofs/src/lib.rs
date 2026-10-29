@@ -41,6 +41,12 @@ pub mod pointer_codes;
 pub mod wayland_focus_step;
 #[path = "../../capsule_linux/src/linux/wayland/window_damage.rs"]
 pub mod window_damage;
+#[path = "../../capsule_linux/src/linux/wayland/damage.rs"]
+pub mod damage;
+#[path = "../../capsule_linux/src/linux/wayland/damage_lay.rs"]
+pub mod damage_lay;
+#[path = "../../capsule_linux/src/linux/wayland/damage_scale.rs"]
+pub mod damage_scale;
 #[path = "../../capsule_linux/src/linux/wayland/xkb_mods.rs"]
 pub mod xkb_mods;
 /* A guest window full screen and back, and taken down when it ends. */

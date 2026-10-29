@@ -49,7 +49,7 @@ pub(super) fn note(state: &mut State, seen: &Seen) {
         Seen::Touch(_) => state.recover.held(),
         Seen::Mouse(_) => {
             let gone = state.recover.run.mouse();
-            if gone && state.recover.mode_unread && state.gesture.button_held() {
+            if gone && state.recover.mode_unread && state.gesture.was_button {
                 release_touch_click(state);
             }
         }

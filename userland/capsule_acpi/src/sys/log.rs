@@ -1,23 +1,12 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! One line at a time to the boot serial, through MkDebug when the build
 //! grants it; a build without serial debug drops the line, which is the
 //! capsule's only output it can lose.
 
+use super::line_frame::framed;
 use alloc::vec::Vec;
 use nonos_libc::mk_debug;
 
@@ -69,7 +58,7 @@ impl Line {
     }
 
     pub fn end(self) {
-        let n = self.0.len().min(MAX);
-        let _ = mk_debug(self.0.as_ptr(), n);
+        let line = framed(self.0, MAX);
+        let _ = mk_debug(line.as_ptr(), line.len());
     }
 }
