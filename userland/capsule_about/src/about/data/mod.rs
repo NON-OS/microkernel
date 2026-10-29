@@ -18,6 +18,7 @@ pub mod abi;
 pub mod admission;
 pub mod attest_challenge;
 pub mod attest_doc;
+pub mod battery;
 pub mod build;
 pub mod caps;
 pub mod display;

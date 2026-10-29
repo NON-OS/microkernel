@@ -42,7 +42,9 @@ pub fn route(
         (Some(Object::Surface), req::SURFACE_ATTACH) => surface::attach(guest, id, args),
         (Some(Object::Surface), req::SURFACE_FRAME) => surface::frame(guest, id, args),
         (Some(Object::Surface), req::SURFACE_COMMIT) => commit::commit(guest, id),
-        (Some(Object::Surface), req::SURFACE_DAMAGE | req::SURFACE_DAMAGE_BUFFER) => {}
+        (Some(Object::Surface), req::SURFACE_DAMAGE | req::SURFACE_DAMAGE_BUFFER) => {
+            commit::damage_show::said(guest, id, opcode, args)
+        }
         /* Nothing a surface says about its own pixels changes how they are shown (region.rs). */
         (
             Some(Object::Surface),

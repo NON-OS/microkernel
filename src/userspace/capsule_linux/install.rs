@@ -54,7 +54,7 @@ pub fn spawn_uninstall(package: &str) -> Result<u32, SpawnError> {
 
 /// Spawn the personality to run the program `package` installed.
 pub fn spawn_run(package: &str) -> Result<u32, SpawnError> {
-    spawn(&RUN, vec![String::from("run"), String::from(package)])
+    spawn(&RUN, super::served_word::run_words(package))
 }
 
 /// Spawn the personality for the terminal's `linux` command. `argv` is the

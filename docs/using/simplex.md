@@ -28,7 +28,7 @@ It installs into the Debian family's tree, with its nine pinned libraries (below
 
 **What it cannot do yet.** It starts and keeps its profile, but it reaches no SMP server until the guest port fix for 5223, SMP's port, is in. See [How it reaches SimpleX servers](#how-it-reaches-simplex-servers). The listing passes no `--socks-proxy`: the `127.0.0.1:9050` endpoint it would name is not in yet either.
 
-**On a development boot.** The content is served by the host relay, `tools/nonos-mirror-relay --content <dir>`, where `<dir>` holds `de9dbf3a….tar`, the content tar `tools/nonos-source-asset … --package-out <dir>` writes ([the development mirror](../build/dev-mirror.md)). No release profile lists a source recipe yet, so a release image does not carry this listing.
+**On a development boot.** The content is served by the host relay, `tools/nonos-mirror-relay --content <dir>`, where `<dir>` holds `de9dbf3a….tar`, the content tar `tools/nonos-source-asset … --package-out <dir>` writes ([the development mirror](../build/dev-mirror.md)). **On a release image.** The 0.9.3 release lists it from the NØNOS package mirror, `http://mirror.nonos.software/linux/<blake3>.tar`, plain HTTP fetched over Anyone. The listing's signature pins the content's BLAKE3, so the transport adds no trust. *host-tested* (the mirror serves the pinned bytes)
 
 ## What you install
 

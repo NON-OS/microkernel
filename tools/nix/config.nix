@@ -66,6 +66,11 @@ let
     "nonos-capsule-model-fetch" "nonos-capsule-shield" "nonos-capsule-nox-settle" "nonos-capsule-prove-fetch"
   ];
 
+  # The radios that are not a network: Bluetooth's LE host, which pairs
+  # keyboards and mice and so listens on the air. Hardened and Air-Gapped
+  # take it out, as Air-Gapped takes out every network driver.
+  radioFeatures = [ "nonos-capsule-driver-bt-usb" ];
+
   # Lets service capsules write to the serial console, which a hardened image
   # must not (Cargo.toml says why).
   debugFeatures = [ "capsule-serial-debug" ];
@@ -104,18 +109,18 @@ let
     hardened = {
       about = "the full system with Secure Boot and a TPM required at boot and no serial console for capsules";
       for = "a machine that may be seized or tampered with";
-      privacy = "standard, and the loader refuses to start without Secure Boot and a TPM to measure into; no capsule can write to a console anyone could read, and the kernel keeps none of its console lines in memory";
+      privacy = "standard, and the loader refuses to start without Secure Boot and a TPM to measure into; no capsule can write to a console anyone could read, and the kernel keeps none of its console lines in memory; no Bluetooth";
       kernel = [ "microkernel-full-gui" ];
       loader = "production";
-      drop = debugFeatures ++ postureFeatures ++ tailFeatures;
+      drop = debugFeatures ++ postureFeatures ++ tailFeatures ++ radioFeatures;
     };
     airgapped = {
       about = "hardened, with no network driver, stack or online program compiled in; installs only from offline media";
       for = "keys and documents that must never touch a network";
-      privacy = "hardened, and no code that could reach a network exists in the image: no driver, no stack, no program that goes online";
+      privacy = "hardened, and no code that could reach a network exists in the image: no driver, no stack, no program that goes online, no Bluetooth";
       kernel = [ "microkernel-full-gui" ];
       loader = "production";
-      drop = debugFeatures ++ postureFeatures ++ tailFeatures ++ networkFeatures;
+      drop = debugFeatures ++ postureFeatures ++ tailFeatures ++ networkFeatures ++ radioFeatures;
     };
     qemu = {
       about = "the desktop for virtual machines, without the drivers only real hardware has";
@@ -174,6 +179,8 @@ let
     features = [ ];
     # The NONOS package mirror the in-tree tools install from; empty, none.
     linux_packages = ""; linux_sources = ""; # and where source recipes' content is
+    # The Debian archive Debian-family listings install from; empty, none.
+    linux_debian = "";
     store = { linux = true; media = true; };
   };
 
@@ -215,6 +222,8 @@ let
     assert lib.assertMsg (builtins.isInt c.rollback_index && c.rollback_index >= 1) "nonos.toml: rollback_index is an integer from 1";
     assert lib.assertMsg (builtins.isString c.linux_packages && builtins.match "[A-Za-z0-9.-]*(:[0-9]+)?" c.linux_packages != null)
       "nonos.toml: linux_packages is name:port, or empty";
+    assert lib.assertMsg (builtins.isString c.linux_debian && builtins.match "[A-Za-z0-9.-]*(:[0-9]+)?" c.linux_debian != null)
+      "nonos.toml: linux_debian is name:port, or empty";
     # Path-only attestation belongs to the development loader, whose loader
     # takes the same path-only kernel trailer; no other image may carry it.
     assert lib.assertMsg (!(builtins.elem "nonos-dev-attest" enabled) || loader == "dev-qemu")

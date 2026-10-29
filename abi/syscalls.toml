@@ -636,7 +636,7 @@ ret  = {type="i64"}
 [desc.MBAT]
 nr   = 0x5441424D
 caps = ["valid_token"]
-args = []
+args = [{name="form",type="u64",dir="in"}]
 ret  = {type="i64"}
 [desc.MBTA]
 nr   = 0x4154424D
@@ -929,7 +929,7 @@ ret  = {type="i64"}
 [desc.MAPL]
 nr   = 0x4C50414D
 caps = ["AppInstall"]
-args = [{name="listing_ptr",type="u64",dir="in"},{name="listing_len",type="u64",dir="in"}]
+args = [{name="listing_ptr",type="u64",dir="in"},{name="listing_len",type="u64",dir="in"},{name="word_ptr",type="u64",dir="in"},{name="word_len",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MPPT]

@@ -21,7 +21,7 @@ use super::super::tar::entries;
 /// The SHA-256 `.PKGINFO` in `control_tar` says the data member hashes to.
 pub fn datahash(control_tar: &[u8]) -> Option<[u8; 32]> {
     let found = entries(control_tar).into_iter().find(|e| e.name == b".PKGINFO")?;
-    let text = core::str::from_utf8(&found.body).ok()?;
+    let text = core::str::from_utf8(found.body).ok()?;
     let hex = text.lines().find_map(|line| line.strip_prefix("datahash = "))?;
     let hex = hex.trim().as_bytes();
     if hex.len() != 64 {
