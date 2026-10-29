@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::measure_line::{line, LEN};
+use super::said::{line, LEN};
 
 const FINISH: &str = include_str!("../../../../src/process/foreign/seal/finish.rs");
 const HIST: &str = include_str!("../../../../src/process/foreign/seal/hist.rs");
