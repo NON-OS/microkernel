@@ -16,7 +16,7 @@
 
 /*
  * Saying the ring `recent` keeps: after a guest thread's death on a signal,
- * and after a process that exited with a nonzero status.
+ * and after a process that exited nonzero or was killed (recent_rule.rs).
  */
 
 use alloc::string::String;
@@ -24,7 +24,11 @@ use core::fmt::Write;
 use core::sync::atomic::Ordering::Relaxed;
 
 use super::recent::{CALLS, KEEP, NEXT};
+
+#[path = "recent_rule.rs"]
+mod recent_rule;
 use crate::linux::abi::{nr, nr_high};
+pub use recent_rule::worth;
 
 fn lays_out_memory(number: u64) -> bool {
     matches!(number, nr::MMAP | nr::MPROTECT | nr::MUNMAP | nr::BRK | nr_high::MREMAP)
