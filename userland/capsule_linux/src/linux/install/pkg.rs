@@ -36,6 +36,8 @@ pub struct Pkg {
     pub branch: usize,
     /// Its size in bytes, from its `S:` line: 0 when the index gives none.
     pub size: usize,
+    /// Its files' size in bytes, from its `I:` line: 0 when none is given.
+    pub installed: usize,
 }
 
 impl Pkg {

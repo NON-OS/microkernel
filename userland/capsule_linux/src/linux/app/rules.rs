@@ -47,10 +47,14 @@ pub enum NetStep {
     Refuse,
 }
 
-pub fn net_step(mask: u64, holds_network: bool) -> NetStep {
-    match (grants(mask, NET_ANON), holds_network) {
-        (true, false) => NetStep::AskAgain,
-        (false, true) => NetStep::Refuse,
+/// A `tool` (gtk_prep.rs) runs in either role and never asks again: the
+/// network role prepares a GTK program's caches too, and a guest's sockets
+/// follow its own mask, so a tool without NET_ANON reaches nothing there.
+pub fn net_step(mask: u64, holds_network: bool, tool: bool) -> NetStep {
+    match (grants(mask, NET_ANON), holds_network, tool) {
+        (_, _, true) => NetStep::Run,
+        (true, false, _) => NetStep::AskAgain,
+        (false, true, _) => NetStep::Refuse,
         _ => NetStep::Run,
     }
 }
