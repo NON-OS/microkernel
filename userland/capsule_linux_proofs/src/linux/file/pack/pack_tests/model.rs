@@ -31,14 +31,9 @@ pub(super) struct Model {
 
 impl Model {
     fn step(&mut self) -> bool {
-        match &mut self.steps {
-            Some(0) => false,
-            Some(n) => {
-                *n -= 1;
-                true
-            }
-            None => true,
-        }
+        let live = self.steps != Some(0);
+        self.steps = self.steps.map(|n| n.saturating_sub(1));
+        live
     }
 }
 
@@ -69,5 +64,9 @@ impl Shelf for Model {
         let Some(bytes) = self.files.remove(from) else { return false };
         self.files.insert(to.to_vec(), bytes);
         true
+    }
+
+    fn head(&mut self, at: &[u8], len: usize) -> Option<Vec<u8>> {
+        self.files.get(at).and_then(|b| b.get(..len)).map(<[u8]>::to_vec)
     }
 }
