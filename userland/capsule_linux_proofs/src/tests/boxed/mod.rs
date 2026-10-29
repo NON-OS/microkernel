@@ -31,6 +31,7 @@ mod learn_tests;
 mod net_report_tests;
 mod preset_refusal_tests;
 mod preset_tests;
+mod recent_rule_tests;
 mod report_end_tests;
 mod report_path_tests;
 mod report_tests;

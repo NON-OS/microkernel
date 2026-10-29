@@ -26,10 +26,10 @@ use super::held::{callers_of, endpoint_admits};
 fn every_display_is_held_to_the_compositor_alone() {
     for ep in DISPLAYS {
         assert_eq!(callers_of(ep), Some(&["compositor"][..]), "{ep}");
-        assert!(endpoint_admits(ep, owner(&["compositor"])), "{ep} refused the compositor");
+        assert!(endpoint_admits(ep, None, owner(&["compositor"])), "{ep} refused the compositor");
         for other in ["app.about", "app.browser", "wm", "input_router", "audio.server"] {
             let one: &'static [&'static str] = Box::leak(Box::new([other]));
-            assert!(!endpoint_admits(ep, owner(one)), "{ep} took {other}");
+            assert!(!endpoint_admits(ep, None, owner(one)), "{ep} took {other}");
         }
     }
     assert!(

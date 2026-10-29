@@ -33,10 +33,9 @@ pub fn serve(guest: Guest) -> i32 {
     let mut family = Family::new(guest);
     loop {
         let mut frame = ForeignFrame::default();
-        // A sleeper, a parked wait, a closing stream or a held frame callback
-        // due sooner shortens it.
-        let due = [family.next_wake_ms(), net::closing_ms(), frames_due(&family)];
-        let wake = due.into_iter().flatten().min();
+        // A sleeper, a parked wait, a closing stream, a served connection or a frame due.
+        let due = [family.next_wake_ms(), net::closing_ms(), net::serve_one::wake_ms()];
+        let wake = due.into_iter().chain([frames_due(&family)]).flatten().min();
         let wait = wake.map_or(WAIT_MS, |ms| ms.clamp(1, WAIT_MS));
         if mk_foreign_wait(&mut frame, wait) > 0 {
             family.answer(&frame);
@@ -46,6 +45,8 @@ pub fn serve(guest: Guest) -> i32 {
         family.settle_sleeps();
         settle_frames(&mut family);
         family.settle_futex();
+        /* The served listener's frames, before parked calls retry (net/serve_one). */
+        net::serve_one::pump();
         // After reap, so a write end that left with its process reads as end of file.
         family.reap();
         family.settle_waits();

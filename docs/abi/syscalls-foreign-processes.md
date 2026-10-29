@@ -15,7 +15,7 @@ riscv64 the `foreign` module is built from `foreign_absent.rs` instead
 |---|---|---|---|---|---|
 | `MFSP` | `0x5053464D` | `MkForeignSpawn` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Create a process with no capabilities, supervised by the caller. |
 | `MFST` | `0x5453464D` | `MkForeignStart` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Give such a process an entry point and make it runnable. |
-| `MFWT` | `0x5457464D` | `MkForeignWait` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Wait for a guest to make a refused syscall; take its registers. |
+| `MFWT` | `0x5457464D` | `MkForeignWait` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Wait for a guest to make a refused syscall; take its registers. Returns the frame's size; 0, with nothing written, once a message comes to the caller's own inbox (`proc.<pid>`), told once a count so one left unread does not wake it again (`src/process/foreign/wait/wake_rule.rs`); ETIMEDOUT after the timeout. |
 | `MFRP` | `0x5052464D` | `MkForeignReply` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Answer one parked guest with the value its `rax` receives. |
 | `MFCX` | `0x5843464D` | `MkForeignContext` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Copy a parked guest's registers out, in `struct sigcontext` order. |
 | `MFSG` | `0x4753464D` | `MkForeignSignal` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Answer a parked guest with a context: a signal handler, or its return. |
@@ -29,6 +29,7 @@ riscv64 the `foreign` module is built from `foreign_absent.rs` instead
 | `MPUN` | `0x4E55504D` | `MkPeerUnmap` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Take pages back from a guest. |
 | `MFEX` | `0x5845464D` | `MkForeignExec` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Replace the program a parked guest is running. |
 | `MLRN` | `0x4E524C4D` | `MkLinuxRunNet` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:71` | Ask init to start this Linux run again with Network; only the run role, for its own pid. |
+| `MSRV` | `0x5652534D` | `MkServeOne` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:71` | Serve this Linux run's guest listener to one capsule: `linux.serve.<capsule>`, held to that capsule; only the run role, for a capsule and listing key `SERVES` pairs (`src/services/registry/serves.rs`). Returns the port. |
 
 ### Crypto
 

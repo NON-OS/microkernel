@@ -28,7 +28,8 @@
 //! terminal's network role (capsule_linux/term_ticket.rs).
 
 use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_PERM};
-use crate::userspace::capsule_linux::{asked_by_terminal_role, run_net_busy, run_package_of};
+use crate::userspace::capsule_linux::{asked_by_terminal_role, run_restarting};
+use crate::userspace::capsule_linux::{run_net_busy, run_package_of};
 
 /// `MkLinuxRunNet(pid)`. 0 once the run is queued for init, or a terminal
 /// run's ticket written; EPERM when `pid` is not the caller, or the caller
@@ -49,7 +50,11 @@ pub fn sys_linux_run_net(pid: u64) -> i64 {
         return ERRNO_BUSY;
     }
     match crate::userspace::init::request_net_run(package) {
-        true => 0,
+        // A served run stays its launcher's across the start again.
+        true => {
+            run_restarting(caller);
+            0
+        }
         false => ERRNO_BUSY,
     }
 }

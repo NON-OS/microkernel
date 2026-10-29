@@ -17,15 +17,16 @@
 
 """Check that no two capsules declare the same IPC port. Every service, reply
 and instance endpoint in userland/*/Capsule.mk and tools/nix/capsules.json,
-and every Linux guest's pair, names a port; two owners of one port means a
-message meant for one is delivered to the other."""
+every Linux guest's pair, and each port the kernel serves a Linux run on names
+a port; two owners of one port means a message meant for one is delivered to
+the other."""
 
 import argparse
 import pathlib
 import sys
 
 from capsule_port_json import json_ports
-from capsule_port_sources import capsule_ports, guest_ports
+from capsule_port_sources import capsule_ports, guest_ports, serve_ports
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
@@ -35,7 +36,7 @@ def clashes(root):
     for mk in sorted(root.glob("userland/*/Capsule.mk")):
         for port, who in capsule_ports(mk):
             owners.setdefault(port, []).append(who)
-    for port, who in (*guest_ports(root), *json_ports(root)):
+    for port, who in (*guest_ports(root), *json_ports(root), *serve_ports(root)):
         owners.setdefault(port, []).append(who)
     return {p: w for p, w in owners.items() if shared(w)}, len(owners)
 

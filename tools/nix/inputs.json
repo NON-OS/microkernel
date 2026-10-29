@@ -3616,6 +3616,7 @@
    "userland/nonos_linux_pack",
    "userland/nonos_linux_policy",
    "userland/nonos_route_link",
+   "userland/nonos_serve_wire",
    "userland/nonos_socket",
    "userland/nonos_tls",
    "userland/openpgp",
@@ -3635,6 +3636,7 @@
   ],
   "include": [
    ".cargo",
+   "nonos-data/market/catalogue",
    "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/capsule_linux/family.rs",
    "src/userspace/capsule_linux/terminal/tier.rs",
@@ -3677,6 +3679,7 @@
    "userland/nonos_route_link/src/pick.rs",
    "userland/nonos_route_link/src/refusal.rs",
    "userland/nonos_route_link/src/socks.rs",
+   "userland/nonos_serve_wire",
    "userland/openpgp",
    "userland/policy_proto",
    "userland/toolkit",
@@ -7269,10 +7272,12 @@
   ],
   "include": [
    ".cargo",
+   "nonos-data/market/catalogue/linux.kali.nonos-simplex-core.json",
    "nonos-data/market/catalogue/linux.monero.json",
    "nonos-data/market/index.bin",
    "nonos-data/market/logos",
    "src/security/market_capsule/client/linux_policy_wire.rs",
+   "src/services/registry/serves.rs",
    "userland/capsule_app_store/src/store/asked.rs",
    "userland/capsule_app_store/src/store/asked_label.rs",
    "userland/capsule_app_store/src/store/channel_held.rs",
@@ -8204,6 +8209,15 @@
    ".cargo",
    "userland/nonos_hash",
    "userland/nonos_secp256k1"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_serve_wire": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_serve_wire"
   ],
   "md": [],
   "signed": []

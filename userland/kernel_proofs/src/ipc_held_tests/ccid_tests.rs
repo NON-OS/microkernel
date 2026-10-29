@@ -47,9 +47,9 @@ fn the_reader_driver_starts_after_the_hub_walker_where_a_host_is() {
 #[test]
 fn the_reader_driver_reaches_every_host_and_nothing_reaches_it() {
     for host in USB_HOSTS {
-        assert!(endpoint_admits(host, owner(&["driver.ccid0"])), "{host}");
+        assert!(endpoint_admits(host, None, owner(&["driver.ccid0"])), "{host}");
     }
     assert_eq!(callers_of("driver.ccid0"), Some(&[][..]));
     let others = owner(&["app.terminal", "app.browser", "net.core", "compositor"]);
-    assert!(!endpoint_admits("driver.ccid0", others), "a capsule reaches it");
+    assert!(!endpoint_admits("driver.ccid0", None, others), "a capsule reaches it");
 }
