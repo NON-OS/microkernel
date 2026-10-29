@@ -1,4 +1,5 @@
 {"format": "nonos.linux-catalogue-sources-lock.v1", "sources": {
   "darkfi-app": {"B": "959f34bddf3a7b8d33f68c655000d34711ab7696d800663e1fd787ca6b4ddcd9", "S": "48394240", "commit": "2e2de47c699529600085649b69c5c1878164e79a", "G": "", "R": ""},
+  "darkfi-darkirc": {"B": "1722ce6ccffcf3035321d418aecb2a12786fb0fc6995c851d85b7a240435f6ac", "S": "10792960", "commit": "2e2de47c699529600085649b69c5c1878164e79a", "G": "", "R": ""},
   "simplex-chat": {"B": "de9dbf3a6443cd603f40238700e2df713e00c78136116cdb11a78da46ebab7fc", "S": "79544320", "asset": "https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.3/simplex-chat-ubuntu-22_04-x86_64", "sha256": "5afb1d25efe5ccf564a1ab124bc7f410a7a73171c974a4d8b7f4d8f2e3d62e77", "A": "1813d4fb4e6b032800de05ea23b5b9a97d5bc20e81fe377216bff237c9d6f9b4", "sums": "https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.3/_sha256sums", "G": "", "R": ""}
 }}
