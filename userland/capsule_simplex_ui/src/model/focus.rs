@@ -23,6 +23,10 @@ pub enum Focus {
     List,
     Compose,
     Search,
+    /// The person's name for the core's first start (start.rs), and that
+    /// name given, waiting for the core.
+    Name,
+    Named,
 }
 
 /// How far the window is with the core.
