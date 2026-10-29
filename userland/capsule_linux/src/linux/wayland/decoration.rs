@@ -28,6 +28,9 @@ use super::ops::decoration::*;
 use super::ops::ev;
 use super::out::Event;
 
+#[path = "kde_decoration.rs"]
+pub mod kde;
+
 pub fn route(
     guest: &mut Guest,
     object: Option<Object>,
@@ -51,7 +54,7 @@ pub fn route(
         | (Some(Object::Decoration), DECORATION_DESTROY) => {
             super::forget::forget(guest, object, id)
         }
-        _ => return super::route::rest::route(guest, object, id, op, args),
+        _ => return kde::route(guest, object, id, op, args),
     }
     true
 }
