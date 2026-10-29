@@ -34,17 +34,17 @@ const SIZE_LEN: usize = 12;
 const TYPE_AT: usize = 156;
 
 /// Everything in the archive, and how many entries had nowhere to go.
-pub struct Walk {
-    pub entries: Vec<Entry>,
+pub struct Walk<'a> {
+    pub entries: Vec<Entry<'a>>,
     pub dropped: u32,
 }
 
 /// Regular files only, for the readers that want a named file's bytes.
-pub fn entries(data: &[u8]) -> Vec<Entry> {
+pub fn entries(data: &[u8]) -> Vec<Entry<'_>> {
     walk(data).entries.into_iter().filter(|e| matches!(e.kind, Kind::File)).collect()
 }
 
-pub fn walk(data: &[u8]) -> Walk {
+pub fn walk(data: &[u8]) -> Walk<'_> {
     let mut out = Walk { entries: Vec::new(), dropped: 0 };
     let mut next = Overrides::default();
     let mut at = 0usize;

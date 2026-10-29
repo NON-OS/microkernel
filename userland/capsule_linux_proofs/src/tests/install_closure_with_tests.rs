@@ -28,7 +28,7 @@ P:zathura-pdf-mupdf\nV:1\nD:zathura mupdf\n\nP:mupdf\nV:1\nD:girara\n\nP:poppler
 fn names(extras: &[&str], max: usize) -> Result<Vec<String>, Closed> {
     let mut index = Index::default();
     index.add(TEXT, 0);
-    closure(&index, "zathura", extras, max).map(|p| p.iter().map(|p| p.name.clone()).collect())
+    closure(&index, "zathura", extras, &[], max).map(|p| p.iter().map(|p| p.name.clone()).collect())
 }
 
 #[test]

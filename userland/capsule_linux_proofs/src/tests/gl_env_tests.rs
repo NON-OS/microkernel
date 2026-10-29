@@ -14,30 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! OpenGL in a box is Mesa's software driver, found where the box's closure
-//! places it and drawn through Wayland (docs/design/box-gl.md, G.1).
+//! OpenGL in a box is Mesa's software driver, drawn through Wayland, named
+//! only where the run's store has the NØNOS-built Mesa: a driver path to
+//! nothing had every Qt program say Mesa could not open its driver.
 
-use crate::linux::env::{default, with_pwd};
+use crate::linux::env::{default, with_pwd, MESA};
 
-const GL: [&[u8]; 3] = [
-    b"LIBGL_ALWAYS_SOFTWARE=1",
-    b"LIBGL_DRIVERS_PATH=/usr/lib/nonos-mesa",
-    b"EGL_PLATFORM=wayland",
-];
+const MESA_ENV: [&[u8]; 2] =
+    [b"LIBGL_ALWAYS_SOFTWARE=1", b"LIBGL_DRIVERS_PATH=/usr/lib/nonos-mesa"];
+
+fn count(env: &[Vec<u8>], want: &[u8]) -> usize {
+    env.iter().filter(|v| v.as_slice() == want).count()
+}
 
 #[test]
-fn every_guest_is_told_to_draw_gl_in_software_through_wayland() {
-    for env in [default(), with_pwd(b"/root")] {
-        for want in GL {
-            assert_eq!(env.iter().filter(|v| v.as_slice() == want).count(), 1, "{want:?}");
-        }
+fn a_run_whose_store_has_mesa_is_sent_to_its_software_driver() {
+    assert_eq!(MESA, b"/usr/lib/nonos-mesa");
+    let env = with_pwd(b"/root", true);
+    for want in MESA_ENV.into_iter().chain([&b"EGL_PLATFORM=wayland"[..]]) {
+        assert_eq!(count(&env, want), 1, "{want:?}");
+    }
+}
+
+#[test]
+fn a_run_without_mesa_is_told_nothing_of_gl_drivers() {
+    for env in [default(), with_pwd(b"/root", false)] {
+        assert!(!env.iter().any(|v| v.starts_with(b"LIBGL_")), "{env:?}");
+        assert_eq!(count(&env, b"EGL_PLATFORM=wayland"), 1);
     }
 }
 
 #[test]
 fn no_guest_is_pointed_at_a_gpu_driver() {
-    let env = default();
-    let named = |key: &[u8]| env.iter().any(|v| v.starts_with(key));
-    assert!(!named(b"GALLIUM_DRIVER="), "softpipe for all would pin out llvmpipe");
-    assert!(!named(b"MESA_LOADER_DRIVER_OVERRIDE="));
+    for env in [with_pwd(b"/", false), with_pwd(b"/", true)] {
+        let named = |key: &[u8]| env.iter().any(|v| v.starts_with(key));
+        assert!(!named(b"GALLIUM_DRIVER="), "softpipe for all would pin out llvmpipe");
+        assert!(!named(b"MESA_LOADER_DRIVER_OVERRIDE="));
+    }
 }

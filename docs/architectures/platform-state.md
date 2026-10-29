@@ -155,10 +155,10 @@ A desktop on a UEFI Arm board, whether a Raspberry Pi 5 with community EDK2 firm
 - **design.** `intel_display` covers display only: takeover on Haswell to Raptor Lake, modeset on Gen9, GGTT, planes, cursor, DP and HDMI. It has no render or GT engine and no GuC or HuC, and it has never booted, since QEMU has no Intel graphics. AMD has a register-document survey (`the design notes`) and no code. NVIDIA is enumerate-only.
 - **design.** DMA confinement is the strongest piece:
   - every claim attaches the capsule's own IOMMU domain before the device is powered, and IOVAs map only the capsule's grants (`src/hardware/broker/claim/claim.rs:56-57`, `confine/capsule.rs:33-64`);
-  - a device no IOMMU unit translates is refused, and on x86 a claim without interrupt remapping is refused;
+  - a device no IOMMU unit translates is refused, and on x86 a claim without interrupt remapping is refused, except on a Standard boot with no unit in service at all, which takes the no-IOMMU posture: claims go ahead unconfined and the boot says so (`src/memory/iommu/no_iommu.rs`); Hardened and Air-Gapped stop instead;
   - a virtio device must offer `ACCESS_PLATFORM`.
 
-  VT-d is on by default and blocks faulting sources. AMD-Vi has never booted while enforcing. A QEMU boot with no vIOMMU therefore refuses the virtio-gpu claim and falls back to the firmware framebuffer. That is fail-closed, and it means a GPU lane must always boot with `intel-iommu`.
+  VT-d and AMD-Vi are both on in every image and block faulting sources. AMD-Vi has booted enforcing under QEMU's `amd-iommu` (`docs/hardware/evidence/2026-10-25/i7-seeded-iommu/`), not yet on an AMD machine. A QEMU boot with no vIOMMU, not Hardened or Air-Gapped, drives virtio-gpu unconfined under the posture, with `device DMA not confined by hardware` on the splash (`docs/release-evidence/0.9.3/gpu-469dddb58-no-iommu/`).
 
 ### What a real GPU path needs
 

@@ -61,7 +61,7 @@ fn record(hd: &HardDrive) -> BootMedia {
         partition_number: hd.partition_number(),
         table: hd.partition_format().0,
         signature_type,
-        reserved: 0,
+        flags: 0,
         start_lba: hd.partition_start(),
         size_lba: hd.partition_size(),
         signature,

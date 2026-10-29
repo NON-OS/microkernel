@@ -141,7 +141,7 @@ A Linux app whose box grants FILES_HOME gets a home: its `/root`, which is its `
 - Each listing has its own home. A new release of an app keeps the home, and two apps never see each other's home, even if two publishers use the same listing name.
 - A home lives in memory and never reaches the disk. It is gone after a restart, on every kind of boot.
 - Uninstalling an app erases its home, so if you install it again it starts with an empty one.
-- A home holds at most 16 MiB and 128 files and folders, and all homes together hold at most 64 MiB. A write past either limit fails with "No space left on device", and the Terminal says once per run that the app's home is full. Removing files always works.
+- A home holds at most 16 MiB and 128 files and folders, and all homes together hold at most 128 MiB. The Monero wallet's home holds 64 MiB, because its wallet saves a cache of more than 16 MiB beside the last one (`userland/capsule_linux/src/linux/app/home_listings.rs`, `MONERO_HOME`). A write past any limit fails with "No space left on device", and the Terminal says once per run that the app's home is full, with its size. Removing files always works.
 - Moving a file into or out of the home is a copy, as moving between two disks is.
 
 ## Where this comes from
