@@ -17,8 +17,14 @@
 //! The ACPI capsule's battery report, while it is fresh: the answer, or None
 //! for the caller to fall back to the tables' scan.
 
-use crate::hardware::broker::acpi::power_report::{battery, Battery};
+use crate::hardware::broker::acpi::power_report::{battery, state as word, Battery};
 use crate::syscall::microkernel::errnos::{ERRNO_NODEV, ERRNO_NOTSUP};
+
+/// The fresh report's whole word: charge, present, charging, discharging,
+/// AC online and AC known, as power_report lays it out.
+pub(super) fn state() -> Option<i64> {
+    word(crate::sys::clock::since_boot_ms()).map(|w| w as i64)
+}
 
 pub(super) fn answer() -> Option<i64> {
     match battery(crate::sys::clock::since_boot_ms()) {

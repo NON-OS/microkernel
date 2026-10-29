@@ -27,6 +27,9 @@ use nonos_aml::load::Aml;
 use nonos_aml::object::Object;
 
 pub fn set_trip(b: &Battery, aml: &mut Aml, host: &mut CapsuleHost) {
+    if !crate::release::on(crate::release::Part::BatteryTrip) {
+        return; // polled only
+    }
     let Some(warning) = b.info.as_ref().and_then(|i| i.warning).filter(|w| *w > 0) else { return };
     if let Some(btp) = aml.ns.child(b.id, *b"_BTP") {
         let _ = evaluate(aml, host, btp, vec![Object::Integer(u64::from(warning))]);
