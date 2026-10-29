@@ -24,7 +24,7 @@ use alloc::boxed::Box;
 use nonos_libc::{mk_app_launch, mk_uptime_ms};
 
 /// The core's listing, which MkAppLaunch starts in its own box.
-const CORE: &[u8] = b"linux.kali.nonos-simplex-chat";
+const CORE: &[u8] = b"linux.kali.nonos-simplex-core";
 const TRY_MS: i64 = 30_000;
 const EVERY_MS: i64 = 250;
 
