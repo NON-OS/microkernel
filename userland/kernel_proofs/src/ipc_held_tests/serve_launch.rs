@@ -22,13 +22,14 @@ use super::app_launch_rule::{admit_launch, Launch::*};
 use super::common::owner;
 use super::serve_rule::serves::{LISTINGS, SERVES};
 
-const CORE: &str = "linux.kali.nonos-simplex-chat";
+const CORE: &str = "linux.kali.nonos-simplex-core";
 
 #[test]
 fn a_served_capsule_launches_its_own_listing_alone() {
     let window = owner(&["app.simplex", "endpoint.app.simplex.reply"]);
     assert_eq!(admit_launch(false, &window, CORE, LISTINGS), Served);
-    for other in ["linux.jq", "linux.kali.nonos-simplex-chat2", "linux.kali.simplex", ""] {
+    for other in ["linux.jq", "linux.kali.nonos-simplex-chat", "linux.kali.nonos-simplex-core2", ""]
+    {
         assert_eq!(admit_launch(false, &window, other, LISTINGS), Refused, "{other}");
     }
     for mine in [&[][..], &["app.simplex.1"], &["app.terminal"], &["app.linux.run.net"]] {
