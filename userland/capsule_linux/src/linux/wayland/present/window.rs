@@ -63,6 +63,9 @@ pub fn show(guest: &mut Guest, surface: u32, src: &Source) {
     };
     let Some(id) = scene.window.or(opened) else { return };
     let opened = opened.is_some();
+    if opened {
+        crate::linux::start_say::clock::window();
+    }
     if !place(scene, (comp, wm), handle, at, (a.w, a.h), id, opened) {
         return;
     }

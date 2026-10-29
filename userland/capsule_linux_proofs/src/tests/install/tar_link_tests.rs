@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Every typeflag a package carries survives the walk, and what is dropped is
 //! counted. `links.tar` is three archives end to end, as an apk is, written by
 //! Python's tarfile in ustar, pax and GNU form.
@@ -71,5 +70,8 @@ fn file_bodies_are_the_bytes_written() {
     let w = walk(LINKS);
     let body = |n: &[u8]| w.entries.iter().find(|e| e.name == n).map(|e| e.body);
     assert_eq!(body(b"usr/lib/libz.so.1.3"), Some(&b"\x7fELF"[..]));
-    assert!(matches!(w.entries.iter().find(|e| e.name == b"usr/lib").map(|e| &e.kind), Some(Kind::Dir)));
+    assert!(matches!(
+        w.entries.iter().find(|e| e.name == b"usr/lib").map(|e| &e.kind),
+        Some(Kind::Dir)
+    ));
 }

@@ -23,22 +23,17 @@ use super::serve::serve;
 use super::source::source;
 use super::start_guest::start;
 pub(super) use super::start_say::routine;
-use super::{file::family::choose, guest::Guest};
+use super::guest::Guest;
 
 pub fn run() -> ! {
+    super::start_say::clock::begin();
     super::heap::init();
     routine(b"[LINUX] personality up\n");
     if let Some(asked) = super::request_install::install_request() {
         super::start_install::install(asked)
     }
     if let Some(name) = super::request::uninstall_request() {
-        say(b"[LINUX] uninstalling\n");
-        let pkg = choose(&name);
-        super::file::allow_shared_writes();
-        // The exit code names the reason, which the store shows.
-        let done = super::install::uninstall(pkg);
-        say(if done.is_ok() { b"[LINUX] uninstalled\n" } else { b"[LINUX] uninstall failed\n" });
-        mk_exit(done.map_or_else(|why| why.code(), |()| 0))
+        super::start_install::uninstall(&name)
     }
     /* source() has said why when it starts nothing. */
     let Some(launch) = source() else { super::start_stop::stop("no program to run", 1) };
@@ -46,10 +41,13 @@ pub fn run() -> ! {
         say(b"[LINUX] no private directories, not starting\n");
         super::start_stop::stop("no private folders", 1)
     }
+    // The role first: a program that belongs in the network role starts
+    // again there before anything here runs for it (run_net::early).
+    super::run_net::early(&launch);
     // GTK's tools run before the program's guest exists: one made beside it
     // joins its seal family and starts it, and the seal then refuses the
     // program's note (seal_note.rs), so the run would not be kept.
-    super::gtk_prep::prepare(&launch.bytes);
+    super::start_say::clock::prep(|| super::gtk_prep::prepare(&launch.bytes));
     let pid = mk_foreign_spawn(b"linux");
     if pid < 0 {
         super::start_stop::no_guest(pid)
