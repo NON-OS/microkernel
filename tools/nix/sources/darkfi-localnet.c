@@ -24,6 +24,8 @@
 #include <unistd.h>
 
 #define SHARE "/usr/share/nonos-darkfi-localnet"
+/* Its own drk and prompt, apart from the wallet listing's usr/bin ones. */
+#define LIB "/usr/lib/nonos-darkfi-localnet"
 #define CONFIG "/root/.config/darkfi/darkfid_config.toml"
 #define RPC 8240
 #define WAIT_S 180
@@ -57,7 +59,7 @@ static int address(char *out, size_t len) {
     int p[2];
     if (pipe(p) != 0)
         return 0;
-    char *argv[] = {"/usr/bin/nonos-drk", "localnet", "--address", NULL};
+    char *argv[] = {LIB "/nonos-drk", "localnet", "--address", NULL};
     pid_t pid = start(argv, 0, p[1]);
     close(p[1]);
     FILE *f = fdopen(p[0], "r");
@@ -110,7 +112,7 @@ int main(void) {
         sleep(1);
     }
     puts("The chain is up and mining. `scan` reads its blocks into the wallet.");
-    char *prompt[] = {"/usr/bin/nonos-drk", "localnet", NULL};
+    char *prompt[] = {LIB "/nonos-drk", "localnet", NULL};
     waitpid(start(prompt, 0, -1), NULL, 0);
     kill(d, SIGTERM), kill(m, SIGTERM);
     waitpid(d, NULL, 0), waitpid(m, NULL, 0);
