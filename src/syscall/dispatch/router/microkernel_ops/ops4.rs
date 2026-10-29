@@ -23,6 +23,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
     matches!(
         nr,
         MkDataPassphrase
+            | MkDataHandover
             | MkDataFeedBegin
             | MkDataFeed
             | MkDataRemove
@@ -43,6 +44,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkPeerUnmap
             | MkForeignExec
             | MkLinuxRunNet
+            | MkServeOne
             | MkSealRead
             | MkSealNote
             | MkSealPeek

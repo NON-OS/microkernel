@@ -1,0 +1,221 @@
+[
+ {
+  "name": "serve-one-hold-admits-anyone",
+  "file": "src/services/registry/held_gate.rs",
+  "old": "        None => held_to.is_none_or(owns),",
+  "new": "        None => held_to.is_none_or(|_| true),",
+  "test": "ipc_held_tests::held_to::a_held_endpoint_admits_only_its_capsules_owner",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "serve-one-inbox-skips-the-hold",
+  "file": "src/services/registry/held_gate.rs",
+  "old": "endpoint_admits(name, held_to, &owns)",
+  "new": "endpoint_admits(name, None, &owns)",
+  "test": "ipc_held_tests::held_to::a_send_to_the_holder_by_pid_or_its_role_takes_the_hold",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "serve-one-name-loadable",
+  "file": "src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/baked_names.rs",
+  "old": "    (\"linux.serve\", \"\"),\n",
+  "new": "",
+  "test": "ipc_held_tests::serve_one::a_served_name_is_the_kernels_alone",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "serve-one-any-listing",
+  "file": "src/services/registry/serve_rule.rs",
+  "old": "n.as_bytes() == name && k == key",
+  "new": "n.as_bytes() == name",
+  "test": "ipc_held_tests::serve_one::only_the_run_role_serves_and_only_a_listed_pair",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "serve-one-any-caller",
+  "file": "src/services/registry/serve_rule.rs",
+  "old": "    if !role {",
+  "new": "    if false && !role {",
+  "test": "ipc_held_tests::serve_one::only_the_run_role_serves_and_only_a_listed_pair",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "serve-one-two-a-process",
+  "file": "src/services/registry/serve_rule.rs",
+  "old": "    !owned.any(|name| name.starts_with(SERVE_PREFIX))",
+  "new": "    owned.filter(|name| name.starts_with(SERVE_PREFIX)).count() < 2",
+  "test": "ipc_held_tests::serve_one::a_process_serves_one_endpoint",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "serve-one-key-drifts",
+  "file": "src/services/registry/serves.rs",
+  "old": "0xbb, 0xdb, 0x76, 0x6e,",
+  "new": "0xbb, 0xdb, 0x76, 0x6f,",
+  "test": "serves_key",
+  "crate": "userland/market_proofs"
+ },
+ {
+  "name": "serve-launch-any-listing",
+  "file": "src/syscall/microkernel/app_launch_rule.rs",
+  "old": "owns(capsule) && own == listing",
+  "new": "owns(capsule)",
+  "test": "ipc_held_tests::serve_launch::a_served_capsule_launches_its_own_listing_alone",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "serve-launch-never-ended",
+  "file": "src/userspace/capsule_linux/served_run_rule.rs",
+  "old": "        return s.run.take();",
+  "new": "        return None;",
+  "test": "served_run::tests::the_run_ends_with_its_launcher",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "serve-launch-queued-start-outlives",
+  "file": "src/userspace/capsule_linux/served_run_rule.rs",
+  "old": "        s.launcher = None;\n",
+  "new": "",
+  "test": "served_run::tests::a_start_still_queued_when_the_launcher_left_ends_as_it_starts",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "serve-launch-listing-drifts",
+  "file": "src/services/registry/serves.rs",
+  "old": "(\"app.simplex\", \"linux.kali.nonos-simplex-core\"),",
+  "new": "(\"app.simplex\", \"linux.kali.simplex-chat\"),",
+  "test": "serves_key",
+  "crate": "userland/market_proofs"
+ },
+ {
+  "name": "serve-launch-audit-any-capsule",
+  "file": "scripts/cap_audit_launch.py",
+  "old": "getattr(gates.get(t), \"owners\", frozenset()) & own}",
+  "new": "getattr(gates.get(t), \"owners\", frozenset())}",
+  "cmd": [
+   "python3",
+   "scripts/cap_audit.py",
+   "--selftest"
+  ]
+ },
+ {
+  "name": "foreign-wait-never-wakes-on-inbox",
+  "file": "src/process/foreign/wait/wake_rule.rs",
+  "old": "    } else if enqueued != heard {",
+  "new": "    } else if false {",
+  "test": "foreign_wake::tests::a_message_to_the_callers_own_inbox_ends_the_wait",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "foreign-wait-wakes-while-unread",
+  "file": "src/process/foreign/wait/wake_rule.rs",
+  "old": "    } else if enqueued != heard {",
+  "new": "    } else if enqueued > 0 {",
+  "test": "foreign_wake::tests::a_message_left_unread_wakes_it_once",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "foreign-wait-inbox-before-frame",
+  "file": "src/process/foreign/wait/wake_rule.rs",
+  "old": "    if trapped {\n        Look::Frame\n    } else if enqueued != heard {\n        Look::Inbox\n",
+  "new": "    if enqueued != heard {\n        Look::Inbox\n    } else if trapped {\n        Look::Frame\n",
+  "test": "foreign_wake::tests::a_trapped_guest_goes_first_and_the_inbox_is_told_next",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "serve-one-pad-unchecked",
+  "file": "userland/nonos_linux_policy/src/decode.rs",
+  "old": "if pad_head.iter().chain(pad_tail).any(|&x| x != 0) {",
+  "new": "if pad_head.iter().any(|&x| x != 0) {",
+  "test": "tests::serve_refuse_tests::a_33_byte_name_and_any_byte_past_the_pad_are_refused",
+  "crate": "userland/nonos_linux_policy"
+ },
+ {
+  "name": "serve-one-bit-and-field-apart",
+  "file": "userland/nonos_linux_policy/src/decode.rs",
+  "old": "if (mask & SERVE_ONE != 0) != serve.is_some() {",
+  "new": "if false {",
+  "test": "tests::serve_refuse_tests::the_bit_and_the_field_come_together_and_the_port_is_not_zero",
+  "crate": "userland/nonos_linux_policy"
+ },
+ {
+  "name": "serve-one-field-without-the-bit",
+  "file": "userland/nonos_linux_policy/src/encode.rs",
+  "old": "let serve = self.serve_one();",
+  "new": "let serve = self.serve;",
+  "test": "tests::serve_form_tests::a_field_the_bit_does_not_grant_is_not_written",
+  "crate": "userland/nonos_linux_policy"
+ },
+ {
+  "name": "serve-one-ready-beside-the-display",
+  "file": "userland/nonos_linux_policy/src/market.rs",
+  "old": "&& !grants(policy.mask, SERVE_ONE | WAYLAND)",
+  "new": "&& !grants(0, SERVE_ONE | WAYLAND)",
+  "test": "tests::market_tests::serve_one_is_never_ready_beside_the_display",
+  "crate": "userland/nonos_linux_policy"
+ },
+ {
+  "name": "serve-one-exec-carries-the-field",
+  "file": "userland/nonos_linux_policy/src/policy.rs",
+  "old": "false => mask & !SERVE_ONE,",
+  "new": "false => mask,",
+  "test": "tests::serve_exec_tests::an_exec_keeps_serve_one_only_into_the_same_field",
+  "crate": "userland/nonos_linux_policy"
+ },
+ {
+  "name": "serve-one-any-loopback",
+  "file": "userland/capsule_linux/src/linux/app/serve_rule.rs",
+  "old": "&& ip == SERVE_IP &&",
+  "new": "&& ip[0] == SERVE_IP[0] &&",
+  "test": "tests::serve_one::gate_tests::only_a_stream_on_exactly_127_0_0_1_at_the_fields_port_is_served",
+  "crate": "userland/capsule_linux_proofs"
+ },
+ {
+  "name": "serve-one-is-listen-lo",
+  "file": "userland/capsule_linux/src/linux/app/serve_rule.rs",
+  "old": "grants(mask, NET_LISTEN_LO) || serve_at(mask, field, stream, ip, port)",
+  "new": "grants(mask, NET_LISTEN_LO) || grants(mask, SERVE_ONE)",
+  "test": "tests::serve_one::gate_tests::serve_one_alone_admits_an_internet_socket_and_no_other_bind",
+  "crate": "userland/capsule_linux_proofs"
+ },
+ {
+  "name": "serve-one-door-queued-twice",
+  "file": "userland/capsule_linux/src/linux/net/sock/door.rs",
+  "old": "Ok(Link::Done) => return Ok(end),",
+  "new": "Ok(Link::Done) => {\n                self.link(end, at);\n                return Ok(end);\n            }",
+  "test": "tests::serve_one::door_tests::open_queues_one_end_the_guest_accepts_and_the_listener_polls_readable",
+  "crate": "userland/capsule_linux_proofs"
+ },
+ {
+  "name": "serve-one-unbounded-extend",
+  "file": "userland/capsule_linux/src/linux/net/sock/put.rs",
+  "old": "let n = room.min(bytes.len());",
+  "new": "let n = bytes.len();",
+  "test": "tests::serve_one::room_tests::write_takes_only_the_room_and_a_guest_write_to_a_full_door_end_is_eagain",
+  "crate": "userland/capsule_linux_proofs"
+ },
+ {
+  "name": "serve-one-close-tells-no-peer",
+  "file": "userland/capsule_linux/src/linux/net/sock/door.rs",
+  "old": "            s.rx.clear();\n        }\n        self.free(end, false);",
+  "new": "            s.rx.clear();\n        }\n        self.list[end as usize] = None;",
+  "test": "tests::serve_one::close_tests::close_gives_the_guest_end_of_file_and_answers_a_held_read",
+  "crate": "userland/capsule_linux_proofs"
+ },
+ {
+  "name": "serve-one-len-trusted",
+  "file": "userland/nonos_serve_wire/src/frame.rs",
+  "old": "if len as usize > MAX_BODY || body.len() != len as usize {",
+  "new": "if len as usize > MAX_BODY {",
+  "test": "tests::len_must_name_exactly_the_bytes_after_the_header",
+  "crate": "userland/nonos_serve_wire"
+ },
+ {
+  "name": "serve-one-conn-by-id-alone",
+  "file": "userland/capsule_linux/src/linux/net/serve_one/server.rs",
+  "old": "c.id == h.conn && c.pid == from",
+  "new": "c.id == h.conn",
+  "test": "tests::serve_one::wire_tests::one_connection_keyed_by_its_id_and_its_opener_holds_one_read",
+  "crate": "userland/capsule_linux_proofs"
+ }
+]

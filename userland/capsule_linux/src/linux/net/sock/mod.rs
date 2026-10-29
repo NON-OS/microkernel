@@ -24,12 +24,14 @@
 //! stream to anywhere else is an entry backed by a stream routed/ carries,
 //! or by a net.anon stream once the Anyone network has opened one.
 
+mod accepted;
 mod adopt;
 mod anon_rx;
 mod backend;
 mod bind;
 mod cell;
 mod deliver;
+mod door;
 mod free;
 mod gram;
 mod gram_dest;
@@ -59,7 +61,7 @@ mod unlisten;
 
 pub use anon_rx::Got;
 pub use backend::{Backend, Close, End, Via};
-pub use cell::with;
+pub use cell::{bits, with};
 pub use gram_dest::Dest;
 pub use holders::Holder;
 pub use kinds::Link;
@@ -67,5 +69,5 @@ pub use name::{Peer, UName};
 pub use opts::Opts;
 pub use opts_more::More;
 pub use progress::{progress, set_progress};
-pub use ready::bits;
+pub use table::Socks;
 pub use types::{Addr, Domain, Proto, Sock};

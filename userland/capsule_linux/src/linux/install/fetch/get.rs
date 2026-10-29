@@ -16,15 +16,13 @@
 
 //! One package, fetched and authenticated.
 
-use nonos_libc::mk_debug;
-
+use alloc::vec::Vec;
 use nonos_inflate::Refused;
 
 use super::super::auth::{verified, Verified};
 use super::super::index::Pkg;
-use super::super::timing;
-use super::super::Why;
-use alloc::vec::Vec;
+use super::super::{timing, Why};
+use super::told::{say, told, Check};
 
 /// The package's files, if `apk`, its fetched bytes, authenticate. `pin` is
 /// the market's hash of the package the user chose; what it depends on is
@@ -32,12 +30,17 @@ use alloc::vec::Vec;
 pub(crate) fn fetch(pkg: &Pkg, apk: Vec<u8>, pin: Option<&[u8; 32]>) -> Result<Verified, Why> {
     nonos_libc::heap_reset_peak();
     heap("fetched", &pkg.name);
+    let got = !apk.is_empty();
     if pin.is_some_and(|want| blake3::hash(&apk).as_bytes() != want) {
         say(b"[LINUX] package is not the one the market listed\n");
+        told(pkg, got, Check::Market);
         return Err(Why::PACKAGE);
     }
-    let files =
-        timing::verifying(|| pkg.checksum.ok_or(Refused::Bad).and_then(|s| verified(&apk, &s)));
+    let (h, need) = (nonos_libc::heap_stats(), super::room::needs(pkg.installed));
+    let room = (need <= h.size.saturating_sub(h.used)).then_some(()).ok_or(Refused::NoMemory(need));
+    let files = timing::verifying(|| {
+        room.and(pkg.checksum.ok_or(Refused::Bad)).and_then(|s| verified(&apk, &s))
+    });
     drop(apk);
     heap("unpacked", &pkg.name);
     files.map_err(|why| match why {
@@ -47,10 +50,12 @@ pub(crate) fn fetch(pkg: &Pkg, apk: Vec<u8>, pin: Option<&[u8; 32]>) -> Result<V
                 "[LINUX] install failed: not enough memory to unpack {name} ({n} bytes)\n"
             )
             .as_bytes());
+            told(pkg, got, Check::Memory);
             Why::UNPACK_MEMORY
         }
         Refused::Bad => {
             say(b"[LINUX] package did not download, or does not match its index record\n");
+            told(pkg, got, Check::Index);
             Why::PACKAGE
         }
     })
@@ -67,8 +72,4 @@ fn heap(stage: &str, name: &str) {
         h.size >> 10
     );
     say(line.as_bytes());
-}
-
-fn say(line: &[u8]) {
-    let _ = mk_debug(line.as_ptr(), line.len());
 }

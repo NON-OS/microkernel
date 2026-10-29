@@ -8,12 +8,13 @@ Where NONOS keeps secrets, what protects each one, what is lost at power off, an
 - Key records in the keyring live in RAM and are gone at reboot. The wallet's sealed records are the exception, and they open only on this machine.
 - On an installed disk, the [data volume](../overview/glossary-claim-epoch.md#data-volume) is encrypted per sector. On a live boot it lives in RAM under a key made for that boot.
 - The capsule store on the NONOS disk, the [package store](../overview/glossary-linux-personality.md#package-store), is not encrypted. A file persisted there is readable by anyone who holds the disk, unless the [capsule](../overview/glossary-boot-root-record.md#capsule) that wrote it sealed it first.
-- An orderly shutdown or reboot wipes process memory, kernel stacks, the kernel's key vault and its heap, but not the data volume key, the token MAC key or a live boot's in-memory volume. In 0.9.2 only the installer's restart runs it. A panic, a forced power-off or a power cut wipes nothing.
+- An orderly shutdown or reboot wipes process memory, kernel stacks, the kernel's key vault and its heap, but not the data volume key, the token MAC key or a live boot's in-memory volume. The desktop's Power Off and the installers' restart run it, through the power capsule (see [Wiped at shutdown and reboot](#wiped-at-shutdown-and-reboot)). A panic wipes the kernel heap and powers off, but not process memory (`src/security/zerostate/panic_wipe.rs`). A forced power-off or a power cut wipes nothing.
 
 ```mermaid
 flowchart LR
     T["TPM"] --> MK["machine key"]
-    MK --> DV["data volume key"]
+    T --> AP["approved keys"]
+    AP --> DV["data volume key, wrapped"]
     MK --> VR["vault root"]
     MK --> W["saved Wi-Fi list"]
     VR --> R["sealed records"]
@@ -22,7 +23,7 @@ flowchart LR
     RNG --> SK["Shield store key"]
 ```
 
-The TPM produces the [machine key](../overview/glossary-linux-personality.md#machine-key), from which the data volume key, the vault root and the key for the saved Wi-Fi list come. The vault root in turn keys the keyring's sealed records. The RNG produces the keys that live for one boot only: the live boot volume key, the token MAC key and the Shield store key.
+The TPM produces the [machine key](../overview/glossary-linux-personality.md#machine-key), from which the vault root and the key for the saved Wi-Fi list come, and, under the release's approval, the keys the data volume's own random key is wrapped under. The vault root in turn keys the keyring's sealed records. The RNG produces the keys that live for one boot only: the live boot volume key, the token MAC key and the Shield store key.
 
 ## The machine key
 
@@ -39,7 +40,9 @@ The kernel does not tie a label to a capsule. Any capsule holding `Crypto` that 
 
 | Label | Asked by | Used for |
 |---|---|---|
-| `blockfs.data.v1`, kernel only | the kernel, as `KEY_LABEL` (`src/fs/blockfs_volume/open_machine.rs:37-38`) | the data volume key |
+| `blockfs.data.v1`, kernel only | the kernel, as `V1_LABEL` (`src/fs/blockfs_volume/key_pick.rs:33-42`) | the key of a data volume made before key headers, or on a boot with no approval (way 1) |
+| `blockfs.data.v2`, kernel only, under the device secret's policy rather than the machine key's | the kernel, as `V2_LABEL` (`src/fs/blockfs_volume/key_pick.rs:34`, `src/fs/blockfs_volume/key_pick.rs:58-61`) | the key way 3 wraps the data volume key under |
+| `blockfs.data.handover.v1`, kernel only, under that policy without PCR 4 | the kernel, as `LABEL` (`src/fs/blockfs_volume/handover/sector.rs:28-30`, `src/fs/blockfs_volume/handover/sector.rs:41-44`) | the key a handover seals the data volume key under, for one boot |
 | `nonos.vault.root.v1` | the keyring, as `ROOT_LABEL` (`userland/nonos_vault/src/subkey.rs:32-36`) | the vault root for sealed records |
 | `wifi/saved-networks` | the Wi-Fi client, as `LABEL` (`userland/nonos_wifi_client/src/saved/key.rs:15-18`) | the saved network list at `/nonos/wifi/saved` |
 | `install.tpm-probe` | the installer, as `PROBE_LABEL` (`userland/capsule_install/src/install/source/tpm.rs:25`) | checking that a TPM answers; the key is wiped unread |
@@ -92,9 +95,17 @@ On an installed disk the data volume lies past the [disk plan](../overview/gloss
 
 Every 512-byte sector is sealed on its own. `seal` draws a random 12-byte nonce and encrypts 484 bytes with ChaCha20-Poly1305 under associated data made of `AAD_PREFIX` and the sector's LBA (`src/fs/cryptoblock/seal.rs:22-48`). A sector moved to another LBA, or altered, fails its tag, and `open_sealed` writes nothing for it (`src/fs/cryptoblock/sector_open.rs:41-73`).
 
-The key comes from the TPM. `open_machine_volume` derives it under `KEY_LABEL` with `derive_for_kernel` (`src/fs/blockfs_volume/open_machine.rs:42-82`). If the TPM gives no key the volume stays closed: `open_machine_volume` returns `VolumeError::MachineKey` and passes `[DATA] no machine key (...); the data volume stays closed` to the kernel's structured log (`src/fs/blockfs_volume/open_machine.rs:75-78`), which nothing installs in this release, so the line is dropped. The installer checks this first and says when the installed data volume would stay closed (`text` in `userland/capsule_install/src/install/source/tpm.rs:50-58`).
+The volume's key is random, made when the volume is first formatted, and the key header, the plain sector after the disk plan, says how it is reached (`src/fs/blockfs_volume/key_header.rs:17-29`). On a boot whose kernel the release approved, `fresh` wraps it with ChaCha20-Poly1305 under `approved_key` for `blockfs.data.v2`, which is the device secret's policy: the approved PCR 9, then PCR 0, 4 and 7 as they are on this machine (way 3; `src/fs/blockfs_volume/key_pick.rs:43-61`, `src/security/tpm/device_secret/approved_key.rs:37-42`). A kernel update the release signed computes the same wrapping key. A firmware update, a change to Secure Boot settings or another bootloader does not. A boot with no approval formats way 1 instead, its key derived under `blockfs.data.v1` and PCR 0, 4, 7 and 9, and says that volume will not outlive an update; a volume made before key headers opens the same way (`src/fs/blockfs_volume/key_pick.rs:36-56`).
 
-Because the key is bound to PCR 0, 4, 7 and 9, a firmware update, a change to Secure Boot settings, a different bootloader or a different kernel gives a different key. `mount_or_format` then refuses to format over the volume and returns `VolumeError::Unopenable` (`src/fs/blockfs_volume/mount_or_format.rs:54-77`). Its line `[DATA] the volume holds data this key cannot open; not formatting over it` goes to the same structured log and is dropped. What does print is the answer a program gets when it asks for the volume: EIO, with `[DATA] refused with EIO: Unopenable` on the [serial console](../overview/glossary-rollback-index.md#serial-console), or `MachineKey(...)` in place of `Unopenable` when the TPM gave no key (`errno` in `src/syscall/microkernel/data/errno.rs:30-53`). This release has no step that moves a TPM-keyed volume to a new key.
+A way-3 volume that this boot's key does not open, and that no handover opens, is refused, never formatted over: `opened` returns `VolumeError::Unopenable` (`src/fs/blockfs_volume/handover/moved.rs:34-59`). Its line goes to the structured log and is dropped. What does print is the answer a program gets when it asks for the volume: EIO, with `[DATA] refused with EIO: Unopenable` on the [serial console](../overview/glossary-rollback-index.md#serial-console) (`errno` in `src/syscall/microkernel/data/errno.rs:30-53`).
+
+### The handover
+
+A new bootloader changes PCR 4, so an update that brings one would leave a way-3 volume closed. Before such an update the installer, on the person's word, calls `MkDataHandover` (`sys_data_handover`, `src/syscall/microkernel/data/handover.rs:17-48`). `prepare_handover` seals the open volume's key once more under `handover_key` for `blockfs.data.handover.v1`: the same approved PCR 9, then PCR 0 and 7 only (`src/fs/blockfs_volume/handover/prepare.rs:35-72`, `src/security/tpm/device_secret/approved_key.rs:43-48`, `src/security/tpm/device_secret/consts.rs:43-46`). A policy over other PCRs makes another primary key, so the two keys never coincide. Only a boot whose own key opens way 3 to the key it holds prepares (`opens_to`, `src/fs/blockfs_volume/key_pick.rs:62-75`). The record lies in the key header's sector at bytes 128 to 196, sealed with the header's bytes 0 to 56 and its magic as the associated data (`src/fs/blockfs_volume/handover/place.rs:17-26`, `src/fs/blockfs_volume/handover/seal.rs:17-61`).
+
+The next boot opens the volume under its own key when it can, and clears the record (`clear`, `src/fs/blockfs_volume/handover/sector.rs:55-62`). When it cannot, the record opens it, and `moved_to` wraps the key again under this boot's own key and writes the header twice, each write read back: first with the record kept, then without it, so the disk holds a header some boot opens at every step (`src/fs/blockfs_volume/handover/rewrap.rs:28-46`; `moved`, `src/fs/blockfs_volume/handover/layout.rs:27-36`). Either way the record lasts one boot. `[DATA] the handover opened the volume; it now opens under this bootloader` and `[DATA] a handover this boot did not need is cleared` go to the serial console.
+
+What it costs: from the prepare to that boot, a kernel the release approved opens the volume on this machine's firmware and Secure Boot state, whatever bootloader measured it. With Secure Boot on, PCR 7 still says the firmware's keys allowed the bootloader. With it off, a bootloader that extends PCR 9 with an approved kernel's measurement and then starts another kernel would open the volume, and a copy of the disk taken in that window keeps the record. Prepare right before the update, not days ahead.
 
 The kernel can also key the volume with a passphrase. `sys_data_passphrase` takes 1 to `PASSPHRASE_MAX` bytes, 256, and at least `CREATE_MIN`, 8, to create one, and wipes its copy afterwards (`src/syscall/microkernel/data/passphrase.rs:31-60`). The passphrase is stretched with Argon2id at `RECOMMENDED` settings: 64 MiB of memory, 3 passes and a parallelism of 4 (`src/crypto/util/argon2/params.rs:27-30`). No capsule in this release calls the libc wrapper `mk_data_volume_passphrase` (`userland/libc/src/data.rs:50-56`), and the setup wizard says there is no passphrase-keyed volume (`WHY` in `userland/capsule_setup_wizard/src/render/screens/mode.rs:21-31`).
 

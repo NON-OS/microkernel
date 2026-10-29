@@ -21,6 +21,8 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
+use nonos_disk::Keep;
+
 use super::contents::Contents;
 use crate::device::{BlockDevice, Identity};
 use crate::driver::Driver;
@@ -44,6 +46,9 @@ pub struct Disk {
     pub identity: Option<Identity>,
     /// Why this row is not a target, when it is not.
     pub fault: Option<String>,
+    /// For a target that holds NONOS, what an update would keep of it, read
+    /// off its table, plan and key header (`nonos_disk::read_installed`).
+    pub keep: Option<Keep>,
 }
 
 /// One look at the machine's disks.
@@ -53,23 +58,4 @@ pub struct Survey {
     /// and SATA disks sit behind a RAID controller no NONOS driver speaks
     /// to, and the firmware's storage mode is what brings them back.
     pub raid: bool,
-}
-
-impl Survey {
-    /// The rows that can be installed to.
-    pub fn targets(&self) -> usize {
-        self.disks.iter().filter(|d| d.device.is_some()).count()
-    }
-
-    /// Whether to tell the person to change the firmware's storage mode: only
-    /// with the RAID controller there and no disk, since a disk found means
-    /// the firmware already lets this system reach one.
-    pub fn raid_hides_disks(&self) -> bool {
-        self.raid && self.targets() == 0
-    }
-
-    /// Whether a later look may find more: nothing to install to, or a driver missing.
-    pub fn incomplete(&self) -> bool {
-        self.targets() == 0 || self.disks.iter().any(Disk::missing)
-    }
 }

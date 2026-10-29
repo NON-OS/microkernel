@@ -14,13 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What an install will erase and write, one row at a time, in the words
-//! both installers show before a disk is erased. Read off the plan itself,
-//! so the screen says what the writer will do.
+//! What an install will erase and write, or an update keep and write, one
+//! row at a time, in the words the installers show before a disk is
+//! written. Read off the plan itself, so the screen says what the writer
+//! will do.
 
 mod carried;
+mod keep_rows;
 mod rows;
+mod shared;
 mod size;
 
+pub use keep_rows::describe_keep;
 pub use rows::{describe, Row};
 pub use size::size_text;

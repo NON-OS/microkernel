@@ -58,6 +58,14 @@ class SourceRecipe(unittest.TestCase):
             with self.assertRaises(ValueError, msg=bad):
                 checked(bad, ROOT)
 
+    def test_it_may_list_arguments_by_the_alpine_rule(self):
+        got = checked(dict(SOURCE, args=["--chat-server-port=5225", "--yes-migrate"]), ROOT)
+        self.assertEqual(got["args"][:8], b"NLXARG01")
+        self.assertEqual(checked(SOURCE, ROOT)["args"], b"")
+        for bad in ("--yes-migrate", ["-p", "5225"], ["--x=a b"], ["--x", "--x"], [1]):
+            with self.assertRaises(ValueError, msg=bad):
+                checked(dict(SOURCE, args=bad), ROOT)
+
     def test_a_reserved_namespace_or_a_name_the_device_refuses_is_refused(self):
         for bad in ("nonos-drk", "qwen-x", "kali.x", "blackarch.x", "drk_cli", "drk+", "-drk", "a" * 59):
             with self.assertRaises(ValueError, msg=bad):

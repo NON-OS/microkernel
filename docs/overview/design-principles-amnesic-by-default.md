@@ -45,8 +45,20 @@ that refuses the broadcast, the wipe covers what the running core can reach
 outside the heap are not wiped, the data volume key in `VOLUME` among them
 (`src/fs/blockfs_volume/state.rs:21-26`). A live stick's in-memory volume is not
 wiped either: `Ram` keeps its sealed sectors in frames outside the heap
-(`src/fs/cryptoblock/ram.rs:41-47`). In 0.9.2 the desktop cannot shut down or
-restart, so the installer's restart is the one path that runs the wipe
-(`mk_admin_reboot` in `userland/capsule_install/src/install/event/after.rs:38`).
-A kernel panic halts every CPU without the wipe (`panic` in
-`src/boot/panic/handler.rs:41-64`), and cutting the power skips it too.
+(`src/fs/cryptoblock/ram.rs:41-47`).
+
+The desktop can power off through the wipe. Power Off in the desktop's menu and
+the Power key ask "Power off and wipe memory?", and a confirmed answer goes to
+`power.off`, which the power capsule serves by asking the kernel for
+`AdminShutdown` (`requested` in `userland/capsule_power/src/off/mod.rs`). The
+installers restart through the same capsule with `power_restart`
+(`on_after_key` in `userland/capsule_install/src/install/event/after.rs`), and
+it lets the shell and the two installers alone reboot (`op_allowed` in
+`userland/capsule_power/src/off/rule.rs`). A booted check of Power Off found a
+secret in RAM 8 times before and 0 times after
+(`docs/security/privacy-evidence/2026-10-25/zs-6d87d9aff/`).
+
+A kernel panic stops the other CPUs, wipes the kernel heap and powers off, but
+does not reach process memory (`panic_wipe_and_off` in
+`src/security/zerostate/panic_wipe.rs`). Cutting the power, or holding the
+power button down, wipes nothing.

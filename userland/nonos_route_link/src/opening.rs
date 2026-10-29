@@ -24,7 +24,7 @@
 
 use alloc::vec::Vec;
 
-use crate::bounds::{NOT_YET_GAP_MS, OPEN_MS};
+use crate::bounds::{NOT_YET_GAP_MS, OPEN_MS, REASK_GAP_MS};
 use crate::carrier::Carrier;
 use crate::refusal::{Proxy, BAD_HOST, REP_NOT_YET};
 use crate::slice::Slice;
@@ -38,7 +38,7 @@ enum Stage {
     Method,
     Connect,
     Reply,
-    /* A network that has not connected yet is asked again from here on. */
+    /* Asked again from a reset once this time has come. */
     Again(i64),
 }
 
@@ -50,12 +50,7 @@ pub struct Opening<C: Carrier> {
 }
 
 impl<C: Carrier> Opening<C> {
-    /*
-     * Nothing is sent until the first step. The resets this stream sends,
-     * on each try and as it is dropped, wait at most `slice_ms`: none of
-     * them needs the proxy's answer, and the proxy takes what follows a
-     * reset after it whether or not anyone waited.
-     */
+    /* Nothing is sent until the first step. Its resets wait at most `slice_ms`. */
     pub fn begin(
         carrier: C,
         proxy: Proxy,
@@ -76,9 +71,13 @@ impl<C: Carrier> Opening<C> {
         let now = self.tunnel.carrier.now_ms();
         match self.stage {
             Stage::Again(at) if now < at => Slice::Waiting,
+            /* The greeting waits for a reset that reached the proxy (`Tunnel::forget`). */
             Stage::Reset | Stage::Again(_) => {
-                self.tunnel.restart();
-                self.stage = Stage::Greet;
+                self.stage = match self.tunnel.restart() {
+                    true => Stage::Greet,
+                    false if now < self.until => Stage::Again(now.saturating_add(REASK_GAP_MS)),
+                    false => return Slice::Failed(proxy.silent()),
+                };
                 Slice::Waiting
             }
             Stage::Greet => self.send(&GREETING, Stage::Method, slice_ms),

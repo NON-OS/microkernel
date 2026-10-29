@@ -15,17 +15,29 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The supervisor's side of the loop: block until one of my guests trapped,
-//! then take its frame.
+//! then take its frame; or until a message came to my own inbox, and say so.
+
+mod deliver;
+mod inbox;
+mod wake_rule;
 
 use core::mem::size_of;
 
 use super::frame::ForeignFrame;
-use super::trap_claim;
 use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_TIMEDOUT};
-use crate::usercopy::{validate_user_write, write_user_value};
+use crate::usercopy::validate_user_write;
+use deliver::{deliver_or_repost, next_delivery};
+pub(super) use inbox::forget;
+use wake_rule::Look;
+
+/// What the wait returns, with nothing written, when a message came to the
+/// caller's own inbox: neither a frame's size nor an errno.
+const INBOX: i64 = 0;
 
 /// `MkForeignWait`: wait for a guest of the calling process to issue a syscall
-/// this kernel refuses, and copy its frame out.
+/// this kernel refuses, and copy its frame out; its size. A message put in the
+/// caller's own inbox ends the wait too, once, with 0, so a personality that
+/// serves IPC is woken at once instead of at its timeout (wake_rule.rs).
 pub fn sys_foreign_wait(out_ptr: u64, out_len: u64, timeout_ms: u64) -> i64 {
     let Some(caller) = crate::process::current_pid() else {
         return ERRNO_INVAL;
@@ -39,8 +51,8 @@ pub fn sys_foreign_wait(out_ptr: u64, out_len: u64, timeout_ms: u64) -> i64 {
     }
     let start = crate::time::timestamp_millis();
     loop {
-        if let Some(frame) = next_delivery(caller) {
-            return deliver_or_repost(caller, out_ptr, frame, size);
+        if let Some(rc) = look(caller, out_ptr, size) {
+            return rc;
         }
         let waited = crate::time::timestamp_millis().saturating_sub(start);
         if timeout_ms > 0 && waited >= timeout_ms {
@@ -48,40 +60,20 @@ pub fn sys_foreign_wait(out_ptr: u64, out_len: u64, timeout_ms: u64) -> i64 {
         }
         let deadline = if timeout_ms == 0 { u64::MAX } else { start.saturating_add(timeout_ms) };
         let token = crate::sched::wake_token(caller);
-        if let Some(frame) = next_delivery(caller) {
-            return deliver_or_repost(caller, out_ptr, frame, size);
+        if let Some(rc) = look(caller, out_ptr, size) {
+            return rc;
         }
         crate::sched::sleep_until_unless_woken(caller, deadline, token);
         crate::sched::yield_now();
     }
 }
 
-/// Hand one claimed frame over, or give it back when the supervisor's buffer
-/// will not take it.
-// A claimed guest call if one is waiting, else a one-shot death notice built
-// into a frame the supervisor recognises by its nr.
-fn next_delivery(caller: u32) -> Option<ForeignFrame> {
-    if let Some(frame) = trap_claim::claim_next(caller) {
-        return Some(frame);
+/// A frame handed over, or INBOX, or None to sleep on.
+fn look(caller: u32, out_ptr: u64, size: usize) -> Option<i64> {
+    let frame = next_delivery(caller);
+    match inbox::look(caller, frame.is_some()) {
+        Look::Frame => frame.map(|frame| deliver_or_repost(caller, out_ptr, frame, size)),
+        Look::Inbox => Some(INBOX),
+        Look::Sleep => None,
     }
-    let (pid, code) = super::notice::take(caller)?;
-    Some(ForeignFrame::new(pid, super::frame::NR_DIED, [code as u64, 0, 0, 0, 0, 0], 0))
-}
-
-// A death notice is not in the parked table, so a failed write cannot be
-// recovered by unclaiming it; re-post it so the death is not lost to a hang.
-fn deliver_or_repost(caller: u32, out_ptr: u64, frame: ForeignFrame, size: usize) -> i64 {
-    let rc = deliver(out_ptr, frame, size);
-    if rc < 0 && frame.nr == super::frame::NR_DIED {
-        super::notice::post(caller, frame.pid, frame.arg0 as i32);
-    }
-    rc
-}
-
-fn deliver(out_ptr: u64, frame: ForeignFrame, size: usize) -> i64 {
-    if write_user_value(out_ptr, &frame).is_err() {
-        trap_claim::unclaim(frame.pid);
-        return ERRNO_FAULT;
-    }
-    size as i64
 }

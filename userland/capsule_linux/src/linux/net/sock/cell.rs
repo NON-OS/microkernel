@@ -37,3 +37,8 @@ static TABLE: One = One(RefCell::new(Socks::new()));
 pub fn with<R>(f: impl FnOnce(&mut Socks) -> R) -> R {
     f(&mut TABLE.0.borrow_mut())
 }
+
+/// The poll bits for `id` in the table (ready.rs).
+pub fn bits(id: u32) -> Option<u16> {
+    with(|t| t.bits(id))
+}

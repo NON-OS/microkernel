@@ -43,8 +43,8 @@ mod opts_more;
 #[path = "../../../../../capsule_linux/src/linux/net/sock/shut_anon.rs"]
 mod shut_anon;
 /*
- * The port search and the waiting calls' progress live in files not mounted,
- * and the table is one static the capsule builds with `new`, never Default.
+ * The waiting calls' progress lives in a file not mounted, and the table is
+ * one static the capsule builds with `new`, never Default.
  */
 #[allow(dead_code, clippy::new_without_default)]
 #[path = "../../../../../capsule_linux/src/linux/net/sock/table.rs"]
@@ -53,6 +53,8 @@ mod table;
 mod types;
 #[path = "../../../../../capsule_linux/src/linux/net/sock/unlisten.rs"]
 mod unlisten;
+/* The family's own server path, which SERVE_ONE's door end goes through. */
+include!("door_files.rs");
 
 pub use anon_rx::Got;
 pub use backend::{Anon, Backend, Close, End, Via};

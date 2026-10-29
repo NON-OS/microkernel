@@ -33,8 +33,8 @@ fn a_virtual_pointer_or_keyboard_is_reached_by_no_capsule() {
         &["compositor", "input_router", "wm", "app.terminal", "net.core", "driver.usb_hid0"];
     for &ep in VIRTUAL_INPUT {
         assert_eq!(callers_of(ep), Some(&[][..]), "{ep} names a caller");
-        assert!(!endpoint_admits(ep, owner(everyone)), "{ep} took a capsule");
-        assert!(!inbox_admits([(ep, IPC)], u64::MAX, owner(everyone)), "{ep} by pid");
+        assert!(!endpoint_admits(ep, None, owner(everyone)), "{ep} took a capsule");
+        assert!(!inbox_admits([(ep, IPC, None)], u64::MAX, owner(everyone)), "{ep} by pid");
     }
 }
 
@@ -42,10 +42,10 @@ fn a_virtual_pointer_or_keyboard_is_reached_by_no_capsule() {
 #[test]
 fn a_virtual_display_takes_the_compositor_alone() {
     let compositor: &'static [&'static str] = &["compositor"];
-    assert!(endpoint_admits("driver.vmware_svga0", owner(compositor)));
+    assert!(endpoint_admits("driver.vmware_svga0", None, owner(compositor)));
     for other in ["app.terminal", "wm", "input_router", "net.core", "driver.virtio_gpu0"] {
         let one: &'static [&'static str] = Box::leak(Box::new([other]));
-        assert!(!endpoint_admits("driver.vmware_svga0", owner(one)), "took {other}");
+        assert!(!endpoint_admits("driver.vmware_svga0", None, owner(one)), "took {other}");
     }
 }
 
@@ -54,9 +54,9 @@ fn a_virtual_display_takes_the_compositor_alone() {
 #[test]
 fn a_virtual_sound_device_takes_the_audio_server_alone() {
     let server: &'static [&'static str] = &["audio.server"];
-    assert!(endpoint_admits("driver.ac97_0", owner(server)));
+    assert!(endpoint_admits("driver.ac97_0", None, owner(server)));
     for other in ["app.audio_player", "app.terminal", "wm", "compositor", "driver.hda0"] {
         let one: &'static [&'static str] = Box::leak(Box::new([other]));
-        assert!(!endpoint_admits("driver.ac97_0", owner(one)), "took {other}");
+        assert!(!endpoint_admits("driver.ac97_0", None, owner(one)), "took {other}");
     }
 }

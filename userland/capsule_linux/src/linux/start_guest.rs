@@ -48,7 +48,7 @@ pub(super) fn start(guest: &mut Guest, launch: Launch) -> Result<(), &'static [u
     super::terminal_hand::to_terminal(guest)?;
     super::seal_note::seal_app(&guest.app.app_id);
     super::run_net::settle(guest.app.mask)?;
-    super::app::grant(guest.app.mask);
+    super::app::grant(&guest.app);
     let (listing, program) = (&guest.app.policy.listing_id, &guest.app.policy.program_blake3);
     let key = super::app::home_key(listing, program);
     super::start_home::open(guest, key)?;
@@ -56,7 +56,7 @@ pub(super) fn start(guest: &mut Guest, launch: Launch) -> Result<(), &'static [u
     guest.map(STACK_TOP - STACK_SIZE, STACK_SIZE, true, false);
     let mut argv = alloc::vec![launch.argv0.clone().unwrap_or_else(|| path.to_vec())];
     argv.extend(super::app::start_args(&launch, &guest.app.policy)?);
-    let env = super::env::with_pwd(&guest.cwd);
+    let env = super::env::with_pwd(&guest.cwd, super::gtk_prep::mesa());
     let rsp = image::build(guest, STACK_TOP, &image, interp_base, &argv, &env)
         .ok_or(&b"[LINUX] stack refused\n"[..])?;
     match mk_foreign_start(guest.pid, entry, rsp) {

@@ -37,6 +37,8 @@ pub(crate) const APPS: &[(&str, &str)] = &[
     ("app.prove.job", ""),
     ("app.settings", "systems.nonos.app.settings"),
     ("app.setup_wizard", "systems.nonos.app.setup_wizard"),
+    // The SimpleX window, which a Linux run's served endpoint is held to
+    // (services/registry/serves.rs).
     ("app.simplex", "systems.nonos.app.simplex"),
     ("app.snake", "systems.nonos.app.snake"),
     ("app.store", "systems.nonos.app.store"),

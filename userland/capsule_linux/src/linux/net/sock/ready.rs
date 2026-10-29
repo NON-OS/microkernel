@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What a family socket can do now, in poll's bits, as Linux's tcp_poll,
-//! udp_poll and unix_poll report it.
+//! udp_poll and unix_poll report it, read off the table alone (cell.rs asks
+//! it of the one table).
 
-use super::cell::with;
+use super::table::Socks;
 use super::types::{Proto, Sock};
 
 const POLLIN: u16 = 0x001;
@@ -26,15 +27,15 @@ const POLLERR: u16 = 0x008;
 const POLLHUP: u16 = 0x010;
 const POLLRDHUP: u16 = 0x2000;
 
-/// The bits for `id`, or None when routed/ or net.anon holds its state.
-pub fn bits(id: u32) -> Option<u16> {
-    with(|t| {
-        let s = t.get(id).filter(|s| s.svc.is_none())?;
+impl Socks {
+    /// The bits for `id`, or None when routed/ or net.anon holds its state.
+    pub fn bits(&self, id: u32) -> Option<u16> {
+        let s = self.get(id).filter(|s| s.svc.is_none())?;
         /* A stream is writable while its peer has room, or once it is gone. */
         let room =
-            s.peer.and_then(|p| t.get(p)).is_none_or(|p| p.rx.len() < p.opts.rcvbuf as usize);
+            s.peer.and_then(|p| self.get(p)).is_none_or(|p| p.rx.len() < p.opts.rcvbuf as usize);
         Some(of(s, room))
-    })
+    }
 }
 
 fn of(s: &Sock, room: bool) -> u16 {

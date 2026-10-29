@@ -40,6 +40,7 @@ pub(super) fn keep(
     if !recorded || (chosen && !record(name, files)) {
         if recorded {
             super::super::package_record::settle(name, &Manifest::default());
+            super::super::package_record::kept(name, &Manifest::default());
         }
         if !kept.links.is_empty() {
             super::super::place_links::unrecord(&kept.links);

@@ -45,6 +45,7 @@ mod seen;
 mod seen_line;
 mod select;
 mod settle;
+mod settle_said;
 pub mod store_copy;
 mod types;
 mod volume_rule;

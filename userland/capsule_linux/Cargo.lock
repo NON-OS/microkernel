@@ -334,6 +334,7 @@ dependencies = [
  "nonos_linux_policy",
  "nonos_openpgp",
  "nonos_route_link",
+ "nonos_serve_wire",
  "nonos_tls",
  "nonos_toolkit",
  "nonos_userland_libc",
@@ -401,6 +402,10 @@ dependencies = [
  "nonos_socket",
  "nonos_userland_libc",
 ]
+
+[[package]]
+name = "nonos_serve_wire"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_socket"

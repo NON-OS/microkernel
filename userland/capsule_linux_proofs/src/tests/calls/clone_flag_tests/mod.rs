@@ -16,7 +16,9 @@
 
 //! clone refuses what copy_process refuses, with its errno; makes every
 //! thread the C and Go runtimes ask for; and answers ENOSYS, never a thread
-//! that shares what it asked to keep, for the rest.
+//! that shares what it asked to keep, for the rest. A process clone with
+//! CLONE_VM is made only as vfork's, with or without a pidfd.
 
 mod made;
+mod process;
 mod refused;

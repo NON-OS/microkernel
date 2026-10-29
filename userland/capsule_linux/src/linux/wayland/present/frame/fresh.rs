@@ -21,7 +21,6 @@ use super::super::super::reshape::Shape;
 use super::super::super::scene::Scene;
 use super::super::super::scene_pixels::Pixels;
 use super::super::source::Source;
-use super::super::surface::say;
 use super::fill::{fill, window_bytes};
 use super::geometry::Around;
 
@@ -35,7 +34,7 @@ pub fn fresh(
 ) -> Option<(Pixels, Shape)> {
     let bytes = window_bytes(a, src);
     let Some(mut px) = Pixels::with_room(bytes) else {
-        say(alloc::format!("[WAYLAND] no room for a {bytes} byte frame, not shown\n"));
+        super::super::no_room::no_heap(bytes);
         return None;
     };
     // New pixels hold no frame yet.

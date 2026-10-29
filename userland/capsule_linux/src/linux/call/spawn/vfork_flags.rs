@@ -18,6 +18,7 @@
 
 pub const CSIGNAL: u64 = 0xff;
 pub const CLONE_VM: u64 = 0x100;
+pub const CLONE_PIDFD: u64 = 0x1000;
 pub const CLONE_VFORK: u64 = 0x4000;
 pub const CLONE_PARENT_SETTID: u64 = 0x10_0000;
 pub const CLONE_CHILD_CLEARTID: u64 = 0x20_0000;
@@ -28,6 +29,7 @@ pub const CLONE_CHILD_SETTID: u64 = 0x100_0000;
 /// are ones Linux itself ignores.
 pub const SERVED: u64 = CSIGNAL
     | CLONE_VM
+    | CLONE_PIDFD
     | CLONE_VFORK
     | CLONE_PARENT_SETTID
     | CLONE_CHILD_CLEARTID

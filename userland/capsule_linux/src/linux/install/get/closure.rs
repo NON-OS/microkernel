@@ -17,13 +17,15 @@
 //! An install's packages, resolved from the index before any is fetched,
 //! in the order the install has always taken them: the listed package
 //! first, then each need as it is popped, a name met again skipped, a need
-//! named only by a provider after the named ones, then install_if's. Known
+//! named only by a provider after the named ones, and by one an earlier
+//! install placed where there is one (index_installed.rs), then install_if's. A
+//! market release's extras are wanted after the listed package's needs, each
+//! resolved as a need is (market/tail.rs bounds and spells them). Known
 //! whole before the first byte moves, several can be fetched at once
 //! (get/window.rs) and still be placed in this order. Pure, so the host
 //! proofs hold it.
 
 use alloc::string::String;
-use alloc::vec;
 use alloc::vec::Vec;
 
 use super::super::index::{Index, Pkg};
@@ -35,8 +37,17 @@ pub enum Closed {
     TooLarge,
 }
 
-pub fn closure<'a>(index: &'a Index, name: &str, max: usize) -> Result<Vec<&'a Pkg>, Closed> {
-    let (mut wanted, mut later) = (vec![String::from(name)], Vec::new());
+pub fn closure<'a>(
+    index: &'a Index,
+    name: &str,
+    extras: &[&str],
+    installed: &[String],
+    max: usize,
+) -> Result<Vec<&'a Pkg>, Closed> {
+    // Popped from the end: the listed package first, the extras once its needs are met.
+    let mut wanted: Vec<String> =
+        extras.iter().rev().chain([&name]).map(|n| String::from(*n)).collect();
+    let mut later = Vec::new();
     let (mut done, mut names): (Vec<&Pkg>, Vec<String>) = (Vec::new(), Vec::new());
     // Named needs first, then ones named by what provides them (index_find.rs),
     // then what install_if says comes with the closure (install_if.rs).
@@ -45,7 +56,7 @@ pub fn closure<'a>(index: &'a Index, name: &str, max: usize) -> Result<Vec<&'a P
         .or_else(|| Some((super::super::install_if::next(index, &names)?, true)))
     {
         // The listed package itself, by its name; its needs by name or provider.
-        let pkg = index.resolve(&next, exact).ok_or(Closed::NotProvided)?;
+        let pkg = index.resolve_installed(&next, exact, installed).ok_or(Closed::NotProvided)?;
         if names.contains(&pkg.name) {
             continue;
         }

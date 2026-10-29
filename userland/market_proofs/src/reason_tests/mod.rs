@@ -18,6 +18,7 @@
 //! live boot offers no Retry, a volume that failed does.
 
 mod codes;
+mod detail;
 mod removal;
 mod retry;
 mod volume;

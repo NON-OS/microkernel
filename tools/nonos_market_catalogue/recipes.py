@@ -13,11 +13,10 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""One recipe, one app (recipes_file.py reads the file): the Alpine package,
-the licence the index must still give it, the services its box grants,
-optionally a dests file (one the plan item a line), listed args (listed_args.py),
-a measured set and a logo (logos.py), and the store's text. Every field is
-checked before any is used."""
+"""One recipe, one app (recipes_file.py reads the file): the Alpine package, the licence the index
+must still give it, the services its box grants, optionally a dests file (one the plan item a line),
+listed args (listed_args.py) and extra packages (listed_with.py), a measured set and a logo
+(logos.py), and the store's text. Every field is checked before any is used."""
 
 import re
 from pathlib import Path
@@ -27,6 +26,7 @@ from nonos_linux_pack.policy import market_ready, mask_of
 
 from .licences import redistributable
 from .listed_args import listed
+from .listed_with import listed as with_listed
 from .logos import allowed
 from .names import package
 
@@ -37,7 +37,7 @@ UNMEASURED = b"\xff" * 64 + b"\x00"
 # linux.blackarch.* as pacman, qwen- and nonos- are the image's own tiers and tools.
 NAMESPACES = ("kali.", "blackarch.", "qwen-", "nonos-")
 KEYS = frozenset(("package", "licence", "mask", "dests", "calls", "name", "text",
-                  "index_licence", "licence_source", "logo", "program", "args"))
+                  "index_licence", "licence_source", "logo", "program", "args", "with"))
 # `program`: the one program of a package of many its listing sells (install/market/choose.rs).
 PROGRAM = re.compile(r"usr/bin/[a-z0-9][a-z0-9._+-]{0,63}")
 
@@ -51,9 +51,9 @@ def calls_of(item: dict) -> bytes:
 
 
 def checked(item: dict, root: Path) -> dict:
-    """The recipe, with its mask, dests list, args block and calls decoded, or ValueError."""
-    if not isinstance(item, dict) or not all(isinstance(v, str) for k, v in item.items() if k != "args"):
-        raise ValueError("a recipe is an object of strings, and a list of them for args")
+    """The recipe, with its mask, dests list, args and with blocks and calls decoded, or ValueError."""
+    if not isinstance(item, dict) or not all(isinstance(v, str) for k, v in item.items() if k not in ("args", "with")):
+        raise ValueError("a recipe is an object of strings, and a list of them for args and with")
     extra = set(item) - KEYS
     if extra or not {"package", "licence", "mask", "name", "text"} <= set(item):
         raise ValueError(f"{item.get('package', '?')}: keys {sorted(extra) or 'missing'}")
@@ -92,5 +92,5 @@ def checked(item: dict, root: Path) -> dict:
     # market_ready also refuses FILES_USER, which is reserved.
     if calls[-1] & 0xFE or not market_ready(calls, mask):
         raise ValueError(f"{item['package']}: its set or services are not market ready")
-    return dict(item, mask=mask, dests=dests, calls=calls, args=listed(item))
+    return dict(item, mask=mask, dests=dests, calls=calls, args=listed(item), with_block=with_listed(item))
 

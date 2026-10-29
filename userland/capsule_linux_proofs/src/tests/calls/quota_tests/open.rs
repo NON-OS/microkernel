@@ -34,14 +34,14 @@ fn statfs_counts_the_names_left() {
 /// the same, far inside the capsule's heap.
 #[test]
 fn copies_held_open_together_stop_at_the_quota() {
-    const MAX_FILE: u64 = 8 << 20;
+    const MAX_FILE: u64 = crate::calls::loadavg::declared::HOME;
     let mut files = vec![0u64; 64];
     let mut me = 0;
     'open: while me < files.len() {
         while files[me] < MAX_FILE {
             let total: u64 = files.iter().sum();
             let want = files[me] + (1 << 20);
-            if copies_allow(total, files[me], want).is_err() {
+            if copies_allow(total, files[me], want, PRIVATE).is_err() {
                 break 'open;
             }
             files[me] = want;
@@ -50,8 +50,8 @@ fn copies_held_open_together_stop_at_the_quota() {
     }
     let total: u64 = files.iter().sum();
     assert_eq!(total, PRIVATE, "the copies stop at the quota, not at the heap");
-    assert_eq!(copies_allow(total, files[0], files[0]), Ok(()), "a rewrite in place");
-    assert_eq!(copies_allow(total, files[0], 0), Ok(()), "a truncate gives back");
-    assert_eq!(copies_allow(total, files[0], files[0] + 1), Err(ENOSPC));
-    assert_eq!(copies_allow(0, 0, u64::MAX), Err(ENOSPC));
+    assert_eq!(copies_allow(total, files[0], files[0], PRIVATE), Ok(()), "a rewrite in place");
+    assert_eq!(copies_allow(total, files[0], 0, PRIVATE), Ok(()), "a truncate gives back");
+    assert_eq!(copies_allow(total, files[0], files[0] + 1, PRIVATE), Err(ENOSPC));
+    assert_eq!(copies_allow(0, 0, u64::MAX, PRIVATE), Err(ENOSPC));
 }
