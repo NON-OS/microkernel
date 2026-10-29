@@ -602,6 +602,18 @@
    "sha256": "97c7ab13e6d4c265f2f2b44423410cc657983487a20e668b104ce41ea85103fd"
   },
   {
+   "key": "publisher simplex_ui ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/simplex_ui_publisher_ed25519.pub",
+   "sha256": "03cb1fb91e9809b088489d5b598cf694f7849c86be771460a4dde8db50382e00"
+  },
+  {
+   "key": "publisher simplex_ui mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/simplex_ui_publisher_mldsa65.pub",
+   "sha256": "37da5c5eca7b1b44ac382ae08bd06ef55ea8b532e672f6294e03b0a07b287a7e"
+  },
+  {
    "key": "publisher wallet_nonos ed25519",
    "kind": "ed25519",
    "public": "nonos-data/trust/keys/wallet_nonos_publisher_ed25519.pub",
@@ -1526,6 +1538,18 @@
    "sha256": "50c3bdcf53e2a78918cc4e0a3fc62f0852c8ca59fe40d5562bdd9382039ee03f"
   },
   {
+   "key": "publisher driver_bt_usb ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/driver_bt_usb_publisher_ed25519.pub",
+   "sha256": "2da4c5adee4625bc19fdac73154d109e63058e14b033f511b4b6e5dde6f36167"
+  },
+  {
+   "key": "publisher driver_bt_usb mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/driver_bt_usb_publisher_mldsa65.pub",
+   "sha256": "1c6af32ab25866e8881614ba1df33e1de92b2e9ec968aec56ed48bede48398ae"
+  },
+  {
    "key": "publisher driver_smbus ed25519",
    "kind": "ed25519",
    "public": "nonos-data/trust/keys/driver_smbus_publisher_ed25519.pub",
@@ -1752,6 +1776,18 @@
    "kind": "mldsa65",
    "public": "nonos-data/trust/keys/power_publisher_mldsa65.pub",
    "sha256": "bd64819a16fb54b36b839fa4ad8f89fe7cedcafc47e062a44b6a0e4f293bba02"
+  },
+  {
+   "key": "publisher acpi ed25519",
+   "kind": "ed25519",
+   "public": "nonos-data/trust/keys/acpi_publisher_ed25519.pub",
+   "sha256": "5ea9fe3a958b16673ef7e8ebb14d0f30be79505574afb4f67e6ebaa1b91fa9aa"
+  },
+  {
+   "key": "publisher acpi mldsa65",
+   "kind": "mldsa65",
+   "public": "nonos-data/trust/keys/acpi_publisher_mldsa65.pub",
+   "sha256": "4d3427e60b746bd17743083de957126d37701daa42af4e68640bdf70f055cb3f"
   },
   {
    "key": "publisher linux userland ed25519",
