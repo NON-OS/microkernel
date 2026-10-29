@@ -17,6 +17,7 @@
 mod cap;
 mod display_mode;
 mod frames;
+mod linux_window;
 mod present;
 mod receiver;
 mod register;

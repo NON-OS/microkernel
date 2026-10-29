@@ -22,7 +22,11 @@
 //! then read that disk's store, found its setup marker and came up as the
 //! installed system. When the loader named its partition and read the store
 //! from that same disk, the store this boot must use is the loader's copy,
-//! so no other disk is kept.
+//! so no other disk is kept. Nor is one when the loader came through USB,
+//! whatever it named or read: a stick's boot is never the installed disk's,
+//! and the loader takes no other disk's store for one (store_copy.rs). That
+//! case kept the NVMe disk on an HP laptop whose firmware's paths hid the
+//! stick from the loader's same-disk test.
 
 /// The end of the pass for the disk it found.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -36,12 +40,19 @@ pub(super) enum Other {
 }
 
 /// `named`: the loader named the partition it was read from. `own_copy`:
-/// it read its copy of the store from that disk. `refused`: a disk could not
-/// be asked this pass. `waited`: the wait for such a disk has run out.
-pub(super) fn other_disk(named: bool, own_copy: bool, refused: bool, waited: bool) -> Other {
+/// it read its copy of the store from that disk. `usb`: it came through
+/// USB. `refused`: a disk could not be asked this pass. `waited`: the wait
+/// for such a disk has run out.
+pub(super) fn other_disk(
+    named: bool,
+    own_copy: bool,
+    usb: bool,
+    refused: bool,
+    waited: bool,
+) -> Other {
     if refused && !waited {
         Other::Wait
-    } else if named && own_copy {
+    } else if usb || (named && own_copy) {
         Other::Leave
     } else {
         Other::Keep

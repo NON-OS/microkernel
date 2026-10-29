@@ -31,6 +31,8 @@ pub mod ntp_decide;
 pub mod sdk_net;
 
 #[cfg(test)]
+mod crowded;
+#[cfg(test)]
 mod fake;
 
 #[cfg(test)]
@@ -46,11 +48,17 @@ mod frame_tests;
 #[cfg(test)]
 mod install_tests;
 #[cfg(test)]
+mod late_reset_tests;
+#[cfg(test)]
 mod ntp_tests;
 #[cfg(test)]
 mod patience_tests;
 #[cfg(test)]
 mod pick_tests;
+#[cfg(test)]
+mod reset_bound_tests;
+#[cfg(test)]
+mod reset_room_tests;
 #[cfg(test)]
 mod sdk_way_tests;
 #[cfg(test)]

@@ -48,3 +48,9 @@ pub fn signalfd_read(guest: &mut Guest, tid: u32, fd: u64, buf: u64, len: u64) -
     guest.signals.sigwaits.push(SigWait { tid, set, info: buf, due: None, records });
     Answer::Park
 }
+
+/// Whether `fd` is a signalfd, whose read the family answers, since it may
+/// park its thread until a signal comes.
+pub fn is_signalfd(guest: &Guest, fd: u64) -> bool {
+    guest.fds.get(fd as usize).is_some_and(|f| f.kind == Kind::Signal)
+}

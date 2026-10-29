@@ -45,8 +45,8 @@ fn install_all(name: &str, pin: &[u8; 32], extras: &[&str]) -> Result<(), super:
         return Err(super::Why::INDEX);
     };
     timing::packages();
-    let max = super::limit::max_packages();
-    let pkgs = closure(&index, name, extras, max).map_err(|why| match why {
+    let (max, have) = (super::limit::max_packages(), super::package_record::installed());
+    let pkgs = closure(&index, name, extras, &have, max).map_err(|why| match why {
         Closed::NotProvided => refused("nothing provides it", super::Why::NOT_PROVIDED),
         Closed::TooLarge => refused(
             &alloc::format!("refused: closure passes {max} packages"),

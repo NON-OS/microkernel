@@ -60,6 +60,11 @@ pub fn prepare(program: &[u8]) {
     mime::build();
 }
 
+/// Whether the run's store has the NØNOS-built Mesa (env.rs).
+pub fn mesa() -> bool {
+    found(super::env::MESA)
+}
+
 fn found(path: &[u8]) -> bool {
     store_found(&key(path)).unwrap_or(false)
 }

@@ -30,7 +30,8 @@ pub struct BootMedia {
     pub table: u8,
     /* 1: the MBR disk signature, 2: the GPT partition GUID, 0: none. */
     pub signature_type: u8,
-    pub reserved: u16,
+    /* BOOT_MEDIA_USB when the loader was read through USB; no other bit set. */
+    pub flags: u16,
     pub start_lba: u64,
     pub size_lba: u64,
     /* The GUID as stored on disk, or the MBR signature in the first four. */
@@ -39,5 +40,8 @@ pub struct BootMedia {
 
 pub const MODULE_KIND_BOOT_MEDIA: u32 = 3;
 pub const BOOT_MEDIA_LEN: usize = 40;
+/// A USB node on the loader's volume path: a stick boot, which never takes
+/// another disk's store or keeps another disk (block_device/other_disk.rs).
+pub const BOOT_MEDIA_USB: u16 = 1;
 
 const _: () = assert!(core::mem::size_of::<BootMedia>() == BOOT_MEDIA_LEN);

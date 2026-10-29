@@ -15,7 +15,6 @@
   "micro": {"V": "2.0.13-r6", "C": "Q1UsMUYZZpcJDY2QFUlpzHUohdAyM=", "S": "5016347", "B": "a3ab8ed97ce6adf486bea876d1c26a5f1bf34999592e7f9feeca88663de05123", "G": "a0f307496aecc1afea193d5968f1d266124e40470ba9545dd0e23db6e870bb4a", "R": "d15dc03375f11b205c0b5abf0d7dc3a19a5cbc91fa2ffa9c8dff931be9ffbfb4"},
   "minisign": {"V": "0.11-r1", "C": "Q1AQ0YX5JOLIiUEbnZ0dQuROT2y6U=", "S": "13389", "B": "0f6ff7c67abd8c49a812cc39549fecb8f81540d2d4df100a961842692fd32c7e", "G": "", "R": ""},
   "monero": {"V": "0.18.3.3-r1", "C": "Q1v/CGFq2eWNeXGhxrXPB7wOjLxv0=", "S": "24698520", "B": "74b6ff56897abccfa48ac0221f2c1a92dd6bb5ba23b4ff35f82f01bf7db78ff4", "G": "", "R": ""},
-  "mousepad": {"V": "0.6.2-r0", "C": "Q1oD5pjvseyMAJMtq0uK52+WNLqe8=", "S": "171192", "B": "737cda0e792e0824858add56f0e9e09222ff55acad85cac9ffb0e67268fcc6a1", "G": "", "R": ""},
   "mpv": {"V": "0.38.0-r0", "C": "Q1OJl1IotJA+D/jp63qu947Hwk2J0=", "S": "1106767", "B": "f1ed1a68d23815f91519338c7aeee92bd39f9028f29ebe217e8d6239ad706bb6", "G": "", "R": ""},
   "ncdu": {"V": "1.20-r0", "C": "Q1Gv0LAoqj+PHs0khOyHveedYVud4=", "S": "34596", "B": "6b2acdef7f057b723ca613ec31aac0b11a1bbf20a17e2085c89988580c555f24", "G": "", "R": ""},
   "nnn": {"V": "4.9-r0", "C": "Q18erg5ybXnvWq6caIG05shJMgEYQ=", "S": "61507", "B": "099d13c03f5e3ad2a2a604dd4f0354acd931f6673b182c03de816ace2d7fe19e", "G": "614233843d2e9fa9a7e9eac0680b64985485a14566c3ccadc00b1644e31c8417", "R": "8141cb123cc5a25fc316e2aefad34ea114767994a4ea5df1cc8e8fa409a67d37"},

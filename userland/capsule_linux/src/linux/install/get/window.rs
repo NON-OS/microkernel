@@ -70,6 +70,6 @@ fn start(path: &str, m: (&str, u16, &str), kept: &mut Vec<Conn>) -> Option<(Conn
             return Some((conn, true));
         }
     }
-    let mut conn = Conn::open(m.0, m.1).ok()?;
+    let mut conn = Conn::open_or_again(m.0, m.1).ok()?;
     conn.send(req.as_bytes()).ok().map(|()| (conn, false))
 }

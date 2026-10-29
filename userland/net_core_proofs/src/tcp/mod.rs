@@ -16,4 +16,5 @@
 
 mod link;
 mod liveness_tests;
+mod orphan_tests;
 mod pair;

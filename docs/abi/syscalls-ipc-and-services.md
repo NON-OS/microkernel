@@ -35,7 +35,8 @@ the ports.
 | `MPAL` | `0x4C41504D` | `MkPidAlive` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | 1 when a pid names a live process, else 0. |
 | `MWAT` | `0x5441574D` | `MkWait` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:35` | Wait, up to a timeout, for a child to exit, and return its exit code. |
 | `MKIL` | `0x4C494B4D` | `MkKill` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:36` | Send SIGINT, SIGTERM or SIGKILL to a child, a supervised guest, or, with ProcessControl or Admin, any process. |
-| `MGPD` | `0x4450474D` | `MkGetPid` | CoreExec | `can_getpid` `src/syscall/contract/cap_table/mk_ipc.rs:24` | The caller's pid. |
+| `MGPD` | `0x4450474D` | `MkGetPid` | valid token | `is_valid` `src/syscall/contract/cap_table/mk_ipc.rs:28` | The caller's pid. |
+| `MTGR` | `0x5247544D` | `MkThreadGroup` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:52` | The process a pid's thread belongs to, so a service can tell its own workers' messages; a thread of no other process answers its own pid. ENOENT for a pid that names no process. |
 | `MKAR` | `0x52414B4D` | `MkArgs` | CoreExec | `can_getpid` `src/syscall/contract/cap_table/mk_ipc.rs:25` | Copy the caller's arguments, NUL separated. |
 | `MTSP` | `0x5053544D` | `MkThreadSpawn` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:26` | Start a thread in the caller's address space; returns its id. |
 | `MSTB` | `0x4254534D` | `MkSetTls` | valid token | `is_valid` `src/syscall/contract/cap_table/mk_ipc.rs:31` | Set the caller's thread pointer base. |
