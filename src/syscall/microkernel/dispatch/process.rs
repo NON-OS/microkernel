@@ -126,7 +126,7 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_DEV_ROOT_LOCAL => sys_dev_root_local(),
         SYS_LOCAL_CONSENT => sys_local_consent(a.a0, a.a1),
         SYS_LOCAL_RESTORE => sys_local_restore(a.a0),
-        SYS_APP_LAUNCH => sys_app_launch(a.a0, a.a1),
+        SYS_APP_LAUNCH => sys_app_launch(a.a0, a.a1, a.a2, a.a3),
         SYS_APP_INSTALL_STATUS => sys_app_install_status(a.a0, a.a1, a.a2, a.a3, a.a4),
         SYS_APP_UNINSTALL => sys_app_uninstall(a.a0, a.a1),
         SYS_DEV_ROOT_REQUEST => sys_dev_root_request(a.a0),
