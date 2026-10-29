@@ -23,7 +23,7 @@ fn refuses_wrong_magic_and_version() {
     b[7] = b'2';
     assert_eq!(decode(&b), Err(PolicyError::Magic));
     let mut b = policy().encode();
-    b[8] = 2;
+    b[8] = 3;
     assert_eq!(decode(&b), Err(PolicyError::Version));
     let mut b = policy().encode();
     b[9] = 1;
@@ -41,7 +41,7 @@ fn refuses_every_reserved_byte() {
 
 #[test]
 fn refuses_unnamed_mask_bits_and_calls_past_the_last_bucket() {
-    for bit in 9..64 {
+    for bit in 10..64 {
         let mut b = policy().encode();
         b[48..56].copy_from_slice(&(1u64 << bit).to_le_bytes());
         assert_eq!(decode(&b), Err(PolicyError::UnknownMask), "bit {bit}");

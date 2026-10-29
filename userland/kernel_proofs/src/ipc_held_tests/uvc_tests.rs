@@ -51,7 +51,7 @@ fn the_camera_driver_asks_for_no_device_and_no_camera_bit() {
 #[test]
 fn the_camera_driver_reaches_every_host_and_its_gate_is_its_own() {
     for host in USB_HOSTS {
-        assert!(endpoint_admits(host, owner(&["driver.uvc0"])), "{host}");
+        assert!(endpoint_admits(host, None, owner(&["driver.uvc0"])), "{host}");
     }
     assert_eq!(callers_of("driver.uvc0"), None, "the bit is the gate");
 }
