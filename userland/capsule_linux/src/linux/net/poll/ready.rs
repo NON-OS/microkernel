@@ -35,6 +35,7 @@ pub fn ready(guest: &Guest, fd: u64) -> u16 {
             Some(handle) => socket_bits(handle),
             None => POLLNVAL,
         },
+        Some(Kind::Unix) => crate::linux::unix::bits(guest, fd),
         Some(Kind::Timer) => crate::linux::file::timer_bits(guest, fd),
         Some(Kind::Pipe) => crate::linux::call::pipe_bits(guest, fd),
         Some(Kind::Event) => crate::linux::file::event_bits(guest, fd),

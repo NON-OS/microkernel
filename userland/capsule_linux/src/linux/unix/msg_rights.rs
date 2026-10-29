@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The descriptors in a control block, read out of the guest and walked by
 //! `cmsg`, which the host proofs hold.
 
