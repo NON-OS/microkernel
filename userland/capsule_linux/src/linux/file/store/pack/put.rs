@@ -18,39 +18,29 @@
 //! This process's own hold is let go first, so it is never the one in the
 //! way, and after, so the next read loads what is there now.
 
-use nonos_app_skeleton::clients::vfs;
 use nonos_libc::mk_getpid;
 
 use super::paths::pack_path;
-use super::shelf::{Held, Shelf, Unlinked};
+use super::shelf::Held;
+use super::store_shelf::Store;
 use super::swap::{swap, take};
+use super::swap_head::in_place;
 use super::table::forget;
 use crate::linux::file::family::Family;
 
-/// The store as vfs answers this process.
-struct Store(u32);
-
-impl Shelf for Store {
-    fn write(&mut self, at: &[u8], bytes: &[u8]) -> bool {
-        vfs::write_file(self.0, at, bytes).is_ok()
-    }
-
-    fn unlink(&mut self, at: &[u8]) -> Unlinked {
-        match vfs::unlink(self.0, at) {
-            Ok(()) | Err("not found") => Unlinked::Gone,
-            Err("busy") => Unlinked::Busy,
-            Err(_) => Unlinked::Failed,
-        }
-    }
-
-    fn rename(&mut self, from: &[u8], to: &[u8]) -> bool {
-        vfs::rename(self.0, from, to).is_ok()
-    }
-}
-
-pub fn put(family: Family, package: &str, pack: &[u8], trailer: &[u8]) -> Result<(), Held> {
+/// `pack` in as `family`'s pack of `package`, `head` its header and index
+/// (swap_head.rs: a held pack naming the same files is in place already).
+pub fn put(
+    family: Family,
+    package: &str,
+    pack: &[u8],
+    head: usize,
+    trailer: &[u8],
+) -> Result<(), Held> {
     forget();
-    let put = swap(&mut Store(mk_getpid()), &pack_path(family, package), pack, trailer);
+    let (mut store, at) = (Store(mk_getpid()), pack_path(family, package));
+    let put = swap(&mut store, &at, pack, trailer);
+    let put = put.or_else(|why| in_place(&mut store, &at, pack, head, why));
     forget();
     put
 }
