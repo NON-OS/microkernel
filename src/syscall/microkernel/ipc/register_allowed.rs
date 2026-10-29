@@ -17,7 +17,8 @@
 //! Whether a capsule may claim this name on this port.
 
 use crate::services::registry::{
-    caller_has_register_right, is_reserved_service, is_runtime_registrable, lookup_service,
+    caller_has_register_right, is_reserved_service, is_runtime_registrable, is_serve_port,
+    lookup_service,
 };
 use crate::syscall::microkernel::errnos::ERRNO_PERM;
 
@@ -25,8 +26,9 @@ pub(super) fn allowed(name: &str, port: u32, pid: u32) -> Result<(), i64> {
     if name.starts_with("proc.") || name.starts_with("endpoint.") {
         return Err(ERRNO_PERM);
     }
-    // Core service names and ports belong to the kernel spawn path.
-    if is_reserved_service(name, port) {
+    // Core service names and ports belong to the kernel spawn path, and a
+    // Linux run's served port to MkServeOne.
+    if is_reserved_service(name, port) || is_serve_port(port) {
         return Err(ERRNO_PERM);
     }
     if lookup_service(name).is_some_and(|e| e.pid == pid && e.port == port) {

@@ -20,12 +20,13 @@ import re
 from pathlib import Path
 
 LOAD = "src/kernel_core/process_spawn/capsule_spawn/from_vfs/load"
+SERVES = "src/services/registry"
 LITERAL = r'\bname: "([^"]+)"|const SERVICE_NAME: &str = "([^"]+)"|pub const JOB: &str = "([^"]+)"'
 
 
 def spawn_names(root: Path) -> set:
     """Every name a baked spawn site declares: its spec, its Linux roles,
-    its tool table."""
+    its tool table; and the names the kernel serves for a Linux run."""
     names = set()
     for p in (root / "src").rglob("*.rs"):
         rel, text = str(p.relative_to(root)), p.read_text(errors="ignore")
@@ -37,7 +38,19 @@ def spawn_names(root: Path) -> set:
         names |= {next(g for g in m.groups() if g) for m in re.finditer(LITERAL, text)}
         if tools:
             names |= set(re.findall(r'b?"(tool\.[a-z0-9._-]+)"', text))
-    return names
+    return names | served_names(root)
+
+
+def served_names(root: Path) -> set:
+    """The root of the endpoints the kernel registers for a Linux run that
+    asks (MkServeOne), and the capsules it holds them to: no spawn site
+    declares either, and no load may take either (serve_rule.rs, serves.rs)."""
+    rule, table = root / SERVES / "serve_rule.rs", root / SERVES / "serves.rs"
+    if not (rule.exists() and table.exists()):
+        return set()
+    names = set(re.findall(r'^\s*\("([a-z0-9._-]+)", \w+\),', table.read_text(), re.M))
+    root_name = re.search(r'SERVE_PREFIX: &str = "([^"]+)\.";', rule.read_text())
+    return names | ({root_name.group(1)} if root_name else set())
 
 
 def table(root: Path) -> dict:
