@@ -45,6 +45,15 @@ fn a_run_without_mesa_is_told_nothing_of_gl_drivers() {
 }
 
 #[test]
+fn a_run_without_mesa_hears_nothing_of_the_driver_it_has_not_got() {
+    let quiet = [&b"EGL_LOG_LEVEL=fatal"[..], b"QT_LOGGING_RULES=qt.qpa.wayland.warning=false"];
+    let (without, with) = (with_pwd(b"/root", false), with_pwd(b"/root", true));
+    for want in quiet {
+        assert_eq!((count(&without, want), count(&with, want)), (1, 0), "{want:?}");
+    }
+}
+
+#[test]
 fn no_guest_is_pointed_at_a_gpu_driver() {
     for env in [with_pwd(b"/", false), with_pwd(b"/", true)] {
         let named = |key: &[u8]| env.iter().any(|v| v.starts_with(key));
