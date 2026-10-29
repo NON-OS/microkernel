@@ -30,7 +30,7 @@ log > boot-log.txt
 
 Not tested in this release.
 
-The log is there only on images built with capsule serial output, such as `qemu` and a development image. A `standard`, `hardened` or `airgapped` image keeps nothing, and `log` prints `log: no line matches`.
+The log is there on `standard`, `qemu` and development images: the kernel keeps the first and the last 64 KiB of what it writes to its console in memory, for `log` to read. On a `standard` image those are the kernel's own lines only, since no capsule writes to the console there; a `qemu` or development image has the capsules' lines too. A `hardened` or `airgapped` image keeps nothing, and `log` prints `log: no line matches`.
 
 Look through your files in Files and the Editor. On an installed system a file reaches the disk in one of two ways: a program keeps it in the store, for example with `keep` and the file's path in the Terminal, or it is imported into the data volume, as Qwen models are. Files does not show the data volume: its `/data` folder belongs to the file store. Files that were never kept lived in memory and are gone.
 
@@ -70,7 +70,7 @@ This erases the old store and data volume. If the stick itself is refused, the s
   - Storage opened the same on every boot mode: `open_machine_volume` in `src/fs/blockfs_volume/open_machine.rs:42-79`.
 - What you can do in Recovery
   - The newest 200 lines, words and `>`: `NEWEST` in `userland/capsule_terminal/src/command/builtin/log.rs:17-31`.
-  - The log kept only with capsule serial output: `keep` in `src/sys/serial/tail.rs:51-52`, and `log: no line matches` from `run` in `userland/capsule_terminal/src/command/builtin/log.rs:33-50`.
+  - The log kept with `nonos-log-tail` or capsule serial output: `keep` in `src/sys/serial/tail.rs:51-52`. `standard` drops only `capsule-serial-debug`, and `hardened` and `airgapped` drop `nonos-log-tail` as well: `tailFeatures` and each profile's `drop` in `tools/nix/config.nix:81-118`. `log: no line matches` from `run` in `userland/capsule_terminal/src/command/builtin/log.rs:33-50`.
   - Keeping a file in the store: `persist` in `userland/capsule_terminal/src/command/builtin/nox/keep.rs:17-30`.
 - What Recovery cannot do
   - Files in memory and in the store only: `capsule_vfs` in `userland/capsule_vfs/README.md:5-9`.

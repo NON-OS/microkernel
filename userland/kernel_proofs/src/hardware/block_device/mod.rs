@@ -33,6 +33,8 @@ pub use error::BlockDeviceError;
 #[cfg(test)]
 mod other_disk_tests;
 #[cfg(test)]
+mod other_disk_usb_tests;
+#[cfg(test)]
 mod pass_tests;
 
 // Who the block clients serve: a driver, the store's holder, or the data
