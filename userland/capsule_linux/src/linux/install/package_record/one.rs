@@ -44,7 +44,9 @@ pub(in super::super) fn write(name: &str, m: &Manifest) -> bool {
     super::super::record::program::make_records(pid);
     let _ = vfs::mkdir(pid, &dir());
     let kept = vfs::write_file(pid, &at(name), &encode(m)).is_ok();
-    if !kept {
+    if kept {
+        super::held::kept(name, m);
+    } else {
         let line = b"[LINUX] what it wrote could not be recorded, so it is taken out again\n";
         let _ = mk_debug(line.as_ptr(), line.len());
     }
