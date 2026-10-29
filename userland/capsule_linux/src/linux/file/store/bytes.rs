@@ -35,7 +35,9 @@ pub fn read(at: &Key, max: u32) -> Result<Vec<u8>, Fail> {
         Err(e) => return packed(at).and_then(|v| super::pack::read(v, max)).unwrap_or(Err(e)),
     };
     let len = u32::try_from(size).unwrap_or(u32::MAX).min(max);
-    VfsStream::open(mk_getpid(), at.as_bytes())?.read_window(0, len)
+    let bytes = VfsStream::open(mk_getpid(), at.as_bytes())?.read_window(0, len)?;
+    crate::linux::start_say::clock::read(bytes.len());
+    Ok(bytes)
 }
 
 /// The BLAKE3 of the file at `at`, read a window at a time.
