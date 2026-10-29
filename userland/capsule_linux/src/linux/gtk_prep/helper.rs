@@ -42,6 +42,7 @@ pub(super) fn helper(path: &[u8], args: &[&[u8]]) {
     let mut guest = Guest::new(pid);
     guest.links = alloc::rc::Rc::new(Links::load());
     let launch = Launch { args: args.iter().map(|a| a.to_vec()).collect(), ..launch };
+    crate::linux::start_say::clock::helper();
     HELPING.store(true, Ordering::Relaxed);
     let started = super::super::start_guest::start(&mut guest, launch);
     HELPING.store(false, Ordering::Relaxed);

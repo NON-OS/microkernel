@@ -15,7 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The kind of disk the loader was read from, told by its device path's
-//! nodes, the real source included by #[path].
+//! nodes, and whether a disk's GPT lists the loader's partition, the real
+//! sources included by #[path].
 
 #[path = "../../src/loader/file/device_kind.rs"]
 pub mod device_kind;
+#[path = "../../src/loader/file/gpt_entry.rs"]
+pub mod gpt_entry;

@@ -58,7 +58,7 @@ fn one(entry: &Entry, covered: &[u8], rsa: &Rsa) -> bool {
         return false;
     };
     match hashid {
-        0 => rsa(&key, &entry.body, hashid, &sha256(covered)),
-        _ => rsa(&key, &entry.body, hashid, &sha1(covered)),
+        0 => rsa(&key, entry.body, hashid, &sha256(covered)),
+        _ => rsa(&key, entry.body, hashid, &sha1(covered)),
     }
 }

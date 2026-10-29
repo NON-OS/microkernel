@@ -28,6 +28,7 @@ use super::wire::{malformed, walk, Msg};
 /// where they lie and the served cut once (`wire::walk`); no handler writes
 /// the queue, so it is held apart from the guest while they run.
 pub fn serve(guest: &mut Guest) {
+    let t0 = super::commit::launch_clock::now();
     let mut queue = core::mem::take(&mut guest.display.to_server);
     let mut ended = guest.objects.failed();
     let served = match guest.display.backlogged() || ended {
@@ -39,6 +40,7 @@ pub fn serve(guest: &mut Guest) {
         }),
     };
     queue.drain(..served);
+    super::commit::launch_clock::served(t0, served);
     // After a fatal error nothing more from this client is served, ever.
     if ended {
         queue.clear();
