@@ -18,6 +18,8 @@
 //! volume is keyed and before a sector reaches the disk.
 
 const OPEN: &str = include_str!("../../../src/fs/blockfs_volume/open_machine.rs");
+/* Where open_machine.rs keys the disk's volume since the one-boot handover. */
+const INTO: &str = include_str!("../../../src/fs/blockfs_volume/open_into.rs");
 pub(crate) const SWITCH: &str = include_str!("../../../src/fs/blockfs_volume/keep_switch.rs");
 const SESSION: &str = include_str!("../../../src/fs/blockfs_volume/session.rs");
 const DEVICE: &str = include_str!("../../../src/fs/cryptoblock/device.rs");
@@ -42,8 +44,11 @@ pub(crate) fn before(src: &str, first: &str, then: &str) {
 
 #[test]
 fn the_disk_s_volume_is_keyed_only_after_the_rule_said_disk() {
-    before(OPEN, "keep_switch::in_memory(plan.is_live())", "set_window(plan.volume_base");
-    before(OPEN, "keep_switch::in_memory(plan.is_live())", "derive_for_kernel(KEY_LABEL)");
+    before(OPEN, "keep_switch::in_memory(plan.is_live())", "open_into::open_into(");
+    assert!(flat(INTO).contains("set_window(plan.volume_base"), "open_into no longer keys the volume");
+    // The key is picked (key_pick.rs) only inside open_into, which the line
+    // above places after the rule.
+    assert!(flat(INTO).contains("usesuper::super::key_pick::{fresh,legacy};"), "open_into no longer picks the key");
     before(
         SWITCH,
         "ifplace(!live,keeping())==Place::Disk{returnNone;}",
