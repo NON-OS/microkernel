@@ -39,7 +39,7 @@ pub(super) fn admit(
     write: bool,
 ) -> Result<ConfigSpace, RegionError> {
     if bdf.0 != 0 {
-        return Err(RegionError::Unsupported);
+        return Err(RegionError::OtherSegment);
     }
     if !matches!(width, 1 | 2 | 4) || at % u16::from(width) != 0 {
         return Err(RegionError::BadWidth);

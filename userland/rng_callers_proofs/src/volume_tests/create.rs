@@ -22,10 +22,10 @@
 use super::super::error::VolumeError;
 use super::super::key_header::{parse_key_header, Keyed, KEY_LBA};
 use super::super::key_seal::unseal_key;
-use super::super::passphrase_create::create_keyed;
+use super::super::passphrase_create::create_keyed as create;
 use super::super::passphrase_key::stretch;
 use super::super::plan_types::{Plan, MAX_IMPORTS, PLAN_LBA};
-use super::{open_key, turn};
+use super::{open_key, turn, VOLUME};
 use crate::hardware::block_device::BlockDeviceError::AccessDenied;
 use crate::stand_in::{block_io::set_keeping, devices, kernel, rng, volume};
 
@@ -37,7 +37,7 @@ fn no_keyed_volume_is_made_when_any_draw_refuses() {
     let _turn = turn();
     for (from, only) in rng::cases(3) {
         rng::fail_at(Some(from), only);
-        assert_eq!(create_keyed(b"pass", &PLAN), Err(VolumeError::NoRandomness));
+        assert_eq!(create(&mut VOLUME.write(), b"pass", &PLAN), Err(VolumeError::NoRandomness));
         assert!(devices::plan_written().is_empty());
         assert!(volume::formats().is_empty());
         assert_eq!(open_key(), None);
@@ -49,7 +49,7 @@ fn no_keyed_volume_is_made_when_any_draw_refuses() {
 fn no_key_header_is_written_while_the_boot_keeps_nothing() {
     let _turn = turn();
     rng::fail_from(None);
-    assert_eq!(create_keyed(b"pass", &PLAN), Err(VolumeError::Device(AccessDenied)));
+    assert_eq!(create(&mut VOLUME.write(), b"pass", &PLAN), Err(VolumeError::Device(AccessDenied)));
     assert!(devices::plan_written().is_empty() && volume::formats().is_empty());
 }
 
@@ -60,7 +60,7 @@ fn the_keyed_volume_seals_its_drawn_key_under_the_drawn_salt_and_nonce() {
     let _turn = turn();
     rng::fail_from(None);
     set_keeping(true);
-    assert_eq!(create_keyed(b"pass", &PLAN), Ok(()));
+    assert_eq!(create(&mut VOLUME.write(), b"pass", &PLAN), Ok(()));
     let given = rng::given();
     let header = devices::plan_written()[&(KEY_LBA - PLAN_LBA)];
     let Ok(Some(Keyed::Passphrase(sealed))) = parse_key_header(&header) else {
