@@ -27,6 +27,7 @@ mod run_net;
 mod run_owner;
 mod served_run;
 mod served_run_rule;
+mod served_word;
 mod spawn;
 mod state;
 mod term_ticket;
