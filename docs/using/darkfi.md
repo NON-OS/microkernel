@@ -27,7 +27,9 @@ Opening it runs `nonos-darkirc` (tools/nix/sources/darkirc-launch.c):
 | `:l #dev` | leave a channel |
 | Ctrl-D | quit. darkirc stops with sic. |
 
-*host-tested*: the launcher, darkirc and sic run together in a chroot, sic gets the welcome and the channels' topics, and darkirc stops with sic. *design*: on a device.
+**Its home stays small.** darkirc as DarkFi ships it builds two RLN proving keys on its first start and keeps them, about 275 MB, far past an app's 16 MiB home. They would only sign messages for an RLN identity, which is not set by default, and darkirc sends without one, so the NØNOS build makes neither (darkfi.patch). The home holds about 1.2 MB after a first run.
+
+*host-tested*: the launcher, darkirc and sic run together in a chroot, sic gets the welcome and the channels' topics, a line sent to `#dev` comes back, darkirc stops with sic, and the home is 1.2 MB. *design*: on a device.
 
 ## Install them
 
