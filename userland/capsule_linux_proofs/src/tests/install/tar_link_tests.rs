@@ -70,8 +70,6 @@ fn file_bodies_are_the_bytes_written() {
     let w = walk(LINKS);
     let body = |n: &[u8]| w.entries.iter().find(|e| e.name == n).map(|e| e.body);
     assert_eq!(body(b"usr/lib/libz.so.1.3"), Some(&b"\x7fELF"[..]));
-    assert!(matches!(
-        w.entries.iter().find(|e| e.name == b"usr/lib").map(|e| &e.kind),
-        Some(Kind::Dir)
-    ));
+    let kind = |n: &[u8]| w.entries.iter().find(|e| e.name == n).map(|e| &e.kind);
+    assert!(matches!(kind(b"usr/lib"), Some(Kind::Dir)));
 }
