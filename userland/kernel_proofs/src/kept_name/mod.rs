@@ -20,6 +20,6 @@
  */
 
 #[path = "../../../../src/syscall/microkernel/data/kept_name.rs"]
-pub mod kept_name;
+pub mod rule;
 #[cfg(test)]
 mod tests;
