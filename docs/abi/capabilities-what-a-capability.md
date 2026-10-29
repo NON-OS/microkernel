@@ -33,7 +33,7 @@ checks it instead.
 
 | Bit | Mask | Name | `caps.toml` | Meaning | Syscalls it admits |
 |---|---|---|---|---|---|
-| 0 | `0x1` | `CoreExec` | `CORE_EXEC` | Run as a process; asked for by the pid and argument calls, and with IPC and Memory by capsule loading. | `MCLD`, `MGPD`, `MKAR`, `MCVF` |
+| 0 | `0x1` | `CoreExec` | `CORE_EXEC` | Run as a process; asked for by the argument call, and with IPC and Memory by capsule loading. | `MCLD`, `MKAR`, `MCVF` |
 | 1 | `0x2` | `IO` | `IO` | Enforces nothing. | none |
 | 2 | `0x4` | `Network` | `NETWORK` | Reach the network services. Removed from every capsule on a boot profile that runs no network. | none |
 | 3 | `0x8` | `IPC` | `IPC` | Send and receive messages, and start and drive child processes. | `MISD`, `MIRC`, `MICL`, `MIRF`, `MIRY`, `MIRQ`, `MIRT`, `MISP`, `MSVL`, `MSVR`, `MCLD`, `MWAT`, `MKIL`, `MTSP`, `MOUT`, `MPIN`, `MSRD`, `MTRN`, `MTTY`, `MSOW`, `MPVW`, `MCVF`, `MPJB` |
@@ -65,7 +65,7 @@ checks it instead.
 | 29 | `0x20000000` | `Entropy` | `ENTROPY` | Meant to gate the entropy capsule. Only the kernel client's statistics and health check ask for it, and no kernel code calls them in 0.9.2. | none |
 | 30 | `0x40000000` | `AppInstall` | `APP_INSTALL` | Ask for a marketplace install, launch or removal, and reach the marketplace. | `MAIN`, `MAPL`, `MAIS`, `MAUN` |
 | 31 | `0x80000000` | `AttestRead` | `ATTEST_READ` | Read the attestation registry, the kernel log tail and the full process table. The signed document also needs the caller to lack Network. | `MADC`, `MAEN`, `MLOG` |
-| 32 | `0x100000000` | `ForeignExec` | `FOREIGN_EXEC` | Host code this kernel has not verified: create a process with no capabilities, build its address space, and answer its refused syscalls. | `MFSP`, `MFST`, `MFWT`, `MFRP`, `MFCX`, `MFSG`, `MFIN`, `MPMP`, `MPCP`, `MPPT`, `MFTH`, `MPTL`, `MFFK`, `MPUN`, `MFEX`, `MLVF`, `MLRN`, `MSNT` |
+| 32 | `0x100000000` | `ForeignExec` | `FOREIGN_EXEC` | Host code this kernel has not verified: create a process with no capabilities, build its address space, and answer its refused syscalls. | `MFSP`, `MFST`, `MFWT`, `MFRP`, `MFCX`, `MFSG`, `MFIN`, `MPMP`, `MPCP`, `MPPT`, `MFTH`, `MPTL`, `MFFK`, `MPUN`, `MFEX`, `MLVF`, `MLRN`, `MSRV`, `MSNT` |
 | 33 | `0x200000000` | `LocalSign` | `LOCAL_SIGN` | Mint a proof that this machine agreed to run bytes it installed itself, and leave the line on why that install failed. | `MLSG`, `MAIS` (its failed install's line only) |
 | 34 | `0x400000000` | `StreamImport` | `STREAM_IMPORT` | Stream a file into the data volume, kept only if it hashes to the digest named first. Grants no read. | `MDFB`, `MDFD`, `MDRM` |
 | 35 | `0x800000000` | `DeviceSecret` | `DEVICE_SECRET` | Receive this machine's TPM-derived device secret and its boot slots, and run enrolment's TPM half. | `MDVS`, `MBSL`, `MENR`, `MSLR` |

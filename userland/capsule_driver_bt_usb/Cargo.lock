@@ -134,6 +134,14 @@ name = "nonos_bt_proto"
 version = "0.1.0"
 
 [[package]]
+name = "nonos_bt_rtl"
+version = "0.1.0"
+dependencies = [
+ "nonos_bt_hci",
+ "nonos_bt_wire",
+]
+
+[[package]]
 name = "nonos_bt_smp"
 version = "0.3.0"
 dependencies = [
@@ -154,6 +162,7 @@ dependencies = [
  "nonos_bt_hci",
  "nonos_bt_hogp",
  "nonos_bt_proto",
+ "nonos_bt_rtl",
  "nonos_bt_smp",
  "nonos_bt_wire",
  "nonos_keymap",

@@ -1,0 +1,58 @@
+diff --git a/Cargo.toml b/Cargo.toml
+index 3ac0b4f..22600f0 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -228,9 +228,9 @@ net-defaults = [
+     "system",
+     "util",
+ 
+-    "p2p-tor",
++    #"p2p-tor",
+     #"p2p-nym",
+-    "p2p-i2p",
++    #"p2p-i2p",
+ ]
+ 
+ p2p-unix = []
+diff --git a/bin/app/Cargo.toml b/bin/app/Cargo.toml
+index 90cf510..dd9eb50 100644
+--- a/bin/app/Cargo.toml
++++ b/bin/app/Cargo.toml
+@@ -81,6 +81,10 @@ swash = { git = "https://github.com/valadaptive/swash", branch = "tight-bounds"
+ tor-rtcompat = { git = "https://github.com/narodnik/arti" }
+ tor-rtmock = { git = "https://github.com/narodnik/arti" }
+ 
++# miniquad with no wl_data_device_manager required (darkfi-app-miniquad.patch).
++[patch."https://github.com/narodnik/miniquad"]
++miniquad = { path = "../../../miniquad" }
++
+ [target.'cfg(not(target_os = "android"))'.dependencies]
+ dirs = "5.0.1"
+ 
+diff --git a/bin/app/src/app/schema/mod.rs b/bin/app/src/app/schema/mod.rs
+index 9b6728d..780a48f 100644
+--- a/bin/app/src/app/schema/mod.rs
++++ b/bin/app/src/app/schema/mod.rs
+@@ -90,7 +90,7 @@ mod ui_consts {
+ mod desktop_paths {
+     use std::path::PathBuf;
+ 
+-    pub const BG_PATH: &str = "assets/bg.png";
++    pub const BG_PATH: &str = "/usr/lib/nonos-darkfi-app/assets/bg.png";
+ 
+     pub fn get_chatdb_path() -> PathBuf {
+         dirs::data_local_dir().unwrap().join("darkfi/app/chatdb")
+diff --git a/bin/app/src/gfx/mod.rs b/bin/app/src/gfx/mod.rs
+index 993ea0a..25e5c01 100644
+--- a/bin/app/src/gfx/mod.rs
++++ b/bin/app/src/gfx/mod.rs
+@@ -1077,7 +1077,8 @@ pub fn run_gui() {
+         window_resizable: true,
++        sample_count: 0,
+         platform: miniquad::conf::Platform {
+             linux_backend: miniquad::conf::LinuxBackend::WaylandWithX11Fallback,
+-            //blocking_event_loop: true,
++            blocking_event_loop: true,
+             ..Default::default()
+         },
+         icon: Some(miniquad::conf::Icon {

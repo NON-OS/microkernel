@@ -38,7 +38,7 @@ pub use gdt::{enable_iopl, setup as gdt_setup};
 #[cfg(target_arch = "x86_64")]
 pub use idt::setup as idt_setup;
 pub use io::{inb, inl, inw, io_wait, outb, outl, outw};
-pub use serial::{init as serial_init, print, print_dec, print_hex, print_str, println};
+pub use serial::{init as serial_init, print, println};
 
 #[cfg(target_arch = "x86_64")]
 pub use apic::init as apic_init;

@@ -19,30 +19,21 @@
 #[allow(clippy::all)]
 #[path = "../../capsule_terminal/src/command/mod.rs"]
 mod command;
-#[allow(clippy::all)]
 #[path = "../../capsule_terminal/src/event/mod.rs"]
 mod event;
-#[allow(clippy::all)]
 #[path = "../../capsule_terminal/src/git/mod.rs"]
 mod git;
-#[allow(clippy::all)]
 #[path = "../../capsule_terminal/src/jobs/mod.rs"]
 mod jobs;
-#[allow(clippy::all)]
 #[path = "../../capsule_terminal/src/layout/mod.rs"]
 pub mod layout;
-#[allow(clippy::all)]
 #[path = "../../capsule_terminal/src/mixnet/mod.rs"]
 mod mixnet;
-#[allow(clippy::all)]
 #[path = "../../capsule_terminal/src/paint/mod.rs"]
 mod paint;
-#[allow(clippy::all)]
 #[path = "../../capsule_terminal/src/palette/mod.rs"]
 mod palette;
-#[allow(clippy::all)]
 #[path = "../../capsule_terminal/src/rail/mod.rs"]
 mod rail;
-#[allow(clippy::all)]
 #[path = "../../capsule_terminal/src/term/mod.rs"]
 pub mod term;

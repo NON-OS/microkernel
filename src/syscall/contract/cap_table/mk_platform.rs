@@ -57,7 +57,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkAcpiLoaded
         | SyscallNumber::MkAcpiThermalLimit
         | SyscallNumber::MkAcpiLpit
-        | SyscallNumber::MkAcpiPower => caps.is_valid() && caps.is_admin(),
+        | SyscallNumber::MkAcpiPower => caps.can_admin(),
 
         /* VMBus through the SynIC; each also checks the VMBus root's claim, or for
          * events and signals a channel record's. */

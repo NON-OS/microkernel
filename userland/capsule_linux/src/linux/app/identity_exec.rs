@@ -16,8 +16,9 @@
 
 //! The box a guest runs in after an exec: the new program brings its own
 //! policy, but runs with only what both it and the program that exec'd it
-//! were given. So a shell with no network cannot exec its way onto one, and
-//! a program held to a destination list cannot exec its way past it.
+//! were given. So a shell with no network cannot exec its way onto one, a
+//! program held to a destination list cannot exec its way past it, and one
+//! serving a port keeps SERVE_ONE only into a program serving the same.
 
 use nonos_linux_policy::mask::{narrow, NET_ANON};
 
@@ -28,7 +29,7 @@ impl AppIdentity {
     /// `program`, exec'd by the guest this is: its identity, inside what
     /// both were allowed.
     pub fn exec(&self, program: &AppIdentity) -> Self {
-        let mask = narrow(self.mask, program.mask);
+        let mask = self.policy.exec_keeps(&program.policy, narrow(self.mask, program.mask));
         let (mask, reach) = match chain(&self.reach, &program.reach) {
             Some(reach) => (mask, reach),
             None => (mask & !NET_ANON, ANYWHERE),

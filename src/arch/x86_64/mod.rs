@@ -68,7 +68,7 @@ pub use cpu::{cli, hlt, lfence, mfence, pause, rdtsc, sfence, sti};
 pub use port::{inb, inl, inw, outb, outl, outw, Port};
 pub use serial::{write_str as serial_write_str, SerialWriter};
 pub use time::{delay_ms, delay_ns, delay_us, now_ns};
-pub use vga::{clear, print_critical, set_color, write_byte, write_str, Color, ColorCode};
+pub use vga::{clear, set_color, write_byte, write_str, Color, ColorCode};
 
 pub use iommu::types::{
     DomainId as IommuDomainId, IommuPageFlags, SourceId as IommuSourceId, VtdError as IommuVtdError,

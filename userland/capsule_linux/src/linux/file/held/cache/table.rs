@@ -19,15 +19,15 @@
 use alloc::vec::Vec;
 use core::cell::RefCell;
 
-use super::super::super::system::declared::HOME;
+use super::super::super::system::declared::HOME_MOST;
 
 /*
- * The most a family may hold of one file while writing it: what one app's
- * home holds (declared::HOME), so a file may fill its home and no more. The
- * copies together are held to the quota all the same (space/quota), so the
- * heap they take is bounded by it, not by this.
+ * The most a family may hold of one file while writing it: what the largest
+ * home holds (declared::HOME_MOST); a smaller home is full first, and says
+ * so. The copies together are held to the quota all the same (space/quota),
+ * so the heap they take is bounded by it, not by this.
  */
-pub const MAX_FILE: usize = HOME as usize;
+pub const MAX_FILE: usize = HOME_MOST as usize;
 
 pub(super) struct Entry {
     pub(super) path: Vec<u8>,

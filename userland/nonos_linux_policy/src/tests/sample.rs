@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One policy with every field distinct, so a field written to the wrong
-//! offset cannot pass for the right one.
+//! offset cannot pass for the right one, and the same serving one port.
 
-use crate::mask::{MODELS_RO, WAYLAND};
-use crate::{LinuxAppPolicy, SyscallSet};
+use crate::mask::{FILES_HOME, MODELS_RO, NET_ANON, SERVE_ONE, WAYLAND};
+use crate::{LinuxAppPolicy, ServeOne, SyscallSet};
 
 pub fn policy() -> LinuxAppPolicy {
     LinuxAppPolicy {
@@ -28,5 +28,12 @@ pub fn policy() -> LinuxAppPolicy {
         release_id: [0x33; 32],
         net_dests_hash: [0x44; 32],
         syscall_set: SyscallSet::NONE.with(0).with(1).with(231).with(511).with(9999),
+        serve: None,
     }
+}
+
+/// Version 2: S3's listing for the SimpleX core, app.simplex on 5225.
+pub fn served() -> LinuxAppPolicy {
+    let serve = ServeOne::new(5225, b"app.simplex");
+    LinuxAppPolicy { mask: NET_ANON | FILES_HOME | SERVE_ONE, serve, ..policy() }
 }

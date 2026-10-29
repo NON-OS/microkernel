@@ -40,7 +40,6 @@ mod core {
 }
 
 #[cfg(test)]
-#[allow(dead_code)]
 #[path = "../../../../src/sys/serial/line.rs"]
 mod line;
 
@@ -54,6 +53,8 @@ mod fatal;
 
 #[cfg(test)]
 mod column_tests;
+#[cfg(test)]
+mod ends_tests;
 #[cfg(test)]
 mod fatal_tests;
 #[cfg(test)]
