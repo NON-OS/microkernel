@@ -38,6 +38,9 @@ mod serve_rule;
 // MkAppLaunch's rule for a capsule SERVES lists.
 #[path = "../../../../src/syscall/microkernel/app_launch_rule.rs"]
 mod app_launch_rule;
+// And the one word such a launch may give its run.
+#[path = "../../../../src/syscall/microkernel/app_launch_word.rs"]
+mod app_launch_word;
 
 mod addressed;
 mod air_gapped;
@@ -59,6 +62,7 @@ mod names;
 mod power_off;
 mod serve_launch;
 mod serve_one;
+mod serve_word;
 mod single_client;
 mod spi_hid_tests;
 mod spi_tests;
