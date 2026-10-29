@@ -46,6 +46,8 @@ mod floor_rule_tests;
 #[cfg(test)]
 mod floor_seq_tests;
 #[cfg(test)]
+mod gpt_entry_tests;
+#[cfg(test)]
 mod image_format_tests;
 #[cfg(test)]
 mod mmap_copy_tests;

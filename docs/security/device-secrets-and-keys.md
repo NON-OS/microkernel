@@ -8,7 +8,7 @@ Where NONOS keeps secrets, what protects each one, what is lost at power off, an
 - Key records in the keyring live in RAM and are gone at reboot. The wallet's sealed records are the exception, and they open only on this machine.
 - On an installed disk, the [data volume](../overview/glossary-claim-epoch.md#data-volume) is encrypted per sector. On a live boot it lives in RAM under a key made for that boot.
 - The capsule store on the NONOS disk, the [package store](../overview/glossary-linux-personality.md#package-store), is not encrypted. A file persisted there is readable by anyone who holds the disk, unless the [capsule](../overview/glossary-boot-root-record.md#capsule) that wrote it sealed it first.
-- An orderly shutdown or reboot wipes process memory, kernel stacks, the kernel's key vault and its heap, but not the data volume key, the token MAC key or a live boot's in-memory volume. In 0.9.2 only the installer's restart runs it. A panic, a forced power-off or a power cut wipes nothing.
+- An orderly shutdown or reboot wipes process memory, kernel stacks, the kernel's key vault and its heap, but not the data volume key, the token MAC key or a live boot's in-memory volume. The desktop's Power Off and the installers' restart run it, through the power capsule (see [Wiped at shutdown and reboot](#wiped-at-shutdown-and-reboot)). A panic wipes the kernel heap and powers off, but not process memory (`src/security/zerostate/panic_wipe.rs`). A forced power-off or a power cut wipes nothing.
 
 ```mermaid
 flowchart LR
