@@ -1801,6 +1801,8 @@
    "userland/capsule_acpi/src/server/protocol.rs",
    "userland/capsule_acpi/src/server/reply.rs",
    "userland/capsule_acpi/src/sleep",
+   "userland/capsule_acpi/src/sys/line_frame.rs",
+   "userland/capsule_acpi/src/sys/log.rs",
    "userland/capsule_acpi_proofs",
    "userland/capsule_power/Capsule.mk"
   ],
