@@ -41,3 +41,6 @@ pub fn volume_scope() -> Result<(), BlockDeviceError> {
 pub fn flush_held() -> Result<(), crate::fs::cryptoblock::CryptoBlockError> {
     Ok(())
 }
+
+/// A writer of the volume leaving: nothing is ever held with no disk under it.
+pub fn drop_held(_swept: bool) {}

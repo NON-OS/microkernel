@@ -38,6 +38,8 @@ pub fn create(guest: &mut Guest, args: &mut Args<'_>) {
         last_done: None,
         configured: false,
         scale: Default::default(),
+        damage: Default::default(),
+        attached: false,
     });
     super::route::scale_surface::told(guest, id);
 }
@@ -45,6 +47,7 @@ pub fn create(guest: &mut Guest, args: &mut Args<'_>) {
 pub fn attach(guest: &mut Guest, id: u32, args: &mut Args<'_>) {
     let Some(buffer) = args.u32() else { return };
     if let Some(s) = guest.scene.surfaces.iter_mut().find(|s| s.id == id) {
+        s.attached = true;
         s.pending = match buffer {
             0 => None,
             b => Some(b),

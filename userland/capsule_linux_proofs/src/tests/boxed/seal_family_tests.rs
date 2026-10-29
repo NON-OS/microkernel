@@ -31,7 +31,7 @@ fn gtk_tools_run_before_the_programs_guest_is_made() {
     let at = |needle: &str| start.find(needle).unwrap_or_else(|| panic!("{needle} is gone"));
     let (private, tools, spawned, started) = (
         at("super::file::prepare_private()"),
-        at("super::gtk_prep::prepare(&launch.bytes);"),
+        at("super::gtk_prep::prepare(&launch.bytes)"),
         at("let pid = mk_foreign_spawn(b\"linux\");"),
         at("start(&mut guest, launch)"),
     );

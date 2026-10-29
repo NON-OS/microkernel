@@ -28,7 +28,7 @@ pub(super) fn region_errno(e: RegionError) -> i64 {
         RegionError::Full => ERRNO_NOSPC,
         RegionError::NoVaSpace | RegionError::MapFailed => ERRNO_NOMEM,
         RegionError::BadWidth => ERRNO_INVAL,
-        RegionError::Unsupported => ERRNO_NOTSUP,
+        RegionError::OtherSegment => ERRNO_NOTSUP,
         RegionError::Platform => ERRNO_IO,
     }
 }

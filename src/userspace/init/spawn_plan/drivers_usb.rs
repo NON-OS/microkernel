@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// The Bluetooth host, last of the class drivers, beside this file.
+#[path = "drivers_bt.rs"]
+mod drivers_bt;
+
 /// The class drivers; their hosts spawn earlier (orchestrator.rs).
 pub(super) fn spawn() {
     super::drivers_usb_hub::spawn();
@@ -24,6 +28,7 @@ pub(super) fn spawn() {
     super::drivers_usb_mic::spawn();
     super::drivers_ccid::spawn();
     super::drivers_fido::spawn();
+    drivers_bt::spawn();
 }
 
 #[cfg(feature = "nonos-capsule-driver-usb-hid")]

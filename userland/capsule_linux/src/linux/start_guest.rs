@@ -18,12 +18,13 @@
 
 use nonos_libc::mk_foreign_start;
 
-use super::app::{bind, bind_built_in, AppIdentity};
 use super::guest::{Guest, STACK_SIZE, STACK_TOP};
 use super::image;
 use super::launch::Launch;
-use super::origin::Origin;
 use super::say::say;
+
+mod prove;
+pub(super) use prove::{keep, prove};
 
 /*
  * The launch is taken, not borrowed: once the program is mapped its bytes are
@@ -62,14 +63,5 @@ pub(super) fn start(guest: &mut Guest, launch: Launch) -> Result<(), &'static [u
     match mk_foreign_start(guest.pid, entry, rsp) {
         n if n < 0 => Err(&b"[LINUX] start refused\n"[..]),
         _ => Ok(()),
-    }
-}
-
-/// A program out of the store proves itself against the enrolled set, and
-/// either kind is bound to the policy it runs under.
-fn prove(path: &[u8], bytes: &[u8], origin: &Origin) -> Result<AppIdentity, &'static str> {
-    match origin {
-        Origin::BuiltIn => Ok(bind_built_in(bytes)),
-        Origin::Store => super::attest::verify(path, bytes).and_then(|_| bind(path, bytes)),
     }
 }

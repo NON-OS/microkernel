@@ -23,6 +23,8 @@ nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_usbnet = { path = "../nonos_usbnet" }
 nonos_bt_wire = { path = "../nonos_bt_wire" }
 nonos_bt_hci = { path = "../nonos_bt_hci" }
+# The RTL8821C patch loader, the only vendor setup this host does.
+nonos_bt_rtl = { path = "../nonos_bt_rtl" }
 nonos_bt_smp = { path = "../nonos_bt_smp" }
 nonos_bt_bond = { path = "../nonos_bt_bond" }
 nonos_bt_hogp = { path = "../nonos_bt_hogp" }

@@ -60,6 +60,7 @@ mod gates;
 mod held_to;
 mod names;
 mod power_off;
+mod radio_tests;
 mod serve_launch;
 mod serve_one;
 mod serve_word;

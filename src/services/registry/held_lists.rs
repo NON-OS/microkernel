@@ -49,5 +49,26 @@ pub(super) const USB_CLIENTS: &[&str] = &[
 /// The Bluetooth host answers Settings, which scans, pairs and forgets in any
 /// of its windows, and the shell, which shows the link and battery levels;
 /// the capsule checks each op again (letter E-25).
+/// driver.xhci0's own clients: every USB class driver, and the Bluetooth
+/// host, which drives its controller through xHCI alone (its interrupt
+/// endpoint beside the bulk pair, B-43), so no other host is held to it.
+pub(super) const XHCI_CLIENTS: &[&str] = &[
+    "driver.usb_hub0",
+    "driver.usb_hid0",
+    "driver.usb_msc0",
+    "driver.usb_audio0",
+    "driver.uvc0",
+    "driver.cdc_acm0",
+    "driver.usb_mic0",
+    "driver.ccid0",
+    "driver.fido0",
+    "driver.cdc_ecm0",
+    "driver.cdc_ncm0",
+    "driver.rndis0",
+    "driver.ax88179_0",
+    "driver.rtl8153_0",
+    "driver.bt_usb0",
+];
+
 pub(super) const BLUETOOTH_PANELS: &[&str] =
     &["app.settings", "app.settings.1", "app.settings.2", "desktop_shell"];

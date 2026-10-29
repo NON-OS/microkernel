@@ -19,6 +19,7 @@
 use super::report::Outcome;
 use crate::mlme::Mlme;
 use crate::rsn::TemporalKey;
+use alloc::boxed::Box;
 
 /// The keys of a connected join, or `Refused` if the machine says connected
 /// but holds no key of its pairwise cipher's length (which a correct
@@ -30,5 +31,5 @@ pub(super) fn finish(m: &Mlme) -> Outcome {
     let Some(tk) = TemporalKey::new(sup.pairwise_cipher(), tk) else {
         return Outcome::Refused;
     };
-    Outcome::Joined { bssid: m.bssid(), channel: m.channel(), tk, akm, supplicant: sup }
+    Outcome::Joined { bssid: m.bssid(), channel: m.channel(), tk, akm, supplicant: Box::new(sup) }
 }

@@ -11,7 +11,7 @@ use super::socks::tunnel::Far;
 use super::socks_fake::fake;
 use super::socks_frames::{bytes, connect_example, numbered, HELLO, PID};
 
-const STREAMS_PER_CALLER: usize = 8;
+const STREAMS_PER_CALLER: usize = 24;
 
 fn on(stream: u32, seq: u32, frame: &[u8]) -> Vec<u8> {
     [&[4u8][..], &stream.to_le_bytes(), &seq.to_le_bytes(), frame].concat()

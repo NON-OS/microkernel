@@ -26,7 +26,7 @@ use crate::state::{FrameRepeat, State};
 
 pub fn release_held(state: &mut State) {
     let mut ok = true;
-    if state.gesture.button_held() {
+    if state.gesture.was_button {
         ok &= post(INPUT_KIND_BUTTON_UP, 1, 0, 0);
     }
     for bit in 0..5u8 {

@@ -24,11 +24,11 @@ use crate::render::measure_aa::measure_aa_bytes;
 use crate::render::ui_font::{px, STATUS_PX};
 use crate::state::Context;
 
-/// Whether the battery label is a reading ("57%"), the only case that gets
-/// the gauge glyph. "No battery" and "Battery status unavailable" are words
-/// only: an empty gauge beside them would read as 0%.
+/// Whether the battery label is a reading ("57%", "57% Charging"), the only
+/// case that gets the gauge glyph. "No battery" and "Battery status
+/// unavailable" are words only: an empty gauge beside them would read as 0%.
 pub(super) fn has_gauge(btext: &[u8]) -> bool {
-    btext.last() == Some(&b'%')
+    btext.first().is_some_and(u8::is_ascii_digit)
 }
 
 /// The battery's glyph (for a reading), its label and the gap after them, or

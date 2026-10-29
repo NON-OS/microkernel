@@ -24,3 +24,9 @@ impl Cwd {
         Cwd { path: Vec::from(HOME) }
     }
 }
+
+impl Default for Cwd {
+    fn default() -> Self {
+        Self::new()
+    }
+}

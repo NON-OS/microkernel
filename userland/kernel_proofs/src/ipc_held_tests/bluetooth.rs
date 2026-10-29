@@ -39,3 +39,27 @@ fn the_bluetooth_host_refuses_everyone_else() {
     }
     assert!(!endpoint_admits(BT, None, owner(&[])), "took a caller owning nothing");
 }
+
+/// DeviceEnum (bit 15) is what MkInstallSource serves firmware packages
+/// to, the MediaTek patch among them; enumerate-only, it claims nothing.
+#[test]
+fn the_bluetooth_host_holds_device_enum_and_claims_nothing() {
+    let mk = include_str!("../../../capsule_driver_bt_usb/Capsule.mk");
+    let spawn = include_str!("../../../../src/hardware/bt_usb_capsule/spawn.rs");
+    assert!(mk.contains("CAPSULE_REQUIRED_CAPS    := 0x10208038"), "the mask moved");
+    assert!(spawn.contains("| Capability::DeviceEnum.bit()"), "the spawn lacks DeviceEnum");
+    for absent in ["Driver", "Mmio", "Irq", "Dma", "Pio"] {
+        assert!(!spawn.contains(&format!("Capability::{absent}.")), "it asks for {absent}");
+    }
+}
+
+/// The Bluetooth host drives its controller through xHCI alone (B-43's
+/// interrupt endpoint beside the bulk pair): no other host is held to it.
+#[test]
+fn only_xhci_takes_the_bluetooth_host() {
+    let bt: &'static [&'static str] = &[BT];
+    assert!(endpoint_admits("driver.xhci0", None, owner(bt)));
+    for host in &super::usb_hosts::USB_HOSTS[1..] {
+        assert!(!endpoint_admits(host, None, owner(bt)), "{host} took {BT}");
+    }
+}
