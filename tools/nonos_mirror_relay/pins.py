@@ -30,7 +30,9 @@ def pinned(host: str, path: str, pins: dict):
     m = APK.fullmatch(path) if host == ALPINE else None
     for name, pin in pins.items() if m else ():
         if m.group(1) == f"{name}-{pin['V']}.apk":
-            return name, pin["B"]
+            # A package a listing installs `with` its app is pinned by its
+            # index record alone, which the guest holds it to.
+            return (name, pin["B"]) if "B" in pin else None
     return None
 
 

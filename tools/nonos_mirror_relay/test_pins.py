@@ -49,6 +49,17 @@ class Pins(unittest.TestCase):
         dep = "/alpine/v3.20/main/x86_64/musl-1.2.5-r0.apk"
         self.assertEqual(checked(ALPINE, dep, b"dep", PINS, {"age"}, never), b"dep")
 
+    def test_a_package_locked_with_no_blake3_passes_through_unhashed(self):
+        # zathura-pdf-mupdf, installed `with` zathura: its row has V, C and S
+        # but no B, and the guest holds it to its index record. The relay
+        # dropped the connection on a KeyError and the install failed.
+        def never(_):
+            raise AssertionError("hashed a file no B pins")
+        pins = {**PINS, "zathura-pdf-mupdf": {"V": "0.4.2-r0", "C": "Q1o=", "S": "9934"}}
+        path = "/alpine/v3.20/community/x86_64/zathura-pdf-mupdf-0.4.2-r0.apk"
+        self.assertIsNone(pinned(ALPINE, path, pins))
+        self.assertEqual(checked(ALPINE, path, b"pdf", pins, (), never), b"pdf")
+
     def test_a_tampered_package_differs_and_only_when_asked(self):
         bad = checked(ALPINE, AGE, b"apk", PINS, {"age"}, good)
         self.assertNotEqual(bad, b"apk")
