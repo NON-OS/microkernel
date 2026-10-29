@@ -13,7 +13,9 @@
 #   (drk-prompt.c);
 # - usr/share/nonos-drk/drk_config.toml, drk's own config at the commit,
 #   which nonos-drk copies into the home with the passphrase asked for.
-# LOCALNET gets the same, plus:
+# LOCALNET gets its own drk, prompt and drk config, under
+# usr/lib/nonos-darkfi-localnet, so it shares no path with WALLET and both
+# install side by side; and:
 # - usr/bin/darkfid and usr/bin/minerd;
 # - usr/bin/nonos-darkfi-localnet, the program that listing opens
 #   (darkfi-localnet.c);
@@ -30,16 +32,19 @@ t=x86_64-unknown-linux-musl gcc=$cc/bin/$t-gcc strip=$cc/bin/$t-strip
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 flags=(-static -O2 -s -Wl,--build-id=none)
-for p in drk-prompt:nonos-drk darkfi-localnet:nonos-darkfi-localnet; do
-  "$gcc" "${flags[@]}" -o "$work/${p#*:}" "$here/${p%%:*}.c"
-  "$strip" "$work/${p#*:}"
-done
+lib=/usr/lib/nonos-darkfi-localnet
+"$gcc" "${flags[@]}" -o "$work/nonos-drk" "$here/drk-prompt.c"
+"$gcc" "${flags[@]}" -DDRK="\"$lib/drk\"" -DTEMPLATE="\"$lib/drk_config.toml\"" \
+  -o "$work/nonos-drk-localnet" "$here/drk-prompt.c"
+"$gcc" "${flags[@]}" -o "$work/nonos-darkfi-localnet" "$here/darkfi-localnet.c"
+"$strip" "$work/nonos-drk" "$work/nonos-drk-localnet" "$work/nonos-darkfi-localnet"
 rm -rf "$wallet" "$localnet"
-for out in "$wallet" "$localnet"; do
-  install -D -m 0755 "$built/drk/usr/bin/drk" "$out/usr/bin/drk"
-  install -D -m 0755 "$work/nonos-drk" "$out/usr/bin/nonos-drk"
-  install -D -m 0644 "$src/bin/drk/drk_config.toml" "$out/usr/share/nonos-drk/drk_config.toml"
-done
+install -D -m 0755 "$built/drk/usr/bin/drk" "$wallet/usr/bin/drk"
+install -D -m 0755 "$work/nonos-drk" "$wallet/usr/bin/nonos-drk"
+install -D -m 0644 "$src/bin/drk/drk_config.toml" "$wallet/usr/share/nonos-drk/drk_config.toml"
+install -D -m 0755 "$built/drk/usr/bin/drk" "$localnet$lib/drk"
+install -D -m 0755 "$work/nonos-drk-localnet" "$localnet$lib/nonos-drk"
+install -D -m 0644 "$src/bin/drk/drk_config.toml" "$localnet$lib/drk_config.toml"
 for n in darkfid minerd; do
   install -D -m 0755 "$built/$n/usr/bin/$n" "$localnet/usr/bin/$n"
 done
