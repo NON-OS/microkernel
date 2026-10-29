@@ -157,6 +157,7 @@ nonos-capsule-calculator        = []
 nonos-capsule-clock             = []
 nonos-capsule-browser           = []
 nonos-capsule-snake             = []
+nonos-capsule-simplex-ui        = []
 nonos-capsule-wallet-nonos      = []
 nonos-capsule-terminal          = []
 nonos-capsule-file-manager      = []
@@ -1048,6 +1049,7 @@ microkernel-desktop-offline = [
   "nonos-capsule-boot-splash",
   "nonos-capsule-calculator",
   "nonos-capsule-snake",
+  "nonos-capsule-simplex-ui",
   "nonos-capsule-audio-player",
   "nonos-capsule-video-player",
   "nonos-capsule-wallet-nonos",
