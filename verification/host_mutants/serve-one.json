@@ -82,7 +82,7 @@
  {
   "name": "serve-launch-listing-drifts",
   "file": "src/services/registry/serves.rs",
-  "old": "(\"app.simplex\", \"linux.kali.nonos-simplex-chat\"),",
+  "old": "(\"app.simplex\", \"linux.kali.nonos-simplex-core\"),",
   "new": "(\"app.simplex\", \"linux.kali.simplex-chat\"),",
   "test": "serves_key",
   "crate": "userland/market_proofs"
