@@ -16,58 +16,24 @@
 
 //! The globals a client is told about, and what binding one means.
 
-use super::global::Global;
+use super::global::{g, Global};
 use super::object::Object;
 
 pub const GLOBALS: &[Global] = &[
-    Global { name: 1, interface: b"wl_compositor", version: 6, object: Object::Compositor },
-    Global { name: 2, interface: b"wl_shm", version: 1, object: Object::Shm },
-    Global { name: 3, interface: b"xdg_wm_base", version: 2, object: Object::XdgBase },
-    Global { name: 4, interface: b"wl_seat", version: 5, object: Object::Seat },
-    Global { name: 5, interface: b"wl_output", version: 4, object: Object::Output },
-    Global { name: 6, interface: b"wl_subcompositor", version: 1, object: Object::Subcompositor },
-    Global {
-        name: 7,
-        interface: b"wl_data_device_manager",
-        version: 3,
-        object: Object::DataDeviceManager,
-    },
-    Global {
-        name: 8,
-        interface: b"zxdg_decoration_manager_v1",
-        version: 1,
-        object: Object::DecorationManager,
-    },
-    Global {
-        name: 9,
-        interface: b"zxdg_output_manager_v1",
-        version: 2,
-        object: Object::XdgOutputManager,
-    },
-    Global { name: 10, interface: b"wp_viewporter", version: 1, object: Object::Viewporter },
-    Global { name: 11, interface: b"xdg_activation_v1", version: 1, object: Object::Activation },
-    Global {
-        name: 12,
-        interface: b"wp_single_pixel_buffer_manager_v1",
-        version: 1,
-        object: Object::SinglePixel,
-    },
-    Global {
-        name: 13,
-        interface: b"zwp_primary_selection_device_manager_v1",
-        version: 1,
-        object: Object::PrimaryManager,
-    },
-    Global {
-        name: 14,
-        interface: b"wp_cursor_shape_manager_v1",
-        version: 1,
-        object: Object::CursorManager,
-    },
-    Global {
-        name: 15,
-        interface: b"wp_fractional_scale_manager_v1",
-        version: 1,
-        object: Object::FractionalManager,
-    },
+    g(1, b"wl_compositor", 6, Object::Compositor),
+    g(2, b"wl_shm", 1, Object::Shm),
+    g(3, b"xdg_wm_base", 2, Object::XdgBase),
+    g(4, b"wl_seat", 5, Object::Seat),
+    g(5, b"wl_output", 4, Object::Output),
+    g(6, b"wl_subcompositor", 1, Object::Subcompositor),
+    g(7, b"wl_data_device_manager", 3, Object::DataDeviceManager),
+    g(8, b"zxdg_decoration_manager_v1", 1, Object::DecorationManager),
+    g(9, b"zxdg_output_manager_v1", 2, Object::XdgOutputManager),
+    g(10, b"wp_viewporter", 1, Object::Viewporter),
+    g(11, b"xdg_activation_v1", 1, Object::Activation),
+    g(12, b"wp_single_pixel_buffer_manager_v1", 1, Object::SinglePixel),
+    g(13, b"zwp_primary_selection_device_manager_v1", 1, Object::PrimaryManager),
+    g(14, b"wp_cursor_shape_manager_v1", 1, Object::CursorManager),
+    g(15, b"wp_fractional_scale_manager_v1", 1, Object::FractionalManager),
+    g(16, b"org_kde_kwin_server_decoration_manager", 1, Object::KdeDecorationManager),
 ];
