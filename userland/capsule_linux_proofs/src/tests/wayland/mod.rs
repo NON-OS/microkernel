@@ -44,6 +44,7 @@ mod wayland_keymap_tests;
 mod wayland_keys_named_tests;
 mod wayland_keys_tests;
 mod wayland_misc_tests;
+mod wayland_mods_order_tests;
 mod wayland_mods_tests;
 mod wayland_object_version_tests;
 mod wayland_opaque_tests;
