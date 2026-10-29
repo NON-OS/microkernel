@@ -42,10 +42,12 @@ pub fn install(tool: &str, pin: &[u8; 32]) -> Result<(), Why> {
     reachable(name)?;
     let Some(content) = get_as(name, port, name, &content_path(pin)) else {
         say(b"[LINUX] the tool did not download\n");
+        super::refuse::tell(tool, "", "it did not download");
         return Err(Why::PACKAGE);
     };
     if blake3::hash(&content).as_bytes() != pin {
         say(b"[LINUX] the tool is not the one the market listed\n");
+        super::refuse::tell(tool, "", "it is not the one the market listed");
         return Err(Why::PACKAGE);
     }
     say(b"[LINUX] provenance Verified: the market's pin matches\n");

@@ -34,7 +34,7 @@ log > boot-log.txt
 
 Not tested in this release.
 
-The kernel keeps that log only on images built with capsule serial output, such as `qemu` and a development image. A `standard`, `hardened` or `airgapped` image keeps nothing, and `log` prints `log: no line matches`. If `log` prints `log: the kernel would not hand over its log (this terminal needs AttestRead)`, this Terminal was not granted the log.
+The kernel keeps that log on `standard`, `qemu` and development images. On a `standard` image it holds the kernel's own lines only, since no capsule writes to the console there. A `hardened` or `airgapped` image keeps nothing, and `log` prints `log: no line matches`. If `log` prints `log: the kernel would not hand over its log (this terminal needs AttestRead)`, this Terminal was not granted the log.
 
 To report a machine, follow [Reporting a machine](../hardware/report.md).
 
@@ -164,7 +164,7 @@ The two `refused with EIO` lines print when a program, such as the model fetcher
   - 30 seconds or a key: `HOLD_S` in `nonos-bootloader/src/display/boot/refusal/hold.rs:17-31`.
   - The refusal's title and its three parts: `draw_card` in `nonos-bootloader/src/display/boot/refusal/draw.rs:29-48`.
   - `log`, its words and `>`: `NEWEST` in `userland/capsule_terminal/src/command/builtin/log.rs:17-31`, and its two refusals in `run` at `userland/capsule_terminal/src/command/builtin/log.rs:33-50`.
-  - The first and the last 64 KiB: `HEAD` and `CAPACITY` in `src/sys/serial/tail.rs:27-32`, kept only with capsule serial output by `keep` in `src/sys/serial/tail.rs:51-52`.
+  - The first and the last 64 KiB: `HEAD` and `CAPACITY` in `src/sys/serial/tail.rs:27-32`, kept with `nonos-log-tail` or capsule serial output by `keep` in `src/sys/serial/tail.rs:51-52`; `hardened` and `airgapped` drop both, `standard` only the second: `tailFeatures` and each profile's `drop` in `tools/nix/config.nix:81-118`.
   - The serial log of a headless boot: `serial` in `tools/nonos_qemu/__main__.py:68-69`.
 - The firmware does not start the stick
   - The menu needs a graphics display: `run` in `nonos-bootloader/src/bootmenu/run.rs:35-38`.
@@ -195,12 +195,12 @@ The two `refused with EIO` lines print when a program, such as the model fetcher
 - The installer
   - The Welcome messages: `load` in `userland/capsule_install/src/install/source/load.rs:51-64`.
   - No disk, and RST or VMD: `NO_DISK` and `RAID` in `userland/capsule_install/src/install/ui/screens/disks.rs:34-36`.
-  - The boot disk not offered: `withheld` in `userland/nonos_blk_client/src/disks/scan.rs:139-150`.
+  - The boot disk not offered: `withheld` in `userland/nonos_blk_client/src/disks/rows.rs:45-59`.
   - Too small, a refused transfer, a failed read-back: `WriteError` in `userland/nonos_disk/src/writer/error_text.rs:26-41`.
   - 4096-byte blocks: `refusal` in `userland/nonos_blk_client/src/disks/describe.rs:48-56`.
-  - The store still loading: `store_settled` in `userland/capsule_install/src/install/job/prepare.rs:46-48`.
-  - Stopped by you: `Outcome` in `userland/capsule_install/src/install/event/cancel.rs:36-43`.
-  - The Stopped screen: `paint` in `userland/capsule_install/src/install/ui/screens/failed.rs:37-57`.
+  - The store still loading: `store_settled` in `userland/capsule_install/src/install/job/plan.rs:45-47`.
+  - Stopped by you: `Outcome` in `userland/capsule_install/src/install/event/cancel.rs:39-50`.
+  - The Stopped screen: `paint` in `userland/capsule_install/src/install/ui/screens/failed.rs:39-77`.
 - After installing
   - `[DATA] no machine key` and `MachineKey`: `open_machine_volume` in `src/fs/blockfs_volume/open_machine.rs:73-77`.
   - `Unopenable`, and `[DATA] formatted a volume of` on the console: `mount_or_format` in `src/fs/blockfs_volume/mount_or_format.rs:64-76`.

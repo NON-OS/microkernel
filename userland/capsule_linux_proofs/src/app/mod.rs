@@ -42,3 +42,6 @@ pub mod reach;
 /* What a box allows: the call set, the network, before anything is served. */
 #[path = "../../../capsule_linux/src/linux/app/rules.rs"]
 pub mod rules;
+/* Where a box may bind and listen: SERVE_ONE's one listener, and no more. */
+#[path = "../../../capsule_linux/src/linux/app/serve_rule.rs"]
+pub mod serve_rule;

@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Where a run goes once its policy is bound: the run role, without Network,
-//! asks again for a box with NET_ANON; the network role runs nothing else.
+//! asks again for a box with NET_ANON; the network role runs nothing else
+//! but GTK's tools, which run in either role and never ask again.
 
 use crate::app::rules::{net_step, NetStep};
 use nonos_linux_policy::mask::{KNOWN, MODELS_RO, NET_ANON, NET_LISTEN_LO, TTY, WAYLAND};
@@ -23,24 +24,35 @@ use nonos_linux_policy::mask::{KNOWN, MODELS_RO, NET_ANON, NET_LISTEN_LO, TTY, W
 #[test]
 fn a_box_without_net_anon_runs_in_the_plain_role() {
     for mask in [0, TTY, WAYLAND | MODELS_RO | TTY, NET_LISTEN_LO] {
-        assert_eq!(net_step(mask, false), NetStep::Run, "{mask:#x}");
+        assert_eq!(net_step(mask, false, false), NetStep::Run, "{mask:#x}");
     }
 }
 
 #[test]
 fn net_anon_in_the_plain_role_asks_to_start_again() {
     for mask in [NET_ANON, NET_ANON | WAYLAND, KNOWN] {
-        assert_eq!(net_step(mask, false), NetStep::AskAgain, "{mask:#x}");
+        assert_eq!(net_step(mask, false, false), NetStep::AskAgain, "{mask:#x}");
     }
 }
 
 #[test]
 fn the_network_role_runs_only_net_anon() {
     for mask in [NET_ANON, NET_ANON | TTY, KNOWN] {
-        assert_eq!(net_step(mask, true), NetStep::Run, "{mask:#x}");
+        assert_eq!(net_step(mask, true, false), NetStep::Run, "{mask:#x}");
     }
     // Listening at home is not reaching out, so it is no reason to hold Network.
     for mask in [0, NET_LISTEN_LO, WAYLAND | MODELS_RO | TTY, KNOWN & !NET_ANON] {
-        assert_eq!(net_step(mask, true), NetStep::Refuse, "{mask:#x}");
+        assert_eq!(net_step(mask, true, false), NetStep::Refuse, "{mask:#x}");
+    }
+}
+
+/// Telegram's run starts again in the network role; its GTK tools were
+/// refused there, every one "ended -1", and it ran with no caches.
+#[test]
+fn a_gtk_tool_runs_in_either_role_and_never_asks_again() {
+    for mask in [0, WAYLAND, WAYLAND | TTY, NET_LISTEN_LO, NET_ANON, KNOWN] {
+        for holds_network in [false, true] {
+            assert_eq!(net_step(mask, holds_network, true), NetStep::Run, "{mask:#x}");
+        }
     }
 }

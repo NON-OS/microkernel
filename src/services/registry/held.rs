@@ -30,7 +30,8 @@
 //! which the kernel registered for it at spawn and no other capsule may claim.
 //!
 //! Pure: the kernel's registry supplies who owns what; the table is
-//! held_table.rs, and the cards' held_cards.rs. Held in kernel_proofs.
+//! held_table.rs, the cards' held_cards.rs, and the gate held_gate.rs, which
+//! also reads the holds the kernel sets at run time. Held in kernel_proofs.
 
 // The tables beside this file are mounted by path, so kernel_proofs, which
 // mounts this file alone, reads them too; the registry re-exports displays.
@@ -38,10 +39,13 @@
 mod cards;
 #[path = "displays.rs"]
 pub(crate) mod displays;
+#[path = "held_gate.rs"]
+mod gate;
 #[path = "held_table.rs"]
 mod table;
 
 use cards::card_callers;
+pub(crate) use gate::{endpoint_admits, inbox_admits};
 use table::{DISPLAY_CALLERS, HELD};
 
 /// The services that may reach `endpoint`, or None when anyone the
@@ -52,28 +56,4 @@ pub(crate) fn callers_of(endpoint: &str) -> Option<&'static [&'static str]> {
     }
     card_callers(endpoint)
         .or_else(|| HELD.iter().find(|(name, _)| *name == endpoint).map(|(_, callers)| *callers))
-}
-
-/// Whether a caller may send to `endpoint`, given `owns`, which says whether
-/// the caller owns an endpoint of that name.
-pub(crate) fn endpoint_admits(endpoint: &str, owns: impl Fn(&str) -> bool) -> bool {
-    callers_of(endpoint).is_none_or(|callers| callers.iter().any(|c| owns(c)))
-}
-
-/// Whether a caller holding `held` may write straight into the inbox of a
-/// process serving the endpoints `served`, each with its requirement.
-///
-/// Every endpoint a process serves is read from that one inbox, so a send by
-/// pid is a send to each of them and must pass each one's gate: its
-/// capabilities and its list. Before this, MkIpcSendToPid checked neither,
-/// and a capsule without Network reached net.sockets, or a card's driver,
-/// by looking up its pid.
-pub(crate) fn inbox_admits<'a>(
-    served: impl IntoIterator<Item = (&'a str, u64)>,
-    held: u64,
-    owns: impl Fn(&str) -> bool,
-) -> bool {
-    served
-        .into_iter()
-        .all(|(name, required)| held & required == required && endpoint_admits(name, &owns))
 }

@@ -27,9 +27,12 @@ macro_rules! src {
 #[test]
 fn every_exit_before_the_guest_starts_reports() {
     let start = src!("start.rs");
-    assert_eq!(start.matches("super::start_stop::stop(").count(), 4);
+    assert_eq!(start.matches("super::start_stop::stop(").count(), 3);
+    assert_eq!(start.matches("super::start_stop::no_guest(pid)").count(), 1);
     assert!(!start.contains("mk_exit(1)") && !start.contains("mk_exit(2)"));
-    assert!(src!("start_stop.rs").contains("super::boxed::not_started(why, code);"));
+    let stop = src!("start_stop.rs");
+    assert!(stop.contains("super::boxed::not_started(why, code);"));
+    assert!(stop.contains("    stop(\"the kernel gave no guest\", 1)\n"));
 }
 
 #[test]

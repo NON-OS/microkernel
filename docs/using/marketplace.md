@@ -7,7 +7,7 @@ What the Marketplace and the Terminal's `market` command can install on NONOS, h
 | Tab | What it lists | In 0.9.2 |
 |---|---|---|
 | `Models` | The Qwen tiers | 20 tiers. Installing one puts its model files on the [data volume](../overview/glossary-claim-epoch.md#data-volume); the chat program is part of the image. See [Local AI](local-ai.md). |
-| `Linux` | Alpine packages a build lists | None. The shipped list is empty, so the tab says `this build lists no Linux packages`. |
+| `Linux` | Linux apps the signed catalogue lists | The catalogue's apps from Alpine (editors, git, age, minisign, Monero, KeePassXC, Telegram, zathura and more; `docs/userland/marketplace-catalogue.md`). SimpleX Chat and DarkFi's apps list only on an image built with a NONOS package mirror. |
 | `NONOS` | NONOS apps | None. NONOS apps ship in the image, so the catalogue lists none and the tab says `this catalogue lists no NONOS apps`. A NONOS app from elsewhere comes as a package file; see [Install a package file](#install-a-package-file). |
 | `Community` | Apps from other publishers | None yet: `this catalogue lists no community apps yet`. |
 | `All` | Everything above | |

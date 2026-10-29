@@ -30,6 +30,8 @@
 //! what [`gather`] carried over, the plan names the volume and no imports,
 //! the key header is cleared so the first boot keys the volume with the
 //! TPM, and the volume's header ring is zeroed so that boot formats it.
+//! An [`update`] writes the ESP and the store alone over an installed disk
+//! whose data a new release opens, and keeps the rest (`keep`).
 //!
 //! A [`BlockSink`] takes `(lba, bytes)`: a block driver in the installers,
 //! memory in the host tests, so the disk the tests read is the one written.
@@ -46,6 +48,7 @@ mod fat32;
 mod gpt;
 mod guid;
 mod image;
+mod keep;
 mod layout;
 mod plan_sector;
 mod session;
@@ -58,14 +61,15 @@ pub use boot_media::{
     TABLE_GPT, TABLE_MBR,
 };
 pub use carry::{gather, Carried, CarrySource};
-pub use describe::{describe, size_text, Row};
+pub use describe::{describe, describe_keep, size_text, Row};
 pub use fat32::{Geometry, Node, PlanError, WriteVolumeError};
 pub use gpt::written_by_nonos;
 pub use guid::Guid;
 pub use image::{NonosImage, STARTUP_NSH};
+pub use keep::{names_a_volume, read_installed, DiskAnswers, Installed, Keep, NotKept};
 pub use layout::{Extent, Layout, Region, DATA_MIN_SECTORS, ESP_SECTORS, MIN_DISK_SECTORS};
 pub use plan_sector::plan_sector;
 pub use session::{Attempt, Ids, Plan, Progress, Session, Verifier, ENTROPY_BYTES};
 pub use sink::{BlockSink, SinkError, SECTOR_SIZE};
 pub use store::{StoreBuilder, StoreError, StoreImage};
-pub use writer::{install, verify, FileRun, Receipt, WriteError};
+pub use writer::{install, update, verify, FileRun, Receipt, WriteError};
