@@ -40,6 +40,8 @@ pub fn may_wait(guest: &Guest, nr: u64, fd: u64) -> bool {
 
 /// The call's answer if it can complete now, None if it would wait.
 pub fn attempt(guest: &mut Guest, wait: &mut Blocked) -> Option<u64> {
+    /* A wait on the display sees the input that has come for it since. */
+    crate::linux::unix::pump(guest);
     let a = wait.args;
     let again = |v: u64| Some(v).filter(|&v| v != errno::fail(errno::EAGAIN));
     match wait.nr {
