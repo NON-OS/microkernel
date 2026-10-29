@@ -399,7 +399,7 @@ nonos-mk-host-trust-elfs: $(USERLAND_LIBC) $(MARKETPLACE_ABI_LIB) \
 		$(net-l2_BIN) $(net-ip_BIN) $(net-udp_BIN) $(net-dhcp_BIN) \
 		$(input-router_BIN) $(compositor_BIN) $(wm_BIN) $(desktop-shell_BIN) \
 		$(image-codec_BIN) $(clipboard_BIN) $(login_BIN) $(wallpaper_BIN) \
-		$(toolkit_BIN) $(about_BIN) $(install_BIN) $(calculator_BIN) $(clock_BIN) $(snake_BIN) $(terminal_BIN) \
+		$(toolkit_BIN) $(about_BIN) $(install_BIN) $(calculator_BIN) $(clock_BIN) $(snake_BIN) $(simplex-ui_BIN) $(terminal_BIN) \
 		$(file-manager_BIN) $(text-editor_BIN) $(settings_BIN) $(process-manager_BIN)
 	@echo "Capsule ELFs built for the host-trust artifact proof."
 
@@ -520,6 +520,7 @@ include userland/capsule_calculator/Capsule.mk
 include userland/capsule_clock/Capsule.mk
 include userland/capsule_browser/Capsule.mk
 include userland/capsule_snake/Capsule.mk
+include userland/capsule_simplex_ui/Capsule.mk
 include userland/capsule_wallet_nonos/Capsule.mk
 include userland/capsule_shield/Capsule.mk
 include userland/capsule_shield_vectors/Capsule.mk
@@ -777,7 +778,7 @@ NONOS_DESKTOP_GUI_CAPSULE_CHECKS = \
 	$(login_VERIFY) $(wallpaper_VERIFY) $(toolkit_VERIFY) \
 	$(boot-splash_VERIFY) $(about_VERIFY) $(install_VERIFY) $(calculator_VERIFY) $(clock_VERIFY) \
 	$(browser_VERIFY) $(web_VERIFY) \
-	$(snake_VERIFY) $(wallet-nonos_VERIFY) $(terminal_VERIFY) \
+	$(snake_VERIFY) $(simplex-ui_VERIFY) $(wallet-nonos_VERIFY) $(terminal_VERIFY) \
 	$(file-manager_VERIFY) $(text-editor_VERIFY) $(settings_VERIFY) \
 	$(process-manager_VERIFY) $(attest_VERIFY) $(power_VERIFY)
 
