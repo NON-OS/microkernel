@@ -16,6 +16,8 @@
 
 //! The store as a pack's swap sees it (swap.rs), and what it answers.
 
+use alloc::vec::Vec;
+
 /// Why a pack did not go in or out.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Held {
@@ -39,4 +41,6 @@ pub trait Shelf {
     fn write(&mut self, at: &[u8], bytes: &[u8]) -> bool;
     fn unlink(&mut self, at: &[u8]) -> Unlinked;
     fn rename(&mut self, from: &[u8], to: &[u8]) -> bool;
+    /// The first `len` bytes at `at`, when it holds that many.
+    fn head(&mut self, at: &[u8], len: usize) -> Option<Vec<u8>>;
 }

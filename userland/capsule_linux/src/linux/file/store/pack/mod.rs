@@ -29,7 +29,9 @@ mod put;
 mod running;
 mod serve;
 mod shelf;
+mod store_shelf;
 mod swap;
+mod swap_head;
 mod table;
 
 pub use closure::{decode as decode_closure, encode as encode_closure, MAX_BYTES as CLOSURE_MAX};
