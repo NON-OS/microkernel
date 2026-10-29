@@ -28,6 +28,7 @@ mod encoder;
 mod entry_document;
 pub(crate) mod fixtures;
 mod home_key_tests;
+mod home_listings_tests;
 mod hosts;
 mod ids;
 mod linux_policy_answer_tests;

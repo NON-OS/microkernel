@@ -52,6 +52,8 @@ pub struct Fd {
     pub cloexec: bool,
     /// O_NONBLOCK: a call that would wait is answered EAGAIN instead.
     pub nonblock: bool,
+    /// A pidfd's process has ended, as the family notes before each answer.
+    pub ended: bool,
 }
 
 impl Fd {

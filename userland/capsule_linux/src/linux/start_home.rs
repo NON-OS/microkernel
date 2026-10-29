@@ -31,6 +31,8 @@ pub(super) fn open(guest: &mut Guest, key: [u8; 32]) -> Result<(), &'static [u8]
     if !super::app::home() {
         return Ok(());
     }
+    let policy = &guest.app.policy;
+    super::file::choose_home(&policy.listing_id, &policy.program_blake3);
     if !super::file::open_home(key) {
         return Err(&b"[LINUX] its home could not be opened\n"[..]);
     }

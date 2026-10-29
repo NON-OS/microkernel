@@ -147,7 +147,7 @@ The panel shows no "signed" badge: Settings cannot check the image's signature i
 
 - No keyboard layout row. The layout is chosen at first boot and cycled with `Ctrl+Alt+Space`; see [Keyboard layouts](keyboard-layouts.md). The policy store has the field, but Settings does not list it.
 - No switch to turn back on an app turned off at setup. Settings does not list that field either.
-- No shutdown or restart. The desktop has no way to power off in this release.
+- No shutdown or restart row. Power Off is in the desktop's menu and on the Power key, and it wipes memory before the machine goes off; see [Keys the desktop answers](desktop.md#keys-the-desktop-answers).
 
 ## How long a change lasts
 

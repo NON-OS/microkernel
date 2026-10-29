@@ -16,21 +16,19 @@
 
 //! The end of a pass that found no boot disk. Another NONOS disk is kept
 //! once every disk answered, or once the wait for a refused one runs out,
-//! unless the loader read the store from the disk it named: then no other
-//! disk is kept (`other_disk`), the loader's copy answers store reads, and
-//! the boot keeps nothing. A later pass that finds the boot disk keeps it.
-
-use core::sync::atomic::{AtomicBool, Ordering};
+//! unless the loader came through USB or read the store from the disk it
+//! named: then no other disk is kept (`other_disk`), the loader's copy, if
+//! any, answers store reads, and the boot keeps nothing. A later pass that
+//! finds the boot disk keeps it. The end is said once (settle_said.rs).
 
 use super::backend::Backend;
-use super::booted;
+use super::booted::{from_usb, partition, store_from_boot_disk};
 use super::gpt::Places;
 use super::kept::{keep, none};
 use super::other_disk::{other_disk, Other};
+use super::settle_said::said;
 use super::wait::{caller_gone, waited_for_boot_disk};
 use super::BlockDeviceError;
-
-static TOLD_ALONE: AtomicBool = AtomicBool::new(false);
 
 pub(super) fn settle(
     other: Option<(Backend, Places)>,
@@ -39,20 +37,13 @@ pub(super) fn settle(
     let Some((b, p)) = other else { return Err(none()) };
     // Never for a caller killed meanwhile: its asks failed for it (L81).
     let waited = refused.is_some() && !caller_gone() && waited_for_boot_disk();
-    let (named, own_copy) = (booted::partition().is_some(), booted::store_from_boot_disk());
-    match (other_disk(named, own_copy, refused.is_some(), waited), refused) {
+    let (named, own_copy, usb) = (partition().is_some(), store_from_boot_disk(), from_usb());
+    let end = other_disk(named, own_copy, usb, refused.is_some(), waited);
+    said(end, [named, usb, own_copy], b);
+    match (end, refused) {
         (Other::Keep, _) => Ok(keep(b, p)),
         (Other::Wait, Some(e)) => Err(e),
-        (Other::Wait | Other::Leave, _) => Err(left_alone()),
+        /* A dead disk to every caller, so the data volume is held in RAM. */
+        (Other::Wait | Other::Leave, _) => Err(BlockDeviceError::Dead),
     }
-}
-
-/* Said once: a dead disk to every caller, so the data volume is held in RAM. */
-fn left_alone() -> BlockDeviceError {
-    if !TOLD_ALONE.swap(true, Ordering::Relaxed) {
-        let line = "[BLOCK] the disk this boot came from is not driven; no other NONOS disk is kept, so this boot keeps nothing and reads the loader's copy of the store";
-        crate::sys::serial::println(line.as_bytes());
-        crate::log::warn!("{}", line);
-    }
-    BlockDeviceError::Dead
 }

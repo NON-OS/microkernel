@@ -25,7 +25,7 @@ use crate::linux::guest::Guest;
 use crate::linux::serve::Answer;
 
 use super::wait_opts::wait4_options;
-pub use super::wait_opts::{WALL, WCLONE, WEXITED, WNOHANG, WNOWAIT};
+pub use super::wait_opts::{WALL, WCLONE, WNOHANG, WNOWAIT};
 
 pub fn wait4(guest: &mut Guest, want: u64, status: u64, flags: u64, tid: u32) -> Answer {
     wait4_usage(guest, want, status, flags, 0, tid)
@@ -51,7 +51,8 @@ pub fn wait4_usage(
         p if p < 0 => Which::Group(p.unsigned_abs()),
         p => Which::Pid(p as u32),
     };
-    park(guest, ChildWait { tid, which, options, out: status, rusage, waitid: false })
+    let wait = ChildWait { tid, which, options, out: status, rusage, waitid: false, eagain: false };
+    park(guest, wait)
 }
 
 pub(super) fn park(guest: &mut Guest, w: ChildWait) -> Answer {

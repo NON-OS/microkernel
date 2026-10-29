@@ -17,7 +17,8 @@
 /* The room a mount has. */
 
 use super::super::super::{private, resolve};
-use super::super::declared::{HOME, HOME_NAMES, PRIVATE, PRIVATE_NAMES};
+use super::super::declared::{HOME_NAMES, PRIVATE, PRIVATE_NAMES};
+use super::home_size::home_bytes;
 use super::quota::names_free;
 use super::used::{copies, kept, under};
 
@@ -47,8 +48,8 @@ pub fn of(point: &str, opts: &str) -> Result<Room, i64> {
         (p, true) if private::in_home(p.as_bytes()) => {
             let now = copies(under(&private::home_root().unwrap_or_default())?);
             Ok(Room {
-                blocks: HOME / BSIZE,
-                free: HOME.saturating_sub(now.bytes) / BSIZE,
+                blocks: home_bytes() / BSIZE,
+                free: home_bytes().saturating_sub(now.bytes) / BSIZE,
                 files: HOME_NAMES,
                 files_free: HOME_NAMES.saturating_sub(now.names),
             })

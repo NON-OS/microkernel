@@ -27,6 +27,7 @@ mod heap_choice_tests;
 mod install;
 mod install_closure_tests;
 mod install_closure_with_tests;
+mod install_installed_provider_tests;
 mod install_timing_tests;
 mod install_window_tests;
 mod keep_alive_tests;

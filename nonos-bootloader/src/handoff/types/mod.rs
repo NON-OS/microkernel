@@ -26,7 +26,7 @@ mod memory;
 mod security;
 mod system;
 
-pub use boot_media::{BootMedia, BOOT_MEDIA_LEN};
+pub use boot_media::{BootMedia, BOOT_MEDIA_LEN, BOOT_MEDIA_USB};
 pub use constants::{flags, HANDOFF_MAGIC, HANDOFF_VERSION};
 pub use crypto::CryptoHandoff;
 pub use disk_mirror::{
