@@ -1,53 +1,64 @@
 # DarkFi
 
-First draft (S3, 2026-10-28). DarkFi is an anonymous peer-to-peer network with its own chain, wallet and chat. NØNOS lists four DarkFi programs in the Marketplace, all built here from DarkFi v0.5.0 (commit `2e2de47c…`) without tor or i2p. Each runs in its own Linux box. Nothing on this page has been booted yet: each claim is *host-tested* (the listing and its content) or *design*.
+S3, 2026-10-29. DarkFi is an anonymous peer-to-peer network with its own chain, wallet and chat. NØNOS lists two DarkFi programs in the Marketplace, DarkFi's chat app and DarkIRC in the Terminal, both built here from DarkFi v0.5.0 (commit `2e2de47c…`) without tor or i2p. Each runs in its own Linux box. Each claim is marked *booted*, *host-tested* (the listing and its content) or *design*.
 
 ## What is listed
 
-The command-line apps open in the Terminal:
-
 | Listing | What it is |
 |---|---|
-| `linux.nonos-darkfi-drk` | **drk**, the wallet. It keeps its keys in its home and asks a darkfid node over JSON-RPC, one you run or a remote one you name. A remote node never learns your address, but it sees which coins your wallet asks about. |
-| `linux.nonos-darkfi-darkirc` | **darkirc**, the peer-to-peer IRC daemon. Peers see the channels you join and when you talk. An encrypted channel hides what is said only from those without its key. |
-| `linux.nonos-darkfi-darkfid` | **darkfid**, the full node, for a **local or dev chain only** (`-n localnet`). A mainnet or testnet chain does not fit an app's 16 MiB home. Its box may JIT, as wasmer does for each contract and RandomX for its proof of work. |
+| `linux.nonos-darkfi-darkirc` | **DarkIRC (P2P chat)**, in the Terminal: DarkFi's `darkirc` daemon with suckless `sic`, a small IRC client, in the same box. |
+| `linux.nonos-darkfi-app` | **DarkFi (chat app)**, DarkFi's desktop app (`bin/app`), with DarkIRC built in. It opens in its own window. It is software-rendered: Mesa's softpipe, bundled in its content, draws on the CPU with no GPU, so it is slower than on other systems. Copy and paste works inside the app, not with other apps. |
 
-The chat app opens in its own window:
+**Not listed: drk and darkfid.** DarkFi's command-line wallet and node are built (the same commit) but not listed. Each stops on its first run after writing its default config, and drk needs a darkfid node, while a full chain does not fit an app's home.
 
-| Listing | What it is |
+## DarkIRC in the Terminal
+
+Opening it runs `nonos-darkirc` (tools/nix/sources/darkirc-launch.c):
+
+1. **A nick.** The first run asks for one, letters and digits, and keeps it in the home, `/root/.config/nonos-darkirc/nick`.
+2. **darkirc.** It starts with the config its content carries, `/usr/share/nonos-darkirc/darkirc_config.toml`, which is DarkFi's own default at the commit. So it does not stop to write one, as darkirc alone does on a first run. It listens on the box's loopback only: IRC on 6667, its RPC on 26660. No other box reaches either.
+3. **sic.** Once darkirc's IRC port answers, sic connects to it, and darkirc joins you to its default channels (`#dev`, `#random` and the rest). The history fills in as the channels sync from peers.
+
+| Type | To |
 |---|---|
-| `linux.nonos-darkfi-app` | **DarkFi (chat app)**, DarkFi's desktop app (`bin/app`), with DarkIRC built in. It is software-rendered: mesa's softpipe draws on the CPU, with no GPU, so it is slower than on other systems. Copy and paste works inside the app, not with other apps. |
+| `:j #dev` | join a channel |
+| `:s #dev` | send plain lines there |
+| `:m #dev text` | say something in a channel |
+| `:l #dev` | leave a channel |
+| Ctrl-D | quit. darkirc stops with sic. |
+
+**Its home stays small.** darkirc as DarkFi ships it builds two RLN proving keys on its first start and keeps them, about 275 MB, far past an app's 16 MiB home. They would only sign messages for an RLN identity, which is not set by default, and darkirc sends without one, so the NØNOS build makes neither (darkfi.patch). The home holds about 1.2 MB after a first run.
+
+*host-tested*: the launcher, darkirc and sic run together in a chroot, sic gets the welcome and the channels' topics, a line sent to `#dev` comes back, darkirc stops with sic, and the home is 1.2 MB. *design*: on a device.
 
 ## Install them
 
-They come from the NØNOS package mirror, so they install only on an image that has one: today that is a development boot with `tools/nonos-mirror-relay --content <dir>` serving the content ([the development mirror](../build/dev-mirror.md)). No release profile lists a source recipe yet, so a release image does not carry these listings. On such an image, from the Terminal:
+Both come from the NØNOS package mirror. On the 0.9.3 release image that is `http://mirror.nonos.software/linux/<blake3>.tar`, fetched over Anyone. On a development boot it is `tools/nonos-mirror-relay --content <dir>` ([the development mirror](../build/dev-mirror.md)). Plain HTTP is enough: each listing's signature pins the content's BLAKE3, which the device checks before unpacking ([the catalogue](../userland/marketplace-catalogue.md#apps-built-from-source)). From the Terminal:
 
 ```
 market install linux.nonos-darkfi-app
-market install linux.nonos-darkfi-drk
 market install linux.nonos-darkfi-darkirc
-market install linux.nonos-darkfi-darkfid
 ```
 
-or choose them in the Marketplace's Linux tab. Each is pinned by the BLAKE3 of its content, which the listing signs, and the device checks it before unpacking ([the catalogue](../userland/marketplace-catalogue.md#apps-built-from-source)). *host-tested* (the listings); *design* (the install)
+or choose them in the Marketplace's Linux tab. *host-tested* (the listing and the mirror's bytes); *design* (the install)
 
-**The boxes.** drk and darkirc get a terminal (TTY), their own home (FILES_HOME) and outbound streams over the anonymity network only (NET_ANON). darkfid adds a listener on its own loopback (NET_LISTEN_LO) and JIT. The chat app gets a window (WAYLAND), its home and NET_ANON. None of them sees your other files. *host-tested* (the policies)
+**The boxes.** The chat app gets a window (WAYLAND), its own home (FILES_HOME) and outbound streams over the anonymity network only (NET_ANON), and listens on nothing. DarkIRC gets a terminal (TTY), its home, NET_ANON, and a listener on its own loopback (NET_LISTEN_LO), for sic. Neither sees your other files. *host-tested* (the policies)
 
-**Between boxes.** drk reaches darkfid's `127.0.0.1:8240` only if the two share a loopback, and darkirc alone has no IRC client in its box. *design*: how boxes share a loopback is not settled yet.
+**The app's drawing.** EGL finds the app's own Mesa driver at `/usr/lib/nonos-darkfi-app/mesa/lib/dri`, built into the driver path. The Linux box names a driver path only where the store has `/usr/lib/nonos-mesa`, so it never points the app away from its own. *host-tested*
 
 ## A live session or a kept home
 
-- **Live, the default.** A home lasts until the machine powers off. Then the wallet's keys, the node's chain and the chat history are gone, for good.
+- **Live, the default.** A home lasts until the machine powers off. Then the chat history and the keys are gone, for good.
 - **Kept.** On a machine installed to disk, with keeping chosen at setup, a home is kept across reboots, sealed under this machine's key ([kept homes](../design/kept-homes-and-installs.md)). *design*: kept homes are not in yet.
-- **The size limit.** A kept home holds 16 MiB and 128 names in 0.9.3. A local chain or a long chat history can pass that.
+- **The size limit.** A kept home holds 16 MiB and 128 names in 0.9.3. A long chat history can pass that.
 
 ## How it reaches the network
 
-Every peer is dialled over Anyone, or Nym when that is the chosen network, never direct, and a failure never falls back to the clear net. A seed's name is resolved at the exit, never in the clear. The tor and i2p transports are built out. *design*
+Both dial DarkFi's seeds, `tcp+tls://lilith0.dark.fi:25551` and `lilith1`, then the peers they name. Every peer is dialled over Anyone, or Nym when that is the chosen network, never direct, and a failure never falls back to the clear net. A seed's name is resolved at the exit, never in the clear. *design*
 
-**Pending (S1).** DarkFi's seeds listen on port 18340 (`tcp+tls://lilith0.dark.fi:18340` and `lilith1`). A listed box's outbound stream to that port does not complete until S1's guest exit-port fix is in. Until then the apps install and start, and darkfid can run its own local chain, but drk, darkirc and the chat app reach no peer.
+Port 25551 is not in every exit's policy. net.anon draws a circuit to an exit that takes the stream's port, and sends a refused open once more to another exit. The tor and i2p transports are built out. *host-tested* (net.anon's exit-port proofs)
 
 ## Where this comes from
 
-- The recipes: `userland/capsule_market/linux-catalogue.json`; their pins: `linux-catalogue.sources.lock.json`.
-- The builds: `tools/nix/sources/darkfi-*.sh`, and the letters `HANDOFF/letters/2026-10-27-s3-darkfi-build.md` and `2026-10-28-s3-darkfi-gui.md`.
+- The recipes: `userland/capsule_market/linux-catalogue.json`. Their pins: `linux-catalogue.sources.lock.json`.
+- The builds: `tools/nix/sources/darkfi-app-*.sh`, and for DarkIRC `darkfi-build.sh` then `darkirc-box.sh`, and the letters `HANDOFF/letters/2026-10-27-s3-darkfi-build.md` and `2026-10-28-s3-darkfi-gui.md`.
