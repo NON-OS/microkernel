@@ -20,7 +20,8 @@
 #[derive(Default)]
 pub struct TouchGesture {
     pub(super) was_tip: bool,
-    pub(super) was_button: bool,
+    /// The clickpad's button is down, as the last debounced edge said.
+    pub(crate) was_button: bool,
     /// Consecutive samples disagreeing with `was_button`, for debounce.
     pub(super) button_run: u8,
     pub(super) scrolling: bool,
@@ -45,13 +46,6 @@ pub struct TouchGesture {
     pub(super) tip_frames: u16,
     pub(super) tap_travel: i64,
     pub(super) tap_ok: bool,
-}
-
-impl TouchGesture {
-    /// The clickpad's button is down, as the last debounced edge said.
-    pub fn button_held(&self) -> bool {
-        self.was_button
-    }
 }
 
 /// What one sample should do. The driver posts these as input events.

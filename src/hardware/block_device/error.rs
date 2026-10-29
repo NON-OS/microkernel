@@ -31,4 +31,6 @@ pub enum BlockDeviceError {
     BlockSize,
     /// The driver is still finding its device; the answer may differ later.
     NotReady,
+    /// A write-protected medium refused the write; nothing was written.
+    ReadOnly,
 }

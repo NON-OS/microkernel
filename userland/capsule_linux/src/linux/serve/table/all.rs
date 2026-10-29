@@ -28,6 +28,7 @@ use super::proc::proc_ops;
 use super::sig::sig_ops;
 
 pub fn plain(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> u64 {
+    crate::linux::start_say::clock::call();
     if let Some(v) = file_ops(guest, tid, nr, a) {
         return v;
     }
