@@ -46,13 +46,13 @@ fn each_device_takes_its_service_alone() {
     for (ep, clients) in cases {
         for c in clients {
             let one: &'static [&'static str] = Box::leak(Box::new([*c]));
-            assert!(endpoint_admits(ep, owner(one)), "{ep} refused {c}");
+            assert!(endpoint_admits(ep, None, owner(one)), "{ep} refused {c}");
         }
         for other in
             ["app.browser", "app.terminal", "wm", "input_router", "app.audio_player", "net.core"]
         {
             let one: &'static [&'static str] = Box::leak(Box::new([other]));
-            assert!(!endpoint_admits(ep, owner(one)), "{ep} took {other}");
+            assert!(!endpoint_admits(ep, None, owner(one)), "{ep} took {other}");
         }
     }
 }

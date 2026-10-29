@@ -18,11 +18,12 @@
 //! userland/capsule_linux/policies.txt with this crate's own code: the
 //! modules the encoding needs are the shipping files, mounted by path.
 
-use std::path::Path;
-use std::{env, process};
+use std::{env, path::Path, process};
 
 #[path = "src/bucket.rs"]
 pub mod bucket;
+#[path = "src/dests/mod.rs"]
+pub mod dests;
 #[path = "src/encode.rs"]
 pub mod encode;
 #[path = "src/error.rs"]
@@ -33,13 +34,13 @@ pub mod layout;
 pub mod mask;
 #[path = "src/policy.rs"]
 pub mod policy;
+#[path = "src/serve.rs"]
+pub mod serve;
 #[path = "src/syscall_set.rs"]
 pub mod syscall_set;
 #[path = "src/unlisted.rs"]
 pub mod unlisted;
 
-#[path = "src/dests/mod.rs"]
-pub mod dests;
 #[path = "build/mod.rs"]
 mod tools;
 
