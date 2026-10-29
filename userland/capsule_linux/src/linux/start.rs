@@ -18,12 +18,12 @@
 
 use nonos_libc::{mk_exit, mk_foreign_spawn};
 
+use super::guest::Guest;
 pub(super) use super::say::say;
 use super::serve::serve;
 use super::source::source;
 use super::start_guest::start;
 pub(super) use super::start_say::routine;
-use super::guest::Guest;
 
 pub fn run() -> ! {
     super::start_say::clock::begin();
