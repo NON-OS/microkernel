@@ -32,6 +32,15 @@ mod nics;
 // And the USB hosts as its grandparent's `usb_hosts`.
 #[path = "../../../../src/services/registry/usb_hosts.rs"]
 mod usb_hosts;
+// MkServeOne's rule, with the SERVES table it mounts beside it.
+#[path = "../../../../src/services/registry/serve_rule.rs"]
+mod serve_rule;
+// MkAppLaunch's rule for a capsule SERVES lists.
+#[path = "../../../../src/syscall/microkernel/app_launch_rule.rs"]
+mod app_launch_rule;
+// And the one word such a launch may give its run.
+#[path = "../../../../src/syscall/microkernel/app_launch_word.rs"]
+mod app_launch_word;
 
 mod addressed;
 mod air_gapped;
@@ -48,9 +57,13 @@ mod devices;
 mod display_names;
 mod fido_tests;
 mod gates;
+mod held_to;
 mod names;
 mod power_off;
 mod radio_tests;
+mod serve_launch;
+mod serve_one;
+mod serve_word;
 mod single_client;
 mod spi_hid_tests;
 mod spi_tests;

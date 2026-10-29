@@ -21,9 +21,10 @@
 //! declared. An all-ones set is therefore never market ready. Nor is a box
 //! with FILES_USER: nothing serves the person's files yet, and a bit that
 //! grants nothing today would grant them silently the day something did
-//! (plan/32).
+//! (plan/32). Nor SERVE_ONE beside WAYLAND: the listener's capsule is let
+//! into the family's whole inbox, where the display's input arrives.
 
-use crate::mask::FILES_USER;
+use crate::mask::{grants, FILES_USER, SERVE_ONE, WAYLAND};
 use crate::policy::LinuxAppPolicy;
 
 /// x86_64 exit and exit_group, the calls capsule_linux always serves.
@@ -37,4 +38,5 @@ pub fn market_ready(policy: &LinuxAppPolicy) -> bool {
     ALWAYS_SERVED.iter().all(|&nr| set.allows(nr))
         && !set.allows(NATIVE_BUCKET)
         && policy.mask & FILES_USER == 0
+        && !grants(policy.mask, SERVE_ONE | WAYLAND)
 }

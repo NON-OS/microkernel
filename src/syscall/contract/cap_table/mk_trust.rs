@@ -19,11 +19,12 @@
 use crate::capabilities::CapabilityToken;
 use crate::syscall::numbers::SyscallNumber;
 
-/// `shell` says whether the caller is the desktop shell the kernel spawned.
+/// `launcher` says whether the caller is the desktop shell the kernel
+/// spawned, or a capsule SERVES pairs with a listing.
 pub(super) fn check(
     caps: &CapabilityToken,
     number: SyscallNumber,
-    shell: fn() -> bool,
+    launcher: fn() -> bool,
 ) -> Option<bool> {
     Some(match number {
         /*
@@ -56,9 +57,11 @@ pub(super) fn check(
          * A launch queues a run of a package already installed, whose program
          * the exec gate holds to its trailer and its box; it installs nothing.
          * So the desktop shell may ask for one too, known by the endpoint the
-         * kernel registered for it at spawn, never by a name it chose.
+         * kernel registered for it at spawn, never by a name it chose; and a
+         * capsule SERVES lists, so known, for its own listing alone, which
+         * the handler holds it to (app_launch_rule.rs).
          */
-        SyscallNumber::MkAppLaunch => caps.can_app_install() || (caps.is_valid() && shell()),
+        SyscallNumber::MkAppLaunch => caps.can_app_install() || (caps.is_valid() && launcher()),
         /* Who may ask is the handler's to say, by kind (plan/15). */
         SyscallNumber::MkProveJob => caps.can_ipc(),
 

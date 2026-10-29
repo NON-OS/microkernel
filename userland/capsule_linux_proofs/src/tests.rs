@@ -21,6 +21,7 @@ mod trace_link_tests;
 
 mod boxed;
 mod calls;
+mod committed_policy_tests;
 mod gl_env_tests;
 mod heap_choice_tests;
 mod install;
@@ -31,6 +32,7 @@ mod install_timing_tests;
 mod install_window_tests;
 mod keep_alive_tests;
 mod rlimit_same_tests;
+mod serve_one;
 mod shared_maps;
 mod wayland;
 mod whole;

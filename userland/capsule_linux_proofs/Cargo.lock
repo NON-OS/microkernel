@@ -204,6 +204,7 @@ dependencies = [
  "nonos_linux_policy",
  "nonos_openpgp",
  "nonos_policy_proto",
+ "nonos_serve_wire",
  "nonos_toolkit",
  "nonos_xz",
  "nonos_zstd",
@@ -237,6 +238,10 @@ dependencies = [
 [[package]]
 name = "nonos_policy_proto"
 version = "0.3.0"
+
+[[package]]
+name = "nonos_serve_wire"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_toolkit"

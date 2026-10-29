@@ -28,14 +28,15 @@ fn only_the_unnamed_bind_of_a_program_that_reaches_out_is_answered() {
     }
 }
 
-/// bind.rs asks it before its NET_LISTEN_LO gate, and answers done changing nothing.
+/// bind.rs asks it before its gate (NET_LISTEN_LO, or SERVE_ONE's one
+/// listener), and answers done changing nothing.
 #[test]
 fn bind_asks_it_first_and_records_nothing() {
     let src = include_str!("../../../../capsule_linux/src/linux/net/bind.rs");
     let asked = "if super::bind_any::unnamed(want.ip, want.port, reaches_out) {\n        \
                  return errno::ok(0);\n    }";
     let at = src.find(asked).expect("bind asks the unnamed rule");
-    assert!(at < src.find("mask::NET_LISTEN_LO)").unwrap());
+    assert!(at < src.find("app::may_bind(guest").unwrap());
     let reaches = "crate::linux::app::granted(guest, nonos_linux_policy::mask::NET_ANON)\n        \
                    || crate::linux::boxed::learning();";
     assert!(src.contains(&format!("let reaches_out = {reaches}")));

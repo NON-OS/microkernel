@@ -33,6 +33,10 @@ mod market_tests;
 mod mask_tests;
 mod refuse_tests;
 mod sample;
+mod serve_exec_tests;
+mod serve_form_tests;
+mod serve_pack_tests;
+mod serve_refuse_tests;
 mod set_order_tests;
 mod set_tests;
 #[cfg(feature = "vendor")]

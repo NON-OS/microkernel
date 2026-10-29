@@ -53,7 +53,7 @@ fn every_listed_host_takes_the_class_drivers_and_no_one_else() {
         let extra = list.iter().filter(|c| !first.contains(c)).count();
         assert_eq!(extra, usize::from(*host == "driver.xhci0"), "{host} is held to another list");
         assert!(first.iter().all(|c| list.contains(c)), "{host} lost a class driver");
-        assert!(!endpoint_admits(host, owner(APPS)), "{host} took an app");
+        assert!(!endpoint_admits(host, None, owner(APPS)), "{host} took an app");
     }
 }
 
