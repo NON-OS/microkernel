@@ -1,0 +1,251 @@
+[
+ {
+  "name": "rtl-patch-by-rom-version-plus-one",
+  "file": "userland/nonos_bt_rtl/src/epatch.rs",
+  "old": "let wanted = u16::from(rom) + 1;",
+  "new": "let wanted = u16::from(rom);",
+  "test": "select_tests::each_rom_version_gets_its_own_patch",
+  "crate": "userland/nonos_bt_rtl_proofs"
+ },
+ {
+  "name": "rtl-project-is-the-8821c",
+  "file": "userland/nonos_bt_rtl/src/epatch.rs",
+  "old": "PROJECT_8821C => {}",
+  "new": "_ => {}",
+  "test": "select_tests::the_file_is_for_the_rtl8821c",
+  "crate": "userland/nonos_bt_rtl_proofs"
+ },
+ {
+  "name": "rtl-signature-checked",
+  "file": "userland/nonos_bt_rtl/src/epatch.rs",
+  "old": "if !fw.starts_with(SIGNATURE) {",
+  "new": "if false {",
+  "test": "select_tests::a_file_that_is_not_an_epatch_is_refused",
+  "crate": "userland/nonos_bt_rtl_proofs"
+ },
+ {
+  "name": "rtl-extension-signature-checked",
+  "file": "userland/nonos_bt_rtl/src/project.rs",
+  "old": "let body = fw.strip_suffix(&EXTENSION_SIG).ok_or(RtlError::Extension)?;",
+  "new": "let body = &fw[..fw.len() - 4];",
+  "test": "select_tests::a_file_that_is_not_an_epatch_is_refused",
+  "crate": "userland/nonos_bt_rtl_proofs"
+ },
+ {
+  "name": "rtl-tables-bounded",
+  "file": "userland/nonos_bt_rtl/src/epatch.rs",
+  "old": "if fw.len() < HEADER + 8 * count {",
+  "new": "if false {",
+  "test": "truncated_tests::tables_that_run_past_the_end_are_refused",
+  "crate": "userland/nonos_bt_rtl_proofs"
+ },
+ {
+  "name": "rtl-patch-holds-its-version",
+  "file": "userland/nonos_bt_rtl/src/epatch.rs",
+  "old": ".filter(|p| p.len() >= 4)",
+  "new": "",
+  "test": "truncated_tests::a_patch_shorter_than_its_version_is_refused",
+  "crate": "userland/nonos_bt_rtl_proofs"
+ },
+ {
+  "name": "rtl-patch-inside-the-file",
+  "file": "userland/nonos_bt_rtl/src/epatch.rs",
+  "old": "let patch = fw.get(at..at.saturating_add(len))",
+  "new": "let patch = fw.get(at..fw.len().min(at.saturating_add(len)))",
+  "test": "truncated_tests::a_patch_cut_with_the_tail_kept_is_refused",
+  "crate": "userland/nonos_bt_rtl_proofs"
+ },
+ {
+  "name": "rtl-version-replaces-the-last-four",
+  "file": "userland/nonos_bt_rtl/src/image.rs",
+  "old": "out.extend_from_slice(&e.fw_version.to_le_bytes());",
+  "new": "out.extend_from_slice(&e.patch[e.patch.len() - 4..]);",
+  "test": "select_tests::the_image_ends_with_the_version_then_the_config",
+  "crate": "userland/nonos_bt_rtl_proofs"
+ },
+ {
+  "name": "rtl-config-appended",
+  "file": "userland/nonos_bt_rtl/src/image.rs",
+  "old": "    out.extend_from_slice(cfg);\n",
+  "new": "",
+  "test": "select_tests::each_rom_version_gets_its_own_patch",
+  "crate": "userland/nonos_bt_rtl_proofs"
+ },
+ {
+  "name": "rtl-config-length-checked",
+  "file": "userland/nonos_bt_rtl/src/config.rs",
+  "old": "if sig != CONFIG_SIG || cfg.len() != HEAD + len {",
+  "new": "if sig != CONFIG_SIG {",
+  "test": "config_tests::a_malformed_config_is_refused",
+  "crate": "userland/nonos_bt_rtl_proofs"
+ },
+ {
+  "name": "rtl-numbering-wraps-to-one",
+  "file": "userland/nonos_bt_rtl/src/fragments.rs",
+  "old": "((i - WRAP - 1) % WRAP + 1) as u8",
+  "new": "(i & 0x7f) as u8",
+  "test": "fragment_tests::the_real_image_goes_in_139_numbered_fragments",
+  "crate": "userland/nonos_bt_rtl_proofs"
+ },
+ {
+  "name": "rtl-last-fragment-marked",
+  "file": "userland/nonos_bt_rtl/src/fragments.rs",
+  "old": "(index(i) | DATA_END, &image[at..])",
+  "new": "(index(i), &image[at..])",
+  "test": "fragment_tests::",
+  "crate": "userland/nonos_bt_rtl_proofs"
+ },
+ {
+  "name": "rtl-length-over-252-plus-one",
+  "file": "userland/nonos_bt_rtl/src/fragments.rs",
+  "old": "len / FRAGMENT + 1",
+  "new": "len.div_ceil(FRAGMENT).max(1)",
+  "test": "fragment_tests::an_image_of_whole_fragments_ends_with_an_empty_last_one",
+  "crate": "userland/nonos_bt_rtl_proofs"
+ },
+ {
+  "name": "rtl-rom-reply-one-octet",
+  "file": "userland/nonos_bt_rtl/src/load.rs",
+  "old": "&[rom] => rom,",
+  "new": "&[rom, ..] => rom,",
+  "test": "refuse_tests::a_rom_version_of_other_than_one_octet_stops_it",
+  "crate": "userland/nonos_bt_rtl_proofs"
+ },
+ {
+  "name": "rtl-download-reply-one-octet",
+  "file": "userland/nonos_bt_rtl/src/load.rs",
+  "old": "if host.command(DOWNLOAD, &p)?.len() != 1 {",
+  "new": "if host.command(DOWNLOAD, &p)?.is_empty() {",
+  "test": "refuse_tests::a_download_reply_of_other_than_one_octet_stops_it",
+  "crate": "userland/nonos_bt_rtl_proofs"
+ },
+ {
+  "name": "rtl-running-patch-left-alone",
+  "file": "userland/nonos_bt_rtl/src/load.rs",
+  "old": "!= Chip::Rom8821c {",
+  "new": "== Chip::Other {",
+  "test": "patched_tests::a_controller_running_a_patch_is_left_as_it_is",
+  "crate": "userland/nonos_bt_rtl_proofs"
+ },
+ {
+  "name": "rtl-rom-is-8821c-not-8821a",
+  "file": "userland/nonos_bt_rtl/src/chip.rs",
+  "old": "let rom = (v.subversion, v.hci_rev, v.hci_ver) == (LMP_8821, HCI_REV_8821C, HCI_VER_8821C);",
+  "new": "let rom = v.subversion == LMP_8821;",
+  "test": "patched_tests::only_the_rtl8821c_rom_is_taken_for_one",
+  "crate": "userland/nonos_bt_rtl_proofs"
+ },
+ {
+  "name": "rtl-only-realtek-ids",
+  "file": "userland/nonos_bt_rtl/src/ids.rs",
+  "old": "vendor == REALTEK ||",
+  "new": "true ||",
+  "test": "ids_tests::",
+  "crate": "userland/nonos_bt_rtl_proofs"
+ },
+ {
+  "name": "rtl-embedded-file-is-the-pinned-one",
+  "file": "userland/capsule_driver_bt_usb/src/vendor/realtek/firmware.rs",
+  "old": "include_bytes!(\"../../../firmware/rtl8821c_fw.bin\")",
+  "new": "include_bytes!(\"../../../firmware/rtl8821c_config.bin\")",
+  "test": "pin_tests::",
+  "crate": "userland/nonos_bt_rtl_proofs"
+ },
+ {
+  "name": "bt-usb-patch-before-bring-up",
+  "file": "userland/capsule_driver_bt_usb/src/run/controller.rs",
+  "old": "    let why = match patch(&mut host, b.ids) {\n        Ok(()) => run_on(&mut host, irk, env),\n        Err(e) => e,\n    };",
+  "new": "    let why = run_on(&mut host, irk, env);",
+  "test": "realtek::bring_up_tests::the_capsule_loads_the_patch_before_bring_up",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "bt-usb-no-passkey-in-the-log",
+  "file": "userland/capsule_driver_bt_usb/src/run/env.rs",
+  "old": "say(&[b\"to pair, type the passkey Settings shows on the keyboard, then Enter\"]);",
+  "new": "say(&[b\"to pair, type \", &digits(u64::from(passkey), 6)]);",
+  "test": "realtek::log_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "settings-names-the-controller",
+  "file": "userland/capsule_settings/src/bluetooth/panel/said.rs",
+  "old": "(Reach::Answered, Some(h)) if h.controller => (\"Controller ready\", Tone::Ok),",
+  "new": "(Reach::Answered, Some(h)) if h.controller => (\"USB adapter ready\", Tone::Ok),",
+  "test": "realtek::keyboard_tests::",
+  "args": [
+   "--release"
+  ],
+  "crate": "userland/bt_usb_proofs"
+ },
+ {
+  "name": "xhci-takes-the-bluetooth-host",
+  "file": "src/services/registry/held_lists.rs",
+  "old": "    \"driver.rtl8153_0\",\n    \"driver.bt_usb0\",\n];",
+  "new": "    \"driver.rtl8153_0\",\n];",
+  "test": "ipc_held_tests::bluetooth::only_xhci_takes_the_bluetooth_host",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "only-xhci-takes-the-bluetooth-host",
+  "file": "src/services/registry/held_table.rs",
+  "old": "    (USB_HOSTS[1], USB_CLIENTS),",
+  "new": "    (USB_HOSTS[1], XHCI_CLIENTS),",
+  "test": "ipc_held_tests::bluetooth::only_xhci_takes_the_bluetooth_host",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "hardened-drops-bluetooth",
+  "file": "tools/nix/config.nix",
+  "old": "drop = debugFeatures ++ postureFeatures ++ tailFeatures ++ radioFeatures;",
+  "new": "drop = debugFeatures ++ postureFeatures ++ tailFeatures;",
+  "test": "ipc_held_tests::radio_tests::hardened_and_air_gapped_drop_bluetooth_and_standard_keeps_it",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "air-gapped-drops-bluetooth",
+  "file": "tools/nix/config.nix",
+  "old": "++ networkFeatures ++ radioFeatures;",
+  "new": "++ networkFeatures;",
+  "test": "ipc_held_tests::radio_tests::hardened_and_air_gapped_drop_bluetooth_and_standard_keeps_it",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "standard-carries-bluetooth",
+  "file": "Cargo.toml",
+  "old": "  \"nonos-capsule-driver-rndis\",\n  \"nonos-capsule-driver-bt-usb\",\n",
+  "new": "  \"nonos-capsule-driver-rndis\",\n",
+  "test": "ipc_held_tests::radio_tests::hardened_and_air_gapped_drop_bluetooth_and_standard_keeps_it",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "bluetooth-spawns-on-xhci",
+  "file": "src/userspace/init/spawn_plan/drivers_bt.rs",
+  "old": "present(HardwareFamily::UsbXhci)",
+  "new": "present(HardwareFamily::UsbEhci)",
+  "test": "ipc_held_tests::radio_tests::the_bluetooth_host_spawns_where_xhci_is",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "bt-usb-holds-device-enum",
+  "file": "userland/capsule_driver_bt_usb/Capsule.mk",
+  "old": "CAPSULE_REQUIRED_CAPS    := 0x10208038",
+  "new": "CAPSULE_REQUIRED_CAPS    := 0x10200038",
+  "test": "ipc_held_tests::bluetooth::the_bluetooth_host_holds_device_enum_and_claims_nothing",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "bt-usb-spawn-asks-device-enum",
+  "file": "src/hardware/bt_usb_capsule/spawn.rs",
+  "old": "            | Capability::DeviceEnum.bit()\n",
+  "new": "",
+  "test": "ipc_held_tests::bluetooth::the_bluetooth_host_holds_device_enum_and_claims_nothing",
+  "crate": "userland/kernel_proofs"
+ }
+]
