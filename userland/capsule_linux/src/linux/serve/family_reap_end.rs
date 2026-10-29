@@ -56,7 +56,7 @@ impl Family {
                 s => alloc::format!("[LINUX] process {shown} ended by signal {s}\n"),
             };
             let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
-            if code != 0 && signo == 0 {
+            if crate::linux::recent_say::worth(code, signo) {
                 crate::linux::recent_say::say();
             }
             if gone.pid == self.root {
