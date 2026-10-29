@@ -24,10 +24,13 @@ pub struct ServiceEndpoint {
     pub port: u32,
     pub pid: u32,
     pub caps_required: u64,
+    /// The capsule whose owner alone may send to it, for an endpoint the
+    /// kernel holds at run time (serve_register.rs); None for every other.
+    pub held_to: Option<String>,
 }
 
 impl ServiceEndpoint {
     pub fn new(name: &str, port: u32, pid: u32, caps_required: u64) -> Self {
-        Self { name: String::from(name), port, pid, caps_required }
+        Self { name: String::from(name), port, pid, caps_required, held_to: None }
     }
 }

@@ -40,6 +40,7 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MPUN", SyscallNumber::MkPeerUnmap, "MkPeerUnmap"),
     e(b"MFEX", SyscallNumber::MkForeignExec, "MkForeignExec"),
     e(b"MLRN", SyscallNumber::MkLinuxRunNet, "MkLinuxRunNet"),
+    e(b"MSRV", SyscallNumber::MkServeOne, "MkServeOne"),
     e(b"MSLR", SyscallNumber::MkSealRead, "MkSealRead"),
     e(b"MSNT", SyscallNumber::MkSealNote, "MkSealNote"),
     e(b"MSLP", SyscallNumber::MkSealPeek, "MkSealPeek"),

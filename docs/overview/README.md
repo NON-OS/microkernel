@@ -4,7 +4,7 @@ Start here to learn what NONOS is, how its parts fit together and what it protec
 
 ## NONOS in five sentences
 
-NONOS is an operating system for x86_64 computers, built on a capability microkernel written in Rust that runs on every core the firmware enables. Device drivers, the network stack, the desktop and the apps run in ring 3, each as a signed [capsule](glossary-boot-root-record.md#capsule) that starts with only the capabilities its signed [manifest](glossary-linux-personality.md#manifest) grants. On Intel VT-d machines the [IOMMU](glossary-hardware-broker.md#iommu) confines device DMA, so each PCI device a driver claims reaches only the buffers granted to that driver; AMD-Vi is not driven and interrupt remapping is off in this release. A boot keeps nothing on a disk unless the person chooses to install. The browser and the Terminal connect through the [Nym mixnet](glossary-linux-personality.md#nym-mixnet) unless the person picks another network, the wallet never connects directly, and downloads for an install go over the [Anyone network](glossary-amnesic-boot.md#anyone-network) unless the person asks for a direct one.
+NONOS is an operating system for x86_64 computers, built on a capability microkernel written in Rust that runs on every core the firmware enables. Device drivers, the network stack, the desktop and the apps run in ring 3, each as a signed [capsule](glossary-boot-root-record.md#capsule) that starts with only the capabilities its signed [manifest](glossary-linux-personality.md#manifest) grants. On Intel VT-d and AMD-Vi machines with the IOMMU on, the [IOMMU](glossary-hardware-broker.md#iommu) confines device DMA and remaps interrupts, so each PCI device a driver claims reaches only the buffers granted to that driver; AMD-Vi has run only under QEMU so far ([IOMMU](../kernel/iommu.md)). A boot keeps nothing on a disk unless the person chooses to install. The browser and the Terminal connect through the [Nym mixnet](glossary-linux-personality.md#nym-mixnet) unless the person picks another network, the wallet never connects directly, and downloads for an install go over the [Anyone network](glossary-amnesic-boot.md#anyone-network) unless the person asks for a direct one.
 
 ## Read in this order
 
@@ -29,4 +29,5 @@ NONOS is an operating system for x86_64 computers, built on a capability microke
 
 - [Documentation index](../README.md)
 - [Support matrix](../hardware/MATRIX.md)
+- [Release notes for 0.9.3](../release/0.9.3.md)
 - [Release notes for 0.9.2](../release/0.9.2.md)

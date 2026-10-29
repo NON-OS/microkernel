@@ -19,8 +19,10 @@
 //! the processors, backlight, hotkeys and hardware errors; any hidden
 //! function the pass had no time for; the hot-plug ports _OSC gave NONOS;
 //! port facts; and the Type-C session, whose first walk may take a while.
+//! A part a power-only build leaves out keeps its empty state (`release`).
 
 use super::state::Acpi;
+use crate::release::{on, Part};
 
 pub fn late(acpi: &mut Acpi, fadt: &[u8]) {
     let gpe = acpi.ec.as_ref().and_then(|e| e.gpe);
@@ -33,17 +35,34 @@ pub fn late(acpi: &mut Acpi, fadt: &[u8]) {
     // The boot guard counts from here, the first publish pass just done.
     acpi.buttons.presses.pass_at = Some(crate::sys::clock::now_ms());
     crate::buttons::read_lid(&mut acpi.buttons, &mut acpi.aml, &mut acpi.host);
-    // The pool already counts what the first pass powered.
-    let pool = core::mem::take(&mut acpi.cooling.pool);
-    acpi.cooling = crate::cooling::find(&mut acpi.aml, &mut acpi.host);
-    acpi.cooling.pool = pool;
-    acpi.backlight = crate::backlight::find(&mut acpi.aml, &mut acpi.host);
-    acpi.cpus = crate::cpu::find(&mut acpi.aml, &mut acpi.host);
-    acpi.hotkeys = crate::hotkeys::find(&acpi.devices, &mut acpi.aml, &mut acpi.host);
-    acpi.apei = crate::apei::start(&acpi.devices);
-    super::say::say_cooling(&acpi.cooling);
-    crate::dpower::reveal_hidden(acpi, u64::MAX);
-    crate::hotplug::native::find(acpi);
-    crate::ports::publish(acpi);
-    acpi.typec = crate::typec::find(&acpi.devices, &mut acpi.aml, &mut acpi.host);
+    let Acpi { aml, host, devices, .. } = acpi;
+    if on(Part::Cooling) {
+        // The pool already counts what the first pass powered.
+        let pool = core::mem::take(&mut acpi.cooling.pool);
+        acpi.cooling = crate::cooling::find(aml, host);
+        acpi.cooling.pool = pool;
+        super::say::say_cooling(&acpi.cooling);
+    }
+    if on(Part::Backlight) {
+        acpi.backlight = crate::backlight::find(aml, host);
+    }
+    if on(Part::Cpu) {
+        acpi.cpus = crate::cpu::find(aml, host);
+    }
+    acpi.hotkeys = crate::hotkeys::find(devices, aml, host);
+    if on(Part::HwErrors) {
+        acpi.apei = crate::apei::start(devices);
+    }
+    if on(Part::Hidden) {
+        crate::dpower::reveal_hidden(acpi, u64::MAX);
+    }
+    if on(Part::Hotplug) {
+        crate::hotplug::native::find(acpi);
+    }
+    if on(Part::Ports) {
+        crate::ports::publish(acpi);
+    }
+    if on(Part::TypeC) {
+        acpi.typec = crate::typec::find(&acpi.devices, &mut acpi.aml, &mut acpi.host);
+    }
 }

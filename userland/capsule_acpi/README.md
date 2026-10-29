@@ -274,6 +274,45 @@ button window, the 1 s command bound and every register offset are
 recalled, unverified; the 100 ms debounce, 1 s link grace, 2 s retry and
 50 ms poll are this capsule's own.
 
+## Release build
+
+Every image builds this capsule with `release-power-only` (`Capsule.mk`),
+which runs the battery, AC, lid and button path and what only reads, and
+leaves out each part that acts on the machine or the broker beyond it
+(`src/release/rule.rs`; `capsule_acpi_proofs` holds each gate to its call
+and each op to its answer). One `[ACPI] build: power only` line says
+which build ran (`build: full` without the feature, which runs all of
+this README).
+
+| piece | what it does | in the power-only build |
+|---|---|---|
+| tables, `MkAcpiLoaded` | the namespace, measured | runs: needed |
+| EC found (ECDT, PNP0C09) | its fields usable in _REG and _INI | runs: needed |
+| regions connected, `_REG` | EmbeddedControl among them; firmware's EC fields wait on it | runs: needed |
+| `\_SB._INI`, every `_INI` | firmware sets itself up, the EC's path among it | runs: needed |
+| ACPI mode, runtime GPEs, SCI | the EC's GPE and _Qxx, the Notify a battery, adapter or lid sends | runs: needed |
+| `_STA`, `_BIX`/`_BIF`, `_BST`, `_PSR`, `MkAcpiPower` | the bar's battery | runs: needed |
+| lids (`_LID`, 2 s poll), PNP0C0C/PNP0C0E Notify | the shell's lock, the Power key | runs: needed |
+| low and critical battery to the kernel | the kernel's watch: ask the desktop, then power off | runs: needed |
+| inventory, `_PRT`, SMBIOS, serial, legacy, `MkAcpiProximity`, PCI `_DSM` 5/7/9, hotkey names, the sleep line | read and reported | runs: only reads |
+| `\_PIC(1)` | firmware's choice of _PRT; nothing in NONOS routes from it | left out |
+| `_OSC`, platform, host bridges | firmware's ownership of PCIe controls; with none published, firmware keeps them all | left out |
+| `\_S5` to `MkAcpiSleep`, PREPARE_SLEEP (`\_TTS`, `\_PTS`) | changes the soft-off the kernel already does | left out: answers EPERM, and capsule_power goes on |
+| reserved ranges (`MkAcpiReserved`) | the broker refuses grants over them | left out, until a laptop shows no driver loses a grant |
+| hidden functions' `_PS0`, probe, D3cold a minute later | powers devices | left out |
+| hot plug, `_DCK`, `_LCK`, `_EJ0`, native slots | adds and takes out functions | left out |
+| platform records (`MkAcpiPlatformDevice`) | new claimable I2C, SD and GPIO hosts | left out |
+| `_BTP` | writes the battery's trip point | left out: polled every minute instead |
+| the capsule's wiped power-off | AdminShutdown on a press, _CRT or a critical battery | left out: a press goes to the desktop as its Power key; the kernel's watch acts on a critical battery |
+| the fixed button's hand-over (`BUTTON_TAKEN`) | the kernel's poll stands down | left out: the poll keeps the button |
+| cooling | fans by _FSL or _PR0, `_SCP`, passive limits, the _CRT power-off | left out: firmware and the EC keep the fans |
+| processors | their `_OSC`, records for frequency and idle control | left out |
+| backlight | `_BCM`, the brightness keys | left out: SET_BRIGHTNESS answers EPERM |
+| hardware errors | HEST blocks acknowledged to firmware | left out |
+| port facts, external ports | broker flags | left out |
+| Type-C (UCSI) | PPM_RESET, the session | left out |
+| DEVICE_POWER, GPIO_EVENT, SET_POWER_CAP | moves, methods run, a cap written | left out: EPERM |
+
 ## Microkernel contract
 
 Every table it is handed is measured by the kernel. At the first hand-out,

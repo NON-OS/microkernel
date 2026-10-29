@@ -17,8 +17,6 @@
 //! A run asked for by name: a shipped tier's program, or an installed
 //! package's, read from the store; or why neither starts.
 
-use alloc::vec::Vec;
-
 use crate::linux::file::{family::choose, key, store_read};
 use crate::linux::run_mode::Mode;
 
@@ -50,7 +48,7 @@ pub(super) fn run(name: &str, mode: Mode) -> Option<Launch> {
         return refused(b"linux: nothing installed under that name", "");
     };
     match store_read(&key(&path), MAX_IMAGE) {
-        Ok(bytes) => Some(store(path, bytes, Vec::new())),
+        Ok(bytes) => Some(store(path, bytes, super::request::run_word().into_iter().collect())),
         Err(why) => refused(b"linux: the installed program could not be read: ", why),
     }
 }

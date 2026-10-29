@@ -25,14 +25,13 @@ use crate::pmksa::Pmksa;
 use crate::rsn::{Selection, TemporalKey};
 use crate::wpa::akm::Akm;
 use crate::wpa::supplicant::Supplicant;
+use alloc::boxed::Box;
 
-// Built once per join and moved straight into the session, so the size gap
-// between Joined and the bare endings costs nothing worth a box.
-#[allow(clippy::large_enum_variant)]
 pub enum Outcome {
     /// Associated: the AP, its channel, the pairwise key and the supplicant
-    /// that keeps answering the AP's group key handshakes.
-    Joined { bssid: [u8; 6], channel: u8, tk: TemporalKey, akm: Akm, supplicant: Supplicant },
+    /// that keeps answering the AP's group key handshakes, boxed so the
+    /// bare endings do not carry its size.
+    Joined { bssid: [u8; 6], channel: u8, tk: TemporalKey, akm: Akm, supplicant: Box<Supplicant> },
     /// Refused, or the handshake broke; `Report::failure` says where.
     Refused,
     /// The AP stopped answering before the join finished.

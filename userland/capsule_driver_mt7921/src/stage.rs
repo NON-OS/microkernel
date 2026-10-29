@@ -42,7 +42,7 @@ impl Stage {
             Stage::FirmwareFailed => "firmware: the card did not take it",
             Stage::NoDma => "no DMA memory for the rings",
             Stage::NoStationAddress => "no randomness for an address",
-            Stage::NoAirPath => "chip not supported",
+            Stage::NoAirPath => "no firmware in this driver for the chip id",
             Stage::PackageMissing => "firmware package missing",
             Stage::PackageMismatch => "firmware package does not match",
         }

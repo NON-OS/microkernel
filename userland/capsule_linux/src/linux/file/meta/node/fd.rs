@@ -55,7 +55,9 @@ pub fn of_fd(guest: &Guest, f: &Fd) -> Result<Meta, i64> {
         Kind::Memfd => Ok(Meta { size: f.size, ..at(b"/memfd:", S_IFREG | 0o777, 0, now()) }),
         Kind::Device => device(&f.path, f.handle).ok_or(errno::EBADF),
         Kind::Pty => Ok(pty(&f.path, f.handle)),
-        Kind::Epoll | Kind::Timer | Kind::Event | Kind::Signal => Ok(named(b"anon_inode:[]", b"/")),
+        Kind::Epoll | Kind::Timer | Kind::Event | Kind::Signal | Kind::Pidfd => {
+            Ok(named(b"anon_inode:[]", b"/"))
+        }
     }
 }
 

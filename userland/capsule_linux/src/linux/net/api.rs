@@ -41,3 +41,7 @@ pub use super::socket::socket;
 pub use super::try_call::try_call;
 pub use super::xfer::outbound::write as send;
 pub use super::xfer::read::read as recv;
+
+/* SERVE_ONE: the box's one listener, served to one capsule, which the loop pumps. */
+#[path = "serve_one/mod.rs"]
+pub mod serve_one;
