@@ -2,8 +2,6 @@
 //! Host proofs for the aarch64 UEFI loader. The modules below are the
 //! loader's own files; `walk` assembles the loader's own `walk.S`.
 
-#![allow(dead_code)]
-
 #[path = "../../../nonos-bootloader/src/loader/core/exec/block_layout.rs"]
 pub mod block_layout;
 #[path = "../../../nonos-bootloader/src/arch/aarch64/fdt_header.rs"]

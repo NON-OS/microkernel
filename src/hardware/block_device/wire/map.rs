@@ -29,7 +29,7 @@ pub(in crate::hardware::block_device) fn map_wire_error(e: E) -> BlockDeviceErro
         E::OversizedRequest => BlockDeviceError::OversizedRequest,
         E::OutOfRange => BlockDeviceError::OutOfRange,
         E::DeviceFailure | E::TimedOut => BlockDeviceError::DeviceFailure,
-        E::ReadOnly => BlockDeviceError::Unsupported,
+        E::ReadOnly => BlockDeviceError::ReadOnly,
         E::NoCallerPid => BlockDeviceError::NoCallerPid,
         E::TransportFailure => BlockDeviceError::TransportFailure,
         E::ProtocolMismatch => BlockDeviceError::ProtocolMismatch,

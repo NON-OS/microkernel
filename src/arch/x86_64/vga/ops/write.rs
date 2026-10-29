@@ -117,31 +117,3 @@ pub fn set_color(fg: Color, bg: Color) {
 
     release_lock();
 }
-
-pub fn print_critical(s: &str) {
-    let index = ACTIVE_CONSOLE.load(Ordering::Relaxed);
-    // SAFETY: Panic-safe path, bypasses locking
-    unsafe {
-        let consoles = addr_of_mut!(CONSOLES);
-        for byte in s.bytes() {
-            (*consoles)[index].write_byte(byte);
-        }
-        (*consoles)[index].flush_to_vga();
-    }
-}
-
-pub fn print_hex(value: u64) {
-    const HEX_CHARS: &[u8] = b"0123456789ABCDEF";
-    let mut buffer = [b'0'; 18];
-    buffer[0] = b'0';
-    buffer[1] = b'x';
-
-    for i in 0..16 {
-        let nibble = ((value >> (60 - i * 4)) & 0xF) as usize;
-        buffer[2 + i] = HEX_CHARS[nibble];
-    }
-
-    if let Ok(s) = core::str::from_utf8(&buffer) {
-        write_str(s);
-    }
-}

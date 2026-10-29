@@ -20,6 +20,6 @@
  */
 
 #[path = "../../../../src/process/foreign/seal/measure_line.rs"]
-pub mod measure_line;
+pub mod said;
 #[cfg(test)]
 mod tests;

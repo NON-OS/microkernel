@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::kept_name::{is_kept, may_reach};
+use super::rule::{is_kept, may_reach};
 use std::cell::Cell;
 
 #[test]
