@@ -25,10 +25,10 @@
       "bv_decide_calls": 10,
       "bv_decide_theorems": 11,
       "counts": {
-        "extracted": 979,
-        "proven": 979,
+        "extracted": 978,
+        "proven": 978,
         "substantive": 492,
-        "trivial": 487,
+        "trivial": 486,
         "unproven": 0
       },
       "description": "Functions lowered from real Rust MIR by Charon and translated to Lean by Aeneas. Counted three ways, because they are not equally proven: substantive carries a property about behaviour, trivial carries only the theorem that its generated wrapper is the method it forwards to, and unproven carries nothing.",
@@ -422,7 +422,6 @@
         "nonos_x_drivers_pci_types_bar::pcibar_size",
         "nonos_x_drivers_pci_types_header::headertype_is_multifunction",
         "nonos_x_drivers_pci_types_msi::msiinfo_allocated_vectors",
-        "nonos_x_drivers_pci_types_msi::msiinfo_max_vectors",
         "nonos_x_drivers_pci_types_msi::msimessage_for_local_apic",
         "nonos_x_drivers_pci_types_msi::msimessage_new",
         "nonos_x_drivers_pci_types_msi::msixinfo_vector_count",
@@ -2181,7 +2180,7 @@
       "toolchain": "leanprover/lean4:v4.15.0"
     },
     "runnable": {
-      "proof_crates": 202
+      "proof_crates": 222
     },
     "verus": {
       "source_files": 6
