@@ -228,7 +228,7 @@ link table. (booted: HANDOFF/catalogue/evidence/pack-2026-10-26)
   uninstall nothing)
 - **A failed install** takes its pack out with the rest of what it wrote (install/place/undo.rs). (built, not booted)
 - **The RAM home** (linux/files-home 4f5df02cd) sits apart:
-  - `/linux-home/<key>`, writable, under the 16 MiB, 128-name and 64 MiB quota, keyed by listing;
+  - `/linux-home/<key>`, writable, under the 16 MiB (64 MiB for linux.monero), 128-name and 128 MiB quota, keyed by listing;
   - the pack is read-only under /linux;
   - the two never share a name, so the home's quota never counts pack bytes;
   - uninstall erases both the pack and the home, as it erases the home now.
