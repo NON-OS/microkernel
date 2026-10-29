@@ -57,7 +57,7 @@ pub fn stem(l: &Legacy) -> Option<String> {
 }
 
 pub fn run<P: UsbPipes>(w: &mut Wire<P>, l: Legacy) -> Result<(), HciError> {
-    let Some(stem) = stem(&l) else { return Err(w.refuse(&[b"hardware variant not supported"])) };
+    let Some(stem) = stem(&l) else { return Err(w.refuse(&[b"hardware variant unknown to this loader"])) };
     if l.fw_variant == OPERATIONAL {
         return running(w, &stem, l.variant, l.build);
     }
