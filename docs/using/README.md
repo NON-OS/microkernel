@@ -31,7 +31,7 @@ The guide for a person who uses NONOS every day: what each part of the desktop d
 | [Privacy apps](privacy-apps.md) | install the privacy apps from the App Store, and learn what each protects and what it does not |
 | [Monero wallet](monero.md) | make or restore a Monero wallet, choose its node, and keep its seed |
 | [SimpleX Chat](simplex.md) | message with no user identifiers: a profile, a contact, where messages are kept, over Anyone (first draft) |
-| [DarkFi](darkfi.md) | install DarkFi's software-rendered chat app, and how it reaches its peers over Anyone |
+| [DarkFi](darkfi.md) | install DarkFi's software-rendered chat app and DarkIRC in the Terminal, and how they reach their peers over Anyone |
 | [Marketplace](marketplace.md) | install Qwen tiers and Linux packages, or a signed `.nonos` package file |
 | [Wallet](wallet.md) | hold keys and make payments |
 
