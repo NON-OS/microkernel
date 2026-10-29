@@ -20,7 +20,11 @@
  * the launcher left; included by path.
  */
 
+#[cfg(test)]
+mod argv_tests;
 #[path = "../../../../src/userspace/capsule_linux/served_run_rule.rs"]
 pub mod rule;
+#[path = "../../../../src/userspace/capsule_linux/run_argv.rs"]
+pub mod run_argv;
 #[cfg(test)]
 mod tests;

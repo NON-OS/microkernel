@@ -249,5 +249,21 @@
   "new": "run == b\"run\" && ",
   "test": "console::run_word_tests::no_word_without_the_kernel_s_spelling",
   "crate": "userland/capsule_linux_proofs"
+ },
+ {
+  "name": "run-argv-named-start-unnamed",
+  "file": "src/userspace/capsule_linux/run_argv.rs",
+  "old": "        [verb, package, mark, _] if verb == \"run\" && mark == \"word\" => Some(package),\n",
+  "new": "",
+  "test": "served_run::argv_tests::a_run_names_its_package_with_or_without_its_word",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "run-argv-any-fourth-shape",
+  "file": "src/userspace/capsule_linux/run_argv.rs",
+  "old": "if verb == \"run\" && mark == \"word\" =>",
+  "new": "if verb == \"run\" && !mark.is_empty() =>",
+  "test": "served_run::argv_tests::no_other_shape_names_a_package",
+  "crate": "userland/kernel_proofs"
  }
 ]
