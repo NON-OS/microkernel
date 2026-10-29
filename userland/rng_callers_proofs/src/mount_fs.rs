@@ -32,7 +32,7 @@ pub mod fs {
         mod seal;
         mod sector_open;
         mod window;
-        pub use crate::stand_in::block_io::{flush_held, volume_scope};
+        pub use crate::stand_in::block_io::{drop_held, flush_held, volume_scope};
         pub use crate::stand_in::ram;
         pub use constants::{PLAIN_BLOCK_BYTES, SECTOR_BYTES};
         pub use error::CryptoBlockError;

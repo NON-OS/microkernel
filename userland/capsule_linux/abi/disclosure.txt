@@ -8,6 +8,7 @@ read | bytes of the guest's own files, pipes and sockets | its own data
 write | nothing back but a count | a count of its own bytes
 open | whether a path exists in the Linux tree or the family's private dirs | the tree holds installs every machine with them shares; private dirs are the family's own
 close | nothing | none
+stat | size and kind of a path; an inode derived from the path alone; fixed times and owner | size is of shared installs or the family's own files; the inode says nothing the path does not
 fstat | size and kind of an open descriptor | as stat
 lstat | as stat | as stat
 poll | readiness of its own descriptors | its own state
@@ -99,6 +100,8 @@ symlink | as rename | as rename
 readlink | the target of a link in the Linux tree | links come with the shared installs
 chmod | as rename | as rename
 fchmod | as rename | as rename
+chown | whether a path exists; success only when owner and group stay 0, EPERM otherwise | as open; every file is root's on every install
+fchown | success only when owner and group stay 0, EPERM otherwise | every file is root's on every install
 lchown | as chown | as chown
 umask | the mask it set | its own state
 gettimeofday | the wall clock at 1 ms | shared by every machine on network time; no finer step is given
@@ -123,6 +126,7 @@ arch_prctl | its own thread pointer | its own state
 gettid | the calling thread's number in the family | family numbering
 tkill | as kill | as kill
 tgkill | as kill | as kill
+pidfd_send_signal | as kill, for the child its pidfd names | as kill
 time | the wall clock in seconds | as gettimeofday
 futex | wakes among its own threads | its own state
 getdents64 | names in the Linux tree or its private dirs | as open
@@ -149,6 +153,7 @@ faccessat | as access | as open
 pselect6 | as select | as poll
 ppoll | as poll | as poll
 set_robust_list | 0 | a constant
+get_robust_list | no list, 24 bytes long, for the caller's own thread; another thread's is refused | a constant, and whose list it is stays unsaid
 utimensat | success, or refusal outside its private dirs; the times it sets read back through stat | as rename; the times are its own
 utimes | as utimensat | as utimensat
 utime | as utimensat | as utimensat

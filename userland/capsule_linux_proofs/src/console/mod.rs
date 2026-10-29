@@ -32,6 +32,10 @@ pub mod queue_piece;
 pub mod queue_take;
 #[path = "../../../capsule_linux/src/linux/run_mode.rs"]
 pub mod run_mode;
+#[path = "../../../capsule_linux/src/linux/run_word.rs"]
+pub mod run_word;
+#[cfg(test)]
+mod run_word_tests;
 #[path = "../../../capsule_linux/src/linux/console/tty_rules.rs"]
 pub mod tty_rules;
 #[cfg(test)]

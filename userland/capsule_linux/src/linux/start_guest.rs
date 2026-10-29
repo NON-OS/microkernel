@@ -18,12 +18,13 @@
 
 use nonos_libc::mk_foreign_start;
 
-use super::app::{bind, bind_built_in, AppIdentity};
 use super::guest::{Guest, STACK_SIZE, STACK_TOP};
 use super::image;
 use super::launch::Launch;
-use super::origin::Origin;
 use super::say::say;
+
+mod prove;
+pub(super) use prove::{keep, prove};
 
 /*
  * The launch is taken, not borrowed: once the program is mapped its bytes are
@@ -48,7 +49,7 @@ pub(super) fn start(guest: &mut Guest, launch: Launch) -> Result<(), &'static [u
     super::terminal_hand::to_terminal(guest)?;
     super::seal_note::seal_app(&guest.app.app_id);
     super::run_net::settle(guest.app.mask)?;
-    super::app::grant(guest.app.mask);
+    super::app::grant(&guest.app);
     let (listing, program) = (&guest.app.policy.listing_id, &guest.app.policy.program_blake3);
     let key = super::app::home_key(listing, program);
     super::start_home::open(guest, key)?;
@@ -56,20 +57,11 @@ pub(super) fn start(guest: &mut Guest, launch: Launch) -> Result<(), &'static [u
     guest.map(STACK_TOP - STACK_SIZE, STACK_SIZE, true, false);
     let mut argv = alloc::vec![launch.argv0.clone().unwrap_or_else(|| path.to_vec())];
     argv.extend(super::app::start_args(&launch, &guest.app.policy)?);
-    let env = super::env::with_pwd(&guest.cwd);
+    let env = super::env::with_pwd(&guest.cwd, super::gtk_prep::mesa());
     let rsp = image::build(guest, STACK_TOP, &image, interp_base, &argv, &env)
         .ok_or(&b"[LINUX] stack refused\n"[..])?;
     match mk_foreign_start(guest.pid, entry, rsp) {
         n if n < 0 => Err(&b"[LINUX] start refused\n"[..]),
         _ => Ok(()),
-    }
-}
-
-/// A program out of the store proves itself against the enrolled set, and
-/// either kind is bound to the policy it runs under.
-fn prove(path: &[u8], bytes: &[u8], origin: &Origin) -> Result<AppIdentity, &'static str> {
-    match origin {
-        Origin::BuiltIn => Ok(bind_built_in(bytes)),
-        Origin::Store => super::attest::verify(path, bytes).and_then(|_| bind(path, bytes)),
     }
 }

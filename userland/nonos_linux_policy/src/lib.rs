@@ -36,6 +36,7 @@ mod layout;
 pub mod market;
 pub mod mask;
 mod policy;
+pub mod serve;
 mod syscall_set;
 mod unlisted;
 #[cfg(feature = "vendor")]
@@ -46,9 +47,10 @@ pub use bucket::{bucket, BUCKETS};
 pub use decode::decode;
 pub use error::PolicyError;
 pub use identity::{app_id, policy_hash};
-pub use layout::{LEN, MAGIC, VERSION};
+pub use layout::{LEN, MAGIC, VERSION, VERSION_SERVE};
 pub use market::market_ready;
 pub use policy::LinuxAppPolicy;
+pub use serve::ServeOne;
 pub use syscall_set::{SyscallSet, SET_LEN};
 pub use unlisted::{unlisted, UNLISTED_MASK};
 

@@ -28,7 +28,6 @@ pub use constants::*;
 pub use cursor::{disable_cursor, enable_cursor, update_cursor};
 pub use error::VgaError;
 pub use ops::{
-    active_console, clear, enter_panic_mode, get_stats, init, is_initialized, print_critical,
-    print_hex, set_color, switch_console, write_byte, write_str, write_str_to_console, VgaStats,
-    VgaWriter,
+    active_console, clear, enter_panic_mode, get_stats, init, is_initialized, set_color,
+    switch_console, write_byte, write_str, write_str_to_console, VgaStats, VgaWriter,
 };

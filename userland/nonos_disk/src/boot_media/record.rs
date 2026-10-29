@@ -19,7 +19,7 @@
  * kernel's handoff types, forty bytes, little-endian, read here by offset
  * so its layout is spelled once on this side.
  *
- *   0..4 partition number   4 table   5 signature type   6..8 reserved
+ *   0..4 partition number   4 table   5 signature type   6..8 flags, not read
  *   8..16 start LBA   16..24 size in sectors   24..40 signature
  */
 

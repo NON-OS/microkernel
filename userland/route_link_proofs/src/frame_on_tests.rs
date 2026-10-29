@@ -65,4 +65,4 @@ fn nothing_but_a_reset_or_an_exchange_is_renamed() {
 }
 
 /* The markers are net.socks5's and net.anon's, and below the SOCKS version. */
-const _: () = assert!(RESET_ON == 3 && NUMBERED_ON == 4 && STREAMS_PER_CALLER == 8);
+const _: () = assert!(RESET_ON == 3 && NUMBERED_ON == 4 && STREAMS_PER_CALLER == 24);

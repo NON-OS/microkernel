@@ -35,7 +35,8 @@ the ports.
 | `MPAL` | `0x4C41504D` | `MkPidAlive` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | 1 when a pid names a live process, else 0. |
 | `MWAT` | `0x5441574D` | `MkWait` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:35` | Wait, up to a timeout, for a child to exit, and return its exit code. |
 | `MKIL` | `0x4C494B4D` | `MkKill` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:36` | Send SIGINT, SIGTERM or SIGKILL to a child, a supervised guest, or, with ProcessControl or Admin, any process. |
-| `MGPD` | `0x4450474D` | `MkGetPid` | CoreExec | `can_getpid` `src/syscall/contract/cap_table/mk_ipc.rs:24` | The caller's pid. |
+| `MGPD` | `0x4450474D` | `MkGetPid` | valid token | `is_valid` `src/syscall/contract/cap_table/mk_ipc.rs:28` | The caller's pid. |
+| `MTGR` | `0x5247544D` | `MkThreadGroup` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:52` | The process a pid's thread belongs to, so a service can tell its own workers' messages; a thread of no other process answers its own pid. ENOENT for a pid that names no process. |
 | `MKAR` | `0x52414B4D` | `MkArgs` | CoreExec | `can_getpid` `src/syscall/contract/cap_table/mk_ipc.rs:25` | Copy the caller's arguments, NUL separated. |
 | `MTSP` | `0x5053544D` | `MkThreadSpawn` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_ipc.rs:26` | Start a thread in the caller's address space; returns its id. |
 | `MSTB` | `0x4254534D` | `MkSetTls` | valid token | `is_valid` `src/syscall/contract/cap_table/mk_ipc.rs:31` | Set the caller's thread pointer base. |
@@ -48,7 +49,7 @@ the ports.
 | `MMON` | `0x4E4F4D4D` | `MkTimeMonotonic` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | Milliseconds since boot; never moves backwards. |
 | `MTRT` | `0x5452544D` | `MkTimeRtc` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | Read the real-time clock as a date and time record. |
 | `MTAD` | `0x4441544D` | `MkTimeAdjust` | TimeSet | `can_set_time` `src/syscall/contract/cap_table/mk_proc.rs:36` | Correct the wall clock to a Unix time in milliseconds between 2025-01-01 and 2100-01-01 UTC. |
-| `MBAT` | `0x5441424D` | `MkBatteryStatus` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | Battery charge; in 0.9.2 always `ENODEV` or `EOPNOTSUPP`, since the kernel runs no AML. |
+| `MBAT` | `0x5441424D` | `MkBatteryStatus` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:39` | Battery charge, from the ACPI capsule's report while it is under three minutes old, else `ENODEV` (no battery declared) or `EOPNOTSUPP`. `form` 0 answers the percentage; `form` 1 the report's whole word (bits 0-7 charge, 0xFF unknown; 8 present; 9 charging; 10 discharging; 11 AC online; 12 AC known); any other form `EINVAL`. |
 
 ### Output, input and terminals
 
