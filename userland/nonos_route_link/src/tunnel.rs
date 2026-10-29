@@ -21,9 +21,9 @@
  *
  * Both proxies key a conversation on the caller's pid, so a capsule holds
  * one stream through each at a time: opening one ends the last. Opening
- * starts with a reset, so nothing a crashed or abandoned stream left behind
- * is read as this one's, and dropping a stream resets it again, which ends
- * its tunnel at the proxy.
+ * starts with a reset that reached the proxy, so nothing a crashed or
+ * abandoned stream left behind is read as this one's, and dropping a
+ * stream resets it again, which ends its tunnel at the proxy.
  */
 
 use alloc::vec;
@@ -31,7 +31,7 @@ use alloc::vec::Vec;
 
 use crate::answer::ANSWER_BUF;
 use crate::bounds::{POLL_GAP_MS, RESET_WAIT_MS};
-use crate::carrier::Carrier;
+use crate::carrier::{Carrier, NO_ROOM};
 use crate::frame::{reset, FIRST_SEQ};
 use crate::install::greeting;
 use crate::refusal::{Proxy, REP_NOT_YET};
@@ -83,22 +83,22 @@ impl<C: Carrier> Tunnel<C> {
         self.proxy
     }
 
-    /* A conversation from the start: the proxy forgets the last one. */
-    pub(crate) fn restart(&mut self) {
-        self.forget();
-        self.seq = FIRST_SEQ;
+    /* A conversation from the start; false when its reset never reached the proxy. */
+    pub(crate) fn restart(&mut self) -> bool {
+        (self.seq, self.closed, self.unanswered) = (FIRST_SEQ, false, None);
         self.pending.clear();
-        self.closed = false;
-        self.unanswered = None;
+        self.forget()
     }
 
     /*
      * Ask the proxy to forget this caller's conversation, ending its tunnel.
-     * No answer is needed: a proxy with nothing to forget is the normal case,
-     * and one that is not there fails the greeting that follows.
+     * No answer is needed: the proxy takes what the kernel queued in order,
+     * so a greeting after a queued reset meets a fresh conversation. False
+     * when the kernel had no room for it: the proxy still holds the last
+     * conversation, and a greeting now would be carried to its far end.
      */
-    fn forget(&mut self) {
-        let _ = self.carrier.call(&reset(), self.reset_wait_ms, &mut self.rx);
+    fn forget(&mut self) -> bool {
+        !NO_ROOM.contains(&self.carrier.call(&reset(), self.reset_wait_ms, &mut self.rx))
     }
 
     pub(crate) fn handshake(&mut self, ask: &[u8], until: i64) -> Result<(), Attempt> {

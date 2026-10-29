@@ -15,13 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Opening a tunnel in one call: a reset, the greeting and the CONNECT,
- * asked again while a network that runs has not connected yet, all under
- * OPEN_MS. An install's download opens the same way with the install mark
- * in its greeting (install.rs).
+ * Opening a tunnel in one call: a reset that reached the proxy, then the
+ * greeting and the CONNECT, asked again while a network that runs has not
+ * connected yet, all under OPEN_MS. An install's download opens the same
+ * way with the install mark in its greeting (install.rs).
  */
 
-use crate::bounds::{NOT_YET_GAP_MS, OPEN_MS};
+use crate::bounds::{ASK_GAP_MS, NOT_YET_GAP_MS, OPEN_MS};
 use crate::carrier::Carrier;
 use crate::refusal::{Proxy, BAD_HOST, REP_NOT_YET};
 use crate::socks::connect_request;
@@ -54,7 +54,13 @@ impl<C: Carrier> Tunnel<C> {
         t.install = install;
         let until = t.carrier.now_ms().saturating_add(OPEN_MS);
         loop {
-            t.restart();
+            if !t.restart() {
+                if t.carrier.now_ms() >= until {
+                    return Err(proxy.silent());
+                }
+                t.carrier.pause(ASK_GAP_MS);
+                continue;
+            }
             match t.handshake(&ask, until) {
                 Ok(()) => return Ok(t),
                 Err(Attempt::NotYet) if t.carrier.now_ms() < until => {
