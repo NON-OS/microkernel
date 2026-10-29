@@ -10,7 +10,8 @@
 # - no tor or i2p transport (darkfi.patch's net-defaults hunk);
 # - miniquad waits for events rather than drawing every frame on the CPU;
 # - the background image read from the content's absolute path;
-# - miniquad from SRC/../miniquad, which starts with no wl_data_device_manager.
+# - miniquad from SRC/../miniquad, which starts with no wl_data_device_manager
+#   and asks EGL for single-sampled configs, the only ones softpipe has.
 # The fonts it embeds are IBM Plex Mono from doc/src/fonts at the commit and
 # Noto Color Emoji from Alpine's font-noto-emoji, both pinned below. The
 # program is WORK/target/x86_64-unknown-linux-musl/release/darkfi-app; its
