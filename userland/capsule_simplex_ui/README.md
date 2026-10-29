@@ -26,7 +26,7 @@ its own box with its own database (simplex.core,
   session in the v6 shapes the host proofs replay. All pure.
 - `src/serve/`: the window's pipe, one SERVE_ONE connection on
   `linux.serve.app.simplex` in S1's frames (`nonos_serve_wire`), and `open`, which starts the
-  core (MkAppLaunch of `linux.kali.nonos-simplex-chat`) and asks for the
+  core (MkAppLaunch of `linux.kali.nonos-simplex-core`) and asks for the
   endpoint each quarter second for half a minute. Until it answers the
   window is offline and says so; it never shows a recorded session.
 - `src/ui/`: the window. Chat list on the left (name, last message, time,
