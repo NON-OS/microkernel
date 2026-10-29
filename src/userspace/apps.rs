@@ -38,6 +38,8 @@ pub mod capsule_image_viewer;
 pub mod capsule_prove;
 #[path = "capsule_ripgrep/mod.rs"]
 pub mod capsule_ripgrep;
+#[path = "capsule_simplex_ui/mod.rs"]
+pub mod capsule_simplex_ui;
 #[path = "capsule_snake/mod.rs"]
 pub mod capsule_snake;
 #[path = "capsule_terminal/mod.rs"]
