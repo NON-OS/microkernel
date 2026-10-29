@@ -47,18 +47,23 @@ pub fn default() -> Vec<Vec<u8>> {
         b"GSK_RENDERER=cairo".to_vec(),
         b"QT_QUICK_BACKEND=software".to_vec(),
         b"NO_AT_BRIDGE=1".to_vec(),
-        // A program that asks EGL for OpenGL gets Mesa's software driver,
-        // drawn into wl_shm, where a box's closure holds it; without it EGL
-        // fails as it always has (docs/design/box-gl.md).
-        b"LIBGL_ALWAYS_SOFTWARE=1".to_vec(),
-        b"LIBGL_DRIVERS_PATH=/usr/lib/nonos-mesa".to_vec(),
         b"EGL_PLATFORM=wayland".to_vec(),
     ]
 }
 
-/// The same, with PWD the directory the first program starts in.
-pub fn with_pwd(cwd: &[u8]) -> Vec<Vec<u8>> {
+/// Where a box's closure places the NØNOS-built Mesa.
+pub const MESA: &[u8] = b"/usr/lib/nonos-mesa";
+
+/// The same, with PWD the directory the first program starts in. A program
+/// that asks EGL for OpenGL is sent to Mesa's software driver, drawn into
+/// wl_shm, only where the run's store has it (`mesa`): pointed at a driver
+/// that is not there, every Qt program said Mesa could not open it.
+pub fn with_pwd(cwd: &[u8], mesa: bool) -> Vec<Vec<u8>> {
     let mut env = default();
     env.iter_mut().filter(|v| v.starts_with(b"PWD=")).for_each(|v| *v = [b"PWD=", cwd].concat());
+    if mesa {
+        env.push(b"LIBGL_ALWAYS_SOFTWARE=1".to_vec());
+        env.push([b"LIBGL_DRIVERS_PATH=", MESA].concat());
+    }
     env
 }
