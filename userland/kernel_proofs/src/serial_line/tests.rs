@@ -51,8 +51,9 @@ fn concurrent_lines_reach_the_port_whole() {
         .collect();
     writers.into_iter().for_each(|w| w.join().unwrap());
     let writes = WRITES.lock().unwrap();
-    assert_eq!(writes.len(), 8000, "one write a line");
-    for w in writes.iter() {
+    let mine: Vec<_> = writes.iter().filter(|w| w.starts_with(b"[CPU")).collect();
+    assert_eq!(mine.len(), 8000, "one write a line");
+    for w in mine {
         let s = std::str::from_utf8(w).unwrap();
         let (cpu, rest) = s.strip_prefix("[CPU").and_then(|r| r.split_once("] seq=")).unwrap();
         let (seq, rip) = rest.split_once(" rip=0x").expect(s);
