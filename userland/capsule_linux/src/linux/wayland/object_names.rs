@@ -45,6 +45,8 @@ pub fn name(what: Object) -> &'static [u8] {
         Object::DataOffer => b"wl_data_offer",
         Object::DecorationManager => b"zxdg_decoration_manager_v1",
         Object::Decoration => b"zxdg_toplevel_decoration_v1",
+        Object::KdeDecorationManager => b"org_kde_kwin_server_decoration_manager",
+        Object::KdeDecoration => b"org_kde_kwin_server_decoration",
         Object::Positioner => b"xdg_positioner",
         Object::Popup => b"xdg_popup",
         Object::Touch => b"wl_touch",
