@@ -22,3 +22,11 @@ use crate::syscall::{call_raw, N_MK_BATTERY_STATUS};
 pub extern "C" fn mk_battery_status() -> i64 {
     call_raw(N_MK_BATTERY_STATUS, [0; 6])
 }
+
+/// The ACPI capsule's whole battery report while it is fresh (MkBatteryStatus
+/// form 1): bits 0-7 the charge (0xFF unknown), 8 present, 9 charging, 10
+/// discharging, 11 AC online, 12 AC known. Without a fresh report, the same
+/// errnos as `mk_battery_status`.
+pub extern "C" fn mk_battery_state() -> i64 {
+    call_raw(N_MK_BATTERY_STATUS, [1, 0, 0, 0, 0, 0])
+}

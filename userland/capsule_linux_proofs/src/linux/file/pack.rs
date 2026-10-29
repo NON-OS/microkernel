@@ -25,6 +25,8 @@ pub mod paths;
 pub mod shelf;
 #[path = "../../../../capsule_linux/src/linux/file/store/pack/swap.rs"]
 pub mod swap;
+#[path = "../../../../capsule_linux/src/linux/file/store/pack/swap_head.rs"]
+pub mod swap_head;
 
 #[cfg(test)]
 mod pack_tests;

@@ -23,6 +23,7 @@ use alloc::vec::Vec;
 use nonos_app_skeleton::clients::vfs::VfsStream;
 
 use super::bytes::Fail;
+use crate::linux::start_say::clock;
 
 pub enum Stream {
     Store(VfsStream),
@@ -33,7 +34,7 @@ impl Stream {
     /// Up to `len` bytes from `offset`, as VfsStream reads them.
     pub fn read_window(&mut self, offset: u64, len: u32) -> Result<Vec<u8>, Fail> {
         match self {
-            Stream::Store(s) => s.read_window(offset, len),
+            Stream::Store(s) => s.read_window(offset, len).inspect(|b| clock::read(b.len())),
             Stream::Packed(bytes) => {
                 let start = usize::try_from(offset).unwrap_or(usize::MAX).min(bytes.len());
                 let end = start.saturating_add(len as usize).min(bytes.len());
