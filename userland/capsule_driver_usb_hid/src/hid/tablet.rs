@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{INPUT_KIND_POINTER_ABS, INPUT_KIND_WHEEL};
+use nonos_libc::{mk_input_event_post, InputEvent, INPUT_KIND_POINTER_ABS, INPUT_KIND_WHEEL};
 
 use super::post_failures::count_pointer;
 use super::post_mouse::publish_buttons;
-use super::post_wire::{send, send_abs};
+use super::post_wire::send;
 
 /// What one absolute pointer report says, its position scaled onto the
 /// 0 to 0x7FFF range the input router maps onto the screen. `at` is false
@@ -48,7 +48,7 @@ impl Tablet {
     pub fn apply(&mut self, report: TabletReport) {
         let mut ok = true;
         if report.at {
-            ok &= send_abs(INPUT_KIND_POINTER_ABS, report.x, report.y);
+            ok &= send_abs(report.x, report.y);
         }
         if report.wheel != 0 {
             ok &= send(INPUT_KIND_WHEEL, 0, 0, 0, report.wheel);
@@ -61,4 +61,11 @@ impl Tablet {
     pub fn release_all(&mut self) {
         self.apply(TabletReport { buttons: 0, x: 0, y: 0, wheel: 0, at: false });
     }
+}
+
+/// The position, as an absolute pointer event; only a tablet posts one.
+fn send_abs(x: i32, y: i32) -> bool {
+    let kind = INPUT_KIND_POINTER_ABS;
+    let ev = InputEvent { kind, flags: 0, code: 0, x, y, delta_x: 0, delta_y: 0, timestamp_ns: 0 };
+    mk_input_event_post(&ev) >= 0
 }

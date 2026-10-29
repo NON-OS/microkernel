@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Shared with HID over I2C, whose poll tells the touch report from a mouse
-// report (Multitouch::takes); here the frame decode checks the ID itself.
-#[allow(dead_code)]
+// HID over I2C's report descriptor reader, compiled here; the frame decode
+// checks the report ID itself.
 #[path = "../../capsule_driver_i2c_hid/src/hid/report_desc/mod.rs"]
 mod report_desc;
 
