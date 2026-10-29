@@ -15,12 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The window's own channel to simplex.core. The window starts the core
-//! (its listing, MkAppLaunch) and asks for SERVE_ONE's endpoint each tick
-//! until it answers, for at most half a minute; the core stops when the
+//! (its listing, MkAppLaunch, as model/start.rs rules) and asks for
+//! SERVE_ONE's endpoint each tick until it answers; the core stops when the
 //! window closes. Until then, and if it never answers, the window is offline
 //! and says so: it never shows a recorded session as if it were yours.
 
 mod call;
+mod launch;
 mod lazy;
 mod pipe;
 

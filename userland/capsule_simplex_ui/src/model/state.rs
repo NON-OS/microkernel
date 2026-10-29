@@ -33,6 +33,8 @@ pub struct Model {
     pub focus: Focus,
     pub compose: String,
     pub search: String,
+    /// The name asked for when the core has no profile yet (start.rs).
+    pub name: String,
     pub conn: Conn,
     /// Our address, once the core said it.
     pub address: Option<String>,
@@ -52,6 +54,7 @@ impl Model {
             focus: Focus::List,
             compose: String::new(),
             search: String::new(),
+            name: String::new(),
             conn: Conn::Offline,
             address: None,
             requests: Vec::new(),

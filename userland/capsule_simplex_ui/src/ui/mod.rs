@@ -29,8 +29,10 @@ mod paint_chat;
 mod paint_field;
 mod paint_header;
 mod paint_list;
+mod paint_name;
 mod paint_row;
 mod pump;
+mod start;
 mod theme;
 mod view;
 

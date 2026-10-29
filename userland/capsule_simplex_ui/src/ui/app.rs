@@ -22,9 +22,9 @@ use super::event::on_event;
 use super::manifest::manifest;
 use super::paint::paint;
 use super::view::View;
-use crate::serve::open;
 use crate::link::Transport;
 use crate::model::state::Model;
+use crate::serve::open;
 
 /// How often the window asks the transport for frames.
 const TICK_MS: i64 = 250;
@@ -57,7 +57,7 @@ impl App for SimplexUi {
 
     fn on_tick(&mut self) -> bool {
         self.link.tick();
-        self.pump()
+        self.follow_start() | self.pump()
     }
 
     fn tick_interval_ms(&self) -> i64 {

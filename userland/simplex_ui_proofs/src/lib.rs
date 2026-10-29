@@ -45,6 +45,10 @@ mod proto_tests;
 #[cfg(test)]
 mod resp_tests;
 #[cfg(test)]
+mod start_name_tests;
+#[cfg(test)]
+mod start_tests;
+#[cfg(test)]
 mod transcript_tests;
 #[cfg(test)]
 mod wire_tests;
