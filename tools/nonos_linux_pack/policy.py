@@ -15,15 +15,17 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """A release's guest_policy: the 256 bytes of nonos_linux_policy's layout
 (src/layout.rs), held to market_ready (src/market.rs), its ids by
-marketplace_abi's rule. test_policy.py holds the bytes to the crate's."""
+marketplace_abi's rule, version 2 with SERVE_ONE's field (serve.py).
+test_policy.py holds the bytes to the crate's."""
 
 from .keccak import keccak256
+from .serve import VERSION_SERVE, field
 
 MAGIC, VERSION, LEN, SET_LEN = b"NLXPOL01", 1, 256, 65
 MASK = {"WAYLAND": 1 << 0, "NET_ANON": 1 << 1, "NET_LISTEN_LO": 1 << 2,
         "FILES_HOME": 1 << 3, "FILES_USER": 1 << 4, "MODELS_RO": 1 << 5,
-        "EXEC": 1 << 6, "JIT": 1 << 7, "TTY": 1 << 8}
-ALWAYS_SERVED, NATIVE_BUCKET = (60, 231), 512
+        "EXEC": 1 << 6, "JIT": 1 << 7, "TTY": 1 << 8, "SERVE_ONE": 1 << 9}
+ALWAYS_SERVED, NATIVE_BUCKET, SERVED = (60, 231), 512, MASK["SERVE_ONE"] | MASK["WAYLAND"]
 
 
 def listing_id(publisher: bytes, app: str) -> bytes:
@@ -41,28 +43,33 @@ def release_id(listing: bytes, release: str) -> bytes:
 def mask_of(names: str) -> int:
     words = [w for w in names.replace(",", " ").split() if w]
     unknown = [w for w in words if w not in MASK]
-    if unknown:
-        raise ValueError(f"no service is named {unknown[0]}")
+    if unknown or "SERVE_ONE" in words:
+        raise ValueError(f"no service is named {unknown[0]}" if unknown else "SERVE_ONE is set by serve, not named")
     return sum({MASK[w] for w in words})
 
 
 def market_ready(calls: bytes, mask: int) -> bool:
     has = lambda b: calls[b // 8] >> (b % 8) & 1
     sets = all(has(b) for b in ALWAYS_SERVED) and not has(NATIVE_BUCKET)
-    return sets and not mask & MASK["FILES_USER"]
+    return sets and not mask & MASK["FILES_USER"] and mask & SERVED != SERVED
 
 
 def encode(program: bytes, mask: int, listing: bytes, release: bytes,
-           dests_hash: bytes, calls: bytes) -> bytes:
+           dests_hash: bytes, calls: bytes, serve: tuple = None) -> bytes:
     if len(calls) != SET_LEN or calls[-1] & 0xFE:
         raise ValueError("calls is not a 65-byte set of buckets 0 to 512")
     if mask & MASK["FILES_USER"]:
         raise ValueError("FILES_USER is reserved: nothing serves the person's files yet")
+    if bool(mask & MASK["SERVE_ONE"]) != (serve is not None):
+        raise ValueError("SERVE_ONE needs version 2's port and name, and they need SERVE_ONE")
+    if mask & SERVED == SERVED:
+        raise ValueError("SERVE_ONE with WAYLAND is not market ready")
     if not market_ready(calls, mask):
         raise ValueError("calls must name exit (60) and exit_group (231) and leave bucket 512 clear")
-    for name, field in (("program", program), ("listing", listing), ("release", release), ("dests", dests_hash)):
-        if len(field) != 32:
+    for name, got in (("program", program), ("listing", listing), ("release", release), ("dests", dests_hash)):
+        if len(got) != 32:
             raise ValueError(f"{name} is not 32 bytes")
-    out = MAGIC + VERSION.to_bytes(2, "little") + bytes(6) + program + mask.to_bytes(8, "little")
-    out += listing + release + dests_hash + calls
+    version = (VERSION_SERVE if serve else VERSION).to_bytes(2, "little")
+    out = MAGIC + version + bytes(6) + program + mask.to_bytes(8, "little")
+    out += listing + release + dests_hash + calls + (field(serve) if serve else b"")
     return out + bytes(LEN - len(out))

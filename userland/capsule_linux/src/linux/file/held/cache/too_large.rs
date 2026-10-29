@@ -24,7 +24,7 @@ use crate::linux::abi::errno;
 
 static TOLD: AtomicBool = AtomicBool::new(false);
 
-const LINE: &[u8] = b"linux: this app wrote a file past 16 MiB, the most one file may hold \
+const LINE: &[u8] = b"linux: this app wrote a file past 64 MiB, the most one file may hold \
     here; that write was refused.\n";
 
 /// EFBIG, said once a run.

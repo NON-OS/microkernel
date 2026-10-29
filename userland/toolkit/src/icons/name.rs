@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::id::IconId;
-
 impl IconId {
     pub fn name(self) -> &'static str {
         match self {
@@ -70,6 +69,7 @@ impl IconId {
             IconId::Install => "install",
             IconId::Qwen => "qwen",
             IconId::SettingsBluetooth => "settings_bluetooth",
+            IconId::Simplex => "simplex",
         }
     }
 }

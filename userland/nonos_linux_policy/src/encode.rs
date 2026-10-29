@@ -20,16 +20,23 @@ use crate::layout::*;
 use crate::policy::LinuxAppPolicy;
 
 impl LinuxAppPolicy {
+    /// Version 1's bytes, or version 2's while SERVE_ONE grants a field:
+    /// a field the bit does not grant is not written.
     pub fn encode(&self) -> [u8; LEN] {
+        let serve = self.serve_one();
+        let version = if serve.is_some() { VERSION_SERVE } else { VERSION };
         let mut out = [0u8; LEN];
         out[AT_MAGIC..AT_VERSION].copy_from_slice(&MAGIC);
-        out[AT_VERSION..AT_PAD_HEAD].copy_from_slice(&VERSION.to_le_bytes());
+        out[AT_VERSION..AT_PAD_HEAD].copy_from_slice(&version.to_le_bytes());
         out[AT_PROGRAM..AT_MASK].copy_from_slice(&self.program_blake3);
         out[AT_MASK..AT_LISTING].copy_from_slice(&self.mask.to_le_bytes());
         out[AT_LISTING..AT_RELEASE].copy_from_slice(&self.listing_id);
         out[AT_RELEASE..AT_NET_DESTS].copy_from_slice(&self.release_id);
         out[AT_NET_DESTS..AT_SYSCALLS].copy_from_slice(&self.net_dests_hash);
         out[AT_SYSCALLS..AT_PAD_TAIL].copy_from_slice(self.syscall_set.as_bytes());
+        if let Some(s) = serve {
+            out[AT_SERVE..AT_PAD_SERVE].copy_from_slice(&s.to_bytes());
+        }
         out
     }
 }

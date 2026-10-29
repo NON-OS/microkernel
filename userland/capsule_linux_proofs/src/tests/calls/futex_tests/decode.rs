@@ -16,7 +16,7 @@
 
 //! Each operation decoded, or refused with Linux's errno.
 
-use crate::linux::abi::errno::{EINVAL, ENOSYS};
+use crate::linux::abi::errno::{EINVAL, ENOSYS, ENOTSUP};
 use crate::linux::call::futex_op::{decode, Cmd};
 use crate::linux::guest::futex_pick::MATCH_ANY;
 
@@ -35,7 +35,7 @@ type Row = (u64, u64, u64, u64, Result<Cmd, i64>);
 
 #[test]
 fn each_operation_decodes_or_is_refused_with_linux_errno() {
-    let table: [Row; 17] = [
+    let table: [Row; 21] = [
         (W, WAIT, 0, 0, Ok(Cmd::Wait { bits: MATCH_ANY, absolute: false })),
         (W, WAIT | PRIVATE, 0, 7, Ok(Cmd::Wait { bits: MATCH_ANY, absolute: false })),
         (W, WAIT_BITSET | PRIVATE | REALTIME, 0, 6, Ok(Cmd::Wait { bits: 6, absolute: true })),
@@ -49,11 +49,17 @@ fn each_operation_decodes_or_is_refused_with_linux_errno() {
         // The realtime clock is WAIT_BITSET's alone.
         (W, WAIT | REALTIME, 0, 0, Err(ENOSYS)),
         (W, WAKE | REALTIME, 0, 0, Err(ENOSYS)),
-        // Operations not served here, and bits outside the command, are
+        // Priority inheritance is ENOTSUP, so musl's setprotocol says "not
+        // supported" and PulseAudio goes on without it.
+        (W, 6, 0, 0, Err(ENOTSUP)),
+        (W, 6 | PRIVATE, 0, 0, Err(ENOTSUP)),
+        (W, 7, 0, 0, Err(ENOTSUP)),
+        (W, 8 | PRIVATE, 0, 0, Err(ENOTSUP)),
+        (W, 13, 0, 0, Err(ENOTSUP)),
+        // Other operations not served here, and bits outside the command, are
         // ENOSYS: 0x200 is not FUTEX_WAIT with a stray bit. FUTEX_WAKE_OP is
-        // served before this decoder (wake_op.rs), and FUTEX_LOCK_PI not at all.
-        (W, 6, 0, 0, Err(ENOSYS)),
-        (W, 6 | PRIVATE, 0, 0, Err(ENOSYS)),
+        // served before this decoder (wake_op.rs).
+        (W, 5, 0, 0, Err(ENOSYS)),
         (W, 0x200, 0, 0, Err(ENOSYS)),
         // A word is four bytes on a four-byte boundary, both of them.
         (W + 2, WAIT, 0, 0, Err(EINVAL)),
