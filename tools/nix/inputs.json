@@ -1673,9 +1673,6 @@
    "userland/nonos_bt_wire",
    "userland/nonos_hash",
    "userland/nonos_p256",
-   "userland/nonos_usbnet/src/xhci/budget.rs",
-   "userland/nonos_usbnet/src/xhci/call.rs",
-   "userland/nonos_usbnet/src/xhci/wire.rs",
    "userland/toolkit"
   ],
   "md": [],
