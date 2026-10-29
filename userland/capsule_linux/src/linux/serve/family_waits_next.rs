@@ -22,9 +22,9 @@ use super::waits_fds::watched;
 use crate::linux::guest::Kind;
 use crate::linux::net::outside;
 
-/// How often a wait on a stream routed/ or net.anon holds, or on the console, is
-/// looked at again: what the terminal typed and room in the launcher's
-/// inbox arrive with no answer to mark them. A family socket changes only
+/// How often a wait on a stream routed/ or net.anon holds, on the console or
+/// on the display is looked at again: what the terminal typed, room in the
+/// launcher's inbox and the desktop's input arrive with no answer to mark them. A family socket changes only
 /// in an answer, and a timer is looked at when it fires.
 const TICK_MS: u64 = 10;
 
@@ -44,6 +44,7 @@ impl Family {
                 for fd in watched(g, wait) {
                     match g.fds.get(fd as usize) {
                         Some(f) if f.kind == Kind::Socket && outside(f.handle) => keep(TICK_MS),
+                        Some(f) if f.kind == Kind::Unix => keep(TICK_MS),
                         Some(f) if matches!(f.kind, Kind::Stdin | Kind::Stdout | Kind::Stderr) => {
                             keep(TICK_MS)
                         }
