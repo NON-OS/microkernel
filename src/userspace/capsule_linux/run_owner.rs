@@ -43,15 +43,12 @@ pub fn is_run_role(pid: u32) -> bool {
 
 /// The package `pid` was started to run, when `pid` is the process the
 /// kernel registered as app.linux.run at spawn, which no other capsule may
-/// claim. Its argv is init's, `run` then the package (install.rs), and the
-/// process cannot change it.
+/// claim. Its argv is init's, `run`, the package, and any word its served
+/// launch gave (run_argv.rs), and the process cannot change it.
 pub fn run_package_of(pid: u32) -> Option<String> {
     if lookup_service(RUN.name)?.pid != pid {
         return None;
     }
-    crate::process::with_process(pid, |pcb| match pcb.argv.lock().as_slice() {
-        [verb, package] if verb == "run" => Some(package.clone()),
-        _ => None,
-    })
-    .flatten()
+    crate::process::with_process(pid, |pcb| super::run_argv::package_of(&pcb.argv.lock()).cloned())
+        .flatten()
 }
