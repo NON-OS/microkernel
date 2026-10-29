@@ -23,8 +23,14 @@
 #include <termios.h>
 #include <unistd.h>
 
+/* The local dev chain's copy is built with its own (darkfi-wallet-box.sh),
+ * so it shares no path with the wallet listing's. */
+#ifndef DRK
 #define DRK "/usr/bin/drk"
+#endif
+#ifndef TEMPLATE
 #define TEMPLATE "/usr/share/nonos-drk/drk_config.toml"
+#endif
 #define CONFIG "/root/.config/darkfi/drk_config.toml"
 #define ARGS 48
 
