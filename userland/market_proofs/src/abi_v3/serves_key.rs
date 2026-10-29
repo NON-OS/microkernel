@@ -28,7 +28,7 @@ use nonos_marketplace_abi::{listing_id, AT_LISTING};
 mod serves;
 
 const LISTING: &str =
-    include_str!("../../../../nonos-data/market/catalogue/linux.kali.nonos-simplex-chat.json");
+    include_str!("../../../../nonos-data/market/catalogue/linux.kali.nonos-simplex-core.json");
 
 /// The string value of the first `key` in the listing.
 fn field(key: &str) -> &'static str {
@@ -47,7 +47,7 @@ fn the_simplex_window_is_paired_with_its_listings_key() {
     assert_eq!(*launched, field("listing_id"), "the window launches another listing");
     let key = listing_id(&Host, &publisher, launched);
     let (_, served) = serves::SERVES.iter().find(|(c, _)| *c == "app.simplex").unwrap();
-    assert_eq!(*served, key, "SERVES' key is not linux.kali.nonos-simplex-chat's");
+    assert_eq!(*served, key, "SERVES' key is not linux.kali.nonos-simplex-core's");
     let policy = hex(field("guest_policy"));
     assert_eq!(policy[AT_LISTING..AT_LISTING + 32], key, "the policy binds another listing");
 }

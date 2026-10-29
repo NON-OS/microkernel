@@ -28,10 +28,10 @@
 /// keccak256(LISTING_TAG, publisher key, keccak256(listing id)), the id a
 /// market policy carries at byte 56.
 pub(crate) const SERVES: &[(&str, [u8; 32])] = &[
-    // The SimpleX window. A stand-in until the core has a listing of its own:
-    // the key of the terminal client's, linux.kali.nonos-simplex-chat in
-    // nonos-data/market/catalogue, which market_proofs recomputes from it.
-    ("app.simplex", SIMPLEX_CHAT),
+    // The SimpleX window: its core's own listing, not the terminal client's,
+    // linux.kali.nonos-simplex-core in nonos-data/market/catalogue, which
+    // market_proofs recomputes it from.
+    ("app.simplex", SIMPLEX_CORE),
 ];
 
 /// The listing each capsule above may start by MkAppLaunch, by the id the
@@ -40,10 +40,10 @@ pub(crate) const SERVES: &[(&str, [u8; 32])] = &[
 /// the serve; market_proofs holds each id to its row's key.
 pub(crate) const LISTINGS: &[(&str, &str)] = &[
     // The key above is made from this id, under its catalogue publisher.
-    ("app.simplex", "linux.kali.nonos-simplex-chat"),
+    ("app.simplex", "linux.kali.nonos-simplex-core"),
 ];
 
-const SIMPLEX_CHAT: [u8; 32] = [
-    0x01, 0x24, 0xfa, 0x9a, 0xdc, 0x22, 0xb0, 0x9e, 0xfb, 0x6d, 0x59, 0x2a, 0x78, 0xc6, 0x4a, 0x7f,
-    0xeb, 0x9e, 0x23, 0x45, 0x7c, 0x85, 0x36, 0x62, 0x3e, 0x50, 0x40, 0x2f, 0xbb, 0xdb, 0x76, 0x6e,
+const SIMPLEX_CORE: [u8; 32] = [
+    0x89, 0x00, 0xcc, 0xe8, 0x3c, 0xfd, 0xfe, 0xc6, 0xa0, 0x7a, 0xa4, 0x78, 0x18, 0x96, 0xc9, 0x12,
+    0xb3, 0x11, 0xd6, 0x7f, 0x74, 0x35, 0x03, 0x5a, 0xa6, 0x0e, 0xac, 0xc8, 0x5b, 0x0a, 0x59, 0xa4,
 ];

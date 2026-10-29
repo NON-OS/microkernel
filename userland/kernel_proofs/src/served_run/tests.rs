@@ -19,7 +19,7 @@ use super::rule::{exited, restarting, started, Served};
 const WINDOW: u32 = 40;
 const RUN: u32 = 41;
 const NET: u32 = 42;
-const CORE: &str = "deb:nonos-simplex-chat";
+const CORE: &str = "deb:nonos-simplex-core";
 
 fn launched() -> Option<Served> {
     Some(Served { launcher: Some(WINDOW), package: CORE.into(), run: None })
