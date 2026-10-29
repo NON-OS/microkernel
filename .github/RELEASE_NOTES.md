@@ -58,10 +58,12 @@ window on the NONOS desktop, inside the NONOS frame: title bar, close, minimise 
   package mirror.
 - **foot** 1.17.2 is listed in a box of WAYLAND, TTY, FILES_HOME and EXEC (fbbd8c5f80). It drew
   its window and ran a shell over `/dev/pts` on a development image (`gui-foot`).
-- **mpv** 0.38.0, drawing to `wl_shm` with no GPU (`--vo=wlshm`), and **Mousepad** 0.6.2, a GTK
-  text editor, are listed (fbbd8c5f80). **zathura** 0.5.6 is listed with its mupdf PDF plugin,
-  which the listing adds to the install (c7bc7960c4, 1a48cc9bef). For these three, no boot in the
-  evidence shows a window.
+- **mpv** 0.38.0 is listed, drawing to `wl_shm` with no GPU (`--vo=wlshm`; fbbd8c5f80). Its box
+  never lets it make code as it runs, so it starts without its Lua scripts: no on-screen
+  controls, keyboard only (ead5190379, 57c58dcdd5). **zathura** 0.5.6 is listed with its mupdf PDF
+  plugin, which the listing adds to the install (c7bc7960c4, 1a48cc9bef). For these two, no boot
+  in the evidence shows a window. **Mousepad** is not listed: on the release tree it started in
+  its box and showed no window (d1cef5f14c).
 - Large installs hold: 304 packages verified in one boot, KeePassXC (126) and
   gnome-authenticator (155) among them, with no stall, lock wait or OOM (`gui-large-installs`).
 - A run's private directories (`/tmp`, `/run/user/0`) hold 1536 names, where they held 128.
@@ -157,17 +159,18 @@ quarter of memory, between 160 MiB and 4 GiB, and halves its ask when a heap can
 ### The Marketplace
 
 The catalogue (`userland/capsule_market/linux-catalogue.json`) holds 30 recipes. A release
-image lists its 26 Alpine apps, each in its own box, among them KeePassXC, Telegram Desktop,
-Mousepad, foot, mpv, zathura, swayimg, the Monero wallet, Profanity, age, git and vim. The
+image lists its 25 Alpine apps, each in its own box, among them KeePassXC, Telegram Desktop,
+foot, mpv, zathura, swayimg, the Monero wallet, Profanity, age, git and vim. The
 Marketplace's Open of a terminal program runs it in the Terminal (c55d58e10,
 `gui-store-tty-open`).
 
-The other four are SimpleX Chat's terminal client (`linux.kali.nonos-simplex-chat`, from
-SimpleX's signed v7.0.3 binary, d8e427216b) and DarkFi's `drk`, `darkirc` and `darkfid`
-(1a17cb72ad). They are served from a NONOS package mirror. A seal lists them only when
-`nonos.toml` names a mirror and their built content (`linux_packages`, `linux_sources`;
-2c9ecace25), and both are empty, so a release image built from this tree does not list them
-(`docs/userland/marketplace-catalogue.md`, "No mirror, none listed").
+The other five are SimpleX Chat's terminal client (`linux.kali.nonos-simplex-chat`, from
+SimpleX's signed v7.0.3 binary, d8e427216b), DarkFi's `drk`, `darkirc` and `darkfid`
+(1a17cb72ad), and DarkFi's chat app, built from v0.5.0 and drawn on the CPU (09a44332b2). They
+are served from the NONOS package mirror, `mirror.nonos.software`. The release's `nonos.toml`
+names that mirror and their built content (`linux_packages`, `linux_sources`; 3df8c26a65,
+81ce3f9a93), so the release image lists them; the seal checks each package against the
+catalogue's pins (`docs/userland/marketplace-catalogue.md`).
 
 ### Update NØNOS (keep my data)
 
@@ -254,11 +257,11 @@ paging-lock waits seen on 30a4b58c4 are gone after the paging-lock fix (adb53a20
   the data volume on this machine whatever bootloader measured it, so prepare right before the
   update (`docs/security/device-secrets-and-keys.md`, "The handover").
 - **Installs fetch one package at a time** (9fc7634b39).
-- **Not in this release:** SimpleX's desktop window and DarkFi's GUI. SimpleX comes only as its
-  terminal client, and only on an image sealed with a NONOS package mirror (above). No boot has
-  shown it reach an SMP server (`docs/using/simplex.md`).
-- **Linux windows**: Mousepad, mpv and zathura are listed, but no boot in the evidence shows
-  their windows. Copy and paste between a Linux window and the desktop is tested on the host
+- **Not in this release:** SimpleX's desktop window; SimpleX comes as its terminal client. No boot
+  has shown it reach an SMP server, or darkirc join its peers (`docs/using/simplex.md`). DarkFi's
+  chat app is listed, and no boot has shown its window.
+- **Linux windows**: mpv and zathura are listed, but no boot in the evidence shows their
+  windows. Copy and paste between a Linux window and the desktop is tested on the host
   only.
 - **Wi-Fi**: only the RTL8821CE has run on a card. The RTL8822CE, RTL8852BE, MT7921 family and
   every Intel card have run only against a modelled device (`docs/drivers/wifi/README.md`).
