@@ -18,13 +18,8 @@
 //! its start, a 206 only from the byte held and to the last, and no byte
 //! past the whole. resume.rs adds the parts across broken streams.
 
-mod install {
-    pub use crate::install::http_reply;
-    pub mod http {
-        #[path = "../../../../../../../../capsule_linux/src/linux/install/http/part.rs"]
-        pub mod part;
-    }
-}
+/* part.rs's own parents, so its `super::super::http_reply` is found. */
+mod install;
 
 use install::http::part::part;
 
