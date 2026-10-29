@@ -29,7 +29,8 @@ from pathlib import Path
 
 REGISTRY = Path("userland/capsule_linux/src/linux/wayland/registry.rs")
 WANTED = Path("userland/capsule_linux/abi/wayland-wanted.txt")
-GLOBAL = re.compile(r'interface: b"(\w+)"')
+# Each global is g(name, b"interface", version, object) since the list went one per line.
+GLOBAL = re.compile(r'(?:interface: |\bg\(\d+, )b"(\w+)"')
 UNSERVED = re.compile(rb"\[WAYLAND\] unserved (\S+)")
 
 
