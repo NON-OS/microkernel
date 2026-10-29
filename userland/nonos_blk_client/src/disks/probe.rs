@@ -16,18 +16,28 @@
 
 //! A disk's first sectors read through its driver, what the list says
 //! about them, and the row for a disk whose read failed: listed with the
-//! driver's words and not offered.
+//! driver's words and not offered. A disk that holds NONOS is read for
+//! what an update would keep of it.
 
 use alloc::format;
+
+use nonos_disk::{read_installed, Keep};
 
 use super::contents::Contents;
 use super::survey::Disk;
 use crate::device::BlockDevice;
+use crate::sink::DeviceSink;
 use crate::status_text::describe;
 
 impl Contents {
     pub fn probe(device: &BlockDevice) -> Contents {
         Contents::read_with(device.sectors, |head| device.read(0, head).map_err(|e| e.code()))
+    }
+
+    /// For a disk that holds NONOS, what an update would keep of it, read
+    /// off its table, plan and key header.
+    pub fn keep(self, device: &BlockDevice) -> Option<Keep> {
+        (self == Contents::Nonos).then(|| read_installed(&mut DeviceSink { device: *device }))
     }
 
     pub fn text(self) -> &'static str {
@@ -54,5 +64,6 @@ pub(super) fn unread(device: BlockDevice, status: i32) -> Disk {
         contents: Contents::Unread(status),
         identity: device.identity().ok().flatten(),
         fault: Some(format!("its first sectors did not read: {}; not offered", describe(status))),
+        keep: None,
     }
 }

@@ -35,6 +35,7 @@ pub(crate) const N_MK_FOREIGN_FORK: i64 = tag4(b"MFFK");
 pub(crate) const N_MK_PEER_UNMAP: i64 = tag4(b"MPUN");
 pub(crate) const N_MK_FOREIGN_EXEC: i64 = tag4(b"MFEX");
 pub(crate) const N_MK_LINUX_RUN_NET: i64 = tag4(b"MLRN");
+pub(crate) const N_MK_SERVE_ONE: i64 = tag4(b"MSRV");
 pub(crate) const N_MK_SEAL_READ: i64 = tag4(b"MSLR");
 pub(crate) const N_MK_SEAL_PEEK: i64 = tag4(b"MSLP");
 pub(crate) const N_MK_SEAL_DROP: i64 = tag4(b"MSLD");

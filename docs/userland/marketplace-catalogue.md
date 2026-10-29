@@ -32,7 +32,7 @@ Nothing is listed until the generator has authenticated it as the device does, u
 
 ## The recipes file
 
-`userland/capsule_market/linux-catalogue.json` is versioned. Its shape is `{"format": "nonos.linux-catalogue.v1", "apps": [...]}`, and a file of any other format, shape, encoding, or more than 1 MiB is refused whole (`tools/nonos_market_catalogue/recipes_file.py:29`, `load`). Each app is an object of strings, and `args` a list of them:
+`userland/capsule_market/linux-catalogue.json` is versioned. Its shape is `{"format": "nonos.linux-catalogue.v1", "apps": [...]}`, and a file of any other format, shape, encoding, or more than 1 MiB is refused whole (`tools/nonos_market_catalogue/recipes_file.py:29`, `load`). Each app is an object of strings, and `args` and `with` lists of them:
 
 | Key | Required | What it holds |
 |---|---|---|
@@ -44,6 +44,7 @@ Nothing is listed until the generator has authenticated it as the device does, u
 | `dests` | no | a file inside the tree of the plan destinations, one a line; needs NET_ANON |
 | `program` | no | the program the listing sells, as `usr/bin/<name>`, for a package of many programs |
 | `args` | no | the long options the program starts with, before the person's own (below) |
+| `with` | no | Alpine packages the install adds to the closure, which nothing the package needs names (below) |
 
 Without `calls` the set is UNMEASURED: buckets 0 to 511 set and 512 clear (`tools/nonos_market_catalogue/recipes.py:31`). That is the market-ready form of "no set yet". A recipe is refused if:
 
@@ -62,6 +63,17 @@ A recipe's `args` are the words its program starts with, before the person's own
 - **At start.** The personality reads them beside the program and holds them to that trailer and to the policy the program was bound to (`app/listed.rs`). It puts each one before the person's words, except one whose option the person names themself, as `--name` or `--name=...` before any `--` (`app/args_listed.rs`). A file that is there but not vouched for refuses the start, and does not start the program without them. A program another program starts with `execve` gets only the words it is given.
 
 *host-tested* (capsule_linux_proofs, market_proofs, market_proto, nonos_linux_policy, the catalogue suite). Not booted yet.
+
+## Extra packages
+
+A recipe's `with` names Alpine packages its install adds to the closure: a plugin the program needs to be useful but no package depends on. zathura opens no PDF without `zathura-pdf-mupdf`, for one. They add no service and no mask bit. They install as dependencies do, so a program among them runs in the default box, not the listing's.
+
+- **The rule.** 1 to 8 names, each a package name by the generator's rule (`names.py`, `PACKAGE`), none twice and not the recipe's own. Each must be in the fresh signed index, or the run stops by name (`tools/nonos_market_catalogue/listed_with.py`; the device's copy of the rule is `userland/nonos_linux_policy/src/with/`, and both pin the same bytes).
+- **The lock.** Each extra is pinned like a recipe's package, by its index record's version, checksum and size, but with no `B`, `G` or `R`, since no listing signs its `.apk`. An index that moves an extra stops the seal by name, and `--update-lock` pins a new one (`lock.py`, `lock_file.py`).
+- **Where they ride.** In the same tail as the listed arguments, after them or straight after the policy, as `"NLXWITH1" | count | (length | name)...`. The publisher's release signature and the operator's index signature cover them. Arguments and extras together stay within marketplace_abi's 1024 bytes after the policy. A listing with no `with` carries the bytes it always has.
+- **To the device.** The market and init hand the tail on unchanged. The install role splits it where the arguments' own lengths end and reads both whole before it fetches anything, refusing the install otherwise (`install/market/tail.rs`). An extra is wanted after the listed package and its needs, and is resolved, verified by the index's checksum and placed as any need is (`install/get/closure.rs`). The market's pin holds the listed package alone. An uninstall takes the extras out with the closure. A tier, a tool or a Debian or pacman install refuses extras (`install/family.rs`).
+
+*host-tested* (capsule_linux_proofs, market_proofs, nonos_linux_policy, the catalogue suite). No listing carries extras yet. Not booted.
 
 ## Generating listings
 
@@ -82,7 +94,7 @@ Downloads are capped before they are read and written to the cache only whole (`
 
 Any fault stops the run with a message, so a seal lists every recipe or none. That covers a missing or malformed recipes file or lock, a bad publisher key, an index that fails its signature or has moved past the lock, and a package that fails any check. A failed package's cached copy is dropped, so the next run fetches it again (`tools/nonos_market_catalogue/run.py`, `catalogue_run`). A recipe inside another family's namespace (`kali.`, `blackarch.`, `qwen-`, `nonos-`) is refused. `python3 -m nonos_market_catalogue.documents OUT.json DIR`, run from `tools/`, splits the index into one unsigned document per listing, as committed under `nonos-data/market/catalogue/`. The publisher then signs each one with `marketplace-index sign-release`.
 
-`mk/21-market.mk` and the seal (`tools/nonos_seal/market.py`) pass `--catalogue`, so the 17 apps are in 0.9.3's signed baseline. The owner chose that, and only the owner signs it.
+`mk/21-market.mk` and the seal (`tools/nonos_seal/market.py`) pass `--catalogue`, so the catalogue's apps are in 0.9.3's signed baseline: 27 recipes, 23 of them from Alpine, plus SimpleX Chat on the Debian family and DarkFi's three apps from source, which list only with a package mirror. The owner chose that, and only the owner signs it.
 
 ## The lock
 
@@ -98,7 +110,7 @@ After the fetch, every listing's `.apk` must be the one `B` pins. So two seals o
 
 ## Apps built from source
 
-Some apps are packaged by no distribution: DarkFi's drk, darkirc and darkfid, and SimpleX's simplex-chat. A recipe of kind `source` lists one of these from a build of its upstream at a single commit, or from the binary its upstream publishes (below) (`tools/nonos_market_catalogue/source_recipe.py`, `checked`). DarkFi's three are in the catalogue, built from v0.5.0. SimpleX's terminal client is in it as `linux.kali.nonos-simplex-chat`, from SimpleX's own v7.0.3 release binary.
+Some apps are packaged by no distribution: DarkFi's drk, darkirc and darkfid and its chat app, and SimpleX's simplex-chat. A recipe of kind `source` lists one of these from a build of its upstream at a single commit, or from the binary its upstream publishes (below) (`tools/nonos_market_catalogue/source_recipe.py`, `checked`). DarkFi's four are in the catalogue, built from v0.5.0; the chat app, `linux.nonos-darkfi-app`, is drawn by mesa's softpipe on the CPU (tools/nix/sources/darkfi-app-*.sh). SimpleX's terminal client is in it as `linux.kali.nonos-simplex-chat`, from SimpleX's own v7.0.3 release binary. The same binary is in it a second time as `linux.kali.nonos-simplex-core`, the engine NØNOS's SimpleX window drives over its WebSocket API: its own package and program name (`usr/bin/simplex-core`), so its policy and listed arguments sit beside a program of their own, in the box FILES_HOME NET_ANON, with `--chat-server-port=5225 --yes-migrate`.
 
 | Key | Required | What it holds |
 |---|---|---|
@@ -109,7 +121,7 @@ Some apps are packaged by no distribution: DarkFi's drk, darkirc and darkfid, an
 | `build` | yes | the name of the nix recipe under `tools/nix/sources/` that builds it offline |
 | `program` | yes | the program the listing sells, as `usr/bin/<name>` |
 | `licence`, `mask`, `name`, `text` | yes | as for an Alpine recipe |
-| `calls`, `dests`, `logo` | no | as for an Alpine recipe |
+| `calls`, `dests`, `logo`, `args`; `serve` | no | as for an Alpine recipe; `serve` is `name:port`, the one capsule (1 to 32 of `[a-z0-9._-]` from a letter) the kernel lets reach the program's one listener on 127.0.0.1, at a port from 1 to 65535. It sets SERVE_ONE and writes a version 2 policy with the port and name at byte 217 (`tools/nonos_linux_pack/serve.py`). It is refused with WAYLAND, named in `mask`, or in an Alpine recipe |
 
 The rest of the recipe is checked as an Alpine one is: the allowlist, the services, the set, the dests file and the logo record. `index_licence` and `licence_source` describe an index, so a source recipe may not carry them. Its listing is `linux.nonos-<package>`. That is the namespace the device installs from the NONOS package mirror (`userland/capsule_linux/src/linux/install/tools.rs`). The generator adds the prefix, so a recipe that names a reserved namespace itself (`nonos-`, `qwen-`, `kali.`, `blackarch.`) is refused.
 
