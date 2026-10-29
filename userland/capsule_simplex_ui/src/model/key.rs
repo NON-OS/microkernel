@@ -24,6 +24,11 @@ impl Model {
     pub fn on_key(&mut self, key: Key) -> bool {
         let f = self.focus;
         match (key, f) {
+            /* The name is asked for alone: no other field takes the keys. */
+            (Key::Enter, Focus::Name) => self.focus = Focus::Named,
+            (Key::Backspace, Focus::Name) => _ = self.name.pop(),
+            (Key::Char(ch), Focus::Name) => self.insert(ch.encode_utf8(&mut [0u8; 4])),
+            (_, Focus::Name | Focus::Named) => return false,
             (Key::Search, _) => {
                 self.focus = Focus::Search;
                 self.search.clear();
