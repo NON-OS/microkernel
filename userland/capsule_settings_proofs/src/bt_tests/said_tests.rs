@@ -32,7 +32,7 @@ fn the_status_row_reads_the_link() {
     assert_eq!(ready(Link::MOUSE), "Mouse connected");
     assert_eq!(status(&answered(READY, Link::MOUSE)).1, Tone::Ok);
     assert_eq!(status(&answered(SECURING, 0)).0, "Securing the link");
-    assert_eq!(status(&answered(IDLE, 0)).0, "Not looking for devices");
+    assert_eq!(status(&answered(IDLE, 0)).0, "Off: not looking for devices");
     let mut gone = answered(READY, Link::KEYBOARD);
     gone.lost(Reach::NoService);
     assert_eq!(status(&gone), ("Bluetooth is not running", Tone::Warn));
@@ -43,9 +43,9 @@ fn the_status_row_reads_the_link() {
 #[test]
 fn the_adapter_row_reads_health() {
     let mut p = answered(IDLE, 0);
-    assert_eq!(controller(&p).0, "No USB adapter found", "no HEALTH yet");
+    assert_eq!(controller(&p).0, "No Bluetooth controller found", "no HEALTH yet");
     assert!(p.took_health(&Health { version: 1, controller: true }.write()));
-    assert_eq!(controller(&p), ("USB adapter ready", Tone::Ok));
+    assert_eq!(controller(&p), ("Controller ready", Tone::Ok));
     assert!(p.took_health(&Health { version: 2, controller: true }.write()));
     assert_eq!(controller(&p), ("Speaks another NBTC", Tone::Warn));
     assert_eq!(scanning(&answered(SCANNING, Link::SCANNING)).0, "On");

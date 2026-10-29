@@ -1,3 +1,18 @@
+diff --git a/src/native/egl.rs b/src/native/egl.rs
+index c9e3562..b3861da 100644
+--- a/src/native/egl.rs
++++ b/src/native/egl.rs
+@@ -192,7 +192,9 @@ pub unsafe fn create_egl_context(
+         EGL_ALPHA_SIZE, alpha_size,
+         EGL_DEPTH_SIZE, 16,
+         EGL_STENCIL_SIZE, 0,
+-        EGL_SAMPLES, sample_count as u32,
++        // NONOS: EGL_SAMPLES is "at least"; 1 would leave out every
++        // single-sampled config, which is all softpipe has.
++        EGL_SAMPLES, if sample_count > 1 { sample_count as u32 } else { 0 },
+         EGL_NONE,
+     ];
+     let mut available_cfgs: Vec<EGLConfig> = vec![null_mut(); 32];
 diff --git a/src/native/linux_wayland.rs b/src/native/linux_wayland.rs
 index 3b8ff0b..ceec458 100644
 --- a/src/native/linux_wayland.rs

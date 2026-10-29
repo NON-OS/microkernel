@@ -21,10 +21,9 @@
 //! the bulk pair and read more than 8 octets; without it the second
 //! endpoint configured is refused.
 
-use super::call::call;
 use super::limit::{reply_len, INTERRUPT_MAX};
-use super::wire::{DATA_AT, E_AGAIN, E_IO};
 use nonos_bt_hci::usb::Endpoint;
+use nonos_usbnet::xhci::{call, DATA_AT, E_AGAIN, E_IO};
 
 const OP_ALLOC_TRANSFER_RING: u16 = 0x0009;
 const OP_INTERRUPT_IN: u16 = 0x000E;

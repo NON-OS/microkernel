@@ -17,14 +17,12 @@
 //! PROPERTIES (12): a device's _DSD properties and subnodes, read by
 //! `nonos_aml::props`, for the driver that holds the device. The wire
 //! (`wire`, `wire_write`, `wire_read`, `wire_cursor`) is pure and mounted
-//! by `capsule_acpi_proofs`; a driver mounts the same files to read it.
+//! by `capsule_acpi_proofs`. The reading half (`wire_read`, `wire_cursor`)
+//! is not compiled here: a driver mounts those files to read the reply.
 
 mod convert;
 mod serve;
 mod wire;
-mod wire_cursor;
-#[allow(dead_code)] // the driver's half; the proofs read it here
-mod wire_read;
 mod wire_write;
 
 pub use serve::properties;
