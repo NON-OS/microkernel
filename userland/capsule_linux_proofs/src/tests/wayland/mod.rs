@@ -51,6 +51,7 @@ mod wayland_pointer_tests;
 mod wayland_region_tests;
 mod wayland_shell_tests;
 mod wayland_subsurface_tests;
+mod surface_damage_scale_tests;
 mod surface_damage_tests;
 mod window_damage_tests;
 mod window_end_tests;
