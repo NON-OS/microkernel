@@ -1,9 +1,9 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! Host proofs for the AML interpreter. The modules below are the shipping
-//! sources of `userland/nonos_aml`, at the `crate::` paths they name each
-//! other by.
+//! Host proofs for the AML interpreter: the shipping sources of
+//! `userland/nonos_aml`, at the `crate::` paths they name each other by.
 
 extern crate alloc;
+extern crate self as nonos_aml; // for capsule sources that name it
 
 #[path = "../../nonos_aml/src/aei/mod.rs"]
 pub mod aei;
@@ -39,10 +39,10 @@ pub mod grammar;
 pub mod hotplug;
 #[path = "../../nonos_aml/src/legacy/mod.rs"]
 pub mod legacy;
-#[path = "../../nonos_aml/src/motherboard/mod.rs"]
-pub mod motherboard;
 #[path = "../../nonos_aml/src/load/mod.rs"]
 pub mod load;
+#[path = "../../nonos_aml/src/motherboard/mod.rs"]
+pub mod motherboard;
 #[path = "../../nonos_aml/src/namespace/mod.rs"]
 pub mod namespace;
 #[path = "../../nonos_aml/src/object/mod.rs"]
@@ -59,12 +59,12 @@ pub mod platform;
 pub mod platform_device;
 #[path = "../../nonos_aml/src/ports/mod.rs"]
 pub mod ports;
-#[path = "../../nonos_aml/src/props/mod.rs"]
-pub mod props;
 #[path = "../../nonos_aml/src/power/mod.rs"]
 pub mod power;
 #[path = "../../nonos_aml/src/power_meter/mod.rs"]
 pub mod power_meter;
+#[path = "../../nonos_aml/src/props/mod.rs"]
+pub mod props;
 #[path = "../../nonos_aml/src/region/mod.rs"]
 pub mod region;
 #[path = "../../nonos_aml/src/serial/mod.rs"]

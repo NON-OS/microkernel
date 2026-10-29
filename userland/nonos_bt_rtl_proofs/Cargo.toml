@@ -1,0 +1,25 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host proofs for nonos_bt_rtl: the RTL8821C patch loader against the real
+# linux-firmware files the bt_usb capsule embeds, held to their pins, and
+# against a modelled RTL8821C ROM that checks every fragment as it comes.
+[package]
+name = "nonos_bt_rtl_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_bt_hci = { path = "../nonos_bt_hci" }
+nonos_bt_rtl = { path = "../nonos_bt_rtl" }
+nonos_bt_wire = { path = "../nonos_bt_wire" }
+# The pins are SHA-256; the capsule's files are hashed here, not in it.
+sha2 = { version = "0.10", default-features = false }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

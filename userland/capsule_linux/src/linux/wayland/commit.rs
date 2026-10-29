@@ -22,13 +22,16 @@ use crate::linux::guest::Guest;
 
 use super::ops::ev;
 use super::out::Event;
-use super::present::show::present;
 use super::subsurface::commit::sub_commit;
 use super::subsurface::compose::repaint;
 use super::subsurface::restack::parent_commit;
 
 #[path = "pace.rs"]
 pub mod pace;
+#[path = "damage_show.rs"]
+pub mod damage_show;
+#[path = "launch_clock.rs"]
+pub mod launch_clock;
 
 /// A commit with a buffer is the only thing that reaches the screen, and
 /// only a window's, the surface of a toplevel, with its subsurfaces laid
@@ -45,7 +48,7 @@ pub fn commit(guest: &mut Guest, id: u32) {
         return;
     };
     if window {
-        present(guest, id, buffer);
+        damage_show::present(guest, id, buffer);
         super::output_enter::shown(guest);
     } else if changed {
         repaint(guest);

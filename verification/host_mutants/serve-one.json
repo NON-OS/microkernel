@@ -217,5 +217,37 @@
   "new": "c.id == h.conn",
   "test": "tests::serve_one::wire_tests::one_connection_keyed_by_its_id_and_its_opener_holds_one_read",
   "crate": "userland/capsule_linux_proofs"
+ },
+ {
+  "name": "serve-word-any-capsule",
+  "file": "src/syscall/microkernel/app_launch_word.rs",
+  "old": "find(|&&(c, own)| owns(c) && own == listing)",
+  "new": "find(|&&(_, own)| own == listing)",
+  "test": "ipc_held_tests::serve_word::only_the_paired_capsule_for_its_own_listing_may_give_one",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "serve-word-prefix-unchecked",
+  "file": "src/syscall/microkernel/app_launch_word.rs",
+  "old": "Some(p) if fits(p) && plain && text.starts_with(p) => Ok(Some(text)),",
+  "new": "Some(p) if fits(p) && plain => Ok(Some(text)),",
+  "test": "ipc_held_tests::serve_word::the_window_names_its_core_s_profile_and_nothing_else",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "serve-word-any-bytes",
+  "file": "src/syscall/microkernel/app_launch_word.rs",
+  "old": "let plain = !text.bytes().any(|b| b < 0x20 || b == 0x7f);",
+  "new": "let plain = true;",
+  "test": "ipc_held_tests::serve_word::a_word_is_plain_text_within_its_bound",
+  "crate": "userland/kernel_proofs"
+ },
+ {
+  "name": "run-word-any-third",
+  "file": "userland/capsule_linux/src/linux/run_word.rs",
+  "old": "run == b\"run\" && mark == b\"word\" && ",
+  "new": "run == b\"run\" && ",
+  "test": "console::run_word_tests::no_word_without_the_kernel_s_spelling",
+  "crate": "userland/capsule_linux_proofs"
  }
 ]

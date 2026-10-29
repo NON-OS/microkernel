@@ -32,7 +32,6 @@ mod key_post;
 mod keymap;
 #[path = "../../../capsule_driver_usb_hid/src/hid/post_key.rs"]
 mod post_key;
-#[allow(dead_code)]
 #[path = "../../../capsule_driver_usb_hid/src/hid/post_wire.rs"]
 mod post_wire;
 #[path = "../../../capsule_driver_usb_hid/src/hid/keyboard/repeat/mod.rs"]

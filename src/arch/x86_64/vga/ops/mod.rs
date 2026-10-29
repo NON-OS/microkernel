@@ -23,6 +23,4 @@ pub mod write;
 pub use console::{active_console, switch_console, VgaWriter};
 pub use init::{enter_panic_mode, init, is_initialized};
 pub use stats::{get_stats, VgaStats};
-pub use write::{
-    clear, print_critical, print_hex, set_color, write_byte, write_str, write_str_to_console,
-};
+pub use write::{clear, set_color, write_byte, write_str, write_str_to_console};

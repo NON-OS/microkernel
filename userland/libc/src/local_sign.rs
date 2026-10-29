@@ -19,10 +19,12 @@
 #[path = "install_status.rs"]
 mod status;
 pub use status::*;
+#[path = "app_launch.rs"]
+mod launch;
+pub use launch::*;
 
 use crate::syscall::{
-    call_raw, N_MK_APP_INSTALL, N_MK_APP_LAUNCH, N_MK_APP_UNINSTALL, N_MK_LOCAL_SIGN,
-    N_MK_LOCAL_VERIFY,
+    call_raw, N_MK_APP_INSTALL, N_MK_APP_UNINSTALL, N_MK_LOCAL_SIGN, N_MK_LOCAL_VERIFY,
 };
 
 /// How many bytes a trailer for `elf` takes, or a negative errno.
@@ -57,16 +59,6 @@ pub fn mk_local_verify(elf: &[u8], caps: u64, trailer: &[u8]) -> bool {
 pub fn mk_app_install(listing: &[u8], release: &[u8]) -> i64 {
     let (l, r) = (listing.as_ptr() as u64, release.as_ptr() as u64);
     call_raw(N_MK_APP_INSTALL, [l, listing.len() as u64, r, release.len() as u64, 0, 0])
-}
-
-/// Start the program a listing installed; `_with`, one word after its args.
-pub fn mk_app_launch(listing: &[u8]) -> i64 {
-    mk_app_launch_with(listing, &[])
-}
-
-pub fn mk_app_launch_with(listing: &[u8], word: &[u8]) -> i64 {
-    let (l, w) = (listing.as_ptr() as u64, word.as_ptr() as u64);
-    call_raw(N_MK_APP_LAUNCH, [l, listing.len() as u64, w, word.len() as u64, 0, 0])
 }
 
 /// Ask for the package a listing installed to be taken away.

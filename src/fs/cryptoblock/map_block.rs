@@ -23,7 +23,7 @@ pub(super) fn map_block_error(e: BlockDeviceError) -> CryptoBlockError {
             CryptoBlockError::AccessDenied
         }
         BlockDeviceError::OutOfRange => CryptoBlockError::OutOfRange,
-        BlockDeviceError::Unsupported => CryptoBlockError::Unsupported,
+        BlockDeviceError::Unsupported | BlockDeviceError::ReadOnly => CryptoBlockError::Unsupported,
         BlockDeviceError::Dead | BlockDeviceError::Stale | BlockDeviceError::NotReady => {
             CryptoBlockError::DeviceUnavailable
         }

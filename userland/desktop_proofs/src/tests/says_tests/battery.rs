@@ -52,3 +52,21 @@ fn a_battery_reading_is_drawn_as_a_percent() {
     let n = label(Battery::from_status(0), &mut buf);
     assert_eq!(&buf[..n], b"0%", "a real 0 reading is still a reading");
 }
+
+#[test]
+fn a_charging_reading_says_so_and_the_word_is_believed_only_up_to_100() {
+    let (present, charging, ac) = (1 << 8, 1 << 9, (1 << 11) | (1 << 12));
+    let mut buf = [0u8; LABEL_MAX];
+    let b = Battery::from_state(present | charging | ac | 57);
+    assert_eq!((b, b.percent()), (Battery::Charging(57), Some(57)));
+    let n = label(b, &mut buf);
+    assert_eq!(&buf[..n], b"57% Charging");
+    let n = label(Battery::from_state(present | charging | 100), &mut buf);
+    assert_eq!(&buf[..n], b"100% Charging");
+    let n = label(Battery::from_state(present | (1 << 10) | 7), &mut buf);
+    assert_eq!(&buf[..n], b"7%", "discharging says the number alone");
+    assert_eq!(Battery::from_state(present | charging | 0xFF), Battery::Unavailable);
+    assert_eq!(Battery::from_state(charging | ac | 0xFF), Battery::None, "no battery present");
+    assert_eq!(Battery::from_state(-19), Battery::None);
+    assert_eq!(Battery::from_state(-95), Battery::Unavailable);
+}

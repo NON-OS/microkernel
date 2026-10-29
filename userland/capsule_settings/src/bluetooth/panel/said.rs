@@ -25,13 +25,14 @@ use super::known::Panel;
 use super::notice::unreached;
 use super::reach::Reach;
 
-/// The adapter: whether driver.bt_usb0 found a controller it brought up.
+/// The controller: whether driver.bt_usb0 found one and brought it up, a
+/// laptop's built-in one (on its internal USB) or a plugged-in adapter.
 pub fn controller(p: &Panel) -> (&'static str, Tone) {
     match (p.reach, p.health) {
         (Reach::Unasked, _) => ("--", Tone::Idle),
         (Reach::Answered, Some(h)) if h.version != VERSION => ("Speaks another NBTC", Tone::Warn),
-        (Reach::Answered, Some(h)) if h.controller => ("USB adapter ready", Tone::Ok),
-        (Reach::Answered, _) => ("No USB adapter found", Tone::Warn),
+        (Reach::Answered, Some(h)) if h.controller => ("Controller ready", Tone::Ok),
+        (Reach::Answered, _) => ("No Bluetooth controller found", Tone::Warn),
         (reach, _) => (unreached(reach), Tone::Warn),
     }
 }
@@ -41,8 +42,8 @@ pub fn status(p: &Panel) -> (&'static str, Tone) {
     let Some(l) = p.link.filter(|_| p.reach == Reach::Answered) else { return controller(p) };
     let device = (l.has(Link::KEYBOARD), l.has(Link::MOUSE));
     match l.state {
-        NO_CONTROLLER => ("No USB adapter found", Tone::Warn),
-        IDLE => ("Not looking for devices", Tone::Idle),
+        NO_CONTROLLER => ("No Bluetooth controller found", Tone::Warn),
+        IDLE => ("Off: not looking for devices", Tone::Idle),
         SCANNING => ("Looking for devices", Tone::Idle),
         CONNECTING => ("Connecting", Tone::Idle),
         SECURING => ("Securing the link", Tone::Idle),

@@ -16,6 +16,8 @@
 
 //! When the personality keeps quiet about a run.
 
+pub(crate) mod clock;
+
 /// A line that only narrates a healthy run. A terminal's run shows the
 /// person what went wrong, not the personality's own progress: a tier run on
 /// a terminal keeps it here, and the terminal's `linux` command in `note`.

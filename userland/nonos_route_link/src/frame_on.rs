@@ -36,7 +36,7 @@ pub const RESET_ON: u8 = 3;
 pub const NUMBERED_ON: u8 = 4;
 
 /* The most streams one caller holds at either proxy, stream 0 among them. */
-pub const STREAMS_PER_CALLER: u32 = 8;
+pub const STREAMS_PER_CALLER: u32 = 24;
 
 /*
  * `frame`, as stream `stream` sends it: None for stream 0, whose frames go

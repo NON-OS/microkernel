@@ -18,7 +18,7 @@
 
 /// Run on the tables at `root`, which `asid` names. The root comes from the
 /// directory, which names an address space from `create_address_space` until
-/// `cleanup_address_space` takes it, so no lock is held for the load.
+/// `cleanup_address_space_keeping` takes it, so no lock is held for the load.
 ///
 /// The root does not pack the asid: `AddressSpace::new` stores the raw
 /// page-table frame, so the low bits are zero and the register is loaded

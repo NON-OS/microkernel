@@ -79,8 +79,8 @@ WPA2-Personal and WPA3-Personal (SAE) networks can be joined. Open networks cann
 
 | Row | What it shows |
 |---|---|
-| `Adapter` | Whether the Bluetooth driver found a USB Bluetooth adapter and started it. |
-| `Status` | The link: not looking, looking for devices, connecting, securing the link, or which device is connected. |
+| `Controller` | Whether the Bluetooth driver found a Bluetooth controller, the laptop's built-in one (on its internal USB) or a USB adapter, and started it: `Controller ready`, or `No Bluetooth controller found`. |
+| `Status` | The link: `Off: not looking for devices`, `Looking for devices`, `Connecting`, `Securing the link`, or which device is connected. |
 | `Scanning` | Whether the driver is looking for keyboards and mice. |
 | `Pairing` | Whether a new device may pair now, and for how many seconds more. Otherwise only paired devices connect. |
 | `Asks` | What pairing needs from you: digits to type on the device, the digits the device shows, or a number to check. |
@@ -88,7 +88,7 @@ WPA2-Personal and WPA3-Personal (SAE) networks can be joined. Open networks cann
 
 The panel's keys: `S` starts or stops scanning, `P` lets one new device pair within the next minute, `Up` and `Down` choose a device, and `F` forgets it. When a device shows six digits, type them and press `Enter`. When both sides show a number, `Y` says they match and `N` says they do not. `N` also declines a passkey. A device you pair is kept only until the machine switches off.
 
-The Bluetooth driver is not part of the image in this release, so the panel says `Bluetooth is not running` and its keys ask nothing. See [the Bluetooth driver](../../userland/capsule_driver_bt_usb/README.md).
+The Bluetooth driver is in the Standard image and starts wherever the machine has an xHCI USB host; on an RTL8821CE laptop it first loads Realtek's patch into the card's Bluetooth controller. Hardened and Air-Gapped images carry no Bluetooth, so there the panel says `Bluetooth is not running` and its keys ask nothing. To pair a keyboard: press `P`, put the keyboard in pairing mode, and type on it the six digits `Asks` shows, then its `Enter`. A mouse pairs with nothing to type, and is marked `Paired without a check: Just Works`; a keyboard paired that way does not type. See [the Bluetooth driver](../../userland/capsule_driver_bt_usb/README.md).
 
 ### Security
 

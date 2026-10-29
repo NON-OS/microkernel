@@ -37,7 +37,7 @@ pub struct InstallHandoff {
     pub evidence: [Module; 3],
     pub store: Module,
     pub mirror: Module,
-    pub firmware: [Module; 6],
+    pub firmware: [Module; 8],
     pub requested: bool,
     pub profile: u64,
 }

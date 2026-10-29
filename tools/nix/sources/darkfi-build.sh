@@ -9,7 +9,8 @@
 # SRC is a clone of the commit below, which this patches (darkfi.patch):
 # - no tor or i2p transport, so every peer is a plain tcp or tls one;
 # - drk's SQLCipher built in, not the system's;
-# - darkirc's library an rlib, since static musl makes no cdylib.
+# - darkirc's library an rlib, since static musl makes no cdylib;
+# - darkirc builds no RLN proving key, 137 MB each, at its first start.
 # The toolchain is rustup's stable, the version below, with its musl and
 # wasm32-unknown-unknown std; the rest is darkfi-env.sh. The nix recipe that
 # would do this offline from vendored crates is pending.

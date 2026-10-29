@@ -3,8 +3,10 @@
 # Copyright (C) 2026 NONOS Contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Place the MediaTek firmware package on a boot medium: the six files the
-mt7921e driver pins (userland/capsule_driver_mt7921/src/fw/pins.rs), each of
-its pinned length and sha256, with linux-firmware's LICENCE.mediatek beside
+mt7921e driver pins (userland/capsule_driver_mt7921/src/fw/pins.rs) and the
+two the Bluetooth capsule pins
+(userland/capsule_driver_bt_usb/src/vendor/mediatek/pins.rs), each of its
+pinned length and sha256, with linux-firmware's LICENCE.mediatek beside
 them, under ESP/EFI/nonos/firmware/mediatek/. The files are never in the
 tree and never in a capsule or the kernel; the loader reads them from here
 at boot and the driver checks them again.

@@ -4,7 +4,7 @@ Part of [scheduler and SMP](scheduler-and-smp.md).
 
 Kernel code takes its scheduler, paging and registry locks with interrupts masked, through `lock_responsive` (`src/smp/responsive.rs`). A wait for one of them that never ends stops its CPU without a sound: no tick arrives to say so, and on a machine with one CPU nothing at all runs again. The surface registry's `GATE` was taken twice on one exit path, and the first process to exit stopped the boot in exactly this way.
 
-So every wait through `lock_responsive`, or through `read_responsive` and `write_responsive` for a reader-writer lock (`src/smp/responsive_rw.rs`), that lasts `REPORT_MS`, 1000 ms, prints two short lines on serial, and a third for a re-take, and keeps waiting (`src/smp/spin_watch.rs`, `src/smp/spin_wait.rs`). It is printed once per wait, never once per spin:
+So every wait through `lock_responsive` that lasts `REPORT_MS`, 1000 ms, prints two short lines on serial, and a third for a re-take, and keeps waiting (`src/smp/spin_watch.rs`, `src/smp/spin_wait.rs`). It is printed once per wait, never once per spin:
 
 ```text
 [LOCK] cpu=0 waiting ms=1000 pid=0x0000000000000008 at src/kernel_core/surface_registry/pin/dma_held.rs:34
@@ -41,7 +41,7 @@ Measured on the host, an uncontended take and release with and without the note,
 
 ## Limits
 
-- Only locks taken through `lock_responsive`, `read_responsive` and `write_responsive` are watched. The cryptoblock's `PENDING` and the import stream's `LIVE` are among them. The /data volume's `VOLUME` is not a spin lock any more: it is a trip lock (`src/services/lifecycle/trip_lock.rs`), which a holder may keep across the disk's round trips, whose waiters rest instead of spinning, and whose holder, killed asleep, is swept by the next caller (`src/fs/blockfs_volume/state.rs`). A plain `.lock()` or `RwLock::write()` that never ends is still silent.
+- Only locks taken through `lock_responsive` are watched. The cryptoblock's `PENDING` and the import stream's `LIVE` are among them. The /data volume's `VOLUME` is not a spin lock any more: it is a trip lock (`src/services/lifecycle/trip_lock.rs`), which a holder may keep across the disk's round trips, whose waiters rest instead of spinning, and whose holder, killed asleep, is swept by the next caller (`src/fs/blockfs_volume/state.rs`). A plain `.lock()` or `RwLock::write()` that never ends is still silent.
 - A wait shorter than a second is not reported. A held lock that is slow but finishes, under emulation for example, can print a line and carry on.
 - The holder's site is the call site of `lock_responsive`. A helper that takes the lock for its callers names itself, not them.
 

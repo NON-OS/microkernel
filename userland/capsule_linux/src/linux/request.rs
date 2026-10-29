@@ -41,6 +41,14 @@ pub fn run_request() -> Option<(String, Mode)> {
     parse(&args()?)
 }
 
+#[path = "run_word.rs"]
+mod run_word;
+
+/// The word a served launch gave this run (run_word.rs), as one argument.
+pub fn run_word() -> Option<Vec<u8>> {
+    run_word::word(&args()?).map(<[u8]>::to_vec)
+}
+
 /// The whole argument block, sized by asking the kernel first: an install's
 /// m alone is 640 bytes.
 pub(super) fn args() -> Option<Vec<u8>> {
