@@ -1,0 +1,61 @@
+{
+  "schema_version": 4,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.nonos-darkfi-darkirc",
+      "capsule_id": "1722ce6ccffcf3035321d418aecb2a12786fb0fc6995c851d85b7a240435f6ac",
+      "name": "DarkIRC (P2P chat)",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "DarkFi's peer-to-peer IRC, in the Terminal: the darkirc daemon, built here from DarkFi v0.5.0 without its tor and i2p transports, with the small IRC client sic beside it in the same box. The first run asks for a nick, and you are joined to DarkFi's channels as the history syncs from peers. Peers are reached over Anyone, never direct, so a peer never learns your address. Peers still see the channels you join and when you talk; encrypted channels hide what is said only from those without the channel key. darkirc listens only on its own box's loopback, for sic.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "nonos-darkfi-darkirc@2e2de47c699529600085649b69c5c1878164e79a",
+          "manifest_hash": "1722ce6ccffcf3035321d418aecb2a12786fb0fc6995c851d85b7a240435f6ac",
+          "package_hash": "1722ce6ccffcf3035321d418aecb2a12786fb0fc6995c851d85b7a240435f6ac",
+          "package_url": "http://10.0.2.2:8080/linux/1722ce6ccffcf3035321d418aecb2a12786fb0fc6995c851d85b7a240435f6ac.tar",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c3031010000000000000054863880a5c4fa548dc39dbf80db4aa346d606baea792396986e1e20f89c0e3f0e010000000000002f04388c8f2f4915574e87311d5e17296b241184f7ec733fcb40fdd3fa712ee74579255da1c7b68028f6e0d977babed3cd51660c58bef53645980e6b7f1f96240000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "built from https://github.com/darkrenaissance/darkfi at 2e2de47c699529600085649b69c5c1878164e79a; content of 10792960 bytes pinned by BLAKE3; licence AGPL-3.0-only AND MIT; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}
