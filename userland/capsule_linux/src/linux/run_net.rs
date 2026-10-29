@@ -26,6 +26,7 @@
 use nonos_libc::{mk_cap_check, mk_exit, mk_getpid, mk_linux_run_net, LINUX_ASK_NET};
 
 use super::app::{net_step, NetStep};
+use super::launch::Launch;
 use super::say::say;
 use super::start_say::routine;
 
@@ -39,14 +40,35 @@ pub(super) fn settle(mask: u64) -> Result<(), &'static [u8]> {
         NetStep::Refuse => {
             Err(&b"[LINUX] the network role runs only a program granted NET_ANON\n"[..])
         }
-        NetStep::AskAgain if mk_linux_run_net(me) == 0 => {
-            routine(b"[LINUX] starting again with the network\n");
-            super::file::clear_private();
-            mk_exit(if super::terminal::started() { LINUX_ASK_NET } else { 0 })
-        }
+        NetStep::AskAgain if mk_linux_run_net(me) == 0 => again(),
         NetStep::AskAgain => {
             say(b"[LINUX] its policy grants NET_ANON; this run has no network\n");
             Ok(())
         }
     }
+}
+
+/// Before anything runs for it: the program is proved and bound here, and
+/// one whose box has NET_ANON, in a role without Network, asks at once to
+/// start again, so no GTK preparation or guest of the first role is thrown
+/// away. What was proved is kept for the start (start_guest::keep). One that
+/// does not prove goes on, and the start says why.
+pub(super) fn early(launch: &Launch) {
+    let (path, bytes) = (&launch.path[..], &launch.bytes[..]);
+    let Ok(app) = super::start_guest::prove(path, bytes, &launch.origin) else { return };
+    let app = super::boxed::narrow(app);
+    super::start_guest::keep(path, bytes, app);
+    let me = mk_getpid();
+    if net_step(app.mask, mk_cap_check(me, NETWORK), false) == NetStep::AskAgain
+        && mk_linux_run_net(me) == 0
+    {
+        again()
+    }
+}
+
+/// The kernel starts this run again in the role that holds Network.
+fn again() -> ! {
+    routine(b"[LINUX] starting again with the network\n");
+    super::file::clear_private();
+    mk_exit(if super::terminal::started() { LINUX_ASK_NET } else { 0 })
 }
