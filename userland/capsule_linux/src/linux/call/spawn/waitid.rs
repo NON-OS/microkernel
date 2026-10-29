@@ -17,12 +17,15 @@
 //! `waitid`: wait4's question asked by id type, answered in a siginfo, with
 //! WNOWAIT to look without reaping. Linux writes the siginfo whatever the
 //! outcome, zeros when nothing is reported, so an error here writes it too.
+//! P_PIDFD waits for the one child a pidfd refers to.
 
 use crate::linux::abi::errno;
 use crate::linux::guest::sigwaits::{ChildWait, Which};
 use crate::linux::guest::Guest;
 use crate::linux::serve::Answer;
 
+use super::pidfd::child;
+use super::pidfd::life::wait_for;
 use super::wait::park;
 use super::wait_opts::waitid_options;
 
@@ -34,20 +37,26 @@ pub const SIGINFO_LEN: usize = 128;
 
 pub fn waitid(guest: &mut Guest, tid: u32, a: [u64; 6]) -> Answer {
     let (idtype, id, info, options, rusage) = (a[0], a[1] as u32, a[2], a[3], a[4]);
-    let options = match waitid_options(options) {
+    let mut options = match waitid_options(options) {
         Ok(options) => options,
         Err(e) => return refuse(guest, info, e),
     };
+    let mut eagain = false;
     let which = match idtype {
         P_ALL => Which::Any,
         P_PID if (id as i32) > 0 => Which::Pid(id),
         P_PGID if id == 0 => Which::Group(guest.pgid),
         P_PGID if (id as i32) > 0 => Which::Group(id),
-        /* No descriptor here is ever a pidfd: pidfd_open is not served. */
-        P_PIDFD if (id as i32) >= 0 => return refuse(guest, info, errno::EBADF),
+        P_PIDFD if (id as i32) >= 0 => match wait_for(child(guest, u64::from(id)), options) {
+            Ok((pid, with, nonblock)) => {
+                (options, eagain) = (with, nonblock);
+                Which::Pid(pid)
+            }
+            Err(e) => return refuse(guest, info, e),
+        },
         _ => return refuse(guest, info, errno::EINVAL),
     };
-    park(guest, ChildWait { tid, which, options, out: info, rusage, waitid: true })
+    park(guest, ChildWait { tid, which, options, out: info, rusage, waitid: true, eagain })
 }
 
 fn refuse(guest: &Guest, info: u64, e: i64) -> Answer {

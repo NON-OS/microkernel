@@ -126,6 +126,7 @@ arch_prctl | its own thread pointer | its own state
 gettid | the calling thread's number in the family | family numbering
 tkill | as kill | as kill
 tgkill | as kill | as kill
+pidfd_send_signal | as kill, for the child its pidfd names | as kill
 time | the wall clock in seconds | as gettimeofday
 futex | wakes among its own threads | its own state
 getdents64 | names in the Linux tree or its private dirs | as open
@@ -152,6 +153,7 @@ faccessat | as access | as open
 pselect6 | as select | as poll
 ppoll | as poll | as poll
 set_robust_list | 0 | a constant
+get_robust_list | no list, 24 bytes long, for the caller's own thread; another thread's is refused | a constant, and whose list it is stays unsaid
 utimensat | success, or refusal outside its private dirs; the times it sets read back through stat | as rename; the times are its own
 utimes | as utimensat | as utimensat
 utime | as utimensat | as utimensat

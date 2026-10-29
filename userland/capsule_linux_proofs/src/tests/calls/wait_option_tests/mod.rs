@@ -17,6 +17,8 @@
 //! wait4 and waitid read their options as the int they are, refuse what
 //! kernel_wait4 and kernel_waitid refuse with EINVAL, and take what musl
 //! passes for __WCLONE, an int whose sign fills the register's upper half.
+//! A pidfd turns readable once its child ends, and its waitid reaps it.
 
+mod pidfd;
 mod wait4;
 mod waitid;
