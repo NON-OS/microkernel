@@ -110,7 +110,7 @@ After the fetch, every listing's `.apk` must be the one `B` pins. So two seals o
 
 ## Apps built from source
 
-Some apps are packaged by no distribution: DarkFi's drk, darkirc and darkfid and its chat app, and SimpleX's simplex-chat. A recipe of kind `source` lists one of these from a build of its upstream at a single commit, or from the binary its upstream publishes (below) (`tools/nonos_market_catalogue/source_recipe.py`, `checked`). DarkFi's four are in the catalogue, built from v0.5.0; the chat app, `linux.nonos-darkfi-app`, is drawn by mesa's softpipe on the CPU (tools/nix/sources/darkfi-app-*.sh). SimpleX's terminal client is in it as `linux.kali.nonos-simplex-chat`, from SimpleX's own v7.0.3 release binary.
+Some apps are packaged by no distribution: DarkFi's chat app and command-line tools, and SimpleX's simplex-chat. A recipe of kind `source` lists one of these from a build of its upstream at a single commit, or from the binary its upstream publishes (below) (`tools/nonos_market_catalogue/source_recipe.py`, `checked`). DarkFi's chat app, `linux.nonos-darkfi-app`, is in the catalogue, built from v0.5.0, and drawn by mesa's softpipe on the CPU (tools/nix/sources/darkfi-app-*.sh). Its drk, darkirc and darkfid are built but not listed in 0.9.3 ([DarkFi](../using/darkfi.md)). SimpleX's terminal client is in it as `linux.kali.nonos-simplex-chat`, from SimpleX's own v7.0.3 release binary.
 
 | Key | Required | What it holds |
 |---|---|---|
