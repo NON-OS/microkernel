@@ -14,9 +14,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
-# Fuzz target for the Linux personality's readers of guest and package input,
-# mounted by capsule_linux_proofs. Run with:
+# Fuzz targets for the Linux personality's readers of guest and package input,
+# and of the frames SERVE_ONE's capsule sends, mounted by capsule_linux_proofs.
+# Run with:
 # cargo +nightly-2026-01-16 fuzz run linux_inputs
+# cargo +nightly-2026-01-16 fuzz run serve_wire
 
 [package]
 name = "capsule_linux_proofs-fuzz"
@@ -31,6 +33,7 @@ cargo-fuzz = true
 libfuzzer-sys = "0.4"
 nonos_capsule_linux_proofs = { path = ".." }
 nonos_inflate = { path = "../../inflate" }
+nonos_serve_wire = { path = "../../nonos_serve_wire" }
 
 [[bin]]
 name = "linux_inputs"
@@ -42,6 +45,13 @@ bench = false
 [[bin]]
 name = "box_word"
 path = "fuzz_targets/box_word.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "serve_wire"
+path = "fuzz_targets/serve_wire.rs"
 test = false
 doc = false
 bench = false

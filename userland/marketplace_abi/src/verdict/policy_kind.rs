@@ -24,7 +24,7 @@ pub enum PolicyVerdict {
     /// table's, so any policy carried here must name no listing or release.
     Vendor = 2,
     Missing = 3,
-    /// Not 256 bytes, or not "NLXPOL01" version 1.
+    /// Not 256 bytes, or not "NLXPOL01" version 1 or 2.
     BadHeader = 4,
     /// Its listing and release ids are not this release's.
     WrongIds = 5,
