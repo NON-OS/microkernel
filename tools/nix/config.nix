@@ -174,6 +174,8 @@ let
     features = [ ];
     # The NONOS package mirror the in-tree tools install from; empty, none.
     linux_packages = ""; linux_sources = ""; # and where source recipes' content is
+    # The Debian archive Debian-family listings install from; empty, none.
+    linux_debian = "";
     store = { linux = true; media = true; };
   };
 
@@ -215,6 +217,8 @@ let
     assert lib.assertMsg (builtins.isInt c.rollback_index && c.rollback_index >= 1) "nonos.toml: rollback_index is an integer from 1";
     assert lib.assertMsg (builtins.isString c.linux_packages && builtins.match "[A-Za-z0-9.-]*(:[0-9]+)?" c.linux_packages != null)
       "nonos.toml: linux_packages is name:port, or empty";
+    assert lib.assertMsg (builtins.isString c.linux_debian && builtins.match "[A-Za-z0-9.-]*(:[0-9]+)?" c.linux_debian != null)
+      "nonos.toml: linux_debian is name:port, or empty";
     # Path-only attestation belongs to the development loader, whose loader
     # takes the same path-only kernel trailer; no other image may carry it.
     assert lib.assertMsg (!(builtins.elem "nonos-dev-attest" enabled) || loader == "dev-qemu")

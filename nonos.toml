@@ -49,6 +49,12 @@ linux_packages = "mirror.nonos.software:80"
 # recipes (SimpleX, DarkFi): <package>.tar each, from tools/nonos-source-asset
 # and tools/nix/sources/darkfi-build.sh. Empty: those recipes are not listed.
 linux_sources = "target/linux-sources"
+# The Debian archive, name:port over plain HTTP, that Debian-family listings
+# (linux.kali.*, SimpleX) and the Debian packages they need install from,
+# over the route the person chose. Its signed index is checked against the
+# pinned keys/kali/archive-key-2025.asc, the archive tools/nonos-market-catalogue
+# lists from. Empty: such a listing refuses to install.
+linux_debian = "kali.download:80"
 
 # What the package store carries besides the capsules.
 [store]
