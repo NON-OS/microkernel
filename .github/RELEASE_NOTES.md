@@ -54,8 +54,9 @@ window on the NONOS desktop, inside the NONOS frame: title bar, close, minimise 
   `gui-keepassxc`).
 - **Telegram Desktop** 5.0.1 (Qt 6) draws its welcome screen in the frame on a development
   image, in a box of WAYLAND, FILES_HOME and NET_ANON, once `/proc` answered a thread's own
-  number (71e34654ac, `gui-telegram`). A sign-in is not shown: that test machine reached only the
-  package mirror.
+  number (71e34654ac, `gui-telegram`). On a KVM run of the release tree (7a250a33f7), it installed
+  from the real Alpine mirror over Anyone and drew its welcome screen, "Start messaging", in the
+  frame. A sign-in or a message sent is not shown.
 - **foot** 1.17.2 is listed in a box of WAYLAND, TTY, FILES_HOME and EXEC (fbbd8c5f80). It drew
   its window and ran a shell over `/dev/pts` on a development image (`gui-foot`).
 - **mpv** 0.38.0 is listed, drawing to `wl_shm` with no GPU (`--vo=wlshm`; fbbd8c5f80). Its box
@@ -249,10 +250,10 @@ paging-lock waits seen on 30a4b58c4 are gone after the paging-lock fix (adb53a20
   wallet's 64 MiB) and 128 names, and is gone at power off. A home kept across a reboot is designed
   and not in this release (`docs/design/kept-homes-and-installs.md`). One file an app writes may
   fill its home and no more, and none may pass 64 MiB (`MAX_FILE` in `file/held/cache/table.rs`).
-- **Monero.** On every wallet open the first refresh fails with "net.socks5 sent an answer this
-  cannot read", and the next connects. An install from the real mirror with one package at a time is
-  not yet shown (`s1-g-kvm`, "Not shown here"). Write the seed on paper; it is the only copy that
-  survives power off.
+- **Monero.** The first refresh after a wallet opened could fail with "net.socks5 sent an answer
+  this cannot read" while the next connected. An open now greets the proxy only after a reset it
+  took (b4c738699b, proven on the host); no boot has shown that first refresh connect yet. Write
+  the seed on paper; it is the only copy that survives power off.
 - **Update NØNOS (keep my data)**: from the prepare until the next boot, an approved kernel opens
   the data volume on this machine whatever bootloader measured it, so prepare right before the
   update (`docs/security/device-secrets-and-keys.md`, "The handover").
