@@ -70,6 +70,6 @@ fn touch_reports_at_the_pads_rate_keep_the_click() {
         let (r, mut s, _) = dragging();
         let up = reports(&r, &mut s, 3_000, Some(every));
         assert_eq!(up, None, "a click held with touches every {every} ms was let go");
-        assert!(s.gesture.button_held(), "the click went with touches every {every} ms");
+        assert!(s.gesture.was_button, "the click went with touches every {every} ms");
     }
 }
