@@ -30,6 +30,8 @@ use super::damage::Damage;
 mod damage_io;
 #[path = "damage_lay.rs"]
 mod damage_lay;
+#[path = "damage_scale.rs"]
+mod damage_scale;
 
 /// The bytes read showing `said` of `buffer` on the window `surface`; None
 /// when it is shown whole: new, or its shape, scale, frame or layers changed.
@@ -43,19 +45,17 @@ pub fn part(guest: &mut Guest, surface: u32, buffer: u32, said: Damage) -> Optio
         return None;
     }
     let src = scaled::window(scene, surface, buffer).ok()?;
-    if src.raw.is_some() || reshape(scene.shape, src.shape) != Reshape::Same {
+    if reshape(scene.shape, src.shape) != Reshape::Same {
         return None;
     }
-    let (w, h, stride) = src.shape;
-    let (x0, y0, x1, y1) = match said.on(w, h) {
-        Damage::None => return Some(0),
-        Damage::Rect(x0, y0, x1, y1) => (x0, y0, x1, y1),
-        Damage::Whole => return None,
-    };
     let a = around_shape(scene, src.shape);
     let key = (a, scene.frame.hover, scene.keyboard_on.is_some());
     (!a.framed() || scene.frame.chrome == Some(key)).then_some(())?;
-    let rows = damage_io::rows(pid, &src, (y0, y1))?;
+    /* At the size shown: a buffer of another size is resampled in the box only. */
+    let Some((rows, (x0, y0, x1, y1))) = damage_io::changed(pid, &src, said)? else {
+        return Some(0);
+    };
+    let stride = src.shape.2;
     let (box_, put) = ((x0, 0, x1, y1 - y0), (stride, 0, y0));
     let ground = frame_bg();
     let blend = |px: u32| if px >> 24 == 0xFF { px } else { over(px, ground) };
