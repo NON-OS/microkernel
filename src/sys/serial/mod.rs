@@ -26,6 +26,4 @@ mod who;
 
 pub use core::init;
 pub use line::Line;
-pub use print::{
-    line, passthrough, print, print_dec, print_dec as print_u64, print_hex, print_str, println,
-};
+pub use print::{line, passthrough, print, println};
