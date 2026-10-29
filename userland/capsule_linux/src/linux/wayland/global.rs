@@ -25,6 +25,11 @@ pub struct Global {
     pub object: Object,
 }
 
+/// A global named `name`, its interface told at most `version`.
+pub const fn g(name: u32, interface: &'static [u8], version: u32, object: Object) -> Global {
+    Global { name, interface, version, object }
+}
+
 pub fn by_name(name: u32) -> Option<&'static Global> {
     super::registry::GLOBALS.iter().find(|g| g.name == name)
 }
