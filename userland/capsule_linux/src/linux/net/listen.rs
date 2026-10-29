@@ -23,17 +23,14 @@ use super::fd::sock_of;
 use super::policy::not_loopback;
 use super::sock::{self, Addr, Domain, Proto};
 
-fn may_listen(guest: &Guest) -> bool {
-    crate::linux::app::granted(guest, nonos_linux_policy::mask::NET_LISTEN_LO)
-}
-
 pub fn listen(guest: &mut Guest, fd: u64, backlog: u64) -> u64 {
     let id = match sock_of(guest, fd) {
         Ok(id) => id,
         Err(e) => return e,
     };
-    if sock::with(|t| t.get(id).is_some_and(|s| s.domain == Domain::Inet)) && !may_listen(guest) {
-        return crate::linux::app::refuse("listen", "NET_LISTEN_LO", errno::EACCES);
+    /* NET_LISTEN_LO, or SERVE_ONE's one listener, served before it listens. */
+    if let Err(e) = super::serve_one::gate(guest, id) {
+        return e;
     }
     sock::with(|t| {
         let Some(s) = t.get(id) else {

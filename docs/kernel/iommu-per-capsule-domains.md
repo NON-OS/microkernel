@@ -60,9 +60,22 @@ never hands a device an I/O virtual address it would take as physical
 calls are refused with `AmdViNotDriven` in a build without the AMD-Vi backend,
 and with no IOMMU with `NoIommu`, each with a serial line from `amd_vi` or
 `absent`
-(`src/arch/x86_64/iommu/backend/refuse.rs:22-38`).
+(`src/arch/x86_64/iommu/backend/refuse.rs:22-38`). Every image builds the
+AMD-Vi backend, since `microkernel-core` carries `nonos-iommu-amdvi`
+(`Cargo.toml`).
 
-Under the development opt-in the device then reaches all of memory, and the
+With no unit in service at all, a boot takes the no-IOMMU posture when its image
+carries `nonos-dma-unconfined-posture`, which the standard, qemu and dev
+profiles do, and the boot is not Hardened or Air-Gapped. Claims then go ahead
+unconfined, and the boot prints `[IOMMU] posture=dma-unconfined` with the
+reason, `a claimed device may reach all of memory` (`decide` in
+`src/memory/iommu/no_iommu.rs`; the rule in `src/memory/iommu/no_iommu_rule.rs`).
+A Hardened or Air-Gapped boot prints `[IOMMU] posture=refused` and stops. A
+boot under QEMU with no IOMMU shows the posture line and `device DMA not
+confined by hardware` on the splash
+(`docs/release-evidence/0.9.3/gpu-469dddb58-no-iommu/`).
+
+Under the posture or the development opt-in the device then reaches all of memory, and the
 kernel counts it instead of hiding it. Each DMA grant made without a confining domain adds one to the count
 through `note_unconfined`, and its release takes one off
 (`src/memory/iommu/unconfined.rs:35-51`).

@@ -16,10 +16,12 @@
 
 //! What this does, and what it is about to write: the image this machine
 //! booted, with the verdict the bootloader recorded about it. A person
-//! reads the verdict before they pick a disk.
+//! reads the verdict before they pick a disk. On an installed NØNOS, a row
+//! under it prepares the computer for an update (`welcome_prepare.rs`).
 
 use nonos_app_skeleton::PaintBuffer;
 
+use super::welcome_prepare::prepare_row;
 use crate::install::format::{bytes, hex_prefix};
 use crate::install::state::State;
 use crate::install::ui::frame::Body;
@@ -36,6 +38,9 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
     y += m.gap;
     let caption = "what will be written, and this machine";
     let inner = card(fb, m, b.x, y, b.w, m.card_h(6), caption);
+    if state.installed {
+        prepare_row(state, fb, m, b.x, y + m.card_h(6) + m.gap, b.w);
+    }
     let x = b.x + m.inset;
     let w = b.w - 2 * m.inset;
     match &state.image {

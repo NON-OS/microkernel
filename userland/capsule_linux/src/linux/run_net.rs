@@ -34,7 +34,7 @@ const NETWORK: u64 = 1 << 2;
 
 pub(super) fn settle(mask: u64) -> Result<(), &'static [u8]> {
     let me = mk_getpid();
-    match net_step(mask, mk_cap_check(me, NETWORK)) {
+    match net_step(mask, mk_cap_check(me, NETWORK), super::gtk_prep::helping()) {
         NetStep::Run => Ok(()),
         NetStep::Refuse => {
             Err(&b"[LINUX] the network role runs only a program granted NET_ANON\n"[..])

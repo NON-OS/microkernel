@@ -40,17 +40,17 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkDebug => caps.can_debug(),
         SyscallNumber::MkStdoutWrite | SyscallNumber::MkPrivateWrite => caps.can_ipc(),
         SyscallNumber::MkStoreWrite | SyscallNumber::MkStoreRead => caps.can_store_write(),
-        SyscallNumber::MkDataImport => caps.can_store_write() && caps.can_open_files(),
-        SyscallNumber::MkDataPassphrase => caps.can_store_write() && caps.can_open_files(),
+        SyscallNumber::MkDataImport
+        | SyscallNumber::MkDataPassphrase
+        | SyscallNumber::MkDataHandover => caps.can_store_write() && caps.can_open_files(),
         SyscallNumber::MkDataStat | SyscallNumber::MkDataRead => caps.can_open_files(),
         SyscallNumber::MkDataFeedBegin
         | SyscallNumber::MkDataFeed
         | SyscallNumber::MkDataRemove => caps.can_stream_import(),
 
         /*
-         * Hosting unverified code is one right, and it covers every call
-         * that touches a guest: creating it, building its address space,
-         * and answering for it.
+         * Hosting unverified code is one right: every call that touches a
+         * guest, creating it, building its address space, answering for it.
          */
         SyscallNumber::MkForeignSpawn
         | SyscallNumber::MkForeignStart
@@ -67,8 +67,8 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkForeignFork
         | SyscallNumber::MkPeerUnmap
         | SyscallNumber::MkForeignExec => caps.can_foreign_exec(),
-        /* The handler admits only the Linux run role, for its own pid. */
-        SyscallNumber::MkLinuxRunNet => caps.can_foreign_exec(),
+        /* Their handlers admit only the Linux run role: its own pid; a SERVES pair. */
+        SyscallNumber::MkLinuxRunNet | SyscallNumber::MkServeOne => caps.can_foreign_exec(),
 
         _ => return None,
     })

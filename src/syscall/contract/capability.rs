@@ -40,9 +40,7 @@ impl Capability {
                 .unwrap_or(0),
             boot_session_nonce: crate::security::boot_session::nonce(),
             capsule_revocation_epoch: proc.revocation_epoch(),
-            // The endpoint the kernel registered at spawn, which no capsule
-            // may claim for itself (register_allowed.rs), not a process name.
-            caller_is_shell: || crate::services::registry::caller_owns("desktop_shell"),
+            caller_launches,
         };
         resolver_resolve(&token_arc, number, args, &ctx).ok()?;
         Some(Self { token: (*token_arc).clone() })
@@ -54,4 +52,12 @@ impl Capability {
     pub fn token(&self) -> &CapabilityToken {
         &self.token
     }
+}
+
+/// Whether the caller owns an endpoint the kernel registered at spawn, which
+/// no capsule may claim for itself (register_allowed.rs), and not a process
+/// name: the desktop shell's, or a capsule's SERVES pairs with a listing.
+fn caller_launches() -> bool {
+    use crate::services::registry::{caller_owns, serves::LISTINGS};
+    caller_owns("desktop_shell") || LISTINGS.iter().any(|&(capsule, _)| caller_owns(capsule))
 }

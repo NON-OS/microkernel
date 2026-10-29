@@ -19,7 +19,7 @@
 //! script and this crate's tests read it alike, so what the build accepts is
 //! what they check.
 
-use crate::mask::FILES_USER;
+use crate::mask::{FILES_USER, SERVE_ONE};
 use crate::syscall_set::SyscallSet;
 
 use super::dests_arg::dests_of;
@@ -66,6 +66,9 @@ pub fn parse(line: &str) -> Result<Option<Line<'_>>, String> {
     // Nothing serves the person's files yet; a vendor row may not claim them (plan/32).
     if mask & FILES_USER != 0 {
         return Err(format!("{store_path}: FILES_USER is reserved: nothing serves it yet"));
+    }
+    if mask & SERVE_ONE != 0 {
+        return Err(format!("{store_path}: SERVE_ONE needs a field no line here can name"));
     }
     Ok(Some(Line { store_path, file, mask, calls, dests }))
 }
