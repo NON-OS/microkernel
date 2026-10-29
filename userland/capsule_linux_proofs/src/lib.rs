@@ -41,6 +41,8 @@ pub mod pointer_codes;
 pub mod wayland_focus_step;
 #[path = "../../capsule_linux/src/linux/wayland/window_damage.rs"]
 pub mod window_damage;
+#[path = "../../capsule_linux/src/linux/unix/ready_rule.rs"]
+pub mod display_ready;
 #[path = "../../capsule_linux/src/linux/wayland/damage.rs"]
 pub mod damage;
 #[path = "../../capsule_linux/src/linux/wayland/damage_lay.rs"]
