@@ -1120,7 +1120,7 @@ ret  = {type="i64"}
 # The ACPI capsule's calls (src/syscall/microkernel/acpi/dispatch.rs). Admin is
 # the cap table's gate; on top of it every one but MADN, MUPF and MAMT answers
 # EPERM to anyone outside the `acpi` service owner's thread group (F-95,
-# acpi/owner_gate.rs). Without ACPI, as on aarch64 and riscv64, each answers ENOSYS.
+# acpi/owner_gate.rs). On a board with no ACPI, each answers ENOSYS.
 [desc.MTBL]
 nr   = 0x4C42544D
 caps = ["Admin"]
