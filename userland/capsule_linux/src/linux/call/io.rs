@@ -44,14 +44,13 @@ pub fn write(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
         Some(Kind::Resolver) => net::dns::query(guest, fd, buf, len, LOOPBACK_53),
         Some(Kind::Dir) => errno::fail(errno::EISDIR),
         Some(Kind::Memfd) => file::memfd_write(guest, fd),
+        Some(Kind::Pidfd) => errno::fail(errno::EINVAL),
         _ => errno::fail(errno::EBADF),
     }
 }
 pub fn read(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
     match guest.fds.get(fd as usize).map(|f| &f.kind) {
-        /*
-         * What the terminal typed, or end of file on no terminal.
-         */
+        /* What the terminal typed, or end of file on no terminal. */
         Some(Kind::Stdin) if !crate::linux::app::granted(guest, TTY) => errno::ok(0),
         Some(Kind::Stdin) => crate::linux::console::read(guest, buf, len),
         Some(Kind::File) => file::read(guest, fd, buf, len),
@@ -65,6 +64,7 @@ pub fn read(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
         Some(Kind::Signal) => super::signalfd_now(guest, fd, buf, len),
         Some(Kind::Resolver) => net::dns::answer_out(guest, fd, buf, len).0,
         Some(Kind::Dir) => errno::fail(errno::EISDIR),
+        Some(Kind::Pidfd) => errno::fail(errno::EINVAL),
         _ => errno::fail(errno::EBADF),
     }
 }
