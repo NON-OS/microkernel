@@ -1,0 +1,61 @@
+{
+  "schema_version": 4,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.nonos-darkfi-drk",
+      "capsule_id": "f9883948f80ed72027111fa53e7f4da12f5e0dde3fc7ee66cab8b055a79cc88e",
+      "name": "DarkFi wallet (drk)",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "DarkFi's command-line wallet, built here from DarkFi v0.5.0 without its tor and i2p transports, as a prompt in the Terminal: each line runs drk, as wallet --balance or transfer. The first run asks for the wallet's passphrase and makes its first key. Its keys stay in its own home. It asks a darkfid node you name with :node, run elsewhere and reached over Anyone, never direct: the node never learns your address, but it sees which coins your wallet asks about.",
+      "logo_hash": "",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "nonos-darkfi-drk@2e2de47c699529600085649b69c5c1878164e79a",
+          "manifest_hash": "f9883948f80ed72027111fa53e7f4da12f5e0dde3fc7ee66cab8b055a79cc88e",
+          "package_hash": "f9883948f80ed72027111fa53e7f4da12f5e0dde3fc7ee66cab8b055a79cc88e",
+          "package_url": "http://10.0.2.2:8080/linux/f9883948f80ed72027111fa53e7f4da12f5e0dde3fc7ee66cab8b055a79cc88e.tar",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c303101000000000000002ffb41abbd61c5dde2766eec9aa08a96b10db92838f1e7613a6310b8cab737040a010000000000000527bd1e36406e2755d7ce1c2158a163b1db38336b5a3329550bcc7f95f30570941d3fee89d9cacce54df9bbaf53440b14b0401648a2718a7c6ca05fbf3bc9be0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "built from https://github.com/darkrenaissance/darkfi at 2e2de47c699529600085649b69c5c1878164e79a; content of 19978240 bytes pinned by BLAKE3; licence AGPL-3.0-only; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}
