@@ -34,6 +34,7 @@ mod fetch;
 #[path = "../../../../capsule_model_fetch/src/exit.rs"]
 mod fetch_exit;
 mod get;
+mod held_keep;
 mod hex;
 mod http;
 mod http_reply;
