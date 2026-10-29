@@ -46,8 +46,9 @@ diff --git a/bin/app/src/gfx/mod.rs b/bin/app/src/gfx/mod.rs
 index 993ea0a..25e5c01 100644
 --- a/bin/app/src/gfx/mod.rs
 +++ b/bin/app/src/gfx/mod.rs
-@@ -1077,7 +1077,7 @@ pub fn run_gui() {
+@@ -1077,7 +1077,8 @@ pub fn run_gui() {
          window_resizable: true,
++        sample_count: 0,
          platform: miniquad::conf::Platform {
              linux_backend: miniquad::conf::LinuxBackend::WaylandWithX11Fallback,
 -            //blocking_event_loop: true,
