@@ -21,12 +21,18 @@ use nonos_app_skeleton::PaintBuffer;
 
 use super::paint_chat::chat;
 use super::paint_list::list;
+use super::paint_name::name;
 use super::view::{Span, View};
+use crate::model::focus::Focus;
 
 pub fn paint(fb: &mut PaintBuffer, v: &View) {
     let (w, h) = (fb.width, fb.height);
     let list_w = v.m.list_w(w);
     list(fb, v, list_w, h);
     fb.fill_rect(list_w, 0, 1, h, v.c.rule);
-    chat(fb, v, Span { x: list_w + 1, w: w.saturating_sub(list_w + 1) }, h);
+    let right = Span { x: list_w + 1, w: w.saturating_sub(list_w + 1) };
+    match v.model.focus {
+        Focus::Name | Focus::Named => name(fb, v, right, h),
+        _ => chat(fb, v, right, h),
+    }
 }
