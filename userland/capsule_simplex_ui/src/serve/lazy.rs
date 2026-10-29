@@ -14,30 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A channel to the core that is not open yet: each tick it asks once more,
-//! every quarter second, for thirty seconds from the window's start.
+//! The channel to the core: started as model/start.rs rules, and its
+//! endpoint asked for until it answers.
 
 use super::pipe::ServePipe;
 use crate::link::core_channel::CoreChannel;
 use crate::link::Transport;
+use crate::model::start::Start;
 use alloc::boxed::Box;
-use nonos_libc::{mk_app_launch, mk_uptime_ms};
-
-/// The core's listing, which MkAppLaunch starts in its own box.
-const CORE: &[u8] = b"linux.kali.nonos-simplex-core";
-const TRY_MS: i64 = 30_000;
-const EVERY_MS: i64 = 250;
+use nonos_libc::mk_uptime_ms;
 
 struct Lazy {
-    since: i64,
-    last: i64,
+    start: Start,
     open: Option<CoreChannel<ServePipe>>,
 }
 
 /// The window's transport: the core, once SERVE_ONE serves it.
 pub fn open() -> Box<dyn Transport> {
-    let _ = mk_app_launch(CORE);
-    Box::new(Lazy { since: mk_uptime_ms(), last: i64::MIN, open: None })
+    Box::new(Lazy { start: Start::new(), open: None })
 }
 
 impl Transport for Lazy {
@@ -53,11 +47,14 @@ impl Transport for Lazy {
 
     fn tick(&mut self) {
         let now = mk_uptime_ms();
-        if self.open.is_none() && now - self.since < TRY_MS && now - self.last >= EVERY_MS {
-            self.last = now;
-            // A mask guards proxies on a shared path; this path is the box's own loopback.
+        let step = self.start.tick(now);
+        if let Some(word) = step.launch {
+            super::launch::launch(&mut self.start, word.as_deref(), now);
+        }
+        if step.look && self.open.is_none() {
             let seed = (now as u128 ^ 0x5349_4d50_4c45_5800).to_le_bytes();
             self.open = ServePipe::open().map(|p| CoreChannel::new(p, seed));
+            self.open.is_some().then(|| self.start.found());
         }
         if let Some(c) = &mut self.open {
             c.tick();
@@ -70,5 +67,9 @@ impl Transport for Lazy {
 
     fn label(&self) -> &'static str {
         "simplex.core"
+    }
+
+    fn start(&mut self) -> Option<&mut Start> {
+        Some(&mut self.start)
     }
 }

@@ -54,4 +54,8 @@ pub trait Transport {
     fn up(&self) -> bool;
     /// A word for the window's header saying what carries the frames.
     fn label(&self) -> &'static str;
+    /// Where starting the core is, for a transport that starts one.
+    fn start(&mut self) -> Option<&mut crate::model::start::Start> {
+        None
+    }
 }

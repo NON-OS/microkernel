@@ -20,6 +20,7 @@
 use alloc::string::String;
 
 use super::command::command;
+use super::focus::Focus;
 use super::state::Model;
 use crate::proto::cmd::Cmd;
 
@@ -51,12 +52,13 @@ impl Model {
 
     /// Adds text to the field that has the keys, within its limit.
     pub fn insert(&mut self, text: &str) {
-        let field = match self.focus {
-            super::focus::Focus::Search => &mut self.search,
-            _ => &mut self.compose,
+        let (field, max) = match self.focus {
+            Focus::Search => (&mut self.search, MAX_COMPOSE),
+            Focus::Name => (&mut self.name, super::start_name::NAME_MAX),
+            _ => (&mut self.compose, MAX_COMPOSE),
         };
         for ch in text.chars().filter(|c| !c.is_control()) {
-            if field.len() + ch.len_utf8() > MAX_COMPOSE {
+            if field.len() + ch.len_utf8() > max {
                 break;
             }
             field.push(ch);

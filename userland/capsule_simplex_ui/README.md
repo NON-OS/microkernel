@@ -27,8 +27,12 @@ its own box with its own database (simplex.core,
 - `src/serve/`: the window's pipe, one SERVE_ONE connection on
   `linux.serve.app.simplex` in S1's frames (`nonos_serve_wire`), and `open`, which starts the
   core (MkAppLaunch of `linux.kali.nonos-simplex-core`) and asks for the
-  endpoint each quarter second for half a minute. Until it answers the
-  window is offline and says so; it never shows a recorded session.
+  endpoint each quarter second. A core with no profile yet exits before it
+  listens, so after 20 seconds with no answer the window asks the person
+  for the name contacts see, and starts the core again with
+  `--user-display-name=<name>` (`model/start.rs`, `model/start_name.rs`).
+  Until it answers the window is offline and says so; it never shows a
+  recorded session.
 - `src/ui/`: the window. Chat list on the left (name, last message, time,
   unread count), the chat on the right (bubbles, ours on the right, time and
   delivery status), the compose line at the bottom. Colours from the live
