@@ -20,6 +20,7 @@ mod bound_line_tests;
 mod connected_tests;
 mod frames_tests;
 mod fuzz_tests;
+mod gtk_needs_tests;
 mod hash_bytes_tests;
 mod hash_tests;
 mod identity_box_tests;
