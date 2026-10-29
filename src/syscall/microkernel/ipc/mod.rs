@@ -49,6 +49,7 @@ mod send_reply;
 mod send_reply_inbox;
 mod send_to_pid;
 mod sender_pid;
+mod serve_one;
 mod wait_rule;
 
 pub use call::sys_ipc_call;
@@ -63,4 +64,5 @@ pub use reply::sys_ipc_reply;
 pub use reply_to::sys_ipc_reply_to;
 pub use send::sys_ipc_send;
 pub use send_to_pid::sys_ipc_send_to_pid;
+pub use serve_one::sys_serve_one;
 pub use thread_group::sys_thread_group;

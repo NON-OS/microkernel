@@ -11,8 +11,10 @@ gate serve/unserved.rs | errno::fail(errno::ENOSYS) | a call not served is ENOSY
 # The box (nonos_linux_policy::mask), each where its service is reached.
 gate net/socket.rs | !crate::linux::app::inet(guest) && !learning() | AF_INET without NET_ANON or NET_LISTEN_LO, but in a learn run, whose every connect out.rs refuses
 gate net/connect/out.rs | crate::linux::app::may_dial(guest, target, to.port) | a stream out, NET_ANON and its dests
-gate net/bind.rs | mask::NET_LISTEN_LO | bind without NET_LISTEN_LO
-gate net/listen.rs | mask::NET_LISTEN_LO | listen without NET_LISTEN_LO
+gate net/bind.rs | crate::linux::app::may_bind(guest, stream, want.ip, want.port) | bind without NET_LISTEN_LO, or SERVE_ONE's one address
+gate app/serve_rule.rs | grants(mask, NET_LISTEN_LO) || serve_at(mask, field, stream, ip, port) | NET_LISTEN_LO, or the address SERVE_ONE names
+gate net/listen.rs | super::serve_one::gate(guest, id) | listen without NET_LISTEN_LO or SERVE_ONE's one listener
+gate net/serve_one/gate.rs | None if app::granted(guest, NET_LISTEN_LO) => Ok(()), | listen without NET_LISTEN_LO, but at SERVE_ONE's served address
 gate net/named/connect.rs | app::granted(guest, WAYLAND) | the display without WAYLAND
 gate unix/sock.rs | mask::WAYLAND | the display without WAYLAND
 gate call/spawn/exec.rs | mask::EXEC | execve without EXEC
@@ -26,7 +28,7 @@ gate file/models/open.rs | mask::MODELS_RO | a model without MODELS_RO
 gate file/models/stat.rs | crate::linux::app::models() | /models without MODELS_RO
 gate file/private/names.rs | crate::linux::app::home() | a private home without FILES_HOME
 gate file/private/rule.rs | (!HOMES.contains(p) || home) | /home and /root private only with FILES_HOME
-gate start_guest.rs | app::grant(guest.app.mask) | the family's tree, from the program's mask
+gate start_guest.rs | app::grant(&guest.app) | the family's tree, from the program's policy
 gate file/root.rs | !super::private::shared_writes_allowed() | the shared tree is read-only to a guest
 gate call/io.rs | Some(Kind::Stdin) if !crate::linux::app::granted(guest, TTY) | typed input without TTY
 gate call/ioctl.rs | mask::TTY | terminal control without TTY

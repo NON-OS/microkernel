@@ -55,8 +55,8 @@ pub fn mk_foreign_thread(pid: u32, entry: u64, rsp: u64, tls: u64, from: u32) ->
     call_raw(N_MK_FOREIGN_THREAD, [pid as u64, entry, rsp, tls, from as u64, 0])
 }
 
-/// Block until a guest of this process makes a call the kernel refuses,
-/// then take its register frame. `timeout_ms` of zero waits forever.
+/// Block for a guest's refused call and take its frame (its size), or 0 once a
+/// message comes to this process's own inbox. `timeout_ms` of 0 waits forever.
 pub fn mk_foreign_wait(out: &mut ForeignFrame, timeout_ms: u64) -> i64 {
     let ptr = out as *mut ForeignFrame as u64;
     let len = core::mem::size_of::<ForeignFrame>() as u64;

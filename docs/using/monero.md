@@ -8,18 +8,20 @@ Each claim is marked as [Privacy apps](privacy-apps.md) marks them: *booted*, *h
 
 Install `Monero wallet (CLI)` from the App Store's Linux tab, then run it in the Terminal with `linux monero-wallet-cli` and your own options after it.
 
-The listing starts the wallet with three options before yours:
+The listing starts the wallet with five options before yours:
 
 ```text
 --daemon-address=xmr-node.cakewallet.com:18081
 --untrusted-daemon
 --log-file=/root/monero-wallet-cli.log
+--max-log-file-size=1048576
+--max-log-files=1
 ```
 
 They are part of the release the publisher signs, and the machine checks them again before each start (`docs/userland/marketplace-catalogue.md`, Listed arguments). *host-tested*
 
 - **No local node.** Without a node named, the wallet looks for one on this machine at `localhost:18081`, and fails with `wallet failed to connect to daemon`. NONOS runs no Monero node: `monerod` is in the package but has no box, and is refused. The listed address gives it a remote node from the start. *design*
-- **A log in its home.** By default the wallet writes its log next to its program, `/usr/bin/monero-wallet-cli.log`, and the box refuses that path. The listed `--log-file` puts it in the wallet's home, `/root`, instead. *design*
+- **A log in its home.** By default the wallet writes its log next to its program, `/usr/bin/monero-wallet-cli.log`, and the box refuses that path. The listed `--log-file` puts it in the wallet's home, `/root`, instead, at most 1 MiB and one file, so the 16 MiB home is left for the wallet's cache. *design*
 - **No mining question.** The wallet offers background mining only when it trusts its node. With an untrusted node it prints `Using an untrusted daemon, skipping background mining check` and does not ask (monero's `src/simplewallet/simplewallet.cpp`, `check_background_mining`). Mining would run on the node, not here, so it has no use with a remote node. *design*
 - **The setting itself.** Monero 0.18 has no command-line option to turn the setting off. In the wallet, `set setup-background-mining 0` records "no" in the wallet file, so it is not asked even if you later trust a node. *design*
 

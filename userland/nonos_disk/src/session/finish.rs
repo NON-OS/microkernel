@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! After the last job, which is the primary GPT header: the flush, then the
-//! receipt. The receipt keeps every job but the wipe, so the read-back
-//! compares every sector that stays written against the bytes that were
-//! sent.
+//! After the last job, the primary GPT header or an update's boot sector:
+//! the flush, then the receipt. The receipt keeps every job but the wipe,
+//! so the read-back compares every sector that stays written against the
+//! bytes that were sent.
 
 use super::progress::Progress;
 use super::step::Session;

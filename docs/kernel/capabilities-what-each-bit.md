@@ -15,13 +15,13 @@ siblings ask for their own bit alone
 
 | Bit | Kernel name | What it admits |
 |---:|---|---|
-| 0 | `CoreExec` | `MkGetPid`, `MkArgs`; with `IPC` and `Memory`, `MkCapsuleLoad` and `MkCapsuleVerify`. |
+| 0 | `CoreExec` | `MkArgs`; with `IPC` and `Memory`, `MkCapsuleLoad` and `MkCapsuleVerify`. |
 | 1 | `IO` | Nothing. The kernel list marks it as enforcing nothing. |
 | 2 | `Network` | Reaching the network services. Removed on offline boots. A holder is refused `MkAttestDoc`. |
 | 3 | `IPC` | The eight IPC calls, `MkThreadSpawn`, `MkWait`, `MkKill`, `MkProcOutput`, `MkProcInput`, `MkStdinRead`, `MkStdoutWrite`, `MkPrivateWrite`, `MkToolRun`, `MkTtySet`. |
 | 4 | `Memory` | `MkMmap`, `MkMunmap`. |
 | 5 | `Crypto` | The 12 crypto calls, `CRND` to `CMKY`. |
-| 6 | `FileSystem` | `MkDataStat`, `MkDataRead`; with `StoreWrite`, `MkDataImport` and `MkDataPassphrase`. |
+| 6 | `FileSystem` | `MkDataStat`, `MkDataRead`; with `StoreWrite`, `MkDataImport`, `MkDataPassphrase` and `MkDataHandover`. |
 | 7 | `Hardware` | Nothing. The kernel list marks it as enforcing nothing. |
 | 8 | `Debug` | `MkDebug`. |
 | 9 | `Admin` | `AdminReboot`, `AdminShutdown`, `AdminPolicyPush`, `MkCapGrant`, `MkCapRevoke`, and the stand in role above. |
@@ -48,7 +48,7 @@ siblings ask for their own bit alone
 | 30 | `AppInstall` | `MkAppInstall`, `MkAppLaunch`, `MkAppInstallStatus`, `MkAppUninstall`. |
 | 31 | `AttestRead` | `MkAttestEntries`, `MkLogTail`, every field of other processes in `MkProcStat`; `MkAttestDoc` only without `Network`. |
 | 32 | `ForeignExec` | The 15 `MkForeign` and `MkPeer` calls that host a Linux guest, and `MkLocalVerify`. |
-| 33 | `LocalSign` | `MkLocalSign`. |
+| 33 | `LocalSign` | `MkLocalSign`; `MkAppInstallStatus` only to leave its failed install's line. |
 | 34 | `StreamImport` | `MkDataFeedBegin`, `MkDataFeed`, `MkDataRemove`. |
 | 35 | `DeviceSecret` | `MkDeviceSecret`, `MkBootSlots`, `MkEnroll`. |
 | 36 | `InputConsumer` | `MkInputEventDrain`, `MkInputEventWait`; input_router alone holds it. |
