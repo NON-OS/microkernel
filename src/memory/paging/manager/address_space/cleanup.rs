@@ -23,10 +23,6 @@ use crate::memory::paging::constants::KERNEL_ASID;
 use crate::memory::paging::error::{PagingError, PagingResult};
 
 impl PagingManager {
-    pub fn cleanup_address_space(&mut self, asid: u32) -> PagingResult<()> {
-        self.cleanup_address_space_keeping(asid, &[])
-    }
-
     /// Frees `asid`'s tables and leaf frames, except the frames in `keep`
     /// (sorted), which another process still maps.
     pub fn cleanup_address_space_keeping(
