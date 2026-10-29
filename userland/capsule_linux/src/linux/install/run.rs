@@ -26,7 +26,6 @@ use super::get::closure::{closure, Closed};
 use super::get::index::load_index;
 use super::get::package::path_of;
 use super::get::window::window;
-use super::held_keep::keeps;
 use super::place::all::unpack;
 use super::timing;
 
@@ -62,13 +61,7 @@ fn install_all(name: &str, pin: &[u8; 32], extras: &[&str]) -> Result<(), super:
         let pkg = pkgs[at];
         let files = fetch(pkg, apk.unwrap_or_default(), (pkg.name == name).then_some(pin))?;
         say(b"[LINUX] provenance Verified: index signature and checksums match\n");
-        match timing::placing(|| unpack(&files, &pkg.name, pkg.name == name, false)) {
-            Err(why) if keeps(why == super::Why::IN_USE, &pkg.name, name, &have) => {
-                say(alloc::format!("[LINUX] {}: a running app holds it; its copy in the store is kept\n", pkg.name).as_bytes());
-                Ok(())
-            }
-            done => done.map(drop),
-        }
+        timing::placing(|| unpack(&files, &pkg.name, pkg.name == name, false)).map(drop)
     })?;
     let names: Vec<String> = pkgs.iter().map(|p| p.name.clone()).collect();
     super::record::closure::keep(name, &names)
