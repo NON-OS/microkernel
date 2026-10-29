@@ -5,7 +5,7 @@
 # --release for x86_64-nonos-user with -Zbuild-std, from the capsule's own
 # directory and its own lock. The prebuilt capsules (the crates.io tools and
 # the Linux userland) take their binary from the rule that makes it.
-{ pkgs, lib, pins, rustBuild, src, periodic, linuxUserland, busybox, packageMirror ? "" }:
+{ pkgs, lib, pins, rustBuild, src, periodic, linuxUserland, busybox, packageMirror ? "", debMirror ? "" }:
 let
   catalogue = lib.importJSON ./capsules.json;
   userTarget = "x86_64-nonos-user";
@@ -128,7 +128,16 @@ let
           export NONOS_LINUX_USERLAND=${linuxUserland}${lib.optionalString (packageMirror != "") ''
 
           # The NONOS package mirror in-tree tools install from (nonos.toml).
-          export NONOS_PACKAGE_MIRROR=${packageMirror}''}
+          export NONOS_PACKAGE_MIRROR=${packageMirror}''}${lib.optionalString (debMirror != "") ''
+
+          # The Debian archive Debian-family listings install from (nonos.toml
+          # linux_debian): Kali's, the one the catalogue lists from and whose
+          # key the personality pins (build.rs NONOS_DEB_KEYRING).
+          export NONOS_DEB_MIRROR=${debMirror}
+          export NONOS_DEB_HOST=${lib.head (lib.splitString ":" debMirror)}
+          export NONOS_DEB_ROOT=/kali
+          export NONOS_DEB_SUITE=kali-rolling
+          export NONOS_DEB_COMPONENTS=main''}
         ''}
         ${lib.optionalString (e.slug == "shield" || e.slug == "shield-vectors") ''
           # The periodic cache the prover proves from, embedded in the capsule.

@@ -19,6 +19,7 @@ let
     linuxUserland = userland.all;
     busybox = userland.busybox;
     packageMirror = config.file.linux_packages or "";
+    debMirror = config.file.linux_debian or "";
   };
   image = import ./image.nix { inherit pkgs lib pins rustBuild src capsules self; };
   config = import ./config.nix { inherit lib; root = src.root; };
