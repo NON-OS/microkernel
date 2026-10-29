@@ -1,6 +1,6 @@
 {"format": "nonos.linux-catalogue-sources-lock.v1", "sources": {
   "darkfi-app": {"B": "790830668af1f142d1560c0bd9483ca23fd8743f73e4f9ee1e65f11d2eac14fe", "S": "48394240", "commit": "2e2de47c699529600085649b69c5c1878164e79a", "G": "", "R": ""},
-  "darkfi-darkfid": {"B": "3ae5e55a356eb1e0779f972276d67ff00c68c3607401afc56963caa8de9729c4", "S": "45015040", "commit": "2e2de47c699529600085649b69c5c1878164e79a", "G": "", "R": ""},
+  "darkfi-darkfid": {"B": "63210266571b705f990fad7de0028e5d50f1deaeeaf0e4132a3b19c63c1fd373", "S": "45015040", "commit": "2e2de47c699529600085649b69c5c1878164e79a", "G": "", "R": ""},
   "darkfi-darkirc": {"B": "89c93e5d7b04b6d29602224d134a7d6fd66cf718417bf65617e1ebcb6b84fedf", "S": "10782720", "commit": "2e2de47c699529600085649b69c5c1878164e79a", "G": "", "R": ""},
   "darkfi-drk": {"B": "f9883948f80ed72027111fa53e7f4da12f5e0dde3fc7ee66cab8b055a79cc88e", "S": "19978240", "commit": "2e2de47c699529600085649b69c5c1878164e79a", "G": "", "R": ""},
   "simplex-chat": {"B": "de9dbf3a6443cd603f40238700e2df713e00c78136116cdb11a78da46ebab7fc", "S": "79544320", "asset": "https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.3/simplex-chat-ubuntu-22_04-x86_64", "sha256": "5afb1d25efe5ccf564a1ab124bc7f410a7a73171c974a4d8b7f4d8f2e3d62e77", "A": "1813d4fb4e6b032800de05ea23b5b9a97d5bc20e81fe377216bff237c9d6f9b4", "sums": "https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.3/_sha256sums", "G": "", "R": ""}
