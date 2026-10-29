@@ -28,6 +28,9 @@ const FUTEX_WAIT_BITSET: u64 = 9;
 const FUTEX_WAKE_BITSET: u64 = 10;
 const FUTEX_PRIVATE_FLAG: u64 = 128;
 const FUTEX_CLOCK_REALTIME: u64 = 256;
+/// The priority-inheritance operations: LOCK_PI, UNLOCK_PI, TRYLOCK_PI,
+/// WAIT_REQUEUE_PI, CMP_REQUEUE_PI and LOCK_PI2.
+const PI: [u64; 6] = [6, 7, 8, 11, 12, 13];
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Cmd {
@@ -45,11 +48,17 @@ pub enum Cmd {
 /// `futex(uaddr, op, val, timeout or val2, uaddr2, val3)`'s command, or the
 /// errno Linux refuses it with: FUTEX_CLOCK_REALTIME on anything but
 /// WAIT_BITSET, and any operation not served, ENOSYS; a zero bitset, and a
-/// word not on a four-byte boundary, EINVAL.
+/// word not on a four-byte boundary, EINVAL. Priority inheritance is
+/// ENOTSUP, the answer POSIX gives for a protocol a system lacks: musl's
+/// pthread_mutexattr_setprotocol probes with FUTEX_LOCK_PI and returns its
+/// errno, and PulseAudio (Telegram's audio) aborts on any but 0 or ENOTSUP.
 pub fn decode(uaddr: u64, op: u64, uaddr2: u64, val3: u64) -> Result<Cmd, i64> {
     let cmd = op & !(FUTEX_PRIVATE_FLAG | FUTEX_CLOCK_REALTIME);
     if op & FUTEX_CLOCK_REALTIME != 0 && cmd != FUTEX_WAIT_BITSET {
         return Err(errno::ENOSYS);
+    }
+    if PI.contains(&cmd) {
+        return Err(errno::ENOTSUP);
     }
     let bits = val3 as u32;
     let got = match cmd {
