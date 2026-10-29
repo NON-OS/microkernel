@@ -6,7 +6,7 @@
   "entries": [
     {
       "listing_id": "linux.nonos-darkfi-darkfid",
-      "capsule_id": "3ae5e55a356eb1e0779f972276d67ff00c68c3607401afc56963caa8de9729c4",
+      "capsule_id": "63210266571b705f990fad7de0028e5d50f1deaeeaf0e4132a3b19c63c1fd373",
       "name": "DarkFi local dev chain",
       "publisher_name": "Linux",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
@@ -33,9 +33,9 @@
       "releases": [
         {
           "release_id": "nonos-darkfi-darkfid@2e2de47c699529600085649b69c5c1878164e79a",
-          "manifest_hash": "3ae5e55a356eb1e0779f972276d67ff00c68c3607401afc56963caa8de9729c4",
-          "package_hash": "3ae5e55a356eb1e0779f972276d67ff00c68c3607401afc56963caa8de9729c4",
-          "package_url": "http://10.0.2.2:8080/linux/3ae5e55a356eb1e0779f972276d67ff00c68c3607401afc56963caa8de9729c4.tar",
+          "manifest_hash": "63210266571b705f990fad7de0028e5d50f1deaeeaf0e4132a3b19c63c1fd373",
+          "package_hash": "63210266571b705f990fad7de0028e5d50f1deaeeaf0e4132a3b19c63c1fd373",
+          "package_url": "http://10.0.2.2:8080/linux/63210266571b705f990fad7de0028e5d50f1deaeeaf0e4132a3b19c63c1fd373.tar",
           "publisher_signature": "",
           "supported_arches": [
             "x86_64-linux"
@@ -46,7 +46,7 @@
           ],
           "zk_trailer_hash": "",
           "ext": {
-            "guest_policy": "4e4c58504f4c30310100000000000000f66263201d240249fb69a352e4ba8e1e3e2d5c8e100c2fa0d79af05b287235a18c010000000000001baa5becd593db256f4c404f5dce5237b42a3983d92d6607f40e9780b21858efee9357c76263cc5049a78c396d6c1e2d40a8d256743367ee4b308d0b963552750000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+            "guest_policy": "4e4c58504f4c3031010000000000000026ce4d928634eb80bfd60dd2ade21be0d777f6dd7756131b45ddf300d4287b428c010000000000001baa5becd593db256f4c404f5dce5237b42a3983d92d6607f40e9780b21858efee9357c76263cc5049a78c396d6c1e2d40a8d256743367ee4b308d0b963552750000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
           },
           "validation": {
             "status": "validated",
