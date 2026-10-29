@@ -37,3 +37,4 @@ pub const WAITID: u64 = 247;
 pub const RT_TGSIGQUEUEINFO: u64 = 297;
 pub const SIGNALFD: u64 = 282;
 pub const SIGNALFD4: u64 = 289;
+pub const PIDFD_SEND_SIGNAL: u64 = 424;

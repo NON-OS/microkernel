@@ -21,8 +21,10 @@ pub use super::pkg::Pkg;
 use alloc::string::String;
 use alloc::vec::Vec;
 
+#[path = "index_installed.rs"]
+mod installed;
 /// Each soname, and each name or provided name, to the package that has it.
-/// The lookups are in index_find.rs.
+/// The lookups are in index_find.rs, and index_installed.rs.
 #[derive(Default)]
 pub struct Index {
     pub(super) pkgs: Vec<Pkg>,
@@ -46,6 +48,7 @@ impl Index {
                 Some(b'C') => cur.checksum = super::auth::checksum(rest),
                 Some(b'P') => cur.name = String::from(rest),
                 Some(b'S') => cur.size = rest.parse().unwrap_or(0),
+                Some(b'I') => cur.installed = rest.parse().unwrap_or(0),
                 Some(b'V') => cur.version = String::from(rest),
                 Some(b'D') => cur.read_depends(rest),
                 Some(b'i') => cur.read_install_if(rest),

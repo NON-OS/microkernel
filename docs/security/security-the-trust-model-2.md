@@ -18,8 +18,9 @@ through `derive_for_kernel` (`src/fs/blockfs_volume/open_machine.rs:75-78`). An
 orderly shutdown or reboot goes through `terminate`, which wipes process memory,
 kernel stacks, the key vault and the heap before handing the machine back to the
 firmware, but leaves the data volume key and other kernel statics
-(`src/security/zerostate/terminate.rs:35-39`). In 0.9.2 only the installer's
-restart goes that way, since the desktop cannot shut down. [Device secrets and
+(`src/security/zerostate/terminate.rs:35-39`). The desktop's Power Off and the
+installers' restart both go that way, through the power capsule
+(`userland/capsule_power/src/off/mod.rs`, `userland/capsule_power/src/off/rule.rs`). [Device secrets and
 keys](device-secrets-and-keys.md) lists what is kept, where, and for how long.
 
 ```mermaid

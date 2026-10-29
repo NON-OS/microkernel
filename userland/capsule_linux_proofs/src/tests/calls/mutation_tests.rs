@@ -43,7 +43,7 @@ fn damaged_debs_never_panic() {
             let mut v = clean.clone();
             damage(&mut s, &mut v);
             for (_, body) in members(&v).unwrap_or_default() {
-                let _ = unpacked(body).map(|t| walk(&t));
+                let _ = unpacked(body).map(|t| walk(&t).entries.len());
             }
         }
     }
