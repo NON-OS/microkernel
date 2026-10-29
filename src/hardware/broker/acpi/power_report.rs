@@ -53,12 +53,15 @@ pub enum Battery {
     Percent(u8),
 }
 
-pub fn battery(now_ms: u64) -> Battery {
+/// The whole word while it is fresh, for MkBatteryStatus's state form.
+pub fn state(now_ms: u64) -> Option<u64> {
     let at = WRITTEN_MS.load(Ordering::Acquire);
-    if at == 0 || now_ms.saturating_sub(at) > FRESH_MS {
-        return Battery::Unreported;
-    }
-    let w = REPORT.load(Ordering::Acquire);
+    let fresh = at != 0 && now_ms.saturating_sub(at) <= FRESH_MS;
+    fresh.then(|| REPORT.load(Ordering::Acquire) & KNOWN_BITS)
+}
+
+pub fn battery(now_ms: u64) -> Battery {
+    let Some(w) = state(now_ms) else { return Battery::Unreported };
     match (w & BATTERY_PRESENT != 0, w & PERCENT_MASK) {
         (false, _) => Battery::Absent,
         (true, p) if p <= 100 => Battery::Percent(p as u8),
