@@ -133,7 +133,7 @@ The rest of the recipe is checked as an Alpine one is: the allowlist, the servic
 
 On the device, `install/tools_install.rs` fetches the content from `NONOS_PACKAGE_MIRROR` and holds it to the index's pin before it is unpacked. `install/market/run.rs` then binds the policy to the program, as for any market listing. So the device needs no change for these apps.
 
-**No mirror, none listed.** Without `--package-mirror`, the source recipes are left out, and each is named on stderr. They are not checked, and their lock is neither read nor written. Every release profile's `linux_packages` is empty today, so no release lists one. With a mirror, every source recipe must be listed or the run stops and names it. That covers:
+**No mirror, none listed.** Without `--package-mirror`, the source recipes are left out, and each is named on stderr. They are not checked, and their lock is neither read nor written. The release's `nonos.toml` names the mirror `mirror.nonos.software:80` and the content `target/linux-sources` (3df8c26a65, 81ce3f9a93), so the release image lists them; a tree whose `linux_packages` is empty lists none. With a mirror, every source recipe must be listed or the run stops and names it. That covers:
 
 - no `--sources`;
 - missing or doubled content;
