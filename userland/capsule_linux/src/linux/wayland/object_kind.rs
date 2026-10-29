@@ -42,6 +42,9 @@ pub enum Object {
     DataOffer,
     DecorationManager,
     Decoration,
+    /// KDE's server-decoration, which GTK 3 asks instead (kde_decoration.rs).
+    KdeDecorationManager,
+    KdeDecoration,
     Positioner,
     Popup,
     Touch,
