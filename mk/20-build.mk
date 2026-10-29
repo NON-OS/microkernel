@@ -597,6 +597,7 @@ include userland/capsule_driver_cdc_ncm/Capsule.mk
 include userland/capsule_driver_rndis/Capsule.mk
 include userland/capsule_driver_ax88179/Capsule.mk
 include userland/capsule_driver_rtl8153/Capsule.mk
+include userland/capsule_driver_bt_usb/Capsule.mk
 include userland/capsule_driver_smbus/Capsule.mk
 include userland/capsule_driver_uhci/Capsule.mk
 include userland/capsule_driver_ohci/Capsule.mk
@@ -616,6 +617,7 @@ include userland/capsule_socks5/Capsule.mk
 include userland/capsule_wallpaper/Capsule.mk
 include userland/capsule_attest/Capsule.mk
 include userland/capsule_power/Capsule.mk
+include userland/capsule_acpi/Capsule.mk
 
 # The Linux userland every image carries in its store. Before the enrollment
 # below, which takes the capsule set as it stands when it is read.

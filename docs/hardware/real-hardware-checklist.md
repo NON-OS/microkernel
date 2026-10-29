@@ -32,6 +32,46 @@ One copy per machine and boot. Part of [the real-hardware kit](real-hardware-kit
       stick; copy that file.
 - [ ] Anything that failed, in a sentence each: what you did, what you expected, what happened.
 
+## Battery, AC and lid: HP laptop (Gemini Lake)
+
+capsule_acpi runs the laptop's own AML and reads the battery through the
+embedded controller; it is built power-only (`userland/capsule_acpi/README.md`,
+"Release build"), so it changes nothing else on the machine. It has never
+run on this laptop: QEMU has no battery. The capsule's own `[ACPI]` lines
+print on a development image only (`standard-dev`, `Debug` granted to the
+capsule); on Standard, the bar and About are the test.
+
+- [ ] What to boot: `standard-dev` from the same commit as the result you
+      report, on battery, AC unplugged, lid open.
+- [ ] The bar, within a minute of the desktop: a percentage beside a gauge
+      ("57%"), not "Battery status unavailable" and not "No battery". Note
+      the percentage, and what the firmware's own setup screen or another
+      OS says it is (a few points apart is fine).
+- [ ] About, System: the Power card says Battery `57%` (the same number),
+      State `Discharging`, AC `Offline`.
+- [ ] Plug the AC in. Within a minute the bar says "57% Charging" and
+      About says State `Charging`, AC `Online`. A full battery on AC says
+      the number alone and State `Not charging`. Unplug: within a minute
+      the word Charging goes and About says `Discharging`, `Offline`.
+      Note how many seconds each change took: under a few is the EC's
+      event; up to a minute is the poll.
+- [ ] Close the lid for five seconds, then open it: the screen goes dark
+      while it is closed and lights again (within 2 s of opening). The
+      machine stays on.
+- [ ] Press the power button once, briefly: the desktop's power choice
+      appears, as it did before this capsule. Nothing powers off by itself.
+- [ ] In the Terminal: `log acpi > acpi.txt`. It should hold, in order:
+      `[ACPI] build: power only`, `[ACPI] EC data=...`
+      (ports and GPE), the `_REG failed in 0 scopes` and `_INI` lines, `inventory: N devices`,
+      `GPEs armed ...`, `[ACPI] sci irq=...`, `first publish pass done`,
+      and `power battery=yes charge=57 ac=offline` (again on each change),
+      plus the kernel's `[ACPI] region ...` grants and its posture line.
+      Then `log driver- exit > drivers.txt` as usual.
+- [ ] Send back: `acpi.txt`, `drivers.txt`, photos of the bar on battery
+      and on AC, and the About Power card. Say if any line reads `faulted`,
+      `refused`, `SCI not bound` or `no usable`, and quote it. The lines
+      carry no serial number: the battery's serial string is never logged.
+
 ## Intel Wi-Fi on a first boot: ASUS NUC 15 Pro, ThinkPad T14 (Intel)
 
 Which list below applies is read from the card, not the model name: the
@@ -461,3 +501,98 @@ not a fault.
       above if any, the laptop model, the download notes, and the first
       `[rtl8852be]` line that differs from this list. No line from this
       driver carries a MAC address, an SSID or a serial number.
+
+## Bluetooth on the HP laptop: the RTL8821CE's Realtek controller
+
+The RTL8821CE combo card carries Wi-Fi on PCIe (10ec:c821,
+`capsule_driver_rtl8821ce`) and Bluetooth on the laptop's internal USB,
+behind xHCI (`capsule_driver_bt_usb`). The Bluetooth half needs Realtek's
+patch before it is used: the capsule loads `rtl8821c_fw.bin` and
+`rtl8821c_config.bin` (linux-firmware's, embedded) with `nonos_bt_rtl`,
+then brings it up and pairs Bluetooth LE keyboards and mice. It is
+host-proven on a modelled RTL8821C only; this boot is its first on real
+hardware. The `bt-usb:` lines print on a development image
+(`standard-dev`; `Debug` granted). Hardened and Air-Gapped carry no
+Bluetooth at all.
+
+- [ ] Before booting, under Linux if the HP has it: save `lsusb` (the
+      Bluetooth line: 0bda:b00a, 0bda:c821 or 13d3:3529), and
+      `dmesg | grep -i 'bluetooth: hci0: RTL'` (its `rom_version status=0
+      version=N`, `loading rtl_bt/rtl8821c_fw.bin` and `fw version 0x...`
+      lines). The ROM version decides which patch is sent.
+- [ ] Power the laptop fully off first (not a reboot from Linux): a patch
+      Linux loaded survives a warm reboot, and the capsule then rightly
+      says `Realtek controller runs its own firmware` instead of loading.
+      Try that warm case too, second, and note which line it gave.
+- [ ] Boot a `standard-dev` image. In the Terminal: `log bt-usb`. Expected,
+      in order: `bt-usb: started, looking for a controller`, then within a
+      few seconds `bt-usb: Realtek patch loaded: ROM 1, firmware
+      1975054488, 139 fragments` (ROM 0: 78 fragments), then
+      `bt-usb: controller up`.
+- [ ] A refusal names its step: `controller not usable: ...` (binding; for
+      `ACL endpoints refused` keep the whole log), `Realtek patch not
+      loaded: no patch for this ROM version` (keep the Linux `rom_version`
+      line), `... controller failed or refused the setup` (a fragment
+      refused), `controller given back: ...`. Keep that line.
+- [ ] Settings, Bluetooth: Controller reads `Controller ready`, Status
+      `Looking for devices`, Scanning `On`.
+- [ ] A BLE keyboard (one that pairs by passkey): put it in pairing mode,
+      press P on the page. The Asks row shows `Type NNNNNN on it, then
+      its Enter`; type those six digits on the keyboard and Enter. The log
+      shows `bt-usb: connected`, `paired`, `bond kept`, `HID ready:
+      keyboard`, and no digits. Type in the Terminal: the letters appear.
+      The Paired devices row reads `Paired with a passkey or number
+      checked`, `Connected, battery N%`.
+- [ ] A BLE mouse: P again, then pairing mode on the mouse. It pairs with
+      nothing asked (`Paired without a check: Just Works`); the pointer
+      moves and the buttons click. A keyboard that paired by Just Works
+      would not type: the log says `keys not posted: paired with no
+      passkey typed`.
+- [ ] Switch the keyboard off and on: `link lost`, then `encrypted with the
+      kept bond` and it types again without pairing. F forgets it.
+- [ ] With Wi-Fi joined, pair and type again: the card's Wi-Fi and
+      Bluetooth share one antenna, and NONOS sets no coexistence; note any
+      drop in either.
+- [ ] Send back: `log bt-usb > bt.txt`, the boot log (`log > boot-log.txt`),
+      the Linux lines above, the keyboard's and mouse's make and model.
+      No `bt-usb:` line carries a Bluetooth address, a device name, a key
+      or a passkey; report any that does.
+
+## Bluetooth on the Intel and MediaTek laptops: T14 Intel, NUC 15 Pro, T14 AMD
+
+The same capsule as the HP's (`capsule_driver_bt_usb`), with the vendor's own
+setup before bring-up (`userland/capsule_driver_bt_usb/README.md`, "Intel
+controllers" and "MediaTek MT7921 and MT7922"). Host-proven only; each of
+these boots is the first on real hardware. Pairing, the page and what to send
+back are the HP section's above; only the setup lines differ. Use a
+`standard-dev` image so the `bt-usb:` lines print.
+
+- [ ] Before booting, under Linux if the machine has it: save `lsusb` (the
+      8087:... or 0e8d:... Bluetooth line) and `dmesg | grep -i
+      'bluetooth: hci0'` (Intel: the `Found device firmware: intel/ibt-...`
+      line; MediaTek: `HW/SW Version` and the `BT_RAM_CODE_...` name).
+- [ ] Power fully off first, as on the HP: firmware Linux loaded survives a
+      warm reboot.
+- [ ] T14 Intel (AX201 or AX211) and NUC 15 Pro (BE201 on Arrow Lake CNVi):
+      `log bt-usb` shows `bt-usb: intel: sending ibt-...` (AX201
+      `ibt-19-0-4`, AX211 `ibt-1040-0041`; the BE201 sends
+      `ibt-0190-0291-iml` first, then `ibt-0190-0291-usb`), then `intel:
+      booted, DDC from ibt-...` and `bt-usb: controller up`. A controller
+      already running the carried build says `intel: firmware already
+      running: ibt-...`; one running another says `running firmware is not
+      ..., sent back to load it` and is found again. `firmware not carried:
+      ...` names a file this release lacks: keep that line and the Linux
+      one. On the BE201, a refusal after the loader stage may be the DSBR
+      word, which NONOS sends as zero (Linux reads it from a UEFI
+      variable): keep the whole log.
+- [ ] T14 AMD (MT7922): boot live from a stick built with the firmware
+      package (the Wi-Fi section above; an installed disk has no package
+      yet). `log bt-usb` shows `bt-usb: MediaTek MT7922 patched: N sections
+      sent, M held`, then `controller up`. `MediaTek controller not set up:
+      ...` names the step; `the firmware package is missing from the boot
+      medium` means the stick has no `EFI/nonos/firmware/mediatek/`.
+- [ ] Then the HP section's pairing steps: a passkey keyboard, a Just Works
+      mouse, switch the keyboard off and on. On a combo card note any Wi-Fi
+      or Bluetooth drop while both run: NONOS sets no coexistence.
+- [ ] Send back: `log bt-usb > bt.txt`, `log > boot-log.txt`, the Linux
+      lines, and the keyboard's and mouse's make and model.

@@ -47,3 +47,4 @@ These are the service endpoints declared in `userland/*/Capsule.mk`, each with t
 | 4270 | `driver.e1000e_0` | 4271 | `capsule_driver_e1000e` |
 | 4272 | `driver.igc_0` | 4273 | `capsule_driver_igc` |
 | 4290 | `driver.rtsx0` | 4291 | `capsule_driver_rtsx` |
+| 4342 | `driver.bt_usb0` | 4343 | `capsule_driver_bt_usb` |

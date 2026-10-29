@@ -38,8 +38,14 @@ pub enum Why {
 static ASKED: AtomicU8 = AtomicU8::new(0);
 const SOFT_OFF: u8 = 5;
 
-/// Asks for the power-off; the loop's next `serve` runs it.
+/// Asks for the power-off; the loop's next `serve` runs it. A power-only
+/// build runs none (`release`): a press goes to the desktop as its Power
+/// key, and a critical battery is the kernel's watch to act on.
 pub fn power_off(why: Why) {
+    if !crate::release::on(crate::release::Part::PowerOff) {
+        let _ = (why == Why::Button).then(|| acpi_event(POWER_BUTTON, 0));
+        return Line::new(said(why as u8)).str(b": no power-off from here").end();
+    }
     ASKED.store(why as u8, Ordering::Relaxed);
 }
 

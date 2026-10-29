@@ -17,7 +17,8 @@
 //! The Bluetooth LE host capsule over USB. `usb` binds the controller
 //! through driver.xhci0, `link` runs one link from scan to input, `hid`
 //! posts that input as the USB HID driver does, and `run` ties them to
-//! the capsule's clock, log and random source.
+//! the capsule's clock, log and random source. `vendor` is the setup a
+//! controller needs first: the RTL8821C's patch.
 
 #![no_std]
 #![no_main]
@@ -30,6 +31,7 @@ mod nbtc;
 mod ring;
 mod run;
 mod usb;
+mod vendor;
 
 use nonos_libc::{heap_init, mk_exit};
 

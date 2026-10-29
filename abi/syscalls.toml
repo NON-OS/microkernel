@@ -635,7 +635,7 @@ ret  = {type="i64"}
 [desc.MBAT]
 nr   = 0x5441424D
 caps = ["valid_token"]
-args = []
+args = [{name="form",type="u64",dir="in"}]
 ret  = {type="i64"}
 [desc.MBTA]
 nr   = 0x4154424D
