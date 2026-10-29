@@ -15,6 +15,10 @@ chosen network leaves through. The shipped sources are included by `#[path]`.
 - `tunnel_open_tests`, `tunnel_read_tests` and `tunnel_fault_tests`: the
   tunnel itself, against a proxy written here (`src/fake.rs`) to lose, delay,
   split and garble its answers on purpose.
+- `reset_room_tests`, `reset_bound_tests` and `late_reset_tests`: an open
+  greets only after a reset that reached the proxy. One the kernel had no
+  room for (`src/crowded.rs`) is sent again within `OPEN_MS`; one it queued
+  goes on at once, however late its answer.
 
 Run: `cd userland/route_link_proofs && cargo test --release`. `nix flake check` runs it as
 `proofs-route_link_proofs` (`tools/nix/checks.nix`): `cargo test --release` with overflow
