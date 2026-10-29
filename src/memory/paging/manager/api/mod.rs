@@ -33,8 +33,7 @@ mod tables_asid;
 mod tlb_ops;
 
 pub use address_space::{
-    cleanup_address_space, cleanup_address_space_keeping, create_address_space,
-    hand_over_address_space,
+    cleanup_address_space_keeping, create_address_space, hand_over_address_space,
 };
 pub use asid_lookup::lookup_asid_for_cr3;
 pub use faults::handle_page_fault;
