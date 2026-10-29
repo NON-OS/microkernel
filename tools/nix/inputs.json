@@ -7146,7 +7146,7 @@
   ],
   "include": [
    ".cargo",
-   "nonos-data/market/catalogue/linux.kali.nonos-simplex-chat.json",
+   "nonos-data/market/catalogue/linux.kali.nonos-simplex-core.json",
    "nonos-data/market/catalogue/linux.monero.json",
    "nonos-data/market/index.bin",
    "nonos-data/market/logos",

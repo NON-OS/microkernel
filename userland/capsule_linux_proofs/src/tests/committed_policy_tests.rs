@@ -17,9 +17,10 @@
 //! SERVE_ONE's P.2, against the market catalogue: version 2 moves no version
 //! 1 byte, so every committed guest policy encodes to itself and keeps its
 //! hash, and so does it with a field its SERVE_ONE bit does not grant. Here,
-//! not in nonos_linux_policy, so a catalogue edit rebuilds no capsule.
+//! not in nonos_linux_policy, so a catalogue edit rebuilds no capsule. The one
+//! version 2 policy, the SimpleX core's, is the pack tool's bytes decoded here.
 
-use nonos_linux_policy::{decode, policy_hash, LinuxAppPolicy, ServeOne, LEN};
+use nonos_linux_policy::{decode, market_ready, policy_hash, LinuxAppPolicy, ServeOne, LEN};
 
 /// The market catalogue the operator publishes, each release's guest_policy.
 const CATALOGUE: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../nonos-data/market/catalogue");
@@ -28,19 +29,27 @@ const KEY: &str = "\"guest_policy\": \"";
 #[test]
 fn every_committed_policy_keeps_its_bytes_and_hash() {
     let serve = ServeOne::new(5225, b"app.simplex");
-    let mut seen = 0;
+    let (mut seen, mut served) = (0, Vec::new());
     for file in std::fs::read_dir(CATALOGUE).unwrap() {
-        let text = std::fs::read_to_string(file.unwrap().path()).unwrap();
+        let path = file.unwrap().path();
+        let text = std::fs::read_to_string(&path).unwrap();
         for hex in text.split(KEY).skip(1) {
             let b: [u8; LEN] =
                 core::array::from_fn(|i| u8::from_str_radix(&hex[2 * i..2 * i + 2], 16).unwrap());
             let p = decode(&b).unwrap();
-            assert_eq!((p.encode(), p.serve_one()), (b, None));
+            assert_eq!(p.encode(), b);
+            seen += 1;
+            if let Some(s) = p.serve_one() {
+                let doc = path.file_name().unwrap().to_string_lossy().into_owned();
+                served.push((doc, s.port, s.name().to_owned(), b[8], market_ready(&p)));
+                continue;
+            }
             let unserved = LinuxAppPolicy { serve, ..p };
             assert_eq!(unserved.serve_one(), None);
             assert_eq!(policy_hash(&unserved.encode()), policy_hash(&b));
-            seen += 1;
         }
     }
     assert_ne!(seen, 0, "no guest_policy under {CATALOGUE}");
+    let core = "linux.kali.nonos-simplex-core.json".to_owned();
+    assert_eq!(served, [(core, 5225, "app.simplex".to_owned(), 2, true)]);
 }
