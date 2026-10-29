@@ -64,6 +64,11 @@ pub fn with_pwd(cwd: &[u8], mesa: bool) -> Vec<Vec<u8>> {
     if mesa {
         env.push(b"LIBGL_ALWAYS_SOFTWARE=1".to_vec());
         env.push([b"LIBGL_DRIVERS_PATH=", MESA].concat());
+    } else {
+        // No driver to open: EGL's loader and Qt's Wayland layer each said
+        // so, a dozen lines, before every Qt window drew into wl_shm.
+        env.push(b"EGL_LOG_LEVEL=fatal".to_vec());
+        env.push(b"QT_LOGGING_RULES=qt.qpa.wayland.warning=false".to_vec());
     }
     env
 }
