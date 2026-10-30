@@ -56,7 +56,7 @@ Host proofs only: `userland/ax88179_proofs` mounts `src/ax` by path and holds th
 
 ## Current implemented surface
 
-Binding to the 13 vendor:product pairs Linux v6.12 lists, only through the chip's vendor interface (class/subclass FFh, protocol 0); the bring-up as an ordered table of 21 vendor requests and two fixed waits; the drawn station address written into the chip; receive with every header offset and length checked against the bytes received, at most 64 frames a transfer; send with the 8-byte header and a padding byte at a packet boundary; link read from the PHY while down and from the status reports while up. Not in the Standard profile: held until the owner rules on Decision 10 (HANDOFF/letters/b/84).
+Binding to the 13 vendor:product pairs Linux v6.12 lists, only through the chip's vendor interface (class/subclass FFh, protocol 0); the bring-up as an ordered table of 21 vendor requests and two fixed waits; the drawn station address written into the chip; receive with every header offset and length checked against the bytes received, at most 64 frames a transfer; send with the 8-byte header and a padding byte at a packet boundary; link read from the PHY while down and from the status reports while up. Not in the Standard profile: held until the owner rules on Decision 10.
 
 ## Wire format
 

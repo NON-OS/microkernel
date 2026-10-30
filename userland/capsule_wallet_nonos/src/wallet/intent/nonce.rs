@@ -16,7 +16,7 @@
 
 /*
  * The nonce a publisher transaction is reviewed and signed at (B8, the
- * Lead's ruling on commit 4). Publisher and payment sign from one account
+ * the maintainers' ruling on commit 4). Publisher and payment sign from one account
  * and share one nonce sequence, so both take the send ledger's one rule,
  * Ledger::next_nonce (send/sent_ledger.rs), as a payment's draft does
  * (send/draft_finish.rs): GAS's pending nonce, never under one past the

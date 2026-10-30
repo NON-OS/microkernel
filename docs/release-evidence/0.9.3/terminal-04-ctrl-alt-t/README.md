@@ -1,11 +1,11 @@
 # Ctrl+Alt+T, booted 25 October 2026
 
 Ctrl+Alt+T brings the Terminal forward or opens it; no focused window sees
-it, and the shell never answers it over a prompt (ada76f8639).
+it, and the shell never answers it over a prompt (4b8d474004).
 
 ## How it ran
 
-- Image: `make dev-image` at ada76f8639 (qemu-dev, throwaway test keys).
+- Image: `make dev-image` at 4b8d474004 (qemu-dev, throwaway test keys).
 - Machine: QEMU TCG, no KVM, 4 CPUs, 8 GiB, fresh disk, 1920x1080 on
   virtio-gpu.
 - Driven over QMP: Enter through the 13 setup steps, "Not now" on the live

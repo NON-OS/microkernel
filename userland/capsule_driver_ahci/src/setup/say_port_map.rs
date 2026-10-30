@@ -20,7 +20,7 @@
 //! sit depends on the generation (PCS at 92h on the ICH and older PCHs, 94h
 //! with MAP's SPDx at 90h on current SoCs), and the firmware owns them; the
 //! line is how a hardware report shows whether one ever leaves an
-//! implemented port disabled (HANDOFF/letters/h/03).
+//! implemented port disabled.
 
 use nonos_libc::mk_pci_config_read;
 

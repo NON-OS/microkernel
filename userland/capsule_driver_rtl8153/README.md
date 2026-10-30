@@ -70,7 +70,7 @@ is bounded against the bytes that came; a stalled pipe is reset and its halt cle
 
 ## Current implemented surface
 
-Binding to the 16 RTL8153-family ids in Linux v6.12's r8152 table, in the adapter's vendor configuration; the chip's version read first, and an RTL8152, RTL8153C, RTL8156 or RTL8156B refused by name before configuring; the bring-up as tables of register steps, every wait bounded (a whole bind under 9.5 s); the drawn station address written into the chip; receive walking Realtek's 24-byte descriptors with every length checked against the bytes received; send with the 8-byte descriptor; the link from `PLA_PHYSTATUS`. Not in the Standard profile: held until the owner rules on Decision 10 (HANDOFF/letters/b/83).
+Binding to the 16 RTL8153-family ids in Linux v6.12's r8152 table, in the adapter's vendor configuration; the chip's version read first, and an RTL8152, RTL8153C, RTL8156 or RTL8156B refused by name before configuring; the bring-up as tables of register steps, every wait bounded (a whole bind under 9.5 s); the drawn station address written into the chip; receive walking Realtek's 24-byte descriptors with every length checked against the bytes received; send with the 8-byte descriptor; the link from `PLA_PHYSTATUS`. Not in the Standard profile: held until the owner rules on Decision 10.
 
 ## Wire format
 

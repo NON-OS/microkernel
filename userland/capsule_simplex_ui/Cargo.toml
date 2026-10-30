@@ -3,7 +3,7 @@
 # simplex.ui, the native SimpleX chat window. It holds no network and no key:
 # it speaks the simplex-chat core's WebSocket JSON chat API through one
 # channel to simplex.core, which runs boxed with its own database
-# (HANDOFF/letters/2026-10-27-s2-to-s3-s1-simplex-split.md). Until that
+#. Until that
 # channel exists it replays a recorded session.
 
 [package]

@@ -3,7 +3,7 @@
 ## The image and the machine
 
 - **Image.** `make dev-image PROFILE=standard` of boot (e12f1c6d5f).
-  That is cli at 66e5ff20f5:
+  That is cli at 652d7f5b30:
   - the store's 30 s PROVE wait;
   - ?7728;
   - the relay's b3sum check.
@@ -25,7 +25,7 @@ asks.
 
 | App | Run | Result | Shot |
 |---|---|---|---|
-| age | `age -p -a -o /root/a.age /etc/passwd`, passphrase typed twice; `age -d /root/a.age`, typed once | status 0, status 0; prints `root:x:0:0:root:/root:/bin/sh`; **the passphrase is not shown** (?7728, 717a125504) | age.png |
+| age | `age -p -a -o /root/a.age /etc/passwd`, passphrase typed twice; `age -d /root/a.age`, typed once | status 0, status 0; prints `root:x:0:0:root:/root:/bin/sh`; **the passphrase is not shown** (?7728, 972f956ff6) | age.png |
 | flac | `flac --force-raw-format ... -o /root/o.flac - < in.raw`; `flac -d -f -o /root/back.raw /root/o.flac` | status 0; `o.flac: done`, status 0. Input from `< f` reaches it: the stdin fault of 2026-10-25 is gone | flac-3.png |
 | minisign | `-G -W`; `-S -W ... -m /etc/passwd`; `-V ...` | each status 0; `Signature and comment signature verified` | minisign-3.png |
 | git | `git init /root/r`; `git -C /root/r -c user.name=ek -c user.email=ek@nonos commit --allow-empty -m first` | both status 0; `[master (root-commit) 22a8fac] first` | git-2.png |
@@ -38,7 +38,7 @@ asks.
 
 - **gpg.** All three runs exit with status 2 and `gpg: Fatal: can't
   disable core dumps: Operation not permitted`: prlimit64 refused
-  RLIMIT_CORE = 0 (gpg-3.png). Fixed in e4ff99ee3c, not booted.
+  RLIMIT_CORE = 0 (gpg-3.png). Fixed in c5987c08f7, not booted.
 - **lame.** Encoding and decoding both end on signal 11, after four ioctl
   calls and an mmap (minisign-3.png top). The kernel's line reads
   `Segmentation fault: user process accessed invalid address [ADDR]`, with
@@ -47,7 +47,7 @@ asks.
   driver's fault, not radare2's. serial.log shows `linux radare2` started
   (line 7127) before its install ended (`[LINUX] installed`, line 7817), so
   its program was still held. That refusal is correct. Its words now say
-  "still being installed" (f1f7190aeb). The libr_io line is still open.
+  "still being installed" (6541f0cf83). The libr_io line is still open.
   As first written:
   - `linux radare2 -q -c iI /bin/busybox`: `/usr/bin/radare2 does not run:
     its proof was refused (its policy is not vouched for)`
