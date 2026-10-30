@@ -82,6 +82,9 @@ def ofIdx : Nat → Option Cap
   | 34 => some .StreamImport
   | 35 => some .DeviceSecret
   | 36 => some .InputConsumer
+  | 37 => some .CameraCapture
+  | 38 => some .MicrophoneCapture
+  | 39 => some .ScreenCapture
   | _ => none
 
 theorem ofIdx_idx (c : Cap) : ofIdx (idx c) = some c := by

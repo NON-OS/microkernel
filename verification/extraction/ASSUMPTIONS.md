@@ -143,7 +143,7 @@ caller relies on, `accepted_table_is_inside_the_file`, takes only the weakest: t
 `scale` in `sys::timer::tsc::convert` widens to `u128`, multiplies, divides,
 and narrows back with a saturating fallback. `sys_battery_status` compares the
 firmware's answer, an `Option<bool>`, with `Some(false)`. Aeneas has no model
-for three of the library calls this takes, and emits each as an opaque axiom.
+for four of the library calls this takes, and emits each as an opaque axiom.
 
 - **`U64.Insts.CoreConvertTryFromU128TryFromIntError.try_from`**, 5 uses.
   `u64::try_from(u128)`, the narrowing in `scale`. Aeneas models the same
@@ -153,6 +153,9 @@ for three of the library calls this takes, and emits each as an opaque axiom.
   a failed narrowing into `u64::MAX`.
 - **`core.option.Option.Insts.CoreCmpPartialEqOption.eq`**, 1 use.
   `PartialEq` for `Option<bool>`, in `sys_battery_status`.
+- **`core.bool.Bool.then`**, 1 use. `bool::then`, in `power_report::state`,
+  which answers with the capsule's report only while it is fresh. The battery
+  mirror reaches it now that it mounts the real `power_report`.
 
 The uses are the wrapper theorems of `SysTimerTscConvertRefinement` (five
 conversions that call `scale`) and of `SyscallMicrokernelBatteryRefinement`,
