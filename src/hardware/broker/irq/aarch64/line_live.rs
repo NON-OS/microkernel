@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A line bind kept only while its claim stands (L77), as x86's records are
-//! entered (L69). Asked after the enable: a drain finds the slot from its
+//! A line bind kept only while its claim stands, as x86's records are
+//! entered. Asked after the enable: a drain finds the slot from its
 //! allocation on, so a claim standing here is drained after. Refused, the
 //! bind is undone by its grant id, which no other bind carries; if a drain
 //! freed the slot first, the line is let go only while no slot names it.

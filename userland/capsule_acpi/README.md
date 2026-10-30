@@ -355,7 +355,7 @@ function, and does no DMA. It adds functions to the device table and
 takes them out (`MkPciProbeFunction`, `MkPciDepart`); both answer only
 the `acpi` service's owner.
 
-Start runs in two parts (L55). The first publish pass (`src/boot/first.rs`):
+Start runs in two parts. The first publish pass (`src/boot/first.rs`):
 the namespace loaded and `_INI` run, the host bridges' `_OSC`, the reserved
 ranges and proximity domains, each hidden function's `_PS0` and probe (with
 the readiness waits) within 2 s, and the platform records in `_DEP` order.
@@ -474,7 +474,7 @@ other op: no one.
   for its claim's holder. D3cold is refused (ELOSES, -95) until the bridge
   and the link above it are handled too. D3hot without No_Soft_Reset is
   allowed only while the kernel offers `MkAcpiRestoreFunction` (asked once
-  at the first move), which puts a claimed function's BARs back (L62)
+  at the first move), which puts a claimed function's BARs back
   after any move into D0 from D3, before the holder is answered; ELOSES if
   a BAR would not stick and the kernel released the claim. Without the call such a D3hot is refused too. Decoding and bus
   mastering are the driver's to turn back on after the reset
@@ -560,7 +560,7 @@ other op: no one.
   function numbers and shapes are recalled, unverified. Layout in
   `src/pci_firmware/wire.rs`.
 - Not the shell's power-off. `power.off` has one owner, capsule_power
-  (P-08): the shell's request (G-53) goes there, and capsule_power asks
+  (P-08): the shell's request goes there, and capsule_power asks
   this capsule to prepare soft-off (OP_PREPARE_SLEEP, \_TTS(5) and
   \_PTS(5)) before its own AdminShutdown. A POFF frame sent to `acpi` is
   refused like any unknown op.

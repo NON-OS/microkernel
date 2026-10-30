@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whether a claim may begin while a wipe record names the function (L78).
+//! Whether a claim may begin while a wipe record names the function.
 //! A wipe under way says Resetting, before any entry exists, so the claimant
 //! waits in user code; a function no reset could be trusted on goes only to
 //! its last holder's own service; one that did not come back is refused for

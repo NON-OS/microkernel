@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Which writes switch an Intel PCH's shared ports from EHCI to this xHCI,
-//! and which hand them back (H-10). Pure: xhci_proofs. Register offsets and
+//! and which hand them back. Pure: xhci_proofs. Register offsets and
 //! the order are from Linux's drivers/usb/host/pci-quirks.c (21a7f44fd076),
 //! read for the facts alone; the kernel holds the device list and the masks
 //! (quirk_bits/xhci_route.rs). Unverified on hardware.

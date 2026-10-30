@@ -62,7 +62,7 @@ pub(super) fn flush_everything(index: usize, domains: u16) -> Result<(), AmdViEr
             *slot = invalidate_devtab_entry((first as usize + i) as u16);
         }
         submit(index, &batch)?;
-        // And any remapping entry firmware's tables left cached (K4).
+        // And any remapping entry firmware's tables left cached.
         for (i, slot) in batch.iter_mut().enumerate() {
             *slot = invalidate_interrupt_table((first as usize + i) as u16);
         }

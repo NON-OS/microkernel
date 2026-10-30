@@ -56,7 +56,7 @@ The anonymous device proof uses a second TPM-derived value, the [device secret](
 
 ## The keyring
 
-The keyring capsule, `capsule_keyring`, stores key records for the capsules that use it and signs with the wallet's keys. Its [manifest](../overview/glossary-linux-personality.md#manifest) asks for `IPC`, `Memory` and `Crypto` only, `CAPSULE_REQUIRED_CAPS := 0x38` (`userland/capsule_keyring/Capsule.mk:17`), so it has no file system, network or device access.
+The keyring capsule, `capsule_keyring`, stores key records for the capsules that use it and signs with the wallet's keys. Its [manifest](../overview/glossary-linux-personality.md#manifest) asks for `IPC`, `Memory` and `Crypto` (together 0x38) and the `Keyring` bit, `CAPSULE_REQUIRED_CAPS := 0x10000038` (`userland/capsule_keyring/Capsule.mk:17`), so it has no file system, network or device access.
 
 - Records live in a `Store` in the capsule's memory and are gone at reboot (`userland/capsule_keyring/src/store/types/store.rs:20-23`).
 - The store holds `MAX_KEYS`, 128 records, and at most `MAX_KEYS_PER_OWNER`, 16, for one capsule (`userland/capsule_keyring/src/store/types/constants.rs:17-21`).
@@ -134,22 +134,24 @@ On an installed system, a file persisted to the store is in the clear on the dis
 
 `AdminShutdown` and `AdminReboot` need `Admin` (`can_admin` in `src/syscall/contract/cap_table/admin.rs:20-28`), and both end in `terminate` (`shutdown` in `src/syscall/dispatch/router/admin/shutdown.rs:25-27`). The power capsule makes the call with `mk_admin_shutdown` when the desktop shell confirms a power-off on `power.off` (`userland/capsule_power/src/off/mod.rs:38`), and the shell's confirmation is the only way the desktop reaches it. The installers' restart reaches the wipe too: the window's Done screen and `install write --reboot` ask the `power` service for its reboot with `power_restart` (`userland/libc/src/admin/restart.rs`), which capsule_power allows the shell and the two installers alone (`op_allowed`, `userland/capsule_power/src/off/rule.rs`); neither installer holds `Admin` (S-14). `terminate` stops the other CPUs, runs the wipe, then hands the machine to the firmware (`src/security/zerostate/terminate.rs:35-39`).
 
-`zerostate_shutdown_wipe` runs in this order (`src/security/hardening/memory_sanitization/api.rs:59-110`):
+`zerostate_shutdown_wipe` runs in this order (`src/security/hardening/memory_sanitization/api.rs:59-121`):
 
 1. Stop every claimed device from mastering the bus.
 2. Zero every frame a live DMA grant holds.
 3. Wipe each process's code and memory regions in its own address space.
-4. Wipe the kernel stacks.
-5. Clear the file system caches and the crypto file system state.
-6. Zero the kernel's key vault.
-7. Wipe the log manager's RAM buffer, unless another holder has its lock at that moment. No code installs a log manager in this release, so there is none to wipe.
-8. Erase the whole kernel heap.
+4. Scrub every user-space frame by walking the page tables, unless the paging lock is held.
+5. Wipe the kernel stacks.
+6. Clear the file system caches and the crypto file system state.
+7. Wipe the host and domain names.
+8. Zero the kernel's key vault.
+9. Wipe the kernel's log buffer in RAM.
+10. Erase the whole kernel heap, last.
 
 What it does not reach:
 
 - Kernel statics outside the heap. The data volume key is one: `VOLUME` holds it (`src/fs/blockfs_volume/state.rs:21-26`), and the wipe does not name it. The token MAC key in `SIGNING_KEY` is another (`src/capabilities/token/signing_key.rs:19`), and so is the copy of the serial console that `FIRST` and `TAIL` keep on standard, qemu and dev images (`src/sys/serial/tail.rs:39-47`).
 - On a live boot, the in-memory volume. `Ram` keeps its sectors in frames taken as they are first written, outside the heap (`src/fs/cryptoblock/ram.rs:41-47`), and its key stays in `VOLUME`.
-- A kernel panic. `panic` prints, stops the other CPUs and halts without wiping (`src/boot/panic/handler.rs:41-64`).
+- A kernel panic. It erases the kernel heap, but it does not reach process memory (`src/security/zerostate/panic_wipe.rs:17-73`).
 - A forced power-off or a power cut. Neither runs any code. The power button module notes that holding the button for four seconds still forces the machine off in hardware (`src/arch/x86_64/acpi/power_button.rs`). Memory contents then fade on their own time.
 
 ## See also

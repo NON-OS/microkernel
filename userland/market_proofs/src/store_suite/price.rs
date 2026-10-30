@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The store's price line (B9): exact NOX, the unit and how it settles, and
+//! The store's price line: exact NOX, the unit and how it settles, and
 //! nothing priced until both the publisher and the payee stand behind it.
 
 use crate::store::price::{gas_line, nox_amount, price_line, Price, ESCROW, FREE, VOUCHER};

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A publisher transaction's review (B8): the decoded call in full, then
+//! A publisher transaction's review: the decoded call in full, then
 //! Sign and send, lit only at the review, once its rows read back and the
 //! guard is armed (arm::gate::greyed, as the press asks it).
 

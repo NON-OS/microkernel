@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A watch over the model for deaths and failures (G-72), written from the
+//! A watch over the model for deaths and failures, written from the
 //! test's own reading: the frames the driver gave back, and after every
 //! register write a check that no plane or cursor that is enabled, armed
 //! or latched, reaches one of them through the GGTT. A test may also turn

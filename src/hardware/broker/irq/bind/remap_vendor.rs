@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Which interrupt remapping a broker message goes through: AMD's when its
-//! units are in service, else VT-d's when built, else none (K3, K4).
+//! units are in service, else VT-d's when built, else none.
 
 use super::message::Routed;
 use super::remap_rule::Attempt;

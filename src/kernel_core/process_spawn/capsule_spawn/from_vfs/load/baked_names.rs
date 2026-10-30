@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The service names this kernel image's own spawn sites declare (K18),
+//! The service names this kernel image's own spawn sites declare,
 //! each with the namespace its capsule is signed under. A capsule loaded at
 //! run time may declare one, or a name under one, only when it is signed
 //! under that same namespace: the spawn site's identity, which only the

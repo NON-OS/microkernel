@@ -16,7 +16,7 @@
 
 //! The DMAR table's flags byte and host address width (VT-d 3.4, 8.1).
 //! Bit 0, INTR_REMAP, offers interrupt remapping: clear, the kernel leaves
-//! it off (K11). Bit 1, X2APIC_OPT_OUT, asks for xAPIC-format entries, the
+//! it off. Bit 1, X2APIC_OPT_OUT, asks for xAPIC-format entries, the
 //! only format the kernel writes. Bit 2, DMA_CTRL_PLATFORM_OPT_IN_FLAG, is
 //! firmware saying it protected memory from DMA through boot and asks the
 //! OS to keep it protected: the kernel then never lets firmware's

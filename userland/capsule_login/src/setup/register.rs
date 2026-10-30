@@ -40,7 +40,7 @@ pub(super) fn surface(
     if sid < 0 {
         return Err("surface register rejected");
     }
-    // Only the compositor maps it, read-only (K20).
+    // Only the compositor maps it, read-only.
     let handle = mk_surface_share(sid as u64, super::discover::lookup_compositor_pid()?, 0);
     if handle <= 0 {
         return Err("surface share rejected");

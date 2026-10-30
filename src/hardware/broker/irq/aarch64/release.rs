@@ -24,7 +24,7 @@ use super::pending::{Entry, SLOTS};
 
 // Disable line, drop capsule ownership at the GIC registry (owner-checked),
 // then free the slot. Taken first by the grant id it was found under, which
-// no later bind of the slot carries: one found stale changes nothing (L77).
+// no later bind of the slot carries: one found stale changes nothing.
 fn tear_down(e: &'static Entry, id: u64) -> bool {
     if id == 0 || e.grant_id.compare_exchange(id, 0, Ordering::AcqRel, Ordering::Acquire).is_err() {
         return false;
@@ -51,7 +51,7 @@ pub fn unmap_grant(pid: u32, grant_id: u64) -> Result<(), IrqError> {
 }
 
 pub fn release_for_device(pid: u32, device_id: u64, epoch: u64) -> usize {
-    // A message bind carries no epoch yet, so it goes by pid and device (L71).
+    // A message bind carries no epoch yet, so it goes by pid and device.
     let messages = super::message::release_where(|b| b.pid == pid && b.device_id == device_id);
     let at = |a: &core::sync::atomic::AtomicU64| a.load(Ordering::Acquire);
     let ours = |e: &Entry| e.pid.load(Ordering::Acquire) == pid && at(&e.device_id) == device_id;

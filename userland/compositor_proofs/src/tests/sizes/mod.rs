@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The compositor's products of sizes held at u32's edges (G-70), each
+//! The compositor's products of sizes held at u32's edges, each
 //! against the test's own reading in u128: the canvas and its backing, the
 //! lens, the pointer's place, the fitted box and its samples, the extended
 //! layout, and damage.

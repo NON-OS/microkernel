@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A claim's last step in the enter model (L78): pending::admit, which writes
+//! A claim's last step in the enter model: pending::admit, which writes
 //! the claim's Held record and makes its entry Ready in one hold, or
 //! pending::withdraw, which takes the entry back and nothing else.
 

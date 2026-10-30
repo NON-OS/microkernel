@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! A device into the claiming capsule's domain, once it has one and nothing
 //! it reaches is held elsewhere (one.rs): its RMRR regions mapped one to one
-//! (L60), a requester id shared behind a VMD joined to the capsule that holds
+//! a requester id shared behind a VMD joined to the capsule that holds
 //! it, and its reserved ranges in before it is.
 
 extern crate alloc;

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! How the enter model's wipes end as built (L78): each fate of the device
+//! How the enter model's wipes end as built: each fate of the device
 //! ends its wipe as the kernel's rules say it must, and every stepper the
 //! kernel has (a release or exit, the tick, a claimant's enter) ends one in
 //! some order, while no claimant ever steps one from inside Making; and both

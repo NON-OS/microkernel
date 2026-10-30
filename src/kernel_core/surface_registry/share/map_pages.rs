@@ -22,9 +22,9 @@ use crate::memory::paging::types::PagePermissions;
 
 /*
  * Map `frames` with `perms` at consecutive pages from `base` in `asid`: user
- * read-only unless the receiver was named to write (K20). When one fails,
+ * read-only unless the receiver was named to write. When one fails,
  * the pages already mapped come down again: left with no attach record,
- * they outlived the frames (L49). Err(true) if one would not.
+ * they outlived the frames. Err(true) if one would not.
  */
 pub(super) fn map_pages(
     asid: u32,

@@ -39,7 +39,7 @@ pub(super) fn register_share(
     if sid < 0 {
         return None;
     }
-    // Only the compositor maps it, read-only (K20).
+    // Only the compositor maps it, read-only.
     let handle = share(sid as u64, compositor_pid()?, 0);
     if handle <= 0 {
         return None;

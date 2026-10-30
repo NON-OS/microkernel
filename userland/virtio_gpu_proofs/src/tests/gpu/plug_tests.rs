@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! A scanout the host turns off and on again (G-77): off, it is let go of,
+//! A scanout the host turns off and on again: off, it is let go of,
 //! STATE answers dark, a FLUSH sends nothing and a MODE_SET waits
 //! (EAGAIN); back, STATE answers LOST once while the wire server shows the
 //! primary on it whole again, then scans out. An event that changes

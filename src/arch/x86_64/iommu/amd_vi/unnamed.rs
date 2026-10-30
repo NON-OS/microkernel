@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! An IO-APIC no IVHD special entry names has no requester id to remap its
-//! lines by, so each of its lines is refused (K4), as on VT-d. Said once
+//! lines by, so each of its lines is refused, as on VT-d. Said once
 //! at boot, by id, so a keyboard that never types has a visible cause.
 
 use crate::arch::x86_64::acpi::parser::other::amd_ioapic_requester;

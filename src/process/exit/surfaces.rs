@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A process's surfaces are given up when its last live thread ends (L36).
-//! Teardown and finalize both ask, as `devices.rs` does for claims (L46):
+//! A process's surfaces are given up when its last live thread ends.
+//! Teardown and finalize both ask, as `devices.rs` does for claims:
 //! asked only at teardown, with zombies counted as alive, two threads ending
 //! together each saw the other and neither gave them up, and the tables were
 //! then freed under the compositor's view. A second pass finds nothing.

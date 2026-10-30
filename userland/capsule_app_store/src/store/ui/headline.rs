@@ -42,7 +42,7 @@ pub(super) fn headline(state: &State, listing: &Listing, r: &Readiness) -> (Vec<
         Verdict::Checking if checking => ACCENT,
         Verdict::Checking | Verdict::Blocked => DANGER,
     };
-    // A blocked listing says which gate stopped it (B9).
+    // A blocked listing says which gate stopped it.
     let said = match v {
         Verdict::Checking | Verdict::Blocked => reason(r, checking).unwrap_or(v.sentence()),
         _ => v.sentence(),

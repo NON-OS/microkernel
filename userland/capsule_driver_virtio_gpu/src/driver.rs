@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! A virtio-gpu that came up: its device id, which a DGON names, the wire
-//! server over its display (G-77), and what an in-place recovery of its
+//! server over its display, and what an in-place recovery of its
 //! control queue needs (plan/50 C1).
 
 use nonos_gfx_serve::{Platform, Server};

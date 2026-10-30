@@ -49,7 +49,7 @@ pub fn spawn_input_router_capsule() -> Result<(), SpawnError> {
         target_triple: TARGET_TRIPLE,
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
-            // The raw-input ring's only consumer: MkInputEventDrain and Wait (K8).
+            // The raw-input ring's only consumer: MkInputEventDrain and Wait.
             | Capability::InputConsumer.bit(),
         debug_tag: b"",
     };

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A unit walks the kernel's four-level tables only when EFR.HATS says so,
-//! and a reserved HATS walks none (K12).
+//! and a reserved HATS walks none.
 
 use super::amd_efr::{hats_levels, walks};
 

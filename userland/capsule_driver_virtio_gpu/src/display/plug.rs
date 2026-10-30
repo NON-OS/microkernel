@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Whether an output's scanout is on, as the host's display events last
-//! said (G-77). A host turns a scanout off when its window or monitor goes
+//! said. A host turns a scanout off when its window or monitor goes
 //! and on again when it is back. Only a scanout taken at bring-up is an
 //! output; one the host turns on later for the first time is not driven.
 

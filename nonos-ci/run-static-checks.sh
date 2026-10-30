@@ -5388,7 +5388,7 @@ fi
 unset proofs_out
 # The power button is armed only once device interrupt routing is up: armed
 # at the broker's seeding the SCI's mask is refused and the button stays dead
-# (P-05). The order in the source, and the line a q35 boot cell must carry.
+# The order in the source, and the line a q35 boot cell must carry.
 if pbo_out="$(python3 scripts/check_power_button_order.py --self-test 2>&1 \
     && python3 scripts/check_power_button_order.py 2>&1 \
     && (cd scripts && python3 -m unittest -q bootmatrix.test_power 2>&1))"; then

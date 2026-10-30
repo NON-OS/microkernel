@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A stepper's pass over the wipe in the enter model (L78), as step.rs runs
+//! A stepper's pass over the wipe in the enter model, as step.rs runs
 //! it: one hold of the table that marks the due record busy and copies it,
 //! one act on the device with no lock held (enter_act), one hold that puts
 //! it back as finish.rs does.

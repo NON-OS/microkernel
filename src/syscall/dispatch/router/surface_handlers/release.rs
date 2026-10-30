@@ -23,7 +23,7 @@ use crate::syscall::SyscallResult;
 use super::super::surface_ops::{map_err, EPERM, ESRCH};
 
 pub(in super::super) fn do_release(handle: u64) -> SyscallResult {
-    // Surfaces are held by the process, not the thread that asked (L36).
+    // Surfaces are held by the process, not the thread that asked.
     let Some(pid) = current_pid().map(crate::hardware::broker::holder_of) else {
         return errno(ESRCH);
     };
@@ -35,7 +35,7 @@ pub(in super::super) fn do_release(handle: u64) -> SyscallResult {
     if attach_map::lookup(pid, handle).is_none() {
         return errno(EPERM);
     }
-    // The owner letting go takes back what it named (K20).
+    // The owner letting go takes back what it named.
     crate::kernel_core::surface_registry::share::owner_releases(pid, handle);
     match drop_attach(pid, handle) {
         Ok(n) => SyscallResult::success_audited(n as i64),

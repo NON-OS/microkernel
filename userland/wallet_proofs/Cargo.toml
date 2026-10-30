@@ -23,14 +23,14 @@ nonos_policy_proto = { path = "../policy_proto" }
 nonos_hd = { path = "../nonos_hd" }
 nonos_secp256k1 = { path = "../nonos_secp256k1" }
 # The wallet's NOX address and the Shield pool come from the config, and
-# a withdrawal to the meter reads its ACCOUNT (B7).
+# a withdrawal to the meter reads its ACCOUNT.
 nonos_nox_config = { path = "../nonos_nox_config" }
 nonos_payment_proto = { path = "../payment_proto" }
 nonos_market_proto = { path = "../market_proto" }
-# Typed data the wallet signs through keyring op 30 (B8): the words and
+# Typed data the wallet signs through keyring op 30: the words and
 # the hasher trait.
 nonos_marketplace_abi = { path = "../marketplace_abi" }
-# The publisher's intents (B8): settle_proto's kind table and its limits.
+# The publisher's intents: settle_proto's kind table and its limits.
 nonos_settle_proto = { path = "../settle_proto" }
 # SIGN_FROM_FRESH's request, for the dispute sent from refundTo (v1.4.51).
 shield_wire = { path = "../shield_wire" }

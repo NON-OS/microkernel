@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The ring's take, pure (K8): each event handed out is cleared from its
+//! The ring's take, pure: each event handed out is cleared from its
 //! slot. A drained keystroke stayed in the ring's buffer until a later post
 //! overwrote it, up to 1023 events on, readable by anything that could read
 //! kernel memory meanwhile. Proven in kernel_proofs::input_take.

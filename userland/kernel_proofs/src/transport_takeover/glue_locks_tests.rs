@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a killed caller's failed asks may and may not decide (L81). Its
+//! What a killed caller's failed asks may and may not decide. Its
 //! transport failure reads as a refusal, never as an absent disk, and no disk
 //! is kept for it after the boot disk's wait; and the entropy generator's lock
 //! is never held across an ask of the capsule, so a caller killed in one
@@ -62,7 +62,7 @@ fn a_killed_callers_failure_never_settles_the_disk() {
 
 #[test]
 fn the_generator_lock_is_let_go_across_the_reseed() {
-    // The capsule is asked before STATE is taken and never waited on (K9).
+    // The capsule is asked before STATE is taken and never waited on.
     let fill = between(FAST, "pub fn fill(", "let Some(state) = guard.as_mut() else");
     let ask = fill.find(&code("super::client::poll();")).expect("the capsule asked");
     let held = fill.find(&code("let mut guard = STATE.lock();")).expect("the lock taken");

@@ -33,7 +33,7 @@ impl Gate {
         ends_last: true,
     };
     /// The kernel's gate with GONE loaded before TAKERS, as first written:
-    /// a draw could miss both (L79). Kept to show the proofs see it.
+    /// a draw could miss both. Kept to show the proofs see it.
     pub const GONE_FIRST: Gate =
         Gate { reads: &[Flag::Held, Flag::Gone, Flag::Takers], ..Gate::KERNEL };
 

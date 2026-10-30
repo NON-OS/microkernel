@@ -23,7 +23,7 @@ pub const CLASS_DISPLAY: u32 = 0x0030;
 pub const PCI_CLASS_DISPLAY: u8 = 0x03;
 pub const VENDOR_QEMU_BOCHS: u16 = 0x1234;
 pub const DEVICE_BGA: u16 = 0x1111;
-/// BAR0: video memory, prefetchable, mapped write-combining (L17).
+/// BAR0: video memory, prefetchable, mapped write-combining.
 pub const FB_BAR: u8 = 0;
 /// BAR2: the MMIO window: the EDID blob at 0, DISPI at 0x500.
 pub const REG_BAR: u8 = 2;

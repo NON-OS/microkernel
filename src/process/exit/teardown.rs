@@ -36,7 +36,7 @@ pub fn teardown(pid: Pid, exit_code: i32, by_signal: bool) {
         crate::process::foreign::note_signal_death(pid, exit_code);
     }
 
-    // Surfaces are held by the thread group, on its tables (L36, L46).
+    // Surfaces are held by the thread group, on its tables.
     super::surfaces::give_up_if_last(pid, &pcb);
     let current = CURRENT_PID.load(Ordering::Acquire) == pid;
 

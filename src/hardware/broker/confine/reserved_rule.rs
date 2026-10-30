@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A claimant's reserved regions in its domain (L60): where one may be mapped
+//! A claimant's reserved regions in its domain: where one may be mapped
 //! one to one. Placement steps over every one mapped through the kernel's
 //! own `avoid::place_avoiding`, given these with the reserved ranges
 //! (`reserved_spans`). Pure, so the host proofs hold it.
@@ -40,7 +40,7 @@ pub(super) enum Verdict {
 
 /// What becomes of region `[base, end)` in a capsule whose grants run from
 /// IOVA_BASE to `next`, holding `held`; `barred` when it touches RAM or
-/// another capsule's domain holds part of it (L63).
+/// another capsule's domain holds part of it.
 pub(super) fn verdict(base: u64, end: u64, next: u64, held: &[Held], barred: bool) -> Verdict {
     if barred {
         return Verdict::Refuse(b"refused: an RMRR over RAM or another capsule's region");

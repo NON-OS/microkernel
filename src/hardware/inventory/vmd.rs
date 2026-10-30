@@ -20,7 +20,7 @@
 //! It usually reports mass-storage class 01h subclass 04h (RAID), the same
 //! as an Intel RST SATA controller in RAID mode, but it is no AHCI HBA: its
 //! BAR5 is no ABAR, and a SATA driver poking it would fault or worse. The
-//! ids are unverified until re-sourced from Intel's datasheets (L56).
+//! ids are unverified until re-sourced from Intel's datasheets.
 //!
 //! Pure, with no imports, so host proofs can include it by path; the AHCI
 //! capsule restates the list and its proof crate checks the two agree.

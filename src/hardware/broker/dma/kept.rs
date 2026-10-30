@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! DMA runs kept until their device's wipe has ended (L78), or for good when
+//! DMA runs kept until their device's wipe has ended, or for good when
 //! the device may still reach them: an unconfined grant of a PCI function,
 //! drained by a release. Scrubbed when kept, again when freed; `for_good`
 //! marks one whose wipe ended so, and only those count against the cap.

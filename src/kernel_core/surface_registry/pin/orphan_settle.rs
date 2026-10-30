@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! An owner's munmap of a surface another process still maps (L54). The
+//! An owner's munmap of a surface another process still maps. The
 //! orphan is listed the moment the slot gives up its frames, still under the
 //! gate, and the frames the munmap really took down are added once it has
 //! settled. Listed only at the end, a holder's release in between found no
@@ -54,7 +54,7 @@ pub(super) fn settle(windows: Vec<Window>, own: OwnOrphans) {
 /// When the orphan was already freed (its last holder let go meanwhile), it
 /// is listed again to free just what was unmapped, with no frame list: the
 /// slot is gone and nothing can map it, and a stale list would let a sibling
-/// credit a frame since reused for another surface to it (L61). A frame
+/// credit a frame since reused for another surface to it. A frame
 /// already listed to free is not listed twice, or `reclaim` would free it
 /// twice.
 pub(super) fn settle_one(owner: u32, handle: SurfaceHandle, unmapped: Vec<PhysAddr>) {

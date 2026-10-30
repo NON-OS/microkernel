@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The reasons line (B9): the first failed gate named, the bond's said as
+//! The reasons line: the first failed gate named, the bond's said as
 //! "checking" while the store still asks and "could not be read" after,
 //! only while unread; a bond read and failed is named by its code (v1.4.35);
 //! nothing for a listing that is ready.

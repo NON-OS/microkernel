@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a bridge's secondary bus is (K11): PCI Express, or conventional PCI
+//! What a bridge's secondary bus is: PCI Express, or conventional PCI
 //! behind a PCIe-to-PCI/PCI-X bridge (device/port type 7) or a bridge with
 //! no PCI Express capability. Devices on a conventional bus reach each
 //! other without any port, and reach the IOMMU under the bridge's alias.

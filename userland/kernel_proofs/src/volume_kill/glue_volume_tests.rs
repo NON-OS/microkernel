@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The volume as a trip lock, pinned (G8, G9): its declaration and let_go
+//! The volume as a trip lock, pinned: its declaration and let_go
 //! word for word, no spin lock left on it, and keep_switch's take as its
 //! one reset.
 

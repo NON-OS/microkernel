@@ -31,7 +31,7 @@ pub(super) fn confine(pid: u32, device_id: u64, untranslated: bool) -> Result<bo
     }
 }
 
-/// A port-only claim's Command register (H-02): Memory Space and Bus Master
+/// A port-only claim's Command register: Memory Space and Bus Master
 /// off (pci::command_rule::at_claim), read back as stop_bus_master_quietly
 /// does, and said if either is still on.
 pub(in crate::hardware::broker) fn port_only_quietly(device_id: u64) {

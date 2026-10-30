@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whether a claim may be made ready beside the boot framebuffer (L79):
+//! Whether a claim may be made ready beside the boot framebuffer:
 //! at_admit's whole table, every cell's answer written out by hand from the
 //! design's reasons, one row per (is bootfb, scanout taken, covers) and one
 //! letter per stage of bootfb's claim: '.' made ready, 'R' refused for the

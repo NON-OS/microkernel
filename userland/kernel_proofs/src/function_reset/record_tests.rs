@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A grant is in the table before its claim's release drains it, or is never entered (K10).
+//! A grant is in the table before its claim's release drains it, or is never entered.
 
 use std::sync::{mpsc::channel, Arc, Mutex};
 use std::{thread, time::Duration};

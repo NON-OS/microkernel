@@ -49,9 +49,9 @@ pub struct JobProgress {
 #[derive(Default)]
 pub struct Payee {
     /* The public address a withdrawal pays: a fresh one of this wallet, or
-     * the meter's when `to_meter` (B7). */
+     * the meter's when `to_meter`. */
     pub withdraw_to: Option<String>,
     pub to_meter: bool,
-    /* An escrow order's deposit address, when the withdrawal funds one (B8). */
+    /* An escrow order's deposit address, when the withdrawal funds one. */
     pub to_deposit: Option<[u8; 20]>,
 }

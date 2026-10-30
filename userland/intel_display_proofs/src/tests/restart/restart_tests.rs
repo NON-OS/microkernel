@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! A driver restarted onto its own leftovers (G-78), proved through the
+//! A driver restarted onto its own leftovers, proved through the
 //! takeover's own `settle_heads`: a flip cut off, its cursor on and stray
 //! entries all go. The GGTT is rewritten whole, so every present entry is
 //! the new driver's or firmware's; nothing the engine reaches is the killed

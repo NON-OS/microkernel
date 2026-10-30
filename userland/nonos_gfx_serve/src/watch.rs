@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The owner's silence (G-72). The compositor asks STATE of each driver it
+//! The owner's silence. The compositor asks STATE of each driver it
 //! drives every 500 ms; one silent for OWNER_SILENCE_MS has died or hung,
 //! and what it last composed (a client's pixels, a password field among
 //! them) must not stay on the screen. Each output's cursor is turned off,

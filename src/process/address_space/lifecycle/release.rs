@@ -51,7 +51,7 @@ pub fn release(pcb: &Arc<ProcessControlBlock>) {
         crate::sys::serial::println(b"[EXIT] address_space_cleanup_failed");
     }
     // The group's views went with its tables: only now are its attach
-    // records forgotten and the orphans it held last freed (L46).
+    // records forgotten and the orphans it held last freed.
     forget_pid(crate::hardware::broker::holder_of(pcb.pid));
     reclaim();
 }

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The frame a taken-back holder's framebuffer pages show instead (L79): one
+//! The frame a taken-back holder's framebuffer pages show instead: one
 //! zeroed page of RAM, made before the framebuffer is published and never
 //! freed. Only pages in the device window ever map it, and those are never
 //! freed with the tables holding them; only bootfb's own service, the one

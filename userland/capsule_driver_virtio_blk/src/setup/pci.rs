@@ -19,7 +19,7 @@
 //! instance still holds ring addresses in frames since freed; and decoding
 //! alone again before the claim goes. That last write is defence in depth:
 //! the broker's release clears Bus Master itself before it frees a grant,
-//! and until it stores the bits a driver writes exactly (K6) a clear here
+//! and until it stores the bits a driver writes exactly a clear here
 //! changes nothing. QEMU's legacy path turns Bus Master on by itself at
 //! ACKNOWLEDGE | DRIVER; its modern path does not, nor does other
 //! hardware, and without it a device does no DMA and raises no MSI-X

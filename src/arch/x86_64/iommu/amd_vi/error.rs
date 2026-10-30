@@ -56,7 +56,7 @@ pub enum AmdViError {
     /// still hold them, so the frames must never be reused.
     Stranded,
     /// A unit's EFR.HATS does not cover the four-level tables the kernel
-    /// builds (Mode 4), or the register cannot be read (K12).
+    /// builds (Mode 4), or the register cannot be read.
     DepthUnsupported,
 }
 

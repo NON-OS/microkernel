@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! How long `bring_up` keeps trying, by the clock (K14). Seven attempts
+//! How long `bring_up` keeps trying, by the clock. Seven attempts
 //! were a bound on tries, not on time: an attempt that waits on its device
 //! for seconds made them minutes, and one that fails at once spent only the
 //! sleeps between them. A driver now tries until BRINGUP_BUDGET_MS have

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The cover rule against the page-by-page model (L79), over seeded cases of
+//! The cover rule against the page-by-page model, over seeded cases of
 //! six BARs each, of every kind and size including none, behind a random
 //! count. Floors on what the cases met keep the sweep from passing on
 //! nothing: held and not held, unread BARs that would have held had they

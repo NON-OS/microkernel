@@ -17,7 +17,7 @@
 //! Under remapping (VT-d with CFI clear, or AMD-Vi with IV set) the units
 //! drop a compatibility format IO-APIC entry no remapping entry backs. The
 //! kernel's own writers of one refuse rather than arm a line that never
-//! fires (K3, K4); a capsule's line goes through program_remapped or
+//! fires; a capsule's line goes through program_remapped or
 //! program_amd instead.
 
 use super::super::error::IoApicResult;

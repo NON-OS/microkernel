@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Who a function's last holder was, by the driver service it served (L78).
+//! Who a function's last holder was, by the driver service it served.
 //! A restarted driver is a new process with the same service, so a function
 //! no reset could be trusted on goes back to that service only. Names under
-//! `driver.` are the system's to give (L52), so no other capsule takes one.
+//! `driver.` are the system's to give, so no other capsule takes one.
 
 pub(crate) const NAME_MAX: usize = 32;
 const ROOT: &str = "driver.";

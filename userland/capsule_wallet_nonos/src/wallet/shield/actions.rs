@@ -40,7 +40,7 @@ pub const OVERRIDE: &str = "spend early";
 /* The amount in the units the service reads: the chosen standard size for
  * a deposit or a withdrawal, the typed amount for a private payment. */
 pub fn amount(ui: &ShieldUi) -> String {
-    // An escrow deposit is funded with the order's exact price (B8).
+    // An escrow deposit is funded with the order's exact price.
     if reads_typed(ui.screen, ui.from, SHIELD_SEND, SHIELD_REVIEW) || ui.payee.to_deposit.is_some()
     {
         return ui.amount.clone();

@@ -22,7 +22,7 @@ shared by settle and its callers, the meter first. `no_std`, alloc only.
     `approve_spender` reads an approve's spender. `padded` is the estimate
     times 6/5;
   - 9 FETCH (`Fetch`, `Page`): 0 RELEASE (an https url, `https_target`, and
-    the releaseHash), 2 PAGE (the releaseHash and an offset), 1 ESCROW (B5).
+    the releaseHash), 2 PAGE (the releaseHash and an offset), 1 ESCROW.
     A page is at most 60 KiB, a release at most 1 MiB.
 - Statuses: the Linux errnos settle answers, EIO for two hosts that disagree
   and ENETDOWN for a route that is down (settle never goes Direct).

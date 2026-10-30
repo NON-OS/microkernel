@@ -28,7 +28,6 @@ use super::regs;
 use super::ring::attach_ring;
 
 /// Control.Coherent, bit 10: device table fetches snoop the CPU's caches
-/// (K12).
 const COHERENT: u64 = 1 << 10;
 
 /// Exclusion Base: a range firmware may have set that every device reaches

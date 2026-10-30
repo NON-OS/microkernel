@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A port-only claim (H-02): its capsule holds neither Dma nor Mmio, and its
+//! A port-only claim: its capsule holds neither Dma nor Mmio, and its
 //! Memory Space and Bus Master are cleared at the claim and kept off, so it
 //! starts no DMA or MSI and no peer's request reaches it: it neither joins
 //! nor is blocked by a group but across a shared conventional bus. Groups

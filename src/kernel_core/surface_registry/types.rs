@@ -39,7 +39,7 @@ pub struct SurfaceDescriptor {
     pub byte_len: u64,
     pub base_va: u64,
     pub flags: u64,
-    /// Filled by an attach: the process that registered the surface (K20).
+    /// Filled by an attach: the process that registered the surface.
     pub owner_pid: u32,
     /// Filled by an attach: 1 when this view of the frames is writable.
     pub writable: u32,

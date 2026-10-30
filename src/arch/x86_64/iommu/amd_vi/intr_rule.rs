@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! AMD interrupt remapping's encodings (spec 48882, 2.2.5), pure (K4): a
+//! AMD interrupt remapping's encodings (spec 48882, 2.2.5), pure: a
 //! device table entry's interrupt quadword and a 32-bit remapping entry,
 //! in the bit positions the spec's entry formats give.
 //! An interrupt from a device whose entry has no table is target aborted,

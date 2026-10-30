@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The two calls a loss proof judges bootfb by (G-80): a present, which
+//! The two calls a loss proof judges bootfb by: a present, which
 //! draws until the scanout is lost and answers ENXIO after; and STATE,
 //! LOST from then on; and the fence where a takeover mid-copy lands.
 

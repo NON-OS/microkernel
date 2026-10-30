@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! A Bluetooth device's pairing, as the router reads it off an event (G-76).
+//! A Bluetooth device's pairing, as the router reads it off an event.
 //! The Bluetooth capsule stamps the two high bits of an event's flags (the
 //! modifier bits live in the low byte): SOURCE_BT on every event it posts,
 //! BOND_AUTHENTICATED when the device's bond was made authenticated (a

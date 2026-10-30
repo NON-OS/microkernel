@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The steps of an attach, pure (K12): write the context entry, then drop
+//! The steps of an attach, pure: write the context entry, then drop
 //! the caches. When the drop fails after the write, the entry comes out
 //! again and the caches are dropped once more, so no entry the kernel does
 //! not record stays live; the caller forgets the binding on any error.

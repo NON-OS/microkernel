@@ -57,7 +57,7 @@ pub fn map_device(domain: DomainId, bus: u8, device: u8, function: u8) -> Result
     state.bindings.push(DeviceBinding { source, domain }).map_err(|_| VtdError::DomainTableFull)?;
 
     // Written, then the caches dropped; a failed drop takes the entry out and
-    // drops again (K12). Kept on doubt, the binding has destroy_domain deny it.
+    // drops again. Kept on doubt, the binding has destroy_domain deny it.
     let aw = info.levels.context_aw();
     let (wrote, cleared, dropped) = (Cell::new(false), Cell::new(false), Cell::new(false));
     let programmed = attach(

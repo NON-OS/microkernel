@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! An IVRS walk says when it left an IOMMU unread (K11): past the eight
+//! An IVRS walk says when it left an IOMMU unread: past the eight
 //! the kernel holds, or past a block that does not parse.
 
 use super::ivrs_walk::{walk, MAX_AMD_IOMMUS};

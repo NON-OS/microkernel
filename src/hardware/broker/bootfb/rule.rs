@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The boot framebuffer's window and geometry as pure rules, which
-//! `kernel_proofs` mounts and checks (L31).
+//! `kernel_proofs` mounts and checks.
 
 const PAGE: u64 = 4096;
 

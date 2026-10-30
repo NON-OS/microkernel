@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a device reaches past the IOMMU, hop by hop, pure (K11).
+//! What a device reaches past the IOMMU, hop by hop, pure.
 //! kernel_proofs::acs_rule.
 
 extern crate alloc;

@@ -47,7 +47,7 @@ mod dma_surface;
 pub mod dma_sync_lines;
 #[path = "dma_wipe/mod.rs"]
 pub mod dma_wipe;
-/// DMAR reserved memory regions (K2).
+/// DMAR reserved memory regions.
 #[path = "dmar_reserved/mod.rs"]
 pub mod dmar_reserved;
 #[path = "driver_scope/mod.rs"]
@@ -60,13 +60,13 @@ pub mod emmc_hosts;
 pub mod fd_fork;
 #[path = "firmware_arith/mod.rs"]
 pub mod firmware_arith;
-/// When firmware's DMA protection may be let go (K1).
+/// When firmware's DMA protection may be let go.
 #[path = "iommu_handover/mod.rs"]
 pub mod iommu_handover;
-/// A map's writes, flush and take-back (K1).
+/// A map's writes, flush and take-back.
 #[path = "iommu_place/mod.rs"]
 pub mod iommu_place;
-/// The domain each enumerated function starts in (K2).
+/// The domain each enumerated function starts in.
 #[path = "iommu_start/mod.rs"]
 pub mod iommu_start;
 #[path = "prove_job/mod.rs"]

@@ -45,7 +45,7 @@ pub(crate) fn reclaim_at_tick(from_user: bool) {
         crate::kernel_core::process_spawn::drain_pending_kernel_stacks();
     }
     // A function being reset between holders moves on at each such tick
-    // too, so one no claim or release asks after still finishes (L78).
+    // too, so one no claim or release asks after still finishes.
     if holds_no_lock {
         crate::hardware::broker::claim::step_wipes(false);
     }

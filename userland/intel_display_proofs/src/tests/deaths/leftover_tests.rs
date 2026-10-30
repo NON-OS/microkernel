@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! A restarted driver believes nothing a dead one left lit (G-72): a
+//! A restarted driver believes nothing a dead one left lit: a
 //! surface reaching into the GGTT entries its windows take is no firmware
 //! picture to keep clear of. It is mapped over and never shown again;
 //! firmware's own, low in the GGTT, is still kept clear of.

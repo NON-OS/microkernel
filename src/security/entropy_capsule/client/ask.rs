@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The kernel's ask for the entropy capsule's bytes, never waited on (K9).
+//! The kernel's ask for the entropy capsule's bytes, never waited on.
 //! An ask is sent and the caller goes on; replies that have landed are
 //! drained on a later call and fed through the health tests into the
 //! accumulator every seed draws from. Called from a syscall, with no lock

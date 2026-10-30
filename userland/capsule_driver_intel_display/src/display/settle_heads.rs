@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The takeover settled from the heads it made (G-78): each head's pipe is
+//! The takeover settled from the heads it made: each head's pipe is
 //! taken, and its two surfaces are the runs of the GGTT kept; everything
 //! else a killed driver may have left goes (`engine::settle`).
 

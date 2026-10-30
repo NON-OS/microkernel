@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A GOP backing the kernel would not register is named once, with the
-//! bytes it asked for and the kernel's ceiling (H-06).
+//! bytes it asked for and the kernel's ceiling.
 
 use core::sync::atomic::AtomicBool;
 

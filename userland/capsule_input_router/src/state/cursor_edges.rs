@@ -18,7 +18,7 @@
 //! are known only once the compositor has given its size, by a notice on every
 //! change (NIRS op 0x0006) or by answering DISPLAY_INFO. Until then no pointer
 //! event is placed: on a made-up 1024x768, a click on a 1920x1080 display
-//! lands at x * 1024 / 1920 (H-09). An absolute position is held instead, and
+//! lands at x * 1024 / 1920. An absolute position is held instead, and
 //! placed on the real edges the moment they arrive.
 
 use nonos_libc::{InputEvent, INPUT_KIND_POINTER_ABS, INPUT_KIND_TOUCH};

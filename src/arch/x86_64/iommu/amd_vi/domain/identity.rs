@@ -16,7 +16,7 @@
 
 //! How many device table entries still let a device reach all of memory.
 //! Bring-up writes none: every id starts blocked, or in a domain of its
-//! reserved memory (K4), and a release leaves it denied. Every write is
+//! reserved memory, and a release leaves it denied. Every write is
 //! counted anyway, so the posture line says what the table holds, never
 //! what bring-up meant it to.
 

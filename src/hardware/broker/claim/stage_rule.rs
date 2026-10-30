@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What each stage of a claim allows (L65, L66). Pure, so the proofs run it
+//! What each stage of a claim allows. Pure, so the proofs run it
 //! on the host beside a model of a release racing a grant.
 
 use super::types::{ClaimError, Stage};
@@ -24,7 +24,7 @@ pub(crate) const fn grantable(stage: Stage) -> bool {
     matches!(stage, Stage::Ready)
 }
 
-/// Whether a grant made against the claim may still be entered (L69): while
+/// Whether a grant made against the claim may still be entered: while
 /// it is ready, or leaving with the paths its release waits out still inside.
 pub(crate) const fn kept(stage: Stage) -> bool {
     matches!(stage, Stage::Ready | Stage::Leaving)
@@ -39,9 +39,9 @@ pub(crate) const fn retired(stage: Stage) -> Result<Stage, ClaimError> {
     }
 }
 
-/// The stage an exit moves the claim to (L75), and whether the exit counts
+/// The stage an exit moves the claim to, and whether the exit counts
 /// among its releases: a claim still being made is orphaned for its call to
-/// take back (L66); any other is the exit's to tear down.
+/// take back; any other is the exit's to tear down.
 pub(crate) const fn exited(stage: Stage) -> (Stage, bool) {
     match stage {
         Stage::Making | Stage::Orphaned => (Stage::Orphaned, false),
@@ -59,7 +59,7 @@ pub(crate) const fn over(stage: Stage) -> ClaimError {
 }
 
 /// Whether the entry goes now: being released, no release left, no path
-/// left inside it (L75).
+/// left inside it.
 pub(crate) const fn gone(stage: Stage, leavers: u32, inflight: u32) -> bool {
     matches!(stage, Stage::Leaving | Stage::Exiting) && leavers == 0 && inflight == 0
 }

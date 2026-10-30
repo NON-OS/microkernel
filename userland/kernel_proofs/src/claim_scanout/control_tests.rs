@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The control (L79): the same model with the takeover taken out, as the
+//! The control: the same model with the takeover taken out, as the
 //! claim path was before it (no stop, no take-back loop, an admit that asks
 //! nothing of bootfb's claim), reaches the state the takeover exists to
 //! prevent: a GPU driver's claim made ready while bootfb's pages and the

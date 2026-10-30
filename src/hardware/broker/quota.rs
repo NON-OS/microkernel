@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! How much one holder may have granted at once, pure (K10). Without a
+//! How much one holder may have granted at once, pure. Without a
 //! bound one driver could map until the kernel ran out of frames or page
 //! tables for everyone. Each is checked as a grant is entered, under its
 //! table's lock. kernel_proofs::va_window.

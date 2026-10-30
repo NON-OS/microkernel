@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! An IO-APIC scope's requester id (K3). Pure; kernel_proofs::dmar_scope.
+//! An IO-APIC scope's requester id. Pure; kernel_proofs::dmar_scope.
 
 use super::dmar_ioapic::IoapicScope;
 use super::dmar_scope::MAX_PATH;

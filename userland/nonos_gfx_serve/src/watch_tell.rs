@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Saying a blank (G-89): a driver that cleared its screen for a silent
+//! Saying a blank: a driver that cleared its screen for a silent
 //! owner says so once per silence, so a hung compositor is a line on the
 //! log and not only a black screen. The line is the driver's to say; this
 //! keeps when.

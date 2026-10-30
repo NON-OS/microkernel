@@ -31,7 +31,7 @@ pub(in crate::hardware::broker) fn detach(pid: u32, device_id: u64) {
 }
 
 /// `detach` with CAPSULES held. Each requester the device was joined under
-/// once: its own id, each alias (K11), each stream of a described device; a
+/// once: its own id, each alias, each stream of a described device; a
 /// claim of the same device that raced this release keeps the entries it
 /// made. A detach that fails keeps the domain.
 pub(super) fn detach_held(all: &mut Vec<Capsule>, pid: u32, device_id: u64) {
@@ -66,7 +66,7 @@ fn detach_one(c: &mut Capsule, device_id: u64, done: &mut Vec<DeviceAddress>) ->
         say(b"detach failed; the domain is kept");
         return Some(false);
     }
-    // Denied first, so its RMRR regions (L60) and its last-named reserved
+    // Denied first, so its RMRR regions and its last-named reserved
     // ranges leave the domain unused.
     unmap_reserved(c, device_id);
     super::unreserve::release(c, address);

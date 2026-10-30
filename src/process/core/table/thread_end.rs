@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A thread published but never started, ended there (L77). Its process may
+//! A thread published but never started, ended there. Its process may
 //! have been killed while it was built: that kill either saw it in the table
 //! and counted it, or it sees the process dead here and ends at once, so it
 //! never runs on tables whose devices the kill already gave back.

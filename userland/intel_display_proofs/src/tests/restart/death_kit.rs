@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The death sweeps' rig for a restart (G-78): G-72's DisplayPort rig on a
+//! The death sweeps' rig for a restart: G-72's DisplayPort rig on a
 //! small GGTT, so each restart's rewrite of the table is quick, and the
 //! steps of a clean run worth killing the driver at.
 

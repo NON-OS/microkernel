@@ -25,7 +25,7 @@ use crate::error::{BgaError, BgaResult};
 /// mastering off: the adapter does no DMA. The other command bits are kept
 /// as read. The broker ORs a write that names only writable bits into the
 /// register today, so a Bus Master bit firmware left set is cleared only
-/// once the kernel stores the write as made (K6); the adapter has no DMA
+/// once the kernel stores the write as made; the adapter has no DMA
 /// engine to use it either way.
 pub fn enable_memory(device_id: u64, claim_epoch: u64) -> BgaResult<()> {
     let cur = mk_pci_config_read(device_id, claim_epoch, MK_PCI_CFG_COMMAND, 2);

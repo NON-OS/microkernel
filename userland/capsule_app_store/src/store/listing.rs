@@ -56,7 +56,7 @@ pub struct Known {
     /// is first selected.
     pub release: Option<Release>,
     pub readiness: Option<Readiness>,
-    /// What the release sells and how, from OP_GET_COMMERCE (B9).
+    /// What the release sells and how, from OP_GET_COMMERCE.
     pub price: Option<Price>,
     pub judged: bool,
     /// When to ask the gates again while the market reads the bond, and

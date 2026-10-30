@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which functions' claims take the boot framebuffer's scanout (L79): found
+//! Which functions' claims take the boot framebuffer's scanout: found
 //! once at boot, after every PCI record and the legacy records exist and
 //! before the framebuffer's own record is published, then read on every claim
 //! with no lock. Every record then present counts, of any bus; the firmware's

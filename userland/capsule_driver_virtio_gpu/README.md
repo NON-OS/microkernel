@@ -59,7 +59,7 @@ The display wire (`nonos_gfx_wire`), served by `nonos_gfx_serve`:
 | Operation | What virtio-gpu answers |
 |---|---|
 | `CAPS` | kind 1 (VIRTIO_GPU), one output per enabled scanout (at most 4), `MODE_SET \| MODE_RANGE \| HINTS`, sides to 4096, surface budget one display grant (32 MiB) |
-| `MODES` | the host's wanted size (preferred), then output 0's EDID modes, then the size shown; none whose surface would not fit one display grant (G-78) |
+| `MODES` | the host's wanted size (preferred), then output 0's EDID modes, then the size shown; none whose surface would not fit one display grant |
 | `STATE` | the size shown and the host's wanted size: scanning out; dark (no flags) while the host has the scanout off; LOST once it is back, while the wire server shows the primary on it again. A raised display event is read first (and on every turn of the receive loop) |
 | `SURFACE`, `FLUSH`, `MODE_SET`, `RETIRE` | as the wire defines. A flush copies into the output's surface, sends the rectangles to the host and flushes them. A mode set makes the new surface, loads it whole, and only then sets it on the scanout |
 | `CURSOR` | `ENOSYS`: no cursor plane yet |

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! An IO-APIC no DRHD names has no requester id to remap its lines by, so
-//! under remapping each of its lines is refused (K3). Said once at boot,
+//! under remapping each of its lines is refused. Said once at boot,
 //! by id, so a keyboard that never types has a visible cause.
 
 use crate::arch::x86_64::acpi::parser::other::ioapic_named;

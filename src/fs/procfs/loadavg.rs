@@ -22,7 +22,7 @@ use core::sync::atomic::{AtomicU64, Ordering};
 
 use super::loadavg_math::{fold, ONE, WEIGHTS};
 
-/// Bits kept below the published scale (L63): each sample moves the 15-minute
+/// Bits kept below the published scale: each sample moves the 15-minute
 /// average by about 1/186 of a unit there, so rounded at that scale a periodic
 /// load settled up to a quarter short of its mean.
 const EXTRA_BITS: u32 = 16;

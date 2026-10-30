@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! When a wipe's next step is due (L78): each window in `phase_rule` is a
+//! When a wipe's next step is due: each window in `phase_rule` is a
 //! deadline a later step checks; a clock read behind the phase's own start,
 //! as one CPU's can be against another's, reads as not yet.
 

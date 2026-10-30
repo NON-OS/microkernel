@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The rows a copy writes at u32's edges (G-70): held to the bytes its
+//! The rows a copy writes at u32's edges: held to the bytes its
 //! bounds allow, by the test's u128 reading, and not one past them.
 
 use crate::copy::copy_rects;

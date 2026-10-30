@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The names the image's own capsules (namespace `systems.nonos`) declare,
-//! service and reply alike, as their Capsule.mk files give them (L52). A
+//! service and reply alike, as their Capsule.mk files give them. A
 //! capsule a publisher signs may take none of them, nor a numbered instance
 //! of one. A store app could otherwise take `input_router` in the second
 //! between the router's exit and its restart, or `app.settings` before the
@@ -29,7 +29,7 @@ const NAMES: &str = include_str!("system_names.txt");
  * Roots a publisher's capsule never names under, whatever the list holds: the
  * system trusts names there that no Capsule.mk declares (`net.admin`, a second
  * NVMe's `driver.nvme1`, `driver.bootfb0`), and the kernel's own forms. A
- * numeric `endpoint.<n>` is how a send addresses a port by number (L57).
+ * numeric `endpoint.<n>` is how a send addresses a port by number.
  */
 const ROOTS: [&str; 6] = ["driver.", "net.", "proc.", "stdin.", "stdout.", "kernel."];
 

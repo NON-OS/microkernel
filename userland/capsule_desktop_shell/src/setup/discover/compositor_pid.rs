@@ -16,7 +16,7 @@
 use nonos_libc::mk_service_lookup;
 
 /// The compositor's pid, the one process the shell's overlays are shared
-/// with (K20).
+/// with.
 pub fn compositor_pid() -> Result<u32, &'static str> {
     let name = super::constants::COMPOSITOR_SERVICE;
     let (mut port, mut pid) = (0u32, 0u32);

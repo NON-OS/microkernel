@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Past eight segment 0 units, or off segment 0, a DRHD is left off, and
-//! the IOMMU claims nothing while one is (K11).
+//! the IOMMU claims nothing while one is.
 
 use super::dmar_keep::{keep, Unit, MAX_REMAP_UNITS};
 

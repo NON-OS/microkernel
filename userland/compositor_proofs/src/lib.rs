@@ -52,7 +52,7 @@ pub mod displays;
 #[path = "../../compositor/src/server/runner/turn_watch.rs"]
 pub mod turn_watch;
 
-/// The line a GOP backing the kernel refused is named by (H-06).
+/// The line a GOP backing the kernel refused is named by.
 #[path = "../../compositor/src/setup/rejected.rs"]
 pub mod rejected;
 

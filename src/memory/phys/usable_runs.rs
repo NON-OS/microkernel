@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The boot map's usable RAM as merged runs (L60), so a firmware region a
+//! The boot map's usable RAM as merged runs, so a firmware region a
 //! device is to reach for good can be checked against memory the allocator
 //! hands out. Past the room kept, every question answers "touches": a region
 //! is refused rather than guessed. Pure, so the host proofs hold it.

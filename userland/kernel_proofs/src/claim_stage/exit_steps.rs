@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One step of each path in the exit world (L75): false when it cannot move.
+//! One step of each path in the exit world: false when it cannot move.
 
 use super::exit_world::{code, Entry, World};
 use super::stage_rule::{exited, grantable, kept, retired};

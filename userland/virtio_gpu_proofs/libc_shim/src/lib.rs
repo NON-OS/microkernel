@@ -23,7 +23,7 @@
 //! carries the three fields discovery matches on. `mk_yield` is what a wait
 //! gives the processor up with; a test may hang a device step on it
 //! (`on_yield`), so a model answers the ring on the driver's own thread, one
-//! command at a time (G-73). There is no MkExit: an included file that
+//! command at a time. There is no MkExit: an included file that
 //! called it would not build.
 
 mod debug;

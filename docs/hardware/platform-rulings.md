@@ -1,4 +1,4 @@
-# Hardware matrix: ACPI, platform, Thunderbolt, fuzzing (H-01)
+# Hardware matrix: ACPI, platform, Thunderbolt, fuzzing
 
 Part of [README.md](README.md); evidence words and commonality as defined there.
 Counts are `#[test]` items at 1536ccef3.
@@ -18,7 +18,7 @@ Counts are `#[test]` items at 1536ccef3.
 | Suspend S3, s2idle | every laptop | capsule_acpi | none: SUSPEND = false (Decision 6); kernel resume NotWired | design |
 | ACPI hotplug, docks | common | capsule_acpi | partial: native pciehp off (NATIVE_HOT_PLUG_ON = false) | host |
 
-## Isolation groups (VT-d on): the audit (H-02)
+## Isolation groups (VT-d on): the audit
 
 The broker gives an isolation group to one capsule (K11b,
 src/hardware/broker/confine/join_group.rs). A function of a multi-function

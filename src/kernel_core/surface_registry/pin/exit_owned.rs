@@ -28,9 +28,9 @@ use super::process_of::same_process;
 /*
  * For keep_at_exit, under the gate: every surface `group` owns loses its
  * frames. One another process still attaches becomes an orphan held by the
- * dying tables until they are freed (L49), and its frames are returned for
+ * dying tables until they are freed, and its frames are returned for
  * that teardown to leave alone. A DMA run's frames are the broker's, given
- * back through it, never page by page (L35, K15): none of a surface over its
+ * back through it, never page by page: none of a surface over its
  * owner's own grant, and none of any grant a thread of the group holds.
  */
 pub(super) fn orphan_owned(group: u32, tables: u64) -> Vec<PhysAddr> {

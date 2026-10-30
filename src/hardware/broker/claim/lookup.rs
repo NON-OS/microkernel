@@ -22,7 +22,7 @@ use super::types::{Claim, Stage};
 
 /// A ready claim, held by one grant path for as long as this lives. A
 /// release waits for every one to go before it drains, so a grant whose
-/// check passed is recorded before the drain looks for it (L66).
+/// check passed is recorded before the drain looks for it.
 pub(crate) struct InUse(Claim);
 
 impl Deref for InUse {
@@ -34,7 +34,7 @@ impl Deref for InUse {
 
 /// The last path out of a claim its exit has finished with takes the entry
 /// away: the exit did not wait for it, and kept the entry so no newer claim
-/// could be made while it still writes the device (L75).
+/// could be made while it still writes the device.
 impl Drop for InUse {
     fn drop(&mut self) {
         let key = (self.0.pid, self.0.device_id, self.0.epoch);
@@ -51,7 +51,7 @@ impl Drop for InUse {
 
 /// The device's claim once it is made and until its release begins. One
 /// still being made, or being released, reads as none, so nothing is mapped,
-/// bound or written for it (L65, L66).
+/// bound or written for it.
 pub(crate) fn lookup(device_id: u64) -> Option<InUse> {
     let mut claims = claims();
     let c = claims.iter_mut().find(|c| c.device_id == device_id && grantable(c.stage))?;
@@ -60,7 +60,7 @@ pub(crate) fn lookup(device_id: u64) -> Option<InUse> {
 }
 
 /// The claim a grant was made under, held by an unmap of that grant until its
-/// pages are gone (L79), whatever its release has reached: a release waits it
+/// pages are gone, whatever its release has reached: a release waits it
 /// out and the entry outlasts it, so neither the device's next holder nor a
 /// claim taking its scanout is let in while those pages still show it.
 pub(crate) fn inside(pid: u32, device_id: u64, epoch: u64) -> Option<InUse> {

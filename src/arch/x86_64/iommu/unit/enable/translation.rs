@@ -30,7 +30,7 @@ pub unsafe fn enable_translation(unit: &RemapUnit) -> Result<(), VtdError> {
     // SAFETY: eK@nonos.systems - the caller promised the ordering above, and
     // the tables this enables deny by default. Faults are polled, so the
     // fault event interrupt is masked first: the address and data firmware
-    // left in FEADDR and FEDATA are never sent (K12).
+    // left in FEADDR and FEDATA are never sent.
     unsafe {
         unit.write32(offsets::FECTL, offsets::FECTL_IM);
         unit.write32(offsets::GCMD, command);

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The takeover and its take-back read whole (L79). The first checks found
+//! The takeover and its take-back read whole. The first checks found
 //! each step after the one before, which let a line slip in between: the
 //! stop undone as soon as it was made passed them, and the kernel drew on
 //! through the whole takeover. Here each body is the kernel's to the end.

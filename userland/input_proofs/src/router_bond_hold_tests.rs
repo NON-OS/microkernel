@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! A Bluetooth device paired by Just Works while the trusted band is held
-//! (G-76): its keys and clicks reach neither the lock screen or prompt nor
+//! its keys and clicks reach neither the lock screen or prompt nor
 //! any window, and a key it pressed before the band came up is still let go
 //! where it went down.
 

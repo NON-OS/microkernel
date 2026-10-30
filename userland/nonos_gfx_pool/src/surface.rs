@@ -26,7 +26,7 @@ use super::receiver::compositor_pid;
 
 /// Registers and shares in one step, answering (handle, sid): the wire hands
 /// out the handle, the pool keeps the sid to name a later receiver. The share
-/// names its receiver (K20): the compositor, the one caller the kernel lets
+/// names its receiver: the compositor, the one caller the kernel lets
 /// reach a display driver, which draws into it and so maps it writable.
 pub fn publish(r: Region, width: u32, height: u32, stride: u32) -> Result<(u64, u64), Errno> {
     let to = compositor_pid().ok_or(EINVAL)?;

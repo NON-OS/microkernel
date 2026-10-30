@@ -1,6 +1,6 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! Neither aarch64 encoder makes an EL0 page global, for every request it can
-//! be given (P-06): a global entry is shared by every ASID, so it outlives the
+//! be given: a global entry is shared by every ASID, so it outlives the
 //! switch to the next process, which could read it. A kernel mapping keeps
 //! the global it asked for. The manager's `leaf` is checked over every
 //! combination of the flags it reads, `PageAttributes` over all its fields.

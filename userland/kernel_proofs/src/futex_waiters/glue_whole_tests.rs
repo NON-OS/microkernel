@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The futex glue pinned whole, comments and whitespace aside (L81): the
+//! The futex glue pinned whole, comments and whitespace aside: the
 //! sweep teardown runs, the end a wake and a pass-on ask, and the pass-on's
 //! own call, each as the kernel has it, so weakening any body is seen.
 

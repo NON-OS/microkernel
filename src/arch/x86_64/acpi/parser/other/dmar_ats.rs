@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! DMAR's ATS structures, read (K11). An ATSR names root ports whose devices
+//! DMAR's ATS structures, read. An ATSR names root ports whose devices
 //! may use Address Translation Services; a SATC names SoC devices with an
 //! address translation cache, flag bit 0 when they need ATS to work. The
 //! kernel enables ATS nowhere: every context entry takes untranslated
