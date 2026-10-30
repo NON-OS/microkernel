@@ -36,7 +36,7 @@ HELD = {
 
 
 def main() -> int:
-    offered = set(re.findall(r'interface: b"(\w+)"', REGISTRY.read_text()))
+    offered = set(re.findall(r'\bg\(\d+, b"(\w+)"', REGISTRY.read_text()))
     wanted = {l.split()[1] for l in WANTED.read_text().splitlines()
               if l.startswith("foot ")}
     missing = wanted - offered - HELD
