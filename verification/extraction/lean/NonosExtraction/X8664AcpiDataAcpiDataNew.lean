@@ -158,7 +158,7 @@ structure arch.x86_64.acpi.data.interrupt.InterruptOverride where
   trigger_mode : Std.U8
 
 /-- [nonos_x_x86_64_acpi_data_acpi_data_new::arch::x86_64::acpi::data::acpi_data_struct::AcpiData]
-    Source: 'src/arch/x86_64/acpi/data/../../../../../../../../../src/arch/x86_64/acpi/data/acpi_data_struct.rs', lines 30:0-55:1
+    Source: 'src/arch/x86_64/acpi/data/../../../../../../../../../src/arch/x86_64/acpi/data/acpi_data_struct.rs', lines 30:0-58:1
     Visibility: public -/
 structure arch.x86_64.acpi.data.acpi_data_struct.AcpiData where
   revision : Std.U8
@@ -175,12 +175,13 @@ structure arch.x86_64.acpi.data.acpi_data_struct.AcpiData where
   hpet_address : Option Std.U64
   fadt : Option arch.x86_64.acpi.hw.fadt_decode.FadtInfo
   s5 : Option arch.x86_64.acpi.aml.sleep_obj.SleepPackage
+  s5_interp : Option arch.x86_64.acpi.aml.sleep_obj.SleepPackage
   power_devices : arch.x86_64.acpi.aml.power_devices.PowerDevices
   pm_profile : arch.x86_64.acpi.tables.fadt.profile.PmProfile
   sci_interrupt : Std.U16
 
 /-- [nonos_x_x86_64_acpi_data_acpi_data_new::arch::x86_64::acpi::data::acpi_data_new::{nonos_x_x86_64_acpi_data_acpi_data_new::arch::x86_64::acpi::data::acpi_data_struct::AcpiData}::new]:
-    Source: 'src/arch/x86_64/acpi/data/../../../../../../../../../src/arch/x86_64/acpi/data/acpi_data_new.rs', lines 23:4-43:5
+    Source: 'src/arch/x86_64/acpi/data/../../../../../../../../../src/arch/x86_64/acpi/data/acpi_data_new.rs', lines 23:4-44:5
     Visibility: public -/
 def arch.x86_64.acpi.data.acpi_data_new.AcpiData.new
   : Result arch.x86_64.acpi.data.acpi_data_struct.AcpiData := do
@@ -207,6 +208,7 @@ def arch.x86_64.acpi.data.acpi_data_new.AcpiData.new
       hpet_address := none,
       fadt := none,
       s5 := none,
+      s5_interp := none,
       power_devices := pd,
       pm_profile := arch.x86_64.acpi.tables.fadt.profile.PmProfile.Unspecified,
       sci_interrupt := 9#u16

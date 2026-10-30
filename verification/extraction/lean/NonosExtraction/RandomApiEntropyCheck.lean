@@ -18,11 +18,11 @@ namespace nonos_x_random_api_entropy_check
     Source: 'src/../../../../../src/crypto/random_api/entropy_check.rs', lines 17:0-23:1 -/
 def entropy_check.required_entropy_bytes
   (bits : Std.Usize) : Result Std.Usize := do
-  let i ← bits % 8#usize
-  if i = 0#usize
+  let b ← core.num.Usize.is_multiple_of bits 8#usize
+  if b
   then bits / 8#usize
-  else let i1 ← bits / 8#usize
-       i1 + 1#usize
+  else let i ← bits / 8#usize
+       i + 1#usize
 
 /-- [nonos_x_random_api_entropy_check::required_entropy_bytes]:
     Source: 'src/lib.rs', lines 10:0-12:1

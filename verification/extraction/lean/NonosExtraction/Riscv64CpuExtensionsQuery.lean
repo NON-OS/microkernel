@@ -66,32 +66,27 @@ axiom core.sync.atomic.AtomicU16Align2U16.load
     core.sync.atomic.Ordering → Result Std.U16
 
 /-- [nonos_x_riscv64_cpu_extensions_query::arch::riscv64::cpu::caps::bits::CAP_F]
-    Source: 'src/arch/riscv64/cpu/caps/../../../../../../../../../src/arch/riscv64/cpu/caps/bits.rs', lines 17:0-17:30
-    Visibility: public -/
+    Source: 'src/arch/riscv64/cpu/caps/../../../../../../../../../src/arch/riscv64/cpu/caps/bits.rs', lines 17:0-17:37 -/
 @[global_simps, irreducible]
 def arch.riscv64.cpu.caps.bits.CAP_F : Result Std.U16 := 1#u16 <<< 0#i32
 
 /-- [nonos_x_riscv64_cpu_extensions_query::arch::riscv64::cpu::caps::bits::CAP_D]
-    Source: 'src/arch/riscv64/cpu/caps/../../../../../../../../../src/arch/riscv64/cpu/caps/bits.rs', lines 18:0-18:30
-    Visibility: public -/
+    Source: 'src/arch/riscv64/cpu/caps/../../../../../../../../../src/arch/riscv64/cpu/caps/bits.rs', lines 18:0-18:37 -/
 @[global_simps, irreducible]
 def arch.riscv64.cpu.caps.bits.CAP_D : Result Std.U16 := 1#u16 <<< 1#i32
 
 /-- [nonos_x_riscv64_cpu_extensions_query::arch::riscv64::cpu::caps::bits::CAP_V]
-    Source: 'src/arch/riscv64/cpu/caps/../../../../../../../../../src/arch/riscv64/cpu/caps/bits.rs', lines 19:0-19:30
-    Visibility: public -/
+    Source: 'src/arch/riscv64/cpu/caps/../../../../../../../../../src/arch/riscv64/cpu/caps/bits.rs', lines 19:0-19:37 -/
 @[global_simps, irreducible]
 def arch.riscv64.cpu.caps.bits.CAP_V : Result Std.U16 := 1#u16 <<< 2#i32
 
 /-- [nonos_x_riscv64_cpu_extensions_query::arch::riscv64::cpu::caps::bits::CAP_A]
-    Source: 'src/arch/riscv64/cpu/caps/../../../../../../../../../src/arch/riscv64/cpu/caps/bits.rs', lines 20:0-20:30
-    Visibility: public -/
+    Source: 'src/arch/riscv64/cpu/caps/../../../../../../../../../src/arch/riscv64/cpu/caps/bits.rs', lines 20:0-20:37 -/
 @[global_simps, irreducible]
 def arch.riscv64.cpu.caps.bits.CAP_A : Result Std.U16 := 1#u16 <<< 3#i32
 
 /-- [nonos_x_riscv64_cpu_extensions_query::arch::riscv64::cpu::caps::bits::CAP_C]
-    Source: 'src/arch/riscv64/cpu/caps/../../../../../../../../../src/arch/riscv64/cpu/caps/bits.rs', lines 21:0-21:30
-    Visibility: public -/
+    Source: 'src/arch/riscv64/cpu/caps/../../../../../../../../../src/arch/riscv64/cpu/caps/bits.rs', lines 21:0-21:37 -/
 @[global_simps, irreducible]
 def arch.riscv64.cpu.caps.bits.CAP_C : Result Std.U16 := 1#u16 <<< 4#i32
 

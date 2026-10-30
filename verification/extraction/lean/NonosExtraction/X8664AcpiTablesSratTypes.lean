@@ -25,7 +25,7 @@ namespace nonos_x_x86_64_acpi_tables_srat_types
 axiom core.mem.size_of (T : Type) : Result Std.Usize
 
 /-- [nonos_x_x86_64_acpi_tables_srat_types::arch::x86_64::acpi::tables::sdt::header::SdtHeader]
-    Source: 'src/arch/x86_64/acpi/tables/sdt/../../../../../../../../../../src/arch/x86_64/acpi/tables/sdt/header.rs', lines 22:0-32:1
+    Source: 'src/arch/x86_64/acpi/tables/sdt/../../../../../../../../../../src/arch/x86_64/acpi/tables/sdt/header.rs', lines 24:0-34:1
     Visibility: public -/
 structure arch.x86_64.acpi.tables.sdt.header.SdtHeader where
   signature : Std.U32

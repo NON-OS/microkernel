@@ -25,7 +25,7 @@ structure arch.x86_64.acpi.tables.sdt.generic_address.GenericAddress where
   address : Std.U64
 
 /-- [nonos_x_acpi_tables_fadt_fadt_boot::arch::x86_64::acpi::tables::sdt::header::SdtHeader]
-    Source: 'src/arch/x86_64/acpi/tables/../../../../../../../../../src/arch/x86_64/acpi/tables/sdt/header.rs', lines 22:0-32:1
+    Source: 'src/arch/x86_64/acpi/tables/../../../../../../../../../src/arch/x86_64/acpi/tables/sdt/header.rs', lines 24:0-34:1
     Visibility: public -/
 structure arch.x86_64.acpi.tables.sdt.header.SdtHeader where
   signature : Std.U32

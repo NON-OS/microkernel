@@ -33,13 +33,13 @@ def arch.paging.descriptor.flags.WRITABLE : Result Std.U64 := 1#u64 <<< 1#i32
 def arch.paging.descriptor.flags.USER : Result Std.U64 := 1#u64 <<< 2#i32
 
 /-- [nonos_x_memory_paging_constants_pte_funcs::arch::paging::descriptor::flags::HUGE]
-    Source: 'src/arch/paging/../../../../../../../src/arch/paging/descriptor/flags.rs', lines 40:0-40:29
+    Source: 'src/arch/paging/../../../../../../../src/arch/paging/descriptor/flags.rs', lines 41:0-41:29
     Visibility: public -/
 @[global_simps, irreducible]
 def arch.paging.descriptor.flags.HUGE : Result Std.U64 := 1#u64 <<< 7#i32
 
 /-- [nonos_x_memory_paging_constants_pte_funcs::arch::paging::descriptor::flags::NO_EXECUTE]
-    Source: 'src/arch/paging/../../../../../../../src/arch/paging/descriptor/flags.rs', lines 44:0-44:36
+    Source: 'src/arch/paging/../../../../../../../src/arch/paging/descriptor/flags.rs', lines 51:0-51:36
     Visibility: public -/
 @[global_simps, irreducible]
 def arch.paging.descriptor.flags.NO_EXECUTE : Result Std.U64 :=

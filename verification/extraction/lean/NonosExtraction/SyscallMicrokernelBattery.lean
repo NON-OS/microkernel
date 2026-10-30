@@ -17,6 +17,26 @@ noncomputable section
 
 namespace nonos_x_syscall_microkernel_battery
 
+/-- [core::bool::{bool}::then]:
+    Source: '/rustc/library/core/src/bool.rs', lines 65:4-65:94
+    Name pattern: [core::bool::{bool}::then]
+    Visibility: public -/
+@[rust_fun "core::bool::{bool}::then"]
+axiom core.bool.Bool.then
+  {T : Type} {F : Type} (opsfunctionFnOnceFTupleTInst :
+  core.ops.function.FnOnce F Unit T) :
+  Bool → F → Result (Option T)
+
+/-- [core::option::{core::option::Option<T>}::map]:
+    Source: '/rustc/library/core/src/option.rs', lines 1157:4-1159:53
+    Name pattern: [core::option::{core::option::Option<@T>}::map]
+    Visibility: public -/
+@[rust_fun "core::option::{core::option::Option<@T>}::map"]
+axiom core.option.Option.map
+  {T : Type} {U : Type} {F : Type} (opsfunctionFnOnceFTupleTUInst :
+  core.ops.function.FnOnce F T U) :
+  Option T → F → Result (Option U)
+
 /-- [core::option::{impl core::cmp::PartialEq<core::option::Option<T>> for core::option::Option<T>}::eq]:
     Source: '/rustc/library/core/src/option.rs', lines 2440:4-2440:38
     Name pattern: [core::option::{core::cmp::PartialEq<core::option::Option<@T>, core::option::Option<@T>>}::eq]
@@ -26,6 +46,54 @@ namespace nonos_x_syscall_microkernel_battery
 axiom core.option.Option.Insts.CoreCmpPartialEqOption.eq
   {T : Type} (cmpPartialEqInst : core.cmp.PartialEq T T) :
   Option T → Option T → Result Bool
+
+/-- [core::sync::atomic::private::Align8]
+    Source: '/rustc/library/core/src/sync/atomic.rs', lines 273:4-273:24
+    Name pattern: [core::sync::atomic::private::Align8]
+    Visibility: public -/
+@[rust_type "core::sync::atomic::private::Align8"]
+axiom core.sync.atomic.private.Align8 (T : Type) : Type
+
+/-- [core::sync::atomic::Atomic]
+    Source: '/rustc/library/core/src/sync/atomic.rs', lines 366:0-366:37
+    Name pattern: [core::sync::atomic::Atomic]
+    Visibility: public -/
+@[rust_type "core::sync::atomic::Atomic"]
+axiom core.sync.atomic.Atomic (T : Type) (Clause0_Storage : Type) : Type
+
+/-- [core::sync::atomic::Ordering]
+    Source: '/rustc/library/core/src/sync/atomic.rs', lines 447:0-447:17
+    Name pattern: [core::sync::atomic::Ordering]
+    Visibility: public -/
+@[discriminant isize, rust_type "core::sync::atomic::Ordering"]
+inductive core.sync.atomic.Ordering where
+| Relaxed : core.sync.atomic.Ordering
+| Release : core.sync.atomic.Ordering
+| Acquire : core.sync.atomic.Ordering
+| AcqRel : core.sync.atomic.Ordering
+| SeqCst : core.sync.atomic.Ordering
+
+/-- [core::sync::atomic::{core::sync::atomic::Atomic<u64, core::sync::atomic::private::Align8<u64>>}::new]:
+    Source: '/rustc/library/core/src/sync/atomic.rs', lines 2628:12-2628:50
+    Name pattern: [core::sync::atomic::{core::sync::atomic::Atomic<u64, core::sync::atomic::private::Align8<u64>>}::new]
+    Visibility: public -/
+@[rust_fun
+  "core::sync::atomic::{core::sync::atomic::Atomic<u64, core::sync::atomic::private::Align8<u64>>}::new"]
+axiom core.sync.atomic.AtomicU64Align8U64.new
+  :
+  Std.U64 → Result (core.sync.atomic.Atomic Std.U64
+    (core.sync.atomic.private.Align8 Std.U64))
+
+/-- [core::sync::atomic::{core::sync::atomic::Atomic<u64, core::sync::atomic::private::Align8<u64>>}::load]:
+    Source: '/rustc/library/core/src/sync/atomic.rs', lines 2868:12-2868:60
+    Name pattern: [core::sync::atomic::{core::sync::atomic::Atomic<u64, core::sync::atomic::private::Align8<u64>>}::load]
+    Visibility: public -/
+@[rust_fun
+  "core::sync::atomic::{core::sync::atomic::Atomic<u64, core::sync::atomic::private::Align8<u64>>}::load"]
+axiom core.sync.atomic.AtomicU64Align8U64.load
+  :
+  core.sync.atomic.Atomic Std.U64 (core.sync.atomic.private.Align8 Std.U64) →
+    core.sync.atomic.Ordering → Result Std.U64
 
 /-- [nonos_x_syscall_microkernel_battery::arch::x86_64::acpi::parser::PowerDevices]
     Source: 'src/arch/mod.rs', lines 14:12-16:13
@@ -49,64 +117,280 @@ def arch.x86_64.acpi.parser.with_data
   := do
   ok none
 
-/-- [nonos_x_syscall_microkernel_battery::syscall::microkernel::errnos::ERRNO_NOTSUP]
-    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/errnos.rs', lines 46:0-46:34
-    Visibility: public -/
-@[global_simps, irreducible]
-def syscall.microkernel.errnos.ERRNO_NOTSUP : Std.I64 := (-95)#i64
-
-/-- [nonos_x_syscall_microkernel_battery::syscall::microkernel::errnos::ERRNO_NODEV]
-    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/errnos.rs', lines 34:0-34:33
-    Visibility: public -/
-@[global_simps, irreducible]
-def syscall.microkernel.errnos.ERRNO_NODEV : Std.I64 := (-19)#i64
-
-/-- [nonos_x_syscall_microkernel_battery::syscall::microkernel::battery::sys_battery_status::closure]
-    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/battery.rs', lines 38:56-38:83 -/
+/-- [nonos_x_syscall_microkernel_battery::arch::acpi_capsule::power::acpi_tables_declare_battery::closure]
+    Source: 'src/arch/acpi_capsule/../../../../../../../src/arch/acpi_capsule/power.rs', lines 31:57-31:84 -/
 @[reducible]
-def syscall.microkernel.battery.sys_battery_status.closure := Unit
+def arch.acpi_capsule.power.acpi_tables_declare_battery.closure := Unit
 
-/-- [nonos_x_syscall_microkernel_battery::syscall::microkernel::battery::sys_battery_status::{impl core::ops::function::FnOnce<(&'_ nonos_x_syscall_microkernel_battery::arch::x86_64::acpi::parser::Data,), bool> for nonos_x_syscall_microkernel_battery::syscall::microkernel::battery::sys_battery_status::closure}::call_once]:
-    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/battery.rs', lines 38:56-38:83 -/
+/-- [nonos_x_syscall_microkernel_battery::arch::acpi_capsule::power::acpi_tables_declare_battery::{impl core::ops::function::FnOnce<(&'_ nonos_x_syscall_microkernel_battery::arch::x86_64::acpi::parser::Data,), bool> for nonos_x_syscall_microkernel_battery::arch::acpi_capsule::power::acpi_tables_declare_battery::closure}::call_once]:
+    Source: 'src/arch/acpi_capsule/../../../../../../../src/arch/acpi_capsule/power.rs', lines 31:57-31:84 -/
 def
-  syscall.microkernel.battery.sys_battery_status.closure.Insts.CoreOpsFunctionFnOnceTupleSharedDataBool.call_once
-  (c : syscall.microkernel.battery.sys_battery_status.closure)
+  arch.acpi_capsule.power.acpi_tables_declare_battery.closure.Insts.CoreOpsFunctionFnOnceTupleSharedDataBool.call_once
+  (c : arch.acpi_capsule.power.acpi_tables_declare_battery.closure)
   (tupled_args : arch.x86_64.acpi.parser.Data) :
   Result Bool
   := do
   ok tupled_args.power_devices.battery
 
-/-- Trait implementation: [nonos_x_syscall_microkernel_battery::syscall::microkernel::battery::sys_battery_status::{impl core::ops::function::FnOnce<(&'_ nonos_x_syscall_microkernel_battery::arch::x86_64::acpi::parser::Data,), bool> for nonos_x_syscall_microkernel_battery::syscall::microkernel::battery::sys_battery_status::closure}]
-    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/battery.rs', lines 38:56-38:83 -/
+/-- Trait implementation: [nonos_x_syscall_microkernel_battery::arch::acpi_capsule::power::acpi_tables_declare_battery::{impl core::ops::function::FnOnce<(&'_ nonos_x_syscall_microkernel_battery::arch::x86_64::acpi::parser::Data,), bool> for nonos_x_syscall_microkernel_battery::arch::acpi_capsule::power::acpi_tables_declare_battery::closure}]
+    Source: 'src/arch/acpi_capsule/../../../../../../../src/arch/acpi_capsule/power.rs', lines 31:57-31:84 -/
 @[reducible]
 def
-  syscall.microkernel.battery.sys_battery_status.closure.Insts.CoreOpsFunctionFnOnceTupleSharedDataBool
+  arch.acpi_capsule.power.acpi_tables_declare_battery.closure.Insts.CoreOpsFunctionFnOnceTupleSharedDataBool
   : core.ops.function.FnOnce
-  syscall.microkernel.battery.sys_battery_status.closure
+  arch.acpi_capsule.power.acpi_tables_declare_battery.closure
   arch.x86_64.acpi.parser.Data Bool := {
   call_once :=
-    syscall.microkernel.battery.sys_battery_status.closure.Insts.CoreOpsFunctionFnOnceTupleSharedDataBool.call_once
+    arch.acpi_capsule.power.acpi_tables_declare_battery.closure.Insts.CoreOpsFunctionFnOnceTupleSharedDataBool.call_once
 }
 
-/-- [nonos_x_syscall_microkernel_battery::syscall::microkernel::battery::sys_battery_status]:
-    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/battery.rs', lines 35:0-44:1
+/-- [nonos_x_syscall_microkernel_battery::arch::acpi_capsule::power::acpi_tables_declare_battery]:
+    Source: 'src/arch/acpi_capsule/../../../../../../../src/arch/acpi_capsule/power.rs', lines 29:0-34:1 -/
+def arch.acpi_capsule.power.acpi_tables_declare_battery
+  : Result (Option Bool) := do
+  arch.x86_64.acpi.parser.with_data
+    arch.acpi_capsule.power.acpi_tables_declare_battery.closure.Insts.CoreOpsFunctionFnOnceTupleSharedDataBool
+    ()
+
+/-- [nonos_x_syscall_microkernel_battery::hardware::broker::acpi::power_report::PERCENT_MASK]
+    Source: 'src/hardware/broker/acpi/../../../../../../../../src/hardware/broker/acpi/power_report.rs', lines 25:0-25:35
     Visibility: public -/
-def syscall.microkernel.battery.sys_battery_status : Result Std.I64 := do
-  let o ←
-    arch.x86_64.acpi.parser.with_data
-      syscall.microkernel.battery.sys_battery_status.closure.Insts.CoreOpsFunctionFnOnceTupleSharedDataBool
-      ()
-  let b ←
-    core.option.Option.Insts.CoreCmpPartialEqOption.eq core.cmp.PartialEqBool o
-      (some false)
-  if b
-  then ok syscall.microkernel.errnos.ERRNO_NODEV
-  else ok syscall.microkernel.errnos.ERRNO_NOTSUP
+@[global_simps, irreducible]
+def hardware.broker.acpi.power_report.PERCENT_MASK : Std.U64 := 255#u64
+
+/-- [nonos_x_syscall_microkernel_battery::hardware::broker::acpi::power_report::BATTERY_PRESENT]
+    Source: 'src/hardware/broker/acpi/../../../../../../../../src/hardware/broker/acpi/power_report.rs', lines 26:0-26:40
+    Visibility: public -/
+@[global_simps, irreducible]
+def hardware.broker.acpi.power_report.BATTERY_PRESENT : Result Std.U64 :=
+  1#u64 <<< 8#i32
+
+/-- [nonos_x_syscall_microkernel_battery::hardware::broker::acpi::power_report::KNOWN_BITS]
+    Source: 'src/hardware/broker/acpi/../../../../../../../../src/hardware/broker/acpi/power_report.rs', lines 32:0-32:42
+    Visibility: public -/
+@[global_simps, irreducible]
+def hardware.broker.acpi.power_report.KNOWN_BITS : Result Std.U64 := do
+  let i ← 1#u64 <<< 13#i32
+  i - 1#u64
+
+/-- [nonos_x_syscall_microkernel_battery::hardware::broker::acpi::power_report::FRESH_MS]
+    Source: 'src/hardware/broker/acpi/../../../../../../../../src/hardware/broker/acpi/power_report.rs', lines 36:0-36:30 -/
+@[global_simps, irreducible]
+def hardware.broker.acpi.power_report.FRESH_MS : Std.U64 := 180000#u64
+
+/-- [nonos_x_syscall_microkernel_battery::hardware::broker::acpi::power_report::REPORT]
+    Source: 'src/hardware/broker/acpi/../../../../../../../../src/hardware/broker/acpi/power_report.rs', lines 38:0-38:45 -/
+@[global_simps, irreducible]
+def hardware.broker.acpi.power_report.REPORT
+  :
+  Result (core.sync.atomic.Atomic Std.U64 (core.sync.atomic.private.Align8
+    Std.U64))
+  :=
+  core.sync.atomic.AtomicU64Align8U64.new 0#u64
+
+/-- [nonos_x_syscall_microkernel_battery::hardware::broker::acpi::power_report::WRITTEN_MS]
+    Source: 'src/hardware/broker/acpi/../../../../../../../../src/hardware/broker/acpi/power_report.rs', lines 39:0-39:49 -/
+@[global_simps, irreducible]
+def hardware.broker.acpi.power_report.WRITTEN_MS
+  :
+  Result (core.sync.atomic.Atomic Std.U64 (core.sync.atomic.private.Align8
+    Std.U64))
+  :=
+  core.sync.atomic.AtomicU64Align8U64.new 0#u64
+
+/-- [nonos_x_syscall_microkernel_battery::hardware::broker::acpi::power_report::Battery]
+    Source: 'src/hardware/broker/acpi/../../../../../../../../src/hardware/broker/acpi/power_report.rs', lines 47:0-54:1
+    Visibility: public -/
+@[discriminant isize]
+inductive hardware.broker.acpi.power_report.Battery where
+| Unreported : hardware.broker.acpi.power_report.Battery
+| Absent : hardware.broker.acpi.power_report.Battery
+| Present : hardware.broker.acpi.power_report.Battery
+| Percent : Std.U8 → hardware.broker.acpi.power_report.Battery
+
+/-- [nonos_x_syscall_microkernel_battery::hardware::broker::acpi::power_report::state::closure]
+    Source: 'src/hardware/broker/acpi/../../../../../../../../src/hardware/broker/acpi/power_report.rs', lines 60:15-60:61 -/
+@[reducible]
+def hardware.broker.acpi.power_report.state.closure := Unit
+
+/-- [nonos_x_syscall_microkernel_battery::hardware::broker::acpi::power_report::state::{impl core::ops::function::FnOnce<(), u64> for nonos_x_syscall_microkernel_battery::hardware::broker::acpi::power_report::state::closure}::call_once]:
+    Source: 'src/hardware/broker/acpi/../../../../../../../../src/hardware/broker/acpi/power_report.rs', lines 60:15-60:61 -/
+def
+  hardware.broker.acpi.power_report.state.closure.Insts.CoreOpsFunctionFnOnceTupleU64.call_once
+  (c : hardware.broker.acpi.power_report.state.closure) (_ : Unit) :
+  Result Std.U64
+  := do
+  let a ← hardware.broker.acpi.power_report.REPORT
+  let i ←
+    core.sync.atomic.AtomicU64Align8U64.load a
+      core.sync.atomic.Ordering.Acquire
+  let i1 ← hardware.broker.acpi.power_report.KNOWN_BITS
+  ok (i &&& i1)
+
+/-- Trait implementation: [nonos_x_syscall_microkernel_battery::hardware::broker::acpi::power_report::state::{impl core::ops::function::FnOnce<(), u64> for nonos_x_syscall_microkernel_battery::hardware::broker::acpi::power_report::state::closure}]
+    Source: 'src/hardware/broker/acpi/../../../../../../../../src/hardware/broker/acpi/power_report.rs', lines 60:15-60:61 -/
+@[reducible]
+def
+  hardware.broker.acpi.power_report.state.closure.Insts.CoreOpsFunctionFnOnceTupleU64
+  : core.ops.function.FnOnce hardware.broker.acpi.power_report.state.closure
+  Unit Std.U64 := {
+  call_once :=
+    hardware.broker.acpi.power_report.state.closure.Insts.CoreOpsFunctionFnOnceTupleU64.call_once
+}
+
+/-- [nonos_x_syscall_microkernel_battery::hardware::broker::acpi::power_report::state]:
+    Source: 'src/hardware/broker/acpi/../../../../../../../../src/hardware/broker/acpi/power_report.rs', lines 57:0-61:1
+    Visibility: public -/
+def hardware.broker.acpi.power_report.state
+  (now_ms : Std.U64) : Result (Option Std.U64) := do
+  let a ← hardware.broker.acpi.power_report.WRITTEN_MS
+  let at1 ←
+    core.sync.atomic.AtomicU64Align8U64.load a
+      core.sync.atomic.Ordering.Acquire
+  let fresh ←
+    if at1 != 0#u64
+    then
+      do
+      let i ← lift (core.num.U64.saturating_sub now_ms at1)
+      ok (i <= hardware.broker.acpi.power_report.FRESH_MS)
+    else ok false
+  core.bool.Bool.then
+    hardware.broker.acpi.power_report.state.closure.Insts.CoreOpsFunctionFnOnceTupleU64
+    fresh ()
+
+/-- [nonos_x_syscall_microkernel_battery::hardware::broker::acpi::power_report::battery]:
+    Source: 'src/hardware/broker/acpi/../../../../../../../../src/hardware/broker/acpi/power_report.rs', lines 63:0-70:1
+    Visibility: public -/
+def hardware.broker.acpi.power_report.battery
+  (now_ms : Std.U64) : Result hardware.broker.acpi.power_report.Battery := do
+  let o ← hardware.broker.acpi.power_report.state now_ms
+  match o with
+  | none => ok hardware.broker.acpi.power_report.Battery.Unreported
+  | some w =>
+    let i ← hardware.broker.acpi.power_report.BATTERY_PRESENT
+    let i1 ← lift (w &&& i)
+    let p ← lift (w &&& hardware.broker.acpi.power_report.PERCENT_MASK)
+    if i1 != 0#u64
+    then
+      if p <= 100#u64
+      then
+        let i2 ← lift (UScalar.cast .U8 p)
+        ok (hardware.broker.acpi.power_report.Battery.Percent i2)
+      else ok hardware.broker.acpi.power_report.Battery.Present
+    else ok hardware.broker.acpi.power_report.Battery.Absent
+
+/-- [nonos_x_syscall_microkernel_battery::syscall::microkernel::kernel::errnos::ERRNO_NOTSUP]
+    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/errnos.rs', lines 48:0-48:34
+    Visibility: public -/
+@[global_simps, irreducible]
+def syscall.microkernel.kernel.errnos.ERRNO_NOTSUP : Std.I64 := (-95)#i64
+
+/-- [nonos_x_syscall_microkernel_battery::syscall::microkernel::kernel::errnos::ERRNO_INVAL]
+    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/errnos.rs', lines 37:0-37:33
+    Visibility: public -/
+@[global_simps, irreducible]
+def syscall.microkernel.kernel.errnos.ERRNO_INVAL : Std.I64 := (-22)#i64
+
+/-- [nonos_x_syscall_microkernel_battery::syscall::microkernel::kernel::errnos::ERRNO_NODEV]
+    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/errnos.rs', lines 36:0-36:33
+    Visibility: public -/
+@[global_simps, irreducible]
+def syscall.microkernel.kernel.errnos.ERRNO_NODEV : Std.I64 := (-19)#i64
+
+/-- [nonos_x_syscall_microkernel_battery::sys::clock::since_boot_ms]:
+    Source: 'src/sys.rs', lines 6:4-8:5
+    Visibility: public -/
+def sys.clock.since_boot_ms : Result Std.U64 := do
+  ok 0#u64
+
+/-- [nonos_x_syscall_microkernel_battery::syscall::microkernel::kernel::battery::report::answer]:
+    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/battery/report.rs', lines 29:0-36:1 -/
+def syscall.microkernel.kernel.battery.report.answer
+  : Result (Option Std.I64) := do
+  let i ← sys.clock.since_boot_ms
+  let b ← hardware.broker.acpi.power_report.battery i
+  match b with
+  | hardware.broker.acpi.power_report.Battery.Unreported => ok none
+  | hardware.broker.acpi.power_report.Battery.Absent =>
+    ok (some syscall.microkernel.kernel.errnos.ERRNO_NODEV)
+  | hardware.broker.acpi.power_report.Battery.Present =>
+    ok (some syscall.microkernel.kernel.errnos.ERRNO_NOTSUP)
+  | hardware.broker.acpi.power_report.Battery.Percent p =>
+    let i1 ← lift (UScalar.hcast .I64 p)
+    ok (some i1)
+
+/-- [nonos_x_syscall_microkernel_battery::syscall::microkernel::kernel::battery::report::state::closure]
+    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/battery/report.rs', lines 26:49-26:61 -/
+@[reducible]
+def syscall.microkernel.kernel.battery.report.state.closure := Unit
+
+/-- [nonos_x_syscall_microkernel_battery::syscall::microkernel::kernel::battery::report::state::{impl core::ops::function::FnOnce<(u64,), i64> for nonos_x_syscall_microkernel_battery::syscall::microkernel::kernel::battery::report::state::closure}::call_once]:
+    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/battery/report.rs', lines 26:49-26:61 -/
+def
+  syscall.microkernel.kernel.battery.report.state.closure.Insts.CoreOpsFunctionFnOnceTupleU64I64.call_once
+  (c : syscall.microkernel.kernel.battery.report.state.closure)
+  (tupled_args : Std.U64) :
+  Result Std.I64
+  := do
+  ok (UScalar.hcast .I64 tupled_args)
+
+/-- Trait implementation: [nonos_x_syscall_microkernel_battery::syscall::microkernel::kernel::battery::report::state::{impl core::ops::function::FnOnce<(u64,), i64> for nonos_x_syscall_microkernel_battery::syscall::microkernel::kernel::battery::report::state::closure}]
+    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/battery/report.rs', lines 26:49-26:61 -/
+@[reducible]
+def
+  syscall.microkernel.kernel.battery.report.state.closure.Insts.CoreOpsFunctionFnOnceTupleU64I64
+  : core.ops.function.FnOnce
+  syscall.microkernel.kernel.battery.report.state.closure Std.U64 Std.I64 := {
+  call_once :=
+    syscall.microkernel.kernel.battery.report.state.closure.Insts.CoreOpsFunctionFnOnceTupleU64I64.call_once
+}
+
+/-- [nonos_x_syscall_microkernel_battery::syscall::microkernel::kernel::battery::report::state]:
+    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/battery/report.rs', lines 25:0-27:1 -/
+def syscall.microkernel.kernel.battery.report.state
+  : Result (Option Std.I64) := do
+  let i ← sys.clock.since_boot_ms
+  let o ← hardware.broker.acpi.power_report.state i
+  core.option.Option.map
+    syscall.microkernel.kernel.battery.report.state.closure.Insts.CoreOpsFunctionFnOnceTupleU64I64
+    o ()
+
+/-- [nonos_x_syscall_microkernel_battery::syscall::microkernel::kernel::battery::sys_battery_status]:
+    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/battery.rs', lines 54:0-67:1
+    Visibility: public -/
+def syscall.microkernel.kernel.battery.sys_battery_status
+  (form : Std.U64) : Result Std.I64 := do
+  match form with
+  | 0#uscalar =>
+    let fresh ← syscall.microkernel.kernel.battery.report.answer
+    match fresh with
+    | none =>
+      let o ← arch.acpi_capsule.power.acpi_tables_declare_battery
+      let b ←
+        core.option.Option.Insts.CoreCmpPartialEqOption.eq
+          core.cmp.PartialEqBool o (some false)
+      if b
+      then ok syscall.microkernel.kernel.errnos.ERRNO_NODEV
+      else ok syscall.microkernel.kernel.errnos.ERRNO_NOTSUP
+    | some answer => ok answer
+  | 1#uscalar =>
+    let fresh ← syscall.microkernel.kernel.battery.report.state
+    match fresh with
+    | none =>
+      let o ← arch.acpi_capsule.power.acpi_tables_declare_battery
+      let b ←
+        core.option.Option.Insts.CoreCmpPartialEqOption.eq
+          core.cmp.PartialEqBool o (some false)
+      if b
+      then ok syscall.microkernel.kernel.errnos.ERRNO_NODEV
+      else ok syscall.microkernel.kernel.errnos.ERRNO_NOTSUP
+    | some answer => ok answer
+  | _ => ok syscall.microkernel.kernel.errnos.ERRNO_INVAL
 
 /-- [nonos_x_syscall_microkernel_battery::sys_battery_status]:
-    Source: 'src/lib.rs', lines 12:0-14:1
+    Source: 'src/lib.rs', lines 14:0-16:1
     Visibility: public -/
-def sys_battery_status : Result Std.I64 := do
-  syscall.microkernel.battery.sys_battery_status
+def sys_battery_status (form : Std.U64) : Result Std.I64 := do
+  syscall.microkernel.kernel.battery.sys_battery_status form
 
 end nonos_x_syscall_microkernel_battery

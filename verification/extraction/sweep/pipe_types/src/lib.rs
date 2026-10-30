@@ -23,3 +23,17 @@ pub fn pipe_space_available(this: types::Pipe) -> usize {
     this.space_available()
 }
 
+
+// types.rs zeroes a pipe's buffer on drop through crate::crypto::secure_zero.
+// The kernel's version pulls in the hash module and writes through
+// write_volatile, which Aeneas cannot translate, so the mirror zeroes with a
+// plain loop. Only the drop path reaches it; no extracted entry point does.
+pub mod crypto {
+    pub fn secure_zero(data: &mut [u8]) {
+        let mut i = 0;
+        while i < data.len() {
+            data[i] = 0;
+            i += 1;
+        }
+    }
+}

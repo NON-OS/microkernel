@@ -23,7 +23,7 @@ def behaviour.requires_write_buffer_flush (cap : Std.U64) : Result Bool := do
   ok (i1 != 0#u64)
 
 /-- [nonos_x_cap_behaviour::behaviour::caching_mode]:
-    Source: 'src/../../../../../src/arch/x86_64/iommu/regs/cap/behaviour.rs', lines 25:0-27:1
+    Source: 'src/../../../../../src/arch/x86_64/iommu/regs/cap/behaviour.rs', lines 32:0-34:1
     Visibility: public -/
 def behaviour.caching_mode (cap : Std.U64) : Result Bool := do
   let i ← 1#u64 <<< 7#i32

@@ -15,7 +15,7 @@ set_option maxRecDepth 2048
 namespace nonos_x_drivers_security_lba
 
 /-- [nonos_x_drivers_security_lba::drivers::security::lba::is_lba_in_partition]:
-    Source: 'src/drivers/security/../../../../../../../src/drivers/security/lba.rs', lines 51:0-58:1
+    Source: 'src/drivers/security/../../../../../../../src/drivers/security/lba.rs', lines 33:0-40:1
     Visibility: public -/
 def drivers.security.lba.is_lba_in_partition
   (lba : Std.U64) (partition_start : Std.U64) (partition_size : Std.U64) :

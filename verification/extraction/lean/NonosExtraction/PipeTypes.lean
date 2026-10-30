@@ -28,6 +28,49 @@ structure types.Pipe where
   read_nonblock : Bool
   write_nonblock : Bool
 
+/-- [nonos_x_pipe_types::crypto::secure_zero]: loop body 0:
+    Source: 'src/lib.rs', lines 34:8-37:9
+    Visibility: public -/
+@[rust_loop_body]
+def crypto.secure_zero_loop.body
+  (data : Slice Std.U8) (i : Std.Usize) :
+  Result (ControlFlow ((Slice Std.U8) × Std.Usize) (Slice Std.U8))
+  := do
+  let i1 := Slice.len data
+  if i < i1
+  then
+    let s ← Slice.update data i 0#u8
+    let i2 ← i + 1#usize
+    ok (cont (s, i2))
+  else ok (done data)
+
+/-- [nonos_x_pipe_types::crypto::secure_zero]: loop 0:
+    Source: 'src/lib.rs', lines 34:8-37:9
+    Visibility: public -/
+@[rust_loop]
+def crypto.secure_zero_loop
+  (data : Slice Std.U8) (i : Std.Usize) : Result (Slice Std.U8) := do
+  loop
+    (fun (data1, i1) => crypto.secure_zero_loop.body data1 i1)
+    (data, i)
+
+/-- [nonos_x_pipe_types::crypto::secure_zero]:
+    Source: 'src/lib.rs', lines 32:4-38:5
+    Visibility: public -/
+@[reducible]
+def crypto.secure_zero (data : Slice Std.U8) : Result (Slice Std.U8) := do
+  crypto.secure_zero_loop data 0#usize
+
+/-- [nonos_x_pipe_types::types::{impl core::ops::drop::Drop for nonos_x_pipe_types::types::Pipe}::drop]:
+    Source: 'src/../../../../../src/ipc/pipe/types.rs', lines 71:4-73:5
+    Visibility: public -/
+def types.Pipe.Insts.CoreOpsDropDrop.drop
+  (self : types.Pipe) : Result types.Pipe := do
+  let (s, deref_mut_back) ← lift (alloc.vec.Vec.deref_mut self.buffer)
+  let s1 ← crypto.secure_zero s
+  let v := deref_mut_back s1
+  ok { self with buffer := v }
+
 /-- [nonos_x_pipe_types::types::{nonos_x_pipe_types::types::Pipe}::new]:
     Source: 'src/../../../../../src/ipc/pipe/types.rs', lines 40:4-53:5 -/
 def types.Pipe.new

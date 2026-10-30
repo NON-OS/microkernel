@@ -23,10 +23,13 @@
 # paging statistics getters memory_paging_stats_query extracted (982 to 979).
 # Removing the compat MSI builders left MsiInfo::max_vectors with no caller,
 # and it went with them (979 to 978).
-FLOOR = 978
+# PacKey went when PAC moved to one kernel key per boot and a key per process
+# (pac/secret.rs), and best_leaf_level went with its last caller; their mirror
+# crates and proofs go with them (978 to 976, 492 to 490).
+FLOOR = 976
 GAP_CEILING = 0
 # Functions carrying a property beyond "this wrapper is its method". That
 # wrapper theorem is real, and it is what ties a manifest entry to the method a
 # theorem talks about, but on its own it says nothing about behaviour. Counting
 # the two together would be the inflation this file exists to stop.
-SUBSTANTIVE_FLOOR = 492
+SUBSTANTIVE_FLOOR = 490

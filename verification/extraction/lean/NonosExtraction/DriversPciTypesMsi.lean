@@ -51,7 +51,7 @@ def drivers.pci.constants.msi.MSI_DATA_TRIGGER_LEVEL : Std.U32 := 32768#u32
 def drivers.pci.constants.msi.MSI_DATA_LEVEL_ASSERT : Std.U32 := 16384#u32
 
 /-- [nonos_x_drivers_pci_types_msi::drivers::pci::types::msi::MsiInfo]
-    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/msi.rs', lines 20:0-27:1
+    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/msi.rs', lines 18:0-25:1
     Visibility: public -/
 structure drivers.pci.types.msi.MsiInfo where
   offset : Std.U8
@@ -61,22 +61,15 @@ structure drivers.pci.types.msi.MsiInfo where
   multi_message_enabled : Std.U8
   enabled : Bool
 
-/-- [nonos_x_drivers_pci_types_msi::drivers::pci::types::msi::{nonos_x_drivers_pci_types_msi::drivers::pci::types::msi::MsiInfo}::max_vectors]:
-    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/msi.rs', lines 30:4-32:5
-    Visibility: public -/
-def drivers.pci.types.msi.MsiInfo.max_vectors
-  (self : drivers.pci.types.msi.MsiInfo) : Result Std.U8 := do
-  1#u8 <<< self.multi_message_capable
-
 /-- [nonos_x_drivers_pci_types_msi::drivers::pci::types::msi::{nonos_x_drivers_pci_types_msi::drivers::pci::types::msi::MsiInfo}::allocated_vectors]:
-    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/msi.rs', lines 34:4-36:5
+    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/msi.rs', lines 28:4-30:5
     Visibility: public -/
 def drivers.pci.types.msi.MsiInfo.allocated_vectors
   (self : drivers.pci.types.msi.MsiInfo) : Result Std.U8 := do
   1#u8 <<< self.multi_message_enabled
 
 /-- [nonos_x_drivers_pci_types_msi::drivers::pci::types::msi::MsixInfo]
-    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/msi.rs', lines 40:0-49:1
+    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/msi.rs', lines 34:0-43:1
     Visibility: public -/
 structure drivers.pci.types.msi.MsixInfo where
   offset : Std.U8
@@ -89,26 +82,26 @@ structure drivers.pci.types.msi.MsixInfo where
   function_mask : Bool
 
 /-- [nonos_x_drivers_pci_types_msi::drivers::pci::types::msi::{nonos_x_drivers_pci_types_msi::drivers::pci::types::msi::MsixInfo}::vector_count]:
-    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/msi.rs', lines 52:4-54:5
+    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/msi.rs', lines 46:4-48:5
     Visibility: public -/
 def drivers.pci.types.msi.MsixInfo.vector_count
   (self : drivers.pci.types.msi.MsixInfo) : Result Std.U16 := do
   self.table_size + 1#u16
 
-/-- [nonos_x_drivers_pci_types_msi::drivers::pci::types::msi::MsiMessage]
-    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/msi.rs', lines 58:0-61:1
+/-- [nonos_x_drivers_pci_types_msi::drivers::pci::types::msi_message::MsiMessage]
+    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/msi_message.rs', lines 20:0-23:1
     Visibility: public -/
-structure drivers.pci.types.msi.MsiMessage where
+structure drivers.pci.types.msi_message.MsiMessage where
   address : Std.U64
   data : Std.U32
 
-/-- [nonos_x_drivers_pci_types_msi::drivers::pci::types::msi::{nonos_x_drivers_pci_types_msi::drivers::pci::types::msi::MsiMessage}::new]:
-    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/msi.rs', lines 64:4-75:5
+/-- [nonos_x_drivers_pci_types_msi::drivers::pci::types::msi_message::{nonos_x_drivers_pci_types_msi::drivers::pci::types::msi_message::MsiMessage}::new]:
+    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/msi_message.rs', lines 26:4-37:5
     Visibility: public -/
-def drivers.pci.types.msi.MsiMessage.new
+def drivers.pci.types.msi_message.MsiMessage.new
   (vector : Std.U8) (dest_id : Std.U8) (edge_trigger : Bool)
   (level_assert : Bool) :
-  Result drivers.pci.types.msi.MsiMessage
+  Result drivers.pci.types.msi_message.MsiMessage
   := do
   let i ← lift (UScalar.cast .U64 drivers.pci.constants.msi.MSI_ADDRESS_BASE)
   let i1 ← lift (UScalar.cast .U64 dest_id)
@@ -130,53 +123,47 @@ def drivers.pci.types.msi.MsiMessage.new
       ok { address, data := data3 }
     else ok { address, data := data2 }
 
-/-- [nonos_x_drivers_pci_types_msi::drivers::pci::types::msi::{nonos_x_drivers_pci_types_msi::drivers::pci::types::msi::MsiMessage}::for_local_apic]:
-    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/msi.rs', lines 82:4-84:5
+/-- [nonos_x_drivers_pci_types_msi::drivers::pci::types::msi_message::{nonos_x_drivers_pci_types_msi::drivers::pci::types::msi_message::MsiMessage}::for_local_apic]:
+    Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/msi_message.rs', lines 44:4-46:5
     Visibility: public -/
-def drivers.pci.types.msi.MsiMessage.for_local_apic
+def drivers.pci.types.msi_message.MsiMessage.for_local_apic
   (vector : Std.U8) (dest_apic_id : Std.U8) :
-  Result drivers.pci.types.msi.MsiMessage
+  Result drivers.pci.types.msi_message.MsiMessage
   := do
-  drivers.pci.types.msi.MsiMessage.new vector dest_apic_id true false
-
-/-- [nonos_x_drivers_pci_types_msi::msiinfo_max_vectors]:
-    Source: 'src/lib.rs', lines 11:0-13:1
-    Visibility: public -/
-def msiinfo_max_vectors
-  (this : drivers.pci.types.msi.MsiInfo) : Result Std.U8 := do
-  drivers.pci.types.msi.MsiInfo.max_vectors this
+  drivers.pci.types.msi_message.MsiMessage.new vector dest_apic_id true false
 
 /-- [nonos_x_drivers_pci_types_msi::msiinfo_allocated_vectors]:
-    Source: 'src/lib.rs', lines 15:0-17:1
+    Source: 'src/lib.rs', lines 11:0-13:1
     Visibility: public -/
 def msiinfo_allocated_vectors
   (this : drivers.pci.types.msi.MsiInfo) : Result Std.U8 := do
   drivers.pci.types.msi.MsiInfo.allocated_vectors this
 
 /-- [nonos_x_drivers_pci_types_msi::msixinfo_vector_count]:
-    Source: 'src/lib.rs', lines 19:0-21:1
+    Source: 'src/lib.rs', lines 15:0-17:1
     Visibility: public -/
 def msixinfo_vector_count
   (this : drivers.pci.types.msi.MsixInfo) : Result Std.U16 := do
   drivers.pci.types.msi.MsixInfo.vector_count this
 
 /-- [nonos_x_drivers_pci_types_msi::msimessage_new]:
-    Source: 'src/lib.rs', lines 23:0-25:1
+    Source: 'src/lib.rs', lines 19:0-21:1
     Visibility: public -/
 def msimessage_new
   (vector : Std.U8) (dest_id : Std.U8) (edge_trigger : Bool)
   (level_assert : Bool) :
-  Result drivers.pci.types.msi.MsiMessage
+  Result drivers.pci.types.msi_message.MsiMessage
   := do
-  drivers.pci.types.msi.MsiMessage.new vector dest_id edge_trigger level_assert
+  drivers.pci.types.msi_message.MsiMessage.new vector dest_id edge_trigger
+    level_assert
 
 /-- [nonos_x_drivers_pci_types_msi::msimessage_for_local_apic]:
-    Source: 'src/lib.rs', lines 27:0-29:1
+    Source: 'src/lib.rs', lines 23:0-25:1
     Visibility: public -/
 def msimessage_for_local_apic
   (vector : Std.U8) (dest_apic_id : Std.U8) :
-  Result drivers.pci.types.msi.MsiMessage
+  Result drivers.pci.types.msi_message.MsiMessage
   := do
-  drivers.pci.types.msi.MsiMessage.for_local_apic vector dest_apic_id
+  drivers.pci.types.msi_message.MsiMessage.for_local_apic vector dest_apic_id
 
 end nonos_x_drivers_pci_types_msi

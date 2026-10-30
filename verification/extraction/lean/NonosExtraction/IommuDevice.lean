@@ -15,78 +15,84 @@ set_option maxRecDepth 2048
 namespace nonos_x_iommu_device
 
 /-- [nonos_x_iommu_device::iommu_device::DeviceAddress]
-    Source: 'src/../../../../../src/memory/iommu/device.rs', lines 21:0-21:30
+    Source: 'src/../../../../../src/memory/iommu/device.rs', lines 22:0-27:1
     Visibility: public -/
-@[reducible]
-def iommu_device.DeviceAddress := Std.U32
+@[discriminant isize]
+inductive iommu_device.DeviceAddress where
+| Pci : Std.U16 → Std.U16 → iommu_device.DeviceAddress
+| Stream : Std.U32 → iommu_device.DeviceAddress
 
-/-- [nonos_x_iommu_device::iommu_device::{nonos_x_iommu_device::iommu_device::DeviceAddress}::new]:
-    Source: 'src/../../../../../src/memory/iommu/device.rs', lines 24:4-26:5
+/-- [nonos_x_iommu_device::iommu_device::{nonos_x_iommu_device::iommu_device::DeviceAddress}::pci_in]:
+    Source: 'src/../../../../../src/memory/iommu/device.rs', lines 37:4-40:5
     Visibility: public -/
-def iommu_device.DeviceAddress.new
-  (raw1 : Std.U32) : Result iommu_device.DeviceAddress := do
-  ok raw1
+def iommu_device.DeviceAddress.pci_in
+  (segment : Std.U16) (bus : Std.U8) (device : Std.U8) (function : Std.U8) :
+  Result iommu_device.DeviceAddress
+  := do
+  let i ← lift (UScalar.cast .U16 bus)
+  let i1 ← i <<< 8#i32
+  let i2 ← lift (UScalar.cast .U16 device)
+  let i3 ← lift (i2 &&& 31#u16)
+  let i4 ← i3 <<< 3#i32
+  let i5 ← lift (i1 ||| i4)
+  let i6 ← lift (UScalar.cast .U16 function)
+  let i7 ← lift (i6 &&& 7#u16)
+  let rid ← lift (i5 ||| i7)
+  ok (iommu_device.DeviceAddress.Pci segment rid)
 
 /-- [nonos_x_iommu_device::iommu_device::{nonos_x_iommu_device::iommu_device::DeviceAddress}::pci]:
-    Source: 'src/../../../../../src/memory/iommu/device.rs', lines 28:4-30:5
+    Source: 'src/../../../../../src/memory/iommu/device.rs', lines 31:4-33:5
     Visibility: public -/
 def iommu_device.DeviceAddress.pci
   (bus : Std.U8) (device : Std.U8) (function : Std.U8) :
   Result iommu_device.DeviceAddress
   := do
-  let i ← lift (UScalar.cast .U32 bus)
-  let i1 ← i <<< 8#i32
-  let i2 ← lift (UScalar.cast .U32 device)
-  let i3 ← lift (i2 &&& 31#u32)
-  let i4 ← i3 <<< 3#i32
-  let i5 ← lift (i1 ||| i4)
-  let i6 ← lift (UScalar.cast .U32 function)
-  let i7 ← lift (i6 &&& 7#u32)
-  let i8 ← lift (i5 ||| i7)
-  ok i8
+  iommu_device.DeviceAddress.pci_in 0#u16 bus device function
 
-/-- [nonos_x_iommu_device::iommu_device::{nonos_x_iommu_device::iommu_device::DeviceAddress}::as_u32]:
-    Source: 'src/../../../../../src/memory/iommu/device.rs', lines 32:4-34:5
+/-- [nonos_x_iommu_device::iommu_device::{nonos_x_iommu_device::iommu_device::DeviceAddress}::stream]:
+    Source: 'src/../../../../../src/memory/iommu/device.rs', lines 42:4-44:5
     Visibility: public -/
-def iommu_device.DeviceAddress.as_u32
-  (self : iommu_device.DeviceAddress) : Result Std.U32 := do
-  ok self
+def iommu_device.DeviceAddress.stream
+  (sid : Std.U32) : Result iommu_device.DeviceAddress := do
+  ok (iommu_device.DeviceAddress.Stream sid)
 
-/-- [nonos_x_iommu_device::iommu_device::{nonos_x_iommu_device::iommu_device::DeviceAddress}::pci_bus]:
-    Source: 'src/../../../../../src/memory/iommu/device.rs', lines 36:4-38:5
+/-- [nonos_x_iommu_device::iommu_device::{nonos_x_iommu_device::iommu_device::DeviceAddress}::rid]:
+    Source: 'src/../../../../../src/memory/iommu/device.rs', lines 53:4-58:5
     Visibility: public -/
-def iommu_device.DeviceAddress.pci_bus
-  (self : iommu_device.DeviceAddress) : Result Std.U8 := do
-  let i ← self >>> 8#i32
-  let i1 ← lift (i &&& 255#u32)
-  ok (UScalar.cast .U8 i1)
+def iommu_device.DeviceAddress.rid
+  (self : iommu_device.DeviceAddress) : Result (Option Std.U16) := do
+  match self with
+  | iommu_device.DeviceAddress.Pci _ rid => ok (some rid)
+  | iommu_device.DeviceAddress.Stream _ => ok none
 
-/-- [nonos_x_iommu_device::iommu_device::{nonos_x_iommu_device::iommu_device::DeviceAddress}::pci_device]:
-    Source: 'src/../../../../../src/memory/iommu/device.rs', lines 40:4-42:5
+/-- [nonos_x_iommu_device::iommu_device::{nonos_x_iommu_device::iommu_device::DeviceAddress}::bdf]:
+    Source: 'src/../../../../../src/memory/iommu/device.rs', lines 61:4-68:5
     Visibility: public -/
-def iommu_device.DeviceAddress.pci_device
-  (self : iommu_device.DeviceAddress) : Result Std.U8 := do
-  let i ← self >>> 3#i32
-  let i1 ← lift (i &&& 31#u32)
-  ok (UScalar.cast .U8 i1)
-
-/-- [nonos_x_iommu_device::iommu_device::{nonos_x_iommu_device::iommu_device::DeviceAddress}::pci_function]:
-    Source: 'src/../../../../../src/memory/iommu/device.rs', lines 44:4-46:5
-    Visibility: public -/
-def iommu_device.DeviceAddress.pci_function
-  (self : iommu_device.DeviceAddress) : Result Std.U8 := do
-  let i ← lift (self &&& 7#u32)
-  ok (UScalar.cast .U8 i)
+def iommu_device.DeviceAddress.bdf
+  (self : iommu_device.DeviceAddress) :
+  Result (Option (Std.U8 × Std.U8 × Std.U8))
+  := do
+  match self with
+  | iommu_device.DeviceAddress.Pci _ rid =>
+    let i ← rid >>> 8#i32
+    let i1 ← lift (UScalar.cast .U8 i)
+    let i2 ← rid >>> 3#i32
+    let i3 ← lift (i2 &&& 31#u16)
+    let i4 ← lift (UScalar.cast .U8 i3)
+    let i5 ← lift (rid &&& 7#u16)
+    let i6 ← lift (UScalar.cast .U8 i5)
+    ok (some (i1, i4, i6))
+  | iommu_device.DeviceAddress.Stream _ => ok none
 
 /-- [nonos_x_iommu_device::deviceaddress_new]:
-    Source: 'src/lib.rs', lines 10:0-12:1
+    Source: 'src/lib.rs', lines 15:0-17:1
     Visibility: public -/
 def deviceaddress_new
   (raw1 : Std.U32) : Result iommu_device.DeviceAddress := do
-  iommu_device.DeviceAddress.new raw1
+  iommu_device.DeviceAddress.stream raw1
 
 /-- [nonos_x_iommu_device::deviceaddress_pci]:
-    Source: 'src/lib.rs', lines 14:0-16:1
+    Source: 'src/lib.rs', lines 19:0-21:1
     Visibility: public -/
 def deviceaddress_pci
   (bus : Std.U8) (device : Std.U8) (function : Std.U8) :
@@ -95,31 +101,37 @@ def deviceaddress_pci
   iommu_device.DeviceAddress.pci bus device function
 
 /-- [nonos_x_iommu_device::deviceaddress_as_u32]:
-    Source: 'src/lib.rs', lines 18:0-20:1
-    Visibility: public -/
-def deviceaddress_as_u32
-  (this : iommu_device.DeviceAddress) : Result Std.U32 := do
-  iommu_device.DeviceAddress.as_u32 this
-
-/-- [nonos_x_iommu_device::deviceaddress_pci_bus]:
-    Source: 'src/lib.rs', lines 22:0-24:1
-    Visibility: public -/
-def deviceaddress_pci_bus
-  (this : iommu_device.DeviceAddress) : Result Std.U8 := do
-  iommu_device.DeviceAddress.pci_bus this
-
-/-- [nonos_x_iommu_device::deviceaddress_pci_device]:
     Source: 'src/lib.rs', lines 26:0-28:1
     Visibility: public -/
+def deviceaddress_as_u32
+  (this : iommu_device.DeviceAddress) : Result (Option Std.U16) := do
+  iommu_device.DeviceAddress.rid this
+
+/-- [nonos_x_iommu_device::deviceaddress_pci_bus]:
+    Source: 'src/lib.rs', lines 35:0-37:1
+    Visibility: public -/
+def deviceaddress_pci_bus
+  (this : iommu_device.DeviceAddress) :
+  Result (Option (Std.U8 × Std.U8 × Std.U8))
+  := do
+  iommu_device.DeviceAddress.bdf this
+
+/-- [nonos_x_iommu_device::deviceaddress_pci_device]:
+    Source: 'src/lib.rs', lines 39:0-41:1
+    Visibility: public -/
 def deviceaddress_pci_device
-  (this : iommu_device.DeviceAddress) : Result Std.U8 := do
-  iommu_device.DeviceAddress.pci_device this
+  (this : iommu_device.DeviceAddress) :
+  Result (Option (Std.U8 × Std.U8 × Std.U8))
+  := do
+  iommu_device.DeviceAddress.bdf this
 
 /-- [nonos_x_iommu_device::deviceaddress_pci_function]:
-    Source: 'src/lib.rs', lines 30:0-32:1
+    Source: 'src/lib.rs', lines 43:0-45:1
     Visibility: public -/
 def deviceaddress_pci_function
-  (this : iommu_device.DeviceAddress) : Result Std.U8 := do
-  iommu_device.DeviceAddress.pci_function this
+  (this : iommu_device.DeviceAddress) :
+  Result (Option (Std.U8 × Std.U8 × Std.U8))
+  := do
+  iommu_device.DeviceAddress.bdf this
 
 end nonos_x_iommu_device

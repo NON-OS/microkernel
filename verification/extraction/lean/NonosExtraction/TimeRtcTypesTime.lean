@@ -113,7 +113,7 @@ def arch.x86_64.time.rtc.constants.SECS_PER_HOUR : Std.U64 := 3600#u64
 def arch.x86_64.time.rtc.constants.SECS_PER_DAY : Std.U64 := 86400#u64
 
 /-- [nonos_x_time_rtc_types_time::arch::x86_64::time::rtc::unix::datetime_to_unix]: loop body 0:
-    Source: 'src/arch/x86_64/time/rtc/../../../../../../../../../src/arch/x86_64/time/rtc/unix.rs', lines 23:4-25:5
+    Source: 'src/arch/x86_64/time/rtc/../../../../../../../../../src/arch/x86_64/time/rtc/unix.rs', lines 27:4-29:5
     Visibility: public -/
 @[rust_loop_body]
 def arch.x86_64.time.rtc.unix.datetime_to_unix_loop0.body
@@ -133,7 +133,7 @@ def arch.x86_64.time.rtc.unix.datetime_to_unix_loop0.body
     ok (cont (iter1, days1))
 
 /-- [nonos_x_time_rtc_types_time::arch::x86_64::time::rtc::unix::datetime_to_unix]: loop 0:
-    Source: 'src/arch/x86_64/time/rtc/../../../../../../../../../src/arch/x86_64/time/rtc/unix.rs', lines 23:4-25:5
+    Source: 'src/arch/x86_64/time/rtc/../../../../../../../../../src/arch/x86_64/time/rtc/unix.rs', lines 27:4-29:5
     Visibility: public -/
 @[rust_loop]
 def arch.x86_64.time.rtc.unix.datetime_to_unix_loop0
@@ -144,7 +144,7 @@ def arch.x86_64.time.rtc.unix.datetime_to_unix_loop0
     (iter, days)
 
 /-- [nonos_x_time_rtc_types_time::arch::x86_64::time::rtc::unix::datetime_to_unix]: loop body 1:
-    Source: 'src/arch/x86_64/time/rtc/../../../../../../../../../src/arch/x86_64/time/rtc/unix.rs', lines 26:4-28:5
+    Source: 'src/arch/x86_64/time/rtc/../../../../../../../../../src/arch/x86_64/time/rtc/unix.rs', lines 30:4-32:5
     Visibility: public -/
 @[rust_loop_body]
 def arch.x86_64.time.rtc.unix.datetime_to_unix_loop1.body
@@ -162,7 +162,7 @@ def arch.x86_64.time.rtc.unix.datetime_to_unix_loop1.body
     ok (cont (iter1, days1))
 
 /-- [nonos_x_time_rtc_types_time::arch::x86_64::time::rtc::unix::datetime_to_unix]: loop 1:
-    Source: 'src/arch/x86_64/time/rtc/../../../../../../../../../src/arch/x86_64/time/rtc/unix.rs', lines 26:4-28:5
+    Source: 'src/arch/x86_64/time/rtc/../../../../../../../../../src/arch/x86_64/time/rtc/unix.rs', lines 30:4-32:5
     Visibility: public -/
 @[rust_loop]
 def arch.x86_64.time.rtc.unix.datetime_to_unix_loop1
@@ -175,13 +175,15 @@ def arch.x86_64.time.rtc.unix.datetime_to_unix_loop1
     (iter, days)
 
 /-- [nonos_x_time_rtc_types_time::arch::x86_64::time::rtc::unix::datetime_to_unix]:
-    Source: 'src/arch/x86_64/time/rtc/../../../../../../../../../src/arch/x86_64/time/rtc/unix.rs', lines 21:0-34:1
+    Source: 'src/arch/x86_64/time/rtc/../../../../../../../../../src/arch/x86_64/time/rtc/unix.rs', lines 21:0-38:1
     Visibility: public -/
 def arch.x86_64.time.rtc.unix.datetime_to_unix
   (year : Std.U16) (month : Std.U8) (day : Std.U8) (hour : Std.U8)
   (minute : Std.U8) (second : Std.U8) :
   Result Std.U64
   := do
+  let month1 ← core.cmp.impls.OrdU8.clamp month 1#u8 12#u8
+  let day1 ← lift (core.cmp.impls.OrdU8.max day 1#u8)
   let days ←
     arch.x86_64.time.rtc.unix.datetime_to_unix_loop0
       {
@@ -190,8 +192,8 @@ def arch.x86_64.time.rtc.unix.datetime_to_unix
       } 0#u64
   let days1 ←
     arch.x86_64.time.rtc.unix.datetime_to_unix_loop1
-      { start := 1#u8, «end» := month } year days
-  let i ← day - 1#u8
+      { start := 1#u8, «end» := month1 } year days
+  let i ← day1 - 1#u8
   let i1 ← lift (UScalar.cast .U64 i)
   let days2 ← days1 + i1
   let i2 ← days2 * arch.x86_64.time.rtc.constants.SECS_PER_DAY
@@ -217,7 +219,7 @@ structure arch.x86_64.time.rtc.types.time.RtcTime where
   day_of_week : Std.U8
 
 /-- [nonos_x_time_rtc_types_time::arch::x86_64::time::rtc::unix::unix_to_datetime]: loop body 0:
-    Source: 'src/arch/x86_64/time/rtc/../../../../../../../../../src/arch/x86_64/time/rtc/unix.rs', lines 45:4-52:5
+    Source: 'src/arch/x86_64/time/rtc/../../../../../../../../../src/arch/x86_64/time/rtc/unix.rs', lines 49:4-56:5
     Visibility: public -/
 @[rust_loop_body]
 def arch.x86_64.time.rtc.unix.unix_to_datetime_loop0.body
@@ -238,7 +240,7 @@ def arch.x86_64.time.rtc.unix.unix_to_datetime_loop0.body
     ok (cont (remaining1, year1))
 
 /-- [nonos_x_time_rtc_types_time::arch::x86_64::time::rtc::unix::unix_to_datetime]: loop 0:
-    Source: 'src/arch/x86_64/time/rtc/../../../../../../../../../src/arch/x86_64/time/rtc/unix.rs', lines 45:4-52:5
+    Source: 'src/arch/x86_64/time/rtc/../../../../../../../../../src/arch/x86_64/time/rtc/unix.rs', lines 49:4-56:5
     Visibility: public -/
 @[rust_loop]
 def arch.x86_64.time.rtc.unix.unix_to_datetime_loop0
@@ -249,7 +251,7 @@ def arch.x86_64.time.rtc.unix.unix_to_datetime_loop0
     (remaining, year)
 
 /-- [nonos_x_time_rtc_types_time::arch::x86_64::time::rtc::unix::unix_to_datetime]: loop body 1:
-    Source: 'src/arch/x86_64/time/rtc/../../../../../../../../../src/arch/x86_64/time/rtc/unix.rs', lines 54:4-61:5
+    Source: 'src/arch/x86_64/time/rtc/../../../../../../../../../src/arch/x86_64/time/rtc/unix.rs', lines 58:4-65:5
     Visibility: public -/
 @[rust_loop_body]
 def arch.x86_64.time.rtc.unix.unix_to_datetime_loop1.body
@@ -266,7 +268,7 @@ def arch.x86_64.time.rtc.unix.unix_to_datetime_loop1.body
     ok (cont (remaining1, month1))
 
 /-- [nonos_x_time_rtc_types_time::arch::x86_64::time::rtc::unix::unix_to_datetime]: loop 1:
-    Source: 'src/arch/x86_64/time/rtc/../../../../../../../../../src/arch/x86_64/time/rtc/unix.rs', lines 54:4-61:5
+    Source: 'src/arch/x86_64/time/rtc/../../../../../../../../../src/arch/x86_64/time/rtc/unix.rs', lines 58:4-65:5
     Visibility: public -/
 @[rust_loop]
 def arch.x86_64.time.rtc.unix.unix_to_datetime_loop1
@@ -280,7 +282,7 @@ def arch.x86_64.time.rtc.unix.unix_to_datetime_loop1
     (remaining, month)
 
 /-- [nonos_x_time_rtc_types_time::arch::x86_64::time::rtc::unix::unix_to_datetime]:
-    Source: 'src/arch/x86_64/time/rtc/../../../../../../../../../src/arch/x86_64/time/rtc/unix.rs', lines 36:0-64:1
+    Source: 'src/arch/x86_64/time/rtc/../../../../../../../../../src/arch/x86_64/time/rtc/unix.rs', lines 40:0-68:1
     Visibility: public -/
 def arch.x86_64.time.rtc.unix.unix_to_datetime
   (timestamp : Std.U64) : Result arch.x86_64.time.rtc.types.time.RtcTime := do

@@ -32,11 +32,11 @@ namespace NonosExtraction.FdtFindTimerIntid
 
 /-! ### The forwarding functions add nothing -/
 
-theorem the_entry_count_wrapper_is_its_method (a : Std.Usize) :
-    entry_count a = arch.fdt.find.timer.intid.entry_count a := rfl
+theorem the_gic_intid_wrapper_is_its_method (a : Slice Std.U8) :
+    gic_intid a = arch.fdt.irq.gic.gic_intid a := rfl
 
 /-! ### Axiom profile -/
 
-#print axioms NonosExtraction.FdtFindTimerIntid.the_entry_count_wrapper_is_its_method
+#print axioms NonosExtraction.FdtFindTimerIntid.the_gic_intid_wrapper_is_its_method
 
 end NonosExtraction.FdtFindTimerIntid

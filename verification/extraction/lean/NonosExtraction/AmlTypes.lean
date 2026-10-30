@@ -15,7 +15,7 @@ set_option maxRecDepth 2048
 namespace nonos_x_aml_types
 
 /-- [nonos_x_aml_types::types::gpio_controller::GpioController]
-    Source: 'src/../../../../../src/arch/x86_64/acpi/aml/types/gpio_controller.rs', lines 27:0-48:1
+    Source: 'src/../../../../../src/arch/x86_64/acpi/aml/types/gpio_controller.rs', lines 27:0-50:1
     Visibility: public -/
 structure types.gpio_controller.GpioController where
   «name» : Array Std.U8 4#usize
@@ -25,9 +25,10 @@ structure types.gpio_controller.GpioController where
   pids : Array Std.U8 5#usize
   pid_count : Std.Usize
   hid : Array Std.U8 8#usize
+  irq : Option Std.U32
 
 /-- [nonos_x_aml_types::types::gpio_controller::{nonos_x_aml_types::types::gpio_controller::GpioController}::is_valid]:
-    Source: 'src/../../../../../src/arch/x86_64/acpi/aml/types/gpio_controller.rs', lines 66:4-68:5
+    Source: 'src/../../../../../src/arch/x86_64/acpi/aml/types/gpio_controller.rs', lines 68:4-70:5
     Visibility: public -/
 def types.gpio_controller.GpioController.is_valid
   (self : types.gpio_controller.GpioController) : Result Bool := do

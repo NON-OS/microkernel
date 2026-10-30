@@ -25,9 +25,9 @@
       "bv_decide_calls": 10,
       "bv_decide_theorems": 11,
       "counts": {
-        "extracted": 978,
-        "proven": 978,
-        "substantive": 492,
+        "extracted": 976,
+        "proven": 976,
+        "substantive": 490,
         "trivial": 486,
         "unproven": 0
       },
@@ -322,7 +322,6 @@
         "nonos_x_cap_fault::fault_recording_offset",
         "nonos_x_cap_limits::domain_count",
         "nonos_x_cap_limits::max_address_width",
-        "nonos_x_cap_pages::best_leaf_level",
         "nonos_x_capabilities_chain_chain::capabilitychain_empty",
         "nonos_x_capabilities_chain_chain::capabilitychain_is_empty",
         "nonos_x_capabilities_chain_chain::capabilitychain_len",
@@ -448,7 +447,7 @@
         "nonos_x_fadt_profile::pmprofile_from_u8",
         "nonos_x_fadt_profile::pmprofile_is_mobile",
         "nonos_x_fadt_profile::pmprofile_is_server",
-        "nonos_x_fdt_find_timer_intid::entry_count",
+        "nonos_x_fdt_find_timer_intid::gic_intid",
         "nonos_x_field_types::fe_one",
         "nonos_x_field_types::fe_zero",
         "nonos_x_fs_blockfs_header_lba::header_lba",
@@ -687,7 +686,6 @@
         "nonos_x_offsets_fault::frcd_source",
         "nonos_x_offsets_invalidate::iotlb_offset",
         "nonos_x_offsets_invalidate::iva_offset",
-        "nonos_x_pac_key::packey_new",
         "nonos_x_paging_types_permissions_convert::pagepermissions_device",
         "nonos_x_paging_types_permissions_convert::pagepermissions_kernel_ro",
         "nonos_x_paging_types_permissions_convert::pagepermissions_kernel_rw",
@@ -1023,23 +1021,23 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/AcpiTablesFadtFadtAddresses.lean",
-          "sha256": "f8572a1ec77794932decbd395063e2d512c26f08e849bd18309e5234c89aafe2"
+          "sha256": "3fbaac489b97ec27f5e5d7edf2aac48e0bc283c6bca8d558924d36692603fdcb"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/AcpiTablesFadtFadtBoot.lean",
-          "sha256": "07ca4f1b74d186a54badfad93a161a37a753582bbd78c1e091b6335b51e62f3c"
+          "sha256": "8b190d537fabd14bab90e1d5b588a945e9243ed3874c6aa32964424d93306fc1"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/AcpiTablesFadtFadtMethods.lean",
-          "sha256": "a270dc5b8918c6fd311ae29546abfb82d0d38ae4b1a25b500fba08b10463af79"
+          "sha256": "e139b13af325441e954f4daa08592436e8ae6b30e52caa0a5cabbe9f89ec3d88"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/AcpiTablesHpetTable.lean",
-          "sha256": "67604ae941814511aac1d90d387976d0cee12268bef9d1a10567aa2d815e80b5"
+          "sha256": "1319bd006bcd5888d24fddf6ae9ac24b7380d65d77f6308e08b514a7933bd109"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/AcpiTablesMadtHeader.lean",
-          "sha256": "baaa229930742fe22be9e2a26bede6d579424b223a0b231b75637f4d306b7436"
+          "sha256": "1cd66bddaa87f94d327b2d799185f098312b79c2a210c4c6e86ef1f3ed5ac110"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/AcpiTablesMadtInterrupt.lean",
@@ -1091,7 +1089,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/AmlTypes.lean",
-          "sha256": "71708e9b3bd6637f31a435e99146ec5348750cd900d0e906e006478f1ce1eb39"
+          "sha256": "86d7f78a26c334bd24ab0c82a45e3c1db5e8306518bc87ec438435e45887b7c3"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/ApicTimerMode.lean",
@@ -1207,7 +1205,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/CapBehaviour.lean",
-          "sha256": "3bc8cb735a27d6450fdc5723be0d7d732bc68d845bc1f7b8a376dc996df21a81"
+          "sha256": "5c479962dbdf84a2cf3d4ec219243cf09adfcb0c3f17fd1cae26b93901e732e8"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/CapFault.lean",
@@ -1218,20 +1216,16 @@
           "sha256": "6ffc704778c713009fcbf6113e9c4c8d2e7174922a7769a1dffe70de220942bd"
         },
         {
-          "path": "verification/extraction/lean/NonosExtraction/CapPages.lean",
-          "sha256": "28e45d3f906670b0830c676b9e3d0a160921f48632b25224f967e58906bd86f7"
-        },
-        {
           "path": "verification/extraction/lean/NonosExtraction/CapabilitiesChainChain.lean",
-          "sha256": "6359b2cd61db2be6a1082d1019d8894367f572aa3a7d6366407d00614a6d82a8"
+          "sha256": "e08db8c57e7791416f71ee4da2ce34552834c05225c3d20fc269428bd24141e7"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/CapabilitiesTokenTypesConstruct.lean",
-          "sha256": "6e151b6e25940e58fad265d3c82134a430424ea676d43369bd4540cf59adf5e2"
+          "sha256": "d1a6db55db2614425933663cba6b2f60ab3cfae02aaea7d015135be8607f17b5"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Caps.lean",
-          "sha256": "4f7895e2b3807fcb844f4e1787bc4609908b72094bc076694f9da6d4e10f2614"
+          "sha256": "2161b4656614c379f46a9abf6ef05e439e48414a0cfd6b2e43792d544d377e0a"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/CensusBuf.lean",
@@ -1307,7 +1301,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Ct.lean",
-          "sha256": "1161f0b947c15dbdd965a381ca11a8ad8f85b2d44294cad8547be6eb966c468b"
+          "sha256": "bd7e5e768193c0cce8569d867c28a14dfd4b220b0fc12b23d866c2301b16ea66"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/DataInterrupt.lean",
@@ -1375,15 +1369,15 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/DriversPciTypesMsi.lean",
-          "sha256": "4e5d49326d30670384b6e1b0fd9547a4490d1eff478ba397ab110145b395f31b"
+          "sha256": "9175fcbedee2602a6984c735dffeda842627d1e27aac3031b8117250203952c8"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/DriversSecurityLba.lean",
-          "sha256": "3115d6466a7444eff5ead21126238e5764957076a13e0d7eeaadc8ed6995ae8f"
+          "sha256": "fbe4e1716802166e8a9c86fccc41a49ea30fee425a3e598c1f49e007ff145f74"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/DriversSecurityPci.lean",
-          "sha256": "d948e4bac996092c826d3d1f1da9a727f58834dc28a5766f36b8258adc6f9d96"
+          "sha256": "f568ba4a283698cc58d9e2f31828e5de0272f233fb36f19160cad299f7ecf0d2"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/EdField.lean",
@@ -1419,7 +1413,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/FdtFindTimerIntid.lean",
-          "sha256": "ec5dadaf037de688b3cc418b2d37f008edc879ce660d1a30885fc023b6c36d40"
+          "sha256": "5527d996150e8a77a75b9044d71355493052859f0b64b7ce1df0f498a167c450"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/FieldTypes.lean",
@@ -1435,7 +1429,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/GicState.lean",
-          "sha256": "696cb61112130ffc79fd43316628ea4a6d10495540a1522661f103dddf8f1b67"
+          "sha256": "c9d181aa6f417b6ef58a1ea06d622940413baaef60ad8071ec5fb368d11127ca"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/HardwareBrokerPioAbsent.lean",
@@ -1487,7 +1481,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/IommuDevice.lean",
-          "sha256": "722cf7b115b15d21ec67d30007b5c87e861337b334dba911c3cc52b735539764"
+          "sha256": "4217e82e2e059d8ae3a6c8a72889dc00c6a98d3274807cb8a62915ddd44d5805"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/IommuDomainId.lean",
@@ -1495,7 +1489,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/IommuProtection.lean",
-          "sha256": "02f1f92895022c6e63def5698b27f9bd1215f1f2bfee983b33d3112cdc11cfa3"
+          "sha256": "2b5679d394eafa875263a9759d49c64aea22aa9af5fb8669d9c3496c7d5c043a"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/IommuRegsWindow.lean",
@@ -1503,7 +1497,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Irq.lean",
-          "sha256": "ee81ccc38f1fc2b8939138e5d9b4f69d2444122bca97d75cfff29175368bea48"
+          "sha256": "1efc2441d94ca691c05fdc99c4b7548d3e73b9746dfdcc0f3fbaba0133dfa442"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/IrqReserved.lean",
@@ -1623,7 +1617,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/MemoryPagingConstantsPteFuncs.lean",
-          "sha256": "c4cb1173bafd2b0139beb7e6d65eab5bc1f38ddc0837c81b5b424337b7b9a016"
+          "sha256": "8a9acd98466f2258c9c55feea07aa15baf937960f377cd0c9ff61e779d74e8e9"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/MemoryPagingErrorImplsRecover.lean",
@@ -1710,12 +1704,8 @@
           "sha256": "cb92716bc6ed78226881a9dfd75250ef7c380948df8159fe830c69fdd3d15875"
         },
         {
-          "path": "verification/extraction/lean/NonosExtraction/PacKey.lean",
-          "sha256": "a9d3eabb78edfbbfaffe02b861c6dba0d320b58deb1ef430efd1c1b0e716e23f"
-        },
-        {
           "path": "verification/extraction/lean/NonosExtraction/Paging.lean",
-          "sha256": "ef445c8f791a4a46f51e4e48f900dd520136108e71978d969c905214095520e3"
+          "sha256": "210b0cd51d329e8a44f41f8ddb0642f7267958c7bcec8da604efcf8391104a31"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/PagingTypesPermissionsConvert.lean",
@@ -1731,7 +1721,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/PciInfo.lean",
-          "sha256": "e05c0f31006dd5d1410430199a7fbbf23f9ef0164e7616d3a6655af55f0da06b"
+          "sha256": "106976023452a9210e9af68c9971149ccddefb8c09d062918b2661f955d262b2"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/PciTypes.lean",
@@ -1743,7 +1733,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/PioTypes.lean",
-          "sha256": "139e2637d148f2165b38e613c9479b8208073bdb4ddf9a66d41367dbc50d6a18"
+          "sha256": "927e19bf075feae18745f257abbf047fdd9970f0247755c894319dbbce0f9bfc"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/PipeBuffer.lean",
@@ -1751,7 +1741,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/PipeTypes.lean",
-          "sha256": "9b84c2e927bf8c02c625e1a94909d3f065a53f88ce90ba44c54fd367cab2a415"
+          "sha256": "b2048129c76c63da005f9c55f2293097b66a569733a8e816b0850d965f9e842c"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/PortStatsSnapshot.lean",
@@ -1783,7 +1773,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/RandomApiEntropyCheck.lean",
-          "sha256": "c10a375ae4c08ade17e4f393cdd3d2a86baf12a370443d64434364e066e82893"
+          "sha256": "cf6cc3be25bdaa6746c0a88d674f22a1f30a4f02151832db30bfaa8d9967fba9"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/RedistributorDevice.lean",
@@ -1823,11 +1813,11 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Riscv64CpuCapsQuery.lean",
-          "sha256": "38ad5ae2ec6599f07a8dc32cadd3af16e13a3ff19193b11398ec3046a5e55284"
+          "sha256": "5350f6fc251273acb57ae808266cc3f46d8d0b3948fe9316c001dc21b3cc34a9"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Riscv64CpuExtensionsQuery.lean",
-          "sha256": "457eed53ebae6e45fee91911f33a226c01e3b9b45de5d4b81c51fde8a5170e2b"
+          "sha256": "1b060e4d24e5438d2ecaa7665f40eabd5c5d603924a5340a62918a57721621ee"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Riscv64FpuContext.lean",
@@ -1899,7 +1889,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/SpectreMitigationsCpuid.lean",
-          "sha256": "6f92779ecb96ff952f32a9f18d52d244a03d6cac4928721446160b3443cca145"
+          "sha256": "6922323e06293d904fb4673d6e99848d41f63e9bca4ea053a814ad361244d2f9"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/SurfaceRegistryRingMath.lean",
@@ -1915,11 +1905,11 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/SyscallMicrokernelBattery.lean",
-          "sha256": "c87d00ceee40ae34bf19d4465535df02aa837276b3b012c737f5dfb1044790f7"
+          "sha256": "fb417d74e9ec6a022ee5c3ee3cd1f58ee0fce495f94cb51bf6e5e1abaa5dccf4"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/SyscallMicrokernelPioUnsupported.lean",
-          "sha256": "e871ab549fe417d10a241ae679be42832d45880e82ab54e685bd31747838872d"
+          "sha256": "f843a6d97e855f27e0ed06f4f20bd564d6a1f44d1fc185fb6b7ff0100bc5b8d1"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TablesContext.lean",
@@ -1959,7 +1949,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TimeRtcTypesTime.lean",
-          "sha256": "d31369a5ac1c0cc0ac005ca3a5df4777f213945a8a3324e2382d8e787cd76cd8"
+          "sha256": "7c0af40009a45d6b317246a7c16e2a0a9dfe32271fca641dda858a284e3e475f"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TimerState.lean",
@@ -2003,7 +1993,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TypesProtection.lean",
-          "sha256": "5c3c260131da2a271f66d09f0f2cb1629ce4f693a324541a2a674859e4ec3882"
+          "sha256": "eb37f2728bf4460d3970e62170552543e5d59489a3ab52c7856f7cf4a3b728de"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TypesPte.lean",
@@ -2091,19 +2081,19 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/WalkerAlign.lean",
-          "sha256": "d526c9f08361fed4633538afa59ae9e1e5e04c8b432e943cce8811167d45418f"
+          "sha256": "47e6aedd00394b1526f532fffac58d66bf5751d3aee6b5ff3014bf5384e4e577"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/X8664AcpiDataAcpiDataNew.lean",
-          "sha256": "705101f1684d5af0c82044d05d9228b7636b556fe6f309259b62999ecc955342"
+          "sha256": "b830a652f964c2ac2fc6aca799ffa66a642d661b44615169e02724cffb7b1b9f"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/X8664AcpiTablesMcfgTypes.lean",
-          "sha256": "565853b4da8c7ec1d4bef210a64ca9831980ae207c01f223c287e545312002e5"
+          "sha256": "b435ffd23259f2d655c5b2ffeb5e908c802dfa89cc66ef4ed87ffa3aa0e03132"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/X8664AcpiTablesSratTypes.lean",
-          "sha256": "a6cfaa260a48a3143e28677d422c896a9a65c55246e718e1557a006f6726dfe5"
+          "sha256": "4d1b4aff724744fc542d03996b8b34aa98261fc82fe46ca2e09de2df1a34e7ff"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/X8664CpuFeaturesTypesNew.lean",
@@ -2135,7 +2125,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/X8664TimeRtcUnix.lean",
-          "sha256": "9befbcd8a2aed66357ec16113b5bb7f8607abb14b38e293dc072024486522d75"
+          "sha256": "a825552abe0572b202398a7c66549ef8c77f04836fa7ca57d0852c86cef886a6"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/X8664UefiSignatureTypes.lean",
