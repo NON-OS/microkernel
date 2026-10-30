@@ -15,11 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The kernel's reserved and runtime-registrable names (mounted as shipped),
-//! and the registry and register right they are asked against (`held`).
+//! and the registry and register right they are asked against (`held`). The
+//! serve rule is mounted too: `register_allowed` refuses a registration on a
+//! served port.
 
 mod held;
 #[path = "../../../../../src/services/registry/reserved.rs"]
 mod reserved;
+#[path = "../../../../../src/services/registry/serve_rule.rs"]
+mod serve_rule;
 
 pub(crate) use held::{caller_has_register_right, hold, lookup_service, set_right};
 pub(crate) use reserved::{is_reserved_service, is_runtime_registrable};
+pub(crate) use serve_rule::is_serve_port;
