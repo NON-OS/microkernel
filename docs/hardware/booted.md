@@ -17,7 +17,7 @@ view, every class against mainstream chips with its blocker. Procedures for
 State: **none**, **partial** (what is missing), **done** (what proves it).
 "In the image" means both columns yes: listed in microkernel-full-gui
 (Cargo.toml) and signed (its manifest in nonos-data/trust/capsules).
-Commonality is this session's estimate for x86 desktops and laptops sold
+Commonality is an estimate for x86 desktops and laptops sold
 2015 to 2025: **very common** (most machines of a vendor or era), **common**,
 
 ## Parts
@@ -30,7 +30,7 @@ Commonality is this session's estimate for x86 desktops and laptops sold
 ## What blocks the most machines
 
 Two kinds of gap. The first needs no code, only the release keys and seal;
-it unlocks more machines than anything this session can write:
+it unlocks more machines than any code can:
 
 |---|---|---|
 | capsule_acpi seal, Admin-or-Firmware ruling | very common: battery, thermal, lid, AML power button, desktop power-off | F |
@@ -39,8 +39,8 @@ it unlocks more machines than anything this session can write:
 | sdhci trust files (listed in full-gui, unsigned) | common: eMMC laptops, SD slots | B |
 | intel_display seal, bootfb's kernel record | very common for native modes; GOP covers display meanwhile | G |
 
-The second is code, in the order this session takes it (each line names
-the matrix row; the unit letters follow as they are sent to the developers):
+The second is code, in the order planned (each line names
+the matrix row):
 
 1. Display fallback, done on main: a firmware with no linear GOP mode is
    named by the loader, the kernel and the compositor, which keeps waiting
@@ -56,7 +56,7 @@ the matrix row; the unit letters follow as they are sent to the developers):
    booted): NVMe CC.SHN, AHCI flush and standby, flushes for the rest,
    within 15 s (6 s when critical), once per boot. Reached today by the
    reboot and admin shutdown paths; the desktop power-off waits on
-   capsule_acpi, and running the leave before \_PTS(5) is letter h/04.
+   capsule_acpi, and running the leave before \_PTS(5) is a separate task.
 5. xHCI: XUSB2PR/USB3_PSSEN switch-over done (host-tested); quirks as reports show.
 6. HDA: Conexant, Cirrus and IDT codec setup, CORB/RIRB recovery and the
    codec-walk sweep done (host-tested); per-board pin fixups as boards report.

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The thermal limits the ACPI capsule set, beside the processors' tables
-//! (`cpu_store`), and moving the same change counter, so track A's
+//! (`cpu_store`), and moving the same change counter, so the
 //! frequency control sees a new ceiling as it sees a new _PPC. Nothing in
 //! the kernel acts on them until that control reads them.
 

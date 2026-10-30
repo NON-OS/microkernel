@@ -16,8 +16,8 @@
 
 //! Function identifiers from SMCCC (DEN0028), the Arm architecture service
 //! range: fast calls, owning entity 0, so bit 31 set and nothing else in
-//! 30:16. Recalled from the specification, not checked against a copy in
-//! this tree; the letter lists them for the owner.
+//! 30:16. Taken from the specification, not checked against a copy in
+//! this tree, so each value is unverified.
 
 /// SMCCC_VERSION, discovered through PSCI_FEATURES (DEN0028, "SMCCC_VERSION").
 pub(super) const VERSION: u32 = 0x8000_0000;

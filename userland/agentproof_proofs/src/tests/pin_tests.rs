@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The hashes a file compiles to are capsule_linux's: the presets as Track B
-//! pinned them, an `allow:` box's whatever order its folders are written in.
+//! The hashes a file compiles to are capsule_linux's: the presets as they
+//! were pinned, an `allow:` box's whatever order its folders are written in.
 
 use super::{folders, hash_of, word_hash};
 

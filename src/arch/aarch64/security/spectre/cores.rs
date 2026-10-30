@@ -18,7 +18,7 @@
 //! cases the ID registers cannot answer. Recalled from Arm's speculation
 //! security updates (the Spectre/Meltdown core table, and the Spectre-BHB
 //! guidance of March 2022), not from a copy in this tree: every entry is
-//! listed in the letter as unverified for the owner.
+//! unverified.
 
 /// MIDR_EL1.Implementer for Arm Limited.
 const ARM: u8 = 0x41;

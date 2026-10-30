@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Handing the kernel each processor's ceiling when it changes. Nothing in
-//! the kernel acts on it until track A's frequency control reads it; the
+//! the kernel acts on it until a frequency control reads it; the
 //! critical trip still powers the machine off whatever the ceiling is.
 
 use super::ceilings::{changes, record};

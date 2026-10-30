@@ -42,7 +42,7 @@ through the map, reached the store and outlived the process that made it.
 ## Not shown here
 
 - Monero itself: its ring database set in one run of the wallet and printed
-  in the next (`tools/nonos_s1_lanes/monero.steps`). The install needs a
+  in the next (`tools/nonos_boot_lanes/monero.steps`). The install needs a
 - The host proofs are in `capsule_linux_proofs` (tests/shared_maps, 28
   tests including a model of three processes on two files checked against a
   Linux page cache, and tests/whole), with seven mutants and one more that

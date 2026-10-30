@@ -1,6 +1,6 @@
 # Platform controller ids
 
-The xHCI, HD Audio, SATA, I2C, SMBus, VMD and ACP functions of every Intel platform from the 300-series PCH to Arrow and Lunar Lake, and every AMD platform from Raven Ridge to Strix Point, with the source of each id. What NONOS does with them is in [Mainstream hardware](mainstream.md). Gathered by S4 for NONOS. All sources were fetched on 2026-10-27. Linux sources are `torvalds/linux` master as of that date. pci.ids is version 2026.10.27.
+The xHCI, HD Audio, SATA, I2C, SMBus, VMD and ACP functions of every Intel platform from the 300-series PCH to Arrow and Lunar Lake, and every AMD platform from Raven Ridge to Strix Point, with the source of each id. What NONOS does with them is in [Mainstream hardware](mainstream.md). Gathered for NØNOS. All sources were fetched on 2026-10-27. Linux sources are `torvalds/linux` master as of that date. pci.ids is version 2026.10.27.
 
 ## What NONOS claims
 

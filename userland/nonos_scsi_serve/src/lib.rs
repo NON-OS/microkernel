@@ -30,7 +30,7 @@ extern crate alloc;
 pub mod say;
 pub mod server;
 mod units;
-// The whole wire as track B's crate has it, some of it for other media.
+// The whole wire as the `nonos_blk_wire` crate has it, some of it for other media.
 pub mod wire;
 
 pub use units::{Units, MAX_LUNS, MAX_UNITS};

@@ -1,4 +1,4 @@
-# Monero syncing with a node over the anonymity network (S1): after the
+# Monero syncing with a node over the anonymity network: after the
 # setup steps of a boot whose network reaches the internet (the host's own
 # network-enabled setup steps go first), install monero, make a wallet, and
 # refresh it through the SOCKS endpoint the Linux personality serves at

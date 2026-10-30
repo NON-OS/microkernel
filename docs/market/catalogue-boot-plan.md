@@ -1,6 +1,6 @@
 # 05: the boot plan for the 17 catalogue apps (0.9.3)
 
-For the boot session. What must hold on a booted, merged tree before the
+What must hold on a booted, merged tree before the
 catalogue ships, and how its logs become the apps' measured boxes.
 
 ## The image

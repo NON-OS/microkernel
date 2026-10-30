@@ -1,7 +1,7 @@
 # Mainstream hardware
 
 
-Updated 27 October 2026 (S4, drivers). Sources were fetched that day; each figure links to one.
+Updated 27 October 2026. Sources were fetched that day; each figure links to one.
 
 ## How the shares are counted
 
@@ -35,7 +35,7 @@ Sources: [trnb], [trdt]. NONOS covers, host-proven, the parts behind about 26% o
 | Intel AX211, AX201 on an SO platform (Alder and Raptor Lake CNVi) | 8086:51f0, 51f1, 54f0, 7a70, 7af0, 7f70 | 1.78% and 1.25% of notebooks | Host-proven (`capsule_driver_iwlwifi`), firmware bundled |
 | Intel AX210 discrete, AX211 on Meteor Lake | 8086:2725, 7e40 | 2.32% of desktops | Refused by name: driver path present, firmware not bundled |
 | Intel AX200, AX201 on Comet, Ice and Tiger Lake | 8086:2723, 02f0, 06f0, a0f0 | 1.78% and 1.81% of notebooks | None: the 22000-family boot is not written |
-| Intel BE200 discrete | 8086:272b | no Trends row yet | In progress (Bz/Gl port, S4), refused until it lands |
+| Intel BE200 discrete | 8086:272b | no Trends row yet | In progress (Bz/Gl port), refused until it lands |
 | Intel BE201/BE202 CNVi (Arrow and Lunar Lake) | 8086:7740, a840 | no Trends row yet; the ASUS NUC 15 Pro's | In progress, refused until it lands |
 | MediaTek MT7922 / RZ616, MT7921 / RZ608 | 14c3:0616, 7922, 7961, 0608 | 1.71% and 1.45% of notebooks | None. Firmware licence forbids building it into a GPL-covered work: needs a separate firmware package |
 | Realtek RTL8821CE | 10ec:c821 | 1.75% of notebooks | Booted on one real laptop (scan, join, DHCP, browser) |

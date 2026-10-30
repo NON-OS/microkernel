@@ -4,6 +4,7 @@ Status: wired, in its own `microkernel-driver-bga` profile; not yet signed.
 The kernel mirror (`src/hardware/bga_capsule`) embeds and spawns it under
 `nonos-capsule-driver-bga` when the inventory sees `DisplayBga`, and the
 compositor finds it after `driver.virtio_gpu0`. It joins
+`microkernel-full-gui` (the image `make` builds) with its owner certificate
 in the 0.9.3 seal (see the release checklist); until then it is in
 `scripts/baselines/display_profiles.txt`.
 
@@ -126,6 +127,7 @@ compositor -> driver.bga0 (port 4240): NVGP v1 frame -> reply frame
 
 Each primary is anonymous memory of this capsule's, registered as an
 ARGB8888 surface and shared with the compositor alone, writable: the share
+names its receiver (K20, `nonos_gfx_pool`). FLUSH copies its rectangles
 into video memory and fences the copy before the answer. Video memory itself is never shared: as a
 surface, the kernel's registry would free its pages to the allocator when
 this capsule dies, and map them cacheable in the compositor beside this
@@ -149,8 +151,9 @@ desktop through `driver.bga0`.
 
 ## Release checklist
 
+- the release keys and certificate (owner only), and the driver added to
   the desktop image's features.
-- Track A's held-table entry, kernel mirror, spawn and `DisplayBga`
+- The held-table entry, kernel mirror, spawn and `DisplayBga`
   dispatch (`src/hardware/inventory`): in place. A capsule loaded at runtime
   may claim only names it already holds (`src/services/registry/reserved.rs`),
   so none can take `compositor`, and with it the primaries: proved on the

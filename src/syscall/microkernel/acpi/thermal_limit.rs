@@ -18,7 +18,7 @@
 //! ceiling passive cooling allows the processor the MADT names by this ACPI
 //! processor UID, in percent of full performance; 100 lifts it. Owner only
 //! (F-95's gate). EINVAL past 100; ENOSPC once every processor slot holds
-//! a limit. Nothing acts on the ceiling until track A's frequency control
+//! a limit. Nothing acts on the ceiling until a frequency control
 //! reads it; the critical trip still powers the machine off.
 
 use crate::hardware::broker::acpi::cpu_store::thermal_limit::{rule::Placed, set};

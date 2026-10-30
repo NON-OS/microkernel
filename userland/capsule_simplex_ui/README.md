@@ -24,7 +24,7 @@ its own box with its own database (simplex.core).
   a `Pipe`; and `Transcript`, a recorded
   session in the v6 shapes the host proofs replay. All pure.
 - `src/serve/`: the window's pipe, one SERVE_ONE connection on
-  `linux.serve.app.simplex` in the frames (`nonos_serve_wire`), and `open`, which starts the
+  `linux.serve.app.simplex` in the `nonos_serve_wire` frames, and `open`, which starts the
   core (MkAppLaunch of `linux.kali.nonos-simplex-core`) and asks for the
   endpoint each quarter second. A core with no profile yet exits before it
   listens, so after 20 seconds with no answer the window asks the person
@@ -63,12 +63,13 @@ database are the core's, in the core's home.
 `mk/20-build.mk` includes it, the desktop profile turns on
 `nonos-capsule-simplex-ui`, and the kernel mirror in
 `src/userspace/capsule_simplex_ui` starts one window when the desktop's
+SimpleX tile is pressed, never at boot. The owner's steps remain: publisher
 keys (`nonos-data/trust/keys/simplex_ui_publisher_{ed25519,mldsa65}.pub` and
 their seeds), the signed certificate, manifest and trailer under
 `nonos-data/trust/capsules/` and the key manifest entry.
 
 ## Not done yet
 
-- Run against the SERVE_ONE and the core on a boot: not yet.
+- Run against SERVE_ONE and the core on a boot: not yet.
 - Groups are read and shown; making and managing them, files, the QR code
   of a link and notifications are not here yet.
