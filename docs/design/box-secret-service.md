@@ -37,7 +37,7 @@ machine and that app, and survive a NØNOS update as the volume does.
   ENOSYS so glibc falls back (`call/glibc_sched.rs:68-72`), execve needs
   EXEC and runs inside both programs' boxes (`call/spawn/exec.rs:29-31,57`,
   `app/identity_exec.rs:27-37`); a fork storm stops at 511
-  (`docs/release-evidence/0.9.3/s1-isolation-61ec29ea2/README.md:40`). A
+  (`docs/release-evidence/0.9.3/isolation-61ec29ea2/README.md:40`). A
   dbus-daemon and a keyring daemon could run, but not authenticate a client.
 - **Private files.** `/tmp`, `/dev/shm`, `/run`, `/var/tmp` are the run's,
   under `/linux-private/<16 random hex>`, removed at the end
@@ -194,7 +194,7 @@ Authenticator account, close, reopen: there; after Power Off
 `tools/nonos-zero-state-check` finds no seed. (2) Installed NVMe, software
 TPM, keeping on: there after a reboot, a K1 update and a K1b update; no
 seed in the disk image. (3) Seahorse lists only its own empty `login`.
-(4) A hostile guest (`s1-isolation-61ec29ea2/hostile.steps`): other boxes'
+(4) A hostile guest (`isolation-61ec29ea2/hostile.steps`): other boxes'
 paths, invented aliases, BecomeMonitor, deep nesting, big messages, a bind
 on the bus path, all refused. (5) Uninstall, reinstall: empty.
 

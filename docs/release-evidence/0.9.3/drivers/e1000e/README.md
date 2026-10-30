@@ -9,7 +9,7 @@ tools/nonos-drive --image target/dev/tree/target/release/standard-dev/nonos.img 
   --qemu-arg=--lane --qemu-arg=nic=e1000e "until:[NET-CORE] lease :1200" "wait:45"
 ```
 
-The lines that prove it, from [serial.log](serial.log):
+The lines that prove it, from [serial.log](../../../../hardware/evidence/2026-10-26/runs-6f0bbe716/nic-e1000e/serial.log):
 
 ```text
 [DRIVER-E1000E] capsule spawned
