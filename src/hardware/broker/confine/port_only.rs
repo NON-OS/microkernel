@@ -18,7 +18,7 @@
 //! Memory Space and Bus Master are cleared at the claim and kept off, so it
 //! starts no DMA or MSI and no peer's request reaches it: it neither joins
 //! nor is blocked by a group but across a shared conventional bus. Groups
-//! hold both ways (H-03, `blocked_by`). Pure: kernel_proofs.
+//! hold both ways (`blocked_by`). Pure: kernel_proofs.
 
 use super::member::Member;
 

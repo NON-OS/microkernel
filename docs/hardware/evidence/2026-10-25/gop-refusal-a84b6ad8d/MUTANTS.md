@@ -1,4 +1,4 @@
-# H-06(a): one mutant per rule
+# one mutant per rule
 
 Each row is one change to the shipping source, made alone and reverted after,
 with the proof crate that ran against it (`mutants.py` here, from the

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! H-06(a): while no display has come up, the compositor says why once at
+//! while no display has come up, the compositor says why once at
 //! once, once more 10 s on, and nothing else; the reason is the kernel's.
 
 use super::refusal_note::{note, reason, Note, LOG_AFTER_MS};

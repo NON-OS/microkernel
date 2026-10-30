@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! H-09: absolute pointer events are placed on the display's own edges, never
+//! absolute pointer events are placed on the display's own edges, never
 //! on a made-up range, and the edges move the moment the compositor says the
 //! mode changed, not at the router's next ask.
 
