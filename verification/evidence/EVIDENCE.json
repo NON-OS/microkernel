@@ -1429,7 +1429,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/GicState.lean",
-          "sha256": "c9d181aa6f417b6ef58a1ea06d622940413baaef60ad8071ec5fb368d11127ca"
+          "sha256": "76a6fb1c38de5c52fe53837d2bb0d229a702d14664cdf9598c0fc230996b4679"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/HardwareBrokerPioAbsent.lean",
@@ -1905,7 +1905,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/SyscallMicrokernelBattery.lean",
-          "sha256": "fb417d74e9ec6a022ee5c3ee3cd1f58ee0fce495f94cb51bf6e5e1abaa5dccf4"
+          "sha256": "68e67e595ffa7926ef49bc056fa27b196a966a84dab5eff701fa610d4d300fde"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/SyscallMicrokernelPioUnsupported.lean",
