@@ -1,6 +1,6 @@
 # Release evidence for NONOS 0.9.3
 
-One line for each of the 57 directories here: what it proves, taken from that
+One line for each of the 58 directories here: what it proves, taken from that
 directory's own README. Three directories have no README; their line says what
 the files are and which commit added them.
 
@@ -92,6 +92,10 @@ were added by name.
 - [gui-frame](gui-frame/README.md): a Wayland window inside the NONOS frame;
   its close button ends swayimg with status 0, and maximise keeps the title
   bar. Drag and minimise are not shown.
+- [app-windows](app-windows/README.md): eight screenshots of Telegram Desktop,
+  KeePassXC, the DarkFi chat app, SimpleX, mpv and foot in their own windows, and
+  darkirc and the DarkFi wallet in the Terminal, taken on 29 October on a development
+  image.
 - [gui-keepassxc](gui-keepassxc/README.md): KeePassXC 2.7.8 (Qt 5) draws its
   welcome screen in the frame, in a box of WAYLAND and FILES_HOME, once
   FUTEX_WAKE_OP was served.
