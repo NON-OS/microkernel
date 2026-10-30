@@ -45,71 +45,71 @@ capsules in the bundle, byte for byte, on x86_64 Linux and on Apple silicon macO
 
 The Linux personality carries a Wayland bridge. A program whose box grants WAYLAND opens its own
 window on the NONOS desktop, inside the NONOS frame: title bar, close, minimise and maximise
-(92df4bd4ca, de6d9a0c6e). DejaVu fonts are stored for window programs (ca7275f90).
+(e15bd2d08a, a905f21a96). DejaVu fonts are stored for window programs (ca7275f90).
 
 - **swayimg** draws its window, zooms and closes (`gui-swayimg`). The frame's close button ends
   it with status 0, and maximise keeps the title bar (`gui-frame`).
 - **KeePassXC** 2.7.8 (Qt 5) draws its welcome screen in the frame, in a box with no network,
-  once the personality served FUTEX_WAKE_OP, which Qt's semaphore needs (152b4b5fec,
+  once the personality served FUTEX_WAKE_OP, which Qt's semaphore needs (774aea8679,
   `gui-keepassxc`).
 - **Telegram Desktop** 5.0.1 (Qt 6) draws its welcome screen in the frame on a development
   image, in a box of WAYLAND, FILES_HOME and NET_ANON, once `/proc` answered a thread's own
-  number (b57b5d210e, `gui-telegram`). On a KVM run of the release tree (152bad90c4), it installed
+  number (ebaeaab578, `gui-telegram`). On a KVM run of the release tree (824bcfd145), it installed
   from the real Alpine mirror over Anyone and drew its welcome screen, "Start messaging", in the
   frame. A sign-in or a message sent is not shown.
-- **foot** 1.17.2 is listed in a box of WAYLAND, TTY, FILES_HOME and EXEC (afa860e173). It drew
+- **foot** 1.17.2 is listed in a box of WAYLAND, TTY, FILES_HOME and EXEC (ef4c7c59c9). It drew
   its window and ran a shell over `/dev/pts` on a development image (`gui-foot`).
-- **mpv** 0.38.0 is listed, drawing to `wl_shm` with no GPU (`--vo=wlshm`; afa860e173). Its box
+- **mpv** 0.38.0 is listed, drawing to `wl_shm` with no GPU (`--vo=wlshm`; ef4c7c59c9). Its box
   never lets it make code as it runs, so it starts without its Lua scripts: no on-screen
-  controls, keyboard only (451fce70ae, abd63ab5e1). **zathura** 0.5.6 is listed with its mupdf PDF
-  plugin, which the listing adds to the install (72a00617a5, b4934d1d41). For these two, no boot
+  controls, keyboard only (54b2ce6069, 68a7c6dacf). **zathura** 0.5.6 is listed with its mupdf PDF
+  plugin, which the listing adds to the install (e0e0b28ae0, f983ff7078). For these two, no boot
   in the evidence shows a window. **Mousepad** is not listed: on the release tree it started in
-  its box and showed no window (a4a26fcc01).
+  its box and showed no window (db28958992).
 - Large installs hold: 304 packages verified in one boot, KeePassXC (126) and
   gnome-authenticator (155) among them, with no stall, lock wait or OOM (`gui-large-installs`).
 - A run's private directories (`/tmp`, `/run/user/0`) hold 1536 names, where they held 128.
   GTK's mime database is built whole there before the program starts and kept as its caches,
-  fifteen names, so GTK and Qt programs no longer stop on ENOSPC (02c0ad7a07).
+  fifteen names, so GTK and Qt programs no longer stop on ENOSPC (c499c3f79f).
 - GTK's preparation tools run before the program's guest is made, so a GTK program's run is
   noted to the seal. Before, every GTK program's run went unnoted and unkept, with "the seal
-  refused the app's note" (0818c18761). A KVM run on that commit drew KeePassXC 2.7.8's window
+  refused the app's note" (394e42093a). A KVM run on that commit drew KeePassXC 2.7.8's window
   with no ENOSPC and no seal refusal; no log of that run is committed. They run in the network
   role too, where an app whose box has NET_ANON starts again: there they had been refused, and
-  each of Telegram's steps "ended -1" (8355ec94ca).
+  each of Telegram's steps "ended -1" (209aaf3135).
 - A program that asks EGL for OpenGL is pointed at Mesa's software driver, drawing through Wayland,
   only where its run's store holds the NØNOS-built Mesa (`LIBGL_ALWAYS_SOFTWARE` in `linux/env.rs`;
-  081b5aaf4e, be3d07219e). Pointed at a driver that was not there, every Qt program said Mesa could
+  c26445c05a, 25c4b3ffa1). Pointed at a driver that was not there, every Qt program said Mesa could
   not open it. No image carries that Mesa yet. A surface's frame callbacks are answered at most 30
-  times a second, and at once for an idle window (`wayland/pace_rule.rs`; 9c00e147ac).
+  times a second, and at once for an idle window (`wayland/pace_rule.rs`; 0463ec812e).
 
 ### Pseudo-terminals
 
 A Linux program can open `/dev/ptmx` and `/dev/pts/N`, as a terminal emulator does before it
-starts its shell: line discipline, signals, window size and hang-up (d6038abcee). A family holds
+starts its shell: line discipline, signals, window size and hang-up (0c28c21081). A family holds
 at most 64 pairs (`pty/table.rs`, `MAX`). A master that writes with no reader stops at 4096
 pending bytes or lines on the slave and 64 KiB of output, and keeps each signal it raises once
-(b9b73360f4, with two flood proofs).
+(163b471183, with two flood proofs).
 
 ### A Monero wallet over Nym and Anyone
 
 `linux.monero` starts `monero-wallet-cli` against the listing's node,
 `xmr-node.cakewallet.com:18081`, with `--untrusted-daemon`, and keeps its log to 1 MiB in one
-file (`linux-catalogue.json`; 8a9957f9a8). On a KVM host the wallet synced from that node over
+file (`linux-catalogue.json`; ae76f9ed44). On a KVM host the wallet synced from that node over
 Anyone and over Nym, on development images (`kvm-guest-gate`). The serial log shows the streams; the
 progress in the window is quoted from the notes of those runs. These fixes made it work:
 
 - net.anon picks an exit whose policy takes the stream's port, as the wallet's 18081 needs, and
-  sends a refused open once more to another exit (243d0e8e29).
+  sends a refused open once more to another exit (675c3ded34).
 - A spawned process holds its arguments from its first instruction, so an install reads them in
-  time and takes its 320 MiB heap, not a program's 160 MiB (3f6077cd7e). Every tree in
+  time and takes its 320 MiB heap, not a program's 160 MiB (fb1e95e642). Every tree in
   `kvm-guest-gate` with the fix installs at `of 327680 KiB`.
 - `get_robust_list` is answered, so LMDB can make its lock and the wallet's ring database opens
-  (141a9f03ef).
+  (8936ccf0ae).
 - A stored file mapped shared, as LMDB maps one, is served, one writer per range
-  (8717a8b26a, `shared-maps-0d0cff02d4`).
+  (c3797e4eea, `shared-maps-0d0cff02d4`).
 - The wallet's home keeps 64 MiB, by its listing's key or the program its policy names
   (`app/home_listings.rs`), and an app may hold as much in open files as its home keeps
-  (`file/system/space/copies.rs`; 1f3f2629dd, bd27ab42d4). The wallet writes its cache whole beside
+  (`file/system/space/copies.rs`; 85dae5b449, 0aa89cb93f). The wallet writes its cache whole beside
   the last before it replaces it, two copies past 16 MiB each. In a KVM run a fresh wallet refreshed
   to 3794280/3794280 and `exit` ended it with status 0 and no "failed to save".
 
@@ -117,31 +117,31 @@ progress in the window is quoted from the notes of those runs. These fixes made 
 
 Every install goes over Anyone, and both proxies keep one stream per caller. The installer had
 opened three at once, so each took the conversation from the one before and no package arrived.
-It now fetches one package at a time over its kept stream (285d15b7e6, proven in
+It now fetches one package at a time over its kept stream (5e8ab5b6be, proven in
 `install_window_tests.rs`). Before the fix, a lone stream brought the 24.7 MB Monero package
 from the real Alpine mirror whole (`kvm-guest-gate`, `diag-694ba69799-realmirror-anyone.log`).
 
 A failed install says which package and which check stopped it, for example
 `libzmq-4.3.5-r2 (its checksum did not match the signed index)`, in the Terminal's `market`
-commands and the Marketplace's headline (c5294b87ea).
+commands and the Marketplace's headline (bc5ad95e41).
 
 An install holds one package about twice its installed size, its tar and its pack, where it held
 it three times; the tar walk borrows each file from the tar. Before a package is unpacked, the
 installer checks that it fits the heap left, and a package that cannot fit ends the install with
 the reason "Too little free memory to unpack one of its packages; close other apps, then retry"
 and the package's name, never a fault. An install takes 640 MiB where 2 GiB is
-free, then 320 MiB, then 160 MiB (2a9992a1cf). On the owner's 8 GB HP laptop, Telegram Desktop's
+free, then 320 MiB, then 160 MiB (a31608c830). On the owner's 8 GB HP laptop, Telegram Desktop's
 install had stopped with code 134; in a KVM run with 4 and 8 GiB guests, Telegram's own package
 peaked at 143 MiB.
 
 Telegram Desktop's 254 packages install whole, with 8 GiB (a 640 MiB install heap) and with 4 GiB
 (320 MiB), in a KVM run on the follow-up tree, with no restart of the network service. That
-service lets go of a stream whose caller has gone (ecadc907ff), and an install opens a dropped
-connection once more before it gives up (85f06ad4fa). The largest packages peaked at 143310 KiB
+service lets go of a stream whose caller has gone (9e5e49a385), and an install opens a dropped
+connection once more before it gives up (e2f88a2f56). The largest packages peaked at 143310 KiB
 (telegram-desktop), 65072 KiB (qt6-qtdeclarative) and 34160 KiB (qt6-qtbase).
 
 A need that several packages provide now takes the provider an earlier install placed, where
-there is one, instead of the index's first (56c3e15ddd). Telegram Desktop's install after
+there is one, instead of the index's first (e66dd47c47). Telegram Desktop's install after
 KeePassXC's had been refused: it took `icu-data-en`, which holds the same file as the
 `icu-data-full` KeePassXC placed. In a KVM run, Telegram's install after KeePassXC placed
 `icu-data-full` again, with no refused member.
@@ -150,12 +150,12 @@ One file a Linux app writes may fill its home, where it was held to 8 MiB: 16 Mi
 Monero wallet. A write past the home fails, and the first refusal in a run says so in the app's
 window, with the home's size (`file/system/space/home_room.rs`); a file past 64 MiB fails with EFBIG
 and `linux: this app wrote a file past 64 MiB, the most one file may hold here; that write was
-refused.` (7175e69c08, bd27ab42d4).
+refused.` (e874ffe83c, 0aa89cb93f).
 
 The file store, which holds installed Linux apps in memory, may give its clients' files a
 quarter of memory, between 160 MiB and 4 GiB, and halves its ask when a heap cannot be mapped
-(358bdf5edf, `capsule_vfs/src/store/fdtable/budget_size.rs`). A program may be up to 128 MiB
-(7506325ac8; `linux/program_max.rs`, and `MAX_ELF` in
+(f6546b8793, `capsule_vfs/src/store/fdtable/budget_size.rs`). A program may be up to 128 MiB
+(006321fde9; `linux/program_max.rs`, and `MAX_ELF` in
 `src/syscall/microkernel/local_image/digest.rs`).
 
 ### The Marketplace
@@ -167,28 +167,28 @@ Marketplace's Open of a terminal program runs it in the Terminal (c55d58e10,
 `gui-store-tty-open`).
 
 The other five are SimpleX Chat's terminal client (`linux.kali.nonos-simplex-chat`, from
-SimpleX's signed v7.0.3 binary, 74095d304e), DarkFi's `drk`, `darkirc` and `darkfid`
-(4ceb3947e7), and DarkFi's chat app, built from v0.5.0 and drawn on the CPU (b181e8db87). They
+SimpleX's signed v7.0.3 binary, 37ff6af31f), DarkFi's `drk`, `darkirc` and `darkfid`
+(02a5899517), and DarkFi's chat app, built from v0.5.0 and drawn on the CPU (e471415592). They
 are served from the NONOS package mirror, `mirror.nonos.software`. The release's `nonos.toml`
-names that mirror and their built content (`linux_packages`, `linux_sources`; 11003f2356,
-04f14c7ddb), so the release image lists them; the seal checks each package against the
+names that mirror and their built content (`linux_packages`, `linux_sources`; fc744fed48,
+891c84efb0), so the release image lists them; the seal checks each package against the
 catalogue's pins (`docs/userland/marketplace-catalogue.md`).
 
 ### Update NØNOS (keep my data)
 
 A disk installed by 0.9.3 or later can be updated in place to a later release and keep its
 encrypted data volume. The installer rewrites the boot partition and the store and nothing else
-(1b5a78675c; `keep_queue` in `userland/nonos_disk/src/session/queue_keep.rs`). A new data
+(5ad53f15b7; `keep_queue` in `userland/nonos_disk/src/session/queue_keep.rs`). A new data
 volume's key is random, wrapped under a key the TPM gives only a kernel the release approved, on
-this machine's firmware, bootloader and Secure Boot state (7b30f3b09a). A new bootloader changes
+this machine's firmware, bootloader and Secure Boot state (953b7e6c38). A new bootloader changes
 PCR 4, so before an update the installed system prepares a one-boot handover: open Install NØNOS
-and press P beside `Prepare this computer for an update` (97564eacc9, 2e113a43c0). On QEMU with a
+and press P beside `Prepare this computer for an update` (668388f0d5, f73c9fd655). On QEMU with a
 software TPM, a volume prepared under one image opened under a second image with a changed
 bootloader through the handover, then under that bootloader's own key on the next boot
 (`kernel-update`). An update keeps the data volume, not store apps, settings since setup, the
 wallet's vault or saved Wi-Fi (`docs/install/update.md`).
 
-A USB stick booted beside an installed disk comes up as the stick (3277a328eb). On the owner's
+A USB stick booted beside an installed disk comes up as the stick (147aa2d0f6). On the owner's
 HP laptop it had come up as the installed system. The loader takes no other disk's store on a
 USB boot and recognises its own disk by its GPT partition GUID. The kernel never keeps another
 disk on a USB boot, and `log BLOCK` says why a boot kept the disk it did. In a KVM run, a new
@@ -203,10 +203,10 @@ NVMe disk alone came up as the installed desktop. No log of that run is committe
   0.9.2 receive fault of e1000 and RTL8139 shown fixed on a boot. The RTL8169 fix is proven on
   the host only.
 - **Wi-Fi on hardware.** The owner reports RTL8821CE Wi-Fi working on their HP laptop, on their
-  seal of main 680c92e3fc (`drivers/rtl8821ce`). It is their report only: no log or screenshot
+  seal of main cb1e534f0a (`drivers/rtl8821ce`). It is their report only: no log or screenshot
   was sent. Two vendor
   drivers may now share an isolation group on a standard boot, which let that card be claimed
-  beside the NVMe disk (3b5bb25c8f).
+  beside the NVMe disk (f3daff98c0).
 - **New Wi-Fi drivers, modelled only.** The standard image carries drivers for the RTL8822CE,
   RTL8852BE, MediaTek MT7921, MT7922 and MT7920, and Intel BE200 and BE201, beside RTL8821CE and
   the Intel SO cards (`docs/drivers/wifi/README.md`). None has run on its card.
@@ -215,7 +215,7 @@ NVMe disk alone came up as the installed desktop. No log of that run is committe
 
 - First-boot setup has 13 steps (`capsule_setup_wizard/src/render/layout.rs`, `STEPS`), and
   each gate boot of this tree walked all 13 to the desktop (`gate-a7af21a70`). Setup, About and
-  the Terminal read the release from `VERSION`, which says 0.9.3 (9d1ad3589e).
+  the Terminal read the release from `VERSION`, which says 0.9.3 (8bc8ffee52).
 - Power Off in the desktop's menu, and the Power key, ask "Power off and wipe memory?" and then
   power off through the wipe (`capsule_power`; `docs/using/desktop.md`). A development boot
   held a secret in RAM 8 times before Power Off and 0 times after
@@ -230,7 +230,7 @@ NVMe disk alone came up as the installed desktop. No log of that run is committe
 History search, a hint bar that follows the state, Ctrl+Alt+T, the git branch and jobs in the
 prompt, WCAG AA contrast on every theme, a theme picker, split view, the F12 drop-down and a
 `latency` command, each booted (`terminal-01` to `terminal-14`). A password prompt is not shown
-as it is typed (972f956ff6).
+as it is typed (77d63de482).
 
 ### Boots of this tree
 
@@ -256,12 +256,12 @@ paging-lock waits seen on 30a4b58c4 are gone after the paging-lock fix (adb53a20
   fill its home and no more, and none may pass 64 MiB (`MAX_FILE` in `file/held/cache/table.rs`).
 - **Monero.** The first refresh after a wallet opened could fail with "net.socks5 sent an answer
   this cannot read" while the next connected. An open now greets the proxy only after a reset it
-  took (028cba41d7, proven on the host); no boot has shown that first refresh connect yet. Write
+  took (a7161f187e, proven on the host); no boot has shown that first refresh connect yet. Write
   the seed on paper; it is the only copy that survives power off.
 - **Update NØNOS (keep my data)**: from the prepare until the next boot, an approved kernel opens
   the data volume on this machine whatever bootloader measured it, so prepare right before the
   update (`docs/security/device-secrets-and-keys.md`, "The handover").
-- **Installs fetch one package at a time** (285d15b7e6).
+- **Installs fetch one package at a time** (5e8ab5b6be).
 - **Not in this release:** SimpleX's desktop window; SimpleX comes as its terminal client. No boot
   has shown it reach an SMP server, or darkirc join its peers (`docs/using/simplex.md`). DarkFi's
   chat app is listed, and no boot has shown its window.

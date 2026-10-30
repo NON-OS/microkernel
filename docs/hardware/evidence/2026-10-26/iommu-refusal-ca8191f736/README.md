@@ -1,6 +1,6 @@
 # Air-Gapped with no IOMMU: the stop screen (ca8191f736), booted
 
-Booted by the maintainers on main 34fe90c0f5, which carries ca8191f736 (the stop
+Booted by the maintainers on main 607b74dffa, which carries ca8191f736 (the stop
 band clears the loader's screen under it). The image also carried a scratch
 diagnostic patch, never committed, in the xhci0 server and the kernel's
 starved-call print; neither touches the posture stop.

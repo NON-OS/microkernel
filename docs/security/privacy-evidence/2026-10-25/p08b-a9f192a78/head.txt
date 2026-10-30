@@ -1,4 +1,4 @@
-3921beb8a7 capsule_acpi: open the SCI line once it is bound
+d2dc24abe7 capsule_acpi: open the SCI line once it is bound
  mk/20-build.mk       | 1 +
  tools/nix/config.nix | 8 ++++++++
  2 files changed, 9 insertions(+)
