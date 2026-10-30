@@ -34,7 +34,3 @@ driver-virtio-scsi
 driver-vmbus
 driver-vmmdev
 driver-vmmouse
-driver-vmware-svga
-driver-vmxnet3
-nox-settle
-prove-fetch
