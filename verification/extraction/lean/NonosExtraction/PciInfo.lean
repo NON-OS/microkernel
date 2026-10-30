@@ -15,7 +15,7 @@ set_option maxRecDepth 2048
 namespace nonos_x_pci_info
 
 /-- [nonos_x_pci_info::info::PciHost]
-    Source: 'src/../../../../../src/arch/fdt/find/pci/info.rs', lines 22:0-34:1
+    Source: 'src/../../../../../src/arch/fdt/find/pci/info.rs', lines 22:0-44:1
     Visibility: public -/
 structure info.PciHost where
   ecam_base : Std.U64
@@ -23,9 +23,15 @@ structure info.PciHost where
   io_cpu_base : Std.U64
   io_size : Std.U64
   io_port_base : Std.U64
+  mem_cpu_base : Std.U64
+  mem_bus_base : Std.U64
+  mem_size : Std.U64
+  bus_start : Std.U8
+  bus_end : Std.U8
+  dma_coherent : Bool
 
 /-- [nonos_x_pci_info::info::{nonos_x_pci_info::info::PciHost}::has_io_window]:
-    Source: 'src/../../../../../src/arch/fdt/find/pci/info.rs', lines 38:4-40:5
+    Source: 'src/../../../../../src/arch/fdt/find/pci/info.rs', lines 48:4-50:5
     Visibility: public -/
 def info.PciHost.has_io_window (self : info.PciHost) : Result Bool := do
   ok (self.io_size != 0#u64)

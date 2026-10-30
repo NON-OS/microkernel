@@ -828,16 +828,6 @@
       ]
     },
     {
-      "name": "pac_key",
-      "crate": "nonos_x_pac_key",
-      "dir": "verification/extraction/sweep/pac_key",
-      "lean": "PacKey",
-      "generated": "PacKey.lean",
-      "starts": [
-        "nonos_x_pac_key::packey_new"
-      ]
-    },
-    {
       "name": "contract_args",
       "crate": "nonos_x_contract_args",
       "dir": "verification/extraction/sweep/contract_args",
@@ -1731,16 +1721,6 @@
       "generated": "AuditConstants.lean",
       "starts": [
         "nonos_x_audit_constants::capacity"
-      ]
-    },
-    {
-      "name": "cap_pages",
-      "crate": "nonos_x_cap_pages",
-      "dir": "verification/extraction/sweep/cap_pages",
-      "lean": "CapPages",
-      "generated": "CapPages.lean",
-      "starts": [
-        "nonos_x_cap_pages::best_leaf_level"
       ]
     },
     {
@@ -3452,7 +3432,7 @@
       "lean": "FdtFindTimerIntid",
       "generated": "FdtFindTimerIntid.lean",
       "starts": [
-        "nonos_x_fdt_find_timer_intid::entry_count"
+        "nonos_x_fdt_find_timer_intid::gic_intid"
       ]
     },
     {
