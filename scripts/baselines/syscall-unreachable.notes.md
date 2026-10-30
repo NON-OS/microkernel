@@ -17,21 +17,22 @@ Current set, and why each is still here:
 - `SYS_DEV_ROOT_REQUEST` (MDRQ): device root handoff. Dark.
 - `SYS_USB_PORT_FACTS` (MUPF): a USB host's port facts (connectable,
   user-visible, internal or external), as capsule_acpi declares them with
-  `MkAcpiUsbPorts`. Published by c63e2489b3 (letter F-36) on the
+  `MkAcpiUsbPorts`. Published by 7cc87a9ab1 (letter F-36) on the
   DeviceEnum gate. F-36 names no reader, and no USB driver or libc
   wrapper asks yet.
 - `SYS_NUMA_NODE_OF` (MNNO): the proximity domain of a physical range.
-  Added by 0e9d47ec16 (F-40), published in `abi/syscalls.toml` by
-  b179481d9d (F-41), on the DeviceEnum gate. F-40: the allocator does not
+  Added by bb22f96fac (F-40), published in `abi/syscalls.toml` by
+  4984e28ca6 (F-41), on the DeviceEnum gate. F-40: the allocator does not
   consume it; nothing in userland asks yet.
 - `SYS_NUMA_DISTANCE` (MNDS): SLIT's distance between two domains. Same
   commits, letters and gate as MNNO; nothing asks yet.
 - `SYS_DEVICE_NODE` (MDNN): a device's full u32 domain, kept and
+  published by f53445dd31 at the owner's ruling (F-41). The device
   record's `numa_node` byte, which F-41 added to the kernel record and
   the libc mirror, carries the same domain up to 254; nothing asks for
   the full value yet.
 - `SYS_NUMA_HMAT` (MNHM): HMAT's latency or bandwidth between an
-  initiator and a target domain. Published by ddc888538a (F-46) on the
+  initiator and a target domain. Published by 5fa1f433e8 (F-46) on the
   DeviceEnum gate, as MNDS. F-46 keeps the attached initiator for the
   allocator, unused yet; nothing in userland asks yet.
 

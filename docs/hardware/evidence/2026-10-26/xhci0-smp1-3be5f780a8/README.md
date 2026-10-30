@@ -1,5 +1,6 @@
 # xhci0 on one CPU: the usb_msc0 scan window (3be5f780a8), booted
 
+Booted by the maintainers on main 702ae7d11e, which carries 3be5f780a8. The image
 is standard-dev with throwaway keys and no diagnostic patch.
 
 - QEMU TCG, `--smp 1`, Intel IOMMU lane, `--fresh`. Wait for "Capsules
