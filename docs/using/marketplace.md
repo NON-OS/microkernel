@@ -4,10 +4,10 @@ What the Marketplace and the Terminal's `market` command can install on NONOS, h
 
 ## What you can install
 
-| Tab | What it lists | In 0.9.2 |
+| Tab | What it lists | In 0.9.3 |
 |---|---|---|
 | `Models` | The Qwen tiers | 20 tiers. Installing one puts its model files on the [data volume](../overview/glossary-claim-epoch.md#data-volume); the chat program is part of the image. See [Local AI](local-ai.md). |
-| `Linux` | Linux apps the signed catalogue lists | The catalogue's apps from Alpine (editors, git, age, minisign, Monero, KeePassXC, Telegram, zathura and more; `docs/userland/marketplace-catalogue.md`). SimpleX Chat and DarkFi's apps list only on an image built with a NONOS package mirror. |
+| `Linux` | Linux apps the signed catalogue lists | The catalogue's apps from Alpine (editors, git, age, minisign, Monero, KeePassXC, Telegram, zathura and more; `docs/userland/marketplace-catalogue.md`). 25 come from Alpine and six are built from source or pinned: SimpleX Chat's terminal client and its core, and DarkFi's `drk`, `darkirc`, `darkfid` and chat app. The six list only on an image built with a NONOS package mirror. |
 | `NONOS` | NONOS apps | None. NONOS apps ship in the image, so the catalogue lists none and the tab says `this catalogue lists no NONOS apps`. A NONOS app from elsewhere comes as a package file; see [Install a package file](#install-a-package-file). |
 | `Community` | Apps from other publishers | None yet: `this catalogue lists no community apps yet`. |
 | `All` | Everything above | |
@@ -16,7 +16,11 @@ Only listings whose id starts with `linux.` can be installed; selecting anything
 
 The catalogue is signed with the marketplace operator key. The flake build behind `make` embeds the signed index and model catalogue committed under `nonos-data/market/` and `nonos-data/models/`, and both are in the tree at this release; the index lists the Qwen tiers. A seal without the operator key leaves those files as they are. Only a build with no such file embeds an empty catalogue, which the market reads as no catalogue at all, and then every tab is empty.
 
-Nothing costs money. A payment [capsule](../overview/glossary-boot-root-record.md#capsule) is in the tree and has build rules, but no kernel profile embeds it, so no 0.9.2 image carries it.
+Nothing costs money. A payment [capsule](../overview/glossary-boot-root-record.md#capsule) is in the tree and has build rules, but no kernel profile embeds it, so no 0.9.3 image carries it.
+
+## Programs with a window
+
+Seven of the 31 programs have a box that grants `WAYLAND`: swayimg, Telegram Desktop, KeePassXC, foot, mpv, zathura and DarkFi's chat app. Each opens in its own window inside the NØNOS frame, with a title bar, and gets no other right from that. The rest run in the Terminal. [Linux programs](linux-programs.md#programs-with-a-window) says how a window is drawn and what it can reach.
 
 ## Use the Marketplace window
 

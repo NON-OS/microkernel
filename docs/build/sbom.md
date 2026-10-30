@@ -17,7 +17,7 @@ It is computed from the pins themselves, the `lockFiles` and the other pin files
 
 ## What it lists
 
-The document's own component is the operating system `nonos`, at the version in [VERSION](../../VERSION), 0.9.2 (`metadata`, `tools/nix/sbom.nix:57-60`). The components are:
+The document's own component is the operating system `nonos`, at the version in [VERSION](../../VERSION) (`metadata`, `tools/nix/sbom.nix:57-60`). The components are:
 
 | component | type | identified by |
 |---|---|---|

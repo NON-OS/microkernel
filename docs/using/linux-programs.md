@@ -41,6 +41,13 @@ sequenceDiagram
 
 The Terminal asks the kernel to start `capsule_linux` in the terminal role. Before any page of a program from the store runs, the personality checks that it carries a proof that verifies. The store programs below are signed under the Linux userland publisher and enrolled like any capsule. The built-in BusyBox is part of the personality's own image, measured when the personality was admitted.
 
+
+## Programs with a window
+
+A program whose box grants `WAYLAND` opens its own window on the NØNOS desktop. The personality carries a Wayland bridge: the program speaks the Wayland protocol to it, and the bridge hands the drawing to the compositor and the window manager, so the window has a title bar, moves, resizes and closes like any other. The box decides what else the program reaches. KeePassXC, for example, has a window and a home folder and no network.
+
+Seven programs in the catalogue are listed with a window: swayimg, Telegram Desktop, KeePassXC, foot, mpv, zathura and DarkFi's chat app. For Telegram the evidence shows its welcome screen and no more. [What is new in 0.9.3](../release/0.9.3-what-is-new.md) lists the boots that show each one.
+
 ## What is installed
 
 Standard images carry these programs: BusyBox inside the personality, the rest in the store under `/linux`. The store programs are built from sources pinned by SHA-256, or for mruby by the commit its 3.4.0 tag names. Each is built as a static, non-PIE x86-64 musl program.
