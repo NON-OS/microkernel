@@ -5,8 +5,8 @@
 # USB host's ports (root or virtual), and streams it only to a peer that
 # holds CameraCapture, asked of the kernel when the peer opens the camera
 # and again whenever it starts a stream; the compositor is told whenever
-# streaming starts and stops. No capsule holds that bit until the owner
-# decides, so today nothing streams.
+# streaming starts and stops. No capsule holds that bit until the maintainers
+# decide, so today nothing streams.
 
 [package]
 name = "nonos_capsule_driver_uvc"

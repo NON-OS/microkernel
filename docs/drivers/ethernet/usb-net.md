@@ -41,11 +41,13 @@ Each class capsule holds only its binding and its framing. The shared core `nono
 ## ASIX AX88179
 
 
+It is not in the Standard image: it is held from Standard until Decision 10 is ruled (its register programming was read from Linux). Its own profile, `microkernel-driver-ax88179`, builds it; there it is spawned wherever a USB host is (`src/userspace/init/spawn_plan/drivers_usbnet/ax88179.rs`) and held to `net.core` and `net.l2` through the card table. It is host-proven only: QEMU has no AX88179, and no boot on the hardware exists ([the test plan](../../hardware/real-hardware-checklist.md#usb-ethernet-asix-ax88179)).
 
 ## Realtek RTL8153
 
 `capsule_driver_rtl8153` (`driver.rtl8153_0`, port 4258) is the driver for the common laptop rescue dongle: Realtek RTL8153 and RTL8153B USB 3.0 gigabit adapters, Realtek's own 0bda:8153 and fifteen rebrands (Lenovo, Microsoft, TP-Link, Linksys, Samsung, Nvidia), each id checked against Linux v6.12's r8152 table. It was written anew for this tree, reading Linux v6.12 `drivers/net/usb/r8152.c` for the chip's behaviour only; its code and names are its own, with the bring-up written as tables of register steps (`userland/capsule_driver_rtl8153/src/rtl`).
 
+It is not in the Standard image: it is held from Standard until Decision 10 is ruled (its register programming was read from Linux). Its own profile, `microkernel-driver-rtl8153`, builds it. Until then RTL8153 adapters are bound by the CDC-ECM capsule in their ECM configuration.
 
 
 Many of these adapters offer a CDC-ECM configuration too. Whichever capsule configures the adapter first holds it, and the other finds its port claimed; both serve it. What this driver leaves out, though Linux does it: firmware patches, the PHY's EEE and analog tuning, ALDPS, U1/U2 and the chip's other power saving, receive aggregation, checksum offload ([BINDING.md](../../../userland/capsule_driver_rtl8153/BINDING.md)).
