@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! How far the PCI table is whole (L68). It is filled in ascending bus order
+//! How far the PCI table is whole. It is filled in ascending bus order
 //! and stops at its cap, so every function on a bus below the first one left
 //! out is listed. A bridge sits on a bus below its secondary bus, so for any
 //! bus up to that one, every bridge that could hold it is listed.

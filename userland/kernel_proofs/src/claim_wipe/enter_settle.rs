@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A release of A's claim settled in the enter model (L78), as
+//! A release of A's claim settled in the enter model, as
 //! release::settle does it in one hold of the claims' lock: the last out of
 //! the claim removes its entry, and gone::remove owes its wipe in that hold.
 

@@ -28,7 +28,7 @@ use super::receiver::receiver;
 
 /// Share `sid` with `target`, a process besides the caller's that may then
 /// attach it (L18c, K20): read-only, but writable with `flags` SHARE_WRITE.
-/// Surfaces are held by the process, not the thread that asked (L36).
+/// Surfaces are held by the process, not the thread that asked.
 pub(in super::super) fn do_share(sid: u64, target: u64, flags: u64) -> SyscallResult {
     let Some(pid) = current_pid().map(crate::hardware::broker::holder_of) else {
         return errno(ESRCH);

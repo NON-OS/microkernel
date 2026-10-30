@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Whether a claim still stands, for the paths that act after their check
-//! (L69). An exit moves its claims to Exiting, stops the devices and drains
-//! the grant tables without waiting for those paths (L75), so a grant
+//! An exit moves its claims to Exiting, stops the devices and drains
+//! the grant tables without waiting for those paths, so a grant
 //! entered, or a register written, after it would outlive the claim it was
 //! made for.
 

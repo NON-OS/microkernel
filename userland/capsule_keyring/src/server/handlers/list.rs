@@ -21,7 +21,7 @@ use crate::store::{KeyType, Store};
 
 /// OP_LIST: [caller pid u32][key type u8] -> [count u32][id u32 each]. The
 /// caller's own ids of that kind only, so a restarted driver finds its
-/// records without remembering their ids (L33).
+/// records without remembering their ids.
 pub fn list(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
     if req.payload.len() != 5 {
         return encode_response(req.seq, EINVAL, &[]);

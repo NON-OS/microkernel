@@ -33,7 +33,7 @@ const FLAGS_KNOWN: u32 = DMA_MAP_HIGH
     | DMA_MAP_FROM_DEVICE;
 
 // Returns the claim, which the caller holds until its grant is recorded
-// (L66). Nothing else is changed here.
+// Nothing else is changed here.
 pub(super) fn validate(req: &DmaMapRequest, pid: u32) -> Result<claim::InUse, DmaMapError> {
     if req.flags & !FLAGS_KNOWN != 0 {
         return Err(DmaMapError::UnsupportedFlags);
@@ -66,7 +66,7 @@ pub(super) fn validate(req: &DmaMapRequest, pid: u32) -> Result<claim::InUse, Dm
     }
     let pages = req.length / PAGE_SIZE;
     // None against the boot framebuffer: a takeover of its scanout reclaims
-    // its MMIO from outside, and a DMA grant could not be (L79).
+    // its MMIO from outside, and a DMA grant could not be.
     let fb = crate::hardware::broker::bootfb::is_boot_framebuffer(req.device_id);
     if fb || pages > dma_page_limit_for_class(class) {
         return Err(DmaMapError::BadLengthForClass);

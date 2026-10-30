@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Records kept for a service name, not a pid (L33). A Bluetooth bond has to
+ * Records kept for a service name, not a pid. A Bluetooth bond has to
  * outlive a restart of the driver that made it, and a pid never comes back.
  * The process serving the name now (`server/bond_gate.rs` asks the
  * registry) adopts them, and every other check stays by pid, unchanged.

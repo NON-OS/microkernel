@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A second account of the cover rule over a small universe (L79): 64 pages,
+//! A second account of the cover rule over a small universe: 64 pages,
 //! so a span's pages are the bits of one u64, found page by page from the
 //! bytes it covers, with no rounding at all. The seeded generator is our
 //! own; nothing here comes from outside the crate.

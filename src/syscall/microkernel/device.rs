@@ -47,7 +47,7 @@ pub fn sys_device_claim(device_id: u64) -> i64 {
 // is granted; Bus Master off; its MMIO, IRQ, DMA and port grants taken
 // down, each page out of the holder's tables and each grant out of the
 // device's domain before a frame is freed; the claim last, and the
-// function's wipe owed then (L78). The exit path does the same for every
+// function's wipe owed then. The exit path does the same for every
 // claim a dying capsule held.
 pub fn sys_device_release(device_id: u64) -> i64 {
     let pid = match current_pid() {

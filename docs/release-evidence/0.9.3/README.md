@@ -1,6 +1,6 @@
 # Release evidence for NONOS 0.9.3
 
-One line for each of the 54 directories here: what it proves, taken from that
+One line for each of the 56 directories here: what it proves, taken from that
 directory's own README. Three directories have no README; their line says what
 the files are and which commit added them.
 

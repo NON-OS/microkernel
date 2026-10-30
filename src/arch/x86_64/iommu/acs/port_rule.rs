@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which bridges count as switch downstream ports (L76). The type a port
+//! Which bridges count as switch downstream ports. The type a port
 //! reports is not trusted alone: one may report itself upstream or a root
 //! port, or carry no type a walk could read. A bridge counts when it says
 //! downstream, when the bridge above it says upstream (it sits on a switch's
@@ -49,7 +49,7 @@ pub(super) type Bridge = (u8, Option<u8>, Option<u8>);
 /// bus below its own: one firmware left unset names bus 0, and would else
 /// put every bridge of the root bus in a switch. Below a bridge only a
 /// switch's two port types are believed, anything else taken as unread
-/// (L77); and one saying upstream is believed only below a link's end that
+/// and one saying upstream is believed only below a link's end that
 /// the chain above bears out: a switch whose ports all lie, its upstream
 /// port closed, would else group nothing below it (L77c).
 pub(super) fn picked(bridges: &[Bridge]) -> impl Fn(usize) -> bool + '_ {

@@ -43,7 +43,7 @@ pub fn store(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
         return encode_response(req.seq, EINVAL, &[]);
     }
     let data = &p[HDR..HDR + data_len];
-    // A kind kept by name only from the service that holds the name (L33).
+    // A kind kept by name only from the service that holds the name.
     let stored = match key_type.held_by_name() {
         false => store.store(key_type, data, caller_pid, now, expires_at),
         true => match bond_gate::holder(caller_pid) {

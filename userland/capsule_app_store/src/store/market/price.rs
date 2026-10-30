@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! OP_GET_COMMERCE for a listing's default release, as its price (B9). An
+//! OP_GET_COMMERCE for a listing's default release, as its price. An
 //! empty commerce block is a free listing; a block that does not decode is
 //! Malformed, never free.
 

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The narrowed fallback (L79) over whole tables of records: a framebuffer
+//! The narrowed fallback over whole tables of records: a framebuffer
 //! no BAR holds, in RAM, goes to the one display function there is, and to
 //! nobody when there are two or none; once some BAR holds it, the fallback
 //! is off. Addresses are illustrative.

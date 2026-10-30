@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a written reset came to (L78). The function must answer as itself,
+//! What a written reset came to. The function must answer as itself,
 //! not with a retry status, and its marker must read clear; then what the
 //! reset cleared is put back, decode last and only once its BARs stuck
-//! (L62), Bus Master and INTx Disable left 0 for the next holder's driver.
+//! Bus Master and INTx Disable left 0 for the next holder's driver.
 
 use super::bits_rule::{devctl2_after, devctl_after, not_ready, BME, INTX_DISABLE, IO, MEM};
 use super::end_rule::{checked, End, Next};

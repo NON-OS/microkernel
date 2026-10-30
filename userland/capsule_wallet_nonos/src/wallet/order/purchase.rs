@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Where a purchase goes on each job result (B8): a checked offer on to
+ * Where a purchase goes on each job result: a checked offer on to
  * ORDER_NEW, a made order on to funding; a refusal is said in words.
  */
 

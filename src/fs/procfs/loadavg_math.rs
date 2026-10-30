@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The load average's arithmetic (L56): an exponentially weighted average of
+//! The load average's arithmetic: an exponentially weighted average of
 //! the runnable count, sampled every five seconds, over 1, 5 and 15 minute
 //! windows. Each sample folds in as avg' = avg * w + now * (1 - w), with
 //! w = e^(-sample / window), the discrete form of a first-order decay whose

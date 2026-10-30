@@ -20,10 +20,10 @@ pub struct Claim {
     pub device_id: u64,
     pub epoch: u64,
     pub(crate) stage: Stage,
-    /// Grant paths inside the claim now, each holding it until its grant is recorded (L66).
+    /// Grant paths inside the claim now, each holding it until its grant is recorded.
     pub(crate) inflight: u32,
     /// Releases under way, a `give_back`'s or an exit's: the entry goes with the last of them
-    /// and the last path inside it, so no newer claim is made while one tears it down (L75).
+    /// and the last path inside it, so no newer claim is made while one tears it down.
     pub(crate) leavers: u32,
 }
 
@@ -38,17 +38,17 @@ impl Claim {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Stage {
     /// Being made: it keeps other claimants out, and only the call making it
-    /// settles it, since it may still be refused (L65).
+    /// settles it, since it may still be refused.
     Making,
     Ready,
     /// Being released: nothing more is granted, and the release waits out
-    /// the grant paths already inside it before it drains (L66).
+    /// the grant paths already inside it before it drains.
     Leaving,
     /// Being made when its holder exited: it keeps other claimants out until
-    /// the call making it takes it back (L66).
+    /// the call making it takes it back.
     Orphaned,
     /// Its holder exited: nothing more is granted against it, a grant being recorded is undone
-    /// by its own path, and the entry stays until those paths and every release are done (L75).
+    /// by its own path, and the entry stays until those paths and every release are done.
     Exiting,
 }
 
@@ -66,7 +66,7 @@ pub enum ClaimError {
     /// Another capsule holds what this one reaches past the IOMMU, or its requester id.
     GroupHeld,
     Held, // held for the one capsule spawned to drive it
-    /// Refused to every claimant, until the owner allows it or, for a bridge, a port claim (L58).
+    /// Refused to every claimant, until the owner allows it or, for a bridge, a port claim.
     Refused,
     /// Its last claim's wipe is under way, or its entry is going: ask again.
     Resetting,

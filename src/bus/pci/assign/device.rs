@@ -62,7 +62,7 @@ pub(super) fn assign_device(bus: u8, device: u8, function: u8) -> bool {
         index += if bar.is_64bit { 2 } else { 1 };
     }
 
-    // Decoders on (L34); Bus Master never set, and off but on a display.
+    // Decoders on; Bus Master never set, and off but on a display.
     let class = (read32(bus, device, function, 0x08) >> 24) as u8;
     write16(bus, device, function, COMMAND, boot_command(after_assign(command), class));
     assigned

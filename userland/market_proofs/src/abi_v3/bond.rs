@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! settle's bondOf and isActive words, read strictly (B6).
+//! settle's bondOf and isActive words, read strictly.
 
 use nonos_marketplace_abi::BondReading;
 

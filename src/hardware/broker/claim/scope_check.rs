@@ -22,7 +22,7 @@ use crate::hardware::broker::scope::{admits, Seen};
 use crate::hardware::broker::{holder_of, table, DeviceRecord};
 
 /// Whether some service `pid`'s process owns may claim `device_id`. A thread
-/// is held to its process's rows (L32); a pid with no registered service, or
+/// is held to its process's rows; a pid with no registered service, or
 /// a device not in the table, is refused.
 pub(super) fn admit(pid: u32, device_id: u64) -> Result<(), ClaimError> {
     let Some(record) = table::list().into_iter().find(|r| r.device_id == device_id) else {

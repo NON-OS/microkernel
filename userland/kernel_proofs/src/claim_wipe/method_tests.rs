@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which reset a function is given (L78), over Device Capabilities with and
+//! Which reset a function is given, over Device Capabilities with and
 //! without its FLR bit among noise, every Advanced Features capabilities
 //! byte, and PMCSR in each power state with No_Soft_Reset set or clear, each
 //! also absent: an FLR wherever one is offered, else the Advanced Features

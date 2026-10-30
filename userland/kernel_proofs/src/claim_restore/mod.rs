@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * What a claimed function's BARs must read once it is in D0 (L62), the
+ * What a claimed function's BARs must read once it is in D0, the
  * kernel's rule included by path: every kind's address bits, the type bits
  * left as the device has them, and a 64-bit BAR's high half its own slot.
  */

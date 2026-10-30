@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Which router frame is its notice that a Bluetooth device paired without
-//! authentication was refused on the secure path (G-76), rather than an
+//! authentication was refused on the secure path, rather than an
 //! event: the envelope's flags say so (capsule_input_router
 //! protocol/delivery.rs NOTICE_UNPROVEN). Held to the router's frames by
 //! input_proofs.

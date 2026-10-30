@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whether a thread group's devices may go yet (L77). A thread killed from
+//! Whether a thread group's devices may go yet. A thread killed from
 //! another CPU runs on there until its next tick from user code; with its DMA
 //! frames freed and its claims ended under it, it would reach frames handed
 //! to someone else and a device given to its next claimant. So the release

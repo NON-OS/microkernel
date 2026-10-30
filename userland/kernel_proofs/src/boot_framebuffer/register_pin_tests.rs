@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! register_boot_framebuffer pinned whole (L79), with its log lines' words
+//! register_boot_framebuffer pinned whole, with its log lines' words
 //! left out: find first, then every way out before publication returning
 //! with nothing published, the sink made before the record exists, and the
 //! id the scanout's takeover asks for the one that was published. Beside it,

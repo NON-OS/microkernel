@@ -29,7 +29,7 @@
 pub(crate) const VMMDEV_SERVICE: &str = "driver.vmmdev0";
 pub(crate) const BOOTFB_SERVICE: &str = "driver.bootfb0";
 
-/// The firmware bus's device number for the boot framebuffer (L31).
+/// The firmware bus's device number for the boot framebuffer.
 pub(crate) const FIRMWARE_BOOT_FRAMEBUFFER: u16 = 0x0001;
 
 const VBOX_VENDOR: u16 = 0x80EE;

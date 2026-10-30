@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The cover rule against the page-by-page model (L79), over every pair of
+//! The cover rule against the page-by-page model, over every pair of
 //! a framebuffer and one memory BAR the 64-page universe holds at half-page
 //! steps. The sweep counts what it met against floors, so it cannot pass by
 //! trying nothing: held and not held, near misses a page apart, and pairs

@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! bootfb let go when a GPU driver takes its scanout (G-80, L79): a LOST,
+//! bootfb let go when a GPU driver takes its scanout: a LOST,
 //! dark output on a driver that sets no mode moves the desktop to the best
 //! other display, its LEAVING notice or not; a LOST that a driver with mode
 //! setting can put back, or a blank (LOST still scanning out), does not;

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The meter's ACCOUNT reply as lines a person reads (B8). Pure: the NOX
+ * The meter's ACCOUNT reply as lines a person reads. Pure: the NOX
  * figures come through `nox`, so wallet_proofs reads real replies with it.
  */
 

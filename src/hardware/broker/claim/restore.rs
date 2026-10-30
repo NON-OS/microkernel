@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A claimed function's configuration read back once it is in D0, and put
-//! back where a power transition or reset lost it (L62). Only the BARs
+//! back where a power transition or reset lost it. Only the BARs
 //! enumeration found, never one it found unassigned; decoding is off while
 //! they are written and back on after, Bus Master left to the claim.
 

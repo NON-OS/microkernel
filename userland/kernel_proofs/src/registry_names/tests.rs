@@ -46,7 +46,7 @@ fn declared() -> (BTreeSet<String>, BTreeSet<String>) {
             set.insert(name);
         }
     }
-    // An empty view fails as itself, never as drift or a vacuous pass (L61).
+    // An empty view fails as itself, never as drift or a vacuous pass.
     assert!(read >= 50, "{read} of {CAPSULE_MKS} under {userland:?}: the build lacks them");
     (system, publisher)
 }

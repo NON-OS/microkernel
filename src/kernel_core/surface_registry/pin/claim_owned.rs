@@ -60,7 +60,7 @@ pub(super) fn claim_owned(pid: u32, addr: u64, end: u64, out: &mut Vec<Window>) 
             OnUnmap::Orphan => {
                 let frames = core::mem::take(&mut slot.frames);
                 drop(slots);
-                // Seen by every holder's release and exit from now (L54).
+                // Seen by every holder's release and exit from now.
                 super::orphan_settle::publish(pid, handle, frames.clone());
                 let mut w = Window::held(base, frames);
                 w.orphan = Some((pid, handle));

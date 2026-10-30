@@ -30,7 +30,7 @@ pub const VIEW_IMPORT: u8 = 12;
 pub const VIEW_RECOVER: u8 = 13;
 pub const VIEW_EXPORT: u8 = 14;
 pub const VIEW_ACCOUNTS: u8 = 15;
-/* The meter's account and budget (B8). */
+/* The meter's account and budget. */
 pub const VIEW_METER: u8 = 16;
 /* Signing a listing as its publisher (B8, the plan). */
 pub const VIEW_PUBLISHER: u8 = 17;

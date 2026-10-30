@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The grant table's find (grant/one.rs) read whole (L79). An unmap counts
+//! The grant table's find (grant/one.rs) read whole. An unmap counts
 //! itself inside the claim named by its own grant's device and epoch as
 //! recorded; with any other key `claim::inside` finds no claim, the unmap
 //! runs outside it, and a takeover's release no longer waits for its pages

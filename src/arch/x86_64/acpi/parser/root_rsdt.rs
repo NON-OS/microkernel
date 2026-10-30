@@ -34,7 +34,7 @@ pub fn parse_rsdt(registry: &mut TableRegistry, addr: u64) -> AcpiResult<()> {
             crate::log_warn!("[ACPI] RSDT checksum mismatch, using it anyway");
         }
         // A length past the ceiling every walk keeps to is a lie, and is
-        // walked only that far (L73).
+        // walked only that far.
         let length = (header.length as u64).min(MAX_TABLE_BYTES) as usize;
         let entry_count = sdt_entry_count(length, mem::size_of::<SdtHeader>(), 4);
         let entries_ptr = (addr as usize + mem::size_of::<SdtHeader>()) as *const u32;

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! A restart's takeover on the model as the capsule's `take` runs it
-//!: the first lit output started with the plan's `ours` on fresh
+//! the first lit output started with the plan's `ours` on fresh
 //! frames, then every lit output settled (`settle_heads`). The watch is
 //! armed afresh with the new frames; what the dead driver gave back stays
 //! given back, and nothing may reach it.

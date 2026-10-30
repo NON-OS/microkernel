@@ -31,7 +31,7 @@ pub(super) fn free_orphans() {
         let mut list = ORPHANS.lock();
         let mut i = 0;
         while i < list.len() {
-            // A sibling still on the dying tables can write the frames (L49).
+            // A sibling still on the dying tables can write the frames.
             if has_foreign_holder(list[i].handle, list[i].owner) || pending(list[i].tables) {
                 i += 1;
             } else {

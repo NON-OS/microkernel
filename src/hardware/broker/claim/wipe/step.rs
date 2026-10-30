@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Moving the wipes on (L78): from a release, an exit, every claim and the
+//! Moving the wipes on: from a release, an exit, every claim and the
 //! x86 tick. Each call takes the records due and not already being stepped,
 //! marks them, lets go of the table, does one act on each with no lock held,
 //! and puts each back; a record that ended is settled after. No call waits:

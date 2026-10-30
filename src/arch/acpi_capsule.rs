@@ -44,7 +44,7 @@ pub(crate) fn acpi_from_init() {
     crate::hardware::broker::acpi::leave::serve_from_init();
 }
 
-/// From init, right after the ACPI capsule's spawn (L55): its drivers wait
+/// From init, right after the ACPI capsule's spawn: its drivers wait
 /// for the capsule's first publish pass, bounded and said once. Elsewhere
 /// there is no capsule, and nothing waits.
 pub(crate) fn acpi_first_pass_wait(spawned: bool) {

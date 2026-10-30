@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the device in the enter model does with its reset (L78), and every
+//! What the device in the enter model does with its reset, and every
 //! start the model is run from: each fate, with A's release, its exit or
 //! both, and B, A2 or both claiming.
 

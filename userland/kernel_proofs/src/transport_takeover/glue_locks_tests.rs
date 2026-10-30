@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a killed caller's failed asks may and may not decide (L81). Its
+//! What a killed caller's failed asks may and may not decide. Its
 //! transport failure reads as a refusal, never as an absent disk, and no disk
 //! is kept for it after the boot disk's wait; and the entropy generator's lock
 //! is never held across an ask of the capsule, so a caller killed in one

@@ -20,7 +20,7 @@ use super::types::{KeyType, Store};
 
 impl Store {
     /// The ids of `key_type` that `caller_pid` owns, lowest first. A
-    /// restarted driver finds its records again by this (L33).
+    /// restarted driver finds its records again by this.
     pub fn ids_owned_by(&self, caller_pid: u32, key_type: KeyType) -> Vec<u32> {
         let mine = self.entries.iter().filter(|(_, e)| e.owner_pid == caller_pid);
         mine.filter(|(_, e)| e.key_type == key_type).map(|(id, _)| *id).collect()

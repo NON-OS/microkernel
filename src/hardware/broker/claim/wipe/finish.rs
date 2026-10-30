@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A step's act put back on its record (L78). An ended wipe first settles
+//! A step's act put back on its record. An ended wipe first settles
 //! the function's kept frames, then leaves the record its end decides: none
 //! after a clean reset, kept for its holder's service, or lost for its hold;
 //! the end is said once, outside every lock.
@@ -30,7 +30,7 @@ pub(super) fn put(w: Wipe, end: Option<End>, now: u64) {
         super::check::unmark(&ConfigSpace::new(w.address), &w);
     }
     // Settled while the record still reads as a wipe under way, so a claim
-    // that reads its end also reads its frames kept for good (L80). A lost
+    // that reads its end also reads its frames kept for good. A lost
     // function may still come back: its frames wait for its next end.
     let (freed, kept) = match end {
         None | Some(End::Lost) => (0, 0),

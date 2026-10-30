@@ -66,7 +66,7 @@ fn detach_one(c: &mut Capsule, device_id: u64, done: &mut Vec<DeviceAddress>) ->
         say(b"detach failed; the domain is kept");
         return Some(false);
     }
-    // Denied first, so its RMRR regions (L60) and its last-named reserved
+    // Denied first, so its RMRR regions and its last-named reserved
     // ranges leave the domain unused.
     unmap_reserved(c, device_id);
     super::unreserve::release(c, address);

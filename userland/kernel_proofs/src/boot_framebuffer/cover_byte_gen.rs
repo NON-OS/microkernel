@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Framebuffers and memory BARs at the grain of one byte (L79), inside the
+//! Framebuffers and memory BARs at the grain of one byte, inside the
 //! model's universe: often only a few bytes long, and often placed so a
 //! first or last byte sits on a page edge, a byte either side of one, or a
 //! byte either side of the other span's edge, so a rule off by one byte is

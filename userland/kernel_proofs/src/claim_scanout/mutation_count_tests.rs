@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The console's count and its draw's re-check undone (L79), each a knob
+//! The console's count and its draw's re-check undone, each a knob
 //! on the model, over starts where the model as built breaks nothing.
 
 use super::knob::Knob;

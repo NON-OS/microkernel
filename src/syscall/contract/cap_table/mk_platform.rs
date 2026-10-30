@@ -66,7 +66,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkHvRecv
         | SyscallNumber::MkHvEvents
         | SyscallNumber::MkHvSignal => caps.can_driver(),
-        /* The boot framebuffer's geometry, to the holder of its claim (L31). */
+        /* The boot framebuffer's geometry, to the holder of its claim. */
         SyscallNumber::MkBootFramebuffer => caps.can_mmio(),
 
         _ => return None,

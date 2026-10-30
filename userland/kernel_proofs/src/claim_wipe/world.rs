@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The seeded world of plan section 6 (L78): one PCI function with its claims
+//! The seeded world of plan section 6: one PCI function with its claims
 //! entry and its wipe record, three processes (A; A2 of A's driver service; B
 //! of another), their threads, two CPUs' ticks and the surface registry, all
 //! drawn from one xorshift, and the ground truth the invariants judge by.

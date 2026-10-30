@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The takeover model's invariants by name (L79), for a failing test to
+//! The takeover model's invariants by name, for a failing test to
 //! say which broke; the bits are world_check's, in the same order.
 
 const NAMES: [&str; 14] = [

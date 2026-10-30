@@ -193,7 +193,7 @@ Prevalence: see mainstream.md, storage section.
 | Phoenix2 | SoC xHCI | 1022:15bb, 15c2, 15c3 | 0c/03/30 | [pci.ids][ids] |
 | Hawk Point | same SoC as Phoenix | GPU id differs (1002:1900/1901); xHCI ids assumed identical to Phoenix — UNVERIFIED | — | [pci.ids][ids] |
 | Raphael / Granite Ridge (AM5 CPU) | CPU-integrated xHCI | 1022:15b6, 15b7 (USB 3.x), 15b8 (USB 2.0) | 0c/03/30 | [pci.ids][ids] "Raphael/Granite Ridge USB 3.1 xHCI" |
-| AM5 600-series chipset (Promontory 21: B650/X670, A620) | chipset xHCI | 1022:43f7 (600 series), 43f9 (B665), 43fa (A620) | 0c/03/30 | [xhci-pci.c][xhci] `PROM21_XHCI_43F7/43F9/43FA`; [pci.ids][ids] |
+| AM5 600-series chipset (Promontory 21: B650/X670, A620) | chipset xHCI | 1022:43f7 (600 series), 43f9, 43fa (A620) | 0c/03/30 | [xhci-pci.c][xhci] `PROM21_XHCI_43F7/43F9/43FA`; [pci.ids][ids] |
 | AM5 800-series chipset (X870/B850) | chipset xHCI | 1022:43fc, 43fd | 0c/03/30 | [xhci-pci.c][xhci] `PROM21_XHCI_43FC/43FD`; [pci.ids][ids] |
 | AM4 500/300 chipset (for comparison) | chipset xHCI | 1022:43ee (500), 43ec (A520), 43b9/43ba/43bb/43bc (Promontory A) | 0c/03/30 | [xhci-pci.c][xhci]; [pci.ids][ids] |
 | Strix Point (Ryzen AI 300) | SoC xHCI | 1022:151a, 151b, 151e, 151f | 0c/03/30 | [pci.ids][ids] "Strix USB 3.1 xHCI" |

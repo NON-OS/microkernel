@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The meter (B8): how it stands, its address, the budget it pays under and
+//! The meter: how it stands, its address, the budget it pays under and
 //! each channel, as its ACCOUNT reply says. Read when the screen opens and
 //! on Refresh; the meter keeps the numbers, the wallet only shows them.
 

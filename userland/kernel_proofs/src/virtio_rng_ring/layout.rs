@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The legacy virtqueue's layout for the size the device reports (L8).
+//! The legacy virtqueue's layout for the size the device reports.
 //! Legacy virtio fixes the layout from the queue size: the descriptor
 //! table, the available ring right after it, and the used ring at the next
 //! 4096-byte boundary (virtio 1.x, the legacy interface's note on virtqueue

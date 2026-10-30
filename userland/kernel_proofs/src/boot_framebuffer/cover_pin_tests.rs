@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! find pinned whole (L79). Its code, with comments cut and its log lines'
+//! find pinned whole. Its code, with comments cut and its log lines'
 //! words left out, must be exactly the code below, statement by statement:
 //! nothing negated or narrowed inside `mine`, no way out before the store,
 //! no name shadowed after it is set, and nothing hidden behind a dead

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A claim between its entry in the table and its last step (L65). The entry
+//! A claim between its entry in the table and its last step. The entry
 //! keeps every other claimant out from the start, but nothing is granted
 //! against it and no sibling thread releases it: only the call that made it
 //! settles it, admitted or taken back.
@@ -29,9 +29,9 @@ fn is(pid: u32, device_id: u64, epoch: u64) -> impl Fn(&super::Claim) -> bool {
 
 /// The last step: from here the claim is granted against. The boot
 /// framebuffer's hold is set under the table's lock and cleared under it as
-/// the entry goes, so each lands in its claim's own order (L77). Refused when
+/// the entry goes, so each lands in its claim's own order. Refused when
 /// its holder exited meanwhile, the claim orphaned. Its wipe record is
-/// written in the same hold (L78), and a covering claim's stop latched (L79).
+/// written in the same hold, and a covering claim's stop latched.
 pub(super) fn admit(
     pid: u32,
     device_id: u64,
@@ -62,7 +62,7 @@ pub(super) fn admit(
 /// may have come after that exit's own detach.
 pub(super) fn withdraw(pid: u32, device_id: u64, epoch: u64) {
     // Stopped while the entry still names the device, which only this call
-    // removes: once it goes, another claim may hold it (L75).
+    // removes: once it goes, another claim may hold it.
     if claims().iter().any(is(pid, device_id, epoch)) {
         super::quiesce::stop_bus_master_quietly(device_id);
     }

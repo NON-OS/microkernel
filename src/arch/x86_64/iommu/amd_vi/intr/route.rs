@@ -37,13 +37,13 @@ pub fn route_msi(
     dest: u8,
 ) -> Result<(u16, u64, u32), AmdViError> {
     // A device no enforcing unit covers would send the index as a raw
-    // vector: 17 is #AC, 32 and up are the kernel's own (L46).
+    // vector: 17 is #AC, 32 and up are the kernel's own.
     if !unit_covers(bus, device, function) {
         return Err(AmdViError::NotEnforcing);
     }
     let id = device_id(bus, device, function);
     // Its interrupts would share a table with another id's: a PCI function's,
-    // an I/O APIC's or HPET's, or a bridge's (L47, L49, L50, L54).
+    // an I/O APIC's or HPET's, or a bridge's.
     let shared = amd_iommu_aliased(id) || amd_iommu_special(id);
     if shared || !crate::arch::x86_64::iommu::own_id_read::own_id(bus, device, function) {
         return Err(AmdViError::Aliased);

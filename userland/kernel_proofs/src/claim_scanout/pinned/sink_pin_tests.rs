@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The sink and the geometry call read whole (L79). A taken-back holder's
+//! The sink and the geometry call read whole. A taken-back holder's
 //! loads read only what it stored in the sink since the takeover, which
 //! needs the frame zeroed before any page can show it; and once the scanout
 //! is taken nobody is told the framebuffer's geometry again (ENODEV).

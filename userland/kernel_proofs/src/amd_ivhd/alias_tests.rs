@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! IVHD aliases (L47): a device whose interrupts reach the unit under
-//! another id is named, and so is that id (L49), so AMD-Vi never gives
+//! IVHD aliases: a device whose interrupts reach the unit under
+//! another id is named, and so is that id, so AMD-Vi never gives
 //! either a remapping table that would serve the other's vectors.
 
 use super::fixture::ivrs;

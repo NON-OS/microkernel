@@ -30,8 +30,8 @@ use super::window::Window;
 /*
  * The surface frames an munmap of `pid` must not free: those it attached from
  * another owner, its own another process still has attached, and those its
- * exit left to `reclaim`, which a thread still in munmap freed again (L50),
- * and its own a sibling thread orphaned a moment before (L57).
+ * exit left to `reclaim`, which a thread still in munmap freed again,
+ * and its own a sibling thread orphaned a moment before.
  */
 pub struct Held {
     windows: Vec<Window>,

@@ -19,7 +19,7 @@
 //! the xHCI controller to the xHCI capsule, which finds a device-tree
 //! controller beside the PCI ones. No capsule drives the tree's SDHCI or
 //! AHCI controllers yet, so they, and every other kind, are refused until a
-//! unit names their driver (L59). Pure, so the proofs run it on the host;
+//! unit names their driver. Pure, so the proofs run it on the host;
 //! `hold_ids.rs` holds the numbers below to the kernel's own.
 
 use super::hold_rule::Hold;

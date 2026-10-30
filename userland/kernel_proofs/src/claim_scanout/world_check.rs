@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The takeover model's invariants (L79), each a bit: those every step is
+//! The takeover model's invariants, each a bit: those every step is
 //! held to, those the step that acts checks, and those only a world where
 //! nothing can move is held to.
 

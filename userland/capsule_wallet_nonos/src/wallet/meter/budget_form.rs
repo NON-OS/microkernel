@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The budget form (B8): a cap in whole NOX and how many days it runs, as
+ * The budget form: a cap in whole NOX and how many days it runs, as
  * typed, into the meter's SET_BUDGET. Pure, so wallet_proofs reads it. A
  * new budget starts with nothing spent and replaces the last one whole,
  * per-listing caps included: a listing without its own cap is held only by

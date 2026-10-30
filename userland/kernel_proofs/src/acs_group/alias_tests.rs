@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The requester ids a device behind a bridge to conventional PCI carries
-//!: a PCIe-to-PCI bridge's secondary bus with device and function 0,
+//! a PCIe-to-PCI bridge's secondary bus with device and function 0,
 //! a legacy bridge's own id, one per bridge on the way up.
 
 use super::acs_alias::aliases;

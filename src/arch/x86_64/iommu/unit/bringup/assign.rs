@@ -39,7 +39,7 @@ pub(super) fn assign_enumerated(
             continue;
         }
         // Made before STATE is held, since making one takes it. As on a claim
-        // (L60), no region over usable RAM or the interrupt window is mapped.
+        // no region over usable RAM or the interrupt window is mapped.
         let mut ranges = reserved_for(dev.bus, dev.device, dev.function);
         ranges.retain(|&(b, e)| !(b < 0xFEF0_0000 && e > 0xFEE0_0000) && !touches_usable(b, e));
         let own = (!ranges.is_empty()).then(|| reserved_domain(levels, &ranges).ok()).flatten();

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The takeover's loop in the model (L79): bootfb's claim read, and the
+//! The takeover's loop in the model: bootfb's claim read, and the
 //! kernel's own `next` deciding what comes after.
 
 use super::knob::Knob;

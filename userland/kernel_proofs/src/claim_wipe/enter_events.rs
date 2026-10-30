@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the enter model's steps saw (L78), as bits gathered over a search,
+//! What the enter model's steps saw, as bits gathered over a search,
 //! so each test can show the cases it speaks of were reached at all.
 
 /// What the steps saw, for the floors: Resetting said, a claim refused, a

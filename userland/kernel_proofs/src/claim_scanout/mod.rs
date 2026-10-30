@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * A GPU driver's claim taking the boot framebuffer's scanout (L79): its pure
+ * A GPU driver's claim taking the boot framebuffer's scanout: its pure
  * rules included by path and tested cell by cell, an exhaustive model of the
  * takeover racing bootfb's claim, map, unmap, release and exit and a kernel
  * draw, each design step undone in the model, and the glue read as text.

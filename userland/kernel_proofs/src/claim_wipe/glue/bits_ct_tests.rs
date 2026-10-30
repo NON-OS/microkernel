@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Device Control 2 as a wipe puts it back (L80): its completion timeout
+//! Device Control 2 as a wipe puts it back: its completion timeout
 //! value and disable, which a network holder may write, come back as
 //! firmware left them at enumeration, never as the last holder set them,
 //! and every other bit as it was read before the reset.

@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The purchase's clock is unix seconds (B8): a channel a day ahead is open,
+//! The purchase's clock is unix seconds: a channel a day ahead is open,
 //! OPEN START takes an expiry from the form, and the refund, its due mark
 //! and the gas wait count from the order's deadline and the paid time.
 

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the takeover model asks of a world (L79): the console's stop as
+//! What the takeover model asks of a world: the console's stop as
 //! the kernel reads it, whether the drawer writes, whether a running bootfb
 //! page shows the framebuffer, and whether a covering claim is ready.
 

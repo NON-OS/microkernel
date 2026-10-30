@@ -18,7 +18,7 @@
 //! the host (kernel_proofs::confine_posture).
 //!
 //! The one case is that no remapping unit is in service: none was found, the
-//! one found never came up, or it is AMD-Vi, which this kernel does not drive.
+//! one found never came up, or it is an AMD-Vi unit this kernel did not bring up.
 //! The device then reaches all of memory whatever the broker does, and the
 //! claim goes ahead with the boot log saying so. Every other failure to give a
 //! device its own domain happens with a unit in service, and there the claim

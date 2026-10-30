@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The IVHD aliases, kept from parsing for the AMD-Vi interrupt path (L47).
+//! The IVHD aliases, kept from parsing for the AMD-Vi interrupt path.
 
 use core::sync::atomic::{AtomicBool, Ordering};
 

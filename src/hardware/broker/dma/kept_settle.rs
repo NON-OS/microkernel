@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A function's kept runs settled as its wipe ends (L78): freed where the
+//! A function's kept runs settled as its wipe ends: freed where the
 //! end says nothing reaches them and the registry has let go, kept for good
 //! where the device may still reach them, waiting for the registry else.
 

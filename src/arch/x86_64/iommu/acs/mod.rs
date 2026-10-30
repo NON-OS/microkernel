@@ -16,7 +16,7 @@
 
 //! Closing PCIe switch ports at boot so a device below one cannot reach its
 //! peers past the IOMMU, and grouping what sits below a switch that cannot be
-//! closed (L72). The groups and the claim check are the broker's.
+//! closed. The groups and the claim check are the broker's.
 
 mod chain_rule;
 mod close;

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What find reads of a PCI record, read as text (L79). Each present BAR
+//! What find reads of a PCI record, read as text. Each present BAR
 //! sits in its own slot, a memory BAR as memory at its base and size, and
 //! the count reaches the last present slot; the bus is PCI and the class is
 //! what the class code maps to. What a holder may map is `map_glue_tests`.

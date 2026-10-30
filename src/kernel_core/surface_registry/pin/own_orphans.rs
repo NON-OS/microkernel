@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A sibling's orphan (L57). One owner thread's munmap lists the orphan of a
+//! A sibling's orphan. One owner thread's munmap lists the orphan of a
 //! surface another process maps; a second thread munmapping the same range
 //! keeps each page it pops of that orphan and hands it over, never frees it.
 
@@ -52,7 +52,7 @@ impl OwnOrphans {
             }
         }
         index.sort_unstable();
-        // A frame two orphans list is kept and freed by neither (L61).
+        // A frame two orphans list is kept and freed by neither.
         index.dedup_by(|b, a| a.0 == b.0 && { a.1 = SHARED; true });
         Self { owner, lists, index }
     }

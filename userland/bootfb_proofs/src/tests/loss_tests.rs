@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The scanout lost to a GPU driver (G-80, L79) over seeded orders of the
+//! The scanout lost to a GPU driver over seeded orders of the
 //! compositor's presents, its STATE calls and idle wakes, the kernel taking
 //! the scanout before any of them or in the middle of a present. However it
 //! falls: nothing faults; the claim is let go of exactly once and the

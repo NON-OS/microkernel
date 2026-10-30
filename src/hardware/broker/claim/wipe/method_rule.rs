@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which reset a function is given (L78): a Function Level Reset where its
+//! Which reset a function is given: a Function Level Reset where its
 //! PCIe capability offers one, else the Advanced Features one, else a trip
 //! to D3hot and back where the function does not keep its state through it
 //! (No_Soft_Reset clear); after an FLR its marker survived, the trip once.

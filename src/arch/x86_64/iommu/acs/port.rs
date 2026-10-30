@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One switch downstream port's ACS controls, read and closed at boot (L72).
+//! One switch downstream port's ACS controls, read and closed at boot.
 
 use super::rule::{closed, closing, find_ext, ACS_ID};
 use super::write::write_extended16;

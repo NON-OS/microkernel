@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The budget form on the meter screen (B8): a cap in whole NOX and how
+//! The budget form on the meter screen: a cap in whole NOX and how
 //! many days it runs. Set budget replaces the meter's budget whole.
 
 use nonos_app_skeleton::PaintBuffer;

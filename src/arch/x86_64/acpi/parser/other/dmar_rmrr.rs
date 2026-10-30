@@ -39,7 +39,7 @@ pub struct Rmrr {
     pub count: u8,
     pub truncated: bool,
     /// It also names a device that is not on PCI, an ACPI namespace device
-    /// say, which no capsule's domain ever holds (L65).
+    /// say, which no capsule's domain ever holds.
     pub foreign: bool,
 }
 
@@ -66,7 +66,7 @@ pub fn parse_rmrr(bytes: &[u8]) -> Option<Rmrr> {
 }
 
 /// The pages an RMRR names whatever else is wrong with it, rounded outward,
-/// `[first, last]` byte (L67): one firmware got wrong still says a device
+/// `[first, last]` byte: one firmware got wrong still says a device
 /// uses that memory. `None` when not even its header can be read.
 pub fn rmrr_span(bytes: &[u8]) -> Option<(u64, u64)> {
     let word = |at: usize| Some(u64::from_le_bytes(bytes.get(at..at + 8)?.try_into().ok()?));

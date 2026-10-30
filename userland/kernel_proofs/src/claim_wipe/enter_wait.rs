@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The undone designs' wait inside Making in the enter model (L78): the
+//! The undone designs' wait inside Making in the enter model: the
 //! claimant, its entry pushed over a pending wipe, yields until the wipe
-//! ends, and a kill landing in that yield parks the thread for good (L77).
+//! ends, and a kill landing in that yield parks the thread for good.
 //! Under ResetInMaking the waiting claimant is the only one to step it.
 
 use super::admit_rule::Admit;

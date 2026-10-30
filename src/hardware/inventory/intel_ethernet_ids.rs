@@ -19,7 +19,7 @@
 //! I211), igc (I225, I226) and ixgbe (82599, X540, X550). Each part is in the
 //! table of the capsule whose register model covers its MAC, which
 //! kernel_proofs holds it to. The ids are unverified until re-sourced from
-//! Intel's datasheets (L56).
+//! Intel's datasheets.
 //!
 //! Pure, with no imports, so host proofs can include it by path.
 

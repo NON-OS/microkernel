@@ -36,9 +36,9 @@ pub(in crate::hardware::broker) struct PciHandle {
     pub(in crate::hardware::broker) bars: [PciBar; 6],
     pub(in crate::hardware::broker) msix: Option<MsixInfo>,
     /// A type 0 header and no Intel VMD: no function whose Bus Master Enable
-    /// or BARs gate others', whose claim the broker refuses (L58, L61).
+    /// or BARs gate others', whose claim the broker refuses.
     pub(in crate::hardware::broker) standard: bool,
-    /// How it is reset between holders (L78).
+    /// How it is reset between holders.
     pub(in crate::hardware::broker) reset: crate::hardware::broker::claim::ResetCaps,
 }
 

@@ -190,7 +190,7 @@ The hard rule through all of it: the device's DMA is confined by the IOMMU to th
 
 1. **x86_64 SMP at high core counts.**
    - Done: shootdown targets `Starting` CPUs; an AP past its online deadline is parked cooperatively and only then reset; `shootdown_proofs` with its mutants; boots at `-smp 1`, 2, 4, 16 and 64 with every AP online and no FATAL (above).
-   - Done (P-02): CR4.PGE set on every CPU and checked equal to the boot CPU's; the full flush toggles it (above). Open: a booted full-flush round.
+   - Done: CR4.PGE set on every CPU and checked equal to the boot CPU's; the full flush toggles it (above). Open: a booted full-flush round.
    - Give each AP its own trampoline slot. Log every AP setup failure, and put a guard page between AP stacks.
    - Make `cpu_id()` O(1).
    - State the fairness property of the scheduler, then test it.

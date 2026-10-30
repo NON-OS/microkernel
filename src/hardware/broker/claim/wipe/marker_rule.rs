@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The marker that proves a reset happened (L78). A function that answers
+//! The marker that proves a reset happened. A function that answers
 //! again after a reset may only have been slow: a Command bit set before the
 //! reset and read clear after it shows the reset reached its registers.
 

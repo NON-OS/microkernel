@@ -17,7 +17,7 @@
 //! A tenancy, in its driver's own code. Its driver resets its queue before
 //! Bus Master goes on (a driver's duty, plan section 7), its state goes into
 //! the function, it maps runs, may unmap one, may put the function in D3hot
-//! (L64), then gives it back or exits; a sibling thread may give it back
+//! then gives it back or exits; a sibling thread may give it back
 //! too, and a kill may land at any point.
 
 use super::bits_rule::{pmcsr_to, BME, D3HOT, INTX_DISABLE, MEM, NO_SNOOP_EN};

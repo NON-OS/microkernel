@@ -45,7 +45,7 @@ pub(super) struct Slot {
     /// Who may attach besides the owner (L18c).
     pub(super) shares: Shares,
     /// The DMA run (physical start, length) the frames belong to, for a
-    /// surface over the owner's own grant: the broker's to free (L35).
+    /// surface over the owner's own grant: the broker's to free.
     pub(super) grant: Option<(u64, u64)>,
 }
 

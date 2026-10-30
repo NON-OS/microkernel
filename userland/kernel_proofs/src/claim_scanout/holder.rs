@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! bootfb's thread in the takeover model (L79), a round at a time: its claim
+//! bootfb's thread in the takeover model, a round at a time: its claim
 //! (the entry refused once the scanout was taken, then the admit with
 //! at_admit and the hold, and the wait for a draw under way), its map and
 //! store (holder_map.rs) and its give_back (give_back.rs).

@@ -23,7 +23,7 @@ use super::types::ClaimError;
 use crate::hardware::broker::{table, BusKind, DeviceRecord, DEVICE_FLAG_DISABLED};
 
 /*
- * A bridge is never claimed (L58). Claim and release both clear its Bus
+ * A bridge is never claimed. Claim and release both clear its Bus
  * Master Enable, which on a bridge gates every request from below it, MSI
  * writes included, so either would stop each device behind the port, every
  * one another capsule's; and the registers after its BARs are its bus numbers

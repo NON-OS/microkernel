@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The takeover's step orders undone one at a time (L79), each a knob on
+//! The takeover's step orders undone one at a time, each a knob on
 //! the model: over starts where the model as built breaks nothing, the knob
 //! breaks the invariant named for it in some order of steps.
 

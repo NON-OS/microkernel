@@ -46,7 +46,7 @@ pub(super) fn redirect_reply(sender_pid: u32, target: &str) -> Redirect {
 
 // A port number is its owner's; `endpoint.<n>` names only the ids above the
 // port range, the image's numeric reply inboxes, so no name a capsule
-// registers can shadow a port another serves (L57).
+// registers can shadow a port another serves.
 pub(super) fn resolve_send_target(endpoint: u64) -> alloc::string::String {
     let numeric = alloc::format!("endpoint.{}", endpoint);
     match u32_arg(endpoint) {

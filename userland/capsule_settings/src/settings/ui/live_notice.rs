@@ -4,7 +4,7 @@
  */
 
 //! What the last remember or forget did, on the Wi-Fi page's join row: a
-//! remember that dropped a network from a full list names it (W2), here
+//! remember that dropped a network from a full list names it, here
 //! and nowhere else.
 
 use crate::settings::state::wifi::REMEMBERED;

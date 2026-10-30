@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The order of a take-back's steps in the takeover model (L79): as built,
+//! The order of a take-back's steps in the takeover model: as built,
 //! or with the release moved before the repoint (ReleaseFirst); after the
 //! last step the takeover reads bootfb's claim again.
 

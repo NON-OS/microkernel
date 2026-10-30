@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a purchase needs of `OP_GET_APP` (B8): the listing's market id as
+//! What a purchase needs of `OP_GET_APP`: the listing's market id as
 //! the market echoes it, its name as the market shows it, and the
 //! publisher's key, which the listing's on-chain id is derived from
 //!. The whole reply is read: a byte past the release count is

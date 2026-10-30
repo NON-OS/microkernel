@@ -53,7 +53,7 @@ fn the_wipe_walk_sees_every_live_grant_and_waits_on_a_held_table_only_as_long_as
 
     // A CPU stopped by IPI while holding the table, modelled by a walk that is
     // itself running: the inner walk tries for as long as its caller's bound
-    // says (L73), then reports that it could not look and visits nothing,
+    // says, then reports that it could not look and visits nothing,
     // instead of spinning on a lock nobody will release.
     let mut inner_saw = None;
     let outer = |_: &DmaGrant| {

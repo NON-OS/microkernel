@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The cover rule's reach is what the MMIO broker maps (L79). A request for
+//! The cover rule's reach is what the MMIO broker maps. A request for
 //! the whole of a BAR maps exactly the pages `pages` gives that BAR; no
 //! request inside the BAR maps a page outside them; one reaching past the
 //! BAR is refused. So a BAR holds the framebuffer exactly when some request

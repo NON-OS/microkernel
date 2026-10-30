@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The parts of the takeover model's world (L79): a claim's stage as a
+//! The parts of the takeover model's world: a claim's stage as a
 //! code, what a page of bootfb's mapping shows, and bootfb's claim entry.
 
 use super::types::Stage;

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which ops the vault gate is asked of (W3): the vault's and the shield's
+//! Which ops the vault gate is asked of: the vault's and the shield's
 //! seal and open, and the recovery words, which owner-checking alone left to
 //! any capsule that came to own a words entry. The dispatcher asks the gate
 //! before any op is served.

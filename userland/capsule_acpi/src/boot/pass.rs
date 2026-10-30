@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The first publish pass (L55), as steps that must all be done before
+//! The first publish pass, as steps that must all be done before
 //! init is told: the namespace loaded with `_INI` run, the host bridges'
 //! `_OSC`, the hidden functions given `_PS0` and probed (or their budget
 //! spent), and the platform records published. The flag goes up once,

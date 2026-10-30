@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/* A DMA run's frames are the broker's (K15, L35): exit_owned.rs takes them
+/* A DMA run's frames are the broker's: exit_owned.rs takes them
  * off an orphan's per-page free list. Pure: kernel_proofs::dma_surface. */
 
 extern crate alloc;

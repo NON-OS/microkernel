@@ -40,6 +40,6 @@ pub(super) fn resolve(
         return Err(PioError::BadOffset);
     }
     let _ = g.port_base.checked_add(port_offset).ok_or(PioError::BadOffset)?;
-    // The claim is held across the access itself (L66).
+    // The claim is held across the access itself.
     Ok((g, cur))
 }

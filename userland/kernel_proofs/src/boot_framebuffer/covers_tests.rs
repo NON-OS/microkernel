@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whose claim stops the console for good (L79): a function whose own BAR
+//! Whose claim stops the console for good: a function whose own BAR
 //! holds the framebuffer, or, when no BAR anywhere holds it, the display
 //! function if it is the only one. The rule over all its inputs.
 

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-//! libc's side of a claim answered Resetting (L80): the kernel's only EAGAIN
+//! libc's side of a claim answered Resetting: the kernel's only EAGAIN
 //! for a claim, which libc asks again on until a deadline the model's own,
 //! its count of tries only a backstop. The count must outlast the deadline
 //! however a wait is cut short: a sleep ends early only for a delivery to the

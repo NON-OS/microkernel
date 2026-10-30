@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! `MkBootFramebuffer`: the boot framebuffer's geometry, for the process
-//! holding its claim only (L31). The window itself comes from the device
+//! holding its claim only. The window itself comes from the device
 //! record and `MkMmioMap`; this answers what the record cannot carry: width,
 //! height, row pitch, pixel format, the first pixel's offset and the panel's
 //! size. Cap-gated on `Mmio` at the contract layer.

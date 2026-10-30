@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Device Control and PMCSR as a wipe writes them (L78), over every value
+//! Device Control and PMCSR as a wipe writes them, over every value
 //! read. Device Control put back never asks a second reset nor turns no-snoop
 //! on for the next holder; a power-state write sets the state asked, never
 //! writes PME_Status as 1 (that clears a wake the next driver should see),

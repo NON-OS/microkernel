@@ -16,7 +16,7 @@
 
 //! IVMD: memory firmware reserved for devices behind an AMD IOMMU (spec
 //! 48882, 5.2.2.3), the ranges a device keeps one to one while unclaimed
-//!, as RMRRs are on VT-d. Pure, over the IVRS bytes, so the host
+//! as RMRRs are on VT-d. Pure, over the IVRS bytes, so the host
 //! proofs can feed it hostile tables.
 
 const FIRST_BLOCK: usize = 48;

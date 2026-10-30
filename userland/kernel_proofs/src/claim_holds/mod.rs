@@ -19,7 +19,7 @@
  * for the capsule that serves it, virtio-balloon for no one yet, the boot
  * framebuffer for driver.bootfb0 alone; the records firmware tables publish
  * for the service that drives each kind, the SCI's for the ACPI capsule,
- * an SD host's for the SD host capsule, any other refused (L59); the VMBus
+ * an SD host's for the SD host capsule, any other refused; the VMBus
  * root for the VMBus core alone; a device-tree xHCI controller for the xHCI
  * capsule. The kernel's pure rules are included by path.
  */

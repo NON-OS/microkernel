@@ -22,7 +22,7 @@ use nonos_libc::mk_exit;
 
 use crate::firmware;
 
-/// A GPU driver has the scanout and the claim is refused for good (L79):
+/// A GPU driver has the scanout and the claim is refused for good:
 /// one line, no output served, and gone at once rather than retried.
 pub fn refused() -> ! {
     let line = b"driver.bootfb: the boot framebuffer is a GPU driver's now; not started\n";

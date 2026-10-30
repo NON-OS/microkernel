@@ -39,7 +39,7 @@ pub fn route_msi(
         return Err(VtdError::InterruptRemappingOff);
     }
     // Its messages may carry a bridge's id, which an entry checked against
-    // its own would block: it gets no entry (L54).
+    // its own would block: it gets no entry.
     if !super::super::own_id_read::own_id(bus, device, function) {
         return Err(VtdError::SharedRequesterId);
     }

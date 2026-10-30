@@ -34,7 +34,7 @@ pub(crate) struct InstallParams<'a> {
      */
     pub on_behalf_of: Option<AttestedParent>,
     /// What the gate proved, the capsule's namespace and whether it is the
-    /// system's own, all recorded before the pid can run (L61).
+    /// system's own, all recorded before the pid can run.
     pub gate: &'a Preflighted,
     /// The process's arguments, set before it is queued to run (admit.rs).
     pub argv: Option<Vec<String>>,

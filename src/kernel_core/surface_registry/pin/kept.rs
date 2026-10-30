@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The frames an exiting group's tables must not free, keyed by those
-//! tables (L46). Keyed by the thread that froze the list, it was lost when
+//! tables. Keyed by the thread that froze the list, it was lost when
 //! another thread's release was the one that freed the tables.
 
 use alloc::collections::BTreeMap;

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * What the wallet holds of the meter (B8): its last ACCOUNT reply, read when
+ * What the wallet holds of the meter: its last ACCOUNT reply, read when
  * the meter screen opens and on Refresh, never in the background.
  */
 
@@ -39,7 +39,7 @@ pub struct MeterUi {
     pub topup_text: String,
     pub job: Option<super::job::MeterJob>,
     pub news: Option<String>,
-    /* A purchase the store named (B8), and when to ask the mailbox next. */
+    /* A purchase the store named, and when to ask the mailbox next. */
     pub purchase: Option<alloc::boxed::Box<crate::wallet::order::intake::Pending>>,
     pub take_at: u64,
     /* The one ASYNC request to settle (v1.4.53), for a dispute or refund. */

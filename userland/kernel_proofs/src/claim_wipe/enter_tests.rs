@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The enter model as built (L78): in every order of A's give_back and exit,
+//! The enter model as built: in every order of A's give_back and exit,
 //! the wipe stepped to its end by any stepper, B's and A2's claims, a fault
 //! and a kill, over each fate of the device, every invariant holds; and the
 //! cases that matter are reached, counted against floors.

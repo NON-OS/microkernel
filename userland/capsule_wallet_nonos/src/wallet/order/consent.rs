@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * A purchase on its consent screen, one step a tick (B8): the market read
+ * A purchase on its consent screen, one step a tick: the market read
  * one call at a time, the screen opened only when it is all read
  * (guard/open.rs), then the shield's quote for an escrow price, so the
  * window never waits on more than one reply. A voucher listing's open

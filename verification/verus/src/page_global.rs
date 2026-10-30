@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A user page is never GLOBAL (P-06). With CR4.PGE on, a GLOBAL entry
+//! A user page is never GLOBAL. With CR4.PGE on, a GLOBAL entry
 //! survives the CR3 write that leaves an address space, so a GLOBAL user
 //! entry would stay readable to the next process. `to_pte_g` is `to_pte` with
 //! the GLOBAL request, as `PagePermissions::to_pte_flags` and

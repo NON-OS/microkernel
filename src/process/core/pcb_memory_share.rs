@@ -56,7 +56,7 @@ impl ProcessControlBlock {
             mem.resident_pages.fetch_sub(pages, Ordering::Relaxed);
         }
         drop(mem);
-        // And its addresses, which `reserve_unmapped` took (L54).
+        // And its addresses, which `reserve_unmapped` took.
         let _ = self.mmap_va.lock().release(start.as_u64(), pages);
     }
 }

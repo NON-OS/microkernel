@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Seeded bridge trees for the pick sweep (L77): root ports, switches nested
+//! Seeded bridge trees for the pick sweep: root ports, switches nested
 //! three deep, ports reporting anything, bridges firmware left unset.
 
 use super::port_rule::{Bridge, DOWNSTREAM, UPSTREAM};

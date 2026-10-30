@@ -16,7 +16,7 @@
 
 /*
  * Where a withdrawal goes: a fresh address of this wallet, or this
- * machine's meter (B7). The meter's address comes from the meter itself at
+ * machine's meter. The meter's address comes from the meter itself at
  * review; nothing here is typed.
  */
 

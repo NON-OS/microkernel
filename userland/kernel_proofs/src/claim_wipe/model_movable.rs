@@ -44,7 +44,7 @@ pub(super) fn movable(w: &World, a: usize) -> bool {
         Some(s) => blocked(w, s, a),
         None => takes_wipes(t) && w.wipes_by.is_some_and(|b| b != a),
     };
-    // devices.rs: the exit begins once no thread of its group runs (L77).
+    // devices.rs: the exit begins once no thread of its group runs.
     let busy = |b: usize| in_kernel(&w.threads[b]);
     let exits = a < 9 && a % 3 == 2 && t.step == 0 && (busy(a - 2) || busy(a - 1));
     active(w, a) && t.at <= w.now && !waits && !exits

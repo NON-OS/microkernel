@@ -29,4 +29,4 @@ Library for Settings, the setup wizard and net.core: finds the Wi-Fi driver, spe
 - **medium** `saved/file.rs:23`: the sealed saved-networks record has no generation counter, so an older one can be restored, bringing back a forgotten network or clearing a WPA3-only flag. -> none
 - **medium** `saved/store.rs:64`: the WPA3-only downgrade guard fails open on any load error, so a network saved as WPA3 is joined without it. -> none (near W2's SAE pin)
 - **medium** `join_wire.rs:69`: a passphrase over 64 bytes is silently cut to 64 and sent as a different credential. -> none
-- low: `driver/call.rs:56` replies not checked against the request's magic, op and id (W6); `driver/stage.rs:68` firmware_step can never read a step from rtl8821ce; `saved/write.rs:28` the saved list is replaced non-atomically; `wire.rs:69` panel proofs exercise a stale model, files over 75 lines.
+- low: `driver/call.rs:56` replies not checked against the request's magic, op and id; `driver/stage.rs:68` firmware_step can never read a step from rtl8821ce; `saved/write.rs:28` the saved list is replaced non-atomically; `wire.rs:69` panel proofs exercise a stale model, files over 75 lines.

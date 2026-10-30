@@ -58,10 +58,10 @@ pub(super) struct Proc {
     pub dead: bool,
     pub attempts: u8,
     /// When the attempt began and how often it asked again: libc retries
-    /// for a bounded time (L80), its count of tries a backstop.
+    /// for a bounded time, its count of tries a backstop.
     pub started: u64,
     pub tries: u32,
-    /// The kept bound as the record's hold asked it (L80).
+    /// The kept bound as the record's hold asked it.
     pub over_cap: bool,
     /// The loss the attempt began on, past its hold and back by then (I8).
     pub owed_back: Option<u64>,

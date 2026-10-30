@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * A publisher transaction signed (B8), once Sign was pressed armed and
+ * A publisher transaction signed, once Sign was pressed armed and
  * GAS read again: intent::sign_at's checks at the nonce both paths share,
  * then the main key's signature, as a payment's (send/confirm_sign.rs),
  * in the send ledger before it is broadcast (intent::after_sign). Its data

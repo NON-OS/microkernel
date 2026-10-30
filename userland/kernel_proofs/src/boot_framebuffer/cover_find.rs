@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The find the kernel runs once at boot (bootfb/cover.rs), restated over
-//! test records (L79): each record asked whether its own BARs hold the
+//! test records: each record asked whether its own BARs hold the
 //! framebuffer, that answer folded over every record, the display functions
 //! counted, and each record then judged by the kernel's own rule. The glue
 //! tests read the kernel's text to hold it to this same shape.

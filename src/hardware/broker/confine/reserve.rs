@@ -40,7 +40,7 @@ pub(super) fn reserve(c: &mut Capsule, device: DeviceAddress) -> Result<(), &'st
     // the same host bridge, is in place; anything else must be admitted.
     let ranges = unheld(&c.reserved, found.ranges());
     // Everything below the bump pointer may be granted: held as one span.
-    // Its RMRR regions (L60) are held too, so no range lands on one.
+    // Its RMRR regions are held too, so no range lands on one.
     let mut held: Vec<(u64, u64)> = c.reserved_spans();
     if c.next_iova > IOVA_BASE {
         held.push((IOVA_BASE, c.next_iova));

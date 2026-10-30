@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The page steps the model's unmap and repoint stand for, read (L79): an
+//! The page steps the model's unmap and repoint stand for, read: an
 //! unmap holds its claim, bound to a name, from before the grant is removed
 //! until its pages are gone and its VA is given back; a take-back
 //! drains before it asks for the holder's tables; the repoint moves a page

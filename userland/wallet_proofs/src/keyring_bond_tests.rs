@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Records kept by name (L33): a Bluetooth bond outlives the pid that stored
+//! Records kept by name: a Bluetooth bond outlives the pid that stored
 //! it, goes to whoever holds the name next, and to nobody else.
 
 use crate::bond_gate::{holder_of, BOND_HOLDERS};

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Which DMA grant a surface may be registered over (L35): a GPU driver's
+ * Which DMA grant a surface may be registered over: a GPU driver's
  * scanout, wholly inside one grant of its own. The kernel's pure rule is
  * included by path.
  */

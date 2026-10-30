@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Who holds a claim, as pure rules `kernel_proofs` checks (L32).
+//! Who holds a claim, as pure rules `kernel_proofs` checks.
 
 /// A thread group of 0 means the thread stands for itself.
 pub(crate) const fn group_of(tgid: u32, pid: u32) -> u32 {

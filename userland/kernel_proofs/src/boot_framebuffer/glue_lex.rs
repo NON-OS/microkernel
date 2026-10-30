@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A kernel file cut down to the code a glue check may match (L79). Line
+//! A kernel file cut down to the code a glue check may match. Line
 //! and block comments go, nested or not, so text inside a comment never
 //! passes for code; all whitespace goes, so a needle holds however the
 //! formatter wraps a line. A string literal keeps its quotes, so a brace

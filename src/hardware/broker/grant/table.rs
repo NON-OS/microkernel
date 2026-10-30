@@ -36,7 +36,7 @@ fn next_grant_id() -> u64 {
     NEXT_GRANT_ID.fetch_add(1, Ordering::SeqCst)
 }
 
-// Insert a new grant, while its claim stands (L69) and within its holder's
+// Insert a new grant, while its claim stands and within its holder's
 // quota, both asked under the table's lock. The caller has validated
 // the claim, the BAR and the alignment, and mapped the pages, which it
 // unmaps again on a refusal: None when the claim is gone.

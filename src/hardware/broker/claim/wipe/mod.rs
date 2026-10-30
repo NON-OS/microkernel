@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A device wiped between holders (L78). A PCI function's reset runs when its
+//! A device wiped between holders. A PCI function's reset runs when its
 //! last claim's entry goes, stepped one act at a time, every wait a deadline;
 //! a claim while it runs is told Resetting before any entry exists; a
 //! function no reset can be trusted on goes back only to its last holder's

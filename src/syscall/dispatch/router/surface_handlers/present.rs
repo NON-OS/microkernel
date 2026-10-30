@@ -26,7 +26,7 @@ use super::super::surface_ops::{map_err, EINVAL, ESRCH};
 static FIRST_SURFACE_PRESENT: AtomicBool = AtomicBool::new(false);
 
 pub(in super::super) fn do_present(handle: u64, x: u64, y: u64, w: u64, h: u64) -> SyscallResult {
-    // Surfaces are held by the process, not the thread that asked (L36).
+    // Surfaces are held by the process, not the thread that asked.
     let Some(pid) = current_pid().map(crate::hardware::broker::holder_of) else {
         return errno(ESRCH);
     };

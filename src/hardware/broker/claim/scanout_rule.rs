@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What a takeover of the boot framebuffer's scanout does next, and whether
-//! a claim may be made ready beside it (L79), as pure rules the proofs mount
+//! a claim may be made ready beside it, as pure rules the proofs mount
 //! with a model of every claim, release, exit and kernel draw racing it.
 
 use super::types::{ClaimError, Stage};

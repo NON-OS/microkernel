@@ -16,8 +16,8 @@
 
 //! The claim on the boot framebuffer decides who draws on it: while a driver
 //! holds it the kernel stops, and when it is given back, or its holder exits,
-//! the kernel draws again (L31), unless a GPU driver's claim took its
-//! scanout, after which nobody but that driver draws on it (L79).
+//! the kernel draws again, unless a GPU driver's claim took its
+//! scanout, after which nobody but that driver draws on it.
 
 extern crate alloc;
 
@@ -31,8 +31,8 @@ use crate::sys::serial;
 
 /// A claim made ready in the claims' hold `claims`. The boot framebuffer's
 /// hold is set under it; once it is let go, a draw already under way ends
-/// before the holder's first picture (L79), and the line is said: a serial
-/// line takes milliseconds, and the shutdown's quiesce waits only one (L77).
+/// before the holder's first picture, and the line is said: a serial
+/// line takes milliseconds, and the shutdown's quiesce waits only one.
 pub(in crate::hardware::broker) fn admitted(claims: MutexGuard<'static, Vec<Claim>>, id: u64) {
     if is_boot_framebuffer(id) {
         set_held(true);

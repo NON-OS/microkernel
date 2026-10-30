@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The payee a paid listing's detail says (B9): the commerce block's own,
+//! The payee a paid listing's detail says: the commerce block's own,
 //! decoded as the store and the wallet both decode it, in full and in the
 //! EIP-55 spelling the EIP itself gives; none where nothing is sold.
 

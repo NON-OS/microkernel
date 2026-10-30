@@ -15,12 +15,12 @@ pub(super) fn finalize_teardown(pid: Pid) {
     };
 
     // Its devices first, once no CPU runs a thread of its group: tried again
-    // on a later tick, before anything here is undone, never dropped (L77).
+    // on a later tick, before anything here is undone, never dropped.
     if !super::devices::release_if_last(pid, false, false) {
         super::pending::enqueue(pid);
         return;
     }
-    // Before the tables go: what they must keep is frozen first (L46).
+    // Before the tables go: what they must keep is frozen first.
     super::surfaces::give_up_if_last(pid, &pcb);
     let heir = crate::process::address_space::lifecycle::holder::holder_after(&pcb);
     crate::process::address_space::lifecycle::release(&pcb);

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Where the boot framebuffer lies in physical memory, kept for the broker,
-//! which publishes it as a device a display driver can claim (L31).
+//! which publishes it as a device a display driver can claim.
 
 use spin::Once;
 

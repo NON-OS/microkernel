@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Kernel glue read as text where it cannot run here (L79), cut down by
+//! Kernel glue read as text where it cannot run here, cut down by
 //! glue_lex to code alone: no comment, no whitespace, and in the bare form
 //! no string literal's text.
 

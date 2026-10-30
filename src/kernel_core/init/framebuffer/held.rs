@@ -16,10 +16,10 @@
 
 //! While a display driver holds the boot framebuffer's claim, the kernel draws
 //! nothing on it: the present blit, the heartbeat and the boot log all ask
-//! `drawable`, so the driver's picture is never scribbled over (L31). The
+//! `drawable`, so the driver's picture is never scribbled over. The
 //! stop and panic screens still draw, since a halted machine has to say why.
 //! Once a GPU driver's claim takes the scanout the console stops for the rest
-//! of the boot (L79): stopped while the takeover runs, latched gone as that
+//! of the boot: stopped while the takeover runs, latched gone as that
 //! claim is made ready, and drawing again if the claim fails.
 
 use core::sync::atomic::{AtomicBool, AtomicU32, Ordering::SeqCst};
@@ -38,7 +38,7 @@ pub(crate) fn set_held(held: bool) {
 /// set before the count is read, so one of the two always sees the other.
 /// TAKERS before GONE: a takeover latches GONE before it leaves TAKERS, so a
 /// draw that finds TAKERS empty then finds GONE set; read the other way, it
-/// could miss both and draw on a scanout a GPU driver holds (L79).
+/// could miss both and draw on a scanout a GPU driver holds.
 pub(super) fn stopped() -> bool {
     HELD.load(SeqCst) || TAKERS.load(SeqCst) > 0 || GONE.load(SeqCst)
 }

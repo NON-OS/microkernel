@@ -16,7 +16,7 @@
 
 /*
  * The kernel's hardware types the proofs need, by path, and the broker's
- * class table (L79).
+ * class table.
  */
 
 pub mod ahci_capsule;

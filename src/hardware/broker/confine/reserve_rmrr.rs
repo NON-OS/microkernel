@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A claimed device's reserved regions in its capsule's domain (L60). Each
+//! A claimed device's reserved regions in its capsule's domain. Each
 //! RMRR that names the device is mapped one to one before the device enters
 //! the domain, so the DMA firmware said it keeps doing (integrated graphics'
 //! stolen memory, USB legacy buffers) still lands. A region that fails a
@@ -28,7 +28,7 @@ use super::table::Capsule;
 use crate::memory::addr::PhysAddr;
 use crate::memory::iommu::{DeviceAddress, IommuProtection};
 
-/// `others`: every region another capsule's domain holds, never shared (L63).
+/// `others`: every region another capsule's domain holds, never shared.
 pub(super) fn map_reserved(
     c: &mut Capsule,
     device_id: u64,

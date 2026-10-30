@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A DMA grant's run that a surface still holds (L35). A GPU driver's
+//! A DMA grant's run that a surface still holds. A GPU driver's
 //! scanout is its own grant, mapped by the compositor. When the grant goes,
 //! at an unmap, a release or the driver's exit, the device loses it at once;
 //! its frames wait here while another process maps them, and go back to the

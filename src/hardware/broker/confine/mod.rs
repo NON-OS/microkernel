@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// The groups below open switches found at boot (L72): pure, every arch.
+// The groups below open switches found at boot: pure, every arch.
 mod acs_groups;
 mod acs_refusal;
 mod acs_span;

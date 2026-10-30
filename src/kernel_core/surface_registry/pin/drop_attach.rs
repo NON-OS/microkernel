@@ -28,7 +28,7 @@ use super::unmap_receiver::unmap_receiver;
  * attach record, then its reference. Orphaned frames no other process maps
  * any more are freed afterwards. One drop at a time finds the record, takes
  * its view down and forgets that record, so a second release racing this one
- * never forgets the record of a view an attach mapped in between (L57).
+ * never forgets the record of a view an attach mapped in between.
  */
 pub fn drop_attach(pid: u32, handle: SurfaceHandle) -> Result<u32, RegistryError> {
     {

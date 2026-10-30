@@ -47,7 +47,7 @@ pub const SYS_ACPI_OSC_GRANT: u64 = tag4(b"MAOG");
 pub const SYS_NUMA_HMAT: u64 = tag4(b"MNHM");
 pub const SYS_ACPI_LPIT: u64 = tag4(b"MALP");
 pub const SYS_BOOT_LOGO: u64 = tag4(b"MBGL");
-/// The ACPI capsule's first publish pass is done (L55); its owner only.
+/// The ACPI capsule's first publish pass is done; its owner only.
 pub const SYS_ACPI_FIRST_PASS: u64 = tag4(b"MAFP");
 /// A native hot-plug slot's four registers and what is below it; acpi owner only.
 pub const SYS_ACPI_SLOT: u64 = tag4(b"MRSL");

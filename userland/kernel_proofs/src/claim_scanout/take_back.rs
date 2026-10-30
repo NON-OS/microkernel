@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! bootfb's claim taken back by a covering claim in the takeover model
-//! (L79), scanout::take_back's steps: retired, the paths inside waited out,
+//! scanout::take_back's steps: retired, the paths inside waited out,
 //! its grants drained, each page still showing the framebuffer pointed at
 //! the sink in one hold, the one TLB round, then the release; ReleaseFirst
 //! puts the release before the repoint. A refused retire reads again.

@@ -17,7 +17,7 @@
 //! The interrupt sources DMAR scopes to a remapping unit: each I/O APIC and
 //! MSI-capable HPET with the requester id its interrupt messages carry. An
 //! entry remapping one of their lines must name that id, so a strict
-//! remapping (L44) is possible only for a source listed here.
+//! remapping is possible only for a source listed here.
 
 use core::sync::atomic::{AtomicUsize, Ordering};
 

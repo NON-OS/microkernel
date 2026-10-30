@@ -32,7 +32,7 @@ pub(super) struct Orphan {
     pub frames: Vec<PhysAddr>,
     /* The frames the owner really unmapped, freed by `reclaim`. */
     pub free: Vec<PhysAddr>,
-    /* The DMA run the frames belong to, freed through the broker (L35). */
+    /* The DMA run the frames belong to, freed through the broker. */
     pub grant: Option<(u64, u64)>,
     /* The exited group's tables, which map the frames until they are freed. */
     pub tables: u64,
@@ -45,7 +45,7 @@ pub(super) struct Orphan {
 pub(super) static ORPHANS: Mutex<Vec<Orphan>> = Mutex::new(Vec::new());
 
 /* Free every orphaned frame list that no other process maps any more, under
- * GATE; then the DMA runs held for them (L35), once GATE is let go:
+ * GATE; then the DMA runs held for them, once GATE is let go:
  * grant_run's free_unheld takes it itself. Taken inside, every reclaim (a
  * drop_attach, an munmap, a process exit) froze the surface path on every
  * CPU (reclaim_rule.rs). */

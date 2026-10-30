@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! How many BAR registers a configuration header has (L58). A type 0 header
+//! How many BAR registers a configuration header has. A type 0 header
 //! has six. A PCI-to-PCI bridge's has two: the dwords after them hold its bus
 //! numbers, its I/O, memory and prefetchable windows and its secondary status.
 //! A CardBus bridge's has one, before its socket registers (PCI-to-PCI Bridge
@@ -43,7 +43,7 @@ pub(crate) const fn upper_half_fits(index: u8, slots: u8) -> bool {
 }
 
 /// An I/O BAR's size from what it read back once all ones were written: its
-/// lowest address bit kept, within the 16 bits ports have here (L68). A
+/// lowest address bit kept, within the 16 bits ports have here. A
 /// decoder may hardwire bits 31:16 to zero, and sizing over 32 bits made such
 /// a BAR (an SMBus or IDE controller's) 0xFFFF_00xx ports, never granted. None
 /// is 0.

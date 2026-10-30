@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Who holds a claim (L32): a process's thread group, so a worker thread's
+ * Who holds a claim: a process's thread group, so a worker thread's
  * exit leaves the device with the process and only the last thread gives it
  * back. The kernel's pure rule is included by path.
  */

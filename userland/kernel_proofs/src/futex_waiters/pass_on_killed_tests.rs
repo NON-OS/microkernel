@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A wake passed on by a waiter returning early skips one killed but not yet
-//! swept, so the live waiter behind it is woken (L81). Run on the kernel's
+//! swept, so the live waiter behind it is woken. Run on the kernel's
 //! own waiter list: the wake took the returning waiter, a killed one stands
 //! next, and the pass-on must reach the sleeper behind it.
 

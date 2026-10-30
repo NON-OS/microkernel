@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The router's notice that a Bluetooth device paired without
-//! authentication was refused on the secure path (G-76): the user is told,
+//! authentication was refused on the secure path: the user is told,
 //! over the lock screen or prompt it was refused at, to pair it again. The
 //! router says it at most once a minute; a notice still up is not repeated.
 //! Which frame is the notice: state/router_notice.rs.

@@ -26,7 +26,7 @@ use super::world_cases::{BOUND, CAP_LOST, HOLD_LOST, RETRIED};
 use super::world_knob::Knob;
 use super::world_thread::{Path, Thread};
 
-/// libc's bound, past the longest a wipe stays pending (L80), and its count
+/// libc's bound, past the longest a wipe stays pending, and its count
 /// of tries, which sleeps of 1 ms or more never spend first (both libc's).
 pub(super) const RESET_MS: u64 = 5000 * MS;
 pub(super) const TRY_CAP: u32 = 5000;

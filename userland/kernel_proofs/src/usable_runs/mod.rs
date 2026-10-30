@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The boot map's usable RAM kept as merged runs (L60), so a reserved region
+ * The boot map's usable RAM kept as merged runs, so a reserved region
  * is mapped for a device only clear of memory the allocator hands out. The
  * kernel's runs are included by path.
  */

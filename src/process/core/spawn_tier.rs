@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whether a process was spawned from the system's own namespace (L61), set
+//! Whether a process was spawned from the system's own namespace, set
 //! on its PCB before it can first run. The attesting root cannot say it: the
 //! image's capsule set is proved under the vendor root, a store app's
 //! included, so a check keyed on the root admitted a publisher's capsule as

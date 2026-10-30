@@ -22,7 +22,7 @@ the stop and panic screens still draw. Releasing the claim, or the holder's
 exit, gives it back to the kernel.
 
 A claim of a function whose memory holds the framebuffer takes its scanout for
-the rest of the boot (L79). The function is found once at boot: a record with a
+the rest of the boot. The function is found once at boot: a record with a
 memory BAR sharing a page with the framebuffer, or, when no BAR holds it, the
 one display-class PCI function if there is exactly one; with two or more and
 none holding it, no claim takes it, and the boot log says which applies. Such a

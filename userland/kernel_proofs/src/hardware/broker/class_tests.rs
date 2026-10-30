@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which PCI functions find counts as displays (L79): those whose base
+//! Which PCI functions find counts as displays: those whose base
 //! class code is the display class, 0x03, whatever their subclass and
 //! programming interface, and no others. An arm placed before the display
 //! arm that took some of its codes, or a display arm narrowed to some

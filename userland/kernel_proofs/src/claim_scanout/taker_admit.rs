@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A covering claim's admit in the takeover model (L79), pending::admit's
+//! A covering claim's admit in the takeover model, pending::admit's
 //! one hold of the table's lock: the Making check, the scanout check, the
 //! wipe record, Ready and GONE latched; refused, nothing written. Where the
 //! start has G1's holder exit, that exit lands before this admit.

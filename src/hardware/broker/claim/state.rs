@@ -24,7 +24,7 @@ use spin::{Mutex, MutexGuard};
 pub(super) static CLAIMS: Mutex<Vec<Claim>> = Mutex::new(Vec::new());
 
 /// The table, waited for answering TLB shootdowns: a holder may be in a round
-/// that waits on this CPU's answer (L75).
+/// that waits on this CPU's answer.
 pub(super) fn claims() -> MutexGuard<'static, Vec<Claim>> {
     crate::smp::lock_responsive(&CLAIMS)
 }

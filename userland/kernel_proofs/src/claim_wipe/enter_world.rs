@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The world of the enter model (L78): A holding the function, its release
+//! The world of the enter model: A holding the function, its release
 //! and exit, the wipe its going owes, B (another service) and A2 (A's own,
 //! restarted) claiming it, the device as it truly is, and the clock.
 

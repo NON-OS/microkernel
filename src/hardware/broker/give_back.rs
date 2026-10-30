@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A claim given back with everything granted against it (L66). Retired first,
+//! A claim given back with everything granted against it. Retired first,
 //! so nothing more is granted and a grant being made is recorded before the
 //! drains look; Bus Master stopped, so nothing the device still has in flight
 //! lands in a DMA frame freed below; its MMIO, IRQ, DMA and PIO grants torn
@@ -24,7 +24,7 @@ use super::{dma_release_for_device, irq_release_for_device, pio_release_for_devi
 use super::{quiesce_held_device, release_device, release_for_device, ClaimError};
 
 /// The released epoch, or why nothing was given back. All of it is bound to
-/// the claim the retire found (L69).
+/// the claim the retire found.
 pub fn give_back(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     let epoch = super::claim::retire(pid, device_id)?;
     let _ = quiesce_held_device(pid, device_id, epoch);

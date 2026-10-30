@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * A purchase's reading ended (B8): the consent opens, raised and focused,
+ * A purchase's reading ended: the consent opens, raised and focused,
  * only on terms read for the names asked; otherwise the purchase goes,
  * said in one sentence, and nothing of its terms was ever shown. Focus
  * lost over the consent starts the reading again (read_again).

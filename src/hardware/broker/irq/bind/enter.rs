@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A bind's last step (L69): its grants entered only while its claim stands.
+//! A bind's last step: its grants entered only while its claim stands.
 //! An exit drops the claim and then drains the records, so a grant entered
 //! after the drain would keep a vector routed for a capsule that is gone; one
 //! refused has what the bind programmed undone instead (`undo_refused`).

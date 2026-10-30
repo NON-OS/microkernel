@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The reserved regions a PCI requester keeps doing DMA to, by the platform's
-//! own tables (L60): the RMRRs DMAR lists on x86_64. Elsewhere none are read
+//! own tables: the RMRRs DMAR lists on x86_64. Elsewhere none are read
 //! yet; AMD-Vi's IVMD and the IORT's reserved ranges are rows of their own.
 //! The device tree's ranges on aarch64 are not these: they take the
 //! all-or-nothing path in `reserved_regions` (C-40).

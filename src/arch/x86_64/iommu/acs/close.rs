@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Closing every switch downstream port that can be closed, at boot before
-//! any claim (L72), and grouping what sits below a switch that cannot.
+//! any claim, and grouping what sits below a switch that cannot.
 //! Only segment 0, through the MCFG window once it is trusted: where it is
 //! missing or refused, no port reads as closed and every switch is a group.
 
@@ -30,7 +30,7 @@ use crate::drivers::pci::types::PciDevice;
 use crate::hardware::broker::{set_acs_groups, AcsPort as Port};
 
 /// `devices` is the whole boot scan, every bus, so no switch is left half
-/// read (L76).
+/// read.
 pub(crate) fn close_switches(devices: &[PciDevice]) {
     let mut ports: Vec<Port> = Vec::new();
     for d in downstream_ports(devices) {

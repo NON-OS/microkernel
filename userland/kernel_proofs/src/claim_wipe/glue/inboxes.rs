@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The most a claimant's inboxes hold before it reads them, read from the
-//! kernel (L80): a capsule owns `proc.<pid>` at the default capacity and
+//! kernel: a capsule owns `proc.<pid>` at the default capacity and
 //! `stdin.<pid>` at its own from its first moment, each registration pinned
 //! whole (whole), and the default the constant itself. Its `stdout.<pid>`
 //! is not counted: only the claimant itself writes it, so no delivery there

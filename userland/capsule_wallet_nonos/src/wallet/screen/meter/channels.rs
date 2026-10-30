@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The meter's channels on its screen (B8): each a line to pick, and for the
+//! The meter's channels on its screen: each a line to pick, and for the
 //! picked one a top-up amount and the two things the wallet may ask: top it
 //! up, or close it. Each starts a job in the meter (v1.4.14).
 

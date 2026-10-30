@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a bind refused at its last step undoes (L69, L73, L75): its claim
+//! What a bind refused at its last step undoes: its claim
 //! was moved on by an exit while it ran. The bind still holds the claim, and
 //! the entry stays until it lets go, so no newer claim can hold the device
 //! yet: what the bind wrote to the device is taken back with no lock held,

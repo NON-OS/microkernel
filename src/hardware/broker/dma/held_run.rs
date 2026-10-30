@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! DMA runs a surface is registered over (L35). A GPU driver's scanout is
+//! DMA runs a surface is registered over. A GPU driver's scanout is
 //! its own DMA grant, registered as the primary surface the compositor
 //! maps. When the grant goes, the device loses it at once, but its frames
 //! wait for the registry while another process still maps them.
@@ -30,14 +30,14 @@ pub fn grant_run_covering(holder: u32, va: u64, len: u64) -> Option<(u64, u64)> 
 
 /// Scrub a run and give it back where it came from: its pool, or the
 /// allocator. The device lost it when its grant was torn down; a run its
-/// device's wipe still keeps waits for that wipe (L78).
+/// device's wipe still keeps waits for that wipe.
 pub fn free_held_run(physical_start: u64, length: u64) {
     let kept = super::kept::defer(physical_start, length);
     if kept == Some(true) {
         return;
     }
     // A kept run is an unconfined grant (`keeps`) counted until it is freed;
-    // its teardown left the count to whoever frees it (L80).
+    // its teardown left the count to whoever frees it.
     if kept == Some(false) {
         crate::memory::iommu::note_unconfined_released(1);
     }

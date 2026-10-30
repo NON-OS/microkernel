@@ -52,7 +52,7 @@ pub(super) fn record_run(
             irte: irtes[i],
         });
     }
-    // Active before the records are seen (L77), as for a line.
+    // Active before the records are seen, as for a line.
     for i in 0..n {
         slots::activate(base_slot + i, base_grant + i as u64, NO_LINE);
     }

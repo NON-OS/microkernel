@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A release's last steps (L66, L75). A claim being released stays in the
+//! A release's last steps. A claim being released stays in the
 //! table, so no newer claim of the device can be made, until every release of
 //! it and every path still inside it is done; the last of them removes it.
 
@@ -44,9 +44,9 @@ pub(super) fn settle(key: Key) -> Option<bool> {
     Some(last)
 }
 
-/// Release the claim `pid` retired at `epoch`, and that one only (L69). Its
+/// Release the claim `pid` retired at `epoch`, and that one only. Its
 /// device stops while the entry, which this release keeps, still names it,
-/// so a newer claim's device is never the one stopped (L75).
+/// so a newer claim's device is never the one stopped.
 pub fn release(pid: u32, device_id: u64, epoch: u64) -> Result<u64, ClaimError> {
     let key = (pid, device_id, epoch);
     if !claims().iter().any(named(key)) {
@@ -61,7 +61,7 @@ pub fn release(pid: u32, device_id: u64, epoch: u64) -> Result<u64, ClaimError> 
 }
 
 /// Stop a device a release holds from mastering the bus, before its grants
-/// are torn down. The entry stays while this release is under way (L75), so
+/// are torn down. The entry stays while this release is under way, so
 /// the device stopped is this claim's; false, and nothing written, when no
 /// claim being released is at `epoch`.
 pub fn quiesce_held(pid: u32, device_id: u64, epoch: u64) -> bool {

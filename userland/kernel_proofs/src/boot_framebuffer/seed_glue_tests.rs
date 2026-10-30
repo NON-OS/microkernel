@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! When find runs, read as text (L79). The broker is seeded in one fixed
+//! When find runs, read as text. The broker is seeded in one fixed
 //! order: the PCI table first, the devices the firmware's description names
 //! (C's, on aarch64), its port windows and the legacy records next, then the
 //! framebuffer's registration, which finds who covers it; so every record

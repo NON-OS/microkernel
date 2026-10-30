@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A claim's wipe record, written as it is admitted (L78): the function's
+//! A claim's wipe record, written as it is admitted: the function's
 //! last holder from here on, so its release owes the wipe. A withdrawn claim
 //! writes none, so the record before it, kept or lost, stands unchanged.
 

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The enter model's clock (L78): it moves only to the next instant some
+//! The enter model's clock: it moves only to the next instant some
 //! rule's answer, or the device's, can change. Between two such instants
 //! every answer is the same, so no order is lost by skipping the time
 //! between; the seeded model tries the times in between.

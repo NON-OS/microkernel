@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! register_boot_framebuffer's order, read as text (L79). Who covers the
+//! register_boot_framebuffer's order, read as text. Who covers the
 //! framebuffer is found the moment its window is known, before any way out,
 //! so it is found whether the record is published or not; and before the
 //! record exists, so the framebuffer's own BAR never counts as holding it.

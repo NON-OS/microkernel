@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The admit and the claim's last steps read whole (L79). The first checks
+//! The admit and the claim's last steps read whole. The first checks
 //! found each step after the one before, which let a line slip in between:
 //! Ready written ahead of the scanout check passed them, and the claim's
 //! own refusal then withdraws an entry a sibling thread may have mapped.

@@ -93,6 +93,7 @@ Downloads are capped before they are read and written to the cache only whole (`
 
 Any fault stops the run with a message, so a seal lists every recipe or none. That covers a missing or malformed recipes file or lock, a bad publisher key, an index that fails its signature or has moved past the lock, and a package that fails any check. A failed package's cached copy is dropped, so the next run fetches it again (`tools/nonos_market_catalogue/run.py`, `catalogue_run`). A recipe inside another family's namespace (`kali.`, `blackarch.`, `qwen-`, `nonos-`) is refused. `python3 -m nonos_market_catalogue.documents OUT.json DIR`, run from `tools/`, splits the index into one unsigned document per listing, as committed under `nonos-data/market/catalogue/`. The publisher then signs each one with `marketplace-index sign-release`.
 
+`mk/21-market.mk` and the seal (`tools/nonos_seal/market.py`) pass `--catalogue`, so the catalogue's apps are in 0.9.3's signed baseline: 31 recipes, 25 of them from Alpine and 6 built from source (SimpleX Chat and its core, and DarkFi's app, darkfid, darkirc and drk), which list only with a package mirror. The developers chose that, and only the release holder signs it.
 
 ## The lock
 

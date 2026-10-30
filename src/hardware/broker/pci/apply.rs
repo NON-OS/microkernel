@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A judged config write made (L75). Run under the claims' lock while the
-//! claim stands (L69). A Command write is judged again under the Command lock
+//! A judged config write made. Run under the claims' lock while the
+//! claim stands. A Command write is judged again under the Command lock
 //! against what the register holds then, so a bind's INTx Disable edit made
 //! since the first read is kept, not undone (L73's one lock for every edit).
 

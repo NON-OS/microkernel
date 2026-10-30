@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! A map's last step (L69, K10): its grant entered only while its claim
+//! A map's last step: its grant entered only while its claim
 //! stands and within its holder's quota. An exit drops the claim and then
 //! drains the table, so a grant entered after the drain would outlive the
 //! claim; one refused has its pages taken back and its VA returned instead.

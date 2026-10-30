@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A capsule's claims at its exit (L75). The exit does not wait for paths
+//! A capsule's claims at its exit. The exit does not wait for paths
 //! still inside a claim: it can be reached from a fault, a signal or a spawn
 //! that failed, where waiting is not safe. It moves each claim to Exiting, so
 //! nothing more is granted or entered against it, and stops its device while
@@ -30,7 +30,7 @@ use super::state::claims;
 
 /// The exit's first step: the claims it tears down, as (device, epoch), each
 /// stopped from mastering the bus. A claim still being made is orphaned for
-/// its call to take back (L66), and is not the exit's.
+/// its call to take back, and is not the exit's.
 pub fn exit_begin(pid: u32) -> Vec<(u64, u64)> {
     let mut held = Vec::new();
     for c in claims().iter_mut().filter(|c| c.pid == pid) {

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The entry and the count the model's bootfb stands for, read (L79): in
+//! The entry and the count the model's bootfb stands for, read: in
 //! enter.rs bootfb's claim is refused once surrendered, in the entry's own
 //! hold, after the wipe record's answer and before the push; in lookup.rs an
 //! unmap counts itself inside a claim that is Ready, Leaving or Exiting.

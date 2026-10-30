@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/* A withdrawal's review: to a fresh account of this wallet, the meter (B7)
- * or an escrow order's deposit (B8), the pool's fees quoted first. */
+/* A withdrawal's review: to a fresh account of this wallet, the meter
+ * or an escrow order's deposit, the pool's fees quoted first. */
 
 use alloc::string::String;
 
@@ -58,7 +58,7 @@ pub fn review_withdraw(state: &mut State) {
     super::job::start(state, OP_QUOTE, &[coin(state.shield_ui.asset), &a, "1"]);
 }
 
-/* A withdrawal to the meter (B7): its address from the meter itself. */
+/* A withdrawal to the meter: its address from the meter itself. */
 fn review_to_meter(state: &mut State) {
     use crate::wallet::screen::shield::consts::{CHAIN_ID, POOL};
     let chain = CHAIN_ID.parse().unwrap_or(0);

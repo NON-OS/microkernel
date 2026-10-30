@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-//! A kernel function pinned whole, its code as `flat` gives it (L80): from
+//! A kernel function pinned whole, its code as `flat` gives it: from
 //! its head to its closing brace, and the only function of its name in the
 //! file. So a body changed anywhere, moved about inside its own text, copied
 //! into a string, or shut out by an attribute for a twin built in its place

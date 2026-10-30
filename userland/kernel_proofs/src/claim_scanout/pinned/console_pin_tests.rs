@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The console's count and hold read whole (L79). The checks beside these
+//! The console's count and hold read whole. The checks beside these
 //! read `drawable` in order, which let a line slip in between, and did not
 //! read the wait, HELD's store, `taken` or the hold's clearing at all; the
 //! model's stop, drawer, bootfb wait and end each stand for one of them.

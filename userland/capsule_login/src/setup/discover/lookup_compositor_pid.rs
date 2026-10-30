@@ -16,7 +16,6 @@
 use nonos_libc::mk_service_lookup;
 
 /// The compositor's pid, the one process the login surface is shared with
-///.
 pub fn lookup_compositor_pid() -> Result<u32, &'static str> {
     let name = super::constants::COMPOSITOR_SERVICE;
     let (mut port, mut pid) = (0u32, 0u32);

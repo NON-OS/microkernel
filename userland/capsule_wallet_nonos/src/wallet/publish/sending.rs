@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * A publisher transaction under way (B8): the call, its send, its step,
+ * A publisher transaction under way: the call, its send, its step,
  * the calls after it, each reviewed and signed, and when settle is next
  * asked for a read that repeats.
  */

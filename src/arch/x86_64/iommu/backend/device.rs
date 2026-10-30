@@ -40,7 +40,7 @@ pub(crate) fn detach_device(_domain: DomainId, device: DeviceAddress) -> Result<
 
 /// Whether a unit this kernel has in service translates `device`: VT-d is
 /// enforcing, a programmed unit's scope covers the device, and its DMA
-/// arrives under its own id (L51). A device no unit covers would take an IOVA
+/// arrives under its own id. A device no unit covers would take an IOVA
 /// for a physical address.
 pub(crate) fn translates(device: DeviceAddress) -> bool {
     let Ok((bus, dev, function)) = segment0(device) else {

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A GPU driver's claim taking the boot framebuffer's scanout (L79). Before
+//! A GPU driver's claim taking the boot framebuffer's scanout. Before
 //! the claim is made ready the kernel stops drawing, and bootfb's claim, if
 //! one stands, is retired, its pages pointed at the sink and released; the
 //! stop is latched for the boot in the hold that makes the claim ready, so a

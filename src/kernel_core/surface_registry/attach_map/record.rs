@@ -19,7 +19,7 @@ use crate::kernel_core::surface_registry::types::SurfaceHandle;
 
 /// Two attaches of one surface that raced past `existing` map two views, and
 /// each keeps a record of its own: one written over the other left a view
-/// mapped that no record held (L57).
+/// mapped that no record held.
 pub fn record(pid: u32, handle: SurfaceHandle, base_va: u64, byte_len: u64) {
     let mut v = ATTACHES.lock();
     for rec in v.iter_mut() {

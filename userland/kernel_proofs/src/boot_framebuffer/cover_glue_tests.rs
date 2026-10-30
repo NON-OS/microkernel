@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! find's glue in bootfb/cover.rs, read as text (L79): each record asked
+//! find's glue in bootfb/cover.rs, read as text: each record asked
 //! with its own BARs, through the rule the proofs mount, its memory BARs
 //! only and only as many as it counts; a display the PCI bus's display
 //! class; the any and the count of displays taken over the same snapshot

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A claim's entry going (L75, L77). The boot framebuffer's hold is cleared
+//! A claim's entry going. The boot framebuffer's hold is cleared
 //! under the table's lock, as `admit` sets it, so a newer claim's hold is
 //! never cleared by this one's going; its line is said once the lock is let
 //! go, since a serial line takes milliseconds the shutdown's quiesce lacks.
@@ -26,7 +26,7 @@ use spin::MutexGuard;
 
 use super::types::Claim;
 
-/// The function's wipe is owed in the same hold (L78).
+/// The function's wipe is owed in the same hold.
 pub(super) fn remove(mut claims: MutexGuard<'static, Vec<Claim>>, at: usize) {
     let gone = claims.remove(at);
     super::wipe::owe(gone.device_id, gone.epoch);

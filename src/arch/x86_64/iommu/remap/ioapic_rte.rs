@@ -18,7 +18,7 @@
 //! the entry names a remapping table index instead of a CPU, so the unit
 //! checks the I/O APIC's source id and delivers what the table says. With
 //! CFI clear a compatibility format entry is blocked, so a line under
-//! remapping is written in this form (L44, K3). Pure; the proofs hold it.
+//! remapping is written in this form. Pure; the proofs hold it.
 
 /// Interrupt Format, bit 48: the entry is remappable.
 const REMAPPABLE: u64 = 1 << 48;

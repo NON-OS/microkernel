@@ -23,7 +23,7 @@ use crate::syscall::SyscallResult;
 use super::super::surface_ops::{map_err, EPERM, ESRCH};
 
 pub(in super::super) fn do_release(handle: u64) -> SyscallResult {
-    // Surfaces are held by the process, not the thread that asked (L36).
+    // Surfaces are held by the process, not the thread that asked.
     let Some(pid) = current_pid().map(crate::hardware::broker::holder_of) else {
         return errno(ESRCH);
     };

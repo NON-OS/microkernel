@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * A publisher transaction started from a row's calls (B8): the first one
+ * A publisher transaction started from a row's calls: the first one
  * quoted, the rest kept to follow it. None starts while a wallet send is
  * pending (Q8), nor while the contract is not on this network. The
  * calldata is built here, once, and is what is reviewed and signed (D5).

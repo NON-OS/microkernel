@@ -35,7 +35,7 @@ pub(super) fn settle(
     refused: Option<BlockDeviceError>,
 ) -> Result<Backend, BlockDeviceError> {
     let Some((b, p)) = other else { return Err(none()) };
-    // Never for a caller killed meanwhile: its asks failed for it (L81).
+    // Never for a caller killed meanwhile: its asks failed for it.
     let waited = refused.is_some() && !caller_gone() && waited_for_boot_disk();
     let (named, own_copy, usb) = (partition().is_some(), store_from_boot_disk(), from_usb());
     let end = other_disk(named, own_copy, usb, refused.is_some(), waited);

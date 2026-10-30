@@ -56,7 +56,7 @@ pub(super) fn waited_for_boot_disk() -> bool {
     over(&SINCE, uptime_ms(), BOOT_WAIT_MS)
 }
 
-/// The caller was killed meanwhile (L81): its asks failed for its own end,
+/// The caller was killed meanwhile: its asks failed for its own end,
 /// so no disk is kept on what they said.
 pub(super) fn caller_gone() -> bool {
     crate::process::current_pid().is_some_and(|p| crate::process::scheduler::selection::is_dead(p))

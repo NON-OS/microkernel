@@ -17,7 +17,7 @@
 //! A PCI function that has left: its slot's `_STA` says absent after a bus
 //! or device check, or firmware ejected it. Before the broker answers, its
 //! claim is retired as a give-back's is and all granted under it taken back
-//! (L66, L69): bus mastering stopped, interrupts unbound, DMA grants out of
+//! bus mastering stopped, interrupts unbound, DMA grants out of
 //! its domain, ports and MMIO dropped, the windows fenced (`mmio::fence`),
 //! the claim and its domain released. Then the record and its index handle
 //! go, so a later arrival is read afresh under a new id.

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The ACS groups found at boot (L72), and which requesters share one.
+//! The ACS groups found at boot, and which requesters share one.
 
 extern crate alloc;
 

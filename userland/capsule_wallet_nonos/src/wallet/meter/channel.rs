@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * One of the meter's channels as a line (B8): where it is, what it holds,
+ * One of the meter's channels as a line: where it is, what it holds,
  * what the chain paid and what the meter signed, and whether it froze.
  */
 

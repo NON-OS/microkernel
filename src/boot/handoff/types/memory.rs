@@ -59,7 +59,7 @@ pub struct MemoryMap {
 
 impl MemoryMap {
     // Every region that may hold RAM: anything not reserved, unusable, NVS,
-    // MMIO or PAL code, the loader's and firmware's own included (L63).
+    // MMIO or PAL code, the loader's and firmware's own included.
     // SAFETY: as `entries` (memory_read.rs).
     pub unsafe fn ram_regions(&self) -> impl Iterator<Item = (u64, u64)> + '_ {
         use memory_type::{ACPI_NVS, MMIO, MMIO_PORT_SPACE, PAL_CODE, RESERVED, UNUSABLE};

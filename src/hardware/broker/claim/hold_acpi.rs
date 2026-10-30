@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Claims of the records the ACPI capsule publishes (L59). Each kind is
+//! Claims of the records the ACPI capsule publishes. Each kind is
 //! held to the service that drives it: an I2C host to the I2C host driver;
 //! a GPIO bank to the GPIO capsule or, in an image without one, the I2C host
 //! driver that takes its pins itself; the PS/2 ports to the PS/2 driver; the

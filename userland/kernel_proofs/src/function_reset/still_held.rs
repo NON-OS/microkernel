@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A grant entered only while the claim it was made under still holds
-//!, the model K10 built: the check and the entry one critical section
+//! the model K10 built: the check and the entry one critical section
 //! under CLAIMS. The kernel asks the same of each grant table under its own
 //! lock (claim::live, L69), its lock order the grant table's then CLAIMS.
 

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The load average's weights and fold (L56), included by path: each weight
+ * The load average's weights and fold, included by path: each weight
  * is ONE * e^(-sample / window) to the nearest unit, worked here in floating
  * point from the definition; a steady load reads back exactly; an idle
  * machine's average falls to nothing it would print.

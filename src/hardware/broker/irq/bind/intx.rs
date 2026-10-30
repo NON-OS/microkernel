@@ -57,7 +57,7 @@ pub(super) fn bind_intx(
     open_intx(req.device_id);
     say_route(req.device_id, gsi, &rte);
     let grant_id = records::allocate_id();
-    // Active before the record is seen: a drain finding it comes after (L77).
+    // Active before the record is seen: a drain finding it comes after.
     slots::activate(slot, grant_id, gsi);
     super::enter::enter(&[IrqGrant {
         grant_id,

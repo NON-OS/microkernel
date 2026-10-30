@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a function offers for its reset (L78), read once at enumeration:
+//! What a function offers for its reset, read once at enumeration:
 //! where its PCIe, Advanced Features and Power Management capabilities sit,
 //! the methods they offer, the identity it must answer with again, and
 //! whether it may reach memory past Bus Master off.
@@ -34,7 +34,7 @@ pub(in crate::hardware::broker) struct ResetCaps {
     pub(in crate::hardware::broker) pcie: u8,
     pub(in crate::hardware::broker) devctl2: bool,
     /// Device Control 2 as firmware left it, whose completion timeout a put
-    /// back restores: a network holder may change it (L80).
+    /// back restores: a network holder may change it.
     pub(in crate::hardware::broker) devctl2_boot: u16,
     pub(in crate::hardware::broker) af: u8,
     pub(in crate::hardware::broker) af_tp: bool,

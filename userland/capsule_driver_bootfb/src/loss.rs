@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The scanout lost to a GPU driver (G-80, L79): when a driver's claim
+//! The scanout lost to a GPU driver: when a driver's claim
 //! covers the firmware framebuffer, the kernel ends bootfb's claim and
 //! points every page of its mapping at one zeroed sink. Nothing faults, so
 //! bootfb asks: `mk_boot_framebuffer` answering anything but its 24 bytes

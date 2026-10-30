@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The wipe record's questions as the claims ask them under their lock, in
-//! the kernel's order (ask.rs, held.rs), for the enter model (L78).
+//! the kernel's order (ask.rs, held.rs), for the enter model.
 
 use super::admit_rule::{admits, Admit};
 use super::due_rule::pending;

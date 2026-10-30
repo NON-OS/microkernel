@@ -47,7 +47,7 @@ pub(super) fn self_attach(
     let (base_va, byte_len) = (slot.owner_base_va, slot.byte_len);
     // Its record is released as any other is (`drop_attach`), so it takes the
     // reference that release gives back; without, a few re-attaches freed the
-    // slot under other holders' views (L50).
+    // slot under other holders' views.
     slot.refcount = slot.refcount.checked_add(1).ok_or(RegistryError::InvalidArg)?;
     drop(slots);
     match super::descriptor::descriptor(handle) {

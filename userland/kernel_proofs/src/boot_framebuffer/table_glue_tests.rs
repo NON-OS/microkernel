@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The device table after find, read as text (L79). Only the PCI scan
+//! The device table after find, read as text. Only the PCI scan
 //! replaces it whole; a platform record, or a function found after boot,
 //! only joins it at the end above every id a departed record had; a
 //! departed record only leaves it, its id never reused; the NUMA facts and

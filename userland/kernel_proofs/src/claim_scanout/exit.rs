@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! bootfb's exit, and the exit orphaning G1's claim, in the takeover model
-//! (L79). bootfb's threads are all off a CPU before its exit begins, so it
+//! bootfb's threads are all off a CPU before its exit begins, so it
 //! begins only between their calls and they take no step after; the exit
 //! moves its claim on by `exited`, drains its grants and leaves the pages,
 //! which nobody runs on now, then settles and its tables are freed.

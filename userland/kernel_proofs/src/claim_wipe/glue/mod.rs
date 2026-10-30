@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-//! The kernel glue the models stand for (L78, L80), read from its source with
+//! The kernel glue the models stand for, read from its source with
 //! its comments taken out (code) and its functions pinned whole (whole), and
 //! the rules beside it: a kept run's way back and its count (kept_world),
 //! and Device Control 2 put back.

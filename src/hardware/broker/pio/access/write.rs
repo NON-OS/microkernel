@@ -44,6 +44,6 @@ pub fn write(
             PioWidth::U32 => out32::raw_out32(port, value),
         }
     };
-    // Never after an exit dropped the claim and stopped the device (L69).
+    // Never after an exit dropped the claim and stopped the device.
     claim::while_live(pid, g.device_id, g.claim_epoch, write).ok_or(PioError::NotClaimed)
 }

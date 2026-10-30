@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The spawn order as a second guard among claimants that DMA (H-02, H-03):
+//! The spawn order as a second guard among claimants that DMA:
 //! the USB hosts before the Wi-Fi, so USB wins a CNVi card's group; the
 //! SATA and NVMe controllers spawn before the bus drivers (smbus, spi,
 //! i2c), the NICs and the rest, so a disk controller claims its isolation

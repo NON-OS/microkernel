@@ -37,7 +37,7 @@ pub(super) struct Capsule {
     pub next_iova: u64,
     /// Device address space freed below `next_iova`, reused before it grows.
     pub holes: Vec<(u64, u64)>,
-    /// RMRR regions mapped one to one for a device's sake (L60).
+    /// RMRR regions mapped one to one for a device's sake.
     pub rmrr: Vec<HeldRmrr>,
     /// Its devices' reserved ranges from the device tree (C-41), mapped while
     /// a device naming them is attached; their IOVAs are never handed to a grant.

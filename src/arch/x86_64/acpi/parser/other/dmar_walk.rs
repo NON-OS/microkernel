@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The remapping structures after DMAR's header (L70), each a whole one
+//! The remapping structures after DMAR's header, each a whole one
 //! inside the table. Pure, over the table's bytes, so the host proofs feed it
 //! hostile tables; the kernel had walked them by pointer to whatever length a
 //! structure named.

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a claimed function's BAR registers must read once it is in D0 (L62). A
+//! What a claimed function's BAR registers must read once it is in D0. A
 //! move to D3cold, to D3hot without No_Soft_Reset, or a reset leaves its BARs at
 //! zero and decoding off, so the windows granted no longer answer. Pure.
 

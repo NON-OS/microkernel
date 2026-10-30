@@ -16,7 +16,7 @@ Not tested in this release.
 
 `make profiles` prints, for each profile, what it is, who it is for, its privacy posture and its [loader policy](../overview/glossary-linux-personality.md#loader-policy) (`describe`, `tools/nix/config.nix:208-217`).
 
-## The seven profiles
+## The profiles
 
 | profile | kernel features it starts from | loader policy | takes out | for |
 |---|---|---|---|---|

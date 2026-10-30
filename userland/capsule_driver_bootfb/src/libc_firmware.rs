@@ -32,7 +32,7 @@ const SERVICE: &[u8] = b"driver.bootfb0";
 const MK_MMIO_MAP_WC: u32 = 1 << 0;
 /// Registered already, by this process's spawn.
 const EEXIST: i64 = -17;
-/// The claim refused, final for the boot (L79).
+/// The claim refused, final for the boot.
 const EPERM: i64 = -1;
 
 pub struct Libc;

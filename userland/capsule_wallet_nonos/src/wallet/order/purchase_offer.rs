@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * ORDER_OFFER's job result (B8): a checked offer goes on to ORDER_NEW under
+ * ORDER_OFFER's job result: a checked offer goes on to ORDER_NEW under
  * the fresh refundTo and a refundSalt the wallet draws itself, so the meter
  * never chooses the salt that hides where a refund goes.
  */

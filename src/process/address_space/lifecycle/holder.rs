@@ -25,7 +25,7 @@ use crate::process::core::ProcessControlBlock;
  * Set on a thread once its release has run, so its group's tables are never
  * handed to it. Two finalizes at once each found the other as the heir: the
  * ASID went to a thread already on its way out, and the tables, attach
- * records and kept frames all leaked (L49).
+ * records and kept frames all leaked.
  */
 const RELEASED: u64 = 1 << 62;
 

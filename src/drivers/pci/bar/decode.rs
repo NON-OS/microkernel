@@ -23,7 +23,7 @@ use super::super::types::PciBar;
 use super::slots::{bar_slots, upper_half_fits};
 use super::validation::{validate_io_port, validate_mmio_address};
 
-// The BAR registers this function's header has (L58).
+// The BAR registers this function's header has.
 fn header_slots(bus: u8, device: u8, function: u8) -> u8 {
     let at = (CFG_HEADER_TYPE & !3) as u8;
     let dword = read32_unchecked(bus, device, function, at);
@@ -59,7 +59,7 @@ pub fn decode_bar(bus: u8, device: u8, function: u8, index: u8) -> Result<PciBar
         let size = super::slots::io_size(size_mask);
 
         // Ports are 16 bits wide here: an address above them is never kept
-        // cut short, where a BAR restore would write it back (L65).
+        // cut short, where a BAR restore would write it back.
         if size == 0 || original >> 16 != 0 {
             return Ok(PciBar::NotPresent);
         }
@@ -145,7 +145,7 @@ pub fn decode_bar_unchecked(bus: u8, device: u8, function: u8, index: u8) -> Pci
         let port = (original & BAR_IO_ADDR_MASK) as u16;
         let size = super::slots::io_size(size_mask);
 
-        // As above: never a port cut short to 16 bits (L65).
+        // As above: never a port cut short to 16 bits.
         if size == 0 || port == 0 || original >> 16 != 0 {
             return PciBar::NotPresent;
         }

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a claim asks of find, read as text (L79): covers answers from the
+//! What a claim asks of find, read as text: covers answers from the
 //! list find stored once, and nothing else; and the kind codes the model
 //! passes are the kernel's own.
 

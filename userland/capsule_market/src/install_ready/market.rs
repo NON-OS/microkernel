@@ -37,7 +37,7 @@ pub struct MarketGates {
     pub commerce: bool,
     pub attest: bool,
     pub policy: bool,
-    /// The shown price agrees with the commerce block (B6).
+    /// The shown price agrees with the commerce block.
     pub price: bool,
 }
 

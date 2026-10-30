@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whether an RMRR names a device (L60). Its scopes are read as a remapping
+//! Whether an RMRR names a device. Its scopes are read as a remapping
 //! unit's are, an endpoint by its path and a bridge with every bus below it,
 //! so a claimant's domain maps exactly the regions firmware said that device
 //! keeps doing DMA to. Pure, so the host proofs hold it.
@@ -41,7 +41,7 @@ where
     scope_covers(&unit, segment, bdf, bridge_buses)
 }
 
-/// Whether `r` names one endpoint alone (L63). A region several devices
+/// Whether `r` names one endpoint alone. A region several devices
 /// share, or a bridge's whole subtree, is theirs together: mapped for one
 /// claimant, it lets that device rewrite what a sibling, unclaimed and still
 /// in the identity domain, is driven by. A device off PCI counts as one more.
@@ -49,10 +49,10 @@ pub fn rmrr_sole(r: &Rmrr) -> bool {
     r.count == 1 && !r.truncated && !r.foreign && r.scopes[0].kind == SCOPE_ENDPOINT
 }
 
-/// Whether `r`'s memory is the device's alone (L65): every RMRR it overlaps,
+/// Whether `r`'s memory is the device's alone: every RMRR it overlaps,
 /// itself included, names that one endpoint and no other device. Firmware
 /// may list one region twice, once per device that uses it, and on another
-/// segment: memory is one for every segment (L67).
+/// segment: memory is one for every segment.
 pub fn rmrr_own<F>(all: &[Rmrr], r: &Rmrr, segment: u16, bdf: (u8, u8, u8), bb: &F) -> bool
 where
     F: Fn(u8, u8, u8) -> Option<(u8, u8)>,
@@ -61,7 +61,7 @@ where
     all.iter().filter(meets).all(|o| rmrr_sole(o) && rmrr_names(o, segment, bdf, bb) == Cover::Yes)
 }
 
-/// Whether `r` touches memory an RMRR left out names (L67), `[first, last]`.
+/// Whether `r` touches memory an RMRR left out names, `[first, last]`.
 pub fn rmrr_barred_by(barred: &[(u64, u64)], r: &Rmrr) -> bool {
     barred.iter().any(|&(first, last)| first <= r.limit && r.base <= last)
 }

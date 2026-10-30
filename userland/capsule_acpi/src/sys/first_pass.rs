@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! MkAcpiFirstPass: the first publish pass is done (L55). Only this
+//! MkAcpiFirstPass: the first publish pass is done. Only this
 //! capsule's thread group may say so; saying it again changes nothing.
 
 use super::acpi::{ok, tag4, Errno};

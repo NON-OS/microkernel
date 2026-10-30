@@ -90,7 +90,7 @@ back, refused with EINVAL and the previous mode put back.
 
 None of this gives the kernel's GOP blit back. Where BAR0 holds the boot
 framebuffer, as under OVMF on stdvga, the claim, each attempt's first step,
-stops the kernel's console for the rest of the boot (L79), and
+stops the kernel's console for the rest of the boot, and
 MkSurfacePresent answers EBUSY from then on. A driver that fails a later
 step, gives up or is killed leaves what video memory last held on screen
 and the compositor nothing else to draw it with.

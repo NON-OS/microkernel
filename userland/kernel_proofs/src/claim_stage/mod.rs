@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Where a claim is in its life and what each stage allows (L65, L66), the
+ * Where a claim is in its life and what each stage allows, the
  * kernel's rule included by path, and a model of a release racing a grant
  * path: no grant whose check passed outlives the release's drain.
  */

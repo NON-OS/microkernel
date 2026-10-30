@@ -31,7 +31,7 @@ pub struct Model {
     pub said: Vec<String>,
     pub announced: bool,
     pub holder: bool,
-    /// A GPU driver has the scanout: every claim refused for good (L79).
+    /// A GPU driver has the scanout: every claim refused for good.
     pub taken: bool,
 }
 

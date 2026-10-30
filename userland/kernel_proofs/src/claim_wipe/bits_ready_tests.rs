@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Whether a function has come back, and the marker that shows a reset
-//! reached it (L78). Only the Vendor ID half of dword 0 decides: all ones
+//! reached it. Only the Vendor ID half of dword 0 decides: all ones
 //! (nothing answered, or the read failed) and the retry status say not yet,
 //! every other vendor says back, whatever the Device ID half holds. The
 //! marker is INTx Disable where it sticks, else Memory Space, else none; each

@@ -1,7 +1,7 @@
 # nonos_eth_rpc
 
 Ethereum JSON-RPC as bytes for `no_std` capsules, with no JSON crate and no
-syscalls. capsule_nox_settle (B4) links it.
+syscalls. capsule_nox_settle links it.
 
 - Requests: eth_chainId, eth_getBalance, eth_getTransactionCount,
   eth_gasPrice and eth_feeHistory, eth_estimateGas, eth_call,

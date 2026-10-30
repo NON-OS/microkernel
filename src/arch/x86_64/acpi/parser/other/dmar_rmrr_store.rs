@@ -26,10 +26,10 @@ const MAX_RMRRS: usize = 16;
 static RMRRS: Mutex<heapless::Vec<Rmrr, MAX_RMRRS>> = Mutex::new(heapless::Vec::new());
 /// RMRRs left out: malformed, or past the room kept.
 static DROPPED: Mutex<usize> = Mutex::new(0);
-/// The memory each RMRR left out names, which no other is ever alone in (L67).
+/// The memory each RMRR left out names, which no other is ever alone in.
 static BARRED: Mutex<heapless::Vec<(u64, u64), MAX_RMRRS>> = Mutex::new(heapless::Vec::new());
 /// Some RMRR may be missing altogether: the table's walk was cut short, or
-/// one left out named nothing readable or found no room (L67).
+/// one left out named nothing readable or found no room.
 static INCOMPLETE: AtomicBool = AtomicBool::new(false);
 
 /// Every RMRR that parsed, in table order.

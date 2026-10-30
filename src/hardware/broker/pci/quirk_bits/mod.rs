@@ -18,7 +18,7 @@
 //! and MSI-X, each named for its register in the vendor's datasheet, and
 //! nothing beside them. Pure, so kernel_proofs holds every rule. The names
 //! and bit positions are recalled from Intel's PCH datasheets, AMD's and the
-//! PCI Express Base Specification, unverified until the owner's row (L37).
+//! PCI Express Base Specification, unverified until the owner's row.
 //!
 //! - Intel HD Audio (class 04, subclass 03, or 01 for a DSP-mode part):
 //!   TCSEL at 0x44 bits 0-2, the traffic class the controller's requests

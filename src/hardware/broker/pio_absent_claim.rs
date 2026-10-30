@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A device's port release keyed by its claim (L71), where there are no
+//! A device's port release keyed by its claim, where there are no
 //! ports. `pio_absent` stays as its extraction mirrors it; this only takes
 //! the claim's epoch the other releases take, so `give_back` is one path on
 //! every target.

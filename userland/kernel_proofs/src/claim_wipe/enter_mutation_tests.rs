@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Plan section 6's undo checks 2, 3, 7, 11 and 12, each a knob on the enter
-//! model (L78). On the fates each is run over, the model as built breaks
+//! model. On the fates each is run over, the model as built breaks
 //! nothing, while the knob breaks the invariants named for it in some order;
 //! each sweep's worlds are counted against a floor.
 
