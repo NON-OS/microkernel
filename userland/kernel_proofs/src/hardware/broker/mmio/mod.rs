@@ -23,5 +23,5 @@ pub mod bar_select;
 #[path = "../../../../../../src/hardware/broker/mmio/fence.rs"]
 pub mod fence;
 
-#[cfg(test)]
+#[cfg(all(test, target_arch = "x86_64"))]
 mod fence_tests;

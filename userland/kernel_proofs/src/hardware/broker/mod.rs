@@ -40,7 +40,7 @@ mod button_tests;
 mod class_tests;
 #[cfg(test)]
 mod deps_flag_tests;
-#[cfg(test)]
+#[cfg(all(test, target_arch = "x86_64"))]
 mod dgon_tests;
 #[cfg(test)]
 mod external_tests;

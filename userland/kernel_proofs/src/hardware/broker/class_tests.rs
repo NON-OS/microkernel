@@ -49,6 +49,7 @@ fn every_class_id_is_the_one_the_abi_publishes() {
         ("NETWORK", ids::NETWORK),
         ("DISPLAY", ids::DISPLAY),
         ("INPUT", ids::INPUT),
+        #[cfg(target_arch = "x86_64")]
         ("I2C_HID", ids::I2C_HID),
         ("AUDIO", ids::AUDIO),
         ("SERIAL", ids::SERIAL),
