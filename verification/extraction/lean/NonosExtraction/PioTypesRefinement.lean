@@ -32,8 +32,8 @@ namespace NonosExtraction.PioTypes
 
 /-! ### The forwarding functions add nothing -/
 
-theorem the_piowidth_bytes_wrapper_is_its_method (a : types.PioWidth) :
-    piowidth_bytes a = types.PioWidth.bytes a := rfl
+theorem the_piowidth_bytes_wrapper_is_its_method (a : width.PioWidth) :
+    piowidth_bytes a = width.PioWidth.bytes a := rfl
 
 /-! ### A port width is its size in bytes
 
@@ -53,14 +53,14 @@ theorem piowidth_bytes_is_the_access_size :
 
 /-- Every width is a power of two no larger than four, so an access of that
     size never straddles a naturally aligned doubleword. -/
-theorem piowidth_bytes_is_a_power_of_two_at_most_four (w : types.PioWidth) :
+theorem piowidth_bytes_is_a_power_of_two_at_most_four (w : width.PioWidth) :
     ∃ r, piowidth_bytes w = ok r ∧ (r.val = 1 ∨ r.val = 2 ∨ r.val = 4) := by
   cases w <;> exact ⟨_, rfl, by decide⟩
 
 /-- The size identifies the width. -/
-theorem piowidth_bytes_is_injective (a b : types.PioWidth)
+theorem piowidth_bytes_is_injective (a b : width.PioWidth)
     (h : piowidth_bytes a = piowidth_bytes b) : a = b := by
-  cases a <;> cases b <;> first | rfl | (simp [piowidth_bytes, types.PioWidth.bytes, types.PioWidth.read_discriminant] at h)
+  cases a <;> cases b <;> first | rfl | (simp [piowidth_bytes, width.PioWidth.bytes, width.PioWidth.read_discriminant] at h)
 
 /-! ### Axiom profile -/
 
