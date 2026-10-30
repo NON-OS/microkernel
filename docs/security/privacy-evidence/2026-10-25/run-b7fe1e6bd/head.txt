@@ -1,4 +1,4 @@
-ae7df76020 Merge remote-tracking branch 'origin/main' into privacy/s13b-installer-gate
+d4df808751 Merge remote-tracking branch 'origin/main' into privacy/s13b-installer-gate
  tools/nix/config.nix                  |   8 +++
  userland/capsule_proof_io/src/main.rs | 103 +++++++++++++++++-----------------
  2 files changed, 60 insertions(+), 51 deletions(-)

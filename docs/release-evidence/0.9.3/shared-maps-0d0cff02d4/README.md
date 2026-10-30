@@ -1,14 +1,14 @@
 # A stored file mapped shared, as LMDB maps one: 0d0cff02d4
 
 The owner's Monero wallet printed "Failed to initialize ring database:
-privacy enhancing features will be inactive" on the sealed 7155c5644c. Its
+privacy enhancing features will be inactive" on the sealed f1e3df957f. Its
 ring database is LMDB, which maps its files MAP_SHARED, and the Linux
 personality answered every shared file map with ENOSYS. This boot shows the
 fix, s1/shared-maps, working end to end on a development image.
 
 - **Image:** `tools/nonos-dev-image --profile standard` of s1/land-d at
-  0d0cff02d4: main with s1/shared-maps (8717a8b26a, 26fce2e2e4, 13bf8edbb1,
-  febb2dbfdf) and the standard tail (0d0cff02d4). Throwaway keys, sha256
+  0d0cff02d4: main with s1/shared-maps (5760c84343, c28d0eb6c3, 8d64324aec,
+  5687c43b15) and the standard tail (0d0cff02d4). Throwaway keys, sha256
   beginning `778695db682542df`.
 - **Machine:** QEMU TCG, 4 vCPUs, Intel IOMMU lane, fresh disk, setup to the
   desktop, then the Terminal.

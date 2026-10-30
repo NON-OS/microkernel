@@ -1,11 +1,11 @@
-# S3 boot 1: standard-dev at fb72fbe65d plus nine recipes, 2026-10-27
+# S3 boot 1: standard-dev at d17da66a6e plus nine recipes, 2026-10-27
 
 Relay log: the relay as last restarted, inside nix develop.
 
 ## The image and the machine
 
 - **Image.** `make dev-image PROFILE=standard` of s3/cli, built with the
-  nine security recipes of f21cfdf6e3: 28 catalogue apps, each with its
+  nine security recipes of 59e2c2458f: 28 catalogue apps, each with its
   guest policy. It was sealed with tools/nonos-dev-image's throwaway keys.
 - **Relay.** tools/nonos-mirror-relay, run from the image's own tree copy
   so that it held all 28 pins, on 127.0.0.1:8080.
@@ -20,7 +20,7 @@ Relay log: the relay as last restarted, inside nix develop.
   with no b3sum, so the pinned request died in its handler. The guest
   logged `GET .../age-1.2.1-r0.apk gave no whole 200 reply` and then
   `package is not the one the market listed`, and the install failed. The
-  relay now refuses to start without b3sum (652d7f5b30).
+  relay now refuses to start without b3sum (dadc9d8a73).
 - **Install, second try.** The log shows:
 
       [LINUX-INSTALL] started, in its release's box linux.age
@@ -36,7 +36,7 @@ Relay log: the relay as last restarted, inside nix develop.
 - **Found: the passphrase was shown.** It appeared in the scrollback both
   times it was typed (age2.png). x/term's ReadPassword turns ECHO off and
   stays canonical, and only ?7727 (canonical) reached the Terminal. Fixed
-  in 972f956ff6 and cacc76c2c4 (?7728). Not booted yet.
+  in 80f06ce20c and 900bd7f6f3 (?7728). Not booted yet.
 - **Found: age's "Enter passphrase" prompt was not shown.** It writes the
   prompt to /dev/tty. Not yet run down.
 
@@ -56,7 +56,7 @@ Relay log: the relay as last restarted, inside nix develop.
   The store gave up on PROVE after 2 s. The job went on, read the sealed
   run and measured it, so the run was used up and nobody fetched its
   proof. A second ask got EBUSY (-16). The store now waits 30 s
-  (eb3f2c0d1c). Not booted yet.
+  (58b69bdaff). Not booted yet.
 - That buckets line is age's measured set from one run, the encryption,
   but it is not a verdict, because no `held` line followed. It is not
   written into the recipe.

@@ -1,11 +1,11 @@
 # Terminal 03: where it opens and where the prompt sits, booted 25 October 2026
 
 Opens at 1240x720 centred on a 1080p screen, and the prompt sits under the
-last output until the body is full (eaf9a8f311).
+last output until the body is full (620bacc331).
 
 ## How it ran
 
-- Image: `make dev-image` at 4b8d474004 (qemu-dev, throwaway test keys).
+- Image: `make dev-image` at eb520916d8 (qemu-dev, throwaway test keys).
 - Machine: QEMU TCG, no KVM, 4 CPUs, 8 GiB, fresh disk, 1920x1080 on
   virtio-gpu.
 - Driven over QMP: Enter through the 13 setup steps, "Not now" on the live

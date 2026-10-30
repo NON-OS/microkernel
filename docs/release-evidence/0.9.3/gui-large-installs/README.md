@@ -1,7 +1,7 @@
 # Large Linux installs on S1's heap fix
 
-One TCG boot (4 CPUs, 8 GiB) of a dev image of s2/gui at bd67f166c1: main
-with S1's heap fix (s1/heap-bins, the same heap code as main's 745089f0b8),
+One TCG boot (4 CPUs, 8 GiB) of a dev image of s2/gui at a94839765b: main
+with S1's heap fix (s1/heap-bins, the same heap code as main's 1a94a1f41e),
 the installer's virtual-need fix, and boot-test recipes for KeePassXC and
 gnome-authenticator. Three installs one after another in the Terminal:
 swayimg, then KeePassXC, then gnome-authenticator.
@@ -25,5 +25,5 @@ the host, so it is the emulated CPU's cost of verifying and unpacking, not
 the network's.
 
 Neither app's window opened in this boot: a run holds one store handle a
-pack, and the store gave an owner 128 (fixed in 96a0922083); the next boot
+pack, and the store gave an owner 128 (fixed in b3baa54f44); the next boot
 shows the windows.

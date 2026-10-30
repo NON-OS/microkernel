@@ -1,7 +1,7 @@
 # Terminal 06: WCAG AA on every theme, booted 25 October 2026
 
 Every theme's text reaches 4.5:1 on the background and every bar and block
-it is drawn on (fdc2660149), in an image built at 3e1ca98146; the proof over
+it is drawn on (a05b5189dd), in an image built at ddbe96d765; the proof over
 the palette is `terminal_line_proofs/src/paint/contrast_tests.rs`.
 
 ## How it ran

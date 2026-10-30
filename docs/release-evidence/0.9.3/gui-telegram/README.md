@@ -1,7 +1,7 @@
 # Telegram Desktop in the NØNOS frame
 
-One TCG boot of a dev image of s2/debug-launch with s2/gui at 6926102259
-merged: the /proc fix (b57b5d210e) and WAYLAND_DEBUG on for every guest.
+One TCG boot of a dev image of s2/debug-launch with s2/gui at d2f88b86c5
+merged: the /proc fix (0c6c16066f) and WAYLAND_DEBUG on for every guest.
 Telegram Desktop 5.0.1 (Qt 6) installed over the mirror relay in S3's
 listing's box: WAYLAND, NET_ANON and FILES_HOME.
 
@@ -9,7 +9,7 @@ listing's box: WAYLAND, NET_ANON and FILES_HOME.
   on TCG, its window in the frame, the welcome screen drawn whole.
 - telegram-window.png: the window alone.
 
-Before b57b5d210e the window never came: libdispatch counts its runnable
+Before 0c6c16066f the window never came: libdispatch counts its runnable
 workers by opening /proc/<tid>/stat for each one, the personality answered
 only a process's own number, and libdispatch trapped (ud2) when the open
 failed, ending the process on SIGILL.

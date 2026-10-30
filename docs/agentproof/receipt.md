@@ -5,7 +5,7 @@ program in this box, and the TPM signed it. It trusts the kernel, the TPM and th
 It does not trust whoever hands the receipt over.
 
 **Status in 0.9.3.** Built, and booted on a development image under QEMU with a software
-TPM and test keys (26 October, main 9e095d4300). A headless Gauntlet run of `linux --box
+TPM and test keys (26 October, main 280060c586). A headless Gauntlet run of `linux --box
 strict python3 ...` got a 7246-byte receipt from `nonos.prove`'s RECEIPT job, logged it and
 acknowledged it, and the record was dropped. The job's rule held: asked again, the same
 bytes; asked anything else, EBUSY; after the ack, the record gone. On the host the receipt

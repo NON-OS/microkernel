@@ -1,4 +1,4 @@
-== intel: main 06dd3c3c6b -> 3fa2f94f8
+== intel: main 0d1b79be28 -> 3fa2f94f8
 [EXIT] 6 -> 8
 [DMA] 6 -> 6
 [CAP-DENY] 0 -> 0
@@ -7,7 +7,7 @@
  DIFF 1 0 [DMA] grant uncached pages=[ahci] port #: disk, # sectors, QEMU HARDDISK SSTS # TFD # SERR # SIG # CMD #
  DIFF 0 1 [EXIT] code=# driver.ps2_kbd0
  DIFF 0 1 [EXIT] driver.ps2_kbd0 status #: no device present, not started
-== amd: main 06dd3c3c6b -> 3fa2f94f8
+== amd: main 0d1b79be28 -> 3fa2f94f8
 [EXIT] 6 -> 6
 [DMA] 6 -> 6
 [CAP-DENY] 0 -> 0

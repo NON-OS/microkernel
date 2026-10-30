@@ -1,10 +1,10 @@
 # Terminal 08: the 3D emblem, booted 25 October 2026
 
-The logo's slashed zero in 3D: on the splash at screen resolution, in neofetch in half blocks (629c9bd0bd, e4b686b4d6).
+The logo's slashed zero in 3D: on the splash at screen resolution, in neofetch in half blocks (a42e730465, 307afa1823).
 
 ## How it ran
 
-- Image: `make dev-image` at 2cd5a2aad5 (qemu-dev, throwaway test keys).
+- Image: `make dev-image` at cf833f5f46 (qemu-dev, throwaway test keys).
 - Machine: QEMU TCG, no KVM, 4 CPUs, 8 GiB, fresh disk, 1920x1080.
 - Driven over QMP: setup on its defaults, Ctrl+Alt+T, then typed keys:
   `neofetch`, `c` Tab, Ctrl+U, Ctrl+L, `market list`, `theme`, Down, Down, Esc.

@@ -171,8 +171,8 @@ Scripted, not rehearsed.
 
 - **SimpleX Chat** needs the listing `linux.simplex-chat` on main. The recipe kind exists
   and it needs a static build. Its program
-  is over 64 MiB, and main now takes programs up to 128 MiB (7506325ac8,
-  1957974824).
+  is over 64 MiB, and main now takes programs up to 128 MiB (c3e713307f,
+  1f035d6e9f).
 - **Telegram Desktop** needs the listing `linux.telegram-desktop`, which
   has no recipe or letter yet. It also needs a Qt display path in the Linux
   personality, the same one KeePassXC waits on (docs/using/privacy-apps.md).

@@ -17,7 +17,7 @@ It expects EPERM each time, and exits 42 only if every step got it.
 
 **QEMU:** 11.1.1, TCG, `-smp 4`, 6 GiB, `--tpm`, lanes `iommu=intel`, `usb-kbd` and `usb-tablet`. Setup was walked with the D-13 keys.
 
-## Run 2: the head, `97b81f2533` (`run2-head.txt`, image `d3c7726c…3ba4`)
+## Run 2: the head, `cc5c864733` (`run2-head.txt`, image `d3c7726c…3ba4`)
 
 `run2-serial.log`:
 - **The four refusals:**
@@ -40,8 +40,8 @@ It expects EPERM each time, and exits 42 only if every step got it.
 
 ## The heads
 
-- **Run 2 booted 97b81f2533:** S-13 with main 581f9fd83b merged in.
-- **The branch then took main again at c5a49af851,** as e1c211d7a5. Of main's changes since 97b81f2533, the only file S-13 also touches is the generated `tools/nix/inputs.json`, and `inputs.py --check` passes after the merge.
+- **Run 2 booted cc5c864733:** S-13 with main f64ee839e8 merged in.
+- **The branch then took main again at 7410464e34,** as 99d45e5bea. Of main's changes since cc5c864733, the only file S-13 also touches is the generated `tools/nix/inputs.json`, and `inputs.py --check` passes after the merge.
 - **The pushed head** carries this README.
 
 ## Not shown here

@@ -1,10 +1,10 @@
 # Terminal 13: split view, booted 25 October 2026
 
-Two tabs side by side in one window (add4619bad).
+Two tabs side by side in one window (883a70c732).
 
 ## How it ran
 
-- Image: `make dev-image` at add4619bad (qemu-dev, throwaway test keys).
+- Image: `make dev-image` at 883a70c732 (qemu-dev, throwaway test keys).
 - Machine: QEMU TCG, no KVM, 4 CPUs, 8 GiB, fresh disk, 1920x1080.
 - Driven over QMP at 120 ms a key: setup on its defaults, Ctrl+Alt+T, then
   `echo the quick brown fox jumps over the lazy dog`, `latency`,
