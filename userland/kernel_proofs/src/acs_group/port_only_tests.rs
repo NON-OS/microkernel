@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A port-only claim (H-02, src/hardware/broker/confine/port_only.rs): a
+//! A port-only claim (src/hardware/broker/confine/port_only.rs): a
 //! capsule holding neither Dma nor Mmio neither joins an isolation group
 //! nor is blocked by one, in either claim order, but across a bridge to a
 //! shared conventional bus; a capsule that can DMA, holding a sibling,

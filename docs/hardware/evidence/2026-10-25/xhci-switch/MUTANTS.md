@@ -1,4 +1,4 @@
-# H-10 mutants
+# the xHCI switch-over mutants
 
 `mutants.py [first]` breaks each rule once, runs the whole proof crate that
 must catch it (`cargo test --release`), and puts the file back. Run from

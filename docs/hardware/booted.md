@@ -1,4 +1,4 @@
-# Hardware breadth: the support matrix and the plan (H-01, 2026-10-24)
+# Hardware breadth: the support matrix and the plan (2026-10-24)
 
 What NONOS drives on the PCs of the last ten years, measured on main at
 1536ccef3, and the order the hardware-breadth session closes the gaps in. The
@@ -51,9 +51,9 @@ the matrix row):
 
 1. Display fallback, done on main: a firmware with no linear GOP mode is
    named by the loader, the kernel and the compositor, which keeps waiting
-   for a driver (H-06(a), ad5e07483a; booted with no display device, the
+   for a driver (ad5e07483a; booted with no display device, the
    other reasons host-tested); a surface's cap follows the boot framebuffer
-   from 64 MiB to 128 MiB, so 6K and 8K register (H-06(b), ea62f427f; booted
+   from 64 MiB to 128 MiB, so 6K and 8K register (ea62f427f; booted
    on the normal lane, the raised range host-tested). Evidence in
    docs/hardware/evidence/2026-10-25/. (display-input-audio.md)
 2. Wired: igc (I225/I226) into the kernel, scope row and spawn, after the

@@ -1,4 +1,4 @@
-# H-10: Intel PCH xHCI port switch-over, booted at df726eeef
+# Intel PCH xHCI port switch-over, booted at df726eeef
 
 hw/xhci-switch df726eeef (main 1beacdd37 merged in), built as standard-dev
 in the dev copy of the tree and sealed with throwaway keys; no key under
@@ -27,7 +27,7 @@ moves landed at the target, none at the 1024x768 default
 (`probe-d19-config.txt`). Setup walked by keys, then `d19-desktop.png`;
 "Not now", then a click on the dock's installer icon opened the installer
 (`d19-dock-installer.png`, and `app.install` spawned in the log). This is
-letter d/19's finding, which H-09 (019657102) fixed; it does not recur.
+letter d/19's finding, which the pointer-range fix (019657102) fixed; it does not recur.
 
 ## Boot 2: the USB path (`qemu-usb-lanes.txt`, `usb-lanes.serial.log`)
 
