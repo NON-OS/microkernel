@@ -28,7 +28,7 @@ use super::rule::Named;
  * write bit (`rights`), which the owner's release, the slot's end and the
  * receiver's exit take back. An attach needs both. Neither is a reference:
  * the receiver's attach takes one, so a share no longer keeps a surface
- * alive until its owner exits (K20).
+ * alive until its owner exits.
  */
 pub fn share_surface(
     owner_pid: u32,

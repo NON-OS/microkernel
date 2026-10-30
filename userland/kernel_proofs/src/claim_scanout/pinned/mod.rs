@@ -16,7 +16,7 @@
 
 /*
  * Glue the takeover model leans on, read whole where the first checks read
- * it in part or not at all (L79): the claim's ordered steps, the repoint's
+ * it in part or not at all: the claim's ordered steps, the repoint's
  * every line, the grant an unmap names and the release steps it waits on,
  * the console's count and hold, the five draw sites, the sink and the
  * geometry call; and the model's ends held to the console it frees.

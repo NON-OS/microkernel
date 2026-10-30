@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A device's isolation group: what it reaches past the IOMMU through a
-//! shared device, bus or port without ACS (K11). The real path, tree and
+//! shared device, bus or port without ACS. The real path, tree and
 //! rule are included by path.
 
 #[path = "../../../../src/hardware/broker/confine/acs_alias.rs"]
@@ -38,7 +38,7 @@ pub mod acs_words;
 mod group_rule;
 #[path = "../../../../src/hardware/broker/confine/member.rs"]
 mod member;
-// The port-only rule (H-02), mounted once, here beside the group code it
+// The port-only rule, mounted once, here beside the group code it
 // reads; confine_posture's proofs reach `port_only` through this path.
 mod alias_tests;
 mod hardwired_tests;

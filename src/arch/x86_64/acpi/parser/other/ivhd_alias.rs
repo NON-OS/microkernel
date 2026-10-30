@@ -17,7 +17,7 @@
 //! Which requester ids reach an AMD IOMMU under another id (48882, 5.2.2.2:
 //! ALIAS SELECT 42h, or ALIAS START 43h to the next END 04h). Their
 //! interrupts arrive on the alias's entry, among the alias's own vectors,
-//! so one table would serve two devices (L47, L49). Pure, over the bytes.
+//! so one table would serve two devices. Pure, over the bytes.
 
 use super::ivhd_entry::{size_at, word};
 use super::ivhd_scope::{block_at, FIRST_BLOCK};

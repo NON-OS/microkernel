@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The claims' stage rule and types, the kernel's own files mounted by path
-//! for the enter model (L78): how an entry standing answers a claimant, what
+//! for the enter model: how an entry standing answers a claimant, what
 //! a release and an exit move it to, and when it goes.
 
 // Mounted once, in claim_stage.

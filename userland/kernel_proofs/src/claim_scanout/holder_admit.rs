@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! bootfb's admit in the takeover model (L79).
+//! bootfb's admit in the takeover model.
 
 use super::events::REFUSED_ADMIT;
 use super::holder::{QUIET, WITHDRAW};

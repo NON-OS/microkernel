@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Which group members a claim reaches across a shared conventional bus
-//! (acs_reach.rs `shared`), the only ones a port-only claim (H-02) still
+//! (acs_reach.rs `shared`), the only ones a port-only claim still
 //! counts: never a sibling function or a peer past a port without ACS.
 
 use super::acs_path::path;

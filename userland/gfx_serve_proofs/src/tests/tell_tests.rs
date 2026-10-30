@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Saying a blank (G-89): once per silence, only after a blank ran, again
+//! Saying a blank: once per silence, only after a blank ran, again
 //! for a new silence after the owner was heard, never with no owner; and
 //! `watch_said` hands the driver exactly BLANK_LINE.
 

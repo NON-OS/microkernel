@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A release's first step (L66). A release drained a device's grants while a
+//! A release's first step. A release drained a device's grants while a
 //! sibling thread's map, past its check, had yet to record one: that grant
 //! outlived the claim and reached the next claimant's device. So the claim
 //! stops being granted against first, the grant paths already inside it are
@@ -37,13 +37,13 @@ pub(crate) fn retire(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
             return Err(ClaimError::NotHolder);
         }
         c.stage = retired(c.stage)?;
-        // Counted until its release, so the entry outlasts this teardown (L75).
+        // Counted until its release, so the entry outlasts this teardown.
         c.leavers = c.leavers.checked_add(1).ok_or(ClaimError::NotClaimed)?;
         c.epoch
     };
     let inside = |c: &Claim| c.device_id == device_id && c.epoch == epoch && c.inflight > 0;
     // Spun, never yielded: a thread killed where it yields is parked for good,
-    // and this one would hold its count for ever (L77). No path inside a claim
+    // and this one would hold its count for ever. No path inside a claim
     // yields and kernel code is never preempted, so each finishes on its own
     // CPU; shootdowns are answered meanwhile, as the claims' lock does.
     while claims().iter().any(inside) {

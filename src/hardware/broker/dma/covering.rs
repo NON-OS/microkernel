@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which DMA grant a surface may be registered over (L35). Pure, so
+//! Which DMA grant a surface may be registered over. Pure, so
 //! kernel_proofs checks it by path.
 
 /// The run (`physical_start`, `length`) of the grant whose user window

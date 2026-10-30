@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! No unit, so no faulting device to block (K12). The x86_64 IRQ wait asks
+//! No unit, so no faulting device to block. The x86_64 IRQ wait asks
 //! anyway; nothing here notes a fault.
 
 pub(crate) fn block_faulted() {}

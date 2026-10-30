@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The shell's power-off request (G-53): exactly its 20-byte header is
+//! The shell's power-off request: exactly its 20-byte header is
 //! well formed; any change to magic, version, op, flags, reserved,
 //! payload length or length is not; any request id is; and a refusal
 //! echoes the header with the status at offset 20.

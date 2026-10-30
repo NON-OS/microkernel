@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! An exit racing its claim's own users (L75): a grant path inside the claim
+//! An exit racing its claim's own users: a grant path inside the claim
 //! (a bind or a map), a sibling's release and a newer claimant waiting for the
 //! device, every order tried; the kernel's stage rule included by path. `new`:
 //! the exit counts as a release and the last one out removes the entry; the
@@ -28,7 +28,7 @@ use super::types::Stage;
 pub(super) struct Entry(pub u64, pub u8, pub u32, pub u32);
 
 /// Paths: 0 the grant path, 1 the exit, 2 the sibling's release, 3 the newer
-/// claimant, 4 a kill landing where the release waits (L77). `bad`: an old
+/// claimant, 4 a kill landing where the release waits. `bad`: an old
 /// path wrote a newer claim's device, or frames were freed under Bus Master.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub(super) struct World {

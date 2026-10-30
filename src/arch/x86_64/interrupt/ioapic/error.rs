@@ -29,7 +29,7 @@ pub enum IoApicError {
     TooManyIoApics,
     /// No CPU has an APIC id the 8-bit destination field can hold.
     NoReachableCpu,
-    /// Remapping is on and the line cannot have an entry of its own (K3).
+    /// Remapping is on and the line cannot have an entry of its own.
     NotRemapped,
 }
 

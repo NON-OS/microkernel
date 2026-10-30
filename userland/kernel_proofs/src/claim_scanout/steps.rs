@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One atomic step of a path in the takeover model (L79): one hold of a
+//! One atomic step of a path in the takeover model: one hold of a
 //! lock, or one act with none, as the kernel takes it; false when the path
 //! cannot move. The world is held to its invariants after every step.
 

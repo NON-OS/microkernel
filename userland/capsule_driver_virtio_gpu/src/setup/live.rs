@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Everything after the register window: the transport, the scanouts, the
-//! best-effort probes, and every enabled scanout taken (G-77) into the
+//! best-effort probes, and every enabled scanout taken into the
 //! wire server.
 
 use nonos_gfx_pool::Pool;

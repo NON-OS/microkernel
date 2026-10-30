@@ -29,7 +29,7 @@ pub(super) struct Claimed {
     pub(super) epoch: u64,
     pub(super) device: DeviceRecord,
     pub(super) bar: Bar,
-    /// The claim, held until the grant is recorded (L66).
+    /// The claim, held until the grant is recorded.
     pub(super) held: claim::InUse,
 }
 

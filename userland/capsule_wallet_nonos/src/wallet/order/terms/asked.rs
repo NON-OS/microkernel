@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Whether the market's answers are for the names the store asked (B8).
+ * Whether the market's answers are for the names the store asked.
  * The names are market ids as text: the listing's ("linux.qwenchat") and
  * the release's ("linux.qwenchat@1.2.0", empty for the default). The
  * answers carry the on-chain ids (plan/23), hashes of those texts:

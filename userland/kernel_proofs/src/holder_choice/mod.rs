@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which tables a grant's holder is found in (K10). The real choice is
+//! Which tables a grant's holder is found in. The real choice is
 //! included by path.
 
 #[path = "../../../../src/hardware/broker/holder_choice.rs"]

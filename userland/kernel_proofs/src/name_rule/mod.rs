@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which names a capsule loaded at run time may declare (K18): the kernel's
+//! Which names a capsule loaded at run time may declare: the kernel's
 //! own rule and its own reserved tables, by path.
 
 #[path = "../../../../src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/baked_apps.rs"]

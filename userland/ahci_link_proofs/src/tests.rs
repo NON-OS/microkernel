@@ -24,7 +24,7 @@ fn device_is_ready_only_when_bsy_and_drq_are_clear() {
     assert!(!device_ready(0x88)); // both set
 }
 
-// The status a give-up leaves with (H-04): a controller with no disk on
+// The status a give-up leaves with: a controller with no disk on
 // any port is a clean EXIT_EMPTY, every other give-up stays EXIT_GAVE_UP.
 #[path = "../../capsule_driver_ahci/src/exit_code.rs"]
 mod exit_code;

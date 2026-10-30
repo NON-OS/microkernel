@@ -29,7 +29,7 @@ use super::frames::user_frames;
 static FIRST_SURFACE_REGISTER: AtomicBool = AtomicBool::new(false);
 
 pub(in super::super) fn do_register(desc_ptr: u64) -> SyscallResult {
-    // Surfaces are held by the process, not the thread that asked (L36).
+    // Surfaces are held by the process, not the thread that asked.
     let Some(pid) = current_pid().map(crate::hardware::broker::holder_of) else {
         return errno(ESRCH);
     };

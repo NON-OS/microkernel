@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The entropy capsule's bytes held for a seed, pure (K9). A batch failing
+//! The entropy capsule's bytes held for a seed, pure. A batch failing
 //! the health tests is refused and drops what is held; one while the source
 //! is unproven is dropped. kernel_proofs::entropy_health.
 

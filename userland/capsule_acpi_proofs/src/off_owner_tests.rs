@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `power.off` has one owner, capsule_power (P-08): capsule_acpi neither
+//! `power.off` has one owner, capsule_power: capsule_acpi neither
 //! declares the name, nor has the kernel register it for it, nor serves a
 //! POFF frame. Its own power-offs (button, _CRT, battery) stay its own.
 

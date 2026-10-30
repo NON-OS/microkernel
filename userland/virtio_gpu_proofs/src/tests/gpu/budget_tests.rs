@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What one display grant can hold bounds what is offered (G-78): CAPS'
+//! What one display grant can hold bounds what is offered: CAPS'
 //! budget is the broker's 8192 pages, MODES leaves out a size whose
 //! surface would not fit (a host asking for one included), and the wire
 //! server refuses a MODE_SET over it before the driver is asked.

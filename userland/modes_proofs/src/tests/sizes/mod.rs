@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! nonos_modes' products of sizes and rates held at u32's edges (G-70):
+//! nonos_modes' products of sizes and rates held at u32's edges:
 //! CVT's sums and narrowings, a link's capacity, a timing's rates against
 //! a range descriptor; each against the test's own reading in u128.
 

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The host's side of a virtio-gpu, as a model answering the control queue
-//! on the driver's own thread (G-73), written from the test's own reading
+//! on the driver's own thread, written from the test's own reading
 //! of the 2D commands as recalled from the virtio specification (not
 //! verified against it): resources with their own pixels and backing,
 //! and what each scanout shows.

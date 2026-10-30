@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! A driver restarted onto its own device (G-78). L78 resets the function
+//! A driver restarted onto its own device. L78 resets the function
 //! between holders and the bring-up resets it again, so the new driver
 //! meets a device with no resource and no scanout set, whatever its killed
 //! self was doing. Killed at every command of a draw and a mode set, the

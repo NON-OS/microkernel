@@ -26,7 +26,7 @@ pub extern "C" fn mk_device_list(class: u32, buf: *mut DeviceRecord, count: u64)
 }
 
 /// A device being reset between holders answers EAGAIN until it is back
-/// (L78); the claim waits that out here, so a driver restarted at once still
+/// the claim waits that out here, so a driver restarted at once still
 /// gets its device. Bounded by time, not by sleeps: any wake of this process,
 /// a message to it say, ends `mk_idle_ms` early.
 #[no_mangle]

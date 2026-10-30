@@ -47,7 +47,7 @@ pub const OP_SET_POWER_CAP: u8 = 20;
 pub const OP_HOLDER: u8 = 21;
 pub const OP_PCI_FIRMWARE: u8 = 22;
 // 23 VCP and 24 SET_VCP belong to the brightness wire's graphics servers
-// (G-42); this capsule never serves them, so one sent here by mistake is
+// this capsule never serves them, so one sent here by mistake is
 // an unknown op, not a sleep or power request. The next op here is 25.
 pub const EPERM: i32 = -1;
 pub const ENOENT: i32 = -2;

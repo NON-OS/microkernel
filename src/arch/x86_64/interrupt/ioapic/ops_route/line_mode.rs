@@ -20,7 +20,7 @@
 //! An ACPI platform device's own `_CRS` interrupt descriptor says it first
 //! (ACPI 6.5, 6.4.3.6; F 51 carries it in the record): a GPIO controller on
 //! GSI 7 or 14 asks for level, active-low, and sensed as an ISA edge it fired
-//! once and never again (L43). Then an MADT override. Without either, GSIs 0
+//! once and never again. Then an MADT override. Without either, GSIs 0
 //! to 15 are the ISA lines, edge-triggered and active-high (ACPI 6.5,
 //! 5.2.12.5). A line above them reaches a capsule only as a PCI INTx or an
 //! ACPI device interrupt, and PCI INTx# is level-sensitive and active-low

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The interrupt sources a DRHD scopes (I/O APICs and HPETs), each kept by
-//! its own type with the requester id its messages carry (L44).
+//! its own type with the requester id its messages carry.
 
 use super::dmar_namespace_scope::{NamespaceScope, SCOPE_HPET, SCOPE_IOAPIC, SCOPE_NAMESPACE};
 use super::dmar_namespace_walk::{walk_namespace_scopes, walk_numbered_scopes};

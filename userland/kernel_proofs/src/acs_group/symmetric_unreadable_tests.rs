@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A held device whose group cannot be read fails closed (H-03): a PCI
+//! A held device whose group cannot be read fails closed: a PCI
 //! device another capsule holds, whose path no longer resolves, refuses a
 //! claim beside it as admit refuses one of its own; a held device off the
 //! PCI tree (ACPI, platform, VMBus) has no group and refuses nothing.

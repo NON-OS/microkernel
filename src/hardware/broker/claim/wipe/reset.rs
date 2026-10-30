@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A reset's own writes (L78): what it clears saved first, the marker set
+//! A reset's own writes: what it clears saved first, the marker set
 //! and read back, and the reset itself, by the method chosen. All through
 //! the kernel's config window; Command through the one lock every edit of it
-//! takes (L73).
+//! takes.
 
 use super::bits_rule::{AF_INITIATE_FLR, D3HOT, INITIATE_FLR, INTX_DISABLE, MEM};
 use super::caps::ResetCaps;

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The hops from a device to the root complex, pure (K11). kernel_proofs::
+//! The hops from a device to the root complex, pure. kernel_proofs::
 //! acs_rule.
 
 extern crate alloc;

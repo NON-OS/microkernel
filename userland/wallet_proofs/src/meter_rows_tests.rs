@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The meter screen's lines (B8), from ACCOUNT replies built here.
+//! The meter screen's lines, from ACCOUNT replies built here.
 
 use nonos_payment_proto::{Account, AccountRow, KEPT, READY};
 

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Whether a dead domain's tables can all be read before any goes back to
-//! the frame allocator (K12): one that cannot be read keeps them all, so no
+//! the frame allocator: one that cannot be read keeps them all, so no
 //! frame a unit may still reach through it is ever reused. VT-d and AMD-Vi
 //! both ask, each with its own rule for which entry leads to a table.
 

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The takeover's glue pinned whole, comments and whitespace aside (L81):
+//! The takeover's glue pinned whole, comments and whitespace aside:
 //! the rule asked with the holder's own end and CPU in that order, a reused
 //! pid's lock unlocked before its rows go, and a killed caller's round trip
 //! answering a transport failure, not a dead capsule, before it pauses.

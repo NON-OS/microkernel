@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A table's checksum runs over no more than its own mapped bytes (K11).
+//! A table's checksum runs over no more than its own mapped bytes.
 //! The real bound is included by path.
 
 #[path = "../../../../src/arch/x86_64/acpi/tables/sdt/entry_count.rs"]

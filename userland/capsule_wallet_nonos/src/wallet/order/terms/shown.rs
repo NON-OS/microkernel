@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * When a purchase the store named may show at all (B8): only once every
+ * When a purchase the store named may show at all: only once every
  * market call is answered and the terms read, for the names asked. Until
  * then the wallet shows nothing of it, so no half-read screen can be
  * clicked through.

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The market's answer must be for the names asked (B8): GET_APP echoes
+//! The market's answer must be for the names asked: GET_APP echoes
 //! the listing's text, GET_RELEASE the release's, and GET_COMMERCE's ids
 //! are their hashes under the publisher's key. Any other answer is a
 //! refusal, and no Buy.

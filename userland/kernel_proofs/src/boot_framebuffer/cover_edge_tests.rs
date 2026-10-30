@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! BARs the cover rule must read with care (L79): one whose end passes the
+//! BARs the cover rule must read with care: one whose end passes the
 //! top of the address space, and those it must not read at all, of no size,
 //! of ports, of no kind, or in a slot past the record's count. Addresses are
 //! illustrative.

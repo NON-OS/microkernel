@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The seeded model of plan section 6 (L78): 5,000 seeds for each reset
+//! The seeded model of plan section 6: 5,000 seeds for each reset
 //! method and for a function offering none, every invariant judged on every
 //! move of every seed, and floors on the cases reached (model_floors), so
 //! that no sweep passes for want of them.

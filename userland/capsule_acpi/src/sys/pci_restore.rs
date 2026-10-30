@@ -16,7 +16,7 @@
 
 //! MkAcpiRestoreFunction ("MARF", the lead's kernel half): once a claimed
 //! PCI function is in D0 again, the kernel puts back the BARs it lost in
-//! D3, as at its claim (L62). Until the kernel offers it, D3hot without
+//! D3, as at its claim. Until the kernel offers it, D3hot without
 //! No_Soft_Reset stays refused, so whether it is there is asked once.
 
 use super::acpi::{ok, tag4, Errno};

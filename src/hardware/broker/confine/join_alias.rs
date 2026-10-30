@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A claim's isolation group and requester-id aliases, held to its capsule
-//! (K11). A group member or an alias in another capsule's domain reaches
+//! A group member or an alias in another capsule's domain reaches
 //! this device past the IOMMU; every alias joins the claimer's domain with
 //! the device, or the DMA it carries is denied.
 

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The kernel as built in the takeover model, or one step of its design
-//! undone for an undo check (L79). Each undone step is one the kernel
+//! undone for an undo check. Each undone step is one the kernel
 //! encodes as an order of calls, so the model is where it can be turned.
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]

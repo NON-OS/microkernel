@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The reserved memory regions firmware declared, said once at bring-up. An
-//! unclaimed device reaches its regions in a domain holding them alone (K2);
+//! unclaimed device reaches its regions in a domain holding them alone;
 //! one a capsule claims has them mapped one to one in the capsule's domain
-//! before it moves (L60).
+//! before it moves.
 
 use crate::arch::x86_64::acpi::parser::other::{rmrr_dropped, rmrr_regions};
 use crate::sys::serial::Line;

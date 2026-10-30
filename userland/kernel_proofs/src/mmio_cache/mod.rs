@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The memory type a MkMmioMap mapping gets (L17): write-combined only on a
+//! The memory type a MkMmioMap mapping gets: write-combined only on a
 //! prefetchable BAR, wholly inside it, and only once every CPU's PAT has the
 //! entry; strong UC otherwise. The real source is included by path.
 

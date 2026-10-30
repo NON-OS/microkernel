@@ -18,7 +18,7 @@ use super::own_id::{own_requester_id, path_to_root, Hop, ROOT_BUS};
 
 #[test]
 fn a_device_under_a_second_host_bridge_is_its_own() {
-    // Root buses 0 and 0x40; a root port on 0x40 to bus 0x41 (L61).
+    // Root buses 0 and 0x40; a root port on 0x40 to bus 0x41.
     let roots = |bus: u8| bus == ROOT_BUS || bus == 0x40;
     let below = |bus: u8| (bus == 0x41).then_some((0x40, Hop::PciePort));
     let path = |bus: u8| path_to_root(bus, roots, below);

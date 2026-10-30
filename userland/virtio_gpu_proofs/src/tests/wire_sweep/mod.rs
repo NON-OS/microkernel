@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The display wire's sweep, shared with gfx_serve_proofs and run here on
-//! virtio-gpu's own server (G-77): any frame a compositor might send,
+//! virtio-gpu's own server: any frame a compositor might send,
 //! answered as the wire defines (`server_sweep.rs` says what is held).
 
 #[path = "../../../../gfx_serve_proofs/src/sweep/asks.rs"]

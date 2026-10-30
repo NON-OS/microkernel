@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Whether a device's DMA reaches the IOMMU under its own requester id
-//! (L51). A conventional PCI device behind a PCIe-to-PCI bridge is seen
+//! A conventional PCI device behind a PCIe-to-PCI bridge is seen
 //! under an id the bridge supplies, so its context entry is never the one
 //! its requests walk: confined by that entry, it was counted confined while
 //! its DMA went through whatever the bridge's id was given. Pure, so the
@@ -32,7 +32,7 @@ pub(super) enum Hop {
     /// A PCIe root port, or a switch's upstream or downstream port: each
     /// forwards the requester id unchanged, so the entry a device's id names
     /// is the one its DMA walks. Whether a peer below one switch is reached
-    /// without the IOMMU is ACS, a fact of its own and not this one (L57).
+    /// without the IOMMU is ACS, a fact of its own and not this one.
     PciePort,
     /// Anything else: a PCIe-to-PCI bridge, a reverse bridge, a bridge with no
     /// PCIe capability, which may substitute an id of its own.
@@ -40,7 +40,7 @@ pub(super) enum Hop {
 }
 
 /// The bridges from `bus` up to a root bus, nearest first. `is_root(b)`: bus
-/// 0, or one no bridge's range holds, as a second host bridge's is (L61).
+/// 0, or one no bridge's range holds, as a second host bridge's is.
 /// `parent_of(b)` names the bridge whose secondary bus is `b`, as (its own
 /// bus, its kind). None when a bus has no bridge above it or a parent's bus
 /// is not below its child's, which a sane numbering never gives.
@@ -65,7 +65,7 @@ pub(super) fn path_to_root(
 /// a PCIe function every one of whose bridges is a PCIe port. Anything else,
 /// an unknown path included, is not counted as its own. Nor is a bridge that
 /// may stand in for its subordinates (`stands_in`): its id is theirs too, so
-/// confining it would move their DMA into its holder's domain (L54).
+/// confining it would move their DMA into its holder's domain.
 pub(super) fn own_requester_id(is_pcie: bool, stands_in: bool, path: Option<&[Hop]>) -> bool {
     let up = |p: &[Hop]| p.is_empty() || (is_pcie && p.iter().all(|h| *h == Hop::PciePort));
     !stands_in && path.is_some_and(up)

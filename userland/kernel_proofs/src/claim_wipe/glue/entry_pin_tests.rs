@@ -16,7 +16,7 @@
 
 
 //! A claim asks the wipe record, and with it the kept bound, of every PCI
-//! function (L78, L80): claim.rs `claim` enters with what the record is
+//! function: claim.rs `claim` enters with what the record is
 //! told, which holder.rs `fresh` gives for any function the PCI index knows.
 //! Both pinned (whole), so a claim that skips the question is seen.
 

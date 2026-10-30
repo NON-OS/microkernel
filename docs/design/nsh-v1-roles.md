@@ -136,7 +136,7 @@ already given in this session. On top of that:
 - only one escalation may run at a time (`ESC_ACTIVE`).
 
 The elevated capsule ends at `min(escalation not_after, base not_after)`.
-The kernel holds that time (K3), so an escalation never outlives the
+The kernel holds that time, so an escalation never outlives the
 grant it came from, whether or not `nsh.front` is still correct.
 
 A running capsule's capabilities are never widened. The server starts a

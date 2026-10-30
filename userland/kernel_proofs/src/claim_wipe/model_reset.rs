@@ -16,7 +16,7 @@
 
 //! reset.rs's marker and its reset writes: INTx Disable set and read back,
 //! else Memory Space where a memory BAR decodes; the reset by the method
-//! chosen, Command through the lock every edit of it takes (L73); and
+//! chosen, Command through the lock every edit of it takes; and
 //! act.rs `to_d0`, a power cycle's way back.
 
 use super::bits_rule::{pmcsr_to, D3HOT, INITIATE_FLR, INTX_DISABLE, MEM};

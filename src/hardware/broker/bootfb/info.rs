@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What `MkBootFramebuffer` answers (L31): the framebuffer's geometry, for
+//! What `MkBootFramebuffer` answers: the framebuffer's geometry, for
 //! the process holding its claim only, and for nobody once a GPU driver's
-//! claim has taken its scanout, for the rest of the boot (L79).
+//! claim has taken its scanout, for the rest of the boot.
 
 use super::register::is_boot_framebuffer;
 use super::rule::{encode, Geometry, INFO_LEN};

@@ -211,7 +211,7 @@ On an installed NVMe lane with a software TPM and keeping on:
    Off nothing is left (`tools/nonos-zero-state-check` with a steps file
    that writes the secret into a home).
 7. Isolation: busybox `linux ls -la /root` sees nothing of age's home; the
-   file manager cannot open `/linux-home` (H1).
+   file manager cannot open `/linux-home`.
 
 ## Units, in order
 

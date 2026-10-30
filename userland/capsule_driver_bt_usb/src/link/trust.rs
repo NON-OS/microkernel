@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The trust an input event carries to the router (G-76). Two bits of
+//! The trust an input event carries to the router. Two bits of
 //! `InputEvent.flags`, which the modifiers (bits 0..6) leave free:
 //! SOURCE_BT marks every event this Bluetooth capsule posts, and
 //! BOND_AUTHENTICATED marks the ones from a bond Passkey Entry or Numeric

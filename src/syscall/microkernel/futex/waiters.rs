@@ -38,7 +38,7 @@ pub(super) fn leave(queue: &mut BTreeMap<Key, Vec<u32>>, key: Key, pid: u32) {
 }
 
 /// Leave on a return that does not sleep: a wake spent on this pid goes to the
-/// next live waiter, for the caller to wake, never to one killed (L81).
+/// next live waiter, for the caller to wake, never to one killed.
 pub(super) fn leave_early(
     queue: &mut BTreeMap<Key, Vec<u32>>,
     key: Key,

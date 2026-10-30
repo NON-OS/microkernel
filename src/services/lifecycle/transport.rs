@@ -163,7 +163,7 @@ pub fn round_trip(
     let _waiting = super::waiting::Waiting::on(reply_inbox);
     for round in 0..RECV_YIELDS {
         // A caller killed meanwhile returns now, its lock's guard dropped on
-        // the way out; it says nothing of the capsule, which may be up (L81).
+        // the way out; it says nothing of the capsule, which may be up.
         let killed = crate::process::current_pid()
             .is_some_and(|p| crate::process::scheduler::selection::is_dead(p));
         if killed {

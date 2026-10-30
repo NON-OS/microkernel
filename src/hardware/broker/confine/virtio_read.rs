@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The claim-time read of VIRTIO_F_ACCESS_PLATFORM (K5), as a sequence over
+//! The claim-time read of VIRTIO_F_ACCESS_PLATFORM, as a sequence over
 //! the common configuration's registers. Pure, and proven on the host
 //! (kernel_proofs::virtio_confine). The driver must not inherit a select it
 //! did not write, so device_feature_select is put back as it was found.

@@ -21,7 +21,7 @@ use crate::kernel_core::surface_registry::types::{decode_handle, RegistryError, 
 
 /*
  * Refuse `receiver_pid` unless `handle`'s owner shared it with the
- * receiver's thread group. Every share names its receiver now (K20): none
+ * receiver's thread group. Every share names its receiver now: none
  * stands for whoever serves the compositor. A refusal is the same whether or
  * not the handle names a surface, the EPERM a right refused gives too, so a
  * guesser cannot learn which slots are live. The group is resolved before the

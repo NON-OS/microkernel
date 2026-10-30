@@ -24,7 +24,7 @@ use crate::arch::x86_64::iommu::amd_vi::is_enforcing;
 use crate::memory::iommu::{IommuCapabilities, IommuVendor};
 
 pub(super) fn amd_vi() -> IommuCapabilities {
-    // An IOMMU IVRS left off translates nothing its devices send (K11).
+    // An IOMMU IVRS left off translates nothing its devices send.
     if !is_enforcing() || amd_units_left_off() {
         return IommuCapabilities::none_in_force(IommuVendor::AmdVi);
     }
@@ -32,7 +32,7 @@ pub(super) fn amd_vi() -> IommuCapabilities {
         vendor: IommuVendor::AmdVi,
         enforcing: true,
         address_width_bits: 48,
-        // Every entry has IV from bring-up on (K4): remapped, or refused.
+        // Every entry has IV from bring-up on: remapped, or refused.
         interrupt_remapping: true,
         page_sizes: 1 << 12,
         snoop_control: true,

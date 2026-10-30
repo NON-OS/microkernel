@@ -67,7 +67,7 @@ capability_table! {
     StreamImport = 1 << 34,
     /// Receive the TPM-derived device secret, the anonymous proof's witness: nonos.prove's.
     DeviceSecret = 1 << 35,
-    /// Drain and wait on the raw input ring, every keystroke: input_router's alone (K8).
+    /// Drain and wait on the raw input ring, every keystroke: input_router's alone.
     InputConsumer = 1 << 36,
     #[doc = "Camera frames; held by no capsule until Decision 9."] CameraCapture = 1 << 37,
     #[doc = "Microphone samples, held as camera frames are."] MicrophoneCapture = 1 << 38,

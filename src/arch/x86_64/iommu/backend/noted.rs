@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Requester ids noted without a lock, pure (K12): the fault poll notes them
+//! Requester ids noted without a lock, pure: the fault poll notes them
 //! in the timer interrupt, and the broker takes them where locks may be
 //! taken. kernel_proofs::iommu_attach.
 

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! An event from an unauthenticated Bluetooth device, checked before it is
-//! routed (G-76): refused on the secure path, the release of a refused press
+//! routed: refused on the secure path, the release of a refused press
 //! with it, and the shell told that the device must be paired again.
 
 use nonos_libc::InputEvent;

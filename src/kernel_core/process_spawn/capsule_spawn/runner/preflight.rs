@@ -55,7 +55,7 @@ pub(crate) fn run(
         &declared,
     )?;
     let install_caps = verification.1;
-    // The image ceiling binds every capsule (K16): over it, no spawn.
+    // The image ceiling binds every capsule: over it, no spawn.
     let ceiling = crate::security::image_ceiling::ceiling();
     if crate::security::image_ceiling::gate(install_caps, ceiling).is_err() {
         crate::security::image_ceiling::report(spec.name, install_caps);

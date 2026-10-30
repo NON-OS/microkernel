@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The takeover's next step for no claim of bootfb and for each of its five
-//! stages (L79), each answer stated from the design's reason for it, and
+//! stages, each answer stated from the design's reason for it, and
 //! how `next` agrees with the stage rule: what it takes back is what a
 //! release can begin on, and it is done exactly where none can.
 

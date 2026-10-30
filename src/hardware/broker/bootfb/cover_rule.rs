@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whether a PCI function's memory holds the boot framebuffer (L79), as pure
+//! Whether a PCI function's memory holds the boot framebuffer, as pure
 //! rules `kernel_proofs` mounts. Judged on whole pages, not bytes: a holder
 //! maps every page its request touches, so a BAR sharing only the
 //! framebuffer's last page still reaches its pixels.

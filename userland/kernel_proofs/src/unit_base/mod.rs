@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! An IOMMU register base is mapped only when it is one (K11). The real
+//! An IOMMU register base is mapped only when it is one. The real
 //! check is included by path.
 
 #[path = "../../../../src/arch/x86_64/acpi/parser/other/unit_base.rs"]

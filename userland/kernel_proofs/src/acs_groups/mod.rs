@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Devices below one PCIe switch that reach each other past the IOMMU (L72):
+ * Devices below one PCIe switch that reach each other past the IOMMU:
  * the ACS controls a port needs, the extended capability walk, and the
  * groups no two capsules may share. The real rule is included by path.
  */

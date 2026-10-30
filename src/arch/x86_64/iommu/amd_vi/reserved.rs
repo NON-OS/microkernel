@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The domains AMD-Vi bring-up gives unclaimed devices (K4), as K2 does on
+//! The domains AMD-Vi bring-up gives unclaimed devices, as K2 does on
 //! VT-d. None is identity mapped: a device firmware reserved no memory for
 //! stays blocked until a capsule claims it; one with IVMD ranges gets a
 //! domain holding those and nothing else, shared by every device whose

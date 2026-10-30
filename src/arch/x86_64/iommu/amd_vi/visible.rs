@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A table write made visible to a unit that reads memory without snooping
-//! the CPU's caches (K12). Control.Coherent asks the unit to snoop its
+//! the CPU's caches. Control.Coherent asks the unit to snoop its
 //! device table fetches; the line is flushed after every write as well, so
 //! a unit that ignores the bit still reads the entry just written.
 

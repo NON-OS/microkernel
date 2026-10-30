@@ -16,7 +16,7 @@
 
 //! NIRS op 0x0006, from the compositor: its display is now width by height,
 //! two u32s, sent on every change. The cursor's edges move at once, not at
-//! the next DISPLAY_INFO recheck (H-09). One-way and never answered, as op
+//! the next DISPLAY_INFO recheck. One-way and never answered, as op
 //! 0x0005 is (trusted_hold.rs). A notice from any other process, of another
 //! length, or with a zero side is dropped.
 

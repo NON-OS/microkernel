@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A grant refused for its holder's quota, named on the console (K10). The
+//! A grant refused for its holder's quota, named on the console. The
 //! map answers ENOMEM either way; this line tells a spent quota from a
 //! spent window. Rate-limited, as every diag site is.
 

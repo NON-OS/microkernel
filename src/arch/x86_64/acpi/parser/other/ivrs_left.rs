@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whether IVRS left an AMD IOMMU unread (K11): past the eight the kernel
+//! Whether IVRS left an AMD IOMMU unread: past the eight the kernel
 //! holds, past a block that does not parse, or past the length it reads. An
 //! IOMMU left off translates nothing, so AMD-Vi then claims no enforcement
 //! (backend/amd_capabilities.rs).

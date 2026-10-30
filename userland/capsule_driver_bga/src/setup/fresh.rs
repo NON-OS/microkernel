@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The adapter as a driver finds it at bring-up, made its own (G-78).
+//! The adapter as a driver finds it at bring-up, made its own.
 //! L78 keeps a display function for its own driver service, reset or not,
 //! so a restarted driver may meet what its killed self left: the last
 //! frame in video memory, its mode still scanning out, or a mode set cut

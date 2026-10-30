@@ -45,7 +45,7 @@ pub fn create_domain() -> Result<u16, AmdViError> {
 
 /// Free the id. Devices must be detached already (a domain a failed attach
 /// may still name is pinned, quarantined). The cached translations go first,
-/// so no walk is in the tables when they go back, as on VT-d (K12). A table
+/// so no walk is in the tables when they go back, as on VT-d. A table
 /// that cannot be read keeps them all; any failure quarantines the id.
 pub fn destroy_domain(id: u16) -> Result<(), AmdViError> {
     let mut roots = ROOTS.lock();

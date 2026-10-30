@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Where the takeover model is searched from (L79): which paths take part,
+//! Where the takeover model is searched from: which paths take part,
 //! whether bootfb claims a second time, and how many draws the kernel tries.
 
 use super::world::{Page, END};

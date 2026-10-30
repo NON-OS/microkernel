@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! A desk for the Bluetooth bond rule (G-76): events stamped the way the
+//! A desk for the Bluetooth bond rule: events stamped the way the
 //! Bluetooth capsule stamps them, and every frame sent read back with its
 //! envelope flags, so the router's notice to the shell can be told apart.
 

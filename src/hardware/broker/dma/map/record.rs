@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Entering a finished map in the grant table, only while its claim stands
-//! (L69) and within its holder's quota (K10); on a refusal the caller undoes
+//! and within its holder's quota; on a refusal the caller undoes
 //! the map.
 
 use super::super::records;
@@ -46,7 +46,7 @@ pub(super) fn record(
         confined,
     };
     match records::insert_if(grant, live) {
-        // Its claim gone meanwhile (L69): the caller takes the map back.
+        // Its claim gone meanwhile: the caller takes the map back.
         None => return Err(DmaMapError::NotClaimed),
         // The quota spent answers as a spent window does, and is named.
         Some(Err(spent)) => {

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Why a claim may not begin over an entry, for every stage (L78): one being
+//! Why a claim may not begin over an entry, for every stage: one being
 //! made or standing is another capsule's, so the claimant is told it is
 //! taken; one on its way out is followed by its wipe, so the claimant is
 //! told to ask again. A claim that can still be granted against is never

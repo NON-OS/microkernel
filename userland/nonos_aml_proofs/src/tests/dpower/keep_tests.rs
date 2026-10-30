@@ -37,7 +37,7 @@ fn every_move_and_every_status() {
     }
 }
 
-/// A claimed function, whose BARs the broker puts back (L62), loses its
+/// A claimed function, whose BARs the broker puts back, loses its
 /// configuration only to D3cold, and is never refused a move the plain
 /// rule allows.
 #[test]

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A claim's entry made (L65, L78), in the one hold of the claims' lock that
+//! A claim's entry made, in the one hold of the claims' lock that
 //! also asks the function's wipe record: no claim begins between an entry's
 //! going and its wipe being owed, nor over a wipe still under way, and the
 //! wait for one is the claimant's own, in user code, before any entry exists.
@@ -34,7 +34,7 @@ pub(super) fn enter(pid: u32, device_id: u64, fresh: Option<&Fresh>) -> Result<u
     if let Some(c) = claims.iter().find(|c| c.device_id == device_id) {
         return Err(over(c.stage));
     }
-    // Read after the record, under the claims and wipes locks (L80); the
+    // Read after the record, under the claims and wipes locks; the
     // kept list's lock is a leaf.
     let capped = || crate::hardware::broker::dma::kept_bytes(device_id) >= KEEP_CAP;
     match fresh.map(|f| wipe::admits(device_id, f.by, capped)) {

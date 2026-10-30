@@ -318,7 +318,7 @@ nonos-dev-attest = ["nonos-boot-measure/dev-attest"]
 # Never in a release: lib.rs refuses it beside nonos-production or
 # nonos-release, and the IOMMU posture line says it is on.
 nonos-dev-unconfined-dma = []
-# The owner's development opt-in to interrupts without remapping (K3): a PCI
+# The owner's development opt-in to interrupts without remapping: a PCI
 # device is claimed, and its MSI bound in compatibility format, where no unit
 # remaps. Never in a release (src/memory/iommu/dev_unremapped.rs refuses it
 # beside nonos-production or nonos-release); the posture line says it is on.
@@ -1399,7 +1399,7 @@ nonos-iommu-enforce  = ["nonos-arch-iommu"]
 
 # Interrupt remapping on every VT-d unit (VT-d chapter 5) with CFI clear, so
 # compatibility format interrupts are blocked: every MSI, MSI-X and IO-APIC
-# line names an entry for its own source. In microkernel-core (K3); a build
+# line names an entry for its own source. In microkernel-core; a build
 # without it claims no PCI device but under the development opt-in.
 nonos-iommu-intremap = ["nonos-iommu-enforce"]
 
@@ -1407,7 +1407,7 @@ nonos-iommu-intremap = ["nonos-iommu-enforce"]
 # every requester id starts blocked, its interrupts refused, a device with
 # IVMD ranges keeping only those; a command buffer and event log per unit;
 # capsule domains and per-device interrupt tables behind the same broker
-# calls as VT-d. In microkernel-core (K4).
+# calls as VT-d. In microkernel-core.
 nonos-iommu-amdvi = ["nonos-arch-iommu"]
 
 # In-tree crypto, audit-anchored constant-time implementations.

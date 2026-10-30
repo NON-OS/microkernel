@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! An entry at index `vector` in a requester id's own table, for a source
-//! whose messages carry the vector itself (K4): an I/O APIC's lines, whose
+//! whose messages carry the vector itself: an I/O APIC's lines, whose
 //! redirection entries stay in compatibility format so a level line's EOI
 //! still matches, or a broker vector sent as the plain message. Such a table
 //! is never also handed out by handle (table.rs).

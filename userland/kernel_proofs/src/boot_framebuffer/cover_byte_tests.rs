@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The cover rule against the page-by-page model at the grain of one byte
-//! (L79). The other sweeps step by a quarter or half page, where a rule
+//! The other sweeps step by a quarter or half page, where a rule
 //! that drops a span's last byte, ignores a one-byte BAR or reads an end as
 //! inclusive gives the same answers; here the floors count the cases whose
 //! answer one byte decides, so such a rule is met and fails.

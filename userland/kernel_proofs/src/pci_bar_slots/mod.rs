@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * A bridge's bus numbers and windows are never size-probed as BARs (L58).
+ * A bridge's bus numbers and windows are never size-probed as BARs.
  * The kernel's header rule is included by path and run over every header
  * type byte and BAR index: no read or write reaches past a header's BARs.
  */

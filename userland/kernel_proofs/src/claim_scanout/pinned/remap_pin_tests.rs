@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! remap_in_asid.rs read whole (L79). The ordered checks beside it left free
+//! remap_in_asid.rs read whole. The ordered checks beside it left free
 //! the lines that step each page's address and frame a page at a time, map
 //! the sink user, read and write with nothing to run (an executable one is
 //! refused, and nothing would move), count every page moved so the one

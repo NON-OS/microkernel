@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The boot framebuffer published as a claimable display device (L31): the
+ * The boot framebuffer published as a claimable display device: the
  * window a driver may map and the geometry `MkBootFramebuffer` answers. The
  * kernel's pure rule is included by path. Beside it, whose claim takes the
- * framebuffer's scanout (L79): the cover rule included by path, a model of
+ * framebuffer's scanout: the cover rule included by path, a model of
  * the find the kernel runs at boot, and the glue around both read as text,
  * the glue that decides pinned whole.
  */

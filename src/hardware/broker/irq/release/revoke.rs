@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A depart's revocation of a device's IRQ grants (`acpi::depart`), bound to
-//! the claim it retired as a release's drain is (L71).
+//! the claim it retired as a release's drain is.
 
 use super::super::records::drain_for_device;
 use super::unwind::teardown;

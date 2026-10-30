@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! When a written reset is given up on (L78), and the windows' lengths. The
+//! When a written reset is given up on, and the windows' lengths. The
 //! deadline lies one full retry window past where its check opens, and a step
 //! just before, at or after it is a check, so the step that finds it not back
 //! by then is the one that can end it Lost. Only a written FLR and the step

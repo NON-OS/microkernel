@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The CNVi shape (H-03): a function without ACS (the PCH xHCI) beside one
+//! The CNVi shape: a function without ACS (the PCH xHCI) beside one
 //! that redirects (CNVi Wi-Fi, an Intel RCiEP) reaches the other one-sidedly,
 //! and the claim is refused in both orders, not only the one K11b caught;
 //! and the line for a peer carrying the claimed device's requester id.

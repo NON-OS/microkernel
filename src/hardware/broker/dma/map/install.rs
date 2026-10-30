@@ -21,7 +21,7 @@ use crate::hardware::broker::dma::va;
 use crate::memory::addr::PhysAddr;
 
 // Reserve user VA + install page table entries, from the holder's window
-// (K10); a failure gives the range back. The caller frees physical frames;
+// a failure gives the range back. The caller frees physical frames;
 // this layer owns only the VA/page state. The zeroing went through the
 // caches. A coherent or write-combining grant is flushed first, so its non
 // write-back mapping does not read memory the zeroing left behind in a dirty

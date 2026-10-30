@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The one other way after a reset whose marker survived, and which functions
-//! may reach memory past Bus Master off (L78). The fallback is never the way
+//! may reach memory past Bus Master off. The fallback is never the way
 //! just tried, so a function that ignores a way is never given it twice, and
 //! it is only ever the D3hot trip where that is offered; after the trip, or
 //! where it is not offered, there is none and the wipe ends Unreset. Binding

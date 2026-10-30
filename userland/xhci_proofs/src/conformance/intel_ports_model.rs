@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! An Intel PCH xHCI whose USB 2.0 and SuperSpeed ports firmware lets the
-//! OS move over from EHCI (H-10), and one bring-up on it with every broker
+//! OS move over from EHCI, and one bring-up on it with every broker
 //! call recorded, each with what the controller showed then.
 
 use std::sync::atomic::{AtomicU32, Ordering};

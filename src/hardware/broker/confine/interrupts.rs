@@ -16,7 +16,7 @@
 
 //! On x86 a device that is not behind interrupt remapping can write a
 //! compatibility format message, any vector or NMI, INIT or SMI to any
-//! CPU, whether or not it is ever bound: its claim is refused (K3).
+//! CPU, whether or not it is ever bound: its claim is refused.
 
 use super::refuse::Refused;
 use super::say::say;

@@ -18,7 +18,7 @@
 //! once), the table taken (the tick only tries) and the due records no step
 //! is acting on marked busy, the table let go, the act with no lock held,
 //! then finish.rs: an ended wipe's kept frames settled outside every lock
-//! (model_end), and only then its record put back under the table (L80).
+//! (model_end), and only then its record put back under the table.
 
 use super::model_act::act;
 use super::model_end::{after_put, before_put, settle};

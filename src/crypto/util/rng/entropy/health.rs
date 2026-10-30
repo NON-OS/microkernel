@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! SP 800-90B 4.4's health tests on every byte of the entropy capsule's,
-//! pure (K9), each at a false alarm rate of 2^-20 per sample. A source is
+//! pure, each at a false alarm rate of 2^-20 per sample. A source is
 //! unproven until STARTUP samples pass, and again after any alarm.
 //! kernel_proofs::entropy_health.
 

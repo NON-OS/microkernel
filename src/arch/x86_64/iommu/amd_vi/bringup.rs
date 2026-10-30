@@ -17,7 +17,7 @@
 //! AMD-Vi bring-up: map every unit IVRS names, point each at one shared
 //! device table in which every requester id is blocked, put each unit in
 //! service, then give the devices firmware reserved memory for those ranges
-//! alone (K4). All or nothing: a unit that cannot be reached leaves
+//! alone. All or nothing: a unit that cannot be reached leaves
 //! enforcement unclaimed.
 
 use super::devtab::{device_table, read_dte};
@@ -50,7 +50,7 @@ pub(super) fn bring_up() -> Result<usize, AmdViError> {
     }
     let units = record(mapped);
     let table = device_table()?;
-    // Every entry refuses interrupts before any unit reads it (K4).
+    // Every entry refuses interrupts before any unit reads it.
     if (0..=u16::MAX).any(|id| read_dte(id).map_or(true, |e| passes_any(e[2]))) {
         return Err(AmdViError::StrayWriter);
     }

@@ -44,7 +44,7 @@ pub fn lookup_compositor_port() -> Result<u32, &'static str> {
     lookup_compositor().map(|(port, _)| port)
 }
 
-/// The compositor's pid, the one process a surface is shared with (K20).
+/// The compositor's pid, the one process a surface is shared with.
 pub fn lookup_compositor_pid() -> Result<u32, &'static str> {
     lookup_compositor().map(|(_, pid)| pid)
 }

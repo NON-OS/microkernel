@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Who may keep records by name (L33): the services whose keys must outlive
+//! Who may keep records by name: the services whose keys must outlive
 //! their own restart. A name is held by one process at a time, and a capsule
 //! registers only the names its manifest gives it, so whoever owns the name
 //! now is the driver that stored the records, restarted or not.

@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! A dark plane on a running transcoder (G-79): this driver's own, left by
+//! A dark plane on a running transcoder: this driver's own, left by
 //! a mode set killed after the plane went off, is taken whole and
 //! confined; firmware's stays dark, as G-12 says.
 

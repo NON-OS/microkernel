@@ -49,7 +49,7 @@ not support (`report`, `src/hardware/broker/acpi_i2c/report.rs:32-74`).
    TPD0, names its controller and nothing else. There, and only there, the
    sweep reads 0x15, 0x2C and 0x10, those three alone, one byte each, and binds
    the first device that answers even if it is not a pad. Once the kernel
-   evaluates `_CRS` for the pad (K13), the sweep goes: [a pad with no
+   evaluates `_CRS` for the pad, the sweep goes: [a pad with no
    address](i2c-hid-sweep.md).
 5. With nothing declared, nothing on the bus is probed and nothing is in reach.
 

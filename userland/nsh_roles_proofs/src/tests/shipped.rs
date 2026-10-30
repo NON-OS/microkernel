@@ -22,7 +22,7 @@ use nsh_roles::caps::{bit, FORBIDDEN};
 use nsh_roles::shipped::SHIPPED;
 
 /// Never in a shipped role. `Crypto` and `RegisterService` may come back
-/// once session capsules have their own key and service namespaces (K2).
+/// once session capsules have their own key and service namespaces.
 #[rustfmt::skip]
 pub const ALSO_NEVER: [&str; 15] = [
     "TimeSet", "InputConsumer", "InputSource", "SpawnBroker", "ForeignExec", "Driver", "Mmio",

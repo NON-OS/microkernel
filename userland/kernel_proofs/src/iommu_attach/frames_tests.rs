@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A destroyed domain gives back its tables, children first, and never a
-//! leaf's frame (K12).
+//! leaf's frame.
 
 use std::collections::HashMap;
 

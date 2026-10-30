@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A DMA run kept until its device's wipe has run (L78). An unconfined grant
+//! A DMA run kept until its device's wipe has run. An unconfined grant
 //! of a PCI function, drained by a release, could still be reached by the
 //! device after Bus Master off, so its frames wait for the wipe. A run the
 //! surface registry also holds goes free once both have let go, never twice.

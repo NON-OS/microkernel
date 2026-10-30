@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The boot line of how each function will be reset at its release (L78),
+//! The boot line of how each function will be reset at its release,
 //! and each one nothing resets named: after its first holder it goes back
 //! only to that holder's own driver service.
 

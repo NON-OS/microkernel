@@ -34,6 +34,6 @@ pub fn read(pid: u32, grant_id: u64, port_offset: u16, width: PioWidth) -> Resul
             PioWidth::U32 => in32::raw_in32(port),
         }
     };
-    // Never after an exit dropped the claim, a read can clear device state (L69).
+    // Never after an exit dropped the claim, a read can clear device state.
     claim::while_live(pid, g.device_id, g.claim_epoch, read).ok_or(PioError::NotClaimed)
 }

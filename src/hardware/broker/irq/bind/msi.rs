@@ -64,7 +64,7 @@ pub(super) fn bind_msi(
         device_vector: 0,
         irte,
     }])?;
-    // No bus address on the line (K10).
+    // No bus address on the line.
     crate::log::info!("[IRQ] msi vector {:#x}", vector);
     Ok(IrqBindResult { grant_id, vector, grants: 1 })
 }

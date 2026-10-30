@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A holder's MMIO pages pointed at another frame in its own tables, while a
-//! thread of it may run on another CPU (L79): the boot framebuffer's pages go
+//! thread of it may run on another CPU: the boot framebuffer's pages go
 //! to a kernel sink when a GPU driver takes the scanout, in one hold of the
 //! paging lock and one invalidation round for the whole run, not one a page.
 

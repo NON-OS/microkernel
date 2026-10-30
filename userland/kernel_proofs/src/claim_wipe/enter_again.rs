@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A claimant told Resetting in the enter model (L78), and its push of
+//! A claimant told Resetting in the enter model, and its push of
 //! Making. libc asks again after a while in user code, never in the kernel,
 //! so a kill there only ends the call; the record as the push found it is
 //! kept, for I7 to hold a withdraw to.

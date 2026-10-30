@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The enumerated functions as a tree of buses, pure (K11). kernel_proofs::
+//! The enumerated functions as a tree of buses, pure. kernel_proofs::
 //! acs_rule.
 
 extern crate alloc;
@@ -27,7 +27,7 @@ pub(crate) type Bdf = (u8, u8, u8);
 /// One enumerated function; a bridge's secondary and subordinate bus;
 /// whether its secondary is conventional PCI, where devices reach each
 /// other directly; and the requester id DMA from below it carries upstream,
-/// when that is not the device's own (K11): a PCIe-to-PCI bridge's is its
+/// when that is not the device's own: a PCIe-to-PCI bridge's is its
 /// secondary bus, device 0, function 0; a legacy PCI bridge's is its own.
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct Func {

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The memory type a MkMmioMap mapping gets (L17), pure; kernel_proofs::
+//! The memory type a MkMmioMap mapping gets, pure; kernel_proofs::
 //! mmio_cache. Strong UC unless MAP_WC is asked. Write-combining merges
 //! stores and reads ahead speculatively, so only a prefetchable BAR, whose
 //! reads have no side effect, gets it, and only for pages wholly inside it.

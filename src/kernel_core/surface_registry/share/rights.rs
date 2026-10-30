@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The receivers each share named (K20), and who may attach.
+//! The receivers each share named, and who may attach.
 
 extern crate alloc;
 

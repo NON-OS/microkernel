@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One IVMD block (K4), pure. An exclusion range is kept as a read and
+//! One IVMD block, pure. An exclusion range is kept as a read and
 //! write unity range: mapped one to one in the device's own domain, it is
 //! reached as firmware said, and no device is let past its tables.
 

@@ -57,7 +57,7 @@ impl Scanout {
 
 /// Whether lit surface `p` reaches into the GGTT entries from `ours` up,
 /// the ones this driver's windows take: a dead driver's leftover, not
-/// firmware's picture (G-72). Never copied; mapped over, not avoided.
+/// firmware's picture. Never copied; mapped over, not avoided.
 pub fn leftover(p: &PlaneState, ours: u32) -> bool {
     let (first, pages) = surface_run(p);
     first as u64 + pages as u64 > ours as u64

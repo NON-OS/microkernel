@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! DMAR's flags and host address width, read (K11): INTR_REMAP is bit 0,
+//! DMAR's flags and host address width, read: INTR_REMAP is bit 0,
 //! X2APIC_OPT_OUT bit 1, and the width is HAW + 1.
 
 use std::sync::Mutex;

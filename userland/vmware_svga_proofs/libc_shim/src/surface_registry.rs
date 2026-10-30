@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! MkSurfaceShare (K20): each share names its receiver, and is kept, per
+//! MkSurfaceShare: each share names its receiver, and is kept, per
 //! thread, so a test sees whom the driver named and how.
 
 use std::cell::{Cell, RefCell};

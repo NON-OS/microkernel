@@ -30,7 +30,7 @@ pub const MAX_AMD_IOMMUS: usize = 8;
 pub struct Walk {
     pub found: usize,
     /// False when a block was short or ran past the table, or a distinct
-    /// IOMMU did not fit `out`: an IOMMU may then be left off (K11).
+    /// IOMMU did not fit `out`: an IOMMU may then be left off.
     pub complete: bool,
 }
 

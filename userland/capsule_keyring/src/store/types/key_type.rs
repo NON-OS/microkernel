@@ -28,7 +28,7 @@ pub enum KeyType {
     /// An HD wallet's recovery words, kept beside its account key for the
     /// shield: the eth key's id (4, little endian), the count, the indices.
     ShieldSeed = 9,
-    /// A Bluetooth bond (L33): the peer's identity, LTK and IRK, 48 octets
+    /// A Bluetooth bond: the peer's identity, LTK and IRK, 48 octets
     /// in the Bluetooth capsule's own layout. Kept for a service name.
     BtBond = 10,
     /// This host's own Bluetooth identity resolving key, 17 octets.

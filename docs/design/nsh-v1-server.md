@@ -4,7 +4,7 @@
 
 | Capsule | Holds | Does |
 |---|---|---|
-| `nsh.front` | CoreExec, IPC, Memory, Network, ProcessControl, a new spawn capability (K2) | Listens on TCP, runs the handshake, checks grants, starts and ends sessions, relays the terminal bytes, writes records |
+| `nsh.front` | CoreExec, IPC, Memory, Network, ProcessControl, a new spawn capability | Listens on TCP, runs the handshake, checks grants, starts and ends sessions, relays the terminal bytes, writes records |
 | `nsh.attest` | CoreExec, IPC, Memory, AttestRead | Answers one call: the document and the registry entries for a 32-byte challenge |
 | `nsh.keys` | CoreExec, IPC, Memory, Crypto | Holds the host's hybrid key, sealed to the measured chain (`src/security/tpm/machine_key`). It takes a label number and a 64-byte inner digest: 1 for `nsh/1 host-sig`, 2 for `nsh/1 record-sig`, 3 for `nsh/1 record-ckpt`. It builds `H(label \|\| digest)` itself and signs that. It never signs a finished digest, so a front that has been taken over cannot have any other value signed |
 | `nsh.session` | whatever the grant names, within the role's ceiling | A headless shell. Its stdin and stdout belong to `nsh.front`, its parent (`MkProcInput`/`MkProcOutput`) |

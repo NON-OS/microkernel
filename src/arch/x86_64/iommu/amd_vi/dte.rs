@@ -33,7 +33,7 @@ pub const fn blocked() -> Dte {
 }
 
 /// DMA reaches physical addresses untranslated (Mode 0 with IR and IW). The
-/// kernel writes it for no device (K4); the identity count judges by it.
+/// kernel writes it for no device; the identity count judges by it.
 pub const fn passthrough() -> Dte {
     [VALID | TRANSLATION_VALID | READ | WRITE, 0, 0, 0]
 }

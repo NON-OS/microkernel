@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A faulting device blocked on AMD-Vi (K12): its device table entry set to
+//! A faulting device blocked on AMD-Vi: its device table entry set to
 //! deny every access, interrupts kept, and the unit's copy dropped. Only a
 //! device in a live capsule domain; one firmware's reserved memory keeps is
 //! left as it is.

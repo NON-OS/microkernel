@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Which of the machine's I/O APICs DMAR scopes, said once when remapping
-//! comes on. Remapping an I/O APIC's lines (L44, K3) needs the requester id
+//! comes on. Remapping an I/O APIC's lines needs the requester id
 //! its messages carry: with compatibility format blocked, the lines of one
 //! with no scope are refused (unnamed.rs names each).
 

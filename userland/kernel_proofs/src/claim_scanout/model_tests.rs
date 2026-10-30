@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The takeover model as built (L79): in every order of every start each
+//! The takeover model as built: in every order of every start each
 //! invariant holds, and the ends that matter are reached, counted against
 //! floors so a search that reached nothing could not pass.
 

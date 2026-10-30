@@ -21,7 +21,7 @@ use crate::memory::addr::VirtAddr;
 
 /// `released`: drained by a release or an exit, not unmapped by its holder.
 pub(super) fn teardown(g: &DmaGrant, unmap_pages: bool, released: bool) {
-    // From the holder's tables, from any context (K10): tables that outlive
+    // From the holder's tables, from any context: tables that outlive
     // it, a thread's or an heir's, keep no page onto the frames given back.
     if super::super::holder_space::unmap_from_holder(g.pid, g.user_va, g.length) {
         super::va::release(g.pid, g.user_va, g.length);
@@ -36,7 +36,7 @@ pub(super) fn teardown(g: &DmaGrant, unmap_pages: bool, released: bool) {
         );
         return;
     }
-    // Its device may still reach it past Bus Master: kept for its wipe (L78).
+    // Its device may still reach it past Bus Master: kept for its wipe.
     let pci = crate::hardware::broker::pci_index::lookup(g.device_id).is_some();
     // A VMBus channel's page the host may still hold a GPADL over: kept until
     // the host says it tore the last one down (`vmbus::settle_channel`). An
@@ -59,7 +59,7 @@ pub(super) fn teardown(g: &DmaGrant, unmap_pages: bool, released: bool) {
         crate::memory::iommu::note_unconfined_released(1);
     }
     // A surface another process still maps keeps the frames; the registry
-    // frees them through `free_held_run` once it is let go (L35).
+    // frees them through `free_held_run` once it is let go.
     if crate::kernel_core::surface_registry::pin::grant_run::hold(g.physical_start, g.length) {
         return;
     }

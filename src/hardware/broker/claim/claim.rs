@@ -40,7 +40,7 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     if !untranslated {
         super::master_off::bus_master_off(device_id);
     }
-    // A port-only claim has Memory Space off too, and kept off (H-02), before
+    // A port-only claim has Memory Space off too, and kept off, before
     // the reset saves the header it puts back.
     if port_only {
         super::port_only::port_only_quietly(device_id);
@@ -49,7 +49,7 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     crate::hardware::broker::power::power_on_device(device_id);
     // Powered, so its reset takes: what firmware left armed stops (K10a).
     super::reset::at_claim(device_id);
-    // Its BARs put back where the move to D0 lost them; one that won't stick refuses (L62).
+    // Its BARs put back where the move to D0 lost them; one that won't stick refuses.
     if !super::restore::restore(device_id) {
         super::pending::withdraw(pid, device_id, epoch);
         return Err(ClaimError::Refused);
@@ -57,7 +57,7 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     // Before Bus Master can go on, so no request it ever makes is no-snoop.
     super::no_snoop::snoop_every_request(device_id);
     // It starts its claim unable to master (L34; VMMDev reads past any gate), past
-    // every refusal; the scanout taken then, and a refusal at the admit gives it back (L79).
+    // every refusal; the scanout taken then, and a refusal at the admit gives it back.
     if !hold::untranslated(device_id) {
         super::master_off::bus_master_off(device_id);
     }
@@ -65,7 +65,7 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
         super::scanout::take(device_id);
     }
     // Only now is anything granted against it, so a refusal above leaves no
-    // map, binding or DMA behind for the next claimant's device (L65).
+    // map, binding or DMA behind for the next claimant's device.
     let admitted = super::pending::admit(pid, device_id, epoch, fresh.as_ref(), covers);
     if covers {
         crate::kernel_core::init::framebuffer::end_takeover();

@@ -17,22 +17,22 @@
 //! Host proofs, group 4 of 9: test modules mounted by path
 //! from proofs.rs, each at its own file.
 
-/// The entropy capsule's bytes, health-tested and mixed (K9).
+/// The entropy capsule's bytes, health-tested and mixed.
 #[path = "entropy_health/mod.rs"]
 pub mod entropy_health;
 /// A claimed function is reset at claim and at release (K10a).
 #[path = "function_reset/mod.rs"]
 pub mod function_reset;
-/// A holder's grant window and quota (K10).
+/// A holder's grant window and quota.
 #[path = "grant_window/mod.rs"]
 pub mod grant_window;
-/// A capsule over the image ceiling is refused at spawn (K16).
+/// A capsule over the image ceiling is refused at spawn.
 #[path = "image_ceiling/mod.rs"]
 pub mod image_ceiling;
 /// Each input event's source, stamped by the kernel (K8b).
 #[path = "input_source/mod.rs"]
 pub mod input_source;
-/// The input ring's take clears what it hands out (K8).
+/// The input ring's take clears what it hands out.
 #[path = "input_take/mod.rs"]
 pub mod input_take;
 /// IPC payloads zeroed before they are freed (C8).
@@ -41,7 +41,7 @@ pub mod ipc_wipe;
 /// The restart policy init holds a watched service to.
 #[path = "lifecycle_state.rs"]
 pub mod lifecycle_state;
-/// Names a runtime-loaded capsule may declare (K18).
+/// Names a runtime-loaded capsule may declare.
 #[path = "name_rule/mod.rs"]
 pub mod name_rule;
 /// scrub.S assembled into the host, with its own test (I2).

@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! virtio-gpu on the display wire (G-77): its enabled scanouts are the
+//! virtio-gpu on the display wire: its enabled scanouts are the
 //! outputs, each showing a surface of the driver's own (DMA it maps, a 2D
 //! resource on the host), and `nonos_gfx_serve` answers the compositor.
 

@@ -30,7 +30,7 @@ pub fn compositor_pid() -> Option<u32> {
 }
 
 /// Name `pid`, the compositor, a writable receiver of `sid` as well. Rights
-/// die with the pid that held them (K20), so a restarted compositor needs its
+/// die with the pid that held them, so a restarted compositor needs its
 /// own; naming one twice is no error.
 pub fn reshare(sid: u64, pid: u32) -> Result<(), Errno> {
     // The kernel holds a display driver to the compositor; the pool keeps

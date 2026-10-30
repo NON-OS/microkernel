@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The DMA grant a surface is registered over, if any (L35).
+//! The DMA grant a surface is registered over, if any.
 
 use crate::kernel_core::surface_registry::types::SurfaceDescriptor;
 

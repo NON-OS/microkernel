@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! When the kernel asks the entropy capsule for bytes, pure (K9). One ask
+//! When the kernel asks the entropy capsule for bytes, pure. One ask
 //! is out at a time; a reply counts only when it answers that ask, from the
 //! capsule it went to; an ask unanswered for GIVE_UP_MS is given up, so a
 //! lost reply never stops the asking. kernel_proofs::entropy_health.

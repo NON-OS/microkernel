@@ -43,7 +43,7 @@ body is at most 4096 bytes. A record is at most 64 MiB and holds at most
 | 8 | `COMMAND_DIGEST` | SHA-256 of the command line, for a role set to `record-commands: digest` |
 | 9 | `BOX` | one Linux program's run in a box: the layout below |
 
-`REFUSED_CALL` is a refusal by the kernel (K4). `BOX` is the refusals of a
+`REFUSED_CALL` is a refusal by the kernel. `BOX` is the refusals of a
 Linux program that `capsule_linux` ran in a box, as `capsule_linux` itself
 enforced them. These are not the kernel's sealed errno histogram, and the
 record never sums the two.

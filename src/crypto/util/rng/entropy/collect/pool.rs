@@ -18,7 +18,7 @@
 //! the entropy capsule's held bytes go into one SHA-256 with cycle-counter
 //! jitter and this CPU's stack and counter, so a weak source is covered by
 //! the others. It fails closed below 32 bytes counted, the capsule's counting
-//! for at most half (K9).
+//! for at most half.
 
 use alloc::vec::Vec;
 

@@ -41,7 +41,7 @@ pub struct Slot {
 }
 
 /// orphans.rs `Orphan`. Its `tables` is 0 here: no exited group's tables
-/// still map the frames (L49).
+/// still map the frames.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Orphan {
     pub owner: u32,

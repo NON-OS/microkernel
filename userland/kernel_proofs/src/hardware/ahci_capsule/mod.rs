@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The AHCI client's reading of driver.ahci0's statuses, by path (K14).
+//! The AHCI client's reading of driver.ahci0's statuses, by path.
 
 #[path = "../../../../../src/hardware/ahci_capsule/error.rs"]
 pub mod error;
