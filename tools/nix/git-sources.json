@@ -4,6 +4,38 @@
     "54f3537fa1d24c4eca3f38320100519b590ff5bd": {
       "url": "https://github.com/nymtech/sphinx",
       "hash": "sha256-dZpeSw1EDLvKasLvAlPQmsggSZ+t3IsSRc0AmKAzez8="
+    },
+    "25ddd27c3c60e99aaa1bf0870bc4d024a5e08edc": {
+      "url": "https://github.com/parazyd/halo2",
+      "hash": "sha256-8qg6DHZdXjlQIBFjbucbM9VLWG/hiaOxE1wlFden6RY="
+    },
+    "2884db1436e05256246047dc4a41b970afb7a74a": {
+      "url": "https://github.com/valadaptive/swash",
+      "hash": "sha256-ZNsNFI3vKw7Yz+1aaGnmFK4lwS4tbw7F6oaGIw9cpJY="
+    },
+    "450d37dad132906335ec760cd51463a1ede359ee": {
+      "url": "https://github.com/narodnik/rust-harfbuzz2",
+      "hash": "sha256-M8ie7YPZ1zqOXbwx9TBBqEch1HzDGWuC+X1zwgzBjhI="
+    },
+    "696f94184a1af5c0411c282045549264236ff881": {
+      "url": "https://github.com/valadaptive/zeno",
+      "hash": "sha256-41ocDmCTHa4ov6ygJRqF1metrXmlqB7Ekj9FLno5SXU="
+    },
+    "69c05884c6553a0b5bcb65e8014762394a7a6529": {
+      "url": "https://github.com/linebender/parley.git",
+      "hash": "sha256-f6jwOaL48qVr83TILFemv8Nc5+kNAYkGQ+aVxIkSSlo="
+    },
+    "bad2e69dc20d35f33eaee8cd26a2dbf588026ea8": {
+      "url": "https://github.com/narodnik/freetype-rs",
+      "hash": "sha256-bagTVXlfQqforefqGcEqjYQL6OKyLxhleJHBbjhCrVA="
+    },
+    "c3b382a8d4401fcce99d2e4a75357a47b0a47bd0": {
+      "url": "https://github.com/narodnik/arti",
+      "hash": "sha256-+fAYSBRRaJZNKkJ8Dp0hAky5msDq520cmNjV7LwD6FI="
+    },
+    "ed8af21a697670e06fc5f072c5b2276ebe7f76ec": {
+      "url": "https://github.com/narodnik/freetype-sys2",
+      "hash": "sha256-z7FvVLijUSlfmnkDOyzNhsVo5o5GkfN0+KbRBNPF61E="
     }
   }
 }
