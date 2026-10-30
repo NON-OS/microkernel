@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the compositor says while no display has come up (H-06(a)). The
+//! What the compositor says while no display has come up. The
 //! first failed ask says why at once; if none has come up 10 s on, it says so
 //! once more, so a machine with no screen still leaves a named failure in the
 //! log `log DISPLAY` reads. It keeps waiting either way: a display driver

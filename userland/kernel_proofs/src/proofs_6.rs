@@ -62,7 +62,7 @@ pub mod secret_log;
 /// When a lock wait is reported, and called a re-take.
 #[path = "spin_watch/mod.rs"]
 pub mod spin_waits;
-/// H-06(b): one surface's cap, by the boot framebuffer.
+/// one surface's cap, by the boot framebuffer.
 #[path = "surface_cap/mod.rs"]
 pub mod surface_cap;
 /// terminate()'s once: one caller to the wipe, however many race.

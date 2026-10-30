@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The group relation both ways (H-03, port_only.rs `blocked_by`): whether
+//! The group relation both ways (port_only.rs `blocked_by`): whether
 //! a claim is refused never depends on which of two devices is claimed
 //! first, on any generated machine (symmetric_topologies.rs).
 

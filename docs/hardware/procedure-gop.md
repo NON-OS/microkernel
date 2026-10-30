@@ -4,6 +4,7 @@ Every machine without a native display driver in the image (all AMD and
 NVIDIA graphics, and Intel until intel_display is sealed) shows NONOS on the
 framebuffer the UEFI firmware set up. Booted only under OVMF in QEMU; no
 hardware report names it. A firmware with no 32-bit linear mode is named
+(step 5), and a mode over 64 MiB is taken up to 128 MiB.
 
 ## What the image needs
 

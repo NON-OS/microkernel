@@ -24,7 +24,7 @@
 //! those as they are. Bus Master is for DMA: a caller without Dma may not
 //! turn it on, or keep it on, through this path. Memory Space is for MMIO
 //! in the same way: a caller without Mmio may not turn it on, or keep it on
-//! (H-02: a port-only claim, cleared at the claim, stays cleared). At the
+//! (a port-only claim, cleared at the claim, stays cleared). At the
 //! claim a port-only device has both off (`at_claim`).
 
 pub(crate) const MEMORY_SPACE: u16 = 1 << 1;

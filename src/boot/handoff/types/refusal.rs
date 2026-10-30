@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Why there is no boot framebuffer, from the handoff (H-06(a)). With
+//! Why there is no boot framebuffer, from the handoff. With
 //! flags::FB_REFUSED set and FB_AVAILABLE clear, the loader put its reason in
 //! fb.pixel_format (nonos-bootloader display/gop/refusal_word.rs): bits 0 to 7
 //! a NO_FB_* code, bits 8 to 15 a refused bitmask mode's bits per pixel, the

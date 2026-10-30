@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! H-06(a): why there is no boot framebuffer, from the loader's word to the
+//! why there is no boot framebuffer, from the loader's word to the
 //! kernel's decoder and what userland is told. Both sides by path.
 
 #[path = "../../../../src/boot/handoff/types/constants.rs"]

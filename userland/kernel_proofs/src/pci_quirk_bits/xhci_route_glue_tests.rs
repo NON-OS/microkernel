@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! H-10: where the routing rule's inputs are read, in the files the host
+//! where the routing rule's inputs are read, in the files the host
 //! cannot run: at the time of the write, and a claim at any stage counting.
 
 const IDENT: &str = include_str!("../../../../src/hardware/broker/pci/ident_read.rs");
