@@ -1,36 +1,3 @@
-# Unsealed release capsules waiting on the release seal ceremony; may only shrink.
+# Unsealed release capsules waiting on the seal ceremony; may only shrink. None at 0.9.3.
 # scripts/check_release_trust.py fails on a slug added here, on one sealed and
 # still listed, and on any difference from docs/build/feature-inventory.md's list.
-acpi
-driver-ac97
-driver-bga
-driver-bt-usb
-driver-buslogic
-driver-cdc-ecm
-driver-cdc-ncm
-driver-e1000e
-driver-ehci
-driver-igb
-driver-igc
-driver-ixgbe
-driver-mpt
-driver-mt7921
-driver-ohci
-driver-pcnet
-driver-piix-ide
-driver-pvscsi
-driver-rndis
-driver-rtl8822ce
-driver-rtl8852be
-driver-sdhci
-driver-smbus
-driver-tulip
-driver-ufs
-driver-uhci
-driver-usb-audio
-driver-usb-hub
-driver-virtio-input
-driver-virtio-scsi
-driver-vmbus
-driver-vmmdev
-driver-vmmouse

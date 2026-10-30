@@ -102,12 +102,12 @@ The kernel embeds each capsule's certificate, manifest and STARK trailer from `n
 - `driver-rtl8153` (Realtek RTL8153, RTL8153B) likewise: its own `microkernel-driver-rtl8153` profile, not in `microkernel-full-gui`, until Decision 10 is ruled.
 - A trust set that exists can still be stale. `nix build` also refuses a kernel when a shipped capsule's sealed manifest grants other caps than its `Capsule.mk` now says (`scripts/check_sealed_caps.py`, called from `tools/nix/image.nix`). On 2026-10-24, nine sealed manifests were stale this way. Five follow from this change's narrowing: keyring, login, payment, wallet-nonos and virtio-gpu. Four come from changes on main since the last seal: input-router, linux, boot-splash and i2c-pci. The next seal rewrites all nine. Host-tested: the script's `--self-test`, run by the flake's `static-abi` check.
 
-So `nix build` of the default image waits for the next release seal, which writes all 37 trust sets in one step. A development image (`make dev-image`, `tools/nonos-dev-image`) is sealed with throwaway keys and builds and boots now.
+The 0.9.3 seal wrote the trust sets for all of them, so the default image builds. A development image (`make dev-image`, `tools/nonos-dev-image`) is sealed with throwaway keys and builds and boots without the release seal.
 
-The 37, as `scripts/baselines/unsealed.txt` holds them. The flake's `static-release-trust` check fails when a release profile ships any other capsule without its trust set, when one of these is sealed and still listed, or when this list and the baseline differ:
+`scripts/baselines/unsealed.txt` is empty at 0.9.3. The flake's `static-release-trust` check fails when a release profile ships a capsule without its trust set, when a capsule listed as unsealed is sealed, or when this list and the baseline differ:
 
 <!-- unsealed: begin -->
-`acpi`, `driver-ac97`, `driver-bga`, `driver-bt-usb`, `driver-buslogic`, `driver-cdc-ecm`, `driver-cdc-ncm`, `driver-e1000e`, `driver-ehci`, `driver-igb`, `driver-igc`, `driver-ixgbe`, `driver-mpt`, `driver-mt7921`, `driver-ohci`, `driver-pcnet`, `driver-piix-ide`, `driver-pvscsi`, `driver-rndis`, `driver-rtl8822ce`, `driver-rtl8852be`, `driver-sdhci`, `driver-smbus`, `driver-tulip`, `driver-ufs`, `driver-uhci`, `driver-usb-audio`, `driver-usb-hub`, `driver-virtio-input`, `driver-virtio-scsi`, `driver-vmbus`, `driver-vmmdev`, `driver-vmmouse`, `driver-vmware-svga`, `driver-vmxnet3`, `nox-settle`, `prove-fetch`.
+
 <!-- unsealed: end -->
 
 ## Off, and why
