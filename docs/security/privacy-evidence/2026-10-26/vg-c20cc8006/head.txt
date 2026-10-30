@@ -1,4 +1,4 @@
-62e5231756 Merge remote-tracking branch 'origin/main' into privacy/volume-gate
+f271afb443 Merge remote-tracking branch 'origin/main' into privacy/volume-gate
  tools/nix/config.nix                  |   8 ++
  userland/capsule_proof_io/Capsule.mk  |   2 +-
  userland/capsule_proof_io/src/main.rs | 142 ++++++++++++++++++++++------------

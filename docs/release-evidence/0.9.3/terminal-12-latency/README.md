@@ -1,11 +1,11 @@
 # Terminal 12: keystroke to screen, booted 25 October 2026
 
-`latency` (8c6b344284) times each key from its arrival in the window to the
+`latency` (72abf68199) times each key from its arrival in the window to the
 frame it changed being painted.
 
 ## How it ran
 
-- Image: `make dev-image` at add4619bad (qemu-dev, throwaway test keys).
+- Image: `make dev-image` at 6e6eebe7bd (qemu-dev, throwaway test keys).
 - Machine: QEMU TCG, no KVM, 4 CPUs, 8 GiB, fresh disk, 1920x1080.
 - Driven over QMP at 120 ms a key: setup on its defaults, Ctrl+Alt+T, then
   `echo the quick brown fox jumps over the lazy dog`, `latency`,
@@ -19,11 +19,11 @@ frame it changed being painted.
   demo_screen_proofs, frame and fit included): middle 8.0 ms, 95% 8.3 ms. TCG
   ran it 8.5 to 10 times slower, so on KVM-class hardware the 95% is about
   9 to 10 ms against a target of 16 ms.
-- Since this image, cdaab009af repaints only the input row for a key that
+- Since this image, 138e8dcc24 repaints only the input row for a key that
   changes only the line: on the host 17 us middle, 25 us at 95%, against
   542 and 630 us for the content alone; its TCG numbers come with its boot.
 
 ## Open, seen in this run
 
 - `echo` and eight words printed seven: the parser kept 8 words. Fixed in
-  4e52a48fa5 (64 words, and a longer line refused).
+  ba738616f9 (64 words, and a longer line refused).

@@ -1,11 +1,11 @@
 # Terminal 05: the prompt's branch and jobs, booted 25 October 2026
 
 The prompt shows the git branch and the background jobs, each only when it
-says something (f6badaed77), in an image built at 3e1ca98146.
+says something (7dabc87103), in an image built at a0aa967c2a.
 
 ## How it ran
 
-- Image: `make dev-image` at 3e1ca98146 (qemu-dev, throwaway test keys).
+- Image: `make dev-image` at a0aa967c2a (qemu-dev, throwaway test keys).
 - Machine: QEMU TCG, no KVM, 4 CPUs, 8 GiB, fresh disk, 1920x1080.
 - Driven over QMP: setup on its defaults, Ctrl+Alt+T, then typed keys.
 

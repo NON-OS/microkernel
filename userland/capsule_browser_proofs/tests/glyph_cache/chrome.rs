@@ -29,7 +29,7 @@ const H: u32 = 200;
 until GPOS pair kerning moved the pen between glyphs of the built-in faces;
 with that kerning turned off the scene still hashes to 0x67c6_aa75_9eb5_331b,
 so the blend and the fills are unchanged since the float build. The system
-type (main b354743038: Geist, JetBrains Mono, a 14 and 12 px floor) moved
+type (main 509e998beb: Geist, JetBrains Mono, a 14 and 12 px floor) moved
 it from 0x25ae_e13b_2aee_14e7, which the scene hashes to again with that
 commit's font/ttf put back: the blend and fills are still the float's. */
 const FLOAT_BUILD: u64 = 0x5e63_50fb_3e9f_1dd8;

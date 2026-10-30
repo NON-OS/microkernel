@@ -1,10 +1,10 @@
 # Terminal 10: the theme picker, booted 25 October 2026
 
-theme alone opens a picker that tries each theme on the window (adeb8165e4).
+theme alone opens a picker that tries each theme on the window (82663ab5f3).
 
 ## How it ran
 
-- Image: `make dev-image` at 2cd5a2aad5 (qemu-dev, throwaway test keys).
+- Image: `make dev-image` at 5a0080a4d2 (qemu-dev, throwaway test keys).
 - Machine: QEMU TCG, no KVM, 4 CPUs, 8 GiB, fresh disk, 1920x1080.
 - Driven over QMP: setup on its defaults, Ctrl+Alt+T, then typed keys:
   `neofetch`, `c` Tab, Ctrl+U, Ctrl+L, `market list`, `theme`, Down, Down, Esc.

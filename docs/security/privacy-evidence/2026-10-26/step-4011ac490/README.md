@@ -13,7 +13,7 @@ until the restore is done. Counts are over each whole serial log;
 | Kept A, a stick, setup in Install mode | 0 / 0 | Settings: timezone 0 to +3 (`keepA-23-timezone-3.png`); no `[VFS] refused`; Power Off through the wipe |
 | Kept A2, boot A's stick | 0 / 0 | setup skipped, keeping turned on by the restore, the clock three hours ahead of UTC (`keepA2-20-desktop.png`) |
 | One CPU, plain (`--smp 1`, no lanes, 15 minutes) | 0 / 0 | one `ipc.call unanswered vfs_pool` (below) |
-| Amnesic, f8ca93ccd (the same change before main's c2fa99747b) | 0 / 0 | setup, then ten minutes on the desktop |
+| Amnesic, f8ca93ccd (the same change before main's 48ec8b679c) | 0 / 0 | setup, then ten minutes on the desktop |
 
 No QEMU or swtpm was left running after any boot.
 
@@ -25,3 +25,4 @@ finished (`[ZS] keeping turned on`, line 1066). It is a call that waited the
 kernel's whole default timeout with no answer. Policy's calls to vfs wait
 at most 25 ms, so it is most likely another capsule's call, with vfs busy
 staging the store on one CPU. Kernel lines name no process; the caller is
+being found with a scratch build that names it, then its owner fixes it.

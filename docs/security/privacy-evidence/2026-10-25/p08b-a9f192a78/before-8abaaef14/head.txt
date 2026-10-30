@@ -1,4 +1,4 @@
-7a47b2813c P-08b: rustfmt over the unit's files
+604629cd0f P-08b: rustfmt over the unit's files
  mk/20-build.mk       | 1 +
  tools/nix/config.nix | 8 ++++++++
  2 files changed, 9 insertions(+)

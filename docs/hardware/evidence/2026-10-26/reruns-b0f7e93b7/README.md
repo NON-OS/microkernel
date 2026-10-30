@@ -11,5 +11,5 @@ The image is standard-dev with throwaway keys. Every run used `--fresh`.
 | ufs | 06-disks shows the disk; 0 `slow UFS` lines |
 
 Still in every boot: `[CAP-DENY]` MkDebug from policy (pid 6, 12 to 17 times),
-ps2_kbd0 (fixed since in df3f79461a), xhci0 and wallpaper; MkGetPid from
+ps2_kbd0 (fixed since in fc0a556056), xhci0 and wallpaper; MkGetPid from
 virtio_gpu0; and 1 to 3 `[MUNMAP] release_va_failed`.

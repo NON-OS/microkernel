@@ -21,7 +21,7 @@ Reports since 0.9.2, for the 0.9.3 image:
 
 | Machine | What ran | Result | Source |
 |---|---|---|---|
-| KVM, QEMU 7.2 q35, `-cpu host`, OVMF, 8 GiB | the G run (b53232446c), local run | ICH9 AHCI (8086:2922) with nothing attached exits 3, "controller present, nothing behind it to serve"; with a SATA disk on `ide.0` it serves it (`[ahci] serving port 0`) | local report, 28 Oct |
+| KVM, QEMU 7.2 q35, `-cpu host`, OVMF, 8 GiB | the G run (c3dbbec4f3), local run | ICH9 AHCI (8086:2922) with nothing attached exits 3, "controller present, nothing behind it to serve"; with a SATA disk on `ide.0` it serves it (`[ahci] serving port 0`) | local report, 28 Oct |
 | the same KVM machine | an NVMe target (`-device nvme`) | the installer lists the NVMe disk and writes it | local report, 28 Oct |
 | the same KVM machine | the stick on virtio-blk, then on usb-storage on qemu-xhci | the stick boots and the install flow passes | local report, 28 Oct |
 | QEMU TCG q35 | dev image of main ad2a58a01 | default machine and the e1000e, igb, e1000 and RTL8139 lanes each lease; every Wi-Fi driver stays out with its card absent | [evidence](../release-evidence/0.9.3/boot-ad2a58a01/README.md) |
