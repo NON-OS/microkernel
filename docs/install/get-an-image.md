@@ -4,7 +4,7 @@ Where a NONOS image comes from, and how to build, seal and check one.
 
 ## Released images
 
-This repository holds no image, names no download location and publishes no checksum file for images. NONOS 0.9.2 is installed from an image built from this source tree, as below.
+This repository holds no image, names no download location and publishes no checksum file for images. NONOS 0.9.3 is installed from an image built from this source tree, as below.
 
 If someone hands you an image, ask for the `nonos-release.json` the [seal](../overview/glossary-rollback-index.md#seal) wrote beside it, which records the sha256 of every file it sealed, and compare (see [Check the image](#check-the-image)). That shows the copy matches its record, not who made it. The boot checks do not show that either: the loader checks the kernel against keys compiled into that same loader, so an image someone sealed with their own keys passes them. Only firmware [Secure Boot](../overview/glossary-rollback-index.md#secure-boot), with the NONOS db certificate enrolled, checks who signed the loader, and that is not tested in this release ([Boot chain and signatures](../security/boot-chain-and-signatures.md#secure-boot)).
 

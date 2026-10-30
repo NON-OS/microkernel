@@ -29,10 +29,13 @@ def main() -> int:
             suffix = "" if idx == 1 else f"-{idx:02d}"
             boot_dir = os.path.join(out, f"boot{suffix}")
             boot_log = os.path.join(boot_dir, "qemu-serial.log")
+            # The command names run one's directory (<out>/boot/); every later run
+            # writes to its own, so the paths in the command move with it.
+            run_cmd = os.environ.get("NONOS_BENCH_BOOT_CMD", "").replace(os.path.join(out, "boot") + "/", boot_dir + "/")
             boot_cmd = ["env", f"NONOS_BOOT_EVIDENCE_OUT={boot_dir}",
                         f"NONOS_BOOT_EVIDENCE_LOG={boot_log}",
                         f"NONOS_BOOT_EVIDENCE_TIMEOUT={os.environ.get('NONOS_BENCH_BOOT_TIMEOUT', '360')}",
-                        f"NONOS_BOOT_EVIDENCE_CMD={os.environ.get('NONOS_BENCH_BOOT_CMD', '')}",
+                        f"NONOS_BOOT_EVIDENCE_CMD={run_cmd}",
                         "make", "nonos-mk-boot-evidence"]
             rc = subprocess.call([py, "nonos-ci/bench_time.py", f"boot-evidence{suffix}", out, "--", *boot_cmd])
             if rc != 0: failures.append(f"boot-evidence{suffix}")

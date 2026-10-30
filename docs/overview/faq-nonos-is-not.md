@@ -42,7 +42,7 @@ with a passphrase, but nothing in this release asks for one. See
 
 ## Hardware NONOS runs on
 
-NONOS 0.9.2 builds images for x86_64 computers, and it runs on every core of the
+NONOS 0.9.3 builds images for x86_64 computers, and it runs on every core of the
 processor: the kernel starts every CPU the firmware enables, up to 256, and
 schedules processes on all of them. Drivers are written for device classes and
 chips, and the [support matrix](../hardware/MATRIX.md) lists each class and chip

@@ -2,9 +2,9 @@
 
 Plug in a cable. There is nothing to configure. About once a second (1000 ms), `net.core` looks for a network card whose link is up, binds to it and starts DHCP. Its candidates are the Wi-Fi drivers first, then the wired ones.
 
-Read from the code, a cable on real hardware gives no address in this release. `net.core` drops every frame received through the e1000, RTL8139 and RTL8169 drivers, so DHCP gets no lease through them. Only virtio-net, in a virtual machine, receives. See [the receive fault](../../drivers/ethernet/README.md#the-receive-fault).
+In 0.9.3 the e1000, e1000e, igb, RTL8139, PCnet, vmxnet3 and Tulip drivers each got a DHCP lease on QEMU ([the runs](../../release-evidence/0.9.3/drivers/)), and the 0.9.2 receive fault of the e1000 and RTL8139 is shown fixed on a boot. No Ethernet card has a report from real hardware yet, so a cable on a real machine is not shown to work. See [the receive fault](../../drivers/ethernet/README.md#the-receive-fault).
 
-The `e1000e` and `igc` driver capsules are in the source tree, but no 0.9.2 image carries them: no kernel profile embeds them. See [Intel Ethernet](../../drivers/ethernet/intel.md).
+The `igc` driver capsule is in the source tree, but no image carries it: no kernel profile embeds it. See [Intel Ethernet](../../drivers/ethernet/intel.md).
 
 ## USB tethering and USB Ethernet
 

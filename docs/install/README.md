@@ -28,7 +28,7 @@ flowchart LR
 
 - The stick boots [amnesic](../overview/glossary-amnesic-boot.md#amnesic): nothing reaches the machine's own disks unless you choose to install.
 - Installing replaces everything on one whole disk, the one you name. NONOS does not share a disk with another system, and the installer is not a secure wipe.
-- NONOS 0.9.2 has no in-place update. A newer release is installed over the old one, and that erases it.
+- A disk installed by 0.9.3 or later can be updated in place and keeps its data volume ([Update](update.md)). A disk made before 0.9.3 is installed over, and that erases it.
 - Firmware with [Secure Boot](../overview/glossary-rollback-index.md#secure-boot) on starts the loader only if it trusts the NONOS db certificate, so expect to turn Secure Boot off and boot Standard ([Requirements](requirements.md#secure-boot-and-the-tpm)).
 - There is no login password. Setup asks for an account name, not a secret.
 - The boot menu, setup and the installer are driven from the keyboard.
