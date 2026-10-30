@@ -182,7 +182,7 @@ In order, each step inside a capsule, none in the kernel:
    - a reset and hang path that cannot reach outside the capsule.
 
    This is the larger task. Nothing exists for it.
-5. **AMD.** Display through DCN needs the AMD documents question settled first (letter g/10). Command submission needs PSP and SMU firmware handling, the same shape as Intel.
+5. **AMD.** Display through DCN needs the AMD documents question settled first. Command submission needs PSP and SMU firmware handling, the same shape as Intel.
 
 The hard rule through all of it: the device's DMA is confined by the IOMMU to the capsule's own domain. Where a machine has no IOMMU in front of the GPU, the capsule gets no DMA at all.
 

@@ -1,6 +1,6 @@
 # DarkFi
 
-S3, 2026-10-29. DarkFi is an anonymous peer-to-peer network with its own chain, wallet and chat. NØNOS lists four DarkFi programs in the Marketplace, all built here from DarkFi v0.5.0 (commit `2e2de47c…`) without tor or i2p. Each runs in its own Linux box. Each claim is marked *booted*, *host-tested* (the listing and its content) or *design*.
+2026-10-29. DarkFi is an anonymous peer-to-peer network with its own chain, wallet and chat. NØNOS lists four DarkFi programs in the Marketplace, all built here from DarkFi v0.5.0 (commit `2e2de47c…`) without tor or i2p. Each runs in its own Linux box. Each claim is marked *booted*, *host-tested* (the listing and its content) or *design*.
 
 ## What is listed
 

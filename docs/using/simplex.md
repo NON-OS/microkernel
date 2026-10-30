@@ -1,8 +1,8 @@
 # SimpleX Chat
 
-First draft (S3, 2026-10-27). SimpleX Chat is a messenger with no user identifiers: no phone number, no account name and no ID that a server can tie your contacts together by. On NØNOS it comes in two parts:
+First draft, 2026-10-27. SimpleX Chat is a messenger with no user identifiers: no phone number, no account name and no ID that a server can tie your contacts together by. On NØNOS it comes in two parts:
 
-- **The NØNOS SimpleX app** is a native window app (S2's), with no network of its own.
+- **The NØNOS SimpleX app** is a native window app, with no network of its own.
 - **SimpleX Chat core** is SimpleX's own `simplex-chat` v7.0.3 program. It runs in a Linux box with no window, and the app drives it over its local API.
 
 **Listed now: the terminal client.** `linux.kali.nonos-simplex-chat`, "SimpleX Chat (terminal)", is in the Marketplace today. It is the same `simplex-chat` v7.0.3 release binary, run as SimpleX's own terminal chat, in the box TTY FILES_HOME NET_ANON. How to install it is [below](#install-it-now). *host-tested* (the listing and its content)
@@ -26,7 +26,7 @@ It installs into the Debian family's tree, with its nine pinned libraries (below
 
 **The first run.** It has no profile yet, so it needs a display name. It asks for one at the prompt (`display name:`), or you start it with `--user-display-name <name>` to skip the question. The listing passes no options of its own. *design*
 
-**What it cannot do yet.** It starts and keeps its profile, but it reaches no SMP server until S1's guest port fix for 5223, SMP's port, is in. See [How it reaches SimpleX servers](#how-it-reaches-simplex-servers). The listing passes no `--socks-proxy`: the `127.0.0.1:9050` endpoint it would name is not in yet either.
+**What it cannot do yet.** It starts and keeps its profile, but it reaches no SMP server until the guest port fix for 5223, SMP's port, is in. See [How it reaches SimpleX servers](#how-it-reaches-simplex-servers). The listing passes no `--socks-proxy`: the `127.0.0.1:9050` endpoint it would name is not in yet either.
 
 **On a development boot.** The content is served by the host relay, `tools/nonos-mirror-relay --content <dir>`, where `<dir>` holds `de9dbf3a….tar`, the content tar `tools/nonos-source-asset … --package-out <dir>` writes ([the development mirror](../build/dev-mirror.md)). **On a release image.** The 0.9.3 release lists it from the NØNOS package mirror, `http://mirror.nonos.software/linux/<blake3>.tar`, plain HTTP fetched over Anyone. The listing's signature pins the content's BLAKE3, so the transport adds no trust. *host-tested* (the mirror serves the pinned bytes)
 
@@ -74,7 +74,7 @@ Messages travel through SMP relays. The core never connects to one directly.
 - **Anyone only.** NET_ANON is the only network the box has. Its streams leave over Anyone, or over Nym when that is the network chosen, never directly, and a failure on one never falls back to another. A name it looks up travels to the exit, and only the exit resolves it ([Privacy apps](privacy-apps.md#what-every-networked-app-here-shares)). *design*
 - **SimpleX's own protections still apply.** Private message routing (`--smp-proxy`) means your relay does not learn whose relay you send to. Each queue is end-to-end encrypted.
 
-**Pending (S1).** Two pieces of the network path are not in yet:
+**Pending.** Two pieces of the network path are not in yet:
 
 - the guest-connect fix for port 5223, SMP's port, so a listed box's outbound stream to a relay completes over Anyone;
 - a SOCKS5 endpoint at `127.0.0.1:9050` inside the box.

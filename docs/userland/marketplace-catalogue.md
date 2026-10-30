@@ -198,7 +198,7 @@ With `--learn`, the sha256 is taken from the signed file instead of the recipe, 
 2. Add its recipe with the narrowest mask it works in.
 3. Run the generator and the documents step, and commit the new document.
 4. Run once with `--update-lock` and commit the lock with the recipe.
-5. After the boot session's runs (docs/market/catalogue-boot-plan.md), run `python3 -m nonos_market_catalogue.verdict --write APP=LOG ...`. It checks each log, one per run:
+5. After the boot runs (docs/market/catalogue-boot-plan.md), run `python3 -m nonos_market_catalogue.verdict --write APP=LOG ...`. It checks each log, one per run:
    - the app installed in its box;
    - no policy refusal;
    - the workload ended well, with a process exiting status 0 and none exiting otherwise or on a signal;

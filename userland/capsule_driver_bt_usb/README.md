@@ -221,7 +221,7 @@ Keyring), and Debug
 the CryptoRandom syscall is gated on; pairing draws its key pair and
 nonces there, and the capsule stops if a draw fails. Keyring is for its
 bonds and its own IRK. Service `driver.bt_usb0` on
-port 4342, reply port 4343 (`endpoint.4294967368`), from track E's range;
+port 4342, reply port 4343 (`endpoint.4294967368`), from the reserved range;
 it answers NBTC v1 (above).
 Proofs: `userland/bt_usb_proofs`.
 

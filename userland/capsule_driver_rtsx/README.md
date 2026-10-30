@@ -121,7 +121,7 @@ reaches is refused. Vendor settings past config offset 255 are not read.
 ## Release target
 
 0.9.3 at the earliest: owner certificate, mk/20-build.mk include, kernel
-spawn and block backend (track A), then a photo from a laptop.
+spawn and block backend, then a photo from a laptop.
 
 ## Release evidence
 

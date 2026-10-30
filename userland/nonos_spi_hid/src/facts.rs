@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Microsoft's HID over SPI protocol specification, v1.0, as recalled,
-//! every value unverified (the letter's verification rows list each). The
+//! every value unverified. The
 //! device answers an interrupt with an input report: a 4-byte header, then
 //! a body of report type, content length and content id; the host writes
 //! output reports of the same body shape. Each SPI transaction starts with

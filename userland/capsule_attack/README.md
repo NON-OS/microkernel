@@ -79,7 +79,7 @@ fails the run even when its attack name has passed. Two rows are not this capsul
 
 - **DMA escape** needs a device. The broker confines each driver's device to its own IOMMU
   domain and the kernel prints a `[VT-D] IOMMU fault` line for each fault record when a device reaches outside it
-  (`src/arch/x86_64/iommu/unit/fault/drain.rs`). The local session proves it with the vIOMMU on.
+  (`src/arch/x86_64/iommu/unit/fault/drain.rs`). A local run proves it with the vIOMMU on.
 - **Personality escape** is the Linux guests' rows, `linux-fs-escape`, `linux-foreign-memory`
   and `linux-raw-syscall`.
 

@@ -1,6 +1,6 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! Conversions, implicit (section 19.3.5.7) and explicit (19.6.137 to
-//! 19.6.143). Forms the letter marks unverified are pinned here as built.
+//! 19.6.143). Forms marked unverified are pinned here as built.
 
 use crate::enc::*;
 use crate::run::{eval, num, raw};

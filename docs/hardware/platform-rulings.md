@@ -83,7 +83,7 @@ No sweep yet: SDHCI CSD/CID; spi_hid frames; smbus and i2c_pci probes;
 uhci, ohci and ehci TD retire. B's b/101 queue holds some of these; each
 is checked against it before it is taken.
 
-## Gaps this session takes, in order
+## Gaps, in order
 
 1. Done: DMAR and IVRS in the seeded sweep, the `_DSM` sweep (item 7),
    and the HDA and PS/2 sweeps.
