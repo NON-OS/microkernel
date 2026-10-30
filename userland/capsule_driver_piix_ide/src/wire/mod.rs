@@ -18,7 +18,7 @@
 //! ops, the GEOMETRY and IDENTIFY bodies, the statuses a driver answers with
 //! itself, and who a driver serves its medium to.
 //!
-//! The same items, under the same names, as track B's `nonos_blk_wire`
+//! The same items, under the same names, as `nonos_blk_wire`
 //! crate, kept here until that crate is in this tree: at integration this
 //! module becomes `use nonos_blk_wire as wire;` and nothing else changes.
 //! What is this driver's own (its reply endpoint, its device statuses, which

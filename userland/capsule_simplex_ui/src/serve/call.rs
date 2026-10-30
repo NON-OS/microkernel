@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One SERVE_ONE frame to the core's endpoint and its answer, in the wire
+//! One SERVE_ONE frame to the core's endpoint and its answer, in the SERVE_ONE wire
 //! (nonos_serve_wire, docs/design/serve-one.md).
 
 use alloc::vec;

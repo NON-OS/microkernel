@@ -1,6 +1,6 @@
 # Release evidence for NONOS 0.9.3
 
-One line for each of the 56 directories here: what it proves, taken from that
+One line for each of the 57 directories here: what it proves, taken from that
 directory's own README. Three directories have no README; their line says what
 the files are and which commit added them.
 
@@ -193,3 +193,5 @@ were added by name.
   its own driver spawned, on standard-dev at 4b1eeb014 (the serial logs the
   Wi-Fi works on their HP laptop, on their seal of main 680c92e3fc, with no
   log or screenshot.
+- [kvm-box-refusals](kvm-box-refusals/README.md): a Linux program in the default box tries to read files, see other programs, read the keyboard, attach to a process and open a socket, under KVM.
+- [wallet-no-tpm-kvm](wallet-no-tpm-kvm/README.md): creating a wallet with no TPM makes the keyring trap and restart.

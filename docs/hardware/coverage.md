@@ -59,6 +59,6 @@ which ones and how.
 ## Not covered here
 
 CPU and SMP bring-up, firmware (UEFI, Secure Boot, TPM) and aarch64 boards are in
-[Architectures](../architectures/README.md) and track C's letters. Thunderbolt and USB4
+[Architectures](../architectures/README.md). Thunderbolt and USB4
 docking beyond xHCI ordering, cameras, fingerprint readers and card readers are left for the
 next pass.

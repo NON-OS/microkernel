@@ -16,7 +16,7 @@ view, every class against mainstream chips with its blocker. Procedures for
 State: **none**, **partial** (what is missing), **done** (what proves it).
 "In the image" means both columns yes: listed in microkernel-full-gui
 (Cargo.toml) and signed (its manifest in nonos-data/trust/capsules).
-Commonality is this session's estimate for x86 desktops and laptops sold
+Commonality is an estimate for x86 desktops and laptops sold
 2015 to 2025: **very common** (most machines of a vendor or era), **common**,
 
 ## Parts
@@ -28,14 +28,15 @@ Commonality is this session's estimate for x86 desktops and laptops sold
 
 ## What blocks the most machines
 
-it unlocks more machines than anything this session can write:
+it unlocks more machines than any code can:
 
 |---|---|---|
 | gpio seal (touchpad interrupts instead of polling) | common: every I2C-HID touchpad | F |
 | ehci trust files (Haswell/Broadwell ports routed to EHCI) | common in 2014-2015 machines | B |
 | sdhci trust files (listed in full-gui, unsigned) | common: eMMC laptops, SD slots | B |
 
-The second is code, in the order this session takes it (each line names
+The second is code, in the order planned (each line names
+the matrix row):
 
 1. Display fallback, done on main: a firmware with no linear GOP mode is
    named by the loader, the kernel and the compositor, which keeps waiting
@@ -51,7 +52,7 @@ The second is code, in the order this session takes it (each line names
    booted): NVMe CC.SHN, AHCI flush and standby, flushes for the rest,
    within 15 s (6 s when critical), once per boot. Reached today by the
    reboot and admin shutdown paths; the desktop power-off waits on
-   capsule_acpi, and running the leave before \_PTS(5) is letter h/04.
+   capsule_acpi, and running the leave before \_PTS(5) is a separate task.
 5. xHCI: XUSB2PR/USB3_PSSEN switch-over done (host-tested); quirks as reports show.
 6. HDA: Conexant, Cirrus and IDT codec setup, CORB/RIRB recovery and the
    codec-walk sweep done (host-tested); per-board pin fixups as boards report.

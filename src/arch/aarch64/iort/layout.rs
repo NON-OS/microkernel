@@ -16,8 +16,8 @@
 
 //! Where IORT keeps what this reader takes, from Arm's IO Remapping Table
 //! specification (DEN0049): offsets from the table's start, or from a
-//! node's. Recalled, not checked against a copy in this tree; the letter
-//! lists every value for the owner.
+//! node's. Written from the specification, not checked against a copy in
+//! this tree; every value is unverified.
 
 /// After the 36-byte ACPI header: the node count, then the node array's
 /// offset.
