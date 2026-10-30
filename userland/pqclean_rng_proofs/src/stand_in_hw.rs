@@ -50,5 +50,6 @@ pub mod arch {
 pub mod sys {
     pub mod serial {
         pub use super::super::print;
+        pub use super::super::print as line;
     }
 }

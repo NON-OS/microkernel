@@ -95,12 +95,7 @@ pub fn fault() -> ! {
     // SAFETY: the write is the attack. It faults, and the kernel ends this
     // capsule before the instruction completes.
     unsafe {
-        core::arch::asm!(
-            "mov qword ptr [{at}], {v}",
-            at = in(reg) NOWHERE,
-            v = in(reg) 0x4E4F_4E4F_5345_4743u64,
-            options(nostack),
-        );
+        core::ptr::write_volatile(NOWHERE as *mut u64, 0x4E4F_4E4F_5345_4743u64);
     }
     verdict(b"fault-containment", b"a write to the null page", 0);
     mk_exit(1)
