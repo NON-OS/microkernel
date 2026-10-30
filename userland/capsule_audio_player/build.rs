@@ -38,6 +38,12 @@ fn main() {
     if arch == "x86_64" {
         b.flag("-mno-red-zone");
     }
+    // The riscv64 capsule target is hard-float (lp64d) and clang's bare triple
+    // defaults to soft-float; lld refuses to link the two ABIs together.
+    if arch == "riscv64" {
+        b.flag("-march=rv64imafdc");
+        b.flag("-mabi=lp64d");
+    }
     b.flag("-fPIC");
     b.flag("-O2");
     b.flag("-DNDEBUG");
