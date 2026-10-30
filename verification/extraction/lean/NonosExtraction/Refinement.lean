@@ -30,7 +30,7 @@ open nonos_caps
 namespace NonosExtraction
 
 /-- The bit index each capability occupies in the kernel token word,
-    matching the `bit` table in src/capabilities/types/bit.rs. -/
+    matching the `bit` table in src/capabilities/types/table.rs. -/
 def idx : capabilities.types.defs.Capability → Nat
   | .CoreExec => 0
   | .IO => 1
@@ -69,6 +69,9 @@ def idx : capabilities.types.defs.Capability → Nat
   | .StreamImport => 34
   | .DeviceSecret => 35
   | .InputConsumer => 36
+  | .CameraCapture => 37
+  | .MicrophoneCapture => 38
+  | .ScreenCapture => 39
 
 theorem idx_lt_64 (cap : capabilities.types.defs.Capability) : idx cap < 64 := by
   cases cap <;> decide

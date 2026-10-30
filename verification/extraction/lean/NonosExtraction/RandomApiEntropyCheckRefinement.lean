@@ -51,18 +51,17 @@ theorem the_required_entropy_bytes_wrapper_is_its_method (a : Std.Usize) :
 theorem required_entropy_bytes_is_the_ceiling_of_bits_over_eight (bits : Std.Usize) :
     ∃ n : Std.Usize, required_entropy_bytes bits = ok n ∧ n.val = (bits.val + 7) / 8 := by
   unfold required_entropy_bytes entropy_check.required_entropy_bytes
+    core.num.Usize.is_multiple_of UScalar.is_multiple_of
   obtain ⟨q, hq, hqv⟩ := UScalar.div_spec bits (y := 8#usize) (by simp)
-  obtain ⟨r, hr, hrv⟩ := WP.spec_imp_exists (UScalar.rem_spec bits (y := 8#usize) (by simp))
   have e8 : (8#usize : Std.Usize).val = 8 := rfl
-  rw [e8] at hqv hrv
-  rw [hr]
-  simp only [bind_tc_ok]
+  rw [e8] at hqv
+  simp only [bind_tc_ok, e8]
   split
   · rename_i heq
-    have h0 : r.val = 0 := by rw [heq]; rfl
+    have h0 : bits.val % 8 = 0 := by simpa using heq
     exact ⟨q, hq, by omega⟩
   · rename_i hne
-    have h0 : r.val ≠ 0 := fun h => hne (UScalar.eq_of_val_eq (by rw [h]; rfl))
+    have h0 : bits.val % 8 ≠ 0 := by simpa using hne
     rw [hq]
     simp only [bind_tc_ok]
     have hb := bits.hBounds

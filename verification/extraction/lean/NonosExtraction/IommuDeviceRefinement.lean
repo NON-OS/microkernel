@@ -31,128 +31,156 @@ set_option maxRecDepth 100000
 
 namespace NonosExtraction.IommuDevice
 
-/-! ### The forwarding functions add nothing -/
+/-! ### The forwarding functions add nothing
+
+The kernel made `DeviceAddress` an enum, a PCI requester in a segment or an
+SMMU StreamID. The mirror crate keeps the wrapper names `crates.json` lists:
+`deviceaddress_new` now forwards to `stream`, `deviceaddress_as_u32` to `rid`,
+and the three readers `deviceaddress_pci_bus`, `deviceaddress_pci_device` and
+`deviceaddress_pci_function` all to `bdf`, which returns the whole triple.
+-/
 
 theorem the_deviceaddress_new_wrapper_is_its_method (a : Std.U32) :
-    deviceaddress_new a = iommu_device.DeviceAddress.new a := rfl
+    deviceaddress_new a = iommu_device.DeviceAddress.stream a := rfl
 
 theorem the_deviceaddress_pci_wrapper_is_its_method (a : Std.U8) (b : Std.U8) (c : Std.U8) :
     deviceaddress_pci a b c = iommu_device.DeviceAddress.pci a b c := rfl
 
 theorem the_deviceaddress_as_u32_wrapper_is_its_method (a : iommu_device.DeviceAddress) :
-    deviceaddress_as_u32 a = iommu_device.DeviceAddress.as_u32 a := rfl
+    deviceaddress_as_u32 a = iommu_device.DeviceAddress.rid a := rfl
 
 theorem the_deviceaddress_pci_bus_wrapper_is_its_method (a : iommu_device.DeviceAddress) :
-    deviceaddress_pci_bus a = iommu_device.DeviceAddress.pci_bus a := rfl
+    deviceaddress_pci_bus a = iommu_device.DeviceAddress.bdf a := rfl
 
 theorem the_deviceaddress_pci_device_wrapper_is_its_method (a : iommu_device.DeviceAddress) :
-    deviceaddress_pci_device a = iommu_device.DeviceAddress.pci_device a := rfl
+    deviceaddress_pci_device a = iommu_device.DeviceAddress.bdf a := rfl
 
 theorem the_deviceaddress_pci_function_wrapper_is_its_method (a : iommu_device.DeviceAddress) :
-    deviceaddress_pci_function a = iommu_device.DeviceAddress.pci_function a := rfl
+    deviceaddress_pci_function a = iommu_device.DeviceAddress.bdf a := rfl
 
-/-! ### A device address splits into bus, device and function
+/-! ### A requester id splits into bus, device and function
 
-A `DeviceAddress` is a raw `u32` in which the kernel keeps a PCI bus, device
-and function the way PCI numbers a requester: the bus from bit 8, the device in
-the five bits below it and the function in the low three. `attach_device` and
-`detach_device` in the x86_64 IOMMU backend take an address apart with
-`pci_bus`, `pci_device` and `pci_function` and hand the three numbers to
-`map_device` and `unmap_device`, which pick the context entry that confines the
-device. The theorems below say exactly which bits each reader returns, that a
-triple packed by `deviceaddress_pci` comes back unchanged whenever the device
-number fits in five bits, and that `deviceaddress_pci` and `deviceaddress_new`
-agree on every sixteen-bit value. A reader that shifted by one bit too few, or
-a constructor that placed the bus at bit 7, would send one device's DMA through
-another device's translation.
+A PCI `DeviceAddress` carries a segment and a sixteen-bit requester id in which
+the kernel keeps a PCI bus, device and function the way PCI numbers a
+requester: the bus from bit 8, the device in the five bits below it and the
+function in the low three. A StreamID carries no bus, device or function. The
+x86_64 IOMMU backend's `requester` takes a segment-0 address apart with `bdf`
+and hands the three numbers to the code that picks the context entry
+confining the device. The theorems below say exactly which bits `bdf` returns
+for each field, that a StreamID has none, that a triple packed by
+`deviceaddress_pci` comes back unchanged whenever the device number fits in
+five bits, and that every segment-0 requester id is the address
+`deviceaddress_pci` builds from its own bus, device and function. A reader
+that shifted by one bit too few, or a constructor that placed the bus at bit 7,
+would send one device's DMA through another device's translation.
 
 They also say what `deviceaddress_pci` does with a device number of 32 or
 more or a function of 8 or more: both are masked to their fields, so the bus
 field holds the bus and nothing else. Before the device was masked, device 32
 on bus 0 packed as bus 1 device 0; `kernel_proofs` keeps a test of that case.
-No kernel caller builds an address with `deviceaddress_pci` today, and the
-backend functions `map_device` and `unmap_device` are not in this crate, so what
+The backend functions that consume the triple are not in this crate, so what
 they do with the three numbers is not established here.
 -/
 
-/-- A right shift of a 32-bit word by a constant below 32 succeeds and divides
+/-- A right shift of a 16-bit word by a constant below 16 succeeds and divides
     by that power of two. -/
-private theorem shr_u32 (x : Std.U32) (k : Std.I32) (h0 : 0 ≤ k.val) (h1 : k.val < 32) :
-    ∃ z : Std.U32, x >>> k = ok z ∧ z.val = x.val / 2 ^ k.toNat := by
+private theorem shr_u16 (x : Std.U16) (k : Std.I32) (h0 : 0 ≤ k.val) (h1 : k.val < 16) :
+    ∃ z : Std.U16, x >>> k = ok z ∧ z.val = x.val / 2 ^ k.toNat := by
   obtain ⟨z, hz, hv, -⟩ :=
     WP.spec_imp_exists (UScalar.ShiftRight_IScalar_spec x k h0 (by simpa using h1))
   exact ⟨z, hz, by rw [hv, Nat.shiftRight_eq_div_pow]⟩
 
-/-- A left shift of a 32-bit word by a constant below 32 succeeds and multiplies
+/-- A left shift of a 16-bit word by a constant below 16 succeeds and multiplies
     by that power of two, modulo the word. -/
-private theorem shl_u32 (x : Std.U32) (k : Std.I32) (h0 : 0 ≤ k.val) (h1 : k.val < 32) :
-    ∃ z : Std.U32, x <<< k = ok z ∧ z.val = x.val * 2 ^ k.toNat % 2 ^ 32 := by
+private theorem shl_u16 (x : Std.U16) (k : Std.I32) (h0 : 0 ≤ k.val) (h1 : k.val < 16) :
+    ∃ z : Std.U16, x <<< k = ok z ∧ z.val = x.val * 2 ^ k.toNat % 2 ^ 16 := by
   obtain ⟨z, hz, hv, -⟩ :=
-    WP.spec_imp_exists (UScalar.ShiftLeft_IScalar_spec x k (UScalar.size .U32) h0
+    WP.spec_imp_exists (UScalar.ShiftLeft_IScalar_spec x k (UScalar.size .U16) h0
       (by simpa using h1) rfl)
-  exact ⟨z, hz, by rw [hv, Nat.shiftLeft_eq]; simp [U32.size, U32.numBits]⟩
+  exact ⟨z, hz, by rw [hv, Nat.shiftLeft_eq]; simp [U16.size, U16.numBits]⟩
 
-/-- The bus is bits 8 to 15 of the address. Bits 16 to 31 are not read. -/
-theorem deviceaddress_pci_bus_is_bits_eight_to_fifteen (a : iommu_device.DeviceAddress) :
-    ∃ b : Std.U8, deviceaddress_pci_bus a = ok b ∧ b.val = a.val / 256 % 256 := by
-  unfold deviceaddress_pci_bus iommu_device.DeviceAddress.pci_bus
-  obtain ⟨z, hz, hv⟩ := shr_u32 a 8#i32 (by decide) (by decide)
-  simp only [hz, bind_tc_ok, lift]
-  refine ⟨_, rfl, ?_⟩
-  rw [UScalar.cast_val_eq, Bits.land_low_mask z 255#u32 8 rfl, hv]
-  simp only [show (8#i32 : Std.I32).toNat = 8 from rfl]
-  simp [UScalarTy.numBits]
+/-- `bdf` of a PCI address, field by field: the bus is bits 8 to 15 of the
+    requester id, the device bits 3 to 7 and the function the low three bits.
+    The segment is not read. -/
+private theorem bdf_of_pci (s rid : Std.U16) :
+    ∃ b d f : Std.U8, iommu_device.DeviceAddress.bdf (.Pci s rid) = ok (some (b, d, f)) ∧
+      b.val = rid.val / 256 % 256 ∧ d.val = rid.val / 8 % 32 ∧ f.val = rid.val % 8 := by
+  unfold iommu_device.DeviceAddress.bdf
+  obtain ⟨z1, hz1, hv1⟩ := shr_u16 rid 8#i32 (by decide) (by decide)
+  obtain ⟨z2, hz2, hv2⟩ := shr_u16 rid 3#i32 (by decide) (by decide)
+  simp only [hz1, hz2, bind_tc_ok, lift]
+  refine ⟨_, _, _, rfl, ?_, ?_, ?_⟩
+  · rw [UScalar.cast_val_eq, hv1]
+    simp only [show (8#i32 : Std.I32).toNat = 8 from rfl]
+    simp [UScalarTy.numBits]
+  · rw [UScalar.cast_val_eq, Bits.land_low_mask z2 31#u16 5 rfl, hv2]
+    simp only [show (3#i32 : Std.I32).toNat = 3 from rfl]
+    simp [UScalarTy.numBits]
+    omega
+  · rw [UScalar.cast_val_eq, Bits.land_low_mask rid 7#u16 3 rfl]
+    simp [UScalarTy.numBits]
+    omega
 
-/-- The device is bits 3 to 7 of the address: five bits, so it never exceeds 31. -/
-theorem deviceaddress_pci_device_is_bits_three_to_seven (a : iommu_device.DeviceAddress) :
-    ∃ d : Std.U8, deviceaddress_pci_device a = ok d ∧ d.val = a.val / 8 % 32 := by
-  unfold deviceaddress_pci_device iommu_device.DeviceAddress.pci_device
-  obtain ⟨z, hz, hv⟩ := shr_u32 a 3#i32 (by decide) (by decide)
-  simp only [hz, bind_tc_ok, lift]
-  refine ⟨_, rfl, ?_⟩
-  rw [UScalar.cast_val_eq, Bits.land_low_mask z 31#u32 5 rfl, hv]
-  simp only [show (3#i32 : Std.I32).toNat = 3 from rfl]
-  simp [UScalarTy.numBits]
-  omega
+/-- A StreamID is not a PCI requester: it has no bus, device or function and
+    no requester id. -/
+theorem deviceaddress_readers_of_a_stream_are_none (sid : Std.U32) :
+    deviceaddress_pci_bus (.Stream sid) = ok none ∧
+      deviceaddress_pci_device (.Stream sid) = ok none ∧
+      deviceaddress_pci_function (.Stream sid) = ok none ∧
+      deviceaddress_as_u32 (.Stream sid) = ok none :=
+  ⟨rfl, rfl, rfl, rfl⟩
 
-/-- The function is the low three bits of the address, so it never exceeds 7. -/
-theorem deviceaddress_pci_function_is_the_low_three_bits (a : iommu_device.DeviceAddress) :
-    ∃ f : Std.U8, deviceaddress_pci_function a = ok f ∧ f.val = a.val % 8 := by
-  unfold deviceaddress_pci_function iommu_device.DeviceAddress.pci_function
-  simp only [bind_tc_ok, lift]
-  refine ⟨_, rfl, ?_⟩
-  rw [UScalar.cast_val_eq, Bits.land_low_mask a 7#u32 3 rfl]
-  simp [UScalarTy.numBits]
-  omega
+/-- The bus is bits 8 to 15 of the requester id. The segment is not read. -/
+theorem deviceaddress_pci_bus_is_bits_eight_to_fifteen (s rid : Std.U16) :
+    ∃ b d f : Std.U8, deviceaddress_pci_bus (.Pci s rid) = ok (some (b, d, f)) ∧
+      b.val = rid.val / 256 % 256 := by
+  obtain ⟨b, d, f, h, hb, -, -⟩ := bdf_of_pci s rid
+  exact ⟨b, d, f, h, hb⟩
 
-/-- The exact value `deviceaddress_pci` builds, for every input: the bus in bits
-    8 to 15, the device reduced to five bits in bits 3 to 7 and the function
-    reduced to three bits below them. The bus field is the bus whatever device
-    and function are passed. -/
+/-- The device is bits 3 to 7 of the requester id: five bits, so it never
+    exceeds 31. -/
+theorem deviceaddress_pci_device_is_bits_three_to_seven (s rid : Std.U16) :
+    ∃ b d f : Std.U8, deviceaddress_pci_device (.Pci s rid) = ok (some (b, d, f)) ∧
+      d.val = rid.val / 8 % 32 := by
+  obtain ⟨b, d, f, h, -, hd, -⟩ := bdf_of_pci s rid
+  exact ⟨b, d, f, h, hd⟩
+
+/-- The function is the low three bits of the requester id, so it never
+    exceeds 7. -/
+theorem deviceaddress_pci_function_is_the_low_three_bits (s rid : Std.U16) :
+    ∃ b d f : Std.U8, deviceaddress_pci_function (.Pci s rid) = ok (some (b, d, f)) ∧
+      f.val = rid.val % 8 := by
+  obtain ⟨b, d, f, h, -, -, hf⟩ := bdf_of_pci s rid
+  exact ⟨b, d, f, h, hf⟩
+
+/-- The exact value `deviceaddress_pci` builds, for every input: a segment-0
+    PCI requester whose id has the bus in bits 8 to 15, the device reduced to
+    five bits in bits 3 to 7 and the function reduced to three bits below them.
+    The bus field is the bus whatever device and function are passed. -/
 theorem deviceaddress_pci_masks_device_and_function (b d f : Std.U8) :
-    ∃ a : iommu_device.DeviceAddress, deviceaddress_pci b d f = ok a ∧
-      a.val = b.val * 256 + d.val % 32 * 8 + f.val % 8 := by
-  unfold deviceaddress_pci iommu_device.DeviceAddress.pci
+    ∃ rid : Std.U16, deviceaddress_pci b d f = ok (.Pci 0#u16 rid) ∧
+      rid.val = b.val * 256 + d.val % 32 * 8 + f.val % 8 := by
+  unfold deviceaddress_pci iommu_device.DeviceAddress.pci iommu_device.DeviceAddress.pci_in
   have hb := b.hBounds
   have hd := d.hBounds
   have hf := f.hBounds
   simp [UScalarTy.numBits] at hb hd hf
-  obtain ⟨z1, hz1, hv1⟩ := shl_u32 (UScalar.cast .U32 b) 8#i32 (by decide) (by decide)
+  obtain ⟨z1, hz1, hv1⟩ := shl_u16 (UScalar.cast .U16 b) 8#i32 (by decide) (by decide)
   obtain ⟨z2, hz2, hv2⟩ :=
-    shl_u32 (UScalar.cast .U32 d &&& 31#u32) 3#i32 (by decide) (by decide)
+    shl_u16 (UScalar.cast .U16 d &&& 31#u16) 3#i32 (by decide) (by decide)
   simp only [lift, bind_tc_ok, hz1, hz2]
   refine ⟨_, rfl, ?_⟩
   simp only [show (8#i32 : Std.I32).toNat = 8 from rfl,
     show (3#i32 : Std.I32).toNat = 3 from rfl, UScalar.cast_val_eq] at hv1 hv2
-  rw [Bits.land_low_mask _ 31#u32 5 rfl, UScalar.cast_val_eq] at hv2
+  rw [Bits.land_low_mask _ 31#u16 5 rfl, UScalar.cast_val_eq] at hv2
   simp only [UScalarTy.numBits] at hv1 hv2
-  rw [Nat.mod_eq_of_lt (by omega : b.val < 2 ^ 32)] at hv1
-  rw [Nat.mod_eq_of_lt (by omega : d.val < 2 ^ 32)] at hv2
+  rw [Nat.mod_eq_of_lt (by omega : b.val < 2 ^ 16)] at hv1
+  rw [Nat.mod_eq_of_lt (by omega : d.val < 2 ^ 16)] at hv2
   rw [Nat.mod_eq_of_lt (by omega)] at hv1 hv2
-  rw [UScalar.val_or, UScalar.val_or, hv1, hv2, Bits.land_low_mask _ 7#u32 3 rfl,
+  rw [UScalar.val_or, UScalar.val_or, hv1, hv2, Bits.land_low_mask _ 7#u16 3 rfl,
     UScalar.cast_val_eq]
   simp only [UScalarTy.numBits]
-  rw [Nat.mod_eq_of_lt (by omega : f.val < 2 ^ 32)]
+  rw [Nat.mod_eq_of_lt (by omega : f.val < 2 ^ 16)]
   have h1 : b.val * 2 ^ 8 ||| d.val % 2 ^ 5 * 2 ^ 3
       = b.val * 2 ^ 8 + d.val % 2 ^ 5 * 2 ^ 3 := by
     rw [← Nat.shiftLeft_eq b.val 8]
@@ -166,97 +194,93 @@ theorem deviceaddress_pci_masks_device_and_function (b d f : Std.U8) :
   rw [h1, h2]
   omega
 
-/-- The packing in the case that matters: with the device below 32, the address
-    is `bus * 256 + device * 8 + function % 8`, the PCI requester id, and it fits
-    in sixteen bits. -/
+/-- The packing in the case that matters: with the device below 32, the
+    requester id is `bus * 256 + device * 8 + function % 8`, and it fits in
+    sixteen bits without wrapping. -/
 theorem deviceaddress_pci_is_the_requester_id_when_the_device_fits (b d f : Std.U8)
     (hd : d.val < 32) :
-    ∃ a : iommu_device.DeviceAddress, deviceaddress_pci b d f = ok a ∧
-      a.val = b.val * 256 + d.val * 8 + f.val % 8 ∧ a.val < 65536 := by
-  obtain ⟨a, ha, hv⟩ := deviceaddress_pci_masks_device_and_function b d f
+    ∃ rid : Std.U16, deviceaddress_pci b d f = ok (.Pci 0#u16 rid) ∧
+      rid.val = b.val * 256 + d.val * 8 + f.val % 8 ∧ rid.val < 65536 := by
+  obtain ⟨rid, ha, hv⟩ := deviceaddress_pci_masks_device_and_function b d f
   have hb := b.hBounds
   simp [UScalarTy.numBits] at hb
   rw [Nat.mod_eq_of_lt hd] at hv
-  exact ⟨a, ha, hv, by omega⟩
+  exact ⟨rid, ha, hv, by omega⟩
 
-/-- The contract `attach_device` and `detach_device` rely on: an address built
-    by `deviceaddress_pci` from a bus, a device below 32 and a function below 8
+/-- The contract the backend relies on: an address built by
+    `deviceaddress_pci` from a bus, a device below 32 and a function below 8
     gives back that bus, device and function from `deviceaddress_pci_bus`,
     `deviceaddress_pci_device` and `deviceaddress_pci_function`. -/
 theorem deviceaddress_pci_then_readers_recover_bus_device_and_function (b d f : Std.U8)
     (hd : d.val < 32) (hf : f.val < 8) :
-    ∃ a bus dev fn, deviceaddress_pci b d f = ok a ∧ deviceaddress_pci_bus a = ok bus ∧
-      deviceaddress_pci_device a = ok dev ∧ deviceaddress_pci_function a = ok fn ∧
-      bus = b ∧ dev = d ∧ fn = f := by
-  obtain ⟨a, ha, hv, -⟩ := deviceaddress_pci_is_the_requester_id_when_the_device_fits b d f hd
-  obtain ⟨bus, hb, hbv⟩ := deviceaddress_pci_bus_is_bits_eight_to_fifteen a
-  obtain ⟨dev, hdv, hdvv⟩ := deviceaddress_pci_device_is_bits_three_to_seven a
-  obtain ⟨fn, hfn, hfnv⟩ := deviceaddress_pci_function_is_the_low_three_bits a
+    ∃ a, deviceaddress_pci b d f = ok a ∧ deviceaddress_pci_bus a = ok (some (b, d, f)) ∧
+      deviceaddress_pci_device a = ok (some (b, d, f)) ∧
+      deviceaddress_pci_function a = ok (some (b, d, f)) := by
+  obtain ⟨rid, ha, hv, -⟩ := deviceaddress_pci_is_the_requester_id_when_the_device_fits b d f hd
+  obtain ⟨bus, dev, fn, h, hbv, hdv, hfv⟩ := bdf_of_pci 0#u16 rid
   have hbb := b.hBounds
   simp [UScalarTy.numBits] at hbb
-  refine ⟨a, bus, dev, fn, ha, hb, hdv, hfn, ?_, ?_, ?_⟩ <;>
-    apply UScalar.eq_of_val_eq <;> omega
+  have e1 : bus = b := UScalar.eq_of_val_eq (by omega)
+  have e2 : dev = d := UScalar.eq_of_val_eq (by omega)
+  have e3 : fn = f := UScalar.eq_of_val_eq (by omega)
+  subst e1 e2 e3
+  exact ⟨_, ha, h, h, h⟩
 
 /-- Whatever device and function numbers are passed, the address reads back the
-    bus it was given and the device and function reduced to their fields; the
-    address always fits in sixteen bits. A device number of 32 or more cannot
-    move the address onto another bus. -/
+    bus it was given and the device and function reduced to their fields, and
+    it is a segment-0 PCI requester. A device number of 32 or more cannot move
+    the address onto another bus. -/
 theorem deviceaddress_pci_keeps_the_bus_for_every_device_and_function (b d f : Std.U8) :
-    ∃ a bus dev fn, deviceaddress_pci b d f = ok a ∧ deviceaddress_pci_bus a = ok bus ∧
-      deviceaddress_pci_device a = ok dev ∧ deviceaddress_pci_function a = ok fn ∧
-      bus = b ∧ dev.val = d.val % 32 ∧ fn.val = f.val % 8 ∧ a.val < 65536 := by
-  obtain ⟨a, ha, hv⟩ := deviceaddress_pci_masks_device_and_function b d f
-  obtain ⟨bus, hb, hbv⟩ := deviceaddress_pci_bus_is_bits_eight_to_fifteen a
-  obtain ⟨dev, hdv, hdvv⟩ := deviceaddress_pci_device_is_bits_three_to_seven a
-  obtain ⟨fn, hfn, hfnv⟩ := deviceaddress_pci_function_is_the_low_three_bits a
+    ∃ rid bus dev fn, deviceaddress_pci b d f = ok (.Pci 0#u16 rid) ∧
+      deviceaddress_pci_bus (.Pci 0#u16 rid) = ok (some (bus, dev, fn)) ∧
+      deviceaddress_pci_device (.Pci 0#u16 rid) = ok (some (bus, dev, fn)) ∧
+      deviceaddress_pci_function (.Pci 0#u16 rid) = ok (some (bus, dev, fn)) ∧
+      bus = b ∧ dev.val = d.val % 32 ∧ fn.val = f.val % 8 := by
+  obtain ⟨rid, ha, hv⟩ := deviceaddress_pci_masks_device_and_function b d f
+  obtain ⟨bus, dev, fn, h, hbv, hdv, hfv⟩ := bdf_of_pci 0#u16 rid
   have hbb := b.hBounds
   simp [UScalarTy.numBits] at hbb
-  refine ⟨a, bus, dev, fn, ha, hb, hdv, hfn, ?_, ?_, ?_, ?_⟩
+  refine ⟨rid, bus, dev, fn, ha, h, h, h, ?_, ?_, ?_⟩
   · apply UScalar.eq_of_val_eq; omega
   all_goals omega
 
-/-- The two constructors agree: any value below `0x10000` handed to
-    `deviceaddress_new` is the address `deviceaddress_pci` builds from that
-    value's own bus, device and function, and `deviceaddress_as_u32` returns it
-    bit for bit. -/
-theorem deviceaddress_new_agrees_with_deviceaddress_pci_below_sixteen_bits (r : Std.U32)
-    (hr : r.val < 65536) :
-    ∃ a bus dev fn, deviceaddress_new r = ok a ∧ deviceaddress_pci_bus a = ok bus ∧
-      deviceaddress_pci_device a = ok dev ∧ deviceaddress_pci_function a = ok fn ∧
-      deviceaddress_pci bus dev fn = ok a ∧ deviceaddress_as_u32 a = ok r := by
-  obtain ⟨bus, hb, hbv⟩ := deviceaddress_pci_bus_is_bits_eight_to_fifteen r
-  obtain ⟨dev, hdv, hdvv⟩ := deviceaddress_pci_device_is_bits_three_to_seven r
-  obtain ⟨fn, hfn, hfnv⟩ := deviceaddress_pci_function_is_the_low_three_bits r
+/-- Every segment-0 requester id is the address `deviceaddress_pci` builds from
+    that id's own bus, device and function, and `deviceaddress_as_u32` returns
+    the id bit for bit. -/
+theorem every_segment_zero_requester_id_is_what_deviceaddress_pci_builds (rid : Std.U16) :
+    ∃ bus dev fn, deviceaddress_pci_bus (.Pci 0#u16 rid) = ok (some (bus, dev, fn)) ∧
+      deviceaddress_pci bus dev fn = ok (.Pci 0#u16 rid) ∧
+      deviceaddress_as_u32 (.Pci 0#u16 rid) = ok (some rid) := by
+  obtain ⟨bus, dev, fn, h, hbv, hdv, hfv⟩ := bdf_of_pci 0#u16 rid
+  have hr := rid.hBounds
+  simp [UScalarTy.numBits] at hr
   obtain ⟨p, hp, hpv, -⟩ :=
     deviceaddress_pci_is_the_requester_id_when_the_device_fits bus dev fn (by omega)
-  have hpr : p = r := UScalar.eq_of_val_eq (by omega)
+  have hpr : p = rid := UScalar.eq_of_val_eq (by omega)
   subst hpr
-  exact ⟨p, bus, dev, fn, rfl, hb, hdv, hfn, hp, rfl⟩
+  exact ⟨bus, dev, fn, h, hp, rfl⟩
 
-/-- `deviceaddress_new` and `deviceaddress_as_u32` keep every bit of the raw
-    value, including bits 16 to 31, which no reader looks at. -/
-theorem deviceaddress_as_u32_recovers_what_deviceaddress_new_was_given (r : Std.U32) :
-    ∃ a, deviceaddress_new r = ok a ∧ deviceaddress_as_u32 a = ok r := ⟨r, rfl, rfl⟩
+/-- `deviceaddress_new` (now `stream`) keeps every bit of the raw value as a
+    StreamID, and the address it builds has no PCI requester id. -/
+theorem deviceaddress_new_keeps_the_whole_stream_id (r : Std.U32) :
+    deviceaddress_new r = ok (.Stream r) ∧ deviceaddress_as_u32 (.Stream r) = ok none :=
+  ⟨rfl, rfl⟩
 
-/-- Concrete edges. `0xFFFF` is bus 255, device 31, function 7; `0x0100` is bus
-    1 alone, so the bus starts exactly at bit 8. A device of 32 is packed as
-    device 0 on bus 0, not as bus 1, and a function of 9 is packed as function
-    1. An address from `deviceaddress_new 0x10000` reads
-    as bus 0, device 0, function 0 although its raw value is not zero. -/
+/-- Concrete edges. Requester id `0xFFFF` is bus 255, device 31, function 7;
+    `0x0100` is bus 1 alone, so the bus starts exactly at bit 8. A device of 32
+    is packed as device 0 on bus 0, not as bus 1, and a function of 9 is packed
+    as function 1. An address from `deviceaddress_new 0x10000` is a StreamID and
+    reads as no bus, device or function at all. -/
 theorem deviceaddress_readers_and_pci_at_the_field_edges :
-    deviceaddress_pci_bus 0xFFFF#u32 = ok 255#u8 ∧
-      deviceaddress_pci_device 0xFFFF#u32 = ok 31#u8 ∧
-      deviceaddress_pci_function 0xFFFF#u32 = ok 7#u8 ∧
-      deviceaddress_pci_bus 0x0100#u32 = ok 1#u8 ∧
-      deviceaddress_pci_device 0x0100#u32 = ok 0#u8 ∧
-      deviceaddress_pci 0#u8 32#u8 0#u8 = ok 0#u32 ∧
-      deviceaddress_pci 1#u8 0#u8 0#u8 = ok 256#u32 ∧
-      deviceaddress_pci 0#u8 0#u8 9#u8 = ok 1#u32 ∧
-      deviceaddress_pci 255#u8 31#u8 7#u8 = ok 0xFFFF#u32 ∧
-      deviceaddress_pci_bus 0x10000#u32 = ok 0#u8 ∧
-      deviceaddress_pci_device 0x10000#u32 = ok 0#u8 ∧
-      deviceaddress_pci_function 0x10000#u32 = ok 0#u8 := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ <;> rfl
+    deviceaddress_pci_bus (.Pci 0#u16 0xFFFF#u16) = ok (some (255#u8, 31#u8, 7#u8)) ∧
+      deviceaddress_pci_bus (.Pci 0#u16 0x0100#u16) = ok (some (1#u8, 0#u8, 0#u8)) ∧
+      deviceaddress_pci 0#u8 32#u8 0#u8 = ok (.Pci 0#u16 0#u16) ∧
+      deviceaddress_pci 1#u8 0#u8 0#u8 = ok (.Pci 0#u16 256#u16) ∧
+      deviceaddress_pci 0#u8 0#u8 9#u8 = ok (.Pci 0#u16 1#u16) ∧
+      deviceaddress_pci 255#u8 31#u8 7#u8 = ok (.Pci 0#u16 0xFFFF#u16) ∧
+      deviceaddress_new 0x10000#u32 = ok (.Stream 0x10000#u32) ∧
+      deviceaddress_pci_bus (.Stream 0x10000#u32) = ok none := by
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ <;> rfl
 
 /-! ### Axiom profile -/
 
@@ -266,6 +290,7 @@ theorem deviceaddress_readers_and_pci_at_the_field_edges :
 #print axioms NonosExtraction.IommuDevice.the_deviceaddress_pci_bus_wrapper_is_its_method
 #print axioms NonosExtraction.IommuDevice.the_deviceaddress_pci_device_wrapper_is_its_method
 #print axioms NonosExtraction.IommuDevice.the_deviceaddress_pci_function_wrapper_is_its_method
+#print axioms NonosExtraction.IommuDevice.deviceaddress_readers_of_a_stream_are_none
 #print axioms NonosExtraction.IommuDevice.deviceaddress_pci_bus_is_bits_eight_to_fifteen
 #print axioms NonosExtraction.IommuDevice.deviceaddress_pci_device_is_bits_three_to_seven
 #print axioms NonosExtraction.IommuDevice.deviceaddress_pci_function_is_the_low_three_bits
@@ -273,8 +298,8 @@ theorem deviceaddress_readers_and_pci_at_the_field_edges :
 #print axioms NonosExtraction.IommuDevice.deviceaddress_pci_is_the_requester_id_when_the_device_fits
 #print axioms NonosExtraction.IommuDevice.deviceaddress_pci_then_readers_recover_bus_device_and_function
 #print axioms NonosExtraction.IommuDevice.deviceaddress_pci_keeps_the_bus_for_every_device_and_function
-#print axioms NonosExtraction.IommuDevice.deviceaddress_new_agrees_with_deviceaddress_pci_below_sixteen_bits
-#print axioms NonosExtraction.IommuDevice.deviceaddress_as_u32_recovers_what_deviceaddress_new_was_given
+#print axioms NonosExtraction.IommuDevice.every_segment_zero_requester_id_is_what_deviceaddress_pci_builds
+#print axioms NonosExtraction.IommuDevice.deviceaddress_new_keeps_the_whole_stream_id
 #print axioms NonosExtraction.IommuDevice.deviceaddress_readers_and_pci_at_the_field_edges
 
 end NonosExtraction.IommuDevice
