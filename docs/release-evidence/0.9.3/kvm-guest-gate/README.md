@@ -1,5 +1,6 @@
 # G on KVM: a Linux wallet reaches its node over Anyone and Nym
 
+The runs on the owner's KVM host (32-core Xeon, 8 GiB
 guest). Serial only: a terminal run's output is private, so the wallet's own
 lines reach its window and never serial. What the window said is quoted from
 the notes and marked as such. No seed was captured.
@@ -12,14 +13,16 @@ The route column is the wallet's.
 
 | Log | Tree | Route | What serial shows |
 |---|---|---|---|
-| `gaany.log` | test merge 17355d6b4c: b53232446c (G) + 3f6077cd7e (spawn fix) | Nym. It was meant to be Anyone, but one Enter too many accepted the route step's default | `[LINUX] installed`, install heap `of 327680 KiB` |
+| `gaany.log` | test merge 17355d6b4c: c3dbbec4f3 (G) + fb1e95e642 (spawn fix) | Nym. It was meant to be Anyone, but one Enter too many accepted the route step's default | `[LINUX] installed`, install heap `of 327680 KiB` |
 | `gargv.log` | the same tree, window width 3 | Nym | the same: installed, `of 327680 KiB` |
-| `gdb9n.log` | db9d7593ee: main 9b411724f7 + G + spawn fix | Nym | installed; the wallet asked for node.moneroworld.com:18089, answered by 13 `[SOCKS5] exit answered bytes 67` |
+| `gdb9n.log` | db9d7593ee: main 84c43f730f + G + spawn fix | Nym | installed; the wallet asked for node.moneroworld.com:18089, answered by 13 `[SOCKS5] exit answered bytes 67` |
 | `gdb9a-anyone-sync.log` | db9d7593ee | Anyone, chosen at setup's step 6 | installed; 57 `[ANON] stream ended N 2` (RESOLVEFAILED) for the dead name, then 3 `[ANON] stream connected` after `set_daemon xmr-node.cakewallet.com:18081`. Window: "Starting refresh...", "3775093 / 3793833", climbing |
 | `gdb9n-nym-sync.log` | db9d7593ee | Nym, listing node xmr-node.cakewallet.com:18081 | installed; 3321 `[SOCKS5] exit answered` as the wallet syncs |
 | `gdb9n-ringdb.log` | db9d7593ee | Nym | the serial around the wallet's "Failed to initialize ring database" (window). The cause was the unserved get_robust_list (274): musl's robust-mutex probe, which LMDB's lock setup needs |
-| `gcaf-nym-ringdb-fixed.log` | test merge caf7aeba61: argv-alone 6d4832970c + land-g 141a9f03ef (get_robust_list served) | Nym, listing node | installed, `of 327680 KiB`; 2032 `[SOCKS5] exit answered`. Window, on reopening the wallet file: "Opened wallet", no ring database error, "Refreshed 3171087/3793858", syncing over SSL |
+| `gcaf-nym-ringdb-fixed.log` | test merge caf7aeba61: argv-alone bf5683e4c5 + land-g 8936ccf0ae (get_robust_list served) | Nym, listing node | installed, `of 327680 KiB`; 2032 `[SOCKS5] exit answered`. Window, on reopening the wallet file: "Opened wallet", no ring database error, "Refreshed 3171087/3793858", syncing over SSL |
 | `gcaf2-linux-mid-install.log` | caf7aeba61 | Nym | `linux monero-wallet-cli --version` typed 15 s into `market install linux.monero`: `[LINUX] installing` (line 1762), `[EXIT] code=1 app.linux.term` (1779), `[LINUX] installed` (1962), heap `of 327680 KiB`. A `linux` run during an install leaves it to finish |
+| `owner-seal-694ba69799-code5.log` | the owner's release seal of 694ba69799, real mirror | Nym | `linux monero-wallet-cli --version` typed 67 s into the install: `[EXIT] code=1 app.linux.term` (line 994), then `[EXIT] code=5 app.linux.install` (995) |
+| `owner-seal-694ba69799-no-typing-134.log` | the same seal, nothing typed | Nym | `[EXIT] code=134 app.linux.install` (line 990) |
 | `diag-694ba69799-realmirror-nym.log` | development image of 694ba69799 with the dev mirror off: the real dl-cdn.alpinelinux.org, serial debug on | Nym chosen; the install goes over Anyone | both indexes whole (473606, 1848333 bytes) on one stream; then 6 package GETs on streams opened three at a time, every one "gave no whole 200 reply"; `[LINUX-TIME] packages 6 gets … 246.7 s 0.00 MB/s`; the pin refuses the empty package, code 5 |
 | `diag-694ba69799-realmirror-anyone.log` | the same image | Anyone | the same indexes; streams 5, 6, 7 opened at once and 8, 9 beside them: five GETs with no whole reply; stream 10 alone: `monero-0.18.3.3-r1.apk, 24698520 bytes`, then code 134 in the 160 MiB heap |
 

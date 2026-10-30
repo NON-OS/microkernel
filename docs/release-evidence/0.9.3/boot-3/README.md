@@ -3,7 +3,7 @@
 ## The image and the machine
 
 - **Image.** `make dev-image PROFILE=standard` of boot 670529d6c7: cli
-  at 6ee89b40ce, with main merged, the prlimit fix c5987c08f7 and the
+  at 6e3f6b7132, with main merged, the prlimit fix ab0c37de91 and the
   store's 30 s PROVE wait. It also carries four recipes: gpg, yara, curl
   and wget. Sealed with throwaway keys.
 - **Relay.** tools/nonos-mirror-relay inside `nix develop`, holding 24
@@ -25,8 +25,8 @@
 
 - The store gave up on PROVE at 30 s. The job printed its buckets 26 s
   later: it first claims a 2816 MiB heap, which took about a minute here.
-  - The store now waits 180 s (115e2828a7).
-  - The `[STORE-PROVE]` lines are now whole, which eb3f2c0d1c fixed and
+  - The store now waits 180 s (4102fd7c80).
+  - The `[STORE-PROVE]` lines are now whole, which 40d1c4f61a fixed and
     this boot shows.
 - The buckets line is age's measured set for that run. It is not a
   verdict, since no `held` line followed.
@@ -50,7 +50,7 @@
 - The driver typed the wallet commands before `[LINUX] installed`, so
   they were answered `does not run: its proof was refused (its policy is
   not vouched for)` (mon-5.png). The program was still held, which is
-  right; the wording is now "still being installed" (6541f0cf83).
+  right; the wording is now "still being installed" (bc5e5f1ef5).
 - The language prompt's first "1" was not reached in this boot.
 
 ## Files
