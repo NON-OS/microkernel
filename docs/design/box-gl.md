@@ -1,10 +1,10 @@
 # Design: OpenGL in a Linux box, drawn on the CPU
 
-Status: approved by the owner on 28 October, in code (S1). 0.9.3 if it is done
+Status: approved on 28 October, in code. 0.9.3 if it is done
 properly, else 0.9.4. Host-read at main 680c92e3fc; bare paths are under
 `userland/capsule_linux/src/linux/`. `mesa:` is Alpine v3.20's Mesa 24.0.9,
 read at tag mesa-24.0.9; `darkfi:` is DarkFi at master on 2026-10-28 (v0.5.0,
-S3's build, where said); `mq:` is narodnik/miniquad d50fcec, the commit
+the build, where said); `mq:` is narodnik/miniquad d50fcec, the commit
 DarkFi's master locks (v0.5.0's a48953a has the same lines). Sizes are v3.20
 x86_64 APKINDEX: S fetched, I installed.
 
@@ -162,16 +162,16 @@ llvmpipe if B ever lands). B stays written here, not planned.
 
 ## Units of work, in landing order
 
-| # | Unit | Owner | Size (est.) |
-|---|---|---|---|
-| 1 | env.rs: the three variables, the comment at `:39-43` reworded; with no driver EGL fails as today | S1 | 10 lines, a host test |
-| 2 | The build: `tools/linux-userland/mesa-swrast.sh`; the tarball and two patches in `tools/nix/sources.txt` (sha256, checked against the APKBUILD's sha512); built against v3.20's gcc 13.2.1, libstdc++, libdrm, wayland and expat from pinned apks, since zig's static shape makes no .so for Alpine's loader | S3 | 150 lines sh, 60 nix |
-| 3 | `nonos-mesa-swrast`, content with no program: pinned in `linux-catalogue.sources.lock.json`, served at `/linux/<blake3>.tar`, never listed alone | S3 | 150 py, tests |
-| 4 | Alpine pins in content: `usr/share/nonos-apks/<package>`, a line per need, `<name> <version> <C:>`, or `nonos-<name> <blake3>`; the generator holds every DT_NEEDED and each dlopen name a recipe declares to a placed file, as `elf_needed.py` does for Debian | S3 | 300 py, tests |
-| 5 | The device installs them as `install/deb/needs.rs` does: each apk held to its C: (`auth/package.rs:34`), each content to its BLAKE3, each placed as its own package and named in the closure (`pack/closure.rs`) | S1 | 300 rs, proofs |
-| 6 | DarkFi's GUI: bin/app at the chosen commit (Q3), x86_64 musl, dynamic, S3's transport patch; pins mesa-egl, wayland-libs-egl, libxkbcommon, libstdc++, zlib, expat, nonos-mesa-swrast; `linux.nonos-darkfi-app`, WAYLAND FILES_HOME NET_ANON, no JIT | S3 recipe, S2 app | 200 lines |
-| 7 | If Q4 is yes: frame callbacks answered at most 60 times a second, not at commit (`commit.rs:50-57`), and a line of commits per 10 s per window | S1 | 80 rs |
-| 8 | mpv: an Alpine recipe's needs name the driver; `--vo=gpu --gpu-context=wayland --profile=fast` against `--vo=wlshm --profile=sw-fast`, mpv's own fallback | S3, S2 | later |
+| # | Unit | Size (est.) |
+|---|---|---|
+| 1 | env.rs: the three variables, the comment at `:39-43` reworded; with no driver EGL fails as today | 10 lines, a host test |
+| 2 | The build: `tools/linux-userland/mesa-swrast.sh`; the tarball and two patches in `tools/nix/sources.txt` (sha256, checked against the APKBUILD's sha512); built against v3.20's gcc 13.2.1, libstdc++, libdrm, wayland and expat from pinned apks, since zig's static shape makes no .so for Alpine's loader | 150 lines sh, 60 nix |
+| 3 | `nonos-mesa-swrast`, content with no program: pinned in `linux-catalogue.sources.lock.json`, served at `/linux/<blake3>.tar`, never listed alone | 150 py, tests |
+| 4 | Alpine pins in content: `usr/share/nonos-apks/<package>`, a line per need, `<name> <version> <C:>`, or `nonos-<name> <blake3>`; the generator holds every DT_NEEDED and each dlopen name a recipe declares to a placed file, as `elf_needed.py` does for Debian | 300 py, tests |
+| 5 | The device installs them as `install/deb/needs.rs` does: each apk held to its C: (`auth/package.rs:34`), each content to its BLAKE3, each placed as its own package and named in the closure (`pack/closure.rs`) | 300 rs, proofs |
+| 6 | DarkFi's GUI: bin/app at the chosen commit (Q3), x86_64 musl, dynamic, the transport patch; pins mesa-egl, wayland-libs-egl, libxkbcommon, libstdc++, zlib, expat, nonos-mesa-swrast; `linux.nonos-darkfi-app`, WAYLAND FILES_HOME NET_ANON, no JIT | 200 lines |
+| 7 | If Q4 is yes: frame callbacks answered at most 60 times a second, not at commit (`commit.rs:50-57`), and a line of commits per 10 s per window | 80 rs |
+| 8 | mpv: an Alpine recipe's needs name the driver; `--vo=gpu --gpu-context=wayland --profile=fast` against `--vo=wlshm --profile=sw-fast`, mpv's own fallback | later |
 
 ## Proofs and the KVM lane
 

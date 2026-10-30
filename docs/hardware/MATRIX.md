@@ -21,10 +21,10 @@ Reports since 0.9.2, for the 0.9.3 image:
 
 | Machine | What ran | Result | Source |
 |---|---|---|---|
-| Owner's HP laptop, Intel Gemini Lake, Realtek RTL8821CE (10ec:c821) beside a Samsung MZVLQ256HBJD NVMe | owner's seal of main 680c92e3fc | Wi-Fi works ("wifi works on real HW"); the claim beside driver.nvme0 holds since S1's isolation-group fix (3b5bb25c8f) | [evidence](../release-evidence/0.9.3/drivers/rtl8821ce/README.md) |
-| KVM, QEMU 7.2 q35, `-cpu host`, OVMF, 8 GiB | S1's G (b53232446c), local session | ICH9 AHCI (8086:2922) with nothing attached exits 3, "controller present, nothing behind it to serve"; with a SATA disk on `ide.0` it serves it (`[ahci] serving port 0`) | local session's report, 28 Oct |
-| the same KVM machine | an NVMe target (`-device nvme`) | the installer lists the NVMe disk and writes it | local session's report, 28 Oct |
-| the same KVM machine | the stick on virtio-blk, then on usb-storage on qemu-xhci | the stick boots and the install flow passes | local session's report, 28 Oct |
+| Owner's HP laptop, Intel Gemini Lake, Realtek RTL8821CE (10ec:c821) beside a Samsung MZVLQ256HBJD NVMe | owner's seal of main 680c92e3fc | Wi-Fi works ("wifi works on real HW"); the claim beside driver.nvme0 holds since the isolation-group fix (3b5bb25c8f) | [evidence](../release-evidence/0.9.3/drivers/rtl8821ce/README.md) |
+| KVM, QEMU 7.2 q35, `-cpu host`, OVMF, 8 GiB | the G run (b53232446c), local run | ICH9 AHCI (8086:2922) with nothing attached exits 3, "controller present, nothing behind it to serve"; with a SATA disk on `ide.0` it serves it (`[ahci] serving port 0`) | local report, 28 Oct |
+| the same KVM machine | an NVMe target (`-device nvme`) | the installer lists the NVMe disk and writes it | local report, 28 Oct |
+| the same KVM machine | the stick on virtio-blk, then on usb-storage on qemu-xhci | the stick boots and the install flow passes | local report, 28 Oct |
 | QEMU TCG q35 | dev image of main ad2a58a01 | default machine and the e1000e, igb, e1000 and RTL8139 lanes each lease; every Wi-Fi driver stays out with its card absent | [evidence](../release-evidence/0.9.3/boot-ad2a58a01/README.md) |
 
 No other Wi-Fi card (Intel, RTL8822CE, RTL8852BE, MediaTek) has run on real hardware yet; their rows say host-proven.

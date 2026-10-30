@@ -1,6 +1,6 @@
 # FILES_HOME: a home that outlives one run
 
-Design note, no code, for the Lead and the privacy session. Each claim is
+Design note, no code. Each claim is
 marked (design) or (host-read: file:line). Paths under capsule_linux are
 relative to userland/capsule_linux/src/linux/.
 

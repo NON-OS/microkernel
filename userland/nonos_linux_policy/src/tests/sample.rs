@@ -32,7 +32,7 @@ pub fn policy() -> LinuxAppPolicy {
     }
 }
 
-/// Version 2: S3's listing for the SimpleX core, app.simplex on 5225.
+/// Version 2: the listing for the SimpleX core, app.simplex on 5225.
 pub fn served() -> LinuxAppPolicy {
     let serve = ServeOne::new(5225, b"app.simplex");
     LinuxAppPolicy { mask: NET_ANON | FILES_HOME | SERVE_ONE, serve, ..policy() }

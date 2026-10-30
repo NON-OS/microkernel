@@ -1,11 +1,11 @@
-# S1's boot lanes for 0.9.3
+# Boot lanes for 0.9.3
 
 Steps for `tools/nonos-drive`, one file per lane, on a development image
 (`tools/nonos-dev-image --profile standard`). Each names what it shows and
-what a pass looks like. Run with the Intel IOMMU lane, as every S1 lane is:
+what a pass looks like. Run with the Intel IOMMU lane, as every lane here is:
 
     tools/nonos-drive --image <img> --out <dir> --qemu-arg=--lane --qemu-arg=iommu=intel \
-      --qemu-arg=--fresh --steps tools/nonos_s1_lanes/<lane>.steps
+      --qemu-arg=--fresh --steps tools/nonos_boot_lanes/<lane>.steps
 
 | Lane | Extra QEMU lanes | What it shows | A pass |
 |---|---|---|---|

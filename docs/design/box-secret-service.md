@@ -1,6 +1,6 @@
 # Design: a Secret Service in each Linux box
 
-Status: proposed, before code (S1, privacy/TCB). Next release, with the
+Status: proposed, before code. Next release, with the
 kept homes of `docs/design/kept-homes-and-installs.md`, after K1 and K1b in
 0.9.3. Bare paths are under `userland/capsule_linux/src/linux/`.
 
@@ -168,7 +168,7 @@ rollback guard beyond a boot.
 
 No in-RAM bus: it is not a cheap half (the wire, auth and objects are most
 of the work; keeping is two slots). The store's text for
-gnome-authenticator and Seahorse (S2) says "needs the Secret Service, which
+gnome-authenticator and Seahorse says "needs the Secret Service, which
 NØNOS does not have yet: it will not start", and no
 `DBUS_SESSION_BUS_ADDRESS` is set. Rejected: gnome-keyring in the closure
 (no credentials, wants a Prompt); posing as a Flatpak so oo7 takes its file

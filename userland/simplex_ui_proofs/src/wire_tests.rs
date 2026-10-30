@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The WebSocket handshake and frames. The SERVE_ONE frames are S1's crate's
+//! The WebSocket handshake and frames. The SERVE_ONE frames are the serve-wire crate's
 //! own (nonos_serve_wire), held by its tests.
 
 use crate::link::ws_frame::text;

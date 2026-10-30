@@ -1,6 +1,6 @@
 # Design: SERVE_ONE, one guest port for one capsule
 
-Status: approved on 28 October, in code (S1). 0.9.3 if it is done
+Status: approved on 28 October, in code. 0.9.3 if it is done
 properly, else 0.9.4. Cited at main
 680c92e3fc. Bare paths are under `userland/capsule_linux/src/linux/`;
 `policy/` is `userland/nonos_linux_policy/src/`, `ipc/`
@@ -25,7 +25,7 @@ The guest gains one listener and accept; its streams out stay on Anyone or Nym.
   market reads only header and ids (`userland/marketplace_abi/src/verdict/policy.rs:51-59`).
   The install role vouches for it (`install/market/check.rs:29-42`,
   `install/market/bind.rs:31-43`); each start checks it (`app/bind.rs:59-72`).
-- **The refusal S2 meets.** AF_INET needs NET_ANON or NET_LISTEN_LO
+- **The refusal the app meets.** AF_INET needs NET_ANON or NET_LISTEN_LO
   (`net/socket.rs:37-43`), and AF_INET6 is EAFNOSUPPORT (`net/socket.rs:46`).
   Without NET_LISTEN_LO, bind and listen are EACCES (`net/bind.rs:47-49`,
   `net/listen.rs:35-37`), and outside 127.0.0.0/8 always (`net/bind.rs:50-52`).
@@ -77,9 +77,9 @@ when the field is non-zero, else `PolicyError::Serve`. No committed hash
 moves; older decoders refuse the new form. `market_ready` refuses SERVE_ONE
 with WAYLAND: the hold covers the whole inbox, and input comes by
 MkIpcSendToPid (`userland/capsule_input_router/src/route/deliver.rs:33`). An
-exec keeps the bit only into the same field. S3's listing: `serve:
+exec keeps the bit only into the same field. The listing: `serve:
 app.simplex:5225`, NET_ANON | FILES_HOME, args `--chat-server-port=5225
---yes-migrate` (S3 to confirm the long spelling).
+--yes-migrate`.
 
 **The pairing and the endpoint (kernel).** `SERVES: &[(capsule, package)]`
 in `registry/serves.rs`, measured with the image as PEERS is, pairs
@@ -114,7 +114,7 @@ is marked listening. accept, read, write, close, poll and select stay the
 family's own: the window's OPEN joins a door end, which the personality
 holds, to the listener, and `autobind` gives it 127.0.0.1 and an ephemeral
 port (`net/sock/bind.rs:31-40`), so the guest accepts a loopback client.
-Upstream serves one client (S3's API letter §2): one connection at a time.
+Upstream serves one client: one connection at a time.
 
 **The wire.** The window calls `linux.serve.app.simplex` with
 `mk_ipc_call_timeout`. The personality takes frames from its inbox with
@@ -170,7 +170,7 @@ ends, as a terminal's runs do (`src/userspace/capsule_linux/terminal/exit.rs:21-
 - The personality sees every byte, as it does the display's, and the kernel carries them.
 - The window holds the whole API: it can read, export and delete every chat.
   SERVE_ONE says who connects, not what they ask, and the API has no
-  authentication of its own (S3's API letter §1).
+  authentication of its own.
 - No port forward: one capsule, one port, one stream, store runs only; the
   core's own family still reaches it. The pairing is by package name, not
   publisher key. While the core runs no other store Linux app starts.
@@ -198,9 +198,9 @@ endpoint's owner). K.2 `inbox_admits` refuses a send by pid to the holder
 
 ## KVM lane
 
-Logs under `docs/release-evidence/0.9.4/`, after S1's guest-connect fix.
+Logs under `docs/release-evidence/0.9.4/`, after the guest-connect fix.
 1. The window starts the core, upgrades, and sends `/user` and
-   `/_get chats 1 pcc=on`. Its transcript matches S2's by `corrId` and `type`.
+   `/_get chats 1 pcc=on`. Its transcript matches the app's by `corrId` and `type`.
 2. `test.attack` (`baked_names.rs:56`) calls by name and port, sends by pid,
    and addresses `app.linux.run.net`. Each is EPERM, with `[IPC-DENY]`.
 3. `nc 127.0.0.1 5225` from a Terminal `linux` guest: EACCES without an internet
@@ -209,14 +209,14 @@ Logs under `docs/release-evidence/0.9.4/`, after S1's guest-connect fix.
 
 ## Units of work, in landing order
 
-1. S1, policy crate, about 250 lines: bit, field, codec, market rule, P.1-P.3.
-2. S1, kernel, about 400 lines: `held_to`, SERVES, MkServeOne, K.1-K.4; owner review.
-3. S1, kernel, about 200 lines: the launch arm, the launcher's pid, K.5.
-4. S1, personality, about 700 lines: door, wire, gates, P.4-P.10, fuzz target.
-5. S3, about 120 lines: listing, args, pack tool (`tools/nonos_linux_pack/policy.py:23-24`).
-6. S2: `app.simplex` in APPS with its manifest, the client, the transcript test.
-7. S1, kernel, about 80 lines: MkForeignWait returns on an inbox arrival.
-8. S1 with S2 and S3: the KVM lane.
+1. The policy crate, about 250 lines: bit, field, codec, market rule, P.1-P.3.
+2. The kernel, about 400 lines: `held_to`, SERVES, MkServeOne, K.1-K.4; owner review.
+3. The kernel, about 200 lines: the launch arm, the launcher's pid, K.5.
+4. The personality, about 700 lines: door, wire, gates, P.4-P.10, fuzz target.
+5. About 120 lines: listing, args, pack tool (`tools/nonos_linux_pack/policy.py:23-24`).
+6. `app.simplex` in APPS with its manifest, the client, the transcript test.
+7. The kernel, about 80 lines: MkForeignWait returns on an inbox arrival.
+8. The KVM lane.
 
 ## Open questions for the owner
 

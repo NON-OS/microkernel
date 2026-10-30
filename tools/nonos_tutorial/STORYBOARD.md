@@ -169,8 +169,8 @@ lower-third, "swayimg / A Wayland app in its box: no network".
 *Chat that leaves only over Nym or Anyone.* 1:00. Needs listings on main.
 Scripted, not rehearsed.
 
-- **SimpleX Chat** needs the listing `linux.simplex-chat` on main. S3 has
-  the recipe kind and needs the owner's static build. Its program
+- **SimpleX Chat** needs the listing `linux.simplex-chat` on main. The recipe kind exists
+  and it needs a static build. Its program
   is over 64 MiB, and main now takes programs up to 128 MiB (7506325ac8,
   1957974824).
 - **Telegram Desktop** needs the listing `linux.telegram-desktop`, which

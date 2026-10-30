@@ -3,7 +3,7 @@
 Status: the owner ruled on 27 October 2026. 0.9.3 ships K1, the handover
 (K1b, below) and the installer's "Update NØNOS (keep my data)". Kept homes
 and kept installs move to the next release. This page was first written
-as a proposal, before code (S1, privacy/TCB). It builds on the homes
+as a proposal, before code. It builds on the homes
 design already ruled on (`docs/design/files-home.md`, rulings
 1-6) and
 adds what those leave open: a volume key that survives an update, and the
@@ -157,8 +157,8 @@ large part, records are small.
   vfs store at the first run of its program in the boot, as an install
   lands it now. Serving pack bytes straight from the volume (the models'
   path) is a later unit that saves the RAM.
-- **Bounds.** A pack is at most the vfs file ceiling today (64 MiB; S3 is
-  lifting it). The index holds at most 256 packages.
+- **Bounds.** A pack is at most the vfs file ceiling today (64 MiB; that
+  is being lifted). The index holds at most 256 packages.
 
 | # | Rule | Mutant that must fail a test |
 |---|---|---|
@@ -221,10 +221,10 @@ On an installed NVMe lane with a software TPM and keeping on:
 3. `MkKeptPut`, `MkKeptDrop`, the read gate and ENOSPC (kernel).
 4. Homes: `NLXHOME1`, load and flush (capsule_linux), with a fuzz target.
 5. Installs: the pack feed, `NLXIDX1`, lazy landing, uninstall.
-6. The store's "Erase home" and a "kept on this computer" line (S2, UI).
+6. The store's "Erase home" and a "kept on this computer" line .
 7. The boot plan, its logs under `docs/release-evidence/0.9.3/`.
 
-## For S3
+## For the catalogue and its programs
 
 SimpleX and the dev tools depend on this. A program's home is `/root`
 and its kept copy is everything under it, up to the bound above. A program

@@ -1,4 +1,4 @@
-# Linux app logos in the App Store (proposed, catalogue session)
+# Linux app logos in the App Store (proposed)
 
 Version 0.1, 2026-10-25. For the maintainers and the UI work. Owner
 decision (verbatim): "Real logo where licence allows". The record is
@@ -92,7 +92,7 @@ geth; chat: profanity), in the toolkit mask table (host-read:
 toolkit/src/icons/table.rs, icons/mask.rs:20-22), which the store links
 (host-read: capsule_app_store/Cargo.toml:31). The store draws it without
 asking the market, so no logo ever blocks a row; the initial on its tint
-stays the last resort. The launcher may reuse it (desktop session) (design).
+stays the last resort. The launcher may reuse it (design).
 
 ## 5. Checks
 
@@ -127,7 +127,7 @@ stays the last resort. The launcher may reuse it (desktop session) (design).
 - Maintainers: schema 4 for one field now, or with the next schema change?
   Should logos-licences.md move under plan/?
 - UI/UX: sizes, placement, colour-logo backing, credit, fallback drawing.
-- Track B: OP_GET_LOGO or an App-reply field; embedding or a boot-read file.
+- The market protocol: OP_GET_LOGO or an App-reply field; embedding or a boot-read file.
   May a newer operator index (host-read:
   capsule_market/src/boot_index.rs:28, :40-45) name logos the image lacks?
   Proposed: yes, and the store shows the fallback.

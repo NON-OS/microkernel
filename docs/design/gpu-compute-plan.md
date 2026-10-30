@@ -34,7 +34,7 @@ none of it is in 0.9.x.
 
 - **DMA grants larger than any class has today.** The display class's ceiling is
   8,192 pages, 32 MiB (`src/hardware/broker/dma/limits.rs`). A 4B model's weights are
-  gigabytes. That needs a compute class with its own ceiling, for track A's review.
+  gigabytes. That needs a compute class with its own ceiling, for review.
 - **A broker scope row** for the GPU's compute function. On an iGPU, display and
   compute share one PCI function, so the two capsules cannot both claim it. Either
   the display capsule serves compute too, or the kernel learns to split a function
