@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""Seed nsh_attest's fuzz targets with well-formed bodies (docs/design/k1-attest-doc-v4.md)."""
+"""Seed nsh_attest's fuzz targets with well-formed bodies (the attestation document format)."""
 
 import argparse
 import hashlib

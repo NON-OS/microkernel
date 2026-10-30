@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
-# The nsh/1 role table and grant checks (docs/design/nsh-v1-roles.md): the
+# The nsh/1 role table and grant checks (the nsh/1 specification): the
 # signed role table and revocation list a host installs, the three roles
 # shipped, and every check a host runs on a login and on an escalation.
 # Times come from the caller; nothing here reads a clock.

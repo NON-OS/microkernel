@@ -46,7 +46,7 @@ pub const ROOT_COMMITTED: &str =
     "0xb7bfae93aefdea72b2c686d45574222375d73ca1db6f50e1b605a9d5b286f6d1";
 /// RPCs tried in turn, each checked to answer a Tor exit. A history with a hole is refused.
 /// The Sepolia servers the history is read from, in order. NONOS puts Tenderly's
-/// gateway first, which the STARK lane names as one that returns logs whole;
+/// gateway first, which the STARK project names as one that returns logs whole;
 /// a short history is refused against `nextLeafIndex()` on any of them.
 pub const RPCS: [&str; 3] = [
     "sepolia.gateway.tenderly.co",

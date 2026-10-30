@@ -1,5 +1,5 @@
 # Sealed frames for nsh_crypto, sealed with the cryptography package's
-# ChaCha20-Poly1305 from the layout in docs/design/nsh-v1-wire.md, not
+# ChaCha20-Poly1305 from the layout in the nsh/1 specification, not
 # from the crate: key 00..1f, nonce 4 zero bytes then seq (u64 LE), AAD
 # the 4-byte length. One per line: seq, inner, len field, sealed bytes.
 0 306c73202d6c0a 17000000 28d43111808aacee27ac7e162f2c65428c27510d9bd456

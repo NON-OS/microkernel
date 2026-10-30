@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The `BOX` entry: BOX REPORT v1's fields, read exactly, with the kinds in
-//! that report's fixed order (docs/design/nsh-v1-record.md, "The `BOX`
+//! that report's fixed order (the nsh/1 specification, "The `BOX`
 //! entry").
 
 use nsh_wire::record::{BOX_BODY, BOX_KINDS};

@@ -131,7 +131,7 @@ Foundation". The Ethereum diamond is not Geth's logo and is not used.
 
 - geth: the go-ethereum README says the binaries ("all code inside of the
   `cmd` directory") are GPL-3.0, and only the library is LGPL-3.0. The
-  recipe says LGPL-3.0-or-later (host-read:
+  recipe says LGPL-3.0-or-later (read from the code:
   userland/capsule_market/linux-catalogue.json:34), which is Alpine's
   field, and catalogue.py:43 checks the recipe against that field. The
   Lead may want the listing's licence to name the binary's licence.
@@ -168,7 +168,7 @@ How the catalogue carries out the first ruling:
 
 The Verdict cell is what tools/nonos_market_catalogue/logos.py reads: a
 recipe may name a logo only when its row's verdict starts with CLEAR, or
-starts with UNCLEAR and carries the owner's ruling as written above
+starts with UNCLEAR and carries the maintainers' ruling as written above
 (`owner 2026-10-25: "Use them anyway"`). Each vendored file is the upstream
 file byte for byte, under userland/capsule_market/logos/, fetched from:
 

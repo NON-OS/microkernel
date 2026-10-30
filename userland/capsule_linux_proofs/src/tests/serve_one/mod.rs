@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! SERVE_ONE as the personality ships it (docs/design/serve-one.md): the
+//! SERVE_ONE as the personality ships it (the SERVE_ONE design): the
 //! one listener a box may take (P.4, P.5), the door end its capsule's
 //! connection comes through (P.6 to P.8), and the wire's server (P.9, P.10).
 

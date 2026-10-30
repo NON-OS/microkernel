@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The circuit's shape, pinned: the numbers the STARK lane's Lean model of the
+//! The circuit's shape, pinned: the numbers the STARK project's Lean model of the
 //! device circuit is written from. A change to any of them is a change to that
 //! model and must move both together.
 

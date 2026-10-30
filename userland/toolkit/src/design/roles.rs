@@ -1,4 +1,4 @@
-/* The NØNOS colour roles (docs/design/ui-identity.md, Colour): every colour a
+/* The NØNOS colour roles (the UI identity rules, Colour): every colour a
  * NØNOS screen is drawn in, by what it is for. The theme engine's five seeds
  * come from these; the rest are the roles the engine does not derive. Each
  * ratio identity.md gives is asserted from these values in theme_proofs, so a

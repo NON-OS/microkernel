@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One SERVE_ONE frame to the core's endpoint and its answer, in the SERVE_ONE wire
-//! (nonos_serve_wire, docs/design/serve-one.md).
+//! (nonos_serve_wire, the SERVE_ONE design).
 
 use alloc::vec;
 use alloc::vec::Vec;

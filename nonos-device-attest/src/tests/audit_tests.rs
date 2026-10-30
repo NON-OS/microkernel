@@ -17,7 +17,7 @@
 //! Every free cell of the assembled circuit, classified; a cell no rule reads
 //! and no reason explains stops the ship.
 //!
-//! The method of the STARK lane's `cell_audit_test`: change each cell alone and
+//! The method of the STARK project's `cell_audit_test`: change each cell alone and
 //! ask the two windows that can see it and the boundaries on it. The counts are
 //! pinned as a ratchet, so a new free cell fails here until it has a reason.
 //!

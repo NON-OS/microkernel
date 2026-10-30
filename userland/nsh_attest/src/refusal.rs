@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Why a host was refused. Each refusal is one check of
-//! docs/design/nsh-v1-attest.md, and the first one met ends the session
+//! the nsh/1 specification, and the first one met ends the session
 //! with `ABORT(POLICY)`. Its name, from `Refusal::name`, is what the user is
 //! shown: `POLICY (pcr9)`.
 

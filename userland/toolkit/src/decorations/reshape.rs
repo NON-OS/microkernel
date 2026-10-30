@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The frame's measures at one to one (docs/design/ui-identity.md, Window
+//! The frame's measures at one to one (the UI identity rules, Window
 //! The rect a drag of a window's edges leaves: the grabbed edges move by the
 //! pointer's travel, the others stay where they were, and no side passes
 //! the least size or the top of the work area.

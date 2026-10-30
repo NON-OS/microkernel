@@ -1,7 +1,7 @@
 # nsh-enrol
 
 The fleet operator's tool for nsh/1 enrolment certificates (`nsh-enrol/1`,
-`docs/design/nsh-v1-attest.md`). Run it on the operator's own machine. No
+the nsh/1 specification). Run it on the operator's own machine. No
 image or capsule builds it.
 
 ```

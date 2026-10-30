@@ -16,7 +16,7 @@ computer. Both layers commit to a Merkle root and prove membership of a context.
 - Kernel self-attestation. Before the bootloader jumps, it measures the kernel
   region, binds the measurement to the boot epoch, and verifies a trailer proving
   that measurement is a member of the enrolled root. Enrollment is
-  `nonos-stark-enroll` with the STARK lane's prover; the path check is
+  `nonos-stark-enroll` with the STARK project's prover; the path check is
   `nonos-attest-path` and the proof check `nox_verify`, the same in the
   bootloader, the kernel and the enroll tool.
 - Capsule attestation. At spawn, the kernel binds a capsule's ELF hash, its

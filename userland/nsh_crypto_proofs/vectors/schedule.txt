@@ -1,5 +1,5 @@
 # Independent values for nsh_crypto, computed with Python's hashlib and hmac
-# from the definitions in docs/design/nsh-v1-wire.md, not from the crate.
+# from the definitions in the nsh/1 specification, not from the crate.
 start 20644a08fddacb6249989939bddffd2428b57d8bb59a20ed9e504a223c15f131da01988a37bfe831876178cb666ec7d548688f64b91dba57c4f30ae56764426b
 link 01 1280 f1aac8dfab438e0337c416c0c0b125fd3d41df0081dbadb79fbbe825c9be60340f80a352fde16e09c1de6c8810092d72fd3fbdd08cd8924262618a5565c45f9a
 link 02 1162 bf065f0f750406ae30b095dc31ad59a4ac99a2da7b39414086c06396db05b07dd3904a3da37814e75d3a8e9b71c4e4314ca20891002cc1c66cf62344b485dd95

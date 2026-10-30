@@ -1,7 +1,7 @@
 # nsh_roles
 
 The nsh/1 role table and the checks a host runs on a grant, as specified in
-[docs/design/nsh-v1-roles.md](../../docs/design/nsh-v1-roles.md).
+the nsh/1 specification.
 
 The crate covers:
 
@@ -100,8 +100,11 @@ marketplace listing the caller names, so it is an outbound request and comes
 only by escalation. `Crypto` (TPM-bound machine keys) and `RegisterService`
 (service names) are left out of every ceiling. They can come back once
 session capsules have their own key namespace and service names are scoped,
+which is a kernel change (K2 and later).
 
+**Until K2 lands, a role's ceiling does not bound what capsules a login can
 load.** A session can load an installed capsule whose own manifest grants
+more, Network included. K2, which limits a loaded capsule's capabilities to
 its caller's, closes this; nothing in this crate can.
 
 The proofs are in [nsh_roles_proofs](../nsh_roles_proofs).

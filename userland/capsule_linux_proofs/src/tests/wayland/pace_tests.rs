@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Frame callbacks at most 30 a second, and an idle window answered at
-//! once (wayland/pace_rule.rs; docs/design/box-gl.md, G.6).
+//! once (wayland/pace_rule.rs; the box GL design, G.6).
 
 #[path = "../../../../capsule_linux/src/linux/wayland/pace_rule.rs"]
 mod pace_rule;

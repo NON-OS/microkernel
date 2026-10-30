@@ -16,7 +16,7 @@
 
 //! SERVE_ONE: the one listener a box's policy names, on 127.0.0.1 at its
 //! field's port, served to the one capsule its field names and to no one
-//! else (docs/design/serve-one.md). The guest's first listen there asks the
+//! else (the SERVE_ONE design). The guest's first listen there asks the
 //! kernel to register linux.serve.<capsule> for this process, held to that
 //! capsule (served.rs). The capsule's frames (nonos_serve_wire) come to this
 //! process's inbox, and the serve loop answers them (pump.rs) from the

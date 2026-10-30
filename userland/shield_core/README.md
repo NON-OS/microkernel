@@ -9,9 +9,9 @@ What differs from the phones:
 | Phones | Here |
 |---|---|
 | `net::tor`: an embedded Tor (arti, tokio, rustls) | `net::tor` keeps the same interface and carries each stream over the network NONOS has chosen, Nym or Anyone, through `nonos_route_link`, with TLS 1.3 from `nonos_tls`. Direct is refused, never fallen back to |
-| `.onion` landers | out of reach on NONOS; the lander list there is the landers' four `.anyone` services, in the STARK lane's order, which nonos_route_link sends through net.anon whatever the default network |
+| `.onion` landers | out of reach on NONOS; the lander list there is the landers' four `.anyone` services, in the STARK project's order, which nonos_route_link sends through net.anon whatever the default network |
 | uniffi bindings | none: the capsule calls the Rust API |
-| Sepolia reads from publicnode first | Tenderly's gateway first, then ethpandaops, then publicnode: the STARK lane found publicnode returns partial logs. A history short of `nextLeafIndex()` is refused on any server, as before |
+| Sepolia reads from publicnode first | Tenderly's gateway first, then ethpandaops, then publicnode: the STARK project found publicnode returns partial logs. A history short of `nextLeafIndex()` is refused on any server, as before |
 | `ffi::proxy` (the phone's SOCKS probe), `net::socks5`, `net::endpoint`, `net::policy` and their test | removed: there is no proxy to probe |
 | a spend proves with no progress reported | `prove_spend` passes `nox_prover`'s own progress callback to the cancel token, and `CancelToken::progress` gives the last phase finished and the fraction done, for the wallet's bar. The prover is unchanged |
 

@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
-# The client side of nsh/1 (docs/design/nsh-v1*.md) as a library: a
+# The client side of nsh/1 (the design notesnsh-v1*.md) as a library: a
 # state machine that takes the server's bytes and gives the bytes to send,
 # with no sockets, no clock and no entropy of its own. It accepts a host
 # only through its signature, its enrolment and an attestation check the

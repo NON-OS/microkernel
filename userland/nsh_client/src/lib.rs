@@ -22,7 +22,7 @@
 //! the fleet authority, and an attestation check the caller supplies
 //! (`Attester`); the user's key and grant leave only after all of these
 //! pass. `verify_record` checks a session record offline. The
-//! specification is docs/design/nsh-v1*.md.
+//! specification is the design notesnsh-v1*.md.
 
 #![no_std]
 #![forbid(unsafe_code)]

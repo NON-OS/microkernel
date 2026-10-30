@@ -2,7 +2,7 @@
 #
 # The frames between the capsule a box's SERVE_ONE names and the Linux
 # personality that serves the box's one loopback port
-# (docs/design/serve-one.md). Both sides import this crate, so the numbers
+# (the SERVE_ONE design). Both sides import this crate, so the numbers
 # cannot drift apart.
 
 [package]

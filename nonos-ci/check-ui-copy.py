@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-"""The UI copy rules of docs/design/ui-identity.md (Voice), as a static check.
+"""The UI copy rules (Voice), as a static check.
 
     nonos-ci/check-ui-copy.py              every UI string in the tree
     nonos-ci/check-ui-copy.py --self-test  the rules on strings made to fail

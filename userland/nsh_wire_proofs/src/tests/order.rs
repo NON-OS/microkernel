@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Which frame may arrive when. The admitted set of every stage is written
-//! out here from docs/design/nsh-v1-wire*.md, and the parser's set must be
+//! out here from the design notesnsh-v1-wire*.md, and the parser's set must be
 //! that one exactly: nothing missing, nothing extra.
 
 use super::stages::ALL;

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A role grant, `nsh-grant/1` (docs/design/nsh-v1-roles.md). A base grant
+//! A role grant, `nsh-grant/1` (the nsh/1 specification). A base grant
 //! names a user's role for a while; an escalation grant names more, for at
 //! most an hour, under a base grant, and may carry approvals from others.
 

@@ -38,7 +38,7 @@ pub const MASK_COLUMNS: usize = 2;
 
 /*
  * The point this statement is proven at: the v2 transcript's shape A, set by
- * the STARK lane on 2026-09-30. 80.8 provable bits on the query phase, with
+ * the STARK project on 2026-09-30. 80.8 provable bits on the query phase, with
  * the DEEP and fold rounds above that because this trace is smaller than the
  * pool's. The old 64/1/16 point was 65.8 provable and never ships. A proof's
  * header carries these, and the verifier refuses any other point.

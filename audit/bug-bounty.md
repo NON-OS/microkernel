@@ -50,7 +50,7 @@ The same components as the audit scope (`security-scope.md`, section 4):
 - **Linux personality:** `userland/capsule_linux/`.
 
 **Proposed, at ek's choice:** the STARK verifier itself (`NON-OS/STARKs`, the `nox_verify` crate
-at the pinned rev `1b4b5a321f49af3dfe3b1b9f109e6c7032e0196b`), if the STARK lane agrees. A
+at the pinned rev `1b4b5a321f49af3dfe3b1b9f109e6c7032e0196b`), if the STARK project agrees. A
 soundness break there would be critical (section 4).
 
 Test against the latest `main`, on QEMU or your own hardware. Build with scratch keys

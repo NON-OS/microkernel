@@ -8,6 +8,7 @@ as 256 canonical bytes (`LinuxAppPolicy`, magic `NLXPOL01`). It names:
 - the system calls it may complete (`syscall_set`, one bit per bucket of the
   kernel's seal).
 
+The layout and the reasons for it are in the plan of the marketplace plan.
 
 `decode` accepts exactly the bytes `encode` writes. It refuses:
 - a wrong length, magic or version;

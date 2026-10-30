@@ -249,7 +249,7 @@ paging-lock waits seen on 30a4b58c4 are gone after the paging-lock fix (adb53a20
 
 - **Linux apps keep nothing past power off.** A home is held in memory, up to 16 MiB (the Monero
   wallet's 64 MiB) and 128 names, and is gone at power off. A home kept across a reboot is designed
-  and not in this release (`docs/design/kept-homes-and-installs.md`). One file an app writes may
+  and not in this release (the kept-homes design). One file an app writes may
   fill its home and no more, and none may pass 64 MiB (`MAX_FILE` in `file/held/cache/table.rs`).
 - **Monero.** The first refresh after a wallet opened could fail with "net.socks5 sent an answer
   this cannot read" while the next connected. An open now greets the proxy only after a reset it

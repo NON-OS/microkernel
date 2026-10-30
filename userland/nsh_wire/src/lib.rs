@@ -17,7 +17,7 @@
 //! The nsh/1 wire format. Every parser here reads bytes from the network
 //! before any check of who sent them, so each one takes a slice, reads it
 //! exactly, and returns a typed view or a `WireError`. Nothing is copied
-//! and nothing is allocated. The specification is docs/design/nsh-v1*.md.
+//! and nothing is allocated. The specification is the design notesnsh-v1*.md.
 
 #![no_std]
 #![forbid(unsafe_code)]

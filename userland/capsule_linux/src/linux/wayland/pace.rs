@@ -16,7 +16,7 @@
 
 //! Frame callbacks at most 30 a second. A client answered the moment it
 //! commits draws its next frame at once, and one that draws every turn of
-//! its loop (DarkFi's GUI on Mesa's software driver, docs/design/box-gl.md)
+//! its loop (DarkFi's GUI on Mesa's software driver, the box GL design)
 //! spends a CPU on frames no one sees. Held until a period has passed since
 //! the surface's last answer, it draws 30 a second; an idle window is still
 //! answered at once (pace_rule.rs).

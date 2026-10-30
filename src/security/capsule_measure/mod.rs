@@ -17,7 +17,7 @@
 //! PCR 14: one extend for each distinct capsule the kernel admits, at admission,
 //! with the certificate's digest, the digest of what verified it and which
 //! kind of check that was, logged so a verifier replays it
-//! (docs/design/k1-attest-doc-v4.md, "PCR 14").
+//! (the attestation document format, "PCR 14").
 
 mod admit;
 mod algs;

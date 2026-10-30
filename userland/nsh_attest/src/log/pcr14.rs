@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What PCR 14 may hold: capsule events alone, as the kernel writes them
-//! (docs/design/k1-attest-doc-v4.md, "PCR 14"). The body is 65 bytes, the
+//! (the attestation document format, "PCR 14"). The body is 65 bytes, the
 //! certificate's digest, the verifier's digest and a kind byte, and the
 //! event's SHA-256 must be the body's own, so the kind is under what the TPM
 //! extended and cannot be changed after. The kind is one of the four

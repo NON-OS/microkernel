@@ -22,6 +22,7 @@ the image (`src/linux/image/`), and enters the serve loop. Main modules under `s
 - `console/`, `terminal*.rs`: terminal runs. `install/`: fetch, authenticate, unpack.
 - `attest*.rs`, `origin.rs`: proving a program before it runs. `app/`: the policy it is
   bound to: the vendor's (`policies.txt`, compiled into `nonos_linux_policy::vendor`), a
+  vouched file beside it, or the owner's default.
 
 ## How a guest syscall is served
 
@@ -77,6 +78,7 @@ The terminal's `linux --box <box> <program> [args]` runs the program held to a n
 
 Each box grants a terminal and execve; every program the run execs is held to it too. The box
 narrows the program's own policy (`app/identity_box.rs`) and never widens it, but for one case:
+a program with no policy of its own (the owner's default) gets NET_ANON from a box naming
 destinations, held to exactly that list, and so does each such program the run execs. A
 program whose published policy grants no network has none in any box. Each box has one hash,
 BLAKE3 under `NONOS.linux.box.v1` of its canonical form (`boxed/hash.rs`).
@@ -119,7 +121,7 @@ opens and carries it.
   at once is ENOBUFS. net.sockets' mixnet socket is never used: its frames carry an address and
   refuse every name, which left a guest with no way to reach a host by name over Nym.
 - Direct: Nym as well. A guest never reaches the network directly, whatever the default. That
-  is deliberate (`net/guest_route.rs`, `design/install-network.md`).
+  is deliberate (`net/guest_route.rs`).
 - A close does not lose what was written. A Nym stream closed, or left by a guest that exits,
   with written bytes net.socks5 has not taken yet is kept, held by no socket, and carried on by
   the serve loop until they have gone, in order and once, for 10 s at most; when the family
@@ -240,7 +242,7 @@ volume). A name in the namespace that is no shipped tier is reason 13. Proofs:
   model while an internet socket is open.
 - A program read from the store is checked by `prove` in `start_guest.rs` before it runs, and
   refused if the check fails (`origin.rs`, `attest.rs`).
-- Package keyrings are pinned at build time by `build.rs`; see `design/package-trust.md`.
+- Package keyrings are pinned at build time by `build.rs`.
 
 ## What a guest can make this capsule hold
 

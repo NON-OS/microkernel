@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A Linux package as one read-only store object, its pack
-//! (docs/design/linux-package-pack.md): one store name per package, however
+//! (the package-pack design): one store name per package, however
 //! many files it holds. `Pack::parse` holds untrusted bytes to the format's
 //! bounds and refuses the whole pack on any fault; `build` writes the one
 //! form the parser accepts.

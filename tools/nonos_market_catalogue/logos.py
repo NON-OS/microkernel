@@ -13,7 +13,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""A listing's logo (docs/design/market-logos.md): the upstream file,
+"""A listing's logo (the logos design): the upstream file,
 vendored byte for byte where its recipe's `logo` names it, and the raster
 the device gets, made once by a developer and committed at
 nonos-data/market/logos/linux.<package>.rgba. A recipe may name a logo only

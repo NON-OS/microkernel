@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The frame's measures at one to one (docs/design/ui-identity.md, Window
+//! The frame's measures at one to one (the UI identity rules, Window
 //! Text laid into a width it may not fit.
 
 mod fit;

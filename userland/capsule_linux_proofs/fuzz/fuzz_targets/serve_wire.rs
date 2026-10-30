@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What SERVE_ONE's capsule hands the personality (P.9,
-//! docs/design/serve-one.md). Any bytes as one frame: it decodes only when
+//! the SERVE_ONE design). Any bytes as one frame: it decodes only when
 //! `len` names exactly the bytes after its header, MAX_BODY at most, and a
 //! question only with status 0. The same bytes as steps against the wire's
 //! server as it ships (serve_steps.rs).
