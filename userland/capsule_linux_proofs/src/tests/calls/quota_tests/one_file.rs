@@ -16,7 +16,7 @@
 
 //! One file a family writes may fill its app's home and no more: a synced
 //! wallet's cache passed the old 8 MiB and its save failed with nothing said
-//! (docs/release-evidence/0.9.3/s1-g-kvm). The bound is the home quota
+//! (docs/release-evidence/0.9.3/kvm-guest-gate). The bound is the home quota
 //! itself, and passing it is said once a run.
 
 use crate::calls::loadavg::declared::{HOME, HOME_MOST};

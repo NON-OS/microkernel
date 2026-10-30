@@ -39,4 +39,4 @@ by the length of `@a`, which the first version of these steps did.
 | `forks` | fork until refused, children waiting | stops at the family's ceiling, and `P alive after <n> forks` prints after |
 | `after` | `linux echo still here` | it prints |
 
-The results of a boot are in `docs/release-evidence/0.9.3/s1-isolation-*`.
+The results of a boot are in `docs/release-evidence/0.9.3/isolation-*`.

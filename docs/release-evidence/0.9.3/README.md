@@ -37,17 +37,17 @@ were added by name.
 
 ## Kernel and isolation
 
-- [s1-paging-lock-c3f522575](s1-paging-lock-c3f522575/README.md): the
+- [paging-lock-c3f522575](paging-lock-c3f522575/README.md): the
   paging-lock fix (adb53a20d, abae61bc9) with MkGetPid put back: 0 `[LOCK]`
   lines where the same build printed 12 and 80 before.
-- [s1-lock](s1-lock/README.md): six boots of the lock fix at 4 and 8 CPUs on
+- [lock](lock/README.md): six boots of the lock fix at 4 and 8 CPUs on
   a macOS host, and a Monero install and run: 0 `[LOCK]` and 0 `unanswered`
   in every boot.
-- [s1-isolation-61ec29ea2](s1-isolation-61ec29ea2/README.md): a hostile Linux
+- [isolation-61ec29ea2](isolation-61ec29ea2/README.md): a hostile Linux
   program's probes (ptrace, process_vm_readv, module load, kexec, mount, a
   W^X mapping, raw sockets, a fork bomb) each refused, on an image of a
   branch with MkGetPid on top, which this release does not carry.
-- [s1-shared-maps-0d0cff02d4](s1-shared-maps-0d0cff02d4/README.md): a stored
+- [shared-maps-0d0cff02d4](shared-maps-0d0cff02d4/README.md): a stored
   file mapped `MAP_SHARED`, as LMDB maps one: read and write maps served, one
   writer per range, an executable shared map refused, and the writes outlive
   the process.
@@ -63,24 +63,24 @@ were added by name.
 
 ## Installing and updating
 
-- [s1-k1-update](s1-k1-update/README.md): the keep-my-data update on QEMU
+- [kernel-update](kernel-update/README.md): the keep-my-data update on QEMU
   with a software TPM: image A installed and prepared, Update NØNOS (keep my
   data) from image B with a changed bootloader, then the data volume opens
   under B through the handover and, on the next boot, under B's own key.
 
 ## Linux programs, installs and the Monero wallet
 
-- [s1-g-kvm](s1-g-kvm/README.md): on a KVM host, the Monero wallet
+- [kvm-guest-gate](kvm-guest-gate/README.md): on a KVM host, the Monero wallet
   syncs from the listing's node over Anyone and over Nym; why a real-mirror
   install failed (one stream per caller), and the spawn fix that gives an
   install its 320 MiB heap.
-- [s3-boot1](s3-boot1/README.md): standard-dev with 28 catalogue apps: age
+- [boot-1](boot-1/README.md): standard-dev with 28 catalogue apps: age
   installs from the relay and its three runs exit 0; the passphrase showed as
   typed (fixed later); the store's proof timed out; later installs starved.
-- [s3-boot2](s3-boot2/README.md): age with the passphrase hidden, flac,
+- [boot-2](boot-2/README.md): age with the passphrase hidden, flac,
   minisign, git, vim, yara and curl run in their boxes; gpg, lame and radare2
   fail; the machine slowed after about 4 h 20 min.
-- [s3-boot3](s3-boot3/README.md): gpg past "disable core dumps" with the
+- [boot-3](boot-3/README.md): gpg past "disable core dumps" with the
   prlimit fix; the store's proof still timed out at 30 s; the Monero install
   took over an hour beside a prove job.
 
