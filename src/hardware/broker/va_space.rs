@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Each address space's two grant windows, MMIO and DMA (K10), found by
+//! Each address space's two grant windows, MMIO and DMA, found by
 //! the asid its holder runs in, a thread's being its process's. Asids are
 //! never reused, so a window outlives nothing it could be mistaken for. A
 //! range goes back only after its pages are out of those tables.

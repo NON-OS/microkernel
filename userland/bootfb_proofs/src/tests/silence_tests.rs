@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The owner's silence on the boot framebuffer (G-72): the picture the
+//! The owner's silence on the boot framebuffer: the picture the
 //! compositor last flushed is gone from the framebuffer, not left there.
 
 use super::serve::{ask, run, words};

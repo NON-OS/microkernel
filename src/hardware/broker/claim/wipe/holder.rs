@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a claim tells the wipe record it will leave (L78): the driver
+//! What a claim tells the wipe record it will leave: the driver
 //! service it serves, and the function's reset capabilities and address.
 //! Gathered before any lock; none for a device that is not a PCI function.
 

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The groups below switches with a port the ACS controls leave open (L72):
+//! The groups below switches with a port the ACS controls leave open:
 //! everything below such a switch may be reached from anything else below
 //! it past the IOMMU. Pure, so the grouping runs on the host too.
 

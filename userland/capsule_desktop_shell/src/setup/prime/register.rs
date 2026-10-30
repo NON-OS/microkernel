@@ -43,7 +43,7 @@ pub fn register_overlay(
     if sid < 0 {
         return Err("overlay surface register rejected");
     }
-    // Only the compositor maps it, read-only (K20).
+    // Only the compositor maps it, read-only.
     let handle = mk_surface_share(sid as u64, super::super::discover::compositor_pid()?, 0);
     if handle <= 0 {
         return Err("overlay surface share rejected");

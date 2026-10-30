@@ -49,7 +49,7 @@ pub fn lookup_compositor_port() -> Result<u32, &'static str> {
     lookup_port(COMPOSITOR_SERVICE).map_err(|_| "lookup compositor")
 }
 
-/// The compositor's pid, the one process the overlay is shared with (K20).
+/// The compositor's pid, the one process the overlay is shared with.
 pub fn lookup_compositor_pid() -> Result<u32, &'static str> {
     lookup(COMPOSITOR_SERVICE).map(|(_, pid)| pid).map_err(|_| "lookup compositor")
 }

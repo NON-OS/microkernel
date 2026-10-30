@@ -48,7 +48,7 @@ fn alloc_backing(byte_len: u64) -> Result<u64, &'static str> {
 }
 
 /// Register a `width` x `height` backing and attach it back by the handle
-/// `handle_of` gets for its sid (K20): the kernel returns this same VA.
+/// `handle_of` gets for its sid: the kernel returns this same VA.
 pub fn register_backing(
     width: u32,
     height: u32,

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The device's replies swept (G-83): every byte of an answer and the length
+//! The device's replies swept: every byte of an answer and the length
 //! the used ring claims for it are the device's word. Each case is a fresh
 //! queue whose next command a scripted device (`device`) answers with a
 //! valid reply mutated (`reply`), and the driver's verdict is held to what

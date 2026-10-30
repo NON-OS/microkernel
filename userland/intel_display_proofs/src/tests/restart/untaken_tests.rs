@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! A lit output the restart does not take (G-78): on a killed driver's
+//! A lit output the restart does not take: on a killed driver's
 //! leftover, its plane is turned off and its entries go with the rest; on
 //! firmware's picture, it keeps showing it and firmware's entries stay.
 

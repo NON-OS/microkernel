@@ -17,7 +17,7 @@
 //! A pull in the middle of a mode set: the cable goes as the new mode's
 //! DPLL is set, between darkening the port and training it. The mode set
 //! fails with its new surfaces given back and, the old mode not lit again
-//! with the cable gone, the output waiting to be set (G-72); the next
+//! with the cable gone, the output waiting to be set; the next
 //! settled poll leaves it dark, and the monitor back is lit at a mode set.
 
 use nonos_gfx_serve::Display;

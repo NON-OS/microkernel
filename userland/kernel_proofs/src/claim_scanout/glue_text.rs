@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The kernel's glue read as text for the takeover's glue tests (L79): a
+//! The kernel's glue read as text for the takeover's glue tests: a
 //! file found from this crate's own directory, its comments dropped and its
 //! whitespace flattened to single spaces, and a function's body cut out by
 //! its braces, so each check names exact code and the order of its calls.

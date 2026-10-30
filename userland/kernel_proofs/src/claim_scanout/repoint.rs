@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The repoint of a take-back in the takeover model (L79),
+//! The repoint of a take-back in the takeover model,
 //! remap_in_asid's one hold of the paging lock over the drained grants.
 
 use super::knob::Knob;

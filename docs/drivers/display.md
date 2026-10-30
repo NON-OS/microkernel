@@ -81,6 +81,7 @@ The driver reads the device's events word on every turn of its receive loop and 
 
 A command the device does not answer within the control queue's deadline, or answers out of turn, resets the device and takes the queue out of service. The serve loop then recovers in place (`userland/capsule_driver_virtio_gpu/src/server/recover/`): the queue restarted, every output's surface made again under its own id and shown, limbo given back. It tries up to three times in a row, logging `driver.virtio_gpu0: control queue stalled; device reset, recovering (try N of 3)` and `driver.virtio_gpu0: recovered in place, same surfaces`. Past that the driver is down: every output answers STATE LOST and dark, FLUSH and MODE_SET answer ENXIO, the compositor is told OUTPUT_NOTICE LEAVING once so it can drive another display, and `driver.virtio_gpu0: down; ...` is logged. The claim and every grant are kept.
 
+Without a virtio GPU the capsule exits with `EXIT_ABSENT` (2) at once, and the compositor stays on GOP; a device that fails every bring-up attempt (seven, on the shared bounded schedule) exits with `EXIT_GAVE_UP` (6) (`userland/capsule_driver_virtio_gpu/src/main.rs`). `virtio_gpu_proofs` mounts the shipping source by `#[path]` and holds the bring-up and the 2D command bytes to the virtio specification; a host model answers the ring on the driver's own thread for the wire server's sweeps and the recovery, and `tests/reply_sweep` fuzzes every reply the driver reads against what the response rules say. It passes 85 host tests at this commit.
 
 ## Bochs BGA
 
@@ -93,6 +94,7 @@ It speaks the display wire through `nonos_gfx_serve`, a single output of kind 2 
 
 ## The primaries, and a compositor started again
 
+Each output's primary is anonymous memory of the driver's own, zeroed when made, registered as an ARGB8888 surface and shared writable with the compositor alone (`userland/nonos_gfx_pool`). Device memory is never shared. A share right belongs to the pid it names and dies with it, so when the compositor is started again under a new pid, the driver keeps the primary it holds and names the new pid a receiver of it on its first SURFACE; the new compositor attaches the same pages and the picture comes back. A compositor not heard for three seconds has its primaries scrubbed and the screen blanked, so the next one never sees the last one's picture (`userland/nonos_gfx_serve/src/watch.rs`). `gfx_pool_proofs` holds the pool to the kernel's surface rules on a shim.
 
 ## What a good boot shows
 

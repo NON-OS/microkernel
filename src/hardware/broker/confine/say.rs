@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The per-claim line the broker's confinement says: what a step did, with
-//! no pid, requester id or stream id (K10), since the log leaves the machine
+//! no pid, requester id or stream id, since the log leaves the machine
 //! in photos and bug reports.
 
 pub(super) fn say(what: &[u8]) {

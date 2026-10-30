@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The Intel PCH switch-over (H-10): after the legacy handoff and reset,
+//! The Intel PCH switch-over: after the legacy handoff and reset,
 //! SuperSpeed terminations then USB 2.0 wires, within firmware's masks,
 //! before the controller runs and so before any port is scanned; handed
 //! back on teardown once the controller is halted and before the claim

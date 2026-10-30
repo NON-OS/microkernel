@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The IVMD ranges, kept from boot for AMD-Vi bring-up (K4).
+//! The IVMD ranges, kept from boot for AMD-Vi bring-up.
 
 use spin::Mutex;
 

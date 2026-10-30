@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One act on a wipe (L78), no table lock held: start the reset, move a D3hot
+//! One act on a wipe, no table lock held: start the reset, move a D3hot
 //! function back to D0, or look at what a reset came to. Never a wait.
 
 use super::bits_rule::{AF_TP, BME, PM_STATE, TRANSACTIONS_PENDING};

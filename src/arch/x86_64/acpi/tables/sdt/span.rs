@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The bytes a table's checksum may run over, pure (K11). Its declared
+//! The bytes a table's checksum may run over, pure. Its declared
 //! length is firmware's word: a length past MAX_TABLE_BYTES, or past the
 //! end of what is mapped, would have the sum read memory that is not the
 //! table, or fault. kernel_proofs::acpi_span.

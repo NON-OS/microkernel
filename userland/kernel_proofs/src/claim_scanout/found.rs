@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a search of the takeover model found (L79).
+//! What a search of the takeover model found.
 
 use super::types::Stage;
 use super::world::{code, Page, END};

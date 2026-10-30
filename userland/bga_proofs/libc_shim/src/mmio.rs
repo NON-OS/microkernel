@@ -28,7 +28,7 @@ pub struct MmioMapOut {
     pub grant_id: u64,
 }
 
-/// libc's write-combining flag (L17), as the driver passes it for BAR0.
+/// libc's write-combining flag, as the driver passes it for BAR0.
 pub const MK_MMIO_MAP_WC: u32 = 1 << 0;
 
 /// Each BAR's grant is this plus its index.

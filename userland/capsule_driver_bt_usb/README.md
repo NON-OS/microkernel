@@ -45,7 +45,7 @@ logs `controller not usable: ACL endpoints refused`.
 | `usb` | Chooses the configuration with the Bluetooth interface (`choose`), arms each event read with the whole packet and never more than 64 octets, takes a reply only up to what was armed and what it holds (`limit`), and gives driver.xhci0 the three endpoints before SET_CONFIGURATION (`bind`). The interrupt operations are 0x0009 and 0x000E (`ops`). The client call is `nonos_usbnet`'s own file, compiled here. |
 | `link` | One link, from scan to end, over `nonos_bt_hci`, `nonos_bt_smp` and `nonos_bt_hogp`. It holds no libc call, so the proofs run all of it. |
 | `hid` | Input posting. `capsule_driver_usb_hid`'s own keymap, key event, repeat and posting files are compiled here, so a Bluetooth key is posted with the same code, flags, layout and repeat as a USB one. |
-| `ring` | The bond store's `Keys` over the keyring: OP_STORE, OP_RETRIEVE, OP_DELETE and OP_LIST (L33), with the layouts `capsule_keyring` reads. Its request and answer layouts are pure, so the proofs run them. |
+| `ring` | The bond store's `Keys` over the keyring: OP_STORE, OP_RETRIEVE, OP_DELETE and OP_LIST, with the layouts `capsule_keyring` reads. Its request and answer layouts are pure, so the proofs run them. |
 | `nbtc` | NBTC v1, the protocol driver.bt_usb0 answers (below): the frame, who may ask what, and the board it reads and changes. Pure, so the proofs run all of it. |
 | `run` | The clock, log and random source; the desk, whose every wait answers NBTC; the bond store opened; finding the controller on the ports, and the loop of links. |
 | `vendor` | A controller's own setup before HCI bring-up, by its USB id: `intel` loads an Intel controller's firmware, `mediatek` patches an MT7921 or MT7922, `realtek` patches an RTL8821C (below). |
@@ -150,7 +150,7 @@ modelled chip with made-up patch files.
   firmware package is missing from the boot medium".
 
 - Bonds last for this boot only (Decision 27). They are kept in the
-  keyring when it keeps this capsule's records (L33), else in this
+  keyring when it keeps this capsule's records, else in this
   capsule's memory until it stops; the log says which.
 - Turning scanning off takes effect when the look under way ends, at
   most 10 s later.

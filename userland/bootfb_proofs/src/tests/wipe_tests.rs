@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The firmware framebuffer at bring-up (G-72): a dead driver's picture is
+//! The firmware framebuffer at bring-up: a dead driver's picture is
 //! zeroed before the first flush, row by row inside the record's mapping,
 //! and nothing before the first pixel is written.
 

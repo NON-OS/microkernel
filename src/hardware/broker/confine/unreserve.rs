@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A device's reserved regions and ranges leaving its capsule's domain: its
-//! RMRR regions (L60), and the ranges no attached device there names any
+//! RMRR regions, and the ranges no attached device there names any
 //! more (`held::unname`, C-41).
 
 extern crate alloc;

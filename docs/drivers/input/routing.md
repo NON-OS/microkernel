@@ -87,6 +87,7 @@ The kernel makes `driver.ps2_kbd0`, `driver.usb_hid0` and `driver.i2c_hid0`
 list, so no capsule can ask a keyboard driver for keys (`KERNEL_ONLY`,
 `src/services/registry/held_table.rs:32-34`).
 
+The capability rules above close two gaps an earlier rule left. `Irq` no
 longer admits a post, so the AHCI, HD Audio, Intel Wi-Fi, NVMe, virtio-blk and
 xHCI drivers, whose manifests ask for it, cannot forge input; the I2C
 controller driver no longer asks for it, as its engine polls

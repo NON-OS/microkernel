@@ -22,7 +22,7 @@ pub const GSTS: usize = 0x01C;
 pub const RTADDR: usize = 0x020;
 pub const FSTS: usize = 0x034;
 pub const FECTL: usize = 0x038;
-/// Fault Event Control IM: the fault event interrupt masked (K12).
+/// Fault Event Control IM: the fault event interrupt masked.
 pub const FECTL_IM: u32 = 1 << 31;
 /// Protected Memory Enable. Firmware uses the protected memory regions for
 /// pre-boot DMA protection and may leave them on at handoff.

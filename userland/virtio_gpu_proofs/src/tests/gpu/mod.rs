@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! virtio-gpu on the display wire (G-77), against the host model: the
+//! virtio-gpu on the display wire, against the host model: the
 //! takeover, MODES and STATE, flushes, mode sets, the host's display
 //! events, a dead host, a killed driver or a silent owner at every command,
 //! and a stalled queue recovered in place or left Down, each judged from

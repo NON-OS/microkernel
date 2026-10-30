@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! How a device's own description says its interrupt line is driven (L43).
+//! How a device's own description says its interrupt line is driven.
 //! An ACPI platform device's record carries its `_CRS` trigger and polarity
 //! (F 51); a PCI function's does not, and its line is sensed as the MADT and
 //! the ISA or PCI default say.

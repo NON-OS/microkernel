@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A faulting device's id is noted once, without a lock, and taken once
-//! where the broker can block it (K12).
+//! where the broker can block it.
 
 use super::noted::Noted;
 

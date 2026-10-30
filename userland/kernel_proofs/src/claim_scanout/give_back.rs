@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! bootfb's give_back in the takeover model (L79): retired, the paths
+//! bootfb's give_back in the takeover model: retired, the paths
 //! inside waited out, its grants drained and its own pages unmapped in its
 //! own tables, then released; the entry goes with the last release and the
 //! last path inside it. A refused retire gives nothing back.

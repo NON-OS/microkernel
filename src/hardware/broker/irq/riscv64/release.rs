@@ -24,7 +24,7 @@ use crate::hardware::broker::irq::types::IrqError;
 use super::pending::{Entry, SLOTS};
 
 // Disable line, drop capsule ownership at the PLIC registry (owner-checked),
-// then free the slot; taken first by its grant id, as on aarch64 (L77).
+// then free the slot; taken first by its grant id, as on aarch64.
 fn tear_down(e: &'static Entry, id: u64) -> bool {
     if id == 0 || e.grant_id.compare_exchange(id, 0, Ordering::AcqRel, Ordering::Acquire).is_err() {
         return false;

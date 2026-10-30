@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! One order of events played against bootfb as its serve loop drives it
-//! (G-80), the kernel taking the scanout where the order says, and judged
+//! the kernel taking the scanout where the order says, and judged
 //! at every step (`loss_tests`).
 
 use super::loss_ask::{fence, look, present, MID};

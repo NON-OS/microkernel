@@ -27,11 +27,11 @@ Part of [NONOS documentation](README.md).
 
 - [The NONOS ABI](abi/README.md): how a call is made, which number names it,
   which capability admits it, and what comes back.
-- [Syscalls](abi/syscalls.md): all 130 native syscalls with number, capability
+- [Syscalls](abi/syscalls.md): all 183 native syscalls with number, capability
   and meaning.
 - [Errors](abi/errors.md): what a failed syscall returns, and every errno the
   kernel defines.
-- [Capabilities](abi/capabilities.md): the 37 capability bits and the syscalls
+- [Capabilities](abi/capabilities.md): the 40 capability bits and the syscalls
   each one admits.
 - [Broker](abi/broker.md): the driver calls to the hardware broker, their
   records and constants.

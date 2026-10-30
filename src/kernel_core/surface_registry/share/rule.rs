@@ -59,7 +59,7 @@ impl Shares {
     }
 
     /// May `receiver` attach? Only the owner's group or a group it named:
-    /// the compositor too is a receiver only when named (K20).
+    /// the compositor too is a receiver only when named.
     pub(crate) fn may_attach(&self, receiver: u32) -> bool {
         receiver != 0 && (receiver == self.owner || self.named.contains(&receiver))
     }

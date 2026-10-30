@@ -3,6 +3,7 @@
 Status: not in the image. The capsule builds and `bootfb_proofs` passes,
 but the kernel it claims from is not on main: the boot framebuffer record
 (8b7bcb660), `MkBootFramebuffer` (d8485f3d9) and the hand-off to a GPU
+driver (5ca0d371c, L79) are on the the maintainers' branch. `Capsule.mk` carries
 `CAPSULE_NOT_IN_IMAGE` until they land.
 
 ## Role
@@ -51,6 +52,7 @@ small for its mode, or a stride shorter than a line is refused at
 mapping: the compositor keeps its GOP path. FLUSH rectangles outside the
 mode are refused by the server before any copy.
 
+A GPU driver taking the scanout: the kernel ends bootfb's
 claim and points its mapping at a zeroed sink page, without a fault. bootfb
 asks `mk_boot_framebuffer` on every wake (at least every 500 ms) and before
 every frame; any answer but its 24 bytes means the scanout is gone for the
@@ -104,14 +106,17 @@ Every lane where no other display driver answers shows
 
 ## Release evidence
 
+`bootfb_proofs` passing; the owner's boot on a GOP-only machine.
 
 ## Release checklist
 
 - [x] Capsule crate (binary `driver_bootfb`).
 - [x] `Capsule.mk`, marked not in the image.
 - The kernel's boot framebuffer record, `MkBootFramebuffer` and the L79
+  hand-off on main (the maintainers' branch today).
 - Feature, mirror, scope row (a firmware-bus match), inventory and spawn
   entries, once they are.
+- Owner's keys for the slug `driver.bootfb`.
 
 ## Explicit non-goals today
 

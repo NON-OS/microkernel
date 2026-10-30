@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Faulting devices, noted where a fault is read and blocked where locks may
-//! be taken (K12). The fault poll runs in the timer interrupt, where the
+//! be taken. The fault poll runs in the timer interrupt, where the
 //! tables' and queues' locks could be held by the code it interrupted, so
 //! it only notes the requester id here, without a lock; the broker blocks
 //! it on its next IRQ wait, which every driver makes again and again.

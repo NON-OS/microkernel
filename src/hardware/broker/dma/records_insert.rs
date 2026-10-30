@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A finished map entered in the grant table, under its claim (L69) and its
-//! holder's quota (K10), both asked under the table's lock.
+//! A finished map entered in the grant table, under its claim and its
+//! holder's quota, both asked under the table's lock.
 
 use super::super::super::quota;
 use super::super::types::DmaGrant;

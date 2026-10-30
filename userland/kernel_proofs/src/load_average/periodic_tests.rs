@@ -18,7 +18,7 @@ use super::loadavg_math::{fold, ONE, SAMPLE_S, WEIGHTS, WINDOWS_S};
 
 #[test]
 fn a_periodic_load_settles_on_its_mean_with_the_kernels_extra_bits() {
-    // The kernel holds averages 16 bits finer than it publishes (L63).
+    // The kernel holds averages 16 bits finer than it publishes.
     let (extra, hours) = (16u32, 4 * 3600 / SAMPLE_S as usize);
     for pattern in [&[1u64, 0][..], &[1, 0, 0], &[1, 0, 0, 0]] {
         for (w, window) in WEIGHTS.iter().zip(WINDOWS_S) {

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! How many bytes one surface may span (H-06). The kernel bounds a surface to
+//! How many bytes one surface may span. The kernel bounds a surface to
 //! bound the work behind it: one page-table walk and one frame entry per page.
 //! 64 MiB holds a 4K panel (about 33 MiB). A larger boot framebuffer, a 5K, 6K
 //! or 8K panel, raises the cap to its own size rounded up to a page, so the

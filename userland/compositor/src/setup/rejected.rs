@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The line for a GOP backing the kernel would not register (H-06): the
+//! The line for a GOP backing the kernel would not register: the
 //! bytes it asked for, and the ceiling when it is past it or the errno when
 //! not, said once though the setup asks again every 20 ms, so a panel past
 //! the kernel's ceiling says why the screen stays black. Pure:

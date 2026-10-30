@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The modes BGA sets at u32's edges (G-70): taken exactly when the test's
+//! The modes BGA sets at u32's edges: taken exactly when the test's
 //! u128 reading says, whatever the video memory's size.
 
 #[path = "../../../gfx_serve_proofs/src/sweep/edges.rs"]

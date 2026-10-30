@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The IO-APIC scopes of segment 0's DRHDs, kept from boot for the
-//! remapping entries the IO-APIC's lines need (K3).
+//! remapping entries the IO-APIC's lines need.
 
 use spin::Mutex;
 

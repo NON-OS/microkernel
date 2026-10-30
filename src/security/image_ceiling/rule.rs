@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The image ceiling's rule, pure (K16): a capsule whose installed bits
+//! The image ceiling's rule, pure: a capsule whose installed bits
 //! go past what the image was built to grant is refused at spawn, and the
 //! refusal names the bits. kernel_proofs::image_ceiling.
 

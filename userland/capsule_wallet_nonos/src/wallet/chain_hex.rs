@@ -44,7 +44,7 @@ pub const fn hex20(s: &str) -> [u8; 20] {
     out
 }
 
-/// NOX on `chain_id`, from nonos_nox_config, the one place it is named (B7).
+/// NOX on `chain_id`, from nonos_nox_config, the one place it is named.
 /// A chain the wallet offers without NOX fails the build.
 pub(super) const fn nox_of(chain_id: u64) -> [u8; 20] {
     match nonos_nox_config::address(chain_id, nonos_nox_config::Contract::NoxToken) {

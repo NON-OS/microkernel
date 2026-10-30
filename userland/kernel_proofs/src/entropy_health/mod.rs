@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The entropy capsule's bytes on their way into a seed (K9): the kernel's
+//! The entropy capsule's bytes on their way into a seed: the kernel's
 //! own health tests, accumulator, credit rule and ask rule, by path.
 
 #[path = "../../../../src/crypto/util/rng/entropy/accumulator.rs"]

@@ -33,7 +33,7 @@ pub fn quiesce_all() -> Option<usize> {
             if !super::super::brief::within_a_millisecond(start) {
                 return None;
             }
-            // A holder may be in a shootdown round waiting on this CPU (L75).
+            // A holder may be in a shootdown round waiting on this CPU.
             crate::smp::serve_shootdowns();
             core::hint::spin_loop();
         };

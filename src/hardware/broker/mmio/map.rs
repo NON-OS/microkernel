@@ -25,7 +25,7 @@
 //!      user, read+write, NX, uncached or, asked on a prefetchable BAR for
 //!      pages inside it, write-combining once every PAT has it (`cache`);
 //!      the kernel's own type where it maps them (`memory_type`)
-//!   5. the grant recorded while its claim stands, within the quota (K10)
+//!   5. the grant recorded while its claim stands, within the quota
 //!
 //! A rejection maps nothing and records nothing. `user_va` is the VA of the
 //! first byte asked for and `length` the bytes usable from there; neither

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The address space a holder's mappings live in (L36). Surfaces are held by
+//! The address space a holder's mappings live in. Surfaces are held by
 //! the thread group, and the tables it shares are found from a live member's
-//! own `cr3` (L46): the owner of those tables changes when the first owner
+//! own `cr3`: the owner of those tables changes when the first owner
 //! exits, so a lookup by the caller's pid or the group's id could miss while
 //! the tables still mapped the frames.
 
@@ -35,7 +35,7 @@ pub(crate) fn tables_of(group: u32) -> Option<u64> {
     mine.and_then(cr3).filter(|&t| t != 0).or_else(|| {
         let all = PROCESS_TABLE.get_all_processes();
         all.iter()
-            // A released thread's `cr3` may name tables already freed (L49).
+            // A released thread's `cr3` may name tables already freed.
             .filter(|p| holder_of(p.pid) == group && !released(p))
             .map(|p| p.cr3.load(Ordering::Acquire))
             .find(|&t| t != 0)

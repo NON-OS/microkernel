@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the boot pass leaves in a function's Command register (L34). Pure,
+//! What the boot pass leaves in a function's Command register. Pure,
 //! so kernel_proofs checks it by path.
 
 pub(crate) const IO_SPACE: u16 = 1 << 0;

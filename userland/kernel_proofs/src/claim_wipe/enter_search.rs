@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Every order of the enter model's paths (L78), each world seen once. What
+//! Every order of the enter model's paths, each world seen once. What
 //! a step broke is recorded and gone past; a world where nothing can move is
 //! held to the end's invariants (enter_check).
 

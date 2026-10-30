@@ -42,7 +42,7 @@ pub fn register(pixels: &Pixels, (width, height, stride): Shape) -> Option<u64> 
         owner_pid: 0,
         writable: 0,
     };
-    // Only the compositor maps it, read-only (K20).
+    // Only the compositor maps it, read-only.
     let compositor = lookup_service(b"compositor").map_or(0, |peer| peer.pid);
     let sid = mk_surface_register(&desc);
     let handle = if sid < 0 { sid } else { mk_surface_share(sid as u64, compositor, 0) };

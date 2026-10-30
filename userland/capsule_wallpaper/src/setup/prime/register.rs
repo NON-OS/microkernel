@@ -25,7 +25,7 @@ use super::backing::Backing;
 /// asked again until it answers, so a compositor busy with a frame no longer
 /// sends setup back to the start. That used to map a new backing each round,
 /// a whole screen's worth, and leave the old one behind. Only `compositor`
-/// maps it, read-only (K20).
+/// maps it, read-only.
 pub fn share_surface(backing: &Backing, compositor: u32) -> Result<u64, &'static str> {
     let desc = SurfaceDescriptor {
         width: backing.width,

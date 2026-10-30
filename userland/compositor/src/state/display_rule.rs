@@ -18,7 +18,7 @@
 //! 0x0006, `server/display_notice.rs`). The router places absolute pointer
 //! events on that size; told only when it asked, it went on placing them on
 //! an old or a made-up one after a mode change for as long as its asks timed
-//! out (H-09). So every change is told at once, retried until a notice goes,
+//! out. So every change is told at once, retried until a notice goes,
 //! and told again now and then for a router that started since.
 
 /// How soon a notice that did not go is tried again, and how often a size

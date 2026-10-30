@@ -33,7 +33,7 @@ fn write_dte(device_id: u16, entry: Dte) -> Result<(), AmdViError> {
     words.write(at + 1, entry[1])?;
     compiler_fence(Ordering::SeqCst);
     words.write(at, entry[0])?;
-    // The entry is 32 bytes, 32-aligned: one line, pushed out to memory (K12).
+    // The entry is 32 bytes, 32-aligned: one line, pushed out to memory.
     super::super::visible::flush(page, at)
 }
 

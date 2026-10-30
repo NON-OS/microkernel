@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Intel xHCI port routing (H-10). On the 7, 8 and 9 series PCHs firmware
+//! Intel xHCI port routing. On the 7, 8 and 9 series PCHs firmware
 //! leaves the shared USB 2.0 ports routed to EHCI and SuperSpeed off until
 //! the OS writes XUSB2PR (0xD0) and USB3_PSSEN (0xD8); the ports the OS may
 //! move are the ones firmware sets in USB2PRM (0xD4) and USB3PRM (0xDC). A

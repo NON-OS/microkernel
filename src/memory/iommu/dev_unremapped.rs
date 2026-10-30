@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The owner's development opt-in to interrupts without remapping (K3), the
+//! The owner's development opt-in to interrupts without remapping, the
 //! cargo feature nonos-dev-unremapped-interrupts: a PCI device may be
 //! claimed, and its MSI bound in compatibility format, where no unit
 //! remaps. Refused at compile time beside nonos-production or

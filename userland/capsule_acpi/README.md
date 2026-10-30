@@ -68,6 +68,7 @@ firmware never sends is caught within that. Any lid open reads as open.
   it. If not, it answers EAGAIN and the next reading tells it again. The
   first reading is told too, so the shell learns the lid it starts with.
 - Nothing acts on the lid itself: whether a close powers off is the
+  owner's call.
 
 A power-button press runs the wiped power-off: one `power off with the
 wipe` line, then AdminShutdown, which wipes on the way down, with no
@@ -103,6 +104,7 @@ that names processors. Every _TSP it steps the limit by `nonos_aml`'s rule
 falls only at or above _PSV, and below _PSV it climbs back to 100. While
 the zone is engaged, it is read every _TSP. Each processor takes the lowest
 limit of the zones that name it, and the capsule hands that ceiling to the
+kernel through the owner-only `MkAcpiThermalLimit` whenever it changes.
 The kernel keeps the ceiling beside the processor's _PPC
 (`cpu_store::thermal_limit`). Nothing acts on it until the kernel's
 frequency control reads it, and the capsule never drives a P-state
@@ -167,6 +169,7 @@ them.
 
 Backlit outputs are the devices defining both _BCL and _BCM (appendix B).
 Their levels come from _BCL and their level now from _BQC; brightness is
+not changed at start. A panel's backlight has one owner, the display
 engine driving it (F-96):
 - **Keys.** The brightness keys arrive as Notify on the output, or on the
   graphics adapter above it. 0x86 and 0x87 go to the shell as
@@ -350,8 +353,9 @@ grant is one `[ACPI] region` line on serial and a count on the
 `[ACPI] posture` line. It claims one device, the SCI record, and no PCI
 function, and does no DMA. It adds functions to the device table and
 takes them out (`MkPciProbeFunction`, `MkPciDepart`); both answer only
+the `acpi` service's owner.
 
-Start runs in two parts (L55). The first publish pass (`src/boot/first.rs`):
+Start runs in two parts. The first publish pass (`src/boot/first.rs`):
 the namespace loaded and `_INI` run, the host bridges' `_OSC`, the reserved
 ranges and proximity domains, each hidden function's `_PS0` and probe (with
 the readiness waits) within 2 s, and the platform records in `_DEP` order.
@@ -379,6 +383,8 @@ to `power` and `desktop_shell` (`src/services/registry/held_table.rs`). Requests
 `src/server/protocol.rs`: an op byte, then a status word and the body.
 
 Each op answers only the services named for it (`src/server/policy.rs`,
+proved in `capsule_acpi_proofs`), checked by the service the sender's process owns (sender and owner
+compared by thread group, through MkThreadGroup), owners asked of the
 registry at each request; anyone else gets EPERM. BRIGHTNESS, POWER and
 THERMAL: `power` and `desktop_shell`. PREPARE_SLEEP: `power`.
 SET_BRIGHTNESS, SMBIOS and PCI_FIRMWARE: `desktop_shell`. SERIAL: the I2C
@@ -406,6 +412,7 @@ other op: no one.
   unusable; EPERM from anyone but `capsule_power`, which calls it before
   `AdminShutdown`.
   States 3 (S3) and 0 (suspend-to-idle) are coded but behind one switch,
+  `src/suspend/switch.rs` `SUSPEND`, off until the maintainers decide
   (Decision 6); while it is off they answer EINVAL as before. With it on,
   S3 runs \_TTS(3), arms only the wake devices `WAKE_DEVICES` names,
   runs \_PTS(3) and \_SI._SST(3), and is undone (\_WAK(3), disarm,
@@ -467,7 +474,7 @@ other op: no one.
   for its claim's holder. D3cold is refused (ELOSES, -95) until the bridge
   and the link above it are handled too. D3hot without No_Soft_Reset is
   allowed only while the kernel offers `MkAcpiRestoreFunction` (asked once
-  at the first move), which puts a claimed function's BARs back (L62)
+  at the first move), which puts a claimed function's BARs back
   after any move into D0 from D3, before the holder is answered; ELOSES if
   a BAR would not stick and the kernel released the claim. Without the call such a D3hot is refused too. Decoding and bus
   mastering are the driver's to turn back on after the reset
@@ -552,6 +559,8 @@ other op: no one.
   and one `[ACPI] pci label` line each. The UUID, revisions (3, then 2),
   function numbers and shapes are recalled, unverified. Layout in
   `src/pci_firmware/wire.rs`.
+- Not the shell's power-off. `power.off` has one owner, capsule_power
+  (P-08): the shell's request goes there, and capsule_power asks
   this capsule to prepare soft-off (OP_PREPARE_SLEEP, \_TTS(5) and
   \_PTS(5)) before its own AdminShutdown. A POFF frame sent to `acpi` is
   refused like any unknown op.

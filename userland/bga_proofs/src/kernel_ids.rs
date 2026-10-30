@@ -16,7 +16,7 @@
 
 //! The two kernel answers the runtime name rule (register_allowed.rs) asks
 //! beside the registry: the group a pid belongs to, and whether that group
-//! was spawned from the system's own namespace (L57, L61).
+//! was spawned from the system's own namespace.
 
 pub mod hardware {
     pub mod broker {

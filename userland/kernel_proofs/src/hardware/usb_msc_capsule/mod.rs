@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The kernel's USB mass-storage client and driver.usb_msc0 agree on the
-//! empty-slot status (K14), each read as text.
+//! empty-slot status, each read as text.
 
 #[cfg(test)]
 mod tests;

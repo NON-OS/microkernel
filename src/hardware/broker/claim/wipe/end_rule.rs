@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a written reset came to (L78): Clean only when the function answers
+//! What a written reset came to: Clean only when the function answers
 //! as itself with its marker gone; back with it set, the one fallback, else
 //! Unreset; not back by its deadline, Lost.
 

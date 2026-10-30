@@ -50,7 +50,7 @@ impl CapabilityToken {
         self.grants(Capability::Pio)
     }
     /*
-     * The raw input ring carries every keystroke (K8). A dedicated input
+     * The raw input ring carries every keystroke. A dedicated input
      * driver posts into it under InputSource; only input_router, under
      * InputConsumer, drains or waits on it. Irq and Admin stand in for
      * neither: every device driver holds Irq, and a driver that could post

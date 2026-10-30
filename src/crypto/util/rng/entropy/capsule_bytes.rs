@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The one accumulator the entropy capsule's replies feed and every seed
-//! draws from (K9). Each takes its lock for one batch; no IPC, sleep or
+//! draws from. Each takes its lock for one batch; no IPC, sleep or
 //! wait happens under it.
 
 use spin::Mutex;

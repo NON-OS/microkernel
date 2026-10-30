@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the takeover model's paths share (L79): bootfb's entry changed as
+//! What the takeover model's paths share: bootfb's entry changed as
 //! the kernel's stage rule says, a release settled, a drain of its grants,
 //! and B's round ended.
 

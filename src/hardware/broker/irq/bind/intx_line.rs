@@ -36,7 +36,7 @@ pub(super) fn line_free(gsi: u32, device_id: u64) -> Result<(), IrqBindError> {
     Ok(())
 }
 
-/// A line remapping cannot give an entry of its own is refused as such (K3).
+/// A line remapping cannot give an entry of its own is refused as such.
 pub(super) fn intx_refusal(e: IoApicError) -> IrqBindError {
     match e {
         IoApicError::NotRemapped => IrqBindError::NotRemapped,

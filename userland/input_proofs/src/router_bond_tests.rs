@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The secure attention chord from a Bluetooth keyboard (G-76): refused,
+//! The secure attention chord from a Bluetooth keyboard: refused,
 //! press and release, from one paired by Just Works or not stamped with its
 //! level, with the shell told; let through from one paired authenticated,
 //! and from a wired keyboard as before. Ordinary keys reach windows either

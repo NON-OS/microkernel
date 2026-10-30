@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A capsule's line under interrupt remapping (K3): a remapping entry for
+//! A capsule's line under interrupt remapping: a remapping entry for
 //! the IO-APIC's own requester id, and the IO-APIC entry in remappable
 //! format naming it, written masked. A compatibility format entry would be
 //! blocked with CFI clear.

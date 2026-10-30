@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whether a DRHD the kernel read is kept, pure (K11). A unit left off
+//! Whether a DRHD the kernel read is kept, pure. A unit left off
 //! translates nothing its devices send, so while any is, the IOMMU claims
 //! nothing (backend/capabilities.rs). kernel_proofs::dmar_scope.
 

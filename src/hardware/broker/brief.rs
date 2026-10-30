@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! How long the shutdown waits for a table another CPU holds (L73). A CPU
+//! How long the shutdown waits for a table another CPU holds. A CPU
 //! still running holds the claims or the DMA records only across a config
 //! or port access with interrupts off, and lets go within microseconds,
-//! answered meanwhile if it waits on a shootdown (L75); one stopped by IPI
+//! answered meanwhile if it waits on a shootdown; one stopped by IPI
 //! while holding it never does. A millisecond waits out the first and
 //! bounds the cost of the second.
 

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The model's ends held to the console it frees (L79). The first end checks
+//! The model's ends held to the console it frees. The first end checks
 //! named GONE and the takeovers' count but not HELD, so a hold left set as
 //! bootfb's entry went would have passed while the console stayed dark; now
 //! no end without a covering claim made ready may leave anything stopping

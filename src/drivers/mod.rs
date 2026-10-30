@@ -16,7 +16,7 @@
 
 // Microkernel hardware bring-up surface. The boot path needs PCI
 // enumeration (from `init_core_systems`) and the security helpers used by
-// the trusted memory/IPC paths. The kernel drives no RNG device (K9).
+// the trusted memory/IPC paths. The kernel drives no RNG device.
 //
 // `device_info` enumerates devices through the legacy `critical`
 // taxonomy and only ships diagnostics for the gated audio/gpu/xhci/ahci

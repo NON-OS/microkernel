@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The legacy virtio-rng ring layout (L8), from the size the device reports
+ * The legacy virtio-rng ring layout, from the size the device reports
  * instead of one the driver chose. The kernel driver it was written for is
- * deleted (K9); the pure rule lives beside its tests now.
+ * deleted; the pure rule lives beside its tests now.
  */
 
 pub mod layout;

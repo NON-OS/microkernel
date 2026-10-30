@@ -1,3 +1,4 @@
+# Procedure: the firmware framebuffer (GOP) on a real machine
 
 Every machine without a native display driver in the image (all AMD and
 NVIDIA graphics, and Intel until intel_display is sealed) shows NONOS on the

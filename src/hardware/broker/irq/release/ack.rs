@@ -23,7 +23,7 @@ use super::super::types::IrqError;
 use crate::arch::interrupt::ioapic;
 
 /// The unmask runs under the records' lock while the grant stands, so an
-/// unbind or drain that removed it masks after, never before (L77).
+/// unbind or drain that removed it masks after, never before.
 pub fn ack_grant(pid: u32, grant_id: u64) -> Result<(), IrqError> {
     let acked = records::with_grant(grant_id, |g| {
         if g.pid != pid {

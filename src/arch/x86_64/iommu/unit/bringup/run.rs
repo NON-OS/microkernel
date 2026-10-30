@@ -51,7 +51,7 @@ pub fn bring_up() -> Result<(usize, usize), VtdError> {
     let blocked = blocked_domain()?;
     let aw = info.levels.context_aw();
     let (assigned, reserved) = assign_enumerated(blocked, levels, aw)?;
-    // Devices only the ACPI namespace declares start blocked too (K2).
+    // Devices only the ACPI namespace declares start blocked too.
     let named = assign_named(blocked.1, blocked.0, aw)?;
 
     // A unit that fails after others came up leaves those translating through

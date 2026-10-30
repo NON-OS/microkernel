@@ -238,7 +238,7 @@ Each transport posts a `RouteReport` to the attest service every `EVERY_MS`, fiv
 - Neither directory fetch is anonymous, and both reach fixed addresses compiled into the image.
 - `net.nym` draws routes without weights, admits an unsigned fetched directory on the strength of TLS, asks gateways for free bandwidth, and keeps a lost gateway's shared key in memory.
 - `net.anon` does not check the digest in a relay's SENDME and does not read the relay's RSA link certificates.
-- No booted NONOS image has been recorded carrying traffic through a live Nym gateway or a live Anyone circuit. That is not tested in this release.
+- On KVM development images the Monero wallet synced over a live Anyone circuit and over a live Nym gateway ([s1-g-kvm](../release-evidence/0.9.3/s1-g-kvm/README.md)). Live traffic on real hardware is not tested in this release.
 
 ## What is tested
 

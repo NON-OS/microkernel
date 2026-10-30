@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The receive loop on the display wire (G-77), what a frame from the
+//! The receive loop on the display wire, what a frame from the
 //! kernel (sender 0) is to it, and a stalled control queue brought back.
 
 mod gone;

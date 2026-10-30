@@ -22,7 +22,7 @@
 // with the architecture whose message format they encode. They turn a
 // function's MSI or MSI-X off; turning one on, with a message naming the
 // local APIC, is the broker's alone (irq/bind), through interrupt
-// remapping (K3, K4).
+// remapping.
 #[cfg(target_arch = "x86_64")]
 impl super::device::PciDevice {
     pub fn disable_msix(&mut self) -> Result<(), crate::drivers::pci::error::PciError> {

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A covering claim in the takeover model (L79), in claim.rs's order: its
+//! A covering claim in the takeover model, in claim.rs's order: its
 //! entry made, the console stopped and the draws under way waited out,
 //! bootfb's claim read and taken back (take_back.rs) until `next` says done,
 //! the admit (taker_admit.rs), the takeover's end, a refused claim withdrawn.

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Who holds a claim and its grants: the caller's process, its thread group,
-//! never the one thread that asked (L32). A driver may claim from one thread
+//! never the one thread that asked. A driver may claim from one thread
 //! and map, bind or wait from another, and a worker thread's exit leaves the
 //! device with the process: only the group's last thread gives it back.
 

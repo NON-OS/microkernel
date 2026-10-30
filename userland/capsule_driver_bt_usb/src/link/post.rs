@@ -35,7 +35,7 @@ impl Session {
     pub(super) fn post<E: Env>(&self, input: Input, env: &mut E) {
         let key = matches!(input, Input::KeyDown(_) | Input::KeyUp(_));
         if self.may_type() || !key {
-            // The router learns the device's level from the event (G-76); a
+            // The router learns the device's level from the event; a
             // key only ever reaches here from an authenticated bond.
             env.input(input, self.bond.is_some_and(|b| b.authenticated));
         }

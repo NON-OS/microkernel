@@ -29,7 +29,7 @@ pub(super) fn load_errno(e: LoadError) -> i64 {
         // An empty image read from the store (B-02).
         LoadError::EmptyImage => ERRNO_INVAL,
         LoadError::Spawn(SpawnError::EndpointCollision) => ERRNO_EXIST,
-        // A name the image reserves, or outside the publisher's (K18).
+        // A name the image reserves, or outside the publisher's.
         LoadError::ReservedName => ERRNO_PERM,
         // More than its parent holds, from a parent that is no launcher.
         LoadError::BeyondParent => ERRNO_PERM,

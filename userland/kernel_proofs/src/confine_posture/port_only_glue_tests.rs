@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Where the port-only rule (H-02) is used: the group check asks it for the
+//! Where the port-only rule is used: the group check asks it for the
 //! claim and each holder, the group marks members across a shared bus, the
 //! capsule records it, and the claim closes Memory Space for one; with no
 //! unit to confine it, every verdict is asked with it (H-02b, port_only_verdict_glue_tests.rs).

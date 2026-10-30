@@ -24,7 +24,7 @@ use super::window::{Window, PAGE_SIZE};
 use crate::hardware::broker::grant::{self, USER_MMIO_BASE, USER_MMIO_END};
 use crate::memory::addr::{PhysAddr, VirtAddr};
 
-/// From `pid`'s own window (K10), given back on every refusal here.
+/// From `pid`'s own window, given back on every refusal here.
 pub(super) fn install(pid: u32, w: &Window, kind: MemType) -> Result<VirtAddr, MmioMapError> {
     let pages = w.page_bytes / PAGE_SIZE;
     let user_va = grant::reserve_user_va(pid, pages).ok_or(MmioMapError::NoVaSpace)?;

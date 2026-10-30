@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The receiver a share names (K20): a live process other than the caller's,
+//! The receiver a share names: a live process other than the caller's,
 //! never a guest. Naming the caller's own process records nobody: it only
 //! hands the owner its handle, which it may attach and present anyway.
 

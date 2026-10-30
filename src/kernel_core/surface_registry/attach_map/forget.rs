@@ -18,7 +18,7 @@ use crate::kernel_core::surface_registry::attach_map::state::ATTACHES;
 use crate::kernel_core::surface_registry::types::SurfaceHandle;
 
 /// Whether a record was there to forget: two releases of one record race to
-/// here, and only the one that removed it gives back its reference (L54).
+/// here, and only the one that removed it gives back its reference.
 pub fn forget(pid: u32, handle: SurfaceHandle) -> bool {
     let mut v = ATTACHES.lock();
     let before = v.len();
@@ -28,7 +28,7 @@ pub fn forget(pid: u32, handle: SurfaceHandle) -> bool {
 
 /// Forget the one record `pid` holds for `handle` at `base`: a record an
 /// attach wrote after the view at `base` came down is another view, and it
-/// keeps its own record and its own reference (L57).
+/// keeps its own record and its own reference.
 pub fn forget_at(pid: u32, handle: SurfaceHandle, base: u64) -> bool {
     let mut v = ATTACHES.lock();
     let at = v.iter().position(|r| r.pid == pid && r.handle == handle && r.base_va == base);

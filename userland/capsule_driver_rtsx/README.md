@@ -85,6 +85,7 @@ size. A card-detect change latched in BIPR has the card identified again.
 Teardown powers a card down, stops both engines, masks BIER and writes the
 PCI command with Bus Master clear before the claim is released (C2). The
 release is the real guard; the driver's own clear takes effect once the
+kernel stores exact bits.
 
 ## Failure model
 

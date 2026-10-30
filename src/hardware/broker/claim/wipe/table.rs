@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The wipe records (L78), one per function at most, beside the claims and
+//! The wipe records, one per function at most, beside the claims and
 //! taken under them (claims, then wipes). A record is the kernel's, never a
 //! thread's, so no kill can strand it; `busy` marks one a step is acting on
 //! with no lock held, so two steppers never write the same function.

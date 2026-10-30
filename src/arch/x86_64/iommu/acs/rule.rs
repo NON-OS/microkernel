@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Devices below one PCIe switch that reach each other past the IOMMU (L72).
+//! Devices below one PCIe switch that reach each other past the IOMMU.
 //! A switch routes a request from one of its downstream ports to another
 //! itself, unless the port the request enters sends it upstream: the ACS
 //! controls (PCIe base, the ACS extended capability; recalled, unverified).

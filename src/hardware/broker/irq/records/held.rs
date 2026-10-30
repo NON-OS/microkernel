@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A grant acted on while its record stands (L77). Unbind and both drains
+//! A grant acted on while its record stands. Unbind and both drains
 //! take the record out under the records' lock before their teardown masks
 //! the line, so a mask after a removal always lands after what `f` wrote.
 

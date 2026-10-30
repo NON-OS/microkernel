@@ -34,7 +34,7 @@ pub(super) fn stop_bus_master(device_id: u64) {
     };
     let cfg = ConfigSpace::new(handle.address);
     // Every caller stops while its own entry still names the device, so no
-    // newer claim's can be stopped (L75). Read back, so the log says what the
+    // newer claim's can be stopped. Read back, so the log says what the
     // device holds.
     let done = cfg.update_command(|c| c & !CMD_BUS_MASTER).is_ok();
     let off = done && matches!(cfg.is_bus_master_enabled(), Ok(false));

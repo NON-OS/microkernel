@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * What each market answer makes of a named purchase's reading (B8): the
+ * What each market answer makes of a named purchase's reading: the
  * next call, or once GET_APP answered, the terms with the market's names
  * for them. An answer that does not read, terms read_named refuses, or an
  * answer for other names than the store's ends it there.

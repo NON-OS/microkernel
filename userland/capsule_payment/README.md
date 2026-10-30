@@ -3,6 +3,7 @@
 ## Role
 
 `capsule_payment` is the meter. It signs cumulative NOX
+vouchers on prefunded channels, within a budget the owner sets from the
 wallet. Each voucher is signed with the meter's own secp256k1 key, through
 the keyring's `OP_SIGN_TYPED_DATA` entry 1. The accounting is
 `nonos_nox_meter`'s; this capsule is the I/O around it.
@@ -31,8 +32,10 @@ is checked by which registry names the kernel-stamped pid owns
 (`nonos_nox_meter::caller`).
 
 `nonos-capsule-payment` turns the meter on. No profile array names it: the
+owner adds it to one after re-signing. The kernel mirror is
 `src/userspace/capsule_payment`. Init spawns it with the desktop services
 (`spawn_plan/payment.rs`), after the keyring and the vfs. A change to the caps
+or the ELF needs the owner to re-sign the manifest and id-cert and re-enroll.
 
 ## Keys
 
@@ -67,7 +70,7 @@ status defined there.
 | 5 ACCOUNT | wallet | first index u8 | `Account` |
 | 6 SET_BUDGET | wallet | `SetBudget` | none |
 | 7 | - | - | EINVAL: NXL1 is not in v1 |
-| 8-11 | - | - | EINVAL until ORDER_* land with escrow (B5) |
+| 8-11 | - | - | EINVAL until ORDER_* land with escrow |
 | 12 OPEN | wallet | `OpenStart` or `OpenConfirm` | START: a job id (u32), or EBUSY; the job's result is approveTx[32] and openTx[32], both signed by the meter's key and broadcast by settle, never above the config's fee caps (EGAS); CONFIRM: the channel id, once a ChannelOpened matching the request is mined (EAGAIN before) |
 | 13 TOPUP | wallet | `TopUp` | a job id, or EBUSY; its result is approveTx[32] and topUpTx[32], signed by the meter's key and broadcast by settle |
 | 14 CLOSE | wallet | `Close` | a job id, or EBUSY; its result is closeTx[32], or ETIME before expiry plus the contract's GRACE. Anyone may close: the meter's key is a convenience |

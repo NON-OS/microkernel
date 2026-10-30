@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! unit_base's check against this machine: its memory map and the CPU's
-//! physical address width (K11). Without a memory map no base can be shown
+//! physical address width. Without a memory map no base can be shown
 //! not to be RAM, so every base is refused, as MMIO grants are.
 
 use super::unit_base::{check_base, BadBase};

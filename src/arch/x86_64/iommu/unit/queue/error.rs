@@ -37,7 +37,7 @@ pub(super) fn take_error(
 ) -> Option<VtdError> {
     let status = unit.read32(offsets::FSTS);
     if status & offsets::FSTS_IQE != 0 {
-        // A head past the ring is a failed unit, never an index (K12).
+        // A head past the ring is a failed unit, never an index.
         let Some(head) = offsets::queue_slot(unit.read64(offsets::IQH)) else {
             serial::println(b"[VT-D] IOMMU queue head past its ring; the unit has failed");
             return Some(VtdError::QueueHeadOutOfRange);

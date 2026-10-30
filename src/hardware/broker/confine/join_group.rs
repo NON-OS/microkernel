@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A claim refused for its isolation group (K11b), both ways (H-03); the
+//! A claim refused for its isolation group (K11b), both ways; the
 //! line names the device, its hop, and the process that holds it.
 
 extern crate alloc;

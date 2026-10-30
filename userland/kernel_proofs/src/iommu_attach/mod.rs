@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! An attach whose invalidation fails takes its context entry back out,
-//! and a destroyed domain gives back its tables (K12). The real steps and
+//! and a destroyed domain gives back its tables. The real steps and
 //! walk are included by path.
 
 #[path = "../../../../src/arch/x86_64/iommu/device/attach_steps.rs"]

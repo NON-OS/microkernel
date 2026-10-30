@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The meter's refusal of a budget, in words a person can act on (B8).
+ * The meter's refusal of a budget, in words a person can act on.
  */
 
 use nonos_payment_proto::{EAGAIN, EINVAL, ENFILE, ENOPERSIST, EPERM};

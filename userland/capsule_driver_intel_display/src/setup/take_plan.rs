@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The plan a takeover follows (G-72): each lit output's monitor read
+//! The plan a takeover follows: each lit output's monitor read
 //! once, the GGTT entries this driver's windows will take, and which lit
 //! surfaces are firmware's. A lit surface reaching into those entries, or
 //! into the upper half of the GGTT, is a dead driver's leftover, not

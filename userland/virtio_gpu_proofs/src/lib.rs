@@ -34,7 +34,7 @@
 //! run with new bytes), and the wire bytes of each command, checked by a
 //! part on its own thread that consumes the ring the way a device does.
 //!
-//! And the driver on the display wire (G-77): a host model answers the ring
+//! And the driver on the display wire: a host model answers the ring
 //! on the driver's own thread through the yield each wait makes, keeps the
 //! host's side (resources, their pixels and backings, what each scanout
 //! shows), and can be cued to stop answering, or to kill the driver, at any

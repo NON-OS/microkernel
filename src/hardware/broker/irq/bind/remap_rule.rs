@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which message a device's interrupt gets (K3), pure. Under remapping only
+//! Which message a device's interrupt gets, pure. Under remapping only
 //! an entry the kernel wrote for the device's own requester id and vector;
 //! a compatibility format message, which can name any vector or NMI, INIT
 //! or SMI on any CPU, only while remapping is off and under the

@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The boot framebuffer as a device (L31). Its record is on the firmware bus
+//! The boot framebuffer as a device. Its record is on the firmware bus
 //! (`BUS_KIND_FIRMWARE`, device `FIRMWARE_BOOT_FRAMEBUFFER`, class display),
 //! with bar 0 the window from the first pixel's page to the end of the last
 //! row, prefetchable, its `aux` the first pixel's offset into that page. Only
 //! the process serving `driver.bootfb0` may claim it. `mk_boot_framebuffer`
 //! answers the rest, for the holder only. Cap requirement: `Mmio`.
 //!
-//! Once a GPU driver's claim takes the scanout (L79), the holder's mapping
+//! Once a GPU driver's claim takes the scanout, the holder's mapping
 //! shows a kernel sink page, `mk_boot_framebuffer` answers -ENODEV for good,
 //! a release -ENODEV and a new claim -EPERM for the rest of the boot. No DMA
 //! is ever granted against this record.

@@ -16,7 +16,7 @@
 
 //! The names a loaded capsule's manifest declares, held to the image's
 //! reservation and to its publisher's namespace before anything is spawned
-//! (K18). The manifest is the one the spawn then verifies, byte for byte,
+//! The manifest is the one the spawn then verifies, byte for byte,
 //! so a refusal here rests on what the signature will cover.
 
 use super::super::error::LoadError;

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The driver's products of sizes, clocks and rates held at u32's edges
-//! (G-70), each against the test's own reading in u128: the plane's
+//! each against the test's own reading in u128: the plane's
 //! checks, a mode set's sizes, the HDMI DCO, link M/N, GGTT placement,
 //! watermarks and the backlight.
 

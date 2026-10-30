@@ -59,3 +59,4 @@ virtio-rng capsule serving raw bytes to the kernel only (held endpoint); the ker
 ## kernel src/drivers/virtio_rng: skeleton
 
 
+- low: `device/random.rs:28` 100,000-spin timeout under the device lock; `device/io.rs:16` files over 75 lines and statics in mod.rs.

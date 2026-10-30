@@ -16,7 +16,7 @@
 
 //! The IO-APICs a DRHD names (VT-d 3.4, 8.3.1, scope type 3): each one's
 //! id and the PCI path to its requester id, which a remapping entry for its
-//! lines must name (K3). Pure; kernel_proofs::dmar_scope::ioapic_tests.
+//! lines must name. Pure; kernel_proofs::dmar_scope::ioapic_tests.
 //! dmar_ioapic_source turns a path into the requester id.
 
 use super::dmar_scope::MAX_PATH;

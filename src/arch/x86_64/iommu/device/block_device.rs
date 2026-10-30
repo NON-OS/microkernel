@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A faulting device blocked (K12): its context entry cleared and every
+//! A faulting device blocked: its context entry cleared and every
 //! unit's caches dropped, so it reaches nothing until its holder releases
 //! it and claims it again. Only a device bound to a capsule's domain is
 //! blocked; one firmware's reserved memory keeps is left as it is.

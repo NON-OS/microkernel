@@ -17,7 +17,7 @@
 //! Intel eMMC hosts: the SD Host Controller on Atom, Celeron and Pentium
 //! Silver platforms that the board's soldered eMMC hangs off, class 08h
 //! subclass 05h. The ids are unverified until re-sourced from Intel's
-//! datasheets (L56). The same platforms carry SD card
+//! datasheets. The same platforms carry SD card
 //! and SDIO hosts with the same class; they are not a disk and are not
 //! listed. A host here starts the SD host controller capsule,
 //! driver.sdhci0.

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A holder's grant window and quota (K10): the kernel's own va_window.rs,
+//! A holder's grant window and quota: the kernel's own va_window.rs,
 //! by path, and quota.rs where dma_wipe's records.rs finds it.
 
 #[cfg(test)]

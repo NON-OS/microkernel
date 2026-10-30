@@ -20,7 +20,7 @@
 //! first (`serve`, F-111). Firmware's own critical shutdown would cut power
 //! without the wipe. The shell's Power Off is not served here: `power.off`
 //! has one owner, capsule_power, which asks this capsule to prepare
-//! soft-off (OP_PREPARE_SLEEP) before its own AdminShutdown (P-08).
+//! soft-off (OP_PREPARE_SLEEP) before its own AdminShutdown.
 
 mod button;
 pub mod rule;

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a receive does after finding its inbox empty, pure (K14). A
+//! What a receive does after finding its inbox empty, pure. A
 //! `timeout_ms` of 0 waits for ever, as it always has; NO_WAIT looks once;
 //! anything else waits that long. kernel_proofs::syscall::microkernel::wait.
 

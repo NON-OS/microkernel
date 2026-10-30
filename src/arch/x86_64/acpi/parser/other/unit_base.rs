@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whether an IOMMU register base firmware gave can be mapped, pure (K11).
+//! Whether an IOMMU register base firmware gave can be mapped, pure.
 //! The kernel writes these registers: a base over RAM, past the address
 //! width or over another unit would have it write memory that is not an
 //! IOMMU's. A base refused here is never mapped, and its unit is left off.

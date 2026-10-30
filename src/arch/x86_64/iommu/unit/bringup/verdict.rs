@@ -34,7 +34,7 @@ pub(super) fn not_built_in() {
 }
 
 /// Every enumerated device starts blocked or in its reserved memory alone;
-/// anything else is denied. Units left off (K11) are not programmed, and an
+/// anything else is denied. Units left off are not programmed, and an
 /// operator has to know that before trusting the machine.
 pub(super) fn enabled(assigned: usize, reserved: usize) {
     let mut line = Line::new();

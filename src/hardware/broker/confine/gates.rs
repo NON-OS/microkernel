@@ -29,19 +29,19 @@ use crate::memory::iommu::DeviceAddress;
 /// the aliases its DMA carries, which join.rs attaches with it.
 pub(super) fn admit(device_id: u64) -> Result<(Vec<Member>, Vec<DeviceAddress>), Refused> {
     super::interrupts::admit()?;
-    // A virtio device without ACCESS_PLATFORM ignores the domain (K5).
+    // A virtio device without ACCESS_PLATFORM ignores the domain.
     if !super::virtio::may_confine(device_id) {
         say(b"refused: virtio without ACCESS_PLATFORM under an IOMMU");
         return Err(Refused);
     }
-    // What it reaches without the IOMMU is its group (K11).
+    // What it reaches without the IOMMU is its group.
     reach(device_id).ok_or_else(|| {
         say(b"refused: no isolation group, behind a VMD or a looped bus");
         Refused
     })
 }
 
-/// A device another capsule holds, as a claim beside it sees it (H-03): its
+/// A device another capsule holds, as a claim beside it sees it: its
 /// place, its group (None when unreadable: refuses), its DMA's requester ids.
 pub(super) struct Peer {
     pub at: (u8, u8, u8),

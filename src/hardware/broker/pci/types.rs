@@ -52,9 +52,9 @@ pub enum PciWriteError {
     OffsetNotAllowed,
     BitsNotAllowed,
     PlatformError,
-    /// Bus Master asked for by a caller without Dma (K6).
+    /// Bus Master asked for by a caller without Dma.
     BusMasterWithoutDma,
-    /// Memory Space asked for by a caller without Mmio (H-02).
+    /// Memory Space asked for by a caller without Mmio.
     MemorySpaceWithoutMmio,
 }
 

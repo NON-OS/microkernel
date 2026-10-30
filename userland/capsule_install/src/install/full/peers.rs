@@ -26,7 +26,7 @@ use nonos_libc::{mk_yield, Deadline};
 const PEERS_WAIT_MS: u64 = 60_000;
 
 /* The compositor's port, the input router's, and the compositor's pid: the
- * one process the overlay is shared with (K20). */
+ * one process the overlay is shared with. */
 pub(super) fn wait() -> Result<(u32, u32, u32), &'static str> {
     let until = Deadline::after_ms(PEERS_WAIT_MS);
     loop {

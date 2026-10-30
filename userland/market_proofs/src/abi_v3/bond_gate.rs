@@ -19,7 +19,7 @@ use nonos_marketplace_abi::{SettleMode, BOND_MAX_AGE};
 
 use super::fixtures::sold;
 
-/// The bond gate (B6): readings against the entry that names the bond.
+/// The bond gate: readings against the entry that names the bond.
 const NOW: u64 = 1_800_000_000;
 const MIN: u128 = 1_000;
 

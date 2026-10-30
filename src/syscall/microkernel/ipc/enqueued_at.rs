@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! When a message was queued, on the clock `MkTimeMonotonic` reads (K14),
+//! When a message was queued, on the clock `MkTimeMonotonic` reads,
 //! pure. The message is stamped on the timestamp clock; its age on that
 //! clock, taken from uptime now, is its enqueue time in uptime. A stamp in
 //! the future reads as now. kernel_proofs::syscall::enqueued_at.
