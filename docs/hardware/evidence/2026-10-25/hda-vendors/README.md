@@ -34,7 +34,9 @@ values alone, no code taken).
 ## Boot (`qemu.txt`, `hda.serial.log`)
 
 `--lane iommu=intel --lane usb-tablet`: q35, VT-d, intel-hda with QEMU's
+duplex codec (1af4:0022). The HDA lines are the same as main's (the pointer-range fix's
 after.serial.log): `[HDA] controller 8086:2668`, `codecs mask=0001`, `path
 cad=0 pin=03 dac=02 hops=2`, `ready: outputs muted`, and `[AUDIO] output
 driver.hda0`; no vendor step touched QEMU's codec. The desktop's first frame
 let through; the only `[EXIT]` lines are the three NIC drivers with no card.
+Requester ids are replaced by `<bdf>` (K10).

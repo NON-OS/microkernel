@@ -1,4 +1,4 @@
-"""Scratch (H-09): from the first frame on, move the absolute pointer between two
+"""Scratch: from the first frame on, move the absolute pointer between two
 targets every few seconds and say, per move, whether the cursor appeared at
 the target (exact), where a 1024x768 range puts it (default), or neither.
 

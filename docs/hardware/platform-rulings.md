@@ -23,7 +23,10 @@ src/hardware/broker/confine/join_group.rs). A function of a multi-function
 device shares a group with its sibling functions unless the claimed
 function's own ACS redirects (acs_path.rs hop 0; an Intel root complex
 integrated endpoint on bus 0 counts as redirecting, acs_layout.rs). Since
+the two-way alias rule the relation holds both ways: a claim is also refused when a device
 another capsule holds has it in its own group (port_only.rs `blocked_by`),
+so no outcome depends on which side claims first. Booted in QEMU (TCG, throwaway key, not a sealed image), before and after the two-way alias rule on q35 with VT-d, alone and with an e1000, EHCI, a USB stick, or HDA beside an e1000: the same refused lines both ways (0, but for the HDA beside the e1000, refused for its group), and no group read as unreadable. Since
+the port-only rule a **port-only** claim (a capsule holding neither Dma nor Mmio, with
 Memory Space and Bus Master cleared at the claim and kept off) neither
 joins nor blocks a group, but across a bridge to a shared conventional bus
 (confine/port_only.rs). smbus is the one port-only driver claiming a PCH

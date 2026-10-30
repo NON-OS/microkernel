@@ -157,7 +157,7 @@ A desktop on a UEFI Arm board, whether a Raspberry Pi 5 with community EDK2 firm
   - a device no IOMMU unit translates is refused, and on x86 a claim without interrupt remapping is refused, except on a Standard boot with no unit in service at all, which takes the no-IOMMU posture: claims go ahead unconfined and the boot says so (`src/memory/iommu/no_iommu.rs`); Hardened and Air-Gapped stop instead;
   - a virtio device must offer `ACCESS_PLATFORM`.
 
-  VT-d and AMD-Vi are both on in every image and block faulting sources. AMD-Vi has booted enforcing under QEMU's `amd-iommu` (`docs/hardware/evidence/2026-10-25/i7-seeded-iommu/`), not yet on an AMD machine. A QEMU boot with no vIOMMU, not Hardened or Air-Gapped, drives virtio-gpu unconfined under the posture, with `device DMA not confined by hardware` on the splash (`docs/release-evidence/0.9.3/gpu-469dddb58-no-iommu/`).
+  VT-d and AMD-Vi are both on in every image and block faulting sources. AMD-Vi has booted enforcing under QEMU's `amd-iommu` (`docs/hardware/evidence/2026-10-25/seeded-iommu/`), not yet on an AMD machine. A QEMU boot with no vIOMMU, not Hardened or Air-Gapped, drives virtio-gpu unconfined under the posture, with `device DMA not confined by hardware` on the splash (`docs/release-evidence/0.9.3/gpu-469dddb58-no-iommu/`).
 
 ### What a real GPU path needs
 

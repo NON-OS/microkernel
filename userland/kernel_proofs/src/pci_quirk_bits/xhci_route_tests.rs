@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! H-10: an Intel 7/8/9 series xHCI's driver routes its ports, set or clear,
+//! an Intel 7/8/9 series xHCI's driver routes its ports, set or clear,
 //! within firmware's masks, on the cited ids, never while an EHCI on its bus
 //! is held; through its own claim (pci/write.rs), so a clear is its own too.
 

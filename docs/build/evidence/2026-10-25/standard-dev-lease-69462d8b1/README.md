@@ -1,9 +1,12 @@
+# standard-dev leases: booted on main 69462d8b1, and before the profile fix
 
 `tools/nonos-dev-image --profile standard` built and sealed standard-dev
 with throwaway keys, in its own copy of the tree; no key under `.keys/` was
 read. Two images, one lane:
 
+- main **69462d8b1**, which has the profile fix (1a9842924): its sha256 is
   4d645114c2c35d7ea41b45b41440eae53292a8c0343b8330f7438588b649a087;
+- main-era **22cf8843e**, which predates the profile fix.
 
 ## The lane
 
@@ -31,6 +34,7 @@ state=3; setup was reached (`setup.png`, "[SETUP] keyboard held").
 
 ## Why 22cf8843e's serial was silent
 
+Before the profile fix, the nix config took `capsule-serial-debug` out of a profile's
 development twin as well as the profile, so a standard-dev kernel granted no
 capsule Debug (bit 0x100): net.core spawned with 0x47D, not 0x57D
 (`serial-pre-h08-22cf8843e-net.txt`), and every capsule's own lines, the

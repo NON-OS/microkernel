@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A port-only claim (H-02, confine/port_only.rs): its confinement, asked
+//! A port-only claim (confine/port_only.rs): its confinement, asked
 //! once, and its Command register.
 
 use crate::drivers::pci::config::ConfigSpace;
