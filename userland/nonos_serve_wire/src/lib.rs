@@ -16,7 +16,7 @@
 
 //! The wire between the capsule a box's SERVE_ONE names and the Linux
 //! personality serving that box's one loopback port
-//! (docs/design/serve-one.md). The capsule calls the endpoint
+//! (the SERVE_ONE design). The capsule calls the endpoint
 //! `linux.serve.<its name>` with one frame and gets one frame back.
 //!
 //! Every frame, asked or answered, is a 12-byte header and then `len` bytes:

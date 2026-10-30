@@ -13,7 +13,7 @@ Booted on qemu-dev, against the relay on 10.0.2.2:8080, with steps in drive.step
   go`). vim-common holds about 1800 files. capsule_vfs gives each owner 512
   names (NAMES_PER_OWNER = MAX_FILES / 4) and 2048 in all
   (userland/capsule_vfs/src/store/fdtable/budget.rs:42, types.rs:20).
-  (booted; host-read)
+  (booted; read from the code)
 - Nothing of the failed package stayed. (booted)
 
 The next unit is the store's name budget for an install, or an install that

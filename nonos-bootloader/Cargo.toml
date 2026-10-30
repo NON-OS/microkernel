@@ -20,7 +20,7 @@ name = "nonos_boot"
 path = "src/main.rs"
 
 [dependencies]
-# The attestation path check, shared with the kernel, and the STARK lane's gate
+# The attestation path check, shared with the kernel, and the STARK project's gate
 # verifier. The kernel is admitted only when its path and its STARK proof over
 # the same slot both check. Pinned by rev.
 nonos-attest-path = { path = "../nonos-attest-path" }

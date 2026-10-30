@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The sizes every frame is held to, from docs/design/nsh-v1-wire.md.
+//! The sizes every frame is held to, from the nsh/1 specification.
 
 /// The length field in front of every frame.
 pub const LEN_BYTES: usize = 4;

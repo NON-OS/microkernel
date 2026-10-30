@@ -121,7 +121,7 @@ opens and carries it.
   at once is ENOBUFS. net.sockets' mixnet socket is never used: its frames carry an address and
   refuse every name, which left a guest with no way to reach a host by name over Nym.
 - Direct: Nym as well. A guest never reaches the network directly, whatever the default. That
-  is deliberate (`net/guest_route.rs`, `design/install-network.md`).
+  is deliberate (`net/guest_route.rs`).
 - A close does not lose what was written. A Nym stream closed, or left by a guest that exits,
   with written bytes net.socks5 has not taken yet is kept, held by no socket, and carried on by
   the serve loop until they have gone, in order and once, for 10 s at most; when the family
@@ -242,7 +242,7 @@ volume). A name in the namespace that is no shipped tier is reason 13. Proofs:
   model while an internet socket is open.
 - A program read from the store is checked by `prove` in `start_guest.rs` before it runs, and
   refused if the check fails (`origin.rs`, `attest.rs`).
-- Package keyrings are pinned at build time by `build.rs`; see `design/package-trust.md`.
+- Package keyrings are pinned at build time by `build.rs`.
 
 ## What a guest can make this capsule hold
 

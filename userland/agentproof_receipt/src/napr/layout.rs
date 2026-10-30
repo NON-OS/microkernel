@@ -23,7 +23,7 @@ pub const RECORD: usize = 240;
 pub const BOX_MAX: usize = 255;
 pub const POLICY: usize = 256;
 pub const LAUNCHER: usize = 32;
-/// nsh's cap on a version 5 document (docs/design/nsh-v1-wire.md).
+/// nsh's cap on a version 5 document (the nsh/1 specification).
 pub const DOC_MAX: usize = 1088 * 1024;
 /// One MkAttestEntries entry (src/security/attest_registry/format.rs).
 pub const ENTRY: usize = 45;

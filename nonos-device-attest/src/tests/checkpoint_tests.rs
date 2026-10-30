@@ -17,7 +17,7 @@
 //! The checkpoint rule in all four regions: the row a region's last
 //! compression writes, whose rate lanes the root or tag pin reads.
 //!
-//! The STARK lane's `checkpoint_test`, over this circuit. Every cell the
+//! The STARK project's `checkpoint_test`, over this circuit. Every cell the
 //! per-row rules read on a checkpoint row and its successor, changed alone, is
 //! refused. And a checkpoint made to show a digest its walk never reached is
 //! refused in every region: a wrong sibling below it with the true root shown,

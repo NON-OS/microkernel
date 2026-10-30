@@ -22,7 +22,7 @@ capsule_linux notes in the kernel's seal, and what an isolation proof is
 checked against.
 
 `unlisted` is the box for a program that arrived with no policy: a terminal,
-its own home, and exec. That default is the owner's decision (O1). Changing it
+its own home, and exec. That default is the maintainers' decision (O1). Changing it
 is changing `UNLISTED_MASK`.
 
 `market_ready` is the rule a market release is held to. The syscall set must

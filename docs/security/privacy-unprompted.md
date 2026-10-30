@@ -64,4 +64,4 @@ survives a reboot.
 Both anonymity clients start on every boot that runs the network, under every
 network choice, Direct included. No setting stops one without stopping the
 network. Starting each only when the chosen network needs it is proposed, and
-waits on the owner's decision.
+waits on the maintainers' decision.

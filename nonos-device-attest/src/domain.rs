@@ -22,7 +22,7 @@
 pub const LEAF_DOMAIN: u64 = 0x4E4F_4E4F_534C_5633;
 
 /*
- * Frozen with the STARK lane on 2026-09-30, pinned by known answers in
+ * Frozen with the STARK project on 2026-09-30, pinned by known answers in
  * tests/kat_tests.rs. Changing either moves every commitment and every tag.
  */
 /// "NONOSDV1": a device commitment.

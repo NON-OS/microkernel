@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""Seed nsh_wire's fuzz targets with one valid body of each kind (docs/design/nsh-v1*.md)."""
+"""Seed nsh_wire's fuzz targets with one valid body of each kind (the design notesnsh-v1*.md)."""
 
 import argparse
 import pathlib

@@ -5,7 +5,7 @@ vfs hold, nonos_linux_pack) on main 1bd589a16, through the host relay on 8080.
 
 **Not as shipped:** one local commit, never pushed, made `dev_market.chosen()` false.
 Since f6fc7351f a development seal lists only the four devtest entries, so `linux.vim` was
-not in the market. The Lead ruled the fix as b/dev-market-union. The commit changes which
+not in the market. The maintainers ruled the fix as b/dev-market-union. The commit changes which
 catalogue the seal signs, nothing in the install or the run.
 
 ## What the boots show (booted)

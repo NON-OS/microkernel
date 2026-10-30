@@ -85,7 +85,7 @@ or choose them in the Marketplace's Linux tab. *host-tested* (the listing and th
 ## A live session or a kept home
 
 - **Live, the default.** A home lasts until the machine powers off. Then the chat history and the keys are gone, for good.
-- **Kept.** On a machine installed to disk, with keeping chosen at setup, a home is kept across reboots, sealed under this machine's key ([kept homes](../design/kept-homes-and-installs.md)). *design*: kept homes are not in yet.
+- **Kept.** On a machine installed to disk, with keeping chosen at setup, a home is kept across reboots, sealed under this machine's key (kept homes). *design*: kept homes are not in yet.
 - **The size limit.** A kept home holds 16 MiB and 128 names in 0.9.3. A long chat history can pass that.
 
 ## How it reaches the network

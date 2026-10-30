@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The names a Linux app's kept home and kept installs have on the data
-//! volume (docs/design/kept-homes-and-installs.md): a home's two slots
+//! volume (the kept-homes design): a home's two slots
 //! (`/h-`), the installs' index (`/li.`) and the kept packs (`/lp-`). Only
 //! a caller holding ForeignExec, which only the Linux personality holds,
 //! reads, sizes, brings in or removes one. Any other caller finds them

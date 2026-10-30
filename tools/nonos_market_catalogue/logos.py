@@ -13,7 +13,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""A listing's logo (docs/design/market-logos.md): the upstream file,
+"""A listing's logo (the logos design): the upstream file,
 vendored byte for byte where its recipe's `logo` names it, and the raster
 the device gets, made once by a maintainer and committed at
 nonos-data/market/logos/linux.<package>.rgba. A recipe may name a logo only
@@ -36,7 +36,7 @@ from .digest import blake3
 
 RECORD = "docs/market/logos-licences.md"
 RASTERS = "nonos-data/market/logos"
-# The owner's ruling on the UNCLEAR rows, as the record writes it in the row.
+# The maintainers' ruling on the UNCLEAR rows, as the record writes it in the row.
 RULING = 'owner 2026-10-25: "Use them anyway"'
 # The store's tile, and the largest raster drawn at its own pixels.
 TILE, OWN_MAX = 36, 48
@@ -53,7 +53,7 @@ def verdicts(text: str) -> dict:
 
 
 def may_show(verdict: str) -> bool:
-    """CLEAR, or UNCLEAR with the owner's ruling written beside it."""
+    """CLEAR, or UNCLEAR with the maintainers' ruling written beside it."""
     return verdict.startswith("CLEAR") or (verdict.startswith("UNCLEAR") and RULING in verdict)
 
 
