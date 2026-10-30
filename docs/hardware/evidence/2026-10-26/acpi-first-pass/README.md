@@ -1,7 +1,7 @@
 # L55: init waits for the ACPI capsule's first publish pass, booted
 
 Both images were built from b04b/net-late-bound 222d58dbc, which is main
-458fbae92 (it has L55, 8d69daac91) with net.core's item 4, by
+458fbae92 (it has L55, 15a2b2cbd6) with net.core's item 4, by
 `tools/nonos-dev-image` with throwaway keys. Both booted on the Intel IOMMU
 lane, with virtio-net on QEMU user networking, 6 GiB, a software TPM and
 15 minutes each, under TCG.

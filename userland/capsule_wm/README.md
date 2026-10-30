@@ -104,8 +104,7 @@ drops kind 2, so the envelope keeps version 1.
 
 ## Tiling (in progress)
 
-`src/tile/` is the layout engine for the keyboard-driven desktop (letter
-HANDOFF/letters/gpu/09-desktop-plan.md, step 1). The capsule does not
+`src/tile/` is the layout engine for the keyboard-driven desktop. The capsule does not
 declare the module yet, so it changes no image; `wm_proofs` holds it.
 
 - A workspace's tiled windows form a split tree (`node.rs`). A split lays

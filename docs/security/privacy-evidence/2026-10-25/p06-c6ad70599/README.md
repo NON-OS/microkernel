@@ -1,6 +1,6 @@
 # P-06: user pages never GLOBAL, the desktop boot
 
-Booted for Platform's P-06 at the Lead's request. The question: do user mappings
+Booted for Platform's P-06 at the maintainers' request. The question: do user mappings
 still work after the change?
 
 ## The image

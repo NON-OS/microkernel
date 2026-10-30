@@ -6,8 +6,7 @@ simplex.ui, the native SimpleX chat window, a no_std capsule on
 `nonos_app_skeleton` and the toolkit. It holds no network and no key. It
 speaks the official simplex-chat core's chat API, JSON text frames over the
 WebSocket the CLI serves when started with `-p PORT`, and the core runs in
-its own box with its own database (simplex.core,
-[the letter](../../HANDOFF/letters/2026-10-27-s2-to-s3-s1-simplex-split.md)).
+its own box with its own database (simplex.core).
 
 ## Layout
 

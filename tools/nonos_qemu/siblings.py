@@ -18,7 +18,7 @@
 functions 0 and 1 of one device behind a PCIe root port, as an Intel PCH
 puts HDA (1f.3) beside its I219 LAN (1f.6). Behind a root port neither is
 a root complex integrated endpoint and neither has ACS, so the two share an
-isolation group as on the PCH (HANDOFF/hardware/platform.md), and the
+isolation group as on the PCH (docs/hardware/platform-rulings.md), and the
 broker gives it to one capsule. Give it a nic= lane, so the NIC beside the
 HDA is an Intel model rather than virtio. It moves devices machine.py
 already makes, so like iommu.py it works on the finished command line,

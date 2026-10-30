@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * After a Sign press (B8, the Lead's ruling on commit 4): no retry or
+ * After a Sign press (B8, the maintainers' ruling on commit 4): no retry or
  * re-quote signs or broadcasts on its own; each Turn here and in
  * unsure.rs leaves no press standing, so only the user's next guarded
  * Sign signs. Signed, it is in the wallet's one send ledger before it
