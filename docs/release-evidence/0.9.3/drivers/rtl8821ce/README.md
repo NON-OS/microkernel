@@ -5,10 +5,10 @@
 - **Machine:** a HP laptop, the Gemini Lake bench machine (Realtek
   RTL8821CE, 10ec:c821, beside a Samsung MZVLQ256HBJD NVMe disk).
 - **Image:** a sealed image built from main at 0bd7c2263, the main after the
-  isolation-group fix (82ee1a3110: two vendor drivers may share an
+  isolation-group fix (3b5bb25c8f: two vendor drivers may share an
   isolation group on a standard boot). That fix is what let the Wi-Fi card
   be claimed beside driver.nvme0, which had held their shared group since
-- **Seal:** the release report is on their seal of main 8f2d183dda (the
+- **Seal:** the release report is on their seal of main 680c92e3fc (the
   the developers's G and landing, which carries the fix and the driver
   landing ad2a58a01).
 - **What it proves:** `capsule_driver_rtl8821ce` brings the card up, scans and

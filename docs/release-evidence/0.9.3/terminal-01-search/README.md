@@ -1,11 +1,11 @@
 # Terminal 01: history search, booted 25 October 2026
 
 Esc leaves Ctrl+R with the line put back, the prompt names the search and
-shows its needle whole, and Enter runs nothing on no match (4f3dd5ebe1).
+shows its needle whole, and Enter runs nothing on no match (5ee1a41c7a).
 
 ## How it ran
 
-- Image: `make dev-image` at ada76f8639 (qemu-dev, throwaway test keys).
+- Image: `make dev-image` at 4b8d474004 (qemu-dev, throwaway test keys).
 - Machine: QEMU TCG, no KVM, 4 CPUs, 8 GiB, fresh disk, 1920x1080 on
   virtio-gpu.
 - Driven over QMP: Enter through the 13 setup steps, "Not now" on the live

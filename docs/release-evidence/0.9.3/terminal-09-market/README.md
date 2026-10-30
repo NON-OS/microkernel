@@ -1,10 +1,10 @@
 # Terminal 09: market list, booted 25 October 2026
 
-market list prints as pacman prints a search (f70c90de15).
+market list prints as pacman prints a search (74717aa454).
 
 ## How it ran
 
-- Image: `make dev-image` at 51d911fa8b (qemu-dev, throwaway test keys).
+- Image: `make dev-image` at 2cd5a2aad5 (qemu-dev, throwaway test keys).
 - Machine: QEMU TCG, no KVM, 4 CPUs, 8 GiB, fresh disk, 1920x1080.
 - Driven over QMP: setup on its defaults, Ctrl+Alt+T, then typed keys:
   `neofetch`, `c` Tab, Ctrl+U, Ctrl+L, `market list`, `theme`, Down, Down, Esc.

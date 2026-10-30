@@ -1,13 +1,13 @@
 # Terminal 14: the gate boot, booted 26 October 2026
 
 The F12 drop-down, the row-only repaint, crisp banner blocks, the dimmed
-inactive pane and inactive tabs as pills, on main merged at b4ed0d9eee.
+inactive pane and inactive tabs as pills, on main merged at 2e1795bb04.
 The app skeleton's `wants_rect` is in every app's image, so this is a gate
 boot: the IOMMU lane, setup to the desktop.
 
 ## How it ran
 
-- Image: `make dev-image` at b4ed0d9eee (qemu-dev, throwaway test keys).
+- Image: `make dev-image` at 2e1795bb04 (qemu-dev, throwaway test keys).
 - Machine: QEMU TCG, no KVM, `--lane iommu=intel` (VT-d translation on,
   serial `[VT-D] translation enabled`), 4 CPUs, 8 GiB, fresh disk, 1920x1080.
 - Driven over QMP at 120 ms a key: setup on its defaults, Ctrl+Alt+T, two

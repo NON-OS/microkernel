@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The frame's measures at one to one (the design notes, Window
+//! The frame's measures at one to one (docs/design/ui-identity.md, Window
 //! chrome). Each grows by the display scale through scale.rs.
 
 pub const BORDER_PX: u32 = 1;

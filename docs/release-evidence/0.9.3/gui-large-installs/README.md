@@ -1,7 +1,7 @@
 # Large Linux installs on the heap fix
 
-One TCG boot (4 CPUs, 8 GiB) of a dev image of gui at 6b727f1736: main
-with the heap fix (heap-bins, the same heap code as main's 913c7b96ce),
+One TCG boot (4 CPUs, 8 GiB) of a dev image of gui at bd67f166c1: main
+with the heap fix (heap-bins, the same heap code as main's 745089f0b8),
 the installer's virtual-need fix, and boot-test recipes for KeePassXC and
 gnome-authenticator. Three installs one after another in the Terminal:
 swayimg, then KeePassXC, then gnome-authenticator.

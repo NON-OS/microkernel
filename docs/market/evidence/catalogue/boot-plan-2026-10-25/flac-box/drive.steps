@@ -1,0 +1,115 @@
+until:Capsules spawned:900
+until:[SPLASH] stepped aside:300
+wait:4
+key:ret
+wait:4
+type:ek
+wait:2
+key:ret
+wait:4
+key:ret
+wait:4
+key:ret
+wait:4
+key:ret
+wait:4
+key:ret
+wait:4
+key:ret
+wait:4
+key:ret
+wait:4
+key:ret
+wait:4
+key:ret
+wait:4
+shot:installed0
+key:down
+wait:2
+shot:installed
+key:ret
+wait:4
+key:ret
+wait:4
+shot:review
+key:ret
+key:ret
+wait:60
+key:esc
+wait:3
+shot:d1
+move:-514,472
+wait:2
+shot:d2
+wait:15
+click
+wait:12
+shot:d3
+type:echo hello 
+key:shift+dot
+type: hello.txt
+key:ret
+wait:15
+shot:s01
+type:market install linux.flac
+key:ret
+wait:30
+shot:s02
+until:[LINUX] installed:1500
+shot:installed
+type:linux flac --version
+key:ret
+wait:60
+shot:s03
+type:linux /usr/bin/metaflac --version
+key:ret
+wait:60
+shot:s04
+type:linux flac --force-raw-format --endian
+key:equal
+type:little --sign
+key:equal
+type:signed --channels
+key:equal
+type:1 --bps
+key:equal
+type:16 --sample-rate
+key:equal
+type:8000 -o /home/flac/in.flac - 
+key:shift+comma
+type: hello.txt
+key:ret
+wait:90
+shot:s05
+type:linux flac -t /home/flac/in.flac
+key:ret
+wait:60
+shot:s06
+type:linux flac -d --force-raw-format --endian
+key:equal
+type:little --sign
+key:equal
+type:signed -o /home/flac/back.raw /home/flac/in.flac
+key:ret
+wait:60
+shot:s07
+type:linux flac --force-raw-format --endian
+key:equal
+type:little --sign
+key:equal
+type:signed --channels
+key:equal
+type:1 --bps
+key:equal
+type:16 --sample-rate
+key:equal
+type:8000 -o /tmp/x.flac - 
+key:shift+comma
+type: hello.txt
+key:ret
+wait:60
+shot:s08
+type:linux flac -t /home/nonos/hello.txt
+key:ret
+wait:60
+shot:s09
