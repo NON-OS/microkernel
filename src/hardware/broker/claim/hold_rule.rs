@@ -23,7 +23,7 @@
 //!   host in its name.
 //! - virtio-balloon (1af4:1002 transitional, 1af4:1045 modern; device type 5,
 //!   Virtio 1.2, 5.5) hands guest memory to the host. Nothing claims it until
-//!   the owner decides whether NONOS balloons at all (Decision 12) and the
+//!   the maintainers decide whether NONOS balloons at all (Decision 12) and the
 //!   Balloon capability exists to say who may.
 
 pub(crate) const VMMDEV_SERVICE: &str = "driver.vmmdev0";

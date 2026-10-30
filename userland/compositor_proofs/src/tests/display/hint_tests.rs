@@ -45,7 +45,7 @@ fn zero_by_zero_is_a_probe() {
 #[test]
 fn only_a_named_source_is_heard_and_today_none_is() {
     /*
-     * Until the owner accepts display hints (Decision 15) the list is
+     * Until the maintainers accept display hints (Decision 15) the list is
      * empty, so every sender is refused, whatever it claims to be.
      */
     assert!(HINT_SOURCES.is_empty());
