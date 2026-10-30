@@ -1,7 +1,7 @@
 # Design: OpenGL in a Linux box, drawn on the CPU
 
 Status: approved by the owner on 28 October, in code (S1). 0.9.3 if it is done
-properly, else 0.9.4. Host-read at main 8f2d183dda; bare paths are under
+properly, else 0.9.4. Host-read at main 680c92e3fc; bare paths are under
 `userland/capsule_linux/src/linux/`. `mesa:` is Alpine v3.20's Mesa 24.0.9,
 read at tag mesa-24.0.9; `darkfi:` is DarkFi at master on 2026-10-28 (v0.5.0,
 S3's build, where said); `mq:` is narodnik/miniquad d50fcec, the commit

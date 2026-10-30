@@ -1,10 +1,8 @@
 # Design: SERVE_ONE, one guest port for one capsule
 
 Status: approved by the owner on 28 October, in code (S1). 0.9.3 if it is done
-properly, else 0.9.4. For S2 letter 11 and S3's answer
-(`HANDOFF/letters/2026-10-27-s2-to-s3-s1-simplex-split.md`,
-`2026-10-27-s3-to-s2-simplex-core-answers.md:30-40`). Cited at main
-8f2d183dda. Bare paths are under `userland/capsule_linux/src/linux/`;
+properly, else 0.9.4. Cited at main
+680c92e3fc. Bare paths are under `userland/capsule_linux/src/linux/`;
 `policy/` is `userland/nonos_linux_policy/src/`, `ipc/`
 `src/syscall/microkernel/ipc/`, and `registry/` `src/services/registry/`.
 
@@ -200,8 +198,7 @@ endpoint's owner). K.2 `inbox_admits` refuses a send by pid to the holder
 
 ## KVM lane
 
-Logs under `docs/release-evidence/0.9.4/`, after S1's guest-connect fix
-(`HANDOFF/letters/2026-10-27-s3-to-s1-guest-connect-cause.md`).
+Logs under `docs/release-evidence/0.9.4/`, after S1's guest-connect fix.
 1. The window starts the core, upgrades, and sends `/user` and
    `/_get chats 1 pcc=on`. Its transcript matches S2's by `corrId` and `type`.
 2. `test.attack` (`baked_names.rs:56`) calls by name and port, sends by pid,

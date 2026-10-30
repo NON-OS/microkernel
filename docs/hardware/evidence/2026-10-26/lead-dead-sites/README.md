@@ -1,4 +1,4 @@
-# lead/dead-sites booted at 58bd00add7, against main 722698393a
+# lead/dead-sites booted at f42201c69a, against main 06dd3c3c6b
 
 Both built as standard-dev by `tools/nonos-dev-image`'s steps in the dev
 copy of the tree and sealed with throwaway keys; no key under `.keys/` was
@@ -13,10 +13,10 @@ tab takes the name (`*-save.png`). Then QEMU quit over QMP.
 
 | Boot | Image | IOMMU | Desktop first frame | File saved |
 |---|---|---|---|---|
-| ld-intel | 58bd00add7 | VT-d | yes | yes |
-| ld-amd | 58bd00add7 | AMD-Vi | yes | yes |
-| main-intel | 722698393a | VT-d | yes | yes |
-| main-amd | 722698393a | AMD-Vi | yes | yes |
+| ld-intel | f42201c69a | VT-d | yes | yes |
+| ld-amd | f42201c69a | AMD-Vi | yes | yes |
+| main-intel | 06dd3c3c6b | VT-d | yes | yes |
+| main-amd | 06dd3c3c6b | AMD-Vi | yes | yes |
 
 ## Branch against main
 

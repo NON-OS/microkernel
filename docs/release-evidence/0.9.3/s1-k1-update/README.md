@@ -1,7 +1,7 @@
 # K1 on QEMU: prepare, update with a new bootloader, and the data volume opens
 
 One lane under TCG, a software TPM (swtpm) kept across every boot, and an
-8 GiB NVMe disk, on s1/k1-update at 4b94b17b05: K1's wrapped key, the
+8 GiB NVMe disk, on s1/k1-update at dd21989aae: K1's wrapped key, the
 one-boot handover, Update NØNOS (keep my data), and the installer's ask for
 the disk in use choosing it as a store write does. Two development images
 from that tree:
@@ -47,10 +47,10 @@ second boot needed nothing else.
   through, from the store the loader had read. That fallback is what main's
   `the kernel keeps the disk the loader was read from` (block_device
   other_disk.rs, settle.rs) now forbids, and this branch carries it since
-  b74f8fdb27.
+  50ea487e24.
 - `import refused: none of the plan's 0 files ...` after each opening boot
   is the Qwen app asking an empty, freshly made volume for its model. The
   lane opens Qwen only to make the volume open.
-- The first prepare boot of this lane (before 4b94b17b05) did not offer the
+- The first prepare boot of this lane (before dd21989aae) did not offer the
   prepare row: nothing had chosen the disk yet, so the installer's ask found
-  no disk in use and no `[BLOCK]` line was printed. 4b94b17b05 is that fix.
+  no disk in use and no `[BLOCK]` line was printed. dd21989aae is that fix.

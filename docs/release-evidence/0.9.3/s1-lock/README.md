@@ -1,6 +1,6 @@
 # S1 lock lanes, booted 27 October 2026 (local session, macOS host, QEMU TCG, no KVM)
 
-Kernel under test: nonos/jolly-gauss-xbkfum at c3f5225753 (adb53a20d ticket lock and
+Kernel under test: nonos/jolly-gauss-xbkfum at cd8b94861d (adb53a20d ticket lock and
 lock-free asid directory; abae61bc9 per-guest peer stripes; main f68bb8ac3 merged).
 
 - (i) a1, a2: the branch as is, 4 CPUs, `--lane iommu=intel`, `--fresh`, 8 GiB.

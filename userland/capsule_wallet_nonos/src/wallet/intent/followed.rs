@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The publisher send a step follows (B8, the Lead's ruling on commit 5):
+ * The publisher send a step follows (B8, the maintainers' ruling on commit 5):
  * its fate read from the send ledger at each paint and tick, never kept
  * apart, under the hash of the bytes signed recorded at Sign, never
  * settle's answer (followed_say.rs). Replaced or dropped, it never lands;

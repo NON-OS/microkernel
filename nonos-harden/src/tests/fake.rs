@@ -60,7 +60,7 @@ impl Runner for Fake {
                 None => 1,
             },
             (_, t) if t.ends_with("nonos-verify-matrix") => {
-                let dir = cmd.cwd.join("HANDOFF/evidence/nonos-harden");
+                let dir = cmd.cwd.join("docs/build/evidence/matrix/nonos-harden");
                 fs::create_dir_all(&dir).unwrap();
                 let steps = json!([{"cmd": "cargo test --release", "rc": self.step_rc}]);
                 let summary = json!({"rows": {last: {"pass": self.step_rc == 0, "steps": steps}}});

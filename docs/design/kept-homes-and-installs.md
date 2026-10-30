@@ -4,8 +4,8 @@ Status: the owner ruled on 27 October 2026. 0.9.3 ships K1, the handover
 (K1b, below) and the installer's "Update NØNOS (keep my data)". Kept homes
 and kept installs move to the next release. This page was first written
 as a proposal, before code (S1, privacy/TCB). It builds on the homes
-design already ruled on (`HANDOFF/catalogue/files-home-design.md`, rulings
-1-6, and `HANDOFF/letters/privacy-apps/03-homes-that-last.md`, H1-H3) and
+design already ruled on (`docs/design/files-home.md`, rulings
+1-6) and
 adds what those leave open: a volume key that survives an update, and the
 installs themselves.
 

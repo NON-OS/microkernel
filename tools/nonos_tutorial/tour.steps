@@ -357,7 +357,7 @@ key:ctrl+l
 
 # >>> simplex
 # Needs the listing linux.simplex-chat on main (S3's recipe and the owner's
-# static build, HANDOFF/letters/2026-10-27-s3-simplex-build-and-boot1.md).
+# static build).
 # Not rehearsed: rehearse it once the listing lands, then keep or fix it.
 # ==== 7a. Talk without being watched: SimpleX ================================
 key:ctrl+alt+t

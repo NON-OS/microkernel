@@ -1,11 +1,11 @@
 # Terminal 02: the hint bar, booted 25 October 2026
 
 The bar names the keys of the state the reader is in, and help keys says
-what Ctrl+K does (9042e6ac77).
+what Ctrl+K does (889110f873).
 
 ## How it ran
 
-- Image: `make dev-image` at ada76f8639 (qemu-dev, throwaway test keys).
+- Image: `make dev-image` at 4b8d474004 (qemu-dev, throwaway test keys).
 - Machine: QEMU TCG, no KVM, 4 CPUs, 8 GiB, fresh disk, 1920x1080 on
   virtio-gpu.
 - Driven over QMP: Enter through the 13 setup steps, "Not now" on the live

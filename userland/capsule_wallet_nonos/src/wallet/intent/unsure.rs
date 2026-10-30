@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * A broadcast settle did not confirm (B8, the Lead's ruling on commit 4):
+ * A broadcast settle did not confirm (B8, the maintainers' ruling on commit 4):
  * it may not have gone, so it is read on chain before anything else. GAS's
  * pending nonce counts what waits (capsule_nox_settle handlers/gas.rs);
  * settle offers no read of a transaction by hash. Its nonce used, it is

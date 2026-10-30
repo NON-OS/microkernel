@@ -1,6 +1,6 @@
 # Design: the saved networks' generation counter
 
-Status: proposed, before code (Lead's ruling on W8 item 2).
+Status: proposed, before code (the maintainers' ruling on W8 item 2).
 
 ## What it stops
 

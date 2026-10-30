@@ -1,0 +1,4 @@
+1920x1080/01-three-windows.png: 1920x1080, 50129 colours, accent 0.23%
+1920x1080/02-alt-tab.png: 1920x1080, 52097 colours, accent 0.15%
+1920x1080/03-alt-tab-after.png: 1920x1080, 51585 colours, accent 0.15%
+1920x1080/07-left-edge-resized.png: 1920x1080, 47248 colours, accent 0.23%

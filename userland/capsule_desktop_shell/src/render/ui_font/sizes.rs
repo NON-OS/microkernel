@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The desktop's type sizes, in logical points, on the brand's ramp
-//! (HANDOFF/ui/identity.md, Type). The toolkit draws no proportional text
+//! (docs/design/ui-identity.md, Type). The toolkit draws no proportional text
 //! under `ttf::MIN_UI_PX`, 14, so none is asked for here.
 
 /// Body text: dialogs and the Launchpad's labels. `type.body`.

@@ -13,13 +13,13 @@ The route column is the wallet's.
 
 | Log | Tree | Route | What serial shows |
 |---|---|---|---|
-| `gaany.log` | test merge 17355d6b4c: 44535301b5 (G) + b5bb69a407 (spawn fix) | Nym. It was meant to be Anyone, but one Enter too many accepted the route step's default | `[LINUX] installed`, install heap `of 327680 KiB` |
+| `gaany.log` | test merge 17355d6b4c: b53232446c (G) + 3f6077cd7e (spawn fix) | Nym. It was meant to be Anyone, but one Enter too many accepted the route step's default | `[LINUX] installed`, install heap `of 327680 KiB` |
 | `gargv.log` | the same tree, window width 3 | Nym | the same: installed, `of 327680 KiB` |
-| `gdb9n.log` | db9d7593ee: main 8e90ec93d4 + G + spawn fix | Nym | installed; the wallet asked for node.moneroworld.com:18089, answered by 13 `[SOCKS5] exit answered bytes 67` |
+| `gdb9n.log` | db9d7593ee: main 9b411724f7 + G + spawn fix | Nym | installed; the wallet asked for node.moneroworld.com:18089, answered by 13 `[SOCKS5] exit answered bytes 67` |
 | `gdb9a-anyone-sync.log` | db9d7593ee | Anyone, chosen at setup's step 6 | installed; 57 `[ANON] stream ended N 2` (RESOLVEFAILED) for the dead name, then 3 `[ANON] stream connected` after `set_daemon xmr-node.cakewallet.com:18081`. Window: "Starting refresh...", "3775093 / 3793833", climbing |
 | `gdb9n-nym-sync.log` | db9d7593ee | Nym, listing node xmr-node.cakewallet.com:18081 | installed; 3321 `[SOCKS5] exit answered` as the wallet syncs |
 | `gdb9n-ringdb.log` | db9d7593ee | Nym | the serial around the wallet's "Failed to initialize ring database" (window). The cause was the unserved get_robust_list (274): musl's robust-mutex probe, which LMDB's lock setup needs |
-| `gcaf-nym-ringdb-fixed.log` | test merge caf7aeba61: s1/argv-alone d423fd27e7 + s1/land-g e16e16d6b4 (get_robust_list served) | Nym, listing node | installed, `of 327680 KiB`; 2032 `[SOCKS5] exit answered`. Window, on reopening the wallet file: "Opened wallet", no ring database error, "Refreshed 3171087/3793858", syncing over SSL |
+| `gcaf-nym-ringdb-fixed.log` | test merge caf7aeba61: s1/argv-alone 6d4832970c + s1/land-g 141a9f03ef (get_robust_list served) | Nym, listing node | installed, `of 327680 KiB`; 2032 `[SOCKS5] exit answered`. Window, on reopening the wallet file: "Opened wallet", no ring database error, "Refreshed 3171087/3793858", syncing over SSL |
 | `gcaf2-linux-mid-install.log` | caf7aeba61 | Nym | `linux monero-wallet-cli --version` typed 15 s into `market install linux.monero`: `[LINUX] installing` (line 1762), `[EXIT] code=1 app.linux.term` (1779), `[LINUX] installed` (1962), heap `of 327680 KiB`. A `linux` run during an install leaves it to finish |
 | `owner-seal-694ba69799-code5.log` | the owner's release seal of 694ba69799, real mirror | Nym | `linux monero-wallet-cli --version` typed 67 s into the install: `[EXIT] code=1 app.linux.term` (line 994), then `[EXIT] code=5 app.linux.install` (995) |
 | `owner-seal-694ba69799-no-typing-134.log` | the same seal, nothing typed | Nym | `[EXIT] code=134 app.linux.install` (line 990) |

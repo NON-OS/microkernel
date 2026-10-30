@@ -170,10 +170,9 @@ lower-third, "swayimg / A Wayland app in its box: no network".
 Scripted, not rehearsed.
 
 - **SimpleX Chat** needs the listing `linux.simplex-chat` on main. S3 has
-  the recipe kind and needs the owner's static build
-  (HANDOFF/letters/2026-10-27-s3-simplex-build-and-boot1.md). Its program
-  is over 64 MiB, and main now takes programs up to 128 MiB (36310ba533,
-  05bf112590).
+  the recipe kind and needs the owner's static build. Its program
+  is over 64 MiB, and main now takes programs up to 128 MiB (7506325ac8,
+  1957974824).
 - **Telegram Desktop** needs the listing `linux.telegram-desktop`, which
   has no recipe or letter yet. It also needs a Qt display path in the Linux
   personality, the same one KeePassXC waits on (docs/using/privacy-apps.md).
