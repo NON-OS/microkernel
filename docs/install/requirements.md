@@ -1,8 +1,8 @@
 # Requirements
 
-What a machine needs to boot NONOS 0.9.2 from a USB stick, and to install it on a disk.
+What a machine needs to boot NONOS 0.9.3 from a USB stick, and to install it on a disk.
 
-| Need | What NONOS 0.9.2 asks for |
+| Need | What NONOS 0.9.3 asks for |
 |---|---|
 | [Processor](#processor-and-firmware) | x86_64, with NX and at least 36 bits of physical address |
 | [Firmware](#processor-and-firmware) | UEFI; there is no legacy BIOS path |
@@ -75,7 +75,7 @@ Which controllers and chips have drivers, and what has been seen working, is in 
 
 A network is optional: setup's default is no network at all.
 
-- Wi-Fi goes through two drivers ([Wi-Fi drivers](../drivers/wifi/README.md)). The Realtek RTL8821CE driver takes PCI ids 10ec:b821 and 10ec:c821. The Intel iwlwifi driver takes more Intel cards than it can join on, and on those it reports `card not supported yet` ([iwlwifi](../drivers/wifi/iwlwifi.md)). NONOS 0.9.2 has no USB Wi-Fi driver.
+- Wi-Fi goes through two drivers ([Wi-Fi drivers](../drivers/wifi/README.md)). The Realtek RTL8821CE driver takes PCI ids 10ec:b821 and 10ec:c821. The Intel iwlwifi driver takes more Intel cards than it can join on, and on those it reports `card not supported yet` ([iwlwifi](../drivers/wifi/iwlwifi.md)). NONOS 0.9.3 has no USB Wi-Fi driver.
 - A wired card served by the e1000, RTL8169, RTL8139 or virtio-net driver is used as soon as a cable is plugged in. Read from the code, only virtio-net, in a virtual machine, gets an address that way: `net.core` drops every frame received through the other three, so DHCP gets no lease through them ([the receive fault](../drivers/ethernet/README.md#the-receive-fault)).
 
 ## Reported on real hardware
