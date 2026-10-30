@@ -2,7 +2,7 @@
 
 <p align="center">
   An operating system where every program runs in a box.<br>
-  The box is a short list in the program's signed listing, and the kernel checks it on every call.
+  The box is a short list in the program's signed listing, and every call the program makes is checked against it.
 </p>
 
 <p align="center">
@@ -22,8 +22,10 @@
 
 ![The NØNOS desktop](docs/media/desktop.jpg)
 
-A box lists what a program may touch: a window, its own home folder, the Anyone network, a terminal, the
-right to start other programs. Anything not on the list is refused, and the log says why. Around that the
+A box lists what a program may touch: a window, its own home folder, the network over Nym or Anyone, a
+terminal, the right to start other programs. Anything not on the list is refused, and the log says why. The
+kernel sends every Linux call to one supervisor, which holds the box and checks it, and gives the program
+no rights of its own. Around that the
 machine has what a daily system needs: a desktop, a browser, a terminal, a wallet, a local model, and a
 Marketplace of 31 Linux programs. Memory is wiped when you power off, and nothing is written to a disk
 unless you install.
@@ -70,12 +72,14 @@ ceiling recorded.
 
 ## What a box holds back
 
-![What the kernel lets a program reach: a window, its own home and the network are granted; other files, other programs, memory and the keyboard are not](docs/media/diagram-the-box.svg)
+![What a program can reach: a window, its own home and the network are granted; other files, other programs, memory and the keyboard are not](docs/media/diagram-the-box.svg)
 
-*Figure 1. What the kernel lets a program reach. Sources: [`docs/using/linux-box.md`](docs/using/linux-box.md), [`docs/using/marketplace.md`](docs/using/marketplace.md).*
+*Figure 1. What a program can reach. Sources: [`docs/using/linux-box.md`](docs/using/linux-box.md), [`docs/using/marketplace.md`](docs/using/marketplace.md).*
 
-Each row below is a real attempt from inside a Linux program on the sealed 0.9.3 image, and the answer the kernel
-gave.
+Each row below is a real attempt from inside a Linux program on the sealed 0.9.3 image, and the answer it got.
+The file, process and keyboard rows ran in the default box, which is what a program with no listing gets: a
+terminal, its own home and the right to start programs, with no network. The refused program launch is from
+Telegram, which runs in the box its listing names.
 
 | The program tries to | The box | What it got |
 |---|---|---|
@@ -87,7 +91,7 @@ gave.
 | Read the keyboard | not in the box | `cat: can't open '/dev/input/event0': No such file or directory` |
 | See other programs | | `ls /proc` shows one process, its own |
 
-![The kernel's answers to a program that went looking: a missing file, a refused ptrace and a refused socket](docs/media/refusals.jpg)
+![What a program got when it went looking: a missing file, a refused ptrace and a refused socket](docs/media/refusals.jpg)
 
 These are single attempts from inside an app, not an exploit chain. Nobody here claims the box cannot be
 broken. [Security limits](docs/release/0.9.3-security-limits.md) lists what the design does not cover.
@@ -116,7 +120,7 @@ program once and writes the tightest box file that would let it do what it did. 
 | Capsules in all | 91 | 152 |
 | Rust files in the kernel, `src/` | 5,139 | 7,579 |
 | Rust files in `userland/` | 10,069 | 31,674 |
-| Proof crates | 56 | 223 |
+| Proof crates (directories named `*_proofs`) | 56 | 223 |
 
 Counted from git at the commit where the 0.9.2 changelog landed, and at this release. About 6,000 commits
 separate them.
@@ -360,9 +364,11 @@ image, and is it older than what this machine already accepted. The details are 
 
 - The kernel and every capsule carry a STARK proof that their measurement belongs to one policy root, and
   the boot refuses an image whose proof does not verify.
-- Lean 4 holds 1,517 theorems and lemmas about isolation, capabilities, the spawn path, page-table
-  permissions, the attestation binding, the anti-rollback floor and the wipe at power off, with no `sorry`
-  in any Lean tree. 120 Kani harnesses and 223 proof crates run against the shipped source.
+- Lean 4 holds 1,503 theorems about isolation, capabilities, the spawn path, page-table permissions, the
+  attestation binding, the anti-rollback floor and the wipe at power off, with no `sorry` in any Lean tree.
+  115 Kani harnesses under `userland/` and 222 proof crates run against the shipped source. These are the
+  figures in [verification/evidence/EVIDENCE.json](verification/evidence/EVIDENCE.json); other counting rules
+  give slightly higher numbers.
 - The build is reproducible: `make` ends with a receipt of every artifact by sha256, and `REPRODUCED` when
   the artifacts match the committed `receipts/<profile>.json`.
 - 56 evidence directories sit under [docs/release-evidence/0.9.3](docs/release-evidence/0.9.3/README.md),
@@ -379,10 +385,10 @@ constrains.
 The security-critical surface is machine-checked. Lean 4 carries isolation and
 non-interference, the capability algebra and its delegation, the spawn path and the
 capabilities a spawn installs, page-table permissions, the user-copy boundary, the attestation
-binding, the anti-rollback floor and the ZeroState wipe: 1,517 theorems and lemmas in
+binding, the anti-rollback floor and the ZeroState wipe: 1,503 theorems in
 `verification/lean`, with no `sorry` in any Lean tree. An extraction pipeline turns kernel
 functions into Lean so theorems speak about the shipped code, not a model of it. Verus takes
-the properties that live in real bit operations. 120 Kani harnesses sit in the source. 223 proof
+the properties that live in real bit operations. 115 Kani harnesses sit under `userland/`. 222 proof
 crates pull the shipped source in through `#[path]` and run it.
 
 NONOS does not claim functional correctness of the whole kernel. The proved surface is what may
@@ -421,7 +427,7 @@ holder has:
  make boot-install # beside a blank disk, to try the installer
  make usb DISK=/dev/sdX # write it to a stick, after typing the path again
 
-A build is one of seven profiles, set in `nonos.toml` or as `PROFILE=airgapped make`:
+A build is one of the profiles below, set in `nonos.toml` or as `PROFILE=airgapped make`:
 
 | profile | for | what it adds or takes away |
 |---|---|---|
@@ -452,6 +458,7 @@ The release notes say what works, what does not, and how each line was shown:
 
 | | |
 |---|---|
+| [Diagrams](docs/overview/diagrams.md) | 23 figures of how the system works, each with the files it is drawn from |
 | [The handbook](docs/README.md) | how NØNOS works, one page per subsystem, every claim tied to a file and line |
 | [Installing NØNOS](docs/install/README.md) | from a stick to an installed disk |
 | [Using NØNOS](docs/using/README.md) | the desktop and its programs, for the person at the keyboard |
