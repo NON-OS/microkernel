@@ -119,13 +119,13 @@ program once and writes the tightest box file that would let it do what it did. 
 Counted from git at the commit where the 0.9.2 changelog landed, and at this release. About 6,000 commits
 separate them.
 
-| | |
-|---|---|
-| Linux programs in windows | A Wayland bridge puts a program's window on the desktop, with a title bar and close, minimise and maximise buttons. KeePassXC, Telegram Desktop, foot and swayimg have drawn their windows on booted images. mpv and zathura are listed. |
-| Pseudo-terminals | Linux programs open `/dev/ptmx` and `/dev/pts/N`, so a terminal emulator can start its shell. |
-| Monero over Nym and Anyone | The Monero wallet syncs from its node through the mixnet or the onion network. A fresh wallet has refreshed in full on a KVM host. |
-| Installing Linux apps | An install checks every package against the signed index and fetches them one at a time over the chosen network. A failure names the package and the check that stopped it. |
-| Updates in place | A disk installed by 0.9.3 can be updated to a later release and keep its encrypted data volume. |
+The changes a person would notice:
+
+- Linux programs in windows. A Wayland bridge puts a program's window on the desktop, with a title bar and close, minimise and maximise buttons. KeePassXC, Telegram Desktop, foot and swayimg have drawn their windows on booted images. mpv and zathura are listed.
+- Pseudo-terminals. Linux programs open `/dev/ptmx` and `/dev/pts/N`, so a terminal emulator can start its shell.
+- Monero over Nym and Anyone. The Monero wallet syncs from its node through the mixnet or the onion network. A fresh wallet has refreshed in full on a KVM host.
+- Installing Linux apps. An install checks every package against the signed index and fetches them one at a time over the chosen network. A failure names the package and the check that stopped it.
+- Updates in place. A disk installed by 0.9.3 can be updated to a later release and keep its encrypted data volume.
 
 [The release notes](docs/release/0.9.3.md) name the file, commit or evidence directory behind each line.
 [docs/release-evidence/0.9.3](docs/release-evidence/0.9.3/README.md) indexes the evidence.
@@ -134,11 +134,19 @@ separate them.
 
 ![From a listing to a window: signed index, one package at a time, the box, a window](docs/media/diagram-install-and-run.svg)
 
-31 Linux programs, each with its licence and its box in the catalogue
-(`userland/capsule_market/linux-catalogue.json`). Each is checked against a signed index before it installs.
-`WAYLAND` is a window of its own. `TTY` is the terminal. `FILES_HOME` is the program's own home and no other
-files. `EXEC` is the right to start other programs. `NET_ANON` is the network, only over Nym or Anyone.
-`NET_LISTEN_LO` is listening on the machine's own loopback and nowhere else. `JIT` is making code as it runs.
+31 Linux programs, each with its licence and its box in the catalogue (`userland/capsule_market/linux-catalogue.json`). Each is checked against a signed index before it installs.
+
+The words in the last column are the box:
+
+| Word | What it grants |
+|---|---|
+| `WAYLAND` | a window of its own |
+| `TTY` | the terminal |
+| `FILES_HOME` | the program's own home, and no other files |
+| `EXEC` | the right to start other programs |
+| `NET_ANON` | the network, only over Nym or Anyone |
+| `NET_LISTEN_LO` | listening on the machine's own loopback and nowhere else |
+| `JIT` | making code as the program runs |
 
 With a window:
 
@@ -232,6 +240,8 @@ the operating system runs in ring 3, drivers included.
 ![The kernel in ring 0 and everything else in ring 3, joined by one checked syscall](docs/media/diagram-layers.svg)
 
 ![The capability check on every system call: decode, resolve the token, five checks](docs/media/diagram-capability-check.svg)
+
+![Messages between capsules: four gates on every send](docs/media/diagram-ipc-gates.svg)
 
 A capability is one of 40 bits, defined once in [abi/caps.toml](abi/caps.toml). A capsule's
 word is fixed when it is enrolled, the kernel installs it from the verified manifest at spawn,
