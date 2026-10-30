@@ -19,7 +19,7 @@
 
 /// Wire format version. A verifier that does not recognise it must refuse
 /// rather than parse optimistically: a document it half understands is worse
-/// than one it rejects. Version 5 (K1) quotes the PCRs NONOS extends and
+/// than one it rejects. Version 5 quotes the PCRs NONOS extends and
 /// carries their values and the firmware's event log.
 pub const DOC_VERSION: u32 = 5;
 

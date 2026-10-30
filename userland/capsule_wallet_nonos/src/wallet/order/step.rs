@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * A purchase's steps after consent (B8): ORDER_OFFER in the meter (started
+ * A purchase's steps after consent: ORDER_OFFER in the meter (started
  * by Buy, screen/purchase), then ORDER_NEW on the offer it checked, each a
  * job asked on every tick, then the deposit address to fund. The window
  * never waits on the network. ORDER_NEW carries a refundSalt drawn here;

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whether ACS keeps a device's peers from it, pure (K11). A device reaches
+//! Whether ACS keeps a device's peers from it, pure. A device reaches
 //! a peer without the IOMMU when they share a device, a bus, or a port that
 //! forwards between them, unless that port redirects upstream with ACS.
 //! What it reaches is its isolation group, and one capsule holds a group at

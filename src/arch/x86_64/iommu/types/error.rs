@@ -17,7 +17,7 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VtdError {
     NotPresent,
-    /// The device's requests may carry another id (L51, L54).
+    /// The device's requests may carry another id.
     SharedRequesterId,
     /// Hardware exists but is not translating, so nothing here confines a
     /// device. Returned instead of success.
@@ -52,7 +52,7 @@ pub enum VtdError {
     Uncommitted,
     /// The unit refused a queued invalidation descriptor (Fault Status IQE).
     InvalidationRejected,
-    /// The unit reported a queue head past its ring: it has failed (K12).
+    /// The unit reported a queue head past its ring: it has failed.
     QueueHeadOutOfRange,
     /// Interrupt remapping is not on, so there is no entry to route through.
     InterruptRemappingOff,

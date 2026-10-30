@@ -21,10 +21,10 @@
 //!   * process exit — drains every grant the dying pid owns
 //!
 //! Revocation order (teardown.rs): the holder's pages unmapped from the
-//! tables it runs in, from any context (K10), else from the active tables
+//! tables it runs in, from any context, else from the active tables
 //! when they are its own; the grant out of the device's domain, the IOTLB
 //! invalidation waited on; then scrubbed and freed, or kept for the
-//! device's wipe where it may still reach the frames (L78).
+//! device's wipe where it may still reach the frames.
 
 use super::drain;
 use super::records;

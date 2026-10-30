@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The parts the enter model's world is made of (L78): a claim's entry, the
+//! The parts the enter model's world is made of: a claim's entry, the
 //! function's wipe record, the copy a stepper acts on with no lock held, and
 //! the knob that undoes one design for an undo check.
 

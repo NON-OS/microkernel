@@ -55,7 +55,7 @@ pub(super) unsafe fn attach_log(index: usize, unit: &Unit) -> Result<(), AmdViEr
 }
 
 /// After an overflow a unit logs nothing more until EventLogEn is cycled
-/// (K12): off, the overflow cleared, the log emptied, on again.
+/// off, the overflow cleared, the log emptied, on again.
 pub(super) fn restart_log(index: usize, unit: &Unit) {
     let (Some(control), Some(slot)) = (unit.read64(CONTROL), LOGS.get(index)) else {
         return;

@@ -16,7 +16,7 @@
 
 //! The boot framebuffer published as a firmware-bus display device, so a
 //! display driver can claim it and map it instead of the kernel and the
-//! compositor sharing it (L31).
+//! compositor sharing it.
 
 use alloc::format;
 use spin::Once;
@@ -36,7 +36,7 @@ pub fn register_boot_framebuffer() {
         return;
     };
     // Whether published or not, a claim of the memory it lies in stops the
-    // kernel drawing on it (L79).
+    // kernel drawing on it.
     super::cover::find(w.page, w.len);
     let Some((base, size)) = window(w.page, w.len, w.offset) else {
         serial::println(b"[BROKER] boot framebuffer: its window is malformed, not published");
@@ -48,7 +48,7 @@ pub fn register_boot_framebuffer() {
     }
     let mut bars = [Bar::empty(); 6];
     // Prefetchable, so a driver may ask for write-combining; the kernel's own
-    // mapping still decides the type it gets (L17).
+    // mapping still decides the type it gets.
     let bar = BarKind::Mmio as u8;
     bars[0] = Bar { base, size, aux: w.offset, kind: bar, flags: BAR_FLAG_PREFETCH, _pad: [0; 2] };
     let id = register_platform_device(DeviceRecord {

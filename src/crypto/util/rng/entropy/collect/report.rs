@@ -21,7 +21,7 @@ use core::sync::atomic::Ordering;
 /// One boot line naming every source the RNG was seeded from, so a board
 /// whose only entropy is a firmware seed says so rather than leaving it to
 /// be guessed from what it lacks. The entropy capsule's bytes come later
-/// and are never enough alone (K9), so they are not one of these.
+/// and are never enough alone, so they are not one of these.
 pub fn report_entropy_sources() {
     let sources: [(bool, &[u8]); 3] = [
         (has_cpu_entropy(), b" cpu-entropy-instruction"),

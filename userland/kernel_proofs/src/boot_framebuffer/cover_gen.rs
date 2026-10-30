@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The framebuffers and BARs the seeded sweep tries (L79), inside the
+//! The framebuffers and BARs the seeded sweep tries, inside the
 //! model's universe, at steps of a quarter page and sometimes half that.
 
 use super::cover_find::{MMIO, NONE, PAGE, PIO};

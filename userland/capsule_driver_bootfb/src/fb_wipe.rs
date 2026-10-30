@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The framebuffer wiped at bring-up (G-72): the firmware's framebuffer
+//! The framebuffer wiped at bring-up: the firmware's framebuffer
 //! outlives every driver, and what a dead one left there (a client's
 //! pixels among it) is not shown again by the next.
 

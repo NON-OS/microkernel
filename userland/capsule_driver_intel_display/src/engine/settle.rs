@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! A takeover settled (G-78). A restarted driver may meet what its killed
+//! A takeover settled. A restarted driver may meet what its killed
 //! self left: a cursor on, a plane it was flipping or cannot take, and GGTT
 //! entries naming its DMA frames (kept for good by the kernel). With every
 //! output that can be on this driver's surfaces, each lit cursor is hidden,

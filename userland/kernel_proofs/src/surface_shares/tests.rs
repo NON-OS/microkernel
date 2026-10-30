@@ -31,7 +31,7 @@ fn an_unshared_surface_is_the_owners_alone() {
 
 #[test]
 fn a_guessed_handle_maps_nothing_for_anyone_else() {
-    // The finding (G-25): any holder of GraphicsSurfaceMap attached any
+    // The finding: any holder of GraphicsSurfaceMap attached any
     // live handle. Shared with the codec, it stays the codec's.
     let mut s = Shares::new(VIEWER);
     assert_eq!(s.name(CODEC), Named::Added);
@@ -42,7 +42,7 @@ fn a_guessed_handle_maps_nothing_for_anyone_else() {
 
 #[test]
 fn the_compositor_attaches_only_when_named() {
-    // No share stands for whoever serves the compositor (K20): it is named
+    // No share stands for whoever serves the compositor: it is named
     // as any receiver is, and a restart in a new group is not that group.
     let mut s = Shares::new(OWNER);
     assert_eq!(s.name(COMPOSITOR), Named::Added);

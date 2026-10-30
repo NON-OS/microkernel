@@ -37,7 +37,7 @@ pub fn attach_surface(
     super::permit::permit(receiver_pid, handle)?;
     /* Held until the mapping is recorded; see `pin::gate`. */
     let _gate = crate::smp::lock_responsive(&super::super::pin::gate::GATE);
-    // The owner, or a receiver it named (K20); anyone else learns nothing.
+    // The owner, or a receiver it named; anyone else learns nothing.
     let write = match super::rights::may_attach(handle, receiver_pid) {
         Attach::Owner => true,
         Attach::Receiver { write } => write,

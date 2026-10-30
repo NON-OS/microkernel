@@ -23,7 +23,7 @@ use crate::arch::interrupt::ioapic::Rte;
 pub(super) fn say_route(device_id: u64, gsi: u32, rte: &Rte) {
     let trigger = if rte.level_trigger { "level" } else { "edge" };
     let polarity = if rte.active_low { "active-low" } else { "active-high" };
-    // The device by its table index, never its bus address (K10).
+    // The device by its table index, never its bus address.
     crate::log::info!(
         "[IRQ] device {} intx gsi {} vector {:#x} {} {}",
         device_id,

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What acs.rs reads of a function: a bridge's secondary bus, and its ACS
-//! words, with what a hop must redirect turned on first (K11).
+//! words, with what a hop must redirect turned on first.
 
 use super::acs_kind::pcie_type;
 use super::acs_layout::layout;

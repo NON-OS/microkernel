@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One write to extended configuration space, for the kernel's own use: a
-//! switch port's ACS controls at boot (L72). Made only where the dword it
+//! switch port's ACS controls at boot. Made only where the dword it
 //! lands in reads back through the trusted MCFG window first, so a missing
 //! or refused window, or a function that is not there, writes nothing.
 

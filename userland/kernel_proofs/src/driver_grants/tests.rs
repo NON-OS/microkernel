@@ -16,7 +16,7 @@
 
 //! The map's cap column is the cap table's: each call passes with its cap
 //! alone, and with every other cap it is refused; Admin drives no device
-//! (K6), and lists them as DeviceEnum does.
+//! and lists them as DeviceEnum does.
 //! Every driver-grant call is in the map, and nothing else is.
 
 extern crate alloc;

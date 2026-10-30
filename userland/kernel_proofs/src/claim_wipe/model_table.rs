@@ -40,7 +40,7 @@ impl World {
     }
 
     /// ask.rs `admits`, for process `p`: the kept bound asked once the
-    /// record is read (L80); no tenancy let in with it reached (I10).
+    /// record is read; no tenancy let in with it reached (I10).
     pub(super) fn admits(&mut self, p: usize) -> Admit {
         let (rec, past, pr) = (self.rec, self.kept_bytes() >= KEEP_CAP, &mut self.procs[p]);
         pr.over_cap = if self.knob == Knob::CapEarly { pr.over_cap } else { past };

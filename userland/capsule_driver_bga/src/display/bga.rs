@@ -43,7 +43,7 @@ pub struct Bga {
 
 /// `len` bytes of video memory at `vram` zeroed: it outlives every
 /// process, and what a dead driver left there (a client's pixels among it)
-/// is not shown again by the next one (G-72, G-78).
+/// is not shown again by the next one.
 ///
 /// # Safety
 /// `vram` must map `len` writable bytes for the call.

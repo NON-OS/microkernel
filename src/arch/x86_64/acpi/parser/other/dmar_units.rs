@@ -42,7 +42,7 @@ pub fn remap_unit_bases() -> heapless::Vec<u64, MAX_REMAP_UNITS> {
     REMAP_UNIT_BASES.lock().clone()
 }
 
-/// Units DMAR listed that the kernel left off (K11): on a segment it does not
+/// Units DMAR listed that the kernel left off: on a segment it does not
 /// enumerate, past the eight it holds, with a register base it refused, or
 /// past a structure it could not read. Their devices reach memory untranslated.
 pub fn units_left_off() -> usize {

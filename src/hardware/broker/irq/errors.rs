@@ -36,7 +36,7 @@ pub enum IrqBindError {
     MsixProgramFailed,
     MsiProgramFailed,
     NoDeviceHandle,
-    /// Interrupt remapping cannot give the device an entry of its own (K3).
+    /// Interrupt remapping cannot give the device an entry of its own.
     NotRemapped,
     PlatformError,
 }

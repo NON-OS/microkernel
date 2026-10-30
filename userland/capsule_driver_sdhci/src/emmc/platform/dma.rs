@@ -18,7 +18,7 @@
 //! every grant the device holds once the broker has read Bus Master back
 //! off, and an unmap before that would free a frame the host could still
 //! reach, since the driver's own "off" write changes nothing until the
-//! broker stores Command words as written (K6).
+//! broker stores Command words as written.
 
 use nonos_libc::{mk_dma_map, DmaMapOut, MK_DMA_MAP_DMA32};
 

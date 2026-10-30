@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! A killed driver's leftovers laid out by hand on the model (G-78): what
+//! A killed driver's leftovers laid out by hand on the model: what
 //! the death sweeps (`death_tests`) leave by running the driver itself.
 
 use crate::engine::access::Mmio;

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The apps and tools this kernel image's own spawn sites declare (K18),
+//! The apps and tools this kernel image's own spawn sites declare,
 //! with their namespaces, reserved as baked_names.rs says.
 
 pub(crate) const APPS: &[(&str, &str)] = &[

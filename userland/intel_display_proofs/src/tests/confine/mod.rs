@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The GGTT confined (G-75): every rig that builds a driver on frames arms
+//! The GGTT confined: every rig that builds a driver on frames arms
 //! the model's watch with them, so every entry written from then on is
 //! held to naming a page the driver holds (`model/confine.rs`).
 

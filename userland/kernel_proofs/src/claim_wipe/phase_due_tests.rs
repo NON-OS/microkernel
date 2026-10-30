@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which phases a step moves on (L78). Held, Kept and Lost are never due at
+//! Which phases a step moves on. Held, Kept and Lost are never due at
 //! any clock, so no step touches a function a claim holds, nor one kept or
 //! lost until a claim asks again. `pending`, on which the table's count and
 //! the refusal of a second record rest, holds for exactly the phases some

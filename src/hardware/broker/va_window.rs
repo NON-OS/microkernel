@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One address space's grant window, pure (K10): ranges handed out first
+//! One address space's grant window, pure: ranges handed out first
 //! fit from what earlier grants gave back, else from the untouched top, and
 //! given back once their pages are unmapped. A long-running driver that maps
 //! and unmaps no longer runs the window dry. kernel_proofs::va_window.

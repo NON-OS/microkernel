@@ -62,7 +62,7 @@ pub fn detach(id: u16) -> Result<(), AmdViError> {
 }
 
 /// Only the DMA half changes: a device whose interrupts are remapped, or
-/// refused (K4), stays so through every move (`intr_format`).
+/// refused, stays so through every move (`intr_format`).
 fn replace(id: u16, dma: Dte) -> Result<(), AmdViError> {
     let (before, after) = update_dte(id, |current| keep_interrupts(dma, current))?;
     note(before, after);

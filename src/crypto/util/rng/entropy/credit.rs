@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the entropy capsule's bytes count for, pure (K9): they go into a
+//! What the entropy capsule's bytes count for, pure: they go into a
 //! seed with the CPU's sources and count toward it for at most MAX_CREDIT
 //! bytes, so they are never enough alone. kernel_proofs::entropy_health.
 

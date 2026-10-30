@@ -38,7 +38,7 @@ pub fn unit_covers(bus: u8, device: u8, function: u8) -> bool {
 }
 
 /// The reserved memory regions firmware listed for `bus:dev.func`, as
-/// `[base, end)` pairs: what bring-up maps it, and nothing more (K2). A scope
+/// `[base, end)` pairs: what bring-up maps it, and nothing more. A scope
 /// that cannot be resolved is not a yes: the device then stays blocked.
 pub fn reserved_for(bus: u8, device: u8, function: u8) -> heapless::Vec<(u64, u64), 16> {
     let bdf = (bus, device, function);

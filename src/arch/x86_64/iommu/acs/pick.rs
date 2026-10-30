@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The bridges the ACS pass treats as switch downstream ports (L76), by
+//! The bridges the ACS pass treats as switch downstream ports, by
 //! where they sit as well as what they say (`port_rule`).
 
 extern crate alloc;

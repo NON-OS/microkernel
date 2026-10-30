@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A kernel draw counted while it writes the framebuffer (L79), so a takeover
+//! A kernel draw counted while it writes the framebuffer, so a takeover
 //! of the scanout waits the last one out before the GPU's driver is let in,
 //! and a holder's first picture is not marked by a draw already under way.
 

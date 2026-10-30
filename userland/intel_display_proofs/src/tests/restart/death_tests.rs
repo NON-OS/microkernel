@@ -19,7 +19,7 @@
 //! the new driver's entries and firmware's, nothing the engine reaches is
 //! the killed driver's or a frame it gave back, and the new surface shows.
 //! A mode set killed with the plane off and its pipe still running is
-//! taken too (G-79); one killed with the transcoder off leaves nothing to
+//! taken too; one killed with the transcoder off leaves nothing to
 //! take, and then all the engine reaches is still the killed driver's own
 //! frames (kept for good) or firmware's. The sweep needs both.
 

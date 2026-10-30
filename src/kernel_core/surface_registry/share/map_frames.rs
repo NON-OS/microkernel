@@ -24,7 +24,7 @@ use crate::memory::addr::PhysAddr;
 use crate::memory::paging::types::PagePermissions;
 use crate::process::current_process;
 
-/// `write`: the receiver was named to write; else its view is read-only (K20).
+/// `write`: the receiver was named to write; else its view is read-only.
 pub(super) fn map_view(
     receiver_pid: u32,
     handle: SurfaceHandle,
@@ -37,7 +37,7 @@ pub(super) fn map_view(
     let proc = current_process().ok_or(RegistryError::NoProc)?;
     let len = frames.len().saturating_mul(4096);
     let base = proc.reserve_vma(len, asid).map_err(|_| RegistryError::MapFailed)?;
-    // An munmap there read its held frames before this view existed (L50).
+    // An munmap there read its held frames before this view existed.
     if super::super::pin::busy::busy_over(base.as_u64(), len as u64) {
         proc.unreserve_vma(base, len);
         return Err(RegistryError::MapFailed);

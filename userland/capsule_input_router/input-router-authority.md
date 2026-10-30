@@ -10,7 +10,7 @@ Part of [capsule_input_router](README.md).
 |---|---|---|
 | 0x08 | IPC | recv on 4320, calls to wm, policy and compositor, deliveries |
 | 0x10 | Memory | subscription, grab and routing tables |
-| 0x1000000000 | InputConsumer | drain and wait on the raw-input ring, which nothing else may (K8) |
+| 0x1000000000 | InputConsumer | drain and wait on the raw-input ring, which nothing else may |
 
 `Debug` is absent. No Driver, Mmio, Irq, Dma or Pio: this capsule only consumes
 the event ring the drivers post to.

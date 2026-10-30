@@ -30,9 +30,9 @@ nonos_eth_rpc = { path = "../nonos_eth_rpc" }
 nonos_policy_client = { path = "../policy_client" }
 nonos_policy_proto = { path = "../policy_proto" }
 # NOX's address and the Shield pool, from the one config every chain
-# constant lives in (B7).
+# constant lives in.
 nonos_nox_config = { path = "../nonos_nox_config" }
-# The meter's ACCOUNT: the address a Shield withdraw funds (B7).
+# The meter's ACCOUNT: the address a Shield withdraw funds.
 nonos_payment_proto = { path = "../payment_proto" }
 nonos_market_proto = { path = "../market_proto" }
 # The publisher screen reads an entry document and derives ids (B8, the plan).

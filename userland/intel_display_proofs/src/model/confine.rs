@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The GGTT confined (G-75), from the test's own reading: once a rig arms
+//! The GGTT confined, from the test's own reading: once a rig arms
 //! it with the frames the driver holds, every present entry the driver
 //! writes must name a page of one of them, and no entry may still name a
 //! frame given back. Firmware's entries may be left or cleared, not written.

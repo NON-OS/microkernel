@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The edges of u32 a size can sit on, for the sweeps that hold every
-//! product of sizes (G-70): zero and one, the small ones a mode has, the
+//! product of sizes: zero and one, the small ones a mode has, the
 //! powers a product turns over at (2^16, 2^24, 2^28, 2^30, 2^31) with
 //! their neighbours, and the top.
 

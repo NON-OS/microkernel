@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! bootfb's sibling thread in the takeover model (L79), once B's first map
+//! bootfb's sibling thread in the takeover model, once B's first map
 //! has returned: MkMmioUnmap of that grant (unmap_grant: the grant found,
 //! its claim counted inside for Ready, Leaving or Exiting, the grant removed,
 //! the pages unmapped, the count out; UnmapOutside counts nothing), or the

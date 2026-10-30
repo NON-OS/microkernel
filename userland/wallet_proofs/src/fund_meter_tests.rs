@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A withdrawal to the meter (B7): only from the config's Shield pool, only
+//! A withdrawal to the meter: only from the config's Shield pool, only
 //! to a meter whose key is open, and the wallet's NOX is the config's.
 
 use nonos_nox_config::{address, Contract, MAINNET, SEPOLIA};

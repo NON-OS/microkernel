@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! Each reading bring-up takes to tell its own dark plane (G-79) refuses
+//! Each reading bring-up takes to tell its own dark plane refuses
 //! alone when it is not as this driver sets it.
 
 use super::dark_tests::{own_dark, taken};

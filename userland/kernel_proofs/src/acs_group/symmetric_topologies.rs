@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Generated machines for the both-ways group proofs (H-03): sibling
+//! Generated machines for the both-ways group proofs: sibling
 //! functions on bus 0, and root ports with a switch, a conventional PCI
 //! bridge or functions below; every function's ACS drawn from a seed.
 

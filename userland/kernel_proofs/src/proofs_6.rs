@@ -29,7 +29,7 @@ mod boot_fb;
 mod debug_grants;
 #[path = "described/mod.rs"]
 pub mod described;
-/// Disk controllers before the bus drivers (H-02).
+/// Disk controllers before the bus drivers.
 #[path = "disks_first/mod.rs"]
 mod disks_first;
 /// The firmware's flash never claimed or mapped.
@@ -70,6 +70,6 @@ pub mod surface_cap;
 mod terminate_once;
 #[path = "unit_base/mod.rs"]
 pub mod unit_base;
-/// A user page never GLOBAL, now that CR4.PGE is on (P-06).
+/// A user page never GLOBAL, now that CR4.PGE is on.
 #[path = "user_not_global/mod.rs"]
 pub mod user_not_global;

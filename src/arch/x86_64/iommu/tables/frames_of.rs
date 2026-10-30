@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The frames a domain's page table is made of, pure (K12): its root and
+//! The frames a domain's page table is made of, pure: its root and
 //! every table below it, never a leaf's frame, which is the DMA buffer a
 //! grant owns. A destroyed domain gives these back once no unit can walk
 //! them. kernel_proofs::iommu_attach.

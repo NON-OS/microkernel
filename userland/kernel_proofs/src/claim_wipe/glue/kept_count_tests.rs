@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A kept run is an unconfined grant, counted as one until it is freed
-//! (L80): whichever of the registry's let-go and the wipe's settle frees it
+//! whichever of the registry's let-go and the wipe's settle frees it
 //! notes the release, once, and a run kept for good stays counted. The
 //! orders are driven by the kept rule itself; which paths note a release is
 //! read from the kernel, each note pinned where it stands and counted, so

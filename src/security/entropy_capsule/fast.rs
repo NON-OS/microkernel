@@ -17,7 +17,7 @@
 //! The fast path for kernel-served randomness: a local ChaCha20 generator,
 //! so no syscall waits on IPC. Each fill ends by replacing the key with
 //! keystream no caller saw. Every RESEED_AFTER bytes the key is hashed with
-//! a seed from every source (K9), the entropy capsule's held bytes never
+//! a seed from every source, the entropy capsule's held bytes never
 //! enough alone; the capsule is asked first, unlocked and never waited on.
 
 use spin::Mutex;

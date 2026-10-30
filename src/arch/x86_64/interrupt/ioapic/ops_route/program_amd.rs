@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A capsule's line under AMD interrupt remapping (K4): an entry at index
+//! A capsule's line under AMD interrupt remapping: an entry at index
 //! `vector` in the table of the IO-APIC's own requester id (its IVHD
 //! special entry), then the IO-APIC entry in compatibility format naming
 //! that vector, so a level line's EOI still matches it. A line whose

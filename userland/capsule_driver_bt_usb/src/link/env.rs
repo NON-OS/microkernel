@@ -30,7 +30,7 @@ pub trait Env: Random + Desk {
     /// Milliseconds since some fixed point; never goes back.
     fn now_ms(&mut self) -> u64;
     /// One event for the input ring, stamped with the posting link's trust
-    /// (G-76): `authenticated` is its bond's level, SOURCE_BT is implied.
+    /// `authenticated` is its bond's level, SOURCE_BT is implied.
     fn input(&mut self, input: Input, authenticated: bool);
     /// Once a turn of the link's loop, for whatever repeats on the clock.
     fn tick(&mut self, now_ms: u64);

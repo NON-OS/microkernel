@@ -20,7 +20,7 @@
 use super::decide::opted_in;
 
 /// A device a unit confines can still write 0xFEEx_xxxx: claimed only if
-/// interrupts are remapped (K3), under the opt-in, or under the no-IOMMU
+/// interrupts are remapped, under the opt-in, or under the no-IOMMU
 /// posture, where an unconfined device can write that page anyway.
 pub(crate) const fn interrupts_confined(
     remapping: bool,

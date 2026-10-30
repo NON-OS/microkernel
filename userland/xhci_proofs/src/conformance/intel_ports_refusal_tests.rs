@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! When the switch-over is not made, or not taken (H-10): a machine that
+//! When the switch-over is not made, or not taken: a machine that
 //! cannot switch, a controller not Intel's, a broker that refuses, and a
 //! device that ignores the write. Each comes up on the ports it already
 //! has; none hangs or fails bring-up.

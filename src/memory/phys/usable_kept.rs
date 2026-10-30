@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The boot map's RAM, every region not reserved, unusable, NVS, MMIO or PAL
-//! code, the loader's and firmware's own included (L60, L63): an RMRR over
+//! code, the loader's and firmware's own included: an RMRR over
 //! the kernel image is as much RAM as one over memory the allocator hands out.
 
 use spin::Mutex;

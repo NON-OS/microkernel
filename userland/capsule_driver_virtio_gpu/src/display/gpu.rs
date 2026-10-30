@@ -27,7 +27,7 @@ use crate::state::{FenceCounter, Health};
 /// The largest side offered; a host takes any size, DMA bounds it here.
 pub const MAX_SIDE: u32 = 4096;
 /// One display DMA grant: the broker's DISPLAY_FRAMEBUFFER_PAGES, 8192 of
-/// 4 KiB. A surface is one grant, so no mode over it is offered (G-78).
+/// 4 KiB. A surface is one grant, so no mode over it is offered.
 pub const GRANT_BYTES: u64 = 8192 * 4096;
 
 pub struct Head {
@@ -61,7 +61,7 @@ impl Gpu {
     }
 
     /// An id no surface of this driver's holds. A reset before bring-up
-    /// left the host none, so ids are this driver's alone (G-73).
+    /// left the host none, so ids are this driver's alone.
     pub fn fresh_id(&mut self) -> u32 {
         loop {
             let id = self.next_id;

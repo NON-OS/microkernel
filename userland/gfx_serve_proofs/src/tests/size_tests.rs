@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A primary's length at u32's edges (G-70), against the test's u128
+//! A primary's length at u32's edges, against the test's u128
 //! reading (the rows a copy writes: `copy_size_tests.rs`).
 
 use crate::primary::{Primary, CURSOR_SLOT};

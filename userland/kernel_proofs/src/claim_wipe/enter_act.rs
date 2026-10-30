@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A stepper's one act on the device in the enter model (L78), with no lock
+//! A stepper's one act on the device in the enter model, with no lock
 //! held, as act.rs, reset.rs and check.rs do it: the reset started or found
 //! not possible, the move back to D0, or what a written reset came to.
 

@@ -16,7 +16,7 @@
 //! MODES: the host's wanted size first (the device's own mode, section
 //! 12's first choice), then the modes output 0's EDID lists, then the size
 //! shown now; each once, flagged by where it came from. A mode whose
-//! surface would not fit one display grant is not offered (G-78): the
+//! surface would not fit one display grant is not offered: the
 //! EDID's are left out when it is read (`setup/edid.rs`), the host's here,
 //! and the size shown fits, since its surface was made.
 

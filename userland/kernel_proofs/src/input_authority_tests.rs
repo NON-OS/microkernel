@@ -19,7 +19,7 @@
 //! the bit every input driver holds to post, a keyboard or touchpad driver
 //! could read every key; these pin the split on the real token and cap table.
 //! Posting takes `InputSource` alone and draining `InputConsumer` alone: Irq,
-//! which every driver holds, and Admin stand in for neither (K8).
+//! which every driver holds, and Admin stand in for neither.
 
 use crate::authorization_tests::token;
 use crate::capabilities::Capability;

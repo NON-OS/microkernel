@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A claimant's call in the enter model (L78), in claim.rs's order: enter's
+//! A claimant's call in the enter model, in claim.rs's order: enter's
 //! step_all, its one claims hold that asks the record and pushes Making, the
 //! steps between, then admit or withdraw (enter_admit).
 

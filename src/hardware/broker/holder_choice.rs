@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which tables a grant's holder runs in, pure (K10). Proven on the host
+//! Which tables a grant's holder runs in, pure. Proven on the host
 //! (kernel_proofs::holder_choice).
 
 /// Where a holder's pages are.

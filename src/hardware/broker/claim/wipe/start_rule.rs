@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whether a wipe writes its reset now (L78). A function outside D0, or one
+//! Whether a wipe writes its reset now. A function outside D0, or one
 //! with no method or no marker to read, is never reset, so never trusted
 //! reset; one with transactions pending waits for them up to the bound.
 

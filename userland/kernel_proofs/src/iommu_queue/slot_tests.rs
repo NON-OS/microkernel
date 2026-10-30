@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A queue head the ring does not have is a failed unit, never an index
-//! (K12).
 
 use super::queue::{queue_offset, queue_slot, QUEUE_ENTRIES};
 

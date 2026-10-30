@@ -22,7 +22,7 @@
 //! as Driver's last field drops, and it is the real guard: the kernel
 //! clears Bus Master with a read-back before it drains the DMA buffers.
 //! The driver's own clear is defence in depth, taking effect once the
-//! kernel stores exactly the bits written (K6).
+//! kernel stores exactly the bits written.
 
 use nonos_libc::{mk_pci_config_write, MK_PCI_CFG_COMMAND};
 

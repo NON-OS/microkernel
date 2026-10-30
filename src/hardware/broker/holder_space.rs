@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The address space a grant's holder runs in, and its grants' pages taken
-//! out of it (K10). A holder can be a thread: it runs in its process's
+//! out of it. A holder can be a thread: it runs in its process's
 //! tables and owns no address-space entry, so it is found by its tables.
 //! Found either way, the pages come out from any context, with the TLB
 //! shot down on every CPU running those tables before this returns.

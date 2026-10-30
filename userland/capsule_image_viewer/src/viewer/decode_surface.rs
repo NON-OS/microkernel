@@ -6,7 +6,7 @@ use nonos_libc::{
     SURFACE_FORMAT_ARGB8888,
 };
 
-/// The input as a surface only `codec` maps, read-only (K20).
+/// The input as a surface only `codec` maps, read-only.
 pub(super) fn share_input(
     bytes: &[u8],
     codec: u32,

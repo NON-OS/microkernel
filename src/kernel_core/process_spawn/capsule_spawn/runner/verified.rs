@@ -58,7 +58,7 @@ pub(crate) fn spawn_verified_as(
     /*
      * The gate's record, the capsule's namespace and its spawn tier are
      * written inside install, before the pid can run, so its first call
-     * already finds them (L61).
+     * already finds them.
      */
     install(&InstallParams {
         name: spec.name,

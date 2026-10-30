@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Who may attach a surface (K20), pure; kernel_proofs::surface_closing::
+//! Who may attach a surface, pure; kernel_proofs::surface_closing::
 //! rights. A share names one receiver, recorded here; rights_attach.rs says
 //! who attaches.
 

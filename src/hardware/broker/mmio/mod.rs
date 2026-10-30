@@ -33,7 +33,7 @@ mod take_back;
 mod types;
 pub mod window;
 
-// Read by the IOMMU unit-base check, which only x86 builds (K11).
+// Read by the IOMMU unit-base check, which only x86 builds.
 #[cfg(target_arch = "x86_64")]
 pub(crate) use forbidden_ranges::ram as boot_ram_ranges;
 pub use map::map_for_caller;

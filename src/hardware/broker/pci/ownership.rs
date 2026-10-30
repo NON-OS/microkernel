@@ -21,7 +21,7 @@ use crate::hardware::broker::pci_index::{self, PciHandle};
 
 use super::types::{PciReadError, PciReadRequest, PciWriteError, PciWriteRequest};
 
-/// The handle, and the claim held across the write (L66).
+/// The handle, and the claim held across the write.
 pub(super) fn resolve(
     pid: u32,
     req: &PciWriteRequest,

@@ -29,14 +29,14 @@ mod elf_tests;
 pub(crate) mod handover_tests;
 #[path = "inbox_name_tests.rs"]
 mod inbox_name_tests;
-/// An attach whose invalidation fails takes its entry out (K12).
+/// An attach whose invalidation fails takes its entry out.
 #[path = "iommu_attach/mod.rs"]
 pub mod iommu_attach;
 #[path = "ipc_held_tests/mod.rs"]
 mod ipc_held_tests;
 #[path = "ipc_peers_tests.rs"]
 mod ipc_peers_tests;
-/// The PCI Command register a driver may write (K6).
+/// The PCI Command register a driver may write.
 #[path = "pci_command/mod.rs"]
 pub mod pci_command;
 #[path = "permissions_tests.rs"]
@@ -68,7 +68,7 @@ mod usb_msc_report_tests;
 /// The in-kernel virtio-rng's gate: never available while it cannot deliver.
 #[path = "vga_attr/mod.rs"]
 pub mod vga_attr;
-/// Which virtio devices may be confined (K5).
+/// Which virtio devices may be confined.
 #[path = "virtio_confine/mod.rs"]
 pub mod virtio_confine;
 #[path = "vmd_domain/mod.rs"]

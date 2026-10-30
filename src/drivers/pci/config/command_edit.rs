@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Command register edits that cannot lose each other's bits (L73). An edit
+//! Command register edits that cannot lose each other's bits. An edit
 //! reads Command and writes it back changed; two made at once on one
 //! function each keep what the other changed between its read and its
 //! write, so an exit turning Bus Master off and a bind setting INTx Disable

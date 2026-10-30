@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Nothing of a purchase shows until every market answer is in and the
-//! terms read for the names asked (B8): no half screen. Focus lost over
+//! terms read for the names asked: no half screen. Focus lost over
 //! the consent puts it back there, shown nothing until read again.
 
 use nonos_market_proto::Commerce;

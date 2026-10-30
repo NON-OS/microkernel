@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The compositor's handle on the GOP surface it registers (K20). A sid is
+//! The compositor's handle on the GOP surface it registers. A sid is
 //! a slot, not a handle, and MkSurfaceAttach and MkSurfacePresent take the
 //! handle. A share that names the owner's own process hands that back and
 //! records no receiver. The compositor names itself by the endpoint the

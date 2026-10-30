@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! A dark plane on a running transcoder, taken only when it is this
-//! driver's own leftover (G-79): a mode set killed after it turned the
+//! driver's own leftover: a mode set killed after it turned the
 //! plane off leaves the pipe running with nothing shown, which G-12 reads
 //! as no output. It is taken when what bring-up reads says this driver
 //! set it: the pipe's picture is its timing's active size, as a mode set

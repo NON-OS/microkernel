@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The register bits a reset reads and writes (L78), as pure values. Every
+//! The register bits a reset reads and writes, as pure values. Every
 //! one is recalled from the PCIe base specification and unverified: a wrong
 //! one ends a wipe Unreset or Lost, never in a false Clean.
 
@@ -53,11 +53,11 @@ pub(crate) const fn devctl_after(before: u16) -> u16 {
 }
 
 /// Device Control 2's completion timeout value and disable, which a network
-/// holder may write (L80).
+/// holder may write.
 pub(crate) const CT_BITS: u16 = 0x001F;
 
 /// Device Control 2 as put back: its completion timeout as firmware left it
-/// at enumeration, `boot`, never as the last holder set it (L80).
+/// at enumeration, `boot`, never as the last holder set it.
 pub(crate) const fn devctl2_after(before: u16, boot: u16) -> u16 {
     (before & !CT_BITS) | (boot & CT_BITS)
 }

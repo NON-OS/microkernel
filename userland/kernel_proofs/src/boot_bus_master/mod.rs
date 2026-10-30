@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * What the boot pass leaves in a function's Command register (L34): the
+ * What the boot pass leaves in a function's Command register: the
  * decoders on, Bus Master as firmware left it, never turned on here. The
  * kernel's pure rule is included by path.
  */

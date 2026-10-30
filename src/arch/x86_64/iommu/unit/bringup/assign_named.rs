@@ -18,7 +18,7 @@
 //! a namespace device scope): an SD or eMMC host, LPSS I2C or UART, in ACPI
 //! mode. PCI enumeration never sees them, so without this they would have no
 //! context entry for a capsule's claim to move. Like every device the kernel
-//! found, they start in the blocked domain (K2) and reach nothing until then.
+//! found, they start in the blocked domain and reach nothing until then.
 
 use super::assign::bind;
 use crate::arch::x86_64::acpi::parser::other::{namespace_devices, namespace_requester};

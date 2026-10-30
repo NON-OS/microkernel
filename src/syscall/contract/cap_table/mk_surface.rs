@@ -33,7 +33,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         /*
          * The raw input ring carries every keystroke: an input driver posts
          * under InputSource, input_router alone drains and waits under
-         * InputConsumer, and neither Irq nor Admin stands in (K8).
+         * InputConsumer, and neither Irq nor Admin stands in.
          */
         SyscallNumber::MkInputEventPost => caps.can_input_source(),
         SyscallNumber::MkInputEventDrain => caps.can_input_consumer(),

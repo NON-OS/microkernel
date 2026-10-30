@@ -28,7 +28,7 @@ use crate::error::{AhciError, AhciResult};
 ///
 /// The broker ORs these bits into the register today, so a word without Bus
 /// Master leaves it as it stands (the boot pass sets it on every endpoint);
-/// once it stores the word as written (K6), that write turns it off. The word
+/// once it stores the word as written, that write turns it off. The word
 /// is written whole either way, so the order holds then on its own.
 pub fn command(device_id: u64, claim_epoch: u64, bus_master: bool) -> AhciResult<()> {
     let master = if bus_master { MK_PCI_CMD_BUS_MASTER } else { 0 };

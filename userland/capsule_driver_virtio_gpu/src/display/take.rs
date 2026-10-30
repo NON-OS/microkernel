@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! Bring-up's takeover (G-77): every scanout the host enabled, up to the
+//! Bring-up's takeover: every scanout the host enabled, up to the
 //! wire's outputs, gets a surface at the size the host asked for, zeroed
 //! and sent to the host whole, then set on its scanout and flushed. A
 //! scanout whose surface cannot be made is left as the host has it.

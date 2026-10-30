@@ -62,7 +62,7 @@ pub(crate) fn held() -> bool {
     SHARED.load(Ordering::Acquire)
 }
 
-/// The holder's process name, never its pid (K10).
+/// The holder's process name, never its pid.
 pub(super) fn holder_name(pid: u32) -> String {
     crate::process::with_process(pid, |p| p.name.lock().clone())
         .unwrap_or_else(|| String::from("another capsule"))

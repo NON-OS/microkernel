@@ -27,7 +27,7 @@ const MAP_PRIVATE_ANON: i32 = 0x22;
 
 /// The shared handle, stride and length of a new surface holding `pixels`,
 /// and the mapping (base, length) to unmap when it is let go. Only `client`,
-/// which asked for it, maps it, read-only (K20).
+/// which asked for it, maps it, read-only.
 pub fn register_argb_surface(
     pixels: &[u32],
     size: ImageSize,

@@ -48,7 +48,7 @@ pub(super) fn attach_frames(
     };
     let mapped = super::map_frames::map_view(receiver_pid, handle, &frames, out_desc, write);
     // A view left mapped is recorded as an attach and keeps its reference.
-    // At none left, the slot goes as `release_surface` frees it (L49).
+    // At none left, the slot goes as `release_surface` frees it.
     if mapped.is_err() && lookup(receiver_pid, handle).is_none() {
         let _ = release_surface(handle);
     }

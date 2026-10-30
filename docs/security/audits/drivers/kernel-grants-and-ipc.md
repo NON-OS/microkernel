@@ -14,7 +14,7 @@ The MkDevice*, MkMmio*, MkIrq*, MkDma*, MkPio* and MkPciConfig* syscalls over cr
 - **medium** `hardware/broker/confine/attach.rs:41`: the unconfined fallback; the same defect as iommu.md's attach.rs:62. -> K1
 - **refuted**, was medium (the capsule writes device_addr into its own device, and unconfined it already reaches all memory) `hardware/broker/dma/map/transaction.rs:48`: MkDmaMap returns a host-physical device_addr when unconfined. -> no fix needed; K1 removes the case
 - **low**, was medium (the bases are MMIO-hole addresses, and i2c_pci needs its own for the LPSS remap) `syscall/microkernel/device.rs:153`: MkDeviceList gives every DeviceEnum holder all physical BAR bases. -> K10
-- low: `syscall/microkernel/mmio/map.rs:66` unconditional serial traces and pid 7 hooks on the grant path (K10); `hardware/broker/grant.rs:17` eleven TCB files over 75 lines.
+- low: `syscall/microkernel/mmio/map.rs:66` unconditional serial traces and pid 7 hooks on the grant path; `hardware/broker/grant.rs:17` eleven TCB files over 75 lines.
 
 ## In-kernel PCI stack and security helpers: partial
 
@@ -43,4 +43,4 @@ The in-kernel virtio_rng driver and the capsule are in media.md.
 - **medium**, was high (bounded: the seed pool fails closed and every lane has RDRAND) `hardware/virtio_rng_capsule/client/fill_random.rs:27`: the brokered entropy path is dead; no kernel code calls the capsule client, and every consumer calls the in-kernel driver, which delivers nothing. A synchronous call from the CSPRNG cannot work (it needs CAP_DRIVER and would block under the RNG lock); the bytes must reach an accumulator asynchronously. -> K9
 - **medium** `crypto/util/rng/entropy/collect/pool.rs:44`: device bytes are credited as full hardware entropy with no health test, and the vault returns raw device words when RDRAND and RDSEED are absent. -> K9
 - **low**, was medium (the truncated PFN names no RAM, so nothing lands) `drivers/virtio_rng/queue/core.rs:59`: the in-kernel virtio_rng gives the device kernel virtual addresses; the media audit's copy of this finding is rated medium in media.md. -> K9
-- low: `drivers/virtio_rng/device/random.rs:12` completion wait is a spin count (K9).
+- low: `drivers/virtio_rng/device/random.rs:12` completion wait is a spin count.

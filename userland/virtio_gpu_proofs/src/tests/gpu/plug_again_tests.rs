@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! A scanout the host turns back on and off again before it was shown
-//! (G-77): off once more, it answers dark and a MODE_SET waits, so no mode
+//! off once more, it answers dark and a MODE_SET waits, so no mode
 //! is set on a screen the host does not show; back again, the primary is
 //! shown whole. Another output never notices one turned off.
 

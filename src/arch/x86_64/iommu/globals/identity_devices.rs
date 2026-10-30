@@ -16,7 +16,7 @@
 
 //! The devices still able to reach all of RAM, the kernel included, on VT-d:
 //! none. Bring-up puts every enumerated device in the blocked domain or in a
-//! domain holding only its reserved memory (K2), never an identity map, and
+//! domain holding only its reserved memory, never an identity map, and
 //! a capsule's claim moves it into that capsule's domain. The posture line
 //! asks every backend the same question, so the answer is said, not assumed.
 

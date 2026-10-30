@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The takeover model's whole state (L79), one value per world. Paths by
+//! The takeover model's whole state, one value per world. Paths by
 //! index: 0 G1 and 1 G2, covering claims; 2 B, bootfb's thread that claims,
 //! maps, stores and gives back; 3 its sibling thread; 4 E, bootfb's exit;
 //! 5 K, a kernel drawer; 6 the exit that orphans G1's claim being made.

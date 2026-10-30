@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! A scanout turned off and back with the host going wrong at any command
-//! of it (G-77): dead for a while, for good, or the driver killed. The
+//! of it: dead for a while, for good, or the driver killed. The
 //! host never reads a page the driver gave back, and with the host
 //! answering again the primary is shown whole within the dead window's
 //! tries, and only its surface is left on the host.

@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The router's notice and the shell's reading of it agree (G-76): every
+//! The router's notice and the shell's reading of it agree: every
 //! frame the router sends is read by the shell's own rule as a notice
 //! exactly when it is one, and a notice carries no event. The shell is told
 //! once a minute, and the refusal holds until the keyboard is re-paired.

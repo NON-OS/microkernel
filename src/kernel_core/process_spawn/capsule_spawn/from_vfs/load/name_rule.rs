@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which names a capsule loaded at run time may declare, pure (K18).
+//! Which names a capsule loaded at run time may declare, pure.
 //! A reply inbox `endpoint.<x>.reply` stands for `<x>`. The kernel's own
 //! inboxes and `proc.` are nobody's to load. A name the image reserves, or
 //! one under it, is its spawn site's namespace's alone, and a family

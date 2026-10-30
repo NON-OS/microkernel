@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What ACS redirects, and the group that is left (K11).
+//! What ACS redirects, and the group that is left.
 
 use super::acs_path::{path, Hop};
 use super::acs_reach::group_by_hop;

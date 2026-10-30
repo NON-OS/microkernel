@@ -40,7 +40,7 @@ pub(super) fn claim(w: &mut World, p: usize, t: &mut Thread) {
         0 => t.stepper = Some(Stepper::new(true)),
         1 if w.knob == Knob::CapEarly => w.procs[p].over_cap = w.kept_bytes() >= KEEP_CAP,
         2 => enter(w, p, t),
-        // confine::attach refused, or a BAR that would not keep (L62).
+        // confine::attach refused, or a BAR that would not keep.
         3 | 5 if !c.untranslated && w.chance(40) => t.step = 9,
         // power.rs `power_on_device`, and its settling spin.
         4 if c.pm => {

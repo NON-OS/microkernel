@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Where a framebuffer lies against one function's BARs (L79), judged on
+//! Where a framebuffer lies against one function's BARs, judged on
 //! whole pages. Every address and size here is illustrative, picked to show
 //! a shape; none is a fact about any real device.
 

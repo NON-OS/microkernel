@@ -50,7 +50,7 @@ fn an_override_is_taken_as_written() {
 }
 
 // A device's own `_CRS` comes ahead of the override and the ISA default
-// (L43): a GPIO controller asking level, active-low on GSI 14.
+// a GPIO controller asking level, active-low on GSI 14.
 #[test]
 fn the_devices_own_description_comes_first() {
     for gsi in [7, 9, 14, 20] {

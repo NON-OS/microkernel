@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A thread published but never started is ended there, and one whose
-//! process was killed while it was built is ended before it can run (L77).
+//! process was killed while it was built is ended before it can run.
 
 const SPAWN: &str = include_str!("../../../../src/process/core/table/thread_spawn.rs");
 const END: &str = include_str!("../../../../src/process/core/table/thread_end.rs");

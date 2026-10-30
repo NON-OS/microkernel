@@ -17,7 +17,7 @@
 //! holder), `release_for_device` (every grant of one claim, L71) and
 //! `release_all_for_pid` (what a pid still owns). Each grant's pages come
 //! out of the tables its holder runs in, from any context, shot down on
-//! every CPU running them (K10); found none, the active tables are unmapped
+//! every CPU running them; found none, the active tables are unmapped
 //! when they are the holder's, and an address-space teardown drops the rest.
 
 use super::fence::{fence, Fenced};
@@ -28,7 +28,7 @@ use crate::memory::addr::VirtAddr;
 
 pub fn unmap_grant(pid: u32, grant_id: u64) -> Result<(), GrantError> {
     // Inside its claim until the pages are gone, so a release or a takeover
-    // of the scanout waits out an unmap already under way (L79).
+    // of the scanout waits out an unmap already under way.
     let _inside = grant::find(pid, grant_id).and_then(|(d, e)| claim::inside(pid, d, e));
     let g = grant::remove(pid, grant_id)?;
     unmap_one(&g);
@@ -42,8 +42,8 @@ pub fn release_for_device(pid: u32, device_id: u64, epoch: u64) -> usize {
     drained.len()
 }
 
-/// An exit's MMIO drain. Its claims already left (L75), so a grant a dying
-/// sibling enters after this is refused (L69) and the drain finds every one.
+/// An exit's MMIO drain. Its claims already left, so a grant a dying
+/// sibling enters after this is refused and the drain finds every one.
 pub fn release_all_for_pid(pid: u32, unmap_pages: bool) -> usize {
     let drained = grant::drain_for_pid(pid);
     drained.iter().for_each(|g| take_away(g, unmap_pages));

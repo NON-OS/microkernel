@@ -53,7 +53,7 @@ pub(crate) fn setup(w: u32, h: u32, stride: u32) -> Option<(u64, u64)> {
 }
 
 /// The compositor's pid, 0 when it is gone: the splash is shared with it
-/// alone, read-only (K20).
+/// alone, read-only.
 fn compositor_pid() -> u32 {
     let name = b"compositor";
     let (mut port, mut pid) = (0u32, 0u32);

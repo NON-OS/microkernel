@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The adapter's own registers swept (G-83): every DISPI value the driver
+//! The adapter's own registers swept: every DISPI value the driver
 //! reads is the device's word. A register file is drawn at random
 //! (`file`), sometimes with an adapter that does not take the mode written,
 //! and the start-up mode is held to what the rules say (`oracle`); the ID

@@ -60,7 +60,7 @@ pub(super) fn note_shared_page(device: &DeviceRecord, w: &Window) {
                 && b.base.saturating_add(b.size) > lo
         })
     });
-    // No physical address on the line (K10).
+    // No physical address on the line.
     if shared {
         crate::sys::serial::println(b"[MMIO] page shared with another device's BAR");
     }

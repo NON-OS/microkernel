@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Claims of the records firmware tables publish (L59). An ACPI or a device
+//! Claims of the records firmware tables publish. An ACPI or a device
 //! tree record names what no PCI id does, and it was open to whichever
 //! Driver-capped capsule asked first: once the I2C host driver had exited,
 //! any capsule could take the touchpad's controller and its GPIO bank, and a

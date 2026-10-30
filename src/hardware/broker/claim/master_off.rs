@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Bus mastering off at claim (L34). Firmware may leave it on, and until its
+//! Bus mastering off at claim. Firmware may leave it on, and until its
 //! driver resets it a device may still hold a ring firmware programmed: on a
 //! machine without an IOMMU its first DMA could reach any page. The driver
 //! turns it on through the config-write allowlist once its own rings exist,

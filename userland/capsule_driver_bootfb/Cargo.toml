@@ -2,7 +2,7 @@
 #
 # The boot framebuffer as a display-wire driver: the framebuffer firmware
 # left (UEFI GOP, a simple-framebuffer node, the Pi firmware's), listed by
-# the kernel as one firmware-bus device (L31), claimed, mapped and served
+# the kernel as one firmware-bus device, claimed, mapped and served
 # as driver.bootfb0 so the compositor drives every screen the same way.
 # bootfb_proofs mounts the source files; the binary adds the libc side.
 

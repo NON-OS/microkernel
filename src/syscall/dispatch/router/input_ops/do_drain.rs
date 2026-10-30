@@ -47,7 +47,7 @@ pub(super) fn do_drain(out_ptr: u64, max_events: u64) -> SyscallResult {
     // InputEvent is repr(C) with no padding (32 bytes).
     let src = unsafe { core::slice::from_raw_parts(scratch.as_ptr() as *const u8, bytes) };
     let copied = copy_to_user(out_ptr, src);
-    // The keystrokes leave no copy on this kernel stack (K8).
+    // The keystrokes leave no copy on this kernel stack.
     for e in scratch[..n].iter_mut() {
         // SAFETY: eK@nonos.systems - `e` is a valid, aligned, exclusive
         // reference; volatile so the wipe of a dead buffer is kept.

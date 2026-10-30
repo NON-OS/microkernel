@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The console's draw gate (L79): a kernel draw counted in DRAWS while it
+ * The console's draw gate: a kernel draw counted in DRAWS while it
  * writes the framebuffer, and stopped by HELD, by GONE or by a takeover
  * under way. The gate reaches kernel globals and cannot be mounted, so a
  * model whose steps are its atomic operations one for one is searched over

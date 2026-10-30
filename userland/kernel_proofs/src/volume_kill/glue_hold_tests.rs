@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A reused pid forgotten at purge (G10), and write_or_create as one hold:
+//! A reused pid forgotten at purge, and write_or_create as one hold:
 //! the look, the import guard with the verb that names what happens, the
 //! create if missing, and the write, all under one VOLUME.write().
 

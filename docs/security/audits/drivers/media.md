@@ -71,4 +71,4 @@ Ring-0 legacy virtio-rng driver every kernel entropy consumer calls; it drives t
 - **medium** `queue/constants.rs:18`: the ring is laid out for 16 entries whatever QUEUE_NUM says, and FEATURES_OK is not read back. -> K9
 - **medium** `device/core.rs:39`: a memory BAR0 is dereferenced as a raw pointer to a physical address, with the legacy register layout. -> K9
 - The crediting of device bytes (`src/crypto/util/rng/entropy/collect/pool.rs:44`, medium) is in kernel-grants-and-ipc.md, K9.
-- low: `device/random.rs:28` 100,000-spin timeout under the device lock (K9); `device/io.rs:16` files over 75 lines and statics in mod.rs (K9).
+- low: `device/random.rs:28` 100,000-spin timeout under the device lock; `device/io.rs:16` files over 75 lines and statics in mod.rs.

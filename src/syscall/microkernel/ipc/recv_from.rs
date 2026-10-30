@@ -24,7 +24,7 @@ use super::recv_open::{buffer, inbox};
 // extra `sender_pid_out` user pointer written with the caller pid
 // of the dequeued message (0 for kernel-internal senders) so the
 // receiver can reply via `MkIpcSendToPid`, and `enqueued_ms_out`
-// written with when the kernel queued it, in MkTimeMonotonic ms (K14).
+// written with when the kernel queued it, in MkTimeMonotonic ms.
 pub fn sys_ipc_recv_from(
     endpoint: u64,
     buf: u64,

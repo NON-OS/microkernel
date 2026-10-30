@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The host's display events (G-77): a window resized, or a display turned
+//! The host's display events: a window resized, or a display turned
 //! on or off, raises the display bit in the device's events word. The
 //! receive loop reads it on every turn, and STATE too; when set, the
 //! display info is asked again and each head follows it (`plug`), the bit

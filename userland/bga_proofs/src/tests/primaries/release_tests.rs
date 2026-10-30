@@ -28,7 +28,7 @@ use super::pool::Pool;
 fn a_primarys_share_is_released_before_its_memory_is_unmapped() {
     let memory = FakeBar::new(16384);
     lend(memory.base(), 16384);
-    // The share names the compositor, so one must be running (K20).
+    // The share names the compositor, so one must be running.
     hold(b"compositor", Some(42));
     let mut p = Pool::default();
     let r = p.alloc(64 * 48 * 4).expect("the primary's memory");

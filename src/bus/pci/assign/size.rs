@@ -41,7 +41,7 @@ pub(super) fn size_bar(bus: u8, device: u8, function: u8, offset: u8) -> Option<
 
     let is_io = original & 1 != 0;
     if is_io {
-        // Within the 16 bits ports have, as enumeration sizes it (L68).
+        // Within the 16 bits ports have, as enumeration sizes it.
         let size = crate::drivers::pci::bar::slots::io_size(probed) as u64;
         return (size != 0).then_some(Bar { size, is_io: true, is_64bit: false });
     }

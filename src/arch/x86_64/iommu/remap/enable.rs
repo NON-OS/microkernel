@@ -17,7 +17,7 @@
 //! Turning interrupt remapping on for one unit (VT-d 5.1, 10.4.4): table
 //! address, SIRTP, a global interrupt entry cache invalidation so no entry
 //! cached before the table was set survives, then IRE with CFI clear, so a
-//! compatibility format interrupt is blocked from then on (K3). Boot runs
+//! compatibility format interrupt is blocked from then on. Boot runs
 //! this before the IO-APIC is routed or any device bound, so nothing armed
 //! is cut off.
 

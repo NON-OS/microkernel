@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Worlds of the enter model hashed for the seen-set (L78). The kernel's
+//! Worlds of the enter model hashed for the seen-set. The kernel's
 //! phase, method, end and stage types carry no hash of their own, so each
 //! is folded to plain numbers here; equal worlds give equal keys.
 

@@ -33,10 +33,10 @@ use super::types::{PciWriteError, WriteAction};
  * The bits themselves are in `command_bits.rs`, pure for the proofs.
  */
 /// `masked` is the form of `change.rs`: `new` is then the whole register.
-/// The register the form leaves is then held to `command_rule.rs` (K6): no
+/// The register the form leaves is then held to `command_rule.rs`: no
 /// bit outside the writable three moves, Bus Master is set or kept on only
 /// for a caller holding Dma, and Memory Space only for one holding Mmio
-/// (H-02); `may` is whether the caller holds Dma, and Mmio.
+/// `may` is whether the caller holds Dma, and Mmio.
 pub(super) fn validate_command(
     new: u16,
     current: u16,

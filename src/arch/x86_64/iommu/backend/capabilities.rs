@@ -43,7 +43,7 @@ pub(crate) fn capabilities() -> IommuCapabilities {
  * segment, past eight, past an unreadable DMAR structure) translates nothing,
  * and devices behind it reach memory directly, so nothing is claimed. The
  * width is what the domains' depth reaches, cut to what the unit accepts and
- * to DMAR's host address width (K11). Pages are 4 KiB: map_range maps no more.
+ * to DMAR's host address width. Pages are 4 KiB: map_range maps no more.
  */
 fn vtd() -> IommuCapabilities {
     let none = IommuCapabilities::none_in_force(IommuVendor::IntelVtd);

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Deaths and failures of the display engine and of the driver at every
-//! step of flip, mode set and cursor update (G-72), held against the
+//! step of flip, mode set and cursor update, held against the
 //! model's watch (`model/watch.rs`); and the owner's silence and a
 //! restart's leftovers, the two ends of a death seen from outside.
 

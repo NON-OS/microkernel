@@ -16,7 +16,7 @@
 
 /*
  * Who may attach a surface (L18c): the owner's thread group or a group the
- * owner named; the compositor is named as any receiver is (K20). The
+ * owner named; the compositor is named as any receiver is. The
  * kernel's pure rule is included by path.
  */
 

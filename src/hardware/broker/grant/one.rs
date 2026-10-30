@@ -20,7 +20,7 @@ use super::table::GRANTS;
 use super::types::{GrantError, MmioGrant};
 
 // The device and claim of `pid`'s grant `grant_id`, as recorded, so an
-// unmap can hold that claim while it takes the pages back (L79).
+// unmap can hold that claim while it takes the pages back.
 pub(in super::super) fn find(pid: u32, grant_id: u64) -> Option<(u64, u64)> {
     let grants = GRANTS.lock();
     let g = grants.iter().find(|g| g.grant_id == grant_id && g.pid == pid)?;

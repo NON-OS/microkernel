@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * A function wiped between holders (L78): the reset's pure rules included by
+ * A function wiped between holders: the reset's pure rules included by
  * path and each tested at its edges, a seeded model of holders, steppers,
  * claimants and a device that may never come back, an exhaustive model of a
  * claim's entry racing the wipe its last holder owes, and each design rule

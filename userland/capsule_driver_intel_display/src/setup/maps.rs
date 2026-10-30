@@ -23,7 +23,7 @@ use nonos_libc::{mk_mmio_map, MmioMapOut};
 use crate::error::{IntelError, IntelResult};
 use crate::handles::BrokerHandles;
 
-/// `MK_MMIO_MAP_WC` (L17): only on a prefetchable BAR, which GMADR is.
+/// `MK_MMIO_MAP_WC`: only on a prefetchable BAR, which GMADR is.
 const MK_MMIO_MAP_WC: u32 = 1 << 0;
 
 pub fn bar0(h: &mut BrokerHandles, len: u64) -> IntelResult<MmioMapOut> {

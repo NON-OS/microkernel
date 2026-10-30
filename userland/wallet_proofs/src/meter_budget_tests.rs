@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The meter's budget form (B8): whole NOX and days as typed, into the
+//! The meter's budget form: whole NOX and days as typed, into the
 //! SET_BUDGET the meter reads, and nothing it would misread.
 
 use nonos_payment_proto::SetBudget;

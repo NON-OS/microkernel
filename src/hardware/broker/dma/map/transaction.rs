@@ -61,7 +61,7 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
         placed.undo_mapped(pid, device_addr, confined);
         return fail("dma32", DmaMapError::Above4G);
     }
-    // Entered only while the claim stands (L69) and within the quota (K10);
+    // Entered only while the claim stands and within the quota;
     // refused, the map comes out.
     let grant_id = match record::record(pid, &req, claim_epoch, &placed, device_addr, confined) {
         Ok(id) => id,

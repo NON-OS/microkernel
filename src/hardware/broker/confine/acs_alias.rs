@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The requester ids a device's DMA may carry besides its own, pure (K11).
+//! The requester ids a device's DMA may carry besides its own, pure.
 //! A bridge to conventional PCI forwards what it takes from below under an
 //! id of its own, so the IOMMU sees that id; each one on the way up adds
 //! one. Every alias joins the device's domain, or its DMA is denied, or

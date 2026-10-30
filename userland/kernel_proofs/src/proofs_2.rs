@@ -17,7 +17,7 @@
 //! Host proofs, group 2 of 9: test modules mounted by path
 //! from proofs.rs, each at its own file.
 
-/// A device's isolation group (K11).
+/// A device's isolation group.
 #[path = "acs_group/mod.rs"]
 pub mod acs_group;
 #[path = "firmware_iommu/mod.rs"]

@@ -27,7 +27,7 @@ use super::super::unit::report::probed;
 /// Devices still bound are denied first, and the caches dropped, before the
 /// slot is freed: a freed slot is reused by the next claim, and a device left
 /// pointing at it would reach whatever that claim maps. Only then do the
-/// domain's tables go back to the allocator (K12), and only when every one
+/// domain's tables go back to the allocator, and only when every one
 /// of them can be read. If they cannot, the slot stays taken, quarantined,
 /// and the error reaches the caller.
 pub fn destroy_domain(id: DomainId) -> Result<(), VtdError> {

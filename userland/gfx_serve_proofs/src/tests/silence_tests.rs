@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The owner's silence (G-72): a compositor not heard for OWNER_SILENCE_MS
+//! The owner's silence: a compositor not heard for OWNER_SILENCE_MS
 //! has its cursor turned off, every primary scrubbed and the screen shown
 //! blank from it, once for each silence; its next STATE says LOST. Another
 //! pid's requests do not count as the owner heard.

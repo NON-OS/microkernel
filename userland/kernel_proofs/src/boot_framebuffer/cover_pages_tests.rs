@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The two steps the cover rule is built from (L79): a byte span widened to
+//! The two steps the cover rule is built from: a byte span widened to
 //! the whole pages it touches, its start rounded down and its end up, and
 //! two page spans meeting only when they share a page, never at an edge.
 

@@ -50,7 +50,7 @@ pub fn grant_memory(pid: u32, base: u64, len: u64) -> Result<MemoryGrant, Region
     if fresh && !records::insert(pid, Space::Memory, start, end) {
         return Err(RegionError::Full);
     }
-    // From the caller's own MMIO window (K10), given back if the map fails.
+    // From the caller's own MMIO window, given back if the map fails.
     let bytes = end - start;
     let va = grant::reserve_user_va(pid, bytes / PAGE).ok_or(RegionError::NoVaSpace)?;
     let undo = || {

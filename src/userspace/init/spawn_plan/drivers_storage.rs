@@ -19,7 +19,7 @@ use crate::hardware::inventory::HardwareFamily;
 
 /// The SATA and NVMe controllers, before the bus drivers (orchestrator.rs):
 /// a disk controller that DMAs claims its isolation group ahead of anything
-/// sharing it (H-02).
+/// sharing it.
 pub(super) fn spawn_disks() {
     spawn_ahci();
     spawn_nvme();

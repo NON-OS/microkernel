@@ -19,7 +19,7 @@
 //! controller capsule too, which serves a fixed slot's eMMC or, on a
 //! machine with none, a reader's card. Intel's SDIO hosts carry the board's
 //! Wi-Fi or Bluetooth, never a disk (recalled), and are left out by id; the
-//! ids are unverified until re-sourced from Intel's datasheets (L56).
+//! ids are unverified until re-sourced from Intel's datasheets.
 //!
 //! Pure, with no imports, so host proofs can include it by path.
 

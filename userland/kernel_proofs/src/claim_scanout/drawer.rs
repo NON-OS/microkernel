@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The kernel's drawer in the takeover model (L79), drawing::drawable and
+//! The kernel's drawer in the takeover model, drawing::drawable and
 //! the Drop of what it hands out: the stop read, the draw counted, the stop
 //! read again and the count backed out if it is set, the write, the count
 //! dropped; `cfg.draws` tries a run. NoRecheck reads the stop only before.

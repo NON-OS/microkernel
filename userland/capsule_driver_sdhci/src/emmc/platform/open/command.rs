@@ -32,7 +32,7 @@ use super::super::env::SerialLog;
 ///
 /// The broker ORs these bits into the register today, so a word without Bus
 /// Master leaves it as it stands (the boot pass sets it on every endpoint);
-/// once it stores the word as written (K6), that write turns it off. The word
+/// once it stores the word as written, that write turns it off. The word
 /// is written whole either way, so the order holds then on its own.
 pub(super) fn command(
     log: &SerialLog,

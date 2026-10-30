@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! What the watch looks through (G-72): every IOVA page an enabled plane
+//! What the watch looks through: every IOVA page an enabled plane
 //! or cursor reaches, from its armed registers and its latched ones, read
 //! through the GGTT as the engine would fetch them.
 

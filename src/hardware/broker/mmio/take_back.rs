@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A holder's MMIO grants under one claim taken back from outside it (L79):
+//! A holder's MMIO grants under one claim taken back from outside it:
 //! drained from the table, then each page still showing its grant's frame
 //! pointed at the sink in the holder's own tables, which a thread of it may
 //! be running on another CPU. Its stores land in the sink, unseen, and its

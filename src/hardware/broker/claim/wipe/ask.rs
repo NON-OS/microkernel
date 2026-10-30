@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The three questions the claims ask of the wipe records, each under the
-//! claims' lock (L78): a claim's entry gone, so its wipe is owed; whether a
+//! claims' lock: a claim's entry gone, so its wipe is owed; whether a
 //! new claim may begin; and a lost function asked once more.
 
 use core::sync::atomic::Ordering;
@@ -37,7 +37,7 @@ pub(in crate::hardware::broker) fn owe(device_id: u64, epoch: u64) {
 }
 
 /// `over_cap` is asked once the record is read: an end settles its frames
-/// before it is written, so an end read here has them counted (L80).
+/// before it is written, so an end read here has them counted.
 pub(in crate::hardware::broker) fn admits(
     device_id: u64,
     by: Option<Name>,

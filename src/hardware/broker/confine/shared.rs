@@ -27,7 +27,7 @@ use crate::memory::iommu::DeviceAddress;
 
 /// Why `address` is refused to the capsule at `pos`, if it is: another
 /// capsule holds the same requester id, or a peer below one switch that
-/// reaches it past the IOMMU (L72).
+/// reaches it past the IOMMU.
 pub(super) fn held_elsewhere(
     all: &[Capsule],
     pos: usize,
@@ -47,7 +47,7 @@ pub(super) fn held_elsewhere(
 }
 
 /// Every RMRR region a capsule other than the one at `pos` holds: a region is
-/// never mapped into two capsules' domains (L63).
+/// never mapped into two capsules' domains.
 pub(super) fn regions_elsewhere(all: &[Capsule], pos: usize) -> Vec<(u64, u64)> {
     (all.iter().enumerate().filter(|&(i, _)| i != pos))
         .flat_map(|(_, c)| c.rmrr.iter().map(|h| (h.base, h.end)))
