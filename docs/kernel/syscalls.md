@@ -16,24 +16,22 @@ The CPU itself overwrites `rcx` and `r11`. The entry code saves the caller's `rd
 
 ## How many there are
 
-The kernel registers and dispatches 176 system calls, and publishes 147 of them. The count was taken three ways at this commit:
+The kernel registers and dispatches 183 system calls, and publishes all 183. The count is the same three ways at this commit:
 
-- `abi/syscalls.toml` lists 147 tags under `[numbers]`, starting at `APPS` (`abi/syscalls.toml:55-56`), and 147 `[desc.TAG]` blocks, one per call.
-- The kernel enum `SyscallNumber` has 179 variants (`src/syscall/numbers/defs.rs:17-197`). The 150 published tags are among them; the other 29 are dispatched but not published, all microkernel calls, and the check below names each one.
-- The kernel's `REGISTRY` joins four tables: 160 microkernel, 12 crypto, 3 admin and 1 graphics entry, 176 in all (`src/syscall/abi/registry/mod.rs:27-28`).
+- `abi/syscalls.toml` has 183 `[desc.TAG]` blocks, one per call.
+- The kernel enum `SyscallNumber` has 183 variants (`src/syscall/numbers/defs.rs`).
+- The kernel's `REGISTRY` joins four tables: 167 microkernel, 12 crypto, 3 admin and 1 graphics entry, 183 in all (`src/syscall/abi/registry/mod.rs`).
 
-`scripts/check_syscall_abi.py` goes further and checks that every published call reaches a handler:
+`scripts/check_syscall_abi.py` checks that every published call reaches a handler, and that no call is dispatched without being published:
 
 ```
 $ python3 scripts/check_syscall_abi.py
-syscall-abi: 29 dispatched syscalls are unpublished
-  ...
-syscall-abi: 147 published syscalls reach a handler
+syscall-abi: 183 published syscalls reach a handler
 ```
 
 | Family | Calls | Tags | Routed to |
 |---|---:|---|---|
-| Microkernel | 160, 131 published | four letters starting with `M` | `microkernel_ops`, `surface_ops`, `input_ops` |
+| Microkernel | 167 | four letters starting with `M` | `microkernel_ops`, `surface_ops`, `input_ops` |
 | Crypto | 12 | `CRND` to `CMKY` | the crypto router |
 | Admin | 3 | `ARBT`, `ASDN`, `APPS` | the admin router |
 | Graphics | 1 | `GDIM` | `graphics_backend` |
