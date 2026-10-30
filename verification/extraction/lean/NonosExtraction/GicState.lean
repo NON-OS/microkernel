@@ -145,18 +145,18 @@ def state.REDIST_BASE
   :=
   core.sync.atomic.AtomicU64Align8U64.new 0#u64
 
-/-- [nonos_x_gic_state::version::GicVersion]
+/-- [nonos_x_gic_state::gic_version::GicVersion]
     Source: 'src/../../../../../src/arch/aarch64/gic/version.rs', lines 21:0-24:1
     Visibility: public -/
 @[discriminant isize]
-inductive version.GicVersion where
-| V2 : version.GicVersion
-| V3 : version.GicVersion
+inductive gic_version.GicVersion where
+| V2 : gic_version.GicVersion
+| V3 : gic_version.GicVersion
 
 /-- [nonos_x_gic_state::state::set_layout]:
     Source: 'src/../../../../../src/arch/aarch64/gic/state.rs', lines 29:0-38:1 -/
 def state.set_layout
-  (version : version.GicVersion) (dist : Std.U64) (cpu : Std.U64)
+  (version : gic_version.GicVersion) (dist : Std.U64) (cpu : Std.U64)
   (redist : Std.U64) :
   Result Unit
   := do
@@ -171,8 +171,8 @@ def state.set_layout
     core.sync.atomic.Ordering.Release
   let tag ←
     match version with
-    | version.GicVersion.V2 => ok 2#u8
-    | version.GicVersion.V3 => ok 3#u8
+    | gic_version.GicVersion.V2 => ok 2#u8
+    | gic_version.GicVersion.V3 => ok 3#u8
   let a3 ← state.VERSION
   core.sync.atomic.AtomicU8Align1U8.store a3 tag
     core.sync.atomic.Ordering.Release
@@ -190,23 +190,23 @@ def state.redist_base : Result Std.U64 := do
   core.sync.atomic.AtomicU64Align8U64.load a core.sync.atomic.Ordering.Acquire
 
 /-- [nonos_x_gic_state::set_bases]:
-    Source: 'src/lib.rs', lines 20:0-22:1
+    Source: 'src/lib.rs', lines 26:0-28:1
     Visibility: public -/
 def set_bases
-  (version : version.GicVersion) (dist : Std.U64) (cpu : Std.U64)
+  (version : gic_version.GicVersion) (dist : Std.U64) (cpu : Std.U64)
   (redist : Std.U64) :
   Result Unit
   := do
   state.set_layout version dist cpu redist
 
 /-- [nonos_x_gic_state::dist_base]:
-    Source: 'src/lib.rs', lines 24:0-26:1
+    Source: 'src/lib.rs', lines 30:0-32:1
     Visibility: public -/
 def dist_base : Result Std.U64 := do
   state.dist_base
 
 /-- [nonos_x_gic_state::redist_base]:
-    Source: 'src/lib.rs', lines 28:0-30:1
+    Source: 'src/lib.rs', lines 34:0-36:1
     Visibility: public -/
 def redist_base : Result Std.U64 := do
   state.redist_base

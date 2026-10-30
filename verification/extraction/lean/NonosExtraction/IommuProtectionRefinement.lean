@@ -47,8 +47,11 @@ theorem the_iommuprotection_writable_wrapper_is_its_method (a : protection.Iommu
     the other, so the pair of answers determines the protection completely,
     and that the read-only shape of `IommuProtection::READ` is readable and not
     writable while a write-only protection is writable and not readable. They
-    cannot establish that the hardware honours those flags, and the `READ` and
-    `READ_WRITE` constants and the backend itself are not extracted.
+    cannot establish that the hardware honours those flags, and the `READ`,
+    `READ_WRITE` and `DOORBELL` constants and the backend itself are not
+    extracted. The `mmio` field, which selects device memory attributes, is
+    read by neither accessor, so the pair of answers determines the
+    protection together with `mmio`.
 -/
 
 /-- Each accessor returns exactly the field the backend turns into a page flag. -/
@@ -57,14 +60,17 @@ theorem iommuprotection_readable_and_writable_are_the_backend_flags
     iommuprotection_readable p = ok p.read ∧ iommuprotection_writable p = ok p.write :=
   ⟨rfl, rfl⟩
 
-/-- Two protections that answer both accessors alike are the same protection:
-neither accessor reads the other's field. -/
+/-- Two protections with the same `mmio` that answer both accessors alike are
+the same protection: neither accessor reads the other's field. -/
 theorem iommuprotection_readable_and_writable_determine_the_protection
     (p q : protection.IommuProtection)
     (hr : iommuprotection_readable p = iommuprotection_readable q)
-    (hw : iommuprotection_writable p = iommuprotection_writable q) : p = q := by
-  obtain ⟨pr, pw⟩ := p
-  obtain ⟨qr, qw⟩ := q
+    (hw : iommuprotection_writable p = iommuprotection_writable q)
+    (hm : p.mmio = q.mmio) : p = q := by
+  obtain ⟨pr, pw, pm⟩ := p
+  obtain ⟨qr, qw, qm⟩ := q
+  simp only at hm
+  subst hm
   simp only [iommuprotection_readable, protection.IommuProtection.readable,
     iommuprotection_writable, protection.IommuProtection.writable, ok.injEq] at hr hw
   subst hr hw
@@ -73,15 +79,15 @@ theorem iommuprotection_readable_and_writable_determine_the_protection
 /-- The read-only shape of `IommuProtection::READ` grants reads and refuses
 writes. -/
 theorem a_read_only_protection_is_iommuprotection_readable_but_not_iommuprotection_writable :
-    iommuprotection_readable { read := true, write := false } = ok true ∧
-      iommuprotection_writable { read := true, write := false } = ok false :=
+    iommuprotection_readable { read := true, write := false, mmio := false } = ok true ∧
+      iommuprotection_writable { read := true, write := false, mmio := false } = ok false :=
   ⟨rfl, rfl⟩
 
 /-- A write-only protection grants writes and refuses reads: writability does
 not imply readability in this type. -/
 theorem a_write_only_protection_is_iommuprotection_writable_but_not_iommuprotection_readable :
-    iommuprotection_writable { read := false, write := true } = ok true ∧
-      iommuprotection_readable { read := false, write := true } = ok false :=
+    iommuprotection_writable { read := false, write := true, mmio := false } = ok true ∧
+      iommuprotection_readable { read := false, write := true, mmio := false } = ok false :=
   ⟨rfl, rfl⟩
 
 /-! ### Axiom profile -/
