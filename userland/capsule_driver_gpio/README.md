@@ -1,5 +1,7 @@
 # capsule_driver_gpio
 
+Status: not in the image. The capsule builds and its host proofs pass, but its wire was never checked against the client and it has no catalogue entry or seal yet, so no profile ships it.
+
 ## Role
 
 `capsule_driver_gpio` is the x86 GPIO controller capsule (`driver.gpio0`).
@@ -52,6 +54,7 @@ device's holder re-arms it.
 The capsule may enumerate devices, claim the ACPI GPIO controllers, map
 their windows and bind their interrupts. It has no DMA, PIO, filesystem, network, display,
 credential, or input focus authority. Its sealed trust files come from the
+owner's signing step; the kernel embeds it only with
 `nonos-capsule-driver-gpio`, which no profile turns on yet.
 
 ## Privacy and persistence

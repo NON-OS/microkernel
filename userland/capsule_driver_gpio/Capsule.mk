@@ -22,3 +22,7 @@ CAPSULE_OPTIONAL_CAPS    := 0x100
 CAPSULE_KERNEL_MIRROR    := src/hardware/gpio_capsule
 
 include nonos-mk/capsule.mk
+# Builds and is proven on the host. Its wire was never checked against the client, and it has no
+# catalogue entry or seal yet, so no profile ships it. The kernel mirror above stays in the tree,
+# built only under its feature; remove this marker when a profile carries the capsule.
+CAPSULE_NOT_IN_IMAGE     := 1
