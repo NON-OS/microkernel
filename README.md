@@ -72,6 +72,8 @@ ceiling recorded.
 
 ![What the kernel lets a program reach: a window, its own home and the network are granted; other files, other programs, memory and the keyboard are not](docs/media/diagram-the-box.svg)
 
+*Figure 1. What the kernel lets a program reach. Sources: [`docs/using/linux-box.md`](docs/using/linux-box.md), [`docs/using/marketplace.md`](docs/using/marketplace.md).*
+
 Each row below is a real attempt from inside a Linux program on the sealed 0.9.3 image, and the answer the kernel
 gave.
 
@@ -133,6 +135,8 @@ The changes a person would notice:
 ## The Marketplace
 
 ![From a listing to a window: signed index, one package at a time, the box, a window](docs/media/diagram-install-and-run.svg)
+
+*Figure 2. From a Marketplace listing to a window. Sources: [`docs/using/marketplace.md`](docs/using/marketplace.md), [`docs/release/0.9.3-what-is-new.md`](docs/release/0.9.3-what-is-new.md).*
 
 31 Linux programs, each with its licence and its box in the catalogue (`userland/capsule_market/linux-catalogue.json`). Each is checked against a signed index before it installs.
 
@@ -239,9 +243,15 @@ the operating system runs in ring 3, drivers included.
 
 ![The kernel in ring 0 and everything else in ring 3, joined by one checked syscall](docs/media/diagram-layers.svg)
 
+*Figure 3. The kernel in ring 0 and everything else in ring 3. Sources: [`docs/overview/architecture.md`](docs/overview/architecture.md).*
+
 ![The capability check on every system call: decode, resolve the token, five checks](docs/media/diagram-capability-check.svg)
 
+*Figure 4. The capability check on every system call. Sources: [`docs/kernel/syscalls.md`](docs/kernel/syscalls.md), [`docs/kernel/capabilities.md`](docs/kernel/capabilities.md).*
+
 ![Messages between capsules: four gates on every send](docs/media/diagram-ipc-gates.svg)
+
+*Figure 5. IPC between capsules: the gates on a send. Sources: [`docs/kernel/ipc.md`](docs/kernel/ipc.md).*
 
 A capability is one of 40 bits, defined once in [abi/caps.toml](abi/caps.toml). A capsule's
 word is fixed when it is enrolled, the kernel installs it from the verified manifest at spawn,
@@ -267,6 +277,8 @@ image's store. At spawn the kernel checks the certificate, the manifest and the 
 installs the capabilities from the manifest.
 
 ![Capsule admission: certificate, manifest, STARK gate, start](docs/media/diagram-capsule-admission.svg)
+
+*Figure 6. Capsule admission. Sources: [`docs/security/stark-attestation.md`](docs/security/stark-attestation.md).*
 
 The capabilities installed come from the verified manifest, never from what the spawn site
 asked for. Every capsule is listed with its service and decoded word in
@@ -305,6 +317,8 @@ on the privacy page.
 
 ![How a program's traffic leaves the machine: Nym, Anyone or direct, through net.socks5](docs/media/diagram-network-routes.svg)
 
+*Figure 7. How a program's traffic leaves the machine. Sources: [`docs/security/anonymity-transports.md`](docs/security/anonymity-transports.md).*
+
 The whole model, with what it does not cover, is in [privacy](docs/security/README.md),
 [the amnesic design](docs/security/protections-and-limits.md), [storage](docs/drivers/storage/README.md) and
 [the route model](docs/security/anonymity-transports.md).
@@ -322,7 +336,11 @@ policy root. It is hash-based, with no trusted setup and no pairing.
 
 ![Who proves and who verifies: the kernel carries only the verifier](docs/media/diagram-who-proves.svg)
 
+*Figure 8. Who proves and who verifies. Sources: [`docs/security/stark-attestation.md`](docs/security/stark-attestation.md).*
+
 ![The trust chain: firmware, loader, kernel and capsule, with the TPM registers each stage uses](docs/media/diagram-boot-chain.svg)
+
+*Figure 9. The boot chain and the TPM registers each stage uses. Sources: [`docs/security/boot-chain-and-signatures.md`](docs/security/boot-chain-and-signatures.md), [`docs/security/measured-boot-and-tpm.md`](docs/security/measured-boot-and-tpm.md).*
 
 The gates link only the verifier, `nox_verify`, from the STARKs repository at the commit `flake.lock` pins. The prover
 runs on the enrolling host in `nonos-stark-enroll`, which builds the one policy root over every
