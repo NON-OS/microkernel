@@ -63,6 +63,13 @@ fn main() {
     if arch == "x86_64" {
         b.flag("-mno-red-zone");
     }
+    // The riscv64 capsule target is hard-float (riscv64-nonos-user.json: +f,+d,
+    // lp64d). clang's bare triple defaults to soft-float, and lld refuses to
+    // link the two ABIs together.
+    if arch == "riscv64" {
+        b.flag("-march=rv64imafdc");
+        b.flag("-mabi=lp64d");
+    }
     // The browser capsule links as a position-independent executable, so the C
     // objects must use PIC relocations to link against the Rust PIC code.
     b.flag("-fPIC");
