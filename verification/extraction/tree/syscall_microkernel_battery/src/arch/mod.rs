@@ -19,5 +19,14 @@ pub mod x86_64 {
                 None
             }
         }
+
+        pub mod power_button {
+            pub fn poll(_ticks: u64) {}
+        }
     }
 }
+
+pub mod acpi_capsule;
+
+pub(crate) use acpi_capsule::gate::acpi_only;
+pub(crate) use acpi_capsule::power::acpi_tables_declare_battery;

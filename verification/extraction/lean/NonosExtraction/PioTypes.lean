@@ -14,26 +14,26 @@ set_option maxRecDepth 2048
 
 namespace nonos_x_pio_types
 
-/-- [nonos_x_pio_types::types::PioWidth]
-    Source: 'src/../../../../../src/hardware/broker/pio/types.rs', lines 39:0-43:1
+/-- [nonos_x_pio_types::width::PioWidth]
+    Source: 'src/../../../../../src/hardware/broker/pio/width.rs', lines 21:0-25:1
     Visibility: public -/
 @[discriminant u8 [1,2,4]]
-inductive types.PioWidth where
-| U8 : types.PioWidth
-| U16 : types.PioWidth
-| U32 : types.PioWidth
+inductive width.PioWidth where
+| U8 : width.PioWidth
+| U16 : width.PioWidth
+| U32 : width.PioWidth
 
-/-- [nonos_x_pio_types::types::{nonos_x_pio_types::types::PioWidth}::bytes]:
-    Source: 'src/../../../../../src/hardware/broker/pio/types.rs', lines 55:4-57:5
+/-- [nonos_x_pio_types::width::{nonos_x_pio_types::width::PioWidth}::bytes]:
+    Source: 'src/../../../../../src/hardware/broker/pio/width.rs', lines 28:4-30:5
     Visibility: public -/
-def types.PioWidth.bytes (self : types.PioWidth) : Result Std.U16 := do
+def width.PioWidth.bytes (self : width.PioWidth) : Result Std.U16 := do
   let self1 := read_discriminant self
   ok (UScalar.cast .U16 self1)
 
 /-- [nonos_x_pio_types::piowidth_bytes]:
     Source: 'src/lib.rs', lines 10:0-12:1
     Visibility: public -/
-def piowidth_bytes (this : types.PioWidth) : Result Std.U16 := do
-  types.PioWidth.bytes this
+def piowidth_bytes (this : width.PioWidth) : Result Std.U16 := do
+  width.PioWidth.bytes this
 
 end nonos_x_pio_types
