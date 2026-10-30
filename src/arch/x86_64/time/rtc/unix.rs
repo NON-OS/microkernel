@@ -19,6 +19,10 @@ use super::constants::{SECS_PER_DAY, SECS_PER_HOUR, SECS_PER_MIN, UNIX_EPOCH_YEA
 use super::types::RtcTime;
 
 pub fn datetime_to_unix(year: u16, month: u8, day: u8, hour: u8, minute: u8, second: u8) -> u64 {
+    // A read that lands inside the chip's own update can hand back a field of
+    // zero or past its range. The date is held to a real one here, so a bad
+    // read gives a wrong time and never an arithmetic panic.
+    let (month, day) = (month.clamp(1, 12), day.max(1));
     let mut days = 0u64;
     for y in UNIX_EPOCH_YEAR..year {
         days += if is_leap_year(y) { 366 } else { 365 };
