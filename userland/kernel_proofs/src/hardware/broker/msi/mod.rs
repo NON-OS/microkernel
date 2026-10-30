@@ -24,7 +24,7 @@ crate::arch::msi_only! {
     pub mod table;
 }
 
-#[cfg(test)]
+#[cfg(all(test, any(target_arch = "x86_64", target_arch = "aarch64")))]
 mod glue_tests;
-#[cfg(test)]
+#[cfg(all(test, any(target_arch = "x86_64", target_arch = "aarch64")))]
 mod tests;
