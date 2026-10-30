@@ -21,6 +21,8 @@
 //! of the display wire. Bochs, QEMU and their clones share the register set, so a driver wrong
 //! against one is wrong against all.
 
+extern crate alloc;
+
 #[path = "../../capsule_driver_bga/src/constants.rs"]
 pub mod constants;
 pub mod dispi;
