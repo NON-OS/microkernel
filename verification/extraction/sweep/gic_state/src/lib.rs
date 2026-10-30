@@ -8,10 +8,16 @@
 #[path = "../../../../../src/arch/aarch64/gic/state.rs"]
 pub mod state;
 
-// `state.rs` names `super::version::GicVersion`; mounted beside it at the crate
-// root so that path resolves as it does in the kernel's `gic` module.
+// `state.rs` names `super::version::GicVersion`, so that path has to resolve at
+// the crate root as it does in the kernel's `gic` module. The file is mounted as
+// `gic_version` and aliased to `version` rather than mounted as `version`:
+// Aeneas names the enum after its defining module, and `set_layout` has a
+// parameter called `version`, which in Lean shadows a namespace `version` and
+// turns the match arm `version.GicVersion.V2` into a field access on the
+// parameter, an invalid pattern.
 #[path = "../../../../../src/arch/aarch64/gic/version.rs"]
-pub mod version;
+pub mod gic_version;
+use gic_version as version;
 
 // The kernel renamed `set_bases(dist, redist)` to
 // `set_layout(version, dist, cpu, redist)` when it added the GICv2 backend.

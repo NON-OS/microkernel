@@ -151,22 +151,30 @@ theorem a_condition_outside_zero_and_one_mixes_the_operands :
     every entry and masks, so the addresses it touches do not depend on the
     index. -/
 
-/-- The scan is over the literal range `0..256`, whatever the index is.
+/-- The scan is over the whole table, from position 0, whatever the index is.
 
-    Stated as the equation between the function and its loop at that range, which
-    is what the extraction produces: the bounds are constants and the index is
-    passed to the body, where it is compared against the loop variable rather than
-    used to address the table. That is the value-level half of the
-    constant-time claim, and it is the only half this corpus can make. -/
+    The kernel walks `table.iter().enumerate()`, so the loop starts from an
+    iterator over the table's full contents at position 0 with the counter at 0,
+    and the second conjunct pins the length of what it walks to 256, the bound the
+    array type fixes. Stated as the equation between the function and its loop at
+    that start, which is what the extraction produces: neither the start nor the
+    length mentions the index, which is passed to the body, where it is compared
+    against the enumeration counter rather than used to address the table. That is
+    the value-level half of the constant-time claim, and it is the only half this
+    corpus can make. -/
 theorem the_lookup_scans_a_fixed_range
     (table : Array Std.U8 256#usize) (index : Std.U8) :
     crypto.util.constant_time.lookup.ct_lookup_u8 table index =
       (do
         let result ←
           crypto.util.constant_time.lookup.ct_lookup_u8_loop
-            { start := 0#usize, «end» := 256#usize } table index 0#u8
+            { iter := { slice := Array.to_slice table, i := 0 }, count := 0#usize }
+            index 0#u8
         crypto.util.constant_time.barriers.compiler_fence
-        ok result) := rfl
+        ok result) ∧
+    (Array.to_slice table).val.length = 256 := by
+  refine ⟨rfl, ?_⟩
+  simp [Array.to_slice]
 
 /-- The sixteen-entry variant scans its whole table the same way. -/
 theorem the_small_lookup_scans_a_fixed_range
@@ -175,9 +183,13 @@ theorem the_small_lookup_scans_a_fixed_range
       (do
         let result ←
           crypto.util.constant_time.lookup.ct_lookup_u8_16_loop
-            { start := 0#usize, «end» := 16#usize } table index 0#u8
+            { iter := { slice := Array.to_slice table, i := 0 }, count := 0#usize }
+            index 0#u8
         crypto.util.constant_time.barriers.compiler_fence
-        ok result) := rfl
+        ok result) ∧
+    (Array.to_slice table).val.length = 16 := by
+  refine ⟨rfl, ?_⟩
+  simp [Array.to_slice]
 
 /-! ### Addition and subtraction, with the carry out -/
 

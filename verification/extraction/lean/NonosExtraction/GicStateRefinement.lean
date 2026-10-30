@@ -32,8 +32,9 @@ namespace NonosExtraction.GicState
 
 /-! ### The forwarding functions add nothing -/
 
-theorem the_set_bases_wrapper_is_its_method (a : Std.U64) (b : Std.U64) :
-    set_bases a b = state.set_bases a b := rfl
+theorem the_set_bases_wrapper_is_its_method (v : gic_version.GicVersion)
+    (a : Std.U64) (b : Std.U64) (c : Std.U64) :
+    set_bases v a b c = state.set_layout v a b c := rfl
 
 theorem the_dist_base_wrapper_is_its_method :
     dist_base = state.dist_base := rfl
@@ -43,33 +44,53 @@ theorem the_redist_base_wrapper_is_its_method :
 
 /-! ### Which cell each accessor touches, with which ordering
 
-`set_bases` is called once from `gic::api::init` with the distributor and
-redistributor bases from the firmware, and every later interrupt enable or
-disable builds a `Gic` from `dist_base()` and `redist_base()`. The theorems below
-establish the shape of that handoff on the extracted code: `set_bases` stores its
-first argument, unchanged, into the distributor cell and then its second argument
-into the redistributor cell, both with `Release`; each reader is a single
-`Acquire` load of its own cell; and both cells are created holding zero, the value
-a reader sees before `set_bases` has run.
+`set_bases` (the kernel's `set_layout`) is called once from `gic::api::init` with
+the GIC version the firmware reports and the distributor, CPU-interface and
+redistributor bases, and every later interrupt enable or disable builds a `Gic`
+from `dist_base()` and `redist_base()`. The theorems below establish the shape of
+that handoff on the extracted code: `set_bases` stores its distributor, CPU and
+redistributor arguments, unchanged, into their own cells in that order, then the
+version tag (2 for GICv2, 3 for GICv3) into the version cell, all with `Release`;
+each reader is a single `Acquire` load of its own cell; and both cells are created
+holding zero, the value a reader sees before `set_bases` has run.
 
 Aeneas leaves `AtomicU64::new`, `load` and `store` opaque and threads no memory
 through `Result`, so nothing here can establish that a load returns what an
 earlier store wrote, that the `Release`/`Acquire` pair orders the stores before a
-reader's later device accesses, or even that the two statics are distinct
-objects: in this model both are the value `AtomicU64::new(0)` and cannot be told
-apart. What the theorems pin down is the program text the memory model acts on:
-which argument goes to which cell, in which order, and with which orderings. -/
+reader's later device accesses, or even that the statics are distinct objects: in
+this model they are all the value `AtomicU64::new(0)` and cannot be told apart.
+What the theorems pin down is the program text the memory model acts on: which
+argument goes to which cell, in which order, and with which orderings. -/
 
-/-- `set_bases` publishes the distributor base first and the redistributor base
-    second, each as given and each with a `Release` store. -/
-theorem set_bases_stores_each_base_into_its_own_cell_with_release (dist redist : Std.U64) :
-    set_bases dist redist = (do
+/-- The tag `set_layout` writes for each version: 2 for GICv2, 3 for GICv3. -/
+def versionTag : gic_version.GicVersion → Std.U8
+  | .V2 => 2#u8
+  | .V3 => 3#u8
+
+/-- `set_bases` publishes the distributor base, then the CPU-interface base, then
+    the redistributor base, each as given, and last the version tag, every one
+    with a `Release` store. -/
+theorem set_bases_stores_each_base_into_its_own_cell_with_release
+    (v : gic_version.GicVersion) (dist cpu redist : Std.U64) :
+    set_bases v dist cpu redist = (do
       let a ← state.DIST_BASE
       core.sync.atomic.AtomicU64Align8U64.store a dist core.sync.atomic.Ordering.Release
-      let b ← state.REDIST_BASE
-      core.sync.atomic.AtomicU64Align8U64.store b redist core.sync.atomic.Ordering.Release) := by
-  unfold set_bases state.set_bases
-  rfl
+      let b ← state.CPU_BASE
+      core.sync.atomic.AtomicU64Align8U64.store b cpu core.sync.atomic.Ordering.Release
+      let c ← state.REDIST_BASE
+      core.sync.atomic.AtomicU64Align8U64.store c redist core.sync.atomic.Ordering.Release
+      let d ← state.VERSION
+      core.sync.atomic.AtomicU8Align1U8.store d (versionTag v)
+        core.sync.atomic.Ordering.Release) := by
+  unfold set_bases state.set_layout
+  cases v <;> rfl
+
+/-- The two versions get distinct tags, and neither is 0, the value the version
+    cell is created holding, so a reader can tell GICv2, GICv3 and "not yet set"
+    apart. -/
+theorem version_tags_are_distinct_and_nonzero :
+    versionTag .V2 ≠ versionTag .V3 ∧ versionTag .V2 ≠ 0#u8 ∧ versionTag .V3 ≠ 0#u8 := by
+  decide
 
 /-- `dist_base` is one `Acquire` load of the distributor cell, the ordering that
     pairs with the `Release` store in `set_bases`. -/
@@ -107,6 +128,7 @@ theorem dist_base_and_redist_base_read_cells_created_at_zero :
 #print axioms NonosExtraction.GicState.the_dist_base_wrapper_is_its_method
 #print axioms NonosExtraction.GicState.the_redist_base_wrapper_is_its_method
 #print axioms NonosExtraction.GicState.set_bases_stores_each_base_into_its_own_cell_with_release
+#print axioms NonosExtraction.GicState.version_tags_are_distinct_and_nonzero
 #print axioms NonosExtraction.GicState.dist_base_is_an_acquire_load_of_the_distributor_cell
 #print axioms NonosExtraction.GicState.redist_base_is_an_acquire_load_of_the_redistributor_cell
 #print axioms NonosExtraction.GicState.dist_base_and_redist_base_read_cells_created_at_zero
