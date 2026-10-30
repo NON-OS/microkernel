@@ -40,5 +40,11 @@ mod syscall {
 #[cfg(test)]
 mod stand_in;
 #[cfg(test)]
+pub(crate) mod sys {
+    pub(crate) mod serial {
+        pub(crate) fn println(_: &[u8]) {}
+    }
+}
+#[cfg(test)]
 pub(crate) use stand_in::usercopy;
 

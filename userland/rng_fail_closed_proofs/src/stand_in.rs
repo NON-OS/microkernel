@@ -67,5 +67,8 @@ pub mod sys {
         pub fn print(s: &[u8]) {
             super::super::SERIAL.lock().unwrap().extend_from_slice(s);
         }
+        pub fn line(s: &[u8]) {
+            print(s);
+        }
     }
 }
