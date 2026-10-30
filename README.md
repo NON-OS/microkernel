@@ -1,9 +1,8 @@
 ![NØNOS · Privacy. Proofs. Software.](assets/banner.png)
 
 <p align="center">
-  An operating system for people who don't want it to remember them.<br>
-  It boots a signed image into RAM and runs each program in a box that lists what the program may touch.
-  Traffic leaves over the network you picked. When you power off, memory is wiped.
+  An operating system where every program runs in a box.<br>
+  The box is a short list in the program's signed listing, and the kernel checks it on every call.
 </p>
 
 <p align="center">
@@ -21,13 +20,62 @@
   <img src="https://img.shields.io/badge/build-reproducible-007C85" alt="Reproducible build">
 </p>
 
-![The NØNOS desktop](assets/desktop.png)
+![The NØNOS desktop](docs/media/desktop.jpg)
 
-Since 0.9.2 the tree has about 6,000 more commits. The kernel and userland grew, the driver set nearly
-quadrupled, and Linux programs now open their own windows on the NØNOS desktop. Telegram Desktop and
-KeePassXC are two of them, and each runs in a box that names what it may reach. Every claim on this page
-points at code or at evidence in the tree. What 0.9.3 does not do yet is under
+A box lists what a program may touch: a window, its own home folder, the Anyone network, a terminal, the
+right to start other programs. Anything not on the list is refused, and the log says why. Around that the
+machine has what a daily system needs: a desktop, a browser, a terminal, a wallet, a local model, and a
+Marketplace of 31 Linux programs. Memory is wiped when you power off, and nothing is written to a disk
+unless you install.
+
+0.9.3 is the release where those Linux programs get their own windows on the NØNOS desktop. Every claim on
+this page points at code or at evidence in the tree, and what 0.9.3 does not do yet is under
 [Where 0.9.3 stands](#where-093-stands).
+
+## See it
+
+| | |
+|---|---|
+| ![A boot, with the kernel's STARK proof checked before anything runs](docs/media/boot-verified.jpg) | ![First-boot setup asking which network the machine's traffic leaves through](docs/media/setup-network-route.jpg) |
+| The boot checks the kernel's STARK proof before it starts anything. This one ran under KVM, which has no TPM, and the screen says so. | First-boot setup asks which network the machine's traffic leaves through: Nym, Anyone or direct. |
+| ![KeePassXC drawing its window in its own box, with no network](docs/media/keepassxc-in-its-box.jpg) | ![The audit table: every process and what it is granted](docs/media/audit.jpg) |
+| KeePassXC, a Linux program, in its own window. Its box has a window and a home folder and no network. | `audit` lists every process with its grants. Kernel threads show as not in the registry, with no signed ceiling recorded. |
+
+## What a box holds back
+
+Each row is a real attempt from inside a Linux program on the sealed 0.9.3 image, and the answer the kernel
+gave.
+
+| The program tries to | The box | What it got |
+|---|---|---|
+| Read your files | `FILES_HOME` gives a program its own home and nothing else | `cat: can't open '/home/nonos/wallet-seed.txt': No such file or directory`. Its `/home` is empty. |
+| Find a wallet anywhere | | `find / -name '*wallet*'` finds nothing, because no file of yours is in its world |
+| Read another program's memory | a Linux program is never granted it | `[LINUX] refused ptrace: a guest does not inspect or steer another` |
+| Open a connection out | `NET_ANON`, over Nym or Anyone | `[LINUX] refused an internet socket: its policy does not grant NET_ANON, NET_LISTEN_LO or SERVE_ONE` |
+| Start another program | `EXEC` | `[LINUX] refused execve: its policy does not grant EXEC` |
+| Read the keyboard | not in the box | `cat: can't open '/dev/input/event0': No such file or directory` |
+| See other programs | | `ls /proc` shows one process, its own |
+
+![The kernel's answers to a program that went looking: a missing file, a refused ptrace and a refused socket](docs/media/refusals.jpg)
+
+These are single attempts from inside an app, not an exploit chain. Nobody here claims the box cannot be
+broken. [Security limits](docs/release/0.9.3-security-limits.md) lists what the design does not cover.
+
+## Run a program you did not write
+
+`linux --box` runs a Linux program, or one a model wrote, in a sealed box and prints everything the box
+refused:
+
+```
+linux --box strict sh -c 'echo ok > /tmp/out; echo no > /home/out; nc 10.0.0.1 80'
+linux --box offline python3 script.py
+linux --box allow:/tmp/out,net:api.example.com:443 python3 agent.py
+```
+
+`strict` has no network and writes only to `/tmp`. An `allow:` box names its folders and, if it needs any,
+its network destinations, and a connection anywhere else is refused and counted. `linux --box learn` runs a
+program once and writes the tightest box file that would let it do what it did. See
+[Run a program in a box](docs/using/linux-box.md).
 
 ## What changed since 0.9.2
 
@@ -39,26 +87,89 @@ points at code or at evidence in the tree. What 0.9.3 does not do yet is under
 | Rust files in `userland/` | 10,069 | 31,674 |
 | Proof crates | 56 | 223 |
 
-Counted from git at the commit where the 0.9.2 changelog landed, and at this release.
-
-The changes a person would notice:
+Counted from git at the commit where the 0.9.2 changelog landed, and at this release. About 6,000 commits
+separate them.
 
 | | |
 |---|---|
 | Linux programs in windows | A Wayland bridge puts a program's window on the desktop, with a title bar and close, minimise and maximise buttons. KeePassXC, Telegram Desktop, foot and swayimg have drawn their windows on booted images. mpv and zathura are listed. |
-| A box for every app | A Marketplace listing names what its program may reach: a window, the Anyone network, its own home, a terminal, the right to start programs. The kernel refuses the rest. |
 | Pseudo-terminals | Linux programs open `/dev/ptmx` and `/dev/pts/N`, so a terminal emulator can start its shell. |
 | Monero over Nym and Anyone | The Monero wallet syncs from its node through the mixnet or the onion network. A fresh wallet has refreshed in full on a KVM host. |
 | Installing Linux apps | An install checks every package against the signed index and fetches them one at a time over the chosen network. A failure names the package and the check that stopped it. |
 | Updates in place | A disk installed by 0.9.3 can be updated to a later release and keep its encrypted data volume. |
 
-[The release notes](docs/release/0.9.3.md) name the file, commit or evidence directory behind each line, and
+[The release notes](docs/release/0.9.3.md) name the file, commit or evidence directory behind each line.
 [docs/release-evidence/0.9.3](docs/release-evidence/0.9.3/README.md) indexes the evidence.
+
+## The Marketplace
+
+31 Linux programs, each with its licence and its box in the catalogue
+(`userland/capsule_market/linux-catalogue.json`). Each is checked against a signed index before it installs.
+`WAYLAND` is a window of its own. `TTY` is the terminal. `FILES_HOME` is the program's own home and no other
+files. `EXEC` is the right to start other programs. `NET_ANON` is the network, only over Nym or Anyone.
+`NET_LISTEN_LO` is listening on the machine's own loopback and nowhere else. `JIT` is making code as it runs.
+
+With a window:
+
+| Program | What it is | Its box |
+|---|---|---|
+| swayimg | An image viewer that opens in its own window: PNG, JPEG, GIF, WebP, SVG and more, with zoom, pan and a slideshow. | `WAYLAND · FILES_HOME` |
+| Telegram Desktop | Telegram's desktop client, in its own window. | `WAYLAND · FILES_HOME · NET_ANON` |
+| KeePassXC | A password manager that keeps your passwords in one encrypted file in its own home, offline. | `WAYLAND · FILES_HOME` |
+| foot (terminal) | A fast Wayland terminal in its own window, running a shell. | `WAYLAND · TTY · FILES_HOME · EXEC` |
+| mpv (media player) | A media player in its own window, for the video and audio files in its own home. | `WAYLAND · FILES_HOME` |
+| zathura (PDF viewer) | A keyboard-driven PDF viewer that opens in its own window. | `WAYLAND · FILES_HOME` |
+| DarkFi (chat app) | DarkFi's desktop app, built here from v0.5.0 without tor or i2p. | `WAYLAND · FILES_HOME · NET_ANON` |
+
+In the terminal:
+
+| Program | What it is | Its box |
+|---|---|---|
+| Helix | A modal text editor with multiple selections and syntax trees built in. | `TTY · FILES_HOME` |
+| micro | A terminal text editor with the keys people already know: Ctrl-S saves, Ctrl-Q quits. | `TTY · FILES_HOME` |
+| Kakoune | A modal editor where you select first and act second. | `TTY · FILES_HOME · EXEC` |
+| Vim | The classic modal editor, with its full runtime of syntax files and plugins. | `TTY · FILES_HOME` |
+| bat | cat with syntax highlighting and line numbers. | `TTY · FILES_HOME · EXEC` |
+| eza | A modern ls: colours, file types, trees and long listings. | `TTY · FILES_HOME` |
+| nnn | A tiny, fast file manager. | `TTY · FILES_HOME · EXEC` |
+| ncdu | See what takes the space in a directory tree, and clean it up. | `TTY · FILES_HOME` |
+| fzf | A fuzzy finder for files, lines and anything else piped into it. | `TTY · FILES_HOME · EXEC` |
+| Git | Version control for repositories on this machine: init, commit, branch, merge, log and diff. | `TTY · FILES_HOME · EXEC` |
+| tig | A text interface for browsing a Git repository's history. | `TTY · FILES_HOME · EXEC` |
+| lazygit | A terminal interface for Git: stage, commit, branch and rebase with a few keys. | `TTY · FILES_HOME · EXEC` |
+| age | Simple, modern file encryption, offline, to a passphrase or to a recipient key made elsewhere. | `TTY · FILES_HOME` |
+| minisign | Sign files and verify signatures, offline, with tiny Ed25519 keys. | `TTY · FILES_HOME` |
+| FLAC | Encode and decode lossless FLAC audio files. | `TTY · FILES_HOME` |
+| LAME | Encode audio files to MP3. | `TTY · FILES_HOME` |
+| Geth (dev chain) | go-ethereum for local development: geth --dev runs a private chain on this machine with its console. | `TTY · FILES_HOME · NET_LISTEN_LO` |
+| Profanity (XMPP, OMEMO) | A terminal XMPP chat client with OMEMO end-to-end encryption. | `TTY · FILES_HOME · NET_ANON` |
+| Monero wallet (CLI) | Monero's command-line wallet. | `TTY · FILES_HOME · NET_ANON` |
+| DarkFi wallet (drk) | DarkFi's command-line wallet, built here from DarkFi v0.5.0 without its tor and i2p transports, as a prompt in the... | `TTY · FILES_HOME · NET_ANON` |
+| DarkFi local dev chain | A DarkFi chain of your own, for trying the wallet, transfers and contracts: DarkFi's darkfid on its localnet, the... | `TTY · FILES_HOME · NET_LISTEN_LO · JIT` |
+| DarkIRC (P2P chat) | DarkFi's peer-to-peer IRC, in the Terminal: the darkirc daemon, built here from DarkFi v0.5.0 without its tor and... | `TTY · FILES_HOME · NET_ANON · NET_LISTEN_LO` |
+| SimpleX Chat (terminal) | SimpleX Chat v7.0.3 in a terminal: SimpleX's own release binary, not built here, pinned by sha256 and BLAKE3 and... | `TTY · FILES_HOME · NET_ANON` |
+| SimpleX Chat core | the engine for NØNOS's SimpleX window; not for direct use | `FILES_HOME · NET_ANON` |
+
+[The Marketplace](docs/using/marketplace.md) explains installing, and [the Linux box](docs/using/linux-box.md)
+what a box holds.
+
+## What you get
+
+| | |
+|---|---|
+| Desktop | a compositor, a window manager and a desktop shell with a dock; windows size themselves from small laptop panels to 4K |
+| Browser | its own HTML parser, CSS layout, a QuickJS engine and TLS with the Mozilla roots; pages load over Nym, Anyone or direct |
+| Terminal | tabs, pipelines and jobs, built-in commands, `git` over HTTPS, and the Linux tools |
+| Wallet | BIP39 and HD keys held by the keyring capsule, sealed to the TPM, signing in ring 3 |
+| Local model | a private Qwen model installed from the store, checked against its published hashes and kept on the encrypted data volume |
+| Network | Nym mixnet by default, the Anyone onion network, or direct; chosen in setup and changed in Settings |
+| Install | amnesic by default; first-boot setup and an installer that writes NØNOS to a disk only when the person types the disk's word |
+| Proofs screen | About shows every admitted capsule with its measurement and enroller, and how traffic is leaving right now |
 
 ## Drivers
 
-There are 67 driver capsules. Each one runs in ring 3 with a claim on its own device, and DMA is confined by
-the IOMMU where the machine has one in service.
+There are 67 driver capsules. Each runs in ring 3 with a claim on its own device, and DMA is confined by the
+IOMMU where the machine has one in service.
 
 | Class | Count | Drivers |
 |---|---:|---|
@@ -76,44 +187,10 @@ Which of these have run on real hardware, and which have run only in their host 
 [the 0.9.3 hardware notes](docs/release/0.9.3-supported-hardware.md). A driver whose device is missing leaves
 at once, and one whose device fails gives up after a few seconds.
 
-## Every app in its own box
+## How it is built
 
-A program runs with what its signed listing grants. Telegram Desktop's listing grants a window, its own home
-and the Anyone network. foot's grants a window, a terminal, its home and the right to start programs.
-KeePassXC has no network. The kernel checks the box on every call, and a program that asks for more is
-refused with the reason in the log. This is Telegram asking to start another program on the sealed 0.9.3
-image:
-
-```
-[LINUX] policy bound: from=market  mask=0xb  WAYLAND NET_ANON FILES_HOME
-[LINUX] refused execve: its policy does not grant EXEC
-[LINUX] process 17 exited, status 255
-```
-
-The program that was refused is a helper Telegram runs on its first start. Telegram carried on without it,
-with no prompt and nothing to configure. [The Linux box](docs/using/linux-box.md) explains what a box holds,
-and [the Marketplace](docs/using/marketplace.md) lists each program and its grants.
-
-## What you get
-
-| | |
-|---|---|
-| Desktop | a compositor, a window manager and a desktop shell with a dock; windows size themselves from small laptop panels to 4K |
-| Browser | its own HTML parser, CSS layout, a QuickJS engine and TLS with the Mozilla roots; pages load over Nym, Anyone or direct |
-| Terminal | tabs, pipelines and jobs, built-in commands, `git` over HTTPS, and the Linux tools |
-| Linux programs | a Linux personality that traps and translates Linux system calls; programs come from the Marketplace, one box each |
-| Wallet | BIP39 and HD keys held by the keyring capsule, sealed to the TPM, signing in ring 3 |
-| Local model | a private Qwen model installed from the store, checked against its published hashes and kept on the encrypted data volume |
-| Messaging and money | SimpleX Chat, DarkFi (the wallet, a local dev chain, DarkIRC), Telegram Desktop and the Monero wallet, from the Marketplace |
-| Apps | files, text editor, image viewer, audio and video players, settings, process manager, clock, calculator, the Marketplace |
-| Network | Nym mixnet by default, the Anyone onion network, or direct; chosen in setup and changed in Settings |
-| Install | amnesic by default; first-boot setup and an installer that writes NØNOS to a disk only when the person types the disk's word |
-| Proofs screen | About shows every admitted capsule with its measurement and enroller, and how traffic is leaving right now |
-
-[The handbook](docs/README.md) has a page for each. Someone at the keyboard should start with
-[Using NØNOS](docs/using/README.md).
-
-## The kernel
+<details>
+<summary><strong>The kernel</strong>: a capability microkernel, with everything else in ring 3</summary>
 
 The kernel is a capability microkernel, about 390,000 lines of Rust under `src/`. It does what only
 ring 0 can do: page tables and address spaces, the scheduler, IPC between capsules, the
@@ -143,7 +220,10 @@ is in service.
 [memory](docs/kernel/memory-and-paging.md), [the IOMMU](docs/kernel/iommu.md) and
 [the syscall surface](docs/kernel/syscalls.md).
 
-## Capsules
+</details>
+
+<details>
+<summary><strong>Capsules</strong>: signed programs that each carry a capability word</summary>
 
 Everything that runs is a capsule. There are 152, each a directory with a `Capsule.mk` that names
 its service and its capability word. A capsule is compiled ahead of time, signed with Ed25519
@@ -174,7 +254,10 @@ asked for. Every capsule is listed with its service and decoded word in
 [the capsule catalog](docs/using/apps.md). Writing one is in
 [adding a capsule](docs/userland/writing-an-app.md).
 
-## Privacy
+</details>
+
+<details>
+<summary><strong>Privacy</strong>: an amnesic machine and a network you choose</summary>
 
 The machine forgets because it has almost nothing to remember with. The kernel's file tree
 lives in RAM. Every boot is amnesic: nothing reaches a disk unless the person chose to install
@@ -214,7 +297,10 @@ The whole model, with what it does not cover, is in [privacy](docs/security/READ
 [the amnesic design](docs/security/protections-and-limits.md), [storage](docs/drivers/storage/README.md) and
 [the route model](docs/security/anonymity-transports.md).
 
-## The STARK gate
+</details>
+
+<details>
+<summary><strong>The STARK gate</strong>: what may run is checked against a proof</summary>
 
 A signature says a key holder approved an image, and it keeps that key holder in the trust base
 for as long as the image exists. Admission asks a narrower question: is this one of the images
@@ -244,7 +330,27 @@ image, and is it older than what this machine already accepted. The details are 
 [the STARK layer](docs/security/stark-attestation.md), [signing](docs/security/boot-chain-and-signatures.md),
 [keys](docs/security/device-secrets-and-keys.md) and [the TPM](docs/security/measured-boot-and-tpm.md).
 
-## Lean 4 and the proofs
+</details>
+
+## What has been checked
+
+- The kernel and every capsule carry a STARK proof that their measurement belongs to one policy root, and
+  the boot refuses an image whose proof does not verify.
+- Lean 4 holds 1,517 theorems and lemmas about isolation, capabilities, the spawn path, page-table
+  permissions, the attestation binding, the anti-rollback floor and the wipe at power off, with no `sorry`
+  in any Lean tree. 120 Kani harnesses and 223 proof crates run against the shipped source.
+- The build is reproducible: `make` ends with a receipt of every artifact by sha256, and `REPRODUCED` when
+  the artifacts match the committed `receipts/<profile>.json`.
+- 56 evidence directories sit under [docs/release-evidence/0.9.3](docs/release-evidence/0.9.3/README.md),
+  each naming the boot or test behind a line of the release notes.
+
+NØNOS does not claim functional correctness of the whole kernel. The proved surface is what may run, what
+it may reach, and what survives a power cut. [The proof suites](docs/security/checking-the-claims.md) says
+what each one guarantees, and [verification/MAP.md](verification/MAP.md) ties each property to the source it
+constrains.
+
+<details>
+<summary><strong>Lean 4 and the proofs</strong>, in full</summary>
 
 The security-critical surface is machine-checked. Lean 4 carries isolation and
 non-interference, the capability algebra and its delegation, the spawn path and the
@@ -260,6 +366,8 @@ run, what it may reach, and what survives a power cut.
 [The proof suites](docs/security/checking-the-claims.md) says what each one guarantees and
 which run in CI. [verification/MAP.md](verification/MAP.md) ties each property to the source it
 constrains.
+
+</details>
 
 ## Hardware
 
@@ -324,6 +432,7 @@ The release notes say what works, what does not, and how each line was shown:
 | [Installing NØNOS](docs/install/README.md) | from a stick to an installed disk |
 | [Using NØNOS](docs/using/README.md) | the desktop and its programs, for the person at the keyboard |
 | [The Marketplace](docs/using/marketplace.md) | the programs, what each is allowed, how they are installed |
+| [Run a program in a box](docs/using/linux-box.md) | `linux --box`, the boxes and the report |
 | [Building NØNOS](docs/build/README.md) | from a fresh machine to a sealed, booted and installed image |
 | [Building on 0.9.3](docs/userland/README.md) | the rules for capsule and driver authors |
 | [Release notes 0.9.3](docs/release/0.9.3.md) | what is new, with the evidence |
