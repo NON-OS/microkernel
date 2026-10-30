@@ -1,5 +1,7 @@
 # capsule_driver_gpio
 
+Status: not in the image. The capsule builds and its host proofs pass, but its wire was never checked against the client and it has no catalogue entry or seal yet, so no profile ships it.
+
 ## Role
 
 `capsule_driver_gpio` is the x86 GPIO controller capsule (`driver.gpio0`).
