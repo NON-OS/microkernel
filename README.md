@@ -70,7 +70,9 @@ ceiling recorded.
 
 ## What a box holds back
 
-Each row is a real attempt from inside a Linux program on the sealed 0.9.3 image, and the answer the kernel
+![What the kernel lets a program reach: a window, its own home and the network are granted; other files, other programs, memory and the keyboard are not](docs/media/diagram-the-box.svg)
+
+Each row below is a real attempt from inside a Linux program on the sealed 0.9.3 image, and the answer the kernel
 gave.
 
 | The program tries to | The box | What it got |
@@ -129,6 +131,8 @@ separate them.
 [docs/release-evidence/0.9.3](docs/release-evidence/0.9.3/README.md) indexes the evidence.
 
 ## The Marketplace
+
+![From a listing to a window: signed index, one package at a time, the box, a window](docs/media/diagram-install-and-run.svg)
 
 31 Linux programs, each with its licence and its box in the catalogue
 (`userland/capsule_market/linux-catalogue.json`). Each is checked against a signed index before it installs.
@@ -225,15 +229,9 @@ syscall boundary with its capability check, the attestation gate at spawn, the T
 hardware broker that hands device windows to driver capsules. Everything a person would call
 the operating system runs in ring 3, drivers included.
 
-```mermaid
-flowchart TB
- drv["driver capsules<br/>nvme, ahci, xhci, usb_hid, i2c_hid, e1000, iwlwifi, rtl8821ce, hda, virtio"] --> sc
- net["network capsules<br/>net.core, net.nym, net.anon, net.socks5"] --> sc
- app["desktop and apps<br/>compositor, wm, terminal, browser, wallet, keyring, vfs, installer"] --> sc
- sc["the syscall<br/>each call checked against the caller's capability word"]
- sc --> k["ring 0<br/>paging, scheduler, IPC, capabilities, attest gate, broker, TPM"]
- k --> hw["CPU, MMU, IOMMU, PCIe devices, TPM"]
-```
+![The kernel in ring 0 and everything else in ring 3, joined by one checked syscall](docs/media/diagram-layers.svg)
+
+![The capability check on every system call: decode, resolve the token, five checks](docs/media/diagram-capability-check.svg)
 
 A capability is one of 40 bits, defined once in [abi/caps.toml](abi/caps.toml). A capsule's
 word is fixed when it is enrolled, the kernel installs it from the verified manifest at spawn,
@@ -258,23 +256,7 @@ and ML-DSA-65, enrolled under the STARK policy root and shipped inside the kerne
 image's store. At spawn the kernel checks the certificate, the manifest and the proof, then
 installs the capabilities from the manifest.
 
-```mermaid
-sequenceDiagram
- participant S as spawn_verified
- participant P as preflight
- participant G as attest_gate
- participant R as attest_registry
- S->>P: the capsule's ELF, certificate and manifest
- P->>P: verify_id_cert, verify_with_publisher
- P->>G: an enrolled capsule
- G->>G: verify the v4 trailer against the policy root
- alt the proof verifies
- G-->>S: measurement and authority
- S->>R: record_attested(pid, measurement, caps)
- else anything else
- G-->>S: AttestationRejected, the capsule never runs
- end
-```
+![Capsule admission: certificate, manifest, STARK gate, start](docs/media/diagram-capsule-admission.svg)
 
 The capabilities installed come from the verified manifest, never from what the spawn site
 asked for. Every capsule is listed with its service and decoded word in
@@ -311,14 +293,7 @@ still shows Nym and Anyone traffic on its local network. Programs built on the t
 std connect direct. The TPM's counter keeps a count of boots. These and the other gaps are listed
 on the privacy page.
 
-```mermaid
-flowchart LR
- app["a capsule with Network"] --> socks["net.socks5"]
- socks --> nym["net.nym<br/>Sphinx, three mix layers"]
- socks --> anon["net.anon<br/>three relays"]
- app --> direct["net.core<br/>only under Direct"]
- other["a capsule without Network"] -. "refused at the syscall".-> socks
-```
+![How a program's traffic leaves the machine: Nym, Anyone or direct, through net.socks5](docs/media/diagram-network-routes.svg)
 
 The whole model, with what it does not cover, is in [privacy](docs/security/README.md),
 [the amnesic design](docs/security/protections-and-limits.md), [storage](docs/drivers/storage/README.md) and
@@ -335,15 +310,9 @@ the policy committed to. So the kernel and every capsule carry a transparent STA
 Poseidon, with a Fiat-Shamir transcript, that its measurement is a member of the set under one
 policy root. It is hash-based, with no trusted setup and no pairing.
 
-```mermaid
-flowchart LR
- img["the image about to run"] --> m["blake3 measurement"]
- m --> v["nox_verify"]
- tr["v4 trailer<br/>path and proof"] --> v
- root["the policy root, held by the verifier"] --> v
- v --> run["run"]
- v --> halt["refuse"]
-```
+![Who proves and who verifies: the kernel carries only the verifier](docs/media/diagram-who-proves.svg)
+
+![The trust chain: firmware, loader, kernel and capsule, with the TPM registers each stage uses](docs/media/diagram-boot-chain.svg)
 
 The gates link only the verifier, `nox_verify`, from the STARKs repository at the commit `flake.lock` pins. The prover
 runs on the enrolling host in `nonos-stark-enroll`, which builds the one policy root over every
