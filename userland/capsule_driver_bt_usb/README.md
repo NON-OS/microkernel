@@ -221,7 +221,7 @@ Keyring), and Debug
 the CryptoRandom syscall is gated on; pairing draws its key pair and
 nonces there, and the capsule stops if a draw fails. Keyring is for its
 bonds and its own IRK. Service `driver.bt_usb0` on
-port 4342, reply port 4343 (`endpoint.4294967368`), from track E's range;
+port 4342, reply port 4343 (`endpoint.4294967368`), from the reserved range;
 it answers NBTC v1 (above).
 Proofs: `userland/bt_usb_proofs`.
 
@@ -234,6 +234,7 @@ CAPSULE_REQUIRED_CAPS = 0x10208038
 ```
 
 The capsule finds driver.xhci0 and the keyring with `MkServiceLookup`, and
+its own pid for the keyring's owner check by looking up driver.bt_usb0; it
 calls both with `MkIpcCall` (bounded by a timeout). It waits with `MkIpcRecvFrom` and a
 timeout on its own inbox, answers each NBTC request there with
 `MkIpcReply`, and looks up who holds `app.settings` and `desktop_shell`
@@ -414,6 +415,7 @@ the HP with the RTL8821CE).
 - Capsule builds with zero warnings; clippy clean.
 - bt_usb_proofs, nonos_bt_hci_proofs, nonos_bt_smp_proofs and
   nonos_bt_hogp_proofs pass.
+- The kernel spawns the capsule (done; owner seal pending).
 - On hardware: `bt-usb: controller up`, `paired`, `HID ready: keyboard`,
   then keys in an application.
 

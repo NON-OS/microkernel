@@ -75,6 +75,7 @@ installer's erase confirmation (C5).
 
 Start: find the reader, claim, map and init within libc `bring_up`'s
 bounded retries. Bus Master goes on only once the command and DMA engines
+a dead owner may have left armed are stopped and the chip has answered
 the reset and flush after the stops (`setup/master.rs`); never before,
 and never on a refusal. Run: the slot is looked at before every request that
 reaches the card and every 500 ms between them. The first card identified
@@ -119,7 +120,8 @@ reaches is refused. Vendor settings past config offset 255 are not read.
 
 ## Release target
 
-spawn and block backend (track A), then a photo from a laptop.
+0.9.3 at the earliest: owner certificate, mk/20-build.mk include, kernel
+spawn and block backend, then a photo from a laptop.
 
 ## Release evidence
 
@@ -127,6 +129,7 @@ None on hardware. Proofs and builds only (see Verification).
 
 ## Release checklist
 
+- [ ] Trust certificate and manifest from the owner
 - [ ] mk/20-build.mk, kernel spawn and a kernel block backend
 - [ ] `log rtsx` photo: reader up, card served, read and written
 

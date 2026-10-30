@@ -40,6 +40,6 @@ and the Power Off line, with their line numbers.
   consent runs has one at 152 ms: input_router, which waits 150 ms. The
   cause is the same: policy's loop makes its own blocking calls to vfs,
   for the restore and the keeper, and while vfs is slow it answers nobody.
-  That is the next fix (letter priv/05).
+  That is the next fix.
 - The other `late` lines in the fixed runs (virtio_net0, virtio_gpu0,
   wallpaper) are other services' replies, not policy's, and are not judged here.

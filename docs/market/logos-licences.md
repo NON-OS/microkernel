@@ -141,7 +141,7 @@ Foundation". The Ethereum diamond is not Geth's logo and is not used.
 
 ## Owner rulings, 2026-10-25
 
-Asked in the catalogue session with the question tool; the answers verbatim:
+Put to the maintainers; the answers verbatim:
 
 - The 11 UNCLEAR rows (helix, micro, kakoune, vim, bat, nnn, fzf, age, flac,
   lame, profanity): "Use them anyway". Each shows its project's real logo.

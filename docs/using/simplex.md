@@ -1,7 +1,8 @@
 # SimpleX Chat
 
-First draft (S3, 2026-10-27). SimpleX Chat is a messenger with no user identifiers: no phone number, no account name and no ID that a server can tie your contacts together by. On NØNOS it comes in two parts:
+First draft, 2026-10-27. SimpleX Chat is a messenger with no user identifiers: no phone number, no account name and no ID that a server can tie your contacts together by. On NØNOS it comes in two parts:
 
+- **The NØNOS SimpleX app** is a native window app, with no network of its own.
 - **SimpleX Chat core** is SimpleX's own `simplex-chat` v7.0.3 program. It runs in a Linux box with no window, and the app drives it over its local API.
 
 **Listed now: the terminal client.** `linux.kali.nonos-simplex-chat`, "SimpleX Chat (terminal)", is in the Marketplace today. It is the same `simplex-chat` v7.0.3 release binary, run as SimpleX's own terminal chat, in the box TTY FILES_HOME NET_ANON. How to install it is [below](#install-it-now). *host-tested* (the listing and its content)
@@ -73,7 +74,7 @@ Messages travel through SMP relays. The core never connects to one directly.
 - **Anyone only.** NET_ANON is the only network the box has. Its streams leave over Anyone, or over Nym when that is the network chosen, never directly, and a failure on one never falls back to another. A name it looks up travels to the exit, and only the exit resolves it ([Privacy apps](privacy-apps.md#what-every-networked-app-here-shares)). *design*
 - **SimpleX's own protections still apply.** Private message routing (`--smp-proxy`) means your relay does not learn whose relay you send to. Each queue is end-to-end encrypted.
 
-**Pending (S1).** Two pieces of the network path are not in yet:
+**Pending.** Two pieces of the network path are not in yet:
 
 - the guest-connect fix for port 5223, SMP's port, so a listed box's outbound stream to a relay completes over Anyone;
 - a SOCKS5 endpoint at `127.0.0.1:9050` inside the box.
