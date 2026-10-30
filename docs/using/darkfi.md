@@ -97,3 +97,4 @@ The wallet dials only the node you name, and the local dev chain dials nothing. 
 ## Where this comes from
 
 - The recipes: `userland/capsule_market/linux-catalogue.json`. Their pins: `linux-catalogue.sources.lock.json`.
+- The builds: `tools/nix/sources/darkfi-app-*.sh`; for DarkIRC `darkfi-build.sh` then `darkirc-box.sh`; for the wallet and the local chain `darkfi-build.sh` (drk, darkfid, minerd) then `darkfi-wallet-box.sh`.

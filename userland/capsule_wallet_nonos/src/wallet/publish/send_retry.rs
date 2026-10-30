@@ -16,7 +16,7 @@
 
 /*
  * A publisher broadcast's answer (sent, below) and its retries (B8, the
- * Lead's rulings on commits 4 and 5): each a read, each taken as an
+ * the maintainers' rulings on commits 4 and 5): each a read, each taken as an
  * intent::Turn that leaves no press standing, the guard started afresh.
  * After a broadcast settle did not confirm, or once the send ledger says
  * the send followed was dropped, GAS is read again before anything is

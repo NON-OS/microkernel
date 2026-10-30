@@ -82,4 +82,5 @@ Once the endpoint exists, the intended default is that the app starts the core w
 ## What the core does not do
 
 - **No window.** The app is the window, and the core has no display.
+- **Its API is the app's alone.** The core's WebSocket API has no authentication of its own. It listens only on its box's loopback, which no other box or capsule can reach today. A design that lets exactly the SimpleX app reach it, and nothing else, exists and is not in this release. *design*
 - **No clear net.** See above.

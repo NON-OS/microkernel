@@ -25,6 +25,7 @@ A market release's policy names one program, the one its listing starts. Every o
 - **A copy:** a held ELF copied to another path along with its trailer.
 - **The loader:** `/lib/ld-musl-x86_64.so.1 <program>`, because the loader's gate checks only the trailer.
 
+The fix is to tie a policy to the program's hash, not its path, so that a copy or a loader exec keeps its box.
 
 Nothing is listed until the generator has authenticated it as the device does, under the Alpine keys the device pins: [Catalogue authentication](marketplace-catalogue-authentication.md).
 
@@ -133,7 +134,7 @@ The rest of the recipe is checked as an Alpine one is: the allowlist, the servic
 
 On the device, `install/tools_install.rs` fetches the content from `NONOS_PACKAGE_MIRROR` and holds it to the index's pin before it is unpacked. `install/market/run.rs` then binds the policy to the program, as for any market listing. So the device needs no change for these apps.
 
-**No mirror, none listed.** Without `--package-mirror`, the source recipes are left out, and each is named on stderr. They are not checked, and their lock is neither read nor written. The release's `nonos.toml` names the mirror `mirror.nonos.software:80` and the content `target/linux-sources` (3df8c26a65, 81ce3f9a93), so the release image lists them; a tree whose `linux_packages` is empty lists none. With a mirror, every source recipe must be listed or the run stops and names it. That covers:
+**No mirror, none listed.** Without `--package-mirror`, the source recipes are left out, and each is named on stderr. They are not checked, and their lock is neither read nor written. The release's `nonos.toml` names the mirror `mirror.nonos.software:80` and the content `target/linux-sources` (11003f2356, 04f14c7ddb), so the release image lists them; a tree whose `linux_packages` is empty lists none. With a mirror, every source recipe must be listed or the run stops and names it. That covers:
 
 - no `--sources`;
 - missing or doubled content;
@@ -150,6 +151,7 @@ On the device, `install/tools_install.rs` fetches the content from `NONOS_PACKAG
 - `S`, the tar's size;
 - `G` and `R`, its logo's BLAKE3s.
 
+A missing file pins nothing, and any other format, shape or encoding is refused whole (`tools/nonos_market_catalogue/source_lock.py`, `read`). A run stops, naming the package and the field, when a rebuild's content, its size, the recipe's commit or a logo is not the one pinned. It also stops for a recipe with no pin, or a pin with no recipe. `--update-lock` writes the sources lock as well, but only on a run with a mirror. The design also pins the nix narHash of the source; that waits for `tools/nix/sources/`.
 
 ```sh
 python3 tools/nonos-market-catalogue --out OUT.json --no-nonos --operator-pubkey <64 hex> \
@@ -192,6 +194,7 @@ With `--learn`, the sha256 is taken from the signed file instead of the recipe, 
 2. Add its recipe with the narrowest mask it works in.
 3. Run the generator and the documents step, and commit the new document.
 4. Run once with `--update-lock` and commit the lock with the recipe.
+5. After the boot session's runs (docs/market/catalogue-boot-plan.md), run `python3 -m nonos_market_catalogue.verdict --write APP=LOG ...`. It checks each log, one per run:
    - the app installed in its box;
    - no policy refusal;
    - the workload ended well, with a process exiting status 0 and none exiting otherwise or on a signal;

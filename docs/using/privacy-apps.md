@@ -8,6 +8,7 @@ Each claim is marked with how far it has been checked:
 - **host-tested**: checked by a test or a tool run on a build machine, not on a boot;
 - **design**: what the code and the app's own source say should happen, not yet seen either way.
 
+Profanity's install, download and a run in its box are booted (docs/market/evidence/catalogue/profanity-mirror-313c78ca0); its connection is not. The boot plan for each app is in `docs/market/catalogue-boot-plan.md`.
 
 ## What every networked app here shares
 
@@ -20,6 +21,7 @@ Each claim is marked with how far it has been checked:
 - **Any destination, not a list.** These releases carry a zero `net_dests` hash, so the box allows any destination, but only over Nym or Anyone. A market release cannot yet carry a destination list; until it can, a list would only refuse every connection. *host-tested* (the policy bytes)
 - **What the exit sees.** The exit relay or mixnet exit sees the server's name and port, and, unless the app's own protocol encrypts, what is sent. Every app below uses TLS to its server.
 - **One program per box.** A release's box names one program. Any other program in the same package is refused at its installed path ([The marketplace catalogue](../userland/marketplace-catalogue.md)). *host-tested*
+- **Home is the app's own, and it lasts until power off.** FILES_HOME gives the app its own home (`/root` and `/home/<app>`) and nothing of the person's other files. It is kept in memory from one run to the next until the machine powers off, and erased when the app is uninstalled. *booted* (docs/market/evidence/catalogue/integ-boot-2026-10-26: age decrypted in one run what it encrypted in another, git committed in a repository an earlier run made). No other Linux program sees it: a busybox run listed an empty `/root` beside age's home. *booted* (same) Other NONOS components that hold file-system access are not yet kept off it at the file service; that fix is planned. *design* A home kept across a reboot is not in yet. *design*
 
 ## Profanity: XMPP chat with OMEMO
 
@@ -44,6 +46,7 @@ Listing `linux.profanity`, package `profanity 0.14.0-r1`, licence GPL-3.0-or-lat
 
 ### Using it
 
+1. Install `linux.profanity` from the App Store's Linux tab, then run `linux profanity` in the Terminal (`linux` starts a Linux program; see [Linux programs](linux-programs.md)). Its policy grants NET_ANON, so the Terminal starts it again with the network role (app.linux.term.net), once, through a one-time ticket. *booted* (docs/market/evidence/catalogue/integ-boot-2026-10-26, `linux profanity --version`) A connection over Anyone or Nym is not yet seen on a boot. *design*
 2. `/connect you@example.org`. Give the password at the prompt.
 3. `/omemo gen`, then `/omemo policy always`. Until homes are kept across a reboot, do this once per boot.
 4. Before you trust a contact: compare fingerprints over another channel, then `/omemo trust <contact> <fingerprint>`.

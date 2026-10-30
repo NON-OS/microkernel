@@ -2,7 +2,7 @@
   "wifi works on real HW".
   RTL8821CE, 10ec:c821, beside a Samsung MZVLQ256HBJD NVMe disk).
 - **Image:** a sealed image built from main at 0bd7c2263, the main after the
-  isolation-group fix (82ee1a3110: two vendor drivers may share an
+  isolation-group fix (3b5bb25c8f: two vendor drivers may share an
   isolation group on a standard boot). That fix is what let the Wi-Fi card
   be claimed beside driver.nvme0, which had held their shared group since
   landing ad2a58a01).
