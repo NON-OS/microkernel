@@ -22,7 +22,7 @@ def drivers.security.constants.PROTECTED_CONFIG_OFFSETS : Slice Std.U8 :=
   Array.to_slice (Array.make 5#usize [ 4#u8, 12#u8, 13#u8, 60#u8, 61#u8 ])
 
 /-- [nonos_x_drivers_security_pci::drivers::security::pci::is_config_write_allowed]:
-    Source: 'src/drivers/security/../../../../../../../src/drivers/security/pci.rs', lines 69:0-71:1
+    Source: 'src/drivers/security/../../../../../../../src/drivers/security/pci.rs', lines 45:0-47:1
     Visibility: public -/
 def drivers.security.pci.is_config_write_allowed
   (offset : Std.U8) : Result Bool := do
@@ -32,7 +32,7 @@ def drivers.security.pci.is_config_write_allowed
   ok (¬ b)
 
 /-- [nonos_x_drivers_security_pci::drivers::security::pci::is_sensitive_config_read]:
-    Source: 'src/drivers/security/../../../../../../../src/drivers/security/pci.rs', lines 73:0-75:1
+    Source: 'src/drivers/security/../../../../../../../src/drivers/security/pci.rs', lines 49:0-51:1
     Visibility: public -/
 def drivers.security.pci.is_sensitive_config_read
   (offset : Std.U8) : Result Bool := do
@@ -46,7 +46,7 @@ def drivers.security.pci.is_sensitive_config_read
     else ok false
 
 /-- [nonos_x_drivers_security_pci::drivers::security::pci::build_config_address]:
-    Source: 'src/drivers/security/../../../../../../../src/drivers/security/pci.rs', lines 77:0-85:1
+    Source: 'src/drivers/security/../../../../../../../src/drivers/security/pci.rs', lines 53:0-61:1
     Visibility: public -/
 def drivers.security.pci.build_config_address
   (bus : Std.U8) (device : Std.U8) (function : Std.U8) (offset : Std.U8) :

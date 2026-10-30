@@ -44,32 +44,8 @@ axiom core.core_arch.x86.cpuid.__cpuid_count
 axiom core.core_arch.x86.cpuid.__cpuid
   : Std.U32 → Result core.core_arch.x86.cpuid.CpuidResult
 
-/-- [nonos_x_spectre_mitigations_cpuid::cpuid::has_ibrs_ibpb]:
-    Source: 'src/../../../../../src/security/hardening/spectre_mitigations/cpuid.rs', lines 17:0-20:1 -/
-def cpuid.has_ibrs_ibpb : Result Bool := do
-  let result ← core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32
-  let i ← 1#u32 <<< 26#i32
-  let i1 ← lift (result.edx &&& i)
-  ok (i1 != 0#u32)
-
-/-- [nonos_x_spectre_mitigations_cpuid::cpuid::has_stibp]:
-    Source: 'src/../../../../../src/security/hardening/spectre_mitigations/cpuid.rs', lines 22:0-25:1 -/
-def cpuid.has_stibp : Result Bool := do
-  let result ← core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32
-  let i ← 1#u32 <<< 27#i32
-  let i1 ← lift (result.edx &&& i)
-  ok (i1 != 0#u32)
-
-/-- [nonos_x_spectre_mitigations_cpuid::cpuid::has_ssbd]:
-    Source: 'src/../../../../../src/security/hardening/spectre_mitigations/cpuid.rs', lines 27:0-30:1 -/
-def cpuid.has_ssbd : Result Bool := do
-  let result ← core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32
-  let i ← 1#u32 <<< 31#i32
-  let i1 ← lift (result.edx &&& i)
-  ok (i1 != 0#u32)
-
 /-- [nonos_x_spectre_mitigations_cpuid::cpuid::has_l1d_flush]:
-    Source: 'src/../../../../../src/security/hardening/spectre_mitigations/cpuid.rs', lines 32:0-35:1 -/
+    Source: 'src/../../../../../src/security/hardening/spectre_mitigations/cpuid.rs', lines 17:0-20:1 -/
 def cpuid.has_l1d_flush : Result Bool := do
   let result ← core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32
   let i ← 1#u32 <<< 28#i32
@@ -77,7 +53,7 @@ def cpuid.has_l1d_flush : Result Bool := do
   ok (i1 != 0#u32)
 
 /-- [nonos_x_spectre_mitigations_cpuid::cpuid::has_md_clear]:
-    Source: 'src/../../../../../src/security/hardening/spectre_mitigations/cpuid.rs', lines 37:0-40:1 -/
+    Source: 'src/../../../../../src/security/hardening/spectre_mitigations/cpuid.rs', lines 22:0-25:1 -/
 def cpuid.has_md_clear : Result Bool := do
   let result ← core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32
   let i ← 1#u32 <<< 10#i32
@@ -85,7 +61,7 @@ def cpuid.has_md_clear : Result Bool := do
   ok (i1 != 0#u32)
 
 /-- [nonos_x_spectre_mitigations_cpuid::cpuid::has_arch_capabilities]:
-    Source: 'src/../../../../../src/security/hardening/spectre_mitigations/cpuid.rs', lines 42:0-45:1 -/
+    Source: 'src/../../../../../src/security/hardening/spectre_mitigations/cpuid.rs', lines 27:0-30:1 -/
 def cpuid.has_arch_capabilities : Result Bool := do
   let result ← core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32
   let i ← 1#u32 <<< 29#i32
@@ -93,7 +69,7 @@ def cpuid.has_arch_capabilities : Result Bool := do
   ok (i1 != 0#u32)
 
 /-- [nonos_x_spectre_mitigations_cpuid::cpuid::is_amd]:
-    Source: 'src/../../../../../src/security/hardening/spectre_mitigations/cpuid.rs', lines 47:0-54:1 -/
+    Source: 'src/../../../../../src/security/hardening/spectre_mitigations/cpuid.rs', lines 32:0-39:1 -/
 def cpuid.is_amd : Result Bool := do
   let result ← core.core_arch.x86.cpuid.__cpuid 0#u32
   let vendor := Array.repeat 12#usize 0#u8
@@ -127,44 +103,107 @@ def cpuid.is_amd : Result Bool := do
       65#u8, 77#u8, 68#u8
       ])
 
+/-- [nonos_x_spectre_mitigations_cpuid::cpuid_spec::SpecControls]
+    Source: 'src/../../../../../src/security/hardening/spectre_mitigations/cpuid_spec.rs', lines 22:0-27:1 -/
+structure cpuid_spec.SpecControls where
+  ibrs : Bool
+  ibpb : Bool
+  stibp : Bool
+  ssbd : Bool
+
+/-- [nonos_x_spectre_mitigations_cpuid::cpuid_spec::bit]:
+    Source: 'src/../../../../../src/security/hardening/spectre_mitigations/cpuid_spec.rs', lines 29:0-31:1 -/
+def cpuid_spec.bit (word : Std.U32) (n : Std.U32) : Result Bool := do
+  let i ← 1#u32 <<< n
+  let i1 ← lift (word &&& i)
+  ok (i1 != 0#u32)
+
+/-- [nonos_x_spectre_mitigations_cpuid::cpuid_spec::decode]:
+    Source: 'src/../../../../../src/security/hardening/spectre_mitigations/cpuid_spec.rs', lines 35:0-42:1 -/
+def cpuid_spec.decode
+  (leaf7_edx : Std.U32) (ext8_ebx : Std.U32) :
+  Result cpuid_spec.SpecControls
+  := do
+  let b ← cpuid_spec.bit leaf7_edx 26#u32
+  let b1 ← if b
+             then ok true
+             else cpuid_spec.bit ext8_ebx 14#u32
+  let b2 ← if b
+             then ok true
+             else cpuid_spec.bit ext8_ebx 12#u32
+  let b3 ← cpuid_spec.bit leaf7_edx 27#u32
+  let b4 ← if b3
+             then ok true
+             else cpuid_spec.bit ext8_ebx 15#u32
+  let b5 ← cpuid_spec.bit leaf7_edx 31#u32
+  if b5
+  then ok { ibrs := b1, ibpb := b2, stibp := b4, ssbd := true }
+  else
+    let b6 ← cpuid_spec.bit ext8_ebx 24#u32
+    ok { ibrs := b1, ibpb := b2, stibp := b4, ssbd := b6 }
+
+/-- [nonos_x_spectre_mitigations_cpuid::cpuid_spec::read]:
+    Source: 'src/../../../../../src/security/hardening/spectre_mitigations/cpuid_spec.rs', lines 45:0-50:1 -/
+def cpuid_spec.read : Result cpuid_spec.SpecControls := do
+  let cr ← core.core_arch.x86.cpuid.__cpuid 0#u32
+  let leaf7 ←
+    if cr.eax >= 7#u32
+    then
+      do
+      let cr1 ← core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32
+      ok cr1.edx
+    else ok 0#u32
+  let cr1 ← core.core_arch.x86.cpuid.__cpuid 2147483648#u32
+  let ext8 ←
+    if cr1.eax >= 2147483656#u32
+    then
+      do
+      let cr2 ← core.core_arch.x86.cpuid.__cpuid 2147483656#u32
+      ok cr2.ebx
+    else ok 0#u32
+  cpuid_spec.decode leaf7 ext8
+
 /-- [nonos_x_spectre_mitigations_cpuid::has_ibrs_ibpb]:
-    Source: 'src/lib.rs', lines 10:0-12:1
+    Source: 'src/lib.rs', lines 41:0-43:1
     Visibility: public -/
 def has_ibrs_ibpb : Result Bool := do
-  cpuid.has_ibrs_ibpb
+  let sc ← cpuid_spec.read
+  ok sc.ibrs
 
 /-- [nonos_x_spectre_mitigations_cpuid::has_stibp]:
-    Source: 'src/lib.rs', lines 14:0-16:1
+    Source: 'src/lib.rs', lines 45:0-47:1
     Visibility: public -/
 def has_stibp : Result Bool := do
-  cpuid.has_stibp
+  let sc ← cpuid_spec.read
+  ok sc.stibp
 
 /-- [nonos_x_spectre_mitigations_cpuid::has_ssbd]:
-    Source: 'src/lib.rs', lines 18:0-20:1
+    Source: 'src/lib.rs', lines 49:0-51:1
     Visibility: public -/
 def has_ssbd : Result Bool := do
-  cpuid.has_ssbd
+  let sc ← cpuid_spec.read
+  ok sc.ssbd
 
 /-- [nonos_x_spectre_mitigations_cpuid::has_l1d_flush]:
-    Source: 'src/lib.rs', lines 22:0-24:1
+    Source: 'src/lib.rs', lines 53:0-55:1
     Visibility: public -/
 def has_l1d_flush : Result Bool := do
   cpuid.has_l1d_flush
 
 /-- [nonos_x_spectre_mitigations_cpuid::has_md_clear]:
-    Source: 'src/lib.rs', lines 26:0-28:1
+    Source: 'src/lib.rs', lines 57:0-59:1
     Visibility: public -/
 def has_md_clear : Result Bool := do
   cpuid.has_md_clear
 
 /-- [nonos_x_spectre_mitigations_cpuid::has_arch_capabilities]:
-    Source: 'src/lib.rs', lines 30:0-32:1
+    Source: 'src/lib.rs', lines 61:0-63:1
     Visibility: public -/
 def has_arch_capabilities : Result Bool := do
   cpuid.has_arch_capabilities
 
 /-- [nonos_x_spectre_mitigations_cpuid::is_amd]:
-    Source: 'src/lib.rs', lines 34:0-36:1
+    Source: 'src/lib.rs', lines 65:0-67:1
     Visibility: public -/
 def is_amd : Result Bool := do
   cpuid.is_amd

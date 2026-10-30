@@ -32,8 +32,8 @@ namespace NonosExtraction.SyscallMicrokernelBattery
 
 /-! ### The forwarding functions add nothing -/
 
-theorem the_sys_battery_status_wrapper_is_its_method :
-    sys_battery_status = syscall.microkernel.battery.sys_battery_status := rfl
+theorem the_sys_battery_status_wrapper_is_its_method (a : Std.U64) :
+    sys_battery_status a = syscall.microkernel.kernel.battery.sys_battery_status a := rfl
 
 /-! ### Axiom profile -/
 

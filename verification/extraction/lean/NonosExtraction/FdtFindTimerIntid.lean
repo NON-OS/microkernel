@@ -12,20 +12,134 @@ set_option maxHeartbeats 1000000
 /- You can set the `maxRecDepth` value with the `-max-recdepth` CLI option -/
 set_option maxRecDepth 2048
 
+/- You can remove the following line by using the CLI option `-all-computable`: -/
+noncomputable section
+
 namespace nonos_x_fdt_find_timer_intid
 
-/-- [nonos_x_fdt_find_timer_intid::arch::fdt::find::timer::intid::entry_count]:
-    Source: 'src/arch/fdt/find/timer/../../../../../../../../../src/arch/fdt/find/timer/intid.rs', lines 43:0-45:1
+/-- [core::option::{core::option::Option<T>}::ok_or]:
+    Source: '/rustc/library/core/src/option.rs', lines 1334:4-1334:73
+    Name pattern: [core::option::{core::option::Option<@T>}::ok_or]
     Visibility: public -/
-def arch.fdt.find.timer.intid.entry_count
-  (len : Std.Usize) : Result Std.Usize := do
-  let i ← 3#usize * 4#usize
-  len / i
+@[rust_fun "core::option::{core::option::Option<@T>}::ok_or"]
+axiom core.option.Option.ok_or
+  {T : Type} {E : Type} : Option T → E → Result (core.result.Result T E)
 
-/-- [nonos_x_fdt_find_timer_intid::entry_count]:
+/-- [nonos_x_fdt_find_timer_intid::arch::fdt::error::FdtError]
+    Source: 'src/arch/fdt/../../../../../../../src/arch/fdt/error.rs', lines 18:0-55:1
+    Visibility: public -/
+@[discriminant isize]
+inductive arch.fdt.error.FdtError where
+| NullPointer : arch.fdt.error.FdtError
+| Misaligned : arch.fdt.error.FdtError
+| BadMagic : arch.fdt.error.FdtError
+| BadVersion : arch.fdt.error.FdtError
+| OutOfBounds : arch.fdt.error.FdtError
+| TooLarge : arch.fdt.error.FdtError
+| BadLayout : arch.fdt.error.FdtError
+| UnalignedToken : arch.fdt.error.FdtError
+| UnknownToken : arch.fdt.error.FdtError
+| StringMissing : arch.fdt.error.FdtError
+| TruncatedNodeName : arch.fdt.error.FdtError
+| TruncatedProperty : arch.fdt.error.FdtError
+| TotalSizeTooSmall : arch.fdt.error.FdtError
+| TooDeep : arch.fdt.error.FdtError
+| Unbalanced : arch.fdt.error.FdtError
+| MissingEnd : arch.fdt.error.FdtError
+| BadRoot : arch.fdt.error.FdtError
+| PropertyAfterNode : arch.fdt.error.FdtError
+| BadCells : arch.fdt.error.FdtError
+| BadString : arch.fdt.error.FdtError
+| NotTranslatable : arch.fdt.error.FdtError
+| NoSuchNode : arch.fdt.error.FdtError
+
+/-- [nonos_x_fdt_find_timer_intid::arch::fdt::endian::be_u32]:
+    Source: 'src/arch/fdt/../../../../../../../src/arch/fdt/endian.rs', lines 20:0-24:1
+    Visibility: public -/
+def arch.fdt.endian.be_u32
+  (bytes : Slice Std.U8) (offset : Std.Usize) :
+  Result (core.result.Result Std.U32 arch.fdt.error.FdtError)
+  := do
+  let o ← lift (Usize.checked_add offset 4#usize)
+  let r ← core.option.Option.ok_or o arch.fdt.error.FdtError.OutOfBounds
+  let cf ← core.result.Result.Insts.CoreOpsTry.branch r
+  match cf with
+  | core.ops.control_flow.ControlFlow.Continue val =>
+    let o1 ←
+      core.slice.Slice.get (core.slice.index.SliceIndexRangeUsizeSlice Std.U8)
+        bytes { start := offset, «end» := val }
+    let r1 ← core.option.Option.ok_or o1 arch.fdt.error.FdtError.OutOfBounds
+    let cf1 ← core.result.Result.Insts.CoreOpsTry.branch r1
+    match cf1 with
+    | core.ops.control_flow.ControlFlow.Continue val1 =>
+      let i ← Slice.index_usize val1 0#usize
+      let i1 ← Slice.index_usize val1 1#usize
+      let i2 ← Slice.index_usize val1 2#usize
+      let i3 ← Slice.index_usize val1 3#usize
+      let i4 ←
+        lift (core.num.U32.from_be_bytes
+          (Array.make 4#usize [ i, i1, i2, i3 ]))
+      ok (core.result.Result.Ok i4)
+    | core.ops.control_flow.ControlFlow.Break residual =>
+      core.result.Result.Insts.CoreOpsTryTraitFromResidualResultInfallible.from_residual
+        Std.U32 (core.convert.FromSame arch.fdt.error.FdtError) residual
+  | core.ops.control_flow.ControlFlow.Break residual =>
+    core.result.Result.Insts.CoreOpsTryTraitFromResidualResultInfallible.from_residual
+      Std.U32 (core.convert.FromSame arch.fdt.error.FdtError) residual
+
+/-- [nonos_x_fdt_find_timer_intid::arch::fdt::irq::gic::LAST_SPI]
+    Source: 'src/arch/fdt/irq/../../../../../../../../src/arch/fdt/irq/gic.rs', lines 25:0-25:26 -/
+@[global_simps, irreducible] def arch.fdt.irq.gic.LAST_SPI : Std.U32 := 987#u32
+
+/-- [nonos_x_fdt_find_timer_intid::arch::fdt::irq::gic::LAST_PPI]
+    Source: 'src/arch/fdt/irq/../../../../../../../../src/arch/fdt/irq/gic.rs', lines 26:0-26:25 -/
+@[global_simps, irreducible] def arch.fdt.irq.gic.LAST_PPI : Std.U32 := 15#u32
+
+/-- [nonos_x_fdt_find_timer_intid::arch::fdt::irq::gic::gic_intid]:
+    Source: 'src/arch/fdt/irq/../../../../../../../../src/arch/fdt/irq/gic.rs', lines 32:0-42:1
+    Visibility: public -/
+def arch.fdt.irq.gic.gic_intid
+  (cells : Slice Std.U8) :
+  Result (core.result.Result Std.U32 arch.fdt.error.FdtError)
+  := do
+  let i := Slice.len cells
+  if i < 12#usize
+  then ok (core.result.Result.Err arch.fdt.error.FdtError.BadCells)
+  else
+    let r ← arch.fdt.endian.be_u32 cells 4#usize
+    let cf ← core.result.Result.Insts.CoreOpsTry.branch r
+    match cf with
+    | core.ops.control_flow.ControlFlow.Continue val =>
+      let r1 ← arch.fdt.endian.be_u32 cells 0#usize
+      let cf1 ← core.result.Result.Insts.CoreOpsTry.branch r1
+      match cf1 with
+      | core.ops.control_flow.ControlFlow.Continue val1 =>
+        match val1 with
+        | 0#uscalar =>
+          if val <= arch.fdt.irq.gic.LAST_SPI
+          then let i1 ← 32#u32 + val
+               ok (core.result.Result.Ok i1)
+          else ok (core.result.Result.Err arch.fdt.error.FdtError.BadCells)
+        | 1#uscalar =>
+          if val <= arch.fdt.irq.gic.LAST_PPI
+          then let i1 ← 16#u32 + val
+               ok (core.result.Result.Ok i1)
+          else ok (core.result.Result.Err arch.fdt.error.FdtError.BadCells)
+        | _ => ok (core.result.Result.Err arch.fdt.error.FdtError.BadCells)
+      | core.ops.control_flow.ControlFlow.Break residual =>
+        core.result.Result.Insts.CoreOpsTryTraitFromResidualResultInfallible.from_residual
+          Std.U32 (core.convert.FromSame arch.fdt.error.FdtError) residual
+    | core.ops.control_flow.ControlFlow.Break residual =>
+      core.result.Result.Insts.CoreOpsTryTraitFromResidualResultInfallible.from_residual
+        Std.U32 (core.convert.FromSame arch.fdt.error.FdtError) residual
+
+/-- [nonos_x_fdt_find_timer_intid::gic_intid]:
     Source: 'src/lib.rs', lines 11:0-13:1
     Visibility: public -/
-def entry_count (len : Std.Usize) : Result Std.Usize := do
-  arch.fdt.find.timer.intid.entry_count len
+def gic_intid
+  (cells : Slice Std.U8) :
+  Result (core.result.Result Std.U32 arch.fdt.error.FdtError)
+  := do
+  arch.fdt.irq.gic.gic_intid cells
 
 end nonos_x_fdt_find_timer_intid
