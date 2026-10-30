@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Decision 15, whether the display follows the host, built to the lead's
-//! recommendation until the owner rules: follow it at start (the preferred
+//! recommendation until the maintainers rule: follow it at start (the preferred
 //! mode) and whenever it asks (a STATE hint, or a DISPLAY_HINT from a
 //! hint source), so the desktop may differ from the boot console's size.
 //! An owner "no" is this one line set to false: firmware's mode is kept,

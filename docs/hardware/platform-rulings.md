@@ -15,7 +15,7 @@ Counts are `#[test]` items at 1536ccef3.
 | Fixed-feature power button | most desktops, older laptops | kernel | partial: polled, reaches the desktop; desktop power-off needs capsule_acpi's power.off | **hw** (GLK) |
 | AML power button PNP0C0C, lid, hardware-reduced | most laptops since 2015 | capsule_acpi | partial: capsule only | host |
 | Power-off `_S5`, reboot (reset register, 8042, CF9) | every PC | kernel | partial: kernel sequence present; nothing asserts it in a boot | host |
-| Suspend S3, s2idle | every laptop | capsule_acpi | none: SUSPEND = false (owner's Decision 6); kernel resume NotWired | design |
+| Suspend S3, s2idle | every laptop | capsule_acpi | none: SUSPEND = false (Decision 6); kernel resume NotWired | design |
 | ACPI hotplug, docks | common | capsule_acpi | partial: native pciehp off (NATIVE_HOT_PLUG_ON = false) | host |
 
 ## Isolation groups (VT-d on): the audit (H-02)

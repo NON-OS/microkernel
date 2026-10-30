@@ -1,6 +1,6 @@
 # Design: SERVE_ONE, one guest port for one capsule
 
-Status: approved by the owner on 28 October, in code (S1). 0.9.3 if it is done
+Status: approved on 28 October, in code (S1). 0.9.3 if it is done
 properly, else 0.9.4. Cited at main
 680c92e3fc. Bare paths are under `userland/capsule_linux/src/linux/`;
 `policy/` is `userland/nonos_linux_policy/src/`, `ipc/`

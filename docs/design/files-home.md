@@ -138,7 +138,7 @@ relative to userland/capsule_linux/src/linux/.
 
 ## Open questions (design)
 
-- Lead: listing_id alone, or listing plus publisher? Move HOME from /root to
+- Maintainers: listing_id alone, or listing plus publisher? Move HOME from /root to
   /home/<app>? The quota numbers? Does an orphan home last until erased?
 - Privacy session: may a volume write ever happen with keeping off, for a
   model or anything? This note assumes no. Should a kept home ask for the

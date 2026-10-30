@@ -1,8 +1,8 @@
 # The NØNOS interface identity
 
-Version 0.2, 2026-10-25. v0.1 was approved by the Lead as the standard every
+Version 0.2, 2026-10-25. v0.1 was approved by the maintainers as the standard every
 app unit is checked against, with seven changes, which v0.2 makes. Items marked
-**proposed, owner to confirm** are built as one token or setting each, so the
+**proposed** are built as one token or setting each, so the
 owner's answer is a data change.
 Nothing here is code yet. Every app unit after this one is checked against
 this page, and a screendump that breaks a rule here does not land.
@@ -29,7 +29,7 @@ and every app reads from the toolkit. No second system is started (rule 6).
 
 Where the site is silent (the type scale, the grid, icons, interface motion,
 window chrome), this page decides. It marks each such decision **proposed**
-so the Lead and the owner can rule on it.
+so the maintainers can rule on it.
 
 ## Principles
 
@@ -76,7 +76,7 @@ Placement in the OS (**proposed**):
 - **Where it never goes:** inside app windows other than About, on buttons,
   as a loading spinner, rotated, outlined, or over a busy wallpaper in
   colour. The site says to use white there.
-- **Owner ruling, 2026-10-25:** the glow on the lit mark in the installer is
+- **Ruling, 2026-10-25:** the glow on the lit mark in the installer is
   wanted and stays. It is the one exception to the site's "no glows". Asked
   of the owner and not yet answered: whether setup keeps it too. Nowhere
   else gets it without a ruling.
@@ -129,7 +129,7 @@ licences.
   and Hebrew text comes out in the wrong order, and Devanagari without
   reordering of its vowel signs. A bidi and shaping unit is on the list after
   the apps.
-- **Geist 600** (proposed, owner to confirm). The site asks for 600 beside the mark. That needs
+- **Geist 600** (proposed). The site asks for 600 beside the mark. That needs
   Geist-SemiBold added with its licence. It is used only for the wordmark
   and the menu bar's app name.
 - **The scale.** This is the brand's 1.2 ramp, already proven by
@@ -149,7 +149,7 @@ licences.
 - **Casing.** Sentence case everywhere. Capitals only in `type.label`, and
   in the name NØNOS. Footer hints like `ENTER NEXT  ESC BACK` become labels
   with the keys in mono boxes: `Enter` Next.
-- **The 17 px floor** (proposed, owner to confirm). `ttf::MIN_UI_PX = 17`
+- **The 17 px floor** (proposed). `ttf::MIN_UI_PX = 17`
   lifts every size below 17 to 17 today. That is why every app's hierarchy
   is flat. The roles above are built (`design::typography`, proven in
   theme_proofs' design_token_tests). The floor itself goes with the shell
@@ -195,7 +195,7 @@ The figures in the tables are rounded down from the measured ratios.
 | `accent` | `#66FFFF` NØNOS Cyan | 15.4:1 on surface: the current place, the primary action, focus |
 | `on.accent` | `#0A0B0D` | text on a cyan fill, 16.2:1 |
 | `select` | `#12302F` | selected row fill, always beside a 2 px accent edge |
-| `ok` | `#5EE0A0` | 10.7:1 on raised. Proposed, owner to confirm: the site names no success colour |
+| `ok` | `#5EE0A0` | 10.7:1 on raised. Proposed: the site names no success colour |
 | `warn` | `#FFB547` | the installer's value, 10.1:1 on raised |
 | `bad` | `#FF6B6F` | 6.4:1 on raised, with `on.bad` ink on a fill (7.1:1) |
 
@@ -217,7 +217,7 @@ borrowing.
 | `accent` | `#007C82` | 4.5:1 on Paper, 4.99:1 on white. The site gives Cyan for type as `#007C85` at 4.5:1. It measures 4.49:1 on Paper, under AA, so this is the nearest value that clears it, three steps of blue apart. The site's cyan is never text on Paper (1.1:1), only fill. On raised the accent is not text. |
 | `on.accent` | `#FFFFFF` | 4.99:1 |
 | `select` | `#DCEFF0` | text 16.5:1 on it |
-| `ok` | `#17703F` | 5.0:1 on raised. Proposed, owner to confirm |
+| `ok` | `#17703F` | 5.0:1 on raised. Proposed |
 | `warn` | `#8A5A00` | 4.8:1 on raised |
 | `bad` | `#C4262E` | 4.7:1 on raised; white `on.bad` 5.7:1 |
 
@@ -251,12 +251,12 @@ all pixels, wallpaper included. Every unit's report carries it.
   8, appended), and High contrast (the separate switch).
 - **Unchanged:** the engine still carries Slate, Nord, Dracula, Solarized,
   Mono, Forest and Sunset as five-seed entries. Removing any of them is a
-  data change, made once the owner rules.
+  data change, made once the maintainers rule.
 - **Stored indices.** No stored index moved: Aurora's slot became Ink, and
   Paper was added at the end. So no migration is needed until a scheme is
   removed. That removal would map old indices to Ink in a versioned policy
   field, proven in policy_proofs with a mutant.
-- **Owner to confirm:** whether Nord and Solarized stay as user options.
+- **Open:** whether Nord and Solarized stay as user options.
 
 ## Iconography
 
@@ -315,7 +315,7 @@ bounce, spin or motion for its own sake. **Proposed** values:
 
 ## Window chrome
 
-**Proposed, owner to confirm** (controls on the right). The red, yellow and green circles on the left are macOS's
+**Proposed** (controls on the right). The red, yellow and green circles on the left are macOS's
 identity, not ours.
 - **Title bar.** 36 high.
   - The title is `type.caption` Geist 500, left-aligned after a 16 px
@@ -360,7 +360,7 @@ mutant again in the chrome unit.
   `type.caption` with the floor, in the type unit.
 - The focus state needs a per-window focus event from the WM. Resize from
   every edge, cursor shapes and the keys above need the WM, the input
-  router and the compositor. Those owners are being settled with the Lead.
+  router and the compositor. Those owners are being settled by the maintainers.
 
 ## Voice
 
@@ -388,7 +388,7 @@ rules below. The copy check, the third unit, enforces the first three.
 
 ## The no-AI-traces check
 
-The Lead's list, checked on every screendump in every unit's report:
+The maintainers' list, checked on every screendump in every unit's report:
 
 - **Visual:**
   - no purple or blue gradient washes;

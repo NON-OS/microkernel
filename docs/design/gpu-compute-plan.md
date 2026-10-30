@@ -41,7 +41,7 @@ none of it is in 0.9.x.
   between two claims. Both are decisions for G and A.
 - **Interrupts** for completion, or a polled fence to start with (C1 polls).
 
-## Decisions for the owner
+## Open decisions
 
 1. **qwenchat's backend.** qwenchat is built from llama.cpp at a pinned commit. A GPU
    path means adding a backend module to that build. It would be written by us,

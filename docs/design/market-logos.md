@@ -1,6 +1,6 @@
 # Linux app logos in the App Store (proposed, catalogue session)
 
-Version 0.1, 2026-10-25. For the Lead, the owner, UI/UX and track B. Owner
+Version 0.1, 2026-10-25. For the maintainers and the UI work. Owner
 decision (verbatim): "Real logo where licence allows". The record is
 logos-licences.md: 1 CLEAR (git), 11 UNCLEAR, 6 with no logo. Claims are
 marked (design) or (host-read: file:line).
@@ -116,15 +116,15 @@ stays the last resort. The launcher may reuse it (desktop session) (design).
 
 ## 6. Open questions
 
-- Owner, a ruling per UNCLEAR row: helix, micro, kakoune, vim, bat, nnn,
+- Maintainers, a ruling per UNCLEAR row: helix, micro, kakoune, vim, bat, nnn,
   fzf, age, flac, lame, profanity. Each needs a written grant covering
   listing use and resizing. age's grant would come from age-logo@filippo.io;
   its current terms forbid any altered form. vim could use
-  runtime/vim48x48.png unaltered under its licence I, if the owner accepts
+  runtime/vim48x48.png unaltered under its licence I, if the maintainers accept
   that reading.
-- Owner: git is CLEAR with conditions (™, credit, no implied association).
+- Maintainers: git is CLEAR with conditions (™, credit, no implied association).
   Accept them, or draw git in NONOS style for uniformity?
-- Lead: schema 4 for one field now, or with the next schema change?
+- Maintainers: schema 4 for one field now, or with the next schema change?
   Should logos-licences.md move under plan/?
 - UI/UX: sizes, placement, colour-logo backing, credit, fallback drawing.
 - Track B: OP_GET_LOGO or an App-reply field; embedding or a boot-read file.
@@ -134,8 +134,8 @@ stays the last resort. The launcher may reuse it (desktop session) (design).
 
 ## 7. As built (catalogue/logos, 2026-10-25)
 
-Rulings: Lead, schema 4 with `logo_hash`, OP_GET_LOGO = 9, the static
-check, mutants, a booted-screenshot plan. Owner, real logo where the
+Rulings: schema 4 with `logo_hash`, OP_GET_LOGO = 9, the static
+check, mutants, a booted-screenshot plan. Real logo where the
 licence allows; UNCLEAR rows "use them anyway" (written into each row of
 logos-licences.md); a NONOS-drawn icon otherwise. What landed, and where it
 differs from sections 1 to 5 (host-tested unless marked design):
@@ -162,7 +162,7 @@ differs from sections 1 to 5 (host-tested unless marked design):
   committed raster's BLAKE3. A raster the index does not name yet is
   served as none. CAPSULE_SOURCES in tools/nonos_seal/__main__.py still
   excludes nonos-data/market whole, so a logo change is caught by the
-  enrollment check, not by that diff (design: the Lead may want
+  enrollment check, not by that diff (design: the maintainers may want
   nonos-data/market/logos taken out of that exclusion).
 - Wire: OP_GET_LOGO takes the listing id; the reply is one byte, the side,
   then side * side * 4 bytes, or a single 0 for none
