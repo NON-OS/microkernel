@@ -61,14 +61,14 @@ arena in `src/asm/prove.S`. The capsule writes nothing to any disk in its curren
 - Build: `make nonos-mk-nonos-install`, with `-sign` and `-verify` variants
   (`nonos-mk/capsule.mk`).
 - There is no host test crate, and no CI job runs it.
-- Design notes for the unfinished steps are in `design/write-authority.md` and
-  `design/driver-instancing.md`.
+- Design notes for the unfinished steps are in the design notes and
+  the design notes.
 
 ## Not done yet
 
 - Steps 4 to 7 are stubs (`src/asm/steps.S`), so the final "all steps ran" line does not
   mean anything was written.
-- `design/write-authority.md` records that block drivers answered writes only from the
+- the design notes records that block drivers answered writes only from the
   kernel-internal client. They now also serve a sender that holds StoreWrite, which this
   capsule dropped from its word, so it cannot write a disk.
 - The `SYS_DEBUG` fallback in `console.S` needs the Debug capability per

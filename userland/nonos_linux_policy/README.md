@@ -8,6 +8,7 @@ as 256 canonical bytes (`LinuxAppPolicy`, magic `NLXPOL01`). It names:
 - the system calls it may complete (`syscall_set`, one bit per bucket of the
   kernel's seal).
 
+The layout and the reasons for it are in the plan of the marketplace plan.
 
 `decode` accepts exactly the bytes `encode` writes. It refuses:
 - a wrong length, magic or version;
@@ -21,6 +22,7 @@ capsule_linux notes in the kernel's seal, and what an isolation proof is
 checked against.
 
 `unlisted` is the box for a program that arrived with no policy: a terminal,
+its own home, and exec. That default is the maintainers' decision (O1). Changing it
 is changing `UNLISTED_MASK`.
 
 `market_ready` is the rule a market release is held to. The syscall set must

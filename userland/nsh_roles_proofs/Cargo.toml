@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
-# Host proofs for nsh_roles: every check in docs/design/nsh-v1-roles.md is a
+# Host proofs for nsh_roles: every check in the nsh/1 specification is a
 # test, and every refusal is reached by a table, a list or a grant that
 # differs from a good one in exactly that respect. Grants, tables, lists and
 # approvals carry real hybrid signatures, made with keys the tests derive

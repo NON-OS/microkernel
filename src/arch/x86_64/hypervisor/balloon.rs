@@ -18,7 +18,7 @@
  * A memory balloon the host offers and this kernel leaves alone. Ballooning
  * hands guest memory back to the host on request, and a host that can size
  * a guest's memory and read its free page reports learns how the guest
- * runs; whether NONOS ever lends memory that way is the owner's decision,
+ * runs; whether NONOS ever lends memory that way is the maintainers' decision,
  * so the safe default is off: no driver binds the device, VirtualBox's
  * balloon events are filtered out by its guest driver, and VMBus offers no
  * dynamic memory channel here. The boot line says so when a balloon exists.

@@ -61,7 +61,7 @@ When both sides have joined, the core reports `contactConnected`. After that, me
 ## A live session or a kept home
 
 - **Live, the default.** A home lasts until the machine powers off. Turn it off and the profile, contacts and messages are gone, and so are the keys: nobody can read them later, including you. *booted* for homes in general (age and git, [Privacy apps](privacy-apps.md)); *design* for SimpleX.
-- **Kept.** On a machine installed to disk, with keeping chosen at setup, the home is kept across reboots, sealed under this machine's key ([kept homes](../design/kept-homes-and-installs.md)). A write is kept once the core's fsync returns, which SQLite does on each commit. *design*: kept homes are not in yet.
+- **Kept.** On a machine installed to disk, with keeping chosen at setup, the home is kept across reboots, sealed under this machine's key (kept homes). A write is kept once the core's fsync returns, which SQLite does on each commit. *design*: kept homes are not in yet.
 - **The size limit.** A kept home holds 16 MiB and 128 names in 0.9.3. A busy profile, or received files, can pass that. Keep files out of the home, or expect the app to say when the home is full. *design*
 
 The app should show which one you have, live or kept, before you create a profile.

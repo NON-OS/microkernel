@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Putting a package's files into the store, under the Linux root.
 //! A package's files as one pack (nonos_linux_pack; the design note is
-//! docs/design/linux-package-pack.md): every file it may write and the
+//! the package-pack design): every file it may write and the
 //! trailer this machine mints beside each ELF, one store object however
 //! many files. A market program held until its policy is bound stays a file
 //! of its own (minted.rs): its binding writes beside it later, and a pack

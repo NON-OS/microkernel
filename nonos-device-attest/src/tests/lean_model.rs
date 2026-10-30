@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The STARK lane's Lean model of this circuit, `lean/Shield/Device.lean`, read
+//! The STARK project's Lean model of this circuit, `lean/Shield/Device.lean`, read
 //! from the text the pinned commit ships, so the tie below always compares the
 //! circuit with the model of the same commit. The circuit's side is read here
 //! too, in the model's terms.

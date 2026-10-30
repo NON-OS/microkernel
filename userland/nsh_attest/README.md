@@ -1,14 +1,18 @@
 # nsh_attest
 
 The nsh/1 client's check of a host, run before any credential is sent:
-steps 1 to 7 of `docs/design/nsh-v1-attest.md` over a `NONOSATT` version 5
+steps 1 to 7 of the nsh/1 specification over a `NONOSATT` version 5
+document (the attestation document format). The first failed step ends the
 session with `ABORT(POLICY)`, shown to the user as `POLICY (<name>)`.
 Proofs, mutants and fuzz targets are in `../nsh_attest_proofs`.
 
 No version 5 producer exists yet: the kernel writes `DOC_VERSION` 4
 (version 3 plus the identity-domain device count), and this checker
+refuses it. Interoperating with the kernel's document, and a swtpm known-answer test, stay part of K1.
 
+## Proposed amendment to k1-attest-doc-v4.md and nsh-v1-attest.md
 
+**PCR 4.** nsh-v1-attest.md step 5 pins PCR 4 to a release value, and k1
 says PCR 4 differs between machines. This checker keeps PCR 4 pinned, but
 pins it through the log:
 

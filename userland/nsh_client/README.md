@@ -1,7 +1,7 @@
 # nsh_client
 
 The client side of nsh/1, as specified in
-[docs/design/nsh-v1.md](../../docs/design/nsh-v1.md) and its parts, and
+the nsh/1 specification and its parts, and
 the offline checker of session records.
 
 - **`Client`** is a sans-IO state machine. The caller feeds it the

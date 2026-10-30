@@ -10,10 +10,12 @@ Booted on qemu-dev, against the relay on 10.0.2.2:8080, with steps in drive.step
 - The install then failed on store names, not memory. 1348 files were "not
   written", and the 455 already written were taken out (`[LINUX] install
   failed, 1348 file(s) not written: took out 455 of 455 file(s), 0 would not
+  go`). vim-common holds about 1800 files. capsule_vfs gives each owner 512
   names (NAMES_PER_OWNER = MAX_FILES / 4) and 2048 in all
   (userland/capsule_vfs/src/store/fdtable/budget.rs:42, types.rs:20).
-  (booted; host-read)
+  (booted; read from the code)
 - Nothing of the failed package stayed. (booted)
 
 The next unit is the store's name budget for an install, or an install that
+lands only the runtime files a listing needs. The maintainers should rule on which.
 (design)

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! `nsh-enrol/1`'s fields before the signature, little-endian, in the
-//! order `docs/design/nsh-v1-attest.md` gives.
+//! order the nsh/1 specification gives.
 
 use nsh_wire::BOOT_APPS_VERSION;
 

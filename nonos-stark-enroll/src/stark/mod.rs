@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The STARK half of a v4 trailer: the attestation proof over the same slot
-//! the path opens, made with the STARK lane's prover and checked with the
+//! the path opens, made with the STARK project's prover and checked with the
 //! verifier the gates run, over words computed from the bytes alone.
 
 mod batch;

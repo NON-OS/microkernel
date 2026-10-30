@@ -90,7 +90,7 @@ fn xorshift(state: &mut u32) -> u32 {
 
 /*
  * Over random replies of every length, about half carrying the nonce, the
- * parser never panics, and every time it believes one, each check the lead's
+ * parser never panics, and every time it believes one, each check the maintainers'
  * fix put in holds and the time is the transmit seconds read on the 2036
  * rollover rule.
  */

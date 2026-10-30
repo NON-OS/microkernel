@@ -5,6 +5,7 @@ vfs hold, nonos_linux_pack) on main 1bd589a16, through the host relay on 8080.
 
 **Not as shipped:** one local commit, never pushed, made `dev_market.chosen()` false.
 Since f6fc7351f a development seal lists only the four devtest entries, so `linux.vim` was
+not in the market. The maintainers ruled the fix as b/dev-market-union. The commit changes which
 catalogue the seal signs, nothing in the install or the run.
 
 ## What the boots show (booted)
@@ -23,6 +24,7 @@ catalogue the seal signs, nothing in the install or the run.
 
   Each pack is two names, the pack and the trailer over its index. The whole install took
   the store from 231 to 255 names. As files, the same closure is 1940 names (the design
+  note, section 2), and the boot of 2026-10-25 stopped at the 512-name owner budget.
   The names between packs are vim's own program (a market program held until its policy is
   bound stays a file, with PENDING beside it), the package records and the link table.
   vim's pack is empty because the package's one file is that program.
