@@ -77,6 +77,8 @@ ceiling recorded.
 *Figure 1. What a program can reach. Sources: [`docs/using/linux-box.md`](docs/using/linux-box.md), [`docs/using/marketplace.md`](docs/using/marketplace.md).*
 
 Each row below is a real attempt from inside a Linux program on the sealed 0.9.3 image, and the answer it got.
+The recorded run, with every command and screenshot, is in
+[docs/release-evidence/0.9.3/kvm-box-refusals](docs/release-evidence/0.9.3/kvm-box-refusals/README.md).
 The file, process and keyboard rows ran in the default box, which is what a program with no listing gets: a
 terminal, its own home and the right to start programs, with no network. The refused program launch is from
 Telegram, which runs in the box its listing names.
@@ -371,7 +373,7 @@ image, and is it older than what this machine already accepted. The details are 
   give slightly higher numbers.
 - The build is reproducible: `make` ends with a receipt of every artifact by sha256, and `REPRODUCED` when
   the artifacts match the committed `receipts/<profile>.json`.
-- 56 evidence directories sit under [docs/release-evidence/0.9.3](docs/release-evidence/0.9.3/README.md),
+- 57 evidence directories sit under [docs/release-evidence/0.9.3](docs/release-evidence/0.9.3/README.md),
   each naming the boot or test behind a line of the release notes.
 
 NØNOS does not claim functional correctness of the whole kernel. The proved surface is what may run, what
@@ -449,7 +451,7 @@ guide, from installing Nix on each platform to an installed disk.
 
 The release notes say what works, what does not, and how each line was shown:
 
-- [Known issues](docs/release/0.9.3-known-issues.md): a Linux app's home lives in memory and is gone at power off, SimpleX's desktop window is not in this release, and some programs listed in the Marketplace have not been booted.
+- [Known issues](docs/release/0.9.3-known-issues.md): a Linux app's home lives in memory and is gone at power off, creating a wallet on a machine with no TPM makes the keyring restart, SimpleX's desktop window is not in this release, and some programs listed in the Marketplace have not been booted.
 - [Security limits](docs/release/0.9.3-security-limits.md): on a machine whose firmware left VT-d or AMD-Vi off, a Standard boot goes on with device DMA unconfined and says so on its `[IOMMU]` line.
 - [Supported hardware](docs/release/0.9.3-supported-hardware.md): what has run on real silicon and what has run only in its host model.
 - [Upgrade notes](docs/release/0.9.3-upgrade-notes.md): moving an installed system to 0.9.3.

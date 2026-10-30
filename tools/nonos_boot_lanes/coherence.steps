@@ -1,4 +1,4 @@
-# Shared file maps (S1): a Linux program maps a stored file shared, as LMDB
+# Shared file maps: a Linux program maps a stored file shared, as LMDB
 # does, and the next run reads what the first left there.
 until:Capsules spawned:1800
 until:[SPLASH] stepped aside:900

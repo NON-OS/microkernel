@@ -1,4 +1,4 @@
-# Monero's ring database (S1): the wallet's LMDB, mapped shared. Install
+# Monero's ring database: the wallet's LMDB, mapped shared. Install
 # monero over the dev relay, make a wallet, set a ring and read it back in a
 # second run of the wallet.
 until:Capsules spawned:1800

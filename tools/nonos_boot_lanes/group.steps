@@ -1,4 +1,4 @@
-# Two vendor drivers' devices in one isolation group (S1): the HDA and the
+# Two vendor drivers' devices in one isolation group: the HDA and the
 # e1000e as functions 0 and 1 of one device behind a root port, as the HP's
 # Wi-Fi sits beside its NVMe disk. Claims are made at boot; the serial says
 # whether the second was refused or shared.

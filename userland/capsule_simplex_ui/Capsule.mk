@@ -1,6 +1,6 @@
 # simplex.ui, the native SimpleX chat window. No Network bit: it reaches the
-# simplex-chat core only through the channel the 2026-10-27 letter asks S1
-# for (SERVE_ONE simplex.ui). Until then it replays a recorded session.
+# simplex-chat core only through a SERVE_ONE channel
+# (simplex.ui). Until then it replays a recorded session.
 #
 # Included from mk/20-build.mk and started from the desktop's SimpleX tile.
 # A build with nonos-capsule-simplex-ui needs the publisher keys and the
