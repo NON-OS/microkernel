@@ -94,12 +94,12 @@ were added by name.
   FUTEX_WAKE_OP was served.
 - [gui-telegram](gui-telegram/README.md): Telegram Desktop 5.0.1 (Qt 6) draws
   its welcome screen in the frame, in a box of WAYLAND, NET_ANON and
-  FILES_HOME, once `/proc` answered a thread's own number (71e34654ac); its
+  FILES_HOME, once `/proc` answered a thread's own number (b57b5d210e); its
   connections reach the box's SOCKS5 port and are refused, as that machine
   reached only the package mirror. A sign-in is not shown.
 - [gui-foot](gui-foot/README.md): foot draws its window and runs a shell over
   `/dev/pts`, on a development image with foot's test recipe; foot is listed
-  since fbbd8c5f80.
+  since afa860e173.
 - [gui-large-installs](gui-large-installs/README.md): 304 packages verified in
   one boot (swayimg, KeePassXC, gnome-authenticator) with no stall, `[LOCK]`,
   OOM or panic; no window opened in that boot.
@@ -107,7 +107,7 @@ were added by name.
   of a terminal program runs it in the Terminal; micro then stops on
   `open /dev/tty`.
 - gui-install-stall (no README): `serial.log`, `stuck.txt` (QEMU's registers
-  for every CPU) and `zathura-xkb-enosys.png`, added by 7d60cc757e: zathura's
+  for every CPU) and `zathura-xkb-enosys.png`, added by 7a229a3ebb: zathura's
   82-package install stopped at its 81st with every CPU in the kernel, one in
   `HoleList::allocate_first_fit` holding the heap lock.
 
@@ -192,5 +192,5 @@ were added by name.
   tulip and vmxnet3 each get a DHCP lease through the card on QEMU with only
   its own driver spawned, on standard-dev at 4b1eeb014 (the serial logs the
   READMEs name are not committed). rtl8821ce holds the release report that
-  Wi-Fi works on their HP laptop, on their seal of main 8f2d183dda, with no
+  Wi-Fi works on their HP laptop, on their seal of main 680c92e3fc, with no
   log or screenshot.

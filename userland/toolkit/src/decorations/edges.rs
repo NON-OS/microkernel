@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The frame's measures at one to one (the design notes, Window
+//! The frame's measures at one to one (docs/design/ui-identity.md, Window
 //! Which of a window's edges a point grabs, and the rect a drag of them
 //! leaves. Every edge and corner resizes: a band along the left, right and
 //! bottom of the frame and its shadow, and a thinner one along the top that

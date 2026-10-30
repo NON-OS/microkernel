@@ -1,6 +1,6 @@
 # gpu: gate boot of e3b94f50d, 25 October 2026
 
-Four changes, one boot (letter the design notes):
+Four changes, one boot:
 - the BGRT logo path removed;
 - a FLUSH waits FLUSH_MS 400;
 - the menu bar follows focus;

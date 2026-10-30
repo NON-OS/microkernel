@@ -42,4 +42,4 @@ framebuffer smaller than its mode) cannot be made under OVMF, which always
 offers a 32-bit linear mode when it has a display. They are host-tested
 (`kernel_proofs::handoff_refusal`, every code byte and depth through the
 decoder and every word the loader makes round-tripped), and
-`the design notes` step 5 asks for them on a real machine.
+`docs/hardware/procedure-gop.md` step 5 asks for them on a real machine.

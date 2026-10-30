@@ -46,4 +46,4 @@ Put the checklist, the report file and the photos in one folder per machine, nam
 machine's number above and the date, and send it to the developers. Never include serial
 numbers, MAC addresses, network names, passwords or anything from your own files; the
 [report rules](report.md#what-not-to-include) say what to leave out. The developers file each
-report under `the design notes/`, and this session turns it into matrix rows and fixes.
+report, and each one becomes matrix rows and fixes.

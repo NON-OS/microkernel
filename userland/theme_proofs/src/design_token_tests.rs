@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The NØNOS design tokens hold their own rules: the
+//! The NØNOS design tokens (docs/design/ui-identity.md) hold their own rules: the
 //! brand's 1.2 type ramp on the 4 px grid, the spacing scale, short ordered
 //! motion, and two curves that never go back on themselves.
 

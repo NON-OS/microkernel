@@ -1,4 +1,4 @@
-# main 3fa2f94f8 booted (allows df0b24d22 in it), against main 722698393a
+# main 3fa2f94f8 booted (allows df0b24d22 in it), against main 06dd3c3c6b
 
 Built as standard-dev by `tools/nonos-dev-image`'s steps in the dev copy
 of the tree and sealed with throwaway keys; no key under `.keys/` was
@@ -8,8 +8,8 @@ read. QEMU only, under TCG. **Not hardware-verified.**
 |---|---|---|---|---|
 | m3-intel | VT-d | usb-tablet, usb-kbd, PS/2 off | 9523 ms | setup, save, Settings, About, File Manager, lease |
 | m3-amd | AMD-Vi | usb-tablet | 10452 ms | setup, save, lease |
-| main-intel (722698393a) | VT-d | usb-tablet | 8878 ms | setup, save, lease |
-| main-amd (722698393a) | AMD-Vi | usb-tablet | 9207 ms | setup, save, lease |
+| main-intel (06dd3c3c6b) | VT-d | usb-tablet | 8878 ms | setup, save, lease |
+| main-amd (06dd3c3c6b) | AMD-Vi | usb-tablet | 9207 ms | setup, save, lease |
 
 ## USB keyboard and tablet (m3-intel)
 The machine had no PS/2 controller: a scratch switch in the dev copy's

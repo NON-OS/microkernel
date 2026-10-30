@@ -37,7 +37,7 @@ COPY = ("tools/nonos_market_catalogue", "tools/nonos_linux_pack", "tools/nix/sto
         "nonos-data/market/catalogue", "nonos-data/market/logos", "userland/capsule_market/logos",
         "userland/capsule_market/src/logos/table.rs", "userland/capsule_linux/src/linux/program_max.rs",
         "userland/capsule_market/linux-catalogue.lock.json", MARKET + "linux-catalogue.sources.lock.json",
-        "notes/catalogue/logos-licences.md", "nonos-data/market/index.json", "tools/devnet/market/index.json", VFS)
+        "docs/market/logos-licences.md", "nonos-data/market/index.json", "tools/devnet/market/index.json", VFS)
 MUTANTS = json.loads((HERE / "mutants.json").read_text())
 
 
