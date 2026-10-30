@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The nsh/1 role table and the checks a host runs on a grant
-//! (docs/design/nsh-v1-roles.md). The host installs a signed role table,
+//! (the nsh/1 specification). The host installs a signed role table,
 //! `nsh-policy/1`, and a signed revocation list, `nsh-revoke/1`; both are
 //! trusted only once their signatures verify. A login is then checked in the
 //! order the specification gives, and so is an escalation. Each failed check

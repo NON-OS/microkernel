@@ -46,7 +46,7 @@ locks. The default features `std` and `parallel` are for host tools; the
 
 31 host tests: known answers, every checkpoint cell changed alone and
 refused, forged kinds and forged tag secrets refused, and a tie that holds the
-built circuit to the STARK lane's Lean model of its layout.
+built circuit to the STARK project's Lean model of its layout.
 `userland/prove_proofs` runs the capsule's assembly half against this crate
 with 30 more.
 

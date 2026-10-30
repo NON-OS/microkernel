@@ -1,7 +1,7 @@
 # nsh_crypto
 
 The cryptography of nsh/1, as specified in
-[docs/design/nsh-v1-wire.md](../../docs/design/nsh-v1-wire.md):
+the nsh/1 specification:
 
 - **The X-Wing exchange of the hellos.** `ClientKem` makes a key pair from a
   32-byte seed and is used once, because decapsulating consumes it.

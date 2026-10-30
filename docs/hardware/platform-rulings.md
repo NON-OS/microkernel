@@ -84,3 +84,4 @@ is checked against it before it is taken.
 
 1. Done: DMAR and IVRS in the seeded sweep, the `_DSM` sweep (item 7),
    and the HDA and PS/2 sweeps.
+2. capsule_acpi, suspend and Thunderbolt stay with F and the rulings.

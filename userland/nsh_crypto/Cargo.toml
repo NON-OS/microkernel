@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
-# The nsh/1 cryptography (docs/design/nsh-v1-wire.md): the X-Wing key
+# The nsh/1 cryptography (the nsh/1 specification): the X-Wing key
 # exchange, the transcript chain, the key schedule, the labelled digests
 # that are signed, and the sealed frames. Every primitive is one the tree
 # already carries: X-Wing from the x-wing crate shield_core pins, SHA-512,

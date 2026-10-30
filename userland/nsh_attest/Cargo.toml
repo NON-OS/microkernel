@@ -14,8 +14,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
-# The nsh/1 client's check of a host's attestation (docs/design/nsh-v1-attest.md
-# and docs/design/k1-attest-doc-v4.md): the NONOSATT version 4 document, the
+# The nsh/1 client's check of a host's attestation (the nsh/1 specification
+# and the attestation document format): the NONOSATT version 4 document, the
 # TPM quote and its P-256 signature, the TCG event log replayed to the PCRs,
 # the enrolment certificate, and the client policy. Each step refuses with its
 # own name. P-256 is the kernel's own arithmetic, compiled from the kernel

@@ -9,7 +9,7 @@ the operator index as the listing's logo_hash. The market capsule serves a
 raster only when it hashes to that logo_hash.
 
 Which logo may be shown is the record's to say, not this directory's: git
-is CLEAR; the others are UNCLEAR rows it was ruled on 2026-10-25 ("Use
+is CLEAR; the others are UNCLEAR rows the developers ruled on 2026-10-25 ("Use
 them anyway"). age is not here: its terms allow only unaltered use, and no
 tile shows its logo at its own pixels, so it keeps a NONOS icon.
 

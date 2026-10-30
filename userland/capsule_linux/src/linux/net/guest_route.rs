@@ -25,7 +25,7 @@
 //!   socket, whose frames carry an address and so refuse every name.
 //! - Direct: Nym as well. A guest runs a program nobody here wrote, and a
 //!   direct socket would name this machine to whatever it reaches
-//!   (design/install-network.md). That is deliberate.
+//!. That is deliberate.
 //! - A default that cannot be read, or a network whose service has not
 //!   registered yet: not yet. The open asks again until its time is up and
 //!   is then refused (routed/retry.rs). An unread default never becomes Nym.
