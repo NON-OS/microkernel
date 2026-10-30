@@ -215,6 +215,7 @@ A stream to port P goes down a circuit whose exit takes P:
 An exit can refuse what its summary lets out: its policy changed, it cannot reach a network, or it is loaded. An END that arrives before CONNECTED with reason 4 (EXITPOLICY), 7 (TIMEOUT), 8 (NOROUTE), 9 (HIBERNATING) or 11 (RESOURCELIMIT) sends the stream's open once more, to another exit, as Tor's `connection_ap_process_end_not_open` does (`userland/capsule_net_anon/src/stream/again.rs:33-50`). Reason 3 (CONNECTREFUSED) and 2 (RESOLVEFAILED) are the destination's own answer, the same through any exit, and are passed back as before.
 
 - A stream keeps its BEGIN body until CONNECTED, and the bytes sent behind it up to `EARLY_MAX`, 8 KiB; one that sends more before it is connected lets the open go and is not sent again (`userland/capsule_net_anon/src/stream/held.rs:27-30`, `userland/capsule_net_anon/src/stream/held.rs:62-74`).
+- `again` remembers the exit as refusing P, then moves the stream to a circuit whose exit takes P, or lets it wait for one; the second END, whatever its reason, is passed back (`userland/capsule_net_anon/src/manager/out/again.rs:36-63`). `attach` sends the BEGIN and the kept bytes as a fresh stream there, with the same id and owner, so the caller holds one stream throughout (`userland/capsule_net_anon/src/manager/out/attach.rs:27-56`).
 - `Refused` holds up to `REFUSED_MAX`, 64, pairs of exit identity and port for the boot, the oldest forgotten first, and never a host (`userland/capsule_net_anon/src/path/refused.rs:23-50`). Neither `pick` nor `choose_exit` takes that exit for that port again.
 
 The serial lines this adds name a stream or circuit id and never a host or a port, and like every `[ANON]` line they reach serial only in a build with `capsule-serial-debug`. The isolation is the one there was: the port is one more condition on the circuits a stream could already take, a stream sent again is held to the same rule as its first open, and room is never made from the warm circuit.
@@ -238,7 +239,7 @@ Each transport posts a `RouteReport` to the attest service every `EVERY_MS`, fiv
 - Neither directory fetch is anonymous, and both reach fixed addresses compiled into the image.
 - `net.nym` draws routes without weights, admits an unsigned fetched directory on the strength of TLS, asks gateways for free bandwidth, and keeps a lost gateway's shared key in memory.
 - `net.anon` does not check the digest in a relay's SENDME and does not read the relay's RSA link certificates.
-- On KVM development images the Monero wallet synced over a live Anyone circuit and over a live Nym gateway ([s1-g-kvm](../release-evidence/0.9.3/s1-g-kvm/README.md)). Live traffic on real hardware is not tested in this release.
+- On KVM development images the Monero wallet synced over a live Anyone circuit and over a live Nym gateway ([kvm-guest-gate](../release-evidence/0.9.3/kvm-guest-gate/README.md)). Live traffic on real hardware is not tested in this release.
 
 ## What is tested
 

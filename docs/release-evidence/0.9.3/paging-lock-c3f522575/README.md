@@ -2,6 +2,7 @@
 
 the fix for [the paging-lock waits at boot](../regression-30a4b58c4-paging-lock/README.md):
 adb53a20d (the manager lock taken in turn, never by a switch or a system
+call) and abae61bc9 (a guest's peer calls hold that guest's lock). The maintainers'
 bisect put the waits on 0448b98c3, MkGetPid for every capsule, which main
 reverted (a3c313619). These lanes boot the fix with 0448b98c3 put back, the
 build that printed 44/12, 1/80 and 44/38 `unanswered`/`[LOCK]` lines before.
@@ -31,6 +32,7 @@ Terminal.
   0.9.3 at 4m 48s.
 
 The 8-CPU lanes and a run of Linux guests under the new peer locks are in
+[lock](../lock/README.md), booted by the owner's machine: six
 lanes to the desktop and a Monero install and run, 0 `[LOCK]` and
 0 `unanswered` in all of them. Its pre-fix contrast boot ran a different
 workload, so it says little about the six lines above.
