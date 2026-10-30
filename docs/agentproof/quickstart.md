@@ -224,4 +224,3 @@ can allow. Its writes and both connections went through the box, and the report'
 - [The policy file format](policy-format.md)
 - [The Gauntlet: run an agent in a box on every change](gauntlet.md)
 - [Linux programs](../using/linux-programs.md)
-- [The AgentProof assessment](assessment/README.md)
