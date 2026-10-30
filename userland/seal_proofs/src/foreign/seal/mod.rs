@@ -28,6 +28,8 @@ pub mod finish;
 pub mod hist;
 #[path = "../../../../../src/process/foreign/seal/meas.rs"]
 pub mod meas;
+#[path = "../../../../../src/process/foreign/seal/measure_line.rs"]
+mod measure_line;
 #[path = "../../../../../src/process/foreign/seal/live.rs"]
 pub mod live;
 mod nonce;
