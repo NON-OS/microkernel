@@ -26,7 +26,7 @@ axiom core.option.Option.ok_or
   {T : Type} {E : Type} : Option T → E → Result (core.result.Result T E)
 
 /-- [nonos_irq::irq::errors::IrqBindError]
-    Source: 'src/irq/../../../../../src/hardware/broker/irq/errors.rs', lines 20:0-40:1
+    Source: 'src/irq/../../../../../src/hardware/broker/irq/errors.rs', lines 20:0-42:1
     Visibility: public -/
 @[discriminant isize]
 inductive irq.errors.IrqBindError where
@@ -46,6 +46,7 @@ inductive irq.errors.IrqBindError where
 | MsixProgramFailed : irq.errors.IrqBindError
 | MsiProgramFailed : irq.errors.IrqBindError
 | NoDeviceHandle : irq.errors.IrqBindError
+| NotRemapped : irq.errors.IrqBindError
 | PlatformError : irq.errors.IrqBindError
 
 /-- [nonos_irq::irq::types::BIND_MSIX]

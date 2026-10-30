@@ -15,7 +15,7 @@ set_option maxRecDepth 2048
 namespace nonos_x_types_protection
 
 /-- [nonos_x_types_protection::protection::ProtectionFlags]
-    Source: 'src/../../../../../src/memory/mmu/types/protection.rs', lines 26:0-35:1
+    Source: 'src/../../../../../src/memory/mmu/types/protection.rs', lines 26:0-38:1
     Visibility: public -/
 structure protection.ProtectionFlags where
   smep_enabled : Bool
@@ -23,9 +23,10 @@ structure protection.ProtectionFlags where
   nx_enabled : Bool
   wp_enabled : Bool
   umip_enabled : Bool
+  pge_enabled : Bool
 
 /-- [nonos_x_types_protection::protection::{nonos_x_types_protection::protection::ProtectionFlags}::new]:
-    Source: 'src/../../../../../src/memory/mmu/types/protection.rs', lines 39:4-47:5
+    Source: 'src/../../../../../src/memory/mmu/types/protection.rs', lines 42:4-51:5
     Visibility: public -/
 def protection.ProtectionFlags.new : Result protection.ProtectionFlags := do
   ok
@@ -34,11 +35,12 @@ def protection.ProtectionFlags.new : Result protection.ProtectionFlags := do
       smap_enabled := false,
       nx_enabled := false,
       wp_enabled := false,
-      umip_enabled := false
+      umip_enabled := false,
+      pge_enabled := false
     }
 
 /-- [nonos_x_types_protection::protection::{nonos_x_types_protection::protection::ProtectionFlags}::is_fully_protected]:
-    Source: 'src/../../../../../src/memory/mmu/types/protection.rs', lines 49:4-51:5
+    Source: 'src/../../../../../src/memory/mmu/types/protection.rs', lines 53:4-55:5
     Visibility: public -/
 def protection.ProtectionFlags.is_fully_protected
   (self : protection.ProtectionFlags) : Result Bool := do
