@@ -132,7 +132,7 @@ reasons is recalled, and every row is marked unverified.
   every earlier one. `Personality::windows_up_to` caps the answers at a
   release, for a machine that needs it.
 - **Feature group strings** of section 5.7.2 are not answered, even the
-  two NONOS could honour, until the owner rules.
+  two NONOS could honour, until the maintainers rule.
 - **Vendor strings** such as "Linux" are not answered: they select paths
   tested against another system.
 

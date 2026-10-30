@@ -17,7 +17,7 @@
 //! Who may change the capture indicator, on or off: only a process holding
 //! the capture capability bit for that kind, asked of the kernel per request
 //! (MkCapCheck), so nobody can spoof it either way. Neither bit is ambient
-//! and no capsule may hold one until the owner decides Decision 9, so until
+//! and no capsule may hold one until the maintainers decide Decision 9, so until
 //! then the indicator never lights and no capture can be announced.
 
 use crate::state::indicator::{KIND_CAMERA, KIND_MICROPHONE};

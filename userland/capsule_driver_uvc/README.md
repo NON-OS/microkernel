@@ -4,7 +4,7 @@ Status: wired, not yet signed. The kernel mirror (`src/hardware/uvc_capsule`)
 embeds and spawns it under `nonos-capsule-driver-uvc` wherever the
 inventory sees a USB host, after the hub walker. It has no owner
 certificate yet, so no image carries it until the owner signs it. No
-capsule holds CameraCapture until the owner decides (Decision 9), so
+capsule holds CameraCapture until the maintainers decide (Decision 9), so
 today nothing streams.
 
 ## Role

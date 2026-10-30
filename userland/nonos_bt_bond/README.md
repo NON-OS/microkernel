@@ -47,7 +47,7 @@ Where the records are kept: `capsule_keyring`, one record per bonded peer
 owned by the Bluetooth capsule's service name. The keyring cannot do that
 yet: records are owned by a pid, live in memory only, and cannot be
 listed. The lead is changing it (lead unit L33), and keeping records
-across a reboot is the owner's Decision 27. Until L33 lands, the capsule
+across a reboot is Decision 27. Until L33 lands, the capsule
 uses `MemoryKeys`, so **bonds last for the boot only**; the keyring client
 is then one more `Keys`.
 

@@ -70,7 +70,7 @@ is bounded against the bytes that came; a stalled pipe is reset and its halt cle
 
 ## Current implemented surface
 
-Binding to the 16 RTL8153-family ids in Linux v6.12's r8152 table, in the adapter's vendor configuration; the chip's version read first, and an RTL8152, RTL8153C, RTL8156 or RTL8156B refused by name before configuring; the bring-up as tables of register steps, every wait bounded (a whole bind under 9.5 s); the drawn station address written into the chip; receive walking Realtek's 24-byte descriptors with every length checked against the bytes received; send with the 8-byte descriptor; the link from `PLA_PHYSTATUS`. Not in the Standard profile: held until the owner rules on Decision 10.
+Binding to the 16 RTL8153-family ids in Linux v6.12's r8152 table, in the adapter's vendor configuration; the chip's version read first, and an RTL8152, RTL8153C, RTL8156 or RTL8156B refused by name before configuring; the bring-up as tables of register steps, every wait bounded (a whole bind under 9.5 s); the drawn station address written into the chip; receive walking Realtek's 24-byte descriptors with every length checked against the bytes received; send with the 8-byte descriptor; the link from `PLA_PHYSTATUS`. Not in the Standard profile: held until Decision 10 is ruled.
 
 ## Wire format
 
@@ -94,7 +94,7 @@ Build and host-proof evidence only (rtl8153_proofs, 55 tests on a modelled chip,
 
 ## Release checklist
 
-The capsule builds with zero warnings and is clippy clean; rtl8153_proofs passes; the owner rules on Decision 10 and, if it ships, signs it with net.core, net.l2, the setup wizard and capsule_attack re-signed for the NIC table; on hardware, `[usbnet rtl8153] port N up, drawn station address programmed` and `[NET-CORE] bind: interface up on driver.rtl8153_0`, then DHCP and a page (`docs/hardware/real-hardware-checklist.md`).
+The capsule builds with zero warnings and is clippy clean; rtl8153_proofs passes; the maintainers rule on Decision 10 and, if it ships, signs it with net.core, net.l2, the setup wizard and capsule_attack re-signed for the NIC table; on hardware, `[usbnet rtl8153] port N up, drawn station address programmed` and `[NET-CORE] bind: interface up on driver.rtl8153_0`, then DHCP and a page (`docs/hardware/real-hardware-checklist.md`).
 
 ## Explicit non-goals today
 

@@ -1,10 +1,10 @@
-# NOX mainnet contracts, the definitive brief
+# NOX mainnet contracts
 
-This is the handoff document for the Solidity team. It states the economic
-model, the exact on-chain surface, the byte-exact interface to the off-chain
-tooling in this repo, and what we do and do not claim. Treat every constant
-in section 4 as a frozen interface: the Rust tooling in
-`nonos-bootloader/tools/nonos-attestation-circuit` produces these bytes today.
+This page specifies the NOX reward and fee contracts: the economic model, the
+on-chain surface, the byte-exact interface to the off-chain tooling in this
+repository, and what the system does and does not claim. The constants in
+section 4 are a frozen interface. The Rust tooling in
+`nonos-bootloader/tools/nonos-attestation-circuit` produces these bytes.
 
 ## 1. The model in one paragraph
 
@@ -17,20 +17,21 @@ capsule publish fees, marketplace cut, attestation-feed subscriptions and
 slashed publisher bonds. There is no minting and no passive yield. Usage of
 NONOS finances the people who secure NONOS.
 
-## 2. Hard rules
+## 2. Rules the contracts keep
 
-- NOX already exists as an ERC20 UUPS token. Reuse its address. Never
-  redeploy it or change its tokenomics.
-- No minting anywhere in this system. Pools pay only what they were funded.
-- v1 verification is off-chain with open tooling. Contracts store hashes and
-  settle from authorizer-signed Merkle roots or EIP-712 authorizations. Do
-  not claim on-chain ZK verification in v1. (v2 may add optional BLS12-381
-  pairing checks via the EIP-2537 precompile; design for it, do not build it.)
-- New infra is non-upgradeable by default. UUPS only where explicitly
-  justified, and then with storage gaps, initializer guards and a
-  storage-layout regression test.
+- NOX already exists as an ERC20 UUPS token. The system reuses its address and
+  never redeploys it or changes its tokenomics.
+- There is no minting anywhere in the system. Pools pay only what they were
+  funded.
+- v1 verification is off-chain with open tooling. The contracts store hashes
+  and settle from authorizer-signed Merkle roots or EIP-712 authorizations.
+  v1 does no on-chain ZK verification. A later version may add optional
+  BLS12-381 pairing checks through the EIP-2537 precompile.
+- New contracts are non-upgradeable by default. UUPS is used only where
+  justified, with storage gaps, initializer guards and a storage-layout
+  regression test.
 - Solidity ^0.8.24, OpenZeppelin v5 primitives, custom errors, full NatSpec,
-  events on every privileged or state-changing action, no tx.origin, no
+  events on every privileged or state-changing action, no tx.origin, and no
   unbounded loops on claim paths.
 
 ## 3. Contract set
@@ -85,10 +86,10 @@ PAUSER, SLASHER. AccessControl everywhere.
 
 ## 4. Frozen interface to the off-chain tooling
 
-The Rust tools in this repo are the source of truth for every identifier.
-Do not invent alternatives; consume these.
+The Rust tools in this repository are the source of truth for every
+identifier.
 
-Contribution types (enum order matters, keep it):
+Contribution types (the enum order is part of the interface):
 
     CEREMONY_ROUND        trusted-setup contribution, from the transcript
     FLEET_VERIFICATION    full-fleet pairing-check run (57/57 report)
@@ -131,43 +132,24 @@ compatible). The double keccak is the OZ standard-tree leaf convention.
 Receipt schemas: abi/nox_zk_contribution_receipt.schema.json (ceremony) and
 abi/nox_zk_work_receipt.schema.json (all other kinds). chain_id is 1.
 
-## 5. Tests the suite must contain (Foundry)
+## 5. What is not claimed
 
-- circuit registry: register, duplicate rejected, deprecate, unknown access
-  rejected per role.
-- contribution registry: submit, duplicate receiptId rejected, unknown
-  circuitId rejected, immutability.
-- root manager: publish, replace before open, finalize, mutate after
-  finalize rejected.
-- pool: fund, successful Merkle claim from a claims.json produced by this
-  repo's nox-merkle tool, double-claim rejected, wrong proof rejected,
-  wrong signer rejected, pause blocks claims, invariant fuzz on
-  totalClaimed <= totalFunded.
-- bond: bond, unbond, slash by SLASHER only, slashed funds reach treasury.
-- settlement and treasury: purchase splits correctly, fees route to pool,
-  the full publish, bond, purchase, treasury, pool loop runs end to end.
+v1 does no on-chain proof verification. The contracts store hashes and settle
+from signed roots and authorizations, and the evidence behind each receipt is
+checked off-chain with open tooling. Reward pools pay only the NOX deposited
+into them.
 
-## 6. Deliverables
-
-Contracts, interfaces, Foundry tests, deploy scripts, example receipts
-consumed from this repo's schemas, a Merkle generation script that
-reproduces nox-merkle output, and a README covering: what is rewarded, how
-evidence is verified off-chain, the NOX flow diagram, the admin and upgrade
-model, security assumptions, and an explicit section titled "What is NOT
-claimed" stating that v1 does no on-chain proof verification and that
-reward pools pay only deposited funds.
-
-## 7. Deployment metadata, not protocol constants
+## 6. Deployment metadata, not protocol constants
 
 Groth16 over BLS12-381, 192-byte proofs, 7 public inputs. Current verifying
 key fingerprint 6cd2015037ea6181 (first 16 hex chars of vk sha256). Current
 live results: 59/59 fleet pairing checks, 40/40 enforced runtime
 attestations against a 5-contributor external ceremony. These describe
-today's artifacts; the contracts must not hardcode them.
+the current artifacts; the contracts do not hardcode them.
 
-## 8. Mainnet deployment (Ethereum, chainId 1)
+## 7. Mainnet deployment (Ethereum, chainId 1)
 
-Deployed, role handoff complete, every address read back from chain.
+Deployed, roles transferred, every address read back from chain.
 Custody: the 3/5 Safe holds DEFAULT_ADMIN and every operational role on
 all eight contracts; the deployer EOA holds nothing.
 
@@ -185,7 +167,7 @@ all eight contracts; the deployer EOA holds nothing.
 Merkle byte parity is proven both directions: the contracts repo settles
 claims generated by its JS tool against the pool logic, and this repo's
 nox-merkle produces the identical root for the same claims. Before any
-NOX is funded the Safe runs the contracts-repo handoff checklist
+NOX is funded the Safe runs the contracts repository's launch checklist
 (fee exemptions, unbonding period vs slasher delay, parameters, fund and
 route, first epoch root) and registers the canonical circuit entry from
 target/nox/circuit.json in NoxZkCircuitRegistry.
