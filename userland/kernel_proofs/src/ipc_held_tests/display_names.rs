@@ -38,7 +38,7 @@ fn every_display_is_held_to_the_compositor_alone() {
 }
 
 /// The boot framebuffer is the fallback and goes last whenever it is listed;
-/// no name is listed twice; no host hints are taken until the owner says.
+/// no name is listed twice; no host hints are taken until the maintainers say so.
 #[test]
 fn the_list_is_ordered_and_hints_are_off() {
     let last = DISPLAYS.iter().position(|d| *d == "driver.bootfb0");
