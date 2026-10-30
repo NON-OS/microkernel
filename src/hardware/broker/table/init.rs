@@ -57,7 +57,7 @@ pub(super) fn handle_for(device_id: u64, dev: &PciDevice) -> PciHandle {
         address: dev.address,
         bars: dev.bars,
         msix: dev.msix,
-        // An Intel VMD gates its drives' DMA and config as a bridge does (L61).
+        // An Intel VMD gates its drives' DMA and config as a bridge does.
         standard: matches!(dev.header_type, HeaderType::Standard)
             && !crate::hardware::inventory::is_intel_vmd(dev.vendor_id, dev.device_id),
         reset: reset_caps(dev),

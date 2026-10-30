@@ -1,14 +1,14 @@
 # capabilities
 
-`src/capabilities/` defines the kernel's capability universe — 37 bits — and the signed-token machinery that carries authority: tokens, delegation chains, multisig tokens, resource/quota tokens, and an audit log of capability use. A capsule holds a capability word; a token proves a right; the syscall boundary resolves one against the other.
+`src/capabilities/` defines the kernel's capability universe — 40 bits — and the signed-token machinery that carries authority: tokens, delegation chains, multisig tokens, resource/quota tokens, and an audit log of capability use. A capsule holds a capability word; a token proves a right; the syscall boundary resolves one against the other.
 
-The 37 bits are the whole vocabulary of authority in the system. Every right a capsule can hold, and every right a syscall can demand, is one of them.
+The 40 bits are the whole vocabulary of authority in the system. Every right a capsule can hold, and every right a syscall can demand, is one of them.
 
 ## Bits, words and tokens
 
 ```mermaid
 flowchart TB
-    table["capability_table! macro<br/>types/defs.rs:21 (37 bits)"] --> cap["enum Capability<br/>types/table.rs:22"]
+    table["capability_table! macro<br/>types/defs.rs:21 (40 bits)"] --> cap["enum Capability<br/>types/table.rs:22"]
     cap --> bits["caps_to_bits / has_capability<br/>bits.rs:64"]
     bits --> word["a capsule's capability word (u64)"]
     create["create_token<br/>token/create.rs:25"] --> tok["CapabilityToken (MAC-signed)"]
@@ -20,7 +20,7 @@ flowchart TB
     verify --> mac["crypto MAC / signing"]
 ```
 
-The 37 bits are declared by one macro, which generates the `Capability` enum. Folding a set of capabilities gives the `u64` word a capsule carries. A `CapabilityToken` is MAC-signed and verified against that signature; tokens chain for delegation, and a resource token additionally carries a quota that `try_consume` charges against. The syscall layer's `Capability::resolve` is the consumer of all of this.
+The 40 bits are declared by one macro, which generates the `Capability` enum. Folding a set of capabilities gives the `u64` word a capsule carries. A `CapabilityToken` is MAC-signed and verified against that signature; tokens chain for delegation, and a resource token additionally carries a quota that `try_consume` charges against. The syscall layer's `Capability::resolve` is the consumer of all of this.
 
 ## The subtree
 
@@ -55,6 +55,7 @@ src/capabilities/
 ## Wiring
 
 - **Called by:** the [syscall](syscall.md) boundary (`contract::capability::resolve` uses `CapabilityToken` and the resolver), the [hardware](hardware.md) capsule spawners (the grant masks), and [process](process.md) (token storage on the PCB).
+- **Calls into:** [crypto](crypto.md) for the MAC and signatures that make a token unforgeable, and [process](process.md) for owner pids. The module is otherwise largely self-contained.
 
 ## See also
 

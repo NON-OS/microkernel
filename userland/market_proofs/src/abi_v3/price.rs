@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The shown price against the commerce block the meter charges (B6).
+//! The shown price against the commerce block the meter charges.
 
 use nonos_marketplace_abi::{price_verdict, MarketplaceEntry, PriceKind, PriceModel};
 use nonos_marketplace_abi::{PriceVerdict, SettleMode};

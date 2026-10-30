@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The kernel glue the models stand for, read where they cannot run it
-//! (L78). A kept run's entry is made before the surface registry is asked,
+//! A kept run's entry is made before the surface registry is asked,
 //! so a let-go on another CPU finds it and waits; a run the registry does
 //! not hold is let go through the same entry. Each job a step takes reads
 //! the clock afresh, and each reset write is stamped once it is made, so no

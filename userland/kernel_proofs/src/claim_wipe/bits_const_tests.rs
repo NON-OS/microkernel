@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The register bits a wipe reads and writes (L78) are the ones the plan
+//! The register bits a wipe reads and writes are the ones the plan
 //! names, every one recalled from the PCIe base specification and unverified,
 //! and those sharing a register never overlap. A slip here would send the
 //! reset, the marker or the wait to a bit that means something else; pinning

@@ -5,7 +5,7 @@ Part of [Capsule isolation](capsule-isolation.md).
 ## The capability check on every NONOS system call
 
 A capsule's authority is a [capability
-word](../overview/glossary-boot-root-record.md#capability-word): a 64-bit mask in which 37 bits
+word](../overview/glossary-boot-root-record.md#capability-word): a 64-bit mask in which 40 bits
 are defined, one per entry of the `capability_table!` list that defines
 `Capability` (`src/capabilities/types/defs.rs:18-75`). A compile-time check over
 `Capability::all` refuses a build in which two capabilities share a bit or one

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * MkPciConfigWrite's two forms (L37): the plain one ORs a Command value of
+ * MkPciConfigWrite's two forms: the plain one ORs a Command value of
  * writable bits on, the masked one names the bits it changes so a driver
  * can turn Bus Master or Interrupt Disable off. The kernel's pure rules are
  * included by path.

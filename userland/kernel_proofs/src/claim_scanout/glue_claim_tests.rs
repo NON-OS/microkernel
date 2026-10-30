@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The claim path the model's covering claim stands for, read (L79): in
+//! The claim path the model's covering claim stands for, read: in
 //! claim.rs, covers read before the entry, the takeover inside `if covers`
 //! after the Bus Master stop and before the admit, its end after the admit
 //! whatever it answered, and the withdraw on a refusal; in pending.rs, the

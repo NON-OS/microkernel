@@ -25,7 +25,7 @@ use super::types::PioError;
 
 pub(super) fn insert_exclusive(record: PioGrant) -> Result<(), PioError> {
     let mut grants = GRANTS.lock();
-    // Only while its claim stands, so an exit's drain finds it (L69).
+    // Only while its claim stands, so an exit's drain finds it.
     if !crate::hardware::broker::claim::live(record.pid, record.device_id, record.claim_epoch) {
         return Err(PioError::NotClaimed);
     }

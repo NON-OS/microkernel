@@ -47,7 +47,7 @@ pub fn parse_dmar(registry: &mut TableRegistry) {
     let walked = walk_structures(table, |kind, bytes| found_drhd |= entry(kind, bytes));
     if walked.cut_short {
         // What follows is unread: a unit there would be left off. A cut
-        // after the RMRRs hid none of them; before, any could be missing (L67).
+        // after the RMRRs hid none of them; before, any could be missing.
         super::dmar_units::left_off();
         let rmrrs = if walked.past_rmrr { "kept" } else { "withheld" };
         crate::log::info!("[VT-D] DMAR cut short at a bad structure; RMRR mappings {}", rmrrs);

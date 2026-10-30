@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A framebuffer at the edges of a BAR (L79): one page shared is enough,
+//! A framebuffer at the edges of a BAR: one page shared is enough,
 //! a shared edge is not, and a BAR smaller than a page still reaches the
 //! whole page it lies in. The addresses are illustrative.
 

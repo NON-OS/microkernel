@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! No DMA against the boot framebuffer's record (L79), read from the DMA
+//! No DMA against the boot framebuffer's record, read from the DMA
 //! map's validation: a takeover reclaims the record's MMIO from outside its
 //! holder, and a DMA grant could not be reclaimed that way. The refusal asks
 //! no length and stands before the only way to an Ok, so every length that

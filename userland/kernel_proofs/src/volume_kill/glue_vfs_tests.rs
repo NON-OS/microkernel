@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! /data goes to the volume before VFS_OP_LOCK (G11), so that spin lock is
+//! /data goes to the volume before VFS_OP_LOCK, so that spin lock is
 //! held over the in-kernel ramfs only, and every hold of it is marked.
 
 use crate::proofs::proofs_8::transport_takeover::text::{between, code, tail};

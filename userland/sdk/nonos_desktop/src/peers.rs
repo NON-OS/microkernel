@@ -32,7 +32,6 @@ pub fn lookup_peers() -> Option<Peers> {
 }
 
 /// The compositor's pid, the one process a window's surface is shared with
-///.
 pub fn compositor_pid() -> Option<u32> {
     owner(b"compositor")
 }

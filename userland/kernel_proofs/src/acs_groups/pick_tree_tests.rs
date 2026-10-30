@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The pick over whole bridge lists (L77): a bridge firmware left unset, a
+//! The pick over whole bridge lists: a bridge firmware left unset, a
 //! switch whose ports lie, and a false bridge naming a switch's bus.
 
 use super::pick_gen::ROOT;

@@ -21,7 +21,7 @@
 //!
 //! The router is whoever the registry names. Only the image's own router
 //! can hold that name: the publisher gate refuses a capsule that declares
-//! any name of the image's own systems.nonos capsules (L52), so a holder is
+//! any name of the image's own systems.nonos capsules, so a holder is
 //! the router, restarted or not. The pid named is kept, and the registry is
 //! asked again only when a frame comes from another pid.
 

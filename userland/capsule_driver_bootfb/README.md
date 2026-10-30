@@ -52,6 +52,7 @@ small for its mode, or a stride shorter than a line is refused at
 mapping: the compositor keeps its GOP path. FLUSH rectangles outside the
 mode are refused by the server before any copy.
 
+A GPU driver taking the scanout: the kernel ends bootfb's
 claim and points its mapping at a zeroed sink page, without a fault. bootfb
 asks `mk_boot_framebuffer` on every wake (at least every 500 ms) and before
 every frame; any answer but its 24 bytes means the scanout is gone for the
@@ -105,6 +106,7 @@ Every lane where no other display driver answers shows
 
 ## Release evidence
 
+`bootfb_proofs` passing; the owner's boot on a GOP-only machine.
 
 ## Release checklist
 
@@ -114,6 +116,7 @@ Every lane where no other display driver answers shows
   hand-off on main (the branch today).
 - Feature, mirror, scope row (a firmware-bus match), inventory and spawn
   entries, once they are.
+- Owner's keys for the slug `driver.bootfb`.
 
 ## Explicit non-goals today
 

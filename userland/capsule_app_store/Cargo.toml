@@ -30,7 +30,7 @@ nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_app_skeleton = { path = "../app_skeleton" }
 nonos_toolkit = { path = "../toolkit", default-features = false }
 nonos_market_proto = { path = "../market_proto" }
-# A listing's commerce block, decoded for its price line (B9).
+# A listing's commerce block, decoded for its price line.
 nonos_marketplace_abi = { path = "../marketplace_abi" }
 # The chain INSTALL_READY reads a sold listing's bond on (v1.4.23).
 nonos_nox_config = { path = "../nonos_nox_config" }

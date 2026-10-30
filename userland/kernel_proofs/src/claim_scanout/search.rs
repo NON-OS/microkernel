@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Every order of the takeover model's paths (L79), depth first, each world
+//! Every order of the takeover model's paths, depth first, each world
 //! seen once. What a step broke is recorded and gone past, so what a break
 //! leads to is searched too; a world where nothing can move is an end, held
 //! to the end's invariants and counted by how it ended.

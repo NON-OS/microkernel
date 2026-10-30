@@ -16,7 +16,7 @@
 
 //! A grant's teardown and a held run's free, pinned whole (whole): a kept
 //! run is entered before the registry is asked and is not counted released
-//! (L78, L80); an unconfined one not kept is counted released once, at its
+//! an unconfined one not kept is counted released once, at its
 //! teardown; a run the registry let go is freed unless its wipe still keeps
 //! it, and counted released then only if it was kept (glue_tests and
 //! kept_count_tests read the same orders and notes). Its pages come out of

@@ -40,8 +40,8 @@ pub(super) fn detach_device(_domain: DomainId, device: DeviceAddress) -> Result<
 /*
  * An id that shares its entry with another, either way round, is never
  * counted as confined: its DMA would walk the other's tables, or another
- * entry the broker does not hold, while it reported it held (L50).
- * Nor is one firmware lists no alias for but a bridge may stand in for (L51).
+ * entry the broker does not hold, while it reported it held.
+ * Nor is one firmware lists no alias for but a bridge may stand in for.
  */
 pub(super) fn translates(device: DeviceAddress) -> bool {
     segment0(device).is_ok_and(|(bus, dev, function)| {

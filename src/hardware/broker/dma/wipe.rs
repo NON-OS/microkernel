@@ -36,7 +36,7 @@ use super::scrub::scrub;
 /// held by a stopped CPU.
 pub fn wipe_live_grants() -> Option<usize> {
     let (mut wiped, start) = (0usize, crate::time::now_ns());
-    // A holder may be in a shootdown round waiting on this CPU (L75).
+    // A holder may be in a shootdown round waiting on this CPU.
     let again = || {
         crate::smp::serve_shootdowns();
         crate::hardware::broker::brief::within_a_millisecond(start)
@@ -48,7 +48,7 @@ pub fn wipe_live_grants() -> Option<usize> {
         },
         again,
     );
-    // The runs kept for their devices' wipes hold the same traffic (L78).
+    // The runs kept for their devices' wipes hold the same traffic.
     let kept = super::kept::scrub_all(again);
     (seen && kept).then_some(wiped)
 }

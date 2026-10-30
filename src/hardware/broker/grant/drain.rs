@@ -43,7 +43,7 @@ pub(in super::super) fn drain_for_pid(pid: u32) -> Vec<MmioGrant> {
 
 // Revoke every grant made under `pid`'s claim of `device_id` at `epoch`,
 // when the holder gives it back: a newer claim's are not this release's
-// to take (L71).
+// to take.
 pub(in super::super) fn drain_for_device(pid: u32, device_id: u64, epoch: u64) -> Vec<MmioGrant> {
     let mut grants = GRANTS.lock();
     let mut taken = Vec::new();

@@ -31,7 +31,7 @@ use super::super::consts::PAGE_SIZE;
 pub(in super::super) fn unmap_range(pid: u32, addr: u64, pages: u64) {
     let len = pages * PAGE_SIZE as u64;
     let _busy = busy::begin(addr, len);
-    // The registry holds surfaces by process, not thread (L36).
+    // The registry holds surfaces by process, not thread.
     let mut held = Held::collect(crate::hardware::broker::holder_of(pid), addr, len);
     for i in 0..pages as usize {
         /*

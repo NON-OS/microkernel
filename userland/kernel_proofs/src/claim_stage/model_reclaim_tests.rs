@@ -18,7 +18,7 @@ use super::reclaim_world::{claim, release, World};
 use super::types::Stage;
 
 /// Whether some order leaves a grant whose claim is gone, or the newer claim
-/// standing, made to the end, without the grant it made (L71).
+/// standing, made to the end, without the grant it made.
 fn leaks(w: &World, drains: bool, bound: bool) -> bool {
     let done = |s: u8| s >= 4;
     if done(w.rel[0].0) && done(w.rel[1].0) && w.new.0 >= 5 {

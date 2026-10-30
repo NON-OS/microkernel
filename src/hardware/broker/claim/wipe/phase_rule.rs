@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Where a wipe stands and when it is due (L78). Every wait is a deadline a
+//! Where a wipe stands and when it is due. Every wait is a deadline a
 //! later step checks, never a spin: the windows below are recalled from the
 //! PCIe base specification (unverified) but for the two marked ours. Time
 //! is the kernel's nanoseconds; a step reading a clock behind `at` waits.

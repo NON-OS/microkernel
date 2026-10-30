@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Taking and giving back an AMD-Vi remapped entry for a broker vector, when
-//! the kernel is built with nonos-iommu-amdvi (L42): an entry in the
+//! the kernel is built with nonos-iommu-amdvi: an entry in the
 //! device's own table, kept by a handle. Asked only while AMD's units remap
 //! (remap_vendor.rs); a device they cannot give an entry is refused its bind
 //! rather than sent a compatibility format message.

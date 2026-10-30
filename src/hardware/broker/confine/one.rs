@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! One DMA requester into its capsule's domain. What it reaches past the
 //! IOMMU is held to that capsule first: its isolation group and requester-id
-//! aliases, and any peer below one switch (L72). Then its reserved
+//! aliases, and any peer below one switch. Then its reserved
 //! regions go in (join.rs), so its first request after the move lands.
 
 use super::capsule::capsule_for;

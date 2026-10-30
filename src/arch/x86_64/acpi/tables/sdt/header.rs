@@ -40,7 +40,7 @@ impl SdtHeader {
 
     /// Whether the table's bytes sum to zero. A length under the header, or
     /// past MAX_TABLE_BYTES, longer than any firmware writes, is refused before
-    /// a byte is summed: the sum would read whatever followed (L70, K11).
+    /// a byte is summed: the sum would read whatever followed.
     pub fn validate_checksum(&self, table_ptr: *const u8) -> bool {
         if table_span(0, self.length, mem::size_of::<Self>(), u64::MAX).is_none() {
             return false;

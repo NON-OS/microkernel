@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a holder of a PCI record may map, read as text (L79). A map is
+//! What a holder of a PCI record may map, read as text. A map is
 //! refused a slot past the count and a BAR that is not memory, the very
 //! BARs the cover rule leaves unread, so find reads every BAR a holder could
 //! map and no other.

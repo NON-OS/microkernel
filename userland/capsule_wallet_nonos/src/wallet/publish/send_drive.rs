@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * A publisher transaction one step a tick (B8), as a dispute or a refund
+ * A publisher transaction one step a tick, as a dispute or a refund
  * is (order/escrow_drive.rs): one settle request at a time, ASYNC, its
  * answer taken by the one who asked. With no transaction under way, the
  * screen's views are read instead. The window never waits.

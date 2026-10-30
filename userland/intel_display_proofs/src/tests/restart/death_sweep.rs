@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! One death sweep for a restart (G-78, G-79): the driver killed at each
+//! One death sweep for a restart: the driver killed at each
 //! step of `work`, then restarted onto exactly what it left, and judged.
 
 use super::death_kit::{rig, steps};

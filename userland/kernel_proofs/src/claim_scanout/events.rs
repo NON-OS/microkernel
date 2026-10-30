@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the takeover model's steps did (L79), as bits, so a search can show
+//! What the takeover model's steps did, as bits, so a search can show
 //! the cases that matter were reached, not only that nothing broke.
 
 /// A take-back's release settled bootfb's claim.

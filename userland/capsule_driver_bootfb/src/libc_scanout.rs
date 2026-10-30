@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The scanout's two questions over the broker (G-80, L79): whether the
+//! The scanout's two questions over the broker: whether the
 //! boot framebuffer is still this driver's, and letting the claim go once
 //! it is not (`loss`).
 

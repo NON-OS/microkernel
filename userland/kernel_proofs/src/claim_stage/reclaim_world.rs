@@ -19,8 +19,8 @@ use super::types::Stage;
 
 // Two releases of one claim racing a third thread that claims the device again
 // and maps it, every order tried. `drains`: each drain takes only the grants
-// made at the epoch its retire found (L71), the old code all of them; `bound`:
-// each release removes that claim only (L69), the old code whatever it finds.
+// made at the epoch its retire found, the old code all of them; `bound`:
+// each release removes that claim only, the old code whatever it finds.
 #[derive(Clone)]
 pub(super) struct World {
     pub(super) claim: Option<(u64, Stage, u32)>,

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The claim steps the model's take-back and unmap stand on, read whole
-//! (L79), though they came before it and no proof read them: a release's
+//! though they came before it and no proof read them: a release's
 //! retire waits out every path inside the epoch it retired before anything
 //! is drained (the model's INFLIGHT step), and the last path out of a claim
 //! being released takes its entry away (the model's `edit`). Undone, the

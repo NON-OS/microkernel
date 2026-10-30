@@ -30,13 +30,13 @@ Guest memory is read and written through the kernel, by pid, with `mk_peer_read`
 
 ## Which calls are served
 
-The personality answers 224 of the 373 x86_64 Linux system calls, 60.1%. The count comes from this tool, which only reads the source:
+The personality answers 226 of the 373 x86_64 Linux system calls, 60.6%. The count comes from this tool, which only reads the source:
 
 ```sh
 python3 tools/nonos-linux-coverage --list
 ```
 
-It prints `[syscalls] 224 of 373 served (60.1%)` on this tree, then names the 149 unserved calls. The denominator is `userland/capsule_linux/abi/x86_64-syscalls.txt`. The flake check `static-abi` runs the same tool with `--baseline` and fails when fewer than 107 calls are served, the number in `scripts/baselines/linux-syscalls.txt` (`tools/nix/checks.nix:230`, `baseline`).
+It prints `[syscalls] 226 of 373 served (60.6%)` on this tree, then names the 147 unserved calls. The denominator is `userland/capsule_linux/abi/x86_64-syscalls.txt`. The flake check `static-abi` runs the same tool with `--baseline` and fails when fewer than 107 calls are served, the number in `scripts/baselines/linux-syscalls.txt` (`tools/nix/checks.nix:230`, `baseline`).
 
 The calls are routed in two stages. Process, futex, sleep and blocking calls go first, because they can leave the caller parked (`userland/capsule_linux/src/linux/serve/dispatch.rs:40-75`, `route`). The rest go through the file, link, network, memory, process and signal tables and a short list of single calls (`userland/capsule_linux/src/linux/serve/table.rs:30-71`, `plain`). Served, by family:
 
@@ -101,7 +101,7 @@ The install role also installs Alpine, Debian and pacman packages. A name with `
 
 ## Networking
 
-In this release a guest cannot reach the network. A guest is started only by the personality's base instance and its run and terminal roles, and none of them holds Network (`src/userspace/capsule_linux/spawn.rs:39-53`, `LINUX_CAPS`; `src/userspace/capsule_linux/roles.rs:46-67`, `extra_caps`). The install role does hold it, but it is only ever spawned to install or remove a package, which the personality does itself without starting a guest (`src/userspace/capsule_linux/install.rs:32-45`, `spawn_install`; `userland/capsule_linux/src/linux/start.rs:31-52`, `install_request`). The kernel therefore refuses every call the personality makes to `net.sockets` or `net.anon` on a guest's behalf.
+A guest reaches the network only through a role that holds Network. `app.linux.term.net` runs a box that names destinations, or a program whose own policy grants `NET_ANON`, and `app.linux.run.net` restarts a run whose policy has `NET_ANON`; no other guest role holds Network (`src/userspace/capsule_linux/role_term_net.rs`, `run_net.rs`, `roles.rs`). Traffic goes over the anonymity network the person chose, Nym or Anyone, never Direct ([Run a program in a box](../using/linux-box.md)). The install role also holds Network, and it is spawned only to install or remove a package.
 
 The rules the personality applies before that point:
 

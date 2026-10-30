@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The console the model's drawer and stop stand for, read (L79): the stop
+//! The console the model's drawer and stop stand for, read: the stop
 //! is HELD, GONE or any takeover counted; a takeover counts itself then
 //! waits out the draws; a draw counts itself and reads the stop again;
 //! bootfb's hold is set under the lock, the draws waited out after it.

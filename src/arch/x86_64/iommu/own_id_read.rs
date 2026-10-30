@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The configuration reads `own_id` judges by (L51).
+//! The configuration reads `own_id` judges by.
 
 use crate::bus::pci::{find_devices, listed_through};
 use crate::drivers::pci::capabilities::find_capability;
@@ -37,7 +37,7 @@ pub(crate) fn own_id(bus: u8, device: u8, function: u8) -> bool {
 
 // A root bus: bus 0, or one no listed bridge's range holds, as a second host
 // bridge's (EPYC's 0x20, 0x40; Xeon's stacks; L61), read only where the table
-// leaves out no bridge that could hold it (L68).
+// leaves out no bridge that could hold it.
 fn is_root(bus: u8) -> bool {
     // A bridge whose range cannot be read is taken to hold it.
     let holds = |(b, d, f): (u8, u8, u8)| {
@@ -60,10 +60,10 @@ fn parent_of(bus: u8) -> Option<(u8, Hop)> {
 
 // Device/port type, bits 7:4 of the PCIe Capabilities register (PCIe base
 // 7.5.3.2, recalled): 4 root port, 5 switch upstream, 6 switch downstream.
-// All three pass the id through. Counted Other (L54), a downstream port kept
+// All three pass the id through. Counted Other, a downstream port kept
 // every device below it on the identity entry, which reaches all of memory;
 // its ACS controls, in extended space this path cannot read, are a separate
-// gap and stay recorded as one (L57).
+// gap and stay recorded as one.
 fn kind(bus: u8, device: u8, function: u8) -> Hop {
     let Some(cap) = find_capability(bus, device, function, CAP_PCIE) else {
         return Hop::Other;

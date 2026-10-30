@@ -24,7 +24,7 @@ use crate::wallet::shield::due::Why;
 use crate::wallet::state::State;
 
 /// The meter's work on this tick: a running job, a purchase's step, or
-/// the mailbox (B8). Whether the screen changed.
+/// the mailbox. Whether the screen changed.
 pub fn tick(state: &mut State) -> bool {
     (state.meter.job.is_some() && poll(state))
         || crate::wallet::order::consent::poll(state)

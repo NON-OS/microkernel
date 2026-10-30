@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Reading a virtio device's VIRTIO_F_ACCESS_PLATFORM before it is confined
-//!: the rule is virtio_rule.rs; this reads the hardware it needs.
+//! the rule is virtio_rule.rs; this reads the hardware it needs.
 
 use super::virtio_read::{access_platform, FEATURE};
 use super::virtio_rule::{admitted, common_cfg, is_modern_virtio};

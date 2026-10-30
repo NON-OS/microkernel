@@ -16,7 +16,7 @@
 
 
 //! The kept list's own code, pinned whole (whole), that kept_world and
-//! kept_count_tests drive through the kept rule (L78, L80): a run kept
+//! kept_count_tests drive through the kept rule: a run kept
 //! waiting, not for good; the let-go's word on it; the bound's count of a
 //! function's frames kept for good alone; and the settle keyed by the wipe's
 //! own claim, freeing and keeping just as the rule says, each free noted.

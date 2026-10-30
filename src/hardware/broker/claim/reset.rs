@@ -16,10 +16,10 @@
 
 //! Reset a function at claim, with Bus Master already clear: what
 //! firmware left armed stops before a new driver gets the device. Between
-//! holders the wipe resets it (L78), so this is the claim's own, and a
+//! holders the wipe resets it, so this is the claim's own, and a
 //! display device is left as it is: the firmware's scanout, which the boot
 //! console draws on, lives in it. Its waits spin and are never slept: a
-//! claimant killed where it yields would strand its entry (L77).
+//! claimant killed where it yields would strand its entry.
 
 extern crate alloc;
 

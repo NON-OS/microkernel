@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The invariants of the enter model (L78), by name: those every step is
+//! The invariants of the enter model, by name: those every step is
 //! held to here, those its claims' steps check where they act, and those
 //! only a world where nothing can move is held to.
 

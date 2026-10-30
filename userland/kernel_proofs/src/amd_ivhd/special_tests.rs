@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! IVHD special devices (L50): the id an I/O APIC or HPET sends under is
+//! IVHD special devices: the id an I/O APIC or HPET sends under is
 //! named once, so AMD-Vi never gives a PCI function with that id a table.
 
 use super::fixture::ivrs;

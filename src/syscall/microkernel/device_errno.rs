@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A device claim's and release's refusals as errnos. Resetting (L78) is
+//! A device claim's and release's refusals as errnos. Resetting is
 //! EAGAIN: a wipe under way ends within a bound, and libc asks again. A
 //! device outside the claimant's scope row is EPERM; one whose group
 //! another capsule holds is EBUSY. A record marked unusable is no

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The first publish pass (L55): what init waits on, done before anything
+//! The first publish pass: what init waits on, done before anything
 //! slow. The reserved ranges and proximity domains; the host bridges'
 //! readiness durations, then each hidden function's _PS0 and probe within
 //! `FIRST_PASS_MS`, the rest left for after; the platform records in

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! finish.rs before the record is written: an Unreset end's marker cleared,
-//! then the ended wipe's kept frames settled outside every lock (L80), a
+//! then the ended wipe's kept frames settled outside every lock, a
 //! lost one's left for its next end (undo check 8 frees them past Bus Master
 //! too). Undo checks 4 and 17 settle as before L80, once the record is let
 //! go, so a claim let in over the end meets frames not yet counted as kept

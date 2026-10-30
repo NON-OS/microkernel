@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! scanout.rs, the takeover the model's G1 and G2 stand for, read (L79):
+//! scanout.rs, the takeover the model's G1 and G2 stand for, read:
 //! the console stopped first, then the loop on `next` over one read of
 //! bootfb's claim at a time; a take-back's retire, page move and release in
 //! that order; and the admit's check on the table its caller holds.

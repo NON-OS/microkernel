@@ -67,4 +67,4 @@ legacy path, split from its critical, was refuted.
 
 - Critical: the IOMMU identity domain for every unclaimed device; the broker's fail-open claims where no unit confines a device; virtio_gpu and virtio_rng given IOVAs under a vIOMMU without ACCESS_PLATFORM.
 - High, isolation: the reply route to all 15 held drivers; no device scope for Driver and Admin holders; any input driver may drain the keystroke ring; interrupt injection without remapping; xHCI freeing DMA under a running controller (D9); virtio_net rings past their grant (D1).
-- High, function: nvme wedged by one late error (D5); ahci stale ERR and CLO-only timeouts (D6); xHCI Ring Stopped and hubs (D9); usb_msc probing (D12); virtio_net oversize-frame panic (D1); Wi-Fi never detects link loss (W1); the USB NICs' MACs, client contract, op 6 and rtl8153 link (D10, D11).
+- High, function: nvme wedged by one late error (D5); ahci stale ERR and CLO-only timeouts (D6); xHCI Ring Stopped and hubs (D9); usb_msc probing (D12); virtio_net oversize-frame panic (D1); Wi-Fi never detects link loss; the USB NICs' MACs, client contract, op 6 and rtl8153 link (D10, D11).

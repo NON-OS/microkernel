@@ -16,7 +16,7 @@
 
 /*
  * A device behind a bridge that may stand in for its requester id is never
- * counted confined (L51). The kernel's rule and walk are included by path
+ * counted confined. The kernel's rule and walk are included by path
  * and fed made-up topologies: a laptop's root ports and a switch, a PCIe to
  * PCI bridge, a conventional bridge, a missing parent and a numbering loop.
  */

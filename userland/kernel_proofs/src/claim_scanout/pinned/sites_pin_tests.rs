@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The five kernel draw sites read (L79): each takes the framebuffer only
+//! The five kernel draw sites read: each takes the framebuffer only
 //! from `drawable`, bound to a name that lives to the end of the function,
 //! so the count the takeover waits on covers every store; none hands the
 //! guard on, drops it, or reads the framebuffer past the gate. The model's

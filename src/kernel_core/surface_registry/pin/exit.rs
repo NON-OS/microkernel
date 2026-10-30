@@ -23,7 +23,7 @@ use super::kept::keep;
 
 /*
  * `group`'s last live thread has ended; the tables `tables` names will be
- * freed frame by frame (L36). Under the gate, its surfaces first refuse every
+ * freed frame by frame. Under the gate, its surfaces first refuse every
  * attach until their slots are released, so no attach lands after the
  * holders are counted. Then every surface it owns is emptied, so a later
  * attach finds nothing. One another process still has attached becomes an

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! When a written reset's next step comes due (L78). Each window opens at its
+//! When a written reset's next step comes due. Each window opens at its
 //! end and not a nanosecond before, from any start; a clock read behind the
 //! phase's own start, as one CPU's can be against another's, always waits,
 //! however far behind.

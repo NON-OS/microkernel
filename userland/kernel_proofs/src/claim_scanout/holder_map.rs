@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! bootfb's map and store in the takeover model (L79), map_for_caller's steps:
+//! bootfb's map and store in the takeover model, map_for_caller's steps:
 //! the claim counted in while ready, the pages installed, the grant recorded
 //! while the claim stands or the pages taken back, the count out; one store.
 

@@ -6,6 +6,7 @@
 owns the PCI device claim, BAR mapping, control-queue DMA, the virtio
 initialization sequence, and the display behind `driver.virtio_gpu0`, which
 it serves on the display wire (`nonos_gfx_wire`, through `nonos_gfx_serve`)
+like every other G display driver since G-77.
 
 ```text
 compositor (the only sender the kernel admits)
@@ -49,6 +50,7 @@ ownership.
 
 Only the compositor may send to `driver.virtio_gpu0`: the kernel holds the
 endpoint to it (`src/services/registry/held.rs`), by name and by pid. The
+wire server's owner is the last pid to ask SURFACE: a restarted compositor.
 
 ## Interface contract
 
@@ -71,6 +73,7 @@ outputs: one the host turns on for the first time later is not driven.
 
 A frame from sender 0 is a DGON: one naming this device ends the driver.
 The driver's own private ops (`OP_HEALTHCHECK`, `OP_GET_PRIMARY_SURFACE` and
+the rest) were retired with the legacy client in G-77; the control queue's
 state shows on the wire as each output's STATE (below, Failure model).
 
 ## Authority
@@ -87,6 +90,8 @@ input authority, and no filesystem or network authority.
 The capsule stores no windows, screenshots, pointer paths, keystrokes, or
 display history. Each output's surface holds the last frame flushed; it is a
 DMA grant, revoked on exit and zeroed by the broker before reuse. When the
+owner falls silent, the server zeroes the primaries and flushes them, so the
+surface and the host's copy hold none of its frame; a new owner is handed
 primaries from zeroed pages. Runtime
 state is otherwise grant ids, queue addresses, the heads (each output's
 scanout, surface and the host's wanted size), and surfaces in limbo.
@@ -108,6 +113,7 @@ logs whether 3D works, and takes every enabled scanout
 on it, sent whole, set on the scanout and flushed. A probe command that stalls
 resets the device; the queue is restarted on the same grant and the outputs
 are still taken (`src/setup/probes.rs`). It then serves the display wire,
+waking at least every 500 ms so the server's watch sees a silent owner.
 Whether the claim is confined to an IOMMU domain is the kernel's to enforce at
 claim time; the capsule does not guess.
 
@@ -146,6 +152,7 @@ compositor told `OUTPUT_NOTICE` `LEAVING` once, so it drives another display.
 Only a failed service registration, before anyone holds a primary, resets the
 device and gives it back before exit 1.
 
+A silent owner (3 s, `nonos_gfx_serve`'s watch) has its primaries zeroed and
 flushed twice, so each surface, the host's copy and the screen hold none of its
 frame. A blank a device did not take whole is tried again on the next wake. A
 surface the host will not let go of stays in limbo with its pages mapped, never
@@ -171,6 +178,7 @@ every mode set and STATE (`src/display/limbo.rs`).
 
 The display wire's 20-byte envelope (`NVGP` magic, version `1`) and its bodies,
 as `nonos_gfx_wire` defines them. The driver's own private ops (0x02 to 0x0C)
+were retired in G-77.
 
 ## State ownership
 

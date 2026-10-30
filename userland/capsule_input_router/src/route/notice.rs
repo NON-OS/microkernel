@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The shell told that an unauthenticated Bluetooth device was refused on
-//! the secure path (G-76). The notice is a delivery whose envelope flags
+//! the secure path. The notice is a delivery whose envelope flags
 //! carry NOTICE_UNPROVEN and whose event is no event (NOTICE_KIND), so a
 //! receiver that reads only the event drops it as a kind it does not know.
 //! It goes to the shell alone, which believes only the router's frames.

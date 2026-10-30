@@ -17,7 +17,7 @@
 //! The boot line for a remapping unit whose scope list was cut short. Its
 //! devices past the cut are not translated, so their claims are refused
 //! (fail closed, K11); the line says so, by a count and never a requester id
-//!. Pure and allocation free, written into a fixed buffer because DMAR
+//! Pure and allocation free, written into a fixed buffer because DMAR
 //! is read before the heap is. kernel_proofs::dmar_scope truncated_tests.
 
 pub(crate) const LINE_MAX: usize = 128;

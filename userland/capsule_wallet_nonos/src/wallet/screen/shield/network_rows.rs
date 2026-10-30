@@ -25,7 +25,7 @@ use crate::wallet::etna::tokens::GAP;
 
 /* Draws the contracts from `y` down and returns the y below them. */
 pub(super) fn contracts(fb: &mut PaintBuffer, c: Rect, mut y: u32) -> u32 {
-    /* NOX's address is nonos_nox_config's, through the chain table (B7). */
+    /* NOX's address is nonos_nox_config's, through the chain table. */
     let nox = &crate::wallet::chain::SEPOLIA.nox;
     let nox = crate::wallet::screen::receive_address::checksummed_text(nox);
     for (name, value) in [

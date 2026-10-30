@@ -18,7 +18,7 @@
 //! handle (an I/O APIC's is the id the MADT gives) and the requester id its
 //! interrupts arrive under. An I/O APIC's remapping table is keyed by that
 //! id, and a PCI function given the same id would share its entry, and
-//! so its remapping table, with that source (L50). Pure, over the bytes.
+//! so its remapping table, with that source. Pure, over the bytes.
 
 use super::ivhd_entry::{size_at, word};
 use super::ivhd_scope::{block_at, FIRST_BLOCK};

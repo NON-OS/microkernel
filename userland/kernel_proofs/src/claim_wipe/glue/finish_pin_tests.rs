@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-//! An end settles its kept frames before it is written (L80): finish.rs
+//! An end settles its kept frames before it is written: finish.rs
 //! `put` pinned whole (whole), so the settle cannot move behind the record's
 //! write, as text or as a closure called late, nor be keyed or judged
 //! otherwise; a lost end leaves its frames for its next end.

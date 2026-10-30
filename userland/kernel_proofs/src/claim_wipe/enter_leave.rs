@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A's own paths in the enter model (L78), its give_back and its exit: the
+//! A's own paths in the enter model, its give_back and its exit: the
 //! last out of the claim removes its entry and owes the wipe, then steps it.
 
 use super::enter_events::BY_A;

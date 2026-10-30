@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A timing's totals, height and refresh with every field at u32's edges
-//!: saturated, never wrapped, and the refresh exact against the
+//! saturated, never wrapped, and the refresh exact against the
 //! test's u128 reading.
 
 #[path = "../../../gfx_serve_proofs/src/sweep/edges.rs"]
