@@ -1,6 +1,6 @@
 # Release evidence for NONOS 0.9.3
 
-One line for each of the 57 directories here: what it proves, taken from that
+One line for each of the 58 directories here: what it proves, taken from that
 directory's own README. Three directories have no README; their line says what
 the files are and which commit added them.
 
@@ -26,8 +26,10 @@ were added by name.
 - [gate-6f0bbe716](gate-6f0bbe716/README.md): the third gate, standard-dev:
   IOMMU enforcing, 4 CPUs, 67 `[ZK-ATTEST] ok`, no `unanswered`, trap, panic or
   FATAL line, and no kernel line starting mid-line.
+- [owner-sealed-crash](owner-sealed-crash/README.md): the owner's sealed image
   of 26 October, from their serial excerpt: lock waits on every CPU, mappings
   kept after exit and a kernel heap OOM to the panic path. Marked NO-GO, with
+  an owner for each defect.
 - [regression-30a4b58c4-paging-lock](regression-30a4b58c4-paging-lock/README.md):
   main at 30a4b58c4 printed 12 and 80 `[LOCK]` lines in two boots, every
   waiter in the paging manager; a boot with a UHCI controller on the same image starts
@@ -90,6 +92,10 @@ were added by name.
 - [gui-frame](gui-frame/README.md): a Wayland window inside the NONOS frame;
   its close button ends swayimg with status 0, and maximise keeps the title
   bar. Drag and minimise are not shown.
+- [app-windows](app-windows/README.md): eight screenshots of Telegram Desktop,
+  KeePassXC, the DarkFi chat app, SimpleX, mpv and foot in their own windows, and
+  darkirc and the DarkFi wallet in the Terminal, taken on 29 October on a development
+  image.
 - [gui-keepassxc](gui-keepassxc/README.md): KeePassXC 2.7.8 (Qt 5) draws its
   welcome screen in the frame, in a box of WAYLAND and FILES_HOME, once
   FUTEX_WAKE_OP was served.
@@ -192,6 +198,7 @@ were added by name.
 - [drivers](drivers/): one folder a card. e1000, e1000e, igb, pcnet, rtl8139,
   tulip and vmxnet3 each get a DHCP lease through the card on QEMU with only
   its own driver spawned, on standard-dev at 4b1eeb014 (the serial logs the
+  READMEs name are not committed). rtl8821ce holds the owner's report that
   Wi-Fi works on their HP laptop, on their seal of main cb1e534f0a, with no
   log or screenshot.
 - [kvm-box-refusals](kvm-box-refusals/README.md): a Linux program in the default box tries to read files, see other programs, read the keyboard, attach to a process and open a socket, under KVM.
