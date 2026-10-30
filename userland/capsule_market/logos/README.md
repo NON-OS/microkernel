@@ -9,7 +9,7 @@ the operator index as the listing's logo_hash. The market capsule serves a
 raster only when it hashes to that logo_hash.
 
 Which logo may be shown is the record's to say, not this directory's: git
-is CLEAR; the others are UNCLEAR rows the owner ruled on 2026-10-25 ("Use
+is CLEAR; the others are UNCLEAR rows the maintainers ruled on 2026-10-25 ("Use
 them anyway"). age is not here: its terms allow only unaltered use, and no
 tile shows its logo at its own pixels, so it keeps a NONOS icon.
 
@@ -25,7 +25,7 @@ Credits and terms that travel with the files:
 - helix.svg (helix 24.03), micro.svg (micro v2.0.13), kakoune.svg (Kakoune
   v2024.05.18), bat.svg (bat v0.24.0), nnn.svg (nnn v4.9), fzf.png,
   flac.gif, lame.gif, profanity.png (Profanity 0.14.0): each project's own
-  logo, shown under the owner's ruling. If a project objects or states
+  logo, shown under the maintainers' ruling. If a project objects or states
   terms, its row moves to FORBIDDEN, its file and raster are removed, and it
   falls back to its NONOS icon at the next seal.
 

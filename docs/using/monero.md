@@ -69,5 +69,5 @@ The wallet asks for a new file name, the 25 words, a seed offset passphrase (emp
 ## A live session and a kept home
 
 - **Today: kept until power off.** The wallet writes its files in its own home. That home is kept in memory from one run to the next until the machine powers off, and erased when the app is uninstalled. No other Linux program sees it. *booted* for other apps' homes ([Privacy apps](privacy-apps.md#what-every-networked-app-here-shares)); not yet for this wallet.
-- **After power off, nothing is left.** A home kept across a reboot is designed ([Kept homes and installs](../design/kept-homes-and-installs.md)) and not in yet. Until it is, the seed on paper is the only copy that survives. After each boot, restore the wallet from the seed, with a restore height so it does not read the whole chain.
+- **After power off, nothing is left.** A home kept across a reboot is designed (Kept homes and installs) and not in yet. Until it is, the seed on paper is the only copy that survives. After each boot, restore the wallet from the seed, with a restore height so it does not read the whole chain.
 - **A kept home, when it comes.** It will keep the wallet file on a disk installed with keeping chosen at setup, sealed to this machine. The seed stays the copy that survives losing the machine.

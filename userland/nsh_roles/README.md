@@ -1,7 +1,7 @@
 # nsh_roles
 
 The nsh/1 role table and the checks a host runs on a grant, as specified in
-[docs/design/nsh-v1-roles.md](../../docs/design/nsh-v1-roles.md).
+the nsh/1 specification.
 
 The crate covers:
 

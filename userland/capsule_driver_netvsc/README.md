@@ -59,7 +59,7 @@ Every NIC driver serves a station address drawn for the run, never the
 device's own. Hyper-V's switch drops, without a word, every frame from an
 address other than the one it assigned the port, unless the VM's adapter
 has MAC spoofing on. So before the link is ever reported up (net.core reads
-the address once, when it binds), the driver settles it, as the lead ruled:
+the address once, when it binds), the driver settles it, as the maintainers ruled:
 
 1. It offers the drawn address to the host (RNDIS
    OID_GEN_RNDIS_CONFIG_PARAMETER "NetworkAddress", as Linux's

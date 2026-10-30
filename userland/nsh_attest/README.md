@@ -1,8 +1,8 @@
 # nsh_attest
 
 The nsh/1 client's check of a host, run before any credential is sent:
-steps 1 to 7 of `docs/design/nsh-v1-attest.md` over a `NONOSATT` version 5
-document (`docs/design/k1-attest-doc-v4.md`). The first failed step ends the
+steps 1 to 7 of the nsh/1 specification over a `NONOSATT` version 5
+document (the attestation document format). The first failed step ends the
 session with `ABORT(POLICY)`, shown to the user as `POLICY (<name>)`.
 Proofs, mutants and fuzz targets are in `../nsh_attest_proofs`.
 

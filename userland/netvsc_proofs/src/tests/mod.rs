@@ -16,7 +16,7 @@
 
 //! The driver against the host model: the start, frames both ways, the
 //! receive completions, the send buffer's sections, the station address
-//! settled as the lead ruled, and a host that misbehaves.
+//! settled as the maintainers ruled, and a host that misbehaves.
 
 mod discover;
 mod frames;

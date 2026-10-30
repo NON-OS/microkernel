@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which home a program's /home and /root are kept in, as the Lead ruled
-//! (docs/design/files-home.md): a pure function of the
+//! Which home a program's /home and /root are kept in, as the maintainers ruled
+//! (the home-files design): a pure function of the
 //! listing it was sold under, so a new release keeps the home and two
 //! listings never share one. Pure, so the host proofs hold it.
 //!
