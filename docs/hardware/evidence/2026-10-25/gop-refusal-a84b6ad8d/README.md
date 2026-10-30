@@ -1,4 +1,4 @@
-# H-06(a): no linear framebuffer, named from the loader to the desktop, booted at a84b6ad8d
+# no linear framebuffer, named from the loader to the desktop, booted at a84b6ad8d
 
 hw/gop-refusal a84b6ad8d (on main 03ae0f8e4), built as standard-dev in the
 dev copy of the tree and sealed with throwaway keys; no key under `.keys/`

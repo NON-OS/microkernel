@@ -20,7 +20,7 @@
 //! i2c), the NICs and the rest, so a disk controller claims its isolation
 //! group ahead of anything sharing it. HDA stays after the NICs: where HDA
 //! and the I219 share a group, the network wins by default (the maintainers'
-//! ruling on H-02).
+//! ruling on the port-only rule).
 
 #[cfg(test)]
 mod tests {

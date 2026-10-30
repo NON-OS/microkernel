@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! H-09: the input router hears the display size whenever it changes, at
+//! the pointer-range fix: the input router hears the display size whenever it changes, at
 //! once, retried until a notice goes, and again now and then.
 
 use crate::state::display_rule::{due, REFRESH_MS, RETRY_MS};

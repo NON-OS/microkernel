@@ -37,7 +37,7 @@ fn each_host_spawns_where_its_own_controller_is() {
 }
 
 /// The hub walker starts after the hosts (which the orchestrator starts
-/// before the Wi-Fi, H-03) and before the class drivers, wherever a USB host
+/// before the Wi-Fi, the two-way alias rule) and before the class drivers, wherever a USB host
 /// is, and registers the name the hosts are held to.
 #[test]
 fn the_hub_walker_starts_between_the_hosts_and_the_class_drivers() {

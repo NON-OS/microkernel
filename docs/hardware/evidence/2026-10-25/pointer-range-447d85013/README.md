@@ -1,4 +1,4 @@
-# H-09: the absolute pointer on the display's own edges, booted at 447d85013
+# the absolute pointer on the display's own edges, booted at 447d85013
 
 hw/pointer-range 447d85013 (on main 82a2a42b7) against main 82a2a42b7, each
 built as standard-dev by `tools/nonos-dev-image`'s steps in its own copy of
