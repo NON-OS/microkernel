@@ -34,12 +34,39 @@ this page points at code or at evidence in the tree, and what 0.9.3 does not do 
 
 ## See it
 
+### From the stick to the desktop
+
 | | |
 |---|---|
-| ![A boot, with the kernel's STARK proof checked before anything runs](docs/media/boot-verified.jpg) | ![First-boot setup asking which network the machine's traffic leaves through](docs/media/setup-network-route.jpg) |
-| The boot checks the kernel's STARK proof before it starts anything. This one ran under KVM, which has no TPM, and the screen says so. | First-boot setup asks which network the machine's traffic leaves through: Nym, Anyone or direct. |
-| ![KeePassXC drawing its window in its own box, with no network](docs/media/keepassxc-in-its-box.jpg) | ![The audit table: every process and what it is granted](docs/media/audit.jpg) |
-| KeePassXC, a Linux program, in its own window. Its box has a window and a home folder and no network. | `audit` lists every process with its grants. Kernel threads show as not in the registry, with no signed ceiling recorded. |
+| ![A boot, with the kernel's STARK proof checked before anything runs](docs/media/boot-verified.jpg) | ![A live session, which says plainly that nothing in it is kept](docs/media/live-session.jpg) |
+| The boot checks the kernel's STARK proof before it starts anything. This one ran under KVM, which has no TPM, and the screen says so. | A live session says it keeps nothing: files, settings and models are gone when the machine stops. Install NØNOS to keep them. |
+
+First-boot setup, one screen at a time:
+
+| | | |
+|---|---|---|
+| ![Keyboard layout](docs/media/setup-keyboard.jpg) | ![Your name](docs/media/setup-name.jpg) | ![Network route](docs/media/setup-route.jpg) |
+| Pick a keyboard layout. Ctrl+Alt+Space switches layouts at any time. | Name the account. | Choose the network the machine's traffic leaves through: the Nym mixnet, the Anyone onion network, or direct. |
+| ![Privacy](docs/media/setup-privacy.jpg) | ![Appearance](docs/media/setup-appearance.jpg) | ![Local model](docs/media/setup-model.jpg) |
+| What the machine does without being asked: a random MAC address at each start, memory wiped at shutdown, and no telemetry because there is no switch for it. | Choose which wallpapers are kept in the session and which is the desktop's. | Pick a Qwen model that fits this machine's memory, or none. |
+| ![Apps](docs/media/setup-apps.jpg) | ![Installed software](docs/media/setup-software.jpg) | ![Review](docs/media/setup-review.jpg) |
+| Turn the desktop apps on or off: browser, wallet, App store, files, editor, media, Linux programs. | Decide whether software installed here may run, or only NØNOS software. | Review the choices before the desktop starts. |
+
+### Apps
+
+| | |
+|---|---|
+| ![The Marketplace listing KeePassXC with its Install button](docs/media/marketplace.jpg) | ![KeePassXC drawing its window in its own box, with no network](docs/media/keepassxc-in-its-box.jpg) |
+| The Marketplace lists each Linux program with what it is and what its box allows. | KeePassXC, a Linux program, in its own window. Its box has a window and a home folder and no network. |
+| ![The NØNOS Wallet: the keys are made on this machine and never leave it](docs/media/wallet.jpg) | ![Settings, showing the network the machine uses](docs/media/settings-network.jpg) |
+| The NØNOS Wallet. Its first screen says the keys are made on this machine and never leave it. | Settings shows the network the machine is using, and changes it. |
+
+### The kernel's side
+
+![The audit table: every process and what it is granted](docs/media/audit.jpg)
+
+`audit` lists every process with its grants. Kernel threads show as not in the registry, with no signed
+ceiling recorded.
 
 ## What a box holds back
 
