@@ -38,7 +38,7 @@ impl Addresses {
 
     /// The station's secret: drawn fresh at each start, so no network sees
     /// this boot's address again after a reboot. This is the one place the
-    /// secret comes from; owner Decision 14, on whether a network may keep
+    /// secret comes from; Decision 14, on whether a network may keep
     /// its address across reboots, changes only this.
     pub fn for_this_boot(random: impl FnOnce(&mut [u8]) -> bool) -> Option<Self> {
         Self::new(|k| random(k))

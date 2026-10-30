@@ -16,7 +16,7 @@
 
 //! The feature group strings section 5.7.2 defines, and other operating
 //! systems' names. A feature string is answered only once NONOS does what
-//! it promises; until the owner rules, none is (see the F-99 letter's open
+//! it promises; until the developers rule, none is (see the F-99 letter's open
 //! questions). The firmware behaviour in each reason is recalled.
 
 use super::{Group, Honour, Row};

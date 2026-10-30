@@ -19,7 +19,7 @@
 The kernel never sees a camera or a microphone, nor takes a screenshot;
 the USB stack, the audio service and the compositor ask MkCapCheck whether
 a peer holds these bits. So signing is what keeps them scarce. No capsule
-holds any of them until the owner decides Decision 9 (who may capture, and
+holds any of them until the developers decide Decision 9 (who may capture, and
 with what consent), and a holder is then added below by name. With no arguments this checks every
 userland/*/Capsule.mk; the seal calls it with --slug and --caps before it
 signs a certificate or a manifest.

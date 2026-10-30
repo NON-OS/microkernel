@@ -101,6 +101,7 @@ Sources for the machines: Lenovo PSREF ([T14 Gen 5 Intel][t14g5i], [T14 Gen 4 AM
 |---|---|---|
 | Intel iwlwifi (linux-firmware `LICENCE.iwlwifi_firmware`) | Binary redistribution without modification allowed; the patent grant covers use with an OSI-approved open-source OS, which AGPL NONOS is | Yes: bundled in the driver, pinned in `scripts/baselines/upstream.sha256` |
 | Realtek rtw88/rtw89 (`LICENCE.rtlwifi_firmware.txt`) | Same terms as Intel's | Yes for RTL8821CE |
+| MediaTek MT7921/MT7922 (`LICENCE.mediatek`) | Redistribution allowed, "but not as part of the Linux kernel or in any other form which would require these files themselves to be covered by the terms of the GNU GPL or LGPL" | Not as the Intel firmware is shipped. A driver would need the firmware as a separate package outside the AGPL image; the developers decide |
 | Qualcomm ath10k/ath11k/ath12k (`LICENSE.QualcommAtheros_ath10k`) | Binary redistribution allowed for use with Qualcomm chipsets only | Allowed with the notice; no driver yet |
 | Intel SOF (`sof-bin`, `LICENCE.Intel`) | Redistributable; Intel DSPs run Intel-signed images | No driver yet |
 | AMD ACP | None needed on consumer laptops | No driver yet |

@@ -4,11 +4,11 @@ Date checked: 2026-10-25. The record that logos-design.md's checks read. One
 row per app in userland/capsule_market/linux-catalogue.json (18 recipes:
 the 17 in the 0.9.3 set plus profanity).
 
-The rule (owner, verbatim): "Real logo where licence allows". A row is
+The rule (maintainers, verbatim): "Real logo where licence allows". A row is
 CLEAR only when the logo's own licence AND the project's trademark terms
 explicitly permit showing it in a third-party store listing, including
 the change we make (rasterise and resize). Silence counts as UNCLEAR.
-UNCLEAR and FORBIDDEN rows are the owner's to rule on; until then the
+UNCLEAR and FORBIDDEN rows are the maintainers' to rule on; until then the
 app gets a NONOS-drawn icon. "No logo" rows get a NONOS-drawn icon and
 need no ruling.
 

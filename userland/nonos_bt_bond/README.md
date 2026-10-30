@@ -11,6 +11,7 @@ the link encrypted again without pairing (Vol 3, Part C, 9.4.4).
 | `local` | `LocalIrk`: this host's own identity resolving key as 17 octets, version 1. |
 | `book` | `Book`: up to 15 bonds, found by identity or, for a resolvable private address, by the bond whose IRK resolves it (Vol 6, Part B, 1.3.2.3). |
 | `rotation` | `Rotation`: this host's resolvable private address, renewed every `ROTATE_MS`, the 15 minutes Vol 3, Part C, Appendix A recommends for TGAP(private_addr_int). |
+| `keys` | `Keys`: store, retrieve, delete and list records by kind, shaped like the keyring's record operations. Kind 10 is a bond, kind 11 this host's IRK. `MemoryKeys` keeps them in the capsule's memory, at most 16, the keyring's per-owner limit. |
 | `store` | `Store`: a `Book` kept through a `Keys`. `open` reads every bond back; `keep` stores a new or renewed bond; `forget` deletes one; `local_irk` reads this host's IRK back, or draws and keeps one. |
 
 The bond record:
@@ -46,7 +47,7 @@ Where the records are kept: `capsule_keyring`, one record per bonded peer
 owned by the Bluetooth capsule's service name. The keyring cannot do that
 yet: records are owned by a pid, live in memory only, and cannot be
 listed. the project is changing it (lead unit L33), and keeping records
-across a reboot is the Decision 27. Until L33 lands, the capsule
+across a reboot is Decision 27. Until L33 lands, the capsule
 uses `MemoryKeys`, so **bonds last for the boot only**; the keyring client
 is then one more `Keys`.
 

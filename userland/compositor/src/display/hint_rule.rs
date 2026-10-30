@@ -17,7 +17,7 @@
 //! NCMP 0x0009 DISPLAY_HINT (section 12, Size): a guest service passing on
 //! the host's wanted size. Body: output, width, height, source (1 VMMDev,
 //! 2 VMware), u32 each; 0 x 0 is a probe. Taken only from a service named
-//! in the kernel's HINT_SOURCES, empty until the owner accepts display
+//! in the kernel's HINT_SOURCES, empty until the developers accept display
 //! hints (Decision 15); everyone else is refused with -1.
 
 pub const HINT_LEN: usize = 16;

@@ -32,7 +32,7 @@ pub enum Policy {
     Deny,
 }
 
-/// The owner's to choose (owner Decision 12). Allow until the owner says
+/// To be chosen by the developers (Decision 12). Allow until the developers say
 /// otherwise, so nothing changes on any machine.
 pub const DEFAULT_POLICY: Policy = Policy::Allow;
 pub const E_ACCES: i32 = -13;

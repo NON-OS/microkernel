@@ -67,6 +67,7 @@ On aarch64 the kernel takes a device-tree `simple-framebuffer` node
 
 
 - Intel Gen11 and Gen12 mode setting from the public Tiger Lake and Ice Lake PRMs;
+- AMD only once the developers rule how a register source may be used, since AMD has
   published none for current parts;
 - NVIDIA on the firmware framebuffer, made solid, with native support costed honestly;
 - a design for GPU compute under the IOMMU, Intel Xe first.
