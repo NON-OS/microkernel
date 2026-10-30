@@ -3,6 +3,10 @@
 Status: wired, not yet signed. The kernel mirror
 (`src/hardware/usb_mic_capsule`) embeds and spawns it under
 `nonos-capsule-driver-usb-mic` wherever the inventory sees a USB host,
+after the hub walker. It has no owner certificate yet, so no image carries
+it until the owner signs it. No capsule holds MicrophoneCapture until the
+developers decide (Decision 9), and the compositor's indicator for it comes
+with G-26, so today nothing is captured.
 
 ## Role
 
@@ -110,6 +114,7 @@ alternate at 0.
 ## Release target
 
 Headset and webcam microphones and USB microphones on xHCI, captured for
+a peer the owner grants MicrophoneCapture.
 
 ## Release evidence
 
@@ -122,6 +127,8 @@ gate, the ring and the framing. The shared class code is also covered by
 ## Release checklist
 
 - Decision 9: which capsule may hold MicrophoneCapture.
+- G-26's indicator merged.
+- Signed by the owner and added to an image's features.
 
 ## Real hardware bring-up checklist
 

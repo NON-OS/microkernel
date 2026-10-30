@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Decision 6, the owner's: whether NONOS suspends at all. This is the one
+//! Decision 6: whether NONOS suspends at all. This is the one
 //! switch for S3 and suspend-to-idle, and it is off. While it is off,
 //! PREPARE_SLEEP answers states 3 and 0 with EINVAL exactly as it always
 //! has, and nothing else in `suspend/` runs. Turning it on is not enough

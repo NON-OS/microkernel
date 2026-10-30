@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Services whose display size hints the compositor takes (NCMP 0x0009):
-//! none until the owner accepts display hints (Decision 15). Data only,
-//! kept beside the display list so the owner rules on both in one place.
+//! none until the developers accept display hints (Decision 15). Data only,
+//! kept beside the display list so the developers rule on both in one place.
 //! The compositor mounts this file by path; the kernel has no use for it
 //! and does not build it.
 

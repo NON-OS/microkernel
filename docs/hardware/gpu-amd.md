@@ -24,6 +24,7 @@ shows nothing.
 | Rembrandt, Phoenix APUs | DCN 3.1 to 3.1.4 | Ryzen 6000 to 8000 | GOP | none published |
 | RDNA 3, 4 | DCN 3.2, 4 | RX 7000, RX 9000 | GOP | none published |
 
+covers each era. Mapping an individual part to a block is for the to be confirmed.
 
 ## What AMD has published
 
@@ -57,3 +58,4 @@ register. With (a) or (b), the order would be:
 2. DMCUB firmware, sealed by digest as Intel's DMC is;
 3. mode setting, link training and hot plug.
 
+Each step needs its own proofs against a register model, and a developer boot.

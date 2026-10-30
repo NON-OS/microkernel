@@ -16,7 +16,7 @@
 
 //! NCMP 0x0009 DISPLAY_HINT: the host's wanted size, from a guest service.
 //! Only a service named in the kernel's HINT_SOURCES may send one; that list
-//! is empty until the owner accepts display hints (the host-services
+//! is empty until the developers accept display hints (the host-services
 //! decision), so today every sender is refused with -1. A hint taken for
 //! output 0 of a wire driver is held and followed as a STATE hint is
 //! (`setup::resize`) and answered resizable (bit 0); otherwise, or with

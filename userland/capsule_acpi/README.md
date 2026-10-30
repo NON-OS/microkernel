@@ -406,6 +406,7 @@ other op: no one.
   unusable; EPERM from anyone but `capsule_power`, which calls it before
   `AdminShutdown`.
   States 3 (S3) and 0 (suspend-to-idle) are coded but behind one switch,
+  `src/suspend/switch.rs` `SUSPEND`, off until the developers decide
   (Decision 6); while it is off they answer EINVAL as before. With it on,
   S3 runs \_TTS(3), arms only the wake devices `WAKE_DEVICES` names,
   runs \_PTS(3) and \_SI._SST(3), and is undone (\_WAK(3), disarm,
