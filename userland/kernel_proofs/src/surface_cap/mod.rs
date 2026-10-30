@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! H-06(b): how many bytes one surface may span, by the boot framebuffer.
+//! how many bytes one surface may span, by the boot framebuffer.
 //! The real rule is included by path.
 
 #[path = "../../../../src/syscall/dispatch/router/surface_handlers/cap.rs"]

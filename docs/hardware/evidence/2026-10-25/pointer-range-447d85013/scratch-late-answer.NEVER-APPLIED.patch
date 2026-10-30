@@ -6,7 +6,7 @@ index caeee2b0c..be1abe065 100644
      req: &Request,
      tx: &mut [u8],
  ) -> Result<(), &'static str> {
-+    // SCRATCH (H-09 evidence only): leave the input router's asks unanswered
++    // SCRATCH (the pointer-range fix evidence only): leave the input router's asks unanswered
 +    // for the first 150 s, as a compositor too busy to answer within the
 +    // router's 150 ms would. Every other client is answered.
 +    let (mut port, mut router) = (0u32, 0u32);

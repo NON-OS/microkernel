@@ -46,7 +46,7 @@ pub(crate) fn alias_line(alias: Bdf, holder: &str) -> String {
 }
 
 /// A device of another capsule's whose DMA may carry the device's own
-/// requester id (H-03, the alias check both ways).
+/// requester id (the alias check both ways).
 pub(crate) fn peer_alias_line(peer: Bdf, holder: &str) -> String {
     format!("refused: {}, which {holder} holds, carries its requester id", bdf(peer))
 }

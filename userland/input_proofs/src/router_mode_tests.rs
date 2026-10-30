@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! H-09: the compositor's size notice moves the cursor's edges at once, and
+//! the compositor's size notice moves the cursor's edges at once, and
 //! names the op the router reads it by.
 
 use super::router_display_tests::{abs, shell_saw};

@@ -1,4 +1,4 @@
-"""H-10 mutants: each rule broken once, the proof crate that must catch it run
+"""the xHCI switch-over mutants: each rule broken once, the proof crate that must catch it run
 whole. Run from the repo root; every file is put back after each run."""
 import subprocess, sys
 Q="src/hardware/broker/pci/quirk_bits/xhci_route.rs"; KP="userland/kernel_proofs"; XP="userland/xhci_proofs"

@@ -1,3 +1,4 @@
+# the desktop on the surface cap, booted at 67074381e
 
 hw/surface-cap 67074381e (the cap with main merged), built as standard-dev in
 the dev copy of the tree and sealed with throwaway keys; no key under `.keys/`
@@ -28,9 +29,12 @@ live-session dialog.
 dialog was dismissed, with the menu bar and the full dock. `desktop-2min.png`
 is the same desktop two minutes on (5944 colours).
 
+## Seen on the way: the pointer-range fix on a build without its fix
 
+This branch was merged before the pointer-range fix landed (019657102). The click that dismissed
 the dialog was sent to (1062,620) on the 1920x1080 display. The cursor was
 drawn with its body at (570..578, 442..457): x * 1024 / 1920 and y * 768 / 1080
+of the target, the input router's made-up range. That is the the pointer-range fix failure,
 here on a desktop that changed mode under load, on a build without the fix.
 
 ## Not booted here
