@@ -1,6 +1,6 @@
 # Hardware matrix: ACPI, platform, Thunderbolt, fuzzing
 
-Part of [README.md](README.md); evidence words and commonality as defined there.
+Part of [the hardware matrix](MATRIX.md); evidence words and commonality as defined there.
 Counts are `#[test]` items at 1536ccef3.
 
 ## ACPI and platform

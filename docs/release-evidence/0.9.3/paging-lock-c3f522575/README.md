@@ -32,7 +32,7 @@ Terminal.
   0.9.3 at 4m 48s.
 
 The 8-CPU lanes and a run of Linux guests under the new peer locks are in
-[s1-lock](../s1-lock/README.md), booted by a machine: six
+[lock](../lock/README.md), booted by a machine: six
 lanes to the desktop and a Monero install and run, 0 `[LOCK]` and
 0 `unanswered` in all of them. Its pre-fix contrast boot ran a different
 workload, so it says little about the six lines above.

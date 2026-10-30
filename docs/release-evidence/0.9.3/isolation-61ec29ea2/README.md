@@ -52,7 +52,8 @@ jit=1 barred=3 unserved=7"; after the network run: "network=3".
   "personality ready").
 - 64 `[DIAG] ipc.call unanswered` (62 `desktop_shell`, 2 `vfs_pool`) and 382
   slow TLB shootdowns, on a host running static checks and builds beside
-  host with none (`../s1-lock/`). A run of these steps there is asked for.
+  the VM. The owner's local machine booted the same lock fix on an idle
+  host with none (`../lock/`). A run of these steps there is asked for.
 
 ## An earlier run that did not count
 

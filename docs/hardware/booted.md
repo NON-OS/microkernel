@@ -22,10 +22,10 @@ Commonality is an estimate for x86 desktops and laptops sold
 
 ## Parts
 
-- [storage-usb.md](storage-usb.md): AHCI, NVMe, VMD/RST, xHCI, hubs, HID, MSC, SD
-- [network.md](network.md): Intel and Realtek wired, Intel/Realtek/MediaTek Wi-Fi
-- [display-input-audio.md](display-input-audio.md): GOP, i915-class, AMD, NVIDIA, PS/2, I2C-HID, HDA
-- [platform.md](platform.md): ACPI tables, AML, battery, thermal, power, suspend, Thunderbolt, fuzzing
+- [coverage-storage.md](coverage-storage.md): AHCI, NVMe, VMD/RST, xHCI, hubs, HID, MSC, SD
+- [coverage-net.md](coverage-net.md): Intel and Realtek wired, Intel/Realtek/MediaTek Wi-Fi
+- [coverage-gpu.md](coverage-gpu.md): GOP, i915-class, AMD, NVIDIA, PS/2, I2C-HID, HDA
+- [coverage-platform.md](coverage-platform.md): ACPI tables, AML, battery, thermal, power, suspend, Thunderbolt, fuzzing
 
 ## What blocks the most machines
 

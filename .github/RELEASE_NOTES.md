@@ -95,18 +95,18 @@ pending bytes or lines on the slave and 64 KiB of output, and keeps each signal 
 `linux.monero` starts `monero-wallet-cli` against the listing's node,
 `xmr-node.cakewallet.com:18081`, with `--untrusted-daemon`, and keeps its log to 1 MiB in one
 file (`linux-catalogue.json`; 8a9957f9a8). On a KVM host the wallet synced from that node over
-Anyone and over Nym, on development images (`s1-g-kvm`). The serial log shows the streams; the
+Anyone and over Nym, on development images (`kvm-guest-gate`). The serial log shows the streams; the
 progress in the window is quoted from the notes of those runs. These fixes made it work:
 
 - net.anon picks an exit whose policy takes the stream's port, as the wallet's 18081 needs, and
   sends a refused open once more to another exit (243d0e8e29).
 - A spawned process holds its arguments from its first instruction, so an install reads them in
   time and takes its 320 MiB heap, not a program's 160 MiB (3f6077cd7e). Every tree in
-  `s1-g-kvm` with the fix installs at `of 327680 KiB`.
+  `kvm-guest-gate` with the fix installs at `of 327680 KiB`.
 - `get_robust_list` is answered, so LMDB can make its lock and the wallet's ring database opens
   (141a9f03ef).
 - A stored file mapped shared, as LMDB maps one, is served, one writer per range
-  (8717a8b26a, `s1-shared-maps-0d0cff02d4`).
+  (8717a8b26a, `shared-maps-0d0cff02d4`).
 - The wallet's home keeps 64 MiB, by its listing's key or the program its policy names
   (`app/home_listings.rs`), and an app may hold as much in open files as its home keeps
   (`file/system/space/copies.rs`; 1f3f2629dd, bd27ab42d4). The wallet writes its cache whole beside
@@ -119,7 +119,7 @@ Every install goes over Anyone, and both proxies keep one stream per caller. The
 opened three at once, so each took the conversation from the one before and no package arrived.
 It now fetches one package at a time over its kept stream (285d15b7e6, proven in
 `install_window_tests.rs`). Before the fix, a lone stream brought the 24.7 MB Monero package
-from the real Alpine mirror whole (`s1-g-kvm`, `diag-694ba69799-realmirror-anyone.log`).
+from the real Alpine mirror whole (`kvm-guest-gate`, `diag-694ba69799-realmirror-anyone.log`).
 
 A failed install says which package and which check stopped it, for example
 `libzmq-4.3.5-r2 (its checksum did not match the signed index)`, in the Terminal's `market`
@@ -184,6 +184,7 @@ PCR 4, so before an update the installed system prepares a one-boot handover: op
 and press P beside `Prepare this computer for an update` (97564eacc9, 2e113a43c0). On QEMU with a
 software TPM, a volume prepared under one image opened under a second image with a changed
 bootloader through the handover, then under that bootloader's own key on the next boot
+(`kernel-update`). An update keeps the data volume, not store apps, settings since setup, the
 wallet's vault or saved Wi-Fi (`docs/install/update.md`).
 
 HP laptop it had come up as the installed system. The loader takes no other disk's store on a
@@ -233,7 +234,7 @@ as it is typed (972f956ff6).
 Three gate boots of main (a7af21a70, 23d57ac60, 6f0bbe716) reached the desktop on 4 CPUs with
 VT-d enforcing and no unconfined grant, with no FATAL, panic or lock wait (`gate-*`). The
 paging-lock waits seen on 30a4b58c4 are gone after the paging-lock fix (adb53a20d, abae61bc9):
-0 `[LOCK]` lines in eight boots at 4 and 8 CPUs (`s1-paging-lock-c3f522575`, `s1-lock`).
+0 `[LOCK]` lines in eight boots at 4 and 8 CPUs (`paging-lock-c3f522575`, `lock`).
 
 ## Breaking changes
 
@@ -266,7 +267,7 @@ paging-lock waits seen on 30a4b58c4 are gone after the paging-lock fix (adb53a20
   only.
 - **Wi-Fi**: only the RTL8821CE has run on a card. The RTL8822CE, RTL8852BE, MT7921 family and
   every Intel card have run only against a modelled device (`docs/drivers/wifi/README.md`).
-- **Seen on development boots, not shown fixed:** lame ends on signal 11 (`s3-boot2`); micro
+- **Seen on development boots, not shown fixed:** lame ends on signal 11 (`boot-2`); micro
   opened from the Marketplace stops on `open /dev/tty` (`gui-store-tty-open`).
 - **Hardening**: no KASLR, no compiler stack canaries, and the package store is not encrypted.
   A machine with no IOMMU in service boots Standard with device DMA unconfined, said on the
@@ -274,3 +275,4 @@ paging-lock waits seen on 30a4b58c4 are gone after the paging-lock fix (adb53a20
 - **aarch64** is a preview with no loader and no release image; **riscv64** is not supported,
   and under QEMU it stops at its unported VM layer (`docs/architectures/README.md`).
 - **Not yet tested on a booted image**: Secure Boot enabled, and an update from one release to
+  the next. The update was tested between two development images of one tree (`kernel-update`).
