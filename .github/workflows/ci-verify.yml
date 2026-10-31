@@ -147,14 +147,13 @@ jobs:
           persist-credentials: false
       - name: Install Charon, Aeneas and elan
         run: bash nonos-ci/install-verifiers.sh extraction
+      # The project's own build only; Mathlib comes from `lake exe cache get`.
       # Lake rebuilds whatever its traces show changed, so a restored build
       # only spares the modules whose inputs are the same.
       - name: Restore the refinement build
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: |
-            ~/.elan/toolchains
-            verification/extraction/lean/.lake
+          path: verification/extraction/lean/.lake/build
           key: extraction-${{ hashFiles('verification/extraction/lean/lean-toolchain', 'verification/extraction/lean/lake-manifest.json') }}-${{ hashFiles('verification/extraction/**') }}
           restore-keys: extraction-${{ hashFiles('verification/extraction/lean/lean-toolchain', 'verification/extraction/lean/lake-manifest.json') }}-
       - name: Regenerate every crate and check for drift

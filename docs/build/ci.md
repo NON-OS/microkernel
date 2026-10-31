@@ -79,7 +79,7 @@ On pull requests and pushes, the Nix inside WSL2 and inside the devcontainer rea
 | Nix store paths | the Cachix cache `vars.NONOS_CACHIX` (`nix-setup`) | pushes, schedules and dispatches; a pull request reads it and never writes it ([The Nix flake](nix-flake.md#the-binary-cache)) |
 | fuzz corpus | Actions cache `fuzz-corpus-<crate slug>-<target>-<run id>` | main and nightly runs |
 | cargo-fuzz | Actions cache, keyed on its version and the toolchain | any run |
-| extraction Lean build | Actions cache of `verification/extraction/lean/.lake` and the elan toolchains; Lake rebuilds whatever its traces show changed | any run |
+| extraction Lean build | Actions cache of `verification/extraction/lean/.lake/build`; Lake rebuilds whatever its traces show changed | any run |
 
 `ci-reproducible` reads no cache at all, by design.
 
