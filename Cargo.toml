@@ -1444,7 +1444,7 @@ nonos-boot-measure = { path = "nonos-boot-measure" }
 nox_verify = { version = "0.1", git = "https://github.com/NON-OS/STARKs.git", branch = "main" }
 # Synchronization. spin is the kernel-wide lock primitive (no_std,
 # interrupt-safe).
-spin        = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex", "lazy", "rwlock"] }
+spin        = { version = "0.12", default-features = false, features = ["mutex", "spin_mutex", "lazy", "rwlock"] }
 lazy_static = { version = "1.4", features = ["spin_no_std"] }
 
 # Allocator.
