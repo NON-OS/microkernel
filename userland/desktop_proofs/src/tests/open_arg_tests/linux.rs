@@ -52,7 +52,7 @@ fn nothing_a_shell_would_read_as_more_than_a_name_passes() {
 fn a_name_past_the_bound_is_refused() {
     let at = vec![b'a'; NAME_MAX];
     assert!(is_package(&at));
-    assert!(!is_package(&vec![b'a'; NAME_MAX + 1]));
+    assert!(!is_package(&[b'a'; NAME_MAX + 1]));
 }
 
 #[test]

@@ -2,7 +2,7 @@
 //! The tree's own files, read for the order they keep.
 
 pub(crate) fn code(path: &str) -> String {
-    let src = std::fs::read_to_string(format!("../../{path}")).unwrap();
+    let src = std::fs::read_to_string(path).unwrap_or_else(|e| panic!("{path}: {e}"));
     src.lines().map(|l| l.split("//").next().unwrap_or("").trim()).collect::<Vec<_>>().join("\n")
 }
 

@@ -14,18 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The schema 2 catalogue this tree ships still reads, as schema 2: nothing
-//! in it can be bought, every release keeps its v2 signing domain, and it
-//! cannot be re-encoded until each entry gains a commerce block.
+//! A schema 2 catalogue still reads, as schema 2: nothing in it can be
+//! bought, every release keeps its v2 signing domain, and it cannot be
+//! re-encoded until each entry gains a commerce block. The fixture is the
+//! signed catalogue the tree shipped until schema 4 replaced it
+//! (nonos-data/market/index.bin at 1ba82a1566); the shipped index is held
+//! to the current schema below.
 
-use nonos_marketplace_abi::SCHEMA_V2;
+use nonos_marketplace_abi::{CURRENT_SCHEMA, SCHEMA_V2};
 use nonos_marketplace_abi::{decode_index, encode_index, release_signing_bytes, EncodeError};
 
-static BASELINE: &[u8] = include_bytes!("../../../../nonos-data/market/index.bin");
+static BASELINE: &[u8] = include_bytes!("../../fixtures/index-schema2.bin");
+static SHIPPED: &[u8] = include_bytes!("../../../../nonos-data/market/index.bin");
 
 #[test]
-fn the_shipped_schema_2_catalogue_still_decodes() {
-    let d = decode_index(BASELINE).expect("the shipped catalogue decodes");
+fn the_shipped_catalogue_decodes_at_the_current_schema() {
+    let d = decode_index(SHIPPED).expect("the shipped catalogue decodes");
+    assert_eq!(d.index.schema_version, CURRENT_SCHEMA);
+    assert!(!d.index.entries.is_empty());
+}
+
+#[test]
+fn a_schema_2_catalogue_still_decodes() {
+    let d = decode_index(BASELINE).expect("the schema 2 catalogue decodes");
     assert_eq!(d.index.schema_version, SCHEMA_V2);
     assert!(!d.index.entries.is_empty());
     for e in &d.index.entries {

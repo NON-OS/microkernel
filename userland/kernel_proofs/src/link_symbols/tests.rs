@@ -31,9 +31,18 @@ fn undefined(root: &Path) -> Vec<String> {
     out
 }
 
+/// The linker scripts the real tree's proof reads beside src/, by their path
+/// from this crate's directory; tools/nix/inputs.py hands the build each one.
+const TREE_SCRIPTS: [&str; 3] =
+    ["../../linker.ld", "../../linker_aarch64.ld", "../../linker_riscv64.ld"];
+
 #[test]
 fn every_link_symbol_the_kernel_declares_is_defined() {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let manifest = Path::new(env!("CARGO_MANIFEST_DIR"));
+    for s in TREE_SCRIPTS {
+        assert!(manifest.join(s).is_file(), "{s} is not there to read");
+    }
+    let root = manifest.join("../..");
     let found = declared(&root.join("src")).len();
     assert!(found >= 25, "found only {found} declarations");
     assert_eq!(undefined(&root), Vec::<String>::new());

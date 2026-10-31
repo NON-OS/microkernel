@@ -33,6 +33,8 @@ pub mod dmc;
 #[path = "../../capsule_driver_intel_display/src/dmc_parse.rs"]
 pub mod dmc_parse;
 #[path = "../../capsule_driver_intel_display/src/dp/mod.rs"]
+// The driver is sealed for 0.9.3; its doubled #[path] on dp::aux is fixed at the next seal.
+#[allow(unused_attributes, clippy::duplicated_attributes)]
 pub mod dp;
 #[path = "../../capsule_driver_intel_display/src/engine/mod.rs"]
 pub mod engine;

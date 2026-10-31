@@ -21,6 +21,8 @@ pub mod dma;
 pub mod efuse;
 #[path = "../../capsule_driver_rtl8852be/src/fw/mod.rs"]
 pub mod fw;
+// The driver file is sealed for 0.9.3; these lints (h2c/cctl_tbl.rs, h2c/send.rs) are fixed at the next seal.
+#[allow(clippy::new_without_default, clippy::manual_is_multiple_of)]
 #[path = "../../capsule_driver_rtl8852be/src/h2c/mod.rs"]
 pub mod h2c;
 #[path = "../../capsule_driver_rtl8852be/src/ids.rs"]

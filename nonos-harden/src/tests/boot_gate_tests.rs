@@ -27,11 +27,19 @@ use super::signing::operator;
 use crate::cli::CheckArgs;
 use crate::exit;
 use crate::plan::check_with;
-use crate::release::kernel_keys::KernelKeys;
+use crate::release::kernel_keys::{KernelKeys, ED_PUB, PQ_PUB};
 use std::path::{Path, PathBuf};
 
 #[test]
 fn the_kernel_keys_this_tree_commits_read_in_the_seals_formats() {
+    // The committed keys by their path from this crate, which is how
+    // tools/nix/inputs.py knows to put them in the check's sandbox; held to
+    // the paths KernelKeys reads.
+    let committed = [
+        "../nonos-data/trust/keys/kernel_signing_ed25519.pub",
+        "../nonos-data/trust/keys/kernel_mldsa65.pub",
+    ];
+    assert_eq!(committed.map(|p| &p[3..]), [ED_PUB, PQ_PUB]);
     let tree = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap();
     assert!(KernelKeys::load(tree).is_ok(), "{:?}", KernelKeys::load(tree).err());
 }

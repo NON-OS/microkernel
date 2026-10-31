@@ -90,6 +90,7 @@ have no detector. This file is one list by design, so it is longer than the
 | `tool:verus` | tool | The verifier behind the Verus proofs. |
 | `lean-axiom:core.option.Option.ok_or` | lean-axiom | Aeneas's opaque model of `Option::ok_or`, in the closure of the extracted IRQ and policy theorems. |
 | `lean-axiom:core.option.Option.Insts.CoreCmpPartialEqOption.eq` | lean-axiom | Aeneas's opaque model of the derived `PartialEq::eq` of `Option`, an axiom of the extracted module SyscallMicrokernelBattery. |
+| `lean-axiom:core.bool.Bool.then` | lean-axiom | Aeneas's opaque model of `bool::then`, an axiom of the extracted module SyscallMicrokernelBattery. |
 | `lean-axiom:core.result.Result.unwrap_or` | lean-axiom | Aeneas's opaque model of `Result::unwrap_or`, an axiom of the extracted module SysTimerTscConvert. |
 | `lean-axiom:U64.Insts.CoreConvertTryFromU128TryFromIntError.try_from` | lean-axiom | Aeneas's opaque model of `u64::try_from(u128)`, an axiom of the extracted module SysTimerTscConvert. |
 | `lean-axiom:Usize.Insts.CoreConvertTryFromU64TryFromIntError.try_from` | lean-axiom | Aeneas's opaque model of `usize::try_from(u64)`, an axiom of the extracted modules Elf, ElfStackLayoutLayoutInfo. |
