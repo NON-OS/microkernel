@@ -54,7 +54,7 @@ device's holder re-arms it.
 The capsule may enumerate devices, claim the ACPI GPIO controllers, map
 their windows and bind their interrupts. It has no DMA, PIO, filesystem, network, display,
 credential, or input focus authority. Its sealed trust files come from the
-owner's signing step; the kernel embeds it only with
+signing step; the kernel embeds it only with
 `nonos-capsule-driver-gpio`, which no profile turns on yet.
 
 ## Privacy and persistence

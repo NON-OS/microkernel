@@ -21,4 +21,4 @@ had no newline of their own, so they ran together on the serial line; each
 now ends in one.
 
 Not shown: a battery, an EC or a lid (QEMU has none), a Bluetooth
-controller. Those wait for the owner's HP (`docs/hardware/real-hardware-checklist.md`).
+controller. Those wait for a run on the HP laptop (`docs/hardware/real-hardware-checklist.md`).

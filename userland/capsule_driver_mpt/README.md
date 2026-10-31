@@ -144,8 +144,7 @@ every refusal, an older IOC's shorter facts, port enable answered in a
 frame, the scan across the IOC's devices, discovery of both parts, what
 each frame carries, context and address replies, every reply frame given
 back, every IOC status, sense, an underrun and a recovered error, a lost
-request and the IOC brought back once, the IOC given up on. A boot is the
-owner's.
+request and the IOC brought back once, the IOC given up on. A boot on hardware is still to come.
 
 ## Release checklist
 

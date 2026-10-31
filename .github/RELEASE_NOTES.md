@@ -130,7 +130,7 @@ it three times; the tar walk borrows each file from the tar. Before a package is
 installer checks that it fits the heap left, and a package that cannot fit ends the install with
 the reason "Too little free memory to unpack one of its packages; close other apps, then retry"
 and the package's name, never a fault. An install takes 640 MiB where 2 GiB is
-free, then 320 MiB, then 160 MiB (a31608c830). On the owner's 8 GB HP laptop, Telegram Desktop's
+free, then 320 MiB, then 160 MiB (a31608c830). On an 8 GB HP laptop, Telegram Desktop's
 install had stopped with code 134; in a KVM run with 4 and 8 GiB guests, Telegram's own package
 peaked at 143 MiB.
 
@@ -188,7 +188,7 @@ bootloader through the handover, then under that bootloader's own key on the nex
 (`kernel-update`). An update keeps the data volume, not store apps, settings since setup, the
 wallet's vault or saved Wi-Fi (`docs/install/update.md`).
 
-A USB stick booted beside an installed disk comes up as the stick (147aa2d0f6). On the owner's
+A USB stick booted beside an installed disk comes up as the stick (147aa2d0f6). On an
 HP laptop it had come up as the installed system. The loader takes no other disk's store on a
 USB boot and recognises its own disk by its GPT partition GUID. The kernel never keeps another
 disk on a USB boot, and `log BLOCK` says why a boot kept the disk it did. In a KVM run, a new
@@ -202,8 +202,8 @@ NVMe disk alone came up as the installed desktop. No log of that run is committe
   a DHCP lease through their card, with net.core reading it in batches (`drivers/`). That is the
   0.9.2 receive fault of e1000 and RTL8139 shown fixed on a boot. The RTL8169 fix is proven on
   the host only.
-- **Wi-Fi on hardware.** The owner reports RTL8821CE Wi-Fi working on their HP laptop, on their
-  seal of main cb1e534f0a (`drivers/rtl8821ce`). It is their report only: no log or screenshot
+- **Wi-Fi on hardware.** RTL8821CE Wi-Fi was reported working on an HP laptop, on a
+  seal of main cb1e534f0a (`drivers/rtl8821ce`). It is a report only: no log or screenshot
   was sent. Two vendor
   drivers may now share an isolation group on a standard boot, which let that card be claimed
   beside the NVMe disk (f3daff98c0).

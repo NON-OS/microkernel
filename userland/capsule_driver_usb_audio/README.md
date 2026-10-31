@@ -146,7 +146,7 @@ No boot yet.
 
 ## Release checklist
 
-- Signed by the owner and added to the desktop image's features.
+- Signed and added to the desktop image's features.
 - A QEMU `-device usb-audio` boot playing through `driver.usb_audio0`.
 
 ## Real hardware bring-up checklist

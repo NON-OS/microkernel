@@ -161,14 +161,14 @@ without tearing while windows move, with a hardware cursor.
 
 ## Release evidence
 
-`intel_display_proofs` passing; the owner's boot on a Gen9 laptop showing
+`intel_display_proofs` passing; a boot on a Gen9 laptop showing
 `[DISPLAY] driver.intel_display0`.
 
 ## Release checklist
 
 - [x] `Capsule.mk`, feature, mirror, scope row, inventory and spawn entries.
 - [x] `driver.intel_display0` is in the kernel's `DISPLAYS`, before bootfb.
-- Owner's keys for the slug `driver.intel_display`.
+- Release keys for the slug `driver.intel_display`.
 - Device ids checked against Intel's published lists.
 - Boot on Skylake, Kaby Lake, Coffee Lake and Comet Lake machines, then on
   Haswell, Broadwell, Ice Lake, Tiger Lake and Alder Lake machines at firmware's mode.

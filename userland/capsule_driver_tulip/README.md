@@ -128,7 +128,7 @@ legacy network adapter and QEMU's `tulip`, protocol-blind.
 the reset, the processes, the setup frame and the filter it loads, descriptor
 ownership and end-of-ring, a receive process suspended and woken, FCS
 handling, batch bodies, every refusal path and its cleanup, and DMA confined
-to the grants. A boot under Hyper-V and QEMU `-device tulip` is the owner's.
+to the grants. A boot under Hyper-V and QEMU `-device tulip` is still to come.
 
 ## Release checklist
 

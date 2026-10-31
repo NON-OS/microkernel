@@ -139,7 +139,7 @@ the interrupt command, the adapter's own ID left out of the scan wherever
 it is, a disk past 2 TiB refused, what each CCB carries, many requests
 through one mailbox pair, every completion and adapter status, sense,
 residuals and an underrun status, a lost request and the adapter brought
-back once, the adapter given up on, discovery. A boot is the owner's.
+back once, the adapter given up on, discovery. A boot on hardware is still to come.
 
 ## Release checklist
 

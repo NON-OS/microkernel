@@ -1,7 +1,7 @@
 # the release sealed image, 26 October 2026: NO-GO
 
-The owner booted a release-sealed image on his own machine (QEMU, 8 CPUs, virtio-gpu, about
-4 GiB). He sent an excerpt of the serial log, not the whole log. The desktop came up and
+A release-sealed image was booted on a local machine (QEMU, 8 CPUs, virtio-gpu, about
+4 GiB). An excerpt of the serial log was kept, not the whole log. The desktop came up and
 every app spawned and attested `vendor`. Then three failures followed, and the machine
 wiped and powered off.
 
@@ -34,15 +34,15 @@ wiped and powered off.
 The total never fell after 0x4E and 0x4F ended. Allocated frames (0xE617E, 3681 MiB) track
 it (3726 MiB).
 
-## Defects and owners
+## Defects
 
-- The kernel heap is starved by one app's mapping, and the panic follows. Owner: 2B.
-- An exiting process's mappings stay counted, and its frames are kept. Owner: 2B.
+- The kernel heap is starved by one app's mapping, and the panic follows.
+- An exiting process's mappings stay counted, and its frames are kept.
 - The paging manager lock is held through a dead process's teardown, so every CPU waits.
-  Owner: 2B.
+ 
 - The Linux store's uninstall can't read packs it wrote on an unserved-persist boot.
-  Owner: 2D.
-- Why persist was unserved, and whether the store is ever at rest unencrypted. Owner: 2E.
+ 
+- Why persist was unserved, and whether the store is ever at rest unencrypted.
 
 Each fix is booted at `-smp 8 -m 4096` with this sequence, or with the selftest probe where
 the market is out of reach, before 0.9.3 can be GO.

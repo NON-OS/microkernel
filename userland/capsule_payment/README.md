@@ -35,7 +35,7 @@ is checked by which registry names the kernel-stamped pid owns
 owner adds it to one after re-signing. The kernel mirror is
 `src/userspace/capsule_payment`. Init spawns it with the desktop services
 (`spawn_plan/payment.rs`), after the keyring and the vfs. A change to the caps
-or the ELF needs the owner to re-sign the manifest and id-cert and re-enroll.
+or the ELF needs the manifest and id-cert re-signed and re-enrolled.
 
 ## Keys
 

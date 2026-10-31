@@ -4,7 +4,7 @@ Status: wired, not yet signed. The kernel mirror (`src/hardware/e1000e_capsule`)
 embeds and spawns it under `nonos-capsule-driver-e1000e` (the
 `microkernel-driver-e1000e` build), and net.core and net.l2 reach it through
 `src/services/registry/nics.rs`. It has no owner certificate yet, so no image
-carries it until the owner signs it.
+carries it until it is signed.
 
 ## Role
 
@@ -145,7 +145,7 @@ line and a `link up` line, and DHCP completing through `net.core`.
 
 ## Release checklist
 
-- Signed by the owner and added to the image's features, with net.core,
+- Signed and added to the image's features, with net.core,
   net.l2, the setup wizard and capsule_attack re-signed for the NIC table.
 - QEMU `-device e1000e` frame round trip.
 - One I219 boot photographed with the lines in `docs/hardware/e1000e.md`.

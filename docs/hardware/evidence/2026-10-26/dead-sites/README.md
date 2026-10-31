@@ -32,6 +32,6 @@ is new.
 No QEMU machine here publishes an ACPI SD host: the `sd` and `emmc` lanes
 are `sdhci-pci` (PCI), and the aarch64 boots use a device tree. Neither
 boot has an `[ACPI] platform … device=` line, so F-128 is host-tested
-only; its proof is the owner's hardware run.
+only; its proof is a run on real hardware.
 
 Requester ids are replaced by `<bdf>`.

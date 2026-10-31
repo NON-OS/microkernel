@@ -67,8 +67,8 @@ firmware never sends is caught within that. Any lid open reads as open.
 - The kernel records the change only once the shell's input has taken
   it. If not, it answers EAGAIN and the next reading tells it again. The
   first reading is told too, so the shell learns the lid it starts with.
-- Nothing acts on the lid itself: whether a close powers off is the
-  owner's call.
+- Nothing acts on the lid itself: whether a close powers off is
+  still to be decided.
 
 A power-button press runs the wiped power-off: one `power off with the
 wipe` line, then AdminShutdown, which wipes on the way down, with no

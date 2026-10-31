@@ -5,7 +5,7 @@ embeds and spawns it under `nonos-capsule-driver-ehci` (the
 `microkernel-driver-ehci` build) when the inventory sees `UsbEhci`, a
 function of class 0Ch, subclass 03h, interface 20h. `driver.ehci0` is held
 to the USB class drivers. It has no owner certificate yet, so no image
-carries it until the owner signs it.
+carries it until it is signed.
 
 ## Role
 
@@ -126,7 +126,7 @@ VMware's EHCI and on chipsets with EHCI and companion hosts.
 
 ## Release checklist
 
-- Signed by the owner and added to the image's features.
+- Signed and added to the image's features.
 - A QEMU `-device usb-ehci -device usb-storage` boot reading the stick.
 - VirtualBox with USB 2.0 (EHCI + OHCI): a stick on EHCI, the tablet on
   OHCI.

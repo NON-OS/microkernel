@@ -31,7 +31,7 @@ boot_splash -> compositor -> driver.virtio_gpu
 The splash paints its whole canvas: a wash over every pixel first, then
 NONOS's own title, the attestation panel, the warning's row and the status
 line, laid out for the canvas (`src/canvas.rs`, `src/layout_fit.rs`). No
-firmware or vendor logo is kept or drawn, at the owner's word. The
+firmware or vendor logo is kept or drawn, by design. The
 compositor holds its first frame until this surface is up, so the boot
 shows no flash of the firmware's screen.
 

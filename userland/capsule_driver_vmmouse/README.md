@@ -136,7 +136,7 @@ path). It checks:
 - a lost pointer brought back, and one that stays lost;
 - the console lines.
 
-A boot is the owner's.
+A boot on hardware is still to come.
 
 ## Release checklist
 

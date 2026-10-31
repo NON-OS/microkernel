@@ -1,6 +1,6 @@
 # gpu: gate boot of bdd4278c2, Settings card notes wrapped
 
-The note wrap is 74f56105e. It was pushed on the owner's order before this
+The note wrap is 74f56105e. It was pushed before this
 boot, marked "not booted yet"; this is its boot.
 
 ## How it ran

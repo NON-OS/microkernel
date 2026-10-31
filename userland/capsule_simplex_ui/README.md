@@ -63,7 +63,7 @@ database are the core's, in the core's home.
 `mk/20-build.mk` includes it, the desktop profile turns on
 `nonos-capsule-simplex-ui`, and the kernel mirror in
 `src/userspace/capsule_simplex_ui` starts one window when the desktop's
-SimpleX tile is pressed, never at boot. The owner's steps remain: publisher
+SimpleX tile is pressed, never at boot. Steps that remain: publisher
 keys (`nonos-data/trust/keys/simplex_ui_publisher_{ed25519,mldsa65}.pub` and
 their seeds), the signed certificate, manifest and trailer under
 `nonos-data/trust/capsules/` and the key manifest entry.
