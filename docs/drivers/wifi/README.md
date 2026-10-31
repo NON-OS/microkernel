@@ -18,7 +18,7 @@ Each Wi-Fi driver is a [capsule](../../overview/glossary-boot-root-record.md#cap
 | MediaTek MT7921, MT7922 (AMD RZ608, RZ616) and MT7920 | 14c3:7961, 7922, 0608, 0616, 7920; 0b48:7922 | `driver.mt7921e0` | Partial: boots, scans and joins WPA2 against a modelled chip only; never booted on a card; firmware from the boot medium's package | [mt7921.md](mt7921.md) |
 | Other MediaTek, Qualcomm, Broadcom, other Realtek Wi-Fi | listed on the page | none | Not supported | [not-supported.md](not-supported.md) |
 
-Wi-Fi on Realtek RTL8821CE (scan, join, DHCP, DNS, browser traffic). Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), developer hardware report, 6 October 2026; the image commit was not recorded.
+Wi-Fi on Realtek RTL8821CE (scan, join, DHCP, DNS, browser traffic). Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), hardware report, 6 October 2026; the image commit was not recorded.
 
 That is the only hardware report for Wi-Fi in this release. Every other statement on these pages comes from the code and from host tests in [proof crates](../../overview/glossary-peer-list.md#proof-crate).
 

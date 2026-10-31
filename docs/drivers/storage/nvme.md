@@ -118,7 +118,7 @@ NONOS_QEMU_EXTRA="-msg timestamp=on -trace pci_nvme_rw -trace pci_nvme_rw_comple
 
 Not tested in this release.
 
-On real hardware, the installer writing to an internal NVMe disk and booting from it: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), developer hardware report, 6 October 2026; the image commit was not recorded.
+On real hardware, the installer writing to an internal NVMe disk and booting from it: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), hardware report, 6 October 2026; the image commit was not recorded.
 
 ## See also
 

@@ -4,6 +4,7 @@ What NONOS does with a USB hub: one capsule, `driver.usb_hub0`, brings every hub
 
 ## In short
 
+Keyboards, mice, sticks, network adapters and other devices work behind a hub. That covers external hubs, internal hubs, and the rate-matching hub an Intel PCH from the 5 series on puts behind its EHCI. None of this has run on hardware or under QEMU yet; the proofs below drive it against models. `driver.usb_hub0` needs its release certificate before an image carries it.
 
 ## What happens with a hub
 
@@ -36,9 +37,11 @@ The hub class lives in the `nonos_usb_hub` library (`userland/nonos_usb_hub/src/
 
 Each host keeps a table of parked children (`userland/nonos_usb_virt`). Every host shares it: UHCI, OHCI and EHCI through their front (`userland/capsule_driver_uhci/src/server/many`), and xHCI through its multiplexer (`userland/capsule_driver_xhci/src/server/mux_virt.rs`).
 
+- **Listing.** OP_PORT_STATUS lists the parked children after the root ports. The reply's head is `ports u8, virtual u8, 0, 0`. Then come `ports` 8-byte entries, root ports first: `port u8, owner u8, kind u8 (0 root, 1 virtual), 0, PORTSC u32 le`, in xHCI's form (connected bit 0, enabled bit 1, speed bits 13:10, connect change bit 17). After them come `virtual` 8-byte extensions: `port u8, parent slot u8, TT hub slot u8, TT port u8, route u32 le`. Virtual ports are numbered from 0x80. A parser that knows only root ports reads them as ports.
 - **Claiming.** A class driver claims a virtual port exactly as a root port: ENABLE_SLOT, then OP_ADDRESS_DEVICE naming it. The first claim wins; a second is answered E_BUSY. The reply is the address reply with the claimant's own slot. From then on every request for that slot goes to the parked one.
 - **Detaching.** When the child leaves, usb_hub0 gives its slot back. Unclaimed, the port goes at once. Claimed, the port reads disconnected with its connect change set, as a root port does, until the claimant gives its slot back; then both slots go.
 - **Letting go.** A claimant that lets a child go that is still there leaves it parked for the next claim.
+- **Holding.** A slot serves only the client that enabled it; any other is answered E_PERM (-1), parking included, which needs both the child's slot and its hub's. A holder that exits is replaced by the next client that asks, and once a second its slots are given back, all but a child parked below a hub (`userland/capsule_driver_uhci/src/server/many/owners.rs`), as xHCI's multiplexer does (`userland/capsule_driver_xhci/src/slots/holders.rs`).
 
 ## What each host does with op 0x20 and op 0x21
 

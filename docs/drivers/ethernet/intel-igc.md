@@ -13,6 +13,7 @@ The table holds every I225 and I226 id Linux's igc driver binds, including the b
 | 15f8 | I225-I |
 | 15f7 | I220-V |
 | 3100 | I225-K |
+| 3101 | I225-K2 |
 | 3102 | I226-K |
 | 5502 | I225-LMVP |
 | 5503 | I226-LMVP |

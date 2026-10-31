@@ -4,7 +4,7 @@ How a curated Linux app becomes a schema-3 Marketplace listing that carries its 
 
 ## What a listing carries
 
-A catalogue app is an Alpine v3.20 package. Its release pins the BLAKE3 of the `.apk`. It also carries a `guest_policy`, the 256-byte box of the plan, written for the exact program the installer will record (`install/market/choose.rs`):
+A catalogue app is an Alpine v3.20 package. Its release pins the BLAKE3 of the `.apk`. It also carries a `guest_policy`, the 256-byte box the release is sold with, written for the exact program the installer will record (`install/market/choose.rs`):
 
 - `usr/bin/<package>` when the package has a regular file there;
 - else its first ELF under `usr/bin`, in archive order;
@@ -20,6 +20,7 @@ init asks the market for the release's policy (`OP_GET_LINUX_POLICY`, I-C5) and 
 
 A market release's policy names one program, the one its listing starts. Every other ELF of that package is held: the installer writes an unvouched policy beside each one before its bytes land, and the program gets its real policy only once that policy is bound. So no ELF of the listed package starts outside its box at its installed path. That holds if its install is cut off, and if an uninstall leaves some of it behind (`userland/capsule_linux/src/linux/install/market/minted.rs`). The package's other programs are refused at their installed paths until they have a policy of their own. In 0.9.3 those are git's HTTP and SSH helpers, age's `age-keygen` and flac's `metaflac`, and their listings say so.
 
+The box is kept by path, so three ways around it are open today. Each ends in the default box: the terminal, the person's home, exec, every Linux call and no network.
 
 - **Dependencies:** a listed package's dependencies install unheld (tig pulls git, bat pulls less, vim pulls xxd), and each runs in the default box.
 - **A copy:** a held ELF copied to another path along with its trailer.
@@ -40,7 +41,7 @@ Nothing is listed until the generator has authenticated it as the device does, u
 | `mask` | yes | the services, from WAYLAND NET_ANON NET_LISTEN_LO FILES_HOME MODELS_RO EXEC JIT TTY |
 | `name`, `text` | yes | what the store shows |
 | `calls` | no | the measured set, as `nonos-linux-pack syscalls --from-log` prints it |
-| `dests` | no | a file inside the tree of the plan destinations, one a line; needs NET_ANON |
+| `dests` | no | a file inside the tree listing the destinations the box allows, one a line; needs NET_ANON |
 | `program` | no | the program the listing sells, as `usr/bin/<name>`, for a package of many programs |
 | `args` | no | the long options the program starts with, before the person's own (below) |
 | `with` | no | Alpine packages the install adds to the closure, which nothing the package needs names (below) |
@@ -93,7 +94,7 @@ Downloads are capped before they are read and written to the cache only whole (`
 
 Any fault stops the run with a message, so a seal lists every recipe or none. That covers a missing or malformed recipes file or lock, a bad publisher key, an index that fails its signature or has moved past the lock, and a package that fails any check. A failed package's cached copy is dropped, so the next run fetches it again (`tools/nonos_market_catalogue/run.py`, `catalogue_run`). A recipe inside another family's namespace (`kali.`, `blackarch.`, `qwen-`, `nonos-`) is refused. `python3 -m nonos_market_catalogue.documents OUT.json DIR`, run from `tools/`, splits the index into one unsigned document per listing, as committed under `nonos-data/market/catalogue/`. The publisher then signs each one with `marketplace-index sign-release`.
 
-`mk/21-market.mk` and the seal (`tools/nonos_seal/market.py`) pass `--catalogue`, so the catalogue's apps are in 0.9.3's signed baseline: 31 recipes, 25 of them from Alpine and 6 built from source (SimpleX Chat and its core, and DarkFi's app, darkfid, darkirc and drk), which list only with a package mirror. The developers chose that, and only the release holder signs it.
+`mk/21-market.mk` and the seal (`tools/nonos_seal/market.py`) pass `--catalogue`, so the catalogue's apps are in 0.9.3's signed baseline: 31 recipes, 25 of them from Alpine and 6 built from source (SimpleX Chat and its core, and DarkFi's app, darkfid, darkirc and drk), which list only with a package mirror. Only the release keys sign it.
 
 ## The lock
 
@@ -105,7 +106,7 @@ Every run fetches the signed indexes fresh, then holds them to the lock. A run s
 - lacks a recipe's package;
 - has a recipe with no pin, or a pin with no recipe.
 
-After the fetch, every listing's `.apk` must be the one `B` pins. So two seals of one tree sign the same bytes or the second one stops. Alpine replaces a package's version in place, so a security update stops the next seal by name. `--update-lock` writes the lock from a run instead of holding it to the lock. That is a developer's deliberate step, and its diff is reviewed and committed like any other change.
+After the fetch, every listing's `.apk` must be the one `B` pins. So two seals of one tree sign the same bytes or the second one stops. Alpine replaces a package's version in place, so a security update stops the next seal by name. `--update-lock` writes the lock from a run instead of holding it to the lock. It is a deliberate step, and its diff is reviewed and committed like any other change.
 
 ## Apps built from source
 
@@ -124,6 +125,7 @@ Some apps are packaged by no distribution: DarkFi's chat app and command-line to
 
 The rest of the recipe is checked as an Alpine one is: the allowlist, the services, the set, the dests file and the logo record. `index_licence` and `licence_source` describe an index, so a source recipe may not carry them. Its listing is `linux.nonos-<package>`. That is the namespace the device installs from the NONOS package mirror (`userland/capsule_linux/src/linux/install/tools.rs`). The generator adds the prefix, so a recipe that names a reserved namespace itself (`nonos-`, `qwen-`, `kali.`, `blackarch.`) is refused.
 
+**Content.** The generator builds nothing. The seal passes the build's output as `--sources DIR`. DIR holds `<package>/`, a tree, or `<package>.tar`, a tar, but never both. Either one is bundled again by `packages.py`'s `bundle`: in path order, with no times and no owners. So a tar's own order and times never reach the listing (`tools/nonos_market_catalogue/source_content.py`, `bundled`). The content may hold only regular files, so a link, a hard link, a device, a path out of the tar, or an empty content is refused.
 
 **The listing.** For each source recipe the generator (`tools/nonos_market_catalogue/source_run.py`, `source_entries`):
 

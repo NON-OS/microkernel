@@ -11,7 +11,7 @@ You need a network card NONOS has a driver for, an image that carries that drive
 - The standard and hardened images carry all of these drivers. The `qemu` image carries only `virtio_net`, so it has no Wi-Fi. An image built with the `airgapped` profile carries no network driver, stack or online program at all.
 - The Air-Gapped, Safe Mode and Recovery boot modes start no network driver and no network service. See [boot modes](../install/boot-modes.md).
 
-Realtek RTL8821CE Wi-Fi, for scanning, joining, DHCP, DNS and browser traffic: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), developer hardware report, 6 October 2026; the image commit was not recorded.
+Realtek RTL8821CE Wi-Fi, for scanning, joining, DHCP, DNS and browser traffic: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), hardware report, 6 October 2026; the image commit was not recorded.
 
 Everything else on this page is stated from the code, and the host tests of the Wi-Fi path pass on this commit.
 

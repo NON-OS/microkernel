@@ -128,7 +128,7 @@ Once a program has opened a Qwen model, its family gets no internet socket in an
 
 ## Hardware report
 
-`sh`, `python3`, `sqlite3` and `john`: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), developer hardware report, 6 October 2026; the image commit was not recorded.
+`sh`, `python3`, `sqlite3` and `john`: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), hardware report, 6 October 2026; the image commit was not recorded.
 
 The host tests of the personality pass on this commit: `capsule_linux_proofs` (369 tests) and `terminal_line_proofs` (247).
 

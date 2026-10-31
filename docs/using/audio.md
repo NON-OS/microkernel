@@ -31,7 +31,7 @@ There is one master volume, from 0 to 100. Every sound passes through it, the de
 
 The `Volume` row in [Settings](settings.md) is something else: how loud the desktop's own tones are, before the master volume. `System sound` switches those tones off, and `Alert sounds` adds a tone for warnings and errors.
 
-The volume keys: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+The volume keys: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), hardware report, 6 October 2026; the image commit was not recorded.
 
 ## Where the sound comes out
 
@@ -57,7 +57,7 @@ When a machine cannot play, the driver says why rather than staying silent. Sett
 
 Some machines wire their speakers to an audio DSP rather than to an HD Audio codec. Running that DSP needs firmware NONOS does not load: Intel's Sound Open Firmware, or Intel's older Smart Sound Technology engines (PCI 8086:9c36, 8086:9cb6, 8086:0f28, 8086:22a8 and 8086:119a), which the driver never runs as HD Audio controllers. The reasons are on [Audio drivers](../drivers/audio.md).
 
-Intel HD Audio: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+Intel HD Audio: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), hardware report, 6 October 2026; the image commit was not recorded.
 
 ## Music
 

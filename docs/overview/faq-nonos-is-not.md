@@ -54,7 +54,7 @@ only the buffers granted to that driver, and interrupts only through entries the
 kernel wrote for it. A machine with neither claims no PCI device, and the boot
 log says so. See [IOMMU](../kernel/iommu.md).
 
-One machine has a developer report for these items: Wi-Fi on the Realtek
+One machine has a hardware report for these items: Wi-Fi on the Realtek
 RTL8821CE (PCI `10ec:c821`) for scan, join, DHCP, DNS and browser traffic; the
 local Qwen model offline; the Linux programs sh, python3, sqlite3 and john; the
 installer writing to an internal NVMe disk and booting from it; the I2C-HID
@@ -62,7 +62,7 @@ touchpad on the Intel LPSS I2C controller (PCI `8086:31ac` to `8086:31ba`, even
 device ids only); the PS/2 keyboard with its layouts; Intel HD Audio (PCI class
 `0x0403`, or `0x0401` on an Intel controller that is not an SST engine); the
 power button and the volume keys. Works on an x86_64 laptop (Intel Gemini Lake,
-8 GB), developer hardware report, 6 October 2026; the image commit was not
+8 GB), hardware report, 6 October 2026; the image commit was not
 recorded.
 
 To add a machine of your own, see [Report a machine](../hardware/report.md).

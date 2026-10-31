@@ -1,22 +1,25 @@
-# 05: the boot plan for the 17 catalogue apps (0.9.3)
+# How the 17 catalogue apps are booted and measured (0.9.3)
 
-What must hold on a booted, merged tree before the
-catalogue ships, and how its logs become the apps' measured boxes.
+What must hold on a booted image before the Linux app catalogue ships, and
+how the boot logs become the apps' measured boxes.
 
 ## The image
 
-- A debug build of the merged main, sealed with a throwaway operator key
-  made for the run, never the production key, so that the market's
-  baseline index carries the 17 listings (mk/21 and the seal pass
-  `--catalogue` now). The log says which key it was. Re-signing with the
+- A debug build of main, sealed with a throwaway operator key made for
+  the run, never the production key, so that the market's baseline index
+  carries the 17 listings (mk/21 and the seal pass `--catalogue`). The log
+  says which key it was. The production key is used only offline, to
+  re-sign for the release.
 - QEMU with the IOMMU on, the Anyone network up (installs leave through it),
-  and the serial log kept. Then the test-matrix hardware where it can run.
+  and the serial log kept. Then real machines of the hardware matrix where
+  it can run.
 
 ## For each app: one boot, one log
 
 1. In the App Store's Linux tab, install `linux.<app>`. The log must show
    `[LINUX-INSTALL] started, in its release's box linux.<app>` and no
-   `[LINUX] refused the market's policy` (I-C5 at work).
+   `[LINUX] refused the market's policy`: the market vouched for the
+   release's policy (`OP_GET_LINUX_POLICY`).
 2. In the Terminal, run its workload below, as the person would use it.
 3. Quit it; let the family seal; say yes to the proof; keep the log, which
    ends with `[PROVE] syscall buckets ok=<130 hex>`.
@@ -68,5 +71,8 @@ app (`helix=qemu.log helix=t480.log`): the sets unite. An app that fails
 stays out of the release until its failure is fixed. It is never shipped
 with a box nobody has seen it run in.
 
+## Signing
 
-Re-sign market, linux and the kernel image (I-C5, the provider fix).
+The market, linux and kernel images are re-signed with the release keys,
+offline, so that the shipped images carry the policy check
+(`OP_GET_LINUX_POLICY`) and the provider fix above.

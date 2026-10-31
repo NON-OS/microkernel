@@ -22,7 +22,7 @@ carries the tool, and CI runs the job inside that shell. The header of
   `NON-OS/STARKs` (`deny.toml:74-78`).
 
 Moving the STARKs pin goes through its own pull request;
-[Review](review.md#who-reviews) says how.
+[Review](review.md#how-review-is-routed) says how.
 
 ## See also
 

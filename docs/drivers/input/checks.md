@@ -35,7 +35,7 @@ machine's i8042, and attaches xHCI on its own (`QEMU_USB`,
 
 For the PS/2 keyboard with its layouts, the I2C-HID touchpad on Intel LPSS, the
 power button and the volume keys there is one real-hardware report. Works on an
-x86_64 laptop (Intel Gemini Lake, 8 GB), developer hardware report, 6 October
+x86_64 laptop (Intel Gemini Lake, 8 GB), hardware report, 6 October
 2026; the image commit was not recorded.
 
 ## See also

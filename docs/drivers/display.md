@@ -61,7 +61,9 @@ If a display driver answers after the compositor fell back to GOP, `upgrade_from
 
 ## virtio-gpu
 
+The [driver capsule](../overview/glossary-dma-pool.md#driver-capsule) `capsule_driver_virtio_gpu` drives a virtio GPU, PCI 1AF4:1050, the id `VIRTIO_GPU_MODERN` that `is_match` accepts; virtio-gpu has no transitional id, so nothing presents 1AF4:1010 (`userland/capsule_driver_virtio_gpu/src/constants/pci.rs`, `userland/capsule_driver_virtio_gpu/src/discover/match_device.rs`). The kernel's scope row for `driver.virtio_gpu0` admits that one id (`src/hardware/broker/scope_table.rs`). It polls and binds no interrupt. Its [capability word](../overview/glossary-boot-root-record.md#capability-word), `0xB9018`, holds no `Pio` (both virtio layouts are reached through a memory BAR) and adds `GraphicsSurfaceCreate` to the usual driver bits so the wire server can register and share each output's primary surface, with the compositor alone and writable: the share names its receiver (`userland/nonos_gfx_pool/src/surface.rs`; `userland/capsule_driver_virtio_gpu/Capsule.mk`). It is one of the names on the display list the compositor asks (`src/services/registry/displays.rs:27`).
 
+It speaks the display wire, the same protocol as every other display driver, through `nonos_gfx_serve`; the private NVGP ops and the shared primary surface it once had are gone. One bring-up attempt, `claimed`, takes the device off its legacy interrupt line, maps the registers, takes the control-queue DMA, runs the virtio handshake, reads the scanouts, probes for 3D, reads output 0's EDID, and takes every enabled scanout; an attempt that fails resets the device before the claim is given back (`userland/capsule_driver_virtio_gpu/src/setup/sequence.rs`, `setup/live.rs`). The 3D probe is only logged; no wire op uses 3D.
 
 ### Outputs and modes
 

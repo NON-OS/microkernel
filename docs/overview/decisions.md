@@ -1,13 +1,13 @@
 # Design decisions
 
 Some behaviour in the tree depends on a numbered decision. This page says what each one settles and what
-the tree does today, as the code and the docs that cite it state it. A decision marked open has no ruling
-yet, and the tree holds the cautious default until there is one.
+the tree does today, as the code and the docs that cite it state it. A decision marked open is not yet
+decided, and the tree holds the cautious default until it is.
 
 | No. | What it settles | State | In the tree |
 |---|---|---|---|
 | 4 | Devices below a switch port that has no ACS can reach one another. Such a group is held by at most one capsule, and an unclaimed device in it is reachable from the others. | Decided | The boot says so on its `[IOMMU]` line (`src/arch/x86_64/iommu/acs/close.rs`). Hardened and Air-Gapped refuse the claim ([security limits](../release/0.9.3-security-limits.md)). |
-| 6 | Whether NØNOS suspends at all. | Decided: no suspend | `SUSPEND = false` in `capsule_acpi`; the kernel's resume path is not wired (`userland/capsule_acpi/src/suspend/switch.rs`, [platform rulings](../hardware/platform-rulings.md)). |
+| 6 | Whether NØNOS suspends at all. | Decided: no suspend | `SUSPEND = false` in `capsule_acpi`; the kernel's resume path is not wired (`userland/capsule_acpi/src/suspend/switch.rs`, [ACPI and platform matrix](../hardware/platform-rulings.md)). |
 | 9 | Which capsule may hold `CameraCapture`, `MicrophoneCapture` and `ScreenCapture`, and who may hold `driver.fido0`. | Open | No capsule holds the capture capabilities, so the camera, microphone and screen-capture paths stay off ([capabilities](../abi/capabilities-what-a-capability.md)). |
 | 10 | Whether a driver whose register programming was read from Linux's GPL-only code may ship. | Open | `driver-rtl8153` and `driver-ax88179` are built by their own profiles and are not in Standard ([feature inventory](../build/feature-inventory.md)). |
 | 12 | Whether NØNOS balloons guest memory at all, and the default policy for authorizing a USB configuration. | Open | Nothing claims `virtio-balloon` (`src/hardware/broker/claim/hold_rule.rs`). The xHCI authorization policy defaults to Allow, so nothing changes on any machine (`userland/capsule_driver_xhci/src/slots/authorize.rs`). |

@@ -16,7 +16,7 @@ iGPU and the NVIDIA GPU is unused.
 The GOP gives no vertical blank, so the kernel's copy into the framebuffer is not
 synchronised to the scan, and fast motion can tear. Nothing on the GOP path can fix
 that: there is no vblank to wait on. How long a whole-frame copy takes on a given card
-is for a machine to measure; this tree has no figure for it yet.
+is for a real machine to measure; this tree has no figure for it yet.
 
 ## What NVIDIA has published
 
@@ -34,7 +34,7 @@ licence:
   including which outputs the board wires and the init scripts it carries.
 - `Falcon-Security`: from Maxwell on, some registers can be written only by
   microcode NVIDIA has signed.
-- `classes/compute/`, `classes/host/` and the QMD layouts: what gpu-5 would need.
+- `classes/compute/`, `classes/host/` and the QMD layouts: what GPU compute would need.
 
 ## What native display would still need
 
@@ -53,14 +53,19 @@ with the widest manuals), would need all of this:
    manual. Here the missing sequences matter most.
 4. **Ampere and later.** NVIDIA states that its open driver runs much of this in GSP.
    The documents do not say whether the display engine can be programmed from the host
+   without it. A register read on a real RTX 30 card would answer that before
    any code is written.
 
 None of this can be checked under QEMU. Each step would be written from the documents,
+held to a register model, and booted on a real card. Without published sequences, each
 step is also a hardware experiment, not only a reading. Honest cost: step 1 alone is
+several weeks with a Turing card at hand. Steps 1 to 3 together are
 months.
 
 ## Recommendation
 
 - Keep NVIDIA on the boot framebuffer for 0.9.x.
 - Native display: start after Intel Gen12 mode setting lands, Turing first, takeover
-- Native compute: see gpu-5's design; it rests on the same channel and MMU documents.
+  only, and only with a Turing machine at hand able to run register-read builds.
+- Native compute: no design is written yet; it would rest on the same channel and MMU
+  documents.
