@@ -1,6 +1,6 @@
 # Platform state: CPU architectures, many cores, GPU
 
-Where NONOS stands on x86_64 SMP, on aarch64, and on a real GPU path, read from the code on `main` at 1536ccef3 (24 October 2026), and the order the work goes in.
+Where NONOS stands on x86_64 SMP, on aarch64, and on a real GPU path, read from the code on `main` at 1536ccef3 (24 October 2026), and the order of what comes next.
 
 ## How each claim is marked
 
@@ -12,7 +12,7 @@ Where NONOS stands on x86_64 SMP, on aarch64, and on a real GPU path, read from 
 | **absent** | no code |
 | **hardware-verified** | seen on a named real machine |
 
-Nothing on this page is booted yet. The SMP soak runs in [the plan](#plan) are what move x86_64 lines to booted. The one hardware report NONOS has is the Gemini Lake laptop in [x86_64](x86_64.md#on-real-hardware). It is single-socket and says nothing about core count, NUMA or the GPU.
+Nothing on this page is booted yet. The SMP soak runs in [What comes next](#what-comes-next) are what move x86_64 lines to booted. The one hardware report NONOS has is the Gemini Lake laptop in [x86_64](x86_64.md#on-real-hardware). It is single-socket and says nothing about core count, NUMA or the GPU.
 
 ## x86_64
 
@@ -102,7 +102,7 @@ Usercopy does not run inside a STAC and CLAC window. It walks the user page tabl
 | PSCI over HVC or SMC, spin table | design |
 | Per-CPU base in TPIDR_EL1, a single writer enforced by static check | design |
 | Broadcast TLBI (`vmalle1is`, `vaae1is`, `aside1is`) | booted on one CPU; the `vaae1is` operand is host-tested; FEAT_TTL silicon not run |
-| SMMUv3 (stage 1, two-level stream table, abort by default) | host-tested (`smmu_proofs`); no QEMU lane gives `iommu=smmuv3` |
+| SMMUv3 (stage 1, two-level stream table, abort by default) | host-tested (`smmu_proofs`); no QEMU run in the tree uses `iommu=smmuv3` |
 | SMMUv2 | absent; IORT parses its nodes, but there is no driver |
 | Device tree: memory, GIC, timer, PCIe ECAM, PL011, PL031, SMMU, `iommu-map`, `msi-map`, PSCI, CPUs, reserved memory, TPM | design |
 | ACPI on ARM: MADT GICC, GTDT, SPCR, IORT, PPTT, SRAT, SLIT, HMAT, DBG2 | host-tested parsers; nothing calls them, and an ACPI-only boot is refused (`src/arch/aarch64/boot/dtb_adapter/parse/acpi.rs:30-39`) |
@@ -149,7 +149,7 @@ A desktop on a UEFI Arm board, whether a Raspberry Pi 5 with community EDK2 firm
 
 ### What exists
 
-- **design.** No log in the tree shows a desktop frame at this commit. Two boots were reported. On the GOP path the splash showed once and froze. On the virtio-gpu path the screen stayed black. The build work owns that fix. The display path is entirely capsules: compositor, window manager, shell, and one driver capsule per device (`virtio_gpu`, `vmware_svga`, `bga`, `intel_display`, `hv_synthvid`). The kernel keeps only the firmware framebuffer mapping, the boot log and panic screen, and the `MkSurfacePresent` blit used when no driver is up (`src/syscall/dispatch/router/graphics_present/blit.rs:22-67`).
+- **design.** No log in the tree shows a desktop frame at this commit. Two boots were reported. On the GOP path the splash showed once and froze. On the virtio-gpu path the screen stayed black. Neither is fixed at this commit. The display path is entirely capsules: compositor, window manager, shell, and one driver capsule per device (`virtio_gpu`, `vmware_svga`, `bga`, `intel_display`, `hv_synthvid`). The kernel keeps only the firmware framebuffer mapping, the boot log and panic screen, and the `MkSurfacePresent` blit used when no driver is up (`src/syscall/dispatch/router/graphics_present/blit.rs:22-67`).
 - **design.** Composition is all CPU. The compositor sends FLUSH with damage rectangles, and the driver copies them into its backing store, then does `TRANSFER_TO_HOST_2D` and `RESOURCE_FLUSH` (`userland/capsule_driver_virtio_gpu/src/display/show.rs:37-58`).
 - **design.** virtio-gpu offers `VIRGL`. The capsule runs one 3D probe, creates a context, clears and reads back, then tears down. It logs the result and draws nothing through 3D (`userland/capsule_driver_virtio_gpu/src/setup/probes.rs:53-55`). It polls and holds no interrupt.
 - **design.** `intel_display` covers display only: takeover on Haswell to Raptor Lake, modeset on Gen9, GGTT, planes, cursor, DP and HDMI. It has no render or GT engine and no GuC or HuC, and it has never booted, since QEMU has no Intel graphics. AMD has a register-document survey and no code. NVIDIA is enumerate-only.
@@ -186,8 +186,9 @@ In order, each step inside a capsule, none in the kernel:
 
 The hard rule through all of it: the device's DMA is confined by the IOMMU to the capsule's own domain. Where a machine has no IOMMU in front of the GPU, the capsule gets no DMA at all.
 
-## Plan
+## What comes next
 
+In order of priority. Each step names its proof.
 
 1. **x86_64 SMP at high core counts.**
    - Done: shootdown targets `Starting` CPUs; an AP past its online deadline is parked cooperatively and only then reset; `shootdown_proofs` with its mutants; boots at `-smp 1`, 2, 4, 16 and 64 with every AP online and no FATAL (above).
@@ -201,7 +202,7 @@ The hard rule through all of it: the device's DMA is confined by the IOMMU to th
    - `driver-virtio-input` in the arm desktop profile.
    - The `core` cell back in CI, and an `-smp 4` cell and an `iommu=smmuv3` cell.
    - Then the real-board path documented against a Pi 5 with EDK2.
-3. **The GPU capsule.** virtio-gpu 3D contexts with a fuzzed virgl validator, then Intel modeset booted on hardware, every lane booted with the IOMMU enforcing.
+3. **The GPU capsule.** virtio-gpu 3D contexts with a fuzzed virgl validator, then Intel modeset booted on hardware, every path booted with the IOMMU enforcing.
 
 ## See also
 

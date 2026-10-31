@@ -71,5 +71,5 @@ Part of [NONOS documentation](README.md).
   commit leaves out.
 - [Tests and proofs](contributing/tests-and-proofs.md): proof crates, static
   checks, Kani, Lean and fuzzing, and which checks fail at this commit.
-- [Review](contributing/review.md): what CI runs on a pull request, who reviews
-  it, and what reviewers look for.
+- [Review](contributing/review.md): what CI runs on a pull request, how review
+  is routed, and what review looks for.

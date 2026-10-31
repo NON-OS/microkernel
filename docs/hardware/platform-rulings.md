@@ -9,7 +9,7 @@ Counts are `#[test]` items at 1536ccef3.
 |---|---|---|---|---|
 | Static tables: RSDP, XSDT (RSDT fallback), FADT (v1 to 6, X_ fields), MADT incl. x2APIC, MCFG, HPET, SRAT, SLIT, HMAT, LPIT, WDAT, BGRT, SPCR, DBG2, PCCT, SDEV, DMAR, IVRS | every PC | kernel | done: bad root/FADT checksums warned and used; bad DMAR/IVRS dropped (DMA then refused, P2) | host kernel_proofs 992, seeded sweep of 3000 seeds over 13 tables; booted (q35, IOMMU cells) |
 | DMAR, IVRS in the seeded sweep | every PC with an IOMMU | kernel | done: DMAR's walk and DRHD, RMRR, ANDD parsers, IVRS's walk, spans, aliases, specials and IVMD swept; it found an IVHD range END below its START kept as a span (ivhd_kind.rs, fixed) | host kernel_proofs seeded_tables |
-| AML interpreter (nonos_aml in capsule_acpi) | every PC | capsule_acpi, **out** (no profile, no capsules.json entry) | partial: written from ACPI 6.5; waits on the release seal and the Admin-or-Firmware ruling | host nonos_aml_proofs 439, capsule_acpi_proofs 49; never booted |
+| AML interpreter (nonos_aml in capsule_acpi) | every PC | capsule_acpi, **out** (no profile, no capsules.json entry) | partial: written from ACPI 6.5; waits on the release seal and a decision on Admin or a Firmware capability | host nonos_aml_proofs 439, capsule_acpi_proofs 49; never booted |
 | Battery `_BIX`/`_BIF`/`_BST`/`_PSR` | every laptop | capsule_acpi | partial: in the capsule only; images show "Battery status unavailable" | host |
 | Thermal zones `_TMP`, `_CRT`, `_HOT`, `_PSV`, `_ACx` | every PC | capsule_acpi | partial: as battery | host |
 | Fixed-feature power button | most desktops, older laptops | kernel | partial: polled, reaches the desktop; desktop power-off needs capsule_acpi's power.off | **hw** (GLK) |
@@ -20,6 +20,7 @@ Counts are `#[test]` items at 1536ccef3.
 
 ## Isolation groups (VT-d on): the audit
 
+The broker gives an isolation group to one capsule (66315c2a8d,
 src/hardware/broker/confine/join_group.rs). A function of a multi-function
 device shares a group with its sibling functions unless the claimed
 function's own ACS redirects (acs_path.rs hop 0; an Intel root complex
@@ -45,8 +46,8 @@ is port-only. A port-only claim goes ahead with no domain and no
 DMA grant (confine/decide.rs `Verdict::NoDma`), and says `port-only with
 no remapping unit over it: Bus Master off, no DMA grant`. A capsule
 holding Dma or Mmio stays refused. So on a machine with VT-d off smbus can
-read SPD, and ahci, nvme, hda, xhci and the NICs cannot. smbus is in no
-image until the release seal (item 52). Booted in QEMU (q35, VT-d off, TCG, throwaway key, smbus added to the
+read SPD, and ahci, nvme, hda, xhci and the NICs cannot. smbus was in no
+image then; it joined Standard on 27 October 2026 and was sealed on 30 October. Booted in QEMU (q35, VT-d off, TCG, throwaway key, smbus added to the
 image in a scratch copy only): smbus reads SPD at 8 of 8 addresses beside that line, and the refused lines
 fall from 85 to 73, every one of them still `no remapping unit confines it`.
 A count of refused lines is not a fixed number: drivers retry their claims,
@@ -56,9 +57,10 @@ which claims stop being refused, not for its exact value.
 
 | Chipset | Group (functions, driver) | Who claims, who is refused | Evidence |
 |---|---|---|---|
-| QEMU q35 (ICH9) | 1f.0 LPC (none), 1f.2 SATA (ahci, DMA), 1f.3 SMBus (smbus, port-only) | both: smbus is port-only; ahci also spawns first | booted before the port-only rule (privacy work): `[VT-D] refused: 00:1f.3 reaches it through 00:1f.2 without ACS; driver.smbus0 holds it`, then `driver.ahci0 status 6`. After the port-only rule, booted (QEMU TCG, VT-d, throwaway key, not a sealed image), in both orders (ahci first as shipped; smbus first in a scratch copy): 0 `[VT-D] refused` lines; smbus reads SPD at 8 of 8 addresses; ahci serves port 0 (1032192 sectors) after IDENTIFY, by DMA through the IOMMU. Those boots are amnesic: the store is the loader's copy, so no disk was mounted. Without VT-d every PCI claim but a port-only one is refused: smbus reads SPD there, ahci stays refused |
+| QEMU q35 (ICH9) | 1f.0 LPC (none), 1f.2 SATA (ahci, DMA), 1f.3 SMBus (smbus, port-only) | both: smbus is port-only; ahci also spawns first | booted before the port-only rule: `[VT-D] refused: 00:1f.3 reaches it through 00:1f.2 without ACS; driver.smbus0 holds it`, then `driver.ahci0 status 6`. After the port-only rule, booted (QEMU TCG, VT-d, throwaway key, not a sealed image), in both orders (ahci first as shipped; smbus first in a scratch copy): 0 `[VT-D] refused` lines; smbus reads SPD at 8 of 8 addresses; ahci serves port 0 (1032192 sectors) after IDENTIFY, by DMA through the IOMMU. Those boots are amnesic: the store is the loader's copy, so no disk was mounted. Without VT-d every PCI claim but a port-only one is refused: smbus reads SPD there, ahci stays refused |
 | Intel 6- to 9-series PCH (2011-2015) | 1f.0 LPC, 1f.2 SATA (ahci, DMA), 1f.3 SMBus (smbus, port-only), 1f.6 thermal (none); HDA at 1b.0 and LAN at 19.0 alone | both: as q35 | inferred from the rule and published lspci layouts |
-| Intel 100- to 700-series PCH (2015-2025) | 1f.0 LPC/eSPI, 1f.2 PMC (none), 1f.3 HDA (hda, DMA), 1f.4 SMBus (smbus, port-only), 1f.5 SPI flash (refused to every capsule, broker/firmware_flash.rs), 1f.6 I219 LAN (e1000e, DMA); SATA at 17.0 alone | smbus always. **hda and e1000e both DMA: a real conflict.** e1000e spawns first (NICs before hda), so with e1000e in an image the machine has wired network and **no audio**; hda logs nothing, its claim refused with `[VT-D] refused: 00:1f.6 reaches it through 00:1f.3 without ACS; driver.e1000e0 holds it`. e1000e is in no image today, so no image shows it yet | inferred. the ruling: no split without a sourced statement that the PCH routes no peer requests between 1f.x functions; the network wins by default; a user choice of audio is the call. A device cell with HDA and an Intel NIC as sibling functions is what moves this row to booted |
+| Intel 100- to 700-series PCH (2015-2025) | 1f.0 LPC/eSPI, 1f.2 PMC (none), 1f.3 HDA (hda, DMA), 1f.4 SMBus (smbus, port-only), 1f.5 SPI flash (refused to every capsule, broker/firmware_flash.rs), 1f.6 I219 LAN (e1000e, DMA); SATA at 17.0 alone | smbus always. **hda and e1000e both DMA: a real conflict.** e1000e spawns first (NICs before hda), so with e1000e in an image the machine has wired network and **no audio**; hda logs nothing, its claim refused with `[VT-D] refused: 00:1f.6 reaches it through 00:1f.3 without ACS; driver.e1000e0 holds it`. e1000e is in no image today, so no image shows it yet | inferred. The rule: no split without a sourced statement that the PCH routes no peer requests between 1f.x functions; the network wins by default; whether a person may choose audio instead is not yet decided. A device cell with HDA and an Intel NIC as sibling functions is what moves this row to booted |
+| Intel CNVi laptops (Cannon Lake on: AX201/AX211 at 14.3) | 14.0 xHCI (xhci, DMA), 14.2 shared SRAM (none), 14.3 CNVi Wi-Fi (iwlwifi, DMA, an RCiEP) | CNVi Wi-Fi shares an isolation group with xHCI (inferred); USB wins; Wi-Fi needs a USB adapter or a non-CNVi card. Since the two-way alias rule the group holds both ways, so the refusal no longer depends on the claim order (before, xHCI first then iwlwifi was admitted, with xHCI's requests to 14.3 unredirected), and the USB hosts spawn before the Wi-Fi: iwlwifi is refused with `[VT-D] refused: 00:14.0 reaches it through 00:14.0 without ACS; driver.xhci0 holds it` | inferred from the rule; `lspci -vv` of 14.0 and 14.3 and the iommu_groups listing from a CNVi laptop would confirm it ([Reporting a machine](report.md)) |
 | Intel Gemini Lake, Apollo Lake | 1f.0 LPC, 1f.1 SMBus (smbus, port-only); HDA at 0e.0, SATA at 12.0 alone | both | inferred |
 | AMD FCH | 14.0 SMBus (smbus, port-only), 14.3 LPC (none) | smbus alone in practice | inferred |
 
@@ -78,10 +80,10 @@ and IVRS, AMD IVHD, the i2c-hid `_DSM` matcher, the HDA codec walk, PS/2,
 ARM ACPI, FDT. No cargo-fuzz target covers device data.
 
 No sweep yet: SDHCI CSD/CID; spi_hid frames; smbus and i2c_pci probes;
-is checked against it before it is taken.
+uhci, ohci and ehci TD retire.
 
 ## Gaps, in order
 
-1. Done: DMAR and IVRS in the seeded sweep, the `_DSM` sweep (item 7),
+1. Done: DMAR and IVRS in the seeded sweep, the `_DSM` sweep,
    and the HDA and PS/2 sweeps.
-2. capsule_acpi, suspend and Thunderbolt stay with F and the rulings.
+2. capsule_acpi, suspend and Thunderbolt are not yet decided.

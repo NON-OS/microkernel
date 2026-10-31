@@ -22,7 +22,7 @@ import sys
 from coverage_facts import ROOT, in_table
 
 PARTS = ROOT / "docs/hardware/coverage-parts.tsv"
-FIELDS = ("area", "part", "years", "common", "ids", "table", "feature", "owner", "priority", "gap")
+FIELDS = ("area", "part", "years", "common", "ids", "table", "feature", "priority", "gap")
 
 
 def rows():

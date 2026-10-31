@@ -36,13 +36,12 @@ def page(area, rows):
         "Written by `tools/hardware/coverage.py` from `coverage-parts.tsv`; edit that file,",
         "not this page. [How to read it](coverage.md#how-to-read-it).",
         "",
-        "| Priority | Part | Years | How common | Ids | Named by the driver | In Standard |"
-        " Owner | Gap |",
-        "|---|---|---|---|---|---|---|---|---|",
+        "| Priority | Part | Years | How common | Ids | Named by the driver | In Standard | Gap |",
+        "|---|---|---|---|---|---|---|---|",
     ]
     for r in rows:
         out.append(
             f"| {r['priority']} | {r['part']} | {r['years']} | {COMMON[r['common']]} | "
-            f"{ids(r['ids'])} | {r['matched']} | {r['image']} | {r['owner']} | {r['gap']} |"
+            f"{ids(r['ids'])} | {r['matched']} | {r['image']} | {r['gap']} |"
         )
     return "\n".join(out) + "\n"

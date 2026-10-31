@@ -324,7 +324,7 @@ granted to the capsule); on another image, Settings' Network page says
 whether the wired interface came up.
 
 - [ ] What to boot: a development image with `microkernel-driver-ax88179`
-      added (it is not in Standard until Decision 10 is ruled),
+      added (it is not in Standard until Decision 10 is decided),
       with an AX88179 or AX88178A dongle (ASIX 0b95:1790 or 0b95:178a, or a
       rebrand listed in `userland/capsule_driver_ax88179/BINDING.md`) and a
       cable to a network with DHCP. Try it in a USB 3 port, then a USB 2
@@ -367,7 +367,7 @@ leave its cable out, so the lease can only come through the adapter.
       cable to a network that serves DHCP. If the machine also runs Linux,
       save `lsusb` and `dmesg | grep r8152` (its `Detected version` line).
 - [ ] Boot a development image with `microkernel-driver-rtl8153` added (it
-      is not in Standard until Decision 10 is ruled), then plug
+      is not in Standard until Decision 10 is decided), then plug
       the adapter into a USB 3 port on the machine (not a hub) once the
       desktop is up; then try it again plugged in before boot.
 - [ ] In the Terminal: `log rtl8153 net-core`. Expected, in order:

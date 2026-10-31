@@ -10,9 +10,9 @@ The rest of the kernel does not name an architecture. It uses the arch-neutral s
 flowchart TB
     neutral["crate::arch neutral surface<br/>paging, interrupt_controller, cpu, port_io, trap, console"]
     neutral --> sel{"cfg(target_arch)"}
-    sel -->|x86_64 (release)| x86["arch::x86_64 -> Arch"]
-    sel -->|aarch64 (preview)| arm["arch::aarch64"]
-    sel -->|riscv64 (preview)| rv["arch::riscv64"]
+    sel -->|"x86_64 (release)"| x86["arch::x86_64 -> Arch"]
+    sel -->|"aarch64 (preview)"| arm["arch::aarch64"]
+    sel -->|"riscv64 (preview)"| rv["arch::riscv64"]
     subgraph x86sub["x86_64 backend"]
         gdtidt["gdt / idt"]
         apic["interrupt/apic, ioapic, pic"]

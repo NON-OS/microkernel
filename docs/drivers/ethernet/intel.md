@@ -10,7 +10,7 @@ NONOS has three Intel Ethernet driver [capsules](../../overview/glossary-boot-ro
 | `driver.e1000e_0` | 82574, 82583, and the I217, I218, I219 PHYs on Intel PCH chipsets, 64 device ids | no | Not supported: not built, not started, not bound by `net.core` |
 | `driver.igc_0` | I225, I226 and their variants, 16 device ids | no | Not supported: not built, not started, not bound by `net.core` |
 
-An Intel I217, I218, I219, I225 or I226 port has no driver in the 0.9.2 image. In 0.9.2 the e1000 driver carried [the receive fault](README.md#the-receive-fault): `net.core` dropped every frame it received, so a cable on an 8254x port got no DHCP lease. It is fixed in code on this branch and has not been booted. Read [what to use instead](../wifi/not-supported.md#what-to-use-instead) before you plan on a wired link.
+An Intel I217, I218, I219, I225 or I226 port has no driver in the 0.9.2 image. In 0.9.2 the e1000 driver carried [the receive fault](README.md#the-receive-fault): `net.core` dropped every frame it received, so a cable on an 8254x port got no DHCP lease. It is fixed in code at this commit and has not been booted. Read [what to use instead](../wifi/not-supported.md#what-to-use-instead) before you plan on a wired link.
 
 ## e1000 (8254x)
 

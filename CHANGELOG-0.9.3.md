@@ -12,7 +12,7 @@ Unless a line says otherwise, the boots behind these changes are development ima
 - Installing Linux apps from the Marketplace: 31 recipes, 25 from Alpine and six built from source or pinned (SimpleX Chat and its core, DarkFi's `drk`, `darkirc`, `darkfid` and chat app).
 - Update in place. A disk installed by 0.9.3 keeps its encrypted data volume across a later release. The volume's key is random and wrapped under a key the TPM gives only to a kernel the release approved.
 - Power Off and the Power key ask to wipe memory, then power off through the wipe.
-- Drivers: on QEMU the e1000, e1000e, igb, RTL8139, PCnet, vmxnet3 and Tulip drivers each got a DHCP lease; new Wi-Fi drivers for the RTL8822CE, RTL8852BE, MediaTek MT7921 and MT7922, and a RTL8821CE report from a laptop that has no log.
+- Drivers: on QEMU the e1000, e1000e, igb, RTL8139, PCnet, vmxnet3 and Tulip drivers each got a DHCP lease; new Wi-Fi drivers for the RTL8822CE, RTL8852BE, MediaTek MT7921 and MT7922, and a RTL8821CE report from a HP laptop that has no log.
 - A 13-step first-boot setup, with the Appearance step choosing the desktop wallpaper.
 
 ## Changed

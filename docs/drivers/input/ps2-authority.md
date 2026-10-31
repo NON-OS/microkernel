@@ -50,7 +50,7 @@ input ring until the router delivers them. The driver writes nothing to disk.
   machine's i8042 (`QEMU_USB`, `mk/10-qemu.mk:99-102`).
 - For the PS/2 keyboard with its layouts and the volume keys there is one
   real-hardware report. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB),
-  developer hardware report, 6 October 2026; the image commit was not recorded.
+  hardware report, 6 October 2026; the image commit was not recorded.
 
 ## See also
 

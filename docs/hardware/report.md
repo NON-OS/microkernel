@@ -1,6 +1,6 @@
 # Reporting a machine
 
-Tell the NONOS team what NONOS 0.9.2 did on your machine, so it can enter the [support matrix](MATRIX.md) or get a driver fixed.
+Report what NONOS 0.9.2 did on your machine, so it can enter the [support matrix](MATRIX.md) or get a driver fixed.
 
 ## What a useful report holds
 

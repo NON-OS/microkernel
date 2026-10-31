@@ -23,7 +23,7 @@ installed.
 6. [Install to disk](install/install-to-disk.md), only if you want the machine
    to keep anything.
 7. [Troubleshooting](install/troubleshooting.md) when a step stops, and
-   [Reporting a machine](hardware/report.md) to tell the NONOS team what
+   [Reporting a machine](hardware/report.md) to report what
    happened.
 
 ### A user of a running system

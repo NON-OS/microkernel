@@ -27,9 +27,9 @@ flowchart LR
 4. Run `nix flake check`, or `make check`, before you push.
 5. Open a pull request against `main`.
 6. CI runs the workflows that [Review](review.md) lists.
-7. Review follows. Reviewers ask for evidence: a serial log, a failing proof, a
+7. Review follows. Review asks for evidence: a serial log, a failing proof, a
    diff.
-8. Merge. A developer merges the pull request.
+8. Merge. The pull request is merged into `main`.
 
 For step 2, `tools/nix/inputs.json` lists the paths each crate reads, so this
 prints the proof crates that read a given file:

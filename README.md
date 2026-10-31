@@ -421,8 +421,8 @@ The toolchain, every crate and every C source are pinned by hash, and the build 
 Nix's sandbox. `make` ends with a receipt: every artifact by sha256, the toolchain and every
 pinned input, the kernel's own bytes held to the profile's promises, and `REPRODUCED` when the
 artifacts are byte for byte the ones in the committed `receipts/<profile>.json`. Those artifacts
-are unsigned, and no build ever needs a key. Enrolling and signing take keys only the release
-holder has:
+are unsigned, and no build ever needs a key. Enrolling and signing take the release keys, which
+are not in the tree:
 
  make seal # enroll, sign and pack: needs the keys
  make boot # boot the sealed image under QEMU, with a TPM

@@ -125,7 +125,7 @@ One more chord never reaches a window: `Ctrl+Alt+Space` cycles the keyboard layo
 
 The power key asks before it powers anything off, whether it comes from a keyboard or from the machine's ACPI power button, which the kernel turns into the same key; so does Power Off in the desktop's menu. Confirmed, the power service runs the shutdown that wipes memory first.
 
-The power button and the volume keys: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), developer hardware report, 6 October 2026; the image commit was not recorded.
+The power button and the volume keys: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), hardware report, 6 October 2026; the image commit was not recorded.
 
 ## Copy and paste
 
