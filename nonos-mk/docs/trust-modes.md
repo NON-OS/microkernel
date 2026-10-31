@@ -6,14 +6,14 @@ signing seeds, or must it prove things without them?
 
 ## Signing mode, the default
 
-The owner flow. Certificates are signed under the trust-anchor seeds,
+The release flow. Certificates are signed under the trust-anchor seeds,
 manifests under the publisher seeds, and each manifest is verified
 immediately after it is produced. Key checks run first and fail
 loudly with the exact missing path, because a signing flow that
 discovers a missing seed halfway through has already written partial
 state. Scratch CI also runs in this mode, against a throwaway trust
 chain minted by the bootstrap script, so full-system lanes exercise
-the same rules the owner runs without touching anything real.
+the same rules the release runs without touching anything real.
 
 ## Reuse mode: NONOS_TRUST_REUSE=1
 

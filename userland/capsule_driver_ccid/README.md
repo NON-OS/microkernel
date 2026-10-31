@@ -4,8 +4,8 @@ Status: wired, not yet signed, and held to no one. The kernel mirror
 (`src/hardware/ccid_capsule`) embeds and spawns it under
 `nonos-capsule-driver-ccid` wherever the inventory sees a USB host, after
 the hub walker. It has no owner certificate yet, so no image carries it
-until the owner signs it. Its endpoint is held `KERNEL_ONLY`: it finds a
-reader and says so, and serves nobody until the owner names the client.
+until it is signed. Its endpoint is held `KERNEL_ONLY`: it finds a
+reader and says so, and serves nobody until a client is named.
 
 ## Role
 
@@ -76,7 +76,7 @@ RESET_BULK, ALLOC_TRANSFER_RING (0x09) and INTERRUPT_IN (0x0E).
 0x100`: Debug, in a serial-debug build only. No Driver, DeviceEnum, Mmio,
 Irq, Dma or Pio: it reaches the reader only through a host. Its endpoint
 is held to no one: a card signs, decrypts and opens doors for whoever
-reaches its reader, so who may is the owner's to decide.
+reaches its reader, so who may is still to be decided.
 
 ## Current implemented surface
 
@@ -129,8 +129,8 @@ leaves its port is given back and its holder let go.
 
 ## Release target
 
-Desk readers and readers built into tokens, for one client the owner
-names: an OpenPGP or PIV card agent, or a national ID client.
+Desk readers and readers built into tokens, for one named
+client: an OpenPGP or PIV card agent, or a national ID client.
 
 ## Release evidence
 
@@ -142,8 +142,8 @@ in `kernel_proofs`. No boot yet.
 
 ## Release checklist
 
-- The owner names the client the endpoint is held to.
-- Signed by the owner and added to an image's features.
+- A client is named for the endpoint to be held to.
+- Signed and added to an image's features.
 - A boot with a reader. QEMU's `usb-ccid` (as recalled, unverified) is one
   to try first.
 

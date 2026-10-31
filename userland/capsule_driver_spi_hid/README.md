@@ -3,7 +3,7 @@
 Status: wired, not yet signed. The kernel mirror
 (`src/hardware/spi_hid_capsule`) embeds and spawns it under
 `nonos-capsule-driver-spi-hid`, after `driver.spi0`. It has no owner
-certificate yet, so no image carries it until the owner signs it. It
+certificate yet, so no image carries it until it is signed. It
 cannot read the firmware's record until the held table admits it to
 capsule_acpi (the line); until then it says so and leaves.
 
@@ -131,7 +131,7 @@ the address.
 
 - The held table admits it to capsule_acpi (the line).
 - driver.gpio0 admits driver.spi0 to its EVENTS (F's table).
-- Signed by the owner and added to an image's features.
+- Signed and added to an image's features.
 - On a machine with an SPI touchpad: the descriptors read, reports move
   the pointer, and the line rings.
 

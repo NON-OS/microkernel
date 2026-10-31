@@ -172,7 +172,7 @@ sections held by the host, the link indications, a broken ring, the
 messages byte by byte, the DISCOVER against the egress rules, and the
 station address: kept where the host carries it, refused at once, and
 fallen back only after the whole bounded wait. QEMU has no network VSP, so
-a boot is on Hyper-V, and the owner's.
+a boot is on Hyper-V, still to come.
 
 ## Release checklist
 

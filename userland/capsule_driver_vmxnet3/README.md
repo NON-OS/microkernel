@@ -122,7 +122,7 @@ vmxnet3 and QEMU's `vmxnet3`.
 checked byte by byte against vmxnet3_defs.h, ACTIVATE_DEV refusing a bad
 layout, both queues across many generation flips, dropped and stray
 completions, the refusal paths and their cleanup, and DMA confined to the
-grants. A boot under QEMU `-device vmxnet3` and in VMware is the owner's.
+grants. A boot under QEMU `-device vmxnet3` and in VMware is still to come.
 
 ## Release checklist
 

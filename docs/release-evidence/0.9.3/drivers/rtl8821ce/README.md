@@ -17,5 +17,5 @@
   (ad2a58a01: the claim step and errno on the panel, 10ec:b821, the idle
   waits) are in the image; none of them was exercised by a refused claim.
 - **What it does not hold:** no serial log or screenshot was sent; the
-  owner's words are the record. The next report from that machine should be
+  written report is the record. The next report from that machine should be
   `log rtl8821ce net-core > wifi.txt` (no address or SSID is in those lines).

@@ -5,7 +5,7 @@ embeds and spawns it under `nonos-capsule-driver-ohci` (the
 `microkernel-driver-ohci` build) when the inventory sees `UsbOhci`, a
 function of class 0Ch, subclass 03h, interface 10h. `driver.ohci0` is held
 to the USB class drivers. It has no owner certificate yet, so no image
-carries it until the owner signs it.
+carries it until it is signed.
 
 ## Role
 
@@ -116,7 +116,7 @@ nothing from its capsules, so no transfer was seen. The first boot, before
 
 ## Release checklist
 
-- Signed by the owner and added to the image's features.
+- Signed and added to the image's features.
 - A QEMU `-device pci-ohci -device usb-tablet` boot moving the pointer.
 - VirtualBox with USB 1.1 (OHCI) enabled: the tablet found through it.
 

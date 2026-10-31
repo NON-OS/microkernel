@@ -165,7 +165,7 @@ request ids; every SRB status, sense and a short transfer; Hyper-V's
 mishandled commands; stale completions, the host's own packets and an
 oversized one; a lost request and the bus reset; a host given up on; a ring
 the host broke; a guest ring that stays full. QEMU has no storage VSP, so a
-boot is on Hyper-V, and the owner's.
+boot is on Hyper-V, still to come.
 
 ## Release checklist
 

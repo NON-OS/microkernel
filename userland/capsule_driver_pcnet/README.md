@@ -125,7 +125,7 @@ default adapter and QEMU's `pcnet`, protocol-blind.
 `pcnet_proofs` holds the driver to a register-level model of the Am79C970A:
 bring-up order, the init block, descriptor ownership, FCS handling, batch
 bodies, every refusal path and its cleanup, and DMA confined to the grants.
-A boot under QEMU `-device pcnet` and under VirtualBox is the owner's.
+A boot under QEMU `-device pcnet` and under VirtualBox is still to come.
 
 ## Release checklist
 

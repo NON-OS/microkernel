@@ -106,7 +106,7 @@ Every lane where no other display driver answers shows
 
 ## Release evidence
 
-`bootfb_proofs` passing; the owner's boot on a GOP-only machine.
+`bootfb_proofs` passing; a boot on a GOP-only machine.
 
 ## Release checklist
 
@@ -116,7 +116,7 @@ Every lane where no other display driver answers shows
   hand-off on main (the branch today).
 - Feature, mirror, scope row (a firmware-bus match), inventory and spawn
   entries, once they are.
-- Owner's keys for the slug `driver.bootfb`.
+- Release keys for the slug `driver.bootfb`.
 
 ## Explicit non-goals today
 

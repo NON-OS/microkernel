@@ -21,7 +21,7 @@ and the link protocol are the 8821CE capsule's own files, mounted by
 `#[path]` and compiled unchanged; `src/main.rs` and each directory's
 `mod.rs` say which are shared and which are this chip's. Nothing in
 `capsule_driver_rtl8821ce` was edited for this driver, so the 8821CE (the
-owner's laptop chip) cannot regress through it. Its log lines are the
+HP laptop's chip) cannot regress through it. Its log lines are the
 shared ones re-tagged `[rtl8822ce]` as each whole line is assembled
 (`src/status/line.rs`).
 

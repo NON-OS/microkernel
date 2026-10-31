@@ -81,8 +81,8 @@ certificate and a real device.
 
 ## Release checklist
 
-The capsule builds with zero warnings and is clippy clean; cdc_ncm_proofs passes; the owner signs
-it, with net.core, net.l2, the setup wizard and capsule_attack re-signed for the NIC table; on
+The capsule builds with zero warnings and is clippy clean; cdc_ncm_proofs passes; it is then signed,
+with net.core, net.l2, the setup wizard and capsule_attack re-signed for the NIC table; on
 hardware, `[usbnet cdc-ncm] port N up, drawn station address programmed` (on a device without
 SET_NET_ADDRESS, `drawn station address, device filter opened`) and `[NET-CORE] bind: interface up
 on driver.cdc_ncm0`, then DHCP and a page.

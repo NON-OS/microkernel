@@ -26,7 +26,7 @@ were added by name.
 - [gate-6f0bbe716](gate-6f0bbe716/README.md): the third gate, standard-dev:
   IOMMU enforcing, 4 CPUs, 67 `[ZK-ATTEST] ok`, no `unanswered`, trap, panic or
   FATAL line, and no kernel line starting mid-line.
-- [owner-sealed-crash](owner-sealed-crash/README.md): the release sealed image
+- [release-sealed-crash](release-sealed-crash/README.md): the release sealed image
   of 26 October, from their serial excerpt: lock waits on every CPU, mappings
   kept after exit and a kernel heap OOM to the panic path. Marked NO-GO, with
   an owner for each defect.

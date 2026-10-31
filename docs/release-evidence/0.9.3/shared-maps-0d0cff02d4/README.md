@@ -1,6 +1,6 @@
 # A stored file mapped shared, as LMDB maps one: 0d0cff02d4
 
-The owner's Monero wallet printed "Failed to initialize ring database:
+A Monero wallet printed "Failed to initialize ring database:
 privacy enhancing features will be inactive" on the sealed 8c02c13b2a. Its
 ring database is LMDB, which maps its files MAP_SHARED, and the Linux
 personality answered every shared file map with ENOSYS. This boot shows the
@@ -44,7 +44,7 @@ through the map, reached the store and outlived the process that made it.
 
 - Monero itself: its ring database set in one run of the wallet and printed
   in the next (`tools/nonos_boot_lanes/monero.steps`). The install needs a
-  network this container cannot give a guest; the owner's KVM host runs it.
+  network this container cannot give a guest; a KVM host runs it.
 - The host proofs are in `capsule_linux_proofs` (tests/shared_maps, 28
   tests including a model of three processes on two files checked against a
   Linux page cache, and tests/whole), with seven mutants and one more that

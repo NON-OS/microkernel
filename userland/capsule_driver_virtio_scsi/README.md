@@ -146,7 +146,7 @@ of disks and of a CD drive with and without a disc, identify, flush, every
 response code, sense and residuals, a request never returned and the
 device brought back, the device given up on, every malformed request and
 the medium rule. `nonos_scsi`'s own tests hold the commands, the sense
-verdicts and the probe. A boot is the owner's.
+verdicts and the probe. A boot on hardware is still to come.
 
 ## Release checklist
 

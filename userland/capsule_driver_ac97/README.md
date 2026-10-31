@@ -120,7 +120,7 @@ ac97 answers: the order of the grants, the cold reset, 48 kHz, the list,
 every refusal and what it gives back, a stream played byte for byte after
 its silence, the list wrapping three times without a halt, a late look
 restarting a halted engine, underruns, stop muting first, and the audio
-server's own wire against the driver. A boot is the owner's.
+server's own wire against the driver. A boot on hardware is still to come.
 
 ## Release checklist
 
