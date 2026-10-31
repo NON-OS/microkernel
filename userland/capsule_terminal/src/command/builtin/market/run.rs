@@ -24,9 +24,9 @@ const USAGE: &[u8] =
 pub fn run(out: &mut Output<'_>, argv: &[&[u8]]) {
     match argv.get(1..).unwrap_or(&[]) {
         [] | [b"list"] => super::list::run(out),
-        [b"info", id] => super::info::run(out, id),
-        [b"install", id] => super::install::run(out, id),
-        [b"uninstall", id] => super::uninstall::run(out, id),
+        [b"info", id] => super::info::run(out, &canonical(id)),
+        [b"install", id] => super::install::run(out, &canonical(id)),
+        [b"uninstall", id] => super::uninstall::run(out, &canonical(id)),
         [b"help"] | [b"-h"] | [b"--help"] => usage(out),
         [b"info"] | [b"install"] | [b"uninstall"] => {
             out.writeln(b"market: which listing? `market list` shows every id");
@@ -36,6 +36,15 @@ pub fn run(out: &mut Output<'_>, argv: &[&[u8]]) {
             out.writeln(b"market: not a market command");
             usage(out);
         }
+    }
+}
+
+/// `market list` prints a Linux listing the way pacman does, `linux/htop`; its
+/// id is `linux.htop`. Either form names the same listing.
+fn canonical(id: &[u8]) -> alloc::vec::Vec<u8> {
+    match id.strip_prefix(b"linux/") {
+        Some(rest) => [b"linux.".as_slice(), rest].concat(),
+        None => id.to_vec(),
     }
 }
 
