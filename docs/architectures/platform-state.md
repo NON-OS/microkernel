@@ -79,7 +79,7 @@ Usercopy does not run inside a STAC and CLAC window. It walks the user page tabl
 
 ### What boots in QEMU virt
 
-- **booted, 24 October 2026, QEMU 11.1 `virt` with GICv3 and `-cpu max`, 1 CPU.** The aarch64 CI boot job runs only the two trap cells, `trap-sp0` and `trap-kernel-abort` (`.github/workflows/ci-boot-aarch64.yml:47-52`). The `core` cell named in the job's header is not in its matrix, and neither are `-smp` or `iommu=smmuv3`.
+- **booted, 24 October 2026, QEMU 11.1 `virt` with GICv3 and `-cpu max`, 1 CPU.** The aarch64 CI boot job runs only the two trap cells, `trap-sp0` and `trap-kernel-abort` (`.github/workflows/ci-boot-aarch64.yml`). The `core` cell named in the job's header is not in its matrix, and neither are `-smp` or `iommu=smmuv3`.
   - `trap-sp0` passes.
   - `trap-kernel-abort` fails on 1536ccef3. Every boot that returned from `boot::init` took a pointer-authentication failure (EC 0x1C), because `init` signed its return address with the MMU off and authenticated it after `init_mmu`. With the key installed after `init` returns (`src/arch/aarch64/boot/entry.rs`), the cell passes.
   - The `core` image then reaches `[NONOS] Core ready` and stops at the bootloader check (next item).
