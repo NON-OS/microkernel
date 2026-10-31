@@ -311,7 +311,8 @@ nonos-fault-proof = []
 # A development image: the gates admit a capsule, the kernel and the loader on
 # their Merkle path alone, with no STARK proof, so a test image is enrolled in
 # seconds. Only the dev profile turns it on, beside the loader's development
-# policy; nonos-production refuses it (src/lib.rs).
+# policy. nonos-release refuses it (src/lib.rs); nonos-production cannot, as the
+# dev profile's desktop features carry nonos-production themselves.
 nonos-dev-attest = ["nonos-boot-measure/dev-attest"]
 # The owner's development opt-in to unconfined DMA: a device no
 # IOMMU domain confines may still be claimed and handed its physical address.
